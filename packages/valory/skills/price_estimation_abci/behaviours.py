@@ -32,9 +32,6 @@ from packages.valory.skills.abstract_round_abci.behaviours import (
     AbstractRoundBehaviour,
     BaseState,
 )
-from packages.valory.skills.abstract_round_abci.serializer import (
-    DictProtobufStructSerializer,
-)
 from packages.valory.skills.abstract_round_abci.utils import BenchmarkTool
 from packages.valory.skills.oracle_deployment_abci.behaviours import (
     OracleDeploymentRoundBehaviour,
@@ -253,25 +250,42 @@ class TransactionHashBehaviour(PriceEstimationBaseState):
             self,
         ).consensus():
             if self.params.is_broadcasting_to_server:
-                yield from self.send_to_server(payload.tx_hash)
+                yield from self.send_to_server()
             yield from self.send_a2a_transaction(payload)
             yield from self.wait_until_round_end()
 
         self.set_done()
 
-    def send_to_server(self, tx_hash: Optional[str]) -> Generator:
-        """Send data to server"""
+    def send_to_server(self) -> Generator:
+        """
+        Send data to server.
+
+        We assume the period count always starts at 0.
+        Hence, if the period count > 0, we can forward
+        the data of the previous cycle to the server,
+        only then do we have the validated signature
+        of the on-chain transaction.
+        """
+
+        period_count = self.period_state.period_count
+        if period_count == 0:
+            self.context.logger.info("First cycle no broadcast")
+            return
 
         self.context.logger.info("Attempting broadcast")
+        # grab data from previous cycle
+        data_period_count = period_count - 1
+        previous_data = self.period_state.db._data[  # pylint: disable=protected-access
+            data_period_count
+        ]
 
         # select relevant data
-        state_db = self.period_state.db
-        period_count = state_db.current_period_count
-        agents = state_db.get_strict("participants")
-        payloads = state_db.get_strict("participant_to_observations")
-        estimate = state_db.get_strict("most_voted_estimate")
+        agents = previous_data["participants"]
+        payloads = previous_data["participant_to_observations"]
+        estimate = previous_data["most_voted_estimate"]
+        # only is one, only during tx settlement behaviour can be more
+        on_chain_signature = previous_data["tx_hashes_history"][0]
 
-        # DictToProtobuf does not support list at the moment (for dict vals)
         observations = {
             agent: getattr(payloads.get(agent), "observation", float("nan"))
             for agent in agents
@@ -282,18 +296,17 @@ class TransactionHashBehaviour(PriceEstimationBaseState):
         # adding timestamp on server side when received
         # period and agent_address are used as `primary key`
         data_for_server = {
-            "period_count": period_count,
+            "period_count": data_period_count,
             "agent_address": self.context.agent_address,
             "estimate": estimate,
-            "signature": tx_hash,
+            "signature": on_chain_signature,
             "observations": observations,
             "data_source": price_api.api_id,
             "unit": f"{price_api.currency_id}:{price_api.convert_id}",
         }
 
-        message = DictProtobufStructSerializer.encode(data_for_server)
+        message = str(data_for_server).encode("utf-8")
         server_api_specs = self.context.server_api.get_spec()
-
         raw_response = yield from self.get_http_response(
             method=server_api_specs["method"],
             url=server_api_specs["url"],

@@ -153,10 +153,16 @@ Steps:
 #### send`_`to`_`server
 
 ```python
-def send_to_server(tx_hash: Optional[str]) -> Generator
+def send_to_server() -> Generator
 ```
 
-Send data to server
+Send data to server.
+
+We assume the period count always starts at 0.
+Hence, if the period count > 0, we can forward
+the data of the previous cycle to the server,
+only then do we have the validated signature
+of the on-chain transaction.
 
 <a id="packages.valory.skills.price_estimation_abci.behaviours.ObserverRoundBehaviour"></a>
 
