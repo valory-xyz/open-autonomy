@@ -420,6 +420,10 @@ Send an http request message from the skill context.
 This method is skill-specific, and therefore
 should not be used elsewhere.
 
+0. get_http_response
+1. _do_request
+2. http client
+
 **Arguments**:
 
 :yield: wait the response message
@@ -443,6 +447,11 @@ def get_signature(message: bytes, is_deprecated_mode: bool = False) -> Generator
 
 Get signature for message.
 
+Flow of the message.
+
+0. get_signature
+1. signing client
+
 <a id="packages.valory.skills.abstract_round_abci.behaviour_utils.BaseState.send_raw_transaction"></a>
 
 #### send`_`raw`_`transaction
@@ -452,6 +461,19 @@ def send_raw_transaction(transaction: RawTransaction) -> Generator[None, None, O
 ```
 
 Send raw transactions to the ledger for mining.
+
+Flow of the message.
+
+0. send_raw_transaction
+1. ledger client
+
+**Arguments**:
+
+- `transaction`: transaction data
+
+**Returns**:
+
+transaction hash
 
 <a id="packages.valory.skills.abstract_round_abci.behaviour_utils.BaseState.get_transaction_receipt"></a>
 
@@ -463,6 +485,22 @@ def get_transaction_receipt(tx_digest: str, retry_timeout: Optional[int] = None,
 
 Get transaction receipt.
 
+Flow of the message.
+
+0. get_transaction_receipt
+1. _send_transaction_receipt_request
+2. ledger client
+
+**Arguments**:
+
+- `tx_digest`: transaction digest received from raw transaction.
+- `retry_timeout`: retry timeout.
+- `retry_attempts`: number of retry attempts allowed.
+
+**Returns**:
+
+transaction receipt data
+
 <a id="packages.valory.skills.abstract_round_abci.behaviour_utils.BaseState.get_ledger_api_response"></a>
 
 #### get`_`ledger`_`api`_`response
@@ -471,7 +509,12 @@ Get transaction receipt.
 def get_ledger_api_response(performative: LedgerApiMessage.Performative, ledger_callable: str, **kwargs: Any, ,) -> Generator[None, None, LedgerApiMessage]
 ```
 
-Request contract safe transaction hash
+Request data from ledger api
+
+Flow of the message.
+
+0. get_ledger_api_response
+1. ledger client
 
 **Arguments**:
 
@@ -492,6 +535,11 @@ def get_contract_api_response(performative: ContractApiMessage.Performative, con
 ```
 
 Request contract safe transaction hash
+
+Flow of the message.
+
+0. get_contract_api_response
+1. ledger client (contract dispatcher)
 
 **Arguments**:
 
