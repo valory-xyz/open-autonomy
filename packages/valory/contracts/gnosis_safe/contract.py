@@ -628,9 +628,6 @@ class GnosisSafeContract(Contract):
         :param contract_address: the contract address
         :return: the nonce
         """
-        nonce = (
-            ledger_api._try_get_transaction_count(  # pylint: disable=protected-access
-                contract_address
-            )
-        )
-        return dict(nonce=nonce)
+        safe_contract = cls.get_instance(ledger_api, contract_address)
+        safe_nonce = safe_contract.functions.nonce().call(block_identifier="latest")
+        return dict(safe_nonce=safe_nonce)

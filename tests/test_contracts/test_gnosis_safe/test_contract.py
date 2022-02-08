@@ -261,11 +261,11 @@ class TestDeployTransactionHardhat(BaseContractTestHardHatSafeNet):
 
     def test_get_safe_nonce(self) -> None:
         """Run get_safe_nonce test."""
-        nonce = self.contract.get_safe_nonce(
+        safe_nonce = self.contract.get_safe_nonce(
             ledger_api=self.ledger_api,
             contract_address=cast(str, self.contract_address),
-        )["nonce"]
-        assert nonce == 1
+        )["safe_nonce"]
+        assert safe_nonce == 0
 
 
 class TestRawSafeTransaction(BaseContractTestHardHatSafeNet):
