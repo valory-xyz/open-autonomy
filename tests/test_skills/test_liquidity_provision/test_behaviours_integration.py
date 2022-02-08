@@ -59,7 +59,6 @@ from packages.valory.skills.liquidity_provision.behaviours import (
     ExitPoolTransactionHashBehaviour,
     LiquidityProvisionConsensusBehaviour,
     SwapBackTransactionHashBehaviour,
-    get_dummy_strategy,
 )
 from packages.valory.skills.liquidity_provision.handlers import (
     ContractApiHandler,
@@ -83,6 +82,9 @@ from tests.conftest import ROOT_DIR, make_ledger_api_connection
 from tests.fixture_helpers import HardHatAMMBaseTest
 from tests.helpers.contracts import get_register_contract
 from tests.test_skills.base import FSMBehaviourBaseCase
+from tests.test_skills.test_liquidity_provision.test_behaviours import (
+    get_default_strategy,
+)
 
 
 DEFAULT_GAS = 1000000
@@ -332,7 +334,9 @@ class TestLiquidityProvisionHardhat(
         cls.swap_back_nonce = cls.enter_nonce + 2
 
         # setup default objects
-        cls.strategy = get_dummy_strategy()
+        cls.strategy = get_default_strategy(
+            is_base_native=False, is_a_native=False, is_b_native=False
+        )
         cls.strategy[
             "deadline"
         ] = 1672527599  # corresponds to datetime.datetime(2022, 12, 31, 23, 59, 59) using  datetime.datetime.fromtimestamp(.)
