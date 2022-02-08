@@ -111,6 +111,7 @@ class AsyncBehaviour(ABC):
         READY = "ready"
         RUNNING = "running"
         WAITING_MESSAGE = "waiting_message"
+        WAITING_UNHANDLED_MESSAGE = "waiting_unhandled_message"
 
     def __init__(self) -> None:
         """Initialize the async behaviour."""
@@ -158,7 +159,10 @@ class AsyncBehaviour(ABC):
         :raises: SendException if the behaviour was not waiting for a message,
             or if it was already notified.
         """
-        in_waiting_message_state = self.__state == self.AsyncState.WAITING_MESSAGE
+        in_waiting_message_state = self.__state in (
+            self.AsyncState.WAITING_MESSAGE,
+            self.AsyncState.WAITING_UNHANDLED_MESSAGE,
+        )
         already_notified = self.__notified
         enforce(
             in_waiting_message_state and not already_notified,
@@ -203,6 +207,7 @@ class AsyncBehaviour(ABC):
         self,
         condition: Callable = lambda message: True,
         timeout: Optional[float] = None,
+        unhandled: bool = False,
     ) -> Any:
         """
         Wait for message.
@@ -212,6 +217,7 @@ class AsyncBehaviour(ABC):
 
         :param condition: a callable
         :param timeout: max time to wait (in seconds)
+        :param unhandled: if the message is unhandled by the behaviour.
         :return: a message
         :yield: None
         """
@@ -220,7 +226,10 @@ class AsyncBehaviour(ABC):
         else:
             deadline = datetime.datetime.max
 
-        self.__state = self.AsyncState.WAITING_MESSAGE
+        if unhandled:
+            self.__state = self.AsyncState.WAITING_UNHANDLED_MESSAGE
+        else:
+            self.__state = self.AsyncState.WAITING_MESSAGE
         try:
             message = None
             while message is None or not condition(message):
@@ -245,7 +254,10 @@ class AsyncBehaviour(ABC):
         if self.__state == self.AsyncState.READY:
             self.__call_act_first_time()
             return
-        if self.__state == self.AsyncState.WAITING_MESSAGE:
+        if self.__state in (
+            self.AsyncState.WAITING_MESSAGE,
+            self.AsyncState.WAITING_UNHANDLED_MESSAGE,
+        ):
             self.__handle_waiting_for_message()
             return
         enforce(self.__state == self.AsyncState.RUNNING, "not in 'RUNNING' state")
@@ -253,7 +265,10 @@ class AsyncBehaviour(ABC):
 
     def stop(self) -> None:
         """Stop the execution of the behaviour."""
-        if self.__stopped or self.__state == self.AsyncState.READY:
+        if self.__stopped or self.__state in (
+            self.AsyncState.READY,
+            self.AsyncState.WAITING_UNHANDLED_MESSAGE,
+        ):
             return
         self.__get_generator_act().close()
         self.__state = self.AsyncState.READY
