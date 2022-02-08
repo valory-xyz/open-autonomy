@@ -220,9 +220,7 @@ class TestSharedState:
             abci_app_cls=AbciAppTest, name="", skill_context=MagicMock()
         )
         with mock.patch.object(shared_state.context, "params"):
-            shared_state.setup()
-            shared_state.period.abci_app.latest_result = None  # type: ignore
-            with pytest.raises(ValueError, match="period_state not available"):
+            with pytest.raises(ValueError, match="period not available"):
                 shared_state.period_state
 
     @mock.patch.object(SharedState, "_process_abci_app_cls")

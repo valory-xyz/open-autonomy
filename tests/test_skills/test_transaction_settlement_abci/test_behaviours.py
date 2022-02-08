@@ -282,7 +282,6 @@ class TestFinalizeBehaviour(PriceEstimationFSMBehaviourBaseCase):
                     initial_data=dict(
                         most_voted_keeper_address=self.skill.skill_context.agent_address,
                         safe_contract_address="safe_contract_address",
-                        oracle_contract_address="oracle_contract_address",
                         participants=participants,
                         participant_to_signature={},
                         most_voted_tx_hash=payload_to_hex(
@@ -358,7 +357,6 @@ class TestValidateTransactionBehaviour(PriceEstimationFSMBehaviourBaseCase):
                     initial_period=0,
                     initial_data=dict(
                         safe_contract_address="safe_contract_address",
-                        oracle_contract_address="oracle_contract_address",
                         tx_hashes_history=["final_tx_hash"],
                         participants=participants,
                         most_voted_keeper_address=most_voted_keeper_address,

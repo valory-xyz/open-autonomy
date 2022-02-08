@@ -19,160 +19,153 @@
 
 """Base deployments module."""
 
+
 import abc
+import json
 import os
 from pathlib import Path
 from shutil import rmtree
 from typing import Any, Dict, List, Type
 
-from deployments.constants import (
-    CONFIG_DIRECTORY,
-    DEPLOYED_CONTRACTS,
-    KEYS,
-    PRICE_APIS,
-    RANDOMNESS_APIS,
+import jsonschema
+import yaml
+from aea.configurations.validation import (
+    ConfigValidator,
+    EnvVarsFriendlyDraft4Validator,
+    OwnDraft4Validator,
+    make_jsonschema_base_uri,
 )
+from aea.helpers.io import open_file
+
+from deployments.constants import CONFIG_DIRECTORY, KEYS, NETWORKS, PACKAGES_DIRECTORY
+
+
+class DeploymentConfigValidator(ConfigValidator):
+    """Configuration validator implementation."""
+
+    def __init__(  # pylint: disable=super-init-not-called
+        self, schema_filename: str, env_vars_friendly: bool = False
+    ) -> None:
+        """
+        Initialize the parser for configuration files.
+
+        :param schema_filename: the path to the JSON-schema file in 'aea/configurations/schemas'.
+        :param env_vars_friendly: whether or not it is env var friendly.
+        """
+        base_uri = Path(__file__).parent
+        with open_file(base_uri / schema_filename) as fp:
+            self._schema = json.load(fp)
+        root_path = make_jsonschema_base_uri(base_uri)
+        self._resolver = jsonschema.RefResolver(root_path, self._schema)
+        self.env_vars_friendly = env_vars_friendly
+
+        if env_vars_friendly:
+            self._validator = EnvVarsFriendlyDraft4Validator(
+                self._schema, resolver=self._resolver
+            )
+        else:
+            self._validator = OwnDraft4Validator(self._schema, resolver=self._resolver)
+
+
+def _process_model_args_overrides(component: Dict, agent_n: int) -> Dict:
+    """Generates env vars based on model overrides."""
+    overrides = {}
+    for model_name, model_overrides in component["models"].items():
+        available_overrides = model_overrides["args"]
+        override = available_overrides[agent_n % len(available_overrides)]
+        for arg_key, arg_value in override.items():
+            overrides[f"{model_name}_{arg_key}".upper()] = arg_value
+    return overrides
 
 
 class BaseDeployment:
-    """Base deployment class."""
+    """Class to assist with generating deployments."""
 
     valory_application: str
     network: str
     number_of_agents: int
 
-    def __init__(
-        self,
-        *,
-        number_of_agents: int,
-        network: str,
-        deploy_safe_contract: bool,
-        deploy_oracle_contract: bool,
-    ):
-        """Initialise the deployment."""
-        self.network = network
-        self.number_of_agents = number_of_agents
-        self.deploy_oracle_contract = deploy_oracle_contract
-        self.deploy_safe_contract = deploy_safe_contract
-        self.output = ""
+    def __init__(self, path_to_deployment_spec: str) -> None:
+        """Initialize the Base Deployment."""
+        self.validator = DeploymentConfigValidator(
+            schema_filename="deployments/deployment_schema.json"
+        )
+        with open(path_to_deployment_spec, "r", encoding="utf8") as file:
+            self.deployment_spec, self.overrides = yaml.load_all(
+                file, Loader=yaml.SafeLoader
+            )
+        self.validator.validate(self.deployment_spec)
+        self.__dict__.update(self.deployment_spec)
+        self.agent_spec = self.load_agent()
 
-    def generate_agents(self) -> List[Dict]:
-        """Generate next agent."""
+    def get_network(self) -> Dict[str, Any]:
+        """Returns the deployments network overrides"""
+        return NETWORKS[self.network]
+
+    def generate_agents(self) -> List:
+        """Generate multiple agent."""
+        return [self.generate_agent(i) for i in range(self.number_of_agents)]
+
+    def generate_common_vars(self, agent_n: int) -> Dict:
+        """Retrieve vars common for valory apps."""
+        return {
+            "AEA_KEY": KEYS[agent_n],
+            "VALORY_APPLICATION": self.valory_application,
+            "ABCI_HOST": f"abci{agent_n}" if self.network == "hardhat" else "",
+            "MAX_PARTICIPANTS": self.number_of_agents,  # I believe that this is correct
+            "TENDERMINT_URL": f"http://node{agent_n}:26657",
+            "TENDERMINT_COM_URL": f"http://node{agent_n}:8080",
+        }
 
     def generate_agent(self, agent_n: int) -> Dict[Any, Any]:
         """Generate next agent."""
+        agent_vars = self.generate_common_vars(agent_n)
+        agent_vars.update(NETWORKS[self.network])
+        if self.overrides is None:
+            return agent_vars
+        for component in self.overrides["model_configuration_overrides"]:
+            agent_vars.update(_process_model_args_overrides(component, agent_n))
+        return agent_vars
 
-    def setup(self) -> str:
-        """Prepare agent generator."""
+    def load_agent(self) -> List[Dict[str, str]]:
+        """Using specified valory app, try to load the aea."""
+        aea_project_path = self.locate_agent_from_package_directory()
+        # TODO: validate the aea config before loading
+        with open(aea_project_path, "r", encoding="utf8") as file:
+            aea_json = list(yaml.safe_load_all(file))
+        return aea_json
 
-
-class CounterDeployment(BaseDeployment):
-    """Simple counter deployment."""
-
-    valory_application = "valory/counter:0.1.0"
-
-    def generate_agent(self, agent_n: int) -> Dict:
-        """Generate next agent."""
-        environment = dict(AEA_KEY=KEYS[agent_n])
-        return environment
-
-    def generate_agents(self) -> List:
-        """Generate multiple agent."""
-        return [self.generate_agent(i) for i in range(self.number_of_agents)]
-
-    def setup(self) -> str:
-        """Prepare agent generator."""
-
-
-class PriceEstimationDeployment(BaseDeployment):
-    """Price Estimation deployment."""
-
-    valory_application = "valory/price_estimation_deployable:0.1.0"
-
-    def get_contracts(self) -> Dict[str, Any]:
-        """If configured, return deployed contracts as env vars."""
-
-        additional_vars = {}
-        if self.deploy_safe_contract:
-            contracts = DEPLOYED_CONTRACTS[self.network]
-            additional_vars.update(
-                {
-                    "PRICE_ESTIMATION_PARAMS_PERIOD_SETUP_SAFE_CONTRACT_ADDRESS": contracts[
-                        "safe_contract_address"
-                    ]
-                }
-            )
-        if self.deploy_oracle_contract:
-            contracts = DEPLOYED_CONTRACTS[self.network]
-            additional_vars.update(
-                {
-                    "PRICE_ESTIMATION_PARAMS_PERIOD_SETUP_ORACLE_CONTRACT_ADDRESS": contracts[
-                        "oracle_contract_address"
-                    ]
-                }
-            )
-        return additional_vars
-
-    def generate_agent(self, agent_n: int) -> Dict:
-        """Generate next agent."""
-        price_api = PRICE_APIS[len(PRICE_APIS) % self.number_of_agents]
-        randomness_api = RANDOMNESS_APIS[len(PRICE_APIS) % self.number_of_agents]
-        environment = dict(
-            AEA_KEY=KEYS[agent_n],
-            VALORY_APPLICATION=self.valory_application,
-            ABCI_HOST=f"abci{agent_n}" if self.network == "hardhat" else "",
-            PRICE_ESTIMATION_PARAMS_MAX_PARTICIPANTS=self.number_of_agents
-            + 3,  # Need to confirm this ceiling
-            PRICE_ESTIMATION_PARAMS_TENDERMINT_URL=f"http://node{agent_n}:26657",
-            PRICE_ESTIMATION_PARAMS_TENDERMINT_COM_URL=f"http://node{agent_n}:8080",
-        )
-
-        environment.update(
-            {f"PRICE_ESTIMATION_ABCI_PRICE_API_{k.upper()}": v for k, v in price_api}
-        )
-        environment.update(
-            {
-                f"PRICE_ESTIMATION_ABCI_RANDOMNESS_{k.upper()}": v
-                for k, v in randomness_api
-            }
-        )
-        additional_vars = self.get_contracts()
-        environment.update(additional_vars)
-        return environment
-
-    def generate_agents(self) -> List:
-        """Use constants available to generate the configuration."""
-        return [self.generate_agent(i) for i in range(self.number_of_agents)]
-
-    def setup(self) -> str:
-        """Prepare agent generator."""
-
-
-class APYEstimationDeployment(BaseDeployment):
-    """APY Estimation application."""
-
-    valory_application = "valory/apy_estimation:0.1.0"
-
-    def generate_agent(self, agent_n: int) -> Dict:
-        """Generate next agent."""
-        environment = dict(AEA_KEY=KEYS[agent_n])
-        return environment
-
-    def generate_agents(self) -> List:
-        """Generate multiple agent."""
-        return [self.generate_agent(i) for i in range(self.number_of_agents)]
-
-    def setup(self) -> str:
-        """Prepare agent generator."""
+    def locate_agent_from_package_directory(self, local_registry: bool = True) -> str:
+        """Using the deployment id, locate the registry and retrieve the path."""
+        if local_registry is False:
+            raise ValueError("Remote registry not yet supported, use local!")
+        for subdir, _, files in os.walk(PACKAGES_DIRECTORY):
+            for file in files:
+                if file == "aea-config.yaml":
+                    path = os.path.join(subdir, file)
+                    with open(path, "r", encoding="utf-8") as aea_path:  # type: ignore
+                        agent_spec = yaml.safe_load_all(aea_path)
+                        for spec in agent_spec:
+                            agent_id = f"{spec['author']}/{spec['agent_name']}:{spec['version']}"
+                            if agent_id != self.valory_application:
+                                break
+                            return os.path.join(subdir, file)
+        raise ValueError("Agent to be deployed not located in packages.")
 
 
 class BaseDeploymentGenerator:
     """Base Deployment Class."""
 
-    old_wd: str
-    output: str
     deployment: BaseDeployment
     output_name: str
+    old_wd: str
+
+    def __init__(self, deployment_spec: BaseDeployment):
+        """Initialise with only kwargs."""
+        self.deployment_spec = deployment_spec
+        self.config_dir = Path(CONFIG_DIRECTORY)
+        self.network_config = NETWORKS[deployment_spec.network]
+        self.output = ""
 
     def setup(self) -> None:
         """Set up the directory for the configuration to written to."""
@@ -184,16 +177,6 @@ class BaseDeploymentGenerator:
     def teardown(self) -> None:
         """Move back to original wd"""
 
-    def __init__(
-        self,
-        number_of_agents: int,
-        network: str,
-    ):
-        """Initialise with only kwargs."""
-        self.number_of_agents = number_of_agents
-        self.network = network
-        self.config_dir = Path(CONFIG_DIRECTORY)
-
     @abc.abstractmethod
     def generate(self, valory_application: Type[BaseDeployment]) -> str:
         """Generate the deployment configuration."""
@@ -203,11 +186,6 @@ class BaseDeploymentGenerator:
         self, valory_application: Type[BaseDeployment]
     ) -> str:
         """Generate the deployment configuration."""
-
-    def get_parameters(
-        self,
-    ) -> Dict:
-        """Retrieve the parameters for the deployment."""
 
     def write_config(self) -> None:
         """Write output to build dir"""

@@ -9,7 +9,7 @@ RUN cd /usr/bin && sudo rm python3 && sudo ln -s python3.8 python3 && sudo ln -s
 RUN sudo apt-get install wait-for-it subversion cowsay -y
 
 RUN python -m pip install --upgrade pip cowsay
-RUN python -m pip install "open-aea[all]>=1.4.0,<2.0.0"
+RUN python -m pip install "open-aea[all]>=1.4.0.post1,<2.0.0"
 RUN python -m pip install "open-aea-ledger-ethereum>=1.2.0,<2.0.0"
 
 WORKDIR /home/ubuntu

@@ -18,6 +18,8 @@
 # ------------------------------------------------------------------------------
 """Tests for valory/liquidity_provision_behaviour skill's behaviours."""
 import binascii
+import json
+import time
 from pathlib import Path
 from typing import Dict, cast
 
@@ -37,15 +39,12 @@ from packages.valory.skills.abstract_round_abci.base import StateDB
 from packages.valory.skills.abstract_round_abci.behaviour_utils import BaseState
 from packages.valory.skills.liquidity_provision.behaviours import (
     CURRENT_BLOCK_TIMESTAMP,
-    ETHER_VALUE,
     EnterPoolTransactionHashBehaviour,
     ExitPoolTransactionHashBehaviour,
     GnosisSafeContract,
-    MAX_ALLOWANCE,
     SleepBehaviour,
     StrategyEvaluationBehaviour,
     SwapBackTransactionHashBehaviour,
-    get_dummy_strategy,
     parse_tx_token_balance,
 )
 from packages.valory.skills.liquidity_provision.payloads import StrategyType
@@ -58,14 +57,65 @@ from tests.conftest import ROOT_DIR
 from tests.test_skills.base import FSMBehaviourBaseCase
 
 
+SAFE_TX_GAS = 4000000  # TOFIX
+MAX_ALLOWANCE = 2 ** 256 - 1
+WETH_ADDRESS = "0xDc64a140Aa3E981100a9becA4E685f962f0cF6C9"  # nosec
+TOKEN_A_ADDRESS = "0x0DCd1Bf9A1b36cE34237eEaFef220932846BCD82"  # nosec
+TOKEN_B_ADDRESS = "0x9A676e781A523b5d0C0e43731313A708CB607508"  # nosec
+LP_TOKEN_ADDRESS = "0x50CD56fb094F8f06063066a619D898475dD3EedE"  # nosec
+DEFAULT_MINTER = "0x0000000000000000000000000000000000000000"  # nosec
+AB_POOL_ADDRESS = "0x86A6C37D3E868580a65C723AAd7E0a945E170416"  # nosec
+SLEEP_SECONDS = 1
+
+
 def get_default_strategy(
     is_base_native: bool, is_a_native: bool, is_b_native: bool
 ) -> Dict:
     """Returns default strategy."""
-    strategy = get_dummy_strategy()
-    strategy["token_base"]["is_native"] = is_base_native
-    strategy["token_a"]["is_native"] = is_a_native
-    strategy["token_b"]["is_native"] = is_b_native
+    strategy = {
+        "action": StrategyType.ENTER.value,
+        "safe_nonce": 0,
+        "safe_tx_gas": SAFE_TX_GAS,
+        "deadline": CURRENT_BLOCK_TIMESTAMP + 300,  # 5 min into future
+        "chain": "Ethereum",
+        "token_base": {
+            "ticker": "WETH",
+            "address": WETH_ADDRESS,
+            "amount_in_max_a": int(1e4),
+            "amount_min_after_swap_back_a": int(1e2),
+            "amount_in_max_b": int(1e4),
+            "amount_min_after_swap_back_b": int(1e2),
+            "is_native": is_base_native,
+            "set_allowance": MAX_ALLOWANCE,
+            "remove_allowance": 0,
+        },
+        "token_LP": {
+            "address": LP_TOKEN_ADDRESS,
+            "set_allowance": MAX_ALLOWANCE,
+            "remove_allowance": 0,
+        },
+        "token_a": {
+            "ticker": "TKA",
+            "address": TOKEN_A_ADDRESS,
+            "amount_after_swap": int(1e3),
+            "amount_min_after_add_liq": int(0.5e3),
+            "is_native": is_a_native,  # if one of the two tokens is native, A must be the one
+            "set_allowance": MAX_ALLOWANCE,
+            "remove_allowance": 0,
+            "amount_received_after_exit": 0,
+        },
+        "token_b": {
+            "ticker": "TKB",
+            "address": TOKEN_B_ADDRESS,
+            "amount_after_swap": int(1e3),
+            "amount_min_after_add_liq": int(0.5e3),
+            "is_native": is_b_native,  # if one of the two tokens is native, A must be the one
+            "set_allowance": MAX_ALLOWANCE,
+            "remove_allowance": 0,
+            "amount_received_after_exit": 0,
+        },
+    }
+
     return strategy
 
 
@@ -95,7 +145,7 @@ class TestStrategyEvaluationBehaviour(LiquidityProvisionBehaviourBaseCase):
                     most_voted_tx_hash="0x",
                     safe_contract_address="safe_contract_address",
                     most_voted_keeper_address="most_voted_keeper_address",
-                    most_voted_strategy=strategy,
+                    most_voted_strategy=json.dumps(strategy),
                     multisend_contract_address="multisend_contract_address",
                     router_contract_address="router_contract_address",
                 ),
@@ -134,7 +184,7 @@ class TestStrategyEvaluationBehaviour(LiquidityProvisionBehaviourBaseCase):
                     most_voted_tx_hash="0x",
                     safe_contract_address="safe_contract_address",
                     most_voted_keeper_address="most_voted_keeper_address",
-                    most_voted_strategy=strategy,
+                    most_voted_strategy=json.dumps(strategy),
                     multisend_contract_address="multisend_contract_address",
                     router_contract_address="router_contract_address",
                 ),
@@ -207,7 +257,7 @@ class TestStrategyEvaluationBehaviour(LiquidityProvisionBehaviourBaseCase):
                     most_voted_tx_hash="0x",
                     safe_contract_address="safe_contract_address",
                     most_voted_keeper_address="most_voted_keeper_address",
-                    most_voted_strategy=strategy,
+                    most_voted_strategy=json.dumps(strategy),
                     multisend_contract_address="multisend_contract_address",
                     router_contract_address="router_contract_address",
                 ),
@@ -249,7 +299,7 @@ class TestEnterPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase)
                     most_voted_tx_hash="0x",
                     safe_contract_address="safe_contract_address",
                     most_voted_keeper_address="most_voted_keeper_address",
-                    most_voted_strategy=strategy,
+                    most_voted_strategy=json.dumps(strategy),
                     multisend_contract_address="multisend_contract_address",
                     router_contract_address="router_contract_address",
                 ),
@@ -458,7 +508,7 @@ class TestEnterPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase)
                 kwargs=Kwargs(
                     dict(
                         to_address=period_state.multisend_contract_address,
-                        value=ETHER_VALUE,
+                        value=0,
                         data=b"ummy_tx",  # type: ignore
                         operation=SafeOperation.DELEGATE_CALL.value,
                         safe_tx_gas=4000000,
@@ -495,7 +545,7 @@ class TestEnterPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase)
                     most_voted_tx_hash="0x",
                     safe_contract_address="safe_contract_address",
                     most_voted_keeper_address="most_voted_keeper_address",
-                    most_voted_strategy=strategy,
+                    most_voted_strategy=json.dumps(strategy),
                     multisend_contract_address="multisend_contract_address",
                     router_contract_address="router_contract_address",
                 ),
@@ -731,7 +781,7 @@ class TestEnterPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase)
                 kwargs=Kwargs(
                     dict(
                         to_address=period_state.multisend_contract_address,
-                        value=ETHER_VALUE,
+                        value=0,
                         data=b"ummy_tx",  # type: ignore
                         operation=SafeOperation.DELEGATE_CALL.value,
                         safe_tx_gas=4000000,
@@ -768,7 +818,7 @@ class TestEnterPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase)
                     most_voted_tx_hash="0x",
                     safe_contract_address="safe_contract_address",
                     most_voted_keeper_address="most_voted_keeper_address",
-                    most_voted_strategy=strategy,
+                    most_voted_strategy=json.dumps(strategy),
                     multisend_contract_address="multisend_contract_address",
                     router_contract_address="router_contract_address",
                 ),
@@ -834,10 +884,9 @@ class TestExitPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase):
                     most_voted_tx_hash="0x",
                     safe_contract_address="safe_contract_address",
                     most_voted_keeper_address="most_voted_keeper_address",
-                    most_voted_strategy=strategy,
+                    most_voted_strategy=json.dumps(strategy),
                     multisend_contract_address="multisend_contract_address",
                     router_contract_address="router_contract_address",
-                    most_voted_transfers='{"transfers":[]}',
                     final_tx_hash=binascii.hexlify(b"dummy_tx").decode(),
                 ),
             )
@@ -1021,10 +1070,9 @@ class TestExitPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase):
                     most_voted_tx_hash="0x",
                     safe_contract_address="safe_contract_address",
                     most_voted_keeper_address="most_voted_keeper_address",
-                    most_voted_strategy=strategy,
+                    most_voted_strategy=json.dumps(strategy),
                     multisend_contract_address="multisend_contract_address",
                     router_contract_address="router_contract_address",
-                    most_voted_transfers='{"transfers":[]}',
                     final_tx_hash=binascii.hexlify(b"dummy_tx").decode(),
                 ),
             )
@@ -1195,6 +1243,74 @@ class TestExitPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase):
         self._test_done_flag_set()
         self.end_round(Event.DONE)
 
+    def test_log_no_tx_results(
+        self,
+    ) -> None:
+        """Test tx hash behaviour."""
+
+        strategy = get_default_strategy(
+            is_base_native=False, is_a_native=True, is_b_native=False
+        )
+        period_state = LiquidityProvisionPeriodState(
+            StateDB(
+                initial_period=0,
+                initial_data=dict(
+                    most_voted_tx_hash="0x",
+                    safe_contract_address="safe_contract_address",
+                    most_voted_keeper_address="most_voted_keeper_address",
+                    most_voted_strategy=json.dumps(strategy),
+                    multisend_contract_address="multisend_contract_address",
+                    router_contract_address="router_contract_address",
+                    final_tx_hash=binascii.hexlify(b"dummy_tx").decode(),
+                ),
+            )
+        )
+
+        self.fast_forward_to_state(
+            behaviour=self.behaviour,
+            state_id=ExitPoolTransactionHashBehaviour.state_id,
+            period_state=period_state,
+        )
+        assert (
+            cast(
+                BaseState,
+                cast(BaseState, self.behaviour.current_state),
+            ).state_id
+            == ExitPoolTransactionHashBehaviour.state_id
+        )
+        self.behaviour.act_wrapper()
+
+        # Get previous transaction's results
+        self.mock_contract_api_request(
+            contract_id=str(UniswapV2ERC20Contract.contract_id),
+            request_kwargs=dict(
+                performative=ContractApiMessage.Performative.GET_STATE,  # type: ignore
+                contract_address=strategy["token_LP"]["address"],
+                kwargs=Kwargs(
+                    dict(
+                        tx_hash=period_state.final_tx_hash,
+                        target_address=period_state.safe_contract_address,
+                    )
+                ),
+            ),
+            response_kwargs=dict(
+                performative=ContractApiMessage.Performative.ERROR,
+                callable="verify_tx",
+                state=State(
+                    ledger_id="ethereum",
+                    body={"logs": []},
+                ),
+            ),
+        )
+
+        assert (
+            cast(
+                BaseState,
+                cast(BaseState, self.behaviour.current_state),
+            ).state_id
+            == ExitPoolTransactionHashBehaviour.state_id
+        )
+
 
 class TestSwapBackTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase):
     """Test SwapBackTransactionHashBehaviour."""
@@ -1214,10 +1330,9 @@ class TestSwapBackTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase):
                     most_voted_tx_hash="0x",
                     safe_contract_address="safe_contract_address",
                     most_voted_keeper_address="most_voted_keeper_address",
-                    most_voted_strategy=strategy,
+                    most_voted_strategy=json.dumps(strategy),
                     multisend_contract_address="multisend_contract_address",
                     router_contract_address="router_contract_address",
-                    most_voted_transfers='{"transfers":[]}',
                     final_tx_hash=binascii.hexlify(b"dummy_tx").decode(),
                 ),
             )
@@ -1438,10 +1553,9 @@ class TestSwapBackTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase):
                     most_voted_tx_hash="0x",
                     safe_contract_address="safe_contract_address",
                     most_voted_keeper_address="most_voted_keeper_address",
-                    most_voted_strategy=strategy,
+                    most_voted_strategy=json.dumps(strategy),
                     multisend_contract_address="multisend_contract_address",
                     router_contract_address="router_contract_address",
-                    most_voted_transfers='{"transfers":[]}',
                     final_tx_hash=binascii.hexlify(b"dummy_tx").decode(),
                 ),
             )
@@ -1738,3 +1852,7 @@ class TestSleepBehaviour(LiquidityProvisionBehaviourBaseCase):
             == SleepBehaviour.state_id
         )
         self.behaviour.act_wrapper()
+        time.sleep(SLEEP_SECONDS)
+        self.behaviour.act_wrapper()
+        self.mock_a2a_transaction()
+        self._test_done_flag_set()

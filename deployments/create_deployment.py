@@ -21,30 +21,22 @@
 import os
 from argparse import ArgumentParser
 from textwrap import dedent
-from typing import Any
+from typing import Any, Dict
 
-from deployments.base_deployments import (
-    APYEstimationDeployment,
-    CounterDeployment,
-    PriceEstimationDeployment,
-)
-from deployments.constants import NETWORKS
+from deployments.base_deployments import BaseDeployment
 from deployments.generators.docker_compose.docker_compose import DockerComposeGenerator
 from deployments.generators.kubernetes.kubernetes import KubernetesGenerator
+
+
+AGENTS: Dict[str, str] = {
+    "oracle_hardhat": "./deployments/deployment_specifications/price_estimation_hardhat.yaml",
+    "oracle_ropsten": "./deployments/deployment_specifications/price_estimation_ropsten.yaml",
+}
 
 
 DEPLOYMENT_OPTIONS = {
     "kubernetes": KubernetesGenerator,
     "docker-compose": DockerComposeGenerator,
-}
-
-AGENTS = {
-    k.valory_application: k
-    for k in [
-        CounterDeployment,
-        PriceEstimationDeployment,
-        APYEstimationDeployment,
-    ]
 }
 
 
@@ -76,25 +68,6 @@ def parse_args() -> Any:
         required=True,
     )
 
-    deployment_parameters = parser.add_argument_group("deployment_parameters")
-    deployment_parameters.add_argument("-n", "--number_of_agents", type=int, default=4)
-    deployment_parameters.add_argument(
-        "-b", "--copy_to_build", action="store_true", default=False
-    )
-    deployment_parameters.add_argument(
-        "-dsc", "--deploy_safe_contract", action="store_true", default=False
-    )
-    deployment_parameters.add_argument(
-        "-doc", "--deploy_oracle_contract", action="store_true", default=False
-    )
-    deployment_parameters.add_argument(
-        "-net",
-        "--network",
-        help="Network to be used for deployment",
-        choices=NETWORKS.keys(),
-        required=True,
-    )
-
     args = parser.parse_args()
     return args
 
@@ -103,21 +76,15 @@ def main() -> None:
     """Main Function."""
     args = parse_args()
     deployment_generator = DEPLOYMENT_OPTIONS[args.type_of_deployment]
-    deployment = deployment_generator(
-        number_of_agents=args.number_of_agents,
-        network=args.network,
+
+    app_instance = BaseDeployment(
+        path_to_deployment_spec=AGENTS[args.valory_application]
     )
+    deployment = deployment_generator(deployment_spec=app_instance)
 
-    agent_generator = AGENTS[args.valory_application](
-        number_of_agents=args.number_of_agents,
-        network=args.network,
-        deploy_oracle_contract=args.deploy_oracle_contract,
-        deploy_safe_contract=args.deploy_safe_contract,
-    )
+    deployment.generate(app_instance)  # type: ignore
 
-    deployment.generate(agent_generator)  # type: ignore
-
-    run_command = deployment.generate_config_tendermint(agent_generator)  # type: ignore
+    run_command = deployment.generate_config_tendermint(app_instance)  # type: ignore
 
     deployment.write_config()
 
@@ -126,14 +93,14 @@ def main() -> None:
     Generated Deployment!\n\n
     Application:          {args.valory_application}
     Type:                 {args.type_of_deployment}
-    Agents:               {args.number_of_agents}
-    Network:              {args.network}
+    Agents:               {app_instance.number_of_agents}
+    Network:              {app_instance.network}
     Build Length          {len(deployment.output)}
     """
     )
 
     print(report)
-    if args.tendermint_configuration:
+    if args.tendermint_configuration and args.type_of_deployment == "docker-compose":
         res = os.popen(run_command)  # nosec:
         print(res.read())
     else:
