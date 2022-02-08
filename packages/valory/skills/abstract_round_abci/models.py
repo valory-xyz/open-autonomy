@@ -131,10 +131,11 @@ class Requests(Model):
         """Initialize the state."""
         super().__init__(*args, **kwargs)
 
-        # a callback which is going to be called if no callback is found for the given request id.
-        self.backup_callback: Callable
         # mapping from dialogue reference nonce to a callback
         self.request_id_to_callback: Dict[str, Callable] = {}
+        # mapping from dialogue reference nonce to a backup callback.
+        # Will be called if no callback is found for the given request id.
+        self.request_id_to_backup_callback: Dict[str, Callable] = {}
 
 
 class ApiSpecs(Model):  # pylint: disable=too-many-instance-attributes
