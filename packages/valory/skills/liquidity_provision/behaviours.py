@@ -845,13 +845,13 @@ class SwapBackTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
             strategy["token_a"]["amount_received"] = parse_tx_token_balance(
                 transfer_logs=transfers,
                 token_address=strategy["token_a"]["address"],
-                source_address=self.period_state.router_contract_address,
+                source_address=strategy["token_LP"]["address"],
                 destination_address=self.period_state.safe_contract_address,
             )
             strategy["token_b"]["amount_received"] = parse_tx_token_balance(
                 transfer_logs=transfers,
                 token_address=strategy["token_b"]["address"],
-                source_address=self.period_state.router_contract_address,
+                source_address=strategy["token_LP"]["address"],
                 destination_address=self.period_state.safe_contract_address,
             )
 
