@@ -376,12 +376,6 @@ def send_a2a_transaction(payload: BaseTxPayload) -> Generator
 
 Send transaction and wait for the response, and repeat until not successful.
 
-Flow of the message.
-
-AbstractRoundAbci -> (SigningMessage) -> Signing client
-AbstractRoundAbci -> (BaseTxPayload) -> ABCI connection
-AbstractRoundAbci -> (HttpMessage) -> Http connection
-
 :param: payload: the payload to send
 :yield: the responses
 
@@ -420,7 +414,9 @@ should not be used elsewhere.
 
 Flow of the message.
 
-AbstractRoundAbci -> (HttpMessage) -> Http client connection
+_do_request:
+    AbstractRoundAbci -> (HttpMessage | REQUEST) -> Http client connection
+    Http client connection -> (HttpMessage | RESPONSE) -> AbstractRoundAbci
 
 **Arguments**:
 
@@ -447,7 +443,9 @@ Get signature for message.
 
 Flow of the message.
 
-AbstractRoundAbci -> (SigningMessage) -> Signing client
+_send_signing_request:
+    AbstractRoundAbci -> (SigningMessage | SIGN_MESSAGE) -> Signing client
+    Signing client -> (SigningMessage | SIGNED_MESSAGE) -> AbstractRoundAbci
 
 **Arguments**:
 
@@ -470,7 +468,13 @@ Send raw transactions to the ledger for mining.
 
 Flow of the message.
 
-AbstractRoundAbci -> (LedgerApiMessage) -> Ledger connection
+_send_transaction_signing_request:
+        AbstractRoundAbci -> (SigningMessage | SIGN_TRANSACTION) -> Signing client
+        Signing client -> (SigningMessage | SIGNED_TRANSACTION) -> AbstractRoundAbci
+
+_send_transaction_request:
+    AbstractRoundAbci -> (LedgerApiMessage | SEND_SIGNED_TRANSACTION) -> Ledger connection
+    Ledger connection -> (LedgerApiMessage | TRANSACTION_DIGEST) -> AbstractRoundAbci
 
 **Arguments**:
 
@@ -492,7 +496,9 @@ Get transaction receipt.
 
 Flow of the message.
 
-AbstractRoundAbci -> (LedgerApiMessage) -> Ledger connection
+_send_transaction_receipt_request:
+    AbstractRoundAbci -> (LedgerApiMessage | GET_TRANSACTION_RECEIPT) -> Ledger connection
+    Ledger connection -> (LedgerApiMessage | TRANSACTION_RECEIPT) -> AbstractRoundAbci
 
 **Arguments**:
 
@@ -516,7 +522,8 @@ Request data from ledger api
 
 Flow of the message.
 
-AbstractRoundAbci -> (LedgerApiMessage) -> Ledger connection
+AbstractRoundAbci -> (LedgerApiMessage | LedgerApiMessage.Performative) -> Ledger connection
+Ledger connection -> (LedgerApiMessage | LedgerApiMessage.Performative) -> AbstractRoundAbci
 
 **Arguments**:
 
@@ -540,7 +547,8 @@ Request contract safe transaction hash
 
 Flow of the message.
 
-AbstractRoundAbci -> (ContractApiMessage) -> Ledger connection (contract dispatcher)
+AbstractRoundAbci -> (ContractApiMessage | ContractApiMessage.Performative) -> Ledger connection (contract dispatcher)
+Ledger connection (contract dispatcher) -> (ContractApiMessage | ContractApiMessage.Performative) -> AbstractRoundAbci
 
 **Arguments**:
 
