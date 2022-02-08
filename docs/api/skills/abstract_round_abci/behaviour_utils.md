@@ -241,7 +241,7 @@ It can be optionally implemented by the concrete classes.
 ## BaseState Objects
 
 ```python
-class BaseState(AsyncBehaviour,  SimpleBehaviour,  CleanUpBehaviour,  ABC)
+class BaseState(AsyncBehaviour,  CleanUpBehaviour,  SimpleBehaviour,  ABC)
 ```
 
 Base class for FSM states.
