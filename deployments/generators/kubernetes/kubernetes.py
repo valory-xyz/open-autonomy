@@ -104,6 +104,7 @@ class KubernetesGenerator(BaseDeploymentGenerator):
         self.resources.append(self.generate_config_tendermint(valory_application))
         agent_vars = valory_application.generate_agents()  # type:ignore
         agent_vars = self._apply_cluster_specific_tendermint_params(agent_vars)
+        agent_vars = self.get_deployment_network_configuration(agent_vars)
         agents = "\n---\n".join(
             [
                 build_agent_deployment(

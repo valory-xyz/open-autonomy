@@ -176,11 +176,11 @@ spec:
       containers:
       - name: node{validator_ix}
         image: valory/consensus-algorithms-tendermint:0.1.0
+        imagePullPolicy: Always
         ports:
           - containerPort: 26656
           - containerPort: 26657
         workingDir: /tendermint
-        command: ["/bin/bash"]
         env:
           - name: HOSTNAME
             value: "node{validator_ix}"
@@ -192,18 +192,14 @@ spec:
             value: /tendermint/node{validator_ix}
           - name: CREATE_EMPTY_BLOCKS
             value: "true"
-
-        args:
-          - wrapper.sh
-          - node
-          - "--consensus.create_empty_blocks=false"
-          - "--proxy_app=tcp://localhost:26658"
+        args: ["run"]
         volumeMounts:
           - mountPath: /tendermint
             name: build
 
       - name: aea
         image: valory/consensus-algorithms-open-aea:0.1.0
+        imagePullPolicy: Always
         env:
           - name: HOSTNAME
             value: "agent-node-{validator_ix}"

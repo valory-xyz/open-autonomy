@@ -102,10 +102,6 @@ class BaseDeployment:
         self.agent_public_id = PublicId.from_str(self.valory_application)
         self.agent_spec = self.load_agent()
 
-    def get_network(self) -> Dict[str, Any]:
-        """Returns the deployments network overrides"""
-        return NETWORKS[self.network]
-
     def generate_agents(self) -> List:
         """Generate multiple agent."""
         return [self.generate_agent(i) for i in range(self.number_of_agents)]
@@ -124,7 +120,6 @@ class BaseDeployment:
     def generate_agent(self, agent_n: int) -> Dict[Any, Any]:
         """Generate next agent."""
         agent_vars = self.generate_common_vars(agent_n)
-        agent_vars.update(NETWORKS[self.network])
         if self.overrides is None:
             return agent_vars
         for component in self.overrides["model_configuration_overrides"]:
@@ -158,12 +153,13 @@ class BaseDeploymentGenerator:
     deployment: BaseDeployment
     output_name: str
     old_wd: str
+    deployment_type: str
 
     def __init__(self, deployment_spec: BaseDeployment):
         """Initialise with only kwargs."""
+        self.network_config = NETWORKS[self.deployment_type][deployment_spec.network]
         self.deployment_spec = deployment_spec
         self.config_dir = Path(CONFIG_DIRECTORY)
-        self.network_config = NETWORKS[deployment_spec.network]
         self.output = ""
 
     def setup(self) -> None:
@@ -175,6 +171,7 @@ class BaseDeploymentGenerator:
 
     def teardown(self) -> None:
         """Move back to original wd"""
+        os.chdir(self.old_wd)
 
     @abc.abstractmethod
     def generate(self, valory_application: Type[BaseDeployment]) -> str:
@@ -194,3 +191,11 @@ class BaseDeploymentGenerator:
 
         with open(self.config_dir / self.output_name, "w", encoding="utf8") as f:
             f.write(self.output)
+
+    def get_deployment_network_configuration(
+        self, agent_vars: List[Dict[str, Any]]
+    ) -> List:
+        """Retrieve the appropriate network configuration based on deployment & network."""
+        for agent in agent_vars:
+            agent.update(self.network_config)
+        return agent_vars
