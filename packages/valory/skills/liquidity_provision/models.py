@@ -30,8 +30,8 @@ from packages.valory.skills.liquidity_provision.composition import (
 )
 from packages.valory.skills.price_estimation_abci.rounds import Event
 from packages.valory.skills.safe_deployment_abci.rounds import Event as SafeEvent
-from packages.valory.skills.transaction_settlement_abci.rounds import Event as TSEvent
 from packages.valory.skills.transaction_settlement_abci.models import TransactionParams
+from packages.valory.skills.transaction_settlement_abci.rounds import Event as TSEvent
 
 
 MARGIN = 5

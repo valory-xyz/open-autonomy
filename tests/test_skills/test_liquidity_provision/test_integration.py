@@ -27,7 +27,6 @@ from pathlib import Path
 from threading import Thread
 from typing import Any, Dict, List, Optional, Tuple, Type, Union, cast
 
-import pytest
 from aea.crypto.registries import make_crypto, make_ledger_api
 from aea.crypto.wallet import Wallet
 from aea.decision_maker.base import DecisionMaker
@@ -84,15 +83,14 @@ from tests.fixture_helpers import HardHatAMMBaseTest
 from tests.helpers.contracts import get_register_contract
 from tests.test_skills.base import FSMBehaviourBaseCase
 from tests.test_skills.test_liquidity_provision.test_behaviours import (
-    DEFAULT_MINTER,
-    LP_TOKEN_ADDRESS,
-    WETH_ADDRESS,
-    get_default_strategy,
-    TOKEN_A_ADDRESS,
-    TOKEN_B_ADDRESS,
-    A_B_POOL_ADDRESS,
     A_WETH_POOL_ADDRESS,
     B_WETH_POOL_ADDRESS,
+    DEFAULT_MINTER,
+    LP_TOKEN_ADDRESS,
+    TOKEN_A_ADDRESS,
+    TOKEN_B_ADDRESS,
+    WETH_ADDRESS,
+    get_default_strategy,
 )
 
 
@@ -313,7 +311,6 @@ class TestLiquidityProvisionHardhat(
             StateDB(
                 initial_period=0,
                 initial_data=dict(
-                    # most_voted_tx_hash=cls.most_voted_tx_hash_enter,
                     safe_contract_address=cls.safe_contract_address,
                     most_voted_keeper_address=cls.keeper_address,
                     most_voted_strategy=json.dumps(cls.strategy),
@@ -494,9 +491,9 @@ class TestLiquidityProvisionHardhat(
         self.mock_a2a_transaction()
         return tuple(incoming_messages)
 
-
-    def send_and_validate(self, tx_hash, data, to_address):
-       # Sign and send the transaction
+    def send_and_validate(self, tx_hash: str, data: bytes, to_address: str) -> str:
+        """Send and validate a transaction"""
+        # Sign and send the transaction
         participant_to_signature = {
             address: SignaturePayload(
                 sender=address,
@@ -612,7 +609,6 @@ class TestLiquidityProvisionHardhat(
 
         return tx_digest
 
-
     def test_full_run(self) -> None:
         """Run the test"""
         timestamp = self.ethereum_api.api.eth.get_block("latest")["timestamp"]
@@ -626,29 +622,28 @@ class TestLiquidityProvisionHardhat(
 
         period_state_enter_hash = cast(
             LiquidityProvisionPeriodState,
-            self.default_period_state_hash.update(
-            ),
+            self.default_period_state_hash.update(),
         )
 
-        cycles = 8
-        handlers: List[Optional[Handler]] = [self.contract_handler] * cycles
-        expected_content: EXPECTED_CONTENT = [
+        cycles_enter = 8
+        handlers_enter: List[Optional[Handler]] = [self.contract_handler] * cycles_enter
+        expected_content_enter: EXPECTED_CONTENT = [
             {
                 "performative": ContractApiMessage.Performative.RAW_TRANSACTION  # type: ignore
             }
-        ] * cycles
-        expected_types: EXPECTED_TYPES = [
+        ] * cycles_enter
+        expected_types_enter: EXPECTED_TYPES = [
             {
                 "raw_transaction": RawTransaction,
             }
-        ] * cycles
+        ] * cycles_enter
         _, _, _, _, _, _, msg_a, msg_b = self.process_n_messsages(
             EnterPoolTransactionHashBehaviour.state_id,
-            cycles,
+            cycles_enter,
             period_state_enter_hash,
-            handlers,
-            expected_content,
-            expected_types,
+            handlers_enter,
+            expected_content_enter,
+            expected_types_enter,
         )
         assert msg_a is not None and isinstance(msg_a, ContractApiMessage)
         tx_data_enter = cast(str, msg_a.raw_transaction.body["data"])[2:]
@@ -661,7 +656,7 @@ class TestLiquidityProvisionHardhat(
         tx_digest_enter = self.send_and_validate(
             tx_hash=tx_hash_enter,
             data=bytes.fromhex(self.multisend_data_enter),
-            to_address=self.multisend_contract_address
+            to_address=self.multisend_contract_address,
         )
 
         # EXIT POOL ------------------------------------------------------
@@ -677,9 +672,9 @@ class TestLiquidityProvisionHardhat(
             ),
         )
 
-        cycles = 6
-        handlers: List[Optional[Handler]] = [self.contract_handler] * cycles
-        expected_content: EXPECTED_CONTENT = [
+        cycles_exit = 6
+        handlers_exit: List[Optional[Handler]] = [self.contract_handler] * cycles_exit
+        expected_content_exit: EXPECTED_CONTENT = [
             {"performative": ContractApiMessage.Performative.STATE},  # type: ignore
             {
                 "performative": ContractApiMessage.Performative.RAW_TRANSACTION  # type: ignore
@@ -697,7 +692,7 @@ class TestLiquidityProvisionHardhat(
                 "performative": ContractApiMessage.Performative.RAW_TRANSACTION  # type: ignore
             },
         ]
-        expected_types: EXPECTED_TYPES = [
+        expected_types_exit: EXPECTED_TYPES = [
             {"state": State},
             {"raw_transaction": RawTransaction},
             {"raw_transaction": RawTransaction},
@@ -707,11 +702,11 @@ class TestLiquidityProvisionHardhat(
         ]
         transfers_msg_enter, _, _, _, msg_a, msg_b = self.process_n_messsages(
             ExitPoolTransactionHashBehaviour.state_id,
-            cycles,
+            cycles_exit,
             period_state_exit_hash,
-            handlers,
-            expected_content,
-            expected_types,
+            handlers_exit,
+            expected_content_exit,
+            expected_types_exit,
         )
         assert msg_a is not None and isinstance(msg_a, ContractApiMessage)
         tx_data_exit = cast(str, msg_a.raw_transaction.body["data"])[2:]
@@ -720,13 +715,15 @@ class TestLiquidityProvisionHardhat(
         tx_hash_exit = cast(str, msg_b.raw_transaction.body["tx_hash"])[2:]
         assert tx_hash_exit == self.most_voted_tx_hash_exit
 
-        transfers_enter = cast(ContractApiMessage, transfers_msg_enter).state.body["logs"]
+        transfers_enter = cast(ContractApiMessage, transfers_msg_enter).state.body[
+            "logs"
+        ]
 
         amount_weth_sent_a = parse_tx_token_balance(
             cast(list, transfers_enter),
             WETH_ADDRESS,
             self.safe_contract_address,
-            A_WETH_POOL_ADDRESS
+            A_WETH_POOL_ADDRESS,
         )
         assert (
             amount_weth_sent_a == 1004
@@ -736,7 +733,7 @@ class TestLiquidityProvisionHardhat(
             cast(list, transfers_enter),
             WETH_ADDRESS,
             self.safe_contract_address,
-            B_WETH_POOL_ADDRESS
+            B_WETH_POOL_ADDRESS,
         )
         assert (
             amount_weth_sent_b == 1004
@@ -766,7 +763,7 @@ class TestLiquidityProvisionHardhat(
             cast(list, transfers_enter),
             TOKEN_A_ADDRESS,
             self.safe_contract_address,
-            LP_TOKEN_ADDRESS
+            LP_TOKEN_ADDRESS,
         )
         assert (
             amount_a_sent == 1000
@@ -796,7 +793,7 @@ class TestLiquidityProvisionHardhat(
         tx_digest_exit = self.send_and_validate(
             tx_hash=tx_hash_exit,
             data=bytes.fromhex(self.multisend_data_exit),
-            to_address=self.multisend_contract_address
+            to_address=self.multisend_contract_address,
         )
 
         # SWAP BACK ------------------------------------------------------
@@ -812,9 +809,11 @@ class TestLiquidityProvisionHardhat(
             ),
         )
 
-        cycles = 8
-        handlers: List[Optional[Handler]] = [self.contract_handler] * cycles
-        expected_content: EXPECTED_CONTENT = [
+        cycles_swap_back = 8
+        handlers_swap_back: List[Optional[Handler]] = [
+            self.contract_handler
+        ] * cycles_swap_back
+        expected_content_swap_back: EXPECTED_CONTENT = [
             {"performative": ContractApiMessage.Performative.STATE},  # type: ignore
             {
                 "performative": ContractApiMessage.Performative.RAW_TRANSACTION  # type: ignore
@@ -838,7 +837,7 @@ class TestLiquidityProvisionHardhat(
                 "performative": ContractApiMessage.Performative.RAW_TRANSACTION  # type: ignore
             },
         ]
-        expected_types: EXPECTED_TYPES = [
+        expected_types_swap_back: EXPECTED_TYPES = [
             {"state": State},
             {"raw_transaction": RawTransaction},
             {"raw_transaction": RawTransaction},
@@ -850,11 +849,11 @@ class TestLiquidityProvisionHardhat(
         ]
         transfers_msg_exit, _, _, _, _, _, msg_a, msg_b = self.process_n_messsages(
             SwapBackTransactionHashBehaviour.state_id,
-            cycles,
+            cycles_swap_back,
             period_state_swap_back_hash,
-            handlers,
-            expected_content,
-            expected_types,
+            handlers_swap_back,
+            expected_content_swap_back,
+            expected_types_swap_back,
         )
         assert msg_a is not None and isinstance(msg_a, ContractApiMessage)
         tx_data_swap_back = cast(str, msg_a.raw_transaction.body["data"])[2:]
@@ -899,5 +898,5 @@ class TestLiquidityProvisionHardhat(
         self.send_and_validate(
             tx_hash=tx_hash_swap_back,
             data=bytes.fromhex(self.multisend_data_swap_back),
-            to_address=self.multisend_contract_address
+            to_address=self.multisend_contract_address,
         )
