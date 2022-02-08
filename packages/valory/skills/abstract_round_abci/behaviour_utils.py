@@ -806,9 +806,13 @@ class BaseState(AsyncBehaviour, CleanUpBehaviour, SimpleBehaviour, ABC):
         finally:
             # remove request id in case already timed out,
             # but notify caller by propagating exception.
-            cast(Requests, self.context.requests).request_id_to_callback.pop(
+            popped = cast(Requests, self.context.requests).request_id_to_callback.pop(
                 request_nonce, None
             )
+            if popped is None:
+                cast(Requests, self.context.requests).request_id_to_backup_callback[
+                    request_nonce
+                ] = self.post_clean_up
 
     def _build_http_request_message(
         self,
