@@ -241,3 +241,23 @@ Check the revert reason of a transaction.
 
 the revert reason message.
 
+<a id="packages.valory.contracts.gnosis_safe.contract.GnosisSafeContract.get_safe_nonce"></a>
+
+#### get`_`safe`_`nonce
+
+```python
+@classmethod
+def get_safe_nonce(cls, ledger_api: EthereumApi, contract_address: str) -> JSONLike
+```
+
+Retrieve the account's nonce
+
+**Arguments**:
+
+- `ledger_api`: the ledger API object
+- `contract_address`: the contract address
+
+**Returns**:
+
+the nonce
+

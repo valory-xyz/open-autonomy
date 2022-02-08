@@ -618,3 +618,19 @@ class GnosisSafeContract(Contract):
         else:
             # given tx not reverted
             raise ValueError(f"The given transaction has not been reverted!\ntx: {tx}")
+
+    @classmethod
+    def get_safe_nonce(cls, ledger_api: EthereumApi, contract_address: str) -> JSONLike:
+        """
+        Retrieve the account's nonce
+
+        :param ledger_api: the ledger API object
+        :param contract_address: the contract address
+        :return: the nonce
+        """
+        nonce = (
+            ledger_api._try_get_transaction_count(  # pylint: disable=protected-access
+                contract_address
+            )
+        )
+        return dict(nonce=nonce)
