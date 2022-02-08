@@ -244,7 +244,8 @@ class TestAbstractResponseHandler:
         """Test the 'handle' method, negative case (performative not allowed)."""
         self.handler.handle(MagicMock())
 
-    def test_handle_negative_cannot_find_callback(self) -> None:
+    def test_handle_backup_callback(self) -> None:
         """Test the 'handle' method, negative case (cannot find callback)."""
-        self.context.requests.request_id_to_callback.pop.return_value = None
+        self.context.requests.request_id_to_callback = {}
+        self.context.requests.request_id_to_backup_callback.pop.return_value = lambda _: "test"
         self.handler.handle(MagicMock(performative=HttpMessage.Performative.RESPONSE))
