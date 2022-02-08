@@ -287,8 +287,11 @@ class AbstractResponseHandler(Handler, ABC):
 
         request_nonce = protocol_dialogue.dialogue_label.dialogue_reference[0]
         ctx_requests = cast(Requests, self.context.requests)
+        backup_callback = ctx_requests.request_id_to_backup_callback.pop(
+            request_nonce, None
+        )
         callback = ctx_requests.request_id_to_callback.pop(
-            request_nonce, ctx_requests.backup_callback
+            request_nonce, backup_callback
         )
         if callback is None:
             self._handle_no_callback(message, protocol_dialogue)
