@@ -799,7 +799,7 @@ class TestBaseState:
         """Test 'default_callback_request' when stopped."""
         message = MagicMock()
         with mock.patch.object(self.behaviour.context.logger, "debug") as info_mock:
-            self.behaviour.default_callback_request(message)
+            self.behaviour.get_callback_request()(message)
             info_mock.assert_called_with(
                 "dropping message as behaviour has stopped: %s", message
             )
@@ -811,13 +811,13 @@ class TestBaseState:
             AsyncBehaviour.AsyncState.WAITING_MESSAGE
         )
         message = MagicMock()
-        self.behaviour.default_callback_request(message)
+        self.behaviour.get_callback_request()(message)
 
     def test_default_callback_request_else(self, *_: Any) -> None:
         """Test 'default_callback_request' else branch."""
         self.behaviour._AsyncBehaviour__stopped = False  # type: ignore
         message = MagicMock()
-        self.behaviour.default_callback_request(message)
+        self.behaviour.get_callback_request()(message)
 
     def test_stop(self) -> None:
         """Test the stop method."""
