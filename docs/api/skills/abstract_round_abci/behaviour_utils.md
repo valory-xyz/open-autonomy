@@ -420,7 +420,7 @@ _do_request:
 
 **Arguments**:
 
-:yield: wait the response message
+:yield: HttpMessage object
 - `method`: the http request method (i.e. 'GET' or 'POST').
 - `url`: the url to send the message to.
 - `content`: the payload.
@@ -449,6 +449,7 @@ _send_signing_request:
 
 **Arguments**:
 
+:yield: SigningMessage object
 - `message`: message bytes
 - `is_deprecated_mode`: is deprecated mode flag
 
@@ -478,6 +479,7 @@ _send_transaction_request:
 
 **Arguments**:
 
+:yield: SigningMessage object
 - `transaction`: transaction data
 
 **Returns**:
@@ -502,6 +504,7 @@ _send_transaction_receipt_request:
 
 **Arguments**:
 
+:yield: LedgerApiMessage object
 - `tx_digest`: transaction digest received from raw transaction.
 - `retry_timeout`: retry timeout.
 - `retry_attempts`: number of retry attempts allowed.

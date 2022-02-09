@@ -164,6 +164,8 @@ is not available at this stage yet, and the first iteration will
 contain no tx hash since there has not been on-chain transaction
 settlement yet.
 
+:yield: the http response
+
 <a id="packages.valory.skills.price_estimation_abci.behaviours.ObserverRoundBehaviour"></a>
 
 ## ObserverRoundBehaviour Objects

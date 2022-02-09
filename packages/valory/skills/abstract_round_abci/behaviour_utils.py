@@ -719,6 +719,7 @@ class BaseState(AsyncBehaviour, SimpleBehaviour, ABC):
 
         :param tx_bytes: transaction bytes
         :param timeout: timeout seconds
+        :yield: HttpMessage object
         :return: http response
         """
         request_message, http_dialogue = self._build_http_request_message(
@@ -745,6 +746,7 @@ class BaseState(AsyncBehaviour, SimpleBehaviour, ABC):
 
         :param tx_hash: transaction hash
         :param timeout: timeout in seconds
+        :yield: HttpMessage object
         :return: http response
         """
         request_message, http_dialogue = self._build_http_request_message(
@@ -766,6 +768,7 @@ class BaseState(AsyncBehaviour, SimpleBehaviour, ABC):
             AbstractRoundAbci skill -> (HttpMessage | REQUEST) -> Http client connection
             Http client connection -> (HttpMessage | RESPONSE) -> AbstractRoundAbci skill
 
+        :yield: HttpMessage object
         :return: http response from tendermint
         """
         request_message, http_dialogue = self._build_http_request_message(
@@ -785,6 +788,7 @@ class BaseState(AsyncBehaviour, SimpleBehaviour, ABC):
             AbstractRoundAbci skill -> (HttpMessage | REQUEST) -> Http client connection
             Http client connection -> (HttpMessage | RESPONSE) -> AbstractRoundAbci skill
 
+        :yield: HttpMessage object
         :return: http response from tendermint
         """
         request_message, http_dialogue = self._build_http_request_message(
@@ -805,6 +809,9 @@ class BaseState(AsyncBehaviour, SimpleBehaviour, ABC):
         _do_request:
             AbstractRoundAbci skill -> (HttpMessage | REQUEST) -> Http client connection
             Http client connection -> (HttpMessage | RESPONSE) -> AbstractRoundAbci skill
+
+        :yield: HttpMessage object
+        :return: True if the agent has synced
         """
 
         for _ in range(_DEFAULT_TX_MAX_ATTEMPTS):
@@ -859,7 +866,7 @@ class BaseState(AsyncBehaviour, SimpleBehaviour, ABC):
         :param content: the payload.
         :param headers: headers to be included.
         :param parameters: url query parameters.
-        :yield: wait the response message
+        :yield: HttpMessage object
         :return: the http message and the http dialogue
         """
         http_message, http_dialogue = self._build_http_request_message(
@@ -889,7 +896,7 @@ class BaseState(AsyncBehaviour, SimpleBehaviour, ABC):
         :param request_message: The request message
         :param http_dialogue: the HTTP dialogue associated to the request
         :param timeout: seconds to wait for the reply.
-        :yield: wait the response message
+        :yield: HttpMessage object
         :return: the response message
         """
         self.context.outbox.put_message(message=request_message)
@@ -1045,6 +1052,7 @@ class BaseState(AsyncBehaviour, SimpleBehaviour, ABC):
 
         :param message: message bytes
         :param is_deprecated_mode: is deprecated mode flag
+        :yield: SigningMessage object
         :return: message signature
         """
         self._send_signing_request(message, is_deprecated_mode)
@@ -1073,6 +1081,7 @@ class BaseState(AsyncBehaviour, SimpleBehaviour, ABC):
             Ledger connection -> (LedgerApiMessage | TRANSACTION_DIGEST) -> AbstractRoundAbci skill
 
         :param transaction: transaction data
+        :yield: SigningMessage object
         :return: transaction hash
         """
         terms = Terms(
@@ -1123,6 +1132,7 @@ class BaseState(AsyncBehaviour, SimpleBehaviour, ABC):
         :param tx_digest: transaction digest received from raw transaction.
         :param retry_timeout: retry timeout.
         :param retry_attempts: number of retry attempts allowed.
+        :yield: LedgerApiMessage object
         :return: transaction receipt data
         """
         self._send_transaction_receipt_request(tx_digest, retry_timeout, retry_attempts)
