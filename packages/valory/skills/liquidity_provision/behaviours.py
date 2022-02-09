@@ -19,6 +19,7 @@
 
 """This module contains the behaviours for the 'liquidity_provision' skill."""
 import json
+import time
 from abc import ABC
 from typing import Any, Dict, Generator, List, Optional, Set, Type, cast
 
@@ -74,7 +75,6 @@ from packages.valory.skills.transaction_settlement_abci.behaviours import (
 
 
 SAFE_TX_GAS = 4000000
-CURRENT_BLOCK_TIMESTAMP = 0  # TOFIX
 
 benchmark_tool = BenchmarkTool()
 
@@ -381,8 +381,7 @@ class StrategyEvaluationBehaviour(LiquidityProvisionBaseBehaviour):
             "action": StrategyType.ENTER.value,
             "safe_nonce": 0,
             "safe_tx_gas": SAFE_TX_GAS,
-            "deadline": CURRENT_BLOCK_TIMESTAMP
-            + self.params.rebalancing_params["deadline"],
+            "deadline": int(time.time()) + self.params.rebalancing_params["deadline"],
             "chain": self.params.rebalancing_params["chain"],
             "token_base": {
                 "ticker": self.params.rebalancing_params["token_base_ticker"],
