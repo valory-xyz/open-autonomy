@@ -18,13 +18,14 @@
 # ------------------------------------------------------------------------------
 
 """Tests for valory/price_estimation_abci skill's behaviours."""
-
+import copy
 import json
 import time
 from pathlib import Path
-from typing import cast
+from typing import Dict, Union, cast
 from unittest import mock
 
+import pytest
 from aea.helpers.transaction.base import RawTransaction
 
 from packages.valory.contracts.gnosis_safe.contract import (
@@ -259,13 +260,62 @@ class TestEstimateBehaviour(PriceEstimationFSMBehaviourBaseCase):
         assert state.state_id == TransactionHashBehaviour.state_id
 
 
+def mock_to_server_message_flow(
+    self: "TestTransactionHashBehaviour",
+    this_period_count: int,
+    prev_tx_hash: str,
+) -> None:
+    """Mock to server message flow"""
+
+    self.behaviour.context.logger.info("Mocking to server message flow")
+    # note that although this is a dict, order matters for the test
+    data = {
+        "period_count": this_period_count,
+        "agent_address": "test_agent_address",
+        "estimate": 1.0,
+        "prev_tx_hash": prev_tx_hash,
+        "observations": {"agent1": float("nan")},
+        "data_source": "coinbase",
+        "unit": "BTC:USD",
+    }
+
+    request_kwargs: Dict[str, Union[str, bytes]] = dict(
+        method="POST",
+        url="http://192.168.2.17:9999/deposit",
+        headers="",
+        version="",
+        body=str(data).encode("utf-8"),
+    )
+
+    response_kwargs = dict(
+        version="",
+        status_code=201,
+        status_text="",
+        headers="",
+        body=b"",
+    )
+
+    self.behaviour.act_wrapper()
+    self.mock_http_request(request_kwargs, response_kwargs)
+    self.behaviour.act_wrapper()
+
+
+@pytest.mark.parametrize(
+    "broadcast_to_server, this_period_count", ((True, 0), (False, 0), (True, 1))
+)
 class TestTransactionHashBehaviour(PriceEstimationFSMBehaviourBaseCase):
     """Test TransactionHashBehaviour."""
 
     def test_estimate(
         self,
+        broadcast_to_server: bool,
+        this_period_count: int,
     ) -> None:
         """Test estimate behaviour."""
+
+        # change setting, mock message flow with and without broadcast to server
+        state_params = self.behaviour.current_state.params  # type: ignore
+        state_params.is_broadcasting_to_server = broadcast_to_server  # type: ignore
 
         self.fast_forward_to_state(
             behaviour=self.behaviour,
@@ -315,6 +365,28 @@ class TestTransactionHashBehaviour(PriceEstimationFSMBehaviourBaseCase):
                 ),
             ),
         )
+
+        tx_hashes = ["", "0x_prev_cycle_tx_hash"]
+        period_state = self.behaviour.current_state.period_state  # type: ignore
+        period_data = period_state.db.get_all()
+        period_data.update(
+            {
+                "participants": {"agent1"},
+                "participant_to_observations": {"agent1": 1.0},
+                "most_voted_estimate": 1.0,
+                "tx_hashes_history": [tx_hashes[1]],
+            }
+        )
+
+        # add new cycle, and dummy period data
+        period_state.db._current_period_count = this_period_count  # type: ignore
+        next_period_data = copy.deepcopy(period_data)
+        next_period_data["tx_hashes_history"] = [tx_hashes[0]]
+        period_state.db.add_new_period(
+            this_period_count,
+            **period_data,
+        )
+
         self.mock_contract_api_request(
             request_kwargs=dict(
                 performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,
@@ -331,6 +403,11 @@ class TestTransactionHashBehaviour(PriceEstimationFSMBehaviourBaseCase):
                 ),
             ),
         )
+
+        if broadcast_to_server:
+            tx_hash = tx_hashes[this_period_count]
+            mock_to_server_message_flow(self, this_period_count, tx_hash)
+
         self.mock_a2a_transaction()
         self._test_done_flag_set()
         self.end_round(Event.DONE)
