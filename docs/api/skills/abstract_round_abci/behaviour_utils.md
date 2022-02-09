@@ -449,6 +449,7 @@ _send_signing_request:
 
 **Arguments**:
 
+:yield: signature response
 - `message`: message bytes
 - `is_deprecated_mode`: is deprecated mode flag
 
@@ -478,6 +479,7 @@ _send_transaction_request:
 
 **Arguments**:
 
+:yield: signature response
 - `transaction`: transaction data
 
 **Returns**:
@@ -502,6 +504,7 @@ _send_transaction_receipt_request:
 
 **Arguments**:
 
+:yield: transaction receipt data
 - `tx_digest`: transaction digest received from raw transaction.
 - `retry_timeout`: retry timeout.
 - `retry_attempts`: number of retry attempts allowed.

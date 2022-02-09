@@ -265,6 +265,8 @@ class TransactionHashBehaviour(PriceEstimationBaseState):
         is not available at this stage yet, and the first iteration will
         contain no tx hash since there has not been on-chain transaction
         settlement yet.
+
+        :yield: the http response
         """
 
         period_count = self.period_state.period_count

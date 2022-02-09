@@ -719,6 +719,7 @@ class BaseState(AsyncBehaviour, SimpleBehaviour, ABC):
 
         :param tx_bytes: transaction bytes
         :param timeout: timeout seconds
+        :yield: http response
         :return: http response
         """
         request_message, http_dialogue = self._build_http_request_message(
@@ -745,6 +746,7 @@ class BaseState(AsyncBehaviour, SimpleBehaviour, ABC):
 
         :param tx_hash: transaction hash
         :param timeout: timeout in seconds
+        :yield: http response
         :return: http response
         """
         request_message, http_dialogue = self._build_http_request_message(
@@ -766,6 +768,7 @@ class BaseState(AsyncBehaviour, SimpleBehaviour, ABC):
             AbstractRoundAbci skill -> (HttpMessage | REQUEST) -> Http client connection
             Http client connection -> (HttpMessage | RESPONSE) -> AbstractRoundAbci skill
 
+        :yield: http response from tendermint
         :return: http response from tendermint
         """
         request_message, http_dialogue = self._build_http_request_message(
@@ -785,6 +788,7 @@ class BaseState(AsyncBehaviour, SimpleBehaviour, ABC):
             AbstractRoundAbci skill -> (HttpMessage | REQUEST) -> Http client connection
             Http client connection -> (HttpMessage | RESPONSE) -> AbstractRoundAbci skill
 
+        :yield: http response from tendermint
         :return: http response from tendermint
         """
         request_message, http_dialogue = self._build_http_request_message(
@@ -798,13 +802,16 @@ class BaseState(AsyncBehaviour, SimpleBehaviour, ABC):
         self,
     ) -> Generator[None, None, bool]:  # pragma: nocover
         """
-        Check if agent has completed sync.
+         Check if agent has completed sync.
 
-        Happy-path full flow of the messages.
+         Happy-path full flow of the messages.
 
-        _do_request:
-            AbstractRoundAbci skill -> (HttpMessage | REQUEST) -> Http client connection
-            Http client connection -> (HttpMessage | RESPONSE) -> AbstractRoundAbci skill
+         _do_request:
+             AbstractRoundAbci skill -> (HttpMessage | REQUEST) -> Http client connection
+             Http client connection -> (HttpMessage | RESPONSE) -> AbstractRoundAbci skill
+
+        :yield: the status
+        :return: True if the agent has synced
         """
 
         for _ in range(_DEFAULT_TX_MAX_ATTEMPTS):
@@ -1045,6 +1052,7 @@ class BaseState(AsyncBehaviour, SimpleBehaviour, ABC):
 
         :param message: message bytes
         :param is_deprecated_mode: is deprecated mode flag
+        :yield: signature response
         :return: message signature
         """
         self._send_signing_request(message, is_deprecated_mode)
@@ -1073,6 +1081,7 @@ class BaseState(AsyncBehaviour, SimpleBehaviour, ABC):
             Ledger connection -> (LedgerApiMessage | TRANSACTION_DIGEST) -> AbstractRoundAbci skill
 
         :param transaction: transaction data
+        :yield: signature response
         :return: transaction hash
         """
         terms = Terms(
@@ -1123,6 +1132,7 @@ class BaseState(AsyncBehaviour, SimpleBehaviour, ABC):
         :param tx_digest: transaction digest received from raw transaction.
         :param retry_timeout: retry timeout.
         :param retry_attempts: number of retry attempts allowed.
+        :yield: transaction receipt data
         :return: transaction receipt data
         """
         self._send_transaction_receipt_request(tx_digest, retry_timeout, retry_attempts)
