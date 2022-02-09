@@ -29,6 +29,9 @@ from typing import Any, Dict, List, Type
 
 import jsonschema
 import yaml
+from aea.cli.utils.package_utils import try_get_item_source_path
+from aea.configurations.constants import AGENTS, DEFAULT_AEA_CONFIG_FILE
+from aea.configurations.data_types import PublicId
 from aea.configurations.validation import (
     ConfigValidator,
     EnvVarsFriendlyDraft4Validator,
@@ -96,11 +99,8 @@ class BaseDeployment:
             )
         self.validator.validate(self.deployment_spec)
         self.__dict__.update(self.deployment_spec)
+        self.agent_public_id = PublicId.from_str(self.valory_application)
         self.agent_spec = self.load_agent()
-
-    def get_network(self) -> Dict[str, Any]:
-        """Returns the deployments network overrides"""
-        return NETWORKS[self.network]
 
     def generate_agents(self) -> List:
         """Generate multiple agent."""
@@ -120,7 +120,6 @@ class BaseDeployment:
     def generate_agent(self, agent_n: int) -> Dict[Any, Any]:
         """Generate next agent."""
         agent_vars = self.generate_common_vars(agent_n)
-        agent_vars.update(NETWORKS[self.network])
         if self.overrides is None:
             return agent_vars
         for component in self.overrides["model_configuration_overrides"]:
@@ -139,18 +138,13 @@ class BaseDeployment:
         """Using the deployment id, locate the registry and retrieve the path."""
         if local_registry is False:
             raise ValueError("Remote registry not yet supported, use local!")
-        for subdir, _, files in os.walk(PACKAGES_DIRECTORY):
-            for file in files:
-                if file == "aea-config.yaml":
-                    path = os.path.join(subdir, file)
-                    with open(path, "r", encoding="utf-8") as aea_path:  # type: ignore
-                        agent_spec = yaml.safe_load_all(aea_path)
-                        for spec in agent_spec:
-                            agent_id = f"{spec['author']}/{spec['agent_name']}:{spec['version']}"
-                            if agent_id != self.valory_application:
-                                break
-                            return os.path.join(subdir, file)
-        raise ValueError("Agent to be deployed not located in packages.")
+        source_path = try_get_item_source_path(
+            str(PACKAGES_DIRECTORY),
+            self.agent_public_id.author,
+            AGENTS,
+            self.agent_public_id.name,
+        )
+        return str(Path(source_path) / DEFAULT_AEA_CONFIG_FILE)
 
 
 class BaseDeploymentGenerator:
@@ -159,12 +153,13 @@ class BaseDeploymentGenerator:
     deployment: BaseDeployment
     output_name: str
     old_wd: str
+    deployment_type: str
 
     def __init__(self, deployment_spec: BaseDeployment):
         """Initialise with only kwargs."""
+        self.network_config = NETWORKS[self.deployment_type][deployment_spec.network]
         self.deployment_spec = deployment_spec
         self.config_dir = Path(CONFIG_DIRECTORY)
-        self.network_config = NETWORKS[deployment_spec.network]
         self.output = ""
 
     def setup(self) -> None:
@@ -176,6 +171,7 @@ class BaseDeploymentGenerator:
 
     def teardown(self) -> None:
         """Move back to original wd"""
+        os.chdir(self.old_wd)
 
     @abc.abstractmethod
     def generate(self, valory_application: Type[BaseDeployment]) -> str:
@@ -195,3 +191,11 @@ class BaseDeploymentGenerator:
 
         with open(self.config_dir / self.output_name, "w", encoding="utf8") as f:
             f.write(self.output)
+
+    def get_deployment_network_configuration(
+        self, agent_vars: List[Dict[str, Any]]
+    ) -> List:
+        """Retrieve the appropriate network configuration based on deployment & network."""
+        for agent in agent_vars:
+            agent.update(self.network_config)
+        return agent_vars
