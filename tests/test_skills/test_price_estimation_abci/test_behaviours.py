@@ -263,6 +263,9 @@ class TestEstimateBehaviour(PriceEstimationFSMBehaviourBaseCase):
 def mock_to_server_message_flow(self: "TestTransactionHashBehaviour") -> None:
     """Mock to server message flow"""
 
+    if self.behaviour.current_state.period_state.period_count == 0:  # type: ignore
+        return
+
     self.behaviour.context.logger.info("Mocking to server message flow")
     # note that although this is a dict, order matters for the test
     data = {
@@ -296,13 +299,16 @@ def mock_to_server_message_flow(self: "TestTransactionHashBehaviour") -> None:
     self.behaviour.act_wrapper()
 
 
-@pytest.mark.parametrize("broadcast_to_server", (False, True))
+@pytest.mark.parametrize(
+    "broadcast_to_server, this_period_count", ((True, 0), (True, 1), (False, 1))
+)
 class TestTransactionHashBehaviour(PriceEstimationFSMBehaviourBaseCase):
     """Test TransactionHashBehaviour."""
 
     def test_estimate(
         self,
         broadcast_to_server: bool,
+        this_period_count: int,
     ) -> None:
         """Test estimate behaviour."""
 
@@ -360,7 +366,7 @@ class TestTransactionHashBehaviour(PriceEstimationFSMBehaviourBaseCase):
         )
 
         db = self.behaviour.current_state.period_state.db  # type: ignore
-        db._current_period_count += 1  # pylint: disable=protected-access
+        db._current_period_count = this_period_count  # pylint: disable=protected-access
         prev_period_count = db.current_period_count - 1
         db._data.setdefault(
             prev_period_count, {}
