@@ -263,16 +263,13 @@ class TestEstimateBehaviour(PriceEstimationFSMBehaviourBaseCase):
 def mock_to_server_message_flow(self: "TestTransactionHashBehaviour") -> None:
     """Mock to server message flow"""
 
-    if self.behaviour.current_state.period_state.period_count == 0:  # type: ignore
-        return
-
     self.behaviour.context.logger.info("Mocking to server message flow")
     # note that although this is a dict, order matters for the test
     data = {
         "period_count": 0,
         "agent_address": "test_agent_address",
         "estimate": 1.0,
-        "signature": "such_rich_history",
+        "prev_tx_hash": "",  # round 0 there is none
         "observations": {"agent1": float("nan")},
         "data_source": "coinbase",
         "unit": "BTC:USD",
@@ -299,22 +296,19 @@ def mock_to_server_message_flow(self: "TestTransactionHashBehaviour") -> None:
     self.behaviour.act_wrapper()
 
 
-@pytest.mark.parametrize(
-    "broadcast_to_server, this_period_count", ((True, 0), (True, 1), (False, 1))
-)
+@pytest.mark.parametrize("broadcast_to_server", (True, False))
 class TestTransactionHashBehaviour(PriceEstimationFSMBehaviourBaseCase):
     """Test TransactionHashBehaviour."""
 
     def test_estimate(
         self,
         broadcast_to_server: bool,
-        this_period_count: int,
     ) -> None:
         """Test estimate behaviour."""
 
         # change setting, mock message flow with and without broadcast to server
         state_params = self.behaviour.current_state.params  # type: ignore
-        state_params.is_broadcasting_to_server = broadcast_to_server
+        state_params.is_broadcasting_to_server = broadcast_to_server  # type: ignore
 
         self.fast_forward_to_state(
             behaviour=self.behaviour,
@@ -366,11 +360,8 @@ class TestTransactionHashBehaviour(PriceEstimationFSMBehaviourBaseCase):
         )
 
         db = self.behaviour.current_state.period_state.db  # type: ignore
-        db._current_period_count = this_period_count  # pylint: disable=protected-access
-        prev_period_count = db.current_period_count - 1
-        db._data.setdefault(
-            prev_period_count, {}
-        ).update(  # pylint: disable=protected-access
+        period_data = db.get_all()
+        period_data.update(
             {
                 "participants": {"agent1"},
                 "participant_to_observations": {"agent1": 1.0},

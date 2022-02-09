@@ -53,6 +53,7 @@ class Params(OracleParams, TransactionParams):
         self.observation_aggregator_function = self._ensure(
             "observation_aggregator_function", kwargs
         )
+        self.is_broadcasting_to_server = kwargs.pop("broadcast_to_server", False)
         super().__init__(*args, **kwargs)
 
 

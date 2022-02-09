@@ -158,11 +158,11 @@ def send_to_server() -> Generator
 
 Send data to server.
 
-We assume the period count always starts at 0.
-Hence, if the period count > 0, we can forward
-the data of the previous cycle to the server,
-only then do we have the validated signature
-of the on-chain transaction.
+We send current period state data of the agents and the previous
+cycle's on-chain settlement tx hash. The current cycle's tx hash
+is not available at this stage yet, and the first iteration will
+contain no tx hash since there has not been on-chain transaction
+settlement yet.
 
 <a id="packages.valory.skills.price_estimation_abci.behaviours.ObserverRoundBehaviour"></a>
 

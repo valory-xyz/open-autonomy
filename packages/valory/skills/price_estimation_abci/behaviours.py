@@ -260,31 +260,33 @@ class TransactionHashBehaviour(PriceEstimationBaseState):
         """
         Send data to server.
 
-        We assume the period count always starts at 0.
-        Hence, if the period count > 0, we can forward
-        the data of the previous cycle to the server,
-        only then do we have the validated signature
-        of the on-chain transaction.
+        We send current period state data of the agents and the previous
+        cycle's on-chain settlement tx hash. The current cycle's tx hash
+        is not available at this stage yet, and the first iteration will
+        contain no tx hash since there has not been on-chain transaction
+        settlement yet.
         """
 
         period_count = self.period_state.period_count
-        if period_count == 0:
-            self.context.logger.info("First cycle no broadcast")
-            return
 
         self.context.logger.info("Attempting broadcast")
-        # grab data from previous cycle
-        data_period_count = period_count - 1
-        previous_data = self.period_state.db._data[  # pylint: disable=protected-access
-            data_period_count
-        ]
+
+        if period_count == 0:
+            prev_tx_hash = ""
+        else:
+            # grab tx_hash from previous cycle
+            prev_period_count = period_count - 1
+            previous_data = (
+                self.period_state.db._data[  # pylint: disable=protected-access
+                    prev_period_count
+                ]
+            )
+            prev_tx_hash = previous_data["tx_hashes_history"][0]
 
         # select relevant data
-        agents = previous_data["participants"]
-        payloads = previous_data["participant_to_observations"]
-        estimate = previous_data["most_voted_estimate"]
-        # only is one, only during tx settlement behaviour can be more
-        on_chain_signature = previous_data["tx_hashes_history"][0]
+        agents = self.period_state.db.get_strict("participants")
+        payloads = self.period_state.db.get_strict("participant_to_observations")
+        estimate = self.period_state.db.get_strict("most_voted_estimate")
 
         observations = {
             agent: getattr(payloads.get(agent), "observation", float("nan"))
@@ -296,10 +298,10 @@ class TransactionHashBehaviour(PriceEstimationBaseState):
         # adding timestamp on server side when received
         # period and agent_address are used as `primary key`
         data_for_server = {
-            "period_count": data_period_count,
+            "period_count": period_count,
             "agent_address": self.context.agent_address,
             "estimate": estimate,
-            "signature": on_chain_signature,
+            "prev_tx_hash": prev_tx_hash,
             "observations": observations,
             "data_source": price_api.api_id,
             "unit": f"{price_api.currency_id}:{price_api.convert_id}",
@@ -312,7 +314,7 @@ class TransactionHashBehaviour(PriceEstimationBaseState):
             url=server_api_specs["url"],
             content=message,
         )
-        self.context.logger.info(f"Broadcast raw response: {raw_response}")
+
         response = self.context.server_api.process_response(raw_response)
         self.context.logger.info(f"Broadcast response: {response}")
 
