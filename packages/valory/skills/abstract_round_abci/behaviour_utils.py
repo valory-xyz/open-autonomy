@@ -481,19 +481,19 @@ class BaseState(AsyncBehaviour, SimpleBehaviour, ABC):
         - Send the transaction to the 'price-estimation' app via the Tendermint
           node, and wait/repeat until the transaction is not mined.
 
-        Flow of the messages.
+        Happy-path full flow of the messages.
 
         get_signature:
-            AbstractRoundAbci -> (SigningMessage | SIGN_MESSAGE) -> Signing client
-            Signing client -> (SigningMessage | SIGNED_MESSAGE) -> AbstractRoundAbci
+            AbstractRoundAbci skill -> (SigningMessage | SIGN_MESSAGE) -> DecisionMaker
+            Signing client -> (SigningMessage | SIGNED_MESSAGE) -> AbstractRoundAbci skill
 
         _submit_tx:
-            AbstractRoundAbci -> (HttpMessage | REQUEST) -> ABCI connection
-            ABCI connection -> (HttpMessage | RESPONSE) -> AbstractRoundAbci
+            AbstractRoundAbci skill -> (HttpMessage | REQUEST) -> DecisionMaker
+            Http client connection -> (HttpMessage | RESPONSE) -> AbstractRoundAbci skill
 
         _wait_until_transaction_delivered:
-            AbstractRoundAbci -> (HttpMessage | REQUEST) -> ABCI connection
-            ABCI connection -> (HttpMessage | RESPONSE) -> AbstractRoundAbci
+            AbstractRoundAbci skill -> (HttpMessage | REQUEST) -> DecisionMaker
+            Http client connection -> (HttpMessage | RESPONSE) -> AbstractRoundAbci skill
 
         :param: payload: the payload to send
         :param: stop_condition: the condition to be checked to interrupt the
@@ -576,10 +576,10 @@ class BaseState(AsyncBehaviour, SimpleBehaviour, ABC):
         """
         Send a signing request.
 
-        Flow of the message.
+        Happy-path full flow of the messages.
 
-        AbstractRoundAbci -> (SigningMessage | SIGN_MESSAGE) -> Signing client
-        Signing client -> (SigningMessage | SIGNED_MESSAGE) -> AbstractRoundAbci
+        AbstractRoundAbci skill -> (SigningMessage | SIGN_MESSAGE) -> DecisionMaker
+        Signing client -> (SigningMessage | SIGNED_MESSAGE) -> AbstractRoundAbci skill
 
         :param raw_message: raw message bytes
         :param is_deprecated_mode: is deprecated flag.
@@ -614,10 +614,10 @@ class BaseState(AsyncBehaviour, SimpleBehaviour, ABC):
         """
         Send a transaction signing request.
 
-        Flow of the message.
+        Happy-path full flow of the messages.
 
-        AbstractRoundAbci -> (SigningMessage | SIGN_TRANSACTION) -> Signing client
-        Signing client -> (SigningMessage | SIGNED_TRANSACTION) -> AbstractRoundAbci
+        AbstractRoundAbci skill -> (SigningMessage | SIGN_TRANSACTION) -> DecisionMaker
+        Signing client -> (SigningMessage | SIGNED_TRANSACTION) -> AbstractRoundAbci skill
 
         :param raw_transaction: raw transaction data
         :param terms: signing terms
@@ -639,10 +639,10 @@ class BaseState(AsyncBehaviour, SimpleBehaviour, ABC):
         """
         Send transaction request.
 
-        Flow of the message.
+        Happy-path full flow of the messages.
 
-        AbstractRoundAbci -> (LedgerApiMessage | SEND_SIGNED_TRANSACTION) -> Ledger connection
-        Ledger connection -> (LedgerApiMessage | TRANSACTION_DIGEST) -> AbstractRoundAbci
+        AbstractRoundAbci skill -> (LedgerApiMessage | SEND_SIGNED_TRANSACTION) -> DecisionMaker
+        Ledger connection -> (LedgerApiMessage | TRANSACTION_DIGEST) -> AbstractRoundAbci skill
 
         :param signing_msg: signing message
         """
@@ -671,10 +671,10 @@ class BaseState(AsyncBehaviour, SimpleBehaviour, ABC):
         """
         Send transaction receipt request.
 
-        Flow of the message.
+        Happy-path full flow of the messages.
 
-        AbstractRoundAbci -> (LedgerApiMessage | GET_TRANSACTION_RECEIPT) -> Ledger connection
-        Ledger connection -> (LedgerApiMessage | TRANSACTION_RECEIPT) -> AbstractRoundAbci
+        AbstractRoundAbci skill -> (LedgerApiMessage | GET_TRANSACTION_RECEIPT) -> DecisionMaker
+        Ledger connection -> (LedgerApiMessage | TRANSACTION_RECEIPT) -> AbstractRoundAbci skill
 
         :param tx_digest: transaction digest string
         :param retry_timeout: retry timeout in seconds
@@ -711,11 +711,11 @@ class BaseState(AsyncBehaviour, SimpleBehaviour, ABC):
     ) -> Generator[None, None, HttpMessage]:
         """Send a broadcast_tx_sync request.
 
-        Flow of the message.
+        Happy-path full flow of the messages.
 
         _do_request:
-            AbstractRoundAbci -> (HttpMessage | REQUEST) -> Http client connection
-            Http client connection -> (HttpMessage | RESPONSE) -> AbstractRoundAbci
+            AbstractRoundAbci skill -> (HttpMessage | REQUEST) -> DecisionMaker
+            Http client connection -> (HttpMessage | RESPONSE) -> AbstractRoundAbci skill
 
         :param tx_bytes: transaction bytes
         :param timeout: timeout seconds
@@ -737,11 +737,11 @@ class BaseState(AsyncBehaviour, SimpleBehaviour, ABC):
         """
         Get transaction info from tx hash.
 
-        Flow of the message.
+        Happy-path full flow of the messages.
 
         _do_request:
-            AbstractRoundAbci -> (HttpMessage | REQUEST) -> Http client connection
-            Http client connection -> (HttpMessage | RESPONSE) -> AbstractRoundAbci
+            AbstractRoundAbci skill -> (HttpMessage | REQUEST) -> DecisionMaker
+            Http client connection -> (HttpMessage | RESPONSE) -> AbstractRoundAbci skill
 
         :param tx_hash: transaction hash
         :param timeout: timeout in seconds
@@ -760,11 +760,11 @@ class BaseState(AsyncBehaviour, SimpleBehaviour, ABC):
         """
         Get Tendermint node's health.
 
-        Flow of the message.
+        Happy-path full flow of the messages.
 
         _do_request:
-            AbstractRoundAbci -> (HttpMessage | REQUEST) -> Http client connection
-            Http client connection -> (HttpMessage | RESPONSE) -> AbstractRoundAbci
+            AbstractRoundAbci skill -> (HttpMessage | REQUEST) -> DecisionMaker
+            Http client connection -> (HttpMessage | RESPONSE) -> AbstractRoundAbci skill
 
         :return: http response from tendermint
         """
@@ -779,11 +779,11 @@ class BaseState(AsyncBehaviour, SimpleBehaviour, ABC):
         """
         Get Tendermint node's status.
 
-        Flow of the message.
+        Happy-path full flow of the messages.
 
         _do_request:
-            AbstractRoundAbci -> (HttpMessage | REQUEST) -> Http client connection
-            Http client connection -> (HttpMessage | RESPONSE) -> AbstractRoundAbci
+            AbstractRoundAbci skill -> (HttpMessage | REQUEST) -> DecisionMaker
+            Http client connection -> (HttpMessage | RESPONSE) -> AbstractRoundAbci skill
 
         :return: http response from tendermint
         """
@@ -800,11 +800,11 @@ class BaseState(AsyncBehaviour, SimpleBehaviour, ABC):
         """
         Check if agent has completed sync.
 
-        Flow of the message.
+        Happy-path full flow of the messages.
 
         _do_request:
-            AbstractRoundAbci -> (HttpMessage | REQUEST) -> Http client connection
-            Http client connection -> (HttpMessage | RESPONSE) -> AbstractRoundAbci
+            AbstractRoundAbci skill -> (HttpMessage | REQUEST) -> DecisionMaker
+            Http client connection -> (HttpMessage | RESPONSE) -> AbstractRoundAbci skill
         """
 
         for _ in range(_DEFAULT_TX_MAX_ATTEMPTS):
@@ -848,11 +848,11 @@ class BaseState(AsyncBehaviour, SimpleBehaviour, ABC):
         This method is skill-specific, and therefore
         should not be used elsewhere.
 
-        Flow of the message.
+        Happy-path full flow of the messages.
 
         _do_request:
-            AbstractRoundAbci -> (HttpMessage | REQUEST) -> Http client connection
-            Http client connection -> (HttpMessage | RESPONSE) -> AbstractRoundAbci
+            AbstractRoundAbci skill -> (HttpMessage | REQUEST) -> DecisionMaker
+            Http client connection -> (HttpMessage | RESPONSE) -> AbstractRoundAbci skill
 
         :param method: the http request method (i.e. 'GET' or 'POST').
         :param url: the url to send the message to.
@@ -881,10 +881,10 @@ class BaseState(AsyncBehaviour, SimpleBehaviour, ABC):
         """
         Do a request and wait the response, asynchronously.
 
-        Flow of the message
+        Happy-path full flow of the messages.
 
-        AbstractRoundAbci -> (HttpMessage | REQUEST) -> Http client connection
-        Http client connection -> (HttpMessage | RESPONSE) -> AbstractRoundAbci
+        AbstractRoundAbci skill -> (HttpMessage | REQUEST) -> DecisionMaker
+        Http client connection -> (HttpMessage | RESPONSE) -> AbstractRoundAbci skill
 
         :param request_message: The request message
         :param http_dialogue: the HTTP dialogue associated to the request
@@ -967,11 +967,11 @@ class BaseState(AsyncBehaviour, SimpleBehaviour, ABC):
         """
         Wait until transaction is delivered.
 
-        Flow of the message.
+        Happy-path full flow of the messages.
 
         _get_tx_info:
-            AbstractRoundAbci -> (HttpMessage | REQUEST) -> Http client connection
-            Http client connection -> (HttpMessage | RESPONSE) -> AbstractRoundAbci
+            AbstractRoundAbci skill -> (HttpMessage | REQUEST) -> DecisionMaker
+            Http client connection -> (HttpMessage | RESPONSE) -> AbstractRoundAbci skill
 
         :param tx_hash: the transaction hash to check.
         :param timeout: timeout
@@ -1037,11 +1037,11 @@ class BaseState(AsyncBehaviour, SimpleBehaviour, ABC):
         """
         Get signature for message.
 
-        Flow of the message.
+        Happy-path full flow of the messages.
 
         _send_signing_request:
-            AbstractRoundAbci -> (SigningMessage | SIGN_MESSAGE) -> Signing client
-            Signing client -> (SigningMessage | SIGNED_MESSAGE) -> AbstractRoundAbci
+            AbstractRoundAbci skill -> (SigningMessage | SIGN_MESSAGE) -> DecisionMaker
+            Signing client -> (SigningMessage | SIGNED_MESSAGE) -> AbstractRoundAbci skill
 
         :param message: message bytes
         :param is_deprecated_mode: is deprecated mode flag
@@ -1062,15 +1062,15 @@ class BaseState(AsyncBehaviour, SimpleBehaviour, ABC):
         """
         Send raw transactions to the ledger for mining.
 
-        Flow of the message.
+        Happy-path full flow of the messages.
 
         _send_transaction_signing_request:
-                AbstractRoundAbci -> (SigningMessage | SIGN_TRANSACTION) -> Signing client
-                Signing client -> (SigningMessage | SIGNED_TRANSACTION) -> AbstractRoundAbci
+                AbstractRoundAbci skill -> (SigningMessage | SIGN_TRANSACTION) -> DecisionMaker
+                Signing client -> (SigningMessage | SIGNED_TRANSACTION) -> AbstractRoundAbci skill
 
         _send_transaction_request:
-            AbstractRoundAbci -> (LedgerApiMessage | SEND_SIGNED_TRANSACTION) -> Ledger connection
-            Ledger connection -> (LedgerApiMessage | TRANSACTION_DIGEST) -> AbstractRoundAbci
+            AbstractRoundAbci skill -> (LedgerApiMessage | SEND_SIGNED_TRANSACTION) -> DecisionMaker
+            Ledger connection -> (LedgerApiMessage | TRANSACTION_DIGEST) -> AbstractRoundAbci skill
 
         :param transaction: transaction data
         :return: transaction hash
@@ -1114,11 +1114,11 @@ class BaseState(AsyncBehaviour, SimpleBehaviour, ABC):
         """
         Get transaction receipt.
 
-        Flow of the message.
+        Happy-path full flow of the messages.
 
         _send_transaction_receipt_request:
-            AbstractRoundAbci -> (LedgerApiMessage | GET_TRANSACTION_RECEIPT) -> Ledger connection
-            Ledger connection -> (LedgerApiMessage | TRANSACTION_RECEIPT) -> AbstractRoundAbci
+            AbstractRoundAbci skill -> (LedgerApiMessage | GET_TRANSACTION_RECEIPT) -> DecisionMaker
+            Ledger connection -> (LedgerApiMessage | TRANSACTION_RECEIPT) -> AbstractRoundAbci skill
 
         :param tx_digest: transaction digest received from raw transaction.
         :param retry_timeout: retry timeout.
@@ -1146,10 +1146,10 @@ class BaseState(AsyncBehaviour, SimpleBehaviour, ABC):
         """
         Request data from ledger api
 
-        Flow of the message.
+        Happy-path full flow of the messages.
 
-        AbstractRoundAbci -> (LedgerApiMessage | LedgerApiMessage.Performative) -> Ledger connection
-        Ledger connection -> (LedgerApiMessage | LedgerApiMessage.Performative) -> AbstractRoundAbci
+        AbstractRoundAbci skill -> (LedgerApiMessage | LedgerApiMessage.Performative) -> DecisionMaker
+        Ledger connection -> (LedgerApiMessage | LedgerApiMessage.Performative) -> AbstractRoundAbci skill
 
         :param performative: the message performative
         :param ledger_callable: the callable to call on the contract
@@ -1193,10 +1193,10 @@ class BaseState(AsyncBehaviour, SimpleBehaviour, ABC):
         """
         Request contract safe transaction hash
 
-        Flow of the message.
+        Happy-path full flow of the messages.
 
-        AbstractRoundAbci -> (ContractApiMessage | ContractApiMessage.Performative) -> Ledger connection (contract dispatcher)
-        Ledger connection (contract dispatcher) -> (ContractApiMessage | ContractApiMessage.Performative) -> AbstractRoundAbci
+        AbstractRoundAbci skill -> (ContractApiMessage | ContractApiMessage.Performative) -> DecisionMaker
+        Ledger connection (contract dispatcher) -> (ContractApiMessage | ContractApiMessage.Performative) -> AbstractRoundAbci skill
 
         :param performative: the message performative
         :param contract_address: the contract address

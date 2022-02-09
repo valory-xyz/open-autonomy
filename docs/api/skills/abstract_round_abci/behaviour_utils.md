@@ -412,11 +412,11 @@ Send an http request message from the skill context.
 This method is skill-specific, and therefore
 should not be used elsewhere.
 
-Flow of the message.
+Happy-path full flow of the messages.
 
 _do_request:
-    AbstractRoundAbci -> (HttpMessage | REQUEST) -> Http client connection
-    Http client connection -> (HttpMessage | RESPONSE) -> AbstractRoundAbci
+    AbstractRoundAbci skill -> (HttpMessage | REQUEST) -> DecisionMaker
+    Http client connection -> (HttpMessage | RESPONSE) -> AbstractRoundAbci skill
 
 **Arguments**:
 
@@ -441,11 +441,11 @@ def get_signature(message: bytes, is_deprecated_mode: bool = False) -> Generator
 
 Get signature for message.
 
-Flow of the message.
+Happy-path full flow of the messages.
 
 _send_signing_request:
-    AbstractRoundAbci -> (SigningMessage | SIGN_MESSAGE) -> Signing client
-    Signing client -> (SigningMessage | SIGNED_MESSAGE) -> AbstractRoundAbci
+    AbstractRoundAbci skill -> (SigningMessage | SIGN_MESSAGE) -> DecisionMaker
+    Signing client -> (SigningMessage | SIGNED_MESSAGE) -> AbstractRoundAbci skill
 
 **Arguments**:
 
@@ -466,15 +466,15 @@ def send_raw_transaction(transaction: RawTransaction) -> Generator[None, None, O
 
 Send raw transactions to the ledger for mining.
 
-Flow of the message.
+Happy-path full flow of the messages.
 
 _send_transaction_signing_request:
-        AbstractRoundAbci -> (SigningMessage | SIGN_TRANSACTION) -> Signing client
-        Signing client -> (SigningMessage | SIGNED_TRANSACTION) -> AbstractRoundAbci
+        AbstractRoundAbci skill -> (SigningMessage | SIGN_TRANSACTION) -> DecisionMaker
+        Signing client -> (SigningMessage | SIGNED_TRANSACTION) -> AbstractRoundAbci skill
 
 _send_transaction_request:
-    AbstractRoundAbci -> (LedgerApiMessage | SEND_SIGNED_TRANSACTION) -> Ledger connection
-    Ledger connection -> (LedgerApiMessage | TRANSACTION_DIGEST) -> AbstractRoundAbci
+    AbstractRoundAbci skill -> (LedgerApiMessage | SEND_SIGNED_TRANSACTION) -> DecisionMaker
+    Ledger connection -> (LedgerApiMessage | TRANSACTION_DIGEST) -> AbstractRoundAbci skill
 
 **Arguments**:
 
@@ -494,11 +494,11 @@ def get_transaction_receipt(tx_digest: str, retry_timeout: Optional[int] = None,
 
 Get transaction receipt.
 
-Flow of the message.
+Happy-path full flow of the messages.
 
 _send_transaction_receipt_request:
-    AbstractRoundAbci -> (LedgerApiMessage | GET_TRANSACTION_RECEIPT) -> Ledger connection
-    Ledger connection -> (LedgerApiMessage | TRANSACTION_RECEIPT) -> AbstractRoundAbci
+    AbstractRoundAbci skill -> (LedgerApiMessage | GET_TRANSACTION_RECEIPT) -> DecisionMaker
+    Ledger connection -> (LedgerApiMessage | TRANSACTION_RECEIPT) -> AbstractRoundAbci skill
 
 **Arguments**:
 
@@ -520,10 +520,10 @@ def get_ledger_api_response(performative: LedgerApiMessage.Performative, ledger_
 
 Request data from ledger api
 
-Flow of the message.
+Happy-path full flow of the messages.
 
-AbstractRoundAbci -> (LedgerApiMessage | LedgerApiMessage.Performative) -> Ledger connection
-Ledger connection -> (LedgerApiMessage | LedgerApiMessage.Performative) -> AbstractRoundAbci
+AbstractRoundAbci skill -> (LedgerApiMessage | LedgerApiMessage.Performative) -> DecisionMaker
+Ledger connection -> (LedgerApiMessage | LedgerApiMessage.Performative) -> AbstractRoundAbci skill
 
 **Arguments**:
 
@@ -545,10 +545,10 @@ def get_contract_api_response(performative: ContractApiMessage.Performative, con
 
 Request contract safe transaction hash
 
-Flow of the message.
+Happy-path full flow of the messages.
 
-AbstractRoundAbci -> (ContractApiMessage | ContractApiMessage.Performative) -> Ledger connection (contract dispatcher)
-Ledger connection (contract dispatcher) -> (ContractApiMessage | ContractApiMessage.Performative) -> AbstractRoundAbci
+AbstractRoundAbci skill -> (ContractApiMessage | ContractApiMessage.Performative) -> DecisionMaker
+Ledger connection (contract dispatcher) -> (ContractApiMessage | ContractApiMessage.Performative) -> AbstractRoundAbci skill
 
 **Arguments**:
 
