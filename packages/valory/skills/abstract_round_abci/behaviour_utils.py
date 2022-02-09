@@ -802,13 +802,13 @@ class BaseState(AsyncBehaviour, SimpleBehaviour, ABC):
         self,
     ) -> Generator[None, None, bool]:  # pragma: nocover
         """
-         Check if agent has completed sync.
+        Check if agent has completed sync.
 
-         Happy-path full flow of the messages.
+        Happy-path full flow of the messages.
 
-         _do_request:
-             AbstractRoundAbci skill -> (HttpMessage | REQUEST) -> Http client connection
-             Http client connection -> (HttpMessage | RESPONSE) -> AbstractRoundAbci skill
+        _do_request:
+            AbstractRoundAbci skill -> (HttpMessage | REQUEST) -> Http client connection
+            Http client connection -> (HttpMessage | RESPONSE) -> AbstractRoundAbci skill
 
         :yield: the status
         :return: True if the agent has synced
