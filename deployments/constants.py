@@ -21,6 +21,7 @@
 import os
 import socket
 from pathlib import Path
+from string import Template
 from typing import Any, Dict, List
 
 
@@ -98,3 +99,15 @@ TENDERMINT_CONFIGURATION_OVERRIDES: Dict[str, Dict[str, Any]] = {
 ROOT_DIR = Path(os.getcwd())
 CONFIG_DIRECTORY = ROOT_DIR / "deployments" / "build"
 PACKAGES_DIRECTORY = ROOT_DIR / "packages"
+
+
+DEPLOYMENT_REPORT: Template = Template(
+    """
+Generated Deployment!\n\n
+Application:          $app
+Type:                 $type
+Agents:               $agents
+Network:              $network
+Build Length          $size\n\n
+"""
+)
