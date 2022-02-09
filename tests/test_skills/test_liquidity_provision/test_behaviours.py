@@ -406,7 +406,8 @@ class TestEnterPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase)
                             strategy["token_b"]["address"],
                         ],
                         to=period_state.safe_contract_address,
-                        deadline=int(time.time()) + DEADLINE_SECONDS,  # 5 min into the future
+                        deadline=int(time.time())
+                        + DEADLINE_SECONDS,  # 5 min into the future
                     )
                 ),
             ),
@@ -652,7 +653,8 @@ class TestEnterPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase)
                             strategy["token_b"]["address"],
                         ],
                         to=period_state.safe_contract_address,
-                        deadline=int(time.time()) + DEADLINE_SECONDS,  # 5 min into the future
+                        deadline=int(time.time())
+                        + DEADLINE_SECONDS,  # 5 min into the future
                     )
                 ),
             ),
