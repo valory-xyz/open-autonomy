@@ -19,7 +19,6 @@
 
 """This module contains the behaviours for the 'liquidity_provision' skill."""
 import json
-import time
 from abc import ABC
 from typing import Any, Dict, Generator, List, Optional, Set, Type, cast
 
@@ -46,7 +45,7 @@ from packages.valory.skills.abstract_round_abci.utils import BenchmarkTool
 from packages.valory.skills.liquidity_provision.composition import (
     LiquidityProvisionAbciApp,
 )
-from packages.valory.skills.liquidity_provision.models import Params
+from packages.valory.skills.liquidity_provision.models import Params, SharedState
 from packages.valory.skills.liquidity_provision.payloads import (
     SleepPayload,
     StrategyEvaluationPayload,
@@ -377,11 +376,16 @@ class StrategyEvaluationBehaviour(LiquidityProvisionBaseBehaviour):
 
     def get_dummy_strategy(self) -> dict:
         """Get a dummy strategy."""
+        last_timestamp = cast(
+            SharedState, self.context.state
+        ).period.abci_app.last_timestamp.timestamp()
+
         strategy = {
             "action": StrategyType.ENTER.value,
             "safe_nonce": 0,
             "safe_tx_gas": SAFE_TX_GAS,
-            "deadline": int(time.time()) + self.params.rebalancing_params["deadline"],
+            "deadline": int(last_timestamp)
+            + self.params.rebalancing_params["deadline"],
             "chain": self.params.rebalancing_params["chain"],
             "token_base": {
                 "ticker": self.params.rebalancing_params["token_base_ticker"],
