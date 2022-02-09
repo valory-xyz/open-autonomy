@@ -415,7 +415,7 @@ should not be used elsewhere.
 Happy-path full flow of the messages.
 
 _do_request:
-    AbstractRoundAbci skill -> (HttpMessage | REQUEST) -> DecisionMaker
+    AbstractRoundAbci skill -> (HttpMessage | REQUEST) -> Http client connection
     Http client connection -> (HttpMessage | RESPONSE) -> AbstractRoundAbci skill
 
 **Arguments**:
@@ -445,7 +445,7 @@ Happy-path full flow of the messages.
 
 _send_signing_request:
     AbstractRoundAbci skill -> (SigningMessage | SIGN_MESSAGE) -> DecisionMaker
-    Signing client -> (SigningMessage | SIGNED_MESSAGE) -> AbstractRoundAbci skill
+    DecisionMaker -> (SigningMessage | SIGNED_MESSAGE) -> AbstractRoundAbci skill
 
 **Arguments**:
 
@@ -470,10 +470,10 @@ Happy-path full flow of the messages.
 
 _send_transaction_signing_request:
         AbstractRoundAbci skill -> (SigningMessage | SIGN_TRANSACTION) -> DecisionMaker
-        Signing client -> (SigningMessage | SIGNED_TRANSACTION) -> AbstractRoundAbci skill
+        DecisionMaker -> (SigningMessage | SIGNED_TRANSACTION) -> AbstractRoundAbci skill
 
 _send_transaction_request:
-    AbstractRoundAbci skill -> (LedgerApiMessage | SEND_SIGNED_TRANSACTION) -> DecisionMaker
+    AbstractRoundAbci skill -> (LedgerApiMessage | SEND_SIGNED_TRANSACTION) -> Ledger connection
     Ledger connection -> (LedgerApiMessage | TRANSACTION_DIGEST) -> AbstractRoundAbci skill
 
 **Arguments**:
@@ -497,7 +497,7 @@ Get transaction receipt.
 Happy-path full flow of the messages.
 
 _send_transaction_receipt_request:
-    AbstractRoundAbci skill -> (LedgerApiMessage | GET_TRANSACTION_RECEIPT) -> DecisionMaker
+    AbstractRoundAbci skill -> (LedgerApiMessage | GET_TRANSACTION_RECEIPT) -> Ledger connection
     Ledger connection -> (LedgerApiMessage | TRANSACTION_RECEIPT) -> AbstractRoundAbci skill
 
 **Arguments**:
@@ -522,7 +522,7 @@ Request data from ledger api
 
 Happy-path full flow of the messages.
 
-AbstractRoundAbci skill -> (LedgerApiMessage | LedgerApiMessage.Performative) -> DecisionMaker
+AbstractRoundAbci skill -> (LedgerApiMessage | LedgerApiMessage.Performative) -> Ledger connection
 Ledger connection -> (LedgerApiMessage | LedgerApiMessage.Performative) -> AbstractRoundAbci skill
 
 **Arguments**:
@@ -547,7 +547,7 @@ Request contract safe transaction hash
 
 Happy-path full flow of the messages.
 
-AbstractRoundAbci skill -> (ContractApiMessage | ContractApiMessage.Performative) -> DecisionMaker
+AbstractRoundAbci skill -> (ContractApiMessage | ContractApiMessage.Performative) -> Ledger connection (contract dispatcher)
 Ledger connection (contract dispatcher) -> (ContractApiMessage | ContractApiMessage.Performative) -> AbstractRoundAbci skill
 
 **Arguments**:
