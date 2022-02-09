@@ -45,7 +45,7 @@ from packages.valory.skills.abstract_round_abci.utils import BenchmarkTool
 from packages.valory.skills.liquidity_provision.composition import (
     LiquidityProvisionAbciApp,
 )
-from packages.valory.skills.liquidity_provision.models import Params
+from packages.valory.skills.liquidity_provision.models import Params, SharedState
 from packages.valory.skills.liquidity_provision.payloads import (
     SleepPayload,
     StrategyEvaluationPayload,
@@ -74,7 +74,6 @@ from packages.valory.skills.transaction_settlement_abci.behaviours import (
 
 
 SAFE_TX_GAS = 4000000
-CURRENT_BLOCK_TIMESTAMP = 0  # TOFIX
 
 benchmark_tool = BenchmarkTool()
 
@@ -377,11 +376,15 @@ class StrategyEvaluationBehaviour(LiquidityProvisionBaseBehaviour):
 
     def get_dummy_strategy(self) -> dict:
         """Get a dummy strategy."""
+        last_timestamp = cast(
+            SharedState, self.context.state
+        ).period.abci_app.last_timestamp.timestamp()
+
         strategy = {
             "action": StrategyType.ENTER.value,
             "safe_nonce": 0,
             "safe_tx_gas": SAFE_TX_GAS,
-            "deadline": CURRENT_BLOCK_TIMESTAMP
+            "deadline": int(last_timestamp)
             + self.params.rebalancing_params["deadline"],
             "chain": self.params.rebalancing_params["chain"],
             "token_base": {
