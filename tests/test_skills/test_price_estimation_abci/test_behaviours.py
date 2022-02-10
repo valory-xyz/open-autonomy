@@ -280,6 +280,9 @@ def mock_to_server_message_flow(
         "data_source": "coinbase",
         "unit": "BTC:USD",
     }
+    period_state = self.behaviour.current_state.period_state  # type: ignore
+    participants = period_state.sorted_participants
+    data["package"] = pack_for_server(participants, **data).hex()  # type: ignore
 
     request_kwargs: Dict[str, Union[str, bytes]] = dict(
         method="POST",
