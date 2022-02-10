@@ -21,7 +21,9 @@
 
 from abc import ABC
 from decimal import Decimal
-from typing import Generator, Optional, Set, Type, cast
+from typing import Dict, Generator, Optional, Sequence, Set, Type, cast
+
+from aea.exceptions import enforce
 
 from packages.valory.contracts.gnosis_safe.contract import GnosisSafeContract
 from packages.valory.contracts.offchain_aggregator.contract import (
@@ -73,6 +75,8 @@ benchmark_tool = BenchmarkTool()
 # More on gas estimation: https://help.gnosis-safe.io/en/articles/4933491-gas-estimation
 SAFE_TX_GAS = 120000
 ETHER_VALUE = 0
+
+NO_OBSERVATION = 0.0
 
 
 def to_int(most_voted_estimate: float, decimals: int) -> int:
@@ -226,6 +230,38 @@ class EstimateBehaviour(PriceEstimationBaseState):
         self.set_done()
 
 
+def pack_for_server(  # pylint: disable-msg=too-many-arguments
+    participants: Sequence[str],
+    decimals: int,
+    period_count: int,
+    estimate: float,
+    observations: Dict[str, float],
+    data_source: str,
+    unit: str,
+    **_: Dict[str, str],
+) -> bytes:
+    """Package server data for signing"""
+    enforce(len(str(estimate)) <= 32, "'estimate' too large")
+    enforce(len(data_source) <= 32, "'data_source' too large")
+    enforce(len(unit) <= 32, "'unit' too large")
+    enforce(
+        all(len(str(value)) <= 32 for value in observations.values()),
+        "'observation' values too large",
+    )
+    observed = (
+        to_int(observations.get(p, NO_OBSERVATION), decimals) for p in participants
+    )
+    return b"".join(
+        [
+            period_count.to_bytes(32, "big"),
+            to_int(estimate, decimals).to_bytes(32, "big"),
+            *map(lambda n: n.to_bytes(32, "big"), observed),
+            str(data_source).zfill(32).encode("utf-8"),
+            str(unit).zfill(32).encode("utf-8"),
+        ]
+    )
+
+
 class TransactionHashBehaviour(PriceEstimationBaseState):
     """Share the transaction hash for the signature round."""
 
@@ -260,7 +296,7 @@ class TransactionHashBehaviour(PriceEstimationBaseState):
 
         self.set_done()
 
-    def send_to_server(self) -> Generator:
+    def send_to_server(self) -> Generator:  # pylint: disable-msg=too-many-locals
         """
         Send data to server.
 
@@ -295,7 +331,7 @@ class TransactionHashBehaviour(PriceEstimationBaseState):
         estimate = self.period_state.db.get_strict("most_voted_estimate")
 
         observations = {
-            agent: getattr(payloads.get(agent), "observation", float("nan"))
+            agent: getattr(payloads.get(agent), "observation", NO_OBSERVATION)
             for agent in agents
         }
 
@@ -312,6 +348,12 @@ class TransactionHashBehaviour(PriceEstimationBaseState):
             "data_source": price_api.api_id,
             "unit": f"{price_api.currency_id}:{price_api.convert_id}",
         }
+
+        # pack data
+        participants = self.period_state.sorted_participants
+        decimals = self.params.oracle_params["decimals"]
+        package = pack_for_server(participants, decimals, **data_for_server)
+        data_for_server["package"] = package.hex()
 
         message = str(data_for_server).encode("utf-8")
         server_api_specs = self.context.server_api.get_spec()

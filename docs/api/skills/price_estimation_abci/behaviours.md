@@ -121,6 +121,16 @@ Steps:
 - Wait until ABCI application transitions to the next round.
 - Go to the next behaviour state (set done event).
 
+<a id="packages.valory.skills.price_estimation_abci.behaviours.pack_for_server"></a>
+
+#### pack`_`for`_`server
+
+```python
+def pack_for_server(participants: Sequence[str], decimals: int, period_count: int, estimate: float, observations: Dict[str, float], data_source: str, unit: str, **_: Dict[str, str], ,) -> bytes
+```
+
+Package server data for signing
+
 <a id="packages.valory.skills.price_estimation_abci.behaviours.TransactionHashBehaviour"></a>
 
 ## TransactionHashBehaviour Objects
