@@ -44,6 +44,7 @@ class Color(Enum):
     RESET = "\033[39m"
 
 
+# These Hardhat addresses are assigned in the contracts-amm deployment.
 hardhat_account_indices_to_names = {
     0: "token_A_issuer",
     1: "token_B_issuer",
@@ -53,6 +54,8 @@ hardhat_account_indices_to_names = {
     13: "safe_owner_4",
 }
 
+# Known addresses from out Hardhat deployment
+# It would be nice to have automatic derivation for these ones as we do for Hardhat default accounts.
 account_names_to_addresses = {
     "gnosis_safe": "0x9fE46736679d2D9a65F0992F2272dE9f3c7fa6e0",
     "gnosis_safe_L2": "0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512",
@@ -87,6 +90,7 @@ def get_tx_tag(tx_logs: dict) -> str:
     for log in tx_logs:
         if "errors" not in log:
 
+            # If a tx has a LP_token transfer from the minter to the safe we flag it as ENTER_POOL
             if (
                 log["args"]["from"] == account_names_to_addresses["minter"]
                 and log["args"]["to"] == account_names_to_addresses["safe"]
@@ -96,6 +100,7 @@ def get_tx_tag(tx_logs: dict) -> str:
                     Color.GREEN.value + "ENTER_POOL" + Color.RESET.value
                 )  # Using standard colored output
 
+            # If a tx has a LP_token transfer from the safe to the LP pool we flag it as EXIT_POOL
             if (
                 log["args"]["from"] == account_names_to_addresses["safe"]
                 and log["args"]["to"] == account_names_to_addresses["token_LP"]
@@ -105,6 +110,7 @@ def get_tx_tag(tx_logs: dict) -> str:
                     Color.GREEN.value + "EXIT_POOL" + Color.RESET.value
                 )  # Using standard colored output
 
+            # If a tx has a token_A transfer from the pool to the safe we flag it as SWAP_BACK
             if (
                 log["args"]["from"] == account_names_to_addresses["safe"]
                 and log["args"]["to"] == account_names_to_addresses["A_WETH_pool"]
