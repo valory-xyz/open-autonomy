@@ -176,7 +176,6 @@ class TestLiquidityProvisionHardhat(
     gnosis_instance: Any
     multisend_instance: Any
     router_instance: Any
-    safe_tx_gas: int
     enter_nonce: int
     exit_nonce: int
     swap_back_nonce: int
@@ -297,7 +296,6 @@ class TestLiquidityProvisionHardhat(
             "7920b96f55935f49f636143d6071aadc5a7b53670a9ad5ddc16ab1c692a55e1f"
         )
 
-        cls.safe_tx_gas = 4000000
         cls.enter_nonce = 8
         cls.exit_nonce = cls.enter_nonce + 1
         cls.swap_back_nonce = cls.enter_nonce + 2
