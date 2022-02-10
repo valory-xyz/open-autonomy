@@ -77,7 +77,7 @@ config:
 TEST_DEPLOYMENT_PATH: str = "example-deployment.yaml"
 
 
-def get_valid_deployments() -> str:
+def get_valid_deployments() -> List[str]:
     """Returns a list of valid deployments as string."""
     return [
         "---\n".join([BASE_DEPLOYMENT]),
@@ -94,7 +94,7 @@ class CleanDirectoryClass:
     Used when testing code which leaves artifacts
     """
 
-    working_dir = None
+    working_dir: Path
     deployment_path = Path(ROOT_DIR) / "deployments"
     old_cwd = None
 
@@ -127,9 +127,9 @@ class BaseDeploymentTests(ABC, CleanDirectoryClass):
     def write_deployment(
         self,
         app: str,
-    ) -> Tuple[BaseDeploymentGenerator, BaseDeployment]:
+    ) -> str:
         """Write the deployment to the local directory."""
-        with open(self.working_dir / TEST_DEPLOYMENT_PATH, "w") as f:
+        with open(str(self.working_dir / TEST_DEPLOYMENT_PATH), "w") as f:
             f.write(app)
         return str(self.working_dir / TEST_DEPLOYMENT_PATH)
 
@@ -274,7 +274,7 @@ class TestCliTool(BaseDeploymentTests):
 class TestValidates(BaseDeploymentTests):
     """Test functionality of the deployment generators."""
 
-    def test_generates_no_overrides(self):
+    def test_generates_no_overrides(self) -> None:
         """Use a configuration with no overrides."""
         for deployment_generator in deployment_generators:
             spec_path = self.write_deployment(BASE_DEPLOYMENT)
@@ -284,7 +284,7 @@ class TestValidates(BaseDeploymentTests):
             agent_json = app_instance.load_agent()
             assert agent_json != {}
 
-    def test_generates_with_one_override(self):
+    def test_generates_with_one_override(self) -> None:
         """Use a configuration with no overrides."""
         for deployment_generator in deployment_generators[:]:
             spec_path = self.write_deployment(
@@ -296,7 +296,7 @@ class TestValidates(BaseDeploymentTests):
             agent_json = app_instance.load_agent()
             assert agent_json != {}
 
-    def test_fails_to_generate_with_to_many_overrides(self):
+    def test_fails_to_generate_with_to_many_overrides(self) -> None:
         """Use a configuration with no overrides."""
         for deployment_generator in deployment_generators:
             spec_path = self.write_deployment(
