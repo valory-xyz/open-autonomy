@@ -26,6 +26,7 @@ import os
 from pathlib import Path
 from shutil import rmtree
 from typing import Any, Dict, List, Type
+from copy import copy
 
 import jsonschema
 import yaml
@@ -97,6 +98,7 @@ class DeploymentConfigValidator(ConfigValidator):
         - number of overrides is 0
         """
         valid = []
+        remaining = copy(self.overrides)
         for component in [
             CONNECTION,
             CONTRACT,
@@ -105,6 +107,7 @@ class DeploymentConfigValidator(ConfigValidator):
         ]:
 
             component_overrides = [f for f in self.overrides if f["type"] == component]
+            remaining = [f for f in remaining if f not in component_overrides]
 
             if any(
                 [
@@ -115,6 +118,11 @@ class DeploymentConfigValidator(ConfigValidator):
                 ]
             ):
                 valid.append(True)
+        if len(remaining) > 0:
+            raise ValueError(
+                f"Override type is misspelled.\n {remaining}"
+            )
+
         if sum(valid) == 4:
             return True
         raise ValueError(

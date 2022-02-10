@@ -31,7 +31,7 @@ from deployments.base_deployments import BaseDeployment, BaseDeploymentGenerator
 from deployments.generators.docker_compose.docker_compose import DockerComposeGenerator
 from deployments.generators.kubernetes.kubernetes import KubernetesGenerator
 
-from tests.helpers.constants import ROOT_DIR
+from deployments.constants import ROOT_DIR, DEPLOYMENT_SPEC_DIR
 
 
 deployment_generators: List[Any] = [
@@ -76,6 +76,11 @@ config:
 
 TEST_DEPLOYMENT_PATH: str = "example-deployment.yaml"
 
+from glob import glob
+
+def get_specified_deployments() -> List[str]:
+    """Returns a list specified deployments."""
+    return glob(str(DEPLOYMENT_SPEC_DIR / "*.yaml"))
 
 def get_valid_deployments() -> List[str]:
     """Returns a list of valid deployments as string."""
@@ -307,3 +312,13 @@ class TestValidates(BaseDeploymentTests):
                 raise AssertionError("Should not have generated deployment.")
             except ValueError:
                 return
+
+
+    def test_generates_all_specified_deployments(self) -> None:
+        """Test functionality of deploy safe contract."""
+        for deployment_generator in deployment_generators:
+            for spec_path in get_specified_deployments():
+                _, app_instance = self.load_deployer_and_app(
+                    spec_path, deployment_generator
+                )
+                app_instance.generate_agent(0)
