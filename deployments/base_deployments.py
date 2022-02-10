@@ -29,8 +29,17 @@ from typing import Any, Dict, List, Type
 
 import jsonschema
 import yaml
+from aea import AEA_DIR
 from aea.cli.utils.package_utils import try_get_item_source_path
-from aea.configurations.constants import AGENTS, DEFAULT_AEA_CONFIG_FILE
+from aea.configurations.base import ComponentId
+from aea.configurations.constants import (
+    AGENTS,
+    CONNECTION,
+    CONTRACT,
+    DEFAULT_AEA_CONFIG_FILE,
+    PROTOCOL,
+    SKILL,
+)
 from aea.configurations.data_types import PublicId
 from aea.configurations.validation import (
     ConfigValidator,
@@ -38,6 +47,7 @@ from aea.configurations.validation import (
     OwnDraft4Validator,
     make_jsonschema_base_uri,
 )
+from aea.helpers.base import cd
 from aea.helpers.io import open_file
 
 from deployments.constants import CONFIG_DIRECTORY, KEYS, NETWORKS, PACKAGES_DIRECTORY
@@ -55,6 +65,8 @@ class DeploymentConfigValidator(ConfigValidator):
         :param schema_filename: the path to the JSON-schema file in 'aea/configurations/schemas'.
         :param env_vars_friendly: whether or not it is env var friendly.
         """
+        self.overrides: List = []
+        self.deployment_spec: Dict[str, Any] = {}
         base_uri = Path(__file__).parent
         with open_file(base_uri / schema_filename) as fp:
             self._schema = json.load(fp)
@@ -68,6 +80,86 @@ class DeploymentConfigValidator(ConfigValidator):
             )
         else:
             self._validator = OwnDraft4Validator(self._schema, resolver=self._resolver)
+
+    def validate_deployment(self, deployment_spec: Dict, overrides: List) -> bool:
+        """Sense check the deployment spec."""
+        self.validate(deployment_spec)
+        self.deployment_spec = deployment_spec
+        self.overrides = overrides
+        self.check_overrides_match_spec()
+        return True  # add in call to check to see if overrides are valid
+
+    def check_overrides_match_spec(self) -> bool:
+        """Check that overrides are valid.
+
+        - number of overrides is 1
+        - number of overrides == number of agents in spec
+        - number of overrides is 0
+        """
+        valid = []
+        for component in [
+            CONNECTION,
+            CONTRACT,
+            PROTOCOL,
+            SKILL,
+        ]:
+
+            component_overrides = [f for f in self.overrides if f["type"] == component]
+
+            if any(
+                [
+                    self.deployment_spec["number_of_agents"]
+                    == len(component_overrides),
+                    len(component_overrides) == 0,
+                    len(component_overrides) == 1,
+                ]
+            ):
+                valid.append(True)
+        if sum(valid) == 4:
+            return True
+        raise ValueError(
+            f"Incorrect number of overrides for count of agents.\n {self.deployment_spec}"
+        )
+
+    def check_overrides_are_valid(self) -> Dict[ComponentId, Dict[Any, Any]]:
+        """Uses the aea helper libraries to check individual overrides."""
+        component_configurations: Dict[ComponentId, Dict] = {}
+        # load the other components.
+        for i, component_configuration_json in enumerate(self.overrides):
+            component_id = self._process_component_section(
+                i, component_configuration_json
+            )
+            if component_id in component_configurations:
+                raise ValueError(
+                    f"Configuration of component {component_id} occurs more than once."
+                )
+            component_configurations[component_id] = component_configuration_json
+        return component_configurations
+
+    def _process_component_section(
+        self, component_index: int, component_configuration_json: Dict
+    ) -> ComponentId:
+        """
+        Process a component configuration in an agent configuration file.
+
+        It breaks down in:
+        - extract the component id
+        - validate the component configuration
+        - check that there are only configurable fields
+        :param component_index: the index of the component in the file.
+        :param component_configuration_json: the JSON object.
+        :return: the processed component configuration.
+        """
+        component_id = self.split_component_id_and_config(
+            component_index, component_configuration_json
+        )
+
+        path = Path(AEA_DIR) / "configurations" / "schemas"
+        with cd(path):
+            self.validate_component_configuration(
+                component_id, component_configuration_json
+            )
+        return component_id
 
 
 def _process_model_args_overrides(component: Dict, agent_n: int) -> Dict:
@@ -90,14 +182,18 @@ class BaseDeployment:
 
     def __init__(self, path_to_deployment_spec: str) -> None:
         """Initialize the Base Deployment."""
+        self.overrides: list = []
         self.validator = DeploymentConfigValidator(
             schema_filename="deployments/deployment_schema.json"
         )
         with open(path_to_deployment_spec, "r", encoding="utf8") as file:
-            self.deployment_spec, self.overrides = yaml.load_all(
-                file, Loader=yaml.SafeLoader
-            )
-        self.validator.validate(self.deployment_spec)
+            for ix, document in enumerate(yaml.load_all(file, Loader=yaml.SafeLoader)):
+                if ix == 0:
+                    self.deployment_spec = document
+                else:
+                    self.overrides.append(document)
+
+        self.validator.validate_deployment(self.deployment_spec, self.overrides)
         self.__dict__.update(self.deployment_spec)
         self.agent_public_id = PublicId.from_str(self.valory_application)
         self.agent_spec = self.load_agent()
@@ -122,8 +218,9 @@ class BaseDeployment:
         agent_vars = self.generate_common_vars(agent_n)
         if self.overrides is None:
             return agent_vars
-        for component in self.overrides["model_configuration_overrides"]:
-            agent_vars.update(_process_model_args_overrides(component, agent_n))
+        for _component in self.overrides:
+            continue
+        #  todo:  agent_vars.update(_process_model_args_overrides(component, agent_n))
         return agent_vars
 
     def load_agent(self) -> List[Dict[str, str]]:

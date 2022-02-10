@@ -39,12 +39,52 @@ deployment_generators: List[Any] = [
     KubernetesGenerator,
 ]
 
-test_deployment_spec_paths: Dict[str, str] = {
-    "case_hardhat": "./deployments/deployment_specifications/price_estimation_hardhat.yaml",
-    "case_ropsten": "./deployments/deployment_specifications/price_estimation_ropsten.yaml",
-}
-
 os.chdir(ROOT_DIR)
+
+BASE_DEPLOYMENT: str = """name: "deployment_case"
+author: "valory"
+version: 0.1.0
+valory_application: "valory/price_estimation_deployable:0.1.0"
+network: hardhat
+number_of_agents: 1
+"""
+
+SKILL_OVERRIDE: str = """public_id: valory/price_estimation_abci:0.1.0
+type: skill
+models:
+  price_api:
+    args:
+      url: ''
+      api_id: ''
+      headers: ''
+      parameters: ''
+      response_key: ''
+  randomness_api:
+    args:
+      url: ""
+      api_id: ""
+"""
+CONNECTION_OVERRIDE: str = """public_id: valory/ledger:0.1.0
+type: connection
+config:
+  ledger_apis:
+    ethereum:
+      address: 'http://hardhat:8545'
+      chain_id: '31337'
+"""
+
+
+TEST_DEPLOYMENT_PATH: str = "example-deployment.yaml"
+
+
+def get_valid_deployments() -> str:
+    """Returns a list of valid deployments as string."""
+    return [
+        "---\n".join([BASE_DEPLOYMENT]),
+        "---\n".join([BASE_DEPLOYMENT, CONNECTION_OVERRIDE]),
+        "---\n".join([BASE_DEPLOYMENT, SKILL_OVERRIDE]),
+        "---\n".join([BASE_DEPLOYMENT, SKILL_OVERRIDE, CONNECTION_OVERRIDE]),
+    ]
 
 
 class CleanDirectoryClass:
@@ -56,10 +96,7 @@ class CleanDirectoryClass:
 
     working_dir = None
     deployment_path = Path(ROOT_DIR) / "deployments"
-
-    def __init__(self) -> None:
-        """Initialise the test."""
-        self.old_cwd = ""
+    old_cwd = None
 
     def setup(self) -> None:
         """Sets up the working directory for the test method."""
@@ -74,7 +111,7 @@ class CleanDirectoryClass:
         os.chdir(str(self.old_cwd))
 
 
-class BaseDeploymentTests(ABC):
+class BaseDeploymentTests(ABC, CleanDirectoryClass):
     """Base pytest class for setting up Docker images."""
 
     deployment_spec_path: str
@@ -86,6 +123,15 @@ class BaseDeploymentTests(ABC):
     @classmethod
     def teardown_class(cls) -> None:
         """Setup up the test class."""
+
+    def write_deployment(
+        self,
+        app: str,
+    ) -> Tuple[BaseDeploymentGenerator, BaseDeployment]:
+        """Write the deployment to the local directory."""
+        with open(self.working_dir / TEST_DEPLOYMENT_PATH, "w") as f:
+            f.write(app)
+        return str(self.working_dir / TEST_DEPLOYMENT_PATH)
 
     @staticmethod
     def load_deployer_and_app(
@@ -104,12 +150,10 @@ class TestDockerComposeDeployment(BaseDeploymentTests):
 
     def test_creates_ropsten_deploy(self) -> None:
         """Required for deployment of ropsten."""
-        for (
-            test_case_name,
-            spec_path,
-        ) in test_deployment_spec_paths.items():
-            if test_case_name.find("ropsten") < 0:
+        for spec in get_valid_deployments():
+            if spec.find("ropsten") < 0:
                 continue
+            spec_path = self.write_deployment(spec)
             instance, app_instance = self.load_deployer_and_app(
                 spec_path, self.deployment_generator  # type: ignore
             )
@@ -125,12 +169,10 @@ class TestKubernetesDeployment(BaseDeploymentTests):
 
     def test_creates_ropsten_deploy(self) -> None:
         """Required for deployment of ropsten."""
-        for (
-            test_case_name,
-            spec_path,
-        ) in test_deployment_spec_paths.items():
-            if test_case_name.find("ropsten") < 0:
+        for spec in get_valid_deployments():
+            if spec.find("ropsten") < 0:
                 continue
+            spec_path = self.write_deployment(spec)
             instance, app_instance = self.load_deployer_and_app(
                 spec_path, self.deployment_generator  # type: ignore
             )
@@ -153,7 +195,8 @@ class TestDeploymentGenerators(BaseDeploymentTests):
     def test_generates_agent_for_all_valory_apps(self) -> None:
         """Test generator functions with all valory apps."""
         for deployment_generator in deployment_generators:
-            for _, spec_path in test_deployment_spec_paths.items():
+            for spec in get_valid_deployments():
+                spec_path = self.write_deployment(spec)
                 _, app_instance = self.load_deployer_and_app(
                     spec_path, deployment_generator
                 )
@@ -163,7 +206,8 @@ class TestDeploymentGenerators(BaseDeploymentTests):
     def test_generates_agents_for_all_valory_apps(self) -> None:
         """Test functionality of the valory deployment generators."""
         for deployment_generator in deployment_generators:
-            for _, spec_path in test_deployment_spec_paths.items():
+            for spec in get_valid_deployments():
+                spec_path = self.write_deployment(spec)
                 _, app_instance = self.load_deployer_and_app(
                     spec_path, deployment_generator
                 )
@@ -177,7 +221,8 @@ class TestTendermintDeploymentGenerators(BaseDeploymentTests):
     def test_generates_all_tendermint_configs(self) -> None:
         """Test functionality of the tendermint deployment generators."""
         for deployment_generator in deployment_generators:
-            for _, spec_path in test_deployment_spec_paths.items():
+            for spec in get_valid_deployments():
+                spec_path = self.write_deployment(spec)
                 deployer_instance, app_instance = self.load_deployer_and_app(
                     spec_path, deployment_generator
                 )
@@ -191,7 +236,8 @@ class TestDeploymentLoadsAgent(BaseDeploymentTests):
     def test_loads_agent_config(self) -> None:
         """Test functionality of deploy safe contract."""
         for deployment_generator in deployment_generators:
-            for _, spec_path in test_deployment_spec_paths.items():
+            for spec in get_valid_deployments():
+                spec_path = self.write_deployment(spec)
                 _, app_instance = self.load_deployer_and_app(
                     spec_path, deployment_generator
                 )
@@ -205,7 +251,8 @@ class TestCliTool(BaseDeploymentTests):
     def test_generates_deploy_safe_contract(self) -> None:
         """Test functionality of deploy safe contract."""
         for deployment_generator in deployment_generators:
-            for _, spec_path in test_deployment_spec_paths.items():
+            for spec in get_valid_deployments():
+                spec_path = self.write_deployment(spec)
                 _, app_instance = self.load_deployer_and_app(
                     spec_path, deployment_generator
                 )
@@ -214,10 +261,49 @@ class TestCliTool(BaseDeploymentTests):
     def test_generates_deploy_oracle_contract(self) -> None:
         """Test functionality of deploy safe contract."""
         for deployment_generator in deployment_generators:
-            for _, spec_path in test_deployment_spec_paths.items():
+            for spec in get_valid_deployments():
+                spec_path = self.write_deployment(spec)
                 _, app_instance = self.load_deployer_and_app(
                     spec_path, deployment_generator
                 )
                 if app_instance.network != "ropsten":
                     continue
                 app_instance.generate_agent(0)
+
+
+class TestValidates(BaseDeploymentTests):
+    """Test functionality of the deployment generators."""
+
+    def test_generates_no_overrides(self):
+        """Use a configuration with no overrides."""
+        for deployment_generator in deployment_generators:
+            spec_path = self.write_deployment(BASE_DEPLOYMENT)
+            _, app_instance = self.load_deployer_and_app(
+                spec_path, deployment_generator
+            )
+            agent_json = app_instance.load_agent()
+            assert agent_json != {}
+
+    def test_generates_with_one_override(self):
+        """Use a configuration with no overrides."""
+        for deployment_generator in deployment_generators[:]:
+            spec_path = self.write_deployment(
+                "---\n".join([BASE_DEPLOYMENT, SKILL_OVERRIDE])
+            )
+            _, app_instance = self.load_deployer_and_app(
+                spec_path, deployment_generator
+            )
+            agent_json = app_instance.load_agent()
+            assert agent_json != {}
+
+    def test_fails_to_generate_with_to_many_overrides(self):
+        """Use a configuration with no overrides."""
+        for deployment_generator in deployment_generators:
+            spec_path = self.write_deployment(
+                "---\n".join([BASE_DEPLOYMENT, SKILL_OVERRIDE, SKILL_OVERRIDE])
+            )
+            try:
+                self.load_deployer_and_app(spec_path, deployment_generator)
+                raise AssertionError("Should not have generated deployment.")
+            except ValueError:
+                return
