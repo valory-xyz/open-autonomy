@@ -69,7 +69,11 @@ from packages.valory.skills.transaction_settlement_abci.behaviours import (
 benchmark_tool = BenchmarkTool()
 
 
-SAFE_TX_GAS = 4000000  # TOFIX
+# This safeTxGas value is calculated from experimental values plus
+# a 10% buffer and rounded up. The Gnosis safe default value is 0 (max gas)
+# https://help.gnosis-safe.io/en/articles/4738445-advanced-transaction-parameters
+# More on gas estimation: https://help.gnosis-safe.io/en/articles/4933491-gas-estimation
+SAFE_TX_GAS = 120000
 ETHER_VALUE = 0
 
 

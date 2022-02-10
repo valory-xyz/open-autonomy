@@ -73,7 +73,13 @@ from packages.valory.skills.transaction_settlement_abci.behaviours import (
 )
 
 
-SAFE_TX_GAS = 4000000
+# These safeTxGas values are calculated from experimental values plus
+# a 10% buffer and rounded up. The Gnosis safe default value is 0 (max gas)
+# https://help.gnosis-safe.io/en/articles/4738445-advanced-transaction-parameters
+# More on gas estimation: https://help.gnosis-safe.io/en/articles/4933491-gas-estimation
+SAFE_TX_GAS_ENTER = 553000
+SAFE_TX_GAS_EXIT = 248000
+SAFE_TX_GAS_SWAP_BACK = 268000
 
 benchmark_tool = BenchmarkTool()
 
@@ -383,7 +389,11 @@ class StrategyEvaluationBehaviour(LiquidityProvisionBaseBehaviour):
         strategy = {
             "action": StrategyType.ENTER.value,
             "safe_nonce": 0,
-            "safe_tx_gas": SAFE_TX_GAS,
+            "safe_tx_gas": {
+                "enter": SAFE_TX_GAS_ENTER,
+                "exit": SAFE_TX_GAS_EXIT,
+                "swap_back": SAFE_TX_GAS_SWAP_BACK,
+            },
             "deadline": int(last_timestamp)
             + self.params.rebalancing_params["deadline"],
             "chain": self.params.rebalancing_params["chain"],
@@ -623,7 +633,7 @@ class EnterPoolTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
                 value=0,
                 data=bytes.fromhex(multisend_data),
                 operation=SafeOperation.DELEGATE_CALL.value,
-                safe_tx_gas=strategy["safe_tx_gas"],
+                safe_tx_gas=strategy["safe_tx_gas"]["enter"],
                 safe_nonce=strategy["safe_nonce"],
             )
             safe_tx_hash = cast(str, contract_api_msg.raw_transaction.body["tx_hash"])
@@ -789,7 +799,7 @@ class ExitPoolTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
                 value=0,
                 data=bytes.fromhex(multisend_data),
                 operation=SafeOperation.DELEGATE_CALL.value,
-                safe_tx_gas=strategy["safe_tx_gas"],
+                safe_tx_gas=strategy["safe_tx_gas"]["exit"],
                 safe_nonce=strategy["safe_nonce"],
             )
             safe_tx_hash = cast(str, contract_api_msg.raw_transaction.body["tx_hash"])
@@ -934,7 +944,7 @@ class SwapBackTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
                 value=0,
                 data=bytes.fromhex(multisend_data),
                 operation=SafeOperation.DELEGATE_CALL.value,
-                safe_tx_gas=strategy["safe_tx_gas"],
+                safe_tx_gas=strategy["safe_tx_gas"]["swap_back"],
                 safe_nonce=strategy["safe_nonce"],
             )
             safe_tx_hash = cast(str, contract_api_msg.raw_transaction.body["tx_hash"])

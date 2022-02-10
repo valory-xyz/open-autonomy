@@ -43,6 +43,9 @@ from packages.valory.skills.liquidity_provision.behaviours import (
     EnterPoolTransactionHashBehaviour,
     ExitPoolTransactionHashBehaviour,
     GnosisSafeContract,
+    SAFE_TX_GAS_ENTER,
+    SAFE_TX_GAS_EXIT,
+    SAFE_TX_GAS_SWAP_BACK,
     SleepBehaviour,
     StrategyEvaluationBehaviour,
     SwapBackTransactionHashBehaviour,
@@ -58,7 +61,6 @@ from tests.conftest import ROOT_DIR
 from tests.test_skills.base import FSMBehaviourBaseCase
 
 
-SAFE_TX_GAS = 4000000  # TOFIX
 MAX_ALLOWANCE = 2 ** 256 - 1
 WETH_ADDRESS = "0xDc64a140Aa3E981100a9becA4E685f962f0cF6C9"  # nosec
 TOKEN_A_ADDRESS = "0x0DCd1Bf9A1b36cE34237eEaFef220932846BCD82"  # nosec
@@ -79,7 +81,11 @@ def get_default_strategy(
     strategy = {
         "action": StrategyType.ENTER.value,
         "safe_nonce": 0,
-        "safe_tx_gas": SAFE_TX_GAS,
+        "safe_tx_gas": {
+            "enter": SAFE_TX_GAS_ENTER,
+            "exit": SAFE_TX_GAS_EXIT,
+            "swap_back": SAFE_TX_GAS_SWAP_BACK,
+        },
         "deadline": DEADLINE,  # 5 min into future
         "chain": "Ethereum",
         "token_base": {
@@ -519,7 +525,7 @@ class TestEnterPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase)
                         value=0,
                         data=b"ummy_tx",  # type: ignore
                         operation=SafeOperation.DELEGATE_CALL.value,
-                        safe_tx_gas=4000000,
+                        safe_tx_gas=strategy["safe_tx_gas"]["enter"],
                         safe_nonce=strategy["safe_nonce"],
                     )
                 ),
@@ -792,7 +798,7 @@ class TestEnterPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase)
                         value=0,
                         data=b"ummy_tx",  # type: ignore
                         operation=SafeOperation.DELEGATE_CALL.value,
-                        safe_tx_gas=4000000,
+                        safe_tx_gas=strategy["safe_tx_gas"]["enter"],
                         safe_nonce=strategy["safe_nonce"],
                     )
                 ),

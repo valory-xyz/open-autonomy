@@ -173,7 +173,7 @@ class BenchmarkTool:
             with open(filepath, "w+", encoding="utf-8") as outfile:
                 json.dump(self.data, outfile)
             self.logger.info(f"Agent data appended to:\n{filepath}")
-        except PermissionError as e:
+        except PermissionError as e:  # pragma: nocover
             self.logger.info(f"Error saving benchmark data:\n{e}")
 
     def measure(self, behaviour: BaseState) -> BenchmarkBehaviour:
