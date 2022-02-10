@@ -125,7 +125,7 @@ def get_address_name(address: Optional[str]) -> str:
     """
     if address is None:
         return "none"
-    address = Web3.toChecksumAddress(address)
+    address = cast(str, Web3.toChecksumAddress(address))
     return (
         addresses_to_account_names[address]
         if address in addresses_to_account_names
