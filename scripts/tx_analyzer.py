@@ -88,9 +88,9 @@ def get_tx_tag(tx_logs: dict) -> str:
         if "errors" not in log:
 
             if (
-                log["args"]["from"] == account_names_to_addresses["safe"]
-                and log["args"]["to"] == account_names_to_addresses["A_WETH_pool"]
-                and log["address"] == account_names_to_addresses["token_WETH"]
+                log["args"]["from"] == account_names_to_addresses["minter"]
+                and log["args"]["to"] == account_names_to_addresses["safe"]
+                and log["address"] == account_names_to_addresses["token_LP"]
             ):
                 return (
                     Color.GREEN.value + "ENTER_POOL" + Color.RESET.value
