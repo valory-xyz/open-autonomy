@@ -23,11 +23,13 @@ import binascii
 import secrets
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple, cast
+from unittest import mock
 
 import pytest
 from aea.crypto.registries import crypto_registry
 from aea_ledger_ethereum import EthereumCrypto
 from web3 import Web3
+from web3.exceptions import SolidityError
 
 from packages.valory.contracts.gnosis_safe.contract import (
     GnosisSafeContract,
@@ -266,6 +268,34 @@ class TestDeployTransactionHardhat(BaseContractTestHardHatSafeNet):
             contract_address=cast(str, self.contract_address),
         )["safe_nonce"]
         assert safe_nonce == 0
+
+    def test_revert_reason(
+        self,
+    ) -> None:
+        """Test `revert_reason` method."""
+
+        tx = {
+            "to": "to",
+            "from": "from",
+            "value": "value",
+            "input": "input",
+            "blockNumber": 1,
+        }
+
+        def _raise_solidity_error(*args: Any) -> None:
+            raise SolidityError("reason")
+
+        with mock.patch.object(
+            self.ledger_api.api.eth, "call", new=_raise_solidity_error
+        ):
+            reason = self.contract.revert_reason(self.ledger_api, self.contract, tx)
+            assert "revert_reason" in reason
+            assert reason["revert_reason"] == "SolidityError('reason')"
+
+        with mock.patch.object(self.ledger_api.api.eth, "call"), pytest.raises(
+            ValueError, match=f"The given transaction has not been reverted!\ntx: {tx}"
+        ):
+            self.contract.revert_reason(self.ledger_api, self.contract, tx)
 
 
 class TestRawSafeTransaction(BaseContractTestHardHatSafeNet):

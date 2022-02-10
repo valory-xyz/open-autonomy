@@ -612,7 +612,7 @@ class GnosisSafeContract(Contract):
         except SolidityError as e:
             # execution reverted exception
             return dict(revert_reason=repr(e))
-        except HTTPError as e:
+        except HTTPError as e:  # pragma: nocover
             # http exception
             raise e
         else:

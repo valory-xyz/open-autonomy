@@ -334,6 +334,7 @@ class BaseResetRoundTest(BaseCollectSameUntilThresholdRoundTest):
         period_state = self.period_state.update(
             safe_contract_address=get_safe_contract_address(),
         )
+        period_state._db._cross_period_persisted_keys = ["safe_contract_address"]
         test_round = self.test_class(
             state=period_state, consensus_params=self.consensus_params
         )

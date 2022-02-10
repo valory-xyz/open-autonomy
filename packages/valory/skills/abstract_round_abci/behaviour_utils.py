@@ -465,13 +465,14 @@ class BaseState(AsyncBehaviour, SimpleBehaviour, ABC):
         """Get the request nonce for the request, from the protocol's dialogue."""
         return dialogue.dialogue_label.dialogue_reference[0]
 
-    def _send_transaction(
+    def _send_transaction(  # pylint: disable=too-many-arguments
         self,
         payload: BaseTxPayload,
         stop_condition: Callable[[], bool] = lambda: False,
         request_timeout: float = _DEFAULT_REQUEST_TIMEOUT,
         request_retry_delay: float = _DEFAULT_REQUEST_RETRY_DELAY,
         tx_timeout: float = _DEFAULT_TX_TIMEOUT,
+        max_attempts: int = _DEFAULT_TX_MAX_ATTEMPTS,
     ) -> Generator:
         """
         Send transaction and wait for the response, repeat until not successful.
@@ -501,6 +502,7 @@ class BaseState(AsyncBehaviour, SimpleBehaviour, ABC):
         :param: request_timeout: the timeout for the requests
         :param: request_retry_delay: the delay to wait after failed requests
         :param: tx_timeout: the timeout to wait for tx delivery
+        :param: max_attempts: max retry attempts
         :yield: the responses
         """
         while not stop_condition():
@@ -546,11 +548,11 @@ class BaseState(AsyncBehaviour, SimpleBehaviour, ABC):
                     f"Received tendermint code != 0. Retrying in {request_retry_delay} seconds..."
                 )
                 yield from self.sleep(request_retry_delay)
-                continue
+                continue  # pragma: nocover
 
             try:
                 is_delivered, res = yield from self._wait_until_transaction_delivered(
-                    tx_hash, timeout=tx_timeout
+                    tx_hash, timeout=tx_timeout, max_attempts=max_attempts
                 )
             except TimeoutException:
                 self.context.logger.info(
@@ -558,7 +560,7 @@ class BaseState(AsyncBehaviour, SimpleBehaviour, ABC):
                 )
                 payload = payload.with_new_id()
                 yield from self.sleep(request_retry_delay)
-                continue
+                continue  # pragma: nocover
 
             if is_delivered:
                 self.context.logger.info("A2A transaction delivered!")
