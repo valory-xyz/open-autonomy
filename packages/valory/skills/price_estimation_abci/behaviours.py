@@ -18,10 +18,12 @@
 # ------------------------------------------------------------------------------
 
 """This module contains the behaviours for the 'abci' skill."""
-import struct
+
 from abc import ABC
 from decimal import Decimal
-from typing import Generator, Optional, Set, Type, cast
+from typing import Dict, Generator, Optional, Sequence, Set, Type, cast
+
+from aea.exceptions import enforce
 
 from packages.valory.contracts.gnosis_safe.contract import GnosisSafeContract
 from packages.valory.contracts.offchain_aggregator.contract import (
@@ -222,32 +224,33 @@ class EstimateBehaviour(PriceEstimationBaseState):
         self.set_done()
 
 
-def package_data_for_server(
-        participants,
-        period_count, agent_address, estimate,
-        prev_tx_hash, observations, data_source, unit
-):
-    """Sign data for server"""
-    # must yield constant size bytes.
-    # plan is to pad variable length entities
-    # import struct
-    # assert len(agent_address) == 42
-    assert len(str(estimate)) <= 32
-    # assert len(prev_tx_hash) == 66
-    assert len(data_source) <= 32
-    assert len(unit) <= 32
-    # assert all(len(address) == 42 for address in observations.keys())
-    assert all(len(str(value)) <= 32 for value in observations.values())
-    observed = (str(observations.get(p, float('nan'))).zfill(32) for p in participants)
-    return b"".join([
-        period_count.to_bytes(8, "big"),  # == max 64 bit
-        # agent_address.encode("utf-8"),
-        str(estimate).zfill(32).encode("utf-8"),
-        # prev_tx_hash.encode("utf-8"),
-        ''.join(observed).encode("utf-8"),
-        str(data_source).zfill(32).encode("utf-8"),
-        str(unit).zfill(32).encode("utf-8"),
-    ])
+def pack_for_server(
+    participants: Sequence[str],
+    period_count: int,
+    estimate: float,
+    observations: Dict[str, float],
+    data_source: str,
+    unit: str,
+    **_: Dict[str, str],
+) -> bytes:
+    """Package server data for signing"""
+    enforce(len(str(estimate)) <= 32, "'estimate' too large")
+    enforce(len(data_source) <= 32, "'data_source' too large")
+    enforce(len(unit) <= 32, "'unit' too large")
+    enforce(
+        all(len(str(value)) <= 32 for value in observations.values()),
+        "'observation' values too large",
+    )
+    observed = (str(observations.get(p, "nan")).zfill(32) for p in participants)
+    return b"".join(
+        [
+            period_count.to_bytes(8, "big"),  # == max 64 bit
+            str(estimate).zfill(32).encode("utf-8"),
+            "".join(observed).encode("utf-8"),
+            str(data_source).zfill(32).encode("utf-8"),
+            str(unit).zfill(32).encode("utf-8"),
+        ]
+    )
 
 
 class TransactionHashBehaviour(PriceEstimationBaseState):
@@ -284,7 +287,7 @@ class TransactionHashBehaviour(PriceEstimationBaseState):
 
         self.set_done()
 
-    def send_to_server(self) -> Generator:
+    def send_to_server(self) -> Generator:  # pylint: disable-msg=too-many-locals
         """
         Send data to server.
 
@@ -337,9 +340,10 @@ class TransactionHashBehaviour(PriceEstimationBaseState):
             "unit": f"{price_api.currency_id}:{price_api.convert_id}",
         }
 
-        # or should I use self.params.consensus_params.max_participants?
         participants = self.period_state.sorted_participants
-        package = package_data_for_server(participants, **data_for_server)
+        package = pack_for_server(participants, **data_for_server)
+        data_for_server["package"] = package.hex()
+
         message = str(data_for_server).encode("utf-8")
         server_api_specs = self.context.server_api.get_spec()
         raw_response = yield from self.get_http_response(
