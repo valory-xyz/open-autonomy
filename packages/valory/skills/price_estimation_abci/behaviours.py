@@ -355,6 +355,11 @@ class TransactionHashBehaviour(PriceEstimationBaseState):
         package = pack_for_server(participants, decimals, **data_for_server)
         data_for_server["package"] = package.hex()
 
+        # get signature
+        signature = yield from self.get_signature(package, is_deprecated_mode=True)
+        data_for_server["signature"] = signature
+        self.context.logger.info(f"Signature: {signature}")
+
         message = str(data_for_server).encode("utf-8")
         server_api_specs = self.context.server_api.get_spec()
         raw_response = yield from self.get_http_response(
