@@ -18,10 +18,12 @@
 # ------------------------------------------------------------------------------
 """Tests for valory/liquidity_provision_behaviour skill's behaviours."""
 import binascii
+import datetime
 import json
 import time
 from pathlib import Path
 from typing import Dict, cast
+from unittest import mock
 
 import pytest
 from aea.exceptions import AEAActException
@@ -38,7 +40,6 @@ from packages.valory.protocols.contract_api.message import ContractApiMessage
 from packages.valory.skills.abstract_round_abci.base import StateDB
 from packages.valory.skills.abstract_round_abci.behaviour_utils import BaseState
 from packages.valory.skills.liquidity_provision.behaviours import (
-    CURRENT_BLOCK_TIMESTAMP,
     EnterPoolTransactionHashBehaviour,
     ExitPoolTransactionHashBehaviour,
     GnosisSafeContract,
@@ -68,6 +69,7 @@ A_B_POOL_ADDRESS = "0x86A6C37D3E868580a65C723AAd7E0a945E170416"  # nosec
 A_WETH_POOL_ADDRESS = "0x86A6C37D3E868580a65C723AAd7E0a945E170416"  # nosec
 B_WETH_POOL_ADDRESS = "0x3430fe46bfE23b1fafDe4F7c78481051F7c0E01F"  # nosec
 SLEEP_SECONDS = 1
+DEADLINE = int(time.time()) + 300
 
 
 def get_default_strategy(
@@ -78,7 +80,7 @@ def get_default_strategy(
         "action": StrategyType.ENTER.value,
         "safe_nonce": 0,
         "safe_tx_gas": SAFE_TX_GAS,
-        "deadline": CURRENT_BLOCK_TIMESTAMP + 300,  # 5 min into future
+        "deadline": DEADLINE,  # 5 min into future
         "chain": "Ethereum",
         "token_base": {
             "ticker": "WETH",
@@ -238,10 +240,14 @@ class TestStrategyEvaluationBehaviour(LiquidityProvisionBehaviourBaseCase):
             ).state_id
             == StrategyEvaluationBehaviour.state_id
         )
-        self.behaviour.act_wrapper()
+        with mock.patch(
+            "packages.valory.skills.abstract_round_abci.base.AbciApp.last_timestamp",
+            return_value=datetime.datetime.now(),
+        ):
+            self.behaviour.act_wrapper()
 
-        self.mock_a2a_transaction()
-        self._test_done_flag_set()
+            self.mock_a2a_transaction()
+            self._test_done_flag_set()
 
     def test_transaction_hash_swap_back(
         self,
@@ -373,7 +379,7 @@ class TestEnterPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase)
                             strategy["token_a"]["address"],
                         ],
                         to=period_state.safe_contract_address,
-                        deadline=CURRENT_BLOCK_TIMESTAMP + 300,
+                        deadline=DEADLINE,
                     )
                 ),
             ),
@@ -406,7 +412,7 @@ class TestEnterPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase)
                             strategy["token_b"]["address"],
                         ],
                         to=period_state.safe_contract_address,
-                        deadline=CURRENT_BLOCK_TIMESTAMP + 300,  # 5 min into the future
+                        deadline=DEADLINE,
                     )
                 ),
             ),
@@ -470,7 +476,7 @@ class TestEnterPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase)
                             strategy["token_a"]["amount_min_after_add_liq"]
                         ),
                         to=period_state.safe_contract_address,
-                        deadline=CURRENT_BLOCK_TIMESTAMP + 300,
+                        deadline=DEADLINE,
                     )
                 ),
             ),
@@ -619,7 +625,7 @@ class TestEnterPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase)
                             strategy["token_a"]["address"],
                         ],
                         to=period_state.safe_contract_address,
-                        deadline=CURRENT_BLOCK_TIMESTAMP + 300,
+                        deadline=DEADLINE,
                     )
                 ),
             ),
@@ -652,7 +658,7 @@ class TestEnterPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase)
                             strategy["token_b"]["address"],
                         ],
                         to=period_state.safe_contract_address,
-                        deadline=CURRENT_BLOCK_TIMESTAMP + 300,  # 5 min into the future
+                        deadline=DEADLINE,
                     )
                 ),
             ),
@@ -743,7 +749,7 @@ class TestEnterPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase)
                             strategy["token_b"]["amount_min_after_add_liq"]
                         ),
                         to=period_state.safe_contract_address,
-                        deadline=CURRENT_BLOCK_TIMESTAMP + 300,
+                        deadline=DEADLINE,
                     )
                 ),
             ),
@@ -979,7 +985,7 @@ class TestExitPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase):
                         amount_token_min=int(amount_b_sent),
                         amount_ETH_min=int(amount_base_sent),
                         to=period_state.safe_contract_address,
-                        deadline=CURRENT_BLOCK_TIMESTAMP + 300,
+                        deadline=DEADLINE,
                     )
                 ),
             ),
@@ -1166,7 +1172,7 @@ class TestExitPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase):
                         amount_a_min=int(amount_a_sent),
                         amount_b_min=int(amount_b_sent),
                         to=period_state.safe_contract_address,
-                        deadline=CURRENT_BLOCK_TIMESTAMP + 300,
+                        deadline=DEADLINE,
                     )
                 ),
             ),
@@ -1396,7 +1402,7 @@ class TestSwapBackTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase):
                             strategy["token_base"]["address"],
                         ],
                         to=period_state.safe_contract_address,
-                        deadline=CURRENT_BLOCK_TIMESTAMP + 300,
+                        deadline=DEADLINE,
                     )
                 ),
             ),
@@ -1434,7 +1440,7 @@ class TestSwapBackTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase):
                             strategy["token_base"]["address"],
                         ],
                         to=period_state.safe_contract_address,
-                        deadline=CURRENT_BLOCK_TIMESTAMP + 300,
+                        deadline=DEADLINE,
                     )
                 ),
             ),
@@ -1621,7 +1627,7 @@ class TestSwapBackTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase):
                             strategy["token_base"]["address"],
                         ],
                         to=period_state.safe_contract_address,
-                        deadline=CURRENT_BLOCK_TIMESTAMP + 300,
+                        deadline=DEADLINE,
                     )
                 ),
             ),
@@ -1657,7 +1663,7 @@ class TestSwapBackTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase):
                             strategy["token_base"]["address"],
                         ],
                         to=period_state.safe_contract_address,
-                        deadline=CURRENT_BLOCK_TIMESTAMP + 300,
+                        deadline=DEADLINE,
                     )
                 ),
             ),
