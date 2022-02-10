@@ -22,16 +22,16 @@ import os
 import shutil
 import tempfile
 from abc import ABC
+from glob import glob
 from pathlib import Path
 from typing import Any, List, Tuple
 
 import yaml
 
 from deployments.base_deployments import BaseDeployment, BaseDeploymentGenerator
+from deployments.constants import DEPLOYMENT_SPEC_DIR, ROOT_DIR
 from deployments.generators.docker_compose.docker_compose import DockerComposeGenerator
 from deployments.generators.kubernetes.kubernetes import KubernetesGenerator
-
-from tests.helpers.constants import ROOT_DIR
 
 
 deployment_generators: List[Any] = [
@@ -77,6 +77,11 @@ config:
 TEST_DEPLOYMENT_PATH: str = "example-deployment.yaml"
 
 
+def get_specified_deployments() -> List[str]:
+    """Returns a list specified deployments."""
+    return glob(str(DEPLOYMENT_SPEC_DIR / "*.yaml"))
+
+
 def get_valid_deployments() -> List[str]:
     """Returns a list of valid deployments as string."""
     return [
@@ -101,7 +106,8 @@ class CleanDirectoryClass:
     def setup(self) -> None:
         """Sets up the working directory for the test method."""
         self.old_cwd = os.getcwd()
-        self.working_dir = Path(tempfile.TemporaryDirectory().name)
+        with tempfile.TemporaryDirectory() as path:
+            self.working_dir = Path(path.name)
         shutil.copytree(self.deployment_path, self.working_dir)
         os.chdir(self.working_dir)
 
@@ -129,7 +135,9 @@ class BaseDeploymentTests(ABC, CleanDirectoryClass):
         app: str,
     ) -> str:
         """Write the deployment to the local directory."""
-        with open(str(self.working_dir / TEST_DEPLOYMENT_PATH), "w") as f:
+        with open(
+            str(self.working_dir / TEST_DEPLOYMENT_PATH), "w", encoding="utf8"
+        ) as f:
             f.write(app)
         return str(self.working_dir / TEST_DEPLOYMENT_PATH)
 
@@ -307,3 +315,12 @@ class TestValidates(BaseDeploymentTests):
                 raise AssertionError("Should not have generated deployment.")
             except ValueError:
                 return
+
+    def test_generates_all_specified_deployments(self) -> None:
+        """Test functionality of deploy safe contract."""
+        for deployment_generator in deployment_generators:
+            for spec_path in get_specified_deployments():
+                _, app_instance = self.load_deployer_and_app(
+                    spec_path, deployment_generator
+                )
+                app_instance.generate_agent(0)
