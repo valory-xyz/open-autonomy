@@ -276,13 +276,14 @@ def mock_to_server_message_flow(
         "agent_address": "test_agent_address",
         "estimate": 1.0,
         "prev_tx_hash": prev_tx_hash,
-        "observations": {"agent1": float("nan")},
+        "observations": {"agent1": 0.0},
         "data_source": "coinbase",
         "unit": "BTC:USD",
     }
-    period_state = self.behaviour.current_state.period_state  # type: ignore
-    participants = period_state.sorted_participants
-    data["package"] = pack_for_server(participants, **data).hex()  # type: ignore
+    state = self.behaviour.current_state  # type: ignore
+    participants = state.period_state.sorted_participants  # type: ignore
+    decimals = state.params.oracle_params["decimals"]  # type: ignore
+    data["package"] = pack_for_server(participants, decimals, **data).hex()  # type: ignore
 
     request_kwargs: Dict[str, Union[str, bytes]] = dict(
         method="POST",
@@ -303,6 +304,35 @@ def mock_to_server_message_flow(
     self.behaviour.act_wrapper()
     self.mock_http_request(request_kwargs, response_kwargs)
     self.behaviour.act_wrapper()
+
+
+def get_valid_server_data() -> Dict[str, Any]:
+    """Get valid server data"""
+
+    participants = [
+        "0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC",
+        "0x70997970C51812dc3A010C7d01b50e0d17dc79C8",
+        "0x90F79bf6EB2c4f870365E785982E1f101E93b906",
+        "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
+    ]
+    period_count = 123456789
+    estimate = 43974.960019901744
+    observations = {
+        "0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC": 44251.11,
+        "0x70997970C51812dc3A010C7d01b50e0d17dc79C8": 43964.3900398035,
+        "0x90F79bf6EB2c4f870365E785982E1f101E93b906": 43985.53,
+        "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266": 43949.0,
+    }
+    data_source = "coinbase"
+    unit = "BTC:USD"
+    return dict(
+        participants=participants,
+        period_count=period_count,
+        estimate=estimate,
+        observations=observations,
+        data_source=data_source,
+        unit=unit,
+    )
 
 
 @pytest.mark.parametrize(
@@ -420,61 +450,40 @@ class TestTransactionHashBehaviour(PriceEstimationFSMBehaviourBaseCase):
         assert state.state_id == RandomnessTransactionSubmissionBehaviour.state_id
 
 
-def get_valid_server_data() -> Dict[str, Any]:
-    """Get valid server data"""
+class TestPackForServer(PriceEstimationFSMBehaviourBaseCase):
+    """Test packaging of data for signing by agents"""
 
-    participants = [
-        "0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC",
-        "0x70997970C51812dc3A010C7d01b50e0d17dc79C8",
-        "0x90F79bf6EB2c4f870365E785982E1f101E93b906",
-        "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
-    ]
-    period_count = 123456789
-    estimate = 43974.960019901744
-    observations = {
-        "0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC": 44251.11,
-        "0x70997970C51812dc3A010C7d01b50e0d17dc79C8": 43964.3900398035,
-        "0x90F79bf6EB2c4f870365E785982E1f101E93b906": 43985.53,
-        "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266": 43949.0,
-    }
-    data_source = "coinbase"
-    unit = "BTC:USD"
-    return dict(
-        participants=participants,
-        period_count=period_count,
-        estimate=estimate,
-        observations=observations,
-        data_source=data_source,
-        unit=unit,
+    @pytest.mark.parametrize(
+        "mutation, remains_valid",
+        (
+            ({}, True),  # do nothing
+            ({"participants": ("",) * 4}, True),
+            ({"period_count": (1 << 256) - 1}, True),
+            ({"period_count": 1 << 256}, False),
+            ({"estimate": f"{'9'*30}.{'9'*1}"}, True),
+            ({"estimate": f"{'9'*30}.{'9'*2}"}, False),
+            ({"data_source": "a" * 32}, True),
+            ({"data_source": "a" * 33}, False),
+            ({"unit": "a" * 32}, True),
+            ({"unit": "a" * 33}, False),
+        ),
     )
+    def test_pack_for_server(
+        self,
+        mutation: Dict[str, Any],
+        remains_valid: bool,
+    ) -> None:
+        """Test packaging valid and invalid data"""
 
+        decimals = self.behaviour.current_state.params.oracle_params["decimals"]  # type: ignore
+        # self.behaviour.pa
+        kwargs = get_valid_server_data()
+        kwargs.update({"decimals": decimals})
+        kwargs.update(mutation)
 
-@pytest.mark.parametrize(
-    "mutation, remains_valid",
-    (
-        ({}, True),  # do nothing
-        ({"participants": ("",) * 4}, True),
-        ({"period_count": (1 << 64) - 1}, True),
-        ({"period_count": 1 << 64}, False),
-        ({"estimate": "a" * 32}, True),
-        ({"estimate": "a" * 33}, False),
-        ({"data_source": "a" * 32}, True),
-        ({"data_source": "a" * 33}, False),
-        ({"unit": "a" * 32}, True),
-        ({"unit": "a" * 33}, False),
-    ),
-)
-def test_pack_for_server(
-    mutation: Dict[str, Any],
-    remains_valid: bool,
-) -> None:
-    """Test packaging valid and invalid data"""
-    kwargs = get_valid_server_data()
-    kwargs.update(mutation)
-
-    if remains_valid:
-        package = pack_for_server(**kwargs)
-        assert isinstance(package, bytes) and len(package) == 232
-    else:
-        with pytest.raises((OverflowError, AEAEnforceError)):
-            pack_for_server(**kwargs)
+        if remains_valid:
+            package = pack_for_server(**kwargs)
+            assert isinstance(package, bytes) and len(package) == 256
+        else:
+            with pytest.raises((OverflowError, AEAEnforceError)):
+                pack_for_server(**kwargs)

@@ -224,8 +224,9 @@ class EstimateBehaviour(PriceEstimationBaseState):
         self.set_done()
 
 
-def pack_for_server(
+def pack_for_server(  # pylint: disable-msg=too-many-arguments
     participants: Sequence[str],
+    decimals: int,
     period_count: int,
     estimate: float,
     observations: Dict[str, float],
@@ -241,12 +242,12 @@ def pack_for_server(
         all(len(str(value)) <= 32 for value in observations.values()),
         "'observation' values too large",
     )
-    observed = (str(observations.get(p, "nan")).zfill(32) for p in participants)
+    observed = (to_int(observations.get(p, 0.0), decimals) for p in participants)
     return b"".join(
         [
-            period_count.to_bytes(8, "big"),  # == max 64 bit
-            str(estimate).zfill(32).encode("utf-8"),
-            "".join(observed).encode("utf-8"),
+            period_count.to_bytes(32, "big"),
+            to_int(estimate, decimals).to_bytes(32, "big"),
+            *map(lambda n: n.to_bytes(32, "big"), observed),
             str(data_source).zfill(32).encode("utf-8"),
             str(unit).zfill(32).encode("utf-8"),
         ]
@@ -322,8 +323,7 @@ class TransactionHashBehaviour(PriceEstimationBaseState):
         estimate = self.period_state.db.get_strict("most_voted_estimate")
 
         observations = {
-            agent: getattr(payloads.get(agent), "observation", float("nan"))
-            for agent in agents
+            agent: getattr(payloads.get(agent), "observation", 0.0) for agent in agents
         }
 
         price_api = self.context.price_api
@@ -341,7 +341,8 @@ class TransactionHashBehaviour(PriceEstimationBaseState):
         }
 
         participants = self.period_state.sorted_participants
-        package = pack_for_server(participants, **data_for_server)
+        decimals = self.params.oracle_params["decimals"]
+        package = pack_for_server(participants, decimals, **data_for_server)
         data_for_server["package"] = package.hex()
 
         message = str(data_for_server).encode("utf-8")

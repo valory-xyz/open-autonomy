@@ -126,7 +126,7 @@ Steps:
 #### pack`_`for`_`server
 
 ```python
-def pack_for_server(participants: Sequence[str], period_count: int, estimate: float, observations: Dict[str, float], data_source: str, unit: str, **_: Dict[str, str], ,) -> bytes
+def pack_for_server(participants: Sequence[str], decimals: int, period_count: int, estimate: float, observations: Dict[str, float], data_source: str, unit: str, **_: Dict[str, str], ,) -> bytes
 ```
 
 Package server data for signing
