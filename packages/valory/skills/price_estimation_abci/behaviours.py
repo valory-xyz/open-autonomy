@@ -76,6 +76,8 @@ benchmark_tool = BenchmarkTool()
 SAFE_TX_GAS = 120000
 ETHER_VALUE = 0
 
+NO_OBSERVATION = 0.0
+
 
 def to_int(most_voted_estimate: float, decimals: int) -> int:
     """Convert to int."""
@@ -246,7 +248,9 @@ def pack_for_server(  # pylint: disable-msg=too-many-arguments
         all(len(str(value)) <= 32 for value in observations.values()),
         "'observation' values too large",
     )
-    observed = (to_int(observations.get(p, 0.0), decimals) for p in participants)
+    observed = (
+        to_int(observations.get(p, NO_OBSERVATION), decimals) for p in participants
+    )
     return b"".join(
         [
             period_count.to_bytes(32, "big"),
@@ -327,7 +331,8 @@ class TransactionHashBehaviour(PriceEstimationBaseState):
         estimate = self.period_state.db.get_strict("most_voted_estimate")
 
         observations = {
-            agent: getattr(payloads.get(agent), "observation", 0.0) for agent in agents
+            agent: getattr(payloads.get(agent), "observation", NO_OBSERVATION)
+            for agent in agents
         }
 
         price_api = self.context.price_api
@@ -344,6 +349,7 @@ class TransactionHashBehaviour(PriceEstimationBaseState):
             "unit": f"{price_api.currency_id}:{price_api.convert_id}",
         }
 
+        # pack data
         participants = self.period_state.sorted_participants
         decimals = self.params.oracle_params["decimals"]
         package = pack_for_server(participants, decimals, **data_for_server)

@@ -476,7 +476,6 @@ class TestPackForServer(PriceEstimationFSMBehaviourBaseCase):
         """Test packaging valid and invalid data"""
 
         decimals = self.behaviour.current_state.params.oracle_params["decimals"]  # type: ignore
-        # self.behaviour.pa
         kwargs = get_valid_server_data()
         kwargs.update({"decimals": decimals})
         kwargs.update(mutation)
