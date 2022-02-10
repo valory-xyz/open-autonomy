@@ -189,6 +189,16 @@ class AbciAppTest(AbciApp[str]):
     }
 
 
+def test_base_tx_payload() -> None:
+    """Test BaseTxPayload."""
+
+    payload = BasePayload(sender="sender")
+    new_payload = payload.with_new_id()
+
+    assert payload.sender == new_payload.sender
+    assert payload.id_ != new_payload.id_
+
+
 class TestTransactions:
     """Test Transactions class."""
 

@@ -223,6 +223,10 @@ class BaseCollectDifferentUntilAllRoundTest(BaseRoundTestClass):
 
         first_payload = round_payloads.pop(0)
         test_round.process_payload(first_payload)
+
+        with pytest.raises(ABCIAppInternalError, match="not enough votes"):
+            _ = test_round.most_voted_payload
+
         yield test_round
         assert test_round.collection[first_payload.sender] == first_payload
         assert not test_round.collection_threshold_reached
