@@ -49,12 +49,16 @@ from packages.valory.skills.liquidity_provision.behaviours import (
     SleepBehaviour,
     StrategyEvaluationBehaviour,
     SwapBackTransactionHashBehaviour,
+    hash_payload_to_hex,
     parse_tx_token_balance,
 )
 from packages.valory.skills.liquidity_provision.payloads import StrategyType
 from packages.valory.skills.liquidity_provision.rounds import Event
 from packages.valory.skills.liquidity_provision.rounds import (
     PeriodState as LiquidityProvisionPeriodState,
+)
+from packages.valory.skills.transaction_settlement_abci.payload_tools import (
+    skill_input_hex_to_payload,
 )
 
 from tests.conftest import ROOT_DIR
@@ -1870,3 +1874,24 @@ class TestSleepBehaviour(LiquidityProvisionBehaviourBaseCase):
         self.behaviour.act_wrapper()
         self.mock_a2a_transaction()
         self._test_done_flag_set()
+
+
+def test_hash_payload_to_hex() -> None:
+    """Test hash_payload_to_hex."""
+
+    hex_str = "b0e6add595e00477cf347d09797b156719dc5233283ac76e4efce2a674fe72d9"
+    ether_value = 0
+    safe_tx_gas = 40000000
+    to_address = "0x77E9b2EF921253A171Fa0CB9ba80558648Ff7215"
+    data = b"b0e6add595e00477cf347d09797b156719dc5233283ac76e4efce2a674fe72d9b0e6add595e00477cf347d09797b156719dc5233283ac76e4efce2a674fe72d9"
+    operation = SafeOperation.CALL.value
+    intermediate = hash_payload_to_hex(
+        hex_str, ether_value, safe_tx_gas, to_address, data, operation
+    )
+    h_, e_, s_, a_, d_, o_ = skill_input_hex_to_payload(intermediate)
+    assert h_ == hex_str
+    assert e_ == ether_value
+    assert s_ == safe_tx_gas
+    assert a_ == to_address
+    assert d_ == data
+    assert o_ == operation
