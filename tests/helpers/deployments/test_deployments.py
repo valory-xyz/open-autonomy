@@ -49,6 +49,26 @@ network: hardhat
 number_of_agents: 1
 """
 
+LIST_SKILL_OVERRIDE: str = """public_id: valory/price_estimation_abci:0.1.0
+type: skill
+models:
+  0:
+    - price_api:
+        args:
+          url: 'https://api.coingecko.com/api/v3/simple/price'
+          api_id: 'coingecko'
+          parameters: '[["ids", "bitcoin"], ["vs_currencies", "usd"]]'
+          response_key: 'bitcoin:usd'
+          headers: ~
+  1:
+    - price_api:
+        args:
+          url: 'https://api.coingecko.com/api/v3/simple/price'
+          api_id: 'coingecko'
+          parameters: '[["ids", "bitcoin"], ["vs_currencies", "usd"]]'
+          response_key: 'bitcoin:usd'
+          headers: ~
+"""
 SKILL_OVERRIDE: str = """public_id: valory/price_estimation_abci:0.1.0
 type: skill
 models:
@@ -107,7 +127,7 @@ class CleanDirectoryClass:
         """Sets up the working directory for the test method."""
         self.old_cwd = os.getcwd()
         with tempfile.TemporaryDirectory() as path:
-            self.working_dir = Path(path.name)
+            self.working_dir = Path(path)
         shutil.copytree(self.deployment_path, self.working_dir)
         os.chdir(self.working_dir)
 
@@ -324,3 +344,61 @@ class TestValidates(BaseDeploymentTests):
                     spec_path, deployment_generator
                 )
                 app_instance.generate_agent(0)
+
+
+class TestOverrideTypes(BaseDeploymentTests):
+    """Test functionality of the deployment generators."""
+
+    def test_validates_with_singular_override(self) -> None:
+        """Test functionality of deploy safe contract."""
+        for deployment_generator in deployment_generators:
+            spec_path = self.write_deployment(
+                "---\n".join([BASE_DEPLOYMENT, SKILL_OVERRIDE])
+            )
+            _, app_instance = self.load_deployer_and_app(
+                spec_path, deployment_generator
+            )
+            app_instance.validator.check_overrides_are_valid()
+
+    def test_validates_with_list_override(self) -> None:
+        """Test functionality of deploy safe contract."""
+        for deployment_generator in deployment_generators:
+            deployment = yaml.safe_load(BASE_DEPLOYMENT)
+            deployment["number_of_agents"] = 2
+            spec_path = self.write_deployment(
+                "---\n".join([yaml.safe_dump(deployment), LIST_SKILL_OVERRIDE])
+            )
+            _, app_instance = self.load_deployer_and_app(
+                spec_path, deployment_generator
+            )
+            app_instance.validator.check_overrides_are_valid()
+
+    def test_validates_with_10_agents(self) -> None:
+        """Test functionality of deploy safe contract."""
+        for deployment_generator in deployment_generators:
+            deployment = yaml.safe_load(BASE_DEPLOYMENT)
+            deployment["number_of_agents"] = 10
+            spec_path = self.write_deployment(
+                "---\n".join([yaml.safe_dump(deployment)])
+            )
+            deployment_instance, app_instance = self.load_deployer_and_app(
+                spec_path, deployment_generator
+            )
+            app_instance.validator.check_overrides_are_valid()
+            app_instance.generate_agents()
+            deployment_instance.generate(app_instance)  # type: ignore
+
+    def test_validates_with_20_agents(self) -> None:
+        """Test functionality of deploy safe contract."""
+        for deployment_generator in deployment_generators:
+            deployment = yaml.safe_load(BASE_DEPLOYMENT)
+            deployment["number_of_agents"] = 20
+            spec_path = self.write_deployment(
+                "---\n".join([yaml.safe_dump(deployment)])
+            )
+            deployment_instance, app_instance = self.load_deployer_and_app(
+                spec_path, deployment_generator
+            )
+            app_instance.validator.check_overrides_are_valid()
+            app_instance.generate_agents()
+            deployment_instance.generate(app_instance)  # type: ignore
