@@ -27,8 +27,9 @@ from unittest import mock
 
 import pytest
 from aea.exceptions import AEAEnforceError
-from aea.helpers.transaction.base import RawTransaction
+from aea.helpers.transaction.base import RawTransaction, SignedMessage
 
+from packages.open_aea.protocols.signing import SigningMessage
 from packages.valory.contracts.gnosis_safe.contract import (
     PUBLIC_ID as GNOSIS_SAFE_CONTRACT_ID,
 )
@@ -284,6 +285,7 @@ def mock_to_server_message_flow(
     participants = state.period_state.sorted_participants  # type: ignore
     decimals = state.params.oracle_params["decimals"]  # type: ignore
     data["package"] = pack_for_server(participants, decimals, **data).hex()  # type: ignore
+    data["signature"] = "stub_signature"
 
     request_kwargs: Dict[str, Union[str, bytes]] = dict(
         method="POST",
@@ -299,6 +301,18 @@ def mock_to_server_message_flow(
         status_text="",
         headers="",
         body=b"",
+    )
+
+    # mock signature acquisition
+    self.behaviour.act_wrapper()
+    self.mock_signing_request(
+        request_kwargs=dict(
+            performative=SigningMessage.Performative.SIGN_MESSAGE,
+        ),
+        response_kwargs=dict(
+            performative=SigningMessage.Performative.SIGNED_MESSAGE,
+            signed_message=SignedMessage(ledger_id="ethereum", body="stub_signature"),
+        ),
     )
 
     self.behaviour.act_wrapper()
