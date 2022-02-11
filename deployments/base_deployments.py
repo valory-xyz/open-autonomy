@@ -227,6 +227,7 @@ class DeploymentConfigValidator(validation.ConfigValidator):
                     overrides.update(env_vars)
         return overrides
 
+
     def try_to_process_nested_fields(
         self,
         component_id: ComponentId,
@@ -273,12 +274,20 @@ class DeploymentConfigValidator(validation.ConfigValidator):
                                 nested_override_key,
                             ]
                         )
-                        overrides.update(
-                            {
-                                f"{env_var_name}_{k}".upper(): v
-                                for k, v in nested_override_value.items()
-                            }
-                        )
+                        if not any([type(i) == dict for i in nested_override_value.values()]):
+                            overrides.update(
+                                {
+                                    f"{env_var_name}_{k}".upper(): v
+                                    for k, v in nested_override_value.items()
+                                }
+                            )
+                        else:
+                            for k1, v1 in nested_override_value.items():
+                                for k2, v2 in v1.items():
+                                    overrides.update({
+                                        f"{env_var_name}_{k1}_{k2}".upper(): v2
+                                    })
+
         return overrides
 
 

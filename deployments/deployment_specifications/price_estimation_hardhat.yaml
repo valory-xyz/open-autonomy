@@ -20,6 +20,11 @@ models:
         args:
           url: "https://drand.cloudflare.com/public/latest"
           api_id: "cloudflare"
+    - params:
+        args:
+          period_setup:
+            safe_contract_address: "none"
+            oracle_contract_address: "none"
   1:
     - price_api:
         args:
@@ -32,6 +37,11 @@ models:
         args:
           url: "https://api.drand.sh/public/latest"
           api_id: "protocollabs1"
+    - params:
+        args:
+          period_setup:
+            safe_contract_address: "none"
+            oracle_contract_address: "none"
   2:
     - price_api:
         args:
@@ -44,6 +54,11 @@ models:
         args:
           url: "https://api2.drand.sh/public/latest"
           api_id: "protocollabs2"
+    - params:
+        args:
+          period_setup:
+            safe_contract_address: "none"
+            oracle_contract_address: "none"
   3:
     - price_api:
         args:
@@ -56,3 +71,8 @@ models:
         args:
           url: "https://api3.drand.sh/public/latest"
           api_id: "protocollabs3"
+    - params:
+        args:
+          period_setup:
+            safe_contract_address: "none"
+            oracle_contract_address: "none"
