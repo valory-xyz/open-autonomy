@@ -352,7 +352,7 @@ class TestValidates(BaseDeploymentTests):
                 deployment_instance, app_instance = self.load_deployer_and_app(
                     spec_path, deployment_generator
                 )
-                deployment_instance.generate(app_instance)
+                deployment_instance.generate(app_instance)  # type: ignore
 
 
 class TestOverrideTypes(BaseDeploymentTests):
