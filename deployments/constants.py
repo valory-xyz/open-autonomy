@@ -112,3 +112,8 @@ Network:              $network
 Build Length          $size\n\n
 """
 )
+
+
+def get_key(key_ix: int) -> str:
+    """Retrieves the key from constants."""
+    return KEYS[key_ix]
