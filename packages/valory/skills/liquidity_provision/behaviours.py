@@ -71,6 +71,9 @@ from packages.valory.skills.safe_deployment_abci.behaviours import (
 from packages.valory.skills.transaction_settlement_abci.behaviours import (
     TransactionSettlementRoundBehaviour,
 )
+from packages.valory.skills.transaction_settlement_abci.payload_tools import (
+    hash_payload_to_hex,
+)
 
 
 # These safeTxGas values are calculated from experimental values plus
@@ -639,11 +642,18 @@ class EnterPoolTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
             safe_tx_hash = cast(str, contract_api_msg.raw_transaction.body["tx_hash"])
             safe_tx_hash = safe_tx_hash[2:]
             self.context.logger.info(f"Hash of the Safe transaction: {safe_tx_hash}")
+
+            payload_string = hash_payload_to_hex(
+                safe_tx_hash=safe_tx_hash,
+                ether_value=0,
+                safe_tx_gas=strategy["safe_tx_gas"]["enter"],
+                to_address=self.period_state.multisend_contract_address,
+                data=bytes.fromhex(multisend_data),
+                operation=SafeOperation.DELEGATE_CALL.value,
+            )
+
             payload = TransactionHashPayload(
-                sender=self.context.agent_address,
-                tx_hash=json.dumps(
-                    {"tx_hash": safe_tx_hash, "tx_data": multisend_data}
-                ),  # TOFIX
+                sender=self.context.agent_address, tx_hash=payload_string
             )
 
         with benchmark_tool.measure(
@@ -805,11 +815,18 @@ class ExitPoolTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
             safe_tx_hash = cast(str, contract_api_msg.raw_transaction.body["tx_hash"])
             safe_tx_hash = safe_tx_hash[2:]
             self.context.logger.info(f"Hash of the Safe transaction: {safe_tx_hash}")
+
+            payload_string = hash_payload_to_hex(
+                safe_tx_hash=safe_tx_hash,
+                ether_value=0,
+                safe_tx_gas=strategy["safe_tx_gas"]["enter"],
+                to_address=self.period_state.multisend_contract_address,
+                data=bytes.fromhex(multisend_data),
+                operation=SafeOperation.DELEGATE_CALL.value,
+            )
+
             payload = TransactionHashPayload(
-                sender=self.context.agent_address,
-                tx_hash=json.dumps(
-                    {"tx_hash": safe_tx_hash, "tx_data": multisend_data}
-                ),  # TOFIX
+                sender=self.context.agent_address, tx_hash=payload_string
             )
 
         with benchmark_tool.measure(
@@ -950,11 +967,18 @@ class SwapBackTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
             safe_tx_hash = cast(str, contract_api_msg.raw_transaction.body["tx_hash"])
             safe_tx_hash = safe_tx_hash[2:]
             self.context.logger.info(f"Hash of the Safe transaction: {safe_tx_hash}")
+
+            payload_string = hash_payload_to_hex(
+                safe_tx_hash=safe_tx_hash,
+                ether_value=0,
+                safe_tx_gas=strategy["safe_tx_gas"]["enter"],
+                to_address=self.period_state.multisend_contract_address,
+                data=bytes.fromhex(multisend_data),
+                operation=SafeOperation.DELEGATE_CALL.value,
+            )
+
             payload = TransactionHashPayload(
-                sender=self.context.agent_address,
-                tx_hash=json.dumps(
-                    {"tx_hash": safe_tx_hash, "tx_data": multisend_data}
-                ),  # TOFIX
+                sender=self.context.agent_address, tx_hash=payload_string
             )
 
         with benchmark_tool.measure(

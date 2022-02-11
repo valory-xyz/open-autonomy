@@ -58,12 +58,22 @@ def tx_hist_hex_to_payload(payload: str) -> Tuple[VerificationStatus, Optional[s
 
 Decode history payload.
 
+<a id="packages.valory.skills.transaction_settlement_abci.payload_tools.hash_payload_to_hex"></a>
+
+#### hash`_`payload`_`to`_`hex
+
+```python
+def hash_payload_to_hex(safe_tx_hash: str, ether_value: int, safe_tx_gas: int, to_address: str, data: bytes, operation: int = SafeOperation.CALL.value, base_gas: int = 0, safe_gas_price: int = 0, gas_token: str = NULL_ADDRESS, refund_receiver: str = NULL_ADDRESS) -> str
+```
+
+Serialise to a hex string.
+
 <a id="packages.valory.skills.transaction_settlement_abci.payload_tools.skill_input_hex_to_payload"></a>
 
 #### skill`_`input`_`hex`_`to`_`payload
 
 ```python
-def skill_input_hex_to_payload(payload: str) -> Tuple[str, int, int, str, bytes]
+def skill_input_hex_to_payload(payload: str) -> dict
 ```
 
 Decode payload.

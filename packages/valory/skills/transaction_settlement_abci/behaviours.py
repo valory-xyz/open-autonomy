@@ -87,13 +87,7 @@ class TransactionSettlementBaseState(BaseState, ABC):
 
     def _verify_tx(self, tx_hash: str) -> Generator[None, None, ContractApiMessage]:
         """Verify a transaction."""
-        _, ether_value, safe_tx_gas, to_address, data = skill_input_hex_to_payload(
-            self.period_state.most_voted_tx_hash
-        )
-
-        extra_kwargs = dict()
-        if self.period_state.safe_operation is not None:
-            extra_kwargs["operation"] = self.period_state.safe_operation
+        tx_params = skill_input_hex_to_payload(self.period_state.most_voted_tx_hash)
 
         contract_api_msg = yield from self.get_contract_api_response(
             performative=ContractApiMessage.Performative.GET_STATE,  # type: ignore
@@ -102,15 +96,15 @@ class TransactionSettlementBaseState(BaseState, ABC):
             contract_callable="verify_tx",
             tx_hash=tx_hash,
             owners=tuple(self.period_state.participants),
-            to_address=to_address,
-            value=ether_value,
-            data=data,
-            safe_tx_gas=safe_tx_gas,
+            to_address=tx_params["to_address"],
+            value=tx_params["ether_value"],
+            data=tx_params["data"],
+            safe_tx_gas=tx_params["safe_tx_gas"],
             signatures_by_owner={
                 key: payload.signature
                 for key, payload in self.period_state.participant_to_signature.items()
             },
-            **extra_kwargs,
+            operation=tx_params["operation"],
         )
 
         return contract_api_msg
@@ -358,12 +352,10 @@ class SignatureBehaviour(TransactionSettlementBaseState):
 
     def _get_safe_tx_signature(self) -> Generator[None, None, str]:
         """Get signature of safe transaction hash."""
-        safe_tx_hash, _, _, _, _ = skill_input_hex_to_payload(
-            self.period_state.most_voted_tx_hash
-        )
+        tx_params = skill_input_hex_to_payload(self.period_state.most_voted_tx_hash)
         # is_deprecated_mode=True because we want to call Account.signHash,
         # which is the same used by gnosis-py
-        safe_tx_hash_bytes = binascii.unhexlify(safe_tx_hash)
+        safe_tx_hash_bytes = binascii.unhexlify(tx_params["safe_tx_hash"])
         signature_hex = yield from self.get_signature(
             safe_tx_hash_bytes, is_deprecated_mode=True
         )
@@ -447,13 +439,7 @@ class FinalizeBehaviour(TransactionSettlementBaseState):
         self,
     ) -> Generator[None, None, Dict[str, Union[VerificationStatus, str, int]]]:
         """Send a Safe transaction using the participants' signatures."""
-        _, ether_value, safe_tx_gas, to_address, data = skill_input_hex_to_payload(
-            self.period_state.most_voted_tx_hash
-        )
-
-        extra_kwargs = dict()
-        if self.period_state.safe_operation is not None:
-            extra_kwargs["operation"] = self.period_state.safe_operation
+        tx_params = skill_input_hex_to_payload(self.period_state.most_voted_tx_hash)
 
         contract_api_msg = yield from self.get_contract_api_response(
             performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
@@ -462,17 +448,17 @@ class FinalizeBehaviour(TransactionSettlementBaseState):
             contract_callable="get_raw_safe_transaction",
             sender_address=self.context.agent_address,
             owners=tuple(self.period_state.participants),
-            to_address=to_address,
-            value=ether_value,
-            data=data,
-            safe_tx_gas=safe_tx_gas,
+            to_address=tx_params["to_address"],
+            value=tx_params["ether_value"],
+            data=tx_params["data"],
+            safe_tx_gas=tx_params["safe_tx_gas"],
             signatures_by_owner={
                 key: payload.signature
                 for key, payload in self.period_state.participant_to_signature.items()
             },
             nonce=self.params.nonce,
             old_tip=self.params.tip,
-            **extra_kwargs,
+            operation=tx_params["operation"],
         )
 
         tx_data: Dict[str, Union[VerificationStatus, str, int]] = {
