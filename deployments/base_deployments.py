@@ -18,21 +18,28 @@
 # ------------------------------------------------------------------------------
 
 """Base deployments module."""
-
-
 import abc
 import json
 import os
+from copy import copy
+from logging import getLogger
 from pathlib import Path
 from shutil import rmtree
-from typing import Any, Dict, List, Type
-from copy import copy
+from typing import Any, Dict, List, Tuple, Type
 
 import jsonschema
 import yaml
 from aea import AEA_DIR
 from aea.cli.utils.package_utils import try_get_item_source_path
-from aea.configurations.base import ComponentId
+from aea.configurations import validation
+from aea.configurations.base import (
+    ComponentConfiguration,
+    ComponentId,
+    ConnectionConfig,
+    ContractConfig,
+    ProtocolConfig,
+    SkillConfig,
+)
 from aea.configurations.constants import (
     AGENTS,
     CONNECTION,
@@ -42,19 +49,25 @@ from aea.configurations.constants import (
     SKILL,
 )
 from aea.configurations.data_types import PublicId
-from aea.configurations.validation import (
-    ConfigValidator,
-    EnvVarsFriendlyDraft4Validator,
-    OwnDraft4Validator,
-    make_jsonschema_base_uri,
-)
 from aea.helpers.base import cd
 from aea.helpers.io import open_file
 
 from deployments.constants import CONFIG_DIRECTORY, KEYS, NETWORKS, PACKAGES_DIRECTORY
 
 
-class DeploymentConfigValidator(ConfigValidator):
+COMPONENT_CONFIGS: Dict = {
+    component.package_type.value: component  # type: ignore
+    for component in [
+        ContractConfig,
+        SkillConfig,
+        ProtocolConfig,
+        ConnectionConfig,
+    ]
+}
+logger = getLogger(__name__)
+
+
+class DeploymentConfigValidator(validation.ConfigValidator):
     """Configuration validator implementation."""
 
     def __init__(  # pylint: disable=super-init-not-called
@@ -71,16 +84,18 @@ class DeploymentConfigValidator(ConfigValidator):
         base_uri = Path(__file__).parent
         with open_file(base_uri / schema_filename) as fp:
             self._schema = json.load(fp)
-        root_path = make_jsonschema_base_uri(base_uri)
+        root_path = validation.make_jsonschema_base_uri(base_uri)
         self._resolver = jsonschema.RefResolver(root_path, self._schema)
         self.env_vars_friendly = env_vars_friendly
 
         if env_vars_friendly:
-            self._validator = EnvVarsFriendlyDraft4Validator(
+            self._validator = validation.EnvVarsFriendlyDraft4Validator(
                 self._schema, resolver=self._resolver
             )
         else:
-            self._validator = OwnDraft4Validator(self._schema, resolver=self._resolver)
+            self._validator = validation.OwnDraft4Validator(
+                self._schema, resolver=self._resolver
+            )
 
     def validate_deployment(self, deployment_spec: Dict, overrides: List) -> bool:
         """Sense check the deployment spec."""
@@ -88,6 +103,7 @@ class DeploymentConfigValidator(ConfigValidator):
         self.deployment_spec = deployment_spec
         self.overrides = overrides
         self.check_overrides_match_spec()
+        self.check_overrides_are_valid()
         return True  # add in call to check to see if overrides are valid
 
     def check_overrides_match_spec(self) -> bool:
@@ -119,10 +135,7 @@ class DeploymentConfigValidator(ConfigValidator):
             ):
                 valid.append(True)
         if len(remaining) > 0:
-            raise ValueError(
-                f"Override type is misspelled.\n {remaining}"
-            )
-
+            raise ValueError(f"Override type is misspelled.\n {remaining}")
         if sum(valid) == 4:
             return True
         raise ValueError(
@@ -133,8 +146,9 @@ class DeploymentConfigValidator(ConfigValidator):
         """Uses the aea helper libraries to check individual overrides."""
         component_configurations: Dict[ComponentId, Dict] = {}
         # load the other components.
+
         for i, component_configuration_json in enumerate(self.overrides):
-            component_id = self._process_component_section(
+            component_id, _ = self.process_component_section(
                 i, component_configuration_json
             )
             if component_id in component_configurations:
@@ -144,9 +158,9 @@ class DeploymentConfigValidator(ConfigValidator):
             component_configurations[component_id] = component_configuration_json
         return component_configurations
 
-    def _process_component_section(
+    def process_component_section(
         self, component_index: int, component_configuration_json: Dict
-    ) -> ComponentId:
+    ) -> Tuple[ComponentId, Dict]:
         """
         Process a component configuration in an agent configuration file.
 
@@ -158,27 +172,114 @@ class DeploymentConfigValidator(ConfigValidator):
         :param component_configuration_json: the JSON object.
         :return: the processed component configuration.
         """
+        configuration = copy(component_configuration_json)
         component_id = self.split_component_id_and_config(
-            component_index, component_configuration_json
+            component_index, configuration
         )
 
         path = Path(AEA_DIR) / "configurations" / "schemas"
-        with cd(path):
-            self.validate_component_configuration(
-                component_id, component_configuration_json
+        config_class = COMPONENT_CONFIGS[component_id.package_type.value]
+
+        with cd(path):  # required to handle protected variable _SCHEMEAS_DIR
+            cv = validation.ConfigValidator("definitions.json")
+            try:
+                cv.validate_component_configuration(component_id, configuration)
+                overrides = self.try_to_process_singular_override(
+                    component_id, config_class, configuration
+                )
+            except ValueError as e:
+                logger.debug(
+                    f"Failed to parse as a singular input with {e}\nAttempting with nested fields."
+                )
+
+                overrides = self.try_to_process_nested_fields(
+                    component_id, component_index, config_class, configuration
+                )
+        return component_id, overrides
+
+    @staticmethod
+    def try_to_process_singular_override(
+        component_id: ComponentId,
+        config_class: ComponentConfiguration,
+        component_configuration_json: Dict,
+    ) -> Dict:
+        """Try to process component with a singular component overrides."""
+        overrides = {}
+        for field in config_class.FIELDS_ALLOWED_TO_UPDATE:
+            env_var_base = "_".join(
+                [component_id.package_type.value, component_id.name, field]
             )
-        return component_id
+            field_override = component_configuration_json.get(field, {})
+            if field_override == {}:
+                continue
+            for nested_override, nested_value in field_override.items():
+                for (
+                    nested_override_key,
+                    nested_override_value,
+                ) in nested_value.items():
+                    env_var_name = "_".join(
+                        [env_var_base, nested_override, nested_override_key]
+                    )
+                    env_vars = {
+                        f"{env_var_name}_{k}".upper(): v
+                        for k, v in nested_override_value.items()
+                    }
+                    overrides.update(env_vars)
+        return overrides
 
-
-def _process_model_args_overrides(component: Dict, agent_n: int) -> Dict:
-    """Generates env vars based on model overrides."""
-    overrides = {}
-    for model_name, model_overrides in component["models"].items():
-        available_overrides = model_overrides["args"]
-        override = available_overrides[agent_n % len(available_overrides)]
-        for arg_key, arg_value in override.items():
-            overrides[f"{model_name}_{arg_key}".upper()] = arg_value
-    return overrides
+    def try_to_process_nested_fields(
+        self,
+        component_id: ComponentId,
+        component_index: int,
+        config_class: ComponentConfiguration,
+        component_configuration_json: Dict,
+    ) -> Dict:
+        """Try to process component with nested overrides."""
+        overrides = {}
+        for field in config_class.FIELDS_WITH_NESTED_FIELDS:  # type: ignore
+            field_override = component_configuration_json.get(field, {})
+            if field_override == {}:
+                continue
+            if not all(isinstance(item, int) for item in field_override.keys()):
+                raise ValueError(
+                    "All keys of list like override should be of type int."
+                )
+            nums = set(field_override.keys())
+            assert len(nums) == len(
+                field_override.keys()
+            ), "Non-unique item in override"
+            assert (
+                len(nums) == self.deployment_spec["number_of_agents"]
+            ), "Not enough items in override"
+            assert nums == set(
+                range(0, self.deployment_spec["number_of_agents"])
+            ), "Overrides incorrectly indexed"
+            for override in field_override[component_index]:
+                for nested_override, nested_value in override.items():
+                    for (
+                        nested_override_key,
+                        nested_override_value,
+                    ) in nested_value.items():
+                        assert (
+                            nested_override_key
+                            in config_class.NESTED_FIELDS_ALLOWED_TO_UPDATE  # type: ignore
+                        ), "Trying to override non-nested field."
+                        env_var_name = "_".join(
+                            [
+                                component_id.package_type.value,
+                                component_id.name,
+                                field,
+                                nested_override,
+                                nested_override_key,
+                            ]
+                        )
+                        overrides.update(
+                            {
+                                f"{env_var_name}_{k}".upper(): v
+                                for k, v in nested_override_value.items()
+                            }
+                        )
+        return overrides
 
 
 class BaseDeployment:
@@ -206,6 +307,16 @@ class BaseDeployment:
         self.agent_public_id = PublicId.from_str(self.valory_application)
         self.agent_spec = self.load_agent()
 
+    def _process_model_args_overrides(self, agent_n: int) -> Dict:
+        """Generates env vars based on model overrides."""
+        final_overrides = {}
+        for component_configuration_json in self.overrides:
+            _, overrides = self.validator.process_component_section(
+                agent_n, component_configuration_json
+            )
+            final_overrides.update(overrides)
+        return final_overrides
+
     def generate_agents(self) -> List:
         """Generate multiple agent."""
         return [self.generate_agent(i) for i in range(self.number_of_agents)]
@@ -224,17 +335,15 @@ class BaseDeployment:
     def generate_agent(self, agent_n: int) -> Dict[Any, Any]:
         """Generate next agent."""
         agent_vars = self.generate_common_vars(agent_n)
-        if self.overrides is None:
+        if len(self.overrides) == 0:
             return agent_vars
-        for _component in self.overrides:
-            continue
-        #  todo:  agent_vars.update(_process_model_args_overrides(component, agent_n))
+        overrides = self._process_model_args_overrides(agent_n)
+        agent_vars.update(overrides)
         return agent_vars
 
     def load_agent(self) -> List[Dict[str, str]]:
         """Using specified valory app, try to load the aea."""
         aea_project_path = self.locate_agent_from_package_directory()
-        # TODO: validate the aea config before loading
         with open(aea_project_path, "r", encoding="utf8") as file:
             aea_json = list(yaml.safe_load_all(file))
         return aea_json
