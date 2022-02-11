@@ -14,16 +14,6 @@ def to_int(most_voted_estimate: float, decimals: int) -> int
 
 Convert to int.
 
-<a id="packages.valory.skills.price_estimation_abci.behaviours.payload_to_hex"></a>
-
-#### payload`_`to`_`hex
-
-```python
-def payload_to_hex(tx_hash: str, ether_value: int, safe_tx_gas: int, to_address: str, data: bytes, operation: int = SafeOperation.CALL.value) -> str
-```
-
-Serialise to a hex string.
-
 <a id="packages.valory.skills.price_estimation_abci.behaviours.PriceEstimationBaseState"></a>
 
 ## PriceEstimationBaseState Objects

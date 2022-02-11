@@ -71,6 +71,9 @@ from packages.valory.skills.safe_deployment_abci.behaviours import (
 from packages.valory.skills.transaction_settlement_abci.behaviours import (
     TransactionSettlementRoundBehaviour,
 )
+from packages.valory.skills.transaction_settlement_abci.payload_tools import (
+    hash_payload_to_hex,
+)
 
 
 # These safeTxGas values are calculated from experimental values plus
@@ -109,28 +112,6 @@ def parse_tx_token_balance(
         )
     )
     return sum(event["value"] for event in token_events)
-
-
-def hash_payload_to_hex(
-    tx_hash: str,
-    ether_value: int,
-    safe_tx_gas: int,
-    to_address: str,
-    data: bytes,
-    operation: int,
-) -> str:
-    """Serialise to a hex string."""
-    if len(tx_hash) != 64:  # should be exactly 32 bytes!
-        raise ValueError("cannot encode tx_hash of non-32 bytes")  # pragma: nocover
-    ether_value_ = ether_value.to_bytes(32, "big").hex()
-    safe_tx_gas_ = safe_tx_gas.to_bytes(32, "big").hex()
-    operation_ = operation.to_bytes(1, "big").hex()
-    if len(to_address) != 42:
-        raise ValueError("cannot encode to_address of non 42 length")  # pragma: nocover
-    concatenated = (
-        tx_hash + ether_value_ + safe_tx_gas_ + to_address + operation_ + data.hex()
-    )
-    return concatenated
 
 
 class LiquidityProvisionBaseBehaviour(BaseState, ABC):
@@ -663,7 +644,7 @@ class EnterPoolTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
             self.context.logger.info(f"Hash of the Safe transaction: {safe_tx_hash}")
 
             payload_string = hash_payload_to_hex(
-                tx_hash=safe_tx_hash,
+                safe_tx_hash=safe_tx_hash,
                 ether_value=0,
                 safe_tx_gas=strategy["safe_tx_gas"]["enter"],
                 to_address=self.period_state.multisend_contract_address,
@@ -836,7 +817,7 @@ class ExitPoolTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
             self.context.logger.info(f"Hash of the Safe transaction: {safe_tx_hash}")
 
             payload_string = hash_payload_to_hex(
-                tx_hash=safe_tx_hash,
+                safe_tx_hash=safe_tx_hash,
                 ether_value=0,
                 safe_tx_gas=strategy["safe_tx_gas"]["enter"],
                 to_address=self.period_state.multisend_contract_address,
@@ -988,7 +969,7 @@ class SwapBackTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
             self.context.logger.info(f"Hash of the Safe transaction: {safe_tx_hash}")
 
             payload_string = hash_payload_to_hex(
-                tx_hash=safe_tx_hash,
+                safe_tx_hash=safe_tx_hash,
                 ether_value=0,
                 safe_tx_gas=strategy["safe_tx_gas"]["enter"],
                 to_address=self.period_state.multisend_contract_address,

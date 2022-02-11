@@ -22,6 +22,11 @@
 from enum import Enum
 from typing import Any, Optional, Tuple
 
+from packages.valory.contracts.gnosis_safe.contract import SafeOperation
+
+
+NULL_ADDRESS: str = "0x" + "0" * 40
+
 
 class VerificationStatus(Enum):
     """Tx verification status enumeration."""
@@ -81,14 +86,62 @@ def tx_hist_hex_to_payload(payload: str) -> Tuple[VerificationStatus, Optional[s
     return verification_status, "0x" + payload[64:]
 
 
-def skill_input_hex_to_payload(payload: str) -> Tuple[str, int, int, str, bytes, int]:
+def hash_payload_to_hex(  # pylint: disable=too-many-arguments, too-many-locals
+    safe_tx_hash: str,
+    ether_value: int,
+    safe_tx_gas: int,
+    to_address: str,
+    data: bytes,
+    operation: int = SafeOperation.CALL.value,
+    base_gas: int = 0,
+    safe_gas_price: int = 0,
+    gas_token: str = NULL_ADDRESS,
+    refund_receiver: str = NULL_ADDRESS,
+) -> str:
+    """Serialise to a hex string."""
+    if len(safe_tx_hash) != 64:  # should be exactly 32 bytes!
+        raise ValueError(
+            "cannot encode safe_tx_hash of non-32 bytes"
+        )  # pragma: nocover
+
+    if len(to_address) != 42 or len(gas_token) != 42 or len(refund_receiver) != 42:
+        raise ValueError("cannot encode address of non 42 length")  # pragma: nocover
+
+    ether_value_ = ether_value.to_bytes(32, "big").hex()
+    safe_tx_gas_ = safe_tx_gas.to_bytes(32, "big").hex()
+    operation_ = operation.to_bytes(1, "big").hex()
+    base_gas_ = base_gas.to_bytes(32, "big").hex()
+    safe_gas_price_ = safe_gas_price.to_bytes(32, "big").hex()
+
+    concatenated = (
+        safe_tx_hash
+        + ether_value_
+        + safe_tx_gas_
+        + to_address
+        + operation_
+        + base_gas_
+        + safe_gas_price_
+        + gas_token
+        + refund_receiver
+        + data.hex()
+    )
+    return concatenated
+
+
+def skill_input_hex_to_payload(payload: str) -> dict:
     """Decode payload."""
     if len(payload) < 234:
         raise PayloadDeserializationError()  # pragma: nocover
-    tx_hash = payload[:64]
-    ether_value = int.from_bytes(bytes.fromhex(payload[64:128]), "big")
-    safe_tx_gas = int.from_bytes(bytes.fromhex(payload[128:192]), "big")
-    to_address = payload[192:234]
-    operation = int.from_bytes(bytes.fromhex(payload[234:236]), "big")
-    data = bytes.fromhex(payload[236:])
-    return tx_hash, ether_value, safe_tx_gas, to_address, data, operation
+    tx_params = dict(
+        safe_tx_hash=payload[:64],
+        ether_value=int.from_bytes(bytes.fromhex(payload[64:128]), "big"),
+        safe_tx_gas=int.from_bytes(bytes.fromhex(payload[128:192]), "big"),
+        to_address=payload[192:234],
+        operation=int.from_bytes(bytes.fromhex(payload[234:236]), "big"),
+        base_gas=int.from_bytes(bytes.fromhex(payload[236:300]), "big"),
+        safe_gas_price=int.from_bytes(bytes.fromhex(payload[300:364]), "big"),
+        gas_token=payload[364:406],
+        refund_receiver=payload[406:448],
+        data=bytes.fromhex(payload[448:]),
+    )
+    return tx_params

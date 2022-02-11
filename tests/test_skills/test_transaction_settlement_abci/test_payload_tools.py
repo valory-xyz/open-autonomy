@@ -20,9 +20,13 @@
 """Tests for valory/transaction settlement skill's payload tools."""
 import pytest
 
+from packages.valory.contracts.gnosis_safe.contract import SafeOperation
 from packages.valory.skills.transaction_settlement_abci.payload_tools import (
+    NULL_ADDRESS,
     PayloadDeserializationError,
     VerificationStatus,
+    hash_payload_to_hex,
+    skill_input_hex_to_payload,
     tx_hist_hex_to_payload,
     tx_hist_payload_to_hex,
 )
@@ -66,3 +70,22 @@ class TestTxHistPayloadEncodingDecoding:
         """Test decoding payload is invalid."""
         with pytest.raises(PayloadDeserializationError):
             tx_hist_hex_to_payload(payload)
+
+
+def test_payload_to_hex_and_back() -> None:
+    """Test `payload_to_hex` function."""
+    tx_params = dict(
+        safe_tx_hash="b0e6add595e00477cf347d09797b156719dc5233283ac76e4efce2a674fe72d9",
+        ether_value=0,
+        safe_tx_gas=40000000,
+        to_address="0x77E9b2EF921253A171Fa0CB9ba80558648Ff7215",
+        data=b"b0e6add595e00477cf347d09797b156719dc5233283ac76e4efce2a674fe72d9b0e6add595e00477cf347d09797b156719dc5233283ac76e4efce2a674fe72d9",
+        operation=SafeOperation.CALL.value,
+        base_gas=0,
+        safe_gas_price=0,
+        gas_token=NULL_ADDRESS,
+        refund_receiver=NULL_ADDRESS,
+    )
+
+    intermediate = hash_payload_to_hex(**tx_params)  # type: ignore
+    assert tx_params == skill_input_hex_to_payload(intermediate)
