@@ -67,6 +67,20 @@ COMPONENT_CONFIGS: Dict = {
 logger = getLogger(__name__)
 
 
+def _parse_nested_override(env_var_name: str, nested_override_value: Dict) -> Dict:
+    """Used for handling dictionary object 1 level below nesting."""
+    overrides = {}
+    if not any([isinstance(i, dict) for i in nested_override_value.values()]):
+        overrides.update(
+            {f"{env_var_name}_{k}".upper(): v for k, v in nested_override_value.items()}
+        )
+    else:
+        for k1, v1 in nested_override_value.items():
+            for k2, v2 in v1.items():
+                overrides.update({f"{env_var_name}_{k1}_{k2}".upper(): v2})
+    return overrides
+
+
 class DeploymentConfigValidator(validation.ConfigValidator):
     """Configuration validator implementation."""
 
@@ -227,7 +241,6 @@ class DeploymentConfigValidator(validation.ConfigValidator):
                     overrides.update(env_vars)
         return overrides
 
-
     def try_to_process_nested_fields(
         self,
         component_id: ComponentId,
@@ -265,6 +278,7 @@ class DeploymentConfigValidator(validation.ConfigValidator):
                             nested_override_key
                             in config_class.NESTED_FIELDS_ALLOWED_TO_UPDATE  # type: ignore
                         ), "Trying to override non-nested field."
+
                         env_var_name = "_".join(
                             [
                                 component_id.package_type.value,
@@ -274,19 +288,9 @@ class DeploymentConfigValidator(validation.ConfigValidator):
                                 nested_override_key,
                             ]
                         )
-                        if not any([type(i) == dict for i in nested_override_value.values()]):
-                            overrides.update(
-                                {
-                                    f"{env_var_name}_{k}".upper(): v
-                                    for k, v in nested_override_value.items()
-                                }
-                            )
-                        else:
-                            for k1, v1 in nested_override_value.items():
-                                for k2, v2 in v1.items():
-                                    overrides.update({
-                                        f"{env_var_name}_{k1}_{k2}".upper(): v2
-                                    })
+                        overrides.update(
+                            _parse_nested_override(env_var_name, nested_override_value)
+                        )
 
         return overrides
 
