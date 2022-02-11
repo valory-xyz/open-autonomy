@@ -336,7 +336,7 @@ class TestValidates(BaseDeploymentTests):
             except ValueError:
                 return
 
-    def test_generates_all_specified_deployments(self) -> None:
+    def test_generates_all_specified_apps(self) -> None:
         """Test functionality of deploy safe contract."""
         for deployment_generator in deployment_generators:
             for spec_path in get_specified_deployments():
@@ -344,6 +344,15 @@ class TestValidates(BaseDeploymentTests):
                     spec_path, deployment_generator
                 )
                 app_instance.generate_agent(0)
+
+    def test_generates_all_specified_deployments(self) -> None:
+        """Test functionality of deploy safe contract."""
+        for deployment_generator in deployment_generators:
+            for spec_path in get_specified_deployments():
+                deployment_instance, app_instance = self.load_deployer_and_app(
+                    spec_path, deployment_generator
+                )
+                deployment_instance.generate(app_instance)
 
 
 class TestOverrideTypes(BaseDeploymentTests):
