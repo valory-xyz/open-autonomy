@@ -644,7 +644,7 @@ class EnterPoolTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
             self.context.logger.info(f"Hash of the Safe transaction: {safe_tx_hash}")
 
             payload_string = hash_payload_to_hex(
-                tx_hash=safe_tx_hash,
+                safe_tx_hash=safe_tx_hash,
                 ether_value=0,
                 safe_tx_gas=strategy["safe_tx_gas"]["enter"],
                 to_address=self.period_state.multisend_contract_address,
@@ -817,7 +817,7 @@ class ExitPoolTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
             self.context.logger.info(f"Hash of the Safe transaction: {safe_tx_hash}")
 
             payload_string = hash_payload_to_hex(
-                tx_hash=safe_tx_hash,
+                safe_tx_hash=safe_tx_hash,
                 ether_value=0,
                 safe_tx_gas=strategy["safe_tx_gas"]["enter"],
                 to_address=self.period_state.multisend_contract_address,
@@ -969,7 +969,7 @@ class SwapBackTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
             self.context.logger.info(f"Hash of the Safe transaction: {safe_tx_hash}")
 
             payload_string = hash_payload_to_hex(
-                tx_hash=safe_tx_hash,
+                safe_tx_hash=safe_tx_hash,
                 ether_value=0,
                 safe_tx_gas=strategy["safe_tx_gas"]["enter"],
                 to_address=self.period_state.multisend_contract_address,

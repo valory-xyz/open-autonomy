@@ -355,7 +355,7 @@ class SignatureBehaviour(TransactionSettlementBaseState):
         tx_params = skill_input_hex_to_payload(self.period_state.most_voted_tx_hash)
         # is_deprecated_mode=True because we want to call Account.signHash,
         # which is the same used by gnosis-py
-        safe_tx_hash_bytes = binascii.unhexlify(tx_params["tx_hash"])
+        safe_tx_hash_bytes = binascii.unhexlify(tx_params["safe_tx_hash"])
         signature_hex = yield from self.get_signature(
             safe_tx_hash_bytes, is_deprecated_mode=True
         )

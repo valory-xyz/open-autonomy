@@ -87,7 +87,7 @@ def tx_hist_hex_to_payload(payload: str) -> Tuple[VerificationStatus, Optional[s
 
 
 def hash_payload_to_hex(  # pylint: disable=too-many-arguments, too-many-locals
-    tx_hash: str,
+    safe_tx_hash: str,
     ether_value: int,
     safe_tx_gas: int,
     to_address: str,
@@ -99,8 +99,10 @@ def hash_payload_to_hex(  # pylint: disable=too-many-arguments, too-many-locals
     refund_receiver: str = NULL_ADDRESS,
 ) -> str:
     """Serialise to a hex string."""
-    if len(tx_hash) != 64:  # should be exactly 32 bytes!
-        raise ValueError("cannot encode tx_hash of non-32 bytes")  # pragma: nocover
+    if len(safe_tx_hash) != 64:  # should be exactly 32 bytes!
+        raise ValueError(
+            "cannot encode safe_tx_hash of non-32 bytes"
+        )  # pragma: nocover
 
     if len(to_address) != 42 or len(gas_token) != 42 or len(refund_receiver) != 42:
         raise ValueError("cannot encode address of non 42 length")  # pragma: nocover
@@ -112,7 +114,7 @@ def hash_payload_to_hex(  # pylint: disable=too-many-arguments, too-many-locals
     safe_gas_price_ = safe_gas_price.to_bytes(32, "big").hex()
 
     concatenated = (
-        tx_hash
+        safe_tx_hash
         + ether_value_
         + safe_tx_gas_
         + to_address
@@ -131,7 +133,7 @@ def skill_input_hex_to_payload(payload: str) -> dict:
     if len(payload) < 234:
         raise PayloadDeserializationError()  # pragma: nocover
     tx_params = dict(
-        tx_hash=payload[:64],
+        safe_tx_hash=payload[:64],
         ether_value=int.from_bytes(bytes.fromhex(payload[64:128]), "big"),
         safe_tx_gas=int.from_bytes(bytes.fromhex(payload[128:192]), "big"),
         to_address=payload[192:234],

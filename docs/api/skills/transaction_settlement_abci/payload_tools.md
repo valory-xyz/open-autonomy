@@ -63,7 +63,7 @@ Decode history payload.
 #### hash`_`payload`_`to`_`hex
 
 ```python
-def hash_payload_to_hex(tx_hash: str, ether_value: int, safe_tx_gas: int, to_address: str, data: bytes, operation: int = SafeOperation.CALL.value, base_gas: int = 0, safe_gas_price: int = 0, gas_token: str = NULL_ADDRESS, refund_receiver: str = NULL_ADDRESS) -> str
+def hash_payload_to_hex(safe_tx_hash: str, ether_value: int, safe_tx_gas: int, to_address: str, data: bytes, operation: int = SafeOperation.CALL.value, base_gas: int = 0, safe_gas_price: int = 0, gas_token: str = NULL_ADDRESS, refund_receiver: str = NULL_ADDRESS) -> str
 ```
 
 Serialise to a hex string.

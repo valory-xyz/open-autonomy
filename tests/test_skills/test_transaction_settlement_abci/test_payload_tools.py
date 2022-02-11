@@ -75,7 +75,7 @@ class TestTxHistPayloadEncodingDecoding:
 def test_payload_to_hex_and_back() -> None:
     """Test `payload_to_hex` function."""
     tx_params = dict(
-        tx_hash="b0e6add595e00477cf347d09797b156719dc5233283ac76e4efce2a674fe72d9",
+        safe_tx_hash="b0e6add595e00477cf347d09797b156719dc5233283ac76e4efce2a674fe72d9",
         ether_value=0,
         safe_tx_gas=40000000,
         to_address="0x77E9b2EF921253A171Fa0CB9ba80558648Ff7215",
