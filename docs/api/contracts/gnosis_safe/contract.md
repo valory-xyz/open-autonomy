@@ -225,7 +225,7 @@ the verified status
 
 ```python
 @classmethod
-def revert_reason(cls, ledger_api: EthereumApi, tx: TxData) -> JSONLike
+def revert_reason(cls, ledger_api: EthereumApi, contract_address: str, tx: TxData) -> JSONLike
 ```
 
 Check the revert reason of a transaction.
@@ -234,9 +234,30 @@ Check the revert reason of a transaction.
 
 
 - `ledger_api`: the ledger API object.
+- `contract_address`: the contract address
 - `tx`: the transaction for which we want to get the revert reason.
 
 **Returns**:
 
 the revert reason message.
+
+<a id="packages.valory.contracts.gnosis_safe.contract.GnosisSafeContract.get_safe_nonce"></a>
+
+#### get`_`safe`_`nonce
+
+```python
+@classmethod
+def get_safe_nonce(cls, ledger_api: EthereumApi, contract_address: str) -> JSONLike
+```
+
+Retrieve the safe's nonce
+
+**Arguments**:
+
+- `ledger_api`: the ledger API object
+- `contract_address`: the contract address
+
+**Returns**:
+
+the safe nonce
 

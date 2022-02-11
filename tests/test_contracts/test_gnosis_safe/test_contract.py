@@ -23,11 +23,14 @@ import binascii
 import secrets
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple, cast
+from unittest import mock
 
 import pytest
 from aea.crypto.registries import crypto_registry
 from aea_ledger_ethereum import EthereumCrypto
 from web3 import Web3
+from web3.exceptions import SolidityError
+from web3.types import TxData
 
 from packages.valory.contracts.gnosis_safe.contract import (
     GnosisSafeContract,
@@ -258,6 +261,46 @@ class TestDeployTransactionHardhat(BaseContractTestHardHatSafeNet):
             contract_address=SAFE_CONTRACT,
         )["verified"]
         assert not verified, "Not verified"
+
+    def test_get_safe_nonce(self) -> None:
+        """Run get_safe_nonce test."""
+        safe_nonce = self.contract.get_safe_nonce(
+            ledger_api=self.ledger_api,
+            contract_address=cast(str, self.contract_address),
+        )["safe_nonce"]
+        assert safe_nonce == 0
+
+    def test_revert_reason(
+        self,
+    ) -> None:
+        """Test `revert_reason` method."""
+
+        tx = {
+            "to": "to",
+            "from": "from",
+            "value": "value",
+            "input": "input",
+            "blockNumber": 1,
+        }
+
+        def _raise_solidity_error(*args: Any) -> None:
+            raise SolidityError("reason")
+
+        with mock.patch.object(
+            self.ledger_api.api.eth, "call", new=_raise_solidity_error
+        ):
+            reason = self.contract.revert_reason(
+                self.ledger_api, "contract_address", cast(TxData, tx)
+            )
+            assert "revert_reason" in reason
+            assert reason["revert_reason"] == "SolidityError('reason')"
+
+        with mock.patch.object(self.ledger_api.api.eth, "call"), pytest.raises(
+            ValueError, match=f"The given transaction has not been reverted!\ntx: {tx}"
+        ):
+            self.contract.revert_reason(
+                self.ledger_api, "contract_address", cast(TxData, tx)
+            )
 
 
 class TestRawSafeTransaction(BaseContractTestHardHatSafeNet):

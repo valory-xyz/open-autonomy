@@ -9,11 +9,11 @@ aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
   README.md: QmR5sLQeLggNn5gZ1kDWrqpkz5NzMdUZuWNkaQDpaMC85C
   __init__.py: QmZi2zjuEfocSD4fJyHCRHKYPwRiMizJh5cG4r7q3Hcxuo
-  behaviours.py: QmWVvfZ9n5ZYZeR4YCEeAEhsSKY9TWXxJeKidp2SqZq2dU
+  behaviours.py: QmNvpq5VftV2o3VBxuhoxpSQJeenh8z2EpmCRE4MpTM5X6
   composition.py: QmNQDobHqEFV6XExTWrLnGnYTUDGqsbKH94KasSHw1n9Zi
   dialogues.py: QmdBmUMWoPbS2faqn8LicQVJfN6a2WjtdZDWFbiYoy7hfY
   handlers.py: QmYNuneHUsxPfGricmSREyKom4fsAoE3NU7Xv8y3iYCDke
-  models.py: QmPqmcn2XjM82M2E8CPvZtaLSQHmoGgt64woeChaEmmFo3
+  models.py: QmdGin5fQAh5gXx38J4ukSaTdEFA5DPzA4Q3rKccVrwN16
   payloads.py: QmSph8U1EAXsseCEaG1yUW6K8ossS4HXQrGndiv5PFmMNh
   rounds.py: QmQE98mmLuWnLhbgjyMos5GYuy5FnpHzmYFLvs8zagTqe9
 fingerprint_ignore_patterns: []
@@ -77,6 +77,20 @@ models:
       max_healthcheck: 120
       observation_interval: 10
       period_setup: {}
+      rebalancing:
+        chain: Ethereum
+        token_base_address: '0xDc64a140Aa3E981100a9becA4E685f962f0cF6C9'
+        token_base_ticker: WETH
+        token_a_address: '0x0DCd1Bf9A1b36cE34237eEaFef220932846BCD82'
+        token_a_ticker: TKA
+        token_b_address: '0x9A676e781A523b5d0C0e43731313A708CB607508'
+        token_b_ticker: TKB
+        lp_token_address: '0x50CD56fb094F8f06063066a619D898475dD3EedE'
+        default_minter: '0x0000000000000000000000000000000000000000'
+        ab_pool_address: '0x86A6C37D3E868580a65C723AAd7E0a945E170416'
+        max_allowance: 1.1579209e+77
+        deadline: 300
+        sleep_seconds: 1
       reset_tendermint_after: 2
       retry_attempts: 400
       retry_timeout: 3

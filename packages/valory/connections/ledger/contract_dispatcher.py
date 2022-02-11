@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021 Valory AG
+#   Copyright 2021-2022 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -372,6 +372,11 @@ class ContractApiRequestDispatcher(RequestDispatcher):
                 raise AEAException(
                     f"Expected two or more positional arguments, got {len(full_args_spec.args)}"
                 )
+            for arg in ["ledger_api", "contract_address"]:  # pragma: nocover
+                if arg not in full_args_spec.args:
+                    raise AEAException(
+                        f"Missing required argument `{arg}` in {method_to_call}"
+                    )
             return method_to_call(api, message.contract_address, **message.kwargs.body)
         if message.performative in [
             ContractApiMessage.Performative.GET_DEPLOY_TRANSACTION,
@@ -379,6 +384,10 @@ class ContractApiRequestDispatcher(RequestDispatcher):
             if len(full_args_spec.args) < 1:  # pragma: nocover
                 raise AEAException(
                     f"Expected one or more positional arguments, got {len(full_args_spec.args)}"
+                )
+            if "ledger_api" not in full_args_spec.args:  # pragma: nocover
+                raise AEAException(
+                    f"Missing required argument `ledger_api` in {method_to_call}"
                 )
             return method_to_call(api, **message.kwargs.body)
         raise AEAException(  # pragma: nocover

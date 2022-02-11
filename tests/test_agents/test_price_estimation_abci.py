@@ -80,7 +80,7 @@ CHECK_STRINGS_LABELLED = [
     ("'collect_signature' round is done", StringType.ROUND),
     ("Entered in the 'finalization' round for period 0", StringType.ROUND),
     ("'finalization' round is done", StringType.ROUND),
-    ("Finalized estimate", StringType.BEHAVIOUR),
+    ("Finalized with transaction hash", StringType.BEHAVIOUR),
     ("Entered in the 'validate_transaction' round for period 0", StringType.ROUND),
     ("'validate_transaction' round is done", StringType.ROUND),
     ("Period end", StringType.BEHAVIOUR),

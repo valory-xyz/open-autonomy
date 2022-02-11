@@ -77,11 +77,6 @@ class PeriodState(BasePeriodState):  # pylint: disable=too-many-instance-attribu
         return cast(str, self.db.get_strict("safe_contract_address"))
 
     @property
-    def oracle_contract_address(self) -> str:
-        """Get the oracle contract address."""
-        return cast(str, self.db.get_strict("oracle_contract_address"))
-
-    @property
     def participant_to_signature(self) -> Mapping[str, SignaturePayload]:
         """Get the participant_to_signature."""
         return cast(
@@ -116,16 +111,6 @@ class PeriodState(BasePeriodState):  # pylint: disable=too-many-instance-attribu
     def is_final_tx_hash_set(self) -> bool:
         """Check if most_voted_estimate is set."""
         return self.tx_hashes_history is not None
-
-    @property
-    def most_voted_estimate(self) -> float:
-        """Get the most_voted_estimate."""
-        return cast(float, self.db.get_strict("most_voted_estimate"))
-
-    @property
-    def is_most_voted_estimate_set(self) -> bool:
-        """Check if most_voted_estimate is set."""
-        return self.db.get("most_voted_estimate", None) is not None
 
     @property
     def safe_operation(self) -> Optional[str]:
@@ -291,15 +276,13 @@ class ResetAndPauseRound(CollectSameUntilThresholdRound):
     def end_block(self) -> Optional[Tuple[BasePeriodState, Event]]:
         """Process the end of the block."""
         if self.threshold_reached:
+            extra_kwargs = {}
+            for key in self.period_state.db.cross_period_persisted_keys:
+                extra_kwargs[key] = self.period_state.db.get_strict(key)
             state = self.period_state.update(
                 period_count=self.most_voted_payload,
                 participants=self.period_state.participants,
-                oracle_contract_address=self.period_state.db.get_strict(
-                    "oracle_contract_address"
-                ),
-                safe_contract_address=self.period_state.db.get_strict(
-                    "safe_contract_address"
-                ),
+                **extra_kwargs,
             )
             return state, Event.DONE
         if not self.is_majority_possible(
@@ -359,6 +342,12 @@ class CheckTransactionHistoryRound(CollectSameUntilThresholdRound):
                 self.most_voted_payload
             )
 
+            # We replace the whole tx history with the returned tx hash, only if the threshold has been reached.
+            # This means that we only replace the history with the verified tx's hash if we have succeeded
+            # or with `None` if we have failed.
+            # Therefore, we only replace the history if we are about to exit from the transaction settlement skill.
+            # Then, the skills which use the transaction settlement can check the tx hash
+            # and if it is None, then it means that the transaction has failed.
             state = self.period_state.update(
                 period_state_class=self.period_state_class,
                 participant_to_check=self.collection,

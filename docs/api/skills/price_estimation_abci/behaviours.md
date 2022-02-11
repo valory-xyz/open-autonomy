@@ -121,6 +121,16 @@ Steps:
 - Wait until ABCI application transitions to the next round.
 - Go to the next behaviour state (set done event).
 
+<a id="packages.valory.skills.price_estimation_abci.behaviours.pack_for_server"></a>
+
+#### pack`_`for`_`server
+
+```python
+def pack_for_server(participants: Sequence[str], decimals: int, period_count: int, estimate: float, observations: Dict[str, float], data_source: str, unit: str, **_: Dict[str, str], ,) -> bytes
+```
+
+Package server data for signing
+
 <a id="packages.valory.skills.price_estimation_abci.behaviours.TransactionHashBehaviour"></a>
 
 ## TransactionHashBehaviour Objects
@@ -147,6 +157,24 @@ Steps:
 - Send the transaction hash as a transaction and wait for it to be mined.
 - Wait until ABCI application transitions to the next round.
 - Go to the next behaviour state (set done event).
+
+<a id="packages.valory.skills.price_estimation_abci.behaviours.TransactionHashBehaviour.send_to_server"></a>
+
+#### send`_`to`_`server
+
+```python
+def send_to_server() -> Generator
+```
+
+Send data to server.
+
+We send current period state data of the agents and the previous
+cycle's on-chain settlement tx hash. The current cycle's tx hash
+is not available at this stage yet, and the first iteration will
+contain no tx hash since there has not been on-chain transaction
+settlement yet.
+
+:yield: the http response
 
 <a id="packages.valory.skills.price_estimation_abci.behaviours.ObserverRoundBehaviour"></a>
 

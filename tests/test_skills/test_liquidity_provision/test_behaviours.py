@@ -18,10 +18,12 @@
 # ------------------------------------------------------------------------------
 """Tests for valory/liquidity_provision_behaviour skill's behaviours."""
 import binascii
+import datetime
 import json
 import time
 from pathlib import Path
 from typing import Dict, cast
+from unittest import mock
 
 import pytest
 from aea.exceptions import AEAActException
@@ -38,17 +40,15 @@ from packages.valory.protocols.contract_api.message import ContractApiMessage
 from packages.valory.skills.abstract_round_abci.base import StateDB
 from packages.valory.skills.abstract_round_abci.behaviour_utils import BaseState
 from packages.valory.skills.liquidity_provision.behaviours import (
-    CURRENT_BLOCK_TIMESTAMP,
-    ETHER_VALUE,
     EnterPoolTransactionHashBehaviour,
     ExitPoolTransactionHashBehaviour,
     GnosisSafeContract,
-    MAX_ALLOWANCE,
-    SLEEP_SECONDS,
+    SAFE_TX_GAS_ENTER,
+    SAFE_TX_GAS_EXIT,
+    SAFE_TX_GAS_SWAP_BACK,
     SleepBehaviour,
     StrategyEvaluationBehaviour,
     SwapBackTransactionHashBehaviour,
-    get_dummy_strategy,
     parse_tx_token_balance,
 )
 from packages.valory.skills.liquidity_provision.payloads import StrategyType
@@ -61,14 +61,71 @@ from tests.conftest import ROOT_DIR
 from tests.test_skills.base import FSMBehaviourBaseCase
 
 
+MAX_ALLOWANCE = 2 ** 256 - 1
+WETH_ADDRESS = "0xDc64a140Aa3E981100a9becA4E685f962f0cF6C9"  # nosec
+TOKEN_A_ADDRESS = "0x0DCd1Bf9A1b36cE34237eEaFef220932846BCD82"  # nosec
+TOKEN_B_ADDRESS = "0x9A676e781A523b5d0C0e43731313A708CB607508"  # nosec
+LP_TOKEN_ADDRESS = "0x50CD56fb094F8f06063066a619D898475dD3EedE"  # nosec
+DEFAULT_MINTER = "0x0000000000000000000000000000000000000000"  # nosec
+A_B_POOL_ADDRESS = "0x86A6C37D3E868580a65C723AAd7E0a945E170416"  # nosec
+A_WETH_POOL_ADDRESS = "0x86A6C37D3E868580a65C723AAd7E0a945E170416"  # nosec
+B_WETH_POOL_ADDRESS = "0x3430fe46bfE23b1fafDe4F7c78481051F7c0E01F"  # nosec
+SLEEP_SECONDS = 1
+DEADLINE = int(time.time()) + 300
+
+
 def get_default_strategy(
     is_base_native: bool, is_a_native: bool, is_b_native: bool
 ) -> Dict:
     """Returns default strategy."""
-    strategy = get_dummy_strategy()
-    strategy["token_base"]["is_native"] = is_base_native
-    strategy["token_a"]["is_native"] = is_a_native
-    strategy["token_b"]["is_native"] = is_b_native
+    strategy = {
+        "action": StrategyType.ENTER.value,
+        "safe_nonce": 0,
+        "safe_tx_gas": {
+            "enter": SAFE_TX_GAS_ENTER,
+            "exit": SAFE_TX_GAS_EXIT,
+            "swap_back": SAFE_TX_GAS_SWAP_BACK,
+        },
+        "deadline": DEADLINE,  # 5 min into future
+        "chain": "Ethereum",
+        "token_base": {
+            "ticker": "WETH",
+            "address": WETH_ADDRESS,
+            "amount_in_max_a": int(1e4),
+            "amount_min_after_swap_back_a": int(1e2),
+            "amount_in_max_b": int(1e4),
+            "amount_min_after_swap_back_b": int(1e2),
+            "is_native": is_base_native,
+            "set_allowance": MAX_ALLOWANCE,
+            "remove_allowance": 0,
+        },
+        "token_LP": {
+            "address": LP_TOKEN_ADDRESS,
+            "set_allowance": MAX_ALLOWANCE,
+            "remove_allowance": 0,
+        },
+        "token_a": {
+            "ticker": "TKA",
+            "address": TOKEN_A_ADDRESS,
+            "amount_after_swap": int(1e3),
+            "amount_min_after_add_liq": int(0.5e3),
+            "is_native": is_a_native,  # if one of the two tokens is native, A must be the one
+            "set_allowance": MAX_ALLOWANCE,
+            "remove_allowance": 0,
+            "amount_received_after_exit": 0,
+        },
+        "token_b": {
+            "ticker": "TKB",
+            "address": TOKEN_B_ADDRESS,
+            "amount_after_swap": int(1e3),
+            "amount_min_after_add_liq": int(0.5e3),
+            "is_native": is_b_native,  # if one of the two tokens is native, A must be the one
+            "set_allowance": MAX_ALLOWANCE,
+            "remove_allowance": 0,
+            "amount_received_after_exit": 0,
+        },
+    }
+
     return strategy
 
 
@@ -189,10 +246,14 @@ class TestStrategyEvaluationBehaviour(LiquidityProvisionBehaviourBaseCase):
             ).state_id
             == StrategyEvaluationBehaviour.state_id
         )
-        self.behaviour.act_wrapper()
+        with mock.patch(
+            "packages.valory.skills.abstract_round_abci.base.AbciApp.last_timestamp",
+            return_value=datetime.datetime.now(),
+        ):
+            self.behaviour.act_wrapper()
 
-        self.mock_a2a_transaction()
-        self._test_done_flag_set()
+            self.mock_a2a_transaction()
+            self._test_done_flag_set()
 
     def test_transaction_hash_swap_back(
         self,
@@ -324,7 +385,7 @@ class TestEnterPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase)
                             strategy["token_a"]["address"],
                         ],
                         to=period_state.safe_contract_address,
-                        deadline=CURRENT_BLOCK_TIMESTAMP + 300,
+                        deadline=DEADLINE,
                     )
                 ),
             ),
@@ -357,7 +418,7 @@ class TestEnterPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase)
                             strategy["token_b"]["address"],
                         ],
                         to=period_state.safe_contract_address,
-                        deadline=CURRENT_BLOCK_TIMESTAMP + 300,  # 5 min into the future
+                        deadline=DEADLINE,
                     )
                 ),
             ),
@@ -421,7 +482,7 @@ class TestEnterPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase)
                             strategy["token_a"]["amount_min_after_add_liq"]
                         ),
                         to=period_state.safe_contract_address,
-                        deadline=CURRENT_BLOCK_TIMESTAMP + 300,
+                        deadline=DEADLINE,
                     )
                 ),
             ),
@@ -461,10 +522,10 @@ class TestEnterPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase)
                 kwargs=Kwargs(
                     dict(
                         to_address=period_state.multisend_contract_address,
-                        value=ETHER_VALUE,
+                        value=0,
                         data=b"ummy_tx",  # type: ignore
                         operation=SafeOperation.DELEGATE_CALL.value,
-                        safe_tx_gas=4000000,
+                        safe_tx_gas=strategy["safe_tx_gas"]["enter"],
                         safe_nonce=strategy["safe_nonce"],
                     )
                 ),
@@ -570,7 +631,7 @@ class TestEnterPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase)
                             strategy["token_a"]["address"],
                         ],
                         to=period_state.safe_contract_address,
-                        deadline=CURRENT_BLOCK_TIMESTAMP + 300,
+                        deadline=DEADLINE,
                     )
                 ),
             ),
@@ -603,7 +664,7 @@ class TestEnterPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase)
                             strategy["token_b"]["address"],
                         ],
                         to=period_state.safe_contract_address,
-                        deadline=CURRENT_BLOCK_TIMESTAMP + 300,  # 5 min into the future
+                        deadline=DEADLINE,
                     )
                 ),
             ),
@@ -694,7 +755,7 @@ class TestEnterPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase)
                             strategy["token_b"]["amount_min_after_add_liq"]
                         ),
                         to=period_state.safe_contract_address,
-                        deadline=CURRENT_BLOCK_TIMESTAMP + 300,
+                        deadline=DEADLINE,
                     )
                 ),
             ),
@@ -734,10 +795,10 @@ class TestEnterPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase)
                 kwargs=Kwargs(
                     dict(
                         to_address=period_state.multisend_contract_address,
-                        value=ETHER_VALUE,
+                        value=0,
                         data=b"ummy_tx",  # type: ignore
                         operation=SafeOperation.DELEGATE_CALL.value,
-                        safe_tx_gas=4000000,
+                        safe_tx_gas=strategy["safe_tx_gas"]["enter"],
                         safe_nonce=strategy["safe_nonce"],
                     )
                 ),
@@ -930,7 +991,7 @@ class TestExitPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase):
                         amount_token_min=int(amount_b_sent),
                         amount_ETH_min=int(amount_base_sent),
                         to=period_state.safe_contract_address,
-                        deadline=CURRENT_BLOCK_TIMESTAMP + 300,
+                        deadline=DEADLINE,
                     )
                 ),
             ),
@@ -1117,7 +1178,7 @@ class TestExitPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase):
                         amount_a_min=int(amount_a_sent),
                         amount_b_min=int(amount_b_sent),
                         to=period_state.safe_contract_address,
-                        deadline=CURRENT_BLOCK_TIMESTAMP + 300,
+                        deadline=DEADLINE,
                     )
                 ),
             ),
@@ -1347,7 +1408,7 @@ class TestSwapBackTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase):
                             strategy["token_base"]["address"],
                         ],
                         to=period_state.safe_contract_address,
-                        deadline=CURRENT_BLOCK_TIMESTAMP + 300,
+                        deadline=DEADLINE,
                     )
                 ),
             ),
@@ -1385,7 +1446,7 @@ class TestSwapBackTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase):
                             strategy["token_base"]["address"],
                         ],
                         to=period_state.safe_contract_address,
-                        deadline=CURRENT_BLOCK_TIMESTAMP + 300,
+                        deadline=DEADLINE,
                     )
                 ),
             ),
@@ -1572,7 +1633,7 @@ class TestSwapBackTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase):
                             strategy["token_base"]["address"],
                         ],
                         to=period_state.safe_contract_address,
-                        deadline=CURRENT_BLOCK_TIMESTAMP + 300,
+                        deadline=DEADLINE,
                     )
                 ),
             ),
@@ -1608,7 +1669,7 @@ class TestSwapBackTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase):
                             strategy["token_base"]["address"],
                         ],
                         to=period_state.safe_contract_address,
-                        deadline=CURRENT_BLOCK_TIMESTAMP + 300,
+                        deadline=DEADLINE,
                     )
                 ),
             ),
