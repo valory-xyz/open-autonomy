@@ -87,13 +87,14 @@ class TransactionSettlementBaseState(BaseState, ABC):
 
     def _verify_tx(self, tx_hash: str) -> Generator[None, None, ContractApiMessage]:
         """Verify a transaction."""
-        _, ether_value, safe_tx_gas, to_address, data = skill_input_hex_to_payload(
-            self.period_state.most_voted_tx_hash
-        )
-
-        extra_kwargs = dict()
-        if self.period_state.safe_operation is not None:
-            extra_kwargs["operation"] = self.period_state.safe_operation
+        (
+            _,
+            ether_value,
+            safe_tx_gas,
+            to_address,
+            data,
+            operation,
+        ) = skill_input_hex_to_payload(self.period_state.most_voted_tx_hash)
 
         contract_api_msg = yield from self.get_contract_api_response(
             performative=ContractApiMessage.Performative.GET_STATE,  # type: ignore
@@ -110,7 +111,7 @@ class TransactionSettlementBaseState(BaseState, ABC):
                 key: payload.signature
                 for key, payload in self.period_state.participant_to_signature.items()
             },
-            **extra_kwargs,
+            operation=operation,
         )
 
         return contract_api_msg
@@ -358,7 +359,7 @@ class SignatureBehaviour(TransactionSettlementBaseState):
 
     def _get_safe_tx_signature(self) -> Generator[None, None, str]:
         """Get signature of safe transaction hash."""
-        safe_tx_hash, _, _, _, _ = skill_input_hex_to_payload(
+        safe_tx_hash, _, _, _, _, _ = skill_input_hex_to_payload(
             self.period_state.most_voted_tx_hash
         )
         # is_deprecated_mode=True because we want to call Account.signHash,
@@ -447,13 +448,14 @@ class FinalizeBehaviour(TransactionSettlementBaseState):
         self,
     ) -> Generator[None, None, Dict[str, Union[VerificationStatus, str, int]]]:
         """Send a Safe transaction using the participants' signatures."""
-        _, ether_value, safe_tx_gas, to_address, data = skill_input_hex_to_payload(
-            self.period_state.most_voted_tx_hash
-        )
-
-        extra_kwargs = dict()
-        if self.period_state.safe_operation is not None:
-            extra_kwargs["operation"] = self.period_state.safe_operation
+        (
+            _,
+            ether_value,
+            safe_tx_gas,
+            to_address,
+            data,
+            operation,
+        ) = skill_input_hex_to_payload(self.period_state.most_voted_tx_hash)
 
         contract_api_msg = yield from self.get_contract_api_response(
             performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
@@ -472,7 +474,7 @@ class FinalizeBehaviour(TransactionSettlementBaseState):
             },
             nonce=self.params.nonce,
             old_tip=self.params.tip,
-            **extra_kwargs,
+            operation=operation,
         )
 
         tx_data: Dict[str, Union[VerificationStatus, str, int]] = {

@@ -156,7 +156,7 @@ class TestStrategyEvaluationBehaviour(LiquidityProvisionBehaviourBaseCase):
                     safe_contract_address="safe_contract_address",
                     most_voted_keeper_address="most_voted_keeper_address",
                     most_voted_strategy=json.dumps(strategy),
-                    multisend_contract_address="multisend_contract_address",
+                    multisend_contract_address="0xb0e6add595e00477cf347d09797b156719dc5233",
                     router_contract_address="router_contract_address",
                 ),
             )
@@ -195,7 +195,7 @@ class TestStrategyEvaluationBehaviour(LiquidityProvisionBehaviourBaseCase):
                     safe_contract_address="safe_contract_address",
                     most_voted_keeper_address="most_voted_keeper_address",
                     most_voted_strategy=json.dumps(strategy),
-                    multisend_contract_address="multisend_contract_address",
+                    multisend_contract_address="0xb0e6add595e00477cf347d09797b156719dc5233",
                     router_contract_address="router_contract_address",
                 ),
             )
@@ -229,7 +229,7 @@ class TestStrategyEvaluationBehaviour(LiquidityProvisionBehaviourBaseCase):
                     most_voted_tx_hash="0x",
                     safe_contract_address="safe_contract_address",
                     most_voted_keeper_address="most_voted_keeper_address",
-                    multisend_contract_address="multisend_contract_address",
+                    multisend_contract_address="0xb0e6add595e00477cf347d09797b156719dc5233",
                     router_contract_address="router_contract_address",
                 ),
             )
@@ -272,7 +272,7 @@ class TestStrategyEvaluationBehaviour(LiquidityProvisionBehaviourBaseCase):
                     safe_contract_address="safe_contract_address",
                     most_voted_keeper_address="most_voted_keeper_address",
                     most_voted_strategy=json.dumps(strategy),
-                    multisend_contract_address="multisend_contract_address",
+                    multisend_contract_address="0xb0e6add595e00477cf347d09797b156719dc5233",
                     router_contract_address="router_contract_address",
                 ),
             )
@@ -314,7 +314,7 @@ class TestEnterPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase)
                     safe_contract_address="safe_contract_address",
                     most_voted_keeper_address="most_voted_keeper_address",
                     most_voted_strategy=json.dumps(strategy),
-                    multisend_contract_address="multisend_contract_address",
+                    multisend_contract_address="0xb0e6add595e00477cf347d09797b156719dc5233",
                     router_contract_address="router_contract_address",
                 ),
             )
@@ -535,7 +535,7 @@ class TestEnterPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase)
                 callable="get_raw_safe_transaction_hash",
                 raw_transaction=RawTransaction(
                     ledger_id="ethereum",
-                    body={"tx_hash": b"dummy_tx".hex()},  # type: ignore
+                    body={"tx_hash": "0xb0e6add595e00477cf347d09797b156719dc5233283ac76e4efce2a674fe72d9"},  # type: ignore
                 ),
             ),
         )
@@ -560,7 +560,7 @@ class TestEnterPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase)
                     safe_contract_address="safe_contract_address",
                     most_voted_keeper_address="most_voted_keeper_address",
                     most_voted_strategy=json.dumps(strategy),
-                    multisend_contract_address="multisend_contract_address",
+                    multisend_contract_address="0xb0e6add595e00477cf347d09797b156719dc5233",
                     router_contract_address="router_contract_address",
                 ),
             )
@@ -808,7 +808,7 @@ class TestEnterPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase)
                 callable="get_raw_safe_transaction_hash",
                 raw_transaction=RawTransaction(
                     ledger_id="ethereum",
-                    body={"tx_hash": b"dummy_tx".hex()},  # type: ignore
+                    body={"tx_hash": "0xb0e6add595e00477cf347d09797b156719dc5233283ac76e4efce2a674fe72d9"},  # type: ignore
                 ),
             ),
         )
@@ -833,7 +833,7 @@ class TestEnterPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase)
                     safe_contract_address="safe_contract_address",
                     most_voted_keeper_address="most_voted_keeper_address",
                     most_voted_strategy=json.dumps(strategy),
-                    multisend_contract_address="multisend_contract_address",
+                    multisend_contract_address="0xb0e6add595e00477cf347d09797b156719dc5233",
                     router_contract_address="router_contract_address",
                 ),
             )
@@ -899,7 +899,7 @@ class TestExitPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase):
                     safe_contract_address="safe_contract_address",
                     most_voted_keeper_address="most_voted_keeper_address",
                     most_voted_strategy=json.dumps(strategy),
-                    multisend_contract_address="multisend_contract_address",
+                    multisend_contract_address="0xb0e6add595e00477cf347d09797b156719dc5233",
                     router_contract_address="router_contract_address",
                     final_tx_hash=binascii.hexlify(b"dummy_tx").decode(),
                 ),
@@ -1061,7 +1061,7 @@ class TestExitPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase):
                 callable="get_raw_safe_transaction_hash",
                 raw_transaction=RawTransaction(
                     ledger_id="ethereum",
-                    body={"tx_hash": b"dummy_tx".hex()},  # type: ignore
+                    body={"tx_hash": "0xb0e6add595e00477cf347d09797b156719dc5233283ac76e4efce2a674fe72d9"},  # type: ignore
                 ),
             ),
         )
@@ -1085,7 +1085,7 @@ class TestExitPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase):
                     safe_contract_address="safe_contract_address",
                     most_voted_keeper_address="most_voted_keeper_address",
                     most_voted_strategy=json.dumps(strategy),
-                    multisend_contract_address="multisend_contract_address",
+                    multisend_contract_address="0xb0e6add595e00477cf347d09797b156719dc5233",
                     router_contract_address="router_contract_address",
                     final_tx_hash=binascii.hexlify(b"dummy_tx").decode(),
                 ),
@@ -1248,7 +1248,7 @@ class TestExitPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase):
                 callable="get_raw_safe_transaction_hash",
                 raw_transaction=RawTransaction(
                     ledger_id="ethereum",
-                    body={"tx_hash": b"dummy_tx".hex()},  # type: ignore
+                    body={"tx_hash": "0xb0e6add595e00477cf347d09797b156719dc5233283ac76e4efce2a674fe72d9"},  # type: ignore
                 ),
             ),
         )
@@ -1273,7 +1273,7 @@ class TestExitPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase):
                     safe_contract_address="safe_contract_address",
                     most_voted_keeper_address="most_voted_keeper_address",
                     most_voted_strategy=json.dumps(strategy),
-                    multisend_contract_address="multisend_contract_address",
+                    multisend_contract_address="0xb0e6add595e00477cf347d09797b156719dc5233",
                     router_contract_address="router_contract_address",
                     final_tx_hash=binascii.hexlify(b"dummy_tx").decode(),
                 ),
@@ -1345,7 +1345,7 @@ class TestSwapBackTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase):
                     safe_contract_address="safe_contract_address",
                     most_voted_keeper_address="most_voted_keeper_address",
                     most_voted_strategy=json.dumps(strategy),
-                    multisend_contract_address="multisend_contract_address",
+                    multisend_contract_address="0xb0e6add595e00477cf347d09797b156719dc5233",
                     router_contract_address="router_contract_address",
                     final_tx_hash=binascii.hexlify(b"dummy_tx").decode(),
                 ),
@@ -1543,7 +1543,7 @@ class TestSwapBackTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase):
                 callable="get_raw_safe_transaction_hash",
                 raw_transaction=RawTransaction(
                     ledger_id="ethereum",
-                    body={"tx_hash": b"dummy_tx".hex()},  # type: ignore
+                    body={"tx_hash": "0xb0e6add595e00477cf347d09797b156719dc5233283ac76e4efce2a674fe72d9"},  # type: ignore
                 ),
             ),
         )
@@ -1568,7 +1568,7 @@ class TestSwapBackTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase):
                     safe_contract_address="safe_contract_address",
                     most_voted_keeper_address="most_voted_keeper_address",
                     most_voted_strategy=json.dumps(strategy),
-                    multisend_contract_address="multisend_contract_address",
+                    multisend_contract_address="0xb0e6add595e00477cf347d09797b156719dc5233",
                     router_contract_address="router_contract_address",
                     final_tx_hash=binascii.hexlify(b"dummy_tx").decode(),
                 ),
@@ -1793,7 +1793,7 @@ class TestSwapBackTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase):
                 callable="get_raw_safe_transaction_hash",
                 raw_transaction=RawTransaction(
                     ledger_id="ethereum",
-                    body={"tx_hash": b"dummy_tx".hex()},  # type: ignore
+                    body={"tx_hash": "0xb0e6add595e00477cf347d09797b156719dc5233283ac76e4efce2a674fe72d9"},  # type: ignore
                 ),
             ),
         )
@@ -1848,7 +1848,7 @@ class TestSleepBehaviour(LiquidityProvisionBehaviourBaseCase):
                     most_voted_tx_hash="0x",
                     safe_contract_address="safe_contract_address",
                     most_voted_keeper_address="most_voted_keeper_address",
-                    multisend_contract_address="multisend_contract_address",
+                    multisend_contract_address="0xb0e6add595e00477cf347d09797b156719dc5233",
                     router_contract_address="router_contract_address",
                 ),
             )

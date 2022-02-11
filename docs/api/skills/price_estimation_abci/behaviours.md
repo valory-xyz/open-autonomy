@@ -19,7 +19,7 @@ Convert to int.
 #### payload`_`to`_`hex
 
 ```python
-def payload_to_hex(tx_hash: str, ether_value: int, safe_tx_gas: int, to_address: str, data: bytes) -> str
+def payload_to_hex(tx_hash: str, ether_value: int, safe_tx_gas: int, to_address: str, data: bytes, operation: int = SafeOperation.CALL.value) -> str
 ```
 
 Serialise to a hex string.

@@ -63,7 +63,7 @@ Decode history payload.
 #### skill`_`input`_`hex`_`to`_`payload
 
 ```python
-def skill_input_hex_to_payload(payload: str) -> Tuple[str, int, int, str, bytes]
+def skill_input_hex_to_payload(payload: str) -> Tuple[str, int, int, str, bytes, int]
 ```
 
 Decode payload.

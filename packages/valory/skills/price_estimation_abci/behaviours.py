@@ -25,7 +25,10 @@ from typing import Dict, Generator, Optional, Sequence, Set, Type, cast
 
 from aea.exceptions import enforce
 
-from packages.valory.contracts.gnosis_safe.contract import GnosisSafeContract
+from packages.valory.contracts.gnosis_safe.contract import (
+    GnosisSafeContract,
+    SafeOperation,
+)
 from packages.valory.contracts.offchain_aggregator.contract import (
     OffchainAggregatorContract,
 )
@@ -91,16 +94,24 @@ def to_int(most_voted_estimate: float, decimals: int) -> int:
 
 
 def payload_to_hex(
-    tx_hash: str, ether_value: int, safe_tx_gas: int, to_address: str, data: bytes
+    tx_hash: str,
+    ether_value: int,
+    safe_tx_gas: int,
+    to_address: str,
+    data: bytes,
+    operation: int = SafeOperation.CALL.value,
 ) -> str:
     """Serialise to a hex string."""
     if len(tx_hash) != 64:  # should be exactly 32 bytes!
         raise ValueError("cannot encode tx_hash of non-32 bytes")  # pragma: nocover
     ether_value_ = ether_value.to_bytes(32, "big").hex()
     safe_tx_gas_ = safe_tx_gas.to_bytes(32, "big").hex()
+    operation_ = operation.to_bytes(1, "big").hex()
     if len(to_address) != 42:
         raise ValueError("cannot encode to_address of non 42 length")  # pragma: nocover
-    concatenated = tx_hash + ether_value_ + safe_tx_gas_ + to_address + data.hex()
+    concatenated = (
+        tx_hash + ether_value_ + safe_tx_gas_ + to_address + operation_ + data.hex()
+    )
     return concatenated
 
 

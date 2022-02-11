@@ -103,17 +103,6 @@ def is_final_tx_hash_set() -> bool
 
 Check if most_voted_estimate is set.
 
-<a id="packages.valory.skills.transaction_settlement_abci.rounds.PeriodState.safe_operation"></a>
-
-#### safe`_`operation
-
-```python
-@property
-def safe_operation() -> Optional[str]
-```
-
-Get the gas data.
-
 <a id="packages.valory.skills.transaction_settlement_abci.rounds.FinishedRegistrationRound"></a>
 
 ## FinishedRegistrationRound Objects

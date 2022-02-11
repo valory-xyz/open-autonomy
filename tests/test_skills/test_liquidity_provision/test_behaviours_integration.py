@@ -61,6 +61,7 @@ from packages.valory.skills.liquidity_provision.behaviours import (
     SAFE_TX_GAS_EXIT,
     SAFE_TX_GAS_SWAP_BACK,
     SwapBackTransactionHashBehaviour,
+    hash_payload_to_hex,
     parse_tx_token_balance,
 )
 from packages.valory.skills.liquidity_provision.handlers import (
@@ -117,20 +118,6 @@ EXPECTED_TYPES = List[
         ]
     ]
 ]
-
-
-def payload_to_hex(
-    tx_hash: str, ether_value: int, safe_tx_gas: int, to_address: str, data: bytes
-) -> str:
-    """Serialise to a hex string."""
-    if len(tx_hash) != 64:  # should be exactly 32 bytes!
-        raise ValueError("cannot encode tx_hash of non-32 bytes")  # pragma: nocover
-    ether_value_ = ether_value.to_bytes(32, "big").hex()
-    safe_tx_gas_ = safe_tx_gas.to_bytes(32, "big").hex()
-    if len(to_address) != 42:
-        raise ValueError("cannot encode to_address of non 42 length")  # pragma: nocover
-    concatenated = tx_hash + ether_value_ + safe_tx_gas_ + to_address + data.hex()
-    return concatenated
 
 
 class LiquidityProvisionBehaviourBaseCase(FSMBehaviourBaseCase):
@@ -318,7 +305,6 @@ class TestLiquidityProvisionHardhat(
                     multisend_contract_address=cls.multisend_contract_address,
                     router_contract_address=cls.router_contract_address,
                     participants=frozenset(list(cls.safe_owners.keys())),
-                    safe_operation=SafeOperation.DELEGATE_CALL,
                 ),
             )
         )
@@ -330,7 +316,6 @@ class TestLiquidityProvisionHardhat(
                     safe_contract_address=cls.safe_contract_address,
                     most_voted_keeper_address=cls.keeper_address,
                     participants=frozenset(list(cls.safe_owners.keys())),
-                    safe_operation=SafeOperation.DELEGATE_CALL.value,
                 ),
             )
         )
@@ -493,7 +478,12 @@ class TestLiquidityProvisionHardhat(
         return tuple(incoming_messages)
 
     def send_and_validate(
-        self, tx_hash: str, data: bytes, to_address: str, safe_tx_gas: int
+        self,
+        tx_hash: str,
+        data: bytes,
+        to_address: str,
+        safe_tx_gas: int,
+        operation: int,
     ) -> str:
         """Send and validate a transaction"""
         # Sign and send the transaction
@@ -508,12 +498,13 @@ class TestLiquidityProvisionHardhat(
             for address, crypto in self.safe_owners.items()
         }
 
-        payload_string = payload_to_hex(
+        payload_string = hash_payload_to_hex(
             tx_hash,
             ether_value=0,
             safe_tx_gas=safe_tx_gas,
             to_address=to_address,
             data=data,
+            operation=operation,
         )
 
         period_state = cast(
@@ -661,6 +652,7 @@ class TestLiquidityProvisionHardhat(
             data=bytes.fromhex(self.multisend_data_enter),
             to_address=self.multisend_contract_address,
             safe_tx_gas=SAFE_TX_GAS_ENTER,
+            operation=SafeOperation.DELEGATE_CALL.value,
         )
 
         # EXIT POOL ------------------------------------------------------
@@ -799,6 +791,7 @@ class TestLiquidityProvisionHardhat(
             data=bytes.fromhex(self.multisend_data_exit),
             to_address=self.multisend_contract_address,
             safe_tx_gas=SAFE_TX_GAS_EXIT,
+            operation=SafeOperation.DELEGATE_CALL.value,
         )
 
         # SWAP BACK ------------------------------------------------------
@@ -905,4 +898,5 @@ class TestLiquidityProvisionHardhat(
             data=bytes.fromhex(self.multisend_data_swap_back),
             to_address=self.multisend_contract_address,
             safe_tx_gas=SAFE_TX_GAS_SWAP_BACK,
+            operation=SafeOperation.DELEGATE_CALL.value,
         )

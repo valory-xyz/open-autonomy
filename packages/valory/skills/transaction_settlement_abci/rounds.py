@@ -112,11 +112,6 @@ class PeriodState(BasePeriodState):  # pylint: disable=too-many-instance-attribu
         """Check if most_voted_estimate is set."""
         return self.tx_hashes_history is not None
 
-    @property
-    def safe_operation(self) -> Optional[str]:
-        """Get the gas data."""
-        return cast(Optional[str], self.db.get("safe_operation", None))
-
 
 class FinishedRegistrationRound(DegenerateRound):
     """A round representing that agent registration has finished"""

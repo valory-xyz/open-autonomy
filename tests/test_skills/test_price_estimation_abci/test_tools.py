@@ -19,6 +19,7 @@
 
 """Test the tools.py module of the skill."""
 
+from packages.valory.contracts.gnosis_safe.contract import SafeOperation
 from packages.valory.skills.abstract_round_abci.common import random_selection
 from packages.valory.skills.price_estimation_abci.behaviours import (
     payload_to_hex,
@@ -49,10 +50,14 @@ def test_payload_to_hex_and_back() -> None:
     safe_tx_gas = 40000000
     to_address = "0x77E9b2EF921253A171Fa0CB9ba80558648Ff7215"
     data = b"b0e6add595e00477cf347d09797b156719dc5233283ac76e4efce2a674fe72d9b0e6add595e00477cf347d09797b156719dc5233283ac76e4efce2a674fe72d9"
-    intermediate = payload_to_hex(hex_str, ether_value, safe_tx_gas, to_address, data)
-    h_, e_, s_, a_, d_ = skill_input_hex_to_payload(intermediate)
+    operation = SafeOperation.CALL.value
+    intermediate = payload_to_hex(
+        hex_str, ether_value, safe_tx_gas, to_address, data, operation
+    )
+    h_, e_, s_, a_, d_, o_ = skill_input_hex_to_payload(intermediate)
     assert h_ == hex_str
     assert e_ == ether_value
     assert s_ == safe_tx_gas
     assert a_ == to_address
     assert d_ == data
+    assert o_ == operation

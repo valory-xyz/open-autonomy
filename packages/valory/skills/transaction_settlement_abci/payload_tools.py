@@ -81,7 +81,7 @@ def tx_hist_hex_to_payload(payload: str) -> Tuple[VerificationStatus, Optional[s
     return verification_status, "0x" + payload[64:]
 
 
-def skill_input_hex_to_payload(payload: str) -> Tuple[str, int, int, str, bytes]:
+def skill_input_hex_to_payload(payload: str) -> Tuple[str, int, int, str, bytes, int]:
     """Decode payload."""
     if len(payload) < 234:
         raise PayloadDeserializationError()  # pragma: nocover
@@ -89,5 +89,6 @@ def skill_input_hex_to_payload(payload: str) -> Tuple[str, int, int, str, bytes]
     ether_value = int.from_bytes(bytes.fromhex(payload[64:128]), "big")
     safe_tx_gas = int.from_bytes(bytes.fromhex(payload[128:192]), "big")
     to_address = payload[192:234]
-    data = bytes.fromhex(payload[234:])
-    return tx_hash, ether_value, safe_tx_gas, to_address, data
+    operation = int.from_bytes(bytes.fromhex(payload[234:236]), "big")
+    data = bytes.fromhex(payload[236:])
+    return tx_hash, ether_value, safe_tx_gas, to_address, data, operation

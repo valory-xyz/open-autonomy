@@ -111,6 +111,28 @@ def parse_tx_token_balance(
     return sum(event["value"] for event in token_events)
 
 
+def hash_payload_to_hex(
+    tx_hash: str,
+    ether_value: int,
+    safe_tx_gas: int,
+    to_address: str,
+    data: bytes,
+    operation: int,
+) -> str:
+    """Serialise to a hex string."""
+    if len(tx_hash) != 64:  # should be exactly 32 bytes!
+        raise ValueError("cannot encode tx_hash of non-32 bytes")  # pragma: nocover
+    ether_value_ = ether_value.to_bytes(32, "big").hex()
+    safe_tx_gas_ = safe_tx_gas.to_bytes(32, "big").hex()
+    operation_ = operation.to_bytes(1, "big").hex()
+    if len(to_address) != 42:
+        raise ValueError("cannot encode to_address of non 42 length")  # pragma: nocover
+    concatenated = (
+        tx_hash + ether_value_ + safe_tx_gas_ + to_address + operation_ + data.hex()
+    )
+    return concatenated
+
+
 class LiquidityProvisionBaseBehaviour(BaseState, ABC):
     """Base state behaviour for the liquidity provision skill."""
 
@@ -639,11 +661,18 @@ class EnterPoolTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
             safe_tx_hash = cast(str, contract_api_msg.raw_transaction.body["tx_hash"])
             safe_tx_hash = safe_tx_hash[2:]
             self.context.logger.info(f"Hash of the Safe transaction: {safe_tx_hash}")
+
+            payload_string = hash_payload_to_hex(
+                tx_hash=safe_tx_hash,
+                ether_value=0,
+                safe_tx_gas=strategy["safe_tx_gas"]["enter"],
+                to_address=self.period_state.multisend_contract_address,
+                data=bytes.fromhex(multisend_data),
+                operation=SafeOperation.DELEGATE_CALL.value,
+            )
+
             payload = TransactionHashPayload(
-                sender=self.context.agent_address,
-                tx_hash=json.dumps(
-                    {"tx_hash": safe_tx_hash, "tx_data": multisend_data}
-                ),  # TOFIX
+                sender=self.context.agent_address, tx_hash=payload_string
             )
 
         with benchmark_tool.measure(
@@ -805,11 +834,18 @@ class ExitPoolTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
             safe_tx_hash = cast(str, contract_api_msg.raw_transaction.body["tx_hash"])
             safe_tx_hash = safe_tx_hash[2:]
             self.context.logger.info(f"Hash of the Safe transaction: {safe_tx_hash}")
+
+            payload_string = hash_payload_to_hex(
+                tx_hash=safe_tx_hash,
+                ether_value=0,
+                safe_tx_gas=strategy["safe_tx_gas"]["enter"],
+                to_address=self.period_state.multisend_contract_address,
+                data=bytes.fromhex(multisend_data),
+                operation=SafeOperation.DELEGATE_CALL.value,
+            )
+
             payload = TransactionHashPayload(
-                sender=self.context.agent_address,
-                tx_hash=json.dumps(
-                    {"tx_hash": safe_tx_hash, "tx_data": multisend_data}
-                ),  # TOFIX
+                sender=self.context.agent_address, tx_hash=payload_string
             )
 
         with benchmark_tool.measure(
@@ -950,11 +986,18 @@ class SwapBackTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
             safe_tx_hash = cast(str, contract_api_msg.raw_transaction.body["tx_hash"])
             safe_tx_hash = safe_tx_hash[2:]
             self.context.logger.info(f"Hash of the Safe transaction: {safe_tx_hash}")
+
+            payload_string = hash_payload_to_hex(
+                tx_hash=safe_tx_hash,
+                ether_value=0,
+                safe_tx_gas=strategy["safe_tx_gas"]["enter"],
+                to_address=self.period_state.multisend_contract_address,
+                data=bytes.fromhex(multisend_data),
+                operation=SafeOperation.DELEGATE_CALL.value,
+            )
+
             payload = TransactionHashPayload(
-                sender=self.context.agent_address,
-                tx_hash=json.dumps(
-                    {"tx_hash": safe_tx_hash, "tx_data": multisend_data}
-                ),  # TOFIX
+                sender=self.context.agent_address, tx_hash=payload_string
             )
 
         with benchmark_tool.measure(
