@@ -16,7 +16,7 @@
 #   limitations under the License.
 #
 # ------------------------------------------------------------------------------
-"""Implementation of the 'aea build_deployment' subcommand."""
+"""Script to generate bulk ethereum keys for use with the 'aea build_deployment' subcommand."""
 import json
 
 import click
@@ -31,7 +31,7 @@ from aea.crypto.registries import make_crypto
 def generate_keys(number_of_keys: str, output_file: str) -> None:
     """Generates n number of keys to be used by deployment generator."""
     keys = []
-    for x in range(len(number_of_keys)):
+    for x in range(number_of_keys):
         account = make_crypto("ethereum")
         keys.append({"address": account.address, "private_key": account.private_key})
         print(f"Processed key generation {x}")
