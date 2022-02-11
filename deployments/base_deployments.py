@@ -52,7 +52,12 @@ from aea.configurations.data_types import PublicId
 from aea.helpers.base import cd
 from aea.helpers.io import open_file
 
-from deployments.constants import CONFIG_DIRECTORY, KEYS, NETWORKS, PACKAGES_DIRECTORY
+from deployments.constants import (
+    CONFIG_DIRECTORY,
+    NETWORKS,
+    PACKAGES_DIRECTORY,
+    get_key,
+)
 
 
 COMPONENT_CONFIGS: Dict = {
@@ -337,7 +342,7 @@ class BaseDeployment:
     def generate_common_vars(self, agent_n: int) -> Dict:
         """Retrieve vars common for valory apps."""
         return {
-            "AEA_KEY": KEYS[agent_n],
+            "AEA_KEY": get_key(agent_n),
             "VALORY_APPLICATION": self.valory_application,
             "ABCI_HOST": f"abci{agent_n}" if self.network == "hardhat" else "",
             "MAX_PARTICIPANTS": self.number_of_agents,  # I believe that this is correct
