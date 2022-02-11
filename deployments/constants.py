@@ -100,6 +100,7 @@ ROOT_DIR = Path(os.getcwd())
 CONFIG_DIRECTORY = ROOT_DIR / "deployments" / "build"
 PACKAGES_DIRECTORY = ROOT_DIR / "packages"
 
+DEPLOYMENT_SPEC_DIR = ROOT_DIR / "deployments" / "deployment_specifications"
 
 DEPLOYMENT_REPORT: Template = Template(
     """

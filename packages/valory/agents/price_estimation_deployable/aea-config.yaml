@@ -69,21 +69,22 @@ type: skill
 models:
   price_api:
     args:
-      url: ${PRICE_API_URL:str}
-      api_id: ${PRICE_API_API_ID:str}
-      parameters: ${PRICE_API_PARAMETERS:list:none}
-      response_key: ${PRICE_API_RESPONSE_KEY:str}
+      url: ${SKILL_PRICE_ESTIMATION_ABCI_MODELS_PRICE_API_ARGS_URL:str}
+      api_id: ${SKILL_PRICE_ESTIMATION_ABCI_MODELS_PRICE_API_ARGS_API_ID:str}
+      parameters: ${SKILL_PRICE_ESTIMATION_ABCI_MODELS_PRICE_API_ARGS_PARAMETERS:list:none}
+      response_key: ${SKILL_PRICE_ESTIMATION_ABCI_MODELS_PRICE_API_ARGS_RESPONSE_KEY:str}
+      headers: ${SKILL_PRICE_ESTIMATION_ABCI_MODELS_PRICE_API_ARGS_HEADERS:none}
   randomness_api:
     args:
-      url: ${RANDOMNESS_API_URL:str}
-      api_id: ${RANDOMNESS_API_API_ID:str}
+      url: ${SKILL_PRICE_ESTIMATION_ABCI_MODELS_RANDOMNESS_API_ARGS_URL:str}
+      api_id: ${SKILL_PRICE_ESTIMATION_ABCI_MODELS_RANDOMNESS_API_ARGS_API_ID:str}
   params:
     args:
       consensus:
         max_participants: ${MAX_PARTICIPANTS:int}
       period_setup:
-        safe_contract_address: ${SAFE_CONTRACT_ADDRESS:str:none}
-        oracle_contract_address: ${ORACLE_CONTRACT_ADDRESS:str:none}
+        safe_contract_address: ${SKILL_PRICE_ESTIMATION_ABCI_MODELS_PARAMS_ARGS_PERIOD_SETUP_SAFE_CONTRACT_ADDRESS:str:none}
+        oracle_contract_address: ${SKILL_PRICE_ESTIMATION_ABCI_MODELS_PARAMS_ARGS_PERIOD_SETUP_ORACLE_CONTRACT_ADDRESS:str:none}
       round_timeout_seconds: ${PRICE_ESTIMATION_PARAMS_ROUND_TIMEOUT_SECONDS:float:10.0}
       tendermint_url: ${TENDERMINT_URL:str}
       tendermint_com_url: ${TENDERMINT_COM_URL:str}
