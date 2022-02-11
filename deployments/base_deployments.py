@@ -180,8 +180,6 @@ class DeploymentConfigValidator(validation.ConfigValidator):
         path = Path(AEA_DIR) / "configurations" / "schemas"
         config_class = COMPONENT_CONFIGS[component_id.package_type.value]
 
-        overrides = {}
-
         with cd(path):  # required to handle protected variable _SCHEMEAS_DIR
             cv = validation.ConfigValidator("definitions.json")
             try:
