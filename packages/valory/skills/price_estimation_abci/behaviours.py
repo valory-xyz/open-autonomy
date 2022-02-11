@@ -25,10 +25,7 @@ from typing import Dict, Generator, Optional, Sequence, Set, Type, cast
 
 from aea.exceptions import enforce
 
-from packages.valory.contracts.gnosis_safe.contract import (
-    GnosisSafeContract,
-    SafeOperation,
-)
+from packages.valory.contracts.gnosis_safe.contract import GnosisSafeContract
 from packages.valory.contracts.offchain_aggregator.contract import (
     OffchainAggregatorContract,
 )
@@ -67,6 +64,9 @@ from packages.valory.skills.safe_deployment_abci.behaviours import (
 from packages.valory.skills.transaction_settlement_abci.behaviours import (
     TransactionSettlementRoundBehaviour,
 )
+from packages.valory.skills.transaction_settlement_abci.payload_tools import (
+    hash_payload_to_hex,
+)
 
 
 benchmark_tool = BenchmarkTool()
@@ -91,28 +91,6 @@ def to_int(most_voted_estimate: float, decimals: int) -> int:
     most_voted_estimate_decimal = Decimal(most_voted_estimate_)
     int_value = int(most_voted_estimate_decimal * (10 ** decimals))
     return int_value
-
-
-def payload_to_hex(
-    tx_hash: str,
-    ether_value: int,
-    safe_tx_gas: int,
-    to_address: str,
-    data: bytes,
-    operation: int = SafeOperation.CALL.value,
-) -> str:
-    """Serialise to a hex string."""
-    if len(tx_hash) != 64:  # should be exactly 32 bytes!
-        raise ValueError("cannot encode tx_hash of non-32 bytes")  # pragma: nocover
-    ether_value_ = ether_value.to_bytes(32, "big").hex()
-    safe_tx_gas_ = safe_tx_gas.to_bytes(32, "big").hex()
-    operation_ = operation.to_bytes(1, "big").hex()
-    if len(to_address) != 42:
-        raise ValueError("cannot encode to_address of non 42 length")  # pragma: nocover
-    concatenated = (
-        tx_hash + ether_value_ + safe_tx_gas_ + to_address + operation_ + data.hex()
-    )
-    return concatenated
 
 
 class PriceEstimationBaseState(BaseState, ABC):
@@ -440,7 +418,7 @@ class TransactionHashBehaviour(PriceEstimationBaseState):
         safe_tx_hash = safe_tx_hash[2:]
         self.context.logger.info(f"Hash of the Safe transaction: {safe_tx_hash}")
         # temp hack:
-        payload_string = payload_to_hex(
+        payload_string = hash_payload_to_hex(
             safe_tx_hash, ether_value, safe_tx_gas, to_address, data
         )
         return payload_string
