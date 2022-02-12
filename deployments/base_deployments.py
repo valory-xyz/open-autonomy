@@ -72,7 +72,7 @@ COMPONENT_CONFIGS: Dict = {
 logger = getLogger(__name__)
 
 
-def recurse(_obj_json: Dict[str, Any]):
+def recurse(_obj_json: Dict[str, Any]) -> Dict[str, Any]:
     """Recursively explore a json object until no dictionaries remain."""
     if not any([isinstance(i, dict) for i in _obj_json.values()]):
         return _obj_json
@@ -89,9 +89,7 @@ def recurse(_obj_json: Dict[str, Any]):
 def _parse_nested_override(env_var_name: str, nested_override_value: Dict) -> Dict:
     """Used for handling dictionary object 1 level below nesting."""
     overrides = recurse(nested_override_value)
-    return {
-        f"{env_var_name}_{k}".upper(): v for k, v in overrides.items()
-    }
+    return {f"{env_var_name}_{k}".upper(): v for k, v in overrides.items()}
 
 
 class DeploymentConfigValidator(validation.ConfigValidator):
