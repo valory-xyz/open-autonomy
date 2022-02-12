@@ -5,6 +5,9 @@ agent: "valory/price_estimation_deployable:0.1.0"
 network: hardhat
 number_of_agents: 4
 ---
+observation_params: &observation_params
+  args:
+    observation_interval: 3
 
 public_id: valory/price_estimation_abci:0.1.0
 type: skill
@@ -21,6 +24,8 @@ models:
         args:
           url: "https://drand.cloudflare.com/public/latest"
           api_id: "cloudflare"
+    - params:
+       <<: *observation_params
   1:
     - price_api:
         args:
@@ -33,6 +38,8 @@ models:
         args:
           url: "https://api.drand.sh/public/latest"
           api_id: "protocollabs1"
+    - params:
+        <<: *observation_params
   2:
     - price_api:
         args:
@@ -45,6 +52,8 @@ models:
         args:
           url: "https://api2.drand.sh/public/latest"
           api_id: "protocollabs2"
+    - params:
+        <<: *observation_params
   3:
     - price_api:
         args:
@@ -57,3 +66,5 @@ models:
         args:
           url: "https://api3.drand.sh/public/latest"
           api_id: "protocollabs3"
+    - params:
+        <<: *observation_params
