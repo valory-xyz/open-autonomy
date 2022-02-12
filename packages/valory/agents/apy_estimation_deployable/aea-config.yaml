@@ -91,4 +91,3 @@ config:
     ethereum:
       address: ${LEDGER_ADDRESS:str}
       chain_id: ${LEDGER_CHAIN_ID:int}
-
