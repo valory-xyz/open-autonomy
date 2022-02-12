@@ -1,0 +1,94 @@
+agent_name: agent
+author: valory
+version: 0.1.0
+license: Apache-2.0
+description: APY estimation agent.
+aea_version: '>=1.0.0, <2.0.0'
+fingerprint: {}
+fingerprint_ignore_patterns: []
+connections:
+- valory/abci:0.1.0
+- valory/http_client:0.1.0
+- valory/ledger:0.1.0
+contracts: []
+protocols:
+- open_aea/signing:1.0.0
+- valory/abci:0.1.0
+- valory/contract_api:1.0.0
+- valory/http:1.0.0
+- valory/ledger_api:1.0.0
+skills:
+- valory/abstract_abci:0.1.0
+- valory/abstract_round_abci:0.1.0
+- valory/apy_estimation_abci:0.1.0
+- valory/registration_abci:0.1.0
+default_ledger: ethereum
+required_ledgers:
+- ethereum
+default_routing: {}
+connection_private_key_paths: {}
+private_key_paths:
+  ethereum: ethereum_private_key.txt
+logging_config:
+  version: 1
+  disable_existing_loggers: false
+  formatters:
+    standard:
+      format: '[%(asctime)s] [%(levelname)s] %(message)s'
+  handlers:
+    console:
+      class: logging.StreamHandler
+      formatter: standard
+      stream: ext://sys.stdout
+  loggers:
+    aea:
+      handlers:
+      - console
+      propagate: false
+dependencies:
+  open-aea-ledger-ethereum: {}
+skill_exception_policy: just_log
+connection_exception_policy: just_log
+default_connection: null
+---
+public_id: valory/abci:0.1.0
+type: connection
+config:
+  target_skill_id: valory/apy_estimation_abci:0.1.0
+  host: abci0
+  port: 26658
+  use_tendermint: false
+---
+public_id: valory/apy_estimation_abci:0.1.0
+type: skill
+models:
+  params:
+    args:
+      consensus:
+        max_participants: 4
+      round_timeout_seconds: 1000.0
+      tendermint_url: http://node0:26657
+      observation_interval: 86400
+      max_healthcheck: 43200
+      drand_public_key: 868f005eb8e6e4ca0a47c8a77ceaa5309a47978a7c71bc5cce96366b5d7a569937c529eeda66c7293784a9402801af31
+      estimation:
+        steps_forward: 1
+      history_duration: 6
+      optimizer:
+        n_trials: 10
+        timeout: null
+        n_jobs: 1
+        show_progress_bar: false
+        scoring: pinball
+        alpha: 0.25
+      pair_ids:
+      - '0x2b4c76d0dc16be1c31d4c1dc53bf9b45987fc75c'
+      sleep_time: 10
+---
+public_id: valory/ledger:0.1.0
+type: connection
+config:
+  ledger_apis:
+    ethereum:
+      address: http://hardhat:8545
+      chain_id: 31337

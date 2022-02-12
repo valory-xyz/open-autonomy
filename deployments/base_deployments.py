@@ -303,7 +303,7 @@ class DeploymentConfigValidator(validation.ConfigValidator):
 class BaseDeployment:
     """Class to assist with generating deployments."""
 
-    valory_application: str
+    agent: str
     network: str
     number_of_agents: int
 
