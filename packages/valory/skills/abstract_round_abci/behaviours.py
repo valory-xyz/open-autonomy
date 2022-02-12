@@ -249,7 +249,11 @@ class AbstractRoundBehaviour(
             return
         self._last_round_height = current_round_height
         current_round_cls = type(self.context.state.period.current_round)
+
         # each round has a state behaviour associated to it
+        # but only if current_round_cls is *NOT* a final round
+        if current_round_cls in self.abci_app_cls.final_states:
+            return
         self._next_state_cls = self._round_to_state[current_round_cls]
 
         # checking if current state behaviour has a matching round.
