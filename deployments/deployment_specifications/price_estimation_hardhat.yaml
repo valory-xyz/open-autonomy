@@ -5,6 +5,7 @@ agent: "valory/price_estimation_deployable:0.1.0"
 network: hardhat
 number_of_agents: 4
 ---
+
 public_id: valory/price_estimation_abci:0.1.0
 type: skill
 models:
