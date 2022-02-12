@@ -72,18 +72,26 @@ COMPONENT_CONFIGS: Dict = {
 logger = getLogger(__name__)
 
 
+def recurse(_obj_json: Dict[str, Any]):
+    """Recursively explore a json object until no dictionaries remain."""
+    if not any([isinstance(i, dict) for i in _obj_json.values()]):
+        return _obj_json
+    new_obj = {}
+    for k, v in _obj_json.items():
+        if isinstance(v, dict):
+            for k2, v2 in v.items():
+                new_obj["_".join([str(k), str(k2)])] = v2
+        else:
+            new_obj[k] = v
+    return recurse(new_obj)
+
+
 def _parse_nested_override(env_var_name: str, nested_override_value: Dict) -> Dict:
     """Used for handling dictionary object 1 level below nesting."""
-    overrides = {}
-    if not any([isinstance(i, dict) for i in nested_override_value.values()]):
-        overrides.update(
-            {f"{env_var_name}_{k}".upper(): v for k, v in nested_override_value.items()}
-        )
-    else:
-        for k1, v1 in nested_override_value.items():
-            for k2, v2 in v1.items():
-                overrides.update({f"{env_var_name}_{k1}_{k2}".upper(): v2})
-    return overrides
+    overrides = recurse(nested_override_value)
+    return {
+        f"{env_var_name}_{k}".upper(): v for k, v in overrides.items()
+    }
 
 
 class DeploymentConfigValidator(validation.ConfigValidator):
@@ -344,7 +352,7 @@ class BaseDeployment:
         return {
             "AEA_KEY": get_key(agent_n),
             "VALORY_APPLICATION": self.agent,
-            "ABCI_HOST": f"abci{agent_n}" if self.network == "hardhat" else "",
+            "ABCI_HOST": f"abci{agent_n}",
             "MAX_PARTICIPANTS": self.number_of_agents,  # I believe that this is correct
             "TENDERMINT_URL": f"http://node{agent_n}:26657",
             "TENDERMINT_COM_URL": f"http://node{agent_n}:8080",
