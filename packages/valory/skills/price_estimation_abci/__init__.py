@@ -25,7 +25,5 @@ It does so through aggregation of observations from different sources.
 
 from aea.configurations.base import PublicId
 
-from packages.valory.skills.registration_abci.payloads import *  # noqa
-
 
 PUBLIC_ID = PublicId.from_str("valory/price_estimation_abci:0.1.0")

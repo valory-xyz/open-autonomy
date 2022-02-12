@@ -304,8 +304,8 @@ class TestMetaPayloadUtilityMethods:
         but different class object. This will raise an error.
         """
         tx_type_name = "transaction_type"
-        tx_cls_1 = MagicMock()
-        tx_cls_2 = MagicMock()
+        tx_cls_1 = MagicMock(__name__="name_1")
+        tx_cls_2 = MagicMock(__name__="name_2")
         _MetaPayload.transaction_type_to_payload_cls[tx_type_name] = tx_cls_1
 
         with pytest.raises(ValueError):

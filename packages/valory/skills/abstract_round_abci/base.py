@@ -130,9 +130,6 @@ class _MetaPayload(ABCMeta):
         """Create a new class object."""
         new_cls = super().__new__(mcs, name, bases, namespace, **kwargs)
 
-        if new_cls.__module__.startswith("packages."):
-            # ignore class if it is from an import with prefix "packages."
-            return new_cls
         if ABC in bases:
             # abstract class, return
             return new_cls
@@ -156,7 +153,7 @@ class _MetaPayload(ABCMeta):
         """Check that a transaction type is not already associated to a concrete payload class."""
         if transaction_type in mcs.transaction_type_to_payload_cls:
             previous_payload_cls = mcs.transaction_type_to_payload_cls[transaction_type]
-            if new_payload_cls != previous_payload_cls:
+            if new_payload_cls.__name__ != previous_payload_cls.__name__:
                 raise ValueError(
                     f"transaction type with name {transaction_type} already "
                     f"used by class {previous_payload_cls}, and cannot be "
