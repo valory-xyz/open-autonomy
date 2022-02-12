@@ -234,6 +234,7 @@ class DeploymentConfigValidator(validation.ConfigValidator):
             env_var_base = "_".join(
                 [component_id.package_type.value, component_id.name, field]
             )
+
             field_override = component_configuration_json.get(field, {})
             if field_override == {}:
                 continue
@@ -245,11 +246,9 @@ class DeploymentConfigValidator(validation.ConfigValidator):
                     env_var_name = "_".join(
                         [env_var_base, nested_override, nested_override_key]
                     )
-                    env_vars = {
-                        f"{env_var_name}_{k}".upper(): v
-                        for k, v in nested_override_value.items()
-                    }
-                    overrides.update(env_vars)
+                    overrides.update(
+                        _parse_nested_override(env_var_name, nested_override_value)
+                    )
         return overrides
 
     def try_to_process_nested_fields(
