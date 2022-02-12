@@ -20,30 +20,18 @@
 """Tests package for the 'deployments' functionality."""
 import os
 import shutil
-import subprocess  # nosec:
 import tempfile
 from abc import ABC
 from glob import glob
-from logging import getLogger
 from pathlib import Path
 from typing import Any, List, Tuple
 
-import docker
 import yaml
-from docker import DockerClient
 
 from deployments.base_deployments import BaseDeployment, BaseDeploymentGenerator
 from deployments.constants import DEPLOYMENT_SPEC_DIR, ROOT_DIR
 from deployments.generators.docker_compose.docker_compose import DockerComposeGenerator
 from deployments.generators.kubernetes.kubernetes import KubernetesGenerator
-
-from tests.fixture_helpers import UseGnosisSafeHardHatNet
-from tests.helpers.docker.base import DockerImage
-from tests.helpers.docker.gnosis_safe_net import GnosisSafeNetDockerImage
-
-
-logger = getLogger(__name__)
-os.chdir(ROOT_DIR)
 
 
 deployment_generators: List[Any] = [
@@ -51,6 +39,7 @@ deployment_generators: List[Any] = [
     KubernetesGenerator,
 ]
 
+os.chdir(ROOT_DIR)
 
 BASE_DEPLOYMENT: str = """name: "deployment_case"
 author: "valory"
@@ -422,88 +411,3 @@ class TestOverrideTypes(BaseDeploymentTests):
             app_instance.validator.check_overrides_are_valid()
             app_instance.generate_agents()
             deployment_instance.generate(app_instance)  # type: ignore
-
-
-def get_testable_deployments() -> List[str]:
-    """Returns a list specified deployments."""
-    return [str(DEPLOYMENT_SPEC_DIR / "price_estimation_hardhat.yaml")]
-
-
-class TestDeploymentIntegration(BaseDeploymentTests, UseGnosisSafeHardHatNet):
-    """Tests generated deployment to confirm all services come alive."""
-
-    client: DockerClient
-    hardhat: GnosisSafeNetDockerImage
-    container: DockerImage
-
-    @classmethod
-    def setup_class(cls) -> None:
-        """Sets up the class with an external hardhat net."""
-        cls.client = docker.from_env()
-        cls.hardhat = GnosisSafeNetDockerImage(
-            cls.client, addr="http://0.0.0.0", port=8545
-        )
-        cls.container = cls.hardhat.create()
-        ready = cls.hardhat.wait()
-        if not ready:
-            raise TimeoutError("Hardhat image failed to be ready.")
-        logger.debug("Setup hardhat.")
-
-    @classmethod
-    def teardown_class(cls) -> None:
-        """Tear down the class."""
-        cls.hardhat.stop_if_already_running()
-
-    def setup(self) -> None:
-        """Move to new temporary wd."""
-        self.old_cwd = os.getcwd()
-        self.working_dir = Path(tempfile.TemporaryDirectory().name)
-        os.chdir(self.working_dir.name)
-
-    def teardown(self) -> None:
-        """Destroy the application & move to old wd."""
-        cmd = "docker-compose down --remove-orphans".split(" ")
-        subprocess.check_output(cmd)  # nosec:
-        os.chdir(self.old_cwd)  # type: ignore
-
-    def _starts_containers(self) -> None:
-        """Runs user command to launch docker-compose service."""
-        cmd = ["docker-compose", "up", "-d"]
-        subprocess.check_output(cmd)  # nosec:
-        for c in self.client.containers.list():
-            assert c.status == "running"
-
-    def test_valid_deployments_containers_succeed(self) -> None:
-        """Load in the testable deployments and test whether they work."""
-        for spec_path in get_testable_deployments():
-            deployment_instance, app_instance = self.load_deployer_and_app(
-                spec_path, DockerComposeGenerator  # type: ignore
-            )
-            self._start_valory_app(deployment_instance, app_instance)  # type: ignore
-            self.check_specified_containers_are_running(deployment_instance)  # type: ignore
-
-    def _start_valory_app(
-        self, deployment_instance: DockerComposeGenerator, app_instance: BaseDeployment
-    ) -> None:
-        """Start the valory app in the current working directory."""
-        deployment_instance.generate(app_instance)  # type: ignore
-        deployment_instance.config_dir = Path(self.working_dir.name)
-        deployment_instance.write_config()
-        tm_config = deployment_instance.generate_config_tendermint(
-            app_instance  # type: ignore
-        ).replace(
-            "$(pwd)/deployments/build", self.working_dir.name + "/"
-        )  # this command is likely to cause issues.
-        subprocess.check_output(tm_config.split(" "))  # nosec:
-        self._starts_containers()
-
-    def check_specified_containers_are_running(
-        self, deployment_instance: DockerComposeGenerator
-    ) -> None:
-        """Load the container names from the deployment and determine if they are running."""
-        for container_name in yaml.safe_load(deployment_instance.output)["services"]:
-            try:
-                container = self.client.containers.get(container_name)
-                assert container.status == "running", "Container is not running!"
-            except docker.errors.NotFound:
-                AssertionError(f"{container_name} not found in running containers!")
