@@ -5,6 +5,12 @@ valory_application: "valory/price_estimation_deployable:0.1.0"
 network: ropsten
 number_of_agents: 4
 ---
+period_setup_args: &period_setup_args
+  args:
+    period_setup:
+      safe_contract_address: "0x7AbCC2424811c342BC9A9B52B1621385d7406676"
+      oracle_contract_address: "0xB555E44648F6Ff759F64A5B451AB845B0450EA57"
+
 public_id: valory/price_estimation_abci:0.1.0
 type: skill
 models:
@@ -20,6 +26,8 @@ models:
         args:
           url: "https://drand.cloudflare.com/public/latest"
           api_id: "cloudflare"
+    - params:
+        <<: *period_setup_args
   1:
     - price_api:
         args:
@@ -32,6 +40,8 @@ models:
         args:
           url: "https://api.drand.sh/public/latest"
           api_id: "protocollabs1"
+    - params:
+        <<: *period_setup_args
   2:
     - price_api:
         args:
@@ -44,6 +54,8 @@ models:
         args:
           url: "https://api2.drand.sh/public/latest"
           api_id: "protocollabs2"
+    - params:
+        <<: *period_setup_args
   3:
     - price_api:
         args:
@@ -56,3 +68,5 @@ models:
         args:
           url: "https://api3.drand.sh/public/latest"
           api_id: "protocollabs3"
+    - params:
+        <<: *period_setup_args
