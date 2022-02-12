@@ -322,7 +322,7 @@ class BaseDeployment:
 
         self.validator.validate_deployment(self.deployment_spec, self.overrides)
         self.__dict__.update(self.deployment_spec)
-        self.agent_public_id = PublicId.from_str(self.valory_application)
+        self.agent_public_id = PublicId.from_str(self.agent)
         self.agent_spec = self.load_agent()
 
     def _process_model_args_overrides(self, agent_n: int) -> Dict:
@@ -343,7 +343,7 @@ class BaseDeployment:
         """Retrieve vars common for valory apps."""
         return {
             "AEA_KEY": get_key(agent_n),
-            "VALORY_APPLICATION": self.valory_application,
+            "VALORY_APPLICATION": self.agent,
             "ABCI_HOST": f"abci{agent_n}" if self.network == "hardhat" else "",
             "MAX_PARTICIPANTS": self.number_of_agents,  # I believe that this is correct
             "TENDERMINT_URL": f"http://node{agent_n}:26657",
