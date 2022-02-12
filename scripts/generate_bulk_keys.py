@@ -28,7 +28,7 @@ from aea.crypto.registries import make_crypto
 @click.option(
     "-o", "--output-file", "--output_file", type=str, default="generated_keys.json"
 )
-def generate_keys(number_of_keys: str, output_file: str) -> None:
+def generate_keys(number_of_keys: int, output_file: str) -> None:
     """Generates n number of keys to be used by deployment generator."""
     keys = []
     for x in range(number_of_keys):
