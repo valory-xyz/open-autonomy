@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
@@ -38,6 +39,7 @@ PACKAGES_PATH = "/packages"
 BASH_FILE = f"/configure_agents/abci{ID}.sh"
 BASE_SETUP_FILE = f"/configure_agents/base_setup.sh"
 TENDERMINT_COM_URL = os.environ.get("TENDERMINT_COM_URL", f"http://node{ID}:8080")
+COUNT = 0
 
 
 def write(line: str) -> None:
@@ -164,6 +166,9 @@ class RestartAEA(FileSystemEventHandler):
             self.aea.restart_tendermint()
             self.aea.start()
 
+            global COUNT
+            COUNT = 0
+
 
 if __name__ == "__main__":
     write("Calling base setup.")
@@ -176,16 +181,16 @@ if __name__ == "__main__":
     observer = Observer()
     observer.schedule(event_handler, PACKAGES_PATH, recursive=True)
 
-    c = 0
-
+    COUNT = 0
     try:
         observer.start()
         while True:
             time.sleep(1)
-            c += 1
-            if (c % 120) == 0 and ID == "0":
+            COUNT += 1
+            if (COUNT % 90) == 0 and ID == "0":
                 event_handler.aea.stop()
                 event_handler.aea.restart_tendermint("gentle")
+                time.sleep(3)
                 event_handler.aea.start()
 
     except KeyboardInterrupt:

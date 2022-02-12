@@ -434,8 +434,7 @@ class BaseState(AsyncBehaviour, SimpleBehaviour, ABC):
             self._is_started = True
 
         try:
-            if self.context.state.period.syncing_up and not self.is_running_in_sync:
-                self.context.logger.info("Running in sync...")
+            if self.context.state.period.syncing_up:
                 yield from self._check_sync()
             else:
                 yield from self.async_act()
@@ -454,6 +453,7 @@ class BaseState(AsyncBehaviour, SimpleBehaviour, ABC):
         """Check if agent has completed sync."""
         self.context.logger.info("Checking sync...")
         for _ in range(_DEFAULT_TX_MAX_ATTEMPTS):
+            self.context.logger.info("Checking status")
             status = yield from self._get_status()
             try:
                 json_body = json.loads(status.body.decode())
@@ -461,11 +461,13 @@ class BaseState(AsyncBehaviour, SimpleBehaviour, ABC):
                     json_body["result"]["sync_info"]["latest_block_height"]
                 )
                 local_height = int(self.context.state.period.height)
-                self._has_synced_up = local_height == remote_height
-                if self._has_synced_up and self.can_rejoin_in_this_round:
+                _has_synced_up = local_height == remote_height
+
+                if _has_synced_up and (
+                    self.can_rejoin_in_this_round or local_height == 0
+                ):
                     self.context.logger.info("local height == remote; Ending sync...")
                     self.context.state.period.end_sync()
-                    self.set_done()
                     return
             except (json.JSONDecodeError, KeyError):  # pragma: nocover
                 yield from self.sleep(_SYNC_MODE_WAIT)

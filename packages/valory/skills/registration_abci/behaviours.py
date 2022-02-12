@@ -48,9 +48,6 @@ class TendermintHealthcheckBehaviour(BaseState):
     _timeout: float
     _is_healthy: bool
 
-    can_rejoin_in_this_round: bool = True
-    is_running_in_sync: bool = True
-
     def start(self) -> None:
         """Set up the behaviour."""
         if self._check_started is None:
@@ -76,39 +73,12 @@ class TendermintHealthcheckBehaviour(BaseState):
         if not self._is_healthy:
             health = yield from self._get_health()
             try:
-                json_body = json.loads(health.body.decode())
+                json.loads(health.body.decode())
             except json.JSONDecodeError:
                 self.context.logger.error("Tendermint not running yet, trying again!")
                 yield from self.sleep(self.params.sleep_time)
                 return
             self._is_healthy = True
-        status = yield from self._get_status()
-        try:
-            json_body = json.loads(status.body.decode())
-        except json.JSONDecodeError:
-            self.context.logger.error(
-                "Tendermint not accepting transactions yet, trying again!"
-            )
-            yield from self.sleep(self.params.sleep_time)
-            return
-
-        remote_height = int(json_body["result"]["sync_info"]["latest_block_height"])
-        local_height = self.context.state.period.height
-        self.context.logger.info(
-            "local-height = %s, remote-height=%s", local_height, remote_height
-        )
-        if remote_height > local_height:
-            # if remote height > local height it means the agent is behind in
-            # consensus. This block will put current agent in sync mode and
-            # continue execution. For more information on refer to:
-            # https://github.com/valory-xyz/consensus-algorithms/pull/399
-            self.context.logger.info(
-                "remote height > local height; Entering sync mode..."
-            )
-            self.context.state.period.start_sync()
-        else:
-            self.context.state.period.end_sync()
-            self.context.logger.info("local height == remote height; done")
 
         self.set_done()
 

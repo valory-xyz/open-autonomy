@@ -54,7 +54,7 @@ from packages.valory.skills.price_estimation_abci.rounds import (
 )
 from packages.valory.skills.registration_abci.behaviours import (
     AgentRegistrationRoundBehaviour,
-    TendermintHealthcheckBehaviour,
+    RegistrationStartupBehaviour,
 )
 from packages.valory.skills.safe_deployment_abci.behaviours import (
     SafeDeploymentRoundBehaviour,
@@ -333,7 +333,7 @@ class ObserverRoundBehaviour(AbstractRoundBehaviour):
 class PriceEstimationConsensusBehaviour(AbstractRoundBehaviour):
     """This behaviour manages the consensus stages for the price estimation."""
 
-    initial_state_cls = TendermintHealthcheckBehaviour
+    initial_state_cls = RegistrationStartupBehaviour
     abci_app_cls = PriceEstimationAbciApp  # type: ignore
     behaviour_states: Set[Type[BaseState]] = {
         *OracleDeploymentRoundBehaviour.behaviour_states,
