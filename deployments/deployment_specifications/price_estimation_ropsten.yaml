@@ -34,7 +34,7 @@ models:
         args:
           url: 'https://pro-api.coinmarketcap.com/v1/cryptocurrency/quotes/latest'
           api_id: 'coinmarketcap'
-          headers: '[["Accepts","application/json"], ["X-CMC_PRO_API_KEY","2142662b-985c-4862-82d7-e91457850c2a"]]'
+          headers: '[["Accepts","application/json"], ["X-CMC_PRO_API_KEY","27d2cd0d-80c3-4ec3-9305-4f3d9ad34e41"]]'
           parameters: '[["symbol","BTC"], ["convert","USD"]]'
           response_key: 'data:BTC:quote:USD:price'
     - randomness_api:
@@ -68,6 +68,6 @@ models:
     - randomness_api:
         args:
           url: "https://api3.drand.sh/public/latest"
-          api_id: "protocollabs3"
+          api_id: "protocollabs2"
     - params:
         <<: *period_setup_args
