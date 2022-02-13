@@ -31,7 +31,10 @@ import pytest
 from aea.exceptions import AEAActException
 
 from packages.valory.skills.abstract_round_abci.base import StateDB
-from packages.valory.skills.abstract_round_abci.behaviour_utils import BaseState
+from packages.valory.skills.abstract_round_abci.behaviour_utils import (
+    BaseState,
+    DegenerateState,
+)
 from packages.valory.skills.registration_abci.behaviours import (
     RegistrationBaseBehaviour,
     RegistrationBehaviour,
@@ -299,11 +302,11 @@ class TestRegistrationStartupBehaviour(BaseRegistrationTestBehaviour):
     """Test case to test RegistrationStartupBehaviour."""
 
     behaviour_class = RegistrationStartupBehaviour
-    next_behaviour_class = RegistrationStartupBehaviour
+    next_behaviour_class = DegenerateState
 
 
 class TestRegistrationBehaviour(BaseRegistrationTestBehaviour):
     """Test case to test RegistrationBehaviour."""
 
     behaviour_class = RegistrationBehaviour
-    next_behaviour_class = RegistrationBehaviour
+    next_behaviour_class = DegenerateState
