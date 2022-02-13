@@ -72,18 +72,24 @@ COMPONENT_CONFIGS: Dict = {
 logger = getLogger(__name__)
 
 
+def recurse(_obj_json: Dict[str, Any]) -> Dict[str, Any]:
+    """Recursively explore a json object until no dictionaries remain."""
+    if not any([isinstance(i, dict) for i in _obj_json.values()]):
+        return _obj_json
+    new_obj = {}
+    for k, v in _obj_json.items():
+        if isinstance(v, dict):
+            for k2, v2 in v.items():
+                new_obj["_".join([str(k), str(k2)])] = v2
+        else:
+            new_obj[k] = v
+    return recurse(new_obj)
+
+
 def _parse_nested_override(env_var_name: str, nested_override_value: Dict) -> Dict:
     """Used for handling dictionary object 1 level below nesting."""
-    overrides = {}
-    if not any([isinstance(i, dict) for i in nested_override_value.values()]):
-        overrides.update(
-            {f"{env_var_name}_{k}".upper(): v for k, v in nested_override_value.items()}
-        )
-    else:
-        for k1, v1 in nested_override_value.items():
-            for k2, v2 in v1.items():
-                overrides.update({f"{env_var_name}_{k1}_{k2}".upper(): v2})
-    return overrides
+    overrides = recurse(nested_override_value)
+    return {f"{env_var_name}_{k}".upper(): v for k, v in overrides.items()}
 
 
 class DeploymentConfigValidator(validation.ConfigValidator):
@@ -228,6 +234,7 @@ class DeploymentConfigValidator(validation.ConfigValidator):
             env_var_base = "_".join(
                 [component_id.package_type.value, component_id.name, field]
             )
+
             field_override = component_configuration_json.get(field, {})
             if field_override == {}:
                 continue
@@ -239,11 +246,9 @@ class DeploymentConfigValidator(validation.ConfigValidator):
                     env_var_name = "_".join(
                         [env_var_base, nested_override, nested_override_key]
                     )
-                    env_vars = {
-                        f"{env_var_name}_{k}".upper(): v
-                        for k, v in nested_override_value.items()
-                    }
-                    overrides.update(env_vars)
+                    overrides.update(
+                        _parse_nested_override(env_var_name, nested_override_value)
+                    )
         return overrides
 
     def try_to_process_nested_fields(
@@ -303,7 +308,7 @@ class DeploymentConfigValidator(validation.ConfigValidator):
 class BaseDeployment:
     """Class to assist with generating deployments."""
 
-    valory_application: str
+    agent: str
     network: str
     number_of_agents: int
 
@@ -322,7 +327,7 @@ class BaseDeployment:
 
         self.validator.validate_deployment(self.deployment_spec, self.overrides)
         self.__dict__.update(self.deployment_spec)
-        self.agent_public_id = PublicId.from_str(self.valory_application)
+        self.agent_public_id = PublicId.from_str(self.agent)
         self.agent_spec = self.load_agent()
 
     def _process_model_args_overrides(self, agent_n: int) -> Dict:
@@ -343,8 +348,8 @@ class BaseDeployment:
         """Retrieve vars common for valory apps."""
         return {
             "AEA_KEY": get_key(agent_n),
-            "VALORY_APPLICATION": self.valory_application,
-            "ABCI_HOST": f"abci{agent_n}" if self.network == "hardhat" else "",
+            "VALORY_APPLICATION": self.agent,
+            "ABCI_HOST": f"abci{agent_n}",
             "MAX_PARTICIPANTS": self.number_of_agents,  # I believe that this is correct
             "TENDERMINT_URL": f"http://node{agent_n}:26657",
             "TENDERMINT_COM_URL": f"http://node{agent_n}:8080",
