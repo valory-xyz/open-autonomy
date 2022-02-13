@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2018-2019 Fetch.AI Limited
+#   Copyright 2022 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -29,13 +29,15 @@ from aea.cli.utils.loggers import logger, simple_verbosity_option
 from aea.helpers.win32 import enable_ctrl_c_support
 from pkg_resources import iter_entry_points
 
-from deployments.create_deployment import generate_deployment
+from deployments import constants
+from deployments.create_deployment import generate_deployment, read_keys
 from deployments.generators.docker_compose.docker_compose import DockerComposeGenerator
 from deployments.generators.kubernetes.kubernetes import KubernetesGenerator
 
 
 @click.command()
 @click.option("--valory-app", required=True)
+@click.option("--keys-file-path", type=str, default=None)
 @click.option(
     "--deployment-type",
     required=True,
@@ -49,8 +51,13 @@ def build_deployment(
     valory_app: str,
     deployment_type: str,
     configure_tendermint: bool,
+    keys_file_path: str = None,
 ) -> None:
     """Build the agent and its components."""
+
+    if keys_file_path is not None:
+        constants.KEYS = read_keys(keys_file_path)
+
     report = generate_deployment(
         type_of_deployment=deployment_type,
         valory_application=valory_app,
