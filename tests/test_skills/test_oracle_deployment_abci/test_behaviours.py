@@ -37,7 +37,10 @@ from packages.valory.contracts.offchain_aggregator.contract import (
 from packages.valory.protocols.contract_api.message import ContractApiMessage
 from packages.valory.protocols.ledger_api.message import LedgerApiMessage
 from packages.valory.skills.abstract_round_abci.base import StateDB
-from packages.valory.skills.abstract_round_abci.behaviour_utils import BaseState
+from packages.valory.skills.abstract_round_abci.behaviour_utils import (
+    BaseState,
+    make_degenerate_state,
+)
 from packages.valory.skills.oracle_deployment_abci.behaviours import (
     DeployOracleBehaviour,
 )
@@ -52,7 +55,7 @@ from packages.valory.skills.oracle_deployment_abci.behaviours import (
 from packages.valory.skills.oracle_deployment_abci.rounds import (
     Event as OracleDeploymentEvent,
 )
-from packages.valory.skills.price_estimation_abci.behaviours import ObserveBehaviour
+from packages.valory.skills.oracle_deployment_abci.rounds import FinishedOracleRound
 
 from tests.conftest import ROOT_DIR
 from tests.test_skills.base import FSMBehaviourBaseCase
@@ -66,7 +69,7 @@ class OracleDeploymentAbciBaseCase(FSMBehaviourBaseCase):
     """Base case for testing PriceEstimation FSMBehaviour."""
 
     path_to_skill = Path(
-        ROOT_DIR, "packages", "valory", "skills", "price_estimation_abci"
+        ROOT_DIR, "packages", "valory", "skills", "oracle_deployment_abci"
     )
 
 
@@ -284,7 +287,7 @@ class TestValidateOracleBehaviour(BaseValidateBehaviourTest):
     """Test ValidateOracleBehaviour."""
 
     behaviour_class = ValidateOracleBehaviour
-    next_behaviour_class = ObserveBehaviour
+    next_behaviour_class = make_degenerate_state(FinishedOracleRound.round_id)
     period_state_kwargs = dict(
         safe_contract_address="safe_contract_address",
         oracle_contract_address="oracle_contract_address",
