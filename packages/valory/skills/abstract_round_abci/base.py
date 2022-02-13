@@ -59,7 +59,6 @@ from packages.valory.skills.abstract_round_abci.serializer import (
 
 _logger = logging.getLogger("aea.packages.valory.skills.abstract_round_abci.base")
 
-
 OK_CODE = 0
 ERROR_CODE = 1
 LEDGER_API_ADDRESS = str(LEDGER_CONNECTION_PUBLIC_ID)
@@ -1170,7 +1169,10 @@ class VotingRound(CollectionRound):
         """Process the end of the block."""
         # if reached participant threshold, set the result
         if self.positive_vote_threshold_reached:
-            state = self.period_state.update(period_state_class=self.period_state_class, **{self.collection_key: self.collection})  # type: ignore
+            state = self.period_state.update(
+                period_state_class=self.period_state_class,
+                **{self.collection_key: self.collection},  # type: ignore
+            )
             return state, self.done_event
         if self.negative_vote_threshold_reached:
             return self.period_state, self.negative_event
@@ -1211,8 +1213,8 @@ class CollectDifferentUntilThresholdRound(CollectionRound):
             self.block_confirmations += 1
         if (  # contracts are set from previous rounds
             self.collection_threshold_reached
-            and self.block_confirmations
-            > self.required_block_confirmations  # we also wait here as it gives more (available) agents time to join
+            and self.block_confirmations > self.required_block_confirmations
+            # we also wait here as it gives more (available) agents time to join
         ):
             state = self.period_state.update(
                 period_state_class=self.period_state_class,
@@ -1400,6 +1402,13 @@ class _MetaAbciApp(ABCMeta):
                 for final_state in final_states
             ),
             "final states cannot have outgoing transitions",
+        )
+
+        enforce(
+            all(
+                issubclass(final_state, DegenerateRound) for final_state in final_states
+            ),
+            "final round classes must be subclasses of the DegenerateRound class",
         )
 
     @classmethod
