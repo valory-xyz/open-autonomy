@@ -100,7 +100,7 @@ class APYParams(BaseParams):  # pylint: disable=too-many-instance-attributes
                 f"{self.optimizer_params['timeout']} was given."
             )
 
-        if self.optimizer_params["window_size"] == "None":
+        if self.optimizer_params.get("window_size") is None:
             self.optimizer_params["window_size"] = None
         elif not isinstance(self.optimizer_params["window_size"], int):
             raise ValueError(
