@@ -16,10 +16,10 @@
 #   limitations under the License.
 #
 # ------------------------------------------------------------------------------
-
 """Script for generating deployment environments."""
+import json
 import os
-from typing import Dict
+from typing import Dict, List
 
 from deployments.base_deployments import BaseDeployment
 from deployments.constants import DEPLOYMENT_REPORT
@@ -30,6 +30,7 @@ from deployments.generators.kubernetes.kubernetes import KubernetesGenerator
 AGENTS: Dict[str, str] = {
     "oracle_hardhat": "./deployments/deployment_specifications/price_estimation_hardhat.yaml",
     "oracle_ropsten": "./deployments/deployment_specifications/price_estimation_ropsten.yaml",
+    "apy_hardhat": "./deployments/deployment_specifications/apy_estimation_hardhat.yaml",
 }
 
 
@@ -76,3 +77,13 @@ def generate_deployment(
         else:
             print("To configure tendermint please run generate and run a config job.")
     return report
+
+
+def read_keys(file_path: str) -> List[str]:
+    """Read in keys from a file on disk."""
+    with open(file_path, "r", encoding="utf8") as f:
+        keys = json.loads(f.read())
+    for key in keys:
+        assert "address" in key.keys(), "Key file incorrectly formatted."
+        assert "private_key" in key.keys(), "Key file incorrectly formatted."
+    return [f["private_key"] for f in keys]

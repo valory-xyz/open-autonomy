@@ -1,0 +1,32 @@
+name: apy_estimation
+author: "valory"
+version: 0.1.0
+agent: "valory/apy_estimation_deployable:0.1.0"
+network: hardhat
+number_of_agents: 4
+---
+public_id: valory/apy_estimation_abci:0.1.0
+type: skill
+models:
+  params:
+    args:
+      consensus:
+        max_participants: 4
+      round_timeout_seconds: 1000.0
+      observation_interval: 86400
+      max_healthcheck: 43200
+      drand_public_key: 868f005eb8e6e4ca0a47c8a77ceaa5309a47978a7c71bc5cce96366b5d7a569937c529eeda66c7293784a9402801af31
+      estimation:
+        steps_forward: 1
+      history_duration: 6
+      optimizer:
+        n_trials: 10
+        timeout: 60
+        n_jobs: 1
+        show_progress_bar: false
+        scoring: pinball
+        alpha: 0.25
+      pair_ids:
+      - 0x2b4c76d0dc16be1c31d4c1dc53bf9b45987fc75c
+      sleep_time: 10
+
