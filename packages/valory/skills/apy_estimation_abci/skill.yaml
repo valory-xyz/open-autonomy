@@ -24,7 +24,7 @@ fingerprint:
   tools/__init__.py: QmWr6iVwNzqYVqmxBwYC1myurM8AjxuzxwjM1brXSmnDTi
   tools/etl.py: QmYsguj4oPAxF9M156KWeaGk3BKCbmsdjTrxkZwkcgD3Wd
   tools/general.py: QmSGU7zW7dkjoLcy6wivRdYCAAs92pH5f4MpqigBf7X27K
-  tools/queries.py: QmTcVkfM7D42yphDNGsVAJN38EfBvwyUop96PPhNojBF2Q
+  tools/queries.py: QmVSf5nQFA15j7F1p2e7AmrvRzPXFnMTjSUpEnwYSGnhRB
 fingerprint_ignore_patterns: []
 connections:
 - valory/abci:0.1.0

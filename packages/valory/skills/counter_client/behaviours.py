@@ -72,7 +72,9 @@ class BaseBehaviour(Behaviour, ABC):
             url=url,
             headers="",
             version="",
-            body=b"" if content is None else json.dumps(content).encode("utf-8"),
+            body=b""
+            if content is None
+            else json.dumps(content, sort_keys=True).encode("utf-8"),
         )
         # send
         self.context.outbox.put_message(message=request_http_message)
