@@ -103,7 +103,7 @@ class APYParams(BaseParams):  # pylint: disable=too-many-instance-attributes
         if self.optimizer_params.get("window_size") is None:
             self.optimizer_params["window_size"] = None
         elif not isinstance(self.optimizer_params["window_size"], int):
-            raise ValueError(
+            raise ValueError(  # pragma: nocover
                 "Parameter `window_size` can be either of type `int` or `None`. "
                 f"{self.optimizer_params['window_size']} was given."
             )
