@@ -372,7 +372,7 @@ class StrategyEvaluationBehaviour(LiquidityProvisionBaseBehaviour):
                 )
 
             payload = StrategyEvaluationPayload(
-                self.context.agent_address, json.dumps(strategy)
+                self.context.agent_address, json.dumps(strategy, sort_keys=True)
             )
 
         with benchmark_tool.measure(

@@ -18,4 +18,11 @@ RUN svn checkout https://github.com/valory-xyz/open-aea/trunk/packages packages
 
 copy . /home/ubuntu
 
+RUN sudo apt-get install -y wget
+RUN wget -O ./go-ipfs.tar.gz https://dist.ipfs.io/go-ipfs/v0.6.0/go-ipfs_v0.6.0_linux-amd64.tar.gz
+RUN tar xvfz go-ipfs.tar.gz
+RUN sudo mv go-ipfs/ipfs /usr/local/bin/ipfs
+RUN ipfs init
+
+
 CMD ["start.sh"]

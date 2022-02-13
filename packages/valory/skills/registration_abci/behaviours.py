@@ -128,7 +128,7 @@ class RegistrationBaseBehaviour(BaseState):
             self,
         ).local():
             initialisation = (
-                json.dumps(self.period_state.db.initial_data)
+                json.dumps(self.period_state.db.initial_data, sort_keys=True)
                 if self.period_state.db.initial_data != {}
                 else None
             )

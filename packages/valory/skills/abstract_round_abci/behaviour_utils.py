@@ -1276,8 +1276,10 @@ def make_degenerate_state(round_id: str) -> Type[DegenerateState]:
     """Make a degenerate state class."""
 
     class NewDegenerateState(DegenerateState):
+        """A newly defined degenerate state class."""
+
         state_id = f"degenerate_{round_id}"
 
     new_state_cls = NewDegenerateState()
-    new_state_cls.__name__ = f"DegenerateState_{round_id}"  # type: ignore
+    new_state_cls.__name__ = f"DegenerateState_{round_id}"  # type: ignore # pylint: disable=attribute-defined-outside-init
     return new_state_cls  # type: ignore
