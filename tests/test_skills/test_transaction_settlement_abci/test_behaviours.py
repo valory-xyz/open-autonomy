@@ -48,7 +48,7 @@ from packages.valory.protocols.ledger_api.message import LedgerApiMessage
 from packages.valory.skills.abstract_round_abci.base import StateDB
 from packages.valory.skills.abstract_round_abci.behaviour_utils import (
     BaseState,
-    DegenerateState,
+    make_degenerate_state,
 )
 from packages.valory.skills.transaction_settlement_abci.behaviours import (
     CheckTransactionHistoryBehaviour,
@@ -67,6 +67,9 @@ from packages.valory.skills.transaction_settlement_abci.payload_tools import (
 )
 from packages.valory.skills.transaction_settlement_abci.rounds import (
     Event as TransactionSettlementEvent,
+)
+from packages.valory.skills.transaction_settlement_abci.rounds import (
+    FinishedTransactionSubmissionRound,
 )
 from packages.valory.skills.transaction_settlement_abci.rounds import (
     PeriodState as TransactionSettlementPeriodState,
@@ -531,7 +534,9 @@ class TestResetAndPauseBehaviour(PriceEstimationFSMBehaviourBaseCase):
     """Test ResetBehaviour."""
 
     behaviour_class = ResetAndPauseBehaviour
-    next_behaviour_class = DegenerateState
+    next_behaviour_class = make_degenerate_state(
+        FinishedTransactionSubmissionRound.round_id
+    )
 
     def test_reset_behaviour(
         self,

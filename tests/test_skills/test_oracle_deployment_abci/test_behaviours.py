@@ -89,7 +89,7 @@ class TestSelectKeeperOracleBehaviour(BaseSelectKeeperBehaviourTest):
     done_event = OracleDeploymentEvent.DONE
 
 
-class BaseDeployBehaviourTest(OracleDeploymentAbciBaseCase):
+class BaseDeployBehaviourTest(FSMBehaviourBaseCase):
     """Base DeployBehaviourTest."""
 
     behaviour_class: Type[BaseState]
@@ -223,7 +223,7 @@ class BaseDeployBehaviourTest(OracleDeploymentAbciBaseCase):
         assert state.state_id == self.next_behaviour_class.state_id
 
 
-class TestDeployOracleBehaviour(BaseDeployBehaviourTest):
+class TestDeployOracleBehaviour(BaseDeployBehaviourTest, OracleDeploymentAbciBaseCase):
     """Test DeployOracleBehaviour."""
 
     behaviour_class = DeployOracleBehaviour
@@ -236,7 +236,7 @@ class TestDeployOracleBehaviour(BaseDeployBehaviourTest):
     done_event = OracleDeploymentEvent.DONE
 
 
-class BaseValidateBehaviourTest(OracleDeploymentAbciBaseCase):
+class BaseValidateBehaviourTest(FSMBehaviourBaseCase):
     """Test ValidateSafeBehaviour."""
 
     behaviour_class: Type[BaseState]
@@ -283,7 +283,9 @@ class BaseValidateBehaviourTest(OracleDeploymentAbciBaseCase):
         assert state.state_id == self.next_behaviour_class.state_id
 
 
-class TestValidateOracleBehaviour(BaseValidateBehaviourTest):
+class TestValidateOracleBehaviour(
+    BaseValidateBehaviourTest, OracleDeploymentAbciBaseCase
+):
     """Test ValidateOracleBehaviour."""
 
     behaviour_class = ValidateOracleBehaviour

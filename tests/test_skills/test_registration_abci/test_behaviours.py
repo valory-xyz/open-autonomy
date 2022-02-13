@@ -33,7 +33,7 @@ from aea.exceptions import AEAActException
 from packages.valory.skills.abstract_round_abci.base import StateDB
 from packages.valory.skills.abstract_round_abci.behaviour_utils import (
     BaseState,
-    DegenerateState,
+    make_degenerate_state,
 )
 from packages.valory.skills.registration_abci.behaviours import (
     RegistrationBaseBehaviour,
@@ -44,7 +44,11 @@ from packages.valory.skills.registration_abci.behaviours import (
 from packages.valory.skills.registration_abci.rounds import (
     BasePeriodState as RegistrationPeriodState,
 )
-from packages.valory.skills.registration_abci.rounds import Event
+from packages.valory.skills.registration_abci.rounds import (
+    Event,
+    FinishedRegistrationFFWRound,
+    FinishedRegistrationRound,
+)
 
 from tests.conftest import ROOT_DIR
 from tests.test_skills.base import FSMBehaviourBaseCase
@@ -302,11 +306,11 @@ class TestRegistrationStartupBehaviour(BaseRegistrationTestBehaviour):
     """Test case to test RegistrationStartupBehaviour."""
 
     behaviour_class = RegistrationStartupBehaviour
-    next_behaviour_class = DegenerateState
+    next_behaviour_class = make_degenerate_state(FinishedRegistrationRound.round_id)
 
 
 class TestRegistrationBehaviour(BaseRegistrationTestBehaviour):
     """Test case to test RegistrationBehaviour."""
 
     behaviour_class = RegistrationBehaviour
-    next_behaviour_class = DegenerateState
+    next_behaviour_class = make_degenerate_state(FinishedRegistrationFFWRound.round_id)

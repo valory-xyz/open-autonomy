@@ -24,8 +24,8 @@ from pathlib import Path
 from packages.valory.contracts.gnosis_safe.contract import (
     PUBLIC_ID as GNOSIS_SAFE_CONTRACT_ID,
 )
-from packages.valory.skills.oracle_deployment_abci.behaviours import (
-    RandomnessOracleBehaviour,
+from packages.valory.skills.abstract_round_abci.behaviour_utils import (
+    make_degenerate_state,
 )
 from packages.valory.skills.safe_deployment_abci.behaviours import (
     DeploySafeBehaviour,
@@ -36,6 +36,7 @@ from packages.valory.skills.safe_deployment_abci.behaviours import (
 from packages.valory.skills.safe_deployment_abci.rounds import (
     Event as SafeDeploymentEvent,
 )
+from packages.valory.skills.safe_deployment_abci.rounds import FinishedSafeRound
 
 from tests.conftest import ROOT_DIR
 from tests.test_skills.base import FSMBehaviourBaseCase
@@ -73,7 +74,7 @@ class TestSelectKeeperSafeBehaviour(BaseSelectKeeperBehaviourTest):
     done_event = SafeDeploymentEvent.DONE
 
 
-class TestDeploySafeBehaviour(BaseDeployBehaviourTest):
+class TestDeploySafeBehaviour(BaseDeployBehaviourTest, SafeDeploymentAbciBaseCase):
     """Test DeploySafeBehaviour."""
 
     behaviour_class = DeploySafeBehaviour
@@ -83,11 +84,11 @@ class TestDeploySafeBehaviour(BaseDeployBehaviourTest):
     done_event = SafeDeploymentEvent.DONE
 
 
-class TestValidateSafeBehaviour(BaseValidateBehaviourTest):
+class TestValidateSafeBehaviour(BaseValidateBehaviourTest, SafeDeploymentAbciBaseCase):
     """Test ValidateSafeBehaviour."""
 
     behaviour_class = ValidateSafeBehaviour
-    next_behaviour_class = RandomnessOracleBehaviour
+    next_behaviour_class = make_degenerate_state(FinishedSafeRound.round_id)
     period_state_kwargs = dict(safe_contract_address="safe_contract_address")
     contract_id = str(GNOSIS_SAFE_CONTRACT_ID)
     done_event = SafeDeploymentEvent.DONE
