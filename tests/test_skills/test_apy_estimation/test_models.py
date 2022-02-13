@@ -82,7 +82,7 @@ class TestAPYParams:
             "keeper_timeout": 30.0,
         }
 
-        if param_value is None:
+        if param_value == None:  # type: ignore
             apy_params = APYParams(*args, **kwargs)
             assert apy_params.optimizer_params["timeout"] is None
             assert apy_params.optimizer_params["window_size"] is None
