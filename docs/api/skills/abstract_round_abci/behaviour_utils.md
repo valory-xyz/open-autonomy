@@ -577,3 +577,23 @@ Clean up the resources due to a 'stop' event.
 
 It can be optionally implemented by the concrete classes.
 
+<a id="packages.valory.skills.abstract_round_abci.behaviour_utils.DegenerateState"></a>
+
+## DegenerateState Objects
+
+```python
+class DegenerateState(BaseState)
+```
+
+A matching behaviour for final and degenerate rounds.
+
+<a id="packages.valory.skills.abstract_round_abci.behaviour_utils.DegenerateState.async_act"></a>
+
+#### async`_`act
+
+```python
+def async_act() -> Generator
+```
+
+Raise a RuntimeError.
+

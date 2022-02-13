@@ -207,7 +207,7 @@ class AbstractRoundBehaviour(
         # iterate over rounds and map final/degenerate rounds to the degenerate behaviour class
         for final_round_cls in cls.abci_app_cls.final_states:
             if issubclass(final_round_cls, DegenerateRound):
-                result[final_round_cls] = DegenerateState
+                result[final_round_cls] = DegenerateState  # type: ignore
 
         return result
 
