@@ -17,7 +17,7 @@ fingerprint:
   ml/io.py: QmQSNWh5UWnY3RBG4ubLBxsKrEXnAqWGZmsdZ9a1zuuMV3
   ml/optimization.py: QmRTBVU7C8wPujk2P9GqGya4dTC4MC1D9prC5kTcHgkYqy
   ml/preprocessing.py: QmeEJVKCVfJoBB7KL1C1AgEztWdjaN1tmSoSJecSjTsSCQ
-  models.py: QmW6ReT4Tw1fQceEHLdcbiA1x2DcnULu9kBbfG11pQwYi7
+  models.py: QmdAp2jYdisHBLTdKwbeVnDeov5pytgST8uNGoptmG7mb3
   payloads.py: QmXs8s3t3AtrF3BuF7H4ux2bsHdaUoTgdEFDmAmiQuHT3L
   rounds.py: QmfRi8B2syr2rgfFB5FEB71BYiXX5qvgsv3cND3h34TXYS
   tasks.py: QmT9boDaUdP8fWAhoZ8HkU8qd6MR9PVTo6Vhyq8AFsWAD6
@@ -104,7 +104,7 @@ models:
         show_progress_bar: false
         scoring: pinball
         alpha: 0.25
-        window_size: None
+        window_size: null
       pair_ids:
       - '0x2b4c76d0dc16be1c31d4c1dc53bf9b45987fc75c'
       period_setup: {}
