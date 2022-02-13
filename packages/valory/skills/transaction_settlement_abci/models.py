@@ -24,6 +24,21 @@ from typing import Any, Optional
 from web3.types import Nonce
 
 from packages.valory.skills.abstract_round_abci.models import BaseParams
+from packages.valory.skills.abstract_round_abci.models import Requests as BaseRequests
+from packages.valory.skills.abstract_round_abci.models import (
+    SharedState as BaseSharedState,
+)
+from packages.valory.skills.transaction_settlement_abci.rounds import (
+    TransactionSubmissionAbciApp,
+)
+
+
+class SharedState(BaseSharedState):
+    """Keep the current shared state of the skill."""
+
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
+        """Initialize the state."""
+        super().__init__(*args, abci_app_cls=TransactionSubmissionAbciApp, **kwargs)
 
 
 class TransactionParams(BaseParams):
@@ -39,3 +54,6 @@ class TransactionParams(BaseParams):
         """Reset the transaction-related parameters."""
         self.nonce = None
         self.tip = None
+
+
+Requests = BaseRequests

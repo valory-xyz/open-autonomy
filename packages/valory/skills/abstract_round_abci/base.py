@@ -1548,9 +1548,7 @@ class AbciApp(
         next_events = list(self.transition_function.get(round_cls, {}).keys())
         for event in next_events:
             timeout = self.event_to_timeout.get(event, None)
-            if timeout is not None:
-                # last_timestamp is not None because we are not in the first round
-                # (see consistency check)
+            if timeout is not None and self._last_timestamp is not None:
                 # last timestamp can be in the past relative to last seen block
                 # time if we're scheduling from within update_time
                 deadline = self.last_timestamp + datetime.timedelta(0, timeout)

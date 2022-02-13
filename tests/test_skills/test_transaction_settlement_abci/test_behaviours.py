@@ -46,8 +46,10 @@ from packages.valory.protocols.abci import AbciMessage  # noqa: F401
 from packages.valory.protocols.contract_api.message import ContractApiMessage
 from packages.valory.protocols.ledger_api.message import LedgerApiMessage
 from packages.valory.skills.abstract_round_abci.base import StateDB
-from packages.valory.skills.abstract_round_abci.behaviour_utils import BaseState
-from packages.valory.skills.price_estimation_abci.behaviours import ObserveBehaviour
+from packages.valory.skills.abstract_round_abci.behaviour_utils import (
+    BaseState,
+    DegenerateState,
+)
 from packages.valory.skills.transaction_settlement_abci.behaviours import (
     CheckTransactionHistoryBehaviour,
     FinalizeBehaviour,
@@ -82,7 +84,7 @@ class PriceEstimationFSMBehaviourBaseCase(FSMBehaviourBaseCase):
     """Base case for testing PriceEstimation FSMBehaviour."""
 
     path_to_skill = Path(
-        ROOT_DIR, "packages", "valory", "skills", "price_estimation_abci"
+        ROOT_DIR, "packages", "valory", "skills", "transaction_settlement_abci"
     )
 
 
@@ -529,7 +531,7 @@ class TestResetAndPauseBehaviour(PriceEstimationFSMBehaviourBaseCase):
     """Test ResetBehaviour."""
 
     behaviour_class = ResetAndPauseBehaviour
-    next_behaviour_class = ObserveBehaviour
+    next_behaviour_class = DegenerateState
 
     def test_reset_behaviour(
         self,
