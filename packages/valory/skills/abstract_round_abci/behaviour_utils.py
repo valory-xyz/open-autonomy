@@ -1256,12 +1256,11 @@ class BaseState(AsyncBehaviour, SimpleBehaviour, ABC):
         """
 
 
-class DegenerateState(BaseState):
-    """A matching behaviour for final and degenerate rounds."""
+class DegenerateState(BaseState, ABC):
+    """An abstract matching behaviour for final and degenerate rounds."""
 
-    matching_round = None
-    state_id = "degenerate"
-    is_degenerate = True
+    matching_round: Optional[Type[AbstractRound]] = None
+    is_degenerate: bool = True
 
     def async_act(self) -> Generator:
         """Raise a RuntimeError."""
@@ -1271,3 +1270,14 @@ class DegenerateState(BaseState):
             "the execution of the ABCI application. Please check the "
             "functioning of the ABCI app."
         )
+
+
+def make_degenerate_state(round_id: str) -> Type[DegenerateState]:
+    """Make a degenerate state class."""
+
+    class NewDegenerateState(DegenerateState):
+        state_id = f"degenerate_{round_id}"
+
+    new_state_cls = NewDegenerateState()
+    new_state_cls.__name__ = f"DegenerateState_{round_id}"  # type: ignore
+    return new_state_cls  # type: ignore

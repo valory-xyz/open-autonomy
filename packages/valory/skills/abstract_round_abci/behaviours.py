@@ -32,7 +32,7 @@ from packages.valory.skills.abstract_round_abci.base import (
 )
 from packages.valory.skills.abstract_round_abci.behaviour_utils import (
     BaseState,
-    DegenerateState,
+    make_degenerate_state,
 )
 
 
@@ -206,7 +206,11 @@ class AbstractRoundBehaviour(
         # iterate over rounds and map final (i.e. degenerate) rounds
         #  to the degenerate behaviour class
         for final_round_cls in cls.abci_app_cls.final_states:
-            result[final_round_cls] = DegenerateState  # type: ignore
+            new_degenerate_state = make_degenerate_state(
+                final_round_cls.round_id,
+            )
+            new_degenerate_state.matching_round = final_round_cls  # type: ignore
+            result[final_round_cls] = new_degenerate_state  # type: ignore
 
         return result
 

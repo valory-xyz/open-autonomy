@@ -582,10 +582,10 @@ It can be optionally implemented by the concrete classes.
 ## DegenerateState Objects
 
 ```python
-class DegenerateState(BaseState)
+class DegenerateState(BaseState,  ABC)
 ```
 
-A matching behaviour for final and degenerate rounds.
+An abstract matching behaviour for final and degenerate rounds.
 
 <a id="packages.valory.skills.abstract_round_abci.behaviour_utils.DegenerateState.async_act"></a>
 
@@ -596,4 +596,14 @@ def async_act() -> Generator
 ```
 
 Raise a RuntimeError.
+
+<a id="packages.valory.skills.abstract_round_abci.behaviour_utils.make_degenerate_state"></a>
+
+#### make`_`degenerate`_`state
+
+```python
+def make_degenerate_state(round_id: str) -> Type[DegenerateState]
+```
+
+Make a degenerate state class.
 
