@@ -315,7 +315,8 @@ class BaseState(AsyncBehaviour, SimpleBehaviour, ABC):
     state_id = ""
     matching_round: Optional[Type[AbstractRound]] = None
     can_rejoin_in_this_round: bool = False
-    is_running_in_sync: bool = False
+
+    _is_sync_complete: bool = False
 
     def __init__(self, **kwargs: Any):  # pylint: disable=super-init-not-called
         """Initialize a base state behaviour."""
@@ -450,26 +451,35 @@ class BaseState(AsyncBehaviour, SimpleBehaviour, ABC):
     ) -> Generator[None, None, None]:  # pragma: nocover
         """Check if agent has completed sync."""
         self.context.logger.info("Checking sync...")
-        for _ in range(_DEFAULT_TX_MAX_ATTEMPTS):
-            self.context.logger.info("Checking status")
-            status = yield from self._get_status()
-            try:
-                json_body = json.loads(status.body.decode())
-                remote_height = int(
-                    json_body["result"]["sync_info"]["latest_block_height"]
-                )
-                local_height = int(self.context.state.period.height)
-                _has_synced_up = local_height == remote_height
 
-                if _has_synced_up and (
-                    self.can_rejoin_in_this_round or local_height == 0
-                ):
-                    self.context.logger.info("local height == remote; Ending sync...")
-                    self.context.state.period.end_sync()
-                    return
-            except (json.JSONDecodeError, KeyError):  # pragma: nocover
-                yield from self.sleep(_SYNC_MODE_WAIT)
-                continue
+        if not self._is_sync_complete:
+            for _ in range(_DEFAULT_TX_MAX_ATTEMPTS):
+                self.context.logger.info("Checking status")
+                status = yield from self._get_status()
+                try:
+                    json_body = json.loads(status.body.decode())
+                    remote_height = int(
+                        json_body["result"]["sync_info"]["latest_block_height"]
+                    )
+                    local_height = int(self.context.state.period.height)
+                    self._is_sync_complete = local_height == remote_height
+
+                    if self._is_sync_complete:
+                        self.context.logger.info(
+                            "local height == remote; Sync complete..."
+                        )
+                        break
+
+                except (json.JSONDecodeError, KeyError):  # pragma: nocover
+                    yield from self.sleep(_SYNC_MODE_WAIT)
+                    continue
+
+        if self._is_sync_complete and self.can_rejoin_in_this_round:
+            self.context.logger.info("Sync complete; Rejoining...")
+            self.context.state.period.end_sync()
+        else:
+            self.context.logger.info("Sync complete, But cannot rejoin this round.")
+            self.set_done()
 
     def _log_start(self) -> None:
         """Log the entering in the behaviour state."""
