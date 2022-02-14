@@ -819,39 +819,6 @@ class BaseState(AsyncBehaviour, SimpleBehaviour, ABC):
         result = yield from self._do_request(request_message, http_dialogue)
         return result
 
-<<<<<<< HEAD
-=======
-    def _has_synced_up(
-        self,
-    ) -> Generator[None, None, bool]:  # pragma: nocover
-        """
-        Check if agent has completed sync.
-
-        Happy-path full flow of the messages.
-
-        _do_request:
-            AbstractRoundAbci skill -> (HttpMessage | REQUEST) -> Http client connection
-            Http client connection -> (HttpMessage | RESPONSE) -> AbstractRoundAbci skill
-
-        :yield: HttpMessage object
-        :return: True if the agent has synced
-        """
-
-        for _ in range(_DEFAULT_TX_MAX_ATTEMPTS):
-            status = yield from self._get_status()
-            try:
-                json_body = json.loads(status.body.decode())
-                remote_height = int(
-                    json_body["result"]["sync_info"]["latest_block_height"]
-                )
-                local_height = int(self.context.state.period.height)
-                return local_height == remote_height
-            except (json.JSONDecodeError, KeyError):  # pragma: nocover
-                continue
-
-        return False  # pragma: nocover
-
->>>>>>> main
     def default_callback_request(self, message: Message) -> None:
         """Implement default callback request."""
         if self.is_stopped:
