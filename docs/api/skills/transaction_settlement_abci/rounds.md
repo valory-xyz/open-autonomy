@@ -203,12 +203,42 @@ class SelectKeeperTransactionSubmissionRoundB(CollectSameUntilThresholdRound)
 
 A round in which a keeper is selected for transaction submission
 
+<a id="packages.valory.skills.transaction_settlement_abci.rounds.BaseResetRound"></a>
+
+## BaseResetRound Objects
+
+```python
+class BaseResetRound(CollectSameUntilThresholdRound)
+```
+
+Base reset round
+
+<a id="packages.valory.skills.transaction_settlement_abci.rounds.BaseResetRound.process_payload"></a>
+
+#### process`_`payload
+
+```python
+def process_payload(payload: BaseTxPayload) -> None
+```
+
+Process payload.
+
+<a id="packages.valory.skills.transaction_settlement_abci.rounds.BaseResetRound.check_payload"></a>
+
+#### check`_`payload
+
+```python
+def check_payload(payload: BaseTxPayload) -> None
+```
+
+Check Payload
+
 <a id="packages.valory.skills.transaction_settlement_abci.rounds.ResetRound"></a>
 
 ## ResetRound Objects
 
 ```python
-class ResetRound(CollectSameUntilThresholdRound)
+class ResetRound(BaseResetRound)
 ```
 
 A round that represents the reset of a period
@@ -228,7 +258,7 @@ Process the end of the block.
 ## ResetAndPauseRound Objects
 
 ```python
-class ResetAndPauseRound(CollectSameUntilThresholdRound)
+class ResetAndPauseRound(BaseResetRound)
 ```
 
 A round that represents that consensus is reached (the final round)
