@@ -18,7 +18,6 @@
 # ------------------------------------------------------------------------------
 
 """Tests for valory/transaction_settlement_abci skill's behaviours."""
-
 import json
 from copy import copy
 from enum import Enum

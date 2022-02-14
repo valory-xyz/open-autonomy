@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021 Valory AG
+#   Copyright 2021-2022 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -22,6 +22,19 @@
 from typing import Any
 
 from packages.valory.skills.abstract_round_abci.models import BaseParams
+from packages.valory.skills.abstract_round_abci.models import Requests as BaseRequests
+from packages.valory.skills.abstract_round_abci.models import (
+    SharedState as BaseSharedState,
+)
+from packages.valory.skills.oracle_deployment_abci.rounds import OracleDeploymentAbciApp
+
+
+class SharedState(BaseSharedState):
+    """Keep the current shared state of the skill."""
+
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
+        """Initialize the state."""
+        super().__init__(*args, abci_app_cls=OracleDeploymentAbciApp, **kwargs)
 
 
 class Params(BaseParams):
@@ -33,3 +46,6 @@ class Params(BaseParams):
         """Initialize the parameters object."""
         self.oracle_params = self._ensure("oracle", kwargs)
         super().__init__(*args, **kwargs)
+
+
+Requests = BaseRequests
