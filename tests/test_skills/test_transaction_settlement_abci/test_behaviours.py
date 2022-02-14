@@ -47,10 +47,7 @@ from packages.valory.protocols.contract_api.message import ContractApiMessage
 from packages.valory.protocols.ledger_api.message import LedgerApiMessage
 from packages.valory.skills.abstract_round_abci.base import StateDB
 from packages.valory.skills.abstract_round_abci.behaviour_utils import BaseState
-from packages.valory.skills.price_estimation_abci.behaviours import (
-    ObserveBehaviour,
-    payload_to_hex,
-)
+from packages.valory.skills.price_estimation_abci.behaviours import ObserveBehaviour
 from packages.valory.skills.transaction_settlement_abci.behaviours import (
     CheckTransactionHistoryBehaviour,
     FinalizeBehaviour,
@@ -62,6 +59,9 @@ from packages.valory.skills.transaction_settlement_abci.behaviours import (
     SignatureBehaviour,
     TransactionSettlementBaseState,
     ValidateTransactionBehaviour,
+)
+from packages.valory.skills.transaction_settlement_abci.payload_tools import (
+    hash_payload_to_hex,
 )
 from packages.valory.skills.transaction_settlement_abci.rounds import (
     Event as TransactionSettlementEvent,
@@ -282,10 +282,9 @@ class TestFinalizeBehaviour(PriceEstimationFSMBehaviourBaseCase):
                     initial_data=dict(
                         most_voted_keeper_address=self.skill.skill_context.agent_address,
                         safe_contract_address="safe_contract_address",
-                        oracle_contract_address="oracle_contract_address",
                         participants=participants,
                         participant_to_signature={},
-                        most_voted_tx_hash=payload_to_hex(
+                        most_voted_tx_hash=hash_payload_to_hex(
                             "b0e6add595e00477cf347d09797b156719dc5233283ac76e4efce2a674fe72d9",
                             1,
                             1,
@@ -358,12 +357,11 @@ class TestValidateTransactionBehaviour(PriceEstimationFSMBehaviourBaseCase):
                     initial_period=0,
                     initial_data=dict(
                         safe_contract_address="safe_contract_address",
-                        oracle_contract_address="oracle_contract_address",
                         tx_hashes_history=["final_tx_hash"],
                         participants=participants,
                         most_voted_keeper_address=most_voted_keeper_address,
                         participant_to_signature={},
-                        most_voted_tx_hash=payload_to_hex(
+                        most_voted_tx_hash=hash_payload_to_hex(
                             "b0e6add595e00477cf347d09797b156719dc5233283ac76e4efce2a674fe72d9",
                             1,
                             1,

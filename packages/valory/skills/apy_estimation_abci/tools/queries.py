@@ -26,7 +26,7 @@ from typing import List, Optional
 def finalize_q(query: str) -> bytes:
     """Finalize the given query string, i.e., add it under a `queries` key and convert it to bytes."""
     finalized_query = {"query": query}
-    encoded_query = json.dumps(finalized_query).encode("utf-8")
+    encoded_query = json.dumps(finalized_query, sort_keys=True).encode("utf-8")
 
     return encoded_query
 

@@ -8,16 +8,23 @@ aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
   README.md: QmYNXPppPSnW61ipqKNH8pyMh8qzTERwQaducYYq1dnBJb
   __init__.py: QmPuJK7gMKruSTcaYk9otrFncfD9h6vBZVoAtkwhTBgcxa
+<<<<<<< HEAD
   abci_app_chain.py: QmY4CAjgeM3GdPRT5NCTfeDdEfyUkCJc8FZNKsyW4vQ6oB
   base.py: QmRhZRgd7tEUFBg2gyDexJFEEEXoRzVcTQB2VbPAuMjgW6
   behaviour_utils.py: QmW1kHmhSRqAKYD1YipB822TmS4q6HEaqyfUBf6NJRPvP7
   behaviours.py: QmXP3W4i4idPq2evs9vJ5ddk7LdAFxoHxQmtqhusBATG56
+=======
+  abci_app_chain.py: QmeCPxwjec4pxtedv8NeG2Gmj58GY2GycXvgwfyjEyqPGm
+  base.py: QmQLuSVLtRRskbAyZRCf89udL76n3ezXd8HaDxxasNkG4F
+  behaviour_utils.py: QmZYvQSK1wuxdJsYNW8DfwXTYN7ikc1eoobLnfJrUjhPVG
+  behaviours.py: QmNZiFSYdw7jes51c8Go4jykSSjoQWHtYt1DcLShrfHHCg
+>>>>>>> main
   common.py: QmdoSkkkCRqoHX9T2rnPLpii5KVvEmibktKDik3pe2mNB7
   dialogues.py: QmemiTJxfwp2PFxFQyAUHTx8FsthhWL3mYgonBhC3cTjWH
   handlers.py: QmX82xDvh14N4LFLGMpA2FyKjh1KwNCSQqY1LSjZzgoWC9
-  models.py: Qme7SDyBwZzKqtdNXcun75H4gLDAkbMRPJDSuXa1enLWDj
+  models.py: QmTkJFZ8r4JKECKuW8au4Qc1Lce8re4C8hzJeFzn4DEpWs
   serializer.py: QmV1rutPMEPbbMVwvM4My6s8fwT7S9KhgLTqrbjHLEfdJG
-  utils.py: QmVAoFuecjncKZFCQ7gW8L3BXxtsSrpwrxaZUTm9w1P18m
+  utils.py: QmTQgTJGJZT352mKxUgaVEdDEreh8Khd2MnXhoq6wzD5HD
 fingerprint_ignore_patterns: []
 connections:
 - valory/abci:0.1.0

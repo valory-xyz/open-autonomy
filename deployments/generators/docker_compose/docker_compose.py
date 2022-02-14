@@ -20,12 +20,11 @@
 """Docker-compose Deployment Generator."""
 from typing import Dict, Type
 
-from deployments.base_deployments import BaseDeployment, BaseDeploymentGenerator
+from deployments import BaseDeployment, BaseDeploymentGenerator
 
 from .templates import (
     ABCI_NODE_TEMPLATE,
     DOCKER_COMPOSE_TEMPLATE,
-    HARDHAT_NODE_TEMPLATE,
     TENDERMINT_CONFIG_TEMPLATE,
     TENDERMINT_NODE_TEMPLATE,
 )
@@ -78,18 +77,13 @@ class DockerComposeGenerator(BaseDeploymentGenerator):
     """Class to automate the generation of Deployments."""
 
     output_name = "docker-compose.yaml"
+    deployment_type = "docker-compose"
 
-    def __init__(
-        self,
-        number_of_agents: int,
-        network: str,
-    ) -> None:
+    def __init__(self, deployment_spec: BaseDeployment) -> None:
         """Initialise the deployment generator."""
+        super().__init__(deployment_spec)
+        self.output = ""
         self.config_cmd = ""
-        self.hardhat = ""
-        if network == "hardhat":
-            self.hardhat = HARDHAT_NODE_TEMPLATE
-        super().__init__(number_of_agents, network)
 
     def generate_config_tendermint(
         self, valory_application: Type[BaseDeployment]
@@ -97,9 +91,12 @@ class DockerComposeGenerator(BaseDeploymentGenerator):
         """Generate the command to configure tendermint testnet."""
         run_cmd = TENDERMINT_CONFIG_TEMPLATE.format(
             hosts=" \\\n".join(
-                [f"--hostname=node{k}" for k in range(self.number_of_agents)]
+                [
+                    f"--hostname=node{k}"
+                    for k in range(self.deployment_spec.number_of_agents)
+                ]
             ),
-            validators=self.number_of_agents,
+            validators=self.deployment_spec.number_of_agents,
         )
         self.config_cmd = " ".join(
             [
@@ -114,20 +111,25 @@ class DockerComposeGenerator(BaseDeploymentGenerator):
         """Generate the new configuration."""
 
         agent_vars = valory_application.generate_agents()  # type: ignore
+        agent_vars = self.get_deployment_network_configuration(agent_vars)
 
         agents = "".join(
             [
-                build_agent_config(i, self.number_of_agents, agent_vars[i])
-                for i in range(self.number_of_agents)
+                build_agent_config(
+                    i, self.deployment_spec.number_of_agents, agent_vars[i]
+                )
+                for i in range(self.deployment_spec.number_of_agents)
             ]
         )
         tendermint_nodes = "".join(
-            [build_tendermint_node_config(i) for i in range(self.number_of_agents)]
+            [
+                build_tendermint_node_config(i)
+                for i in range(self.deployment_spec.number_of_agents)
+            ]
         )
 
         self.output = DOCKER_COMPOSE_TEMPLATE.format(
             abci_nodes=agents,
             tendermint_nodes=tendermint_nodes,
-            hardhat_chain=self.hardhat,
         )
         return self.output

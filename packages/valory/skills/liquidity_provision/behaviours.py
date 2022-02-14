@@ -45,8 +45,9 @@ from packages.valory.skills.abstract_round_abci.utils import BenchmarkTool
 from packages.valory.skills.liquidity_provision.composition import (
     LiquidityProvisionAbciApp,
 )
-from packages.valory.skills.liquidity_provision.models import Params
+from packages.valory.skills.liquidity_provision.models import Params, SharedState
 from packages.valory.skills.liquidity_provision.payloads import (
+    SleepPayload,
     StrategyEvaluationPayload,
     StrategyType,
     TransactionHashPayload,
@@ -70,19 +71,18 @@ from packages.valory.skills.safe_deployment_abci.behaviours import (
 from packages.valory.skills.transaction_settlement_abci.behaviours import (
     TransactionSettlementRoundBehaviour,
 )
+from packages.valory.skills.transaction_settlement_abci.payload_tools import (
+    hash_payload_to_hex,
+)
 
 
-ETHER_VALUE = 0  # TOFIX
-SAFE_TX_GAS = 4000000  # TOFIX
-MAX_ALLOWANCE = 2 ** 256 - 1
-CURRENT_BLOCK_TIMESTAMP = 0  # TOFIX
-WETH_ADDRESS = "0xDc64a140Aa3E981100a9becA4E685f962f0cF6C9"  # nosec
-TOKEN_A_ADDRESS = "0x0DCd1Bf9A1b36cE34237eEaFef220932846BCD82"  # nosec
-TOKEN_B_ADDRESS = "0x9A676e781A523b5d0C0e43731313A708CB607508"  # nosec
-LP_TOKEN_ADDRESS = "0x50CD56fb094F8f06063066a619D898475dD3EedE"  # nosec
-DEFAULT_MINTER = "0x0000000000000000000000000000000000000000"  # nosec
-AB_POOL_ADDRESS = "0x86A6C37D3E868580a65C723AAd7E0a945E170416"  # nosec
-SLEEP_SECONDS = 60
+# These safeTxGas values are calculated from experimental values plus
+# a 10% buffer and rounded up. The Gnosis safe default value is 0 (max gas)
+# https://help.gnosis-safe.io/en/articles/4738445-advanced-transaction-parameters
+# More on gas estimation: https://help.gnosis-safe.io/en/articles/4933491-gas-estimation
+SAFE_TX_GAS_ENTER = 553000
+SAFE_TX_GAS_EXIT = 248000
+SAFE_TX_GAS_SWAP_BACK = 268000
 
 benchmark_tool = BenchmarkTool()
 
@@ -125,7 +125,7 @@ class LiquidityProvisionBaseBehaviour(BaseState, ABC):
     @property
     def params(self) -> Params:
         """Return the params."""
-        return cast(Params, super().params)
+        return cast(Params, self.context.params)
 
     def get_swap_tx_data(  # pylint: disable=too-many-arguments
         self,
@@ -262,7 +262,7 @@ class LiquidityProvisionBaseBehaviour(BaseState, ABC):
 
     def get_tx_result(self) -> Generator[None, None, list]:
         """Transaction transfer result."""
-        strategy = self.period_state.most_voted_strategy
+        strategy = json.loads(self.period_state.most_voted_strategy)
         contract_api_msg = yield from self.get_contract_api_response(
             performative=ContractApiMessage.Performative.GET_STATE,  # type: ignore
             contract_address=strategy["token_LP"]["address"],
@@ -317,54 +317,6 @@ class LiquidityProvisionBaseBehaviour(BaseState, ABC):
         }
 
 
-def get_dummy_strategy() -> dict:
-    """Get a dummy strategy."""
-    strategy = {
-        "action": StrategyType.ENTER.value,
-        "safe_nonce": 0,
-        "safe_tx_gas": SAFE_TX_GAS,
-        "deadline": CURRENT_BLOCK_TIMESTAMP + 300,  # 5 min into future
-        "chain": "Ethereum",
-        "token_base": {
-            "ticker": "WETH",
-            "address": WETH_ADDRESS,
-            "amount_in_max_a": int(1e4),
-            "amount_min_after_swap_back_a": int(1e2),
-            "amount_in_max_b": int(1e4),
-            "amount_min_after_swap_back_b": int(1e2),
-            "is_native": False,
-            "set_allowance": MAX_ALLOWANCE,
-            "remove_allowance": 0,
-        },
-        "token_LP": {
-            "address": LP_TOKEN_ADDRESS,
-            "set_allowance": MAX_ALLOWANCE,
-            "remove_allowance": 0,
-        },
-        "token_a": {
-            "ticker": "TKA",
-            "address": TOKEN_A_ADDRESS,
-            "amount_after_swap": int(1e3),
-            "amount_min_after_add_liq": int(0.5e3),
-            "is_native": False,  # if one of the two tokens is native, A must be the one
-            "set_allowance": MAX_ALLOWANCE,
-            "remove_allowance": 0,
-            "amount_received_after_exit": 0,
-        },
-        "token_b": {
-            "ticker": "TKB",
-            "address": TOKEN_B_ADDRESS,
-            "amount_after_swap": int(1e3),
-            "amount_min_after_add_liq": int(0.5e3),
-            "is_native": False,  # if one of the two tokens is native, A must be the one
-            "set_allowance": MAX_ALLOWANCE,
-            "remove_allowance": 0,
-            "amount_received_after_exit": 0,
-        },
-    }
-    return strategy
-
-
 class StrategyEvaluationBehaviour(LiquidityProvisionBaseBehaviour):
     """Evaluate the financial strategy."""
 
@@ -383,7 +335,7 @@ class StrategyEvaluationBehaviour(LiquidityProvisionBaseBehaviour):
             # unless we start with WAIT. Then it will keep waiting.
             strategy: dict = {}
             try:
-                strategy = self.period_state.most_voted_strategy
+                strategy = json.loads(self.period_state.most_voted_strategy)
 
                 if strategy["action"] == StrategyType.ENTER.value:
                     strategy["action"] = StrategyType.EXIT.value
@@ -396,7 +348,7 @@ class StrategyEvaluationBehaviour(LiquidityProvisionBaseBehaviour):
 
             # An exception will occur during the first run as no strategy was set
             except ValueError:
-                strategy = get_dummy_strategy()
+                strategy = self.get_dummy_strategy()
 
             # Log the new strategy
             if strategy["action"] == StrategyType.WAIT.value:  # pragma: nocover
@@ -419,7 +371,9 @@ class StrategyEvaluationBehaviour(LiquidityProvisionBaseBehaviour):
                     f"Performing strategy update: swapping back {strategy['token_a']['ticker']}, {strategy['token_b']['ticker']}"
                 )
 
-            payload = StrategyEvaluationPayload(self.context.agent_address, strategy)
+            payload = StrategyEvaluationPayload(
+                self.context.agent_address, json.dumps(strategy, sort_keys=True)
+            )
 
         with benchmark_tool.measure(
             self,
@@ -428,6 +382,62 @@ class StrategyEvaluationBehaviour(LiquidityProvisionBaseBehaviour):
             yield from self.wait_until_round_end()
 
         self.set_done()
+
+    def get_dummy_strategy(self) -> dict:
+        """Get a dummy strategy."""
+        last_timestamp = cast(
+            SharedState, self.context.state
+        ).period.abci_app.last_timestamp.timestamp()
+
+        strategy = {
+            "action": StrategyType.ENTER.value,
+            "safe_nonce": 0,
+            "safe_tx_gas": {
+                "enter": SAFE_TX_GAS_ENTER,
+                "exit": SAFE_TX_GAS_EXIT,
+                "swap_back": SAFE_TX_GAS_SWAP_BACK,
+            },
+            "deadline": int(last_timestamp)
+            + self.params.rebalancing_params["deadline"],
+            "chain": self.params.rebalancing_params["chain"],
+            "token_base": {
+                "ticker": self.params.rebalancing_params["token_base_ticker"],
+                "address": self.params.rebalancing_params["token_base_address"],
+                "amount_in_max_a": int(1e4),
+                "amount_min_after_swap_back_a": int(1e2),
+                "amount_in_max_b": int(1e4),
+                "amount_min_after_swap_back_b": int(1e2),
+                "is_native": False,
+                "set_allowance": self.params.rebalancing_params["max_allowance"],
+                "remove_allowance": 0,
+            },
+            "token_LP": {
+                "address": self.params.rebalancing_params["lp_token_address"],
+                "set_allowance": self.params.rebalancing_params["max_allowance"],
+                "remove_allowance": 0,
+            },
+            "token_a": {
+                "ticker": self.params.rebalancing_params["token_a_ticker"],
+                "address": self.params.rebalancing_params["token_a_address"],
+                "amount_after_swap": int(1e3),
+                "amount_min_after_add_liq": int(0.5e3),
+                "is_native": False,  # if one of the two tokens is native, A must be the one
+                "set_allowance": self.params.rebalancing_params["max_allowance"],
+                "remove_allowance": 0,
+                "amount_received_after_exit": 0,
+            },
+            "token_b": {
+                "ticker": self.params.rebalancing_params["token_b_ticker"],
+                "address": self.params.rebalancing_params["token_b_address"],
+                "amount_after_swap": int(1e3),
+                "amount_min_after_add_liq": int(0.5e3),
+                "is_native": False,  # if one of the two tokens is native, A must be the one
+                "set_allowance": self.params.rebalancing_params["max_allowance"],
+                "remove_allowance": 0,
+                "amount_received_after_exit": 0,
+            },
+        }
+        return strategy
 
 
 class SleepBehaviour(LiquidityProvisionBaseBehaviour):
@@ -443,11 +453,13 @@ class SleepBehaviour(LiquidityProvisionBaseBehaviour):
             self,
         ).local():
 
-            yield from self.sleep(SLEEP_SECONDS)
+            yield from self.sleep(self.params.rebalancing_params["sleep_seconds"])
+            payload = SleepPayload(self.context.agent_address)
 
         with benchmark_tool.measure(
             self,
         ).consensus():
+            yield from self.send_a2a_transaction(payload)
             yield from self.wait_until_round_end()
 
         self.set_done()
@@ -485,7 +497,7 @@ class EnterPoolTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
             self,
         ).local():
 
-            strategy = self.period_state.most_voted_strategy
+            strategy = json.loads(self.period_state.most_voted_strategy)
 
             # Prepare a uniswap tx list. We should check what token balances we have at this point.
             # It is possible that we don't need to swap. For now let's assume we have just USDT
@@ -505,7 +517,7 @@ class EnterPoolTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
                 multi_send_txs.append(allowance_base_data)
 
             # Swap first token
-            if strategy["token_a"]["ticker"] != strategy["token_base"]["ticker"]:
+            if strategy["token_a"]["address"] != strategy["token_base"]["address"]:
 
                 swap_tx_data = yield from self.get_swap_data(  # nosec
                     strategy=strategy, token="token_a", is_swap_back=False
@@ -514,7 +526,7 @@ class EnterPoolTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
                     multi_send_txs.append(swap_tx_data)
 
             # Swap second token
-            if strategy["token_b"]["ticker"] != strategy["token_base"]["ticker"]:
+            if strategy["token_b"]["address"] != strategy["token_base"]["address"]:
 
                 swap_tx_data = yield from self.get_swap_data(  # nosec
                     strategy=strategy, token="token_b", is_swap_back=False
@@ -621,20 +633,27 @@ class EnterPoolTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
                 contract_id=str(GnosisSafeContract.contract_id),
                 contract_callable="get_raw_safe_transaction_hash",
                 to_address=self.period_state.multisend_contract_address,
-                value=ETHER_VALUE,
+                value=0,
                 data=bytes.fromhex(multisend_data),
                 operation=SafeOperation.DELEGATE_CALL.value,
-                safe_tx_gas=strategy["safe_tx_gas"],
+                safe_tx_gas=strategy["safe_tx_gas"]["enter"],
                 safe_nonce=strategy["safe_nonce"],
             )
             safe_tx_hash = cast(str, contract_api_msg.raw_transaction.body["tx_hash"])
             safe_tx_hash = safe_tx_hash[2:]
             self.context.logger.info(f"Hash of the Safe transaction: {safe_tx_hash}")
+
+            payload_string = hash_payload_to_hex(
+                safe_tx_hash=safe_tx_hash,
+                ether_value=0,
+                safe_tx_gas=strategy["safe_tx_gas"]["enter"],
+                to_address=self.period_state.multisend_contract_address,
+                data=bytes.fromhex(multisend_data),
+                operation=SafeOperation.DELEGATE_CALL.value,
+            )
+
             payload = TransactionHashPayload(
-                sender=self.context.agent_address,
-                tx_hash=json.dumps(
-                    {"tx_hash": safe_tx_hash, "tx_data": multisend_data}
-                ),  # TOFIX
+                sender=self.context.agent_address, tx_hash=payload_string
             )
 
         with benchmark_tool.measure(
@@ -674,7 +693,7 @@ class ExitPoolTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
             self,
         ).local():
 
-            strategy = self.period_state.most_voted_strategy
+            strategy = json.loads(self.period_state.most_voted_strategy)
 
             # Get previous transaction's results
             transfers = yield from self.get_tx_result()
@@ -694,7 +713,7 @@ class ExitPoolTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
             amount_liquidity_received: int = parse_tx_token_balance(
                 transfer_logs=transfers,
                 token_address=strategy["token_LP"]["address"],
-                source_address=DEFAULT_MINTER,
+                source_address=self.params.rebalancing_params["default_minter"],
                 destination_address=self.period_state.safe_contract_address,
             )
 
@@ -730,14 +749,6 @@ class ExitPoolTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
                 liquidity_data = cast(
                     bytes, contract_api_msg.raw_transaction.body["data"]
                 )
-                multi_send_txs.append(
-                    {
-                        "operation": MultiSendOperation.CALL,
-                        "to": self.period_state.router_contract_address,
-                        "value": 0,
-                        "data": HexBytes(liquidity_data.hex()),
-                    }
-                )
 
             else:
 
@@ -758,14 +769,15 @@ class ExitPoolTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
                 liquidity_data = cast(
                     bytes, contract_api_msg.raw_transaction.body["data"]
                 )
-                multi_send_txs.append(
-                    {
-                        "operation": MultiSendOperation.CALL,
-                        "to": self.period_state.router_contract_address,
-                        "value": 0,
-                        "data": HexBytes(liquidity_data.hex()),
-                    }
-                )
+
+            multi_send_txs.append(
+                {
+                    "operation": MultiSendOperation.CALL,
+                    "to": self.period_state.router_contract_address,
+                    "value": 0,
+                    "data": HexBytes(liquidity_data.hex()),
+                }
+            )
 
             # Remove allowance for LP token
             if "remove_allowance" in strategy["token_LP"]:
@@ -794,20 +806,27 @@ class ExitPoolTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
                 contract_id=str(GnosisSafeContract.contract_id),
                 contract_callable="get_raw_safe_transaction_hash",
                 to_address=self.period_state.multisend_contract_address,
-                value=ETHER_VALUE,
+                value=0,
                 data=bytes.fromhex(multisend_data),
                 operation=SafeOperation.DELEGATE_CALL.value,
-                safe_tx_gas=strategy["safe_tx_gas"],
+                safe_tx_gas=strategy["safe_tx_gas"]["exit"],
                 safe_nonce=strategy["safe_nonce"],
             )
             safe_tx_hash = cast(str, contract_api_msg.raw_transaction.body["tx_hash"])
             safe_tx_hash = safe_tx_hash[2:]
             self.context.logger.info(f"Hash of the Safe transaction: {safe_tx_hash}")
+
+            payload_string = hash_payload_to_hex(
+                safe_tx_hash=safe_tx_hash,
+                ether_value=0,
+                safe_tx_gas=strategy["safe_tx_gas"]["enter"],
+                to_address=self.period_state.multisend_contract_address,
+                data=bytes.fromhex(multisend_data),
+                operation=SafeOperation.DELEGATE_CALL.value,
+            )
+
             payload = TransactionHashPayload(
-                sender=self.context.agent_address,
-                tx_hash=json.dumps(
-                    {"tx_hash": safe_tx_hash, "tx_data": multisend_data}
-                ),  # TOFIX
+                sender=self.context.agent_address, tx_hash=payload_string
             )
 
         with benchmark_tool.measure(
@@ -848,7 +867,7 @@ class SwapBackTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
             self,
         ).local():
 
-            strategy = self.period_state.most_voted_strategy
+            strategy = json.loads(self.period_state.most_voted_strategy)
 
             transfers = yield from self.get_tx_result()
             transfers = transfers if transfers else []
@@ -856,13 +875,13 @@ class SwapBackTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
             strategy["token_a"]["amount_received"] = parse_tx_token_balance(
                 transfer_logs=transfers,
                 token_address=strategy["token_a"]["address"],
-                source_address=self.period_state.router_contract_address,
+                source_address=strategy["token_LP"]["address"],
                 destination_address=self.period_state.safe_contract_address,
             )
             strategy["token_b"]["amount_received"] = parse_tx_token_balance(
                 transfer_logs=transfers,
                 token_address=strategy["token_b"]["address"],
-                source_address=self.period_state.router_contract_address,
+                source_address=strategy["token_LP"]["address"],
                 destination_address=self.period_state.safe_contract_address,
             )
 
@@ -939,20 +958,27 @@ class SwapBackTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
                 contract_id=str(GnosisSafeContract.contract_id),
                 contract_callable="get_raw_safe_transaction_hash",
                 to_address=self.period_state.multisend_contract_address,
-                value=ETHER_VALUE,
+                value=0,
                 data=bytes.fromhex(multisend_data),
                 operation=SafeOperation.DELEGATE_CALL.value,
-                safe_tx_gas=strategy["safe_tx_gas"],
+                safe_tx_gas=strategy["safe_tx_gas"]["swap_back"],
                 safe_nonce=strategy["safe_nonce"],
             )
             safe_tx_hash = cast(str, contract_api_msg.raw_transaction.body["tx_hash"])
             safe_tx_hash = safe_tx_hash[2:]
             self.context.logger.info(f"Hash of the Safe transaction: {safe_tx_hash}")
+
+            payload_string = hash_payload_to_hex(
+                safe_tx_hash=safe_tx_hash,
+                ether_value=0,
+                safe_tx_gas=strategy["safe_tx_gas"]["enter"],
+                to_address=self.period_state.multisend_contract_address,
+                data=bytes.fromhex(multisend_data),
+                operation=SafeOperation.DELEGATE_CALL.value,
+            )
+
             payload = TransactionHashPayload(
-                sender=self.context.agent_address,
-                tx_hash=json.dumps(
-                    {"tx_hash": safe_tx_hash, "tx_data": multisend_data}
-                ),  # TOFIX
+                sender=self.context.agent_address, tx_hash=payload_string
             )
 
         with benchmark_tool.measure(

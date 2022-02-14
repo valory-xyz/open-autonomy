@@ -17,14 +17,14 @@ fingerprint:
   ml/io.py: QmQSNWh5UWnY3RBG4ubLBxsKrEXnAqWGZmsdZ9a1zuuMV3
   ml/optimization.py: QmRTBVU7C8wPujk2P9GqGya4dTC4MC1D9prC5kTcHgkYqy
   ml/preprocessing.py: QmeEJVKCVfJoBB7KL1C1AgEztWdjaN1tmSoSJecSjTsSCQ
-  models.py: QmW6ReT4Tw1fQceEHLdcbiA1x2DcnULu9kBbfG11pQwYi7
+  models.py: QmYFQ6teLzBuir1ug24PyikgcXfxua8rDJz6SBLP28dM3V
   payloads.py: QmXs8s3t3AtrF3BuF7H4ux2bsHdaUoTgdEFDmAmiQuHT3L
   rounds.py: QmfRi8B2syr2rgfFB5FEB71BYiXX5qvgsv3cND3h34TXYS
   tasks.py: QmT9boDaUdP8fWAhoZ8HkU8qd6MR9PVTo6Vhyq8AFsWAD6
   tools/__init__.py: QmWr6iVwNzqYVqmxBwYC1myurM8AjxuzxwjM1brXSmnDTi
   tools/etl.py: QmYsguj4oPAxF9M156KWeaGk3BKCbmsdjTrxkZwkcgD3Wd
   tools/general.py: QmSGU7zW7dkjoLcy6wivRdYCAAs92pH5f4MpqigBf7X27K
-  tools/queries.py: QmTcVkfM7D42yphDNGsVAJN38EfBvwyUop96PPhNojBF2Q
+  tools/queries.py: QmVSf5nQFA15j7F1p2e7AmrvRzPXFnMTjSUpEnwYSGnhRB
 fingerprint_ignore_patterns: []
 connections:
 - valory/abci:0.1.0
@@ -99,12 +99,12 @@ models:
       observation_interval: 10
       optimizer:
         n_trials: 2
-        timeout: None
+        timeout: null
         n_jobs: 1
         show_progress_bar: false
         scoring: pinball
         alpha: 0.25
-        window_size: None
+        window_size: null
       pair_ids:
       - '0x2b4c76d0dc16be1c31d4c1dc53bf9b45987fc75c'
       period_setup: {}

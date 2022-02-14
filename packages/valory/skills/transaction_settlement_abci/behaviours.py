@@ -68,8 +68,6 @@ from packages.valory.skills.transaction_settlement_abci.rounds import (
 )
 
 
-ZERO_ETHER_VALUE = 0
-
 benchmark_tool = BenchmarkTool()
 drand_check = VerifyDrand()
 
@@ -89,13 +87,7 @@ class TransactionSettlementBaseState(BaseState, ABC):
 
     def _verify_tx(self, tx_hash: str) -> Generator[None, None, ContractApiMessage]:
         """Verify a transaction."""
-        _, ether_value, safe_tx_gas, to_address, data = skill_input_hex_to_payload(
-            self.period_state.most_voted_tx_hash
-        )
-
-        extra_kwargs = dict()
-        if self.period_state.safe_operation is not None:
-            extra_kwargs["operation"] = self.period_state.safe_operation
+        tx_params = skill_input_hex_to_payload(self.period_state.most_voted_tx_hash)
 
         contract_api_msg = yield from self.get_contract_api_response(
             performative=ContractApiMessage.Performative.GET_STATE,  # type: ignore
@@ -104,15 +96,15 @@ class TransactionSettlementBaseState(BaseState, ABC):
             contract_callable="verify_tx",
             tx_hash=tx_hash,
             owners=tuple(self.period_state.participants),
-            to_address=to_address,
-            value=ether_value,
-            data=data,
-            safe_tx_gas=safe_tx_gas,
+            to_address=tx_params["to_address"],
+            value=tx_params["ether_value"],
+            data=tx_params["data"],
+            safe_tx_gas=tx_params["safe_tx_gas"],
             signatures_by_owner={
                 key: payload.signature
                 for key, payload in self.period_state.participant_to_signature.items()
             },
-            **extra_kwargs,
+            operation=tx_params["operation"],
         )
 
         return contract_api_msg
@@ -139,7 +131,9 @@ class SelectKeeperTransactionSubmissionBehaviourA(SelectKeeperBehaviour):
     payload_class = SelectKeeperPayload
 
 
-class SelectKeeperTransactionSubmissionBehaviourB(SelectKeeperBehaviour):
+class SelectKeeperTransactionSubmissionBehaviourB(
+    SelectKeeperBehaviour, TransactionSettlementBaseState
+):
     """Select the keeper agent."""
 
     state_id = "select_keeper_transaction_submission_b"
@@ -193,8 +187,8 @@ class ValidateTransactionBehaviour(TransactionSettlementBaseState):
             )
             return None
 
-        # Reset nonce.
-        self.params.nonce = None
+        # Reset tx parameters.
+        self.params.reset_tx_params()
 
         contract_api_msg = yield from self._verify_tx(self.period_state.final_tx_hash)
         if (
@@ -293,8 +287,8 @@ class CheckTransactionHistoryBehaviour(TransactionSettlementBaseState):
                     )
                     continue
 
-                self.context.logger.info(
-                    f"Payload is invalid for {tx_hash}! Cannot continue."
+                self.context.logger.warning(
+                    f"Payload is invalid for {tx_hash}! Cannot continue. Received: {revert_reason}"
                 )
 
             return VerificationStatus.INVALID_PAYLOAD, tx_hash
@@ -358,12 +352,10 @@ class SignatureBehaviour(TransactionSettlementBaseState):
 
     def _get_safe_tx_signature(self) -> Generator[None, None, str]:
         """Get signature of safe transaction hash."""
-        safe_tx_hash, _, _, _, _ = skill_input_hex_to_payload(
-            self.period_state.most_voted_tx_hash
-        )
+        tx_params = skill_input_hex_to_payload(self.period_state.most_voted_tx_hash)
         # is_deprecated_mode=True because we want to call Account.signHash,
         # which is the same used by gnosis-py
-        safe_tx_hash_bytes = binascii.unhexlify(safe_tx_hash)
+        safe_tx_hash_bytes = binascii.unhexlify(tx_params["safe_tx_hash"])
         signature_hex = yield from self.get_signature(
             safe_tx_hash_bytes, is_deprecated_mode=True
         )
@@ -447,13 +439,7 @@ class FinalizeBehaviour(TransactionSettlementBaseState):
         self,
     ) -> Generator[None, None, Dict[str, Union[VerificationStatus, str, int]]]:
         """Send a Safe transaction using the participants' signatures."""
-        _, _, safe_tx_gas, to_address, data = skill_input_hex_to_payload(
-            self.period_state.most_voted_tx_hash
-        )
-
-        extra_kwargs = dict()
-        if self.period_state.safe_operation is not None:
-            extra_kwargs["operation"] = self.period_state.safe_operation
+        tx_params = skill_input_hex_to_payload(self.period_state.most_voted_tx_hash)
 
         contract_api_msg = yield from self.get_contract_api_response(
             performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
@@ -462,17 +448,17 @@ class FinalizeBehaviour(TransactionSettlementBaseState):
             contract_callable="get_raw_safe_transaction",
             sender_address=self.context.agent_address,
             owners=tuple(self.period_state.participants),
-            to_address=to_address,
-            value=ZERO_ETHER_VALUE,  # Agents do not send ETH
-            data=data,
-            safe_tx_gas=safe_tx_gas,
+            to_address=tx_params["to_address"],
+            value=tx_params["ether_value"],
+            data=tx_params["data"],
+            safe_tx_gas=tx_params["safe_tx_gas"],
             signatures_by_owner={
                 key: payload.signature
                 for key, payload in self.period_state.participant_to_signature.items()
             },
             nonce=self.params.nonce,
-            old_tip=self.period_state.max_priority_fee_per_gas,
-            **extra_kwargs,
+            old_tip=self.params.tip,
+            operation=tx_params["operation"],
         )
 
         tx_data: Dict[str, Union[VerificationStatus, str, int]] = {
@@ -490,13 +476,18 @@ class FinalizeBehaviour(TransactionSettlementBaseState):
                 tx_data["status"] = VerificationStatus.VERIFIED
             else:
                 tx_data["status"] = VerificationStatus.ERROR
+            self.context.logger.warning(
+                f"get_raw_safe_transaction unsuccessful! Received: {contract_api_msg}"
+            )
             return tx_data
 
         if (
             contract_api_msg.performative
             != ContractApiMessage.Performative.RAW_TRANSACTION
         ):  # pragma: nocover
-            self.context.logger.warning("get_raw_safe_transaction unsuccessful!")
+            self.context.logger.warning(
+                f"get_raw_safe_transaction unsuccessful! Received: {contract_api_msg}"
+            )
             return tx_data
 
         tx_digest = yield from self.send_raw_transaction(
@@ -512,8 +503,9 @@ class FinalizeBehaviour(TransactionSettlementBaseState):
                 contract_api_msg.raw_transaction.body["maxPriorityFeePerGas"],
             )
         )
-        # Set nonce.
+        # Set nonce and tip.
         self.params.nonce = Nonce(int(cast(str, tx_data["nonce"])))
+        self.params.tip = int(cast(str, tx_data["max_priority_fee_per_gas"]))
 
         return tx_data
 
@@ -569,11 +561,7 @@ class BaseResetBehaviour(TransactionSettlementBaseState):
         - Wait until ABCI application transitions to the next round.
         - Go to the next behaviour state (set done event).
         """
-        if (
-            self.pause
-            and self.period_state.is_most_voted_estimate_set
-            and self.period_state.is_final_tx_hash_set
-        ):
+        if self.pause and self.period_state.is_final_tx_hash_set:
             if (
                 self.period_state.period_count != 0
                 and self.period_state.period_count % self.params.reset_tendermint_after
@@ -647,7 +635,7 @@ class BaseResetBehaviour(TransactionSettlementBaseState):
                 self.params.observation_interval / 2
             )
             self.context.logger.info(
-                f"Finalized estimate: {self.period_state.most_voted_estimate} with transaction hash: {self.period_state.final_tx_hash}"
+                f"Finalized with transaction hash: {self.period_state.final_tx_hash}"
             )
             self.context.logger.info("Period end.")
             benchmark_tool.save()
@@ -656,8 +644,8 @@ class BaseResetBehaviour(TransactionSettlementBaseState):
                 f"Period {self.period_state.period_count} was not finished. Resetting!"
             )
 
-        # Reset nonce.
-        self.params.nonce = None
+        # Reset tx parameters.
+        self.params.reset_tx_params()
         payload = ResetPayload(
             self.context.agent_address, self.period_state.period_count + 1
         )

@@ -55,7 +55,7 @@ class TestSharedState:
 class TestAPYParams:
     """Test `APYParams`"""
 
-    @pytest.mark.parametrize("param_value", ("None", "not_an_int", 0))
+    @pytest.mark.parametrize("param_value", (None, "not_an_int", 0))
     def test__validate_params(self, param_value: Union[str, int]) -> None:
         """Test `__validate_params`."""
         args = "test", "test"
@@ -82,7 +82,7 @@ class TestAPYParams:
             "keeper_timeout": 30.0,
         }
 
-        if param_value == "None":
+        if param_value == None:  # noqa: E711
             apy_params = APYParams(*args, **kwargs)
             assert apy_params.optimizer_params["timeout"] is None
             assert apy_params.optimizer_params["window_size"] is None

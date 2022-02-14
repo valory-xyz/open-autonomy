@@ -50,7 +50,7 @@ spec:
             - "0.0.0.0"
           command:
             - /bin/bash
-          image: valory/hardhat
+          image: valory/consensus-algorithms-hardhat:0.1.0
           name: hardhat
           ports:
             - name: http
@@ -78,7 +78,6 @@ spec:
     io.kompose.service: hardhat
 status:
   loadBalancer: {}
----
 """
 
 
@@ -94,6 +93,7 @@ spec:
       containers:
       - name: config-nodes
         image: valory/consensus-algorithms-tendermint:0.1.0
+        command: ['/usr/bin/tendermint']
         args: ["testnet",
          "--config",
          "/etc/tendermint/config-template.toml",
@@ -106,20 +106,45 @@ spec:
       volumes:
         - name: build
           persistentVolumeClaim:
-            claimName: 'build-vol'
+            claimName: 'build-vol-pvc'
       restartPolicy: Never
-  backoffLimit: 4
+  backoffLimit: 3
 ---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: build-vol
+  labels:
+    type: local
+spec:
+  storageClassName: manual
+  capacity:
+    storage: 100M
+  accessModes:
+    - ReadWriteOnce
+  hostPath:
+    path: "/mnt/data"
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: build-vol-pvc
+spec:
+  storageClassName: manual
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 100M
 """
 
 
-AGENT_NODE_TEMPLATE: str = """
-apiVersion: v1
+AGENT_NODE_TEMPLATE: str = """apiVersion: v1
 kind: Service
 metadata:
-  name: agent-node-{validator_ix}-service
+  name: abci{validator_ix}
   labels:
-    run: agent-node-{validator_ix}-service
+    run: abci{validator_ix}
 spec:
   ports:
   - port: 26656
@@ -149,43 +174,42 @@ spec:
       - name: regcred
       restartPolicy: Always
       containers:
-      - name: tendermint
+      - name: node{validator_ix}
         image: valory/consensus-algorithms-tendermint:0.1.0
+        imagePullPolicy: Always
         ports:
           - containerPort: 26656
           - containerPort: 26657
         workingDir: /tendermint
-        command: ["/bin/bash"]
         env:
           - name: HOSTNAME
-            value: "agent-node-{validator_ix}"
+            value: "node{validator_ix}"
           - name: ID
             value: "{validator_ix}"
-        args:
-          - wrapper.sh
-          - node
-          - "--consensus.create_empty_blocks=false"
-          - "--proxy_app=tcp://localhost:26658"
+          - name: PROXY_APP
+            value: tcp://localhost:26658
+          - name: TMHOME
+            value: /tendermint/node{validator_ix}
+          - name: CREATE_EMPTY_BLOCKS
+            value: "true"
+        args: ["run"]
         volumeMounts:
           - mountPath: /tendermint
             name: build
+
       - name: aea
         image: valory/consensus-algorithms-open-aea:0.1.0
-        args: ["../run.sh", ]
-        command:
-          - /bin/bash
+        imagePullPolicy: Always
         env:
           - name: HOSTNAME
             value: "agent-node-{validator_ix}"
           - name: CLUSTERED
             value: "1"
-          - name: AEA_KEY
-            value: "{aea_key}"
         volumeMounts:
           - mountPath: /build
             name: build
       volumes:
         - name: build
           persistentVolumeClaim:
-            claimName: 'build-vol'
+            claimName: 'build-vol-pvc'
 """
