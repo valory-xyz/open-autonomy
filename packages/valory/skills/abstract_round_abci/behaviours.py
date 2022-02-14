@@ -30,7 +30,10 @@ from packages.valory.skills.abstract_round_abci.base import (
     AbstractRound,
     EventType,
 )
-from packages.valory.skills.abstract_round_abci.behaviour_utils import BaseState
+from packages.valory.skills.abstract_round_abci.behaviour_utils import (
+    BaseState,
+    make_degenerate_state,
+)
 
 
 StateType = Type[BaseState]
@@ -199,6 +202,14 @@ class AbstractRoundBehaviour(
                     f"the states '{state_behaviour_cls.state_id}' and '{result[round_cls].state_id}' point to the same matching round '{round_cls.round_id}'"
                 )
             result[round_cls] = state_behaviour_cls
+
+        # iterate over rounds and map final (i.e. degenerate) rounds
+        #  to the degenerate behaviour class
+        for final_round_cls in cls.abci_app_cls.final_states:
+            new_degenerate_state = make_degenerate_state(final_round_cls.round_id)
+            new_degenerate_state.matching_round = final_round_cls  # type: ignore
+            result[final_round_cls] = new_degenerate_state  # type: ignore
+
         return result
 
     def instantiate_state_cls(self, state_cls: StateType) -> BaseState:
@@ -249,6 +260,7 @@ class AbstractRoundBehaviour(
             return
         self._last_round_height = current_round_height
         current_round_cls = type(self.context.state.period.current_round)
+
         # each round has a state behaviour associated to it
         self._next_state_cls = self._round_to_state[current_round_cls]
 

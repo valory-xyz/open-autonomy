@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021 Valory AG
+#   Copyright 2021-2022 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -37,7 +37,10 @@ from packages.valory.contracts.offchain_aggregator.contract import (
 from packages.valory.protocols.contract_api.message import ContractApiMessage
 from packages.valory.protocols.ledger_api.message import LedgerApiMessage
 from packages.valory.skills.abstract_round_abci.base import StateDB
-from packages.valory.skills.abstract_round_abci.behaviour_utils import BaseState
+from packages.valory.skills.abstract_round_abci.behaviour_utils import (
+    BaseState,
+    make_degenerate_state,
+)
 from packages.valory.skills.oracle_deployment_abci.behaviours import (
     DeployOracleBehaviour,
 )
@@ -52,7 +55,7 @@ from packages.valory.skills.oracle_deployment_abci.behaviours import (
 from packages.valory.skills.oracle_deployment_abci.rounds import (
     Event as OracleDeploymentEvent,
 )
-from packages.valory.skills.price_estimation_abci.behaviours import ObserveBehaviour
+from packages.valory.skills.oracle_deployment_abci.rounds import FinishedOracleRound
 
 from tests.conftest import ROOT_DIR
 from tests.test_skills.base import FSMBehaviourBaseCase
@@ -66,7 +69,7 @@ class OracleDeploymentAbciBaseCase(FSMBehaviourBaseCase):
     """Base case for testing PriceEstimation FSMBehaviour."""
 
     path_to_skill = Path(
-        ROOT_DIR, "packages", "valory", "skills", "price_estimation_abci"
+        ROOT_DIR, "packages", "valory", "skills", "oracle_deployment_abci"
     )
 
 
@@ -86,7 +89,7 @@ class TestSelectKeeperOracleBehaviour(BaseSelectKeeperBehaviourTest):
     done_event = OracleDeploymentEvent.DONE
 
 
-class BaseDeployBehaviourTest(OracleDeploymentAbciBaseCase):
+class BaseDeployBehaviourTest(FSMBehaviourBaseCase):
     """Base DeployBehaviourTest."""
 
     behaviour_class: Type[BaseState]
@@ -220,7 +223,7 @@ class BaseDeployBehaviourTest(OracleDeploymentAbciBaseCase):
         assert state.state_id == self.next_behaviour_class.state_id
 
 
-class TestDeployOracleBehaviour(BaseDeployBehaviourTest):
+class TestDeployOracleBehaviour(BaseDeployBehaviourTest, OracleDeploymentAbciBaseCase):
     """Test DeployOracleBehaviour."""
 
     behaviour_class = DeployOracleBehaviour
@@ -233,7 +236,7 @@ class TestDeployOracleBehaviour(BaseDeployBehaviourTest):
     done_event = OracleDeploymentEvent.DONE
 
 
-class BaseValidateBehaviourTest(OracleDeploymentAbciBaseCase):
+class BaseValidateBehaviourTest(FSMBehaviourBaseCase):
     """Test ValidateSafeBehaviour."""
 
     behaviour_class: Type[BaseState]
@@ -280,11 +283,13 @@ class BaseValidateBehaviourTest(OracleDeploymentAbciBaseCase):
         assert state.state_id == self.next_behaviour_class.state_id
 
 
-class TestValidateOracleBehaviour(BaseValidateBehaviourTest):
+class TestValidateOracleBehaviour(
+    BaseValidateBehaviourTest, OracleDeploymentAbciBaseCase
+):
     """Test ValidateOracleBehaviour."""
 
     behaviour_class = ValidateOracleBehaviour
-    next_behaviour_class = ObserveBehaviour
+    next_behaviour_class = make_degenerate_state(FinishedOracleRound.round_id)
     period_state_kwargs = dict(
         safe_contract_address="safe_contract_address",
         oracle_contract_address="oracle_contract_address",

@@ -17,20 +17,16 @@
 #
 # ------------------------------------------------------------------------------
 
-"""Custom objects for the transaction settlement ABCI application."""
+"""This module contains the shared state for the registration abci skill."""
 
-from typing import Any, Optional
-
-from web3.types import Nonce
+from typing import Any
 
 from packages.valory.skills.abstract_round_abci.models import BaseParams
 from packages.valory.skills.abstract_round_abci.models import Requests as BaseRequests
 from packages.valory.skills.abstract_round_abci.models import (
     SharedState as BaseSharedState,
 )
-from packages.valory.skills.transaction_settlement_abci.rounds import (
-    TransactionSubmissionAbciApp,
-)
+from packages.valory.skills.registration_abci.rounds import AgentRegistrationAbciApp
 
 
 class SharedState(BaseSharedState):
@@ -38,22 +34,8 @@ class SharedState(BaseSharedState):
 
     def __init__(self, *args: Any, **kwargs: Any) -> None:
         """Initialize the state."""
-        super().__init__(*args, abci_app_cls=TransactionSubmissionAbciApp, **kwargs)
+        super().__init__(*args, abci_app_cls=AgentRegistrationAbciApp, **kwargs)
 
 
-class TransactionParams(BaseParams):
-    """Transaction settlement agent-specific parameters."""
-
-    def __init__(self, *args: Any, **kwargs: Any) -> None:
-        """Initialize the parameters object."""
-        self.nonce: Optional[Nonce] = None
-        self.tip: Optional[int] = None
-        super().__init__(*args, **kwargs)
-
-    def reset_tx_params(self) -> None:
-        """Reset the transaction-related parameters."""
-        self.nonce = None
-        self.tip = None
-
-
+Params = BaseParams
 Requests = BaseRequests

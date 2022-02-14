@@ -59,7 +59,6 @@ from packages.valory.skills.abstract_round_abci.serializer import (
 
 _logger = logging.getLogger("aea.packages.valory.skills.abstract_round_abci.base")
 
-
 OK_CODE = 0
 ERROR_CODE = 1
 LEDGER_API_ADDRESS = str(LEDGER_CONNECTION_PUBLIC_ID)
@@ -130,9 +129,6 @@ class _MetaPayload(ABCMeta):
         """Create a new class object."""
         new_cls = super().__new__(mcs, name, bases, namespace, **kwargs)
 
-        if new_cls.__module__.startswith("packages."):
-            # ignore class if it is from an import with prefix "packages."
-            return new_cls
         if ABC in bases:
             # abstract class, return
             return new_cls
@@ -156,7 +152,7 @@ class _MetaPayload(ABCMeta):
         """Check that a transaction type is not already associated to a concrete payload class."""
         if transaction_type in mcs.transaction_type_to_payload_cls:
             previous_payload_cls = mcs.transaction_type_to_payload_cls[transaction_type]
-            if new_payload_cls != previous_payload_cls:
+            if new_payload_cls.__name__ != previous_payload_cls.__name__:
                 raise ValueError(
                     f"transaction type with name {transaction_type} already "
                     f"used by class {previous_payload_cls}, and cannot be "
@@ -1181,7 +1177,10 @@ class VotingRound(CollectionRound):
         """Process the end of the block."""
         # if reached participant threshold, set the result
         if self.positive_vote_threshold_reached:
-            state = self.period_state.update(period_state_class=self.period_state_class, **{self.collection_key: self.collection})  # type: ignore
+            state = self.period_state.update(
+                period_state_class=self.period_state_class,
+                **{self.collection_key: self.collection},  # type: ignore
+            )
             return state, self.done_event
         if self.negative_vote_threshold_reached:
             return self.period_state, self.negative_event
@@ -1222,8 +1221,8 @@ class CollectDifferentUntilThresholdRound(CollectionRound):
             self.block_confirmations += 1
         if (  # contracts are set from previous rounds
             self.collection_threshold_reached
-            and self.block_confirmations
-            > self.required_block_confirmations  # we also wait here as it gives more (available) agents time to join
+            and self.block_confirmations > self.required_block_confirmations
+            # we also wait here as it gives more (available) agents time to join
         ):
             state = self.period_state.update(
                 period_state_class=self.period_state_class,
@@ -1413,6 +1412,13 @@ class _MetaAbciApp(ABCMeta):
             "final states cannot have outgoing transitions",
         )
 
+        enforce(
+            all(
+                issubclass(final_state, DegenerateRound) for final_state in final_states
+            ),
+            "final round classes must be subclasses of the DegenerateRound class",
+        )
+
     @classmethod
     def _check_consistency_outgoing_transitions_from_non_final_states(
         mcs, abci_app_cls: Type["AbciApp"]
@@ -1559,9 +1565,11 @@ class AbciApp(
         next_events = list(self.transition_function.get(round_cls, {}).keys())
         for event in next_events:
             timeout = self.event_to_timeout.get(event, None)
-            if timeout is not None:
-                # last_timestamp is not None because we are not in the first round
-                # (see consistency check)
+            # if first round, last_timestamp is None.
+            # This means we do not schedule timeout events,
+            # but we allow timeout events from the initial state
+            # in case of concatenation.
+            if timeout is not None and self._last_timestamp is not None:
                 # last timestamp can be in the past relative to last seen block
                 # time if we're scheduling from within update_time
                 deadline = self.last_timestamp + datetime.timedelta(0, timeout)

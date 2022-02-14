@@ -23,11 +23,12 @@ import re
 from abc import ABC
 from copy import copy
 from enum import Enum
-from typing import Any, Dict, Optional, Tuple, Type
+from typing import Any, Dict, Optional, Set, Tuple, Type
 from unittest import mock
 from unittest.mock import MagicMock
 
 import pytest
+from aea.exceptions import AEAEnforceError
 from aea_ledger_ethereum import EthereumCrypto
 from hypothesis import given
 from hypothesis.strategies import booleans, dictionaries, floats, one_of, text
@@ -39,6 +40,7 @@ from packages.valory.skills.abstract_round_abci.base import (
     AbciAppTransitionFunction,
     AbstractRound,
     AddBlockError,
+    AppState,
     BasePeriodState,
     BaseTxPayload,
     Block,
@@ -304,8 +306,8 @@ class TestMetaPayloadUtilityMethods:
         but different class object. This will raise an error.
         """
         tx_type_name = "transaction_type"
-        tx_cls_1 = MagicMock()
-        tx_cls_2 = MagicMock()
+        tx_cls_1 = MagicMock(__name__="name_1")
+        tx_cls_2 = MagicMock(__name__="name_2")
         _MetaPayload.transaction_type_to_payload_cls[tx_type_name] = tx_cls_1
 
         with pytest.raises(ValueError):
@@ -1157,3 +1159,37 @@ def test_meta_abci_app_when_instance_not_subclass_of_abstract_round() -> None:
 
     class MyAbciApp(metaclass=_MetaAbciApp):
         pass
+
+
+def test_meta_abci_app_when_final_round_not_subclass_of_degenerate_round() -> None:
+    """Test instantiation of meta-class when a final round is not a subclass of DegenerateRound."""
+
+    class FinalRound(AbstractRound):
+        """A round class for testing."""
+
+        def end_block(self) -> Optional[Tuple[BasePeriodState, Enum]]:
+            pass
+
+        def check_payload(self, payload: BaseTxPayload) -> None:
+            pass
+
+        def process_payload(self, payload: BaseTxPayload) -> None:
+            pass
+
+        round_id = "final_round"
+
+    with pytest.raises(
+        AEAEnforceError,
+        match="non-final state.*must have at least one non-timeout transition",
+    ):
+
+        class MyAbciApp(AbciApp, metaclass=_MetaAbciApp):
+            initial_round_cls: Type[AbstractRound] = ConcreteRoundA
+            transition_function: Dict[
+                Type[AbstractRound], Dict[str, Type[AbstractRound]]
+            ] = {
+                ConcreteRoundA: {"event": FinalRound, "timeout": ConcreteRoundA},
+                FinalRound: {},
+            }
+            event_to_timeout = {"timeout": 1.0}
+            final_states: Set[AppState] = set()

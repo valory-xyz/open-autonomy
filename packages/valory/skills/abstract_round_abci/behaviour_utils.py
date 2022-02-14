@@ -317,6 +317,7 @@ class BaseState(AsyncBehaviour, SimpleBehaviour, ABC):
     can_rejoin_in_this_round: bool = False
 
     _is_sync_complete: bool = False
+    is_degenerate: bool = False
 
     def __init__(self, **kwargs: Any):  # pylint: disable=super-init-not-called
         """Initialize a base state behaviour."""
@@ -1252,3 +1253,32 @@ class BaseState(AsyncBehaviour, SimpleBehaviour, ABC):
 
         It can be optionally implemented by the concrete classes.
         """
+
+
+class DegenerateState(BaseState, ABC):
+    """An abstract matching behaviour for final and degenerate rounds."""
+
+    matching_round: Optional[Type[AbstractRound]] = None
+    is_degenerate: bool = True
+
+    def async_act(self) -> Generator:
+        """Raise a RuntimeError."""
+        raise RuntimeError(
+            "The execution reached a degenerate behaviour state. "
+            "This means a degenerate round has been reached during "
+            "the execution of the ABCI application. Please check the "
+            "functioning of the ABCI app."
+        )
+
+
+def make_degenerate_state(round_id: str) -> Type[DegenerateState]:
+    """Make a degenerate state class."""
+
+    class NewDegenerateState(DegenerateState):
+        """A newly defined degenerate state class."""
+
+        state_id = f"degenerate_{round_id}"
+
+    new_state_cls = NewDegenerateState
+    new_state_cls.__name__ = f"DegenerateState_{round_id}"  # type: ignore # pylint: disable=attribute-defined-outside-init
+    return new_state_cls  # type: ignore

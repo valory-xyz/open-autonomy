@@ -9,6 +9,9 @@ fingerprint:
   README.md: QmSdHvedQdaQvWBPjhoDqqZioSFgr43sdTaJqbraDqDFFY
   __init__.py: QmbdzASxkeaGpU5FLXVJnBfyRgTYEo2CDz1BNebhepCCsA
   behaviours.py: QmWgSRtsFA6ZJJXjtsMMf2HKShjFkXP4J3XHcaMLViLUN1
+  dialogues.py: QmfDThV4WCRzK88XDpW2hKDYCuEH4RxoHCoAkWpkBRGRPv
+  handlers.py: QmUS4UE6hYLsHs1RW9KxaTNhrq5pmg9Vy3w7nPgc4wV5kg
+  models.py: QmP5Fx8V9U2qWqkLUJnCdSPvBPKdApYn8npJT9b4CMi8x5
   payloads.py: QmXhrMb5b3exe1kmyGKZAU8A4FiXTGHLPGpnLY6wydo3bF
   rounds.py: Qma5nxr7W5fttLjquvWvYqeJKy2ngmdLwqzHjcjGeg8zwp
 fingerprint_ignore_patterns: []
@@ -20,8 +23,61 @@ protocols:
 - valory/contract_api:1.0.0
 skills:
 - valory/abstract_round_abci:0.1.0
-behaviours: {}
-handlers: {}
-models: {}
+behaviours:
+  main:
+    args: {}
+    class_name: SafeDeploymentRoundBehaviour
+handlers:
+  contract_api:
+    args: {}
+    class_name: ContractApiHandler
+  http:
+    args: {}
+    class_name: HttpHandler
+  ledger_api:
+    args: {}
+    class_name: LedgerApiHandler
+  signing:
+    args: {}
+    class_name: SigningHandler
+models:
+  abci_dialogues:
+    args: {}
+    class_name: AbciDialogues
+  contract_api_dialogues:
+    args: {}
+    class_name: ContractApiDialogues
+  http_dialogues:
+    args: {}
+    class_name: HttpDialogues
+  ledger_api_dialogues:
+    args: {}
+    class_name: LedgerApiDialogues
+  params:
+    args:
+      consensus:
+        max_participants: 1
+      drand_public_key: 868f005eb8e6e4ca0a47c8a77ceaa5309a47978a7c71bc5cce96366b5d7a569937c529eeda66c7293784a9402801af31
+      keeper_timeout: 30.0
+      max_healthcheck: 120
+      observation_interval: 10
+      reset_tendermint_after: 2
+      retry_attempts: 400
+      retry_timeout: 3
+      round_timeout_seconds: 30.0
+      service_id: registration
+      sleep_time: 1
+      tendermint_com_url: http://localhost:8080
+      tendermint_url: http://localhost:26657
+    class_name: Params
+  requests:
+    args: {}
+    class_name: Requests
+  signing_dialogues:
+    args: {}
+    class_name: SigningDialogues
+  state:
+    args: {}
+    class_name: SharedState
 dependencies: {}
-is_abstract: false
+is_abstract: true
