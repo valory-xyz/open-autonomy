@@ -22,15 +22,18 @@ from enum import Enum
 from typing import Dict, List, Mapping, Optional, Set, Tuple, Type, cast
 
 from packages.valory.skills.abstract_round_abci.base import (
+    ABCIAppInternalError,
     AbciApp,
     AbciAppTransitionFunction,
     AbstractRound,
     AppState,
     BasePeriodState,
+    BaseTxPayload,
     CollectDifferentUntilThresholdRound,
     CollectSameUntilThresholdRound,
     DegenerateRound,
     OnlyKeeperSendsRound,
+    TransactionNotValidError,
     VotingRound,
 )
 from packages.valory.skills.transaction_settlement_abci.payload_tools import (
@@ -238,7 +241,41 @@ class SelectKeeperTransactionSubmissionRoundB(CollectSameUntilThresholdRound):
     selection_key = "most_voted_keeper_address"
 
 
-class ResetRound(CollectSameUntilThresholdRound):
+class BaseResetRound(CollectSameUntilThresholdRound):
+    """Base reset round"""
+
+    def process_payload(self, payload: BaseTxPayload) -> None:
+        """Process payload."""
+
+        sender = payload.sender
+        if sender not in self.period_state.all_participants:
+            raise ABCIAppInternalError(
+                f"{sender} not in list of participants: {sorted(self.period_state.all_participants)}"
+            )
+
+        if sender in self.collection:
+            raise ABCIAppInternalError(
+                f"sender {sender} has already sent value for round: {self.round_id}"
+            )
+
+        self.collection[sender] = payload
+
+    def check_payload(self, payload: BaseTxPayload) -> None:
+        """Check Payload"""
+
+        sender_in_participant_set = payload.sender in self.period_state.all_participants
+        if not sender_in_participant_set:
+            raise TransactionNotValidError(
+                f"{payload.sender} not in list of participants: {sorted(self.period_state.all_participants)}"
+            )
+
+        if payload.sender in self.collection:
+            raise TransactionNotValidError(
+                f"sender {payload.sender} has already sent value for round: {self.round_id}"
+            )
+
+
+class ResetRound(BaseResetRound):
     """A round that represents the reset of a period"""
 
     round_id = "reset"
@@ -261,7 +298,7 @@ class ResetRound(CollectSameUntilThresholdRound):
         return None
 
 
-class ResetAndPauseRound(CollectSameUntilThresholdRound):
+class ResetAndPauseRound(BaseResetRound):
     """A round that represents that consensus is reached (the final round)"""
 
     round_id = "reset_and_pause"
@@ -277,6 +314,7 @@ class ResetAndPauseRound(CollectSameUntilThresholdRound):
             state = self.period_state.update(
                 period_count=self.most_voted_payload,
                 participants=self.period_state.participants,
+                all_participants=self.period_state.all_participants,
                 **extra_kwargs,
             )
             return state, Event.DONE
