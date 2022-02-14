@@ -973,23 +973,16 @@ class BaseState(AsyncBehaviour, CleanUpBehaviour, ABC):
         try:
             response = yield from self.wait_for_message(timeout=timeout)
             return response
-        except TimeoutException:
-            cast(Requests, self.context.requests).request_id_to_backup_callback[
-                request_nonce
-            ] = self.get_callback_request(unhandled=True)
-            late_response = yield from self.wait_for_message(unhandled=True)
-            # stop the execution of the behaviour after a late response has been received,
-            # because this is the final thing a behaviour can do, and we do not want it to remain in the
-            # `WAITING_UNHANDLED_MESSAGE` state.
-            self.stop()
-            return late_response
         finally:
-            # remove request id in case already timed out and set backup request,
-            # but notify caller by propagating exception if the `wait_for_message`
-            # times-out after waiting for(ever) `deadline = datetime.datetime.max`.
-            cast(Requests, self.context.requests).request_id_to_callback.pop(
+            # remove request id in case already timed out and replace it with backup callback,
+            # but notify caller by propagating exception.
+            popped = cast(Requests, self.context.requests).request_id_to_callback.pop(
                 request_nonce, None
             )
+            if popped is not None:
+                cast(Requests, self.context.requests).request_id_to_backup_callback[
+                    request_nonce
+                ] = self.handle_late_messages
 
     def _build_http_request_message(
         self,
