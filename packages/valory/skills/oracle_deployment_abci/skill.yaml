@@ -11,7 +11,7 @@ fingerprint:
   behaviours.py: QmeHh83VRrqkdHpgxBHBK1rjJiEbMt2qbXzj8e3131mZou
   dialogues.py: QmfDThV4WCRzK88XDpW2hKDYCuEH4RxoHCoAkWpkBRGRPv
   handlers.py: QmRB6Yfy3u1qBxANaimEKsUCnmvddZhv4iiVpeVzNXhQDc
-  models.py: QmQXbhSjPz1sUEwgN1wF3bmG43oYMoqtF3tFY5cZkw4zkZ
+  models.py: QmeBBES8i6AfY6GX5NVMr6nNVJwJLgVV2ku7qhp7aiaxhj
   payloads.py: QmZE3Zj7sEd7QN9qFdRmaZENqp6HWzcPt5JqAV9VsrvXc1
   rounds.py: QmZiywA5DkyeRg4jH2HqgjNumRSMnWwedbuGxciKPL2fmQ
 fingerprint_ignore_patterns: []
