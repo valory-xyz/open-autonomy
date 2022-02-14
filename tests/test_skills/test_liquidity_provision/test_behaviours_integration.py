@@ -57,7 +57,11 @@ from packages.valory.skills.liquidity_provision.behaviours import (
     EnterPoolTransactionHashBehaviour,
     ExitPoolTransactionHashBehaviour,
     LiquidityProvisionConsensusBehaviour,
+    SAFE_TX_GAS_ENTER,
+    SAFE_TX_GAS_EXIT,
+    SAFE_TX_GAS_SWAP_BACK,
     SwapBackTransactionHashBehaviour,
+    hash_payload_to_hex,
     parse_tx_token_balance,
 )
 from packages.valory.skills.liquidity_provision.handlers import (
@@ -116,20 +120,6 @@ EXPECTED_TYPES = List[
 ]
 
 
-def payload_to_hex(
-    tx_hash: str, ether_value: int, safe_tx_gas: int, to_address: str, data: bytes
-) -> str:
-    """Serialise to a hex string."""
-    if len(tx_hash) != 64:  # should be exactly 32 bytes!
-        raise ValueError("cannot encode tx_hash of non-32 bytes")  # pragma: nocover
-    ether_value_ = ether_value.to_bytes(32, "big").hex()
-    safe_tx_gas_ = safe_tx_gas.to_bytes(32, "big").hex()
-    if len(to_address) != 42:
-        raise ValueError("cannot encode to_address of non 42 length")  # pragma: nocover
-    concatenated = tx_hash + ether_value_ + safe_tx_gas_ + to_address + data.hex()
-    return concatenated
-
-
 class LiquidityProvisionBehaviourBaseCase(FSMBehaviourBaseCase):
     """Base case for testing LiquidityProvision FSMBehaviour."""
 
@@ -173,7 +163,6 @@ class TestLiquidityProvisionHardhat(
     gnosis_instance: Any
     multisend_instance: Any
     router_instance: Any
-    safe_tx_gas: int
     enter_nonce: int
     exit_nonce: int
     swap_back_nonce: int
@@ -285,16 +274,15 @@ class TestLiquidityProvisionHardhat(
         cls.multisend_data_swap_back = "8d80ff0a0000000000000000000000000000000000000000000000000000000000000020000000000000000000000000000000000000000000000000000000000000047d00a51c1fc2f0d1a1b8494ed1fe312d7c3a78ed91c00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000010438ed173900000000000000000000000000000000000000000000000000000000000003e8000000000000000000000000000000000000000000000000000000000000006400000000000000000000000000000000000000000000000000000000000000a000000000000000000000000068fcdf52066cce5612827e872c45767e5a1f65510000000000000000000000000000000000000000000000000000000063b0beef00000000000000000000000000000000000000000000000000000000000000020000000000000000000000000dcd1bf9a1b36ce34237eeafef220932846bcd82000000000000000000000000dc64a140aa3e981100a9beca4e685f962f0cf6c900a51c1fc2f0d1a1b8494ed1fe312d7c3a78ed91c00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000010438ed173900000000000000000000000000000000000000000000000000000000000003e8000000000000000000000000000000000000000000000000000000000000006400000000000000000000000000000000000000000000000000000000000000a000000000000000000000000068fcdf52066cce5612827e872c45767e5a1f65510000000000000000000000000000000000000000000000000000000063b0beef00000000000000000000000000000000000000000000000000000000000000020000000000000000000000009a676e781a523b5d0c0e43731313a708cb607508000000000000000000000000dc64a140aa3e981100a9beca4e685f962f0cf6c900dc64a140aa3e981100a9beca4e685f962f0cf6c900000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000044095ea7b3000000000000000000000000a51c1fc2f0d1a1b8494ed1fe312d7c3a78ed91c00000000000000000000000000000000000000000000000000000000000000000000dcd1bf9a1b36ce34237eeafef220932846bcd8200000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000044095ea7b3000000000000000000000000a51c1fc2f0d1a1b8494ed1fe312d7c3a78ed91c00000000000000000000000000000000000000000000000000000000000000000009a676e781a523b5d0c0e43731313a708cb60750800000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000044095ea7b3000000000000000000000000a51c1fc2f0d1a1b8494ed1fe312d7c3a78ed91c00000000000000000000000000000000000000000000000000000000000000000000000"
 
         cls.most_voted_tx_hash_enter = (
-            "109709ac6f55b4023671b90aca07391d15f922c1f4c47e85990edaff826e8c35"
+            "b68291e2144f384f927e423d78702463543dd56e8fc8910b2edd20ddf47bbf46"
         )
         cls.most_voted_tx_hash_exit = (
-            "4eeaa86691b4ea16eaa99bf6fd462f02fd6c5ec951cece685b6a8018c755f43b"
+            "70de1e8c13f56ea56f36fdc9d69635b60f1d0dc7fe4fb4a89024e16aa8ad0e12"
         )
         cls.most_voted_tx_hash_swap_back = (
-            "a2ad41587443107f74e4dfb4a2b00d8a1f50ad42104cd1b61d4482704694e571"
+            "7920b96f55935f49f636143d6071aadc5a7b53670a9ad5ddc16ab1c692a55e1f"
         )
 
-        cls.safe_tx_gas = 4000000
         cls.enter_nonce = 8
         cls.exit_nonce = cls.enter_nonce + 1
         cls.swap_back_nonce = cls.enter_nonce + 2
@@ -317,7 +305,6 @@ class TestLiquidityProvisionHardhat(
                     multisend_contract_address=cls.multisend_contract_address,
                     router_contract_address=cls.router_contract_address,
                     participants=frozenset(list(cls.safe_owners.keys())),
-                    safe_operation=SafeOperation.DELEGATE_CALL,
                 ),
             )
         )
@@ -329,7 +316,6 @@ class TestLiquidityProvisionHardhat(
                     safe_contract_address=cls.safe_contract_address,
                     most_voted_keeper_address=cls.keeper_address,
                     participants=frozenset(list(cls.safe_owners.keys())),
-                    safe_operation=SafeOperation.DELEGATE_CALL.value,
                 ),
             )
         )
@@ -491,7 +477,14 @@ class TestLiquidityProvisionHardhat(
         self.mock_a2a_transaction()
         return tuple(incoming_messages)
 
-    def send_and_validate(self, tx_hash: str, data: bytes, to_address: str) -> str:
+    def send_and_validate(
+        self,
+        tx_hash: str,
+        data: bytes,
+        to_address: str,
+        safe_tx_gas: int,
+        operation: int,
+    ) -> str:
         """Send and validate a transaction"""
         # Sign and send the transaction
         participant_to_signature = {
@@ -505,12 +498,13 @@ class TestLiquidityProvisionHardhat(
             for address, crypto in self.safe_owners.items()
         }
 
-        payload_string = payload_to_hex(
+        payload_string = hash_payload_to_hex(
             tx_hash,
             ether_value=0,
-            safe_tx_gas=self.safe_tx_gas,
+            safe_tx_gas=safe_tx_gas,
             to_address=to_address,
             data=data,
+            operation=operation,
         )
 
         period_state = cast(
@@ -657,6 +651,8 @@ class TestLiquidityProvisionHardhat(
             tx_hash=tx_hash_enter,
             data=bytes.fromhex(self.multisend_data_enter),
             to_address=self.multisend_contract_address,
+            safe_tx_gas=SAFE_TX_GAS_ENTER,
+            operation=SafeOperation.DELEGATE_CALL.value,
         )
 
         # EXIT POOL ------------------------------------------------------
@@ -794,6 +790,8 @@ class TestLiquidityProvisionHardhat(
             tx_hash=tx_hash_exit,
             data=bytes.fromhex(self.multisend_data_exit),
             to_address=self.multisend_contract_address,
+            safe_tx_gas=SAFE_TX_GAS_EXIT,
+            operation=SafeOperation.DELEGATE_CALL.value,
         )
 
         # SWAP BACK ------------------------------------------------------
@@ -899,4 +897,6 @@ class TestLiquidityProvisionHardhat(
             tx_hash=tx_hash_swap_back,
             data=bytes.fromhex(self.multisend_data_swap_back),
             to_address=self.multisend_contract_address,
+            safe_tx_gas=SAFE_TX_GAS_SWAP_BACK,
+            operation=SafeOperation.DELEGATE_CALL.value,
         )

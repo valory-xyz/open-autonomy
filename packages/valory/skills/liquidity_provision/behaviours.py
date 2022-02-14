@@ -45,7 +45,7 @@ from packages.valory.skills.abstract_round_abci.utils import BenchmarkTool
 from packages.valory.skills.liquidity_provision.composition import (
     LiquidityProvisionAbciApp,
 )
-from packages.valory.skills.liquidity_provision.models import Params
+from packages.valory.skills.liquidity_provision.models import Params, SharedState
 from packages.valory.skills.liquidity_provision.payloads import (
     SleepPayload,
     StrategyEvaluationPayload,
@@ -71,10 +71,18 @@ from packages.valory.skills.safe_deployment_abci.behaviours import (
 from packages.valory.skills.transaction_settlement_abci.behaviours import (
     TransactionSettlementRoundBehaviour,
 )
+from packages.valory.skills.transaction_settlement_abci.payload_tools import (
+    hash_payload_to_hex,
+)
 
 
-SAFE_TX_GAS = 4000000
-CURRENT_BLOCK_TIMESTAMP = 0  # TOFIX
+# These safeTxGas values are calculated from experimental values plus
+# a 10% buffer and rounded up. The Gnosis safe default value is 0 (max gas)
+# https://help.gnosis-safe.io/en/articles/4738445-advanced-transaction-parameters
+# More on gas estimation: https://help.gnosis-safe.io/en/articles/4933491-gas-estimation
+SAFE_TX_GAS_ENTER = 553000
+SAFE_TX_GAS_EXIT = 248000
+SAFE_TX_GAS_SWAP_BACK = 268000
 
 benchmark_tool = BenchmarkTool()
 
@@ -364,7 +372,7 @@ class StrategyEvaluationBehaviour(LiquidityProvisionBaseBehaviour):
                 )
 
             payload = StrategyEvaluationPayload(
-                self.context.agent_address, json.dumps(strategy)
+                self.context.agent_address, json.dumps(strategy, sort_keys=True)
             )
 
         with benchmark_tool.measure(
@@ -377,11 +385,19 @@ class StrategyEvaluationBehaviour(LiquidityProvisionBaseBehaviour):
 
     def get_dummy_strategy(self) -> dict:
         """Get a dummy strategy."""
+        last_timestamp = cast(
+            SharedState, self.context.state
+        ).period.abci_app.last_timestamp.timestamp()
+
         strategy = {
             "action": StrategyType.ENTER.value,
             "safe_nonce": 0,
-            "safe_tx_gas": SAFE_TX_GAS,
-            "deadline": CURRENT_BLOCK_TIMESTAMP
+            "safe_tx_gas": {
+                "enter": SAFE_TX_GAS_ENTER,
+                "exit": SAFE_TX_GAS_EXIT,
+                "swap_back": SAFE_TX_GAS_SWAP_BACK,
+            },
+            "deadline": int(last_timestamp)
             + self.params.rebalancing_params["deadline"],
             "chain": self.params.rebalancing_params["chain"],
             "token_base": {
@@ -620,17 +636,24 @@ class EnterPoolTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
                 value=0,
                 data=bytes.fromhex(multisend_data),
                 operation=SafeOperation.DELEGATE_CALL.value,
-                safe_tx_gas=strategy["safe_tx_gas"],
+                safe_tx_gas=strategy["safe_tx_gas"]["enter"],
                 safe_nonce=strategy["safe_nonce"],
             )
             safe_tx_hash = cast(str, contract_api_msg.raw_transaction.body["tx_hash"])
             safe_tx_hash = safe_tx_hash[2:]
             self.context.logger.info(f"Hash of the Safe transaction: {safe_tx_hash}")
+
+            payload_string = hash_payload_to_hex(
+                safe_tx_hash=safe_tx_hash,
+                ether_value=0,
+                safe_tx_gas=strategy["safe_tx_gas"]["enter"],
+                to_address=self.period_state.multisend_contract_address,
+                data=bytes.fromhex(multisend_data),
+                operation=SafeOperation.DELEGATE_CALL.value,
+            )
+
             payload = TransactionHashPayload(
-                sender=self.context.agent_address,
-                tx_hash=json.dumps(
-                    {"tx_hash": safe_tx_hash, "tx_data": multisend_data}
-                ),  # TOFIX
+                sender=self.context.agent_address, tx_hash=payload_string
             )
 
         with benchmark_tool.measure(
@@ -786,17 +809,24 @@ class ExitPoolTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
                 value=0,
                 data=bytes.fromhex(multisend_data),
                 operation=SafeOperation.DELEGATE_CALL.value,
-                safe_tx_gas=strategy["safe_tx_gas"],
+                safe_tx_gas=strategy["safe_tx_gas"]["exit"],
                 safe_nonce=strategy["safe_nonce"],
             )
             safe_tx_hash = cast(str, contract_api_msg.raw_transaction.body["tx_hash"])
             safe_tx_hash = safe_tx_hash[2:]
             self.context.logger.info(f"Hash of the Safe transaction: {safe_tx_hash}")
+
+            payload_string = hash_payload_to_hex(
+                safe_tx_hash=safe_tx_hash,
+                ether_value=0,
+                safe_tx_gas=strategy["safe_tx_gas"]["enter"],
+                to_address=self.period_state.multisend_contract_address,
+                data=bytes.fromhex(multisend_data),
+                operation=SafeOperation.DELEGATE_CALL.value,
+            )
+
             payload = TransactionHashPayload(
-                sender=self.context.agent_address,
-                tx_hash=json.dumps(
-                    {"tx_hash": safe_tx_hash, "tx_data": multisend_data}
-                ),  # TOFIX
+                sender=self.context.agent_address, tx_hash=payload_string
             )
 
         with benchmark_tool.measure(
@@ -931,17 +961,24 @@ class SwapBackTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
                 value=0,
                 data=bytes.fromhex(multisend_data),
                 operation=SafeOperation.DELEGATE_CALL.value,
-                safe_tx_gas=strategy["safe_tx_gas"],
+                safe_tx_gas=strategy["safe_tx_gas"]["swap_back"],
                 safe_nonce=strategy["safe_nonce"],
             )
             safe_tx_hash = cast(str, contract_api_msg.raw_transaction.body["tx_hash"])
             safe_tx_hash = safe_tx_hash[2:]
             self.context.logger.info(f"Hash of the Safe transaction: {safe_tx_hash}")
+
+            payload_string = hash_payload_to_hex(
+                safe_tx_hash=safe_tx_hash,
+                ether_value=0,
+                safe_tx_gas=strategy["safe_tx_gas"]["enter"],
+                to_address=self.period_state.multisend_contract_address,
+                data=bytes.fromhex(multisend_data),
+                operation=SafeOperation.DELEGATE_CALL.value,
+            )
+
             payload = TransactionHashPayload(
-                sender=self.context.agent_address,
-                tx_hash=json.dumps(
-                    {"tx_hash": safe_tx_hash, "tx_data": multisend_data}
-                ),  # TOFIX
+                sender=self.context.agent_address, tx_hash=payload_string
             )
 
         with benchmark_tool.measure(

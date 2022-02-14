@@ -350,6 +350,7 @@ class BaseState(AsyncBehaviour, CleanUpBehaviour, SimpleBehaviour, ABC):
     is_programmatically_defined = True
     state_id = ""
     matching_round: Optional[Type[AbstractRound]] = None
+    is_degenerate: bool = False
 
     def __init__(self, **kwargs: Any):  # pylint: disable=super-init-not-called
         """Initialize a base state behaviour."""
@@ -452,8 +453,6 @@ class BaseState(AsyncBehaviour, CleanUpBehaviour, SimpleBehaviour, ABC):
         """
         Send transaction and wait for the response, and repeat until not successful.
 
-        Calls `_send_transaction` and uses the default stop condition (based on round id).
-
         :param: payload: the payload to send
         :yield: the responses
         """
@@ -504,13 +503,14 @@ class BaseState(AsyncBehaviour, CleanUpBehaviour, SimpleBehaviour, ABC):
         """Get the request nonce for the request, from the protocol's dialogue."""
         return dialogue.dialogue_label.dialogue_reference[0]
 
-    def _send_transaction(
+    def _send_transaction(  # pylint: disable=too-many-arguments
         self,
         payload: BaseTxPayload,
         stop_condition: Callable[[], bool] = lambda: False,
         request_timeout: float = _DEFAULT_REQUEST_TIMEOUT,
         request_retry_delay: float = _DEFAULT_REQUEST_RETRY_DELAY,
         tx_timeout: float = _DEFAULT_TX_TIMEOUT,
+        max_attempts: int = _DEFAULT_TX_MAX_ATTEMPTS,
     ) -> Generator:
         """
         Send transaction and wait for the response, repeat until not successful.
@@ -520,12 +520,27 @@ class BaseState(AsyncBehaviour, CleanUpBehaviour, SimpleBehaviour, ABC):
         - Send the transaction to the 'price-estimation' app via the Tendermint
           node, and wait/repeat until the transaction is not mined.
 
+        Happy-path full flow of the messages.
+
+        get_signature:
+            AbstractRoundAbci skill -> (SigningMessage | SIGN_MESSAGE) -> DecisionMaker
+            DecisionMaker -> (SigningMessage | SIGNED_MESSAGE) -> AbstractRoundAbci skill
+
+        _submit_tx:
+            AbstractRoundAbci skill -> (HttpMessage | REQUEST) -> Http client connection
+            Http client connection -> (HttpMessage | RESPONSE) -> AbstractRoundAbci skill
+
+        _wait_until_transaction_delivered:
+            AbstractRoundAbci skill -> (HttpMessage | REQUEST) -> Http client connection
+            Http client connection -> (HttpMessage | RESPONSE) -> AbstractRoundAbci skill
+
         :param: payload: the payload to send
         :param: stop_condition: the condition to be checked to interrupt the
                 waiting loop.
         :param: request_timeout: the timeout for the requests
         :param: request_retry_delay: the delay to wait after failed requests
         :param: tx_timeout: the timeout to wait for tx delivery
+        :param: max_attempts: max retry attempts
         :yield: the responses
         """
         while not stop_condition():
@@ -571,11 +586,11 @@ class BaseState(AsyncBehaviour, CleanUpBehaviour, SimpleBehaviour, ABC):
                     f"Received tendermint code != 0. Retrying in {request_retry_delay} seconds..."
                 )
                 yield from self.sleep(request_retry_delay)
-                continue
+                continue  # pragma: nocover
 
             try:
                 is_delivered, res = yield from self._wait_until_transaction_delivered(
-                    tx_hash, timeout=tx_timeout
+                    tx_hash, timeout=tx_timeout, max_attempts=max_attempts
                 )
             except TimeoutException:
                 self.context.logger.info(
@@ -583,7 +598,7 @@ class BaseState(AsyncBehaviour, CleanUpBehaviour, SimpleBehaviour, ABC):
                 )
                 payload = payload.with_new_id()
                 yield from self.sleep(request_retry_delay)
-                continue
+                continue  # pragma: nocover
 
             if is_delivered:
                 self.context.logger.info("A2A transaction delivered!")
@@ -598,7 +613,17 @@ class BaseState(AsyncBehaviour, CleanUpBehaviour, SimpleBehaviour, ABC):
     def _send_signing_request(
         self, raw_message: bytes, is_deprecated_mode: bool = False
     ) -> None:
-        """Send a signing request."""
+        """
+        Send a signing request.
+
+        Happy-path full flow of the messages.
+
+        AbstractRoundAbci skill -> (SigningMessage | SIGN_MESSAGE) -> DecisionMaker
+        DecisionMaker -> (SigningMessage | SIGNED_MESSAGE) -> AbstractRoundAbci skill
+
+        :param raw_message: raw message bytes
+        :param is_deprecated_mode: is deprecated flag.
+        """
         signing_dialogues = cast(SigningDialogues, self.context.signing_dialogues)
         signing_msg, signing_dialogue = signing_dialogues.create(
             counterparty=self.context.decision_maker_address,
@@ -626,7 +651,17 @@ class BaseState(AsyncBehaviour, CleanUpBehaviour, SimpleBehaviour, ABC):
     def _send_transaction_signing_request(
         self, raw_transaction: RawTransaction, terms: Terms
     ) -> None:
-        """Send a transaction signing request."""
+        """
+        Send a transaction signing request.
+
+        Happy-path full flow of the messages.
+
+        AbstractRoundAbci skill -> (SigningMessage | SIGN_TRANSACTION) -> DecisionMaker
+        DecisionMaker -> (SigningMessage | SIGNED_TRANSACTION) -> AbstractRoundAbci skill
+
+        :param raw_transaction: raw transaction data
+        :param terms: signing terms
+        """
         signing_dialogues = cast(SigningDialogues, self.context.signing_dialogues)
         signing_msg, signing_dialogue = signing_dialogues.create(
             counterparty=self.context.decision_maker_address,
@@ -641,6 +676,16 @@ class BaseState(AsyncBehaviour, CleanUpBehaviour, SimpleBehaviour, ABC):
         self.context.decision_maker_message_queue.put_nowait(signing_msg)
 
     def _send_transaction_request(self, signing_msg: SigningMessage) -> None:
+        """
+        Send transaction request.
+
+        Happy-path full flow of the messages.
+
+        AbstractRoundAbci skill -> (LedgerApiMessage | SEND_SIGNED_TRANSACTION) -> Ledger connection
+        Ledger connection -> (LedgerApiMessage | TRANSACTION_DIGEST) -> AbstractRoundAbci skill
+
+        :param signing_msg: signing message
+        """
         ledger_api_dialogues = cast(
             LedgerApiDialogues, self.context.ledger_api_dialogues
         )
@@ -663,6 +708,18 @@ class BaseState(AsyncBehaviour, CleanUpBehaviour, SimpleBehaviour, ABC):
         retry_timeout: Optional[int] = None,
         retry_attempts: Optional[int] = None,
     ) -> None:
+        """
+        Send transaction receipt request.
+
+        Happy-path full flow of the messages.
+
+        AbstractRoundAbci skill -> (LedgerApiMessage | GET_TRANSACTION_RECEIPT) -> Ledger connection
+        Ledger connection -> (LedgerApiMessage | TRANSACTION_RECEIPT) -> AbstractRoundAbci skill
+
+        :param tx_digest: transaction digest string
+        :param retry_timeout: retry timeout in seconds
+        :param retry_attempts: number of retry attempts
+        """
         ledger_api_dialogues = cast(
             LedgerApiDialogues, self.context.ledger_api_dialogues
         )
@@ -692,7 +749,19 @@ class BaseState(AsyncBehaviour, CleanUpBehaviour, SimpleBehaviour, ABC):
     def _submit_tx(
         self, tx_bytes: bytes, timeout: Optional[float] = None
     ) -> Generator[None, None, HttpMessage]:
-        """Send a broadcast_tx_sync request."""
+        """Send a broadcast_tx_sync request.
+
+        Happy-path full flow of the messages.
+
+        _do_request:
+            AbstractRoundAbci skill -> (HttpMessage | REQUEST) -> Http client connection
+            Http client connection -> (HttpMessage | RESPONSE) -> AbstractRoundAbci skill
+
+        :param tx_bytes: transaction bytes
+        :param timeout: timeout seconds
+        :yield: HttpMessage object
+        :return: http response
+        """
         request_message, http_dialogue = self._build_http_request_message(
             "GET",
             self.context.params.tendermint_url
@@ -706,7 +775,20 @@ class BaseState(AsyncBehaviour, CleanUpBehaviour, SimpleBehaviour, ABC):
     def _get_tx_info(
         self, tx_hash: str, timeout: Optional[float] = None
     ) -> Generator[None, None, HttpMessage]:
-        """Get transaction info from tx hash."""
+        """
+        Get transaction info from tx hash.
+
+        Happy-path full flow of the messages.
+
+        _do_request:
+            AbstractRoundAbci skill -> (HttpMessage | REQUEST) -> Http client connection
+            Http client connection -> (HttpMessage | RESPONSE) -> AbstractRoundAbci skill
+
+        :param tx_hash: transaction hash
+        :param timeout: timeout in seconds
+        :yield: HttpMessage object
+        :return: http response
+        """
         request_message, http_dialogue = self._build_http_request_message(
             "GET",
             self.context.params.tendermint_url + f"/tx?hash=0x{tx_hash}",
@@ -717,7 +799,18 @@ class BaseState(AsyncBehaviour, CleanUpBehaviour, SimpleBehaviour, ABC):
         return result
 
     def _get_health(self) -> Generator[None, None, HttpMessage]:
-        """Get Tendermint node's health."""
+        """
+        Get Tendermint node's health.
+
+        Happy-path full flow of the messages.
+
+        _do_request:
+            AbstractRoundAbci skill -> (HttpMessage | REQUEST) -> Http client connection
+            Http client connection -> (HttpMessage | RESPONSE) -> AbstractRoundAbci skill
+
+        :yield: HttpMessage object
+        :return: http response from tendermint
+        """
         request_message, http_dialogue = self._build_http_request_message(
             "GET",
             self.context.params.tendermint_url + "/health",
@@ -726,7 +819,18 @@ class BaseState(AsyncBehaviour, CleanUpBehaviour, SimpleBehaviour, ABC):
         return result
 
     def _get_status(self) -> Generator[None, None, HttpMessage]:
-        """Get Tendermint node's status."""
+        """
+        Get Tendermint node's status.
+
+        Happy-path full flow of the messages.
+
+        _do_request:
+            AbstractRoundAbci skill -> (HttpMessage | REQUEST) -> Http client connection
+            Http client connection -> (HttpMessage | RESPONSE) -> AbstractRoundAbci skill
+
+        :yield: HttpMessage object
+        :return: http response from tendermint
+        """
         request_message, http_dialogue = self._build_http_request_message(
             "GET",
             self.context.params.tendermint_url + "/status",
@@ -737,7 +841,18 @@ class BaseState(AsyncBehaviour, CleanUpBehaviour, SimpleBehaviour, ABC):
     def _has_synced_up(
         self,
     ) -> Generator[None, None, bool]:  # pragma: nocover
-        """Check if agent has completed sync."""
+        """
+        Check if agent has completed sync.
+
+        Happy-path full flow of the messages.
+
+        _do_request:
+            AbstractRoundAbci skill -> (HttpMessage | REQUEST) -> Http client connection
+            Http client connection -> (HttpMessage | RESPONSE) -> AbstractRoundAbci skill
+
+        :yield: HttpMessage object
+        :return: True if the agent has synced
+        """
 
         for _ in range(_DEFAULT_TX_MAX_ATTEMPTS):
             status = yield from self._get_status()
@@ -799,12 +914,18 @@ class BaseState(AsyncBehaviour, CleanUpBehaviour, SimpleBehaviour, ABC):
         This method is skill-specific, and therefore
         should not be used elsewhere.
 
+        Happy-path full flow of the messages.
+
+        _do_request:
+            AbstractRoundAbci skill -> (HttpMessage | REQUEST) -> Http client connection
+            Http client connection -> (HttpMessage | RESPONSE) -> AbstractRoundAbci skill
+
         :param method: the http request method (i.e. 'GET' or 'POST').
         :param url: the url to send the message to.
         :param content: the payload.
         :param headers: headers to be included.
         :param parameters: url query parameters.
-        :yield: wait the response message
+        :yield: HttpMessage object
         :return: the http message and the http dialogue
         """
         http_message, http_dialogue = self._build_http_request_message(
@@ -826,10 +947,15 @@ class BaseState(AsyncBehaviour, CleanUpBehaviour, SimpleBehaviour, ABC):
         """
         Do a request and wait the response, asynchronously.
 
+        Happy-path full flow of the messages.
+
+        AbstractRoundAbci skill -> (HttpMessage | REQUEST) -> Http client connection
+        Http client connection -> (HttpMessage | RESPONSE) -> AbstractRoundAbci skill
+
         :param request_message: The request message
         :param http_dialogue: the HTTP dialogue associated to the request
         :param timeout: seconds to wait for the reply.
-        :yield: wait the response message
+        :yield: HttpMessage object
         :return: the response message
         """
         self.context.outbox.put_message(message=request_message)
@@ -918,6 +1044,12 @@ class BaseState(AsyncBehaviour, CleanUpBehaviour, SimpleBehaviour, ABC):
         """
         Wait until transaction is delivered.
 
+        Happy-path full flow of the messages.
+
+        _get_tx_info:
+            AbstractRoundAbci skill -> (HttpMessage | REQUEST) -> Http client connection
+            Http client connection -> (HttpMessage | RESPONSE) -> AbstractRoundAbci skill
+
         :param tx_hash: the transaction hash to check.
         :param timeout: timeout
         :param: request_retry_delay: the delay to wait after failed requests
@@ -979,7 +1111,20 @@ class BaseState(AsyncBehaviour, CleanUpBehaviour, SimpleBehaviour, ABC):
     def get_signature(
         self, message: bytes, is_deprecated_mode: bool = False
     ) -> Generator[None, None, str]:
-        """Get signature for message."""
+        """
+        Get signature for message.
+
+        Happy-path full flow of the messages.
+
+        _send_signing_request:
+            AbstractRoundAbci skill -> (SigningMessage | SIGN_MESSAGE) -> DecisionMaker
+            DecisionMaker -> (SigningMessage | SIGNED_MESSAGE) -> AbstractRoundAbci skill
+
+        :param message: message bytes
+        :param is_deprecated_mode: is deprecated mode flag
+        :yield: SigningMessage object
+        :return: message signature
+        """
         self._send_signing_request(message, is_deprecated_mode)
         signature_response = yield from self.wait_for_message()
         signature_response = cast(SigningMessage, signature_response)
@@ -992,7 +1137,23 @@ class BaseState(AsyncBehaviour, CleanUpBehaviour, SimpleBehaviour, ABC):
     def send_raw_transaction(
         self, transaction: RawTransaction
     ) -> Generator[None, None, Optional[str]]:
-        """Send raw transactions to the ledger for mining."""
+        """
+        Send raw transactions to the ledger for mining.
+
+        Happy-path full flow of the messages.
+
+        _send_transaction_signing_request:
+                AbstractRoundAbci skill -> (SigningMessage | SIGN_TRANSACTION) -> DecisionMaker
+                DecisionMaker -> (SigningMessage | SIGNED_TRANSACTION) -> AbstractRoundAbci skill
+
+        _send_transaction_request:
+            AbstractRoundAbci skill -> (LedgerApiMessage | SEND_SIGNED_TRANSACTION) -> Ledger connection
+            Ledger connection -> (LedgerApiMessage | TRANSACTION_DIGEST) -> AbstractRoundAbci skill
+
+        :param transaction: transaction data
+        :yield: SigningMessage object
+        :return: transaction hash
+        """
         terms = Terms(
             self.context.default_ledger_id,
             self.context.agent_address,
@@ -1029,7 +1190,21 @@ class BaseState(AsyncBehaviour, CleanUpBehaviour, SimpleBehaviour, ABC):
         retry_timeout: Optional[int] = None,
         retry_attempts: Optional[int] = None,
     ) -> Generator[None, None, Optional[Dict]]:
-        """Get transaction receipt."""
+        """
+        Get transaction receipt.
+
+        Happy-path full flow of the messages.
+
+        _send_transaction_receipt_request:
+            AbstractRoundAbci skill -> (LedgerApiMessage | GET_TRANSACTION_RECEIPT) -> Ledger connection
+            Ledger connection -> (LedgerApiMessage | TRANSACTION_RECEIPT) -> AbstractRoundAbci skill
+
+        :param tx_digest: transaction digest received from raw transaction.
+        :param retry_timeout: retry timeout.
+        :param retry_attempts: number of retry attempts allowed.
+        :yield: LedgerApiMessage object
+        :return: transaction receipt data
+        """
         self._send_transaction_receipt_request(tx_digest, retry_timeout, retry_attempts)
         transaction_receipt_msg = yield from self.wait_for_message()
         if (
@@ -1049,7 +1224,12 @@ class BaseState(AsyncBehaviour, CleanUpBehaviour, SimpleBehaviour, ABC):
         **kwargs: Any,
     ) -> Generator[None, None, LedgerApiMessage]:
         """
-        Request contract safe transaction hash
+        Request data from ledger api
+
+        Happy-path full flow of the messages.
+
+        AbstractRoundAbci skill -> (LedgerApiMessage | LedgerApiMessage.Performative) -> Ledger connection
+        Ledger connection -> (LedgerApiMessage | LedgerApiMessage.Performative) -> AbstractRoundAbci skill
 
         :param performative: the message performative
         :param ledger_callable: the callable to call on the contract
@@ -1093,6 +1273,11 @@ class BaseState(AsyncBehaviour, CleanUpBehaviour, SimpleBehaviour, ABC):
         """
         Request contract safe transaction hash
 
+        Happy-path full flow of the messages.
+
+        AbstractRoundAbci skill -> (ContractApiMessage | ContractApiMessage.Performative) -> Ledger connection (contract dispatcher)
+        Ledger connection (contract dispatcher) -> (ContractApiMessage | ContractApiMessage.Performative) -> AbstractRoundAbci skill
+
         :param performative: the message performative
         :param contract_address: the contract address
         :param contract_id: the contract id
@@ -1129,3 +1314,32 @@ class BaseState(AsyncBehaviour, CleanUpBehaviour, SimpleBehaviour, ABC):
         self.context.outbox.put_message(message=contract_api_msg)
         response = yield from self.wait_for_message()
         return response
+
+
+class DegenerateState(BaseState, ABC):
+    """An abstract matching behaviour for final and degenerate rounds."""
+
+    matching_round: Optional[Type[AbstractRound]] = None
+    is_degenerate: bool = True
+
+    def async_act(self) -> Generator:
+        """Raise a RuntimeError."""
+        raise RuntimeError(
+            "The execution reached a degenerate behaviour state. "
+            "This means a degenerate round has been reached during "
+            "the execution of the ABCI application. Please check the "
+            "functioning of the ABCI app."
+        )
+
+
+def make_degenerate_state(round_id: str) -> Type[DegenerateState]:
+    """Make a degenerate state class."""
+
+    class NewDegenerateState(DegenerateState):
+        """A newly defined degenerate state class."""
+
+        state_id = f"degenerate_{round_id}"
+
+    new_state_cls = NewDegenerateState
+    new_state_cls.__name__ = f"DegenerateState_{round_id}"  # type: ignore # pylint: disable=attribute-defined-outside-init
+    return new_state_cls  # type: ignore

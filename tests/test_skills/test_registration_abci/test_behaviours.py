@@ -31,8 +31,10 @@ import pytest
 from aea.exceptions import AEAActException
 
 from packages.valory.skills.abstract_round_abci.base import StateDB
-from packages.valory.skills.abstract_round_abci.behaviour_utils import BaseState
-from packages.valory.skills.price_estimation_abci.behaviours import ObserveBehaviour
+from packages.valory.skills.abstract_round_abci.behaviour_utils import (
+    BaseState,
+    make_degenerate_state,
+)
 from packages.valory.skills.registration_abci.behaviours import (
     RegistrationBaseBehaviour,
     RegistrationBehaviour,
@@ -42,9 +44,10 @@ from packages.valory.skills.registration_abci.behaviours import (
 from packages.valory.skills.registration_abci.rounds import (
     BasePeriodState as RegistrationPeriodState,
 )
-from packages.valory.skills.registration_abci.rounds import Event
-from packages.valory.skills.safe_deployment_abci.behaviours import (
-    RandomnessSafeBehaviour,
+from packages.valory.skills.registration_abci.rounds import (
+    Event,
+    FinishedRegistrationFFWRound,
+    FinishedRegistrationRound,
 )
 
 from tests.conftest import ROOT_DIR
@@ -54,9 +57,7 @@ from tests.test_skills.base import FSMBehaviourBaseCase
 class RegistrationAbciBaseCase(FSMBehaviourBaseCase):
     """Base case for testing RegistrationAbci FSMBehaviour."""
 
-    path_to_skill = Path(
-        ROOT_DIR, "packages", "valory", "skills", "price_estimation_abci"
-    )  # TOFIX
+    path_to_skill = Path(ROOT_DIR, "packages", "valory", "skills", "registration_abci")
 
 
 class TestTendermintHealthcheckBehaviour(RegistrationAbciBaseCase):
@@ -305,11 +306,11 @@ class TestRegistrationStartupBehaviour(BaseRegistrationTestBehaviour):
     """Test case to test RegistrationStartupBehaviour."""
 
     behaviour_class = RegistrationStartupBehaviour
-    next_behaviour_class = RandomnessSafeBehaviour  # TOFIX
+    next_behaviour_class = make_degenerate_state(FinishedRegistrationRound.round_id)
 
 
 class TestRegistrationBehaviour(BaseRegistrationTestBehaviour):
     """Test case to test RegistrationBehaviour."""
 
     behaviour_class = RegistrationBehaviour
-    next_behaviour_class = ObserveBehaviour  # TOFIX
+    next_behaviour_class = make_degenerate_state(FinishedRegistrationFFWRound.round_id)

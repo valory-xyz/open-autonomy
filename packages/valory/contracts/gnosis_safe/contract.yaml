@@ -7,9 +7,9 @@ license: Apache-2.0
 aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
   README.md: Qmd5NcJnij2d19rhtNJgsTSBU7ErTdYVH2c621j6TKN7Qz
-  __init__.py: QmWLx43KXUA8iq4uRo1VDhFPqd6dFF7xfdiMpQLAoBBMoD
+  __init__.py: QmVGGRitrfXCapowAPnn565KSg4QWCMfumtbpuoz8z57yC
   build/GnosisSafe_V1_3_0.json: QmafMmPcVqiTLykozgjGwNL2S8b1g5bmgMP3z6EdecgMYh
-  contract.py: QmYZkGKiZqSEaivycPYjurJmXxW5FZt1AMrdFPCQxJkS1P
+  contract.py: QmWKqkaU9wRTD186nmz7F4yGWXosupKuEJXNBoPhxBqAtj
 fingerprint_ignore_patterns: []
 contracts:
 - valory/gnosis_safe_proxy_factory:0.1.0

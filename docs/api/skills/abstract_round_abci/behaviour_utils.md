@@ -416,8 +416,6 @@ def send_a2a_transaction(payload: BaseTxPayload) -> Generator
 
 Send transaction and wait for the response, and repeat until not successful.
 
-Calls `_send_transaction` and uses the default stop condition (based on round id).
-
 :param: payload: the payload to send
 :yield: the responses
 
@@ -462,9 +460,15 @@ Send an http request message from the skill context.
 This method is skill-specific, and therefore
 should not be used elsewhere.
 
+Happy-path full flow of the messages.
+
+_do_request:
+    AbstractRoundAbci skill -> (HttpMessage | REQUEST) -> Http client connection
+    Http client connection -> (HttpMessage | RESPONSE) -> AbstractRoundAbci skill
+
 **Arguments**:
 
-:yield: wait the response message
+:yield: HttpMessage object
 - `method`: the http request method (i.e. 'GET' or 'POST').
 - `url`: the url to send the message to.
 - `content`: the payload.
@@ -485,6 +489,22 @@ def get_signature(message: bytes, is_deprecated_mode: bool = False) -> Generator
 
 Get signature for message.
 
+Happy-path full flow of the messages.
+
+_send_signing_request:
+    AbstractRoundAbci skill -> (SigningMessage | SIGN_MESSAGE) -> DecisionMaker
+    DecisionMaker -> (SigningMessage | SIGNED_MESSAGE) -> AbstractRoundAbci skill
+
+**Arguments**:
+
+:yield: SigningMessage object
+- `message`: message bytes
+- `is_deprecated_mode`: is deprecated mode flag
+
+**Returns**:
+
+message signature
+
 <a id="packages.valory.skills.abstract_round_abci.behaviour_utils.BaseState.send_raw_transaction"></a>
 
 #### send`_`raw`_`transaction
@@ -494,6 +514,25 @@ def send_raw_transaction(transaction: RawTransaction) -> Generator[None, None, O
 ```
 
 Send raw transactions to the ledger for mining.
+
+Happy-path full flow of the messages.
+
+_send_transaction_signing_request:
+        AbstractRoundAbci skill -> (SigningMessage | SIGN_TRANSACTION) -> DecisionMaker
+        DecisionMaker -> (SigningMessage | SIGNED_TRANSACTION) -> AbstractRoundAbci skill
+
+_send_transaction_request:
+    AbstractRoundAbci skill -> (LedgerApiMessage | SEND_SIGNED_TRANSACTION) -> Ledger connection
+    Ledger connection -> (LedgerApiMessage | TRANSACTION_DIGEST) -> AbstractRoundAbci skill
+
+**Arguments**:
+
+:yield: SigningMessage object
+- `transaction`: transaction data
+
+**Returns**:
+
+transaction hash
 
 <a id="packages.valory.skills.abstract_round_abci.behaviour_utils.BaseState.get_transaction_receipt"></a>
 
@@ -505,6 +544,23 @@ def get_transaction_receipt(tx_digest: str, retry_timeout: Optional[int] = None,
 
 Get transaction receipt.
 
+Happy-path full flow of the messages.
+
+_send_transaction_receipt_request:
+    AbstractRoundAbci skill -> (LedgerApiMessage | GET_TRANSACTION_RECEIPT) -> Ledger connection
+    Ledger connection -> (LedgerApiMessage | TRANSACTION_RECEIPT) -> AbstractRoundAbci skill
+
+**Arguments**:
+
+:yield: LedgerApiMessage object
+- `tx_digest`: transaction digest received from raw transaction.
+- `retry_timeout`: retry timeout.
+- `retry_attempts`: number of retry attempts allowed.
+
+**Returns**:
+
+transaction receipt data
+
 <a id="packages.valory.skills.abstract_round_abci.behaviour_utils.BaseState.get_ledger_api_response"></a>
 
 #### get`_`ledger`_`api`_`response
@@ -513,7 +569,12 @@ Get transaction receipt.
 def get_ledger_api_response(performative: LedgerApiMessage.Performative, ledger_callable: str, **kwargs: Any, ,) -> Generator[None, None, LedgerApiMessage]
 ```
 
-Request contract safe transaction hash
+Request data from ledger api
+
+Happy-path full flow of the messages.
+
+AbstractRoundAbci skill -> (LedgerApiMessage | LedgerApiMessage.Performative) -> Ledger connection
+Ledger connection -> (LedgerApiMessage | LedgerApiMessage.Performative) -> AbstractRoundAbci skill
 
 **Arguments**:
 
@@ -535,6 +596,11 @@ def get_contract_api_response(performative: ContractApiMessage.Performative, con
 
 Request contract safe transaction hash
 
+Happy-path full flow of the messages.
+
+AbstractRoundAbci skill -> (ContractApiMessage | ContractApiMessage.Performative) -> Ledger connection (contract dispatcher)
+Ledger connection (contract dispatcher) -> (ContractApiMessage | ContractApiMessage.Performative) -> AbstractRoundAbci skill
+
 **Arguments**:
 
 - `performative`: the message performative
@@ -546,4 +612,34 @@ Request contract safe transaction hash
 **Returns**:
 
 the contract api response
+
+<a id="packages.valory.skills.abstract_round_abci.behaviour_utils.DegenerateState"></a>
+
+## DegenerateState Objects
+
+```python
+class DegenerateState(BaseState,  ABC)
+```
+
+An abstract matching behaviour for final and degenerate rounds.
+
+<a id="packages.valory.skills.abstract_round_abci.behaviour_utils.DegenerateState.async_act"></a>
+
+#### async`_`act
+
+```python
+def async_act() -> Generator
+```
+
+Raise a RuntimeError.
+
+<a id="packages.valory.skills.abstract_round_abci.behaviour_utils.make_degenerate_state"></a>
+
+#### make`_`degenerate`_`state
+
+```python
+def make_degenerate_state(round_id: str) -> Type[DegenerateState]
+```
+
+Make a degenerate state class.
 

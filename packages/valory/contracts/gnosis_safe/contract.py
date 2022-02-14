@@ -612,9 +612,22 @@ class GnosisSafeContract(Contract):
         except SolidityError as e:
             # execution reverted exception
             return dict(revert_reason=repr(e))
-        except HTTPError as e:
+        except HTTPError as e:  # pragma: nocover
             # http exception
             raise e
         else:
             # given tx not reverted
             raise ValueError(f"The given transaction has not been reverted!\ntx: {tx}")
+
+    @classmethod
+    def get_safe_nonce(cls, ledger_api: EthereumApi, contract_address: str) -> JSONLike:
+        """
+        Retrieve the safe's nonce
+
+        :param ledger_api: the ledger API object
+        :param contract_address: the contract address
+        :return: the safe nonce
+        """
+        safe_contract = cls.get_instance(ledger_api, contract_address)
+        safe_nonce = safe_contract.functions.nonce().call(block_identifier="latest")
+        return dict(safe_nonce=safe_nonce)

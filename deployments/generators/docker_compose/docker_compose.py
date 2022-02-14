@@ -77,6 +77,7 @@ class DockerComposeGenerator(BaseDeploymentGenerator):
     """Class to automate the generation of Deployments."""
 
     output_name = "docker-compose.yaml"
+    deployment_type = "docker-compose"
 
     def __init__(self, deployment_spec: BaseDeployment) -> None:
         """Initialise the deployment generator."""
@@ -110,6 +111,7 @@ class DockerComposeGenerator(BaseDeploymentGenerator):
         """Generate the new configuration."""
 
         agent_vars = valory_application.generate_agents()  # type: ignore
+        agent_vars = self.get_deployment_network_configuration(agent_vars)
 
         agents = "".join(
             [

@@ -307,7 +307,6 @@ def test_period_state() -> None:
     participant_to_tx_hash = get_participant_to_tx_hash(participants)
     participant_to_signature = get_participant_to_signature(participants)
     participant_to_strategy = get_participant_to_strategy(participants)
-    safe_operation = "safe_operation"
 
     period_state = PeriodState(
         StateDB(
@@ -325,7 +324,6 @@ def test_period_state() -> None:
                 participant_to_tx_hash=participant_to_tx_hash,
                 participant_to_signature=participant_to_signature,
                 participant_to_strategy=participant_to_strategy,
-                safe_operation=safe_operation,
             ),
         )
     )
@@ -341,4 +339,3 @@ def test_period_state() -> None:
     assert period_state.participant_to_tx_hash == participant_to_tx_hash
     assert period_state.participant_to_signature == participant_to_signature
     assert period_state.participant_to_strategy == participant_to_strategy
-    assert period_state.safe_operation == safe_operation

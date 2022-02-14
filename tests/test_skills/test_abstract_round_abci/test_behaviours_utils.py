@@ -41,9 +41,11 @@ from packages.valory.skills.abstract_round_abci.base import (
 from packages.valory.skills.abstract_round_abci.behaviour_utils import (
     AsyncBehaviour,
     BaseState,
+    DegenerateState,
     SendException,
     TimeoutException,
     _DEFAULT_REQUEST_RETRY_DELAY,
+    make_degenerate_state,
 )
 
 from tests.helpers.base import try_send
@@ -558,7 +560,7 @@ class TestBaseState:
         "_build_http_request_message",
         return_value=(MagicMock(), MagicMock()),
     )
-    def test_send_transaction_timeout_exception(self, *_: Any) -> None:
+    def test_send_transaction_timeout_exception_submit_tx(self, *_: Any) -> None:
         """Test '_send_transaction', timeout exception."""
         timeout = 0.05
         delay = 0.1
@@ -577,6 +579,98 @@ class TestBaseState:
                 f"Timeout expired for submit tx. Retrying in {delay} seconds..."
             )
             try_send(gen, obj=None)
+
+    @mock.patch.object(BaseState, "_send_signing_request")
+    @mock.patch.object(Transaction, "encode", return_value=MagicMock())
+    @mock.patch.object(
+        BaseState,
+        "_build_http_request_message",
+        return_value=(MagicMock(), MagicMock()),
+    )
+    @mock.patch.object(BaseState, "_check_http_return_code_200", return_value=True)
+    def test_send_transaction_timeout_exception_wait_until_transaction_delivered(
+        self, *_: Any
+    ) -> None:
+        """Test '_send_transaction', timeout exception."""
+        timeout = 0.05
+        delay = 0.1
+        m = MagicMock()
+        with mock.patch.object(self.behaviour.context.logger, "info") as mock_info:
+            gen = self.behaviour._send_transaction(
+                m, request_retry_delay=delay, tx_timeout=timeout
+            )
+            # trigger generator function
+            try_send(gen, obj=None)
+            # send message to 'wait_for_message'
+            try_send(gen, obj=m)
+            # send message to '_submit_tx'
+            try_send(gen, obj=MagicMock(body='{"result": {"hash": "", "code": 0}}'))
+            # send message to '_wait_until_transaction_delivered'
+            time.sleep(timeout)
+            try_send(gen, obj=m)
+
+            mock_info.assert_called_with(
+                f"Timeout expired for wait until transaction delivered. Retrying in {delay} seconds..."
+            )
+
+    @mock.patch.object(BaseState, "_send_signing_request")
+    @mock.patch.object(Transaction, "encode", return_value=MagicMock())
+    @mock.patch.object(
+        BaseState,
+        "_build_http_request_message",
+        return_value=(MagicMock(), MagicMock()),
+    )
+    @mock.patch.object(BaseState, "_check_http_return_code_200", return_value=True)
+    def test_send_transaction_transaction_not_delivered(self, *_: Any) -> None:
+        """Test '_send_transaction', timeout exception."""
+        timeout = 0.05
+        delay = 0.1
+        m = MagicMock()
+        with mock.patch.object(self.behaviour.context.logger, "info") as mock_info:
+            gen = self.behaviour._send_transaction(
+                m, request_retry_delay=delay, tx_timeout=timeout, max_attempts=0
+            )
+            # trigger generator function
+            try_send(gen, obj=None)
+            # send message to 'wait_for_message'
+            try_send(gen, obj=m)
+            # send message to '_submit_tx'
+            try_send(gen, obj=MagicMock(body='{"result": {"hash": "", "code": 0}}'))
+            # send message to '_wait_until_transaction_delivered'
+            time.sleep(timeout)
+            try_send(gen, obj=m)
+
+            mock_info.assert_called_with("Tx sent but not delivered. Response = None")
+
+    @mock.patch.object(BaseState, "_send_signing_request")
+    @mock.patch.object(Transaction, "encode", return_value=MagicMock())
+    @mock.patch.object(
+        BaseState,
+        "_build_http_request_message",
+        return_value=(MagicMock(), MagicMock()),
+    )
+    @mock.patch.object(BaseState, "_check_http_return_code_200", return_value=True)
+    def test_send_transaction_wrong_ok_code(self, *_: Any) -> None:
+        """Test '_send_transaction', positive case."""
+        m = MagicMock(status_code=200)
+        gen = self.behaviour._send_transaction(m)
+
+        with mock.patch.object(self.behaviour.context.logger, "info") as mock_info:
+            # trigger generator function
+            try_send(gen, obj=None)
+            # send message to 'wait_for_message'
+            try_send(gen, obj=m)
+            # send message to '_submit_tx'
+            try_send(gen, obj=MagicMock(body='{"result": {"hash": "", "code": -1}}'))
+            # send message to '_wait_until_transaction_delivered'
+            success_response = MagicMock(
+                status_code=200, body='{"result": {"tx_result": {"code": 0}}}'
+            )
+            try_send(gen, obj=success_response)
+
+            mock_info.assert_called_with(
+                "Received tendermint code != 0. Retrying in 1.0 seconds..."
+            )
 
     @pytest.mark.skip
     @mock.patch.object(BaseState, "_send_signing_request")
@@ -822,3 +916,37 @@ class TestBaseState:
     def test_stop(self) -> None:
         """Test the stop method."""
         self.behaviour.stop()
+
+
+def test_degenerate_state_async_act() -> None:
+    """Test DegenerateState.async_act."""
+
+    class ConcreteDegenerateState(DegenerateState):
+        """Concrete DegenerateState class."""
+
+        state_id = "concrete_degenerate_state"
+        matching_round = MagicMock()
+
+    context = MagicMock()
+    # this is needed to trigger execution of async_act
+    context.state.period.syncing_up = False
+
+    state = ConcreteDegenerateState(
+        name=ConcreteDegenerateState.state_id, skill_context=context
+    )
+    with pytest.raises(
+        RuntimeError,
+        match="The execution reached a degenerate behaviour state. This means a degenerate round has been reached during the execution of the ABCI application. Please check the functioning of the ABCI app.",
+    ):
+        state.act()
+
+
+def test_make_degenerate_state() -> None:
+    """Test 'make_degenerate_state'."""
+    round_id = "round_id"
+    new_cls = make_degenerate_state(round_id)
+
+    assert isinstance(new_cls, type)
+    assert issubclass(new_cls, DegenerateState)
+
+    assert new_cls.state_id == f"degenerate_{round_id}"

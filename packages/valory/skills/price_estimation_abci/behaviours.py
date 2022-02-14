@@ -21,7 +21,9 @@
 
 from abc import ABC
 from decimal import Decimal
-from typing import Generator, Optional, Set, Type, cast
+from typing import Dict, Generator, Optional, Sequence, Set, Type, cast
+
+from aea.exceptions import enforce
 
 from packages.valory.contracts.gnosis_safe.contract import GnosisSafeContract
 from packages.valory.contracts.offchain_aggregator.contract import (
@@ -62,13 +64,22 @@ from packages.valory.skills.safe_deployment_abci.behaviours import (
 from packages.valory.skills.transaction_settlement_abci.behaviours import (
     TransactionSettlementRoundBehaviour,
 )
+from packages.valory.skills.transaction_settlement_abci.payload_tools import (
+    hash_payload_to_hex,
+)
 
 
 benchmark_tool = BenchmarkTool()
 
 
-SAFE_TX_GAS = 4000000  # TOFIX
+# This safeTxGas value is calculated from experimental values plus
+# a 10% buffer and rounded up. The Gnosis safe default value is 0 (max gas)
+# https://help.gnosis-safe.io/en/articles/4738445-advanced-transaction-parameters
+# More on gas estimation: https://help.gnosis-safe.io/en/articles/4933491-gas-estimation
+SAFE_TX_GAS = 120000
 ETHER_VALUE = 0
+
+NO_OBSERVATION = 0.0
 
 
 def to_int(most_voted_estimate: float, decimals: int) -> int:
@@ -80,20 +91,6 @@ def to_int(most_voted_estimate: float, decimals: int) -> int:
     most_voted_estimate_decimal = Decimal(most_voted_estimate_)
     int_value = int(most_voted_estimate_decimal * (10 ** decimals))
     return int_value
-
-
-def payload_to_hex(
-    tx_hash: str, ether_value: int, safe_tx_gas: int, to_address: str, data: bytes
-) -> str:
-    """Serialise to a hex string."""
-    if len(tx_hash) != 64:  # should be exactly 32 bytes!
-        raise ValueError("cannot encode tx_hash of non-32 bytes")  # pragma: nocover
-    ether_value_ = ether_value.to_bytes(32, "big").hex()
-    safe_tx_gas_ = safe_tx_gas.to_bytes(32, "big").hex()
-    if len(to_address) != 42:
-        raise ValueError("cannot encode to_address of non 42 length")  # pragma: nocover
-    concatenated = tx_hash + ether_value_ + safe_tx_gas_ + to_address + data.hex()
-    return concatenated
 
 
 class PriceEstimationBaseState(BaseState, ABC):
@@ -222,6 +219,38 @@ class EstimateBehaviour(PriceEstimationBaseState):
         self.set_done()
 
 
+def pack_for_server(  # pylint: disable-msg=too-many-arguments
+    participants: Sequence[str],
+    decimals: int,
+    period_count: int,
+    estimate: float,
+    observations: Dict[str, float],
+    data_source: str,
+    unit: str,
+    **_: Dict[str, str],
+) -> bytes:
+    """Package server data for signing"""
+    enforce(len(str(estimate)) <= 32, "'estimate' too large")
+    enforce(len(data_source) <= 32, "'data_source' too large")
+    enforce(len(unit) <= 32, "'unit' too large")
+    enforce(
+        all(len(str(value)) <= 32 for value in observations.values()),
+        "'observation' values too large",
+    )
+    observed = (
+        to_int(observations.get(p, NO_OBSERVATION), decimals) for p in participants
+    )
+    return b"".join(
+        [
+            period_count.to_bytes(32, "big"),
+            to_int(estimate, decimals).to_bytes(32, "big"),
+            *map(lambda n: n.to_bytes(32, "big"), observed),
+            str(data_source).zfill(32).encode("utf-8"),
+            str(unit).zfill(32).encode("utf-8"),
+        ]
+    )
+
+
 class TransactionHashBehaviour(PriceEstimationBaseState):
     """Share the transaction hash for the signature round."""
 
@@ -249,10 +278,87 @@ class TransactionHashBehaviour(PriceEstimationBaseState):
         with benchmark_tool.measure(
             self,
         ).consensus():
+            if self.params.is_broadcasting_to_server:
+                yield from self.send_to_server()
             yield from self.send_a2a_transaction(payload)
             yield from self.wait_until_round_end()
 
         self.set_done()
+
+    def send_to_server(self) -> Generator:  # pylint: disable-msg=too-many-locals
+        """
+        Send data to server.
+
+        We send current period state data of the agents and the previous
+        cycle's on-chain settlement tx hash. The current cycle's tx hash
+        is not available at this stage yet, and the first iteration will
+        contain no tx hash since there has not been on-chain transaction
+        settlement yet.
+
+        :yield: the http response
+        """
+
+        period_count = self.period_state.period_count
+
+        self.context.logger.info("Attempting broadcast")
+
+        if period_count == 0:
+            prev_tx_hash = ""
+        else:
+            # grab tx_hash from previous cycle
+            prev_period_count = period_count - 1
+            previous_data = (
+                self.period_state.db._data[  # pylint: disable=protected-access
+                    prev_period_count
+                ]
+            )
+            prev_tx_hash = previous_data["tx_hashes_history"][0]
+
+        # select relevant data
+        agents = self.period_state.db.get_strict("participants")
+        payloads = self.period_state.db.get_strict("participant_to_observations")
+        estimate = self.period_state.db.get_strict("most_voted_estimate")
+
+        observations = {
+            agent: getattr(payloads.get(agent), "observation", NO_OBSERVATION)
+            for agent in agents
+        }
+
+        price_api = self.context.price_api
+
+        # adding timestamp on server side when received
+        # period and agent_address are used as `primary key`
+        data_for_server = {
+            "period_count": period_count,
+            "agent_address": self.context.agent_address,
+            "estimate": estimate,
+            "prev_tx_hash": prev_tx_hash,
+            "observations": observations,
+            "data_source": price_api.api_id,
+            "unit": f"{price_api.currency_id}:{price_api.convert_id}",
+        }
+
+        # pack data
+        participants = self.period_state.sorted_participants
+        decimals = self.params.oracle_params["decimals"]
+        package = pack_for_server(participants, decimals, **data_for_server)
+        data_for_server["package"] = package.hex()
+
+        # get signature
+        signature = yield from self.get_signature(package, is_deprecated_mode=True)
+        data_for_server["signature"] = signature
+        self.context.logger.info(f"Signature: {signature}")
+
+        message = str(data_for_server).encode("utf-8")
+        server_api_specs = self.context.server_api.get_spec()
+        raw_response = yield from self.get_http_response(
+            method=server_api_specs["method"],
+            url=server_api_specs["url"],
+            content=message,
+        )
+
+        response = self.context.server_api.process_response(raw_response)
+        self.context.logger.info(f"Broadcast response: {response}")
 
     def _get_safe_tx_hash(self) -> Generator[None, None, Optional[str]]:
         """Get the transaction hash of the Safe tx."""
@@ -312,7 +418,7 @@ class TransactionHashBehaviour(PriceEstimationBaseState):
         safe_tx_hash = safe_tx_hash[2:]
         self.context.logger.info(f"Hash of the Safe transaction: {safe_tx_hash}")
         # temp hack:
-        payload_string = payload_to_hex(
+        payload_string = hash_payload_to_hex(
             safe_tx_hash, ether_value, safe_tx_gas, to_address, data
         )
         return payload_string

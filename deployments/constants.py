@@ -21,6 +21,7 @@
 import os
 import socket
 from pathlib import Path
+from string import Template
 from typing import Any, Dict, List
 
 
@@ -53,13 +54,25 @@ KEYS: List[str] = [
 
 
 NETWORKS = {
-    "hardhat": {
-        "LEDGER_ADDRESS": f"http://{host_ip_address}:8545",
-        "LEDGER_CHAIN_ID": 31337,
+    "docker-compose": {
+        "hardhat": {
+            "LEDGER_ADDRESS": f"http://{host_ip_address}:8545",
+            "LEDGER_CHAIN_ID": 31337,
+        },
+        "ropsten": {
+            "LEDGER_ADDRESS": "https://ropsten.infura.io/v3/2980beeca3544c9fbace4f24218afcd4",
+            "LEDGER_CHAIN_ID": 3,
+        },
     },
-    "ropsten": {
-        "LEDGER_ADDRESS": "https://ropsten.infura.io/v3/2980beeca3544c9fbace4f24218afcd4",
-        "LEDGER_CHAIN_ID": 3,
+    "kubernetes": {
+        "hardhat": {
+            "LEDGER_ADDRESS": "http://hardhat:8545",
+            "LEDGER_CHAIN_ID": 31337,
+        },
+        "ropsten": {
+            "LEDGER_ADDRESS": "https://ropsten.infura.io/v3/2980beeca3544c9fbace4f24218afcd4",
+            "LEDGER_CHAIN_ID": 3,
+        },
     },
 }
 
@@ -75,6 +88,32 @@ DEPLOYED_CONTRACTS: Dict[str, Dict[str, Any]] = {
     },
 }
 
+TENDERMINT_CONFIGURATION_OVERRIDES: Dict[str, Dict[str, Any]] = {
+    "kubernetes": {
+        "TENDERMINT_URL": "http://localhost:26657",
+        "TENDERMINT_COM_URL": "http://localhost:8080",
+        "ABCI_HOST": "localhost",
+    }
+}
 
-CONFIG_DIRECTORY = Path(os.getcwd()) / "deployments" / "build"
-PACKAGES_DIRECTORY = Path(os.getcwd()) / "packages"
+ROOT_DIR = Path(os.getcwd())
+CONFIG_DIRECTORY = ROOT_DIR / "deployments" / "build"
+PACKAGES_DIRECTORY = ROOT_DIR / "packages"
+
+DEPLOYMENT_SPEC_DIR = ROOT_DIR / "deployments" / "deployment_specifications"
+
+DEPLOYMENT_REPORT: Template = Template(
+    """
+Generated Deployment!\n\n
+Application:          $app
+Type:                 $type
+Agents:               $agents
+Network:              $network
+Build Length          $size\n\n
+"""
+)
+
+
+def get_key(key_ix: int) -> str:
+    """Retrieves the key from constants."""
+    return KEYS[key_ix]

@@ -18,15 +18,18 @@
 # ------------------------------------------------------------------------------
 
 """Tests for valory/price_estimation_abci skill's behaviours."""
-
+import copy
 import json
 import time
 from pathlib import Path
-from typing import cast
+from typing import Any, Dict, Union, cast
 from unittest import mock
 
-from aea.helpers.transaction.base import RawTransaction
+import pytest
+from aea.exceptions import AEAEnforceError
+from aea.helpers.transaction.base import RawTransaction, SignedMessage
 
+from packages.open_aea.protocols.signing import SigningMessage
 from packages.valory.contracts.gnosis_safe.contract import (
     PUBLIC_ID as GNOSIS_SAFE_CONTRACT_ID,
 )
@@ -40,6 +43,7 @@ from packages.valory.skills.price_estimation_abci.behaviours import (
     EstimateBehaviour,
     ObserveBehaviour,
     TransactionHashBehaviour,
+    pack_for_server,
 )
 from packages.valory.skills.price_estimation_abci.payloads import ObservationPayload
 from packages.valory.skills.price_estimation_abci.rounds import Event
@@ -259,13 +263,108 @@ class TestEstimateBehaviour(PriceEstimationFSMBehaviourBaseCase):
         assert state.state_id == TransactionHashBehaviour.state_id
 
 
+def mock_to_server_message_flow(
+    self: "TestTransactionHashBehaviour",
+    this_period_count: int,
+    prev_tx_hash: str,
+) -> None:
+    """Mock to server message flow"""
+
+    self.behaviour.context.logger.info("Mocking to server message flow")
+    # note that although this is a dict, order matters for the test
+    data = {
+        "period_count": this_period_count,
+        "agent_address": "test_agent_address",
+        "estimate": 1.0,
+        "prev_tx_hash": prev_tx_hash,
+        "observations": {"agent1": 0.0},
+        "data_source": "coinbase",
+        "unit": "BTC:USD",
+    }
+    state = self.behaviour.current_state  # type: ignore
+    participants = state.period_state.sorted_participants  # type: ignore
+    decimals = state.params.oracle_params["decimals"]  # type: ignore
+    data["package"] = pack_for_server(participants, decimals, **data).hex()  # type: ignore
+    data["signature"] = "stub_signature"
+
+    request_kwargs: Dict[str, Union[str, bytes]] = dict(
+        method="POST",
+        url="http://192.168.2.17:9999/deposit",
+        headers="",
+        version="",
+        body=str(data).encode("utf-8"),
+    )
+
+    response_kwargs = dict(
+        version="",
+        status_code=201,
+        status_text="",
+        headers="",
+        body=b"",
+    )
+
+    # mock signature acquisition
+    self.behaviour.act_wrapper()
+    self.mock_signing_request(
+        request_kwargs=dict(
+            performative=SigningMessage.Performative.SIGN_MESSAGE,
+        ),
+        response_kwargs=dict(
+            performative=SigningMessage.Performative.SIGNED_MESSAGE,
+            signed_message=SignedMessage(ledger_id="ethereum", body="stub_signature"),
+        ),
+    )
+
+    self.behaviour.act_wrapper()
+    self.mock_http_request(request_kwargs, response_kwargs)
+    self.behaviour.act_wrapper()
+
+
+def get_valid_server_data() -> Dict[str, Any]:
+    """Get valid server data"""
+
+    participants = [
+        "0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC",
+        "0x70997970C51812dc3A010C7d01b50e0d17dc79C8",
+        "0x90F79bf6EB2c4f870365E785982E1f101E93b906",
+        "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
+    ]
+    period_count = 123456789
+    estimate = 43974.960019901744
+    observations = {
+        "0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC": 44251.11,
+        "0x70997970C51812dc3A010C7d01b50e0d17dc79C8": 43964.3900398035,
+        "0x90F79bf6EB2c4f870365E785982E1f101E93b906": 43985.53,
+        "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266": 43949.0,
+    }
+    data_source = "coinbase"
+    unit = "BTC:USD"
+    return dict(
+        participants=participants,
+        period_count=period_count,
+        estimate=estimate,
+        observations=observations,
+        data_source=data_source,
+        unit=unit,
+    )
+
+
+@pytest.mark.parametrize(
+    "broadcast_to_server, this_period_count", ((True, 0), (False, 0), (True, 1))
+)
 class TestTransactionHashBehaviour(PriceEstimationFSMBehaviourBaseCase):
     """Test TransactionHashBehaviour."""
 
     def test_estimate(
         self,
+        broadcast_to_server: bool,
+        this_period_count: int,
     ) -> None:
         """Test estimate behaviour."""
+
+        # change setting, mock message flow with and without broadcast to server
+        state_params = self.behaviour.current_state.params  # type: ignore
+        state_params.is_broadcasting_to_server = broadcast_to_server  # type: ignore
 
         self.fast_forward_to_state(
             behaviour=self.behaviour,
@@ -315,6 +414,28 @@ class TestTransactionHashBehaviour(PriceEstimationFSMBehaviourBaseCase):
                 ),
             ),
         )
+
+        tx_hashes = ["", "0x_prev_cycle_tx_hash"]
+        period_state = self.behaviour.current_state.period_state  # type: ignore
+        period_data = period_state.db.get_all()
+        period_data.update(
+            {
+                "participants": {"agent1"},
+                "participant_to_observations": {"agent1": 1.0},
+                "most_voted_estimate": 1.0,
+                "tx_hashes_history": [tx_hashes[1]],
+            }
+        )
+
+        # add new cycle, and dummy period data
+        period_state.db._current_period_count = this_period_count  # type: ignore
+        next_period_data = copy.deepcopy(period_data)
+        next_period_data["tx_hashes_history"] = [tx_hashes[0]]
+        period_state.db.add_new_period(
+            this_period_count,
+            **period_data,
+        )
+
         self.mock_contract_api_request(
             request_kwargs=dict(
                 performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,
@@ -331,8 +452,51 @@ class TestTransactionHashBehaviour(PriceEstimationFSMBehaviourBaseCase):
                 ),
             ),
         )
+
+        if broadcast_to_server:
+            tx_hash = tx_hashes[this_period_count]
+            mock_to_server_message_flow(self, this_period_count, tx_hash)
+
         self.mock_a2a_transaction()
         self._test_done_flag_set()
         self.end_round(Event.DONE)
         state = cast(BaseState, self.behaviour.current_state)
         assert state.state_id == RandomnessTransactionSubmissionBehaviour.state_id
+
+
+class TestPackForServer(PriceEstimationFSMBehaviourBaseCase):
+    """Test packaging of data for signing by agents"""
+
+    @pytest.mark.parametrize(
+        "mutation, remains_valid",
+        (
+            ({}, True),  # do nothing
+            ({"participants": ("",) * 4}, True),
+            ({"period_count": (1 << 256) - 1}, True),
+            ({"period_count": 1 << 256}, False),
+            ({"estimate": f"{'9'*30}.{'9'*1}"}, True),
+            ({"estimate": f"{'9'*30}.{'9'*2}"}, False),
+            ({"data_source": "a" * 32}, True),
+            ({"data_source": "a" * 33}, False),
+            ({"unit": "a" * 32}, True),
+            ({"unit": "a" * 33}, False),
+        ),
+    )
+    def test_pack_for_server(
+        self,
+        mutation: Dict[str, Any],
+        remains_valid: bool,
+    ) -> None:
+        """Test packaging valid and invalid data"""
+
+        decimals = self.behaviour.current_state.params.oracle_params["decimals"]  # type: ignore
+        kwargs = get_valid_server_data()
+        kwargs.update({"decimals": decimals})
+        kwargs.update(mutation)
+
+        if remains_valid:
+            package = pack_for_server(**kwargs)
+            assert isinstance(package, bytes) and len(package) == 256
+        else:
+            with pytest.raises((OverflowError, AEAEnforceError)):
+                pack_for_server(**kwargs)

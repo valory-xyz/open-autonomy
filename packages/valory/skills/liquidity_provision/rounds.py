@@ -126,11 +126,6 @@ class PeriodState(
         """Get the final_enter_pool_tx_hash."""
         return cast(str, self.db.get_strict("final_tx_hash"))
 
-    @property
-    def safe_operation(self) -> Optional[str]:
-        """Get the gas data."""
-        return cast(Optional[str], self.db.get("safe_operation", None))
-
 
 class LiquidityProvisionAbstractRound(AbstractRound[Event, TransactionType], ABC):
     """Abstract round for the liquidity provision skill."""
