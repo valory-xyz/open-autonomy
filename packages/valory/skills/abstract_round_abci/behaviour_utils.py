@@ -323,8 +323,12 @@ class AsyncBehaviour(ABC):
         self.__state = self.AsyncState.READY
 
 
-class CleanUpBehaviour(ABC):
+class CleanUpBehaviour(SimpleBehaviour, ABC):
     """Class for clean-up related functionality of behaviours."""
+
+    def __init__(self, **kwargs: Any):  # pylint: disable=super-init-not-called
+        """Initialize a base state behaviour."""
+        SimpleBehaviour.__init__(self, **kwargs)
 
     def clean_up(self) -> None:
         """
@@ -342,9 +346,13 @@ class CleanUpBehaviour(ABC):
 
         :param message: the late arriving message to handle.
         """
+        request_nonce = message.dialogue_reference[0]
+        self.context.logger.warning(
+            f"callback not specified for request with nonce {request_nonce}"
+        )
 
 
-class BaseState(AsyncBehaviour, CleanUpBehaviour, SimpleBehaviour, ABC):
+class BaseState(AsyncBehaviour, CleanUpBehaviour, ABC):
     """Base class for FSM states."""
 
     is_programmatically_defined = True
@@ -355,8 +363,7 @@ class BaseState(AsyncBehaviour, CleanUpBehaviour, SimpleBehaviour, ABC):
     def __init__(self, **kwargs: Any):  # pylint: disable=super-init-not-called
         """Initialize a base state behaviour."""
         AsyncBehaviour.__init__(self)
-        CleanUpBehaviour.__init__(self)
-        SimpleBehaviour.__init__(self, **kwargs)
+        CleanUpBehaviour.__init__(self, **kwargs)
         self._is_done: bool = False
         self._is_started: bool = False
         enforce(self.state_id != "", "State id not set.")

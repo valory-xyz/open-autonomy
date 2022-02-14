@@ -208,10 +208,20 @@ Stop the execution of the behaviour.
 ## CleanUpBehaviour Objects
 
 ```python
-class CleanUpBehaviour(ABC)
+class CleanUpBehaviour(SimpleBehaviour,  ABC)
 ```
 
 Class for clean-up related functionality of behaviours.
+
+<a id="packages.valory.skills.abstract_round_abci.behaviour_utils.CleanUpBehaviour.__init__"></a>
+
+#### `__`init`__`
+
+```python
+def __init__(**kwargs: Any)
+```
+
+Initialize a base state behaviour.
 
 <a id="packages.valory.skills.abstract_round_abci.behaviour_utils.CleanUpBehaviour.clean_up"></a>
 
@@ -247,7 +257,7 @@ It can be optionally implemented by the concrete classes.
 ## BaseState Objects
 
 ```python
-class BaseState(AsyncBehaviour,  CleanUpBehaviour,  SimpleBehaviour,  ABC)
+class BaseState(AsyncBehaviour,  CleanUpBehaviour,  ABC)
 ```
 
 Base class for FSM states.
