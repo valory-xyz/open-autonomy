@@ -1557,6 +1557,10 @@ class AbciApp(
         next_events = list(self.transition_function.get(round_cls, {}).keys())
         for event in next_events:
             timeout = self.event_to_timeout.get(event, None)
+            # if first round, last_timestamp is None.
+            # This means we do not schedule timeout events,
+            # but we allow timeout events from the initial state
+            # in case of concatenation.
             if timeout is not None and self._last_timestamp is not None:
                 # last timestamp can be in the past relative to last seen block
                 # time if we're scheduling from within update_time
