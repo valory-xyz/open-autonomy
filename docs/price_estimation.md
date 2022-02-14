@@ -320,4 +320,385 @@ to see what the encoded state transitions in the final composite FSM look like.
     A sequence diagram that shows how AEAs communicate with their environment
     throughout the execution can be found [here](poc-diagram.md). However,
     it is not fully up-to-date with the implementation discussed here.
-    
+
+### Appendix: High-level description of the constituent FSMs.
+For reference, we provide a high-level descritpion of the automata that constitute the five FSMs of this proof of concept. The syntax should be easy to understand for a reader familiar with conventional automata textbook notation. Each FSM object is defined by a collection of seven input parameters:
+* label (optional),
+* states,
+* default start state,
+* allowed start states (e.g., when re-routing a transition from another FSM),
+* final states,
+* input alphabet (i.e., received events),
+* transition function, expressed as a function that maps tuples of the form (S, E) to the resulting state S'. That is, upon receiving event E being at state S, the FSM will transit to state S'.
+
+The summary of the FSMs is as follows:
+
+| FSM                     | States  | Start states  | Final states  | Events  | Non-trivial transitions   |
+|-----------------------  |-------: |-------------: |-------------: |-------: |------------------------:  |
+| AgentRegistration       |      4  |            2  |            2  |      3  |                       3   |
+| SafeDeployment          |      5  |            1  |            1  |      8  |                      14   |
+| OracleDeployment        |      5  |            1  |            1  |      8  |                      14   |
+| PriceAggregation        |      9  |            1  |            1  |      4  |                       9   |
+| TransactionSubmission   |     10  |            1  |            2  |      9  |                      26   |
+| **PriceEstimation**     | **21**  |        **2**  |        **0**  | **12**  |                  **66**   |
+
+#### `AgentRegistrationAbciApp` FSM
+```python
+AgentRegistrationAbciFsm = DFA(
+    label =
+        'AgentRegistrationAbciFsm',        
+    states = {
+        'RegistrationStartupRound',
+        'RegistrationRound',
+        'FinishedRegistrationRound',
+        'FinishedRegistrationFFWRound'        
+        },
+    defaultStartState =
+        'RegistrationStartupRound',
+    startStates = {
+        'RegistrationStartupRound',
+        'RegistrationRound'
+        },
+    finalStates = {
+        'FinishedRegistrationRound',
+        'FinishedRegistrationFFWRound'        
+        },
+    alphabetIn = {
+        'DONE',
+        'FAST_FORWARD',
+        'TIMEOUT'
+        },
+    transitionFunc = {
+        ('RegistrationStartupRound', 'DONE'): 'FinishedRegistrationRound',
+        ('RegistrationStartupRound', 'FAST_FORWARD'): 'FinishedRegistrationFFWRound',
+        ('RegistrationRound', 'DONE'): 'FinishedRegistrationFFWRound',                
+        }
+    )
+```
+
+#### `SafeDeploymentAbciApp` FSM
+```python
+SafeDeploymentAbciFsm = DFA(
+    label =
+        'SafeDeploymentAbciFsm',        
+    states = {
+        'RandomnessSafeRound',
+        'SelectKeeperSafeRound',
+        'DeploySafeRound',
+        'ValidateSafeRound',
+        'FinishedSafeRound'        
+        },
+    defaultStartState =
+        'RandomnessSafeRound',
+    startStates = {
+        'RandomnessSafeRound'
+        },
+    finalStates = {
+        'FinishedSafeRound',
+        },
+    alphabetIn = {
+        'DONE',
+        'NO_MAJORITY',
+        'ROUND_TIMEOUT',
+        'DEPLOY_TIMEOUT',
+        'VALIDATE_TIMEOUT',
+        'FAILED',
+        'NEGATIVE',
+        'NONE'
+        },
+    transitionFunc = {
+        ('RandomnessSafeRound', 'DONE'): 'SelectKeeperSafeRound',
+        ('RandomnessSafeRound', 'ROUND_TIMEOUT'): 'RandomnessSafeRound',
+        ('RandomnessSafeRound', 'NO_MAJORITY'): 'RandomnessSafeRound',                
+        ('SelectKeeperSafeRound', 'DONE'): 'DeploySafeRound',
+        ('SelectKeeperSafeRound', 'ROUND_TIMEOUT'): 'RandomnessSafeRound',
+        ('SelectKeeperSafeRound', 'NO_MAJORITY'): 'RandomnessSafeRound',
+        ('DeploySafeRound', 'DONE'): 'ValidateSafeRound',
+        ('DeploySafeRound', 'DEPLOY_TIMEOUT'): 'SelectKeeperSafeRound',
+        ('DeploySafeRound', 'FAILED'): 'SelectKeeperSafeRound',                
+        ('ValidateSafeRound', 'DONE'): 'FinishedSafeRound',
+        ('ValidateSafeRound', 'NEGATIVE'): 'RandomnessSafeRound',
+        ('ValidateSafeRound', 'NONE'): 'RandomnessSafeRound',
+        ('ValidateSafeRound', 'VALIDATE_TIMEOUT'): 'RandomnessSafeRound',
+        ('ValidateSafeRound', 'NO_MAJORITY'): 'RandomnessSafeRound'               
+        }
+    )
+```
+
+#### `OracleDeploymentAbciApp` FSM
+```python
+OracleDeploymentAbciFsm = DFA(
+    label =
+        'OracleDeploymentAbciFsm',        
+    states = {
+        'RandomnessOracleRound',
+        'SelectKeeperOracleRound',
+        'DeployOracleRound',
+        'ValidateOracleRound',
+        'FinishedOracleRound'  
+        },
+    defaultStartState =
+        'RandomnessOracleRound',
+    startStates = {
+        'RandomnessOracleRound'
+        },        
+    finalStates = {
+        'FinishedOracleRound'
+        },
+    alphabetIn = {
+        'DONE',
+        'ROUND_TIMEOUT',
+        'DEPLOY_TIMEOUT',
+        'VALIDATE_TIMEOUT',
+        'FAILED',
+        'NEGATIVE',
+        'NONE',
+        'NO_MAJORITY'
+        },
+    transitionFunc = {
+        ('RandomnessOracleRound', 'DONE'): 'SelectKeeperOracleRound',
+        ('RandomnessOracleRound', 'ROUND_TIMEOUT'): 'RandomnessOracleRound',
+        ('RandomnessOracleRound', 'NO_MAJORITY'): 'RandomnessOracleRound',                
+        ('SelectKeeperOracleRound', 'DONE'): 'DeployOracleRound',
+        ('SelectKeeperOracleRound', 'ROUND_TIMEOUT'): 'RandomnessOracleRound',
+        ('SelectKeeperOracleRound', 'NO_MAJORITY'): 'RandomnessOracleRound',
+        ('DeployOracleRound', 'DONE'): 'ValidateOracleRound',
+        ('DeployOracleRound', 'DEPLOY_TIMEOUT'): 'SelectKeeperOracleRound',
+        ('DeployOracleRound', 'FAILED'): 'SelectKeeperOracleRound',
+        ('ValidateOracleRound', 'DONE'): 'FinishedOracleRound',
+        ('ValidateOracleRound', 'NEGATIVE'): 'RandomnessOracleRound',
+        ('ValidateOracleRound', 'NONE'): 'RandomnessOracleRound',
+        ('ValidateOracleRound', 'VALIDATE_TIMEOUT'): 'RandomnessOracleRound',
+        ('ValidateOracleRound', 'NO_MAJORITY'): 'RandomnessOracleRound'
+        }
+    )
+```
+
+#### `PriceAggregationAbciApp` FSM
+```python
+PriceAggregationAbciFsm = DFA(
+    label =
+        'PriceAggregationAbciFsm',        
+    states = {
+        'CollectObservationRound',
+        'EstimateConsensusRound',
+        'TxHashRound',
+        'FinishedPriceAggregationRound'        
+        },
+    defaultStartState =
+        'CollectObservationRound',
+    startStates = {
+        'CollectObservationRound'
+        },
+    finalStates = {
+        'FinishedPriceAggregationRound'  
+        },
+    alphabetIn = {
+        'DONE',
+        'ROUND_TIMEOUT',
+        'NO_MAJORITY',
+        'NONE'
+        },
+    transitionFunc = {
+        ('CollectObservationRound', 'DONE'): 'EstimateConsensusRound',
+        ('CollectObservationRound', 'ROUND_TIMEOUT'): 'CollectObservationRound',
+        ('EstimateConsensusRound', 'DONE'): 'TxHashRound',
+        ('EstimateConsensusRound', 'ROUND_TIMEOUT'): 'CollectObservationRound',
+        ('EstimateConsensusRound', 'NO_MAJORITY'): 'CollectObservationRound',
+        ('TxHashRound', 'DONE'): 'FinishedPriceAggregationRound',
+        ('TxHashRound', 'NONE'): 'CollectObservationRound',
+        ('TxHashRound', 'ROUND_TIMEOUT'): 'CollectObservationRound',                            
+        ('TxHashRound', 'NO_MAJORITY'): 'CollectObservationRound'
+        }
+    )
+```
+
+#### `TransactionSubmissionAbciApp` FSM
+```python
+TransactionSubmissionAbciFsm = DFA(
+    label =
+        'TransactionSubmissionAbciFsm',        
+    states = {
+        'RandomnessTransactionSubmissionRound',
+        'SelectKeeperTransactionSubmissionRoundA',
+        'CollectSignatureRound',
+        'FinalizationRound',
+        'ValidateTransactionRound',
+        'SelectKeeperTransactionSubmissionRoundB',
+        'ResetRound',
+        'ResetAndPauseRound',
+        'FinishedTransactionSubmissionRound',
+        'FailedRound'
+        },
+    defaultStartState =
+        'RandomnessTransactionSubmissionRound',
+    startStates = {
+        'RandomnessTransactionSubmissionRound'
+        },        
+    finalStates = {
+        'FinishedTransactionSubmissionRound',
+        'FailedRound'        
+        },
+    alphabetIn = {
+        'DONE',
+        'ROUND_TIMEOUT',
+        'NO_MAJORITY',
+        'FAILED',
+        'NEGATIVE',
+        'NONE',
+        'VALIDATE_TIMEOUT',
+        'RESET_TIMEOUT',        
+        'NO_MAJORITY',
+        'RESET_AND_PAUSE_TIMEOUT'
+        },
+    transitionFunc = {
+        ('RandomnessTransactionSubmissionRound', 'DONE'): 'SelectKeeperTransactionSubmissionRoundA',
+        ('RandomnessTransactionSubmissionRound', 'ROUND_TIMEOUT'): 'ResetRound',
+        ('RandomnessTransactionSubmissionRound', 'NO_MAJORITY'): 'RandomnessTransactionSubmissionRound',                
+        ('SelectKeeperTransactionSubmissionRoundA', 'DONE'): 'CollectSignatureRound',
+        ('SelectKeeperTransactionSubmissionRoundA', 'ROUND_TIMEOUT'): 'ResetRound',
+        ('SelectKeeperTransactionSubmissionRoundA', 'NO_MAJORITY'): 'ResetRound',
+        ('CollectSignatureRound', 'DONE'): 'FinalizationRound',
+        ('CollectSignatureRound', 'ROUND_TIMEOUT'): 'ResetRound',
+        ('CollectSignatureRound', 'NO_MAJORITY'): 'ResetRound',
+        ('FinalizationRound', 'DONE'): 'ValidateTransactionRound',
+        ('FinalizationRound', 'ROUND_TIMEOUT'): 'SelectKeeperTransactionSubmissionRoundB',
+        ('FinalizationRound', 'FAILED'): 'SelectKeeperTransactionSubmissionRoundB',
+        ('ValidateTransactionRound', 'DONE'): 'ResetAndPauseRound',
+        ('ValidateTransactionRound', 'NEGATIVE'): 'ResetRound',
+        ('ValidateTransactionRound', 'NONE'): 'ResetRound',
+        ('ValidateTransactionRound', 'VALIDATE_TIMEOUT'): 'FinalizationRound',
+        ('ValidateTransactionRound', 'NO_MAJORITY'): 'ValidateTransactionRound',
+        ('SelectKeeperTransactionSubmissionRoundB', 'DONE'): 'FinalizationRound',
+        ('SelectKeeperTransactionSubmissionRoundB', 'ROUND_TIMEOUT'): 'ResetRound',
+        ('SelectKeeperTransactionSubmissionRoundB', 'NO_MAJORITY'): 'ResetRound',
+        ('ResetRound', 'DONE'): 'RandomnessTransactionSubmissionRound',        
+        ('ResetRound', 'RESET_TIMEOUT'): 'FailedRound',
+        ('ResetRound', 'NO_MAJORITY'): 'FailedRound',
+        ('ResetAndPauseRound', 'DONE'): 'FinishedTransactionSubmissionRound',
+        ('ResetAndPauseRound', 'RESET_AND_PAUSE_TIMEOUT'): 'FailedRound',
+        ('ResetAndPauseRound', 'NO_MAJORITY'): 'FailedRound'
+        }
+    )
+```
+
+#### `PriceEstimationAbciApp` FSM
+```python
+PriceEstimationAbciFsm = DFA(
+    label =
+        'PriceEstimationAbciFsm',
+    states = {
+        'FinalizationRound',
+        'CollectObservationRound',
+        'ResetRound',
+        'RandomnessSafeRound',
+        'ValidateTransactionRound',
+        'DeployOracleRound',
+        'RandomnessTransactionSubmissionRound',
+        'EstimateConsensusRound',
+        'TxHashRound',
+        'DeploySafeRound',
+        'SelectKeeperSafeRound',
+        'RandomnessOracleRound',
+        'RegistrationRound',
+        'RegistrationStartupRound',
+        'SelectKeeperTransactionSubmissionRoundA',
+        'ResetAndPauseRound',
+        'ValidateSafeRound',
+        'SelectKeeperOracleRound',
+        'SelectKeeperTransactionSubmissionRoundB',
+        'CollectSignatureRound',
+        'ValidateOracleRound',
+        },
+    defaultStartState =
+        'RegistrationStartupRound',
+    startStates = {
+        'RegistrationRound',
+        'RegistrationStartupRound',
+        },
+    finalStates = {
+        },
+    alphabetIn = {
+        'DEPLOY_TIMEOUT',
+        'VALIDATE_TIMEOUT',
+        'NO_MAJORITY',
+        'RESET_TIMEOUT',
+        'FAILED',
+        'RESET_AND_PAUSE_TIMEOUT',
+        'DONE',
+        'TIMEOUT',
+        'FAST_FORWARD',
+        'NONE',
+        'ROUND_TIMEOUT',
+        'NEGATIVE',
+        },
+    transitionFunc = {
+        ('RegistrationStartupRound', 'DONE') : 'RandomnessSafeRound',
+        ('RegistrationStartupRound', 'FAST_FORWARD') : 'CollectObservationRound',
+        ('RegistrationRound', 'DONE') : 'CollectObservationRound',
+        ('RandomnessSafeRound', 'DONE') : 'SelectKeeperSafeRound',
+        ('RandomnessSafeRound', 'ROUND_TIMEOUT') : 'RandomnessSafeRound',
+        ('RandomnessSafeRound', 'NO_MAJORITY') : 'RandomnessSafeRound',
+        ('SelectKeeperSafeRound', 'DONE') : 'DeploySafeRound',
+        ('SelectKeeperSafeRound', 'ROUND_TIMEOUT') : 'RandomnessSafeRound',
+        ('SelectKeeperSafeRound', 'NO_MAJORITY') : 'RandomnessSafeRound',
+        ('DeploySafeRound', 'DONE') : 'ValidateSafeRound',
+        ('DeploySafeRound', 'DEPLOY_TIMEOUT') : 'SelectKeeperSafeRound',
+        ('DeploySafeRound', 'FAILED') : 'SelectKeeperSafeRound',
+        ('ValidateSafeRound', 'DONE') : 'RandomnessOracleRound',
+        ('ValidateSafeRound', 'NEGATIVE') : 'RandomnessSafeRound',
+        ('ValidateSafeRound', 'NONE') : 'RandomnessSafeRound',
+        ('ValidateSafeRound', 'VALIDATE_TIMEOUT') : 'RandomnessSafeRound',
+        ('ValidateSafeRound', 'NO_MAJORITY') : 'RandomnessSafeRound',
+        ('RandomnessOracleRound', 'DONE') : 'SelectKeeperOracleRound',
+        ('RandomnessOracleRound', 'ROUND_TIMEOUT') : 'RandomnessOracleRound',
+        ('RandomnessOracleRound', 'NO_MAJORITY') : 'RandomnessOracleRound',
+        ('SelectKeeperOracleRound', 'DONE') : 'DeployOracleRound',
+        ('SelectKeeperOracleRound', 'ROUND_TIMEOUT') : 'RandomnessOracleRound',
+        ('SelectKeeperOracleRound', 'NO_MAJORITY') : 'RandomnessOracleRound',
+        ('DeployOracleRound', 'DONE') : 'ValidateOracleRound',
+        ('DeployOracleRound', 'DEPLOY_TIMEOUT') : 'SelectKeeperOracleRound',
+        ('DeployOracleRound', 'FAILED') : 'SelectKeeperOracleRound',
+        ('ValidateOracleRound', 'DONE') : 'CollectObservationRound',
+        ('ValidateOracleRound', 'NEGATIVE') : 'RandomnessOracleRound',
+        ('ValidateOracleRound', 'NONE') : 'RandomnessOracleRound',
+        ('ValidateOracleRound', 'VALIDATE_TIMEOUT') : 'RandomnessOracleRound',
+        ('ValidateOracleRound', 'NO_MAJORITY') : 'RandomnessOracleRound',
+        ('CollectObservationRound', 'DONE') : 'EstimateConsensusRound',
+        ('CollectObservationRound', 'ROUND_TIMEOUT') : 'CollectObservationRound',
+        ('EstimateConsensusRound', 'DONE') : 'TxHashRound',
+        ('EstimateConsensusRound', 'ROUND_TIMEOUT') : 'CollectObservationRound',
+        ('EstimateConsensusRound', 'NO_MAJORITY') : 'CollectObservationRound',
+        ('TxHashRound', 'DONE') : 'RandomnessTransactionSubmissionRound',
+        ('TxHashRound', 'NONE') : 'CollectObservationRound',
+        ('TxHashRound', 'ROUND_TIMEOUT') : 'CollectObservationRound',
+        ('TxHashRound', 'NO_MAJORITY') : 'CollectObservationRound',
+        ('RandomnessTransactionSubmissionRound', 'DONE') : 'SelectKeeperTransactionSubmissionRoundA',
+        ('RandomnessTransactionSubmissionRound', 'ROUND_TIMEOUT') : 'ResetRound',
+        ('RandomnessTransactionSubmissionRound', 'NO_MAJORITY') : 'RandomnessTransactionSubmissionRound',
+        ('SelectKeeperTransactionSubmissionRoundA', 'DONE') : 'CollectSignatureRound',
+        ('SelectKeeperTransactionSubmissionRoundA', 'ROUND_TIMEOUT') : 'ResetRound',
+        ('SelectKeeperTransactionSubmissionRoundA', 'NO_MAJORITY') : 'ResetRound',
+        ('CollectSignatureRound', 'DONE') : 'FinalizationRound',
+        ('CollectSignatureRound', 'ROUND_TIMEOUT') : 'ResetRound',
+        ('CollectSignatureRound', 'NO_MAJORITY') : 'ResetRound',
+        ('FinalizationRound', 'DONE') : 'ValidateTransactionRound',
+        ('FinalizationRound', 'ROUND_TIMEOUT') : 'SelectKeeperTransactionSubmissionRoundB',
+        ('FinalizationRound', 'FAILED') : 'SelectKeeperTransactionSubmissionRoundB',
+        ('ValidateTransactionRound', 'DONE') : 'ResetAndPauseRound',
+        ('ValidateTransactionRound', 'NEGATIVE') : 'ResetRound',
+        ('ValidateTransactionRound', 'NONE') : 'ResetRound',
+        ('ValidateTransactionRound', 'VALIDATE_TIMEOUT') : 'FinalizationRound',
+        ('ValidateTransactionRound', 'NO_MAJORITY') : 'ValidateTransactionRound',
+        ('SelectKeeperTransactionSubmissionRoundB', 'DONE') : 'FinalizationRound',
+        ('SelectKeeperTransactionSubmissionRoundB', 'ROUND_TIMEOUT') : 'ResetRound',
+        ('SelectKeeperTransactionSubmissionRoundB', 'NO_MAJORITY') : 'ResetRound',
+        ('ResetRound', 'DONE') : 'RandomnessTransactionSubmissionRound',
+        ('ResetRound', 'RESET_TIMEOUT') : 'RegistrationRound',
+        ('ResetRound', 'NO_MAJORITY') : 'RegistrationRound',
+        ('ResetAndPauseRound', 'DONE') : 'CollectObservationRound',
+        ('ResetAndPauseRound', 'RESET_AND_PAUSE_TIMEOUT') : 'RegistrationRound',
+        ('ResetAndPauseRound', 'NO_MAJORITY') : 'RegistrationRound',
+        }
+    )
+```    
