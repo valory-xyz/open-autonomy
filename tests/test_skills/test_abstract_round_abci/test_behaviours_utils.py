@@ -892,10 +892,23 @@ class TestBaseState:
     def test_default_callback_request_stopped(self) -> None:
         """Test 'default_callback_request' when stopped."""
         message = MagicMock()
+        current_state = self.behaviour
         with mock.patch.object(self.behaviour.context.logger, "debug") as info_mock:
-            self.behaviour.default_callback_request(message)
+            self.behaviour.get_callback_request()(message, current_state)
             info_mock.assert_called_with(
                 "dropping message as behaviour has stopped: %s", message
+            )
+
+    def test_default_callback_late_arriving_message(self, *_: Any) -> None:
+        """Test 'default_callback_request' when a message arrives late."""
+        self.behaviour._AsyncBehaviour__stopped = False  # type: ignore
+        message = MagicMock()
+        current_state = MagicMock()
+        with mock.patch.object(self.behaviour.context.logger, "warning") as info_mock:
+            self.behaviour.get_callback_request()(message, current_state)
+            info_mock.assert_called_with(
+                "No callback defined for request with nonce: "
+                f"{message.dialogue_reference.__getitem__()}"
             )
 
     def test_default_callback_request_waiting_message(self, *_: Any) -> None:
@@ -905,13 +918,19 @@ class TestBaseState:
             AsyncBehaviour.AsyncState.WAITING_MESSAGE
         )
         message = MagicMock()
-        self.behaviour.default_callback_request(message)
+        current_state = self.behaviour
+        self.behaviour.get_callback_request()(message, current_state)
 
     def test_default_callback_request_else(self, *_: Any) -> None:
         """Test 'default_callback_request' else branch."""
         self.behaviour._AsyncBehaviour__stopped = False  # type: ignore
         message = MagicMock()
-        self.behaviour.default_callback_request(message)
+        current_state = self.behaviour
+        with mock.patch.object(self.behaviour.context.logger, "warning") as info_mock:
+            self.behaviour.get_callback_request()(message, current_state)
+            info_mock.assert_called_with(
+                "could not send message to FSMBehaviour: %s", message
+            )
 
     def test_stop(self) -> None:
         """Test the stop method."""
