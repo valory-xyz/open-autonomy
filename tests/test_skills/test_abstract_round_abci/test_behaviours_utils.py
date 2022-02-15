@@ -899,6 +899,18 @@ class TestBaseState:
                 "dropping message as behaviour has stopped: %s", message
             )
 
+    def test_default_callback_late_arriving_message(self, *_: Any) -> None:
+        """Test 'default_callback_request' when a message arrives late."""
+        self.behaviour._AsyncBehaviour__stopped = False  # type: ignore
+        message = MagicMock()
+        current_state = MagicMock()
+        with mock.patch.object(self.behaviour.context.logger, "warning") as info_mock:
+            self.behaviour.get_callback_request()(message, current_state)
+            info_mock.assert_called_with(
+                "callback not specified for request with nonce "
+                f"{message.dialogue_reference.__getitem__()}"
+            )
+
     def test_default_callback_request_waiting_message(self, *_: Any) -> None:
         """Test 'default_callback_request' when waiting message."""
         self.behaviour._AsyncBehaviour__stopped = False  # type: ignore
