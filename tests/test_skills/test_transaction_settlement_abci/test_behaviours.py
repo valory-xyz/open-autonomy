@@ -26,7 +26,7 @@ import time
 from pathlib import Path
 from typing import Dict, Generator, List, Optional, Union, cast
 from unittest import mock
-from unittest.mock import patch
+from unittest.mock import patch, MagicMock
 
 import pytest
 from aea.exceptions import AEAActException
@@ -345,6 +345,33 @@ class TestFinalizeBehaviour(PriceEstimationFSMBehaviourBaseCase):
         self.end_round(TransactionSettlementEvent.DONE)
         state = cast(BaseState, self.behaviour.current_state)
         assert state.state_id == ValidateTransactionBehaviour.state_id
+
+    def test_handle_late_messages(self) -> None:
+        """Test `handle_late_messages.`"""
+        participants = frozenset({self.skill.skill_context.agent_address, "a_1", "a_2"})
+        self.fast_forward_to_state(
+            behaviour=self.behaviour,
+            state_id=FinalizeBehaviour.state_id,
+            period_state=TransactionSettlementPeriodState(
+                StateDB(
+                    initial_period=0,
+                    initial_data=dict(
+                        most_voted_keeper_address="most_voted_keeper_address",
+                        participants=participants,
+                    ),
+                )
+            ),
+        )
+        assert (
+            cast(
+                BaseState,
+                cast(BaseState, self.behaviour.current_state),
+            ).state_id
+            == FinalizeBehaviour.state_id
+        )
+
+        message = MagicMock()
+        self.behaviour.current_state.handle_late_messages(message)
 
 
 class TestValidateTransactionBehaviour(PriceEstimationFSMBehaviourBaseCase):
