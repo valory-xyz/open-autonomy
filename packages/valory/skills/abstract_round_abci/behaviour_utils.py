@@ -111,7 +111,6 @@ class AsyncBehaviour(ABC):
         READY = "ready"
         RUNNING = "running"
         WAITING_MESSAGE = "waiting_message"
-        WAITING_UNHANDLED_MESSAGE = "waiting_unhandled_message"
 
     def __init__(self) -> None:
         """Initialize the async behaviour."""
@@ -159,10 +158,7 @@ class AsyncBehaviour(ABC):
         :raises: SendException if the behaviour was not waiting for a message,
             or if it was already notified.
         """
-        in_waiting_message_state = self.__state in (
-            self.AsyncState.WAITING_MESSAGE,
-            self.AsyncState.WAITING_UNHANDLED_MESSAGE,
-        )
+        in_waiting_message_state = self.__state == self.AsyncState.WAITING_MESSAGE
         already_notified = self.__notified
         enforce(
             in_waiting_message_state and not already_notified,
@@ -207,7 +203,6 @@ class AsyncBehaviour(ABC):
         self,
         condition: Callable = lambda message: True,
         timeout: Optional[float] = None,
-        unhandled: bool = False,
     ) -> Any:
         """
         Wait for message.
@@ -217,7 +212,6 @@ class AsyncBehaviour(ABC):
 
         :param condition: a callable
         :param timeout: max time to wait (in seconds)
-        :param unhandled: if the message is unhandled by the behaviour.
         :return: a message
         :yield: None
         """
@@ -226,10 +220,7 @@ class AsyncBehaviour(ABC):
         else:
             deadline = datetime.datetime.max
 
-        if unhandled:
-            self.__state = self.AsyncState.WAITING_UNHANDLED_MESSAGE
-        else:
-            self.__state = self.AsyncState.WAITING_MESSAGE
+        self.__state = self.AsyncState.WAITING_MESSAGE
         try:
             message = None
             while message is None or not condition(message):
@@ -254,10 +245,7 @@ class AsyncBehaviour(ABC):
         if self.__state == self.AsyncState.READY:
             self.__call_act_first_time()
             return
-        if self.__state in (
-            self.AsyncState.WAITING_MESSAGE,
-            self.AsyncState.WAITING_UNHANDLED_MESSAGE,
-        ):
+        if self.__state == self.AsyncState.WAITING_MESSAGE:
             self.__handle_waiting_for_message()
             return
         enforce(self.__state == self.AsyncState.RUNNING, "not in 'RUNNING' state")
@@ -265,10 +253,7 @@ class AsyncBehaviour(ABC):
 
     def stop(self) -> None:
         """Stop the execution of the behaviour."""
-        if self.__stopped or self.__state in (
-            self.AsyncState.READY,
-            self.AsyncState.WAITING_UNHANDLED_MESSAGE,
-        ):
+        if self.__stopped or self.__state == self.AsyncState.READY:
             return
         self.__get_generator_act().close()
         self.__state = self.AsyncState.READY
@@ -875,31 +860,22 @@ class BaseState(AsyncBehaviour, CleanUpBehaviour, ABC):
 
         return False  # pragma: nocover
 
-    def get_callback_request(
-        self, unhandled: bool = False
-    ) -> Callable[[Message], None]:
+    def get_callback_request(self) -> Callable[[Message, BasePeriodState], None]:
         """Wrapper for callback request which depends on whether the message has not been handled on time.
 
-        :param unhandled: whether the message has not been handled on time.
         :return: the request callback.
         """
 
-        def callback_request(message: Message) -> None:
+        def callback_request(message: Message, current_state: BasePeriodState) -> None:
             """The callback request."""
             if self.is_stopped:
                 self.context.logger.debug(
                     "dropping message as behaviour has stopped: %s", message
                 )
-            elif (
-                self.state == AsyncBehaviour.AsyncState.WAITING_MESSAGE
-                and not unhandled
-            ) or (
-                self.state == AsyncBehaviour.AsyncState.WAITING_UNHANDLED_MESSAGE
-                and unhandled
-            ):
+            elif self.period_state != current_state:
+                self.handle_late_messages(message)
+            elif self.state == AsyncBehaviour.AsyncState.WAITING_MESSAGE:
                 self.try_send(message)
-                if unhandled:
-                    self.handle_late_messages(message)
             else:
                 self.context.logger.warning(
                     "could not send message to FSMBehaviour: %s", message
@@ -970,19 +946,9 @@ class BaseState(AsyncBehaviour, CleanUpBehaviour, ABC):
         cast(Requests, self.context.requests).request_id_to_callback[
             request_nonce
         ] = self.get_callback_request()
-        try:
-            response = yield from self.wait_for_message(timeout=timeout)
-            return response
-        finally:
-            # remove request id in case already timed out and replace it with backup callback,
-            # but notify caller by propagating exception.
-            popped = cast(Requests, self.context.requests).request_id_to_callback.pop(
-                request_nonce, None
-            )
-            if popped is not None:
-                cast(Requests, self.context.requests).request_id_to_backup_callback[
-                    request_nonce
-                ] = self.handle_late_messages
+        # notify caller by propagating potential timeout exception.
+        response = yield from self.wait_for_message(timeout=timeout)
+        return response
 
     def _build_http_request_message(
         self,

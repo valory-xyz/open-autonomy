@@ -155,7 +155,7 @@ The argument may be a floating point number for subsecond precision.
 #### wait`_`for`_`message
 
 ```python
-def wait_for_message(condition: Callable = lambda message: True, timeout: Optional[float] = None, unhandled: bool = False) -> Any
+def wait_for_message(condition: Callable = lambda message: True, timeout: Optional[float] = None) -> Any
 ```
 
 Wait for message.
@@ -167,7 +167,6 @@ Use directly after a request is being sent.
 
 - `condition`: a callable
 - `timeout`: max time to wait (in seconds)
-- `unhandled`: if the message is unhandled by the behaviour.
 
 **Returns**:
 
@@ -444,14 +443,10 @@ Do the act, supporting asynchronous execution.
 #### get`_`callback`_`request
 
 ```python
-def get_callback_request(unhandled: bool = False) -> Callable[[Message], None]
+def get_callback_request() -> Callable[[Message, BasePeriodState], None]
 ```
 
 Wrapper for callback request which depends on whether the message has not been handled on time.
-
-**Arguments**:
-
-- `unhandled`: whether the message has not been handled on time.
 
 **Returns**:
 

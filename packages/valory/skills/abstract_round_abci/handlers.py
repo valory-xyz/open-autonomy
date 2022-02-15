@@ -22,6 +22,7 @@ from abc import ABC
 from typing import Callable, FrozenSet, Optional, cast
 
 from aea.configurations.data_types import PublicId
+from aea.exceptions import AEAException
 from aea.protocols.base import Message
 from aea.protocols.dialogue.base import Dialogue, Dialogues
 from aea.skills.base import Handler
@@ -287,14 +288,20 @@ class AbstractResponseHandler(Handler, ABC):
 
         request_nonce = protocol_dialogue.dialogue_label.dialogue_reference[0]
         ctx_requests = cast(Requests, self.context.requests)
-        backup_callback = ctx_requests.request_id_to_backup_callback.pop(request_nonce)
-        callback = cast(
-            Callable,
-            ctx_requests.request_id_to_callback.pop(request_nonce, backup_callback),
-        )
+
+        try:
+            callback = cast(
+                Callable,
+                ctx_requests.request_id_to_callback.pop(request_nonce),
+            )
+        except KeyError as e:
+            raise AEAException(
+                f"No callback defined for request with nonce: {request_nonce}"
+            ) from e
 
         self._log_message_handling(message)
-        callback(message)
+        current_state = cast(SharedState, self.context.state).period_state
+        callback(message, current_state)
 
     def _get_dialogues_attribute_name(self) -> str:
         """
