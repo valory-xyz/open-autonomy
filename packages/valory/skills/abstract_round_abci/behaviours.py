@@ -279,10 +279,7 @@ class AbstractRoundBehaviour(
             self.current_state = self.instantiate_state_cls(self._next_state_cls)
             return
 
-        if (
-            self.context.state.period.syncing_up
-            and not current_state.can_rejoin_in_this_round
-        ):
+        if self.context.state.period.syncing_up:
             current_state.stop()
             self.current_state = self.instantiate_state_cls(self._next_state_cls)
             return

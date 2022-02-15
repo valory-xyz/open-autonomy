@@ -124,8 +124,6 @@ class RegistrationStartupBehaviour(RegistrationBaseBehaviour):
     state_id = "registration_startup"
     matching_round = RegistrationStartupRound
 
-    can_rejoin_in_this_round = True
-
 
 class RegistrationBehaviour(RegistrationBaseBehaviour):
     """Register to the next periods."""

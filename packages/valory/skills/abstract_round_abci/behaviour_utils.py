@@ -314,7 +314,6 @@ class BaseState(AsyncBehaviour, SimpleBehaviour, ABC):
     is_programmatically_defined = True
     state_id = ""
     matching_round: Optional[Type[AbstractRound]] = None
-    can_rejoin_in_this_round: bool = False
 
     _is_sync_complete: bool = False
     is_degenerate: bool = False
@@ -469,18 +468,12 @@ class BaseState(AsyncBehaviour, SimpleBehaviour, ABC):
                         self.context.logger.info(
                             "local height == remote; Sync complete..."
                         )
-                        break
+                        self.context.state.period.end_sync()
+                        return
 
                 except (json.JSONDecodeError, KeyError):  # pragma: nocover
                     yield from self.sleep(_SYNC_MODE_WAIT)
                     continue
-
-        if self._is_sync_complete and self.can_rejoin_in_this_round:
-            self.context.logger.info("Sync complete; Rejoining...")
-            self.context.state.period.end_sync()
-        else:
-            self.context.logger.info("Sync complete, But cannot rejoin this round.")
-            self.set_done()
 
     def _log_start(self) -> None:
         """Log the entering in the behaviour state."""
