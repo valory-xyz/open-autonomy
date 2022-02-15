@@ -176,6 +176,20 @@ Steps:
 - Otherwise, wait until the next round.
 - If a timeout is hit, set exit A event, otherwise set done event.
 
+<a id="packages.valory.skills.transaction_settlement_abci.behaviours.FinalizeBehaviour.handle_late_messages"></a>
+
+#### handle`_`late`_`messages
+
+```python
+def handle_late_messages(message: Message) -> None
+```
+
+Store a potentially late arriving message locally.
+
+**Arguments**:
+
+- `message`: the late arriving message to handle.
+
 <a id="packages.valory.skills.transaction_settlement_abci.behaviours.BaseResetBehaviour"></a>
 
 ## BaseResetBehaviour Objects

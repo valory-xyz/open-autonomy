@@ -25,6 +25,7 @@ import pprint
 from abc import ABC
 from typing import Dict, Generator, Optional, Set, Tuple, Type, Union, cast
 
+from aea.protocols.base import Message
 from web3.types import Nonce, TxData
 
 from packages.valory.contracts.gnosis_safe.contract import GnosisSafeContract
@@ -508,6 +509,13 @@ class FinalizeBehaviour(TransactionSettlementBaseState):
         self.params.tip = int(cast(str, tx_data["max_priority_fee_per_gas"]))
 
         return tx_data
+
+    def handle_late_messages(self, message: Message) -> None:
+        """Store a potentially late-arriving message locally.
+
+        :param message: the late arriving message to handle.
+        """
+        self.params.late_message = cast(ContractApiMessage, message)
 
 
 class BaseResetBehaviour(TransactionSettlementBaseState):
