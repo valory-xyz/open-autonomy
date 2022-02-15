@@ -184,7 +184,7 @@ Steps:
 def handle_late_messages(message: Message) -> None
 ```
 
-Store a potentially late arriving message locally.
+Store a potentially late-arriving message locally.
 
 **Arguments**:
 
