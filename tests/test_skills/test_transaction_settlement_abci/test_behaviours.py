@@ -26,7 +26,7 @@ import time
 from pathlib import Path
 from typing import Dict, Generator, List, Optional, Union, cast
 from unittest import mock
-from unittest.mock import patch, MagicMock
+from unittest.mock import MagicMock, patch
 
 import pytest
 from aea.exceptions import AEAActException
@@ -371,7 +371,7 @@ class TestFinalizeBehaviour(PriceEstimationFSMBehaviourBaseCase):
         )
 
         message = MagicMock()
-        self.behaviour.current_state.handle_late_messages(message)
+        cast(BaseState, self.behaviour.current_state).handle_late_messages(message)
 
 
 class TestValidateTransactionBehaviour(PriceEstimationFSMBehaviourBaseCase):
