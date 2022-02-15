@@ -519,8 +519,6 @@ class BaseResetBehaviour(TransactionSettlementBaseState):
     _timeout: float
     _is_healthy: bool = False
 
-    can_rejoin_in_this_round: bool = True
-
     def start_reset(self) -> Generator:
         """Start tendermint reset."""
         if self._check_started is None and not self._is_healthy:
