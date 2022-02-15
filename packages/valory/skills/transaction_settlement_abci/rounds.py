@@ -241,8 +241,35 @@ class SelectKeeperTransactionSubmissionRoundB(CollectSameUntilThresholdRound):
     selection_key = "most_voted_keeper_address"
 
 
-class BaseResetRound(CollectSameUntilThresholdRound):
-    """Base reset round"""
+class ResetRound(CollectSameUntilThresholdRound):
+    """A round that represents the reset of a period"""
+
+    round_id = "reset"
+    allowed_tx_type = ResetPayload.transaction_type
+    payload_attribute = "period_count"
+
+    def end_block(self) -> Optional[Tuple[BasePeriodState, Event]]:
+        """Process the end of the block."""
+        if self.threshold_reached:
+            state_data = self.period_state.db.get_all()
+            state_data["tx_hashes_history"] = None
+            state = self.period_state.update(
+                period_count=self.most_voted_payload, **state_data
+            )
+            return state, Event.DONE
+        if not self.is_majority_possible(
+            self.collection, self.period_state.nb_participants
+        ):
+            return self.period_state, Event.NO_MAJORITY
+        return None
+
+
+class ResetAndPauseRound(CollectSameUntilThresholdRound):
+    """A round that represents that consensus is reached (the final round)"""
+
+    round_id = "reset_and_pause"
+    allowed_tx_type = ResetPayload.transaction_type
+    payload_attribute = "period_count"
 
     def process_payload(self, payload: BaseTxPayload) -> None:
         """Process payload."""
@@ -273,37 +300,6 @@ class BaseResetRound(CollectSameUntilThresholdRound):
             raise TransactionNotValidError(
                 f"sender {payload.sender} has already sent value for round: {self.round_id}"
             )
-
-
-class ResetRound(BaseResetRound):
-    """A round that represents the reset of a period"""
-
-    round_id = "reset"
-    allowed_tx_type = ResetPayload.transaction_type
-    payload_attribute = "period_count"
-
-    def end_block(self) -> Optional[Tuple[BasePeriodState, Event]]:
-        """Process the end of the block."""
-        if self.threshold_reached:
-            state_data = self.period_state.db.get_all()
-            state_data["tx_hashes_history"] = None
-            state = self.period_state.update(
-                period_count=self.most_voted_payload, **state_data
-            )
-            return state, Event.DONE
-        if not self.is_majority_possible(
-            self.collection, self.period_state.nb_participants
-        ):
-            return self.period_state, Event.NO_MAJORITY
-        return None
-
-
-class ResetAndPauseRound(BaseResetRound):
-    """A round that represents that consensus is reached (the final round)"""
-
-    round_id = "reset_and_pause"
-    allowed_tx_type = ResetPayload.transaction_type
-    payload_attribute = "period_count"
 
     def end_block(self) -> Optional[Tuple[BasePeriodState, Event]]:
         """Process the end of the block."""

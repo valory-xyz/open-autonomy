@@ -114,7 +114,6 @@ class RegistrationRound(CollectDifferentUntilThresholdRound):
         ):
             state = self.period_state.update(
                 participants=frozenset(list(self.collection.keys())),
-                all_participants=frozenset(list(self.collection.keys())),
                 period_state_class=BasePeriodState,
             )
             return state, Event.DONE
