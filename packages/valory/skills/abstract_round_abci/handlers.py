@@ -22,7 +22,6 @@ from abc import ABC
 from typing import Callable, FrozenSet, Optional, cast
 
 from aea.configurations.data_types import PublicId
-from aea.exceptions import AEAException
 from aea.protocols.base import Message
 from aea.protocols.dialogue.base import Dialogue, Dialogues
 from aea.skills.base import Handler
@@ -35,6 +34,7 @@ from packages.valory.protocols.http import HttpMessage
 from packages.valory.protocols.ledger_api import LedgerApiMessage
 from packages.valory.skills.abstract_abci.handlers import ABCIHandler
 from packages.valory.skills.abstract_round_abci.base import (
+    ABCIAppInternalError,
     AddBlockError,
     ERROR_CODE,
     LateArrivingTransaction,
@@ -296,7 +296,7 @@ class AbstractResponseHandler(Handler, ABC):
                 ctx_requests.request_id_to_callback.pop(request_nonce),
             )
         except KeyError as e:
-            raise AEAException(
+            raise ABCIAppInternalError(
                 f"No callback defined for request with nonce: {request_nonce}"
             ) from e
 
