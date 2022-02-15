@@ -427,6 +427,7 @@ class BaseResetRound(CollectSameUntilThresholdRound, APYEstimationAbstractRound)
                 period_state_class=PeriodState,
                 period_count=self.most_voted_payload,
                 participants=self.period_state.participants,
+                all_participants=self.period_state.all_participants,
                 full_training=False,
                 n_estimations=self.period_state.n_estimations,
                 pair_name=self.period_state.pair_name,

@@ -254,7 +254,9 @@ class ResetRound(CollectSameUntilThresholdRound):
             state_data = self.period_state.db.get_all()
             state_data["tx_hashes_history"] = None
             state = self.period_state.update(
-                period_count=self.most_voted_payload, **state_data
+                period_count=self.most_voted_payload,
+                all_participants=self.period_state.all_participants,
+                **state_data,
             )
             return state, Event.DONE
         if not self.is_majority_possible(
