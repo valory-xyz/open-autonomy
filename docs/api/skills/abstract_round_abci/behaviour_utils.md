@@ -443,7 +443,7 @@ Do the act, supporting asynchronous execution.
 #### get`_`callback`_`request
 
 ```python
-def get_callback_request() -> Callable[[Message, BasePeriodState], None]
+def get_callback_request() -> Callable[[Message, "BaseState"], None]
 ```
 
 Wrapper for callback request which depends on whether the message has not been handled on time.

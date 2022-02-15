@@ -44,6 +44,7 @@ from packages.valory.skills.abstract_round_abci.base import (
     TransactionNotValidError,
     TransactionTypeNotRecognizedError,
 )
+from packages.valory.skills.abstract_round_abci.behaviours import AbstractRoundBehaviour
 from packages.valory.skills.abstract_round_abci.dialogues import AbciDialogue
 from packages.valory.skills.abstract_round_abci.models import Requests, SharedState
 
@@ -300,7 +301,9 @@ class AbstractResponseHandler(Handler, ABC):
             ) from e
 
         self._log_message_handling(message)
-        current_state = cast(SharedState, self.context.state).period_state
+        current_state = cast(
+            AbstractRoundBehaviour, self.context.behaviours.main
+        ).current_state
         callback(message, current_state)
 
     def _get_dialogues_attribute_name(self) -> str:

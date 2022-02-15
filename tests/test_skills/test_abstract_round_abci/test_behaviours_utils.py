@@ -892,7 +892,7 @@ class TestBaseState:
     def test_default_callback_request_stopped(self) -> None:
         """Test 'default_callback_request' when stopped."""
         message = MagicMock()
-        current_state = self.context_state_period_state_mock
+        current_state = self.behaviour
         with mock.patch.object(self.behaviour.context.logger, "debug") as info_mock:
             self.behaviour.get_callback_request()(message, current_state)
             info_mock.assert_called_with(
@@ -907,7 +907,7 @@ class TestBaseState:
         with mock.patch.object(self.behaviour.context.logger, "warning") as info_mock:
             self.behaviour.get_callback_request()(message, current_state)
             info_mock.assert_called_with(
-                "callback not specified for request with nonce "
+                "No callback defined for request with nonce: "
                 f"{message.dialogue_reference.__getitem__()}"
             )
 
@@ -918,14 +918,14 @@ class TestBaseState:
             AsyncBehaviour.AsyncState.WAITING_MESSAGE
         )
         message = MagicMock()
-        current_state = self.context_state_period_state_mock
+        current_state = self.behaviour
         self.behaviour.get_callback_request()(message, current_state)
 
     def test_default_callback_request_else(self, *_: Any) -> None:
         """Test 'default_callback_request' else branch."""
         self.behaviour._AsyncBehaviour__stopped = False  # type: ignore
         message = MagicMock()
-        current_state = self.context_state_period_state_mock
+        current_state = self.behaviour
         with mock.patch.object(self.behaviour.context.logger, "warning") as info_mock:
             self.behaviour.get_callback_request()(message, current_state)
             info_mock.assert_called_with(

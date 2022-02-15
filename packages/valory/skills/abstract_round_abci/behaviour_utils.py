@@ -860,19 +860,19 @@ class BaseState(AsyncBehaviour, CleanUpBehaviour, ABC):
 
         return False  # pragma: nocover
 
-    def get_callback_request(self) -> Callable[[Message, BasePeriodState], None]:
+    def get_callback_request(self) -> Callable[[Message, "BaseState"], None]:
         """Wrapper for callback request which depends on whether the message has not been handled on time.
 
         :return: the request callback.
         """
 
-        def callback_request(message: Message, current_state: BasePeriodState) -> None:
+        def callback_request(message: Message, current_state: BaseState) -> None:
             """The callback request."""
             if self.is_stopped:
                 self.context.logger.debug(
                     "dropping message as behaviour has stopped: %s", message
                 )
-            elif self.period_state != current_state:
+            elif self != current_state:
                 self.handle_late_messages(message)
             elif self.state == AsyncBehaviour.AsyncState.WAITING_MESSAGE:
                 self.try_send(message)
