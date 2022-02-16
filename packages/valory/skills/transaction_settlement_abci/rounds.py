@@ -28,6 +28,7 @@ from packages.valory.skills.abstract_round_abci.base import (
     AppState,
     BasePeriodState,
     CollectDifferentUntilThresholdRound,
+    CollectNonEmptyUntilThresholdRound,
     CollectSameUntilThresholdRound,
     DegenerateRound,
     OnlyKeeperSendsRound,
@@ -44,6 +45,7 @@ from packages.valory.skills.transaction_settlement_abci.payloads import (
     ResetPayload,
     SelectKeeperPayload,
     SignaturePayload,
+    SynchronizeLateMessagesPayload,
     ValidatePayload,
 )
 
@@ -60,8 +62,8 @@ class Event(Enum):
     RESET_TIMEOUT = "reset_timeout"
     RESET_AND_PAUSE_TIMEOUT = "reset_and_pause_timeout"
     CHECK_HISTORY = "check_history"
+    CHECK_LATE_ARRIVING_MESSAGE = "check_late_arriving_message"
     FAILED = "failed"
-    FATAL = "fatal"
 
 
 class PeriodState(BasePeriodState):  # pylint: disable=too-many-instance-attributes
@@ -111,6 +113,11 @@ class PeriodState(BasePeriodState):  # pylint: disable=too-many-instance-attribu
     def is_final_tx_hash_set(self) -> bool:
         """Check if most_voted_estimate is set."""
         return self.tx_hashes_history is not None
+
+    @property
+    def late_arriving_tx_hashes(self) -> List[str]:
+        """Get the late_arriving_tx_hashes."""
+        return cast(List[str], self.db.get_strict("late_arriving_tx_hashes"))
 
 
 class FinishedRegistrationRound(DegenerateRound):
@@ -191,7 +198,7 @@ class FinalizationRound(OnlyKeeperSendsRound):
                 )
                 if cast(PeriodState, self.period_state).tx_hashes_history is not None:
                     return state, Event.CHECK_HISTORY
-                return state, Event.FATAL
+                return state, Event.CHECK_LATE_ARRIVING_MESSAGE
 
             if self.keeper_payload is None or self.keeper_payload["tx_digest"] == "":
                 return self.period_state, Event.FAILED
@@ -365,6 +372,30 @@ class CheckTransactionHistoryRound(CollectSameUntilThresholdRound):
         return None
 
 
+class CheckLateTxHashesRound(CheckTransactionHistoryRound):
+    """A round in which agents check the late-arriving transaction hashes to see if any of them has been validated"""
+
+    round_id = "check_late_tx_hashes"
+    allowed_tx_type = CheckTransactionHistoryPayload.transaction_type
+    payload_attribute = "verified_res"
+    period_state_class = PeriodState
+    selection_key = "most_voted_check_result"
+
+
+class SynchronizeLateMessagesRound(CollectNonEmptyUntilThresholdRound):
+    """A round in which agents synchronize potentially late arriving messages"""
+
+    round_id = "synchronize_late_messages"
+    allowed_tx_type = SynchronizeLateMessagesPayload.transaction_type
+    payload_attribute = "tx_hash"
+    period_state_class = PeriodState
+    done_event = Event.DONE
+    no_majority_event = Event.NO_MAJORITY
+    none_event = Event.NONE
+    selection_key = "participant"
+    collection_key = "late_arriving_tx_hashes"
+
+
 class TransactionSubmissionAbciApp(AbciApp[Event]):
     """TransactionSubmissionAbciApp
 
@@ -447,7 +478,7 @@ class TransactionSubmissionAbciApp(AbciApp[Event]):
             Event.CHECK_HISTORY: CheckTransactionHistoryRound,
             Event.ROUND_TIMEOUT: SelectKeeperTransactionSubmissionRoundB,
             Event.FAILED: SelectKeeperTransactionSubmissionRoundB,
-            Event.FATAL: FailedRound,
+            Event.CHECK_LATE_ARRIVING_MESSAGE: SynchronizeLateMessagesRound,
         },
         ValidateTransactionRound: {
             Event.DONE: ResetAndPauseRound,
@@ -467,6 +498,19 @@ class TransactionSubmissionAbciApp(AbciApp[Event]):
             Event.DONE: FinalizationRound,
             Event.ROUND_TIMEOUT: ResetRound,
             Event.NO_MAJORITY: ResetRound,
+        },
+        SynchronizeLateMessagesRound: {
+            Event.DONE: CheckLateTxHashesRound,
+            Event.ROUND_TIMEOUT: SynchronizeLateMessagesRound,
+            Event.NO_MAJORITY: SynchronizeLateMessagesRound,
+            Event.NONE: FailedRound,
+        },
+        CheckLateTxHashesRound: {
+            Event.DONE: ResetAndPauseRound,
+            Event.NEGATIVE: FailedRound,
+            Event.NONE: FailedRound,
+            Event.ROUND_TIMEOUT: CheckLateTxHashesRound,
+            Event.NO_MAJORITY: FailedRound,
         },
         ResetRound: {
             Event.DONE: RandomnessTransactionSubmissionRound,
