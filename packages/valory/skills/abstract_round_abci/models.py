@@ -55,7 +55,9 @@ class BaseParams(Model):  # pylint: disable=too-many-instance-attributes
         self.drand_public_key = self._ensure("drand_public_key", kwargs)
         self.tendermint_com_url = self._ensure("tendermint_com_url", kwargs)
         self.tendermint_max_retries = self._ensure("tendermint_max_retries", kwargs)
-        self.tendermint_check_sleep_delay = self._ensure("tendermint_check_sleep_delay", kwargs)
+        self.tendermint_check_sleep_delay = self._ensure(
+            "tendermint_check_sleep_delay", kwargs
+        )
         self.reset_tendermint_after = self._ensure("reset_tendermint_after", kwargs)
         self.consensus_params = ConsensusParams.from_json(kwargs.pop("consensus", {}))
         period_setup_params = kwargs.pop("period_setup", {})
