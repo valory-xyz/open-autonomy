@@ -172,7 +172,7 @@ class SynchronizeLateMessagesPayload(BaseTxPayload):
     def __init__(
         self,
         sender: str,
-        tx_hash: Optional[str] = None,
+        tx_hash: str = "",
         id_: Optional[str] = None,
     ) -> None:
         """Initialize a 'synchronize' transaction payload.
@@ -187,12 +187,12 @@ class SynchronizeLateMessagesPayload(BaseTxPayload):
     @property
     def tx_hash(self) -> Optional[str]:
         """Get the late-arriving tx hash."""
-        return self._tx_hash
+        return None if self._tx_hash == "" else self._tx_hash
 
     @property
     def data(self) -> Dict[str, Optional[str]]:
         """Get the data."""
-        return dict(tx_hash=self.tx_hash)
+        return dict(tx_hash=self._tx_hash)
 
 
 class SignaturePayload(BaseTxPayload):

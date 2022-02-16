@@ -400,12 +400,11 @@ class SynchronizeLateMessagesBehaviour(TransactionSettlementBaseState):
         with benchmark_tool.measure(
             self,
         ).local():
-            tx_hash = None
+            tx_hash = ""
 
             if self.params.late_message is not None:
                 tx_data = yield from self._get_tx_data(self.params.late_message)
                 tx_hash = cast(str, tx_data["tx_digest"])
-                tx_hash = None if tx_hash == "" else tx_hash
 
             payload = SynchronizeLateMessagesPayload(
                 self.context.agent_address, tx_hash
