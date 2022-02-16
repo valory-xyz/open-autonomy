@@ -73,12 +73,29 @@ class TendermintHealthcheckBehaviour(BaseState):
         if not self._is_healthy:
             health = yield from self._get_health()
             try:
-                json.loads(health.body.decode())
+                json_body = json.loads(health.body.decode())
             except json.JSONDecodeError:
                 self.context.logger.error("Tendermint not running yet, trying again!")
                 yield from self.sleep(self.params.sleep_time)
                 return
             self._is_healthy = True
+        status = yield from self._get_status()
+        try:
+            json_body = json.loads(status.body.decode())
+        except json.JSONDecodeError:
+            self.context.logger.error(
+                "Tendermint not accepting transactions yet, trying again!"
+            )
+            yield from self.sleep(self.params.sleep_time)
+            return
+
+        remote_height = int(json_body["result"]["sync_info"]["latest_block_height"])
+        local_height = self.context.state.period.height
+        self.context.logger.info(
+            "local-height = %s, remote-height=%s", local_height, remote_height
+        )
+        if remote_height == local_height:
+            self.context.logger.info("local height == remote height; done")
 
         self.set_done()
 

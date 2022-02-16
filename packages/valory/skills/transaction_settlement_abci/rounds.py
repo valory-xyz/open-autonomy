@@ -255,7 +255,6 @@ class ResetRound(CollectSameUntilThresholdRound):
             state_data["tx_hashes_history"] = None
             state = self.period_state.update(
                 period_count=self.most_voted_payload,
-                all_participants=self.period_state.all_participants,
                 **state_data,
             )
             return state, Event.DONE
@@ -273,7 +272,7 @@ class ResetAndPauseRound(CollectSameUntilThresholdRound):
     allowed_tx_type = ResetPayload.transaction_type
     payload_attribute = "period_count"
 
-    def process_payload(self, payload: BaseTxPayload) -> None:
+    def process_payload(self, payload: BaseTxPayload) -> None:  # pragma: nocover
         """Process payload."""
 
         sender = payload.sender
@@ -289,7 +288,7 @@ class ResetAndPauseRound(CollectSameUntilThresholdRound):
 
         self.collection[sender] = payload
 
-    def check_payload(self, payload: BaseTxPayload) -> None:
+    def check_payload(self, payload: BaseTxPayload) -> None:  # pragma: nocover
         """Check Payload"""
 
         sender_in_participant_set = payload.sender in self.period_state.all_participants
@@ -312,7 +311,6 @@ class ResetAndPauseRound(CollectSameUntilThresholdRound):
             state = self.period_state.update(
                 period_count=self.most_voted_payload,
                 participants=self.period_state.participants,
-                all_participants=self.period_state.all_participants,
                 **extra_kwargs,
             )
             return state, Event.DONE

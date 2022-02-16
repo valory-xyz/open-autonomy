@@ -448,7 +448,7 @@ class BaseState(AsyncBehaviour, SimpleBehaviour, ABC):
 
     def _check_sync(
         self,
-    ) -> Generator[None, None, None]:  # pragma: nocover
+    ) -> Generator[None, None, None]:
         """Check if agent has completed sync."""
         self.context.logger.info("Checking sync...")
 

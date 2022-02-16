@@ -530,6 +530,7 @@ def test_self_loops_in_abci_app_reinstantiate_behaviour_state() -> None:
         initial_state_cls = StateA
 
     period = Period(AbciAppTest)
+    period.end_sync()
     period.setup(MagicMock(), MagicMock(), MagicMock())
     context_mock = MagicMock()
     context_mock.state.period = period

@@ -479,32 +479,6 @@ class TestBaseState:
                 try_send(gen)
                 clean_up_mock.assert_called()
 
-    @mock.patch.object(BaseState, "_get_status", _get_status_patch)
-    @mock.patch.object(BaseState, "wait_until_round_end", _wait_until_round_ends_patch)
-    def test_async_act_wrapper_agent_sync_mode(self) -> None:
-        """Test 'async_act_wrapper' in sync mode."""
-        self.behaviour.context.state.period = Period(MagicMock())  # type: ignore
-        self.behaviour.context.state.period.start_sync()
-        self.behaviour.context.logger.info = lambda msg: logging.info(msg)  # type: ignore
-        gen = self.behaviour.async_act_wrapper()
-        gen.send(None)
-
-    @mock.patch.object(BaseState, "_get_status", _get_status_patch)
-    def test_async_act_wrapper_agent_sync_mode_with_round_none(self) -> None:
-        """Test 'async_act_wrapper' in sync mode."""
-        self.behaviour.context.state.period.syncing_up = True
-        self.behaviour.context.state.period.height = 0
-        self.behaviour.matching_round = None
-        matching_round = self.behaviour.matching_round
-        self.behaviour.context.logger.info = lambda msg: logging.info(msg)  # type: ignore
-
-        with mock.patch.object(logging, "info") as log_mock:
-            gen = self.behaviour.async_act_wrapper()
-            gen.send(None)
-            log_mock.assert_called()
-
-        self.behaviour.matching_round = matching_round
-
     def test_get_request_nonce_from_dialogue(self) -> None:
         """Test '_get_request_nonce_from_dialogue' helper method."""
         dialogue_mock = MagicMock()

@@ -528,6 +528,16 @@ class TestBasePeriodState:
         with pytest.raises(ValueError, match="List participants cannot be empty."):
             _ = base_period_state.participants
 
+    def test_all_participants_list_is_empty(
+        self,
+    ) -> None:
+        """Tets when participants list is set to zero."""
+        base_period_state = BasePeriodState(
+            db=StateDB(initial_period=0, initial_data=dict(all_participants={}))
+        )
+        with pytest.raises(ValueError, match="List participants cannot be empty."):
+            _ = base_period_state.all_participants
+
 
 class TestAbstractRound:
     """Test the 'AbstractRound' class."""
