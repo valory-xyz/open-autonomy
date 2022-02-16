@@ -44,6 +44,7 @@ from packages.valory.skills.abstract_round_abci.base import (
     BaseTxPayload,
     CollectDifferentUntilAllRound,
     CollectDifferentUntilThresholdRound,
+    CollectNonEmptyUntilThresholdRound,
     CollectSameUntilThresholdRound,
     CollectionRound,
     ConsensusParams,
@@ -152,6 +153,12 @@ class DummyOnlyKeeperSendsRound(OnlyKeeperSendsRound, DummyRound):
 
 class DummyVotingRound(VotingRound, DummyRound):
     """Dummy Class for VotingRound"""
+
+
+class DummyCollectNonEmptyUntilThresholdRound(
+    CollectNonEmptyUntilThresholdRound, DummyRound
+):
+    """Dummy Class for `CollectNonEmptyUntilThresholdRound`"""
 
 
 class BaseRoundTestClass:
@@ -780,3 +787,75 @@ class TestCollectDifferentUntilThresholdRound(_BaseRoundTestClass):
             test_round.process_payload(payload)
 
         assert test_round.collection_threshold_reached
+
+
+class TestDummyCollectNonEmptyUntilThresholdRound(_BaseRoundTestClass):
+    """Test `CollectNonEmptyUntilThresholdRound`."""
+
+    def test_get_non_empty_values(self) -> None:
+        """Test `_get_non_empty_values`."""
+        test_round = DummyCollectNonEmptyUntilThresholdRound(
+            state=self.period_state, consensus_params=self.consensus_params
+        )
+        payloads = get_dummy_tx_payloads(self.participants)
+        payloads[3]._value = None
+        for payload in payloads:
+            test_round.process_payload(payload)
+
+        non_empty_values = test_round._get_non_empty_values()
+        assert non_empty_values == [f"agent_{i}" for i in range(3)]
+
+    def test_process_payload(self) -> None:
+        """Test `process_payload`."""
+        test_round = DummyCollectNonEmptyUntilThresholdRound(
+            state=self.period_state, consensus_params=self.consensus_params
+        )
+
+        first_payload, *payloads = get_dummy_tx_payloads(self.participants)
+        test_round.process_payload(first_payload)
+
+        assert not test_round.collection_threshold_reached
+        for payload in payloads:
+            test_round.process_payload(payload)
+
+        assert test_round.collection_threshold_reached
+
+    @pytest.mark.parametrize("is_majority_possible", (True, False))
+    def test_end_block_no_threshold_reached(self, is_majority_possible: bool) -> None:
+        """Test `end_block` when no collection threshold is reached."""
+        test_round = DummyCollectNonEmptyUntilThresholdRound(
+            state=self.period_state, consensus_params=self.consensus_params
+        )
+
+        test_round._collection_threshold_reached = False
+        test_round.is_majority_possible = lambda *_: is_majority_possible
+        test_round.no_majority_event = "no_majority"
+
+        res = test_round.end_block()
+
+        if not is_majority_possible:
+            assert res[0].db == self.period_state.db
+            assert res[1] == test_round.no_majority_event
+        else:
+            assert res is None
+
+    @pytest.mark.parametrize("is_value_none, expected_event", ((True, "none"), (False, "done")))
+    def test_end_block(self, is_value_none: bool, expected_event: str) -> None:
+        """Test `end_block` when collection threshold is reached."""
+        test_round = DummyCollectNonEmptyUntilThresholdRound(
+            state=self.period_state, consensus_params=self.consensus_params
+        )
+
+        payloads = get_dummy_tx_payloads(self.participants, is_value_none=is_value_none)
+        for payload in payloads:
+            test_round.process_payload(payload)
+
+        test_round.collection = {f"test_{i}": payloads[i] for i in range(len(payloads))}
+        test_round.selection_key = "test"
+        test_round.collection_key = "test"
+        test_round.done_event = "done"
+        test_round.none_event = "none"
+
+        res = test_round.end_block()
+        assert res[0].db == self.period_state.db
+        assert res[1] == expected_event
