@@ -143,10 +143,10 @@ class CheckTransactionHistoryPayload(BaseTxPayload):
         verified_res: str,
         id_: Optional[str] = None,
     ) -> None:
-        """Initialize an 'validate' transaction payload.
+        """Initialize an 'check' transaction payload.
 
         :param sender: the sender (Ethereum) address
-        :param verified_res: the vote
+        :param verified_res: the verification result
         :param id_: the id of the transaction
         """
         super().__init__(sender, id_)
