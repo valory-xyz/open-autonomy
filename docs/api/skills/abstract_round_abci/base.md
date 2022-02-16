@@ -755,6 +755,17 @@ def participants() -> FrozenSet[str]
 
 Get the participants.
 
+<a id="packages.valory.skills.abstract_round_abci.base.BasePeriodState.all_participants"></a>
+
+#### all`_`participants
+
+```python
+@property
+def all_participants() -> FrozenSet[str]
+```
+
+Get all the participants.
+
 <a id="packages.valory.skills.abstract_round_abci.base.BasePeriodState.sorted_participants"></a>
 
 #### sorted`_`participants

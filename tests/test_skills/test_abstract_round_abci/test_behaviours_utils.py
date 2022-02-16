@@ -19,7 +19,6 @@
 
 """Test the behaviours_utils.py module of the skill."""
 import json
-import logging
 import time
 from abc import ABC
 from collections import OrderedDict
@@ -35,7 +34,6 @@ from packages.open_aea.protocols.signing import SigningMessage
 from packages.valory.skills.abstract_round_abci.base import (
     AbstractRound,
     BasePeriodState,
-    Period,
     Transaction,
 )
 from packages.valory.skills.abstract_round_abci.behaviour_utils import (
@@ -488,32 +486,6 @@ class TestBaseState:
                 gen = self.behaviour.async_act_wrapper()
                 try_send(gen)
                 clean_up_mock.assert_called()
-
-    @mock.patch.object(BaseState, "_get_status", _get_status_patch)
-    @mock.patch.object(BaseState, "wait_until_round_end", _wait_until_round_ends_patch)
-    def test_async_act_wrapper_agent_sync_mode(self) -> None:
-        """Test 'async_act_wrapper' in sync mode."""
-        self.behaviour.context.state.period = Period(MagicMock())  # type: ignore
-        self.behaviour.context.state.period.start_sync()
-        self.behaviour.context.logger.info = lambda msg: logging.info(msg)  # type: ignore
-
-        with mock.patch.object(logging, "info") as log_mock:
-            gen = self.behaviour.async_act_wrapper()
-            try_send(gen)
-            log_mock.assert_called_with("local height == remote; Sync complete...")
-
-    @mock.patch.object(BaseState, "_get_status", _get_status_wrong_patch)
-    @mock.patch.object(BaseState, "wait_until_round_end", _wait_until_round_ends_patch)
-    def test_async_act_wrapper_agent_sync_height_dont_match(self) -> None:
-        """Test 'async_act_wrapper' in sync mode."""
-        self.behaviour.context.state.period = Period(MagicMock())  # type: ignore
-        self.behaviour.context.state.period.start_sync()
-        self.behaviour.context.params.tendermint_max_retries = 5
-        self.behaviour.context.params.tendermint_check_sleep_delay = 3
-        self.behaviour.context.logger.info = lambda msg: logging.info(msg)  # type: ignore
-
-        gen = self.behaviour.async_act_wrapper()
-        try_send(gen)
 
     def test_get_request_nonce_from_dialogue(self) -> None:
         """Test '_get_request_nonce_from_dialogue' helper method."""
