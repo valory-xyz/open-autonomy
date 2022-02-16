@@ -179,6 +179,11 @@ def get_participant_to_check(
     }
 
 
+def get_late_arriving_tx_hashes() -> List[str]:
+    """Get dummy late-arriving tx hashes."""
+    return ["tx_hash_1", "tx_hash_2"]
+
+
 class TestSelectKeeperTransactionSubmissionRoundA(BaseSelectKeeperRoundTest):
     """Test SelectKeeperTransactionSubmissionRoundA"""
 
@@ -457,6 +462,7 @@ def test_period_states() -> None:
     actual_keeper_randomness = float(
         (int(most_voted_randomness, base=16) // 10 ** 0 % 10) / 10
     )
+    late_arriving_tx_hashes = get_late_arriving_tx_hashes()
 
     period_state_____ = TransactionSettlementPeriodState(
         StateDB(
@@ -471,6 +477,7 @@ def test_period_states() -> None:
                 most_voted_tx_hash=most_voted_tx_hash,
                 participant_to_signature=participant_to_signature,
                 tx_hashes_history=[final_tx_hash],
+                late_arriving_tx_hashes=late_arriving_tx_hashes,
             ),
         )
     )
@@ -481,3 +488,4 @@ def test_period_states() -> None:
     assert period_state_____.most_voted_tx_hash == most_voted_tx_hash
     assert period_state_____.participant_to_signature == participant_to_signature
     assert period_state_____.final_tx_hash == final_tx_hash
+    assert period_state_____.late_arriving_tx_hashes == late_arriving_tx_hashes
