@@ -370,8 +370,19 @@ class TestFinalizeBehaviour(PriceEstimationFSMBehaviourBaseCase):
             == FinalizeBehaviour.state_id
         )
 
-        message = MagicMock()
+        message = ContractApiMessage(ContractApiMessage.Performative.RAW_MESSAGE)
         cast(BaseState, self.behaviour.current_state).handle_late_messages(message)
+        assert (
+            cast(TransactionParams, self.behaviour.current_state.params).late_message
+            == message
+        )
+
+        message = MagicMock()
+        with mock.patch.object(self.behaviour.context.logger, "warning") as mock_info:
+            cast(BaseState, self.behaviour.current_state).handle_late_messages(message)
+            mock_info.assert_called_with(
+                f"No callback defined for request with nonce: {message.dialogue_reference[0]}"
+            )
 
 
 class TestValidateTransactionBehaviour(PriceEstimationFSMBehaviourBaseCase):
