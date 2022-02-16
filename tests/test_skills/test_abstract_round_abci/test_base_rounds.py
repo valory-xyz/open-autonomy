@@ -491,6 +491,10 @@ class BaseCollectDifferentUntilThresholdRoundTest(BaseRoundTestClass):
         yield
 
 
+class BaseCollectNonEmptyUntilThresholdRound(BaseCollectDifferentUntilThresholdRoundTest):
+    """Tests for rounds derived from `CollectNonEmptyUntilThresholdRound`."""
+
+
 class _BaseRoundTestClass(BaseRoundTestClass):
     """Base test class."""
 
