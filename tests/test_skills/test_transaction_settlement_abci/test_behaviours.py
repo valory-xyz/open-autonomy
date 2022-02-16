@@ -65,7 +65,6 @@ from packages.valory.skills.transaction_settlement_abci.behaviours import (
     TxDataType,
     ValidateTransactionBehaviour,
 )
-from packages.valory.skills.transaction_settlement_abci.models import TransactionParams
 from packages.valory.skills.transaction_settlement_abci.payload_tools import (
     VerificationStatus,
     hash_payload_to_hex,
