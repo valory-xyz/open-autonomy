@@ -1232,6 +1232,60 @@ class CollectDifferentUntilThresholdRound(CollectionRound):
         return None
 
 
+class CollectNonEmptyUntilThresholdRound(CollectDifferentUntilThresholdRound):
+    """
+    Collect all the data among agents.
+
+    This class represents logic for rounds where we need to collect
+    payloads from each agent which will contain optional, different data and only keep the non-empty.
+
+    This round may be used for cases that we want to collect all the agent's data, such as late-arriving messages.
+    """
+
+    none_event: Any
+
+    def _get_non_empty_values(self) -> List:
+        """Get the non-empty values from the payload, for the given attribute."""
+        non_empty_values = []
+
+        for payload in self.collection.items():
+            attribute_value = getattr(payload, self.payload_attribute, None)
+            if attribute_value is not None:
+                non_empty_values.append(attribute_value)
+
+        return non_empty_values
+
+    def end_block(self) -> Optional[Tuple[BasePeriodState, Enum]]:
+        """Process the end of the block."""
+        if self.collection_threshold_reached:
+            self.block_confirmations += 1
+        if (  # contracts are set from previous rounds
+            self.collection_threshold_reached
+            and self.block_confirmations > self.required_block_confirmations
+            # we also wait here as it gives more (available) agents time to join
+        ):
+            non_empty_values = self._get_non_empty_values()
+
+            state = self.period_state.update(
+                period_state_class=self.period_state_class,
+                period_count=None,
+                **{
+                    self.selection_key: frozenset(list(self.collection.keys())),
+                    self.collection_key: non_empty_values,
+                },
+            )
+
+            if len(non_empty_values) == 0:
+                return state, self.none_event
+            return state, self.done_event
+
+        if not self.is_majority_possible(
+            self.collection, self.period_state.nb_participants
+        ):
+            return self.period_state, self.no_majority_event
+        return None
+
+
 AppState = Type[AbstractRound]
 AbciAppTransitionFunction = Dict[AppState, Dict[EventType, AppState]]
 EventToTimeout = Dict[EventType, float]
