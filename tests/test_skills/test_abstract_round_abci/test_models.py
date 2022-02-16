@@ -280,4 +280,6 @@ def test_base_params_model_initialization() -> None:
         reset_tendermint_after=1,
         service_id="abstract_round_abci",
         keeper_timeout=1.0,
+        tendermint_check_sleep_delay=3,
+        tendermint_max_retries=5,
     )

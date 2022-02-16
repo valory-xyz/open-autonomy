@@ -67,6 +67,8 @@ class TestParams:
             reset_tendermint_after=2,
             tendermint_com_url="http://localhost:8080",
             tendermint_url="http://localhost:26657",
+            tendermint_max_retries=5,
+            tendermint_check_sleep_delay=3,
             service_id="liquidity_provision",
             keeper_timeout=1.0,
             rebalancing={

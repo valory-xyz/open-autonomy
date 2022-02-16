@@ -188,6 +188,7 @@ class APYEstimationFSMBehaviourBaseCase(BaseSkillTestCase):
 
         cls.apy_estimation_behaviour.setup()
         cls._skill.skill_context.state.setup()
+        cls._skill.skill_context.state.period.end_sync()
         assert (
             cast(BaseState, cls.apy_estimation_behaviour.current_state).state_id
             == cls.apy_estimation_behaviour.initial_state_cls.state_id

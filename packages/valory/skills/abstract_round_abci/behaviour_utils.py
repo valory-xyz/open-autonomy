@@ -314,8 +314,6 @@ class BaseState(AsyncBehaviour, SimpleBehaviour, ABC):
     is_programmatically_defined = True
     state_id = ""
     matching_round: Optional[Type[AbstractRound]] = None
-
-    _is_sync_complete: bool = False
     is_degenerate: bool = False
 
     def __init__(self, **kwargs: Any):  # pylint: disable=super-init-not-called
@@ -448,32 +446,26 @@ class BaseState(AsyncBehaviour, SimpleBehaviour, ABC):
 
     def _check_sync(
         self,
-    ) -> Generator[None, None, None]:  # pragma: nocover
+    ) -> Generator[None, None, None]:
         """Check if agent has completed sync."""
         self.context.logger.info("Checking sync...")
-
-        if not self._is_sync_complete:
-            for _ in range(_DEFAULT_TX_MAX_ATTEMPTS):
-                self.context.logger.info("Checking status")
-                status = yield from self._get_status()
-                try:
-                    json_body = json.loads(status.body.decode())
-                    remote_height = int(
-                        json_body["result"]["sync_info"]["latest_block_height"]
-                    )
-                    local_height = int(self.context.state.period.height)
-                    self._is_sync_complete = local_height == remote_height
-
-                    if self._is_sync_complete:
-                        self.context.logger.info(
-                            "local height == remote; Sync complete..."
-                        )
-                        self.context.state.period.end_sync()
-                        return
-
-                except (json.JSONDecodeError, KeyError):  # pragma: nocover
-                    yield from self.sleep(_SYNC_MODE_WAIT)
-                    continue
+        for _ in range(self.context.params.tendermint_max_retries):
+            self.context.logger.info("Checking status")
+            status = yield from self._get_status()
+            try:
+                json_body = json.loads(status.body.decode())
+                remote_height = int(
+                    json_body["result"]["sync_info"]["latest_block_height"]
+                )
+                local_height = int(self.context.state.period.height)
+                _is_sync_complete = local_height == remote_height
+                if _is_sync_complete:
+                    self.context.logger.info("local height == remote; Sync complete...")
+                    self.context.state.period.end_sync()
+                    return
+                yield from self.sleep(self.context.params.tendermint_check_sleep_delay)
+            except (json.JSONDecodeError, KeyError):  # pragma: nocover
+                yield from self.sleep(self.context.params.tendermint_check_sleep_delay)
 
     def _log_start(self) -> None:
         """Log the entering in the behaviour state."""

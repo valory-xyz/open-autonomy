@@ -128,6 +128,7 @@ class SimpleAbciFSMBehaviourBaseCase(BaseSkillTestCase):
 
         cls.simple_abci_behaviour.setup()
         cls._skill.skill_context.state.setup()
+        cls._skill.skill_context.state.period.end_sync()
         assert (
             cast(BaseState, cls.simple_abci_behaviour.current_state).state_id
             == cls.simple_abci_behaviour.initial_state_cls.state_id

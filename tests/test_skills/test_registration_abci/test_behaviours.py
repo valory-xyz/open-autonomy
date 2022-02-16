@@ -218,60 +218,6 @@ class TestTendermintHealthcheckBehaviour(RegistrationAbciBaseCase):
         state = cast(BaseState, self.behaviour.current_state)
         assert state.state_id == RegistrationStartupBehaviour.state_id
 
-    def test_tendermint_healthcheck_height_differs(self) -> None:
-        """Test the tendermint health check does finish if local-height != remote-height."""
-        assert (
-            cast(
-                BaseState,
-                cast(BaseState, self.behaviour.current_state),
-            ).state_id
-            == TendermintHealthcheckBehaviour.state_id
-        )
-        cast(
-            TendermintHealthcheckBehaviour,
-            self.behaviour.current_state,
-        )._check_started = datetime.datetime.now()
-        cast(
-            TendermintHealthcheckBehaviour,
-            self.behaviour.current_state,
-        )._is_healthy = True
-        self.behaviour.act_wrapper()
-        with patch.object(self.behaviour.context.logger, "log") as mock_logger:
-            current_height = self.behaviour.context.state.period.height
-            new_different_height = current_height + 1
-            self.mock_http_request(
-                request_kwargs=dict(
-                    method="GET",
-                    url=self.skill.skill_context.params.tendermint_url + "/status",
-                    headers="",
-                    version="",
-                    body=b"",
-                ),
-                response_kwargs=dict(
-                    version="",
-                    status_code=200,
-                    status_text="",
-                    headers="",
-                    body=json.dumps(
-                        {
-                            "result": {
-                                "sync_info": {
-                                    "latest_block_height": new_different_height
-                                }
-                            }
-                        }
-                    ).encode("utf-8"),
-                ),
-            )
-        mock_logger.assert_any_call(
-            logging.INFO, "remote height > local height; Entering sync mode..."
-        )
-        assert self.behaviour.context.state.period.syncing_up is True
-        state = cast(BaseState, self.behaviour.current_state)
-        assert state.state_id == RegistrationStartupBehaviour.state_id
-        time.sleep(1)
-        self.behaviour.act_wrapper()
-
 
 class BaseRegistrationTestBehaviour(RegistrationAbciBaseCase):
     """Base test case to test RegistrationBehaviour."""

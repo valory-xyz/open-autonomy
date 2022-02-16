@@ -102,6 +102,7 @@ class FSMBehaviourBaseCase(BaseSkillTestCase):
 
         cls.behaviour.setup()
         cls._skill.skill_context.state.setup()
+        cls._skill.skill_context.state.period.end_sync()
         assert (
             cast(BaseState, cls.behaviour.current_state).state_id
             == cls.behaviour.initial_state_cls.state_id
