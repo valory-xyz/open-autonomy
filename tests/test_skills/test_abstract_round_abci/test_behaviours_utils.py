@@ -19,7 +19,6 @@
 
 """Test the behaviours_utils.py module of the skill."""
 import json
-import logging
 import time
 from abc import ABC
 from collections import OrderedDict
@@ -35,7 +34,6 @@ from packages.open_aea.protocols.signing import SigningMessage
 from packages.valory.skills.abstract_round_abci.base import (
     AbstractRound,
     BasePeriodState,
-    Period,
     Transaction,
 )
 from packages.valory.skills.abstract_round_abci.behaviour_utils import (

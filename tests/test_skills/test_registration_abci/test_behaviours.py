@@ -19,7 +19,6 @@
 
 """Tests for valory/registration_abci skill's behaviours."""
 
-import datetime
 import json
 import logging
 import time
