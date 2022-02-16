@@ -143,6 +143,7 @@ class RegistrationRound(CollectDifferentUntilAllRound, SimpleABCIAbstractRound):
         if self.collection_threshold_reached:
             state = self.period_state.update(
                 participants=self.collection,
+                all_participants=self.collection,
                 period_state_class=PeriodState,
             )
             return state, Event.DONE
