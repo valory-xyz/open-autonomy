@@ -29,6 +29,7 @@ from packages.valory.protocols.abci import AbciMessage
 from packages.valory.protocols.abci.custom_types import CheckTxType, CheckTxTypeEnum
 from packages.valory.protocols.http import HttpMessage
 from packages.valory.skills.abstract_round_abci.base import (
+    ABCIAppInternalError,
     AddBlockError,
     ERROR_CODE,
     OK_CODE,
@@ -246,5 +247,10 @@ class TestAbstractResponseHandler:
 
     def test_handle_negative_cannot_find_callback(self) -> None:
         """Test the 'handle' method, negative case (cannot find callback)."""
-        self.context.requests.request_id_to_callback.pop.return_value = None
-        self.handler.handle(MagicMock(performative=HttpMessage.Performative.RESPONSE))
+        self.context.requests.request_id_to_callback = {}
+        with pytest.raises(
+            ABCIAppInternalError, match="No callback defined for request with nonce: "
+        ):
+            self.handler.handle(
+                MagicMock(performative=HttpMessage.Performative.RESPONSE)
+            )

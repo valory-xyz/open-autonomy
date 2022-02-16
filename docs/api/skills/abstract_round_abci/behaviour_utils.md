@@ -202,12 +202,61 @@ def stop() -> None
 
 Stop the execution of the behaviour.
 
+<a id="packages.valory.skills.abstract_round_abci.behaviour_utils.CleanUpBehaviour"></a>
+
+## CleanUpBehaviour Objects
+
+```python
+class CleanUpBehaviour(SimpleBehaviour,  ABC)
+```
+
+Class for clean-up related functionality of behaviours.
+
+<a id="packages.valory.skills.abstract_round_abci.behaviour_utils.CleanUpBehaviour.__init__"></a>
+
+#### `__`init`__`
+
+```python
+def __init__(**kwargs: Any)
+```
+
+Initialize a base state behaviour.
+
+<a id="packages.valory.skills.abstract_round_abci.behaviour_utils.CleanUpBehaviour.clean_up"></a>
+
+#### clean`_`up
+
+```python
+def clean_up() -> None
+```
+
+Clean up the resources due to a 'stop' event.
+
+It can be optionally implemented by the concrete classes.
+
+<a id="packages.valory.skills.abstract_round_abci.behaviour_utils.CleanUpBehaviour.handle_late_messages"></a>
+
+#### handle`_`late`_`messages
+
+```python
+def handle_late_messages(message: Message) -> None
+```
+
+Handle late arriving messages.
+
+Runs from another behaviour, even if the behaviour implementing the method has been exited.
+It can be optionally implemented by the concrete classes.
+
+**Arguments**:
+
+- `message`: the late arriving message to handle.
+
 <a id="packages.valory.skills.abstract_round_abci.behaviour_utils.BaseState"></a>
 
 ## BaseState Objects
 
 ```python
-class BaseState(AsyncBehaviour,  SimpleBehaviour,  ABC)
+class BaseState(AsyncBehaviour,  CleanUpBehaviour,  ABC)
 ```
 
 Base class for FSM states.
@@ -389,15 +438,19 @@ def async_act_wrapper() -> Generator
 
 Do the act, supporting asynchronous execution.
 
-<a id="packages.valory.skills.abstract_round_abci.behaviour_utils.BaseState.default_callback_request"></a>
+<a id="packages.valory.skills.abstract_round_abci.behaviour_utils.BaseState.get_callback_request"></a>
 
-#### default`_`callback`_`request
+#### get`_`callback`_`request
 
 ```python
-def default_callback_request(message: Message) -> None
+def get_callback_request() -> Callable[[Message, "BaseState"], None]
 ```
 
-Implement default callback request.
+Wrapper for callback request which depends on whether the message has not been handled on time.
+
+**Returns**:
+
+the request callback.
 
 <a id="packages.valory.skills.abstract_round_abci.behaviour_utils.BaseState.get_http_response"></a>
 
@@ -564,18 +617,6 @@ Ledger connection (contract dispatcher) -> (ContractApiMessage | ContractApiMess
 **Returns**:
 
 the contract api response
-
-<a id="packages.valory.skills.abstract_round_abci.behaviour_utils.BaseState.clean_up"></a>
-
-#### clean`_`up
-
-```python
-def clean_up() -> None
-```
-
-Clean up the resources due to a 'stop' event.
-
-It can be optionally implemented by the concrete classes.
 
 <a id="packages.valory.skills.abstract_round_abci.behaviour_utils.DegenerateState"></a>
 

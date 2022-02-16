@@ -308,7 +308,36 @@ class AsyncBehaviour(ABC):
         self.__state = self.AsyncState.READY
 
 
-class BaseState(AsyncBehaviour, SimpleBehaviour, ABC):
+class CleanUpBehaviour(SimpleBehaviour, ABC):
+    """Class for clean-up related functionality of behaviours."""
+
+    def __init__(self, **kwargs: Any):  # pylint: disable=super-init-not-called
+        """Initialize a base state behaviour."""
+        SimpleBehaviour.__init__(self, **kwargs)
+
+    def clean_up(self) -> None:
+        """
+        Clean up the resources due to a 'stop' event.
+
+        It can be optionally implemented by the concrete classes.
+        """
+
+    def handle_late_messages(self, message: Message) -> None:
+        """
+        Handle late arriving messages.
+
+        Runs from another behaviour, even if the behaviour implementing the method has been exited.
+        It can be optionally implemented by the concrete classes.
+
+        :param message: the late arriving message to handle.
+        """
+        request_nonce = message.dialogue_reference[0]
+        self.context.logger.warning(
+            f"No callback defined for request with nonce: {request_nonce}"
+        )
+
+
+class BaseState(AsyncBehaviour, CleanUpBehaviour, ABC):
     """Base class for FSM states."""
 
     is_programmatically_defined = True
@@ -319,7 +348,7 @@ class BaseState(AsyncBehaviour, SimpleBehaviour, ABC):
     def __init__(self, **kwargs: Any):  # pylint: disable=super-init-not-called
         """Initialize a base state behaviour."""
         AsyncBehaviour.__init__(self)
-        SimpleBehaviour.__init__(self, **kwargs)
+        CleanUpBehaviour.__init__(self, **kwargs)
         self._is_done: bool = False
         self._is_started: bool = False
         enforce(self.state_id != "", "State id not set.")
@@ -622,7 +651,7 @@ class BaseState(AsyncBehaviour, SimpleBehaviour, ABC):
         request_nonce = self._get_request_nonce_from_dialogue(signing_dialogue)
         cast(Requests, self.context.requests).request_id_to_callback[
             request_nonce
-        ] = self.default_callback_request
+        ] = self.get_callback_request()
         self.context.decision_maker_message_queue.put_nowait(signing_msg)
 
     def _send_transaction_signing_request(
@@ -649,7 +678,7 @@ class BaseState(AsyncBehaviour, SimpleBehaviour, ABC):
         request_nonce = self._get_request_nonce_from_dialogue(signing_dialogue)
         cast(Requests, self.context.requests).request_id_to_callback[
             request_nonce
-        ] = self.default_callback_request
+        ] = self.get_callback_request()
         self.context.decision_maker_message_queue.put_nowait(signing_msg)
 
     def _send_transaction_request(self, signing_msg: SigningMessage) -> None:
@@ -675,7 +704,7 @@ class BaseState(AsyncBehaviour, SimpleBehaviour, ABC):
         request_nonce = self._get_request_nonce_from_dialogue(ledger_api_dialogue)
         cast(Requests, self.context.requests).request_id_to_callback[
             request_nonce
-        ] = self.default_callback_request
+        ] = self.get_callback_request()
         self.context.outbox.put_message(message=ledger_api_msg)
         self.context.logger.info("sending transaction to ledger.")
 
@@ -713,7 +742,7 @@ class BaseState(AsyncBehaviour, SimpleBehaviour, ABC):
         request_nonce = self._get_request_nonce_from_dialogue(ledger_api_dialogue)
         cast(Requests, self.context.requests).request_id_to_callback[
             request_nonce
-        ] = self.default_callback_request
+        ] = self.get_callback_request()
         self.context.outbox.put_message(message=ledger_api_msg)
         self.context.logger.info(
             f"sending transaction receipt request for tx_digest='{tx_digest}'."
@@ -815,18 +844,28 @@ class BaseState(AsyncBehaviour, SimpleBehaviour, ABC):
         result = yield from self._do_request(request_message, http_dialogue)
         return result
 
-    def default_callback_request(self, message: Message) -> None:
-        """Implement default callback request."""
-        if self.is_stopped:
-            self.context.logger.debug(
-                "dropping message as behaviour has stopped: %s", message
-            )
-        elif self.state == AsyncBehaviour.AsyncState.WAITING_MESSAGE:
-            self.try_send(message)
-        else:
-            self.context.logger.warning(
-                "could not send message to FSMBehaviour: %s", message
-            )
+    def get_callback_request(self) -> Callable[[Message, "BaseState"], None]:
+        """Wrapper for callback request which depends on whether the message has not been handled on time.
+
+        :return: the request callback.
+        """
+
+        def callback_request(message: Message, current_state: BaseState) -> None:
+            """The callback request."""
+            if self.is_stopped:
+                self.context.logger.debug(
+                    "dropping message as behaviour has stopped: %s", message
+                )
+            elif self != current_state:
+                self.handle_late_messages(message)
+            elif self.state == AsyncBehaviour.AsyncState.WAITING_MESSAGE:
+                self.try_send(message)
+            else:
+                self.context.logger.warning(
+                    "could not send message to FSMBehaviour: %s", message
+                )
+
+        return callback_request
 
     def get_http_response(
         self,
@@ -890,16 +929,10 @@ class BaseState(AsyncBehaviour, SimpleBehaviour, ABC):
         request_nonce = self._get_request_nonce_from_dialogue(http_dialogue)
         cast(Requests, self.context.requests).request_id_to_callback[
             request_nonce
-        ] = self.default_callback_request
-        try:
-            response = yield from self.wait_for_message(timeout=timeout)
-            return response
-        finally:
-            # remove request id in case already timed out,
-            # but notify caller by propagating exception.
-            cast(Requests, self.context.requests).request_id_to_callback.pop(
-                request_nonce, None
-            )
+        ] = self.get_callback_request()
+        # notify caller by propagating potential timeout exception.
+        response = yield from self.wait_for_message(timeout=timeout)
+        return response
 
     def _build_http_request_message(
         self,
@@ -1174,7 +1207,7 @@ class BaseState(AsyncBehaviour, SimpleBehaviour, ABC):
         request_nonce = self._get_request_nonce_from_dialogue(ledger_api_dialogue)
         cast(Requests, self.context.requests).request_id_to_callback[
             request_nonce
-        ] = self.default_callback_request
+        ] = self.get_callback_request()
         self.context.outbox.put_message(message=ledger_api_msg)
         response = yield from self.wait_for_message()
         return response
@@ -1227,17 +1260,10 @@ class BaseState(AsyncBehaviour, SimpleBehaviour, ABC):
         request_nonce = self._get_request_nonce_from_dialogue(contract_api_dialogue)
         cast(Requests, self.context.requests).request_id_to_callback[
             request_nonce
-        ] = self.default_callback_request
+        ] = self.get_callback_request()
         self.context.outbox.put_message(message=contract_api_msg)
         response = yield from self.wait_for_message()
         return response
-
-    def clean_up(self) -> None:
-        """
-        Clean up the resources due to a 'stop' event.
-
-        It can be optionally implemented by the concrete classes.
-        """
 
 
 class DegenerateState(BaseState, ABC):
