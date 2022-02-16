@@ -208,7 +208,7 @@ class TestFinalizationRound(BaseOnlyKeeperSendsRoundTest):
                 None,
                 "",
                 VerificationStatus.ERROR.value,
-                TransactionSettlementEvent.FATAL,
+                TransactionSettlementEvent.CHECK_LATE_ARRIVING_MESSAGE,
             ),
             (
                 [get_final_tx_hash()],
