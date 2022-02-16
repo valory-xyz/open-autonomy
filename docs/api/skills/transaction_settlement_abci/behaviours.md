@@ -125,6 +125,46 @@ def async_act() -> Generator
 
 Do the action.
 
+<a id="packages.valory.skills.transaction_settlement_abci.behaviours.CheckLateTxHashesBehaviour"></a>
+
+## CheckLateTxHashesBehaviour Objects
+
+```python
+class CheckLateTxHashesBehaviour(CheckTransactionHistoryBehaviour)
+```
+
+Check the late-arriving transaction hashes.
+
+<a id="packages.valory.skills.transaction_settlement_abci.behaviours.SynchronizeLateMessagesBehaviour"></a>
+
+## SynchronizeLateMessagesBehaviour Objects
+
+```python
+class SynchronizeLateMessagesBehaviour(TransactionSettlementBaseState)
+```
+
+Synchronize late-arriving messages state.
+
+<a id="packages.valory.skills.transaction_settlement_abci.behaviours.SynchronizeLateMessagesBehaviour.async_act"></a>
+
+#### async`_`act
+
+```python
+def async_act() -> Generator
+```
+
+Do the action.
+
+<a id="packages.valory.skills.transaction_settlement_abci.behaviours.SynchronizeLateMessagesBehaviour.set_done"></a>
+
+#### set`_`done
+
+```python
+def set_done() -> None
+```
+
+Set the behaviour to done and clean the local late message parameter.
+
 <a id="packages.valory.skills.transaction_settlement_abci.behaviours.SignatureBehaviour"></a>
 
 ## SignatureBehaviour Objects

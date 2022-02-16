@@ -198,12 +198,12 @@ Represent a transaction payload of type 'check'.
 def __init__(sender: str, verified_res: str, id_: Optional[str] = None) -> None
 ```
 
-Initialize an 'validate' transaction payload.
+Initialize an 'check' transaction payload.
 
 **Arguments**:
 
 - `sender`: the sender (Ethereum) address
-- `verified_res`: the vote
+- `verified_res`: the verification result
 - `id_`: the id of the transaction
 
 <a id="packages.valory.skills.transaction_settlement_abci.payloads.CheckTransactionHistoryPayload.verified_res"></a>
@@ -224,6 +224,54 @@ Get the verified result.
 ```python
 @property
 def data() -> Dict
+```
+
+Get the data.
+
+<a id="packages.valory.skills.transaction_settlement_abci.payloads.SynchronizeLateMessagesPayload"></a>
+
+## SynchronizeLateMessagesPayload Objects
+
+```python
+class SynchronizeLateMessagesPayload(BaseTxPayload)
+```
+
+Represent a transaction payload of type 'synchronize'.
+
+<a id="packages.valory.skills.transaction_settlement_abci.payloads.SynchronizeLateMessagesPayload.__init__"></a>
+
+#### `__`init`__`
+
+```python
+def __init__(sender: str, tx_hash: str = "", id_: Optional[str] = None) -> None
+```
+
+Initialize a 'synchronize' transaction payload.
+
+**Arguments**:
+
+- `sender`: the sender (Ethereum) address
+- `tx_hash`: the late-arriving tx hash
+- `id_`: the id of the transaction
+
+<a id="packages.valory.skills.transaction_settlement_abci.payloads.SynchronizeLateMessagesPayload.tx_hash"></a>
+
+#### tx`_`hash
+
+```python
+@property
+def tx_hash() -> Optional[str]
+```
+
+Get the late-arriving tx hash.
+
+<a id="packages.valory.skills.transaction_settlement_abci.payloads.SynchronizeLateMessagesPayload.data"></a>
+
+#### data
+
+```python
+@property
+def data() -> Dict[str, Optional[str]]
 ```
 
 Get the data.

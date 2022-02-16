@@ -24,7 +24,7 @@ import json
 import logging
 import time
 from pathlib import Path
-from typing import Dict, Generator, List, Optional, Union, cast, Type
+from typing import Dict, Generator, List, Optional, Type, Union, cast
 from unittest import mock
 from unittest.mock import MagicMock, patch
 
@@ -51,6 +51,7 @@ from packages.valory.skills.abstract_round_abci.behaviour_utils import (
     make_degenerate_state,
 )
 from packages.valory.skills.transaction_settlement_abci.behaviours import (
+    CheckLateTxHashesBehaviour,
     CheckTransactionHistoryBehaviour,
     FinalizeBehaviour,
     RandomnessTransactionSubmissionBehaviour,
@@ -59,14 +60,15 @@ from packages.valory.skills.transaction_settlement_abci.behaviours import (
     SelectKeeperTransactionSubmissionBehaviourA,
     SelectKeeperTransactionSubmissionBehaviourB,
     SignatureBehaviour,
-    TransactionSettlementBaseState,
-    ValidateTransactionBehaviour,
     SynchronizeLateMessagesBehaviour,
-    CheckLateTxHashesBehaviour, TxDataType,
+    TransactionSettlementBaseState,
+    TxDataType,
+    ValidateTransactionBehaviour,
 )
 from packages.valory.skills.transaction_settlement_abci.models import TransactionParams
 from packages.valory.skills.transaction_settlement_abci.payload_tools import (
-    hash_payload_to_hex, VerificationStatus,
+    VerificationStatus,
+    hash_payload_to_hex,
 )
 from packages.valory.skills.transaction_settlement_abci.rounds import (
     Event as TransactionSettlementEvent,
@@ -77,6 +79,7 @@ from packages.valory.skills.transaction_settlement_abci.rounds import (
 from packages.valory.skills.transaction_settlement_abci.rounds import (
     PeriodState as TransactionSettlementPeriodState,
 )
+
 from tests.conftest import ROOT_DIR
 from tests.test_skills.base import FSMBehaviourBaseCase
 from tests.test_skills.test_abstract_round_abci.test_common import (
@@ -375,7 +378,9 @@ class TestFinalizeBehaviour(PriceEstimationFSMBehaviourBaseCase):
         message = ContractApiMessage(ContractApiMessage.Performative.RAW_MESSAGE)
         cast(BaseState, self.behaviour.current_state).handle_late_messages(message)
         assert (
-            cast(TransactionParams, self.behaviour.current_state.params).late_message
+            cast(
+                TransactionSettlementBaseState, self.behaviour.current_state
+            ).params.late_message
             == message
         )
 
@@ -599,15 +604,17 @@ class TestSynchronizeLateMessagesBehaviour(PriceEstimationFSMBehaviourBaseCase):
 
         if late_message_empty:
             cast(
-                TransactionParams, self.behaviour.current_state.params
-            ).late_message = None
+                TransactionSettlementBaseState, self.behaviour.current_state
+            ).params.late_message = None
 
         else:
             cast(
-                TransactionParams, self.behaviour.current_state.params
-            ).late_message = MagicMock()
+                TransactionSettlementBaseState, self.behaviour.current_state
+            ).params.late_message = MagicMock()
 
-            def _dummy_get_tx_data(_: ContractApiMessage) -> Generator[None, None, TxDataType]:
+            def _dummy_get_tx_data(
+                _: ContractApiMessage,
+            ) -> Generator[None, None, TxDataType]:
                 yield
                 return {
                     "status": VerificationStatus.PENDING,
@@ -616,7 +623,7 @@ class TestSynchronizeLateMessagesBehaviour(PriceEstimationFSMBehaviourBaseCase):
                     "max_priority_fee_per_gas": 0,
                 }
 
-            self.behaviour.current_state._get_tx_data = _dummy_get_tx_data
+            cast(TransactionSettlementBaseState, self.behaviour.current_state)._get_tx_data = _dummy_get_tx_data  # type: ignore
             self.behaviour.act_wrapper()
 
         self.behaviour.act_wrapper()

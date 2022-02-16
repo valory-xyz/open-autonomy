@@ -29,8 +29,9 @@ from packages.valory.skills.transaction_settlement_abci.payloads import (
     ResetPayload,
     SelectKeeperPayload,
     SignaturePayload,
+    SynchronizeLateMessagesPayload,
     TransactionType,
-    ValidatePayload, SynchronizeLateMessagesPayload,
+    ValidatePayload,
 )
 
 

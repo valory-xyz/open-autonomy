@@ -67,7 +67,7 @@ class DummyTxPayload(BaseTxPayload):
     """Dummy Transaction Payload."""
 
     transaction_type = "DummyPayload"
-    _value: str
+    _value: Optional[str]
     _vote: Optional[bool]
 
     def __init__(self, sender: str, value: Any, vote: Optional[bool] = False) -> None:
@@ -491,7 +491,9 @@ class BaseCollectDifferentUntilThresholdRoundTest(BaseRoundTestClass):
         yield
 
 
-class BaseCollectNonEmptyUntilThresholdRound(BaseCollectDifferentUntilThresholdRoundTest):
+class BaseCollectNonEmptyUntilThresholdRound(
+    BaseCollectDifferentUntilThresholdRoundTest
+):
     """Tests for rounds derived from `CollectNonEmptyUntilThresholdRound`."""
 
 
@@ -831,11 +833,10 @@ class TestDummyCollectNonEmptyUntilThresholdRound(_BaseRoundTestClass):
             state=self.period_state, consensus_params=self.consensus_params
         )
 
-        test_round._collection_threshold_reached = False
-        test_round.is_majority_possible = lambda *_: is_majority_possible
+        test_round.is_majority_possible = lambda *_: is_majority_possible  # type: ignore
         test_round.no_majority_event = "no_majority"
 
-        res = test_round.end_block()
+        res = cast(Tuple[BasePeriodState, Enum], test_round.end_block())
 
         if not is_majority_possible:
             assert res[0].db == self.period_state.db
@@ -843,7 +844,9 @@ class TestDummyCollectNonEmptyUntilThresholdRound(_BaseRoundTestClass):
         else:
             assert res is None
 
-    @pytest.mark.parametrize("is_value_none, expected_event", ((True, "none"), (False, "done")))
+    @pytest.mark.parametrize(
+        "is_value_none, expected_event", ((True, "none"), (False, "done"))
+    )
     def test_end_block(self, is_value_none: bool, expected_event: str) -> None:
         """Test `end_block` when collection threshold is reached."""
         test_round = DummyCollectNonEmptyUntilThresholdRound(
@@ -860,6 +863,6 @@ class TestDummyCollectNonEmptyUntilThresholdRound(_BaseRoundTestClass):
         test_round.done_event = "done"
         test_round.none_event = "none"
 
-        res = test_round.end_block()
+        res = cast(Tuple[BasePeriodState, Enum], test_round.end_block())
         assert res[0].db == self.period_state.db
         assert res[1] == expected_event
