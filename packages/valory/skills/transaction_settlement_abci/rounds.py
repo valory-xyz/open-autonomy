@@ -18,6 +18,7 @@
 # ------------------------------------------------------------------------------
 
 """This module contains the data classes for the `transaction settlement` ABCI application."""
+from abc import ABC
 from enum import Enum
 from typing import Dict, List, Mapping, Optional, Set, Tuple, Type, cast
 
@@ -120,25 +121,25 @@ class PeriodState(BasePeriodState):  # pylint: disable=too-many-instance-attribu
         return cast(List[str], self.db.get_strict("late_arriving_tx_hashes"))
 
 
-class FinishedRegistrationRound(DegenerateRound):
+class FinishedRegistrationRound(DegenerateRound, ABC):
     """A round representing that agent registration has finished"""
 
     round_id = "finished_registration"
 
 
-class FinishedRegistrationFFWRound(DegenerateRound):
+class FinishedRegistrationFFWRound(DegenerateRound, ABC):
     """A fast-forward round representing that agent registration has finished"""
 
     round_id = "finished_registration_ffw"
 
 
-class FinishedTransactionSubmissionRound(DegenerateRound):
+class FinishedTransactionSubmissionRound(DegenerateRound, ABC):
     """A round that represents that transaction submission has finished"""
 
     round_id = "finished_transaction_submission"
 
 
-class FailedRound(DegenerateRound):
+class FailedRound(DegenerateRound, ABC):
     """A round that represents that the period failed"""
 
     round_id = "failed"
