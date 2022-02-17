@@ -23,7 +23,7 @@ import datetime
 import json
 import pprint
 from abc import ABC
-from typing import Dict, Generator, Optional, Set, Tuple, Type, Union, cast
+from typing import Any, Dict, Generator, Optional, Set, Tuple, Type, Union, cast
 
 from aea.protocols.base import Message
 from web3.types import Nonce, TxData
@@ -394,20 +394,26 @@ class SynchronizeLateMessagesBehaviour(TransactionSettlementBaseState):
     state_id = "sync_late_messages"
     matching_round = SynchronizeLateMessagesRound
 
+    def __init__(self, **kwargs: Any):
+        """Initialize a `SynchronizeLateMessagesBehaviour`"""
+        super().__init__(**kwargs)
+        self._tx_hashes: str = ""
+
     def async_act(self) -> Generator:
         """Do the action."""
 
         with benchmark_tool.measure(
             self,
         ).local():
-            tx_hash = ""
-
-            if self.params.late_message is not None:
-                tx_data = yield from self._get_tx_data(self.params.late_message)
-                tx_hash = cast(str, tx_data["tx_digest"])
+            if len(self.params.late_messages) > 0:
+                current_message = self.params.late_messages.pop()
+                tx_data = yield from self._get_tx_data(current_message)
+                # here, we concatenate the tx_hashes of all the late-arriving messages. Later, we will parse them.
+                self._tx_hashes += cast(str, tx_data["tx_digest"])
+                return
 
             payload = SynchronizeLateMessagesPayload(
-                self.context.agent_address, tx_hash
+                self.context.agent_address, self._tx_hashes
             )
 
         with benchmark_tool.measure(
@@ -421,7 +427,7 @@ class SynchronizeLateMessagesBehaviour(TransactionSettlementBaseState):
     def set_done(self) -> None:
         """Set the behaviour to done and clean the local late message parameter."""
         super().set_done()
-        self.params.late_message = None
+        self.params.late_messages = []
 
 
 class SignatureBehaviour(TransactionSettlementBaseState):
