@@ -19,6 +19,7 @@
 
 """Test the behaviours_utils.py module of the skill."""
 import json
+import logging
 import time
 from abc import ABC
 from collections import OrderedDict
@@ -344,11 +345,6 @@ def _get_status_wrong_patch(
     yield
 
 
-def _wait_until_round_ends_patch(*args: Any, **kwargs: Any) -> Generator:
-    """Patch `wait_until_round_ends` method"""
-    yield
-
-
 class TestBaseState:
     """Tests for the 'BaseState' class."""
 
@@ -476,6 +472,31 @@ class TestBaseState:
         gen = self.behaviour.async_act_wrapper()
         try_send(gen)
         self.behaviour.set_done()
+        try_send(gen)
+
+    @mock.patch.object(BaseState, "_get_status", _get_status_patch)
+    def test_async_act_wrapper_agent_sync_mode(self) -> None:
+        """Test 'async_act_wrapper' in sync mode."""
+        self.behaviour.context.state.period.syncing_up = True
+        self.behaviour.context.state.period.height = 0
+        self.behaviour.matching_round = None
+        self.behaviour.context.logger.info = lambda msg: logging.info(msg)  # type: ignore
+
+        with mock.patch.object(logging, "info") as log_mock:
+            gen = self.behaviour.async_act_wrapper()
+            try_send(gen)
+            log_mock.assert_called_with("local height == remote; Sync complete...")
+
+    @mock.patch.object(BaseState, "_get_status", _get_status_wrong_patch)
+    def test_async_act_wrapper_agent_sync_mode_where_height_dont_match(self) -> None:
+        """Test 'async_act_wrapper' in sync mode."""
+        self.behaviour.context.state.period.syncing_up = True
+        self.behaviour.context.state.period.height = 0
+        self.behaviour.context.params.tendermint_check_sleep_delay = 3
+        self.behaviour.matching_round = None
+        self.behaviour.context.logger.info = lambda msg: logging.info(msg)  # type: ignore
+
+        gen = self.behaviour.async_act_wrapper()
         try_send(gen)
 
     @pytest.mark.parametrize("exception_cls", [StopIteration])
