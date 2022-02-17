@@ -127,7 +127,7 @@ class FetchingPayload(BaseAPYPayload):
     def data(self) -> Dict[str, Union[None, str, int]]:
         """Get the data."""
         return {
-            "history": self._history,
+            "history": self.history if self.history is not None else "",
             "latest_observation_timestamp": self._latest_observation_timestamp,
         }
 
@@ -169,8 +169,12 @@ class TransformationPayload(BaseAPYPayload):
     def data(self) -> Dict[str, Optional[str]]:
         """Get the data."""
         return {
-            "transformed_history_hash": self.transformed_history_hash,
-            "latest_observation_hist_hash": self.latest_observation_hist_hash,
+            "transformed_history_hash": self.transformed_history_hash
+            if self.transformed_history_hash is not None
+            else "",
+            "latest_observation_hist_hash": self.latest_observation_hist_hash
+            if self.latest_observation_hist_hash is not None
+            else "",
         }
 
 
@@ -223,7 +227,12 @@ class PreprocessPayload(BaseAPYPayload):
     @property
     def data(self) -> Dict[str, Optional[str]]:
         """Get the data."""
-        return {"train_test": self.train_test_hash, "pair_name": self._pair_name}
+        return {
+            "train_test": self.train_test_hash
+            if self.train_test_hash is not None
+            else "",
+            "pair_name": self._pair_name,
+        }
 
 
 class BatchPreparationPayload(BaseAPYPayload):
@@ -251,7 +260,11 @@ class BatchPreparationPayload(BaseAPYPayload):
     @property
     def data(self) -> Dict[str, Optional[str]]:
         """Get the data."""
-        return {"prepared_batch": self._prepared_batch}
+        return (
+            {"prepared_batch": self.prepared_batch}
+            if self.prepared_batch is not None
+            else {}
+        )
 
 
 class OptimizationPayload(BaseAPYPayload):
@@ -282,7 +295,7 @@ class OptimizationPayload(BaseAPYPayload):
     @property
     def data(self) -> Dict[str, Optional[str]]:
         """Get the data."""
-        return {"best_params": self._best_params}
+        return {"best_params": self.best_params} if self.best_params is not None else {}
 
 
 class TrainingPayload(BaseAPYPayload):
@@ -310,7 +323,7 @@ class TrainingPayload(BaseAPYPayload):
     @property
     def data(self) -> Dict[str, Optional[str]]:
         """Get the data."""
-        return {"model_hash": self._model_hash}
+        return {"model_hash": self.model} if self.model is not None else {}
 
 
 class TestingPayload(BaseAPYPayload):
@@ -338,7 +351,7 @@ class TestingPayload(BaseAPYPayload):
     @property
     def data(self) -> Dict[str, Optional[str]]:
         """Get the data."""
-        return {"report_hash": self._report_hash}
+        return {"report_hash": self.report_hash} if self.report_hash is not None else {}
 
 
 class UpdatePayload(BaseAPYPayload):
@@ -366,7 +379,11 @@ class UpdatePayload(BaseAPYPayload):
     @property
     def data(self) -> Dict[str, Optional[str]]:
         """Get the data."""
-        return {"updated_model_hash": self._updated_model_hash}
+        return (
+            {"updated_model_hash": self.updated_model_hash}
+            if self.updated_model_hash is not None
+            else {}
+        )
 
 
 class EstimatePayload(BaseAPYPayload):
@@ -394,7 +411,7 @@ class EstimatePayload(BaseAPYPayload):
     @property
     def data(self) -> Dict[str, Optional[float]]:
         """Get the data."""
-        return {"estimation": self._estimation}
+        return {"estimation": self.estimation} if self.estimation is not None else {}
 
 
 class ResetPayload(BaseAPYPayload):
