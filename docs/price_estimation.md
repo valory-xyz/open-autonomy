@@ -320,4 +320,309 @@ to see what the encoded state transitions in the final composite FSM look like.
     A sequence diagram that shows how AEAs communicate with their environment
     throughout the execution can be found [here](poc-diagram.md). However,
     it is not fully up-to-date with the implementation discussed here.
-    
+
+### Appendix: High-level description of the constituent FSMs.
+For reference, we provide a high-level descritpion of the automata that constitute
+the five FSMs of this proof of concept using a simplified "Pythonic" syntax.
+The syntax should be easy to understand for a reader familiar with conventional
+automata textbook notation.
+
+The aim of this syntax is to be used as a starting point in the design and
+reasoning of an ABCI application without delving into the internals of the library
+itself. Hence, the usage of objects is minimized, and only strings are
+used as identifiers. It can be used as a description language to translate a
+specification into code, e.g., for agent development, or for conducting some
+formal analysis using a model checker like SPIN.
+
+Each FSM object is defined by a collection of seven input parameters:
+* label (optional),
+* states,
+* default start state,
+* allowed start states (e.g., when re-routing a transition from another FSM),
+* final states,
+* input alphabet (i.e., received events),
+* transition function, expressed as a function that maps tuples of the form (S, E) to the resulting state S'. That is, upon receiving event E being at state S, the FSM will transit to state S'.
+
+The summary of the FSMs is as follows:
+
+| FSM                     | States  | Start states  | Final states  | Events  | Non-trivial transitions (*)   |
+|-----------------------  |-------: |-------------: |-------------: |-------: |------------------------:  |
+| AgentRegistration       |      4  |            2  |            2  |      3  |                       3   |
+| SafeDeployment          |      5  |            1  |            1  |      8  |                      14   |
+| OracleDeployment        |      5  |            1  |            1  |      8  |                      14   |
+| PriceAggregation        |      9  |            1  |            1  |      4  |                       9   |
+| TransactionSubmission   |     10  |            1  |            2  |      9  |                      26   |
+| **PriceEstimation**     | **21**  |        **2**  |        **0**  | **12**  |                  **66**   |
+
+(*) Transitions to a different state, i.e., not self-transitions.
+
+#### `AgentRegistrationAbciApp` FSM
+```python
+AgentRegistrationAbciApp = DFA(
+    label =
+        'AgentRegistrationAbciApp',        
+    states = {
+        'RegistrationStartupRound',
+        'RegistrationRound',
+        'FinishedRegistrationRound',
+        'FinishedRegistrationFFWRound'        
+        },
+    defaultStartState =
+        'RegistrationStartupRound',
+    startStates = {
+        'RegistrationStartupRound',
+        'RegistrationRound'
+        },
+    finalStates = {
+        'FinishedRegistrationRound',
+        'FinishedRegistrationFFWRound'        
+        },
+    alphabetIn = {
+        'DONE',
+        'FAST_FORWARD',
+        'TIMEOUT'
+        },
+    transitionFunc = {
+        ('RegistrationStartupRound', 'DONE'): 'FinishedRegistrationRound',
+        ('RegistrationStartupRound', 'FAST_FORWARD'): 'FinishedRegistrationFFWRound',
+        ('RegistrationRound', 'DONE'): 'FinishedRegistrationFFWRound',                
+        }
+    )
+```
+
+#### `SafeDeploymentAbciApp` FSM
+```python
+SafeDeploymentAbciApp = DFA(
+    label =
+        'SafeDeploymentAbciApp',        
+    states = {
+        'RandomnessSafeRound',
+        'SelectKeeperSafeRound',
+        'DeploySafeRound',
+        'ValidateSafeRound',
+        'FinishedSafeRound'        
+        },
+    defaultStartState =
+        'RandomnessSafeRound',
+    startStates = {
+        'RandomnessSafeRound'
+        },
+    finalStates = {
+        'FinishedSafeRound',
+        },
+    alphabetIn = {
+        'DONE',
+        'NO_MAJORITY',
+        'ROUND_TIMEOUT',
+        'DEPLOY_TIMEOUT',
+        'VALIDATE_TIMEOUT',
+        'FAILED',
+        'NEGATIVE',
+        'NONE'
+        },
+    transitionFunc = {
+        ('RandomnessSafeRound', 'DONE'): 'SelectKeeperSafeRound',
+        ('RandomnessSafeRound', 'ROUND_TIMEOUT'): 'RandomnessSafeRound',
+        ('RandomnessSafeRound', 'NO_MAJORITY'): 'RandomnessSafeRound',                
+        ('SelectKeeperSafeRound', 'DONE'): 'DeploySafeRound',
+        ('SelectKeeperSafeRound', 'ROUND_TIMEOUT'): 'RandomnessSafeRound',
+        ('SelectKeeperSafeRound', 'NO_MAJORITY'): 'RandomnessSafeRound',
+        ('DeploySafeRound', 'DONE'): 'ValidateSafeRound',
+        ('DeploySafeRound', 'DEPLOY_TIMEOUT'): 'SelectKeeperSafeRound',
+        ('DeploySafeRound', 'FAILED'): 'SelectKeeperSafeRound',                
+        ('ValidateSafeRound', 'DONE'): 'FinishedSafeRound',
+        ('ValidateSafeRound', 'NEGATIVE'): 'RandomnessSafeRound',
+        ('ValidateSafeRound', 'NONE'): 'RandomnessSafeRound',
+        ('ValidateSafeRound', 'VALIDATE_TIMEOUT'): 'RandomnessSafeRound',
+        ('ValidateSafeRound', 'NO_MAJORITY'): 'RandomnessSafeRound'               
+        }
+    )
+```
+
+#### `OracleDeploymentAbciApp` FSM
+```python
+OracleDeploymentAbciApp = DFA(
+    label =
+        'OracleDeploymentAbciApp',        
+    states = {
+        'RandomnessOracleRound',
+        'SelectKeeperOracleRound',
+        'DeployOracleRound',
+        'ValidateOracleRound',
+        'FinishedOracleRound'  
+        },
+    defaultStartState =
+        'RandomnessOracleRound',
+    startStates = {
+        'RandomnessOracleRound'
+        },        
+    finalStates = {
+        'FinishedOracleRound'
+        },
+    alphabetIn = {
+        'DONE',
+        'ROUND_TIMEOUT',
+        'DEPLOY_TIMEOUT',
+        'VALIDATE_TIMEOUT',
+        'FAILED',
+        'NEGATIVE',
+        'NONE',
+        'NO_MAJORITY'
+        },
+    transitionFunc = {
+        ('RandomnessOracleRound', 'DONE'): 'SelectKeeperOracleRound',
+        ('RandomnessOracleRound', 'ROUND_TIMEOUT'): 'RandomnessOracleRound',
+        ('RandomnessOracleRound', 'NO_MAJORITY'): 'RandomnessOracleRound',                
+        ('SelectKeeperOracleRound', 'DONE'): 'DeployOracleRound',
+        ('SelectKeeperOracleRound', 'ROUND_TIMEOUT'): 'RandomnessOracleRound',
+        ('SelectKeeperOracleRound', 'NO_MAJORITY'): 'RandomnessOracleRound',
+        ('DeployOracleRound', 'DONE'): 'ValidateOracleRound',
+        ('DeployOracleRound', 'DEPLOY_TIMEOUT'): 'SelectKeeperOracleRound',
+        ('DeployOracleRound', 'FAILED'): 'SelectKeeperOracleRound',
+        ('ValidateOracleRound', 'DONE'): 'FinishedOracleRound',
+        ('ValidateOracleRound', 'NEGATIVE'): 'RandomnessOracleRound',
+        ('ValidateOracleRound', 'NONE'): 'RandomnessOracleRound',
+        ('ValidateOracleRound', 'VALIDATE_TIMEOUT'): 'RandomnessOracleRound',
+        ('ValidateOracleRound', 'NO_MAJORITY'): 'RandomnessOracleRound'
+        }
+    )
+```
+
+#### `PriceAggregationAbciApp` FSM
+```python
+PriceAggregationAbciApp = DFA(
+    label =
+        'PriceAggregationAbciApp',        
+    states = {
+        'CollectObservationRound',
+        'EstimateConsensusRound',
+        'TxHashRound',
+        'FinishedPriceAggregationRound'        
+        },
+    defaultStartState =
+        'CollectObservationRound',
+    startStates = {
+        'CollectObservationRound'
+        },
+    finalStates = {
+        'FinishedPriceAggregationRound'  
+        },
+    alphabetIn = {
+        'DONE',
+        'ROUND_TIMEOUT',
+        'NO_MAJORITY',
+        'NONE'
+        },
+    transitionFunc = {
+        ('CollectObservationRound', 'DONE'): 'EstimateConsensusRound',
+        ('CollectObservationRound', 'ROUND_TIMEOUT'): 'CollectObservationRound',
+        ('EstimateConsensusRound', 'DONE'): 'TxHashRound',
+        ('EstimateConsensusRound', 'ROUND_TIMEOUT'): 'CollectObservationRound',
+        ('EstimateConsensusRound', 'NO_MAJORITY'): 'CollectObservationRound',
+        ('TxHashRound', 'DONE'): 'FinishedPriceAggregationRound',
+        ('TxHashRound', 'NONE'): 'CollectObservationRound',
+        ('TxHashRound', 'ROUND_TIMEOUT'): 'CollectObservationRound',                            
+        ('TxHashRound', 'NO_MAJORITY'): 'CollectObservationRound'
+        }
+    )
+```
+
+#### `TransactionSubmissionAbciApp` FSM
+```python
+TransactionSubmissionAbciApp = DFA(
+    label =
+        'TransactionSubmissionAbciApp',        
+    states = {
+        'RandomnessTransactionSubmissionRound',
+        'SelectKeeperTransactionSubmissionRoundA',
+        'CollectSignatureRound',
+        'FinalizationRound',
+        'ValidateTransactionRound',
+        'SelectKeeperTransactionSubmissionRoundB',
+        'ResetRound',
+        'ResetAndPauseRound',
+        'FinishedTransactionSubmissionRound',
+        'FailedRound'
+        },
+    defaultStartState =
+        'RandomnessTransactionSubmissionRound',
+    startStates = {
+        'RandomnessTransactionSubmissionRound'
+        },        
+    finalStates = {
+        'FinishedTransactionSubmissionRound',
+        'FailedRound'        
+        },
+    alphabetIn = {
+        'DONE',
+        'ROUND_TIMEOUT',
+        'NO_MAJORITY',
+        'FAILED',
+        'NEGATIVE',
+        'NONE',
+        'VALIDATE_TIMEOUT',
+        'RESET_TIMEOUT',        
+        'NO_MAJORITY',
+        'RESET_AND_PAUSE_TIMEOUT'
+        },
+    transitionFunc = {
+        ('RandomnessTransactionSubmissionRound', 'DONE'): 'SelectKeeperTransactionSubmissionRoundA',
+        ('RandomnessTransactionSubmissionRound', 'ROUND_TIMEOUT'): 'ResetRound',
+        ('RandomnessTransactionSubmissionRound', 'NO_MAJORITY'): 'RandomnessTransactionSubmissionRound',                
+        ('SelectKeeperTransactionSubmissionRoundA', 'DONE'): 'CollectSignatureRound',
+        ('SelectKeeperTransactionSubmissionRoundA', 'ROUND_TIMEOUT'): 'ResetRound',
+        ('SelectKeeperTransactionSubmissionRoundA', 'NO_MAJORITY'): 'ResetRound',
+        ('CollectSignatureRound', 'DONE'): 'FinalizationRound',
+        ('CollectSignatureRound', 'ROUND_TIMEOUT'): 'ResetRound',
+        ('CollectSignatureRound', 'NO_MAJORITY'): 'ResetRound',
+        ('FinalizationRound', 'DONE'): 'ValidateTransactionRound',
+        ('FinalizationRound', 'ROUND_TIMEOUT'): 'SelectKeeperTransactionSubmissionRoundB',
+        ('FinalizationRound', 'FAILED'): 'SelectKeeperTransactionSubmissionRoundB',
+        ('ValidateTransactionRound', 'DONE'): 'ResetAndPauseRound',
+        ('ValidateTransactionRound', 'NEGATIVE'): 'ResetRound',
+        ('ValidateTransactionRound', 'NONE'): 'ResetRound',
+        ('ValidateTransactionRound', 'VALIDATE_TIMEOUT'): 'FinalizationRound',
+        ('ValidateTransactionRound', 'NO_MAJORITY'): 'ValidateTransactionRound',
+        ('SelectKeeperTransactionSubmissionRoundB', 'DONE'): 'FinalizationRound',
+        ('SelectKeeperTransactionSubmissionRoundB', 'ROUND_TIMEOUT'): 'ResetRound',
+        ('SelectKeeperTransactionSubmissionRoundB', 'NO_MAJORITY'): 'ResetRound',
+        ('ResetRound', 'DONE'): 'RandomnessTransactionSubmissionRound',        
+        ('ResetRound', 'RESET_TIMEOUT'): 'FailedRound',
+        ('ResetRound', 'NO_MAJORITY'): 'FailedRound',
+        ('ResetAndPauseRound', 'DONE'): 'FinishedTransactionSubmissionRound',                      
+        ('ResetAndPauseRound', 'RESET_AND_PAUSE_TIMEOUT'): 'FailedRound',
+        ('ResetAndPauseRound', 'NO_MAJORITY'): 'FailedRound'
+        }
+    )
+```
+
+#### `PriceEstimationAbciApp` FSM
+As described above, the `PriceEstimationAbciApp` FSM is the composition of the
+FSMs defined above using an FSM transition mapping that establishes the relationship
+between the final states of a certain FSM with the start states of another FSM, that is,
+
+```python
+PriceEstimationAbciApp = compose_dfa(
+    (
+        AgentRegistrationAbciApp,
+        SafeDeploymentAbciApp,
+        OracleDeploymentAbciApp,
+        PriceAggregationAbciApp,
+        TransactionSubmissionAbciApp    
+    ),
+    PriceEstimationAbciAppTransitionMapping
+)
+```
+The transition mapping for this FSM is defined as
+
+```python
+PriceEstimationAbciAppTransitionMapping = {
+    'FinishedRegistrationRound': 'RandomnessSafeRound',
+    'FinishedSafeRound': 'RandomnessOracleRound',
+    'FinishedOracleRound': 'CollectObservationRound',
+    'FinishedRegistrationFFWRound': 'CollectObservationRound',
+    'FinishedPriceAggregationRound': 'RandomnessTransactionSubmissionRound',
+    'FinishedTransactionSubmissionRound': 'CollectObservationRound',
+    'FailedRound': 'RegistrationRound',    
+    }
+```
