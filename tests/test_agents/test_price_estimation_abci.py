@@ -21,8 +21,11 @@
 from enum import Enum
 from operator import itemgetter
 
+import pytest
+
 from tests.fixture_helpers import UseGnosisSafeHardHatNet
 from tests.test_agents.base import (
+    MAX_FLAKY_RERUNS,
     BaseTestEnd2EndAgentCatchup,
     BaseTestEnd2EndNormalExecution,
 )
@@ -148,6 +151,7 @@ class TestABCIPriceEstimationFourAgents(
     check_strings = CHECK_STRINGS_ALL
 
 
+@pytest.mark.flaky(reruns=MAX_FLAKY_RERUNS)
 class TestAgentCatchup(BaseTestEnd2EndAgentCatchup, UseGnosisSafeHardHatNet):
     """Test that an agent that is launched later can synchronize with the rest of the network"""
 
