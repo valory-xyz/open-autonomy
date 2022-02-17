@@ -549,31 +549,25 @@ class FinalizeBehaviour(TransactionSettlementBaseState):
         """Send a Safe transaction using the participants' signatures."""
         tx_params = skill_input_hex_to_payload(self.period_state.most_voted_tx_hash)
 
-        # Here, we give priority to a potentially late-arriving message and do not try to re-send.
-        # If this late message has not been synchronised yet
-        # and the same keeper who missed the message at the first place has been reselected,
-        # then we can piggyback the finalisation mechanism.
-        contract_api_msg = self.params.late_message
-        if contract_api_msg is None:
-            contract_api_msg = yield from self.get_contract_api_response(
-                performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
-                contract_address=self.period_state.safe_contract_address,
-                contract_id=str(GnosisSafeContract.contract_id),
-                contract_callable="get_raw_safe_transaction",
-                sender_address=self.context.agent_address,
-                owners=tuple(self.period_state.participants),
-                to_address=tx_params["to_address"],
-                value=tx_params["ether_value"],
-                data=tx_params["data"],
-                safe_tx_gas=tx_params["safe_tx_gas"],
-                signatures_by_owner={
-                    key: payload.signature
-                    for key, payload in self.period_state.participant_to_signature.items()
-                },
-                nonce=self.params.nonce,
-                old_tip=self.params.tip,
-                operation=tx_params["operation"],
-            )
+        contract_api_msg = yield from self.get_contract_api_response(
+            performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
+            contract_address=self.period_state.safe_contract_address,
+            contract_id=str(GnosisSafeContract.contract_id),
+            contract_callable="get_raw_safe_transaction",
+            sender_address=self.context.agent_address,
+            owners=tuple(self.period_state.participants),
+            to_address=tx_params["to_address"],
+            value=tx_params["ether_value"],
+            data=tx_params["data"],
+            safe_tx_gas=tx_params["safe_tx_gas"],
+            signatures_by_owner={
+                key: payload.signature
+                for key, payload in self.period_state.participant_to_signature.items()
+            },
+            nonce=self.params.nonce,
+            old_tip=self.params.tip,
+            operation=tx_params["operation"],
+        )
 
         tx_data = yield from self._get_tx_data(contract_api_msg)
         return tx_data
