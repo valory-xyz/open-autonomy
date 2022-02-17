@@ -4,7 +4,7 @@
 
 - Skaffold `>=v1.33.0`
 - Docker
-- docker-compose
+- Docker-Compose
 - Python `>=3.7`
 
 # Step 1
