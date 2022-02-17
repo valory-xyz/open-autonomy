@@ -9,7 +9,7 @@ aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
   README.md: QmR5sLQeLggNn5gZ1kDWrqpkz5NzMdUZuWNkaQDpaMC85C
   __init__.py: QmZi2zjuEfocSD4fJyHCRHKYPwRiMizJh5cG4r7q3Hcxuo
-  behaviours.py: QmYNp1iZ1DygAQBNZbrRbg2LHFckf9sPeRbJmWkN4Ndyit
+  behaviours.py: QmdoQirgLw1twdA2LxyvZmHzAiA6PFAawPkvfem9Mj2TGX
   composition.py: QmNQDobHqEFV6XExTWrLnGnYTUDGqsbKH94KasSHw1n9Zi
   dialogues.py: QmdBmUMWoPbS2faqn8LicQVJfN6a2WjtdZDWFbiYoy7hfY
   handlers.py: QmYNuneHUsxPfGricmSREyKom4fsAoE3NU7Xv8y3iYCDke
@@ -98,7 +98,9 @@ models:
       round_timeout_seconds: 30.0
       service_id: liquidity_provision
       sleep_time: 1
+      tendermint_check_sleep_delay: 3
       tendermint_com_url: http://localhost:8080
+      tendermint_max_retries: 5
       tendermint_url: http://localhost:26657
     class_name: Params
   requests:

@@ -356,6 +356,7 @@ class BaseResetRoundTest(BaseCollectSameUntilThresholdRoundTest):
                 state_update_fn=lambda _period_state, _: _period_state.update(
                     period_count=next_period_count,
                     participants=self.participants,
+                    all_participants=self.participants,
                     safe_contract_address=_period_state.safe_contract_address,
                 ),
                 state_attr_checks=[],  # [lambda state: state.participants],

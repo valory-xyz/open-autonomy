@@ -63,6 +63,8 @@ class TestAPYParams:
         kwargs: Dict[str, Union[str, int, float, Dict[str, Union[str, int]]]] = {
             "tendermint_url": "test",
             "tendermint_com_url": "test",
+            "tendermint_check_sleep_delay": "test",
+            "tendermint_max_retries": "test",
             "reset_tendermint_after": "test",
             "ipfs_domain_name": "test",
             "consensus": {"max_participants": 0},

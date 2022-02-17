@@ -244,6 +244,26 @@ class ResetAndPauseRound(CollectSameUntilThresholdRound)
 
 A round that represents that consensus is reached (the final round)
 
+<a id="packages.valory.skills.transaction_settlement_abci.rounds.ResetAndPauseRound.process_payload"></a>
+
+#### process`_`payload
+
+```python
+def process_payload(payload: BaseTxPayload) -> None
+```
+
+Process payload.
+
+<a id="packages.valory.skills.transaction_settlement_abci.rounds.ResetAndPauseRound.check_payload"></a>
+
+#### check`_`payload
+
+```python
+def check_payload(payload: BaseTxPayload) -> None
+```
+
+Check Payload
+
 <a id="packages.valory.skills.transaction_settlement_abci.rounds.ResetAndPauseRound.end_block"></a>
 
 #### end`_`block

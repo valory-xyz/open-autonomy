@@ -21,10 +21,13 @@
 from enum import Enum
 from operator import itemgetter
 
+import pytest
+
 from tests.fixture_helpers import UseGnosisSafeHardHatNet
 from tests.test_agents.base import (
     BaseTestEnd2EndAgentCatchup,
     BaseTestEnd2EndNormalExecution,
+    MAX_FLAKY_RERUNS,
 )
 
 
@@ -43,8 +46,6 @@ class StringType(Enum):
 # check log messages of the happy path
 # fmt: off
 CHECK_STRINGS_LABELLED = [
-    ("Entered in the 'tendermint_healthcheck' behaviour state", StringType.BEHAVIOUR),
-    ("'tendermint_healthcheck' behaviour state is done", StringType.BEHAVIOUR),
     ("Entered in the 'registration_startup' round for period 0", StringType.ROUND),
     ("'registration_startup' round is done", StringType.ROUND),
     ("Entered in the 'randomness_safe' round for period 0", StringType.ROUND),
@@ -150,6 +151,7 @@ class TestABCIPriceEstimationFourAgents(
     check_strings = CHECK_STRINGS_ALL
 
 
+@pytest.mark.flaky(reruns=MAX_FLAKY_RERUNS)
 class TestAgentCatchup(BaseTestEnd2EndAgentCatchup, UseGnosisSafeHardHatNet):
     """Test that an agent that is launched later can synchronize with the rest of the network"""
 

@@ -118,7 +118,7 @@ from packages.valory.skills.apy_estimation_abci.tools.queries import (
 )
 from packages.valory.skills.registration_abci.behaviours import (
     AgentRegistrationRoundBehaviour,
-    TendermintHealthcheckBehaviour,
+    RegistrationStartupBehaviour,
 )
 
 
@@ -1353,7 +1353,7 @@ class EstimatorRoundBehaviour(AbstractRoundBehaviour):
 class APYEstimationConsensusBehaviour(AbstractRoundBehaviour):
     """This behaviour manages the consensus stages for the APY estimation."""
 
-    initial_state_cls = TendermintHealthcheckBehaviour
+    initial_state_cls = RegistrationStartupBehaviour
     abci_app_cls = APYEstimationAbciAppChained
 
     behaviour_states: Set[Type[BaseState]] = {

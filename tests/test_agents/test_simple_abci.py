@@ -24,8 +24,6 @@ from tests.test_agents.base import BaseTestEnd2EndNormalExecution
 
 # check log messages of the happy path
 CHECK_STRINGS = (
-    "Entered in the 'tendermint_healthcheck' behaviour state",
-    "'tendermint_healthcheck' behaviour state is done",
     "Entered in the 'registration' round for period 0",
     "'registration' round is done",
     "Entered in the 'randomness_startup' round for period 0",

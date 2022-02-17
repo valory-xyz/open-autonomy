@@ -14,7 +14,7 @@ fingerprint:
   models.py: QmUQQ7fhWp6YHKm45fw5KMDv5QZi8LBywhfb7K9t5CsyR6
   payload_tools.py: QmQaVcy9BeW1nQtFnt83Nzt9BTY3nVbjs2Xth2W3iUTPyW
   payloads.py: QmbGDiVDLBQiLudS5g2YQUzEEDSi39SG1MMQdqaaSdnbpJ
-  rounds.py: Qmd9FWaM7BHTcRXTn7NMrR4CK2oC6R9njbCNMZyBt5GNNr
+  rounds.py: QmQRvxGXiUFmQK12hknTxoLMH7AAiR8Q5nYYj6tLMLYcpq
 fingerprint_ignore_patterns: []
 connections: []
 contracts:
@@ -68,7 +68,9 @@ models:
       round_timeout_seconds: 30.0
       service_id: registration
       sleep_time: 1
+      tendermint_check_sleep_delay: 3
       tendermint_com_url: http://localhost:8080
+      tendermint_max_retries: 5
       tendermint_url: http://localhost:26657
     class_name: TransactionParams
   requests:
