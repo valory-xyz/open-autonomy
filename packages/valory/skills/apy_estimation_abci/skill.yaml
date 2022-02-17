@@ -6,9 +6,9 @@ description: This skill implements the APY estimation for an AEA.
 license: Apache-2.0
 aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
-  README.md: QmaQVmDR2casu1vcBsSrNf5eispadze3ZNRnLKWUpkuG6u
+  README.md: QmSvXr6k7f5GFZVCgqM8d4ywibiSAYbdaGjmPh4CmFfQn9
   __init__.py: Qmb163B19kEpc6PfbLnmQxPbeEWA2ubTghVwG2YUeNYusu
-  behaviours.py: QmWgNg4sQwQ6YHfd2SdcERQZxYnbuGnFQVJd2gdP7z8au4
+  behaviours.py: QmZievZbsRT9CSpu8LTzBK1jfQR98AvLhrYqLKWVJrMjpK
   composition.py: QmfV3hauFb2XUnycdrE8vMbH9WqgDFyFRPwPuwxxUaRtZZ
   dialogues.py: QmdBmUMWoPbS2faqn8LicQVJfN6a2WjtdZDWFbiYoy7hfY
   handlers.py: QmdxbcVLL3JU6onvxLrDmJX1r2vQPbzp1co1eaHGJkAwfD

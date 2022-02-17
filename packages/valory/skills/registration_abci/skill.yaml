@@ -6,9 +6,9 @@ description: ABCI application for common apps.
 license: Apache-2.0
 aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
-  README.md: QmSohTt9XD9s4eJAXqb97dTmf627huMrPgmFCi87AB9FyP
+  README.md: QmYgDsnQnryPwFXnaNTns1ypH9jqvYeHGgmP9K2y4tXFJy
   __init__.py: QmcMo5TeB1s4UWwEwXT8Xdsw7nNXzwJe7YXE3RgsSwEp7R
-  behaviours.py: QmSAqy4Hsb7dP9SzKD4eURHG2CpJUhch3MhFphXrMxdwsH
+  behaviours.py: QmQmdC34iTAWvhokBou9C1rh1LZFasgqm5g1kjepyXQQTv
   dialogues.py: QmfDThV4WCRzK88XDpW2hKDYCuEH4RxoHCoAkWpkBRGRPv
   handlers.py: QmThK5PB67624VnCWmBXBz1MzwVp9XBWA97x3rsAwADnW1
   models.py: QmWV5tEb6A6S7uDH7j8gXLh4uh475p6cz3qa14SWY4Fi33
