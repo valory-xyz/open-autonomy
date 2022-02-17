@@ -4,6 +4,7 @@
 
 - Skaffold `>=v1.33.0`
 - Docker
+- docker-compose
 - Python `>=3.7`
 
 # Step 1
@@ -26,6 +27,7 @@ Now we have our images, we need to build the deployment to use them.
 
 
 ```bash
+pipenv shell
 python deployments/create_deployment.py \
     -t docker-compose \
     -app oracle_hardhat
