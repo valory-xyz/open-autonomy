@@ -18,11 +18,13 @@
 # ------------------------------------------------------------------------------
 
 """This module contains the data classes for the `transaction settlement` ABCI application."""
+import textwrap
 from abc import ABC
 from enum import Enum
 from typing import Dict, List, Mapping, Optional, Set, Tuple, Type, cast
 
 from packages.valory.skills.abstract_round_abci.base import (
+    ABCIAppInternalError,
     AbciApp,
     AbciAppTransitionFunction,
     AbstractRound,
@@ -118,7 +120,21 @@ class PeriodState(BasePeriodState):  # pylint: disable=too-many-instance-attribu
     @property
     def late_arriving_tx_hashes(self) -> List[str]:
         """Get the late_arriving_tx_hashes."""
-        return cast(List[str], self.db.get_strict("late_arriving_tx_hashes"))
+        late_arriving_tx_hashes_unparsed = cast(
+            List[str], self.db.get_strict("late_arriving_tx_hashes")
+        )
+        late_arriving_tx_hashes_parsed = []
+        hashes_length = 64
+        for unparsed_hash in late_arriving_tx_hashes_unparsed:
+            if len(unparsed_hash) % hashes_length != 0:
+                # if we cannot parse the hashes, then the developer has serialized them incorrectly.
+                raise ABCIAppInternalError(
+                    f"Cannot parse late arriving hashes: {unparsed_hash}!"
+                )
+            parsed_hashes = textwrap.wrap(unparsed_hash, hashes_length)
+            late_arriving_tx_hashes_parsed.extend(parsed_hashes)
+
+        return late_arriving_tx_hashes_parsed
 
 
 class FinishedRegistrationRound(DegenerateRound, ABC):
