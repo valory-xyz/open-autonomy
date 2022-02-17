@@ -181,7 +181,9 @@ def get_participant_to_check(
 
 def get_late_arriving_tx_hashes() -> List[str]:
     """Get dummy late-arriving tx hashes."""
-    return ["tx_hash_1", "tx_hash_2"]
+    # We want the tx hashes to have a size which can be divided by 64 to be able to parse it.
+    # Otherwise, they are not valid.
+    return ["t" * 64, "e" * 64, "s" * 64, "t" * 64]
 
 
 class TestSelectKeeperTransactionSubmissionRoundA(BaseSelectKeeperRoundTest):
