@@ -18,7 +18,6 @@
 # ------------------------------------------------------------------------------
 
 """Test the payloads.py module of the skill."""
-import pytest
 
 from packages.valory.skills.apy_estimation_abci.payloads import (
     BatchPreparationPayload,
