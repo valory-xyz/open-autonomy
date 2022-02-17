@@ -143,6 +143,7 @@ class RegistrationRound(CollectDifferentUntilAllRound, SimpleABCIAbstractRound):
         if self.collection_threshold_reached:
             state = self.period_state.update(
                 participants=self.collection,
+                all_participants=self.collection,
                 period_state_class=PeriodState,
             )
             return state, Event.DONE
@@ -215,6 +216,7 @@ class BaseResetRound(CollectSameUntilThresholdRound, SimpleABCIAbstractRound):
             state = self.period_state.update(
                 period_count=self.most_voted_payload,
                 participants=self.period_state.participants,
+                all_participants=self.period_state.all_participants,
             )
             return state, Event.DONE
         if not self.is_majority_possible(

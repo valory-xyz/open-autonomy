@@ -35,7 +35,6 @@ from packages.open_aea.protocols.signing import SigningMessage
 from packages.valory.skills.abstract_round_abci.base import (
     AbstractRound,
     BasePeriodState,
-    Period,
     Transaction,
 )
 from packages.valory.skills.abstract_round_abci.behaviour_utils import (
@@ -336,8 +335,13 @@ def _get_status_patch(*args: Any, **kwargs: Any) -> Generator[None, None, MagicM
     yield
 
 
-def _wait_until_round_ends_patch(*args: Any, **kwargs: Any) -> Generator:
-    """Patch `wait_until_round_ends` method"""
+def _get_status_wrong_patch(
+    *args: Any, **kwargs: Any
+) -> Generator[None, None, MagicMock]:
+    """Patch `_get_status` method"""
+    return MagicMock(
+        body=json.dumps({"result": {"sync_info": {"latest_block_height": -1}}}).encode()
+    )
     yield
 
 
@@ -470,6 +474,31 @@ class TestBaseState:
         self.behaviour.set_done()
         try_send(gen)
 
+    @mock.patch.object(BaseState, "_get_status", _get_status_patch)
+    def test_async_act_wrapper_agent_sync_mode(self) -> None:
+        """Test 'async_act_wrapper' in sync mode."""
+        self.behaviour.context.state.period.syncing_up = True
+        self.behaviour.context.state.period.height = 0
+        self.behaviour.matching_round = None
+        self.behaviour.context.logger.info = lambda msg: logging.info(msg)  # type: ignore
+
+        with mock.patch.object(logging, "info") as log_mock:
+            gen = self.behaviour.async_act_wrapper()
+            try_send(gen)
+            log_mock.assert_called_with("local height == remote; Sync complete...")
+
+    @mock.patch.object(BaseState, "_get_status", _get_status_wrong_patch)
+    def test_async_act_wrapper_agent_sync_mode_where_height_dont_match(self) -> None:
+        """Test 'async_act_wrapper' in sync mode."""
+        self.behaviour.context.state.period.syncing_up = True
+        self.behaviour.context.state.period.height = 0
+        self.behaviour.context.params.tendermint_check_sleep_delay = 3
+        self.behaviour.matching_round = None
+        self.behaviour.context.logger.info = lambda msg: logging.info(msg)  # type: ignore
+
+        gen = self.behaviour.async_act_wrapper()
+        try_send(gen)
+
     @pytest.mark.parametrize("exception_cls", [StopIteration])
     def test_async_act_wrapper_exception(self, exception_cls: Exception) -> None:
         """Test 'async_act_wrapper'."""
@@ -478,32 +507,6 @@ class TestBaseState:
                 gen = self.behaviour.async_act_wrapper()
                 try_send(gen)
                 clean_up_mock.assert_called()
-
-    @mock.patch.object(BaseState, "_get_status", _get_status_patch)
-    @mock.patch.object(BaseState, "wait_until_round_end", _wait_until_round_ends_patch)
-    def test_async_act_wrapper_agent_sync_mode(self) -> None:
-        """Test 'async_act_wrapper' in sync mode."""
-        self.behaviour.context.state.period = Period(MagicMock())  # type: ignore
-        self.behaviour.context.state.period.start_sync()
-        self.behaviour.context.logger.info = lambda msg: logging.info(msg)  # type: ignore
-        gen = self.behaviour.async_act_wrapper()
-        gen.send(None)
-
-    @mock.patch.object(BaseState, "_get_status", _get_status_patch)
-    def test_async_act_wrapper_agent_sync_mode_with_round_none(self) -> None:
-        """Test 'async_act_wrapper' in sync mode."""
-        self.behaviour.context.state.period.syncing_up = True
-        self.behaviour.context.state.period.height = 0
-        self.behaviour.matching_round = None
-        matching_round = self.behaviour.matching_round
-        self.behaviour.context.logger.info = lambda msg: logging.info(msg)  # type: ignore
-
-        with mock.patch.object(logging, "info") as log_mock:
-            gen = self.behaviour.async_act_wrapper()
-            gen.send(None)
-            log_mock.assert_called()
-
-        self.behaviour.matching_round = matching_round
 
     def test_get_request_nonce_from_dialogue(self) -> None:
         """Test '_get_request_nonce_from_dialogue' helper method."""

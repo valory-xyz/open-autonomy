@@ -461,19 +461,10 @@ class BaseState(AsyncBehaviour, CleanUpBehaviour, ABC):
 
         try:
             if self.context.state.period.syncing_up:
-                if self.matching_round is None:
-                    yield from self.sleep(_SYNC_MODE_WAIT)
-                else:
-                    yield from self.wait_until_round_end()
+                yield from self._check_sync()
             else:
                 yield from self.async_act()
         except StopIteration:
-            if self.context.state.period.syncing_up:  # pragma: nocover
-                # needs to be tested
-                has_synced_up = yield from self._has_synced_up()
-                if has_synced_up:
-                    self.context.logger.info("local height == remote; Ending sync...")
-                    self.context.state.period.end_sync()
             self.clean_up()
             self.set_done()
             self._log_end()
@@ -481,6 +472,29 @@ class BaseState(AsyncBehaviour, CleanUpBehaviour, ABC):
 
         if self._is_done:
             self._log_end()
+
+    def _check_sync(
+        self,
+    ) -> Generator[None, None, None]:
+        """Check if agent has completed sync."""
+        self.context.logger.info("Checking sync...")
+        for _ in range(self.context.params.tendermint_max_retries):
+            self.context.logger.info("Checking status")
+            status = yield from self._get_status()
+            try:
+                json_body = json.loads(status.body.decode())
+                remote_height = int(
+                    json_body["result"]["sync_info"]["latest_block_height"]
+                )
+                local_height = int(self.context.state.period.height)
+                _is_sync_complete = local_height == remote_height
+                if _is_sync_complete:
+                    self.context.logger.info("local height == remote; Sync complete...")
+                    self.context.state.period.end_sync()
+                    return
+                yield from self.sleep(self.context.params.tendermint_check_sleep_delay)
+            except (json.JSONDecodeError, KeyError):  # pragma: nocover
+                yield from self.sleep(self.context.params.tendermint_check_sleep_delay)
 
     def _log_start(self) -> None:
         """Log the entering in the behaviour state."""
@@ -790,26 +804,6 @@ class BaseState(AsyncBehaviour, CleanUpBehaviour, ABC):
         )
         return result
 
-    def _get_health(self) -> Generator[None, None, HttpMessage]:
-        """
-        Get Tendermint node's health.
-
-        Happy-path full flow of the messages.
-
-        _do_request:
-            AbstractRoundAbci skill -> (HttpMessage | REQUEST) -> Http client connection
-            Http client connection -> (HttpMessage | RESPONSE) -> AbstractRoundAbci skill
-
-        :yield: HttpMessage object
-        :return: http response from tendermint
-        """
-        request_message, http_dialogue = self._build_http_request_message(
-            "GET",
-            self.context.params.tendermint_url + "/health",
-        )
-        result = yield from self._do_request(request_message, http_dialogue)
-        return result
-
     def _get_status(self) -> Generator[None, None, HttpMessage]:
         """
         Get Tendermint node's status.
@@ -829,36 +823,6 @@ class BaseState(AsyncBehaviour, CleanUpBehaviour, ABC):
         )
         result = yield from self._do_request(request_message, http_dialogue)
         return result
-
-    def _has_synced_up(
-        self,
-    ) -> Generator[None, None, bool]:  # pragma: nocover
-        """
-        Check if agent has completed sync.
-
-        Happy-path full flow of the messages.
-
-        _do_request:
-            AbstractRoundAbci skill -> (HttpMessage | REQUEST) -> Http client connection
-            Http client connection -> (HttpMessage | RESPONSE) -> AbstractRoundAbci skill
-
-        :yield: HttpMessage object
-        :return: True if the agent has synced
-        """
-
-        for _ in range(_DEFAULT_TX_MAX_ATTEMPTS):
-            status = yield from self._get_status()
-            try:
-                json_body = json.loads(status.body.decode())
-                remote_height = int(
-                    json_body["result"]["sync_info"]["latest_block_height"]
-                )
-                local_height = int(self.context.state.period.height)
-                return local_height == remote_height
-            except (json.JSONDecodeError, KeyError):  # pragma: nocover
-                continue
-
-        return False  # pragma: nocover
 
     def get_callback_request(self) -> Callable[[Message, "BaseState"], None]:
         """Wrapper for callback request which depends on whether the message has not been handled on time.

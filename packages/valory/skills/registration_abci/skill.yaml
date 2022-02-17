@@ -6,14 +6,14 @@ description: ABCI application for common apps.
 license: Apache-2.0
 aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
-  README.md: QmSohTt9XD9s4eJAXqb97dTmf627huMrPgmFCi87AB9FyP
+  README.md: QmYgDsnQnryPwFXnaNTns1ypH9jqvYeHGgmP9K2y4tXFJy
   __init__.py: QmcMo5TeB1s4UWwEwXT8Xdsw7nNXzwJe7YXE3RgsSwEp7R
-  behaviours.py: QmXntgQ5qYXFbZACTbowKNDFRHuMzLbB9oumMuSWQjLw2b
+  behaviours.py: QmQmdC34iTAWvhokBou9C1rh1LZFasgqm5g1kjepyXQQTv
   dialogues.py: QmfDThV4WCRzK88XDpW2hKDYCuEH4RxoHCoAkWpkBRGRPv
   handlers.py: QmThK5PB67624VnCWmBXBz1MzwVp9XBWA97x3rsAwADnW1
   models.py: QmWV5tEb6A6S7uDH7j8gXLh4uh475p6cz3qa14SWY4Fi33
   payloads.py: QmZUxJ9T27NK35PkXXY3JVn5tin9TxrFMymwuHqEizpH55
-  rounds.py: QmV95XpYKR8LaZiczpurhmLZEC7hRm9kcj7JUngcXPrBcb
+  rounds.py: QmdrLWKNTwZYjATMvWGCgZbYbxYp26bba9eiyG2wZSffVP
 fingerprint_ignore_patterns: []
 connections: []
 contracts: []
@@ -64,7 +64,9 @@ models:
       round_timeout_seconds: 30.0
       service_id: registration
       sleep_time: 1
+      tendermint_check_sleep_delay: 3
       tendermint_com_url: http://localhost:8080
+      tendermint_max_retries: 5
       tendermint_url: http://localhost:26657
     class_name: Params
   requests:
