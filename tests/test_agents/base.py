@@ -34,6 +34,7 @@ from tests.helpers.tendermint_utils import (
     TendermintLocalNetworkBuilder,
 )
 
+
 MAX_FLAKY_RERUNS = 3
 
 

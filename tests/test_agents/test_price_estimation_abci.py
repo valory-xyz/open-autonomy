@@ -25,9 +25,9 @@ import pytest
 
 from tests.fixture_helpers import UseGnosisSafeHardHatNet
 from tests.test_agents.base import (
-    MAX_FLAKY_RERUNS,
     BaseTestEnd2EndAgentCatchup,
     BaseTestEnd2EndNormalExecution,
+    MAX_FLAKY_RERUNS,
 )
 
 
