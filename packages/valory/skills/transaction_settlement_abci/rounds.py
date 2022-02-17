@@ -490,10 +490,10 @@ class TransactionSubmissionAbciApp(AbciApp[Event]):
         },
         CheckTransactionHistoryRound: {
             Event.DONE: ResetAndPauseRound,
-            Event.NEGATIVE: FailedRound,
+            Event.NEGATIVE: SynchronizeLateMessagesRound,
             Event.NONE: FailedRound,
             Event.ROUND_TIMEOUT: CheckTransactionHistoryRound,
-            Event.NO_MAJORITY: FailedRound,
+            Event.NO_MAJORITY: SynchronizeLateMessagesRound,
         },
         SelectKeeperTransactionSubmissionRoundB: {
             Event.DONE: FinalizationRound,
