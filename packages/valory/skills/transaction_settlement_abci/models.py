@@ -19,7 +19,7 @@
 
 """Custom objects for the transaction settlement ABCI application."""
 
-from typing import Any, Optional
+from typing import Any, List, Optional
 
 from web3.types import Nonce
 
@@ -49,7 +49,7 @@ class TransactionParams(BaseParams):
         """Initialize the parameters object."""
         self.nonce: Optional[Nonce] = None
         self.tip: Optional[int] = None
-        self.late_message: Optional[ContractApiMessage] = None
+        self.late_messages: List[ContractApiMessage] = []
         super().__init__(*args, **kwargs)
 
     def reset_tx_params(self) -> None:
