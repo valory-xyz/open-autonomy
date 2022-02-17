@@ -372,6 +372,7 @@ class CheckTransactionHistoryRound(CollectSameUntilThresholdRound):
                 participant_to_check=self.collection,
                 final_verification_status=return_status,
                 tx_hashes_history=[return_tx_hash],
+                late_arriving_tx_hashes=[],
             )
 
             if return_status == VerificationStatus.VERIFIED:
