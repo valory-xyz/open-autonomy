@@ -4,36 +4,6 @@
 
 This module contains the behaviours for the 'abci' skill.
 
-<a id="packages.valory.skills.registration_abci.behaviours.TendermintHealthcheckBehaviour"></a>
-
-## TendermintHealthcheckBehaviour Objects
-
-```python
-class TendermintHealthcheckBehaviour(BaseState)
-```
-
-Check whether Tendermint nodes are running.
-
-<a id="packages.valory.skills.registration_abci.behaviours.TendermintHealthcheckBehaviour.start"></a>
-
-#### start
-
-```python
-def start() -> None
-```
-
-Set up the behaviour.
-
-<a id="packages.valory.skills.registration_abci.behaviours.TendermintHealthcheckBehaviour.async_act"></a>
-
-#### async`_`act
-
-```python
-def async_act() -> Generator
-```
-
-Do the action.
-
 <a id="packages.valory.skills.registration_abci.behaviours.RegistrationBaseBehaviour"></a>
 
 ## RegistrationBaseBehaviour Objects

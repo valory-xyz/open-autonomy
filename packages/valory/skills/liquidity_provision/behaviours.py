@@ -63,7 +63,7 @@ from packages.valory.skills.liquidity_provision.rounds import (
 )
 from packages.valory.skills.registration_abci.behaviours import (
     AgentRegistrationRoundBehaviour,
-    TendermintHealthcheckBehaviour,
+    RegistrationStartupBehaviour,
 )
 from packages.valory.skills.safe_deployment_abci.behaviours import (
     SafeDeploymentRoundBehaviour,
@@ -1007,7 +1007,7 @@ class StrategyRoundBehaviour(AbstractRoundBehaviour):
 class LiquidityProvisionConsensusBehaviour(AbstractRoundBehaviour):
     """This behaviour manages the consensus stages for the price estimation."""
 
-    initial_state_cls = TendermintHealthcheckBehaviour
+    initial_state_cls = RegistrationStartupBehaviour
     abci_app_cls = LiquidityProvisionAbciApp  # type: ignore
     behaviour_states: Set[Type[BaseState]] = {
         *AgentRegistrationRoundBehaviour.behaviour_states,

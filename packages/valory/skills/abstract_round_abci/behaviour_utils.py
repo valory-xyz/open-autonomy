@@ -804,26 +804,6 @@ class BaseState(AsyncBehaviour, CleanUpBehaviour, ABC):
         )
         return result
 
-    def _get_health(self) -> Generator[None, None, HttpMessage]:
-        """
-        Get Tendermint node's health.
-
-        Happy-path full flow of the messages.
-
-        _do_request:
-            AbstractRoundAbci skill -> (HttpMessage | REQUEST) -> Http client connection
-            Http client connection -> (HttpMessage | RESPONSE) -> AbstractRoundAbci skill
-
-        :yield: HttpMessage object
-        :return: http response from tendermint
-        """
-        request_message, http_dialogue = self._build_http_request_message(
-            "GET",
-            self.context.params.tendermint_url + "/health",
-        )
-        result = yield from self._do_request(request_message, http_dialogue)
-        return result
-
     def _get_status(self) -> Generator[None, None, HttpMessage]:
         """
         Get Tendermint node's status.
