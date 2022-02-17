@@ -24,6 +24,7 @@ import os
 from typing import Any, Optional
 
 from aea_cli_ipfs.ipfs_utils import DownloadError, IPFSTool, NodeError
+from ipfshttpclient.exceptions import ErrorResponse
 
 from packages.valory.skills.abstract_round_abci.io.load import (
     Loader,
@@ -90,7 +91,7 @@ class IPFSInteract:
 
         try:
             self.__ipfs_tool.download(hash_, target_dir)
-        except DownloadError as e:
+        except (DownloadError, ErrorResponse) as e:
             raise IPFSInteractionError(str(e)) from e
 
         return filepath
