@@ -145,6 +145,16 @@ class SynchronizeLateMessagesBehaviour(TransactionSettlementBaseState)
 
 Synchronize late-arriving messages state.
 
+<a id="packages.valory.skills.transaction_settlement_abci.behaviours.SynchronizeLateMessagesBehaviour.__init__"></a>
+
+#### `__`init`__`
+
+```python
+def __init__(**kwargs: Any)
+```
+
+Initialize a `SynchronizeLateMessagesBehaviour`
+
 <a id="packages.valory.skills.transaction_settlement_abci.behaviours.SynchronizeLateMessagesBehaviour.async_act"></a>
 
 #### async`_`act
