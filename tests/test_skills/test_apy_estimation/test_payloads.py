@@ -86,12 +86,6 @@ class TestPayloads:
     @staticmethod
     def test_preprocess_payload() -> None:
         """Test `PreprocessPayload`"""
-        with pytest.raises(
-            ValueError,
-            match="Either `train_hash` and `test_hash` or `train_test` should be given for the `PreprocessPayload`!",
-        ):
-            PreprocessPayload(sender="sender", pair_name="test")
-
         payload = PreprocessPayload(
             sender="sender", pair_name="test", train_test="x0", id_="id"
         )
