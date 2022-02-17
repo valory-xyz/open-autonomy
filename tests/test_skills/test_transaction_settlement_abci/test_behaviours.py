@@ -374,7 +374,7 @@ class TestFinalizeBehaviour(PriceEstimationFSMBehaviourBaseCase):
             == FinalizeBehaviour.state_id
         )
 
-        message = ContractApiMessage(ContractApiMessage.Performative.RAW_MESSAGE)
+        message = ContractApiMessage(ContractApiMessage.Performative.RAW_MESSAGE)  # type: ignore
         cast(BaseState, self.behaviour.current_state).handle_late_messages(message)
         assert (
             cast(
@@ -599,7 +599,7 @@ class TestSynchronizeLateMessagesBehaviour(PriceEstimationFSMBehaviourBaseCase):
                 )
             ),
         )
-        self._check_state_id(SynchronizeLateMessagesBehaviour)
+        self._check_state_id(SynchronizeLateMessagesBehaviour)  # type: ignore
 
         if late_message_empty:
             cast(
@@ -629,7 +629,7 @@ class TestSynchronizeLateMessagesBehaviour(PriceEstimationFSMBehaviourBaseCase):
         self.mock_a2a_transaction()
         self._test_done_flag_set()
         self.end_round(TransactionSettlementEvent.DONE)
-        self._check_state_id(CheckLateTxHashesBehaviour)
+        self._check_state_id(CheckLateTxHashesBehaviour)  # type: ignore
 
 
 class TestResetAndPauseBehaviour(PriceEstimationFSMBehaviourBaseCase):
