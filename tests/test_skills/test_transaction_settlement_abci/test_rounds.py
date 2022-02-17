@@ -25,6 +25,7 @@ from typing import Dict, FrozenSet, List, Optional, Type, cast
 
 import pytest
 
+from packages.valory.skills.abstract_round_abci.base import ABCIAppInternalError
 from packages.valory.skills.abstract_round_abci.base import (
     BasePeriodState as PeriodState,
 )
@@ -491,3 +492,11 @@ def test_period_states() -> None:
     assert period_state_____.participant_to_signature == participant_to_signature
     assert period_state_____.final_tx_hash == final_tx_hash
     assert period_state_____.late_arriving_tx_hashes == late_arriving_tx_hashes
+
+    # test wrong tx hashes serialization
+    period_state_____.update(late_arriving_tx_hashes=["test"])
+    with pytest.raises(
+        ABCIAppInternalError,
+        match="internal error: Cannot parse late arriving hashes: test!",
+    ):
+        _ = period_state_____.late_arriving_tx_hashes
