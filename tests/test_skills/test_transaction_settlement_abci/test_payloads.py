@@ -29,6 +29,7 @@ from packages.valory.skills.transaction_settlement_abci.payloads import (
     ResetPayload,
     SelectKeeperPayload,
     SignaturePayload,
+    SynchronizeLateMessagesPayload,
     TransactionType,
     ValidatePayload,
 )
@@ -74,6 +75,16 @@ def test_tx_history_payload() -> None:
     assert payload.verified_res == "test"
     assert payload.data == {"verified_res": "test"}
     assert payload.transaction_type == TransactionType.CHECK
+
+
+def test_synchronize_payload() -> None:
+    """Test `SynchronizeLateMessagesPayload`."""
+
+    payload = SynchronizeLateMessagesPayload(sender="sender", tx_hashes="test")
+
+    assert payload.tx_hashes == "test"
+    assert payload.data == {"tx_hashes": "test"}
+    assert payload.transaction_type == TransactionType.SYNCHRONIZE
 
 
 def test_signature_payload() -> None:

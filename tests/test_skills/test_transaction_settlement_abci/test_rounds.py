@@ -25,6 +25,7 @@ from typing import Dict, FrozenSet, List, Optional, Type, cast
 
 import pytest
 
+from packages.valory.skills.abstract_round_abci.base import ABCIAppInternalError
 from packages.valory.skills.abstract_round_abci.base import (
     BasePeriodState as PeriodState,
 )
@@ -179,6 +180,13 @@ def get_participant_to_check(
     }
 
 
+def get_late_arriving_tx_hashes() -> List[str]:
+    """Get dummy late-arriving tx hashes."""
+    # We want the tx hashes to have a size which can be divided by 64 to be able to parse it.
+    # Otherwise, they are not valid.
+    return ["t" * 64, "e" * 64, "s" * 64, "t" * 64]
+
+
 class TestSelectKeeperTransactionSubmissionRoundA(BaseSelectKeeperRoundTest):
     """Test SelectKeeperTransactionSubmissionRoundA"""
 
@@ -208,7 +216,7 @@ class TestFinalizationRound(BaseOnlyKeeperSendsRoundTest):
                 None,
                 "",
                 VerificationStatus.ERROR.value,
-                TransactionSettlementEvent.FATAL,
+                TransactionSettlementEvent.CHECK_LATE_ARRIVING_MESSAGE,
             ),
             (
                 [get_final_tx_hash()],
@@ -458,6 +466,7 @@ def test_period_states() -> None:
     actual_keeper_randomness = float(
         (int(most_voted_randomness, base=16) // 10 ** 0 % 10) / 10
     )
+    late_arriving_tx_hashes = get_late_arriving_tx_hashes()
 
     period_state_____ = TransactionSettlementPeriodState(
         StateDB(
@@ -472,6 +481,7 @@ def test_period_states() -> None:
                 most_voted_tx_hash=most_voted_tx_hash,
                 participant_to_signature=participant_to_signature,
                 tx_hashes_history=[final_tx_hash],
+                late_arriving_tx_hashes=late_arriving_tx_hashes,
             ),
         )
     )
@@ -482,3 +492,12 @@ def test_period_states() -> None:
     assert period_state_____.most_voted_tx_hash == most_voted_tx_hash
     assert period_state_____.participant_to_signature == participant_to_signature
     assert period_state_____.final_tx_hash == final_tx_hash
+    assert period_state_____.late_arriving_tx_hashes == late_arriving_tx_hashes
+
+    # test wrong tx hashes serialization
+    period_state_____.update(late_arriving_tx_hashes=["test"])
+    with pytest.raises(
+        ABCIAppInternalError,
+        match="internal error: Cannot parse late arriving hashes: test!",
+    ):
+        _ = period_state_____.late_arriving_tx_hashes

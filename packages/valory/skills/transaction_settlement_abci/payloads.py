@@ -34,6 +34,7 @@ class TransactionType(Enum):
     RANDOMNESS = "randomness_transaction"
     SELECT_KEEPER = "select_keeper_transaction"
     CHECK = "check"
+    SYNCHRONIZE = "synchronize"
 
     def __str__(self) -> str:
         """Get the string value of the transaction type."""
@@ -143,10 +144,10 @@ class CheckTransactionHistoryPayload(BaseTxPayload):
         verified_res: str,
         id_: Optional[str] = None,
     ) -> None:
-        """Initialize an 'validate' transaction payload.
+        """Initialize an 'check' transaction payload.
 
         :param sender: the sender (Ethereum) address
-        :param verified_res: the vote
+        :param verified_res: the verification result
         :param id_: the id of the transaction
         """
         super().__init__(sender, id_)
@@ -161,6 +162,37 @@ class CheckTransactionHistoryPayload(BaseTxPayload):
     def data(self) -> Dict:
         """Get the data."""
         return dict(verified_res=self.verified_res)
+
+
+class SynchronizeLateMessagesPayload(BaseTxPayload):
+    """Represent a transaction payload of type 'synchronize'."""
+
+    transaction_type = TransactionType.SYNCHRONIZE
+
+    def __init__(
+        self,
+        sender: str,
+        tx_hashes: str = "",
+        id_: Optional[str] = None,
+    ) -> None:
+        """Initialize a 'synchronize' transaction payload.
+
+        :param sender: the sender (Ethereum) address
+        :param tx_hashes: the late-arriving tx hashes concatenated
+        :param id_: the id of the transaction
+        """
+        super().__init__(sender, id_)
+        self._tx_hashes = tx_hashes
+
+    @property
+    def tx_hashes(self) -> Optional[str]:
+        """Get the late-arriving tx hashes."""
+        return None if self._tx_hashes == "" else self._tx_hashes
+
+    @property
+    def data(self) -> Dict[str, Optional[str]]:
+        """Get the data."""
+        return dict(tx_hashes=self._tx_hashes)
 
 
 class SignaturePayload(BaseTxPayload):

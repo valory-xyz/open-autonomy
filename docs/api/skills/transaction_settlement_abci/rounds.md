@@ -103,12 +103,23 @@ def is_final_tx_hash_set() -> bool
 
 Check if most_voted_estimate is set.
 
+<a id="packages.valory.skills.transaction_settlement_abci.rounds.PeriodState.late_arriving_tx_hashes"></a>
+
+#### late`_`arriving`_`tx`_`hashes
+
+```python
+@property
+def late_arriving_tx_hashes() -> List[str]
+```
+
+Get the late_arriving_tx_hashes.
+
 <a id="packages.valory.skills.transaction_settlement_abci.rounds.FinishedRegistrationRound"></a>
 
 ## FinishedRegistrationRound Objects
 
 ```python
-class FinishedRegistrationRound(DegenerateRound)
+class FinishedRegistrationRound(DegenerateRound,  ABC)
 ```
 
 A round representing that agent registration has finished
@@ -118,7 +129,7 @@ A round representing that agent registration has finished
 ## FinishedRegistrationFFWRound Objects
 
 ```python
-class FinishedRegistrationFFWRound(DegenerateRound)
+class FinishedRegistrationFFWRound(DegenerateRound,  ABC)
 ```
 
 A fast-forward round representing that agent registration has finished
@@ -128,7 +139,7 @@ A fast-forward round representing that agent registration has finished
 ## FinishedTransactionSubmissionRound Objects
 
 ```python
-class FinishedTransactionSubmissionRound(DegenerateRound)
+class FinishedTransactionSubmissionRound(DegenerateRound,  ABC)
 ```
 
 A round that represents that transaction submission has finished
@@ -138,7 +149,7 @@ A round that represents that transaction submission has finished
 ## FailedRound Objects
 
 ```python
-class FailedRound(DegenerateRound)
+class FailedRound(DegenerateRound,  ABC)
 ```
 
 A round that represents that the period failed
@@ -302,6 +313,26 @@ def end_block() -> Optional[Tuple[BasePeriodState, Enum]]
 ```
 
 Process the end of the block.
+
+<a id="packages.valory.skills.transaction_settlement_abci.rounds.CheckLateTxHashesRound"></a>
+
+## CheckLateTxHashesRound Objects
+
+```python
+class CheckLateTxHashesRound(CheckTransactionHistoryRound)
+```
+
+A round in which agents check the late-arriving transaction hashes to see if any of them has been validated
+
+<a id="packages.valory.skills.transaction_settlement_abci.rounds.SynchronizeLateMessagesRound"></a>
+
+## SynchronizeLateMessagesRound Objects
+
+```python
+class SynchronizeLateMessagesRound(CollectNonEmptyUntilThresholdRound)
+```
+
+A round in which agents synchronize potentially late arriving messages
 
 <a id="packages.valory.skills.transaction_settlement_abci.rounds.TransactionSubmissionAbciApp"></a>
 

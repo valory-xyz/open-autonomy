@@ -18,6 +18,8 @@
 # ------------------------------------------------------------------------------
 
 """This module contains the data classes for the `transaction settlement` ABCI application."""
+import textwrap
+from abc import ABC
 from enum import Enum
 from typing import Dict, List, Mapping, Optional, Set, Tuple, Type, cast
 
@@ -30,6 +32,7 @@ from packages.valory.skills.abstract_round_abci.base import (
     BasePeriodState,
     BaseTxPayload,
     CollectDifferentUntilThresholdRound,
+    CollectNonEmptyUntilThresholdRound,
     CollectSameUntilThresholdRound,
     DegenerateRound,
     OnlyKeeperSendsRound,
@@ -47,6 +50,7 @@ from packages.valory.skills.transaction_settlement_abci.payloads import (
     ResetPayload,
     SelectKeeperPayload,
     SignaturePayload,
+    SynchronizeLateMessagesPayload,
     ValidatePayload,
 )
 
@@ -63,8 +67,8 @@ class Event(Enum):
     RESET_TIMEOUT = "reset_timeout"
     RESET_AND_PAUSE_TIMEOUT = "reset_and_pause_timeout"
     CHECK_HISTORY = "check_history"
+    CHECK_LATE_ARRIVING_MESSAGE = "check_late_arriving_message"
     FAILED = "failed"
-    FATAL = "fatal"
 
 
 class PeriodState(BasePeriodState):  # pylint: disable=too-many-instance-attributes
@@ -115,26 +119,45 @@ class PeriodState(BasePeriodState):  # pylint: disable=too-many-instance-attribu
         """Check if most_voted_estimate is set."""
         return self.tx_hashes_history is not None
 
+    @property
+    def late_arriving_tx_hashes(self) -> List[str]:
+        """Get the late_arriving_tx_hashes."""
+        late_arriving_tx_hashes_unparsed = cast(
+            List[str], self.db.get_strict("late_arriving_tx_hashes")
+        )
+        late_arriving_tx_hashes_parsed = []
+        hashes_length = 64
+        for unparsed_hash in late_arriving_tx_hashes_unparsed:
+            if len(unparsed_hash) % hashes_length != 0:
+                # if we cannot parse the hashes, then the developer has serialized them incorrectly.
+                raise ABCIAppInternalError(
+                    f"Cannot parse late arriving hashes: {unparsed_hash}!"
+                )
+            parsed_hashes = textwrap.wrap(unparsed_hash, hashes_length)
+            late_arriving_tx_hashes_parsed.extend(parsed_hashes)
 
-class FinishedRegistrationRound(DegenerateRound):
+        return late_arriving_tx_hashes_parsed
+
+
+class FinishedRegistrationRound(DegenerateRound, ABC):
     """A round representing that agent registration has finished"""
 
     round_id = "finished_registration"
 
 
-class FinishedRegistrationFFWRound(DegenerateRound):
+class FinishedRegistrationFFWRound(DegenerateRound, ABC):
     """A fast-forward round representing that agent registration has finished"""
 
     round_id = "finished_registration_ffw"
 
 
-class FinishedTransactionSubmissionRound(DegenerateRound):
+class FinishedTransactionSubmissionRound(DegenerateRound, ABC):
     """A round that represents that transaction submission has finished"""
 
     round_id = "finished_transaction_submission"
 
 
-class FailedRound(DegenerateRound):
+class FailedRound(DegenerateRound, ABC):
     """A round that represents that the period failed"""
 
     round_id = "failed"
@@ -194,7 +217,7 @@ class FinalizationRound(OnlyKeeperSendsRound):
                 )
                 if cast(PeriodState, self.period_state).tx_hashes_history is not None:
                     return state, Event.CHECK_HISTORY
-                return state, Event.FATAL
+                return state, Event.CHECK_LATE_ARRIVING_MESSAGE
 
             if self.keeper_payload is None or self.keeper_payload["tx_digest"] == "":
                 return self.period_state, Event.FAILED
@@ -382,6 +405,7 @@ class CheckTransactionHistoryRound(CollectSameUntilThresholdRound):
                 participant_to_check=self.collection,
                 final_verification_status=return_status,
                 tx_hashes_history=[return_tx_hash],
+                late_arriving_tx_hashes=[],
             )
 
             if return_status == VerificationStatus.VERIFIED:
@@ -397,6 +421,30 @@ class CheckTransactionHistoryRound(CollectSameUntilThresholdRound):
         ):
             return self.period_state, Event.NO_MAJORITY
         return None
+
+
+class CheckLateTxHashesRound(CheckTransactionHistoryRound):
+    """A round in which agents check the late-arriving transaction hashes to see if any of them has been validated"""
+
+    round_id = "check_late_tx_hashes"
+    allowed_tx_type = CheckTransactionHistoryPayload.transaction_type
+    payload_attribute = "verified_res"
+    period_state_class = PeriodState
+    selection_key = "most_voted_check_result"
+
+
+class SynchronizeLateMessagesRound(CollectNonEmptyUntilThresholdRound):
+    """A round in which agents synchronize potentially late arriving messages"""
+
+    round_id = "synchronize_late_messages"
+    allowed_tx_type = SynchronizeLateMessagesPayload.transaction_type
+    payload_attribute = "tx_hash"
+    period_state_class = PeriodState
+    done_event = Event.DONE
+    no_majority_event = Event.NO_MAJORITY
+    none_event = Event.NONE
+    selection_key = "participant"
+    collection_key = "late_arriving_tx_hashes"
 
 
 class TransactionSubmissionAbciApp(AbciApp[Event]):
@@ -481,7 +529,7 @@ class TransactionSubmissionAbciApp(AbciApp[Event]):
             Event.CHECK_HISTORY: CheckTransactionHistoryRound,
             Event.ROUND_TIMEOUT: SelectKeeperTransactionSubmissionRoundB,
             Event.FAILED: SelectKeeperTransactionSubmissionRoundB,
-            Event.FATAL: FailedRound,
+            Event.CHECK_LATE_ARRIVING_MESSAGE: SynchronizeLateMessagesRound,
         },
         ValidateTransactionRound: {
             Event.DONE: ResetAndPauseRound,
@@ -492,15 +540,28 @@ class TransactionSubmissionAbciApp(AbciApp[Event]):
         },
         CheckTransactionHistoryRound: {
             Event.DONE: ResetAndPauseRound,
-            Event.NEGATIVE: FailedRound,
+            Event.NEGATIVE: SynchronizeLateMessagesRound,
             Event.NONE: FailedRound,
             Event.ROUND_TIMEOUT: CheckTransactionHistoryRound,
-            Event.NO_MAJORITY: FailedRound,
+            Event.NO_MAJORITY: SynchronizeLateMessagesRound,
         },
         SelectKeeperTransactionSubmissionRoundB: {
             Event.DONE: FinalizationRound,
             Event.ROUND_TIMEOUT: ResetRound,
             Event.NO_MAJORITY: ResetRound,
+        },
+        SynchronizeLateMessagesRound: {
+            Event.DONE: CheckLateTxHashesRound,
+            Event.ROUND_TIMEOUT: SynchronizeLateMessagesRound,
+            Event.NO_MAJORITY: SynchronizeLateMessagesRound,
+            Event.NONE: FailedRound,
+        },
+        CheckLateTxHashesRound: {
+            Event.DONE: ResetAndPauseRound,
+            Event.NEGATIVE: FailedRound,
+            Event.NONE: FailedRound,
+            Event.ROUND_TIMEOUT: CheckLateTxHashesRound,
+            Event.NO_MAJORITY: FailedRound,
         },
         ResetRound: {
             Event.DONE: RandomnessTransactionSubmissionRound,

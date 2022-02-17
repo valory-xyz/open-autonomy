@@ -1494,6 +1494,31 @@ def end_block() -> Optional[Tuple[BasePeriodState, Enum]]
 
 Process the end of the block.
 
+<a id="packages.valory.skills.abstract_round_abci.base.CollectNonEmptyUntilThresholdRound"></a>
+
+## CollectNonEmptyUntilThresholdRound Objects
+
+```python
+class CollectNonEmptyUntilThresholdRound(CollectDifferentUntilThresholdRound)
+```
+
+Collect all the data among agents.
+
+This class represents logic for rounds where we need to collect
+payloads from each agent which will contain optional, different data and only keep the non-empty.
+
+This round may be used for cases that we want to collect all the agent's data, such as late-arriving messages.
+
+<a id="packages.valory.skills.abstract_round_abci.base.CollectNonEmptyUntilThresholdRound.end_block"></a>
+
+#### end`_`block
+
+```python
+def end_block() -> Optional[Tuple[BasePeriodState, Enum]]
+```
+
+Process the end of the block.
+
 <a id="packages.valory.skills.abstract_round_abci.base.TimeoutEvent"></a>
 
 ## TimeoutEvent Objects

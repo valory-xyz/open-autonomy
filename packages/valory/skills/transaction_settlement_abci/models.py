@@ -19,10 +19,11 @@
 
 """Custom objects for the transaction settlement ABCI application."""
 
-from typing import Any, Optional
+from typing import Any, List, Optional
 
 from web3.types import Nonce
 
+from packages.valory.protocols.contract_api import ContractApiMessage
 from packages.valory.skills.abstract_round_abci.models import BaseParams
 from packages.valory.skills.abstract_round_abci.models import Requests as BaseRequests
 from packages.valory.skills.abstract_round_abci.models import (
@@ -48,6 +49,7 @@ class TransactionParams(BaseParams):
         """Initialize the parameters object."""
         self.nonce: Optional[Nonce] = None
         self.tip: Optional[int] = None
+        self.late_messages: List[ContractApiMessage] = []
         super().__init__(*args, **kwargs)
 
     def reset_tx_params(self) -> None:
