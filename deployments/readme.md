@@ -1,13 +1,18 @@
-# Readme
+# Deployment guide
 
+# Prerequisites
+
+- Skaffold `>=v1.33.0`
+- Docker
+- Python `>=3.7`
 
 # Step 1
 
 First we need to build the images used for the deployment.
 
-Images are built & tagged by scaffold based on an environment variable $VERSION
+Images are built & tagged by scaffold based on an environment variable `$VERSION`.
 
-This is done from the root directory
+This is done from the root directory.
 
 ```bash
 export VERSION=0.1.0
@@ -17,10 +22,10 @@ skaffold build --build-concurrency=0 --push=false
 
 # Step 2
 
-Now we have our images, we need to build the deployment to use them
+Now we have our images, we need to build the deployment to use them.
 
 
-``` bash
+```bash
 python deployments/create_deployment.py \
     -t docker-compose \
     -app oracle_hardhat
@@ -47,7 +52,7 @@ We have build our deployment docker-compose file.
 Next we need to go ahead and configure tendermint to setup the validators.
 We use the docker command generated in the previous step to do this; 
 
-``` bash
+```bash
 docker run --rm -v $(pwd)/deployments/build/build:/tendermint:Z --entrypoint=/usr/bin/tendermint valory/consensus-algorithms-tendermint:0.1.0 testnet --config /etc/tendermint/config-template.toml --v 2 --o . --hostname=node0 --hostname=node1
 ```
 
@@ -74,7 +79,7 @@ docker run -p 8545:8545 -it valory/consensus-algorithms-hardhat:0.1.0
 
 Now that we have our deployment built, we can actually run it.
 
-``` bash
+```bash
 cd deployments/build
 docker-compose up --force-recreate
 ```
