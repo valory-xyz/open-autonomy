@@ -255,10 +255,10 @@ class PreprocessRound(CollectSameUntilThresholdRound, APYEstimationAbstractRound
 
     def end_block(self) -> Optional[Tuple[BasePeriodState, Event]]:
         """Process the end of the block."""
-        if self.most_voted_payload is None:
-            return self._return_file_error()
-
         if self.threshold_reached:
+            if self.most_voted_payload is None:
+                return self._return_file_error()
+
             updated_state = self.period_state.update(
                 period_state_class=PeriodState,
                 participant_to_preprocessing=self.collection,
