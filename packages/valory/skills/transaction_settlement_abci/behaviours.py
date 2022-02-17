@@ -584,7 +584,7 @@ class FinalizeBehaviour(TransactionSettlementBaseState):
         :param message: the late arriving message to handle.
         """
         if isinstance(message, ContractApiMessage):
-            self.params.late_message = message
+            self.params.late_messages.append(message)
         else:
             super().handle_late_messages(message)
 
