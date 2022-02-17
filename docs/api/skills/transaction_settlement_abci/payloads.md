@@ -243,7 +243,7 @@ Represent a transaction payload of type 'synchronize'.
 #### `__`init`__`
 
 ```python
-def __init__(sender: str, tx_hash: str = "", id_: Optional[str] = None) -> None
+def __init__(sender: str, tx_hashes: str = "", id_: Optional[str] = None) -> None
 ```
 
 Initialize a 'synchronize' transaction payload.
@@ -251,19 +251,19 @@ Initialize a 'synchronize' transaction payload.
 **Arguments**:
 
 - `sender`: the sender (Ethereum) address
-- `tx_hash`: the late-arriving tx hash
+- `tx_hashes`: the late-arriving tx hashes concatenated
 - `id_`: the id of the transaction
 
-<a id="packages.valory.skills.transaction_settlement_abci.payloads.SynchronizeLateMessagesPayload.tx_hash"></a>
+<a id="packages.valory.skills.transaction_settlement_abci.payloads.SynchronizeLateMessagesPayload.tx_hashes"></a>
 
-#### tx`_`hash
+#### tx`_`hashes
 
 ```python
 @property
-def tx_hash() -> Optional[str]
+def tx_hashes() -> Optional[str]
 ```
 
-Get the late-arriving tx hash.
+Get the late-arriving tx hashes.
 
 <a id="packages.valory.skills.transaction_settlement_abci.payloads.SynchronizeLateMessagesPayload.data"></a>
 

@@ -172,27 +172,27 @@ class SynchronizeLateMessagesPayload(BaseTxPayload):
     def __init__(
         self,
         sender: str,
-        tx_hash: str = "",
+        tx_hashes: str = "",
         id_: Optional[str] = None,
     ) -> None:
         """Initialize a 'synchronize' transaction payload.
 
         :param sender: the sender (Ethereum) address
-        :param tx_hash: the late-arriving tx hash
+        :param tx_hashes: the late-arriving tx hashes concatenated
         :param id_: the id of the transaction
         """
         super().__init__(sender, id_)
-        self._tx_hash = tx_hash
+        self._tx_hashes = tx_hashes
 
     @property
-    def tx_hash(self) -> Optional[str]:
-        """Get the late-arriving tx hash."""
-        return None if self._tx_hash == "" else self._tx_hash
+    def tx_hashes(self) -> Optional[str]:
+        """Get the late-arriving tx hashes."""
+        return None if self._tx_hashes == "" else self._tx_hashes
 
     @property
     def data(self) -> Dict[str, Optional[str]]:
         """Get the data."""
-        return dict(tx_hash=self._tx_hash)
+        return dict(tx_hashes=self._tx_hashes)
 
 
 class SignaturePayload(BaseTxPayload):

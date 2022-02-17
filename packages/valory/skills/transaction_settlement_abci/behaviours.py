@@ -23,7 +23,7 @@ import datetime
 import json
 import pprint
 from abc import ABC
-from typing import Dict, Generator, Optional, Set, Tuple, Type, Union, cast
+from typing import Any, Dict, Generator, Optional, Set, Tuple, Type, Union, cast
 
 from aea.protocols.base import Message
 from web3.types import Nonce, TxData
@@ -394,20 +394,26 @@ class SynchronizeLateMessagesBehaviour(TransactionSettlementBaseState):
     state_id = "sync_late_messages"
     matching_round = SynchronizeLateMessagesRound
 
+    def __init__(self, **kwargs: Any):
+        """Initialize a `SynchronizeLateMessagesBehaviour`"""
+        super().__init__(**kwargs)
+        self._tx_hashes: str = ""
+
     def async_act(self) -> Generator:
         """Do the action."""
 
         with benchmark_tool.measure(
             self,
         ).local():
-            tx_hash = ""
-
-            if self.params.late_message is not None:
-                tx_data = yield from self._get_tx_data(self.params.late_message)
-                tx_hash = cast(str, tx_data["tx_digest"])
+            if len(self.params.late_messages) > 0:
+                current_message = self.params.late_messages.pop()
+                tx_data = yield from self._get_tx_data(current_message)
+                # here, we concatenate the tx_hashes of all the late-arriving messages. Later, we will parse them.
+                self._tx_hashes += cast(str, tx_data["tx_digest"])
+                return
 
             payload = SynchronizeLateMessagesPayload(
-                self.context.agent_address, tx_hash
+                self.context.agent_address, self._tx_hashes
             )
 
         with benchmark_tool.measure(
@@ -421,7 +427,7 @@ class SynchronizeLateMessagesBehaviour(TransactionSettlementBaseState):
     def set_done(self) -> None:
         """Set the behaviour to done and clean the local late message parameter."""
         super().set_done()
-        self.params.late_message = None
+        self.params.late_messages = []
 
 
 class SignatureBehaviour(TransactionSettlementBaseState):
@@ -549,31 +555,25 @@ class FinalizeBehaviour(TransactionSettlementBaseState):
         """Send a Safe transaction using the participants' signatures."""
         tx_params = skill_input_hex_to_payload(self.period_state.most_voted_tx_hash)
 
-        # Here, we give priority to a potentially late-arriving message and do not try to re-send.
-        # If this late message has not been synchronised yet
-        # and the same keeper who missed the message at the first place has been reselected,
-        # then we can piggyback the finalisation mechanism.
-        contract_api_msg = self.params.late_message
-        if contract_api_msg is None:
-            contract_api_msg = yield from self.get_contract_api_response(
-                performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
-                contract_address=self.period_state.safe_contract_address,
-                contract_id=str(GnosisSafeContract.contract_id),
-                contract_callable="get_raw_safe_transaction",
-                sender_address=self.context.agent_address,
-                owners=tuple(self.period_state.participants),
-                to_address=tx_params["to_address"],
-                value=tx_params["ether_value"],
-                data=tx_params["data"],
-                safe_tx_gas=tx_params["safe_tx_gas"],
-                signatures_by_owner={
-                    key: payload.signature
-                    for key, payload in self.period_state.participant_to_signature.items()
-                },
-                nonce=self.params.nonce,
-                old_tip=self.params.tip,
-                operation=tx_params["operation"],
-            )
+        contract_api_msg = yield from self.get_contract_api_response(
+            performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
+            contract_address=self.period_state.safe_contract_address,
+            contract_id=str(GnosisSafeContract.contract_id),
+            contract_callable="get_raw_safe_transaction",
+            sender_address=self.context.agent_address,
+            owners=tuple(self.period_state.participants),
+            to_address=tx_params["to_address"],
+            value=tx_params["ether_value"],
+            data=tx_params["data"],
+            safe_tx_gas=tx_params["safe_tx_gas"],
+            signatures_by_owner={
+                key: payload.signature
+                for key, payload in self.period_state.participant_to_signature.items()
+            },
+            nonce=self.params.nonce,
+            old_tip=self.params.tip,
+            operation=tx_params["operation"],
+        )
 
         tx_data = yield from self._get_tx_data(contract_api_msg)
         return tx_data
@@ -584,7 +584,7 @@ class FinalizeBehaviour(TransactionSettlementBaseState):
         :param message: the late arriving message to handle.
         """
         if isinstance(message, ContractApiMessage):
-            self.params.late_message = message
+            self.params.late_messages.append(message)
         else:
             super().handle_late_messages(message)
 
