@@ -376,12 +376,9 @@ class TestFinalizeBehaviour(PriceEstimationFSMBehaviourBaseCase):
 
         message = ContractApiMessage(ContractApiMessage.Performative.RAW_MESSAGE)  # type: ignore
         cast(BaseState, self.behaviour.current_state).handle_late_messages(message)
-        assert (
-            cast(
-                TransactionSettlementBaseState, self.behaviour.current_state
-            ).params.late_message
-            == message
-        )
+        assert cast(
+            TransactionSettlementBaseState, self.behaviour.current_state
+        ).params.late_messages == [message]
 
         message = MagicMock()
         with mock.patch.object(self.behaviour.context.logger, "warning") as mock_info:
@@ -604,12 +601,17 @@ class TestSynchronizeLateMessagesBehaviour(PriceEstimationFSMBehaviourBaseCase):
         if late_message_empty:
             cast(
                 TransactionSettlementBaseState, self.behaviour.current_state
-            ).params.late_message = None
+            ).params.late_messages = []
+            self.behaviour.act_wrapper()
+            self.mock_a2a_transaction()
+            self._test_done_flag_set()
+            self.end_round(TransactionSettlementEvent.DONE)
+            self._check_state_id(CheckLateTxHashesBehaviour)  # type: ignore
 
         else:
             cast(
                 TransactionSettlementBaseState, self.behaviour.current_state
-            ).params.late_message = MagicMock()
+            ).params.late_messages = [MagicMock(), MagicMock()]
 
             def _dummy_get_tx_data(
                 _: ContractApiMessage,
@@ -624,12 +626,7 @@ class TestSynchronizeLateMessagesBehaviour(PriceEstimationFSMBehaviourBaseCase):
 
             cast(TransactionSettlementBaseState, self.behaviour.current_state)._get_tx_data = _dummy_get_tx_data  # type: ignore
             self.behaviour.act_wrapper()
-
-        self.behaviour.act_wrapper()
-        self.mock_a2a_transaction()
-        self._test_done_flag_set()
-        self.end_round(TransactionSettlementEvent.DONE)
-        self._check_state_id(CheckLateTxHashesBehaviour)  # type: ignore
+            self.behaviour.act_wrapper()
 
 
 class TestResetAndPauseBehaviour(PriceEstimationFSMBehaviourBaseCase):
