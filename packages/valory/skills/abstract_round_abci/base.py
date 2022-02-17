@@ -1259,10 +1259,9 @@ class CollectNonEmptyUntilThresholdRound(CollectDifferentUntilThresholdRound):
         """Process the end of the block."""
         if self.collection_threshold_reached:
             self.block_confirmations += 1
-        if (  # contracts are set from previous rounds
+        if (
             self.collection_threshold_reached
             and self.block_confirmations > self.required_block_confirmations
-            # we also wait here as it gives more (available) agents time to join
         ):
             non_empty_values = self._get_non_empty_values()
 
