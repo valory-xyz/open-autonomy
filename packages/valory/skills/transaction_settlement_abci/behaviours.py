@@ -549,7 +549,10 @@ class FinalizeBehaviour(TransactionSettlementBaseState):
         """Send a Safe transaction using the participants' signatures."""
         tx_params = skill_input_hex_to_payload(self.period_state.most_voted_tx_hash)
 
-        # here, we give priority to a potentially late-arriving message and do not try to re-send.
+        # Here, we give priority to a potentially late-arriving message and do not try to re-send.
+        # If this late message has not been synchronised yet
+        # and the same keeper who missed the message at the first place has been reselected,
+        # then we can piggyback the finalisation mechanism.
         contract_api_msg = self.params.late_message
         if contract_api_msg is None:
             contract_api_msg = yield from self.get_contract_api_response(
