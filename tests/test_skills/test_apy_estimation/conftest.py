@@ -21,7 +21,7 @@
 """Configurations for APY skill's tests."""
 
 import warnings
-from typing import Any, Callable, Dict, Tuple, Union
+from typing import Any, Callable, Dict, List, Tuple, Union
 from unittest import mock
 
 import numpy as np
@@ -341,42 +341,78 @@ def test_task_result_non_serializable() -> bytes:
 
 
 @pytest.fixture
-def transformed_historical_data_no_datetime_conversion() -> pd.DataFrame:
+def historical_data() -> Dict[str, List[Union[None, Dict[str, str], int, str, float]]]:
     """Create dummy transformed historical data"""
-    return pd.DataFrame(
+    return {
+        "createdAtBlockNumber": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+        "createdAtTimestamp": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+        "id": [
+            "0x2b4c76d0dc16be1c31d4c1dc53bf9b45987fc75c",
+            "x2",
+            "x3",
+            "x4",
+            "x5",
+            "0x2b4c76d0dc16be1c31d4c1dc53bf9b45987fc75c",
+            "0x2b4c76d0dc16be1c31d4c1dc53bf9b45987fc75c",
+            "0x2b4c76d0dc16be1c31d4c1dc53bf9b45987fc75c",
+            "0x2b4c76d0dc16be1c31d4c1dc53bf9b45987fc75c",
+            "0x2b4c76d0dc16be1c31d4c1dc53bf9b45987fc75c",
+        ],
+        "liquidityProviderCount": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+        "reserve0": [1.4, 2.4, 3.4, 4.4, 5.4, 6.4, 7.4, 8.0, 9.4, 10.7],
+        "reserve1": [1.4, 2.4, 3.4, 4.4, 5.4, 6.4, 7.4, 8.0, 9.4, 10.7],
+        "reserveETH": [1.4, 2.4, 3.4, 4.4, 5.4, 6.4, 7.4, 8.0, 9.4, 10.7],
+        "reserveUSD": [1.4, 2.4, 3.4, 4.4, 5.4, 6.4, 7.4, 8.0, 9.4, 10.7],
+        "token0Price": [1.4, 2.4, 3.4, 4.4, 5.4, 6.4, 7.4, 8.0, 9.4, 10.7],
+        "token1Price": [1.4, 2.4, 3.4, 4.4, 5.4, 6.4, 7.4, 8.0, 9.4, 10.7],
+        "totalSupply": [1.4, 2.4, 3.4, 4.4, 5.4, 6.4, 7.4, 8.0, 9.4, 10.7],
+        "trackedReserveETH": [1.4, 2.4, 3.4, 4.4, 5.4, 6.4, 7.4, 8.0, 9.4, 10.7],
+        "untrackedVolumeUSD": [1.4, 2.4, 3.4, 4.4, 5.4, 6.4, 7.4, 8.0, 9.4, 10.7],
+        "txCount": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+        "volumeToken0": [1.2, 2.4, 3.0, 4.6, 5.8, 6.3, 7.5, 8.2, 9.1, 10.7],
+        "volumeToken1": [1.2, 2.4, 3.0, 4.6, 5.8, 6.3, 7.5, 8.2, 9.1, 10.7],
+        "volumeUSD": [1.2, 2.4, 3.0, 4.6, 5.8, 6.3, 7.5, 8.2, 9.1, 10.7],
+        "forTimestamp": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+        "blockNumber": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+        "blockTimestamp": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+        "ethPrice": [1.2, 2.3, 3.4, 4.45634, 5.2, 6.0, 7.246, 8.26, 9.123, 10.56],
+        "token0": [
+            {"id": "x", "name": "x", "symbol": "x"},
+            {"id": "k", "name": "k", "symbol": "k"},
+            {"id": "l", "name": "l", "symbol": "l"},
+            {"id": "t", "name": "t", "symbol": "t"},
+            {"id": "v", "name": "v", "symbol": "v"},
+            {"id": "x", "name": "x", "symbol": "x"},
+            {"id": "x", "name": "x", "symbol": "x"},
+            {"id": "x", "name": "x", "symbol": "x"},
+            {"id": "x", "name": "x", "symbol": "x"},
+            {"id": "x", "name": "x", "symbol": "x"},
+        ],
+        "token1": [
+            {"id": "y", "name": "y", "symbol": "y"},
+            {"id": "m", "name": "m", "symbol": "m"},
+            {"id": "r", "name": "r", "symbol": "r"},
+            {"id": "y", "name": "y", "symbol": "y"},
+            {"id": "b", "name": "b", "symbol": "b"},
+            {"id": "y", "name": "y", "symbol": "y"},
+            {"id": "y", "name": "y", "symbol": "y"},
+            {"id": "y", "name": "y", "symbol": "y"},
+            {"id": "y", "name": "y", "symbol": "y"},
+            {"id": "y", "name": "y", "symbol": "y"},
+        ],
+    }
+
+
+@pytest.fixture
+def transformed_historical_data_no_datetime_conversion(
+    historical_data: Dict[str, List[Union[None, Dict[str, str], int, str, float]]]
+) -> pd.DataFrame:
+    """Create dummy transformed historical data"""
+    data_copy = historical_data.copy()
+    data_copy.update(
         {
-            "createdAtBlockNumber": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
-            "createdAtTimestamp": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
-            "id": [
-                "0x2b4c76d0dc16be1c31d4c1dc53bf9b45987fc75c",
-                "x2",
-                "x3",
-                "x4",
-                "x5",
-                "0x2b4c76d0dc16be1c31d4c1dc53bf9b45987fc75c",
-                "0x2b4c76d0dc16be1c31d4c1dc53bf9b45987fc75c",
-                "0x2b4c76d0dc16be1c31d4c1dc53bf9b45987fc75c",
-                "0x2b4c76d0dc16be1c31d4c1dc53bf9b45987fc75c",
-                "0x2b4c76d0dc16be1c31d4c1dc53bf9b45987fc75c",
-            ],
-            "liquidityProviderCount": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
-            "reserve0": [1.4, 2.4, 3.4, 4.4, 5.4, 6.4, 7.4, 8.0, 9.4, 10.7],
-            "reserve1": [1.4, 2.4, 3.4, 4.4, 5.4, 6.4, 7.4, 8.0, 9.4, 10.7],
-            "reserveETH": [1.4, 2.4, 3.4, 4.4, 5.4, 6.4, 7.4, 8.0, 9.4, 10.7],
-            "reserveUSD": [1.4, 2.4, 3.4, 4.4, 5.4, 6.4, 7.4, 8.0, 9.4, 10.7],
-            "token0Price": [1.4, 2.4, 3.4, 4.4, 5.4, 6.4, 7.4, 8.0, 9.4, 10.7],
-            "token1Price": [1.4, 2.4, 3.4, 4.4, 5.4, 6.4, 7.4, 8.0, 9.4, 10.7],
-            "totalSupply": [1.4, 2.4, 3.4, 4.4, 5.4, 6.4, 7.4, 8.0, 9.4, 10.7],
-            "trackedReserveETH": [1.4, 2.4, 3.4, 4.4, 5.4, 6.4, 7.4, 8.0, 9.4, 10.7],
-            "untrackedVolumeUSD": [1.4, 2.4, 3.4, 4.4, 5.4, 6.4, 7.4, 8.0, 9.4, 10.7],
-            "txCount": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
-            "volumeToken0": [1.2, 2.4, 3.0, 4.6, 5.8, 6.3, 7.5, 8.2, 9.1, 10.7],
-            "volumeToken1": [1.2, 2.4, 3.0, 4.6, 5.8, 6.3, 7.5, 8.2, 9.1, 10.7],
-            "volumeUSD": [1.2, 2.4, 3.0, 4.6, 5.8, 6.3, 7.5, 8.2, 9.1, 10.7],
-            "forTimestamp": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
-            "blockNumber": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
-            "blockTimestamp": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
-            "ethPrice": [1.2, 2.3, 3.4, 4.45634, 5.2, 6.0, 7.246, 8.26, 9.123, 10.56],
+            "APY": [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.1],
+            "currentChange": [None, None, None, None, None, 5.1, 1.2, 0.7, 0.9, 1.6],
             "token0ID": ["x", "k", "l", "t", "v", "x", "x", "x", "x", "x"],
             "token0Name": ["x", "k", "l", "t", "v", "x", "x", "x", "x", "x"],
             "token0Symbol": ["x", "k", "l", "t", "v", "x", "x", "x", "x", "x"],
@@ -408,10 +444,13 @@ def transformed_historical_data_no_datetime_conversion() -> pd.DataFrame:
                 85.75619999999999,
                 112.992,
             ],
-            "currentChange": [None, None, None, None, None, 5.1, 1.2, 0.7, 0.9, 1.6],
-            "APY": [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.1],
         }
     )
+
+    for i in range(2):
+        del data_copy[f"token{i}"]
+
+    return pd.DataFrame(data_copy)
 
 
 @pytest.fixture
