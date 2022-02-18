@@ -25,6 +25,7 @@ import os
 import time
 from copy import copy
 from datetime import datetime
+from itertools import product
 from multiprocessing.pool import AsyncResult
 from pathlib import Path, PosixPath
 from typing import Any, Callable, Dict, FrozenSet, Tuple, Type, Union, cast
@@ -1445,16 +1446,19 @@ class TestTrainBehaviour(APYEstimationFSMBehaviourBaseCase):
             == self.behaviour_class.state_id
         )
 
-    @pytest.mark.parametrize("full_training", (True, False))
+    @pytest.mark.parametrize(
+        "full_training, ipfs_succeed", product((True, False), repeat=2)
+    )
     def test_setup(
         self,
         monkeypatch: MonkeyPatch,
         tmp_path: PosixPath,
         no_action: Callable[[Any], None],
+        ipfs_succeed: bool,
         full_training: bool,
     ) -> None:
         """Test behaviour setup."""
-        self._fast_forward(tmp_path, full_training=full_training)
+        self._fast_forward(tmp_path, ipfs_succeed, full_training)
 
         monkeypatch.setattr(TaskManager, "enqueue_task", lambda *_, **__: 0)
         monkeypatch.setattr(TaskManager, "get_task_result", lambda *_: no_action)
