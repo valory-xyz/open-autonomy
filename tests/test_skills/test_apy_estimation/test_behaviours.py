@@ -1304,9 +1304,8 @@ class TestOptimizeBehaviour(APYEstimationFSMBehaviourBaseCase):
         monkeypatch.setattr(
             TaskManager,
             "get_task_result",
-            lambda *_: DummyAsyncResult(optimize_task_result_empty),
+            lambda *_: DummyAsyncResult(optimize_task_result_empty, ready=False),
         )
-        monkeypatch.setattr(AsyncResult, "ready", lambda *_: False)
 
         cast(
             OptimizeBehaviour, self.apy_estimation_behaviour.current_state
