@@ -7,11 +7,10 @@
 - Docker-Compose
 - Python `>=3.7`
 
-Install and enter the virtual environment:
+Install the virtual environment:
 
 ```bash
 make new_env
-pipenv shell
 ```
 
 # Step 1
