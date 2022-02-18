@@ -542,23 +542,17 @@ class PrepareBatchBehaviour(APYEstimationBaseState):
         batch_path_args = path_to_pair, "latest_observation.csv"
         self._prepared_batch_save_path = os.path.join(*batch_path_args)
 
-        self._previous_batch = cast(
-            pd.DataFrame,
-            self.get_from_ipfs(
-                self.period_state.latest_observation_hist_hash,
-                *batch_path_args,
-                custom_loader=load_hist,
-            ),
+        self._previous_batch = self.get_from_ipfs(
+            self.period_state.latest_observation_hist_hash,
+            *batch_path_args,
+            custom_loader=load_hist,
         )
 
-        self._batch = cast(
-            ResponseItemType,
-            self.get_from_ipfs(
-                self.period_state.batch_hash,
-                self.context.data_dir,
-                f"historical_data_batch_{self.period_state.latest_observation_timestamp}.json",
-                SupportedFiletype.JSON,
-            ),
+        self._batch = self.get_from_ipfs(
+            self.period_state.batch_hash,
+            self.context.data_dir,
+            f"historical_data_batch_{self.period_state.latest_observation_timestamp}.json",
+            SupportedFiletype.JSON,
         )
 
     def async_act(self) -> Generator:
@@ -687,14 +681,11 @@ class OptimizeBehaviour(APYEstimationBaseState):
             self.context.data_dir,
             self.params.pair_ids[0],
         )
-        self._y = cast(
-            pd.DataFrame,
-            self.get_from_ipfs(
-                self.period_state.train_hash,
-                training_data_path,
-                "y_train.csv",
-                SupportedFiletype.CSV,
-            ),
+        self._y = self.get_from_ipfs(
+            self.period_state.train_hash,
+            training_data_path,
+            "y_train.csv",
+            SupportedFiletype.CSV,
         )
 
         if self._y is not None:
@@ -785,14 +776,11 @@ class TrainBehaviour(APYEstimationBaseState):
             self.context.data_dir,
             self.params.pair_ids[0],
         )
-        self._best_params = cast(
-            Dict[str, Any],
-            self.get_from_ipfs(
-                self.period_state.params_hash,
-                best_params_path,
-                "best_params.json",
-                SupportedFiletype.JSON,
-            ),
+        self._best_params = self.get_from_ipfs(
+            self.period_state.params_hash,
+            best_params_path,
+            "best_params.json",
+            SupportedFiletype.JSON,
         )
 
         # Load training data.
@@ -803,14 +791,11 @@ class TrainBehaviour(APYEstimationBaseState):
                     self.context.data_dir,
                     self.params.pair_ids[0],
                 )
-                df = cast(
-                    pd.DataFrame,
-                    self.get_from_ipfs(
-                        getattr(self.period_state, f"{split}_hash"),
-                        path,
-                        f"y_{split}.csv",
-                        SupportedFiletype.CSV,
-                    ),
+                df = self.get_from_ipfs(
+                    getattr(self.period_state, f"{split}_hash"),
+                    path,
+                    f"y_{split}.csv",
+                    SupportedFiletype.CSV,
                 )
                 cast(List[np.ndarray], splits).append(df.values.ravel())
 
@@ -821,14 +806,8 @@ class TrainBehaviour(APYEstimationBaseState):
                 self.context.data_dir,
                 self.params.pair_ids[0],
             )
-            self._y = cast(
-                pd.DataFrame,
-                self.get_from_ipfs(
-                    self.period_state.train_hash,
-                    path,
-                    "y_train.csv",
-                    SupportedFiletype.CSV,
-                ),
+            self._y = self.get_from_ipfs(
+                self.period_state.train_hash, path, "y_train.csv", SupportedFiletype.CSV
             ).values.ravel()
 
         if not any(arg is None for arg in (self._y, self._best_params)):
@@ -897,14 +876,11 @@ class TestBehaviour(APYEstimationBaseState):
                 self.context.data_dir,
                 self.params.pair_ids[0],
             )
-            df = cast(
-                pd.DataFrame,
-                self.get_from_ipfs(
-                    getattr(self.period_state, f"{split}_hash"),
-                    path,
-                    f"y_{split}.csv",
-                    SupportedFiletype.CSV,
-                ),
+            df = self.get_from_ipfs(
+                getattr(self.period_state, f"{split}_hash"),
+                path,
+                f"y_{split}.csv",
+                SupportedFiletype.CSV,
             )
             setattr(self, f"_y_{split}", df.values.ravel())
 
@@ -995,14 +971,11 @@ class UpdateForecasterBehaviour(APYEstimationBaseState):
         )
 
         # Load data batch.
-        transformed_batch = cast(
-            pd.DataFrame,
-            self.get_from_ipfs(
-                self.period_state.latest_observation_hist_hash,
-                pair_path,
-                "latest_observation.csv",
-                SupportedFiletype.CSV,
-            ),
+        transformed_batch = self.get_from_ipfs(
+            self.period_state.latest_observation_hist_hash,
+            pair_path,
+            "latest_observation.csv",
+            SupportedFiletype.CSV,
         )
 
         if transformed_batch is not None:
@@ -1062,14 +1035,11 @@ class EstimateBehaviour(APYEstimationBaseState):
             self.context.data_dir,
             self.params.pair_ids[0],
         )
-        forecaster = cast(
-            Pipeline,
-            self.get_from_ipfs(
-                self.period_state.model_hash,
-                model_path,
-                "fully_trained_forecaster.joblib",
-                SupportedFiletype.PM_PIPELINE,
-            ),
+        forecaster = self.get_from_ipfs(
+            self.period_state.model_hash,
+            model_path,
+            "fully_trained_forecaster.joblib",
+            SupportedFiletype.PM_PIPELINE,
         )
 
         estimation = None
