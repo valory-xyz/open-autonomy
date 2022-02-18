@@ -80,3 +80,9 @@ docker-compose up --force-recreate
 ```
 
 
+# Step 6
+```bash
+python deployments/click_create.py build-deployment \
+  --deployment-type docker-compose --configure-tendermint \
+  --deployment-file-path deployments/deployment_specifications/counter.yaml 
+```
