@@ -784,7 +784,7 @@ class TrainBehaviour(APYEstimationBaseState):
         )
 
         # Load training data.
-        splits: List[np.ndarray] = []
+        splits: Optional[List[np.ndarray]] = []
         if self.period_state.full_training:
             for split in ("train", "test"):
                 path = os.path.join(
@@ -797,18 +797,24 @@ class TrainBehaviour(APYEstimationBaseState):
                     f"y_{split}.csv",
                     SupportedFiletype.CSV,
                 )
+                if df is None:
+                    splits = None
+                    break
                 cast(List[np.ndarray], splits).append(df.values.ravel())
 
-            self._y = np.concatenate(splits)
+            if splits is not None:
+                self._y = np.concatenate(splits)
 
         else:
             path = os.path.join(
                 self.context.data_dir,
                 self.params.pair_ids[0],
             )
-            self._y = self.get_from_ipfs(
+            df = self.get_from_ipfs(
                 self.period_state.train_hash, path, "y_train.csv", SupportedFiletype.CSV
-            ).values.ravel()
+            )
+            if df is not None:
+                self._y = df.values.ravel()
 
         if not any(arg is None for arg in (self._y, self._best_params)):
             train_task = TrainTask()
@@ -882,7 +888,8 @@ class TestBehaviour(APYEstimationBaseState):
                 f"y_{split}.csv",
                 SupportedFiletype.CSV,
             )
-            setattr(self, f"_y_{split}", df.values.ravel())
+            if df is not None:
+                setattr(self, f"_y_{split}", df.values.ravel())
 
         model_path = os.path.join(
             self.context.data_dir,
