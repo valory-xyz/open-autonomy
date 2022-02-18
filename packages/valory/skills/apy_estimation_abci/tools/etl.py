@@ -226,7 +226,7 @@ def revert_transform_hist_data(pairs_hist: pd.DataFrame) -> ResponseItemType:
         drop_cols.extend(
             [f"{token_name}ID", f"{token_name}Name", f"{token_name}Symbol"]
         )
-    pairs_hist.drop(columns=drop_cols)
+    pairs_hist.drop(columns=drop_cols, inplace=True)
 
     # Convert timestamp to unix int.
     pairs_hist["blockTimestamp"] = pairs_hist["blockTimestamp"].view(int) / 10 ** 9
