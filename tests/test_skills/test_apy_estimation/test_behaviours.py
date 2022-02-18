@@ -784,6 +784,13 @@ class TestTransformBehaviour(APYEstimationFSMBehaviourBaseCase):
             ),
         )
 
+        assert (
+            cast(
+                APYEstimationBaseState, self.apy_estimation_behaviour.current_state
+            ).state_id
+            == self.behaviour_class.state_id
+        )
+
     def test_setup(self, tmp_path: PosixPath) -> None:
         """Test behaviour setup."""
         self._fast_forward(tmp_path)
