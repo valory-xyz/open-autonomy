@@ -1759,29 +1759,50 @@ class TestEstimateBehaviour(APYEstimationFSMBehaviourBaseCase):
     behaviour_class = EstimateBehaviour
     next_behaviour_class = FreshModelResetBehaviour
 
-    def test_estimate_behaviour(
-        self,
-        monkeypatch: MonkeyPatch,
-    ) -> None:
-        """Run test for `EstimateBehaviour`."""
+    def _fast_forward(self, tmp_path: PosixPath, ipfs_succeed: bool) -> None:
+        """Setup `TestTransformBehaviour`."""
+        # Set data directory to a temporary path for tests.
+        self.apy_estimation_behaviour.context._agent_context._data_dir = tmp_path  # type: ignore
+
+        # Send historical data to IPFS and get the hash.
+        if ipfs_succeed:
+            hash_ = cast(
+                BaseState, self.apy_estimation_behaviour.current_state
+            ).send_to_ipfs(
+                os.path.join(tmp_path, "fully_trained_forecaster.joblib"),
+                DummyPipeline(),
+                SupportedFiletype.PM_PIPELINE,
+            )
+        else:
+            hash_ = "test"
+
         self.fast_forward_to_state(
             self.apy_estimation_behaviour,
             self.behaviour_class.state_id,
             PeriodState(
                 StateDB(
                     initial_period=0,
-                    initial_data=dict(pair_name="test", most_voted_model="test"),
+                    initial_data=dict(pair_name="test", most_voted_model=hash_),
                 )
             ),
         )
-        state = cast(BaseState, self.apy_estimation_behaviour.current_state)
-        assert state.state_id == self.behaviour_class.state_id
 
-        self.apy_estimation_behaviour.current_state.get_and_read_forecaster = (  # type: ignore
-            lambda *_: DummyPipeline
+        assert (
+            cast(
+                APYEstimationBaseState, self.apy_estimation_behaviour.current_state
+            ).state_id
+            == self.behaviour_class.state_id
         )
-        # the line below overcomes the limitation of the `EstimateBehaviour` to predict more than one steps forward.
-        monkeypatch.setattr(DummyPipeline, "predict", lambda *_: [0])
+
+    @pytest.mark.parametrize("ipfs_succeed", (True, False))
+    def test_estimate_behaviour(
+        self,
+        monkeypatch: MonkeyPatch,
+        tmp_path: PosixPath,
+        ipfs_succeed: bool,
+    ) -> None:
+        """Run test for `EstimateBehaviour`."""
+        self._fast_forward(tmp_path, ipfs_succeed)
 
         self.apy_estimation_behaviour.act_wrapper()
         self.mock_a2a_transaction()
