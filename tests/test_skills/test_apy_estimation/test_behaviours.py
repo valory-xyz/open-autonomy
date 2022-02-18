@@ -1240,7 +1240,7 @@ class TestOptimizeBehaviour(APYEstimationFSMBehaviourBaseCase):
         self,
         monkeypatch: MonkeyPatch,
         tmp_path: PosixPath,
-        optimize_task_result_empty: optuna.study,
+        optimize_task_result_empty: optuna.Study,
     ) -> None:
         """Test behaviour setup."""
         self._fast_forward(tmp_path)
@@ -1259,7 +1259,7 @@ class TestOptimizeBehaviour(APYEstimationFSMBehaviourBaseCase):
         self,
         monkeypatch: MonkeyPatch,
         tmp_path: PosixPath,
-        optimize_task_result_empty: optuna.study,
+        optimize_task_result_empty: optuna.Study,
     ) -> None:
         """Run test for behaviour when task result is not ready."""
         self._fast_forward(tmp_path)
