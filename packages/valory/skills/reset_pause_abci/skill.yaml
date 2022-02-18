@@ -1,0 +1,63 @@
+name: reset_pause
+author: valory
+version: 0.1.0
+type: skill
+description: ABCI application for resetting and pausing app executions.
+license: Apache-2.0
+aea_version: '>=1.0.0, <2.0.0'
+fingerprint:
+  README.md: QmYVtTJWf1geuZc86nMjKFikTDePQDEBj2gqyz1gKt4Yc6
+  __init__.py: QmPwoncoCEZVbHN89ZbSQ5AWwkA7kBKYk4iWG5coUTpjNM
+  behaviours.py: QmaEjzrnbk86qx8L3ggqLqMuckw3iLp5oZEvKpFinyuSew
+  dialogues.py: QmchNNUVsWEymrfeqdWRBhwaqD5rUPfFmDnKuQR8879KPi
+  handlers.py: QmcCgrz4E1UDTJc136Tmak856wABMXBPzTQyy5ACFgW5u1
+  models.py: QmWfGeLcSKYx1t2vhrdUGtZwSk1prce8q3NBymsMhxpajD
+  payloads.py: Qmch5xfb5CiibsKHQMiUDmqxbdwSp83JPx5ucB72sbbJ21
+  rounds.py: QmPsWddtoYnV64eVtioEU1x7X3dXVt5vmKbLELUsm1i3yn
+fingerprint_ignore_patterns: []
+connections:
+- valory/abci:0.1.0
+contracts: []
+protocols:
+- open_aea/signing:1.0.0
+- valory/abci:0.1.0
+skills:
+- valory/abstract_round_abci:0.1.0
+behaviours:
+  main:
+    args: {}
+    class_name: ResetPauseABCIConsensusBehaviour
+handlers:
+  abci:
+    args: {}
+    class_name: ResetPauseABCIHandler
+  signing:
+    args: {}
+    class_name: SigningHandler
+models:
+  abci_dialogues:
+    args: {}
+    class_name: AbciDialogues
+  params:
+    args:
+      consensus:
+        max_participants: 1
+      observation_interval: 10
+      period_setup: {}
+      reset_tendermint_after: 2
+      retry_attempts: 400
+      retry_timeout: 3
+      round_timeout_seconds: 30.0
+      service_id: reset_pause_abci
+    class_name: Params
+  requests:
+    args: {}
+    class_name: Requests
+  signing_dialogues:
+    args: {}
+    class_name: SigningDialogues
+  state:
+    args: {}
+    class_name: SharedState
+dependencies: {}
+is_abstract: false
