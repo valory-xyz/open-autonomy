@@ -32,7 +32,6 @@ from typing import Any, Callable, Dict, FrozenSet, Tuple, Type, Union, cast
 from unittest import mock
 from uuid import uuid4
 
-import joblib
 import numpy as np
 import optuna
 import pandas as pd
@@ -43,9 +42,7 @@ from aea.exceptions import AEAActException
 from aea.helpers.transaction.base import SignedMessage
 from aea.skills.tasks import TaskManager
 from aea.test_tools.test_skill import BaseSkillTestCase
-from pmdarima import ARIMA
 from pmdarima.pipeline import Pipeline
-from pmdarima.preprocessing import FourierFeaturizer
 
 from packages.open_aea.protocols.signing import SigningMessage
 from packages.valory.connections.http_client.connection import (
@@ -1670,13 +1667,39 @@ class TestUpdateForecasterBehaviour(APYEstimationFSMBehaviourBaseCase):
     behaviour_class = UpdateForecasterBehaviour
     next_behaviour_class = EstimateBehaviour
 
-    def _pre_setup_patching(self, tmp_path: PosixPath) -> None:
-        """Patching to be performed before setup."""
+    def _fast_forward(self, tmp_path: PosixPath, ipfs_succeed: bool = True) -> None:
+        """Setup `TestUpdateForecasterBehaviour`."""
+        # Set data directory to a temporary path for tests.
         self.apy_estimation_behaviour.context._agent_context._data_dir = tmp_path.parts[0]  # type: ignore
         cast(
             OptimizeBehaviour, self.apy_estimation_behaviour.current_state
         ).params.pair_ids[0] = os.path.join(*tmp_path.parts[1:])
 
+        # Create a dictionary with all the dummy data to send to IPFS.
+        data_to_send = {
+            "model": {
+                "filepath": os.path.join(tmp_path, "fully_trained_forecaster.joblib"),
+                "obj": DummyPipeline(),
+                "filetype": SupportedFiletype.PM_PIPELINE,
+            },
+            "observation": {
+                "filepath": os.path.join(tmp_path, "latest_observation.csv"),
+                "obj": pd.DataFrame({"APY": [0, 1]}),
+                "filetype": SupportedFiletype.CSV,
+            },
+        }
+
+        # Send dummy data to IPFS and get the hashes.
+        if ipfs_succeed:
+            hashes = {}
+            for item_name, item_args in data_to_send.items():
+                hashes[item_name] = cast(
+                    BaseState, self.apy_estimation_behaviour.current_state
+                ).send_to_ipfs(**item_args)
+        else:
+            hashes = {item_name: "test" for item_name, _ in data_to_send.items()}
+
+        # fast-forward to the `TestBehaviour` state.
         self.fast_forward_to_state(
             self.apy_estimation_behaviour,
             self.behaviour_class.state_id,
@@ -1684,60 +1707,41 @@ class TestUpdateForecasterBehaviour(APYEstimationFSMBehaviourBaseCase):
                 StateDB(
                     initial_period=0,
                     initial_data=dict(
-                        most_voted_model="x1", latest_observation_hist_hash="x3"
+                        most_voted_model=hashes["model"],
+                        latest_observation_hist_hash=hashes["observation"],
                     ),
                 )
             ),
         )
-        state = cast(BaseState, self.apy_estimation_behaviour.current_state)
-        assert state.state_id == self.behaviour_class.state_id
 
-        self.apy_estimation_behaviour.current_state.get_and_read_csv = lambda *_: pd.DataFrame({"APY": [0, 1]})  # type: ignore
-        self.apy_estimation_behaviour.current_state.get_and_read_forecaster = (  # type: ignore
-            lambda *_: DummyPipeline
+        assert (
+            cast(
+                APYEstimationBaseState, self.apy_estimation_behaviour.current_state
+            ).state_id
+            == self.behaviour_class.state_id
         )
 
+    @pytest.mark.parametrize("ipfs_succeed", (True, False))
     def test_update_forecaster_setup(
         self,
         tmp_path: PosixPath,
+        ipfs_succeed: bool,
     ) -> None:
         """Run test for `UpdateForecasterBehaviour`'s setup method."""
-        self._pre_setup_patching(tmp_path)
+        self._fast_forward(tmp_path, ipfs_succeed)
         cast(
             UpdateForecasterBehaviour, self.apy_estimation_behaviour.current_state
         ).setup()
 
-    @staticmethod
-    def _temporarily_save_dummy_forecaster(tmp_path: str) -> None:
-        """Save a dummy forecaster to te given `tmp_path`."""
-        # Store the results.
-        order = (1, 1, 1)
-
-        # The Pipeline is deterministic.
-        forecaster = Pipeline(
-            [
-                ("fourier", FourierFeaturizer(0)),
-                (
-                    "arima",
-                    ARIMA(order),
-                ),
-            ]
-        )
-
-        joblib.dump(forecaster, tmp_path)
-
+    @pytest.mark.parametrize("ipfs_succeed", (True, False))
     def test_update_forecaster_behaviour(
         self,
         tmp_path: PosixPath,
         monkeypatch: MonkeyPatch,
-        no_action: Callable[[Any], None],
+        ipfs_succeed: bool,
     ) -> None:
         """Run test for `UpdateForecasterBehaviour`."""
-        self._pre_setup_patching(tmp_path)
-
-        forecaster_save_path = os.path.join(tmp_path, "fully_trained_forecaster.joblib")
-        self._temporarily_save_dummy_forecaster(forecaster_save_path)
-        monkeypatch.setattr(joblib, "dump", no_action)
+        self._fast_forward(tmp_path, ipfs_succeed)
 
         self.apy_estimation_behaviour.act_wrapper()
         self.mock_a2a_transaction()
