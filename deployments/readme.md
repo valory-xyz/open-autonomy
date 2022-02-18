@@ -6,6 +6,13 @@
 - Docker
 - Python `>=3.7`
 
+Install and enter the virtual environment:
+
+```bash
+make new_env
+pipenv shell
+```
+
 # Step 1
 
 First we need to build the images used for the deployment.
