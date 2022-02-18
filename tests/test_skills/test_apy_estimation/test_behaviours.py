@@ -927,15 +927,42 @@ class TestPrepareBatchBehaviour(APYEstimationFSMBehaviourBaseCase):
     behaviour_class = PrepareBatchBehaviour
     next_behaviour_class = UpdateForecasterBehaviour
 
-    def _pre_setup_patching(
+    def _fast_forward(
         self,
         tmp_path: PosixPath,
         transformed_historical_data: pd.DataFrame,
         batch: ResponseItemType,
+        ipfs_succeed: bool = True,
     ) -> None:
-        """Patching to be performed before setup."""
+        """Setup `PrepareBatchBehaviour`."""
+        # Set data directory to a temporary path for tests.
         self.apy_estimation_behaviour.context._agent_context._data_dir = tmp_path  # type: ignore
 
+        # Create a dictionary with all the dummy data to send to IPFS.
+        data_to_send = {
+            "hist": {
+                "filepath": os.path.join(tmp_path, "latest_observation.csv"),
+                "obj": transformed_historical_data.iloc[[0]].reset_index(drop=True),
+                "filetype": SupportedFiletype.CSV,
+            },
+            "batch": {
+                "filepath": os.path.join(tmp_path, "historical_data_batch_0.json"),
+                "obj": batch,
+                "filetype": SupportedFiletype.JSON,
+            },
+        }
+
+        # Send dummy data to IPFS and get the hashes.
+        if ipfs_succeed:
+            hashes = {}
+            for item_name, item_args in data_to_send.items():
+                hashes[item_name] = cast(
+                    BaseState, self.apy_estimation_behaviour.current_state
+                ).send_to_ipfs(**item_args)
+        else:
+            hashes = {item_name: "test" for item_name, _ in data_to_send.items()}
+
+        # fast-forward to the `PrepareBatchBehaviour` state.
         self.fast_forward_to_state(
             self.apy_estimation_behaviour,
             self.behaviour_class.state_id,
@@ -943,39 +970,48 @@ class TestPrepareBatchBehaviour(APYEstimationFSMBehaviourBaseCase):
                 StateDB(
                     initial_period=0,
                     initial_data=dict(
-                        latest_observation_hist_hash="x0",
-                        most_voted_batch="x1",
+                        latest_observation_hist_hash=hashes["hist"],
+                        most_voted_batch=hashes["batch"],
                         latest_observation_timestamp=0,
                     ),
                 )
             ),
         )
 
-        self.apy_estimation_behaviour.current_state.get_and_read_hist = lambda *_: transformed_historical_data.iloc[  # type: ignore
-            [0]
-        ].reset_index(
-            drop=True
+        assert (
+            cast(
+                APYEstimationBaseState, self.apy_estimation_behaviour.current_state
+            ).state_id
+            == self.behaviour_class.state_id
         )
-        self.apy_estimation_behaviour.current_state.get_and_read_json = lambda *_: batch  # type: ignore
 
     def test_prepare_batch_behaviour_setup(
         self,
         tmp_path: PosixPath,
-        transformed_historical_data: pd.DataFrame,
+        transformed_historical_data_no_datetime_conversion: pd.DataFrame,
         batch: ResponseItemType,
     ) -> None:
         """Test behaviour setup."""
-        self._pre_setup_patching(tmp_path, transformed_historical_data, batch)
+        self._fast_forward(
+            tmp_path, transformed_historical_data_no_datetime_conversion, batch
+        )
         cast(PrepareBatchBehaviour, self.apy_estimation_behaviour.current_state).setup()
 
+    @pytest.mark.parametrize("ipfs_succeed", (True, False))
     def test_prepare_batch_behaviour(
         self,
         tmp_path: PosixPath,
-        transformed_historical_data: pd.DataFrame,
+        transformed_historical_data_no_datetime_conversion: pd.DataFrame,
         batch: ResponseItemType,
+        ipfs_succeed: bool,
     ) -> None:
         """Run test for `preprocess_behaviour`."""
-        self._pre_setup_patching(tmp_path, transformed_historical_data, batch)
+        self._fast_forward(
+            tmp_path,
+            transformed_historical_data_no_datetime_conversion,
+            batch,
+            ipfs_succeed,
+        )
 
         state = cast(BaseState, self.apy_estimation_behaviour.current_state)
         assert state.state_id == self.behaviour_class.state_id
