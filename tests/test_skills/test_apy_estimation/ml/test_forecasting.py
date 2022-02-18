@@ -18,12 +18,9 @@
 # ------------------------------------------------------------------------------
 
 """Test forecasting operations."""
-from typing import cast
-
 import numpy as np
 import pytest
 from _pytest.monkeypatch import MonkeyPatch
-from pmdarima.pipeline import Pipeline
 
 from packages.valory.skills.apy_estimation_abci.ml.forecasting import (
     baseline,
@@ -47,7 +44,7 @@ class TestForecasting:
 
     def setup(self) -> None:
         """Initialize class."""
-        self._pipeline = cast(Pipeline, DummyPipeline())
+        self._pipeline = DummyPipeline()
 
     @staticmethod
     def test_init_forecaster() -> None:

@@ -470,26 +470,27 @@ def batch() -> ResponseItemType:
     ]
 
 
-class DummyPipeline:
+class DummyPipeline(Pipeline):
     """A dummy pipeline."""
 
+    def __init__(self) -> None:
+        """Initialize Dummy Pipeline."""
+        super().__init__([])
+
+    def _validate_steps(self) -> None:
+        """Dummy steps validation."""
+
     @staticmethod
-    def predict(steps_forward: int) -> np.ndarray:
+    def predict(*args: Any) -> np.ndarray:
         """Predict `steps_forward` timesteps in the future.
 
-        :param steps_forward: how many timesteps the model will be predicting in the future.
+        :param args: the args accepted by `pmdarima.Pipeline.predict`.
         :return: a `numpy` array with the dummy predictions.
         """
-        return np.ones(steps_forward)
+        return np.ones(args[0])
 
-    @staticmethod
-    def update(_y: np.ndarray) -> None:
-        """Update the dummy pipeline.
-
-        :param _y: The time-series data to add to the endogenous samples on which the
-            `DummyPipeline` was previously fit.
-        """
-        pass
+    def update(self, *args: Any) -> None:
+        """Update the dummy pipeline."""
 
 
 def is_list_of_strings(lst: Any) -> bool:
