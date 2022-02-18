@@ -136,3 +136,11 @@ class TestProcessing:
         for df in (actual, transformed_history):
             df.drop(columns="blockTimestamp", inplace=True)
         pd.testing.assert_frame_equal(actual, transformed_history)
+
+    @staticmethod
+    def test_load_hist_file_not_found(
+        monkeypatch: MonkeyPatch, transformed_history: pd.DataFrame
+    ) -> None:
+        """Test `load_hist` when file is not found."""
+        with pytest.raises(IOError):
+            load_hist("non_existing")
