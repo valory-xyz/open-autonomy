@@ -97,6 +97,7 @@ CHECK_STRINGS_LABELLED = [
     ("Entered in the 'finalization' round for period 1", StringType.ROUND),
     ("Entered in the 'validate_transaction' round for period 1", StringType.ROUND),
     ("Entered in the 'reset_and_pause' round for period 1", StringType.ROUND),
+    ("Entered in the 'collect_observation' round for period 2", StringType.ROUND),
 ]
 # fmt: on
 
@@ -121,7 +122,7 @@ class TestABCIPriceEstimationSingleAgent(
     NB_AGENTS = 1
     agent_package = "valory/price_estimation:0.1.0"
     skill_package = "valory/price_estimation_abci:0.1.0"
-    wait_to_finish = 120
+    wait_to_finish = 180
     check_strings = CHECK_STRINGS_ALL
 
 
@@ -134,7 +135,7 @@ class TestABCIPriceEstimationTwoAgents(
     NB_AGENTS = 2
     agent_package = "valory/price_estimation:0.1.0"
     skill_package = "valory/price_estimation_abci:0.1.0"
-    wait_to_finish = 120
+    wait_to_finish = 180
     check_strings = CHECK_STRINGS_ALL
 
 
@@ -147,7 +148,7 @@ class TestABCIPriceEstimationFourAgents(
     NB_AGENTS = 4
     agent_package = "valory/price_estimation:0.1.0"
     skill_package = "valory/price_estimation_abci:0.1.0"
-    wait_to_finish = 120
+    wait_to_finish = 180
     check_strings = CHECK_STRINGS_ALL
 
 
@@ -159,7 +160,7 @@ class TestAgentCatchup(BaseTestEnd2EndAgentCatchup, UseGnosisSafeHardHatNet):
     agent_package = "valory/price_estimation:0.1.0"
     skill_package = "valory/price_estimation_abci:0.1.0"
     KEEPER_TIMEOUT = 10
-    wait_to_finish = 120
+    wait_to_finish = 180
     restart_after = 45
     check_strings = CHECK_STRINGS_ONLY_ROUND
     stop_string = "'registration_startup' round is done with event: Event.DONE"
