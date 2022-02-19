@@ -193,6 +193,12 @@ build-images: clean-build
 		exit 1
 	fi
 	rsync -avu packages/ deployments/Dockerfiles/open_aea/packages
-	skaffold build --build-concurrency=0 --push=false
+	if [ "${VERSION}" = "dev" ];\
+	then\
+		echo "building dev images!";\
+		skaffold build --build-concurrency=0 --push=false -p dev
+		exit 0
+	fi
+	skaffold build --build-concurrency=0 --push=false -p prod
 
 

@@ -1,0 +1,7 @@
+FROM valory/consensus-algorithms-open-aea:0.1.0
+
+RUN cowsay "This is a developement image!"
+COPY watcher.py dev_requirements.txt ./
+ENTRYPOINT ["/bin/python"]
+RUN pip install -r dev_requirements.txt
+CMD ["watcher.py"]
