@@ -34,24 +34,22 @@ Now we have our images, we need to build the deployment to use them.
 
 ```bash
 pipenv shell
-python deployments/create_deployment.py \
-    -t docker-compose \
-    -app oracle_hardhat
+python deployments/click_create.py build-deployment --deployment-type docker-compose  --valory-app price_estimation_hardhat
 ```
 
 ```output
+To configure tendermint for deployment please run: 
+
+docker run --rm -v $(pwd)/deployments/build/build:/tendermint:Z --entrypoint=/usr/bin/tendermint valory/consensus-algorithms-tendermint:0.1.0 testnet --config /etc/tendermint/config-template.toml --v 4 --o . --hostname=node0 --hostname=node1 --hostname=node2 --hostname=node3
+
 Generated Deployment!
 
 
-Application:          oracle_hardhat
+Application:          price_estimation_hardhat
 Type:                 docker-compose
-Agents:               2
-Network:              hardhat
-Build Length          3419
-
-To configure tendermint for specified Deployment please run: 
-
-docker run --rm -v $(pwd)/deployments/build/build:/tendermint:Z --entrypoint=/usr/bin/tendermint valory/consensus-algorithms-tendermint:0.1.0 testnet --config /etc/tendermint/config-template.toml --v 2 --o . --hostname=node0 --hostname=node1
+Agents:               4
+Network:              ropsten
+Build Length          8785
 ```
 
 # Step 3
@@ -61,17 +59,23 @@ Next we need to go ahead and configure tendermint to setup the validators.
 We use the docker command generated in the previous step to do this; 
 
 ```bash
-docker run --rm -v $(pwd)/deployments/build/build:/tendermint:Z --entrypoint=/usr/bin/tendermint valory/consensus-algorithms-tendermint:0.1.0 testnet --config /etc/tendermint/config-template.toml --v 2 --o . --hostname=node0 --hostname=node1
+docker run --rm -v $(pwd)/deployments/build/build:/tendermint:Z --entrypoint=/usr/bin/tendermint valory/consensus-algorithms-tendermint:0.1.0 testnet --config /etc/tendermint/config-template.toml --v 4 --o . --hostname=node0 --hostname=node1 --hostname=node2 --hostname=node3
 ```
 
 ```output
-I[2022-02-03|12:56:52.911] Found private validator                      module=main keyFile=node0/config/priv_validator_key.json stateFile=node0/data/priv_validator_state.json
-I[2022-02-03|12:56:52.911] Found node key                               module=main path=node0/config/node_key.json
-I[2022-02-03|12:56:52.911] Found genesis file                           module=main path=node0/config/genesis.json
-I[2022-02-03|12:56:52.911] Found private validator                      module=main keyFile=node1/config/priv_validator_key.json stateFile=node1/data/priv_validator_state.json
-I[2022-02-03|12:56:52.911] Found node key                               module=main path=node1/config/node_key.json
-I[2022-02-03|12:56:52.911] Found genesis file                           module=main path=node1/config/genesis.json
-Successfully initialized 2 node directories
+I[2022-02-19|10:19:04.387] Generated private validator                  module=main keyFile=node0/config/priv_validator_key.json stateFile=node0/data/priv_validator_state.json
+I[2022-02-19|10:19:04.396] Generated node key                           module=main path=node0/config/node_key.json
+I[2022-02-19|10:19:04.405] Generated genesis file                       module=main path=node0/config/genesis.json
+I[2022-02-19|10:19:04.459] Generated private validator                  module=main keyFile=node1/config/priv_validator_key.json stateFile=node1/data/priv_validator_state.json
+I[2022-02-19|10:19:04.467] Generated node key                           module=main path=node1/config/node_key.json
+I[2022-02-19|10:19:04.475] Generated genesis file                       module=main path=node1/config/genesis.json
+I[2022-02-19|10:19:04.527] Generated private validator                  module=main keyFile=node2/config/priv_validator_key.json stateFile=node2/data/priv_validator_state.json
+I[2022-02-19|10:19:04.534] Generated node key                           module=main path=node2/config/node_key.json
+I[2022-02-19|10:19:04.545] Generated genesis file                       module=main path=node2/config/genesis.json
+I[2022-02-19|10:19:04.604] Generated private validator                  module=main keyFile=node3/config/priv_validator_key.json stateFile=node3/data/priv_validator_state.json
+I[2022-02-19|10:19:04.612] Generated node key                           module=main path=node3/config/node_key.json
+I[2022-02-19|10:19:04.617] Generated genesis file                       module=main path=node3/config/genesis.json
+Successfully initialized 4 node directories
 ```
 # Step 4 (only required for deployments with hardhat network)
 
