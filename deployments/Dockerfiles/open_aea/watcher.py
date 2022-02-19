@@ -1,4 +1,3 @@
-
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
@@ -21,13 +20,13 @@
 """Watcher script and wrapper container for agent."""
 
 import os
-from pathlib import Path
 import shutil
 import signal
 import subprocess
 import sys
 import time
 from glob import glob
+from pathlib import Path
 from typing import Optional
 
 import requests
@@ -177,9 +176,9 @@ if __name__ == "__main__":
     write("Calling base setup.")
     base_setup()
     write("Calling vote.")
-  # call_vote()
-  # write("Waiting for votes.")
-  # wait_for_votes()
+    # call_vote()
+    # write("Waiting for votes.")
+    # wait_for_votes()
     event_handler = RestartAEA()
     observer = Observer()
     observer.schedule(event_handler, PACKAGES_PATH, recursive=True)

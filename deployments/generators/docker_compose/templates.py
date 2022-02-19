@@ -21,7 +21,9 @@
 
 from deployments.constants import IMAGE_VERSION
 
-TENDERMINT_CONFIG_TEMPLATE: str = """docker run --rm -v $(pwd)/deployments/build/build:/tendermint:Z \
+
+TENDERMINT_CONFIG_TEMPLATE: str = (
+    """docker run --rm -v $(pwd)/deployments/build/build:/tendermint:Z \
 --entrypoint=/usr/bin/tendermint \
 valory/consensus-algorithms-tendermint:%s  \
     testnet \
@@ -29,7 +31,9 @@ valory/consensus-algorithms-tendermint:%s  \
         --v {validators} \
         --o . \
         {hosts}
-""" % IMAGE_VERSION
+"""
+    % IMAGE_VERSION
+)
 
 DOCKER_COMPOSE_TEMPLATE: str = """version: "3"
 services:
@@ -44,7 +48,8 @@ networks:
         - subnet: 192.167.11.0/24
 """
 
-HARDHAT_NODE_TEMPLATE: str = """
+HARDHAT_NODE_TEMPLATE: str = (
+    """
   hardhat:
     container_name: hardhat
     image: "valory/consensus-algorithms-hardhat:%s "
@@ -54,9 +59,12 @@ HARDHAT_NODE_TEMPLATE: str = """
     networks:
       localnet:
         ipv4_address: 192.167.11.2
-""" % IMAGE_VERSION
+"""
+    % IMAGE_VERSION
+)
 
-TENDERMINT_NODE_TEMPLATE: str = """
+TENDERMINT_NODE_TEMPLATE: str = (
+    """
   node{node_id}:
     container_name: node{node_id}
     hostname: node{node_id}
@@ -74,9 +82,12 @@ TENDERMINT_NODE_TEMPLATE: str = """
     networks:
       localnet:
         ipv4_address: 192.167.11.{localnet_address_postfix}
-""" % IMAGE_VERSION
+"""
+    % IMAGE_VERSION
+)
 
-ABCI_NODE_TEMPLATE: str = """
+ABCI_NODE_TEMPLATE: str = (
+    """
   abci{node_id}:
     container_name: abci{node_id}
     image: "valory/consensus-algorithms-open-aea:%s"
@@ -89,7 +100,9 @@ ABCI_NODE_TEMPLATE: str = """
       - node{node_id}
     volumes:
       - ./logs/:/logs:z
-""" % IMAGE_VERSION
+"""
+    % IMAGE_VERSION
+)
 
 if IMAGE_VERSION == "dev":
     ABCI_NODE_TEMPLATE += "      - ../../packages/:/home/ubuntu/packages"
