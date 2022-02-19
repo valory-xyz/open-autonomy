@@ -35,6 +35,8 @@ class TendermintParams:  # pylint: disable=too-few-public-methods
         proxy_app: str,
         # p2p_seeds: List[str],
         consensus_create_empty_blocks: bool,
+        p2p_laddr: str = "tcp://0.0.0.0:26656",
+        rpc_laddr: str = "tcp://0.0.0.0:26657",
         home: Optional[str] = None,
     ):
         """
@@ -43,13 +45,12 @@ class TendermintParams:  # pylint: disable=too-few-public-methods
         :param proxy_app: ABCI address.
         :param rpc_laddr: RPC address.
         :param p2p_laddr: P2P address.
-        :param p2p_seeds: P2P seeds.
         :param consensus_create_empty_blocks: if true, Tendermint node creates empty blocks.
         :param home: Tendermint's home directory.
         """
         self.proxy_app = proxy_app
-        self.p2p_laddr = "tcp://0.0.0.0:26656"
-        self.rpc_laddr = "tcp://0.0.0.0:26657"
+        self.p2p_laddr = p2p_laddr
+        self.rpc_laddr = rpc_laddr
         # self.p2p_seeds = p2p_seeds # :noqa E800
         self.consensus_create_empty_blocks = consensus_create_empty_blocks
         self.home = home
