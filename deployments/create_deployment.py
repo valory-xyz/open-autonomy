@@ -31,7 +31,6 @@ AGENTS: Dict[str, str] = {
     "oracle_hardhat": "./deployments/deployment_specifications/price_estimation_hardhat.yaml",
     "oracle_ropsten": "./deployments/deployment_specifications/price_estimation_ropsten.yaml",
     "apy_hardhat": "./deployments/deployment_specifications/apy_estimation_hardhat.yaml",
-    "price_estimation_hardhat": "./deployments/deployment_specifications/price_estimation_ropsten.yaml",
 }
 
 

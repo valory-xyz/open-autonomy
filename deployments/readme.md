@@ -34,7 +34,7 @@ Now we have our images, we need to build the deployment to use them.
 
 ```bash
 pipenv shell
-python deployments/click_create.py build-deployment --deployment-type docker-compose  --valory-app price_estimation_hardhat
+python deployments/click_create.py build-deployment --deployment-type docker-compose  --valory-app oracle_ropsten
 ```
 
 ```output
