@@ -29,6 +29,7 @@ from copy import copy, deepcopy
 from dataclasses import dataclass, field
 from enum import Enum
 from math import ceil
+from types import MappingProxyType
 from typing import (
     Any,
     Dict,
@@ -635,7 +636,60 @@ class BasePeriodState:
         return cast(Dict, self.db.get_strict("participant_to_votes"))
 
 
-class AbstractRound(Generic[EventType, TransactionType], ABC):
+class _MetaRound(ABCMeta):
+    """Metaclass for round classes."""
+
+    def _get_dict(cls) -> dict:
+        """
+        Get the attribute dictionary useful for equality check and hashing purposes.
+
+        :return: the attribute dictionary.
+        """
+        result = dict(cls.__dict__)
+        # the following is needed because of CPython implementation details.
+        #  when _abc_impl is passed to the dict argument of built-in 'type',
+        #  it is automatically copied. The type '_abc_data' uses the default comparator,
+        #  so even if the value is the same, the equality check returns false.
+        result.pop("_abc_impl", None)
+        return result
+
+    def __eq__(cls, other: Any) -> bool:
+        """Compare two round classes."""
+        if isinstance(other, _MetaRound):
+            return (
+                cls._get_dict()  # pylint: disable=no-value-for-parameter
+                == other._get_dict()
+            )
+        return False
+
+    def __hash__(cls) -> int:
+        """Hash the round class."""
+        return hash_dict_recursively(
+            cls._get_dict()  # pylint: disable=no-value-for-parameter
+        )
+
+
+def hash_dict_recursively(obj: Any) -> int:
+    """Hash a dictionary, recursively."""
+    if isinstance(obj, (list, tuple)):
+        return hash(tuple(map(hash_dict_recursively, obj)))
+    if isinstance(obj, (dict, MappingProxyType)):
+        return hash(tuple(map(hash_dict_recursively, sorted(obj.items()))))
+    return hash(obj)
+
+
+def make_round_cls_copy(
+    round_cls: Type["AbstractRound"], prefix: str
+) -> Type["AbstractRound"]:
+    """Make a copy of an "AbstractRound" class."""
+    new_cls_name = f"{prefix}_{round_cls.__name__}"
+    copy_of_round_cls = type(
+        new_cls_name, round_cls.__bases__, dict(round_cls.__dict__)
+    )
+    return cast(Type["AbstractRound"], copy_of_round_cls)
+
+
+class AbstractRound(Generic[EventType, TransactionType], ABC, metaclass=_MetaRound):
     """
     This class represents an abstract round.
 

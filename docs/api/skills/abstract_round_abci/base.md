@@ -894,12 +894,62 @@ def participant_to_votes() -> Mapping
 
 Check whether keeper is set.
 
+<a id="packages.valory.skills.abstract_round_abci.base._MetaRound"></a>
+
+## `_`MetaRound Objects
+
+```python
+class _MetaRound(ABCMeta)
+```
+
+Metaclass for round classes.
+
+<a id="packages.valory.skills.abstract_round_abci.base._MetaRound.__eq__"></a>
+
+#### `__`eq`__`
+
+```python
+def __eq__(cls, other: Any) -> bool
+```
+
+Compare two round classes.
+
+<a id="packages.valory.skills.abstract_round_abci.base._MetaRound.__hash__"></a>
+
+#### `__`hash`__`
+
+```python
+def __hash__(cls) -> int
+```
+
+Hash the round class.
+
+<a id="packages.valory.skills.abstract_round_abci.base.hash_dict_recursively"></a>
+
+#### hash`_`dict`_`recursively
+
+```python
+def hash_dict_recursively(obj: Any) -> int
+```
+
+Hash a dictionary, recursively.
+
+<a id="packages.valory.skills.abstract_round_abci.base.make_round_cls_copy"></a>
+
+#### make`_`round`_`cls`_`copy
+
+```python
+def make_round_cls_copy(round_cls: Type["AbstractRound"], prefix: str) -> Type["AbstractRound"]
+```
+
+Make a copy of an "AbstractRound" class.
+
 <a id="packages.valory.skills.abstract_round_abci.base.AbstractRound"></a>
 
 ## AbstractRound Objects
 
 ```python
-class AbstractRound(Generic[EventType, TransactionType],  ABC)
+class AbstractRound(Generic[EventType, TransactionType],  ABC, metaclass=_MetaRound)
 ```
 
 This class represents an abstract round.

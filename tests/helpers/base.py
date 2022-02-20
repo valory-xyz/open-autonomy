@@ -76,8 +76,8 @@ def try_send(gen: Generator, obj: Any = None) -> None:
         gen.send(obj)
 
 
-def make_round_class(name: str, bases: Tuple = (AbstractRound,)) -> Type:
-    """Make a round class."""
-    new_round_cls = type(name, bases, {})
+def make_round_class(name: str, bases: Tuple = (AbstractRound,)) -> Type[AbstractRound]:
+    """Make a test round class."""
+    new_round_cls = type(name, bases, {"round_id": name})
     assert issubclass(new_round_cls, AbstractRound)
     return new_round_cls

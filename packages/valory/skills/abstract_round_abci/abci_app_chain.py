@@ -28,10 +28,44 @@ from packages.valory.skills.abstract_round_abci.base import (
     AppState,
     EventToTimeout,
     EventType,
+    make_round_cls_copy,
 )
 
 
 AbciAppTransitionMapping = Dict[AppState, AppState]
+
+
+def _make_old_to_new_round_cls_index(
+    abci_apps: Tuple[Type[AbciApp], ...]
+) -> Dict[AppState, AppState]:
+    """
+    Build an index from old round classes to new round classes.
+
+    New round classes are equal wrt the original rounds but their name.
+    the old round classname are prepended with the app class name
+    and concatenated with the underscore. E.g. if the
+    round class 'RoundA' belongs to the app 'AbciApp1', the new round class
+    will be named 'AbciApp1_RoundA'.
+
+    The equality and hash operations defined over AbstractRounds subclasses
+    (i.e. _MetaRound instances) are such that the name is ignored;
+    therefore, RoundA == AbciApp1_RoundA and  hash(RoundA) == hash(AbciApp1_RoundA).
+
+    :param abci_apps: the list of AbciApp.
+    :return: a mapping from old round classes to new round classes (with new name).
+    """
+    result: Dict[AppState, AppState] = {}
+    for app in abci_apps:
+        current_prefix = app.__name__
+        for start, event_to_state in app.transition_function.items():
+            if start not in result:
+                new_state = make_round_cls_copy(start, current_prefix)
+                result[start] = new_state
+            for _event, end in event_to_state.items():
+                if end not in result:
+                    new_state = make_round_cls_copy(end, current_prefix)
+                    result[end] = new_state
+    return result
 
 
 def chain(  # pylint: disable=too-many-locals
@@ -57,6 +91,10 @@ def chain(  # pylint: disable=too-many-locals
         len(common_round_classes) == 0,
         f"rounds in common between abci apps are not allowed ({common_round_classes})",
     )
+
+    # Compute mapping from old states to new states
+    from_old_to_new_state_by_app = _make_old_to_new_round_cls_index(abci_apps)
+
     # Ensure all states in app transition mapping (keys and values) are final states or initial states, respectively.
     all_final_states = {
         final_state for app in abci_apps for final_state in app.final_states
@@ -75,8 +113,13 @@ def chain(  # pylint: disable=too-many-locals
             )
 
     # Merge the transition functions, final states and events
-    new_initial_round_cls = abci_apps[0].initial_round_cls
-    potential_final_states = set.union(*(app.final_states for app in abci_apps))
+    new_initial_round_cls = from_old_to_new_state_by_app[abci_apps[0].initial_round_cls]
+    potential_final_states = set.union(
+        *(
+            set(map(lambda s: from_old_to_new_state_by_app[s], app.final_states))
+            for app in abci_apps
+        )
+    )
     potential_events_to_timeout: EventToTimeout = {}
     for app in abci_apps:
         for e, t in app.event_to_timeout.items():
@@ -95,8 +138,10 @@ def chain(  # pylint: disable=too-many-locals
             new_events_to_rounds = {}
             for event, round_ in events_to_rounds.items():
                 destination_round = abci_app_transition_mapping.get(round_, round_)
-                new_events_to_rounds[event] = destination_round
-            potential_transition_function[state] = new_events_to_rounds
+                new_destination_round = from_old_to_new_state_by_app[destination_round]
+                new_events_to_rounds[event] = new_destination_round
+            new_start_state = from_old_to_new_state_by_app[state]
+            potential_transition_function[new_start_state] = new_events_to_rounds
 
     # Remove no longer used states from transition function and final states
     destination_states: Set[AppState] = set()
