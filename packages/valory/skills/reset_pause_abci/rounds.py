@@ -71,11 +71,12 @@ class ResetPauseABCIAbstractRound(AbstractRound[Event, TransactionType], ABC):
         return self.period_state, Event.NO_MAJORITY
 
 
-class BaseResetRound(CollectSameUntilThresholdRound, ResetPauseABCIAbstractRound):
-    """This class represents the base reset round."""
+class ResetAndPauseRound(CollectSameUntilThresholdRound, ResetPauseABCIAbstractRound):
+    """A round representing that consensus was reached (the final round)."""
 
     allowed_tx_type = ResetPayload.transaction_type
     payload_attribute = "period_count"
+    round_id = "reset_and_pause"
 
     def end_block(self) -> Optional[Tuple[BasePeriodState, Event]]:
         """Process the end of the block."""
@@ -90,12 +91,6 @@ class BaseResetRound(CollectSameUntilThresholdRound, ResetPauseABCIAbstractRound
         ):
             return self._return_no_majority_event()
         return None
-
-
-class ResetAndPauseRound(BaseResetRound):
-    """A round representing that consensus was reached (the final round)."""
-
-    round_id = "reset_and_pause"
 
 
 class FinishedResetAndPauseRound(DegenerateRound):

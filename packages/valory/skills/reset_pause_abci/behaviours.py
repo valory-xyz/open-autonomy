@@ -39,8 +39,12 @@ from packages.valory.skills.reset_pause_abci.rounds import (
 benchmark_tool = BenchmarkTool()
 
 
-class ResetPauseBaseState(BaseState, ABC):
-    """Base state behaviour for the reset_pause_abci skill."""
+class ResetAndPauseBehaviour(BaseState, ABC):
+    """Reset state."""
+
+    matching_round = ResetAndPauseRound
+    state_id = "reset_and_pause"
+    pause = True
 
     @property
     def period_state(self) -> PeriodState:
@@ -51,12 +55,6 @@ class ResetPauseBaseState(BaseState, ABC):
     def params(self) -> Params:
         """Return the params."""
         return cast(Params, self.context.params)
-
-
-class BaseResetBehaviour(ResetPauseBaseState):
-    """Reset state."""
-
-    pause = True
 
     def async_act(self) -> Generator:
         """
@@ -88,20 +86,12 @@ class BaseResetBehaviour(ResetPauseBaseState):
         self.set_done()
 
 
-class ResetAndPauseBehaviour(BaseResetBehaviour):
-    """Reset state."""
-
-    matching_round = ResetAndPauseRound
-    state_id = "reset_and_pause"
-    pause = True
-
-
 class ResetPauseABCIConsensusBehaviour(AbstractRoundBehaviour):
     """This behaviour manages the consensus stages for the reset_pause_abci app."""
 
     initial_state_cls = ResetAndPauseBehaviour
     abci_app_cls = ResetPauseABCIApp  # type: ignore
-    behaviour_states: Set[Type[ResetPauseBaseState]] = {  # type: ignore
+    behaviour_states: Set[Type[ResetAndPauseBehaviour]] = {  # type: ignore
         ResetAndPauseBehaviour,  # type: ignore
     }
 

@@ -35,15 +35,7 @@ class TransactionType(Enum):
         return self.value
 
 
-class BaseResetPauseAbciPayload(BaseTxPayload, ABC):
-    """Base class for the reset_pause_abci skill."""
-
-    def __hash__(self) -> int:
-        """Hash the payload."""
-        return hash(tuple(sorted(self.data.items())))
-
-
-class ResetPayload(BaseResetPauseAbciPayload):
+class ResetPayload(BaseTxPayload, ABC):
     """Represent a transaction payload of type 'reset'."""
 
     transaction_type = TransactionType.RESET
@@ -69,3 +61,7 @@ class ResetPayload(BaseResetPauseAbciPayload):
     def data(self) -> Dict:
         """Get the data."""
         return dict(period_count=self.period_count)
+
+    def __hash__(self) -> int:
+        """Hash the payload."""
+        return hash(tuple(sorted(self.data.items())))
