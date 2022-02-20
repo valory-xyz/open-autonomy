@@ -1,5 +1,7 @@
 # Deployment guide
 
+This guide follows the ropsten oracle example. Modify as relevant for other deployments.
+
 # Prerequisites
 
 - Skaffold `>=v1.33.0`
@@ -22,6 +24,7 @@ Images are built & tagged by scaffold based on an environment variable `$VERSION
 This is done from the root directory.
 
 ```bash
+make clean
 export VERSION=0.1.0
 rsync -avu packages/ deployments/Dockerfiles/open_aea/packages
 skaffold build --build-concurrency=0 --push=false
@@ -34,7 +37,7 @@ Now we have our images, we need to build the deployment to use them.
 
 ```bash
 pipenv shell
-python deployments/click_create.py build-deployment --deployment-type docker-compose  --valory-app oracle_ropsten
+python deployments/click_create.py build-deployment --deployment-type docker-compose  --valory-app oracle_ropsten --keys-file-path deployments/deployment_specifications/ropsten_keys.txt
 ```
 
 ```output
