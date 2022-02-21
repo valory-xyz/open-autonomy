@@ -348,7 +348,7 @@ class IPFSBehaviour(SimpleBehaviour, ABC):
         # If `ipfs_domain_name` is not specified for the skill, then we get a `None` default.
         # Therefore, `IPFSBehaviour` will be disabled.
         domain = getattr(self.params, "ipfs_domain_name", None)  # type: ignore  # pylint: disable=E1101
-        if domain is not None:
+        if domain is not None:  # pragma: nocover
             self.ipfs_enabled = True
             self._ipfs_interact = IPFSInteract(domain)
 
