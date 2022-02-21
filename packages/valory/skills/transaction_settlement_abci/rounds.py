@@ -105,7 +105,7 @@ class PeriodState(BasePeriodState):  # pylint: disable=too-many-instance-attribu
     @property
     def final_tx_hash(self) -> str:
         """Get the on-chain recorded tx hash for the current cycle."""
-        return cast(str, self.db.get("final_tx_hash", ""))
+        return cast(str, self.db.get_strict("final_tx_hash"))
 
     @property
     def final_verification_status(self) -> VerificationStatus:
@@ -123,7 +123,7 @@ class PeriodState(BasePeriodState):  # pylint: disable=too-many-instance-attribu
     @property
     def is_final_tx_hash_set(self) -> bool:
         """Check if most_voted_estimate is set."""
-        return self.final_tx_hash != ""
+        return cast(Optional[str], self.db.get("final_tx_hash", None)) is not None
 
     @property
     def late_arriving_tx_hashes(self) -> List[str]:

@@ -312,7 +312,7 @@ class TransactionHashBehaviour(PriceEstimationBaseState):
                 ]
             )
 
-            prev_tx_hash = previous_data["final_tx_hash"]
+            prev_tx_hash = previous_data.get("final_tx_hash", "")
 
         # select relevant data
         agents = self.period_state.db.get_strict("participants")
