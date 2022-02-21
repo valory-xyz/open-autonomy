@@ -270,10 +270,6 @@ class TestFinalizationRound(BaseOnlyKeeperSendsRoundTest):
             consensus_params=self.consensus_params,
         )
 
-        state_attr_checks = []
-        if exit_event == TransactionSettlementEvent.DONE:
-            state_attr_checks = [lambda state: state.final_tx_hash]
-
         self._complete_run(
             self._test_round(
                 test_round=test_round,
@@ -290,7 +286,7 @@ class TestFinalizationRound(BaseOnlyKeeperSendsRoundTest):
                 state_update_fn=lambda _period_state, _: _period_state.update(
                     tx_hashes_history=tx_hashes_history
                 ),
-                state_attr_checks=state_attr_checks,
+                state_attr_checks=[],
                 exit_event=exit_event,
             )
         )
@@ -444,7 +440,10 @@ class TestCheckTransactionHistoryRound(BaseCollectSameUntilThresholdRoundTest):
                     final_verification_status=VerificationStatus(int(expected_status)),
                     tx_hashes_history=[expected_tx_hash],
                 ),
-                state_attr_checks=[lambda state: state.final_verification_status],
+                state_attr_checks=[
+                    lambda state: state.final_verification_status,
+                    lambda state: state.final_tx_hash,
+                ],
                 most_voted_payload=expected_status + expected_tx_hash,
                 exit_event=expected_event,
             )
