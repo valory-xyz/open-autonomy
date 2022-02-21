@@ -688,7 +688,7 @@ class TestResetAndPauseBehaviour(PriceEstimationFSMBehaviourBaseCase):
                     initial_period=2,
                     initial_data=dict(
                         most_voted_estimate=0.1,
-                        tx_hashes_history=["68656c6c6f776f726c64"],
+                        final_tx_hash="68656c6c6f776f726c64",
                     ),
                 )
             ),
@@ -836,7 +836,7 @@ class TestResetAndPauseBehaviour(PriceEstimationFSMBehaviourBaseCase):
                     initial_period=2,
                     initial_data=dict(
                         most_voted_estimate=0.1,
-                        tx_hashes_history=["68656c6c6f776f726c64"],
+                        final_tx_hash="68656c6c6f776f726c64",
                     ),
                 )
             ),
