@@ -87,6 +87,7 @@ from packages.valory.skills.apy_estimation_abci.behaviours import (
     PrepareBatchBehaviour,
     PreprocessBehaviour,
     RandomnessBehaviour,
+    Replicate289Behaviour,
 )
 from packages.valory.skills.apy_estimation_abci.behaviours import (
     TestBehaviour as _TestBehaviour,
@@ -2493,3 +2494,74 @@ class TestFreshModelResetBehaviour(APYEstimationFSMBehaviourBaseCase):
 
         state = cast(BaseState, self.apy_estimation_behaviour.current_state)
         assert state.state_id == self.next_behaviour_class.state_id
+
+
+class TestReplicate289Behaviour(APYEstimationFSMBehaviourBaseCase):
+    """Test `Replicate289Behaviour`."""
+
+    behaviour_class = Replicate289Behaviour
+    mocking_paths = (
+        "packages.valory.skills.apy_estimation_abci.behaviours.to_be_mocked",
+        "packages.valory.skills.apy_estimation_abci.tools.general.to_be_mocked",
+    )
+
+    @pytest.mark.parametrize("mocking_path", mocking_paths)
+    def test_monkeypatching(
+        self, monkeypatch: MonkeyPatch, caplog: LogCaptureFixture, mocking_path: str
+    ) -> None:
+        """Test monkeypatching."""
+        self.fast_forward_to_state(
+            behaviour=self.apy_estimation_behaviour,
+            state_id=self.behaviour_class.state_id,
+            period_state=PeriodState(StateDB(initial_period=0, initial_data={})),
+        )
+        state = cast(BaseState, self.apy_estimation_behaviour.current_state)
+        assert state.state_id == self.behaviour_class.state_id
+
+        monkeypatch.setattr(mocking_path, lambda _: "Mocking succeeded!")
+
+        with caplog.at_level(
+            logging.INFO,
+            logger="aea.test_agent_name.packages.valory.skills.apy_estimation_abci",
+        ):
+            self.apy_estimation_behaviour.act_wrapper()
+
+        assert (
+            "[test_agent_name] Entered in the 'replicate_289' behaviour state"
+            in caplog.text
+        )
+        assert "[test_agent_name] Mocking succeeded!" in caplog.text
+
+        self.mock_a2a_transaction()
+        self._test_done_flag_set()
+        self.end_round()
+
+    @pytest.mark.parametrize("mocking_path", mocking_paths)
+    def test_mock_patch(
+        self, monkeypatch: MonkeyPatch, caplog: LogCaptureFixture, mocking_path: str
+    ) -> None:
+        """Test monkeypatching."""
+        self.fast_forward_to_state(
+            behaviour=self.apy_estimation_behaviour,
+            state_id=self.behaviour_class.state_id,
+            period_state=PeriodState(StateDB(initial_period=0, initial_data={})),
+        )
+        state = cast(BaseState, self.apy_estimation_behaviour.current_state)
+        assert state.state_id == self.behaviour_class.state_id
+
+        with mock.patch(mocking_path, return_value="Mocking succeeded!"):
+            with caplog.at_level(
+                logging.INFO,
+                logger="aea.test_agent_name.packages.valory.skills.apy_estimation_abci",
+            ):
+                self.apy_estimation_behaviour.act_wrapper()
+
+            assert (
+                "[test_agent_name] Entered in the 'replicate_289' behaviour state"
+                in caplog.text
+            )
+            assert "[test_agent_name] Mocking succeeded!" in caplog.text
+
+        self.mock_a2a_transaction()
+        self._test_done_flag_set()
+        self.end_round()
