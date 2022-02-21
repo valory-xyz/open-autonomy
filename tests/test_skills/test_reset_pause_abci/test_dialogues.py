@@ -17,17 +17,10 @@
 #
 # ------------------------------------------------------------------------------
 
-"""This module contains the handler for the 'reset_pause_abci' skill."""
+"""Test the dialogues.py module of the skill."""
 
-from packages.valory.skills.abstract_round_abci.handlers import ABCIRoundHandler
-from packages.valory.skills.abstract_round_abci.handlers import (
-    HttpHandler as BaseHttpHandler,
-)
-from packages.valory.skills.abstract_round_abci.handlers import (
-    SigningHandler as BaseSigningHandler,
-)
+import packages.valory.skills.reset_pause_abci.dialogues  # noqa
 
 
-ResetPauseABCIHandler = ABCIRoundHandler
-HttpHandler = BaseHttpHandler
-SigningHandler = BaseSigningHandler
+def test_import() -> None:
+    """Test that the 'dialogues.py' Python module can be imported."""

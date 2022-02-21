@@ -17,17 +17,23 @@
 #
 # ------------------------------------------------------------------------------
 
-"""This module contains the handler for the 'reset_pause_abci' skill."""
+"""Test the payloads.py module of the skill."""
 
-from packages.valory.skills.abstract_round_abci.handlers import ABCIRoundHandler
-from packages.valory.skills.abstract_round_abci.handlers import (
-    HttpHandler as BaseHttpHandler,
-)
-from packages.valory.skills.abstract_round_abci.handlers import (
-    SigningHandler as BaseSigningHandler,
+from packages.valory.skills.reset_pause_abci.payloads import (
+    ResetPayload,
+    TransactionType,
 )
 
 
-ResetPauseABCIHandler = ABCIRoundHandler
-HttpHandler = BaseHttpHandler
-SigningHandler = BaseSigningHandler
+def test_reset_payload() -> None:
+    """Test `ResetPayload`"""
+
+    payload = ResetPayload(sender="sender", period_count=1, id_="id")
+
+    assert payload.period_count == 1
+    assert payload.id_ == "id"
+    assert payload.data == {"period_count": 1}
+    assert hash(payload) == hash(tuple(sorted(payload.data.items())))
+
+    assert str(payload.transaction_type) == str(TransactionType.RESET)
+    assert payload.transaction_type == TransactionType.RESET

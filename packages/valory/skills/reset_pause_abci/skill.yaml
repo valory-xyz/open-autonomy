@@ -6,14 +6,14 @@ description: ABCI application for resetting and pausing app executions.
 license: Apache-2.0
 aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
-  README.md: QmYVtTJWf1geuZc86nMjKFikTDePQDEBj2gqyz1gKt4Yc6
+  README.md: Qmcvjeds5EyiUvea61GNy8YE4rYzvMDh79GJMhBz3NK7Q5
   __init__.py: QmPwoncoCEZVbHN89ZbSQ5AWwkA7kBKYk4iWG5coUTpjNM
   behaviours.py: QmWSj6LyRXJt83bbUvF3r67peZMuKtymQGsLQhpezofg34
-  dialogues.py: QmchNNUVsWEymrfeqdWRBhwaqD5rUPfFmDnKuQR8879KPi
-  handlers.py: QmcCgrz4E1UDTJc136Tmak856wABMXBPzTQyy5ACFgW5u1
+  dialogues.py: QmY45qKwDYD5XCkgqbEbNHwCRa9BruQzLsZ4k9uFdbFTSG
+  handlers.py: QmTJ2Rj3ysCdWN65XPMLcazgRPQxe4FZtWtmzTd8nnMfrh
   models.py: QmWfGeLcSKYx1t2vhrdUGtZwSk1prce8q3NBymsMhxpajD
   payloads.py: QmYXeCDQ4V7VryarRMeSxekte2YMxAD1G98VVVGCdTQoGs
-  rounds.py: Qmaf48tiBryED1Mg1ut4M4w1VqoWg7hyach4tWb1xdLP1k
+  rounds.py: QmfFssT1MeoKA3pzhCY3CCwF7LVXbBdjbMamaEiLCh52UQ
 fingerprint_ignore_patterns: []
 connections:
 - valory/abci:0.1.0
@@ -31,6 +31,9 @@ handlers:
   abci:
     args: {}
     class_name: ResetPauseABCIHandler
+  http:
+    args: {}
+    class_name: HttpHandler
   signing:
     args: {}
     class_name: SigningHandler

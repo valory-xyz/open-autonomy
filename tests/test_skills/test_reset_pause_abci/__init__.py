@@ -17,17 +17,4 @@
 #
 # ------------------------------------------------------------------------------
 
-"""This module contains the handler for the 'reset_pause_abci' skill."""
-
-from packages.valory.skills.abstract_round_abci.handlers import ABCIRoundHandler
-from packages.valory.skills.abstract_round_abci.handlers import (
-    HttpHandler as BaseHttpHandler,
-)
-from packages.valory.skills.abstract_round_abci.handlers import (
-    SigningHandler as BaseSigningHandler,
-)
-
-
-ResetPauseABCIHandler = ABCIRoundHandler
-HttpHandler = BaseHttpHandler
-SigningHandler = BaseSigningHandler
+"""Tests for valory/reset_pause_abci skill."""

@@ -25,7 +25,17 @@ from packages.valory.skills.abstract_round_abci.dialogues import (
 from packages.valory.skills.abstract_round_abci.dialogues import (
     AbciDialogues as BaseAbciDialogues,
 )
+from packages.valory.skills.abstract_round_abci.dialogues import (
+    SigningDialogue as BaseSigningDialogue,
+)
+from packages.valory.skills.abstract_round_abci.dialogues import (
+    SigningDialogues as BaseSigningDialogues,
+)
 
 
 AbciDialogue = BaseAbciDialogue
 AbciDialogues = BaseAbciDialogues
+
+
+SigningDialogue = BaseSigningDialogue
+SigningDialogues = BaseSigningDialogues

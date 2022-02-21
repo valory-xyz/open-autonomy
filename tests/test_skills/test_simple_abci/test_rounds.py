@@ -39,7 +39,6 @@ from packages.valory.skills.simple_abci.rounds import (
     PeriodState,
     RandomnessStartupRound,
     RegistrationRound,
-    ResetAndPauseRound,
     SelectKeeperAtStartupRound,
     rotate_list,
 )
@@ -244,49 +243,6 @@ class TestSelectKeeperAtStartupRound(BaseRoundTestClass):
                 for key in cast(PeriodState, actual_next_state).participant_to_selection
             ]
         )
-        assert event == Event.DONE
-
-
-class TestResetAndPauseRound(BaseRoundTestClass):
-    """Tests for ResetAndPauseRound."""
-
-    def test_run(
-        self,
-    ) -> None:
-        """Run tests."""
-        test_round = ResetAndPauseRound(
-            state=self.period_state, consensus_params=self.consensus_params
-        )
-
-        first_payload, *payloads = [
-            ResetPayload(sender=participant, period_count=1)
-            for participant in self.participants
-        ]
-
-        test_round.process_payload(first_payload)
-        assert test_round.collection[first_payload.sender] == first_payload
-        assert test_round.end_block() is None
-
-        self._test_no_majority_event(test_round)
-
-        for payload in payloads:
-            test_round.process_payload(payload)
-
-        actual_next_state = self.period_state.update(
-            period_count=test_round.most_voted_payload,
-            participants=self.period_state.participants,
-            all_participants=self.period_state.all_participants,
-        )
-
-        res = test_round.end_block()
-        assert res is not None
-        state, event = res
-
-        assert (
-            cast(PeriodState, state).period_count
-            == cast(PeriodState, actual_next_state).period_count
-        )
-
         assert event == Event.DONE
 
 

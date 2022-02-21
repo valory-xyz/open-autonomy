@@ -27,7 +27,11 @@ from packages.valory.skills.abstract_round_abci.base import (
     AbciAppTransitionFunction,
     AbstractRound,
     AppState,
-    BasePeriodState,
+)
+from packages.valory.skills.abstract_round_abci.base import (
+    BasePeriodState as PeriodState,
+)
+from packages.valory.skills.abstract_round_abci.base import (
     CollectSameUntilThresholdRound,
     DegenerateRound,
 )
@@ -44,14 +48,6 @@ class Event(Enum):
     ROUND_TIMEOUT = "round_timeout"
     NO_MAJORITY = "no_majority"
     RESET_TIMEOUT = "reset_timeout"
-
-
-class PeriodState(BasePeriodState):  # pylint: disable=too-many-instance-attributes
-    """
-    Class to represent a period state.
-
-    This state is replicated by the tendermint application.
-    """
 
 
 class ResetPauseABCIAbstractRound(AbstractRound[Event, TransactionType], ABC):
@@ -78,7 +74,7 @@ class ResetAndPauseRound(CollectSameUntilThresholdRound, ResetPauseABCIAbstractR
     payload_attribute = "period_count"
     round_id = "reset_and_pause"
 
-    def end_block(self) -> Optional[Tuple[BasePeriodState, Event]]:
+    def end_block(self) -> Optional[Tuple[PeriodState, Event]]:
         """Process the end of the block."""
         if self.threshold_reached:
             state = self.period_state.update(

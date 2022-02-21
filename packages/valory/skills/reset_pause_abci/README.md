@@ -7,17 +7,9 @@ application.
 
 ## Behaviours
 
-* `BaseResetBehaviour`
-
-   Reset state.
-
 * `ResetAndPauseBehaviour`
 
    Reset state.
-
-* `ResetPauseABCIBaseState`
-
-   Base state behaviour for the reset and pause abci skill.
 
 * `ResetPauseABCIConsensusBehaviour`
 
@@ -26,5 +18,6 @@ application.
 ## Handlers
 
 * `ResetPauseABCIHandler`
+* `HttpHandler`
 * `SigningHandler`
 
