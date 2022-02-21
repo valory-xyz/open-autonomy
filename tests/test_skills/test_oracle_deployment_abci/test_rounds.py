@@ -196,6 +196,8 @@ class BaseValidateRoundTest(BaseVotingRoundTest):
     ) -> None:
         """Test ValidateRound."""
 
+        self.period_state.update(tx_hashes_history=["test"])
+
         test_round = self.test_class(
             state=self.period_state, consensus_params=self.consensus_params
         )
