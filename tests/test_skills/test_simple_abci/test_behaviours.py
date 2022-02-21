@@ -48,10 +48,10 @@ from packages.valory.skills.abstract_round_abci.base import (
 )
 from packages.valory.skills.abstract_round_abci.behaviour_utils import BaseState
 from packages.valory.skills.abstract_round_abci.behaviours import AbstractRoundBehaviour
+from packages.valory.skills.reset_pause_abci.behaviours import ResetAndPauseBehaviour
 from packages.valory.skills.simple_abci.behaviours import (
     RandomnessAtStartupBehaviour,
     RegistrationBehaviour,
-    ResetAndPauseBehaviour,
     SelectKeeperAtStartupBehaviour,
     SimpleAbciConsensusBehaviour,
 )

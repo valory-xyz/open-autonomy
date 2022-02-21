@@ -28,10 +28,10 @@ from packages.valory.skills.abstract_round_abci.base import (
     ConsensusParams,
     StateDB,
 )
+from packages.valory.skills.reset_pause_abci.payloads import ResetPayload
 from packages.valory.skills.simple_abci.payloads import (
     RandomnessPayload,
     RegistrationPayload,
-    ResetPayload,
     SelectKeeperPayload,
 )
 from packages.valory.skills.simple_abci.rounds import (
