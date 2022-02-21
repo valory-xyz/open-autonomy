@@ -39,7 +39,7 @@ Represent a transaction payload of type 'tx_hash'.
 #### `__`init`__`
 
 ```python
-def __init__(sender: str, tx_hash: Optional[str] = None, id_: Optional[str] = None) -> None
+def __init__(sender: str, tx_hash: Optional[str] = None, **kwargs: Any) -> None
 ```
 
 Initialize an 'tx_hash' transaction payload.
@@ -48,7 +48,7 @@ Initialize an 'tx_hash' transaction payload.
 
 - `sender`: the sender (Ethereum) address
 - `tx_hash`: the tx_hash
-- `id_`: the id of the transaction
+- `kwargs`: the keyword arguments
 
 <a id="packages.valory.skills.price_estimation_abci.payloads.TransactionHashPayload.tx_hash"></a>
 
@@ -87,7 +87,7 @@ Represent a transaction payload of type 'observation'.
 #### `__`init`__`
 
 ```python
-def __init__(sender: str, observation: float, id_: Optional[str] = None) -> None
+def __init__(sender: str, observation: float, **kwargs: Any) -> None
 ```
 
 Initialize an 'observation' transaction payload.
@@ -96,7 +96,7 @@ Initialize an 'observation' transaction payload.
 
 - `sender`: the sender (Ethereum) address
 - `observation`: the observation
-- `id_`: the id of the transaction
+- `kwargs`: the keyword arguments
 
 <a id="packages.valory.skills.price_estimation_abci.payloads.ObservationPayload.observation"></a>
 
@@ -135,7 +135,7 @@ Represent a transaction payload of type 'estimate'.
 #### `__`init`__`
 
 ```python
-def __init__(sender: str, estimate: float, id_: Optional[str] = None) -> None
+def __init__(sender: str, estimate: float, **kwargs: Any) -> None
 ```
 
 Initialize an 'estimate' transaction payload.
@@ -144,7 +144,7 @@ Initialize an 'estimate' transaction payload.
 
 - `sender`: the sender (Ethereum) address
 - `estimate`: the estimate
-- `id_`: the id of the transaction
+- `kwargs`: the keyword arguments
 
 <a id="packages.valory.skills.price_estimation_abci.payloads.EstimatePayload.estimate"></a>
 
