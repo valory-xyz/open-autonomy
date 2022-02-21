@@ -229,23 +229,20 @@ class ValidateTransactionBehaviour(TransactionSettlementBaseState):
 
     def has_transaction_been_sent(self) -> Generator[None, None, Optional[bool]]:
         """Transaction verification."""
+        tx_hash = self.period_state.tx_hashes_history[-1]
         response = yield from self.get_transaction_receipt(
-            self.period_state.tx_hashes_history[-1],
+            tx_hash,
             self.params.retry_timeout,
             self.params.retry_attempts,
         )
         if response is None:  # pragma: nocover
-            self.context.logger.error(
-                f"tx {self.period_state.tx_hashes_history[-1]} receipt check timed out!"
-            )
+            self.context.logger.error(f"tx {tx_hash} receipt check timed out!")
             return None
 
         # Reset tx parameters.
         self.params.reset_tx_params()
 
-        contract_api_msg = yield from self._verify_tx(
-            self.period_state.tx_hashes_history[-1]
-        )
+        contract_api_msg = yield from self._verify_tx(tx_hash)
         if (
             contract_api_msg.performative != ContractApiMessage.Performative.STATE
         ):  # pragma: nocover
