@@ -2,6 +2,13 @@
 
 This guide follows the ropsten oracle example. Modify as relevant for other deployments.
 
+For DO only:
+
+```bash
+ssh root@178.62.4.138
+```
+
+
 # Prerequisites
 
 - Skaffold `>=v1.33.0`
@@ -99,4 +106,17 @@ cd deployments/build
 docker-compose up --force-recreate
 ```
 
+# Step 6
 
+Retrieve logs
+
+```bash
+docker ps
+docker logs ID > node_${i}.txt
+```
+
+or
+
+```bash
+for i in {1..4}; do scp root@178.62.4.138:node_${i}.txt node_${i}.txt; done
+```
