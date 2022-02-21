@@ -12,7 +12,7 @@ fingerprint:
   composition.py: QmTigWPHfJkvSb5d81hfrDVUzg2ejVegUmcNcy6Yos4v9F
   dialogues.py: QmdBmUMWoPbS2faqn8LicQVJfN6a2WjtdZDWFbiYoy7hfY
   handlers.py: QmNtjxsNXHBUCay6VZfr69M3NcZy1Lg269pXSZQr6fKU7j
-  models.py: QmXhmZpNZAW6HG6EP1qwoaj23ay7YAhoNVPqfHjr8rPZAh
+  models.py: QmXRC7dj3yBGF1TnDvgZZYH6w5osqGLYKaTPYyavaMb3vp
   payloads.py: QmS6Ge2EdmMGaAaGnsD35kZUmhDBB5A2cu9uscz1YEq2Bz
   rounds.py: QmVsrkoifEVR7Jhi9u7y1toG1yNLhVNmi3nVGqDWxUhVPJ
 fingerprint_ignore_patterns: []
