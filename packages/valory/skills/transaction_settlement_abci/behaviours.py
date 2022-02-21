@@ -230,20 +230,22 @@ class ValidateTransactionBehaviour(TransactionSettlementBaseState):
     def has_transaction_been_sent(self) -> Generator[None, None, Optional[bool]]:
         """Transaction verification."""
         response = yield from self.get_transaction_receipt(
-            self.period_state.final_tx_hash,
+            self.period_state.tx_hashes_history[-1],
             self.params.retry_timeout,
             self.params.retry_attempts,
         )
         if response is None:  # pragma: nocover
             self.context.logger.error(
-                f"tx {self.period_state.final_tx_hash} receipt check timed out!"
+                f"tx {self.period_state.tx_hashes_history[-1]} receipt check timed out!"
             )
             return None
 
         # Reset tx parameters.
         self.params.reset_tx_params()
 
-        contract_api_msg = yield from self._verify_tx(self.period_state.final_tx_hash)
+        contract_api_msg = yield from self._verify_tx(
+            self.period_state.tx_hashes_history[-1]
+        )
         if (
             contract_api_msg.performative != ContractApiMessage.Performative.STATE
         ):  # pragma: nocover
@@ -277,11 +279,11 @@ class CheckTransactionHistoryBehaviour(TransactionSettlementBaseState):
 
             if verification_status == VerificationStatus.VERIFIED:
                 self.context.logger.info(
-                    f"A previous transaction {tx_hash} has already been verified for {self.period_state.final_tx_hash}."
+                    f"A previous transaction {tx_hash} has already been verified for {self.period_state.tx_hashes_history[-1]}."
                 )
             elif verification_status == VerificationStatus.NOT_VERIFIED:
                 self.context.logger.info(
-                    f"No previous transaction has been verified for {self.period_state.final_tx_hash}."
+                    f"No previous transaction has been verified for {self.period_state.tx_hashes_history[-1]}."
                 )
 
             verified_res = tx_hist_payload_to_hex(verification_status, tx_hash)

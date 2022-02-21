@@ -92,14 +92,14 @@ class PeriodState(BasePeriodState):  # pylint: disable=too-many-instance-attribu
         )
 
     @property
-    def tx_hashes_history(self) -> Optional[List[str]]:
+    def tx_hashes_history(self) -> List[str]:
         """Get the tx hashes history."""
-        return cast(List[str], self.db.get("tx_hashes_history", None))
+        return cast(List[str], self.db.get("tx_hashes_history", []))
 
     @property
     def final_tx_hash(self) -> str:
         """Get the final_tx_hash."""
-        return cast(str, self.db.get_strict("tx_hashes_history")[-1])
+        return cast(str, self.db.get("final_tx_hash", ""))
 
     @property
     def final_verification_status(self) -> VerificationStatus:
@@ -117,7 +117,7 @@ class PeriodState(BasePeriodState):  # pylint: disable=too-many-instance-attribu
     @property
     def is_final_tx_hash_set(self) -> bool:
         """Check if most_voted_estimate is set."""
-        return self.tx_hashes_history is not None
+        return self.final_tx_hash != ""
 
     @property
     def late_arriving_tx_hashes(self) -> List[str]:
@@ -192,8 +192,6 @@ class FinalizationRound(OnlyKeeperSendsRound):
                 and self.keeper_payload["tx_digest"] != ""
             ):
                 hashes = cast(PeriodState, self.period_state).tx_hashes_history
-                if hashes is None:
-                    hashes = []
                 if self.keeper_payload["tx_digest"] not in hashes:
                     hashes.append(self.keeper_payload["tx_digest"])
 
@@ -215,7 +213,7 @@ class FinalizationRound(OnlyKeeperSendsRound):
                         self.keeper_payload["status"]
                     ),
                 )
-                if cast(PeriodState, self.period_state).tx_hashes_history is not None:
+                if len(cast(PeriodState, self.period_state).tx_hashes_history) > 0:
                     return state, Event.CHECK_HISTORY
                 return state, Event.CHECK_LATE_ARRIVING_MESSAGE
 
@@ -275,7 +273,6 @@ class ResetRound(CollectSameUntilThresholdRound):
         """Process the end of the block."""
         if self.threshold_reached:
             state_data = self.period_state.db.get_all()
-            state_data["tx_hashes_history"] = None
             state = self.period_state.update(
                 period_count=self.most_voted_payload,
                 **state_data,
@@ -332,6 +329,8 @@ class ResetAndPauseRound(CollectSameUntilThresholdRound):
             for key in self.period_state.db.cross_period_persisted_keys:
                 extra_kwargs[key] = self.period_state.db.get_strict(key)
             state = self.period_state.update(
+                tx_hashes_history=[],
+                late_arriving_tx_hashes=[],
                 period_count=self.most_voted_payload,
                 participants=self.period_state.participants,
                 all_participants=self.period_state.all_participants,
@@ -366,6 +365,9 @@ class ValidateTransactionRound(VotingRound):
                 period_state_class=self.period_state_class,
                 participant_to_votes=self.collection,
                 final_verification_status=VerificationStatus.VERIFIED,
+                final_tx_hash=cast(PeriodState, self.period_state).tx_hashes_history[
+                    -1
+                ],
             )  # type: ignore
             return state, self.done_event
         if self.negative_vote_threshold_reached:
@@ -405,8 +407,7 @@ class CheckTransactionHistoryRound(CollectSameUntilThresholdRound):
                 period_state_class=self.period_state_class,
                 participant_to_check=self.collection,
                 final_verification_status=return_status,
-                tx_hashes_history=[return_tx_hash],
-                late_arriving_tx_hashes=[],
+                final_tx_hash=return_tx_hash,
             )
 
             if return_status == VerificationStatus.VERIFIED:

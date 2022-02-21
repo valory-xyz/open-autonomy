@@ -54,7 +54,7 @@ Get the participant_to_signature.
 
 ```python
 @property
-def tx_hashes_history() -> Optional[List[str]]
+def tx_hashes_history() -> List[str]
 ```
 
 Get the tx hashes history.
