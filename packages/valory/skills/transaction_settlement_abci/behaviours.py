@@ -277,7 +277,7 @@ class CheckTransactionHistoryBehaviour(TransactionSettlementBaseState):
 
             if verification_status == VerificationStatus.VERIFIED:
                 self.context.logger.info(
-                    f"A previous transaction has already been verified for {self.period_state.final_tx_hash}."
+                    f"A previous transaction {tx_hash} has already been verified for {self.period_state.final_tx_hash}."
                 )
             elif verification_status == VerificationStatus.NOT_VERIFIED:
                 self.context.logger.info(
