@@ -213,37 +213,37 @@ class TestFinalizationRound(BaseOnlyKeeperSendsRoundTest):
         "tx_hashes_history, tx_digest, status, exit_event",
         (
             (
-                None,
+                [],
                 "",
                 VerificationStatus.ERROR.value,
                 TransactionSettlementEvent.CHECK_LATE_ARRIVING_MESSAGE,
             ),
             (
-                [get_final_tx_hash()],
+                ["test"],
                 "",
                 VerificationStatus.VERIFIED.value,
                 TransactionSettlementEvent.CHECK_HISTORY,
             ),
             (
-                [get_final_tx_hash()],
+                ["test"],
                 "",
                 VerificationStatus.ERROR.value,
                 TransactionSettlementEvent.CHECK_HISTORY,
             ),
             (
-                None,
+                [],
                 "",
                 VerificationStatus.PENDING.value,
                 TransactionSettlementEvent.FAILED,
             ),
             (
-                None,
+                [],
                 "tx_digest",
                 VerificationStatus.PENDING.value,
                 TransactionSettlementEvent.DONE,
             ),
             (
-                [get_final_tx_hash()],
+                ["test"],
                 "tx_digest",
                 VerificationStatus.PENDING.value,
                 TransactionSettlementEvent.DONE,
