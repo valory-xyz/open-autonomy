@@ -1,4 +1,4 @@
-name: reset_pause
+name: reset_pause_abci
 author: valory
 version: 0.1.0
 type: skill
@@ -9,7 +9,7 @@ fingerprint:
   README.md: Qmcvjeds5EyiUvea61GNy8YE4rYzvMDh79GJMhBz3NK7Q5
   __init__.py: QmPwoncoCEZVbHN89ZbSQ5AWwkA7kBKYk4iWG5coUTpjNM
   behaviours.py: QmWSj6LyRXJt83bbUvF3r67peZMuKtymQGsLQhpezofg34
-  dialogues.py: QmY45qKwDYD5XCkgqbEbNHwCRa9BruQzLsZ4k9uFdbFTSG
+  dialogues.py: Qmd54DnNEsybMJb78HTcW2HABVBZCL1FuQL8ELKq3xB6Jw
   handlers.py: QmTJ2Rj3ysCdWN65XPMLcazgRPQxe4FZtWtmzTd8nnMfrh
   models.py: QmWfGeLcSKYx1t2vhrdUGtZwSk1prce8q3NBymsMhxpajD
   payloads.py: QmfMLuPSjEJKWi8U3aa9CxR11He5igVtDt52KoJHDhNaim
@@ -41,16 +41,28 @@ models:
   abci_dialogues:
     args: {}
     class_name: AbciDialogues
+  http_dialogues:
+    args: {}
+    class_name: HttpDialogues
   params:
     args:
       consensus:
         max_participants: 1
+      drand_public_key: 868f005eb8e6e4ca0a47c8a77ceaa5309a47978a7c71bc5cce96366b5d7a569937c529eeda66c7293784a9402801af31
+      keeper_timeout: 30.0
+      max_healthcheck: 120
       observation_interval: 10
       period_setup: {}
+      reset_tendermint_after: 2
       retry_attempts: 400
       retry_timeout: 3
       round_timeout_seconds: 30.0
       service_id: reset_pause_abci
+      sleep_time: 1
+      tendermint_check_sleep_delay: 3
+      tendermint_com_url: http://localhost:8080
+      tendermint_max_retries: 5
+      tendermint_url: http://localhost:26657
     class_name: Params
   requests:
     args: {}
