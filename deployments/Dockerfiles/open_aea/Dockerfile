@@ -3,7 +3,7 @@ FROM valory/open-aea-user:latest
 WORKDIR /home/ubuntu
 ENV PATH=$PATH:/home/ubuntu/.local/bin
 
-RUN apk update && apk upgrade
+RUN apt-get update && apt-get upgrade
 RUN sudo apt-get install python3.8 python3.8-dev git -y
 RUN cd /usr/bin && sudo rm python3 && sudo ln -s python3.8 python3 && sudo ln -s python3.8 python
 # used in Docker-compose to wait until Hardhat node is up
