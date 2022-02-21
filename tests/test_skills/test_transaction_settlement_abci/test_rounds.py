@@ -480,7 +480,7 @@ def test_period_states() -> None:
                 safe_contract_address=safe_contract_address,
                 most_voted_tx_hash=most_voted_tx_hash,
                 participant_to_signature=participant_to_signature,
-                tx_hashes_history=[final_tx_hash],
+                final_tx_hash=final_tx_hash,
                 late_arriving_tx_hashes=late_arriving_tx_hashes,
             ),
         )
