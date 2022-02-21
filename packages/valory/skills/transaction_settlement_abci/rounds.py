@@ -93,18 +93,12 @@ class PeriodState(BasePeriodState):  # pylint: disable=too-many-instance-attribu
 
     @property
     def tx_hashes_history(self) -> List[str]:
-        """
-        Get the current cycle's tx hashes history.
-
-        The app does not yet know if they have been recorded on chain.
-
-        :return: a list with the tx hashes history strings.
-        """
+        """Get the current cycle's tx hashes history, which has not yet been verified."""
         return cast(List[str], self.db.get("tx_hashes_history", []))
 
     @property
     def final_tx_hash(self) -> str:
-        """Get the on-chain recorded tx hash for the current cycle."""
+        """Get the verified tx hash."""
         return cast(str, self.db.get_strict("final_tx_hash"))
 
     @property
