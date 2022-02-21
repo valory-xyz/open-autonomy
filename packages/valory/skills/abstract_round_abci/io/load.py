@@ -57,7 +57,7 @@ class CSVLoader(AbstractLoader):  # pylint: disable=too-few-public-methods
         """
         try:
             return pd.read_csv(path)
-        except FileNotFoundError as e:
+        except FileNotFoundError as e:  # pragma: no cover
             raise IOError(f"File {path} was not found!") from e
 
 
@@ -72,7 +72,7 @@ class ForecasterLoader(AbstractLoader):  # pylint: disable=too-few-public-method
         """
         try:
             return joblib.load(path)
-        except (NotADirectoryError, FileNotFoundError) as e:
+        except (NotADirectoryError, FileNotFoundError) as e:  # pragma: no cover
             raise IOError(f"Could not detect {path}!") from e
 
 
@@ -88,13 +88,13 @@ class JSONLoader(AbstractLoader):  # pylint: disable=too-few-public-methods
         try:
             with open(path, "r", encoding="utf-8") as f:
                 return json.load(f)
-        except OSError as e:
+        except OSError as e:  # pragma: no cover
             raise IOError(f"Path '{path}' could not be found!") from e
 
-        except json.JSONDecodeError as e:
+        except json.JSONDecodeError as e:  # pragma: no cover
             raise IOError(f"File '{path}' has an invalid JSON encoding!") from e
 
-        except ValueError as e:
+        except ValueError as e:  # pragma: no cover
             raise IOError(f"There is an encoding error in the '{path}' file!") from e
 
 
@@ -125,7 +125,7 @@ class Loader(
         if custom_loader is not None:
             return custom_loader
 
-        raise ValueError(
+        raise ValueError(  # pragma: no cover
             "Please provide either a supported filetype or a custom loader function."
         )
 
