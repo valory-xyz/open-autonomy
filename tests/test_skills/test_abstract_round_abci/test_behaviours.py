@@ -146,6 +146,7 @@ class TestAbstractRoundBehaviour:
         context_mock = MagicMock()
         context_mock.state.period = self.period_mock
         context_mock.state.period.syncing_up = False
+        context_mock.params.ipfs_domain_name = None
         self.behaviour = ConcreteRoundBehaviour(name="", skill_context=context_mock)
 
     def test_setup(self) -> None:
@@ -492,6 +493,7 @@ def test_self_loops_in_abci_app_reinstantiate_behaviour_state() -> None:
     period.setup(MagicMock(), MagicMock(), MagicMock())
     context_mock = MagicMock()
     context_mock.state.period = period
+    context_mock.params.ipfs_domain_name = None
     behaviour = RoundBehaviour(name="", skill_context=context_mock)
     behaviour.setup()
 

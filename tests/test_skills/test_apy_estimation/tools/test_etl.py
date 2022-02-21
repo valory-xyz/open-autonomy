@@ -26,8 +26,10 @@ from _pytest.monkeypatch import MonkeyPatch
 
 from packages.valory.skills.apy_estimation_abci.tools.etl import (
     HIST_DTYPES,
+    apply_revert_token_cols_wrapper,
     calc_apy,
     calc_change,
+    revert_transform_hist_data,
     transform_hist_data,
 )
 from packages.valory.skills.apy_estimation_abci.tools.io import (
@@ -136,3 +138,48 @@ class TestProcessing:
         for df in (actual, transformed_history):
             df.drop(columns="blockTimestamp", inplace=True)
         pd.testing.assert_frame_equal(actual, transformed_history)
+
+    @staticmethod
+    def test_load_hist_file_not_found(
+        monkeypatch: MonkeyPatch, transformed_history: pd.DataFrame
+    ) -> None:
+        """Test `load_hist` when file is not found."""
+        with pytest.raises(IOError):
+            load_hist("non_existing")
+
+    @staticmethod
+    def test_apply_revert_token_cols_wrapper() -> None:
+        """Test `apply_revert_token_cols_wrapper`."""
+        test_series = pd.Series(
+            {
+                "xID": 0,
+                "xName": "test",
+                "xSymbol": "T",
+            }
+        )
+        res = apply_revert_token_cols_wrapper("x")(test_series)
+        assert res == {
+            "id": 0,
+            "name": "test",
+            "symbol": "T",
+        }
+
+    @staticmethod
+    def test_revert_transform_hist_data(
+        transformed_historical_data: pd.DataFrame,
+        historical_data: Dict[str, List[Union[None, Dict[str, str], int, str, float]]],
+    ) -> None:
+        """Test `revert_transform_hist_data`."""
+        reverted_pairs_hist = revert_transform_hist_data(transformed_historical_data)
+
+        # Convert list of dicts into dict of lists.
+        actual_reverted_pairs_hist: Dict[
+            str, List[Union[None, Dict[str, str], int, str, float]]
+        ] = {k: [] for k in reverted_pairs_hist[0].keys()}
+        for (
+            d
+        ) in reverted_pairs_hist:  # you can list as many input dicts as you want here
+            for key, value in d.items():
+                actual_reverted_pairs_hist[key].append(value)
+
+        assert actual_reverted_pairs_hist == historical_data
