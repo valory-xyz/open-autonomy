@@ -87,7 +87,7 @@ class IPFSInteract:
 
         if os.path.exists(filepath):
             # TODO investigate why sometimes the path exists. It shouldn't, because `_send` removes it.
-            os.remove(filepath)
+            os.remove(filepath)  # pragma: no cover
 
         try:
             self.__ipfs_tool.download(hash_, target_dir)
