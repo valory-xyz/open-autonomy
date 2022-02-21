@@ -335,8 +335,6 @@ class ResetAndPauseRound(CollectSameUntilThresholdRound):
             for key in self.period_state.db.cross_period_persisted_keys:
                 extra_kwargs[key] = self.period_state.db.get_strict(key)
             state = self.period_state.update(
-                tx_hashes_history=[],
-                late_arriving_tx_hashes=[],
                 period_count=self.most_voted_payload,
                 participants=self.period_state.participants,
                 all_participants=self.period_state.all_participants,
