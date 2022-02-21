@@ -1005,7 +1005,7 @@ class StrategyRoundBehaviour(AbstractRoundBehaviour):
 
 
 class LiquidityProvisionConsensusBehaviour(AbstractRoundBehaviour):
-    """This behaviour manages the consensus stages for the price estimation."""
+    """This behaviour manages the consensus stages for the liquidity provision."""
 
     initial_state_cls = RegistrationStartupBehaviour
     abci_app_cls = LiquidityProvisionAbciApp  # type: ignore
