@@ -423,14 +423,14 @@ class TestTransactionHashBehaviour(PriceEstimationFSMBehaviourBaseCase):
                 "participants": {"agent1"},
                 "participant_to_observations": {"agent1": 1.0},
                 "most_voted_estimate": 1.0,
-                "tx_hashes_history": [tx_hashes[1]],
+                "final_tx_hash": tx_hashes[1],
             }
         )
 
         # add new cycle, and dummy period data
         period_state.db._current_period_count = this_period_count  # type: ignore
         next_period_data = copy.deepcopy(period_data)
-        next_period_data["tx_hashes_history"] = [tx_hashes[0]]
+        next_period_data["final_tx_hash"] = tx_hashes[0]
         period_state.db.add_new_period(
             this_period_count,
             **period_data,
