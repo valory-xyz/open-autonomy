@@ -428,10 +428,6 @@ class CheckLateTxHashesRound(CheckTransactionHistoryRound):
     """A round in which agents check the late-arriving transaction hashes to see if any of them has been validated"""
 
     round_id = "check_late_tx_hashes"
-    allowed_tx_type = CheckTransactionHistoryPayload.transaction_type
-    payload_attribute = "verified_res"
-    period_state_class = PeriodState
-    selection_key = "most_voted_check_result"
 
 
 class SynchronizeLateMessagesRound(CollectNonEmptyUntilThresholdRound):
