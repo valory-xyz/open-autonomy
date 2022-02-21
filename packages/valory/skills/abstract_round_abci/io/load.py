@@ -122,7 +122,7 @@ class Loader(
         if filetype is not None:
             return self.__filetype_to_loader[filetype]
 
-        if custom_loader is not None:
+        if custom_loader is not None:  # pragma: no cover
             return custom_loader
 
         raise ValueError(  # pragma: no cover

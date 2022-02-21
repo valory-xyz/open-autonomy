@@ -150,7 +150,7 @@ class Storer(
         if filetype is not None:
             return self.__filetype_to_storer[filetype]
 
-        if custom_storer is not None:
+        if custom_storer is not None:  # pragma: no cover
             return custom_storer
 
         raise ValueError(  # pragma: no cover
