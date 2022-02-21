@@ -86,6 +86,7 @@ from packages.valory.skills.apy_estimation_abci.rounds import (
     PrepareBatchRound,
     PreprocessRound,
     RandomnessRound,
+    Replicate289Round,
     TestRound,
     TrainRound,
     TransformRound,
@@ -108,6 +109,7 @@ from packages.valory.skills.apy_estimation_abci.tools.general import (
     create_pathdirs,
     gen_unix_timestamps,
     read_json_file,
+    to_be_mocked,
     to_json_file,
 )
 from packages.valory.skills.apy_estimation_abci.tools.queries import (
@@ -1328,6 +1330,27 @@ class CycleResetBehaviour(BaseResetBehaviour):
     state_id = "cycle_reset"
 
 
+class Replicate289Behaviour(APYEstimationBaseState):
+    """Behaviour to replicate issue 289."""
+
+    matching_round = Replicate289Round
+    state_id = "replicate_289"
+
+    def async_act(self) -> Generator:
+        """Act."""
+        # This part contains a call to a method which should be mocked.
+        self.context.logger.info(to_be_mocked())
+
+        # Just using a random payload, does not matter.
+        payload = ResetPayload(
+            self.context.agent_address, self.period_state.period_count + 1
+        )
+
+        yield from self.send_a2a_transaction(payload)
+        yield from self.wait_until_round_end()
+        self.set_done()
+
+
 class EstimatorRoundBehaviour(AbstractRoundBehaviour):
     """This behaviour manages the consensus stages for the APY estimation behaviour."""
 
@@ -1347,6 +1370,7 @@ class EstimatorRoundBehaviour(AbstractRoundBehaviour):
         EstimateBehaviour,  # type: ignore
         FreshModelResetBehaviour,  # type: ignore
         CycleResetBehaviour,  # type: ignore
+        Replicate289Behaviour,  # type: ignore
     }
 
 

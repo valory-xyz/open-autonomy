@@ -473,6 +473,12 @@ class FailedAPYRound(DegenerateRound, ABC):
     round_id = "failed_apy"
 
 
+class Replicate289Round(BaseResetRound):
+    """A round for replicating 289"""
+
+    round_id = "replicate_289"
+
+
 class APYEstimationAbciApp(AbciApp[Event]):  # pylint: disable=too-few-public-methods
     """APYEstimationAbciApp
 
@@ -600,9 +606,14 @@ class APYEstimationAbciApp(AbciApp[Event]):  # pylint: disable=too-few-public-me
             Event.NO_MAJORITY: PrepareBatchRound,
         },
         UpdateForecasterRound: {
-            Event.DONE: EstimateRound,
+            Event.DONE: Replicate289Round,
             Event.ROUND_TIMEOUT: UpdateForecasterRound,
             Event.NO_MAJORITY: FailedAPYRound,  # this is here only for the chaining to work. When a failure round will be used (for example if the Optimization fails) then replace this with `UpdateForecasterRound`
+        },
+        Replicate289Round: {
+            Event.DONE: CollectLatestHistoryBatchRound,
+            Event.ROUND_TIMEOUT: CycleResetRound,
+            Event.NO_MAJORITY: CycleResetRound,
         },
         FinishedAPYEstimationRound: {},
         FailedAPYRound: {},

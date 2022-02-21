@@ -94,3 +94,8 @@ def filter_out_numbers(string: str) -> Optional[int]:
         filtered_result = int(str(filtered_result)[:9])
 
     return filtered_result
+
+
+def to_be_mocked() -> str:
+    """Method to be mocked."""
+    return "Mocking failed!"
