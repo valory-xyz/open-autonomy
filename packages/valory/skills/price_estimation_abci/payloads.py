@@ -19,7 +19,7 @@
 
 """This module contains the transaction payloads for common apps."""
 from enum import Enum
-from typing import Dict, Optional
+from typing import Any, Dict, Optional
 
 from packages.valory.skills.abstract_round_abci.base import BaseTxPayload
 
@@ -42,15 +42,15 @@ class TransactionHashPayload(BaseTxPayload):
     transaction_type = TransactionType.TX_HASH
 
     def __init__(
-        self, sender: str, tx_hash: Optional[str] = None, id_: Optional[str] = None
+        self, sender: str, tx_hash: Optional[str] = None, **kwargs: Any
     ) -> None:
         """Initialize an 'tx_hash' transaction payload.
 
         :param sender: the sender (Ethereum) address
         :param tx_hash: the tx_hash
-        :param id_: the id of the transaction
+        :param kwargs: the keyword arguments
         """
-        super().__init__(sender, id_)
+        super().__init__(sender, **kwargs)
         self._tx_hash = tx_hash
 
     @property
@@ -69,16 +69,14 @@ class ObservationPayload(BaseTxPayload):
 
     transaction_type = TransactionType.OBSERVATION
 
-    def __init__(
-        self, sender: str, observation: float, id_: Optional[str] = None
-    ) -> None:
+    def __init__(self, sender: str, observation: float, **kwargs: Any) -> None:
         """Initialize an 'observation' transaction payload.
 
         :param sender: the sender (Ethereum) address
         :param observation: the observation
-        :param id_: the id of the transaction
+        :param kwargs: the keyword arguments
         """
-        super().__init__(sender, id_)
+        super().__init__(sender, **kwargs)
         self._observation = observation
 
     @property
@@ -97,14 +95,14 @@ class EstimatePayload(BaseTxPayload):
 
     transaction_type = TransactionType.ESTIMATE
 
-    def __init__(self, sender: str, estimate: float, id_: Optional[str] = None) -> None:
+    def __init__(self, sender: str, estimate: float, **kwargs: Any) -> None:
         """Initialize an 'estimate' transaction payload.
 
         :param sender: the sender (Ethereum) address
         :param estimate: the estimate
-        :param id_: the id of the transaction
+        :param kwargs: the keyword arguments
         """
-        super().__init__(sender, id_)
+        super().__init__(sender, **kwargs)
         self._estimate = estimate
 
     @property

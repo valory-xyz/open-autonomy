@@ -61,16 +61,16 @@ class RandomnessPayload(BaseAPYPayload):
     transaction_type = TransactionType.RANDOMNESS
 
     def __init__(
-        self, sender: str, round_id: int, randomness: str, id_: Optional[str] = None
+        self, sender: str, round_id: int, randomness: str, **kwargs: Any
     ) -> None:
         """Initialize an 'select_keeper' transaction payload.
 
         :param sender: the sender (Ethereum) address
         :param round_id: the round id
         :param randomness: the randomness
-        :param id_: the id of the transaction
+        :param kwargs: the keyword arguments
         """
-        super().__init__(sender, id_)
+        super().__init__(sender, **kwargs)
         self._round_id = round_id
         self._randomness = randomness
 
@@ -100,16 +100,16 @@ class FetchingPayload(BaseAPYPayload):
         sender: str,
         history: str,
         latest_observation_timestamp: int,
-        id_: Optional[str] = None,
+        **kwargs: Any
     ) -> None:
         """Initialize a 'fetching' transaction payload.
 
         :param sender: the sender (Ethereum) address
         :param history: the fetched history's hash.
         :param latest_observation_timestamp: the latest observation's timestamp.
-        :param id_: the id of the transaction
+        :param kwargs: the keyword arguments
         """
-        super().__init__(sender, id_)
+        super().__init__(sender, **kwargs)
         self._history = history
         self._latest_observation_timestamp = latest_observation_timestamp
 
@@ -142,16 +142,16 @@ class TransformationPayload(BaseAPYPayload):
         sender: str,
         transformed_history_hash: str,
         latest_observation_hist_hash: str,
-        id_: Optional[str] = None,
+        **kwargs: Any
     ) -> None:
         """Initialize a 'transformation' transaction payload.
 
         :param sender: the sender (Ethereum) address
         :param transformed_history_hash: the transformation's history hash.
         :param latest_observation_hist_hash: the latest observation's history hash.
-        :param id_: the id of the transaction
+        :param kwargs: the keyword arguments
         """
-        super().__init__(sender, id_)
+        super().__init__(sender, **kwargs)
         self._transformed_history_hash = transformed_history_hash
         self._latest_observation_hist_hash = latest_observation_hist_hash
 
@@ -186,7 +186,7 @@ class PreprocessPayload(BaseAPYPayload):
         train_hash: Optional[str] = None,
         test_hash: Optional[str] = None,
         train_test: Optional[str] = None,
-        id_: Optional[str] = None,
+        **kwargs: Any
     ) -> None:
         """Initialize a 'preprocess' transaction payload.
 
@@ -195,9 +195,9 @@ class PreprocessPayload(BaseAPYPayload):
         :param test_hash: the test data hash.
         :param pair_name: the name of the pool for which the preprocessed data are for.
         :param train_test: the train-test concatenated hash.
-        :param id_: the id of the transaction
+        :param kwargs: the keyword arguments
         """
-        super().__init__(sender, id_)
+        super().__init__(sender, **kwargs)
         self._pair_name = pair_name
         self._train_hash = train_hash
         self._test_hash = test_hash
@@ -238,16 +238,14 @@ class BatchPreparationPayload(BaseAPYPayload):
 
     transaction_type = TransactionType.BATCH_PREPARATION
 
-    def __init__(
-        self, sender: str, prepared_batch: str, id_: Optional[str] = None
-    ) -> None:
+    def __init__(self, sender: str, prepared_batch: str, **kwargs: Any) -> None:
         """Initialize a 'batch_preparation' transaction payload.
 
         :param sender: the sender (Ethereum) address
         :param prepared_batch: the transformation's hash.
-        :param id_: the id of the transaction
+        :param kwargs: the keyword arguments
         """
-        super().__init__(sender, id_)
+        super().__init__(sender, **kwargs)
         self._prepared_batch = prepared_batch
 
     @property
@@ -266,19 +264,14 @@ class OptimizationPayload(BaseAPYPayload):
 
     transaction_type = TransactionType.OPTIMIZATION
 
-    def __init__(
-        self,
-        sender: str,
-        best_params: str,
-        id_: Optional[str] = None,
-    ) -> None:
+    def __init__(self, sender: str, best_params: str, **kwargs: Any) -> None:
         """Initialize an 'optimization' transaction payload.
 
         :param sender: the sender (Ethereum) address
         :param best_params: the best params of the study.
-        :param id_: the id of the transaction
+        :param kwargs: the keyword arguments
         """
-        super().__init__(sender, id_)
+        super().__init__(sender, **kwargs)
         self._best_params = best_params
 
     @property
@@ -297,14 +290,14 @@ class TrainingPayload(BaseAPYPayload):
 
     transaction_type = TransactionType.TRAINING
 
-    def __init__(self, sender: str, model_hash: str, id_: Optional[str] = None) -> None:
+    def __init__(self, sender: str, model_hash: str, **kwargs: Any) -> None:
         """Initialize a 'training' transaction payload.
 
         :param sender: the sender (Ethereum) address
         :param model_hash: the model's hash.
-        :param id_: the id of the transaction
+        :param kwargs: the keyword arguments
         """
-        super().__init__(sender, id_)
+        super().__init__(sender, **kwargs)
         self._model_hash = model_hash
 
     @property
@@ -323,16 +316,14 @@ class TestingPayload(BaseAPYPayload):
 
     transaction_type = TransactionType.TESTING
 
-    def __init__(
-        self, sender: str, report_hash: str, id_: Optional[str] = None
-    ) -> None:
+    def __init__(self, sender: str, report_hash: str, **kwargs: Any) -> None:
         """Initialize a 'testing' transaction payload.
 
         :param sender: the sender (Ethereum) address
         :param report_hash: the test's report hash.
-        :param id_: the id of the transaction
+        :param kwargs: the keyword arguments
         """
-        super().__init__(sender, id_)
+        super().__init__(sender, **kwargs)
         self._report_hash = report_hash
 
     @property
@@ -351,16 +342,14 @@ class UpdatePayload(BaseAPYPayload):
 
     transaction_type = TransactionType.UPDATE
 
-    def __init__(
-        self, sender: str, updated_model_hash: str, id_: Optional[str] = None
-    ) -> None:
+    def __init__(self, sender: str, updated_model_hash: str, **kwargs: Any) -> None:
         """Initialize an 'update' transaction payload.
 
         :param sender: the sender (Ethereum) address
         :param updated_model_hash: the updated model's hash.
-        :param id_: the id of the transaction
+        :param kwargs: the keyword arguments
         """
-        super().__init__(sender, id_)
+        super().__init__(sender, **kwargs)
         self._updated_model_hash = updated_model_hash
 
     @property
@@ -379,16 +368,14 @@ class EstimatePayload(BaseAPYPayload):
 
     transaction_type = TransactionType.ESTIMATION
 
-    def __init__(
-        self, sender: str, estimation: float, id_: Optional[str] = None
-    ) -> None:
+    def __init__(self, sender: str, estimation: float, **kwargs: Any) -> None:
         """Initialize an 'estimate' transaction payload.
 
         :param sender: the sender (Ethereum) address
         :param estimation: the estimation.
-        :param id_: the id of the transaction
+        :param kwargs: the keyword arguments
         """
-        super().__init__(sender, id_)
+        super().__init__(sender, **kwargs)
         self._estimation = estimation
 
     @property
@@ -407,16 +394,14 @@ class ResetPayload(BaseAPYPayload):
 
     transaction_type = TransactionType.RESET
 
-    def __init__(
-        self, sender: str, period_count: int, id_: Optional[str] = None
-    ) -> None:
+    def __init__(self, sender: str, period_count: int, **kwargs: Any) -> None:
         """Initialize an 'reset' transaction payload.
 
         :param sender: the sender (Ethereum) address
         :param period_count: the period count id
-        :param id_: the id of the transaction
+        :param kwargs: the keyword arguments
         """
-        super().__init__(sender, id_)
+        super().__init__(sender, **kwargs)
         self._period_count = period_count
 
     @property
