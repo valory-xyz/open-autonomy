@@ -230,13 +230,6 @@ class TestSelectKeeperBehaviourTest(SimpleAbciFSMBehaviourBaseCase):
         self.behaviour.act_wrapper()
         self.mock_a2a_transaction()
         self._test_done_flag_set()
-
-        statex = cast(
-            BaseState,
-            cast(BaseState, self.behaviour.current_state),
-        ).state_id
-        print(f"\n\n{statex}\n\n")
-
         self.end_round(Event.DONE)
         state = cast(BaseState, self.behaviour.current_state)
         assert state.state_id == ResetAndPauseBehaviour.state_id
@@ -264,7 +257,6 @@ class TestRegistrationBehaviour(SimpleAbciFSMBehaviourBaseCase):
         self.behaviour.act_wrapper()
         self.mock_a2a_transaction()
         self._test_done_flag_set()
-
         self.end_round(Event.DONE)
         state = cast(BaseState, self.behaviour.current_state)
         assert state.state_id == RandomnessAtStartupBehaviour.state_id
