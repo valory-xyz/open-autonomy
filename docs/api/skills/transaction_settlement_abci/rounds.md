@@ -57,13 +57,7 @@ Get the participant_to_signature.
 def tx_hashes_history() -> List[str]
 ```
 
-Get the current cycle's tx hashes history.
-
-The app does not yet know if they have been recorded on chain.
-
-**Returns**:
-
-a list with the tx hashes history strings.
+Get the current cycle's tx hashes history, which has not yet been verified.
 
 <a id="packages.valory.skills.transaction_settlement_abci.rounds.PeriodState.final_tx_hash"></a>
 
@@ -74,7 +68,7 @@ a list with the tx hashes history strings.
 def final_tx_hash() -> str
 ```
 
-Get the on-chain recorded tx hash for the current cycle.
+Get the verified tx hash.
 
 <a id="packages.valory.skills.transaction_settlement_abci.rounds.PeriodState.final_verification_status"></a>
 
