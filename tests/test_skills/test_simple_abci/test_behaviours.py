@@ -46,9 +46,11 @@ from packages.valory.skills.abstract_round_abci.base import (
     StateDB,
     _MetaPayload,
 )
-from packages.valory.skills.abstract_round_abci.behaviour_utils import BaseState
+from packages.valory.skills.abstract_round_abci.behaviour_utils import (
+    BaseState,
+    make_degenerate_state,
+)
 from packages.valory.skills.abstract_round_abci.behaviours import AbstractRoundBehaviour
-from packages.valory.skills.reset_pause_abci.behaviours import ResetAndPauseBehaviour
 from packages.valory.skills.simple_abci.behaviours import (
     RandomnessAtStartupBehaviour,
     RegistrationBehaviour,
@@ -61,7 +63,11 @@ from packages.valory.skills.simple_abci.handlers import (
     LedgerApiHandler,
     SigningHandler,
 )
-from packages.valory.skills.simple_abci.rounds import Event, PeriodState
+from packages.valory.skills.simple_abci.rounds import (
+    Event,
+    FinishedKeeperSelection,
+    PeriodState,
+)
 
 from tests.conftest import ROOT_DIR
 
@@ -597,4 +603,4 @@ class TestSelectKeeperAtStartupBehaviour(BaseSelectKeeperBehaviourTest):
     """Test SelectKeeperBehaviour."""
 
     select_keeper_behaviour_class = SelectKeeperAtStartupBehaviour
-    next_behaviour_class = ResetAndPauseBehaviour
+    next_behaviour_class = make_degenerate_state(FinishedKeeperSelection.round_id)

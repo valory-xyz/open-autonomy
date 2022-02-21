@@ -30,14 +30,14 @@ from packages.valory.skills.reset_pause_abci.rounds import (
 )
 from packages.valory.skills.simple_abci.rounds import (
     FinishedKeeperSelection,
-    RandomnessStartupRound,
+    RegistrationRound,
     SimpleAbciApp,
 )
 
 
 abci_app_transition_mapping: AbciAppTransitionMapping = {
     FinishedKeeperSelection: ResetAndPauseRound,
-    FinishedResetAndPauseRound: RandomnessStartupRound,
+    FinishedResetAndPauseRound: RegistrationRound,
 }
 
 SimpleConcatenatedAbciApp = chain(
