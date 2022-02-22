@@ -140,7 +140,7 @@ def get_participant_to_optimize_payload(
 ) -> Dict[str, OptimizationPayload]:
     """Get optimization payload."""
     return {
-        participant: OptimizationPayload(participant, "best_params_hash", None)  # type: ignore
+        participant: OptimizationPayload(participant, "best_params_hash")  # type: ignore
         for participant in participants
     }
 

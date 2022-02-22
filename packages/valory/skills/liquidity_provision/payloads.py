@@ -20,7 +20,7 @@
 """This module contains the transaction payloads for the liquidity_provision skill."""
 from abc import ABC
 from enum import Enum
-from typing import Dict, Optional
+from typing import Any, Dict, Optional
 
 from packages.valory.skills.abstract_round_abci.base import BaseTxPayload
 
@@ -67,14 +67,14 @@ class StrategyEvaluationPayload(BaseLiquidityProvisionPayload):
 
     transaction_type = TransactionType.STRATEGY_EVALUATION
 
-    def __init__(self, sender: str, strategy: str, id_: Optional[str] = None) -> None:
+    def __init__(self, sender: str, strategy: str, **kwargs: Any) -> None:
         """Initialize a 'strategy_evaluation' transaction payload.
 
         :param sender: the sender (Ethereum) address
         :param strategy: the new strategy to follow
-        :param id_: the id of the transaction
+        :param kwargs: the keyword arguments
         """
-        super().__init__(sender, id_)
+        super().__init__(sender, **kwargs)
         self._strategy = strategy
 
     @property
@@ -94,15 +94,15 @@ class TransactionHashPayload(BaseTxPayload):
     transaction_type = TransactionType.TX_HASH
 
     def __init__(
-        self, sender: str, tx_hash: Optional[str] = None, id_: Optional[str] = None
+        self, sender: str, tx_hash: Optional[str] = None, **kwargs: Any
     ) -> None:
         """Initialize an 'tx_hash' transaction payload.
 
         :param sender: the sender (Ethereum) address
         :param tx_hash: the tx_hash
-        :param id_: the id of the transaction
+        :param kwargs: the keyword arguments
         """
-        super().__init__(sender, id_)
+        super().__init__(sender, **kwargs)
         self._tx_hash = tx_hash
 
     @property
