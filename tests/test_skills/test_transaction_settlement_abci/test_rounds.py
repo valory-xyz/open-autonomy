@@ -301,7 +301,7 @@ class TestFinalizationRound(BaseOnlyKeeperSendsRoundTest):
     )
     def test_finalization_round(
         self,
-        tx_hashes_history: Optional[List[str]],
+        tx_hashes_history: List[str],
         tx_digest: str,
         missed_messages: int,
         status: int,
