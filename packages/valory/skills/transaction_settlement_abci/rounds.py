@@ -21,7 +21,7 @@
 import textwrap
 from abc import ABC
 from enum import Enum
-from typing import Dict, List, Mapping, Optional, Set, Tuple, Type, cast
+from typing import Dict, List, Mapping, Optional, Set, Tuple, Type, Union, cast
 
 from packages.valory.skills.abstract_round_abci.base import (
     ABCIAppInternalError,
@@ -194,46 +194,52 @@ class FinalizationRound(OnlyKeeperSendsRound):
     allowed_tx_type = FinalizationTxPayload.transaction_type
     payload_attribute = "tx_data"
 
+    def _update_hashes(self) -> List[str]:
+        """Update the tx hashes history."""
+        hashes = cast(PeriodState, self.period_state).tx_hashes_history
+        tx_digest = cast(
+            str,
+            cast(Dict[str, Union[VerificationStatus, str, int]], self.keeper_payload)[
+                "tx_digest"
+            ],
+        )
+        if tx_digest not in hashes:
+            hashes.append(tx_digest)
+
+        return hashes
+
+    def _get_check_or_fail_event(self) -> Event:
+        """Return the appropriate check event or fail."""
+        if len(cast(PeriodState, self.period_state).tx_hashes_history) > 0:
+            return Event.CHECK_HISTORY
+        if cast(PeriodState, self.period_state).should_check_late_messages:
+            return Event.CHECK_LATE_ARRIVING_MESSAGE
+        return Event.FINALIZATION_FAILED
+
     def end_block(self) -> Optional[Tuple[BasePeriodState, Enum]]:
         """Process the end of the block."""
-        if self.has_keeper_sent_payload:
-            # if reached participant threshold, set the results
-            if (
-                self.keeper_payload is not None
-                and self.keeper_payload["tx_digest"] != ""
-            ):
-                hashes = cast(PeriodState, self.period_state).tx_hashes_history
-                if self.keeper_payload["tx_digest"] not in hashes:
-                    hashes.append(self.keeper_payload["tx_digest"])
+        if not self.has_keeper_sent_payload:
+            return None
 
-                state = self.period_state.update(
-                    period_state_class=PeriodState,
-                    tx_hashes_history=hashes,
-                    final_verification_status=VerificationStatus(
-                        self.keeper_payload["status"]
-                    ),
-                )
-                return state, Event.DONE
+        if self.keeper_payload is None:  # pragma: no cover
+            return self.period_state, Event.FINALIZATION_FAILED
 
-            if self.keeper_payload is not None and VerificationStatus(
-                self.keeper_payload["status"]
-            ) in (VerificationStatus.ERROR, VerificationStatus.VERIFIED):
-                state = self.period_state.update(
-                    period_state_class=PeriodState,
-                    final_verification_status=VerificationStatus(
-                        self.keeper_payload["status"]
-                    ),
-                )
-                if len(cast(PeriodState, self.period_state).tx_hashes_history) > 0:
-                    return state, Event.CHECK_HISTORY
-                if cast(PeriodState, self.period_state).should_check_late_messages:
-                    return state, Event.CHECK_LATE_ARRIVING_MESSAGE
-                return state, Event.FINALIZATION_FAILED
+        # if reached participant threshold, set the results
+        if self.keeper_payload["tx_digest"] != "":
+            state = self.period_state.update(
+                period_state_class=PeriodState,
+                tx_hashes_history=self._update_hashes(),
+                final_verification_status=VerificationStatus(
+                    self.keeper_payload["status"]
+                ),
+            )
+            return state, Event.DONE
 
-            if self.keeper_payload is None or self.keeper_payload["tx_digest"] == "":
-                return self.period_state, Event.FINALIZATION_FAILED
-
-        return None
+        state = self.period_state.update(
+            period_state_class=PeriodState,
+            final_verification_status=VerificationStatus(self.keeper_payload["status"]),
+        )
+        return state, self._get_check_or_fail_event()
 
 
 class RandomnessTransactionSubmissionRound(CollectSameUntilThresholdRound):
