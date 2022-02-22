@@ -143,7 +143,7 @@ def parse_args() -> argparse.Namespace:
     return argparser.parse_args()
 
 
-def main(args: argparse.Namespace):
+def main(args: argparse.Namespace) -> None:
     """Main function."""
     no_update = set()
     abci_compositions = Path("packages").glob("*/skills/*/rounds.py")
