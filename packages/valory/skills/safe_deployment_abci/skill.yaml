@@ -13,7 +13,7 @@ fingerprint:
   handlers.py: QmUS4UE6hYLsHs1RW9KxaTNhrq5pmg9Vy3w7nPgc4wV5kg
   models.py: QmP5Fx8V9U2qWqkLUJnCdSPvBPKdApYn8npJT9b4CMi8x5
   payloads.py: QmNxFKPXvTpGc6ZbmboLB7J8nJGdFzEnFiaSy5bkccqG7d
-  rounds.py: Qma5nxr7W5fttLjquvWvYqeJKy2ngmdLwqzHjcjGeg8zwp
+  rounds.py: QmYSp4H8UGCNDt5vzps5YPBccgPjys72JQZew7BJjk9Tgk
 fingerprint_ignore_patterns: []
 connections: []
 contracts:
