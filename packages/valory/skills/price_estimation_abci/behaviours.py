@@ -302,9 +302,8 @@ class TransactionHashBehaviour(PriceEstimationBaseState):
 
         self.context.logger.info("Attempting broadcast")
 
-        if period_count == 0:
-            prev_tx_hash = ""
-        else:
+        prev_tx_hash = ""
+        if period_count != 0:
             # grab tx_hash from previous cycle
             prev_period_count = period_count - 1
             previous_data = (
@@ -312,7 +311,8 @@ class TransactionHashBehaviour(PriceEstimationBaseState):
                     prev_period_count
                 ]
             )
-            prev_tx_hash = previous_data["tx_hashes_history"][0]
+            if len(previous_data["tx_hashes_history"]) != 0:
+                prev_tx_hash = previous_data["tx_hashes_history"][-1]
 
         # select relevant data
         agents = self.period_state.db.get_strict("participants")

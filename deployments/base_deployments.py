@@ -137,6 +137,8 @@ class DeploymentConfigValidator(validation.ConfigValidator):
         - number of overrides is 1
         - number of overrides == number of agents in spec
         - number of overrides is 0
+
+        :return: True if overrides are valid
         """
         valid = []
         remaining = copy(self.overrides)
