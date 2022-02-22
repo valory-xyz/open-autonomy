@@ -9,13 +9,13 @@ fingerprint:
   README.md: Qmes4T968eLYkfRc1o3oXMa3irSMo6CY95kaAGvM3LfzAF
   __init__.py: QmUJJPrwqyWYnqeYpGypjgsQoXiGFpjHogSrrDmAedpdzV
   behaviours.py: QmWWTAUCVY6tuab1nNoaHrjoEcxjrWB1zU2TYnBzzibwhw
-  composition.py: QmTYiKcmsz8oJKB5iNHLBYg7vHd6GNf2nUcwFVnDYGqn5B
+  composition.py: QmRXtwoynGJ3d8BhPyc5BszDRmDXA5cPSSkD3BXFnGvouh
   dialogues.py: QmfDThV4WCRzK88XDpW2hKDYCuEH4RxoHCoAkWpkBRGRPv
   handlers.py: QmXEZTJVJHNhpHJMjhPRHdhmYMmVpu6LfNyYDE2k4mjLVA
   models.py: QmcgkgUqhTdfSip2A7gng9v81tNe8K9LTnWhvJHCJW5f7h
   payload_tools.py: QmQaVcy9BeW1nQtFnt83Nzt9BTY3nVbjs2Xth2W3iUTPyW
   payloads.py: QmYwxfxcC6UXJzF7hqia46fkb87QqPMEFgwKfBVLAEmrLW
-  rounds.py: QmayBicW8TVgsoaotEqMDFESDQjjkJcqMBzmPaoqz3ZXfp
+  rounds.py: QmWbVUEs7r1VK4pquEmptjicbdaMJvxTPqiwpjNYTLRGNS
 fingerprint_ignore_patterns: []
 connections: []
 contracts:

@@ -141,24 +141,6 @@ class PeriodState(BasePeriodState):  # pylint: disable=too-many-instance-attribu
         return cast(bool, self.db.get("is_reset_params_set", False))
 
 
-class FinishedRegistrationRound(DegenerateRound, ABC):
-    """A round representing that agent registration has finished"""
-
-    round_id = "finished_registration"
-
-
-class FinishedRegistrationFFWRound(DegenerateRound, ABC):
-    """A fast-forward round representing that agent registration has finished"""
-
-    round_id = "finished_registration_ffw"
-
-
-class FinishedTransactionSubmissionRound(DegenerateRound, ABC):
-    """A round that represents that transaction submission has finished"""
-
-    round_id = "finished_transaction_submission"
-
-
 class FailedRound(DegenerateRound, ABC):
     """A round that represents that the period failed"""
 
@@ -373,10 +355,10 @@ class SynchronizeLateMessagesRound(CollectNonEmptyUntilThresholdRound):
     collection_key = "late_arriving_tx_hashes"
 
 
-class PreResetAndPauseRound(DegenerateRound):
-    """A round that represents the previous step to reset and pause"""
+class FinishedTransactionSubmissionRound(DegenerateRound, ABC):
+    """A round that represents that transaction submission has finished"""
 
-    round_id = "pre_reset_and_pause"
+    round_id = "finished_transaction_submission"
 
 
 class PreResetRound(DegenerateRound):
@@ -470,14 +452,14 @@ class TransactionSubmissionAbciApp(AbciApp[Event]):
             Event.CHECK_LATE_ARRIVING_MESSAGE: SynchronizeLateMessagesRound,
         },
         ValidateTransactionRound: {
-            Event.DONE: PreResetAndPauseRound,
+            Event.DONE: FinishedTransactionSubmissionRound,
             Event.NEGATIVE: CheckTransactionHistoryRound,
             Event.NONE: FinalizationRound,
             Event.VALIDATE_TIMEOUT: FinalizationRound,
             Event.NO_MAJORITY: ValidateTransactionRound,
         },
         CheckTransactionHistoryRound: {
-            Event.DONE: PreResetAndPauseRound,
+            Event.DONE: FinishedTransactionSubmissionRound,
             Event.NEGATIVE: SynchronizeLateMessagesRound,
             Event.NONE: FailedRound,
             Event.ROUND_TIMEOUT: CheckTransactionHistoryRound,
@@ -495,24 +477,22 @@ class TransactionSubmissionAbciApp(AbciApp[Event]):
             Event.NONE: FailedRound,
         },
         CheckLateTxHashesRound: {
-            Event.DONE: PreResetAndPauseRound,
+            Event.DONE: FinishedTransactionSubmissionRound,
             Event.NEGATIVE: FailedRound,
             Event.NONE: FailedRound,
             Event.ROUND_TIMEOUT: CheckLateTxHashesRound,
             Event.NO_MAJORITY: FailedRound,
         },
-        FinishedTransactionSubmissionRound: {},
         PreResetRound: {},
-        PreResetAndPauseRound: {},
+        FinishedTransactionSubmissionRound: {},
         FailedRound: {},
     }
     initial_states: Set[AppState] = {
         RandomnessTransactionSubmissionRound,
     }
     final_states: Set[AppState] = {
-        FinishedTransactionSubmissionRound,
         PreResetRound,
-        PreResetAndPauseRound,
+        FinishedTransactionSubmissionRound,
         FailedRound,
     }
     event_to_timeout: Dict[Event, float] = {

@@ -24,7 +24,6 @@ from packages.valory.skills.abstract_round_abci.abci_app_chain import (
     chain,
 )
 from packages.valory.skills.reset_pause_abci.rounds import (
-    FinishedResetAndPauseRound,
     FinishedResetRound,
     ResetAndPauseRound,
     ResetPauseABCIApp,
@@ -33,7 +32,6 @@ from packages.valory.skills.reset_pause_abci.rounds import (
 from packages.valory.skills.transaction_settlement_abci.rounds import (
     FailedRound,
     FinishedTransactionSubmissionRound,
-    PreResetAndPauseRound,
     PreResetRound,
     RandomnessTransactionSubmissionRound,
     TransactionSubmissionAbciApp,
@@ -42,9 +40,8 @@ from packages.valory.skills.transaction_settlement_abci.rounds import (
 
 abci_app_transition_mapping: AbciAppTransitionMapping = {
     PreResetRound: ResetRound,
-    PreResetAndPauseRound: ResetAndPauseRound,
+    FinishedTransactionSubmissionRound: ResetAndPauseRound,
     FinishedResetRound: RandomnessTransactionSubmissionRound,
-    FinishedResetAndPauseRound: FinishedTransactionSubmissionRound,
     FailedRound: RandomnessTransactionSubmissionRound,
 }
 

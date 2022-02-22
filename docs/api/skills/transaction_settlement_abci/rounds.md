@@ -125,36 +125,6 @@ def is_reset_params_set() -> bool
 
 Get the reset params flag.
 
-<a id="packages.valory.skills.transaction_settlement_abci.rounds.FinishedRegistrationRound"></a>
-
-## FinishedRegistrationRound Objects
-
-```python
-class FinishedRegistrationRound(DegenerateRound,  ABC)
-```
-
-A round representing that agent registration has finished
-
-<a id="packages.valory.skills.transaction_settlement_abci.rounds.FinishedRegistrationFFWRound"></a>
-
-## FinishedRegistrationFFWRound Objects
-
-```python
-class FinishedRegistrationFFWRound(DegenerateRound,  ABC)
-```
-
-A fast-forward round representing that agent registration has finished
-
-<a id="packages.valory.skills.transaction_settlement_abci.rounds.FinishedTransactionSubmissionRound"></a>
-
-## FinishedTransactionSubmissionRound Objects
-
-```python
-class FinishedTransactionSubmissionRound(DegenerateRound,  ABC)
-```
-
-A round that represents that transaction submission has finished
-
 <a id="packages.valory.skills.transaction_settlement_abci.rounds.FailedRound"></a>
 
 ## FailedRound Objects
@@ -285,15 +255,15 @@ class SynchronizeLateMessagesRound(CollectNonEmptyUntilThresholdRound)
 
 A round in which agents synchronize potentially late arriving messages
 
-<a id="packages.valory.skills.transaction_settlement_abci.rounds.PreResetAndPauseRound"></a>
+<a id="packages.valory.skills.transaction_settlement_abci.rounds.FinishedTransactionSubmissionRound"></a>
 
-## PreResetAndPauseRound Objects
+## FinishedTransactionSubmissionRound Objects
 
 ```python
-class PreResetAndPauseRound(DegenerateRound)
+class FinishedTransactionSubmissionRound(DegenerateRound,  ABC)
 ```
 
-A round that represents the previous step to reset and pause
+A round that represents that transaction submission has finished
 
 <a id="packages.valory.skills.transaction_settlement_abci.rounds.PreResetRound"></a>
 
