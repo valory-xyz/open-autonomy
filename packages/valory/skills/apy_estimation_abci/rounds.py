@@ -66,6 +66,7 @@ class Event(Enum):
     ESTIMATION_CYCLE = "estimation_cycle"
     RANDOMNESS_INVALID = "randomness_invalid"
     FILE_ERROR = "file_error"
+    NETWORK_ERROR = "network_error"
 
 
 class PeriodState(BasePeriodState):
@@ -186,6 +187,9 @@ class CollectHistoryRound(CollectSameUntilThresholdRound, APYEstimationAbstractR
         if self.threshold_reached:
             if self.most_voted_payload is None:
                 return self._return_file_error()
+
+            if self.most_voted_payload == "":
+                return self.period_state, Event.NETWORK_ERROR
 
             update_kwargs = {
                 "period_state_class": PeriodState,
@@ -568,6 +572,7 @@ class APYEstimationAbciApp(AbciApp[Event]):  # pylint: disable=too-few-public-me
             Event.NO_MAJORITY: CollectHistoryRound,
             Event.ROUND_TIMEOUT: CollectHistoryRound,
             Event.FILE_ERROR: FailedAPYRound,
+            Event.NETWORK_ERROR: FailedAPYRound,
         },
         TransformRound: {
             Event.DONE: PreprocessRound,

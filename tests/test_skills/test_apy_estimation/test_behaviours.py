@@ -38,7 +38,6 @@ import pandas as pd
 import pytest
 from _pytest.logging import LogCaptureFixture
 from _pytest.monkeypatch import MonkeyPatch
-from aea.exceptions import AEAActException
 from aea.helpers.transaction.base import SignedMessage
 from aea.skills.tasks import TaskManager
 from aea.test_tools.test_skill import BaseSkillTestCase
@@ -404,6 +403,9 @@ class TestFetchAndBatchBehaviours(APYEstimationFSMBehaviourBaseCase):
             self.behaviour_class.state_id,
             self.period_state,
         )
+        cast(
+            FetchBehaviour, self.apy_estimation_behaviour.current_state
+        ).params.sleep_time = SLEEP_TIME_TWEAK
 
         # test with empty response.
         specs = ApiSpecs(
@@ -414,29 +416,36 @@ class TestFetchAndBatchBehaviours(APYEstimationFSMBehaviourBaseCase):
             skill_context=self.apy_estimation_behaviour.context,
         )
 
-        with pytest.raises(Exception):
-            cast(
-                FetchBehaviour, self.apy_estimation_behaviour.current_state
-            )._handle_response(None, "test_context", ("", 0), specs)
-            with caplog.at_level(
-                logging.ERROR,
-                logger="aea.test_agent_name.packages.valory.skills.apy_estimation_abci",
-            ):
-                assert (
-                    "[test_agent_name] Could not get test_context from test"
-                    in caplog.text
-                )
-
-        assert specs._retries_attempted == 1
+        handling_generator = cast(
+            FetchBehaviour, self.apy_estimation_behaviour.current_state
+        )._handle_response(None, "test_context", ("", 0), specs)
+        next(handling_generator)
+        time.sleep(SLEEP_TIME_TWEAK + 0.01)
+        try:
+            next(handling_generator)
+        except StopIteration as res:
+            assert res.value is None
+        with caplog.at_level(
+            logging.ERROR,
+            logger="aea.test_agent_name.packages.valory.skills.apy_estimation_abci",
+        ):
+            assert (
+                "[test_agent_name] Could not get test_context from test" in caplog.text
+            )
+            assert specs._retries_attempted == 1
 
         caplog.clear()
         with caplog.at_level(
             logging.INFO,
             logger="aea.test_agent_name.packages.valory.skills.apy_estimation_abci",
         ):
-            cast(
+            handling_generator = cast(
                 FetchBehaviour, self.apy_estimation_behaviour.current_state
             )._handle_response({"test": [4, 5]}, "test", ("test", 0), specs)
+            try:
+                next(handling_generator)
+            except StopIteration as res:
+                assert res.value == 4
             assert "[test_agent_name] Retrieved test: 4." in caplog.text
             assert specs._retries_attempted == 0
 
@@ -515,7 +524,9 @@ class TestFetchAndBatchBehaviours(APYEstimationFSMBehaviourBaseCase):
         state = cast(BaseState, self.apy_estimation_behaviour.current_state)
         assert state.state_id == TransformBehaviour.state_id
 
-    def test_fetch_behaviour_retries_exceeded(self, monkeypatch: MonkeyPatch) -> None:
+    def test_fetch_behaviour_retries_exceeded(
+        self, monkeypatch: MonkeyPatch, caplog: LogCaptureFixture
+    ) -> None:
         """Run tests for exceeded retries."""
         self.skill.skill_context.state.period.abci_app._last_timestamp = datetime.now()
 
@@ -532,11 +543,16 @@ class TestFetchAndBatchBehaviours(APYEstimationFSMBehaviourBaseCase):
 
         for subgraph in subgraphs_sorted_by_utilization_moment:
             monkeypatch.setattr(subgraph, "is_retries_exceeded", lambda *_: True)
-            with pytest.raises(
-                AEAActException, match="Cannot continue FetchBehaviour."
+            with caplog.at_level(
+                logging.ERROR,
+                logger="aea.test_agent_name.packages.valory.skills.apy_estimation_abci",
             ):
                 self.apy_estimation_behaviour.act_wrapper()
                 self.apy_estimation_behaviour.act_wrapper()
+            assert (
+                "Retries were exceeded while downloading the historical data!"
+                in caplog.text
+            )
 
     def test_fetch_value_none(
         self,
@@ -667,7 +683,7 @@ class TestFetchAndBatchBehaviours(APYEstimationFSMBehaviourBaseCase):
             self.mock_http_request(request_kwargs, response_kwargs)
         assert (
             "[test_agent_name] Could not get pool data for block {'timestamp': '1', 'number': '3830367'} "
-            "(Showing first example) from spookyswap" in caplog.text
+            "from spookyswap" in caplog.text
         )
 
         caplog.clear()
@@ -678,6 +694,7 @@ class TestFetchAndBatchBehaviours(APYEstimationFSMBehaviourBaseCase):
         self,
         monkeypatch: MonkeyPatch,
         tmp_path: PosixPath,
+        caplog: LogCaptureFixture,
         no_action: Callable[[Any], None],
     ) -> None:
         """Test `FetchBehaviour`'s `async_act` after all the timestamps have been generated."""
@@ -693,13 +710,15 @@ class TestFetchAndBatchBehaviours(APYEstimationFSMBehaviourBaseCase):
         ).params.history_duration = -1
 
         # test empty retrieved history.
-        with pytest.raises(AEAActException, match="Cannot continue FetchBehaviour."):
+        with caplog.at_level(
+            logging.ERROR,
+            logger="aea.test_agent_name.packages.valory.skills.apy_estimation_abci",
+        ):
             self.apy_estimation_behaviour.act_wrapper()
-
-        # fast-forward to fetch behaviour.
-        self.fast_forward_to_state(
-            self.apy_estimation_behaviour, FetchBehaviour.state_id, self.period_state
-        )
+        assert "Could not download any historical data!" in caplog.text
+        self.mock_a2a_transaction()
+        self._test_done_flag_set()
+        self.end_round()
 
         # fast-forward to fetch behaviour.
         self.fast_forward_to_state(

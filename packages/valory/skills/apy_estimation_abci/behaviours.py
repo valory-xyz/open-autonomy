@@ -128,10 +128,6 @@ class APYEstimationBaseState(BaseState, ABC):
         return cast(APYParams, self.context.params)
 
 
-class EmptyResponseError(Exception):
-    """Exception for empty response."""
-
-
 class FetchBehaviour(APYEstimationBaseState):
     """Observe historical data."""
 
@@ -149,6 +145,7 @@ class FetchBehaviour(APYEstimationBaseState):
         self._current_timestamp: Optional[int] = None
         self._call_failed = False
         self._pairs_hist: ResponseItemType = []
+        self._hist_hash: Optional[str] = None
 
     def setup(self) -> None:
         """Set the behaviour up."""
@@ -179,19 +176,40 @@ class FetchBehaviour(APYEstimationBaseState):
         for unwanted in unwanted_specs:
             self._spooky_api_specs.pop(unwanted)
 
+    def _set_current_timestamp(self) -> None:
+        """Set the timestamp for the current timestep in the async act."""
+        if not self._call_failed:
+            self._current_timestamp = next(
+                cast(Iterator[int], self._timestamps_iterator),
+                None,
+            )
+
+        if self.context.spooky_subgraph.is_retries_exceeded():
+            # We cannot continue if the data were not fetched.
+            # It is going to make the agent fail in the next behaviour while looking for the historical data file.
+            self.context.logger.error(
+                "Retries were exceeded while downloading the historical data!"
+            )
+            # This will result in using only the part of the data downloaded so far.
+            self._current_timestamp = None
+
+        # if none of the above (call failed and we can retry), the current timestamp will remain the same.
+
     def _handle_response(
         self,
         res: Optional[Dict],
         res_context: str,
         keys: Tuple[Union[str, int], ...],
         subgraph: ApiSpecs,
-    ) -> None:
+    ) -> Generator[None, None, Optional[Any]]:
         """Handle a response from a subgraph.
 
         :param res: the response to handle.
         :param res_context: the context of the current response.
         :param keys: keys to get the information from the response.
         :param subgraph: api specs.
+        :return: the response's result, using the given keys. `None` if response is `None` (has failed).
+        :yield: None
         """
         if res is None:
             self.context.logger.error(
@@ -200,7 +218,8 @@ class FetchBehaviour(APYEstimationBaseState):
 
             self._call_failed = True
             subgraph.increment_retries()
-            raise EmptyResponseError()
+            yield from self.sleep(self.params.sleep_time)
+            return None
 
         value = res[keys[0]]
         if len(keys) > 1:
@@ -210,6 +229,85 @@ class FetchBehaviour(APYEstimationBaseState):
         self.context.logger.info(f"Retrieved {res_context}: {value}.")
         self._call_failed = False
         subgraph.reset_retries()
+        return value
+
+    def _fetch_batch(self) -> Generator[None, None, None]:
+        """Fetch a single batch of the historical data."""
+        # Fetch block.
+        fantom_api_specs = self.context.fantom_subgraph.get_spec()
+        query = (
+            latest_block()
+            if self.batch
+            else block_from_timestamp_q(cast(int, self._current_timestamp))
+        )
+        res_raw = yield from self.get_http_response(
+            method=fantom_api_specs["method"],
+            url=fantom_api_specs["url"],
+            headers=fantom_api_specs["headers"],
+            content=query,
+        )
+        res = self.context.fantom_subgraph.process_response(res_raw)
+
+        fetched_block = yield from self._handle_response(
+            res,
+            res_context="block",
+            keys=("blocks", 0),
+            subgraph=self.context.fantom_subgraph,
+        )
+
+        if fetched_block is None:
+            return
+
+        # Fetch ETH price for block.
+        res_raw = yield from self.get_http_response(
+            content=eth_price_usd_q(
+                self.context.spooky_subgraph.bundle_id,
+                fetched_block["number"],
+            ),
+            **self._spooky_api_specs,
+        )
+        res = self.context.spooky_subgraph.process_response(res_raw)
+
+        eth_price = yield from self._handle_response(
+            res,
+            res_context=f"ETH price for block {fetched_block}",
+            keys=("bundles", 0, "ethPrice"),
+            subgraph=self.context.spooky_subgraph,
+        )
+
+        if eth_price is None:
+            return
+
+        # Fetch pool data for block.
+        res_raw = yield from self.get_http_response(
+            content=pairs_q(fetched_block["number"], self.params.pair_ids),
+            **self._spooky_api_specs,
+        )
+        res = self.context.spooky_subgraph.process_response(res_raw)
+
+        pairs = yield from self._handle_response(
+            res,
+            res_context=f"pool data for block {fetched_block}",
+            keys=("pairs",),
+            subgraph=self.context.spooky_subgraph,
+        )
+
+        if pairs is None:
+            return
+
+        # Add extra fields to the pairs.
+        for i in range(len(pairs)):  # pylint: disable=C0200
+            pairs[i]["forTimestamp"] = self._current_timestamp
+            pairs[i]["blockNumber"] = fetched_block["number"]
+            pairs[i]["blockTimestamp"] = fetched_block["timestamp"]
+            pairs[i]["ethPrice"] = eth_price
+
+        self._pairs_hist.extend(pairs)
+
+        if not self.batch:
+            self.context.logger.info(
+                f"Fetched day {len(self._pairs_hist)}/{self.params.history_duration * 30}."
+            )
 
     def async_act(  # pylint: disable=too-many-locals,too-many-statements
         self,
@@ -224,137 +322,50 @@ class FetchBehaviour(APYEstimationBaseState):
         - Wait until ABCI application transitions to the next round.
         - Go to the next behaviour state (set done event).
         """
-        if self.context.spooky_subgraph.is_retries_exceeded():
-            # We cannot continue if the data were not fetched.
-            # It is going to make the agent fail in the next behaviour while looking for the historical data file.
-            self.context.logger.error(
-                "Retries were exceeded while downloading the historical data!"
-            )
-            # Fix: exit round via fail event and move to right round
-            raise RuntimeError("Cannot continue FetchBehaviour.")
+        self._set_current_timestamp()
 
         with benchmark_tool.measure(
             self,
         ).local():
-            if not self._call_failed:
-                try:
-                    self._current_timestamp = next(
-                        cast(Iterator[int], self._timestamps_iterator)
-                    )
-
-                except StopIteration as e:
-
-                    if len(self._pairs_hist) > 0:
-                        # Send the file to IPFS and get its hash.
-                        hist_hash = self.send_to_ipfs(
-                            self._save_path, self._pairs_hist, SupportedFiletype.JSON
-                        )
-
-                        # Pass the hash as a Payload.
-                        payload = FetchingPayload(
-                            self.context.agent_address,
-                            hist_hash,
-                            cast(int, self._last_timestamp_unix),
-                        )
-
-                        # Finish behaviour.
-                        with benchmark_tool.measure(
-                            self,
-                        ).consensus():
-                            yield from self.send_a2a_transaction(payload)
-                            yield from self.wait_until_round_end()
-
-                        self.set_done()
-                        return
-
-                    self.context.logger.error("Could not download any historical data!")
-                    # Fix: exit round via fail event and move to right round
-                    raise RuntimeError("Cannot continue FetchBehaviour.") from e
-
-            # Fetch block.
-            fantom_api_specs = self.context.fantom_subgraph.get_spec()
-            query = (
-                latest_block()
-                if self.batch
-                else block_from_timestamp_q(cast(int, self._current_timestamp))
-            )
-            res_raw = yield from self.get_http_response(
-                method=fantom_api_specs["method"],
-                url=fantom_api_specs["url"],
-                headers=fantom_api_specs["headers"],
-                content=query,
-            )
-            res = self.context.fantom_subgraph.process_response(res_raw)
-
-            try:
-                self._handle_response(
-                    res,
-                    res_context="block",
-                    keys=("blocks", 0),
-                    subgraph=self.context.fantom_subgraph,
-                )
-            except EmptyResponseError:
-                yield from self.sleep(self.params.sleep_time)
+            if self._current_timestamp is not None:
+                yield from self._fetch_batch()
                 return
 
-            fetched_block = res["blocks"][0]
+            if len(self._pairs_hist) == 0:
+                self.context.logger.error("Could not download any historical data!")
+                self._hist_hash = ""
 
-            # Fetch ETH price for block.
-            res_raw = yield from self.get_http_response(
-                content=eth_price_usd_q(
-                    self.context.spooky_subgraph.bundle_id,
-                    fetched_block["number"],
-                ),
-                **self._spooky_api_specs,
+            if (
+                len(self._pairs_hist) > 0
+                and len(self._pairs_hist) != self.params.history_duration * 30
+                and not self.batch
+            ):
+                # Here, we continue without having all the pairs downloaded, because of a network issue.
+                self.context.logger.warning(
+                    "Will continue with partially downloaded historical data!"
+                )
+
+            if len(self._pairs_hist) > 0:
+                # Send the file to IPFS and get its hash.
+                self._hist_hash = self.send_to_ipfs(
+                    self._save_path, self._pairs_hist, SupportedFiletype.JSON
+                )
+
+            # Pass the hash as a Payload.
+            payload = FetchingPayload(
+                self.context.agent_address,
+                self._hist_hash,
+                cast(int, self._last_timestamp_unix),
             )
-            res = self.context.spooky_subgraph.process_response(res_raw)
 
-            try:
-                self._handle_response(
-                    res,
-                    res_context=f"ETH price for block {fetched_block}",
-                    keys=("bundles", 0, "ethPrice"),
-                    subgraph=self.context.spooky_subgraph,
-                )
-            except EmptyResponseError:
-                yield from self.sleep(
-                    self.params.sleep_time
-                )  # if we end up here we unnecessarily rerun the fetch block!
-                return
+            # Finish behaviour.
+            with benchmark_tool.measure(
+                self,
+            ).consensus():
+                yield from self.send_a2a_transaction(payload)
+                yield from self.wait_until_round_end()
 
-            eth_price = float(res["bundles"][0]["ethPrice"])
-
-            # Fetch pool data for block.
-            res_raw = yield from self.get_http_response(
-                content=pairs_q(fetched_block["number"], self.params.pair_ids),
-                **self._spooky_api_specs,
-            )
-            res = self.context.spooky_subgraph.process_response(res_raw)
-
-            try:
-                self._handle_response(
-                    res,
-                    res_context=f"pool data for block {fetched_block} (Showing first example)",
-                    keys=("pairs", 0),
-                    subgraph=self.context.spooky_subgraph,
-                )
-            except EmptyResponseError:
-                yield from self.sleep(self.params.sleep_time)  # same as above
-                return
-
-            # Add extra fields to the pairs.
-            for i in range(len(res["pairs"])):
-                res["pairs"][i]["forTimestamp"] = self._current_timestamp
-                res["pairs"][i]["blockNumber"] = fetched_block["number"]
-                res["pairs"][i]["blockTimestamp"] = fetched_block["timestamp"]
-                res["pairs"][i]["ethPrice"] = eth_price
-
-            self._pairs_hist.extend(res["pairs"])
-
-            if not self.batch:
-                self.context.logger.info(
-                    f"Fetched day {len(self._pairs_hist)}/{self.params.history_duration * 30}."
-                )
+            self.set_done()
 
     def clean_up(self) -> None:
         """
