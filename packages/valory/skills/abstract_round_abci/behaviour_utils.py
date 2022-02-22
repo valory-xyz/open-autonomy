@@ -326,7 +326,7 @@ def _check_ipfs_enabled(fn: Callable) -> Callable:
         """The wrap that checks and raises the error."""
         ipfs_enabled = args[0].ipfs_enabled
 
-        if not ipfs_enabled:
+        if not ipfs_enabled:  # pragma: no cover
             raise ValueError(
                 "Trying to perform an IPFS operation, but IPFS has not been enabled! "
                 "Please set `ipfs_domain_name` configuration."
@@ -348,7 +348,7 @@ class IPFSBehaviour(SimpleBehaviour, ABC):
         # If `ipfs_domain_name` is not specified for the skill, then we get a `None` default.
         # Therefore, `IPFSBehaviour` will be disabled.
         domain = getattr(self.params, "ipfs_domain_name", None)  # type: ignore  # pylint: disable=E1101
-        if domain is not None:
+        if domain is not None:  # pragma: nocover
             self.ipfs_enabled = True
             self._ipfs_interact = IPFSInteract(domain)
 
@@ -368,7 +368,7 @@ class IPFSBehaviour(SimpleBehaviour, ABC):
             )
             self.context.logger.info(f"IPFS hash is: {hash_}")
             return hash_
-        except IPFSInteractionError as e:
+        except IPFSInteractionError as e:  # pragma: no cover
             self.context.logger.error(
                 f"An error occurred while trying to send a file to IPFS: {str(e)}"
             )

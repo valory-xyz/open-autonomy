@@ -20,7 +20,7 @@
 """This module contains the transaction payloads for the APY estimation app."""
 from abc import ABC
 from enum import Enum
-from typing import Any, Dict, Optional, Union, cast
+from typing import Dict, Optional, Union, cast
 
 from packages.valory.skills.abstract_round_abci.base import BaseTxPayload
 
@@ -98,7 +98,7 @@ class FetchingPayload(BaseAPYPayload):
     def __init__(
         self,
         sender: str,
-        history: str,
+        history: Optional[str],
         latest_observation_timestamp: int,
         id_: Optional[str] = None,
     ) -> None:
@@ -114,7 +114,7 @@ class FetchingPayload(BaseAPYPayload):
         self._latest_observation_timestamp = latest_observation_timestamp
 
     @property
-    def history(self) -> str:
+    def history(self) -> Optional[str]:
         """Get the history's hash."""
         return self._history
 
@@ -124,10 +124,10 @@ class FetchingPayload(BaseAPYPayload):
         return self._latest_observation_timestamp
 
     @property
-    def data(self) -> Dict[str, Union[str, int]]:
+    def data(self) -> Dict[str, Union[None, str, int]]:
         """Get the data."""
         return {
-            "history": self._history,
+            "history": self.history if self.history is not None else "",
             "latest_observation_timestamp": self._latest_observation_timestamp,
         }
 
@@ -140,8 +140,8 @@ class TransformationPayload(BaseAPYPayload):
     def __init__(
         self,
         sender: str,
-        transformed_history_hash: str,
-        latest_observation_hist_hash: str,
+        transformed_history_hash: Optional[str],
+        latest_observation_hist_hash: Optional[str],
         id_: Optional[str] = None,
     ) -> None:
         """Initialize a 'transformation' transaction payload.
@@ -156,21 +156,25 @@ class TransformationPayload(BaseAPYPayload):
         self._latest_observation_hist_hash = latest_observation_hist_hash
 
     @property
-    def transformed_history_hash(self) -> str:
+    def transformed_history_hash(self) -> Optional[str]:
         """Get the transformation's history hash."""
         return self._transformed_history_hash
 
     @property
-    def latest_observation_hist_hash(self) -> str:
+    def latest_observation_hist_hash(self) -> Optional[str]:
         """Get the latest observation's history hash."""
         return self._latest_observation_hist_hash
 
     @property
-    def data(self) -> Dict[str, str]:
+    def data(self) -> Dict[str, Optional[str]]:
         """Get the data."""
         return {
-            "transformed_history_hash": self.transformed_history_hash,
-            "latest_observation_hist_hash": self.latest_observation_hist_hash,
+            "transformed_history_hash": self.transformed_history_hash
+            if self.transformed_history_hash is not None
+            else "",
+            "latest_observation_hist_hash": self.latest_observation_hist_hash
+            if self.latest_observation_hist_hash is not None
+            else "",
         }
 
 
@@ -203,24 +207,17 @@ class PreprocessPayload(BaseAPYPayload):
         self._test_hash = test_hash
         self._train_test = train_test
 
-        if self._train_test is None:
-            if all(var is None for var in (self._train_hash, self._test_hash)):
-                raise ValueError(
-                    "Either `train_hash` and `test_hash` or `train_test` "
-                    "should be given for the `PreprocessPayload`!"
-                )
-        else:
+        if self._train_test is not None:
             self._train_hash = self._test_hash = None
 
     @property
-    def train_test_hash(self) -> str:
+    def train_test_hash(self) -> Optional[str]:
         """Get the training and testing hash concatenation."""
-        if self._train_test is None:
-            hash_ = cast(str, self._train_hash) + cast(str, self._test_hash)
-        else:
-            hash_ = self._train_test
-
-        return hash_
+        if self._train_test is None and not any(
+            hash_ is None for hash_ in (self._train_hash, self._test_hash)
+        ):
+            return cast(str, self._train_hash) + cast(str, self._test_hash)
+        return self._train_test
 
     @property
     def pair_name(self) -> str:
@@ -228,9 +225,14 @@ class PreprocessPayload(BaseAPYPayload):
         return self._pair_name
 
     @property
-    def data(self) -> Dict[str, str]:
+    def data(self) -> Dict[str, Optional[str]]:
         """Get the data."""
-        return {"train_test": self.train_test_hash, "pair_name": self._pair_name}
+        return {
+            "train_test": self.train_test_hash
+            if self.train_test_hash is not None
+            else "",
+            "pair_name": self._pair_name,
+        }
 
 
 class BatchPreparationPayload(BaseAPYPayload):
@@ -239,7 +241,7 @@ class BatchPreparationPayload(BaseAPYPayload):
     transaction_type = TransactionType.BATCH_PREPARATION
 
     def __init__(
-        self, sender: str, prepared_batch: str, id_: Optional[str] = None
+        self, sender: str, prepared_batch: Optional[str], id_: Optional[str] = None
     ) -> None:
         """Initialize a 'batch_preparation' transaction payload.
 
@@ -251,14 +253,18 @@ class BatchPreparationPayload(BaseAPYPayload):
         self._prepared_batch = prepared_batch
 
     @property
-    def prepared_batch(self) -> str:
+    def prepared_batch(self) -> Optional[str]:
         """Get the prepared batch's hash."""
         return self._prepared_batch
 
     @property
-    def data(self) -> Dict[str, str]:
+    def data(self) -> Dict[str, Optional[str]]:
         """Get the data."""
-        return {"prepared_batch": self._prepared_batch}
+        return (
+            {"prepared_batch": self.prepared_batch}
+            if self.prepared_batch is not None
+            else {}
+        )
 
 
 class OptimizationPayload(BaseAPYPayload):
@@ -269,7 +275,7 @@ class OptimizationPayload(BaseAPYPayload):
     def __init__(
         self,
         sender: str,
-        best_params: str,
+        best_params: Optional[str],
         id_: Optional[str] = None,
     ) -> None:
         """Initialize an 'optimization' transaction payload.
@@ -282,14 +288,14 @@ class OptimizationPayload(BaseAPYPayload):
         self._best_params = best_params
 
     @property
-    def best_params(self) -> str:
+    def best_params(self) -> Optional[str]:
         """Get the best params of the optimization's study."""
         return self._best_params
 
     @property
-    def data(self) -> Dict[str, Union[str, Dict[str, Any]]]:
+    def data(self) -> Dict[str, Optional[str]]:
         """Get the data."""
-        return {"best_params": self._best_params}
+        return {"best_params": self.best_params} if self.best_params is not None else {}
 
 
 class TrainingPayload(BaseAPYPayload):
@@ -297,7 +303,9 @@ class TrainingPayload(BaseAPYPayload):
 
     transaction_type = TransactionType.TRAINING
 
-    def __init__(self, sender: str, model_hash: str, id_: Optional[str] = None) -> None:
+    def __init__(
+        self, sender: str, model_hash: Optional[str], id_: Optional[str] = None
+    ) -> None:
         """Initialize a 'training' transaction payload.
 
         :param sender: the sender (Ethereum) address
@@ -308,14 +316,14 @@ class TrainingPayload(BaseAPYPayload):
         self._model_hash = model_hash
 
     @property
-    def model(self) -> str:
+    def model(self) -> Optional[str]:
         """Get the model's hash."""
         return self._model_hash
 
     @property
-    def data(self) -> Dict[str, str]:
+    def data(self) -> Dict[str, Optional[str]]:
         """Get the data."""
-        return {"model_hash": self._model_hash}
+        return {"model_hash": self.model} if self.model is not None else {}
 
 
 class TestingPayload(BaseAPYPayload):
@@ -324,7 +332,7 @@ class TestingPayload(BaseAPYPayload):
     transaction_type = TransactionType.TESTING
 
     def __init__(
-        self, sender: str, report_hash: str, id_: Optional[str] = None
+        self, sender: str, report_hash: Optional[str], id_: Optional[str] = None
     ) -> None:
         """Initialize a 'testing' transaction payload.
 
@@ -336,14 +344,14 @@ class TestingPayload(BaseAPYPayload):
         self._report_hash = report_hash
 
     @property
-    def report_hash(self) -> str:
+    def report_hash(self) -> Optional[str]:
         """Get the test's report hash."""
         return self._report_hash
 
     @property
-    def data(self) -> Dict[str, str]:
+    def data(self) -> Dict[str, Optional[str]]:
         """Get the data."""
-        return {"report_hash": self._report_hash}
+        return {"report_hash": self.report_hash} if self.report_hash is not None else {}
 
 
 class UpdatePayload(BaseAPYPayload):
@@ -352,7 +360,7 @@ class UpdatePayload(BaseAPYPayload):
     transaction_type = TransactionType.UPDATE
 
     def __init__(
-        self, sender: str, updated_model_hash: str, id_: Optional[str] = None
+        self, sender: str, updated_model_hash: Optional[str], id_: Optional[str] = None
     ) -> None:
         """Initialize an 'update' transaction payload.
 
@@ -364,14 +372,18 @@ class UpdatePayload(BaseAPYPayload):
         self._updated_model_hash = updated_model_hash
 
     @property
-    def updated_model_hash(self) -> str:
+    def updated_model_hash(self) -> Optional[str]:
         """Get the updated model's hash."""
         return self._updated_model_hash
 
     @property
-    def data(self) -> Dict[str, str]:
+    def data(self) -> Dict[str, Optional[str]]:
         """Get the data."""
-        return {"updated_model_hash": self._updated_model_hash}
+        return (
+            {"updated_model_hash": self.updated_model_hash}
+            if self.updated_model_hash is not None
+            else {}
+        )
 
 
 class EstimatePayload(BaseAPYPayload):
@@ -380,7 +392,7 @@ class EstimatePayload(BaseAPYPayload):
     transaction_type = TransactionType.ESTIMATION
 
     def __init__(
-        self, sender: str, estimation: float, id_: Optional[str] = None
+        self, sender: str, estimation: Optional[float], id_: Optional[str] = None
     ) -> None:
         """Initialize an 'estimate' transaction payload.
 
@@ -392,14 +404,14 @@ class EstimatePayload(BaseAPYPayload):
         self._estimation = estimation
 
     @property
-    def estimation(self) -> float:
+    def estimation(self) -> Optional[float]:
         """Get the estimation."""
         return self._estimation
 
     @property
-    def data(self) -> Dict[str, float]:
+    def data(self) -> Dict[str, Optional[float]]:
         """Get the data."""
-        return {"estimation": self._estimation}
+        return {"estimation": self.estimation} if self.estimation is not None else {}
 
 
 class ResetPayload(BaseAPYPayload):

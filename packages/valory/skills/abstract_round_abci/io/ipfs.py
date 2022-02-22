@@ -24,6 +24,7 @@ import os
 from typing import Any, Optional
 
 from aea_cli_ipfs.ipfs_utils import DownloadError, IPFSTool, NodeError
+from ipfshttpclient.exceptions import ErrorResponse
 
 from packages.valory.skills.abstract_round_abci.io.load import (
     Loader,
@@ -51,7 +52,7 @@ class IPFSInteract:
             self.__ipfs_tool = IPFSTool({"addr": domain})
             # Check IPFS node.
             self.__ipfs_tool.check_ipfs_node_running()
-        except (NodeError, Exception) as e:
+        except (NodeError, Exception) as e:  # pragma: no cover
             raise IPFSInteractionError(str(e)) from e
 
     def _send(self, filepath: str) -> str:
@@ -62,7 +63,7 @@ class IPFSInteract:
         """
         try:
             _, hist_hash, _ = self.__ipfs_tool.add(filepath)
-        except ValueError as e:
+        except ValueError as e:  # pragma: no cover
             raise IPFSInteractionError(str(e)) from e
         finally:
             os.remove(filepath)
@@ -86,11 +87,11 @@ class IPFSInteract:
 
         if os.path.exists(filepath):
             # TODO investigate why sometimes the path exists. It shouldn't, because `_send` removes it.
-            os.remove(filepath)
+            os.remove(filepath)  # pragma: no cover
 
         try:
             self.__ipfs_tool.download(hash_, target_dir)
-        except DownloadError as e:
+        except (DownloadError, ErrorResponse) as e:
             raise IPFSInteractionError(str(e)) from e
 
         return filepath
@@ -108,7 +109,7 @@ class IPFSInteract:
 
         try:
             storer.store(obj, **kwargs)
-        except IOError as e:
+        except IOError as e:  # pragma: no cover
             raise IPFSInteractionError(str(e)) from e
 
         return self._send(filepath)
@@ -127,5 +128,5 @@ class IPFSInteract:
 
         try:
             return loader.load(filepath)
-        except IOError as e:
+        except IOError as e:  # pragma: no cover
             raise IPFSInteractionError(str(e)) from e
