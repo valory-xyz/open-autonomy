@@ -112,11 +112,6 @@ class PeriodState(BasePeriodState):  # pylint: disable=too-many-instance-attribu
         return cast(str, self.db.get_strict("most_voted_tx_hash"))
 
     @property
-    def is_final_tx_hash_set(self) -> bool:
-        """Check if most_voted_estimate is set."""
-        return self.tx_hashes_history is not None
-
-    @property
     def late_arriving_tx_hashes(self) -> List[str]:
         """Get the late_arriving_tx_hashes."""
         late_arriving_tx_hashes_unparsed = cast(

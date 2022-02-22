@@ -92,17 +92,6 @@ def most_voted_tx_hash() -> str
 
 Get the most_voted_tx_hash.
 
-<a id="packages.valory.skills.transaction_settlement_abci.rounds.PeriodState.is_final_tx_hash_set"></a>
-
-#### is`_`final`_`tx`_`hash`_`set
-
-```python
-@property
-def is_final_tx_hash_set() -> bool
-```
-
-Check if most_voted_estimate is set.
-
 <a id="packages.valory.skills.transaction_settlement_abci.rounds.PeriodState.late_arriving_tx_hashes"></a>
 
 #### late`_`arriving`_`tx`_`hashes
