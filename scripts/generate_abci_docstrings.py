@@ -20,6 +20,7 @@
 
 """No flaky"""
 
+import argparse
 import importlib
 import re
 from pathlib import Path
@@ -27,6 +28,7 @@ from typing import Callable, Optional, Type, cast
 from warnings import filterwarnings
 
 from packages.valory.skills.abstract_round_abci.base import AbciApp
+from scripts.generate_api_documentation import check_working_tree_is_dirty
 
 
 filterwarnings("ignore")
@@ -131,7 +133,19 @@ def process_module(module_path: Path) -> Optional[str]:
     return None
 
 
-if __name__ == "__main__":
+def parse_args() -> argparse.Namespace:
+    """Get cli args."""
+
+    argparser = argparse.ArgumentParser()
+    argparser.add_argument(
+        "--check-clean", action="store_true", help="Check if the working tree is clean."
+    )
+
+    return argparser.parse_args()
+
+
+def main(args: argparse.Namespace):
+    """Main function."""
     no_update = set()
     abci_compositions = Path("packages").glob("*/skills/*/rounds.py")
     for path in sorted(abci_compositions):
@@ -140,6 +154,13 @@ if __name__ == "__main__":
         if file is not None:
             no_update.add(file)
 
-    if len(no_update) > 0:
-        print("Following files doesn't need to be updated.")
-        print("\n".join(sorted(no_update)))
+    if args.check_clean:
+        check_working_tree_is_dirty()
+    else:
+        if len(no_update) > 0:
+            print("Following files doesn't need to be updated.")
+            print("\n".join(sorted(no_update)))
+
+
+if __name__ == "__main__":
+    main(args=parse_args())
