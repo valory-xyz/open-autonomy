@@ -66,6 +66,7 @@ from packages.valory.skills.transaction_settlement_abci.rounds import (
     ResetRound,
     SelectKeeperTransactionSubmissionRoundA,
     SelectKeeperTransactionSubmissionRoundB,
+    SelectKeeperTransactionSubmissionRoundBAfterTimeout,
     SynchronizeLateMessagesRound,
     TransactionSubmissionAbciApp,
     ValidateTransactionRound,
@@ -187,10 +188,20 @@ class SelectKeeperTransactionSubmissionBehaviourA(SelectKeeperBehaviour):
 class SelectKeeperTransactionSubmissionBehaviourB(
     SelectKeeperBehaviour, TransactionSettlementBaseState
 ):
-    """Select the keeper agent."""
+    """Select the keeper b agent."""
 
     state_id = "select_keeper_transaction_submission_b"
     matching_round = SelectKeeperTransactionSubmissionRoundB
+    payload_class = SelectKeeperPayload
+
+
+class SelectKeeperTransactionSubmissionBehaviourBAfterTimeout(  # pylint: disable=too-many-ancestors
+    SelectKeeperTransactionSubmissionBehaviourB
+):
+    """Select the keeper b agent after a timeout."""
+
+    state_id = "select_keeper_transaction_submission_b_after_timeout"
+    matching_round = SelectKeeperTransactionSubmissionRoundBAfterTimeout
     payload_class = SelectKeeperPayload
 
 
@@ -755,6 +766,7 @@ class TransactionSettlementRoundBehaviour(AbstractRoundBehaviour):
         RandomnessTransactionSubmissionBehaviour,  # type: ignore
         SelectKeeperTransactionSubmissionBehaviourA,  # type: ignore
         SelectKeeperTransactionSubmissionBehaviourB,  # type: ignore
+        SelectKeeperTransactionSubmissionBehaviourBAfterTimeout,  # type: ignore
         ValidateTransactionBehaviour,  # type: ignore
         CheckTransactionHistoryBehaviour,  # type: ignore
         SignatureBehaviour,  # type: ignore
