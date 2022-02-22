@@ -23,14 +23,13 @@
 import importlib
 import re
 from pathlib import Path
-from typing import Callable, Optional, Type
+from typing import Callable, Optional, Type, cast
 from warnings import filterwarnings
-
-
-filterwarnings("ignore")
 
 from packages.valory.skills.abstract_round_abci.base import AbciApp
 
+
+filterwarnings("ignore")
 
 INDENT = " " * 4
 NEWLINE = "\n"
@@ -101,13 +100,14 @@ def update_docstrings(
     """Update docstrings."""
 
     content = module_path.read_text()
-    regex = 'class [A-Za-z]+\(AbciApp\[Event\]\):([a-zA-Z \#:=\-]+)?\n    """[A-Za-z]+\n[a-zA-Z0-9 :{},._\-\n]+"""'
+    regex = r'class [A-Za-z]+\(AbciApp\[Event\]\):([a-zA-Z \#:=\-]+)?\n    """[A-Za-z]+\n[a-zA-Z0-9 :{},._\-\n]+"""'
     docstring = "\n".join(
         map(lambda x: f"{INDENT}{x}" if len(x) else x, docstring.split("\n"))
     )
     match = re.search(regex, content)
-    group, *_ = match.groups()
-    markers = group if group is not None else ""
+    if match is not None:
+        group, *_ = cast(re.Match, match).groups()
+        markers = group if group is not None else ""
 
     updated_class = f"class {abci_app_name}(AbciApp[Event]):{markers}{docstring}"
     updated_content = re.sub(regex, updated_class, content, re.MULTILINE)
@@ -116,8 +116,10 @@ def update_docstrings(
     if updated_content == content:
         return str(module_path)
 
+    return None
 
-def process_module(module_path: Path) -> None:
+
+def process_module(module_path: Path) -> Optional[str]:
     """Process module."""
     module = importlib.import_module(".".join(module_path.parts).replace(".py", ""))
     for obj in dir(module):
@@ -125,6 +127,8 @@ def process_module(module_path: Path) -> None:
             App = getattr(module, obj)
             docstring = docstring_abci_app(App)
             return update_docstrings(module_path, docstring, obj)
+
+    return None
 
 
 if __name__ == "__main__":
