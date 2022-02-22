@@ -103,6 +103,28 @@ def is_final_tx_hash_set() -> bool
 
 Check if most_voted_estimate is set.
 
+<a id="packages.valory.skills.transaction_settlement_abci.rounds.PeriodState.missed_messages"></a>
+
+#### missed`_`messages
+
+```python
+@property
+def missed_messages() -> int
+```
+
+Check the number of missed messages.
+
+<a id="packages.valory.skills.transaction_settlement_abci.rounds.PeriodState.should_check_late_messages"></a>
+
+#### should`_`check`_`late`_`messages
+
+```python
+@property
+def should_check_late_messages() -> bool
+```
+
+Check if we should check for late-arriving messages.
+
 <a id="packages.valory.skills.transaction_settlement_abci.rounds.PeriodState.late_arriving_tx_hashes"></a>
 
 #### late`_`arriving`_`tx`_`hashes
@@ -212,7 +234,28 @@ A round in which a keeper is selected for transaction submission
 class SelectKeeperTransactionSubmissionRoundB(CollectSameUntilThresholdRound)
 ```
 
-A round in which a keeper is selected for transaction submission
+A round in which a new keeper is selected for transaction submission
+
+<a id="packages.valory.skills.transaction_settlement_abci.rounds.SelectKeeperTransactionSubmissionRoundBAfterTimeout"></a>
+
+## SelectKeeperTransactionSubmissionRoundBAfterTimeout Objects
+
+```python
+class SelectKeeperTransactionSubmissionRoundBAfterTimeout(
+    SelectKeeperTransactionSubmissionRoundB)
+```
+
+A round in which a new keeper is selected for transaction submission after a round timeout of the first keeper
+
+<a id="packages.valory.skills.transaction_settlement_abci.rounds.SelectKeeperTransactionSubmissionRoundBAfterTimeout.end_block"></a>
+
+#### end`_`block
+
+```python
+def end_block() -> Optional[Tuple[BasePeriodState, Enum]]
+```
+
+Process the end of the block.
 
 <a id="packages.valory.skills.transaction_settlement_abci.rounds.ResetRound"></a>
 
@@ -333,6 +376,16 @@ class SynchronizeLateMessagesRound(CollectNonEmptyUntilThresholdRound)
 ```
 
 A round in which agents synchronize potentially late arriving messages
+
+<a id="packages.valory.skills.transaction_settlement_abci.rounds.SynchronizeLateMessagesRound.end_block"></a>
+
+#### end`_`block
+
+```python
+def end_block() -> Optional[Tuple[BasePeriodState, Event]]
+```
+
+Process the end of the block.
 
 <a id="packages.valory.skills.transaction_settlement_abci.rounds.TransactionSubmissionAbciApp"></a>
 

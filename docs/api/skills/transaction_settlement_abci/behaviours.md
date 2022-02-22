@@ -65,7 +65,18 @@ class SelectKeeperTransactionSubmissionBehaviourB(
     SelectKeeperBehaviour,  TransactionSettlementBaseState)
 ```
 
-Select the keeper agent.
+Select the keeper b agent.
+
+<a id="packages.valory.skills.transaction_settlement_abci.behaviours.SelectKeeperTransactionSubmissionBehaviourBAfterTimeout"></a>
+
+## SelectKeeperTransactionSubmissionBehaviourBAfterTimeout Objects
+
+```python
+class SelectKeeperTransactionSubmissionBehaviourBAfterTimeout(  # pylint: disable=too-many-ancestors
+    SelectKeeperTransactionSubmissionBehaviourB)
+```
+
+Select the keeper b agent after a timeout.
 
 <a id="packages.valory.skills.transaction_settlement_abci.behaviours.ValidateTransactionBehaviour"></a>
 
