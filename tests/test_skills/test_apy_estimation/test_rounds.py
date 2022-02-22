@@ -231,7 +231,7 @@ class TestCollectHistoryRound(BaseCollectSameUntilThresholdRoundTest):
 
     @pytest.mark.parametrize(
         "most_voted_payload, expected_event",
-        (("x0", Event.DONE), (None, Event.FILE_ERROR)),
+        (("x0", Event.DONE), (None, Event.FILE_ERROR), ("", Event.NETWORK_ERROR)),
     )
     def test_run(
         self,
