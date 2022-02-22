@@ -69,14 +69,14 @@ class JSONStorer(AbstractStorer):  # pylint: disable=too-few-public-methods
     def store(self, obj: NativelySupportedObjectType, **kwargs: Any) -> None:
         """Store a JSON."""
         if not any(isinstance(obj, type_) for type_ in (dict, list)):
-            raise ValueError(
+            raise ValueError(  # pragma: no cover
                 f"`JSONStorer` cannot be used with a {type(obj)}! Only with a {StoredJSONType}"
             )
 
         try:
             with open(self._path, "w", encoding="utf-8") as f:
                 json.dump(obj, f, ensure_ascii=False, indent=4)
-        except (TypeError, OSError) as e:
+        except (TypeError, OSError) as e:  # pragma: no cover
             raise IOError(str(e)) from e
 
 
@@ -86,7 +86,7 @@ class CSVStorer(AbstractStorer):  # pylint: disable=too-few-public-methods
     def store(self, obj: NativelySupportedObjectType, **kwargs: Any) -> None:
         """Store a pandas dataframe."""
         if not isinstance(obj, pd.DataFrame):
-            raise ValueError(
+            raise ValueError(  # pragma: no cover
                 f"`JSONStorer` cannot be used with a {type(obj)}! Only with a {pd.DataFrame}"
             )
 
@@ -94,7 +94,7 @@ class CSVStorer(AbstractStorer):  # pylint: disable=too-few-public-methods
 
         try:
             obj.to_csv(self._path, index=index)
-        except (TypeError, OSError) as e:
+        except (TypeError, OSError) as e:  # pragma: no cover
             raise IOError(str(e)) from e
 
 
@@ -104,13 +104,13 @@ class ForecasterStorer(AbstractStorer):  # pylint: disable=too-few-public-method
     def store(self, obj: NativelySupportedObjectType, **kwargs: Any) -> None:
         """Store a pmdarima Pipeline."""
         if not isinstance(obj, Pipeline):
-            raise ValueError(
+            raise ValueError(  # pragma: no cover
                 f"`JSONStorer` cannot be used with a {type(obj)}! Only with a {Pipeline}"
             )
 
         try:
             joblib.dump(obj, self._path)
-        except (ValueError, OSError) as e:
+        except (ValueError, OSError) as e:  # pragma: no cover
             raise IOError(str(e)) from e
 
 
@@ -150,10 +150,10 @@ class Storer(
         if filetype is not None:
             return self.__filetype_to_storer[filetype]
 
-        if custom_storer is not None:
+        if custom_storer is not None:  # pragma: no cover
             return custom_storer
 
-        raise ValueError(
+        raise ValueError(  # pragma: no cover
             "Please provide either a supported filetype or a custom storing function."
         )
 
