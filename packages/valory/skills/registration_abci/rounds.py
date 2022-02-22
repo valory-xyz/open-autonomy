@@ -128,15 +128,15 @@ class AgentRegistrationAbciApp(AbciApp[Event]):
     Initial states: {RegistrationRound, RegistrationStartupRound}
 
     Transition states:
-    0. RegistrationStartupRound
-        - done: 2.
-        - fast forward: 3.
-    1. RegistrationRound
-        - done: 3.
-    2. FinishedRegistrationRound
-    3. FinishedRegistrationFFWRound
+        0. RegistrationStartupRound
+            - done: 2.
+            - fast forward: 3.
+        1. RegistrationRound
+            - done: 3.
+        2. FinishedRegistrationRound
+        3. FinishedRegistrationFFWRound
 
-    Final states: {FinishedRegistrationRound, FinishedRegistrationFFWRound}
+    Final states: {FinishedRegistrationFFWRound, FinishedRegistrationRound}
 
     Timeouts:
         round timeout: 30.0

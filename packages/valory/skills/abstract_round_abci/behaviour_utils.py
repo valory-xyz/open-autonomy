@@ -451,6 +451,9 @@ class BaseState(AsyncBehaviour, CleanUpBehaviour, ABC):
         if self.matching_round is None:
             raise ValueError("No matching_round set!")
         stop_condition = self.is_round_ended(self.matching_round.round_id)
+        payload.round_count = cast(
+            SharedState, self.context.state
+        ).period_state.round_count
         yield from self._send_transaction(payload, stop_condition=stop_condition)
 
     def async_act_wrapper(self) -> Generator:
@@ -609,12 +612,29 @@ class BaseState(AsyncBehaviour, CleanUpBehaviour, ABC):
             if is_delivered:
                 self.context.logger.info("A2A transaction delivered!")
                 break
+            if isinstance(res, HttpMessage) and self._is_invalid_transaction(res):
+                self.context.logger.info(
+                    f"Tx sent but not delivered. Invalid transaction - not trying again! Response = {res}"
+                )
+                break
             # otherwise, repeat until done, or until stop condition is true
             self.context.logger.info(f"Tx sent but not delivered. Response = {res}")
             payload = payload.with_new_id()
         self.context.logger.info(
             "Stop condition is true, no more attempts to send the transaction."
         )
+
+    @staticmethod
+    def _is_invalid_transaction(res: HttpMessage) -> bool:
+        """Check if the transaction is invalid."""
+        try:
+            error_codes = ["TransactionNotValidError"]
+            body_ = json.loads(res.body)
+            return any(
+                [error_code in body_["tx_result"]["info"] for error_code in error_codes]
+            )
+        except Exception:  # pylint: disable=broad-except  # pragma: nocover
+            return False
 
     def _send_signing_request(
         self, raw_message: bytes, is_deprecated_mode: bool = False

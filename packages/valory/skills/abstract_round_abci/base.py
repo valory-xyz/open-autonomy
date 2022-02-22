@@ -62,6 +62,7 @@ _logger = logging.getLogger("aea.packages.valory.skills.abstract_round_abci.base
 OK_CODE = 0
 ERROR_CODE = 1
 LEDGER_API_ADDRESS = str(LEDGER_CONNECTION_PUBLIC_ID)
+ROUND_COUNT_DEFAULT = -1
 
 EventType = TypeVar("EventType")
 TransactionType = TypeVar("TransactionType")
@@ -172,15 +173,32 @@ class BaseTxPayload(ABC, metaclass=_MetaPayload):
 
     transaction_type: Any
 
-    def __init__(self, sender: str, id_: Optional[str] = None) -> None:
+    def __init__(
+        self,
+        sender: str,
+        id_: Optional[str] = None,
+        round_count: int = ROUND_COUNT_DEFAULT,
+    ) -> None:
         """
         Initialize a transaction payload.
 
         :param sender: the sender (Ethereum) address
         :param id_: the id of the transaction
+        :param round_count: the count of the round in which the payload was sent
         """
         self.id_ = uuid.uuid4().hex if id_ is None else id_
+        self._round_count = round_count
         self.sender = sender
+
+    @property
+    def round_count(self) -> int:
+        """Get the round count."""
+        return self._round_count
+
+    @round_count.setter
+    def round_count(self, round_count: int) -> None:
+        """Set the round count."""
+        self._round_count = round_count
 
     def encode(self) -> bytes:
         """Encode the payload."""
@@ -206,6 +224,7 @@ class BaseTxPayload(ABC, metaclass=_MetaPayload):
             transaction_type=str(self.transaction_type),
             id_=self.id_,
             sender=self.sender,
+            round_count=self.round_count,
             **self.data,
         )
 
@@ -229,7 +248,7 @@ class BaseTxPayload(ABC, metaclass=_MetaPayload):
 
     def with_new_id(self) -> "BaseTxPayload":
         """Create a new payload with the same content but new id."""
-        return type(self)(self.sender, id_=uuid.uuid4().hex, **self.data)  # type: ignore
+        return type(self)(self.sender, id_=uuid.uuid4().hex, round_count=self.round_count, **self.data)  # type: ignore
 
     def __eq__(self, other: Any) -> bool:
         """Check equality."""
@@ -237,6 +256,7 @@ class BaseTxPayload(ABC, metaclass=_MetaPayload):
             return NotImplemented
         return (
             self.id_ == other.id_
+            and self.round_count == other.round_count
             and self.sender == other.sender
             and self.data == other.data
         )
@@ -458,6 +478,7 @@ class StateDB:
         self._data: Dict[int, Dict[str, Any]] = {
             self._current_period_count: deepcopy(self._initial_data)
         }
+        self._round_count = ROUND_COUNT_DEFAULT  # ensures first round is indexed at 0!
 
     @property
     def initial_data(self) -> Dict[str, Any]:
@@ -472,6 +493,11 @@ class StateDB:
     def current_period_count(self) -> int:
         """Get the current period count."""
         return self._current_period_count
+
+    @property
+    def round_count(self) -> int:
+        """Get the round count."""
+        return self._round_count
 
     @property
     def cross_period_persisted_keys(self) -> List[str]:
@@ -516,6 +542,10 @@ class StateDB:
         """Get all key-value pairs from the data dictionary for the current period."""
         return self._data[self._current_period_count]
 
+    def increment_round_count(self) -> None:
+        """Increment the round count."""
+        self._round_count += 1
+
     def __repr__(self) -> str:
         """Return a string representation of the state."""
         return f"StateDB({self._data})"
@@ -539,6 +569,11 @@ class BasePeriodState:
     def db(self) -> StateDB:
         """Get DB."""
         return self._db
+
+    @property
+    def round_count(self) -> int:
+        """Get the round count."""
+        return self.db.round_count
 
     @property
     def period_count(self) -> int:
@@ -934,6 +969,10 @@ class CollectionRound(AbstractRound):
 
     def process_payload(self, payload: BaseTxPayload) -> None:
         """Process payload."""
+        if payload.round_count != self.period_state.round_count:
+            raise ABCIAppInternalError(
+                f"Expected round count {self.period_state.round_count} and got {payload.round_count}."
+            )
 
         sender = payload.sender
         if sender not in self.period_state.participants:
@@ -950,6 +989,10 @@ class CollectionRound(AbstractRound):
 
     def check_payload(self, payload: BaseTxPayload) -> None:
         """Check Payload"""
+        if payload.round_count != self.period_state.round_count:
+            raise TransactionNotValidError(
+                f"Expected round count {self.period_state.round_count} and got {payload.round_count}."
+            )
 
         sender_in_participant_set = payload.sender in self.period_state.participants
         if not sender_in_participant_set:
@@ -975,6 +1018,10 @@ class CollectDifferentUntilAllRound(CollectionRound):
 
     def process_payload(self, payload: BaseTxPayload) -> None:
         """Process payload."""
+        if payload.round_count != self.period_state.round_count:
+            raise ABCIAppInternalError(
+                f"Expected round count {self.period_state.round_count} and got {payload.round_count}."
+            )
 
         if payload.sender in self.collection:
             raise ABCIAppInternalError(
@@ -985,6 +1032,10 @@ class CollectDifferentUntilAllRound(CollectionRound):
 
     def check_payload(self, payload: BaseTxPayload) -> None:
         """Check Payload"""
+        if payload.round_count != self.period_state.round_count:
+            raise TransactionNotValidError(
+                f"Expected round count {self.period_state.round_count} and got {payload.round_count}."
+            )
 
         if payload.sender in self.collection:
             raise TransactionNotValidError(
@@ -1084,6 +1135,11 @@ class OnlyKeeperSendsRound(AbstractRound):
 
     def process_payload(self, payload: BaseTxPayload) -> None:  # type: ignore
         """Handle a deploy safe payload."""
+        if payload.round_count != self.period_state.round_count:
+            raise ABCIAppInternalError(
+                f"Expected round count {self.period_state.round_count} and got {payload.round_count}."
+            )
+
         sender = payload.sender
 
         if sender not in self.period_state.participants:
@@ -1102,6 +1158,11 @@ class OnlyKeeperSendsRound(AbstractRound):
 
     def check_payload(self, payload: BaseTxPayload) -> None:  # type: ignore
         """Check a deploy safe payload can be applied to the current state."""
+        if payload.round_count != self.period_state.round_count:
+            raise TransactionNotValidError(
+                f"Expected round count {self.period_state.round_count} and got {payload.round_count}."
+            )
+
         sender = payload.sender
         sender_in_participant_set = sender in self.period_state.participants
         if not sender_in_participant_set:
@@ -1657,6 +1718,7 @@ class AbciApp(
             ),
         )
         self._log_start()
+        self.state.db.increment_round_count()
 
     @property
     def current_round(self) -> AbstractRound:
