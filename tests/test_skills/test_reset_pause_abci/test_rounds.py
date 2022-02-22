@@ -40,6 +40,7 @@ from tests.test_skills.test_abstract_round_abci.test_base_rounds import (
 
 
 MAX_PARTICIPANTS: int = 4
+DUMMY_RANDOMNESS = 0.1  # for coverage purposes
 
 
 def get_participant_to_period_count(
@@ -64,7 +65,10 @@ class BaseResetRoundTest(BaseCollectSameUntilThresholdRoundTest):
     ) -> None:
         """Runs tests."""
 
-        period_state = self.period_state.update()
+        period_state = self.period_state.update(
+            keeper_randomness=DUMMY_RANDOMNESS,
+        )
+        period_state._db._cross_period_persisted_keys = ["keeper_randomness"]
         test_round = self.test_class(
             state=period_state, consensus_params=self.consensus_params
         )
@@ -79,6 +83,7 @@ class BaseResetRoundTest(BaseCollectSameUntilThresholdRoundTest):
                     period_count=next_period_count,
                     participants=self.participants,
                     all_participants=self.participants,
+                    keeper_randomness=DUMMY_RANDOMNESS,
                 ),
                 state_attr_checks=[],  # [lambda state: state.participants],
                 most_voted_payload=next_period_count,
