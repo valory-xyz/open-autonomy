@@ -338,6 +338,7 @@ class FetchBehaviour(APYEstimationBaseState):
             if (
                 len(self._pairs_hist) > 0
                 and len(self._pairs_hist) != self.params.history_duration * 30
+                and not self.batch
             ):
                 # Here, we continue without having all the pairs downloaded, because of a network issue.
                 self.context.logger.warning(
