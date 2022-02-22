@@ -19,8 +19,6 @@
 
 """This module contains the behaviours for the 'abci' skill."""
 import binascii
-import datetime
-import json
 import pprint
 from abc import ABC
 from typing import Any, Dict, Generator, Optional, Set, Tuple, Type, Union, cast
@@ -49,7 +47,6 @@ from packages.valory.skills.transaction_settlement_abci.payloads import (
     CheckTransactionHistoryPayload,
     FinalizationTxPayload,
     RandomnessPayload,
-    ResetPayload,
     SelectKeeperPayload,
     SignaturePayload,
     SynchronizeLateMessagesPayload,
@@ -62,8 +59,6 @@ from packages.valory.skills.transaction_settlement_abci.rounds import (
     FinalizationRound,
     PeriodState,
     RandomnessTransactionSubmissionRound,
-    ResetAndPauseRound,
-    ResetRound,
     SelectKeeperTransactionSubmissionRoundA,
     SelectKeeperTransactionSubmissionRoundB,
     SynchronizeLateMessagesRound,
@@ -166,6 +161,11 @@ class TransactionSettlementBaseState(BaseState, ABC):
     def _safe_nonce_reused(revert_reason: str) -> bool:
         """Check for GS026."""
         return "GS026" in revert_reason
+
+    def _reset_params_if_flag_set(self) -> None:
+        """Reset tx parameters."""
+        if self.period_state.is_reset_params_set:
+            self.params.reset_tx_params()
 
 
 class RandomnessTransactionSubmissionBehaviour(RandomnessBehaviour):
@@ -494,6 +494,10 @@ class FinalizeBehaviour(TransactionSettlementBaseState):
         - Otherwise, wait until the next round.
         - If a timeout is hit, set exit A event, otherwise set done event.
         """
+
+        # Reset tx params if the flag has been set
+        self._reset_params_if_flag_set()
+
         if self.context.agent_address != self.period_state.most_voted_keeper_address:
             yield from self._not_sender_act()
         else:
@@ -589,164 +593,6 @@ class FinalizeBehaviour(TransactionSettlementBaseState):
             super().handle_late_messages(message)
 
 
-class BaseResetBehaviour(TransactionSettlementBaseState):
-    """Reset state."""
-
-    pause = True
-
-    _check_started: Optional[datetime.datetime] = None
-    _timeout: float
-    _is_healthy: bool = False
-
-    def start_reset(self) -> Generator:
-        """Start tendermint reset."""
-        if self._check_started is None and not self._is_healthy:
-            # we do the reset in the middle of the pause as there are no immediate transactions on either side of the reset
-            yield from self.wait_from_last_timestamp(
-                self.params.observation_interval / 2
-            )
-            self._check_started = datetime.datetime.now()
-            self._timeout = self.params.max_healthcheck
-            self._is_healthy = False
-        yield
-
-    def end_reset(
-        self,
-    ) -> None:
-        """End tendermint reset."""
-        self._check_started = None
-        self._timeout = -1.0
-        self._is_healthy = True
-
-    def _is_timeout_expired(self) -> bool:
-        """Check if the timeout expired."""
-        if self._check_started is None or self._is_healthy:
-            return False  # pragma: no cover
-        return datetime.datetime.now() > self._check_started + datetime.timedelta(
-            0, self._timeout
-        )
-
-    def async_act(self) -> Generator:
-        """
-        Do the action.
-
-        Steps:
-        - Trivially log the state.
-        - Sleep for configured interval.
-        - Build a registration transaction.
-        - Send the transaction and wait for it to be mined.
-        - Wait until ABCI application transitions to the next round.
-        - Go to the next behaviour state (set done event).
-        """
-        if self.pause and self.period_state.is_final_tx_hash_set:
-            if (
-                self.period_state.period_count != 0
-                and self.period_state.period_count % self.params.reset_tendermint_after
-                == 0
-            ):
-                yield from self.start_reset()
-                if self._is_timeout_expired():
-                    # if the Tendermint node cannot update the app then the app cannot work
-                    raise RuntimeError(  # pragma: no cover
-                        "Error resetting tendermint node."
-                    )
-
-                if not self._is_healthy:
-                    self.context.logger.info(
-                        f"Resetting tendermint node at end of period={self.period_state.period_count}."
-                    )
-                    request_message, http_dialogue = self._build_http_request_message(
-                        "GET",
-                        self.params.tendermint_com_url + "/hard_reset",
-                    )
-                    result = yield from self._do_request(request_message, http_dialogue)
-                    try:
-                        response = json.loads(result.body.decode())
-                        if response.get("status"):
-                            self.context.logger.info(response.get("message"))
-                            self.context.logger.info(
-                                "Resetting tendermint node successful! Resetting local blockchain."
-                            )
-                            self.context.state.period.reset_blockchain()
-                            self.end_reset()
-                        else:
-                            msg = response.get("message")
-                            self.context.logger.error(f"Error resetting: {msg}")
-                            yield from self.sleep(self.params.sleep_time)
-                            return  # pragma: no cover
-                    except json.JSONDecodeError:
-                        self.context.logger.error(
-                            "Error communicating with tendermint com server."
-                        )
-                        yield from self.sleep(self.params.sleep_time)
-                        return  # pragma: no cover
-
-                status = yield from self._get_status()
-                try:
-                    json_body = json.loads(status.body.decode())
-                except json.JSONDecodeError:
-                    self.context.logger.error(
-                        "Tendermint not accepting transactions yet, trying again!"
-                    )
-                    yield from self.sleep(self.params.sleep_time)
-                    return  # pragma: nocover
-
-                remote_height = int(
-                    json_body["result"]["sync_info"]["latest_block_height"]
-                )
-                local_height = self.context.state.period.height
-                self.context.logger.info(
-                    "local-height = %s, remote-height=%s", local_height, remote_height
-                )
-                if local_height != remote_height:
-                    self.context.logger.info(
-                        "local height != remote height; retrying..."
-                    )
-                    yield from self.sleep(self.params.sleep_time)
-                    return  # pragma: nocover
-
-                self.context.logger.info(
-                    "local height == remote height; continuing execution..."
-                )
-            yield from self.wait_from_last_timestamp(
-                self.params.observation_interval / 2
-            )
-            self.context.logger.info(
-                f"Finalized with transaction hash: {self.period_state.final_tx_hash}"
-            )
-            self.context.logger.info("Period end.")
-            benchmark_tool.save()
-        else:
-            self.context.logger.info(
-                f"Period {self.period_state.period_count} was not finished. Resetting!"
-            )
-
-        # Reset tx parameters.
-        self.params.reset_tx_params()
-        payload = ResetPayload(
-            self.context.agent_address, self.period_state.period_count + 1
-        )
-        yield from self.send_a2a_transaction(payload)
-        yield from self.wait_until_round_end()
-        self.set_done()
-
-
-class ResetBehaviour(BaseResetBehaviour):
-    """Reset state."""
-
-    matching_round = ResetRound
-    state_id = "reset"
-    pause = False
-
-
-class ResetAndPauseBehaviour(BaseResetBehaviour):
-    """Reset and pause state."""
-
-    matching_round = ResetAndPauseRound
-    state_id = "reset_and_pause"
-    pause = True
-
-
 class TransactionSettlementRoundBehaviour(AbstractRoundBehaviour):
     """This behaviour manages the consensus stages for the transaction settlement."""
 
@@ -762,6 +608,4 @@ class TransactionSettlementRoundBehaviour(AbstractRoundBehaviour):
         FinalizeBehaviour,  # type: ignore
         SynchronizeLateMessagesBehaviour,  # type: ignore
         CheckLateTxHashesBehaviour,  # type: ignore
-        ResetBehaviour,  # type: ignore
-        ResetAndPauseBehaviour,  # type: ignore
     }
