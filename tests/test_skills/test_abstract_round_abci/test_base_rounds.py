@@ -49,6 +49,7 @@ from packages.valory.skills.abstract_round_abci.base import (
     CollectionRound,
     ConsensusParams,
     OnlyKeeperSendsRound,
+    ROUND_COUNT_DEFAULT,
     StateDB,
     TransactionNotValidError,
     VotingRound,
@@ -70,12 +71,19 @@ class DummyTxPayload(BaseTxPayload):
     _value: Optional[str]
     _vote: Optional[bool]
 
-    def __init__(self, sender: str, value: Any, vote: Optional[bool] = False) -> None:
+    def __init__(
+        self,
+        sender: str,
+        value: Any,
+        vote: Optional[bool] = False,
+        round_count: int = ROUND_COUNT_DEFAULT,
+    ) -> None:
         """Initialize a dummy transaction payload."""
 
         super().__init__(sender, None)
         self._value = value
         self._vote = vote
+        self._round_count = round_count
 
     @property
     def value(self) -> Any:
@@ -519,6 +527,21 @@ class _BaseRoundTestClass(BaseRoundTestClass):
         super().setup()
         cls.tx_payloads = get_dummy_tx_payloads(cls.participants)
 
+    def _test_payload_with_wrong_round_count(self, test_round: AbstractRound) -> None:
+        """Test errors raised by pyaloads with wrong round count."""
+        payload_with_wrong_round_count = DummyTxPayload("sender", None, False, 0)
+        with pytest.raises(
+            TransactionNotValidError,
+            match=re.escape("Expected round count -1 and got 0."),
+        ):
+            test_round.check_payload(payload=payload_with_wrong_round_count)
+
+        with pytest.raises(
+            ABCIAppInternalError,
+            match=re.escape("Expected round count -1 and got 0."),
+        ):
+            test_round.process_payload(payload=payload_with_wrong_round_count)
+
 
 class TestCollectionRound(_BaseRoundTestClass):
     """Test class for CollectionRound."""
@@ -564,6 +587,8 @@ class TestCollectionRound(_BaseRoundTestClass):
         ):
             test_round.check_payload(DummyTxPayload("sender", "value"))
 
+        self._test_payload_with_wrong_round_count(test_round)
+
 
 class TestCollectDifferentUntilAllRound(_BaseRoundTestClass):
     """Test class for CollectDifferentUntilAllRound."""
@@ -596,6 +621,8 @@ class TestCollectDifferentUntilAllRound(_BaseRoundTestClass):
         for payload in payloads:
             test_round.process_payload(payload)
 
+        self._test_payload_with_wrong_round_count(test_round)
+
 
 class TestCollectSameUntilThresholdRound(_BaseRoundTestClass):
     """Test CollectSameUntilThresholdRound."""
@@ -623,6 +650,8 @@ class TestCollectSameUntilThresholdRound(_BaseRoundTestClass):
 
         assert test_round.threshold_reached
         assert test_round.most_voted_payload == "vote"
+
+        self._test_payload_with_wrong_round_count(test_round)
 
     def test_run_with_none(
         self,
@@ -705,6 +734,8 @@ class TestOnlyKeeperSendsRound(_BaseRoundTestClass, BaseOnlyKeeperSendsRoundTest
         ):
             test_round.check_payload(DummyTxPayload(sender="agent_1", value="sender"))
 
+        self._test_payload_with_wrong_round_count(test_round)
+
     def test_keeper_payload_is_none(
         self,
     ) -> None:
@@ -744,6 +775,8 @@ class TestVotingRound(_BaseRoundTestClass):
             for payload in get_dummy_tx_payloads(frozenset(agents), vote=vote):
                 test_round.process_payload(payload)
         assert dict(test_round.vote_count) == {True: 2, False: 1, None: 1}
+
+        self._test_payload_with_wrong_round_count(test_round)
 
     def test_negative_threshold(
         self,
@@ -797,6 +830,8 @@ class TestCollectDifferentUntilThresholdRound(_BaseRoundTestClass):
 
         assert test_round.collection_threshold_reached
 
+        self._test_payload_with_wrong_round_count(test_round)
+
 
 class TestDummyCollectNonEmptyUntilThresholdRound(_BaseRoundTestClass):
     """Test `CollectNonEmptyUntilThresholdRound`."""
@@ -813,6 +848,8 @@ class TestDummyCollectNonEmptyUntilThresholdRound(_BaseRoundTestClass):
 
         non_empty_values = test_round._get_non_empty_values()
         assert non_empty_values == [f"agent_{i}" for i in range(3)]
+
+        self._test_payload_with_wrong_round_count(test_round)
 
     def test_process_payload(self) -> None:
         """Test `process_payload`."""
