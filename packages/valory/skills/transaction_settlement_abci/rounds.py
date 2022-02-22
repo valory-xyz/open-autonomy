@@ -434,7 +434,7 @@ class SynchronizeLateMessagesRound(CollectNonEmptyUntilThresholdRound):
 
     round_id = "synchronize_late_messages"
     allowed_tx_type = SynchronizeLateMessagesPayload.transaction_type
-    payload_attribute = "tx_hash"
+    payload_attribute = "tx_hashes"
     period_state_class = PeriodState
     done_event = Event.DONE
     no_majority_event = Event.NO_MAJORITY
