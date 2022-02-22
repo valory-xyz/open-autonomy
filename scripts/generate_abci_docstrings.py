@@ -24,11 +24,10 @@ import argparse
 import importlib
 import re
 from pathlib import Path
-from typing import Callable, Optional, Type, cast
+from typing import Any, Callable, Optional, Type, cast
 from warnings import filterwarnings
 
-from packages.valory.skills.abstract_round_abci.base import AbciApp
-from scripts.generate_api_documentation import check_working_tree_is_dirty
+from scripts.common import check_working_tree_is_dirty
 
 
 filterwarnings("ignore")
@@ -59,7 +58,7 @@ def add_docstring(func: Callable) -> Callable:
     return wrapped
 
 
-def docstring_abci_app(abci_app: AbciApp) -> str:  # pylint: disable-msg=too-many-locals
+def docstring_abci_app(abci_app: Any) -> str:  # pylint: disable-msg=too-many-locals
     """
     Generate a docstring for an ABCI app
 
