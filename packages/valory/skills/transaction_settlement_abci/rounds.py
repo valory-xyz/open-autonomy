@@ -393,27 +393,20 @@ class TransactionSubmissionAbciApp(AbciApp[Event]):
         - validate timeout: 3.
         - no majority: 4.
     5. CheckTransactionHistoryRound
-        - done: 9.
-        - negative: 10.
-        - none: 10.
+        - done: 8.
+        - negative: 9.
+        - none: 9.
         - round timeout: 5.
-        - no majority: 10.
+        - no majority: 9.
     6. SelectKeeperTransactionSubmissionRoundB
         - done: 3.
         - round timeout: 7.
         - no majority: 7.
-    7. ResetRound
-        - done: 0.
-        - reset timeout: 10.
-        - no majority: 10.
-    8. ResetAndPauseRound
-        - done: 9.
-        - reset and pause timeout: 10.
-        - no majority: 10.
-    9. FinishedTransactionSubmissionRound
-    10. FailedRound
+    7. PreResetRound
+    8. FinishedTransactionSubmissionRound
+    9. FailedRound
 
-    Final states: {FinishedTransactionSubmissionRound, FailedRound}
+    Final states: {FinishedTransactionSubmissionRound, FailedRound, PreResetRound}
 
     Timeouts:
         round timeout: 30.0
