@@ -114,6 +114,17 @@ def late_arriving_tx_hashes() -> List[str]
 
 Get the late_arriving_tx_hashes.
 
+<a id="packages.valory.skills.transaction_settlement_abci.rounds.PeriodState.is_reset_params_set"></a>
+
+#### is`_`reset`_`params`_`set
+
+```python
+@property
+def is_reset_params_set() -> bool
+```
+
+Get the reset params flag.
+
 <a id="packages.valory.skills.transaction_settlement_abci.rounds.FinishedRegistrationRound"></a>
 
 ## FinishedRegistrationRound Objects
@@ -214,66 +225,6 @@ class SelectKeeperTransactionSubmissionRoundB(CollectSameUntilThresholdRound)
 
 A round in which a keeper is selected for transaction submission
 
-<a id="packages.valory.skills.transaction_settlement_abci.rounds.ResetRound"></a>
-
-## ResetRound Objects
-
-```python
-class ResetRound(CollectSameUntilThresholdRound)
-```
-
-A round that represents the reset of a period
-
-<a id="packages.valory.skills.transaction_settlement_abci.rounds.ResetRound.end_block"></a>
-
-#### end`_`block
-
-```python
-def end_block() -> Optional[Tuple[BasePeriodState, Event]]
-```
-
-Process the end of the block.
-
-<a id="packages.valory.skills.transaction_settlement_abci.rounds.ResetAndPauseRound"></a>
-
-## ResetAndPauseRound Objects
-
-```python
-class ResetAndPauseRound(CollectSameUntilThresholdRound)
-```
-
-A round that represents that consensus is reached (the final round)
-
-<a id="packages.valory.skills.transaction_settlement_abci.rounds.ResetAndPauseRound.process_payload"></a>
-
-#### process`_`payload
-
-```python
-def process_payload(payload: BaseTxPayload) -> None
-```
-
-Process payload.
-
-<a id="packages.valory.skills.transaction_settlement_abci.rounds.ResetAndPauseRound.check_payload"></a>
-
-#### check`_`payload
-
-```python
-def check_payload(payload: BaseTxPayload) -> None
-```
-
-Check Payload
-
-<a id="packages.valory.skills.transaction_settlement_abci.rounds.ResetAndPauseRound.end_block"></a>
-
-#### end`_`block
-
-```python
-def end_block() -> Optional[Tuple[BasePeriodState, Event]]
-```
-
-Process the end of the block.
-
 <a id="packages.valory.skills.transaction_settlement_abci.rounds.ValidateTransactionRound"></a>
 
 ## ValidateTransactionRound Objects
@@ -333,6 +284,26 @@ class SynchronizeLateMessagesRound(CollectNonEmptyUntilThresholdRound)
 ```
 
 A round in which agents synchronize potentially late arriving messages
+
+<a id="packages.valory.skills.transaction_settlement_abci.rounds.PreResetAndPauseRound"></a>
+
+## PreResetAndPauseRound Objects
+
+```python
+class PreResetAndPauseRound(DegenerateRound)
+```
+
+A round that represents the previous step to reset and pause
+
+<a id="packages.valory.skills.transaction_settlement_abci.rounds.PreResetRound"></a>
+
+## PreResetRound Objects
+
+```python
+class PreResetRound(DegenerateRound)
+```
+
+A round that represents the previous step to reset
 
 <a id="packages.valory.skills.transaction_settlement_abci.rounds.TransactionSubmissionAbciApp"></a>
 

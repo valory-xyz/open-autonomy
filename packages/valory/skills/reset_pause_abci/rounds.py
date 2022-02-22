@@ -22,22 +22,18 @@ from enum import Enum
 from typing import Dict, Optional, Set, Tuple, Type
 
 from packages.valory.skills.abstract_round_abci.base import (
+    ABCIAppInternalError,
     AbciApp,
     AbciAppTransitionFunction,
     AbstractRound,
     AppState,
     BasePeriodState,
     BaseTxPayload,
-    ABCIAppInternalError,
-    TransactionNotValidError,
-)
-from packages.valory.skills.abstract_round_abci.base import (
     CollectSameUntilThresholdRound,
     DegenerateRound,
+    TransactionNotValidError,
 )
-from packages.valory.skills.reset_pause_abci.payloads import (
-    ResetPayload,
-)
+from packages.valory.skills.reset_pause_abci.payloads import ResetPayload
 
 
 class Event(Enum):

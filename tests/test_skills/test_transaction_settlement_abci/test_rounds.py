@@ -21,7 +21,7 @@
 
 import logging  # noqa: F401
 from types import MappingProxyType
-from typing import Dict, FrozenSet, List, Optional, Type, cast
+from typing import Dict, FrozenSet, List, Optional, cast
 
 import pytest
 
@@ -29,10 +29,7 @@ from packages.valory.skills.abstract_round_abci.base import ABCIAppInternalError
 from packages.valory.skills.abstract_round_abci.base import (
     BasePeriodState as PeriodState,
 )
-from packages.valory.skills.abstract_round_abci.base import (
-    CollectSameUntilThresholdRound,
-    StateDB,
-)
+from packages.valory.skills.abstract_round_abci.base import StateDB
 from packages.valory.skills.oracle_deployment_abci.payloads import (
     RandomnessPayload,
     SelectKeeperPayload,
@@ -43,7 +40,6 @@ from packages.valory.skills.transaction_settlement_abci.payload_tools import (
 from packages.valory.skills.transaction_settlement_abci.payloads import (
     CheckTransactionHistoryPayload,
     FinalizationTxPayload,
-    ResetPayload,
     SignaturePayload,
     ValidatePayload,
 )
@@ -59,8 +55,6 @@ from packages.valory.skills.transaction_settlement_abci.rounds import (
     PeriodState as TransactionSettlementPeriodState,
 )
 from packages.valory.skills.transaction_settlement_abci.rounds import (
-    ResetAndPauseRound,
-    ResetRound,
     SelectKeeperTransactionSubmissionRoundA,
     SelectKeeperTransactionSubmissionRoundB,
     ValidateTransactionRound,
@@ -111,16 +105,6 @@ def get_participant_to_selection(
     """participant_to_selection"""
     return {
         participant: SelectKeeperPayload(sender=participant, keeper="keeper")
-        for participant in participants
-    }
-
-
-def get_participant_to_period_count(
-    participants: FrozenSet[str], period_count: int
-) -> Dict[str, ResetPayload]:
-    """participant_to_selection"""
-    return {
-        participant: ResetPayload(sender=participant, period_count=period_count)
         for participant in participants
     }
 
@@ -325,61 +309,6 @@ class TestCollectSignatureRound(BaseCollectDifferentUntilThresholdRoundTest):
         """Test the no-majority event."""
         test_round = CollectSignatureRound(self.period_state, self.consensus_params)
         self._test_no_majority_event(test_round)
-
-
-class BaseResetRoundTest(BaseCollectSameUntilThresholdRoundTest):
-    """Test ResetRound."""
-
-    test_class: Type[CollectSameUntilThresholdRound]
-    _period_state_class = TransactionSettlementPeriodState
-    _event_class = TransactionSettlementEvent
-
-    def test_runs(
-        self,
-    ) -> None:
-        """Runs tests."""
-
-        period_state = self.period_state.update(
-            safe_contract_address=get_safe_contract_address(),
-        )
-        period_state._db._cross_period_persisted_keys = ["safe_contract_address"]
-        test_round = self.test_class(
-            state=period_state, consensus_params=self.consensus_params
-        )
-        next_period_count = 1
-        self._complete_run(
-            self._test_round(
-                test_round=test_round,
-                round_payloads=get_participant_to_period_count(
-                    self.participants, next_period_count
-                ),
-                state_update_fn=lambda _period_state, _: _period_state.update(
-                    period_count=next_period_count,
-                    participants=self.participants,
-                    all_participants=self.participants,
-                    safe_contract_address=_period_state.safe_contract_address,
-                ),
-                state_attr_checks=[],  # [lambda state: state.participants],
-                most_voted_payload=next_period_count,
-                exit_event=self._event_class.DONE,
-            )
-        )
-
-
-class TestResetRound(BaseResetRoundTest):
-    """Test ResetRound."""
-
-    test_class = ResetRound
-    _period_state_class = TransactionSettlementPeriodState
-    _event_class = TransactionSettlementEvent
-
-
-class TestResetAndPauseRound(BaseResetRoundTest):
-    """Test ResetAndPauseRound."""
-
-    test_class = ResetAndPauseRound
-    _period_state_class = TransactionSettlementPeriodState
-    _event_class = TransactionSettlementEvent
 
 
 class TestValidateTransactionRound(BaseValidateRoundTest):

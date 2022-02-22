@@ -19,9 +19,12 @@
 
 """This module contains the behaviours for the 'reset_pause_abci' skill."""
 
-from abc import ABC
-from typing import Generator, Set, Type, cast, Optional
 import datetime
+import json
+from abc import ABC
+from typing import Generator, Optional, Set, Type, cast
+
+from packages.valory.skills.abstract_round_abci.base import BasePeriodState
 from packages.valory.skills.abstract_round_abci.behaviours import (
     AbstractRoundBehaviour,
     BaseState,
@@ -30,14 +33,11 @@ from packages.valory.skills.abstract_round_abci.utils import BenchmarkTool
 from packages.valory.skills.reset_pause_abci.models import Params, SharedState
 from packages.valory.skills.reset_pause_abci.payloads import ResetPayload
 from packages.valory.skills.reset_pause_abci.rounds import (
-    ResetRound,
     ResetAndPauseRound,
     ResetPauseABCIApp,
+    ResetRound,
 )
-from packages.valory.skills.abstract_round_abci.base import (
-    BasePeriodState,
-)
-import json
+
 
 benchmark_tool = BenchmarkTool()
 
@@ -207,7 +207,6 @@ class ResetAndPauseBehaviour(BaseResetBehaviour):
     matching_round = ResetAndPauseRound
     state_id = "reset_and_pause"
     pause = True
-
 
 
 class ResetPauseABCIConsensusBehaviour(AbstractRoundBehaviour):

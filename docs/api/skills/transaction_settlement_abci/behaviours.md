@@ -240,74 +240,6 @@ Store a potentially late-arriving message locally.
 
 - `message`: the late arriving message to handle.
 
-<a id="packages.valory.skills.transaction_settlement_abci.behaviours.BaseResetBehaviour"></a>
-
-## BaseResetBehaviour Objects
-
-```python
-class BaseResetBehaviour(TransactionSettlementBaseState)
-```
-
-Reset state.
-
-<a id="packages.valory.skills.transaction_settlement_abci.behaviours.BaseResetBehaviour.start_reset"></a>
-
-#### start`_`reset
-
-```python
-def start_reset() -> Generator
-```
-
-Start tendermint reset.
-
-<a id="packages.valory.skills.transaction_settlement_abci.behaviours.BaseResetBehaviour.end_reset"></a>
-
-#### end`_`reset
-
-```python
-def end_reset() -> None
-```
-
-End tendermint reset.
-
-<a id="packages.valory.skills.transaction_settlement_abci.behaviours.BaseResetBehaviour.async_act"></a>
-
-#### async`_`act
-
-```python
-def async_act() -> Generator
-```
-
-Do the action.
-
-Steps:
-- Trivially log the state.
-- Sleep for configured interval.
-- Build a registration transaction.
-- Send the transaction and wait for it to be mined.
-- Wait until ABCI application transitions to the next round.
-- Go to the next behaviour state (set done event).
-
-<a id="packages.valory.skills.transaction_settlement_abci.behaviours.ResetBehaviour"></a>
-
-## ResetBehaviour Objects
-
-```python
-class ResetBehaviour(BaseResetBehaviour)
-```
-
-Reset state.
-
-<a id="packages.valory.skills.transaction_settlement_abci.behaviours.ResetAndPauseBehaviour"></a>
-
-## ResetAndPauseBehaviour Objects
-
-```python
-class ResetAndPauseBehaviour(BaseResetBehaviour)
-```
-
-Reset and pause state.
-
 <a id="packages.valory.skills.transaction_settlement_abci.behaviours.TransactionSettlementRoundBehaviour"></a>
 
 ## TransactionSettlementRoundBehaviour Objects
@@ -316,5 +248,25 @@ Reset and pause state.
 class TransactionSettlementRoundBehaviour(AbstractRoundBehaviour)
 ```
 
-This behaviour manages the consensus stages for the transaction settlement.
+This behaviour manages the consensus stages for the basic transaction settlement.
+
+<a id="packages.valory.skills.transaction_settlement_abci.behaviours.ChainedTransactionSettlementRoundBehaviour"></a>
+
+## ChainedTransactionSettlementRoundBehaviour Objects
+
+```python
+class ChainedTransactionSettlementRoundBehaviour(AbstractRoundBehaviour)
+```
+
+This behaviour manages the consensus stages for the chained transaction settlement abci.
+
+<a id="packages.valory.skills.transaction_settlement_abci.behaviours.ChainedTransactionSettlementRoundBehaviour.setup"></a>
+
+#### setup
+
+```python
+def setup() -> None
+```
+
+Set up the behaviour.
 
