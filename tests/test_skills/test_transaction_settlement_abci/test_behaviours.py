@@ -64,9 +64,6 @@ from packages.valory.skills.transaction_settlement_abci.rounds import (
     Event as TransactionSettlementEvent,
 )
 from packages.valory.skills.transaction_settlement_abci.rounds import (
-    FinishedTransactionSubmissionRound,
-)
-from packages.valory.skills.transaction_settlement_abci.rounds import (
     PeriodState as TransactionSettlementPeriodState,
 )
 
