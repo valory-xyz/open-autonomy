@@ -17,9 +17,9 @@
 #
 # ------------------------------------------------------------------------------
 """Script for generating deployment environments."""
-from pathlib import Path
 import json
 import os
+from pathlib import Path
 from typing import Dict, List, Optional
 
 from deployments.base_deployments import BaseDeployment
@@ -45,7 +45,7 @@ def generate_deployment(
     type_of_deployment: str,
     configure_tendermint: bool,
     valory_application: Optional[str] = None,
-    deployment_file_path: Optional[str] = None
+    deployment_file_path: Optional[str] = None,
 ) -> str:
     """Generate the deployment build for the valory app."""
     deployment_generator = DEPLOYMENT_OPTIONS[type_of_deployment]
@@ -55,7 +55,9 @@ def generate_deployment(
         if not Path(deployment_file_path).exists():
             raise ValueError("Specified deployment path does not exist!")
     else:
-        raise ValueError("Much specify either a path to a deployment or a known application.")
+        raise ValueError(
+            "Much specify either a path to a deployment or a known application."
+        )
 
     app_instance = BaseDeployment(path_to_deployment_spec=deployment_file_path)
     deployment = deployment_generator(deployment_spec=app_instance)

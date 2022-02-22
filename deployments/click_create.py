@@ -36,8 +36,12 @@ from deployments.generators.kubernetes.kubernetes import KubernetesGenerator
 
 
 @click.command()
-@click.option("--valory-app",)
-@click.option("--deployment-file-path",)
+@click.option(
+    "--valory-app",
+)
+@click.option(
+    "--deployment-file-path",
+)
 @click.option("--keys-file-path", type=str, default=None)
 @click.option(
     "--deployment-type",
@@ -64,7 +68,7 @@ def build_deployment(
         type_of_deployment=deployment_type,
         valory_application=valory_app,
         configure_tendermint=configure_tendermint,
-        deployment_file_path=deployment_file_path
+        deployment_file_path=deployment_file_path,
     )
     print(report)
 
