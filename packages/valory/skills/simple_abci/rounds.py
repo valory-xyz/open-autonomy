@@ -22,21 +22,20 @@ import struct
 from abc import ABC
 from enum import Enum
 from types import MappingProxyType
-from typing import Dict, List, Mapping, Optional, Sequence, Set, Tuple, Type, cast
+from typing import Dict, List, Mapping, Optional, Sequence, Tuple, Type, cast
 
 from packages.valory.skills.abstract_round_abci.base import (
     AbciApp,
     AbciAppTransitionFunction,
     AbstractRound,
-    AppState,
     BasePeriodState,
     CollectDifferentUntilAllRound,
     CollectSameUntilThresholdRound,
-    DegenerateRound,
 )
 from packages.valory.skills.simple_abci.payloads import (
     RandomnessPayload,
     RegistrationPayload,
+    ResetPayload,
     SelectKeeperPayload,
     TransactionType,
 )
@@ -205,10 +204,32 @@ class SelectKeeperAtStartupRound(SelectKeeperRound):
     round_id = "select_keeper_at_startup"
 
 
-class FinishedKeeperSelection(DegenerateRound):
-    """A round that represents keeper selection has finished"""
+class BaseResetRound(CollectSameUntilThresholdRound, SimpleABCIAbstractRound):
+    """This class represents the base reset round."""
 
-    round_id = "finished_select_keeper"
+    allowed_tx_type = ResetPayload.transaction_type
+    payload_attribute = "period_count"
+
+    def end_block(self) -> Optional[Tuple[BasePeriodState, Event]]:
+        """Process the end of the block."""
+        if self.threshold_reached:
+            state = self.period_state.update(
+                period_count=self.most_voted_payload,
+                participants=self.period_state.participants,
+                all_participants=self.period_state.all_participants,
+            )
+            return state, Event.DONE
+        if not self.is_majority_possible(
+            self.collection, self.period_state.nb_participants
+        ):
+            return self._return_no_majority_event()
+        return None
+
+
+class ResetAndPauseRound(BaseResetRound):
+    """A round representing that consensus was reached (the final round)."""
+
+    round_id = "reset_and_pause"
 
 
 class SimpleAbciApp(AbciApp[Event]):
@@ -229,11 +250,12 @@ class SimpleAbciApp(AbciApp[Event]):
         - done: 3.
         - round timeout: 0.
         - no majority: 0.
-    3. FinishedKeeperSelection
+    3. ResetAndPauseRound
+        - done: 1.
+        - reset timeout: 0.
+        - no majority: 0.
 
-    Final states: {
-        FinishedKeeperSelection
-    }
+    Final states: {}
 
     Timeouts:
         round timeout: 30.0
@@ -251,14 +273,15 @@ class SimpleAbciApp(AbciApp[Event]):
             Event.NO_MAJORITY: RandomnessStartupRound,
         },
         SelectKeeperAtStartupRound: {
-            Event.DONE: FinishedKeeperSelection,
+            Event.DONE: ResetAndPauseRound,
             Event.ROUND_TIMEOUT: RegistrationRound,
             Event.NO_MAJORITY: RegistrationRound,
         },
-        FinishedKeeperSelection: {},
-    }
-    final_states: Set[AppState] = {
-        FinishedKeeperSelection,
+        ResetAndPauseRound: {
+            Event.DONE: RandomnessStartupRound,
+            Event.RESET_TIMEOUT: RegistrationRound,
+            Event.NO_MAJORITY: RegistrationRound,
+        },
     }
     event_to_timeout: Dict[Event, float] = {
         Event.ROUND_TIMEOUT: 30.0,

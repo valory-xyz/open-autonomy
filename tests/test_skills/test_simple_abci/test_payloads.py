@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2022 Valory AG
+#   Copyright 2021 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -22,6 +22,7 @@
 from packages.valory.skills.simple_abci.payloads import (
     RandomnessPayload,
     RegistrationPayload,
+    ResetPayload,
     SelectKeeperPayload,
     TransactionType,
 )
@@ -55,3 +56,19 @@ def test_randomness_payload() -> None:
     assert payload.randomness == "1"
     assert payload.id_ == "id"
     assert payload.data == {"round_id": 1, "randomness": "1"}
+
+    assert payload.transaction_type == TransactionType.RANDOMNESS
+
+
+def test_reset_payload() -> None:
+    """Test `ResetPayload`"""
+
+    payload = ResetPayload(sender="sender", period_count=1, id_="id")
+
+    assert payload.period_count == 1
+    assert payload.id_ == "id"
+    assert payload.data == {"period_count": 1}
+    assert hash(payload) == hash(tuple(sorted(payload.data.items())))
+
+    assert str(payload.transaction_type) == str(TransactionType.RESET)
+    assert payload.transaction_type == TransactionType.RESET

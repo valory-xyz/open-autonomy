@@ -26,8 +26,7 @@ from packages.valory.skills.abstract_round_abci.models import Requests as BaseRe
 from packages.valory.skills.abstract_round_abci.models import (
     SharedState as BaseSharedState,
 )
-from packages.valory.skills.simple_abci.composition import SimpleConcatenatedAbciApp
-from packages.valory.skills.simple_abci.rounds import Event
+from packages.valory.skills.simple_abci.rounds import Event, SimpleAbciApp
 
 
 MARGIN = 5
@@ -41,15 +40,15 @@ class SharedState(BaseSharedState):
 
     def __init__(self, *args: Any, **kwargs: Any) -> None:
         """Initialize the state."""
-        super().__init__(*args, abci_app_cls=SimpleConcatenatedAbciApp, **kwargs)
+        super().__init__(*args, abci_app_cls=SimpleAbciApp, **kwargs)
 
     def setup(self) -> None:
         """Set up."""
         super().setup()
-        SimpleConcatenatedAbciApp.event_to_timeout[
+        SimpleAbciApp.event_to_timeout[
             Event.ROUND_TIMEOUT
         ] = self.context.params.round_timeout_seconds
-        SimpleConcatenatedAbciApp.event_to_timeout[Event.RESET_TIMEOUT] = (
+        SimpleAbciApp.event_to_timeout[Event.RESET_TIMEOUT] = (
             self.context.params.observation_interval + MARGIN
         )
 

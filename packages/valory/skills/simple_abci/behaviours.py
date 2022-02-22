@@ -28,20 +28,18 @@ from packages.valory.skills.abstract_round_abci.behaviours import (
     BaseState,
 )
 from packages.valory.skills.abstract_round_abci.utils import BenchmarkTool
-from packages.valory.skills.reset_pause_abci.behaviours import (
-    ResetPauseABCIConsensusBehaviour,
-)
-from packages.valory.skills.simple_abci.composition import SimpleConcatenatedAbciApp
 from packages.valory.skills.simple_abci.models import Params, SharedState
 from packages.valory.skills.simple_abci.payloads import (
     RandomnessPayload,
     RegistrationPayload,
+    ResetPayload,
     SelectKeeperPayload,
 )
 from packages.valory.skills.simple_abci.rounds import (
     PeriodState,
     RandomnessStartupRound,
     RegistrationRound,
+    ResetAndPauseRound,
     SelectKeeperAtStartupRound,
     SimpleAbciApp,
 )
@@ -217,7 +215,50 @@ class SelectKeeperAtStartupBehaviour(SelectKeeperBehaviour):
     matching_round = SelectKeeperAtStartupRound
 
 
-class SimpleAbciRoundBehaviour(AbstractRoundBehaviour):
+class BaseResetBehaviour(SimpleABCIBaseState):
+    """Reset state."""
+
+    pause = True
+
+    def async_act(self) -> Generator:
+        """
+        Do the action.
+
+        Steps:
+        - Trivially log the state.
+        - Sleep for configured interval.
+        - Build a registration transaction.
+        - Send the transaction and wait for it to be mined.
+        - Wait until ABCI application transitions to the next round.
+        - Go to the next behaviour state (set done event).
+        """
+        if self.pause:
+            self.context.logger.info("Period end.")
+            benchmark_tool.save()
+            yield from self.sleep(self.params.observation_interval)
+        else:
+            self.context.logger.info(
+                f"Period {self.period_state.period_count} was not finished. Resetting!"
+            )
+
+        payload = ResetPayload(
+            self.context.agent_address, self.period_state.period_count + 1
+        )
+
+        yield from self.send_a2a_transaction(payload)
+        yield from self.wait_until_round_end()
+        self.set_done()
+
+
+class ResetAndPauseBehaviour(BaseResetBehaviour):
+    """Reset state."""
+
+    matching_round = ResetAndPauseRound
+    state_id = "reset_and_pause"
+    pause = True
+
+
+class SimpleAbciConsensusBehaviour(AbstractRoundBehaviour):
     """This behaviour manages the consensus stages for the simple abci app."""
 
     initial_state_cls = RegistrationBehaviour
@@ -226,17 +267,7 @@ class SimpleAbciRoundBehaviour(AbstractRoundBehaviour):
         RegistrationBehaviour,  # type: ignore
         RandomnessAtStartupBehaviour,  # type: ignore
         SelectKeeperAtStartupBehaviour,  # type: ignore
-    }
-
-
-class SimpleAbciConsensusBehaviour(AbstractRoundBehaviour):
-    """This behaviour manages the consensus stages for the simple concatenated abci."""
-
-    initial_state_cls = RegistrationBehaviour
-    abci_app_cls = SimpleConcatenatedAbciApp  # type: ignore
-    behaviour_states: Set[Type[BaseState]] = {
-        *SimpleAbciRoundBehaviour.behaviour_states,
-        *ResetPauseABCIConsensusBehaviour.behaviour_states,
+        ResetAndPauseBehaviour,  # type: ignore
     }
 
     def setup(self) -> None:
