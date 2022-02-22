@@ -8,12 +8,12 @@ aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
   README.md: Qmcvjeds5EyiUvea61GNy8YE4rYzvMDh79GJMhBz3NK7Q5
   __init__.py: QmPwoncoCEZVbHN89ZbSQ5AWwkA7kBKYk4iWG5coUTpjNM
-  behaviours.py: QmesSa2tz9VWw7BMevQscCQrm3EMEfEYCvzEbvnVhT4LBz
+  behaviours.py: QmYT5xQNmkRxYVfkiAzuphRJDBUd9VxawPVwdYyJguCDKH
   dialogues.py: Qmd54DnNEsybMJb78HTcW2HABVBZCL1FuQL8ELKq3xB6Jw
-  handlers.py: QmTJ2Rj3ysCdWN65XPMLcazgRPQxe4FZtWtmzTd8nnMfrh
+  handlers.py: QmeYbokKRZCRbGzGvLyrr5QZjsxj2xzU2RJXy7m5DUPs4C
   models.py: QmWfGeLcSKYx1t2vhrdUGtZwSk1prce8q3NBymsMhxpajD
   payloads.py: QmfMLuPSjEJKWi8U3aa9CxR11He5igVtDt52KoJHDhNaim
-  rounds.py: Qma5Mygi5fJfW22NnKiAVbNq2Dns4jWEjoP8om81d8wXDG
+  rounds.py: QmdomVBFR3qC5uiXirEkqUbPt4MygQBdXzpJ2m8s7HXsbu
 fingerprint_ignore_patterns: []
 connections:
 - valory/abci:0.1.0
@@ -31,9 +31,15 @@ handlers:
   abci:
     args: {}
     class_name: ResetPauseABCIHandler
+  contract_api:
+    args: {}
+    class_name: ContractApiHandler
   http:
     args: {}
     class_name: HttpHandler
+  ledger_api:
+    args: {}
+    class_name: LedgerApiHandler
   signing:
     args: {}
     class_name: SigningHandler

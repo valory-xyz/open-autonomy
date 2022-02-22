@@ -216,6 +216,7 @@ class ResetPauseABCIConsensusBehaviour(AbstractRoundBehaviour):
     abci_app_cls = ResetPauseABCIApp  # type: ignore
     behaviour_states: Set[Type[ResetAndPauseBehaviour]] = {  # type: ignore
         ResetAndPauseBehaviour,  # type: ignore
+        ResetBehaviour,  # type: ignore
     }
 
     def setup(self) -> None:

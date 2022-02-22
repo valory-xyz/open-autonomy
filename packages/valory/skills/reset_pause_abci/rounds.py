@@ -188,6 +188,7 @@ class ResetPauseABCIApp(AbciApp[Event]):
             Event.NO_MAJORITY: ResetRound,
         },
         FinishedResetAndPauseRound: {},
+        FinishedResetRound: {},
     }
     final_states: Set[AppState] = {
         FinishedResetAndPauseRound,

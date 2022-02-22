@@ -21,7 +21,13 @@
 
 from packages.valory.skills.abstract_round_abci.handlers import ABCIRoundHandler
 from packages.valory.skills.abstract_round_abci.handlers import (
+    ContractApiHandler as AbstractRoundContractApiHandler,
+)
+from packages.valory.skills.abstract_round_abci.handlers import (
     HttpHandler as BaseHttpHandler,
+)
+from packages.valory.skills.abstract_round_abci.handlers import (
+    LedgerApiHandler as AbstractRoundLedgerApiHandler,
 )
 from packages.valory.skills.abstract_round_abci.handlers import (
     SigningHandler as BaseSigningHandler,
@@ -31,3 +37,5 @@ from packages.valory.skills.abstract_round_abci.handlers import (
 ResetPauseABCIHandler = ABCIRoundHandler
 HttpHandler = BaseHttpHandler
 SigningHandler = BaseSigningHandler
+ContractApiHandler = AbstractRoundContractApiHandler
+LedgerApiHandler = AbstractRoundLedgerApiHandler
