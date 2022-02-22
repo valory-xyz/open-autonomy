@@ -23,7 +23,6 @@ from packages.valory.skills.abstract_round_abci.abci_app_chain import (
     AbciAppTransitionMapping,
     chain,
 )
-from packages.valory.skills.registration_abci.rounds import RegistrationRound
 from packages.valory.skills.reset_pause_abci.rounds import (
     FinishedResetAndPauseRound,
     FinishedResetRound,
@@ -46,7 +45,7 @@ abci_app_transition_mapping: AbciAppTransitionMapping = {
     PreResetAndPauseRound: ResetAndPauseRound,
     FinishedResetRound: RandomnessTransactionSubmissionRound,
     FinishedResetAndPauseRound: FinishedTransactionSubmissionRound,
-    FailedRound: RegistrationRound,
+    FailedRound: RandomnessTransactionSubmissionRound,
 }
 
 ChainedTransactionSettlementAbciApp = chain(

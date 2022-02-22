@@ -502,9 +502,19 @@ class TransactionSubmissionAbciApp(AbciApp[Event]):
             Event.NO_MAJORITY: FailedRound,
         },
         FinishedTransactionSubmissionRound: {},
+        PreResetRound: {},
+        PreResetAndPauseRound: {},
         FailedRound: {},
     }
-    final_states: Set[AppState] = {FinishedTransactionSubmissionRound, FailedRound}
+    initial_states: Set[AppState] = {
+        RandomnessTransactionSubmissionRound,
+    }
+    final_states: Set[AppState] = {
+        FinishedTransactionSubmissionRound,
+        PreResetRound,
+        PreResetAndPauseRound,
+        FailedRound,
+    }
     event_to_timeout: Dict[Event, float] = {
         Event.ROUND_TIMEOUT: 30.0,
         Event.VALIDATE_TIMEOUT: 30.0,
