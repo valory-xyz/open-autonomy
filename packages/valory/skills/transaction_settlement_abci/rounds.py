@@ -220,6 +220,17 @@ class FinalizationRound(OnlyKeeperSendsRound):
 
     def _get_check_or_fail_event(self) -> Event:
         """Return the appropriate check event or fail."""
+        if VerificationStatus(
+            cast(Dict[str, Union[VerificationStatus, str, int]], self.keeper_payload)[
+                "status"
+            ]
+        ) not in (
+            VerificationStatus.ERROR,
+            VerificationStatus.VERIFIED,
+        ):
+            # This means that getting raw safe transaction succeeded,
+            # but either requesting tx signature or requesting tx digest failed.
+            return Event.FINALIZATION_FAILED
         if len(cast(PeriodState, self.period_state).tx_hashes_history) > 0:
             return Event.CHECK_HISTORY
         if cast(PeriodState, self.period_state).should_check_late_messages:
