@@ -260,45 +260,41 @@ class FinishedSwapBackTransactionHashRound(DegenerateRound):
 
 
 class LiquidityRebalancingAbciApp(AbciApp[Event]):
-    """LiquidtyStrategyAbciApp
+    """LiquidityRebalancingAbciApp
 
     Initial round: StrategyEvaluationRound
 
     Initial states: {StrategyEvaluationRound}
 
-    0. StrategyEvaluationRound
-        - done: 1.
-        - done_enter: 2
-        - done_exit: 4
-        - done_swap_back: 6
-        - wait: 20.
-        - round timeout: 0.
-        - no majority: 0.
-    1. SleepRound
-        - done: 0.
-        - round timeout: 0.
-        - no majority: 0.
-    2. EnterPoolTransactionHashRound
-        - done: 2.
-        - round timeout: 0.
-        - no majority: 0.
-    3. FinishedEnterPoolTransactionHashRound
-    4. ExitPoolTransactionHashRound
-        - done: 4.
-        - round timeout: 0.
-        - no majority: 0.
+    Transition states:
+        0. StrategyEvaluationRound
+            - done: 1.
+            - done enter: 2.
+            - done exit: 4.
+            - done swap back: 6.
+            - round timeout: 0.
+            - no majority: 0.
+        1. SleepRound
+            - done: 0.
+            - round timeout: 0.
+            - no majority: 0.
+        2. EnterPoolTransactionHashRound
+            - done: 3.
+            - round timeout: 0.
+            - no majority: 0.
+        3. FinishedEnterPoolTransactionHashRound
+        4. ExitPoolTransactionHashRound
+            - done: 5.
+            - round timeout: 0.
+            - no majority: 0.
+        5. FinishedExitPoolTransactionHashRound
+        6. SwapBackTransactionHashRound
+            - done: 7.
+            - round timeout: 0.
+            - no majority: 0.
+        7. FinishedSwapBackTransactionHashRound
 
-    5. FinishedExitPoolTransactionHashRound
-    6. SwapBackTransactionHashRound
-        - done: 6.
-        - round timeout: 0.
-        - no majority: 0.
-    7. FinishedSwapBackTransactionHashRound
-    Final states: {
-        FinishedEnterPoolTransactionHashRound,
-        FinishedExitPoolTransactionHashRound,
-        FinishedSwapBackTransactionHashRound
-    }
+    Final states: {FinishedEnterPoolTransactionHashRound, FinishedExitPoolTransactionHashRound, FinishedSwapBackTransactionHashRound}
 
     Timeouts:
         exit: 5.0
