@@ -4,6 +4,6 @@ run sudo apt-get update && sudo apt-get upgrade -y
 RUN pip install cowsay
 RUN echo "This is a developement image!"
 COPY watcher.py dev_requirements.txt ./
-ENTRYPOINT ["/bin/python"]
+ENTRYPOINT ["/bin/python3"]
 RUN pip install -r dev_requirements.txt
 CMD ["watcher.py"]
