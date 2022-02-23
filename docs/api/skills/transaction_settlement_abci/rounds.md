@@ -59,6 +59,17 @@ def tx_hashes_history() -> List[str]
 
 Get the current cycle's tx hashes history, which has not yet been verified.
 
+<a id="packages.valory.skills.transaction_settlement_abci.rounds.PeriodState.to_be_validated_tx_hash"></a>
+
+#### to`_`be`_`validated`_`tx`_`hash
+
+```python
+@property
+def to_be_validated_tx_hash() -> str
+```
+
+Get the tx hash which is ready for validation.
+
 <a id="packages.valory.skills.transaction_settlement_abci.rounds.PeriodState.final_tx_hash"></a>
 
 #### final`_`tx`_`hash
