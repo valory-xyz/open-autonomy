@@ -213,8 +213,7 @@ class FinalizationRound(OnlyKeeperSendsRound):
                 "tx_digest"
             ],
         )
-        if tx_digest not in hashes:
-            hashes.append(tx_digest)
+        hashes.append(tx_digest)
 
         return hashes
 
