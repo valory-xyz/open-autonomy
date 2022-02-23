@@ -245,7 +245,11 @@ class FinalizationRound(OnlyKeeperSendsRound):
         if self.keeper_payload is None:  # pragma: no cover
             return self.period_state, Event.FINALIZATION_FAILED
 
-        # if reached participant threshold, set the results
+        # check if the tx digest is not empty, thus we succeeded in finalization.
+        # the tx digest will be empty if we receive an error in any of the following cases:
+        # 1. Getting raw safe transaction.
+        # 2. Requesting transaction signature.
+        # 3. Requesting transaction digest.
         if self.keeper_payload["tx_digest"] != "":
             state = self.period_state.update(
                 period_state_class=PeriodState,
@@ -415,6 +419,9 @@ class ValidateTransactionRound(VotingRound):
         """Process the end of the block."""
         # if reached participant threshold, set the result
         if self.positive_vote_threshold_reached:
+            # We only set the final tx hash if we are about to exit from the transaction settlement skill.
+            # Then, the skills which use the transaction settlement can check the tx hash
+            # and if it is None, then it means that the transaction has failed.
             state = self.period_state.update(
                 period_state_class=self.period_state_class,
                 participant_to_votes=self.collection,
@@ -451,10 +458,7 @@ class CheckTransactionHistoryRound(CollectSameUntilThresholdRound):
                 self.most_voted_payload
             )
 
-            # We replace the whole tx history with the returned tx hash, only if the threshold has been reached.
-            # This means that we only replace the history with the verified tx's hash if we have succeeded
-            # or with `None` if we have failed.
-            # Therefore, we only replace the history if we are about to exit from the transaction settlement skill.
+            # We only set the final tx hash if we are about to exit from the transaction settlement skill.
             # Then, the skills which use the transaction settlement can check the tx hash
             # and if it is None, then it means that the transaction has failed.
             state = self.period_state.update(
