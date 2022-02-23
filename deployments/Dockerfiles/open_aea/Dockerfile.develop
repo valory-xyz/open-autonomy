@@ -3,7 +3,7 @@ FROM valory/open-aea-user:dev
 
 
 run sudo apt-get update && sudo apt-get upgrade -y
-RUN pip install cowsay
+RUN pip install cowsay open-aea-ledger-ethereum
 RUN echo "This is a developement image!"
 COPY watcher.py dev_requirements.txt ./
 ENTRYPOINT ["/bin/python3"]
