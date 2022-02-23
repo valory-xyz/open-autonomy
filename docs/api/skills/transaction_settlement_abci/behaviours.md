@@ -51,7 +51,8 @@ Retrieve randomness.
 ## SelectKeeperTransactionSubmissionBehaviourA Objects
 
 ```python
-class SelectKeeperTransactionSubmissionBehaviourA(SelectKeeperBehaviour)
+class SelectKeeperTransactionSubmissionBehaviourA(
+    SelectKeeperBehaviour,  TransactionSettlementBaseState)
 ```
 
 Select the keeper agent.
@@ -72,8 +73,8 @@ Select the keeper b agent.
 ## SelectKeeperTransactionSubmissionBehaviourBAfterTimeout Objects
 
 ```python
-class SelectKeeperTransactionSubmissionBehaviourBAfterTimeout(  # pylint: disable=too-many-ancestors
-    SelectKeeperTransactionSubmissionBehaviourB)
+class SelectKeeperTransactionSubmissionBehaviourBAfterTimeout(
+    SelectKeeperBehaviour,  TransactionSettlementBaseState)
 ```
 
 Select the keeper b agent after a timeout.

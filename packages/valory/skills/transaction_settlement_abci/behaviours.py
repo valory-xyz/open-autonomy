@@ -177,7 +177,9 @@ class RandomnessTransactionSubmissionBehaviour(RandomnessBehaviour):
     payload_class = RandomnessPayload
 
 
-class SelectKeeperTransactionSubmissionBehaviourA(SelectKeeperBehaviour):
+class SelectKeeperTransactionSubmissionBehaviourA(
+    SelectKeeperBehaviour, TransactionSettlementBaseState
+):
     """Select the keeper agent."""
 
     state_id = "select_keeper_transaction_submission_a"
@@ -195,8 +197,8 @@ class SelectKeeperTransactionSubmissionBehaviourB(
     payload_class = SelectKeeperPayload
 
 
-class SelectKeeperTransactionSubmissionBehaviourBAfterTimeout(  # pylint: disable=too-many-ancestors
-    SelectKeeperTransactionSubmissionBehaviourB
+class SelectKeeperTransactionSubmissionBehaviourBAfterTimeout(
+    SelectKeeperBehaviour, TransactionSettlementBaseState
 ):
     """Select the keeper b agent after a timeout."""
 
