@@ -55,14 +55,23 @@ IGNORE_PREFIXES: Set[Path] = set()
 
 def check_working_tree_is_dirty() -> None:
     """Check if the current Git working tree is dirty."""
-    print("Checking whether the Git working tree is dirty...")
-    result = subprocess.check_output(["git", "diff", "--stat"])  # nosec
+    print("Checking if there's a newly geneated doc file...")
+    result = subprocess.check_output(["git", "status"])  # nosec
     if len(result) > 0:
-        print("Git working tree is dirty:")
-        print(result.decode("utf-8"))
-        sys.exit(1)
-    else:
-        print("All good!")
+        files = [
+            file.replace("modified:", "").strip()
+            for file in result.decode("utf-8").split("\n")
+            if "modified:" in file
+        ]
+        filterd_md_files = [
+            file for file in files if file.endswith(".md") and file.startswith("docs/")
+        ]
+        if len(filterd_md_files) > 0:
+            print("\nNewly generated doc files:\n")
+            print("\n".join(filterd_md_files))
+            sys.exit(1)
+
+    print("All good!")
 
 
 def create_subdir(path: str) -> None:
@@ -208,6 +217,5 @@ if __name__ == "__main__":
         sys.exit(1)
 
     generate_api_docs()
-
     if arguments.check_clean:
         check_working_tree_is_dirty()
