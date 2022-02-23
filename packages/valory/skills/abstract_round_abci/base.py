@@ -550,6 +550,10 @@ class StateDB:
         """Return a string representation of the state."""
         return f"StateDB({self._data})"
 
+    def cleanup(self) -> None:
+        """Reset the db."""
+        self._data = {}
+
 
 class BasePeriodState:
     """
@@ -1853,6 +1857,12 @@ class AbciApp(
         # new block's timestamp
         self._last_timestamp = timestamp
         self.logger.debug("final AbciApp time: %s", self._last_timestamp)
+
+    def cleanup(self) -> None:
+        """Clear data."""
+        self._previous_rounds = []
+        self._round_results = []
+        self.state.db.cleanup()
 
 
 class Period:

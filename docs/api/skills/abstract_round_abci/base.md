@@ -744,6 +744,16 @@ def __repr__() -> str
 
 Return a string representation of the state.
 
+<a id="packages.valory.skills.abstract_round_abci.base.StateDB.cleanup"></a>
+
+#### cleanup
+
+```python
+def cleanup() -> None
+```
+
+Reset the db.
+
 <a id="packages.valory.skills.abstract_round_abci.base.BasePeriodState"></a>
 
 ## BasePeriodState Objects
@@ -1900,6 +1910,16 @@ Observe timestamp from last block.
 **Arguments**:
 
 - `timestamp`: the latest block's timestamp.
+
+<a id="packages.valory.skills.abstract_round_abci.base.AbciApp.cleanup"></a>
+
+#### cleanup
+
+```python
+def cleanup() -> None
+```
+
+Clear data.
 
 <a id="packages.valory.skills.abstract_round_abci.base.Period"></a>
 
