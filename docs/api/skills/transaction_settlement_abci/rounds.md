@@ -279,43 +279,56 @@ Initial round: RandomnessTransactionSubmissionRound
 Initial states: {RandomnessTransactionSubmissionRound}
 
 Transition states:
-0. RandomnessTransactionSubmissionRound
-    - done: 1.
-    - round timeout: 7.
-    - no majority: 0.
-1. SelectKeeperTransactionSubmissionRoundA
-    - done: 2.
-    - round timeout: 7.
-    - no majority: 7.
-2. CollectSignatureRound
-    - done: 3.
-    - round timeout: 7.
-    - no majority: 7.
-3. FinalizationRound
-    - done: 4.
-    - round timeout: 6.
-    - failed: 6.
-4. ValidateTransactionRound
-    - done: 8.
-    - negative: 5.
-    - none: 3.
-    - validate timeout: 3.
-    - no majority: 4.
-5. CheckTransactionHistoryRound
-    - done: 8.
-    - negative: 9.
-    - none: 9.
-    - round timeout: 5.
-    - no majority: 9.
-6. SelectKeeperTransactionSubmissionRoundB
-    - done: 3.
-    - round timeout: 7.
-    - no majority: 7.
-7. PreResetRound
-8. FinishedTransactionSubmissionRound
-9. FailedRound
+    0. RandomnessTransactionSubmissionRound
+        - done: 1.
+        - round timeout: 9.
+        - no majority: 0.
+    1. SelectKeeperTransactionSubmissionRoundA
+        - done: 2.
+        - round timeout: 9.
+        - no majority: 9.
+    2. CollectSignatureRound
+        - done: 3.
+        - round timeout: 9.
+        - no majority: 9.
+    3. FinalizationRound
+        - done: 4.
+        - check history: 5.
+        - round timeout: 6.
+        - failed: 6.
+        - check late arriving message: 7.
+    4. ValidateTransactionRound
+        - done: 10.
+        - negative: 5.
+        - none: 3.
+        - validate timeout: 3.
+        - no majority: 4.
+    5. CheckTransactionHistoryRound
+        - done: 10.
+        - negative: 7.
+        - none: 11.
+        - round timeout: 5.
+        - no majority: 7.
+    6. SelectKeeperTransactionSubmissionRoundB
+        - done: 3.
+        - round timeout: 9.
+        - no majority: 9.
+    7. SynchronizeLateMessagesRound
+        - done: 8.
+        - round timeout: 7.
+        - no majority: 7.
+        - none: 11.
+    8. CheckLateTxHashesRound
+        - done: 10.
+        - negative: 11.
+        - none: 11.
+        - round timeout: 8.
+        - no majority: 11.
+    9. PreResetRound
+    10. FinishedTransactionSubmissionRound
+    11. FailedRound
 
-Final states: {FinishedTransactionSubmissionRound, FailedRound, PreResetRound}
+Final states: {FailedRound, FinishedTransactionSubmissionRound, PreResetRound}
 
 Timeouts:
     round timeout: 30.0
