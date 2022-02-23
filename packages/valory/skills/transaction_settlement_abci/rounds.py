@@ -99,7 +99,17 @@ class PeriodState(BasePeriodState):  # pylint: disable=too-many-instance-attribu
 
     @property
     def to_be_validated_tx_hash(self) -> str:
-        """Get the tx hash which is ready for validation."""
+        """
+        Get the tx hash which is ready for validation.
+
+        This will always be the last hash in the `tx_hashes_history`,
+        due to the way we are inserting the hashes in the array.
+        We keep the hashes sorted by the time of their finalization.
+        If this property is accessed before the finalization succeeds,
+        then it is incorrectly used and raises an internal error.
+
+        :return: the tx hash which is ready for validation.
+        """
         if len(self.tx_hashes_history) > 0:
             return self.tx_hashes_history[-1]
         raise ABCIAppInternalError(  # pragma: no cover
