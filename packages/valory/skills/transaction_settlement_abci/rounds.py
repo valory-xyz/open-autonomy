@@ -102,7 +102,7 @@ class PeriodState(BasePeriodState):  # pylint: disable=too-many-instance-attribu
         """Get the tx hash which is ready for validation."""
         if len(self.tx_hashes_history) > 0:
             return self.tx_hashes_history[-1]
-        raise ABCIAppInternalError(
+        raise ABCIAppInternalError(  # pragma: no cover
             "An Error occurred while trying to get the tx hash for validation: "
             "There are no transaction hashes recorded!"
         )
