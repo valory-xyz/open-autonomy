@@ -76,6 +76,10 @@ We keep the hashes sorted by the time of their finalization.
 If this property is accessed before the finalization succeeds,
 then it is incorrectly used and raises an internal error.
 
+**Returns**:
+
+the tx hash which is ready for validation.
+
 <a id="packages.valory.skills.transaction_settlement_abci.rounds.PeriodState.final_tx_hash"></a>
 
 #### final`_`tx`_`hash
