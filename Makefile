@@ -65,15 +65,32 @@ security:
 
 # generate latest hashes for updated packages
 # generate docs for updated packages
+# update copyright headers
 .PHONY: generators
 generators:
 	python scripts/generate_ipfs_hashes.py --vendor valory
 	python scripts/generate_api_documentation.py
 	python scripts/check_copyright.py
 
-.PHONY: common-checks
-common-checks:
-	tox -p -e check-copyright -e check-hash -e check-api-docs -e check-packages
+.PHONY: abci-docstrings
+abci-docstrings:
+	python scripts/generate_abci_docstrings.py
+
+.PHONY: common-checks-1
+common-checks-1:
+	tox -p -e check-copyright -e check-hash -e check-packages
+
+.PHONY: common-checks-2
+common-checks-2:
+	tox -p -e check-api-docs -e check-abci-docstrings
+
+.PHONY: copyright
+copyright:
+	python scripts/check_copyright.py
+
+.PHONY: check-copyright
+check-copyright:
+	tox -e check-copyright
 
 .PHONY: lint
 lint:
@@ -118,13 +135,6 @@ test:
 	pytest -rfE --doctest-modules aea_consensus_algorithms tests/ --cov=aea_consensus_algorithms --cov-report=html --cov=packages/valory --cov-report=xml --cov-report=term --cov-report=term-missing --cov-config=.coveragerc
 	find . -name ".coverage*" -not -name ".coveragerc" -exec rm -fr "{}" \;
 
-.PHONY: copyright
-copyright:
-	python scripts/check_copyright.py
-
-.PHONY: check-copyright
-check-copyright:
-	tox -e check-copyright
 
 .PHONY: checks
 checks:

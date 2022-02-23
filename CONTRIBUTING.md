@@ -14,17 +14,23 @@ Also mention potential effects on other branches/code might have from your chang
 
 For a clean workflow run checks in following order before making a PR or pushing the code
 
-1. make clean
-2. make formatters
-3. make code-checks
-4. make security
+- make clean
+- make formatters
+- make code-checks
+- make security
+
+> Run only if you've modified an AbciApp definition
+- make abci-docstrings
 
 > Only run following if you have modified a file in `packages/`
-5. make generators
-6. make common-checks
+- make generators
+- make common-checks-1
 
 > else run
-5. make copyright
+- make copyright
+
+> run this after making a commit
+- make common-checks-2
 
 
 ### Documentation (Docstrings and inline comments)
