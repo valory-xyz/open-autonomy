@@ -119,7 +119,7 @@ Get the late_arriving_tx_hashes.
 ## FinishedRegistrationRound Objects
 
 ```python
-class FinishedRegistrationRound(DegenerateRound,  ABC)
+class FinishedRegistrationRound(DegenerateRound, ABC)
 ```
 
 A round representing that agent registration has finished
@@ -129,7 +129,7 @@ A round representing that agent registration has finished
 ## FinishedRegistrationFFWRound Objects
 
 ```python
-class FinishedRegistrationFFWRound(DegenerateRound,  ABC)
+class FinishedRegistrationFFWRound(DegenerateRound, ABC)
 ```
 
 A fast-forward round representing that agent registration has finished
@@ -139,7 +139,7 @@ A fast-forward round representing that agent registration has finished
 ## FinishedTransactionSubmissionRound Objects
 
 ```python
-class FinishedTransactionSubmissionRound(DegenerateRound,  ABC)
+class FinishedTransactionSubmissionRound(DegenerateRound, ABC)
 ```
 
 A round that represents that transaction submission has finished
@@ -149,7 +149,7 @@ A round that represents that transaction submission has finished
 ## FailedRound Objects
 
 ```python
-class FailedRound(DegenerateRound,  ABC)
+class FailedRound(DegenerateRound, ABC)
 ```
 
 A round that represents that the period failed

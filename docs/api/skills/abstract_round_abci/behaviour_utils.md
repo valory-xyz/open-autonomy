@@ -207,7 +207,7 @@ Stop the execution of the behaviour.
 ## CleanUpBehaviour Objects
 
 ```python
-class CleanUpBehaviour(SimpleBehaviour,  ABC)
+class CleanUpBehaviour(SimpleBehaviour, ABC)
 ```
 
 Class for clean-up related functionality of behaviours.
@@ -256,7 +256,7 @@ It can be optionally implemented by the concrete classes.
 ## BaseState Objects
 
 ```python
-class BaseState(AsyncBehaviour,  CleanUpBehaviour,  ABC)
+class BaseState(AsyncBehaviour, CleanUpBehaviour, ABC)
 ```
 
 Base class for FSM states.
@@ -623,7 +623,7 @@ the contract api response
 ## DegenerateState Objects
 
 ```python
-class DegenerateState(BaseState,  ABC)
+class DegenerateState(BaseState, ABC)
 ```
 
 An abstract matching behaviour for final and degenerate rounds.
