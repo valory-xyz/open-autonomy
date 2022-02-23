@@ -534,59 +534,65 @@ class TransactionSubmissionAbciApp(AbciApp[Event]):
     Transition states:
         0. RandomnessTransactionSubmissionRound
             - done: 1.
-            - round timeout: 9.
+            - round timeout: 10.
             - no majority: 0.
         1. SelectKeeperTransactionSubmissionRoundA
             - done: 2.
-            - round timeout: 9.
-            - no majority: 9.
+            - round timeout: 10.
+            - no majority: 10.
         2. CollectSignatureRound
             - done: 3.
-            - round timeout: 9.
-            - no majority: 9.
+            - round timeout: 10.
+            - no majority: 10.
         3. FinalizationRound
             - done: 4.
             - check history: 5.
-            - round timeout: 6.
-            - failed: 6.
-            - check late arriving message: 7.
+            - round timeout: 7.
+            - finalization failed: 6.
+            - check late arriving message: 8.
         4. ValidateTransactionRound
-            - done: 10.
+            - done: 11.
             - negative: 5.
             - none: 3.
             - validate timeout: 3.
             - no majority: 4.
         5. CheckTransactionHistoryRound
-            - done: 10.
-            - negative: 7.
-            - none: 12.
+            - done: 11.
+            - negative: 13.
+            - none: 13.
             - round timeout: 5.
-            - no majority: 7.
+            - no majority: 13.
+            - check late arriving message: 8.
         6. SelectKeeperTransactionSubmissionRoundB
             - done: 3.
-            - round timeout: 9.
-            - no majority: 9.
-        7. SynchronizeLateMessagesRound
-            - done: 8.
-            - round timeout: 7.
-            - no majority: 7.
-            - none: 12.
-        8. CheckLateTxHashesRound
-            - done: 10.
-            - negative: 12.
-            - none: 12.
+            - round timeout: 10.
+            - no majority: 10.
+        7. SelectKeeperTransactionSubmissionRoundBAfterTimeout
+            - done: 3.
+            - round timeout: 10.
+            - no majority: 10.
+        8. SynchronizeLateMessagesRound
+            - done: 9.
             - round timeout: 8.
-            - no majority: 12.
-        9. ResetRound
-            - done: 0.
-            - reset timeout: 12.
-            - no majority: 12.
-        10. ResetAndPauseRound
+            - no majority: 8.
+            - none: 13.
+            - missed and late messages mismatch: 13.
+        9. CheckLateTxHashesRound
             - done: 11.
-            - reset and pause timeout: 12.
-            - no majority: 12.
-        11. FinishedTransactionSubmissionRound
-        12. FailedRound
+            - negative: 13.
+            - none: 13.
+            - round timeout: 9.
+            - no majority: 13.
+        10. ResetRound
+            - done: 0.
+            - reset timeout: 13.
+            - no majority: 13.
+        11. ResetAndPauseRound
+            - done: 12.
+            - reset and pause timeout: 13.
+            - no majority: 13.
+        12. FinishedTransactionSubmissionRound
+        13. FailedRound
 
     Final states: {FailedRound, FinishedTransactionSubmissionRound}
 
