@@ -23,7 +23,7 @@ import logging
 import time
 import warnings
 from pathlib import Path
-from typing import List, Tuple
+from typing import Any, Dict, List, Tuple
 
 import pytest
 from aea.configurations.base import PublicId
@@ -32,6 +32,7 @@ from aea.test_tools.test_cases import AEATestCaseMany
 from tests.helpers.tendermint_utils import (
     BaseTendermintTestClass,
     TendermintLocalNetworkBuilder,
+    TendermintNodeInfo,
 )
 
 
@@ -63,6 +64,60 @@ class BaseTestEnd2End(AEATestCaseMany, BaseTendermintTestClass):
     skill_package: str
     wait_to_finish: int
     check_strings: Tuple[str, ...]
+    extra_configs: List[Dict[str, Any]] = []
+
+    def __set_extra_configs(self) -> None:
+        """Set the current agent's extra config overrides that are skill specific."""
+        for config in self.extra_configs:
+            self.set_config(**config)
+
+    def __set_configs(self, node: TendermintNodeInfo) -> None:
+        """Set the current agent's config overrides."""
+        # each agent has its Tendermint node instance
+        self.set_config(
+            "vendor.valory.connections.abci.config.port",
+            node.abci_port,
+        )
+        self.set_config(
+            "vendor.valory.connections.abci.config.tendermint_config.rpc_laddr",
+            node.rpc_laddr,
+        )
+        self.set_config(
+            "vendor.valory.connections.abci.config.tendermint_config.p2p_laddr",
+            node.p2p_laddr,
+        )
+        self.set_config(
+            "vendor.valory.connections.abci.config.tendermint_config.home",
+            str(node.home),
+        )
+        self.set_config(
+            "vendor.valory.connections.abci.config.tendermint_config.p2p_seeds",
+            json.dumps(self.tendermint_net_builder.get_p2p_seeds()),
+            "list",
+        )
+        self.set_config(
+            f"vendor.valory.skills.{PublicId.from_str(self.skill_package).name}.models.params.args.consensus.max_participants",
+            self.NB_AGENTS,
+        )
+        self.set_config(
+            f"vendor.valory.skills.{PublicId.from_str(self.skill_package).name}.models.params.args.reset_tendermint_after",
+            5,
+        )
+        self.set_config(
+            f"vendor.valory.skills.{PublicId.from_str(self.skill_package).name}.models.params.args.round_timeout_seconds",
+            self.ROUND_TIMEOUT_SECONDS,
+            type_="float",
+        )
+        self.set_config(
+            f"vendor.valory.skills.{PublicId.from_str(self.skill_package).name}.models.params.args.tendermint_url",
+            node.get_http_addr("localhost"),
+        )
+        self.set_config(
+            f"vendor.valory.skills.{PublicId.from_str(self.skill_package).name}.models.params.args.keeper_timeout",
+            self.KEEPER_TIMEOUT,
+            type_="float",
+        )
+        self.__set_extra_configs()
 
     def setup(self) -> None:
         """Set up the test."""
@@ -84,50 +139,7 @@ class BaseTestEnd2End(AEATestCaseMany, BaseTendermintTestClass):
             else:
                 self.generate_private_key("ethereum", "ethereum_private_key.txt")
             self.add_private_key("ethereum", "ethereum_private_key.txt")
-            # each agent has its Tendermint node instance
-            self.set_config(
-                "vendor.valory.connections.abci.config.port",
-                node.abci_port,
-            )
-            self.set_config(
-                "vendor.valory.connections.abci.config.tendermint_config.rpc_laddr",
-                node.rpc_laddr,
-            )
-            self.set_config(
-                "vendor.valory.connections.abci.config.tendermint_config.p2p_laddr",
-                node.p2p_laddr,
-            )
-            self.set_config(
-                "vendor.valory.connections.abci.config.tendermint_config.home",
-                str(node.home),
-            )
-            self.set_config(
-                "vendor.valory.connections.abci.config.tendermint_config.p2p_seeds",
-                json.dumps(self.tendermint_net_builder.get_p2p_seeds()),
-                "list",
-            )
-            self.set_config(
-                f"vendor.valory.skills.{PublicId.from_str(self.skill_package).name}.models.params.args.consensus.max_participants",
-                self.NB_AGENTS,
-            )
-            self.set_config(
-                f"vendor.valory.skills.{PublicId.from_str(self.skill_package).name}.models.params.args.reset_tendermint_after",
-                5,
-            )
-            self.set_config(
-                f"vendor.valory.skills.{PublicId.from_str(self.skill_package).name}.models.params.args.round_timeout_seconds",
-                self.ROUND_TIMEOUT_SECONDS,
-                type_="float",
-            )
-            self.set_config(
-                f"vendor.valory.skills.{PublicId.from_str(self.skill_package).name}.models.params.args.tendermint_url",
-                node.get_http_addr("localhost"),
-            )
-            self.set_config(
-                f"vendor.valory.skills.{PublicId.from_str(self.skill_package).name}.models.params.args.keeper_timeout",
-                self.KEEPER_TIMEOUT,
-                type_="float",
-            )
+            self.__set_configs(node)
 
         # run 'aea install' in only one AEA project, to save time
         self.set_agent_context(self.agent_names[0])
