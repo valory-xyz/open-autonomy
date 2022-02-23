@@ -3,9 +3,12 @@ clean: clean-build clean-pyc clean-test clean-docs
 
 .PHONY: clean-build
 clean-build:
+	rm -fr deployments/build
 	rm -fr build/
 	rm -fr dist/
 	rm -fr .eggs/
+	rm -fr deployments/build/
+	rm -fr deployments/Dockerfiles/open_aea/packages
 	rm -fr pip-wheel-metadata
 	find . -name '*.egg-info' -exec rm -fr {} +
 	find . -name '*.egg' -exec rm -fr {} +
@@ -38,15 +41,15 @@ clean-test:
 
 .PHONY: lint
 lint:
-	black aea_consensus_algorithms packages/valory scripts tests
-	isort aea_consensus_algorithms packages/valory scripts tests
-	flake8 aea_consensus_algorithms packages/valory scripts tests
+	black aea_consensus_algorithms packages/valory scripts tests deployments
+	isort aea_consensus_algorithms packages/valory scripts tests deployments
+	flake8 aea_consensus_algorithms packages/valory scripts tests deployments
 	vulture aea_consensus_algorithms scripts/whitelist.py
-	darglint aea_consensus_algorithms scripts packages/valory/* tests
+	darglint aea_consensus_algorithms scripts packages/valory/* tests deployments
 
 .PHONY: pylint
 pylint:
-	pylint -j4 aea_consensus_algorithms packages/valory scripts
+	pylint -j4 aea_consensus_algorithms packages/valory scripts deployments
 
 .PHONY: security
 security:
@@ -56,7 +59,7 @@ security:
 
 .PHONY: static
 static:
-	mypy aea_consensus_algorithms packages/valory scripts --disallow-untyped-defs
+	mypy aea_consensus_algorithms packages/valory scripts deployments --disallow-untyped-defs
 	mypy tests --disallow-untyped-defs
 
 .PHONY: package_checks
@@ -183,11 +186,13 @@ install-hooks:
 	cp scripts/pre-push .git/hooks/pre-push
 
 .ONESHELL: build-images
-build-images:
-	if [ "$VERSION" = "" ];\
+build-images: clean-build
+	if [ "${VERSION}" = "" ];\
 	then\
 		echo "Ensure you have exported a version to build!";\
 		exit 1
 	fi
 	rsync -avu packages/ deployments/Dockerfiles/open_aea/packages
 	skaffold build --build-concurrency=0 --push=false
+
+

@@ -9,7 +9,7 @@ This module contains the shared state for the price estimation app ABCI applicat
 ## Params Objects
 
 ```python
-class Params(BaseParams)
+class Params(OracleParams,  TransactionParams)
 ```
 
 Parameters.
@@ -83,4 +83,14 @@ def __init__(*args: Any, **kwargs: Any) -> None
 ```
 
 Initialize PriceApi.
+
+<a id="packages.valory.skills.price_estimation_abci.models.ServerApi"></a>
+
+## ServerApi Objects
+
+```python
+class ServerApi(ApiSpecs)
+```
+
+A model for oracle web server api specs
 

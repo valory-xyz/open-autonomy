@@ -18,7 +18,6 @@
 # ------------------------------------------------------------------------------
 
 """Tests for valory/transaction_settlement_abci skill's behaviours."""
-
 import json
 from copy import copy
 from enum import Enum
@@ -103,6 +102,7 @@ class FSMBehaviourBaseCase(BaseSkillTestCase):
 
         cls.behaviour.setup()
         cls._skill.skill_context.state.setup()
+        cls._skill.skill_context.state.period.end_sync()
         assert (
             cast(BaseState, cls.behaviour.current_state).state_id
             == cls.behaviour.initial_state_cls.state_id
@@ -256,7 +256,7 @@ class FSMBehaviourBaseCase(BaseSkillTestCase):
         has_attributes, error_str = self.message_has_attributes(
             actual_message=actual_signing_message,
             message_type=SigningMessage,
-            to="dummy_decision_maker_address",
+            to=self.skill.skill_context.decision_maker_address,
             sender=str(self.skill.skill_context.skill_id),
             **request_kwargs,
         )
@@ -267,7 +267,7 @@ class FSMBehaviourBaseCase(BaseSkillTestCase):
             target=actual_signing_message.message_id,
             message_id=-1,
             to=str(self.skill.skill_context.skill_id),
-            sender="dummy_decision_maker_address",
+            sender=self.skill.skill_context.decision_maker_address,
             **response_kwargs,
         )
         self.signing_handler.handle(incoming_message)
@@ -346,7 +346,7 @@ class FSMBehaviourBaseCase(BaseSkillTestCase):
         """Test that, when round ends, the 'done' flag is set."""
         current_state = cast(BaseState, self.behaviour.current_state)
         assert not current_state.is_done()
-        with mock.patch.object(self.behaviour.context.state, "period") as mock_period:
+        with mock.patch.object(self.behaviour.context.state, "_period") as mock_period:
             mock_period.last_round_id = cast(
                 AbstractRound, current_state.matching_round
             ).round_id

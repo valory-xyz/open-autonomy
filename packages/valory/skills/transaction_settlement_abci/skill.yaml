@@ -8,10 +8,13 @@ aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
   README.md: Qmes4T968eLYkfRc1o3oXMa3irSMo6CY95kaAGvM3LfzAF
   __init__.py: QmUJJPrwqyWYnqeYpGypjgsQoXiGFpjHogSrrDmAedpdzV
-  behaviours.py: Qmb5jcz6JuYQyEnje1mH7fYia2uFLzmwxyiqQH8GpaueTh
-  payload_tools.py: QmREiD5tNZzVjedXcVKbXzDB3T5NC9hkzo5mLEXJiD3YT8
-  payloads.py: Qmd6gC1A9dbJ7PKpv9EDimBdfK6mM5559TceGJo6tB5Ghx
-  rounds.py: QmWdqUcsfT7x8dfmT5jVPyhwT5vZ2MZXBEgXmTJT6DcbqB
+  behaviours.py: QmRh8fkRVCk6EFJYe2EyWDy3ZtnWQevyRwxtxitRAUTwFr
+  dialogues.py: QmfDThV4WCRzK88XDpW2hKDYCuEH4RxoHCoAkWpkBRGRPv
+  handlers.py: QmXEZTJVJHNhpHJMjhPRHdhmYMmVpu6LfNyYDE2k4mjLVA
+  models.py: QmUQQ7fhWp6YHKm45fw5KMDv5QZi8LBywhfb7K9t5CsyR6
+  payload_tools.py: QmQaVcy9BeW1nQtFnt83Nzt9BTY3nVbjs2Xth2W3iUTPyW
+  payloads.py: QmRqxYzszZkcNUFH4xk2rM4M1PxG7obiPKbh6FkrNtsnKG
+  rounds.py: QmaYmREDDGKW9dZx4gBV22jMQgyLPQqx8U3RK3G32Xesuc
 fingerprint_ignore_patterns: []
 connections: []
 contracts:
@@ -21,8 +24,63 @@ protocols:
 - valory/contract_api:1.0.0
 skills:
 - valory/abstract_round_abci:0.1.0
-behaviours: {}
-handlers: {}
-models: {}
+behaviours:
+  main:
+    args: {}
+    class_name: TransactionSettlementRoundBehaviour
+handlers:
+  contract_api:
+    args: {}
+    class_name: ContractApiHandler
+  http:
+    args: {}
+    class_name: HttpHandler
+  ledger_api:
+    args: {}
+    class_name: LedgerApiHandler
+  signing:
+    args: {}
+    class_name: SigningHandler
+models:
+  abci_dialogues:
+    args: {}
+    class_name: AbciDialogues
+  contract_api_dialogues:
+    args: {}
+    class_name: ContractApiDialogues
+  http_dialogues:
+    args: {}
+    class_name: HttpDialogues
+  ledger_api_dialogues:
+    args: {}
+    class_name: LedgerApiDialogues
+  params:
+    args:
+      consensus:
+        max_participants: 1
+      drand_public_key: 868f005eb8e6e4ca0a47c8a77ceaa5309a47978a7c71bc5cce96366b5d7a569937c529eeda66c7293784a9402801af31
+      keeper_timeout: 30.0
+      max_healthcheck: 120
+      observation_interval: 10
+      reset_tendermint_after: 2
+      retry_attempts: 400
+      retry_timeout: 3
+      round_timeout_seconds: 30.0
+      service_id: registration
+      sleep_time: 1
+      tendermint_check_sleep_delay: 3
+      tendermint_com_url: http://localhost:8080
+      tendermint_max_retries: 5
+      tendermint_url: http://localhost:26657
+    class_name: TransactionParams
+  requests:
+    args: {}
+    class_name: Requests
+  signing_dialogues:
+    args: {}
+    class_name: SigningDialogues
+  state:
+    args: {}
+    class_name: SharedState
 dependencies: {}
-is_abstract: false
+is_abstract: true

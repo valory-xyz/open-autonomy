@@ -145,7 +145,7 @@ def get_participant_to_optimize_payload(
 ) -> Dict[str, OptimizationPayload]:
     """Get optimization payload."""
     return {
-        participant: OptimizationPayload(participant, "best_params_hash", None)  # type: ignore
+        participant: OptimizationPayload(participant, "best_params_hash")  # type: ignore
         for participant in participants
     }
 
@@ -208,7 +208,10 @@ class BaseRoundTestClass:
         cls.participants = get_participants()
         cls.period_state = PeriodState(
             db=StateDB(
-                initial_period=0, initial_data=dict(participants=cls.participants)
+                initial_period=0,
+                initial_data=dict(
+                    participants=cls.participants, all_participants=cls.participants
+                ),
             )
         )
         cls.consensus_params = ConsensusParams(max_participants=MAX_PARTICIPANTS)
@@ -550,6 +553,7 @@ class TestCycleResetRound(BaseCollectSameUntilThresholdRoundTest):
                     n_estimations=1,
                     latest_observation_hist_hash="x0",
                     participants=get_participants(),
+                    all_participants=get_participants(),
                 ),
                 state_attr_checks=[],
                 most_voted_payload=1,
@@ -586,6 +590,7 @@ class TestFreshModelResetRound(BaseCollectSameUntilThresholdRoundTest):
                     full_training=False,
                     n_estimations=1,
                     participants=get_participants(),
+                    all_participants=get_participants(),
                 ),
                 state_attr_checks=[],
                 most_voted_payload=1,

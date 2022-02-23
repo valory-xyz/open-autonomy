@@ -25,6 +25,17 @@ def period_state() -> PeriodState
 
 Return the period state.
 
+<a id="packages.valory.skills.transaction_settlement_abci.behaviours.TransactionSettlementBaseState.params"></a>
+
+#### params
+
+```python
+@property
+def params() -> TransactionParams
+```
+
+Return the params.
+
 <a id="packages.valory.skills.transaction_settlement_abci.behaviours.RandomnessTransactionSubmissionBehaviour"></a>
 
 ## RandomnessTransactionSubmissionBehaviour Objects
@@ -50,7 +61,8 @@ Select the keeper agent.
 ## SelectKeeperTransactionSubmissionBehaviourB Objects
 
 ```python
-class SelectKeeperTransactionSubmissionBehaviourB(SelectKeeperBehaviour)
+class SelectKeeperTransactionSubmissionBehaviourB(
+    SelectKeeperBehaviour,  TransactionSettlementBaseState)
 ```
 
 Select the keeper agent.
@@ -113,6 +125,56 @@ def async_act() -> Generator
 
 Do the action.
 
+<a id="packages.valory.skills.transaction_settlement_abci.behaviours.CheckLateTxHashesBehaviour"></a>
+
+## CheckLateTxHashesBehaviour Objects
+
+```python
+class CheckLateTxHashesBehaviour(CheckTransactionHistoryBehaviour)
+```
+
+Check the late-arriving transaction hashes.
+
+<a id="packages.valory.skills.transaction_settlement_abci.behaviours.SynchronizeLateMessagesBehaviour"></a>
+
+## SynchronizeLateMessagesBehaviour Objects
+
+```python
+class SynchronizeLateMessagesBehaviour(TransactionSettlementBaseState)
+```
+
+Synchronize late-arriving messages state.
+
+<a id="packages.valory.skills.transaction_settlement_abci.behaviours.SynchronizeLateMessagesBehaviour.__init__"></a>
+
+#### `__`init`__`
+
+```python
+def __init__(**kwargs: Any)
+```
+
+Initialize a `SynchronizeLateMessagesBehaviour`
+
+<a id="packages.valory.skills.transaction_settlement_abci.behaviours.SynchronizeLateMessagesBehaviour.async_act"></a>
+
+#### async`_`act
+
+```python
+def async_act() -> Generator
+```
+
+Do the action.
+
+<a id="packages.valory.skills.transaction_settlement_abci.behaviours.SynchronizeLateMessagesBehaviour.set_done"></a>
+
+#### set`_`done
+
+```python
+def set_done() -> None
+```
+
+Set the behaviour to done and clean the local late message parameter.
+
 <a id="packages.valory.skills.transaction_settlement_abci.behaviours.SignatureBehaviour"></a>
 
 ## SignatureBehaviour Objects
@@ -163,6 +225,20 @@ Steps:
 - If the agent is the keeper, then prepare the transaction and send it.
 - Otherwise, wait until the next round.
 - If a timeout is hit, set exit A event, otherwise set done event.
+
+<a id="packages.valory.skills.transaction_settlement_abci.behaviours.FinalizeBehaviour.handle_late_messages"></a>
+
+#### handle`_`late`_`messages
+
+```python
+def handle_late_messages(message: Message) -> None
+```
+
+Store a potentially late-arriving message locally.
+
+**Arguments**:
+
+- `message`: the late arriving message to handle.
 
 <a id="packages.valory.skills.transaction_settlement_abci.behaviours.BaseResetBehaviour"></a>
 

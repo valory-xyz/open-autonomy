@@ -1,8 +1,8 @@
 from node:16.7.0
 WORKDIR /home/ubuntu/build
-run git clone https://github.com/gnosis/safe-contracts.git
+run git clone https://github.com/valory-xyz/safe-contracts
 WORKDIR /home/ubuntu/build/safe-contracts
-run git checkout v1.3.0
+run git checkout feat/london-hardfork
 WORKDIR /home/ubuntu/build
 RUN cp -r /home/ubuntu/build/safe-contracts/* /home/ubuntu/build
 run rm -r safe-contracts

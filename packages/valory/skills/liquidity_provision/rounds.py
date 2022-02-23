@@ -22,34 +22,26 @@ import json
 from abc import ABC
 from enum import Enum
 from types import MappingProxyType
-from typing import Dict, Mapping, Optional, Tuple, Type, cast
+from typing import Dict, Mapping, Optional, Set, Tuple, Type, cast
 
 from packages.valory.skills.abstract_round_abci.base import (
     AbciApp,
     AbciAppTransitionFunction,
     AbstractRound,
+    AppState,
     BasePeriodState,
-    CollectDifferentUntilThresholdRound,
     CollectSameUntilThresholdRound,
-    OnlyKeeperSendsRound,
+    DegenerateRound,
 )
 from packages.valory.skills.liquidity_provision.payloads import (
-    FinalizationTxPayload,
+    SleepPayload,
     StrategyEvaluationPayload,
     StrategyType,
-    ValidatePayload,
+    TransactionHashPayload,
 )
-from packages.valory.skills.oracle_deployment_abci.rounds import (
-    RandomnessOracleRound as RandomnessRound,
-)
-from packages.valory.skills.price_estimation_abci.payloads import TransactionHashPayload
 from packages.valory.skills.transaction_settlement_abci.payloads import (
     SignaturePayload,
     TransactionType,
-)
-from packages.valory.skills.transaction_settlement_abci.rounds import (
-    ResetAndPauseRound,
-    ResetRound,
 )
 
 
@@ -57,11 +49,13 @@ class Event(Enum):
     """Event enumeration for the liquidity provision demo."""
 
     DONE = "done"
+    DONE_ENTER = "done_enter"
+    DONE_EXIT = "done_exit"
+    DONE_SWAP_BACK = "done_swap_back"
     EXIT = "exit"
     ROUND_TIMEOUT = "round_timeout"
     NO_MAJORITY = "no_majority"
     RESET_TIMEOUT = "reset_timeout"
-    WAIT = "wait"
 
 
 class PeriodState(
@@ -74,22 +68,9 @@ class PeriodState(
     """
 
     @property
-    def most_voted_strategy(self) -> dict:
+    def most_voted_strategy(self) -> str:
         """Get the most_voted_strategy."""
-        return cast(dict, self.db.get_strict("most_voted_strategy"))
-
-    @property
-    def most_voted_transfers(self) -> dict:
-        """Get the most_voted_transfers."""
-        return cast(dict, self.db.get_strict("most_voted_transfers"))
-
-    @property
-    def participant_to_lp_result(self) -> Mapping[str, ValidatePayload]:
-        """Get the participant_to_lp_result."""
-        return cast(
-            Mapping[str, ValidatePayload],
-            self.db.get_strict("participant_to_lp_result"),
-        )
+        return cast(str, self.db.get_strict("most_voted_strategy"))
 
     @property
     def participant_to_strategy(self) -> Mapping[str, StrategyEvaluationPayload]:
@@ -141,11 +122,6 @@ class PeriodState(
         return cast(str, self.db.get_strict("most_voted_tx_hash"))
 
     @property
-    def most_voted_tx_data(self) -> str:
-        """Get the most_voted_enter_pool_tx_data."""
-        return cast(str, self.db.get_strict("most_voted_tx_data"))
-
-    @property
     def final_tx_hash(self) -> str:
         """Get the final_enter_pool_tx_hash."""
         return cast(str, self.db.get_strict("final_tx_hash"))
@@ -184,72 +160,6 @@ class TransactionHashBaseRound(
             state = self.period_state.update(
                 participant_to_tx_hash=MappingProxyType(self.collection),
                 most_voted_tx_hash=dict_["tx_hash"],
-                most_voted_tx_data=dict_["tx_data"],
-            )
-            return state, Event.DONE
-        if not self.is_majority_possible(
-            self.collection, self.period_state.nb_participants
-        ):
-            return self._return_no_majority_event()
-        return None
-
-
-class TransactionSignatureBaseRound(
-    CollectDifferentUntilThresholdRound, LiquidityProvisionAbstractRound
-):
-    """A base class for rounds in which agents sign the transaction"""
-
-    round_id = "abstract_signature"
-    allowed_tx_type = SignaturePayload.transaction_type
-    payload_attribute = "signature"
-
-    def end_block(self) -> Optional[Tuple[BasePeriodState, Event]]:
-        """Process the end of the block."""
-        if self.collection_threshold_reached:
-            state = self.period_state.update(
-                participant_to_signature=MappingProxyType(self.collection),
-            )
-            return state, Event.DONE
-        if not self.is_majority_possible(
-            self.collection, self.period_state.nb_participants
-        ):
-            return self._return_no_majority_event()
-        return None
-
-
-class TransactionSendBaseRound(OnlyKeeperSendsRound, LiquidityProvisionAbstractRound):
-    """A base class for rounds in which agents send the transaction"""
-
-    round_id = "finalization"
-    allowed_tx_type = FinalizationTxPayload.transaction_type
-    payload_attribute = "tx_hash"
-
-    def end_block(self) -> Optional[Tuple[BasePeriodState, Event]]:
-        """Process the end of the block."""
-        # if reached participant threshold, set the result
-        if self.has_keeper_sent_payload:
-            state = self.period_state.update(final_tx_hash=self.keeper_payload)
-            return state, Event.DONE
-        return None
-
-
-class TransactionValidationBaseRound(
-    CollectSameUntilThresholdRound, LiquidityProvisionAbstractRound
-):
-    """A base class for rounds in which agents validate the transaction"""
-
-    round_id = "transaction_valid_round"
-    allowed_tx_type = ValidatePayload.transaction_type
-    exit_event: Event = Event.EXIT
-    payload_attribute = "transfers"
-
-    def end_block(self) -> Optional[Tuple[BasePeriodState, Event]]:
-        """Process the end of the block."""
-        # if reached participant threshold, set the result
-        if self.threshold_reached:
-            state = self.period_state.update(
-                participant_to_lp_result=MappingProxyType(self.collection),
-                most_voted_transfers=self.most_voted_payload,
             )
             return state, Event.DONE
         if not self.is_majority_possible(
@@ -275,12 +185,37 @@ class StrategyEvaluationRound(
                 participant_to_strategy=MappingProxyType(self.collection),
                 most_voted_strategy=self.most_voted_payload,
             )
-            event = (
-                Event.DONE
-                if state.most_voted_strategy["action"] == StrategyType.GO  # type: ignore
-                else Event.RESET_TIMEOUT
-            )
+
+            strategy = json.loads(self.most_voted_payload)
+
+            event = Event.RESET_TIMEOUT
+            if strategy["action"] == StrategyType.WAIT.value:
+                event = Event.DONE
+            elif strategy["action"] == StrategyType.ENTER.value:
+                event = Event.DONE_ENTER
+            elif strategy["action"] == StrategyType.EXIT.value:
+                event = Event.DONE_EXIT
+            elif strategy["action"] == StrategyType.SWAP_BACK.value:
+                event = Event.DONE_SWAP_BACK
             return state, event
+        if not self.is_majority_possible(
+            self.collection, self.period_state.nb_participants
+        ):
+            return self._return_no_majority_event()
+        return None
+
+
+class SleepRound(CollectSameUntilThresholdRound, LiquidityProvisionAbstractRound):
+    """A round in which agents wait for a predefined amount of time"""
+
+    round_id = "sleep"
+    allowed_tx_type = SleepPayload.transaction_type
+    payload_attribute = "sleep"
+
+    def end_block(self) -> Optional[Tuple[BasePeriodState, Event]]:
+        """Process the end of the block."""
+        if self.threshold_reached:
+            return self.period_state, Event.DONE
         if not self.is_majority_possible(
             self.collection, self.period_state.nb_participants
         ):
@@ -294,36 +229,10 @@ class EnterPoolTransactionHashRound(TransactionHashBaseRound):
     round_id = "enter_pool_tx_hash"
 
 
-class EnterPoolTransactionSignatureRound(TransactionSignatureBaseRound):
-    """A round in which agents sign the transaction for pool entry"""
+class FinishedEnterPoolTransactionHashRound(DegenerateRound):
+    """A round that represents pool enter has finished"""
 
-    round_id = "enter_pool_tx_signature"
-
-
-class EnterPoolTransactionSendRound(TransactionSendBaseRound):
-    """A round in which agents send the transaction for pool entry"""
-
-    round_id = "enter_pool_tx_send"
-
-
-class EnterPoolTransactionValidationRound(TransactionValidationBaseRound):
-    """A round in which agents validate the transaction for pool entry"""
-
-    round_id = "enter_pool_tx_validation"
-
-
-class EnterPoolRandomnessRound(RandomnessRound):
-    """A round for generating randomness"""
-
-    round_id = "enter_pool_randomness"
-
-
-class EnterPoolSelectKeeperRound(
-    CollectSameUntilThresholdRound, LiquidityProvisionAbstractRound
-):
-    """A round in which a keeper is selected"""
-
-    round_id = "enter_pool_select_keeper"
+    round_id = "finished_enter_pool_hash"
 
 
 class ExitPoolTransactionHashRound(TransactionHashBaseRound):
@@ -332,36 +241,10 @@ class ExitPoolTransactionHashRound(TransactionHashBaseRound):
     round_id = "exit_pool_tx_hash"
 
 
-class ExitPoolTransactionSignatureRound(TransactionSignatureBaseRound):
-    """A round in which agents sign the transaction for pool exit"""
+class FinishedExitPoolTransactionHashRound(DegenerateRound):
+    """A round that represents pool exit has finished"""
 
-    round_id = "exit_pool_tx_signature"
-
-
-class ExitPoolTransactionSendRound(TransactionSendBaseRound):
-    """A round in which agents send the transaction for pool exit"""
-
-    round_id = "exit_pool_tx_send"
-
-
-class ExitPoolTransactionValidationRound(TransactionValidationBaseRound):
-    """A round in which agents validate the transaction for pool exit"""
-
-    round_id = "exit_pool_tx_validation"
-
-
-class ExitPoolRandomnessRound(RandomnessRound):
-    """A round for generating randomness"""
-
-    round_id = "exit_pool_randomness"
-
-
-class ExitPoolSelectKeeperRound(
-    CollectSameUntilThresholdRound, LiquidityProvisionAbstractRound
-):
-    """A round in a which keeper is selected"""
-
-    round_id = "exit_pool_select_keeper"
+    round_id = "finished_exit_pool_hash"
 
 
 class SwapBackTransactionHashRound(TransactionHashBaseRound):
@@ -370,243 +253,92 @@ class SwapBackTransactionHashRound(TransactionHashBaseRound):
     round_id = "swap_back_tx_hash"
 
 
-class SwapBackTransactionSignatureRound(TransactionSignatureBaseRound):
-    """A round in which agents sign the transaction for a swap back"""
+class FinishedSwapBackTransactionHashRound(DegenerateRound):
+    """A round that represents swap back has finished"""
 
-    round_id = "swap_back_tx_signature"
-
-
-class SwapBackTransactionSendRound(TransactionSendBaseRound):
-    """A round in which agents send the transaction for a swap back"""
-
-    round_id = "swap_back_tx_send"
+    round_id = "finished_swap_back_hash"
 
 
-class SwapBackTransactionValidationRound(TransactionValidationBaseRound):
-    """A round in which agents validate the transaction for a swap back"""
+class LiquidityRebalancingAbciApp(AbciApp[Event]):
+    """LiquidityRebalancingAbciApp
 
-    round_id = "swap_back_tx_validation"
+    Initial round: StrategyEvaluationRound
 
-
-class SwapBackRandomnessRound(RandomnessRound):
-    """A round for generating randomness"""
-
-    round_id = "swap_back_randomness"
-
-
-class SwapBackSelectKeeperRound(
-    CollectSameUntilThresholdRound, LiquidityProvisionAbstractRound
-):
-    """A round in a which keeper is selected"""
-
-    round_id = "swap_back_select_keeper"
-
-
-class LiquidityProvisionAbciApp(AbciApp[Event]):
-    """LiquidityProvisionAbciApp
-
-    Initial round: ResetRound
-
-    Initial states: {ResetRound}
+    Initial states: {StrategyEvaluationRound}
 
     Transition states:
-    0. ResetRound
-        - done: 1.
-    1. StrategyEvaluationRound
-        - done: 2.
-        - wait: 20.
-        - round timeout: 0.
-        - no majority: 0.
-    2. EnterPoolTransactionHashRound
-        - done: 3.
-        - round timeout: 0.
-        - no majority: 0.
-    3. EnterPoolTransactionSignatureRound
-        - done: 4.
-        - round timeout: 0.
-        - no majority: 0.
-    4. EnterPoolTransactionSendRound
-        - done: 5.
-        - round timeout: 0.
-        - no majority: 0.
-    5. EnterPoolTransactionValidationRound
-        - done: 20.
-        - round timeout: 6.
-        - no majority: 0.
-    6. EnterPoolRandomnessRound
-        - done: 7.
-        - round timeout: 0.
-        - no majority: 0.
-    7. EnterPoolSelectKeeperRound
-        - done: 8.
-        - round timeout: 0.
-        - no majority: 0.
-    8. ExitPoolTransactionHashRound
-        - done: 9.
-        - round timeout: 0.
-        - no majority: 0.
-    9. ExitPoolTransactionSignatureRound
-        - done: 10.
-        - round timeout: 0.
-        - no majority: 0.
-    10. ExitPoolTransactionSendRound
-        - done: 11.
-        - round timeout: 0.
-        - no majority: 0.
-    11. ExitPoolTransactionValidationRound
-        - done: 14.
-        - round timeout: 12.
-        - no majority: 0.
-    12. ExitPoolRandomnessRound
-        - done: 13.
-        - round timeout: 0.
-        - no majority: 0.
-    13. ExitPoolSelectKeeperRound
-        - done: 8.
-        - round timeout: 0.
-        - no majority: 0.
-    14. SwapBackTransactionHashRound
-        - done: 15.
-        - round timeout: 0.
-        - no majority: 0.
-    15. SwapBackTransactionSignatureRound
-        - done: 16.
-        - round timeout: 0.
-        - no majority: 0.
-    16. SwapBackTransactionSendRound
-        - done: 17.
-        - round timeout: 0.
-        - no majority: 0.
-    17. SwapBackTransactionValidationRound
-        - done: 20.
-        - round timeout: 18.
-        - no majority: 0.
-    18. SwapBackRandomnessRound
-        - done: 19.
-        - round timeout: 0.
-        - no majority: 0.
-    19. SwapBackSelectKeeperRound
-        - done: 14.
-        - round timeout: 0.
-        - no majority: 0.
-    20. ResetAndPauseRound
-        - done: 1.
-        - reset timeout: 0.
-        - no majority: 0.
+        0. StrategyEvaluationRound
+            - done: 1.
+            - done enter: 2.
+            - done exit: 4.
+            - done swap back: 6.
+            - round timeout: 0.
+            - no majority: 0.
+        1. SleepRound
+            - done: 0.
+            - round timeout: 0.
+            - no majority: 0.
+        2. EnterPoolTransactionHashRound
+            - done: 3.
+            - round timeout: 0.
+            - no majority: 0.
+        3. FinishedEnterPoolTransactionHashRound
+        4. ExitPoolTransactionHashRound
+            - done: 5.
+            - round timeout: 0.
+            - no majority: 0.
+        5. FinishedExitPoolTransactionHashRound
+        6. SwapBackTransactionHashRound
+            - done: 7.
+            - round timeout: 0.
+            - no majority: 0.
+        7. FinishedSwapBackTransactionHashRound
 
-    Final states: {}
+    Final states: {FinishedEnterPoolTransactionHashRound, FinishedExitPoolTransactionHashRound, FinishedSwapBackTransactionHashRound}
 
     Timeouts:
         exit: 5.0
         round timeout: 30.0
     """
 
-    initial_round_cls: Type[AbstractRound] = ResetRound
+    initial_round_cls: Type[AbstractRound] = StrategyEvaluationRound
     transition_function: AbciAppTransitionFunction = {
-        ResetRound: {
-            Event.DONE: StrategyEvaluationRound,
-        },
         StrategyEvaluationRound: {
-            Event.DONE: EnterPoolTransactionHashRound,
-            Event.WAIT: ResetAndPauseRound,
-            Event.ROUND_TIMEOUT: ResetRound,
-            Event.NO_MAJORITY: ResetRound,
+            Event.DONE: SleepRound,
+            Event.DONE_ENTER: EnterPoolTransactionHashRound,
+            Event.DONE_EXIT: ExitPoolTransactionHashRound,
+            Event.DONE_SWAP_BACK: SwapBackTransactionHashRound,
+            Event.ROUND_TIMEOUT: StrategyEvaluationRound,
+            Event.NO_MAJORITY: StrategyEvaluationRound,
+        },
+        SleepRound: {
+            Event.DONE: StrategyEvaluationRound,
+            Event.ROUND_TIMEOUT: StrategyEvaluationRound,
+            Event.NO_MAJORITY: StrategyEvaluationRound,
         },
         EnterPoolTransactionHashRound: {
-            Event.DONE: EnterPoolTransactionSignatureRound,
-            Event.ROUND_TIMEOUT: ResetRound,
-            Event.NO_MAJORITY: ResetRound,
+            Event.DONE: FinishedEnterPoolTransactionHashRound,
+            Event.ROUND_TIMEOUT: StrategyEvaluationRound,
+            Event.NO_MAJORITY: StrategyEvaluationRound,
         },
-        EnterPoolTransactionSignatureRound: {
-            Event.DONE: EnterPoolTransactionSendRound,
-            Event.ROUND_TIMEOUT: ResetRound,
-            Event.NO_MAJORITY: ResetRound,
-        },
-        EnterPoolTransactionSendRound: {
-            Event.DONE: EnterPoolTransactionValidationRound,
-            Event.ROUND_TIMEOUT: ResetRound,
-            Event.NO_MAJORITY: ResetRound,
-        },
-        EnterPoolTransactionValidationRound: {
-            Event.DONE: ExitPoolTransactionHashRound,
-            Event.NO_MAJORITY: ResetRound,
-            Event.ROUND_TIMEOUT: EnterPoolRandomnessRound,
-        },
-        EnterPoolRandomnessRound: {
-            Event.DONE: EnterPoolSelectKeeperRound,
-            Event.ROUND_TIMEOUT: ResetRound,
-            Event.NO_MAJORITY: ResetRound,
-        },
-        EnterPoolSelectKeeperRound: {
-            Event.DONE: ExitPoolTransactionHashRound,
-            Event.ROUND_TIMEOUT: ResetRound,
-            Event.NO_MAJORITY: ResetRound,
-        },
+        FinishedEnterPoolTransactionHashRound: {},
         ExitPoolTransactionHashRound: {
-            Event.DONE: ExitPoolTransactionSignatureRound,
-            Event.ROUND_TIMEOUT: ResetRound,
-            Event.NO_MAJORITY: ResetRound,
+            Event.DONE: FinishedExitPoolTransactionHashRound,
+            Event.ROUND_TIMEOUT: StrategyEvaluationRound,
+            Event.NO_MAJORITY: StrategyEvaluationRound,
         },
-        ExitPoolTransactionSignatureRound: {
-            Event.DONE: ExitPoolTransactionSendRound,
-            Event.ROUND_TIMEOUT: ResetRound,
-            Event.NO_MAJORITY: ResetRound,
-        },
-        ExitPoolTransactionSendRound: {
-            Event.DONE: ExitPoolTransactionValidationRound,
-            Event.ROUND_TIMEOUT: ResetRound,
-            Event.NO_MAJORITY: ResetRound,
-        },
-        ExitPoolTransactionValidationRound: {
-            Event.DONE: SwapBackTransactionHashRound,
-            Event.NO_MAJORITY: ResetRound,
-            Event.ROUND_TIMEOUT: ExitPoolRandomnessRound,
-        },
-        ExitPoolRandomnessRound: {
-            Event.DONE: ExitPoolSelectKeeperRound,
-            Event.ROUND_TIMEOUT: ResetRound,
-            Event.NO_MAJORITY: ResetRound,
-        },
-        ExitPoolSelectKeeperRound: {
-            Event.DONE: ExitPoolTransactionHashRound,
-            Event.ROUND_TIMEOUT: ResetRound,
-            Event.NO_MAJORITY: ResetRound,
-        },
+        FinishedExitPoolTransactionHashRound: {},
         SwapBackTransactionHashRound: {
-            Event.DONE: SwapBackTransactionSignatureRound,
-            Event.ROUND_TIMEOUT: ResetRound,
-            Event.NO_MAJORITY: ResetRound,
+            Event.DONE: FinishedSwapBackTransactionHashRound,
+            Event.ROUND_TIMEOUT: StrategyEvaluationRound,
+            Event.NO_MAJORITY: StrategyEvaluationRound,
         },
-        SwapBackTransactionSignatureRound: {
-            Event.DONE: SwapBackTransactionSendRound,
-            Event.ROUND_TIMEOUT: ResetRound,
-            Event.NO_MAJORITY: ResetRound,
-        },
-        SwapBackTransactionSendRound: {
-            Event.DONE: SwapBackTransactionValidationRound,
-            Event.ROUND_TIMEOUT: ResetRound,
-            Event.NO_MAJORITY: ResetRound,
-        },
-        SwapBackTransactionValidationRound: {
-            Event.DONE: ResetAndPauseRound,
-            Event.NO_MAJORITY: ResetRound,
-            Event.ROUND_TIMEOUT: SwapBackRandomnessRound,
-        },
-        SwapBackRandomnessRound: {
-            Event.DONE: SwapBackSelectKeeperRound,
-            Event.ROUND_TIMEOUT: ResetRound,
-            Event.NO_MAJORITY: ResetRound,
-        },
-        SwapBackSelectKeeperRound: {
-            Event.DONE: SwapBackTransactionHashRound,
-            Event.ROUND_TIMEOUT: ResetRound,
-            Event.NO_MAJORITY: ResetRound,
-        },
-        ResetAndPauseRound: {
-            Event.DONE: StrategyEvaluationRound,
-            Event.RESET_TIMEOUT: ResetRound,
-            Event.NO_MAJORITY: ResetRound,
-        },
+        FinishedSwapBackTransactionHashRound: {},
+    }
+    final_states: Set[AppState] = {
+        FinishedEnterPoolTransactionHashRound,
+        FinishedExitPoolTransactionHashRound,
+        FinishedSwapBackTransactionHashRound,
     }
     event_to_timeout: Dict[Event, float] = {
         Event.EXIT: 5.0,

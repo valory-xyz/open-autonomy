@@ -37,17 +37,6 @@ def safe_contract_address() -> str
 
 Get the safe contract address.
 
-<a id="packages.valory.skills.transaction_settlement_abci.rounds.PeriodState.oracle_contract_address"></a>
-
-#### oracle`_`contract`_`address
-
-```python
-@property
-def oracle_contract_address() -> str
-```
-
-Get the oracle contract address.
-
 <a id="packages.valory.skills.transaction_settlement_abci.rounds.PeriodState.participant_to_signature"></a>
 
 #### participant`_`to`_`signature
@@ -114,56 +103,23 @@ def is_final_tx_hash_set() -> bool
 
 Check if most_voted_estimate is set.
 
-<a id="packages.valory.skills.transaction_settlement_abci.rounds.PeriodState.most_voted_estimate"></a>
+<a id="packages.valory.skills.transaction_settlement_abci.rounds.PeriodState.late_arriving_tx_hashes"></a>
 
-#### most`_`voted`_`estimate
-
-```python
-@property
-def most_voted_estimate() -> float
-```
-
-Get the most_voted_estimate.
-
-<a id="packages.valory.skills.transaction_settlement_abci.rounds.PeriodState.is_most_voted_estimate_set"></a>
-
-#### is`_`most`_`voted`_`estimate`_`set
+#### late`_`arriving`_`tx`_`hashes
 
 ```python
 @property
-def is_most_voted_estimate_set() -> bool
+def late_arriving_tx_hashes() -> List[str]
 ```
 
-Check if most_voted_estimate is set.
-
-<a id="packages.valory.skills.transaction_settlement_abci.rounds.PeriodState.nonce"></a>
-
-#### nonce
-
-```python
-@property
-def nonce() -> Optional[Nonce]
-```
-
-Get the nonce.
-
-<a id="packages.valory.skills.transaction_settlement_abci.rounds.PeriodState.max_priority_fee_per_gas"></a>
-
-#### max`_`priority`_`fee`_`per`_`gas
-
-```python
-@property
-def max_priority_fee_per_gas() -> Optional[int]
-```
-
-Get the gas data.
+Get the late_arriving_tx_hashes.
 
 <a id="packages.valory.skills.transaction_settlement_abci.rounds.FinishedRegistrationRound"></a>
 
 ## FinishedRegistrationRound Objects
 
 ```python
-class FinishedRegistrationRound(DegenerateRound)
+class FinishedRegistrationRound(DegenerateRound,  ABC)
 ```
 
 A round representing that agent registration has finished
@@ -173,7 +129,7 @@ A round representing that agent registration has finished
 ## FinishedRegistrationFFWRound Objects
 
 ```python
-class FinishedRegistrationFFWRound(DegenerateRound)
+class FinishedRegistrationFFWRound(DegenerateRound,  ABC)
 ```
 
 A fast-forward round representing that agent registration has finished
@@ -183,7 +139,7 @@ A fast-forward round representing that agent registration has finished
 ## FinishedTransactionSubmissionRound Objects
 
 ```python
-class FinishedTransactionSubmissionRound(DegenerateRound)
+class FinishedTransactionSubmissionRound(DegenerateRound,  ABC)
 ```
 
 A round that represents that transaction submission has finished
@@ -193,7 +149,7 @@ A round that represents that transaction submission has finished
 ## FailedRound Objects
 
 ```python
-class FailedRound(DegenerateRound)
+class FailedRound(DegenerateRound,  ABC)
 ```
 
 A round that represents that the period failed
@@ -288,6 +244,26 @@ class ResetAndPauseRound(CollectSameUntilThresholdRound)
 
 A round that represents that consensus is reached (the final round)
 
+<a id="packages.valory.skills.transaction_settlement_abci.rounds.ResetAndPauseRound.process_payload"></a>
+
+#### process`_`payload
+
+```python
+def process_payload(payload: BaseTxPayload) -> None
+```
+
+Process payload.
+
+<a id="packages.valory.skills.transaction_settlement_abci.rounds.ResetAndPauseRound.check_payload"></a>
+
+#### check`_`payload
+
+```python
+def check_payload(payload: BaseTxPayload) -> None
+```
+
+Check Payload
+
 <a id="packages.valory.skills.transaction_settlement_abci.rounds.ResetAndPauseRound.end_block"></a>
 
 #### end`_`block
@@ -338,6 +314,26 @@ def end_block() -> Optional[Tuple[BasePeriodState, Enum]]
 
 Process the end of the block.
 
+<a id="packages.valory.skills.transaction_settlement_abci.rounds.CheckLateTxHashesRound"></a>
+
+## CheckLateTxHashesRound Objects
+
+```python
+class CheckLateTxHashesRound(CheckTransactionHistoryRound)
+```
+
+A round in which agents check the late-arriving transaction hashes to see if any of them has been validated
+
+<a id="packages.valory.skills.transaction_settlement_abci.rounds.SynchronizeLateMessagesRound"></a>
+
+## SynchronizeLateMessagesRound Objects
+
+```python
+class SynchronizeLateMessagesRound(CollectNonEmptyUntilThresholdRound)
+```
+
+A round in which agents synchronize potentially late arriving messages
+
 <a id="packages.valory.skills.transaction_settlement_abci.rounds.TransactionSubmissionAbciApp"></a>
 
 ## TransactionSubmissionAbciApp Objects
@@ -353,50 +349,63 @@ Initial round: RandomnessTransactionSubmissionRound
 Initial states: {RandomnessTransactionSubmissionRound}
 
 Transition states:
-0. RandomnessTransactionSubmissionRound
-    - done: 1.
-    - round timeout: 7.
-    - no majority: 0.
-1. SelectKeeperTransactionSubmissionRoundA
-    - done: 2.
-    - round timeout: 7.
-    - no majority: 7.
-2. CollectSignatureRound
-    - done: 3.
-    - round timeout: 7.
-    - no majority: 7.
-3. FinalizationRound
-    - done: 4.
-    - round timeout: 6.
-    - failed: 6.
-4. ValidateTransactionRound
-    - done: 8.
-    - negative: 5.
-    - none: 3.
-    - validate timeout: 3.
-    - no majority: 4.
-5. CheckTransactionHistoryRound
-    - done: 9.
-    - negative: 10.
-    - none: 10.
-    - round timeout: 5.
-    - no majority: 10.
-6. SelectKeeperTransactionSubmissionRoundB
-    - done: 3.
-    - round timeout: 7.
-    - no majority: 7.
-7. ResetRound
-    - done: 0.
-    - reset timeout: 10.
-    - no majority: 10.
-8. ResetAndPauseRound
-    - done: 9.
-    - reset and pause timeout: 10.
-    - no majority: 10.
-9. FinishedTransactionSubmissionRound
-10. FailedRound
+    0. RandomnessTransactionSubmissionRound
+        - done: 1.
+        - round timeout: 9.
+        - no majority: 0.
+    1. SelectKeeperTransactionSubmissionRoundA
+        - done: 2.
+        - round timeout: 9.
+        - no majority: 9.
+    2. CollectSignatureRound
+        - done: 3.
+        - round timeout: 9.
+        - no majority: 9.
+    3. FinalizationRound
+        - done: 4.
+        - check history: 5.
+        - round timeout: 6.
+        - failed: 6.
+        - check late arriving message: 7.
+    4. ValidateTransactionRound
+        - done: 10.
+        - negative: 5.
+        - none: 3.
+        - validate timeout: 3.
+        - no majority: 4.
+    5. CheckTransactionHistoryRound
+        - done: 10.
+        - negative: 7.
+        - none: 12.
+        - round timeout: 5.
+        - no majority: 7.
+    6. SelectKeeperTransactionSubmissionRoundB
+        - done: 3.
+        - round timeout: 9.
+        - no majority: 9.
+    7. SynchronizeLateMessagesRound
+        - done: 8.
+        - round timeout: 7.
+        - no majority: 7.
+        - none: 12.
+    8. CheckLateTxHashesRound
+        - done: 10.
+        - negative: 12.
+        - none: 12.
+        - round timeout: 8.
+        - no majority: 12.
+    9. ResetRound
+        - done: 0.
+        - reset timeout: 12.
+        - no majority: 12.
+    10. ResetAndPauseRound
+        - done: 11.
+        - reset and pause timeout: 12.
+        - no majority: 12.
+    11. FinishedTransactionSubmissionRound
+    12. FailedRound
 
-Final states: {FinishedTransactionSubmissionRound, FailedRound}
+Final states: {FailedRound, FinishedTransactionSubmissionRound}
 
 Timeouts:
     round timeout: 30.0

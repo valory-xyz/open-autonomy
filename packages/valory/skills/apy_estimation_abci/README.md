@@ -54,10 +54,6 @@ This module contains the APY estimation skill for an AEA.
 
    Reset state.
 
-* `TendermintHealthcheckBehaviour`
-
-   Check whether Tendermint nodes are running.
-
 * `TestBehaviour`
 
    Test an estimator.

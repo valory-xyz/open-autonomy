@@ -74,7 +74,7 @@ class UseTendermint:
 class UseGnosisSafeHardHatNet:
     """Inherit from this class to use HardHat local net with Gnosis-Safe deployed."""
 
-    key_pairs: List[Tuple[str, str]] = []
+    key_pairs: List[Tuple[str, str]] = KEY_PAIRS
 
     @classmethod
     @pytest.fixture(autouse=True)

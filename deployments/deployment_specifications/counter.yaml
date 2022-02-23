@@ -1,0 +1,6 @@
+agent: "valory/counter:0.1.0"
+network: hardhat
+number_of_agents: 1
+author: "valory"
+version: 0.1.0
+name: counter

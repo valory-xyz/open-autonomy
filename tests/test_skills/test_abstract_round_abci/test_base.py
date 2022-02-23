@@ -23,11 +23,12 @@ import re
 from abc import ABC
 from copy import copy
 from enum import Enum
-from typing import Any, Dict, Optional, Tuple, Type
+from typing import Any, Dict, Optional, Set, Tuple, Type
 from unittest import mock
 from unittest.mock import MagicMock
 
 import pytest
+from aea.exceptions import AEAEnforceError
 from aea_ledger_ethereum import EthereumCrypto
 from hypothesis import given
 from hypothesis.strategies import booleans, dictionaries, floats, one_of, text
@@ -39,6 +40,7 @@ from packages.valory.skills.abstract_round_abci.base import (
     AbciAppTransitionFunction,
     AbstractRound,
     AddBlockError,
+    AppState,
     BasePeriodState,
     BaseTxPayload,
     Block,
@@ -189,6 +191,16 @@ class AbciAppTest(AbciApp[str]):
     }
 
 
+def test_base_tx_payload() -> None:
+    """Test BaseTxPayload."""
+
+    payload = BasePayload(sender="sender")
+    new_payload = payload.with_new_id()
+
+    assert payload.sender == new_payload.sender
+    assert payload.id_ != new_payload.id_
+
+
 class TestTransactions:
     """Test Transactions class."""
 
@@ -294,8 +306,8 @@ class TestMetaPayloadUtilityMethods:
         but different class object. This will raise an error.
         """
         tx_type_name = "transaction_type"
-        tx_cls_1 = MagicMock()
-        tx_cls_2 = MagicMock()
+        tx_cls_1 = MagicMock(__name__="name_1")
+        tx_cls_2 = MagicMock(__name__="name_2")
         _MetaPayload.transaction_type_to_payload_cls[tx_type_name] = tx_cls_1
 
         with pytest.raises(ValueError):
@@ -515,6 +527,16 @@ class TestBasePeriodState:
         )
         with pytest.raises(ValueError, match="List participants cannot be empty."):
             _ = base_period_state.participants
+
+    def test_all_participants_list_is_empty(
+        self,
+    ) -> None:
+        """Tets when participants list is set to zero."""
+        base_period_state = BasePeriodState(
+            db=StateDB(initial_period=0, initial_data=dict(all_participants={}))
+        )
+        with pytest.raises(ValueError, match="List participants cannot be empty."):
+            _ = base_period_state.all_participants
 
 
 class TestAbstractRound:
@@ -1043,7 +1065,7 @@ class TestPeriod:
 
     def test_latest_result(self) -> None:
         """Test 'latest_result' property getter."""
-        assert self.period.latest_result is None
+        assert self.period.latest_state
 
     def test_begin_block_negative_is_finished(self) -> None:
         """Test 'begin_block' method, negative case (period is finished)."""
@@ -1134,7 +1156,7 @@ class TestPeriod:
         ):
             self.period.commit()
         assert not isinstance(self.period.abci_app._current_round, ConcreteRoundA)
-        assert self.period.latest_result == round_result
+        assert self.period.latest_state == round_result
 
 
 def test_meta_abci_app_when_instance_not_subclass_of_abstract_round() -> None:
@@ -1147,3 +1169,37 @@ def test_meta_abci_app_when_instance_not_subclass_of_abstract_round() -> None:
 
     class MyAbciApp(metaclass=_MetaAbciApp):
         pass
+
+
+def test_meta_abci_app_when_final_round_not_subclass_of_degenerate_round() -> None:
+    """Test instantiation of meta-class when a final round is not a subclass of DegenerateRound."""
+
+    class FinalRound(AbstractRound):
+        """A round class for testing."""
+
+        def end_block(self) -> Optional[Tuple[BasePeriodState, Enum]]:
+            pass
+
+        def check_payload(self, payload: BaseTxPayload) -> None:
+            pass
+
+        def process_payload(self, payload: BaseTxPayload) -> None:
+            pass
+
+        round_id = "final_round"
+
+    with pytest.raises(
+        AEAEnforceError,
+        match="non-final state.*must have at least one non-timeout transition",
+    ):
+
+        class MyAbciApp(AbciApp, metaclass=_MetaAbciApp):
+            initial_round_cls: Type[AbstractRound] = ConcreteRoundA
+            transition_function: Dict[
+                Type[AbstractRound], Dict[str, Type[AbstractRound]]
+            ] = {
+                ConcreteRoundA: {"event": FinalRound, "timeout": ConcreteRoundA},
+                FinalRound: {},
+            }
+            event_to_timeout = {"timeout": 1.0}
+            final_states: Set[AppState] = set()

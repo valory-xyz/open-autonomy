@@ -32,7 +32,6 @@ valory/consensus-algorithms-tendermint:0.1.0 \
 
 DOCKER_COMPOSE_TEMPLATE: str = """version: "3"
 services:
-{hardhat_chain}
 {tendermint_nodes}
 {abci_nodes}
 networks:
@@ -69,8 +68,7 @@ TENDERMINT_NODE_TEMPLATE: str = """
     volumes:
       - ./build:/tendermint:Z
     working_dir: /tendermint
-    entrypoint: /bin/bash
-    command:  wrapper.sh node --consensus.create_empty_blocks=true --proxy_app=tcp://abci{node_id}:26658
+    command: ["run", "--no-reload", "--host=0.0.0.0", "--port=8080",]
     networks:
       localnet:
         ipv4_address: 192.167.11.{localnet_address_postfix}

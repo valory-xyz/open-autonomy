@@ -18,3 +18,4 @@
 # ------------------------------------------------------------------------------
 
 """Helpers package for the 'deployments' functionality."""
+from .base_deployments import BaseDeployment, BaseDeploymentGenerator  # noqa:

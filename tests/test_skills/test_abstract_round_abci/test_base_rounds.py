@@ -44,10 +44,12 @@ from packages.valory.skills.abstract_round_abci.base import (
     BaseTxPayload,
     CollectDifferentUntilAllRound,
     CollectDifferentUntilThresholdRound,
+    CollectNonEmptyUntilThresholdRound,
     CollectSameUntilThresholdRound,
     CollectionRound,
     ConsensusParams,
     OnlyKeeperSendsRound,
+    ROUND_COUNT_DEFAULT,
     StateDB,
     TransactionNotValidError,
     VotingRound,
@@ -66,15 +68,22 @@ class DummyTxPayload(BaseTxPayload):
     """Dummy Transaction Payload."""
 
     transaction_type = "DummyPayload"
-    _value: str
+    _value: Optional[str]
     _vote: Optional[bool]
 
-    def __init__(self, sender: str, value: Any, vote: Optional[bool] = False) -> None:
+    def __init__(
+        self,
+        sender: str,
+        value: Any,
+        vote: Optional[bool] = False,
+        round_count: int = ROUND_COUNT_DEFAULT,
+    ) -> None:
         """Initialize a dummy transaction payload."""
 
         super().__init__(sender, None)
         self._value = value
         self._vote = vote
+        self._round_count = round_count
 
     @property
     def value(self) -> Any:
@@ -154,6 +163,12 @@ class DummyVotingRound(VotingRound, DummyRound):
     """Dummy Class for VotingRound"""
 
 
+class DummyCollectNonEmptyUntilThresholdRound(
+    CollectNonEmptyUntilThresholdRound, DummyRound
+):
+    """Dummy Class for `CollectNonEmptyUntilThresholdRound`"""
+
+
 class BaseRoundTestClass:
     """Base test class."""
 
@@ -173,7 +188,10 @@ class BaseRoundTestClass:
         cls.participants = get_participants()
         cls.period_state = cls._period_state_class(
             db=StateDB(
-                initial_period=0, initial_data=dict(participants=cls.participants)
+                initial_period=0,
+                initial_data=dict(
+                    participants=cls.participants, all_participants=cls.participants
+                ),
             )
         )  # type: ignore
         cls.consensus_params = ConsensusParams(max_participants=MAX_PARTICIPANTS)
@@ -223,10 +241,13 @@ class BaseCollectDifferentUntilAllRoundTest(BaseRoundTestClass):
 
         first_payload = round_payloads.pop(0)
         test_round.process_payload(first_payload)
+
+        with pytest.raises(ABCIAppInternalError, match="not enough votes"):
+            _ = test_round.most_voted_payload
+
         yield test_round
-        assert test_round.collection == {
-            first_payload.sender,
-        }
+        assert test_round.collection[first_payload.sender] == first_payload
+        assert not test_round.collection_threshold_reached
         assert test_round.end_block() is None
 
         for payload in round_payloads:
@@ -481,6 +502,12 @@ class BaseCollectDifferentUntilThresholdRoundTest(BaseRoundTestClass):
         yield
 
 
+class BaseCollectNonEmptyUntilThresholdRound(
+    BaseCollectDifferentUntilThresholdRoundTest
+):
+    """Tests for rounds derived from `CollectNonEmptyUntilThresholdRound`."""
+
+
 class _BaseRoundTestClass(BaseRoundTestClass):
     """Base test class."""
 
@@ -499,6 +526,21 @@ class _BaseRoundTestClass(BaseRoundTestClass):
 
         super().setup()
         cls.tx_payloads = get_dummy_tx_payloads(cls.participants)
+
+    def _test_payload_with_wrong_round_count(self, test_round: AbstractRound) -> None:
+        """Test errors raised by pyaloads with wrong round count."""
+        payload_with_wrong_round_count = DummyTxPayload("sender", None, False, 0)
+        with pytest.raises(
+            TransactionNotValidError,
+            match=re.escape("Expected round count -1 and got 0."),
+        ):
+            test_round.check_payload(payload=payload_with_wrong_round_count)
+
+        with pytest.raises(
+            ABCIAppInternalError,
+            match=re.escape("Expected round count -1 and got 0."),
+        ):
+            test_round.process_payload(payload=payload_with_wrong_round_count)
 
 
 class TestCollectionRound(_BaseRoundTestClass):
@@ -545,6 +587,8 @@ class TestCollectionRound(_BaseRoundTestClass):
         ):
             test_round.check_payload(DummyTxPayload("sender", "value"))
 
+        self._test_payload_with_wrong_round_count(test_round)
+
 
 class TestCollectDifferentUntilAllRound(_BaseRoundTestClass):
     """Test class for CollectDifferentUntilAllRound."""
@@ -560,25 +604,24 @@ class TestCollectDifferentUntilAllRound(_BaseRoundTestClass):
 
         first_payload, *payloads = self.tx_payloads
         test_round.process_payload(first_payload)
-        assert test_round.collection == {
-            first_payload.value,
-        }
         assert not test_round.collection_threshold_reached
 
         with pytest.raises(
             ABCIAppInternalError,
-            match="internal error: payload attribute value with value agent_0 has already been added for round: round_id",
+            match="internal error: sender agent_0 has already sent value for round: round_id",
         ):
             test_round.process_payload(first_payload)
 
         with pytest.raises(
             TransactionNotValidError,
-            match="payload attribute value with value agent_0 has already been added for round: round_id",
+            match="sender agent_0 has already sent value for round: round_id",
         ):
             test_round.check_payload(first_payload)
 
         for payload in payloads:
             test_round.process_payload(payload)
+
+        self._test_payload_with_wrong_round_count(test_round)
 
 
 class TestCollectSameUntilThresholdRound(_BaseRoundTestClass):
@@ -607,6 +650,8 @@ class TestCollectSameUntilThresholdRound(_BaseRoundTestClass):
 
         assert test_round.threshold_reached
         assert test_round.most_voted_payload == "vote"
+
+        self._test_payload_with_wrong_round_count(test_round)
 
     def test_run_with_none(
         self,
@@ -689,6 +734,8 @@ class TestOnlyKeeperSendsRound(_BaseRoundTestClass, BaseOnlyKeeperSendsRoundTest
         ):
             test_round.check_payload(DummyTxPayload(sender="agent_1", value="sender"))
 
+        self._test_payload_with_wrong_round_count(test_round)
+
     def test_keeper_payload_is_none(
         self,
     ) -> None:
@@ -728,6 +775,8 @@ class TestVotingRound(_BaseRoundTestClass):
             for payload in get_dummy_tx_payloads(frozenset(agents), vote=vote):
                 test_round.process_payload(payload)
         assert dict(test_round.vote_count) == {True: 2, False: 1, None: 1}
+
+        self._test_payload_with_wrong_round_count(test_round)
 
     def test_negative_threshold(
         self,
@@ -780,3 +829,80 @@ class TestCollectDifferentUntilThresholdRound(_BaseRoundTestClass):
             test_round.process_payload(payload)
 
         assert test_round.collection_threshold_reached
+
+        self._test_payload_with_wrong_round_count(test_round)
+
+
+class TestDummyCollectNonEmptyUntilThresholdRound(_BaseRoundTestClass):
+    """Test `CollectNonEmptyUntilThresholdRound`."""
+
+    def test_get_non_empty_values(self) -> None:
+        """Test `_get_non_empty_values`."""
+        test_round = DummyCollectNonEmptyUntilThresholdRound(
+            state=self.period_state, consensus_params=self.consensus_params
+        )
+        payloads = get_dummy_tx_payloads(self.participants)
+        payloads[3]._value = None
+        for payload in payloads:
+            test_round.process_payload(payload)
+
+        non_empty_values = test_round._get_non_empty_values()
+        assert non_empty_values == [f"agent_{i}" for i in range(3)]
+
+        self._test_payload_with_wrong_round_count(test_round)
+
+    def test_process_payload(self) -> None:
+        """Test `process_payload`."""
+        test_round = DummyCollectNonEmptyUntilThresholdRound(
+            state=self.period_state, consensus_params=self.consensus_params
+        )
+
+        first_payload, *payloads = get_dummy_tx_payloads(self.participants)
+        test_round.process_payload(first_payload)
+
+        assert not test_round.collection_threshold_reached
+        for payload in payloads:
+            test_round.process_payload(payload)
+
+        assert test_round.collection_threshold_reached
+
+    @pytest.mark.parametrize("is_majority_possible", (True, False))
+    def test_end_block_no_threshold_reached(self, is_majority_possible: bool) -> None:
+        """Test `end_block` when no collection threshold is reached."""
+        test_round = DummyCollectNonEmptyUntilThresholdRound(
+            state=self.period_state, consensus_params=self.consensus_params
+        )
+
+        test_round.is_majority_possible = lambda *_: is_majority_possible  # type: ignore
+        test_round.no_majority_event = "no_majority"
+
+        res = cast(Tuple[BasePeriodState, Enum], test_round.end_block())
+
+        if not is_majority_possible:
+            assert res[0].db == self.period_state.db
+            assert res[1] == test_round.no_majority_event
+        else:
+            assert res is None
+
+    @pytest.mark.parametrize(
+        "is_value_none, expected_event", ((True, "none"), (False, "done"))
+    )
+    def test_end_block(self, is_value_none: bool, expected_event: str) -> None:
+        """Test `end_block` when collection threshold is reached."""
+        test_round = DummyCollectNonEmptyUntilThresholdRound(
+            state=self.period_state, consensus_params=self.consensus_params
+        )
+
+        payloads = get_dummy_tx_payloads(self.participants, is_value_none=is_value_none)
+        for payload in payloads:
+            test_round.process_payload(payload)
+
+        test_round.collection = {f"test_{i}": payloads[i] for i in range(len(payloads))}
+        test_round.selection_key = "test"
+        test_round.collection_key = "test"
+        test_round.done_event = "done"
+        test_round.none_event = "none"
+
+        res = cast(Tuple[BasePeriodState, Enum], test_round.end_block())
+        assert res[0].db == self.period_state.db
+        assert res[1] == expected_event

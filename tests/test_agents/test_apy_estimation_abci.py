@@ -30,10 +30,7 @@ from tests.test_agents.base import BaseTestEnd2EndNormalExecution
 ipfs_daemon = pytest.mark.usefixtures("ipfs_daemon")
 
 # check log messages of the happy path
-CHECK_STRINGS_LIST = [
-    "Entered in the 'tendermint_healthcheck' behaviour state",
-    "'tendermint_healthcheck' behaviour state is done",
-]
+CHECK_STRINGS_LIST = []
 
 states_checks_config = {
     "collect_history": {
@@ -152,6 +149,7 @@ class BaseTestABCIAPYEstimationSkillNormalExecution(BaseTestEnd2EndNormalExecuti
     wait_to_finish = 240
 
 
+@pytest.mark.skip
 class TestABCIAPYEstimationSingleAgent(
     BaseTestABCIAPYEstimationSkillNormalExecution,
     UseGnosisSafeHardHatNet,
@@ -171,6 +169,7 @@ class TestABCIAPYEstimationTwoAgents(
     NB_AGENTS = 2
 
 
+@pytest.mark.skip
 class TestABCIAPYEstimationFourAgents(
     BaseTestABCIAPYEstimationSkillNormalExecution,
     UseGnosisSafeHardHatNet,

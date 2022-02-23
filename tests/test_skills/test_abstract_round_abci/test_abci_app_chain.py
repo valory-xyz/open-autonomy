@@ -18,7 +18,6 @@
 # ------------------------------------------------------------------------------
 
 """Test the abci_app_chain.py module of the skill."""
-from unittest.mock import MagicMock
 
 import pytest
 
@@ -26,7 +25,9 @@ from packages.valory.skills.abstract_round_abci.abci_app_chain import (
     AbciAppTransitionMapping,
     chain,
 )
-from packages.valory.skills.abstract_round_abci.base import AbciApp
+from packages.valory.skills.abstract_round_abci.base import AbciApp, DegenerateRound
+
+from tests.helpers.base import make_round_class
 
 
 class TestAbciAppChaining:
@@ -34,18 +35,18 @@ class TestAbciAppChaining:
 
     def setup(self) -> None:
         """Setup test."""
-        self.round_1a = MagicMock()
-        self.round_1b = MagicMock()
-        self.round_1c = MagicMock()
+        self.round_1a = make_round_class("round_1a")
+        self.round_1b = make_round_class("round_1b")
+        self.round_1c = make_round_class("round_1c", (DegenerateRound,))
 
-        self.round_2a = MagicMock()
-        self.round_2b = MagicMock()
-        self.round_2c = MagicMock()
-        self.round_2d = MagicMock()
+        self.round_2a = make_round_class("round_2a")
+        self.round_2b = make_round_class("round_2b")
+        self.round_2c = make_round_class("round_2c", (DegenerateRound,))
+        self.round_2d = make_round_class("round_2d")
 
-        self.round_3a = MagicMock()
-        self.round_3b = MagicMock()
-        self.round_3c = MagicMock()
+        self.round_3a = make_round_class("round_3a")
+        self.round_3b = make_round_class("round_3b")
+        self.round_3c = make_round_class("round_3c", (DegenerateRound,))
 
         self.event_1a = "event_1a"
         self.event_1b = "event_1b"

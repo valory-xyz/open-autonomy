@@ -143,6 +143,7 @@ class RegistrationRound(CollectDifferentUntilAllRound, SimpleABCIAbstractRound):
         if self.collection_threshold_reached:
             state = self.period_state.update(
                 participants=self.collection,
+                all_participants=self.collection,
                 period_state_class=PeriodState,
             )
             return state, Event.DONE
@@ -215,6 +216,7 @@ class BaseResetRound(CollectSameUntilThresholdRound, SimpleABCIAbstractRound):
             state = self.period_state.update(
                 period_count=self.most_voted_payload,
                 participants=self.period_state.participants,
+                all_participants=self.period_state.all_participants,
             )
             return state, Event.DONE
         if not self.is_majority_possible(
@@ -238,20 +240,20 @@ class SimpleAbciApp(AbciApp[Event]):
     Initial states: {RegistrationRound}
 
     Transition states:
-    0. RegistrationRound
-        - done: 1.
-    1. RandomnessStartupRound
-        - done: 2.
-        - round timeout: 1.
-        - no majority: 1.
-    2. SelectKeeperAtStartupRound
-        - done: 3.
-        - round timeout: 0.
-        - no majority: 0.
-    3. ResetAndPauseRound
-        - done: 1.
-        - reset timeout: 0.
-        - no majority: 0.
+        0. RegistrationRound
+            - done: 1.
+        1. RandomnessStartupRound
+            - done: 2.
+            - round timeout: 1.
+            - no majority: 1.
+        2. SelectKeeperAtStartupRound
+            - done: 3.
+            - round timeout: 0.
+            - no majority: 0.
+        3. ResetAndPauseRound
+            - done: 1.
+            - reset timeout: 0.
+            - no majority: 0.
 
     Final states: {}
 

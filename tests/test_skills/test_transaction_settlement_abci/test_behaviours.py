@@ -24,9 +24,9 @@ import json
 import logging
 import time
 from pathlib import Path
-from typing import Dict, Generator, List, Optional, Union, cast
+from typing import Dict, Generator, List, Optional, Type, Union, cast
 from unittest import mock
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 
 import pytest
 from aea.exceptions import AEAActException
@@ -46,12 +46,12 @@ from packages.valory.protocols.abci import AbciMessage  # noqa: F401
 from packages.valory.protocols.contract_api.message import ContractApiMessage
 from packages.valory.protocols.ledger_api.message import LedgerApiMessage
 from packages.valory.skills.abstract_round_abci.base import StateDB
-from packages.valory.skills.abstract_round_abci.behaviour_utils import BaseState
-from packages.valory.skills.price_estimation_abci.behaviours import (
-    ObserveBehaviour,
-    payload_to_hex,
+from packages.valory.skills.abstract_round_abci.behaviour_utils import (
+    BaseState,
+    make_degenerate_state,
 )
 from packages.valory.skills.transaction_settlement_abci.behaviours import (
+    CheckLateTxHashesBehaviour,
     CheckTransactionHistoryBehaviour,
     FinalizeBehaviour,
     RandomnessTransactionSubmissionBehaviour,
@@ -60,11 +60,20 @@ from packages.valory.skills.transaction_settlement_abci.behaviours import (
     SelectKeeperTransactionSubmissionBehaviourA,
     SelectKeeperTransactionSubmissionBehaviourB,
     SignatureBehaviour,
+    SynchronizeLateMessagesBehaviour,
     TransactionSettlementBaseState,
+    TxDataType,
     ValidateTransactionBehaviour,
+)
+from packages.valory.skills.transaction_settlement_abci.payload_tools import (
+    VerificationStatus,
+    hash_payload_to_hex,
 )
 from packages.valory.skills.transaction_settlement_abci.rounds import (
     Event as TransactionSettlementEvent,
+)
+from packages.valory.skills.transaction_settlement_abci.rounds import (
+    FinishedTransactionSubmissionRound,
 )
 from packages.valory.skills.transaction_settlement_abci.rounds import (
     PeriodState as TransactionSettlementPeriodState,
@@ -82,7 +91,7 @@ class PriceEstimationFSMBehaviourBaseCase(FSMBehaviourBaseCase):
     """Base case for testing PriceEstimation FSMBehaviour."""
 
     path_to_skill = Path(
-        ROOT_DIR, "packages", "valory", "skills", "price_estimation_abci"
+        ROOT_DIR, "packages", "valory", "skills", "transaction_settlement_abci"
     )
 
 
@@ -282,10 +291,9 @@ class TestFinalizeBehaviour(PriceEstimationFSMBehaviourBaseCase):
                     initial_data=dict(
                         most_voted_keeper_address=self.skill.skill_context.agent_address,
                         safe_contract_address="safe_contract_address",
-                        oracle_contract_address="oracle_contract_address",
                         participants=participants,
                         participant_to_signature={},
-                        most_voted_tx_hash=payload_to_hex(
+                        most_voted_tx_hash=hash_payload_to_hex(
                             "b0e6add595e00477cf347d09797b156719dc5233283ac76e4efce2a674fe72d9",
                             1,
                             1,
@@ -342,6 +350,43 @@ class TestFinalizeBehaviour(PriceEstimationFSMBehaviourBaseCase):
         state = cast(BaseState, self.behaviour.current_state)
         assert state.state_id == ValidateTransactionBehaviour.state_id
 
+    def test_handle_late_messages(self) -> None:
+        """Test `handle_late_messages.`"""
+        participants = frozenset({self.skill.skill_context.agent_address, "a_1", "a_2"})
+        self.fast_forward_to_state(
+            behaviour=self.behaviour,
+            state_id=FinalizeBehaviour.state_id,
+            period_state=TransactionSettlementPeriodState(
+                StateDB(
+                    initial_period=0,
+                    initial_data=dict(
+                        most_voted_keeper_address="most_voted_keeper_address",
+                        participants=participants,
+                    ),
+                )
+            ),
+        )
+        assert (
+            cast(
+                BaseState,
+                cast(BaseState, self.behaviour.current_state),
+            ).state_id
+            == FinalizeBehaviour.state_id
+        )
+
+        message = ContractApiMessage(ContractApiMessage.Performative.RAW_MESSAGE)  # type: ignore
+        cast(BaseState, self.behaviour.current_state).handle_late_messages(message)
+        assert cast(
+            TransactionSettlementBaseState, self.behaviour.current_state
+        ).params.late_messages == [message]
+
+        message = MagicMock()
+        with mock.patch.object(self.behaviour.context.logger, "warning") as mock_info:
+            cast(BaseState, self.behaviour.current_state).handle_late_messages(message)
+            mock_info.assert_called_with(
+                f"No callback defined for request with nonce: {message.dialogue_reference[0]}"
+            )
+
 
 class TestValidateTransactionBehaviour(PriceEstimationFSMBehaviourBaseCase):
     """Test ValidateTransactionBehaviour."""
@@ -358,12 +403,11 @@ class TestValidateTransactionBehaviour(PriceEstimationFSMBehaviourBaseCase):
                     initial_period=0,
                     initial_data=dict(
                         safe_contract_address="safe_contract_address",
-                        oracle_contract_address="oracle_contract_address",
                         tx_hashes_history=["final_tx_hash"],
                         participants=participants,
                         most_voted_keeper_address=most_voted_keeper_address,
                         participant_to_signature={},
-                        most_voted_tx_hash=payload_to_hex(
+                        most_voted_tx_hash=hash_payload_to_hex(
                             "b0e6add595e00477cf347d09797b156719dc5233283ac76e4efce2a674fe72d9",
                             1,
                             1,
@@ -527,11 +571,71 @@ class TestCheckTransactionHistoryBehaviour(PriceEstimationFSMBehaviourBaseCase):
         assert state.state_id == ResetAndPauseBehaviour.state_id
 
 
+class TestSynchronizeLateMessagesBehaviour(PriceEstimationFSMBehaviourBaseCase):
+    """Test `SynchronizeLateMessagesBehaviour`"""
+
+    def _check_state_id(self, expected: Type[TransactionSettlementBaseState]) -> None:
+        state = cast(BaseState, self.behaviour.current_state)
+        assert state.state_id == expected.state_id
+
+    @pytest.mark.parametrize("late_message_empty", (True, False))
+    def test_async_act(self, late_message_empty: bool) -> None:
+        """Test `async_act`"""
+        participants = frozenset({self.skill.skill_context.agent_address, "a_1", "a_2"})
+        self.fast_forward_to_state(
+            behaviour=self.behaviour,
+            state_id=SynchronizeLateMessagesBehaviour.state_id,
+            period_state=TransactionSettlementPeriodState(
+                StateDB(
+                    initial_period=0,
+                    initial_data=dict(
+                        participants=participants,
+                        participant_to_signature={},
+                        safe_contract_address="safe_contract_address",
+                    ),
+                )
+            ),
+        )
+        self._check_state_id(SynchronizeLateMessagesBehaviour)  # type: ignore
+
+        if late_message_empty:
+            cast(
+                TransactionSettlementBaseState, self.behaviour.current_state
+            ).params.late_messages = []
+            self.behaviour.act_wrapper()
+            self.mock_a2a_transaction()
+            self._test_done_flag_set()
+            self.end_round(TransactionSettlementEvent.DONE)
+            self._check_state_id(CheckLateTxHashesBehaviour)  # type: ignore
+
+        else:
+            cast(
+                TransactionSettlementBaseState, self.behaviour.current_state
+            ).params.late_messages = [MagicMock(), MagicMock()]
+
+            def _dummy_get_tx_data(
+                _: ContractApiMessage,
+            ) -> Generator[None, None, TxDataType]:
+                yield
+                return {
+                    "status": VerificationStatus.PENDING,
+                    "tx_digest": "test",
+                    "nonce": 0,
+                    "max_priority_fee_per_gas": 0,
+                }
+
+            cast(TransactionSettlementBaseState, self.behaviour.current_state)._get_tx_data = _dummy_get_tx_data  # type: ignore
+            self.behaviour.act_wrapper()
+            self.behaviour.act_wrapper()
+
+
 class TestResetAndPauseBehaviour(PriceEstimationFSMBehaviourBaseCase):
     """Test ResetBehaviour."""
 
     behaviour_class = ResetAndPauseBehaviour
-    next_behaviour_class = ObserveBehaviour
+    next_behaviour_class = make_degenerate_state(
+        FinishedTransactionSubmissionRound.round_id
+    )
 
     def test_reset_behaviour(
         self,

@@ -427,7 +427,11 @@ class GnosisSafeContract(Contract):
             refund_receiver,
             signatures,
         )
-        tx_parameters: Dict[str, Union[str, int]] = {"from": sender_address}
+        configured_gas = base_gas + safe_tx_gas + 75000
+        tx_parameters: Dict[str, Union[str, int]] = {
+            "from": sender_address,
+            "gas": configured_gas,
+        }
         if gas_price is not None:
             tx_parameters["gasPrice"] = gas_price
         if max_fee_per_gas is not None:
@@ -443,7 +447,7 @@ class GnosisSafeContract(Contract):
         # note, the next line makes an eth_estimateGas call!
         transaction_dict = w3_tx.buildTransaction(tx_parameters)
         transaction_dict["gas"] = Wei(
-            max(transaction_dict["gas"] + 75000, base_gas + safe_tx_gas + 75000)
+            max(transaction_dict["gas"] + 75000, configured_gas)
         )
         if nonce is None:
             transaction_dict["nonce"] = ledger_api.api.eth.get_transaction_count(
@@ -582,14 +586,16 @@ class GnosisSafeContract(Contract):
         )
 
     @classmethod
-    def revert_reason(
+    def revert_reason(  # pylint: disable=unused-argument
         cls,
         ledger_api: EthereumApi,
+        contract_address: str,
         tx: TxData,
     ) -> JSONLike:
         """Check the revert reason of a transaction.
 
         :param ledger_api: the ledger API object.
+        :param contract_address: the contract address
         :param tx: the transaction for which we want to get the revert reason.
 
         :return: the revert reason message.
@@ -610,9 +616,22 @@ class GnosisSafeContract(Contract):
         except SolidityError as e:
             # execution reverted exception
             return dict(revert_reason=repr(e))
-        except HTTPError as e:
+        except HTTPError as e:  # pragma: nocover
             # http exception
             raise e
         else:
             # given tx not reverted
             raise ValueError(f"The given transaction has not been reverted!\ntx: {tx}")
+
+    @classmethod
+    def get_safe_nonce(cls, ledger_api: EthereumApi, contract_address: str) -> JSONLike:
+        """
+        Retrieve the safe's nonce
+
+        :param ledger_api: the ledger API object
+        :param contract_address: the contract address
+        :return: the safe nonce
+        """
+        safe_contract = cls.get_instance(ledger_api, contract_address)
+        safe_nonce = safe_contract.functions.nonce().call(block_identifier="latest")
+        return dict(safe_nonce=safe_nonce)

@@ -6,7 +6,7 @@ description: This skill implements the APY estimation for an AEA.
 license: Apache-2.0
 aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
-  README.md: QmaQVmDR2casu1vcBsSrNf5eispadze3ZNRnLKWUpkuG6u
+  README.md: QmSvXr6k7f5GFZVCgqM8d4ywibiSAYbdaGjmPh4CmFfQn9
   __init__.py: Qmb163B19kEpc6PfbLnmQxPbeEWA2ubTghVwG2YUeNYusu
   behaviours.py: QmZUqKgcxpGtJy7fh3fiemJiivi3kFhVA2btkp6MHRZo4r
   composition.py: QmfV3hauFb2XUnycdrE8vMbH9WqgDFyFRPwPuwxxUaRtZZ
@@ -24,7 +24,7 @@ fingerprint:
   tools/etl.py: QmXAD2wo52m3L7551eNXpudJtnyjCaN5PSknS7cinBbgKS
   tools/general.py: QmUtxPckv7Mjv6RXt9LmoSARd3D5xK4pyoVVL9wv9H2kvB
   tools/io.py: QmQk9ZYtTLBeSDwvh6S5BfuaS7EYftM2fryym2RA4M8Wah
-  tools/queries.py: QmTcVkfM7D42yphDNGsVAJN38EfBvwyUop96PPhNojBF2Q
+  tools/queries.py: QmVSf5nQFA15j7F1p2e7AmrvRzPXFnMTjSUpEnwYSGnhRB
 fingerprint_ignore_patterns: []
 connections:
 - valory/abci:0.1.0
@@ -99,12 +99,12 @@ models:
       observation_interval: 10
       optimizer:
         n_trials: 2
-        timeout: None
+        timeout: null
         n_jobs: 1
         show_progress_bar: false
         scoring: pinball
         alpha: 0.25
-        window_size: None
+        window_size: null
       pair_ids:
       - '0x2b4c76d0dc16be1c31d4c1dc53bf9b45987fc75c'
       period_setup: {}
@@ -114,7 +114,9 @@ models:
       round_timeout_seconds: 120.0
       service_id: apy_estimation
       sleep_time: 5
+      tendermint_check_sleep_delay: 3
       tendermint_com_url: http://localhost:8080
+      tendermint_max_retries: 5
       tendermint_url: http://localhost:26657
       testing:
         steps_forward: 1

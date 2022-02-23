@@ -132,25 +132,25 @@ class SafeDeploymentAbciApp(AbciApp[Event]):
     Initial states: {RandomnessSafeRound}
 
     Transition states:
-    0. RandomnessSafeRound
-        - done: 1.
-        - round timeout: 0.
-        - no majority: 0.
-    1. SelectKeeperSafeRound
-        - done: 2.
-        - round timeout: 0.
-        - no majority: 0.
-    2. DeploySafeRound
-        - done: 3.
-        - deploy timeout: 1.
-        - failed: 1.
-    3. ValidateSafeRound
-        - done: 4.
-        - negative: 0.
-        - none: 0.
-        - validate timeout: 0.
-        - no majority: 0.
-    4. FinishedSafeRound
+        0. RandomnessSafeRound
+            - done: 1.
+            - round timeout: 0.
+            - no majority: 0.
+        1. SelectKeeperSafeRound
+            - done: 2.
+            - round timeout: 0.
+            - no majority: 0.
+        2. DeploySafeRound
+            - done: 3.
+            - deploy timeout: 1.
+            - failed: 1.
+        3. ValidateSafeRound
+            - done: 4.
+            - negative: 0.
+            - none: 0.
+            - validate timeout: 0.
+            - no majority: 0.
+        4. FinishedSafeRound
 
     Final states: {FinishedSafeRound}
 
@@ -196,3 +196,4 @@ class SafeDeploymentAbciApp(AbciApp[Event]):
         Event.VALIDATE_TIMEOUT: 30.0,
         Event.DEPLOY_TIMEOUT: 30.0,
     }
+    cross_period_persisted_keys = ["safe_contract_address"]

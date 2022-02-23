@@ -20,7 +20,7 @@
 """This module contains the shared state for the price estimation ABCI application."""
 import inspect
 import json
-from typing import Any, Callable, Dict, List, Tuple, Type, cast
+from typing import Any, Callable, Dict, List, Optional, Tuple, Type, cast
 
 from aea.exceptions import enforce
 from aea.skills.base import Model
@@ -54,9 +54,18 @@ class BaseParams(Model):  # pylint: disable=too-many-instance-attributes
         self.observation_interval = self._ensure("observation_interval", kwargs)
         self.drand_public_key = self._ensure("drand_public_key", kwargs)
         self.tendermint_com_url = self._ensure("tendermint_com_url", kwargs)
+        self.tendermint_max_retries = self._ensure("tendermint_max_retries", kwargs)
+        self.tendermint_check_sleep_delay = self._ensure(
+            "tendermint_check_sleep_delay", kwargs
+        )
         self.reset_tendermint_after = self._ensure("reset_tendermint_after", kwargs)
         self.consensus_params = ConsensusParams.from_json(kwargs.pop("consensus", {}))
-        self.period_setup_params = kwargs.pop("period_setup", {})
+        period_setup_params = kwargs.pop("period_setup", {})
+        # we sanitize for null values as these are just kept for schema definitions
+        period_setup_params = {
+            key: val for key, val in period_setup_params.items() if val is not None
+        }
+        self.period_setup_params = period_setup_params
         super().__init__(*args, **kwargs)
 
     @classmethod
@@ -70,33 +79,40 @@ class BaseParams(Model):  # pylint: disable=too-many-instance-attributes
 class SharedState(Model):
     """Keep the current shared state of the skill."""
 
-    period: Period
-
     def __init__(self, *args: Any, abci_app_cls: Type[AbciApp], **kwargs: Any) -> None:
         """Initialize the state."""
         self.abci_app_cls = self._process_abci_app_cls(abci_app_cls)
+        self._period: Optional[Period] = None
         super().__init__(*args, **kwargs)
 
     def setup(self) -> None:
         """Set up the model."""
-        self.period = Period(self.abci_app_cls)
+        self._period = Period(self.abci_app_cls)
         consensus_params = cast(BaseParams, self.context.params).consensus_params
         period_setup_params = cast(BaseParams, self.context.params).period_setup_params
         self.period.setup(
             BasePeriodState(
-                StateDB(initial_period=0, initial_data=period_setup_params)
+                StateDB(
+                    initial_period=0,
+                    initial_data=period_setup_params,
+                    cross_period_persisted_keys=self.abci_app_cls.cross_period_persisted_keys,
+                )
             ),
             consensus_params,
             self.context.logger,
         )
 
     @property
+    def period(self) -> Period:
+        """Get the period."""
+        if self._period is None:
+            raise ValueError("period not available")
+        return self._period
+
+    @property
     def period_state(self) -> BasePeriodState:
         """Get the period state if available."""
-        period_state = self.period.latest_result
-        if period_state is None:
-            raise ValueError("period_state not available")
-        return period_state
+        return self.period.latest_state
 
     @classmethod
     def _process_abci_app_cls(cls, abci_app_cls: Type[AbciApp]) -> Type[AbciApp]:

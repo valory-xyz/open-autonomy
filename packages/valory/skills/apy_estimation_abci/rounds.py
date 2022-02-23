@@ -459,6 +459,7 @@ class BaseResetRound(CollectSameUntilThresholdRound, APYEstimationAbstractRound)
                 period_state_class=PeriodState,
                 period_count=self.most_voted_payload,
                 participants=self.period_state.participants,
+                all_participants=self.period_state.all_participants,
                 full_training=False,
                 n_estimations=self.period_state.n_estimations,
                 pair_name=self.period_state.pair_name,
@@ -507,58 +508,70 @@ class FailedAPYRound(DegenerateRound, ABC):
 class APYEstimationAbciApp(AbciApp[Event]):  # pylint: disable=too-few-public-methods
     """APYEstimationAbciApp
 
-    Initial round: RegistrationRound
+    Initial round: CollectHistoryRound
 
-    Initial states: {RegistrationRound}
+    Initial states: {CollectHistoryRound}
 
     Transition states:
-    0. RegistrationRound
-        - done: 1.
-    1. CollectHistoryRound
-        - done: 2.
-        - no majority: 9.
-        - round timeout: 9.
-    2. TransformRound
-        - done: 3.
-        - no majority: 9.
-        - round timeout: 9.
-    3. PreprocessRound
-        - done: 4.
-        - no majority: 9.
-        - round timeout: 9.
-    4. RandomnessRound
-        - done: 5.
-        - randomness invalid: 4.
-        - no majority: 4.
-        - round timeout: 9.
-    5. OptimizeRound
-        - done: 6.
-        - no majority: 9.
-        - round timeout: 9.
-    6. TrainRound
-        - fully trained: 8.
-        - done: 7.
-        - no majority: 9.
-        - round timeout: 9.
-    7. TestRound
-        - done: 6.
-        - no majority: 9.
-        - round timeout: 9.
-    8. EstimateRound
-        - done: 9.
-        - estimation cycle: 10.
-        - round timeout: 9.
-        - no majority: 9.
-    9. ResetRound
-        - done: 1.
-        - reset timeout: 0.
-        - no majority: 0.
-    10. CycleResetRound
-        - done: 8.
-        - reset timeout: 9.
-        - no majority: 9.
+        0. CollectHistoryRound
+            - done: 1.
+            - no majority: 0.
+            - round timeout: 0.
+        1. TransformRound
+            - done: 2.
+            - no majority: 1.
+            - round timeout: 1.
+        2. PreprocessRound
+            - done: 3.
+            - no majority: 2.
+            - round timeout: 2.
+        3. RandomnessRound
+            - done: 4.
+            - randomness invalid: 3.
+            - no majority: 3.
+            - round timeout: 3.
+        4. OptimizeRound
+            - done: 5.
+            - no majority: 4.
+            - round timeout: 4.
+        5. TrainRound
+            - fully trained: 7.
+            - done: 6.
+            - no majority: 5.
+            - round timeout: 5.
+        6. TestRound
+            - done: 5.
+            - no majority: 6.
+            - round timeout: 6.
+        7. EstimateRound
+            - done: 8.
+            - estimation cycle: 9.
+            - round timeout: 7.
+            - no majority: 7.
+        8. FreshModelResetRound
+            - done: 0.
+            - round timeout: 8.
+            - no majority: 8.
+        9. CycleResetRound
+            - done: 10.
+            - round timeout: 9.
+            - no majority: 9.
+        10. CollectLatestHistoryBatchRound
+            - done: 11.
+            - round timeout: 10.
+            - no majority: 10.
+        11. PrepareBatchRound
+            - done: 12.
+            - round timeout: 11.
+            - no majority: 11.
+        12. UpdateForecasterRound
+            - done: 7.
+            - round timeout: 12.
+            - no majority: 14.
+        13. FinishedAPYEstimationRound
+        14. FailedAPYRound
 
-    Final states: {}
+    Final states: {FailedAPYRound, FinishedAPYEstimationRound}
 
     Timeouts:
         round timeout: 30.0

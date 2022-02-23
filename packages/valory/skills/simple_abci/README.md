@@ -43,10 +43,6 @@ application for a simple demonstration.
 
    This behaviour manages the consensus stages for the simple abci app.
 
-* `TendermintHealthcheckBehaviour`
-
-   Check whether Tendermint nodes are running.
-
 
 ## Handlers
 

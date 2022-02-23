@@ -220,9 +220,7 @@ class TestSharedState:
             abci_app_cls=AbciAppTest, name="", skill_context=MagicMock()
         )
         with mock.patch.object(shared_state.context, "params"):
-            shared_state.setup()
-            shared_state.period.abci_app.latest_result = None  # type: ignore
-            with pytest.raises(ValueError, match="period_state not available"):
+            with pytest.raises(ValueError, match="period not available"):
                 shared_state.period_state
 
     @mock.patch.object(SharedState, "_process_abci_app_cls")
@@ -282,4 +280,6 @@ def test_base_params_model_initialization() -> None:
         reset_tendermint_after=1,
         service_id="abstract_round_abci",
         keeper_timeout=1.0,
+        tendermint_check_sleep_delay=3,
+        tendermint_max_retries=5,
     )

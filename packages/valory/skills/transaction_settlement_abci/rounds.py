@@ -18,21 +18,25 @@
 # ------------------------------------------------------------------------------
 
 """This module contains the data classes for the `transaction settlement` ABCI application."""
+import textwrap
+from abc import ABC
 from enum import Enum
 from typing import Dict, List, Mapping, Optional, Set, Tuple, Type, cast
 
-from web3.types import Nonce
-
 from packages.valory.skills.abstract_round_abci.base import (
+    ABCIAppInternalError,
     AbciApp,
     AbciAppTransitionFunction,
     AbstractRound,
     AppState,
     BasePeriodState,
+    BaseTxPayload,
     CollectDifferentUntilThresholdRound,
+    CollectNonEmptyUntilThresholdRound,
     CollectSameUntilThresholdRound,
     DegenerateRound,
     OnlyKeeperSendsRound,
+    TransactionNotValidError,
     VotingRound,
 )
 from packages.valory.skills.transaction_settlement_abci.payload_tools import (
@@ -46,6 +50,7 @@ from packages.valory.skills.transaction_settlement_abci.payloads import (
     ResetPayload,
     SelectKeeperPayload,
     SignaturePayload,
+    SynchronizeLateMessagesPayload,
     ValidatePayload,
 )
 
@@ -62,8 +67,8 @@ class Event(Enum):
     RESET_TIMEOUT = "reset_timeout"
     RESET_AND_PAUSE_TIMEOUT = "reset_and_pause_timeout"
     CHECK_HISTORY = "check_history"
+    CHECK_LATE_ARRIVING_MESSAGE = "check_late_arriving_message"
     FAILED = "failed"
-    FATAL = "fatal"
 
 
 class PeriodState(BasePeriodState):  # pylint: disable=too-many-instance-attributes
@@ -77,11 +82,6 @@ class PeriodState(BasePeriodState):  # pylint: disable=too-many-instance-attribu
     def safe_contract_address(self) -> str:
         """Get the safe contract address."""
         return cast(str, self.db.get_strict("safe_contract_address"))
-
-    @property
-    def oracle_contract_address(self) -> str:
-        """Get the oracle contract address."""
-        return cast(str, self.db.get_strict("oracle_contract_address"))
 
     @property
     def participant_to_signature(self) -> Mapping[str, SignaturePayload]:
@@ -120,45 +120,44 @@ class PeriodState(BasePeriodState):  # pylint: disable=too-many-instance-attribu
         return self.tx_hashes_history is not None
 
     @property
-    def most_voted_estimate(self) -> float:
-        """Get the most_voted_estimate."""
-        return cast(float, self.db.get_strict("most_voted_estimate"))
+    def late_arriving_tx_hashes(self) -> List[str]:
+        """Get the late_arriving_tx_hashes."""
+        late_arriving_tx_hashes_unparsed = cast(
+            List[str], self.db.get_strict("late_arriving_tx_hashes")
+        )
+        late_arriving_tx_hashes_parsed = []
+        hashes_length = 64
+        for unparsed_hash in late_arriving_tx_hashes_unparsed:
+            if len(unparsed_hash) % hashes_length != 0:
+                # if we cannot parse the hashes, then the developer has serialized them incorrectly.
+                raise ABCIAppInternalError(
+                    f"Cannot parse late arriving hashes: {unparsed_hash}!"
+                )
+            parsed_hashes = textwrap.wrap(unparsed_hash, hashes_length)
+            late_arriving_tx_hashes_parsed.extend(parsed_hashes)
 
-    @property
-    def is_most_voted_estimate_set(self) -> bool:
-        """Check if most_voted_estimate is set."""
-        return self.db.get("most_voted_estimate", None) is not None
-
-    @property
-    def nonce(self) -> Optional[Nonce]:
-        """Get the nonce."""
-        return cast(Optional[Nonce], self.db.get("nonce"))
-
-    @property
-    def max_priority_fee_per_gas(self) -> Optional[int]:
-        """Get the gas data."""
-        return cast(Optional[int], self.db.get("max_priority_fee_per_gas", None))
+        return late_arriving_tx_hashes_parsed
 
 
-class FinishedRegistrationRound(DegenerateRound):
+class FinishedRegistrationRound(DegenerateRound, ABC):
     """A round representing that agent registration has finished"""
 
     round_id = "finished_registration"
 
 
-class FinishedRegistrationFFWRound(DegenerateRound):
+class FinishedRegistrationFFWRound(DegenerateRound, ABC):
     """A fast-forward round representing that agent registration has finished"""
 
     round_id = "finished_registration_ffw"
 
 
-class FinishedTransactionSubmissionRound(DegenerateRound):
+class FinishedTransactionSubmissionRound(DegenerateRound, ABC):
     """A round that represents that transaction submission has finished"""
 
     round_id = "finished_transaction_submission"
 
 
-class FailedRound(DegenerateRound):
+class FailedRound(DegenerateRound, ABC):
     """A round that represents that the period failed"""
 
     round_id = "failed"
@@ -201,10 +200,6 @@ class FinalizationRound(OnlyKeeperSendsRound):
                 state = self.period_state.update(
                     period_state_class=PeriodState,
                     tx_hashes_history=hashes,
-                    nonce=self.keeper_payload["nonce"],
-                    max_priority_fee_per_gas=self.keeper_payload[
-                        "max_priority_fee_per_gas"
-                    ],
                     final_verification_status=VerificationStatus(
                         self.keeper_payload["status"]
                     ),
@@ -222,7 +217,7 @@ class FinalizationRound(OnlyKeeperSendsRound):
                 )
                 if cast(PeriodState, self.period_state).tx_hashes_history is not None:
                     return state, Event.CHECK_HISTORY
-                return state, Event.FATAL
+                return state, Event.CHECK_LATE_ARRIVING_MESSAGE
 
             if self.keeper_payload is None or self.keeper_payload["tx_digest"] == "":
                 return self.period_state, Event.FAILED
@@ -281,10 +276,9 @@ class ResetRound(CollectSameUntilThresholdRound):
         if self.threshold_reached:
             state_data = self.period_state.db.get_all()
             state_data["tx_hashes_history"] = None
-            state_data["max_priority_fee_per_gas"] = None
-            state_data["nonce"] = None
             state = self.period_state.update(
-                period_count=self.most_voted_payload, **state_data
+                period_count=self.most_voted_payload,
+                **state_data,
             )
             return state, Event.DONE
         if not self.is_majority_possible(
@@ -301,18 +295,47 @@ class ResetAndPauseRound(CollectSameUntilThresholdRound):
     allowed_tx_type = ResetPayload.transaction_type
     payload_attribute = "period_count"
 
+    def process_payload(self, payload: BaseTxPayload) -> None:  # pragma: nocover
+        """Process payload."""
+
+        sender = payload.sender
+        if sender not in self.period_state.all_participants:
+            raise ABCIAppInternalError(
+                f"{sender} not in list of participants: {sorted(self.period_state.all_participants)}"
+            )
+
+        if sender in self.collection:
+            raise ABCIAppInternalError(
+                f"sender {sender} has already sent value for round: {self.round_id}"
+            )
+
+        self.collection[sender] = payload
+
+    def check_payload(self, payload: BaseTxPayload) -> None:  # pragma: nocover
+        """Check Payload"""
+
+        sender_in_participant_set = payload.sender in self.period_state.all_participants
+        if not sender_in_participant_set:
+            raise TransactionNotValidError(
+                f"{payload.sender} not in list of participants: {sorted(self.period_state.all_participants)}"
+            )
+
+        if payload.sender in self.collection:
+            raise TransactionNotValidError(
+                f"sender {payload.sender} has already sent value for round: {self.round_id}"
+            )
+
     def end_block(self) -> Optional[Tuple[BasePeriodState, Event]]:
         """Process the end of the block."""
         if self.threshold_reached:
+            extra_kwargs = {}
+            for key in self.period_state.db.cross_period_persisted_keys:
+                extra_kwargs[key] = self.period_state.db.get_strict(key)
             state = self.period_state.update(
                 period_count=self.most_voted_payload,
                 participants=self.period_state.participants,
-                oracle_contract_address=self.period_state.db.get_strict(
-                    "oracle_contract_address"
-                ),
-                safe_contract_address=self.period_state.db.get_strict(
-                    "safe_contract_address"
-                ),
+                all_participants=self.period_state.all_participants,
+                **extra_kwargs,
             )
             return state, Event.DONE
         if not self.is_majority_possible(
@@ -372,11 +395,18 @@ class CheckTransactionHistoryRound(CollectSameUntilThresholdRound):
                 self.most_voted_payload
             )
 
+            # We replace the whole tx history with the returned tx hash, only if the threshold has been reached.
+            # This means that we only replace the history with the verified tx's hash if we have succeeded
+            # or with `None` if we have failed.
+            # Therefore, we only replace the history if we are about to exit from the transaction settlement skill.
+            # Then, the skills which use the transaction settlement can check the tx hash
+            # and if it is None, then it means that the transaction has failed.
             state = self.period_state.update(
                 period_state_class=self.period_state_class,
                 participant_to_check=self.collection,
                 final_verification_status=return_status,
                 tx_hashes_history=[return_tx_hash],
+                late_arriving_tx_hashes=[],
             )
 
             if return_status == VerificationStatus.VERIFIED:
@@ -394,6 +424,30 @@ class CheckTransactionHistoryRound(CollectSameUntilThresholdRound):
         return None
 
 
+class CheckLateTxHashesRound(CheckTransactionHistoryRound):
+    """A round in which agents check the late-arriving transaction hashes to see if any of them has been validated"""
+
+    round_id = "check_late_tx_hashes"
+    allowed_tx_type = CheckTransactionHistoryPayload.transaction_type
+    payload_attribute = "verified_res"
+    period_state_class = PeriodState
+    selection_key = "most_voted_check_result"
+
+
+class SynchronizeLateMessagesRound(CollectNonEmptyUntilThresholdRound):
+    """A round in which agents synchronize potentially late arriving messages"""
+
+    round_id = "synchronize_late_messages"
+    allowed_tx_type = SynchronizeLateMessagesPayload.transaction_type
+    payload_attribute = "tx_hash"
+    period_state_class = PeriodState
+    done_event = Event.DONE
+    no_majority_event = Event.NO_MAJORITY
+    none_event = Event.NONE
+    selection_key = "participant"
+    collection_key = "late_arriving_tx_hashes"
+
+
 class TransactionSubmissionAbciApp(AbciApp[Event]):
     """TransactionSubmissionAbciApp
 
@@ -402,50 +456,63 @@ class TransactionSubmissionAbciApp(AbciApp[Event]):
     Initial states: {RandomnessTransactionSubmissionRound}
 
     Transition states:
-    0. RandomnessTransactionSubmissionRound
-        - done: 1.
-        - round timeout: 7.
-        - no majority: 0.
-    1. SelectKeeperTransactionSubmissionRoundA
-        - done: 2.
-        - round timeout: 7.
-        - no majority: 7.
-    2. CollectSignatureRound
-        - done: 3.
-        - round timeout: 7.
-        - no majority: 7.
-    3. FinalizationRound
-        - done: 4.
-        - round timeout: 6.
-        - failed: 6.
-    4. ValidateTransactionRound
-        - done: 8.
-        - negative: 5.
-        - none: 3.
-        - validate timeout: 3.
-        - no majority: 4.
-    5. CheckTransactionHistoryRound
-        - done: 9.
-        - negative: 10.
-        - none: 10.
-        - round timeout: 5.
-        - no majority: 10.
-    6. SelectKeeperTransactionSubmissionRoundB
-        - done: 3.
-        - round timeout: 7.
-        - no majority: 7.
-    7. ResetRound
-        - done: 0.
-        - reset timeout: 10.
-        - no majority: 10.
-    8. ResetAndPauseRound
-        - done: 9.
-        - reset and pause timeout: 10.
-        - no majority: 10.
-    9. FinishedTransactionSubmissionRound
-    10. FailedRound
+        0. RandomnessTransactionSubmissionRound
+            - done: 1.
+            - round timeout: 9.
+            - no majority: 0.
+        1. SelectKeeperTransactionSubmissionRoundA
+            - done: 2.
+            - round timeout: 9.
+            - no majority: 9.
+        2. CollectSignatureRound
+            - done: 3.
+            - round timeout: 9.
+            - no majority: 9.
+        3. FinalizationRound
+            - done: 4.
+            - check history: 5.
+            - round timeout: 6.
+            - failed: 6.
+            - check late arriving message: 7.
+        4. ValidateTransactionRound
+            - done: 10.
+            - negative: 5.
+            - none: 3.
+            - validate timeout: 3.
+            - no majority: 4.
+        5. CheckTransactionHistoryRound
+            - done: 10.
+            - negative: 7.
+            - none: 12.
+            - round timeout: 5.
+            - no majority: 7.
+        6. SelectKeeperTransactionSubmissionRoundB
+            - done: 3.
+            - round timeout: 9.
+            - no majority: 9.
+        7. SynchronizeLateMessagesRound
+            - done: 8.
+            - round timeout: 7.
+            - no majority: 7.
+            - none: 12.
+        8. CheckLateTxHashesRound
+            - done: 10.
+            - negative: 12.
+            - none: 12.
+            - round timeout: 8.
+            - no majority: 12.
+        9. ResetRound
+            - done: 0.
+            - reset timeout: 12.
+            - no majority: 12.
+        10. ResetAndPauseRound
+            - done: 11.
+            - reset and pause timeout: 12.
+            - no majority: 12.
+        11. FinishedTransactionSubmissionRound
+        12. FailedRound
 
-    Final states: {FinishedTransactionSubmissionRound, FailedRound}
+    Final states: {FailedRound, FinishedTransactionSubmissionRound}
 
     Timeouts:
         round timeout: 30.0
@@ -476,7 +543,7 @@ class TransactionSubmissionAbciApp(AbciApp[Event]):
             Event.CHECK_HISTORY: CheckTransactionHistoryRound,
             Event.ROUND_TIMEOUT: SelectKeeperTransactionSubmissionRoundB,
             Event.FAILED: SelectKeeperTransactionSubmissionRoundB,
-            Event.FATAL: FailedRound,
+            Event.CHECK_LATE_ARRIVING_MESSAGE: SynchronizeLateMessagesRound,
         },
         ValidateTransactionRound: {
             Event.DONE: ResetAndPauseRound,
@@ -487,15 +554,28 @@ class TransactionSubmissionAbciApp(AbciApp[Event]):
         },
         CheckTransactionHistoryRound: {
             Event.DONE: ResetAndPauseRound,
-            Event.NEGATIVE: FailedRound,
+            Event.NEGATIVE: SynchronizeLateMessagesRound,
             Event.NONE: FailedRound,
             Event.ROUND_TIMEOUT: CheckTransactionHistoryRound,
-            Event.NO_MAJORITY: FailedRound,
+            Event.NO_MAJORITY: SynchronizeLateMessagesRound,
         },
         SelectKeeperTransactionSubmissionRoundB: {
             Event.DONE: FinalizationRound,
             Event.ROUND_TIMEOUT: ResetRound,
             Event.NO_MAJORITY: ResetRound,
+        },
+        SynchronizeLateMessagesRound: {
+            Event.DONE: CheckLateTxHashesRound,
+            Event.ROUND_TIMEOUT: SynchronizeLateMessagesRound,
+            Event.NO_MAJORITY: SynchronizeLateMessagesRound,
+            Event.NONE: FailedRound,
+        },
+        CheckLateTxHashesRound: {
+            Event.DONE: ResetAndPauseRound,
+            Event.NEGATIVE: FailedRound,
+            Event.NONE: FailedRound,
+            Event.ROUND_TIMEOUT: CheckLateTxHashesRound,
+            Event.NO_MAJORITY: FailedRound,
         },
         ResetRound: {
             Event.DONE: RandomnessTransactionSubmissionRound,

@@ -138,25 +138,25 @@ class OracleDeploymentAbciApp(AbciApp[Event]):
     Initial states: {RandomnessOracleRound}
 
     Transition states:
-    0. RandomnessOracleRound
-        - done: 1.
-        - round timeout: 0.
-        - no majority: 0.
-    1. SelectKeeperOracleRound
-        - done: 2.
-        - round timeout: 0.
-        - no majority: 0.
-    2. DeployOracleRound
-        - done: 3.
-        - deploy timeout: 1.
-        - failed: 1.
-    3. ValidateOracleRound
-        - done: 4.
-        - negative: 0.
-        - none: 0.
-        - validate timeout: 0.
-        - no majority: 0.
-    4. FinishedOracleRound
+        0. RandomnessOracleRound
+            - done: 1.
+            - round timeout: 0.
+            - no majority: 0.
+        1. SelectKeeperOracleRound
+            - done: 2.
+            - round timeout: 0.
+            - no majority: 0.
+        2. DeployOracleRound
+            - done: 3.
+            - deploy timeout: 1.
+            - failed: 1.
+        3. ValidateOracleRound
+            - done: 4.
+            - negative: 0.
+            - none: 0.
+            - validate timeout: 0.
+            - no majority: 0.
+        4. FinishedOracleRound
 
     Final states: {FinishedOracleRound}
 
@@ -201,3 +201,4 @@ class OracleDeploymentAbciApp(AbciApp[Event]):
         Event.VALIDATE_TIMEOUT: 30.0,
         Event.DEPLOY_TIMEOUT: 30.0,
     }
+    cross_period_persisted_keys = ["oracle_contract_address"]

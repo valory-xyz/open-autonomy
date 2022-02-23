@@ -4,8 +4,8 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
-open-aea = {version = "<2.0.0,>=1.4.0", extras = ["all"]}
-open-aea-ledger-ethereum = "<2.0.0,>=1.4.1"
+open-aea = {version = "<2.0.0,>=1.4.0.post1", extras = ["all"]}
+open-aea-ledger-ethereum = "<2.0.0,>=1.4.2"
 open-aea-cli-ipfs = "<1.4,>=1.3.1"
 
 [dev-packages]
@@ -46,6 +46,8 @@ tox = "==3.24.4"
 types-pyyaml = "*"
 types-protobuf = "*"
 types-requests = "*"
+types-jsonschema= "*"
+types-setuptools= "*"
 vulture = "==2.3"
 aiohttp = "<3.8,>=3.7.4.post0"
 pandas = "<1.4,>=1.3.4"

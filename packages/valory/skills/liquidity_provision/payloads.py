@@ -20,7 +20,7 @@
 """This module contains the transaction payloads for the liquidity_provision skill."""
 from abc import ABC
 from enum import Enum
-from typing import Dict, Optional
+from typing import Any, Dict, Optional
 
 from packages.valory.skills.abstract_round_abci.base import BaseTxPayload
 
@@ -31,15 +31,10 @@ class TransactionType(Enum):
     STRATEGY_EVALUATION = "strategy_evaluation"
     WAIT = "wait"
     ALLOWANCE_CHECK = "allowance_check"
-    SELECT_KEEPER = "select_keeper"
     TRANSACTION_HASH = "tx_hash"
-    TRANSACTION_SIGNATURE = "tx_signature"
-    TRANSACTION_SEND = "tx_send"
-    TRANSACTION_VALIDATION = "tx_validation"
-    TX_HASH = "tx_hash"
-    FINALIZATION = "finalization"
     LP_RESULT = "lp_result"
-    VALIDATE = "validate_transaction"
+    TX_HASH = "tx_hash"
+    SLEEP = "sleep"
 
     def __str__(self) -> str:
         """Get the string value of the transaction type."""
@@ -58,7 +53,9 @@ class StrategyType(Enum):
     """Enumeration of strategy types."""
 
     WAIT = "wait"
-    GO = "go"
+    ENTER = "enter"
+    EXIT = "exit"
+    SWAP_BACK = "swap_back"
 
     def __str__(self) -> str:  # pragma: nocover
         """Get the string value of the strategy type."""
@@ -70,18 +67,18 @@ class StrategyEvaluationPayload(BaseLiquidityProvisionPayload):
 
     transaction_type = TransactionType.STRATEGY_EVALUATION
 
-    def __init__(self, sender: str, strategy: dict, id_: Optional[str] = None) -> None:
+    def __init__(self, sender: str, strategy: str, **kwargs: Any) -> None:
         """Initialize a 'strategy_evaluation' transaction payload.
 
         :param sender: the sender (Ethereum) address
         :param strategy: the new strategy to follow
-        :param id_: the id of the transaction
+        :param kwargs: the keyword arguments
         """
-        super().__init__(sender, id_)
+        super().__init__(sender, **kwargs)
         self._strategy = strategy
 
     @property
-    def strategy(self) -> dict:
+    def strategy(self) -> str:
         """Get the strategy."""
         return self._strategy
 
@@ -91,63 +88,45 @@ class StrategyEvaluationPayload(BaseLiquidityProvisionPayload):
         return dict(strategy=self.strategy)
 
 
-class FinalizationTxPayload(BaseLiquidityProvisionPayload):
-    """Represent a transaction payload of type 'finalization'."""
+class TransactionHashPayload(BaseTxPayload):
+    """Represent a transaction payload of type 'tx_hash'."""
 
-    transaction_type = TransactionType.FINALIZATION
+    transaction_type = TransactionType.TX_HASH
 
     def __init__(
-        self,
-        sender: str,
-        tx_hash: Optional[str] = None,
-        id_: Optional[str] = None,
+        self, sender: str, tx_hash: Optional[str] = None, **kwargs: Any
     ) -> None:
-        """Initialize a 'finalization' transaction payload.
+        """Initialize an 'tx_hash' transaction payload.
 
         :param sender: the sender (Ethereum) address
-        :param tx_hash: the transaction hash
-        :param id_: the id of the transaction
+        :param tx_hash: the tx_hash
+        :param kwargs: the keyword arguments
         """
-        super().__init__(sender, id_)
+        super().__init__(sender, **kwargs)
         self._tx_hash = tx_hash
 
     @property
     def tx_hash(self) -> Optional[str]:
-        """Get the tx hash."""
+        """Get the tx_hash."""
         return self._tx_hash
-
-    @property
-    def data(self) -> Dict[str, str]:
-        """Get the data."""
-        return dict(tx_hash=self.tx_hash) if self.tx_hash is not None else {}
-
-
-class ValidatePayload(BaseLiquidityProvisionPayload):
-    """Represent a transaction payload of type 'validate'."""
-
-    transaction_type = TransactionType.VALIDATE
-
-    def __init__(
-        self,
-        sender: str,
-        transfers: Optional[str] = None,
-        id_: Optional[str] = None,
-    ) -> None:
-        """Initialize an 'validate' transaction payload.
-
-        :param sender: the sender (Ethereum) address
-        :param transfers: the transfers
-        :param id_: the id of the transaction
-        """
-        super().__init__(sender, id_)
-        self._transfers = transfers
-
-    @property
-    def transfers(self) -> Optional[str]:
-        """Get the tx result."""
-        return self._transfers
 
     @property
     def data(self) -> Dict:
         """Get the data."""
-        return dict(transfers=self.transfers) if self.transfers else {}
+        return dict(tx_hash=self.tx_hash) if self.tx_hash is not None else {}
+
+
+class SleepPayload(BaseTxPayload):
+    """Represent a transaction payload of type 'sleep'."""
+
+    transaction_type = TransactionType.SLEEP
+
+    @property
+    def sleep(self) -> str:
+        """Get the sleep dummy property."""
+        return "sleep"
+
+    @property
+    def data(self) -> Dict:
+        """Get the data."""
+        return dict(sleep=self.sleep)

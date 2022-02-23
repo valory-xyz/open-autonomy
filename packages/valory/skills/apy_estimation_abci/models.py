@@ -92,7 +92,7 @@ class APYParams(BaseParams):  # pylint: disable=too-many-instance-attributes
     def __validate_params(self) -> None:
         """Validate the given parameters."""
         # Eventually, we should probably validate all the parameters.
-        if self.optimizer_params["timeout"] == "None":
+        if self.optimizer_params.get("timeout") is None:
             self.optimizer_params["timeout"] = None
         elif not isinstance(self.optimizer_params["timeout"], int):
             raise ValueError(
@@ -100,10 +100,10 @@ class APYParams(BaseParams):  # pylint: disable=too-many-instance-attributes
                 f"{self.optimizer_params['timeout']} was given."
             )
 
-        if self.optimizer_params["window_size"] == "None":
+        if self.optimizer_params.get("window_size") is None:
             self.optimizer_params["window_size"] = None
         elif not isinstance(self.optimizer_params["window_size"], int):
-            raise ValueError(
+            raise ValueError(  # pragma: nocover
                 "Parameter `window_size` can be either of type `int` or `None`. "
                 f"{self.optimizer_params['window_size']} was given."
             )

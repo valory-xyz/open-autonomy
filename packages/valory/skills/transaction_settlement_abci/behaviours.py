@@ -23,10 +23,10 @@ import datetime
 import json
 import pprint
 from abc import ABC
-from typing import Dict, Generator, Optional, Set, Tuple, Type, Union, cast
+from typing import Any, Dict, Generator, Optional, Set, Tuple, Type, Union, cast
 
-from requests import HTTPError
-from web3.types import TxData
+from aea.protocols.base import Message
+from web3.types import Nonce, TxData
 
 from packages.valory.contracts.gnosis_safe.contract import GnosisSafeContract
 from packages.valory.protocols.contract_api.message import ContractApiMessage
@@ -39,6 +39,7 @@ from packages.valory.skills.abstract_round_abci.common import (
     SelectKeeperBehaviour,
 )
 from packages.valory.skills.abstract_round_abci.utils import BenchmarkTool, VerifyDrand
+from packages.valory.skills.transaction_settlement_abci.models import TransactionParams
 from packages.valory.skills.transaction_settlement_abci.payload_tools import (
     VerificationStatus,
     skill_input_hex_to_payload,
@@ -51,9 +52,11 @@ from packages.valory.skills.transaction_settlement_abci.payloads import (
     ResetPayload,
     SelectKeeperPayload,
     SignaturePayload,
+    SynchronizeLateMessagesPayload,
     ValidatePayload,
 )
 from packages.valory.skills.transaction_settlement_abci.rounds import (
+    CheckLateTxHashesRound,
     CheckTransactionHistoryRound,
     CollectSignatureRound,
     FinalizationRound,
@@ -63,10 +66,13 @@ from packages.valory.skills.transaction_settlement_abci.rounds import (
     ResetRound,
     SelectKeeperTransactionSubmissionRoundA,
     SelectKeeperTransactionSubmissionRoundB,
+    SynchronizeLateMessagesRound,
     TransactionSubmissionAbciApp,
     ValidateTransactionRound,
 )
 
+
+TxDataType = Dict[str, Union[VerificationStatus, str, int]]
 
 benchmark_tool = BenchmarkTool()
 drand_check = VerifyDrand()
@@ -80,11 +86,61 @@ class TransactionSettlementBaseState(BaseState, ABC):
         """Return the period state."""
         return cast(PeriodState, super().period_state)
 
+    @property
+    def params(self) -> TransactionParams:
+        """Return the params."""
+        return cast(TransactionParams, super().params)
+
+    def _get_tx_data(
+        self, message: ContractApiMessage
+    ) -> Generator[None, None, TxDataType]:
+        """Get the transaction data from a `ContractApiMessage`."""
+        tx_data: TxDataType = {
+            "status": VerificationStatus.PENDING,
+            "tx_digest": "",
+            "nonce": "",
+            "max_priority_fee_per_gas": "",
+        }
+
+        if (
+            message.performative == ContractApiMessage.Performative.ERROR
+            and message.message is not None
+        ):
+            if self._safe_nonce_reused(message.message):
+                tx_data["status"] = VerificationStatus.VERIFIED
+            else:
+                tx_data["status"] = VerificationStatus.ERROR
+            self.context.logger.warning(
+                f"get_raw_safe_transaction unsuccessful! Received: {message}"
+            )
+            return tx_data
+
+        if (
+            message.performative != ContractApiMessage.Performative.RAW_TRANSACTION
+        ):  # pragma: nocover
+            self.context.logger.warning(
+                f"get_raw_safe_transaction unsuccessful! Received: {message}"
+            )
+            return tx_data
+
+        tx_digest = yield from self.send_raw_transaction(message.raw_transaction)
+        tx_data["tx_digest"] = tx_digest if tx_digest is not None else ""
+        tx_data["nonce"] = int(cast(str, message.raw_transaction.body["nonce"]))
+        tx_data["max_priority_fee_per_gas"] = int(
+            cast(
+                str,
+                message.raw_transaction.body["maxPriorityFeePerGas"],
+            )
+        )
+        # Set nonce and tip.
+        self.params.nonce = Nonce(int(cast(str, tx_data["nonce"])))
+        self.params.tip = int(cast(str, tx_data["max_priority_fee_per_gas"]))
+
+        return tx_data
+
     def _verify_tx(self, tx_hash: str) -> Generator[None, None, ContractApiMessage]:
         """Verify a transaction."""
-        _, ether_value, safe_tx_gas, to_address, data = skill_input_hex_to_payload(
-            self.period_state.most_voted_tx_hash
-        )
+        tx_params = skill_input_hex_to_payload(self.period_state.most_voted_tx_hash)
 
         contract_api_msg = yield from self.get_contract_api_response(
             performative=ContractApiMessage.Performative.GET_STATE,  # type: ignore
@@ -93,14 +149,15 @@ class TransactionSettlementBaseState(BaseState, ABC):
             contract_callable="verify_tx",
             tx_hash=tx_hash,
             owners=tuple(self.period_state.participants),
-            to_address=to_address,
-            value=ether_value,
-            data=data,
-            safe_tx_gas=safe_tx_gas,
+            to_address=tx_params["to_address"],
+            value=tx_params["ether_value"],
+            data=tx_params["data"],
+            safe_tx_gas=tx_params["safe_tx_gas"],
             signatures_by_owner={
                 key: payload.signature
                 for key, payload in self.period_state.participant_to_signature.items()
             },
+            operation=tx_params["operation"],
         )
 
         return contract_api_msg
@@ -127,7 +184,9 @@ class SelectKeeperTransactionSubmissionBehaviourA(SelectKeeperBehaviour):
     payload_class = SelectKeeperPayload
 
 
-class SelectKeeperTransactionSubmissionBehaviourB(SelectKeeperBehaviour):
+class SelectKeeperTransactionSubmissionBehaviourB(
+    SelectKeeperBehaviour, TransactionSettlementBaseState
+):
     """Select the keeper agent."""
 
     state_id = "select_keeper_transaction_submission_b"
@@ -180,6 +239,10 @@ class ValidateTransactionBehaviour(TransactionSettlementBaseState):
                 f"tx {self.period_state.final_tx_hash} receipt check timed out!"
             )
             return None
+
+        # Reset tx parameters.
+        self.params.reset_tx_params()
+
         contract_api_msg = yield from self._verify_tx(self.period_state.final_tx_hash)
         if (
             contract_api_msg.performative != ContractApiMessage.Performative.STATE
@@ -238,14 +301,20 @@ class CheckTransactionHistoryBehaviour(TransactionSettlementBaseState):
         self,
     ) -> Generator[None, None, Tuple[VerificationStatus, Optional[str]]]:
         """Check the transaction history."""
-        if self.period_state.tx_hashes_history is None:
+        history = (
+            self.period_state.tx_hashes_history
+            if self.state_id == "check_transaction_history"
+            else self.period_state.late_arriving_tx_hashes
+        )
+
+        if history is None:
             self.context.logger.error(
                 "An unexpected error occurred! The state's history does not contain any transaction hashes, "
-                "but entered the `CheckTransactionHistoryBehaviour`."
+                f"but entered the `{self.state_id}` state."
             )
             return VerificationStatus.ERROR, None
 
-        for tx_hash in self.period_state.tx_hashes_history[::-1]:
+        for tx_hash in history[::-1]:
             contract_api_msg = yield from self._verify_tx(tx_hash)
 
             if (
@@ -272,13 +341,19 @@ class CheckTransactionHistoryBehaviour(TransactionSettlementBaseState):
 
             if revert_reason is not None:
                 if self._safe_nonce_reused(revert_reason):
+                    check_expected_to_be_verified = (
+                        "The next tx check"
+                        if self.state_id == "check_transaction_history"
+                        else "One of the next tx checks"
+                    )
                     self.context.logger.info(
-                        f"The safe's nonce has been reused for {tx_hash}. The next tx check is expected to be verified!"
+                        f"The safe's nonce has been reused for {tx_hash}. "
+                        f"{check_expected_to_be_verified} is expected to be verified!"
                     )
                     continue
 
-                self.context.logger.info(
-                    f"Payload is invalid for {tx_hash}! Cannot continue."
+                self.context.logger.warning(
+                    f"Payload is invalid for {tx_hash}! Cannot continue. Received: {revert_reason}"
                 )
 
             return VerificationStatus.INVALID_PAYLOAD, tx_hash
@@ -287,21 +362,72 @@ class CheckTransactionHistoryBehaviour(TransactionSettlementBaseState):
 
     def _get_revert_reason(self, tx: TxData) -> Generator[None, None, Optional[str]]:
         """Get the revert reason of the given transaction."""
-        try:
-            contract_api_msg = yield from self.get_contract_api_response(
-                performative=ContractApiMessage.Performative.GET_STATE,  # type: ignore
-                contract_address=self.period_state.safe_contract_address,
-                contract_id=str(GnosisSafeContract.contract_id),
-                contract_callable="revert_reason",
-                tx=tx,
-            )
-        except (HTTPError, ValueError) as e:  # pragma: nocover
+        contract_api_msg = yield from self.get_contract_api_response(
+            performative=ContractApiMessage.Performative.GET_STATE,  # type: ignore
+            contract_address=self.period_state.safe_contract_address,
+            contract_id=str(GnosisSafeContract.contract_id),
+            contract_callable="revert_reason",
+            tx=tx,
+        )
+
+        if (
+            contract_api_msg.performative != ContractApiMessage.Performative.STATE
+        ):  # pragma: nocover
             self.context.logger.error(
-                f"An unexpected error occurred while checking {tx['hash'].hex()}: {e}"
+                f"An unexpected error occurred while checking {tx['hash'].hex()}: {contract_api_msg}"
             )
             return None
 
         return cast(str, contract_api_msg.state.body["revert_reason"])
+
+
+class CheckLateTxHashesBehaviour(CheckTransactionHistoryBehaviour):
+    """Check the late-arriving transaction hashes."""
+
+    state_id = "check_late_tx_hashes"
+    matching_round = CheckLateTxHashesRound
+
+
+class SynchronizeLateMessagesBehaviour(TransactionSettlementBaseState):
+    """Synchronize late-arriving messages state."""
+
+    state_id = "sync_late_messages"
+    matching_round = SynchronizeLateMessagesRound
+
+    def __init__(self, **kwargs: Any):
+        """Initialize a `SynchronizeLateMessagesBehaviour`"""
+        super().__init__(**kwargs)
+        self._tx_hashes: str = ""
+
+    def async_act(self) -> Generator:
+        """Do the action."""
+
+        with benchmark_tool.measure(
+            self,
+        ).local():
+            if len(self.params.late_messages) > 0:
+                current_message = self.params.late_messages.pop()
+                tx_data = yield from self._get_tx_data(current_message)
+                # here, we concatenate the tx_hashes of all the late-arriving messages. Later, we will parse them.
+                self._tx_hashes += cast(str, tx_data["tx_digest"])
+                return
+
+            payload = SynchronizeLateMessagesPayload(
+                self.context.agent_address, self._tx_hashes
+            )
+
+        with benchmark_tool.measure(
+            self,
+        ).consensus():
+            yield from self.send_a2a_transaction(payload)
+            yield from self.wait_until_round_end()
+
+        self.set_done()
+
+    def set_done(self) -> None:
+        """Set the behaviour to done and clean the local late message parameter."""
+        super().set_done()
+        self.params.late_messages = []
 
 
 class SignatureBehaviour(TransactionSettlementBaseState):
@@ -340,12 +466,10 @@ class SignatureBehaviour(TransactionSettlementBaseState):
 
     def _get_safe_tx_signature(self) -> Generator[None, None, str]:
         """Get signature of safe transaction hash."""
-        safe_tx_hash, _, _, _, _ = skill_input_hex_to_payload(
-            self.period_state.most_voted_tx_hash
-        )
+        tx_params = skill_input_hex_to_payload(self.period_state.most_voted_tx_hash)
         # is_deprecated_mode=True because we want to call Account.signHash,
         # which is the same used by gnosis-py
-        safe_tx_hash_bytes = binascii.unhexlify(safe_tx_hash)
+        safe_tx_hash_bytes = binascii.unhexlify(tx_params["safe_tx_hash"])
         signature_hex = yield from self.get_signature(
             safe_tx_hash_bytes, is_deprecated_mode=True
         )
@@ -429,9 +553,7 @@ class FinalizeBehaviour(TransactionSettlementBaseState):
         self,
     ) -> Generator[None, None, Dict[str, Union[VerificationStatus, str, int]]]:
         """Send a Safe transaction using the participants' signatures."""
-        _, ether_value, safe_tx_gas, to_address, data = skill_input_hex_to_payload(
-            self.period_state.most_voted_tx_hash
-        )
+        tx_params = skill_input_hex_to_payload(self.period_state.most_voted_tx_hash)
 
         contract_api_msg = yield from self.get_contract_api_response(
             performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
@@ -440,57 +562,31 @@ class FinalizeBehaviour(TransactionSettlementBaseState):
             contract_callable="get_raw_safe_transaction",
             sender_address=self.context.agent_address,
             owners=tuple(self.period_state.participants),
-            to_address=to_address,
-            value=ether_value,
-            data=data,
-            safe_tx_gas=safe_tx_gas,
+            to_address=tx_params["to_address"],
+            value=tx_params["ether_value"],
+            data=tx_params["data"],
+            safe_tx_gas=tx_params["safe_tx_gas"],
             signatures_by_owner={
                 key: payload.signature
                 for key, payload in self.period_state.participant_to_signature.items()
             },
-            nonce=self.period_state.nonce,
-            old_tip=self.period_state.max_priority_fee_per_gas,
+            nonce=self.params.nonce,
+            old_tip=self.params.tip,
+            operation=tx_params["operation"],
         )
 
-        tx_data: Dict[str, Union[VerificationStatus, str, int]] = {
-            "status": VerificationStatus.PENDING,
-            "tx_digest": "",
-            "nonce": "",
-            "max_priority_fee_per_gas": "",
-        }
-
-        if (
-            contract_api_msg.performative == ContractApiMessage.Performative.ERROR
-            and contract_api_msg.message is not None
-        ):
-            if self._safe_nonce_reused(contract_api_msg.message):
-                tx_data["status"] = VerificationStatus.VERIFIED
-            else:
-                tx_data["status"] = VerificationStatus.ERROR
-            return tx_data
-
-        if (
-            contract_api_msg.performative
-            != ContractApiMessage.Performative.RAW_TRANSACTION
-        ):  # pragma: nocover
-            self.context.logger.warning("get_raw_safe_transaction unsuccessful!")
-            return tx_data
-
-        tx_digest = yield from self.send_raw_transaction(
-            contract_api_msg.raw_transaction
-        )
-        tx_data["tx_digest"] = tx_digest if tx_digest is not None else ""
-        tx_data["nonce"] = int(
-            cast(str, contract_api_msg.raw_transaction.body["nonce"])
-        )
-        tx_data["max_priority_fee_per_gas"] = int(
-            cast(
-                str,
-                contract_api_msg.raw_transaction.body["maxPriorityFeePerGas"],
-            )
-        )
-
+        tx_data = yield from self._get_tx_data(contract_api_msg)
         return tx_data
+
+    def handle_late_messages(self, message: Message) -> None:
+        """Store a potentially late-arriving message locally.
+
+        :param message: the late arriving message to handle.
+        """
+        if isinstance(message, ContractApiMessage):
+            self.params.late_messages.append(message)
+        else:
+            super().handle_late_messages(message)
 
 
 class BaseResetBehaviour(TransactionSettlementBaseState):
@@ -542,15 +638,10 @@ class BaseResetBehaviour(TransactionSettlementBaseState):
         - Wait until ABCI application transitions to the next round.
         - Go to the next behaviour state (set done event).
         """
-        if (
-            self.pause
-            and self.period_state.is_most_voted_estimate_set
-            and self.period_state.is_final_tx_hash_set
-        ):
+        if self.pause and self.period_state.is_final_tx_hash_set:
             if (
                 self.period_state.period_count != 0
-                and self.period_state.period_count
-                % self.context.params.reset_tendermint_after
+                and self.period_state.period_count % self.params.reset_tendermint_after
                 == 0
             ):
                 yield from self.start_reset()
@@ -566,7 +657,7 @@ class BaseResetBehaviour(TransactionSettlementBaseState):
                     )
                     request_message, http_dialogue = self._build_http_request_message(
                         "GET",
-                        self.context.params.tendermint_com_url + "/hard_reset",
+                        self.params.tendermint_com_url + "/hard_reset",
                     )
                     result = yield from self._do_request(request_message, http_dialogue)
                     try:
@@ -621,7 +712,7 @@ class BaseResetBehaviour(TransactionSettlementBaseState):
                 self.params.observation_interval / 2
             )
             self.context.logger.info(
-                f"Finalized estimate: {self.period_state.most_voted_estimate} with transaction hash: {self.period_state.final_tx_hash}"
+                f"Finalized with transaction hash: {self.period_state.final_tx_hash}"
             )
             self.context.logger.info("Period end.")
             benchmark_tool.save()
@@ -630,6 +721,8 @@ class BaseResetBehaviour(TransactionSettlementBaseState):
                 f"Period {self.period_state.period_count} was not finished. Resetting!"
             )
 
+        # Reset tx parameters.
+        self.params.reset_tx_params()
         payload = ResetPayload(
             self.context.agent_address, self.period_state.period_count + 1
         )
@@ -667,6 +760,8 @@ class TransactionSettlementRoundBehaviour(AbstractRoundBehaviour):
         CheckTransactionHistoryBehaviour,  # type: ignore
         SignatureBehaviour,  # type: ignore
         FinalizeBehaviour,  # type: ignore
+        SynchronizeLateMessagesBehaviour,  # type: ignore
+        CheckLateTxHashesBehaviour,  # type: ignore
         ResetBehaviour,  # type: ignore
         ResetAndPauseBehaviour,  # type: ignore
     }

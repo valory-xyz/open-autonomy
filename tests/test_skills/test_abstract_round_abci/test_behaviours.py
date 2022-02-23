@@ -18,6 +18,7 @@
 # ------------------------------------------------------------------------------
 
 """Test the behaviours.py module of the skill."""
+from enum import Enum
 from typing import Any, Dict, Generator, Optional, Tuple
 from unittest import mock
 from unittest.mock import MagicMock
@@ -30,10 +31,14 @@ from packages.valory.skills.abstract_round_abci.base import (
     AbstractRound,
     BasePeriodState,
     BaseTxPayload,
+    DegenerateRound,
     EventType,
     Period,
 )
-from packages.valory.skills.abstract_round_abci.behaviour_utils import BaseState
+from packages.valory.skills.abstract_round_abci.behaviour_utils import (
+    BaseState,
+    DegenerateState,
+)
 from packages.valory.skills.abstract_round_abci.behaviours import (
     AbstractRoundBehaviour,
     _MetaRoundBehaviour,
@@ -242,6 +247,42 @@ class TestAbstractRoundBehaviour:
                     initial_state_cls = StateC
 
                 MyRoundBehaviour(name=MagicMock(), skill_context=MagicMock())
+
+    def test_get_round_to_state_mapping_with_final_rounds(self) -> None:
+        """Test classmethod '_get_round_to_state_mapping' with final rounds."""
+
+        class FinalRound(DegenerateRound):
+            """A final round for testing."""
+
+            def check_payload(self, payload: BaseTxPayload) -> None:
+                pass
+
+            def process_payload(self, payload: BaseTxPayload) -> None:
+                pass
+
+            def end_block(self) -> Optional[Tuple[BasePeriodState, Enum]]:
+                pass
+
+        state_id_1 = "state_id_1"
+        state_1 = MagicMock(state_id=state_id_1, matching_round=RoundA)
+
+        class AbciAppTest(AbciApp):
+            """Abci App for testing."""
+
+            initial_round_cls = RoundA
+            transition_function = {RoundA: {MagicMock(): FinalRound}, FinalRound: {}}
+            event_to_timeout: Dict = {}
+            final_states = {FinalRound}
+
+        class MyRoundBehaviour(AbstractRoundBehaviour):
+            abci_app_cls = AbciAppTest
+            behaviour_states = [state_1]  # type: ignore
+            initial_state_cls = state_1
+
+        behaviour = MyRoundBehaviour(name=MagicMock(), skill_context=MagicMock())
+        final_state = behaviour._round_to_state[FinalRound]
+        assert issubclass(final_state, DegenerateState)
+        assert final_state.state_id == f"degenerate_{FinalRound.round_id}"
 
     def test_check_state_id_uniqueness_negative(self) -> None:
         """Test metaclass method '_check_consistency', negative case."""
@@ -490,6 +531,7 @@ def test_self_loops_in_abci_app_reinstantiate_behaviour_state() -> None:
         initial_state_cls = StateA
 
     period = Period(AbciAppTest)
+    period.end_sync()
     period.setup(MagicMock(), MagicMock(), MagicMock())
     context_mock = MagicMock()
     context_mock.state.period = period

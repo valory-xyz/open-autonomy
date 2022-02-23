@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021 Valory AG
+#   Copyright 2021-2022 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -30,13 +30,13 @@ def test_strategy_evaluation_payload() -> None:
     """Test `StrategyEvaluationPayload`."""
 
     strategy = {
-        "action": StrategyType.GO,
+        "action": StrategyType.ENTER.value,
         "pair": ["FTM", "BOO"],
         "pool": "0x0000000000000000000000000000",
         "amountETH": 0.1,  # Be careful with floats and determinism here
     }
-    payload = StrategyEvaluationPayload(sender="sender", strategy=strategy)
+    payload = StrategyEvaluationPayload(sender="sender", strategy=str(strategy))
 
     assert payload.sender == "sender"
-    assert payload.data == {"strategy": strategy}
+    assert payload.data == {"strategy": str(strategy)}
     assert payload.transaction_type == TransactionType.STRATEGY_EVALUATION

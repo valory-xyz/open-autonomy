@@ -52,7 +52,7 @@ class TestParams:
         self,
     ) -> None:
         """Test initialization."""
-        params = Params(
+        Params(
             name="",
             skill_context=DummyContext(),
             consensus={"max_participants": 1},
@@ -67,8 +67,23 @@ class TestParams:
             reset_tendermint_after=2,
             tendermint_com_url="http://localhost:8080",
             tendermint_url="http://localhost:26657",
+            tendermint_max_retries=5,
+            tendermint_check_sleep_delay=3,
             service_id="liquidity_provision",
             keeper_timeout=1.0,
+            rebalancing={
+                "chain": "Ethereum",
+                "token_base_address": "0xDc64a140Aa3E981100a9becA4E685f962f0cF6C9",
+                "token_base_ticker": "WETH",
+                "token_a_address": "0x0DCd1Bf9A1b36cE34237eEaFef220932846BCD82",
+                "token_a_ticker": "TKA",
+                "token_b_address": "0x9A676e781A523b5d0C0e43731313A708CB607508",
+                "token_b_ticker": "TKB",
+                "lp_token_address": "0x50CD56fb094F8f06063066a619D898475dD3EedE",
+                "default_minter": "0x0000000000000000000000000000000000000000",
+                "ab_pool_address": "0x86A6C37D3E868580a65C723AAd7E0a945E170416",
+                "max_allowance": 1.1579209e77,  # 2**256 - 1
+                "deadline": 300,  # 5 min into the future"
+                "sleep_seconds": 60,
+            },
         )
-        assert not params.is_health_check_timed_out()
-        params.increment_retries()

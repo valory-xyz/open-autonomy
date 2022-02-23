@@ -18,10 +18,6 @@ This module contains the ABCI registration skill for an AEA.
 
    Register to the next periods.
 
-* `TendermintHealthcheckBehaviour`
-
-   Check whether Tendermint nodes are running.
-
 
 ## Handlers
 

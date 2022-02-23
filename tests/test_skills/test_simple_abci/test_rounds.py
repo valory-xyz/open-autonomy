@@ -103,7 +103,12 @@ class BaseRoundTestClass:
 
         cls.participants = get_participants()
         cls.period_state = PeriodState(
-            StateDB(initial_period=0, initial_data=dict(participants=cls.participants))
+            StateDB(
+                initial_period=0,
+                initial_data=dict(
+                    participants=cls.participants, all_participants=cls.participants
+                ),
+            )
         )
         cls.consensus_params = ConsensusParams(max_participants=MAX_PARTICIPANTS)
 
@@ -133,7 +138,7 @@ class TestRegistrationRound(BaseRoundTestClass):
         ]
 
         test_round.process_payload(first_payload)
-        assert test_round.collection == {first_payload.sender}
+        assert test_round.collection == {first_payload.sender: first_payload}
         assert test_round.end_block() is None
 
         for payload in payloads:
@@ -270,6 +275,7 @@ class TestResetAndPauseRound(BaseRoundTestClass):
         actual_next_state = self.period_state.update(
             period_count=test_round.most_voted_payload,
             participants=self.period_state.participants,
+            all_participants=self.period_state.all_participants,
         )
 
         res = test_round.end_block()

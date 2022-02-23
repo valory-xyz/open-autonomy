@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021 Valory AG
+#   Copyright 2021-2022 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -23,9 +23,11 @@ import logging
 import os
 import time
 from os import PathLike
-from typing import Any, Generator
+from typing import Any, Generator, Tuple, Type
 
 import requests
+
+from packages.valory.skills.abstract_round_abci.base import AbstractRound
 
 from tests.helpers.constants import DEFAULT_REQUESTS_TIMEOUT, MAX_RETRIES
 
@@ -72,3 +74,10 @@ def try_send(gen: Generator, obj: Any = None) -> None:
     """
     with contextlib.suppress(StopIteration):
         gen.send(obj)
+
+
+def make_round_class(name: str, bases: Tuple = (AbstractRound,)) -> Type:
+    """Make a round class."""
+    new_round_cls = type(name, bases, {})
+    assert issubclass(new_round_cls, AbstractRound)
+    return new_round_cls

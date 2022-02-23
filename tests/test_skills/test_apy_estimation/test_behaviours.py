@@ -182,6 +182,7 @@ class APYEstimationFSMBehaviourBaseCase(BaseSkillTestCase):
 
         cls.apy_estimation_behaviour.setup()
         cls._skill.skill_context.state.setup()
+        cls._skill.skill_context.state.period.end_sync()
         assert (
             cast(BaseState, cls.apy_estimation_behaviour.current_state).state_id
             == cls.apy_estimation_behaviour.initial_state_cls.state_id
@@ -357,7 +358,7 @@ class APYEstimationFSMBehaviourBaseCase(BaseSkillTestCase):
         current_state = cast(BaseState, self.apy_estimation_behaviour.current_state)
         assert not current_state.is_done()
         with mock.patch.object(
-            self.apy_estimation_behaviour.context.state, "period"
+            self.apy_estimation_behaviour.context.state, "_period"
         ) as mock_period:
             mock_period.last_round_id = cast(
                 AbstractRound, current_state.matching_round

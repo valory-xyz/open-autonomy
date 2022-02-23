@@ -19,7 +19,7 @@
 
 """This module contains the handler for the 'abstract_round_abci' skill."""
 from abc import ABC
-from typing import FrozenSet, Optional, cast
+from typing import Callable, FrozenSet, Optional, cast
 
 from aea.configurations.data_types import PublicId
 from aea.protocols.base import Message
@@ -34,6 +34,7 @@ from packages.valory.protocols.http import HttpMessage
 from packages.valory.protocols.ledger_api import LedgerApiMessage
 from packages.valory.skills.abstract_abci.handlers import ABCIHandler
 from packages.valory.skills.abstract_round_abci.base import (
+    ABCIAppInternalError,
     AddBlockError,
     ERROR_CODE,
     LateArrivingTransaction,
@@ -43,6 +44,7 @@ from packages.valory.skills.abstract_round_abci.base import (
     TransactionNotValidError,
     TransactionTypeNotRecognizedError,
 )
+from packages.valory.skills.abstract_round_abci.behaviours import AbstractRoundBehaviour
 from packages.valory.skills.abstract_round_abci.dialogues import AbciDialogue
 from packages.valory.skills.abstract_round_abci.models import Requests, SharedState
 
@@ -286,15 +288,23 @@ class AbstractResponseHandler(Handler, ABC):
             return
 
         request_nonce = protocol_dialogue.dialogue_label.dialogue_reference[0]
-        callback = cast(Requests, self.context.requests).request_id_to_callback.pop(
-            request_nonce, None
-        )
-        if callback is None:
-            self._handle_no_callback(message, protocol_dialogue)
-            return
+        ctx_requests = cast(Requests, self.context.requests)
+
+        try:
+            callback = cast(
+                Callable,
+                ctx_requests.request_id_to_callback.pop(request_nonce),
+            )
+        except KeyError as e:
+            raise ABCIAppInternalError(
+                f"No callback defined for request with nonce: {request_nonce}"
+            ) from e
 
         self._log_message_handling(message)
-        callback(message)
+        current_state = cast(
+            AbstractRoundBehaviour, self.context.behaviours.main
+        ).current_state
+        callback(message, current_state)
 
     def _get_dialogues_attribute_name(self) -> str:
         """
@@ -348,18 +358,6 @@ class AbstractResponseHandler(Handler, ABC):
         """
         self.context.logger.warning(
             "received invalid message: unallowed performative. message=%s.", message
-        )
-
-    def _handle_no_callback(self, _message: Message, dialogue: Dialogue) -> None:
-        """
-        Handle no callback found.
-
-        :param _message: the message to be handled
-        :param dialogue: the http dialogue
-        """
-        request_nonce = dialogue.dialogue_label.dialogue_reference[0]
-        self.context.logger.warning(
-            f"callback not specified for request with nonce {request_nonce}"
         )
 
     def _log_message_handling(self, message: Message) -> None:

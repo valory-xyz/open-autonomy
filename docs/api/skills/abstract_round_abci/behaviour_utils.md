@@ -202,17 +202,17 @@ def stop() -> None
 
 Stop the execution of the behaviour.
 
-<a id="packages.valory.skills.abstract_round_abci.behaviour_utils.IPFSBehaviour"></a>
+<a id="packages.valory.skills.abstract_round_abci.behaviour_utils.CleanUpBehaviour"></a>
 
-## IPFSBehaviour Objects
+## CleanUpBehaviour Objects
 
 ```python
-class IPFSBehaviour(SimpleBehaviour,  ABC)
+class CleanUpBehaviour(SimpleBehaviour,  ABC)
 ```
 
-Behaviour for interactions with IPFS.
+Class for clean-up related functionality of behaviours.
 
-<a id="packages.valory.skills.abstract_round_abci.behaviour_utils.IPFSBehaviour.__init__"></a>
+<a id="packages.valory.skills.abstract_round_abci.behaviour_utils.CleanUpBehaviour.__init__"></a>
 
 #### `__`init`__`
 
@@ -220,36 +220,43 @@ Behaviour for interactions with IPFS.
 def __init__(**kwargs: Any)
 ```
 
-Initialize an `IPFSBehaviour`.
+Initialize a base state behaviour.
 
-<a id="packages.valory.skills.abstract_round_abci.behaviour_utils.IPFSBehaviour.send_to_ipfs"></a>
+<a id="packages.valory.skills.abstract_round_abci.behaviour_utils.CleanUpBehaviour.clean_up"></a>
 
-#### send`_`to`_`ipfs
-
-```python
-@_check_ipfs_enabled
-def send_to_ipfs(filepath: str, obj: SupportedObjectType, filetype: Optional[SupportedFiletype] = None, custom_storer: Optional[CustomStorerType] = None, **kwargs: Any, ,) -> Optional[str]
-```
-
-Send a file to IPFS.
-
-<a id="packages.valory.skills.abstract_round_abci.behaviour_utils.IPFSBehaviour.get_from_ipfs"></a>
-
-#### get`_`from`_`ipfs
+#### clean`_`up
 
 ```python
-@_check_ipfs_enabled
-def get_from_ipfs(hash_: str, target_dir: str, filename: str, filetype: Optional[SupportedFiletype] = None, custom_loader: SupportedLoaderType = None) -> Optional[SupportedObjectType]
+def clean_up() -> None
 ```
 
-Get a file from IPFS.
+Clean up the resources due to a 'stop' event.
+
+It can be optionally implemented by the concrete classes.
+
+<a id="packages.valory.skills.abstract_round_abci.behaviour_utils.CleanUpBehaviour.handle_late_messages"></a>
+
+#### handle`_`late`_`messages
+
+```python
+def handle_late_messages(message: Message) -> None
+```
+
+Handle late arriving messages.
+
+Runs from another behaviour, even if the behaviour implementing the method has been exited.
+It can be optionally implemented by the concrete classes.
+
+**Arguments**:
+
+- `message`: the late arriving message to handle.
 
 <a id="packages.valory.skills.abstract_round_abci.behaviour_utils.BaseState"></a>
 
 ## BaseState Objects
 
 ```python
-class BaseState(AsyncBehaviour,  IPFSBehaviour,  ABC)
+class BaseState(AsyncBehaviour,  CleanUpBehaviour,  ABC)
 ```
 
 Base class for FSM states.
@@ -418,8 +425,6 @@ def send_a2a_transaction(payload: BaseTxPayload) -> Generator
 
 Send transaction and wait for the response, and repeat until not successful.
 
-Calls `_send_transaction` and uses the default stop condition (based on round id).
-
 :param: payload: the payload to send
 :yield: the responses
 
@@ -433,15 +438,19 @@ def async_act_wrapper() -> Generator
 
 Do the act, supporting asynchronous execution.
 
-<a id="packages.valory.skills.abstract_round_abci.behaviour_utils.BaseState.default_callback_request"></a>
+<a id="packages.valory.skills.abstract_round_abci.behaviour_utils.BaseState.get_callback_request"></a>
 
-#### default`_`callback`_`request
+#### get`_`callback`_`request
 
 ```python
-def default_callback_request(message: Message) -> None
+def get_callback_request() -> Callable[[Message, "BaseState"], None]
 ```
 
-Implement default callback request.
+Wrapper for callback request which depends on whether the message has not been handled on time.
+
+**Returns**:
+
+the request callback.
 
 <a id="packages.valory.skills.abstract_round_abci.behaviour_utils.BaseState.get_http_response"></a>
 
@@ -456,9 +465,15 @@ Send an http request message from the skill context.
 This method is skill-specific, and therefore
 should not be used elsewhere.
 
+Happy-path full flow of the messages.
+
+_do_request:
+    AbstractRoundAbci skill -> (HttpMessage | REQUEST) -> Http client connection
+    Http client connection -> (HttpMessage | RESPONSE) -> AbstractRoundAbci skill
+
 **Arguments**:
 
-:yield: wait the response message
+:yield: HttpMessage object
 - `method`: the http request method (i.e. 'GET' or 'POST').
 - `url`: the url to send the message to.
 - `content`: the payload.
@@ -479,6 +494,22 @@ def get_signature(message: bytes, is_deprecated_mode: bool = False) -> Generator
 
 Get signature for message.
 
+Happy-path full flow of the messages.
+
+_send_signing_request:
+    AbstractRoundAbci skill -> (SigningMessage | SIGN_MESSAGE) -> DecisionMaker
+    DecisionMaker -> (SigningMessage | SIGNED_MESSAGE) -> AbstractRoundAbci skill
+
+**Arguments**:
+
+:yield: SigningMessage object
+- `message`: message bytes
+- `is_deprecated_mode`: is deprecated mode flag
+
+**Returns**:
+
+message signature
+
 <a id="packages.valory.skills.abstract_round_abci.behaviour_utils.BaseState.send_raw_transaction"></a>
 
 #### send`_`raw`_`transaction
@@ -488,6 +519,25 @@ def send_raw_transaction(transaction: RawTransaction) -> Generator[None, None, O
 ```
 
 Send raw transactions to the ledger for mining.
+
+Happy-path full flow of the messages.
+
+_send_transaction_signing_request:
+        AbstractRoundAbci skill -> (SigningMessage | SIGN_TRANSACTION) -> DecisionMaker
+        DecisionMaker -> (SigningMessage | SIGNED_TRANSACTION) -> AbstractRoundAbci skill
+
+_send_transaction_request:
+    AbstractRoundAbci skill -> (LedgerApiMessage | SEND_SIGNED_TRANSACTION) -> Ledger connection
+    Ledger connection -> (LedgerApiMessage | TRANSACTION_DIGEST) -> AbstractRoundAbci skill
+
+**Arguments**:
+
+:yield: SigningMessage object
+- `transaction`: transaction data
+
+**Returns**:
+
+transaction hash
 
 <a id="packages.valory.skills.abstract_round_abci.behaviour_utils.BaseState.get_transaction_receipt"></a>
 
@@ -499,6 +549,23 @@ def get_transaction_receipt(tx_digest: str, retry_timeout: Optional[int] = None,
 
 Get transaction receipt.
 
+Happy-path full flow of the messages.
+
+_send_transaction_receipt_request:
+    AbstractRoundAbci skill -> (LedgerApiMessage | GET_TRANSACTION_RECEIPT) -> Ledger connection
+    Ledger connection -> (LedgerApiMessage | TRANSACTION_RECEIPT) -> AbstractRoundAbci skill
+
+**Arguments**:
+
+:yield: LedgerApiMessage object
+- `tx_digest`: transaction digest received from raw transaction.
+- `retry_timeout`: retry timeout.
+- `retry_attempts`: number of retry attempts allowed.
+
+**Returns**:
+
+transaction receipt data
+
 <a id="packages.valory.skills.abstract_round_abci.behaviour_utils.BaseState.get_ledger_api_response"></a>
 
 #### get`_`ledger`_`api`_`response
@@ -507,7 +574,12 @@ Get transaction receipt.
 def get_ledger_api_response(performative: LedgerApiMessage.Performative, ledger_callable: str, **kwargs: Any, ,) -> Generator[None, None, LedgerApiMessage]
 ```
 
-Request contract safe transaction hash
+Request data from ledger api
+
+Happy-path full flow of the messages.
+
+AbstractRoundAbci skill -> (LedgerApiMessage | LedgerApiMessage.Performative) -> Ledger connection
+Ledger connection -> (LedgerApiMessage | LedgerApiMessage.Performative) -> AbstractRoundAbci skill
 
 **Arguments**:
 
@@ -529,6 +601,11 @@ def get_contract_api_response(performative: ContractApiMessage.Performative, con
 
 Request contract safe transaction hash
 
+Happy-path full flow of the messages.
+
+AbstractRoundAbci skill -> (ContractApiMessage | ContractApiMessage.Performative) -> Ledger connection (contract dispatcher)
+Ledger connection (contract dispatcher) -> (ContractApiMessage | ContractApiMessage.Performative) -> AbstractRoundAbci skill
+
 **Arguments**:
 
 - `performative`: the message performative
@@ -541,15 +618,33 @@ Request contract safe transaction hash
 
 the contract api response
 
-<a id="packages.valory.skills.abstract_round_abci.behaviour_utils.BaseState.clean_up"></a>
+<a id="packages.valory.skills.abstract_round_abci.behaviour_utils.DegenerateState"></a>
 
-#### clean`_`up
+## DegenerateState Objects
 
 ```python
-def clean_up() -> None
+class DegenerateState(BaseState,  ABC)
 ```
 
-Clean up the resources due to a 'stop' event.
+An abstract matching behaviour for final and degenerate rounds.
 
-It can be optionally implemented by the concrete classes.
+<a id="packages.valory.skills.abstract_round_abci.behaviour_utils.DegenerateState.async_act"></a>
+
+#### async`_`act
+
+```python
+def async_act() -> Generator
+```
+
+Raise a RuntimeError.
+
+<a id="packages.valory.skills.abstract_round_abci.behaviour_utils.make_degenerate_state"></a>
+
+#### make`_`degenerate`_`state
+
+```python
+def make_degenerate_state(round_id: str) -> Type[DegenerateState]
+```
+
+Make a degenerate state class.
 
