@@ -69,6 +69,7 @@ security:
 generators:
 	python scripts/generate_ipfs_hashes.py --vendor valory
 	python scripts/generate_api_documentation.py
+	python scripts/check_copyright.py
 
 .PHONY: common-checks
 common-checks:
@@ -119,6 +120,10 @@ test:
 
 .PHONY: copyright
 copyright:
+	python scripts/check_copyright.py
+
+.PHONY: check-copyright
+check-copyright:
 	tox -e check-copyright
 
 .PHONY: checks

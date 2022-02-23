@@ -23,7 +23,7 @@ For a clean workflow run checks in following order before making a PR or pushing
 5. make generators
 6. make common-checks
 
-> else only run
+> else run
 5. make copyright
 
 
