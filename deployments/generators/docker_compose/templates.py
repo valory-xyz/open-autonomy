@@ -106,3 +106,4 @@ ABCI_NODE_TEMPLATE: str = (
 
 if IMAGE_VERSION == "dev":
     ABCI_NODE_TEMPLATE += "      - ../../packages/:/home/ubuntu/packages"
+print(f"Generated image version {IMAGE_VERSION}")
