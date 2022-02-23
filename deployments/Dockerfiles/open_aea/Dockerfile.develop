@@ -1,4 +1,4 @@
-FROM valory/open-aea-dev:0.1.0
+FROM valory/open-aea-user:0.1.0
 
 RUN cowsay "This is a developement image!"
 COPY watcher.py dev_requirements.txt ./
