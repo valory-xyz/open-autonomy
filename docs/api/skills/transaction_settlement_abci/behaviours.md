@@ -304,8 +304,7 @@ Reset state.
 ## ResetAndPauseBehaviour Objects
 
 ```python
-class ResetAndPauseBehaviour(  # pylint: disable=too-many-ancestors
-    BaseResetBehaviour)
+class ResetAndPauseBehaviour(BaseResetBehaviour)
 ```
 
 Reset and pause state.
