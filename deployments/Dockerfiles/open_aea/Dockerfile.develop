@@ -1,7 +1,8 @@
 FROM valory/open-aea-user:0.1.0
 
-RUN sudo apt-get install cowsay
-RUN cowsay "This is a developement image!"
+run sudo apt-get update && sudo apt-get upgrade -y
+RUN pip install cowsay
+RUN echo "This is a developement image!"
 COPY watcher.py dev_requirements.txt ./
 ENTRYPOINT ["/bin/python"]
 RUN pip install -r dev_requirements.txt
