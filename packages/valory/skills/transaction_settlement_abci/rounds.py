@@ -204,7 +204,7 @@ class FinalizationRound(OnlyKeeperSendsRound):
     allowed_tx_type = FinalizationTxPayload.transaction_type
     payload_attribute = "tx_data"
 
-    def _update_hashes(self) -> List[str]:
+    def _get_updated_hashes(self) -> List[str]:
         """Update the tx hashes history."""
         hashes = cast(PeriodState, self.period_state).tx_hashes_history
         tx_digest = cast(
@@ -252,7 +252,7 @@ class FinalizationRound(OnlyKeeperSendsRound):
         if self.keeper_payload["tx_digest"] != "":
             state = self.period_state.update(
                 period_state_class=PeriodState,
-                tx_hashes_history=self._update_hashes(),
+                tx_hashes_history=self._get_updated_hashes(),
                 final_verification_status=VerificationStatus(
                     self.keeper_payload["status"]
                 ),
