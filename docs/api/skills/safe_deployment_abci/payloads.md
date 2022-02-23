@@ -39,7 +39,7 @@ Represent a transaction payload of type 'randomness'.
 #### `__`init`__`
 
 ```python
-def __init__(sender: str, round_id: int, randomness: str, id_: Optional[str] = None) -> None
+def __init__(sender: str, round_id: int, randomness: str, **kwargs: Any) -> None
 ```
 
 Initialize an 'select_keeper' transaction payload.
@@ -49,7 +49,7 @@ Initialize an 'select_keeper' transaction payload.
 - `sender`: the sender (Ethereum) address
 - `round_id`: the round id
 - `randomness`: the randomness
-- `id_`: the id of the transaction
+- `kwargs`: the keyword arguments
 
 <a id="packages.valory.skills.safe_deployment_abci.payloads.RandomnessPayload.round_id"></a>
 
@@ -99,7 +99,7 @@ Represent a transaction payload of type 'select_keeper'.
 #### `__`init`__`
 
 ```python
-def __init__(sender: str, keeper: str, id_: Optional[str] = None) -> None
+def __init__(sender: str, keeper: str, **kwargs: Any) -> None
 ```
 
 Initialize an 'select_keeper' transaction payload.
@@ -108,7 +108,7 @@ Initialize an 'select_keeper' transaction payload.
 
 - `sender`: the sender (Ethereum) address
 - `keeper`: the keeper selection
-- `id_`: the id of the transaction
+- `kwargs`: the keyword arguments
 
 <a id="packages.valory.skills.safe_deployment_abci.payloads.SelectKeeperPayload.keeper"></a>
 
@@ -147,7 +147,7 @@ Represent a transaction payload of type 'validate'.
 #### `__`init`__`
 
 ```python
-def __init__(sender: str, vote: Optional[bool] = None, id_: Optional[str] = None) -> None
+def __init__(sender: str, vote: Optional[bool] = None, **kwargs: Any) -> None
 ```
 
 Initialize an 'validate' transaction payload.
@@ -156,7 +156,7 @@ Initialize an 'validate' transaction payload.
 
 - `sender`: the sender (Ethereum) address
 - `vote`: the vote
-- `id_`: the id of the transaction
+- `kwargs`: the keyword arguments
 
 <a id="packages.valory.skills.safe_deployment_abci.payloads.ValidatePayload.vote"></a>
 
@@ -195,7 +195,7 @@ Represent a transaction payload of type 'deploy_safe'.
 #### `__`init`__`
 
 ```python
-def __init__(sender: str, safe_contract_address: str, id_: Optional[str] = None) -> None
+def __init__(sender: str, safe_contract_address: str, **kwargs: Any) -> None
 ```
 
 Initialize a 'deploy_safe' transaction payload.
@@ -204,7 +204,7 @@ Initialize a 'deploy_safe' transaction payload.
 
 - `sender`: the sender (Ethereum) address
 - `safe_contract_address`: the Safe contract address
-- `id_`: the id of the transaction
+- `kwargs`: the keyword arguments
 
 <a id="packages.valory.skills.safe_deployment_abci.payloads.DeploySafePayload.safe_contract_address"></a>
 

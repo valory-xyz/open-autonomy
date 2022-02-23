@@ -240,20 +240,20 @@ class SimpleAbciApp(AbciApp[Event]):
     Initial states: {RegistrationRound}
 
     Transition states:
-    0. RegistrationRound
-        - done: 1.
-    1. RandomnessStartupRound
-        - done: 2.
-        - round timeout: 1.
-        - no majority: 1.
-    2. SelectKeeperAtStartupRound
-        - done: 3.
-        - round timeout: 0.
-        - no majority: 0.
-    3. ResetAndPauseRound
-        - done: 1.
-        - reset timeout: 0.
-        - no majority: 0.
+        0. RegistrationRound
+            - done: 1.
+        1. RandomnessStartupRound
+            - done: 2.
+            - round timeout: 1.
+            - no majority: 1.
+        2. SelectKeeperAtStartupRound
+            - done: 3.
+            - round timeout: 0.
+            - no majority: 0.
+        3. ResetAndPauseRound
+            - done: 1.
+            - reset timeout: 0.
+            - no majority: 0.
 
     Final states: {}
 

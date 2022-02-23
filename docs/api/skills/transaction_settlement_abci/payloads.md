@@ -39,7 +39,7 @@ Represent a transaction payload of type 'randomness'.
 #### `__`init`__`
 
 ```python
-def __init__(sender: str, round_id: int, randomness: str, id_: Optional[str] = None) -> None
+def __init__(sender: str, round_id: int, randomness: str, **kwargs: Any) -> None
 ```
 
 Initialize an 'select_keeper' transaction payload.
@@ -49,7 +49,7 @@ Initialize an 'select_keeper' transaction payload.
 - `sender`: the sender (Ethereum) address
 - `round_id`: the round id
 - `randomness`: the randomness
-- `id_`: the id of the transaction
+- `kwargs`: the keyword arguments
 
 <a id="packages.valory.skills.transaction_settlement_abci.payloads.RandomnessPayload.round_id"></a>
 
@@ -99,7 +99,7 @@ Represent a transaction payload of type 'select_keeper'.
 #### `__`init`__`
 
 ```python
-def __init__(sender: str, keeper: str, id_: Optional[str] = None) -> None
+def __init__(sender: str, keeper: str, **kwargs: Any) -> None
 ```
 
 Initialize an 'select_keeper' transaction payload.
@@ -108,7 +108,7 @@ Initialize an 'select_keeper' transaction payload.
 
 - `sender`: the sender (Ethereum) address
 - `keeper`: the keeper selection
-- `id_`: the id of the transaction
+- `kwargs`: the keyword arguments
 
 <a id="packages.valory.skills.transaction_settlement_abci.payloads.SelectKeeperPayload.keeper"></a>
 
@@ -147,7 +147,7 @@ Represent a transaction payload of type 'validate'.
 #### `__`init`__`
 
 ```python
-def __init__(sender: str, vote: Optional[bool] = None, id_: Optional[str] = None) -> None
+def __init__(sender: str, vote: Optional[bool] = None, **kwargs: Any) -> None
 ```
 
 Initialize an 'validate' transaction payload.
@@ -156,7 +156,7 @@ Initialize an 'validate' transaction payload.
 
 - `sender`: the sender (Ethereum) address
 - `vote`: the vote
-- `id_`: the id of the transaction
+- `kwargs`: the keyword arguments
 
 <a id="packages.valory.skills.transaction_settlement_abci.payloads.ValidatePayload.vote"></a>
 
@@ -195,7 +195,7 @@ Represent a transaction payload of type 'check'.
 #### `__`init`__`
 
 ```python
-def __init__(sender: str, verified_res: str, id_: Optional[str] = None) -> None
+def __init__(sender: str, verified_res: str, **kwargs: Any) -> None
 ```
 
 Initialize an 'check' transaction payload.
@@ -204,7 +204,7 @@ Initialize an 'check' transaction payload.
 
 - `sender`: the sender (Ethereum) address
 - `verified_res`: the verification result
-- `id_`: the id of the transaction
+- `kwargs`: the keyword arguments
 
 <a id="packages.valory.skills.transaction_settlement_abci.payloads.CheckTransactionHistoryPayload.verified_res"></a>
 
@@ -243,7 +243,7 @@ Represent a transaction payload of type 'synchronize'.
 #### `__`init`__`
 
 ```python
-def __init__(sender: str, tx_hashes: str = "", id_: Optional[str] = None) -> None
+def __init__(sender: str, tx_hashes: str = "", **kwargs: Any) -> None
 ```
 
 Initialize a 'synchronize' transaction payload.
@@ -252,7 +252,7 @@ Initialize a 'synchronize' transaction payload.
 
 - `sender`: the sender (Ethereum) address
 - `tx_hashes`: the late-arriving tx hashes concatenated
-- `id_`: the id of the transaction
+- `kwargs`: the keyword arguments
 
 <a id="packages.valory.skills.transaction_settlement_abci.payloads.SynchronizeLateMessagesPayload.tx_hashes"></a>
 
@@ -291,7 +291,7 @@ Represent a transaction payload of type 'signature'.
 #### `__`init`__`
 
 ```python
-def __init__(sender: str, signature: str, id_: Optional[str] = None) -> None
+def __init__(sender: str, signature: str, **kwargs: Any) -> None
 ```
 
 Initialize an 'signature' transaction payload.
@@ -300,7 +300,7 @@ Initialize an 'signature' transaction payload.
 
 - `sender`: the sender (Ethereum) address
 - `signature`: the signature
-- `id_`: the id of the transaction
+- `kwargs`: the keyword arguments
 
 <a id="packages.valory.skills.transaction_settlement_abci.payloads.SignaturePayload.signature"></a>
 
@@ -339,7 +339,7 @@ Represent a transaction payload of type 'finalization'.
 #### `__`init`__`
 
 ```python
-def __init__(sender: str, tx_data: Optional[Dict[str, Union[str, int]]] = None, id_: Optional[str] = None) -> None
+def __init__(sender: str, tx_data: Optional[Dict[str, Union[str, int]]] = None, **kwargs: Any) -> None
 ```
 
 Initialize an 'finalization' transaction payload.
@@ -348,7 +348,7 @@ Initialize an 'finalization' transaction payload.
 
 - `sender`: the sender (Ethereum) address
 - `tx_data`: the transaction data
-- `id_`: the id of the transaction
+- `kwargs`: the keyword arguments
 
 <a id="packages.valory.skills.transaction_settlement_abci.payloads.FinalizationTxPayload.tx_data"></a>
 
@@ -387,7 +387,7 @@ Represent a transaction payload of type 'reset'.
 #### `__`init`__`
 
 ```python
-def __init__(sender: str, period_count: int, id_: Optional[str] = None) -> None
+def __init__(sender: str, period_count: int, **kwargs: Any) -> None
 ```
 
 Initialize an 'rest' transaction payload.
@@ -396,7 +396,7 @@ Initialize an 'rest' transaction payload.
 
 - `sender`: the sender (Ethereum) address
 - `period_count`: the period count id
-- `id_`: the id of the transaction
+- `kwargs`: the keyword arguments
 
 <a id="packages.valory.skills.transaction_settlement_abci.payloads.ResetPayload.period_count"></a>
 
