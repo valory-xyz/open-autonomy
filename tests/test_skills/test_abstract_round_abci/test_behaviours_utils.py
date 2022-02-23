@@ -987,6 +987,7 @@ def test_degenerate_state_async_act() -> None:
         matching_round = MagicMock()
 
     context = MagicMock()
+    context.params.ipfs_domain_name = None
     # this is needed to trigger execution of async_act
     context.state.period.syncing_up = False
 

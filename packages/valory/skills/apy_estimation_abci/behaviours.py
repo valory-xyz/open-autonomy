@@ -377,7 +377,7 @@ class FetchBehaviour(APYEstimationBaseState):
         self.context.fantom_subgraph.reset_retries()
 
 
-class FetchBatchBehaviour(FetchBehaviour):
+class FetchBatchBehaviour(FetchBehaviour):  # pylint: disable=too-many-ancestors
     """Observe the latest batch of historical data."""
 
     state_id = "fetch_batch"
@@ -1128,14 +1128,16 @@ class BaseResetBehaviour(APYEstimationBaseState):
         self.set_done()
 
 
-class FreshModelResetBehaviour(BaseResetBehaviour):
+class FreshModelResetBehaviour(  # pylint: disable=too-many-ancestors
+    BaseResetBehaviour
+):
     """Reset state to start with a fresh model."""
 
     matching_round = FreshModelResetRound
     state_id = "fresh_model_reset"
 
 
-class CycleResetBehaviour(BaseResetBehaviour):
+class CycleResetBehaviour(BaseResetBehaviour):  # pylint: disable=too-many-ancestors
     """Cycle reset state."""
 
     matching_round = CycleResetRound

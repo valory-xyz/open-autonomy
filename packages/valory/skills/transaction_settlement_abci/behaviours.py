@@ -184,7 +184,7 @@ class SelectKeeperTransactionSubmissionBehaviourA(SelectKeeperBehaviour):
     payload_class = SelectKeeperPayload
 
 
-class SelectKeeperTransactionSubmissionBehaviourB(
+class SelectKeeperTransactionSubmissionBehaviourB(  # pylint: disable=too-many-ancestors
     SelectKeeperBehaviour, TransactionSettlementBaseState
 ):
     """Select the keeper agent."""
@@ -381,7 +381,9 @@ class CheckTransactionHistoryBehaviour(TransactionSettlementBaseState):
         return cast(str, contract_api_msg.state.body["revert_reason"])
 
 
-class CheckLateTxHashesBehaviour(CheckTransactionHistoryBehaviour):
+class CheckLateTxHashesBehaviour(  # pylint: disable=too-many-ancestors
+    CheckTransactionHistoryBehaviour
+):
     """Check the late-arriving transaction hashes."""
 
     state_id = "check_late_tx_hashes"
@@ -731,7 +733,7 @@ class BaseResetBehaviour(TransactionSettlementBaseState):
         self.set_done()
 
 
-class ResetBehaviour(BaseResetBehaviour):
+class ResetBehaviour(BaseResetBehaviour):  # pylint: disable=too-many-ancestors
     """Reset state."""
 
     matching_round = ResetRound
@@ -739,7 +741,7 @@ class ResetBehaviour(BaseResetBehaviour):
     pause = False
 
 
-class ResetAndPauseBehaviour(BaseResetBehaviour):
+class ResetAndPauseBehaviour(BaseResetBehaviour):  # pylint: disable=too-many-ancestors
     """Reset and pause state."""
 
     matching_round = ResetAndPauseRound

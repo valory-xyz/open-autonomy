@@ -240,7 +240,9 @@ class BatchPreparationPayload(BaseAPYPayload):
 
     transaction_type = TransactionType.BATCH_PREPARATION
 
-    def __init__(self, sender: str, prepared_batch: Optional[str], **kwargs: Any) -> None:
+    def __init__(
+        self, sender: str, prepared_batch: Optional[str], **kwargs: Any
+    ) -> None:
         """Initialize a 'batch_preparation' transaction payload.
 
         :param sender: the sender (Ethereum) address
@@ -296,9 +298,7 @@ class TrainingPayload(BaseAPYPayload):
 
     transaction_type = TransactionType.TRAINING
 
-    def __init__(
-        self, sender: str, model_hash: Optional[str], **kwargs: Any
-    ) -> None:
+    def __init__(self, sender: str, model_hash: Optional[str], **kwargs: Any) -> None:
         """Initialize a 'training' transaction payload.
 
         :param sender: the sender (Ethereum) address
@@ -350,7 +350,9 @@ class UpdatePayload(BaseAPYPayload):
 
     transaction_type = TransactionType.UPDATE
 
-    def __init__(self, sender: str, updated_model_hash: Optional[str], **kwargs: Any) -> None:
+    def __init__(
+        self, sender: str, updated_model_hash: Optional[str], **kwargs: Any
+    ) -> None:
         """Initialize an 'update' transaction payload.
 
         :param sender: the sender (Ethereum) address

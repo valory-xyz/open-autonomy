@@ -61,7 +61,7 @@ Select the keeper agent.
 ## SelectKeeperTransactionSubmissionBehaviourB Objects
 
 ```python
-class SelectKeeperTransactionSubmissionBehaviourB(
+class SelectKeeperTransactionSubmissionBehaviourB(  # pylint: disable=too-many-ancestors
     SelectKeeperBehaviour,  TransactionSettlementBaseState)
 ```
 
@@ -130,7 +130,8 @@ Do the action.
 ## CheckLateTxHashesBehaviour Objects
 
 ```python
-class CheckLateTxHashesBehaviour(CheckTransactionHistoryBehaviour)
+class CheckLateTxHashesBehaviour(  # pylint: disable=too-many-ancestors
+    CheckTransactionHistoryBehaviour)
 ```
 
 Check the late-arriving transaction hashes.
@@ -303,7 +304,8 @@ Reset state.
 ## ResetAndPauseBehaviour Objects
 
 ```python
-class ResetAndPauseBehaviour(BaseResetBehaviour)
+class ResetAndPauseBehaviour(  # pylint: disable=too-many-ancestors
+    BaseResetBehaviour)
 ```
 
 Reset and pause state.
