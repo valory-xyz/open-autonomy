@@ -552,7 +552,7 @@ class StateDB:
 
     def cleanup(self) -> None:
         """Reset the db."""
-        self._data = {}
+        self._data = {self._current_period_count: deepcopy(self._initial_data)}
 
 
 class BasePeriodState:
