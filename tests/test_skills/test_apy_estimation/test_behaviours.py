@@ -199,6 +199,9 @@ class APYEstimationFSMBehaviourBaseCase(BaseSkillTestCase):
                 initial_data={"full_training": False, "pair_name": "test"},
             )
         )
+        cast(
+            APYEstimationBaseState, cls.apy_estimation_behaviour.context
+        ).params.ipfs_domain_name = "/dns/localhost/tcp/5001/http"
 
     def create_enough_participants(self) -> None:
         """Create enough participants."""
