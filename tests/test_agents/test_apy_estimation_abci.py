@@ -22,6 +22,7 @@
 from typing import Tuple, cast
 
 import pytest
+from aea.configurations.data_types import PublicId
 
 from tests.fixture_helpers import UseGnosisSafeHardHatNet
 from tests.test_agents.base import BaseTestEnd2EndNormalExecution
@@ -147,6 +148,13 @@ class BaseTestABCIAPYEstimationSkillNormalExecution(BaseTestEnd2EndNormalExecuti
     check_strings = CHECK_STRINGS
     ROUND_TIMEOUT_SECONDS = 120
     wait_to_finish = 240
+    __args_prefix = f"vendor.valory.skills.{PublicId.from_str(skill_package).name}.models.params.args"
+    extra_configs = [
+        {
+            "dotted_path": f"{__args_prefix}.ipfs_domain_name",
+            "value": "/dns/localhost/tcp/5001/http",
+        }
+    ]
 
 
 @pytest.mark.skip
