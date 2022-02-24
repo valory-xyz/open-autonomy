@@ -23,7 +23,7 @@ import logging
 import time
 import warnings
 from pathlib import Path
-from typing import Any, Dict, List, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 
 import pytest
 from aea.configurations.base import PublicId
@@ -62,7 +62,7 @@ class BaseTestEnd2End(AEATestCaseMany, BaseTendermintTestClass):
     wait_to_finish: int
     # dictionary with the round names expected to appear in output as keys
     # and the number of periods they are expected to appear for as values.
-    round_check_strings_to_n_periods: Dict[str, int] = None
+    round_check_strings_to_n_periods: Optional[Dict[str, int]] = None
     # tuple of strings expected to appear in output as is.
     strict_check_strings: Tuple[str, ...] = ()
     extra_configs: List[Dict[str, Any]] = []
@@ -171,7 +171,7 @@ class BaseTestEnd2End(AEATestCaseMany, BaseTendermintTestClass):
     @classmethod
     def missing_from_output(
         cls,
-        round_check_strings_to_n_periods: Dict[str, int] = None,
+        round_check_strings_to_n_periods: Optional[Dict[str, int]] = None,
         strict_check_strings: Tuple[str, ...] = (),
         period: int = 1,
         is_terminating: bool = True,
