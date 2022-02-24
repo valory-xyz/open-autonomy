@@ -35,20 +35,15 @@ ROUND_CHECK_STRINGS = {
     'preprocess': 1,
     'randomness': 1,
     'optimize': 1,
-    'train': 1,
+    # One time for training before testing and one time for training on full data after having the final model.
+    'train': 2,
     'test': 1,
-    'full_train': 1,
     'estimate': 2,
     'cycle_reset': 2,
     'collect_batch': 2,
     'prepare_batch': 2,
     'update_forecaster': 2,
 }
-
-# strict check log messages of the happy path
-STRICT_CHECK_STRINGS = (
-    "Period end",
-)
 
 
 @ipfs_daemon
@@ -58,7 +53,6 @@ class BaseTestABCIAPYEstimationSkillNormalExecution(BaseTestEnd2EndNormalExecuti
     agent_package = "valory/apy_estimation:0.1.0"
     skill_package = "valory/apy_estimation_abci:0.1.0"
     round_check_strings_to_n_periods = ROUND_CHECK_STRINGS
-    strict_check_strings = STRICT_CHECK_STRINGS
     ROUND_TIMEOUT_SECONDS = 120
     wait_to_finish = 240
     __args_prefix = f"vendor.valory.skills.{PublicId.from_str(skill_package).name}.models.params.args"
