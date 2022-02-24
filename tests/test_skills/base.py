@@ -100,7 +100,7 @@ class FSMBehaviourBaseCase(BaseSkillTestCase):
             LedgerApiHandler, cls._skill.skill_context.handlers.ledger_api
         )
 
-        if kwargs["param_overrides"] is not None:
+        if kwargs.get("param_overrides") is not None:
             for param_name, param_value in kwargs["param_overrides"].items():
                 setattr(cls.behaviour.context.params, param_name, param_value)
 
