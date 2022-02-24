@@ -30,19 +30,19 @@ ipfs_daemon = pytest.mark.usefixtures("ipfs_daemon")
 
 # round check log messages of the happy path
 ROUND_CHECK_STRINGS = {
-    'collect_history': 1,
-    'transform': 1,
-    'preprocess': 1,
-    'randomness': 1,
-    'optimize': 1,
+    "collect_history": 1,
+    "transform": 1,
+    "preprocess": 1,
+    "randomness": 1,
+    "optimize": 1,
     # One time for training before testing and one time for training on full data after having the final model.
-    'train': 2,
-    'test': 1,
-    'estimate': 2,
-    'cycle_reset': 2,
-    'collect_batch': 2,
-    'prepare_batch': 2,
-    'update_forecaster': 2,
+    "train": 2,
+    "test": 1,
+    "estimate": 2,
+    "cycle_reset": 2,
+    "collect_batch": 2,
+    "prepare_batch": 2,
+    "update_forecaster": 2,
 }
 
 

@@ -31,9 +31,7 @@ ROUND_CHECK_STRINGS = {
 }
 
 # strict check log messages of the happy path
-STRICT_CHECK_STRINGS = (
-    "Period end",
-)
+STRICT_CHECK_STRINGS = ("Period end",)
 
 
 class TestSimpleABCISingleAgent(

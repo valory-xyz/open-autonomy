@@ -180,16 +180,15 @@ class BaseTestEnd2End(AEATestCaseMany, BaseTendermintTestClass):
         """
         Check if strings are present in process output.
 
-        Read process stdout in thread and terminate when all strings are present
-        or timeout expired.
+        Read process stdout in thread and terminate when all strings are present or timeout expired.
 
         :param round_check_strings_to_n_periods: dictionary with the round names expected to appear in output as keys
-        and the number of periods they are expected to appear for as values.
+            and the number of periods they are expected to appear for as values.
         :param strict_check_strings: tuple of strings expected to appear in output as is.
         :param period: period of checking.
         :param is_terminating: whether the agents are terminated if any of the check strings do not appear in the logs.
         :param kwargs: the kwargs of the overridden method.
-        :return: list of missed strings.
+        :return: tuple with two lists of missed strings, the strict and the round respectively.
         """
         # Call the original method with the strict checks.
         kwargs["strings"] = strict_check_strings
@@ -245,7 +244,9 @@ class BaseTestEnd2End(AEATestCaseMany, BaseTendermintTestClass):
         return missing_strict_strings, missing_round_strings
 
     @staticmethod
-    def __check_missing_strings(missing_strict_strings: List[str], missing_round_strings: List[str], i: int) -> None:
+    def __check_missing_strings(
+        missing_strict_strings: List[str], missing_round_strings: List[str], i: int
+    ) -> None:
         """Checks for missing strings in agent's output."""
         assertion_string = ""
         if missing_strict_strings:
@@ -267,7 +268,9 @@ class BaseTestEnd2End(AEATestCaseMany, BaseTendermintTestClass):
                 timeout=self.wait_to_finish,
             )
 
-            self.__check_missing_strings(missing_strict_strings, missing_round_strings, i)
+            self.__check_missing_strings(
+                missing_strict_strings, missing_round_strings, i
+            )
 
             if not self.is_successfully_terminated(process):
                 warnings.warn(
