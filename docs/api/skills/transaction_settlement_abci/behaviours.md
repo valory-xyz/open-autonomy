@@ -9,7 +9,7 @@ This module contains the behaviours for the 'abci' skill.
 ## TransactionSettlementBaseState Objects
 
 ```python
-class TransactionSettlementBaseState(BaseState,  ABC)
+class TransactionSettlementBaseState(BaseState, ABC)
 ```
 
 Base state behaviour for the common apps' skill.
@@ -61,8 +61,8 @@ Select the keeper agent.
 ## SelectKeeperTransactionSubmissionBehaviourB Objects
 
 ```python
-class SelectKeeperTransactionSubmissionBehaviourB(  # pylint: disable=too-many-ancestors
-    SelectKeeperBehaviour,  TransactionSettlementBaseState)
+class SelectKeeperTransactionSubmissionBehaviourB(# pylint: disable=too-many-ancestors
+    SelectKeeperBehaviour, TransactionSettlementBaseState)
 ```
 
 Select the keeper agent.
@@ -130,7 +130,7 @@ Do the action.
 ## CheckLateTxHashesBehaviour Objects
 
 ```python
-class CheckLateTxHashesBehaviour(  # pylint: disable=too-many-ancestors
+class CheckLateTxHashesBehaviour(# pylint: disable=too-many-ancestors
     CheckTransactionHistoryBehaviour)
 ```
 
