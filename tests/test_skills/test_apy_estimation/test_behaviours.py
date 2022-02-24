@@ -124,16 +124,15 @@ class APYEstimationFSMBehaviourBaseCase(FSMBehaviourBaseCase):
     @classmethod
     def setup(cls, **kwargs: Any) -> None:
         """Set up the test class."""
-        super().setup()
+        super().setup(
+            param_overrides={"ipfs_domain_name": "/dns/localhost/tcp/5001/http"}
+        )
         cls.period_state = PeriodState(
             StateDB(
                 initial_period=0,
                 initial_data={"full_training": False, "pair_name": "test"},
             )
         )
-        cast(
-            APYEstimationBaseState, cls.apy_estimation_behaviour.context
-        ).params.ipfs_domain_name = "/dns/localhost/tcp/5001/http"
 
     def end_round(self, done_event: Enum = Event.DONE) -> None:
         """Ends round early to cover `wait_for_end` generator."""
