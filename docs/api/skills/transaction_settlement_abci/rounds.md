@@ -262,8 +262,7 @@ A round in which a new keeper is selected for transaction submission
 ## SelectKeeperTransactionSubmissionRoundBAfterTimeout Objects
 
 ```python
-class SelectKeeperTransactionSubmissionRoundBAfterTimeout(
-    SelectKeeperTransactionSubmissionRoundB)
+class SelectKeeperTransactionSubmissionRoundBAfterTimeout(SelectKeeperTransactionSubmissionRoundB)
 ```
 
 A round in which a new keeper is selected for transaction submission after a round timeout of the first keeper
