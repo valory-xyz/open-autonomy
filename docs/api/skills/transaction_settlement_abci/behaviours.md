@@ -51,7 +51,8 @@ Retrieve randomness.
 ## SelectKeeperTransactionSubmissionBehaviourA Objects
 
 ```python
-class SelectKeeperTransactionSubmissionBehaviourA(SelectKeeperBehaviour, TransactionSettlementBaseState)
+class SelectKeeperTransactionSubmissionBehaviourA(# pylint: disable=too-many-ancestors
+    SelectKeeperBehaviour, TransactionSettlementBaseState)
 ```
 
 Select the keeper agent.
@@ -61,7 +62,8 @@ Select the keeper agent.
 ## SelectKeeperTransactionSubmissionBehaviourB Objects
 
 ```python
-class SelectKeeperTransactionSubmissionBehaviourB(SelectKeeperBehaviour, TransactionSettlementBaseState)
+class SelectKeeperTransactionSubmissionBehaviourB(# pylint: disable=too-many-ancestors
+    SelectKeeperBehaviour, TransactionSettlementBaseState)
 ```
 
 Select the keeper b agent.
@@ -71,7 +73,8 @@ Select the keeper b agent.
 ## SelectKeeperTransactionSubmissionBehaviourBAfterTimeout Objects
 
 ```python
-class SelectKeeperTransactionSubmissionBehaviourBAfterTimeout(SelectKeeperBehaviour, TransactionSettlementBaseState)
+class SelectKeeperTransactionSubmissionBehaviourBAfterTimeout(# pylint: disable=too-many-ancestors
+    SelectKeeperBehaviour, TransactionSettlementBaseState)
 ```
 
 Select the keeper b agent after a timeout.
@@ -139,7 +142,8 @@ Do the action.
 ## CheckLateTxHashesBehaviour Objects
 
 ```python
-class CheckLateTxHashesBehaviour(CheckTransactionHistoryBehaviour)
+class CheckLateTxHashesBehaviour(# pylint: disable=too-many-ancestors
+    CheckTransactionHistoryBehaviour)
 ```
 
 Check the late-arriving transaction hashes.

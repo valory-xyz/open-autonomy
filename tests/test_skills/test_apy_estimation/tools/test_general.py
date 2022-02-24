@@ -18,19 +18,16 @@
 # ------------------------------------------------------------------------------
 
 """Test the `tools/general.py` module of the skill."""
-import json
 import os
 from pathlib import PosixPath
 
 import pytest
 from _pytest.monkeypatch import MonkeyPatch
 
+from packages.valory.skills.abstract_round_abci.io.paths import create_pathdirs
 from packages.valory.skills.apy_estimation_abci.tools.general import (
-    create_pathdirs,
     filter_out_numbers,
     gen_unix_timestamps,
-    read_json_file,
-    to_json_file,
 )
 
 
@@ -89,52 +86,6 @@ class TestGeneral:
         assert n_files_in_folder == 0
         assert n_folders_in_folder == expected_folders_amount
         assert os.path.isdir(path_to_folder)
-
-    @staticmethod
-    def test_to_json_file(tmp_path: PosixPath) -> None:
-        """Test list to json file."""
-        test_list = [{"key0": "1", "key1": "test"}, {"": "2"}, {"test": "test"}]
-
-        # test non-existing path.
-        path = os.path.join("non_existing_path", "file.json")
-        with pytest.raises(FileNotFoundError):
-            to_json_file(path, test_list)  # type: ignore
-
-        # test existing path with serializable list.
-        path = os.path.join(tmp_path, "file.json")
-        to_json_file(path, test_list)  # type: ignore
-        with open(path, "r", encoding="utf-8") as f:
-            li = json.load(f)
-            assert li == test_list
-
-        # test existing path with non-serializable list.
-        test_list.append(b"non-serializable")  # type: ignore
-        with pytest.raises(TypeError):
-            to_json_file(path, test_list)  # type: ignore
-
-    @staticmethod
-    def test_read_json_file(tmp_path: PosixPath) -> None:
-        """Test `read_json_file`."""
-        # test non-existing path.
-        filepath = "non-existing"
-        with pytest.raises(FileNotFoundError):
-            read_json_file(filepath)
-
-        # test existing path with serializable list.
-        expected = [{"key0": "1", "key1": "test"}, {"": "2"}, {"test": "test"}]
-        filepath = os.path.join(tmp_path, "test.json")
-        with open(filepath, "w", encoding="utf-8") as f:
-            json.dump(expected, f, ensure_ascii=False, indent=4)
-
-        actual = read_json_file(filepath)
-        assert actual == expected
-
-        # test existing path with non-serializable list.
-        with open(filepath, "wb") as fb:
-            fb.write(b"non-serializable")
-
-        with pytest.raises(json.JSONDecodeError):
-            read_json_file(filepath)  # type: ignore
 
     @staticmethod
     @pytest.mark.parametrize(

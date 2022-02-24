@@ -19,16 +19,8 @@
 
 
 """Tools for the APY skill."""
-import json
-import os
-from typing import Any, Dict, Iterator, Optional, Union
 
-from packages.valory.skills.apy_estimation_abci.ml.forecasting import TestReportType
-from packages.valory.skills.apy_estimation_abci.tools.etl import ResponseItemType
-
-
-HyperParamsType = Dict[str, Any]
-StoredJSONType = Union[ResponseItemType, TestReportType, HyperParamsType]
+from typing import Iterator, Optional
 
 
 def gen_unix_timestamps(synced_now: int, duration: int) -> Iterator[int]:
@@ -44,37 +36,6 @@ def gen_unix_timestamps(synced_now: int, duration: int) -> Iterator[int]:
 
     for day in range(duration_before, synced_now, day_in_unix):
         yield day
-
-
-def create_pathdirs(path: str) -> None:
-    """Create the non-existing directories of a given path.
-
-    :param path: the given path.
-    """
-    dirname = os.path.dirname(path)
-
-    if dirname:
-        os.makedirs(dirname, exist_ok=True)
-
-
-def to_json_file(path: str, obj: StoredJSONType) -> None:
-    """Dump a list to a json file.
-
-    :param path: the path to store the json file.
-    :param obj: the object to convert and store.
-    """
-    with open(path, "w", encoding="utf-8") as f:
-        json.dump(obj, f, ensure_ascii=False, indent=4)
-
-
-def read_json_file(path: str) -> Union[ResponseItemType, HyperParamsType]:
-    """Read a json `ResponseItemType` file.
-
-    :param path: the path to retrieve the json file from.
-    :return: the deserialized json file's content.
-    """
-    with open(path, "r", encoding="utf-8") as f:
-        return json.load(f)
 
 
 def filter_out_numbers(string: str) -> Optional[int]:

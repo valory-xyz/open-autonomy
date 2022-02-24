@@ -202,6 +202,48 @@ def stop() -> None
 
 Stop the execution of the behaviour.
 
+<a id="packages.valory.skills.abstract_round_abci.behaviour_utils.IPFSBehaviour"></a>
+
+## IPFSBehaviour Objects
+
+```python
+class IPFSBehaviour(SimpleBehaviour, ABC)
+```
+
+Behaviour for interactions with IPFS.
+
+<a id="packages.valory.skills.abstract_round_abci.behaviour_utils.IPFSBehaviour.__init__"></a>
+
+#### `__`init`__`
+
+```python
+def __init__(**kwargs: Any)
+```
+
+Initialize an `IPFSBehaviour`.
+
+<a id="packages.valory.skills.abstract_round_abci.behaviour_utils.IPFSBehaviour.send_to_ipfs"></a>
+
+#### send`_`to`_`ipfs
+
+```python
+@_check_ipfs_enabled
+def send_to_ipfs(filepath: str, obj: SupportedObjectType, filetype: Optional[SupportedFiletype] = None, custom_storer: Optional[CustomStorerType] = None, **kwargs: Any, ,) -> Optional[str]
+```
+
+Send a file to IPFS.
+
+<a id="packages.valory.skills.abstract_round_abci.behaviour_utils.IPFSBehaviour.get_from_ipfs"></a>
+
+#### get`_`from`_`ipfs
+
+```python
+@_check_ipfs_enabled
+def get_from_ipfs(hash_: str, target_dir: str, filename: str, filetype: Optional[SupportedFiletype] = None, custom_loader: SupportedLoaderType = None) -> Optional[SupportedObjectType]
+```
+
+Get a file from IPFS.
+
 <a id="packages.valory.skills.abstract_round_abci.behaviour_utils.CleanUpBehaviour"></a>
 
 ## CleanUpBehaviour Objects
@@ -256,7 +298,7 @@ It can be optionally implemented by the concrete classes.
 ## BaseState Objects
 
 ```python
-class BaseState(AsyncBehaviour, CleanUpBehaviour, ABC)
+class BaseState(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC)
 ```
 
 Base class for FSM states.
