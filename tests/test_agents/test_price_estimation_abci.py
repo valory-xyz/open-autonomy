@@ -21,13 +21,10 @@
 from enum import Enum
 from operator import itemgetter
 
-import pytest
-
 from tests.fixture_helpers import UseGnosisSafeHardHatNet
 from tests.test_agents.base import (
     BaseTestEnd2EndAgentCatchup,
     BaseTestEnd2EndNormalExecution,
-    MAX_FLAKY_RERUNS,
 )
 
 
