@@ -18,13 +18,10 @@
 # ------------------------------------------------------------------------------
 
 """Integration tests for the valory/price_estimation_abci skill."""
-import pytest
-
 from tests.fixture_helpers import UseGnosisSafeHardHatNet
 from tests.test_agents.base import (
     BaseTestEnd2EndAgentCatchup,
     BaseTestEnd2EndNormalExecution,
-    MAX_FLAKY_RERUNS,
 )
 
 # round check log messages of the happy path
@@ -101,7 +98,6 @@ class TestABCIPriceEstimationFourAgents(
     round_check_strings_to_n_periods = ROUND_CHECK_STRINGS
 
 
-@pytest.mark.flaky(reruns=MAX_FLAKY_RERUNS)
 class TestAgentCatchup(BaseTestEnd2EndAgentCatchup, UseGnosisSafeHardHatNet):
     """Test that an agent that is launched later can synchronize with the rest of the network"""
 

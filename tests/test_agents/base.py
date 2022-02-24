@@ -35,8 +35,6 @@ from tests.helpers.tendermint_utils import (
     TendermintNodeInfo,
 )
 
-MAX_FLAKY_RERUNS = 3
-
 
 @pytest.mark.e2e
 class BaseTestEnd2End(AEATestCaseMany, BaseTendermintTestClass):
