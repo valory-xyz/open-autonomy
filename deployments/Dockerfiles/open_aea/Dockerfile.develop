@@ -1,12 +1,12 @@
-FROM valory/open-aea-user:dev
-
+FROM valory/open-aea-user:0.1.0
 
 
 run sudo apt-get update && sudo apt-get upgrade -y
-RUN pip install cowsay open-aea-ledger-ethereum
+RUN pip install cowsay
 RUN echo "This is a developement image!"
-COPY watcher.py dev_requirements.txt ./
+COPY watcher.py dev_requirements.txt env_start.sh ./
 ENTRYPOINT ["/bin/python3"]
 RUN pip install -r dev_requirements.txt
+
 copy . /home/ubuntu
 CMD ["watcher.py"]

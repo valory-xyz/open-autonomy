@@ -20,7 +20,7 @@
 """This module contains the transaction payloads for the safe deployment app."""
 
 from enum import Enum
-from typing import Dict, Optional
+from typing import Any, Dict, Optional
 
 from packages.valory.skills.abstract_round_abci.base import BaseTxPayload
 
@@ -44,16 +44,16 @@ class RandomnessPayload(BaseTxPayload):
     transaction_type = TransactionType.RANDOMNESS
 
     def __init__(
-        self, sender: str, round_id: int, randomness: str, id_: Optional[str] = None
+        self, sender: str, round_id: int, randomness: str, **kwargs: Any
     ) -> None:
         """Initialize an 'select_keeper' transaction payload.
 
         :param sender: the sender (Ethereum) address
         :param round_id: the round id
         :param randomness: the randomness
-        :param id_: the id of the transaction
+        :param kwargs: the keyword arguments
         """
-        super().__init__(sender, id_)
+        super().__init__(sender, **kwargs)
         self._round_id = round_id
         self._randomness = randomness
 
@@ -78,14 +78,14 @@ class SelectKeeperPayload(BaseTxPayload):
 
     transaction_type = TransactionType.SELECT_KEEPER
 
-    def __init__(self, sender: str, keeper: str, id_: Optional[str] = None) -> None:
+    def __init__(self, sender: str, keeper: str, **kwargs: Any) -> None:
         """Initialize an 'select_keeper' transaction payload.
 
         :param sender: the sender (Ethereum) address
         :param keeper: the keeper selection
-        :param id_: the id of the transaction
+        :param kwargs: the keyword arguments
         """
-        super().__init__(sender, id_)
+        super().__init__(sender, **kwargs)
         self._keeper = keeper
 
     @property
@@ -104,16 +104,14 @@ class ValidatePayload(BaseTxPayload):
 
     transaction_type = TransactionType.VALIDATE
 
-    def __init__(
-        self, sender: str, vote: Optional[bool] = None, id_: Optional[str] = None
-    ) -> None:
+    def __init__(self, sender: str, vote: Optional[bool] = None, **kwargs: Any) -> None:
         """Initialize an 'validate' transaction payload.
 
         :param sender: the sender (Ethereum) address
         :param vote: the vote
-        :param id_: the id of the transaction
+        :param kwargs: the keyword arguments
         """
-        super().__init__(sender, id_)
+        super().__init__(sender, **kwargs)
         self._vote = vote
 
     @property
@@ -132,16 +130,14 @@ class DeploySafePayload(BaseTxPayload):
 
     transaction_type = TransactionType.DEPLOY_SAFE
 
-    def __init__(
-        self, sender: str, safe_contract_address: str, id_: Optional[str] = None
-    ) -> None:
+    def __init__(self, sender: str, safe_contract_address: str, **kwargs: Any) -> None:
         """Initialize a 'deploy_safe' transaction payload.
 
         :param sender: the sender (Ethereum) address
         :param safe_contract_address: the Safe contract address
-        :param id_: the id of the transaction
+        :param kwargs: the keyword arguments
         """
-        super().__init__(sender, id_)
+        super().__init__(sender, **kwargs)
         self._safe_contract_address = safe_contract_address
 
     @property

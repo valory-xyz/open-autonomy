@@ -105,5 +105,6 @@ ABCI_NODE_TEMPLATE: str = (
 )
 
 if IMAGE_VERSION == "dev":
-    ABCI_NODE_TEMPLATE += "      - ../../packages/:/home/ubuntu/packages"
+    ABCI_NODE_TEMPLATE += "      - ../../packages/:/home/ubuntu/packages\n"
+    ABCI_NODE_TEMPLATE += "      - ../../../open-aea/:/open-aea\n"
 print(f"Generated image version {IMAGE_VERSION}")

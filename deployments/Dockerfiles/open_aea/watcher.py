@@ -39,7 +39,8 @@ MAX_PARTICIPANTS = int(os.environ.get("MAX_PARTICIPANTS"))
 ROOT = "/home/ubuntu"
 AGENT_DIR = ROOT + "agent"
 PACKAGES_PATH = "/home/ubuntu/packages"
-BASH_FILE = "/home/ubuntu/start.sh"
+BASE_START_FILE = "/home/ubuntu/start.sh"
+ENV_SETUP_FILE = "/home/ubuntu/env_start.sh"
 TENDERMINT_COM_URL = os.environ.get("TENDERMINT_COM_URL", f"http://node{ID}:8080")
 
 
@@ -55,8 +56,8 @@ def base_setup() -> None:
     This script will be called only once at the startup. This can be configured
     in `env_script_templates.py` using `BASE_SETUP`.
     """
+    subprocess.call(["/bin/bash", ENV_SETUP_FILE])
     return
-    subprocess.call(["/bin/bash", BASH_FILE])
 
 
 def call_vote() -> None:
@@ -111,7 +112,7 @@ class AEARunner:
         os.chdir(ROOT)
         if Path(AGENT_DIR).exists():
             shutil.rmtree(AGENT_DIR)
-        self.process = subprocess.Popen(["/bin/bash", BASH_FILE], preexec_fn=os.setsid)
+        self.process = subprocess.Popen(["/bin/bash", BASE_START_FILE], preexec_fn=os.setsid)
 
     def stop(
         self,

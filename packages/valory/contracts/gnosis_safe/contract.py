@@ -427,7 +427,11 @@ class GnosisSafeContract(Contract):
             refund_receiver,
             signatures,
         )
-        tx_parameters: Dict[str, Union[str, int]] = {"from": sender_address}
+        configured_gas = base_gas + safe_tx_gas + 75000
+        tx_parameters: Dict[str, Union[str, int]] = {
+            "from": sender_address,
+            "gas": configured_gas,
+        }
         if gas_price is not None:
             tx_parameters["gasPrice"] = gas_price
         if max_fee_per_gas is not None:
@@ -443,7 +447,7 @@ class GnosisSafeContract(Contract):
         # note, the next line makes an eth_estimateGas call!
         transaction_dict = w3_tx.buildTransaction(tx_parameters)
         transaction_dict["gas"] = Wei(
-            max(transaction_dict["gas"] + 75000, base_gas + safe_tx_gas + 75000)
+            max(transaction_dict["gas"] + 75000, configured_gas)
         )
         if nonce is None:
             transaction_dict["nonce"] = ledger_api.api.eth.get_transaction_count(
