@@ -93,7 +93,7 @@ models:
       estimation:
         steps_forward: 1
       history_duration: 1
-      ipfs_domain_name: /dns/localhost/tcp/5001/http
+      ipfs_domain_name: /dns/staging.registry.autonolas.tech/tcp/443/https
       keeper_timeout: 30.0
       max_healthcheck: 120
       observation_interval: 10

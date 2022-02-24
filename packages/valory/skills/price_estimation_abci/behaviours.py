@@ -311,8 +311,8 @@ class TransactionHashBehaviour(PriceEstimationBaseState):
                     prev_period_count
                 ]
             )
-            if len(previous_data["tx_hashes_history"]) != 0:
-                prev_tx_hash = previous_data["tx_hashes_history"][-1]
+
+            prev_tx_hash = previous_data.get("final_tx_hash", "")
 
         # select relevant data
         agents = self.period_state.db.get_strict("participants")

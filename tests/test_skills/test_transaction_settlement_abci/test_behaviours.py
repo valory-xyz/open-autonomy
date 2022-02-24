@@ -482,8 +482,8 @@ class TestValidateTransactionBehaviour(PriceEstimationFSMBehaviourBaseCase):
                 TransactionSettlementBaseState,
                 self.behaviour.current_state,
             )
-            final_tx_hash = state.period_state.final_tx_hash
-            mock_logger.assert_any_call(f"tx {final_tx_hash} receipt check timed out!")
+            latest_tx_hash = state.period_state.tx_hashes_history[-1]
+            mock_logger.assert_any_call(f"tx {latest_tx_hash} receipt check timed out!")
 
 
 class TestCheckTransactionHistoryBehaviour(PriceEstimationFSMBehaviourBaseCase):
@@ -688,7 +688,7 @@ class TestResetAndPauseBehaviour(PriceEstimationFSMBehaviourBaseCase):
                     initial_period=2,
                     initial_data=dict(
                         most_voted_estimate=0.1,
-                        tx_hashes_history=["68656c6c6f776f726c64"],
+                        final_tx_hash="68656c6c6f776f726c64",
                     ),
                 )
             ),
@@ -836,7 +836,7 @@ class TestResetAndPauseBehaviour(PriceEstimationFSMBehaviourBaseCase):
                     initial_period=2,
                     initial_data=dict(
                         most_voted_estimate=0.1,
-                        tx_hashes_history=["68656c6c6f776f726c64"],
+                        final_tx_hash="68656c6c6f776f726c64",
                     ),
                 )
             ),
