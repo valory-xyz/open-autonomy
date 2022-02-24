@@ -23,7 +23,7 @@
 import argparse
 import importlib
 import re
-import subprocess
+import subprocess  # nosec
 import sys
 from pathlib import Path
 from typing import Any, Callable, Optional, Type, cast
