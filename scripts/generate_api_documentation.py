@@ -55,7 +55,7 @@ IGNORE_PREFIXES: Set[Path] = set()
 
 def check_working_tree_is_dirty() -> None:
     """Check if the current Git working tree is dirty."""
-    print("Checking if there's a newly generated doc file...")
+    print("Checking if there are any newly generated doc file...")
     result = subprocess.check_output(["git", "status"])  # nosec
     if len(result) > 0:
         files = [
@@ -64,7 +64,7 @@ def check_working_tree_is_dirty() -> None:
             if "modified:" in file
         ]
         filterd_md_files = [
-            file for file in files if file.endswith(".md") and file.startswith("docs/")
+            file for file in files if file.endswith(".md") and file.startswith("docs")
         ]
         if len(filterd_md_files) > 0:
             print("\nNewly generated doc files:\n")
