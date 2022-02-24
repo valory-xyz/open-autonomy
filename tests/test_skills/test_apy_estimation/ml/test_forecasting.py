@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021 Valory AG
+#   Copyright 2021-2022 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -18,12 +18,9 @@
 # ------------------------------------------------------------------------------
 
 """Test forecasting operations."""
-from typing import cast
-
 import numpy as np
 import pytest
 from _pytest.monkeypatch import MonkeyPatch
-from pmdarima.pipeline import Pipeline
 
 from packages.valory.skills.apy_estimation_abci.ml.forecasting import (
     baseline,
@@ -47,7 +44,7 @@ class TestForecasting:
 
     def setup(self) -> None:
         """Initialize class."""
-        self._pipeline = cast(Pipeline, DummyPipeline())
+        self._pipeline = DummyPipeline()
 
     @staticmethod
     def test_init_forecaster() -> None:

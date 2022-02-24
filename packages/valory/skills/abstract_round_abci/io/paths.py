@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021 Valory AG
+#   Copyright 2021-2022 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -17,25 +17,18 @@
 #
 # ------------------------------------------------------------------------------
 
-"""ML input output operations."""
-
-import joblib
-from pmdarima.pipeline import Pipeline
+"""This module contains all the path related operations of the behaviours."""
 
 
-def save_forecaster(path: str, forecaster: Pipeline) -> None:
-    """Save a `pmdarima` forecaster.
+import os
 
-    :param path: path to store the forecaster.
-    :param forecaster: the `pmdarima` forecasting model.
+
+def create_pathdirs(path: str) -> None:
+    """Create the non-existing directories of a given path.
+
+    :param path: the given path.
     """
-    joblib.dump(forecaster, path)
+    dirname = os.path.dirname(path)
 
-
-def load_forecaster(path: str) -> Pipeline:
-    """Load a `pmdarima` forecaster.
-
-    :param path: path to store the forecaster.
-    :return: a `pmdarima.pipeline.Pipeline`.
-    """
-    return joblib.load(path)
+    if dirname:
+        os.makedirs(dirname, exist_ok=True)
