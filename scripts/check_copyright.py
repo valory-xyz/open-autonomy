@@ -326,9 +326,7 @@ def main() -> None:
         """Filter for files."""
         file_str = str(file)
 
-        if file_str.startswith("aea/"):
-            return not file_str.endswith("_pb2.py")
-
+        # protocols are generated using generate_all_protocols.py
         return not file_str.endswith("_pb2.py") and (
             (
                 "protocols" not in file.parts

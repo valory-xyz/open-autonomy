@@ -152,7 +152,6 @@ class TestABCIPriceEstimationFourAgents(
     check_strings = CHECK_STRINGS_ALL
 
 
-@pytest.mark.flaky(reruns=MAX_FLAKY_RERUNS)
 class TestAgentCatchup(BaseTestEnd2EndAgentCatchup, UseGnosisSafeHardHatNet):
     """Test that an agent that is launched later can synchronize with the rest of the network"""
 
