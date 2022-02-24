@@ -9,13 +9,13 @@ fingerprint:
   README.md: QmYNXPppPSnW61ipqKNH8pyMh8qzTERwQaducYYq1dnBJb
   __init__.py: QmPuJK7gMKruSTcaYk9otrFncfD9h6vBZVoAtkwhTBgcxa
   abci_app_chain.py: QmeCPxwjec4pxtedv8NeG2Gmj58GY2GycXvgwfyjEyqPGm
-  base.py: QmWFiVHgMKSYZPfxup4jMtij7uNg4X1t4Xns8ztmcmfwHu
+  base.py: QmQEfoVenpotFan52Z5oDGKxNptoPL9SCWXjqGvrELxfpy
   behaviour_utils.py: QmSoDJtkaR1VoDGDiTAmkamtUc2G7jU1bNtLWkgMtAaJkx
   behaviours.py: QmNVt88WsMUfvYs33dDzLWH18T1jUzWa9noczfcWfZd8bX
   common.py: QmdoSkkkCRqoHX9T2rnPLpii5KVvEmibktKDik3pe2mNB7
   dialogues.py: QmemiTJxfwp2PFxFQyAUHTx8FsthhWL3mYgonBhC3cTjWH
   handlers.py: QmULzUDKU9jeQtQSAkq64gWTS6wSgCussUkJuJCAc3KKbL
-  models.py: QmYfuSGHs5iKqhWmoKxM8FwQm25iRTmTE7conxs9zCwTFC
+  models.py: QmR6bqX89CzqCQY1jVWG1cHprwcr15R6BVeBGGVMkpJrAB
   serializer.py: QmV1rutPMEPbbMVwvM4My6s8fwT7S9KhgLTqrbjHLEfdJG
   utils.py: QmTQgTJGJZT352mKxUgaVEdDEreh8Khd2MnXhoq6wzD5HD
 fingerprint_ignore_patterns: []

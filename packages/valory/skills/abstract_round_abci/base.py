@@ -550,9 +550,13 @@ class StateDB:
         """Return a string representation of the state."""
         return f"StateDB({self._data})"
 
-    def cleanup(self) -> None:
+    def cleanup(self, cleanup_history_depth: int) -> None:
         """Reset the db."""
-        self._data = {self._current_period_count: deepcopy(self._initial_data)}
+        cleanup_history_depth = max(cleanup_history_depth, 1)
+        self._data = {
+            key: self._data[key]
+            for key in sorted(self._data.keys())[-cleanup_history_depth:]
+        }
 
 
 class BasePeriodState:
@@ -1858,11 +1862,12 @@ class AbciApp(
         self._last_timestamp = timestamp
         self.logger.debug("final AbciApp time: %s", self._last_timestamp)
 
-    def cleanup(self) -> None:
+    def cleanup(self, cleanup_history_depth: int) -> None:
         """Clear data."""
-        self._previous_rounds = []
-        self._round_results = []
-        self.state.db.cleanup()
+        cleanup_history_depth = max(cleanup_history_depth, 1)
+        self._previous_rounds = self._previous_rounds[-cleanup_history_depth:]
+        self._round_results = self._round_results[-cleanup_history_depth:]
+        self.state.db.cleanup(cleanup_history_depth)
 
 
 class Period:
