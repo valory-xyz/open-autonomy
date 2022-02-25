@@ -29,7 +29,7 @@ from tests.test_agents.base import BaseTestEnd2EndNormalExecution
 ipfs_daemon = pytest.mark.usefixtures("ipfs_daemon")
 
 # round check log messages of the happy path
-ROUND_CHECK_STRINGS = {
+EXPECTED_ROUND_LOG_COUNT = {
     "collect_history": 1,
     "transform": 1,
     "preprocess": 1,
@@ -52,7 +52,7 @@ class BaseTestABCIAPYEstimationSkillNormalExecution(BaseTestEnd2EndNormalExecuti
 
     agent_package = "valory/apy_estimation:0.1.0"
     skill_package = "valory/apy_estimation_abci:0.1.0"
-    round_check_strings_to_n_periods = ROUND_CHECK_STRINGS
+    round_check_strings_to_n_periods = EXPECTED_ROUND_LOG_COUNT
     ROUND_TIMEOUT_SECONDS = 120
     wait_to_finish = 240
     __args_prefix = f"vendor.valory.skills.{PublicId.from_str(skill_package).name}.models.params.args"

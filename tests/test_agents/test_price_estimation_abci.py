@@ -26,7 +26,7 @@ from tests.test_agents.base import (
 
 
 # round check log messages of the happy path
-ROUND_CHECK_STRINGS = {
+EXPECTED_ROUND_LOG_COUNT = {
     "registration_startup": 1,
     "randomness_safe": 1,
     "select_keeper_safe": 1,
@@ -68,7 +68,7 @@ class TestABCIPriceEstimationSingleAgent(
     skill_package = "valory/price_estimation_abci:0.1.0"
     wait_to_finish = 180
     strict_check_strings = STRICT_CHECK_STRINGS
-    round_check_strings_to_n_periods = ROUND_CHECK_STRINGS
+    round_check_strings_to_n_periods = EXPECTED_ROUND_LOG_COUNT
 
 
 class TestABCIPriceEstimationTwoAgents(
@@ -82,7 +82,7 @@ class TestABCIPriceEstimationTwoAgents(
     skill_package = "valory/price_estimation_abci:0.1.0"
     wait_to_finish = 180
     strict_check_strings = STRICT_CHECK_STRINGS
-    round_check_strings_to_n_periods = ROUND_CHECK_STRINGS
+    round_check_strings_to_n_periods = EXPECTED_ROUND_LOG_COUNT
 
 
 class TestABCIPriceEstimationFourAgents(
@@ -96,7 +96,7 @@ class TestABCIPriceEstimationFourAgents(
     skill_package = "valory/price_estimation_abci:0.1.0"
     wait_to_finish = 180
     strict_check_strings = STRICT_CHECK_STRINGS
-    round_check_strings_to_n_periods = ROUND_CHECK_STRINGS
+    round_check_strings_to_n_periods = EXPECTED_ROUND_LOG_COUNT
 
 
 class TestAgentCatchup(BaseTestEnd2EndAgentCatchup, UseGnosisSafeHardHatNet):
@@ -108,5 +108,5 @@ class TestAgentCatchup(BaseTestEnd2EndAgentCatchup, UseGnosisSafeHardHatNet):
     KEEPER_TIMEOUT = 10
     wait_to_finish = 180
     restart_after = 45
-    round_check_strings_to_n_periods = ROUND_CHECK_STRINGS
+    round_check_strings_to_n_periods = EXPECTED_ROUND_LOG_COUNT
     stop_string = "'registration_startup' round is done with event: Event.DONE"

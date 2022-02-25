@@ -23,7 +23,7 @@ from tests.test_agents.base import BaseTestEnd2EndNormalExecution
 
 
 # round check log messages of the happy path
-ROUND_CHECK_STRINGS = {
+EXPECTED_ROUND_LOG_COUNT = {
     "registration": 1,
     "randomness_startup": 3,
     "select_keeper_at_startup": 2,
@@ -43,7 +43,7 @@ class TestSimpleABCISingleAgent(
     agent_package = "valory/simple_abci:0.1.0"
     skill_package = "valory/simple_abci:0.1.0"
     wait_to_finish = 80
-    round_check_strings_to_n_periods = ROUND_CHECK_STRINGS
+    round_check_strings_to_n_periods = EXPECTED_ROUND_LOG_COUNT
     strict_check_strings = STRICT_CHECK_STRINGS
 
 
@@ -56,7 +56,7 @@ class TestSimpleABCITwoAgents(
     agent_package = "valory/simple_abci:0.1.0"
     skill_package = "valory/simple_abci:0.1.0"
     wait_to_finish = 120
-    round_check_strings_to_n_periods = ROUND_CHECK_STRINGS
+    round_check_strings_to_n_periods = EXPECTED_ROUND_LOG_COUNT
     strict_check_strings = STRICT_CHECK_STRINGS
 
 
@@ -69,5 +69,5 @@ class TestSimpleABCIFourAgents(
     agent_package = "valory/simple_abci:0.1.0"
     skill_package = "valory/simple_abci:0.1.0"
     wait_to_finish = 120
-    round_check_strings_to_n_periods = ROUND_CHECK_STRINGS
+    round_check_strings_to_n_periods = EXPECTED_ROUND_LOG_COUNT
     strict_check_strings = STRICT_CHECK_STRINGS
