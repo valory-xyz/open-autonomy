@@ -214,8 +214,8 @@ class BaseTestEnd2End(AEATestCaseMany, BaseTendermintTestClass):
                     check_strings_to_n_appearances[line] = n_times_appeared
                     # if the required number has been reached, delete them from the check dictionaries.
                     if (
-                            check_strings_to_n_appearances[line]
-                            >= check_strings_to_n_periods[line]
+                        check_strings_to_n_appearances[line]
+                        >= check_strings_to_n_periods[line]
                     ):
                         del check_strings_to_n_periods[line]
                         del check_strings_to_n_appearances[line]
