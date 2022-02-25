@@ -95,6 +95,7 @@ jobs:
         sudo mv protoc/bin/protoc /usr/local/bin/protoc
         # install IPFS
         sudo apt-get install -y wget
+        sudo npm install -g markdown-spellcheck
         wget -O ./go-ipfs.tar.gz https://dist.ipfs.io/go-ipfs/v0.6.0/go-ipfs_v0.6.0_linux-amd64.tar.gz
         tar xvfz go-ipfs.tar.gz
         sudo mv go-ipfs/ipfs /usr/local/bin/ipfs
@@ -120,6 +121,10 @@ jobs:
       run: tox -e mypy
     - name: Pylint
       run: tox -e pylint
+    - name: Check spelling
+      run: tox -e spell-check
+    - name: Check generate protocols
+      run: tox -e check-generate-all-protocols
 
   test:
     continue-on-error: True
