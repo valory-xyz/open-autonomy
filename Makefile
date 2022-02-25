@@ -240,4 +240,5 @@ build-images: clean-build
 	rsync -avu packages/ deployments/Dockerfiles/open_aea/packages
 	skaffold build --build-concurrency=0 --push=false
 
-
+protolint_install:
+	GO111MODULE=on GOPATH=~/go go get -u -v github.com/yoheimuta/protolint/cmd/protolint@v0.27.0

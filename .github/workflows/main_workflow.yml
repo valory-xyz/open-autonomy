@@ -100,6 +100,7 @@ jobs:
         tar xvfz go-ipfs.tar.gz
         sudo mv go-ipfs/ipfs /usr/local/bin/ipfs
         ipfs init
+        make protolint_install
     - name: Security checks
       run: |
         tox -e bandit
