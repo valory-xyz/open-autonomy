@@ -19,67 +19,63 @@
 
 """Preprocessing operations."""
 
-from typing import Optional, Tuple, Union
+from typing import Optional, Tuple, Union, Dict
 
 import pandas as pd
+import pandas.core.groupby
 import pmdarima as pm
 
 
 TrainTestSplitType = Tuple[pd.DataFrame, pd.DataFrame]
 
 
-def filter_pair_data(
-    pairs_hist: pd.DataFrame,
-    pair_id: str,
-) -> Tuple[pd.DataFrame, str, int]:
-    """Filter the timeseries data to contain only the block's timestamp and the APY for a specific pair.
+def group_and_filter_pair_data(pairs_hist: pd.DataFrame, threshold: int = 5) -> pandas.core.groupby.DataFrameGroupBy:
+    """
+    Filter the timeseries data to contain only the block's timestamp, the pair name and the APY and group by pair.
 
     :param pairs_hist: the pairs histories dataframe.
-    :param pair_id: the id of the pair that its data should be filtered.
-    :return: the filtered data for the specific pair, the pair's name and the number of the pair's observations.
+    :param threshold: acceptable threshold for the number of items that each pair contains.
+        If less, raises a `ValueError`.
+    :return: the filtered data grouped by pair.
     """
-    # Create mask for the given pair.
-    pair_m = pairs_hist["id"] == pair_id
-    n_pair_items = pair_m.sum()
+    # Group by pair.
+    grouped_and_filtered = pairs_hist.groupby("id")["blockTimestamp", "APY"]
 
-    if n_pair_items == 0:
-        raise ValueError(f"Given id `{pair_id}` does not exist!")
+    # Count the number of items per pair.
+    n_pair_items = grouped_and_filtered.size()
+    pairs_fewer_than_threshold = n_pair_items.loc[n_pair_items < threshold]
+    if not pairs_fewer_than_threshold.empty:
+        raise ValueError(f"Cannot work with < {threshold} observations for: \n{pairs_fewer_than_threshold.to_string()}")
 
-    # Get the pair's name.
-    pair_name = pairs_hist.loc[pair_m, "pairName"].iloc[0]
-
-    # Get the pair's APY, set the block's timestamp as an index
-    # and convert it to a pandas period to create the timeseries.
-    y = pairs_hist.loc[pair_m, ["blockTimestamp", "APY"]].set_index("blockTimestamp")
-    y.index = y.index.to_period("D")
-
-    return y, pair_name, n_pair_items
+    return grouped_and_filtered
 
 
 def prepare_pair_data(
     pairs_hist: pd.DataFrame,
-    pair_id: str,
     test_size: Optional[Union[float, int]] = 0.25,
-) -> Tuple[TrainTestSplitType, str]:
-    """Prepare the timeseries data for a specific pair.
+) -> Dict[str, TrainTestSplitType]:
+    """Prepare the timeseries data for all the pairs.
 
     :param pairs_hist: the pairs histories dataframe.
-    :param pair_id: the id of the pair that its data should be prepared.
     :param test_size: float, int or None, optional (default=None)
         * If float, should be between 0.0 and 1.0 and represent the proportion of the dataset
         to include in the test split.
         * If int, represents the absolute number of test samples.
         * If None, the value is set to the complement of the train size.
         * If train_size is also None, it will be set to 0.25.
-    :return: the train-test split for the specific pair and the pair's name.
+    :return: a dictionary with the pair ids as keys and their corresponding train-test splits.
     """
-    y, pair_name, n_pair_items = filter_pair_data(pairs_hist, pair_id)
+    grouped_and_filtered = group_and_filter_pair_data(pairs_hist)
 
-    threshold = 5
-    if n_pair_items < threshold:
-        raise ValueError(f"Cannot work with {n_pair_items} < {threshold} observations.")
+    prepared_data = {}
+    for pair_id, filtered_pair_data in grouped_and_filtered:
+        # Get the pair's APY, set the block's timestamp as an index
+        # and convert it to a pandas period to create the timeseries.
+        y = filtered_pair_data.loc[["blockTimestamp", "APY"]].set_index("blockTimestamp")
+        y.index = y.index.to_period("D")
+        # Perform a train test split.
+        y_train, y_test = pm.model_selection.train_test_split(y, test_size=test_size)
+        # Store the split mapped to its id.
+        prepared_data[pair_id] = (y_train, y_test)
 
-    # Perform a train test split.
-    y_train, y_test = pm.model_selection.train_test_split(y, test_size=test_size)
-
-    return (y_train, y_test), pair_name
+    return prepared_data
