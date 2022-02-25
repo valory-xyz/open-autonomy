@@ -71,7 +71,7 @@ def prepare_pair_data(
     for pair_id, filtered_pair_data in grouped_and_filtered:
         # Get the pair's APY, set the block's timestamp as an index
         # and convert it to a pandas period to create the timeseries.
-        y = filtered_pair_data.loc[["blockTimestamp", "APY"]].set_index("blockTimestamp")
+        y = filtered_pair_data.loc[:, ["blockTimestamp", "APY"]].set_index("blockTimestamp")
         y.index = y.index.to_period("D")
         # Perform a train test split.
         y_train, y_test = pm.model_selection.train_test_split(y, test_size=test_size)
