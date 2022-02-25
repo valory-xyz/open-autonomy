@@ -37,70 +37,118 @@ required arguments:
 import argparse
 import importlib
 import json
+import logging
 import sys
 from collections import OrderedDict
 from pathlib import Path
-from typing import Any, Dict, List, Type
+from typing import IO, Any, Dict, List, Set, Tuple, Type
+import re
 
 from packages.valory.skills.abstract_round_abci.base import AbciApp
 
 
 class DFA:
     """Simple specification of a deterministic finite automaton (DFA)."""
-    def __init__(self, states: List[str], defaultStartState: str, startStates: List[str], finalStates: List[str], alphabetIn: List[str], transitionFunc: Dict[str, str], label: str="dfa"):
+    def __init__(self, label: str, states: Set[str], defaultStartState: str, startStates: Set[str], finalStates: Set[str], alphabetIn: Set[str], transitionFunc: Dict[Tuple[str, str], str]):
+        transitionFuncAlphabetIn = set([q for (_, q) in transitionFunc.keys()])
+        transitionFuncStates = set([s for (s, _) in transitionFunc.keys()]) | set(transitionFunc.values())
+
+        assert states.issubset(startStates | set(transitionFunc.values())), f"DFA spec. contains orphan states."
+        assert transitionFuncStates.issubset(states), f"DFA spec. transition function contains unexpected states: {transitionFuncStates-states}."
+        assert transitionFuncAlphabetIn.issubset(alphabetIn), f"DFA spec. transition function contains unexpected input symbols: {transitionFuncAlphabetIn-alphabetIn}."
+        assert defaultStartState in startStates, f"DFA spec. default start state is not in start states set."
+        assert startStates.issubset(states), f"DFA spec. start state set contains unexpected states: {startStates-states}"
+        assert finalStates.issubset(states), f"DFA spec. final state set contains unexpected states: {finalStates-states}"
+
+        self.label = label
         self.states = states
         self.defaultStartState = defaultStartState
         self.startStates = startStates
         self.finalStates = finalStates
         self.alphabetIn = alphabetIn
         self.transitionFunc = transitionFunc
-        self.label = label
+
+
+    def run(self, input_sequence: List[str]) -> List[str]:
+        """Runs the DFA given the input sequence of symbols, and outputs the list of state transitions."""
+        state = self.defaultStartState
+        transitions = [state]
+        for t in input_sequence:
+            if(t not in self.alphabetIn):
+                logging.warning("Input symbol not recognized by the DFA (ignored).")
+            else:
+                state = self.transitionFunc.get((state, t), state)
+                transitions.append(state)
+        return transitions
+
 
     def __eq__(self, other):
-        return self.states == other.states and \
-        self.defaultStartState == other.defaultStartState and \
-        self.startStates == other.startStates and \
-        self.finalStates == other.finalStates and \
-        self.alphabetIn == other.alphabetIn and \
-        self.transitionFunc == other.transitionFunc and \
-        self.label == other.label
+        return self.__dict__ == other.__dict__
 
 
-def json_to_dfa(obj: Dict[str, Any]) -> DFA:
-    """Translates a JSON object into a simple specification as a deterministic finite automaton (DFA)."""
-    return DFA(
-        obj['states'],
-        obj['defaultStartState'],
-        obj['startStates'],
-        obj['finalStates'],
-        obj['alphabetIn'],
-        obj['transitionFunc'],
-        obj['label']
-    )
+    def dump(self, fp: IO[str]) -> None:
+        """Dumps this DFA spec. to a file in JSON format."""
+        dfa_json = {}
+        for k, v in self.__dict__.items():
+            if isinstance(v, Set):
+                dfa_json[k] = list(v)
+                dfa_json[k].sort()
+            elif isinstance(v, Dict):
+                dfa_json[k] = {str(k2).replace("'", "") : v2 for k2, v2 in v.items()}
+            else:
+                dfa_json[k] = v
+        json.dump(dfa_json, fp, indent=4)
 
 
-def abci_to_dfa(abci_app_cls: Type[AbciApp], label: str = None) -> DFA:
-    """Translates an AbciApp class into a simple specification as a deterministic finite automaton (DFA)."""
+    @staticmethod
+    def _list_to_set(l: List[str]) -> Set[str]:
+        """Converts a list to a set and ensures that it does not contain repetitions."""
+        assert isinstance(l, List), f'Object {l} is not of type List.'
+        assert len(l) == len(set(l)), f'List {l} contains repeated values.'
+        return set(l)
 
-    trf = abci_app_cls.transition_function
 
-    label = label if label else abci_app_cls.__module__ + "." + abci_app_cls.__name__
-    defaultStartState = abci_app_cls.initial_round_cls.__name__
-    startStates = list(set([s.__name__ for s in abci_app_cls.initial_states]))
-    startStates = startStates if startStates else [defaultStartState]
-    startStates.sort()
-    finalStates = list(set([s.__name__ for s in abci_app_cls.final_states]))
-    finalStates.sort()
-    states = list(set([k.__name__ for k in trf] + \
-        [s.__name__ for k in trf for s in trf[k].values()] + \
-        startStates + \
-        finalStates))
-    states.sort()
-    alphabetIn = list(set([str(s).rsplit('.', 1)[1] for k in trf for s in trf[k].keys()]))
-    alphabetIn.sort()
-    transitionFunc = {str((k.__name__, str(s).rsplit('.', 1)[1])).replace("'", ""): trf[k][s].__name__ for k in trf for s in trf[k]}
-    transitionFunc = OrderedDict(sorted(transitionFunc.items()))
-    return DFA(states, defaultStartState, startStates, finalStates, alphabetIn, transitionFunc, label)
+    @staticmethod
+    def _str_to_tuple(k: str) -> Tuple[str, str]:
+        """Converst a string in format (a, b) to a tuple."""
+        match = re.search(r"\((\w*),\s(\w*)\)", k, re.DOTALL)
+        assert match is not None, f'Invalid DFA JSON spec.: {k} is not a valid transition function key.'
+        return (match.group(1), match.group(2))
+
+
+    @staticmethod
+    def json_to_dfa(fp) -> 'DFA': #TODO Type for fp?
+        """Loads a DFA JSON specification from file."""
+        dfa_json = json.load(fp)
+        label = dfa_json.pop('label')
+        states = DFA._list_to_set(dfa_json.pop('states'))
+        defaultStartState = dfa_json.pop('defaultStartState')
+        startStates = DFA._list_to_set(dfa_json.pop('startStates'))
+        finalStates = DFA._list_to_set(dfa_json.pop('finalStates'))
+        alphabetIn = DFA._list_to_set(dfa_json.pop('alphabetIn'))
+        transitionFunc = {DFA._str_to_tuple(k) : v for k, v in dfa_json.pop('transitionFunc').items()}
+
+        assert len(dfa_json) == 0, f'Invalid DFA JSON spec.: it contains unexpected objects: {dfa_json.keys()}.'
+        return DFA(label, states, defaultStartState, startStates, finalStates, alphabetIn, transitionFunc)
+
+    @staticmethod
+    def abci_to_dfa(abci_app_cls: Type[AbciApp], label: str = None) -> 'DFA':
+        """Translates an AbciApp class into a DFA."""
+
+        trf = abci_app_cls.transition_function
+
+        label = label if label else abci_app_cls.__module__ + "." + abci_app_cls.__name__
+        defaultStartState = abci_app_cls.initial_round_cls.__name__
+        startStates = DFA._list_to_set([s.__name__ for s in abci_app_cls.initial_states])
+        startStates = startStates if startStates else set([defaultStartState])
+        finalStates = DFA._list_to_set([s.__name__ for s in abci_app_cls.final_states])
+        states = DFA._list_to_set([k.__name__ for k in trf]) \
+            | set([s.__name__ for k in trf for s in trf[k].values()]) \
+            | startStates | finalStates
+        alphabetIn = set([str(s).rsplit('.', 1)[1] for k in trf for s in trf[k].keys()])
+        transitionFunc = {(k.__name__, str(s).rsplit('.', 1)[1]): trf[k][s].__name__ for k in trf for s in trf[k]}
+        transitionFunc = OrderedDict(sorted(transitionFunc.items()))
+        return DFA(label, states, defaultStartState, startStates, finalStates, alphabetIn, transitionFunc)
 
 
 def parse_arguments() -> argparse.Namespace:
@@ -133,14 +181,16 @@ def parse_arguments() -> argparse.Namespace:
 
 def main() -> None:
     """Execute the script."""
+    logging.basicConfig(format='%(levelname)s: %(message)s', level=logging.INFO)
     arguments = parse_arguments()
     module_name, class_name = arguments.classfqn.rsplit('.', 1)
     module = importlib.import_module(module_name)
     assert hasattr(module, class_name), f'Class "{class_name}" is not in "{module_name}".'
     abci_app_cls = getattr(module, class_name)
-    dfa = abci_to_dfa(abci_app_cls, arguments.classfqn)
-    json.dump(dfa.__dict__, arguments.outfile, indent=4)
-    print(f"\n\nDone.")
+    dfa = DFA.abci_to_dfa(abci_app_cls, arguments.classfqn)
+    dfa.dump(arguments.outfile)
+    print()
+    logging.info("Done.")
 
 
 if __name__ == "__main__":

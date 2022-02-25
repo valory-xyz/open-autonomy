@@ -36,23 +36,10 @@ required arguments:
 
 import argparse
 import importlib
-import json
+import logging
 from pathlib import Path
 from typing import Any, Dict, List
-from generate_abciapp_spec import DFA, abci_to_dfa
-
-
-def json_to_dfa(obj: Dict[str, Any]) -> DFA:
-    """Translates a JSON object into a simple specification as a deterministic finite automaton (DFA)."""
-    return DFA(
-        obj['states'],
-        obj['defaultStartState'],
-        obj['startStates'],
-        obj['finalStates'],
-        obj['alphabetIn'],
-        obj['transitionFunc'],
-        obj['label']
-    )
+from generate_abciapp_spec import DFA
 
 
 def parse_arguments() -> argparse.Namespace:
@@ -84,18 +71,19 @@ def parse_arguments() -> argparse.Namespace:
 
 def main() -> None:
     """Execute the script."""
+    logging.basicConfig(format='%(levelname)s: %(message)s', level=logging.INFO)
     arguments = parse_arguments()
     module_name, class_name = arguments.classfqn.rsplit('.', 1)
     module = importlib.import_module(module_name)
     assert hasattr(module, class_name), f'Class "{class_name}" is not in "{module_name}".'
     abci_app_cls = getattr(module, class_name)
 
-    dfa1 = abci_to_dfa(abci_app_cls, arguments.classfqn)
-    dfa2 = json_to_dfa(json.load(arguments.infile))
+    dfa1 = DFA.abci_to_dfa(abci_app_cls, arguments.classfqn)
+    dfa2 = DFA.json_to_dfa(arguments.infile)
     if dfa1 == dfa2:
-        print("ABCI App matches specification.")
+        logging.info("ABCI App matches specification.")
     else:
-        print("ABCI App does NOT match specification.")
+        logging.info("ABCI App does NOT match specification.")
 
 
 if __name__ == "__main__":
