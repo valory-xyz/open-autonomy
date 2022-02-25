@@ -19,17 +19,17 @@ For a clean workflow run checks in following order before making a PR or pushing
 - make code-checks
 - make security
 
-> Run only if you've modified an AbciApp definition
+**Run only if you've modified an AbciApp definition**
 - make abci-docstrings
 
-> Only run following if you have modified a file in `packages/`
+**Only run following if you have modified a file in `packages/`**
 - make generators
 - make common-checks-1
 
-> else run
+**else run**
 - make copyright
 
-> run this after making a commit
+**run this after making a commit**
 - make common-checks-2
 
 
