@@ -74,7 +74,9 @@ from packages.valory.skills.transaction_settlement_abci.behaviours import (
 from packages.valory.skills.transaction_settlement_abci.payload_tools import (
     hash_payload_to_hex,
 )
-
+from packages.valory.skills.reset_pause_abci.behaviours import (
+    ResetPauseABCIConsensusBehaviour,
+)
 
 # These safeTxGas values are calculated from experimental values plus
 # a 10% buffer and rounded up. The Gnosis safe default value is 0 (max gas)
@@ -1013,6 +1015,7 @@ class LiquidityProvisionConsensusBehaviour(AbstractRoundBehaviour):
         *AgentRegistrationRoundBehaviour.behaviour_states,
         *SafeDeploymentRoundBehaviour.behaviour_states,
         *TransactionSettlementRoundBehaviour.behaviour_states,
+        *ResetPauseABCIConsensusBehaviour.behaviour_states,
         *StrategyRoundBehaviour.behaviour_states,
     }
 

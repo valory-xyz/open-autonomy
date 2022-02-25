@@ -56,7 +56,6 @@ class ResetRound(CollectSameUntilThresholdRound):
         """Process the end of the block."""
         if self.threshold_reached:
             state_data = self.period_state.db.get_all()
-            state_data["tx_hashes_history"] = None
             state = self.period_state.update(
                 period_count=self.most_voted_payload,
                 **state_data,
