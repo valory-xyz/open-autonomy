@@ -263,23 +263,3 @@ class TransactionSettlementRoundBehaviour(AbstractRoundBehaviour)
 
 This behaviour manages the consensus stages for the basic transaction settlement.
 
-<a id="packages.valory.skills.transaction_settlement_abci.behaviours.ChainedTransactionSettlementRoundBehaviour"></a>
-
-## ChainedTransactionSettlementRoundBehaviour Objects
-
-```python
-class ChainedTransactionSettlementRoundBehaviour(AbstractRoundBehaviour)
-```
-
-This behaviour manages the consensus stages for the chained transaction settlement abci.
-
-<a id="packages.valory.skills.transaction_settlement_abci.behaviours.ChainedTransactionSettlementRoundBehaviour.setup"></a>
-
-#### setup
-
-```python
-def setup() -> None
-```
-
-Set up the behaviour.
-

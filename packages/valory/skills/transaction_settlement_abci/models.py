@@ -29,8 +29,8 @@ from packages.valory.skills.abstract_round_abci.models import Requests as BaseRe
 from packages.valory.skills.abstract_round_abci.models import (
     SharedState as BaseSharedState,
 )
-from packages.valory.skills.transaction_settlement_abci.composition import (
-    ChainedTransactionSettlementAbciApp,
+from packages.valory.skills.transaction_settlement_abci.rounds import (
+    TransactionSubmissionAbciApp,
 )
 
 
@@ -39,9 +39,7 @@ class SharedState(BaseSharedState):
 
     def __init__(self, *args: Any, **kwargs: Any) -> None:
         """Initialize the state."""
-        super().__init__(
-            *args, abci_app_cls=ChainedTransactionSettlementAbciApp, **kwargs
-        )
+        super().__init__(*args, abci_app_cls=TransactionSubmissionAbciApp, **kwargs)
 
 
 class TransactionParams(BaseParams):

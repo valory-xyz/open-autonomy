@@ -37,12 +37,6 @@ from packages.valory.skills.abstract_round_abci.common import (
     SelectKeeperBehaviour,
 )
 from packages.valory.skills.abstract_round_abci.utils import BenchmarkTool, VerifyDrand
-from packages.valory.skills.reset_pause_abci.behaviours import (
-    ResetPauseABCIConsensusBehaviour,
-)
-from packages.valory.skills.transaction_settlement_abci.composition import (
-    ChainedTransactionSettlementAbciApp,
-)
 from packages.valory.skills.transaction_settlement_abci.models import TransactionParams
 from packages.valory.skills.transaction_settlement_abci.payload_tools import (
     VerificationStatus,
@@ -635,19 +629,3 @@ class TransactionSettlementRoundBehaviour(AbstractRoundBehaviour):
         SynchronizeLateMessagesBehaviour,  # type: ignore
         CheckLateTxHashesBehaviour,  # type: ignore
     }
-
-
-class ChainedTransactionSettlementRoundBehaviour(AbstractRoundBehaviour):
-    """This behaviour manages the consensus stages for the chained transaction settlement abci."""
-
-    initial_state_cls = RandomnessTransactionSubmissionBehaviour
-    abci_app_cls = ChainedTransactionSettlementAbciApp  # type: ignore
-    behaviour_states: Set[Type[BaseState]] = {
-        *TransactionSettlementRoundBehaviour.behaviour_states,
-        *ResetPauseABCIConsensusBehaviour.behaviour_states,
-    }
-
-    def setup(self) -> None:
-        """Set up the behaviour."""
-        super().setup()
-        benchmark_tool.logger = self.context.logger

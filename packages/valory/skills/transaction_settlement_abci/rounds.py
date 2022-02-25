@@ -587,9 +587,6 @@ class TransactionSubmissionAbciApp(AbciApp[Event]):
         FinishedTransactionSubmissionRound: {},
         FailedRound: {},
     }
-    initial_states: Set[AppState] = {
-        RandomnessTransactionSubmissionRound,
-    }
     final_states: Set[AppState] = {
         PreResetRound,
         FinishedTransactionSubmissionRound,
