@@ -253,8 +253,7 @@ class BaseTestEnd2End(AEATestCaseMany, BaseTendermintTestClass):
             assertion_string += (
                 f"Strings {missing_strict_strings} didn't appear in agent_{i} output.\n"
             )
-        if missing_round_strings:
-            assertion_string += f"{missing_round_strings}"
+        assertion_string += "\n".join(missing_round_strings)
 
         assert assertion_string == "", assertion_string
 
