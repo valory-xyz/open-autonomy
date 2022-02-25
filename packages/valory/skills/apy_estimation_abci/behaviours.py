@@ -398,7 +398,7 @@ class TransformBehaviour(APYEstimationBaseState):
         self._async_result: Optional[AsyncResult] = None
         self._pairs_hist: Optional[ResponseItemType] = None
         self._transformed_hist_hash: Optional[str] = None
-        self._latest_observation_hist_hash: Optional[str] = None
+        self._latest_observations_hist_hash: Optional[str] = None
 
     def setup(self) -> None:
         """Setup behaviour."""
@@ -444,26 +444,24 @@ class TransformBehaviour(APYEstimationBaseState):
                 SupportedFiletype.CSV,
             )
 
-            # Get the latest observation.
-            latest_observation = transformed_history.iloc[[-1]]
-            # Send the latest observation to IPFS and get its hash.
-            latest_observation_save_path = os.path.join(
+            # Get the latest observation for each pool id.
+            latest_observations = transformed_history.groupby("id").last()
+            # Send the latest observations to IPFS and get the hash.
+            latest_observations_save_path = os.path.join(
                 self.context.data_dir,
-                self.params.pair_ids[0],
-                "latest_observation.csv",
+                "latest_observations.csv",
             )
-            self._latest_observation_hist_hash = self.send_to_ipfs(
-                latest_observation_save_path,
-                latest_observation,
+            self._latest_observations_hist_hash = self.send_to_ipfs(
+                latest_observations_save_path,
+                latest_observations,
                 SupportedFiletype.CSV,
-                index=True,
             )
 
-        # Pass the hash as a Payload.
+        # Pass the hashes as a Payload.
         payload = TransformationPayload(
             self.context.agent_address,
             self._transformed_hist_hash,
-            self._latest_observation_hist_hash,
+            self._latest_observations_hist_hash,
         )
 
         # Finish behaviour.
