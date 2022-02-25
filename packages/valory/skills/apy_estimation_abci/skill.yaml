@@ -106,6 +106,7 @@ models:
         alpha: 0.25
         window_size: null
       pair_ids:
+      - '0x2a651563c9d3af67ae0388a5c8f89b867038089e'
       - '0x2b4c76d0dc16be1c31d4c1dc53bf9b45987fc75c'
       period_setup: {}
       reset_tendermint_after: 2
