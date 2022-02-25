@@ -231,15 +231,6 @@ def no_action() -> Callable[[Any], None]:
 
 
 @pytest.fixture
-def transform_task_result() -> pd.DataFrame:
-    """Create a result of the `TransformTask`.
-
-    :return: a dummy `Task` Result.
-    """
-    return pd.DataFrame({"test": ["test1", "test2"]})
-
-
-@pytest.fixture
 def optimize_task_result() -> optuna.Study:
     """Create a result of the `OptimizeTask`.
 

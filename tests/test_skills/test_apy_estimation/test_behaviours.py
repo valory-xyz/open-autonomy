@@ -570,14 +570,14 @@ class TestTransformBehaviour(APYEstimationFSMBehaviourBaseCase):
         monkeypatch: MonkeyPatch,
         caplog: LogCaptureFixture,
         tmp_path: PosixPath,
-        transform_task_result: pd.DataFrame,
+        transformed_historical_data_no_datetime_conversion: pd.DataFrame,
     ) -> None:
         """Run test for `transform_behaviour` when task result is not ready."""
         self._fast_forward(tmp_path)
         monkeypatch.setattr(
             TaskManager,
             "get_task_result",
-            lambda *_: DummyAsyncResult(transform_task_result, ready=False),
+            lambda *_: DummyAsyncResult(transformed_historical_data_no_datetime_conversion, ready=False),
         )
 
         with caplog.at_level(
@@ -613,7 +613,7 @@ class TestTransformBehaviour(APYEstimationFSMBehaviourBaseCase):
         self,
         monkeypatch: MonkeyPatch,
         tmp_path: PosixPath,
-        transform_task_result: pd.DataFrame,
+        transformed_historical_data_no_datetime_conversion: pd.DataFrame,
         ipfs_succeed: bool,
     ) -> None:
         """Run test for `transform_behaviour`."""
@@ -621,12 +621,12 @@ class TestTransformBehaviour(APYEstimationFSMBehaviourBaseCase):
 
         monkeypatch.setattr(
             "packages.valory.skills.apy_estimation_abci.tasks.transform_hist_data",
-            lambda _: transform_task_result,
+            lambda _: transformed_historical_data_no_datetime_conversion,
         )
         monkeypatch.setattr(
             self._skill._skill_context._agent_context._task_manager,  # type: ignore
             "get_task_result",
-            lambda *_: DummyAsyncResult(transform_task_result),
+            lambda *_: DummyAsyncResult(transformed_historical_data_no_datetime_conversion),
         )
         monkeypatch.setattr(
             self._skill._skill_context._agent_context._task_manager,  # type: ignore
