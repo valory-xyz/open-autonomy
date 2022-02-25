@@ -101,6 +101,8 @@ jobs:
         sudo mv go-ipfs/ipfs /usr/local/bin/ipfs
         ipfs init
         make protolint_install
+    - name: Check generate protocols
+      run: tox -e check-generate-all-protocols
     - name: Security checks
       run: |
         tox -e bandit
@@ -109,8 +111,6 @@ jobs:
       run: tox -e check-packages
     - name: Check hash
       run: tox -e check-hash
-    - name: Check docstrings for AbciApps
-      run: tox -e check-abci-docstrings
     - name: Code style check
       run: |
         tox -e black-check
@@ -124,8 +124,8 @@ jobs:
       run: tox -e pylint
     - name: Check spelling
       run: tox -e spell-check
-    - name: Check generate protocols
-      run: tox -e check-generate-all-protocols
+    - name: Check docstrings for AbciApps
+      run: tox -e check-abci-docstrings
 
   test:
     continue-on-error: True
