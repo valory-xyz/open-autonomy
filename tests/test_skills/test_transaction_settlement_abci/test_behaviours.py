@@ -41,8 +41,10 @@ from packages.valory.protocols.abci import AbciMessage  # noqa: F401
 from packages.valory.protocols.contract_api.message import ContractApiMessage
 from packages.valory.protocols.ledger_api.message import LedgerApiMessage
 from packages.valory.skills.abstract_round_abci.base import StateDB
-from packages.valory.skills.abstract_round_abci.behaviour_utils import BaseState
-from packages.valory.skills.reset_pause_abci.behaviours import ResetAndPauseBehaviour
+from packages.valory.skills.abstract_round_abci.behaviour_utils import (
+    BaseState,
+    make_degenerate_state,
+)
 from packages.valory.skills.transaction_settlement_abci.behaviours import (
     CheckLateTxHashesBehaviour,
     CheckTransactionHistoryBehaviour,
@@ -64,6 +66,9 @@ from packages.valory.skills.transaction_settlement_abci.rounds import (
     Event as TransactionSettlementEvent,
 )
 from packages.valory.skills.transaction_settlement_abci.rounds import (
+    FinishedTransactionSubmissionRound,
+)
+from packages.valory.skills.transaction_settlement_abci.rounds import (
     PeriodState as TransactionSettlementPeriodState,
 )
 
@@ -75,8 +80,8 @@ from tests.test_skills.test_abstract_round_abci.test_common import (
 )
 
 
-class PriceEstimationFSMBehaviourBaseCase(FSMBehaviourBaseCase):
-    """Base case for testing PriceEstimation FSMBehaviour."""
+class TransactionSettlementFSMBehaviourBaseCase(FSMBehaviourBaseCase):
+    """Base case for testing TransactionSettlement FSMBehaviour."""
 
     path_to_skill = Path(
         ROOT_DIR, "packages", "valory", "skills", "transaction_settlement_abci"
@@ -86,6 +91,10 @@ class PriceEstimationFSMBehaviourBaseCase(FSMBehaviourBaseCase):
 class TestRandomnessInOperation(BaseRandomnessBehaviourTest):
     """Test randomness in operation."""
 
+    path_to_skill = Path(
+        ROOT_DIR, "packages", "valory", "skills", "transaction_settlement_abci"
+    )
+
     randomness_behaviour_class = RandomnessTransactionSubmissionBehaviour
     next_behaviour_class = SelectKeeperTransactionSubmissionBehaviourA
     done_event = TransactionSettlementEvent.DONE
@@ -93,6 +102,10 @@ class TestRandomnessInOperation(BaseRandomnessBehaviourTest):
 
 class TestSelectKeeperTransactionSubmissionBehaviourA(BaseSelectKeeperBehaviourTest):
     """Test SelectKeeperBehaviour."""
+
+    path_to_skill = Path(
+        ROOT_DIR, "packages", "valory", "skills", "transaction_settlement_abci"
+    )
 
     select_keeper_behaviour_class = SelectKeeperTransactionSubmissionBehaviourA
     next_behaviour_class = SignatureBehaviour
@@ -102,12 +115,16 @@ class TestSelectKeeperTransactionSubmissionBehaviourA(BaseSelectKeeperBehaviourT
 class TestSelectKeeperTransactionSubmissionBehaviourB(BaseSelectKeeperBehaviourTest):
     """Test SelectKeeperBehaviour."""
 
+    path_to_skill = Path(
+        ROOT_DIR, "packages", "valory", "skills", "transaction_settlement_abci"
+    )
+
     select_keeper_behaviour_class = SelectKeeperTransactionSubmissionBehaviourB
     next_behaviour_class = FinalizeBehaviour
     done_event = TransactionSettlementEvent.DONE
 
 
-class TestSignatureBehaviour(PriceEstimationFSMBehaviourBaseCase):
+class TestSignatureBehaviour(TransactionSettlementFSMBehaviourBaseCase):
     """Test SignatureBehaviour."""
 
     def test_signature_behaviour(
@@ -153,7 +170,7 @@ class TestSignatureBehaviour(PriceEstimationFSMBehaviourBaseCase):
         assert state.state_id == FinalizeBehaviour.state_id
 
 
-class TestFinalizeBehaviour(PriceEstimationFSMBehaviourBaseCase):
+class TestFinalizeBehaviour(TransactionSettlementFSMBehaviourBaseCase):
     """Test FinalizeBehaviour."""
 
     def test_non_sender_act(
@@ -377,7 +394,7 @@ class TestFinalizeBehaviour(PriceEstimationFSMBehaviourBaseCase):
             )
 
 
-class TestValidateTransactionBehaviour(PriceEstimationFSMBehaviourBaseCase):
+class TestValidateTransactionBehaviour(TransactionSettlementFSMBehaviourBaseCase):
     """Test ValidateTransactionBehaviour."""
 
     def _fast_forward(self) -> None:
@@ -446,7 +463,12 @@ class TestValidateTransactionBehaviour(PriceEstimationFSMBehaviourBaseCase):
         self._test_done_flag_set()
         self.end_round(TransactionSettlementEvent.DONE)
         state = cast(BaseState, self.behaviour.current_state)
-        assert state.state_id == ResetAndPauseBehaviour.state_id
+        assert (
+            state.state_id
+            == make_degenerate_state(
+                FinishedTransactionSubmissionRound.round_id
+            ).state_id
+        )
 
     def test_validate_transaction_safe_behaviour_no_tx_sent(
         self,
@@ -475,7 +497,7 @@ class TestValidateTransactionBehaviour(PriceEstimationFSMBehaviourBaseCase):
             mock_logger.assert_any_call(f"tx {latest_tx_hash} receipt check timed out!")
 
 
-class TestCheckTransactionHistoryBehaviour(PriceEstimationFSMBehaviourBaseCase):
+class TestCheckTransactionHistoryBehaviour(TransactionSettlementFSMBehaviourBaseCase):
     """Test CheckTransactionHistoryBehaviour."""
 
     def _fast_forward(self, hashes_history: Optional[List[Optional[str]]]) -> None:
@@ -557,10 +579,15 @@ class TestCheckTransactionHistoryBehaviour(PriceEstimationFSMBehaviourBaseCase):
         self._test_done_flag_set()
         self.end_round(TransactionSettlementEvent.DONE)
         state = cast(BaseState, self.behaviour.current_state)
-        assert state.state_id == ResetAndPauseBehaviour.state_id
+        assert (
+            state.state_id
+            == make_degenerate_state(
+                FinishedTransactionSubmissionRound.round_id
+            ).state_id
+        )
 
 
-class TestSynchronizeLateMessagesBehaviour(PriceEstimationFSMBehaviourBaseCase):
+class TestSynchronizeLateMessagesBehaviour(TransactionSettlementFSMBehaviourBaseCase):
     """Test `SynchronizeLateMessagesBehaviour`"""
 
     def _check_state_id(self, expected: Type[TransactionSettlementBaseState]) -> None:

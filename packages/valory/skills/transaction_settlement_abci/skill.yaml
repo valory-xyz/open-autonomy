@@ -11,7 +11,7 @@ fingerprint:
   behaviours.py: QmdHu2JtUrsJW5HKGkeEzoUR1vyYzAtCvH1acBLpVHuGmv
   dialogues.py: QmfDThV4WCRzK88XDpW2hKDYCuEH4RxoHCoAkWpkBRGRPv
   handlers.py: QmXEZTJVJHNhpHJMjhPRHdhmYMmVpu6LfNyYDE2k4mjLVA
-  models.py: QmUQQ7fhWp6YHKm45fw5KMDv5QZi8LBywhfb7K9t5CsyR6
+  models.py: QmRLpq2XjNZmCD3qK2SLC59A31xQBLiGQLbLkZNXzdMmN8
   payload_tools.py: QmQaVcy9BeW1nQtFnt83Nzt9BTY3nVbjs2Xth2W3iUTPyW
   payloads.py: QmWKBA4c9GSaXfa9QXbLcYeUvFmZpEjs9jX5D9wX38WiyN
   rounds.py: QmczuvLu3WDeoonkLmMfugpt9FdpSQ7CwtcKDrTQkyEGFB
@@ -73,6 +73,17 @@ models:
       tendermint_max_retries: 5
       tendermint_url: http://localhost:26657
     class_name: TransactionParams
+  randomness_api:
+    args:
+      api_id: cloudflare
+      headers: []
+      method: GET
+      parameters: []
+      response_key: null
+      response_type: dict
+      retries: 5
+      url: https://drand.cloudflare.com/public/latest
+    class_name: RandomnessApi
   requests:
     args: {}
     class_name: Requests
