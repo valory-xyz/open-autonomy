@@ -22,6 +22,7 @@ import json
 import logging
 import time
 import warnings
+from collections import Counter
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
@@ -201,41 +202,26 @@ class BaseTestEnd2End(AEATestCaseMany, BaseTendermintTestClass):
             check_strings_to_n_periods = cls.__generate_full_strings_from_rounds(
                 round_check_strings_to_n_periods
             )
-            # Create dictionary to keep track of how many times this string has appeared so far.
-            check_strings_to_n_appearances = {
-                key: 0 for key in check_strings_to_n_periods.keys()
-            }
-
+            check_strings_counter = Counter(check_strings_to_n_periods)
+            stdout_counter, remaining = Counter(), Counter()
             end_time = time.time() + kwargs["timeout"]
             # iterate while the check strings are still present in the dictionary,
             # i.e. have not appeared for the required amount of times.
-            while bool(check_strings_to_n_periods):
+            while remaining:
                 if time.time() > end_time:
                     break
-
-                for line in check_strings_to_n_periods.copy().keys():
-                    # count the number of times the line has appeared so far.
-                    n_times_appeared = cls.stdout[kwargs["process"].pid].count(line)
-                    # track the number times the line has appeared so far.
-                    check_strings_to_n_appearances[line] = n_times_appeared
-                    # if the required number has been reached, delete them from the check dictionaries.
-                    if (
-                        check_strings_to_n_appearances[line]
-                        >= check_strings_to_n_periods[line]
-                    ):
-                        del check_strings_to_n_periods[line]
-                        del check_strings_to_n_appearances[line]
-
+                # Count the logs occurrences in the stdout.
+                stdout_counter = Counter(cls.stdout[kwargs["process"].pid])
+                # Filter out the check strings which already exist enough times in the logs.
+                remaining = check_strings_counter - stdout_counter
                 # sleep for `period` amount of time.
                 time.sleep(period)
 
             # generate the missing strings with the number of times they are missing.
             missing_round_strings = [
-                f"'{s}' appeared only {n_appeared} out of {n_expected} times"
-                for (s, n_expected), (_, n_appeared) in zip(
-                    check_strings_to_n_periods.items(),
-                    check_strings_to_n_appearances.items(),
-                )
+                f"'{s}' appeared only {stdout_counter[s]} out of {n_expected} times"
+                for s, n_expected in check_strings_to_n_periods.items()
+                if remaining[s]
             ]
 
         if is_terminating:
