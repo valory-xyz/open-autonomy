@@ -41,6 +41,7 @@ from packages.valory.skills.transaction_settlement_abci.payloads import (
     CheckTransactionHistoryPayload,
     FinalizationTxPayload,
     SignaturePayload,
+    SynchronizeLateMessagesPayload,
     ValidatePayload,
 )
 from packages.valory.skills.transaction_settlement_abci.rounds import (
@@ -57,11 +58,14 @@ from packages.valory.skills.transaction_settlement_abci.rounds import (
 from packages.valory.skills.transaction_settlement_abci.rounds import (
     SelectKeeperTransactionSubmissionRoundA,
     SelectKeeperTransactionSubmissionRoundB,
+    SelectKeeperTransactionSubmissionRoundBAfterTimeout,
+    SynchronizeLateMessagesRound,
     ValidateTransactionRound,
 )
 
 from tests.test_skills.test_abstract_round_abci.test_base_rounds import (
     BaseCollectDifferentUntilThresholdRoundTest,
+    BaseCollectNonEmptyUntilThresholdRound,
     BaseCollectSameUntilThresholdRoundTest,
     BaseOnlyKeeperSendsRoundTest,
 )
@@ -164,6 +168,18 @@ def get_participant_to_check(
     }
 
 
+def get_participant_to_late_arriving_tx_hashes(
+    participants: FrozenSet[str],
+) -> Dict[str, SynchronizeLateMessagesPayload]:
+    """participant_to_selection"""
+    return {
+        participant: SynchronizeLateMessagesPayload(
+            sender=participant, tx_hashes="1" * 64 + "2" * 64
+        )
+        for participant in participants
+    }
+
+
 def get_late_arriving_tx_hashes() -> List[str]:
     """Get dummy late-arriving tx hashes."""
     # We want the tx hashes to have a size which can be divided by 64 to be able to parse it.
@@ -187,6 +203,26 @@ class TestSelectKeeperTransactionSubmissionRoundB(BaseSelectKeeperRoundTest):
     _event_class = TransactionSettlementEvent
 
 
+class TestSelectKeeperTransactionSubmissionRoundBAfterTimeout(
+    TestSelectKeeperTransactionSubmissionRoundB
+):
+    """Test SelectKeeperTransactionSubmissionRoundBAfterTimeout."""
+
+    test_class = SelectKeeperTransactionSubmissionRoundBAfterTimeout
+    _period_state_class = TransactionSettlementPeriodState
+
+    def test_run(
+        self,
+    ) -> None:
+        """Test `SelectKeeperTransactionSubmissionRoundBAfterTimeout`."""
+        self.period_state.update(missed_messages=10)
+        super().test_run()
+        assert (
+            cast(TransactionSettlementPeriodState, self.period_state).missed_messages
+            == 11
+        )
+
+
 class TestFinalizationRound(BaseOnlyKeeperSendsRoundTest):
     """Test FinalizationRound."""
 
@@ -194,41 +230,54 @@ class TestFinalizationRound(BaseOnlyKeeperSendsRoundTest):
     _event_class = TransactionSettlementEvent
 
     @pytest.mark.parametrize(
-        "tx_hashes_history, tx_digest, status, exit_event",
+        "tx_hashes_history, tx_digest, missed_messages, status, exit_event",
         (
             (
-                None,
+                [],
                 "",
+                1,
                 VerificationStatus.ERROR.value,
                 TransactionSettlementEvent.CHECK_LATE_ARRIVING_MESSAGE,
             ),
             (
-                [get_final_tx_hash()],
+                [],
                 "",
+                0,
+                VerificationStatus.ERROR.value,
+                TransactionSettlementEvent.FINALIZATION_FAILED,
+            ),
+            (
+                ["test"],
+                "",
+                0,
                 VerificationStatus.VERIFIED.value,
                 TransactionSettlementEvent.CHECK_HISTORY,
             ),
             (
-                [get_final_tx_hash()],
+                ["test"],
                 "",
+                0,
                 VerificationStatus.ERROR.value,
                 TransactionSettlementEvent.CHECK_HISTORY,
             ),
             (
-                None,
+                [],
                 "",
+                0,
                 VerificationStatus.PENDING.value,
-                TransactionSettlementEvent.FAILED,
+                TransactionSettlementEvent.FINALIZATION_FAILED,
             ),
             (
-                None,
+                [],
                 "tx_digest",
+                0,
                 VerificationStatus.PENDING.value,
                 TransactionSettlementEvent.DONE,
             ),
             (
-                [get_final_tx_hash()],
+                ["test"],
                 "tx_digest",
+                0,
                 VerificationStatus.PENDING.value,
                 TransactionSettlementEvent.DONE,
             ),
@@ -236,8 +285,9 @@ class TestFinalizationRound(BaseOnlyKeeperSendsRoundTest):
     )
     def test_finalization_round(
         self,
-        tx_hashes_history: Optional[List[str]],
+        tx_hashes_history: List[str],
         tx_digest: str,
+        missed_messages: int,
         status: int,
         exit_event: TransactionSettlementEvent,
     ) -> None:
@@ -246,17 +296,15 @@ class TestFinalizationRound(BaseOnlyKeeperSendsRoundTest):
         keeper = sorted(list(self.participants))[0]
         self.period_state = cast(
             PeriodState,
-            self.period_state.update(most_voted_keeper_address=keeper),
+            self.period_state.update(
+                most_voted_keeper_address=keeper, missed_messages=missed_messages
+            ),
         )
 
         test_round = FinalizationRound(
             state=self.period_state,
             consensus_params=self.consensus_params,
         )
-
-        state_attr_checks = []
-        if exit_event == TransactionSettlementEvent.DONE:
-            state_attr_checks = [lambda state: state.final_tx_hash]
 
         self._complete_run(
             self._test_round(
@@ -274,7 +322,7 @@ class TestFinalizationRound(BaseOnlyKeeperSendsRoundTest):
                 state_update_fn=lambda _period_state, _: _period_state.update(
                     tx_hashes_history=tx_hashes_history
                 ),
-                state_attr_checks=state_attr_checks,
+                state_attr_checks=[],
                 exit_event=exit_event,
             )
         )
@@ -326,22 +374,31 @@ class TestCheckTransactionHistoryRound(BaseCollectSameUntilThresholdRoundTest):
     _period_state_class = TransactionSettlementPeriodState
 
     @pytest.mark.parametrize(
-        "expected_status, expected_tx_hash, expected_event",
+        "expected_status, expected_tx_hash, missed_messages, expected_event",
         (
             (
                 "0000000000000000000000000000000000000000000000000000000000000001",
                 "b0e6add595e00477cf347d09797b156719dc5233283ac76e4efce2a674fe72d9",
+                0,
                 TransactionSettlementEvent.DONE,
             ),
             (
                 "0000000000000000000000000000000000000000000000000000000000000002",
                 "b0e6add595e00477cf347d09797b156719dc5233283ac76e4efce2a674fe72d9",
+                0,
                 TransactionSettlementEvent.NEGATIVE,
             ),
             (
                 "0000000000000000000000000000000000000000000000000000000000000003",
                 "b0e6add595e00477cf347d09797b156719dc5233283ac76e4efce2a674fe72d9",
+                0,
                 TransactionSettlementEvent.NONE,
+            ),
+            (
+                "0000000000000000000000000000000000000000000000000000000000000002",
+                "b0e6add595e00477cf347d09797b156719dc5233283ac76e4efce2a674fe72d9",
+                1,
+                TransactionSettlementEvent.CHECK_LATE_ARRIVING_MESSAGE,
             ),
         ),
     )
@@ -349,9 +406,12 @@ class TestCheckTransactionHistoryRound(BaseCollectSameUntilThresholdRoundTest):
         self,
         expected_status: str,
         expected_tx_hash: str,
+        missed_messages: int,
         expected_event: TransactionSettlementEvent,
     ) -> None:
         """Run tests."""
+        self.period_state.update(missed_messages=missed_messages)
+
         test_round = CheckTransactionHistoryRound(
             state=self.period_state, consensus_params=self.consensus_params
         )
@@ -373,8 +433,47 @@ class TestCheckTransactionHistoryRound(BaseCollectSameUntilThresholdRoundTest):
                     final_verification_status=VerificationStatus(int(expected_status)),
                     tx_hashes_history=[expected_tx_hash],
                 ),
-                state_attr_checks=[lambda state: state.final_verification_status],
+                state_attr_checks=[
+                    lambda state: state.final_verification_status,
+                    lambda state: state.final_tx_hash,
+                ],
                 most_voted_payload=expected_status + expected_tx_hash,
+                exit_event=expected_event,
+            )
+        )
+
+
+class TestSynchronizeLateMessagesRound(BaseCollectNonEmptyUntilThresholdRound):
+    """Test `SynchronizeLateMessagesRound`."""
+
+    _event_class = TransactionSettlementEvent
+    _period_state_class = TransactionSettlementPeriodState
+
+    @pytest.mark.parametrize(
+        "missed_messages, expected_event",
+        (
+            (0, TransactionSettlementEvent.MISSED_AND_LATE_MESSAGES_MISMATCH),
+            (8, TransactionSettlementEvent.DONE),
+        ),
+    )
+    def test_runs(
+        self, missed_messages: int, expected_event: TransactionSettlementEvent
+    ) -> None:
+        """Runs tests."""
+        self.period_state.update(missed_messages=missed_messages)
+        test_round = SynchronizeLateMessagesRound(
+            state=self.period_state, consensus_params=self.consensus_params
+        )
+        self._complete_run(
+            self._test_round(
+                test_round=test_round,
+                round_payloads=get_participant_to_late_arriving_tx_hashes(
+                    self.participants
+                ),
+                state_update_fn=lambda _period_state, _: _period_state.update(
+                    late_arriving_tx_hashes=["1" * 64, "2" * 64]
+                ),
+                state_attr_checks=[],
                 exit_event=expected_event,
             )
         )
@@ -409,7 +508,7 @@ def test_period_states() -> None:
                 safe_contract_address=safe_contract_address,
                 most_voted_tx_hash=most_voted_tx_hash,
                 participant_to_signature=participant_to_signature,
-                tx_hashes_history=[final_tx_hash],
+                final_tx_hash=final_tx_hash,
                 late_arriving_tx_hashes=late_arriving_tx_hashes,
             ),
         )

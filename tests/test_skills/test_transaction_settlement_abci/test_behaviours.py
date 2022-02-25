@@ -471,8 +471,8 @@ class TestValidateTransactionBehaviour(PriceEstimationFSMBehaviourBaseCase):
                 TransactionSettlementBaseState,
                 self.behaviour.current_state,
             )
-            final_tx_hash = state.period_state.final_tx_hash
-            mock_logger.assert_any_call(f"tx {final_tx_hash} receipt check timed out!")
+            latest_tx_hash = state.period_state.tx_hashes_history[-1]
+            mock_logger.assert_any_call(f"tx {latest_tx_hash} receipt check timed out!")
 
 
 class TestCheckTransactionHistoryBehaviour(PriceEstimationFSMBehaviourBaseCase):

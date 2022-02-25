@@ -363,7 +363,7 @@ class TestBaseState:
     def setup(self) -> None:
         """Set up the tests."""
         self.context_mock = MagicMock()
-        self.context_params_mock = MagicMock()
+        self.context_params_mock = MagicMock(ipfs_domain_name=None)
         self.context_state_period_state_mock = MagicMock()
         self.context_mock.params = self.context_params_mock
         self.context_mock.state.period_state = self.context_state_period_state_mock
@@ -987,6 +987,7 @@ def test_degenerate_state_async_act() -> None:
         matching_round = MagicMock()
 
     context = MagicMock()
+    context.params.ipfs_domain_name = None
     # this is needed to trigger execution of async_act
     context.state.period.syncing_up = False
 

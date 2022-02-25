@@ -16,31 +16,29 @@
 #   limitations under the License.
 #
 # ------------------------------------------------------------------------------
-"""Configurations for APY skill's tools tests."""
 
-from typing import List, Union
+"""IO operations for the APY skill."""
 
 import pandas as pd
-import pytest
+from pandas._libs.tslibs.np_datetime import OutOfBoundsDatetime  # pylint: disable=E0611
 
-from packages.valory.skills.apy_estimation_abci.tools.io import TRANSFORMED_HIST_DTYPES
+from packages.valory.skills.apy_estimation_abci.tools.etl import TRANSFORMED_HIST_DTYPES
 
 
-@pytest.fixture
-def transformed_history() -> pd.DataFrame:
-    """Generate a test transformed history.
+def load_hist(path: str) -> pd.DataFrame:
+    """Load the already fetched and transformed historical data.
 
-    :return: a test transformed history.
+    :param path: the path to the historical data.
+    :return: a dataframe with the historical data.
     """
-    hist_li: List[Union[int, float, str]] = [10] * 21
-    hist_li.extend(["x"] * 4)
-    hist_li.insert(23, "X")
-    hist_li.append("X")
-    hist_li.append("x - x")
-    hist_li.append(10.0)
-    hist_li.append(100.0)
-    hist_li.extend([0.0] * 2)
+    try:
+        pairs_hist = pd.read_csv(path).astype(TRANSFORMED_HIST_DTYPES)
 
-    transformed = pd.DataFrame([hist_li], [1], TRANSFORMED_HIST_DTYPES.keys())
+        # Convert the `blockTimestamp` to a pandas datetime.
+        pairs_hist["blockTimestamp"] = pd.to_datetime(
+            pairs_hist["blockTimestamp"], unit="s"
+        )
+    except (FileNotFoundError, OutOfBoundsDatetime) as e:
+        raise IOError(str(e)) from e
 
-    return transformed
+    return pairs_hist

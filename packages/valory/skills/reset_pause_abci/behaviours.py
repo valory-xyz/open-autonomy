@@ -193,7 +193,7 @@ class BaseResetBehaviour(ResetAndPauseBaseState):
         self.set_done()
 
 
-class ResetBehaviour(BaseResetBehaviour):
+class ResetBehaviour(BaseResetBehaviour):  # pylint: disable=too-many-ancestors
     """Reset state."""
 
     matching_round = ResetRound
@@ -201,7 +201,7 @@ class ResetBehaviour(BaseResetBehaviour):
     pause = False
 
 
-class ResetAndPauseBehaviour(BaseResetBehaviour):
+class ResetAndPauseBehaviour(BaseResetBehaviour):  # pylint: disable=too-many-ancestors
     """Reset and pause state."""
 
     matching_round = ResetAndPauseRound

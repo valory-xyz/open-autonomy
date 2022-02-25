@@ -67,6 +67,7 @@ from packages.valory.skills.transaction_settlement_abci.rounds import (
     RandomnessTransactionSubmissionRound,
     SelectKeeperTransactionSubmissionRoundA,
     SelectKeeperTransactionSubmissionRoundB,
+    SelectKeeperTransactionSubmissionRoundBAfterTimeout,
     SynchronizeLateMessagesRound,
     TransactionSubmissionAbciApp,
     ValidateTransactionRound,
@@ -182,7 +183,9 @@ class RandomnessTransactionSubmissionBehaviour(RandomnessBehaviour):
     payload_class = RandomnessPayload
 
 
-class SelectKeeperTransactionSubmissionBehaviourA(SelectKeeperBehaviour):
+class SelectKeeperTransactionSubmissionBehaviourA(  # pylint: disable=too-many-ancestors
+    SelectKeeperBehaviour, TransactionSettlementBaseState
+):
     """Select the keeper agent."""
 
     state_id = "select_keeper_transaction_submission_a"
@@ -190,13 +193,23 @@ class SelectKeeperTransactionSubmissionBehaviourA(SelectKeeperBehaviour):
     payload_class = SelectKeeperPayload
 
 
-class SelectKeeperTransactionSubmissionBehaviourB(
+class SelectKeeperTransactionSubmissionBehaviourB(  # pylint: disable=too-many-ancestors
     SelectKeeperBehaviour, TransactionSettlementBaseState
 ):
-    """Select the keeper agent."""
+    """Select the keeper b agent."""
 
     state_id = "select_keeper_transaction_submission_b"
     matching_round = SelectKeeperTransactionSubmissionRoundB
+    payload_class = SelectKeeperPayload
+
+
+class SelectKeeperTransactionSubmissionBehaviourBAfterTimeout(  # pylint: disable=too-many-ancestors
+    SelectKeeperBehaviour, TransactionSettlementBaseState
+):
+    """Select the keeper b agent after a timeout."""
+
+    state_id = "select_keeper_transaction_submission_b_after_timeout"
+    matching_round = SelectKeeperTransactionSubmissionRoundBAfterTimeout
     payload_class = SelectKeeperPayload
 
 
@@ -236,20 +249,22 @@ class ValidateTransactionBehaviour(TransactionSettlementBaseState):
     def has_transaction_been_sent(self) -> Generator[None, None, Optional[bool]]:
         """Transaction verification."""
         response = yield from self.get_transaction_receipt(
-            self.period_state.final_tx_hash,
+            self.period_state.to_be_validated_tx_hash,
             self.params.retry_timeout,
             self.params.retry_attempts,
         )
         if response is None:  # pragma: nocover
             self.context.logger.error(
-                f"tx {self.period_state.final_tx_hash} receipt check timed out!"
+                f"tx {self.period_state.to_be_validated_tx_hash} receipt check timed out!"
             )
             return None
 
         # Reset tx parameters.
         self.params.reset_tx_params()
 
-        contract_api_msg = yield from self._verify_tx(self.period_state.final_tx_hash)
+        contract_api_msg = yield from self._verify_tx(
+            self.period_state.to_be_validated_tx_hash
+        )
         if (
             contract_api_msg.performative != ContractApiMessage.Performative.STATE
         ):  # pragma: nocover
@@ -283,11 +298,13 @@ class CheckTransactionHistoryBehaviour(TransactionSettlementBaseState):
 
             if verification_status == VerificationStatus.VERIFIED:
                 self.context.logger.info(
-                    f"A previous transaction has already been verified for {self.period_state.final_tx_hash}."
+                    f"A previous transaction {tx_hash} has already been verified for "
+                    f"{self.period_state.to_be_validated_tx_hash}."
                 )
             elif verification_status == VerificationStatus.NOT_VERIFIED:
                 self.context.logger.info(
-                    f"No previous transaction has been verified for {self.period_state.final_tx_hash}."
+                    f"No previous transaction has been verified for "
+                    f"{self.period_state.to_be_validated_tx_hash}."
                 )
 
             verified_res = tx_hist_payload_to_hex(verification_status, tx_hash)
@@ -387,7 +404,9 @@ class CheckTransactionHistoryBehaviour(TransactionSettlementBaseState):
         return cast(str, contract_api_msg.state.body["revert_reason"])
 
 
-class CheckLateTxHashesBehaviour(CheckTransactionHistoryBehaviour):
+class CheckLateTxHashesBehaviour(  # pylint: disable=too-many-ancestors
+    CheckTransactionHistoryBehaviour
+):
     """Check the late-arriving transaction hashes."""
 
     state_id = "check_late_tx_hashes"
@@ -608,6 +627,7 @@ class TransactionSettlementRoundBehaviour(AbstractRoundBehaviour):
         RandomnessTransactionSubmissionBehaviour,  # type: ignore
         SelectKeeperTransactionSubmissionBehaviourA,  # type: ignore
         SelectKeeperTransactionSubmissionBehaviourB,  # type: ignore
+        SelectKeeperTransactionSubmissionBehaviourBAfterTimeout,  # type: ignore
         ValidateTransactionBehaviour,  # type: ignore
         CheckTransactionHistoryBehaviour,  # type: ignore
         SignatureBehaviour,  # type: ignore

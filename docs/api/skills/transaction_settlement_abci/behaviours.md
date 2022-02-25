@@ -9,7 +9,7 @@ This module contains the behaviours for the 'abci' skill.
 ## TransactionSettlementBaseState Objects
 
 ```python
-class TransactionSettlementBaseState(BaseState,  ABC)
+class TransactionSettlementBaseState(BaseState, ABC)
 ```
 
 Base state behaviour for the common apps' skill.
@@ -51,7 +51,8 @@ Retrieve randomness.
 ## SelectKeeperTransactionSubmissionBehaviourA Objects
 
 ```python
-class SelectKeeperTransactionSubmissionBehaviourA(SelectKeeperBehaviour)
+class SelectKeeperTransactionSubmissionBehaviourA(# pylint: disable=too-many-ancestors
+    SelectKeeperBehaviour, TransactionSettlementBaseState)
 ```
 
 Select the keeper agent.
@@ -61,11 +62,22 @@ Select the keeper agent.
 ## SelectKeeperTransactionSubmissionBehaviourB Objects
 
 ```python
-class SelectKeeperTransactionSubmissionBehaviourB(
-    SelectKeeperBehaviour,  TransactionSettlementBaseState)
+class SelectKeeperTransactionSubmissionBehaviourB(# pylint: disable=too-many-ancestors
+    SelectKeeperBehaviour, TransactionSettlementBaseState)
 ```
 
-Select the keeper agent.
+Select the keeper b agent.
+
+<a id="packages.valory.skills.transaction_settlement_abci.behaviours.SelectKeeperTransactionSubmissionBehaviourBAfterTimeout"></a>
+
+## SelectKeeperTransactionSubmissionBehaviourBAfterTimeout Objects
+
+```python
+class SelectKeeperTransactionSubmissionBehaviourBAfterTimeout(# pylint: disable=too-many-ancestors
+    SelectKeeperBehaviour, TransactionSettlementBaseState)
+```
+
+Select the keeper b agent after a timeout.
 
 <a id="packages.valory.skills.transaction_settlement_abci.behaviours.ValidateTransactionBehaviour"></a>
 
@@ -130,7 +142,8 @@ Do the action.
 ## CheckLateTxHashesBehaviour Objects
 
 ```python
-class CheckLateTxHashesBehaviour(CheckTransactionHistoryBehaviour)
+class CheckLateTxHashesBehaviour(# pylint: disable=too-many-ancestors
+    CheckTransactionHistoryBehaviour)
 ```
 
 Check the late-arriving transaction hashes.
