@@ -233,14 +233,14 @@ class BaseTestEnd2End(AEATestCaseMany, BaseTendermintTestClass):
         missing_strict_strings: List[str], missing_round_strings: List[str], i: int
     ) -> None:
         """Checks for missing strings in agent's output."""
-        assertion_string = ""
+        missing_agent_logs = ""
         if missing_strict_strings:
-            assertion_string += (
+            missing_agent_logs += (
                 f"Strings {missing_strict_strings} didn't appear in agent_{i} output.\n"
             )
-        assertion_string += "\n".join(missing_round_strings)
+        missing_agent_logs += "\n".join(missing_round_strings)
 
-        assert assertion_string == "", assertion_string
+        assert missing_agent_logs == "", missing_agent_logs
 
     def _check_aea_messages(self) -> None:
         """Check that *each* AEA prints these messages."""
