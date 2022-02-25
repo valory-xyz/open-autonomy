@@ -206,10 +206,9 @@ class BaseTestEnd2End(AEATestCaseMany, BaseTendermintTestClass):
             stdout_counter, remaining = Counter(), Counter()
             end_time = time.time() + kwargs["timeout"]
             # iterate while the check strings are still present in the dictionary,
-            # i.e. have not appeared for the required amount of times.
-            while remaining:
-                if time.time() > end_time:
-                    break
+            # i.e. have not appeared for the required amount of times
+            # and while the timeout has not been reached.
+            while remaining and time.time() < end_time:
                 # Count the logs occurrences in the stdout.
                 stdout_counter = Counter(cls.stdout[kwargs["process"].pid])
                 # Filter out the check strings which already exist enough times in the logs.
