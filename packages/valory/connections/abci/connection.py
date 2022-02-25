@@ -56,7 +56,7 @@ DEFAULT_RPC_PORT = 26657
 DEFAULT_LISTEN_ADDRESS = "0.0.0.0"  # nosec
 DEFAULT_P2P_LISTEN_ADDRESS = f"tcp://{DEFAULT_LISTEN_ADDRESS}:{DEFAULT_P2P_PORT}"
 DEFAULT_RPC_LISTEN_ADDRESS = f"tcp://{LOCALHOST}:{DEFAULT_RPC_PORT}"
-MAX_READ_IN_BYTES = 64 * 1024  # Max we'll consume on a read stream
+MAX_READ_IN_BYTES = 4 * 1024 * 1024  # Max we'll consume on a read stream
 
 
 class DecodeVarintError(Exception):
