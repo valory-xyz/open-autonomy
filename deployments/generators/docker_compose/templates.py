@@ -57,6 +57,7 @@ HARDHAT_NODE_TEMPLATE: str = """
 
 TENDERMINT_NODE_TEMPLATE: str = """
   node{node_id}:
+    cpus: 0.1
     container_name: node{node_id}
     image: "valory/consensus-algorithms-tendermint:0.1.0"
     environment:
@@ -76,6 +77,7 @@ TENDERMINT_NODE_TEMPLATE: str = """
 
 ABCI_NODE_TEMPLATE: str = """
   abci{node_id}:
+    cpus: 0.1
     container_name: abci{node_id}
     image: "valory/consensus-algorithms-open-aea:0.1.0"
     volumes:
