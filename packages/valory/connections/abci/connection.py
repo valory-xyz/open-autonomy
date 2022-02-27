@@ -56,15 +56,32 @@ DEFAULT_RPC_PORT = 26657
 DEFAULT_LISTEN_ADDRESS = "0.0.0.0"  # nosec
 DEFAULT_P2P_LISTEN_ADDRESS = f"tcp://{DEFAULT_LISTEN_ADDRESS}:{DEFAULT_P2P_PORT}"
 DEFAULT_RPC_LISTEN_ADDRESS = f"tcp://{LOCALHOST}:{DEFAULT_RPC_PORT}"
-MAX_READ_IN_BYTES = 4 * 1024 * 1024  # Max we'll consume on a read stream
+MAX_READ_IN_BYTES = 4 * 1024  # Max we'll consume on a read stream
 
 
 class DecodeVarintError(Exception):
     """This exception is raised when an error occurs while decoding a varint."""
 
 
+class TooLargeVarint(Exception):
+    """This exception is raised when a too large size of bytes is received."""
+
+
 class ShortBufferLengthError(Exception):
     """This exception is raised when the buffer length is shorter than expected."""
+
+    def __init__(self, expected_length: int, data: bytes):
+        """
+        Initialize the exception object.
+
+        :param expected_length: the expected length to be read
+        :param data: the data actually read
+        """
+        super().__init__(
+            f"expected bytes of length {expected_length}, got bytes of length {len(data)}"
+        )
+        self.expected_length = expected_length
+        self.data = data
 
 
 class _TendermintABCISerializer:
@@ -136,7 +153,11 @@ class _TendermintABCISerializer:
 
     @classmethod
     def read_messages(
-        cls, buffer: BytesIO, message_cls: Type
+        cls,
+        buffer: BytesIO,
+        message_cls: Type,
+        previous_length: Optional[int] = None,
+        previous_data: bytes = b"",
     ) -> Generator[Request, None, None]:
         """
         Return an iterator over the messages found in the `reader` buffer.
@@ -151,14 +172,20 @@ class _TendermintABCISerializer:
         """
         total_length = buffer.getbuffer().nbytes
         while buffer.tell() < total_length:
-            length = cls.decode_varint(buffer)
+            length = (
+                cls.decode_varint(buffer)
+                if not previous_length
+                else (previous_length - len(previous_data))
+            )
+            if length > MAX_READ_IN_BYTES:
+                raise TooLargeVarint(
+                    f"size of bytes {length} is too large, the maximum allowed is {MAX_READ_IN_BYTES}"
+                )
             data = buffer.read(length)
             if len(data) < length:
-                raise ShortBufferLengthError(
-                    f"expected buffer of length {length}, got {len(data)}"
-                )
+                raise ShortBufferLengthError(length, data)
             message = message_cls()
-            message.ParseFromString(data)
+            message.ParseFromString(previous_data + data)
             yield message
 
 
@@ -202,6 +229,9 @@ class TcpServerChannel:  # pylint: disable=too-many-instance-attributes
         # this dictionary associates requests to socket name
         # such that responses are sent to the right receiver
         self._request_id_to_socket: Dict[DialogueLabel, str] = {}
+
+        self._previous_length: Optional[int] = None
+        self._previous_data: bytes = b""
 
     @property
     def is_stopped(self) -> bool:
@@ -273,15 +303,22 @@ class TcpServerChannel:  # pylint: disable=too-many-instance-attributes
             # based on the length encoding
             message_iterator: Generator[
                 Request, None, None
-            ] = _TendermintABCISerializer.read_messages(data, Request)
+            ] = _TendermintABCISerializer.read_messages(
+                data, Request, self._previous_length, self._previous_data
+            )
+            self._previous_length = None
+            self._previous_data = b""
             end_of_message_iterator = False
             sentinel = object()
             while not self.is_stopped:
                 try:
                     message = next(message_iterator, sentinel)
+                except ShortBufferLengthError as e:
+                    self._previous_length = e.expected_length
+                    self._previous_data = e.data
                 except (
                     DecodeVarintError,
-                    ShortBufferLengthError,
+                    TooLargeVarint,
                     DecodeError,
                 ) as e:  # pragma: nocover
                     self.logger.error(
