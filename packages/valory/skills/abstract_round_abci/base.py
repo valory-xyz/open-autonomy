@@ -764,6 +764,12 @@ class AbstractRound(Generic[EventType, TransactionType], ABC):
         """
         Check the transaction is of the allowed transaction type.
 
+        Involves checking:
+        - round allows for transactions
+        - transaction type is not that of previous round
+        - transaction round count matches what is expected in the round
+        - transaction type matches what is expected in the round
+
         :param transaction: the transaction
         :raises: TransactionTypeNotRecognizedError if the transaction can be
                  applied to the current state.
@@ -779,6 +785,11 @@ class AbstractRound(Generic[EventType, TransactionType], ABC):
         ):
             raise LateArrivingTransaction(
                 f"request '{tx_type}' is from previous round; skipping"
+            )
+
+        if transaction.payload.round_count != self.period_state.round_count:
+            raise LateArrivingTransaction(
+                f"Expected round count {self.period_state.round_count} and got {transaction.payload.round_count}."
             )
 
         if str(tx_type) != str(self.allowed_tx_type):
@@ -969,10 +980,6 @@ class CollectionRound(AbstractRound):
 
     def process_payload(self, payload: BaseTxPayload) -> None:
         """Process payload."""
-        if payload.round_count != self.period_state.round_count:
-            raise ABCIAppInternalError(
-                f"Expected round count {self.period_state.round_count} and got {payload.round_count}."
-            )
 
         sender = payload.sender
         if sender not in self.period_state.participants:
@@ -989,10 +996,6 @@ class CollectionRound(AbstractRound):
 
     def check_payload(self, payload: BaseTxPayload) -> None:
         """Check Payload"""
-        if payload.round_count != self.period_state.round_count:
-            raise TransactionNotValidError(
-                f"Expected round count {self.period_state.round_count} and got {payload.round_count}."
-            )
 
         sender_in_participant_set = payload.sender in self.period_state.participants
         if not sender_in_participant_set:
@@ -1018,10 +1021,6 @@ class CollectDifferentUntilAllRound(CollectionRound):
 
     def process_payload(self, payload: BaseTxPayload) -> None:
         """Process payload."""
-        if payload.round_count != self.period_state.round_count:
-            raise ABCIAppInternalError(
-                f"Expected round count {self.period_state.round_count} and got {payload.round_count}."
-            )
 
         if payload.sender in self.collection:
             raise ABCIAppInternalError(
@@ -1032,10 +1031,6 @@ class CollectDifferentUntilAllRound(CollectionRound):
 
     def check_payload(self, payload: BaseTxPayload) -> None:
         """Check Payload"""
-        if payload.round_count != self.period_state.round_count:
-            raise TransactionNotValidError(
-                f"Expected round count {self.period_state.round_count} and got {payload.round_count}."
-            )
 
         if payload.sender in self.collection:
             raise TransactionNotValidError(
@@ -1135,10 +1130,6 @@ class OnlyKeeperSendsRound(AbstractRound):
 
     def process_payload(self, payload: BaseTxPayload) -> None:  # type: ignore
         """Handle a deploy safe payload."""
-        if payload.round_count != self.period_state.round_count:
-            raise ABCIAppInternalError(
-                f"Expected round count {self.period_state.round_count} and got {payload.round_count}."
-            )
 
         sender = payload.sender
 
@@ -1158,10 +1149,6 @@ class OnlyKeeperSendsRound(AbstractRound):
 
     def check_payload(self, payload: BaseTxPayload) -> None:  # type: ignore
         """Check a deploy safe payload can be applied to the current state."""
-        if payload.round_count != self.period_state.round_count:
-            raise TransactionNotValidError(
-                f"Expected round count {self.period_state.round_count} and got {payload.round_count}."
-            )
 
         sender = payload.sender
         sender_in_participant_set = sender in self.period_state.participants
