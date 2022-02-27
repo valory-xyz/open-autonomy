@@ -706,7 +706,9 @@ class BaseState(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
                 )
                 break
             # otherwise, repeat until done, or until stop condition is true
-            self.context.logger.info(f"Tx sent but not delivered. Response = {res}")
+            self.context.logger.info(
+                f"Tx sent but not delivered. Transaction = {transaction}, response = {res}"
+            )
             payload = payload.with_new_id()
         self.context.logger.info(
             "Stop condition is true, no more attempts to send the transaction."
