@@ -19,7 +19,7 @@
 """Script for generating deployment environments."""
 import os
 from pathlib import Path
-from typing import Dict, List, Optional
+from typing import Dict, Optional
 
 from deployments.base_deployments import BaseDeployment
 from deployments.constants import DEPLOYMENT_REPORT
@@ -43,7 +43,7 @@ DEPLOYMENT_OPTIONS = {
 def generate_deployment(
     type_of_deployment: str,
     configure_tendermint: bool,
-    private_keys_file_path: List[str],
+    private_keys_file_path: str,
     valory_application: Optional[str] = None,
     deployment_file_path: Optional[str] = None,
 ) -> str:
@@ -61,7 +61,7 @@ def generate_deployment(
 
     app_instance = BaseDeployment(
         path_to_deployment_spec=deployment_file_path,
-        private_keys_file_path=private_keys_file_path,
+        private_keys_file_path=Path(private_keys_file_path),
     )
     deployment = deployment_generator(deployment_spec=app_instance)
     deployment.generate(app_instance)  # type: ignore
