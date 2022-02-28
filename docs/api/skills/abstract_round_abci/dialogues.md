@@ -9,7 +9,7 @@ This module contains the classes required for dialogue management.
 ## AbciDialogues Objects
 
 ```python
-class AbciDialogues(Model, BaseAbciDialogues)
+class AbciDialogues(Model,  BaseAbciDialogues)
 ```
 
 The dialogues class keeps track of all dialogues.
@@ -33,7 +33,7 @@ Initialize dialogues.
 ## HttpDialogues Objects
 
 ```python
-class HttpDialogues(Model, BaseHttpDialogues)
+class HttpDialogues(Model,  BaseHttpDialogues)
 ```
 
 This class keeps track of all http dialogues.
@@ -57,7 +57,7 @@ Initialize dialogues.
 ## SigningDialogues Objects
 
 ```python
-class SigningDialogues(Model, BaseSigningDialogues)
+class SigningDialogues(Model,  BaseSigningDialogues)
 ```
 
 This class keeps track of all signing dialogues.
@@ -81,7 +81,7 @@ Initialize dialogues.
 ## LedgerApiDialogue Objects
 
 ```python
-class LedgerApiDialogue(# pylint: disable=too-few-public-methods
+class LedgerApiDialogue(  # pylint: disable=too-few-public-methods
     BaseLedgerApiDialogue)
 ```
 
@@ -131,7 +131,7 @@ Set the terms.
 ## LedgerApiDialogues Objects
 
 ```python
-class LedgerApiDialogues(Model, BaseLedgerApiDialogues)
+class LedgerApiDialogues(Model,  BaseLedgerApiDialogues)
 ```
 
 The dialogues class keeps track of all dialogues.
@@ -155,7 +155,7 @@ Initialize dialogues.
 ## ContractApiDialogue Objects
 
 ```python
-class ContractApiDialogue(# pylint: disable=too-few-public-methods
+class ContractApiDialogue(  # pylint: disable=too-few-public-methods
     BaseContractApiDialogue)
 ```
 
@@ -205,7 +205,7 @@ Set the terms.
 ## ContractApiDialogues Objects
 
 ```python
-class ContractApiDialogues(Model, BaseContractApiDialogues)
+class ContractApiDialogues(Model,  BaseContractApiDialogues)
 ```
 
 The dialogues class keeps track of all dialogues.

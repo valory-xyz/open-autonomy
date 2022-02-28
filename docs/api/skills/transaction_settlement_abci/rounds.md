@@ -162,7 +162,7 @@ Get the reset params flag.
 ## FailedRound Objects
 
 ```python
-class FailedRound(DegenerateRound, ABC)
+class FailedRound(DegenerateRound,  ABC)
 ```
 
 A round that represents that the period failed
@@ -232,7 +232,8 @@ A round in which a new keeper is selected for transaction submission
 ## SelectKeeperTransactionSubmissionRoundBAfterTimeout Objects
 
 ```python
-class SelectKeeperTransactionSubmissionRoundBAfterTimeout(SelectKeeperTransactionSubmissionRoundB)
+class SelectKeeperTransactionSubmissionRoundBAfterTimeout(
+    SelectKeeperTransactionSubmissionRoundB)
 ```
 
 A round in which a new keeper is selected for transaction submission after a round timeout of the first keeper
@@ -322,7 +323,7 @@ Process the end of the block.
 ## FinishedTransactionSubmissionRound Objects
 
 ```python
-class FinishedTransactionSubmissionRound(DegenerateRound, ABC)
+class FinishedTransactionSubmissionRound(DegenerateRound,  ABC)
 ```
 
 A round that represents that transaction submission has finished
