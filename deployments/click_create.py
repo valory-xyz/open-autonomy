@@ -29,8 +29,8 @@ from aea.cli.utils.loggers import logger, simple_verbosity_option
 from aea.helpers.win32 import enable_ctrl_c_support
 from pkg_resources import iter_entry_points
 
-from deployments import constants
-from deployments.create_deployment import generate_deployment, read_keys
+from deployments.constants import DEFAULT_KEY_PATH
+from deployments.create_deployment import generate_deployment
 from deployments.generators.docker_compose.docker_compose import DockerComposeGenerator
 from deployments.generators.kubernetes.kubernetes import KubernetesGenerator
 
@@ -42,7 +42,7 @@ from deployments.generators.kubernetes.kubernetes import KubernetesGenerator
 @click.option(
     "--deployment-file-path",
 )
-@click.option("--keys-file-path", type=str, default=None)
+@click.option("--keys-file-path", type=str, default=str(DEFAULT_KEY_PATH))
 @click.option(
     "--deployment-type",
     required=True,
@@ -56,19 +56,17 @@ def build_deployment(
     valory_app: str,
     deployment_type: str,
     configure_tendermint: bool,
-    keys_file_path: str = None,
+    keys_file_path: str,
     deployment_file_path: str = None,
 ) -> None:
     """Build the agent and its components."""
-
-    if keys_file_path is not None:
-        constants.KEYS = read_keys(keys_file_path)
 
     report = generate_deployment(
         type_of_deployment=deployment_type,
         valory_application=valory_app,
         configure_tendermint=configure_tendermint,
         deployment_file_path=deployment_file_path,
+        private_keys_file_path=keys_file_path,
     )
     print(report)
 

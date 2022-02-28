@@ -51,8 +51,9 @@ We can additionally specify a file path as so;
 ```bash
 pipenv shell
 python deployments/click_create.py build-deployment \
-  --deployment-type docker-compose --configure-tendermint \
-  --deployment-file-path deployments/deployment_specifications/counter.yaml 
+  --deployment-type docker-compose  \
+  --keys-file-path deployments/keys/ropsten_keys.txt \
+  --deployment-file-path deployments/deployment_specifications/price_estimation_ropsten.yaml 
 ```
 
 

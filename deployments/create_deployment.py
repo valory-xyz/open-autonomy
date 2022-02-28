@@ -17,7 +17,6 @@
 #
 # ------------------------------------------------------------------------------
 """Script for generating deployment environments."""
-import json
 import os
 from pathlib import Path
 from typing import Dict, List, Optional
@@ -44,6 +43,7 @@ DEPLOYMENT_OPTIONS = {
 def generate_deployment(
     type_of_deployment: str,
     configure_tendermint: bool,
+    private_keys_file_path: List[str],
     valory_application: Optional[str] = None,
     deployment_file_path: Optional[str] = None,
 ) -> str:
@@ -59,7 +59,10 @@ def generate_deployment(
             "Much specify either a path to a deployment or a known application."
         )
 
-    app_instance = BaseDeployment(path_to_deployment_spec=deployment_file_path)
+    app_instance = BaseDeployment(
+        path_to_deployment_spec=deployment_file_path,
+        private_keys_file_path=private_keys_file_path,
+    )
     deployment = deployment_generator(deployment_spec=app_instance)
     deployment.generate(app_instance)  # type: ignore
     run_command = deployment.generate_config_tendermint(app_instance)  # type: ignore
@@ -87,13 +90,3 @@ def generate_deployment(
         else:
             print("To configure tendermint please run generate and run a config job.")
     return report
-
-
-def read_keys(file_path: str) -> List[str]:
-    """Read in keys from a file on disk."""
-    with open(file_path, "r", encoding="utf8") as f:
-        keys = json.loads(f.read())
-    for key in keys:
-        assert "address" in key.keys(), "Key file incorrectly formatted."
-        assert "private_key" in key.keys(), "Key file incorrectly formatted."
-    return [f["private_key"] for f in keys]
