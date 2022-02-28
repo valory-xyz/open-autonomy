@@ -53,7 +53,7 @@ class TestPreprocessing:
         test_data = pd.concat([pool1_data, pool2_data])
         grouped_and_filtered = group_and_filter_pair_data(test_data)
 
-        filtering_columns = ["blockTimestamp", "APY", "pairName"]
+        filtering_columns = ["blockTimestamp", "APY"]
         pd.testing.assert_frame_equal(
             grouped_and_filtered.get_group(id_with_enough_observations),
             pool1_data[filtering_columns],
