@@ -50,6 +50,7 @@ from aea.configurations.base import (
     SkillConfig,
     _compute_fingerprint,
 )
+from aea.configurations.constants import PACKAGE_TYPE_TO_CONFIG_FILE
 from aea.configurations.loader import ConfigLoaders
 from aea.helpers.yaml_utils import yaml_dump, yaml_dump_all
 
@@ -429,10 +430,19 @@ def update_hashes(vendor: str = "") -> int:
                 configuration_obj = load_configuration(package_type, package_path)
                 sort_configuration_file(configuration_obj)
                 update_fingerprint(configuration_obj, client)
-                key, package_hash, _ = ipfs_hashing(
+                key, package_hash, result_list = ipfs_hashing(
                     client, configuration_obj, package_type
                 )
                 package_hashes[key] = package_hash
+                for result in result_list:
+                    if cast(str, result["Name"]).endswith(
+                        str(PACKAGE_TYPE_TO_CONFIG_FILE.get(package_type.value))
+                    ):
+                        package_hashes[
+                            key
+                            + f"/{PACKAGE_TYPE_TO_CONFIG_FILE.get(package_type.value)}"
+                        ] = result["Hash"]
+                        break
 
             # output the package hashes
             to_csv(package_hashes, PACKAGE_HASHES_PATH)
