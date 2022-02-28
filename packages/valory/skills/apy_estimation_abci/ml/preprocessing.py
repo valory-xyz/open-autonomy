@@ -26,7 +26,8 @@ import pandas.core.groupby
 import pmdarima as pm
 
 
-TrainTestSplitType = Tuple[pd.DataFrame, pd.DataFrame]
+SingleTrainTestSplitType = Tuple[pd.DataFrame, pd.DataFrame]
+TrainTestSplitType = Dict[str, SingleTrainTestSplitType]
 
 
 def group_and_filter_pair_data(pairs_hist: pd.DataFrame, threshold: int = 5) -> pandas.core.groupby.DataFrameGroupBy:
@@ -53,7 +54,7 @@ def group_and_filter_pair_data(pairs_hist: pd.DataFrame, threshold: int = 5) -> 
 def prepare_pair_data(
     pairs_hist: pd.DataFrame,
     test_size: Optional[Union[float, int]] = 0.25,
-) -> Dict[str, TrainTestSplitType]:
+) -> TrainTestSplitType:
     """Prepare the timeseries data for all the pairs.
 
     :param pairs_hist: the pairs histories dataframe.
