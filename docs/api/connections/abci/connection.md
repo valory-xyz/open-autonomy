@@ -14,6 +14,16 @@ class DecodeVarintError(Exception)
 
 This exception is raised when an error occurs while decoding a varint.
 
+<a id="packages.valory.connections.abci.connection.TooLargeVarint"></a>
+
+## TooLargeVarint Objects
+
+```python
+class TooLargeVarint(Exception)
+```
+
+This exception is raised when a too large size of bytes is received.
+
 <a id="packages.valory.connections.abci.connection.ShortBufferLengthError"></a>
 
 ## ShortBufferLengthError Objects
@@ -23,6 +33,21 @@ class ShortBufferLengthError(Exception)
 ```
 
 This exception is raised when the buffer length is shorter than expected.
+
+<a id="packages.valory.connections.abci.connection.ShortBufferLengthError.__init__"></a>
+
+#### `__`init`__`
+
+```python
+def __init__(expected_length: int, data: bytes)
+```
+
+Initialize the exception object.
+
+**Arguments**:
+
+- `expected_length`: the expected length to be read
+- `data`: the data actually read
 
 <a id="packages.valory.connections.abci.connection._TendermintABCISerializer"></a>
 
@@ -81,7 +106,7 @@ Write a message in a buffer.
 
 ```python
 @classmethod
-def read_messages(cls, buffer: BytesIO, message_cls: Type) -> Generator[Request, None, None]
+def read_messages(cls, buffer: BytesIO, message_cls: Type, previous_length: Optional[int] = None, previous_data: bytes = b"") -> Generator[Request, None, None]
 ```
 
 Return an iterator over the messages found in the `reader` buffer.
