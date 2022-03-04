@@ -1,11 +1,3 @@
-<<<<<<< HEAD
-# Readme
-# Requirements
-
-- [Docker](https://docs.docker.com/engine/install/)
-- [Docker Compose](https://docs.docker.com/compose/install/)
-- [Skaffold](https://skaffold.dev/docs/install/)
-=======
 # Deployment guide
 
 This guide follows the ropsten oracle example. Modify as relevant for other deployments.
@@ -16,12 +8,11 @@ For DO only:
 ssh root@178.62.4.138
 ```
 
-
 # Prerequisites
 
-- Skaffold `>=v1.33.0`
-- Docker
-- Docker-Compose
+- [Docker](https://docs.docker.com/engine/install/)
+- [Docker Compose](https://docs.docker.com/compose/install/)
+- [Skaffold](https://skaffold.dev/docs/install/)
 - Python `>=3.7`
 
 Install the virtual environment:
@@ -30,7 +21,6 @@ Install the virtual environment:
 make new_env
 ```
 
->>>>>>> main
 # Step 1
 
 First we need to build the images used for the deployment.
