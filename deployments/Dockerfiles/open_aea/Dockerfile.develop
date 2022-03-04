@@ -1,12 +1,24 @@
-FROM valory/open-aea-user:0.1.0
+FROM valory/open-aea-user		
 
 
-run sudo apt-get update && sudo apt-get upgrade -y
-RUN pip install cowsay
-RUN echo "This is a developement image!"
-COPY watcher.py dev_requirements.txt env_start.sh ./
-ENTRYPOINT ["/bin/python3"]
-RUN pip install -r dev_requirements.txt
+WORKDIR /home/ubuntu		
+ENV PATH=$PATH:/home/ubuntu/.local/bin		
 
-copy . /home/ubuntu
-CMD ["watcher.py"]
+RUN sudo apt-get install python3.8 python3.8-dev git -y		
+RUN cd /usr/bin && sudo rm python3 && sudo ln -s python3.8 python3 && sudo ln -s python3.8 python		
+RUN sudo apt-get install wait-for-it -y
+RUN sudo apt remove --purge python3-virtualenv
+
+RUN python -m pip install --upgrade pip		
+
+COPY start_dev.sh /home/ubuntu/start_dev.sh
+COPY start.sh /home/ubuntu/start.sh
+COPY watcher.py /home/ubuntu/watcher.py
+
+WORKDIR /home/ubuntu
+COPY Pipfile.dev /home/ubuntu/Pipfile
+RUN python -m pip install --force-reinstall pipenv virtualenv --user
+RUN pipenv --python 3.8
+RUN pipenv run pip install click Wheel watchdog requests cowsay
+
+CMD ["./start_dev.sh"]
