@@ -39,8 +39,8 @@ MAX_PARTICIPANTS = int(os.environ.get("MAX_PARTICIPANTS"))
 ROOT = "/home/ubuntu"
 AGENT_DIR = ROOT + "agent"
 PACKAGES_PATH = "/home/ubuntu/packages"
+OPEN_AEA_PATH = "/open-aea"
 BASE_START_FILE = "/home/ubuntu/start.sh"
-ENV_SETUP_FILE = "/home/ubuntu/env_start.sh"
 TENDERMINT_COM_URL = os.environ.get("TENDERMINT_COM_URL", f"http://node{ID}:8080")
 
 
@@ -51,21 +51,13 @@ def write(line: str) -> None:
     sys.stdout.flush()
 
 
-def base_setup() -> None:
-    """
-    This script will be called only once at the startup. This can be configured
-    in `env_script_templates.py` using `BASE_SETUP`.
-    """
-    subprocess.call(["/bin/bash", ENV_SETUP_FILE])
-    return
-
-
 def call_vote() -> None:
     """
     Since there's a lot of resource sharing between docker containers one of the
     environments can fallback during `base_setup` so to make sure there's no error
     caused by one of the agents left behind this method will help.
     """
+    write("Calling vote.")
     with open(f"/logs/{ID}.vote", "w+") as fp:
         fp.write(str(ID))
 
@@ -74,7 +66,7 @@ def wait_for_votes() -> None:
     """
     Wait for all the agents to finish voting. (see `call_vote` method.)
     """
-
+    write("Waiting for votes.")
     votes = 0
     while True:
         votes = len(glob("/logs/*.vote"))
@@ -108,11 +100,13 @@ class AEARunner:
 
         if self.process is not None:
             return
-        write("Restarting Agent.")
+        write("Starting Agent.")
         os.chdir(ROOT)
         if Path(AGENT_DIR).exists():
             shutil.rmtree(AGENT_DIR)
-        self.process = subprocess.Popen(["/bin/bash", BASE_START_FILE], preexec_fn=os.setsid)
+        self.process = subprocess.Popen(
+            ["/bin/bash", BASE_START_FILE], preexec_fn=os.setsid
+        )
 
     def stop(
         self,
@@ -127,14 +121,16 @@ class AEARunner:
         self.process = None
 
 
-class RestartAEA(FileSystemEventHandler):
+class EventHandler(FileSystemEventHandler):
     """Handle file updates."""
 
-    def __init__(self) -> None:
+    def __init__(
+        self, aea_runner: AEARunner, fingerprint_on_restart: bool = True
+    ) -> None:
         """Initialize object."""
         super().__init__()
-        self.aea = AEARunner()
-        self.aea.start()
+        self.aea = aea_runner
+        self.fingerprint_on_restart = fingerprint_on_restart
 
     @staticmethod
     def fingerprint_item(src_path: str) -> None:
@@ -155,6 +151,11 @@ class RestartAEA(FileSystemEventHandler):
         )
         os.chdir(cwd)
 
+    @staticmethod
+    def clean_up() -> None:
+        """Clean up from previous run."""
+        shutil.rmtree("./agent")
+
     def on_any_event(self, event: FileSystemEvent):
         """
         This method reloads the agent when a change is detected in `hashes.csv`
@@ -165,28 +166,41 @@ class RestartAEA(FileSystemEventHandler):
             and event.event_type == EVENT_TYPE_CLOSED
             and event.src_path.endswith(".py")
         ):
-
             write("Change detected.")
-            self.fingerprint_item(event.src_path)
+            self.clean_up()
+            if self.fingerprint_on_restart:
+                self.fingerprint_item(event.src_path)
+
             self.aea.stop()
             self.aea.restart_tendermint()
             self.aea.start()
 
 
 if __name__ == "__main__":
-    write("Calling base setup.")
-    base_setup()
-    write("Calling vote.")
-    # call_vote()
-    # write("Waiting for votes.")
-    # wait_for_votes()
-    event_handler = RestartAEA()
-    observer = Observer()
-    observer.schedule(event_handler, PACKAGES_PATH, recursive=True)
+    aea_runner = AEARunner()
+
+    package_observer = Observer()
+    package_observer.schedule(
+        EventHandler(aea_runner=aea_runner), PACKAGES_PATH, recursive=True
+    )
+
+    open_aea_observer = Observer()
+    open_aea_observer.schedule(
+        EventHandler(aea_runner=aea_runner, fingerprint_on_restart=False),
+        OPEN_AEA_PATH,
+        recursive=True,
+    )
+
     try:
-        observer.start()
+        aea_runner.start()
+        package_observer.start()
+        open_aea_observer.start()
         while True:
             time.sleep(1)
     except KeyboardInterrupt:
-        observer.stop()
-    observer.join()
+        aea_runner.stop()
+        package_observer.stop()
+        open_aea_observer.stop()
+
+    open_aea_observer.join()
+    package_observer.join()
