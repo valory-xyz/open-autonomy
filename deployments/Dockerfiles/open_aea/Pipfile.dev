@@ -1,0 +1,15 @@
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+open-aea = {editable = true, path = "/open-aea"}
+open-aea-cli-ipfs = {editable = true, path = "/open-aea/plugins/aea-cli-ipfs"}
+open-aea-ledger-cosmos = {editable = true, path = "/open-aea/plugins/aea-ledger-cosmos"}
+open-aea-ledger-ethereum = {editable = true, path = "/open-aea/plugins/aea-ledger-ethereum"}
+
+[dev-packages]
+
+[requires]
+python_version = "3.8"
