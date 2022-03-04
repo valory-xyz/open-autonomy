@@ -32,6 +32,7 @@ from unittest.mock import MagicMock
 import pytest
 
 from packages.open_aea.protocols.signing import SigningMessage
+from packages.valory.protocols.http import HttpMessage
 from packages.valory.skills.abstract_round_abci.base import (
     AbstractRound,
     BasePeriodState,
@@ -345,13 +346,24 @@ def _get_status_wrong_patch(
     yield
 
 
+def _wait_until_transaction_delivered_patch(
+    *args: Any, **kwargs: Any
+) -> Generator[None, None, Tuple]:
+    """Patch `_wait_until_transaction_delivered` method"""
+    return False, HttpMessage(
+        performative=HttpMessage.Performative.RESPONSE,  # type: ignore
+        body=json.dumps({"tx_result": {"info": "TransactionNotValidError"}}),
+    )
+    yield
+
+
 class TestBaseState:
     """Tests for the 'BaseState' class."""
 
     def setup(self) -> None:
         """Set up the tests."""
         self.context_mock = MagicMock()
-        self.context_params_mock = MagicMock()
+        self.context_params_mock = MagicMock(ipfs_domain_name=None)
         self.context_state_period_state_mock = MagicMock()
         self.context_mock.params = self.context_params_mock
         self.context_mock.state.period_state = self.context_state_period_state_mock
@@ -541,6 +553,31 @@ class TestBaseState:
         # send message to '_submit_tx'
         try_send(gen, obj=MagicMock(body='{"result": {"hash": "", "code": 0}}'))
         # send message to '_wait_until_transaction_delivered'
+        success_response = MagicMock(
+            status_code=200, body='{"result": {"tx_result": {"code": 0}}}'
+        )
+        try_send(gen, obj=success_response)
+
+    @mock.patch.object(BaseState, "_send_signing_request")
+    @mock.patch.object(Transaction, "encode", return_value=MagicMock())
+    @mock.patch.object(
+        BaseState,
+        "_build_http_request_message",
+        return_value=(MagicMock(), MagicMock()),
+    )
+    @mock.patch.object(BaseState, "_check_http_return_code_200", return_value=True)
+    @mock.patch.object(
+        BaseState,
+        "_wait_until_transaction_delivered",
+        new=_wait_until_transaction_delivered_patch,
+    )
+    def test_send_transaction_invalid_transaction(self, *_: Any) -> None:
+        """Test '_send_transaction', positive case."""
+        m = MagicMock(status_code=200)
+        gen = self.behaviour._send_transaction(m)
+        try_send(gen, obj=None)
+        try_send(gen, obj=m)
+        try_send(gen, obj=MagicMock(body='{"result": {"hash": "", "code": 0}}'))
         success_response = MagicMock(
             status_code=200, body='{"result": {"tx_result": {"code": 0}}}'
         )
@@ -950,6 +987,7 @@ def test_degenerate_state_async_act() -> None:
         matching_round = MagicMock()
 
     context = MagicMock()
+    context.params.ipfs_domain_name = None
     # this is needed to trigger execution of async_act
     context.state.period.syncing_up = False
 

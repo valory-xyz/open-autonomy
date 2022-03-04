@@ -167,7 +167,9 @@ class RandomnessBehaviour(SimpleABCIBaseState):
         self.context.randomness_api.reset_retries()
 
 
-class RandomnessAtStartupBehaviour(RandomnessBehaviour):
+class RandomnessAtStartupBehaviour(  # pylint: disable=too-many-ancestors
+    RandomnessBehaviour
+):
     """Retrieve randomness at startup."""
 
     state_id = "retrieve_randomness_at_startup"
@@ -208,7 +210,9 @@ class SelectKeeperBehaviour(SimpleABCIBaseState, ABC):
         self.set_done()
 
 
-class SelectKeeperAtStartupBehaviour(SelectKeeperBehaviour):
+class SelectKeeperAtStartupBehaviour(  # pylint: disable=too-many-ancestors
+    SelectKeeperBehaviour
+):
     """Select the keeper agent at startup."""
 
     state_id = "select_keeper_at_startup"
@@ -250,7 +254,7 @@ class BaseResetBehaviour(SimpleABCIBaseState):
         self.set_done()
 
 
-class ResetAndPauseBehaviour(BaseResetBehaviour):
+class ResetAndPauseBehaviour(BaseResetBehaviour):  # pylint: disable=too-many-ancestors
     """Reset state."""
 
     matching_round = ResetAndPauseRound

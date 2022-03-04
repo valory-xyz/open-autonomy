@@ -107,6 +107,8 @@ jobs:
       run: tox -e check-packages
     - name: Check hash
       run: tox -e check-hash
+    - name: Check docstrings for AbciApps
+      run: tox -e check-abci-docstrings
     - name: Code style check
       run: |
         tox -e black-check

@@ -25,8 +25,19 @@ from string import Template
 from typing import Any, Dict, List
 
 
-hostname = socket.gethostname()
-host_ip_address = socket.gethostbyname(hostname + ".local")
+def get_ip() -> str:
+    """Get local IP address."""
+    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    s.settimeout(0)
+    try:
+        # doesn't even have to be reachable
+        s.connect(("10.255.255.255", 1))
+        IP = s.getsockname()[0]
+    except Exception:  # pylint: disable=broad-except
+        IP = "127.0.0.1"
+    finally:
+        s.close()
+    return IP
 
 DEFAULT_IMAGE_VERSION = "0.1.0"
 IMAGE_VERSION = os.environ.get("VERSION", DEFAULT_IMAGE_VERSION)
@@ -59,7 +70,7 @@ KEYS: List[str] = [
 NETWORKS = {
     "docker-compose": {
         "hardhat": {
-            "LEDGER_ADDRESS": f"http://{host_ip_address}:8545",
+            "LEDGER_ADDRESS": f"http://{get_ip()}:8545",
             "LEDGER_CHAIN_ID": 31337,
         },
         "ropsten": {
@@ -76,18 +87,6 @@ NETWORKS = {
             "LEDGER_ADDRESS": "https://ropsten.infura.io/v3/2980beeca3544c9fbace4f24218afcd4",
             "LEDGER_CHAIN_ID": 3,
         },
-    },
-}
-
-
-DEPLOYED_CONTRACTS: Dict[str, Dict[str, Any]] = {
-    "hardhat": {
-        "safe_contract_address": None,
-        "oracle_contract_address": None,
-    },
-    "ropsten": {
-        "safe_contract_address": "0x7AbCC2424811c342BC9A9B52B1621385d7406676",
-        "oracle_contract_address": "0xB555E44648F6Ff759F64A5B451AB845B0450EA57",
     },
 }
 

@@ -39,7 +39,7 @@ models:
     - price_api:
         args:
           url: 'https://ftx.com/api/markets/BTC/USD'
-          api_id: 'coinmarketcap'
+          api_id: 'ftx'
           response_key: 'result:last'
           headers: ~
           parameters: ~

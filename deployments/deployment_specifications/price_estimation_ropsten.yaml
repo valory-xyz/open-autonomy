@@ -11,6 +11,11 @@ period_setup_args: &period_setup_args
       safe_contract_address: "0x7AbCC2424811c342BC9A9B52B1621385d7406676"
       oracle_contract_address: "0xB555E44648F6Ff759F64A5B451AB845B0450EA57"
     max_healthcheck: 43200
+    broadcast_to_server: true
+
+valory_monitoring_backend: &monitoring_backend
+  args:
+    url: 'https://staging.oracle-server.autonolas.tech/deposit'
 
 public_id: valory/price_estimation_abci:0.1.0
 type: skill
@@ -29,20 +34,24 @@ models:
           api_id: "cloudflare"
     - params:
         <<: *period_setup_args
+    - server_api:
+       <<: *monitoring_backend
   1:
     - price_api:
         args:
-          url: 'https://pro-api.coinmarketcap.com/v1/cryptocurrency/quotes/latest'
-          api_id: 'coinmarketcap'
-          headers: '[["Accepts","application/json"], ["X-CMC_PRO_API_KEY","27d2cd0d-80c3-4ec3-9305-4f3d9ad34e41"]]'
-          parameters: '[["symbol","BTC"], ["convert","USD"]]'
-          response_key: 'data:BTC:quote:USD:price'
+          url: 'https://ftx.com/api/markets/BTC/USD'
+          api_id: 'ftx'
+          response_key: 'result:last'
+          headers: ~
+          parameters: ~
     - randomness_api:
         args:
           url: "https://api.drand.sh/public/latest"
           api_id: "protocollabs1"
     - params:
         <<: *period_setup_args
+    - server_api:
+       <<: *monitoring_backend
   2:
     - price_api:
         args:
@@ -57,6 +66,8 @@ models:
           api_id: "protocollabs2"
     - params:
         <<: *period_setup_args
+    - server_api:
+       <<: *monitoring_backend
   3:
     - price_api:
         args:
@@ -71,3 +82,5 @@ models:
           api_id: "protocollabs2"
     - params:
         <<: *period_setup_args
+    - server_api:
+       <<: *monitoring_backend

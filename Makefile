@@ -41,15 +41,15 @@ clean-test:
 
 .PHONY: lint
 lint:
-	black aea_consensus_algorithms packages/valory scripts tests
-	isort aea_consensus_algorithms packages/valory scripts tests
-	flake8 aea_consensus_algorithms packages/valory scripts tests
+	black aea_consensus_algorithms packages/valory scripts tests deployments
+	isort aea_consensus_algorithms packages/valory scripts tests deployments
+	flake8 aea_consensus_algorithms packages/valory scripts tests deployments
 	vulture aea_consensus_algorithms scripts/whitelist.py
-	darglint aea_consensus_algorithms scripts packages/valory/* tests
+	darglint aea_consensus_algorithms scripts packages/valory/* tests deployments
 
 .PHONY: pylint
 pylint:
-	pylint -j4 aea_consensus_algorithms packages/valory scripts
+	pylint -j4 aea_consensus_algorithms packages/valory scripts deployments
 
 .PHONY: security
 security:
@@ -59,7 +59,7 @@ security:
 
 .PHONY: static
 static:
-	mypy aea_consensus_algorithms packages/valory scripts --disallow-untyped-defs
+	mypy aea_consensus_algorithms packages/valory scripts deployments --disallow-untyped-defs
 	mypy tests --disallow-untyped-defs
 
 .PHONY: package_checks
@@ -94,6 +94,7 @@ copyright:
 .PHONY: checks
 checks:
 	make clean \
+	&& python scripts/generate_abci_docstrings.py \
 	&& make static \
 	&& make lint \
 	&& make pylint \
@@ -102,8 +103,10 @@ checks:
 	&& make api-docs \
 	&& make hashes \
 	&& make security \
-	&& make test-sub-p tdir=skills/test_price_estimation_abci/ dir=skills.price_estimation_abci \
-	&& make test-sub-p tdir=skills/test_liquidity_provision/ dir=skills.liquidity_provision
+
+.PHONY: test-skill
+test-skill:
+	make test-sub-p tdir=skills/test_$(skill)/ dir=skills.$(skill)
 
 # how to use:
 #
