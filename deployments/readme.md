@@ -1,6 +1,9 @@
 # Readme
+# Requirements
 
-
+- [Docker](https://docs.docker.com/engine/install/)
+- [Docker Compose](https://docs.docker.com/compose/install/)
+- [Skaffold](https://skaffold.dev/docs/install/)
 # Step 1
 
 First we need to build the images used for the deployment.
@@ -78,5 +81,3 @@ Now that we have our deployment built, we can actually run it.
 cd deployments/build
 docker-compose up --force-recreate
 ```
-
-
