@@ -201,4 +201,30 @@ build-images: clean-build
 	fi
 	skaffold build --build-concurrency=0 --push=false -p prod
 
+.PHONY: run-hardhat
+run-hardhat:
+	docker run -p 8545:8545 -it valory/consensus-algorithms-hardhat:0.1.0
 
+# if you get following error
+# PermissionError: [Errno 13] Permission denied: '/open-aea/build/bdist.linux-x86_64/wheel'
+# or similar to PermissionError: [Errno 13] Permission denied: /**/build
+# remove build directory from the folder that you got error for
+# for example here it should be /path/to/open-aea/repo/build
+.PHONY: run-oracle-dev
+run-oracle-dev:
+	make clean
+	export VERSION=dev
+	make build-images
+	python deployments/click_create.py build-deployment --valory-app oracle_hardhat --deployment-type docker-compose --configure-tendermint
+	cd deployments/build/
+	docker-compose up --force-recreate
+
+.PHONY: run-oracle
+run-oracle:
+	make clean
+	export VERSION=0.1.0
+	rsync -avu packages/ deployments/Dockerfiles/open_aea/packages
+	make build-images
+	python deployments/click_create.py build-deployment --valory-app oracle_hardhat --deployment-type docker-compose --configure-tendermint
+	cd deployments/build/
+	docker-compose up --force-recreate
