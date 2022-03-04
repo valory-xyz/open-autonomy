@@ -22,7 +22,7 @@
 import os
 import shutil
 import signal
-import subprocess
+import subprocess  # nosec
 import sys
 import time
 from glob import glob
@@ -35,7 +35,7 @@ from watchdog.observers import Observer
 
 
 ID = os.environ.get("ID")
-MAX_PARTICIPANTS = int(os.environ.get("MAX_PARTICIPANTS"))
+MAX_PARTICIPANTS = int(os.environ.get("MAX_PARTICIPANTS", "0"))
 ROOT = "/home/ubuntu"
 AGENT_DIR = ROOT + "agent"
 PACKAGES_PATH = "/home/ubuntu/packages"
@@ -53,6 +53,8 @@ def write(line: str) -> None:
 
 def call_vote() -> None:
     """
+    Call vote.
+
     Since there's a lot of resource sharing between docker containers one of the
     environments can fallback during `base_setup` so to make sure there's no error
     caused by one of the agents left behind this method will help.
@@ -63,9 +65,7 @@ def call_vote() -> None:
 
 
 def wait_for_votes() -> None:
-    """
-    Wait for all the agents to finish voting. (see `call_vote` method.)
-    """
+    """Wait for all the agents to finish voting. (see `call_vote` method.)"""
     write("Waiting for votes.")
     votes = 0
     while True:
@@ -79,7 +79,7 @@ def wait_for_votes() -> None:
 class AEARunner:
     """AEA Runner."""
 
-    process: Optional[subprocess.Popen]
+    process: Optional[subprocess.Popen]  # nosec
 
     def __init__(self) -> None:
         """Initialize runner."""
@@ -104,7 +104,7 @@ class AEARunner:
         os.chdir(ROOT)
         if Path(AGENT_DIR).exists():
             shutil.rmtree(AGENT_DIR)
-        self.process = subprocess.Popen(
+        self.process = subprocess.Popen(  # nosec
             ["/bin/bash", BASE_START_FILE], preexec_fn=os.setsid
         )
 
@@ -139,7 +139,7 @@ class EventHandler(FileSystemEventHandler):
         *_path, vendor, item_type, item_name, _ = src_path.split(os.path.sep)
         vendor_dir_str = os.path.sep.join([*_path, vendor])
         os.chdir(vendor_dir_str)
-        subprocess.call(
+        subprocess.call(  # nosec
             [
                 "python3",
                 "-m",
@@ -156,11 +156,8 @@ class EventHandler(FileSystemEventHandler):
         """Clean up from previous run."""
         shutil.rmtree("./agent")
 
-    def on_any_event(self, event: FileSystemEvent):
-        """
-        This method reloads the agent when a change is detected in `hashes.csv`
-        file.
-        """
+    def on_any_event(self, event: FileSystemEvent) -> None:
+        """This method reloads the agent when a change is detected in *.py file."""
         if (
             not event.is_directory
             and event.event_type == EVENT_TYPE_CLOSED

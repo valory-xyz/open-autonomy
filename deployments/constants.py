@@ -39,6 +39,7 @@ def get_ip() -> str:
         s.close()
     return IP
 
+
 DEFAULT_IMAGE_VERSION = "0.1.0"
 IMAGE_VERSION = os.environ.get("VERSION", DEFAULT_IMAGE_VERSION)
 print(f"Working with image version: {IMAGE_VERSION}")
