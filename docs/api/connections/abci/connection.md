@@ -100,24 +100,55 @@ def write_message(cls, message: Response) -> bytes
 
 Write a message in a buffer.
 
-<a id="packages.valory.connections.abci.connection._TendermintABCISerializer.read_messages"></a>
+<a id="packages.valory.connections.abci.connection.VarintMessageReader"></a>
 
-#### read`_`messages
+## VarintMessageReader Objects
+
+```python
+class VarintMessageReader()
+```
+
+Varint message reader.
+
+<a id="packages.valory.connections.abci.connection.VarintMessageReader.__init__"></a>
+
+#### `__`init`__`
+
+```python
+def __init__(reader: asyncio.StreamReader)
+```
+
+Initialize the reader.
+
+<a id="packages.valory.connections.abci.connection.VarintMessageReader.decode_varint"></a>
+
+#### decode`_`varint
 
 ```python
 @classmethod
-def read_messages(cls, buffer: BytesIO, message_cls: Type, previous_length: Optional[int] = None, previous_data: bytes = b"") -> Generator[Request, None, None]
+async def decode_varint(cls, buffer: asyncio.StreamReader, max_length: int = MAX_VARINT_BYTES) -> int
 ```
 
-Return an iterator over the messages found in the `reader` buffer.
+Decode a number from its varint coding.
 
-:param: buffer: the buffer to read messages from.
-:param: message_cls: the message class to instantiate.
-:yield: a new message.
+**Arguments**:
 
-:raise: DecodeVarintError if the varint cannot be decoded correctly.
-:raise: ShortBufferLengthError if the buffer length is shorter than expected.
-:raise: google.protobuf.message.DecodeError if the Protobuf decoding fails.
+- `buffer`: the buffer to read from.
+- `max_length`: the max number of bytes that can be read.
+
+**Returns**:
+
+the decoded int.
+
+<a id="packages.valory.connections.abci.connection.VarintMessageReader.read_next_message"></a>
+
+#### read`_`next`_`message
+
+```python
+async def read_next_message() -> bytes
+```
+
+Read next message.
 
 <a id="packages.valory.connections.abci.connection.TcpServerChannel"></a>
 

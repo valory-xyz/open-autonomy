@@ -24,7 +24,6 @@ import time
 from abc import ABC, abstractmethod
 from io import BytesIO
 from typing import Any, Callable, List, cast
-from unittest.mock import MagicMock
 
 import pytest
 import requests
@@ -42,7 +41,6 @@ from packages.valory.connections.abci.connection import (
     DEFAULT_ABCI_PORT,
     DEFAULT_LISTEN_ADDRESS,
     DecodeVarintError,
-    ShortBufferLengthError,
     _TendermintABCISerializer,
 )
 from packages.valory.protocols.abci import AbciMessage
@@ -461,24 +459,6 @@ def test_decode_varint_raises_exception_when_failing() -> None:
     """Test that decode_varint raises exception when the decoding fails."""
     with pytest.raises(DecodeVarintError, match="could not decode varint"):
         _TendermintABCISerializer.decode_varint(BytesIO(b""))
-
-
-def test_read_messages_raises_short_buffer_length_error_when_length_wrong() -> None:
-    """
-    Test _TendermintABCISerializer.read_messages().
-
-    Test that the function raises ShortBufferLengthError when the
-    varint encoded length of the data is greater than the actual
-    length of the buffer.
-    """
-    with pytest.raises(ShortBufferLengthError):
-        # '42' encoded as varint
-        expected_length_encoded = b"T"
-        # to make this test to work, length(message) < expected_length_encoded
-        message = expected_length_encoded + b"too_short_buffer"
-        buffer = BytesIO(message)
-        generator = _TendermintABCISerializer.read_messages(buffer, MagicMock())
-        next(generator)
 
 
 def test_dep_util() -> None:
