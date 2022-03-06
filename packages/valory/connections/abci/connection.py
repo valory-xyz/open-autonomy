@@ -156,12 +156,9 @@ class _TendermintABCISerializer:
 class VarintMessageReader:
     """Varint message reader."""
 
-    def __init__(self, reader: asyncio.StreamReader):
+    def __init__(self, reader: asyncio.StreamReader) -> None:
         """Initialize the reader."""
         self._reader = reader
-
-        self._leftover = b""
-        self._reset: bool = False
 
     @classmethod
     async def decode_varint(
@@ -258,9 +255,6 @@ class TcpServerChannel:  # pylint: disable=too-many-instance-attributes
         # this dictionary associates requests to socket name
         # such that responses are sent to the right receiver
         self._request_id_to_socket: Dict[DialogueLabel, str] = {}
-
-        self._previous_length: Optional[int] = None
-        self._previous_data: bytes = b""
 
     @property
     def is_stopped(self) -> bool:

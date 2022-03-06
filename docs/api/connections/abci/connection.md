@@ -115,7 +115,7 @@ Varint message reader.
 #### `__`init`__`
 
 ```python
-def __init__(reader: asyncio.StreamReader)
+def __init__(reader: asyncio.StreamReader) -> None
 ```
 
 Initialize the reader.
