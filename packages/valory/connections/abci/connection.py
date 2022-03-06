@@ -307,6 +307,13 @@ class TcpServerChannel:  # pylint: disable=too-many-instance-attributes
         while not self.is_stopped:
             try:
                 message_bytes = await varint_message_reader.read_next_message()
+                if len(message_bytes) == 0:
+                    self.logger.error(f"Tendermint node {peer_name} closed connection.")
+                    # break to the _stop if the connection stops
+                    break
+                self.logger.debug(
+                    f"Received {len(message_bytes)} bytes from connection {peer_name}"
+                )
                 message = Request()
                 message.ParseFromString(message_bytes)
             except (
@@ -320,6 +327,9 @@ class TcpServerChannel:  # pylint: disable=too-many-instance-attributes
                     f"The message will be ignored."
                 )
                 continue
+            except CancelledError:  # pragma: nocover
+                self.logger.debug(f"Read task for peer {peer_name} cancelled.")
+                return
             await self._handle_message(message, peer_name)
 
     async def _handle_message(self, message: Request, peer_name: str) -> None:
