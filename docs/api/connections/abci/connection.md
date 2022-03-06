@@ -76,7 +76,7 @@ Encode a number in varint coding.
 
 ```python
 @classmethod
-def decode_varint(cls, buffer: BytesIO) -> int
+async def decode_varint(cls, buffer: asyncio.StreamReader, max_length: int = MAX_VARINT_BYTES) -> int
 ```
 
 Decode a number from its varint coding.
@@ -84,6 +84,7 @@ Decode a number from its varint coding.
 **Arguments**:
 
 - `buffer`: the buffer to read from.
+- `max_length`: the max number of bytes that can be read.
 
 **Returns**:
 
@@ -119,26 +120,6 @@ def __init__(reader: asyncio.StreamReader) -> None
 ```
 
 Initialize the reader.
-
-<a id="packages.valory.connections.abci.connection.VarintMessageReader.decode_varint"></a>
-
-#### decode`_`varint
-
-```python
-@classmethod
-async def decode_varint(cls, buffer: asyncio.StreamReader, max_length: int = MAX_VARINT_BYTES) -> int
-```
-
-Decode a number from its varint coding.
-
-**Arguments**:
-
-- `buffer`: the buffer to read from.
-- `max_length`: the max number of bytes that can be read.
-
-**Returns**:
-
-the decoded int.
 
 <a id="packages.valory.connections.abci.connection.VarintMessageReader.read_next_message"></a>
 

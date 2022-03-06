@@ -105,62 +105,6 @@ class _TendermintABCISerializer:
         return buf
 
     @classmethod
-    def decode_varint(cls, buffer: BytesIO) -> int:
-        """
-        Decode a number from its varint coding.
-
-        :param buffer: the buffer to read from.
-        :return: the decoded int.
-
-        :raise: DecodeVarintError if the varint could not be decoded.
-        """
-        shift = 0
-        result = 0
-        success = False
-        byte = cls._read_one(buffer)
-        while byte is not None:
-            result |= (byte & 0x7F) << shift
-            shift += 7
-            if not byte & 0x80:
-                success = True
-                break
-            byte = cls._read_one(buffer)
-        if not success:
-            raise DecodeVarintError("could not decode varint")
-        return result >> 1
-
-    @classmethod
-    def _read_one(cls, buffer: BytesIO) -> Optional[int]:
-        """
-        Read one byte to decode a varint.
-
-        :param buffer: the buffer to read from.
-        :return: the next character, or None if EOF is reached.
-        """
-        character = buffer.read(1)
-        if character == b"":
-            return None
-        return ord(character)
-
-    @classmethod
-    def write_message(cls, message: Response) -> bytes:
-        """Write a message in a buffer."""
-        buffer = BytesIO(b"")
-        protobuf_bytes = message.SerializeToString()
-        encoded = cls.encode_varint(len(protobuf_bytes))
-        buffer.write(encoded)
-        buffer.write(protobuf_bytes)
-        return buffer.getvalue()
-
-
-class VarintMessageReader:
-    """Varint message reader."""
-
-    def __init__(self, reader: asyncio.StreamReader) -> None:
-        """Initialize the reader."""
-        self._reader = reader
-
-    @classmethod
     async def decode_varint(
         cls, buffer: asyncio.StreamReader, max_length: int = MAX_VARINT_BYTES
     ) -> int:
@@ -204,9 +148,27 @@ class VarintMessageReader:
             return None
         return ord(character)
 
+    @classmethod
+    def write_message(cls, message: Response) -> bytes:
+        """Write a message in a buffer."""
+        buffer = BytesIO(b"")
+        protobuf_bytes = message.SerializeToString()
+        encoded = cls.encode_varint(len(protobuf_bytes))
+        buffer.write(encoded)
+        buffer.write(protobuf_bytes)
+        return buffer.getvalue()
+
+
+class VarintMessageReader:  # pylint: disable=too-few-public-methods
+    """Varint message reader."""
+
+    def __init__(self, reader: asyncio.StreamReader) -> None:
+        """Initialize the reader."""
+        self._reader = reader
+
     async def read_next_message(self) -> bytes:
         """Read next message."""
-        varint = await self.decode_varint(self._reader)
+        varint = await _TendermintABCISerializer.decode_varint(self._reader)
         if varint > MAX_READ_IN_BYTES:
             raise TooLargeVarint()
         message_bytes = await self._reader.read(varint)

@@ -22,7 +22,6 @@ import asyncio
 import logging
 import time
 from abc import ABC, abstractmethod
-from io import BytesIO
 from typing import Any, Callable, List, cast
 
 import pytest
@@ -68,6 +67,23 @@ from tests.helpers.async_utils import (
     wait_for_condition,
 )
 from tests.helpers.constants import HTTP_LOCALHOST
+
+
+class AsyncBytesIO:
+    """Utility class to emulate asyncio.StreamReader."""
+
+    def __init__(self, data: bytes) -> None:
+        """Initialize the buffer."""
+        self.data = data
+
+        self._pointer: int = 0
+
+    async def read(self, n: int) -> bytes:
+        """Read n bytes."""
+        new_pointer = self._pointer + n
+        result = self.data[self._pointer : new_pointer]
+        self._pointer = new_pointer
+        return result
 
 
 class ABCIAppTest:
@@ -447,18 +463,25 @@ def test_encode_varint_method() -> None:
     assert _TendermintABCISerializer.encode_varint(130) == b"\x84\x02"
 
 
-@given(integers(min_value=0))
-def test_encode_decode_varint(value: int) -> None:
+@given(integers(min_value=0, max_value=2 ** 32))
+@pytest.mark.asyncio
+async def test_encode_decode_varint(value: int) -> None:
     """Test that encoding and decoding works."""
     encoder = _TendermintABCISerializer.encode_varint
+    encoded_value = encoder(value)
+    reader = asyncio.StreamReader()
+    reader.feed_data(encoded_value)
     decoder = _TendermintABCISerializer.decode_varint
-    assert decoder(BytesIO(encoder(value))) == value
+    decoded_value = await decoder(reader)
+    assert decoded_value == value
 
 
-def test_decode_varint_raises_exception_when_failing() -> None:
+@pytest.mark.asyncio
+async def test_decode_varint_raises_exception_when_failing() -> None:
     """Test that decode_varint raises exception when the decoding fails."""
     with pytest.raises(DecodeVarintError, match="could not decode varint"):
-        _TendermintABCISerializer.decode_varint(BytesIO(b""))
+        reader = AsyncBytesIO(b"")
+        await _TendermintABCISerializer.decode_varint(reader)  # type: ignore
 
 
 def test_dep_util() -> None:
