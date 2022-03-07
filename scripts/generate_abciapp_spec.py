@@ -55,8 +55,8 @@ class DFASpecificationError(Exception):
 class DFA:
     """Simple specification of a deterministic finite automaton (DFA)."""
     def __init__(self, label: str, states: Set[str], default_start_state: str, start_states: Set[str], final_states: Set[str], alphabet_in: Set[str], transition_func: Dict[Tuple[str, str], str]):
-        transition_func_alphabet_in = set([q for (_, q) in transition_func.keys()])
-        transition_func_states = set([s for (s, _) in transition_func.keys()]) | set(transition_func.values())
+        transition_func_states, transition_func_alphabet_in = map(set, (zip(*transition_func.keys())))
+        transition_func_states.update(transition_func.values())
 
         orphan_states = states - (start_states | set(transition_func.values()))
         if orphan_states:
@@ -114,7 +114,7 @@ class DFA:
 
 
     @classmethod
-    def _list_to_set(cls, l: List[str]) -> Set[str]:
+    def _norep_list_to_set(cls, l: List[str]) -> Set[str]:
         """Converts a list to a set and ensures that it does not contain repetitions."""
         if not isinstance(l, List):
             raise DFASpecificationError(f'DFA spec. object {l} is not of type List.')
@@ -138,13 +138,17 @@ class DFA:
     def json_to_dfa(cls, fp: TextIO) -> 'DFA':
         """Loads a DFA JSON specification from file."""
         dfa_json = json.load(fp)
-        label = dfa_json.pop('label')
-        states = DFA._list_to_set(dfa_json.pop('states'))
-        default_start_state = dfa_json.pop('default_start_state')
-        start_states = DFA._list_to_set(dfa_json.pop('start_states'))
-        final_states = DFA._list_to_set(dfa_json.pop('final_states'))
-        alphabet_in = DFA._list_to_set(dfa_json.pop('alphabet_in'))
-        transition_func = {DFA._str_to_tuple(k) : v for k, v in dfa_json.pop('transition_func').items()}
+        
+        try:
+            label = dfa_json.pop('label')
+            states = DFA._norep_list_to_set(dfa_json.pop('states'))
+            default_start_state = dfa_json.pop('default_start_state')
+            start_states = DFA._norep_list_to_set(dfa_json.pop('start_states'))
+            final_states = DFA._norep_list_to_set(dfa_json.pop('final_states'))
+            alphabet_in = DFA._norep_list_to_set(dfa_json.pop('alphabet_in'))
+            transition_func = {DFA._str_to_tuple(k) : v for k, v in dfa_json.pop('transition_func').items()}
+        except KeyError as ke:
+            raise DFASpecificationError(f'DFA spec. JSON file missing key.') from ke
 
         if len(dfa_json) != 0:
             raise DFASpecificationError(f'DFA spec. JSON file contains unexpected objects: {dfa_json.keys()}.')
@@ -159,13 +163,13 @@ class DFA:
 
         label = label if label else abci_app_cls.__module__ + "." + abci_app_cls.__name__
         default_start_state = abci_app_cls.initial_round_cls.__name__
-        start_states = DFA._list_to_set([s.__name__ for s in abci_app_cls.initial_states])
-        start_states = start_states if start_states else set([default_start_state])
-        final_states = DFA._list_to_set([s.__name__ for s in abci_app_cls.final_states])
-        states = DFA._list_to_set([k.__name__ for k in trf]) \
-            | set([s.__name__ for k in trf for s in trf[k].values()]) \
+        start_states = DFA._norep_list_to_set([s.__name__ for s in abci_app_cls.initial_states])
+        start_states = start_states if start_states else {default_start_state}
+        final_states = DFA._norep_list_to_set([s.__name__ for s in abci_app_cls.final_states])
+        states = DFA._norep_list_to_set([k.__name__ for k in trf]) \
+            | {s.__name__ for k in trf for s in trf[k].values()} \
             | start_states | final_states
-        alphabet_in = set([str(s).rsplit('.', 1)[1] for k in trf for s in trf[k].keys()])
+        alphabet_in = {str(s).rsplit('.', 1)[1] for k in trf for s in trf[k].keys()}
         transition_func = {(k.__name__, str(s).rsplit('.', 1)[1]): trf[k][s].__name__ for k in trf for s in trf[k]}
         transition_func = OrderedDict(sorted(transition_func.items()))
         return DFA(label, states, default_start_state, start_states, final_states, alphabet_in, transition_func)
