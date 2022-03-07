@@ -357,6 +357,7 @@ class IPFSBehaviour(SimpleBehaviour, ABC):
         self,
         filepath: str,
         obj: SupportedObjectType,
+        multiple: bool = False,
         filetype: Optional[SupportedFiletype] = None,
         custom_storer: Optional[CustomStorerType] = None,
         **kwargs: Any,
@@ -364,7 +365,7 @@ class IPFSBehaviour(SimpleBehaviour, ABC):
         """Send a file to IPFS."""
         try:
             hash_ = self._ipfs_interact.store_and_send(
-                filepath, obj, filetype, custom_storer, **kwargs
+                filepath, obj, multiple, filetype, custom_storer, **kwargs
             )
             self.context.logger.info(f"IPFS hash is: {hash_}")
             return hash_

@@ -228,7 +228,7 @@ Initialize an `IPFSBehaviour`.
 
 ```python
 @_check_ipfs_enabled
-def send_to_ipfs(filepath: str, obj: SupportedObjectType, filetype: Optional[SupportedFiletype] = None, custom_storer: Optional[CustomStorerType] = None, **kwargs: Any, ,) -> Optional[str]
+def send_to_ipfs(filepath: str, obj: SupportedObjectType, multiple: bool = False, filetype: Optional[SupportedFiletype] = None, custom_storer: Optional[CustomStorerType] = None, **kwargs: Any, ,) -> Optional[str]
 ```
 
 Send a file to IPFS.

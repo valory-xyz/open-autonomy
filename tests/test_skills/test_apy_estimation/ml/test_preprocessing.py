@@ -23,8 +23,8 @@ import pandas as pd
 import pytest
 
 from packages.valory.skills.apy_estimation_abci.ml.preprocessing import (
-    prepare_pair_data,
     group_and_filter_pair_data,
+    prepare_pair_data,
 )
 
 
@@ -80,9 +80,7 @@ class TestPreprocessing:
         for id_, (y_train, y_test) in pair_data.items():
             np.allclose(y_train, np.array([0.1, 0.6, 0.7, 0.8]))
             np.allclose(y_test, np.array([0.9, 1.1]))
-            assert id_ in (
-                "0x2b4c76d0dc16be1c31d4c1dc53bf9b45987fc75c", "test_id"
-            )
+            assert id_ in ("0x2b4c76d0dc16be1c31d4c1dc53bf9b45987fc75c", "test_id")
 
         # test with wrong block timestamp.
         test_data["blockTimestamp"] = test_data["blockTimestamp"].view(int)
