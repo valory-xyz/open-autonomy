@@ -19,7 +19,7 @@ Convert to int.
 ## PriceEstimationBaseState Objects
 
 ```python
-class PriceEstimationBaseState(BaseState, ABC)
+class PriceEstimationBaseState(BaseState,  ABC)
 ```
 
 Base state behaviour for the common apps' skill.
