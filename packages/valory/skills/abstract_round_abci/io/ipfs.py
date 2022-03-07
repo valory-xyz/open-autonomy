@@ -84,7 +84,8 @@ class IPFSInteract:
         self,
         hash_: str,
         target_dir: str,
-        filename: str,
+        multiple: bool = False,
+        filename: Optional[str] = None,
     ) -> str:
         """Download a file from the IPFS node.
 
@@ -93,11 +94,16 @@ class IPFSInteract:
         :param filename: the original name of the file to download
         :return: the filepath of the downloaded file
         """
-        filepath = os.path.join(target_dir, filename)
+        if multiple:
+            filepath = target_dir
+        elif filename is not None:
+            filepath = os.path.join(target_dir, filename)
+        else:
+            raise IPFSInteractionError("Filename cannot be `None` when uploading a single file!")
 
         if os.path.exists(filepath):
             # TODO investigate why sometimes the path exists. It shouldn't, because `_send` removes it.
-            os.remove(filepath)  # pragma: no cover
+            self.__remove_filepath(filepath)
 
         try:
             self.__ipfs_tool.download(hash_, target_dir)
@@ -129,12 +135,13 @@ class IPFSInteract:
         self,
         hash_: str,
         target_dir: str,
-        filename: str,
+        multiple: bool = False,
+        filename: Optional[str] = None,
         filetype: Optional[SupportedFiletype] = None,
         custom_loader: SupportedLoaderType = None,
     ) -> SupportedObjectType:
         """Get, store and read a file from IPFS."""
-        filepath = self._download(hash_, target_dir, filename)
+        filepath = self._download(hash_, target_dir, multiple, filename)
         loader = Loader(filetype, custom_loader)
 
         try:
