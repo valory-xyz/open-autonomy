@@ -505,9 +505,9 @@ async def test_varint_message_reader() -> None:
     async def read(nb: int) -> bytes:
         return b"hello"
 
-    def patch_decode_varint(value: Any):
-        async def decode_varint(*args: Any, **kwargs: Any):
-            return value
+    def patch_decode_varint(value: Any) -> Callable:
+        async def decode_varint(*args: Any, **kwargs: Any) -> int:
+            return cast(int, value)
 
         return decode_varint
 
