@@ -300,6 +300,9 @@ class TcpServerChannel:  # pylint: disable=too-many-instance-attributes
                     f"{type(e).__name__}: {e}. "
                     f"The message will be ignored."
                 )
+                if reader.at_eof():
+                    self.logger.info("connection at EOF, stop receiving loop.")
+                    return
                 continue
             except CancelledError:  # pragma: nocover
                 self.logger.debug(f"Read task for peer {peer_name} cancelled.")
