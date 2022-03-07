@@ -39,10 +39,10 @@ import importlib
 import json
 import logging
 import sys
-from collections import OrderedDict
-from pathlib import Path
-from typing import IO, Any, Dict, List, Set, Tuple, Type
 import re
+from itertools import product
+from pathlib import Path
+from typing import IO, Dict, List, Set, Tuple, Type, OrderedDict
 
 from packages.valory.skills.abstract_round_abci.base import AbciApp
 
@@ -74,7 +74,7 @@ class DFA:
         state = self.defaultStartState
         transitions = [state]
         for t in input_sequence:
-            if(t not in self.alphabetIn):
+            if t not in self.alphabetIn:
                 logging.warning("Input symbol not recognized by the DFA (ignored).")
             else:
                 state = self.transitionFunc.get((state, t), state)
@@ -110,7 +110,7 @@ class DFA:
 
     @staticmethod
     def _str_to_tuple(k: str) -> Tuple[str, str]:
-        """Converst a string in format (a, b) to a tuple."""
+        """Converts a string in format "(a, b)" to a tuple ("a", "b")."""
         match = re.search(r"\((\w*),\s(\w*)\)", k, re.DOTALL)
         assert match is not None, f'Invalid DFA JSON spec.: {k} is not a valid transition function key.'
         return (match.group(1), match.group(2))

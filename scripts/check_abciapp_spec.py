@@ -38,7 +38,6 @@ import argparse
 import importlib
 import logging
 from pathlib import Path
-from typing import Any, Dict, List
 from generate_abciapp_spec import DFA
 
 
