@@ -95,6 +95,8 @@ class DFA:
 
 
     def __eq__(self, other):
+        if not isinstance(other, DFA):
+            return NotImplemented # Try reflected operation        
         return self.__dict__ == other.__dict__
 
 
