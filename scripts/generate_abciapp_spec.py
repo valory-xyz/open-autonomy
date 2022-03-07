@@ -81,7 +81,7 @@ class DFA:
         self.transitionFunc = transitionFunc
 
 
-    def run(self, input_sequence: List[str]) -> List[str]:
+    def get_transitions(self, input_sequence: List[str]) -> List[str]:
         """Runs the DFA given the input sequence of symbols, and outputs the list of state transitions."""
         state = self.defaultStartState
         transitions = [state]
