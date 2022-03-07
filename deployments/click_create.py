@@ -57,7 +57,7 @@ def build_deployment(
     deployment_type: str,
     configure_tendermint: bool,
     keys_file_path: str,
-    deployment_file_path: str = None,
+    deployment_file_path: Optional[str],
 ) -> None:
     """Build the agent and its components."""
 

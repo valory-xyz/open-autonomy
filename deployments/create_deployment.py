@@ -44,8 +44,8 @@ def generate_deployment(
     type_of_deployment: str,
     configure_tendermint: bool,
     private_keys_file_path: str,
-    valory_application: Optional[str] = None,
-    deployment_file_path: Optional[str] = None,
+    valory_application: Optional[str],
+    deployment_file_path: Optional[str],
 ) -> str:
     """Generate the deployment build for the valory app."""
     deployment_generator = DEPLOYMENT_OPTIONS[type_of_deployment]
