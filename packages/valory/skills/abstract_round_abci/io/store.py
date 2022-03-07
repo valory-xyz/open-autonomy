@@ -120,10 +120,11 @@ class CSVStorer(AbstractStorer):
             raise IOError(str(e)) from e
 
 
-class ForecasterStorer(AbstractStorer):  # pylint: disable=too-few-public-methods
+class ForecasterStorer(AbstractStorer):
     """A pmdarima Pipeline storer."""
 
-    def store(self, obj: NativelySupportedObjectType, **kwargs: Any) -> None:
+    @staticmethod
+    def store_single_file(filename: str, obj: NativelySupportedObjectType, **kwargs: Any) -> None:
         """Store a pmdarima Pipeline."""
         if not isinstance(obj, Pipeline):
             raise ValueError(  # pragma: no cover
@@ -131,7 +132,7 @@ class ForecasterStorer(AbstractStorer):  # pylint: disable=too-few-public-method
             )
 
         try:
-            joblib.dump(obj, self._path)
+            joblib.dump(obj, filename)
         except (ValueError, OSError) as e:  # pragma: no cover
             raise IOError(str(e)) from e
 
