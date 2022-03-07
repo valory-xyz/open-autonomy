@@ -41,7 +41,7 @@ Initialize an abstract storer.
 ```python
 @staticmethod
 @abstractmethod
-def store_single_file(filename: str, obj: SupportedSingleObjectType) -> None
+def store_single_file(filename: str, obj: SupportedSingleObjectType, **kwargs: Any) -> None
 ```
 
 Store a single file.
