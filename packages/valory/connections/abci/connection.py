@@ -270,9 +270,11 @@ class TcpServerChannel:  # pylint: disable=too-many-instance-attributes
             try:
                 message_bytes = await varint_message_reader.read_next_message()
                 if len(message_bytes) == 0:
-                    self.logger.error(f"Tendermint node {peer_name} closed connection.")
+                    self.logger.error(
+                        f"Tendermint node {peer_name} closed connection."
+                    )  # pragma: nocover
                     # break to the _stop if the connection stops
-                    break
+                    break  # pragma: nocover
                 self.logger.debug(
                     f"Received {len(message_bytes)} bytes from connection {peer_name}"
                 )
