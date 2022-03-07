@@ -1,3 +1,5 @@
+OPEN_AEA_BUILD_PATH := "../open-aea/build"
+OPEN_AEA_BUILD_DIR := $(shell ls ${OPEN_AEA_BUILD_PATH})
 .PHONY: clean
 clean: clean-build clean-pyc clean-test clean-docs
 
@@ -7,7 +9,6 @@ clean-build:
 	rm -fr build/
 	rm -fr dist/
 	rm -fr .eggs/
-	rm -fr deployments/build/
 	rm -fr deployments/Dockerfiles/open_aea/packages
 	rm -fr pip-wheel-metadata
 	find . -name '*.egg-info' -exec rm -fr {} +
@@ -189,7 +190,8 @@ install-hooks:
 	cp scripts/pre-push .git/hooks/pre-push
 
 .ONESHELL: build-images
-build-images: clean-build
+build-images:
+	sudo make clean
 	if [ "${VERSION}" = "" ];\
 	then\
 		echo "Ensure you have exported a version to build!";\
@@ -215,19 +217,23 @@ run-hardhat:
 # for example here it should be /path/to/open-aea/repo/build
 .PHONY: run-oracle-dev
 run-oracle-dev:
-	sudo make clean && \
-	export VERSION=dev  && \
+	if [ "${OPEN_AEA_BUILD_DIR}" != "" ]; then \
+		echo "Please remove ${OPEN_AEA_BUILD_PATH} manually."
+		exit 1
+	fi
+	export VERSION=dev
 	make build-images && \
-	python deployments/click_create.py build-deployment --valory-app oracle_hardhat --deployment-type docker-compose --configure-tendermint && \
-	cd deployments/build/ && \
-	docker-compose up --force-recreate
+     	python deployments/click_create.py build-deployment --valory-app oracle_hardhat --deployment-type docker-compose --configure-tendermint && \
+     	make run-deploy
 
 .PHONY: run-oracle
-run-oracle: 
-	sudo make clean && \
-	export VERSION=0.1.0 && \
-	rsync -avu packages/ deployments/Dockerfiles/open_aea/packages && \
+run-oracle:
+	export VERSION=0.1.0
 	make build-images && \
-	python deployments/click_create.py build-deployment --valory-app oracle_hardhat --deployment-type docker-compose --configure-tendermint && \
+	    python deployments/click_create.py build-deployment --valory-app oracle_hardhat --deployment-type docker-compose --configure-tendermint && \
+    	make run-deploy
+
+.PHONY: run-deploy
+run-deploy:
 	cd deployments/build/ && \
-	docker-compose up --force-recreate
+	docker-compose up --force-recreate -t 600

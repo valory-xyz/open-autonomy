@@ -1,4 +1,4 @@
-FROM valory/open-aea-user:latest
+FROM valory/open-aea-user:0.1.0
 
 WORKDIR /home/ubuntu
 ENV PATH=$PATH:/home/ubuntu/.local/bin

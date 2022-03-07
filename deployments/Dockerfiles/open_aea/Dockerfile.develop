@@ -1,12 +1,12 @@
-FROM valory/open-aea-user:dev
-
+FROM valory/open-aea-user:0.1.0
+MAINTAINER Valory AG
 
 WORKDIR /home/ubuntu
 ENV PATH=$PATH:/home/ubuntu/.local/bin
 
 RUN sudo apt-get install python3.8 python3.8-dev git -y
 RUN cd /usr/bin && sudo rm python3 && sudo ln -s python3.8 python3 && sudo ln -s python3.8 python
-RUN sudo apt-get install wait-for-it -y
+RUN sudo apt-get install wait-for-it net-tools -y
 RUN sudo apt remove --purge python3-virtualenv
 
 RUN python -m pip install --upgrade pip
@@ -22,3 +22,5 @@ RUN pipenv --python 3.8
 RUN pipenv run pip install click Wheel watchdog requests cowsay
 
 CMD ["./start_dev.sh"]
+
+HEALTHCHECK --interval=3s --timeout=600s --retries=600 CMD netstat -ltn | grep -c 26658 > /dev/null; if [ 0 != $? ]; then exit 1; fi;

@@ -37,7 +37,7 @@ from watchdog.observers import Observer
 ID = os.environ.get("ID")
 MAX_PARTICIPANTS = int(os.environ.get("MAX_PARTICIPANTS", "0"))
 ROOT = "/home/ubuntu"
-AGENT_DIR = ROOT + "agent"
+AGENT_DIR = ROOT + "/agent"
 PACKAGES_PATH = "/home/ubuntu/packages"
 OPEN_AEA_PATH = "/open-aea"
 BASE_START_FILE = "/home/ubuntu/start.sh"
@@ -154,7 +154,10 @@ class EventHandler(FileSystemEventHandler):
     @staticmethod
     def clean_up() -> None:
         """Clean up from previous run."""
-        shutil.rmtree("./agent")
+        os.chdir(ROOT)
+        if Path(AGENT_DIR).exists():
+            write("removing aea dir.")
+            shutil.rmtree(AGENT_DIR)
 
     def on_any_event(self, event: FileSystemEvent) -> None:
         """This method reloads the agent when a change is detected in *.py file."""
