@@ -16,7 +16,7 @@ fingerprint:
   dialogues.py: QmemiTJxfwp2PFxFQyAUHTx8FsthhWL3mYgonBhC3cTjWH
   handlers.py: QmULzUDKU9jeQtQSAkq64gWTS6wSgCussUkJuJCAc3KKbL
   io/__init__.py: QmPfA2syTybFaGmmMMt5gevZHEXPyjVf7wR1UE22NzpZZ3
-  io/ipfs.py: QmdyHjXSY3KxDQ4ee3d4FNqpaSf1Psr1wxsaaAn2nE265e
+  io/ipfs.py: QmTJTC6TRPDnf5gAPu9waotqjjepw2LGqAFZ73mGXSpf76
   io/load.py: QmcQYtKgpJZBb3WAVsqqyxLfy5SfxiJ28h1L1qE6HBbMSV
   io/paths.py: QmT1e6Ygak8Fe4NxSrd2mb6EB1Rr6dsYZPL8dWh3aNMb12
   io/store.py: QmSLXNxpU7hct3xM8uzcK2NqA6bAtNqfNiSUmUB1YqtHHh
