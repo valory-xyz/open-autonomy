@@ -99,7 +99,11 @@ class TestStorer:
                 filepath = os.path.join(tmp_path, filename)
                 saved_frame = pd.read_csv(filepath)
                 expected_frame = expected_frame.reset_index(drop=not index)
-                expected_frame = expected_frame.rename(columns={"index": "Unnamed: 0"}) if index else expected_frame
+                expected_frame = (
+                    expected_frame.rename(columns={"index": "Unnamed: 0"})
+                    if index
+                    else expected_frame
+                )
                 pd.testing.assert_frame_equal(saved_frame, expected_frame)
 
         else:
@@ -108,5 +112,9 @@ class TestStorer:
             storer.store(dummy_obj, multiple, index=index)
             saved_frame = pd.read_csv(filepath)
             expected_frame = dummy_obj.reset_index(drop=not index)
-            expected_frame = expected_frame.rename(columns={"index": "Unnamed: 0"}) if index else expected_frame
+            expected_frame = (
+                expected_frame.rename(columns={"index": "Unnamed: 0"})
+                if index
+                else expected_frame
+            )
             pd.testing.assert_frame_equal(saved_frame, expected_frame)

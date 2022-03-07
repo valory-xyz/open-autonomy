@@ -577,7 +577,9 @@ class TestTransformBehaviour(APYEstimationFSMBehaviourBaseCase):
         monkeypatch.setattr(
             TaskManager,
             "get_task_result",
-            lambda *_: DummyAsyncResult(transformed_historical_data_no_datetime_conversion, ready=False),
+            lambda *_: DummyAsyncResult(
+                transformed_historical_data_no_datetime_conversion, ready=False
+            ),
         )
 
         with caplog.at_level(
@@ -626,7 +628,9 @@ class TestTransformBehaviour(APYEstimationFSMBehaviourBaseCase):
         monkeypatch.setattr(
             self._skill._skill_context._agent_context._task_manager,  # type: ignore
             "get_task_result",
-            lambda *_: DummyAsyncResult(transformed_historical_data_no_datetime_conversion),
+            lambda *_: DummyAsyncResult(
+                transformed_historical_data_no_datetime_conversion
+            ),
         )
         monkeypatch.setattr(
             self._skill._skill_context._agent_context._task_manager,  # type: ignore

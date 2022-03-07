@@ -19,6 +19,7 @@
 
 """Conftest module for io tests."""
 from typing import Dict
+
 import pandas as pd
 import pytest
 
@@ -32,6 +33,4 @@ def dummy_obj() -> pd.DataFrame:
 @pytest.fixture
 def dummy_multiple_obj(dummy_obj: pd.DataFrame) -> Dict[str, pd.DataFrame]:
     """Many dummy custom objects to test the storing with."""
-    return {
-        f"test_obj_{i}": dummy_obj for i in range(10)
-    }
+    return {f"test_obj_{i}": dummy_obj for i in range(10)}

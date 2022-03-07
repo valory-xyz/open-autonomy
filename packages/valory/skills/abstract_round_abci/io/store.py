@@ -69,7 +69,9 @@ class AbstractStorer(ABC):
 
     @staticmethod
     @abstractmethod
-    def store_single_file(filename: str, obj: SupportedSingleObjectType, **kwargs: Any) -> None:
+    def store_single_file(
+        filename: str, obj: SupportedSingleObjectType, **kwargs: Any
+    ) -> None:
         """Store a single file."""
 
     def store(self, obj: SupportedObjectType, multiple: bool, **kwargs: Any) -> None:

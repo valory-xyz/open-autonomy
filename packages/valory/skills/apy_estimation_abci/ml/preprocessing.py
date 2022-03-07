@@ -19,7 +19,7 @@
 
 """Preprocessing operations."""
 
-from typing import Optional, Tuple, Union, Dict
+from typing import Dict, Optional, Tuple, Union
 
 import pandas as pd
 import pandas.core.groupby
@@ -29,7 +29,9 @@ import pmdarima as pm
 TrainTestSplitType = Tuple[pd.DataFrame, pd.DataFrame]
 
 
-def group_and_filter_pair_data(pairs_hist: pd.DataFrame, threshold: int = 5) -> pandas.core.groupby.DataFrameGroupBy:
+def group_and_filter_pair_data(
+    pairs_hist: pd.DataFrame, threshold: int = 5
+) -> pandas.core.groupby.DataFrameGroupBy:
     """
     Filter the timeseries data to contain only the block's timestamp, the pair name and the APY and group by pair.
 
@@ -45,7 +47,9 @@ def group_and_filter_pair_data(pairs_hist: pd.DataFrame, threshold: int = 5) -> 
     n_pair_items = grouped_and_filtered.size()
     pairs_fewer_than_threshold = n_pair_items.loc[n_pair_items < threshold]
     if not pairs_fewer_than_threshold.empty:
-        raise ValueError(f"Cannot work with < {threshold} observations for: \n{pairs_fewer_than_threshold.to_string()}")
+        raise ValueError(
+            f"Cannot work with < {threshold} observations for: \n{pairs_fewer_than_threshold.to_string()}"
+        )
 
     return grouped_and_filtered
 
@@ -71,7 +75,9 @@ def prepare_pair_data(
     for pair_id, filtered_pair_data in grouped_and_filtered:
         # Get the pair's APY, set the block's timestamp as an index
         # and convert it to a pandas period to create the timeseries.
-        y = filtered_pair_data.loc[:, ["blockTimestamp", "APY"]].set_index("blockTimestamp")
+        y = filtered_pair_data.loc[:, ["blockTimestamp", "APY"]].set_index(
+            "blockTimestamp"
+        )
         y.index = y.index.to_period("D")
         # Perform a train test split.
         y_train, y_test = pm.model_selection.train_test_split(y, test_size=test_size)
