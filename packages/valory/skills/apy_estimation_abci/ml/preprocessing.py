@@ -26,8 +26,8 @@ import pandas.core.groupby
 import pmdarima as pm
 
 
-SingleTrainTestSplitType = Tuple[pd.DataFrame, pd.DataFrame]
-TrainTestSplitType = Dict[str, SingleTrainTestSplitType]
+SingleIdToSplitType = Dict[str, pd.DataFrame]
+TrainTestSplitType = Tuple[SingleIdToSplitType, SingleIdToSplitType]
 
 
 def group_and_filter_pair_data(pairs_hist: pd.DataFrame, threshold: int = 5) -> pandas.core.groupby.DataFrameGroupBy:
@@ -68,7 +68,8 @@ def prepare_pair_data(
     """
     grouped_and_filtered = group_and_filter_pair_data(pairs_hist)
 
-    prepared_data = {}
+    train_splits = {}
+    test_splits = {}
     for pair_id, filtered_pair_data in grouped_and_filtered:
         # Get the pair's APY, set the block's timestamp as an index
         # and convert it to a pandas period to create the timeseries.
@@ -76,7 +77,8 @@ def prepare_pair_data(
         y.index = y.index.to_period("D")
         # Perform a train test split.
         y_train, y_test = pm.model_selection.train_test_split(y, test_size=test_size)
-        # Store the split mapped to its id.
-        prepared_data[pair_id] = (y_train, y_test)
+        # Store the splits mapped to their ids.
+        train_splits[f"{pair_id}.csv"] = y_train
+        test_splits[f"{pair_id}.csv"] = y_test
 
-    return prepared_data
+    return train_splits, test_splits
