@@ -43,7 +43,7 @@ Initialize an `IPFSInteract`.
 #### store`_`and`_`send
 
 ```python
-def store_and_send(filepath: str, obj: SupportedObjectType, filetype: Optional[SupportedFiletype] = None, custom_storer: Optional[CustomStorerType] = None, **kwargs: Any, ,) -> str
+def store_and_send(filepath: str, obj: SupportedObjectType, multiple: bool, filetype: Optional[SupportedFiletype] = None, custom_storer: Optional[CustomStorerType] = None, **kwargs: Any, ,) -> str
 ```
 
 Temporarily store a file locally, in order to send it to IPFS and retrieve a hash, and then delete it.
