@@ -33,11 +33,17 @@ from packages.valory.skills.abstract_round_abci.io.paths import create_pathdirs
 
 
 StoredJSONType = Union[dict, list]
-NativelySupportedObjectType = Union[StoredJSONType, Pipeline, pd.DataFrame]
+NativelySupportedSingleObjectType = Union[StoredJSONType, Pipeline, pd.DataFrame]
+NativelySupportedMultipleObjectsType = Dict[str, NativelySupportedSingleObjectType]
+NativelySupportedObjectType = Union[NativelySupportedSingleObjectType, NativelySupportedMultipleObjectsType]
 NativelySupportedStorerType = Callable[[NativelySupportedObjectType, Any], None]
-CustomObjectType = TypeVar("CustomObjectType")
+CustomSingleObjectType = TypeVar("CustomSingleObjectType")
+CustomMultipleObjectsType = Dict[str, CustomSingleObjectType]
+CustomObjectType = Union[CustomSingleObjectType, CustomMultipleObjectsType]
 CustomStorerType = Callable[[CustomObjectType, Any], None]
-SupportedObjectType = Union[NativelySupportedObjectType, CustomObjectType]
+SupportedSingleObjectType = Union[NativelySupportedObjectType, CustomObjectType]
+SupportedMultipleObjectsType = Dict[str, SupportedSingleObjectType]
+SupportedObjectType = Union[SupportedSingleObjectType, SupportedMultipleObjectsType]
 SupportedStorerType = Union[NativelySupportedStorerType, CustomStorerType]
 
 
