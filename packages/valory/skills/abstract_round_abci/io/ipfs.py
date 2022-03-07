@@ -100,6 +100,7 @@ class IPFSInteract:
         self,
         filepath: str,
         obj: SupportedObjectType,
+        multiple: bool,
         filetype: Optional[SupportedFiletype] = None,
         custom_storer: Optional[CustomStorerType] = None,
         **kwargs: Any,
@@ -108,7 +109,7 @@ class IPFSInteract:
         storer = Storer(filetype, custom_storer, filepath)
 
         try:
-            storer.store(obj, **kwargs)
+            storer.store(obj, multiple, **kwargs)
         except IOError as e:  # pragma: no cover
             raise IPFSInteractionError(str(e)) from e
 
