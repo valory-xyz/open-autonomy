@@ -17,7 +17,6 @@
 #   limitations under the License.
 #
 # ------------------------------------------------------------------------------
-
 """
 Generates the specification for a given ABCI app in JSON format using a
 simplified syntax for deterministic finite automata (DFA). Example usage:
@@ -36,6 +35,7 @@ required arguments:
 
 import argparse
 import importlib
+from itertools import product
 import json
 import logging
 from pathlib import Path
@@ -44,8 +44,6 @@ import sys
 from typing import IO, Dict, List, Set, TextIO, Tuple, Type, OrderedDict
 
 from packages.valory.skills.abstract_round_abci.base import AbciApp
-
-
 
 
 class DFASpecificationError(Exception):
@@ -80,6 +78,13 @@ class DFA:
         self.alphabet_in = alphabet_in
         self.transition_func = transition_func
 
+
+    def is_transition_func_total(self) -> bool:
+        """Outputs True if the transition function of the DFA is total."""
+        if set(product(*[self.states, self.alphabetIn])) == set(self.transitionFunc.keys()):
+            return True
+        return False
+    
 
     def get_transitions(self, input_sequence: List[str]) -> List[str]:
         """Runs the DFA given the input sequence of symbols, and outputs the list of state transitions."""
