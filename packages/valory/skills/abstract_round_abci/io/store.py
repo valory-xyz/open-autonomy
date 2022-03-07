@@ -21,6 +21,7 @@
 
 
 import json
+import os.path
 from abc import ABC, abstractmethod
 from enum import Enum, auto
 from typing import Any, Callable, Dict, Optional, TypeVar, Union, cast
@@ -55,7 +56,7 @@ class SupportedFiletype(Enum):
     CSV = auto()
 
 
-class AbstractStorer(ABC):  # pylint: disable=too-few-public-methods
+class AbstractStorer(ABC):
     """An abstract `Storer` class."""
 
     def __init__(self, path: str):
@@ -64,10 +65,22 @@ class AbstractStorer(ABC):  # pylint: disable=too-few-public-methods
         # Create the dirs of the path if it does not exist.
         create_pathdirs(path)
 
+    @staticmethod
     @abstractmethod
-    def store(self, obj: SupportedObjectType, **kwargs: Any) -> None:
-        """Store a file."""
+    def store_single_file(filename: str, obj: SupportedSingleObjectType) -> None:
+        """Store a single file."""
 
+    def store(self, obj: SupportedObjectType, multiple: bool, **kwargs: Any) -> None:
+        """Store one or multiple files."""
+        if multiple:
+            if not isinstance(obj, dict):  # pragma: no cover
+                raise ValueError(f"Cannot store multiple files of type {type(obj)}!"
+                                 f"Should be a dictionary of filenames mapped to their objects.")
+            for filename, single_obj in obj.items():
+                filename = os.path.join(self._path, filename)
+                self.store_single_file(filename, single_obj)
+        else:
+            self.store_single_file(self._path, obj)
 
 class JSONStorer(AbstractStorer):  # pylint: disable=too-few-public-methods
     """A JSON file storer."""
