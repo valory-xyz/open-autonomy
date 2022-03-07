@@ -55,6 +55,16 @@ class IPFSInteract:
         except (NodeError, Exception) as e:  # pragma: no cover
             raise IPFSInteractionError(str(e)) from e
 
+    @staticmethod
+    def __remove_filepath(filepath: str) -> None:
+        """Remove a file or a folder. If filepath is not a file or a folder, an `IPFSInteractionError` is raised."""
+        if os.path.isfile(filepath):
+            os.remove(filepath)
+        elif os.path.isdir(filepath):
+            os.rmdir(filepath)
+        else:
+            raise IPFSInteractionError(f"`{filepath}` is not an existing filepath!")
+
     def _send(self, filepath: str) -> str:
         """Send a file to the IPFS node.
 
@@ -66,12 +76,7 @@ class IPFSInteract:
         except ValueError as e:  # pragma: no cover
             raise IPFSInteractionError(str(e)) from e
         finally:
-            if os.path.isfile(filepath):
-                os.remove(filepath)
-            elif os.path.isdir(filepath):
-                os.rmdir(filepath)
-            else:
-                raise IPFSInteractionError(f"`{filepath}` is not an existing filepath!")
+            self.__remove_filepath(filepath)
 
         return hash_
 
