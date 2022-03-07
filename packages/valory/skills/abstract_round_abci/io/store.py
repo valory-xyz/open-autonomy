@@ -82,10 +82,12 @@ class AbstractStorer(ABC):
         else:
             self.store_single_file(self._path, obj)
 
-class JSONStorer(AbstractStorer):  # pylint: disable=too-few-public-methods
+
+class JSONStorer(AbstractStorer):
     """A JSON file storer."""
 
-    def store(self, obj: NativelySupportedObjectType, **kwargs: Any) -> None:
+    @staticmethod
+    def store_single_file(filename: str, obj: NativelySupportedObjectType, **kwargs: Any) -> None:
         """Store a JSON."""
         if not any(isinstance(obj, type_) for type_ in (dict, list)):
             raise ValueError(  # pragma: no cover
@@ -93,7 +95,7 @@ class JSONStorer(AbstractStorer):  # pylint: disable=too-few-public-methods
             )
 
         try:
-            with open(self._path, "w", encoding="utf-8") as f:
+            with open(filename, "w", encoding="utf-8") as f:
                 json.dump(obj, f, ensure_ascii=False, indent=4)
         except (TypeError, OSError) as e:  # pragma: no cover
             raise IOError(str(e)) from e
