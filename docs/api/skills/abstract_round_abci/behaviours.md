@@ -29,7 +29,8 @@ Initialize the class.
 ## AbstractRoundBehaviour Objects
 
 ```python
-class AbstractRoundBehaviour(Behaviour, ABC, Generic[EventType], metaclass=_MetaRoundBehaviour)
+class AbstractRoundBehaviour(
+    Behaviour,  ABC,  Generic[EventType], metaclass=_MetaRoundBehaviour)
 ```
 
 This behaviour implements an abstract round behaviour.

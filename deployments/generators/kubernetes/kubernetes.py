@@ -25,38 +25,11 @@ from typing import Any, Dict, List, Type
 import yaml
 
 from deployments.base_deployments import BaseDeployment, BaseDeploymentGenerator
-from deployments.constants import KEYS, TENDERMINT_CONFIGURATION_OVERRIDES
+from deployments.constants import TENDERMINT_CONFIGURATION_OVERRIDES
 from deployments.generators.kubernetes.templates import (
     AGENT_NODE_TEMPLATE,
     CLUSTER_CONFIGURATION_TEMPLATE,
 )
-
-
-def build_agent_deployment(
-    agent_ix: int, number_of_agents: int, agent_vars: Dict[str, Any]
-) -> str:
-    """Build agent deployment."""
-    host_names = ", ".join([f'"--hostname=abci{i}"' for i in range(number_of_agents)])
-
-    agent_deployment = AGENT_NODE_TEMPLATE.format(
-        validator_ix=agent_ix,
-        aea_key=KEYS[agent_ix],
-        number_of_validators=number_of_agents,
-        host_names=host_names,
-    )
-    agent_deployment_yaml = yaml.load_all(agent_deployment, Loader=yaml.FullLoader)  # type: ignore
-    resources = []
-    for resource in agent_deployment_yaml:
-        if resource.get("kind") == "Deployment":
-            for container in resource["spec"]["template"]["spec"]["containers"]:
-                if container["name"] == "aea":
-                    container["env"] += [
-                        {"name": k, "value": f"{v}"} for k, v in agent_vars.items()
-                    ]
-        resources.append(resource)
-
-    res = "\n---\n".join([yaml.safe_dump(i) for i in resources])
-    return res
 
 
 class KubernetesGenerator(BaseDeploymentGenerator):
@@ -73,6 +46,34 @@ class KubernetesGenerator(BaseDeploymentGenerator):
         super().__init__(deployment_spec)
         self.output = ""
         self.resources: List[str] = []
+
+    def build_agent_deployment(
+        self, agent_ix: int, number_of_agents: int, agent_vars: Dict[str, Any]
+    ) -> str:
+        """Build agent deployment."""
+        host_names = ", ".join(
+            [f'"--hostname=abci{i}"' for i in range(number_of_agents)]
+        )
+
+        agent_deployment = AGENT_NODE_TEMPLATE.format(
+            validator_ix=agent_ix,
+            aea_key=self.deployment_spec.private_keys[agent_ix],
+            number_of_validators=number_of_agents,
+            host_names=host_names,
+        )
+        agent_deployment_yaml = yaml.load_all(agent_deployment, Loader=yaml.FullLoader)  # type: ignore
+        resources = []
+        for resource in agent_deployment_yaml:
+            if resource.get("kind") == "Deployment":
+                for container in resource["spec"]["template"]["spec"]["containers"]:
+                    if container["name"] == "aea":
+                        container["env"] += [
+                            {"name": k, "value": f"{v}"} for k, v in agent_vars.items()
+                        ]
+            resources.append(resource)
+
+        res = "\n---\n".join([yaml.safe_dump(i) for i in resources])
+        return res
 
     def generate_config_tendermint(
         self, valory_application: Type[BaseDeployment]
@@ -107,7 +108,7 @@ class KubernetesGenerator(BaseDeploymentGenerator):
         agent_vars = self.get_deployment_network_configuration(agent_vars)
         agents = "\n---\n".join(
             [
-                build_agent_deployment(
+                self.build_agent_deployment(
                     i, self.deployment_spec.number_of_agents, agent_vars[i]
                 )
                 for i in range(self.deployment_spec.number_of_agents)

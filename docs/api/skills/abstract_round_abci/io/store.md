@@ -124,7 +124,8 @@ Store a pmdarima Pipeline.
 ## Storer Objects
 
 ```python
-class Storer(CSVStorer, ForecasterStorer, JSONStorer)
+class Storer(
+    CSVStorer,  ForecasterStorer,  JSONStorer)
 ```
 
 Class which stores files.

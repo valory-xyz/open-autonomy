@@ -23,7 +23,7 @@ import logging
 import time
 import warnings
 from pathlib import Path
-from typing import Any, Dict, List, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 
 import pytest
 from aea.configurations.base import PublicId
@@ -34,9 +34,6 @@ from tests.helpers.tendermint_utils import (
     TendermintLocalNetworkBuilder,
     TendermintNodeInfo,
 )
-
-
-MAX_FLAKY_RERUNS = 3
 
 
 @pytest.mark.e2e
@@ -63,7 +60,11 @@ class BaseTestEnd2End(AEATestCaseMany, BaseTendermintTestClass):
     agent_package: str
     skill_package: str
     wait_to_finish: int
-    check_strings: Tuple[str, ...]
+    # dictionary with the round names expected to appear in output as keys
+    # and the number of periods they are expected to appear for as values.
+    round_check_strings_to_n_periods: Optional[Dict[str, int]] = None
+    # tuple of strings expected to appear in output as is.
+    strict_check_strings: Tuple[str, ...] = ()
     extra_configs: List[Dict[str, Any]] = []
 
     def __set_extra_configs(self) -> None:
@@ -153,6 +154,124 @@ class BaseTestEnd2End(AEATestCaseMany, BaseTendermintTestClass):
         process = self.run_agent()
         self.processes.append(process)
 
+    @staticmethod
+    def __generate_full_strings_from_rounds(
+        round_check_strings_to_n_periods: Dict[str, int]
+    ) -> Dict[str, int]:
+        """Generate the full strings from the given round strings"""
+        full_strings = {}
+        for round_str, n_periods in round_check_strings_to_n_periods.items():
+            entered_str = f"Entered in the '{round_str}' round for period"
+            done_str = f"'{round_str}' round is done"
+            full_strings[entered_str] = n_periods
+            full_strings[done_str] = n_periods
+
+        return full_strings
+
+    @classmethod
+    def missing_from_output(
+        cls,
+        round_check_strings_to_n_periods: Optional[Dict[str, int]] = None,
+        strict_check_strings: Tuple[str, ...] = (),
+        period: int = 1,
+        is_terminating: bool = True,
+        **kwargs: Any,
+    ) -> Tuple[List[str], List[str]]:
+        """
+        Check if strings are present in process output.
+
+        Read process stdout in thread and terminate when all strings are present or timeout expired.
+
+        :param round_check_strings_to_n_periods: dictionary with the round names expected to appear in output as keys
+            and the number of periods they are expected to appear for as values.
+        :param strict_check_strings: tuple of strings expected to appear in output as is.
+        :param period: period of checking.
+        :param is_terminating: whether the agents are terminated if any of the check strings do not appear in the logs.
+        :param kwargs: the kwargs of the overridden method.
+        :return: tuple with two lists of missed strings, the strict and the round respectively.
+        """
+        # Call the original method with the strict checks.
+        kwargs["strings"] = strict_check_strings
+        kwargs["is_terminating"] = False
+        missing_strict_strings = super().missing_from_output(**kwargs)
+
+        # Perform checks for the round strings.
+        missing_round_strings = []
+        if round_check_strings_to_n_periods is not None:
+            check_strings_to_n_periods = cls.__generate_full_strings_from_rounds(
+                round_check_strings_to_n_periods
+            )
+            # Create dictionary to keep track of how many times this string has appeared so far.
+            check_strings_to_n_appearances = dict.fromkeys(check_strings_to_n_periods)
+            end_time = time.time() + kwargs["timeout"]
+            # iterate while the check strings are still present in the dictionary,
+            # i.e. have not appeared for the required amount of times.
+            while bool(check_strings_to_n_periods) and time.time() < end_time:
+                for line in check_strings_to_n_periods.copy().keys():
+                    # count the number of times the line has appeared so far.
+                    n_times_appeared = cls.stdout[kwargs["process"].pid].count(line)
+                    # track the number times the line has appeared so far.
+                    check_strings_to_n_appearances[line] = n_times_appeared
+                    # if the required number has been reached, delete them from the check dictionaries.
+                    if (
+                        check_strings_to_n_appearances[line]
+                        >= check_strings_to_n_periods[line]
+                    ):
+                        del check_strings_to_n_periods[line]
+                        del check_strings_to_n_appearances[line]
+
+                # sleep for `period` amount of time.
+                time.sleep(period)
+
+            # generate the missing strings with the number of times they are missing.
+            missing_round_strings = [
+                f"'{s}' appeared only {n_appeared} out of {n_expected} times"
+                for (s, n_expected), (_, n_appeared) in zip(
+                    check_strings_to_n_periods.items(),
+                    check_strings_to_n_appearances.items(),
+                )
+            ]
+
+        if is_terminating:
+            cls.terminate_agents(kwargs["process"])
+
+        return missing_strict_strings, missing_round_strings
+
+    @staticmethod
+    def __check_missing_strings(
+        missing_strict_strings: List[str], missing_round_strings: List[str], i: int
+    ) -> None:
+        """Checks for missing strings in agent's output."""
+        missing_agent_logs = ""
+        if missing_strict_strings:
+            missing_agent_logs += (
+                f"Strings {missing_strict_strings} didn't appear in agent_{i} output.\n"
+            )
+        missing_agent_logs += "\n".join(missing_round_strings)
+
+        assert missing_agent_logs == "", missing_agent_logs
+
+    def _check_aea_messages(self) -> None:
+        """Check that *each* AEA prints these messages."""
+        for i, process in enumerate(self.processes):
+            missing_strict_strings, missing_round_strings = self.missing_from_output(
+                process=process,
+                round_check_strings_to_n_periods=self.round_check_strings_to_n_periods,
+                strict_check_strings=self.strict_check_strings,
+                timeout=self.wait_to_finish,
+            )
+
+            self.__check_missing_strings(
+                missing_strict_strings, missing_round_strings, i
+            )
+
+            if not self.is_successfully_terminated(process):
+                warnings.warn(
+                    UserWarning(
+                        f"ABCI agent with process {process} wasn't successfully terminated."
+                    )
+                )
+
 
 class BaseTestEnd2EndNormalExecution(BaseTestEnd2End):
     """Test that the ABCI simple skill works together with Tendermint under normal circumstances."""
@@ -168,22 +287,7 @@ class BaseTestEnd2EndNormalExecution(BaseTestEnd2End):
             max_retries=self.HEALTH_CHECK_MAX_RETRIES,
             sleep_interval=self.HEALTH_CHECK_SLEEP_INTERVAL,
         )
-
-        # check that *each* AEA prints these messages
-        for process in self.processes:
-            missing_strings = self.missing_from_output(
-                process, self.check_strings, self.wait_to_finish
-            )
-            assert (
-                missing_strings == []
-            ), "Strings {} didn't appear in agent output.".format(missing_strings)
-
-            if not self.is_successfully_terminated(process):
-                warnings.warn(
-                    UserWarning(
-                        f"ABCI agent with process {process} wasn't successfully terminated."
-                    )
-                )
+        self._check_aea_messages()
 
 
 class BaseTestEnd2EndAgentCatchup(BaseTestEnd2End):
@@ -234,10 +338,12 @@ class BaseTestEnd2EndAgentCatchup(BaseTestEnd2End):
         # stop the last agent as soon as the "stop string" is found in the output
         process_to_stop = self.processes[-1]
         logging.debug(f"Waiting for string {self.stop_string} in last agent output")
-        missing_strings = self.missing_from_output(
-            process_to_stop, [self.stop_string], self.wait_before_stop
+        missing_strict_strings, _ = self.missing_from_output(
+            process=process_to_stop,
+            strict_check_strings=(self.stop_string,),
+            timeout=self.wait_before_stop,
         )
-        if missing_strings:
+        if missing_strict_strings:
             raise RuntimeError("cannot stop agent correctly")
         logging.debug("Last agent stopped")
         self.processes.pop(-1)
@@ -251,20 +357,4 @@ class BaseTestEnd2EndAgentCatchup(BaseTestEnd2End):
         # restart agent
         logging.debug("Restart the agent")
         self._launch_agent_i(-1)
-
-        # check that *each* AEA prints these messages
-        logging.debug("Wait for messages from agents' stdout...")
-        for i, process in enumerate(self.processes):
-            missing_strings = self.missing_from_output(
-                process, self.check_strings, self.wait_to_finish
-            )
-            assert (
-                missing_strings == []
-            ), "Strings {} didn't appear in agent_{} output.".format(missing_strings, i)
-
-            if not self.is_successfully_terminated(process):
-                warnings.warn(
-                    UserWarning(
-                        f"ABCI agent with process {process} wasn't successfully terminated."
-                    )
-                )
+        self._check_aea_messages()
