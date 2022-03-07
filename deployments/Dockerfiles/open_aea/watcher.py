@@ -154,7 +154,8 @@ class EventHandler(FileSystemEventHandler):
     @staticmethod
     def clean_up() -> None:
         """Clean up from previous run."""
-        shutil.rmtree("./agent")
+        if os.path.isdir(AGENT_DIR):
+            shutil.rmtree(AGENT_DIR)
 
     def on_any_event(self, event: FileSystemEvent) -> None:
         """This method reloads the agent when a change is detected in *.py file."""
