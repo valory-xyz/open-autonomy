@@ -1,15 +1,15 @@
-FROM valory/open-aea-user		
+FROM valory/open-aea-user:dev
 
 
-WORKDIR /home/ubuntu		
-ENV PATH=$PATH:/home/ubuntu/.local/bin		
+WORKDIR /home/ubuntu
+ENV PATH=$PATH:/home/ubuntu/.local/bin
 
-RUN sudo apt-get install python3.8 python3.8-dev git -y		
-RUN cd /usr/bin && sudo rm python3 && sudo ln -s python3.8 python3 && sudo ln -s python3.8 python		
+RUN sudo apt-get install python3.8 python3.8-dev git -y
+RUN cd /usr/bin && sudo rm python3 && sudo ln -s python3.8 python3 && sudo ln -s python3.8 python
 RUN sudo apt-get install wait-for-it -y
 RUN sudo apt remove --purge python3-virtualenv
 
-RUN python -m pip install --upgrade pip		
+RUN python -m pip install --upgrade pip
 
 COPY start_dev.sh /home/ubuntu/start_dev.sh
 COPY start.sh /home/ubuntu/start.sh

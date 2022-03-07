@@ -215,19 +215,19 @@ run-hardhat:
 # for example here it should be /path/to/open-aea/repo/build
 .PHONY: run-oracle-dev
 run-oracle-dev:
-	make clean
-	export VERSION=dev
-	make build-images
-	python deployments/click_create.py build-deployment --valory-app oracle_hardhat --deployment-type docker-compose --configure-tendermint
-	cd deployments/build/
+	sudo make clean && \
+	export VERSION=dev  && \
+	make build-images && \
+	python deployments/click_create.py build-deployment --valory-app oracle_hardhat --deployment-type docker-compose --configure-tendermint && \
+	cd deployments/build/ && \
 	docker-compose up --force-recreate
 
 .PHONY: run-oracle
-run-oracle:
-	make clean
-	export VERSION=0.1.0
-	rsync -avu packages/ deployments/Dockerfiles/open_aea/packages
-	make build-images
-	python deployments/click_create.py build-deployment --valory-app oracle_hardhat --deployment-type docker-compose --configure-tendermint
-	cd deployments/build/
+run-oracle: 
+	sudo make clean && \
+	export VERSION=0.1.0 && \
+	rsync -avu packages/ deployments/Dockerfiles/open_aea/packages && \
+	make build-images && \
+	python deployments/click_create.py build-deployment --valory-app oracle_hardhat --deployment-type docker-compose --configure-tendermint && \
+	cd deployments/build/ && \
 	docker-compose up --force-recreate
