@@ -72,16 +72,19 @@ class TestPreprocessing:
         pool2_data["id"] = "test_id"
         test_data = pd.concat([pool1_data, pool2_data])
 
-        pair_data = prepare_pair_data(
+        train_splits, test_splits = prepare_pair_data(
             test_data,
             test_size=0.2,
         )
 
-        for id_, (y_train, y_test) in pair_data.items():
+        assert len(train_splits.keys()) == len(test_splits.keys())
+
+        for (id_train, y_train), (id_test, y_test) in zip(train_splits.items(), test_splits.items()):
             np.allclose(y_train, np.array([0.1, 0.6, 0.7, 0.8]))
             np.allclose(y_test, np.array([0.9, 1.1]))
-            assert id_ in (
-                "0x2b4c76d0dc16be1c31d4c1dc53bf9b45987fc75c", "test_id"
+            assert id_train == id_test
+            assert id_train in (
+                "0x2b4c76d0dc16be1c31d4c1dc53bf9b45987fc75c.csv", "test_id.csv"
             )
 
         # test with wrong block timestamp.
