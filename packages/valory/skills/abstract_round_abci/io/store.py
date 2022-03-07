@@ -101,10 +101,11 @@ class JSONStorer(AbstractStorer):
             raise IOError(str(e)) from e
 
 
-class CSVStorer(AbstractStorer):  # pylint: disable=too-few-public-methods
+class CSVStorer(AbstractStorer):
     """A CSV file storer."""
 
-    def store(self, obj: NativelySupportedObjectType, **kwargs: Any) -> None:
+    @staticmethod
+    def store_single_file(filename: str, obj: NativelySupportedObjectType, **kwargs: Any) -> None:
         """Store a pandas dataframe."""
         if not isinstance(obj, pd.DataFrame):
             raise ValueError(  # pragma: no cover
@@ -114,7 +115,7 @@ class CSVStorer(AbstractStorer):  # pylint: disable=too-few-public-methods
         index = kwargs.get("index", False)
 
         try:
-            obj.to_csv(self._path, index=index)
+            obj.to_csv(filename, index=index)
         except (TypeError, OSError) as e:  # pragma: no cover
             raise IOError(str(e)) from e
 
