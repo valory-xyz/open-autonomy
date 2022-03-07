@@ -139,7 +139,7 @@ class ForecasterStorer(AbstractStorer):
 
 class Storer(
     CSVStorer, ForecasterStorer, JSONStorer
-):  # pylint: disable=too-few-public-methods
+):
     """Class which stores files."""
 
     def __init__(
@@ -180,6 +180,6 @@ class Storer(
             "Please provide either a supported filetype or a custom storing function."
         )
 
-    def store(self, obj: SupportedObjectType, **kwargs: Any) -> None:
-        """Load a file from a given path."""
-        self.storer(obj, **kwargs)  # type: ignore
+    def store(self, obj: SupportedObjectType, multiple: bool, **kwargs: Any) -> None:
+        """Store one or more objects."""
+        self.storer(obj, multiple, **kwargs)  # type: ignore
