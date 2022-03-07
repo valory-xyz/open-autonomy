@@ -495,16 +495,16 @@ class PreprocessBehaviour(APYEstimationBaseState):
         pair_name = ""
 
         if pairs_hist is not None:
-            (y_train, y_test), pair_name = prepare_pair_data(
+            (y_train, y_test), pair_name = prepare_pair_data(  # type: ignore
                 pairs_hist, self.params.pair_ids[0]
             )
             self.context.logger.info("Data have been preprocessed.")
-            self.context.logger.info(f"y_train: {y_train.to_string()}")
-            self.context.logger.info(f"y_test: {y_test.to_string()}")
+            self.context.logger.info(f"y_train: {y_train.to_string()}")  # type: ignore
+            self.context.logger.info(f"y_test: {y_test.to_string()}")  # type: ignore
 
             # Store and hash the preprocessed data.
             for i, (filename, split) in enumerate(
-                {"train": y_train, "test": y_test}.items()
+                {"train": y_train, "test": y_test}.items()  # type: ignore
             ):
                 save_path = os.path.join(
                     self.context.data_dir,
