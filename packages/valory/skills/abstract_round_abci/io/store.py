@@ -36,7 +36,9 @@ from packages.valory.skills.abstract_round_abci.io.paths import create_pathdirs
 StoredJSONType = Union[dict, list]
 NativelySupportedSingleObjectType = Union[StoredJSONType, Pipeline, pd.DataFrame]
 NativelySupportedMultipleObjectsType = Dict[str, NativelySupportedSingleObjectType]
-NativelySupportedObjectType = Union[NativelySupportedSingleObjectType, NativelySupportedMultipleObjectsType]
+NativelySupportedObjectType = Union[
+    NativelySupportedSingleObjectType, NativelySupportedMultipleObjectsType
+]
 NativelySupportedStorerType = Callable[[NativelySupportedObjectType, Any], None]
 CustomSingleObjectType = TypeVar("CustomSingleObjectType")
 CustomMultipleObjectsType = Dict[str, CustomSingleObjectType]
@@ -67,27 +69,31 @@ class AbstractStorer(ABC):
 
     @staticmethod
     @abstractmethod
-    def store_single_file(filename: str, obj: SupportedSingleObjectType) -> None:
+    def store_single_file(filename: str, obj: SupportedSingleObjectType, **kwargs: Any) -> None:
         """Store a single file."""
 
     def store(self, obj: SupportedObjectType, multiple: bool, **kwargs: Any) -> None:
         """Store one or multiple files."""
         if multiple:
             if not isinstance(obj, dict):  # pragma: no cover
-                raise ValueError(f"Cannot store multiple files of type {type(obj)}!"
-                                 f"Should be a dictionary of filenames mapped to their objects.")
+                raise ValueError(
+                    f"Cannot store multiple files of type {type(obj)}!"
+                    f"Should be a dictionary of filenames mapped to their objects."
+                )
             for filename, single_obj in obj.items():
                 filename = os.path.join(self._path, filename)
-                self.store_single_file(filename, single_obj)
+                self.store_single_file(filename, single_obj, **kwargs)
         else:
-            self.store_single_file(self._path, obj)
+            self.store_single_file(self._path, obj, **kwargs)
 
 
 class JSONStorer(AbstractStorer):
     """A JSON file storer."""
 
     @staticmethod
-    def store_single_file(filename: str, obj: NativelySupportedObjectType, **kwargs: Any) -> None:
+    def store_single_file(
+        filename: str, obj: NativelySupportedObjectType, **kwargs: Any
+    ) -> None:
         """Store a JSON."""
         if not any(isinstance(obj, type_) for type_ in (dict, list)):
             raise ValueError(  # pragma: no cover
@@ -105,7 +111,9 @@ class CSVStorer(AbstractStorer):
     """A CSV file storer."""
 
     @staticmethod
-    def store_single_file(filename: str, obj: NativelySupportedObjectType, **kwargs: Any) -> None:
+    def store_single_file(
+        filename: str, obj: NativelySupportedObjectType, **kwargs: Any
+    ) -> None:
         """Store a pandas dataframe."""
         if not isinstance(obj, pd.DataFrame):
             raise ValueError(  # pragma: no cover
@@ -124,7 +132,9 @@ class ForecasterStorer(AbstractStorer):
     """A pmdarima Pipeline storer."""
 
     @staticmethod
-    def store_single_file(filename: str, obj: NativelySupportedObjectType, **kwargs: Any) -> None:
+    def store_single_file(
+        filename: str, obj: NativelySupportedObjectType, **kwargs: Any
+    ) -> None:
         """Store a pmdarima Pipeline."""
         if not isinstance(obj, Pipeline):
             raise ValueError(  # pragma: no cover
@@ -137,9 +147,7 @@ class ForecasterStorer(AbstractStorer):
             raise IOError(str(e)) from e
 
 
-class Storer(
-    CSVStorer, ForecasterStorer, JSONStorer
-):
+class Storer(CSVStorer, ForecasterStorer, JSONStorer):
     """Class which stores files."""
 
     def __init__(

@@ -21,19 +21,19 @@
 import os.path
 from itertools import product
 from pathlib import PosixPath
-from typing import Optional, cast, Dict
+from typing import Dict, Optional, cast
 
 import pandas as pd
 import pytest
 
 from packages.valory.skills.abstract_round_abci.io.store import (
+    CSVStorer,
+    CustomStorerType,
+    ForecasterStorer,
+    JSONStorer,
     Storer,
     SupportedFiletype,
-    CustomStorerType,
     SupportedStorerType,
-    CSVStorer,
-    JSONStorer,
-    ForecasterStorer,
 )
 
 
@@ -98,7 +98,8 @@ class TestStorer:
             for filename, expected_frame in dummy_multiple_obj.items():
                 filepath = os.path.join(tmp_path, filename)
                 saved_frame = pd.read_csv(filepath)
-                expected_frame = expected_frame if index else expected_frame.reset_index(drop=True)
+                expected_frame = expected_frame.reset_index(drop=not index)
+                expected_frame = expected_frame.rename(columns={"index": "Unnamed: 0"}) if index else expected_frame
                 pd.testing.assert_frame_equal(saved_frame, expected_frame)
 
         else:
@@ -106,5 +107,6 @@ class TestStorer:
             storer = Storer(SupportedFiletype.CSV, None, filepath)
             storer.store(dummy_obj, multiple, index=index)
             saved_frame = pd.read_csv(filepath)
-            expected_frame = dummy_obj if index else dummy_obj.reset_index(drop=True)
+            expected_frame = dummy_obj.reset_index(drop=not index)
+            expected_frame = expected_frame.rename(columns={"index": "Unnamed: 0"}) if index else expected_frame
             pd.testing.assert_frame_equal(saved_frame, expected_frame)
