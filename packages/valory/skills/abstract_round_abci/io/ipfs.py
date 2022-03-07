@@ -58,17 +58,22 @@ class IPFSInteract:
     def _send(self, filepath: str) -> str:
         """Send a file to the IPFS node.
 
-        :param filepath: the filepath of the file to send
+        :param filepath: the filepath of the file or folder to send
         :return: the file's hash
         """
         try:
-            _, hist_hash, _ = self.__ipfs_tool.add(filepath)
+            _, hash_, _ = self.__ipfs_tool.add(filepath)
         except ValueError as e:  # pragma: no cover
             raise IPFSInteractionError(str(e)) from e
         finally:
-            os.remove(filepath)
+            if os.path.isfile(filepath):
+                os.remove(filepath)
+            elif os.path.isdir(filepath):
+                os.rmdir(filepath)
+            else:
+                raise IPFSInteractionError(f"`{filepath}` is not an existing filepath!")
 
-        return hist_hash
+        return hash_
 
     def _download(
         self,
