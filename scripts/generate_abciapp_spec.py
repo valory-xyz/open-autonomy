@@ -41,7 +41,7 @@ import logging
 from pathlib import Path
 import re
 import sys
-from typing import IO, Dict, List, Set, Tuple, Type, OrderedDict
+from typing import IO, Dict, List, Set, TextIO, Tuple, Type, OrderedDict
 
 from packages.valory.skills.abstract_round_abci.base import AbciApp
 
@@ -114,8 +114,8 @@ class DFA:
         json.dump(dfa_json, fp, indent=4)
 
 
-    @staticmethod
-    def _list_to_set(l: List[str]) -> Set[str]:
+    @classmethod
+    def _list_to_set(cls, l: List[str]) -> Set[str]:
         """Converts a list to a set and ensures that it does not contain repetitions."""
         if not isinstance(l, List):
             raise DFASpecificationError(f'DFA spec. object {l} is not of type List.')
@@ -124,8 +124,8 @@ class DFA:
         return set(l)
 
 
-    @staticmethod
-    def _str_to_tuple(k: str) -> Tuple[str, str]:
+    @classmethod
+    def _str_to_tuple(cls, k: str) -> Tuple[str, str]:
         """Converts a string in format "(a, b)" to a tuple ("a", "b")."""
         match = re.search(r"\((\w*),\s(\w*)\)", k, re.DOTALL)
         
@@ -135,8 +135,8 @@ class DFA:
         return (match.group(1), match.group(2))
 
 
-    @staticmethod
-    def json_to_dfa(fp) -> 'DFA': #TODO Type for fp?
+    @classmethod
+    def json_to_dfa(cls, fp: TextIO) -> 'DFA':
         """Loads a DFA JSON specification from file."""
         dfa_json = json.load(fp)
         label = dfa_json.pop('label')
@@ -152,8 +152,8 @@ class DFA:
         
         return DFA(label, states, defaultStartState, startStates, finalStates, alphabetIn, transitionFunc)
 
-    @staticmethod
-    def abci_to_dfa(abci_app_cls: Type[AbciApp], label: str = None) -> 'DFA':
+    @classmethod
+    def abci_to_dfa(cls, abci_app_cls: Type[AbciApp], label: str = None) -> 'DFA':
         """Translates an AbciApp class into a DFA."""
 
         trf = abci_app_cls.transition_function
