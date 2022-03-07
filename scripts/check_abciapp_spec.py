@@ -74,8 +74,9 @@ def main() -> None:
     arguments = parse_arguments()
     module_name, class_name = arguments.classfqn.rsplit('.', 1)
     module = importlib.import_module(module_name)
-    assert hasattr(module, class_name), f'Class "{class_name}" is not in "{module_name}".'
-    abci_app_cls = getattr(module, class_name)
+    
+    if not hasattr(module, class_name):
+        raise Exception(f'Class "{class_name}" is not in "{module_name}".')    abci_app_cls = getattr(module, class_name)
 
     dfa1 = DFA.abci_to_dfa(abci_app_cls, arguments.classfqn)
     dfa2 = DFA.json_to_dfa(arguments.infile)

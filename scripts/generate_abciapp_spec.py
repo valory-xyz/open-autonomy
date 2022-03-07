@@ -38,13 +38,18 @@ import argparse
 import importlib
 import json
 import logging
-import sys
-import re
-from itertools import product
 from pathlib import Path
+import re
+import sys
 from typing import IO, Dict, List, Set, Tuple, Type, OrderedDict
 
 from packages.valory.skills.abstract_round_abci.base import AbciApp
+
+
+
+
+class DFASpecificationError(Exception):
+    pass
 
 
 class DFA:
@@ -53,12 +58,19 @@ class DFA:
         transitionFuncAlphabetIn = set([q for (_, q) in transitionFunc.keys()])
         transitionFuncStates = set([s for (s, _) in transitionFunc.keys()]) | set(transitionFunc.values())
 
-        assert states.issubset(startStates | set(transitionFunc.values())), f"DFA spec. contains orphan states."
-        assert transitionFuncStates.issubset(states), f"DFA spec. transition function contains unexpected states: {transitionFuncStates-states}."
-        assert transitionFuncAlphabetIn.issubset(alphabetIn), f"DFA spec. transition function contains unexpected input symbols: {transitionFuncAlphabetIn-alphabetIn}."
-        assert defaultStartState in startStates, f"DFA spec. default start state is not in start states set."
-        assert startStates.issubset(states), f"DFA spec. start state set contains unexpected states: {startStates-states}"
-        assert finalStates.issubset(states), f"DFA spec. final state set contains unexpected states: {finalStates-states}"
+        orphan_states = states - (startStates | set(transitionFunc.values()))
+        if orphan_states:
+            raise DFASpecificationError(f"DFA spec. contains orphan states: {orphan_states}.")
+        if not transitionFuncStates.issubset(states):
+            raise DFASpecificationError(f"DFA spec. transition function contains unexpected states: {transitionFuncStates-states}.")
+        if not transitionFuncAlphabetIn.issubset(alphabetIn):
+            raise DFASpecificationError(f"DFA spec. transition function contains unexpected input symbols: {transitionFuncAlphabetIn-alphabetIn}.")
+        if defaultStartState not in startStates:
+            raise DFASpecificationError(f"DFA spec. default start state is not in start states set.")
+        if not startStates.issubset(states):
+            raise DFASpecificationError(f"DFA spec. start state set contains unexpected states: {startStates-states}")
+        if not finalStates.issubset(states):
+            raise DFASpecificationError(f"DFA spec. final state set contains unexpected states: {finalStates-states}")
 
         self.label = label
         self.states = states
@@ -103,8 +115,10 @@ class DFA:
     @staticmethod
     def _list_to_set(l: List[str]) -> Set[str]:
         """Converts a list to a set and ensures that it does not contain repetitions."""
-        assert isinstance(l, List), f'Object {l} is not of type List.'
-        assert len(l) == len(set(l)), f'List {l} contains repeated values.'
+        if not isinstance(l, List):
+            raise DFASpecificationError(f'DFA spec. object {l} is not of type List.')
+        if len(l) != len(set(l)):
+            raise DFASpecificationError(f'DFA spec. List {l} contains repeated values.')
         return set(l)
 
 
@@ -112,7 +126,10 @@ class DFA:
     def _str_to_tuple(k: str) -> Tuple[str, str]:
         """Converts a string in format "(a, b)" to a tuple ("a", "b")."""
         match = re.search(r"\((\w*),\s(\w*)\)", k, re.DOTALL)
-        assert match is not None, f'Invalid DFA JSON spec.: {k} is not a valid transition function key.'
+        
+        if match is None:
+            raise DFASpecificationError(f'DFA spec. JSON file contains an invalid transition function key: {k}.')
+        
         return (match.group(1), match.group(2))
 
 
@@ -128,7 +145,9 @@ class DFA:
         alphabetIn = DFA._list_to_set(dfa_json.pop('alphabetIn'))
         transitionFunc = {DFA._str_to_tuple(k) : v for k, v in dfa_json.pop('transitionFunc').items()}
 
-        assert len(dfa_json) == 0, f'Invalid DFA JSON spec.: it contains unexpected objects: {dfa_json.keys()}.'
+        if len(dfa_json) != 0:
+            raise DFASpecificationError(f'DFA spec. JSON file contains unexpected objects: {dfa_json.keys()}.')
+        
         return DFA(label, states, defaultStartState, startStates, finalStates, alphabetIn, transitionFunc)
 
     @staticmethod
@@ -185,7 +204,10 @@ def main() -> None:
     arguments = parse_arguments()
     module_name, class_name = arguments.classfqn.rsplit('.', 1)
     module = importlib.import_module(module_name)
-    assert hasattr(module, class_name), f'Class "{class_name}" is not in "{module_name}".'
+    
+    if not hasattr(module, class_name):
+        raise Exception(f'Class "{class_name}" is not in "{module_name}".')
+    
     abci_app_cls = getattr(module, class_name)
     dfa = DFA.abci_to_dfa(abci_app_cls, arguments.classfqn)
     dfa.dump(arguments.outfile)
