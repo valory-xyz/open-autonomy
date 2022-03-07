@@ -523,8 +523,9 @@ async def test_varint_message_reader() -> None:
     with mock.patch.object(
         _TendermintABCISerializer, "decode_varint", new=patch_decode_varint(10)
     ):
-        with pytest.raises(ShortBufferLengthError):
-            await vmr.read_next_message()
+        with mock.patch.object(vmr, "read_until", return_value=b""):
+            with pytest.raises(ShortBufferLengthError):
+                await vmr.read_next_message()
 
     with mock.patch.object(
         _TendermintABCISerializer, "decode_varint", new=patch_decode_varint(5)
