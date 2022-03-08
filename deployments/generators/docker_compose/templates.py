@@ -82,6 +82,9 @@ TENDERMINT_NODE_TEMPLATE: str = (
       - ./build:/tendermint:Z
     working_dir: /tendermint
     command: ["run", "--no-reload", "--host=0.0.0.0", "--port=8080",]
+    depends_on:
+      abci{node_id}:
+        condition: service_healthy
     networks:
       localnet:
         ipv4_address: 192.167.11.{localnet_address_postfix}
@@ -102,8 +105,6 @@ ABCI_NODE_TEMPLATE: str = (
     networks:
       localnet:
         ipv4_address: 192.167.11.{localnet_address_postfix}
-    depends_on:
-      - node{node_id}
     volumes:
       - ./logs/:/logs:z
 """

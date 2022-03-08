@@ -37,7 +37,7 @@ from watchdog.observers import Observer
 ID = os.environ.get("ID")
 MAX_PARTICIPANTS = int(os.environ.get("MAX_PARTICIPANTS", "0"))
 ROOT = "/home/ubuntu"
-AGENT_DIR = ROOT + "agent"
+AGENT_DIR = ROOT + "/agent"
 PACKAGES_PATH = "/home/ubuntu/packages"
 OPEN_AEA_PATH = "/open-aea"
 BASE_START_FILE = "/home/ubuntu/start.sh"
@@ -90,8 +90,11 @@ class AEARunner:
     def restart_tendermint() -> None:
         """Restart respective tendermint node."""
         write("Restarting Tendermint.")
-        response = requests.get(TENDERMINT_COM_URL + "/hard_reset")
-        assert response.status_code == 200
+        try:
+            response = requests.get(TENDERMINT_COM_URL + "/hard_reset")
+            assert response.status_code == 200
+        except requests.exceptions.ConnectionError:
+            write("Tendermint node not yet available.")
 
     def start(
         self,
@@ -154,7 +157,9 @@ class EventHandler(FileSystemEventHandler):
     @staticmethod
     def clean_up() -> None:
         """Clean up from previous run."""
-        if os.path.isdir(AGENT_DIR):
+        os.chdir(ROOT)
+        if Path(AGENT_DIR).exists():
+            write("removing aea dir.")
             shutil.rmtree(AGENT_DIR)
 
     def on_any_event(self, event: FileSystemEvent) -> None:
