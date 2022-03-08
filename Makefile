@@ -1,5 +1,5 @@
-OPEN_AEA_BUILD_PATH := "../open-aea/build"
-OPEN_AEA_BUILD_DIR := $(shell ls ${OPEN_AEA_BUILD_PATH})
+OPEN_AEA_REPO_PATH := "${OPEN_AEA_REPO_PATH}"
+
 .PHONY: clean
 clean: clean-build clean-pyc clean-test clean-docs
 
@@ -217,14 +217,21 @@ run-hardhat:
 # for example here it should be /path/to/open-aea/repo/build
 .PHONY: run-oracle-dev
 run-oracle-dev:
-	if [ "${OPEN_AEA_BUILD_DIR}" != "" ]; then \
-		echo "Please remove ${OPEN_AEA_BUILD_PATH} manually."
+	if [ "${OPEN_AEA_REPO_DIR}" = "" ];\
+	then\
+		echo "Please ensure you have set the environment variable 'OPEN_AEA_REPO_DIR'"
 		exit 1
 	fi
-	export VERSION=dev
-	make build-images && \
-     	python deployments/click_create.py build-deployment --valory-app oracle_hardhat --deployment-type docker-compose --configure-tendermint && \
-     	make run-deploy
+	if [ "$(shell ls ${OPEN_AEA_REPO_DIR})" != "" ];\
+	then \
+		echo "Please remove ${OPEN_AEA_REPO_DIR}/build manually."
+		exit 1
+	fi
+
+#	export VERSION=dev
+#	make build-images && \
+#     	python deployments/click_create.py build-deployment --valory-app oracle_hardhat --deployment-type docker-compose --configure-tendermint && \
+#     	make run-deploy
 
 .PHONY: run-oracle
 run-oracle:
