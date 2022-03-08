@@ -39,7 +39,7 @@ NativelySupportedMultipleObjectsType = Dict[str, NativelySupportedSingleObjectTy
 NativelySupportedObjectType = Union[
     NativelySupportedSingleObjectType, NativelySupportedMultipleObjectsType
 ]
-NativelySupportedStorerType = Callable[[NativelySupportedObjectType, Any], None]
+NativelySupportedStorerType = Callable[[NativelySupportedObjectType, bool, Any], None]
 CustomSingleObjectType = TypeVar("CustomSingleObjectType")
 CustomMultipleObjectsType = Dict[str, CustomSingleObjectType]
 CustomObjectType = Union[CustomSingleObjectType, CustomMultipleObjectsType]
