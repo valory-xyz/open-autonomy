@@ -21,6 +21,7 @@
 
 
 import os
+from shutil import rmtree
 from typing import Any, Optional
 
 from aea_cli_ipfs.ipfs_utils import DownloadError, IPFSTool, NodeError
@@ -61,8 +62,8 @@ class IPFSInteract:
         if os.path.isfile(filepath):
             os.remove(filepath)
         elif os.path.isdir(filepath):
-            os.rmdir(filepath)
-        else:
+            rmtree(filepath)
+        else:  # pragma: no cover
             raise IPFSInteractionError(f"`{filepath}` is not an existing filepath!")
 
     def _send(self, filepath: str) -> str:
