@@ -148,6 +148,6 @@ class IPFSInteract:
         loader = Loader(filetype, custom_loader)
 
         try:
-            return loader.load(filepath)
+            return loader.load(filepath, multiple)
         except IOError as e:  # pragma: no cover
             raise IPFSInteractionError(str(e)) from e
