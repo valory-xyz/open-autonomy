@@ -9,7 +9,7 @@ This module contains the shared state for the price estimation app ABCI applicat
 ## Params Objects
 
 ```python
-class Params(OracleParams,  TransactionParams)
+class Params(OracleParams, TransactionParams)
 ```
 
 Parameters.

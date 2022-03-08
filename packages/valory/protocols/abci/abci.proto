@@ -6,9 +6,9 @@ message AbciMessage{
 
   // Custom Types
   message CheckTxType{
-    enum _CheckTxType {
-      NEW            = 0;
-      RECHECK        = 1;
+    enum  {
+      _CHECKTXTYPE_NEW            = 0;
+      _CHECKTXTYPE_RECHECK        = 1;
     }
     _CheckTxType type = 1;
   }
@@ -55,9 +55,9 @@ message AbciMessage{
   message Evidences{
     message Evidence {
       enum EvidenceType {
-        UNKNOWN             = 0;
-        DUPLICATE_VOTE      = 1;
-        LIGHT_CLIENT_ATTACK = 2;
+        EVIDENCE_TYPE_UNKNOWN             = 0;
+        EVIDENCE_TYPE_DUPLICATE_VOTE      = 1;
+        EVIDENCE_TYPE_LIGHT_CLIENT_ATTACK = 2;
       }
       EvidenceType type = 1;
       // The offending validator
@@ -136,12 +136,12 @@ message AbciMessage{
 
   message Result{
     enum ResultType {
-      UNKNOWN       = 0;  // Unknown result, abort all snapshot restoration
-      ACCEPT        = 1;  // Snapshot accepted, apply chunks
-      ABORT         = 2;  // Abort all snapshot restoration
-      REJECT        = 3;  // Reject this specific snapshot, try others
-      REJECT_FORMAT = 4;  // Reject all snapshots of this format, try others
-      REJECT_SENDER = 5;  // Reject all snapshots from the sender(s), try others
+      RESULT_TYPE_UNKNOWN       = 0;  // Unknown result, abort all snapshot restoration
+      RESULT_TYPE_ACCEPT        = 1;  // Snapshot accepted, apply chunks
+      RESULT_TYPE_ABORT         = 2;  // Abort all snapshot restoration
+      RESULT_TYPE_REJECT        = 3;  // Reject this specific snapshot, try others
+      RESULT_TYPE_REJECT_FORMAT = 4;  // Reject all snapshots of this format, try others
+      RESULT_TYPE_REJECT_SENDER = 5;  // Reject all snapshots from the sender(s), try others
     }
     ResultType result_type = 1;
   }

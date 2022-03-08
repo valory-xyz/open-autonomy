@@ -89,7 +89,7 @@ Handle the 'commit' request.
 ## AbstractResponseHandler Objects
 
 ```python
-class AbstractResponseHandler(Handler,  ABC)
+class AbstractResponseHandler(Handler, ABC)
 ```
 
 Abstract response Handler.
