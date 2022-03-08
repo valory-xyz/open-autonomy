@@ -30,7 +30,7 @@ valory/consensus-algorithms-tendermint:0.1.0 \
 """
 
 
-DOCKER_COMPOSE_TEMPLATE: str = """version: "3"
+DOCKER_COMPOSE_TEMPLATE: str = """version: "2.4"
 services:
 {tendermint_nodes}
 {abci_nodes}
@@ -57,6 +57,9 @@ HARDHAT_NODE_TEMPLATE: str = """
 
 TENDERMINT_NODE_TEMPLATE: str = """
   node{node_id}:
+    mem_limit: 1024m
+    mem_reservation: 256M
+    cpus: 0.5
     container_name: node{node_id}
     image: "valory/consensus-algorithms-tendermint:0.1.0"
     environment:
@@ -76,6 +79,9 @@ TENDERMINT_NODE_TEMPLATE: str = """
 
 ABCI_NODE_TEMPLATE: str = """
   abci{node_id}:
+    mem_limit: 1024m
+    mem_reservation: 256M
+    cpus: 0.5
     container_name: abci{node_id}
     image: "valory/consensus-algorithms-open-aea:0.1.0"
     volumes:
