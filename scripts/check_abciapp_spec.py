@@ -40,6 +40,7 @@ import argparse
 import importlib
 import logging
 from pathlib import Path
+
 from generate_abciapp_spec import DFA
 
 

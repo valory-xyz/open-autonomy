@@ -36,15 +36,15 @@ required arguments:
 """
 
 import argparse
-from enum import Enum
 import importlib
-from itertools import product
 import json
 import logging
-from pathlib import Path
 import re
 import sys
-from typing import IO, Dict, List, Set, TextIO, Tuple, Type, OrderedDict
+from enum import Enum
+from itertools import product
+from pathlib import Path
+from typing import Dict, IO, List, OrderedDict, Set, TextIO, Tuple, Type
 
 import yaml
 
