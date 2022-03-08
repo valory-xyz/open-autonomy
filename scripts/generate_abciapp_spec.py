@@ -52,23 +52,47 @@ class DFASpecificationError(Exception):
 
 class DFA:
     """Simple specification of a deterministic finite automaton (DFA)."""
-    def __init__(self, label: str, states: Set[str], default_start_state: str, start_states: Set[str], final_states: Set[str], alphabet_in: Set[str], transition_func: Dict[Tuple[str, str], str]):
-        transition_func_states, transition_func_alphabet_in = map(set, (zip(*transition_func.keys())))
+
+    def __init__(
+        self,
+        label: str,
+        states: Set[str],
+        default_start_state: str,
+        start_states: Set[str],
+        final_states: Set[str],
+        alphabet_in: Set[str],
+        transition_func: Dict[Tuple[str, str], str],
+    ):
+        transition_func_states, transition_func_alphabet_in = map(
+            set, (zip(*transition_func.keys()))
+        )
         transition_func_states.update(transition_func.values())
 
         orphan_states = states - (start_states | set(transition_func.values()))
         if orphan_states:
-            raise DFASpecificationError(f"DFA spec. contains orphan states: {orphan_states}.")
+            raise DFASpecificationError(
+                f"DFA spec. contains orphan states: {orphan_states}."
+            )
         if not transition_func_states.issubset(states):
-            raise DFASpecificationError(f"DFA spec. transition function contains unexpected states: {transition_func_states-states}.")
+            raise DFASpecificationError(
+                f"DFA spec. transition function contains unexpected states: {transition_func_states-states}."
+            )
         if not transition_func_alphabet_in.issubset(alphabet_in):
-            raise DFASpecificationError(f"DFA spec. transition function contains unexpected input symbols: {transition_func_alphabet_in-alphabet_in}.")
+            raise DFASpecificationError(
+                f"DFA spec. transition function contains unexpected input symbols: {transition_func_alphabet_in-alphabet_in}."
+            )
         if default_start_state not in start_states:
-            raise DFASpecificationError(f"DFA spec. default start state is not in start states set.")
+            raise DFASpecificationError(
+                f"DFA spec. default start state is not in start states set."
+            )
         if not start_states.issubset(states):
-            raise DFASpecificationError(f"DFA spec. start state set contains unexpected states: {start_states-states}")
+            raise DFASpecificationError(
+                f"DFA spec. start state set contains unexpected states: {start_states-states}"
+            )
         if not final_states.issubset(states):
-            raise DFASpecificationError(f"DFA spec. final state set contains unexpected states: {final_states-states}")
+            raise DFASpecificationError(
+                f"DFA spec. final state set contains unexpected states: {final_states-states}"
+            )
 
         self.label = label
         self.states = states
@@ -78,13 +102,13 @@ class DFA:
         self.alphabet_in = alphabet_in
         self.transition_func = transition_func
 
-
     def is_transition_func_total(self) -> bool:
         """Outputs True if the transition function of the DFA is total."""
-        if set(product(*[self.states, self.alphabetIn])) == set(self.transitionFunc.keys()):
+        if set(product(*[self.states, self.alphabet_in])) == set(
+            self.transition_func.keys()
+        ):
             return True
         return False
-    
 
     def get_transitions(self, input_sequence: List[str]) -> List[str]:
         """Runs the DFA given the input sequence of symbols, and outputs the list of state transitions."""
@@ -98,86 +122,119 @@ class DFA:
                 transitions.append(state)
         return transitions
 
-
     def __eq__(self, other):
         if not isinstance(other, DFA):
-            return NotImplemented # Try reflected operation        
+            return NotImplemented  # Try reflected operation
         return self.__dict__ == other.__dict__
 
-
-    def dump(self, fp: IO[str]) -> None:
+    def dump_json(self, fp: IO[str]) -> None:
         """Dumps this DFA spec. to a file in JSON format."""
         dfa_json = {}
         for k, v in self.__dict__.items():
             if isinstance(v, Set):
                 dfa_json[k] = sorted(v)
             elif isinstance(v, Dict):
-                dfa_json[k] = {str(k2).replace("'", "") : v2 for k2, v2 in v.items()}
+                dfa_json[k] = {str(k2).replace("'", ""): v2 for k2, v2 in v.items()}
             else:
                 dfa_json[k] = v
         json.dump(dfa_json, fp, indent=4)
-
 
     @classmethod
     def _norep_list_to_set(cls, l: List[str]) -> Set[str]:
         """Converts a list to a set and ensures that it does not contain repetitions."""
         if not isinstance(l, List):
-            raise DFASpecificationError(f'DFA spec. object {l} is not of type List.')
+            raise DFASpecificationError(f"DFA spec. object {l} is not of type List.")
         if len(l) != len(set(l)):
-            raise DFASpecificationError(f'DFA spec. List {l} contains repeated values.')
+            raise DFASpecificationError(f"DFA spec. List {l} contains repeated values.")
         return set(l)
-
 
     @classmethod
     def _str_to_tuple(cls, k: str) -> Tuple[str, str]:
         """Converts a string in format "(a, b)" to a tuple ("a", "b")."""
         match = re.search(r"\((\w*),\s(\w*)\)", k, re.DOTALL)
-        
+
         if match is None:
-            raise DFASpecificationError(f'DFA spec. JSON file contains an invalid transition function key: {k}.')
-        
+            raise DFASpecificationError(
+                f"DFA spec. JSON file contains an invalid transition function key: {k}."
+            )
+
         return (match.group(1), match.group(2))
 
-
     @classmethod
-    def json_to_dfa(cls, fp: TextIO) -> 'DFA':
+    def json_to_dfa(cls, fp: TextIO) -> "DFA":
         """Loads a DFA JSON specification from file."""
         dfa_json = json.load(fp)
-        
+
         try:
-            label = dfa_json.pop('label')
-            states = DFA._norep_list_to_set(dfa_json.pop('states'))
-            default_start_state = dfa_json.pop('default_start_state')
-            start_states = DFA._norep_list_to_set(dfa_json.pop('start_states'))
-            final_states = DFA._norep_list_to_set(dfa_json.pop('final_states'))
-            alphabet_in = DFA._norep_list_to_set(dfa_json.pop('alphabet_in'))
-            transition_func = {DFA._str_to_tuple(k) : v for k, v in dfa_json.pop('transition_func').items()}
+            label = dfa_json.pop("label")
+            states = DFA._norep_list_to_set(dfa_json.pop("states"))
+            default_start_state = dfa_json.pop("default_start_state")
+            start_states = DFA._norep_list_to_set(dfa_json.pop("start_states"))
+            final_states = DFA._norep_list_to_set(dfa_json.pop("final_states"))
+            alphabet_in = DFA._norep_list_to_set(dfa_json.pop("alphabet_in"))
+            transition_func = {
+                DFA._str_to_tuple(k): v
+                for k, v in dfa_json.pop("transition_func").items()
+            }
         except KeyError as ke:
-            raise DFASpecificationError(f'DFA spec. JSON file missing key.') from ke
+            raise DFASpecificationError(f"DFA spec. JSON file missing key.") from ke
 
         if len(dfa_json) != 0:
-            raise DFASpecificationError(f'DFA spec. JSON file contains unexpected objects: {dfa_json.keys()}.')
-        
-        return DFA(label, states, default_start_state, start_states, final_states, alphabet_in, transition_func)
+            raise DFASpecificationError(
+                f"DFA spec. JSON file contains unexpected objects: {dfa_json.keys()}."
+            )
+
+        return DFA(
+            label,
+            states,
+            default_start_state,
+            start_states,
+            final_states,
+            alphabet_in,
+            transition_func,
+        )
 
     @classmethod
-    def abci_to_dfa(cls, abci_app_cls: Type[AbciApp], label: str = None) -> 'DFA':
+    def abci_to_dfa(cls, abci_app_cls: Type[AbciApp], label: str = "") -> "DFA":
         """Translates an AbciApp class into a DFA."""
 
         trf = abci_app_cls.transition_function
 
-        label = label if label else abci_app_cls.__module__ + "." + abci_app_cls.__name__
+        label = (
+            label
+            if label != ""
+            else abci_app_cls.__module__ + "." + abci_app_cls.__name__
+        )
         default_start_state = abci_app_cls.initial_round_cls.__name__
-        start_states = DFA._norep_list_to_set([s.__name__ for s in abci_app_cls.initial_states])
+        start_states = DFA._norep_list_to_set(
+            [s.__name__ for s in abci_app_cls.initial_states]
+        )
         start_states = start_states if start_states else {default_start_state}
-        final_states = DFA._norep_list_to_set([s.__name__ for s in abci_app_cls.final_states])
-        states = DFA._norep_list_to_set([k.__name__ for k in trf]) \
-            | {s.__name__ for k in trf for s in trf[k].values()} \
-            | start_states | final_states
-        alphabet_in = {str(s).rsplit('.', 1)[1] for k in trf for s in trf[k].keys()}
-        transition_func = {(k.__name__, str(s).rsplit('.', 1)[1]): trf[k][s].__name__ for k in trf for s in trf[k]}
+        final_states = DFA._norep_list_to_set(
+            [s.__name__ for s in abci_app_cls.final_states]
+        )
+        states = (
+            DFA._norep_list_to_set([k.__name__ for k in trf])
+            | {s.__name__ for k in trf for s in trf[k].values()}
+            | start_states
+            | final_states
+        )
+        alphabet_in = {str(s).rsplit(".", 1)[1] for k in trf for s in trf[k].keys()}
+        transition_func = {
+            (k.__name__, str(s).rsplit(".", 1)[1]): trf[k][s].__name__
+            for k in trf
+            for s in trf[k]
+        }
         transition_func = OrderedDict(sorted(transition_func.items()))
-        return DFA(label, states, default_start_state, start_states, final_states, alphabet_in, transition_func)
+        return DFA(
+            label,
+            states,
+            default_start_state,
+            start_states,
+            final_states,
+            alphabet_in,
+            transition_func,
+        )
 
 
 def parse_arguments() -> argparse.Namespace:
@@ -185,21 +242,22 @@ def parse_arguments() -> argparse.Namespace:
     script_name = Path(__file__).name
     parser = argparse.ArgumentParser(
         script_name,
-        description=f"Generates the specification for a given ABCI app in JSON format using a simplified syntax for " \
-            "deterministic finite automata (DFA). Example usage:\n" \
-            f"./{script_name} -c packages.valory.skills.registration_abci.rounds.AgentRegistrationAbciApp -o output.json")
-    required = parser.add_argument_group('required arguments')
+        description=f"Generates the specification for a given ABCI app in JSON format using a simplified syntax for "
+        "deterministic finite automata (DFA). Example usage:\n"
+        f"./{script_name} -c packages.valory.skills.registration_abci.rounds.AgentRegistrationAbciApp -o output.json",
+    )
+    required = parser.add_argument_group("required arguments")
     required.add_argument(
         "-c",
         "--classfqn",
         type=str,
         required=True,
-        help="ABCI App class fully qualified name."
+        help="ABCI App class fully qualified name.",
     )
     parser.add_argument(
         "-o",
         "--outfile",
-        type=argparse.FileType('w'),
+        type=argparse.FileType("w"),
         required=False,
         default=sys.stdout,
         help="Output file name.",
@@ -210,17 +268,17 @@ def parse_arguments() -> argparse.Namespace:
 
 def main() -> None:
     """Execute the script."""
-    logging.basicConfig(format='%(levelname)s: %(message)s', level=logging.INFO)
+    logging.basicConfig(format="%(levelname)s: %(message)s", level=logging.INFO)
     arguments = parse_arguments()
-    module_name, class_name = arguments.classfqn.rsplit('.', 1)
+    module_name, class_name = arguments.classfqn.rsplit(".", 1)
     module = importlib.import_module(module_name)
-    
+
     if not hasattr(module, class_name):
         raise Exception(f'Class "{class_name}" is not in "{module_name}".')
-    
+
     abci_app_cls = getattr(module, class_name)
     dfa = DFA.abci_to_dfa(abci_app_cls, arguments.classfqn)
-    dfa.dump(arguments.outfile)
+    dfa.dump_json(arguments.outfile)
     print()
     logging.info("Done.")
 

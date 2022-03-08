@@ -46,21 +46,22 @@ def parse_arguments() -> argparse.Namespace:
     script_name = Path(__file__).name
     parser = argparse.ArgumentParser(
         script_name,
-        description=f"Checks that a given ABCI app matches a specification in JSON format using a simplified syntax for " \
-            "deterministic finite automata (DFA). Example usage:\n" \
-            f"./{script_name} -c packages.valory.skills.registration_abci.rounds.AgentRegistrationAbciApp -i input.json")
-    required = parser.add_argument_group('required arguments')
+        description=f"Checks that a given ABCI app matches a specification in JSON format using a simplified syntax for "
+        "deterministic finite automata (DFA). Example usage:\n"
+        f"./{script_name} -c packages.valory.skills.registration_abci.rounds.AgentRegistrationAbciApp -i input.json",
+    )
+    required = parser.add_argument_group("required arguments")
     required.add_argument(
         "-c",
         "--classfqn",
         type=str,
         required=True,
-        help="ABCI App class fully qualified name."
+        help="ABCI App class fully qualified name.",
     )
     required.add_argument(
         "-i",
         "--infile",
-        type=argparse.FileType('r'),
+        type=argparse.FileType("r"),
         required=True,
         help="Input file name.",
     )
@@ -70,14 +71,14 @@ def parse_arguments() -> argparse.Namespace:
 
 def main() -> None:
     """Execute the script."""
-    logging.basicConfig(format='%(levelname)s: %(message)s', level=logging.INFO)
+    logging.basicConfig(format="%(levelname)s: %(message)s", level=logging.INFO)
     arguments = parse_arguments()
-    module_name, class_name = arguments.classfqn.rsplit('.', 1)
+    module_name, class_name = arguments.classfqn.rsplit(".", 1)
     module = importlib.import_module(module_name)
-    
+
     if not hasattr(module, class_name):
         raise Exception(f'Class "{class_name}" is not in "{module_name}".')
-    
+
     abci_app_cls = getattr(module, class_name)
 
     dfa1 = DFA.abci_to_dfa(abci_app_cls, arguments.classfqn)
