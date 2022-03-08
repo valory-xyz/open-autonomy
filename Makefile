@@ -5,10 +5,10 @@ clean: clean-build clean-pyc clean-test clean-docs
 
 .PHONY: clean-build
 clean-build:
-	rm -fr deployments/build
 	rm -fr build/
 	rm -fr dist/
 	rm -fr .eggs/
+	rm -fr deployments/build
 	rm -fr deployments/Dockerfiles/open_aea/packages
 	rm -fr pip-wheel-metadata
 	find . -name '*.egg-info' -exec rm -fr {} +
