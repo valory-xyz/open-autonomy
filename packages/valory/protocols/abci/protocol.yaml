@@ -9,7 +9,7 @@ aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
   README.md: QmYfSPTFPCvNK4BGhdURetQnDVMLmnf89ozmg6Jc4iVrSH
   __init__.py: QmdvYuaieVRvuX91eQQN5EmwgFSMfWhbGGj7SfKMFx1R3Y
-  abci.proto: QmemsyHHehhPXHNwGZP55UBZdvYzWUTnaFLQof3vsbfmQR
+  abci.proto: QmWaC3D9AJxSz91jhUnCfktWZG8yURyy6Hexkd1y1UVfP4
   abci_pb2.py: QmdpyeCi5RUADA5VHHHfGMF7fmEGtrKGEiF7jor6H7Kx6c
   custom_types.py: QmfKxBAJuH7zW5mZPup3DAanYuNCMH8RENv8AMsdqDkQcj
   dialogues.py: Qmc3eR6APrjEqJgaxRMJ8wYDKG8VfJS4WhtLs4aaCtk1P6
