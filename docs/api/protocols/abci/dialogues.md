@@ -59,7 +59,7 @@ Initialize a dialogue.
 ## AbciDialogues Objects
 
 ```python
-class AbciDialogues(Dialogues,  ABC)
+class AbciDialogues(Dialogues, ABC)
 ```
 
 This class keeps track of all abci dialogues.

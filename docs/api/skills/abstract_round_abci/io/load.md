@@ -114,8 +114,7 @@ the deserialized json file's content.
 ## Loader Objects
 
 ```python
-class Loader(
-    CSVLoader,  ForecasterLoader,  JSONLoader)
+class Loader(CSVLoader, ForecasterLoader, JSONLoader)
 ```
 
 Class which loads files.
