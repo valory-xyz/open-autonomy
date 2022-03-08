@@ -43,8 +43,18 @@ Now we have our images, we need to build the deployment to use them.
 
 ```bash
 pipenv shell
-python deployments/click_create.py build-deployment --deployment-type docker-compose  --valory-app oracle_ropsten --keys-file-path deployments/deployment_specifications/ropsten_keys.txt
+python deployments/click_create.py build-deployment --deployment-type docker-compose  --valory-app oracle_ropsten --keys-file-path deployments/keys/ropsten_keys.txt
 ```
+We can additionally specify a file path as so;
+
+```bash
+pipenv shell
+python deployments/click_create.py build-deployment \
+  --deployment-type docker-compose  \
+  --keys-file-path deployments/keys/ropsten_keys.txt \
+  --deployment-file-path deployments/deployment_specifications/price_estimation_ropsten.yaml 
+```
+
 
 ```output
 To configure tendermint for deployment please run: 
@@ -119,3 +129,5 @@ or
 ```bash
 for i in {1..4}; do scp root@178.62.4.138:node_${i}.txt node_${i}.txt; done
 ```
+
+

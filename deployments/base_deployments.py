@@ -54,9 +54,9 @@ from aea.helpers.io import open_file
 
 from deployments.constants import (
     CONFIG_DIRECTORY,
+    DEFAULT_KEY_PATH,
     NETWORKS,
     PACKAGES_DIRECTORY,
-    get_key,
 )
 
 
@@ -313,8 +313,13 @@ class BaseDeployment:
     agent: str
     network: str
     number_of_agents: int
+    private_keys: list
 
-    def __init__(self, path_to_deployment_spec: str) -> None:
+    def __init__(
+        self,
+        path_to_deployment_spec: str,
+        private_keys_file_path: Path = DEFAULT_KEY_PATH,
+    ) -> None:
         """Initialize the Base Deployment."""
         self.overrides: list = []
         self.validator = DeploymentConfigValidator(
@@ -331,6 +336,16 @@ class BaseDeployment:
         self.__dict__.update(self.deployment_spec)
         self.agent_public_id = PublicId.from_str(self.agent)
         self.agent_spec = self.load_agent()
+        self.read_keys(private_keys_file_path)
+
+    def read_keys(self, file_path: Path) -> None:
+        """Read in keys from a file on disk."""
+        with open(str(file_path), "r", encoding="utf8") as f:
+            keys = json.loads(f.read())
+        for key in keys:
+            assert "address" in key.keys(), "Key file incorrectly formatted."
+            assert "private_key" in key.keys(), "Key file incorrectly formatted."
+        self.private_keys = [f["private_key"] for f in keys]
 
     def _process_model_args_overrides(self, agent_n: int) -> Dict:
         """Generates env vars based on model overrides."""
@@ -349,7 +364,7 @@ class BaseDeployment:
     def generate_common_vars(self, agent_n: int) -> Dict:
         """Retrieve vars common for valory apps."""
         return {
-            "AEA_KEY": get_key(agent_n),
+            "AEA_KEY": self.private_keys[agent_n],
             "VALORY_APPLICATION": self.agent,
             "ABCI_HOST": f"abci{agent_n}",
             "MAX_PARTICIPANTS": self.number_of_agents,  # I believe that this is correct
