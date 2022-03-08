@@ -22,8 +22,9 @@ import asyncio
 import logging
 import time
 from abc import ABC, abstractmethod
-from io import BytesIO
+from cmath import inf
 from typing import Any, Callable, List, cast
+from unittest import mock
 from unittest.mock import MagicMock
 
 import pytest
@@ -43,6 +44,8 @@ from packages.valory.connections.abci.connection import (
     DEFAULT_LISTEN_ADDRESS,
     DecodeVarintError,
     ShortBufferLengthError,
+    TooLargeVarint,
+    VarintMessageReader,
     _TendermintABCISerializer,
 )
 from packages.valory.protocols.abci import AbciMessage
@@ -70,6 +73,23 @@ from tests.helpers.async_utils import (
     wait_for_condition,
 )
 from tests.helpers.constants import HTTP_LOCALHOST
+
+
+class AsyncBytesIO:
+    """Utility class to emulate asyncio.StreamReader."""
+
+    def __init__(self, data: bytes) -> None:
+        """Initialize the buffer."""
+        self.data = data
+
+        self._pointer: int = 0
+
+    async def read(self, n: int) -> bytes:
+        """Read n bytes."""
+        new_pointer = self._pointer + n
+        result = self.data[self._pointer : new_pointer]
+        self._pointer = new_pointer
+        return result
 
 
 class ABCIAppTest:
@@ -449,36 +469,25 @@ def test_encode_varint_method() -> None:
     assert _TendermintABCISerializer.encode_varint(130) == b"\x84\x02"
 
 
-@given(integers(min_value=0))
-def test_encode_decode_varint(value: int) -> None:
+@given(integers(min_value=0, max_value=2 ** 32))
+@pytest.mark.asyncio
+async def test_encode_decode_varint(value: int) -> None:
     """Test that encoding and decoding works."""
     encoder = _TendermintABCISerializer.encode_varint
+    encoded_value = encoder(value)
+    reader = asyncio.StreamReader()
+    reader.feed_data(encoded_value)
     decoder = _TendermintABCISerializer.decode_varint
-    assert decoder(BytesIO(encoder(value))) == value
+    decoded_value = await decoder(reader)
+    assert decoded_value == value
 
 
-def test_decode_varint_raises_exception_when_failing() -> None:
+@pytest.mark.asyncio
+async def test_decode_varint_raises_exception_when_failing() -> None:
     """Test that decode_varint raises exception when the decoding fails."""
     with pytest.raises(DecodeVarintError, match="could not decode varint"):
-        _TendermintABCISerializer.decode_varint(BytesIO(b""))
-
-
-def test_read_messages_raises_short_buffer_length_error_when_length_wrong() -> None:
-    """
-    Test _TendermintABCISerializer.read_messages().
-
-    Test that the function raises ShortBufferLengthError when the
-    varint encoded length of the data is greater than the actual
-    length of the buffer.
-    """
-    with pytest.raises(ShortBufferLengthError):
-        # '42' encoded as varint
-        expected_length_encoded = b"T"
-        # to make this test to work, length(message) < expected_length_encoded
-        message = expected_length_encoded + b"too_short_buffer"
-        buffer = BytesIO(message)
-        generator = _TendermintABCISerializer.read_messages(buffer, MagicMock())
-        next(generator)
+        reader = AsyncBytesIO(b"")
+        await _TendermintABCISerializer.decode_varint(reader)  # type: ignore
 
 
 def test_dep_util() -> None:
@@ -487,3 +496,39 @@ def test_dep_util() -> None:
     assert dep_utils.nth([0, 1, 2, 3], 5, -1) == -1
     assert dep_utils.get_version(1, 0, 0) == (1, 0, 0)
     assert dep_utils.version_to_string((1, 0, 0)) == "1.0.0"
+
+
+@pytest.mark.asyncio
+async def test_varint_message_reader() -> None:
+    """Test VarintMessageReader"""
+
+    async def read(nb: int) -> bytes:
+        return b"hello"
+
+    def patch_async_methods(value: Any) -> Callable:
+        async def decode_varint(*args: Any, **kwargs: Any) -> Any:
+            return value
+
+        return decode_varint
+
+    stream_reader = MagicMock(read=read)
+    vmr = VarintMessageReader(stream_reader)
+
+    with mock.patch.object(
+        _TendermintABCISerializer, "decode_varint", new=patch_async_methods(inf)
+    ):
+        with pytest.raises(TooLargeVarint):
+            await vmr.read_next_message()
+
+    with mock.patch.object(
+        _TendermintABCISerializer, "decode_varint", new=patch_async_methods(10)
+    ):
+        with mock.patch.object(vmr, "read_until", new=patch_async_methods(b"")):
+            with pytest.raises(ShortBufferLengthError):
+                await vmr.read_next_message()
+
+    with mock.patch.object(
+        _TendermintABCISerializer, "decode_varint", new=patch_async_methods(5)
+    ):
+        res = await vmr.read_next_message()
+        assert res == b"hello"

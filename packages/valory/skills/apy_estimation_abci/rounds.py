@@ -65,6 +65,8 @@ class Event(Enum):
     FULLY_TRAINED = "fully_trained"
     ESTIMATION_CYCLE = "estimation_cycle"
     RANDOMNESS_INVALID = "randomness_invalid"
+    FILE_ERROR = "file_error"
+    NETWORK_ERROR = "network_error"
 
 
 class PeriodState(BasePeriodState):
@@ -162,6 +164,14 @@ class APYEstimationAbstractRound(AbstractRound[Event, TransactionType], ABC):
         """
         return self.period_state, Event.NO_MAJORITY
 
+    def _return_file_error(self) -> Tuple[PeriodState, Event]:
+        """
+        Trigger the FILE_ERROR event.
+
+        :return: a new period state and a FILE_ERROR event
+        """
+        return self.period_state, Event.FILE_ERROR
+
 
 class CollectHistoryRound(CollectSameUntilThresholdRound, APYEstimationAbstractRound):
     """A round in which agents collect historical data"""
@@ -175,6 +185,12 @@ class CollectHistoryRound(CollectSameUntilThresholdRound, APYEstimationAbstractR
     def end_block(self) -> Optional[Tuple[BasePeriodState, Event]]:
         """Process the end of the block."""
         if self.threshold_reached:
+            if self.most_voted_payload is None:
+                return self._return_file_error()
+
+            if self.most_voted_payload == "":
+                return self.period_state, Event.NETWORK_ERROR
+
             update_kwargs = {
                 "period_state_class": PeriodState,
                 self.collection_key: self.collection,
@@ -212,6 +228,9 @@ class TransformRound(CollectSameUntilThresholdRound, APYEstimationAbstractRound)
 
     def end_block(self) -> Optional[Tuple[BasePeriodState, Event]]:
         """Process the end of the block."""
+        if self.threshold_reached and self.most_voted_payload is None:
+            return self._return_file_error()
+
         if self.threshold_reached:
             updated_state = self.period_state.update(
                 period_state_class=PeriodState,
@@ -241,6 +260,9 @@ class PreprocessRound(CollectSameUntilThresholdRound, APYEstimationAbstractRound
     def end_block(self) -> Optional[Tuple[BasePeriodState, Event]]:
         """Process the end of the block."""
         if self.threshold_reached:
+            if self.most_voted_payload is None:
+                return self._return_file_error()
+
             updated_state = self.period_state.update(
                 period_state_class=PeriodState,
                 participant_to_preprocessing=self.collection,
@@ -268,6 +290,7 @@ class PrepareBatchRound(CollectSameUntilThresholdRound):
     period_state_class = PeriodState
     done_event = Event.DONE
     no_majority_event = Event.NO_MAJORITY
+    none_event = Event.FILE_ERROR
     collection_key = "participant_to_batch_preparation"
     selection_key = "latest_observation_hist_hash"
 
@@ -316,6 +339,7 @@ class OptimizeRound(CollectSameUntilThresholdRound):
     period_state_class = PeriodState
     done_event = Event.DONE
     no_majority_event = Event.NO_MAJORITY
+    none_event = Event.FILE_ERROR
     collection_key = "participant_to_params"
     selection_key = "most_voted_params"
 
@@ -330,6 +354,9 @@ class TrainRound(CollectSameUntilThresholdRound, APYEstimationAbstractRound):
     def end_block(self) -> Optional[Tuple[BasePeriodState, Event]]:
         """Process the end of the block."""
         if self.threshold_reached:
+            if self.most_voted_payload is None:
+                return self._return_file_error()
+
             update_params = dict(
                 period_state_class=PeriodState,
                 participants_to_training=self.collection,
@@ -363,6 +390,7 @@ class TestRound(CollectSameUntilThresholdRound):
     period_state_class = PeriodState
     done_event = Event.DONE
     no_majority_event = Event.NO_MAJORITY
+    none_event = Event.FILE_ERROR
     collection_key = "participant_to_full_training"
     selection_key = "full_training"
 
@@ -376,6 +404,7 @@ class UpdateForecasterRound(CollectSameUntilThresholdRound):
     period_state_class = PeriodState
     done_event = Event.DONE
     no_majority_event = Event.NO_MAJORITY
+    none_event = Event.FILE_ERROR
     collection_key = "participant_to_update"
     selection_key = "most_voted_model"
 
@@ -390,6 +419,9 @@ class EstimateRound(CollectSameUntilThresholdRound, APYEstimationAbstractRound):
     def end_block(self) -> Optional[Tuple[BasePeriodState, Event]]:
         """Process the end of the block."""
         if self.threshold_reached:
+            if self.most_voted_payload is None:
+                return self._return_file_error()
+
             updated_state = self.period_state.update(
                 period_state_class=PeriodState,
                 participants_to_estimate=self.collection,
@@ -485,14 +517,18 @@ class APYEstimationAbciApp(AbciApp[Event]):  # pylint: disable=too-few-public-me
             - done: 1.
             - no majority: 0.
             - round timeout: 0.
+            - file error: 14.
+            - network error: 14.
         1. TransformRound
             - done: 2.
             - no majority: 1.
             - round timeout: 1.
+            - file error: 14.
         2. PreprocessRound
             - done: 3.
             - no majority: 2.
             - round timeout: 2.
+            - file error: 14.
         3. RandomnessRound
             - done: 4.
             - randomness invalid: 3.
@@ -502,20 +538,24 @@ class APYEstimationAbciApp(AbciApp[Event]):  # pylint: disable=too-few-public-me
             - done: 5.
             - no majority: 4.
             - round timeout: 4.
+            - file error: 14.
         5. TrainRound
             - fully trained: 7.
             - done: 6.
             - no majority: 5.
             - round timeout: 5.
+            - file error: 14.
         6. TestRound
             - done: 5.
             - no majority: 6.
             - round timeout: 6.
+            - file error: 14.
         7. EstimateRound
             - done: 8.
             - estimation cycle: 9.
             - round timeout: 7.
             - no majority: 7.
+            - file error: 14.
         8. FreshModelResetRound
             - done: 0.
             - round timeout: 8.
@@ -528,14 +568,18 @@ class APYEstimationAbciApp(AbciApp[Event]):  # pylint: disable=too-few-public-me
             - done: 11.
             - round timeout: 10.
             - no majority: 10.
+            - file error: 14.
+            - network error: 14.
         11. PrepareBatchRound
             - done: 12.
             - round timeout: 11.
             - no majority: 11.
+            - file error: 14.
         12. UpdateForecasterRound
             - done: 7.
             - round timeout: 12.
-            - no majority: 14.
+            - no majority: 12.
+            - file error: 14.
         13. FinishedAPYEstimationRound
         14. FailedAPYRound
 
@@ -552,16 +596,20 @@ class APYEstimationAbciApp(AbciApp[Event]):  # pylint: disable=too-few-public-me
             Event.DONE: TransformRound,
             Event.NO_MAJORITY: CollectHistoryRound,
             Event.ROUND_TIMEOUT: CollectHistoryRound,
+            Event.FILE_ERROR: FailedAPYRound,
+            Event.NETWORK_ERROR: FailedAPYRound,
         },
         TransformRound: {
             Event.DONE: PreprocessRound,
             Event.NO_MAJORITY: TransformRound,
             Event.ROUND_TIMEOUT: TransformRound,
+            Event.FILE_ERROR: FailedAPYRound,
         },
         PreprocessRound: {
             Event.DONE: RandomnessRound,
             Event.NO_MAJORITY: PreprocessRound,
             Event.ROUND_TIMEOUT: PreprocessRound,
+            Event.FILE_ERROR: FailedAPYRound,
         },
         RandomnessRound: {
             Event.DONE: OptimizeRound,
@@ -573,23 +621,27 @@ class APYEstimationAbciApp(AbciApp[Event]):  # pylint: disable=too-few-public-me
             Event.DONE: TrainRound,
             Event.NO_MAJORITY: OptimizeRound,
             Event.ROUND_TIMEOUT: OptimizeRound,
+            Event.FILE_ERROR: FailedAPYRound,
         },
         TrainRound: {
             Event.FULLY_TRAINED: EstimateRound,
             Event.DONE: TestRound,
             Event.NO_MAJORITY: TrainRound,
             Event.ROUND_TIMEOUT: TrainRound,
+            Event.FILE_ERROR: FailedAPYRound,
         },
         TestRound: {
             Event.DONE: TrainRound,
             Event.NO_MAJORITY: TestRound,
             Event.ROUND_TIMEOUT: TestRound,
+            Event.FILE_ERROR: FailedAPYRound,
         },
         EstimateRound: {
             Event.DONE: FreshModelResetRound,
             Event.ESTIMATION_CYCLE: CycleResetRound,
             Event.ROUND_TIMEOUT: EstimateRound,
             Event.NO_MAJORITY: EstimateRound,
+            Event.FILE_ERROR: FailedAPYRound,
         },
         FreshModelResetRound: {
             Event.DONE: CollectHistoryRound,
@@ -605,16 +657,20 @@ class APYEstimationAbciApp(AbciApp[Event]):  # pylint: disable=too-few-public-me
             Event.DONE: PrepareBatchRound,
             Event.ROUND_TIMEOUT: CollectLatestHistoryBatchRound,
             Event.NO_MAJORITY: CollectLatestHistoryBatchRound,
+            Event.FILE_ERROR: FailedAPYRound,
+            Event.NETWORK_ERROR: FailedAPYRound,
         },
         PrepareBatchRound: {
             Event.DONE: UpdateForecasterRound,
             Event.ROUND_TIMEOUT: PrepareBatchRound,
             Event.NO_MAJORITY: PrepareBatchRound,
+            Event.FILE_ERROR: FailedAPYRound,
         },
         UpdateForecasterRound: {
             Event.DONE: EstimateRound,
             Event.ROUND_TIMEOUT: UpdateForecasterRound,
-            Event.NO_MAJORITY: FailedAPYRound,  # this is here only for the chaining to work. When a failure round will be used (for example if the Optimization fails) then replace this with `UpdateForecasterRound`
+            Event.NO_MAJORITY: UpdateForecasterRound,
+            Event.FILE_ERROR: FailedAPYRound,
         },
         FinishedAPYEstimationRound: {},
         FailedAPYRound: {},

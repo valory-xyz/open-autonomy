@@ -39,11 +39,11 @@ models:
   1:
     - price_api:
         args:
-          url: 'https://pro-api.coinmarketcap.com/v1/cryptocurrency/quotes/latest'
-          api_id: 'coinmarketcap'
-          headers: '[["Accepts","application/json"], ["X-CMC_PRO_API_KEY","27d2cd0d-80c3-4ec3-9305-4f3d9ad34e41"]]'
-          parameters: '[["symbol","BTC"], ["convert","USD"]]'
-          response_key: 'data:BTC:quote:USD:price'
+          url: 'https://ftx.com/api/markets/BTC/USD'
+          api_id: 'ftx'
+          response_key: 'result:last'
+          headers: ~
+          parameters: ~
     - randomness_api:
         args:
           url: "https://api.drand.sh/public/latest"

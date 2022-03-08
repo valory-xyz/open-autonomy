@@ -14,6 +14,16 @@ class DecodeVarintError(Exception)
 
 This exception is raised when an error occurs while decoding a varint.
 
+<a id="packages.valory.connections.abci.connection.TooLargeVarint"></a>
+
+## TooLargeVarint Objects
+
+```python
+class TooLargeVarint(Exception)
+```
+
+This exception is raised when a too large size of bytes is received.
+
 <a id="packages.valory.connections.abci.connection.ShortBufferLengthError"></a>
 
 ## ShortBufferLengthError Objects
@@ -23,6 +33,21 @@ class ShortBufferLengthError(Exception)
 ```
 
 This exception is raised when the buffer length is shorter than expected.
+
+<a id="packages.valory.connections.abci.connection.ShortBufferLengthError.__init__"></a>
+
+#### `__`init`__`
+
+```python
+def __init__(expected_length: int, data: bytes)
+```
+
+Initialize the exception object.
+
+**Arguments**:
+
+- `expected_length`: the expected length to be read
+- `data`: the data actually read
 
 <a id="packages.valory.connections.abci.connection._TendermintABCISerializer"></a>
 
@@ -51,7 +76,7 @@ Encode a number in varint coding.
 
 ```python
 @classmethod
-def decode_varint(cls, buffer: BytesIO) -> int
+async def decode_varint(cls, buffer: asyncio.StreamReader, max_length: int = MAX_VARINT_BYTES) -> int
 ```
 
 Decode a number from its varint coding.
@@ -59,6 +84,7 @@ Decode a number from its varint coding.
 **Arguments**:
 
 - `buffer`: the buffer to read from.
+- `max_length`: the max number of bytes that can be read.
 
 **Returns**:
 
@@ -75,24 +101,45 @@ def write_message(cls, message: Response) -> bytes
 
 Write a message in a buffer.
 
-<a id="packages.valory.connections.abci.connection._TendermintABCISerializer.read_messages"></a>
+<a id="packages.valory.connections.abci.connection.VarintMessageReader"></a>
 
-#### read`_`messages
+## VarintMessageReader Objects
 
 ```python
-@classmethod
-def read_messages(cls, buffer: BytesIO, message_cls: Type) -> Generator[Request, None, None]
+class VarintMessageReader()
 ```
 
-Return an iterator over the messages found in the `reader` buffer.
+Varint message reader.
 
-:param: buffer: the buffer to read messages from.
-:param: message_cls: the message class to instantiate.
-:yield: a new message.
+<a id="packages.valory.connections.abci.connection.VarintMessageReader.__init__"></a>
 
-:raise: DecodeVarintError if the varint cannot be decoded correctly.
-:raise: ShortBufferLengthError if the buffer length is shorter than expected.
-:raise: google.protobuf.message.DecodeError if the Protobuf decoding fails.
+#### `__`init`__`
+
+```python
+def __init__(reader: asyncio.StreamReader) -> None
+```
+
+Initialize the reader.
+
+<a id="packages.valory.connections.abci.connection.VarintMessageReader.read_next_message"></a>
+
+#### read`_`next`_`message
+
+```python
+async def read_next_message() -> bytes
+```
+
+Read next message.
+
+<a id="packages.valory.connections.abci.connection.VarintMessageReader.read_until"></a>
+
+#### read`_`until
+
+```python
+async def read_until(n: int) -> bytes
+```
+
+Wait until n bytes are read from the stream.
 
 <a id="packages.valory.connections.abci.connection.TcpServerChannel"></a>
 

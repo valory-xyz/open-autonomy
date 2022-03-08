@@ -18,8 +18,10 @@
 # ------------------------------------------------------------------------------
 
 """Test the base.py module of the skill."""
-from typing import Dict, FrozenSet
+from typing import Dict, FrozenSet, Optional, Tuple
 from unittest import mock
+
+import pytest
 
 from packages.valory.skills.abstract_round_abci.base import (
     AbstractRound,
@@ -71,12 +73,12 @@ def get_participants() -> FrozenSet[str]:
 
 
 def get_participant_to_fetching(
-    participants: FrozenSet[str],
+    participants: FrozenSet[str], history: Optional[str]
 ) -> Dict[str, FetchingPayload]:
     """participant_to_fetching"""
     return {
         participant: FetchingPayload(
-            sender=participant, history="x0", latest_observation_timestamp=0
+            sender=participant, history=history, latest_observation_timestamp=0
         )
         for participant in participants
     }
@@ -112,24 +114,27 @@ def get_participant_to_invalid_randomness(
 
 def get_transformation_payload(
     participants: FrozenSet[str],
+    transformation_hash: Optional[str],
 ) -> Dict[str, TransformationPayload]:
     """Get transformation payloads."""
     return {
-        participant: TransformationPayload(participant, "transformation_hash", "x1")
+        participant: TransformationPayload(participant, transformation_hash, "x1")
         for participant in participants
     }
 
 
 def get_participant_to_preprocess_payload(
     participants: FrozenSet[str],
+    train_hash: Optional[str],
+    test_hash: Optional[str],
 ) -> Dict[str, PreprocessPayload]:
     """Get preprocess payload."""
     return {
         participant: PreprocessPayload(
             participant,
             "pair_name",
-            "train_hash",
-            "test_hash",
+            train_hash,
+            test_hash,
         )
         for participant in participants
     }
@@ -147,10 +152,11 @@ def get_participant_to_optimize_payload(
 
 def get_participant_to_train_payload(
     participants: FrozenSet[str],
+    model_hash: Optional[str],
 ) -> Dict[str, TrainingPayload]:
     """Get training payload."""
     return {
-        participant: TrainingPayload(participant, "model_hash")
+        participant: TrainingPayload(participant, model_hash)
         for participant in participants
     }
 
@@ -167,10 +173,12 @@ def get_participant_to_test_payload(
 
 def get_participant_to_estimate_payload(
     participants: FrozenSet[str],
+    estimation: Optional[float],
 ) -> Dict[str, EstimatePayload]:
     """Get estimate payload."""
     return {
-        participant: EstimatePayload(participant, 10.0) for participant in participants
+        participant: EstimatePayload(participant, estimation)
+        for participant in participants
     }
 
 
@@ -224,19 +232,27 @@ class TestCollectHistoryRound(BaseCollectSameUntilThresholdRoundTest):
     _period_state_class = PeriodState
     _event_class = Event
 
+    @pytest.mark.parametrize(
+        "most_voted_payload, expected_event",
+        (("x0", Event.DONE), (None, Event.FILE_ERROR), ("", Event.NETWORK_ERROR)),
+    )
     def test_run(
         self,
+        most_voted_payload: Optional[str],
+        expected_event: Event,
     ) -> None:
         """Runs test."""
         test_round = CollectHistoryRound(self.period_state, self.consensus_params)
         self._complete_run(
             self._test_round(
                 test_round=test_round,
-                round_payloads=get_participant_to_fetching(self.participants),
+                round_payloads=get_participant_to_fetching(
+                    self.participants, most_voted_payload
+                ),
                 state_update_fn=lambda _period_state, _: _period_state,
                 state_attr_checks=[],
-                most_voted_payload="x0",
-                exit_event=Event.DONE,
+                most_voted_payload=most_voted_payload,
+                exit_event=expected_event,
             )
         )
 
@@ -252,18 +268,28 @@ class TestTransformRound(BaseCollectSameUntilThresholdRoundTest):
     _period_state_class = PeriodState
     _event_class = Event
 
-    def test_run(self) -> None:
+    @pytest.mark.parametrize(
+        "most_voted_payload, expected_event",
+        (("x0", Event.DONE), (None, Event.FILE_ERROR)),
+    )
+    def test_run(
+        self,
+        most_voted_payload: Optional[str],
+        expected_event: Event,
+    ) -> None:
         """Runs test."""
 
         test_round = TransformRound(self.period_state, self.consensus_params)
         self._complete_run(
             self._test_round(
                 test_round=test_round,
-                round_payloads=get_transformation_payload(self.participants),
+                round_payloads=get_transformation_payload(
+                    self.participants, most_voted_payload
+                ),
                 state_update_fn=lambda _period_state, _: _period_state,
                 state_attr_checks=[],
-                most_voted_payload="transformation_hash",
-                exit_event=Event.DONE,
+                most_voted_payload=most_voted_payload,
+                exit_event=expected_event,
             )
         )
 
@@ -279,18 +305,30 @@ class TestPreprocessRound(BaseCollectSameUntilThresholdRoundTest):
     _period_state_class = PeriodState
     _event_class = Event
 
-    def test_run(self) -> None:
+    @pytest.mark.parametrize(
+        "most_voted_payloads, expected_event",
+        ((("train_hash", "test_hash"), Event.DONE), ((None, None), Event.FILE_ERROR)),
+    )
+    def test_run(
+        self,
+        most_voted_payloads: Tuple[Optional[str]],
+        expected_event: Event,
+    ) -> None:
         """Runs test."""
 
         test_round = PreprocessRound(self.period_state, self.consensus_params)
         self._complete_run(
             self._test_round(
                 test_round=test_round,
-                round_payloads=get_participant_to_preprocess_payload(self.participants),
+                round_payloads=get_participant_to_preprocess_payload(  # type: ignore
+                    self.participants, *most_voted_payloads
+                ),
                 state_update_fn=lambda _period_state, _: _period_state,
                 state_attr_checks=[],
-                most_voted_payload="train_hashtest_hash",
-                exit_event=Event.DONE,
+                most_voted_payload="train_hashtest_hash"
+                if not any(payload is None for payload in most_voted_payloads)
+                else None,
+                exit_event=expected_event,
             )
         )
 
@@ -378,37 +416,35 @@ class TestTrainRound(BaseCollectSameUntilThresholdRoundTest):
     _period_state_class = PeriodState
     _event_class = Event
 
-    def test_run(self) -> None:
+    @pytest.mark.parametrize(
+        "full_training, most_voted_payload, expected_event",
+        (
+            (True, "x0", Event.FULLY_TRAINED),
+            (False, "x0", Event.DONE),
+            (True, None, Event.FILE_ERROR),
+        ),
+    )
+    def test_run(
+        self,
+        full_training: bool,
+        most_voted_payload: Optional[str],
+        expected_event: Event,
+    ) -> None:
         """Runs test."""
 
         test_round = TrainRound(
-            self.period_state.update(full_training=False), self.consensus_params
+            self.period_state.update(full_training=full_training), self.consensus_params
         )
         self._complete_run(
             self._test_round(
                 test_round=test_round,
-                round_payloads=get_participant_to_train_payload(self.participants),
+                round_payloads=get_participant_to_train_payload(
+                    self.participants, most_voted_payload
+                ),
                 state_update_fn=lambda _period_state, _: _period_state,
                 state_attr_checks=[],
-                most_voted_payload="model_hash",
-                exit_event=Event.DONE,
-            )
-        )
-
-    def test_full_training(self) -> None:
-        """Runs test."""
-
-        test_round = TrainRound(
-            self.period_state.update(full_training=True), self.consensus_params
-        )
-        self._complete_run(
-            self._test_round(
-                test_round=test_round,
-                round_payloads=get_participant_to_train_payload(self.participants),
-                state_update_fn=lambda _period_state, _: _period_state,
-                state_attr_checks=[],
-                most_voted_payload="model_hash",
-                exit_event=Event.FULLY_TRAINED,
+                most_voted_payload=most_voted_payload,
+                exit_event=expected_event,
             )
         )
 
@@ -455,37 +491,35 @@ class TestEstimateRound(BaseCollectSameUntilThresholdRoundTest):
     _period_state_class = PeriodState
     _event_class = Event
 
-    def test_estimation_cycle_run(self) -> None:
+    @pytest.mark.parametrize(
+        "n_estimations, most_voted_payload, expected_event",
+        (
+            (0, 10.0, Event.ESTIMATION_CYCLE),
+            (59, 10.0, Event.DONE),
+            (0, None, Event.FILE_ERROR),
+        ),
+    )
+    def test_estimation_cycle_run(
+        self,
+        n_estimations: int,
+        most_voted_payload: Optional[int],
+        expected_event: Event,
+    ) -> None:
         """Runs test."""
 
         test_round = EstimateRound(self.period_state, self.consensus_params)
         self._complete_run(
             self._test_round(
                 test_round=test_round,
-                round_payloads=get_participant_to_estimate_payload(self.participants),
-                state_update_fn=lambda _period_state, _: _period_state.update(
-                    n_estimations=0,
+                round_payloads=get_participant_to_estimate_payload(
+                    self.participants, most_voted_payload
                 ),
-                state_attr_checks=[lambda state: state.n_estimations],
-                most_voted_payload=10.0,
-                exit_event=Event.ESTIMATION_CYCLE,
-            )
-        )
-
-    def test_restart_cycle_run(self) -> None:
-        """Runs test."""
-
-        test_round = EstimateRound(self.period_state, self.consensus_params)
-        self._complete_run(
-            self._test_round(
-                test_round=test_round,
-                round_payloads=get_participant_to_estimate_payload(self.participants),
                 state_update_fn=lambda _period_state, _: _period_state.update(
-                    n_estimations=59
+                    n_estimations=n_estimations,
                 ),
-                state_attr_checks=[lambda state: 60],
-                most_voted_payload=10.0,
-                exit_event=Event.DONE,
+                state_attr_checks=[lambda _: n_estimations + 1],
+                most_voted_payload=most_voted_payload,
+                exit_event=expected_event,
             )
         )
 
