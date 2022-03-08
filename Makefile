@@ -227,11 +227,10 @@ run-oracle-dev:
 		echo "Please remove ${OPEN_AEA_REPO_DIR}/build manually."
 		exit 1
 	fi
-
-#	export VERSION=dev
-#	make build-images && \
-#     	python deployments/click_create.py build-deployment --valory-app oracle_hardhat --deployment-type docker-compose --configure-tendermint && \
-#     	make run-deploy
+	export VERSION=dev
+	make build-images && \
+     	python deployments/click_create.py build-deployment --valory-app oracle_hardhat --deployment-type docker-compose --configure-tendermint && \
+     	make run-deploy
 
 .PHONY: run-oracle
 run-oracle:
