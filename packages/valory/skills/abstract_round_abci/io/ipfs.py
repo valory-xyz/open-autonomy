@@ -96,19 +96,21 @@ class IPFSInteract:
         :return: the filepath of the downloaded file
         """
         if multiple:
-            filepath = target_dir
+            # IPFS tool creates a folder named as the basename of `target_dir` inside `target_dir`.
+            filepath = os.path.join(target_dir, os.path.basename(target_dir))
+            remove_path = target_dir
         elif filename is not None:
-            filepath = os.path.join(target_dir, filename)
-        else:
+            filepath = remove_path = os.path.join(target_dir, filename)
+        else:  # pragma: no cover
             raise IPFSInteractionError("Filename cannot be `None` when uploading a single file!")
 
-        if os.path.exists(filepath):
+        if os.path.exists(remove_path):  # pragma: no cover
             # TODO investigate why sometimes the path exists. It shouldn't, because `_send` removes it.
-            self.__remove_filepath(filepath)
+            self.__remove_filepath(remove_path)
 
         try:
             self.__ipfs_tool.download(hash_, target_dir)
-        except (DownloadError, ErrorResponse) as e:
+        except (DownloadError, ErrorResponse) as e:  # pragma: no cover
             raise IPFSInteractionError(str(e)) from e
 
         return filepath
