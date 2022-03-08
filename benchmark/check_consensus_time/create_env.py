@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021 Valory AG
+#   Copyright 2021-2022 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -80,14 +80,12 @@ PRICE_APIS: List[List[Tuple[str, str]]] = [
         ("response_key", "'bitcoin:usd'"),
     ],
     [
-        ("url", "https://pro-api.coinmarketcap.com/v1/cryptocurrency/quotes/latest"),
-        ("api_id", "coinmarketcap"),
         (
-            "headers",
-            """'[["Accepts","application/json"], ["X-CMC_PRO_API_KEY","2142662b-985c-4862-82d7-e91457850c2a"]]'  --type list""",
+            "url",
+            "https://ftx.com/api/markets/BTC/USD",
         ),
-        ("parameters", """'[["symbol","BTC"], ["convert","USD"]]'  --type list"""),
-        ("response_key", "'data:BTC:quote:USD:price'"),
+        ("api_id", "ftx"),
+        ("response_key", "result:last"),
     ],
     [
         ("url", "https://api.coinbase.com/v2/prices/BTC-USD/buy"),

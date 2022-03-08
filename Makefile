@@ -140,6 +140,7 @@ test:
 .PHONY: checks
 checks:
 	make clean \
+	&& python scripts/generate_abci_docstrings.py \
 	&& make static \
 	&& make lint \
 	&& make pylint \
@@ -148,8 +149,10 @@ checks:
 	&& make api-docs \
 	&& make hashes \
 	&& make security \
-	&& make test-sub-p tdir=skills/test_price_estimation_abci/ dir=skills.price_estimation_abci \
-	&& make test-sub-p tdir=skills/test_liquidity_provision/ dir=skills.liquidity_provision
+
+.PHONY: test-skill
+test-skill:
+	make test-sub-p tdir=skills/test_$(skill)/ dir=skills.$(skill)
 
 # how to use:
 #

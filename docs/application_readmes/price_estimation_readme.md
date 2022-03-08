@@ -86,7 +86,7 @@ info: Command '/usr/bin/python3 check_dependencies.py /home/ubuntu/price_estimat
 info: Warning:  'tendermint' is required by the abci connection, but it is not installed, or it is not accessible from the system path.
 Build completed!
 warning: [price_estimation] The kwargs={'consensus': OrderedDict([('max_participants', 4)]), 'convert_id': 'USD', 'currency_id': 'BTC', 'initial_delay': 5.0, 'tendermint_url': 'http://node1:26657'} passed to params have not been set!
-warning: [price_estimation] The kwargs={'api_key': '2142662b-985c-4862-82d7-e91457850c2a', 'source_id': 'coinmarketcap'} passed to price_api have not been set!
+warning: [price_estimation] The kwargs={'api_key': '2142662b-985c-4862-82d7-e91457850c2a', 'source_id': 'ftx'} passed to price_api have not been set!
     _     _____     _
    / \   | ____|   / \
   / _ \  |  _|    / _ \
