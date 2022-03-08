@@ -28,9 +28,9 @@ from aea_cli_ipfs.ipfs_utils import DownloadError, IPFSTool, NodeError
 from ipfshttpclient.exceptions import ErrorResponse
 
 from packages.valory.skills.abstract_round_abci.io.load import (
+    CustomLoaderType,
     Loader,
     SupportedFiletype,
-    SupportedLoaderType,
     SupportedObjectType,
 )
 from packages.valory.skills.abstract_round_abci.io.store import CustomStorerType, Storer
@@ -141,7 +141,7 @@ class IPFSInteract:
         multiple: bool = False,
         filename: Optional[str] = None,
         filetype: Optional[SupportedFiletype] = None,
-        custom_loader: SupportedLoaderType = None,
+        custom_loader: CustomLoaderType = None,
     ) -> SupportedObjectType:
         """Get, store and read a file from IPFS."""
         filepath = self._download(hash_, target_dir, multiple, filename)
