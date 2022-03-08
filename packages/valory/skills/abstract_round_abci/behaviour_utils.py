@@ -376,18 +376,19 @@ class IPFSBehaviour(SimpleBehaviour, ABC):
             return None
 
     @_check_ipfs_enabled
-    def get_from_ipfs(
+    def get_from_ipfs(  # pylint: disable=too-many-arguments
         self,
         hash_: str,
         target_dir: str,
-        filename: str,
+        multiple: bool = False,
+        filename: Optional[str] = None,
         filetype: Optional[SupportedFiletype] = None,
         custom_loader: SupportedLoaderType = None,
     ) -> Optional[SupportedObjectType]:
         """Get a file from IPFS."""
         try:
             return self._ipfs_interact.get_and_read(
-                hash_, target_dir, filename, filetype, custom_loader
+                hash_, target_dir, multiple, filename, filetype, custom_loader
             )
         except IPFSInteractionError as e:
             self.context.logger.error(

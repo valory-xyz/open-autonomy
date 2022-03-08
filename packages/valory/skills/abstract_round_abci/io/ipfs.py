@@ -21,15 +21,16 @@
 
 
 import os
+from shutil import rmtree
 from typing import Any, Optional
 
 from aea_cli_ipfs.ipfs_utils import DownloadError, IPFSTool, NodeError
 from ipfshttpclient.exceptions import ErrorResponse
 
 from packages.valory.skills.abstract_round_abci.io.load import (
+    CustomLoaderType,
     Loader,
     SupportedFiletype,
-    SupportedLoaderType,
     SupportedObjectType,
 )
 from packages.valory.skills.abstract_round_abci.io.store import CustomStorerType, Storer
@@ -55,6 +56,16 @@ class IPFSInteract:
         except (NodeError, Exception) as e:  # pragma: no cover
             raise IPFSInteractionError(str(e)) from e
 
+    @staticmethod
+    def __remove_filepath(filepath: str) -> None:
+        """Remove a file or a folder. If filepath is not a file or a folder, an `IPFSInteractionError` is raised."""
+        if os.path.isfile(filepath):
+            os.remove(filepath)
+        elif os.path.isdir(filepath):
+            rmtree(filepath)
+        else:  # pragma: no cover
+            raise IPFSInteractionError(f"`{filepath}` is not an existing filepath!")
+
     def _send(self, filepath: str) -> str:
         """Send a file to the IPFS node.
 
@@ -66,12 +77,7 @@ class IPFSInteract:
         except ValueError as e:  # pragma: no cover
             raise IPFSInteractionError(str(e)) from e
         finally:
-            if os.path.isfile(filepath):
-                os.remove(filepath)
-            elif os.path.isdir(filepath):
-                os.rmdir(filepath)
-            else:
-                raise IPFSInteractionError(f"`{filepath}` is not an existing filepath!")
+            self.__remove_filepath(filepath)
 
         return hash_
 
@@ -79,24 +85,35 @@ class IPFSInteract:
         self,
         hash_: str,
         target_dir: str,
-        filename: str,
+        multiple: bool = False,
+        filename: Optional[str] = None,
     ) -> str:
         """Download a file from the IPFS node.
 
         :param hash_: hash of file to download
         :param target_dir: directory to place downloaded file
+        :param multiple: whether multiple files are expected to be downloaded. The hash should be a folder's hash.
         :param filename: the original name of the file to download
         :return: the filepath of the downloaded file
         """
-        filepath = os.path.join(target_dir, filename)
+        if multiple:
+            # IPFS tool creates a folder named as the basename of `target_dir` inside `target_dir`.
+            filepath = os.path.join(target_dir, os.path.basename(target_dir))
+            remove_path = target_dir
+        elif filename is not None:
+            filepath = remove_path = os.path.join(target_dir, filename)
+        else:  # pragma: no cover
+            raise IPFSInteractionError(
+                "Filename cannot be `None` when uploading a single file!"
+            )
 
-        if os.path.exists(filepath):
+        if os.path.exists(remove_path):  # pragma: no cover
             # TODO investigate why sometimes the path exists. It shouldn't, because `_send` removes it.
-            os.remove(filepath)  # pragma: no cover
+            self.__remove_filepath(remove_path)
 
         try:
             self.__ipfs_tool.download(hash_, target_dir)
-        except (DownloadError, ErrorResponse) as e:
+        except (DownloadError, ErrorResponse) as e:  # pragma: no cover
             raise IPFSInteractionError(str(e)) from e
 
         return filepath
@@ -120,19 +137,20 @@ class IPFSInteract:
 
         return self._send(filepath)
 
-    def get_and_read(
+    def get_and_read(  # pylint: disable=too-many-arguments
         self,
         hash_: str,
         target_dir: str,
-        filename: str,
+        multiple: bool = False,
+        filename: Optional[str] = None,
         filetype: Optional[SupportedFiletype] = None,
-        custom_loader: SupportedLoaderType = None,
+        custom_loader: CustomLoaderType = None,
     ) -> SupportedObjectType:
         """Get, store and read a file from IPFS."""
-        filepath = self._download(hash_, target_dir, filename)
+        filepath = self._download(hash_, target_dir, multiple, filename)
         loader = Loader(filetype, custom_loader)
 
         try:
-            return loader.load(filepath)
+            return loader.load(filepath, multiple)
         except IOError as e:  # pragma: no cover
             raise IPFSInteractionError(str(e)) from e
