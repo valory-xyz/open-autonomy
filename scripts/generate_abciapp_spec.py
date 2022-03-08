@@ -160,7 +160,9 @@ class DFA:
         if not isinstance(lst, List):
             raise DFASpecificationError(f"DFA spec. object {lst} is not of type List.")
         if len(lst) != len(set(lst)):
-            raise DFASpecificationError(f"DFA spec. List {lst} contains repeated values.")
+            raise DFASpecificationError(
+                f"DFA spec. List {lst} contains repeated values."
+            )
         return set(lst)
 
     @classmethod
