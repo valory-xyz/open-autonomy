@@ -90,8 +90,8 @@ jobs:
         pip install tox
         pip install --user --upgrade setuptools
         # install Protobuf compiler
-        wget https://github.com/protocolbuffers/protobuf/releases/download/v3.17.3/protoc-3.17.3-linux-x86_64.zip
-        unzip protoc-3.17.3-linux-x86_64.zip -d protoc
+        wget https://github.com/protocolbuffers/protobuf/releases/download/v3.19.4/protoc-3.19.4-linux-x86_64.zip
+        unzip protoc-3.19.4-linux-x86_64.zip -d protoc
         sudo mv protoc/bin/protoc /usr/local/bin/protoc
         # install IPFS
         sudo apt-get install -y wget
@@ -100,6 +100,9 @@ jobs:
         tar xvfz go-ipfs.tar.gz
         sudo mv go-ipfs/ipfs /usr/local/bin/ipfs
         ipfs init
+        make protolint_install
+    - name: Check generate protocols
+      run: tox -e check-generate-all-protocols
     - name: Security checks
       run: |
         tox -e bandit
@@ -159,8 +162,8 @@ jobs:
           pip install --user --upgrade setuptools
 
           # install Protobuf compiler
-          wget https://github.com/protocolbuffers/protobuf/releases/download/v3.17.3/protoc-3.17.3-linux-x86_64.zip
-          unzip protoc-3.17.3-linux-x86_64.zip -d protoc
+          wget https://github.com/protocolbuffers/protobuf/releases/download/v3.19.4/protoc-3.19.4-linux-x86_64.zip
+          unzip protoc-3.19.4-linux-x86_64.zip -d protoc
           sudo mv protoc/bin/protoc /usr/local/bin/protoc
 
           # install IPFS
@@ -243,8 +246,8 @@ jobs:
           pip install --user --upgrade setuptools
 
           # install Protobuf compiler
-          wget https://github.com/protocolbuffers/protobuf/releases/download/v3.17.3/protoc-3.17.3-linux-x86_64.zip
-          unzip protoc-3.17.3-linux-x86_64.zip -d protoc
+          wget https://github.com/protocolbuffers/protobuf/releases/download/v3.19.4/protoc-3.19.4-linux-x86_64.zip
+          unzip protoc-3.19.4-linux-x86_64.zip -d protoc
           sudo mv protoc/bin/protoc /usr/local/bin/protoc
 
           # install IPFS
