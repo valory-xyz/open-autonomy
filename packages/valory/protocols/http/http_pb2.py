@@ -57,7 +57,7 @@ _sym_db.RegisterMessage(HttpMessage)
 _sym_db.RegisterMessage(HttpMessage.Request_Performative)
 _sym_db.RegisterMessage(HttpMessage.Response_Performative)
 
-if _descriptor._USE_C_DESCRIPTORS == False:  # pragma: nocover
+if _descriptor._USE_C_DESCRIPTORS == False:
 
     DESCRIPTOR._options = None
     _HTTPMESSAGE._serialized_start = 39
