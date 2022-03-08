@@ -82,7 +82,8 @@ common-checks-1:
 
 .PHONY: common-checks-2
 common-checks-2:
-	tox -p -e check-api-docs -e check-abci-docstrings
+	tox -e check-api-docs
+	tox -e check-abci-docstrings
 
 .PHONY: copyright
 copyright:
