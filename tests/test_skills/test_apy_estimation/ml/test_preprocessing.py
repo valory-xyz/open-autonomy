@@ -23,8 +23,8 @@ import pandas as pd
 import pytest
 
 from packages.valory.skills.apy_estimation_abci.ml.preprocessing import (
-    prepare_pair_data,
     group_and_filter_pair_data,
+    prepare_pair_data,
 )
 
 

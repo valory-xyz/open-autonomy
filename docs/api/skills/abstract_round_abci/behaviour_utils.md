@@ -207,7 +207,7 @@ Stop the execution of the behaviour.
 ## IPFSBehaviour Objects
 
 ```python
-class IPFSBehaviour(SimpleBehaviour, ABC)
+class IPFSBehaviour(SimpleBehaviour,  ABC)
 ```
 
 Behaviour for interactions with IPFS.
@@ -228,7 +228,7 @@ Initialize an `IPFSBehaviour`.
 
 ```python
 @_check_ipfs_enabled
-def send_to_ipfs(filepath: str, obj: SupportedObjectType, filetype: Optional[SupportedFiletype] = None, custom_storer: Optional[CustomStorerType] = None, **kwargs: Any, ,) -> Optional[str]
+def send_to_ipfs(filepath: str, obj: SupportedObjectType, multiple: bool = False, filetype: Optional[SupportedFiletype] = None, custom_storer: Optional[CustomStorerType] = None, **kwargs: Any, ,) -> Optional[str]
 ```
 
 Send a file to IPFS.
@@ -239,7 +239,7 @@ Send a file to IPFS.
 
 ```python
 @_check_ipfs_enabled
-def get_from_ipfs(hash_: str, target_dir: str, filename: str, filetype: Optional[SupportedFiletype] = None, custom_loader: SupportedLoaderType = None) -> Optional[SupportedObjectType]
+def get_from_ipfs(hash_: str, target_dir: str, multiple: bool = False, filename: Optional[str] = None, filetype: Optional[SupportedFiletype] = None, custom_loader: SupportedLoaderType = None) -> Optional[SupportedObjectType]
 ```
 
 Get a file from IPFS.
@@ -249,7 +249,7 @@ Get a file from IPFS.
 ## CleanUpBehaviour Objects
 
 ```python
-class CleanUpBehaviour(SimpleBehaviour, ABC)
+class CleanUpBehaviour(SimpleBehaviour,  ABC)
 ```
 
 Class for clean-up related functionality of behaviours.
@@ -298,7 +298,7 @@ It can be optionally implemented by the concrete classes.
 ## BaseState Objects
 
 ```python
-class BaseState(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC)
+class BaseState(AsyncBehaviour,  IPFSBehaviour,  CleanUpBehaviour,  ABC)
 ```
 
 Base class for FSM states.
@@ -665,7 +665,7 @@ the contract api response
 ## DegenerateState Objects
 
 ```python
-class DegenerateState(BaseState, ABC)
+class DegenerateState(BaseState,  ABC)
 ```
 
 An abstract matching behaviour for final and degenerate rounds.

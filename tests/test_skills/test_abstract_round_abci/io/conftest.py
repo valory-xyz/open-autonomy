@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2022 open_aea
+#   Copyright 2021-2022 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -17,14 +17,20 @@
 #
 # ------------------------------------------------------------------------------
 
-"""
-This module contains the support resources for the signing protocol.
+"""Conftest module for io tests."""
+from typing import Dict
 
-It was created with protocol buffer compiler version `libprotoc 3.19.4` and aea version `1.5.0`.
-"""
-
-from packages.open_aea.protocols.signing.message import SigningMessage
-from packages.open_aea.protocols.signing.serialization import SigningSerializer
+import pandas as pd
+import pytest
 
 
-SigningMessage.serializer = SigningSerializer
+@pytest.fixture
+def dummy_obj() -> pd.DataFrame:
+    """A dummy custom object to test the storing with."""
+    return pd.DataFrame({"test_col": ["test_val_1", "test_val_2"]})
+
+
+@pytest.fixture
+def dummy_multiple_obj(dummy_obj: pd.DataFrame) -> Dict[str, pd.DataFrame]:
+    """Many dummy custom objects to test the storing with."""
+    return {f"test_obj_{i}": dummy_obj for i in range(10)}

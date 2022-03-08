@@ -20,6 +20,7 @@
 """This module contains all the loading operations of the behaviours."""
 
 import json
+import os.path
 from abc import ABC, abstractmethod
 from typing import Callable, Dict, Optional
 
@@ -31,25 +32,52 @@ from packages.valory.skills.abstract_round_abci.io.store import (
     NativelySupportedObjectType,
     SupportedFiletype,
     SupportedObjectType,
+    SupportedSingleObjectType,
 )
 
 
-CustomLoaderType = Optional[Callable[[str], CustomObjectType]]
-SupportedLoaderType = Callable[[str], SupportedObjectType]
+CustomLoaderType = Optional[Callable[[str, bool], CustomObjectType]]
+SupportedLoaderType = Callable[[str, bool], SupportedObjectType]
 
 
-class AbstractLoader(ABC):  # pylint: disable=too-few-public-methods
+class AbstractLoader(ABC):
     """An abstract `Loader` class."""
 
+    @staticmethod
     @abstractmethod
-    def load(self, path: str) -> SupportedObjectType:
-        """Load a file."""
+    def load_single_file(path: str) -> SupportedSingleObjectType:
+        """Load a single file."""
+
+    def load(self, path: str, multiple: bool) -> SupportedObjectType:
+        """Load one or more files.
+
+        :param path: the path to the file to load. If multiple, then the path should be a folder with the files.
+        :param multiple: whether multiple files are expected to be loaded. The path should be a folder with the files.
+        :return: the loaded file.
+        """
+        if multiple:
+            if not os.path.isdir(path):  # pragma: no cover
+                raise ValueError(
+                    f"Cannot load multiple files from `{path}`! "
+                    f"Please make sure that the path is a folder containing the files."
+                )
+
+            objects = {}
+            for filename in os.listdir(path):
+                filename = os.fsdecode(filename)
+                filepath = os.path.join(path, filename)
+                objects[filename] = self.load_single_file(filepath)
+
+            return objects
+
+        return self.load_single_file(path)
 
 
-class CSVLoader(AbstractLoader):  # pylint: disable=too-few-public-methods
+class CSVLoader(AbstractLoader):
     """A csv files Loader."""
 
-    def load(self, path: str) -> NativelySupportedObjectType:
+    @staticmethod
+    def load_single_file(path: str) -> NativelySupportedObjectType:
         """Read a pandas dataframe from a csv file.
 
         :param path: the path of the csv.
@@ -61,10 +89,11 @@ class CSVLoader(AbstractLoader):  # pylint: disable=too-few-public-methods
             raise IOError(f"File {path} was not found!") from e
 
 
-class ForecasterLoader(AbstractLoader):  # pylint: disable=too-few-public-methods
+class ForecasterLoader(AbstractLoader):
     """A `pmdarima` forecaster loader."""
 
-    def load(self, path: str) -> NativelySupportedObjectType:
+    @staticmethod
+    def load_single_file(path: str) -> NativelySupportedObjectType:
         """Load a `pmdarima` forecaster.
 
         :param path: path to store the forecaster.
@@ -76,10 +105,11 @@ class ForecasterLoader(AbstractLoader):  # pylint: disable=too-few-public-method
             raise IOError(f"Could not detect {path}!") from e
 
 
-class JSONLoader(AbstractLoader):  # pylint: disable=too-few-public-methods
+class JSONLoader(AbstractLoader):
     """A JSON file loader."""
 
-    def load(self, path: str) -> NativelySupportedObjectType:
+    @staticmethod
+    def load_single_file(path: str) -> NativelySupportedObjectType:
         """Read a json file.
 
         :param path: the path to retrieve the json file from.
@@ -98,9 +128,7 @@ class JSONLoader(AbstractLoader):  # pylint: disable=too-few-public-methods
             raise IOError(f"There is an encoding error in the '{path}' file!") from e
 
 
-class Loader(
-    CSVLoader, ForecasterLoader, JSONLoader
-):  # pylint: disable=too-few-public-methods
+class Loader(CSVLoader, ForecasterLoader, JSONLoader):
     """Class which loads files."""
 
     def __init__(
@@ -129,6 +157,6 @@ class Loader(
             "Please provide either a supported filetype or a custom loader function."
         )
 
-    def load(self, path: str) -> SupportedObjectType:
+    def load(self, path: str, multiple: bool) -> SupportedObjectType:
         """Load a file from a given path."""
-        return self.loader(path)
+        return self.loader(path, multiple)
