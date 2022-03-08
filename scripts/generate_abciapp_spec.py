@@ -18,15 +18,17 @@
 #
 # ------------------------------------------------------------------------------
 """
-Generates the specification for a given ABCI app in JSON format using a
-simplified syntax for deterministic finite automata (DFA). Example usage:
+Generates the specification for a given ABCI app in YAML/JSON format using a simplified syntax for deterministic finite automata (DFA). Example
+usage:
 
-    ./generate_abciapp_spec.py -c packages.valory.skills.registration_abci.rounds.AgentRegistrationAbciApp -o output.json
+./generate_abciapp_spec.py -c packages.valory.skills.registration_abci.rounds.AgentRegistrationAbciApp -o output.yaml
 
 optional arguments:
   -h, --help            show this help message and exit
   -o OUTFILE, --outfile OUTFILE
                         Output file name.
+  -f {json,yaml}, --outformat {json,yaml}
+                        Output format.
 
 required arguments:
   -c CLASSFQN, --classfqn CLASSFQN
@@ -34,6 +36,7 @@ required arguments:
 """
 
 import argparse
+from enum import Enum
 import importlib
 from itertools import product
 import json
@@ -43,10 +46,14 @@ import re
 import sys
 from typing import IO, Dict, List, Set, TextIO, Tuple, Type, OrderedDict
 
+import yaml
+
 from packages.valory.skills.abstract_round_abci.base import AbciApp
 
 
 class DFASpecificationError(Exception):
+    """Simple class to raise errors when parsing a DFA."""
+
     pass
 
 
@@ -127,17 +134,23 @@ class DFA:
             return NotImplemented  # Try reflected operation
         return self.__dict__ == other.__dict__
 
-    def dump_json(self, fp: IO[str]) -> None:
+    def dump(self, fp: TextIO, output_format: str = "yaml") -> None:
         """Dumps this DFA spec. to a file in JSON format."""
-        dfa_json = {}
+        dfa_simple = {}
         for k, v in self.__dict__.items():
             if isinstance(v, Set):
-                dfa_json[k] = sorted(v)
+                dfa_simple[k] = sorted(v)
             elif isinstance(v, Dict):
-                dfa_json[k] = {str(k2).replace("'", ""): v2 for k2, v2 in v.items()}
+                dfa_simple[k] = {str(k2).replace("'", ""): v2 for k2, v2 in v.items()}
             else:
-                dfa_json[k] = v
-        json.dump(dfa_json, fp, indent=4)
+                dfa_simple[k] = v
+
+        if output_format == "json":
+            json.dump(dfa_simple, fp, indent=4)
+        elif output_format == "yaml":
+            yaml.safe_dump(dfa_simple, fp, indent=4)
+        else:
+            raise ValueError(f"Unrecognized output format {output_format}.")
 
     @classmethod
     def _norep_list_to_set(cls, l: List[str]) -> Set[str]:
@@ -161,27 +174,33 @@ class DFA:
         return (match.group(1), match.group(2))
 
     @classmethod
-    def json_to_dfa(cls, fp: TextIO) -> "DFA":
+    def load(cls, fp: TextIO, input_format: str = "yaml") -> "DFA":
         """Loads a DFA JSON specification from file."""
-        dfa_json = json.load(fp)
+
+        if input_format == "json":
+            dfa_simple = json.load(fp)
+        elif input_format == "yaml":
+            dfa_simple = yaml.safe_load(fp)
+        else:
+            raise ValueError(f"Unrecognized input format {input_format}.")
 
         try:
-            label = dfa_json.pop("label")
-            states = DFA._norep_list_to_set(dfa_json.pop("states"))
-            default_start_state = dfa_json.pop("default_start_state")
-            start_states = DFA._norep_list_to_set(dfa_json.pop("start_states"))
-            final_states = DFA._norep_list_to_set(dfa_json.pop("final_states"))
-            alphabet_in = DFA._norep_list_to_set(dfa_json.pop("alphabet_in"))
+            label = dfa_simple.pop("label")
+            states = DFA._norep_list_to_set(dfa_simple.pop("states"))
+            default_start_state = dfa_simple.pop("default_start_state")
+            start_states = DFA._norep_list_to_set(dfa_simple.pop("start_states"))
+            final_states = DFA._norep_list_to_set(dfa_simple.pop("final_states"))
+            alphabet_in = DFA._norep_list_to_set(dfa_simple.pop("alphabet_in"))
             transition_func = {
                 DFA._str_to_tuple(k): v
-                for k, v in dfa_json.pop("transition_func").items()
+                for k, v in dfa_simple.pop("transition_func").items()
             }
         except KeyError as ke:
             raise DFASpecificationError(f"DFA spec. JSON file missing key.") from ke
 
-        if len(dfa_json) != 0:
+        if len(dfa_simple) != 0:
             raise DFASpecificationError(
-                f"DFA spec. JSON file contains unexpected objects: {dfa_json.keys()}."
+                f"DFA spec. JSON file contains unexpected objects: {dfa_simple.keys()}."
             )
 
         return DFA(
@@ -242,9 +261,9 @@ def parse_arguments() -> argparse.Namespace:
     script_name = Path(__file__).name
     parser = argparse.ArgumentParser(
         script_name,
-        description=f"Generates the specification for a given ABCI app in JSON format using a simplified syntax for "
+        description=f"Generates the specification for a given ABCI app in YAML/JSON format using a simplified syntax for "
         "deterministic finite automata (DFA). Example usage:\n"
-        f"./{script_name} -c packages.valory.skills.registration_abci.rounds.AgentRegistrationAbciApp -o output.json",
+        f"./{script_name} -c packages.valory.skills.registration_abci.rounds.AgentRegistrationAbciApp -o output.yaml",
     )
     required = parser.add_argument_group("required arguments")
     required.add_argument(
@@ -262,6 +281,14 @@ def parse_arguments() -> argparse.Namespace:
         default=sys.stdout,
         help="Output file name.",
     )
+    parser.add_argument(
+        "-f",
+        "--outformat",
+        type=str,
+        choices=["json", "yaml"],
+        default="yaml",
+        help="Output format.",
+    )
     arguments_ = parser.parse_args()
     return arguments_
 
@@ -278,7 +305,8 @@ def main() -> None:
 
     abci_app_cls = getattr(module, class_name)
     dfa = DFA.abci_to_dfa(abci_app_cls, arguments.classfqn)
-    dfa.dump_json(arguments.outfile)
+    dfa.dump(arguments.outfile, arguments.outformat)
+
     print()
     logging.info("Done.")
 

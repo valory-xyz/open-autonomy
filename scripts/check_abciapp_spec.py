@@ -19,13 +19,15 @@
 # ------------------------------------------------------------------------------
 
 """
-Checks that a given ABCI app matches a specification in JSON format using a
-simplified syntax for deterministic finite automata (DFA). Example usage:
+Checks that a given ABCI app matches a specification in YAML/JSON format using a simplified syntax for deterministic finite automata (DFA). Example
+usage:
 
-./check_abciapp_spec.py -c packages.valory.skills.registration_abci.rounds.AgentRegistrationAbciApp -i input.json
+./check_abciapp_spec.py -c packages.valory.skills.registration_abci.rounds.AgentRegistrationAbciApp -i input.yaml
 
 optional arguments:
   -h, --help            show this help message and exit
+  -f {json,yaml}, --informat {json,yaml}
+                        Input format.
 
 required arguments:
   -c CLASSFQN, --classfqn CLASSFQN
@@ -46,9 +48,9 @@ def parse_arguments() -> argparse.Namespace:
     script_name = Path(__file__).name
     parser = argparse.ArgumentParser(
         script_name,
-        description=f"Checks that a given ABCI app matches a specification in JSON format using a simplified syntax for "
+        description=f"Checks that a given ABCI app matches a specification in YAML/JSON format using a simplified syntax for "
         "deterministic finite automata (DFA). Example usage:\n"
-        f"./{script_name} -c packages.valory.skills.registration_abci.rounds.AgentRegistrationAbciApp -i input.json",
+        f"./{script_name} -c packages.valory.skills.registration_abci.rounds.AgentRegistrationAbciApp -i input.yaml",
     )
     required = parser.add_argument_group("required arguments")
     required.add_argument(
@@ -64,6 +66,14 @@ def parse_arguments() -> argparse.Namespace:
         type=argparse.FileType("r"),
         required=True,
         help="Input file name.",
+    )
+    parser.add_argument(
+        "-f",
+        "--informat",
+        type=str,
+        choices=["json", "yaml"],
+        default="yaml",
+        help="Input format.",
     )
     arguments_ = parser.parse_args()
     return arguments_
@@ -82,11 +92,13 @@ def main() -> None:
     abci_app_cls = getattr(module, class_name)
 
     dfa1 = DFA.abci_to_dfa(abci_app_cls, arguments.classfqn)
-    dfa2 = DFA.json_to_dfa(arguments.infile)
+    dfa2 = DFA.load(arguments.infile, arguments.informat)
     if dfa1 == dfa2:
         logging.info("ABCI App matches specification.")
+        return 0
     else:
         logging.info("ABCI App does NOT match specification.")
+        return -1
 
 
 if __name__ == "__main__":
