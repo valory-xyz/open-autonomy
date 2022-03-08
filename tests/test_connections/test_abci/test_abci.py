@@ -505,9 +505,9 @@ async def test_varint_message_reader() -> None:
     async def read(nb: int) -> bytes:
         return b"hello"
 
-    def patch_decode_varint(value: Any) -> Callable:
-        async def decode_varint(*args: Any, **kwargs: Any) -> int:
-            return cast(int, value)
+    def patch_async_methods(value: Any) -> Callable:
+        async def decode_varint(*args: Any, **kwargs: Any) -> Any:
+            return value
 
         return decode_varint
 
@@ -515,20 +515,20 @@ async def test_varint_message_reader() -> None:
     vmr = VarintMessageReader(stream_reader)
 
     with mock.patch.object(
-        _TendermintABCISerializer, "decode_varint", new=patch_decode_varint(inf)
+        _TendermintABCISerializer, "decode_varint", new=patch_async_methods(inf)
     ):
         with pytest.raises(TooLargeVarint):
             await vmr.read_next_message()
 
     with mock.patch.object(
-        _TendermintABCISerializer, "decode_varint", new=patch_decode_varint(10)
+        _TendermintABCISerializer, "decode_varint", new=patch_async_methods(10)
     ):
-        with mock.patch.object(vmr, "read_until", return_value=b""):
+        with mock.patch.object(vmr, "read_until", new=patch_async_methods(b"")):
             with pytest.raises(ShortBufferLengthError):
                 await vmr.read_next_message()
 
     with mock.patch.object(
-        _TendermintABCISerializer, "decode_varint", new=patch_decode_varint(5)
+        _TendermintABCISerializer, "decode_varint", new=patch_async_methods(5)
     ):
         res = await vmr.read_next_message()
         assert res == b"hello"
