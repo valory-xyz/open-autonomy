@@ -19,8 +19,9 @@
 # ------------------------------------------------------------------------------
 
 """
-Checks that a given ABCI app matches a specification in YAML/JSON format using a simplified syntax for deterministic finite automata (DFA). Example
-usage:
+Checks that a given ABCI app matches a specification in YAML/JSON format using a simplified syntax for deterministic finite automata (DFA).
+
+Example usage:
 
 ./check_abciapp_spec.py -c packages.valory.skills.registration_abci.rounds.AgentRegistrationAbciApp -i input.yaml
 

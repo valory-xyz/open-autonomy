@@ -18,8 +18,9 @@
 #
 # ------------------------------------------------------------------------------
 """
-Generates the specification for a given ABCI app in YAML/JSON format using a simplified syntax for deterministic finite automata (DFA). Example
-usage:
+Generates the specification for a given ABCI app in YAML/JSON format using a simplified syntax for deterministic finite automata (DFA).
+
+Example usage:
 
 ./generate_abciapp_spec.py -c packages.valory.skills.registration_abci.rounds.AgentRegistrationAbciApp -o output.yaml
 
@@ -41,10 +42,9 @@ import json
 import logging
 import re
 import sys
-from enum import Enum
 from itertools import product
 from pathlib import Path
-from typing import Dict, IO, List, OrderedDict, Set, TextIO, Tuple, Type
+from typing import Dict, List, OrderedDict, Set, TextIO, Tuple, Type
 
 import yaml
 
@@ -70,6 +70,7 @@ class DFA:
         alphabet_in: Set[str],
         transition_func: Dict[Tuple[str, str], str],
     ):
+        """Initialize DFA object."""
         transition_func_states, transition_func_alphabet_in = map(
             set, (zip(*transition_func.keys()))
         )
@@ -90,7 +91,7 @@ class DFA:
             )
         if default_start_state not in start_states:
             raise DFASpecificationError(
-                f"DFA spec. default start state is not in start states set."
+                "DFA spec. default start state is not in start states set."
             )
         if not start_states.issubset(states):
             raise DFASpecificationError(
@@ -130,6 +131,7 @@ class DFA:
         return transitions
 
     def __eq__(self, other):
+        """Compares two DFAs"""
         if not isinstance(other, DFA):
             return NotImplemented  # Try reflected operation
         return self.__dict__ == other.__dict__
@@ -153,13 +155,13 @@ class DFA:
             raise ValueError(f"Unrecognized output format {output_format}.")
 
     @classmethod
-    def _norep_list_to_set(cls, l: List[str]) -> Set[str]:
+    def _norep_list_to_set(cls, lst: List[str]) -> Set[str]:
         """Converts a list to a set and ensures that it does not contain repetitions."""
-        if not isinstance(l, List):
-            raise DFASpecificationError(f"DFA spec. object {l} is not of type List.")
-        if len(l) != len(set(l)):
-            raise DFASpecificationError(f"DFA spec. List {l} contains repeated values.")
-        return set(l)
+        if not isinstance(lst, List):
+            raise DFASpecificationError(f"DFA spec. object {lst} is not of type List.")
+        if len(lst) != len(set(lst)):
+            raise DFASpecificationError(f"DFA spec. List {lst} contains repeated values.")
+        return set(lst)
 
     @classmethod
     def _str_to_tuple(cls, k: str) -> Tuple[str, str]:
@@ -196,7 +198,7 @@ class DFA:
                 for k, v in dfa_simple.pop("transition_func").items()
             }
         except KeyError as ke:
-            raise DFASpecificationError(f"DFA spec. JSON file missing key.") from ke
+            raise DFASpecificationError("DFA spec. JSON file missing key.") from ke
 
         if len(dfa_simple) != 0:
             raise DFASpecificationError(
