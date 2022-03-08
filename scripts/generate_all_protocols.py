@@ -479,7 +479,11 @@ def main(no_bump: bool = False, overwrite_custom_types: bool = False) -> None:
     """
     _check_preliminaries()
 
-    all_protocols = list(find_protocols_in_local_registry())
+    all_protocols = [
+        protocol
+        for protocol in list(find_protocols_in_local_registry())
+        if protocol.stem != "__pycache__"
+    ]
 
     with AEAProject():
         for package_path in all_protocols:
