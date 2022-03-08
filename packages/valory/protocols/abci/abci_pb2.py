@@ -788,7 +788,7 @@ _sym_db.RegisterMessage(AbciMessage.Response_Load_Snapshot_Chunk_Performative)
 _sym_db.RegisterMessage(AbciMessage.Response_Apply_Snapshot_Chunk_Performative)
 _sym_db.RegisterMessage(AbciMessage.Dummy_Performative)
 
-if _descriptor._USE_C_DESCRIPTORS == False:
+if _descriptor._USE_C_DESCRIPTORS == False:  # pragma: nocover
 
     DESCRIPTOR._options = None
     _ABCIMESSAGE._serialized_start = 39
