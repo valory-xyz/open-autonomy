@@ -376,7 +376,7 @@ class IPFSBehaviour(SimpleBehaviour, ABC):
             return None
 
     @_check_ipfs_enabled
-    def get_from_ipfs(
+    def get_from_ipfs(  # pylint: disable=too-many-arguments
         self,
         hash_: str,
         target_dir: str,

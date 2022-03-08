@@ -53,7 +53,7 @@ Temporarily store a file locally, in order to send it to IPFS and retrieve a has
 #### get`_`and`_`read
 
 ```python
-def get_and_read(hash_: str, target_dir: str, filename: str, filetype: Optional[SupportedFiletype] = None, custom_loader: SupportedLoaderType = None) -> SupportedObjectType
+def get_and_read(hash_: str, target_dir: str, multiple: bool = False, filename: Optional[str] = None, filetype: Optional[SupportedFiletype] = None, custom_loader: CustomLoaderType = None) -> SupportedObjectType
 ```
 
 Get, store and read a file from IPFS.

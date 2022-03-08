@@ -26,8 +26,12 @@ import pandas as pd
 import pytest
 
 from packages.valory.skills.abstract_round_abci.io.ipfs import IPFSInteract
-from packages.valory.skills.abstract_round_abci.io.store import SupportedFiletype, SupportedMultipleObjectsType, \
-    SupportedSingleObjectType
+from packages.valory.skills.abstract_round_abci.io.store import (
+    SupportedFiletype,
+    SupportedMultipleObjectsType,
+    SupportedSingleObjectType,
+)
+
 
 ipfs_daemon = pytest.mark.usefixtures("ipfs_daemon")
 
@@ -59,7 +63,9 @@ class TestIPFSInteract:
         hash_ = self.ipfs_interact.store_and_send(
             filepath, obj, multiple, SupportedFiletype.CSV
         )
-        result = self.ipfs_interact.get_and_read(hash_, str(tmp_path), multiple, "test_file.csv", SupportedFiletype.CSV)
+        result = self.ipfs_interact.get_and_read(
+            hash_, str(tmp_path), multiple, "test_file.csv", SupportedFiletype.CSV
+        )
 
         if multiple:
             result = cast(SupportedMultipleObjectsType, result)
@@ -71,7 +77,9 @@ class TestIPFSInteract:
             ), "loaded objects and dummy objects filenames do not match."
 
             # iterate through the loaded objects and their filenames and the dummy objects and their filenames.
-            for actual_frame, expected_frame in zip(result.values(), dummy_multiple_obj.values()):
+            for actual_frame, expected_frame in zip(
+                result.values(), dummy_multiple_obj.values()
+            ):
                 # assert loaded frame with expected.
                 pd.testing.assert_frame_equal(actual_frame, expected_frame)
 

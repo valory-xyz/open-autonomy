@@ -239,7 +239,7 @@ Send a file to IPFS.
 
 ```python
 @_check_ipfs_enabled
-def get_from_ipfs(hash_: str, target_dir: str, filename: str, filetype: Optional[SupportedFiletype] = None, custom_loader: SupportedLoaderType = None) -> Optional[SupportedObjectType]
+def get_from_ipfs(hash_: str, target_dir: str, multiple: bool = False, filename: Optional[str] = None, filetype: Optional[SupportedFiletype] = None, custom_loader: SupportedLoaderType = None) -> Optional[SupportedObjectType]
 ```
 
 Get a file from IPFS.

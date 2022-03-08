@@ -33,7 +33,10 @@ from packages.valory.skills.abstract_round_abci.io.load import (
     Loader,
     SupportedLoaderType,
 )
-from packages.valory.skills.abstract_round_abci.io.store import SupportedFiletype, SupportedMultipleObjectsType
+from packages.valory.skills.abstract_round_abci.io.store import (
+    SupportedFiletype,
+    SupportedMultipleObjectsType,
+)
 
 
 class TestLoader:
@@ -109,7 +112,9 @@ class TestLoader:
                 obj.to_csv(path, index=False)
 
             # load with loader.
-            loaded_objects = cast(SupportedMultipleObjectsType, loader.load(dummy_folder_path, multiple))
+            loaded_objects = cast(
+                SupportedMultipleObjectsType, loader.load(dummy_folder_path, multiple)
+            )
             assert len(loaded_objects) == len(
                 dummy_multiple_obj
             ), "loaded objects length and dummy objects length do not match."
@@ -118,7 +123,9 @@ class TestLoader:
             ), "loaded objects and dummy objects filenames do not match."
 
             # iterate through the loaded objects and their filenames and the dummy objects and their filenames.
-            for actual_frame, expected_frame in zip(loaded_objects.values(), dummy_multiple_obj.values()):
+            for actual_frame, expected_frame in zip(
+                loaded_objects.values(), dummy_multiple_obj.values()
+            ):
                 # assert loaded frame with expected.
                 pd.testing.assert_frame_equal(actual_frame, expected_frame)
 

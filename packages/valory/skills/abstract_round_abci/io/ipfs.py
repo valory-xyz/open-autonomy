@@ -92,6 +92,7 @@ class IPFSInteract:
 
         :param hash_: hash of file to download
         :param target_dir: directory to place downloaded file
+        :param multiple: whether multiple files are expected to be downloaded. The hash should be a folder's hash.
         :param filename: the original name of the file to download
         :return: the filepath of the downloaded file
         """
@@ -102,7 +103,9 @@ class IPFSInteract:
         elif filename is not None:
             filepath = remove_path = os.path.join(target_dir, filename)
         else:  # pragma: no cover
-            raise IPFSInteractionError("Filename cannot be `None` when uploading a single file!")
+            raise IPFSInteractionError(
+                "Filename cannot be `None` when uploading a single file!"
+            )
 
         if os.path.exists(remove_path):  # pragma: no cover
             # TODO investigate why sometimes the path exists. It shouldn't, because `_send` removes it.
@@ -134,7 +137,7 @@ class IPFSInteract:
 
         return self._send(filepath)
 
-    def get_and_read(
+    def get_and_read(  # pylint: disable=too-many-arguments
         self,
         hash_: str,
         target_dir: str,

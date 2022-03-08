@@ -31,7 +31,8 @@ from packages.valory.skills.abstract_round_abci.io.store import (
     CustomObjectType,
     NativelySupportedObjectType,
     SupportedFiletype,
-    SupportedObjectType, SupportedSingleObjectType,
+    SupportedObjectType,
+    SupportedSingleObjectType,
 )
 
 
@@ -127,9 +128,7 @@ class JSONLoader(AbstractLoader):
             raise IOError(f"There is an encoding error in the '{path}' file!") from e
 
 
-class Loader(
-    CSVLoader, ForecasterLoader, JSONLoader
-):
+class Loader(CSVLoader, ForecasterLoader, JSONLoader):
     """Class which loads files."""
 
     def __init__(
