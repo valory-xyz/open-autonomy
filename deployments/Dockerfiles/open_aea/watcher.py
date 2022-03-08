@@ -90,8 +90,11 @@ class AEARunner:
     def restart_tendermint() -> None:
         """Restart respective tendermint node."""
         write("Restarting Tendermint.")
-        response = requests.get(TENDERMINT_COM_URL + "/hard_reset")
-        assert response.status_code == 200
+        try:
+            response = requests.get(TENDERMINT_COM_URL + "/hard_reset")
+            assert response.status_code == 200
+        except requests.exceptions.ConnectionError:
+            write("Tendermint node not yet available.")
 
     def start(
         self,

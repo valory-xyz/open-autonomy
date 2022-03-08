@@ -1,4 +1,6 @@
-FROM valory/open-aea-user:0.1.0
+ARG AEA_VERSION="latest"
+FROM valory/open-aea-user:${AEA_VERSION}
+
 MAINTAINER Valory AG
 
 WORKDIR /home/ubuntu

@@ -11,6 +11,8 @@ build:
     context: deployments/Dockerfiles/open_aea/
     docker:
       dockerfile: Dockerfile
+      buildArgs:
+        AEA_VERSION: "latest"
 
   - image: valory/consensus-algorithms-tendermint
     context: deployments/Dockerfiles/localnode/

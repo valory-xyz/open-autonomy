@@ -222,7 +222,7 @@ run-oracle-dev:
 		echo "Please ensure you have set the environment variable 'OPEN_AEA_REPO_DIR'"
 		exit 1
 	fi
-	if [ "$(shell ls ${OPEN_AEA_REPO_DIR})" != "" ];\
+	if [ "$(shell ls ${OPEN_AEA_REPO_DIR}/build)" != "" ];\
 	then \
 		echo "Please remove ${OPEN_AEA_REPO_DIR}/build manually."
 		exit 1
