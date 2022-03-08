@@ -26,6 +26,6 @@ WORKDIR /home/ubuntu
 
 RUN svn checkout https://github.com/valory-xyz/open-aea/trunk/packages packages
 
-copy . /home/ubuntu
+COPY . /home/ubuntu
 
 CMD ["start.sh"]
