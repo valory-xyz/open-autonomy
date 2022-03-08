@@ -964,7 +964,7 @@ Check whether keeper is set.
 ## AbstractRound Objects
 
 ```python
-class AbstractRound(Generic[EventType, TransactionType], ABC)
+class AbstractRound(Generic[EventType, TransactionType],  ABC)
 ```
 
 This class represents an abstract round.
@@ -1706,7 +1706,8 @@ Initialize the class.
 ## AbciApp Objects
 
 ```python
-class AbciApp(Generic[EventType], ABC, metaclass=_MetaAbciApp)
+class AbciApp(
+    Generic[EventType],  ABC, metaclass=_MetaAbciApp)
 ```
 
 Base class for ABCI apps.
