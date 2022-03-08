@@ -35,7 +35,7 @@ from packages.valory.skills.abstract_round_abci.io.store import (
 )
 
 
-CustomLoaderType = Optional[Callable[[str], CustomObjectType]]
+CustomLoaderType = Optional[Callable[[str, bool], CustomObjectType]]
 SupportedLoaderType = Callable[[str, bool], SupportedObjectType]
 
 
