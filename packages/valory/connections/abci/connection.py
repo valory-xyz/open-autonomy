@@ -24,7 +24,7 @@ import subprocess  # nosec
 from asyncio import AbstractEventLoop, AbstractServer, CancelledError, Task
 from io import BytesIO
 from logging import Logger
-from typing import Any, Dict, Generator, List, Optional, Tuple, Type, cast
+from typing import Any, Dict, List, Optional, Tuple, cast
 
 from aea.configurations.base import PublicId
 from aea.connections.base import Connection, ConnectionStates
@@ -56,15 +56,33 @@ DEFAULT_RPC_PORT = 26657
 DEFAULT_LISTEN_ADDRESS = "0.0.0.0"  # nosec
 DEFAULT_P2P_LISTEN_ADDRESS = f"tcp://{DEFAULT_LISTEN_ADDRESS}:{DEFAULT_P2P_PORT}"
 DEFAULT_RPC_LISTEN_ADDRESS = f"tcp://{LOCALHOST}:{DEFAULT_RPC_PORT}"
-MAX_READ_IN_BYTES = 4 * 1024 * 1024  # Max we'll consume on a read stream
+MAX_READ_IN_BYTES = 2 ** 16  # Max we'll consume on a read stream (64 KiB)
+MAX_VARINT_BYTES = 10  # Max size of varint we support
 
 
 class DecodeVarintError(Exception):
     """This exception is raised when an error occurs while decoding a varint."""
 
 
+class TooLargeVarint(Exception):
+    """This exception is raised when a too large size of bytes is received."""
+
+
 class ShortBufferLengthError(Exception):
     """This exception is raised when the buffer length is shorter than expected."""
+
+    def __init__(self, expected_length: int, data: bytes):
+        """
+        Initialize the exception object.
+
+        :param expected_length: the expected length to be read
+        :param data: the data actually read
+        """
+        super().__init__(
+            f"expected bytes of length {expected_length}, got bytes of length {len(data)}"
+        )
+        self.expected_length = expected_length
+        self.data = data
 
 
 class _TendermintABCISerializer:
@@ -87,39 +105,45 @@ class _TendermintABCISerializer:
         return buf
 
     @classmethod
-    def decode_varint(cls, buffer: BytesIO) -> int:
+    async def decode_varint(
+        cls, buffer: asyncio.StreamReader, max_length: int = MAX_VARINT_BYTES
+    ) -> int:
         """
         Decode a number from its varint coding.
 
         :param buffer: the buffer to read from.
+        :param max_length: the max number of bytes that can be read.
         :return: the decoded int.
 
         :raise: DecodeVarintError if the varint could not be decoded.
         """
+        nb_read_bytes = 0
         shift = 0
         result = 0
         success = False
-        byte = cls._read_one(buffer)
-        while byte is not None:
+        byte = await cls._read_one(buffer)
+        nb_read_bytes += 1
+        while byte is not None and nb_read_bytes <= max_length:
             result |= (byte & 0x7F) << shift
             shift += 7
             if not byte & 0x80:
                 success = True
                 break
-            byte = cls._read_one(buffer)
+            byte = await cls._read_one(buffer)
+            nb_read_bytes += 1
         if not success:
             raise DecodeVarintError("could not decode varint")
         return result >> 1
 
     @classmethod
-    def _read_one(cls, buffer: BytesIO) -> Optional[int]:
+    async def _read_one(cls, buffer: asyncio.StreamReader) -> Optional[int]:
         """
         Read one byte to decode a varint.
 
         :param buffer: the buffer to read from.
         :return: the next character, or None if EOF is reached.
         """
-        character = buffer.read(1)
+        character = await buffer.read(1)
         if character == b"":
             return None
         return ord(character)
@@ -134,32 +158,33 @@ class _TendermintABCISerializer:
         buffer.write(protobuf_bytes)
         return buffer.getvalue()
 
-    @classmethod
-    def read_messages(
-        cls, buffer: BytesIO, message_cls: Type
-    ) -> Generator[Request, None, None]:
-        """
-        Return an iterator over the messages found in the `reader` buffer.
 
-        :param: buffer: the buffer to read messages from.
-        :param: message_cls: the message class to instantiate.
-        :yield: a new message.
+class VarintMessageReader:  # pylint: disable=too-few-public-methods
+    """Varint message reader."""
 
-        :raise: DecodeVarintError if the varint cannot be decoded correctly.
-        :raise: ShortBufferLengthError if the buffer length is shorter than expected.
-        :raise: google.protobuf.message.DecodeError if the Protobuf decoding fails.
-        """
-        total_length = buffer.getbuffer().nbytes
-        while buffer.tell() < total_length:
-            length = cls.decode_varint(buffer)
-            data = buffer.read(length)
-            if len(data) < length:
-                raise ShortBufferLengthError(
-                    f"expected buffer of length {length}, got {len(data)}"
-                )
-            message = message_cls()
-            message.ParseFromString(data)
-            yield message
+    def __init__(self, reader: asyncio.StreamReader) -> None:
+        """Initialize the reader."""
+        self._reader = reader
+
+    async def read_next_message(self) -> bytes:
+        """Read next message."""
+        varint = await _TendermintABCISerializer.decode_varint(self._reader)
+        if varint > MAX_READ_IN_BYTES:
+            raise TooLargeVarint()
+        message_bytes = await self.read_until(varint)
+        if len(message_bytes) < varint:
+            raise ShortBufferLengthError(varint, message_bytes)
+        return message_bytes
+
+    async def read_until(self, n: int) -> bytes:
+        """Wait until n bytes are read from the stream."""
+        result = BytesIO(b"")
+        read_bytes = 0
+        while read_bytes < n:
+            data = await self._reader.read(n - read_bytes)
+            result.write(data)
+            read_bytes += len(data)
+        return result.getvalue()
 
 
 class TcpServerChannel:  # pylint: disable=too-many-instance-attributes
@@ -250,60 +275,39 @@ class TcpServerChannel:  # pylint: disable=too-many-instance-attributes
         self._streams_by_socket[peer_name] = (reader, writer)
         self.logger.debug(f"Connection with Tendermint @ {peer_name}")
 
+        varint_message_reader = VarintMessageReader(reader)
         while not self.is_stopped:
-            data = BytesIO()
-
             try:
-                bits = await reader.read(MAX_READ_IN_BYTES)
+                message_bytes = await varint_message_reader.read_next_message()
+                if len(message_bytes) == 0:
+                    self.logger.error(
+                        f"Tendermint node {peer_name} closed connection."
+                    )  # pragma: nocover
+                    # break to the _stop if the connection stops
+                    break  # pragma: nocover
+                self.logger.debug(
+                    f"Received {len(message_bytes)} bytes from connection {peer_name}"
+                )
+                message = Request()
+                message.ParseFromString(message_bytes)
+            except (
+                DecodeVarintError,
+                TooLargeVarint,
+                DecodeError,
+            ) as e:  # pragma: nocover
+                self.logger.error(
+                    f"an error occurred while reading a message: "
+                    f"{type(e).__name__}: {e}. "
+                    f"The message will be ignored."
+                )
+                if reader.at_eof():
+                    self.logger.info("connection at EOF, stop receiving loop.")
+                    return
+                continue
             except CancelledError:  # pragma: nocover
                 self.logger.debug(f"Read task for peer {peer_name} cancelled.")
                 return
-            if len(bits) == 0:
-                self.logger.error(f"Tendermint node {peer_name} closed connection.")
-                # break to the _stop if the connection stops
-                break
-
-            self.logger.debug(f"Received {len(bits)} bytes from connection {peer_name}")
-            data.write(bits)
-            data.seek(0)
-
-            # Tendermint prefixes each serialized protobuf message
-            # with varint encoded length. We use the 'data' buffer to
-            # keep track of where we are in the byte stream and progress
-            # based on the length encoding
-            message_iterator: Generator[
-                Request, None, None
-            ] = _TendermintABCISerializer.read_messages(data, Request)
-            end_of_message_iterator = False
-            sentinel = object()
-            while not self.is_stopped:
-                try:
-                    message = next(message_iterator, sentinel)
-                except (
-                    DecodeVarintError,
-                    ShortBufferLengthError,
-                    DecodeError,
-                ) as e:  # pragma: nocover
-                    self.logger.error(
-                        f"an error occurred while reading a message: "
-                        f"{type(e).__name__}: {e}. "
-                        f"The message will be ignored."
-                    )
-                    continue
-
-                if message == sentinel:
-                    # we reached the end of the iterator
-                    end_of_message_iterator = True
-                    break
-                await self._handle_message(message, peer_name)
-
-            # check whether we exited the loop because of the end of the iterator
-            # or because the reading loop has been stopped prematurely
-            if not end_of_message_iterator:
-                self.logger.warning(
-                    "prematurely interrupting the message reading loop; "
-                    "there may be some unread messages that will be lost"
-                )
+            await self._handle_message(message, peer_name)
 
     async def _handle_message(self, message: Request, peer_name: str) -> None:
         """Handle a single message from a peer."""
