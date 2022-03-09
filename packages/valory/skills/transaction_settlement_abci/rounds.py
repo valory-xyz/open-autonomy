@@ -442,7 +442,7 @@ class FinishedTransactionSubmissionRound(DegenerateRound, ABC):
     round_id = "finished_transaction_submission"
 
 
-class PreResetRound(DegenerateRound):
+class RetryTransactionSubmissionRound(DegenerateRound):
     """A round that represents the previous step to reset"""
 
     round_id = "pre_reset"
@@ -507,11 +507,11 @@ class TransactionSubmissionAbciApp(AbciApp[Event]):
             - none: 12.
             - round timeout: 9.
             - no majority: 12.
-        10. PreResetRound
+        10. RetryTransactionSubmissionRound
         11. FinishedTransactionSubmissionRound
         12. FailedRound
 
-    Final states: {FailedRound, FinishedTransactionSubmissionRound, PreResetRound}
+    Final states: {FailedRound, FinishedTransactionSubmissionRound, RetryTransactionSubmissionRound}
 
     Timeouts:
         round timeout: 30.0
@@ -524,18 +524,18 @@ class TransactionSubmissionAbciApp(AbciApp[Event]):
     transition_function: AbciAppTransitionFunction = {
         RandomnessTransactionSubmissionRound: {
             Event.DONE: SelectKeeperTransactionSubmissionRoundA,
-            Event.ROUND_TIMEOUT: PreResetRound,
+            Event.ROUND_TIMEOUT: RetryTransactionSubmissionRound,
             Event.NO_MAJORITY: RandomnessTransactionSubmissionRound,
         },
         SelectKeeperTransactionSubmissionRoundA: {
             Event.DONE: CollectSignatureRound,
-            Event.ROUND_TIMEOUT: PreResetRound,
-            Event.NO_MAJORITY: PreResetRound,
+            Event.ROUND_TIMEOUT: RetryTransactionSubmissionRound,
+            Event.NO_MAJORITY: RetryTransactionSubmissionRound,
         },
         CollectSignatureRound: {
             Event.DONE: FinalizationRound,
-            Event.ROUND_TIMEOUT: PreResetRound,
-            Event.NO_MAJORITY: PreResetRound,
+            Event.ROUND_TIMEOUT: RetryTransactionSubmissionRound,
+            Event.NO_MAJORITY: RetryTransactionSubmissionRound,
         },
         FinalizationRound: {
             Event.DONE: ValidateTransactionRound,
@@ -561,13 +561,13 @@ class TransactionSubmissionAbciApp(AbciApp[Event]):
         },
         SelectKeeperTransactionSubmissionRoundB: {
             Event.DONE: FinalizationRound,
-            Event.ROUND_TIMEOUT: PreResetRound,
-            Event.NO_MAJORITY: PreResetRound,
+            Event.ROUND_TIMEOUT: RetryTransactionSubmissionRound,
+            Event.NO_MAJORITY: RetryTransactionSubmissionRound,
         },
         SelectKeeperTransactionSubmissionRoundBAfterTimeout: {
             Event.DONE: FinalizationRound,
-            Event.ROUND_TIMEOUT: PreResetRound,
-            Event.NO_MAJORITY: PreResetRound,
+            Event.ROUND_TIMEOUT: RetryTransactionSubmissionRound,
+            Event.NO_MAJORITY: RetryTransactionSubmissionRound,
         },
         SynchronizeLateMessagesRound: {
             Event.DONE: CheckLateTxHashesRound,
@@ -583,12 +583,12 @@ class TransactionSubmissionAbciApp(AbciApp[Event]):
             Event.ROUND_TIMEOUT: CheckLateTxHashesRound,
             Event.NO_MAJORITY: FailedRound,
         },
-        PreResetRound: {},
+        RetryTransactionSubmissionRound: {},
         FinishedTransactionSubmissionRound: {},
         FailedRound: {},
     }
     final_states: Set[AppState] = {
-        PreResetRound,
+        RetryTransactionSubmissionRound,
         FinishedTransactionSubmissionRound,
         FailedRound,
     }

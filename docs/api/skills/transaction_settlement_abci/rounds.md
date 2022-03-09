@@ -328,12 +328,12 @@ class FinishedTransactionSubmissionRound(DegenerateRound,  ABC)
 
 A round that represents that transaction submission has finished
 
-<a id="packages.valory.skills.transaction_settlement_abci.rounds.PreResetRound"></a>
+<a id="packages.valory.skills.transaction_settlement_abci.rounds.RetryTransactionSubmissionRound"></a>
 
-## PreResetRound Objects
+## RetryTransactionSubmissionRound Objects
 
 ```python
-class PreResetRound(DegenerateRound)
+class RetryTransactionSubmissionRound(DegenerateRound)
 ```
 
 A round that represents the previous step to reset
@@ -404,11 +404,11 @@ Transition states:
         - none: 12.
         - round timeout: 9.
         - no majority: 12.
-    10. PreResetRound
+    10. RetryTransactionSubmissionRound
     11. FinishedTransactionSubmissionRound
     12. FailedRound
 
-Final states: {FailedRound, FinishedTransactionSubmissionRound, PreResetRound}
+Final states: {FailedRound, FinishedTransactionSubmissionRound, RetryTransactionSubmissionRound}
 
 Timeouts:
     round timeout: 30.0
