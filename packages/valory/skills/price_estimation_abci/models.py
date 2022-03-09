@@ -32,6 +32,7 @@ from packages.valory.skills.price_estimation_abci.composition import (
     PriceEstimationAbciApp,
 )
 from packages.valory.skills.price_estimation_abci.rounds import Event
+from packages.valory.skills.reset_pause_abci.rounds import Event as ResetPauseEvent
 from packages.valory.skills.safe_deployment_abci.rounds import Event as SafeEvent
 from packages.valory.skills.transaction_settlement_abci.models import TransactionParams
 from packages.valory.skills.transaction_settlement_abci.rounds import Event as TSEvent
@@ -79,7 +80,13 @@ class SharedState(BaseSharedState):
         PriceEstimationAbciApp.event_to_timeout[
             TSEvent.ROUND_TIMEOUT
         ] = self.context.params.round_timeout_seconds
+        PriceEstimationAbciApp.event_to_timeout[
+            ResetPauseEvent.ROUND_TIMEOUT
+        ] = self.context.params.round_timeout_seconds
         PriceEstimationAbciApp.event_to_timeout[TSEvent.RESET_TIMEOUT] = (
+            self.context.params.round_timeout_seconds * MULTIPLIER
+        )
+        PriceEstimationAbciApp.event_to_timeout[ResetPauseEvent.RESET_TIMEOUT] = (
             self.context.params.round_timeout_seconds * MULTIPLIER
         )
         PriceEstimationAbciApp.event_to_timeout[SafeEvent.VALIDATE_TIMEOUT] = (
