@@ -523,7 +523,7 @@ class PreprocessBehaviour(APYEstimationBaseState):
             for split_name, split in {"train": train_splits, "test": test_splits}.items():
                 save_path = os.path.join(
                     self.context.data_dir,
-                    f"y_{split_name}",
+                    f"y_{split_name}/",
                 )
 
                 split_hash = self.send_to_ipfs(
