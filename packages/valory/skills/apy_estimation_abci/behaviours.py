@@ -348,7 +348,7 @@ class FetchBehaviour(APYEstimationBaseState):
             if len(self._pairs_hist) > 0:
                 # Send the file to IPFS and get its hash.
                 self._hist_hash = self.send_to_ipfs(
-                    self._save_path, self._pairs_hist, SupportedFiletype.JSON
+                    self._save_path, self._pairs_hist, filetype=SupportedFiletype.JSON
                 )
 
             # Pass the hash as a Payload.
