@@ -42,7 +42,7 @@ def group_and_filter_pair_data(
     :return: the filtered data grouped by pair.
     """
     # Group by pair.
-    grouped_and_filtered = pairs_hist.groupby("id")["blockTimestamp", "APY"]
+    grouped_and_filtered = pairs_hist.groupby("id")[["blockTimestamp", "APY"]]
 
     # Count the number of items per pair.
     n_pair_items = grouped_and_filtered.size()
