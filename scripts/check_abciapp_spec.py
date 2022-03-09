@@ -97,10 +97,10 @@ def main() -> None:
     dfa2 = DFA.load(arguments.infile, arguments.informat)
     if dfa1 == dfa2:
         logging.info("ABCI App matches specification.")
-        return 0
+        exit(0)
     else:
         logging.info("ABCI App does NOT match specification.")
-        return -1
+        exit(-1)
 
 
 if __name__ == "__main__":

@@ -44,7 +44,7 @@ import re
 import sys
 from itertools import product
 from pathlib import Path
-from typing import Dict, List, OrderedDict, Set, TextIO, Tuple, Type
+from typing import Any, Dict, List, OrderedDict, Set, TextIO, Tuple, Type
 
 import yaml
 
@@ -53,8 +53,6 @@ from packages.valory.skills.abstract_round_abci.base import AbciApp
 
 class DFASpecificationError(Exception):
     """Simple class to raise errors when parsing a DFA."""
-
-    pass
 
 
 class DFA:
@@ -74,7 +72,8 @@ class DFA:
         transition_func_states, transition_func_alphabet_in = map(
             set, (zip(*transition_func.keys()))
         )
-        transition_func_states.update(transition_func.values())
+
+        transition_func_states.update(transition_func.values())  # type: ignore
 
         orphan_states = states - (start_states | set(transition_func.values()))
         if orphan_states:
@@ -83,11 +82,11 @@ class DFA:
             )
         if not transition_func_states.issubset(states):
             raise DFASpecificationError(
-                f"DFA spec. transition function contains unexpected states: {transition_func_states-states}."
+                f"DFA spec. transition function contains unexpected states: {transition_func_states-states}."  # type: ignore
             )
         if not transition_func_alphabet_in.issubset(alphabet_in):
             raise DFASpecificationError(
-                f"DFA spec. transition function contains unexpected input symbols: {transition_func_alphabet_in-alphabet_in}."
+                f"DFA spec. transition function contains unexpected input symbols: {transition_func_alphabet_in-alphabet_in}."  # type: ignore
             )
         if default_start_state not in start_states:
             raise DFASpecificationError(
@@ -130,7 +129,7 @@ class DFA:
                 transitions.append(state)
         return transitions
 
-    def __eq__(self, other):
+    def __eq__(self, other: object) -> bool:
         """Compares two DFAs"""
         if not isinstance(other, DFA):
             return NotImplemented  # Try reflected operation
@@ -138,7 +137,7 @@ class DFA:
 
     def dump(self, fp: TextIO, output_format: str = "yaml") -> None:
         """Dumps this DFA spec. to a file in JSON format."""
-        dfa_simple = {}
+        dfa_simple: Dict[str, Any] = {}
         for k, v in self.__dict__.items():
             if isinstance(v, Set):
                 dfa_simple[k] = sorted(v)
