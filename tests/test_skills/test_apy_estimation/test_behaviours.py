@@ -661,12 +661,12 @@ class TestPreprocessBehaviour(APYEstimationFSMBehaviourBaseCase):
         tmp_path: PosixPath,
     ) -> None:
         """Run test for `preprocess_behaviour`."""
-        initial_data_dir = self.behaviour.context._agent_context._data_dir  # type: ignore
         self.behaviour.context._agent_context._data_dir = tmp_path  # type: ignore
-        # Increase the amount of dummy data for the train-test split.
+        # Increase the amount of dummy data for the train-test split,
+        # as many times as the threshold in `group_and_filter_pair_data`.
         transformed_historical_data = pd.DataFrame(
             np.repeat(
-                transformed_historical_data_no_datetime_conversion.values, 3, axis=0
+                transformed_historical_data_no_datetime_conversion.values, 5, axis=0
             ),
             columns=transformed_historical_data_no_datetime_conversion.columns,
         )
@@ -688,17 +688,27 @@ class TestPreprocessBehaviour(APYEstimationFSMBehaviourBaseCase):
                 StateDB(initial_period=0, initial_data=dict(most_voted_transform=hash_))
             ),
         )
+        cast(
+            PreprocessBehaviour, self.behaviour.current_state
+        ).params.sleep_time = SLEEP_TIME_TWEAK
 
         state = cast(BaseState, self.behaviour.current_state)
         assert state.state_id == self.behaviour_class.state_id
 
+        self.behaviour.context.task_manager.start()
         self.behaviour.act_wrapper()
+        
+        if data_found:
+            while not cast(TransformBehaviour, self.behaviour.current_state)._async_result.ready():
+                time.sleep(SLEEP_TIME_TWEAK + 0.01)
+                self.behaviour.act_wrapper()
+            self.behaviour.act_wrapper()
+
         self.mock_a2a_transaction()
         self._test_done_flag_set()
         self.end_round()
         state = cast(BaseState, self.behaviour.current_state)
         assert state.state_id == self.next_behaviour_class.state_id
-        self.behaviour.context._agent_context._data_dir = initial_data_dir  # type: ignore
 
 
 class TestPrepareBatchBehaviour(APYEstimationFSMBehaviourBaseCase):
