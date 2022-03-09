@@ -1,9 +1,10 @@
+OPEN_AEA_REPO_PATH := "${OPEN_AEA_REPO_PATH}"
+
 .PHONY: clean
 clean: clean-build clean-pyc clean-test clean-docs
 
 .PHONY: clean-build
 clean-build:
-	rm -fr deployments/build
 	rm -fr build/
 	rm -fr dist/
 	rm -fr .eggs/
@@ -235,14 +236,60 @@ install-hooks:
 	cp scripts/pre-push .git/hooks/pre-push
 
 .ONESHELL: build-images
-build-images: clean-build
+build-images:
+	sudo make clean
 	if [ "${VERSION}" = "" ];\
 	then\
 		echo "Ensure you have exported a version to build!";\
 		exit 1
 	fi
 	rsync -avu packages/ deployments/Dockerfiles/open_aea/packages
-	skaffold build --build-concurrency=0 --push=false
+	if [ "${VERSION}" = "dev" ];\
+	then\
+		echo "building dev images!";\
+		skaffold build --build-concurrency=0 --push=false -p dev && exit 0
+		exit 1
+	fi
+	skaffold build --build-concurrency=0 --push=false -p prod && exit 0
+	exit 1
 
+.PHONY: run-hardhat
+run-hardhat:
+	docker run -p 8545:8545 -it valory/consensus-algorithms-hardhat:0.1.0
+
+# if you get following error
+# PermissionError: [Errno 13] Permission denied: '/open-aea/build/bdist.linux-x86_64/wheel'
+# or similar to PermissionError: [Errno 13] Permission denied: /**/build
+# remove build directory from the folder that you got error for
+# for example here it should be /path/to/open-aea/repo/build
+.PHONY: run-oracle-dev
+run-oracle-dev:
+	if [ "${OPEN_AEA_REPO_DIR}" = "" ];\
+	then\
+		echo "Please ensure you have set the environment variable 'OPEN_AEA_REPO_DIR'"
+		exit 1
+	fi
+	if [ "$(shell ls ${OPEN_AEA_REPO_DIR}/build)" != "" ];\
+	then \
+		echo "Please remove ${OPEN_AEA_REPO_DIR}/build manually."
+		exit 1
+	fi
+	export VERSION=dev
+	make build-images && \
+     	python deployments/click_create.py build-deployment --valory-app oracle_hardhat --deployment-type docker-compose --configure-tendermint && \
+     	make run-deploy
+
+.PHONY: run-oracle
+run-oracle:
+	export VERSION=0.1.0
+	make build-images && \
+	    python deployments/click_create.py build-deployment --valory-app oracle_hardhat --deployment-type docker-compose --configure-tendermint && \
+    	make run-deploy
+
+.PHONY: run-deploy
+run-deploy:
+	cd deployments/build/ && \
+	docker-compose up --force-recreate -t 600
+	
 protolint_install:
 	GO111MODULE=on GOPATH=~/go go get -u -v github.com/yoheimuta/protolint/cmd/protolint@v0.27.0
