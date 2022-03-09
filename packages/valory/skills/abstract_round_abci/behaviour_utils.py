@@ -76,7 +76,7 @@ from packages.valory.skills.abstract_round_abci.io.ipfs import (
     IPFSInteract,
     IPFSInteractionError,
 )
-from packages.valory.skills.abstract_round_abci.io.load import SupportedLoaderType
+from packages.valory.skills.abstract_round_abci.io.load import CustomLoaderType
 from packages.valory.skills.abstract_round_abci.io.store import (
     CustomStorerType,
     SupportedFiletype,
@@ -383,7 +383,7 @@ class IPFSBehaviour(SimpleBehaviour, ABC):
         multiple: bool = False,
         filename: Optional[str] = None,
         filetype: Optional[SupportedFiletype] = None,
-        custom_loader: SupportedLoaderType = None,
+        custom_loader: CustomLoaderType = None,
     ) -> Optional[SupportedObjectType]:
         """Get a file from IPFS."""
         try:
