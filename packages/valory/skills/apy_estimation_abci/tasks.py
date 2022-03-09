@@ -32,7 +32,10 @@ from packages.valory.skills.apy_estimation_abci.ml.forecasting import (
     train_forecaster,
 )
 from packages.valory.skills.apy_estimation_abci.ml.optimization import optimize
-from packages.valory.skills.apy_estimation_abci.ml.preprocessing import prepare_pair_data, TrainTestSplitType
+from packages.valory.skills.apy_estimation_abci.ml.preprocessing import (
+    TrainTestSplitType,
+    prepare_pair_data,
+)
 from packages.valory.skills.apy_estimation_abci.tools.etl import transform_hist_data
 
 

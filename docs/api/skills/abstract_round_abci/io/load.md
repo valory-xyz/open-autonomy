@@ -19,7 +19,6 @@ An abstract `Loader` class.
 #### load`_`single`_`file
 
 ```python
-@staticmethod
 @abstractmethod
 def load_single_file(path: str) -> SupportedSingleObjectType
 ```
@@ -60,8 +59,7 @@ A csv files Loader.
 #### load`_`single`_`file
 
 ```python
-@staticmethod
-def load_single_file(path: str) -> NativelySupportedObjectType
+def load_single_file(path: str) -> NativelySupportedSingleObjectType
 ```
 
 Read a pandas dataframe from a csv file.
@@ -89,8 +87,7 @@ A `pmdarima` forecaster loader.
 #### load`_`single`_`file
 
 ```python
-@staticmethod
-def load_single_file(path: str) -> NativelySupportedObjectType
+def load_single_file(path: str) -> NativelySupportedSingleObjectType
 ```
 
 Load a `pmdarima` forecaster.
@@ -118,8 +115,7 @@ A JSON file loader.
 #### load`_`single`_`file
 
 ```python
-@staticmethod
-def load_single_file(path: str) -> NativelySupportedObjectType
+def load_single_file(path: str) -> NativelySupportedSingleObjectType
 ```
 
 Read a json file.
@@ -137,7 +133,7 @@ the deserialized json file's content.
 ## Loader Objects
 
 ```python
-class Loader(CSVLoader,  ForecasterLoader,  JSONLoader)
+class Loader(AbstractLoader)
 ```
 
 Class which loads files.
@@ -152,13 +148,13 @@ def __init__(filetype: Optional[SupportedFiletype], custom_loader: CustomLoaderT
 
 Initialize a `Loader`.
 
-<a id="packages.valory.skills.abstract_round_abci.io.load.Loader.load"></a>
+<a id="packages.valory.skills.abstract_round_abci.io.load.Loader.load_single_file"></a>
 
-#### load
+#### load`_`single`_`file
 
 ```python
-def load(path: str, multiple: bool) -> SupportedObjectType
+def load_single_file(path: str) -> SupportedSingleObjectType
 ```
 
-Load a file from a given path.
+Load a single file.
 

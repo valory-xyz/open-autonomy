@@ -85,9 +85,7 @@ class TestPayloads:
     @staticmethod
     def test_preprocess_payload() -> None:
         """Test `PreprocessPayload`"""
-        payload = PreprocessPayload(
-            sender="sender", train_test="x0", id_="id"
-        )
+        payload = PreprocessPayload(sender="sender", train_test="x0", id_="id")
         assert payload.transaction_type == TransactionType.PREPROCESS
         assert payload.train_test_hash == "x0"
         assert payload.id_ == "id"

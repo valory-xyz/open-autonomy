@@ -697,9 +697,12 @@ class TestPreprocessBehaviour(APYEstimationFSMBehaviourBaseCase):
 
         self.behaviour.context.task_manager.start()
         self.behaviour.act_wrapper()
-        
+
         if data_found:
-            while not cast(TransformBehaviour, self.behaviour.current_state)._async_result.ready():
+            while not cast(
+                AsyncResult,
+                cast(TransformBehaviour, self.behaviour.current_state)._async_result,
+            ).ready():
                 time.sleep(SLEEP_TIME_TWEAK + 0.01)
                 self.behaviour.act_wrapper()
             self.behaviour.act_wrapper()

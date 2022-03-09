@@ -88,9 +88,10 @@ from packages.valory.skills.apy_estimation_abci.rounds import (
 )
 from packages.valory.skills.apy_estimation_abci.tasks import (
     OptimizeTask,
+    PreprocessTask,
     TestTask,
     TrainTask,
-    TransformTask, PreprocessTask,
+    TransformTask,
 )
 from packages.valory.skills.apy_estimation_abci.tools.etl import (
     ResponseItemType,
@@ -484,7 +485,10 @@ class PreprocessBehaviour(APYEstimationBaseState):
         self._preprocessed_pairs_save_path = ""
         self._async_result: Optional[AsyncResult] = None
         self._pairs_hist: Optional[ResponseItemType] = None
-        self._preprocessed_pairs_hashes: Dict[str, Optional[str]] = {"train_hash": None, "test_hash": None}
+        self._preprocessed_pairs_hashes: Dict[str, Optional[str]] = {
+            "train_hash": None,
+            "test_hash": None,
+        }
 
     def setup(self) -> None:
         """Setup behaviour."""
@@ -520,7 +524,10 @@ class PreprocessBehaviour(APYEstimationBaseState):
             )
 
             # Store and hash the preprocessed data.
-            for split_name, split in {"train": train_splits, "test": test_splits}.items():
+            for split_name, split in {
+                "train": train_splits,
+                "test": test_splits,
+            }.items():
                 save_path = os.path.join(
                     self.context.data_dir,
                     f"y_{split_name}/",
