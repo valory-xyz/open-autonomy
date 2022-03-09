@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021 Valory AG
+#   Copyright 2021-2022 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -32,6 +32,10 @@ from packages.valory.skills.apy_estimation_abci.ml.forecasting import (
     train_forecaster,
 )
 from packages.valory.skills.apy_estimation_abci.ml.optimization import optimize
+from packages.valory.skills.apy_estimation_abci.ml.preprocessing import (
+    TrainTestSplitType,
+    prepare_pair_data,
+)
 from packages.valory.skills.apy_estimation_abci.tools.etl import transform_hist_data
 
 
@@ -41,6 +45,14 @@ class TransformTask(Task):
     def execute(self, *args: Any, **kwargs: Any) -> pd.DataFrame:
         """Execute the task."""
         return transform_hist_data(*args, **kwargs)
+
+
+class PreprocessTask(Task):
+    """Preprocess historical data."""
+
+    def execute(self, *args: Any, **kwargs: Any) -> TrainTestSplitType:
+        """Execute the task."""
+        return prepare_pair_data(*args, **kwargs)
 
 
 class OptimizeTask(Task):

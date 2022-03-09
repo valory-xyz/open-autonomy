@@ -39,15 +39,22 @@ NativelySupportedMultipleObjectsType = Dict[str, NativelySupportedSingleObjectTy
 NativelySupportedObjectType = Union[
     NativelySupportedSingleObjectType, NativelySupportedMultipleObjectsType
 ]
-NativelySupportedStorerType = Callable[[NativelySupportedObjectType, bool, Any], None]
-CustomSingleObjectType = TypeVar("CustomSingleObjectType")
-CustomMultipleObjectsType = Dict[str, CustomSingleObjectType]
-CustomObjectType = Union[CustomSingleObjectType, CustomMultipleObjectsType]
-CustomStorerType = Callable[[CustomObjectType, Any], None]
+NativelySupportedStorerType = Callable[[str, NativelySupportedObjectType, Any], None]
+CustomObjectType = TypeVar("CustomObjectType")
+CustomStorerType = Callable[[str, CustomObjectType, Any], None]
 SupportedSingleObjectType = Union[NativelySupportedObjectType, CustomObjectType]
 SupportedMultipleObjectsType = Dict[str, SupportedSingleObjectType]
 SupportedObjectType = Union[SupportedSingleObjectType, SupportedMultipleObjectsType]
 SupportedStorerType = Union[NativelySupportedStorerType, CustomStorerType]
+NativelySupportedJSONStorerType = Callable[
+    [str, Union[StoredJSONType, Dict[str, StoredJSONType]], Any], None
+]
+NativelySupportedPipelineStorerType = Callable[
+    [str, Union[Pipeline, Dict[str, Pipeline]], Any], None
+]
+NativelySupportedDfStorerType = Callable[
+    [str, Union[pd.DataFrame, Dict[str, pd.DataFrame]], Any], None
+]
 
 
 class SupportedFiletype(Enum):
@@ -67,10 +74,9 @@ class AbstractStorer(ABC):
         # Create the dirs of the path if it does not exist.
         create_pathdirs(path)
 
-    @staticmethod
     @abstractmethod
     def store_single_file(
-        filename: str, obj: SupportedSingleObjectType, **kwargs: Any
+        self, filename: str, obj: SupportedSingleObjectType, **kwargs: Any
     ) -> None:
         """Store a single file."""
 
@@ -92,9 +98,8 @@ class AbstractStorer(ABC):
 class JSONStorer(AbstractStorer):
     """A JSON file storer."""
 
-    @staticmethod
     def store_single_file(
-        filename: str, obj: NativelySupportedObjectType, **kwargs: Any
+        self, filename: str, obj: NativelySupportedSingleObjectType, **kwargs: Any
     ) -> None:
         """Store a JSON."""
         if not any(isinstance(obj, type_) for type_ in (dict, list)):
@@ -112,9 +117,8 @@ class JSONStorer(AbstractStorer):
 class CSVStorer(AbstractStorer):
     """A CSV file storer."""
 
-    @staticmethod
     def store_single_file(
-        filename: str, obj: NativelySupportedObjectType, **kwargs: Any
+        self, filename: str, obj: NativelySupportedSingleObjectType, **kwargs: Any
     ) -> None:
         """Store a pandas dataframe."""
         if not isinstance(obj, pd.DataFrame):
@@ -133,9 +137,8 @@ class CSVStorer(AbstractStorer):
 class ForecasterStorer(AbstractStorer):
     """A pmdarima Pipeline storer."""
 
-    @staticmethod
     def store_single_file(
-        filename: str, obj: NativelySupportedObjectType, **kwargs: Any
+        self, filename: str, obj: NativelySupportedSingleObjectType, **kwargs: Any
     ) -> None:
         """Store a pmdarima Pipeline."""
         if not isinstance(obj, Pipeline):
@@ -149,7 +152,7 @@ class ForecasterStorer(AbstractStorer):
             raise IOError(str(e)) from e
 
 
-class Storer(CSVStorer, ForecasterStorer, JSONStorer):
+class Storer(AbstractStorer):
     """Class which stores files."""
 
     def __init__(
@@ -160,36 +163,36 @@ class Storer(CSVStorer, ForecasterStorer, JSONStorer):
     ):
         """Initialize a `Storer`."""
         super().__init__(path)
+        self._filetype = filetype
+        self._custom_storer = custom_storer
         self.__filetype_to_storer: Dict[SupportedFiletype, SupportedStorerType] = {
             SupportedFiletype.JSON: cast(
-                Callable[[StoredJSONType, Any], None], JSONStorer(path).store
+                NativelySupportedJSONStorerType, JSONStorer(path).store_single_file
             ),
             SupportedFiletype.PM_PIPELINE: cast(
-                Callable[[Pipeline, Any], None], ForecasterStorer(path).store
+                NativelySupportedPipelineStorerType,
+                ForecasterStorer(path).store_single_file,
             ),
             SupportedFiletype.CSV: cast(
-                Callable[[pd.DataFrame, Any], None], CSVStorer(path).store
+                NativelySupportedDfStorerType, CSVStorer(path).store_single_file
             ),
         }
 
-        self.storer = self._get_storer_from_filetype(filetype, custom_storer)
+    def store_single_file(
+        self, filename: str, obj: NativelySupportedObjectType, **kwargs: Any
+    ) -> None:
+        """Store a single file."""
+        storer = self._get_single_storer_from_filetype()
+        storer(filename, obj, **kwargs)  # type: ignore
 
-    def _get_storer_from_filetype(
-        self,
-        filetype: Optional[SupportedFiletype],
-        custom_storer: Optional[CustomStorerType],
-    ) -> SupportedStorerType:
+    def _get_single_storer_from_filetype(self) -> SupportedStorerType:
         """Get a file storer from a given filetype or keep a custom storer."""
-        if filetype is not None:
-            return self.__filetype_to_storer[filetype]
+        if self._filetype is not None:
+            return self.__filetype_to_storer[self._filetype]
 
-        if custom_storer is not None:  # pragma: no cover
-            return custom_storer
+        if self._custom_storer is not None:  # pragma: no cover
+            return self._custom_storer
 
         raise ValueError(  # pragma: no cover
             "Please provide either a supported filetype or a custom storing function."
         )
-
-    def store(self, obj: SupportedObjectType, multiple: bool, **kwargs: Any) -> None:
-        """Store one or more objects."""
-        self.storer(obj, multiple, **kwargs)  # type: ignore

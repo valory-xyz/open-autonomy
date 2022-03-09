@@ -85,23 +85,19 @@ class TestPayloads:
     @staticmethod
     def test_preprocess_payload() -> None:
         """Test `PreprocessPayload`"""
-        payload = PreprocessPayload(
-            sender="sender", pair_name="test", train_test="x0", id_="id"
-        )
+        payload = PreprocessPayload(sender="sender", train_test="x0", id_="id")
         assert payload.transaction_type == TransactionType.PREPROCESS
-        assert payload.pair_name == "test"
         assert payload.train_test_hash == "x0"
         assert payload.id_ == "id"
-        assert payload.data == {"train_test": "x0", "pair_name": "test"}
+        assert payload.data == {"train_test": "x0"}
 
         payload = PreprocessPayload(
-            sender="sender", train_hash="x0", test_hash="x1", pair_name="test", id_="id"
+            sender="sender", train_hash="x0", test_hash="x1", id_="id"
         )
         assert payload.transaction_type == TransactionType.PREPROCESS
         assert payload.train_test_hash == "x0x1"
-        assert payload.pair_name == "test"
         assert payload.id_ == "id"
-        assert payload.data == {"train_test": "x0x1", "pair_name": "test"}
+        assert payload.data == {"train_test": "x0x1"}
 
     @staticmethod
     def test_randomness_payload() -> None:

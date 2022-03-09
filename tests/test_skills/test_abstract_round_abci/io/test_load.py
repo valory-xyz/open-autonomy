@@ -50,22 +50,26 @@ class TestLoader:
         "filetype, custom_loader, expected_loader",
         (
             (None, None, None),
-            (SupportedFiletype.CSV, None, CSVLoader.load),
-            (SupportedFiletype.JSON, None, JSONLoader.load),
-            (SupportedFiletype.PM_PIPELINE, None, ForecasterLoader.load),
-            (SupportedFiletype.CSV, __dummy_custom_loader, CSVLoader.load),
-            (SupportedFiletype.JSON, __dummy_custom_loader, JSONLoader.load),
+            (SupportedFiletype.CSV, None, CSVLoader.load_single_file),
+            (SupportedFiletype.JSON, None, JSONLoader.load_single_file),
+            (SupportedFiletype.PM_PIPELINE, None, ForecasterLoader.load_single_file),
+            (SupportedFiletype.CSV, __dummy_custom_loader, CSVLoader.load_single_file),
+            (
+                SupportedFiletype.JSON,
+                __dummy_custom_loader,
+                JSONLoader.load_single_file,
+            ),
             (
                 SupportedFiletype.PM_PIPELINE,
                 __dummy_custom_loader,
-                ForecasterLoader.load,
+                ForecasterLoader.load_single_file,
             ),
             (None, __dummy_custom_loader, __dummy_custom_loader),
         ),
     )
     def test__get_loader_from_filetype(
         filetype: Optional[SupportedFiletype],
-        custom_loader: Optional[CustomLoaderType],
+        custom_loader: CustomLoaderType,
         expected_loader: Optional[SupportedLoaderType],
     ) -> None:
         """Test `_get_loader_from_filetype`."""
@@ -76,12 +80,15 @@ class TestLoader:
                 ValueError,
                 match="Please provide either a supported filetype or a custom loader function.",
             ):
-                Loader(filetype, custom_loader)
+                Loader(filetype, custom_loader)._get_single_loader_from_filetype()
 
         else:
             expected_loader = cast(SupportedLoaderType, expected_loader)
             loader = Loader(filetype, custom_loader)
-            assert loader.loader.__code__.co_code == expected_loader.__code__.co_code
+            assert (
+                loader._get_single_loader_from_filetype().__code__.co_code
+                == expected_loader.__code__.co_code
+            )
 
     @staticmethod
     @pytest.mark.parametrize("multiple", (True, False))

@@ -138,11 +138,6 @@ class PeriodState(BasePeriodState):
         return cast(bool, self.db.get("full_training", False))
 
     @property
-    def pair_name(self) -> str:
-        """Get the pair_name."""
-        return cast(str, self.db.get_strict("pair_name"))
-
-    @property
     def n_estimations(self) -> int:
         """Get the n_estimations."""
         return cast(int, self.db.get("n_estimations", 0))
@@ -267,9 +262,6 @@ class PreprocessRound(CollectSameUntilThresholdRound, APYEstimationAbstractRound
                 period_state_class=PeriodState,
                 participant_to_preprocessing=self.collection,
                 most_voted_split=self.most_voted_payload,
-                pair_name=cast(
-                    PreprocessPayload, list(self.collection.values())[0]
-                ).pair_name,
             )
             return updated_state, Event.DONE
 
@@ -462,7 +454,6 @@ class BaseResetRound(CollectSameUntilThresholdRound, APYEstimationAbstractRound)
                 all_participants=self.period_state.all_participants,
                 full_training=False,
                 n_estimations=self.period_state.n_estimations,
-                pair_name=self.period_state.pair_name,
                 most_voted_model=self.period_state.model_hash,
             )
             if self.round_id == "cycle_reset":

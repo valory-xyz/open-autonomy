@@ -29,23 +29,22 @@ import pandas as pd
 
 from packages.valory.skills.abstract_round_abci.io.store import (
     CustomObjectType,
-    NativelySupportedObjectType,
+    NativelySupportedSingleObjectType,
     SupportedFiletype,
     SupportedObjectType,
     SupportedSingleObjectType,
 )
 
 
-CustomLoaderType = Optional[Callable[[str, bool], CustomObjectType]]
-SupportedLoaderType = Callable[[str, bool], SupportedObjectType]
+CustomLoaderType = Optional[Callable[[str], CustomObjectType]]
+SupportedLoaderType = Callable[[str], SupportedSingleObjectType]
 
 
 class AbstractLoader(ABC):
     """An abstract `Loader` class."""
 
-    @staticmethod
     @abstractmethod
-    def load_single_file(path: str) -> SupportedSingleObjectType:
+    def load_single_file(self, path: str) -> SupportedSingleObjectType:
         """Load a single file."""
 
     def load(self, path: str, multiple: bool) -> SupportedObjectType:
@@ -76,8 +75,7 @@ class AbstractLoader(ABC):
 class CSVLoader(AbstractLoader):
     """A csv files Loader."""
 
-    @staticmethod
-    def load_single_file(path: str) -> NativelySupportedObjectType:
+    def load_single_file(self, path: str) -> NativelySupportedSingleObjectType:
         """Read a pandas dataframe from a csv file.
 
         :param path: the path of the csv.
@@ -92,8 +90,7 @@ class CSVLoader(AbstractLoader):
 class ForecasterLoader(AbstractLoader):
     """A `pmdarima` forecaster loader."""
 
-    @staticmethod
-    def load_single_file(path: str) -> NativelySupportedObjectType:
+    def load_single_file(self, path: str) -> NativelySupportedSingleObjectType:
         """Load a `pmdarima` forecaster.
 
         :param path: path to store the forecaster.
@@ -108,8 +105,7 @@ class ForecasterLoader(AbstractLoader):
 class JSONLoader(AbstractLoader):
     """A JSON file loader."""
 
-    @staticmethod
-    def load_single_file(path: str) -> NativelySupportedObjectType:
+    def load_single_file(self, path: str) -> NativelySupportedSingleObjectType:
         """Read a json file.
 
         :param path: the path to retrieve the json file from.
@@ -128,35 +124,34 @@ class JSONLoader(AbstractLoader):
             raise IOError(f"There is an encoding error in the '{path}' file!") from e
 
 
-class Loader(CSVLoader, ForecasterLoader, JSONLoader):
+class Loader(AbstractLoader):
     """Class which loads files."""
 
     def __init__(
         self, filetype: Optional[SupportedFiletype], custom_loader: CustomLoaderType
     ):
         """Initialize a `Loader`."""
+        self._filetype = filetype
+        self._custom_loader = custom_loader
         self.__filetype_to_loader: Dict[SupportedFiletype, SupportedLoaderType] = {
-            SupportedFiletype.JSON: JSONLoader().load,
-            SupportedFiletype.PM_PIPELINE: ForecasterLoader().load,
-            SupportedFiletype.CSV: CSVLoader().load,
+            SupportedFiletype.JSON: JSONLoader().load_single_file,
+            SupportedFiletype.PM_PIPELINE: ForecasterLoader().load_single_file,
+            SupportedFiletype.CSV: CSVLoader().load_single_file,
         }
 
-        self.loader = self._get_loader_from_filetype(filetype, custom_loader)
+    def load_single_file(self, path: str) -> SupportedSingleObjectType:
+        """Load a single file."""
+        loader = self._get_single_loader_from_filetype()
+        return loader(path)
 
-    def _get_loader_from_filetype(
-        self, filetype: Optional[SupportedFiletype], custom_loader: CustomLoaderType
-    ) -> SupportedLoaderType:
+    def _get_single_loader_from_filetype(self) -> SupportedLoaderType:
         """Get a file loader from a given filetype or keep a custom loader."""
-        if filetype is not None:
-            return self.__filetype_to_loader[filetype]
+        if self._filetype is not None:
+            return self.__filetype_to_loader[self._filetype]
 
-        if custom_loader is not None:  # pragma: no cover
-            return custom_loader
+        if self._custom_loader is not None:  # pragma: no cover
+            return self._custom_loader
 
         raise ValueError(  # pragma: no cover
             "Please provide either a supported filetype or a custom loader function."
         )
-
-    def load(self, path: str, multiple: bool) -> SupportedObjectType:
-        """Load a file from a given path."""
-        return self.loader(path, multiple)

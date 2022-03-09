@@ -53,7 +53,7 @@ from packages.valory.skills.apy_estimation_abci.composition import (
 )
 from packages.valory.skills.apy_estimation_abci.ml.forecasting import TestReportType
 from packages.valory.skills.apy_estimation_abci.ml.preprocessing import (
-    prepare_pair_data,
+    TrainTestSplitType,
 )
 from packages.valory.skills.apy_estimation_abci.models import APYParams, SharedState
 from packages.valory.skills.apy_estimation_abci.payloads import (
@@ -88,6 +88,7 @@ from packages.valory.skills.apy_estimation_abci.rounds import (
 )
 from packages.valory.skills.apy_estimation_abci.tasks import (
     OptimizeTask,
+    PreprocessTask,
     TestTask,
     TrainTask,
     TransformTask,
@@ -348,7 +349,7 @@ class FetchBehaviour(APYEstimationBaseState):
             if len(self._pairs_hist) > 0:
                 # Send the file to IPFS and get its hash.
                 self._hist_hash = self.send_to_ipfs(
-                    self._save_path, self._pairs_hist, SupportedFiletype.JSON
+                    self._save_path, self._pairs_hist, filetype=SupportedFiletype.JSON
                 )
 
             # Pass the hash as a Payload.
@@ -405,8 +406,8 @@ class TransformBehaviour(APYEstimationBaseState):
         self._pairs_hist = self.get_from_ipfs(
             self.period_state.history_hash,
             self.context.data_dir,
-            "historical_data.json",
-            SupportedFiletype.JSON,
+            filename="historical_data.json",
+            filetype=SupportedFiletype.JSON,
         )
 
         self._transformed_history_save_path = os.path.join(
@@ -441,7 +442,7 @@ class TransformBehaviour(APYEstimationBaseState):
             self._transformed_hist_hash = self.send_to_ipfs(
                 self._transformed_history_save_path,
                 transformed_history,
-                SupportedFiletype.CSV,
+                filetype=SupportedFiletype.CSV,
             )
 
             # Get the latest observation for each pool id.
@@ -454,7 +455,7 @@ class TransformBehaviour(APYEstimationBaseState):
             self._latest_observations_hist_hash = self.send_to_ipfs(
                 latest_observations_save_path,
                 latest_observations,
-                SupportedFiletype.CSV,
+                filetype=SupportedFiletype.CSV,
             )
 
         # Pass the hashes as a Payload.
@@ -478,45 +479,68 @@ class PreprocessBehaviour(APYEstimationBaseState):
     state_id = "preprocess"
     matching_round = PreprocessRound
 
-    def async_act(self) -> Generator:
-        """Do the action."""
-        # TODO Currently we run it only for one pool, the USDC-FTM.
-        #  Eventually, we will have to run this and all the following behaviours for all the available pools.
+    def __init__(self, **kwargs: Any) -> None:
+        """Initialize Behaviour."""
+        super().__init__(**kwargs)
+        self._preprocessed_pairs_save_path = ""
+        self._async_result: Optional[AsyncResult] = None
+        self._pairs_hist: Optional[ResponseItemType] = None
+        self._preprocessed_pairs_hashes: Dict[str, Optional[str]] = {
+            "train_hash": None,
+            "test_hash": None,
+        }
 
-        # Get the historical data and preprocess them.
-        pairs_hist = self.get_from_ipfs(
+    def setup(self) -> None:
+        """Setup behaviour."""
+        # get the transformed historical data.
+        self._pairs_hist = self.get_from_ipfs(
             self.period_state.transformed_history_hash,
             self.context.data_dir,
-            "transformed_historical_data.csv",
+            filename="transformed_historical_data.csv",
             custom_loader=load_hist,
         )
 
-        hashes = [None] * 2
-        pair_name = ""
-
-        if pairs_hist is not None:
-            (y_train, y_test), pair_name = prepare_pair_data(  # type: ignore
-                pairs_hist, self.params.pair_ids[0]
+        if self._pairs_hist is not None:
+            preprocess_task = PreprocessTask()
+            task_id = self.context.task_manager.enqueue_task(
+                preprocess_task, args=(self._pairs_hist,)
             )
-            self.context.logger.info("Data have been preprocessed.")
-            self.context.logger.info(f"y_train: {y_train.to_string()}")  # type: ignore
-            self.context.logger.info(f"y_test: {y_test.to_string()}")  # type: ignore
+            self._async_result = self.context.task_manager.get_task_result(task_id)
+
+    def async_act(self) -> Generator:
+        """Do the action."""
+        if self._pairs_hist is not None:
+            self._async_result = cast(AsyncResult, self._async_result)
+            if not self._async_result.ready():
+                self.context.logger.debug("The transform task is not finished yet.")
+                yield from self.sleep(self.params.sleep_time)
+                return
+
+            # Get the preprocessed data from the task.
+            completed_task = self._async_result.get()
+            train_splits, test_splits = cast(TrainTestSplitType, completed_task)
+            self.context.logger.info(
+                f"Data have been preprocessed:\nTrain splits {train_splits}\nTest splits{test_splits}"
+            )
 
             # Store and hash the preprocessed data.
-            for i, (filename, split) in enumerate(
-                {"train": y_train, "test": y_test}.items()  # type: ignore
-            ):
+            for split_name, split in {
+                "train": train_splits,
+                "test": test_splits,
+            }.items():
                 save_path = os.path.join(
                     self.context.data_dir,
-                    self.params.pair_ids[0],
-                    f"y_{filename}.csv",
+                    f"y_{split_name}/",
                 )
-                split_hash = self.send_to_ipfs(save_path, split, SupportedFiletype.CSV)
-                hashes[i] = split_hash
 
-        # Pass the hash as a Payload.
+                split_hash = self.send_to_ipfs(
+                    save_path, split, multiple=True, filetype=SupportedFiletype.CSV
+                )
+                self._preprocessed_pairs_hashes[f"{split_name}_hash"] = split_hash
+
+        # Pass the hashes as a Payload.
         payload = PreprocessPayload(
-            self.context.agent_address, pair_name, hashes[0], hashes[1]
+            self.context.agent_address, **self._preprocessed_pairs_hashes
         )
 
         # Finish behaviour.
@@ -553,15 +577,16 @@ class PrepareBatchBehaviour(APYEstimationBaseState):
 
         self._previous_batch = self.get_from_ipfs(
             self.period_state.latest_observation_hist_hash,
-            *batch_path_args,
+            self.context.data_dir,
+            filename="latest_observations.csv",
             custom_loader=load_hist,
         )
 
         self._batch = self.get_from_ipfs(
             self.period_state.batch_hash,
             self.context.data_dir,
-            f"historical_data_batch_{self.period_state.latest_observation_timestamp}.json",
-            SupportedFiletype.JSON,
+            filename=f"historical_data_batch_{self.period_state.latest_observation_timestamp}.json",
+            filetype=SupportedFiletype.JSON,
         )
 
     def async_act(self) -> Generator:
@@ -584,7 +609,9 @@ class PrepareBatchBehaviour(APYEstimationBaseState):
 
             # Send the file to IPFS and get its hash.
             self._prepared_batch_hash = self.send_to_ipfs(
-                self._prepared_batch_save_path, transformed_batch, SupportedFiletype.CSV
+                self._prepared_batch_save_path,
+                transformed_batch,
+                filetype=SupportedFiletype.CSV,
             )
 
         # Pass the hash as a Payload.
@@ -693,8 +720,8 @@ class OptimizeBehaviour(APYEstimationBaseState):
         self._y = self.get_from_ipfs(
             self.period_state.train_hash,
             training_data_path,
-            "y_train.csv",
-            SupportedFiletype.CSV,
+            filename="y_train.csv",
+            filetype=SupportedFiletype.CSV,
         )
 
         if self._y is not None:
@@ -748,7 +775,7 @@ class OptimizeBehaviour(APYEstimationBaseState):
                 # Fix: exit round via fail event and move to right round
 
             self._best_params_hash = self.send_to_ipfs(
-                best_params_save_path, best_params, SupportedFiletype.JSON
+                best_params_save_path, best_params, filetype=SupportedFiletype.JSON
             )
 
         # Pass the best params hash as a Payload.
@@ -788,8 +815,8 @@ class TrainBehaviour(APYEstimationBaseState):
         self._best_params = self.get_from_ipfs(
             self.period_state.params_hash,
             best_params_path,
-            "best_params.json",
-            SupportedFiletype.JSON,
+            filename="best_params.json",
+            filetype=SupportedFiletype.JSON,
         )
 
         # Load training data.
@@ -803,8 +830,8 @@ class TrainBehaviour(APYEstimationBaseState):
                 df = self.get_from_ipfs(
                     getattr(self.period_state, f"{split}_hash"),
                     path,
-                    f"y_{split}.csv",
-                    SupportedFiletype.CSV,
+                    filename=f"y_{split}.csv",
+                    filetype=SupportedFiletype.CSV,
                 )
                 if df is None:
                     splits = None
@@ -820,7 +847,10 @@ class TrainBehaviour(APYEstimationBaseState):
                 self.params.pair_ids[0],
             )
             df = self.get_from_ipfs(
-                self.period_state.train_hash, path, "y_train.csv", SupportedFiletype.CSV
+                self.period_state.train_hash,
+                path,
+                filename="y_train.csv",
+                filetype=SupportedFiletype.CSV,
             )
             if df is not None:
                 self._y = df.values.ravel()
@@ -855,7 +885,7 @@ class TrainBehaviour(APYEstimationBaseState):
 
             # Send the file to IPFS and get its hash.
             self._model_hash = self.send_to_ipfs(
-                forecaster_save_path, forecaster, SupportedFiletype.PM_PIPELINE
+                forecaster_save_path, forecaster, filetype=SupportedFiletype.PM_PIPELINE
             )
 
         payload = TrainingPayload(self.context.agent_address, self._model_hash)
@@ -894,8 +924,8 @@ class TestBehaviour(APYEstimationBaseState):
             df = self.get_from_ipfs(
                 getattr(self.period_state, f"{split}_hash"),
                 path,
-                f"y_{split}.csv",
-                SupportedFiletype.CSV,
+                filename=f"y_{split}.csv",
+                filetype=SupportedFiletype.CSV,
             )
             if df is not None:
                 setattr(self, f"_y_{split}", df.values.ravel())
@@ -908,8 +938,8 @@ class TestBehaviour(APYEstimationBaseState):
         self._forecaster = self.get_from_ipfs(
             self.period_state.model_hash,
             model_path,
-            "forecaster.joblib",
-            SupportedFiletype.PM_PIPELINE,
+            filename="forecaster.joblib",
+            filetype=SupportedFiletype.PM_PIPELINE,
         )
 
         if not any(
@@ -920,7 +950,6 @@ class TestBehaviour(APYEstimationBaseState):
                 self._forecaster,
                 self._y_train,
                 self._y_test,
-                self.period_state.pair_name,
                 self.params.testing["steps_forward"],
             )
             task_id = self.context.task_manager.enqueue_task(test_task, task_args)
@@ -950,7 +979,7 @@ class TestBehaviour(APYEstimationBaseState):
             )
             # Send the file to IPFS and get its hash.
             self._report_hash = self.send_to_ipfs(
-                report_save_path, report, SupportedFiletype.JSON
+                report_save_path, report, filetype=SupportedFiletype.JSON
             )
 
         # Pass the hash and the best trial as a Payload.
@@ -989,9 +1018,9 @@ class UpdateForecasterBehaviour(APYEstimationBaseState):
         # Load data batch.
         transformed_batch = self.get_from_ipfs(
             self.period_state.latest_observation_hist_hash,
-            pair_path,
-            "latest_observation.csv",
-            SupportedFiletype.CSV,
+            self.context.data_dir,
+            filename="latest_observations.csv",
+            filetype=SupportedFiletype.CSV,
         )
 
         if transformed_batch is not None:
@@ -1001,8 +1030,8 @@ class UpdateForecasterBehaviour(APYEstimationBaseState):
         self._forecaster = self.get_from_ipfs(
             self.period_state.model_hash,
             pair_path,
-            self._forecaster_filename,
-            SupportedFiletype.PM_PIPELINE,
+            filename=self._forecaster_filename,
+            filetype=SupportedFiletype.PM_PIPELINE,
         )
 
     def async_act(self) -> Generator:
@@ -1018,7 +1047,9 @@ class UpdateForecasterBehaviour(APYEstimationBaseState):
                 cast(str, self._forecaster_filename),
             )
             self._model_hash = self.send_to_ipfs(
-                forecaster_save_path, self._forecaster, SupportedFiletype.PM_PIPELINE
+                forecaster_save_path,
+                self._forecaster,
+                filetype=SupportedFiletype.PM_PIPELINE,
             )
 
         payload = UpdatePayload(self.context.agent_address, self._model_hash)
@@ -1054,8 +1085,8 @@ class EstimateBehaviour(APYEstimationBaseState):
         forecaster = self.get_from_ipfs(
             self.period_state.model_hash,
             model_path,
-            "fully_trained_forecaster.joblib",
-            SupportedFiletype.PM_PIPELINE,
+            filename="fully_trained_forecaster.joblib",
+            filetype=SupportedFiletype.PM_PIPELINE,
         )
 
         estimation = None
@@ -1065,7 +1096,7 @@ class EstimateBehaviour(APYEstimationBaseState):
 
             self.context.logger.info(
                 "Got estimate of APY for %s: %s",
-                self.period_state.pair_name,
+                "pair_name",  # this will be changed when `EstimateBehaviour` gets refactored for multiple pools.
                 estimation,
             )
 
@@ -1151,7 +1182,7 @@ class EstimatorRoundBehaviour(AbstractRoundBehaviour):
         FetchBehaviour,
         FetchBatchBehaviour,
         TransformBehaviour,
-        PreprocessBehaviour,  # type: ignore
+        PreprocessBehaviour,
         PrepareBatchBehaviour,
         RandomnessBehaviour,  # type: ignore
         OptimizeBehaviour,

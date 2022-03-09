@@ -39,7 +39,6 @@ Initialize an abstract storer.
 #### store`_`single`_`file
 
 ```python
-@staticmethod
 @abstractmethod
 def store_single_file(filename: str, obj: SupportedSingleObjectType, **kwargs: Any) -> None
 ```
@@ -71,8 +70,7 @@ A JSON file storer.
 #### store`_`single`_`file
 
 ```python
-@staticmethod
-def store_single_file(filename: str, obj: NativelySupportedObjectType, **kwargs: Any) -> None
+def store_single_file(filename: str, obj: NativelySupportedSingleObjectType, **kwargs: Any) -> None
 ```
 
 Store a JSON.
@@ -92,8 +90,7 @@ A CSV file storer.
 #### store`_`single`_`file
 
 ```python
-@staticmethod
-def store_single_file(filename: str, obj: NativelySupportedObjectType, **kwargs: Any) -> None
+def store_single_file(filename: str, obj: NativelySupportedSingleObjectType, **kwargs: Any) -> None
 ```
 
 Store a pandas dataframe.
@@ -113,8 +110,7 @@ A pmdarima Pipeline storer.
 #### store`_`single`_`file
 
 ```python
-@staticmethod
-def store_single_file(filename: str, obj: NativelySupportedObjectType, **kwargs: Any) -> None
+def store_single_file(filename: str, obj: NativelySupportedSingleObjectType, **kwargs: Any) -> None
 ```
 
 Store a pmdarima Pipeline.
@@ -124,7 +120,7 @@ Store a pmdarima Pipeline.
 ## Storer Objects
 
 ```python
-class Storer(CSVStorer,  ForecasterStorer,  JSONStorer)
+class Storer(AbstractStorer)
 ```
 
 Class which stores files.
@@ -139,13 +135,13 @@ def __init__(filetype: Optional[SupportedFiletype], custom_storer: Optional[Cust
 
 Initialize a `Storer`.
 
-<a id="packages.valory.skills.abstract_round_abci.io.store.Storer.store"></a>
+<a id="packages.valory.skills.abstract_round_abci.io.store.Storer.store_single_file"></a>
 
-#### store
+#### store`_`single`_`file
 
 ```python
-def store(obj: SupportedObjectType, multiple: bool, **kwargs: Any) -> None
+def store_single_file(filename: str, obj: NativelySupportedObjectType, **kwargs: Any) -> None
 ```
 
-Store one or more objects.
+Store a single file.
 

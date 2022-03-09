@@ -68,6 +68,9 @@ from packages.valory.skills.apy_estimation_abci.behaviours import (
     TransformBehaviour,
     UpdateForecasterBehaviour,
 )
+from packages.valory.skills.apy_estimation_abci.ml.preprocessing import (
+    prepare_pair_data,
+)
 from packages.valory.skills.apy_estimation_abci.rounds import Event, PeriodState
 from packages.valory.skills.apy_estimation_abci.tools.etl import ResponseItemType
 
@@ -536,7 +539,7 @@ class TestTransformBehaviour(APYEstimationFSMBehaviourBaseCase):
             hash_ = cast(BaseState, self.behaviour.current_state).send_to_ipfs(
                 os.path.join(tmp_path, "historical_data.json"),
                 {"test": "test"},
-                SupportedFiletype.JSON,
+                filetype=SupportedFiletype.JSON,
             )
         else:
             hash_ = "test"
@@ -658,39 +661,49 @@ class TestPreprocessBehaviour(APYEstimationFSMBehaviourBaseCase):
         self,
         data_found: bool,
         transformed_historical_data_no_datetime_conversion: pd.DataFrame,
+        monkeypatch: MonkeyPatch,
         tmp_path: PosixPath,
     ) -> None:
         """Run test for `preprocess_behaviour`."""
-        initial_data_dir = self.behaviour.context._agent_context._data_dir  # type: ignore
         self.behaviour.context._agent_context._data_dir = tmp_path  # type: ignore
-        # Increase the amount of dummy data for the train-test split.
+        cast(TransformBehaviour, self.behaviour.current_state)._pairs_hist = [
+            {"test": "test"}
+        ]
+        # Increase the amount of dummy data for the train-test split,
+        # as many times as the threshold in `group_and_filter_pair_data`.
         transformed_historical_data = pd.DataFrame(
             np.repeat(
-                transformed_historical_data_no_datetime_conversion.values, 3, axis=0
+                transformed_historical_data_no_datetime_conversion.values, 5, axis=0
             ),
             columns=transformed_historical_data_no_datetime_conversion.columns,
-        )
-
-        hash_ = (
-            cast(BaseState, self.behaviour.current_state).send_to_ipfs(
-                os.path.join(tmp_path, "transformed_historical_data.csv"),
-                transformed_historical_data,
-                SupportedFiletype.CSV,
-            )
-            if data_found
-            else "non_existing"
         )
 
         self.fast_forward_to_state(
             self.behaviour,
             self.behaviour_class.state_id,
             PeriodState(
-                StateDB(initial_period=0, initial_data=dict(most_voted_transform=hash_))
+                StateDB(
+                    initial_period=0, initial_data=dict(most_voted_transform="test")
+                )
             ),
         )
-
         state = cast(BaseState, self.behaviour.current_state)
         assert state.state_id == self.behaviour_class.state_id
+
+        # Convert the `blockTimestamp` to a pandas datetime.
+        transformed_historical_data["blockTimestamp"] = pd.to_datetime(
+            transformed_historical_data["blockTimestamp"], unit="s"
+        )
+        monkeypatch.setattr(
+            self._skill._skill_context._agent_context._task_manager,  # type: ignore
+            "get_task_result",
+            lambda *_: DummyAsyncResult(prepare_pair_data(transformed_historical_data)),
+        )
+        monkeypatch.setattr(
+            self._skill._skill_context._agent_context._task_manager,  # type: ignore
+            "enqueue_task",
+            lambda *_, **__: 3,
+        )
 
         self.behaviour.act_wrapper()
         self.mock_a2a_transaction()
@@ -698,7 +711,6 @@ class TestPreprocessBehaviour(APYEstimationFSMBehaviourBaseCase):
         self.end_round()
         state = cast(BaseState, self.behaviour.current_state)
         assert state.state_id == self.next_behaviour_class.state_id
-        self.behaviour.context._agent_context._data_dir = initial_data_dir  # type: ignore
 
 
 class TestPrepareBatchBehaviour(APYEstimationFSMBehaviourBaseCase):
@@ -1516,7 +1528,7 @@ class TestEstimateBehaviour(APYEstimationFSMBehaviourBaseCase):
             hash_ = cast(BaseState, self.behaviour.current_state).send_to_ipfs(
                 os.path.join(tmp_path, "fully_trained_forecaster.joblib"),
                 DummyPipeline(),
-                SupportedFiletype.PM_PIPELINE,
+                filetype=SupportedFiletype.PM_PIPELINE,
             )
         else:
             hash_ = "test"
