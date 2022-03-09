@@ -42,7 +42,7 @@ import importlib
 import logging
 from pathlib import Path
 
-from generate_abciapp_spec import DFA
+from scripts.generate_abciapp_spec import DFA
 
 
 def parse_arguments() -> argparse.Namespace:
