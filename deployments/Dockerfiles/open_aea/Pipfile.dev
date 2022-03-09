@@ -12,7 +12,6 @@ cowsay = {version = "==4.0"}
 [dev-packages]
 open-aea = {editable = true, path = "/open-aea"}
 open-aea-cli-ipfs = {editable = true, path = "/open-aea/plugins/aea-cli-ipfs"}
-open-aea-ledger-cosmos = {editable = true, path = "/open-aea/plugins/aea-ledger-cosmos"}
 open-aea-ledger-ethereum = {editable = true, path = "/open-aea/plugins/aea-ledger-ethereum"}
 
 [requires]
