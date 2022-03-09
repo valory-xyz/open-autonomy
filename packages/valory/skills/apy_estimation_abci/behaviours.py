@@ -492,7 +492,7 @@ class PreprocessBehaviour(APYEstimationBaseState):
         self._pairs_hist = self.get_from_ipfs(
             self.period_state.transformed_history_hash,
             self.context.data_dir,
-            filename="transformed_historical_data.json",
+            filename="transformed_historical_data.csv",
             custom_loader=load_hist,
         )
 
