@@ -132,7 +132,6 @@ def get_participant_to_preprocess_payload(
     return {
         participant: PreprocessPayload(
             participant,
-            "pair_name",
             train_hash,
             test_hash,
         )
@@ -613,7 +612,6 @@ def test_period() -> None:
     most_voted_randomness = 1
     most_voted_estimate = 1.0
     full_training = False
-    pair_name = ""
     n_estimations = 1
 
     period_state = PeriodState(
@@ -625,7 +623,6 @@ def test_period() -> None:
                 most_voted_randomness=most_voted_randomness,
                 most_voted_estimate=most_voted_estimate,
                 full_training=full_training,
-                pair_name=pair_name,
                 n_estimations=n_estimations,
             ),
         )
@@ -636,6 +633,5 @@ def test_period() -> None:
     assert period_state.most_voted_randomness == most_voted_randomness
     assert period_state.most_voted_estimate == most_voted_estimate
     assert period_state.full_training == full_training
-    assert period_state.pair_name == pair_name
     assert period_state.n_estimations == n_estimations
     assert period_state.is_most_voted_estimate_set is not None
