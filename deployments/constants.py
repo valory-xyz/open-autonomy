@@ -42,7 +42,6 @@ def get_ip() -> str:
 
 DEFAULT_IMAGE_VERSION = "0.1.0"
 IMAGE_VERSION = os.environ.get("VERSION", DEFAULT_IMAGE_VERSION)
-print(f"Working with image version: {IMAGE_VERSION}")
 
 NETWORKS = {
     "docker-compose": {
