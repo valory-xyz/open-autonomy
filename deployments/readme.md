@@ -8,33 +8,12 @@ For DO only:
 ssh root@178.62.4.138
 ```
 
+
 # Prerequisites
 
-- [Docker](https://docs.docker.com/ne/install/)
-Whilst docker versioning should not be an issue for users, we have included our docker version.
-```bash
-docker version
-
-Client: Docker Engine - Community
- Version:           20.10.12
- API version:       1.41
- Go version:        go1.16.12
-
-Server: Docker Engine - Community
- Engine:
-  Version:          20.10.12
-```
-
-- [Docker Compose](https://docs.docker.com/compose/install/)
-
-```bash
-pip install docker-compose==1.29.2
-```
-
-- [Skaffold](https://skaffold.dev/docs/install/)
-We recommend version ````v1.33.0````
-
-
+- Skaffold `>=v1.33.0`
+- Docker
+- Docker-Compose
 - Python `>=3.7`
 
 Install the virtual environment:
@@ -65,8 +44,18 @@ Now we have our images, we need to build the deployment to use them.
 
 ```bash
 pipenv shell
-python deployments/click_create.py build-deployment --deployment-type docker-compose  --valory-app oracle_ropsten --keys-file-path deployments/deployment_specifications/ropsten_keys.txt
+python deployments/click_create.py build-deployment --deployment-type docker-compose  --valory-app oracle_ropsten --keys-file-path deployments/keys/ropsten_keys.txt
 ```
+We can additionally specify a file path as so;
+
+```bash
+pipenv shell
+python deployments/click_create.py build-deployment \
+  --deployment-type docker-compose  \
+  --keys-file-path deployments/keys/ropsten_keys.txt \
+  --deployment-file-path deployments/deployment_specifications/price_estimation_ropsten.yaml 
+```
+
 
 ```output
 To configure tendermint for deployment please run: 
@@ -141,3 +130,5 @@ or
 ```bash
 for i in {1..4}; do scp root@178.62.4.138:node_${i}.txt node_${i}.txt; done
 ```
+
+
