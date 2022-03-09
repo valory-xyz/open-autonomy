@@ -68,6 +68,9 @@ from packages.valory.skills.apy_estimation_abci.behaviours import (
     TransformBehaviour,
     UpdateForecasterBehaviour,
 )
+from packages.valory.skills.apy_estimation_abci.ml.preprocessing import (
+    prepare_pair_data,
+)
 from packages.valory.skills.apy_estimation_abci.rounds import Event, PeriodState
 from packages.valory.skills.apy_estimation_abci.tools.etl import ResponseItemType
 
@@ -658,10 +661,14 @@ class TestPreprocessBehaviour(APYEstimationFSMBehaviourBaseCase):
         self,
         data_found: bool,
         transformed_historical_data_no_datetime_conversion: pd.DataFrame,
+        monkeypatch: MonkeyPatch,
         tmp_path: PosixPath,
     ) -> None:
         """Run test for `preprocess_behaviour`."""
         self.behaviour.context._agent_context._data_dir = tmp_path  # type: ignore
+        cast(TransformBehaviour, self.behaviour.current_state)._pairs_hist = [
+            {"test": "test"}
+        ]
         # Increase the amount of dummy data for the train-test split,
         # as many times as the threshold in `group_and_filter_pair_data`.
         transformed_historical_data = pd.DataFrame(
@@ -671,42 +678,34 @@ class TestPreprocessBehaviour(APYEstimationFSMBehaviourBaseCase):
             columns=transformed_historical_data_no_datetime_conversion.columns,
         )
 
-        hash_ = (
-            cast(BaseState, self.behaviour.current_state).send_to_ipfs(
-                os.path.join(tmp_path, "transformed_historical_data.csv"),
-                transformed_historical_data,
-                filetype=SupportedFiletype.CSV,
-            )
-            if data_found
-            else "non_existing"
-        )
-
         self.fast_forward_to_state(
             self.behaviour,
             self.behaviour_class.state_id,
             PeriodState(
-                StateDB(initial_period=0, initial_data=dict(most_voted_transform=hash_))
+                StateDB(
+                    initial_period=0, initial_data=dict(most_voted_transform="test")
+                )
             ),
         )
-        cast(
-            PreprocessBehaviour, self.behaviour.current_state
-        ).params.sleep_time = SLEEP_TIME_TWEAK
-
         state = cast(BaseState, self.behaviour.current_state)
         assert state.state_id == self.behaviour_class.state_id
 
-        self.behaviour.context.task_manager.start()
+        # Convert the `blockTimestamp` to a pandas datetime.
+        transformed_historical_data["blockTimestamp"] = pd.to_datetime(
+            transformed_historical_data["blockTimestamp"], unit="s"
+        )
+        monkeypatch.setattr(
+            self._skill._skill_context._agent_context._task_manager,  # type: ignore
+            "get_task_result",
+            lambda *_: DummyAsyncResult(prepare_pair_data(transformed_historical_data)),
+        )
+        monkeypatch.setattr(
+            self._skill._skill_context._agent_context._task_manager,  # type: ignore
+            "enqueue_task",
+            lambda *_, **__: 3,
+        )
+
         self.behaviour.act_wrapper()
-
-        if data_found:
-            while not cast(
-                AsyncResult,
-                cast(TransformBehaviour, self.behaviour.current_state)._async_result,
-            ).ready():
-                time.sleep(SLEEP_TIME_TWEAK + 0.01)
-                self.behaviour.act_wrapper()
-            self.behaviour.act_wrapper()
-
         self.mock_a2a_transaction()
         self._test_done_flag_set()
         self.end_round()
