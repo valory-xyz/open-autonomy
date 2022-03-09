@@ -219,6 +219,7 @@ class TestLedgerConnection:
         amount = 40000
         fee = 10 ** 7
 
+        # Create ledger_api dialogue
         request, ledger_api_dialogue = ledger_api_dialogues.create(
             counterparty=str(ledger_apis_connection.connection_id),
             performative=LedgerApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
