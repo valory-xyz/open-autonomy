@@ -186,7 +186,6 @@ class PreprocessPayload(BaseAPYPayload):
     def __init__(  # pylint: disable=too-many-arguments
         self,
         sender: str,
-        pair_name: str,
         train_hash: Optional[str] = None,
         test_hash: Optional[str] = None,
         train_test: Optional[str] = None,
@@ -197,12 +196,10 @@ class PreprocessPayload(BaseAPYPayload):
         :param sender: the sender (Ethereum) address
         :param train_hash: the train data hash.
         :param test_hash: the test data hash.
-        :param pair_name: the name of the pool for which the preprocessed data are for.
         :param train_test: the train-test concatenated hash.
         :param kwargs: the keyword arguments
         """
         super().__init__(sender, **kwargs)
-        self._pair_name = pair_name
         self._train_hash = train_hash
         self._test_hash = test_hash
         self._train_test = train_test
@@ -220,18 +217,12 @@ class PreprocessPayload(BaseAPYPayload):
         return self._train_test
 
     @property
-    def pair_name(self) -> str:
-        """Get the pool pair's name."""
-        return self._pair_name
-
-    @property
     def data(self) -> Dict[str, Optional[str]]:
         """Get the data."""
         return {
             "train_test": self.train_test_hash
             if self.train_test_hash is not None
             else "",
-            "pair_name": self._pair_name,
         }
 
 
