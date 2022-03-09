@@ -405,8 +405,8 @@ class TransformBehaviour(APYEstimationBaseState):
         self._pairs_hist = self.get_from_ipfs(
             self.period_state.history_hash,
             self.context.data_dir,
-            "historical_data.json",
-            SupportedFiletype.JSON,
+            filename="historical_data.json",
+            filetype=SupportedFiletype.JSON,
         )
 
         self._transformed_history_save_path = os.path.join(
@@ -441,7 +441,7 @@ class TransformBehaviour(APYEstimationBaseState):
             self._transformed_hist_hash = self.send_to_ipfs(
                 self._transformed_history_save_path,
                 transformed_history,
-                SupportedFiletype.CSV,
+                filetype=SupportedFiletype.CSV,
             )
 
             # Get the latest observation for each pool id.
@@ -454,7 +454,7 @@ class TransformBehaviour(APYEstimationBaseState):
             self._latest_observations_hist_hash = self.send_to_ipfs(
                 latest_observations_save_path,
                 latest_observations,
-                SupportedFiletype.CSV,
+                filetype=SupportedFiletype.CSV,
             )
 
         # Pass the hashes as a Payload.
@@ -492,7 +492,7 @@ class PreprocessBehaviour(APYEstimationBaseState):
         self._pairs_hist = self.get_from_ipfs(
             self.period_state.transformed_history_hash,
             self.context.data_dir,
-            "transformed_historical_data.json",
+            filename="transformed_historical_data.json",
             custom_loader=load_hist,
         )
 
@@ -526,7 +526,9 @@ class PreprocessBehaviour(APYEstimationBaseState):
                     f"y_{split_name}",
                 )
 
-                split_hash = self.send_to_ipfs(save_path, split, SupportedFiletype.CSV, multiple=True)
+                split_hash = self.send_to_ipfs(
+                    save_path, split, multiple=True, filetype=SupportedFiletype.CSV
+                )
                 self._preprocessed_pairs_hashes[f"{split_name}_hash"] = split_hash
 
         # Pass the hashes as a Payload.
@@ -568,15 +570,16 @@ class PrepareBatchBehaviour(APYEstimationBaseState):
 
         self._previous_batch = self.get_from_ipfs(
             self.period_state.latest_observation_hist_hash,
-            *batch_path_args,
+            self.context.data_dir,
+            filename="latest_observations.csv",
             custom_loader=load_hist,
         )
 
         self._batch = self.get_from_ipfs(
             self.period_state.batch_hash,
             self.context.data_dir,
-            f"historical_data_batch_{self.period_state.latest_observation_timestamp}.json",
-            SupportedFiletype.JSON,
+            filename=f"historical_data_batch_{self.period_state.latest_observation_timestamp}.json",
+            filetype=SupportedFiletype.JSON,
         )
 
     def async_act(self) -> Generator:
@@ -599,7 +602,9 @@ class PrepareBatchBehaviour(APYEstimationBaseState):
 
             # Send the file to IPFS and get its hash.
             self._prepared_batch_hash = self.send_to_ipfs(
-                self._prepared_batch_save_path, transformed_batch, SupportedFiletype.CSV
+                self._prepared_batch_save_path,
+                transformed_batch,
+                filetype=SupportedFiletype.CSV,
             )
 
         # Pass the hash as a Payload.
@@ -708,8 +713,8 @@ class OptimizeBehaviour(APYEstimationBaseState):
         self._y = self.get_from_ipfs(
             self.period_state.train_hash,
             training_data_path,
-            "y_train.csv",
-            SupportedFiletype.CSV,
+            filename="y_train.csv",
+            filetype=SupportedFiletype.CSV,
         )
 
         if self._y is not None:
@@ -763,7 +768,7 @@ class OptimizeBehaviour(APYEstimationBaseState):
                 # Fix: exit round via fail event and move to right round
 
             self._best_params_hash = self.send_to_ipfs(
-                best_params_save_path, best_params, SupportedFiletype.JSON
+                best_params_save_path, best_params, filetype=SupportedFiletype.JSON
             )
 
         # Pass the best params hash as a Payload.
@@ -803,8 +808,8 @@ class TrainBehaviour(APYEstimationBaseState):
         self._best_params = self.get_from_ipfs(
             self.period_state.params_hash,
             best_params_path,
-            "best_params.json",
-            SupportedFiletype.JSON,
+            filename="best_params.json",
+            filetype=SupportedFiletype.JSON,
         )
 
         # Load training data.
@@ -818,8 +823,8 @@ class TrainBehaviour(APYEstimationBaseState):
                 df = self.get_from_ipfs(
                     getattr(self.period_state, f"{split}_hash"),
                     path,
-                    f"y_{split}.csv",
-                    SupportedFiletype.CSV,
+                    filename=f"y_{split}.csv",
+                    filetype=SupportedFiletype.CSV,
                 )
                 if df is None:
                     splits = None
@@ -835,7 +840,10 @@ class TrainBehaviour(APYEstimationBaseState):
                 self.params.pair_ids[0],
             )
             df = self.get_from_ipfs(
-                self.period_state.train_hash, path, "y_train.csv", SupportedFiletype.CSV
+                self.period_state.train_hash,
+                path,
+                filename="y_train.csv",
+                filetype=SupportedFiletype.CSV,
             )
             if df is not None:
                 self._y = df.values.ravel()
@@ -870,7 +878,7 @@ class TrainBehaviour(APYEstimationBaseState):
 
             # Send the file to IPFS and get its hash.
             self._model_hash = self.send_to_ipfs(
-                forecaster_save_path, forecaster, SupportedFiletype.PM_PIPELINE
+                forecaster_save_path, forecaster, filetype=SupportedFiletype.PM_PIPELINE
             )
 
         payload = TrainingPayload(self.context.agent_address, self._model_hash)
@@ -909,8 +917,8 @@ class TestBehaviour(APYEstimationBaseState):
             df = self.get_from_ipfs(
                 getattr(self.period_state, f"{split}_hash"),
                 path,
-                f"y_{split}.csv",
-                SupportedFiletype.CSV,
+                filename=f"y_{split}.csv",
+                filetype=SupportedFiletype.CSV,
             )
             if df is not None:
                 setattr(self, f"_y_{split}", df.values.ravel())
@@ -923,8 +931,8 @@ class TestBehaviour(APYEstimationBaseState):
         self._forecaster = self.get_from_ipfs(
             self.period_state.model_hash,
             model_path,
-            "forecaster.joblib",
-            SupportedFiletype.PM_PIPELINE,
+            filename="forecaster.joblib",
+            filetype=SupportedFiletype.PM_PIPELINE,
         )
 
         if not any(
@@ -965,7 +973,7 @@ class TestBehaviour(APYEstimationBaseState):
             )
             # Send the file to IPFS and get its hash.
             self._report_hash = self.send_to_ipfs(
-                report_save_path, report, SupportedFiletype.JSON
+                report_save_path, report, filetype=SupportedFiletype.JSON
             )
 
         # Pass the hash and the best trial as a Payload.
@@ -1004,9 +1012,9 @@ class UpdateForecasterBehaviour(APYEstimationBaseState):
         # Load data batch.
         transformed_batch = self.get_from_ipfs(
             self.period_state.latest_observation_hist_hash,
-            pair_path,
-            "latest_observation.csv",
-            SupportedFiletype.CSV,
+            self.context.data_dir,
+            filename="latest_observations.csv",
+            filetype=SupportedFiletype.CSV,
         )
 
         if transformed_batch is not None:
@@ -1016,8 +1024,8 @@ class UpdateForecasterBehaviour(APYEstimationBaseState):
         self._forecaster = self.get_from_ipfs(
             self.period_state.model_hash,
             pair_path,
-            self._forecaster_filename,
-            SupportedFiletype.PM_PIPELINE,
+            filename=self._forecaster_filename,
+            filetype=SupportedFiletype.PM_PIPELINE,
         )
 
     def async_act(self) -> Generator:
@@ -1033,7 +1041,9 @@ class UpdateForecasterBehaviour(APYEstimationBaseState):
                 cast(str, self._forecaster_filename),
             )
             self._model_hash = self.send_to_ipfs(
-                forecaster_save_path, self._forecaster, SupportedFiletype.PM_PIPELINE
+                forecaster_save_path,
+                self._forecaster,
+                filetype=SupportedFiletype.PM_PIPELINE,
             )
 
         payload = UpdatePayload(self.context.agent_address, self._model_hash)
@@ -1069,8 +1079,8 @@ class EstimateBehaviour(APYEstimationBaseState):
         forecaster = self.get_from_ipfs(
             self.period_state.model_hash,
             model_path,
-            "fully_trained_forecaster.joblib",
-            SupportedFiletype.PM_PIPELINE,
+            filename="fully_trained_forecaster.joblib",
+            filetype=SupportedFiletype.PM_PIPELINE,
         )
 
         estimation = None

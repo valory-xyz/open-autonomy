@@ -536,7 +536,7 @@ class TestTransformBehaviour(APYEstimationFSMBehaviourBaseCase):
             hash_ = cast(BaseState, self.behaviour.current_state).send_to_ipfs(
                 os.path.join(tmp_path, "historical_data.json"),
                 {"test": "test"},
-                SupportedFiletype.JSON,
+                filetype=SupportedFiletype.JSON,
             )
         else:
             hash_ = "test"
@@ -675,7 +675,7 @@ class TestPreprocessBehaviour(APYEstimationFSMBehaviourBaseCase):
             cast(BaseState, self.behaviour.current_state).send_to_ipfs(
                 os.path.join(tmp_path, "transformed_historical_data.csv"),
                 transformed_historical_data,
-                SupportedFiletype.CSV,
+                filetype=SupportedFiletype.CSV,
             )
             if data_found
             else "non_existing"
@@ -1516,7 +1516,7 @@ class TestEstimateBehaviour(APYEstimationFSMBehaviourBaseCase):
             hash_ = cast(BaseState, self.behaviour.current_state).send_to_ipfs(
                 os.path.join(tmp_path, "fully_trained_forecaster.joblib"),
                 DummyPipeline(),
-                SupportedFiletype.PM_PIPELINE,
+                filetype=SupportedFiletype.PM_PIPELINE,
             )
         else:
             hash_ = "test"
