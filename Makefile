@@ -39,6 +39,60 @@ clean-test:
 	find . -name 'log.txt' -exec rm -fr {} +
 	find . -name 'log.*.txt' -exec rm -fr {} +
 
+# isort: fix import orders
+# black: format files according to the pep standards
+.PHONY: formatters
+formatters:
+	tox -e isort
+	tox -e black
+
+# black-check: check code style
+# isort-check: check for import order
+# flake8: wrapper around various code checks, https://flake8.pycqa.org/en/latest/user/error-codes.html
+# mypy: static type checker
+# pylint: code analysis for code smells and refactoring suggestions
+# vulture: finds dead code
+# darglint: docstring linter
+.PHONY: code-checks
+code-checks:
+	tox -p -e black-check -e isort-check -e flake8 -e mypy -e pylint -e vulture -e darglint
+
+# safety: checks dependencies for known security vulnerabilities
+# bandit: security linter
+.PHONY: security
+security:
+	tox -p -e safety -e bandit
+
+# generate latest hashes for updated packages
+# generate docs for updated packages
+# update copyright headers
+.PHONY: generators
+generators:
+	python scripts/generate_ipfs_hashes.py --vendor valory
+	python scripts/generate_api_documentation.py
+	python scripts/check_copyright.py
+
+.PHONY: abci-docstrings
+abci-docstrings:
+	python scripts/generate_abci_docstrings.py
+
+.PHONY: common-checks-1
+common-checks-1:
+	tox -p -e check-copyright -e check-hash -e check-packages
+
+.PHONY: common-checks-2
+common-checks-2:
+	tox -e check-api-docs
+	tox -e check-abci-docstrings
+
+.PHONY: copyright
+copyright:
+	python scripts/check_copyright.py
+
+.PHONY: check-copyright
+check-copyright:
+	tox -e check-copyright
+
 .PHONY: lint
 lint:
 	black aea_consensus_algorithms packages/valory scripts tests deployments
@@ -51,11 +105,6 @@ lint:
 pylint:
 	pylint -j4 aea_consensus_algorithms packages/valory scripts deployments
 
-.PHONY: security
-security:
-	bandit -r aea_consensus_algorithms packages
-	bandit -s B101 -r tests scripts
-	safety check -i 37524 -i 38038 -i 37776 -i 38039 -i 39621 -i 40291 -i 39706 -i 41002 -i 40622
 
 .PHONY: static
 static:
@@ -87,9 +136,6 @@ test:
 	pytest -rfE --doctest-modules aea_consensus_algorithms tests/ --cov=aea_consensus_algorithms --cov-report=html --cov=packages/valory --cov-report=xml --cov-report=term --cov-report=term-missing --cov-config=.coveragerc
 	find . -name ".coverage*" -not -name ".coveragerc" -exec rm -fr "{}" \;
 
-.PHONY: copyright
-copyright:
-	tox -e check-copyright
 
 .PHONY: checks
 checks:
@@ -198,4 +244,5 @@ build-images: clean-build
 	rsync -avu packages/ deployments/Dockerfiles/open_aea/packages
 	skaffold build --build-concurrency=0 --push=false
 
-
+protolint_install:
+	GO111MODULE=on GOPATH=~/go go get -u -v github.com/yoheimuta/protolint/cmd/protolint@v0.27.0
