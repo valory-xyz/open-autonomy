@@ -53,7 +53,7 @@ from packages.valory.skills.apy_estimation_abci.composition import (
 )
 from packages.valory.skills.apy_estimation_abci.ml.forecasting import TestReportType
 from packages.valory.skills.apy_estimation_abci.ml.preprocessing import (
-    prepare_pair_data,
+    TrainTestSplitType,
 )
 from packages.valory.skills.apy_estimation_abci.models import APYParams, SharedState
 from packages.valory.skills.apy_estimation_abci.payloads import (
@@ -90,7 +90,7 @@ from packages.valory.skills.apy_estimation_abci.tasks import (
     OptimizeTask,
     TestTask,
     TrainTask,
-    TransformTask,
+    TransformTask, PreprocessTask,
 )
 from packages.valory.skills.apy_estimation_abci.tools.etl import (
     ResponseItemType,
@@ -478,45 +478,60 @@ class PreprocessBehaviour(APYEstimationBaseState):
     state_id = "preprocess"
     matching_round = PreprocessRound
 
-    def async_act(self) -> Generator:
-        """Do the action."""
-        # TODO Currently we run it only for one pool, the USDC-FTM.
-        #  Eventually, we will have to run this and all the following behaviours for all the available pools.
+    def __init__(self, **kwargs: Any) -> None:
+        """Initialize Behaviour."""
+        super().__init__(**kwargs)
+        self._preprocessed_pairs_save_path = ""
+        self._async_result: Optional[AsyncResult] = None
+        self._pairs_hist: Optional[ResponseItemType] = None
+        self._preprocessed_pairs_hashes: Dict[str, Optional[str]] = {"train_hash": None, "test_hash": None}
 
-        # Get the historical data and preprocess them.
-        pairs_hist = self.get_from_ipfs(
+    def setup(self) -> None:
+        """Setup behaviour."""
+        # get the transformed historical data.
+        self._pairs_hist = self.get_from_ipfs(
             self.period_state.transformed_history_hash,
             self.context.data_dir,
-            "transformed_historical_data.csv",
+            "transformed_historical_data.json",
             custom_loader=load_hist,
         )
 
-        hashes = [None] * 2
-        pair_name = ""
-
-        if pairs_hist is not None:
-            (y_train, y_test), pair_name = prepare_pair_data(  # type: ignore
-                pairs_hist, self.params.pair_ids[0]
+        if self._pairs_hist is not None:
+            preprocess_task = PreprocessTask()
+            task_id = self.context.task_manager.enqueue_task(
+                preprocess_task, args=(self._pairs_hist,)
             )
-            self.context.logger.info("Data have been preprocessed.")
-            self.context.logger.info(f"y_train: {y_train.to_string()}")  # type: ignore
-            self.context.logger.info(f"y_test: {y_test.to_string()}")  # type: ignore
+            self._async_result = self.context.task_manager.get_task_result(task_id)
+
+    def async_act(self) -> Generator:
+        """Do the action."""
+        if self._pairs_hist is not None:
+            self._async_result = cast(AsyncResult, self._async_result)
+            if not self._async_result.ready():
+                self.context.logger.debug("The transform task is not finished yet.")
+                yield from self.sleep(self.params.sleep_time)
+                return
+
+            # Get the preprocessed data from the task.
+            completed_task = self._async_result.get()
+            train_splits, test_splits = cast(TrainTestSplitType, completed_task)
+            self.context.logger.info(
+                f"Data have been preprocessed:\nTrain splits {train_splits}\nTest splits{test_splits}"
+            )
 
             # Store and hash the preprocessed data.
-            for i, (filename, split) in enumerate(
-                {"train": y_train, "test": y_test}.items()  # type: ignore
-            ):
+            for split_name, split in {"train": train_splits, "test": test_splits}.items():
                 save_path = os.path.join(
                     self.context.data_dir,
-                    self.params.pair_ids[0],
-                    f"y_{filename}.csv",
+                    f"y_{split_name}",
                 )
-                split_hash = self.send_to_ipfs(save_path, split, SupportedFiletype.CSV)
-                hashes[i] = split_hash
 
-        # Pass the hash as a Payload.
+                split_hash = self.send_to_ipfs(save_path, split, SupportedFiletype.CSV, multiple=True)
+                self._preprocessed_pairs_hashes[f"{split_name}_hash"] = split_hash
+
+        # Pass the hashes as a Payload.
         payload = PreprocessPayload(
-            self.context.agent_address, pair_name, hashes[0], hashes[1]
+            self.context.agent_address, **self._preprocessed_pairs_hashes
         )
 
         # Finish behaviour.
