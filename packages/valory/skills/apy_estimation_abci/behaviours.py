@@ -1182,7 +1182,7 @@ class EstimatorRoundBehaviour(AbstractRoundBehaviour):
         FetchBehaviour,
         FetchBatchBehaviour,
         TransformBehaviour,
-        PreprocessBehaviour,  # type: ignore
+        PreprocessBehaviour,
         PrepareBatchBehaviour,
         RandomnessBehaviour,  # type: ignore
         OptimizeBehaviour,
