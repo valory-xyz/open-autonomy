@@ -943,7 +943,6 @@ class TestBehaviour(APYEstimationBaseState):
                 self._forecaster,
                 self._y_train,
                 self._y_test,
-                self.period_state.pair_name,
                 self.params.testing["steps_forward"],
             )
             task_id = self.context.task_manager.enqueue_task(test_task, task_args)
@@ -1090,7 +1089,7 @@ class EstimateBehaviour(APYEstimationBaseState):
 
             self.context.logger.info(
                 "Got estimate of APY for %s: %s",
-                self.period_state.pair_name,
+                "pair_name",  # this will be changed when `EstimateBehaviour` gets refactored for multiple pools.
                 estimation,
             )
 
