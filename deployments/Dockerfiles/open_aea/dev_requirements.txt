@@ -1,3 +1,0 @@
-click==7.1.2
-watchdog==2.1.6
-open_aea==1.4.0.post1

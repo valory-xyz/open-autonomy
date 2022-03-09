@@ -247,10 +247,11 @@ build-images:
 	if [ "${VERSION}" = "dev" ];\
 	then\
 		echo "building dev images!";\
-		skaffold build --build-concurrency=0 --push=false -p dev
-		exit 0
+		skaffold build --build-concurrency=0 --push=false -p dev && exit 0
+		exit 1
 	fi
-	skaffold build --build-concurrency=0 --push=false -p prod
+	skaffold build --build-concurrency=0 --push=false -p prod && exit 0
+	exit 1
 
 .PHONY: run-hardhat
 run-hardhat:
