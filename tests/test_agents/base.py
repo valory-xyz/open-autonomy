@@ -169,7 +169,7 @@ class BaseTestEnd2End(AEATestCaseMany, BaseTendermintTestClass):
         return full_strings
 
     @classmethod
-    def missing_from_output(
+    def missing_from_output(  # type: ignore
         cls,
         round_check_strings_to_n_periods: Optional[Dict[str, int]] = None,
         strict_check_strings: Tuple[str, ...] = (),
