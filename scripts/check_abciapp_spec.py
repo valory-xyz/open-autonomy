@@ -40,6 +40,7 @@ required arguments:
 import argparse
 import importlib
 import logging
+import sys
 from pathlib import Path
 
 from scripts.generate_abciapp_spec import DFA
@@ -97,10 +98,10 @@ def main() -> None:
     dfa2 = DFA.load(arguments.infile, arguments.informat)
     if dfa1 == dfa2:
         logging.info("ABCI App matches specification.")
-        exit(0)
+        sys.exit(0)
     else:
         logging.info("ABCI App does NOT match specification.")
-        exit(-1)
+        sys.exit(-1)
 
 
 if __name__ == "__main__":
