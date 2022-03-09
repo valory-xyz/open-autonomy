@@ -23,11 +23,11 @@
 import argparse
 import importlib
 import re
+import subprocess  # nosec
+import sys
 from pathlib import Path
 from typing import Any, Callable, Optional, Type, cast
 from warnings import filterwarnings
-
-from scripts.common import check_working_tree_is_dirty
 
 
 filterwarnings("ignore")
@@ -46,6 +46,29 @@ Final states: {{{final_states}}}\n
 Timeouts:
 {timeouts}
 \"\"\""""
+
+
+def check_working_tree_is_dirty() -> None:
+    """Check if the current Git working tree is dirty."""
+    print("Checking if there are files with updated docstrings.")
+    result = subprocess.check_output(["git", "status"])  # nosec
+    if len(result) > 0:
+        files = [
+            file.replace("modified:", "").strip()
+            for file in result.decode("utf-8").split("\n")
+            if "modified:" in file
+        ]
+        filterd_md_files = [
+            file
+            for file in files
+            if file.endswith("rounds.py") and file.startswith("packages")
+        ]
+        if len(filterd_md_files) > 0:
+            print("\nFiles with newly updated docstrings:\n")
+            print("\n".join(filterd_md_files))
+            sys.exit(1)
+
+    print("All good!")
 
 
 def add_docstring(func: Callable) -> Callable:
