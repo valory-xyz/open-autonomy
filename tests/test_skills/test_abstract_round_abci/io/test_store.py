@@ -48,15 +48,15 @@ class TestStorer:
         "filetype, custom_storer, expected_storer",
         (
             (None, None, None),
-            (SupportedFiletype.CSV, None, CSVStorer.store),
-            (SupportedFiletype.JSON, None, JSONStorer.store),
-            (SupportedFiletype.PM_PIPELINE, None, ForecasterStorer.store),
-            (SupportedFiletype.CSV, __dummy_custom_storer, CSVStorer.store),
-            (SupportedFiletype.JSON, __dummy_custom_storer, JSONStorer.store),
+            (SupportedFiletype.CSV, None, CSVStorer.store_single_file),
+            (SupportedFiletype.JSON, None, JSONStorer.store_single_file),
+            (SupportedFiletype.PM_PIPELINE, None, ForecasterStorer.store_single_file),
+            (SupportedFiletype.CSV, __dummy_custom_storer, CSVStorer.store_single_file),
+            (SupportedFiletype.JSON, __dummy_custom_storer, JSONStorer.store_single_file),
             (
                 SupportedFiletype.PM_PIPELINE,
                 __dummy_custom_storer,
-                ForecasterStorer.store,
+                ForecasterStorer.store_single_file,
             ),
             (None, __dummy_custom_storer, __dummy_custom_storer),
         ),
@@ -80,7 +80,7 @@ class TestStorer:
         else:
             expected_storer = cast(SupportedStorerType, expected_storer)
             storer = Storer(filetype, custom_storer, str(tmp_path))
-            assert storer.storer.__code__.co_code == expected_storer.__code__.co_code
+            assert storer.store_single_file.__code__.co_code == expected_storer.__code__.co_code
 
     @staticmethod
     @pytest.mark.parametrize("multiple, index", product((True, False), repeat=2))
