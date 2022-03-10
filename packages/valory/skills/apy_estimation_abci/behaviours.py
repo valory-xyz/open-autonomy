@@ -96,7 +96,7 @@ from packages.valory.skills.apy_estimation_abci.tasks import (
 from packages.valory.skills.apy_estimation_abci.tools.etl import (
     ResponseItemType,
     revert_transform_hist_data,
-    transform_hist_data,
+    transform_hist_data, apply_hist_based_calculations,
 )
 from packages.valory.skills.apy_estimation_abci.tools.general import gen_unix_timestamps
 from packages.valory.skills.apy_estimation_abci.tools.io import load_hist
@@ -560,21 +560,13 @@ class PrepareBatchBehaviour(APYEstimationBaseState):
     def __init__(self, **kwargs: Any) -> None:
         """Initialize Behaviour."""
         super().__init__(**kwargs)
-        self._batch: Optional[ResponseItemType] = None
-        self._prepared_batch_save_path = ""
         self._previous_batch: Optional[pd.DataFrame] = None
-        self._prepared_batch_hash: Optional[str] = None
+        self._current_batch_raw: Optional[ResponseItemType] = None
+        self._prepared_batches_save_path = ""
+        self._prepared_batches_hash: Optional[str] = None
 
     def setup(self) -> None:
         """Setup behaviour."""
-        path_to_pair = os.path.join(
-            self.context.data_dir,
-            self.params.pair_ids[0],
-        )
-
-        batch_path_args = path_to_pair, "latest_observation.csv"
-        self._prepared_batch_save_path = os.path.join(*batch_path_args)
-
         self._previous_batch = self.get_from_ipfs(
             self.period_state.latest_observation_hist_hash,
             self.context.data_dir,
@@ -582,42 +574,49 @@ class PrepareBatchBehaviour(APYEstimationBaseState):
             custom_loader=load_hist,
         )
 
-        self._batch = self.get_from_ipfs(
+        self._current_batch_raw = self.get_from_ipfs(
             self.period_state.batch_hash,
             self.context.data_dir,
             filename=f"historical_data_batch_{self.period_state.latest_observation_timestamp}.json",
             filetype=SupportedFiletype.JSON,
         )
 
+        self._prepared_batches_save_path = os.path.join(
+            self.context.data_dir, "latest_observations.csv"
+        )
+
     def async_act(self) -> Generator:
         """Do the action."""
-        if not any(batch is None for batch in (self._previous_batch, self._batch)):
-            # Revert transformation on the previous batch.
-            previous_batch = revert_transform_hist_data(
-                cast(pd.DataFrame, self._previous_batch)
-            )[0]
-            # Insert the latest batch as a row before transforming, in order to be able to calculate the APY.
-            cast(ResponseItemType, self._batch).insert(0, previous_batch)
+        if not any(batch is None for batch in (self._previous_batch, self._current_batch_raw)):
+            # Transform the current batch.
+            current_batch = transform_hist_data(cast(ResponseItemType, self._current_batch_raw), batch=True)
+            # Append the current batch to the previous batch.
+            batches = pd.concat([self._previous_batch, current_batch])
+            # Calculate the last APY value per pool, using the batches.
+            prepared_batches = {}
+            for pool_id, pool_batch in batches.groupby("id"):
+                if len(pool_batch.index) < 2:
+                    raise ValueError(f"Could not find any previous history in {pool_batch} for pool `{pool_id}`!")
+                # Since we have concatenated the current batch after the previous batch
+                # and `groupby` preserves the order of rows within each group,
+                # then we do not need to worry about the sorting of the batches.
+                apply_hist_based_calculations(pool_batch)
+                prepared_batches[pool_id] = pool_batch
 
-            # Transform and filter data.
-            # We are not using a `Task` here, because preparing a single batch is not intense.
-            self.context.logger.info(f"Batch is:\n{self._batch}")
-            transformed_batch = transform_hist_data(cast(ResponseItemType, self._batch))
-            self.context.logger.info(
-                f"Batch has been transformed:\n{transformed_batch.to_string()}"
-            )
+            self.context.logger.info(f"Batches have been prepared:\n{prepared_batches}")
 
             # Send the file to IPFS and get its hash.
-            self._prepared_batch_hash = self.send_to_ipfs(
-                self._prepared_batch_save_path,
-                transformed_batch,
+            self._prepared_batches_hash = self.send_to_ipfs(
+                self._prepared_batches_save_path,
+                prepared_batches,
+                multiple=True,
                 filetype=SupportedFiletype.CSV,
             )
 
         # Pass the hash as a Payload.
         payload = BatchPreparationPayload(
             self.context.agent_address,
-            self._prepared_batch_hash,
+            self._prepared_batches_hash,
         )
 
         # Finish behaviour.
