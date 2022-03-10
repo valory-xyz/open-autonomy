@@ -27,6 +27,7 @@ import pytest
 from aea.common import Address
 from aea.configurations.data_types import PublicId
 from aea.connections.base import Connection, ConnectionStates
+from aea.crypto.ledger_apis import LedgerApis
 from aea.crypto.registries import make_crypto, make_ledger_api
 from aea.helpers.async_utils import AsyncState
 from aea.helpers.transaction.base import (
@@ -34,6 +35,7 @@ from aea.helpers.transaction.base import (
     SignedTransaction,
     Terms,
     TransactionDigest,
+    TransactionReceipt,
 )
 from aea.mail.base import Envelope, Message
 from aea.protocols.dialogue.base import Dialogue as BaseDialogue
@@ -359,6 +361,44 @@ class TestLedgerConnection:
             response_message.transaction_digest.ledger_id
             == request.signed_transaction.ledger_id
         )
+
+        # Create new dialogue starting with GET_TRANSACTION_RECEIPT
+        request, ledger_api_dialogue = ledger_api_dialogues.create(
+            counterparty=str(ledger_apis_connection.connection_id),
+            performative=LedgerApiMessage.Performative.GET_TRANSACTION_RECEIPT,  # type: ignore
+            transaction_digest=response_message.transaction_digest,
+        )
+        envelope = Envelope(
+            to=request.to,
+            sender=request.sender,
+            message=request,
+        )
+        await ledger_apis_connection.send(envelope)
+        await asyncio.sleep(0.01)
+
+        # Transaction receipt
+        response = await ledger_apis_connection.receive()
+
+        assert response is not None
+        assert isinstance(response.message, LedgerApiMessage)
+        response_message = cast(LedgerApiMessage, response.message)
+        assert (
+            response_message.performative
+            == LedgerApiMessage.Performative.TRANSACTION_RECEIPT
+        )
+        response_dialogue = ledger_api_dialogues.update(response_message)
+        assert response_dialogue == ledger_api_dialogue
+        assert isinstance(response_message.transaction_receipt, TransactionReceipt)
+        assert response_message.transaction_receipt.receipt is not None
+        assert response_message.transaction_receipt.transaction is not None
+        assert (
+            response_message.transaction_receipt.ledger_id
+            == request.transaction_digest.ledger_id  # type: ignore
+        )
+        assert LedgerApis.is_transaction_settled(
+            response_message.transaction_receipt.ledger_id,
+            response_message.transaction_receipt.receipt,
+        ), "Transaction not settled."
 
     @pytest.mark.asyncio
     async def test_unsupported_protocol(
