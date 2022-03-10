@@ -785,7 +785,9 @@ class TestPrepareBatchBehaviour(APYEstimationFSMBehaviourBaseCase):
         self._fast_forward(
             tmp_path, transformed_historical_data_no_datetime_conversion, batch
         )
-        cast(PrepareBatchBehaviour, self.behaviour.current_state).setup()
+        current_state = cast(PrepareBatchBehaviour, self.behaviour.current_state)
+        current_state.setup()
+        assert not any(batch is None for batch in (current_state._previous_batch, current_state._current_batch_raw))
 
     @pytest.mark.parametrize("ipfs_succeed", (True, False))
     def test_prepare_batch_behaviour(
