@@ -19,7 +19,7 @@
 
 """Contains the background tasks of the APY estimation skill."""
 
-from typing import Any
+from typing import Any, Dict
 
 import pandas as pd
 from aea.skills.tasks import Task
@@ -36,7 +36,7 @@ from packages.valory.skills.apy_estimation_abci.ml.preprocessing import (
     TrainTestSplitType,
     prepare_pair_data,
 )
-from packages.valory.skills.apy_estimation_abci.tools.etl import transform_hist_data
+from packages.valory.skills.apy_estimation_abci.tools.etl import transform_hist_data, prepare_batch
 
 
 class TransformTask(Task):
@@ -53,6 +53,14 @@ class PreprocessTask(Task):
     def execute(self, *args: Any, **kwargs: Any) -> TrainTestSplitType:
         """Execute the task."""
         return prepare_pair_data(*args, **kwargs)
+
+
+class PrepareBatchTask(Task):
+    """Prepare a batch."""
+
+    def execute(self, *args: Any, **kwargs: Any) -> Dict[str, pd.DataFrame]:
+        """Execute the task."""
+        return prepare_batch(*args, **kwargs)
 
 
 class OptimizeTask(Task):

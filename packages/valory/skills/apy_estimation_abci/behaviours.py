@@ -91,11 +91,10 @@ from packages.valory.skills.apy_estimation_abci.tasks import (
     PreprocessTask,
     TestTask,
     TrainTask,
-    TransformTask,
+    TransformTask, PrepareBatchTask,
 )
 from packages.valory.skills.apy_estimation_abci.tools.etl import (
     ResponseItemType,
-    prepare_batch,
 )
 from packages.valory.skills.apy_estimation_abci.tools.general import gen_unix_timestamps
 from packages.valory.skills.apy_estimation_abci.tools.io import load_hist
@@ -563,6 +562,7 @@ class PrepareBatchBehaviour(APYEstimationBaseState):
             None,
             None,
         )
+        self._async_result: Optional[AsyncResult] = None
         self._prepared_batches_save_path = ""
         self._prepared_batches_hash: Optional[str] = None
 
@@ -583,6 +583,11 @@ class PrepareBatchBehaviour(APYEstimationBaseState):
             ),
         )
 
+        if not any(batch is None for batch in self._batches):
+            prepare_batch_task = PrepareBatchTask()
+            task_id = self.context.task_manager.enqueue_task(prepare_batch_task, self._batches)
+            self._async_result = self.context.task_manager.get_task_result(task_id)
+
         self._prepared_batches_save_path = os.path.join(
             self.context.data_dir, "latest_observations.csv"
         )
@@ -590,7 +595,15 @@ class PrepareBatchBehaviour(APYEstimationBaseState):
     def async_act(self) -> Generator:
         """Do the action."""
         if not any(batch is None for batch in self._batches):
-            prepared_batches = prepare_batch(*self._batches)
+            self._async_result = cast(AsyncResult, self._async_result)
+            if not self._async_result.ready():
+                self.context.logger.debug("The prepare batch task is not finished yet.")
+                yield from self.sleep(self.params.sleep_time)
+                return
+
+            # Get the prepared batches from the task.
+            completed_task = self._async_result.get()
+            prepared_batches = cast(Dict[str, pd.DataFrame], completed_task)
             self.context.logger.info(f"Batches have been prepared:\n{prepared_batches}")
 
             # Send the file to IPFS and get its hash.
