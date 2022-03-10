@@ -43,7 +43,10 @@ from pmdarima.pipeline import Pipeline
 
 from packages.valory.protocols.abci import AbciMessage  # noqa: F401
 from packages.valory.skills.abstract_round_abci.base import AbciApp, StateDB
-from packages.valory.skills.abstract_round_abci.behaviour_utils import BaseState
+from packages.valory.skills.abstract_round_abci.behaviour_utils import (
+    BaseState,
+    IPFSBehaviour,
+)
 from packages.valory.skills.abstract_round_abci.io.store import SupportedFiletype
 from packages.valory.skills.abstract_round_abci.models import ApiSpecs
 from packages.valory.skills.abstract_round_abci.utils import BenchmarkTool
@@ -656,19 +659,19 @@ class TestPreprocessBehaviour(APYEstimationFSMBehaviourBaseCase):
     behaviour_class = PreprocessBehaviour
     next_behaviour_class = RandomnessBehaviour
 
-    @pytest.mark.parametrize("data_found", (True, False))
-    def test_preprocess_behaviour(
+    def _fast_forward(
         self,
         data_found: bool,
         transformed_historical_data_no_datetime_conversion: pd.DataFrame,
         monkeypatch: MonkeyPatch,
         tmp_path: PosixPath,
-    ) -> None:
-        """Run test for `preprocess_behaviour`."""
+    ) -> pd.DataFrame:
+        """Fast-forward to state."""
         self.behaviour.context._agent_context._data_dir = tmp_path  # type: ignore
-        cast(TransformBehaviour, self.behaviour.current_state)._pairs_hist = [
-            {"test": "test"}
-        ]
+        if data_found:
+            monkeypatch.setattr(
+                IPFSBehaviour, "get_from_ipfs", lambda *_, **__: {"test": "test"}
+            )
         # Increase the amount of dummy data for the train-test split,
         # as many times as the threshold in `group_and_filter_pair_data`.
         transformed_historical_data = pd.DataFrame(
@@ -687,8 +690,31 @@ class TestPreprocessBehaviour(APYEstimationFSMBehaviourBaseCase):
                 )
             ),
         )
-        state = cast(BaseState, self.behaviour.current_state)
+        state = cast(PreprocessBehaviour, self.behaviour.current_state)
         assert state.state_id == self.behaviour_class.state_id
+
+        state.params.sleep_time = SLEEP_TIME_TWEAK
+
+        return transformed_historical_data
+
+    @pytest.mark.parametrize(
+        "data_found, task_ready", ((True, True), (True, False), (False, False))
+    )
+    def test_preprocess_behaviour(
+        self,
+        data_found: bool,
+        task_ready: bool,
+        transformed_historical_data_no_datetime_conversion: pd.DataFrame,
+        monkeypatch: MonkeyPatch,
+        tmp_path: PosixPath,
+    ) -> None:
+        """Run test for `preprocess_behaviour`."""
+        transformed_historical_data = self._fast_forward(
+            data_found,
+            transformed_historical_data_no_datetime_conversion,
+            monkeypatch,
+            tmp_path,
+        )
 
         # Convert the `blockTimestamp` to a pandas datetime.
         transformed_historical_data["blockTimestamp"] = pd.to_datetime(
@@ -697,7 +723,9 @@ class TestPreprocessBehaviour(APYEstimationFSMBehaviourBaseCase):
         monkeypatch.setattr(
             self._skill._skill_context._agent_context._task_manager,  # type: ignore
             "get_task_result",
-            lambda *_: DummyAsyncResult(prepare_pair_data(transformed_historical_data)),
+            lambda *_: DummyAsyncResult(
+                prepare_pair_data(transformed_historical_data), task_ready
+            ),
         )
         monkeypatch.setattr(
             self._skill._skill_context._agent_context._task_manager,  # type: ignore
@@ -706,11 +734,26 @@ class TestPreprocessBehaviour(APYEstimationFSMBehaviourBaseCase):
         )
 
         self.behaviour.act_wrapper()
-        self.mock_a2a_transaction()
-        self._test_done_flag_set()
-        self.end_round()
-        state = cast(BaseState, self.behaviour.current_state)
-        assert state.state_id == self.next_behaviour_class.state_id
+
+        if data_found:
+            assert (
+                cast(PreprocessBehaviour, self.behaviour.current_state)._pairs_hist
+                is not None
+            ), "Pairs history could not be loaded!"
+
+        if task_ready:
+            self.mock_a2a_transaction()
+            self._test_done_flag_set()
+            self.end_round()
+            state = cast(PreprocessBehaviour, self.behaviour.current_state)
+            assert state.state_id == self.next_behaviour_class.state_id
+
+        else:
+            self.behaviour.act_wrapper()
+            time.sleep(SLEEP_TIME_TWEAK + 0.01)
+            self.behaviour.act_wrapper()
+            state = cast(PreprocessBehaviour, self.behaviour.current_state)
+            assert state.state_id == self.behaviour_class.state_id
 
 
 class TestPrepareBatchBehaviour(APYEstimationFSMBehaviourBaseCase):
@@ -733,8 +776,8 @@ class TestPrepareBatchBehaviour(APYEstimationFSMBehaviourBaseCase):
         # Create a dictionary with all the dummy data to send to IPFS.
         data_to_send = {
             "hist": {
-                "filepath": os.path.join(tmp_path, "latest_observation.csv"),
-                "obj": transformed_historical_data.iloc[[0]].reset_index(drop=True),
+                "filepath": os.path.join(tmp_path, "latest_observations.csv"),
+                "obj": transformed_historical_data.iloc[[0, 2]].reset_index(drop=True),
                 "filetype": SupportedFiletype.CSV,
             },
             "batch": {
@@ -777,22 +820,70 @@ class TestPrepareBatchBehaviour(APYEstimationFSMBehaviourBaseCase):
 
     def test_prepare_batch_behaviour_setup(
         self,
+        monkeypatch: MonkeyPatch,
         tmp_path: PosixPath,
         transformed_historical_data_no_datetime_conversion: pd.DataFrame,
         batch: ResponseItemType,
+        prepare_batch_task_result: Dict[str, pd.DataFrame],
     ) -> None:
         """Test behaviour setup."""
         self._fast_forward(
             tmp_path, transformed_historical_data_no_datetime_conversion, batch
         )
-        cast(PrepareBatchBehaviour, self.behaviour.current_state).setup()
+
+        monkeypatch.setattr(TaskManager, "enqueue_task", lambda *_, **__: 0)
+        monkeypatch.setattr(
+            TaskManager,
+            "get_task_result",
+            lambda *_: DummyAsyncResult(prepare_batch_task_result),
+        )
+
+        current_state = cast(PrepareBatchBehaviour, self.behaviour.current_state)
+        current_state.setup()
+        assert not any(batch is None for batch in current_state._batches)
+
+    def test_task_not_ready(
+        self,
+        monkeypatch: MonkeyPatch,
+        tmp_path: PosixPath,
+        transformed_historical_data_no_datetime_conversion: pd.DataFrame,
+        batch: ResponseItemType,
+        prepare_batch_task_result: Dict[str, pd.DataFrame],
+    ) -> None:
+        """Run test for behaviour when task result is not ready."""
+        self._fast_forward(
+            tmp_path,
+            transformed_historical_data_no_datetime_conversion,
+            batch,
+        )
+
+        monkeypatch.setattr(TaskManager, "enqueue_task", lambda *_, **__: 0)
+        monkeypatch.setattr(
+            TaskManager,
+            "get_task_result",
+            lambda *_: DummyAsyncResult(prepare_batch_task_result, ready=False),
+        )
+
+        cast(
+            PrepareBatchBehaviour, self.behaviour.current_state
+        ).params.sleep_time = SLEEP_TIME_TWEAK
+        self.behaviour.act_wrapper()
+        time.sleep(SLEEP_TIME_TWEAK + 0.01)
+        self.behaviour.act_wrapper()
+
+        assert (
+            cast(APYEstimationBaseState, self.behaviour.current_state).state_id
+            == self.behaviour_class.state_id
+        )
 
     @pytest.mark.parametrize("ipfs_succeed", (True, False))
     def test_prepare_batch_behaviour(
         self,
+        monkeypatch: MonkeyPatch,
         tmp_path: PosixPath,
         transformed_historical_data_no_datetime_conversion: pd.DataFrame,
         batch: ResponseItemType,
+        prepare_batch_task_result: Dict[str, pd.DataFrame],
         ipfs_succeed: bool,
     ) -> None:
         """Run test for `preprocess_behaviour`."""
@@ -801,6 +892,13 @@ class TestPrepareBatchBehaviour(APYEstimationFSMBehaviourBaseCase):
             transformed_historical_data_no_datetime_conversion,
             batch,
             ipfs_succeed,
+        )
+
+        monkeypatch.setattr(TaskManager, "enqueue_task", lambda *_, **__: 0)
+        monkeypatch.setattr(
+            TaskManager,
+            "get_task_result",
+            lambda *_: DummyAsyncResult(prepare_batch_task_result),
         )
 
         state = cast(BaseState, self.behaviour.current_state)

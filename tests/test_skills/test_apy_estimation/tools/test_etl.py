@@ -26,9 +26,11 @@ from _pytest.monkeypatch import MonkeyPatch
 
 from packages.valory.skills.apy_estimation_abci.tools.etl import (
     HIST_DTYPES,
+    ResponseItemType,
     apply_revert_token_cols_wrapper,
     calc_apy,
     calc_change,
+    prepare_batch,
     revert_transform_hist_data,
     transform_hist_data,
 )
@@ -146,6 +148,37 @@ class TestProcessing:
         """Test `load_hist` when file is not found."""
         with pytest.raises(IOError):
             load_hist("non_existing")
+
+    @staticmethod
+    @pytest.mark.parametrize("invalid", (True, False))
+    def test_prepare_batch(
+        monkeypatch: MonkeyPatch,
+        transformed_historical_data_no_datetime_conversion: pd.DataFrame,
+        batch: ResponseItemType,
+        invalid: bool,
+    ) -> None:
+        """Test `prepare_batch`."""
+        previous_batch = transformed_historical_data_no_datetime_conversion.iloc[
+            [0, 2]
+        ].reset_index(drop=True)
+
+        if invalid:
+            invalid_pool_item = batch[0].copy()
+            non_existing_id = "non_existing"
+            invalid_pool_item["id"] = non_existing_id
+            batch.append(invalid_pool_item)
+            with pytest.raises(
+                ValueError, match="Could not find any previous history in "
+            ):
+                prepare_batch(previous_batch, batch)
+
+        else:
+            prepared_batches = prepare_batch(previous_batch, batch)
+            assert len(prepared_batches) == 2
+            expected_ids = {"0x2b4c76d0dc16be1c31d4c1dc53bf9b45987fc75c", "x3"}
+            assert expected_ids == set(prepared_batches.keys())
+            for id_ in expected_ids:
+                assert len(prepared_batches[id_].index) == 1
 
     @staticmethod
     def test_apply_revert_token_cols_wrapper() -> None:

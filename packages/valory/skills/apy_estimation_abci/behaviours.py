@@ -88,16 +88,13 @@ from packages.valory.skills.apy_estimation_abci.rounds import (
 )
 from packages.valory.skills.apy_estimation_abci.tasks import (
     OptimizeTask,
+    PrepareBatchTask,
     PreprocessTask,
     TestTask,
     TrainTask,
     TransformTask,
 )
-from packages.valory.skills.apy_estimation_abci.tools.etl import (
-    ResponseItemType,
-    revert_transform_hist_data,
-    transform_hist_data,
-)
+from packages.valory.skills.apy_estimation_abci.tools.etl import ResponseItemType
 from packages.valory.skills.apy_estimation_abci.tools.general import gen_unix_timestamps
 from packages.valory.skills.apy_estimation_abci.tools.io import load_hist
 from packages.valory.skills.apy_estimation_abci.tools.queries import (
@@ -560,64 +557,68 @@ class PrepareBatchBehaviour(APYEstimationBaseState):
     def __init__(self, **kwargs: Any) -> None:
         """Initialize Behaviour."""
         super().__init__(**kwargs)
-        self._batch: Optional[ResponseItemType] = None
-        self._prepared_batch_save_path = ""
-        self._previous_batch: Optional[pd.DataFrame] = None
-        self._prepared_batch_hash: Optional[str] = None
+        self._batches: Tuple[Optional[pd.DataFrame], Optional[ResponseItemType]] = (
+            None,
+            None,
+        )
+        self._async_result: Optional[AsyncResult] = None
+        self._prepared_batches_save_path = ""
+        self._prepared_batches_hash: Optional[str] = None
 
     def setup(self) -> None:
         """Setup behaviour."""
-        path_to_pair = os.path.join(
-            self.context.data_dir,
-            self.params.pair_ids[0],
+        self._batches = (
+            self.get_from_ipfs(
+                self.period_state.latest_observation_hist_hash,
+                self.context.data_dir,
+                filename="latest_observations.csv",
+                custom_loader=load_hist,
+            ),
+            self.get_from_ipfs(
+                self.period_state.batch_hash,
+                self.context.data_dir,
+                filename=f"historical_data_batch_{self.period_state.latest_observation_timestamp}.json",
+                filetype=SupportedFiletype.JSON,
+            ),
         )
 
-        batch_path_args = path_to_pair, "latest_observation.csv"
-        self._prepared_batch_save_path = os.path.join(*batch_path_args)
+        if not any(batch is None for batch in self._batches):
+            prepare_batch_task = PrepareBatchTask()
+            task_id = self.context.task_manager.enqueue_task(
+                prepare_batch_task, self._batches
+            )
+            self._async_result = self.context.task_manager.get_task_result(task_id)
 
-        self._previous_batch = self.get_from_ipfs(
-            self.period_state.latest_observation_hist_hash,
-            self.context.data_dir,
-            filename="latest_observations.csv",
-            custom_loader=load_hist,
-        )
-
-        self._batch = self.get_from_ipfs(
-            self.period_state.batch_hash,
-            self.context.data_dir,
-            filename=f"historical_data_batch_{self.period_state.latest_observation_timestamp}.json",
-            filetype=SupportedFiletype.JSON,
+        self._prepared_batches_save_path = os.path.join(
+            self.context.data_dir, "latest_observations.csv"
         )
 
     def async_act(self) -> Generator:
         """Do the action."""
-        if not any(batch is None for batch in (self._previous_batch, self._batch)):
-            # Revert transformation on the previous batch.
-            previous_batch = revert_transform_hist_data(
-                cast(pd.DataFrame, self._previous_batch)
-            )[0]
-            # Insert the latest batch as a row before transforming, in order to be able to calculate the APY.
-            cast(ResponseItemType, self._batch).insert(0, previous_batch)
+        if not any(batch is None for batch in self._batches):
+            self._async_result = cast(AsyncResult, self._async_result)
+            if not self._async_result.ready():
+                self.context.logger.debug("The prepare batch task is not finished yet.")
+                yield from self.sleep(self.params.sleep_time)
+                return
 
-            # Transform and filter data.
-            # We are not using a `Task` here, because preparing a single batch is not intense.
-            self.context.logger.info(f"Batch is:\n{self._batch}")
-            transformed_batch = transform_hist_data(cast(ResponseItemType, self._batch))
-            self.context.logger.info(
-                f"Batch has been transformed:\n{transformed_batch.to_string()}"
-            )
+            # Get the prepared batches from the task.
+            completed_task = self._async_result.get()
+            prepared_batches = cast(Dict[str, pd.DataFrame], completed_task)
+            self.context.logger.info(f"Batches have been prepared:\n{prepared_batches}")
 
             # Send the file to IPFS and get its hash.
-            self._prepared_batch_hash = self.send_to_ipfs(
-                self._prepared_batch_save_path,
-                transformed_batch,
+            self._prepared_batches_hash = self.send_to_ipfs(
+                self._prepared_batches_save_path,
+                prepared_batches,
+                multiple=True,
                 filetype=SupportedFiletype.CSV,
             )
 
         # Pass the hash as a Payload.
         payload = BatchPreparationPayload(
             self.context.agent_address,
-            self._prepared_batch_hash,
+            self._prepared_batches_hash,
         )
 
         # Finish behaviour.
