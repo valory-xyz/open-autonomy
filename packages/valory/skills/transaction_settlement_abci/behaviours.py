@@ -621,9 +621,7 @@ class ResetBehaviour(TransactionSettlementBaseState):
     state_id = "reset"
 
     def async_act(self) -> Generator:
-        """
-        Do the action.
-        """
+        """Do the action."""
         self.context.logger.info(
             f"Period {self.period_state.period_count} was not finished. Resetting!"
         )
