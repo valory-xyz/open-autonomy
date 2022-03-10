@@ -461,43 +461,44 @@ def transformed_historical_data(
 @pytest.fixture
 def batch() -> ResponseItemType:
     """Create a dummy batch of data."""
-    return [
-        {
-            "createdAtBlockNumber": "1",
-            "createdAtTimestamp": "1",
-            "id": "0x2b4c76d0dc16be1c31d4c1dc53bf9b45987fc75c",
-            "liquidityProviderCount": "1",
-            "reserve0": "1.4",
-            "reserve1": "1.4",
-            "reserveETH": "1.4",
-            "reserveUSD": "1.4",
-            "token0Price": "1.4",
-            "token1Price": "1.4",
-            "totalSupply": "1.4",
-            "trackedReserveETH": "1.4",
-            "untrackedVolumeUSD": "1.4",
-            "txCount": "1",
-            "volumeToken0": "1.2",
-            "volumeToken1": "1.2",
-            "volumeUSD": "1.2",
-            "forTimestamp": "1",
-            "blockNumber": "1",
-            "blockTimestamp": "100000000",
-            "ethPrice": "1.2",
-            "token0ID": "x",
-            "token0Name": "x",
-            "token0Symbol": "x",
-            "token1ID": "y",
-            "token1Name": "y",
-            "token1Symbol": "y",
-            "pairName": "x - y",
-            "updatedVolumeUSD": "1.2",
-            "updatedReserveUSD": "1.68",
-            "APY": "0.1",
-            "token0": {"id": "x", "name": "x", "symbol": "x"},
-            "token1": {"id": "y", "name": "y", "symbol": "y"},
-        }
-    ]
+    pool1_batch = {
+        "createdAtBlockNumber": "1",
+        "createdAtTimestamp": "1",
+        "id": "0x2b4c76d0dc16be1c31d4c1dc53bf9b45987fc75c",
+        "liquidityProviderCount": "1",
+        "reserve0": "1.4",
+        "reserve1": "1.4",
+        "reserveETH": "1.4",
+        "reserveUSD": "1.4",
+        "token0Price": "1.4",
+        "token1Price": "1.4",
+        "totalSupply": "1.4",
+        "trackedReserveETH": "1.4",
+        "untrackedVolumeUSD": "1.4",
+        "txCount": "1",
+        "volumeToken0": "1.2",
+        "volumeToken1": "1.2",
+        "volumeUSD": "1.2",
+        "forTimestamp": "1",
+        "blockNumber": "1",
+        "blockTimestamp": "100000000",
+        "ethPrice": "1.2",
+        "token0ID": "x",
+        "token0Name": "x",
+        "token0Symbol": "x",
+        "token1ID": "y",
+        "token1Name": "y",
+        "token1Symbol": "y",
+        "pairName": "x - y",
+        "updatedVolumeUSD": "1.2",
+        "updatedReserveUSD": "1.68",
+        "APY": "0.1",
+        "token0": {"id": "x", "name": "x", "symbol": "x"},
+        "token1": {"id": "y", "name": "y", "symbol": "y"},
+    }
+    pool2_batch = pool1_batch.copy()
+    pool2_batch["id"] = "x3"
+    return [pool1_batch, pool2_batch]
 
 
 class DummyPipeline(Pipeline):

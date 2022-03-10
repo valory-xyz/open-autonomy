@@ -733,8 +733,8 @@ class TestPrepareBatchBehaviour(APYEstimationFSMBehaviourBaseCase):
         # Create a dictionary with all the dummy data to send to IPFS.
         data_to_send = {
             "hist": {
-                "filepath": os.path.join(tmp_path, "latest_observation.csv"),
-                "obj": transformed_historical_data.iloc[[0]].reset_index(drop=True),
+                "filepath": os.path.join(tmp_path, "latest_observations.csv"),
+                "obj": transformed_historical_data.iloc[[0, 2]].reset_index(drop=True),
                 "filetype": SupportedFiletype.CSV,
             },
             "batch": {
