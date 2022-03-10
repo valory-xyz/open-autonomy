@@ -26,6 +26,7 @@ from packages.valory.skills.transaction_settlement_abci.payloads import (
     CheckTransactionHistoryPayload,
     FinalizationTxPayload,
     RandomnessPayload,
+    ResetPayload,
     SelectKeeperPayload,
     SignaturePayload,
     SynchronizeLateMessagesPayload,
@@ -118,3 +119,13 @@ def test_finalization_tx_payload() -> None:
         }
     }
     assert payload.transaction_type == TransactionType.FINALIZATION
+
+
+def test_reset_payload() -> None:
+    """Test `ResetPayload`."""
+
+    payload = ResetPayload(sender="sender", period_count=1)
+
+    assert payload.period_count == 1
+    assert payload.data == {"period_count": 1}
+    assert payload.transaction_type == TransactionType.RESET

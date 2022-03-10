@@ -37,6 +37,7 @@ from packages.valory.skills.abstract_round_abci.base import (
     OnlyKeeperSendsRound,
     VotingRound,
 )
+from packages.valory.skills.reset_pause_abci.payloads import ResetPayload
 from packages.valory.skills.transaction_settlement_abci.payload_tools import (
     VerificationStatus,
     tx_hist_hex_to_payload,
@@ -442,10 +443,27 @@ class FinishedTransactionSubmissionRound(DegenerateRound, ABC):
     round_id = "finished_transaction_submission"
 
 
-class RetryTransactionSubmissionRound(DegenerateRound):
-    """A round that represents the previous step to reset"""
+class ResetRound(CollectSameUntilThresholdRound):
+    """A round that represents the reset of a period"""
 
-    round_id = "pre_reset"
+    round_id = "reset"
+    allowed_tx_type = ResetPayload.transaction_type
+    payload_attribute = "period_count"
+
+    def end_block(self) -> Optional[Tuple[BasePeriodState, Event]]:
+        """Process the end of the block."""
+        if self.threshold_reached:
+            state_data = self.period_state.db.get_all()
+            state = self.period_state.update(
+                period_count=self.most_voted_payload,
+                **state_data,
+            )
+            return state, Event.DONE
+        if not self.is_majority_possible(
+            self.collection, self.period_state.nb_participants
+        ):
+            return self.period_state, Event.NO_MAJORITY
+        return None
 
 
 class TransactionSubmissionAbciApp(AbciApp[Event]):
@@ -507,11 +525,14 @@ class TransactionSubmissionAbciApp(AbciApp[Event]):
             - none: 12.
             - round timeout: 9.
             - no majority: 12.
-        10. RetryTransactionSubmissionRound
+        10. ResetRound
+            - done: 0.
+            - reset timeout: 12.
+            - no majority: 12.
         11. FinishedTransactionSubmissionRound
         12. FailedRound
 
-    Final states: {FailedRound, FinishedTransactionSubmissionRound, RetryTransactionSubmissionRound}
+    Final states: {FailedRound, FinishedTransactionSubmissionRound}
 
     Timeouts:
         round timeout: 30.0
@@ -524,18 +545,18 @@ class TransactionSubmissionAbciApp(AbciApp[Event]):
     transition_function: AbciAppTransitionFunction = {
         RandomnessTransactionSubmissionRound: {
             Event.DONE: SelectKeeperTransactionSubmissionRoundA,
-            Event.ROUND_TIMEOUT: RetryTransactionSubmissionRound,
+            Event.ROUND_TIMEOUT: ResetRound,
             Event.NO_MAJORITY: RandomnessTransactionSubmissionRound,
         },
         SelectKeeperTransactionSubmissionRoundA: {
             Event.DONE: CollectSignatureRound,
-            Event.ROUND_TIMEOUT: RetryTransactionSubmissionRound,
-            Event.NO_MAJORITY: RetryTransactionSubmissionRound,
+            Event.ROUND_TIMEOUT: ResetRound,
+            Event.NO_MAJORITY: ResetRound,
         },
         CollectSignatureRound: {
             Event.DONE: FinalizationRound,
-            Event.ROUND_TIMEOUT: RetryTransactionSubmissionRound,
-            Event.NO_MAJORITY: RetryTransactionSubmissionRound,
+            Event.ROUND_TIMEOUT: ResetRound,
+            Event.NO_MAJORITY: ResetRound,
         },
         FinalizationRound: {
             Event.DONE: ValidateTransactionRound,
@@ -561,13 +582,13 @@ class TransactionSubmissionAbciApp(AbciApp[Event]):
         },
         SelectKeeperTransactionSubmissionRoundB: {
             Event.DONE: FinalizationRound,
-            Event.ROUND_TIMEOUT: RetryTransactionSubmissionRound,
-            Event.NO_MAJORITY: RetryTransactionSubmissionRound,
+            Event.ROUND_TIMEOUT: ResetRound,
+            Event.NO_MAJORITY: ResetRound,
         },
         SelectKeeperTransactionSubmissionRoundBAfterTimeout: {
             Event.DONE: FinalizationRound,
-            Event.ROUND_TIMEOUT: RetryTransactionSubmissionRound,
-            Event.NO_MAJORITY: RetryTransactionSubmissionRound,
+            Event.ROUND_TIMEOUT: ResetRound,
+            Event.NO_MAJORITY: ResetRound,
         },
         SynchronizeLateMessagesRound: {
             Event.DONE: CheckLateTxHashesRound,
@@ -583,12 +604,15 @@ class TransactionSubmissionAbciApp(AbciApp[Event]):
             Event.ROUND_TIMEOUT: CheckLateTxHashesRound,
             Event.NO_MAJORITY: FailedRound,
         },
-        RetryTransactionSubmissionRound: {},
+        ResetRound: {
+            Event.DONE: RandomnessTransactionSubmissionRound,
+            Event.RESET_TIMEOUT: FailedRound,
+            Event.NO_MAJORITY: FailedRound,
+        },
         FinishedTransactionSubmissionRound: {},
         FailedRound: {},
     }
     final_states: Set[AppState] = {
-        RetryTransactionSubmissionRound,
         FinishedTransactionSubmissionRound,
         FailedRound,
     }

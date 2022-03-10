@@ -8,13 +8,13 @@ aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
   README.md: Qmes4T968eLYkfRc1o3oXMa3irSMo6CY95kaAGvM3LfzAF
   __init__.py: QmUJJPrwqyWYnqeYpGypjgsQoXiGFpjHogSrrDmAedpdzV
-  behaviours.py: QmdHu2JtUrsJW5HKGkeEzoUR1vyYzAtCvH1acBLpVHuGmv
+  behaviours.py: Qma6E7jzcCudhFaLQWnXV4pk1foMcw6R7XmRa8TyHwEFJ3
   dialogues.py: QmfDThV4WCRzK88XDpW2hKDYCuEH4RxoHCoAkWpkBRGRPv
   handlers.py: QmXEZTJVJHNhpHJMjhPRHdhmYMmVpu6LfNyYDE2k4mjLVA
   models.py: QmRLpq2XjNZmCD3qK2SLC59A31xQBLiGQLbLkZNXzdMmN8
   payload_tools.py: QmQaVcy9BeW1nQtFnt83Nzt9BTY3nVbjs2Xth2W3iUTPyW
-  payloads.py: QmWKBA4c9GSaXfa9QXbLcYeUvFmZpEjs9jX5D9wX38WiyN
-  rounds.py: QmU98GVffeGyQQV94Q3o9FDrbJMqYTYSBES3Wuc9HEVaTD
+  payloads.py: QmUh3nJhm3qH97chZXMxHnmeuuRqUi66YTNyUYFf3R8n8u
+  rounds.py: QmYx7gPtDANQWwNGkg2Yar3QWWmXS6oRTTRVaEyvn4myuE
 fingerprint_ignore_patterns: []
 connections: []
 contracts:

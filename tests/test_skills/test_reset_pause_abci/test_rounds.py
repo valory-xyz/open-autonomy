@@ -29,10 +29,7 @@ from packages.valory.skills.abstract_round_abci.base import (
 )
 from packages.valory.skills.reset_pause_abci.payloads import ResetPayload
 from packages.valory.skills.reset_pause_abci.rounds import Event as ResetEvent
-from packages.valory.skills.reset_pause_abci.rounds import (
-    ResetAndPauseRound,
-    ResetRound,
-)
+from packages.valory.skills.reset_pause_abci.rounds import ResetAndPauseRound
 
 from tests.test_skills.test_abstract_round_abci.test_base_rounds import (
     BaseCollectSameUntilThresholdRoundTest,
@@ -53,10 +50,9 @@ def get_participant_to_period_count(
     }
 
 
-class BaseResetRoundTest(BaseCollectSameUntilThresholdRoundTest):
+class TestResetAndPauseRound(BaseCollectSameUntilThresholdRoundTest):
     """Test ResetRound."""
 
-    test_class: Type[CollectSameUntilThresholdRound]
     _period_state_class = ResetPeriodState
     _event_class = ResetEvent
 
@@ -69,7 +65,7 @@ class BaseResetRoundTest(BaseCollectSameUntilThresholdRoundTest):
             keeper_randomness=DUMMY_RANDOMNESS,
         )
         period_state._db._cross_period_persisted_keys = ["keeper_randomness"]
-        test_round = self.test_class(
+        test_round = ResetAndPauseRound(
             state=period_state, consensus_params=self.consensus_params
         )
         next_period_count = 1
@@ -90,19 +86,3 @@ class BaseResetRoundTest(BaseCollectSameUntilThresholdRoundTest):
                 exit_event=self._event_class.DONE,
             )
         )
-
-
-class TestResetRound(BaseResetRoundTest):
-    """Test ResetRound."""
-
-    test_class = ResetRound
-    _period_state_class = ResetPeriodState
-    _event_class = ResetEvent
-
-
-class TestResetAndPauseRound(BaseResetRoundTest):
-    """Test ResetAndPauseRound."""
-
-    test_class = ResetAndPauseRound
-    _period_state_class = ResetPeriodState
-    _event_class = ResetEvent

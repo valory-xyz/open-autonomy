@@ -18,6 +18,7 @@
 # ------------------------------------------------------------------------------
 
 """This module contains the transaction payloads for common apps."""
+from abc import ABC
 from enum import Enum
 from typing import Any, Dict, Optional, Union
 
@@ -235,3 +236,31 @@ class FinalizationTxPayload(BaseTxPayload):
     def data(self) -> Dict[str, Dict[str, Union[str, int]]]:
         """Get the data."""
         return dict(tx_data=self._tx_data) if self._tx_data is not None else {}
+
+
+class ResetPayload(BaseTxPayload, ABC):
+    """Represent a transaction payload of type 'reset'."""
+
+    transaction_type = TransactionType.RESET
+
+    def __init__(
+        self, sender: str, period_count: int, id_: Optional[str] = None
+    ) -> None:
+        """Initialize an 'reset' transaction payload.
+
+        :param sender: the sender (Ethereum) address
+        :param period_count: the period count id
+        :param id_: the id of the transaction
+        """
+        super().__init__(sender, id_)
+        self._period_count = period_count
+
+    @property
+    def period_count(self) -> int:
+        """Get the period_count."""
+        return self._period_count
+
+    @property
+    def data(self) -> Dict:
+        """Get the data."""
+        return dict(period_count=self.period_count)

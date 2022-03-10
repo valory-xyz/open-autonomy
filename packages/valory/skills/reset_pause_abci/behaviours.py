@@ -35,7 +35,6 @@ from packages.valory.skills.reset_pause_abci.payloads import ResetPayload
 from packages.valory.skills.reset_pause_abci.rounds import (
     ResetAndPauseRound,
     ResetPauseABCIApp,
-    ResetRound,
 )
 
 
@@ -56,10 +55,11 @@ class ResetAndPauseBaseState(BaseState, ABC):
         return cast(Params, self.context.params)
 
 
-class BaseResetBehaviour(ResetAndPauseBaseState):
-    """Reset state."""
+class ResetAndPauseBehaviour(ResetAndPauseBaseState):
+    """Reset and pause state."""
 
-    pause = True
+    matching_round = ResetAndPauseRound
+    state_id = "reset_and_pause"
 
     _check_started: Optional[datetime.datetime] = None
     _timeout: float
@@ -105,85 +105,74 @@ class BaseResetBehaviour(ResetAndPauseBaseState):
         - Wait until ABCI application transitions to the next round.
         - Go to the next behaviour state (set done event).
         """
-        if self.pause:
-            if (
-                self.period_state.period_count != 0
-                and self.period_state.period_count % self.params.reset_tendermint_after
-                == 0
-            ):
-                yield from self.start_reset()
-                if self._is_timeout_expired():
-                    # if the Tendermint node cannot update the app then the app cannot work
-                    raise RuntimeError(  # pragma: no cover
-                        "Error resetting tendermint node."
-                    )
 
-                if not self._is_healthy:
-                    self.context.logger.info(
-                        f"Resetting tendermint node at end of period={self.period_state.period_count}."
-                    )
-                    request_message, http_dialogue = self._build_http_request_message(
-                        "GET",
-                        self.params.tendermint_com_url + "/hard_reset",
-                    )
-                    result = yield from self._do_request(request_message, http_dialogue)
-                    try:
-                        response = json.loads(result.body.decode())
-                        if response.get("status"):
-                            self.context.logger.info(response.get("message"))
-                            self.context.logger.info(
-                                "Resetting tendermint node successful! Resetting local blockchain."
-                            )
-                            self.context.state.period.reset_blockchain()
-                            self.end_reset()
-                        else:
-                            msg = response.get("message")
-                            self.context.logger.error(f"Error resetting: {msg}")
-                            yield from self.sleep(self.params.sleep_time)
-                            return  # pragma: no cover
-                    except json.JSONDecodeError:
-                        self.context.logger.error(
-                            "Error communicating with tendermint com server."
+        if (
+            self.period_state.period_count != 0
+            and self.period_state.period_count % self.params.reset_tendermint_after == 0
+        ):
+            yield from self.start_reset()
+            if self._is_timeout_expired():
+                # if the Tendermint node cannot update the app then the app cannot work
+                raise RuntimeError(  # pragma: no cover
+                    "Error resetting tendermint node."
+                )
+
+            if not self._is_healthy:
+                self.context.logger.info(
+                    f"Resetting tendermint node at end of period={self.period_state.period_count}."
+                )
+                request_message, http_dialogue = self._build_http_request_message(
+                    "GET",
+                    self.params.tendermint_com_url + "/hard_reset",
+                )
+                result = yield from self._do_request(request_message, http_dialogue)
+                try:
+                    response = json.loads(result.body.decode())
+                    if response.get("status"):
+                        self.context.logger.info(response.get("message"))
+                        self.context.logger.info(
+                            "Resetting tendermint node successful! Resetting local blockchain."
                         )
+                        self.context.state.period.reset_blockchain()
+                        self.end_reset()
+                    else:
+                        msg = response.get("message")
+                        self.context.logger.error(f"Error resetting: {msg}")
                         yield from self.sleep(self.params.sleep_time)
                         return  # pragma: no cover
-
-                status = yield from self._get_status()
-                try:
-                    json_body = json.loads(status.body.decode())
                 except json.JSONDecodeError:
                     self.context.logger.error(
-                        "Tendermint not accepting transactions yet, trying again!"
+                        "Error communicating with tendermint com server."
                     )
                     yield from self.sleep(self.params.sleep_time)
-                    return  # pragma: nocover
+                    return  # pragma: no cover
 
-                remote_height = int(
-                    json_body["result"]["sync_info"]["latest_block_height"]
+            status = yield from self._get_status()
+            try:
+                json_body = json.loads(status.body.decode())
+            except json.JSONDecodeError:
+                self.context.logger.error(
+                    "Tendermint not accepting transactions yet, trying again!"
                 )
-                local_height = self.context.state.period.height
-                self.context.logger.info(
-                    "local-height = %s, remote-height=%s", local_height, remote_height
-                )
-                if local_height != remote_height:
-                    self.context.logger.info(
-                        "local height != remote height; retrying..."
-                    )
-                    yield from self.sleep(self.params.sleep_time)
-                    return  # pragma: nocover
+                yield from self.sleep(self.params.sleep_time)
+                return  # pragma: nocover
 
-                self.context.logger.info(
-                    "local height == remote height; continuing execution..."
-                )
-            yield from self.wait_from_last_timestamp(
-                self.params.observation_interval / 2
-            )
-            self.context.logger.info("Period end.")
-            benchmark_tool.save()
-        else:
+            remote_height = int(json_body["result"]["sync_info"]["latest_block_height"])
+            local_height = self.context.state.period.height
             self.context.logger.info(
-                f"Period {self.period_state.period_count} was not finished. Resetting!"
+                "local-height = %s, remote-height=%s", local_height, remote_height
             )
+            if local_height != remote_height:
+                self.context.logger.info("local height != remote height; retrying...")
+                yield from self.sleep(self.params.sleep_time)
+                return  # pragma: nocover
+
+            self.context.logger.info(
+                "local height == remote height; continuing execution..."
+            )
+        yield from self.wait_from_last_timestamp(self.params.observation_interval / 2)
+        self.context.logger.info("Period end.")
+        benchmark_tool.save()
 
         payload = ResetPayload(
             self.context.agent_address, self.period_state.period_count + 1
@@ -193,22 +182,6 @@ class BaseResetBehaviour(ResetAndPauseBaseState):
         self.set_done()
 
 
-class ResetBehaviour(BaseResetBehaviour):  # pylint: disable=too-many-ancestors
-    """Reset state."""
-
-    matching_round = ResetRound
-    state_id = "reset"
-    pause = False
-
-
-class ResetAndPauseBehaviour(BaseResetBehaviour):  # pylint: disable=too-many-ancestors
-    """Reset and pause state."""
-
-    matching_round = ResetAndPauseRound
-    state_id = "reset_and_pause"
-    pause = True
-
-
 class ResetPauseABCIConsensusBehaviour(AbstractRoundBehaviour):
     """This behaviour manages the consensus stages for the reset_pause_abci app."""
 
@@ -216,7 +189,6 @@ class ResetPauseABCIConsensusBehaviour(AbstractRoundBehaviour):
     abci_app_cls = ResetPauseABCIApp  # type: ignore
     behaviour_states: Set[Type[ResetAndPauseBehaviour]] = {  # type: ignore
         ResetAndPauseBehaviour,  # type: ignore
-        ResetBehaviour,  # type: ignore
     }
 
     def setup(self) -> None:

@@ -40,6 +40,7 @@ from packages.valory.skills.transaction_settlement_abci.payload_tools import (
 from packages.valory.skills.transaction_settlement_abci.payloads import (
     CheckTransactionHistoryPayload,
     FinalizationTxPayload,
+    ResetPayload,
     SignaturePayload,
     SynchronizeLateMessagesPayload,
     ValidatePayload,
@@ -56,6 +57,7 @@ from packages.valory.skills.transaction_settlement_abci.rounds import (
     PeriodState as TransactionSettlementPeriodState,
 )
 from packages.valory.skills.transaction_settlement_abci.rounds import (
+    ResetRound,
     SelectKeeperTransactionSubmissionRoundA,
     SelectKeeperTransactionSubmissionRoundB,
     SelectKeeperTransactionSubmissionRoundBAfterTimeout,
@@ -77,6 +79,7 @@ from tests.test_skills.test_oracle_deployment_abci.test_rounds import (
 
 MAX_PARTICIPANTS: int = 4
 RANDOMNESS: str = "d1c29dce46f979f9748210d24bce4eae8be91272f5ca1a6aea2832d3dd676f51"
+DUMMY_RANDOMNESS = 0.1  # for coverage purposes
 
 
 def get_participants() -> FrozenSet[str]:
@@ -109,6 +112,16 @@ def get_participant_to_selection(
     """participant_to_selection"""
     return {
         participant: SelectKeeperPayload(sender=participant, keeper="keeper")
+        for participant in participants
+    }
+
+
+def get_participant_to_period_count(
+    participants: FrozenSet[str], period_count: int
+) -> Dict[str, ResetPayload]:
+    """participant_to_selection"""
+    return {
+        participant: ResetPayload(sender=participant, period_count=period_count)
         for participant in participants
     }
 
@@ -529,3 +542,41 @@ def test_period_states() -> None:
         match="internal error: Cannot parse late arriving hashes: test!",
     ):
         _ = period_state_____.late_arriving_tx_hashes
+
+
+class TestResetRound(BaseCollectSameUntilThresholdRoundTest):
+    """Test ResetRound."""
+
+    _period_state_class = TransactionSettlementPeriodState
+    _event_class = TransactionSettlementEvent
+
+    def test_runs(
+        self,
+    ) -> None:
+        """Runs tests."""
+
+        period_state = self.period_state.update(
+            keeper_randomness=DUMMY_RANDOMNESS,
+        )
+        period_state._db._cross_period_persisted_keys = ["keeper_randomness"]
+        test_round = ResetRound(
+            state=period_state, consensus_params=self.consensus_params
+        )
+        next_period_count = 1
+        self._complete_run(
+            self._test_round(
+                test_round=test_round,
+                round_payloads=get_participant_to_period_count(
+                    self.participants, next_period_count
+                ),
+                state_update_fn=lambda _period_state, _: _period_state.update(
+                    period_count=next_period_count,
+                    participants=self.participants,
+                    all_participants=self.participants,
+                    keeper_randomness=DUMMY_RANDOMNESS,
+                ),
+                state_attr_checks=[],  # [lambda state: state.participants],
+                most_voted_payload=next_period_count,
+                exit_event=self._event_class.DONE,
+            )
+        )

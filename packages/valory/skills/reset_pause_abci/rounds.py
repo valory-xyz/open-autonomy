@@ -45,29 +45,6 @@ class Event(Enum):
     RESET_TIMEOUT = "reset_timeout"
 
 
-class ResetRound(CollectSameUntilThresholdRound):
-    """A round that represents the reset of a period"""
-
-    round_id = "reset"
-    allowed_tx_type = ResetPayload.transaction_type
-    payload_attribute = "period_count"
-
-    def end_block(self) -> Optional[Tuple[BasePeriodState, Event]]:
-        """Process the end of the block."""
-        if self.threshold_reached:
-            state_data = self.period_state.db.get_all()
-            state = self.period_state.update(
-                period_count=self.most_voted_payload,
-                **state_data,
-            )
-            return state, Event.DONE
-        if not self.is_majority_possible(
-            self.collection, self.period_state.nb_participants
-        ):
-            return self.period_state, Event.NO_MAJORITY
-        return None
-
-
 class ResetAndPauseRound(CollectSameUntilThresholdRound):
     """A round that represents that consensus is reached (the final round)"""
 
@@ -131,12 +108,6 @@ class FinishedResetAndPauseRound(DegenerateRound):
     round_id = "finished_reset_pause"
 
 
-class FinishedResetRound(DegenerateRound):
-    """A round that represents reset has finished"""
-
-    round_id = "finished_reset"
-
-
 class ResetPauseABCIApp(AbciApp[Event]):
     """ResetPauseABCIApp
 
@@ -172,7 +143,6 @@ class ResetPauseABCIApp(AbciApp[Event]):
 
     initial_round_cls: Type[AbstractRound] = ResetAndPauseRound
     initial_states: Set[AppState] = {
-        ResetRound,
         ResetAndPauseRound,
     }
     transition_function: AbciAppTransitionFunction = {
@@ -181,17 +151,10 @@ class ResetPauseABCIApp(AbciApp[Event]):
             Event.RESET_TIMEOUT: ResetAndPauseRound,
             Event.NO_MAJORITY: ResetAndPauseRound,
         },
-        ResetRound: {
-            Event.DONE: FinishedResetRound,
-            Event.RESET_TIMEOUT: ResetRound,
-            Event.NO_MAJORITY: ResetRound,
-        },
         FinishedResetAndPauseRound: {},
-        FinishedResetRound: {},
     }
     final_states: Set[AppState] = {
         FinishedResetAndPauseRound,
-        FinishedResetRound,
     }
     event_to_timeout: Dict[Event, float] = {
         Event.ROUND_TIMEOUT: 30.0,

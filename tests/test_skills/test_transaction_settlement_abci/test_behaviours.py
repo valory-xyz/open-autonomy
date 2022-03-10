@@ -19,6 +19,7 @@
 
 """Tests for valory/registration_abci skill's behaviours."""
 
+import time
 from pathlib import Path
 from typing import Dict, Generator, List, Optional, Type, Union, cast
 from unittest import mock
@@ -50,6 +51,7 @@ from packages.valory.skills.transaction_settlement_abci.behaviours import (
     CheckTransactionHistoryBehaviour,
     FinalizeBehaviour,
     RandomnessTransactionSubmissionBehaviour,
+    ResetBehaviour,
     SelectKeeperTransactionSubmissionBehaviourA,
     SelectKeeperTransactionSubmissionBehaviourB,
     SignatureBehaviour,
@@ -643,3 +645,38 @@ class TestSynchronizeLateMessagesBehaviour(TransactionSettlementFSMBehaviourBase
             cast(TransactionSettlementBaseState, self.behaviour.current_state)._get_tx_data = _dummy_get_tx_data  # type: ignore
             self.behaviour.act_wrapper()
             self.behaviour.act_wrapper()
+
+
+class TestResetBehaviour(TransactionSettlementFSMBehaviourBaseCase):
+    """Test the reset behaviour."""
+
+    behaviour_class = ResetBehaviour
+    next_behaviour_class = RandomnessTransactionSubmissionBehaviour
+
+    def test_reset_behaviour(
+        self,
+    ) -> None:
+        """Test reset behaviour."""
+        self.fast_forward_to_state(
+            behaviour=self.behaviour,
+            state_id=self.behaviour_class.state_id,
+            period_state=TransactionSettlementPeriodState(
+                StateDB(initial_period=0, initial_data=dict(estimate=1.0)),
+            ),
+        )
+        assert (
+            cast(
+                BaseState,
+                cast(BaseState, self.behaviour.current_state),
+            ).state_id
+            == self.behaviour_class.state_id
+        )
+        self.behaviour.context.params.observation_interval = 0.1
+        self.behaviour.act_wrapper()
+        time.sleep(0.3)
+        self.behaviour.act_wrapper()
+        self.mock_a2a_transaction()
+        self._test_done_flag_set()
+        self.end_round(TransactionSettlementEvent.DONE)
+        state = cast(BaseState, self.behaviour.current_state)
+        assert state.state_id == self.next_behaviour_class.state_id

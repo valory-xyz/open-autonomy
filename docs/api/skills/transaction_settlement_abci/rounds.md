@@ -328,15 +328,25 @@ class FinishedTransactionSubmissionRound(DegenerateRound,  ABC)
 
 A round that represents that transaction submission has finished
 
-<a id="packages.valory.skills.transaction_settlement_abci.rounds.RetryTransactionSubmissionRound"></a>
+<a id="packages.valory.skills.transaction_settlement_abci.rounds.ResetRound"></a>
 
-## RetryTransactionSubmissionRound Objects
+## ResetRound Objects
 
 ```python
-class RetryTransactionSubmissionRound(DegenerateRound)
+class ResetRound(CollectSameUntilThresholdRound)
 ```
 
-A round that represents the previous step to reset
+A round that represents the reset of a period
+
+<a id="packages.valory.skills.transaction_settlement_abci.rounds.ResetRound.end_block"></a>
+
+#### end`_`block
+
+```python
+def end_block() -> Optional[Tuple[BasePeriodState, Event]]
+```
+
+Process the end of the block.
 
 <a id="packages.valory.skills.transaction_settlement_abci.rounds.TransactionSubmissionAbciApp"></a>
 
@@ -404,11 +414,14 @@ Transition states:
         - none: 12.
         - round timeout: 9.
         - no majority: 12.
-    10. RetryTransactionSubmissionRound
+    10. ResetRound
+        - done: 0.
+        - reset timeout: 12.
+        - no majority: 12.
     11. FinishedTransactionSubmissionRound
     12. FailedRound
 
-Final states: {FailedRound, FinishedTransactionSubmissionRound, RetryTransactionSubmissionRound}
+Final states: {FailedRound, FinishedTransactionSubmissionRound}
 
 Timeouts:
     round timeout: 30.0

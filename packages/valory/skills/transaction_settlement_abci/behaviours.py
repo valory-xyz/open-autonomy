@@ -47,6 +47,7 @@ from packages.valory.skills.transaction_settlement_abci.payloads import (
     CheckTransactionHistoryPayload,
     FinalizationTxPayload,
     RandomnessPayload,
+    ResetPayload,
     SelectKeeperPayload,
     SignaturePayload,
     SynchronizeLateMessagesPayload,
@@ -59,6 +60,7 @@ from packages.valory.skills.transaction_settlement_abci.rounds import (
     FinalizationRound,
     PeriodState,
     RandomnessTransactionSubmissionRound,
+    ResetRound,
     SelectKeeperTransactionSubmissionRoundA,
     SelectKeeperTransactionSubmissionRoundB,
     SelectKeeperTransactionSubmissionRoundBAfterTimeout,
@@ -612,6 +614,28 @@ class FinalizeBehaviour(TransactionSettlementBaseState):
             super().handle_late_messages(message)
 
 
+class ResetBehaviour(TransactionSettlementBaseState):
+    """Reset state."""
+
+    matching_round = ResetRound
+    state_id = "reset"
+
+    def async_act(self) -> Generator:
+        """
+        Do the action.
+        """
+        self.context.logger.info(
+            f"Period {self.period_state.period_count} was not finished. Resetting!"
+        )
+
+        payload = ResetPayload(
+            self.context.agent_address, self.period_state.period_count + 1
+        )
+        yield from self.send_a2a_transaction(payload)
+        yield from self.wait_until_round_end()
+        self.set_done()
+
+
 class TransactionSettlementRoundBehaviour(AbstractRoundBehaviour):
     """This behaviour manages the consensus stages for the basic transaction settlement."""
 
@@ -628,4 +652,5 @@ class TransactionSettlementRoundBehaviour(AbstractRoundBehaviour):
         FinalizeBehaviour,  # type: ignore
         SynchronizeLateMessagesBehaviour,  # type: ignore
         CheckLateTxHashesBehaviour,  # type: ignore
+        ResetBehaviour,  # type: ignore
     }

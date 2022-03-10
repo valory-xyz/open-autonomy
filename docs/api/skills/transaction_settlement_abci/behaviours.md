@@ -253,6 +253,26 @@ Store a potentially late-arriving message locally.
 
 - `message`: the late arriving message to handle.
 
+<a id="packages.valory.skills.transaction_settlement_abci.behaviours.ResetBehaviour"></a>
+
+## ResetBehaviour Objects
+
+```python
+class ResetBehaviour(TransactionSettlementBaseState)
+```
+
+Reset state.
+
+<a id="packages.valory.skills.transaction_settlement_abci.behaviours.ResetBehaviour.async_act"></a>
+
+#### async`_`act
+
+```python
+def async_act() -> Generator
+```
+
+Do the action.
+
 <a id="packages.valory.skills.transaction_settlement_abci.behaviours.TransactionSettlementRoundBehaviour"></a>
 
 ## TransactionSettlementRoundBehaviour Objects
