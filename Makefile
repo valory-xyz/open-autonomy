@@ -235,7 +235,7 @@ run-oracle:
 	    python deployments/click_create.py build-deployment --valory-app oracle_hardhat --deployment-type docker-compose --configure-tendermint && \
     	make run-deploy
 
-.PHONY: run-deploy
+.PHONY: run-deployment
 run-deploy:
 	if [ "${DEPLOYMENT_TYPE}" = "docker-compose" ];\
 	then\
