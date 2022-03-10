@@ -22,4 +22,4 @@
 from aea.configurations.base import PublicId
 
 
-PUBLIC_ID = PublicId.from_str("valory/reset_pause:0.1.0")
+PUBLIC_ID = PublicId.from_str("valory/reset_pause_abci:0.1.0")
