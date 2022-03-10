@@ -103,18 +103,40 @@ def calc_apy(x: pd.Series) -> Optional[float]:
     return res
 
 
-def transform_hist_data(pairs_hist_raw: ResponseItemType) -> pd.DataFrame:
+def apply_hist_based_calculations(pairs_hist: pd.DataFrame) -> None:
+    """Fill the given pairs' history with the current change in USD and APY values."""
+    # Calculate the current change of volume in USD.
+    pairs_hist["currentChange"] = pairs_hist.groupby("id")[
+        "updatedVolumeUSD"
+    ].transform(calc_change)
+
+    # Drop NaN values (essentially, this is the first day's `current_change`, because we cannot calculate it).
+    pairs_hist.dropna(subset=["currentChange"], inplace=True)
+
+    if len(pairs_hist.index) == 0:
+        raise ValueError(
+            "APY cannot be calculated if there are not at least two observations for a pool!"
+        )
+
+    # Calculate APY.
+    pairs_hist["APY"] = pairs_hist.apply(calc_apy, axis=1)
+    # Drop rows with NaN APY values.
+    pairs_hist.dropna(subset=["APY"], inplace=True)
+
+
+def transform_hist_data(pairs_hist_raw: ResponseItemType, batch: bool = False) -> pd.DataFrame:
     """Transform pairs' history into a dataframe and add extra fields.
 
     :param pairs_hist_raw: the pairs historical data non-transformed.
+    :param batch: whether the input is a batch which contains single a data point per pool.
     :return: a dataframe with the given historical data, containing extra fields. These are:
          * [token0ID, token0Name, token0Symbol]: split from `token0`.
          * [token1ID, token1Name, token1Symbol]: split from `token1`.
          * pairName: the current's pair's name, which is derived by: 'token0_name - token1_name'.
          * updatedVolumeUSD: the tracked volume USD, but if it is 0, then the untracked volume USD.
          * updatedReserveUSD: the tracked reserve USD, but if it is 0, then the untracked reserve USD.
-         * current_change: the current day's change in volume USD.
-         * APY: the APY.
+         * current_change: the current day's change in volume USD, only if `batch` is `False`.
+         * APY: the APY, only if `batch` is `False`.
 
          The dataframe is also sorted by the block's timestamp and the pair's tokens' names,
          and the entries for which the APY cannot be calculated are being dropped.
@@ -156,23 +178,8 @@ def transform_hist_data(pairs_hist_raw: ResponseItemType) -> pd.DataFrame:
         not_tracked_m, "reserveUSD"
     ]
 
-    # Calculate the current change of volume in USD.
-    pairs_hist["currentChange"] = pairs_hist.groupby("id")[
-        "updatedVolumeUSD"
-    ].transform(calc_change)
-
-    # Drop NaN values (essentially, this is the first day's `current_change`, because we cannot calculate it).
-    pairs_hist.dropna(subset=["currentChange"], inplace=True)
-
-    if len(pairs_hist.index) == 0:
-        raise ValueError(
-            "APY cannot be calculated if there are not at least two observations for a pool!"
-        )
-
-    # Calculate APY.
-    pairs_hist["APY"] = pairs_hist.apply(calc_apy, axis=1)
-    # Drop rows with NaN APY values.
-    pairs_hist.dropna(subset=["APY"], inplace=True)
+    if not batch:
+        apply_hist_based_calculations(pairs_hist)
 
     # Sort the dictionary.
     pairs_hist.sort_values(
