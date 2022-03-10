@@ -777,24 +777,70 @@ class TestPrepareBatchBehaviour(APYEstimationFSMBehaviourBaseCase):
 
     def test_prepare_batch_behaviour_setup(
         self,
+        monkeypatch: MonkeyPatch,
         tmp_path: PosixPath,
         transformed_historical_data_no_datetime_conversion: pd.DataFrame,
         batch: ResponseItemType,
+        prepare_batch_task_result: Dict[str, pd.DataFrame],
     ) -> None:
         """Test behaviour setup."""
         self._fast_forward(
             tmp_path, transformed_historical_data_no_datetime_conversion, batch
         )
+
+        monkeypatch.setattr(TaskManager, "enqueue_task", lambda *_, **__: 0)
+        monkeypatch.setattr(
+            TaskManager,
+            "get_task_result",
+            lambda *_: DummyAsyncResult(prepare_batch_task_result),
+        )
+
         current_state = cast(PrepareBatchBehaviour, self.behaviour.current_state)
         current_state.setup()
         assert not any(batch is None for batch in current_state._batches)
 
-    @pytest.mark.parametrize("ipfs_succeed", (True, False))
-    def test_prepare_batch_behaviour(
+    def test_task_not_ready(
         self,
+        monkeypatch: MonkeyPatch,
         tmp_path: PosixPath,
         transformed_historical_data_no_datetime_conversion: pd.DataFrame,
         batch: ResponseItemType,
+        prepare_batch_task_result: Dict[str, pd.DataFrame],
+    ) -> None:
+        """Run test for behaviour when task result is not ready."""
+        self._fast_forward(
+            tmp_path,
+            transformed_historical_data_no_datetime_conversion,
+            batch,
+        )
+
+        monkeypatch.setattr(TaskManager, "enqueue_task", lambda *_, **__: 0)
+        monkeypatch.setattr(
+            TaskManager,
+            "get_task_result",
+            lambda *_: DummyAsyncResult(prepare_batch_task_result, ready=False),
+        )
+
+        cast(
+            PrepareBatchBehaviour, self.behaviour.current_state
+        ).params.sleep_time = SLEEP_TIME_TWEAK
+        self.behaviour.act_wrapper()
+        time.sleep(SLEEP_TIME_TWEAK + 0.01)
+        self.behaviour.act_wrapper()
+
+        assert (
+            cast(APYEstimationBaseState, self.behaviour.current_state).state_id
+            == self.behaviour_class.state_id
+        )
+
+    @pytest.mark.parametrize("ipfs_succeed", (True, False))
+    def test_prepare_batch_behaviour(
+        self,
+        monkeypatch: MonkeyPatch,
+        tmp_path: PosixPath,
+        transformed_historical_data_no_datetime_conversion: pd.DataFrame,
+        batch: ResponseItemType,
+        prepare_batch_task_result: Dict[str, pd.DataFrame],
         ipfs_succeed: bool,
     ) -> None:
         """Run test for `preprocess_behaviour`."""
@@ -803,6 +849,13 @@ class TestPrepareBatchBehaviour(APYEstimationFSMBehaviourBaseCase):
             transformed_historical_data_no_datetime_conversion,
             batch,
             ipfs_succeed,
+        )
+
+        monkeypatch.setattr(TaskManager, "enqueue_task", lambda *_, **__: 0)
+        monkeypatch.setattr(
+            TaskManager,
+            "get_task_result",
+            lambda *_: DummyAsyncResult(prepare_batch_task_result),
         )
 
         state = cast(BaseState, self.behaviour.current_state)

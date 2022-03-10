@@ -231,6 +231,12 @@ def no_action() -> Callable[[Any], None]:
 
 
 @pytest.fixture
+def prepare_batch_task_result() -> Dict[str, pd.DataFrame]:
+    """Create a no-action function."""
+    return {"test": pd.DataFrame()}
+
+
+@pytest.fixture
 def optimize_task_result() -> optuna.Study:
     """Create a result of the `OptimizeTask`.
 
