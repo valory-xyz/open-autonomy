@@ -147,7 +147,7 @@ checks:
 	&& make pylint \
 	&& make copyright \
 	&& make docs \
-	&& make api-docs \
+	&& tox -e check-api-docs \
 	&& make hashes \
 	&& make security \
 

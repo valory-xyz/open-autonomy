@@ -82,6 +82,7 @@ class TestAPYParams:
             "pair_ids": "test",
             "service_id": "apy_estimation",
             "keeper_timeout": 30.0,
+            "cleanup_history_depth": 0,
         }
 
         if param_value == None:  # noqa: E711

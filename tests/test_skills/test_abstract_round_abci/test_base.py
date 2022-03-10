@@ -995,6 +995,40 @@ class TestAbciApp:
         """Test the all events getter."""
         assert {"a", "b", "c", "timeout"} == self.abci_app.get_all_events()
 
+    def test_cleanup(self) -> None:
+        """Test the cleanup method."""
+        self.abci_app.setup()
+
+        # Dummy parameters, state and round
+        cleanup_history_depth = 1
+        start_history_depth = 5
+        max_participants = 4
+        dummy_state = BasePeriodState(
+            db=StateDB(
+                initial_period=0, initial_data=dict(participants=max_participants)
+            )
+        )
+        dummy_consensus_params = ConsensusParams(max_participants)
+        dummy_round = ConcreteRoundA(dummy_state, dummy_consensus_params)
+
+        # Add dummy data
+        self.abci_app._previous_rounds = [dummy_round] * start_history_depth
+        self.abci_app._round_results = [dummy_state] * start_history_depth
+        self.abci_app.state.db._data = {
+            i: {"dummy_key": "dummy_value"} for i in range(start_history_depth)
+        }
+
+        # Verify that cleanup reduces the data amount
+        assert len(self.abci_app._previous_rounds) == start_history_depth
+        assert len(self.abci_app._round_results) == start_history_depth
+        assert len(self.abci_app.state.db._data) == start_history_depth
+
+        self.abci_app.cleanup(cleanup_history_depth)
+
+        assert len(self.abci_app._previous_rounds) == cleanup_history_depth
+        assert len(self.abci_app._round_results) == cleanup_history_depth
+        assert len(self.abci_app.state.db._data) == cleanup_history_depth
+
 
 class TestPeriod:
     """Test the Period class."""

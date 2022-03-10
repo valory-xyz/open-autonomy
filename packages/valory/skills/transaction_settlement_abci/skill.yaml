@@ -8,7 +8,7 @@ aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
   README.md: Qmes4T968eLYkfRc1o3oXMa3irSMo6CY95kaAGvM3LfzAF
   __init__.py: QmUJJPrwqyWYnqeYpGypjgsQoXiGFpjHogSrrDmAedpdzV
-  behaviours.py: QmUiZFnC2H3jmt4otLMBPgKFydA2Fufntsy4K6S2pRurSY
+  behaviours.py: QmaqWbVMdrHVfC3JsAcpeMBMkbZQumWHJKdP7E9k7Q13sr
   dialogues.py: QmfDThV4WCRzK88XDpW2hKDYCuEH4RxoHCoAkWpkBRGRPv
   handlers.py: QmXEZTJVJHNhpHJMjhPRHdhmYMmVpu6LfNyYDE2k4mjLVA
   models.py: QmUQQ7fhWp6YHKm45fw5KMDv5QZi8LBywhfb7K9t5CsyR6
@@ -56,6 +56,7 @@ models:
     class_name: LedgerApiDialogues
   params:
     args:
+      cleanup_history_depth: 1
       consensus:
         max_participants: 1
       drand_public_key: 868f005eb8e6e4ca0a47c8a77ceaa5309a47978a7c71bc5cce96366b5d7a569937c529eeda66c7293784a9402801af31
