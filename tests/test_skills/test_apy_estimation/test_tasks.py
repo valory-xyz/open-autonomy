@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021 Valory AG
+#   Copyright 2021-2022 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -22,7 +22,11 @@ from typing import Any, Callable
 
 from _pytest.monkeypatch import MonkeyPatch
 
-from packages.valory.skills.apy_estimation_abci.tasks import OptimizeTask
+from packages.valory.skills.apy_estimation_abci.tasks import (
+    OptimizeTask,
+    PrepareBatchTask,
+    PreprocessTask,
+)
 from packages.valory.skills.apy_estimation_abci.tasks import TestTask as _TestTask
 from packages.valory.skills.apy_estimation_abci.tasks import TrainTask, TransformTask
 
@@ -40,6 +44,35 @@ class TestTransformTask:
             no_action,
         )
         TransformTask().execute()
+
+
+class TestPreprocessTask:
+    """Tests for the `PreprocessTask`."""
+
+    @staticmethod
+    def test_execute(
+        monkeypatch: MonkeyPatch, no_action: Callable[[Any], None]
+    ) -> None:
+        """Test the execute method."""
+        monkeypatch.setattr(
+            "packages.valory.skills.apy_estimation_abci.tasks.prepare_pair_data",
+            no_action,
+        )
+        PreprocessTask().execute()
+
+
+class TestPrepareBatchTask:
+    """Tests for the `PrepareBatchTask`."""
+
+    @staticmethod
+    def test_execute(
+        monkeypatch: MonkeyPatch, no_action: Callable[[Any], None]
+    ) -> None:
+        """Test the execute method."""
+        monkeypatch.setattr(
+            "packages.valory.skills.apy_estimation_abci.tasks.prepare_batch", no_action
+        )
+        PrepareBatchTask().execute()
 
 
 class TestOptimizeTask:
