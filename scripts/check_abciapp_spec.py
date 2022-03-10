@@ -101,7 +101,7 @@ def main() -> None:
         sys.exit(0)
     else:
         logging.info("ABCI App does NOT match specification.")
-        sys.exit(-1)
+        sys.exit(1)
 
 
 if __name__ == "__main__":
