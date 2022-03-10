@@ -36,7 +36,10 @@ from packages.valory.skills.apy_estimation_abci.ml.preprocessing import (
     TrainTestSplitType,
     prepare_pair_data,
 )
-from packages.valory.skills.apy_estimation_abci.tools.etl import transform_hist_data, prepare_batch
+from packages.valory.skills.apy_estimation_abci.tools.etl import (
+    prepare_batch,
+    transform_hist_data,
+)
 
 
 class TransformTask(Task):

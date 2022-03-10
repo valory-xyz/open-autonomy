@@ -8,7 +8,7 @@ aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
   README.md: QmSvXr6k7f5GFZVCgqM8d4ywibiSAYbdaGjmPh4CmFfQn9
   __init__.py: Qmb163B19kEpc6PfbLnmQxPbeEWA2ubTghVwG2YUeNYusu
-  behaviours.py: QmNv4kxTQg5nXUEy1iFLukpF3t6WHZKsuieH1UyGUnADFL
+  behaviours.py: QmcMTsvLzY8ucSkbbR8gbNJcJ382aVFKnBARJ5q1kj288P
   composition.py: QmfV3hauFb2XUnycdrE8vMbH9WqgDFyFRPwPuwxxUaRtZZ
   dialogues.py: QmdBmUMWoPbS2faqn8LicQVJfN6a2WjtdZDWFbiYoy7hfY
   handlers.py: QmdxbcVLL3JU6onvxLrDmJX1r2vQPbzp1co1eaHGJkAwfD
@@ -19,9 +19,9 @@ fingerprint:
   models.py: QmYFQ6teLzBuir1ug24PyikgcXfxua8rDJz6SBLP28dM3V
   payloads.py: QmXe7NATbHVszdFpAHaFRuV5Yig4S1ZxheA8PWR2pEduCR
   rounds.py: QmaMGJMctgUaMr89K7y5ugvKJEJLsv48Yivv59DEDVCrvp
-  tasks.py: QmWs1XRAoUVgF6YQxfBPfdzADKqm93zWGZqKEqEs1hJDAH
+  tasks.py: QmX9VBWaCDmnTYM4J1JRUuGebw9jE5ttJmKnmJVMchnbpr
   tools/__init__.py: QmWr6iVwNzqYVqmxBwYC1myurM8AjxuzxwjM1brXSmnDTi
-  tools/etl.py: QmXAD2wo52m3L7551eNXpudJtnyjCaN5PSknS7cinBbgKS
+  tools/etl.py: QmXiZuaH7i9WwK7qRSQHreSeL9ByaaBVV4QxMzunzgDEXy
   tools/general.py: QmUtxPckv7Mjv6RXt9LmoSARd3D5xK4pyoVVL9wv9H2kvB
   tools/io.py: QmQk9ZYtTLBeSDwvh6S5BfuaS7EYftM2fryym2RA4M8Wah
   tools/queries.py: QmXZxZ35Sd6YWpPWcMfhwvS5KMvQhb9AmLWp7drQs8KQCT

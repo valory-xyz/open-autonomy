@@ -124,7 +124,9 @@ def apply_hist_based_calculations(pairs_hist: pd.DataFrame) -> None:
     pairs_hist.dropna(subset=["APY"], inplace=True)
 
 
-def transform_hist_data(pairs_hist_raw: ResponseItemType, batch: bool = False) -> pd.DataFrame:
+def transform_hist_data(
+    pairs_hist_raw: ResponseItemType, batch: bool = False
+) -> pd.DataFrame:
     """Transform pairs' history into a dataframe and add extra fields.
 
     :param pairs_hist_raw: the pairs historical data non-transformed.
@@ -191,7 +193,9 @@ def transform_hist_data(pairs_hist_raw: ResponseItemType, batch: bool = False) -
     return pairs_hist
 
 
-def prepare_batch(previous_batch: pd.DataFrame, current_batch_raw: ResponseItemType) -> Dict[str, pd.DataFrame]:
+def prepare_batch(
+    previous_batch: pd.DataFrame, current_batch_raw: ResponseItemType
+) -> Dict[str, pd.DataFrame]:
     """Prepare a batch, using the currently fetched batch from the subgraph and the last utilized batch.
 
     :param previous_batch: the last utilized batch.
@@ -206,7 +210,9 @@ def prepare_batch(previous_batch: pd.DataFrame, current_batch_raw: ResponseItemT
     prepared_batches = {}
     for pool_id, pool_batch in batches.groupby("id"):
         if len(pool_batch.index) < 2:
-            raise ValueError(f"Could not find any previous history in {pool_batch} for pool `{pool_id}`!")
+            raise ValueError(
+                f"Could not find any previous history in {pool_batch} for pool `{pool_id}`!"
+            )
         # Since we have concatenated the current batch after the previous batch
         # and `groupby` preserves the order of rows within each group,
         # then we do not need to worry about the sorting of the batches.

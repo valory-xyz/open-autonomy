@@ -467,7 +467,7 @@ def transformed_historical_data(
 @pytest.fixture
 def batch() -> ResponseItemType:
     """Create a dummy batch of data."""
-    pool1_batch = {
+    pool1_batch: Dict[str, Union[str, Dict[str, str]]] = {
         "createdAtBlockNumber": "1",
         "createdAtTimestamp": "1",
         "id": "0x2b4c76d0dc16be1c31d4c1dc53bf9b45987fc75c",
