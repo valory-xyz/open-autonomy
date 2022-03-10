@@ -95,8 +95,7 @@ from packages.valory.skills.apy_estimation_abci.tasks import (
 )
 from packages.valory.skills.apy_estimation_abci.tools.etl import (
     ResponseItemType,
-    revert_transform_hist_data,
-    transform_hist_data, apply_hist_based_calculations,
+    prepare_batch,
 )
 from packages.valory.skills.apy_estimation_abci.tools.general import gen_unix_timestamps
 from packages.valory.skills.apy_estimation_abci.tools.io import load_hist
@@ -560,25 +559,28 @@ class PrepareBatchBehaviour(APYEstimationBaseState):
     def __init__(self, **kwargs: Any) -> None:
         """Initialize Behaviour."""
         super().__init__(**kwargs)
-        self._previous_batch: Optional[pd.DataFrame] = None
-        self._current_batch_raw: Optional[ResponseItemType] = None
+        self._batches: Tuple[Optional[pd.DataFrame], Optional[ResponseItemType]] = (
+            None,
+            None,
+        )
         self._prepared_batches_save_path = ""
         self._prepared_batches_hash: Optional[str] = None
 
     def setup(self) -> None:
         """Setup behaviour."""
-        self._previous_batch = self.get_from_ipfs(
-            self.period_state.latest_observation_hist_hash,
-            self.context.data_dir,
-            filename="latest_observations.csv",
-            custom_loader=load_hist,
-        )
-
-        self._current_batch_raw = self.get_from_ipfs(
-            self.period_state.batch_hash,
-            self.context.data_dir,
-            filename=f"historical_data_batch_{self.period_state.latest_observation_timestamp}.json",
-            filetype=SupportedFiletype.JSON,
+        self._batches = (
+            self.get_from_ipfs(
+                self.period_state.latest_observation_hist_hash,
+                self.context.data_dir,
+                filename="latest_observations.csv",
+                custom_loader=load_hist,
+            ),
+            self.get_from_ipfs(
+                self.period_state.batch_hash,
+                self.context.data_dir,
+                filename=f"historical_data_batch_{self.period_state.latest_observation_timestamp}.json",
+                filetype=SupportedFiletype.JSON,
+            ),
         )
 
         self._prepared_batches_save_path = os.path.join(
@@ -587,22 +589,8 @@ class PrepareBatchBehaviour(APYEstimationBaseState):
 
     def async_act(self) -> Generator:
         """Do the action."""
-        if not any(batch is None for batch in (self._previous_batch, self._current_batch_raw)):
-            # Transform the current batch.
-            current_batch = transform_hist_data(cast(ResponseItemType, self._current_batch_raw), batch=True)
-            # Append the current batch to the previous batch.
-            batches = pd.concat([self._previous_batch, current_batch])
-            # Calculate the last APY value per pool, using the batches.
-            prepared_batches = {}
-            for pool_id, pool_batch in batches.groupby("id"):
-                if len(pool_batch.index) < 2:
-                    raise ValueError(f"Could not find any previous history in {pool_batch} for pool `{pool_id}`!")
-                # Since we have concatenated the current batch after the previous batch
-                # and `groupby` preserves the order of rows within each group,
-                # then we do not need to worry about the sorting of the batches.
-                apply_hist_based_calculations(pool_batch)
-                prepared_batches[pool_id] = pool_batch
-
+        if not any(batch is None for batch in self._batches):
+            prepared_batches = prepare_batch(*self._batches)
             self.context.logger.info(f"Batches have been prepared:\n{prepared_batches}")
 
             # Send the file to IPFS and get its hash.
