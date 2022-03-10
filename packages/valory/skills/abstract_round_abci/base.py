@@ -63,6 +63,7 @@ OK_CODE = 0
 ERROR_CODE = 1
 LEDGER_API_ADDRESS = str(LEDGER_CONNECTION_PUBLIC_ID)
 ROUND_COUNT_DEFAULT = -1
+MIN_HISTORY_DEPTH = 1
 
 EventType = TypeVar("EventType")
 TransactionType = TypeVar("TransactionType")
@@ -552,7 +553,7 @@ class StateDB:
 
     def cleanup(self, cleanup_history_depth: int) -> None:
         """Reset the db."""
-        cleanup_history_depth = max(cleanup_history_depth, 1)
+        cleanup_history_depth = max(cleanup_history_depth, MIN_HISTORY_DEPTH)
         self._data = {
             key: self._data[key]
             for key in sorted(self._data.keys())[-cleanup_history_depth:]
@@ -1864,7 +1865,7 @@ class AbciApp(
 
     def cleanup(self, cleanup_history_depth: int) -> None:
         """Clear data."""
-        cleanup_history_depth = max(cleanup_history_depth, 1)
+        cleanup_history_depth = max(cleanup_history_depth, MIN_HISTORY_DEPTH)
         self._previous_rounds = self._previous_rounds[-cleanup_history_depth:]
         self._round_results = self._round_results[-cleanup_history_depth:]
         self.state.db.cleanup(cleanup_history_depth)
