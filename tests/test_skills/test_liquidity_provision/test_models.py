@@ -86,4 +86,5 @@ class TestParams:
                 "deadline": 300,  # 5 min into the future"
                 "sleep_seconds": 60,
             },
+            cleanup_history_depth=0,
         )

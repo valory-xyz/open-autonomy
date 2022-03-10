@@ -7,11 +7,27 @@ build:
     envTemplate:
       template: "{{.VERSION}}"
   artifacts:
+  - image: valory/consensus-algorithms-open-aea
+    context: deployments/Dockerfiles/open_aea/
+    docker:
+      dockerfile: Dockerfile
+      buildArgs:
+        AEA_VERSION: "latest"
+
   - image: valory/consensus-algorithms-tendermint
     context: deployments/Dockerfiles/localnode/
 
-  - image: valory/consensus-algorithms-open-aea
-    context: deployments/Dockerfiles/open_aea/
-
   - image: valory/consensus-algorithms-hardhat
     context: deployments/Dockerfiles/hardhat
+
+profiles:
+  - name: prod
+  - name: dev
+    patches:
+      - op: replace
+        path: /build/artifacts/0/docker/dockerfile
+        value: Dockerfile.develop
+      - op: add
+        path: /build/artifacts/0/docker/cliFlags
+        value: ["no-cache", "true", "pull", "true", "force-rm", "true"]
+

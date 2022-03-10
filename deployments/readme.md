@@ -44,8 +44,18 @@ Now we have our images, we need to build the deployment to use them.
 
 ```bash
 pipenv shell
-python deployments/click_create.py build-deployment --deployment-type docker-compose  --valory-app oracle_ropsten --keys-file-path deployments/deployment_specifications/ropsten_keys.txt
+python deployments/click_create.py build-deployment --deployment-type docker-compose  --valory-app oracle_ropsten --keys-file-path deployments/keys/ropsten_keys.txt
 ```
+We can additionally specify a file path as so;
+
+```bash
+pipenv shell
+python deployments/click_create.py build-deployment \
+  --deployment-type docker-compose  \
+  --keys-file-path deployments/keys/ropsten_keys.txt \
+  --deployment-file-path deployments/deployment_specifications/price_estimation_ropsten.yaml 
+```
+
 
 ```output
 To configure tendermint for deployment please run: 
@@ -120,3 +130,52 @@ or
 ```bash
 for i in {1..4}; do scp root@178.62.4.138:node_${i}.txt node_${i}.txt; done
 ```
+
+
+## Developer mode
+
+In developer mode, the aea docker-image is overwritten and instead launches the aea with watcher.py
+On any changes to components within both the packages directory or the open-aea repository the watcher.py will;
+
+- stop the running aea
+- fingerprint the packages
+- prune tendermint 
+- restart tendermint
+- restart the aea
+
+Without actually requiring a rebuild of the images!
+
+There are 2 ways of entering into an interactive development environment.
+
+The easiest, is to make use of the convenience commands;
+
+### Quick Dev Mode
+```bash
+export OPEN_AEA_REPO_DIR=../open-aea
+make run-oracle-dev 
+```
+
+The 2nd method is more manual and demonstrates the exact steps required to clean and build the images.
+
+### Manual Mode
+
+```bash
+export VERSION=dev
+make build-images
+```
+This will build and tag the development Dockerfile in deployments/Dockerfiles.
+
+
+To then build a deployment for developer mode, nothing extra other than the environment variable is needed.
+
+i.e. We build the deployment;
+```bash
+ python deployments/click_create.py build-deployment --valory-app oracle_hardhat --deployment-type docker-compose --configure-tendermint
+```
+To run the development deployment
+```bash
+cd deployments/build
+docker-compose up --force-recreate
+```
+
+

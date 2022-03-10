@@ -8,7 +8,7 @@ number_of_agents: 4
 observation_params: &observation_params
   args:
     observation_interval: 30
-    broadcast_to_server: true
+    broadcast_to_server: false
 
 
 valory_monitoring_backend: &monitoring_backend

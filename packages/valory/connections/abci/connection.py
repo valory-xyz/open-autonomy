@@ -171,10 +171,20 @@ class VarintMessageReader:  # pylint: disable=too-few-public-methods
         varint = await _TendermintABCISerializer.decode_varint(self._reader)
         if varint > MAX_READ_IN_BYTES:
             raise TooLargeVarint()
-        message_bytes = await self._reader.read(varint)
+        message_bytes = await self.read_until(varint)
         if len(message_bytes) < varint:
             raise ShortBufferLengthError(varint, message_bytes)
         return message_bytes
+
+    async def read_until(self, n: int) -> bytes:
+        """Wait until n bytes are read from the stream."""
+        result = BytesIO(b"")
+        read_bytes = 0
+        while read_bytes < n:
+            data = await self._reader.read(n - read_bytes)
+            result.write(data)
+            read_bytes += len(data)
+        return result.getvalue()
 
 
 class TcpServerChannel:  # pylint: disable=too-many-instance-attributes
@@ -270,9 +280,11 @@ class TcpServerChannel:  # pylint: disable=too-many-instance-attributes
             try:
                 message_bytes = await varint_message_reader.read_next_message()
                 if len(message_bytes) == 0:
-                    self.logger.error(f"Tendermint node {peer_name} closed connection.")
+                    self.logger.error(
+                        f"Tendermint node {peer_name} closed connection."
+                    )  # pragma: nocover
                     # break to the _stop if the connection stops
-                    break
+                    break  # pragma: nocover
                 self.logger.debug(
                     f"Received {len(message_bytes)} bytes from connection {peer_name}"
                 )
@@ -288,6 +300,9 @@ class TcpServerChannel:  # pylint: disable=too-many-instance-attributes
                     f"{type(e).__name__}: {e}. "
                     f"The message will be ignored."
                 )
+                if reader.at_eof():
+                    self.logger.info("connection at EOF, stop receiving loop.")
+                    return
                 continue
             except CancelledError:  # pragma: nocover
                 self.logger.debug(f"Read task for peer {peer_name} cancelled.")

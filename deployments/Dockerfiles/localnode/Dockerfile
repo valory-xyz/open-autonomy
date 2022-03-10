@@ -5,7 +5,7 @@ ENV TENDERMINT_VERSION=0.34.11
 
 RUN apk update && \
     apk upgrade && \
-    apk --no-cache add curl jq file \
+    apk --no-cache add curl jq file net-tools \
     python3 bash py3-pip
 
 RUN wget https://raw.githubusercontent.com/vishnubob/wait-for-it/master/wait-for-it.sh &&\
@@ -41,4 +41,6 @@ RUN chmod 777 -R /tendermint
 
 
 ENTRYPOINT ["/usr/bin/flask"]
-CMD ["run", "--no-reload", "--host=0.0.0.0", "--port=8080", ]
+CMD ["run", "--no-reload", "--host=0.0.0.0", "--port=8080"]
+
+HEALTHCHECK --interval=3s --timeout=600s --retries=600 CMD netstat -ltn | grep -c 26658 > /dev/null; if [ 0 != $? ]; then exit 1; fi;

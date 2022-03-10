@@ -22,7 +22,10 @@ import asyncio
 import logging
 import time
 from abc import ABC, abstractmethod
+from cmath import inf
 from typing import Any, Callable, List, cast
+from unittest import mock
+from unittest.mock import MagicMock
 
 import pytest
 import requests
@@ -40,6 +43,9 @@ from packages.valory.connections.abci.connection import (
     DEFAULT_ABCI_PORT,
     DEFAULT_LISTEN_ADDRESS,
     DecodeVarintError,
+    ShortBufferLengthError,
+    TooLargeVarint,
+    VarintMessageReader,
     _TendermintABCISerializer,
 )
 from packages.valory.protocols.abci import AbciMessage
@@ -490,3 +496,39 @@ def test_dep_util() -> None:
     assert dep_utils.nth([0, 1, 2, 3], 5, -1) == -1
     assert dep_utils.get_version(1, 0, 0) == (1, 0, 0)
     assert dep_utils.version_to_string((1, 0, 0)) == "1.0.0"
+
+
+@pytest.mark.asyncio
+async def test_varint_message_reader() -> None:
+    """Test VarintMessageReader"""
+
+    async def read(nb: int) -> bytes:
+        return b"hello"
+
+    def patch_async_methods(value: Any) -> Callable:
+        async def decode_varint(*args: Any, **kwargs: Any) -> Any:
+            return value
+
+        return decode_varint
+
+    stream_reader = MagicMock(read=read)
+    vmr = VarintMessageReader(stream_reader)
+
+    with mock.patch.object(
+        _TendermintABCISerializer, "decode_varint", new=patch_async_methods(inf)
+    ):
+        with pytest.raises(TooLargeVarint):
+            await vmr.read_next_message()
+
+    with mock.patch.object(
+        _TendermintABCISerializer, "decode_varint", new=patch_async_methods(10)
+    ):
+        with mock.patch.object(vmr, "read_until", new=patch_async_methods(b"")):
+            with pytest.raises(ShortBufferLengthError):
+                await vmr.read_next_message()
+
+    with mock.patch.object(
+        _TendermintABCISerializer, "decode_varint", new=patch_async_methods(5)
+    ):
+        res = await vmr.read_next_message()
+        assert res == b"hello"

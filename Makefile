@@ -2,7 +2,6 @@ OPEN_AEA_REPO_PATH := "${OPEN_AEA_REPO_PATH}"
 DEPLOYMENT_TYPE := "${DEPLOYMENT_TYPE}"
 DEPLOYMENT_SPEC := "${DEPLOYMENT_SPEC}"
 
-
 .PHONY: clean
 clean: clean-build clean-pyc clean-test clean-docs
 
@@ -289,6 +288,12 @@ run-oracle:
 	    python deployments/click_create.py build-deployment --valory-app oracle_hardhat --deployment-type docker-compose --configure-tendermint && \
     	make run-deploy
 
+.PHONY: run-deploy
+run-deploy:
+	cd deployments/build/ && \
+	docker-compose up --force-recreate -t 600
+	
+
 .PHONY: run-deployment
 run-deployment:
 	if [ "${DEPLOYMENT_TYPE}" = "docker-compose" ];\
@@ -304,10 +309,6 @@ run-deployment:
 	fi
 	echo "Please ensure you have set the environment variable 'DEPLOYMENT_TYPE'"
 	exit 1
-
-protolint_install:
-	GO111MODULE=on GOPATH=~/go go get -u -v github.com/yoheimuta/protolint/cmd/protolint@v0.27.0
-
 
 
 .PHONY: build-deploy
@@ -334,10 +335,5 @@ build-deploy:
 	  --deployment-file-path ${DEPLOYMENT_SPEC} \
 	  --configure-tendermint
 
-.PHONY: run-deploy
-run-deploy:
-	cd deployments/build/ && \
-	docker-compose up --force-recreate -t 600
-	
 protolint_install:
 	GO111MODULE=on GOPATH=~/go go get -u -v github.com/yoheimuta/protolint/cmd/protolint@v0.27.0

@@ -11,6 +11,28 @@
 - **Tests:** the PR needs to contain tests for the newly added code or updated code. (If a commit is made for sole purpose of the review you can add tests later after review is done and PR is ready to merge)
 
 Also mention potential effects on other branches/code might have from your changes.
+
+For a clean workflow run checks in following order before making a PR or pushing the code
+
+- make clean
+- make formatters
+- make code-checks
+- make security
+
+**Run only if you've modified an AbciApp definition**
+- make abci-docstrings
+
+**Only run following if you have modified a file in `packages/`**
+- make generators
+- make common-checks-1
+
+**else run**
+- make copyright
+
+**run this after making a commit**
+- make common-checks-2
+
+
 ### Documentation (Docstrings and inline comments)
 - Instead of writing just single line of docstring write more informative docstring. If a method is fairly easy to understand one line of docstring will do but if the method has more complex logic it needs be documented properly.
 ```python

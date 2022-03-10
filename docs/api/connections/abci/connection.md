@@ -131,6 +131,16 @@ async def read_next_message() -> bytes
 
 Read next message.
 
+<a id="packages.valory.connections.abci.connection.VarintMessageReader.read_until"></a>
+
+#### read`_`until
+
+```python
+async def read_until(n: int) -> bytes
+```
+
+Wait until n bytes are read from the stream.
+
 <a id="packages.valory.connections.abci.connection.TcpServerChannel"></a>
 
 ## TcpServerChannel Objects
