@@ -344,6 +344,7 @@ class FSMBehaviourBaseCase(BaseSkillTestCase):
             current_state.matching_round
         ][done_event](abci_app.state, abci_app.consensus_params)
         abci_app._previous_rounds.append(old_round)
+        abci_app._current_round_height += 1
         self.behaviour._process_current_round()
 
     def _test_done_flag_set(self) -> None:
