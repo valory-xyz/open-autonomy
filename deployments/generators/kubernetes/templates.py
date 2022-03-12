@@ -111,31 +111,16 @@ spec:
   backoffLimit: 3
 ---
 apiVersion: v1
-kind: PersistentVolume
-metadata:
-  name: build-vol
-  labels:
-    type: local
-spec:
-  storageClassName: manual
-  capacity:
-    storage: 100M
-  accessModes:
-    - ReadWriteOnce
-  hostPath:
-    path: "/mnt/data"
----
-apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   name: build-vol-pvc
 spec:
-  storageClassName: manual
+  storageClassName: nfs
   accessModes:
     - ReadWriteOnce
   resources:
     requests:
-      storage: 100M
+      storage: 1000M
 """
 
 
@@ -177,6 +162,13 @@ spec:
       - name: node{validator_ix}
         image: valory/consensus-algorithms-tendermint:0.1.0
         imagePullPolicy: Always
+        resources:
+          limits:
+            memory: "1024Mi"
+            cpu: "1"
+          requests:
+            cpu: "500m"
+            memory: "128Mi"
         ports:
           - containerPort: 26656
           - containerPort: 26657
@@ -192,7 +184,7 @@ spec:
             value: /tendermint/node{validator_ix}
           - name: CREATE_EMPTY_BLOCKS
             value: "true"
-        args: ["run"]
+        args: ["run", "--no-reload", "--host=0.0.0.0", "--port=8080"]
         volumeMounts:
           - mountPath: /tendermint
             name: build
@@ -200,6 +192,13 @@ spec:
       - name: aea
         image: valory/consensus-algorithms-open-aea:0.1.0
         imagePullPolicy: Always
+        resources:
+          limits:
+            memory: "1024Mi"
+            cpu: "1"
+          requests:
+            cpu: "500m"
+            memory: "128Mi"
         env:
           - name: HOSTNAME
             value: "agent-node-{validator_ix}"
