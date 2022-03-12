@@ -1871,7 +1871,7 @@ class AbciApp(
     def cleanup(self, cleanup_history_depth: int) -> None:
         """Clear data."""
         if len(self._round_results) != len(self._previous_rounds):
-            raise ABCIAppInternalError("Inconsistent round lengths")
+            raise ABCIAppInternalError("Inconsistent round lengths")  # pragma: nocover
         # we need at least the last round result, and for symmetry we impose the same condition
         # on previous rounds and state.db
         cleanup_history_depth = max(cleanup_history_depth, MIN_HISTORY_DEPTH)
