@@ -128,6 +128,7 @@ class FSMBehaviourBaseCase(BaseSkillTestCase):
         self.skill.skill_context.state.period.abci_app._round_results.append(
             period_state
         )
+        self.skill.skill_context.state.period.abci_app._extend_previous_rounds_with_current_round()
         if next_state.matching_round is not None:
             self.skill.skill_context.state.period.abci_app._current_round = (
                 next_state.matching_round(
