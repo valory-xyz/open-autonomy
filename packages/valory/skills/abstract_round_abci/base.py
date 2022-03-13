@@ -1611,6 +1611,7 @@ class AbciApp(
         self._current_round: Optional[AbstractRound] = None
         self._last_round: Optional[AbstractRound] = None
         self._previous_rounds: List[AbstractRound] = []
+        self._current_round_height: int = 0
         self._round_results: List[BasePeriodState] = []
         self._last_timestamp: Optional[datetime.datetime] = None
         self._current_timeout_entries: List[int] = []
@@ -1667,6 +1668,10 @@ class AbciApp(
         self.logger.info(
             f"'{self.current_round.round_id}' round is done with event: {event}"
         )
+
+    def _extend_previous_rounds_with_current_round(self) -> None:
+        self._previous_rounds.append(self.current_round)
+        self._current_round_height += 1
 
     def _schedule_round(self, round_cls: AppState) -> None:
         """
@@ -1744,7 +1749,7 @@ class AbciApp(
     @property
     def current_round_height(self) -> int:
         """Get the current round height."""
-        return len(self._previous_rounds)
+        return self._current_round_height
 
     @property
     def last_round_id(self) -> Optional[str]:
@@ -1794,7 +1799,7 @@ class AbciApp(
         next_round_cls = self.transition_function[self._current_round_cls].get(
             event, None
         )
-        self._previous_rounds.append(self.current_round)
+        self._extend_previous_rounds_with_current_round()
         if result is not None:
             self._round_results.append(result)
         else:
@@ -1865,6 +1870,10 @@ class AbciApp(
 
     def cleanup(self, cleanup_history_depth: int) -> None:
         """Clear data."""
+        if len(self._round_results) != len(self._previous_rounds):
+            raise ABCIAppInternalError("Inconsistent round lengths")  # pragma: nocover
+        # we need at least the last round result, and for symmetry we impose the same condition
+        # on previous rounds and state.db
         cleanup_history_depth = max(cleanup_history_depth, MIN_HISTORY_DEPTH)
         self._previous_rounds = self._previous_rounds[-cleanup_history_depth:]
         self._round_results = self._round_results[-cleanup_history_depth:]

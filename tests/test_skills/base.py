@@ -128,6 +128,10 @@ class FSMBehaviourBaseCase(BaseSkillTestCase):
         self.skill.skill_context.state.period.abci_app._round_results.append(
             period_state
         )
+        self.skill.skill_context.state.period.abci_app._extend_previous_rounds_with_current_round()
+        self.skill.skill_context.behaviours.main._last_round_height = (
+            self.skill.skill_context.state.period.abci_app.current_round_height
+        )
         if next_state.matching_round is not None:
             self.skill.skill_context.state.period.abci_app._current_round = (
                 next_state.matching_round(
@@ -344,6 +348,7 @@ class FSMBehaviourBaseCase(BaseSkillTestCase):
             current_state.matching_round
         ][done_event](abci_app.state, abci_app.consensus_params)
         abci_app._previous_rounds.append(old_round)
+        abci_app._current_round_height += 1
         self.behaviour._process_current_round()
 
     def _test_done_flag_set(self) -> None:

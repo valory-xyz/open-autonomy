@@ -467,17 +467,16 @@ class TestValidateTransactionBehaviour(PriceEstimationFSMBehaviourBaseCase):
 
         with mock.patch.object(self.behaviour.context.logger, "error") as mock_logger:
 
-            def _mock_generator() -> Generator[None, None, None]:
-                """Mock the 'get_transaction_receipt' method."""
-                yield None
-
-            with mock.patch.object(
-                self.behaviour.current_state,
-                "get_transaction_receipt",
-                return_value=_mock_generator(),
-            ):
-                self.behaviour.act_wrapper()
-                self.behaviour.act_wrapper()
+            self.behaviour.act_wrapper()
+            self.mock_ledger_api_request(
+                request_kwargs=dict(
+                    performative=LedgerApiMessage.Performative.GET_TRANSACTION_RECEIPT,
+                ),
+                response_kwargs=dict(
+                    performative=LedgerApiMessage.Performative.ERROR,
+                    code=1,
+                ),
+            )
             state = cast(
                 TransactionSettlementBaseState,
                 self.behaviour.current_state,
