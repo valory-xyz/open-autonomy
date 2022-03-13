@@ -49,7 +49,7 @@ class IPFSInteract:
         """
         try:
             # Create an IPFS tool.
-            self.__ipfs_tool = IPFSTool({"addr": domain})
+            self.__ipfs_tool = IPFSTool(domain)
             # Check IPFS node.
             self.__ipfs_tool.check_ipfs_node_running()
         except (NodeError, Exception) as e:  # pragma: no cover

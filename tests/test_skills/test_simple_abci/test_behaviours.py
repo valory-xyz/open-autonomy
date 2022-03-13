@@ -147,6 +147,9 @@ class SimpleAbciFSMBehaviourBaseCase(BaseSkillTestCase):
             period_state
         )
         self.skill.skill_context.state.period.abci_app._extend_previous_rounds_with_current_round()
+        self.skill.skill_context.behaviours.main._last_round_height = (
+            self.skill.skill_context.state.period.abci_app.current_round_height
+        )
         if next_state.matching_round is not None:
             self.skill.skill_context.state.period.abci_app._current_round = (
                 next_state.matching_round(
@@ -651,9 +654,6 @@ class TestResetAndPauseBehaviour(SimpleAbciFSMBehaviourBaseCase):
             ).state_id
             == self.behaviour_class.state_id
         )
-        self.simple_abci_behaviour.context.params.observation_interval = 0.1
-        self.simple_abci_behaviour.act_wrapper()
-        time.sleep(0.3)
         self.simple_abci_behaviour.act_wrapper()
         self.mock_a2a_transaction()
         self._test_done_flag_set()

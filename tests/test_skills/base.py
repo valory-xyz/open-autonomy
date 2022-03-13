@@ -129,6 +129,9 @@ class FSMBehaviourBaseCase(BaseSkillTestCase):
             period_state
         )
         self.skill.skill_context.state.period.abci_app._extend_previous_rounds_with_current_round()
+        self.skill.skill_context.behaviours.main._last_round_height = (
+            self.skill.skill_context.state.period.abci_app.current_round_height
+        )
         if next_state.matching_round is not None:
             self.skill.skill_context.state.period.abci_app._current_round = (
                 next_state.matching_round(
