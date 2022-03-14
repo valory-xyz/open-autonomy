@@ -156,8 +156,6 @@ class DeployOracleBehaviour(OracleDeploymentBaseState):
             _decimals=decimals,
             _description=description,
             _transmitters=[self.period_state.safe_contract_address],
-            max_fee_per_gas=10 ** 11 * 2,
-            max_priority_fee_per_gas=10 ** 11 * 2,
         )
         if (
             contract_api_response.performative
