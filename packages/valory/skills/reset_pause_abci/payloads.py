@@ -28,7 +28,7 @@ from packages.valory.skills.abstract_round_abci.base import BaseTxPayload
 class TransactionType(Enum):
     """Enumeration of transaction types."""
 
-    RESET = "reset"
+    RESETPAUSE = "reset_pause"
 
     def __str__(self) -> str:
         """Get the string value of the transaction type."""
@@ -38,7 +38,7 @@ class TransactionType(Enum):
 class ResetPausePayload(BaseTxPayload, ABC):
     """Represent a transaction payload of type 'reset'."""
 
-    transaction_type = TransactionType.RESET
+    transaction_type = TransactionType.RESETPAUSE
 
     def __init__(
         self, sender: str, period_count: int, id_: Optional[str] = None

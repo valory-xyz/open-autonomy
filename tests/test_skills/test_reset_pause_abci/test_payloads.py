@@ -32,4 +32,4 @@ def test_reset_payload() -> None:
 
     assert payload.period_count == 1
     assert payload.data == {"period_count": 1}
-    assert payload.transaction_type == TransactionType.RESET
+    assert payload.transaction_type == TransactionType.RESETPAUSE
