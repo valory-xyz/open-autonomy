@@ -1,4 +1,6 @@
 OPEN_AEA_REPO_PATH := "${OPEN_AEA_REPO_PATH}"
+DEPLOYMENT_TYPE := "${DEPLOYMENT_TYPE}"
+DEPLOYMENT_SPEC := "${DEPLOYMENT_SPEC}"
 
 .PHONY: clean
 clean: clean-build clean-pyc clean-test clean-docs
@@ -291,5 +293,47 @@ run-deploy:
 	cd deployments/build/ && \
 	docker-compose up --force-recreate -t 600
 	
+
+.PHONY: run-deployment
+run-deployment:
+	if [ "${DEPLOYMENT_TYPE}" = "docker-compose" ];\
+	then\
+		cd deployments/build/ && \
+		docker-compose up --force-recreate -t 600
+		exit 0
+	fi
+	if [ "${DEPLOYMENT_TYPE}" = "kubernetes" ];\
+	then\
+		cd deployments/build/ && \
+		kubectl apply -f build.yaml && exit 0
+	fi
+	echo "Please ensure you have set the environment variable 'DEPLOYMENT_TYPE'"
+	exit 1
+
+
+.PHONY: build-deploy
+build-deploy:
+	if [ "${DEPLOYMENT_TYPE}" = "" ];\
+	then\
+		echo "Please ensure you have set the environment variable 'DEPLOYMENT_TYPE'"
+		exit 1
+	fi
+	if [ "${DEPLOYMENT_SPEC}" = "" ];\
+	then\
+		echo "Please ensure you have set the environment variable 'DEPLOYMENT_SPEC'"
+		exit 1
+	fi
+	if [ "${DEPLOYMENT_KEYS}" = "" ];\
+	then\
+		echo "Please ensure you have set the environment variable 'DEPLOYMENT_KEYS'"
+		exit 1
+	fi
+	echo "Building deployment for ${DEPLOYMENT_TYPE} ${DEPLOYMENT_KEYS} ${DEPLOYMENT_SPEC}"
+	python deployments/click_create.py build-deployment \
+	  --deployment-type ${DEPLOYMENT_TYPE} \
+	  --keys-file-path ${DEPLOYMENT_KEYS} \
+	  --deployment-file-path ${DEPLOYMENT_SPEC} \
+	  --configure-tendermint
+
 protolint_install:
 	GO111MODULE=on GOPATH=~/go go get -u -v github.com/yoheimuta/protolint/cmd/protolint@v0.27.0
