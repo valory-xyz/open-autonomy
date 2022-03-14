@@ -73,7 +73,6 @@ class DFA:
             set, zip(*transition_func.keys())
         )
 
-
         transition_func_states.update(transition_func.values())  # type: ignore
 
         orphan_states = states - (start_states | set(transition_func.values()))
@@ -111,12 +110,17 @@ class DFA:
         self.transition_func = transition_func
 
     def is_transition_func_total(self) -> bool:
-        """Outputs True if the transition function of the DFA is total. A transition
-        function is total when it explicitly defines all the transitions for all the
-        possible pairs (state, input_symbol). By convention, when a transition
+        """
+        Outputs True if the transition function of the DFA is total.
+
+        A transition function is total when it explicitly defines all the transitions
+        for all the possible pairs (state, input_symbol). By convention, when a transition
         (state, input_symbol) is not defined for a certain input_symbol, it will be
-        automatically regarded as a self-transition to the same state."""
-        return set(product(self.states, self.alphabet_in)) == set(self.transition_func.keys())
+        automatically regarded as a self-transition to the same state.
+        """
+        return set(product(self.states, self.alphabet_in)) == set(
+            self.transition_func.keys()
+        )
 
     def get_transitions(self, input_sequence: List[str]) -> List[str]:
         """Runs the DFA given the input sequence of symbols, and outputs the list of state transitions."""
@@ -124,7 +128,9 @@ class DFA:
         transitions = [state]
         for t in input_sequence:
             if t not in self.alphabet_in:
-                logging.warning(f"Input sequence contains a symbol {t} (ignored) not belonging to the DFA alphabet {self.alphabet_in}.")
+                logging.warning(
+                    f"Input sequence contains a symbol {t} (ignored) not belonging to the DFA alphabet {self.alphabet_in}."
+                )
             else:
                 state = self.transition_func.get((state, t), state)
                 transitions.append(state)
@@ -147,14 +153,18 @@ class DFA:
         else:
             raise ValueError(f"Unrecognized output format {output_format}.")
 
-    def _get_exportable_repr(self):
+    def _get_exportable_repr(self) -> Dict[str, Any]:
         """Retrieves an exportable respresentation for YAML/JSON dump of this DFA."""
         dfa_export: Dict[str, Any] = {}
         for k, v in self.__dict__.items():
             if isinstance(v, Set):
                 dfa_export[k] = sorted(v)
             elif isinstance(v, Dict):
-                dfa_export[k] = {str(k2).replace("'", ""): v2 for k2, v2 in v.items()}
+                dfa_export[k] = dict(
+                    OrderedDict(
+                        [(str(k2).replace("'", ""), v2) for k2, v2 in v.items()]
+                    )
+                )
             else:
                 dfa_export[k] = v
         return dfa_export
