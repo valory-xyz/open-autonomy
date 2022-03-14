@@ -33,7 +33,7 @@ from packages.valory.skills.abstract_round_abci.base import (
     DegenerateRound,
     TransactionNotValidError,
 )
-from packages.valory.skills.reset_pause_abci.payloads import ResetPayload
+from packages.valory.skills.reset_pause_abci.payloads import ResetPausePayload
 
 
 class Event(Enum):
@@ -49,7 +49,7 @@ class ResetAndPauseRound(CollectSameUntilThresholdRound):
     """A round that represents that consensus is reached (the final round)"""
 
     round_id = "reset_and_pause"
-    allowed_tx_type = ResetPayload.transaction_type
+    allowed_tx_type = ResetPausePayload.transaction_type
     payload_attribute = "period_count"
 
     def process_payload(self, payload: BaseTxPayload) -> None:  # pragma: nocover

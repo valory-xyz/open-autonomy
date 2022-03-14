@@ -68,10 +68,10 @@ from packages.valory.skills.transaction_settlement_abci.rounds import (
     Event as TransactionSettlementEvent,
 )
 from packages.valory.skills.transaction_settlement_abci.rounds import (
-    FinishedTransactionSubmissionRound,
+    PeriodState as TransactionSettlementPeriodState,
 )
 from packages.valory.skills.transaction_settlement_abci.rounds import (
-    PeriodState as TransactionSettlementPeriodState,
+    PreResetAndPauseRound,
 )
 
 from tests.conftest import ROOT_DIR
@@ -412,6 +412,7 @@ class TestValidateTransactionBehaviour(TransactionSettlementFSMBehaviourBaseCase
                     initial_data=dict(
                         safe_contract_address="safe_contract_address",
                         tx_hashes_history=["final_tx_hash"],
+                        final_tx_hash="dummy_hash",
                         participants=participants,
                         most_voted_keeper_address=most_voted_keeper_address,
                         participant_to_signature={},
@@ -467,9 +468,7 @@ class TestValidateTransactionBehaviour(TransactionSettlementFSMBehaviourBaseCase
         state = cast(BaseState, self.behaviour.current_state)
         assert (
             state.state_id
-            == make_degenerate_state(
-                FinishedTransactionSubmissionRound.round_id
-            ).state_id
+            == make_degenerate_state(PreResetAndPauseRound.round_id).state_id
         )
 
     def test_validate_transaction_safe_behaviour_no_tx_sent(
@@ -583,9 +582,7 @@ class TestCheckTransactionHistoryBehaviour(TransactionSettlementFSMBehaviourBase
         state = cast(BaseState, self.behaviour.current_state)
         assert (
             state.state_id
-            == make_degenerate_state(
-                FinishedTransactionSubmissionRound.round_id
-            ).state_id
+            == make_degenerate_state(PreResetAndPauseRound.round_id).state_id
         )
 
 

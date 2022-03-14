@@ -20,7 +20,7 @@
 """Test the payloads.py module of the skill."""
 
 from packages.valory.skills.reset_pause_abci.payloads import (
-    ResetPayload,
+    ResetPausePayload,
     TransactionType,
 )
 
@@ -28,7 +28,7 @@ from packages.valory.skills.reset_pause_abci.payloads import (
 def test_reset_payload() -> None:
     """Test `ResetPayload`."""
 
-    payload = ResetPayload(sender="sender", period_count=1)
+    payload = ResetPausePayload(sender="sender", period_count=1)
 
     assert payload.period_count == 1
     assert payload.data == {"period_count": 1}

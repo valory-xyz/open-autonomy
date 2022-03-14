@@ -39,7 +39,11 @@ from packages.valory.skills.registration_abci.rounds import (
     FinishedRegistrationRound,
     RegistrationRound,
 )
-from packages.valory.skills.reset_pause_abci.rounds import ResetPauseABCIApp
+from packages.valory.skills.reset_pause_abci.rounds import (
+    FinishedResetAndPauseRound,
+    ResetAndPauseRound,
+    ResetPauseABCIApp,
+)
 from packages.valory.skills.safe_deployment_abci.rounds import (
     FinishedSafeRound,
     RandomnessSafeRound,
@@ -47,7 +51,7 @@ from packages.valory.skills.safe_deployment_abci.rounds import (
 )
 from packages.valory.skills.transaction_settlement_abci.rounds import (
     FailedRound,
-    FinishedTransactionSubmissionRound,
+    PreResetAndPauseRound,
     RandomnessTransactionSubmissionRound,
     TransactionSubmissionAbciApp,
 )
@@ -59,8 +63,9 @@ abci_app_transition_mapping: AbciAppTransitionMapping = {
     FinishedOracleRound: CollectObservationRound,
     FinishedRegistrationFFWRound: CollectObservationRound,
     FinishedPriceAggregationRound: RandomnessTransactionSubmissionRound,
-    FinishedTransactionSubmissionRound: CollectObservationRound,
     FailedRound: RegistrationRound,
+    PreResetAndPauseRound: ResetAndPauseRound,
+    FinishedResetAndPauseRound: CollectObservationRound,
 }
 
 PriceEstimationAbciApp = chain(

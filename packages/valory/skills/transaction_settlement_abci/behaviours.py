@@ -232,6 +232,10 @@ class ValidateTransactionBehaviour(TransactionSettlementBaseState):
             self,
         ).local():
             is_correct = yield from self.has_transaction_been_sent()
+            if is_correct:
+                self.context.logger.info(
+                    f"Finalized with transaction hash: {self.period_state.to_be_validated_tx_hash}"
+                )
             payload = ValidatePayload(self.context.agent_address, is_correct)
 
         with benchmark_tool.measure(

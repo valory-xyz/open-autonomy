@@ -35,7 +35,7 @@ class TransactionType(Enum):
         return self.value
 
 
-class ResetPayload(BaseTxPayload, ABC):
+class ResetPausePayload(BaseTxPayload, ABC):
     """Represent a transaction payload of type 'reset'."""
 
     transaction_type = TransactionType.RESET

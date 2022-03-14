@@ -24,7 +24,7 @@ from typing import Dict, FrozenSet
 from packages.valory.skills.abstract_round_abci.base import (
     BasePeriodState as ResetPeriodState,
 )
-from packages.valory.skills.reset_pause_abci.payloads import ResetPayload
+from packages.valory.skills.reset_pause_abci.payloads import ResetPausePayload
 from packages.valory.skills.reset_pause_abci.rounds import Event as ResetEvent
 from packages.valory.skills.reset_pause_abci.rounds import ResetAndPauseRound
 
@@ -39,10 +39,10 @@ DUMMY_RANDOMNESS = 0.1  # for coverage purposes
 
 def get_participant_to_period_count(
     participants: FrozenSet[str], period_count: int
-) -> Dict[str, ResetPayload]:
+) -> Dict[str, ResetPausePayload]:
     """participant_to_selection"""
     return {
-        participant: ResetPayload(sender=participant, period_count=period_count)
+        participant: ResetPausePayload(sender=participant, period_count=period_count)
         for participant in participants
     }
 
