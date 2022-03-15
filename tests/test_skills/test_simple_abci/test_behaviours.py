@@ -22,6 +22,7 @@ import json
 import time
 from copy import copy
 from pathlib import Path
+from tempfile import TemporaryDirectory
 from typing import Any, Dict, Type, cast
 from unittest import mock
 
@@ -88,6 +89,7 @@ class SimpleAbciFSMBehaviourBaseCase(BaseSkillTestCase):
     signing_handler: SigningHandler
     old_tx_type_to_payload_cls: Dict[str, Type[BaseTxPayload]]
     period_state: PeriodState
+    benchmark_dir: TemporaryDirectory
 
     @classmethod
     def setup(cls, **kwargs: Any) -> None:
@@ -124,6 +126,10 @@ class SimpleAbciFSMBehaviourBaseCase(BaseSkillTestCase):
         cls.simple_abci_behaviour.setup()
         cls._skill.skill_context.state.setup()
         cls._skill.skill_context.state.period.end_sync()
+
+        cls.benchmark_dir = TemporaryDirectory()
+        cls._skill.skill_context.benchmark_tool.log_dir = cls.benchmark_dir.name
+
         assert (
             cast(BaseState, cls.simple_abci_behaviour.current_state).state_id
             == cls.simple_abci_behaviour.initial_state_cls.state_id
@@ -388,6 +394,7 @@ class SimpleAbciFSMBehaviourBaseCase(BaseSkillTestCase):
     def teardown(cls) -> None:
         """Teardown the test class."""
         _MetaPayload.transaction_type_to_payload_cls = cls.old_tx_type_to_payload_cls  # type: ignore
+        cls.benchmark_dir.cleanup()
 
 
 class BaseRandomnessBehaviourTest(SimpleAbciFSMBehaviourBaseCase):
