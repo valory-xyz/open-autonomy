@@ -1,0 +1,36 @@
+alphabet_in:
+- DEPLOY_TIMEOUT
+- DONE
+- FAILED
+- NEGATIVE
+- NONE
+- NO_MAJORITY
+- ROUND_TIMEOUT
+- VALIDATE_TIMEOUT
+default_start_state: RandomnessOracleRound
+final_states:
+- FinishedOracleRound
+label: packages.valory.skills.oracle_deployment_abci.rounds.OracleDeploymentAbciApp
+start_states:
+- RandomnessOracleRound
+states:
+- DeployOracleRound
+- FinishedOracleRound
+- RandomnessOracleRound
+- SelectKeeperOracleRound
+- ValidateOracleRound
+transition_func:
+    (DeployOracleRound, DEPLOY_TIMEOUT): SelectKeeperOracleRound
+    (DeployOracleRound, DONE): ValidateOracleRound
+    (DeployOracleRound, FAILED): SelectKeeperOracleRound
+    (RandomnessOracleRound, DONE): SelectKeeperOracleRound
+    (RandomnessOracleRound, NO_MAJORITY): RandomnessOracleRound
+    (RandomnessOracleRound, ROUND_TIMEOUT): RandomnessOracleRound
+    (SelectKeeperOracleRound, DONE): DeployOracleRound
+    (SelectKeeperOracleRound, NO_MAJORITY): RandomnessOracleRound
+    (SelectKeeperOracleRound, ROUND_TIMEOUT): RandomnessOracleRound
+    (ValidateOracleRound, DONE): FinishedOracleRound
+    (ValidateOracleRound, NEGATIVE): RandomnessOracleRound
+    (ValidateOracleRound, NONE): RandomnessOracleRound
+    (ValidateOracleRound, NO_MAJORITY): RandomnessOracleRound
+    (ValidateOracleRound, VALIDATE_TIMEOUT): RandomnessOracleRound
