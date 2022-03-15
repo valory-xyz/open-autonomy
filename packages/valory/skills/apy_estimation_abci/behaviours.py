@@ -38,7 +38,6 @@ from typing import (
 
 import numpy as np
 import pandas as pd
-from optuna import Study
 from pmdarima.pipeline import Pipeline
 
 from packages.valory.skills.abstract_round_abci.behaviours import (
@@ -52,6 +51,10 @@ from packages.valory.skills.apy_estimation_abci.composition import (
     APYEstimationAbciAppChained,
 )
 from packages.valory.skills.apy_estimation_abci.ml.forecasting import TestReportType
+from packages.valory.skills.apy_estimation_abci.ml.optimization import (
+    BestParamsType,
+    HyperParamsType,
+)
 from packages.valory.skills.apy_estimation_abci.ml.preprocessing import (
     TrainTestSplitType,
 )
@@ -709,19 +712,20 @@ class OptimizeBehaviour(APYEstimationBaseState):
         super().__init__(**kwargs)
         self._async_result: Optional[AsyncResult] = None
         self._y: Optional[pd.DataFrame] = None
+        self._current_id: Optional[str] = None
+        self._best_params_with_status_iterator: Iterator[str] = iter("")
+        self._best_params_with_status: Dict[str, BestParamsType] = {}
+        self._best_params_per_pool: HyperParamsType = {}
         self._best_params_hash: Optional[str] = None
 
     def setup(self) -> None:
         """Setup behaviour."""
         # Load training data.
-        training_data_path = os.path.join(
-            self.context.data_dir,
-            self.params.pair_ids[0],
-        )
+        training_data_path = os.path.join(self.context.data_dir, "y_train")
         self._y = self.get_from_ipfs(
             self.period_state.train_hash,
             training_data_path,
-            filename="y_train.csv",
+            multiple=True,
             filetype=SupportedFiletype.CSV,
         )
 
@@ -730,7 +734,7 @@ class OptimizeBehaviour(APYEstimationBaseState):
             task_id = self.context.task_manager.enqueue_task(
                 optimize_task,
                 args=(
-                    self._y.values.ravel(),
+                    self._y,
                     self.period_state.most_voted_randomness,
                 ),
                 kwargs=self.params.optimizer_params,
@@ -746,37 +750,44 @@ class OptimizeBehaviour(APYEstimationBaseState):
                 yield from self.sleep(self.params.sleep_time)
                 return
 
-            # Get the study's result.
-            completed_task = self._async_result.get()
-            study = cast(Study, completed_task)
-            study_results = study.trials_dataframe()
+            if self._current_id is None:
+                # Get the best parameters result.
+                self._best_params_with_status = self._async_result.get()
+                self._best_params_with_status_iterator = iter(
+                    self._best_params_with_status.keys()
+                )
+
+            self._current_id = cast(
+                str, next(self._best_params_with_status_iterator, "")
+            )
+            if self._current_id != "":
+                best_params, study_succeeded = self._best_params_with_status[
+                    self._current_id
+                ]
+                self._best_params_per_pool[self._current_id] = best_params
+                if not study_succeeded:
+                    self.context.logger.warning(
+                        f"The optimization could not be done for pool `{self._current_id}`! "
+                        "Please make sure that there is a sufficient number of data "
+                        "for the optimization procedure. Parameters have been set randomly!"
+                    )
+                return
+
             self.context.logger.info(
                 "Optimization has finished. Showing the results:\n"
-                f"{study_results.to_string()}"
+                f"{self._best_params_per_pool}"
             )
 
             # Store the best params from the results.
             best_params_save_path = os.path.join(
                 self.context.data_dir,
-                self.params.pair_ids[0],
-                "best_params.json",
+                "best_params/",
             )
-
-            try:
-                best_params = study.best_params
-
-            except ValueError:
-                # If no trial finished, set random params as best.
-                best_params = study.trials[0].params
-                self.context.logger.warning(
-                    "The optimization could not be done! "
-                    "Please make sure that there is a sufficient number of data "
-                    "for the optimization procedure. Setting best parameters randomly!"
-                )
-                # Fix: exit round via fail event and move to right round
-
             self._best_params_hash = self.send_to_ipfs(
-                best_params_save_path, best_params, filetype=SupportedFiletype.JSON
+                best_params_save_path,
+                self._best_params_per_pool,
+                multiple=True,
+                filetype=SupportedFiletype.JSON,
             )
 
         # Pass the best params hash as a Payload.
