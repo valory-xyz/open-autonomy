@@ -12,17 +12,13 @@ observation_params: &observation_params
 
 period_setup_args: &period_setup_args
   args:
-    period_setup:
-      safe_contract_address: "0x4826E4ddEeE65bc27034602a6050486fBE920707"
-      oracle_contract_address: "0x3f9F36ECb03ded97328FC7747292D6D03dFE3D46"
-
     max_healthcheck: 43200
-    broadcast_to_server: true
+    broadcast_to_server: false
 
 
 valory_monitoring_backend: &monitoring_backend
   args:
-    url: 'https://oracle-server.autonolas.tech/deposit'
+    url: 'https://staging.oracle-server.autonolas.tech/deposit'
 
 
 public_id: valory/price_estimation_abci:0.1.0
