@@ -18,9 +18,8 @@
 # ------------------------------------------------------------------------------
 
 """This module contains the transaction payloads for the reset_pause_abci app."""
-from abc import ABC
 from enum import Enum
-from typing import Dict, Optional
+from typing import Any, Dict, Optional
 
 from packages.valory.skills.abstract_round_abci.base import BaseTxPayload
 
@@ -35,19 +34,20 @@ class TransactionType(Enum):
         return self.value
 
 
-class ResetPausePayload(BaseTxPayload, ABC):
+class ResetPausePayload(BaseTxPayload):
     """Represent a transaction payload of type 'reset'."""
 
     transaction_type = TransactionType.RESETPAUSE
 
-    def __init__(
-        self, sender: str, period_count: int, id_: Optional[str] = None
+    def __init__(  # pylint: disable=unused-argument
+        self, sender: str, period_count: int, id_: Optional[str] = None, **kwargs: Any
     ) -> None:
         """Initialize an 'reset' transaction payload.
 
         :param sender: the sender (Ethereum) address
         :param period_count: the period count id
         :param id_: the id of the transaction
+        :param kwargs: the keyword arguments
         """
         super().__init__(sender, id_)
         self._period_count = period_count

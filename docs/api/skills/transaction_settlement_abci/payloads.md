@@ -377,7 +377,7 @@ Get the data.
 ## ResetPayload Objects
 
 ```python
-class ResetPayload(BaseTxPayload,  ABC)
+class ResetPayload(BaseTxPayload)
 ```
 
 Represent a transaction payload of type 'reset'.
@@ -387,7 +387,7 @@ Represent a transaction payload of type 'reset'.
 #### `__`init`__`
 
 ```python
-def __init__(sender: str, period_count: int, id_: Optional[str] = None) -> None
+def __init__(sender: str, period_count: int, id_: Optional[str] = None, **kwargs: Any) -> None
 ```
 
 Initialize an 'reset' transaction payload.
@@ -397,6 +397,7 @@ Initialize an 'reset' transaction payload.
 - `sender`: the sender (Ethereum) address
 - `period_count`: the period count id
 - `id_`: the id of the transaction
+- `kwargs`: the keyword arguments
 
 <a id="packages.valory.skills.transaction_settlement_abci.payloads.ResetPayload.period_count"></a>
 
