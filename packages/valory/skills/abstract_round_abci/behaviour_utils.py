@@ -23,7 +23,7 @@ import inspect
 import json
 import pprint
 from abc import ABC, abstractmethod
-from enum import Enum, auto
+from enum import Enum
 from functools import partial, wraps
 from typing import (
     Any,
@@ -427,10 +427,10 @@ class CleanUpBehaviour(SimpleBehaviour, ABC):
 class RPCResponseStatus(Enum):
     """A custom status of an RPC response."""
 
-    SUCCESS = auto()
-    INCORRECT_NONCE = auto()
-    UNDERPRICED = auto()
-    UNCLASSIFIED_ERROR = auto()
+    SUCCESS = 1
+    INCORRECT_NONCE = 2
+    UNDERPRICED = 3
+    UNCLASSIFIED_ERROR = 4
 
 
 class BaseState(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
