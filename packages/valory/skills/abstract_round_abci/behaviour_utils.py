@@ -1183,7 +1183,7 @@ class BaseState(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
 
     def send_raw_transaction(
         self, transaction: RawTransaction
-    ) -> Generator[None, None, Optional[str]]:
+    ) -> Generator[None, None, Tuple[Optional[str], RPCResponseStatus]]:
         """
         Send raw transactions to the ledger for mining.
 
@@ -1217,19 +1217,18 @@ class BaseState(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
             != SigningMessage.Performative.SIGNED_TRANSACTION
         ):  # pragma: nocover
             self.context.logger.error("Error when requesting transaction signature.")
-            return None
+            return None, RPCResponseStatus.UNCLASSIFIED_ERROR
         self._send_transaction_request(signature_response)
         transaction_digest_msg = yield from self.wait_for_message()
         if (
             transaction_digest_msg.performative
             != LedgerApiMessage.Performative.TRANSACTION_DIGEST
         ):  # pragma: nocover
-            self.context.logger.error(
-                f"Error when requesting transaction digest: {transaction_digest_msg.message}"
-            )
-            return None
+            error = f"Error when requesting transaction digest: {transaction_digest_msg.message}"
+            self.context.logger.error(error)
+            return None, self.__parse_rpc_error(error)
         tx_hash = transaction_digest_msg.transaction_digest.body
-        return tx_hash
+        return tx_hash, RPCResponseStatus.SUCCESS
 
     def get_transaction_receipt(
         self,
