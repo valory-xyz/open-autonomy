@@ -29,7 +29,7 @@ PERIOD_REGEX = (
     r".*\[(?P<agent_id>.*)\] Entered in the '(?P<round_id>.*)'.*(?P<period>\d+)"
 )
 EVENT_REGEX = r".*\[(?P<agent_id>.*)\]\s'(?P<round_id>.*)' round is done with event: (?P<event_id>.*)"
-ERROR_REGEX = r".*E\s+AssertionError:\s(?P<message>.*)\."
+ERROR_REGEX = r".*E\s+AssertionError:\s(?P<message>.*)"
 
 
 class Color(Enum):
@@ -74,7 +74,7 @@ with open(LOG_FILE_PATH, "r", encoding="utf-8") as log:
             periods[agent_id].append(m.groupdict())
             continue
 
-        m = re.match(ERROR_REGEX, line)
+        m = re.match(ERROR_REGEX, line, re.DOTALL)
         if m:
             errors.append(m.groupdict())
             continue
