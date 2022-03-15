@@ -71,6 +71,9 @@ from packages.valory.skills.apy_estimation_abci.behaviours import (
     TransformBehaviour,
     UpdateForecasterBehaviour,
 )
+from packages.valory.skills.apy_estimation_abci.ml.optimization import (
+    PoolToHyperParamsWithStatusType,
+)
 from packages.valory.skills.apy_estimation_abci.ml.preprocessing import (
     prepare_pair_data,
 )
@@ -1112,17 +1115,18 @@ class TestOptimizeBehaviour(APYEstimationFSMBehaviourBaseCase):
     ) -> None:
         """Setup `OptimizeBehaviour`."""
         # Set data directory to a temporary path for tests.
-        self.behaviour.context._agent_context._data_dir = tmp_path.parts[0]  # type: ignore
-        cast(OptimizeBehaviour, self.behaviour.current_state).params.pair_ids[
-            0
-        ] = os.path.join(*tmp_path.parts[1:])
+        self.behaviour.context._agent_context._data_dir = tmp_path  # type: ignore
 
         # Create a dictionary with all the dummy data to send to IPFS.
         data_to_send = {}
         for split in ("train", "test"):
             data_to_send[split] = {
-                "filepath": os.path.join(tmp_path, f"y_{split}.csv"),
-                "obj": pd.DataFrame([i for i in range(5)]),
+                "filepath": os.path.join(tmp_path, f"y_{split}/"),
+                "obj": {
+                    f"{split}_{i}": pd.DataFrame([i for i in range(5)])
+                    for i in range(3)
+                },
+                "multiple": True,
                 "filetype": SupportedFiletype.CSV,
             }
 
@@ -1134,7 +1138,7 @@ class TestOptimizeBehaviour(APYEstimationFSMBehaviourBaseCase):
                     BaseState, self.behaviour.current_state
                 ).send_to_ipfs(**item_args)
         else:
-            hashes = {item_name: "test" for item_name, _ in data_to_send.items()}
+            hashes = {item_name: "non_existing" for item_name in data_to_send.keys()}
 
         # fast-forward to the `OptimizeBehaviour` state.
         self.fast_forward_to_state(
@@ -1152,7 +1156,7 @@ class TestOptimizeBehaviour(APYEstimationFSMBehaviourBaseCase):
         )
 
         assert (
-            cast(APYEstimationBaseState, self.behaviour.current_state).state_id
+            cast(OptimizeBehaviour, self.behaviour.current_state).state_id
             == self.behaviour_class.state_id
         )
 
@@ -1171,7 +1175,9 @@ class TestOptimizeBehaviour(APYEstimationFSMBehaviourBaseCase):
             "get_task_result",
             lambda *_: DummyAsyncResult(optimize_task_result_empty),
         )
-        cast(APYEstimationBaseState, self.behaviour.current_state).setup()
+        current_state = cast(OptimizeBehaviour, self.behaviour.current_state)
+        current_state.setup()
+        assert current_state._y is not None
 
     def test_task_not_ready(
         self,
@@ -1201,42 +1207,13 @@ class TestOptimizeBehaviour(APYEstimationFSMBehaviourBaseCase):
             == self.behaviour_class.state_id
         )
 
-    def test_optimize_behaviour_value_error(
-        self,
-        monkeypatch: MonkeyPatch,
-        tmp_path: PosixPath,
-        caplog: LogCaptureFixture,
-        optimize_task_result_empty: optuna.Study,
-    ) -> None:
-        """Run test for `optimize_behaviour` when `ValueError` is raised."""
-        self._fast_forward(tmp_path)
-
-        monkeypatch.setattr(TaskManager, "enqueue_task", lambda *_, **__: 3)
-        monkeypatch.setattr(
-            TaskManager,
-            "get_task_result",
-            lambda *_: DummyAsyncResult(optimize_task_result_empty),
-        )
-
-        # test ValueError handling.
-        with caplog.at_level(
-            logging.WARNING,
-            logger="aea.test_agent_name.packages.valory.skills.apy_estimation_abci",
-        ):
-            self.behaviour.act_wrapper()
-
-        assert (
-            "The optimization could not be done! "
-            "Please make sure that there is a sufficient number of data for the optimization procedure. "
-            "Setting best parameters randomly!"
-        ) in caplog.text
-
     @pytest.mark.parametrize("ipfs_succeed", (True, False))
     def test_optimize_behaviour(
         self,
         monkeypatch: MonkeyPatch,
         tmp_path: PosixPath,
-        optimize_task_result: optuna.Study,
+        caplog: LogCaptureFixture,
+        optimize_task_result: PoolToHyperParamsWithStatusType,
         ipfs_succeed: bool,
     ) -> None:
         """Run test for `optimize_behaviour`."""
@@ -1249,7 +1226,23 @@ class TestOptimizeBehaviour(APYEstimationFSMBehaviourBaseCase):
             lambda *_: DummyAsyncResult(optimize_task_result),
         )
 
-        self.behaviour.act_wrapper()
+        with caplog.at_level(
+            logging.WARNING,
+            logger="aea.test_agent_name.packages.valory.skills.apy_estimation_abci",
+        ):
+            # note: this will capture the warning only if the first item in the `optimize_task_result` dict
+            # is the one representing the non-finished trial, i.e., `False`.
+            self.behaviour.act_wrapper()
+
+        if ipfs_succeed:
+            for _ in range(len(optimize_task_result)):
+                self.behaviour.act_wrapper()
+            assert (
+                "The optimization could not be done for pool `test1`! "
+                "Please make sure that there is a sufficient number of data for the optimization procedure. "
+                "Parameters have been set randomly!"
+            ) in caplog.text
+
         self.mock_a2a_transaction()
         self._test_done_flag_set()
         self.end_round()
