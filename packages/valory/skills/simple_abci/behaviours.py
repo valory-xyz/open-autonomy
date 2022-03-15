@@ -220,7 +220,7 @@ class BaseResetBehaviour(SimpleABCIBaseState):
         """
         if self.pause:
             self.context.logger.info("Period end.")
-            benchmark_tool.save()
+            self.context.benchmark_tool.save()
             yield from self.sleep(self.params.observation_interval)
         else:
             self.context.logger.info(

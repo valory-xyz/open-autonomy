@@ -1093,7 +1093,7 @@ class BaseResetBehaviour(APYEstimationBaseState):
                 f"Estimation will happen again in {self.params.observation_interval} seconds."
             )
             yield from self.sleep(self.params.observation_interval)
-            benchmark_tool.save()
+            self.context.benchmark_tool.save()
         elif (
             self.state_id == "cycle_reset"
             and not self.period_state.is_most_voted_estimate_set

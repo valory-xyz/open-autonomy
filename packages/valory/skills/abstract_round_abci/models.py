@@ -20,14 +20,12 @@
 """This module contains the shared state for the price estimation ABCI application."""
 import inspect
 import json
-import logging
-import os
 from pathlib import Path
 from time import time
 from typing import Any, Callable, Dict, List, Optional, Tuple, Type, cast
 
 from aea.exceptions import enforce
-from aea.skills.base import Model, SkillContext
+from aea.skills.base import Model
 
 from packages.valory.protocols.http.message import HttpMessage
 from packages.valory.skills.abstract_round_abci.base import (
@@ -322,10 +320,12 @@ class BenchmarkTool(Model):
     """
 
     benchmark_data: Dict[str, BenchmarkBehaviour]
+    log_dir: str
 
     def __init__(self, *args: Any, **kwargs: Any) -> None:
         """Benchmark tool for rounds behaviours."""
         self.benchmark_data = {}
+        self.log_dir = kwargs.pop("log_dir", "/logs")
         super().__init__(*args, **kwargs)
 
     def measure(self, behaviour: str) -> BenchmarkBehaviour:
@@ -351,7 +351,7 @@ class BenchmarkTool(Model):
     def save(self, period: int = 0, reset: bool = True) -> None:
         """Save logs to a file."""
 
-        agent_dir = Path("/logs", self.context.agent_address)
+        agent_dir = Path(self.log_dir, self.context.agent_address)
         agent_dir.mkdir(exist_ok=True)
 
         filepath = agent_dir / f"{period}.json"
