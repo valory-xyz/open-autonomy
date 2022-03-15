@@ -8,10 +8,10 @@ aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
   README.md: QmVwFKStDzJFm4dbFKGSnLQGGjpH5zjhcPRwYirPCDYAJU
   __init__.py: Qme3M7NKyV7CstshfUBthu38q2UTFDctBc3Ar1aK3LRBDr
-  behaviours.py: QmXBzATrKoCBFAPDAuz3Frmg1eHjJMrVg12APsTVmf3RzR
+  behaviours.py: QmX9gysnyiiMQpFzpU5ttENZ1GnbsnY6J9AKvJccznRwbr
   dialogues.py: QmdBmUMWoPbS2faqn8LicQVJfN6a2WjtdZDWFbiYoy7hfY
   handlers.py: QmNtjxsNXHBUCay6VZfr69M3NcZy1Lg269pXSZQr6fKU7j
-  models.py: QmXhmZpNZAW6HG6EP1qwoaj23ay7YAhoNVPqfHjr8rPZAh
+  models.py: QmaS5Qvg6DtqkTixSyQpHFJQaLfx1hgmodVKD2zbtjzW6i
   payloads.py: QmVUVKakCZrUQxqU3fmkzLjk6fjbKtr7zxe9pRMBvjEPW5
   rounds.py: QmeqKuaHZAzGqSb1h81TWPoPLJYFDA1NNGotd7fkiFbK1W
 fingerprint_ignore_patterns: []
@@ -52,6 +52,9 @@ models:
   abci_dialogues:
     args: {}
     class_name: AbciDialogues
+  benchmark_tool:
+    args: {}
+    class_name: BenchmarkTool
   contract_api_dialogues:
     args: {}
     class_name: ContractApiDialogues
