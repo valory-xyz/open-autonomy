@@ -320,13 +320,16 @@ class BenchmarkTool(Model):
     """
 
     benchmark_data: Dict[str, BenchmarkBehaviour]
-    log_dir: str
+    log_dir: Path
 
     def __init__(self, *args: Any, **kwargs: Any) -> None:
         """Benchmark tool for rounds behaviours."""
-        self.benchmark_data = {}
-        self.log_dir = kwargs.pop("log_dir", "/logs")
         super().__init__(*args, **kwargs)
+        self.benchmark_data = {}
+        self.log_dir = Path(kwargs.pop("log_dir", "/logs"))
+
+        if not self.log_dir.is_dir():
+            raise FileExistsError("Please set `log_dir` param.")
 
     def measure(self, behaviour: str) -> BenchmarkBehaviour:
         """Measure time to complete round."""
