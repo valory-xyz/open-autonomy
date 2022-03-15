@@ -617,7 +617,6 @@ class TestValidateTransactionBehaviour(PriceEstimationFSMBehaviourBaseCase):
         self._fast_forward()
 
         with mock.patch.object(self.behaviour.context.logger, "error") as mock_logger:
-
             self.behaviour.act_wrapper()
             self.mock_ledger_api_request(
                 request_kwargs=dict(
@@ -774,7 +773,9 @@ class TestSynchronizeLateMessagesBehaviour(PriceEstimationFSMBehaviourBaseCase):
                     "max_priority_fee_per_gas": 0,
                 }
 
-            cast(TransactionSettlementBaseState, self.behaviour.current_state)._get_tx_data = _dummy_get_tx_data  # type: ignore
+            cast(
+                TransactionSettlementBaseState, self.behaviour.current_state
+            )._get_tx_data = _dummy_get_tx_data  # type: ignore
             self.behaviour.act_wrapper()
             self.behaviour.act_wrapper()
 
