@@ -47,7 +47,7 @@ from packages.valory.skills.abstract_round_abci.behaviours import (
 )
 from packages.valory.skills.abstract_round_abci.io.load import SupportedFiletype
 from packages.valory.skills.abstract_round_abci.models import ApiSpecs
-from packages.valory.skills.abstract_round_abci.utils import BenchmarkTool, VerifyDrand
+from packages.valory.skills.abstract_round_abci.utils import VerifyDrand
 from packages.valory.skills.apy_estimation_abci.composition import (
     APYEstimationAbciAppChained,
 )
@@ -109,9 +109,6 @@ from packages.valory.skills.registration_abci.behaviours import (
     AgentRegistrationRoundBehaviour,
     RegistrationStartupBehaviour,
 )
-
-
-benchmark_tool = BenchmarkTool()
 
 
 class APYEstimationBaseState(BaseState, ABC):
@@ -324,9 +321,7 @@ class FetchBehaviour(APYEstimationBaseState):
         """
         self._set_current_timestamp()
 
-        with benchmark_tool.measure(
-            self,
-        ).local():
+        with self.context.benchmark_tool.measure(self.state_id).local():
             if self._current_timestamp is not None:
                 yield from self._fetch_batch()
                 return
@@ -359,9 +354,7 @@ class FetchBehaviour(APYEstimationBaseState):
             )
 
             # Finish behaviour.
-            with benchmark_tool.measure(
-                self,
-            ).consensus():
+            with self.context.benchmark_tool.measure(self.state_id).consensus():
                 yield from self.send_a2a_transaction(payload)
                 yield from self.wait_until_round_end()
 
@@ -467,7 +460,7 @@ class TransformBehaviour(APYEstimationBaseState):
         )
 
         # Finish behaviour.
-        with benchmark_tool.measure(self).consensus():
+        with self.context.benchmark_tool.measure(self.state_id).consensus():
             yield from self.send_a2a_transaction(payload)
             yield from self.wait_until_round_end()
 
@@ -522,7 +515,7 @@ class PreprocessBehaviour(APYEstimationBaseState):
         )
 
         # Finish behaviour.
-        with benchmark_tool.measure(self).consensus():
+        with self.context.benchmark_tool.measure(self.state_id).consensus():
             yield from self.send_a2a_transaction(payload)
             yield from self.wait_until_round_end()
 
@@ -596,7 +589,7 @@ class PrepareBatchBehaviour(APYEstimationBaseState):
         )
 
         # Finish behaviour.
-        with benchmark_tool.measure(self).consensus():
+        with self.context.benchmark_tool.measure(self.state_id).consensus():
             yield from self.send_a2a_transaction(payload)
             yield from self.wait_until_round_end()
 
@@ -613,16 +606,12 @@ class RandomnessBehaviour(APYEstimationBaseState):
         """Get randomness value from `drnand`."""
         if self.context.randomness_api.is_retries_exceeded():
             # now we need to wait and see if the other agents progress the round
-            with benchmark_tool.measure(
-                self,
-            ).consensus():
+            with self.context.benchmark_tool.measure(self.state_id).consensus():
                 yield from self.wait_until_round_end()
             self.set_done()
             return
 
-        with benchmark_tool.measure(
-            self,
-        ).local():
+        with self.context.benchmark_tool.measure(self.state_id).local():
             api_specs = self.context.randomness_api.get_spec()
             response = yield from self.get_http_response(
                 method=api_specs["method"],
@@ -655,9 +644,7 @@ class RandomnessBehaviour(APYEstimationBaseState):
             observation["round"],
             observation["randomness"],
         )
-        with benchmark_tool.measure(
-            self,
-        ).consensus():
+        with self.context.benchmark_tool.measure(self.state_id).consensus():
             yield from self.send_a2a_transaction(payload)
             yield from self.wait_until_round_end()
 
@@ -759,7 +746,7 @@ class OptimizeBehaviour(APYEstimationBaseState):
         )
 
         # Finish behaviour.
-        with benchmark_tool.measure(self).consensus():
+        with self.context.benchmark_tool.measure(self.state_id).consensus():
             yield from self.send_a2a_transaction(payload)
             yield from self.wait_until_round_end()
 
@@ -863,7 +850,7 @@ class TrainBehaviour(APYEstimationBaseState):
         payload = TrainingPayload(self.context.agent_address, self._model_hash)
 
         # Finish behaviour.
-        with benchmark_tool.measure(self).consensus():
+        with self.context.benchmark_tool.measure(self.state_id).consensus():
             yield from self.send_a2a_transaction(payload)
             yield from self.wait_until_round_end()
 
@@ -959,7 +946,7 @@ class TestBehaviour(APYEstimationBaseState):
         payload = TestingPayload(self.context.agent_address, self._report_hash)
 
         # Finish behaviour.
-        with benchmark_tool.measure(self).consensus():
+        with self.context.benchmark_tool.measure(self.state_id).consensus():
             yield from self.send_a2a_transaction(payload)
             yield from self.wait_until_round_end()
 
@@ -1026,7 +1013,7 @@ class UpdateForecasterBehaviour(APYEstimationBaseState):
         payload = UpdatePayload(self.context.agent_address, self._model_hash)
 
         # Finish behaviour.
-        with benchmark_tool.measure(self).consensus():
+        with self.context.benchmark_tool.measure(self.state_id).consensus():
             yield from self.send_a2a_transaction(payload)
             yield from self.wait_until_round_end()
 
@@ -1073,7 +1060,7 @@ class EstimateBehaviour(APYEstimationBaseState):
 
         payload = EstimatePayload(self.context.agent_address, estimation)
 
-        with benchmark_tool.measure(self).consensus():
+        with self.context.benchmark_tool.measure(self.state_id).consensus():
             yield from self.send_a2a_transaction(payload)
             yield from self.wait_until_round_end()
 
@@ -1176,8 +1163,3 @@ class APYEstimationConsensusBehaviour(AbstractRoundBehaviour):
         *AgentRegistrationRoundBehaviour.behaviour_states,
         *EstimatorRoundBehaviour.behaviour_states,
     }
-
-    def setup(self) -> None:
-        """Set up the behaviour."""
-        super().setup()
-        benchmark_tool.logger = self.context.logger

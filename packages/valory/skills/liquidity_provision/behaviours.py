@@ -41,7 +41,6 @@ from packages.valory.skills.abstract_round_abci.behaviours import (
     AbstractRoundBehaviour,
     BaseState,
 )
-from packages.valory.skills.abstract_round_abci.utils import BenchmarkTool
 from packages.valory.skills.liquidity_provision.composition import (
     LiquidityProvisionAbciApp,
 )
@@ -83,8 +82,6 @@ from packages.valory.skills.transaction_settlement_abci.payload_tools import (
 SAFE_TX_GAS_ENTER = 553000
 SAFE_TX_GAS_EXIT = 248000
 SAFE_TX_GAS_SWAP_BACK = 268000
-
-benchmark_tool = BenchmarkTool()
 
 
 def parse_tx_token_balance(
@@ -326,9 +323,7 @@ class StrategyEvaluationBehaviour(LiquidityProvisionBaseBehaviour):
     def async_act(self) -> Generator:
         """Do the action."""
 
-        with benchmark_tool.measure(
-            self,
-        ).local():
+        with self.context.benchmark_tool.measure(self.state_id).local():
 
             # Get the previous strategy or use the dummy one
             # For now, the app will loop between enter-exit-swap_back,
@@ -375,9 +370,7 @@ class StrategyEvaluationBehaviour(LiquidityProvisionBaseBehaviour):
                 self.context.agent_address, json.dumps(strategy, sort_keys=True)
             )
 
-        with benchmark_tool.measure(
-            self,
-        ).consensus():
+        with self.context.benchmark_tool.measure(self.state_id).consensus():
             yield from self.send_a2a_transaction(payload)
             yield from self.wait_until_round_end()
 
@@ -449,16 +442,12 @@ class SleepBehaviour(LiquidityProvisionBaseBehaviour):
     def async_act(self) -> Generator:
         """Do the action."""
 
-        with benchmark_tool.measure(
-            self,
-        ).local():
+        with self.context.benchmark_tool.measure(self.state_id).local():
 
             yield from self.sleep(self.params.rebalancing_params["sleep_seconds"])
             payload = SleepPayload(self.context.agent_address)
 
-        with benchmark_tool.measure(
-            self,
-        ).consensus():
+        with self.context.benchmark_tool.measure(self.state_id).consensus():
             yield from self.send_a2a_transaction(payload)
             yield from self.wait_until_round_end()
 
@@ -493,9 +482,7 @@ class EnterPoolTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
         - Go to the next behaviour state (set done event).
         """
 
-        with benchmark_tool.measure(
-            self,
-        ).local():
+        with self.context.benchmark_tool.measure(self.state_id).local():
 
             strategy = json.loads(self.period_state.most_voted_strategy)
 
@@ -656,9 +643,7 @@ class EnterPoolTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
                 sender=self.context.agent_address, tx_hash=payload_string
             )
 
-        with benchmark_tool.measure(
-            self,
-        ).consensus():
+        with self.context.benchmark_tool.measure(self.state_id).consensus():
             yield from self.send_a2a_transaction(payload)
             yield from self.wait_until_round_end()
 
@@ -689,9 +674,7 @@ class ExitPoolTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
         - Go to the next behaviour state (set done event).
         """
 
-        with benchmark_tool.measure(
-            self,
-        ).local():
+        with self.context.benchmark_tool.measure(self.state_id).local():
 
             strategy = json.loads(self.period_state.most_voted_strategy)
 
@@ -829,9 +812,7 @@ class ExitPoolTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
                 sender=self.context.agent_address, tx_hash=payload_string
             )
 
-        with benchmark_tool.measure(
-            self,
-        ).consensus():
+        with self.context.benchmark_tool.measure(self.state_id).consensus():
             yield from self.send_a2a_transaction(payload)
             yield from self.wait_until_round_end()
 
@@ -863,9 +844,7 @@ class SwapBackTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
         - Go to the next behaviour state (set done event).
         """
 
-        with benchmark_tool.measure(
-            self,
-        ).local():
+        with self.context.benchmark_tool.measure(self.state_id).local():
 
             strategy = json.loads(self.period_state.most_voted_strategy)
 
@@ -981,9 +960,7 @@ class SwapBackTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
                 sender=self.context.agent_address, tx_hash=payload_string
             )
 
-        with benchmark_tool.measure(
-            self,
-        ).consensus():
+        with self.context.benchmark_tool.measure(self.state_id).consensus():
             yield from self.send_a2a_transaction(payload)
             yield from self.wait_until_round_end()
 
@@ -1015,8 +992,3 @@ class LiquidityProvisionConsensusBehaviour(AbstractRoundBehaviour):
         *TransactionSettlementRoundBehaviour.behaviour_states,
         *StrategyRoundBehaviour.behaviour_states,
     }
-
-    def setup(self) -> None:
-        """Set up the behaviour."""
-        super().setup()
-        benchmark_tool.logger = self.context.logger
