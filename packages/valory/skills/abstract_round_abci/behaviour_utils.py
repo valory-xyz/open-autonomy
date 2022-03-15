@@ -1362,6 +1362,15 @@ class BaseState(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
         response = yield from self.wait_for_message()
         return response
 
+    @staticmethod
+    def __parse_rpc_error(error: str) -> RPCResponseStatus:
+        """Parse an RPC error and return an `RPCResponseStatus`"""
+        if "replacement transaction underpriced" in error:
+            return RPCResponseStatus.UNDERPRICED
+        if "nonce too low" in error:
+            return RPCResponseStatus.INCORRECT_NONCE
+        return RPCResponseStatus.UNCLASSIFIED_ERROR
+
 
 class DegenerateState(BaseState, ABC):
     """An abstract matching behaviour for final and degenerate rounds."""
