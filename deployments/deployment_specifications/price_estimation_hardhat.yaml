@@ -10,11 +10,6 @@ observation_params: &observation_params
     observation_interval: 30
     broadcast_to_server: false
 
-period_setup_args: &period_setup_args
-  args:
-    max_healthcheck: 43200
-    broadcast_to_server: false
-
 
 valory_monitoring_backend: &monitoring_backend
   args:
