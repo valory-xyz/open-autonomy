@@ -23,7 +23,6 @@ from typing import Any, Dict
 
 import pandas as pd
 from aea.skills.tasks import Task
-from optuna import Study
 from pmdarima.pipeline import Pipeline
 
 from packages.valory.skills.apy_estimation_abci.ml.forecasting import (
@@ -31,7 +30,10 @@ from packages.valory.skills.apy_estimation_abci.ml.forecasting import (
     test_forecaster,
     train_forecaster,
 )
-from packages.valory.skills.apy_estimation_abci.ml.optimization import optimize
+from packages.valory.skills.apy_estimation_abci.ml.optimization import (
+    BestParamsType,
+    optimize,
+)
 from packages.valory.skills.apy_estimation_abci.ml.preprocessing import (
     TrainTestSplitType,
     prepare_pair_data,
@@ -69,7 +71,7 @@ class PrepareBatchTask(Task):
 class OptimizeTask(Task):
     """Run an optimization study."""
 
-    def execute(self, *args: Any, **kwargs: Any) -> Study:
+    def execute(self, *args: Any, **kwargs: Any) -> Dict[str, BestParamsType]:
         """Execute the task."""
         return optimize(*args, **kwargs)
 
