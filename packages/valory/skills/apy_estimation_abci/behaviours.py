@@ -52,7 +52,6 @@ from packages.valory.skills.apy_estimation_abci.composition import (
 )
 from packages.valory.skills.apy_estimation_abci.ml.forecasting import TestReportType
 from packages.valory.skills.apy_estimation_abci.ml.optimization import (
-    HyperParamsType,
     PoolToHyperParamsType,
     PoolToHyperParamsWithStatusType,
 )
