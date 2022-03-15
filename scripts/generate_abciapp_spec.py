@@ -117,6 +117,8 @@ class DFA:
         for all the possible pairs (state, input_symbol). By convention, when a transition
         (state, input_symbol) is not defined for a certain input_symbol, it will be
         automatically regarded as a self-transition to the same state.
+
+        :return: None
         """
         return set(product(self.states, self.alphabet_in)) == set(
             self.transition_func.keys()
