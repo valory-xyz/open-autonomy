@@ -54,7 +54,7 @@ models:
     class_name: AbciDialogues
   benchmark_tool:
     args:
-      log_dir: "/logs"
+      log_dir: /logs
     class_name: BenchmarkTool
   contract_api_dialogues:
     args: {}
