@@ -19,9 +19,11 @@
 
 """Test optimization operations."""
 from typing import Any, Callable
+from unittest.mock import MagicMock
 
 import numpy as np
 import optuna
+import pandas as pd
 import pmdarima.model_selection
 import pytest
 from _pytest.monkeypatch import MonkeyPatch
@@ -29,7 +31,9 @@ from sklearn.metrics import mean_pinball_loss
 
 from packages.valory.skills.apy_estimation_abci.ml.optimization import (
     Objective,
+    get_best_params,
     optimize,
+    optimize_single_pool,
     pinball_loss_scorer,
 )
 
@@ -84,6 +88,33 @@ class TestOptimization:
         monkeypatch.setattr(optuna.Study, "optimize", no_action)
         res = optimize_single_pool(observations, 0, alpha=alpha)
         assert isinstance(res, optuna.Study)
+
+    @staticmethod
+    @pytest.mark.parametrize("safely", (True, False))
+    def test_get_best_params(study: MagicMock, safely: bool) -> None:
+        """Test `get_best_params`."""
+        if safely:
+            res = get_best_params(study, safely)
+            assert res == ({"x": 2.0}, False)
+        else:
+            with pytest.raises(ValueError, match="Study has no trials finished!"):
+                get_best_params(study, safely)
+
+    @staticmethod
+    def test_optimize(
+        monkeypatch: MonkeyPatch,
+        observations: np.ndarray,
+        no_action: Callable[[Any], None],
+    ) -> None:
+        """Test `optimize`."""
+        path_to_module = "packages.valory.skills.apy_estimation_abci.ml.optimization"
+        monkeypatch.setattr(
+            f"{path_to_module}.optimize_single_pool", lambda *_, **__: MagicMock()
+        )
+        monkeypatch.setattr(
+            f"{path_to_module}.get_best_params", lambda _: {"test_param": 0.23}
+        )
+        assert optimize({"test1": pd.DataFrame()}) == {"test1": {"test_param": 0.23}}
 
 
 class TestObjective:
