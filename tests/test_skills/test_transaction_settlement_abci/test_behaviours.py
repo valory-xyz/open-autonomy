@@ -773,7 +773,7 @@ class TestSynchronizeLateMessagesBehaviour(PriceEstimationFSMBehaviourBaseCase):
                     "max_priority_fee_per_gas": 0,
                 }
 
-            cast(
+            cast(  # type: ignore
                 TransactionSettlementBaseState, self.behaviour.current_state
             )._get_tx_data = _dummy_get_tx_data  # type: ignore
             self.behaviour.act_wrapper()
