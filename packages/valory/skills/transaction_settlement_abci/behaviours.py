@@ -30,6 +30,7 @@ from web3.types import Nonce, TxData
 
 from packages.valory.contracts.gnosis_safe.contract import GnosisSafeContract
 from packages.valory.protocols.contract_api.message import ContractApiMessage
+from packages.valory.skills.abstract_round_abci.behaviour_utils import RPCResponseStatus
 from packages.valory.skills.abstract_round_abci.behaviours import (
     AbstractRoundBehaviour,
     BaseState,
@@ -124,8 +125,24 @@ class TransactionSettlementBaseState(BaseState, ABC):
             )
             return tx_data
 
-        tx_digest = yield from self.send_raw_transaction(message.raw_transaction)
-        tx_data["tx_digest"] = tx_digest if tx_digest is not None else ""
+        tx_digest, rpc_status = yield from self.send_raw_transaction(
+            message.raw_transaction
+        )
+
+        if rpc_status == RPCResponseStatus.INCORRECT_NONCE:
+            self.context.logger.warning(
+                f"send_raw_transaction unsuccessful! Received: {rpc_status}"
+            )
+            tx_data["status"] = VerificationStatus.ERROR
+            return tx_data
+
+        if rpc_status != RPCResponseStatus.SUCCESS:
+            self.context.logger.warning(
+                f"send_raw_transaction unsuccessful! Received: {rpc_status}"
+            )
+            return tx_data
+
+        tx_data["tx_digest"] = cast(str, tx_digest)
         tx_data["nonce"] = int(cast(str, message.raw_transaction.body["nonce"]))
         tx_data["max_priority_fee_per_gas"] = int(
             cast(
