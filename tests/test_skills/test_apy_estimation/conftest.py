@@ -23,6 +23,7 @@
 import warnings
 from typing import Any, Callable, Dict, List, Tuple, Union
 from unittest import mock
+from unittest.mock import MagicMock, PropertyMock
 
 import numpy as np
 import optuna
@@ -35,6 +36,7 @@ from optuna.trial import TrialState
 from pmdarima.pipeline import Pipeline
 
 from packages.valory.skills.apy_estimation_abci.ml.forecasting import train_forecaster
+from packages.valory.skills.apy_estimation_abci.ml.optimization import BestParamsType
 from packages.valory.skills.apy_estimation_abci.models import SharedState
 from packages.valory.skills.apy_estimation_abci.tools.etl import ResponseItemType
 
@@ -237,24 +239,22 @@ def prepare_batch_task_result() -> Dict[str, pd.DataFrame]:
 
 
 @pytest.fixture
-def optimize_task_result() -> optuna.Study:
+def study() -> MagicMock:
+    """Create a dummy optuna Study which has no trials finished."""
+    study = MagicMock(trials=(MagicMock(params={"x": 2.0}),))
+    type(study).best_params = PropertyMock(
+        side_effect=ValueError("Study has no trials finished!")
+    )
+    return study
+
+
+@pytest.fixture
+def optimize_task_result() -> Dict[str, BestParamsType]:
     """Create a result of the `OptimizeTask`.
 
     :return: a dummy `Task` Result.
     """
-    study = optuna.create_study()
-
-    warnings.filterwarnings("ignore", category=ExperimentalWarning)
-
-    trial = optuna.trial.create_trial(
-        params={"x": 2.0},
-        distributions={"x": UniformDistribution(0, 10)},
-        value=4.0,
-    )
-
-    study.add_trial(trial)
-
-    return study
+    return {"test1": ({"x": 2.0}, False), "test2": ({"x": 2.4}, True)}
 
 
 @pytest.fixture
