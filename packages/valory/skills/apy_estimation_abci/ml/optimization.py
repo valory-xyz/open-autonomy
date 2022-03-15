@@ -19,10 +19,11 @@
 
 """Optimization operations"""
 
-from typing import Any, Callable, Dict, Optional, Union
+from typing import Any, Callable, Dict, Optional, Tuple, Union
 
 import numpy as np
 import optuna
+import pandas as pd
 import pmdarima as pm
 from sklearn.metrics import mean_pinball_loss
 
@@ -32,6 +33,7 @@ from packages.valory.skills.apy_estimation_abci.ml.forecasting import init_forec
 HyperParamsType = Dict[str, Any]
 ScoringFuncType = Callable[[np.ndarray, np.ndarray], float]
 ScoringType = Union[ScoringFuncType, str]
+BestParamsType = Tuple[Dict[str, Any], bool]
 
 
 def pinball_loss_scorer(alpha: float = 0.25) -> ScoringFuncType:
@@ -158,3 +160,34 @@ def optimize_single_pool(  # pylint: disable=too-many-arguments
     )
 
     return study
+
+
+def get_best_params(study: optuna.study.Study, safely: bool = True) -> BestParamsType:
+    """Get the best parameters from a study.
+
+    :param study: the study from which we want to get the best parameters.
+    :param safely: whether we want to get random parameters if no trial has finished from the given study.
+        Otherwise, a ValueError is raised.
+    :return: a tuple with 1. the best parameters and 2. if the study has at least one finished trial.
+    """
+    try:
+        return study.best_params, True
+
+    except ValueError as e:
+        if not safely:
+            raise e
+        # If no trial finished, set random params as best.
+        return study.trials[0].params, False
+
+
+def optimize(
+    pools_data: Dict[str, pd.DataFrame],
+    *args: Any,
+    **kwargs: Any,
+) -> Dict[str, BestParamsType]:
+    """Run the optimizer for all the pools."""
+    best_params = {}
+    for pool_id, pool_y in pools_data.items():
+        study = optimize_single_pool(pool_y.values.ravel(), *args, **kwargs)
+        best_params[pool_id] = get_best_params(study)
+    return best_params
