@@ -243,16 +243,15 @@ class ResetPayload(BaseTxPayload):
     transaction_type = TransactionType.RESET
 
     def __init__(  # pylint: disable=unused-argument
-        self, sender: str, period_count: int, id_: Optional[str] = None, **kwargs: Any
+        self, sender: str, period_count: int, **kwargs: Any
     ) -> None:
         """Initialize an 'reset' transaction payload.
 
         :param sender: the sender (Ethereum) address
         :param period_count: the period count id
-        :param id_: the id of the transaction
         :param kwargs: the keyword arguments
         """
-        super().__init__(sender, id_)
+        super().__init__(sender, **kwargs)
         self._period_count = period_count
 
     @property
