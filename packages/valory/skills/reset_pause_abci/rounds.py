@@ -118,17 +118,12 @@ class ResetPauseABCIApp(AbciApp[Event]):
     Transition states:
 
     0. ResetAndPauseRound
-        - done: 2.
+        - done: 1.
         - reset timeout: 0.
         - no majority: 0.
-    1. ResetRound
-        - done: 2.
-        - reset timeout: 0.
-        - no majority: 0.
-    2. FinishedResetAndPauseRound
+    1. FinishedResetAndPauseRound
 
     Initial states: {
-        ResetRound,
         ResetAndPauseRound,
     }
 
@@ -142,9 +137,6 @@ class ResetPauseABCIApp(AbciApp[Event]):
     """
 
     initial_round_cls: Type[AbstractRound] = ResetAndPauseRound
-    initial_states: Set[AppState] = {
-        ResetAndPauseRound,
-    }
     transition_function: AbciAppTransitionFunction = {
         ResetAndPauseRound: {
             Event.DONE: FinishedResetAndPauseRound,
