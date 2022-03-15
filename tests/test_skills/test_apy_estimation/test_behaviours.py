@@ -71,7 +71,9 @@ from packages.valory.skills.apy_estimation_abci.behaviours import (
     TransformBehaviour,
     UpdateForecasterBehaviour,
 )
-from packages.valory.skills.apy_estimation_abci.ml.optimization import BestParamsType
+from packages.valory.skills.apy_estimation_abci.ml.optimization import (
+    PoolToHyperParamsWithStatusType,
+)
 from packages.valory.skills.apy_estimation_abci.ml.preprocessing import (
     prepare_pair_data,
 )
@@ -1211,7 +1213,7 @@ class TestOptimizeBehaviour(APYEstimationFSMBehaviourBaseCase):
         monkeypatch: MonkeyPatch,
         tmp_path: PosixPath,
         caplog: LogCaptureFixture,
-        optimize_task_result: Dict[str, BestParamsType],
+        optimize_task_result: PoolToHyperParamsWithStatusType,
         ipfs_succeed: bool,
     ) -> None:
         """Run test for `optimize_behaviour`."""

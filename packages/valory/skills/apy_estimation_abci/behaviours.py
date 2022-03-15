@@ -52,8 +52,9 @@ from packages.valory.skills.apy_estimation_abci.composition import (
 )
 from packages.valory.skills.apy_estimation_abci.ml.forecasting import TestReportType
 from packages.valory.skills.apy_estimation_abci.ml.optimization import (
-    BestParamsType,
     HyperParamsType,
+    PoolToHyperParamsType,
+    PoolToHyperParamsWithStatusType,
 )
 from packages.valory.skills.apy_estimation_abci.ml.preprocessing import (
     TrainTestSplitType,
@@ -711,11 +712,11 @@ class OptimizeBehaviour(APYEstimationBaseState):
         """Initialize Behaviour."""
         super().__init__(**kwargs)
         self._async_result: Optional[AsyncResult] = None
-        self._y: Optional[pd.DataFrame] = None
+        self._y: Optional[Dict[str, pd.DataFrame]] = None
         self._current_id: Optional[str] = None
         self._best_params_with_status_iterator: Iterator[str] = iter("")
-        self._best_params_with_status: Dict[str, BestParamsType] = {}
-        self._best_params_per_pool: HyperParamsType = {}
+        self._best_params_with_status: PoolToHyperParamsWithStatusType = {}
+        self._best_params_per_pool: PoolToHyperParamsType = {}
         self._best_params_hash: Optional[str] = None
 
     def setup(self) -> None:

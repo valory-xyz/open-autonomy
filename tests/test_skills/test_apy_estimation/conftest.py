@@ -36,7 +36,9 @@ from optuna.trial import TrialState
 from pmdarima.pipeline import Pipeline
 
 from packages.valory.skills.apy_estimation_abci.ml.forecasting import train_forecaster
-from packages.valory.skills.apy_estimation_abci.ml.optimization import BestParamsType
+from packages.valory.skills.apy_estimation_abci.ml.optimization import (
+    PoolToHyperParamsWithStatusType,
+)
 from packages.valory.skills.apy_estimation_abci.models import SharedState
 from packages.valory.skills.apy_estimation_abci.tools.etl import ResponseItemType
 
@@ -249,7 +251,7 @@ def study() -> MagicMock:
 
 
 @pytest.fixture
-def optimize_task_result() -> Dict[str, BestParamsType]:
+def optimize_task_result() -> PoolToHyperParamsWithStatusType:
     """Create a result of the `OptimizeTask`.
 
     :return: a dummy `Task` Result.

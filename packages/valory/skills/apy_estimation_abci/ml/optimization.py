@@ -30,10 +30,12 @@ from sklearn.metrics import mean_pinball_loss
 from packages.valory.skills.apy_estimation_abci.ml.forecasting import init_forecaster
 
 
-HyperParamsType = Dict[str, Any]
 ScoringFuncType = Callable[[np.ndarray, np.ndarray], float]
 ScoringType = Union[ScoringFuncType, str]
-BestParamsType = Tuple[Dict[str, Any], bool]
+HyperParamsType = Dict[str, Any]
+PoolToHyperParamsType = Dict[str, HyperParamsType]
+HyperParamsWithStatusType = Tuple[HyperParamsType, bool]
+PoolToHyperParamsWithStatusType = Dict[str, HyperParamsWithStatusType]
 
 
 def pinball_loss_scorer(alpha: float = 0.25) -> ScoringFuncType:
@@ -162,7 +164,9 @@ def optimize_single_pool(  # pylint: disable=too-many-arguments
     return study
 
 
-def get_best_params(study: optuna.study.Study, safely: bool = True) -> BestParamsType:
+def get_best_params(
+    study: optuna.study.Study, safely: bool = True
+) -> HyperParamsWithStatusType:
     """Get the best parameters from a study.
 
     :param study: the study from which we want to get the best parameters.
@@ -184,7 +188,7 @@ def optimize(
     pools_data: Dict[str, pd.DataFrame],
     *args: Any,
     **kwargs: Any,
-) -> Dict[str, BestParamsType]:
+) -> PoolToHyperParamsWithStatusType:
     """Run the optimizer for all the pools."""
     best_params = {}
     for pool_id, pool_y in pools_data.items():

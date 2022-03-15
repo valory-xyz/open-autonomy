@@ -31,7 +31,7 @@ from packages.valory.skills.apy_estimation_abci.ml.forecasting import (
     train_forecaster,
 )
 from packages.valory.skills.apy_estimation_abci.ml.optimization import (
-    BestParamsType,
+    PoolToHyperParamsWithStatusType,
     optimize,
 )
 from packages.valory.skills.apy_estimation_abci.ml.preprocessing import (
@@ -71,7 +71,7 @@ class PrepareBatchTask(Task):
 class OptimizeTask(Task):
     """Run an optimization study."""
 
-    def execute(self, *args: Any, **kwargs: Any) -> Dict[str, BestParamsType]:
+    def execute(self, *args: Any, **kwargs: Any) -> PoolToHyperParamsWithStatusType:
         """Execute the task."""
         return optimize(*args, **kwargs)
 
