@@ -103,7 +103,7 @@ class Objective:  # pylint: disable=too-few-public-methods
         return average_score
 
 
-def optimize(  # pylint: disable=too-many-arguments
+def optimize_single_pool(  # pylint: disable=too-many-arguments
     y: np.ndarray,
     seed: int,
     n_trials: Optional[int] = None,
@@ -114,7 +114,7 @@ def optimize(  # pylint: disable=too-many-arguments
     alpha: Optional[float] = None,
     window_size: Optional[int] = None,
 ) -> optuna.study.Study:
-    """Run the optimizer.
+    """Run the optimizer for a single pool.
 
     :param y: the data with which the optimization will be done.
     :param seed: Seed for random number generator.
