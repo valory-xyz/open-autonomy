@@ -133,7 +133,6 @@ class DeploySafeBehaviour(SafeDeploymentBaseState):
             owners=owners,
             threshold=threshold,
             deployer_address=self.context.agent_address,
-            gas=10 ** 7,
         )
         if (
             contract_api_response.performative

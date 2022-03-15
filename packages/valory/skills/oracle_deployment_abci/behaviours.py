@@ -146,7 +146,6 @@ class DeployOracleBehaviour(OracleDeploymentBaseState):
             _decimals=decimals,
             _description=description,
             _transmitters=[self.period_state.safe_contract_address],
-            gas=10 ** 7,
         )
         if (
             contract_api_response.performative
