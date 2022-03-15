@@ -74,15 +74,15 @@ class TestOptimization:
 
     @staticmethod
     @pytest.mark.parametrize("alpha", (None, 0.3))
-    def test_optimize(
+    def test_optimize_single_pool(
         monkeypatch: MonkeyPatch,
         observations: np.ndarray,
         no_action: Callable[[Any], None],
         alpha: float,
     ) -> None:
-        """Test `optimize`."""
+        """Test `optimize_single_pool`."""
         monkeypatch.setattr(optuna.Study, "optimize", no_action)
-        res = optimize(observations, 0, alpha=alpha)
+        res = optimize_single_pool(observations, 0, alpha=alpha)
         assert isinstance(res, optuna.Study)
 
 
