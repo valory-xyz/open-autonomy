@@ -23,7 +23,7 @@ import inspect
 import json
 import pprint
 from abc import ABC, abstractmethod
-from enum import Enum
+from enum import Enum, auto
 from functools import partial, wraps
 from typing import (
     Any,
@@ -422,6 +422,15 @@ class CleanUpBehaviour(SimpleBehaviour, ABC):
         self.context.logger.warning(
             f"No callback defined for request with nonce: {request_nonce}"
         )
+
+
+class RPCResponseStatus(Enum):
+    """A custom status of an RPC response."""
+
+    SUCCESS = auto()
+    INCORRECT_NONCE = auto()
+    UNDERPRICED = auto()
+    UNCLASSIFIED_ERROR = auto()
 
 
 class BaseState(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
