@@ -279,11 +279,7 @@ class BenchmarkBehaviour:
     def __init__(
         self,
     ) -> None:
-        """
-        Initialize Benchmark behaviour object.
-
-        :param behaviour: behaviour that will be measured.
-        """
+        """Initialize Benchmark behaviour object."""
         self.local_data = {}
 
     def _measure(self, block_type: str) -> BenchmarkBlock:
