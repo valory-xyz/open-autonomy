@@ -90,8 +90,8 @@ class ResetAndPauseRound(CollectSameUntilThresholdRound):
                 extra_kwargs[key] = self.period_state.db.get_strict(key)
             state = self.period_state.update(
                 period_count=self.most_voted_payload,
-                participants=self.period_state.participants,
-                all_participants=self.period_state.all_participants,
+                participants=self.collection,
+                all_participants=self.collection,
                 **extra_kwargs,
             )
             return state, Event.DONE
