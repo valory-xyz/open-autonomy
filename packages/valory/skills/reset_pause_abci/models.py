@@ -22,6 +22,9 @@
 from typing import Any
 
 from packages.valory.skills.abstract_round_abci.models import BaseParams
+from packages.valory.skills.abstract_round_abci.models import (
+    BenchmarkTool as BaseBenchmarkTool,
+)
 from packages.valory.skills.abstract_round_abci.models import Requests as BaseRequests
 from packages.valory.skills.abstract_round_abci.models import (
     SharedState as BaseSharedState,
@@ -32,6 +35,7 @@ from packages.valory.skills.reset_pause_abci.rounds import Event, ResetPauseABCI
 MARGIN = 5
 
 Requests = BaseRequests
+BenchmarkTool = BaseBenchmarkTool
 
 
 class SharedState(BaseSharedState):
