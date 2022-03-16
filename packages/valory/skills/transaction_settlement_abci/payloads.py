@@ -242,7 +242,7 @@ class ResetPayload(BaseTxPayload):
 
     transaction_type = TransactionType.RESET
 
-    def __init__(  # pylint: disable=unused-argument
+    def __init__(
         self, sender: str, period_count: int, **kwargs: Any
     ) -> None:
         """Initialize an 'reset' transaction payload.
