@@ -23,7 +23,6 @@ import logging
 import time
 import warnings
 from pathlib import Path
-from tempfile import TemporaryDirectory
 from typing import Any, Dict, List, Optional, Tuple
 
 import pytest
@@ -67,9 +66,6 @@ class BaseTestEnd2End(AEATestCaseMany, BaseTendermintTestClass):
     # tuple of strings expected to appear in output as is.
     strict_check_strings: Tuple[str, ...] = ()
     extra_configs: List[Dict[str, Any]] = []
-
-    _temp_dir = TemporaryDirectory()
-    use_benchmarks: bool = False
 
     def __set_extra_configs(self) -> None:
         """Set the current agent's extra config overrides that are skill specific."""
@@ -123,12 +119,11 @@ class BaseTestEnd2End(AEATestCaseMany, BaseTendermintTestClass):
             type_="float",
         )
 
-        if self.use_benchmarks:
-            self.set_config(
-                f"vendor.valory.skills.{PublicId.from_str(self.skill_package).name}.models.benchmark_tool.args.log_dir",
-                self._temp_dir.name,
-                type_="str",
-            )
+        self.set_config(
+            f"vendor.valory.skills.{PublicId.from_str(self.skill_package).name}.models.benchmark_tool.args.log_dir",
+            str(self.t),
+            type_="str",
+        )
 
         self.__set_extra_configs()
 
@@ -283,12 +278,6 @@ class BaseTestEnd2End(AEATestCaseMany, BaseTendermintTestClass):
                         f"ABCI agent with process {process} wasn't successfully terminated."
                     )
                 )
-
-    @classmethod
-    def teardown_class(cls) -> None:
-        """Teardown clss."""
-        cls._temp_dir.cleanup()
-        return super().teardown_class()
 
 
 class BaseTestEnd2EndNormalExecution(BaseTestEnd2End):

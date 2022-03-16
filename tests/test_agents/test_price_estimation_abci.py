@@ -69,7 +69,6 @@ class TestABCIPriceEstimationSingleAgent(
     wait_to_finish = 180
     strict_check_strings = STRICT_CHECK_STRINGS
     round_check_strings_to_n_periods = EXPECTED_ROUND_LOG_COUNT
-    use_benchmarks = True
 
 
 class TestABCIPriceEstimationTwoAgents(
@@ -84,7 +83,6 @@ class TestABCIPriceEstimationTwoAgents(
     wait_to_finish = 180
     strict_check_strings = STRICT_CHECK_STRINGS
     round_check_strings_to_n_periods = EXPECTED_ROUND_LOG_COUNT
-    use_benchmarks = True
 
 
 class TestABCIPriceEstimationFourAgents(
@@ -99,7 +97,6 @@ class TestABCIPriceEstimationFourAgents(
     wait_to_finish = 180
     strict_check_strings = STRICT_CHECK_STRINGS
     round_check_strings_to_n_periods = EXPECTED_ROUND_LOG_COUNT
-    use_benchmarks = True
 
 
 class TestAgentCatchup(BaseTestEnd2EndAgentCatchup, UseGnosisSafeHardHatNet):
@@ -113,4 +110,3 @@ class TestAgentCatchup(BaseTestEnd2EndAgentCatchup, UseGnosisSafeHardHatNet):
     restart_after = 45
     round_check_strings_to_n_periods = EXPECTED_ROUND_LOG_COUNT
     stop_string = "'registration_startup' round is done with event: Event.DONE"
-    use_benchmarks = True

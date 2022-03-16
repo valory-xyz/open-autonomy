@@ -20,7 +20,7 @@ fingerprint:
   io/load.py: QmcQYtKgpJZBb3WAVsqqyxLfy5SfxiJ28h1L1qE6HBbMSV
   io/paths.py: QmT1e6Ygak8Fe4NxSrd2mb6EB1Rr6dsYZPL8dWh3aNMb12
   io/store.py: QmUa5sLTW8dkhx2KK3iNoHFNss9BRrQ2bTMrad7hx54LdL
-  models.py: QmQ7Z75hyQevpDHL8EuBHi6B18S5z6By7Lg99EJZs27B6E
+  models.py: QmcDMsTE2Xj8uA5WCwHJQtKvtV2RY51zNpfV1pZxPVP3zr
   serializer.py: QmV1rutPMEPbbMVwvM4My6s8fwT7S9KhgLTqrbjHLEfdJG
   utils.py: QmSWEFvrVYMYxkGT1LBh1b6yZPg5mZe5dqXqZcvxzwHZqD
 fingerprint_ignore_patterns: []
@@ -64,7 +64,8 @@ models:
     args: {}
     class_name: ApiSpecs
   benchmark_tool:
-    args: {}
+    args:
+      log_dir: /logs
     class_name: BenchmarkTool
   contract_api_dialogues:
     args: {}

@@ -328,9 +328,6 @@ class BenchmarkTool(Model):
         self.benchmark_data = {}
         self.log_dir = Path(kwargs.pop("log_dir", "/logs"))
 
-        if not self.log_dir.is_dir():
-            raise FileExistsError("Please set `log_dir` param.")
-
     def measure(self, behaviour: str) -> BenchmarkBehaviour:
         """Measure time to complete round."""
         if behaviour not in self.benchmark_data:
@@ -354,14 +351,16 @@ class BenchmarkTool(Model):
     def save(self, period: int = 0, reset: bool = True) -> None:
         """Save logs to a file."""
 
-        agent_dir = Path(self.log_dir, self.context.agent_address)
-        agent_dir.mkdir(exist_ok=True)
-
-        filepath = agent_dir / f"{period}.json"
         try:
+            self.log_dir.mkdir(exist_ok=True)
+            agent_dir = self.log_dir / self.context.agent_address
+            agent_dir.mkdir(exist_ok=True)
+            filepath = agent_dir / f"{period}.json"
+
             with open(str(filepath), "w+", encoding="utf-8") as outfile:
                 json.dump(self.data, outfile)
             self.context.logger.info(f"Saving benchmarking data for period: {period}")
+
         except PermissionError as e:  # pragma: nocover
             self.context.logger.info(f"Error saving benchmark data:\n{e}")
 

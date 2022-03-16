@@ -128,7 +128,7 @@ class SimpleAbciFSMBehaviourBaseCase(BaseSkillTestCase):
         cls._skill.skill_context.state.period.end_sync()
 
         cls.benchmark_dir = TemporaryDirectory()
-        cls._skill.skill_context.benchmark_tool.log_dir = cls.benchmark_dir.name
+        cls._skill.skill_context.benchmark_tool.log_dir = Path(cls.benchmark_dir.name)
 
         assert (
             cast(BaseState, cls.simple_abci_behaviour.current_state).state_id
