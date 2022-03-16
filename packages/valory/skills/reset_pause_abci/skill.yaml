@@ -83,4 +83,4 @@ models:
     args: {}
     class_name: SharedState
 dependencies: {}
-is_abstract: false
+is_abstract: true
