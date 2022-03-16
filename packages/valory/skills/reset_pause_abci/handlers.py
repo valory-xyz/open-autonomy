@@ -19,7 +19,6 @@
 
 """This module contains the handler for the 'reset_pause_abci' skill."""
 
-from packages.valory.skills.abstract_round_abci.handlers import ABCIRoundHandler
 from packages.valory.skills.abstract_round_abci.handlers import (
     ContractApiHandler as AbstractRoundContractApiHandler,
 )
@@ -34,7 +33,6 @@ from packages.valory.skills.abstract_round_abci.handlers import (
 )
 
 
-ResetPauseABCIHandler = ABCIRoundHandler
 HttpHandler = BaseHttpHandler
 SigningHandler = BaseSigningHandler
 ContractApiHandler = AbstractRoundContractApiHandler
