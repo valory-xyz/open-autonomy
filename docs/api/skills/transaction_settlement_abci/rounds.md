@@ -318,12 +318,12 @@ def end_block() -> Optional[Tuple[BasePeriodState, Event]]
 
 Process the end of the block.
 
-<a id="packages.valory.skills.transaction_settlement_abci.rounds.PreResetAndPauseRound"></a>
+<a id="packages.valory.skills.transaction_settlement_abci.rounds.FinishedTransactionSubmissionRound"></a>
 
-## PreResetAndPauseRound Objects
+## FinishedTransactionSubmissionRound Objects
 
 ```python
-class PreResetAndPauseRound(DegenerateRound,  ABC)
+class FinishedTransactionSubmissionRound(DegenerateRound,  ABC)
 ```
 
 A round that represents the transition to the ResetAndPauseRound
@@ -418,10 +418,10 @@ Transition states:
         - done: 0.
         - reset timeout: 12.
         - no majority: 12.
-    11. PreResetAndPauseRound
+    11. FinishedTransactionSubmissionRound
     12. FailedRound
 
-Final states: {FailedRound, PreResetAndPauseRound}
+Final states: {FailedRound, FinishedTransactionSubmissionRound}
 
 Timeouts:
     round timeout: 30.0

@@ -39,9 +39,7 @@ class ResetPausePayload(BaseTxPayload):
 
     transaction_type = TransactionType.RESETPAUSE
 
-    def __init__(
-        self, sender: str, period_count: int, **kwargs: Any
-    ) -> None:
+    def __init__(self, sender: str, period_count: int, **kwargs: Any) -> None:
         """Initialize an 'reset_pause' transaction payload.
 
         :param sender: the sender (Ethereum) address

@@ -251,10 +251,6 @@ def __init__() -> None
 
 Initialize Benchmark behaviour object.
 
-**Arguments**:
-
-- `behaviour`: behaviour that will be measured.
-
 <a id="packages.valory.skills.abstract_round_abci.models.BenchmarkBehaviour.local"></a>
 
 #### local
