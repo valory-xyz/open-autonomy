@@ -10,6 +10,7 @@ fingerprint:
   __init__.py: QmXWin5fsEAnCyYehninEjeP6diL3AwjNj6piBTxd2SQBA
   behaviours.py: QmTscwfzm7pzGfKem8RLatJaKcTwMrNUyj1mfNLUKmFhCh
   dialogues.py: QmfDThV4WCRzK88XDpW2hKDYCuEH4RxoHCoAkWpkBRGRPv
+  fsm_specification.yaml: QmZKFTEhLUGRyr6L1RiWfHs8876PS6gCwrtAKKvL7FS4Pk
   handlers.py: QmRB6Yfy3u1qBxANaimEKsUCnmvddZhv4iiVpeVzNXhQDc
   models.py: QmbpHnoHSG98a4V7P5uT5evjsAk5DNrcV8Wg3UP6iswwwD
   payloads.py: QmbvjGtVfX1LdBUbhHM16QMEfMSRRWQF1zRR8CPiUPBWzh
