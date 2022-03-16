@@ -45,6 +45,7 @@ class TestSimpleABCISingleAgent(
     wait_to_finish = 80
     round_check_strings_to_n_periods = EXPECTED_ROUND_LOG_COUNT
     strict_check_strings = STRICT_CHECK_STRINGS
+    use_benchmarks = True
 
 
 class TestSimpleABCITwoAgents(

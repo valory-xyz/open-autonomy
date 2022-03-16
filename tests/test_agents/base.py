@@ -118,6 +118,13 @@ class BaseTestEnd2End(AEATestCaseMany, BaseTendermintTestClass):
             self.KEEPER_TIMEOUT,
             type_="float",
         )
+
+        self.set_config(
+            f"vendor.valory.skills.{PublicId.from_str(self.skill_package).name}.models.benchmark_tool.args.log_dir",
+            str(self.t),
+            type_="str",
+        )
+
         self.__set_extra_configs()
 
     def setup(self) -> None:

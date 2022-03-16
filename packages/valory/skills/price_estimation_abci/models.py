@@ -22,6 +22,9 @@
 from typing import Any
 
 from packages.valory.skills.abstract_round_abci.models import ApiSpecs
+from packages.valory.skills.abstract_round_abci.models import (
+    BenchmarkTool as BaseBenchmarkTool,
+)
 from packages.valory.skills.abstract_round_abci.models import Requests as BaseRequests
 from packages.valory.skills.abstract_round_abci.models import (
     SharedState as BaseSharedState,
@@ -41,6 +44,7 @@ MARGIN = 5
 MULTIPLIER = 2
 
 Requests = BaseRequests
+BenchmarkTool = BaseBenchmarkTool
 
 
 class Params(OracleParams, TransactionParams):
