@@ -437,7 +437,7 @@ class SynchronizeLateMessagesRound(CollectNonEmptyUntilThresholdRound):
         return state, event
 
 
-class PreResetAndPauseRound(DegenerateRound, ABC):
+class FinishedTransactionSubmissionRound(DegenerateRound, ABC):
     """A round that represents the transition to the ResetAndPauseRound"""
 
     round_id = "pre_reset_and_pause"
@@ -529,10 +529,10 @@ class TransactionSubmissionAbciApp(AbciApp[Event]):
             - done: 0.
             - reset timeout: 12.
             - no majority: 12.
-        11. PreResetAndPauseRound
+        11. FinishedTransactionSubmissionRound
         12. FailedRound
 
-    Final states: {FailedRound, PreResetAndPauseRound}
+    Final states: {FailedRound, FinishedTransactionSubmissionRound}
 
     Timeouts:
         round timeout: 30.0
@@ -566,14 +566,14 @@ class TransactionSubmissionAbciApp(AbciApp[Event]):
             Event.CHECK_LATE_ARRIVING_MESSAGE: SynchronizeLateMessagesRound,
         },
         ValidateTransactionRound: {
-            Event.DONE: PreResetAndPauseRound,
+            Event.DONE: FinishedTransactionSubmissionRound,
             Event.NEGATIVE: CheckTransactionHistoryRound,
             Event.NONE: FinalizationRound,
             Event.VALIDATE_TIMEOUT: FinalizationRound,
             Event.NO_MAJORITY: ValidateTransactionRound,
         },
         CheckTransactionHistoryRound: {
-            Event.DONE: PreResetAndPauseRound,
+            Event.DONE: FinishedTransactionSubmissionRound,
             Event.NEGATIVE: FailedRound,
             Event.NONE: FailedRound,
             Event.ROUND_TIMEOUT: CheckTransactionHistoryRound,
@@ -598,7 +598,7 @@ class TransactionSubmissionAbciApp(AbciApp[Event]):
             Event.MISSED_AND_LATE_MESSAGES_MISMATCH: FailedRound,
         },
         CheckLateTxHashesRound: {
-            Event.DONE: PreResetAndPauseRound,
+            Event.DONE: FinishedTransactionSubmissionRound,
             Event.NEGATIVE: FailedRound,
             Event.NONE: FailedRound,
             Event.ROUND_TIMEOUT: CheckLateTxHashesRound,
@@ -609,11 +609,11 @@ class TransactionSubmissionAbciApp(AbciApp[Event]):
             Event.RESET_TIMEOUT: FailedRound,
             Event.NO_MAJORITY: FailedRound,
         },
-        PreResetAndPauseRound: {},
+        FinishedTransactionSubmissionRound: {},
         FailedRound: {},
     }
     final_states: Set[AppState] = {
-        PreResetAndPauseRound,
+        FinishedTransactionSubmissionRound,
         FailedRound,
     }
     event_to_timeout: Dict[Event, float] = {
