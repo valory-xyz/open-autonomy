@@ -22,6 +22,9 @@
 from typing import Any
 
 from packages.valory.skills.abstract_round_abci.models import ApiSpecs, BaseParams
+from packages.valory.skills.abstract_round_abci.models import (
+    BenchmarkTool as BaseBenchmarkTool,
+)
 from packages.valory.skills.abstract_round_abci.models import Requests as BaseRequests
 from packages.valory.skills.abstract_round_abci.models import (
     SharedState as BaseSharedState,
@@ -33,6 +36,7 @@ from packages.valory.skills.apy_estimation_abci.rounds import Event
 
 
 Requests = BaseRequests
+BenchmarkTool = BaseBenchmarkTool
 
 MARGIN = 5
 

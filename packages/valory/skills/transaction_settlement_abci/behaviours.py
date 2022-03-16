@@ -36,7 +36,7 @@ from packages.valory.skills.abstract_round_abci.common import (
     RandomnessBehaviour,
     SelectKeeperBehaviour,
 )
-from packages.valory.skills.abstract_round_abci.utils import BenchmarkTool, VerifyDrand
+from packages.valory.skills.abstract_round_abci.utils import VerifyDrand
 from packages.valory.skills.transaction_settlement_abci.models import TransactionParams
 from packages.valory.skills.transaction_settlement_abci.payload_tools import (
     VerificationStatus,
@@ -72,7 +72,7 @@ from packages.valory.skills.transaction_settlement_abci.rounds import (
 
 TxDataType = Dict[str, Union[VerificationStatus, str, int]]
 
-benchmark_tool = BenchmarkTool()
+
 drand_check = VerifyDrand()
 
 
@@ -228,9 +228,7 @@ class ValidateTransactionBehaviour(TransactionSettlementBaseState):
         - Go to the next behaviour state (set done event).
         """
 
-        with benchmark_tool.measure(
-            self,
-        ).local():
+        with self.context.benchmark_tool.measure(self.state_id).local():
             is_correct = yield from self.has_transaction_been_sent()
             if is_correct:
                 self.context.logger.info(
@@ -238,9 +236,7 @@ class ValidateTransactionBehaviour(TransactionSettlementBaseState):
                 )
             payload = ValidatePayload(self.context.agent_address, is_correct)
 
-        with benchmark_tool.measure(
-            self,
-        ).consensus():
+        with self.context.benchmark_tool.measure(self.state_id).consensus():
             yield from self.send_a2a_transaction(payload)
             yield from self.wait_until_round_end()
 
@@ -291,9 +287,7 @@ class CheckTransactionHistoryBehaviour(TransactionSettlementBaseState):
     def async_act(self) -> Generator:
         """Do the action."""
 
-        with benchmark_tool.measure(
-            self,
-        ).local():
+        with self.context.benchmark_tool.measure(self.state_id).local():
             verification_status, tx_hash = yield from self._check_tx_history()
 
             if verification_status == VerificationStatus.VERIFIED:
@@ -312,9 +306,7 @@ class CheckTransactionHistoryBehaviour(TransactionSettlementBaseState):
                 self.context.agent_address, verified_res
             )
 
-        with benchmark_tool.measure(
-            self,
-        ).consensus():
+        with self.context.benchmark_tool.measure(self.state_id).consensus():
             yield from self.send_a2a_transaction(payload)
             yield from self.wait_until_round_end()
 
@@ -427,9 +419,7 @@ class SynchronizeLateMessagesBehaviour(TransactionSettlementBaseState):
     def async_act(self) -> Generator:
         """Do the action."""
 
-        with benchmark_tool.measure(
-            self,
-        ).local():
+        with self.context.benchmark_tool.measure(self.state_id).local():
             if len(self.params.late_messages) > 0:
                 current_message = self.params.late_messages.pop()
                 tx_data = yield from self._get_tx_data(current_message)
@@ -441,9 +431,7 @@ class SynchronizeLateMessagesBehaviour(TransactionSettlementBaseState):
                 self.context.agent_address, self._tx_hashes
             )
 
-        with benchmark_tool.measure(
-            self,
-        ).consensus():
+        with self.context.benchmark_tool.measure(self.state_id).consensus():
             yield from self.send_a2a_transaction(payload)
             yield from self.wait_until_round_end()
 
@@ -472,18 +460,14 @@ class SignatureBehaviour(TransactionSettlementBaseState):
         - Go to the next behaviour state (set done event).
         """
 
-        with benchmark_tool.measure(
-            self,
-        ).local():
+        with self.context.benchmark_tool.measure(self.state_id).local():
             self.context.logger.info(
                 f"Consensus reached on tx hash: {self.period_state.most_voted_tx_hash}"
             )
             signature_hex = yield from self._get_safe_tx_signature()
             payload = SignaturePayload(self.context.agent_address, signature_hex)
 
-        with benchmark_tool.measure(
-            self,
-        ).consensus():
+        with self.context.benchmark_tool.measure(self.state_id).consensus():
             yield from self.send_a2a_transaction(payload)
             yield from self.wait_until_round_end()
 
@@ -530,18 +514,14 @@ class FinalizeBehaviour(TransactionSettlementBaseState):
 
     def _not_sender_act(self) -> Generator:
         """Do the non-sender action."""
-        with benchmark_tool.measure(
-            self,
-        ).consensus():
+        with self.context.benchmark_tool.measure(self.state_id).consensus():
             yield from self.wait_until_round_end()
         self.set_done()
 
     def _sender_act(self) -> Generator[None, None, None]:
         """Do the sender action."""
 
-        with benchmark_tool.measure(
-            self,
-        ).local():
+        with self.context.benchmark_tool.measure(self.state_id).local():
             self.context.logger.info(
                 "I am the designated sender, attempting to send the safe transaction..."
             )
@@ -570,9 +550,7 @@ class FinalizeBehaviour(TransactionSettlementBaseState):
                 cast(Dict[str, Union[str, int]], tx_data),
             )
 
-        with benchmark_tool.measure(
-            self,
-        ).consensus():
+        with self.context.benchmark_tool.measure(self.state_id).consensus():
             yield from self.send_a2a_transaction(payload)
             yield from self.wait_until_round_end()
 

@@ -25,16 +25,12 @@ from packages.valory.skills.abstract_round_abci.behaviours import (
     AbstractRoundBehaviour,
     BaseState,
 )
-from packages.valory.skills.abstract_round_abci.utils import BenchmarkTool
 from packages.valory.skills.registration_abci.payloads import RegistrationPayload
 from packages.valory.skills.registration_abci.rounds import (
     AgentRegistrationAbciApp,
     RegistrationRound,
     RegistrationStartupRound,
 )
-
-
-benchmark_tool = BenchmarkTool()
 
 
 class RegistrationBaseBehaviour(BaseState):
@@ -51,9 +47,7 @@ class RegistrationBaseBehaviour(BaseState):
         - Go to the next behaviour state (set done event).
         """
 
-        with benchmark_tool.measure(
-            self,
-        ).local():
+        with self.context.benchmark_tool.measure(self.state_id).local():
             initialisation = (
                 json.dumps(self.period_state.db.initial_data, sort_keys=True)
                 if self.period_state.db.initial_data != {}
@@ -63,9 +57,7 @@ class RegistrationBaseBehaviour(BaseState):
                 self.context.agent_address, initialisation=initialisation
             )
 
-        with benchmark_tool.measure(
-            self,
-        ).consensus():
+        with self.context.benchmark_tool.measure(self.state_id).consensus():
             yield from self.send_a2a_transaction(payload)
             yield from self.wait_until_round_end()
 

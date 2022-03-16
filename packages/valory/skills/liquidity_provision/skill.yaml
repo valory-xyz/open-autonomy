@@ -9,12 +9,12 @@ aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
   README.md: QmR5sLQeLggNn5gZ1kDWrqpkz5NzMdUZuWNkaQDpaMC85C
   __init__.py: QmZi2zjuEfocSD4fJyHCRHKYPwRiMizJh5cG4r7q3Hcxuo
-  behaviours.py: QmUZzgiWNpfHvGNnbAMittfik8N3KXGHtMq8385njkSAbM
-  composition.py: QmYuxCTKcWxj9mUZKaCmmCqNoBu5LrjohnSXS4e8fmfNkH
+  behaviours.py: QmZRNW3zzFMJzXWTuewKGVE2YgipD76E81qJMBLXBUqsVe
+  composition.py: QmNQDobHqEFV6XExTWrLnGnYTUDGqsbKH94KasSHw1n9Zi
   dialogues.py: QmdBmUMWoPbS2faqn8LicQVJfN6a2WjtdZDWFbiYoy7hfY
   fsm_specification.yaml: QmdBp3nDWdoyzD7bzQaAHxmtDQkiTvh757vyBEPeffzALi
   handlers.py: QmYNuneHUsxPfGricmSREyKom4fsAoE3NU7Xv8y3iYCDke
-  models.py: QmdGin5fQAh5gXx38J4ukSaTdEFA5DPzA4Q3rKccVrwN16
+  models.py: QmbDGg2azbVaHmHKj2nARc6yepmTo6wdjC8GVeAhjd7nbW
   payloads.py: QmQnC6GNA6an3h14Jm1nM12W9BuDwATNYJhz3f8vuKBinw
   rounds.py: QmRqyfjuXusttxDvqJoXxvNTRftDe5S6JHCkroHwrhbgyS
 fingerprint_ignore_patterns: []
@@ -62,6 +62,10 @@ models:
   abci_dialogues:
     args: {}
     class_name: AbciDialogues
+  benchmark_tool:
+    args:
+      log_dir: /logs
+    class_name: BenchmarkTool
   contract_api_dialogues:
     args: {}
     class_name: ContractApiDialogues
