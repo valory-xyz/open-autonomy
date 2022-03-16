@@ -90,9 +90,6 @@ class SharedState(BaseSharedState):
         PriceEstimationAbciApp.event_to_timeout[TSEvent.RESET_TIMEOUT] = (
             self.context.params.round_timeout_seconds * MULTIPLIER
         )
-        PriceEstimationAbciApp.event_to_timeout[ResetPauseEvent.RESET_TIMEOUT] = (
-            self.context.params.round_timeout_seconds * MULTIPLIER
-        )
         PriceEstimationAbciApp.event_to_timeout[SafeEvent.VALIDATE_TIMEOUT] = (
             self.context.params.retry_timeout * self.context.params.retry_attempts
             + MARGIN
@@ -111,9 +108,9 @@ class SharedState(BaseSharedState):
         PriceEstimationAbciApp.event_to_timeout[SafeEvent.DEPLOY_TIMEOUT] = (
             self.context.params.keeper_timeout + MARGIN
         )
-        PriceEstimationAbciApp.event_to_timeout[TSEvent.RESET_AND_PAUSE_TIMEOUT] = (
-            self.context.params.observation_interval + MARGIN
-        )
+        PriceEstimationAbciApp.event_to_timeout[
+            ResetPauseEvent.RESET_AND_PAUSE_TIMEOUT
+        ] = (self.context.params.observation_interval + MARGIN)
 
 
 class RandomnessApi(ApiSpecs):

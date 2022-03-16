@@ -42,7 +42,7 @@ class Event(Enum):
     DONE = "done"
     ROUND_TIMEOUT = "round_timeout"
     NO_MAJORITY = "no_majority"
-    RESET_TIMEOUT = "reset_timeout"
+    RESET_AND_PAUSE_TIMEOUT = "reset_and_pause_timeout"
 
 
 class ResetAndPauseRound(CollectSameUntilThresholdRound):
@@ -108,6 +108,12 @@ class FinishedResetAndPauseRound(DegenerateRound):
     round_id = "finished_reset_pause"
 
 
+class FinishedResetAndPauseErrorRound(DegenerateRound):
+    """A round that represents reset and pause has finished with errors"""
+
+    round_id = "finished_reset_pause_error"
+
+
 class ResetPauseABCIApp(AbciApp[Event]):
     """ResetPauseABCIApp
 
@@ -122,6 +128,7 @@ class ResetPauseABCIApp(AbciApp[Event]):
         - reset timeout: 0.
         - no majority: 0.
     1. FinishedResetAndPauseRound
+    2. FinishedResetAndPauseErrorRound
 
     Initial states: {
         ResetAndPauseRound,
@@ -129,6 +136,7 @@ class ResetPauseABCIApp(AbciApp[Event]):
 
     Final states: {
         FinishedResetAndPauseRound,
+        FinishedResetAndPauseErrorRound,
     }
 
     Timeouts:
@@ -140,15 +148,17 @@ class ResetPauseABCIApp(AbciApp[Event]):
     transition_function: AbciAppTransitionFunction = {
         ResetAndPauseRound: {
             Event.DONE: FinishedResetAndPauseRound,
-            Event.RESET_TIMEOUT: ResetAndPauseRound,
-            Event.NO_MAJORITY: ResetAndPauseRound,
+            Event.RESET_AND_PAUSE_TIMEOUT: FinishedResetAndPauseErrorRound,
+            Event.NO_MAJORITY: FinishedResetAndPauseErrorRound,
         },
         FinishedResetAndPauseRound: {},
+        FinishedResetAndPauseErrorRound: {},
     }
     final_states: Set[AppState] = {
         FinishedResetAndPauseRound,
+        FinishedResetAndPauseErrorRound,
     }
     event_to_timeout: Dict[Event, float] = {
         Event.ROUND_TIMEOUT: 30.0,
-        Event.RESET_TIMEOUT: 30.0,
+        Event.RESET_AND_PAUSE_TIMEOUT: 30.0,
     }

@@ -427,5 +427,4 @@ Timeouts:
     round timeout: 30.0
     validate timeout: 30.0
     reset timeout: 30.0
-    reset and pause timeout: 30.0
 

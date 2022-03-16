@@ -40,6 +40,7 @@ from packages.valory.skills.registration_abci.rounds import (
     RegistrationRound,
 )
 from packages.valory.skills.reset_pause_abci.rounds import (
+    FinishedResetAndPauseErrorRound,
     FinishedResetAndPauseRound,
     ResetAndPauseRound,
     ResetPauseABCIApp,
@@ -66,6 +67,7 @@ abci_app_transition_mapping: AbciAppTransitionMapping = {
     FailedRound: RegistrationRound,
     FinishedTransactionSubmissionRound: ResetAndPauseRound,
     FinishedResetAndPauseRound: CollectObservationRound,
+    FinishedResetAndPauseErrorRound: RegistrationRound,
 }
 
 PriceEstimationAbciApp = chain(

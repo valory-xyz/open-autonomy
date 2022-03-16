@@ -63,7 +63,6 @@ class Event(Enum):
     NONE = "none"
     VALIDATE_TIMEOUT = "validate_timeout"
     RESET_TIMEOUT = "reset_timeout"
-    RESET_AND_PAUSE_TIMEOUT = "reset_and_pause_timeout"
     CHECK_HISTORY = "check_history"
     CHECK_LATE_ARRIVING_MESSAGE = "check_late_arriving_message"
     FINALIZATION_FAILED = "finalization_failed"
@@ -538,7 +537,6 @@ class TransactionSubmissionAbciApp(AbciApp[Event]):
         round timeout: 30.0
         validate timeout: 30.0
         reset timeout: 30.0
-        reset and pause timeout: 30.0
     """
 
     initial_round_cls: Type[AbstractRound] = RandomnessTransactionSubmissionRound
@@ -620,5 +618,4 @@ class TransactionSubmissionAbciApp(AbciApp[Event]):
         Event.ROUND_TIMEOUT: 30.0,
         Event.VALIDATE_TIMEOUT: 30.0,
         Event.RESET_TIMEOUT: 30.0,
-        Event.RESET_AND_PAUSE_TIMEOUT: 30.0,
     }
