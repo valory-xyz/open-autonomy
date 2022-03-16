@@ -629,7 +629,7 @@ class ResetBehaviour(TransactionSettlementBaseState):
         self.context.logger.info(
             f"Period {self.period_state.period_count} was not finished. Resetting!"
         )
-
+        self.params.reset_tx_params()
         payload = ResetPayload(
             self.context.agent_address, self.period_state.period_count + 1
         )
