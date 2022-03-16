@@ -38,9 +38,6 @@ from packages.valory.skills.reset_pause_abci.rounds import (
 )
 
 
-benchmark_tool = BenchmarkTool()
-
-
 class ResetAndPauseBaseState(BaseState, ABC):
     """Reset state."""
 
@@ -175,7 +172,7 @@ class ResetAndPauseBehaviour(ResetAndPauseBaseState):
             )
         yield from self.wait_from_last_timestamp(self.params.observation_interval / 2)
         self.context.logger.info("Period end.")
-        benchmark_tool.save()
+        self.context.benchmark_tool.save(self.period_state.period_count)
 
         payload = ResetPausePayload(
             self.context.agent_address, self.period_state.period_count + 1
@@ -193,8 +190,3 @@ class ResetPauseABCIConsensusBehaviour(AbstractRoundBehaviour):
     behaviour_states: Set[Type[ResetAndPauseBehaviour]] = {  # type: ignore
         ResetAndPauseBehaviour,  # type: ignore
     }
-
-    def setup(self) -> None:
-        """Set up the behaviour."""
-        super().setup()
-        benchmark_tool.logger = self.context.logger
