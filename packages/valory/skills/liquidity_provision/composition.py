@@ -37,8 +37,8 @@ from packages.valory.skills.registration_abci.rounds import (
     RegistrationRound,
 )
 from packages.valory.skills.reset_pause_abci.rounds import (
-    FinishedResetAndPauseRound,
     FinishedResetAndPauseErrorRound,
+    FinishedResetAndPauseRound,
     ResetAndPauseRound,
     ResetPauseABCIApp,
 )
