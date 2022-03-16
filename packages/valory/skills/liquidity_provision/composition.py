@@ -38,6 +38,7 @@ from packages.valory.skills.registration_abci.rounds import (
 )
 from packages.valory.skills.reset_pause_abci.rounds import (
     FinishedResetAndPauseRound,
+    FinishedResetAndPauseErrorRound,
     ResetAndPauseRound,
     ResetPauseABCIApp,
 )
@@ -63,6 +64,7 @@ abci_app_transition_mapping: AbciAppTransitionMapping = {
     FinishedSwapBackTransactionHashRound: RandomnessTransactionSubmissionRound,
     FinishedTransactionSubmissionRound: ResetAndPauseRound,
     FinishedResetAndPauseRound: StrategyEvaluationRound,
+    FinishedResetAndPauseErrorRound: RegistrationRound,
     FailedRound: RegistrationRound,
 }
 
