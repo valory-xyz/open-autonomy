@@ -40,6 +40,7 @@ from statsmodels.tools.sm_exceptions import ConvergenceWarning
 
 from packages.valory.skills.apy_estimation_abci.ml.forecasting import (
     PoolIdToForecasterType,
+    PoolIdToTestReportType,
     PoolIdToTrainDataType,
 )
 from packages.valory.skills.apy_estimation_abci.ml.optimization import (
@@ -371,12 +372,12 @@ def train_task_result(trained_forecaster: Pipeline) -> PoolIdToForecasterType:
 
 
 @pytest.fixture
-def _test_task_result() -> Dict[str, str]:
+def _test_task_result() -> PoolIdToTestReportType:
     """Create a result of the `TestTask`.
 
     :return: a dummy `Task` Result.
     """
-    return {"test": "test"}
+    return {f"pool{i}": {"test": "test"} for i in range(3)}
 
 
 @pytest.fixture
