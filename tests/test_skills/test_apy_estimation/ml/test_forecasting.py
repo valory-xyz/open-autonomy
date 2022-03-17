@@ -18,11 +18,15 @@
 # ------------------------------------------------------------------------------
 
 """Test forecasting operations."""
+from typing import Any
+
 import numpy as np
 import pytest
 from _pytest.monkeypatch import MonkeyPatch
+from pmdarima.pipeline import Pipeline
 
 from packages.valory.skills.apy_estimation_abci.ml.forecasting import (
+    PoolIdToTrainDataType,
     baseline,
     calc_metrics,
     init_forecaster,
@@ -33,6 +37,7 @@ from packages.valory.skills.apy_estimation_abci.ml.forecasting import (
 )
 from packages.valory.skills.apy_estimation_abci.ml.forecasting import (
     train_forecaster,
+    train_forecaster_per_pool,
     walk_forward_test,
 )
 
@@ -47,18 +52,22 @@ class TestForecasting:
         self._pipeline = DummyPipeline()
 
     @staticmethod
-    def test_init_forecaster() -> None:
+    def test_init_forecaster(hyperparameters: Any) -> None:
         """Test `init_forecaster`."""
-        forecaster = init_forecaster(0, 0, 0, 0, 0)
+        forecaster = init_forecaster(**hyperparameters)
         pipeline_steps = forecaster.get_params()["steps"]
         fourier_actual = pipeline_steps[0][1].get_params()
         arima_actual = pipeline_steps[1][1].get_params()
 
-        fourier_expected = {"k": 0, "m": 0, "prefix": None}
+        fourier_expected = {
+            "k": hyperparameters["k"],
+            "m": hyperparameters["m"],
+            "prefix": None,
+        }
         arima_expected = {
             "maxiter": 150,
             "method": "lbfgs",
-            "order": (0, 0, 0),
+            "order": (hyperparameters["p"], hyperparameters["q"], hyperparameters["d"]),
             "out_of_sample_size": 0,
             "scoring": "mse",
             "scoring_args": None,
@@ -73,15 +82,35 @@ class TestForecasting:
         assert arima_actual == arima_expected
 
     @staticmethod
-    def test_train_forecaster(observations: np.ndarray) -> None:
+    def test_train_forecaster(observations: np.ndarray, hyperparameters: Any) -> None:
         """Test `train_forecaster`."""
-        hyperparameters = 1, 1, 1, 3, 1
-        forecaster = init_forecaster(*hyperparameters)
-        forecaster_trained = train_forecaster(observations, *hyperparameters)
+        forecaster = init_forecaster(**hyperparameters)
+        forecaster_trained = train_forecaster(observations, **hyperparameters)
         assert type(forecaster) == type(
             forecaster_trained
         )  # must return the same type of object
         assert forecaster is not forecaster_trained  # object identity MUST be different
+
+    @staticmethod
+    def test_train_forecaster_per_pool(
+        train_task_input: PoolIdToTrainDataType,
+        trained_forecaster: Pipeline,
+        monkeypatch: MonkeyPatch,
+    ) -> None:
+        """Test `train_forecaster_per_pool`."""
+        monkeypatch.setattr(
+            "packages.valory.skills.apy_estimation_abci.ml.forecasting.train_forecaster",
+            lambda _, **__: trained_forecaster,
+        )
+        forecasters = train_forecaster_per_pool(train_task_input)
+        assert len(forecasters) == len(train_task_input)
+        for (id_actual, forecaster_actual), id_expected in zip(
+            forecasters.items(), train_task_input.keys()
+        ):
+            assert id_actual == id_expected
+            assert type(forecaster_actual) == Pipeline
+            # must return the trained forecaster received from `train_forecaster`
+            assert forecaster_actual == trained_forecaster
 
     @staticmethod
     def test_baseline() -> None:
