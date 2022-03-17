@@ -18,7 +18,7 @@
 # ------------------------------------------------------------------------------
 
 """Forecasting operations"""
-from typing import Dict, Optional, Union, cast
+from typing import Any, Dict, Optional, Union, cast
 
 import numpy as np
 from pmdarima import ARIMA
@@ -35,6 +35,8 @@ from sklearn.metrics import (
 
 MetricsType = Dict[str, float]
 TestReportType = Dict[str, str]
+PoolIdToTrainDataType = Dict[str, np.ndarray]
+PoolIdToForecasterType = Dict[str, Pipeline]
 
 
 def init_forecaster(  # pylint: disable=too-many-arguments
@@ -76,32 +78,30 @@ def init_forecaster(  # pylint: disable=too-many-arguments
     return forecaster
 
 
-def train_forecaster(  # pylint: disable=too-many-arguments
-    y_train: np.ndarray,
-    p: int,
-    q: int,
-    d: int,
-    m: int,
-    k: Optional[int] = None,
-    maxiter: int = 150,
-    suppress_warnings: bool = True,
-) -> Pipeline:
+def train_forecaster_per_pool(
+    y_train: PoolIdToTrainDataType, **kwargs: Any
+) -> PoolIdToForecasterType:
     """Train a forecasting model.
 
     :param y_train: the training timeseries.
-    :param m: the seasonal periodicity of the endogenous vector, y.
-    :param k: the number of sine and cosine terms (each) to include.
-        I.e., if k is 2, 4 new features will be generated. k must not exceed m/2,
-        which is the default value if not set. The value of k can be selected by minimizing the AIC.
-    :param p: the order (number of time lags) of the autoregressive model (AR).
-    :param q: the order of the moving-average model (MA).
-    :param d: the degree of differencing (the number of times the data have had past values subtracted) (I).
-    :param maxiter: the maximum number of function evaluations. Default is 150.
-    :param suppress_warnings: many warnings might be thrown inside of `statsmodels` - which is used by `pmdarima` - .
-        If suppress_warnings is True, all of these warnings will be squelched. Default is True.
+    :param kwargs: the keyword arguments for the forecaster's training.
+    :return: a trained `pmdarima` pipeline per pool, consisting of a fourier featurizer and an ARIMA model.
+    """
+    forecasters = {}
+    for id_, y in y_train.items():
+        id_.replace(".csv", ".joblib")
+        forecasters[id_] = train_forecaster(y, **kwargs)
+    return forecasters
+
+
+def train_forecaster(y_train: np.ndarray, **kwargs: Any) -> Pipeline:
+    """Train a forecasting model.
+
+    :param y_train: the training timeseries.
+    :param kwargs: the keyword arguments for the forecaster's training.
     :return: a trained `pmdarima` pipeline, consisting of a fourier featurizer and an ARIMA model.
     """
-    forecaster = init_forecaster(p, q, d, m, k, maxiter, suppress_warnings)
+    forecaster = init_forecaster(**kwargs)
     forecaster.fit(y_train)
 
     return forecaster
