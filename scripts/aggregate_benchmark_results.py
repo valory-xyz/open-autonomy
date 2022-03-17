@@ -23,7 +23,7 @@ Script for aggregating results.
 To use this script you'll need benchmark data generated from agent runtime. To
 generate benchmark data run
 
-make run-oracle 
+make run-oracle
 or
 make run-oracle-dev
 
