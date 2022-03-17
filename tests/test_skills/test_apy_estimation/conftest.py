@@ -33,9 +33,15 @@ from aea.skills.base import SkillContext
 from optuna.distributions import UniformDistribution
 from optuna.exceptions import ExperimentalWarning
 from optuna.trial import TrialState
+from pmdarima import ARIMA
 from pmdarima.pipeline import Pipeline
+from pmdarima.preprocessing import FourierFeaturizer
+from statsmodels.tools.sm_exceptions import ConvergenceWarning
 
-from packages.valory.skills.apy_estimation_abci.ml.forecasting import train_forecaster
+from packages.valory.skills.apy_estimation_abci.ml.forecasting import (
+    PoolIdToForecasterType,
+    PoolIdToTrainDataType,
+)
 from packages.valory.skills.apy_estimation_abci.ml.optimization import (
     PoolToHyperParamsWithStatusType,
 )
@@ -309,16 +315,59 @@ def observations() -> np.ndarray:
 
 
 @pytest.fixture
-def train_task_result(observations: np.ndarray) -> Pipeline:
-    """Create a result of the `TrainTask`.
+def hyperparameters() -> Dict[str, Union[bool, int]]:
+    """Hyperparameters for a pipeline."""
+    return {
+        "p": 1,
+        "q": 1,
+        "d": 1,
+        "m": 3,
+        "k": 1,
+        "suppress_warnings": True,
+    }
 
-    :param observations: the observations for the training.
-    :return: a dummy `Task` Result.
-    """
-    hyperparameters = 1, 1, 1, 3, 1
-    forecaster = train_forecaster(observations, *hyperparameters)
+
+@pytest.fixture
+def forecaster(hyperparameters: Dict[str, Union[bool, int]]) -> Pipeline:
+    """Create a dummy, untrained Pipeline."""
+    order = (hyperparameters["p"], hyperparameters["q"], hyperparameters["d"])
+
+    dummy_forecaster = Pipeline(
+        [
+            ("fourier", FourierFeaturizer(hyperparameters["m"])),
+            (
+                "arima",
+                ARIMA(order),
+            ),
+        ]
+    )
+
+    return dummy_forecaster
+
+
+@pytest.fixture
+def trained_forecaster(forecaster: Pipeline, observations: np.ndarray) -> Pipeline:
+    """Create a dummy, trained Pipeline."""
+    warnings.filterwarnings("ignore", category=ConvergenceWarning)
+    forecaster.fit(observations)
 
     return forecaster
+
+
+@pytest.fixture
+def train_task_input(observations: np.ndarray) -> PoolIdToTrainDataType:
+    """Create an input of the `TrainTask`."""
+    return {f"pool{i}.csv": observations for i in range(3)}
+
+
+@pytest.fixture
+def train_task_result(trained_forecaster: Pipeline) -> PoolIdToForecasterType:
+    """Create a result of the `TrainTask`.
+
+    :param trained_forecaster: a trained, dummy forecaster.
+    :return: a dummy `TrainTask` Result.
+    """
+    return {f"pool{i}.joblib": trained_forecaster for i in range(3)}
 
 
 @pytest.fixture
