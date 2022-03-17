@@ -128,6 +128,19 @@ class APYEstimationBaseState(BaseState, ABC):
         """Return the params."""
         return cast(APYParams, self.context.params)
 
+    def load_split(self, split: str) -> Optional[Dict[str, pd.DataFrame]]:
+        """Load a split of the data."""
+        split_path = os.path.join(
+            self.context.data_dir,
+            f"y_{split}",
+        )
+        return self.get_from_ipfs(
+            getattr(self.period_state, f"{split}_hash"),
+            split_path,
+            multiple=True,
+            filetype=SupportedFiletype.CSV,
+        )
+
 
 class FetchBehaviour(APYEstimationBaseState):
     """Observe historical data."""
@@ -721,13 +734,7 @@ class OptimizeBehaviour(APYEstimationBaseState):
     def setup(self) -> None:
         """Setup behaviour."""
         # Load training data.
-        training_data_path = os.path.join(self.context.data_dir, "y_train")
-        self._y = self.get_from_ipfs(
-            self.period_state.train_hash,
-            training_data_path,
-            multiple=True,
-            filetype=SupportedFiletype.CSV,
-        )
+        self._y = self.load_split("train")
 
         if self._y is not None:
             optimize_task = OptimizeTask()
