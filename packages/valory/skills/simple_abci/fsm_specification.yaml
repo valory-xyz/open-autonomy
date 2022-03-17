@@ -1,0 +1,26 @@
+alphabet_in:
+- DONE
+- NO_MAJORITY
+- RESET_TIMEOUT
+- ROUND_TIMEOUT
+default_start_state: RegistrationRound
+final_states: []
+label: packages.valory.skills.simple_abci.rounds.SimpleAbciApp
+start_states:
+- RegistrationRound
+states:
+- RandomnessStartupRound
+- RegistrationRound
+- ResetAndPauseRound
+- SelectKeeperAtStartupRound
+transition_func:
+    (RandomnessStartupRound, DONE): SelectKeeperAtStartupRound
+    (RandomnessStartupRound, NO_MAJORITY): RandomnessStartupRound
+    (RandomnessStartupRound, ROUND_TIMEOUT): RandomnessStartupRound
+    (RegistrationRound, DONE): RandomnessStartupRound
+    (ResetAndPauseRound, DONE): RandomnessStartupRound
+    (ResetAndPauseRound, NO_MAJORITY): RegistrationRound
+    (ResetAndPauseRound, RESET_TIMEOUT): RegistrationRound
+    (SelectKeeperAtStartupRound, DONE): ResetAndPauseRound
+    (SelectKeeperAtStartupRound, NO_MAJORITY): RegistrationRound
+    (SelectKeeperAtStartupRound, ROUND_TIMEOUT): RegistrationRound

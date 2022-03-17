@@ -176,3 +176,161 @@ def is_retries_exceeded() -> bool
 
 Check if the retries amount has been exceeded.
 
+<a id="packages.valory.skills.abstract_round_abci.models.BenchmarkBlockTypes"></a>
+
+## BenchmarkBlockTypes Objects
+
+```python
+class BenchmarkBlockTypes()
+```
+
+Benchmark block types.
+
+<a id="packages.valory.skills.abstract_round_abci.models.BenchmarkBlock"></a>
+
+## BenchmarkBlock Objects
+
+```python
+class BenchmarkBlock()
+```
+
+Benchmark
+
+This class represents logic to measure the code block using a
+context manager.
+
+<a id="packages.valory.skills.abstract_round_abci.models.BenchmarkBlock.__init__"></a>
+
+#### `__`init`__`
+
+```python
+def __init__(block_type: str) -> None
+```
+
+Benchmark for single round.
+
+<a id="packages.valory.skills.abstract_round_abci.models.BenchmarkBlock.__enter__"></a>
+
+#### `__`enter`__`
+
+```python
+def __enter__() -> None
+```
+
+Enter context.
+
+<a id="packages.valory.skills.abstract_round_abci.models.BenchmarkBlock.__exit__"></a>
+
+#### `__`exit`__`
+
+```python
+def __exit__(*args: List, **kwargs: Dict) -> None
+```
+
+Exit context
+
+<a id="packages.valory.skills.abstract_round_abci.models.BenchmarkBehaviour"></a>
+
+## BenchmarkBehaviour Objects
+
+```python
+class BenchmarkBehaviour()
+```
+
+BenchmarkBehaviour
+
+This class represents logic to benchmark a single behaviour.
+
+<a id="packages.valory.skills.abstract_round_abci.models.BenchmarkBehaviour.__init__"></a>
+
+#### `__`init`__`
+
+```python
+def __init__() -> None
+```
+
+Initialize Benchmark behaviour object.
+
+<a id="packages.valory.skills.abstract_round_abci.models.BenchmarkBehaviour.local"></a>
+
+#### local
+
+```python
+def local() -> BenchmarkBlock
+```
+
+Measure local block.
+
+<a id="packages.valory.skills.abstract_round_abci.models.BenchmarkBehaviour.consensus"></a>
+
+#### consensus
+
+```python
+def consensus() -> BenchmarkBlock
+```
+
+Measure consensus block.
+
+<a id="packages.valory.skills.abstract_round_abci.models.BenchmarkTool"></a>
+
+## BenchmarkTool Objects
+
+```python
+class BenchmarkTool(Model)
+```
+
+BenchmarkTool
+
+Tool to benchmark ABCI apps.
+
+<a id="packages.valory.skills.abstract_round_abci.models.BenchmarkTool.__init__"></a>
+
+#### `__`init`__`
+
+```python
+def __init__(*args: Any, **kwargs: Any) -> None
+```
+
+Benchmark tool for rounds behaviours.
+
+<a id="packages.valory.skills.abstract_round_abci.models.BenchmarkTool.measure"></a>
+
+#### measure
+
+```python
+def measure(behaviour: str) -> BenchmarkBehaviour
+```
+
+Measure time to complete round.
+
+<a id="packages.valory.skills.abstract_round_abci.models.BenchmarkTool.data"></a>
+
+#### data
+
+```python
+@property
+def data() -> List
+```
+
+Returns formatted data.
+
+<a id="packages.valory.skills.abstract_round_abci.models.BenchmarkTool.save"></a>
+
+#### save
+
+```python
+def save(period: int = 0, reset: bool = True) -> None
+```
+
+Save logs to a file.
+
+<a id="packages.valory.skills.abstract_round_abci.models.BenchmarkTool.reset"></a>
+
+#### reset
+
+```python
+def reset() -> None
+```
+
+Reset benchmark data
+

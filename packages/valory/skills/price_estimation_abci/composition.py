@@ -39,6 +39,12 @@ from packages.valory.skills.registration_abci.rounds import (
     FinishedRegistrationRound,
     RegistrationRound,
 )
+from packages.valory.skills.reset_pause_abci.rounds import (
+    FinishedResetAndPauseErrorRound,
+    FinishedResetAndPauseRound,
+    ResetAndPauseRound,
+    ResetPauseABCIApp,
+)
 from packages.valory.skills.safe_deployment_abci.rounds import (
     FinishedSafeRound,
     RandomnessSafeRound,
@@ -58,8 +64,10 @@ abci_app_transition_mapping: AbciAppTransitionMapping = {
     FinishedOracleRound: CollectObservationRound,
     FinishedRegistrationFFWRound: CollectObservationRound,
     FinishedPriceAggregationRound: RandomnessTransactionSubmissionRound,
-    FinishedTransactionSubmissionRound: CollectObservationRound,
     FailedRound: RegistrationRound,
+    FinishedTransactionSubmissionRound: ResetAndPauseRound,
+    FinishedResetAndPauseRound: CollectObservationRound,
+    FinishedResetAndPauseErrorRound: RegistrationRound,
 }
 
 PriceEstimationAbciApp = chain(
@@ -69,6 +77,7 @@ PriceEstimationAbciApp = chain(
         OracleDeploymentAbciApp,
         PriceAggregationAbciApp,
         TransactionSubmissionAbciApp,
+        ResetPauseABCIApp,
     ),
     abci_app_transition_mapping,
 )

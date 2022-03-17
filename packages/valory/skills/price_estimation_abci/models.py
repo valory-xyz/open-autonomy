@@ -22,6 +22,9 @@
 from typing import Any
 
 from packages.valory.skills.abstract_round_abci.models import ApiSpecs
+from packages.valory.skills.abstract_round_abci.models import (
+    BenchmarkTool as BaseBenchmarkTool,
+)
 from packages.valory.skills.abstract_round_abci.models import Requests as BaseRequests
 from packages.valory.skills.abstract_round_abci.models import (
     SharedState as BaseSharedState,
@@ -32,6 +35,7 @@ from packages.valory.skills.price_estimation_abci.composition import (
     PriceEstimationAbciApp,
 )
 from packages.valory.skills.price_estimation_abci.rounds import Event
+from packages.valory.skills.reset_pause_abci.rounds import Event as ResetPauseEvent
 from packages.valory.skills.safe_deployment_abci.rounds import Event as SafeEvent
 from packages.valory.skills.transaction_settlement_abci.models import TransactionParams
 from packages.valory.skills.transaction_settlement_abci.rounds import Event as TSEvent
@@ -41,6 +45,7 @@ MARGIN = 5
 MULTIPLIER = 2
 
 Requests = BaseRequests
+BenchmarkTool = BaseBenchmarkTool
 
 
 class Params(OracleParams, TransactionParams):
@@ -79,6 +84,9 @@ class SharedState(BaseSharedState):
         PriceEstimationAbciApp.event_to_timeout[
             TSEvent.ROUND_TIMEOUT
         ] = self.context.params.round_timeout_seconds
+        PriceEstimationAbciApp.event_to_timeout[
+            ResetPauseEvent.ROUND_TIMEOUT
+        ] = self.context.params.round_timeout_seconds
         PriceEstimationAbciApp.event_to_timeout[TSEvent.RESET_TIMEOUT] = (
             self.context.params.round_timeout_seconds * MULTIPLIER
         )
@@ -100,9 +108,9 @@ class SharedState(BaseSharedState):
         PriceEstimationAbciApp.event_to_timeout[SafeEvent.DEPLOY_TIMEOUT] = (
             self.context.params.keeper_timeout + MARGIN
         )
-        PriceEstimationAbciApp.event_to_timeout[TSEvent.RESET_AND_PAUSE_TIMEOUT] = (
-            self.context.params.observation_interval + MARGIN
-        )
+        PriceEstimationAbciApp.event_to_timeout[
+            ResetPauseEvent.RESET_AND_PAUSE_TIMEOUT
+        ] = (self.context.params.observation_interval + MARGIN)
 
 
 class RandomnessApi(ApiSpecs):
