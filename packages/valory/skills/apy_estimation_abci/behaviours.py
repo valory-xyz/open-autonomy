@@ -27,7 +27,6 @@ from typing import (
     Dict,
     Generator,
     Iterator,
-    List,
     Optional,
     Set,
     Tuple,
@@ -50,7 +49,11 @@ from packages.valory.skills.abstract_round_abci.utils import BenchmarkTool, Veri
 from packages.valory.skills.apy_estimation_abci.composition import (
     APYEstimationAbciAppChained,
 )
-from packages.valory.skills.apy_estimation_abci.ml.forecasting import TestReportType
+from packages.valory.skills.apy_estimation_abci.ml.forecasting import (
+    PoolIdToForecasterType,
+    PoolIdToTrainDataType,
+    TestReportType,
+)
 from packages.valory.skills.apy_estimation_abci.ml.optimization import (
     PoolToHyperParamsType,
     PoolToHyperParamsWithStatusType,
@@ -127,6 +130,19 @@ class APYEstimationBaseState(BaseState, ABC):
     def params(self) -> APYParams:
         """Return the params."""
         return cast(APYParams, self.context.params)
+
+    def load_split(self, split: str) -> Optional[Dict[str, pd.DataFrame]]:
+        """Load a split of the data."""
+        split_path = os.path.join(
+            self.context.data_dir,
+            f"y_{split}",
+        )
+        return self.get_from_ipfs(
+            getattr(self.period_state, f"{split}_hash"),
+            split_path,
+            multiple=True,
+            filetype=SupportedFiletype.CSV,
+        )
 
 
 class FetchBehaviour(APYEstimationBaseState):
@@ -721,13 +737,7 @@ class OptimizeBehaviour(APYEstimationBaseState):
     def setup(self) -> None:
         """Setup behaviour."""
         # Load training data.
-        training_data_path = os.path.join(self.context.data_dir, "y_train")
-        self._y = self.get_from_ipfs(
-            self.period_state.train_hash,
-            training_data_path,
-            multiple=True,
-            filetype=SupportedFiletype.CSV,
-        )
+        self._y = self.load_split("train")
 
         if self._y is not None:
             optimize_task = OptimizeTask()
@@ -813,8 +823,8 @@ class TrainBehaviour(APYEstimationBaseState):
         """Initialize Behaviour."""
         super().__init__(**kwargs)
         self._async_result: Optional[AsyncResult] = None
-        self._best_params: Optional[Dict[str, Any]] = None
-        self._y: Optional[np.ndarray] = None
+        self._best_params: Optional[PoolToHyperParamsType] = None
+        self._y: Optional[PoolIdToTrainDataType] = None
         self._model_hash: Optional[str] = None
 
     def setup(self) -> None:
@@ -822,50 +832,36 @@ class TrainBehaviour(APYEstimationBaseState):
         # Load the best params from the optimization results.
         best_params_path = os.path.join(
             self.context.data_dir,
-            self.params.pair_ids[0],
+            "best_params",
         )
         self._best_params = self.get_from_ipfs(
             self.period_state.params_hash,
             best_params_path,
-            filename="best_params.json",
+            multiple=True,
             filetype=SupportedFiletype.JSON,
         )
 
-        # Load training data.
-        splits: Optional[List[np.ndarray]] = []
-        if self.period_state.full_training:
-            for split in ("train", "test"):
-                path = os.path.join(
-                    self.context.data_dir,
-                    self.params.pair_ids[0],
-                )
-                df = self.get_from_ipfs(
-                    getattr(self.period_state, f"{split}_hash"),
-                    path,
-                    filename=f"y_{split}.csv",
-                    filetype=SupportedFiletype.CSV,
-                )
-                if df is None:
-                    splits = None
-                    break
-                cast(List[np.ndarray], splits).append(df.values.ravel())
+        pool_to_train_data = self.load_split("train")
+        if pool_to_train_data is not None:
+            self._y = {
+                pool_id: pool_splits.values.ravel()
+                for pool_id, pool_splits in pool_to_train_data.items()
+            }
 
-            if splits is not None:
-                self._y = np.concatenate(splits)
-
-        else:
-            path = os.path.join(
-                self.context.data_dir,
-                self.params.pair_ids[0],
-            )
-            df = self.get_from_ipfs(
-                self.period_state.train_hash,
-                path,
-                filename="y_train.csv",
-                filetype=SupportedFiletype.CSV,
-            )
-            if df is not None:
-                self._y = df.values.ravel()
+        if self.period_state.full_training and self._y is not None:
+            pool_to_test_data = self.load_split("test")
+            if pool_to_test_data is None:  # pragma: nocover
+                self._y = None
+            else:
+                self._y.update(
+                    (
+                        pool_id,
+                        np.concatenate(
+                            (self._y[pool_id], pool_split_data.values.ravel())
+                        ),
+                    )
+                    for pool_id, pool_split_data in pool_to_test_data.items()
+                )
 
         if not any(arg is None for arg in (self._y, self._best_params)):
             train_task = TrainTask()
@@ -885,19 +881,21 @@ class TrainBehaviour(APYEstimationBaseState):
 
             # Get the trained estimator.
             completed_task = self._async_result.get()
-            forecaster = cast(Pipeline, completed_task)
+            forecasters = cast(PoolIdToForecasterType, completed_task)
             self.context.logger.info("Training has finished.")
 
             prefix = "fully_trained_" if self.period_state.full_training else ""
             forecaster_save_path = os.path.join(
                 self.context.data_dir,
-                self.params.pair_ids[0],
-                f"{prefix}forecaster.joblib",
+                f"{prefix}forecasters/",
             )
 
             # Send the file to IPFS and get its hash.
             self._model_hash = self.send_to_ipfs(
-                forecaster_save_path, forecaster, filetype=SupportedFiletype.PM_PIPELINE
+                forecaster_save_path,
+                forecasters,
+                multiple=True,
+                filetype=SupportedFiletype.PM_PIPELINE,
             )
 
         payload = TrainingPayload(self.context.agent_address, self._model_hash)

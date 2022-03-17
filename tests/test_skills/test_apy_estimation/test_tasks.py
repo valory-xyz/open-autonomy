@@ -98,7 +98,7 @@ class TestTrainTask:
     ) -> None:
         """Test the execute method."""
         monkeypatch.setattr(
-            "packages.valory.skills.apy_estimation_abci.tasks.train_forecaster",
+            "packages.valory.skills.apy_estimation_abci.tasks.train_forecaster_per_pool",
             no_action,
         )
         TrainTask().execute()

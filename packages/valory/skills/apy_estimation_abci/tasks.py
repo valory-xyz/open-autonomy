@@ -23,12 +23,12 @@ from typing import Any, Dict
 
 import pandas as pd
 from aea.skills.tasks import Task
-from pmdarima.pipeline import Pipeline
 
 from packages.valory.skills.apy_estimation_abci.ml.forecasting import (
+    PoolIdToForecasterType,
     TestReportType,
     test_forecaster,
-    train_forecaster,
+    train_forecaster_per_pool,
 )
 from packages.valory.skills.apy_estimation_abci.ml.optimization import (
     PoolToHyperParamsWithStatusType,
@@ -79,9 +79,9 @@ class OptimizeTask(Task):
 class TrainTask(Task):
     """Train a forecaster."""
 
-    def execute(self, *args: Any, **kwargs: Any) -> Pipeline:
+    def execute(self, *args: Any, **kwargs: Any) -> PoolIdToForecasterType:
         """Execute the task."""
-        return train_forecaster(*args, **kwargs)
+        return train_forecaster_per_pool(*args, **kwargs)
 
 
 class TestTask(Task):
