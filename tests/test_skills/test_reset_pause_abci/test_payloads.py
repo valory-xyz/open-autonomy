@@ -25,8 +25,8 @@ from packages.valory.skills.reset_pause_abci.payloads import (
 )
 
 
-def test_reset_payload() -> None:
-    """Test `ResetPayload`."""
+def test_reset_pause_payload() -> None:
+    """Test `ResetPausePayload`."""
 
     payload = ResetPausePayload(sender="sender", period_count=1)
 
