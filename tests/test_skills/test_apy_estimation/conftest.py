@@ -322,7 +322,7 @@ def train_task_result(observations: np.ndarray) -> Pipeline:
 
 
 @pytest.fixture
-def test_task_result() -> Dict[str, str]:
+def _test_task_result() -> Dict[str, str]:
     """Create a result of the `TestTask`.
 
     :return: a dummy `Task` Result.
@@ -331,7 +331,7 @@ def test_task_result() -> Dict[str, str]:
 
 
 @pytest.fixture
-def test_task_result_non_serializable() -> bytes:
+def _test_task_result_non_serializable() -> bytes:
     """Create a non-serializable result of the `TestTask`.
 
     :return: a dummy `Task` Result.

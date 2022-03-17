@@ -1495,7 +1495,7 @@ class TestTestBehaviour(APYEstimationFSMBehaviourBaseCase):
         monkeypatch: MonkeyPatch,
         tmp_path: PosixPath,
         ipfs_succeed: bool,
-        test_task_result: Dict[str, str],
+        _test_task_result: Dict[str, str],
     ) -> None:
         """Run test for `optimize_behaviour`."""
         self._fast_forward(tmp_path, ipfs_succeed)
@@ -1504,7 +1504,7 @@ class TestTestBehaviour(APYEstimationFSMBehaviourBaseCase):
         monkeypatch.setattr(
             TaskManager,
             "get_task_result",
-            lambda *_: DummyAsyncResult(test_task_result),
+            lambda *_: DummyAsyncResult(_test_task_result),
         )
 
         # test act.
