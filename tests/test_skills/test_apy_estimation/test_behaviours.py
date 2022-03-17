@@ -139,7 +139,7 @@ class APYEstimationFSMBehaviourBaseCase(FSMBehaviourBaseCase):
         cls.period_state = PeriodState(
             StateDB(
                 initial_period=0,
-                initial_data={"full_training": False, "pair_name": "test"},
+                initial_data={"full_training": False},
             )
         )
 
@@ -1644,7 +1644,7 @@ class TestEstimateBehaviour(APYEstimationFSMBehaviourBaseCase):
             PeriodState(
                 StateDB(
                     initial_period=0,
-                    initial_data=dict(pair_name="test", most_voted_model=hash_),
+                    initial_data=dict(most_voted_model=hash_),
                 )
             ),
         )
