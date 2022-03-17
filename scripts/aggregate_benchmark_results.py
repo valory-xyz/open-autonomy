@@ -17,7 +17,26 @@
 #
 # ------------------------------------------------------------------------------
 
-"""Script for aggregating results."""
+"""
+Script for aggregating results.
+
+To use this script you'll need benchmark data generated from agent runtime. To
+generate benchmark data run
+
+make run-oracle
+or
+make run-oracle-dev
+
+By default this will create a 4 agent runtime where you can wait until all 4 agents
+are at the end of the first period (you can wait for more periods if you want) and
+then you can stop the runtime. The data will be stored in deployments/build/logs
+folder. You can use this script to aggregate this data.
+
+python script/aggregate_benchmark_results.py -p deployments/build/logs
+
+By default script will generate output for all periods but you can specify which
+period to generate output for, same goes for block types as well.
+"""
 
 import json
 from pathlib import Path
