@@ -27,7 +27,6 @@ from unittest.mock import MagicMock
 
 import pytest
 from _pytest.monkeypatch import MonkeyPatch
-from aea.exceptions import AEAActException
 from aea.helpers.transaction.base import (
     RawTransaction,
     SignedMessage,
@@ -93,7 +92,7 @@ class TransactionSettlementFSMBehaviourBaseCase(FSMBehaviourBaseCase):
     )
 
 
-class TestTransactionSettlementBaseState(PriceEstimationFSMBehaviourBaseCase):
+class TestTransactionSettlementBaseState(TransactionSettlementFSMBehaviourBaseCase):
     """Test `TransactionSettlementBaseState`."""
 
     @pytest.mark.parametrize(
