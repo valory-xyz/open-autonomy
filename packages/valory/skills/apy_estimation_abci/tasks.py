@@ -69,7 +69,7 @@ class PrepareBatchTask(Task):
 
 
 class OptimizeTask(Task):
-    """Run an optimization study."""
+    """Run an optimization study per pool."""
 
     def execute(self, *args: Any, **kwargs: Any) -> PoolToHyperParamsWithStatusType:
         """Execute the task."""
@@ -77,7 +77,7 @@ class OptimizeTask(Task):
 
 
 class TrainTask(Task):
-    """Train a forecaster."""
+    """Train forecasters."""
 
     def execute(self, *args: Any, **kwargs: Any) -> PoolIdToForecasterType:
         """Execute the task."""
