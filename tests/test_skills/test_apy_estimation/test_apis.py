@@ -52,7 +52,10 @@ def make_request(api_specs: Dict, query: str) -> requests.Response:
         if r.status_code == 200:
             res = r.json()
 
-            if "errors" in res.keys():
+            if (
+                "errors" in res.keys()
+                and res["errors"][0].get("locations", None) is not None
+            ):
                 message = res["errors"][0]["message"]
                 location = res["errors"][0]["locations"][0]
                 line = location["line"]
@@ -62,7 +65,7 @@ def make_request(api_specs: Dict, query: str) -> requests.Response:
                     f"The given query is not correct.\nError in line {line}, column {column}: {message}"
                 )
 
-            elif "data" not in res.keys():
+            elif "errors" in res.keys() or "data" not in res.keys():
                 raise ValueError(f"Unknown error encountered!\nRaw response: {res}")
 
         else:
