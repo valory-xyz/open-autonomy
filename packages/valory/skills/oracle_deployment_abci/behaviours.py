@@ -153,7 +153,7 @@ class DeployOracleBehaviour(OracleDeploymentBaseState):
         ):  # pragma: nocover
             self.context.logger.warning("get_deploy_transaction unsuccessful!")
             return None
-        tx_digest = yield from self.send_raw_transaction(
+        tx_digest, _ = yield from self.send_raw_transaction(
             contract_api_response.raw_transaction
         )
         if tx_digest is None:  # pragma: nocover

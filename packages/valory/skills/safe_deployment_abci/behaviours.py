@@ -143,7 +143,7 @@ class DeploySafeBehaviour(SafeDeploymentBaseState):
         contract_address = cast(
             str, contract_api_response.raw_transaction.body.pop("contract_address")
         )
-        tx_digest = yield from self.send_raw_transaction(
+        tx_digest, _ = yield from self.send_raw_transaction(
             contract_api_response.raw_transaction
         )
         if tx_digest is None:  # pragma: nocover

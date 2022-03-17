@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021 Valory AG
+#   Copyright 2021-2022 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -301,25 +301,28 @@ class LedgerApiRequestDispatcher(RequestDispatcher):
         :param dialogue: the Ledger API dialogue
         :return: response Ledger API message
         """
-        transaction_digest = api.send_signed_transaction(
-            message.signed_transaction.body
-        )
+        try:
+            transaction_digest = api.send_signed_transaction(
+                message.signed_transaction.body, raise_on_try=True
+            )
+        except Exception as e:  # pylint: disable=broad-except
+            return self.get_error_message(e, api, message, dialogue)
+
         if transaction_digest is None:  # pragma: nocover
-            response = self.get_error_message(
+            return self.get_error_message(
                 ValueError("No transaction_digest returned"), api, message, dialogue
             )
-        else:
-            response = cast(
-                LedgerApiMessage,
-                dialogue.reply(
-                    performative=LedgerApiMessage.Performative.TRANSACTION_DIGEST,
-                    target_message=message,
-                    transaction_digest=TransactionDigest(
-                        message.signed_transaction.ledger_id, transaction_digest
-                    ),
+
+        return cast(
+            LedgerApiMessage,
+            dialogue.reply(
+                performative=LedgerApiMessage.Performative.TRANSACTION_DIGEST,
+                target_message=message,
+                transaction_digest=TransactionDigest(
+                    message.signed_transaction.ledger_id, transaction_digest
                 ),
-            )
-        return response
+            ),
+        )
 
     def get_error_message(
         self,

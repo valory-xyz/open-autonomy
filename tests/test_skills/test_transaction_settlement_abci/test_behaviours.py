@@ -21,11 +21,12 @@
 
 import time
 from pathlib import Path
-from typing import Dict, Generator, List, Optional, Type, Union, cast
+from typing import Any, Dict, Generator, List, Optional, Tuple, Type, Union, cast
 from unittest import mock
 from unittest.mock import MagicMock
 
 import pytest
+from _pytest.monkeypatch import MonkeyPatch
 from aea.helpers.transaction.base import (
     RawTransaction,
     SignedMessage,
@@ -44,6 +45,7 @@ from packages.valory.protocols.ledger_api.message import LedgerApiMessage
 from packages.valory.skills.abstract_round_abci.base import StateDB
 from packages.valory.skills.abstract_round_abci.behaviour_utils import (
     BaseState,
+    RPCResponseStatus,
     make_degenerate_state,
 )
 from packages.valory.skills.transaction_settlement_abci.behaviours import (
@@ -80,6 +82,9 @@ from tests.test_skills.test_abstract_round_abci.test_common import (
     BaseRandomnessBehaviourTest,
     BaseSelectKeeperBehaviourTest,
 )
+from tests.test_skills.test_price_estimation_abci.test_behaviours import (
+    PriceEstimationFSMBehaviourBaseCase,
+)
 
 
 class TransactionSettlementFSMBehaviourBaseCase(FSMBehaviourBaseCase):
@@ -88,6 +93,155 @@ class TransactionSettlementFSMBehaviourBaseCase(FSMBehaviourBaseCase):
     path_to_skill = Path(
         ROOT_DIR, "packages", "valory", "skills", "transaction_settlement_abci"
     )
+
+
+class TestTransactionSettlementBaseState(PriceEstimationFSMBehaviourBaseCase):
+    """Test `TransactionSettlementBaseState`."""
+
+    @pytest.mark.parametrize(
+        "message, tx_digest, rpc_status, expected_data",
+        (
+            (
+                MagicMock(
+                    performative=ContractApiMessage.Performative.ERROR, message="GS026"
+                ),
+                None,
+                RPCResponseStatus.SUCCESS,
+                {
+                    "status": VerificationStatus.VERIFIED,
+                    "tx_digest": "",
+                    "nonce": "",
+                    "max_priority_fee_per_gas": "",
+                },
+            ),
+            (
+                MagicMock(
+                    performative=ContractApiMessage.Performative.ERROR, message="test"
+                ),
+                None,
+                RPCResponseStatus.SUCCESS,
+                {
+                    "status": VerificationStatus.ERROR,
+                    "tx_digest": "",
+                    "nonce": "",
+                    "max_priority_fee_per_gas": "",
+                },
+            ),
+            (
+                MagicMock(performative=ContractApiMessage.Performative.RAW_MESSAGE),
+                None,
+                RPCResponseStatus.SUCCESS,
+                {
+                    "status": VerificationStatus.PENDING,
+                    "tx_digest": "",
+                    "nonce": "",
+                    "max_priority_fee_per_gas": "",
+                },
+            ),
+            (
+                MagicMock(performative=ContractApiMessage.Performative.RAW_TRANSACTION),
+                None,
+                RPCResponseStatus.INCORRECT_NONCE,
+                {
+                    "status": VerificationStatus.ERROR,
+                    "tx_digest": "",
+                    "nonce": "",
+                    "max_priority_fee_per_gas": "",
+                },
+            ),
+            (
+                MagicMock(performative=ContractApiMessage.Performative.RAW_TRANSACTION),
+                None,
+                RPCResponseStatus.UNCLASSIFIED_ERROR,
+                {
+                    "status": VerificationStatus.PENDING,
+                    "tx_digest": "",
+                    "nonce": "",
+                    "max_priority_fee_per_gas": "",
+                },
+            ),
+            (
+                MagicMock(performative=ContractApiMessage.Performative.RAW_TRANSACTION),
+                None,
+                RPCResponseStatus.UNDERPRICED,
+                {
+                    "status": VerificationStatus.PENDING,
+                    "tx_digest": "",
+                    "nonce": "",
+                    "max_priority_fee_per_gas": "",
+                },
+            ),
+            (
+                MagicMock(
+                    performative=ContractApiMessage.Performative.RAW_TRANSACTION,
+                    raw_transaction=MagicMock(
+                        body={"nonce": 0, "maxPriorityFeePerGas": 10}
+                    ),
+                ),
+                "test_digest",
+                RPCResponseStatus.SUCCESS,
+                {
+                    "status": VerificationStatus.PENDING,
+                    "tx_digest": "test_digest",
+                    "nonce": 0,
+                    "max_priority_fee_per_gas": 10,
+                },
+            ),
+        ),
+    )
+    def test__get_tx_data(
+        self,
+        message: ContractApiMessage,
+        tx_digest: Optional[str],
+        rpc_status: RPCResponseStatus,
+        expected_data: TxDataType,
+        monkeypatch: MonkeyPatch,
+    ) -> None:
+        """Test `_get_tx_data`."""
+        # fast-forward to any state of the tx settlement skill
+        self.fast_forward_to_state(
+            behaviour=self.behaviour,
+            state_id=SignatureBehaviour.state_id,
+            period_state=TransactionSettlementPeriodState(
+                StateDB(
+                    initial_period=0,
+                    initial_data=dict(
+                        most_voted_tx_hash="b0e6add595e00477cf347d09797b156719dc5233283ac76e4efce2a674fe72d900000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000002625a000x77E9b2EF921253A171Fa0CB9ba80558648Ff7215b0e6add595e00477cf347d09797b156719dc5233283ac76e4efce2a674fe72d9b0e6add595e00477cf347d09797b156719dc5233283ac76e4efce2a674fe72d9"
+                    ),
+                )
+            ),
+        )
+        assert (
+            cast(
+                BaseState,
+                cast(BaseState, self.behaviour.current_state),
+            ).state_id
+            == SignatureBehaviour.state_id
+        )
+
+        # patch the `send_raw_transaction` method
+        def dummy_send_raw_transaction(
+            *_: Any,
+        ) -> Generator[None, None, Tuple[Optional[str], RPCResponseStatus]]:
+            """Dummy `send_raw_transaction` method."""
+            yield
+            return tx_digest, rpc_status
+
+        monkeypatch.setattr(
+            BaseState, "send_raw_transaction", dummy_send_raw_transaction
+        )
+        # call `_get_tx_data`
+        tx_data_iterator = cast(
+            TransactionSettlementBaseState, self.behaviour.current_state
+        )._get_tx_data(message)
+
+        if message.performative == ContractApiMessage.Performative.RAW_TRANSACTION:
+            next(tx_data_iterator)
+
+        try:
+            next(tx_data_iterator)
+        except StopIteration as res:
+            assert res.value == expected_data
 
 
 class TestRandomnessInOperation(BaseRandomnessBehaviourTest):
@@ -480,7 +634,6 @@ class TestValidateTransactionBehaviour(TransactionSettlementFSMBehaviourBaseCase
         self._fast_forward()
 
         with mock.patch.object(self.behaviour.context.logger, "error") as mock_logger:
-
             self.behaviour.act_wrapper()
             self.mock_ledger_api_request(
                 request_kwargs=dict(
@@ -642,7 +795,9 @@ class TestSynchronizeLateMessagesBehaviour(TransactionSettlementFSMBehaviourBase
                     "max_priority_fee_per_gas": 0,
                 }
 
-            cast(TransactionSettlementBaseState, self.behaviour.current_state)._get_tx_data = _dummy_get_tx_data  # type: ignore
+            cast(  # type: ignore
+                TransactionSettlementBaseState, self.behaviour.current_state
+            )._get_tx_data = _dummy_get_tx_data  # type: ignore
             self.behaviour.act_wrapper()
             self.behaviour.act_wrapper()
 
