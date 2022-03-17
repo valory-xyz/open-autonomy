@@ -1265,23 +1265,28 @@ class TestTrainBehaviour(APYEstimationFSMBehaviourBaseCase):
     ) -> None:
         """Setup `TestTrainBehaviour`."""
         # Set data directory to a temporary path for tests.
-        self.behaviour.context._agent_context._data_dir = tmp_path.parts[0]  # type: ignore
-        cast(OptimizeBehaviour, self.behaviour.current_state).params.pair_ids[
-            0
-        ] = os.path.join(*tmp_path.parts[1:])
+        self.behaviour.context._agent_context._data_dir = tmp_path  # type: ignore
 
         # Create a dictionary with all the dummy data to send to IPFS.
         data_to_send = {
             "params": {
-                "filepath": os.path.join(tmp_path, "best_params.json"),
-                "obj": {"p": 1, "q": 1, "d": 1, "m": 1},
+                "filepath": os.path.join(tmp_path, "best_params/"),
+                "obj": {
+                    "pool1.json": {"p": 1, "q": 1, "d": 1, "m": 1},
+                    "pool2.json": {"p": 2, "q": 2, "d": 1, "m": 1},
+                },
+                "multiple": True,
                 "filetype": SupportedFiletype.JSON,
             }
         }
         for split in ("train", "test"):
             data_to_send[split] = {
-                "filepath": os.path.join(tmp_path, f"y_{split}.csv"),
-                "obj": pd.DataFrame([i for i in range(5)]),
+                "filepath": os.path.join(tmp_path, f"y_{split}/"),
+                "obj": {
+                    f"pool{i}.csv": pd.DataFrame([i for i in range(5)])
+                    for i in range(3)
+                },
+                "multiple": True,
                 "filetype": SupportedFiletype.CSV,
             }
 
@@ -1293,7 +1298,7 @@ class TestTrainBehaviour(APYEstimationFSMBehaviourBaseCase):
                     BaseState, self.behaviour.current_state
                 ).send_to_ipfs(**item_args)
         else:
-            hashes = {item_name: "test" for item_name, _ in data_to_send.items()}
+            hashes = {item_name: "non_existing" for item_name in data_to_send.keys()}
 
         # fast-forward to the `TrainBehaviour` state.
         self.fast_forward_to_state(
@@ -1333,7 +1338,16 @@ class TestTrainBehaviour(APYEstimationFSMBehaviourBaseCase):
         monkeypatch.setattr(TaskManager, "enqueue_task", lambda *_, **__: 0)
         monkeypatch.setattr(TaskManager, "get_task_result", lambda *_: no_action)
 
-        cast(APYEstimationBaseState, self.behaviour.current_state).setup()
+        current_state = cast(TrainBehaviour, self.behaviour.current_state)
+        current_state.setup()
+        if ipfs_succeed:
+            assert not any(
+                arg is None for arg in (current_state._y, current_state._best_params)
+            )
+        else:
+            assert all(
+                arg is None for arg in (current_state._y, current_state._best_params)
+            )
 
     def test_task_not_ready(
         self,
