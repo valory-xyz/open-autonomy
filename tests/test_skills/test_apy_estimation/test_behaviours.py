@@ -889,7 +889,7 @@ class TestPrepareBatchBehaviour(APYEstimationFSMBehaviourBaseCase):
         prepare_batch_task_result: Dict[str, pd.DataFrame],
         ipfs_succeed: bool,
     ) -> None:
-        """Run test for `preprocess_behaviour`."""
+        """Run test for `prepare_behaviour`."""
         self._fast_forward(
             tmp_path,
             transformed_historical_data_no_datetime_conversion,
@@ -1380,7 +1380,7 @@ class TestTrainBehaviour(APYEstimationFSMBehaviourBaseCase):
         train_task_result: Pipeline,
         ipfs_succeed: bool,
     ) -> None:
-        """Run test for `optimize_behaviour`."""
+        """Run test for `train_behaviour`."""
         self._fast_forward(tmp_path, ipfs_succeed)
 
         monkeypatch.setattr(TaskManager, "enqueue_task", lambda *_, **__: 3)
