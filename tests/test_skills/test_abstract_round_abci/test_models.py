@@ -18,8 +18,13 @@
 # ------------------------------------------------------------------------------
 
 """Test the models.py module of the skill."""
+import json
+import logging
 from enum import Enum
-from typing import Any, Optional, Tuple
+from pathlib import Path
+from tempfile import TemporaryDirectory
+from time import sleep
+from typing import Any, List, Optional, Tuple
 from unittest import mock
 from unittest.mock import MagicMock
 
@@ -34,6 +39,7 @@ from packages.valory.skills.abstract_round_abci.base import (
 from packages.valory.skills.abstract_round_abci.models import (
     ApiSpecs,
     BaseParams,
+    BenchmarkTool,
     NUMBER_OF_RETRIES,
     Requests,
     SharedState,
@@ -254,6 +260,51 @@ class TestSharedState:
         """Test '_process_abci_app_cls', positive case."""
 
         SharedState._process_abci_app_cls(AbciAppTest)
+
+
+class TestBenchmarkTool:
+    """Test BenchmarkTool"""
+
+    @staticmethod
+    def _check_behaviour_data(data: List, agent_name: str) -> None:
+        """Check behaviour data."""
+        assert len(data) == 1
+
+        (behaviour_data,) = data
+        assert behaviour_data["behaviour"] == agent_name
+        assert all(
+            [key in behaviour_data["data"] for key in ("local", "consensus", "total")]
+        )
+
+    def test_end_2_end(self) -> None:
+        """Test end 2 end of the tool."""
+
+        agent_name = "agent"
+        skill_context = MagicMock(
+            agent_address=agent_name, logger=MagicMock(info=logging.info)
+        )
+
+        with TemporaryDirectory() as temp_dir:
+            benchmark = BenchmarkTool(
+                name=agent_name, skill_context=skill_context, log_dir=temp_dir
+            )
+
+            with benchmark.measure(agent_name).local():
+                sleep(1.0)
+
+            with benchmark.measure(agent_name).consensus():
+                sleep(1.0)
+
+            self._check_behaviour_data(benchmark.data, agent_name)
+
+            benchmark.save()
+
+            benchmark_dir = Path(temp_dir, agent_name)
+            benchmark_file = benchmark_dir / "0.json"
+            assert (benchmark_file).is_file()
+
+            behaviour_data = json.loads(benchmark_file.read_text())
+            self._check_behaviour_data(behaviour_data, agent_name)
 
 
 def test_requests_model_initialization() -> None:

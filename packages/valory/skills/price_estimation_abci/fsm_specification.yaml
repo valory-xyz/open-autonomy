@@ -1,0 +1,27 @@
+alphabet_in:
+- DONE
+- NONE
+- NO_MAJORITY
+- ROUND_TIMEOUT
+default_start_state: CollectObservationRound
+final_states:
+- FinishedPriceAggregationRound
+label: packages.valory.skills.price_estimation_abci.rounds.PriceAggregationAbciApp
+start_states:
+- CollectObservationRound
+states:
+- CollectObservationRound
+- EstimateConsensusRound
+- FinishedPriceAggregationRound
+- TxHashRound
+transition_func:
+    (CollectObservationRound, DONE): EstimateConsensusRound
+    (CollectObservationRound, NO_MAJORITY): CollectObservationRound
+    (CollectObservationRound, ROUND_TIMEOUT): CollectObservationRound
+    (EstimateConsensusRound, DONE): TxHashRound
+    (EstimateConsensusRound, NO_MAJORITY): CollectObservationRound
+    (EstimateConsensusRound, ROUND_TIMEOUT): CollectObservationRound
+    (TxHashRound, DONE): FinishedPriceAggregationRound
+    (TxHashRound, NONE): CollectObservationRound
+    (TxHashRound, NO_MAJORITY): CollectObservationRound
+    (TxHashRound, ROUND_TIMEOUT): CollectObservationRound

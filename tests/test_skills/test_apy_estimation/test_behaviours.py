@@ -45,8 +45,7 @@ from packages.valory.protocols.abci import AbciMessage  # noqa: F401
 from packages.valory.skills.abstract_round_abci.base import AbciApp, StateDB
 from packages.valory.skills.abstract_round_abci.behaviour_utils import BaseState
 from packages.valory.skills.abstract_round_abci.io.store import SupportedFiletype
-from packages.valory.skills.abstract_round_abci.models import ApiSpecs
-from packages.valory.skills.abstract_round_abci.utils import BenchmarkTool
+from packages.valory.skills.abstract_round_abci.models import ApiSpecs, BenchmarkTool
 from packages.valory.skills.apy_estimation_abci.behaviours import (
     APYEstimationBaseState,
     APYEstimationConsensusBehaviour,

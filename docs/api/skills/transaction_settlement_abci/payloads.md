@@ -390,7 +390,7 @@ Represent a transaction payload of type 'reset'.
 def __init__(sender: str, period_count: int, **kwargs: Any) -> None
 ```
 
-Initialize an 'rest' transaction payload.
+Initialize an 'reset' transaction payload.
 
 **Arguments**:
 

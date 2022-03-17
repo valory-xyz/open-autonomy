@@ -186,13 +186,3 @@ class PriceEstimationConsensusBehaviour(AbstractRoundBehaviour)
 
 This behaviour manages the consensus stages for the price estimation.
 
-<a id="packages.valory.skills.price_estimation_abci.behaviours.PriceEstimationConsensusBehaviour.setup"></a>
-
-#### setup
-
-```python
-def setup() -> None
-```
-
-Set up the behaviour.
-

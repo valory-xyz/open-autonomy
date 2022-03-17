@@ -54,3 +54,13 @@ def reset_tx_params() -> None
 
 Reset the transaction-related parameters.
 
+<a id="packages.valory.skills.transaction_settlement_abci.models.RandomnessApi"></a>
+
+## RandomnessApi Objects
+
+```python
+class RandomnessApi(ApiSpecs)
+```
+
+A model that wraps ApiSpecs for randomness api specifications.
+
