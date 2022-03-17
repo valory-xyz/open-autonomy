@@ -113,7 +113,7 @@ class IPFSInteract:
 
         try:
             self.__ipfs_tool.download(hash_, target_dir)
-        except (DownloadError, ErrorResponse) as e:  # pragma: no cover
+        except (DownloadError, PermissionError, ErrorResponse) as e:  # pragma: no cover
             raise IPFSInteractionError(str(e)) from e
 
         return filepath
