@@ -113,7 +113,7 @@ class TestTestTask:
     ) -> None:
         """Test the execute method."""
         monkeypatch.setattr(
-            "packages.valory.skills.apy_estimation_abci.tasks.test_forecaster",
+            "packages.valory.skills.apy_estimation_abci.tasks.test_forecaster_per_pool",
             no_action,
         )
         _TestTask().execute()

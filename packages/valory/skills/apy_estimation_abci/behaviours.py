@@ -19,6 +19,7 @@
 
 """This module contains the behaviours for the APY estimation skill."""
 import calendar
+import json
 import os
 from abc import ABC
 from multiprocessing.pool import AsyncResult
@@ -51,8 +52,8 @@ from packages.valory.skills.apy_estimation_abci.composition import (
 )
 from packages.valory.skills.apy_estimation_abci.ml.forecasting import (
     PoolIdToForecasterType,
+    PoolIdToTestReportType,
     PoolIdToTrainDataType,
-    TestReportType,
 )
 from packages.valory.skills.apy_estimation_abci.ml.optimization import (
     PoolToHyperParamsType,
@@ -918,57 +919,56 @@ class TestBehaviour(APYEstimationBaseState):
         """Initialize Behaviour."""
         super().__init__(**kwargs)
         self._async_result: Optional[AsyncResult] = None
-        self._y_train: Optional[np.ndarray] = None
-        self._y_test: Optional[np.ndarray] = None
-        self._forecaster: Optional[Pipeline] = None
+        self._y_train: Optional[PoolIdToTrainDataType] = None
+        self._y_test: Optional[PoolIdToTrainDataType] = None
+        self._forecasters: Optional[PoolIdToForecasterType] = None
         self._report_hash: Optional[str] = None
 
     def setup(self) -> None:
         """Setup behaviour."""
         # Load data.
         for split in ("train", "test"):
-            path = os.path.join(
-                self.context.data_dir,
-                self.params.pair_ids[0],
-            )
-            df = self.get_from_ipfs(
-                getattr(self.period_state, f"{split}_hash"),
-                path,
-                filename=f"y_{split}.csv",
-                filetype=SupportedFiletype.CSV,
-            )
-            if df is not None:
-                setattr(self, f"_y_{split}", df.values.ravel())
+            y = self.load_split(split)
+            if y is not None:
+                setattr(
+                    self,
+                    f"_y_{split}",
+                    {
+                        pool_id: pool_splits.values.ravel()
+                        for pool_id, pool_splits in y.items()
+                    },
+                )
 
-        model_path = os.path.join(
+        models_path = os.path.join(
             self.context.data_dir,
-            self.params.pair_ids[0],
+            "forecasters",
         )
 
-        self._forecaster = self.get_from_ipfs(
+        self._forecasters = self.get_from_ipfs(
             self.period_state.model_hash,
-            model_path,
-            filename="forecaster.joblib",
+            models_path,
+            multiple=True,
             filetype=SupportedFiletype.PM_PIPELINE,
         )
 
         if not any(
-            arg is None for arg in (self._y_train, self._y_test, self._forecaster)
+            arg is None for arg in (self._y_train, self._y_test, self._forecasters)
         ):
             test_task = TestTask()
             task_args = (
-                self._forecaster,
+                self._forecasters,
                 self._y_train,
                 self._y_test,
-                self.params.testing["steps_forward"],
             )
-            task_id = self.context.task_manager.enqueue_task(test_task, task_args)
+            task_id = self.context.task_manager.enqueue_task(
+                test_task, task_args, self.params.testing
+            )
             self._async_result = self.context.task_manager.get_task_result(task_id)
 
     def async_act(self) -> Generator:
         """Do the action."""
         if not any(
-            arg is None for arg in (self._y_train, self._y_test, self._forecaster)
+            arg is None for arg in (self._y_train, self._y_test, self._forecasters)
         ):
             self._async_result = cast(AsyncResult, self._async_result)
             if not self._async_result.ready():
@@ -978,18 +978,20 @@ class TestBehaviour(APYEstimationBaseState):
 
             # Get the test report.
             completed_task = self._async_result.get()
-            report = cast(TestReportType, completed_task)
-            self.context.logger.info(f"Testing has finished. Report follows:\n{report}")
+            report = cast(PoolIdToTestReportType, completed_task)
+            self.context.logger.info(
+                "Testing has finished. Report follows:\n"
+                f"{json.dumps(report, sort_keys=False, indent=4)}"
+            )
 
             # Store the results.
             report_save_path = os.path.join(
                 self.context.data_dir,
-                self.params.pair_ids[0],
-                "test_report.json",
+                "reports/",
             )
             # Send the file to IPFS and get its hash.
             self._report_hash = self.send_to_ipfs(
-                report_save_path, report, filetype=SupportedFiletype.JSON
+                report_save_path, report, multiple=True, filetype=SupportedFiletype.JSON
             )
 
         # Pass the hash and the best trial as a Payload.

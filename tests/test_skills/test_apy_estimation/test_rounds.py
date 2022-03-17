@@ -547,7 +547,6 @@ class TestCycleResetRound(BaseCollectSameUntilThresholdRoundTest):
                 state_update_fn=lambda _period_state, _test_round: _period_state.update(
                     period_count=_test_round.most_voted_payload,
                     most_voted_model="",
-                    pair_name="",
                     full_training=False,
                     n_estimations=1,
                     latest_observation_hist_hash="x0",
@@ -585,7 +584,6 @@ class TestFreshModelResetRound(BaseCollectSameUntilThresholdRoundTest):
                 state_update_fn=lambda _period_state, _test_round: _period_state.update(
                     period_count=_test_round.most_voted_payload,
                     most_voted_model="",
-                    pair_name="",
                     full_training=False,
                     n_estimations=1,
                     participants=get_participants(),

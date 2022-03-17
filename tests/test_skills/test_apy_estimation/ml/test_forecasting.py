@@ -36,6 +36,9 @@ from packages.valory.skills.apy_estimation_abci.ml.forecasting import (
     test_forecaster as _test_forecaster,
 )
 from packages.valory.skills.apy_estimation_abci.ml.forecasting import (
+    test_forecaster_per_pool as _test_forecaster_per_pool,
+)
+from packages.valory.skills.apy_estimation_abci.ml.forecasting import (
     train_forecaster,
     train_forecaster_per_pool,
     walk_forward_test,
@@ -188,6 +191,20 @@ class TestForecasting:
         assert isinstance(predictions, np.ndarray)
 
         assert len(predictions) == 8
+
+    def test_test_forecaster_per_pool(
+        self,
+        train_task_input: PoolIdToTrainDataType,
+        trained_forecaster: Pipeline,
+        monkeypatch: MonkeyPatch,
+    ) -> None:
+        """Test `_test_forecaster_per_pool`."""
+        monkeypatch.setattr(
+            "packages.valory.skills.apy_estimation_abci.ml.forecasting.test_forecaster",
+            lambda forecaster_, y_train_, y_test_, pair_name, _: {pair_name: "test"},
+        )
+        dummy_forecasters = {id_: trained_forecaster for id_ in train_task_input.keys()}
+        _test_forecaster_per_pool(dummy_forecasters, train_task_input, train_task_input)
 
     def test_test_forecaster(self, monkeypatch: MonkeyPatch) -> None:
         """Test `test_forecaster`."""

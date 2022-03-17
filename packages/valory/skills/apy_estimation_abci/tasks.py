@@ -26,8 +26,8 @@ from aea.skills.tasks import Task
 
 from packages.valory.skills.apy_estimation_abci.ml.forecasting import (
     PoolIdToForecasterType,
-    TestReportType,
-    test_forecaster,
+    PoolIdToTestReportType,
+    test_forecaster_per_pool,
     train_forecaster_per_pool,
 )
 from packages.valory.skills.apy_estimation_abci.ml.optimization import (
@@ -69,7 +69,7 @@ class PrepareBatchTask(Task):
 
 
 class OptimizeTask(Task):
-    """Run an optimization study."""
+    """Run an optimization study per pool."""
 
     def execute(self, *args: Any, **kwargs: Any) -> PoolToHyperParamsWithStatusType:
         """Execute the task."""
@@ -77,7 +77,7 @@ class OptimizeTask(Task):
 
 
 class TrainTask(Task):
-    """Train a forecaster."""
+    """Train forecasters."""
 
     def execute(self, *args: Any, **kwargs: Any) -> PoolIdToForecasterType:
         """Execute the task."""
@@ -85,8 +85,8 @@ class TrainTask(Task):
 
 
 class TestTask(Task):
-    """Test a forecaster."""
+    """Test forecasters."""
 
-    def execute(self, *args: Any, **kwargs: Any) -> TestReportType:
+    def execute(self, *args: Any, **kwargs: Any) -> PoolIdToTestReportType:
         """Execute the task."""
-        return test_forecaster(*args, **kwargs)
+        return test_forecaster_per_pool(*args, **kwargs)

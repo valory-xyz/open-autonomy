@@ -71,6 +71,9 @@ from packages.valory.skills.apy_estimation_abci.behaviours import (
     TransformBehaviour,
     UpdateForecasterBehaviour,
 )
+from packages.valory.skills.apy_estimation_abci.ml.forecasting import (
+    PoolIdToTestReportType,
+)
 from packages.valory.skills.apy_estimation_abci.ml.optimization import (
     PoolToHyperParamsWithStatusType,
 )
@@ -139,7 +142,7 @@ class APYEstimationFSMBehaviourBaseCase(FSMBehaviourBaseCase):
         cls.period_state = PeriodState(
             StateDB(
                 initial_period=0,
-                initial_data={"full_training": False, "pair_name": "test"},
+                initial_data={"full_training": False},
             )
         )
 
@@ -889,7 +892,7 @@ class TestPrepareBatchBehaviour(APYEstimationFSMBehaviourBaseCase):
         prepare_batch_task_result: Dict[str, pd.DataFrame],
         ipfs_succeed: bool,
     ) -> None:
-        """Run test for `preprocess_behaviour`."""
+        """Run test for `prepare_behaviour`."""
         self._fast_forward(
             tmp_path,
             transformed_historical_data_no_datetime_conversion,
@@ -1380,7 +1383,7 @@ class TestTrainBehaviour(APYEstimationFSMBehaviourBaseCase):
         train_task_result: Pipeline,
         ipfs_succeed: bool,
     ) -> None:
-        """Run test for `optimize_behaviour`."""
+        """Run test for `train_behaviour`."""
         self._fast_forward(tmp_path, ipfs_succeed)
 
         monkeypatch.setattr(TaskManager, "enqueue_task", lambda *_, **__: 3)
@@ -1413,23 +1416,25 @@ class TestTestBehaviour(APYEstimationFSMBehaviourBaseCase):
     ) -> None:
         """Setup `TestTrainBehaviour`."""
         # Set data directory to a temporary path for tests.
-        self.behaviour.context._agent_context._data_dir = tmp_path.parts[0]  # type: ignore
-        cast(OptimizeBehaviour, self.behaviour.current_state).params.pair_ids[
-            0
-        ] = os.path.join(*tmp_path.parts[1:])
+        self.behaviour.context._agent_context._data_dir = tmp_path  # type: ignore
 
         # Create a dictionary with all the dummy data to send to IPFS.
         data_to_send = {
             "model": {
-                "filepath": os.path.join(tmp_path, "forecaster.joblib"),
-                "obj": DummyPipeline(),
+                "filepath": os.path.join(tmp_path, "forecasters/"),
+                "obj": {f"pool{i}.joblib": DummyPipeline() for i in range(3)},
+                "multiple": True,
                 "filetype": SupportedFiletype.PM_PIPELINE,
             }
         }
         for split in ("train", "test"):
             data_to_send[split] = {
-                "filepath": os.path.join(tmp_path, f"y_{split}.csv"),
-                "obj": pd.DataFrame([i for i in range(5)]),
+                "filepath": os.path.join(tmp_path, f"y_{split}/"),
+                "obj": {
+                    f"pool{i}.csv": pd.DataFrame([i for i in range(5)])
+                    for i in range(3)
+                },
+                "multiple": True,
                 "filetype": SupportedFiletype.CSV,
             }
 
@@ -1441,7 +1446,7 @@ class TestTestBehaviour(APYEstimationFSMBehaviourBaseCase):
                     BaseState, self.behaviour.current_state
                 ).send_to_ipfs(**item_args)
         else:
-            hashes = {item_name: "test" for item_name, _ in data_to_send.items()}
+            hashes = {item_name: "non_existing" for item_name in data_to_send.keys()}
 
         # fast-forward to the `TestBehaviour` state.
         self.fast_forward_to_state(
@@ -1451,7 +1456,6 @@ class TestTestBehaviour(APYEstimationFSMBehaviourBaseCase):
                 StateDB(
                     initial_period=0,
                     initial_data=dict(
-                        pair_name="test",
                         most_voted_model=hashes["model"],
                         most_voted_split=hashes["train"] + hashes["test"],
                     ),
@@ -1478,7 +1482,20 @@ class TestTestBehaviour(APYEstimationFSMBehaviourBaseCase):
         monkeypatch.setattr(TaskManager, "enqueue_task", lambda *_, **__: 0)
         monkeypatch.setattr(TaskManager, "get_task_result", lambda *_: no_action)
 
-        cast(APYEstimationBaseState, self.behaviour.current_state).setup()
+        current_state = cast(_TestBehaviour, self.behaviour.current_state)
+        current_state.setup()
+
+        is_none = (
+            arg is None
+            for arg in (
+                getattr(current_state, arg_name)
+                for arg_name in ("_y_train", "_y_test", "_forecasters")
+            )
+        )
+        if ipfs_succeed:
+            assert not any(is_none)
+        else:
+            assert all(is_none)
 
     def test_task_not_ready(
         self,
@@ -1509,9 +1526,9 @@ class TestTestBehaviour(APYEstimationFSMBehaviourBaseCase):
         monkeypatch: MonkeyPatch,
         tmp_path: PosixPath,
         ipfs_succeed: bool,
-        _test_task_result: Dict[str, str],
+        _test_task_result: PoolIdToTestReportType,
     ) -> None:
-        """Run test for `optimize_behaviour`."""
+        """Run test for `test_behaviour`."""
         self._fast_forward(tmp_path, ipfs_succeed)
 
         monkeypatch.setattr(TaskManager, "enqueue_task", lambda *_, **__: 3)
@@ -1644,7 +1661,7 @@ class TestEstimateBehaviour(APYEstimationFSMBehaviourBaseCase):
             PeriodState(
                 StateDB(
                     initial_period=0,
-                    initial_data=dict(pair_name="test", most_voted_model=hash_),
+                    initial_data=dict(most_voted_model=hash_),
                 )
             ),
         )

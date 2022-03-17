@@ -35,6 +35,7 @@ from sklearn.metrics import (
 
 MetricsType = Dict[str, float]
 TestReportType = Dict[str, str]
+PoolIdToTestReportType = Dict[str, TestReportType]
 PoolIdToTrainDataType = Dict[str, np.ndarray]
 PoolIdToForecasterType = Dict[str, Pipeline]
 
@@ -211,6 +212,19 @@ def walk_forward_test(
         forecaster.update(y_test[i : i + steps_forward])
 
     return np.asarray(y_pred)
+
+
+def test_forecaster_per_pool(
+    forecasters: PoolIdToForecasterType,
+    y_train: PoolIdToTrainDataType,
+    y_test: PoolIdToTrainDataType,
+    steps_forward: int = 1,
+) -> PoolIdToTestReportType:
+    """Test the trained forecasters of the given pools and compare them with a Naive Baseline method."""
+    return {
+        id_: test_forecaster(forecaster, y_train[id_], y_test[id_], id_, steps_forward)
+        for id_, forecaster in forecasters.items()
+    }
 
 
 def test_forecaster(
