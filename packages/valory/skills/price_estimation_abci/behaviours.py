@@ -57,6 +57,9 @@ from packages.valory.skills.registration_abci.behaviours import (
     AgentRegistrationRoundBehaviour,
     RegistrationStartupBehaviour,
 )
+from packages.valory.skills.reset_pause_abci.behaviours import (
+    ResetPauseABCIConsensusBehaviour,
+)
 from packages.valory.skills.safe_deployment_abci.behaviours import (
     SafeDeploymentRoundBehaviour,
 )
@@ -428,5 +431,6 @@ class PriceEstimationConsensusBehaviour(AbstractRoundBehaviour):
         *AgentRegistrationRoundBehaviour.behaviour_states,
         *SafeDeploymentRoundBehaviour.behaviour_states,
         *TransactionSettlementRoundBehaviour.behaviour_states,
+        *ResetPauseABCIConsensusBehaviour.behaviour_states,
         *ObserverRoundBehaviour.behaviour_states,
     }

@@ -1,34 +1,33 @@
-name: transaction_settlement_abci
+name: reset_pause_abci
 author: valory
 version: 0.1.0
 type: skill
-description: ABCI application for transaction settlement.
+description: ABCI application for resetting and pausing app executions.
 license: Apache-2.0
 aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
-  README.md: Qmes4T968eLYkfRc1o3oXMa3irSMo6CY95kaAGvM3LfzAF
-  __init__.py: QmUJJPrwqyWYnqeYpGypjgsQoXiGFpjHogSrrDmAedpdzV
-  behaviours.py: QmTT1j8E6aCugBRBYTWXA3RPwyu9DzxTHqtuMmmiMonihL
-  dialogues.py: QmfDThV4WCRzK88XDpW2hKDYCuEH4RxoHCoAkWpkBRGRPv
-  fsm_specification.yaml: QmNnFR9VUrh81iUqPZbhrNWkTMdthqFaWsJFg8vpdpfNMQ
-  handlers.py: QmXEZTJVJHNhpHJMjhPRHdhmYMmVpu6LfNyYDE2k4mjLVA
-  models.py: QmbzgF4hfVAAydzzV9GKjRNUNC8wPmbEocdCQgM8c2D7MM
-  payload_tools.py: QmQaVcy9BeW1nQtFnt83Nzt9BTY3nVbjs2Xth2W3iUTPyW
-  payloads.py: Qmb1M1mDZp1p4pX1asBU8LkyDR5KVPEZuxFq48LapjGDte
-  rounds.py: QmPFQMABoKo9fuJoKXAxzWebAUd2YdPbBFJfutYHdCHm4q
+  README.md: Qmcvjeds5EyiUvea61GNy8YE4rYzvMDh79GJMhBz3NK7Q5
+  __init__.py: QmUFuoq77B1FjZSeHGAyW8AgJnGNh9Z1amEGK7UTH8iP7J
+  behaviours.py: Qmdf4yY3bEckHtkrqLd9z7JvrCvavdjSndBLRF8r9JDrHL
+  dialogues.py: Qmd54DnNEsybMJb78HTcW2HABVBZCL1FuQL8ELKq3xB6Jw
+  fsm_specification.yaml: QmNqaU5EuBQfJ9MstwNoHP4BU1uW6jMMHf7XPYsxdEcaWZ
+  handlers.py: QmetZ5zoEr9SSkqgR9zfWdB9CEsDeBQqrXypYZ1f9UAF6H
+  models.py: QmPegRgrqVr6fMECoYCd3k7VDKdndBNMTuiPVrGTM9SW3o
+  payloads.py: QmSds2L9BKR4157xqGgH22dG8ojq6hc1BG2JH9NgzhxgVp
+  rounds.py: QmfXwDXfqLQWS5THNPaz4N7rk515hJqyd3u4aV6W995FH1
 fingerprint_ignore_patterns: []
-connections: []
-contracts:
-- valory/gnosis_safe:0.1.0
-- valory/gnosis_safe_proxy_factory:0.1.0
+connections:
+- valory/abci:0.1.0
+contracts: []
 protocols:
-- valory/contract_api:1.0.0
+- open_aea/signing:1.0.0
+- valory/abci:0.1.0
 skills:
 - valory/abstract_round_abci:0.1.0
 behaviours:
   main:
     args: {}
-    class_name: TransactionSettlementRoundBehaviour
+    class_name: ResetPauseABCIConsensusBehaviour
 handlers:
   contract_api:
     args: {}
@@ -50,15 +49,9 @@ models:
     args:
       log_dir: /logs
     class_name: BenchmarkTool
-  contract_api_dialogues:
-    args: {}
-    class_name: ContractApiDialogues
   http_dialogues:
     args: {}
     class_name: HttpDialogues
-  ledger_api_dialogues:
-    args: {}
-    class_name: LedgerApiDialogues
   params:
     args:
       cleanup_history_depth: 1
@@ -68,28 +61,18 @@ models:
       keeper_timeout: 30.0
       max_healthcheck: 120
       observation_interval: 10
+      period_setup: {}
       reset_tendermint_after: 2
       retry_attempts: 400
       retry_timeout: 3
       round_timeout_seconds: 30.0
-      service_id: registration
+      service_id: reset_pause_abci
       sleep_time: 1
       tendermint_check_sleep_delay: 3
       tendermint_com_url: http://localhost:8080
       tendermint_max_retries: 5
       tendermint_url: http://localhost:26657
-    class_name: TransactionParams
-  randomness_api:
-    args:
-      api_id: cloudflare
-      headers: []
-      method: GET
-      parameters: []
-      response_key: null
-      response_type: dict
-      retries: 5
-      url: https://drand.cloudflare.com/public/latest
-    class_name: RandomnessApi
+    class_name: Params
   requests:
     args: {}
     class_name: Requests

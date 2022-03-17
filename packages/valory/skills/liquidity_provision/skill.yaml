@@ -9,10 +9,11 @@ aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
   README.md: QmR5sLQeLggNn5gZ1kDWrqpkz5NzMdUZuWNkaQDpaMC85C
   __init__.py: QmZi2zjuEfocSD4fJyHCRHKYPwRiMizJh5cG4r7q3Hcxuo
-  behaviours.py: QmZRNW3zzFMJzXWTuewKGVE2YgipD76E81qJMBLXBUqsVe
-  composition.py: QmNQDobHqEFV6XExTWrLnGnYTUDGqsbKH94KasSHw1n9Zi
+  behaviours.py: Qmdpi9FZp2sV2cj5oq38Qr5aCFcm6Z7TaXSfkD8yffip9A
+  composition.py: QmcKyvRdu3zcxoCvWvZovSgvATyZwgvsK1A263BqGSxHEX
   dialogues.py: QmdBmUMWoPbS2faqn8LicQVJfN6a2WjtdZDWFbiYoy7hfY
   fsm_specification.yaml: QmdBp3nDWdoyzD7bzQaAHxmtDQkiTvh757vyBEPeffzALi
+  fsm_specification_composition.yaml: QmewzayWPR7XTfSaKQiFYWpcpi2QdK3iGkVWg3jW9VAqxA
   handlers.py: QmYNuneHUsxPfGricmSREyKom4fsAoE3NU7Xv8y3iYCDke
   models.py: QmbDGg2azbVaHmHKj2nARc6yepmTo6wdjC8GVeAhjd7nbW
   payloads.py: QmQnC6GNA6an3h14Jm1nM12W9BuDwATNYJhz3f8vuKBinw
@@ -36,6 +37,7 @@ protocols:
 skills:
 - valory/abstract_round_abci:0.1.0
 - valory/price_estimation_abci:0.1.0
+- valory/reset_pause_abci:0.1.0
 - valory/transaction_settlement_abci:0.1.0
 behaviours:
   main:

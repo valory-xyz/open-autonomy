@@ -17,14 +17,11 @@
 #
 # ------------------------------------------------------------------------------
 
-"""Custom objects for the transaction settlement ABCI application."""
+"""This module contains the shared state for the 'reset_pause_abci' application."""
 
-from typing import Any, List, Optional
+from typing import Any
 
-from web3.types import Nonce
-
-from packages.valory.protocols.contract_api import ContractApiMessage
-from packages.valory.skills.abstract_round_abci.models import ApiSpecs, BaseParams
+from packages.valory.skills.abstract_round_abci.models import BaseParams
 from packages.valory.skills.abstract_round_abci.models import (
     BenchmarkTool as BaseBenchmarkTool,
 )
@@ -32,11 +29,12 @@ from packages.valory.skills.abstract_round_abci.models import Requests as BaseRe
 from packages.valory.skills.abstract_round_abci.models import (
     SharedState as BaseSharedState,
 )
-from packages.valory.skills.transaction_settlement_abci.rounds import (
-    TransactionSubmissionAbciApp,
-)
+from packages.valory.skills.reset_pause_abci.rounds import Event, ResetPauseABCIApp
 
 
+MARGIN = 5
+
+Requests = BaseRequests
 BenchmarkTool = BaseBenchmarkTool
 
 
@@ -45,27 +43,17 @@ class SharedState(BaseSharedState):
 
     def __init__(self, *args: Any, **kwargs: Any) -> None:
         """Initialize the state."""
-        super().__init__(*args, abci_app_cls=TransactionSubmissionAbciApp, **kwargs)
+        super().__init__(*args, abci_app_cls=ResetPauseABCIApp, **kwargs)
+
+    def setup(self) -> None:
+        """Set up."""
+        super().setup()
+        ResetPauseABCIApp.event_to_timeout[
+            Event.ROUND_TIMEOUT
+        ] = self.context.params.round_timeout_seconds
+        ResetPauseABCIApp.event_to_timeout[Event.RESET_AND_PAUSE_TIMEOUT] = (
+            self.context.params.observation_interval + MARGIN
+        )
 
 
-class TransactionParams(BaseParams):
-    """Transaction settlement agent-specific parameters."""
-
-    def __init__(self, *args: Any, **kwargs: Any) -> None:
-        """Initialize the parameters object."""
-        self.nonce: Optional[Nonce] = None
-        self.tip: Optional[int] = None
-        self.late_messages: List[ContractApiMessage] = []
-        super().__init__(*args, **kwargs)
-
-    def reset_tx_params(self) -> None:
-        """Reset the transaction-related parameters."""
-        self.nonce = None
-        self.tip = None
-
-
-class RandomnessApi(ApiSpecs):
-    """A model that wraps ApiSpecs for randomness api specifications."""
-
-
-Requests = BaseRequests
+Params = BaseParams

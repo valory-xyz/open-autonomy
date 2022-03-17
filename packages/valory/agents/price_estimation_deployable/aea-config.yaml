@@ -26,6 +26,7 @@ skills:
 - valory/oracle_deployment_abci:0.1.0
 - valory/price_estimation_abci:0.1.0
 - valory/registration_abci:0.1.0
+- valory/reset_pause_abci:0.1.0
 - valory/safe_deployment_abci:0.1.0
 - valory/transaction_settlement_abci:0.1.0
 default_ledger: ethereum
