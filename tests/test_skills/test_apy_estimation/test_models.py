@@ -83,6 +83,10 @@ class TestAPYParams:
             "service_id": "apy_estimation",
             "keeper_timeout": 30.0,
             "cleanup_history_depth": 0,
+            "request_retry_delay": 1.0,
+            "request_timeout": 10.0,
+            "tx_max_attempts": 10,
+            "tx_timeout": 10.0,
         }
 
         if param_value == None:  # noqa: E711
