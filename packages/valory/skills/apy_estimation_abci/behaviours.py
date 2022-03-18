@@ -624,14 +624,15 @@ class PrepareBatchBehaviour(APYEstimationBaseState):
 
             # Get the prepared batches from the task.
             completed_task = self._async_result.get()
-            prepared_batches = cast(Dict[str, pd.DataFrame], completed_task)
-            self.context.logger.info(f"Batches have been prepared:\n{prepared_batches}")
+            prepared_batches = cast(pd.DataFrame, completed_task)
+            self.context.logger.info(
+                f"Batches have been prepared:\n{prepared_batches.to_string()}"
+            )
 
             # Send the file to IPFS and get its hash.
             self._prepared_batches_hash = self.send_to_ipfs(
                 self._prepared_batches_save_path,
                 prepared_batches,
-                multiple=True,
                 filetype=SupportedFiletype.CSV,
             )
 

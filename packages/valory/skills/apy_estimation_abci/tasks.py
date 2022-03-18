@@ -19,7 +19,7 @@
 
 """Contains the background tasks of the APY estimation skill."""
 
-from typing import Any, Dict
+from typing import Any
 
 import pandas as pd
 from aea.skills.tasks import Task
@@ -63,7 +63,7 @@ class PreprocessTask(Task):
 class PrepareBatchTask(Task):
     """Prepare a batch."""
 
-    def execute(self, *args: Any, **kwargs: Any) -> Dict[str, pd.DataFrame]:
+    def execute(self, *args: Any, **kwargs: Any) -> pd.DataFrame:
         """Execute the task."""
         return prepare_batch(*args, **kwargs)
 
