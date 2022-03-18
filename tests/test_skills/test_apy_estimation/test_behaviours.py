@@ -1380,7 +1380,7 @@ class TestTrainBehaviour(APYEstimationFSMBehaviourBaseCase):
         self,
         monkeypatch: MonkeyPatch,
         tmp_path: PosixPath,
-        train_task_result: Pipeline,
+        train_task_result: PoolIdToForecasterType,
         ipfs_succeed: bool,
     ) -> None:
         """Run test for `train_behaviour`."""
