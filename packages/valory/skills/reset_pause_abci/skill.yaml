@@ -62,6 +62,8 @@ models:
       max_healthcheck: 120
       observation_interval: 10
       period_setup: {}
+      request_retry_delay: 1.0
+      request_timeout: 10.0
       reset_tendermint_after: 2
       retry_attempts: 400
       retry_timeout: 3
@@ -72,6 +74,8 @@ models:
       tendermint_com_url: http://localhost:8080
       tendermint_max_retries: 5
       tendermint_url: http://localhost:26657
+      tx_max_attempts: 10
+      tx_timeout: 10.0
     class_name: Params
   requests:
     args: {}
