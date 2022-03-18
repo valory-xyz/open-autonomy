@@ -23,6 +23,7 @@ from typing import Any, Callable
 from _pytest.monkeypatch import MonkeyPatch
 
 from packages.valory.skills.apy_estimation_abci.tasks import (
+    EstimateTask,
     OptimizeTask,
     PrepareBatchTask,
     PreprocessTask,
@@ -136,3 +137,18 @@ class TestUpdateTask:
             no_action,
         )
         UpdateTask().execute()
+
+
+class TestEstimateTask:
+    """Tests for the `EstimateTask`."""
+
+    @staticmethod
+    def test_execute(
+        monkeypatch: MonkeyPatch, no_action: Callable[[Any], None]
+    ) -> None:
+        """Test the execute method."""
+        monkeypatch.setattr(
+            "packages.valory.skills.apy_estimation_abci.tasks.estimate_apy_per_pool",
+            no_action,
+        )
+        EstimateTask().execute()
