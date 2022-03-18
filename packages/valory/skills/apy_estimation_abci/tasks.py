@@ -27,6 +27,7 @@ from aea.skills.tasks import Task
 from packages.valory.skills.apy_estimation_abci.ml.forecasting import (
     PoolIdToForecasterType,
     PoolIdToTestReportType,
+    estimate_apy_per_pool,
     test_forecaster_per_pool,
     train_forecaster_per_pool,
     update_forecaster_per_pool,
@@ -99,3 +100,11 @@ class UpdateTask(Task):
     def execute(self, *args: Any, **kwargs: Any) -> None:
         """Execute the task."""
         return update_forecaster_per_pool(*args, **kwargs)
+
+
+class EstimateTask(Task):
+    """Estimate APYs."""
+
+    def execute(self, *args: Any, **kwargs: Any) -> pd.DataFrame:
+        """Execute the task."""
+        return estimate_apy_per_pool(*args, **kwargs)
