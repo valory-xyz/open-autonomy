@@ -1339,7 +1339,7 @@ class TestTrainBehaviour(APYEstimationFSMBehaviourBaseCase):
         self._fast_forward(tmp_path, ipfs_succeed, full_training)
 
         monkeypatch.setattr(TaskManager, "enqueue_task", lambda *_, **__: 0)
-        monkeypatch.setattr(TaskManager, "get_task_result", lambda *_: no_action)
+        monkeypatch.setattr(TaskManager, "get_task_result", no_action)
 
         current_state = cast(TrainBehaviour, self.behaviour.current_state)
         current_state.setup()
@@ -1480,7 +1480,7 @@ class TestTestBehaviour(APYEstimationFSMBehaviourBaseCase):
         self._fast_forward(tmp_path, ipfs_succeed)
 
         monkeypatch.setattr(TaskManager, "enqueue_task", lambda *_, **__: 0)
-        monkeypatch.setattr(TaskManager, "get_task_result", lambda *_: no_action)
+        monkeypatch.setattr(TaskManager, "get_task_result", no_action)
 
         current_state = cast(_TestBehaviour, self.behaviour.current_state)
         current_state.setup()
