@@ -173,12 +173,12 @@ class TestProcessing:
                 prepare_batch(previous_batch, batch)
 
         else:
-            prepared_batches = prepare_batch(previous_batch, batch)
+            prepared_batches = prepare_batch(previous_batch, batch).groupby("id")
             assert len(prepared_batches) == 2
             expected_ids = {"0x2b4c76d0dc16be1c31d4c1dc53bf9b45987fc75c", "x3"}
-            assert expected_ids == set(prepared_batches.keys())
+            assert expected_ids == set(prepared_batches.groups.keys())
             for id_ in expected_ids:
-                assert len(prepared_batches[id_].index) == 1
+                assert len(prepared_batches.get_group(id_).index) == 1
 
     @staticmethod
     def test_apply_revert_token_cols_wrapper() -> None:

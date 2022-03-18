@@ -195,7 +195,7 @@ def transform_hist_data(
 
 def prepare_batch(
     previous_batch: pd.DataFrame, current_batch_raw: ResponseItemType
-) -> Dict[str, pd.DataFrame]:
+) -> pd.DataFrame:
     """Prepare a batch, using the currently fetched batch from the subgraph and the last utilized batch.
 
     :param previous_batch: the last utilized batch.
@@ -207,7 +207,7 @@ def prepare_batch(
     # Append the current batch to the previous batch.
     batches = pd.concat([previous_batch, current_batch])
     # Calculate the last APY value per pool, using the batches.
-    prepared_batches = {}
+    prepared_batches = []
     for pool_id, pool_batch in batches.groupby("id"):
         if len(pool_batch.index) < 2:
             raise ValueError(
@@ -217,9 +217,9 @@ def prepare_batch(
         # and `groupby` preserves the order of rows within each group,
         # then we do not need to worry about the sorting of the batches.
         apply_hist_based_calculations(pool_batch)
-        prepared_batches[pool_id] = pool_batch
+        prepared_batches.append(pool_batch)
 
-    return prepared_batches
+    return pd.concat(prepared_batches)
 
 
 def apply_revert_token_cols_wrapper(

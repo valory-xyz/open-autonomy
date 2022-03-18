@@ -19,7 +19,7 @@
 
 """Contains the background tasks of the APY estimation skill."""
 
-from typing import Any, Dict
+from typing import Any
 
 import pandas as pd
 from aea.skills.tasks import Task
@@ -29,6 +29,7 @@ from packages.valory.skills.apy_estimation_abci.ml.forecasting import (
     PoolIdToTestReportType,
     test_forecaster_per_pool,
     train_forecaster_per_pool,
+    update_forecaster_per_pool,
 )
 from packages.valory.skills.apy_estimation_abci.ml.optimization import (
     PoolToHyperParamsWithStatusType,
@@ -63,7 +64,7 @@ class PreprocessTask(Task):
 class PrepareBatchTask(Task):
     """Prepare a batch."""
 
-    def execute(self, *args: Any, **kwargs: Any) -> Dict[str, pd.DataFrame]:
+    def execute(self, *args: Any, **kwargs: Any) -> pd.DataFrame:
         """Execute the task."""
         return prepare_batch(*args, **kwargs)
 
@@ -90,3 +91,11 @@ class TestTask(Task):
     def execute(self, *args: Any, **kwargs: Any) -> PoolIdToTestReportType:
         """Execute the task."""
         return test_forecaster_per_pool(*args, **kwargs)
+
+
+class UpdateTask(Task):
+    """Update forecasters."""
+
+    def execute(self, *args: Any, **kwargs: Any) -> None:
+        """Execute the task."""
+        return update_forecaster_per_pool(*args, **kwargs)

@@ -128,6 +128,10 @@ class IPFSInteract:
         **kwargs: Any,
     ) -> str:
         """Temporarily store a file locally, in order to send it to IPFS and retrieve a hash, and then delete it."""
+        filepath = os.path.normpath(filepath)
+        if multiple:
+            # Add trailing slash in order to treat path as a folder.
+            filepath = os.path.join(filepath, "")
         storer = Storer(filetype, custom_storer, filepath)
 
         try:
@@ -147,6 +151,7 @@ class IPFSInteract:
         custom_loader: CustomLoaderType = None,
     ) -> SupportedObjectType:
         """Get, store and read a file from IPFS."""
+        target_dir = os.path.normpath(target_dir)
         filepath = self._download(hash_, target_dir, multiple, filename)
         loader = Loader(filetype, custom_loader)
 

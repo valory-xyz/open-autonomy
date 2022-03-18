@@ -39,7 +39,6 @@ import pytest
 from _pytest.logging import LogCaptureFixture
 from _pytest.monkeypatch import MonkeyPatch
 from aea.skills.tasks import TaskManager
-from pmdarima.pipeline import Pipeline
 
 from packages.valory.protocols.abci import AbciMessage  # noqa: F401
 from packages.valory.skills.abstract_round_abci.base import AbciApp, StateDB
@@ -72,6 +71,7 @@ from packages.valory.skills.apy_estimation_abci.behaviours import (
     UpdateForecasterBehaviour,
 )
 from packages.valory.skills.apy_estimation_abci.ml.forecasting import (
+    PoolIdToForecasterType,
     PoolIdToTestReportType,
 )
 from packages.valory.skills.apy_estimation_abci.ml.optimization import (
@@ -1339,7 +1339,7 @@ class TestTrainBehaviour(APYEstimationFSMBehaviourBaseCase):
         self._fast_forward(tmp_path, ipfs_succeed, full_training)
 
         monkeypatch.setattr(TaskManager, "enqueue_task", lambda *_, **__: 0)
-        monkeypatch.setattr(TaskManager, "get_task_result", lambda *_: no_action)
+        monkeypatch.setattr(TaskManager, "get_task_result", no_action)
 
         current_state = cast(TrainBehaviour, self.behaviour.current_state)
         current_state.setup()
@@ -1380,7 +1380,7 @@ class TestTrainBehaviour(APYEstimationFSMBehaviourBaseCase):
         self,
         monkeypatch: MonkeyPatch,
         tmp_path: PosixPath,
-        train_task_result: Pipeline,
+        train_task_result: PoolIdToForecasterType,
         ipfs_succeed: bool,
     ) -> None:
         """Run test for `train_behaviour`."""
@@ -1480,7 +1480,7 @@ class TestTestBehaviour(APYEstimationFSMBehaviourBaseCase):
         self._fast_forward(tmp_path, ipfs_succeed)
 
         monkeypatch.setattr(TaskManager, "enqueue_task", lambda *_, **__: 0)
-        monkeypatch.setattr(TaskManager, "get_task_result", lambda *_: no_action)
+        monkeypatch.setattr(TaskManager, "get_task_result", no_action)
 
         current_state = cast(_TestBehaviour, self.behaviour.current_state)
         current_state.setup()
@@ -1501,7 +1501,6 @@ class TestTestBehaviour(APYEstimationFSMBehaviourBaseCase):
         self,
         monkeypatch: MonkeyPatch,
         tmp_path: PosixPath,
-        no_action: Callable[[Any], None],
     ) -> None:
         """Run test for behaviour when task result is not ready."""
         self._fast_forward(tmp_path)
@@ -1554,24 +1553,27 @@ class TestUpdateForecasterBehaviour(APYEstimationFSMBehaviourBaseCase):
     behaviour_class = UpdateForecasterBehaviour
     next_behaviour_class = EstimateBehaviour
 
-    def _fast_forward(self, tmp_path: PosixPath, ipfs_succeed: bool = True) -> None:
+    def _fast_forward(
+        self,
+        tmp_path: PosixPath,
+        prepare_batch_task_result: pd.DataFrame,
+        ipfs_succeed: bool = True,
+    ) -> None:
         """Setup `TestUpdateForecasterBehaviour`."""
         # Set data directory to a temporary path for tests.
-        self.behaviour.context._agent_context._data_dir = tmp_path.parts[0]  # type: ignore
-        cast(OptimizeBehaviour, self.behaviour.current_state).params.pair_ids[
-            0
-        ] = os.path.join(*tmp_path.parts[1:])
+        self.behaviour.context._agent_context._data_dir = tmp_path  # type: ignore
 
         # Create a dictionary with all the dummy data to send to IPFS.
         data_to_send = {
             "model": {
-                "filepath": os.path.join(tmp_path, "fully_trained_forecaster.joblib"),
-                "obj": DummyPipeline(),
+                "filepath": os.path.join(tmp_path, "fully_trained_forecasters/"),
+                "obj": {f"pool{i}.joblib": DummyPipeline() for i in range(3)},
+                "multiple": True,
                 "filetype": SupportedFiletype.PM_PIPELINE,
             },
             "observation": {
-                "filepath": os.path.join(tmp_path, "latest_observation.csv"),
-                "obj": pd.DataFrame({"APY": [0, 1]}),
+                "filepath": os.path.join(tmp_path, "latest_observations.csv"),
+                "obj": prepare_batch_task_result,
                 "filetype": SupportedFiletype.CSV,
             },
         }
@@ -1584,7 +1586,9 @@ class TestUpdateForecasterBehaviour(APYEstimationFSMBehaviourBaseCase):
                     BaseState, self.behaviour.current_state
                 ).send_to_ipfs(**item_args)
         else:
-            hashes = {item_name: "test" for item_name, _ in data_to_send.items()}
+            hashes = {
+                item_name: "non_existing" for item_name, _ in data_to_send.items()
+            }
 
         # fast-forward to the `TestBehaviour` state.
         self.fast_forward_to_state(
@@ -1609,22 +1613,72 @@ class TestUpdateForecasterBehaviour(APYEstimationFSMBehaviourBaseCase):
     @pytest.mark.parametrize("ipfs_succeed", (True, False))
     def test_update_forecaster_setup(
         self,
+        monkeypatch: MonkeyPatch,
         tmp_path: PosixPath,
+        no_action: Callable[[Any], None],
+        prepare_batch_task_result: pd.DataFrame,
         ipfs_succeed: bool,
     ) -> None:
         """Run test for `UpdateForecasterBehaviour`'s setup method."""
-        self._fast_forward(tmp_path, ipfs_succeed)
-        cast(UpdateForecasterBehaviour, self.behaviour.current_state).setup()
+        self._fast_forward(tmp_path, prepare_batch_task_result, ipfs_succeed)
+        monkeypatch.setattr(TaskManager, "enqueue_task", lambda *_, **__: 0)
+        monkeypatch.setattr(TaskManager, "get_task_result", no_action)
+
+        current_state = cast(UpdateForecasterBehaviour, self.behaviour.current_state)
+        current_state.setup()
+
+        is_none = (
+            arg is None
+            for arg in (
+                getattr(current_state, arg_name) for arg_name in ("_y", "_forecasters")
+            )
+        )
+        if ipfs_succeed:
+            assert not any(is_none)
+        else:
+            assert all(is_none)
+
+    def test_task_not_ready(
+        self,
+        monkeypatch: MonkeyPatch,
+        tmp_path: PosixPath,
+        prepare_batch_task_result: pd.DataFrame,
+    ) -> None:
+        """Run test for behaviour when task result is not ready."""
+        self._fast_forward(tmp_path, prepare_batch_task_result)
+
+        self.behaviour.context.task_manager.start()
+
+        monkeypatch.setattr(AsyncResult, "ready", lambda *_: False)
+        cast(
+            TrainBehaviour, self.behaviour.current_state
+        ).params.sleep_time = SLEEP_TIME_TWEAK
+        self.behaviour.act_wrapper()
+        time.sleep(SLEEP_TIME_TWEAK + 0.01)
+        self.behaviour.act_wrapper()
+
+        assert (
+            cast(APYEstimationBaseState, self.behaviour.current_state).state_id
+            == self.behaviour_class.state_id
+        )
 
     @pytest.mark.parametrize("ipfs_succeed", (True, False))
     def test_update_forecaster_behaviour(
         self,
         tmp_path: PosixPath,
         monkeypatch: MonkeyPatch,
+        prepare_batch_task_result: pd.DataFrame,
+        train_task_result: PoolIdToForecasterType,
         ipfs_succeed: bool,
     ) -> None:
         """Run test for `UpdateForecasterBehaviour`."""
-        self._fast_forward(tmp_path, ipfs_succeed)
+        self._fast_forward(tmp_path, prepare_batch_task_result, ipfs_succeed)
+        monkeypatch.setattr(TaskManager, "enqueue_task", lambda *_, **__: 3)
+        monkeypatch.setattr(
+            TaskManager,
+            "get_task_result",
+            lambda *_: DummyAsyncResult(train_task_result),
+        )
 
         self.behaviour.act_wrapper()
         self.mock_a2a_transaction()

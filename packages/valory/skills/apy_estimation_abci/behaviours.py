@@ -38,7 +38,6 @@ from typing import (
 
 import numpy as np
 import pandas as pd
-from pmdarima.pipeline import Pipeline
 
 from packages.valory.skills.abstract_round_abci.behaviours import (
     AbstractRoundBehaviour,
@@ -100,6 +99,7 @@ from packages.valory.skills.apy_estimation_abci.tasks import (
     TestTask,
     TrainTask,
     TransformTask,
+    UpdateTask,
 )
 from packages.valory.skills.apy_estimation_abci.tools.etl import ResponseItemType
 from packages.valory.skills.apy_estimation_abci.tools.general import gen_unix_timestamps
@@ -624,14 +624,15 @@ class PrepareBatchBehaviour(APYEstimationBaseState):
 
             # Get the prepared batches from the task.
             completed_task = self._async_result.get()
-            prepared_batches = cast(Dict[str, pd.DataFrame], completed_task)
-            self.context.logger.info(f"Batches have been prepared:\n{prepared_batches}")
+            prepared_batches = cast(pd.DataFrame, completed_task)
+            self.context.logger.info(
+                f"Batches have been prepared:\n{prepared_batches.to_string()}"
+            )
 
             # Send the file to IPFS and get its hash.
             self._prepared_batches_hash = self.send_to_ipfs(
                 self._prepared_batches_save_path,
                 prepared_batches,
-                multiple=True,
                 filetype=SupportedFiletype.CSV,
             )
 
@@ -1014,53 +1015,56 @@ class UpdateForecasterBehaviour(APYEstimationBaseState):
     def __init__(self, **kwargs: Any) -> None:
         """Initialize Behaviour."""
         super().__init__(**kwargs)
-        self._y: Optional[np.ndarray] = None
-        self._forecaster_filename: Optional[str] = None
-        self._forecaster: Optional[Pipeline] = None
+        self._async_result: Optional[AsyncResult] = None
+        self._y: Optional[PoolIdToTrainDataType] = None
+        self._forecasters_folder: str = os.path.join(
+            self.context.data_dir,
+            "fully_trained_forecasters/",
+        )
+        self._forecasters: Optional[PoolIdToForecasterType] = None
         self._model_hash: Optional[str] = None
 
     def setup(self) -> None:
         """Setup behaviour."""
-        self._forecaster_filename = "fully_trained_forecaster.joblib"
-        pair_path = os.path.join(
-            self.context.data_dir,
-            self.params.pair_ids[0],
-        )
-
         # Load data batch.
-        transformed_batch = self.get_from_ipfs(
+        self._y = self.get_from_ipfs(
             self.period_state.latest_observation_hist_hash,
             self.context.data_dir,
             filename="latest_observations.csv",
             filetype=SupportedFiletype.CSV,
         )
 
-        if transformed_batch is not None:
-            self._y = transformed_batch["APY"].values.ravel()
-
-        # Load forecaster.
-        self._forecaster = self.get_from_ipfs(
+        # Load forecasters.
+        self._forecasters = self.get_from_ipfs(
             self.period_state.model_hash,
-            pair_path,
-            filename=self._forecaster_filename,
+            self._forecasters_folder,
+            multiple=True,
             filetype=SupportedFiletype.PM_PIPELINE,
         )
 
+        if not any(arg is None for arg in (self._y, self._forecasters)):
+            update_task = UpdateTask()
+            task_id = self.context.task_manager.enqueue_task(
+                update_task, args=(self._y, self._forecasters)
+            )
+            self._async_result = self.context.task_manager.get_task_result(task_id)
+
     def async_act(self) -> Generator:
         """Do the action."""
-        if not any(arg is None for arg in (self._y, self._forecaster)):
-            cast(Pipeline, self._forecaster).update(self._y)
-            self.context.logger.info("Forecaster has been updated.")
+        if not any(arg is None for arg in (self._y, self._forecasters)):
+            self._async_result = cast(AsyncResult, self._async_result)
+            if not self._async_result.ready():
+                self.context.logger.debug("The updating task is not finished yet.")
+                yield from self.sleep(self.params.sleep_time)
+                return
+
+            self.context.logger.info("Forecasters have been updated.")
 
             # Send the file to IPFS and get its hash.
-            forecaster_save_path = os.path.join(
-                self.context.data_dir,
-                self.params.pair_ids[0],
-                cast(str, self._forecaster_filename),
-            )
             self._model_hash = self.send_to_ipfs(
-                forecaster_save_path,
-                self._forecaster,
+                self._forecasters_folder,
+                self._forecasters,
+                multiple=True,
                 filetype=SupportedFiletype.PM_PIPELINE,
             )
 

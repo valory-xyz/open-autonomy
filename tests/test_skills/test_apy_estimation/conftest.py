@@ -242,9 +242,9 @@ def no_action() -> Callable[[Any], None]:
 
 
 @pytest.fixture
-def prepare_batch_task_result() -> Dict[str, pd.DataFrame]:
-    """Create a no-action function."""
-    return {"test": pd.DataFrame()}
+def prepare_batch_task_result() -> pd.DataFrame:
+    """Create a dummy prepare batch task result."""
+    return pd.DataFrame({"id": ["pool1", "pool2"], "APY": [13.234, 42.34]})
 
 
 @pytest.fixture
@@ -565,6 +565,7 @@ class DummyPipeline(Pipeline):
     def __init__(self) -> None:
         """Initialize Dummy Pipeline."""
         super().__init__([])
+        self.updated: bool = False
 
     def _validate_steps(self) -> None:
         """Dummy steps validation."""
@@ -580,6 +581,8 @@ class DummyPipeline(Pipeline):
 
     def update(self, *args: Any) -> None:
         """Update the dummy pipeline."""
+        if len(args[0]):
+            self.updated = True
 
 
 def is_list_of_strings(lst: Any) -> bool:
