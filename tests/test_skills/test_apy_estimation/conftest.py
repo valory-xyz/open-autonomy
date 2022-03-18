@@ -565,6 +565,7 @@ class DummyPipeline(Pipeline):
     def __init__(self) -> None:
         """Initialize Dummy Pipeline."""
         super().__init__([])
+        self.updated: bool = False
 
     def _validate_steps(self) -> None:
         """Dummy steps validation."""
@@ -580,6 +581,8 @@ class DummyPipeline(Pipeline):
 
     def update(self, *args: Any) -> None:
         """Update the dummy pipeline."""
+        if len(args[0]):
+            self.updated = True
 
 
 def is_list_of_strings(lst: Any) -> bool:
