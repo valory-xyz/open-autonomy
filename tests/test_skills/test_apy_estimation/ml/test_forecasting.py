@@ -31,6 +31,7 @@ from packages.valory.skills.apy_estimation_abci.ml.forecasting import (
     PoolIdToTrainDataType,
     baseline,
     calc_metrics,
+    estimate_apy_per_pool,
     init_forecaster,
     report_metrics,
 )
@@ -251,3 +252,21 @@ class TestForecasting:
         else:
             update_forecaster_per_pool(prepare_batch_task_result, dummy_pipelines)
             assert all(pipeline.updated for pipeline in dummy_pipelines.values())
+
+    @pytest.mark.parametrize("steps_forward", (0, 1, 5))
+    def test_estimate_apy_per_pool(
+        self,
+        monkeypatch: MonkeyPatch,
+        steps_forward: int,
+    ) -> None:
+        """Test `estimate_apy_per_pool`."""
+        dummy_pipelines = {
+            f"pool{pool_id}": deepcopy(self._pipeline) for pool_id in range(3)
+        }
+
+        estimates = estimate_apy_per_pool(dummy_pipelines, steps_forward)
+        expected_estimates = pd.DataFrame(
+            {f"pool{pool_id}": np.ones(steps_forward) for pool_id in range(3)},
+            index=[f"Step{i + 1} into the future" for i in range(steps_forward)],
+        )
+        pd.testing.assert_frame_equal(estimates, expected_estimates)
