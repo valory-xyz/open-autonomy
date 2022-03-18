@@ -18,9 +18,11 @@
 # ------------------------------------------------------------------------------
 
 """Test forecasting operations."""
+from copy import deepcopy
 from typing import Any
 
 import numpy as np
+import pandas as pd
 import pytest
 from _pytest.monkeypatch import MonkeyPatch
 from pmdarima.pipeline import Pipeline
@@ -41,6 +43,7 @@ from packages.valory.skills.apy_estimation_abci.ml.forecasting import (
 from packages.valory.skills.apy_estimation_abci.ml.forecasting import (
     train_forecaster,
     train_forecaster_per_pool,
+    update_forecaster_per_pool,
     walk_forward_test,
 )
 
@@ -226,3 +229,25 @@ class TestForecasting:
             expected[testing_model] = "Report results."
 
         assert actual == expected
+
+    @pytest.mark.parametrize("id_mismatch", (True, False))
+    def test_update_forecaster_per_pool(
+        self,
+        prepare_batch_task_result: pd.DataFrame,
+        monkeypatch: MonkeyPatch,
+        id_mismatch: bool,
+    ) -> None:
+        """Test `update_forecaster_per_pool`."""
+        mismatch = "test" if id_mismatch else ""
+        dummy_pipelines = {
+            pool_id + mismatch: deepcopy(self._pipeline)
+            for pool_id in prepare_batch_task_result["id"].values
+        }
+
+        if mismatch:
+            update_forecaster_per_pool(prepare_batch_task_result, dummy_pipelines)
+            assert not any(pipeline.updated for pipeline in dummy_pipelines.values())
+
+        else:
+            update_forecaster_per_pool(prepare_batch_task_result, dummy_pipelines)
+            assert all(pipeline.updated for pipeline in dummy_pipelines.values())
