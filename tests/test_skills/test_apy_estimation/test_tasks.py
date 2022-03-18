@@ -28,7 +28,11 @@ from packages.valory.skills.apy_estimation_abci.tasks import (
     PreprocessTask,
 )
 from packages.valory.skills.apy_estimation_abci.tasks import TestTask as _TestTask
-from packages.valory.skills.apy_estimation_abci.tasks import TrainTask, TransformTask
+from packages.valory.skills.apy_estimation_abci.tasks import (
+    TrainTask,
+    TransformTask,
+    UpdateTask,
+)
 
 
 class TestTransformTask:
@@ -117,3 +121,18 @@ class TestTestTask:
             no_action,
         )
         _TestTask().execute()
+
+
+class TestUpdateTask:
+    """Tests for the `UpdateTask`."""
+
+    @staticmethod
+    def test_execute(
+        monkeypatch: MonkeyPatch, no_action: Callable[[Any], None]
+    ) -> None:
+        """Test the execute method."""
+        monkeypatch.setattr(
+            "packages.valory.skills.apy_estimation_abci.tasks.update_forecaster_per_pool",
+            no_action,
+        )
+        UpdateTask().execute()
