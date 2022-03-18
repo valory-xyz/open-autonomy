@@ -242,9 +242,9 @@ def no_action() -> Callable[[Any], None]:
 
 
 @pytest.fixture
-def prepare_batch_task_result() -> Dict[str, pd.DataFrame]:
-    """Create a no-action function."""
-    return {"test": pd.DataFrame()}
+def prepare_batch_task_result() -> pd.DataFrame:
+    """Create a dummy prepare batch task result."""
+    return pd.DataFrame({"id": ["pool1", "pool2"], "APY": [13.234, 42.34]})
 
 
 @pytest.fixture
