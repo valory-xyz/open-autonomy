@@ -21,6 +21,7 @@
 from typing import Any, Dict, Optional, Union, cast
 
 import numpy as np
+import pandas as pd
 from pmdarima import ARIMA
 from pmdarima.metrics import smape
 from pmdarima.pipeline import Pipeline
@@ -259,3 +260,17 @@ def test_forecaster(
         )
 
     return cast(TestReportType, report)
+
+
+def update_forecaster_per_pool(
+    y: pd.DataFrame,
+    forecasters: PoolIdToForecasterType,
+) -> None:
+    """Update the given forecasters.
+
+    :param y: the data to use for the update.
+    :param forecasters: the forecasters to update.
+    """
+    for id_ in forecasters.keys():
+        apy = y.loc[y["id"] == id_, "APY"]
+        forecasters[id_].update(apy)
