@@ -52,6 +52,13 @@ from tests.helpers.base import try_send
 
 _DEFAULT_REQUEST_RETRY_DELAY = 1.0
 
+mock_params = MagicMock(
+    request_retry_delay=1.0,
+    request_timeout=10.0,
+    tx_timeout=10.0,
+    tx_max_attempts=10,
+)
+
 
 class AsyncBehaviourTest(AsyncBehaviour, ABC):
     """Concrete AsyncBehaviour class for testing purposes."""
@@ -532,9 +539,14 @@ class TestBaseState:
 
     def test_send_transaction_positive_false_condition(self) -> None:
         """Test '_send_transaction', positive case (false condition)"""
-        try_send(
-            self.behaviour._send_transaction(MagicMock(), stop_condition=lambda: True)
-        )
+        with mock.patch.object(
+            BaseState, "params", mock.PropertyMock(return_value=mock_params)
+        ):
+            try_send(
+                self.behaviour._send_transaction(
+                    MagicMock(), stop_condition=lambda: True
+                )
+            )
 
     @mock.patch.object(BaseState, "_send_signing_request")
     @mock.patch.object(Transaction, "encode", return_value=MagicMock())
@@ -548,17 +560,20 @@ class TestBaseState:
         """Test '_send_transaction', positive case."""
         m = MagicMock(status_code=200)
         gen = self.behaviour._send_transaction(m)
-        # trigger generator function
-        try_send(gen, obj=None)
-        # send message to 'wait_for_message'
-        try_send(gen, obj=m)
-        # send message to '_submit_tx'
-        try_send(gen, obj=MagicMock(body='{"result": {"hash": "", "code": 0}}'))
-        # send message to '_wait_until_transaction_delivered'
-        success_response = MagicMock(
-            status_code=200, body='{"result": {"tx_result": {"code": 0}}}'
-        )
-        try_send(gen, obj=success_response)
+        with mock.patch.object(
+            BaseState, "params", mock.PropertyMock(return_value=mock_params)
+        ):
+            # trigger generator function
+            try_send(gen, obj=None)
+            # send message to 'wait_for_message'
+            try_send(gen, obj=m)
+            # send message to '_submit_tx'
+            try_send(gen, obj=MagicMock(body='{"result": {"hash": "", "code": 0}}'))
+            # send message to '_wait_until_transaction_delivered'
+            success_response = MagicMock(
+                status_code=200, body='{"result": {"tx_result": {"code": 0}}}'
+            )
+            try_send(gen, obj=success_response)
 
     @mock.patch.object(BaseState, "_send_signing_request")
     @mock.patch.object(Transaction, "encode", return_value=MagicMock())
@@ -577,13 +592,17 @@ class TestBaseState:
         """Test '_send_transaction', positive case."""
         m = MagicMock(status_code=200)
         gen = self.behaviour._send_transaction(m)
-        try_send(gen, obj=None)
-        try_send(gen, obj=m)
-        try_send(gen, obj=MagicMock(body='{"result": {"hash": "", "code": 0}}'))
-        success_response = MagicMock(
-            status_code=200, body='{"result": {"tx_result": {"code": 0}}}'
-        )
-        try_send(gen, obj=success_response)
+
+        with mock.patch.object(
+            BaseState, "params", mock.PropertyMock(return_value=mock_params)
+        ):
+            try_send(gen, obj=None)
+            try_send(gen, obj=m)
+            try_send(gen, obj=MagicMock(body='{"result": {"hash": "", "code": 0}}'))
+            success_response = MagicMock(
+                status_code=200, body='{"result": {"tx_result": {"code": 0}}}'
+            )
+            try_send(gen, obj=success_response)
 
     @mock.patch.object(BaseState, "_send_signing_request")
     def test_send_transaction_signing_error(self, *_: Any) -> None:
@@ -638,22 +657,25 @@ class TestBaseState:
         delay = 0.1
         m = MagicMock()
         with mock.patch.object(self.behaviour.context.logger, "info") as mock_info:
-            gen = self.behaviour._send_transaction(
-                m, request_retry_delay=delay, tx_timeout=timeout
-            )
-            # trigger generator function
-            try_send(gen, obj=None)
-            # send message to 'wait_for_message'
-            try_send(gen, obj=m)
-            # send message to '_submit_tx'
-            try_send(gen, obj=MagicMock(body='{"result": {"hash": "", "code": 0}}'))
-            # send message to '_wait_until_transaction_delivered'
-            time.sleep(timeout)
-            try_send(gen, obj=m)
+            with mock.patch.object(
+                BaseState, "params", mock.PropertyMock(return_value=mock_params)
+            ):
+                gen = self.behaviour._send_transaction(
+                    m, request_retry_delay=delay, tx_timeout=timeout
+                )
+                # trigger generator function
+                try_send(gen, obj=None)
+                # send message to 'wait_for_message'
+                try_send(gen, obj=m)
+                # send message to '_submit_tx'
+                try_send(gen, obj=MagicMock(body='{"result": {"hash": "", "code": 0}}'))
+                # send message to '_wait_until_transaction_delivered'
+                time.sleep(timeout)
+                try_send(gen, obj=m)
 
-            mock_info.assert_called_with(
-                f"Timeout expired for wait until transaction delivered. Retrying in {delay} seconds..."
-            )
+                mock_info.assert_called_with(
+                    f"Timeout expired for wait until transaction delivered. Retrying in {delay} seconds..."
+                )
 
     @mock.patch.object(BaseState, "_send_signing_request")
     @mock.patch.object(Transaction, "encode", return_value=MagicMock())
@@ -669,20 +691,25 @@ class TestBaseState:
         delay = 0.1
         m = MagicMock()
         with mock.patch.object(self.behaviour.context.logger, "info") as mock_info:
-            gen = self.behaviour._send_transaction(
-                m, request_retry_delay=delay, tx_timeout=timeout, max_attempts=0
-            )
-            # trigger generator function
-            try_send(gen, obj=None)
-            # send message to 'wait_for_message'
-            try_send(gen, obj=m)
-            # send message to '_submit_tx'
-            try_send(gen, obj=MagicMock(body='{"result": {"hash": "", "code": 0}}'))
-            # send message to '_wait_until_transaction_delivered'
-            time.sleep(timeout)
-            try_send(gen, obj=m)
+            with mock.patch.object(
+                BaseState, "params", mock.PropertyMock(return_value=mock_params)
+            ):
+                gen = self.behaviour._send_transaction(
+                    m, request_retry_delay=delay, tx_timeout=timeout, max_attempts=0
+                )
+                # trigger generator function
+                try_send(gen, obj=None)
+                # send message to 'wait_for_message'
+                try_send(gen, obj=m)
+                # send message to '_submit_tx'
+                try_send(gen, obj=MagicMock(body='{"result": {"hash": "", "code": 0}}'))
+                # send message to '_wait_until_transaction_delivered'
+                time.sleep(timeout)
+                try_send(gen, obj=m)
 
-            mock_info.assert_called_with("Tx sent but not delivered. Response = None")
+                mock_info.assert_called_with(
+                    "Tx sent but not delivered. Response = None"
+                )
 
     @mock.patch.object(BaseState, "_send_signing_request")
     @mock.patch.object(Transaction, "encode", return_value=MagicMock())
@@ -698,21 +725,26 @@ class TestBaseState:
         gen = self.behaviour._send_transaction(m)
 
         with mock.patch.object(self.behaviour.context.logger, "info") as mock_info:
-            # trigger generator function
-            try_send(gen, obj=None)
-            # send message to 'wait_for_message'
-            try_send(gen, obj=m)
-            # send message to '_submit_tx'
-            try_send(gen, obj=MagicMock(body='{"result": {"hash": "", "code": -1}}'))
-            # send message to '_wait_until_transaction_delivered'
-            success_response = MagicMock(
-                status_code=200, body='{"result": {"tx_result": {"code": 0}}}'
-            )
-            try_send(gen, obj=success_response)
+            with mock.patch.object(
+                BaseState, "params", mock.PropertyMock(return_value=mock_params)
+            ):
+                # trigger generator function
+                try_send(gen, obj=None)
+                # send message to 'wait_for_message'
+                try_send(gen, obj=m)
+                # send message to '_submit_tx'
+                try_send(
+                    gen, obj=MagicMock(body='{"result": {"hash": "", "code": -1}}')
+                )
+                # send message to '_wait_until_transaction_delivered'
+                success_response = MagicMock(
+                    status_code=200, body='{"result": {"tx_result": {"code": 0}}}'
+                )
+                try_send(gen, obj=success_response)
 
-            mock_info.assert_called_with(
-                "Received tendermint code != 0. Retrying in 1.0 seconds..."
-            )
+                mock_info.assert_called_with(
+                    "Received tendermint code != 0. Retrying in 1.0 seconds..."
+                )
 
     @pytest.mark.skip
     @mock.patch.object(BaseState, "_send_signing_request")
@@ -764,12 +796,15 @@ class TestBaseState:
         """Test '_send_transaction', erorr status code."""
         m = MagicMock()
         gen = self.behaviour._send_transaction(m)
-        # trigger generator function
-        try_send(gen, obj=None)
-        try_send(gen, obj=m)
-        try_send(gen, obj=m)
-        time.sleep(_DEFAULT_REQUEST_RETRY_DELAY)
-        try_send(gen, obj=None)
+        with mock.patch.object(
+            BaseState, "params", mock.PropertyMock(return_value=mock_params)
+        ):
+            # trigger generator function
+            try_send(gen, obj=None)
+            try_send(gen, obj=m)
+            try_send(gen, obj=m)
+            time.sleep(_DEFAULT_REQUEST_RETRY_DELAY)
+            try_send(gen, obj=None)
 
     @mock.patch.object(BaseState, "_get_request_nonce_from_dialogue")
     @mock.patch("packages.valory.skills.abstract_round_abci.behaviour_utils.RawMessage")
