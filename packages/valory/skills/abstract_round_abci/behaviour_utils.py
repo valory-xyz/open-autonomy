@@ -89,14 +89,6 @@ from packages.valory.skills.abstract_round_abci.models import (
 )
 
 
-_DEFAULT_REQUEST_RETRY_DELAY = 1.0
-_DEFAULT_REQUEST_TIMEOUT = 10.0
-_DEFAULT_TX_TIMEOUT = 10.0
-_DEFAULT_TX_MAX_ATTEMPTS = 10
-
-_SYNC_MODE_WAIT = 3
-
-
 class SendException(Exception):
     """Exception raised if the 'try_send' to an AsyncBehaviour failed."""
 
@@ -609,14 +601,14 @@ class BaseState(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
         """Get the request nonce for the request, from the protocol's dialogue."""
         return dialogue.dialogue_label.dialogue_reference[0]
 
-    def _send_transaction(  # pylint: disable=too-many-arguments
+    def _send_transaction(  # pylint: disable=too-many-arguments, too-many-statements
         self,
         payload: BaseTxPayload,
         stop_condition: Callable[[], bool] = lambda: False,
-        request_timeout: float = _DEFAULT_REQUEST_TIMEOUT,
-        request_retry_delay: float = _DEFAULT_REQUEST_RETRY_DELAY,
-        tx_timeout: float = _DEFAULT_TX_TIMEOUT,
-        max_attempts: int = _DEFAULT_TX_MAX_ATTEMPTS,
+        request_timeout: Optional[float] = None,
+        request_retry_delay: Optional[float] = None,
+        tx_timeout: Optional[float] = None,
+        max_attempts: Optional[int] = None,
     ) -> Generator:
         """
         Send transaction and wait for the response, repeat until not successful.
@@ -649,6 +641,15 @@ class BaseState(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
         :param: max_attempts: max retry attempts
         :yield: the responses
         """
+        if request_retry_delay is None:
+            request_retry_delay = self.params.request_retry_delay
+        if request_timeout is None:
+            request_timeout = self.params.request_timeout
+        if tx_timeout is None:
+            tx_timeout = self.params.tx_timeout
+        if max_attempts is None:
+            max_attempts = self.params.tx_max_attempts
+
         while not stop_condition():
             self.context.logger.debug(
                 f"Trying to send payload: {pprint.pformat(payload.json)}"
@@ -1085,8 +1086,8 @@ class BaseState(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
         self,
         tx_hash: str,
         timeout: Optional[float] = None,
-        request_retry_delay: float = _DEFAULT_REQUEST_RETRY_DELAY,
-        max_attempts: int = _DEFAULT_TX_MAX_ATTEMPTS,
+        request_retry_delay: Optional[float] = None,
+        max_attempts: Optional[int] = None,
     ) -> Generator[None, None, Tuple[bool, Optional[HttpMessage]]]:
         """
         Wait until transaction is delivered.
@@ -1108,6 +1109,11 @@ class BaseState(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
             deadline = datetime.datetime.now() + datetime.timedelta(0, timeout)
         else:
             deadline = datetime.datetime.max
+
+        if request_retry_delay is None:
+            request_retry_delay = self.params.request_retry_delay
+        if max_attempts is None:
+            max_attempts = self.params.tx_max_attempts
 
         for _ in range(max_attempts):
             request_timeout = (

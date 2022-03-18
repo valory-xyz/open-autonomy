@@ -44,11 +44,13 @@ from packages.valory.skills.abstract_round_abci.behaviour_utils import (
     DegenerateState,
     SendException,
     TimeoutException,
-    _DEFAULT_REQUEST_RETRY_DELAY,
     make_degenerate_state,
 )
 
 from tests.helpers.base import try_send
+
+
+_DEFAULT_REQUEST_RETRY_DELAY = 1.0
 
 
 class AsyncBehaviourTest(AsyncBehaviour, ABC):

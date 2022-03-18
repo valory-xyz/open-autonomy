@@ -63,6 +63,10 @@ class BaseParams(Model):  # pylint: disable=too-many-instance-attributes
         self.reset_tendermint_after = self._ensure("reset_tendermint_after", kwargs)
         self.consensus_params = ConsensusParams.from_json(kwargs.pop("consensus", {}))
         self.cleanup_history_depth = self._ensure("cleanup_history_depth", kwargs)
+        self.request_retry_delay = self._ensure("request_retry_delay", kwargs)
+        self.request_timeout = self._ensure("request_timeout", kwargs)
+        self.tx_timeout = self._ensure("tx_timeout", kwargs)
+        self.tx_max_attempts = self._ensure("tx_max_attempts", kwargs)
         period_setup_params = kwargs.pop("period_setup", {})
         # we sanitize for null values as these are just kept for schema definitions
         period_setup_params = {
