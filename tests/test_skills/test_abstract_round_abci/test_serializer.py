@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021 Valory AG
+#   Copyright 2021-2022 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -16,45 +16,112 @@
 #   limitations under the License.
 #
 # ------------------------------------------------------------------------------
-
 """Test the serializer.py module of the skill."""
 
-from google.protobuf.struct_pb2 import Struct
+from collections import defaultdict
+from typing import Any, Dict
 
-from packages.valory.skills.abstract_round_abci.serializer import (
-    DictProtobufStructSerializer,
+import hypothesis.strategies as st
+import pytest
+from hypothesis import given
+
+from packages.valory.skills.abstract_round_abci import serializer
+
+
+# utility functions
+def node() -> defaultdict:
+    """Recursive defaultdict"""
+    return defaultdict(node)
+
+
+def to_dict(dd: Dict[str, Any]) -> Dict[str, Any]:
+    """Recursive defaultdict to dict"""
+    return {k: to_dict(v) for k, v in dd.items()} if isinstance(dd, defaultdict) else dd
+
+
+def types_of(d: Dict[str, Any]) -> Dict[str, Any]:
+    """Get `key: type(value)` mapping, recursively."""
+    return {k: types_of(v) if isinstance(v, dict) else type(v) for k, v in d.items()}
+
+
+def is_decodable(b: bytes) -> bool:
+    """Check if bytes can be decoded"""
+    try:
+        b.decode(serializer.ENCODING)
+        return True
+    except UnicodeDecodeError:
+        return False
+
+
+def is_serializer_compatible(data: Dict) -> bool:
+    """Check whether the serializer can reconstitute the data"""
+    serialized = serializer.to_bytes(data)
+    assert isinstance(serialized, bytes)
+    deserialized = serializer.from_bytes(serialized)
+    return data == deserialized and types_of(data) == types_of(deserialized)
+
+
+# tests
+@pytest.mark.parametrize(
+    "unsupported_type",
+    [bool, int, float, tuple, frozenset],
+)
+def test_unsupported_key_types(unsupported_type: Any) -> None:
+    """Python accepted key-types not compatible with protobuf"""
+    data = {unsupported_type(): "value"}
+    with pytest.raises(Exception):
+        serializer.to_bytes(data)
+
+
+@pytest.mark.parametrize(
+    "unsupported_type",
+    [tuple, list, set, frozenset],
+)
+def test_unsupported_value_type(unsupported_type: Any) -> None:
+    """Not implemented."""
+    data = {"key": unsupported_type()}
+    with pytest.raises(NotImplementedError):
+        serializer.to_bytes(data)
+
+
+@pytest.mark.parametrize(
+    "value",
+    [True, 1 << 256, 3.14, "string", b"bytes", {}],
+)
+def test_single_values(value: Any) -> None:
+    """Single value type test"""
+    assert is_serializer_compatible({"key": value})
+
+
+def test_nested_mapping() -> None:
+    """Nested mapping test"""
+    root = node()
+    root["a"]["0"] = {}
+    root["a"]["1"] = False
+    root["a"]["2"] = -(1 << 256)
+    root["a"]["3"]["i"] = -3.141592653589793
+    root["a"]["3"]["ii"] = b"bytes"
+    root["a"]["3"]["iii"] = "string"
+    assert is_serializer_compatible(to_dict(root))
+
+
+# randomized hypothesis testing
+value_strategy = st.one_of(
+    st.booleans(),
+    st.integers(),
+    st.floats(allow_nan=False),  # because `nan != nan`
+    st.text(),
+    st.binary().filter(is_decodable),
 )
 
 
-def test_encode_decode_i() -> None:
-    """Test encode decode logic."""
-    case = {
-        "key1": True,
-        "key2": 0.12,
-        "key3": 100,
-        "key4": "some string",
-        "key5": b"some bytes string",
-        "key6": Struct(),
-        "_need_patch": {},
-    }
-    encoded = DictProtobufStructSerializer.encode(case)
-    case.pop("_need_patch")
-    assert isinstance(encoded, bytes)
-    decoded = DictProtobufStructSerializer.decode(encoded)
-    assert case == decoded
+@given(st.builds(zip, st.lists(st.text(), unique=True), st.lists(value_strategy)))
+def test_randomized_mapping(zipper: Any) -> None:
+    """Test randomized mappings"""
+    assert is_serializer_compatible(dict(zipper))
 
 
-def test_encode_decode_ii() -> None:
-    """Test encode decode logic."""
-    case = {
-        "key1": True,
-        "key2": 0.12,
-        "key3": 100,
-        "key4": "some string",
-        "key5": b"some bytes string",
-        "key6": {"key1": True, "key2": 0.12},
-    }
-    encoded = DictProtobufStructSerializer.encode(case)
-    assert isinstance(encoded, bytes)
-    decoded = DictProtobufStructSerializer.decode(encoded)
-    assert case == decoded
+@given(st.recursive(value_strategy, lambda trees: st.dictionaries(st.text(), trees)))
+def test_randomized_nested_mapping(data: Any) -> None:
+    """Test randomized nested mappings"""
+    assert is_serializer_compatible({"key": data})

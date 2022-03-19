@@ -2,53 +2,54 @@
 
 # packages.valory.skills.abstract`_`round`_`abci.serializer
 
-This module contains Serializers that can be used for custom types.
+Serialize nested dictionaries to bytes using google.protobuf.Struct.
 
-<a id="packages.valory.skills.abstract_round_abci.serializer.DictProtobufStructSerializer"></a>
+Prerequisites:
+- All keys must be of type: str
+- Values must be of type: bool, int, float, str, bytes, dict
 
-## DictProtobufStructSerializer Objects
+The following encoding is required and performed,
+and sentinel values are added for decoding:
+- bytes to string
+- integer to string
 
-```python
-class DictProtobufStructSerializer()
-```
+<a id="packages.valory.skills.abstract_round_abci.serializer.to_bytes"></a>
 
-Serialize python dictionaries
-
-Serialize python dictionaries of type DictType = Dict[str, ValueType]
-recursively conserving their dynamic type, using google.protobuf.Struct
-
-ValueType = PrimitiveType | DictType | List[ValueType]
-PrimitiveType = bool | int | float | str | bytes
-
-<a id="packages.valory.skills.abstract_round_abci.serializer.DictProtobufStructSerializer.encode"></a>
-
-#### encode
+#### to`_`bytes
 
 ```python
-@classmethod
-def encode(cls, dictionary: Dict[str, Any]) -> bytes
+def to_bytes(data: Dict[str, Any]) -> bytes
 ```
 
-Serialize compatible dictionary to bytes.
+Serialize to bytes using protobuf. Adds extra data for type-casting.
 
-Copies entire dictionary in the process.
+<a id="packages.valory.skills.abstract_round_abci.serializer.from_bytes"></a>
 
-**Arguments**:
-
-- `dictionary`: the dictionary to serialize
-
-**Returns**:
-
-serialized bytes string
-
-<a id="packages.valory.skills.abstract_round_abci.serializer.DictProtobufStructSerializer.decode"></a>
-
-#### decode
+#### from`_`bytes
 
 ```python
-@classmethod
-def decode(cls, buffer: bytes) -> Dict[str, Any]
+def from_bytes(buffer: bytes) -> Dict[str, Any]
 ```
 
-Deserialize a compatible dictionary
+Deserialize patched-up python dict from protobuf bytes.
+
+<a id="packages.valory.skills.abstract_round_abci.serializer.patch"></a>
+
+#### patch
+
+```python
+def patch(data: Dict[str, Any]) -> Dict[str, Any]
+```
+
+Patch for protobuf serialization. In-place operation.
+
+<a id="packages.valory.skills.abstract_round_abci.serializer.unpatch"></a>
+
+#### unpatch
+
+```python
+def unpatch(data: Dict[str, Any]) -> Dict[str, Any]
+```
+
+Unpatch for protobuf deserialization. In-place operation.
 
