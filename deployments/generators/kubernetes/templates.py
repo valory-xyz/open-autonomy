@@ -19,7 +19,10 @@
 
 """Kubernetes Templates module."""
 
-HARDHAT_TEMPLATE: str = """apiVersion: apps/v1
+from deployments.constants import IMAGE_VERSION
+
+HARDHAT_TEMPLATE: str = (
+    """apiVersion: apps/v1
 kind: Deployment
 metadata:
   labels:
@@ -50,7 +53,7 @@ spec:
             - "0.0.0.0"
           command:
             - /bin/bash
-          image: valory/consensus-algorithms-hardhat:0.1.0
+          image: valory/consensus-algorithms-hardhat:%s
           name: hardhat
           ports:
             - name: http
@@ -79,9 +82,12 @@ spec:
 status:
   loadBalancer: {}
 """
+    % IMAGE_VERSION
+)
 
 
-CLUSTER_CONFIGURATION_TEMPLATE: str = """apiVersion: batch/v1
+CLUSTER_CONFIGURATION_TEMPLATE: str = (
+    """apiVersion: batch/v1
 kind: Job
 metadata:
   name: config-nodes
@@ -92,7 +98,7 @@ spec:
       - name: regcred
       containers:
       - name: config-nodes
-        image: valory/consensus-algorithms-tendermint:0.1.0
+        image: valory/consensus-algorithms-tendermint:%s
         command: ['/usr/bin/tendermint']
         args: ["testnet",
          "--config",
@@ -122,9 +128,12 @@ spec:
     requests:
       storage: 1000M
 """
+    % IMAGE_VERSION
+)
 
 
-AGENT_NODE_TEMPLATE: str = """apiVersion: v1
+AGENT_NODE_TEMPLATE: str = (
+    """apiVersion: v1
 kind: Service
 metadata:
   name: abci{validator_ix}
@@ -160,14 +169,14 @@ spec:
       restartPolicy: Always
       containers:
       - name: node{validator_ix}
-        image: valory/consensus-algorithms-tendermint:0.1.0
+        image: valory/consensus-algorithms-tendermint:%s
         imagePullPolicy: Always
         resources:
           limits:
-            memory: "1024Mi"
-            cpu: "1"
+            memory: "512Mi"
+            cpu: "0.5"
           requests:
-            cpu: "500m"
+            cpu: "0.05"
             memory: "128Mi"
         ports:
           - containerPort: 26656
@@ -190,14 +199,14 @@ spec:
             name: build
 
       - name: aea
-        image: valory/consensus-algorithms-open-aea:0.1.0
+        image: valory/consensus-algorithms-open-aea:%s
         imagePullPolicy: Always
         resources:
           limits:
-            memory: "1024Mi"
-            cpu: "1"
+            memory: "512Mi"
+            cpu: "0.5"
           requests:
-            cpu: "500m"
+            cpu: "0.05"
             memory: "128Mi"
         env:
           - name: HOSTNAME
@@ -212,3 +221,5 @@ spec:
           persistentVolumeClaim:
             claimName: 'build-vol-pvc'
 """
+    % IMAGE_VERSION
+)
