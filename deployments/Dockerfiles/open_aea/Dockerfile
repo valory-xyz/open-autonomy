@@ -23,6 +23,8 @@ WORKDIR /home/ubuntu
 
 COPY Pipfile .
 
+RUN python -m pip install --force-reinstall pipenv virtualenv --user
+RUN pipenv --python 3.8
 RUN pipenv install --system --skip-lock
 
 RUN svn checkout https://github.com/valory-xyz/open-aea/trunk/packages packages
