@@ -134,7 +134,7 @@ class APYEstimationBaseState(BaseState, ABC):
         """Initialize an `APYEstimationBaseState` behaviour."""
         super().__init__(**kwargs)
         # Create an IPFS tool.
-        self.__ipfs_tool = IPFSTool({"addr": self.params.ipfs_domain_name})
+        self.__ipfs_tool = IPFSTool(**{"addr": self.params.ipfs_domain_name})
         # Check IPFS node.
         self.__ipfs_tool.check_ipfs_node_running()
 

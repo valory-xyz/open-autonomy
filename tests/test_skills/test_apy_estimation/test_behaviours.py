@@ -2518,7 +2518,7 @@ class TestReplicate289Behaviour(APYEstimationFSMBehaviourBaseCase):
         state = cast(BaseState, self.apy_estimation_behaviour.current_state)
         assert state.state_id == self.behaviour_class.state_id
 
-        monkeypatch.setattr(mocking_path, lambda _: "Mocking succeeded!")
+        monkeypatch.setattr(mocking_path, lambda: "Mocking succeeded!")
 
         with caplog.at_level(
             logging.INFO,
