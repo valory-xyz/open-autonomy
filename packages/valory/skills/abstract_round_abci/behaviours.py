@@ -107,8 +107,6 @@ class _MetaRoundBehaviour(ABCMeta):
 
         # check uniqueness
         for b in behaviour_cls.behaviour_states:
-            if b.matching_round is None:
-                continue
             round_to_state[b.matching_round].append(b)
             if len(round_to_state[b.matching_round]) > 1:
                 state_class_ids = [
@@ -194,8 +192,6 @@ class AbstractRoundBehaviour(
         """Get round-to-state mapping."""
         result: Dict[Type[AbstractRound], StateType] = {}
         for state_behaviour_cls in behaviour_states:
-            if state_behaviour_cls.matching_round is None:
-                continue
             round_cls = state_behaviour_cls.matching_round
             if round_cls in result:
                 raise ValueError(
@@ -255,7 +251,7 @@ class AbstractRoundBehaviour(
         if (
             self.current_state is not None
             and self._last_round_height == current_round_height
-        ) and self.current_state.matching_round is not None:
+        ):
             # round has not changed - do nothing
             return
         self._last_round_height = current_round_height
@@ -273,8 +269,6 @@ class AbstractRoundBehaviour(
             return
 
         current_state = cast(BaseState, self.current_state)
-        # current state cannot be replaced if matching_round is None
-        if current_state.matching_round is not None:
-            current_state.stop()
-            self.current_state = self.instantiate_state_cls(self._next_state_cls)
-            return
+        current_state.stop()
+        self.current_state = self.instantiate_state_cls(self._next_state_cls)
+        return

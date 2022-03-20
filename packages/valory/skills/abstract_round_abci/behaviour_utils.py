@@ -438,7 +438,7 @@ class BaseState(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
 
     is_programmatically_defined = True
     state_id = ""
-    matching_round: Optional[Type[AbstractRound]] = None
+    matching_round: Type[AbstractRound]
     is_degenerate: bool = False
 
     def __init__(self, **kwargs: Any):  # pylint: disable=super-init-not-called
@@ -500,8 +500,6 @@ class BaseState(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
         :param timeout: the timeout for the wait
         :yield: None
         """
-        if self.matching_round is None:
-            raise ValueError("No matching_round set!")
         round_id = self.matching_round.round_id
         round_height = cast(SharedState, self.context.state).period.current_round_height
         if self.check_not_in_round(round_id) and self.check_not_in_last_round(round_id):
@@ -545,8 +543,6 @@ class BaseState(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
         :param: payload: the payload to send
         :yield: the responses
         """
-        if self.matching_round is None:
-            raise ValueError("No matching_round set!")
         stop_condition = self.is_round_ended(self.matching_round.round_id)
         payload.round_count = cast(
             SharedState, self.context.state
@@ -1374,7 +1370,7 @@ class BaseState(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
 class DegenerateState(BaseState, ABC):
     """An abstract matching behaviour for final and degenerate rounds."""
 
-    matching_round: Optional[Type[AbstractRound]] = None
+    matching_round: Type[AbstractRound]
     is_degenerate: bool = True
 
     def async_act(self) -> Generator:

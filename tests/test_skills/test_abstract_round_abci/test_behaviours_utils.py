@@ -19,7 +19,6 @@
 
 """Test the behaviours_utils.py module of the skill."""
 import json
-import logging
 import time
 from abc import ABC
 from collections import OrderedDict
@@ -36,6 +35,7 @@ from packages.valory.protocols.http import HttpMessage
 from packages.valory.skills.abstract_round_abci.base import (
     AbstractRound,
     BasePeriodState,
+    BaseTxPayload,
     Transaction,
 )
 from packages.valory.skills.abstract_round_abci.behaviour_utils import (
@@ -310,18 +310,24 @@ def test_async_behaviour_stop() -> None:
 class RoundA(AbstractRound):
     """Concrete ABCI round."""
 
+    round_id = "round_a"
+
     def end_block(self) -> Optional[Tuple[BasePeriodState, Enum]]:
         """Handle end block."""
         return None
 
-    round_id = "round_a"
+    def check_payload(self, payload: BaseTxPayload) -> None:
+        """Check payload."""
+
+    def process_payload(self, payload: BaseTxPayload) -> None:
+        """Process payload."""
 
 
 class StateATest(BaseState):
     """Concrete BaseState class."""
 
     state_id = "state_a"
-    matching_round: Optional[Type[RoundA]] = RoundA
+    matching_round: Type[RoundA] = RoundA
 
     def async_act(self) -> Generator:
         """Do the 'async_act'."""
@@ -414,18 +420,10 @@ class TestBaseState:
         assert self.behaviour.check_round_height_has_changed(current_height)
         assert not self.behaviour.check_round_height_has_changed(new_height)
 
-    def test_wait_until_round_end_negative_no_matching_round(self) -> None:
-        """Test 'wait_until_round_end' method, negative case (no matching round)."""
-        self.behaviour.matching_round = None
-        generator = self.behaviour.wait_until_round_end()
-        with pytest.raises(ValueError, match="No matching_round set!"):
-            generator.send(None)
-
     def test_wait_until_round_end_negative_last_round_or_matching_round(self) -> None:
         """Test 'wait_until_round_end' method, negative case (not in matching nor last round)."""
         self.behaviour.context.state.period.current_round_id = "current_round_id"
         self.behaviour.context.state.period.last_round_id = "last_round_id"
-        assert self.behaviour.matching_round is not None
         self.behaviour.matching_round.round_id = "matching_round"
         generator = self.behaviour.wait_until_round_end()
         with pytest.raises(
@@ -466,13 +464,6 @@ class TestBaseState:
         self.behaviour.set_done()
         assert self.behaviour.is_done()
 
-    def test_send_a2a_transaction_negative_no_matching_round(self) -> None:
-        """Test 'send_a2a_transaction' method, negative case (no matching round)."""
-        self.behaviour.matching_round = None
-        generator = self.behaviour.send_a2a_transaction(MagicMock())
-        with pytest.raises(ValueError, match="No matching_round set!"):
-            try_send(generator)
-
     @mock.patch.object(BaseState, "_send_transaction")
     def test_send_a2a_transaction_positive(self, *_: Any) -> None:
         """Test 'send_a2a_transaction' method, positive case."""
@@ -484,31 +475,6 @@ class TestBaseState:
         gen = self.behaviour.async_act_wrapper()
         try_send(gen)
         self.behaviour.set_done()
-        try_send(gen)
-
-    @mock.patch.object(BaseState, "_get_status", _get_status_patch)
-    def test_async_act_wrapper_agent_sync_mode(self) -> None:
-        """Test 'async_act_wrapper' in sync mode."""
-        self.behaviour.context.state.period.syncing_up = True
-        self.behaviour.context.state.period.height = 0
-        self.behaviour.matching_round = None
-        self.behaviour.context.logger.info = lambda msg: logging.info(msg)  # type: ignore
-
-        with mock.patch.object(logging, "info") as log_mock:
-            gen = self.behaviour.async_act_wrapper()
-            try_send(gen)
-            log_mock.assert_called_with("local height == remote; Sync complete...")
-
-    @mock.patch.object(BaseState, "_get_status", _get_status_wrong_patch)
-    def test_async_act_wrapper_agent_sync_mode_where_height_dont_match(self) -> None:
-        """Test 'async_act_wrapper' in sync mode."""
-        self.behaviour.context.state.period.syncing_up = True
-        self.behaviour.context.state.period.height = 0
-        self.behaviour.context.params.tendermint_check_sleep_delay = 3
-        self.behaviour.matching_round = None
-        self.behaviour.context.logger.info = lambda msg: logging.info(msg)  # type: ignore
-
-        gen = self.behaviour.async_act_wrapper()
         try_send(gen)
 
     @pytest.mark.parametrize("exception_cls", [StopIteration])
