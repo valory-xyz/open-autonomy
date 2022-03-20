@@ -18,7 +18,7 @@ COPY start.sh /home/ubuntu/start.sh
 COPY watcher.py /home/ubuntu/watcher.py
 
 WORKDIR /home/ubuntu
-COPY Pipfile.dev /home/ubuntu/Pipfile
+COPY Pipfile /home/ubuntu/Pipfile
 RUN python -m pip install --force-reinstall pipenv virtualenv --user
 RUN pipenv --python 3.8
 RUN pipenv install --skip-lock --system
