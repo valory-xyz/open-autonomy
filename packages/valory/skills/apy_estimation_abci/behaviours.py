@@ -48,9 +48,6 @@ from packages.valory.skills.abstract_round_abci.behaviours import (
 from packages.valory.skills.abstract_round_abci.io.load import SupportedFiletype
 from packages.valory.skills.abstract_round_abci.models import ApiSpecs
 from packages.valory.skills.abstract_round_abci.utils import VerifyDrand
-from packages.valory.skills.apy_estimation_abci.composition import (
-    APYEstimationAbciAppChained,
-)
 from packages.valory.skills.apy_estimation_abci.ml.forecasting import TestReportType
 from packages.valory.skills.apy_estimation_abci.ml.preprocessing import (
     prepare_pair_data,
@@ -104,10 +101,6 @@ from packages.valory.skills.apy_estimation_abci.tools.queries import (
     eth_price_usd_q,
     latest_block,
     pairs_q,
-)
-from packages.valory.skills.registration_abci.behaviours import (
-    AgentRegistrationRoundBehaviour,
-    RegistrationStartupBehaviour,
 )
 
 
@@ -1150,16 +1143,4 @@ class EstimatorRoundBehaviour(AbstractRoundBehaviour):
         EstimateBehaviour,  # type: ignore
         FreshModelResetBehaviour,  # type: ignore
         CycleResetBehaviour,  # type: ignore
-    }
-
-
-class APYEstimationConsensusBehaviour(AbstractRoundBehaviour):
-    """This behaviour manages the consensus stages for the APY estimation."""
-
-    initial_state_cls = RegistrationStartupBehaviour
-    abci_app_cls = APYEstimationAbciAppChained
-
-    behaviour_states: Set[Type[BaseState]] = {
-        *AgentRegistrationRoundBehaviour.behaviour_states,
-        *EstimatorRoundBehaviour.behaviour_states,
     }

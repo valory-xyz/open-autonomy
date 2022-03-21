@@ -22,34 +22,7 @@ from typing import Dict, Union
 
 import pytest
 
-from packages.valory.skills.apy_estimation_abci.composition import (
-    APYEstimationAbciAppChained,
-)
-from packages.valory.skills.apy_estimation_abci.models import (
-    APYParams,
-    MARGIN,
-    SharedState,
-)
-from packages.valory.skills.apy_estimation_abci.rounds import Event
-
-
-class TestSharedState:
-    """Test SharedState(Model) class."""
-
-    def test_setup(
-        self,
-        shared_state: SharedState,
-    ) -> None:
-        """Test setup."""
-        shared_state.setup()
-        assert (
-            APYEstimationAbciAppChained.event_to_timeout[Event.ROUND_TIMEOUT]
-            == shared_state.context.params.round_timeout_seconds
-        )
-        assert (
-            APYEstimationAbciAppChained.event_to_timeout[Event.RESET_TIMEOUT]
-            == shared_state.context.params.observation_interval + MARGIN
-        )
+from packages.valory.skills.apy_estimation_abci.models import APYParams
 
 
 class TestAPYParams:
