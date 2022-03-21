@@ -246,6 +246,7 @@ build-images:
 		exit 1
 	fi
 	rsync -avu packages/ deployments/Dockerfiles/open_aea/packages
+	rsync -avu Pipfile* deployments/Dockerfiles/open_aea
 	if [ "${VERSION}" = "dev" ];\
 	then\
 		echo "building dev images!";\
@@ -292,7 +293,7 @@ run-oracle:
 run-deploy:
 	cd deployments/build/ && \
 	docker-compose up --force-recreate -t 600
-	
+
 
 .PHONY: run-deployment
 run-deployment:

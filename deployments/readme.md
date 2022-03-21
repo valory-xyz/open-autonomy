@@ -65,11 +65,11 @@ docker run --rm -v $(pwd)/deployments/build/build:/tendermint:Z --entrypoint=/us
 Generated Deployment!
 
 
-Application:          price_estimation_hardhat
+Application:          oracle_ropsten
 Type:                 docker-compose
 Agents:               4
 Network:              ropsten
-Build Length          8785
+Build Length          9887
 ```
 
 # Step 3
@@ -83,18 +83,18 @@ docker run --rm -v $(pwd)/deployments/build/build:/tendermint:Z --entrypoint=/us
 ```
 
 ```output
-I[2022-02-19|10:19:04.387] Generated private validator                  module=main keyFile=node0/config/priv_validator_key.json stateFile=node0/data/priv_validator_state.json
-I[2022-02-19|10:19:04.396] Generated node key                           module=main path=node0/config/node_key.json
-I[2022-02-19|10:19:04.405] Generated genesis file                       module=main path=node0/config/genesis.json
-I[2022-02-19|10:19:04.459] Generated private validator                  module=main keyFile=node1/config/priv_validator_key.json stateFile=node1/data/priv_validator_state.json
-I[2022-02-19|10:19:04.467] Generated node key                           module=main path=node1/config/node_key.json
-I[2022-02-19|10:19:04.475] Generated genesis file                       module=main path=node1/config/genesis.json
-I[2022-02-19|10:19:04.527] Generated private validator                  module=main keyFile=node2/config/priv_validator_key.json stateFile=node2/data/priv_validator_state.json
-I[2022-02-19|10:19:04.534] Generated node key                           module=main path=node2/config/node_key.json
-I[2022-02-19|10:19:04.545] Generated genesis file                       module=main path=node2/config/genesis.json
-I[2022-02-19|10:19:04.604] Generated private validator                  module=main keyFile=node3/config/priv_validator_key.json stateFile=node3/data/priv_validator_state.json
-I[2022-02-19|10:19:04.612] Generated node key                           module=main path=node3/config/node_key.json
-I[2022-02-19|10:19:04.617] Generated genesis file                       module=main path=node3/config/genesis.json
+I[2022-03-20|20:53:10.377] Generated private validator                  module=main keyFile=node0/config/priv_validator_key.json stateFile=node0/data/priv_validator_state.json
+I[2022-03-20|20:53:10.384] Generated node key                           module=main path=node0/config/node_key.json
+I[2022-03-20|20:53:10.391] Generated genesis file                       module=main path=node0/config/genesis.json
+I[2022-03-20|20:53:10.456] Generated private validator                  module=main keyFile=node1/config/priv_validator_key.json stateFile=node1/data/priv_validator_state.json
+I[2022-03-20|20:53:10.464] Generated node key                           module=main path=node1/config/node_key.json
+I[2022-03-20|20:53:10.472] Generated genesis file                       module=main path=node1/config/genesis.json
+I[2022-03-20|20:53:10.559] Generated private validator                  module=main keyFile=node2/config/priv_validator_key.json stateFile=node2/data/priv_validator_state.json
+I[2022-03-20|20:53:10.571] Generated node key                           module=main path=node2/config/node_key.json
+I[2022-03-20|20:53:10.580] Generated genesis file                       module=main path=node2/config/genesis.json
+I[2022-03-20|20:53:10.649] Generated private validator                  module=main keyFile=node3/config/priv_validator_key.json stateFile=node3/data/priv_validator_state.json
+I[2022-03-20|20:53:10.665] Generated node key                           module=main path=node3/config/node_key.json
+I[2022-03-20|20:53:10.678] Generated genesis file                       module=main path=node3/config/genesis.json
 Successfully initialized 4 node directories
 ```
 # Step 4 (only required for deployments with hardhat network)
