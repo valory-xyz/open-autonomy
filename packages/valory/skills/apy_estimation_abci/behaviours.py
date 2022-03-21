@@ -547,7 +547,7 @@ class PreprocessBehaviour(APYEstimationBaseState):
             }.items():
                 save_path = os.path.join(
                     self.context.data_dir,
-                    f"y_{split_name}/",
+                    f"y_{split_name}",
                 )
 
                 split_hash = self.send_to_ipfs(
@@ -793,7 +793,7 @@ class OptimizeBehaviour(APYEstimationBaseState):
             # Store the best params from the results.
             best_params_save_path = os.path.join(
                 self.context.data_dir,
-                "best_params/",
+                "best_params",
             )
             self._best_params_hash = self.send_to_ipfs(
                 best_params_save_path,
@@ -889,7 +889,7 @@ class TrainBehaviour(APYEstimationBaseState):
             prefix = "fully_trained_" if self.period_state.full_training else ""
             forecaster_save_path = os.path.join(
                 self.context.data_dir,
-                f"{prefix}forecasters/",
+                f"{prefix}forecasters",
             )
 
             # Send the file to IPFS and get its hash.
@@ -988,7 +988,7 @@ class TestBehaviour(APYEstimationBaseState):
             # Store the results.
             report_save_path = os.path.join(
                 self.context.data_dir,
-                "reports/",
+                "reports",
             )
             # Send the file to IPFS and get its hash.
             self._report_hash = self.send_to_ipfs(
@@ -1019,7 +1019,7 @@ class UpdateForecasterBehaviour(APYEstimationBaseState):
         self._y: Optional[PoolIdToTrainDataType] = None
         self._forecasters_folder: str = os.path.join(
             self.context.data_dir,
-            "fully_trained_forecasters/",
+            "fully_trained_forecasters",
         )
         self._forecasters: Optional[PoolIdToForecasterType] = None
         self._model_hash: Optional[str] = None
