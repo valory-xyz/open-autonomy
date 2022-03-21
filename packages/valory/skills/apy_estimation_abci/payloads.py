@@ -373,25 +373,31 @@ class EstimatePayload(BaseAPYPayload):
 
     transaction_type = TransactionType.ESTIMATION
 
-    def __init__(self, sender: str, estimation: Optional[float], **kwargs: Any) -> None:
+    def __init__(
+        self, sender: str, estimations_hash: Optional[str], **kwargs: Any
+    ) -> None:
         """Initialize an 'estimate' transaction payload.
 
         :param sender: the sender (Ethereum) address
-        :param estimation: the estimation.
+        :param estimations_hash: the hash of the estimations.
         :param kwargs: the keyword arguments
         """
         super().__init__(sender, **kwargs)
-        self._estimation = estimation
+        self._estimations_hash = estimations_hash
 
     @property
-    def estimation(self) -> Optional[float]:
-        """Get the estimation."""
-        return self._estimation
+    def estimations_hash(self) -> Optional[str]:
+        """Get the estimations' hash."""
+        return self._estimations_hash
 
     @property
-    def data(self) -> Dict[str, Optional[float]]:
+    def data(self) -> Dict[str, Optional[str]]:
         """Get the data."""
-        return {"estimation": self.estimation} if self.estimation is not None else {}
+        return (
+            {"estimations_hash": self.estimations_hash}
+            if self.estimations_hash is not None
+            else {}
+        )
 
 
 class ResetPayload(BaseAPYPayload):
