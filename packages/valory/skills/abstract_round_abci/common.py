@@ -131,7 +131,13 @@ class RandomnessBehaviour(BaseState):
                 randomness=observation["randomness"],
             )
             with self.context.benchmark_tool.measure(self.state_id).consensus():
-                yield from self.send_a2a_transaction(payload)
+                yield from self.send_a2a_transaction(
+                    payload=payload,
+                    request_retry_delay=self.params.request_retry_delay,
+                    request_timeout=self.params.request_timeout,
+                    tx_timeout=self.params.tx_timeout,
+                    tx_max_attempts=self.params.tx_max_attempts,
+                )
                 yield from self.wait_until_round_end()
 
             self.set_done()
@@ -193,7 +199,13 @@ class SelectKeeperBehaviour(BaseState):
             payload = self.payload_class(self.context.agent_address, keeper_address)
 
         with self.context.benchmark_tool.measure(self.state_id).consensus():
-            yield from self.send_a2a_transaction(payload)
+            yield from self.send_a2a_transaction(
+                payload=payload,
+                request_retry_delay=self.params.request_retry_delay,
+                request_timeout=self.params.request_timeout,
+                tx_timeout=self.params.tx_timeout,
+                tx_max_attempts=self.params.tx_max_attempts,
+            )
             yield from self.wait_until_round_end()
 
         self.set_done()

@@ -472,12 +472,13 @@ Set the behaviour to done.
 #### send`_`a2a`_`transaction
 
 ```python
-def send_a2a_transaction(payload: BaseTxPayload) -> Generator
+def send_a2a_transaction(payload: BaseTxPayload, **kwargs: Any) -> Generator
 ```
 
 Send transaction and wait for the response, and repeat until not successful.
 
 :param: payload: the payload to send
+:param: kwargs: the keyword arguments
 :yield: the responses
 
 <a id="packages.valory.skills.abstract_round_abci.behaviour_utils.BaseState.async_act_wrapper"></a>

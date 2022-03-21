@@ -695,7 +695,7 @@ class TestBaseState:
                 BaseState, "params", mock.PropertyMock(return_value=mock_params)
             ):
                 gen = self.behaviour._send_transaction(
-                    m, request_retry_delay=delay, tx_timeout=timeout, max_attempts=0
+                    m, request_retry_delay=delay, tx_timeout=timeout, tx_max_attempts=0
                 )
                 # trigger generator function
                 try_send(gen, obj=None)
@@ -917,7 +917,7 @@ class TestBaseState:
 
     def test_wait_until_transaction_delivered_raises_timeout(self, *_: Any) -> None:
         """Test '_wait_until_transaction_delivered' method."""
-        gen = self.behaviour._wait_until_transaction_delivered(MagicMock(), timeout=0.0)
+        gen = self.behaviour._wait_until_transaction_delivered(MagicMock(), tx_timeout=0.0)
         with pytest.raises(TimeoutException):
             # trigger generator function
             try_send(gen, obj=None)

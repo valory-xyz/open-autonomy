@@ -89,6 +89,12 @@ from packages.valory.skills.abstract_round_abci.models import (
 )
 
 
+_DEFAULT_REQUEST_RETRY_DELAY = 1.0
+_DEFAULT_REQUEST_TIMEOUT = 10.0
+_DEFAULT_TX_TIMEOUT = 10.0
+_DEFAULT_TX_MAX_ATTEMPTS = 10
+
+
 class SendException(Exception):
     """Exception raised if the 'try_send' to an AsyncBehaviour failed."""
 
@@ -530,11 +536,12 @@ class BaseState(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
         """Set the behaviour to done."""
         self._is_done = True
 
-    def send_a2a_transaction(self, payload: BaseTxPayload) -> Generator:
+    def send_a2a_transaction(self, payload: BaseTxPayload, **kwargs: Any) -> Generator:
         """
         Send transaction and wait for the response, and repeat until not successful.
 
         :param: payload: the payload to send
+        :param: kwargs: the keyword arguments
         :yield: the responses
         """
         if self.matching_round is None:
@@ -543,7 +550,11 @@ class BaseState(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
         payload.round_count = cast(
             SharedState, self.context.state
         ).period_state.round_count
-        yield from self._send_transaction(payload, stop_condition=stop_condition)
+        yield from self._send_transaction(
+            payload,
+            stop_condition=stop_condition,
+            **kwargs,
+        )
 
     def async_act_wrapper(self) -> Generator:
         """Do the act, supporting asynchronous execution."""
@@ -601,14 +612,11 @@ class BaseState(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
         """Get the request nonce for the request, from the protocol's dialogue."""
         return dialogue.dialogue_label.dialogue_reference[0]
 
-    def _send_transaction(  # pylint: disable=too-many-arguments, too-many-statements
+    def _send_transaction(  # pylint: disable=too-many-arguments
         self,
         payload: BaseTxPayload,
         stop_condition: Callable[[], bool] = lambda: False,
-        request_timeout: Optional[float] = None,
-        request_retry_delay: Optional[float] = None,
-        tx_timeout: Optional[float] = None,
-        max_attempts: Optional[int] = None,
+        **kwargs: Any,
     ) -> Generator:
         """
         Send transaction and wait for the response, repeat until not successful.
@@ -635,20 +643,13 @@ class BaseState(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
         :param: payload: the payload to send
         :param: stop_condition: the condition to be checked to interrupt the
                 waiting loop.
-        :param: request_timeout: the timeout for the requests
-        :param: request_retry_delay: the delay to wait after failed requests
-        :param: tx_timeout: the timeout to wait for tx delivery
-        :param: max_attempts: max retry attempts
+        :param: kwargs: the keyword arguments
         :yield: the responses
         """
-        if request_retry_delay is None:
-            request_retry_delay = self.params.request_retry_delay
-        if request_timeout is None:
-            request_timeout = self.params.request_timeout
-        if tx_timeout is None:
-            tx_timeout = self.params.tx_timeout
-        if max_attempts is None:
-            max_attempts = self.params.tx_max_attempts
+        request_retry_delay: float = kwargs.get(
+            "request_retry_delay", _DEFAULT_REQUEST_RETRY_DELAY
+        )
+        request_timeout: float = kwargs.get("request_timeout", _DEFAULT_REQUEST_TIMEOUT)
 
         while not stop_condition():
             self.context.logger.debug(
@@ -697,7 +698,7 @@ class BaseState(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
 
             try:
                 is_delivered, res = yield from self._wait_until_transaction_delivered(
-                    tx_hash, timeout=tx_timeout, max_attempts=max_attempts
+                    tx_hash, **kwargs
                 )
             except TimeoutException:
                 self.context.logger.info(
@@ -1085,9 +1086,7 @@ class BaseState(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
     def _wait_until_transaction_delivered(
         self,
         tx_hash: str,
-        timeout: Optional[float] = None,
-        request_retry_delay: Optional[float] = None,
-        max_attempts: Optional[int] = None,
+        **kwargs: Any,
     ) -> Generator[None, None, Tuple[bool, Optional[HttpMessage]]]:
         """
         Wait until transaction is delivered.
@@ -1099,21 +1098,21 @@ class BaseState(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
             Http client connection -> (HttpMessage | RESPONSE) -> AbstractRoundAbci skill
 
         :param tx_hash: the transaction hash to check.
-        :param timeout: timeout
-        :param: request_retry_delay: the delay to wait after failed requests
-        :param: max_attempts: the maximun number of attempts
+        :param: kwargs: the keyword arguments
         :yield: None
         :return: True if it is delivered successfully, False otherwise
         """
+        timeout: float = kwargs.get("tx_timeout", _DEFAULT_TX_TIMEOUT)
+
         if timeout is not None:
             deadline = datetime.datetime.now() + datetime.timedelta(0, timeout)
         else:
             deadline = datetime.datetime.max
 
-        if request_retry_delay is None:
-            request_retry_delay = self.params.request_retry_delay
-        if max_attempts is None:
-            max_attempts = self.params.tx_max_attempts
+        request_retry_delay: float = kwargs.get(
+            "request_retry_delay", _DEFAULT_REQUEST_RETRY_DELAY
+        )
+        max_attempts: int = kwargs.get("tx_max_attempts", _DEFAULT_TX_MAX_ATTEMPTS)
 
         for _ in range(max_attempts):
             request_timeout = (

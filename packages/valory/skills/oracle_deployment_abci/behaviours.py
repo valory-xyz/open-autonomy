@@ -125,7 +125,13 @@ class DeployOracleBehaviour(OracleDeploymentBaseState):
 
         with self.context.benchmark_tool.measure(self.state_id).consensus():
             self.context.logger.info(f"Oracle contract address: {contract_address}")
-            yield from self.send_a2a_transaction(payload)
+            yield from self.send_a2a_transaction(
+                payload=payload,
+                request_retry_delay=self.params.request_retry_delay,
+                request_timeout=self.params.request_timeout,
+                tx_timeout=self.params.tx_timeout,
+                tx_max_attempts=self.params.tx_max_attempts,
+            )
             yield from self.wait_until_round_end()
 
         self.set_done()
@@ -192,7 +198,13 @@ class ValidateOracleBehaviour(OracleDeploymentBaseState):
             payload = ValidateOraclePayload(self.context.agent_address, is_correct)
 
         with self.context.benchmark_tool.measure(self.state_id).consensus():
-            yield from self.send_a2a_transaction(payload)
+            yield from self.send_a2a_transaction(
+                payload=payload,
+                request_retry_delay=self.params.request_retry_delay,
+                request_timeout=self.params.request_timeout,
+                tx_timeout=self.params.tx_timeout,
+                tx_max_attempts=self.params.tx_max_attempts,
+            )
             yield from self.wait_until_round_end()
 
         self.set_done()

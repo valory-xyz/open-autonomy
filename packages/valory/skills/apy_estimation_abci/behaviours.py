@@ -355,7 +355,13 @@ class FetchBehaviour(APYEstimationBaseState):
 
             # Finish behaviour.
             with self.context.benchmark_tool.measure(self.state_id).consensus():
-                yield from self.send_a2a_transaction(payload)
+                yield from self.send_a2a_transaction(
+                    payload=payload,
+                    request_retry_delay=self.params.request_retry_delay,
+                    request_timeout=self.params.request_timeout,
+                    tx_timeout=self.params.tx_timeout,
+                    tx_max_attempts=self.params.tx_max_attempts,
+                )
                 yield from self.wait_until_round_end()
 
             self.set_done()
@@ -461,7 +467,13 @@ class TransformBehaviour(APYEstimationBaseState):
 
         # Finish behaviour.
         with self.context.benchmark_tool.measure(self.state_id).consensus():
-            yield from self.send_a2a_transaction(payload)
+            yield from self.send_a2a_transaction(
+                payload=payload,
+                request_retry_delay=self.params.request_retry_delay,
+                request_timeout=self.params.request_timeout,
+                tx_timeout=self.params.tx_timeout,
+                tx_max_attempts=self.params.tx_max_attempts,
+            )
             yield from self.wait_until_round_end()
 
         self.set_done()
@@ -516,7 +528,13 @@ class PreprocessBehaviour(APYEstimationBaseState):
 
         # Finish behaviour.
         with self.context.benchmark_tool.measure(self.state_id).consensus():
-            yield from self.send_a2a_transaction(payload)
+            yield from self.send_a2a_transaction(
+                payload=payload,
+                request_retry_delay=self.params.request_retry_delay,
+                request_timeout=self.params.request_timeout,
+                tx_timeout=self.params.tx_timeout,
+                tx_max_attempts=self.params.tx_max_attempts,
+            )
             yield from self.wait_until_round_end()
 
         self.set_done()
@@ -590,7 +608,13 @@ class PrepareBatchBehaviour(APYEstimationBaseState):
 
         # Finish behaviour.
         with self.context.benchmark_tool.measure(self.state_id).consensus():
-            yield from self.send_a2a_transaction(payload)
+            yield from self.send_a2a_transaction(
+                payload=payload,
+                request_retry_delay=self.params.request_retry_delay,
+                request_timeout=self.params.request_timeout,
+                tx_timeout=self.params.tx_timeout,
+                tx_max_attempts=self.params.tx_max_attempts,
+            )
             yield from self.wait_until_round_end()
 
         self.set_done()
@@ -645,7 +669,13 @@ class RandomnessBehaviour(APYEstimationBaseState):
             observation["randomness"],
         )
         with self.context.benchmark_tool.measure(self.state_id).consensus():
-            yield from self.send_a2a_transaction(payload)
+            yield from self.send_a2a_transaction(
+                payload=payload,
+                request_retry_delay=self.params.request_retry_delay,
+                request_timeout=self.params.request_timeout,
+                tx_timeout=self.params.tx_timeout,
+                tx_max_attempts=self.params.tx_max_attempts,
+            )
             yield from self.wait_until_round_end()
 
         self.set_done()
@@ -747,7 +777,13 @@ class OptimizeBehaviour(APYEstimationBaseState):
 
         # Finish behaviour.
         with self.context.benchmark_tool.measure(self.state_id).consensus():
-            yield from self.send_a2a_transaction(payload)
+            yield from self.send_a2a_transaction(
+                payload=payload,
+                request_retry_delay=self.params.request_retry_delay,
+                request_timeout=self.params.request_timeout,
+                tx_timeout=self.params.tx_timeout,
+                tx_max_attempts=self.params.tx_max_attempts,
+            )
             yield from self.wait_until_round_end()
 
         self.set_done()
@@ -851,7 +887,13 @@ class TrainBehaviour(APYEstimationBaseState):
 
         # Finish behaviour.
         with self.context.benchmark_tool.measure(self.state_id).consensus():
-            yield from self.send_a2a_transaction(payload)
+            yield from self.send_a2a_transaction(
+                payload=payload,
+                request_retry_delay=self.params.request_retry_delay,
+                request_timeout=self.params.request_timeout,
+                tx_timeout=self.params.tx_timeout,
+                tx_max_attempts=self.params.tx_max_attempts,
+            )
             yield from self.wait_until_round_end()
 
         self.set_done()
@@ -947,7 +989,13 @@ class TestBehaviour(APYEstimationBaseState):
 
         # Finish behaviour.
         with self.context.benchmark_tool.measure(self.state_id).consensus():
-            yield from self.send_a2a_transaction(payload)
+            yield from self.send_a2a_transaction(
+                payload=payload,
+                request_retry_delay=self.params.request_retry_delay,
+                request_timeout=self.params.request_timeout,
+                tx_timeout=self.params.tx_timeout,
+                tx_max_attempts=self.params.tx_max_attempts,
+            )
             yield from self.wait_until_round_end()
 
         self.set_done()
@@ -1014,7 +1062,13 @@ class UpdateForecasterBehaviour(APYEstimationBaseState):
 
         # Finish behaviour.
         with self.context.benchmark_tool.measure(self.state_id).consensus():
-            yield from self.send_a2a_transaction(payload)
+            yield from self.send_a2a_transaction(
+                payload=payload,
+                request_retry_delay=self.params.request_retry_delay,
+                request_timeout=self.params.request_timeout,
+                tx_timeout=self.params.tx_timeout,
+                tx_max_attempts=self.params.tx_max_attempts,
+            )
             yield from self.wait_until_round_end()
 
         self.set_done()
@@ -1061,7 +1115,13 @@ class EstimateBehaviour(APYEstimationBaseState):
         payload = EstimatePayload(self.context.agent_address, estimation)
 
         with self.context.benchmark_tool.measure(self.state_id).consensus():
-            yield from self.send_a2a_transaction(payload)
+            yield from self.send_a2a_transaction(
+                payload=payload,
+                request_retry_delay=self.params.request_retry_delay,
+                request_timeout=self.params.request_timeout,
+                tx_timeout=self.params.tx_timeout,
+                tx_max_attempts=self.params.tx_max_attempts,
+            )
             yield from self.wait_until_round_end()
 
         self.set_done()
@@ -1110,7 +1170,13 @@ class BaseResetBehaviour(APYEstimationBaseState):
         payload = ResetPayload(
             self.context.agent_address, self.period_state.period_count + 1
         )
-        yield from self.send_a2a_transaction(payload)
+        yield from self.send_a2a_transaction(
+            payload=payload,
+            request_retry_delay=self.params.request_retry_delay,
+            request_timeout=self.params.request_timeout,
+            tx_timeout=self.params.tx_timeout,
+            tx_max_attempts=self.params.tx_max_attempts,
+        )
         yield from self.wait_until_round_end()
         self.set_done()
 
