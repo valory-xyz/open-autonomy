@@ -41,7 +41,6 @@ import argparse
 import importlib
 import sys
 from pathlib import Path
-from typing import Dict, Optional
 
 import yaml
 
@@ -122,7 +121,7 @@ def check_all() -> None:
             if not check_one(
                 informat="yaml", infile=str(spec_file), classfqn=specs.get("label")
             ):
-                did_not_match.append((arguments["classfqn"], str(spec_file)))
+                did_not_match.append(f"{specs.get('label')} - {str(spec_file)}")
 
     if len(did_not_match) > 0:
         print("\nSpecifications did not match for following definitions.\n")
