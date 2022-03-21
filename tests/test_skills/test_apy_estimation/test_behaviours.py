@@ -1798,17 +1798,46 @@ class TestCycleResetBehaviour(APYEstimationFSMBehaviourBaseCase):
     behaviour_class = CycleResetBehaviour
     next_behaviour_class = FetchBatchBehaviour
 
+    @pytest.mark.parametrize(
+        "ipfs_succeed, log_level, log_message",
+        (
+            (True, logging.INFO, "Finalized estimates:"),
+            (
+                False,
+                logging.ERROR,
+                "There was an error while trying to fetch and load the estimations from IPFS!",
+            ),
+        ),
+    )
     def test_reset_behaviour(
         self,
         monkeypatch: MonkeyPatch,
+        tmp_path: PosixPath,
+        caplog: LogCaptureFixture,
         no_action: Callable[[Any], None],
+        ipfs_succeed: bool,
+        log_level: int,
+        log_message: str,
     ) -> None:
         """Test reset behaviour."""
+        # Set data directory to a temporary path for tests.
+        self.behaviour.context._agent_context._data_dir = tmp_path  # type: ignore
+
+        # Send dummy forecasters to IPFS and get the hash.
+        if ipfs_succeed:
+            hash_ = cast(BaseState, self.behaviour.current_state).send_to_ipfs(
+                os.path.join(tmp_path, "estimations.csv"),
+                pd.DataFrame({"pool1": [1.435, 4.234], "pool2": [3.45, 23.64]}),
+                filetype=SupportedFiletype.CSV,
+            )
+        else:
+            hash_ = "non_existing"
+
         self.fast_forward_to_state(
             behaviour=self.behaviour,
             state_id=self.behaviour_class.state_id,
             period_state=PeriodState(
-                StateDB(initial_period=0, initial_data=dict(most_voted_estimate=8.1))
+                StateDB(initial_period=0, initial_data=dict(most_voted_estimate=hash_))
             ),
         )
         state = cast(BaseState, self.behaviour.current_state)
@@ -1819,7 +1848,12 @@ class TestCycleResetBehaviour(APYEstimationFSMBehaviourBaseCase):
         cast(
             CycleResetBehaviour, self.behaviour.current_state
         ).params.observation_interval = SLEEP_TIME_TWEAK
-        self.behaviour.act_wrapper()
+        with caplog.at_level(
+            log_level,
+            logger="aea.test_agent_name.packages.valory.skills.apy_estimation_abci",
+        ):
+            self.behaviour.act_wrapper()
+        assert log_message in caplog.text
         time.sleep(SLEEP_TIME_TWEAK + 0.01)
         self.behaviour.act_wrapper()
 
