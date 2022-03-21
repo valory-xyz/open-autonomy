@@ -1166,9 +1166,21 @@ class BaseResetBehaviour(APYEstimationBaseState):
             self.state_id == "cycle_reset"
             and self.period_state.is_most_voted_estimate_set
         ):
-            self.context.logger.info(
-                f"Finalized estimate: {self.period_state.most_voted_estimate}. Resetting and pausing!"
+            # Load estimations.
+            estimations = self.get_from_ipfs(
+                self.period_state.estimates_hash,
+                self.context.data_dir,
+                filename="estimations.csv",
+                filetype=SupportedFiletype.CSV,
             )
+            if estimations is not None:
+                self.context.logger.info(
+                    f"Finalized estimates: {estimations.to_string()}. Resetting and pausing!"
+                )
+            else:
+                self.context.logger.error(
+                    "There was an error while trying to fetch and load the estimations from IPFS!"
+                )
             self.context.logger.info(
                 f"Estimation will happen again in {self.params.observation_interval} seconds."
             )
