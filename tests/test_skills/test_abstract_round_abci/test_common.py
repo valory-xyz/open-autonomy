@@ -54,9 +54,7 @@ DRAND_VALUE = {
 class CommonBaseCase(FSMBehaviourBaseCase):
     """Base case for testing PriceEstimation FSMBehaviour."""
 
-    path_to_skill = Path(
-        ROOT_DIR, "packages", "valory", "skills", "price_estimation_abci"
-    )
+    path_to_skill = Path(ROOT_DIR, "packages", "valory", "skills", "oracle_abci")
 
 
 class BaseRandomnessBehaviourTest(CommonBaseCase):
