@@ -1694,20 +1694,21 @@ class TestEstimateBehaviour(APYEstimationFSMBehaviourBaseCase):
     behaviour_class = EstimateBehaviour
     next_behaviour_class = FreshModelResetBehaviour
 
-    def _fast_forward(self, tmp_path: PosixPath, ipfs_succeed: bool) -> None:
+    def _fast_forward(self, tmp_path: PosixPath, ipfs_succeed: bool = True) -> None:
         """Setup `TestTransformBehaviour`."""
         # Set data directory to a temporary path for tests.
         self.behaviour.context._agent_context._data_dir = tmp_path  # type: ignore
 
-        # Send historical data to IPFS and get the hash.
+        # Send dummy forecasters to IPFS and get the hash.
         if ipfs_succeed:
             hash_ = cast(BaseState, self.behaviour.current_state).send_to_ipfs(
-                os.path.join(tmp_path, "fully_trained_forecaster.joblib"),
-                DummyPipeline(),
+                os.path.join(tmp_path, "fully_trained_forecasters"),
+                {f"pool{i}.joblib": DummyPipeline() for i in range(3)},
+                multiple=True,
                 filetype=SupportedFiletype.PM_PIPELINE,
             )
         else:
-            hash_ = "test"
+            hash_ = "non_existing"
 
         self.fast_forward_to_state(
             self.behaviour,
@@ -1726,6 +1727,50 @@ class TestEstimateBehaviour(APYEstimationFSMBehaviourBaseCase):
         )
 
     @pytest.mark.parametrize("ipfs_succeed", (True, False))
+    def test_estimate_setup(
+        self,
+        monkeypatch: MonkeyPatch,
+        tmp_path: PosixPath,
+        no_action: Callable[[Any], None],
+        ipfs_succeed: bool,
+    ) -> None:
+        """Run test for `EstimateBehaviour`'s setup method."""
+        self._fast_forward(tmp_path, ipfs_succeed)
+        monkeypatch.setattr(TaskManager, "enqueue_task", lambda *_, **__: 0)
+        monkeypatch.setattr(TaskManager, "get_task_result", no_action)
+
+        current_state = cast(UpdateForecasterBehaviour, self.behaviour.current_state)
+        current_state.setup()
+
+        if ipfs_succeed:
+            assert current_state._forecasters is not None
+        else:
+            assert current_state._forecasters is None
+
+    def test_task_not_ready(
+        self,
+        monkeypatch: MonkeyPatch,
+        tmp_path: PosixPath,
+    ) -> None:
+        """Run test for behaviour when task result is not ready."""
+        self._fast_forward(tmp_path)
+
+        self.behaviour.context.task_manager.start()
+
+        monkeypatch.setattr(AsyncResult, "ready", lambda *_: False)
+        cast(
+            TrainBehaviour, self.behaviour.current_state
+        ).params.sleep_time = SLEEP_TIME_TWEAK
+        self.behaviour.act_wrapper()
+        time.sleep(SLEEP_TIME_TWEAK + 0.01)
+        self.behaviour.act_wrapper()
+
+        assert (
+            cast(APYEstimationBaseState, self.behaviour.current_state).state_id
+            == self.behaviour_class.state_id
+        )
+
+    @pytest.mark.parametrize("ipfs_succeed", (True, False))
     def test_estimate_behaviour(
         self,
         monkeypatch: MonkeyPatch,
@@ -1734,6 +1779,10 @@ class TestEstimateBehaviour(APYEstimationFSMBehaviourBaseCase):
     ) -> None:
         """Run test for `EstimateBehaviour`."""
         self._fast_forward(tmp_path, ipfs_succeed)
+        monkeypatch.setattr(TaskManager, "enqueue_task", lambda *_, **__: 0)
+        monkeypatch.setattr(
+            TaskManager, "get_task_result", lambda *_: DummyAsyncResult(pd.DataFrame())
+        )
 
         self.behaviour.act_wrapper()
         self.mock_a2a_transaction()
