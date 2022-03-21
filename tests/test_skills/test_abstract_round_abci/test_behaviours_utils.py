@@ -917,7 +917,9 @@ class TestBaseState:
 
     def test_wait_until_transaction_delivered_raises_timeout(self, *_: Any) -> None:
         """Test '_wait_until_transaction_delivered' method."""
-        gen = self.behaviour._wait_until_transaction_delivered(MagicMock(), tx_timeout=0.0)
+        gen = self.behaviour._wait_until_transaction_delivered(
+            MagicMock(), tx_timeout=0.0
+        )
         with pytest.raises(TimeoutException):
             # trigger generator function
             try_send(gen, obj=None)
