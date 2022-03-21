@@ -172,11 +172,11 @@ def get_participant_to_test_payload(
 
 def get_participant_to_estimate_payload(
     participants: FrozenSet[str],
-    estimation: Optional[float],
+    estimations_hash: Optional[str],
 ) -> Dict[str, EstimatePayload]:
     """Get estimate payload."""
     return {
-        participant: EstimatePayload(participant, estimation)
+        participant: EstimatePayload(participant, estimations_hash)
         for participant in participants
     }
 
@@ -493,15 +493,15 @@ class TestEstimateRound(BaseCollectSameUntilThresholdRoundTest):
     @pytest.mark.parametrize(
         "n_estimations, most_voted_payload, expected_event",
         (
-            (0, 10.0, Event.ESTIMATION_CYCLE),
-            (59, 10.0, Event.DONE),
+            (0, "test_hash", Event.ESTIMATION_CYCLE),
+            (59, "test_hash", Event.DONE),
             (0, None, Event.FILE_ERROR),
         ),
     )
     def test_estimation_cycle_run(
         self,
         n_estimations: int,
-        most_voted_payload: Optional[int],
+        most_voted_payload: Optional[str],
         expected_event: Event,
     ) -> None:
         """Runs test."""
@@ -608,7 +608,7 @@ def test_period() -> None:
     period_count = 1
     period_setup_params: Dict = {}
     most_voted_randomness = 1
-    most_voted_estimate = 1.0
+    estimates_hash = "test_hash"
     full_training = False
     n_estimations = 1
 
@@ -619,7 +619,7 @@ def test_period() -> None:
                 participants=participants,
                 period_setup_params=period_setup_params,
                 most_voted_randomness=most_voted_randomness,
-                most_voted_estimate=most_voted_estimate,
+                most_voted_estimate=estimates_hash,
                 full_training=full_training,
                 n_estimations=n_estimations,
             ),
@@ -629,7 +629,7 @@ def test_period() -> None:
     assert period_state.participants == participants
     assert period_state.period_count == period_count
     assert period_state.most_voted_randomness == most_voted_randomness
-    assert period_state.most_voted_estimate == most_voted_estimate
+    assert period_state.estimates_hash == estimates_hash
     assert period_state.full_training == full_training
     assert period_state.n_estimations == n_estimations
     assert period_state.is_most_voted_estimate_set is not None
