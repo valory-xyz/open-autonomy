@@ -123,9 +123,9 @@ class PeriodState(BasePeriodState):
         return cast(str, self.db.get_strict("most_voted_model"))
 
     @property
-    def most_voted_estimate(self) -> float:
+    def estimates_hash(self) -> str:
         """Get the most_voted_estimate."""
-        return cast(float, self.db.get_strict("most_voted_estimate"))
+        return cast(str, self.db.get_strict("most_voted_estimate"))
 
     @property
     def is_most_voted_estimate_set(self) -> bool:
@@ -406,7 +406,7 @@ class EstimateRound(CollectSameUntilThresholdRound, APYEstimationAbstractRound):
 
     round_id = "estimate"
     allowed_tx_type = EstimatePayload.transaction_type
-    payload_attribute = "estimation"
+    payload_attribute = "estimations_hash"
 
     def end_block(self) -> Optional[Tuple[BasePeriodState, Event]]:
         """Process the end of the block."""
