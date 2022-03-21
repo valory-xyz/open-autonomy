@@ -221,5 +221,5 @@ spec:
           persistentVolumeClaim:
             claimName: 'build-vol-pvc'
 """
-    % IMAGE_VERSION
+    % (IMAGE_VERSION, IMAGE_VERSION)
 )
