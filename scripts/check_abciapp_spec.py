@@ -39,9 +39,11 @@ required arguments:
 
 import argparse
 import importlib
-import logging
 import sys
 from pathlib import Path
+from typing import Dict, Optional
+
+import yaml
 
 from scripts.generate_abciapp_spec import DFA
 
@@ -82,27 +84,56 @@ def parse_arguments() -> argparse.Namespace:
     return arguments_
 
 
-def main() -> None:
-    """Execute the script."""
-    logging.basicConfig(format="%(levelname)s: %(message)s", level=logging.INFO)
-    arguments = parse_arguments()
-    module_name, class_name = arguments.classfqn.rsplit(".", 1)
-    module = importlib.import_module(module_name)
+def check_one(arguments: Optional[Dict] = None) -> bool:
+    """Check for one."""
 
+    if arguments is None:
+        arguments = dict(
+            parse_arguments()._get_kwargs()  # pylint: disable=protected-access
+        )
+
+    print(f"Checking : {arguments['classfqn']}")
+
+    module_name, class_name = arguments["classfqn"].rsplit(".", 1)
+    module = importlib.import_module(module_name)
     if not hasattr(module, class_name):
         raise Exception(f'Class "{class_name}" is not in "{module_name}".')
 
     abci_app_cls = getattr(module, class_name)
+    dfa1 = DFA.abci_to_dfa(abci_app_cls, arguments["classfqn"])
+    dfa2 = DFA.load(arguments["infile"], arguments["informat"])
+    return dfa1 == dfa2
 
-    dfa1 = DFA.abci_to_dfa(abci_app_cls, arguments.classfqn)
-    dfa2 = DFA.load(arguments.infile, arguments.informat)
-    if dfa1 == dfa2:
-        logging.info("ABCI App matches specification.")
-        sys.exit(0)
-    else:
-        logging.info("ABCI App does NOT match specification.")
+
+def check_all() -> None:
+    """Check all the available definitions."""
+
+    did_not_match = []
+    fsm_specifications = Path("packages/").glob("**/fsm_specification.yaml")
+    for spec_file in fsm_specifications:
+        with open(str(spec_file), mode="r", encoding="utf-8") as fp:
+            specs = yaml.safe_load(fp)
+            arguments = {
+                "informat": "yaml",
+                "infile": open(  # pylint: disable=consider-using-with
+                    str(spec_file), mode="r", encoding="utf-8"
+                ),
+                "classfqn": specs.pop("label"),
+            }
+            if not check_one(arguments):
+                did_not_match.append(arguments["classfqn"])
+
+    if len(did_not_match) > 0:
+        print("\nSpecifications did not match for following definitions.\n")
+        print("\n".join(did_not_match))
         sys.exit(1)
+
+    print("Check successful.")
 
 
 if __name__ == "__main__":
-    main()
+
+    if "--check-all" in sys.argv:
+        check_all()
+    else:
+        check_one()
