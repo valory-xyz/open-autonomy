@@ -125,8 +125,9 @@ jobs:
     - name: Check spelling
       run: tox -e spell-check
     - name: AbciApp consistency checks
-      run: tox -e check-abci-docstrings
-      run: tox -e check-abciapp-specs
+      run: |
+        tox -e check-abci-docstrings
+        tox -e check-abciapp-specs
 
   test:
     continue-on-error: True
