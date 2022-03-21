@@ -62,14 +62,12 @@ def parse_arguments() -> argparse.Namespace:
         "-c",
         "--classfqn",
         type=str,
-        required=True,
         help="ABCI App class fully qualified name.",
     )
     required.add_argument(
         "-i",
         "--infile",
         type=argparse.FileType("r"),
-        required=True,
         help="Input file name.",
     )
     parser.add_argument(
@@ -80,28 +78,31 @@ def parse_arguments() -> argparse.Namespace:
         default="yaml",
         help="Input format.",
     )
+    parser.add_argument(
+        "--check-all",
+        default=False,
+        action="store_true",
+        help="Check all available abci app specifications.",
+    )
     arguments_ = parser.parse_args()
     return arguments_
 
 
-def check_one(arguments: Optional[Dict] = None) -> bool:
+def check_one(informat: str, infile: str, classfqn: str) -> bool:
     """Check for one."""
 
-    if arguments is None:
-        arguments = dict(
-            parse_arguments()._get_kwargs()  # pylint: disable=protected-access
-        )
-
-    print(f"Checking : {arguments['classfqn']}")
-
-    module_name, class_name = arguments["classfqn"].rsplit(".", 1)
+    print(f"Checking : {classfqn}")
+    module_name, class_name = classfqn.rsplit(".", 1)
     module = importlib.import_module(module_name)
     if not hasattr(module, class_name):
         raise Exception(f'Class "{class_name}" is not in "{module_name}".')
 
     abci_app_cls = getattr(module, class_name)
-    dfa1 = DFA.abci_to_dfa(abci_app_cls, arguments["classfqn"])
-    dfa2 = DFA.load(arguments["infile"], arguments["informat"])
+    dfa1 = DFA.abci_to_dfa(abci_app_cls, classfqn)
+
+    with open(infile, "r", encoding="utf-8") as fp:
+        dfa2 = DFA.load(fp, informat)
+
     return dfa1 == dfa2
 
 
@@ -109,19 +110,19 @@ def check_all() -> None:
     """Check all the available definitions."""
 
     did_not_match = []
-    fsm_specifications = Path("packages/").glob("**/fsm_specification.yaml")
+    fsm_specifications = sorted(
+        [
+            *Path("packages/").glob("**/fsm_specification.yaml"),
+            *Path("packages/").glob("**/fsm_specification_composition.yaml"),
+        ]
+    )
     for spec_file in fsm_specifications:
         with open(str(spec_file), mode="r", encoding="utf-8") as fp:
             specs = yaml.safe_load(fp)
-            arguments = {
-                "informat": "yaml",
-                "infile": open(  # pylint: disable=consider-using-with
-                    str(spec_file), mode="r", encoding="utf-8"
-                ),
-                "classfqn": specs.pop("label"),
-            }
-            if not check_one(arguments):
-                did_not_match.append(arguments["classfqn"])
+            if not check_one(
+                informat="yaml", infile=str(spec_file), classfqn=specs.get("label")
+            ):
+                did_not_match.append((arguments["classfqn"], str(spec_file)))
 
     if len(did_not_match) > 0:
         print("\nSpecifications did not match for following definitions.\n")
@@ -132,8 +133,25 @@ def check_all() -> None:
 
 
 if __name__ == "__main__":
-
-    if "--check-all" in sys.argv:
+    arguments = parse_arguments()
+    if arguments.check_all:
         check_all()
     else:
-        check_one()
+        if arguments.classfqn is None:
+            print("Please provide class name for ABCI app.")
+            sys.exit(1)
+
+        if arguments.infile is None:
+            print("Please provide path to specification file.")
+            sys.exit(1)
+
+        if check_one(
+            informat=arguments.informat,
+            infile=arguments.infile,
+            classfqn=arguments.classfqn,
+        ):
+            print("Check successful")
+            sys.exit(0)
+
+        print("Check failed.")
+        sys.exit(1)
