@@ -114,7 +114,7 @@ class APYEstimationFSMBehaviourBaseCase(FSMBehaviourBaseCase):
     """Base case for testing APYEstimation FSMBehaviour."""
 
     path_to_skill = Path(
-        ROOT_DIR, "packages", "valory", "skills", "apy_estimation_abci"
+        ROOT_DIR, "packages", "valory", "skills", "apy_estimation_chained_abci"
     )
 
     behaviour: APYEstimationConsensusBehaviour
