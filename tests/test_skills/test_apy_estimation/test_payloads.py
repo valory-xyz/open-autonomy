@@ -145,12 +145,12 @@ class TestPayloads:
     @staticmethod
     def test_training_payload() -> None:
         """Test `TrainingPayload`"""
-        payload = TrainingPayload(sender="sender", model_hash="x0", id_="id")
+        payload = TrainingPayload(sender="sender", models_hash="x0", id_="id")
 
         assert payload.transaction_type == TransactionType.TRAINING
-        assert payload.model == "x0"
+        assert payload.models_hash == "x0"
         assert payload.id_ == "id"
-        assert payload.data == {"model_hash": "x0"}
+        assert payload.data == {"models_hash": "x0"}
 
     @staticmethod
     def test_testing_payload() -> None:
@@ -165,12 +165,12 @@ class TestPayloads:
     @staticmethod
     def test_update_payload() -> None:
         """Test `UpdatePayload`"""
-        payload = UpdatePayload(sender="sender", updated_model_hash="x0", id_="id")
+        payload = UpdatePayload(sender="sender", updated_models_hash="x0", id_="id")
 
         assert payload.transaction_type == TransactionType.UPDATE
-        assert payload.updated_model_hash == "x0"
+        assert payload.updated_models_hash == "x0"
         assert payload.id_ == "id"
-        assert payload.data == {"updated_model_hash": "x0"}
+        assert payload.data == {"updated_models_hash": "x0"}
 
     @staticmethod
     def test_estimate_payload() -> None:

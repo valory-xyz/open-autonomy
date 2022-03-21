@@ -828,7 +828,7 @@ class TrainBehaviour(APYEstimationBaseState):
         self._async_result: Optional[AsyncResult] = None
         self._best_params: Optional[PoolToHyperParamsType] = None
         self._y: Optional[PoolIdToTrainDataType] = None
-        self._model_hash: Optional[str] = None
+        self._models_hash: Optional[str] = None
 
     def setup(self) -> None:
         """Setup behaviour."""
@@ -894,14 +894,14 @@ class TrainBehaviour(APYEstimationBaseState):
             )
 
             # Send the file to IPFS and get its hash.
-            self._model_hash = self.send_to_ipfs(
+            self._models_hash = self.send_to_ipfs(
                 forecaster_save_path,
                 forecasters,
                 multiple=True,
                 filetype=SupportedFiletype.PM_PIPELINE,
             )
 
-        payload = TrainingPayload(self.context.agent_address, self._model_hash)
+        payload = TrainingPayload(self.context.agent_address, self._models_hash)
 
         # Finish behaviour.
         with benchmark_tool.measure(self).consensus():
@@ -947,7 +947,7 @@ class TestBehaviour(APYEstimationBaseState):
         )
 
         self._forecasters = self.get_from_ipfs(
-            self.period_state.model_hash,
+            self.period_state.models_hash,
             models_path,
             multiple=True,
             filetype=SupportedFiletype.PM_PIPELINE,
@@ -1023,7 +1023,7 @@ class UpdateForecasterBehaviour(APYEstimationBaseState):
             "fully_trained_forecasters",
         )
         self._forecasters: Optional[PoolIdToForecasterType] = None
-        self._model_hash: Optional[str] = None
+        self._models_hash: Optional[str] = None
 
     def setup(self) -> None:
         """Setup behaviour."""
@@ -1037,7 +1037,7 @@ class UpdateForecasterBehaviour(APYEstimationBaseState):
 
         # Load forecasters.
         self._forecasters = self.get_from_ipfs(
-            self.period_state.model_hash,
+            self.period_state.models_hash,
             self._forecasters_folder,
             multiple=True,
             filetype=SupportedFiletype.PM_PIPELINE,
@@ -1062,14 +1062,14 @@ class UpdateForecasterBehaviour(APYEstimationBaseState):
             self.context.logger.info("Forecasters have been updated.")
 
             # Send the file to IPFS and get its hash.
-            self._model_hash = self.send_to_ipfs(
+            self._models_hash = self.send_to_ipfs(
                 self._forecasters_folder,
                 self._forecasters,
                 multiple=True,
                 filetype=SupportedFiletype.PM_PIPELINE,
             )
 
-        payload = UpdatePayload(self.context.agent_address, self._model_hash)
+        payload = UpdatePayload(self.context.agent_address, self._models_hash)
 
         # Finish behaviour.
         with benchmark_tool.measure(self).consensus():
@@ -1100,7 +1100,7 @@ class EstimateBehaviour(APYEstimationBaseState):
             "fully_trained_forecasters",
         )
         self._forecasters = self.get_from_ipfs(
-            self.period_state.model_hash,
+            self.period_state.models_hash,
             forecasters_folder,
             multiple=True,
             filetype=SupportedFiletype.PM_PIPELINE,

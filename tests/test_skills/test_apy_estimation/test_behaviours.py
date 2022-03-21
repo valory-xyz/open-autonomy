@@ -1456,7 +1456,7 @@ class TestTestBehaviour(APYEstimationFSMBehaviourBaseCase):
                 StateDB(
                     initial_period=0,
                     initial_data=dict(
-                        most_voted_model=hashes["model"],
+                        most_voted_models=hashes["model"],
                         most_voted_split=hashes["train"] + hashes["test"],
                     ),
                 )
@@ -1598,7 +1598,7 @@ class TestUpdateForecasterBehaviour(APYEstimationFSMBehaviourBaseCase):
                 StateDB(
                     initial_period=0,
                     initial_data=dict(
-                        most_voted_model=hashes["model"],
+                        most_voted_models=hashes["model"],
                         latest_observation_hist_hash=hashes["observation"],
                     ),
                 )
@@ -1716,7 +1716,7 @@ class TestEstimateBehaviour(APYEstimationFSMBehaviourBaseCase):
             PeriodState(
                 StateDB(
                     initial_period=0,
-                    initial_data=dict(most_voted_model=hash_),
+                    initial_data=dict(most_voted_models=hash_),
                 )
             ),
         )
