@@ -93,6 +93,7 @@ from packages.valory.skills.apy_estimation_abci.rounds import (
     UpdateForecasterRound,
 )
 from packages.valory.skills.apy_estimation_abci.tasks import (
+    EstimateTask,
     OptimizeTask,
     PrepareBatchTask,
     PreprocessTask,
@@ -1084,40 +1085,61 @@ class EstimateBehaviour(APYEstimationBaseState):
     state_id = "estimate"
     matching_round = EstimateRound
 
-    def async_act(self) -> Generator:
-        """
-        Do the action.
+    def __init__(self, **kwargs: Any) -> None:
+        """Initialize Behaviour."""
+        super().__init__(**kwargs)
+        self._async_result: Optional[AsyncResult] = None
+        self._forecasters: Optional[PoolIdToForecasterType] = None
+        self._estimations_hash: Optional[str] = None
 
-        Steps:
-        - Run the script to compute the estimate starting from the shared observations.
-        - Build an estimate transaction and send the transaction and wait for it to be mined.
-        - Wait until ABCI application transitions to the next round.
-        - Go to the next behaviour state (set done event).
-        """
-        model_path = os.path.join(
+    def setup(self) -> None:
+        """Setup behaviour."""
+        # Load forecasters.
+        forecasters_folder: str = os.path.join(
             self.context.data_dir,
-            self.params.pair_ids[0],
+            "fully_trained_forecasters",
         )
-        forecaster = self.get_from_ipfs(
+        self._forecasters = self.get_from_ipfs(
             self.period_state.model_hash,
-            model_path,
-            filename="fully_trained_forecaster.joblib",
+            forecasters_folder,
+            multiple=True,
             filetype=SupportedFiletype.PM_PIPELINE,
         )
 
-        estimation = None
-        if forecaster is not None:
-            # currently, a `steps_forward != 1` will fail
-            estimation = forecaster.predict(self.params.estimation["steps_forward"])[0]
+        if self._forecasters is not None:
+            estimate_task = EstimateTask()
+            task_id = self.context.task_manager.enqueue_task(
+                estimate_task, args=(self._forecasters,), kwargs=self.params.estimation
+            )
+            self._async_result = self.context.task_manager.get_task_result(task_id)
 
+    def async_act(self) -> Generator:
+        """Do the action."""
+        if self._forecasters is not None:
+            self._async_result = cast(AsyncResult, self._async_result)
+            if not self._async_result.ready():
+                self.context.logger.debug("The estimating task is not finished yet.")
+                yield from self.sleep(self.params.sleep_time)
+                return
+
+            # Get the estimates.
+            estimates = self._async_result.get()
             self.context.logger.info(
-                "Got estimate of APY for %s: %s",
-                "pair_name",  # this will be changed when `EstimateBehaviour` gets refactored for multiple pools.
-                estimation,
+                "Estimates have been received:\n" f"{estimates.to_string()}"
+            )
+            self.context.logger.info("Estimates have been received.")
+
+            # Send the file to IPFS and get its hash.
+            estimations_path = os.path.join(self.context.data_dir, "estimations.csv")
+            self._estimations_hash = self.send_to_ipfs(
+                estimations_path,
+                estimates,
+                filetype=SupportedFiletype.CSV,
             )
 
-        payload = EstimatePayload(self.context.agent_address, estimation)
+        payload = EstimatePayload(self.context.agent_address, self._estimations_hash)
 
+        # Finish behaviour.
         with benchmark_tool.measure(self).consensus():
             yield from self.send_a2a_transaction(payload)
             yield from self.wait_until_round_end()
