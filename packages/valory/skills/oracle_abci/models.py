@@ -22,10 +22,26 @@
 from typing import Any
 
 from packages.valory.skills.abstract_round_abci.models import (
+    BenchmarkTool as BaseBenchmarkTool,
+)
+from packages.valory.skills.abstract_round_abci.models import Requests as BaseRequests
+from packages.valory.skills.abstract_round_abci.models import (
     SharedState as BaseSharedState,
 )
 from packages.valory.skills.oracle_abci.composition import OracleAbciApp
 from packages.valory.skills.oracle_deployment_abci.rounds import Event as OracleEvent
+from packages.valory.skills.price_estimation_abci.models import (
+    Params as PriceEstimationParams,
+)
+from packages.valory.skills.price_estimation_abci.models import (
+    PriceApi as PriceEstimationPriceApi,
+)
+from packages.valory.skills.price_estimation_abci.models import (
+    RandomnessApi as PriceEstimationRandomnessApi,
+)
+from packages.valory.skills.price_estimation_abci.models import (
+    ServerApi as PriceEstimationServerApi,
+)
 from packages.valory.skills.price_estimation_abci.rounds import Event
 from packages.valory.skills.reset_pause_abci.rounds import Event as ResetPauseEvent
 from packages.valory.skills.safe_deployment_abci.rounds import Event as SafeEvent
@@ -34,6 +50,13 @@ from packages.valory.skills.transaction_settlement_abci.rounds import Event as T
 
 MARGIN = 5
 MULTIPLIER = 2
+
+Requests = BaseRequests
+BenchmarkTool = BaseBenchmarkTool
+Params = PriceEstimationParams
+RandomnessApi = PriceEstimationRandomnessApi
+PriceApi = PriceEstimationPriceApi
+ServerApi = PriceEstimationServerApi
 
 
 class SharedState(BaseSharedState):
