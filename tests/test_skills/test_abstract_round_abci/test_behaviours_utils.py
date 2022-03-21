@@ -583,6 +583,33 @@ class TestBaseState:
         return_value=(MagicMock(), MagicMock()),
     )
     @mock.patch.object(BaseState, "_check_http_return_code_200", return_value=True)
+    def test_send_transaction_positive_max_deadline(self, *_: Any) -> None:
+        """Test '_send_transaction', positive case."""
+        m = MagicMock(status_code=200)
+        gen = self.behaviour._send_transaction(m, tx_timeout=None)
+        with mock.patch.object(
+            BaseState, "params", mock.PropertyMock(return_value=mock_params)
+        ):
+            # trigger generator function
+            try_send(gen, obj=None)
+            # send message to 'wait_for_message'
+            try_send(gen, obj=m)
+            # send message to '_submit_tx'
+            try_send(gen, obj=MagicMock(body='{"result": {"hash": "", "code": 0}}'))
+            # send message to '_wait_until_transaction_delivered'
+            success_response = MagicMock(
+                status_code=200, body='{"result": {"tx_result": {"code": 0}}}'
+            )
+            try_send(gen, obj=success_response)
+
+    @mock.patch.object(BaseState, "_send_signing_request")
+    @mock.patch.object(Transaction, "encode", return_value=MagicMock())
+    @mock.patch.object(
+        BaseState,
+        "_build_http_request_message",
+        return_value=(MagicMock(), MagicMock()),
+    )
+    @mock.patch.object(BaseState, "_check_http_return_code_200", return_value=True)
     @mock.patch.object(
         BaseState,
         "_wait_until_transaction_delivered",
@@ -917,7 +944,9 @@ class TestBaseState:
 
     def test_wait_until_transaction_delivered_raises_timeout(self, *_: Any) -> None:
         """Test '_wait_until_transaction_delivered' method."""
-        gen = self.behaviour._wait_until_transaction_delivered(MagicMock(), tx_timeout=0.0)
+        gen = self.behaviour._wait_until_transaction_delivered(
+            MagicMock(), tx_timeout=0.0
+        )
         with pytest.raises(TimeoutException):
             # trigger generator function
             try_send(gen, obj=None)
