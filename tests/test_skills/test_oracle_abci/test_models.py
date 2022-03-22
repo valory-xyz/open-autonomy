@@ -51,4 +51,5 @@ class TestSharedState:
         self,
     ) -> None:
         """Test initialization."""
-        SharedState(name="", skill_context=DummyContext())
+        state = SharedState(name="", skill_context=DummyContext())
+        state.setup()
