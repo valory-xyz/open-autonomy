@@ -1,1 +1,1 @@
-{!../examples/price_estimation/README.md!}
+{!../docs/application_readmes/price_estimation_readme.md!}
