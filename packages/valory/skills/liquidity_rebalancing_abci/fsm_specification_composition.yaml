@@ -19,7 +19,7 @@ alphabet_in:
 - VALIDATE_TIMEOUT
 default_start_state: RegistrationStartupRound
 final_states: []
-label: packages.valory.skills.liquidity_provision.composition.LiquidityProvisionAbciApp
+label: packages.valory.skills.liquidity_rebalancing_abci.composition.LiquiditRebalancingAbciApp
 start_states:
 - RegistrationStartupRound
 states:

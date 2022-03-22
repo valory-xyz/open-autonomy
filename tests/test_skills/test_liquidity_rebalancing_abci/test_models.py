@@ -19,7 +19,7 @@
 
 """Test the models.py module of the skill."""
 
-from packages.valory.skills.liquidity_provision.models import Params, SharedState
+from packages.valory.skills.liquidity_rebalancing_abci.models import Params, SharedState
 
 
 DEPLOY_SAFE_STATE = "deploy_safe"
@@ -69,7 +69,7 @@ class TestParams:
             tendermint_url="http://localhost:26657",
             tendermint_max_retries=5,
             tendermint_check_sleep_delay=3,
-            service_id="liquidity_provision",
+            service_id="liquidity_rebalancing",
             keeper_timeout=1.0,
             rebalancing={
                 "chain": "Ethereum",

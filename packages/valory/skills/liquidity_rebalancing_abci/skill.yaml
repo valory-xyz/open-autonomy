@@ -1,23 +1,23 @@
-name: liquidity_provision
+name: liquidity_rebalancing_abci
 author: valory
 version: 0.1.0
 type: skill
-description: This skill implements liquidity provision capacities to move into and
+description: This skill implements liquidity rebalancing capacities to move into and
   out of Uniswap-V2-based liquidity pools.
 license: Apache-2.0
 aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
   README.md: QmR5sLQeLggNn5gZ1kDWrqpkz5NzMdUZuWNkaQDpaMC85C
-  __init__.py: QmZi2zjuEfocSD4fJyHCRHKYPwRiMizJh5cG4r7q3Hcxuo
-  behaviours.py: Qmdpi9FZp2sV2cj5oq38Qr5aCFcm6Z7TaXSfkD8yffip9A
-  composition.py: QmcKyvRdu3zcxoCvWvZovSgvATyZwgvsK1A263BqGSxHEX
-  dialogues.py: QmdBmUMWoPbS2faqn8LicQVJfN6a2WjtdZDWFbiYoy7hfY
-  fsm_specification.yaml: QmdBp3nDWdoyzD7bzQaAHxmtDQkiTvh757vyBEPeffzALi
-  fsm_specification_composition.yaml: QmewzayWPR7XTfSaKQiFYWpcpi2QdK3iGkVWg3jW9VAqxA
-  handlers.py: QmYNuneHUsxPfGricmSREyKom4fsAoE3NU7Xv8y3iYCDke
-  models.py: QmbDGg2azbVaHmHKj2nARc6yepmTo6wdjC8GVeAhjd7nbW
-  payloads.py: QmQnC6GNA6an3h14Jm1nM12W9BuDwATNYJhz3f8vuKBinw
-  rounds.py: QmRqyfjuXusttxDvqJoXxvNTRftDe5S6JHCkroHwrhbgyS
+  __init__.py: QmNuC15NDuuzyfhdpYLpoVajvPGXN3EKR9GdBHDdM1mzgM
+  behaviours.py: QmfHM1W747dm1q2jbfnuJFET1U65Bkf9ErqHpJneVXY9kb
+  composition.py: QmNk7bKEWbPkZFh1nfoDyBWtV1Hq6rp7548czJV9n7A6ac
+  dialogues.py: QmfDThV4WCRzK88XDpW2hKDYCuEH4RxoHCoAkWpkBRGRPv
+  fsm_specification.yaml: QmX3XcnEMJ8JLTkftDnFoanehLEJbqLgYM6cR9Y4DfPSYT
+  fsm_specification_composition.yaml: QmREc478nHKjcLrsZinCgBQT2tsABYfg4GStw1N6htjCTX
+  handlers.py: QmUCRqWDNcqCPL7vkt5bYAoPSQsJd2uBhy7jDhqdL1U8H5
+  models.py: QmYzwhy2pHbgMYbKtzVgGDTWsGsjxxaZnz4c3F6vdnkEeJ
+  payloads.py: QmdzQvNSWTS9rFqjDNA7ddNsW2H4xZYzLa5tbeqG4fuKNn
+  rounds.py: QmeNrzCXuNxsgevibHbRyVLDz3FqkZnxFucPYUtnwbMYnk
 fingerprint_ignore_patterns: []
 connections:
 - valory/abci:0.1.0
@@ -42,11 +42,11 @@ skills:
 behaviours:
   main:
     args: {}
-    class_name: LiquidityProvisionConsensusBehaviour
+    class_name: LiquidityRebalancingConsensusBehaviour
 handlers:
   abci:
     args: {}
-    class_name: ABCILiquidityProvision
+    class_name: ABCILiquiditRebalancing
   contract_api:
     args: {}
     class_name: ContractApiHandler
@@ -104,7 +104,7 @@ models:
       retry_attempts: 400
       retry_timeout: 3
       round_timeout_seconds: 30.0
-      service_id: liquidity_provision
+      service_id: liquidity_rebalancing
       sleep_time: 1
       tendermint_check_sleep_delay: 3
       tendermint_com_url: http://localhost:8080

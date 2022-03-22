@@ -16,7 +16,7 @@
 #   limitations under the License.
 #
 # ------------------------------------------------------------------------------
-"""Tests for valory/liquidity_provision skill behaviours with Hardhat."""
+"""Tests for valory/liquidity_rebalancing_abci skill behaviours with Hardhat."""
 import asyncio
 import binascii
 import json
@@ -53,10 +53,10 @@ from packages.valory.protocols.contract_api.message import ContractApiMessage
 from packages.valory.protocols.ledger_api.message import LedgerApiMessage
 from packages.valory.skills.abstract_round_abci.base import BaseTxPayload, StateDB
 from packages.valory.skills.abstract_round_abci.behaviour_utils import BaseState
-from packages.valory.skills.liquidity_provision.behaviours import (
+from packages.valory.skills.liquidity_rebalancing_abci.behaviours import (
     EnterPoolTransactionHashBehaviour,
     ExitPoolTransactionHashBehaviour,
-    LiquidityProvisionConsensusBehaviour,
+    LiquidityRebalancingConsensusBehaviour,
     SAFE_TX_GAS_ENTER,
     SAFE_TX_GAS_EXIT,
     SAFE_TX_GAS_SWAP_BACK,
@@ -64,14 +64,14 @@ from packages.valory.skills.liquidity_provision.behaviours import (
     hash_payload_to_hex,
     parse_tx_token_balance,
 )
-from packages.valory.skills.liquidity_provision.handlers import (
+from packages.valory.skills.liquidity_rebalancing_abci.handlers import (
     ContractApiHandler,
     HttpHandler,
     LedgerApiHandler,
     SigningHandler,
 )
-from packages.valory.skills.liquidity_provision.rounds import (
-    PeriodState as LiquidityProvisionPeriodState,
+from packages.valory.skills.liquidity_rebalancing_abci.rounds import (
+    PeriodState as LiquiditRebalancingPeriodState,
 )
 from packages.valory.skills.transaction_settlement_abci.behaviours import (
     FinalizeBehaviour,
@@ -86,7 +86,7 @@ from tests.conftest import ROOT_DIR, make_ledger_api_connection
 from tests.fixture_helpers import HardHatAMMBaseTest
 from tests.helpers.contracts import get_register_contract
 from tests.test_skills.base import FSMBehaviourBaseCase
-from tests.test_skills.test_liquidity_provision.test_behaviours import (
+from tests.test_skills.test_liquidity_rebalancing_abci.test_behaviours import (
     A_WETH_POOL_ADDRESS,
     B_WETH_POOL_ADDRESS,
     DEFAULT_MINTER,
@@ -120,24 +120,24 @@ EXPECTED_TYPES = List[
 ]
 
 
-class LiquidityProvisionBehaviourBaseCase(FSMBehaviourBaseCase):
-    """Base case for testing LiquidityProvision FSMBehaviour."""
+class LiquiditRebalancingBehaviourBaseCase(FSMBehaviourBaseCase):
+    """Base case for testing LiquiditRebalancing FSMBehaviour."""
 
     path_to_skill = Path(
-        ROOT_DIR, "packages", "valory", "skills", "liquidity_provision"
+        ROOT_DIR, "packages", "valory", "skills", "liquidity_rebalancing_abci"
     )
 
-    behaviour: LiquidityProvisionConsensusBehaviour
+    behaviour: LiquidityRebalancingConsensusBehaviour
     ledger_handler: LedgerApiHandler
     http_handler: HttpHandler
     contract_handler: ContractApiHandler
     signing_handler: SigningHandler
     old_tx_type_to_payload_cls: Dict[str, Type[BaseTxPayload]]
-    period_state: LiquidityProvisionPeriodState
+    period_state: LiquiditRebalancingPeriodState
 
 
-class TestLiquidityProvisionHardhat(
-    LiquidityProvisionBehaviourBaseCase, HardHatAMMBaseTest
+class TestLiquiditRebalancingHardhat(
+    LiquiditRebalancingBehaviourBaseCase, HardHatAMMBaseTest
 ):
     """Test liquidity pool behaviours in a Hardhat environment."""
 
@@ -146,7 +146,7 @@ class TestLiquidityProvisionHardhat(
     multiplexer: Multiplexer
     decision_maker: DecisionMaker
     strategy: Dict
-    default_period_state_hash: LiquidityProvisionPeriodState
+    default_period_state_hash: LiquiditRebalancingPeriodState
     default_period_state_settlement: TransactionSettlementPeriodState
     safe_owners: Dict
     safe_contract_address: str
@@ -295,7 +295,7 @@ class TestLiquidityProvisionHardhat(
             "deadline"
         ] = 1672527599  # corresponds to datetime.datetime(2022, 12, 31, 23, 59, 59) using  datetime.datetime.fromtimestamp(.)
 
-        cls.default_period_state_hash = LiquidityProvisionPeriodState(
+        cls.default_period_state_hash = LiquiditRebalancingPeriodState(
             StateDB(
                 initial_period=0,
                 initial_data=dict(
@@ -425,7 +425,7 @@ class TestLiquidityProvisionHardhat(
         state_id: str,
         ncycles: int,
         period_state: Union[
-            LiquidityProvisionPeriodState, TransactionSettlementPeriodState
+            LiquiditRebalancingPeriodState, TransactionSettlementPeriodState
         ],
         handlers: Optional[HANDLERS] = None,
         expected_content: Optional[EXPECTED_CONTENT] = None,
@@ -615,7 +615,7 @@ class TestLiquidityProvisionHardhat(
         strategy["safe_nonce"] = 0
 
         period_state_enter_hash = cast(
-            LiquidityProvisionPeriodState,
+            LiquiditRebalancingPeriodState,
             self.default_period_state_hash.update(),
         )
 
@@ -661,7 +661,7 @@ class TestLiquidityProvisionHardhat(
         strategy["safe_nonce"] = 1
 
         period_state_exit_hash = cast(
-            LiquidityProvisionPeriodState,
+            LiquiditRebalancingPeriodState,
             self.default_period_state_hash.update(
                 most_voted_strategy=json.dumps(strategy),
                 final_tx_hash=tx_digest_enter,
@@ -800,7 +800,7 @@ class TestLiquidityProvisionHardhat(
         strategy["safe_nonce"] = 2
 
         period_state_swap_back_hash = cast(
-            LiquidityProvisionPeriodState,
+            LiquiditRebalancingPeriodState,
             self.default_period_state_hash.update(
                 most_voted_strategy=json.dumps(strategy),
                 final_tx_hash=tx_digest_exit,

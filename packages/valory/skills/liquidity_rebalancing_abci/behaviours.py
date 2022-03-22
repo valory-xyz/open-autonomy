@@ -17,7 +17,7 @@
 #
 # ------------------------------------------------------------------------------
 
-"""This module contains the behaviours for the 'liquidity_provision' skill."""
+"""This module contains the behaviours for the 'liquidity_rebalancing_abci' skill."""
 import json
 from abc import ABC
 from typing import Any, Dict, Generator, List, Optional, Set, Type, cast
@@ -41,17 +41,17 @@ from packages.valory.skills.abstract_round_abci.behaviours import (
     AbstractRoundBehaviour,
     BaseState,
 )
-from packages.valory.skills.liquidity_provision.composition import (
-    LiquidityProvisionAbciApp,
+from packages.valory.skills.liquidity_rebalancing_abci.composition import (
+    LiquiditRebalancingAbciApp,
 )
-from packages.valory.skills.liquidity_provision.models import Params, SharedState
-from packages.valory.skills.liquidity_provision.payloads import (
+from packages.valory.skills.liquidity_rebalancing_abci.models import Params, SharedState
+from packages.valory.skills.liquidity_rebalancing_abci.payloads import (
     SleepPayload,
     StrategyEvaluationPayload,
     StrategyType,
     TransactionHashPayload,
 )
-from packages.valory.skills.liquidity_provision.rounds import (
+from packages.valory.skills.liquidity_rebalancing_abci.rounds import (
     EnterPoolTransactionHashRound,
     ExitPoolTransactionHashRound,
     LiquidityRebalancingAbciApp,
@@ -114,8 +114,8 @@ def parse_tx_token_balance(
     return sum(event["value"] for event in token_events)
 
 
-class LiquidityProvisionBaseBehaviour(BaseState, ABC):
-    """Base state behaviour for the liquidity provision skill."""
+class LiquiditRebalancingBaseBehaviour(BaseState, ABC):
+    """Base state behaviour for the liquidity rebalancing skill."""
 
     @property
     def period_state(self) -> PeriodState:
@@ -317,7 +317,7 @@ class LiquidityProvisionBaseBehaviour(BaseState, ABC):
         }
 
 
-class StrategyEvaluationBehaviour(LiquidityProvisionBaseBehaviour):
+class StrategyEvaluationBehaviour(LiquiditRebalancingBaseBehaviour):
     """Evaluate the financial strategy."""
 
     state_id = "strategy_evaluation"
@@ -436,7 +436,7 @@ class StrategyEvaluationBehaviour(LiquidityProvisionBaseBehaviour):
         return strategy
 
 
-class SleepBehaviour(LiquidityProvisionBaseBehaviour):
+class SleepBehaviour(LiquiditRebalancingBaseBehaviour):
     """Wait for a predefined amount of time."""
 
     state_id = "sleep"
@@ -457,7 +457,7 @@ class SleepBehaviour(LiquidityProvisionBaseBehaviour):
         self.set_done()
 
 
-class EnterPoolTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
+class EnterPoolTransactionHashBehaviour(LiquiditRebalancingBaseBehaviour):
     """Prepare the transaction hash for entering the liquidity pool
 
     The expected transfers derived from this behaviour are
@@ -653,7 +653,7 @@ class EnterPoolTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
         self.set_done()
 
 
-class ExitPoolTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
+class ExitPoolTransactionHashBehaviour(LiquiditRebalancingBaseBehaviour):
     """Prepare the transaction hash for exiting the liquidity pool
 
     The expected transfers derived from this behaviour are
@@ -822,7 +822,7 @@ class ExitPoolTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
         self.set_done()
 
 
-class SwapBackTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
+class SwapBackTransactionHashBehaviour(LiquiditRebalancingBaseBehaviour):
     """Prepare the transaction hash for swapping back assets
 
     The expected transfers derived from this behaviour are
@@ -984,11 +984,11 @@ class StrategyRoundBehaviour(AbstractRoundBehaviour):
     }
 
 
-class LiquidityProvisionConsensusBehaviour(AbstractRoundBehaviour):
-    """This behaviour manages the consensus stages for the liquidity provision."""
+class LiquidityRebalancingConsensusBehaviour(AbstractRoundBehaviour):
+    """This behaviour manages the consensus stages for the liquidity rebalancing."""
 
     initial_state_cls = RegistrationStartupBehaviour
-    abci_app_cls = LiquidityProvisionAbciApp  # type: ignore
+    abci_app_cls = LiquiditRebalancingAbciApp  # type: ignore
     behaviour_states: Set[Type[BaseState]] = {
         *AgentRegistrationRoundBehaviour.behaviour_states,
         *SafeDeploymentRoundBehaviour.behaviour_states,

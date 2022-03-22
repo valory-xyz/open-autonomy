@@ -17,7 +17,7 @@
 #
 # ------------------------------------------------------------------------------
 
-"""This module contains the transaction payloads for the liquidity_provision skill."""
+"""This module contains the transaction payloads for the liquidity_rebalancing_abci skill."""
 from abc import ABC
 from enum import Enum
 from typing import Any, Dict, Optional
@@ -41,8 +41,8 @@ class TransactionType(Enum):
         return self.value
 
 
-class BaseLiquidityProvisionPayload(BaseTxPayload, ABC):
-    """Base class for the liquidity provision skill."""
+class BaseLiquiditRebalancingPayload(BaseTxPayload, ABC):
+    """Base class for the liquidity rebalancing skill."""
 
     def __hash__(self) -> int:  # pragma: nocover
         """Hash the payload."""
@@ -62,7 +62,7 @@ class StrategyType(Enum):
         return self.value
 
 
-class StrategyEvaluationPayload(BaseLiquidityProvisionPayload):
+class StrategyEvaluationPayload(BaseLiquiditRebalancingPayload):
     """Represent a transaction payload of type 'strategy_evaluation'."""
 
     transaction_type = TransactionType.STRATEGY_EVALUATION

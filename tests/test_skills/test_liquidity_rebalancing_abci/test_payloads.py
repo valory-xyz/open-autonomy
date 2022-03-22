@@ -19,7 +19,7 @@
 
 """Test the payloads.py module of the skill."""
 
-from packages.valory.skills.liquidity_provision.payloads import (
+from packages.valory.skills.liquidity_rebalancing_abci.payloads import (
     StrategyEvaluationPayload,
     StrategyType,
     TransactionType,

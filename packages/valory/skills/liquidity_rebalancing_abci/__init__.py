@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021 Valory AG
+#   Copyright 2021-2022 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -17,4 +17,9 @@
 #
 # ------------------------------------------------------------------------------
 
-"""Tests for valory/liquidity_provision skill."""
+"""This module contains the liquidity rebalancing skill for an AEA."""
+
+from aea.configurations.base import PublicId
+
+
+PUBLIC_ID = PublicId.from_str("valory/liquidity_rebalancing_abci:0.1.0")

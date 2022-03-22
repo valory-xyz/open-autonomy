@@ -17,7 +17,7 @@
 #
 # ------------------------------------------------------------------------------
 
-"""This module contains the shared state for the liquidity provision ABCI application."""
+"""This module contains the shared state for the liquidity rebalancing ABCI application."""
 
 from typing import Any
 
@@ -28,8 +28,8 @@ from packages.valory.skills.abstract_round_abci.models import Requests as BaseRe
 from packages.valory.skills.abstract_round_abci.models import (
     SharedState as BaseSharedState,
 )
-from packages.valory.skills.liquidity_provision.composition import (
-    LiquidityProvisionAbciApp,
+from packages.valory.skills.liquidity_rebalancing_abci.composition import (
+    LiquiditRebalancingAbciApp,
 )
 from packages.valory.skills.price_estimation_abci.rounds import Event
 from packages.valory.skills.safe_deployment_abci.rounds import Event as SafeEvent
@@ -49,32 +49,32 @@ class SharedState(BaseSharedState):
 
     def __init__(self, *args: Any, **kwargs: Any) -> None:
         """Initialize the state."""
-        super().__init__(*args, abci_app_cls=LiquidityProvisionAbciApp, **kwargs)
+        super().__init__(*args, abci_app_cls=LiquiditRebalancingAbciApp, **kwargs)
 
     def setup(self) -> None:
         """Set up."""
         super().setup()
-        LiquidityProvisionAbciApp.event_to_timeout[
+        LiquiditRebalancingAbciApp.event_to_timeout[
             Event.ROUND_TIMEOUT
         ] = self.context.params.round_timeout_seconds
-        LiquidityProvisionAbciApp.event_to_timeout[
+        LiquiditRebalancingAbciApp.event_to_timeout[
             SafeEvent.ROUND_TIMEOUT
         ] = self.context.params.round_timeout_seconds
-        LiquidityProvisionAbciApp.event_to_timeout[
+        LiquiditRebalancingAbciApp.event_to_timeout[
             TSEvent.ROUND_TIMEOUT
         ] = self.context.params.round_timeout_seconds
-        LiquidityProvisionAbciApp.event_to_timeout[TSEvent.RESET_TIMEOUT] = (
+        LiquiditRebalancingAbciApp.event_to_timeout[TSEvent.RESET_TIMEOUT] = (
             self.context.params.round_timeout_seconds * MULTIPLIER
         )
-        LiquidityProvisionAbciApp.event_to_timeout[SafeEvent.VALIDATE_TIMEOUT] = (
+        LiquiditRebalancingAbciApp.event_to_timeout[SafeEvent.VALIDATE_TIMEOUT] = (
             self.context.params.retry_timeout * self.context.params.retry_attempts
             + MARGIN
         )
-        LiquidityProvisionAbciApp.event_to_timeout[TSEvent.VALIDATE_TIMEOUT] = (
+        LiquiditRebalancingAbciApp.event_to_timeout[TSEvent.VALIDATE_TIMEOUT] = (
             self.context.params.retry_timeout * self.context.params.retry_attempts
             + MARGIN
         )
-        LiquidityProvisionAbciApp.event_to_timeout[SafeEvent.DEPLOY_TIMEOUT] = (
+        LiquiditRebalancingAbciApp.event_to_timeout[SafeEvent.DEPLOY_TIMEOUT] = (
             self.context.params.keeper_timeout + MARGIN
         )
 
