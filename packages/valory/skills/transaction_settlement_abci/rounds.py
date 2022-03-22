@@ -257,6 +257,7 @@ class FinalizationRound(OnlyKeeperSendsRound):
                 final_verification_status=VerificationStatus(
                     self.keeper_payload["status"]
                 ),
+                consecutive_finalizations=0,
                 is_reset_params_set=False,
             )
             return state, Event.DONE
