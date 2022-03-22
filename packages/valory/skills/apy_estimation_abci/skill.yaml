@@ -43,7 +43,7 @@ skills:
 behaviours:
   main:
     args: {}
-    class_name: APYEstimationConsensusBehaviour
+    class_name: EstimatorRoundBehaviour
 handlers:
   abci:
     args: {}

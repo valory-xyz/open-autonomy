@@ -22,7 +22,20 @@ from typing import Dict, Union
 
 import pytest
 
-from packages.valory.skills.apy_estimation_abci.models import APYParams
+from packages.valory.skills.apy_estimation_abci.models import APYParams, SharedState
+from packages.valory.skills.apy_estimation_abci.rounds import APYEstimationAbciApp
+
+
+class TestSharedState:
+    """Test SharedState(Model) class."""
+
+    def test_setup(
+        self,
+        shared_state: SharedState,
+    ) -> None:
+        """Test setup."""
+        shared_state.setup()
+        assert shared_state.abci_app_cls == APYEstimationAbciApp
 
 
 class TestAPYParams:
