@@ -71,7 +71,7 @@ from packages.valory.skills.liquidity_rebalancing_abci.handlers import (
     SigningHandler,
 )
 from packages.valory.skills.liquidity_rebalancing_abci.rounds import (
-    PeriodState as LiquiditRebalancingPeriodState,
+    PeriodState as LiquidityRebalancingPeriodState,
 )
 from packages.valory.skills.transaction_settlement_abci.behaviours import (
     FinalizeBehaviour,
@@ -120,11 +120,11 @@ EXPECTED_TYPES = List[
 ]
 
 
-class LiquiditRebalancingBehaviourBaseCase(FSMBehaviourBaseCase):
-    """Base case for testing LiquiditRebalancing FSMBehaviour."""
+class LiquidityRebalancingBehaviourBaseCase(FSMBehaviourBaseCase):
+    """Base case for testing LiquidityRebalancing FSMBehaviour."""
 
     path_to_skill = Path(
-        ROOT_DIR, "packages", "valory", "skills", "liquidity_rebalancing_abci"
+        ROOT_DIR, "packages", "valory", "skills", "liquidity_provision_abci"
     )
 
     behaviour: LiquidityRebalancingConsensusBehaviour
@@ -133,11 +133,11 @@ class LiquiditRebalancingBehaviourBaseCase(FSMBehaviourBaseCase):
     contract_handler: ContractApiHandler
     signing_handler: SigningHandler
     old_tx_type_to_payload_cls: Dict[str, Type[BaseTxPayload]]
-    period_state: LiquiditRebalancingPeriodState
+    period_state: LiquidityRebalancingPeriodState
 
 
-class TestLiquiditRebalancingHardhat(
-    LiquiditRebalancingBehaviourBaseCase, HardHatAMMBaseTest
+class TestLiquidityRebalancingHardhat(
+    LiquidityRebalancingBehaviourBaseCase, HardHatAMMBaseTest
 ):
     """Test liquidity pool behaviours in a Hardhat environment."""
 
@@ -146,7 +146,7 @@ class TestLiquiditRebalancingHardhat(
     multiplexer: Multiplexer
     decision_maker: DecisionMaker
     strategy: Dict
-    default_period_state_hash: LiquiditRebalancingPeriodState
+    default_period_state_hash: LiquidityRebalancingPeriodState
     default_period_state_settlement: TransactionSettlementPeriodState
     safe_owners: Dict
     safe_contract_address: str
@@ -295,7 +295,7 @@ class TestLiquiditRebalancingHardhat(
             "deadline"
         ] = 1672527599  # corresponds to datetime.datetime(2022, 12, 31, 23, 59, 59) using  datetime.datetime.fromtimestamp(.)
 
-        cls.default_period_state_hash = LiquiditRebalancingPeriodState(
+        cls.default_period_state_hash = LiquidityRebalancingPeriodState(
             StateDB(
                 initial_period=0,
                 initial_data=dict(
@@ -425,7 +425,7 @@ class TestLiquiditRebalancingHardhat(
         state_id: str,
         ncycles: int,
         period_state: Union[
-            LiquiditRebalancingPeriodState, TransactionSettlementPeriodState
+            LiquidityRebalancingPeriodState, TransactionSettlementPeriodState
         ],
         handlers: Optional[HANDLERS] = None,
         expected_content: Optional[EXPECTED_CONTENT] = None,
@@ -615,7 +615,7 @@ class TestLiquiditRebalancingHardhat(
         strategy["safe_nonce"] = 0
 
         period_state_enter_hash = cast(
-            LiquiditRebalancingPeriodState,
+            LiquidityRebalancingPeriodState,
             self.default_period_state_hash.update(),
         )
 
@@ -661,7 +661,7 @@ class TestLiquiditRebalancingHardhat(
         strategy["safe_nonce"] = 1
 
         period_state_exit_hash = cast(
-            LiquiditRebalancingPeriodState,
+            LiquidityRebalancingPeriodState,
             self.default_period_state_hash.update(
                 most_voted_strategy=json.dumps(strategy),
                 final_tx_hash=tx_digest_enter,
@@ -800,7 +800,7 @@ class TestLiquiditRebalancingHardhat(
         strategy["safe_nonce"] = 2
 
         period_state_swap_back_hash = cast(
-            LiquiditRebalancingPeriodState,
+            LiquidityRebalancingPeriodState,
             self.default_period_state_hash.update(
                 most_voted_strategy=json.dumps(strategy),
                 final_tx_hash=tx_digest_exit,

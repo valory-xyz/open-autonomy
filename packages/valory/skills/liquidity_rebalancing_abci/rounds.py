@@ -127,7 +127,7 @@ class PeriodState(
         return cast(str, self.db.get_strict("final_tx_hash"))
 
 
-class LiquiditRebalancingAbstractRound(AbstractRound[Event, TransactionType], ABC):
+class LiquidityRebalancingAbstractRound(AbstractRound[Event, TransactionType], ABC):
     """Abstract round for the liquidity rebalancing skill."""
 
     @property
@@ -145,7 +145,7 @@ class LiquiditRebalancingAbstractRound(AbstractRound[Event, TransactionType], AB
 
 
 class TransactionHashBaseRound(
-    CollectSameUntilThresholdRound, LiquiditRebalancingAbstractRound
+    CollectSameUntilThresholdRound, LiquidityRebalancingAbstractRound
 ):
     """A base class for rounds in which agents compute the transaction hash"""
 
@@ -170,7 +170,7 @@ class TransactionHashBaseRound(
 
 
 class StrategyEvaluationRound(
-    CollectSameUntilThresholdRound, LiquiditRebalancingAbstractRound
+    CollectSameUntilThresholdRound, LiquidityRebalancingAbstractRound
 ):
     """A round in which agents evaluate the financial strategy"""
 
@@ -205,7 +205,7 @@ class StrategyEvaluationRound(
         return None
 
 
-class SleepRound(CollectSameUntilThresholdRound, LiquiditRebalancingAbstractRound):
+class SleepRound(CollectSameUntilThresholdRound, LiquidityRebalancingAbstractRound):
     """A round in which agents wait for a predefined amount of time"""
 
     round_id = "sleep"

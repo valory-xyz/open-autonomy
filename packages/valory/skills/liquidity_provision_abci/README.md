@@ -1,8 +1,8 @@
-# Liquidity rebalancing
+# Liquidity provision
 
 ## Description
 
-This module contains the liquidity rebalancing skill for an AEA.
+This module contains the liquidity provision skill for an AEA.
 
 ## Behaviours
 

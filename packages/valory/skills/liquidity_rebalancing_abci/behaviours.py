@@ -41,9 +41,6 @@ from packages.valory.skills.abstract_round_abci.behaviours import (
     AbstractRoundBehaviour,
     BaseState,
 )
-from packages.valory.skills.liquidity_rebalancing_abci.composition import (
-    LiquiditRebalancingAbciApp,
-)
 from packages.valory.skills.liquidity_rebalancing_abci.models import Params, SharedState
 from packages.valory.skills.liquidity_rebalancing_abci.payloads import (
     SleepPayload,
@@ -59,19 +56,6 @@ from packages.valory.skills.liquidity_rebalancing_abci.rounds import (
     SleepRound,
     StrategyEvaluationRound,
     SwapBackTransactionHashRound,
-)
-from packages.valory.skills.registration_abci.behaviours import (
-    AgentRegistrationRoundBehaviour,
-    RegistrationStartupBehaviour,
-)
-from packages.valory.skills.reset_pause_abci.behaviours import (
-    ResetPauseABCIConsensusBehaviour,
-)
-from packages.valory.skills.safe_deployment_abci.behaviours import (
-    SafeDeploymentRoundBehaviour,
-)
-from packages.valory.skills.transaction_settlement_abci.behaviours import (
-    TransactionSettlementRoundBehaviour,
 )
 from packages.valory.skills.transaction_settlement_abci.payload_tools import (
     hash_payload_to_hex,
@@ -114,7 +98,7 @@ def parse_tx_token_balance(
     return sum(event["value"] for event in token_events)
 
 
-class LiquiditRebalancingBaseBehaviour(BaseState, ABC):
+class LiquidityRebalancingBaseBehaviour(BaseState, ABC):
     """Base state behaviour for the liquidity rebalancing skill."""
 
     @property
@@ -317,7 +301,7 @@ class LiquiditRebalancingBaseBehaviour(BaseState, ABC):
         }
 
 
-class StrategyEvaluationBehaviour(LiquiditRebalancingBaseBehaviour):
+class StrategyEvaluationBehaviour(LiquidityRebalancingBaseBehaviour):
     """Evaluate the financial strategy."""
 
     state_id = "strategy_evaluation"
@@ -436,7 +420,7 @@ class StrategyEvaluationBehaviour(LiquiditRebalancingBaseBehaviour):
         return strategy
 
 
-class SleepBehaviour(LiquiditRebalancingBaseBehaviour):
+class SleepBehaviour(LiquidityRebalancingBaseBehaviour):
     """Wait for a predefined amount of time."""
 
     state_id = "sleep"
@@ -457,7 +441,7 @@ class SleepBehaviour(LiquiditRebalancingBaseBehaviour):
         self.set_done()
 
 
-class EnterPoolTransactionHashBehaviour(LiquiditRebalancingBaseBehaviour):
+class EnterPoolTransactionHashBehaviour(LiquidityRebalancingBaseBehaviour):
     """Prepare the transaction hash for entering the liquidity pool
 
     The expected transfers derived from this behaviour are
@@ -653,7 +637,7 @@ class EnterPoolTransactionHashBehaviour(LiquiditRebalancingBaseBehaviour):
         self.set_done()
 
 
-class ExitPoolTransactionHashBehaviour(LiquiditRebalancingBaseBehaviour):
+class ExitPoolTransactionHashBehaviour(LiquidityRebalancingBaseBehaviour):
     """Prepare the transaction hash for exiting the liquidity pool
 
     The expected transfers derived from this behaviour are
@@ -822,7 +806,7 @@ class ExitPoolTransactionHashBehaviour(LiquiditRebalancingBaseBehaviour):
         self.set_done()
 
 
-class SwapBackTransactionHashBehaviour(LiquiditRebalancingBaseBehaviour):
+class SwapBackTransactionHashBehaviour(LiquidityRebalancingBaseBehaviour):
     """Prepare the transaction hash for swapping back assets
 
     The expected transfers derived from this behaviour are
@@ -970,7 +954,7 @@ class SwapBackTransactionHashBehaviour(LiquiditRebalancingBaseBehaviour):
         self.set_done()
 
 
-class StrategyRoundBehaviour(AbstractRoundBehaviour):
+class LiquidityRebalancingConsensusBehaviour(AbstractRoundBehaviour):
     """This behaviour manages the consensus stages for the rebalancing behaviour."""
 
     initial_state_cls = StrategyEvaluationBehaviour
@@ -981,18 +965,4 @@ class StrategyRoundBehaviour(AbstractRoundBehaviour):
         EnterPoolTransactionHashBehaviour,  # type: ignore
         ExitPoolTransactionHashBehaviour,  # type: ignore
         SwapBackTransactionHashBehaviour,  # type: ignore
-    }
-
-
-class LiquidityRebalancingConsensusBehaviour(AbstractRoundBehaviour):
-    """This behaviour manages the consensus stages for the liquidity rebalancing."""
-
-    initial_state_cls = RegistrationStartupBehaviour
-    abci_app_cls = LiquiditRebalancingAbciApp  # type: ignore
-    behaviour_states: Set[Type[BaseState]] = {
-        *AgentRegistrationRoundBehaviour.behaviour_states,
-        *SafeDeploymentRoundBehaviour.behaviour_states,
-        *TransactionSettlementRoundBehaviour.behaviour_states,
-        *ResetPauseABCIConsensusBehaviour.behaviour_states,
-        *StrategyRoundBehaviour.behaviour_states,
     }

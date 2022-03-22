@@ -68,7 +68,7 @@ abci_app_transition_mapping: AbciAppTransitionMapping = {
     FailedRound: RegistrationRound,
 }
 
-LiquiditRebalancingAbciApp = chain(
+LiquidityProvisionAbciApp = chain(
     (
         AgentRegistrationAbciApp,
         SafeDeploymentAbciApp,

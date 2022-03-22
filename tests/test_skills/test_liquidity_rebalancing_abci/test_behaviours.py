@@ -54,7 +54,7 @@ from packages.valory.skills.liquidity_rebalancing_abci.behaviours import (
 from packages.valory.skills.liquidity_rebalancing_abci.payloads import StrategyType
 from packages.valory.skills.liquidity_rebalancing_abci.rounds import Event
 from packages.valory.skills.liquidity_rebalancing_abci.rounds import (
-    PeriodState as LiquiditRebalancingPeriodState,
+    PeriodState as LiquidityRebalancingPeriodState,
 )
 
 from tests.conftest import ROOT_DIR
@@ -129,15 +129,15 @@ def get_default_strategy(
     return strategy
 
 
-class LiquiditRebalancingBehaviourBaseCase(FSMBehaviourBaseCase):
-    """Base case for testing LiquiditRebalancing FSMBehaviour."""
+class LiquidityRebalancingBehaviourBaseCase(FSMBehaviourBaseCase):
+    """Base case for testing LiquidityRebalancing FSMBehaviour."""
 
     path_to_skill = Path(
         ROOT_DIR, "packages", "valory", "skills", "liquidity_rebalancing_abci"
     )
 
 
-class TestStrategyEvaluationBehaviour(LiquiditRebalancingBehaviourBaseCase):
+class TestStrategyEvaluationBehaviour(LiquidityRebalancingBehaviourBaseCase):
     """Test StrategyEvaluationBehaviour."""
 
     def test_transaction_hash_enter(
@@ -148,7 +148,7 @@ class TestStrategyEvaluationBehaviour(LiquiditRebalancingBehaviourBaseCase):
         strategy = get_default_strategy(
             is_base_native=False, is_a_native=True, is_b_native=False
         )
-        period_state = LiquiditRebalancingPeriodState(
+        period_state = LiquidityRebalancingPeriodState(
             StateDB(
                 initial_period=0,
                 initial_data=dict(
@@ -187,7 +187,7 @@ class TestStrategyEvaluationBehaviour(LiquiditRebalancingBehaviourBaseCase):
             is_base_native=False, is_a_native=True, is_b_native=False
         )
         strategy["action"] = StrategyType.EXIT.value
-        period_state = LiquiditRebalancingPeriodState(
+        period_state = LiquidityRebalancingPeriodState(
             StateDB(
                 initial_period=0,
                 initial_data=dict(
@@ -222,7 +222,7 @@ class TestStrategyEvaluationBehaviour(LiquiditRebalancingBehaviourBaseCase):
     ) -> None:
         """Run tests."""
 
-        period_state = LiquiditRebalancingPeriodState(
+        period_state = LiquidityRebalancingPeriodState(
             StateDB(
                 initial_period=0,
                 initial_data=dict(
@@ -264,7 +264,7 @@ class TestStrategyEvaluationBehaviour(LiquiditRebalancingBehaviourBaseCase):
             is_base_native=False, is_a_native=True, is_b_native=False
         )
         strategy["action"] = StrategyType.SWAP_BACK.value
-        period_state = LiquiditRebalancingPeriodState(
+        period_state = LiquidityRebalancingPeriodState(
             StateDB(
                 initial_period=0,
                 initial_data=dict(
@@ -295,7 +295,7 @@ class TestStrategyEvaluationBehaviour(LiquiditRebalancingBehaviourBaseCase):
         self._test_done_flag_set()
 
 
-class TestEnterPoolTransactionHashBehaviour(LiquiditRebalancingBehaviourBaseCase):
+class TestEnterPoolTransactionHashBehaviour(LiquidityRebalancingBehaviourBaseCase):
     """Test EnterPoolTransactionHashBehaviour."""
 
     def test_transaction_hash(
@@ -306,7 +306,7 @@ class TestEnterPoolTransactionHashBehaviour(LiquiditRebalancingBehaviourBaseCase
         strategy = get_default_strategy(
             is_base_native=False, is_a_native=True, is_b_native=False
         )
-        period_state = LiquiditRebalancingPeriodState(
+        period_state = LiquidityRebalancingPeriodState(
             StateDB(
                 initial_period=0,
                 initial_data=dict(
@@ -552,7 +552,7 @@ class TestEnterPoolTransactionHashBehaviour(LiquiditRebalancingBehaviourBaseCase
         strategy = get_default_strategy(
             is_base_native=False, is_a_native=False, is_b_native=False
         )
-        period_state = LiquiditRebalancingPeriodState(
+        period_state = LiquidityRebalancingPeriodState(
             StateDB(
                 initial_period=0,
                 initial_data=dict(
@@ -825,7 +825,7 @@ class TestEnterPoolTransactionHashBehaviour(LiquiditRebalancingBehaviourBaseCase
         strategy = get_default_strategy(
             is_base_native=True, is_a_native=True, is_b_native=False
         )
-        period_state = LiquiditRebalancingPeriodState(
+        period_state = LiquidityRebalancingPeriodState(
             StateDB(
                 initial_period=0,
                 initial_data=dict(
@@ -880,7 +880,7 @@ class TestEnterPoolTransactionHashBehaviour(LiquiditRebalancingBehaviourBaseCase
             )
 
 
-class TestExitPoolTransactionHashBehaviour(LiquiditRebalancingBehaviourBaseCase):
+class TestExitPoolTransactionHashBehaviour(LiquidityRebalancingBehaviourBaseCase):
     """Test ExitPoolTransactionHashBehaviour."""
 
     def test_transaction_hash(
@@ -891,7 +891,7 @@ class TestExitPoolTransactionHashBehaviour(LiquiditRebalancingBehaviourBaseCase)
         strategy = get_default_strategy(
             is_base_native=False, is_a_native=True, is_b_native=False
         )
-        period_state = LiquiditRebalancingPeriodState(
+        period_state = LiquidityRebalancingPeriodState(
             StateDB(
                 initial_period=0,
                 initial_data=dict(
@@ -1077,7 +1077,7 @@ class TestExitPoolTransactionHashBehaviour(LiquiditRebalancingBehaviourBaseCase)
         strategy = get_default_strategy(
             is_base_native=False, is_a_native=False, is_b_native=False
         )
-        period_state = LiquiditRebalancingPeriodState(
+        period_state = LiquidityRebalancingPeriodState(
             StateDB(
                 initial_period=0,
                 initial_data=dict(
@@ -1265,7 +1265,7 @@ class TestExitPoolTransactionHashBehaviour(LiquiditRebalancingBehaviourBaseCase)
         strategy = get_default_strategy(
             is_base_native=False, is_a_native=True, is_b_native=False
         )
-        period_state = LiquiditRebalancingPeriodState(
+        period_state = LiquidityRebalancingPeriodState(
             StateDB(
                 initial_period=0,
                 initial_data=dict(
@@ -1326,7 +1326,7 @@ class TestExitPoolTransactionHashBehaviour(LiquiditRebalancingBehaviourBaseCase)
         )
 
 
-class TestSwapBackTransactionHashBehaviour(LiquiditRebalancingBehaviourBaseCase):
+class TestSwapBackTransactionHashBehaviour(LiquidityRebalancingBehaviourBaseCase):
     """Test SwapBackTransactionHashBehaviour."""
 
     def test_transaction_hash(
@@ -1337,7 +1337,7 @@ class TestSwapBackTransactionHashBehaviour(LiquiditRebalancingBehaviourBaseCase)
         strategy = get_default_strategy(
             is_base_native=False, is_a_native=True, is_b_native=False
         )
-        period_state = LiquiditRebalancingPeriodState(
+        period_state = LiquidityRebalancingPeriodState(
             StateDB(
                 initial_period=0,
                 initial_data=dict(
@@ -1560,7 +1560,7 @@ class TestSwapBackTransactionHashBehaviour(LiquiditRebalancingBehaviourBaseCase)
         strategy = get_default_strategy(
             is_base_native=False, is_a_native=False, is_b_native=False
         )
-        period_state = LiquiditRebalancingPeriodState(
+        period_state = LiquidityRebalancingPeriodState(
             StateDB(
                 initial_period=0,
                 initial_data=dict(
@@ -1833,7 +1833,7 @@ def test_parse_tx_token_balance() -> None:
     assert amount_2 == 1, "The transfered amount is not correct"
 
 
-class TestSleepBehaviour(LiquiditRebalancingBehaviourBaseCase):
+class TestSleepBehaviour(LiquidityRebalancingBehaviourBaseCase):
     """Test SleepBehaviour."""
 
     def test_sleep(
@@ -1841,7 +1841,7 @@ class TestSleepBehaviour(LiquiditRebalancingBehaviourBaseCase):
     ) -> None:
         """Run tests."""
 
-        period_state = LiquiditRebalancingPeriodState(
+        period_state = LiquidityRebalancingPeriodState(
             StateDB(
                 initial_period=0,
                 initial_data=dict(

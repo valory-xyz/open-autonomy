@@ -41,7 +41,7 @@ class TransactionType(Enum):
         return self.value
 
 
-class BaseLiquiditRebalancingPayload(BaseTxPayload, ABC):
+class BaseLiquidityRebalancingPayload(BaseTxPayload, ABC):
     """Base class for the liquidity rebalancing skill."""
 
     def __hash__(self) -> int:  # pragma: nocover
@@ -62,7 +62,7 @@ class StrategyType(Enum):
         return self.value
 
 
-class StrategyEvaluationPayload(BaseLiquiditRebalancingPayload):
+class StrategyEvaluationPayload(BaseLiquidityRebalancingPayload):
     """Represent a transaction payload of type 'strategy_evaluation'."""
 
     transaction_type = TransactionType.STRATEGY_EVALUATION

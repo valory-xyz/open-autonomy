@@ -1,4 +1,4 @@
-name: liquidity_rebalancing_abci
+name: liquidity_provision_abci
 author: valory
 version: 0.1.0
 type: skill
@@ -7,15 +7,14 @@ description: This skill implements liquidity rebalancing capacities to move into
 license: Apache-2.0
 aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
-  README.md: Qmdnhn6pApDV6UYJGgJGsLQbVQZjcimbPTNdsTXyNHJKFi
+  README.md: QmR5sLQeLggNn5gZ1kDWrqpkz5NzMdUZuWNkaQDpaMC85C
   __init__.py: QmNuC15NDuuzyfhdpYLpoVajvPGXN3EKR9GdBHDdM1mzgM
-  behaviours.py: QmUUXzvYwRrCLMSqxid7WqDibGJwW5HovVe4WCJBKzgqvS
+  behaviours.py: QmZQeqJJ8j38y2LPvAfLnTwL3oSdjSeAYCjt4jH7JF315Z
+  composition.py: QmXdsJZJJPba243WZ2jcoiJz4vFuw5ujFUXuEjoTkxY81H
   dialogues.py: QmfDThV4WCRzK88XDpW2hKDYCuEH4RxoHCoAkWpkBRGRPv
-  fsm_specification.yaml: QmX3XcnEMJ8JLTkftDnFoanehLEJbqLgYM6cR9Y4DfPSYT
+  fsm_specification_composition.yaml: QmWzgkjEbY96eUWGEjFYxgftLCJWb8pkaD2uFLorCjiaP6
   handlers.py: QmRbhnYTWnUPsWHYg9CbLhWQTFfw9faRZwjbTD6BGv7YtD
-  models.py: QmRALTaiv4Ny6PVjYbQQcBKaHjKSbpVABaxociC2Bkhgrh
-  payloads.py: QmciRtUWZHMaGV2givznHWNQ4Ky44MciprcwadLYjxcu4s
-  rounds.py: QmZPXPaUQpmFKvMrgY6YX45SH13T9kbbmpdRGtN5wtpuXi
+  models.py: QmRXmJ1e1nxy6GCpUEVzcbSiKYNBXJ3JoTwGxpg2KuW82t
 fingerprint_ignore_patterns: []
 connections:
 - valory/abci:0.1.0
@@ -34,10 +33,15 @@ protocols:
 - valory/ledger_api:1.0.0
 skills:
 - valory/abstract_round_abci:0.1.0
+- valory/liquidity_rebalancing_abci:0.1.0
+- valory/registration_abci:0.1.0
+- valory/reset_pause_abci:0.1.0
+- valory/safe_deployment_abci:0.1.0
+- valory/transaction_settlement_abci:0.1.0
 behaviours:
   main:
     args: {}
-    class_name: LiquidityRebalancingConsensusBehaviour
+    class_name: LiquidityProvisionConsensusBehaviour
 handlers:
   abci:
     args: {}
@@ -116,4 +120,4 @@ models:
     args: {}
     class_name: SharedState
 dependencies: {}
-is_abstract: true
+is_abstract: false
