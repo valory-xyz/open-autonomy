@@ -50,6 +50,7 @@ from packages.valory.skills.apy_estimation_abci.behaviours import (
     APYEstimationBaseState,
     CycleResetBehaviour,
     EstimateBehaviour,
+    EstimatorRoundBehaviour,
     FetchBatchBehaviour,
     FetchBehaviour,
     FreshModelResetBehaviour,
@@ -68,9 +69,6 @@ from packages.valory.skills.apy_estimation_abci.behaviours import (
 )
 from packages.valory.skills.apy_estimation_abci.rounds import Event, PeriodState
 from packages.valory.skills.apy_estimation_abci.tools.etl import ResponseItemType
-from packages.valory.skills.apy_estimation_chained_abci.behaviours import (
-    APYEstimationConsensusBehaviour,
-)
 
 from tests.conftest import ROOT_DIR
 from tests.test_skills.base import FSMBehaviourBaseCase
@@ -117,7 +115,7 @@ class APYEstimationFSMBehaviourBaseCase(FSMBehaviourBaseCase):
         ROOT_DIR, "packages", "valory", "skills", "apy_estimation_abci"
     )
 
-    behaviour: APYEstimationConsensusBehaviour
+    behaviour: EstimatorRoundBehaviour
     behaviour_class: Type[APYEstimationBaseState]
     next_behaviour_class: Type[APYEstimationBaseState]
     period_state: PeriodState
