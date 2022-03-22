@@ -314,22 +314,19 @@ class SelectKeeperTransactionSubmissionRoundBAfterTimeout(
 
     round_id = "select_keeper_transaction_submission_b_after_timeout"
 
-    def __increment(self, *attrs: str) -> None:
-        """Increment the period state's given attributes by one.
-
-        :param attrs: the attribute names to increment.
-        """
-        incremented = {
-            attr_name: getattr(self.period_state, attr_name) + 1 for attr_name in attrs
-        }
-        self.period_state.update(**incremented)
-
     def end_block(self) -> Optional[Tuple[BasePeriodState, Enum]]:
         """Process the end of the block."""
         if self.threshold_reached:
-            self.__increment("missed_messages", "consecutive_finalizations")
-            if cast(PeriodState, self.period_state).finalizations_threshold_exceeded:
-                return self.period_state, Event.CHECK_HISTORY
+            state = cast(PeriodState, self.period_state)
+            state = cast(
+                PeriodState,
+                self.period_state.update(
+                    missed_messages=state.missed_messages + 1,
+                    consecutive_finalizations=state.consecutive_finalizations + 1,
+                ),
+            )
+            if state.finalizations_threshold_exceeded:
+                return state, Event.CHECK_HISTORY
         return super().end_block()
 
 
