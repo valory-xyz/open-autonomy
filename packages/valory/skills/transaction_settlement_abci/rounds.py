@@ -21,7 +21,6 @@
 import textwrap
 from abc import ABC
 from enum import Enum
-from math import floor
 from typing import Dict, List, Mapping, Optional, Set, Tuple, Type, Union, cast
 
 from packages.valory.skills.abstract_round_abci.base import (
@@ -141,7 +140,7 @@ class PeriodState(BasePeriodState):  # pylint: disable=too-many-instance-attribu
     @property
     def finalizations_threshold_exceeded(self) -> bool:
         """Check if the number of consecutive finalizations has exceeded the allowed limit."""
-        malicious_threshold = floor(self.nb_participants / 3)
+        malicious_threshold = self.nb_participants // 3
         return self.consecutive_finalizations > malicious_threshold + 1
 
     @property
