@@ -21,6 +21,7 @@
 import textwrap
 from abc import ABC
 from enum import Enum
+from math import floor
 from typing import Dict, List, Mapping, Optional, Set, Tuple, Type, Union, cast
 
 from packages.valory.skills.abstract_round_abci.base import (
@@ -131,6 +132,17 @@ class PeriodState(BasePeriodState):  # pylint: disable=too-many-instance-attribu
     def most_voted_tx_hash(self) -> str:
         """Get the most_voted_tx_hash."""
         return cast(str, self.db.get_strict("most_voted_tx_hash"))
+
+    @property
+    def consecutive_finalizations(self) -> int:
+        """Get the number of consecutive finalizations."""
+        return cast(int, self.db.get("consecutive_finalizations", 0))
+
+    @property
+    def finalizations_threshold_exceeded(self) -> bool:
+        """Check if the number of consecutive finalizations has exceeded the allowed limit."""
+        malicious_threshold = floor(self.nb_participants / 3)
+        return self.consecutive_finalizations > malicious_threshold + 1
 
     @property
     def missed_messages(self) -> int:
