@@ -329,6 +329,8 @@ class SelectKeeperTransactionSubmissionRoundBAfterTimeout(
         """Process the end of the block."""
         if self.threshold_reached:
             self.__increment("missed_messages", "consecutive_finalizations")
+            if cast(PeriodState, self.period_state).finalizations_threshold_exceeded:
+                return self.period_state, Event.CHECK_HISTORY
         return super().end_block()
 
 
@@ -531,6 +533,7 @@ class TransactionSubmissionAbciApp(AbciApp[Event]):
             - no majority: 10.
         7. SelectKeeperTransactionSubmissionRoundBAfterTimeout
             - done: 3.
+            - check history: 5.
             - round timeout: 10.
             - no majority: 10.
         8. SynchronizeLateMessagesRound
@@ -606,6 +609,7 @@ class TransactionSubmissionAbciApp(AbciApp[Event]):
         },
         SelectKeeperTransactionSubmissionRoundBAfterTimeout: {
             Event.DONE: FinalizationRound,
+            Event.CHECK_HISTORY: CheckTransactionHistoryRound,
             Event.ROUND_TIMEOUT: ResetRound,
             Event.NO_MAJORITY: ResetRound,
         },
