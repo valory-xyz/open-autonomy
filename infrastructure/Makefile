@@ -31,7 +31,7 @@ cluster-setup:
 	kubectl apply -f https://raw.githubusercontent.com/kubernetes/dashboard/v2.2.0/aio/deploy/recommended.yaml
 .PHONY: cluster-setup
 
-localcluster-start: 
+localcluster-start:
 	if [[ "${CLUSTERS}" == "" ]]; then \
 		kind create cluster;\
 	fi
@@ -40,7 +40,7 @@ localcluster-start:
 	make cluster-setup
 	make cluster-create-deployments
 	make cluster-deploy
-.PHONY: localcluster-start 
+.PHONY: localcluster-start
 
 localcluster-stop:
 	kind delete cluster
@@ -58,14 +58,15 @@ cluster-remove-deploy:
 	kubectl delete deployment hardhat
 	kubectl delete svc hardhat
 	kubectl delete pv task-pv-volume
-	kubectl delete pvc build-vol --force
+	kubectl delete jobs -l job-name=config-nodes
+	kubectl delete pvc build-vol-pvc
 .PHONY: localcluster-remove-deploy
 
-cluster-create-deployments: 
+cluster-create-deployments:
 	sudo python3 configure_agents/create_env.py -n 4 -net hardhat -doc -dsc
 .ONESHELL: cluster-create-deployment
 
-cluster-deploy: 
+cluster-deploy:
 	skaffold run --profile deploy
 .ONESHELL: cluster-deploy
 
