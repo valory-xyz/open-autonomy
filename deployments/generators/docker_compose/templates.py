@@ -80,6 +80,7 @@ TENDERMINT_NODE_TEMPLATE: str = (
       - CREATE_EMPTY_BLOCKS=true
     volumes:
       - ./build:/tendermint:Z
+      - ./logs:/logs:Z
     working_dir: /tendermint
     command: ["run", "--no-reload", "--host=0.0.0.0", "--port=8080",]
     depends_on:
