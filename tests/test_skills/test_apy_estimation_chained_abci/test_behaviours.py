@@ -17,14 +17,10 @@
 #
 # ------------------------------------------------------------------------------
 """Tests for valory/apy_estimation_chained_abci skill's behaviours."""
-from packages.valory.skills.apy_estimation_chained_abci.behaviours import (
+from packages.valory.skills.apy_estimation_chained_abci.behaviours import (  # noqa
     APYEstimationConsensusBehaviour,
 )
-from packages.valory.skills.apy_estimation_chained_abci.composition import (
-    APYEstimationAbciAppChained,
-)
 
 
-def test_load_chained_class() -> None:
-    """Test load APYEstimationConsensusBehaviour"""
-    assert APYEstimationConsensusBehaviour.abci_app_cls == APYEstimationAbciAppChained
+def test_import() -> None:
+    """Test that the 'behaviours.py' Python module can be imported."""
