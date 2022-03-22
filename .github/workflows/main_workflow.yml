@@ -124,8 +124,10 @@ jobs:
       run: tox -e pylint
     - name: Check spelling
       run: tox -e spell-check
-    - name: Check docstrings for AbciApps
-      run: tox -e check-abci-docstrings
+    - name: AbciApp consistency checks
+      run: |
+        tox -e check-abci-docstrings
+        tox -e check-abciapp-specs
 
   test:
     continue-on-error: True
