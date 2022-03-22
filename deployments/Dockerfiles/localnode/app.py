@@ -20,6 +20,7 @@
 """HTTP server to control the tendermint execution environment."""
 import logging
 import os
+import shutil
 from pathlib import Path
 from typing import Any, Tuple
 
@@ -34,7 +35,20 @@ logging.basicConfig(
     format=f"%(asctime)s %(levelname)s %(name)s %(threadName)s : %(message)s",  # noqa : W1309
 )
 
+period_resets = 0
 logger = logging.getLogger(__name__)
+
+dump_dir = Path("/logs/dump")
+if dump_dir.is_dir():
+    shutil.rmtree(str(dump_dir))
+dump_dir.mkdir()
+
+
+def dump_period() -> None:
+    """Dump tendermint run data for replay"""
+    store_dir = dump_dir / f"period_{period_resets}"
+    store_dir.mkdir(exist_ok=True)
+    shutil.copytree(os.environ["TMHOME"], str(store_dir / ("node" + os.environ["ID"])))
 
 
 def update_sync_method() -> None:
@@ -82,9 +96,12 @@ def gentle_reset() -> Tuple[Any, int]:
 def hard_reset() -> Tuple[Any, int]:
     """Reset the node forcefully, and prune the blocks"""
     try:
+        global period_resets
         tendermint_node.stop()
+        dump_period()
         tendermint_node.prune_blocks()
         tendermint_node.start()
+        period_resets += 1
         return jsonify({"message": "Reset successful.", "status": True}), 200
     except Exception as e:  # pylint: disable=W0703
         return (
