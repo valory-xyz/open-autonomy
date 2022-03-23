@@ -636,8 +636,7 @@ class PrepareBatchBehaviour(APYEstimationBaseState):
                 return
 
             # Get the prepared batches from the task.
-            completed_task = self._async_result.get()
-            prepared_batches = cast(pd.DataFrame, completed_task)
+            prepared_batches = self._async_result.get()
             self.context.logger.info(
                 f"Batches have been prepared:\n{prepared_batches.to_string()}"
             )
@@ -897,8 +896,7 @@ class TrainBehaviour(APYEstimationBaseState):
                 return
 
             # Get the trained estimator.
-            completed_task = self._async_result.get()
-            forecasters = cast(PoolIdToForecasterType, completed_task)
+            forecasters = self._async_result.get()
             self.context.logger.info("Training has finished.")
 
             prefix = "fully_trained_" if self.period_state.full_training else ""
