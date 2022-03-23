@@ -473,7 +473,7 @@ class TransformBehaviour(APYEstimationBaseState):
             )
 
             # Get the latest observation for each pool id.
-            latest_observations = transformed_history.groupby("id").last()
+            latest_observations = transformed_history.groupby("id").last().reset_index()
             # Send the latest observations to IPFS and get the hash.
             latest_observations_save_path = os.path.join(
                 self.context.data_dir,
