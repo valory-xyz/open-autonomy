@@ -138,6 +138,7 @@ class APYEstimationBaseState(BaseState, ABC):
         split_path = os.path.join(
             self.context.data_dir,
             f"y_{split}",
+            f"period_{self.period_state.period_count}",
         )
         return self.get_from_ipfs(
             getattr(self.period_state, f"{split}_hash"),
@@ -184,7 +185,7 @@ class FetchBehaviour(APYEstimationBaseState):
 
         self._save_path = os.path.join(
             self.context.data_dir,
-            f"{filename}.json",
+            f"{filename}_period_{self.period_state.period_count}.json",
         )
 
         self._spooky_api_specs = self.context.spooky_subgraph.get_spec()
@@ -424,13 +425,13 @@ class TransformBehaviour(APYEstimationBaseState):
         self._pairs_hist = self.get_from_ipfs(
             self.period_state.history_hash,
             self.context.data_dir,
-            filename="historical_data.json",
+            filename=f"historical_data_period_{self.period_state.period_count}.json",
             filetype=SupportedFiletype.JSON,
         )
 
         self._transformed_history_save_path = os.path.join(
             self.context.data_dir,
-            "transformed_historical_data.csv",
+            f"transformed_historical_data_period_{self.period_state.period_count}.csv",
         )
 
         if self._pairs_hist is not None:
@@ -468,7 +469,8 @@ class TransformBehaviour(APYEstimationBaseState):
             # Send the latest observations to IPFS and get the hash.
             latest_observations_save_path = os.path.join(
                 self.context.data_dir,
-                "latest_observations.csv",
+                # We will use this batch in the next period, therefore we store it as `period_count + 1`.
+                f"latest_observations_period_{self.period_state.period_count + 1}.csv",
             )
             self._latest_observations_hist_hash = self.send_to_ipfs(
                 latest_observations_save_path,
@@ -514,7 +516,7 @@ class PreprocessBehaviour(APYEstimationBaseState):
         self._pairs_hist = self.get_from_ipfs(
             self.period_state.transformed_history_hash,
             self.context.data_dir,
-            filename="transformed_historical_data.csv",
+            filename=f"transformed_historical_data_period_{self.period_state.period_count}.csv",
             custom_loader=load_hist,
         )
 
@@ -549,6 +551,7 @@ class PreprocessBehaviour(APYEstimationBaseState):
                 save_path = os.path.join(
                     self.context.data_dir,
                     f"y_{split_name}",
+                    f"period_{self.period_state.period_count}",
                 )
 
                 split_hash = self.send_to_ipfs(
@@ -592,13 +595,13 @@ class PrepareBatchBehaviour(APYEstimationBaseState):
             self.get_from_ipfs(
                 self.period_state.latest_observation_hist_hash,
                 self.context.data_dir,
-                filename="latest_observations.csv",
+                filename=f"latest_observations_period_{self.period_state.period_count}.csv",
                 custom_loader=load_hist,
             ),
             self.get_from_ipfs(
                 self.period_state.batch_hash,
                 self.context.data_dir,
-                filename=f"historical_data_batch_{self.period_state.latest_observation_timestamp}.json",
+                filename=f"historical_data_batch_{self.period_state.latest_observation_timestamp}_period_{self.period_state.period_count}.json",
                 filetype=SupportedFiletype.JSON,
             ),
         )
@@ -611,7 +614,8 @@ class PrepareBatchBehaviour(APYEstimationBaseState):
             self._async_result = self.context.task_manager.get_task_result(task_id)
 
         self._prepared_batches_save_path = os.path.join(
-            self.context.data_dir, "latest_observations.csv"
+            self.context.data_dir,
+            f"latest_observations_period_{self.period_state.period_count}.csv",
         )
 
     def async_act(self) -> Generator:
@@ -795,6 +799,7 @@ class OptimizeBehaviour(APYEstimationBaseState):
             best_params_save_path = os.path.join(
                 self.context.data_dir,
                 "best_params",
+                f"period_{self.period_state.period_count}",
             )
             self._best_params_hash = self.send_to_ipfs(
                 best_params_save_path,
@@ -836,6 +841,7 @@ class TrainBehaviour(APYEstimationBaseState):
         best_params_path = os.path.join(
             self.context.data_dir,
             "best_params",
+            f"period_{self.period_state.period_count}",
         )
         self._best_params = self.get_from_ipfs(
             self.period_state.params_hash,
@@ -891,6 +897,7 @@ class TrainBehaviour(APYEstimationBaseState):
             forecaster_save_path = os.path.join(
                 self.context.data_dir,
                 f"{prefix}forecasters",
+                f"period_{self.period_state.period_count}",
             )
 
             # Send the file to IPFS and get its hash.
@@ -944,6 +951,7 @@ class TestBehaviour(APYEstimationBaseState):
         models_path = os.path.join(
             self.context.data_dir,
             "forecasters",
+            f"period_{self.period_state.period_count}",
         )
 
         self._forecasters = self.get_from_ipfs(
@@ -990,6 +998,7 @@ class TestBehaviour(APYEstimationBaseState):
             report_save_path = os.path.join(
                 self.context.data_dir,
                 "reports",
+                f"period_{self.period_state.period_count}",
             )
             # Send the file to IPFS and get its hash.
             self._report_hash = self.send_to_ipfs(
@@ -1021,6 +1030,7 @@ class UpdateForecasterBehaviour(APYEstimationBaseState):
         self._forecasters_folder: str = os.path.join(
             self.context.data_dir,
             "fully_trained_forecasters",
+            "period_",
         )
         self._forecasters: Optional[PoolIdToForecasterType] = None
         self._models_hash: Optional[str] = None
@@ -1031,14 +1041,14 @@ class UpdateForecasterBehaviour(APYEstimationBaseState):
         self._y = self.get_from_ipfs(
             self.period_state.latest_observation_hist_hash,
             self.context.data_dir,
-            filename="latest_observations.csv",
+            filename=f"latest_observations_period_{self.period_state.period_count}.csv",
             filetype=SupportedFiletype.CSV,
         )
 
         # Load forecasters.
         self._forecasters = self.get_from_ipfs(
             self.period_state.models_hash,
-            self._forecasters_folder,
+            self._forecasters_folder + str(self.period_state.period_count - 1),
             multiple=True,
             filetype=SupportedFiletype.PM_PIPELINE,
         )
@@ -1063,7 +1073,7 @@ class UpdateForecasterBehaviour(APYEstimationBaseState):
 
             # Send the file to IPFS and get its hash.
             self._models_hash = self.send_to_ipfs(
-                self._forecasters_folder,
+                self._forecasters_folder + str(self.period_state.period_count),
                 self._forecasters,
                 multiple=True,
                 filetype=SupportedFiletype.PM_PIPELINE,
@@ -1098,6 +1108,7 @@ class EstimateBehaviour(APYEstimationBaseState):
         forecasters_folder: str = os.path.join(
             self.context.data_dir,
             "fully_trained_forecasters",
+            f"period_{self.period_state.period_count}",
         )
         self._forecasters = self.get_from_ipfs(
             self.period_state.models_hash,
@@ -1130,7 +1141,10 @@ class EstimateBehaviour(APYEstimationBaseState):
             self.context.logger.info("Estimates have been received.")
 
             # Send the file to IPFS and get its hash.
-            estimations_path = os.path.join(self.context.data_dir, "estimations.csv")
+            estimations_path = os.path.join(
+                self.context.data_dir,
+                f"estimations_period_{self.period_state.period_count}.csv",
+            )
             self._estimations_hash = self.send_to_ipfs(
                 estimations_path,
                 estimates,
@@ -1170,7 +1184,7 @@ class BaseResetBehaviour(APYEstimationBaseState):
             estimations = self.get_from_ipfs(
                 self.period_state.estimates_hash,
                 self.context.data_dir,
-                filename="estimations.csv",
+                filename=f"estimations_period_{self.period_state.period_count}.csv",
                 filetype=SupportedFiletype.CSV,
             )
             if estimations is not None:
