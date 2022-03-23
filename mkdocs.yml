@@ -20,8 +20,7 @@ nav:
     - Demo: 'price_estimation_demo.md'
     - How it works: 'price_estimation.md'
     - FSM Diagram: 'fsm_diagram.md'
-  - Ethereum:
-    - Miscellaneous: 'ethereum_specifics.md'
+  - Miscellaneous: 'ethereum_specifics.md'
   - API:
     - Connections:
       - ABCI:
