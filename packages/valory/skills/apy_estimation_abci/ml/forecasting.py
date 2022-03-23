@@ -39,6 +39,8 @@ TestReportType = Dict[str, str]
 PoolIdToTestReportType = Dict[str, TestReportType]
 PoolIdToTrainDataType = Dict[str, np.ndarray]
 PoolIdToForecasterType = Dict[str, Pipeline]
+HyperParamsType = Dict[str, Any]
+PoolToHyperParamsType = Dict[str, HyperParamsType]
 
 
 def init_forecaster(  # pylint: disable=too-many-arguments
@@ -81,18 +83,18 @@ def init_forecaster(  # pylint: disable=too-many-arguments
 
 
 def train_forecaster_per_pool(
-    y_train: PoolIdToTrainDataType, **kwargs: Any
+    y_train: PoolIdToTrainDataType, best_params: PoolToHyperParamsType
 ) -> PoolIdToForecasterType:
     """Train a forecasting model.
 
     :param y_train: the training timeseries.
-    :param kwargs: the keyword arguments for the forecaster's training.
+    :param best_params: the best parameters for the forecasters.
     :return: a trained `pmdarima` pipeline per pool, consisting of a fourier featurizer and an ARIMA model.
     """
     forecasters = {}
     for id_, y in y_train.items():
         id_.replace(".csv", ".joblib")
-        forecasters[id_] = train_forecaster(y, **kwargs)
+        forecasters[id_] = train_forecaster(y, **best_params[id_])
     return forecasters
 
 

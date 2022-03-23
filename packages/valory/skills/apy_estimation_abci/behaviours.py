@@ -53,9 +53,9 @@ from packages.valory.skills.apy_estimation_abci.ml.forecasting import (
     PoolIdToForecasterType,
     PoolIdToTestReportType,
     PoolIdToTrainDataType,
+    PoolToHyperParamsType,
 )
 from packages.valory.skills.apy_estimation_abci.ml.optimization import (
-    PoolToHyperParamsType,
     PoolToHyperParamsWithStatusType,
 )
 from packages.valory.skills.apy_estimation_abci.ml.preprocessing import (
@@ -869,7 +869,7 @@ class TrainBehaviour(APYEstimationBaseState):
         if not any(arg is None for arg in (self._y, self._best_params)):
             train_task = TrainTask()
             task_id = self.context.task_manager.enqueue_task(
-                train_task, args=(self._y,), kwargs=self._best_params
+                train_task, args=(self._y, self._best_params)
             )
             self._async_result = self.context.task_manager.get_task_result(task_id)
 

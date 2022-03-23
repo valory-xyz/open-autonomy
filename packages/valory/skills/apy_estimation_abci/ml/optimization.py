@@ -27,13 +27,14 @@ import pandas as pd
 import pmdarima as pm
 from sklearn.metrics import mean_pinball_loss
 
-from packages.valory.skills.apy_estimation_abci.ml.forecasting import init_forecaster
+from packages.valory.skills.apy_estimation_abci.ml.forecasting import (
+    HyperParamsType,
+    init_forecaster,
+)
 
 
 ScoringFuncType = Callable[[np.ndarray, np.ndarray], float]
 ScoringType = Union[ScoringFuncType, str]
-HyperParamsType = Dict[str, Any]
-PoolToHyperParamsType = Dict[str, HyperParamsType]
 HyperParamsWithStatusType = Tuple[HyperParamsType, bool]
 PoolToHyperParamsWithStatusType = Dict[str, HyperParamsWithStatusType]
 
