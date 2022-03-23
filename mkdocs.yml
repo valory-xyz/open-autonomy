@@ -1,6 +1,6 @@
 site_name: Consensus Algorithms
 site_url: https://valory.xyz/
-site_description: Consensus algorithms implemented with the AEA framework.
+site_description: Consensus algorithms implemented with the open AEA framework.
 repo_url: https://github.com/valory-xyz/consensus-algorithms
 site_author: developer@valory.xyz
 
@@ -14,14 +14,15 @@ nav:
     - AEA: 'aea.md'
     - ABCI: 'abci.md'
     - AsyncBehaviour: 'async_behaviour.md'
-    - Finite State Machine: 'fsm.md'
+    - Finite State Machines: 'fsm.md'
     - ABCIApp: 'abci_app.md'
   - Demos:
-    - Simple abci: 'simple_abci.md'
+    - Simple ABCI: 'simple_abci.md'
     - Price Estimation:
       - Introduction: 'price_estimation_demo.md'
       - How it works: 'price_estimation.md'
       - FSM Diagram: 'fsm_diagram.md'
+  - Requirements and set-up: 'requirements.md'
   - Miscellaneous:
     - Ethereum: 'ethereum_specifics.md'
     - Delegate call vs call: 'delegate_call.md'
