@@ -23,6 +23,7 @@ import logging
 from collections.abc import Mapping
 from typing import Any, Callable, Optional, Union, cast
 
+import requests
 from aea.common import JSONLike
 from aea.contracts import Contract, contract_registry
 from aea.crypto.base import LedgerApi
@@ -120,13 +121,20 @@ class ContractApiRequestDispatcher(RequestDispatcher):
         :param dialogue: the Contract API dialogue.
         :return: an error message response.
         """
+        if isinstance(exception, requests.exceptions.HTTPError):
+            code = exception.response.status_code
+            error_message = exception.response
+        else:
+            code = 500
+            error_message = parse_exception(exception)
+
         response = cast(
             ContractApiMessage,
             dialogue.reply(
                 performative=ContractApiMessage.Performative.ERROR,
                 target_message=message,
-                code=500,
-                message=parse_exception(exception),
+                code=code,
+                message=error_message,
                 data=b"",
             ),
         )
