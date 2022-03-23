@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021 Valory AG
+#   Copyright 2021-2022 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -30,7 +30,10 @@ from packages.valory.skills.apy_estimation_abci.models import (
 )
 
 from tests.test_skills.test_abstract_round_abci.test_models import DummyMessage
-from tests.test_skills.test_apy_estimation.conftest import SpecsType, is_list_of_strings
+from tests.test_skills.test_apy_estimation_abci.conftest import (
+    SpecsType,
+    is_list_of_strings,
+)
 
 
 ResponseItemType = List[Dict[str, str]]

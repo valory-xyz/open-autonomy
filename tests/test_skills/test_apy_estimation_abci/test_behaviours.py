@@ -72,7 +72,7 @@ from packages.valory.skills.apy_estimation_abci.tools.etl import ResponseItemTyp
 
 from tests.conftest import ROOT_DIR
 from tests.test_skills.base import FSMBehaviourBaseCase
-from tests.test_skills.test_apy_estimation.conftest import DummyPipeline
+from tests.test_skills.test_apy_estimation_abci.conftest import DummyPipeline
 
 
 SLEEP_TIME_TWEAK = 0.01
