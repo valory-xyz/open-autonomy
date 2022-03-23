@@ -18,6 +18,7 @@
 # ------------------------------------------------------------------------------
 
 """Forecasting operations"""
+import warnings
 from typing import Any, Dict, Optional, Union, cast
 
 import numpy as np
@@ -201,6 +202,12 @@ def walk_forward_test(
     if steps_forward < 1:
         raise ValueError(
             f"Timesteps to predict in the future cannot be {steps_forward} < 1."
+        )
+
+    if steps_forward > len(y_test):
+        warnings.warn(
+            "Timesteps to predict in the future are larger than the number of test samples "
+            f"while using the Direct Multi-step Forecast Strategy: {steps_forward} > {len(y_test)}"
         )
 
     y_pred = []
