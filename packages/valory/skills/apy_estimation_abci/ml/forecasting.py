@@ -142,11 +142,15 @@ def calc_metrics(y_true: np.ndarray, y_pred: np.ndarray) -> MetricsType:
     :return: a dictionary with the names of the metrics mapped to their values.
     """
     metrics = {
-        "mean pinball loss": mean_pinball_loss(y_true, y_pred),
+        "mean pinball loss": np.nan
+        if any(np.isnan(y_pred))
+        else mean_pinball_loss(y_true, y_pred),
         "SMAPE": smape(y_true, y_pred),
-        "Explained Variance": explained_variance_score(y_true, y_pred),
-        "Max Error": max_error(y_true, y_pred),
-        "MSE": mean_squared_error(y_true, y_pred),
+        "Explained Variance": np.nan
+        if any(np.isnan(y_pred))
+        else explained_variance_score(y_true, y_pred),
+        "Max Error": np.nan if any(np.isnan(y_pred)) else max_error(y_true, y_pred),
+        "MSE": np.nan if any(np.isnan(y_pred)) else mean_squared_error(y_true, y_pred),
     }
 
     return metrics
@@ -212,7 +216,7 @@ def walk_forward_test(
 
     y_pred = []
     for i in range(0, len(y_test), steps_forward):
-        y_hat = forecaster.predict(steps_forward)
+        y_hat = predict_safely(forecaster, steps_forward)
 
         if steps_forward == 1:
             y_pred.append(y_hat)
@@ -303,7 +307,27 @@ def estimate_apy_per_pool(
     estimates = {}
     for id_, forecaster in forecasters.items():
         id_.replace(".csv", "")
-        estimates[id_] = forecaster.predict(steps_forward)
+        estimates[id_] = predict_safely(forecaster, steps_forward)
     return pd.DataFrame(
         estimates, index=[f"Step{i + 1} into the future" for i in range(steps_forward)]
     )
+
+
+def predict_safely(forecaster: Pipeline, steps_forward: int) -> Any:
+    """
+    Overcomes an issue of the `pmdarima` library.
+
+    This has to be done because of a `pmdarima`'s issue: https://github.com/alkaline-ml/pmdarima/issues/404
+    The issue is caused because of a check of the confidence interval after predicting.
+    If the upper-lower bounds are `None`, then an error is raised from an assertion method.
+
+    :param forecaster: a `pmdarima` pipeline model.
+    :param steps_forward: how many timesteps the model will be predicting in the future.
+    :return: the predicted values.
+    """
+    try:
+        y_hat = forecaster.predict(steps_forward)
+    except ValueError:
+        y_hat = [np.nan] * steps_forward if steps_forward > 1 else np.nan
+
+    return y_hat
