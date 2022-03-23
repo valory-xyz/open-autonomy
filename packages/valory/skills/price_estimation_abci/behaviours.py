@@ -18,7 +18,7 @@
 # ------------------------------------------------------------------------------
 
 """This module contains the behaviours for the 'abci' skill."""
-
+import json
 from abc import ABC
 from decimal import Decimal
 from typing import Dict, Generator, Optional, Sequence, Set, Type, cast
@@ -407,6 +407,28 @@ class TransactionHashBehaviour(PriceEstimationBaseState):
             safe_tx_hash, ether_value, safe_tx_gas, to_address, data
         )
         return payload_string
+
+    def __handle_potential_rate_limiting(
+        self, contract_api_msg: ContractApiMessage, contract_callable: str
+    ) -> Generator[None, None, None]:
+        """Check if we have been rate limited and cool down if needed."""
+        if (
+            contract_api_msg.code is not None
+            and contract_api_msg.code == 429
+            and contract_api_msg.message is not None
+        ):
+            message = json.loads(contract_api_msg.message)
+            if message["error"]["code"] == "-32005":
+                backoff = message["data"]["backoff_seconds"]
+                self.context.logger.warning(
+                    f"We have been rate-limited! Sleeping for {backoff} seconds..."
+                )
+                yield from self.sleep(backoff)
+                return
+
+        self.context.logger.warning(
+            f"{contract_callable} unsuccessful! Response: {contract_api_msg}"
+        )
 
 
 class ObserverRoundBehaviour(AbstractRoundBehaviour):
