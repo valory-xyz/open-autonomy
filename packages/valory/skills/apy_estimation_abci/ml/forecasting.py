@@ -297,6 +297,7 @@ def estimate_apy_per_pool(
     """
     estimates = {}
     for id_, forecaster in forecasters.items():
+        id_.replace(".csv", "")
         estimates[id_] = forecaster.predict(steps_forward)
     return pd.DataFrame(
         estimates, index=[f"Step{i + 1} into the future" for i in range(steps_forward)]
