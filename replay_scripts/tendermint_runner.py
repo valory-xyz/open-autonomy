@@ -122,6 +122,8 @@ class TendermintNetwork:
             self.stop()
 
 
+tendermint_network: TendermintNetwork
+
 app = Flask(__name__)
 
 
@@ -164,6 +166,7 @@ def main(build_dir: Path):
     build_dir = Path(build_dir).absolute()
     dump_dir = build_dir / "logs" / "dump"
 
+    global tendermint_network
     tendermint_network = TendermintNetwork(dump_dir)
     tendermint_network.build()
     tendermint_network.start()
