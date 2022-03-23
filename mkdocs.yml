@@ -11,8 +11,8 @@ strict: true
 nav:
   - Home: 'index.md'
   - Preliminaries:
-    - AEA: 'aea.md'
-    - ABCI: 'abci.md'
+    - Autonomous Economic Agents: 'aea.md'
+    - Application BlockChain Interface: 'abci.md'
     - AsyncBehaviour: 'async_behaviour.md'
     - Finite State Machines: 'fsm.md'
     - ABCIApp: 'abci_app.md'
