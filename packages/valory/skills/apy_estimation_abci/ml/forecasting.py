@@ -263,10 +263,15 @@ def test_forecaster(
     }
 
     # Report baseline's and model's metrics.
-    for reporting_model, model_predictions in report.items():
-        report[reporting_model] = report_metrics(
-            y_test, cast(np.ndarray, model_predictions), pair_name, reporting_model
+    report.update(
+        (
+            reporting_model,
+            report_metrics(
+                y_test, cast(np.ndarray, model_predictions), pair_name, reporting_model
+            ),
         )
+        for reporting_model, model_predictions in report.items()
+    )
 
     return cast(TestReportType, report)
 
