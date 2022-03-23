@@ -148,7 +148,9 @@ class APYEstimationBaseState(BaseState, ABC):
         )
 
 
-class FetchBehaviour(APYEstimationBaseState):
+class FetchBehaviour(
+    APYEstimationBaseState
+):  # pylint: disable=too-many-instance-attributes
     """Observe historical data."""
 
     state_id = "fetch"
@@ -166,6 +168,12 @@ class FetchBehaviour(APYEstimationBaseState):
         self._call_failed = False
         self._pairs_hist: ResponseItemType = []
         self._hist_hash: Optional[str] = None
+        self._total_days = self.params.history_duration * 30
+
+    @property
+    def current_day(self) -> int:
+        """Get the number of the currently downloaded day."""
+        return int(len(self._pairs_hist) / len(self.params.pair_ids))
 
     def setup(self) -> None:
         """Set the behaviour up."""
@@ -326,7 +334,7 @@ class FetchBehaviour(APYEstimationBaseState):
 
         if not self.batch:
             self.context.logger.info(
-                f"Fetched day {len(self._pairs_hist)}/{self.params.history_duration * 30}."
+                f"Fetched day {self.current_day}/{self._total_days}."
             )
 
     def async_act(  # pylint: disable=too-many-locals,too-many-statements
@@ -351,13 +359,13 @@ class FetchBehaviour(APYEstimationBaseState):
                 yield from self._fetch_batch()
                 return
 
-            if len(self._pairs_hist) == 0:
+            if self.current_day == 0:
                 self.context.logger.error("Could not download any historical data!")
                 self._hist_hash = ""
 
             if (
-                len(self._pairs_hist) > 0
-                and len(self._pairs_hist) != self.params.history_duration * 30
+                self.current_day > 0
+                and self.current_day != self._total_days
                 and not self.batch
             ):
                 # Here, we continue without having all the pairs downloaded, because of a network issue.
@@ -365,7 +373,7 @@ class FetchBehaviour(APYEstimationBaseState):
                     "Will continue with partially downloaded historical data!"
                 )
 
-            if len(self._pairs_hist) > 0:
+            if self.current_day > 0:
                 # Send the file to IPFS and get its hash.
                 self._hist_hash = self.send_to_ipfs(
                     self._save_path, self._pairs_hist, filetype=SupportedFiletype.JSON
