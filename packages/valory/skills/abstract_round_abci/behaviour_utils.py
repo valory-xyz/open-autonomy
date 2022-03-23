@@ -588,7 +588,7 @@ class BaseState(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
                 )
                 local_height = int(self.context.state.period.height)
                 _is_sync_complete = local_height == remote_height
-                if _is_sync_complete:
+                if _is_sync_complete or json_body.get("is_replay", False):
                     self.context.logger.info("local height == remote; Sync complete...")
                     self.context.state.period.end_sync()
                     return
