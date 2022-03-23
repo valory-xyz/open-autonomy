@@ -1,4 +1,4 @@
-import os
+import os, click
 from pathlib import Path
 import shutil
 import signal
@@ -10,8 +10,6 @@ from flask import Flask, jsonify
 
 TENDERMINT_BIN = shutil.which("tendermint")
 BUILD_DIR = Path("deployments/build/").absolute()
-TENDERMINT_DUMP = BUILD_DIR / "logs" / "dump"
-AGENT = 0
 
 
 class TendermintRunner:
@@ -45,7 +43,7 @@ class TendermintRunner:
             [
                 TENDERMINT_BIN,
                 "node",
-                f"--p2p.laddr=tcp://localhost:2663{self.node_id}",
+                f"--p2p.laddr=tcp://127.0.0.1:2663{self.node_id}",
                 f"--rpc.laddr=tcp://localhost:2664{self.node_id}",
                 f"--proxy_app=tcp://localhost:2665{self.node_id}",
                 "--consensus.create_empty_blocks=true",
@@ -125,8 +123,6 @@ class TendermintNetwork:
 
 
 app = Flask(__name__)
-tendermint_network = TendermintNetwork(TENDERMINT_DUMP)
-tendermint_network.build()
 
 
 @app.route("/<int:node_id>/hard_reset")
@@ -138,6 +134,41 @@ def hard_reset(node_id: int):
     return jsonify({"message": "Reset successful.", "status": True}), 200
 
 
-if __name__ == "__main__":
+@app.get("/status")
+def status():
+    return jsonify(
+        {"result": {"sync_info": {"latest_block_height": 0}}, "is_replay": True}
+    )
+
+
+@app.get("/broadcast_tx_sync")
+def broadcast_tx_sync():
+    return jsonify({"result": {"hash": "", "code": 0}})
+
+
+@app.get("/tx")
+def tx():
+    return jsonify({"result": {"tx_result": {"code": 0}}})
+
+
+@click.command()
+@click.option(
+    "--build",
+    "build_dir",
+    type=click.Path(dir_okay=True, exists=True),
+    default=BUILD_DIR,
+)
+def main(build_dir: Path):
+    """Main function."""
+
+    build_dir = Path(build_dir).absolute()
+    dump_dir = build_dir / "logs" / "dump"
+
+    tendermint_network = TendermintNetwork(dump_dir)
+    tendermint_network.build()
     tendermint_network.start()
     app.run(host="localhost", port=8080)
+
+
+if __name__ == "__main__":
+    main()

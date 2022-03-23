@@ -12,11 +12,6 @@ import yaml
 
 REGISTRY_PATH = Path("packages/").absolute()
 BUILD_DIR = Path("deployments/build/").absolute()
-DOCKER_COMPOSE_FILE = BUILD_DIR / "docker-compose.yaml"
-
-
-with open(str(DOCKER_COMPOSE_FILE), "r", encoding="utf-8") as fp:
-    DOCKER_COMPOSE_CONFIG = yaml.safe_load(fp)
 
 
 class AgentRunner:
@@ -24,13 +19,15 @@ class AgentRunner:
 
     agent_id: int
     agent_data: Dict[str, str]
+    registry_path: Path
     process: Optional[subprocess.Popen]
 
-    def __init__(self, agent_id: int) -> None:
+    def __init__(self, agent_id: int, agent_data: Dict, registry_path: Path) -> None:
         """Initialize object."""
 
         self.agent_id = agent_id
-        self.agent_data = DOCKER_COMPOSE_CONFIG["services"][f"abci{self.agent_id}"]
+        self.agent_data = agent_data
+        self.registry_path = registry_path
         self.agent_env = os.environ.copy()
         self.agent_dir = TemporaryDirectory()
 
@@ -41,7 +38,7 @@ class AgentRunner:
 
         self.agent_env["ABCI_HOST"] = "localhost"
         self.agent_env["ABCI_PORT"] = f"2665{self.agent_id}"
-        self.agent_env["TENDERMINT_URL"] = f"http://localhost:2664{self.agent_id}"
+        self.agent_env["TENDERMINT_URL"] = f"http://localhost:8080"
         self.agent_env["TENDERMINT_COM_URL"] = f"http://localhost:8080/{self.agent_id}"
 
     def start(
@@ -62,7 +59,7 @@ class AgentRunner:
                 "-m",
                 "aea.cli",
                 "--registry-path",
-                str(REGISTRY_PATH),
+                str(self.registry_path),
                 "fetch",
                 self.agent_env["VALORY_APPLICATION"],
                 "--local",
@@ -93,9 +90,28 @@ class AgentRunner:
 
 @click.command()
 @click.argument("agent", type=int, required=True)
-def main(agent: int) -> None:
+@click.option(
+    "--build",
+    "build_path",
+    type=click.Path(exists=True, dir_okay=True),
+    default=BUILD_DIR,
+)
+@click.option(
+    "--registry",
+    "registry_path",
+    type=click.Path(exists=True, dir_okay=True),
+    default=REGISTRY_PATH,
+)
+def main(agent: int, build_path: Path, registry_path: Path) -> None:
     """Agent runner."""
-    runner = AgentRunner(agent)
+    build_path = Path(build_path).absolute()
+    registry_path = Path(registry_path).absolute()
+
+    docker_compose_file = build_path / "docker-compose.yaml"
+    with open(str(docker_compose_file), "r", encoding="utf-8") as fp:
+        docker_compose_config = yaml.safe_load(fp)
+    agent_data = docker_compose_config["services"][f"abci{agent}"]
+    runner = AgentRunner(agent, agent_data, registry_path)
     try:
         runner.start()
         while True:
