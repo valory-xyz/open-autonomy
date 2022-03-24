@@ -340,7 +340,7 @@ Get the timestamp on which the backoff ends.
 
 ```python
 @property
-def rps_end() -> int
+def rps_end() -> float
 ```
 
 Get the timestamp on which the allowed rps will have been exceeded.
@@ -351,7 +351,7 @@ Get the timestamp on which the allowed rps will have been exceeded.
 
 ```python
 @property
-def backoff_rps_remaining() -> int
+def backoff_rps_remaining() -> float
 ```
 
 Get the remaining time to backoff.
