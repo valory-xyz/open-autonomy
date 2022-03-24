@@ -10,7 +10,7 @@ clean-build:
 	rm -fr build/
 	rm -fr dist/
 	rm -fr .eggs/
-#	rm -fr deployments/build/
+	rm -fr deployments/build/build
 	rm -fr deployments/Dockerfiles/open_aea/packages
 	rm -fr pip-wheel-metadata
 	find . -name '*.egg-info' -exec rm -fr {} +
@@ -338,3 +338,9 @@ build-deploy:
 
 protolint_install:
 	GO111MODULE=on GOPATH=~/go go get -u -v github.com/yoheimuta/protolint/cmd/protolint@v0.27.0
+
+replay-agent:
+	python replay_scripts/agent_runner.py $(AGENT)
+
+replay-tendermint:
+	python replay_scripts/tendermint_runner.py $(NODE_ID)
