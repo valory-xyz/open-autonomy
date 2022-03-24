@@ -18,16 +18,17 @@
 # ------------------------------------------------------------------------------
 
 """Test the models.py module of the skill."""
-from enum import Enum
-from typing import Optional, Tuple
-
-from packages.valory.skills.abstract_round_abci.base import (
-    AbstractRound,
-    BasePeriodState,
-)
 from packages.valory.skills.oracle_abci.composition import OracleAbciApp
 from packages.valory.skills.oracle_abci.models import SharedState
 from packages.valory.skills.oracle_deployment_abci.rounds import Event
+from unittest import mock
+import pytest
+
+
+@pytest.fixture
+def shared_state() -> SharedState:
+    """Initialize a test shared state."""
+    return SharedState(name="", skill_context=mock.MagicMock())
 
 
 class DummyContext:
@@ -37,13 +38,6 @@ class DummyContext:
         """Dummy param variable."""
 
         round_timeout_seconds: float = 1.0
-
-
-class ConcreteRound(AbstractRound):
-    """A ConcreteRoundA for testing purposes."""
-
-    def end_block(self) -> Optional[Tuple[BasePeriodState, Enum]]:
-        """Handle the end of the block."""
 
 
 class TestSharedState:
