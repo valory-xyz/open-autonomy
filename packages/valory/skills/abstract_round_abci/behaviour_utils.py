@@ -451,7 +451,7 @@ class BaseState(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
         self._is_started: bool = False
         self._backoff_start: int = 0
         self._backoff: int = self.params.default_backoff_seconds
-        self._allowed_rps: int = self.params.default_allowed_rps
+        self._allowed_rps: float = self.params.default_allowed_rps
         self._last_request_timestamp: int = 0
         enforce(self.state_id != "", "State id not set.")
 
@@ -465,15 +465,16 @@ class BaseState(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
         )
 
     @property
-    def rps_end(self) -> int:
+    def rps_end(self) -> float:
         """Get the timestamp on which the allowed rps will have been exceeded."""
         return self._last_request_timestamp + self._allowed_rps
 
     @property
-    def backoff_rps_remaining(self) -> int:
+    def backoff_rps_remaining(self) -> float:
         """Get the remaining time to backoff."""
         remaining = (
-            max(self.backoff_end, self.rps_end) - self.__get_last_timestamp_unix()
+            max(float(self.backoff_end), self.rps_end)
+            - self.__get_last_timestamp_unix()
         )
         return 0 if remaining <= 0 else remaining
 
@@ -1441,14 +1442,14 @@ class BaseState(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
                 data = message.get("data", {})
                 rate = data.get("rate", None)
                 self._backoff = (
-                    data.get("backoff_seconds", self._backoff)
+                    int(data.get("backoff_seconds", self._backoff))
                     if rate is None
-                    else rate.get("backoff_seconds", self._backoff)
+                    else int(rate.get("backoff_seconds", self._backoff))
                 )
                 self._allowed_rps = (
-                    data.get("allowed_rps", self._allowed_rps)
+                    float(data.get("allowed_rps", self._allowed_rps))
                     if rate is None
-                    else rate.get("allowed_rps", self._allowed_rps)
+                    else float(rate.get("allowed_rps", self._allowed_rps))
                 )
 
             self.context.logger.warning(
