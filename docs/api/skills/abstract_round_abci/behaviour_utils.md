@@ -323,6 +323,39 @@ def __init__(**kwargs: Any)
 
 Initialize a base state behaviour.
 
+<a id="packages.valory.skills.abstract_round_abci.behaviour_utils.BaseState.backoff_end"></a>
+
+#### backoff`_`end
+
+```python
+@property
+def backoff_end() -> int
+```
+
+Get the timestamp on which the backoff ends.
+
+<a id="packages.valory.skills.abstract_round_abci.behaviour_utils.BaseState.rps_end"></a>
+
+#### rps`_`end
+
+```python
+@property
+def rps_end() -> int
+```
+
+Get the timestamp on which the allowed rps will have been exceeded.
+
+<a id="packages.valory.skills.abstract_round_abci.behaviour_utils.BaseState.backoff_rps_remaining"></a>
+
+#### backoff`_`rps`_`remaining
+
+```python
+@property
+def backoff_rps_remaining() -> int
+```
+
+Get the remaining time to backoff.
+
 <a id="packages.valory.skills.abstract_round_abci.behaviour_utils.BaseState.params"></a>
 
 #### params

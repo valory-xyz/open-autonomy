@@ -9,7 +9,7 @@ aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
   README.md: QmSinQfQbyxtxgCx6dSRDG3iLzMspsotw7xJwzq4CbdLMs
   __init__.py: QmexF3zcMh8ZETYFKv4od3HFXqMT3CYGfpMm8HXXa7oWa6
-  behaviours.py: QmYyW32ATYK9RZBg8Noh5zvduNkeVdd3fz8a4PCJfgeG2o
+  behaviours.py: QmQA56RN8X15xVQS8DpzuJGgaJoeBbg2T9AdR1MxRpg8Vf
   composition.py: QmS3mLhe4xHoQXRtfMSnf6uWWAUZyiTxTFidKFX7NGxd8b
   dialogues.py: QmdBmUMWoPbS2faqn8LicQVJfN6a2WjtdZDWFbiYoy7hfY
   fsm_specification.yaml: QmPpKTMjxvKz6zzpyRLhgfmGzohGvMa67JzV7XPtKGayLw
@@ -72,12 +72,12 @@ models:
     class_name: LedgerApiDialogues
   params:
     args:
-      default_backoff_seconds: 30
-      default_allowed_rps: 1
       broadcast_to_server: false
       cleanup_history_depth: 1
       consensus:
         max_participants: 1
+      default_allowed_rps: 1
+      default_backoff_seconds: 30
       drand_public_key: 868f005eb8e6e4ca0a47c8a77ceaa5309a47978a7c71bc5cce96366b5d7a569937c529eeda66c7293784a9402801af31
       keeper_timeout: 30.0
       max_healthcheck: 120

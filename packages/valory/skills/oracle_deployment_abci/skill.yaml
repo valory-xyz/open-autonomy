@@ -59,11 +59,11 @@ models:
     class_name: LedgerApiDialogues
   params:
     args:
-      default_backoff_seconds: 30
-      default_allowed_rps: 1
       cleanup_history_depth: 1
       consensus:
         max_participants: 1
+      default_allowed_rps: 1
+      default_backoff_seconds: 30
       drand_public_key: 868f005eb8e6e4ca0a47c8a77ceaa5309a47978a7c71bc5cce96366b5d7a569937c529eeda66c7293784a9402801af31
       keeper_timeout: 30.0
       max_healthcheck: 120

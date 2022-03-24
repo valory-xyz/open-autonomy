@@ -458,7 +458,11 @@ class BaseState(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
     @property
     def backoff_end(self) -> int:
         """Get the timestamp on which the backoff ends."""
-        return self._backoff_start + self._backoff if self._backoff_start > 0 else self.__get_last_timestamp_unix()
+        return (
+            self._backoff_start + self._backoff
+            if self._backoff_start > 0
+            else self.__get_last_timestamp_unix()
+        )
 
     @property
     def rps_end(self) -> int:
@@ -468,7 +472,9 @@ class BaseState(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
     @property
     def backoff_rps_remaining(self) -> int:
         """Get the remaining time to backoff."""
-        remaining = max(self.backoff_end, self.rps_end) - self.__get_last_timestamp_unix()
+        remaining = (
+            max(self.backoff_end, self.rps_end) - self.__get_last_timestamp_unix()
+        )
         return 0 if remaining <= 0 else remaining
 
     @property
@@ -1434,8 +1440,16 @@ class BaseState(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
             if message.get("error", {}).get("code", "") == "-32005":
                 data = message.get("data", {})
                 rate = data.get("rate", None)
-                self._backoff = data.get("backoff_seconds", self._backoff) if rate is None else rate.get("backoff_seconds", self._backoff)
-                self._allowed_rps = data.get("allowed_rps", self._allowed_rps) if rate is None else rate.get("allowed_rps", self._allowed_rps)
+                self._backoff = (
+                    data.get("backoff_seconds", self._backoff)
+                    if rate is None
+                    else rate.get("backoff_seconds", self._backoff)
+                )
+                self._allowed_rps = (
+                    data.get("allowed_rps", self._allowed_rps)
+                    if rate is None
+                    else rate.get("allowed_rps", self._allowed_rps)
+                )
 
             self.context.logger.warning(
                 f"We have been rate-limited! Need to backoff for {self._backoff} seconds..."
@@ -1465,7 +1479,9 @@ class BaseState(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
         return RPCResponseStatus.UNCLASSIFIED_ERROR
 
     @staticmethod
-    def __backoff_message(dialogue: ContractApiDialogue, message: Message) -> ContractApiMessage:
+    def __backoff_message(
+        dialogue: ContractApiDialogue, message: Message
+    ) -> ContractApiMessage:
         """Create a backoff reply message."""
         return cast(
             ContractApiMessage,
