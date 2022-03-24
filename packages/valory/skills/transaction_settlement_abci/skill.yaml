@@ -61,6 +61,8 @@ models:
     class_name: LedgerApiDialogues
   params:
     args:
+      default_backoff_seconds: 30
+      default_allowed_rps: 1
       cleanup_history_depth: 1
       consensus:
         max_participants: 1
