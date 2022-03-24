@@ -1456,7 +1456,7 @@ class TestTestBehaviour(APYEstimationFSMBehaviourBaseCase):
                 StateDB(
                     initial_period=0,
                     initial_data=dict(
-                        most_voted_model=hashes["model"],
+                        most_voted_models=hashes["model"],
                         most_voted_split=hashes["train"] + hashes["test"],
                     ),
                 )
@@ -1598,7 +1598,7 @@ class TestUpdateForecasterBehaviour(APYEstimationFSMBehaviourBaseCase):
                 StateDB(
                     initial_period=0,
                     initial_data=dict(
-                        most_voted_model=hashes["model"],
+                        most_voted_models=hashes["model"],
                         latest_observation_hist_hash=hashes["observation"],
                     ),
                 )
@@ -1694,20 +1694,21 @@ class TestEstimateBehaviour(APYEstimationFSMBehaviourBaseCase):
     behaviour_class = EstimateBehaviour
     next_behaviour_class = FreshModelResetBehaviour
 
-    def _fast_forward(self, tmp_path: PosixPath, ipfs_succeed: bool) -> None:
+    def _fast_forward(self, tmp_path: PosixPath, ipfs_succeed: bool = True) -> None:
         """Setup `TestTransformBehaviour`."""
         # Set data directory to a temporary path for tests.
         self.behaviour.context._agent_context._data_dir = tmp_path  # type: ignore
 
-        # Send historical data to IPFS and get the hash.
+        # Send dummy forecasters to IPFS and get the hash.
         if ipfs_succeed:
             hash_ = cast(BaseState, self.behaviour.current_state).send_to_ipfs(
-                os.path.join(tmp_path, "fully_trained_forecaster.joblib"),
-                DummyPipeline(),
+                os.path.join(tmp_path, "fully_trained_forecasters"),
+                {f"pool{i}.joblib": DummyPipeline() for i in range(3)},
+                multiple=True,
                 filetype=SupportedFiletype.PM_PIPELINE,
             )
         else:
-            hash_ = "test"
+            hash_ = "non_existing"
 
         self.fast_forward_to_state(
             self.behaviour,
@@ -1715,10 +1716,54 @@ class TestEstimateBehaviour(APYEstimationFSMBehaviourBaseCase):
             PeriodState(
                 StateDB(
                     initial_period=0,
-                    initial_data=dict(most_voted_model=hash_),
+                    initial_data=dict(most_voted_models=hash_),
                 )
             ),
         )
+
+        assert (
+            cast(APYEstimationBaseState, self.behaviour.current_state).state_id
+            == self.behaviour_class.state_id
+        )
+
+    @pytest.mark.parametrize("ipfs_succeed", (True, False))
+    def test_estimate_setup(
+        self,
+        monkeypatch: MonkeyPatch,
+        tmp_path: PosixPath,
+        no_action: Callable[[Any], None],
+        ipfs_succeed: bool,
+    ) -> None:
+        """Run test for `EstimateBehaviour`'s setup method."""
+        self._fast_forward(tmp_path, ipfs_succeed)
+        monkeypatch.setattr(TaskManager, "enqueue_task", lambda *_, **__: 0)
+        monkeypatch.setattr(TaskManager, "get_task_result", no_action)
+
+        current_state = cast(UpdateForecasterBehaviour, self.behaviour.current_state)
+        current_state.setup()
+
+        if ipfs_succeed:
+            assert current_state._forecasters is not None
+        else:
+            assert current_state._forecasters is None
+
+    def test_task_not_ready(
+        self,
+        monkeypatch: MonkeyPatch,
+        tmp_path: PosixPath,
+    ) -> None:
+        """Run test for behaviour when task result is not ready."""
+        self._fast_forward(tmp_path)
+
+        self.behaviour.context.task_manager.start()
+
+        monkeypatch.setattr(AsyncResult, "ready", lambda *_: False)
+        cast(
+            TrainBehaviour, self.behaviour.current_state
+        ).params.sleep_time = SLEEP_TIME_TWEAK
+        self.behaviour.act_wrapper()
+        time.sleep(SLEEP_TIME_TWEAK + 0.01)
+        self.behaviour.act_wrapper()
 
         assert (
             cast(APYEstimationBaseState, self.behaviour.current_state).state_id
@@ -1734,6 +1779,10 @@ class TestEstimateBehaviour(APYEstimationFSMBehaviourBaseCase):
     ) -> None:
         """Run test for `EstimateBehaviour`."""
         self._fast_forward(tmp_path, ipfs_succeed)
+        monkeypatch.setattr(TaskManager, "enqueue_task", lambda *_, **__: 0)
+        monkeypatch.setattr(
+            TaskManager, "get_task_result", lambda *_: DummyAsyncResult(pd.DataFrame())
+        )
 
         self.behaviour.act_wrapper()
         self.mock_a2a_transaction()
@@ -1749,17 +1798,46 @@ class TestCycleResetBehaviour(APYEstimationFSMBehaviourBaseCase):
     behaviour_class = CycleResetBehaviour
     next_behaviour_class = FetchBatchBehaviour
 
+    @pytest.mark.parametrize(
+        "ipfs_succeed, log_level, log_message",
+        (
+            (True, logging.INFO, "Finalized estimates:"),
+            (
+                False,
+                logging.ERROR,
+                "There was an error while trying to fetch and load the estimations from IPFS!",
+            ),
+        ),
+    )
     def test_reset_behaviour(
         self,
         monkeypatch: MonkeyPatch,
+        tmp_path: PosixPath,
+        caplog: LogCaptureFixture,
         no_action: Callable[[Any], None],
+        ipfs_succeed: bool,
+        log_level: int,
+        log_message: str,
     ) -> None:
         """Test reset behaviour."""
+        # Set data directory to a temporary path for tests.
+        self.behaviour.context._agent_context._data_dir = tmp_path  # type: ignore
+
+        # Send dummy forecasters to IPFS and get the hash.
+        if ipfs_succeed:
+            hash_ = cast(BaseState, self.behaviour.current_state).send_to_ipfs(
+                os.path.join(tmp_path, "estimations.csv"),
+                pd.DataFrame({"pool1": [1.435, 4.234], "pool2": [3.45, 23.64]}),
+                filetype=SupportedFiletype.CSV,
+            )
+        else:
+            hash_ = "non_existing"
+
         self.fast_forward_to_state(
             behaviour=self.behaviour,
             state_id=self.behaviour_class.state_id,
             period_state=PeriodState(
-                StateDB(initial_period=0, initial_data=dict(most_voted_estimate=8.1))
+                StateDB(initial_period=0, initial_data=dict(most_voted_estimate=hash_))
             ),
         )
         state = cast(BaseState, self.behaviour.current_state)
@@ -1770,7 +1848,12 @@ class TestCycleResetBehaviour(APYEstimationFSMBehaviourBaseCase):
         cast(
             CycleResetBehaviour, self.behaviour.current_state
         ).params.observation_interval = SLEEP_TIME_TWEAK
-        self.behaviour.act_wrapper()
+        with caplog.at_level(
+            log_level,
+            logger="aea.test_agent_name.packages.valory.skills.apy_estimation_abci",
+        ):
+            self.behaviour.act_wrapper()
+        assert log_message in caplog.text
         time.sleep(SLEEP_TIME_TWEAK + 0.01)
         self.behaviour.act_wrapper()
 

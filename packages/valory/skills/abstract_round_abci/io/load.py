@@ -85,6 +85,8 @@ class CSVLoader(AbstractLoader):
             return pd.read_csv(path)
         except FileNotFoundError as e:  # pragma: no cover
             raise IOError(f"File {path} was not found!") from e
+        except pd.errors.EmptyDataError as e:  # pragma: no cover
+            raise IOError("The provided csv was empty!") from e
 
 
 class ForecasterLoader(AbstractLoader):

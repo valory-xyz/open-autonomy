@@ -20,7 +20,7 @@
 """This module contains tests for the `IPFS` interactions."""
 import os.path
 from pathlib import PosixPath
-from typing import Dict, cast
+from typing import Dict, Union, cast
 
 import pandas as pd
 import pytest
@@ -53,6 +53,7 @@ class TestIPFSInteract:
         dummy_multiple_obj: Dict[str, pd.DataFrame],
     ) -> None:
         """Test store -> send -> download -> read of objects."""
+        obj: Union[pd.DataFrame, Dict[str, pd.DataFrame]]
         if multiple:
             obj = dummy_multiple_obj
             filepath = str(tmp_path)

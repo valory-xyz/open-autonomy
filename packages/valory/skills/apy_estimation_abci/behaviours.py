@@ -93,6 +93,7 @@ from packages.valory.skills.apy_estimation_abci.rounds import (
     UpdateForecasterRound,
 )
 from packages.valory.skills.apy_estimation_abci.tasks import (
+    EstimateTask,
     OptimizeTask,
     PrepareBatchTask,
     PreprocessTask,
@@ -547,7 +548,7 @@ class PreprocessBehaviour(APYEstimationBaseState):
             }.items():
                 save_path = os.path.join(
                     self.context.data_dir,
-                    f"y_{split_name}/",
+                    f"y_{split_name}",
                 )
 
                 split_hash = self.send_to_ipfs(
@@ -793,7 +794,7 @@ class OptimizeBehaviour(APYEstimationBaseState):
             # Store the best params from the results.
             best_params_save_path = os.path.join(
                 self.context.data_dir,
-                "best_params/",
+                "best_params",
             )
             self._best_params_hash = self.send_to_ipfs(
                 best_params_save_path,
@@ -827,7 +828,7 @@ class TrainBehaviour(APYEstimationBaseState):
         self._async_result: Optional[AsyncResult] = None
         self._best_params: Optional[PoolToHyperParamsType] = None
         self._y: Optional[PoolIdToTrainDataType] = None
-        self._model_hash: Optional[str] = None
+        self._models_hash: Optional[str] = None
 
     def setup(self) -> None:
         """Setup behaviour."""
@@ -889,18 +890,18 @@ class TrainBehaviour(APYEstimationBaseState):
             prefix = "fully_trained_" if self.period_state.full_training else ""
             forecaster_save_path = os.path.join(
                 self.context.data_dir,
-                f"{prefix}forecasters/",
+                f"{prefix}forecasters",
             )
 
             # Send the file to IPFS and get its hash.
-            self._model_hash = self.send_to_ipfs(
+            self._models_hash = self.send_to_ipfs(
                 forecaster_save_path,
                 forecasters,
                 multiple=True,
                 filetype=SupportedFiletype.PM_PIPELINE,
             )
 
-        payload = TrainingPayload(self.context.agent_address, self._model_hash)
+        payload = TrainingPayload(self.context.agent_address, self._models_hash)
 
         # Finish behaviour.
         with benchmark_tool.measure(self).consensus():
@@ -946,7 +947,7 @@ class TestBehaviour(APYEstimationBaseState):
         )
 
         self._forecasters = self.get_from_ipfs(
-            self.period_state.model_hash,
+            self.period_state.models_hash,
             models_path,
             multiple=True,
             filetype=SupportedFiletype.PM_PIPELINE,
@@ -988,7 +989,7 @@ class TestBehaviour(APYEstimationBaseState):
             # Store the results.
             report_save_path = os.path.join(
                 self.context.data_dir,
-                "reports/",
+                "reports",
             )
             # Send the file to IPFS and get its hash.
             self._report_hash = self.send_to_ipfs(
@@ -1019,10 +1020,10 @@ class UpdateForecasterBehaviour(APYEstimationBaseState):
         self._y: Optional[PoolIdToTrainDataType] = None
         self._forecasters_folder: str = os.path.join(
             self.context.data_dir,
-            "fully_trained_forecasters/",
+            "fully_trained_forecasters",
         )
         self._forecasters: Optional[PoolIdToForecasterType] = None
-        self._model_hash: Optional[str] = None
+        self._models_hash: Optional[str] = None
 
     def setup(self) -> None:
         """Setup behaviour."""
@@ -1036,7 +1037,7 @@ class UpdateForecasterBehaviour(APYEstimationBaseState):
 
         # Load forecasters.
         self._forecasters = self.get_from_ipfs(
-            self.period_state.model_hash,
+            self.period_state.models_hash,
             self._forecasters_folder,
             multiple=True,
             filetype=SupportedFiletype.PM_PIPELINE,
@@ -1061,14 +1062,14 @@ class UpdateForecasterBehaviour(APYEstimationBaseState):
             self.context.logger.info("Forecasters have been updated.")
 
             # Send the file to IPFS and get its hash.
-            self._model_hash = self.send_to_ipfs(
+            self._models_hash = self.send_to_ipfs(
                 self._forecasters_folder,
                 self._forecasters,
                 multiple=True,
                 filetype=SupportedFiletype.PM_PIPELINE,
             )
 
-        payload = UpdatePayload(self.context.agent_address, self._model_hash)
+        payload = UpdatePayload(self.context.agent_address, self._models_hash)
 
         # Finish behaviour.
         with benchmark_tool.measure(self).consensus():
@@ -1084,40 +1085,61 @@ class EstimateBehaviour(APYEstimationBaseState):
     state_id = "estimate"
     matching_round = EstimateRound
 
-    def async_act(self) -> Generator:
-        """
-        Do the action.
+    def __init__(self, **kwargs: Any) -> None:
+        """Initialize Behaviour."""
+        super().__init__(**kwargs)
+        self._async_result: Optional[AsyncResult] = None
+        self._forecasters: Optional[PoolIdToForecasterType] = None
+        self._estimations_hash: Optional[str] = None
 
-        Steps:
-        - Run the script to compute the estimate starting from the shared observations.
-        - Build an estimate transaction and send the transaction and wait for it to be mined.
-        - Wait until ABCI application transitions to the next round.
-        - Go to the next behaviour state (set done event).
-        """
-        model_path = os.path.join(
+    def setup(self) -> None:
+        """Setup behaviour."""
+        # Load forecasters.
+        forecasters_folder: str = os.path.join(
             self.context.data_dir,
-            self.params.pair_ids[0],
+            "fully_trained_forecasters",
         )
-        forecaster = self.get_from_ipfs(
-            self.period_state.model_hash,
-            model_path,
-            filename="fully_trained_forecaster.joblib",
+        self._forecasters = self.get_from_ipfs(
+            self.period_state.models_hash,
+            forecasters_folder,
+            multiple=True,
             filetype=SupportedFiletype.PM_PIPELINE,
         )
 
-        estimation = None
-        if forecaster is not None:
-            # currently, a `steps_forward != 1` will fail
-            estimation = forecaster.predict(self.params.estimation["steps_forward"])[0]
+        if self._forecasters is not None:
+            estimate_task = EstimateTask()
+            task_id = self.context.task_manager.enqueue_task(
+                estimate_task, args=(self._forecasters,), kwargs=self.params.estimation
+            )
+            self._async_result = self.context.task_manager.get_task_result(task_id)
 
+    def async_act(self) -> Generator:
+        """Do the action."""
+        if self._forecasters is not None:
+            self._async_result = cast(AsyncResult, self._async_result)
+            if not self._async_result.ready():
+                self.context.logger.debug("The estimating task is not finished yet.")
+                yield from self.sleep(self.params.sleep_time)
+                return
+
+            # Get the estimates.
+            estimates = self._async_result.get()
             self.context.logger.info(
-                "Got estimate of APY for %s: %s",
-                "pair_name",  # this will be changed when `EstimateBehaviour` gets refactored for multiple pools.
-                estimation,
+                "Estimates have been received:\n" f"{estimates.to_string()}"
+            )
+            self.context.logger.info("Estimates have been received.")
+
+            # Send the file to IPFS and get its hash.
+            estimations_path = os.path.join(self.context.data_dir, "estimations.csv")
+            self._estimations_hash = self.send_to_ipfs(
+                estimations_path,
+                estimates,
+                filetype=SupportedFiletype.CSV,
             )
 
-        payload = EstimatePayload(self.context.agent_address, estimation)
+        payload = EstimatePayload(self.context.agent_address, self._estimations_hash)
 
+        # Finish behaviour.
         with benchmark_tool.measure(self).consensus():
             yield from self.send_a2a_transaction(payload)
             yield from self.wait_until_round_end()
@@ -1144,9 +1166,21 @@ class BaseResetBehaviour(APYEstimationBaseState):
             self.state_id == "cycle_reset"
             and self.period_state.is_most_voted_estimate_set
         ):
-            self.context.logger.info(
-                f"Finalized estimate: {self.period_state.most_voted_estimate}. Resetting and pausing!"
+            # Load estimations.
+            estimations = self.get_from_ipfs(
+                self.period_state.estimates_hash,
+                self.context.data_dir,
+                filename="estimations.csv",
+                filetype=SupportedFiletype.CSV,
             )
+            if estimations is not None:
+                self.context.logger.info(
+                    f"Finalized estimates: {estimations.to_string()}. Resetting and pausing!"
+                )
+            else:
+                self.context.logger.error(
+                    "There was an error while trying to fetch and load the estimations from IPFS!"
+                )
             self.context.logger.info(
                 f"Estimation will happen again in {self.params.observation_interval} seconds."
             )

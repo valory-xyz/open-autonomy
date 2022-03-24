@@ -17,7 +17,7 @@ fingerprint:
   handlers.py: QmZ5g9Mc9wqTt3699yweN46XJN5XU5yQnurjGP9spwi3iL
   io/__init__.py: QmPfA2syTybFaGmmMMt5gevZHEXPyjVf7wR1UE22NzpZZ3
   io/ipfs.py: QmQSdiTd3Gyp4WZGux5xcuZGeDTyF45SDGXAdvkabaTZEx
-  io/load.py: QmQhc2s6tByD4rvzJY1cR7QRbvhTXE7fjAawH2Sm24BvZh
+  io/load.py: QmSa3vgVvQiMJabBvSnPjTMtYiDgrrHPugDGCvSf4kAfS3
   io/paths.py: QmT1e6Ygak8Fe4NxSrd2mb6EB1Rr6dsYZPL8dWh3aNMb12
   io/store.py: QmXHnLF1Jg2hmhUwYj4E4QoMmx6EoLhUtzEGqztLKtKFej
   models.py: QmYfuSGHs5iKqhWmoKxM8FwQm25iRTmTE7conxs9zCwTFC

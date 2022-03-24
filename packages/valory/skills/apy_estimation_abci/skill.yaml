@@ -8,18 +8,18 @@ aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
   README.md: QmSvXr6k7f5GFZVCgqM8d4ywibiSAYbdaGjmPh4CmFfQn9
   __init__.py: Qmb163B19kEpc6PfbLnmQxPbeEWA2ubTghVwG2YUeNYusu
-  behaviours.py: QmPDc8cyQwibW4EnBobmrQwUrW8L29ZtL7Mqduw9oJdotb
+  behaviours.py: QmT4GSXL2gjAUsU2RBQNKTmWBfcXNnZxp561MVHNAZh4Jz
   composition.py: QmfV3hauFb2XUnycdrE8vMbH9WqgDFyFRPwPuwxxUaRtZZ
   dialogues.py: QmdBmUMWoPbS2faqn8LicQVJfN6a2WjtdZDWFbiYoy7hfY
   handlers.py: QmdxbcVLL3JU6onvxLrDmJX1r2vQPbzp1co1eaHGJkAwfD
   ml/__init__.py: QmQdxHMEM19JH1FzG9EKQC5mpngbBAz9hyX8XDwGX915BM
-  ml/forecasting.py: QmestufmbowL1S75ArzKaM49vEjKLWgdzoKjtW4eHfp3G9
+  ml/forecasting.py: Qmcg6UGhpQo6bzEGeV2Gb7crto3NP1V7oJnzMdGtHYrd3g
   ml/optimization.py: QmaRd9zE3Ha3Zr853gXC8Mnzf3PRh3DjPG3oS6TparBW8F
   ml/preprocessing.py: QmXRkajyrcZbXy8k26dCocmCCrqYwEHcjy7iFG64DohZKq
   models.py: QmYFQ6teLzBuir1ug24PyikgcXfxua8rDJz6SBLP28dM3V
-  payloads.py: QmXe7NATbHVszdFpAHaFRuV5Yig4S1ZxheA8PWR2pEduCR
-  rounds.py: QmaMGJMctgUaMr89K7y5ugvKJEJLsv48Yivv59DEDVCrvp
-  tasks.py: QmZeGvzBPDfpiM2fkrB2ZnA4MTxyrwybaSSrkioaxakCqd
+  payloads.py: QmbBH6kpC98iMgoVbHNwwMBMLs8LC6c87tj81r7UBaHesv
+  rounds.py: QmPr23A2Nuv6tQ3gJ7n5ugryocJLvAaKhAAZHNw59E8YtZ
+  tasks.py: QmemYwBwU6RpWsca3bkXWuUemgZ6YwFVMxS5vkt7J7BjHh
   tools/__init__.py: QmWr6iVwNzqYVqmxBwYC1myurM8AjxuzxwjM1brXSmnDTi
   tools/etl.py: Qmb7e77Fh6R4TTSbgUNSo2LaQpKWtRsfmfeqCiPF75mSNf
   tools/general.py: QmUtxPckv7Mjv6RXt9LmoSARd3D5xK4pyoVVL9wv9H2kvB
@@ -160,8 +160,6 @@ dependencies:
     version: <1.2,>=1.1.0
   numpy:
     version: <1.22,>=1.21.4
-  open-aea-cli-ipfs:
-    version: <1.4,>=1.3.1
   optuna:
     version: <2.11,>=2.10.0
   pandas:

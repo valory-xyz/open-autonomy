@@ -274,3 +274,21 @@ def update_forecaster_per_pool(
     for id_ in forecasters.keys():
         apy = y.loc[y["id"] == id_, "APY"]
         forecasters[id_].update(apy)
+
+
+def estimate_apy_per_pool(
+    forecasters: PoolIdToForecasterType,
+    steps_forward: int,
+) -> pd.DataFrame:
+    """Estimate the APY per pool.
+
+    :param forecasters: the forecasters to update.
+    :param steps_forward: the number of periods in the future to forecast.
+    :return: a dataframe with the APY predictions per pool, for each step forward.
+    """
+    estimates = {}
+    for id_, forecaster in forecasters.items():
+        estimates[id_] = forecaster.predict(steps_forward)
+    return pd.DataFrame(
+        estimates, index=[f"Step{i + 1} into the future" for i in range(steps_forward)]
+    )
