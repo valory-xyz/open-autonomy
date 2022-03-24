@@ -133,6 +133,17 @@ class PeriodState(BasePeriodState):  # pylint: disable=too-many-instance-attribu
         return cast(str, self.db.get_strict("most_voted_tx_hash"))
 
     @property
+    def consecutive_finalizations(self) -> int:
+        """Get the number of consecutive finalizations."""
+        return cast(int, self.db.get("consecutive_finalizations", 0))
+
+    @property
+    def finalizations_threshold_exceeded(self) -> bool:
+        """Check if the number of consecutive finalizations has exceeded the allowed limit."""
+        malicious_threshold = self.nb_participants // 3
+        return self.consecutive_finalizations > malicious_threshold + 1
+
+    @property
     def missed_messages(self) -> int:
         """Check the number of missed messages."""
         return cast(int, self.db.get("missed_messages", 0))
@@ -245,6 +256,7 @@ class FinalizationRound(OnlyKeeperSendsRound):
                 final_verification_status=VerificationStatus(
                     self.keeper_payload["status"]
                 ),
+                consecutive_finalizations=0,
                 is_reset_params_set=False,
             )
             return state, Event.DONE
@@ -305,9 +317,16 @@ class SelectKeeperTransactionSubmissionRoundBAfterTimeout(
     def end_block(self) -> Optional[Tuple[BasePeriodState, Enum]]:
         """Process the end of the block."""
         if self.threshold_reached:
-            self.period_state.update(
-                missed_messages=cast(PeriodState, self.period_state).missed_messages + 1
+            state = cast(PeriodState, self.period_state)
+            state = cast(
+                PeriodState,
+                self.period_state.update(
+                    missed_messages=state.missed_messages + 1,
+                    consecutive_finalizations=state.consecutive_finalizations + 1,
+                ),
             )
+            if state.finalizations_threshold_exceeded:
+                return state, Event.CHECK_HISTORY
         return super().end_block()
 
 
@@ -510,6 +529,7 @@ class TransactionSubmissionAbciApp(AbciApp[Event]):
             - no majority: 10.
         7. SelectKeeperTransactionSubmissionRoundBAfterTimeout
             - done: 3.
+            - check history: 5.
             - round timeout: 10.
             - no majority: 10.
         8. SynchronizeLateMessagesRound
@@ -585,6 +605,7 @@ class TransactionSubmissionAbciApp(AbciApp[Event]):
         },
         SelectKeeperTransactionSubmissionRoundBAfterTimeout: {
             Event.DONE: FinalizationRound,
+            Event.CHECK_HISTORY: CheckTransactionHistoryRound,
             Event.ROUND_TIMEOUT: ResetRound,
             Event.NO_MAJORITY: ResetRound,
         },
