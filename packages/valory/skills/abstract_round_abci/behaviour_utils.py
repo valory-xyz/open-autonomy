@@ -1215,7 +1215,7 @@ class BaseState(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
         if (
             signature_response.performative
             != SigningMessage.Performative.SIGNED_TRANSACTION
-        ):  # pragma: nocover
+        ):
             self.context.logger.error("Error when requesting transaction signature.")
             return None, RPCResponseStatus.UNCLASSIFIED_ERROR
         self._send_transaction_request(signature_response)
@@ -1223,7 +1223,7 @@ class BaseState(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
         if (
             transaction_digest_msg.performative
             != LedgerApiMessage.Performative.TRANSACTION_DIGEST
-        ):  # pragma: nocover
+        ):
             error = f"Error when requesting transaction digest: {transaction_digest_msg.message}"
             self.context.logger.error(error)
             return None, self.__parse_rpc_error(error)
