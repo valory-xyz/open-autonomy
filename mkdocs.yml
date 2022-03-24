@@ -21,7 +21,7 @@ nav:
     - Price Estimation:
       - Introduction: 'price_estimation_demo.md'
       - How it works: 'price_estimation.md'
-      - FSM Diagram: 'fsm_diagram.md'
+      - FSM specification: 'fsm_diagram.md'
   - Requirements and set-up: 'requirements.md'
   - Miscellaneous:
     - Ethereum: 'ethereum_specifics.md'
