@@ -26,6 +26,14 @@ from packages.valory.skills.apy_estimation_chained_abci.models import (
     MARGIN,
     SharedState,
 )
+from unittest import mock
+import pytest
+
+
+@pytest.fixture
+def shared_state() -> SharedState:
+    """Initialize a test shared state."""
+    return SharedState(name="", skill_context=mock.MagicMock())
 
 
 class TestSharedState:
