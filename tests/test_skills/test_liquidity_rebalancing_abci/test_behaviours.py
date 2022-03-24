@@ -16,7 +16,7 @@
 #   limitations under the License.
 #
 # ------------------------------------------------------------------------------
-"""Tests for valory/liquidity_provision_behaviour skill's behaviours."""
+"""Tests for valory/liquidity_rebalancing_behaviour skill's behaviours."""
 import binascii
 import datetime
 import json
@@ -39,7 +39,7 @@ from packages.valory.protocols.contract_api.custom_types import Kwargs
 from packages.valory.protocols.contract_api.message import ContractApiMessage
 from packages.valory.skills.abstract_round_abci.base import StateDB
 from packages.valory.skills.abstract_round_abci.behaviour_utils import BaseState
-from packages.valory.skills.liquidity_provision.behaviours import (
+from packages.valory.skills.liquidity_rebalancing_abci.behaviours import (
     EnterPoolTransactionHashBehaviour,
     ExitPoolTransactionHashBehaviour,
     GnosisSafeContract,
@@ -51,10 +51,10 @@ from packages.valory.skills.liquidity_provision.behaviours import (
     SwapBackTransactionHashBehaviour,
     parse_tx_token_balance,
 )
-from packages.valory.skills.liquidity_provision.payloads import StrategyType
-from packages.valory.skills.liquidity_provision.rounds import Event
-from packages.valory.skills.liquidity_provision.rounds import (
-    PeriodState as LiquidityProvisionPeriodState,
+from packages.valory.skills.liquidity_rebalancing_abci.payloads import StrategyType
+from packages.valory.skills.liquidity_rebalancing_abci.rounds import Event
+from packages.valory.skills.liquidity_rebalancing_abci.rounds import (
+    PeriodState as LiquidityRebalancingPeriodState,
 )
 
 from tests.conftest import ROOT_DIR
@@ -129,15 +129,15 @@ def get_default_strategy(
     return strategy
 
 
-class LiquidityProvisionBehaviourBaseCase(FSMBehaviourBaseCase):
-    """Base case for testing LiquidityProvision FSMBehaviour."""
+class LiquidityRebalancingBehaviourBaseCase(FSMBehaviourBaseCase):
+    """Base case for testing LiquidityRebalancing FSMBehaviour."""
 
     path_to_skill = Path(
-        ROOT_DIR, "packages", "valory", "skills", "liquidity_provision"
+        ROOT_DIR, "packages", "valory", "skills", "liquidity_rebalancing_abci"
     )
 
 
-class TestStrategyEvaluationBehaviour(LiquidityProvisionBehaviourBaseCase):
+class TestStrategyEvaluationBehaviour(LiquidityRebalancingBehaviourBaseCase):
     """Test StrategyEvaluationBehaviour."""
 
     def test_transaction_hash_enter(
@@ -148,7 +148,7 @@ class TestStrategyEvaluationBehaviour(LiquidityProvisionBehaviourBaseCase):
         strategy = get_default_strategy(
             is_base_native=False, is_a_native=True, is_b_native=False
         )
-        period_state = LiquidityProvisionPeriodState(
+        period_state = LiquidityRebalancingPeriodState(
             StateDB(
                 initial_period=0,
                 initial_data=dict(
@@ -187,7 +187,7 @@ class TestStrategyEvaluationBehaviour(LiquidityProvisionBehaviourBaseCase):
             is_base_native=False, is_a_native=True, is_b_native=False
         )
         strategy["action"] = StrategyType.EXIT.value
-        period_state = LiquidityProvisionPeriodState(
+        period_state = LiquidityRebalancingPeriodState(
             StateDB(
                 initial_period=0,
                 initial_data=dict(
@@ -222,7 +222,7 @@ class TestStrategyEvaluationBehaviour(LiquidityProvisionBehaviourBaseCase):
     ) -> None:
         """Run tests."""
 
-        period_state = LiquidityProvisionPeriodState(
+        period_state = LiquidityRebalancingPeriodState(
             StateDB(
                 initial_period=0,
                 initial_data=dict(
@@ -264,7 +264,7 @@ class TestStrategyEvaluationBehaviour(LiquidityProvisionBehaviourBaseCase):
             is_base_native=False, is_a_native=True, is_b_native=False
         )
         strategy["action"] = StrategyType.SWAP_BACK.value
-        period_state = LiquidityProvisionPeriodState(
+        period_state = LiquidityRebalancingPeriodState(
             StateDB(
                 initial_period=0,
                 initial_data=dict(
@@ -295,7 +295,7 @@ class TestStrategyEvaluationBehaviour(LiquidityProvisionBehaviourBaseCase):
         self._test_done_flag_set()
 
 
-class TestEnterPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase):
+class TestEnterPoolTransactionHashBehaviour(LiquidityRebalancingBehaviourBaseCase):
     """Test EnterPoolTransactionHashBehaviour."""
 
     def test_transaction_hash(
@@ -306,7 +306,7 @@ class TestEnterPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase)
         strategy = get_default_strategy(
             is_base_native=False, is_a_native=True, is_b_native=False
         )
-        period_state = LiquidityProvisionPeriodState(
+        period_state = LiquidityRebalancingPeriodState(
             StateDB(
                 initial_period=0,
                 initial_data=dict(
@@ -552,7 +552,7 @@ class TestEnterPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase)
         strategy = get_default_strategy(
             is_base_native=False, is_a_native=False, is_b_native=False
         )
-        period_state = LiquidityProvisionPeriodState(
+        period_state = LiquidityRebalancingPeriodState(
             StateDB(
                 initial_period=0,
                 initial_data=dict(
@@ -825,7 +825,7 @@ class TestEnterPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase)
         strategy = get_default_strategy(
             is_base_native=True, is_a_native=True, is_b_native=False
         )
-        period_state = LiquidityProvisionPeriodState(
+        period_state = LiquidityRebalancingPeriodState(
             StateDB(
                 initial_period=0,
                 initial_data=dict(
@@ -880,7 +880,7 @@ class TestEnterPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase)
             )
 
 
-class TestExitPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase):
+class TestExitPoolTransactionHashBehaviour(LiquidityRebalancingBehaviourBaseCase):
     """Test ExitPoolTransactionHashBehaviour."""
 
     def test_transaction_hash(
@@ -891,7 +891,7 @@ class TestExitPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase):
         strategy = get_default_strategy(
             is_base_native=False, is_a_native=True, is_b_native=False
         )
-        period_state = LiquidityProvisionPeriodState(
+        period_state = LiquidityRebalancingPeriodState(
             StateDB(
                 initial_period=0,
                 initial_data=dict(
@@ -1077,7 +1077,7 @@ class TestExitPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase):
         strategy = get_default_strategy(
             is_base_native=False, is_a_native=False, is_b_native=False
         )
-        period_state = LiquidityProvisionPeriodState(
+        period_state = LiquidityRebalancingPeriodState(
             StateDB(
                 initial_period=0,
                 initial_data=dict(
@@ -1265,7 +1265,7 @@ class TestExitPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase):
         strategy = get_default_strategy(
             is_base_native=False, is_a_native=True, is_b_native=False
         )
-        period_state = LiquidityProvisionPeriodState(
+        period_state = LiquidityRebalancingPeriodState(
             StateDB(
                 initial_period=0,
                 initial_data=dict(
@@ -1326,7 +1326,7 @@ class TestExitPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase):
         )
 
 
-class TestSwapBackTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase):
+class TestSwapBackTransactionHashBehaviour(LiquidityRebalancingBehaviourBaseCase):
     """Test SwapBackTransactionHashBehaviour."""
 
     def test_transaction_hash(
@@ -1337,7 +1337,7 @@ class TestSwapBackTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase):
         strategy = get_default_strategy(
             is_base_native=False, is_a_native=True, is_b_native=False
         )
-        period_state = LiquidityProvisionPeriodState(
+        period_state = LiquidityRebalancingPeriodState(
             StateDB(
                 initial_period=0,
                 initial_data=dict(
@@ -1560,7 +1560,7 @@ class TestSwapBackTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase):
         strategy = get_default_strategy(
             is_base_native=False, is_a_native=False, is_b_native=False
         )
-        period_state = LiquidityProvisionPeriodState(
+        period_state = LiquidityRebalancingPeriodState(
             StateDB(
                 initial_period=0,
                 initial_data=dict(
@@ -1833,7 +1833,7 @@ def test_parse_tx_token_balance() -> None:
     assert amount_2 == 1, "The transfered amount is not correct"
 
 
-class TestSleepBehaviour(LiquidityProvisionBehaviourBaseCase):
+class TestSleepBehaviour(LiquidityRebalancingBehaviourBaseCase):
     """Test SleepBehaviour."""
 
     def test_sleep(
@@ -1841,7 +1841,7 @@ class TestSleepBehaviour(LiquidityProvisionBehaviourBaseCase):
     ) -> None:
         """Run tests."""
 
-        period_state = LiquidityProvisionPeriodState(
+        period_state = LiquidityRebalancingPeriodState(
             StateDB(
                 initial_period=0,
                 initial_data=dict(

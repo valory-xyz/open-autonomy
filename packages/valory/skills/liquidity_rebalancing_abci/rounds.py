@@ -17,7 +17,7 @@
 #
 # ------------------------------------------------------------------------------
 
-"""This module contains the data classes for the liquidity provision ABCI application."""
+"""This module contains the data classes for the liquidity rebalancing ABCI application."""
 import json
 from abc import ABC
 from enum import Enum
@@ -33,7 +33,7 @@ from packages.valory.skills.abstract_round_abci.base import (
     CollectSameUntilThresholdRound,
     DegenerateRound,
 )
-from packages.valory.skills.liquidity_provision.payloads import (
+from packages.valory.skills.liquidity_rebalancing_abci.payloads import (
     SleepPayload,
     StrategyEvaluationPayload,
     StrategyType,
@@ -46,7 +46,7 @@ from packages.valory.skills.transaction_settlement_abci.payloads import (
 
 
 class Event(Enum):
-    """Event enumeration for the liquidity provision demo."""
+    """Event enumeration for the liquidity rebalancing demo."""
 
     DONE = "done"
     DONE_ENTER = "done_enter"
@@ -127,8 +127,8 @@ class PeriodState(
         return cast(str, self.db.get_strict("final_tx_hash"))
 
 
-class LiquidityProvisionAbstractRound(AbstractRound[Event, TransactionType], ABC):
-    """Abstract round for the liquidity provision skill."""
+class LiquidityRebalancingAbstractRound(AbstractRound[Event, TransactionType], ABC):
+    """Abstract round for the liquidity rebalancing skill."""
 
     @property
     def period_state(self) -> PeriodState:
@@ -145,7 +145,7 @@ class LiquidityProvisionAbstractRound(AbstractRound[Event, TransactionType], ABC
 
 
 class TransactionHashBaseRound(
-    CollectSameUntilThresholdRound, LiquidityProvisionAbstractRound
+    CollectSameUntilThresholdRound, LiquidityRebalancingAbstractRound
 ):
     """A base class for rounds in which agents compute the transaction hash"""
 
@@ -170,7 +170,7 @@ class TransactionHashBaseRound(
 
 
 class StrategyEvaluationRound(
-    CollectSameUntilThresholdRound, LiquidityProvisionAbstractRound
+    CollectSameUntilThresholdRound, LiquidityRebalancingAbstractRound
 ):
     """A round in which agents evaluate the financial strategy"""
 
@@ -205,7 +205,7 @@ class StrategyEvaluationRound(
         return None
 
 
-class SleepRound(CollectSameUntilThresholdRound, LiquidityProvisionAbstractRound):
+class SleepRound(CollectSameUntilThresholdRound, LiquidityRebalancingAbstractRound):
     """A round in which agents wait for a predefined amount of time"""
 
     round_id = "sleep"

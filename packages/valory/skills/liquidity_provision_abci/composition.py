@@ -17,13 +17,13 @@
 #
 # ------------------------------------------------------------------------------
 
-"""This module contains the liquidity provision ABCI application."""
+"""This module contains the liquidity rebalancing ABCI application."""
 
 from packages.valory.skills.abstract_round_abci.abci_app_chain import (
     AbciAppTransitionMapping,
     chain,
 )
-from packages.valory.skills.liquidity_provision.rounds import (
+from packages.valory.skills.liquidity_rebalancing_abci.rounds import (
     FinishedEnterPoolTransactionHashRound,
     FinishedExitPoolTransactionHashRound,
     FinishedSwapBackTransactionHashRound,

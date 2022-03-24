@@ -10,7 +10,7 @@ final_states:
 - FinishedEnterPoolTransactionHashRound
 - FinishedExitPoolTransactionHashRound
 - FinishedSwapBackTransactionHashRound
-label: packages.valory.skills.liquidity_provision.rounds.LiquidityRebalancingAbciApp
+label: packages.valory.skills.liquidity_rebalancing_abci.rounds.LiquidityRebalancingAbciApp
 start_states:
 - StrategyEvaluationRound
 states:

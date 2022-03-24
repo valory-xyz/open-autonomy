@@ -17,7 +17,7 @@
 #
 # ------------------------------------------------------------------------------
 
-"""Tests for rounds.py file in valory/liquidity_provision."""
+"""Tests for rounds.py file in valory/liquidity_rebalancing_abci."""
 
 import json
 from types import MappingProxyType
@@ -25,11 +25,11 @@ from typing import Dict, FrozenSet, Mapping, Optional  # noqa : F401
 from unittest import mock
 
 from packages.valory.skills.abstract_round_abci.base import StateDB
-from packages.valory.skills.liquidity_provision.payloads import (
+from packages.valory.skills.liquidity_rebalancing_abci.payloads import (
     SleepPayload,
     StrategyEvaluationPayload,
 )
-from packages.valory.skills.liquidity_provision.rounds import (  # noqa: F401
+from packages.valory.skills.liquidity_rebalancing_abci.rounds import (  # noqa: F401
     Event,
     PeriodState,
     SleepRound,
