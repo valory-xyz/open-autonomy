@@ -18,14 +18,19 @@
 # ------------------------------------------------------------------------------
 
 """Test the models.py module of the skill."""
-from enum import Enum
-from typing import Optional, Tuple
+from unittest import mock
 
-from packages.valory.skills.abstract_round_abci.base import (
-    AbstractRound,
-    BasePeriodState,
-)
-from packages.valory.skills.price_estimation_abci.models import SharedState
+import pytest
+
+from packages.valory.skills.oracle_abci.composition import OracleAbciApp
+from packages.valory.skills.oracle_abci.models import SharedState
+from packages.valory.skills.oracle_deployment_abci.rounds import Event
+
+
+@pytest.fixture
+def shared_state() -> SharedState:
+    """Initialize a test shared state."""
+    return SharedState(name="", skill_context=mock.MagicMock())
 
 
 class DummyContext:
@@ -37,13 +42,6 @@ class DummyContext:
         round_timeout_seconds: float = 1.0
 
 
-class ConcreteRound(AbstractRound):
-    """A ConcreteRoundA for testing purposes."""
-
-    def end_block(self) -> Optional[Tuple[BasePeriodState, Enum]]:
-        """Handle the end of the block."""
-
-
 class TestSharedState:
     """Test SharedState(Model) class."""
 
@@ -52,3 +50,14 @@ class TestSharedState:
     ) -> None:
         """Test initialization."""
         SharedState(name="", skill_context=DummyContext())
+
+    def test_setup(
+        self,
+        shared_state: SharedState,
+    ) -> None:
+        """Test setup."""
+        shared_state.setup()
+        assert (
+            OracleAbciApp.event_to_timeout[Event.ROUND_TIMEOUT]
+            == shared_state.context.params.round_timeout_seconds
+        )
