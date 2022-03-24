@@ -18,11 +18,13 @@
 # ------------------------------------------------------------------------------
 
 """Test the models.py module of the skill."""
+from unittest import mock
+
+import pytest
+
 from packages.valory.skills.oracle_abci.composition import OracleAbciApp
 from packages.valory.skills.oracle_abci.models import SharedState
 from packages.valory.skills.oracle_deployment_abci.rounds import Event
-from unittest import mock
-import pytest
 
 
 @pytest.fixture
