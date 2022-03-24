@@ -176,13 +176,3 @@ class ObserverRoundBehaviour(AbstractRoundBehaviour)
 
 This behaviour manages the consensus stages for the observer behaviour.
 
-<a id="packages.valory.skills.price_estimation_abci.behaviours.PriceEstimationConsensusBehaviour"></a>
-
-## PriceEstimationConsensusBehaviour Objects
-
-```python
-class PriceEstimationConsensusBehaviour(AbstractRoundBehaviour)
-```
-
-This behaviour manages the consensus stages for the price estimation.
-

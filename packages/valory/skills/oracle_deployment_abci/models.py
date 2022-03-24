@@ -21,7 +21,7 @@
 
 from typing import Any
 
-from packages.valory.skills.abstract_round_abci.models import BaseParams
+from packages.valory.skills.abstract_round_abci.models import ApiSpecs, BaseParams
 from packages.valory.skills.abstract_round_abci.models import (
     BenchmarkTool as BaseBenchmarkTool,
 )
@@ -49,6 +49,10 @@ class Params(BaseParams):
         """Initialize the parameters object."""
         self.oracle_params = self._ensure("oracle", kwargs)
         super().__init__(*args, **kwargs)
+
+
+class RandomnessApi(ApiSpecs):
+    """A model for randomness api specifications."""
 
 
 Requests = BaseRequests

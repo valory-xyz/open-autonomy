@@ -1,0 +1,43 @@
+alphabet_in:
+- DONE
+- DONE_ENTER
+- DONE_EXIT
+- DONE_SWAP_BACK
+- NO_MAJORITY
+- ROUND_TIMEOUT
+default_start_state: StrategyEvaluationRound
+final_states:
+- FinishedEnterPoolTransactionHashRound
+- FinishedExitPoolTransactionHashRound
+- FinishedSwapBackTransactionHashRound
+label: packages.valory.skills.liquidity_rebalancing_abci.rounds.LiquidityRebalancingAbciApp
+start_states:
+- StrategyEvaluationRound
+states:
+- EnterPoolTransactionHashRound
+- ExitPoolTransactionHashRound
+- FinishedEnterPoolTransactionHashRound
+- FinishedExitPoolTransactionHashRound
+- FinishedSwapBackTransactionHashRound
+- SleepRound
+- StrategyEvaluationRound
+- SwapBackTransactionHashRound
+transition_func:
+    (EnterPoolTransactionHashRound, DONE): FinishedEnterPoolTransactionHashRound
+    (EnterPoolTransactionHashRound, NO_MAJORITY): StrategyEvaluationRound
+    (EnterPoolTransactionHashRound, ROUND_TIMEOUT): StrategyEvaluationRound
+    (ExitPoolTransactionHashRound, DONE): FinishedExitPoolTransactionHashRound
+    (ExitPoolTransactionHashRound, NO_MAJORITY): StrategyEvaluationRound
+    (ExitPoolTransactionHashRound, ROUND_TIMEOUT): StrategyEvaluationRound
+    (SleepRound, DONE): StrategyEvaluationRound
+    (SleepRound, NO_MAJORITY): StrategyEvaluationRound
+    (SleepRound, ROUND_TIMEOUT): StrategyEvaluationRound
+    (StrategyEvaluationRound, DONE): SleepRound
+    (StrategyEvaluationRound, DONE_ENTER): EnterPoolTransactionHashRound
+    (StrategyEvaluationRound, DONE_EXIT): ExitPoolTransactionHashRound
+    (StrategyEvaluationRound, DONE_SWAP_BACK): SwapBackTransactionHashRound
+    (StrategyEvaluationRound, NO_MAJORITY): StrategyEvaluationRound
+    (StrategyEvaluationRound, ROUND_TIMEOUT): StrategyEvaluationRound
+    (SwapBackTransactionHashRound, DONE): FinishedSwapBackTransactionHashRound
+    (SwapBackTransactionHashRound, NO_MAJORITY): StrategyEvaluationRound
+    (SwapBackTransactionHashRound, ROUND_TIMEOUT): StrategyEvaluationRound
