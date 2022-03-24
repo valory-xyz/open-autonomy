@@ -22,5 +22,6 @@ run_check bandit
 run_check safety
 run_check check-copyright
 run_check check-api-docs
+run_check check-abciapp-specs
 run_check check-packages
 run_check check-hash
