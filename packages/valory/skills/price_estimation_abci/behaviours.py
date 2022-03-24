@@ -18,7 +18,7 @@
 # ------------------------------------------------------------------------------
 
 """This module contains the behaviours for the 'abci' skill."""
-import json
+
 from abc import ABC
 from decimal import Decimal
 from typing import Dict, Generator, Optional, Sequence, Set, Type, cast
@@ -347,32 +347,28 @@ class TransactionHashBehaviour(PriceEstimationBaseState):
 
     def _get_safe_tx_hash(self) -> Generator[None, None, Optional[str]]:
         """Get the transaction hash of the Safe tx."""
-        contract_callable = "get_latest_transmission_details"
         contract_api_msg = yield from self.get_contract_api_response(
             performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
             contract_address=self.period_state.oracle_contract_address,
             contract_id=str(OffchainAggregatorContract.contract_id),
-            contract_callable=contract_callable,
+            contract_callable="get_latest_transmission_details",
         )
         if (
             contract_api_msg.performative
             != ContractApiMessage.Performative.RAW_TRANSACTION
         ):  # pragma: nocover
-            yield from self.__handle_potential_rate_limiting(
-                contract_api_msg, contract_callable
-            )
+            self.context.logger.warning("get_latest_transmission_details unsuccessful!")
             return None
         epoch_ = cast(int, contract_api_msg.raw_transaction.body["epoch_"]) + 1
         round_ = cast(int, contract_api_msg.raw_transaction.body["round_"])
         decimals = self.params.oracle_params["decimals"]
         amount = self.period_state.most_voted_estimate
         amount_ = to_int(amount, decimals)
-        contract_callable = "get_transmit_data"
         contract_api_msg = yield from self.get_contract_api_response(
             performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
             contract_address=self.period_state.oracle_contract_address,
             contract_id=str(OffchainAggregatorContract.contract_id),
-            contract_callable=contract_callable,
+            contract_callable="get_transmit_data",
             epoch_=epoch_,
             round_=round_,
             amount_=amount_,
@@ -381,20 +377,17 @@ class TransactionHashBehaviour(PriceEstimationBaseState):
             contract_api_msg.performative
             != ContractApiMessage.Performative.RAW_TRANSACTION
         ):  # pragma: nocover
-            yield from self.__handle_potential_rate_limiting(
-                contract_api_msg, contract_callable
-            )
+            self.context.logger.warning("get_transmit_data unsuccessful!")
             return None
         data = cast(bytes, contract_api_msg.raw_transaction.body["data"])
         to_address = self.period_state.oracle_contract_address
         ether_value = ETHER_VALUE
         safe_tx_gas = SAFE_TX_GAS
-        contract_callable = "get_raw_safe_transaction_hash"
         contract_api_msg = yield from self.get_contract_api_response(
             performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
             contract_address=self.period_state.safe_contract_address,
             contract_id=str(GnosisSafeContract.contract_id),
-            contract_callable=contract_callable,
+            contract_callable="get_raw_safe_transaction_hash",
             to_address=to_address,
             value=ether_value,
             data=data,
@@ -404,9 +397,7 @@ class TransactionHashBehaviour(PriceEstimationBaseState):
             contract_api_msg.performative
             != ContractApiMessage.Performative.RAW_TRANSACTION
         ):  # pragma: nocover
-            yield from self.__handle_potential_rate_limiting(
-                contract_api_msg, contract_callable
-            )
+            self.context.logger.warning("get_raw_safe_transaction_hash unsuccessful!")
             return None
         safe_tx_hash = cast(str, contract_api_msg.raw_transaction.body["tx_hash"])
         safe_tx_hash = safe_tx_hash[2:]
@@ -416,24 +407,6 @@ class TransactionHashBehaviour(PriceEstimationBaseState):
             safe_tx_hash, ether_value, safe_tx_gas, to_address, data
         )
         return payload_string
-
-    def __handle_potential_rate_limiting(
-        self, contract_api_msg: ContractApiMessage, contract_callable: str
-    ) -> Generator[None, None, None]:
-        """Check if we have been rate limited and cool down if needed."""
-        if contract_api_msg.code == 429:
-            message = json.loads(cast(str, contract_api_msg.message))
-            if message["error"]["code"] == "-32005":
-                backoff = message["data"]["backoff_seconds"]
-                self.context.logger.warning(
-                    f"We have been rate-limited! Sleeping for {backoff} seconds..."
-                )
-                yield from self.sleep(backoff)
-                return
-
-        self.context.logger.warning(
-            f"{contract_callable} unsuccessful! Response: {contract_api_msg}"
-        )
 
 
 class ObserverRoundBehaviour(AbstractRoundBehaviour):
