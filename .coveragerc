@@ -1,3 +1,10 @@
 [run]
 omit =
     */.tox/*
+
+
+[report]
+exclude_lines =
+    pragma: no cover
+    pragma: nocover
+    if _descriptor._USE_C_DESCRIPTORS == False:

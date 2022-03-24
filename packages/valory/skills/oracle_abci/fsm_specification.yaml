@@ -16,7 +16,7 @@ alphabet_in:
 - VALIDATE_TIMEOUT
 default_start_state: RegistrationStartupRound
 final_states: []
-label: packages.valory.skills.price_estimation_abci.composition.PriceEstimationAbciApp
+label: packages.valory.skills.oracle_abci.composition.OracleAbciApp
 start_states:
 - RegistrationStartupRound
 states:
@@ -107,6 +107,7 @@ transition_func:
     (SelectKeeperTransactionSubmissionRoundB, DONE): FinalizationRound
     (SelectKeeperTransactionSubmissionRoundB, NO_MAJORITY): ResetRound
     (SelectKeeperTransactionSubmissionRoundB, ROUND_TIMEOUT): ResetRound
+    (SelectKeeperTransactionSubmissionRoundBAfterTimeout, CHECK_HISTORY): CheckTransactionHistoryRound
     (SelectKeeperTransactionSubmissionRoundBAfterTimeout, DONE): FinalizationRound
     (SelectKeeperTransactionSubmissionRoundBAfterTimeout, NO_MAJORITY): ResetRound
     (SelectKeeperTransactionSubmissionRoundBAfterTimeout, ROUND_TIMEOUT): ResetRound

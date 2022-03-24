@@ -1,8 +1,8 @@
-agent_name: price_estimation
+agent_name: oracle
 author: valory
 version: 0.1.0
 license: Apache-2.0
-description: Price estimation agent.
+description: Oracle agent.
 aea_version: '>=1.0.0, <2.0.0'
 fingerprint: {}
 fingerprint_ignore_patterns: []
@@ -23,6 +23,7 @@ protocols:
 skills:
 - valory/abstract_abci:0.1.0
 - valory/abstract_round_abci:0.1.0
+- valory/oracle_abci:0.1.0
 - valory/oracle_deployment_abci:0.1.0
 - valory/price_estimation_abci:0.1.0
 - valory/registration_abci:0.1.0
@@ -58,4 +59,4 @@ default_connection: null
 public_id: valory/abci:0.1.0
 type: connection
 config:
-  target_skill_id: valory/price_estimation_abci:0.1.0
+  target_skill_id: valory/oracle_abci:0.1.0

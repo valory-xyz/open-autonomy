@@ -12,7 +12,7 @@ fingerprint:
   dialogues.py: QmfDThV4WCRzK88XDpW2hKDYCuEH4RxoHCoAkWpkBRGRPv
   fsm_specification.yaml: QmegMy42CT1T8eqi4Jv1wXuPPc9zsif9VoWiBFKLWsZbyd
   handlers.py: QmUS4UE6hYLsHs1RW9KxaTNhrq5pmg9Vy3w7nPgc4wV5kg
-  models.py: QmUffZnN1grFfkxtiQjckNrWThuScoe2kEWWrT5faUm9sC
+  models.py: QmeNMN5CE91cdGPnbpBMsCiueQedzFsr65SDYdZatKgcpu
   payloads.py: QmNxFKPXvTpGc6ZbmboLB7J8nJGdFzEnFiaSy5bkccqG7d
   rounds.py: QmYSp4H8UGCNDt5vzps5YPBccgPjys72JQZew7BJjk9Tgk
 fingerprint_ignore_patterns: []
@@ -80,6 +80,17 @@ models:
       tendermint_max_retries: 5
       tendermint_url: http://localhost:26657
     class_name: Params
+  randomness_api:
+    args:
+      api_id: cloudflare
+      headers: []
+      method: GET
+      parameters: []
+      response_key: null
+      response_type: dict
+      retries: 5
+      url: https://drand.cloudflare.com/public/latest
+    class_name: RandomnessApi
   requests:
     args: {}
     class_name: Requests

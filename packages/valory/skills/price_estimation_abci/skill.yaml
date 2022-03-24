@@ -9,13 +9,11 @@ aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
   README.md: QmSinQfQbyxtxgCx6dSRDG3iLzMspsotw7xJwzq4CbdLMs
   __init__.py: QmexF3zcMh8ZETYFKv4od3HFXqMT3CYGfpMm8HXXa7oWa6
-  behaviours.py: QmQA56RN8X15xVQS8DpzuJGgaJoeBbg2T9AdR1MxRpg8Vf
-  composition.py: QmS3mLhe4xHoQXRtfMSnf6uWWAUZyiTxTFidKFX7NGxd8b
+  behaviours.py: QmZpUAL6x4FM6FA4mpdRWDtp1jUyMScc2oy6izRtVJaFQF
   dialogues.py: QmdBmUMWoPbS2faqn8LicQVJfN6a2WjtdZDWFbiYoy7hfY
   fsm_specification.yaml: QmPpKTMjxvKz6zzpyRLhgfmGzohGvMa67JzV7XPtKGayLw
-  fsm_specification_composition.yaml: Qmc9D39NtUbfew6VKbmuGUbrNMjFB5c8UMmcdCjTimA544
   handlers.py: QmSLoyFCRkCW5iXpHzwfoUduANi9JU9BoRUghwBhbUnRcP
-  models.py: Qmd9NeT3makC2H6HNBPCLU16SSooo2f8iTrsuukYhx66ZK
+  models.py: QmYeU8MtzqcsdabUDqQRcfKsnAGjpvBxJZ2dfRHdPQnudM
   payloads.py: QmR99Myja4scfiZpNrUkFfSHAZ3VthG3Ppx7wnk7M7UiWi
   rounds.py: QmPXryLxJCSncjwLuJHxM6aDLsaM1TbP3xwfaVbyrUpUiC
 fingerprint_ignore_patterns: []
@@ -28,15 +26,10 @@ protocols:
 - valory/contract_api:1.0.0
 skills:
 - valory/abstract_round_abci:0.1.0
-- valory/oracle_deployment_abci:0.1.0
-- valory/registration_abci:0.1.0
-- valory/reset_pause_abci:0.1.0
-- valory/safe_deployment_abci:0.1.0
-- valory/transaction_settlement_abci:0.1.0
 behaviours:
   main:
     args: {}
-    class_name: PriceEstimationConsensusBehaviour
+    class_name: ObserverRoundBehaviour
 handlers:
   abci:
     args: {}
@@ -148,4 +141,4 @@ models:
     args: {}
     class_name: SharedState
 dependencies: {}
-is_abstract: false
+is_abstract: true
