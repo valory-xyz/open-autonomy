@@ -22,7 +22,8 @@ import logging
 import os
 import shutil
 from pathlib import Path
-from typing import Any, Tuple
+import stat
+from typing import Any, Optional, Tuple
 
 from flask import Flask, Response, jsonify
 from tendermint import TendermintNode, TendermintParams
@@ -35,20 +36,47 @@ logging.basicConfig(
     format=f"%(asctime)s %(levelname)s %(name)s %(threadName)s : %(message)s",  # noqa : W1309
 )
 
-period_resets = 0
-logger = logging.getLogger(__name__)
 
-dump_dir = Path("/logs/dump")
-if dump_dir.is_dir():
-    shutil.rmtree(str(dump_dir))
-dump_dir.mkdir()
+class PeriodDumper:
+    """Dumper for tendermint data."""
 
+    resets: int
+    dump_dir: Path
+    logger: logging.Logger
 
-def dump_period() -> None:
-    """Dump tendermint run data for replay"""
-    store_dir = dump_dir / f"period_{period_resets}"
-    store_dir.mkdir(exist_ok=True)
-    shutil.copytree(os.environ["TMHOME"], str(store_dir / ("node" + os.environ["ID"])))
+    def __init__(self, logger: logging.Logger, dump_dir: Optional[Path] = None) -> None:
+        """Initialize object."""
+
+        self.resets = 0
+        self.logger = logger
+        self.dump_dir = Path("/logs/dump") if dump_dir is None else dump_dir
+
+        if self.dump_dir.is_dir():
+            shutil.rmtree(str(self.dump_dir))
+        self.dump_dir.mkdir()
+
+    @staticmethod
+    def readonly_handler(func, path, execinfo) -> None:
+        """If permission is readonly, we change and retry."""
+        os.chmod(path, stat.S_IWRITE)
+        func(path)
+
+    def dump_period(
+        self,
+    ) -> None:
+        """Dump tendermint run data for replay"""
+        store_dir = self.dump_dir / f"period_{self.resets}"
+        store_dir.mkdir(exist_ok=True)
+        try:
+            shutil.copytree(
+                os.environ["TMHOME"], str(store_dir / ("node" + os.environ["ID"]))
+            )
+            self.logger.info(f"Dumped data for period {self.resets}")
+        except OSError:
+            self.logger.info(
+                f"Error occured while dumping data for period {self.resets}"
+            )
+        self.resets += 1
 
 
 def update_sync_method() -> None:
@@ -65,6 +93,7 @@ def update_sync_method() -> None:
 
 
 update_sync_method()
+
 tendermint_params = TendermintParams(
     proxy_app=os.environ["PROXY_APP"],
     consensus_create_empty_blocks=os.environ["CREATE_EMPTY_BLOCKS"] == "true",
@@ -74,6 +103,7 @@ tendermint_node = TendermintNode(tendermint_params)
 tendermint_node.start()
 
 app = Flask(__name__)
+period_dumper = PeriodDumper(logger=app.logger)
 
 
 @app.route("/gentle_reset")
@@ -96,12 +126,11 @@ def gentle_reset() -> Tuple[Any, int]:
 def hard_reset() -> Tuple[Any, int]:
     """Reset the node forcefully, and prune the blocks"""
     try:
-        global period_resets
         tendermint_node.stop()
-        dump_period()
+        if os.environ.get("DEV_MODE", "0") == "1":
+            period_dumper.dump_period()
         tendermint_node.prune_blocks()
         tendermint_node.start()
-        period_resets += 1
         return jsonify({"message": "Reset successful.", "status": True}), 200
     except Exception as e:  # pylint: disable=W0703
         return (
@@ -115,14 +144,14 @@ def hard_reset() -> Tuple[Any, int]:
 @app.errorhandler(404)  # type: ignore
 def handle_notfound(e: NotFound) -> Response:
     """Handle server error."""
-    logger.info(e)
+    app.logger.info(e)
     return Response("Not Found", status=404, mimetype="application/json")
 
 
 @app.errorhandler(500)  # type: ignore
 def handle_server_error(e: InternalServerError) -> Response:
     """Handle server error."""
-    logger.info(e)  # pylint: disable=E
+    app.logger.info(e)  # pylint: disable=E
     return Response("Error Closing Node", status=500, mimetype="application/json")
 
 

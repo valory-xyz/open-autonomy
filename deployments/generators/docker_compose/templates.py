@@ -78,6 +78,7 @@ TENDERMINT_NODE_TEMPLATE: str = (
       - PROXY_APP=tcp://abci{node_id}:26658
       - TMHOME=/tendermint/node{node_id}
       - CREATE_EMPTY_BLOCKS=true
+      - DEV_MODE=0
     volumes:
       - ./build:/tendermint:Z
       - ./logs:/logs:Z
@@ -115,3 +116,6 @@ ABCI_NODE_TEMPLATE: str = (
 if IMAGE_VERSION == "dev":
     ABCI_NODE_TEMPLATE += "      - ../../packages/:/home/ubuntu/packages\n"
     ABCI_NODE_TEMPLATE += "      - ../../../open-aea/:/open-aea\n"
+    TENDERMINT_NODE_TEMPLATE = TENDERMINT_NODE_TEMPLATE.replace(
+        "DEV_MODE=0", "DEV_MODE=1"
+    )
