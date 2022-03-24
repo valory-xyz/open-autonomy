@@ -18,6 +18,7 @@
 # ------------------------------------------------------------------------------
 
 """This module contains helper classes for behaviours."""
+import calendar
 import datetime
 import inspect
 import json
@@ -448,7 +449,27 @@ class BaseState(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
         CleanUpBehaviour.__init__(self, **kwargs)
         self._is_done: bool = False
         self._is_started: bool = False
+        self._backoff_start: int = 0
+        self._backoff: int = self.params.default_backoff_seconds
+        self._allowed_rps: int = self.params.default_allowed_rps
+        self._last_request_timestamp: int = 0
         enforce(self.state_id != "", "State id not set.")
+
+    @property
+    def backoff_end(self) -> int:
+        """Get the timestamp on which the backoff ends."""
+        return self._backoff_start + self._backoff if self._backoff_start > 0 else self.__get_last_timestamp_unix()
+
+    @property
+    def rps_end(self) -> int:
+        """Get the timestamp on which the allowed rps will have been exceeded."""
+        return self._last_request_timestamp + self._allowed_rps
+
+    @property
+    def backoff_rps_remaining(self) -> int:
+        """Get the remaining time to backoff."""
+        remaining = max(self.backoff_end, self.rps_end) - self.__get_last_timestamp_unix()
+        return 0 if remaining <= 0 else remaining
 
     @property
     def params(self) -> BaseParams:
@@ -1332,34 +1353,91 @@ class BaseState(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
         :return: the contract api response
         :yields: the contract api response
         """
-        contract_api_dialogues = cast(
-            ContractApiDialogues, self.context.contract_api_dialogues
-        )
-        kwargs = {
-            "performative": performative,
-            "counterparty": LEDGER_API_ADDRESS,
-            "ledger_id": self.context.default_ledger_id,
-            "contract_id": contract_id,
-            "callable": contract_callable,
-            "kwargs": ContractApiMessage.Kwargs(kwargs),
-        }
-        if contract_address is not None:
-            kwargs["contract_address"] = contract_address
-        contract_api_msg, contract_api_dialogue = contract_api_dialogues.create(
-            **kwargs
-        )
-        contract_api_dialogue = cast(
-            ContractApiDialogue,
-            contract_api_dialogue,
-        )
-        contract_api_dialogue.terms = self._get_default_terms()
-        request_nonce = self._get_request_nonce_from_dialogue(contract_api_dialogue)
-        cast(Requests, self.context.requests).request_id_to_callback[
-            request_nonce
-        ] = self.get_callback_request()
-        self.context.outbox.put_message(message=contract_api_msg)
-        response = yield from self.wait_for_message()
-        return response
+        backoff_remaining = yield from self.__check_backoff()
+        if not backoff_remaining:
+            contract_api_dialogues = cast(
+                ContractApiDialogues, self.context.contract_api_dialogues
+            )
+            kwargs = {
+                "performative": performative,
+                "counterparty": LEDGER_API_ADDRESS,
+                "ledger_id": self.context.default_ledger_id,
+                "contract_id": contract_id,
+                "callable": contract_callable,
+                "kwargs": ContractApiMessage.Kwargs(kwargs),
+            }
+            if contract_address is not None:
+                kwargs["contract_address"] = contract_address
+            contract_api_msg, contract_api_dialogue = contract_api_dialogues.create(
+                **kwargs
+            )
+            contract_api_dialogue = cast(
+                ContractApiDialogue,
+                contract_api_dialogue,
+            )
+            contract_api_dialogue.terms = self._get_default_terms()
+            request_nonce = self._get_request_nonce_from_dialogue(contract_api_dialogue)
+            cast(Requests, self.context.requests).request_id_to_callback[
+                request_nonce
+            ] = self.get_callback_request()
+            self.context.outbox.put_message(message=contract_api_msg)
+            response = yield from self.wait_for_message()
+            # Set the last request's timestamp in order to keep track of rps.
+            self._last_request_timestamp = self.__get_last_timestamp_unix()
+            response = cast(ContractApiMessage, response)
+            yield from self.__handle_potential_rate_limiting(response)
+            return response
+
+    def __check_backoff(self) -> Generator[None, None, bool]:
+        """Check if we have remaining backoff time and sleep if needed."""
+        backoff_remaining = bool(self.backoff_rps_remaining)
+        if backoff_remaining:
+            self.context.logger.warning(
+                f"We have been rate-limited and need to backoff for {self.backoff_rps_remaining} more seconds..."
+            )
+            # Even though we sleep here, the behaviour running might time out,
+            # which means that it could still re-call the `get_contract_api_response` method
+            # and get a "rate-limited" message again. Therefore, we constantly need to check
+            # at the start of `get_contract_api_response` method if we are still rate-limited
+            # and sleep for as much of the remaining backoff time as we can.
+            yield from self.sleep(self.backoff_rps_remaining)
+        return backoff_remaining
+
+    def __handle_potential_rate_limiting(
+        self, contract_api_msg: ContractApiMessage
+    ) -> Generator[None, None, None]:
+        """Check if we have been rate limited and cool down if needed."""
+        if contract_api_msg.code == 429:
+            self._backoff_start = self.__get_last_timestamp_unix()
+
+            try:
+                message = json.loads(cast(str, contract_api_msg.message))
+            except json.JSONDecodeError:
+                message = {}
+
+            if message.get("error", {}).get("code", "") == "-32005":
+                data = message.get("data", {})
+                rate = data.get("rate", None)
+                self._backoff = data.get("backoff_seconds", self._backoff) if rate is None else rate.get("backoff_seconds", self._backoff)
+                self._allowed_rps = data.get("allowed_rps", self._allowed_rps) if rate is None else rate.get("allowed_rps", self._allowed_rps)
+
+            self.context.logger.warning(
+                f"We have been rate-limited! Need to backoff for {self._backoff} seconds..."
+            )
+            # Even though we sleep here, the behaviour running might time out,
+            # which means that it could still call the `get_contract_api_response` method
+            # and get a "rate-limited" message again. Therefore, we also need to check
+            # at the start of `get_contract_api_response` method if we are still rate-limited.
+            yield from self.sleep(self._backoff)
+            return
+
+    def __get_last_timestamp_unix(self) -> int:
+        """Get the last timestamp in unix."""
+        last_timestamp = cast(
+            SharedState, self.context.state
+        ).period.abci_app.last_timestamp
+
+        return int(calendar.timegm(last_timestamp.timetuple()))
 
     @staticmethod
     def __parse_rpc_error(error: str) -> RPCResponseStatus:
