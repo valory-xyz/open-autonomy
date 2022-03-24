@@ -12,7 +12,7 @@ fingerprint:
   behaviours.py: QmbYxgSyhorfskyfEmrEVh4RvXy9JnmDr2B9CvKHakGU2a
   composition.py: QmRf8LeSXBtBtdFrjuBkE32eNERJHPxHCNdwAjxwgW9YB8
   dialogues.py: QmfDThV4WCRzK88XDpW2hKDYCuEH4RxoHCoAkWpkBRGRPv
-  fsm_specification_composition.yaml: QmRsacV6DcjCC7nngrf5hjwHvtRADLm3XnYHmosEMCP82H
+  fsm_specification_composition.yaml: Qmeij7447gr1aRHneT78TPxUKsAnphdXbM3ZGFQL4ZyduK
   handlers.py: QmWJtuiUZUphDnxgsxc4Ym2sZT9qSSk3K7BBiKSZMMUEat
   models.py: Qmb2eqJ2B7YjUE6TMxuGAguSphRgKHSZzCxg9VPpfzEuY7
 fingerprint_ignore_patterns: []

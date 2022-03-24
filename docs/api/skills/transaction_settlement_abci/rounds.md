@@ -113,6 +113,28 @@ def most_voted_tx_hash() -> str
 
 Get the most_voted_tx_hash.
 
+<a id="packages.valory.skills.transaction_settlement_abci.rounds.PeriodState.consecutive_finalizations"></a>
+
+#### consecutive`_`finalizations
+
+```python
+@property
+def consecutive_finalizations() -> int
+```
+
+Get the number of consecutive finalizations.
+
+<a id="packages.valory.skills.transaction_settlement_abci.rounds.PeriodState.finalizations_threshold_exceeded"></a>
+
+#### finalizations`_`threshold`_`exceeded
+
+```python
+@property
+def finalizations_threshold_exceeded() -> bool
+```
+
+Check if the number of consecutive finalizations has exceeded the allowed limit.
+
 <a id="packages.valory.skills.transaction_settlement_abci.rounds.PeriodState.missed_messages"></a>
 
 #### missed`_`messages
@@ -400,6 +422,7 @@ Transition states:
         - no majority: 10.
     7. SelectKeeperTransactionSubmissionRoundBAfterTimeout
         - done: 3.
+        - check history: 5.
         - round timeout: 10.
         - no majority: 10.
     8. SynchronizeLateMessagesRound
