@@ -6,16 +6,28 @@ site_author: developer@valory.xyz
 
 theme: 'material'
 
+extra_css:
+  - stylesheets/extra.css
+
 strict: true
 
 nav:
   - Home: 'index.md'
   - Preliminaries:
-    - Autonomous Economic Agents: 'aea.md'
-    - Application BlockChain Interface: 'abci.md'
-    - AsyncBehaviour: 'async_behaviour.md'
-    - Finite State Machines: 'fsm.md'
-    - ABCIApp: 'abci_app.md'
+    - Autonomous Economic Agents:
+      - Introduction: 'aea.md'
+      - Implementation: 'aea-implementation.md'
+    - Finite State Machines:
+      - Introduction: 'fsm.md'
+      - Implementation: 'fsm-implementation.md'
+    - Application BlockChain Interface:
+      - Introduction: 'abci.md'
+      - Implementation: 'abci-implementation.md'
+    - ABCI Applications:
+      - Introduction: 'abci_app.md'
+      - 'Implementation: ABCIApp': 'abci_app-implementation.md'
+      - 'Implementation: AsyncBehaviour': 'async_behaviour.md'
+      - 'Implementation: AbstractRoundBehaviour': 'abstract_round_behaviour.md'
   - Demos:
     - Simple ABCI: 'simple_abci.md'
     - Price Estimation:
