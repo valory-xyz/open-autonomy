@@ -18,6 +18,7 @@
 # ------------------------------------------------------------------------------
 
 """Forecasting operations"""
+import warnings
 from typing import Any, Dict, Optional, Union, cast
 
 import numpy as np
@@ -39,6 +40,8 @@ TestReportType = Dict[str, str]
 PoolIdToTestReportType = Dict[str, TestReportType]
 PoolIdToTrainDataType = Dict[str, np.ndarray]
 PoolIdToForecasterType = Dict[str, Pipeline]
+HyperParamsType = Dict[str, Any]
+PoolToHyperParamsType = Dict[str, HyperParamsType]
 
 
 def init_forecaster(  # pylint: disable=too-many-arguments
@@ -81,18 +84,18 @@ def init_forecaster(  # pylint: disable=too-many-arguments
 
 
 def train_forecaster_per_pool(
-    y_train: PoolIdToTrainDataType, **kwargs: Any
+    y_train: PoolIdToTrainDataType, best_params: PoolToHyperParamsType
 ) -> PoolIdToForecasterType:
     """Train a forecasting model.
 
     :param y_train: the training timeseries.
-    :param kwargs: the keyword arguments for the forecaster's training.
+    :param best_params: the best parameters for the forecasters.
     :return: a trained `pmdarima` pipeline per pool, consisting of a fourier featurizer and an ARIMA model.
     """
     forecasters = {}
     for id_, y in y_train.items():
         id_.replace(".csv", ".joblib")
-        forecasters[id_] = train_forecaster(y, **kwargs)
+        forecasters[id_] = train_forecaster(y, **best_params[id_])
     return forecasters
 
 
@@ -139,11 +142,15 @@ def calc_metrics(y_true: np.ndarray, y_pred: np.ndarray) -> MetricsType:
     :return: a dictionary with the names of the metrics mapped to their values.
     """
     metrics = {
-        "mean pinball loss": mean_pinball_loss(y_true, y_pred),
+        "mean pinball loss": np.nan
+        if any(np.isnan(y_pred))
+        else mean_pinball_loss(y_true, y_pred),
         "SMAPE": smape(y_true, y_pred),
-        "Explained Variance": explained_variance_score(y_true, y_pred),
-        "Max Error": max_error(y_true, y_pred),
-        "MSE": mean_squared_error(y_true, y_pred),
+        "Explained Variance": np.nan
+        if any(np.isnan(y_pred))
+        else explained_variance_score(y_true, y_pred),
+        "Max Error": np.nan if any(np.isnan(y_pred)) else max_error(y_true, y_pred),
+        "MSE": np.nan if any(np.isnan(y_pred)) else mean_squared_error(y_true, y_pred),
     }
 
     return metrics
@@ -201,9 +208,15 @@ def walk_forward_test(
             f"Timesteps to predict in the future cannot be {steps_forward} < 1."
         )
 
+    if steps_forward > len(y_test):
+        warnings.warn(
+            "Timesteps to predict in the future are larger than the number of test samples "
+            f"while using the Direct Multi-step Forecast Strategy: {steps_forward} > {len(y_test)}"
+        )
+
     y_pred = []
     for i in range(0, len(y_test), steps_forward):
-        y_hat = forecaster.predict(steps_forward)
+        y_hat = predict_safely(forecaster, steps_forward)
 
         if steps_forward == 1:
             y_pred.append(y_hat)
@@ -254,10 +267,15 @@ def test_forecaster(
     }
 
     # Report baseline's and model's metrics.
-    for reporting_model, model_predictions in report.items():
-        report[reporting_model] = report_metrics(
-            y_test, cast(np.ndarray, model_predictions), pair_name, reporting_model
+    report.update(
+        (
+            reporting_model,
+            report_metrics(
+                y_test, cast(np.ndarray, model_predictions), pair_name, reporting_model
+            ),
         )
+        for reporting_model, model_predictions in report.items()
+    )
 
     return cast(TestReportType, report)
 
@@ -288,7 +306,28 @@ def estimate_apy_per_pool(
     """
     estimates = {}
     for id_, forecaster in forecasters.items():
-        estimates[id_] = forecaster.predict(steps_forward)
+        id_.replace(".csv", "")
+        estimates[id_] = predict_safely(forecaster, steps_forward)
     return pd.DataFrame(
         estimates, index=[f"Step{i + 1} into the future" for i in range(steps_forward)]
     )
+
+
+def predict_safely(forecaster: Pipeline, steps_forward: int) -> Any:
+    """
+    Overcomes an issue of the `pmdarima` library.
+
+    This has to be done because of a `pmdarima`'s issue: https://github.com/alkaline-ml/pmdarima/issues/404
+    The issue is caused because of a check of the confidence interval after predicting.
+    If the upper-lower bounds are `None`, then an error is raised from an assertion method.
+
+    :param forecaster: a `pmdarima` pipeline model.
+    :param steps_forward: how many timesteps the model will be predicting in the future.
+    :return: the predicted values.
+    """
+    try:
+        y_hat = forecaster.predict(steps_forward)
+    except ValueError:
+        y_hat = [np.nan] * steps_forward if steps_forward > 1 else np.nan
+
+    return y_hat
