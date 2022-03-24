@@ -38,7 +38,7 @@ class AgentRunner:
 
         self.agent_env["ABCI_HOST"] = "localhost"
         self.agent_env["ABCI_PORT"] = f"2665{self.agent_id}"
-        self.agent_env["TENDERMINT_URL"] = f"http://localhost:8080"
+        self.agent_env["TENDERMINT_URL"] = f"http://localhost:8080/{self.agent_id}"
         self.agent_env["TENDERMINT_COM_URL"] = f"http://localhost:8080/{self.agent_id}"
 
     def start(

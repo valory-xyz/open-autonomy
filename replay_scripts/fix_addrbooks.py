@@ -23,6 +23,7 @@ def fix_config_files(build_dir: Path):
         config = config_file.read_text()
         config = config.replace("persistent_peers =", "# persistent_peers =")
         config_file.write_text(config)
+        print(f"Updated {config_file}")
 
 
 @click.command()

@@ -1,3 +1,4 @@
+import json
 import os, click
 from pathlib import Path
 import shutil
@@ -12,20 +13,26 @@ TENDERMINT_BIN = shutil.which("tendermint")
 BUILD_DIR = Path("deployments/build/").absolute()
 
 
+class RanOutOfDumpsToReplay(Exception):
+    """Error to raise when we run out of dumps to replay."""
+
+
 class TendermintRunner:
     """Run tednermint using the dump."""
 
     node_id: int
     process: Optional[subprocess.Popen]
     period: int = 0
+    n_periods: int
 
-    def __init__(self, node_id: int, dump_dir: Path) -> None:
+    def __init__(self, node_id: int, dump_dir: Path, n_periods: int) -> None:
         """Initialize object."""
 
         self.period = 0
         self.process = None
         self.dump_dir = dump_dir
         self.node_id = node_id
+        self.n_periods = n_periods
 
     def update_period(
         self,
@@ -33,7 +40,23 @@ class TendermintRunner:
         """Update period."""
         self.stop()
         self.period += 1
+        if self.period >= self.n_periods:
+            raise RanOutOfDumpsToReplay()
         self.start()
+
+    def get_last_block_height(
+        self,
+    ) -> int:
+        """Returns the last block height before dumping."""
+        state_file = (
+            self.dump_dir
+            / f"period_{self.period}"
+            / f"node{self.node_id}"
+            / "data"
+            / "priv_validator_state.json"
+        )
+        state_data = json.loads(state_file.read_text())
+        return int(state_data.get("height", 0))
 
     def start(
         self,
@@ -76,23 +99,48 @@ class TendermintNetwork:
     number_of_nodes: int
     nodes: List[TendermintRunner]
 
-    def __init__(self, dump_dir: Path, number_of_nodes: int = 4) -> None:
+    _recent_reset: bool
+
+    def __init__(self, dump_dir: Path) -> None:
         """Initialize object."""
 
         self.dump_dir = dump_dir
-        self.number_of_nodes = number_of_nodes
+        self.reset_periods = len(list(dump_dir.glob("period_*")))
+        if self.reset_periods == 0:
+            raise FileNotFoundError(f"Can't find period dumps in {dump_dir}")
+
+        self.number_of_nodes = len(list((dump_dir / "period_0").iterdir()))
+        if self.number_of_nodes == 0:
+            raise FileNotFoundError(f"Can't find dumped nodes.")
+
         self.nodes = []
+        self._recent_reset = True
 
     def build(
         self,
     ) -> None:
         """Build tendermint nodes."""
         for node_id in range(self.number_of_nodes):
-            self.nodes.append(TendermintRunner(node_id, self.dump_dir))
+            self.nodes.append(
+                TendermintRunner(node_id, self.dump_dir, self.reset_periods)
+            )
 
     def update_period(self, node_id: int) -> None:
         """Update period for nth node."""
         self.nodes[node_id].update_period()
+        self._recent_reset = True
+
+    def get_last_block_height(self, node_id: int) -> int:
+        """Returns last block height before dumping for `node_id`"""
+        if self._recent_reset:
+            self._recent_reset = False
+            return 0
+
+        return self.nodes[node_id].get_last_block_height() - 1
+
+    def stop_node(self, node_id: int) -> None:
+        """Stop a specific node."""
+        self.nodes[node_id].stop()
 
     def start(
         self,
@@ -131,25 +179,54 @@ app = Flask(__name__)
 def hard_reset(node_id: int):
     """Reset tendermint node."""
     global tendermint_network
-    tendermint_network.update_period(node_id)
-    app.logger.info(f"Restarted node {node_id}")
-    return jsonify({"message": "Reset successful.", "status": True}), 200
+
+    try:
+        tendermint_network.update_period(node_id)
+        app.logger.info(f"Restarted node {node_id}")
+        return jsonify({"message": "Reset successful.", "status": True}), 200
+    except RanOutOfDumpsToReplay:
+        app.logger.info("Ran out of dumps to replay, Stopping the node.")
+        tendermint_network.stop_node(node_id)
+        return (
+            jsonify(
+                {
+                    "message": "Ran out of dumps to replay, You can stop the agent replay now.",
+                    "status": False,
+                }
+            ),
+            500,
+        )
 
 
-@app.get("/status")
-def status():
+@app.get("/<int:node_id>/status")
+def status(node_id: int):
+    """
+    This endpoint will imitate the tendermint RPC server's /status so the ABCI
+    app doesn't get blocked in replay mode.
+    """
+    global tendermint_network
     return jsonify(
-        {"result": {"sync_info": {"latest_block_height": 0}}, "is_replay": True}
+        {
+            "result": {
+                "sync_info": {
+                    "latest_block_height": tendermint_network.get_last_block_height(
+                        node_id
+                    )
+                }
+            }
+        }
     )
 
 
-@app.get("/broadcast_tx_sync")
-def broadcast_tx_sync():
+@app.get("/<int:node_id>/broadcast_tx_sync")
+def broadcast_tx_sync(node_id: int):
+    """Similar as /status"""
     return jsonify({"result": {"hash": "", "code": 0}})
 
 
-@app.get("/tx")
-def tx():
+@app.get("/<int:node_id>/tx")
+def tx(node_id: int):
+    """Similar as /status"""
     return jsonify({"result": {"tx_result": {"code": 0}}})
 
 
