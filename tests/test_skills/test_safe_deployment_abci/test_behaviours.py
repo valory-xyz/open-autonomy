@@ -61,6 +61,10 @@ class SafeDeploymentAbciBaseCase(FSMBehaviourBaseCase):
 class TestRandomnessSafe(BaseRandomnessBehaviourTest):
     """Test randomness safe."""
 
+    path_to_skill = Path(
+        ROOT_DIR, "packages", "valory", "skills", "safe_deployment_abci"
+    )
+
     randomness_behaviour_class = RandomnessSafeBehaviour
     next_behaviour_class = SelectKeeperSafeBehaviour
     done_event = SafeDeploymentEvent.DONE
@@ -68,6 +72,10 @@ class TestRandomnessSafe(BaseRandomnessBehaviourTest):
 
 class TestSelectKeeperSafeBehaviour(BaseSelectKeeperBehaviourTest):
     """Test SelectKeeperBehaviour."""
+
+    path_to_skill = Path(
+        ROOT_DIR, "packages", "valory", "skills", "safe_deployment_abci"
+    )
 
     select_keeper_behaviour_class = SelectKeeperSafeBehaviour
     next_behaviour_class = DeploySafeBehaviour
