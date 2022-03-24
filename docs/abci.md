@@ -1,7 +1,6 @@
 # ABCI: Application BlockChain Interface
 
-This document briefly describes
-the most salient aspects of
+We'll now describe the most salient aspects of
 the Application BlockChain Interface (ABCI),
 which allows for Byzantine Fault Tolerant replication of
 applications written in any programming language.

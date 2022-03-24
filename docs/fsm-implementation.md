@@ -59,10 +59,12 @@ class PeriodState(BasePeriodState):
 
 ### Round
 
-A round is a state of a period. It usually involves interactions between agents,
+A round is a state of a period. It usually involves interactions between agents in the form of `Transactions`,
 although this is not enforced at this level of abstraction.
 `round_id` and `allowed_tx_type` must be provided by the developer that
-implements a concrete subclass. A `Transaction` is a class that is composed of:
+implements a concrete subclass.
+
+A `Transaction` is a class that is composed of:
 
 - a _payload_ and
 - a _signature_ of the payload.
@@ -146,8 +148,7 @@ the `Behaviour` whose execution triggers it.
 ### Behaviour
 
 The abstract base class used for any concrete implementation of behaviour is the
-`BaseState`. It inherits directly from the `AsyncBehaviour` we discussed in the
-previous section and the same execution logic applies that leads to the periodic
+`BaseState`. It inherits directly from the `AsyncBehaviour` class and the same execution logic applies that leads to the periodic
 execution of the `act()` and `async_act()` methods.
 
 The `state_id` and `matching_round` both need to be provided by any class using
