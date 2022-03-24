@@ -339,6 +339,11 @@ build-deploy:
 protolint_install:
 	GO111MODULE=on GOPATH=~/go go get -u -v github.com/yoheimuta/protolint/cmd/protolint@v0.27.0
 
+# how to use:
+#
+#     make replay-agent AGENT=agent_id
+#
+# 0 <= agent_id < number of agents
 replay-agent:
 	python replay_scripts/agent_runner.py $(AGENT)
 
