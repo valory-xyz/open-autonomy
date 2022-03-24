@@ -1353,28 +1353,28 @@ class BaseState(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
         :return: the contract api response
         :yields: the contract api response
         """
+        contract_api_dialogues = cast(
+            ContractApiDialogues, self.context.contract_api_dialogues
+        )
+        kwargs = {
+            "performative": performative,
+            "counterparty": LEDGER_API_ADDRESS,
+            "ledger_id": self.context.default_ledger_id,
+            "contract_id": contract_id,
+            "callable": contract_callable,
+            "kwargs": ContractApiMessage.Kwargs(kwargs),
+        }
+        if contract_address is not None:
+            kwargs["contract_address"] = contract_address
+        contract_api_msg, contract_api_dialogue = contract_api_dialogues.create(
+            **kwargs
+        )
+        contract_api_dialogue = cast(
+            ContractApiDialogue,
+            contract_api_dialogue,
+        )
         backoff_remaining = yield from self.__check_backoff()
         if not backoff_remaining:
-            contract_api_dialogues = cast(
-                ContractApiDialogues, self.context.contract_api_dialogues
-            )
-            kwargs = {
-                "performative": performative,
-                "counterparty": LEDGER_API_ADDRESS,
-                "ledger_id": self.context.default_ledger_id,
-                "contract_id": contract_id,
-                "callable": contract_callable,
-                "kwargs": ContractApiMessage.Kwargs(kwargs),
-            }
-            if contract_address is not None:
-                kwargs["contract_address"] = contract_address
-            contract_api_msg, contract_api_dialogue = contract_api_dialogues.create(
-                **kwargs
-            )
-            contract_api_dialogue = cast(
-                ContractApiDialogue,
-                contract_api_dialogue,
-            )
             contract_api_dialogue.terms = self._get_default_terms()
             request_nonce = self._get_request_nonce_from_dialogue(contract_api_dialogue)
             cast(Requests, self.context.requests).request_id_to_callback[
@@ -1387,6 +1387,7 @@ class BaseState(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
             response = cast(ContractApiMessage, response)
             yield from self.__handle_potential_rate_limiting(response)
             return response
+        return self.__backoff_message(contract_api_dialogue, contract_api_msg)
 
     def __check_backoff(self) -> Generator[None, None, bool]:
         """Check if we have remaining backoff time and sleep if needed."""
@@ -1462,6 +1463,20 @@ class BaseState(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
         if "nonce too low" in error:
             return RPCResponseStatus.INCORRECT_NONCE
         return RPCResponseStatus.UNCLASSIFIED_ERROR
+
+    @staticmethod
+    def __backoff_message(dialogue: ContractApiDialogue, message: Message) -> ContractApiMessage:
+        """Create a backoff reply message."""
+        return cast(
+            ContractApiMessage,
+            dialogue.reply(
+                performative=ContractApiMessage.Performative.ERROR,
+                target_message=message,
+                code=500,
+                message="Need to backoff, in order to stay inside rate limits. Request not sent!",
+                data=b"",
+            ),
+        )
 
 
 class DegenerateState(BaseState, ABC):
