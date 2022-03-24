@@ -25,9 +25,9 @@ from abc import ABC
 from collections import OrderedDict
 from datetime import datetime
 from enum import Enum
-from typing import Any, Generator, Optional, Tuple, Type
+from typing import Any, Generator, Optional, Tuple, Type, Union
 from unittest import mock
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, PropertyMock
 
 import pytest
 
@@ -952,6 +952,111 @@ class TestBaseState:
             try_send(gen, obj=None)
             # wait for message
             try_send(gen, obj=MagicMock())
+
+    @pytest.mark.parametrize("backoff_rps_remaining", (0, 100))
+    def test_check_backoff(self, backoff_rps_remaining: int) -> None:
+        """Test `__check_backoff` method."""
+
+        def dummy_sleep() -> Generator[None, None, None]:
+            """Create a dummy `sleep` method."""
+            yield
+            return
+
+        with mock.patch.object(
+            AsyncBehaviour,
+            "sleep",
+            return_value=dummy_sleep(),
+        ), mock.patch(
+            "packages.valory.skills.abstract_round_abci.behaviour_utils.BaseState.backoff_rps_remaining",
+            new_callable=PropertyMock,
+        ) as backoff_rps_remaining_mock:
+            backoff_rps_remaining_mock.return_value = backoff_rps_remaining
+            gen = self.behaviour._BaseState__check_backoff()
+            # first trigger
+            try_send(gen, obj=None)
+            if backoff_rps_remaining:
+                # sleep
+                try_send(gen, obj=None)
+
+    @pytest.mark.parametrize(
+        "backoff, allowed_rps, last_timestamp_unix, backoff_start, reset_expected",
+        ((30, 1, 0, 0, False), (30, 1, 60 * 60 * 24 + 1, 0, True)),
+    )
+    def test_check_reset_backoff_rps(
+        self,
+        backoff: int,
+        allowed_rps: int,
+        last_timestamp_unix: int,
+        backoff_start: int,
+        reset_expected: bool,
+    ) -> None:
+        """Test `__check_reset_backoff_rps` method."""
+        with mock.patch.object(
+            BaseState,
+            "_BaseState__get_last_timestamp_unix",
+            return_value=last_timestamp_unix,
+        ):
+            self.behaviour._backoff = backoff
+            self.behaviour._allowed_rps = allowed_rps
+            self.behaviour._backoff_start = backoff_start
+            self.behaviour._BaseState__check_reset_backoff_rps()
+            if reset_expected:
+                assert self.behaviour._backoff_start == 0
+                assert (
+                    self.behaviour._backoff
+                    == self.behaviour.params.default_backoff_seconds
+                )
+                assert (
+                    self.behaviour._allowed_rps
+                    == self.behaviour.params.default_allowed_rps
+                )
+                assert self.behaviour._last_request_timestamp == 0
+            else:
+                assert self.behaviour._backoff_start == backoff_start
+                assert self.behaviour._backoff == backoff
+                assert self.behaviour._allowed_rps == allowed_rps
+                assert self.behaviour._last_request_timestamp == last_timestamp_unix
+
+    @pytest.mark.parametrize(
+        "message",
+        (
+            '{"error": {"code": "-32005"}, "data": {"rate": {"backoff_seconds": 30, "allowed_rps": 1}}}',
+            '{"error": {"code": "-32005"}, "data": {"backoff_seconds": 30, "allowed_rps": 1}}',
+            b"",
+        ),
+    )
+    def test_handle_potential_rate_limiting(self, message: Union[bytes, str]) -> None:
+        """Test `__handle_potential_rate_limiting` method."""
+
+        def dummy_sleep() -> Generator[None, None, None]:
+            """Create a dummy `sleep` method."""
+            yield
+            return
+
+        with mock.patch.object(
+            BaseState,
+            "_BaseState__get_last_timestamp_unix",
+            return_value=0,
+        ), mock.patch.object(
+            AsyncBehaviour,
+            "sleep",
+            return_value=dummy_sleep(),
+        ):
+            gen = self.behaviour._BaseState__handle_potential_rate_limiting(
+                MagicMock(code=429, message=message)
+            )
+            # first trigger
+            try_send(gen, obj=None)
+            # sleep
+            try_send(gen, obj=None)
+
+    def test_get_last_timestamp_unix(self) -> None:
+        """Test `__get_last_timestamp_unix` method."""
+        self.behaviour.context.state.period.abci_app.last_timestamp = datetime(
+            2000, 1, 1, 0, 0, 0
+        )
+        timestamp = self.behaviour._BaseState__get_last_timestamp_unix()
+        assert timestamp == 946684800
 
     def test_default_callback_request_stopped(self) -> None:
         """Test 'default_callback_request' when stopped."""
