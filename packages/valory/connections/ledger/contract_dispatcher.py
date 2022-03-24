@@ -122,8 +122,9 @@ class ContractApiRequestDispatcher(RequestDispatcher):
         :return: an error message response.
         """
         if isinstance(exception, requests.exceptions.HTTPError):
-            code = exception.response.status_code
-            error_message = exception.response
+            res = cast(requests.Response, exception.response)
+            code = res.status_code
+            error_message = res.text
         else:
             code = 500
             error_message = parse_exception(exception)
