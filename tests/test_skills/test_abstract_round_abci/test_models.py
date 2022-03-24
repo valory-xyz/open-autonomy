@@ -334,4 +334,6 @@ def test_base_params_model_initialization() -> None:
         tendermint_check_sleep_delay=3,
         tendermint_max_retries=5,
         cleanup_history_depth=0,
+        default_backoff_seconds=30,
+        default_allowed_rps=1,
     )

@@ -87,4 +87,6 @@ class TestParams:
                 "sleep_seconds": 60,
             },
             cleanup_history_depth=0,
+            default_backoff_seconds=0,
+            default_allowed_rps=0,
         )

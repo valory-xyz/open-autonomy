@@ -363,7 +363,11 @@ class TestBaseState:
     def setup(self) -> None:
         """Set up the tests."""
         self.context_mock = MagicMock()
-        self.context_params_mock = MagicMock(ipfs_domain_name=None)
+        self.context_params_mock = MagicMock(
+            ipfs_domain_name=None,
+            default_backoff_seconds=0.01,
+            default_allowed_rps=0.01,
+        )
         self.context_state_period_state_mock = MagicMock()
         self.context_mock.params = self.context_params_mock
         self.context_mock.state.period_state = self.context_state_period_state_mock
