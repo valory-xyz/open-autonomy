@@ -1,30 +1,19 @@
-name: apy_estimation_abci
+name: apy_estimation_chained_abci
 author: valory
 version: 0.1.0
 type: skill
-description: This skill implements the APY estimation for an AEA.
+description: This skill implements the APY estimation chained for an AEA.
 license: Apache-2.0
 aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
-  README.md: QmSvXr6k7f5GFZVCgqM8d4ywibiSAYbdaGjmPh4CmFfQn9
-  __init__.py: Qmb163B19kEpc6PfbLnmQxPbeEWA2ubTghVwG2YUeNYusu
-  behaviours.py: QmdqcvVgDBRw3XHiF3VkVzF3MkvgofTkfcdZGMLYdyNmCE
-  dialogues.py: QmdBmUMWoPbS2faqn8LicQVJfN6a2WjtdZDWFbiYoy7hfY
-  fsm_specification.yaml: QmWpHTiaY91oUmAoYiAZjcg5i3UsqktRHCcZZkEDpqEqcf
-  handlers.py: QmdxbcVLL3JU6onvxLrDmJX1r2vQPbzp1co1eaHGJkAwfD
-  ml/__init__.py: QmQdxHMEM19JH1FzG9EKQC5mpngbBAz9hyX8XDwGX915BM
-  ml/forecasting.py: QmXCTBa4iAKvhAdsytRL3wHc6JmRqNntVWTBoUKniUShjE
-  ml/optimization.py: Qmc2t81zHy8kvjVUeyZ1y2qqhxH3YRL77DuS7ExUPGJjKX
-  ml/preprocessing.py: QmeEJVKCVfJoBB7KL1C1AgEztWdjaN1tmSoSJecSjTsSCQ
-  models.py: QmS15SjCs3NXCqz3gRL3soC7RRPFGofDGEttef5DVWo8EZ
-  payloads.py: QmVMeEM5ApxD7kHP9irvq1offijLokpa4F6P4rJVPpeJ5P
-  rounds.py: QmXE8cEXvCpXRv9xjeyf8Dq64yBtKrGeM8xTbpKiRkJVRg
-  tasks.py: QmT9boDaUdP8fWAhoZ8HkU8qd6MR9PVTo6Vhyq8AFsWAD6
-  tools/__init__.py: QmWr6iVwNzqYVqmxBwYC1myurM8AjxuzxwjM1brXSmnDTi
-  tools/etl.py: QmXAD2wo52m3L7551eNXpudJtnyjCaN5PSknS7cinBbgKS
-  tools/general.py: QmUtxPckv7Mjv6RXt9LmoSARd3D5xK4pyoVVL9wv9H2kvB
-  tools/io.py: QmQk9ZYtTLBeSDwvh6S5BfuaS7EYftM2fryym2RA4M8Wah
-  tools/queries.py: QmVSf5nQFA15j7F1p2e7AmrvRzPXFnMTjSUpEnwYSGnhRB
+  README.md: QmTT2DXnyGCpBRHJNEQHeVEVn9RA2mRUSefUSg8F5WWQbu
+  __init__.py: QmUp13bBYfZ4wSNtFkNxNvSqknhKDmfppByUUJRkJPU5Qg
+  behaviours.py: QmS9ZUHqD2yyi5zxUSpqbbKZCLe54BJA8bnJk8HvjQeoCJ
+  composition.py: QmfV3hauFb2XUnycdrE8vMbH9WqgDFyFRPwPuwxxUaRtZZ
+  dialogues.py: QmfDThV4WCRzK88XDpW2hKDYCuEH4RxoHCoAkWpkBRGRPv
+  fsm_specification.yaml: QmUctUBwqCbWrCQSYKRyVAJ11GchWW8vLeaAZk2Wj55veW
+  handlers.py: QmRaY4dNFoVbM5eAaJi9GEQwKu6MKqKt5YppzzESQpuMRZ
+  models.py: QmS9Fkg46KXHAxdq4NV4ckFD2xv2uNQfLR1374xqucvvJh
 fingerprint_ignore_patterns: []
 connections:
 - valory/abci:0.1.0
@@ -39,11 +28,12 @@ protocols:
 - valory/ledger_api:1.0.0
 skills:
 - valory/abstract_round_abci:0.1.0
+- valory/apy_estimation_abci:0.1.0
 - valory/registration_abci:0.1.0
 behaviours:
   main:
     args: {}
-    class_name: EstimatorRoundBehaviour
+    class_name: APYEstimationConsensusBehaviour
 handlers:
   abci:
     args: {}
@@ -113,8 +103,6 @@ models:
       pair_ids:
       - '0x2b4c76d0dc16be1c31d4c1dc53bf9b45987fc75c'
       period_setup: {}
-      request_retry_delay: 1.0
-      request_timeout: 10.0
       reset_tendermint_after: 2
       retry_attempts: 400
       retry_timeout: 3
@@ -127,8 +115,6 @@ models:
       tendermint_url: http://localhost:26657
       testing:
         steps_forward: 1
-      tx_max_attempts: 10
-      tx_timeout: 10.0
     class_name: APYParams
   randomness_api:
     args:
@@ -178,4 +164,4 @@ dependencies:
     version: <1.9,>=1.8.4
   scikit-learn:
     version: <1.1,>=1.0.1
-is_abstract: true
+is_abstract: false
