@@ -1390,6 +1390,7 @@ class BaseState(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
 
     def __check_backoff(self) -> Generator[None, None, bool]:
         """Check if we have remaining backoff time and sleep if needed."""
+        self.__check_reset_backoff_rps()
         backoff_remaining = bool(self.backoff_rps_remaining)
         if backoff_remaining:
             self.context.logger.warning(
@@ -1402,6 +1403,20 @@ class BaseState(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
             # and sleep for as much of the remaining backoff time as we can.
             yield from self.sleep(self.backoff_rps_remaining)
         return backoff_remaining
+
+    def __check_reset_backoff_rps(self) -> None:
+        """
+        Check if we can reset the backoff and rps back to their default values.
+
+        The rate-limiting lasts for a day,
+        therefore we can reset our values if a day has passed since the last "rate-limited" message has been received.
+        """
+        day_in_unix = 60 * 60 * 24
+        if self.__get_last_timestamp_unix() >= day_in_unix + self._backoff_start:
+            self._backoff_start = 0
+            self._backoff = self.params.default_backoff_seconds
+            self._allowed_rps = self.params.default_allowed_rps
+            self._last_request_timestamp = 0
 
     def __handle_potential_rate_limiting(
         self, contract_api_msg: ContractApiMessage
