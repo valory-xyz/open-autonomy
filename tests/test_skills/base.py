@@ -20,6 +20,7 @@
 """Tests for valory/transaction_settlement_abci skill's behaviours."""
 import json
 from copy import copy
+from datetime import datetime
 from enum import Enum
 from pathlib import Path
 from tempfile import TemporaryDirectory
@@ -143,6 +144,9 @@ class FSMBehaviourBaseCase(BaseSkillTestCase):
                     period_state, self.skill.skill_context.params.consensus_params
                 )
             )
+        self.skill.skill_context.state.period.abci_app._last_timestamp = datetime(
+            2000, 1, 10, 0, 0, 0
+        )
 
     def mock_ledger_api_request(
         self, request_kwargs: Dict, response_kwargs: Dict
