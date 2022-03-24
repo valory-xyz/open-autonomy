@@ -914,9 +914,20 @@ class TestBaseState:
         try_send(gen, obj=m)
         try_send(gen, obj=m)
 
-    @pytest.mark.parametrize("contract_address", [None, "contract_address"])
-    def test_get_contract_api_response(self, contract_address: Optional[str]) -> None:
+    @pytest.mark.parametrize(
+        "contract_address, backoff_remaining",
+        [(None, False), ("contract_address", False), ("contract_address", True)],
+    )
+    def test_get_contract_api_response(
+        self, contract_address: Optional[str], backoff_remaining: bool
+    ) -> None:
         """Test 'get_contract_api_response'."""
+
+        def dummy_check_backoff() -> Generator[None, None, bool]:
+            """Dummy check_backoff."""
+            yield
+            return backoff_remaining
+
         with mock.patch.object(
             self.behaviour.context.contract_api_dialogues,
             "create",
@@ -927,11 +938,17 @@ class TestBaseState:
             BaseState, "_send_transaction_signing_request"
         ), mock.patch.object(
             BaseState, "_send_transaction_request"
+        ), mock.patch.object(
+            BaseState,
+            "_BaseState__check_backoff",
+            return_value=dummy_check_backoff(),
         ):
             gen = self.behaviour.get_contract_api_response(
                 MagicMock(), contract_address, "contract_id", "contract_callable"
             )
             # first trigger
+            try_send(gen, obj=None)
+            # check backoff
             try_send(gen, obj=None)
             # wait for message
             try_send(gen, obj=MagicMock())
