@@ -21,9 +21,9 @@
 import logging
 import os
 import shutil
-from pathlib import Path
 import stat
-from typing import Any, Optional, Tuple
+from pathlib import Path
+from typing import Any, Callable, Optional, Tuple
 
 from flask import Flask, Response, jsonify
 from tendermint import TendermintNode, TendermintParams
@@ -52,11 +52,11 @@ class PeriodDumper:
         self.dump_dir = Path("/logs/dump") if dump_dir is None else dump_dir
 
         if self.dump_dir.is_dir():
-            shutil.rmtree(str(self.dump_dir))
+            shutil.rmtree(str(self.dump_dir), onerror=self.readonly_handler)
         self.dump_dir.mkdir()
 
     @staticmethod
-    def readonly_handler(func, path, execinfo) -> None:
+    def readonly_handler(func: Callable, path: str, execinfo: Any) -> None:
         """If permission is readonly, we change and retry."""
         os.chmod(path, stat.S_IWRITE)
         func(path)
