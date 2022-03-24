@@ -1,1 +1,1 @@
-{!../examples/price_estimation/README.md!}
+{!../packages/valory/skills/price_estimation_abci/README.md!}

@@ -42,6 +42,7 @@ DEFAULT_PACKAGES = {
     (ComponentType.PROTOCOL, "valory/abci:latest"),
     (ComponentType.SKILL, "valory/abstract_abci:latest"),
     (ComponentType.SKILL, "valory/abstract_round_abci:latest"),
+    (ComponentType.SKILL, "valory/oracle_abci:latest"),
     (ComponentType.SKILL, "valory/oracle_deployment_abci:latest"),
     (ComponentType.SKILL, "valory/price_estimation_abci:latest"),
     (ComponentType.SKILL, "valory/registration_abci:latest"),

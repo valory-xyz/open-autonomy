@@ -98,6 +98,10 @@ class TransactionSettlementFSMBehaviourBaseCase(FSMBehaviourBaseCase):
 class TestTransactionSettlementBaseState(PriceEstimationFSMBehaviourBaseCase):
     """Test `TransactionSettlementBaseState`."""
 
+    path_to_skill = Path(
+        ROOT_DIR, "packages", "valory", "skills", "transaction_settlement_abci"
+    )
+
     @pytest.mark.parametrize(
         "message, tx_digest, rpc_status, expected_data",
         (

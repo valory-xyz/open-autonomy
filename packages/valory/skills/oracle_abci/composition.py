@@ -70,7 +70,7 @@ abci_app_transition_mapping: AbciAppTransitionMapping = {
     FinishedResetAndPauseErrorRound: RegistrationRound,
 }
 
-PriceEstimationAbciApp = chain(
+OracleAbciApp = chain(
     (
         AgentRegistrationAbciApp,
         SafeDeploymentAbciApp,
