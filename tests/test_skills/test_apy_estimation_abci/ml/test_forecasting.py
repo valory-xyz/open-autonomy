@@ -36,7 +36,7 @@ from packages.valory.skills.apy_estimation_abci.ml.forecasting import (
     walk_forward_test,
 )
 
-from tests.test_skills.test_apy_estimation.conftest import DummyPipeline
+from tests.test_skills.test_apy_estimation_abci.conftest import DummyPipeline
 
 
 class TestForecasting:

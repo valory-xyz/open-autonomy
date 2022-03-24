@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021 Valory AG
+#   Copyright 2021-2022 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -16,5 +16,15 @@
 #   limitations under the License.
 #
 # ------------------------------------------------------------------------------
+"""Configurations for chained APY skill's tests."""
+from unittest import mock
 
-"""Test machine learning operations."""
+import pytest
+
+from packages.valory.skills.apy_estimation_chained_abci.models import SharedState
+
+
+@pytest.fixture
+def shared_state() -> SharedState:
+    """Initialize a test shared state."""
+    return SharedState(name="", skill_context=mock.MagicMock())

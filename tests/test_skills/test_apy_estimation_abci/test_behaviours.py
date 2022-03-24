@@ -48,9 +48,9 @@ from packages.valory.skills.abstract_round_abci.io.store import SupportedFiletyp
 from packages.valory.skills.abstract_round_abci.models import ApiSpecs, BenchmarkTool
 from packages.valory.skills.apy_estimation_abci.behaviours import (
     APYEstimationBaseState,
-    APYEstimationConsensusBehaviour,
     CycleResetBehaviour,
     EstimateBehaviour,
+    EstimatorRoundBehaviour,
     FetchBatchBehaviour,
     FetchBehaviour,
     FreshModelResetBehaviour,
@@ -72,7 +72,7 @@ from packages.valory.skills.apy_estimation_abci.tools.etl import ResponseItemTyp
 
 from tests.conftest import ROOT_DIR
 from tests.test_skills.base import FSMBehaviourBaseCase
-from tests.test_skills.test_apy_estimation.conftest import DummyPipeline
+from tests.test_skills.test_apy_estimation_abci.conftest import DummyPipeline
 
 
 SLEEP_TIME_TWEAK = 0.01
@@ -115,7 +115,7 @@ class APYEstimationFSMBehaviourBaseCase(FSMBehaviourBaseCase):
         ROOT_DIR, "packages", "valory", "skills", "apy_estimation_abci"
     )
 
-    behaviour: APYEstimationConsensusBehaviour
+    behaviour: EstimatorRoundBehaviour
     behaviour_class: Type[APYEstimationBaseState]
     next_behaviour_class: Type[APYEstimationBaseState]
     period_state: PeriodState
