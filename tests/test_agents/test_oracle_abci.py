@@ -17,7 +17,7 @@
 #
 # ------------------------------------------------------------------------------
 
-"""Integration tests for the valory/price_estimation_abci skill."""
+"""Integration tests for the valory/oracle_abci skill."""
 from tests.fixture_helpers import UseGnosisSafeHardHatNet
 from tests.test_agents.base import (
     BaseTestEnd2EndAgentCatchup,
@@ -61,11 +61,11 @@ class TestABCIPriceEstimationSingleAgent(
     BaseTestEnd2EndNormalExecution,
     UseGnosisSafeHardHatNet,
 ):
-    """Test that the ABCI price_estimation skill with only one agent."""
+    """Test that the ABCI oracle skill with only one agent."""
 
     NB_AGENTS = 1
-    agent_package = "valory/price_estimation:0.1.0"
-    skill_package = "valory/price_estimation_abci:0.1.0"
+    agent_package = "valory/oracle:0.1.0"
+    skill_package = "valory/oracle_abci:0.1.0"
     wait_to_finish = 180
     strict_check_strings = STRICT_CHECK_STRINGS
     round_check_strings_to_n_periods = EXPECTED_ROUND_LOG_COUNT
@@ -75,11 +75,11 @@ class TestABCIPriceEstimationTwoAgents(
     BaseTestEnd2EndNormalExecution,
     UseGnosisSafeHardHatNet,
 ):
-    """Test that the ABCI price_estimation skill with two agents."""
+    """Test that the ABCI oracle skill with two agents."""
 
     NB_AGENTS = 2
-    agent_package = "valory/price_estimation:0.1.0"
-    skill_package = "valory/price_estimation_abci:0.1.0"
+    agent_package = "valory/oracle:0.1.0"
+    skill_package = "valory/oracle_abci:0.1.0"
     wait_to_finish = 180
     strict_check_strings = STRICT_CHECK_STRINGS
     round_check_strings_to_n_periods = EXPECTED_ROUND_LOG_COUNT
@@ -89,11 +89,11 @@ class TestABCIPriceEstimationFourAgents(
     BaseTestEnd2EndNormalExecution,
     UseGnosisSafeHardHatNet,
 ):
-    """Test that the ABCI price_estimation skill with four agents."""
+    """Test that the ABCI oracle skill with four agents."""
 
     NB_AGENTS = 4
-    agent_package = "valory/price_estimation:0.1.0"
-    skill_package = "valory/price_estimation_abci:0.1.0"
+    agent_package = "valory/oracle:0.1.0"
+    skill_package = "valory/oracle_abci:0.1.0"
     wait_to_finish = 180
     strict_check_strings = STRICT_CHECK_STRINGS
     round_check_strings_to_n_periods = EXPECTED_ROUND_LOG_COUNT
@@ -103,8 +103,8 @@ class TestAgentCatchup(BaseTestEnd2EndAgentCatchup, UseGnosisSafeHardHatNet):
     """Test that an agent that is launched later can synchronize with the rest of the network"""
 
     NB_AGENTS = 4
-    agent_package = "valory/price_estimation:0.1.0"
-    skill_package = "valory/price_estimation_abci:0.1.0"
+    agent_package = "valory/oracle:0.1.0"
+    skill_package = "valory/oracle_abci:0.1.0"
     KEEPER_TIMEOUT = 10
     wait_to_finish = 180
     restart_after = 45
