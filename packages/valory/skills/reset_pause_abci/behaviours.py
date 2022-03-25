@@ -129,7 +129,9 @@ class ResetAndPauseBehaviour(ResetAndPauseBaseState):
                         self.context.logger.info(
                             "Resetting tendermint node successful! Resetting local blockchain."
                         )
-                        self.context.state.period.reset_blockchain()
+                        self.context.state.period.reset_blockchain(
+                            response.get("is_replay", False)
+                        )
                         self.context.state.period.abci_app.cleanup(
                             self.params.cleanup_history_depth
                         )

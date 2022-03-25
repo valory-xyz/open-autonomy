@@ -16,15 +16,5 @@
 #   limitations under the License.
 #
 # ------------------------------------------------------------------------------
-"""Configurations for chained APY skill's tests."""
-from unittest import mock
 
-import pytest
-
-from packages.valory.skills.apy_estimation_chained_abci.models import SharedState
-
-
-@pytest.fixture
-def shared_state() -> SharedState:
-    """Initialize a test shared state."""
-    return SharedState(name="", skill_context=mock.MagicMock())
+"""Tests for valory/liquidity_provision_abci skill."""
