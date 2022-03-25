@@ -23,7 +23,6 @@ label: packages.valory.skills.liquidity_provision_abci.composition.LiquidityProv
 start_states:
 - RegistrationStartupRound
 states:
-- CheckLateTxHashesRound
 - CheckTransactionHistoryRound
 - CollectSignatureRound
 - DeploySafeRound
@@ -47,16 +46,11 @@ states:
 - ValidateSafeRound
 - ValidateTransactionRound
 transition_func:
-    (CheckLateTxHashesRound, DONE): ResetAndPauseRound
-    (CheckLateTxHashesRound, NEGATIVE): RegistrationRound
-    (CheckLateTxHashesRound, NONE): RegistrationRound
-    (CheckLateTxHashesRound, NO_MAJORITY): RegistrationRound
-    (CheckLateTxHashesRound, ROUND_TIMEOUT): CheckLateTxHashesRound
     (CheckTransactionHistoryRound, CHECK_LATE_ARRIVING_MESSAGE): SynchronizeLateMessagesRound
     (CheckTransactionHistoryRound, DONE): ResetAndPauseRound
-    (CheckTransactionHistoryRound, NEGATIVE): RegistrationRound
+    (CheckTransactionHistoryRound, NEGATIVE): SelectKeeperTransactionSubmissionRoundB
     (CheckTransactionHistoryRound, NONE): RegistrationRound
-    (CheckTransactionHistoryRound, NO_MAJORITY): RegistrationRound
+    (CheckTransactionHistoryRound, NO_MAJORITY): CheckTransactionHistoryRound
     (CheckTransactionHistoryRound, ROUND_TIMEOUT): CheckTransactionHistoryRound
     (CollectSignatureRound, DONE): FinalizationRound
     (CollectSignatureRound, NO_MAJORITY): ResetRound
@@ -115,7 +109,7 @@ transition_func:
     (SwapBackTransactionHashRound, DONE): RandomnessTransactionSubmissionRound
     (SwapBackTransactionHashRound, NO_MAJORITY): StrategyEvaluationRound
     (SwapBackTransactionHashRound, ROUND_TIMEOUT): StrategyEvaluationRound
-    (SynchronizeLateMessagesRound, DONE): CheckLateTxHashesRound
+    (SynchronizeLateMessagesRound, DONE): CheckTransactionHistoryRound
     (SynchronizeLateMessagesRound, MISSED_AND_LATE_MESSAGES_MISMATCH): RegistrationRound
     (SynchronizeLateMessagesRound, NONE): RegistrationRound
     (SynchronizeLateMessagesRound, NO_MAJORITY): SynchronizeLateMessagesRound
