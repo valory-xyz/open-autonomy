@@ -99,17 +99,16 @@ class IPFSInteract:
         if multiple:
             # IPFS tool creates a folder named as the basename of `target_dir` inside `target_dir`.
             filepath = os.path.join(target_dir, os.path.basename(target_dir))
-            remove_path = target_dir
         elif filename is not None:
-            filepath = remove_path = os.path.join(target_dir, filename)
+            filepath = os.path.join(target_dir, filename)
         else:  # pragma: no cover
             raise IPFSInteractionError(
                 "Filename cannot be `None` when uploading a single file!"
             )
 
-        if os.path.exists(remove_path):  # pragma: no cover
+        if os.path.exists(target_dir):  # pragma: no cover
             # TODO investigate why sometimes the path exists. It shouldn't, because `_send` removes it.
-            self.__remove_filepath(remove_path)
+            self.__remove_filepath(target_dir)
 
         try:
             self.__ipfs_tool.download(hash_, target_dir)
