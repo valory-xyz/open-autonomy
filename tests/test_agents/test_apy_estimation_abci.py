@@ -89,3 +89,4 @@ class TestABCIAPYEstimationFourAgents(
     """Test that the ABCI apy_estimation_abci skill with four agents."""
 
     NB_AGENTS = 4
+    wait_to_finish = 300
