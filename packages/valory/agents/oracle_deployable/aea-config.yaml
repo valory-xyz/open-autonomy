@@ -1,4 +1,4 @@
-agent_name: oracle
+agent_name: oracle_deployable
 author: valory
 version: 0.1.0
 license: Apache-2.0
