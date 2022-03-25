@@ -114,7 +114,7 @@ class TestForecasting:
         for (id_actual, forecaster_actual), id_expected in zip(
             forecasters.items(), train_task_input.keys()
         ):
-            assert id_actual == id_expected
+            assert id_actual == id_expected.replace(".csv", ".joblib")
             assert type(forecaster_actual) == Pipeline
             # must return the trained forecaster received from `train_forecaster`
             assert forecaster_actual == trained_forecaster
