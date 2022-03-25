@@ -18,6 +18,7 @@
 # ------------------------------------------------------------------------------
 
 """Test forecasting operations."""
+import re
 from copy import deepcopy
 from typing import Any
 
@@ -25,7 +26,9 @@ import numpy as np
 import pandas as pd
 import pytest
 from _pytest.monkeypatch import MonkeyPatch
+from pmdarima import ARIMA
 from pmdarima.pipeline import Pipeline
+from pmdarima.preprocessing import FourierFeaturizer
 
 from packages.valory.skills.apy_estimation_abci.ml.forecasting import (
     PoolIdToTrainDataType,
@@ -33,6 +36,7 @@ from packages.valory.skills.apy_estimation_abci.ml.forecasting import (
     calc_metrics,
     estimate_apy_per_pool,
     init_forecaster,
+    predict_safely,
     report_metrics,
 )
 from packages.valory.skills.apy_estimation_abci.ml.forecasting import (
@@ -277,3 +281,61 @@ class TestForecasting:
             index=[f"Step{i + 1} into the future" for i in range(steps_forward)],
         )
         pd.testing.assert_frame_equal(estimates, expected_estimates)
+
+    def test_predict_safely(self) -> None:
+        """
+        Test `predict_safely`.
+
+        Also prove that it is useful because of https://github.com/alkaline-ml/pmdarima/issues/404.
+        """
+        model = Pipeline(
+            steps=[
+                ("fourier", FourierFeaturizer(k=7, m=18)),
+                (
+                    "arima",
+                    ARIMA(maxiter=150, order=(2, 3, 1), suppress_warnings=True),
+                ),
+            ]
+        )
+        y = np.array(
+            [
+                54.45259405,
+                39.58028345,
+                112.03066299,
+                83.96699996,
+                71.94854887,
+                64.0529859,
+                62.5824148,
+                63.28134798,
+                58.36879572,
+                64.20712075,
+                47.35538343,
+                42.33252369,
+                31.86261839,
+                109.74997567,
+                51.63416935,
+                36.53481234,
+                39.73377418,
+                50.0544746,
+                39.7898384,
+                35.02107716,
+                49.87511512,
+            ]
+        )
+        steps_forward = 1
+
+        # Fit model with data.
+        model.fit(y)
+
+        # Prove that the `pmdarima` would raise.
+        with pytest.raises(
+            ValueError,
+            match=re.escape(
+                "Input contains NaN, infinity or a value too large for dtype('float64')."
+            ),
+        ):
+            model.predict(steps_forward)
+
+        # Prove that `predict_safely` works as intended.
+        y_hat = predict_safely(model, steps_forward)
+        assert np.isnan(y_hat)
