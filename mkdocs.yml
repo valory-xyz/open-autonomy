@@ -13,7 +13,7 @@ strict: true
 
 nav:
   - Home: 'index.md'
-  - Preliminaries:
+  - Concepts:
     - Autonomous Economic Agents:
       - Introduction: 'aea.md'
       - Implementation: 'aea-implementation.md'
@@ -34,7 +34,8 @@ nav:
       - Introduction: 'price_estimation_demo.md'
       - How it works: 'price_estimation.md'
       - FSM specification: 'fsm_diagram.md'
-  - Requirements and set-up: 'requirements.md'
+  - Preliminaries:
+    - Requirements and set-up: 'requirements.md'
   - Miscellaneous:
     - Ethereum: 'ethereum_specifics.md'
     - Delegate call vs call: 'delegate_call.md'
