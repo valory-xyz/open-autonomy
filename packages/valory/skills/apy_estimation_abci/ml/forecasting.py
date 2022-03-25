@@ -94,8 +94,9 @@ def train_forecaster_per_pool(
     """
     forecasters = {}
     for id_, y in y_train.items():
-        id_.replace(".csv", ".joblib")
-        forecasters[id_] = train_forecaster(y, **best_params[id_])
+        forecasters[id_.replace(".csv", ".joblib")] = train_forecaster(
+            y, **best_params[id_]
+        )
     return forecasters
 
 
@@ -236,7 +237,13 @@ def test_forecaster_per_pool(
 ) -> PoolIdToTestReportType:
     """Test the trained forecasters of the given pools and compare them with a Naive Baseline method."""
     return {
-        id_: test_forecaster(forecaster, y_train[id_], y_test[id_], id_, steps_forward)
+        id_: test_forecaster(
+            forecaster,
+            y_train[id_.replace(".joblib", ".csv")],
+            y_test[id_.replace(".joblib", ".csv")],
+            id_.replace(".joblib", ""),
+            steps_forward,
+        )
         for id_, forecaster in forecasters.items()
     }
 
@@ -290,7 +297,7 @@ def update_forecaster_per_pool(
     :param forecasters: the forecasters to update.
     """
     for id_ in forecasters.keys():
-        apy = y.loc[y["id"] == id_, "APY"]
+        apy = y.loc[y["id"] == id_.replace(".joblib", ".csv"), "APY"]
         forecasters[id_].update(apy)
 
 
@@ -306,7 +313,7 @@ def estimate_apy_per_pool(
     """
     estimates = {}
     for id_, forecaster in forecasters.items():
-        id_.replace(".csv", "")
+        id_ = id_.replace(".joblib", "")
         estimates[id_] = predict_safely(forecaster, steps_forward)
     return pd.DataFrame(
         estimates, index=[f"Step{i + 1} into the future" for i in range(steps_forward)]
