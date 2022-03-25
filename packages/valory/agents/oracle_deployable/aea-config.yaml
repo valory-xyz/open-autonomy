@@ -66,7 +66,7 @@ config:
   port: ${ABCI_PORT:int:26658}
   use_tendermint: ${ABCI_USE_TENDERMINT:bool:false}
 ---
-public_id: valory/price_estimation_abci:0.1.0
+public_id: valory/oracle_abci:0.1.0
 type: skill
 models:
   price_api:
