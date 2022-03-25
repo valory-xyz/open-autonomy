@@ -1,9 +1,7 @@
 # Consensus algorithms
 
-Consensus algorithms implements the [Valory](https://www.valory.xyz/) stack, a set of
-distributed consensus technologies built on top of the
-[open AEA framework](https://github.com/valory-xyz/open-aea) to facilitate the
-creation of dynamic, decentralised applications that depend on off-chain components.
+Consensus algorithms implements the [Valory](https://www.valory.xyz/) stack, which allows for the creation of autonomous applications that can be operated in a robust, transparent and decentralised way. The stack is realised on top of the
+[open AEA framework](https://github.com/valory-xyz/open-aea). It facilitates the creation of dynamic, decentralised applications that run off-chain.
 
 As opposed to traditional smart contracts, Valory apps go beyond simple, purely
 reactive applications and can show complex, proactive behaviours that contain
