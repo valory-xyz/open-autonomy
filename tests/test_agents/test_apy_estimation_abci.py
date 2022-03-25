@@ -50,8 +50,8 @@ EXPECTED_ROUND_LOG_COUNT = {
 class BaseTestABCIAPYEstimationSkillNormalExecution(BaseTestEnd2EndNormalExecution):
     """Base class for the APY estimation e2e tests."""
 
-    agent_package = "valory/apy_estimation:0.1.0"
-    skill_package = "valory/apy_estimation_abci:0.1.0"
+    agent_package = "valory/apy_estimation_chained:0.1.0"
+    skill_package = "valory/apy_estimation_chained_abci:0.1.0"
     round_check_strings_to_n_periods = EXPECTED_ROUND_LOG_COUNT
     ROUND_TIMEOUT_SECONDS = 120
     wait_to_finish = 240
