@@ -178,25 +178,30 @@ class TestForecasting:
             str(metric_value) in report for metric_value in set(metrics_res.values())
         )
 
-    def test_walk_forward_test(self) -> None:
+    @pytest.mark.parametrize("steps_forward", (-2, 1, 6, 8))
+    def test_walk_forward_test(self, steps_forward: int) -> None:
         """Test `walk_forward_test`."""
-        # Check with `steps_forward < 1`.
-        with pytest.raises(
-            ValueError, match="Timesteps to predict in the future cannot be -2 < 1."
-        ):
-            walk_forward_test(self._pipeline, np.empty(5), -2)
+        test_size = 5
+        params = self._pipeline, np.empty(test_size), steps_forward
+        expected_output_len = test_size if steps_forward <= test_size else steps_forward
+        if steps_forward < 0:
+            with pytest.raises(
+                ValueError, match="Timesteps to predict in the future cannot be -2 < 1."
+            ):
+                walk_forward_test(*params)
+        else:
+            if expected_output_len > test_size:
+                with pytest.warns(
+                    UserWarning,
+                    match="Timesteps to predict in the future are larger than the number of test samples "
+                    f"while using the Direct Multi-step Forecast Strategy: {steps_forward} > {test_size}",
+                ):
+                    predictions = walk_forward_test(*params)
+            else:
+                predictions = walk_forward_test(*params)
 
-        # Check with `steps_forward = 1`.
-        predictions = walk_forward_test(self._pipeline, np.empty(5))
-        assert isinstance(predictions, np.ndarray)
-        assert len(predictions) == 5
-
-        # Check with `steps_forward > 1`.
-        steps_forward = 4
-        predictions = walk_forward_test(self._pipeline, np.empty(5), steps_forward)
-        assert isinstance(predictions, np.ndarray)
-
-        assert len(predictions) == 8
+            assert isinstance(predictions, np.ndarray)
+            assert len(predictions) == expected_output_len
 
     def test_test_forecaster_per_pool(
         self,
