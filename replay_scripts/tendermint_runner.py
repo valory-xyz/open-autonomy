@@ -1,11 +1,35 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+# ------------------------------------------------------------------------------
+#
+#   Copyright 2022 Valory AG
+#
+#   Licensed under the Apache License, Version 2.0 (the "License");
+#   you may not use this file except in compliance with the License.
+#   You may obtain a copy of the License at
+#
+#       http://www.apache.org/licenses/LICENSE-2.0
+#
+#   Unless required by applicable law or agreed to in writing, software
+#   distributed under the License is distributed on an "AS IS" BASIS,
+#   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#   See the License for the specific language governing permissions and
+#   limitations under the License.
+#
+# ------------------------------------------------------------------------------
+
+"""Script to build and run tendermint nodes from data dumps."""
+
 import json
-import os, click
-from pathlib import Path
+import os
 import shutil
 import signal
-import subprocess
+import subprocess  # nosec
 import time
+from pathlib import Path
 from typing import List, Optional
+
+import click
 from flask import Flask, jsonify
 
 
@@ -21,7 +45,7 @@ class TendermintRunner:
     """Run tednermint using the dump."""
 
     node_id: int
-    process: Optional[subprocess.Popen]
+    process: Optional[subprocess.Popen]  # nosec
     period: int = 0
     n_periods: int
 
@@ -62,9 +86,9 @@ class TendermintRunner:
         self,
     ) -> None:
         """Start tendermint process."""
-        self.process = subprocess.Popen(
+        self.process = subprocess.Popen(  # nosec
             [
-                TENDERMINT_BIN,
+                str(TENDERMINT_BIN),
                 "node",
                 f"--p2p.laddr=tcp://127.0.0.1:2663{self.node_id}",
                 f"--rpc.laddr=tcp://localhost:2664{self.node_id}",
@@ -73,7 +97,6 @@ class TendermintRunner:
                 "--home",
                 str(self.dump_dir / f"period_{self.period}" / f"node{self.node_id}"),
             ],
-            # stdout=subprocess.PIPE,
         )
 
     def stop(
@@ -111,7 +134,7 @@ class TendermintNetwork:
 
         self.number_of_nodes = len(list((dump_dir / "period_0").iterdir()))
         if self.number_of_nodes == 0:
-            raise FileNotFoundError(f"Can't find dumped nodes.")
+            raise FileNotFoundError("Can't find dumped nodes.")
 
         self.nodes = []
         self._recent_reset = True
@@ -183,7 +206,12 @@ def hard_reset(node_id: int):
     try:
         tendermint_network.update_period(node_id)
         app.logger.info(f"Restarted node {node_id}")
-        return jsonify({"message": "Reset successful.", "status": True}), 200
+        return (
+            jsonify(
+                {"message": "Reset successful.", "status": True, "is_replay": True}
+            ),
+            200,
+        )
     except RanOutOfDumpsToReplay:
         app.logger.info("Ran out of dumps to replay, Stopping the node.")
         tendermint_network.stop_node(node_id)
@@ -192,6 +220,7 @@ def hard_reset(node_id: int):
                 {
                     "message": "Ran out of dumps to replay, You can stop the agent replay now.",
                     "status": False,
+                    "is_replay": True,
                 }
             ),
             500,
@@ -201,9 +230,15 @@ def hard_reset(node_id: int):
 @app.get("/<int:node_id>/status")
 def status(node_id: int):
     """
+    Status
+
     This endpoint will imitate the tendermint RPC server's /status so the ABCI
     app doesn't get blocked in replay mode.
+
+    :param node_id: node id
+    :return: response
     """
+
     global tendermint_network
     return jsonify(
         {

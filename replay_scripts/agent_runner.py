@@ -1,10 +1,33 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+# ------------------------------------------------------------------------------
+#
+#   Copyright 2022 Valory AG
+#
+#   Licensed under the Apache License, Version 2.0 (the "License");
+#   you may not use this file except in compliance with the License.
+#   You may obtain a copy of the License at
+#
+#       http://www.apache.org/licenses/LICENSE-2.0
+#
+#   Unless required by applicable law or agreed to in writing, software
+#   distributed under the License is distributed on an "AS IS" BASIS,
+#   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#   See the License for the specific language governing permissions and
+#   limitations under the License.
+#
+# ------------------------------------------------------------------------------
+
+"""Script to build and run agents from docker-compose.yaml"""
+
 import os
 import signal
-import subprocess
+import subprocess  # nosec
+import sys
 import time
 from pathlib import Path
 from tempfile import TemporaryDirectory
-from typing import Dict, Optional
+from typing import Dict, List, Optional
 
 import click
 import yaml
@@ -20,7 +43,8 @@ class AgentRunner:
     agent_id: int
     agent_data: Dict[str, str]
     registry_path: Path
-    process: Optional[subprocess.Popen]
+    process: Optional[subprocess.Popen]  # nosec
+    aea_cli: List[str] = [sys.executable, "-m", "aea.cli"]
 
     def __init__(self, agent_id: int, agent_data: Dict, registry_path: Path) -> None:
         """Initialize object."""
@@ -30,6 +54,7 @@ class AgentRunner:
         self.registry_path = registry_path
         self.agent_env = os.environ.copy()
         self.agent_dir = TemporaryDirectory()
+        self.cwd = Path(".").resolve().absolute()
 
         agent_env_data = self.agent_data["environment"]
         for env_var in agent_env_data:
@@ -47,17 +72,12 @@ class AgentRunner:
         """Start process."""
 
         agent_dir = Path(self.agent_dir.name)
-
         os.chdir(agent_dir)
-        subprocess.run(
-            ["cowsay", f"Loading {self.agent_env['VALORY_APPLICATION']}"],
-            env=self.agent_env,
-        )
-        subprocess.run(
+
+        print(f"Loading {self.agent_env['VALORY_APPLICATION']}")
+        subprocess.run(  # nosec
             [
-                "python",
-                "-m",
-                "aea.cli",
+                *self.aea_cli,
                 "--registry-path",
                 str(self.registry_path),
                 "fetch",
@@ -73,15 +93,20 @@ class AgentRunner:
             self.agent_env["AEA_KEY"]
         )
 
-        subprocess.run(["aea", "add-key", "ethereum"], env=self.agent_env)
-        subprocess.run(["aea", "install"], env=self.agent_env)
-        self.process = subprocess.Popen(["aea", "run", "--aev"], env=self.agent_env)
+        subprocess.run(  # nosec
+            [*self.aea_cli, "add-key", "ethereum"], env=self.agent_env
+        )
+        subprocess.run([*self.aea_cli, "install"], env=self.agent_env)  # nosec
+        self.process = subprocess.Popen(  # nosec
+            [*self.aea_cli, "run", "--aev"], env=self.agent_env
+        )
 
     def stop(
         self,
     ) -> None:
         """Stop the process."""
         self.agent_dir.cleanup()
+        os.chdir(str(self.cwd))
         if self.process is None:
             return
 
