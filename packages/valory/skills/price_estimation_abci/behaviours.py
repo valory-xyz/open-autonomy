@@ -34,12 +34,6 @@ from packages.valory.skills.abstract_round_abci.behaviours import (
     AbstractRoundBehaviour,
     BaseState,
 )
-from packages.valory.skills.oracle_deployment_abci.behaviours import (
-    OracleDeploymentRoundBehaviour,
-)
-from packages.valory.skills.price_estimation_abci.composition import (
-    PriceEstimationAbciApp,
-)
 from packages.valory.skills.price_estimation_abci.models import Params
 from packages.valory.skills.price_estimation_abci.payloads import (
     EstimatePayload,
@@ -52,19 +46,6 @@ from packages.valory.skills.price_estimation_abci.rounds import (
     PeriodState,
     PriceAggregationAbciApp,
     TxHashRound,
-)
-from packages.valory.skills.registration_abci.behaviours import (
-    AgentRegistrationRoundBehaviour,
-    RegistrationStartupBehaviour,
-)
-from packages.valory.skills.reset_pause_abci.behaviours import (
-    ResetPauseABCIConsensusBehaviour,
-)
-from packages.valory.skills.safe_deployment_abci.behaviours import (
-    SafeDeploymentRoundBehaviour,
-)
-from packages.valory.skills.transaction_settlement_abci.behaviours import (
-    TransactionSettlementRoundBehaviour,
 )
 from packages.valory.skills.transaction_settlement_abci.payload_tools import (
     hash_payload_to_hex,
@@ -418,19 +399,4 @@ class ObserverRoundBehaviour(AbstractRoundBehaviour):
         ObserveBehaviour,  # type: ignore
         EstimateBehaviour,  # type: ignore
         TransactionHashBehaviour,  # type: ignore
-    }
-
-
-class PriceEstimationConsensusBehaviour(AbstractRoundBehaviour):
-    """This behaviour manages the consensus stages for the price estimation."""
-
-    initial_state_cls = RegistrationStartupBehaviour
-    abci_app_cls = PriceEstimationAbciApp  # type: ignore
-    behaviour_states: Set[Type[BaseState]] = {
-        *OracleDeploymentRoundBehaviour.behaviour_states,
-        *AgentRegistrationRoundBehaviour.behaviour_states,
-        *SafeDeploymentRoundBehaviour.behaviour_states,
-        *TransactionSettlementRoundBehaviour.behaviour_states,
-        *ResetPauseABCIConsensusBehaviour.behaviour_states,
-        *ObserverRoundBehaviour.behaviour_states,
     }

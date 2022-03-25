@@ -81,12 +81,13 @@ nav:
         - Rounds: 'api/skills/oracle_deployment_abci/rounds.md'
       - Price Estimation ABCI:
         - Behaviours: 'api/skills/price_estimation_abci/behaviours.md'
-        - Composition: 'api/skills/price_estimation_abci/composition.md'
         - Dialogues: 'api/skills/price_estimation_abci/dialogues.md'
         - Handlers: 'api/skills/price_estimation_abci/handlers.md'
         - Models: 'api/skills/price_estimation_abci/models.md'
         - Payloads: 'api/skills/price_estimation_abci/payloads.md'
         - Rounds: 'api/skills/price_estimation_abci/rounds.md'
+      - Oracle ABCI:
+        - Composition: 'api/skills/oracle_abci/composition.md'
       - Registration ABCI:
         - Behaviours: 'api/skills/registration_abci/behaviours.md'
         - Payloads: 'api/skills/registration_abci/payloads.md'

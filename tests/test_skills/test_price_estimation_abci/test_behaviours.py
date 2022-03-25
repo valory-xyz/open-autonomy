@@ -38,7 +38,10 @@ from packages.valory.contracts.offchain_aggregator.contract import (
 )
 from packages.valory.protocols.contract_api.message import ContractApiMessage
 from packages.valory.skills.abstract_round_abci.base import StateDB
-from packages.valory.skills.abstract_round_abci.behaviour_utils import BaseState
+from packages.valory.skills.abstract_round_abci.behaviour_utils import (
+    BaseState,
+    make_degenerate_state,
+)
 from packages.valory.skills.price_estimation_abci.behaviours import (
     EstimateBehaviour,
     ObserveBehaviour,
@@ -46,12 +49,12 @@ from packages.valory.skills.price_estimation_abci.behaviours import (
     pack_for_server,
 )
 from packages.valory.skills.price_estimation_abci.payloads import ObservationPayload
-from packages.valory.skills.price_estimation_abci.rounds import Event
+from packages.valory.skills.price_estimation_abci.rounds import (
+    Event,
+    FinishedPriceAggregationRound,
+)
 from packages.valory.skills.price_estimation_abci.rounds import (
     PeriodState as PriceEstimationPeriodState,
-)
-from packages.valory.skills.transaction_settlement_abci.behaviours import (
-    RandomnessTransactionSubmissionBehaviour,
 )
 
 from tests.conftest import ROOT_DIR
@@ -461,7 +464,10 @@ class TestTransactionHashBehaviour(PriceEstimationFSMBehaviourBaseCase):
         self._test_done_flag_set()
         self.end_round(Event.DONE)
         state = cast(BaseState, self.behaviour.current_state)
-        assert state.state_id == RandomnessTransactionSubmissionBehaviour.state_id
+        assert (
+            state.state_id
+            == make_degenerate_state(FinishedPriceAggregationRound.round_id).state_id
+        )
 
 
 class TestPackForServer(PriceEstimationFSMBehaviourBaseCase):
