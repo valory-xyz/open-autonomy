@@ -1,23 +1,22 @@
-name: "price_estimation_ropsten"
+name: "oracle_hardhat"
 author: "valory"
 version: 0.1.0
-agent: "valory/price_estimation_deployable:0.1.0"
-network: ropsten
+agent: "valory/oracle_deployable:0.1.0"
+network: hardhat
 number_of_agents: 4
 ---
-period_setup_args: &period_setup_args
+observation_params: &observation_params
   args:
-    period_setup:
-      safe_contract_address: "0x4826E4ddEeE65bc27034602a6050486fBE920707"
-      oracle_contract_address: "0x3f9F36ECb03ded97328FC7747292D6D03dFE3D46"
-    max_healthcheck: 43200
-    broadcast_to_server: true
+    observation_interval: 30
+    broadcast_to_server: false
+
 
 valory_monitoring_backend: &monitoring_backend
   args:
-    url: 'https://oracle-server.autonolas.tech/deposit'
+    url: 'https://staging.oracle-server.autonolas.tech/deposit'
 
-public_id: valory/price_estimation_abci:0.1.0
+
+public_id: valory/oracle_abci:0.1.0
 type: skill
 models:
   0:
@@ -33,7 +32,7 @@ models:
           url: "https://drand.cloudflare.com/public/latest"
           api_id: "cloudflare"
     - params:
-        <<: *period_setup_args
+       <<: *observation_params
     - server_api:
        <<: *monitoring_backend
   1:
@@ -49,9 +48,9 @@ models:
           url: "https://api.drand.sh/public/latest"
           api_id: "protocollabs1"
     - params:
-        <<: *period_setup_args
+        <<: *observation_params
     - server_api:
-       <<: *monitoring_backend
+        <<: *monitoring_backend
   2:
     - price_api:
         args:
@@ -65,9 +64,9 @@ models:
           url: "https://api2.drand.sh/public/latest"
           api_id: "protocollabs2"
     - params:
-        <<: *period_setup_args
+        <<: *observation_params
     - server_api:
-       <<: *monitoring_backend
+        <<: *monitoring_backend
   3:
     - price_api:
         args:
@@ -79,8 +78,8 @@ models:
     - randomness_api:
         args:
           url: "https://api3.drand.sh/public/latest"
-          api_id: "protocollabs2"
+          api_id: "protocollabs3"
     - params:
-        <<: *period_setup_args
+        <<: *observation_params
     - server_api:
-       <<: *monitoring_backend
+        <<: *monitoring_backend
