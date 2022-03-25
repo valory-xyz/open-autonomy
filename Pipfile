@@ -58,7 +58,6 @@ numpy = "<1.22,>=1.21.4"
 optuna = "<2.11,>=2.10.0"
 joblib = "<1.2,>=1.1.0"
 Flask= "==2.0.2"
-jinja2 = "==3.0.0"
 
 [requires]
 python_version = "3.8"
