@@ -508,18 +508,18 @@ class APYEstimationAbciApp(AbciApp[Event]):  # pylint: disable=too-few-public-me
             - done: 1.
             - no majority: 0.
             - round timeout: 0.
-            - file error: 14.
-            - network error: 14.
+            - file error: 13.
+            - network error: 13.
         1. TransformRound
             - done: 2.
             - no majority: 1.
             - round timeout: 1.
-            - file error: 14.
+            - file error: 13.
         2. PreprocessRound
             - done: 3.
             - no majority: 2.
             - round timeout: 2.
-            - file error: 14.
+            - file error: 13.
         3. RandomnessRound
             - done: 4.
             - randomness invalid: 3.
@@ -529,24 +529,24 @@ class APYEstimationAbciApp(AbciApp[Event]):  # pylint: disable=too-few-public-me
             - done: 5.
             - no majority: 4.
             - round timeout: 4.
-            - file error: 14.
+            - file error: 13.
         5. TrainRound
             - fully trained: 7.
             - done: 6.
             - no majority: 5.
             - round timeout: 5.
-            - file error: 14.
+            - file error: 13.
         6. TestRound
             - done: 5.
             - no majority: 6.
             - round timeout: 6.
-            - file error: 14.
+            - file error: 13.
         7. EstimateRound
             - done: 8.
             - estimation cycle: 9.
             - round timeout: 7.
             - no majority: 7.
-            - file error: 14.
+            - file error: 13.
         8. FreshModelResetRound
             - done: 0.
             - round timeout: 8.
@@ -559,22 +559,21 @@ class APYEstimationAbciApp(AbciApp[Event]):  # pylint: disable=too-few-public-me
             - done: 11.
             - round timeout: 10.
             - no majority: 10.
-            - file error: 14.
-            - network error: 14.
+            - file error: 13.
+            - network error: 13.
         11. PrepareBatchRound
             - done: 12.
             - round timeout: 11.
             - no majority: 11.
-            - file error: 14.
+            - file error: 13.
         12. UpdateForecasterRound
             - done: 7.
             - round timeout: 12.
             - no majority: 12.
-            - file error: 14.
-        13. FinishedAPYEstimationRound
-        14. FailedAPYRound
+            - file error: 13.
+        13. FailedAPYRound
 
-    Final states: {FailedAPYRound, FinishedAPYEstimationRound}
+    Final states: {FailedAPYRound}
 
     Timeouts:
         round timeout: 30.0
@@ -663,10 +662,9 @@ class APYEstimationAbciApp(AbciApp[Event]):  # pylint: disable=too-few-public-me
             Event.NO_MAJORITY: UpdateForecasterRound,
             Event.FILE_ERROR: FailedAPYRound,
         },
-        FinishedAPYEstimationRound: {},
         FailedAPYRound: {},
     }
-    final_states: Set[AppState] = {FinishedAPYEstimationRound, FailedAPYRound}
+    final_states: Set[AppState] = {FailedAPYRound}
     event_to_timeout: Dict[Event, float] = {
         Event.ROUND_TIMEOUT: 30.0,
         Event.RESET_TIMEOUT: 30.0,

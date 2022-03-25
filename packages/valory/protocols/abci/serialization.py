@@ -48,7 +48,7 @@ class AbciSerializer(Serializer):
     """Serialization for the 'abci' protocol."""
 
     @staticmethod
-    def encode(msg: Message) -> bytes:  # pylint: disable=too-many-branches
+    def encode(msg: Message) -> bytes:
         """
         Encode a 'Abci' message into bytes.
 
@@ -349,7 +349,7 @@ class AbciSerializer(Serializer):
         return message_bytes
 
     @staticmethod
-    def decode(obj: bytes) -> Message:  # pylint: disable=too-many-branches
+    def decode(obj: bytes) -> Message:
         """
         Decode bytes into a 'Abci' message.
 

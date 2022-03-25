@@ -293,6 +293,16 @@ It can be optionally implemented by the concrete classes.
 
 - `message`: the late arriving message to handle.
 
+<a id="packages.valory.skills.abstract_round_abci.behaviour_utils.RPCResponseStatus"></a>
+
+## RPCResponseStatus Objects
+
+```python
+class RPCResponseStatus(Enum)
+```
+
+A custom status of an RPC response.
+
 <a id="packages.valory.skills.abstract_round_abci.behaviour_utils.BaseState"></a>
 
 ## BaseState Objects
@@ -557,7 +567,7 @@ message signature
 #### send`_`raw`_`transaction
 
 ```python
-def send_raw_transaction(transaction: RawTransaction) -> Generator[None, None, Optional[str]]
+def send_raw_transaction(transaction: RawTransaction) -> Generator[None, None, Tuple[Optional[str], RPCResponseStatus]]
 ```
 
 Send raw transactions to the ledger for mining.

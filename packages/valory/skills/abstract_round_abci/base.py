@@ -63,6 +63,7 @@ OK_CODE = 0
 ERROR_CODE = 1
 LEDGER_API_ADDRESS = str(LEDGER_CONNECTION_PUBLIC_ID)
 ROUND_COUNT_DEFAULT = -1
+MIN_HISTORY_DEPTH = 1
 
 EventType = TypeVar("EventType")
 TransactionType = TypeVar("TransactionType")
@@ -549,6 +550,14 @@ class StateDB:
     def __repr__(self) -> str:
         """Return a string representation of the state."""
         return f"StateDB({self._data})"
+
+    def cleanup(self, cleanup_history_depth: int) -> None:
+        """Reset the db."""
+        cleanup_history_depth = max(cleanup_history_depth, MIN_HISTORY_DEPTH)
+        self._data = {
+            key: self._data[key]
+            for key in sorted(self._data.keys())[-cleanup_history_depth:]
+        }
 
 
 class BasePeriodState:
@@ -1602,6 +1611,7 @@ class AbciApp(
         self._current_round: Optional[AbstractRound] = None
         self._last_round: Optional[AbstractRound] = None
         self._previous_rounds: List[AbstractRound] = []
+        self._current_round_height: int = 0
         self._round_results: List[BasePeriodState] = []
         self._last_timestamp: Optional[datetime.datetime] = None
         self._current_timeout_entries: List[int] = []
@@ -1658,6 +1668,10 @@ class AbciApp(
         self.logger.info(
             f"'{self.current_round.round_id}' round is done with event: {event}"
         )
+
+    def _extend_previous_rounds_with_current_round(self) -> None:
+        self._previous_rounds.append(self.current_round)
+        self._current_round_height += 1
 
     def _schedule_round(self, round_cls: AppState) -> None:
         """
@@ -1735,7 +1749,7 @@ class AbciApp(
     @property
     def current_round_height(self) -> int:
         """Get the current round height."""
-        return len(self._previous_rounds)
+        return self._current_round_height
 
     @property
     def last_round_id(self) -> Optional[str]:
@@ -1785,7 +1799,7 @@ class AbciApp(
         next_round_cls = self.transition_function[self._current_round_cls].get(
             event, None
         )
-        self._previous_rounds.append(self.current_round)
+        self._extend_previous_rounds_with_current_round()
         if result is not None:
             self._round_results.append(result)
         else:
@@ -1853,6 +1867,17 @@ class AbciApp(
         # new block's timestamp
         self._last_timestamp = timestamp
         self.logger.debug("final AbciApp time: %s", self._last_timestamp)
+
+    def cleanup(self, cleanup_history_depth: int) -> None:
+        """Clear data."""
+        if len(self._round_results) != len(self._previous_rounds):
+            raise ABCIAppInternalError("Inconsistent round lengths")  # pragma: nocover
+        # we need at least the last round result, and for symmetry we impose the same condition
+        # on previous rounds and state.db
+        cleanup_history_depth = max(cleanup_history_depth, MIN_HISTORY_DEPTH)
+        self._previous_rounds = self._previous_rounds[-cleanup_history_depth:]
+        self._round_results = self._round_results[-cleanup_history_depth:]
+        self.state.db.cleanup(cleanup_history_depth)
 
 
 class Period:
@@ -2067,10 +2092,12 @@ class Period:
         except AddBlockError as exception:
             raise exception
 
-    def reset_blockchain(
-        self,
-    ) -> None:
+    def reset_blockchain(self, is_replay: bool = False) -> None:
         """Reset blockchain after tendermint reset."""
+        if is_replay:  # pragma: nocover
+            self._block_construction_phase = (
+                Period._BlockConstructionState.WAITING_FOR_BEGIN_BLOCK
+            )
         self._blockchain = Blockchain()
 
     def _update_round(self) -> None:

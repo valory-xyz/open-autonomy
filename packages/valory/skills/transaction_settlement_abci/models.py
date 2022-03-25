@@ -24,7 +24,10 @@ from typing import Any, List, Optional
 from web3.types import Nonce
 
 from packages.valory.protocols.contract_api import ContractApiMessage
-from packages.valory.skills.abstract_round_abci.models import BaseParams
+from packages.valory.skills.abstract_round_abci.models import ApiSpecs, BaseParams
+from packages.valory.skills.abstract_round_abci.models import (
+    BenchmarkTool as BaseBenchmarkTool,
+)
 from packages.valory.skills.abstract_round_abci.models import Requests as BaseRequests
 from packages.valory.skills.abstract_round_abci.models import (
     SharedState as BaseSharedState,
@@ -32,6 +35,9 @@ from packages.valory.skills.abstract_round_abci.models import (
 from packages.valory.skills.transaction_settlement_abci.rounds import (
     TransactionSubmissionAbciApp,
 )
+
+
+BenchmarkTool = BaseBenchmarkTool
 
 
 class SharedState(BaseSharedState):
@@ -56,6 +62,10 @@ class TransactionParams(BaseParams):
         """Reset the transaction-related parameters."""
         self.nonce = None
         self.tip = None
+
+
+class RandomnessApi(ApiSpecs):
+    """A model that wraps ApiSpecs for randomness api specifications."""
 
 
 Requests = BaseRequests

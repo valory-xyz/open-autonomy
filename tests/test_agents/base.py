@@ -118,6 +118,13 @@ class BaseTestEnd2End(AEATestCaseMany, BaseTendermintTestClass):
             self.KEEPER_TIMEOUT,
             type_="float",
         )
+
+        self.set_config(
+            f"vendor.valory.skills.{PublicId.from_str(self.skill_package).name}.models.benchmark_tool.args.log_dir",
+            str(self.t),
+            type_="str",
+        )
+
         self.__set_extra_configs()
 
     def setup(self) -> None:
@@ -169,7 +176,7 @@ class BaseTestEnd2End(AEATestCaseMany, BaseTendermintTestClass):
         return full_strings
 
     @classmethod
-    def missing_from_output(
+    def missing_from_output(  # type: ignore
         cls,
         round_check_strings_to_n_periods: Optional[Dict[str, int]] = None,
         strict_check_strings: Tuple[str, ...] = (),

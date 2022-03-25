@@ -1,0 +1,36 @@
+alphabet_in:
+- DEPLOY_TIMEOUT
+- DONE
+- FAILED
+- NEGATIVE
+- NONE
+- NO_MAJORITY
+- ROUND_TIMEOUT
+- VALIDATE_TIMEOUT
+default_start_state: RandomnessSafeRound
+final_states:
+- FinishedSafeRound
+label: packages.valory.skills.safe_deployment_abci.rounds.SafeDeploymentAbciApp
+start_states:
+- RandomnessSafeRound
+states:
+- DeploySafeRound
+- FinishedSafeRound
+- RandomnessSafeRound
+- SelectKeeperSafeRound
+- ValidateSafeRound
+transition_func:
+    (DeploySafeRound, DEPLOY_TIMEOUT): SelectKeeperSafeRound
+    (DeploySafeRound, DONE): ValidateSafeRound
+    (DeploySafeRound, FAILED): SelectKeeperSafeRound
+    (RandomnessSafeRound, DONE): SelectKeeperSafeRound
+    (RandomnessSafeRound, NO_MAJORITY): RandomnessSafeRound
+    (RandomnessSafeRound, ROUND_TIMEOUT): RandomnessSafeRound
+    (SelectKeeperSafeRound, DONE): DeploySafeRound
+    (SelectKeeperSafeRound, NO_MAJORITY): RandomnessSafeRound
+    (SelectKeeperSafeRound, ROUND_TIMEOUT): RandomnessSafeRound
+    (ValidateSafeRound, DONE): FinishedSafeRound
+    (ValidateSafeRound, NEGATIVE): RandomnessSafeRound
+    (ValidateSafeRound, NONE): RandomnessSafeRound
+    (ValidateSafeRound, NO_MAJORITY): RandomnessSafeRound
+    (ValidateSafeRound, VALIDATE_TIMEOUT): RandomnessSafeRound

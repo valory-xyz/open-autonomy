@@ -426,6 +426,15 @@ class CleanUpBehaviour(SimpleBehaviour, ABC):
         )
 
 
+class RPCResponseStatus(Enum):
+    """A custom status of an RPC response."""
+
+    SUCCESS = 1
+    INCORRECT_NONCE = 2
+    UNDERPRICED = 3
+    UNCLASSIFIED_ERROR = 4
+
+
 class BaseState(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
     """Base class for FSM states."""
 
@@ -1176,7 +1185,7 @@ class BaseState(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
 
     def send_raw_transaction(
         self, transaction: RawTransaction
-    ) -> Generator[None, None, Optional[str]]:
+    ) -> Generator[None, None, Tuple[Optional[str], RPCResponseStatus]]:
         """
         Send raw transactions to the ledger for mining.
 
@@ -1208,21 +1217,20 @@ class BaseState(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
         if (
             signature_response.performative
             != SigningMessage.Performative.SIGNED_TRANSACTION
-        ):  # pragma: nocover
+        ):
             self.context.logger.error("Error when requesting transaction signature.")
-            return None
+            return None, RPCResponseStatus.UNCLASSIFIED_ERROR
         self._send_transaction_request(signature_response)
         transaction_digest_msg = yield from self.wait_for_message()
         if (
             transaction_digest_msg.performative
             != LedgerApiMessage.Performative.TRANSACTION_DIGEST
-        ):  # pragma: nocover
-            self.context.logger.error(
-                f"Error when requesting transaction digest: {transaction_digest_msg.message}"
-            )
-            return None
+        ):
+            error = f"Error when requesting transaction digest: {transaction_digest_msg.message}"
+            self.context.logger.error(error)
+            return None, self.__parse_rpc_error(error)
         tx_hash = transaction_digest_msg.transaction_digest.body
-        return tx_hash
+        return tx_hash, RPCResponseStatus.SUCCESS
 
     def get_transaction_receipt(
         self,
@@ -1354,6 +1362,15 @@ class BaseState(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
         self.context.outbox.put_message(message=contract_api_msg)
         response = yield from self.wait_for_message()
         return response
+
+    @staticmethod
+    def __parse_rpc_error(error: str) -> RPCResponseStatus:
+        """Parse an RPC error and return an `RPCResponseStatus`"""
+        if "replacement transaction underpriced" in error:
+            return RPCResponseStatus.UNDERPRICED
+        if "nonce too low" in error:
+            return RPCResponseStatus.INCORRECT_NONCE
+        return RPCResponseStatus.UNCLASSIFIED_ERROR
 
 
 class DegenerateState(BaseState, ABC):

@@ -370,6 +370,7 @@ class BaseDeployment:
             "MAX_PARTICIPANTS": self.number_of_agents,  # I believe that this is correct
             "TENDERMINT_URL": f"http://node{agent_n}:26657",
             "TENDERMINT_COM_URL": f"http://node{agent_n}:8080",
+            "ID": agent_n,
         }
 
     def generate_agent(self, agent_n: int) -> Dict[Any, Any]:

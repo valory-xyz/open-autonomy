@@ -9,10 +9,10 @@ fingerprint:
   README.md: QmYNXPppPSnW61ipqKNH8pyMh8qzTERwQaducYYq1dnBJb
   __init__.py: QmPuJK7gMKruSTcaYk9otrFncfD9h6vBZVoAtkwhTBgcxa
   abci_app_chain.py: QmeCPxwjec4pxtedv8NeG2Gmj58GY2GycXvgwfyjEyqPGm
-  base.py: QmQZT5a6QpE1M2VjLFxP3U8LqR5Jr3dJ2GTtMejJkSaUtR
-  behaviour_utils.py: QmWwmwkHcWL2VPvZwTkk1emTHoC3ZcSJpsdEjmt3UE6cBR
+  base.py: QmWppA8gC3DjEgFTsBNH9EyqkoSaa3neZy6W5EHa3DhDFC
+  behaviour_utils.py: Qmdj973VG7ZzHcFm71BE4GYaVnEq5kpCHxcHPRaje9cbM4
   behaviours.py: QmNVt88WsMUfvYs33dDzLWH18T1jUzWa9noczfcWfZd8bX
-  common.py: QmdoSkkkCRqoHX9T2rnPLpii5KVvEmibktKDik3pe2mNB7
+  common.py: QmartV9MEhNr4J5CpxXez3KiZr5umfZEk61ExcnsT9JtiT
   dialogues.py: QmemiTJxfwp2PFxFQyAUHTx8FsthhWL3mYgonBhC3cTjWH
   handlers.py: QmZ5g9Mc9wqTt3699yweN46XJN5XU5yQnurjGP9spwi3iL
   io/__init__.py: QmPfA2syTybFaGmmMMt5gevZHEXPyjVf7wR1UE22NzpZZ3
@@ -20,9 +20,9 @@ fingerprint:
   io/load.py: QmSa3vgVvQiMJabBvSnPjTMtYiDgrrHPugDGCvSf4kAfS3
   io/paths.py: QmT1e6Ygak8Fe4NxSrd2mb6EB1Rr6dsYZPL8dWh3aNMb12
   io/store.py: QmXHnLF1Jg2hmhUwYj4E4QoMmx6EoLhUtzEGqztLKtKFej
-  models.py: QmYfuSGHs5iKqhWmoKxM8FwQm25iRTmTE7conxs9zCwTFC
+  models.py: QmZykyriQHPxVornNU5tVAJkNgZDTTUrf6g936f93idJ5W
   serializer.py: QmV1rutPMEPbbMVwvM4My6s8fwT7S9KhgLTqrbjHLEfdJG
-  utils.py: QmTQgTJGJZT352mKxUgaVEdDEreh8Khd2MnXhoq6wzD5HD
+  utils.py: QmSWEFvrVYMYxkGT1LBh1b6yZPg5mZe5dqXqZcvxzwHZqD
 fingerprint_ignore_patterns: []
 connections:
 - valory/abci:0.1.0
@@ -63,6 +63,10 @@ models:
   api_specs:
     args: {}
     class_name: ApiSpecs
+  benchmark_tool:
+    args:
+      log_dir: /logs
+    class_name: BenchmarkTool
   contract_api_dialogues:
     args: {}
     class_name: ContractApiDialogues
@@ -85,7 +89,7 @@ dependencies:
   joblib:
     version: <1.2,>=1.1.0
   open-aea-cli-ipfs:
-    version: <2.0.0,>=1.5.0
+    version: <2.0.0,>=1.6.0
   pandas:
     version: <1.4,>=1.3.4
   pmdarima:

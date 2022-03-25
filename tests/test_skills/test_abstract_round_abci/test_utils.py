@@ -18,19 +18,9 @@
 # ------------------------------------------------------------------------------
 
 """Test the utils.py module of the skill."""
-import os
 from unittest import mock
 
-import pytest
-from aea.skills.base import AgentContext, SkillContext
-
-from packages.valory.skills.abstract_round_abci.utils import (
-    BenchmarkBehaviour,
-    BenchmarkBlock,
-    BenchmarkBlockTypes,
-    BenchmarkTool,
-    VerifyDrand,
-)
+from packages.valory.skills.abstract_round_abci.utils import VerifyDrand
 
 
 DRAND_PUBLIC_KEY: str = "868f005eb8e6e4ca0a47c8a77ceaa5309a47978a7c71bc5cce96366b5d7a569937c529eeda66c7293784a9402801af31"
@@ -49,72 +39,6 @@ DRAND_VALUE = {
         "44f02a416480dd117a3ff8b8075b1b7362c58af195573623187463"
     ),
 }
-
-
-def setup_mock_context() -> SkillContext:
-    """Setup mock skill context"""
-
-    agent_context = AgentContext(*(mock.Mock() for _ in range(13)))
-    agent_context._data_dir = os.getcwd()  # pylint: disable=W0212
-
-    skill_context = SkillContext()
-    skill_context.set_agent_context(agent_context)
-
-    return skill_context
-
-
-def setup_benchmark_tool() -> BenchmarkTool:
-    """Setup benchmark tool"""
-
-    tool = BenchmarkTool()
-    tool._context = setup_mock_context()
-
-    for state_id in "ab":
-        benchmark = BenchmarkBehaviour(mock.Mock())
-        block_type = BenchmarkBlockTypes.LOCAL
-        block = BenchmarkBlock(block_type)
-        block.start, block.total_time = 0.0, 1.0
-        benchmark.local_data[block_type] = block
-        tool.benchmark_data[state_id] = benchmark
-
-    return tool
-
-
-def test_data() -> None:
-    """Test data format benchmark tool"""
-
-    expected = [
-        {"behaviour": "a", "data": {"local": 1.0, "total": 1.0}},
-        {"behaviour": "b", "data": {"local": 1.0, "total": 1.0}},
-    ]
-
-    tool = setup_benchmark_tool()
-    assert tool.data == expected
-
-
-class TestBenchmark:
-    """Test the benchmark class."""
-
-    def test_end_2_end(self) -> None:
-        """Test end 2 end of the tool."""
-        benchmark = BenchmarkTool()
-
-        with pytest.raises(AttributeError):
-            benchmark.context
-
-        benchmark._context = setup_mock_context()
-        agent_dir = os.path.join(
-            benchmark.context._get_agent_context().data_dir  # pylint: disable=W0212
-        )
-        data_dir = os.path.join(agent_dir, "logs")
-        filepath = os.path.join(data_dir, "benchmark.json")
-
-        benchmark.save()
-
-        assert os.path.isdir(data_dir)
-        assert os.path.isfile(filepath)
-        os.remove(filepath)
-        os.rmdir(data_dir)
 
 
 class TestVerifyDrand:

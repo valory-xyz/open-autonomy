@@ -76,6 +76,10 @@ class OracleDeploymentAbciBaseCase(FSMBehaviourBaseCase):
 class TestRandomnessOracle(BaseRandomnessBehaviourTest):
     """Test randomness safe."""
 
+    path_to_skill = Path(
+        ROOT_DIR, "packages", "valory", "skills", "oracle_deployment_abci"
+    )
+
     randomness_behaviour_class = RandomnessOracleBehaviour
     next_behaviour_class = SelectKeeperOracleBehaviour
     done_event = OracleDeploymentEvent.DONE
@@ -83,6 +87,10 @@ class TestRandomnessOracle(BaseRandomnessBehaviourTest):
 
 class TestSelectKeeperOracleBehaviour(BaseSelectKeeperBehaviourTest):
     """Test SelectKeeperBehaviour."""
+
+    path_to_skill = Path(
+        ROOT_DIR, "packages", "valory", "skills", "oracle_deployment_abci"
+    )
 
     select_keeper_behaviour_class = SelectKeeperOracleBehaviour
     next_behaviour_class = DeployOracleBehaviour

@@ -34,13 +34,6 @@ from packages.valory.skills.abstract_round_abci.behaviours import (
     AbstractRoundBehaviour,
     BaseState,
 )
-from packages.valory.skills.abstract_round_abci.utils import BenchmarkTool
-from packages.valory.skills.oracle_deployment_abci.behaviours import (
-    OracleDeploymentRoundBehaviour,
-)
-from packages.valory.skills.price_estimation_abci.composition import (
-    PriceEstimationAbciApp,
-)
 from packages.valory.skills.price_estimation_abci.models import Params
 from packages.valory.skills.price_estimation_abci.payloads import (
     EstimatePayload,
@@ -54,22 +47,9 @@ from packages.valory.skills.price_estimation_abci.rounds import (
     PriceAggregationAbciApp,
     TxHashRound,
 )
-from packages.valory.skills.registration_abci.behaviours import (
-    AgentRegistrationRoundBehaviour,
-    RegistrationStartupBehaviour,
-)
-from packages.valory.skills.safe_deployment_abci.behaviours import (
-    SafeDeploymentRoundBehaviour,
-)
-from packages.valory.skills.transaction_settlement_abci.behaviours import (
-    TransactionSettlementRoundBehaviour,
-)
 from packages.valory.skills.transaction_settlement_abci.payload_tools import (
     hash_payload_to_hex,
 )
-
-
-benchmark_tool = BenchmarkTool()
 
 
 # This safeTxGas value is calculated from experimental values plus
@@ -127,16 +107,12 @@ class ObserveBehaviour(PriceEstimationBaseState):
 
         if self.context.price_api.is_retries_exceeded():
             # now we need to wait and see if the other agents progress the round, otherwise we should restart?
-            with benchmark_tool.measure(
-                self,
-            ).consensus():
+            with self.context.benchmark_tool.measure(self.state_id).consensus():
                 yield from self.wait_until_round_end()
             self.set_done()
             return
 
-        with benchmark_tool.measure(
-            self,
-        ).local():
+        with self.context.benchmark_tool.measure(self.state_id).local():
             api_specs = self.context.price_api.get_spec()
             response = yield from self.get_http_response(
                 method=api_specs["method"],
@@ -153,9 +129,7 @@ class ObserveBehaviour(PriceEstimationBaseState):
                 + f"{observation}"
             )
             payload = ObservationPayload(self.context.agent_address, observation)
-            with benchmark_tool.measure(
-                self,
-            ).consensus():
+            with self.context.benchmark_tool.measure(self.state_id).consensus():
                 yield from self.send_a2a_transaction(payload)
                 yield from self.wait_until_round_end()
             self.set_done()
@@ -192,9 +166,7 @@ class EstimateBehaviour(PriceEstimationBaseState):
         - Go to the next behaviour state (set done event).
         """
 
-        with benchmark_tool.measure(
-            self,
-        ).local():
+        with self.context.benchmark_tool.measure(self.state_id).local():
 
             self.period_state.set_aggregator_method(
                 self.params.observation_aggregator_function
@@ -210,9 +182,7 @@ class EstimateBehaviour(PriceEstimationBaseState):
                 self.context.agent_address, self.period_state.estimate
             )
 
-        with benchmark_tool.measure(
-            self,
-        ).consensus():
+        with self.context.benchmark_tool.measure(self.state_id).consensus():
             yield from self.send_a2a_transaction(payload)
             yield from self.wait_until_round_end()
 
@@ -269,15 +239,11 @@ class TransactionHashBehaviour(PriceEstimationBaseState):
         - Go to the next behaviour state (set done event).
         """
 
-        with benchmark_tool.measure(
-            self,
-        ).local():
+        with self.context.benchmark_tool.measure(self.state_id).local():
             payload_string = yield from self._get_safe_tx_hash()
             payload = TransactionHashPayload(self.context.agent_address, payload_string)
 
-        with benchmark_tool.measure(
-            self,
-        ).consensus():
+        with self.context.benchmark_tool.measure(self.state_id).consensus():
             if self.params.is_broadcasting_to_server:
                 yield from self.send_to_server()
             yield from self.send_a2a_transaction(payload)
@@ -434,22 +400,3 @@ class ObserverRoundBehaviour(AbstractRoundBehaviour):
         EstimateBehaviour,  # type: ignore
         TransactionHashBehaviour,  # type: ignore
     }
-
-
-class PriceEstimationConsensusBehaviour(AbstractRoundBehaviour):
-    """This behaviour manages the consensus stages for the price estimation."""
-
-    initial_state_cls = RegistrationStartupBehaviour
-    abci_app_cls = PriceEstimationAbciApp  # type: ignore
-    behaviour_states: Set[Type[BaseState]] = {
-        *OracleDeploymentRoundBehaviour.behaviour_states,
-        *AgentRegistrationRoundBehaviour.behaviour_states,
-        *SafeDeploymentRoundBehaviour.behaviour_states,
-        *TransactionSettlementRoundBehaviour.behaviour_states,
-        *ObserverRoundBehaviour.behaviour_states,
-    }
-
-    def setup(self) -> None:
-        """Set up the behaviour."""
-        super().setup()
-        benchmark_tool.logger = self.context.logger

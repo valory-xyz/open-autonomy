@@ -21,7 +21,7 @@
 
 import logging  # noqa: F401
 from types import MappingProxyType
-from typing import Dict, FrozenSet, List, Optional, Type, cast
+from typing import Dict, FrozenSet, List, Optional, cast
 
 import pytest
 
@@ -29,10 +29,7 @@ from packages.valory.skills.abstract_round_abci.base import ABCIAppInternalError
 from packages.valory.skills.abstract_round_abci.base import (
     BasePeriodState as PeriodState,
 )
-from packages.valory.skills.abstract_round_abci.base import (
-    CollectSameUntilThresholdRound,
-    StateDB,
-)
+from packages.valory.skills.abstract_round_abci.base import StateDB
 from packages.valory.skills.oracle_deployment_abci.payloads import (
     RandomnessPayload,
     SelectKeeperPayload,
@@ -60,7 +57,6 @@ from packages.valory.skills.transaction_settlement_abci.rounds import (
     PeriodState as TransactionSettlementPeriodState,
 )
 from packages.valory.skills.transaction_settlement_abci.rounds import (
-    ResetAndPauseRound,
     ResetRound,
     SelectKeeperTransactionSubmissionRoundA,
     SelectKeeperTransactionSubmissionRoundB,
@@ -83,6 +79,7 @@ from tests.test_skills.test_oracle_deployment_abci.test_rounds import (
 
 MAX_PARTICIPANTS: int = 4
 RANDOMNESS: str = "d1c29dce46f979f9748210d24bce4eae8be91272f5ca1a6aea2832d3dd676f51"
+DUMMY_RANDOMNESS = 0.1  # for coverage purposes
 
 
 def get_participants() -> FrozenSet[str]:
@@ -227,15 +224,35 @@ class TestSelectKeeperTransactionSubmissionRoundBAfterTimeout(
     test_class = SelectKeeperTransactionSubmissionRoundBAfterTimeout
     _period_state_class = TransactionSettlementPeriodState
 
-    def test_run(
-        self,
+    @pytest.mark.parametrize(
+        "attrs, exit_event",
+        (
+            (
+                {
+                    "missed_messages": 10,
+                    "consecutive_finalizations": 10,
+                },
+                TransactionSettlementEvent.CHECK_HISTORY,
+            ),
+            (
+                {
+                    "missed_messages": 10,
+                    "consecutive_finalizations": 0,
+                },
+                TransactionSettlementEvent.DONE,
+            ),
+        ),
+    )
+    def test_run(  # type: ignore
+        self, attrs: Dict[str, int], exit_event: TransactionSettlementEvent
     ) -> None:
         """Test `SelectKeeperTransactionSubmissionRoundBAfterTimeout`."""
-        self.period_state.update(missed_messages=10)
+        self._exit_event = exit_event
+        self.period_state.update(**attrs)  # type: ignore
         super().test_run()
-        assert (
-            cast(TransactionSettlementPeriodState, self.period_state).missed_messages
-            == 11
+        assert all(
+            getattr(self.period_state, attr_name) == attr_value + 1
+            for attr_name, attr_value in attrs.items()
         )
 
 
@@ -373,61 +390,6 @@ class TestCollectSignatureRound(BaseCollectDifferentUntilThresholdRoundTest):
         """Test the no-majority event."""
         test_round = CollectSignatureRound(self.period_state, self.consensus_params)
         self._test_no_majority_event(test_round)
-
-
-class BaseResetRoundTest(BaseCollectSameUntilThresholdRoundTest):
-    """Test ResetRound."""
-
-    test_class: Type[CollectSameUntilThresholdRound]
-    _period_state_class = TransactionSettlementPeriodState
-    _event_class = TransactionSettlementEvent
-
-    def test_runs(
-        self,
-    ) -> None:
-        """Runs tests."""
-
-        period_state = self.period_state.update(
-            safe_contract_address=get_safe_contract_address(),
-        )
-        period_state._db._cross_period_persisted_keys = ["safe_contract_address"]
-        test_round = self.test_class(
-            state=period_state, consensus_params=self.consensus_params
-        )
-        next_period_count = 1
-        self._complete_run(
-            self._test_round(
-                test_round=test_round,
-                round_payloads=get_participant_to_period_count(
-                    self.participants, next_period_count
-                ),
-                state_update_fn=lambda _period_state, _: _period_state.update(
-                    period_count=next_period_count,
-                    participants=self.participants,
-                    all_participants=self.participants,
-                    safe_contract_address=_period_state.safe_contract_address,
-                ),
-                state_attr_checks=[],  # [lambda state: state.participants],
-                most_voted_payload=next_period_count,
-                exit_event=self._event_class.DONE,
-            )
-        )
-
-
-class TestResetRound(BaseResetRoundTest):
-    """Test ResetRound."""
-
-    test_class = ResetRound
-    _period_state_class = TransactionSettlementPeriodState
-    _event_class = TransactionSettlementEvent
-
-
-class TestResetAndPauseRound(BaseResetRoundTest):
-    """Test ResetAndPauseRound."""
-
-    test_class = ResetAndPauseRound
-    _period_state_class = TransactionSettlementPeriodState
-    _event_class = TransactionSettlementEvent
 
 
 class TestValidateTransactionRound(BaseValidateRoundTest):
@@ -600,3 +562,41 @@ def test_period_states() -> None:
         match="internal error: Cannot parse late arriving hashes: test!",
     ):
         _ = period_state_____.late_arriving_tx_hashes
+
+
+class TestResetRound(BaseCollectSameUntilThresholdRoundTest):
+    """Test ResetRound."""
+
+    _period_state_class = TransactionSettlementPeriodState
+    _event_class = TransactionSettlementEvent
+
+    def test_runs(
+        self,
+    ) -> None:
+        """Runs tests."""
+
+        period_state = self.period_state.update(
+            keeper_randomness=DUMMY_RANDOMNESS,
+        )
+        period_state._db._cross_period_persisted_keys = ["keeper_randomness"]
+        test_round = ResetRound(
+            state=period_state, consensus_params=self.consensus_params
+        )
+        next_period_count = 1
+        self._complete_run(
+            self._test_round(
+                test_round=test_round,
+                round_payloads=get_participant_to_period_count(
+                    self.participants, next_period_count
+                ),
+                state_update_fn=lambda _period_state, _: _period_state.update(
+                    period_count=next_period_count,
+                    participants=self.participants,
+                    all_participants=self.participants,
+                    keeper_randomness=DUMMY_RANDOMNESS,
+                ),
+                state_attr_checks=[],  # [lambda state: state.participants],
+                most_voted_payload=next_period_count,
+                exit_event=self._event_class.DONE,
+            )
+        )

@@ -22,6 +22,7 @@ import json
 import time
 from copy import copy
 from pathlib import Path
+from tempfile import TemporaryDirectory
 from typing import Any, Dict, Type, cast
 from unittest import mock
 
@@ -88,6 +89,7 @@ class SimpleAbciFSMBehaviourBaseCase(BaseSkillTestCase):
     signing_handler: SigningHandler
     old_tx_type_to_payload_cls: Dict[str, Type[BaseTxPayload]]
     period_state: PeriodState
+    benchmark_dir: TemporaryDirectory
 
     @classmethod
     def setup(cls, **kwargs: Any) -> None:
@@ -124,6 +126,10 @@ class SimpleAbciFSMBehaviourBaseCase(BaseSkillTestCase):
         cls.simple_abci_behaviour.setup()
         cls._skill.skill_context.state.setup()
         cls._skill.skill_context.state.period.end_sync()
+
+        cls.benchmark_dir = TemporaryDirectory()
+        cls._skill.skill_context.benchmark_tool.log_dir = Path(cls.benchmark_dir.name)
+
         assert (
             cast(BaseState, cls.simple_abci_behaviour.current_state).state_id
             == cls.simple_abci_behaviour.initial_state_cls.state_id
@@ -145,6 +151,10 @@ class SimpleAbciFSMBehaviourBaseCase(BaseSkillTestCase):
         )
         self.skill.skill_context.state.period.abci_app._round_results.append(
             period_state
+        )
+        self.skill.skill_context.state.period.abci_app._extend_previous_rounds_with_current_round()
+        self.skill.skill_context.behaviours.main._last_round_height = (
+            self.skill.skill_context.state.period.abci_app.current_round_height
         )
         if next_state.matching_round is not None:
             self.skill.skill_context.state.period.abci_app._current_round = (
@@ -364,6 +374,7 @@ class SimpleAbciFSMBehaviourBaseCase(BaseSkillTestCase):
             current_state.matching_round
         ][Event.DONE](abci_app.state, abci_app.consensus_params)
         abci_app._previous_rounds.append(old_round)
+        abci_app._current_round_height += 1
         self.simple_abci_behaviour._process_current_round()
 
     def _test_done_flag_set(self) -> None:
@@ -383,6 +394,7 @@ class SimpleAbciFSMBehaviourBaseCase(BaseSkillTestCase):
     def teardown(cls) -> None:
         """Teardown the test class."""
         _MetaPayload.transaction_type_to_payload_cls = cls.old_tx_type_to_payload_cls  # type: ignore
+        cls.benchmark_dir.cleanup()
 
 
 class BaseRandomnessBehaviourTest(SimpleAbciFSMBehaviourBaseCase):
@@ -649,9 +661,6 @@ class TestResetAndPauseBehaviour(SimpleAbciFSMBehaviourBaseCase):
             ).state_id
             == self.behaviour_class.state_id
         )
-        self.simple_abci_behaviour.context.params.observation_interval = 0.1
-        self.simple_abci_behaviour.act_wrapper()
-        time.sleep(0.3)
         self.simple_abci_behaviour.act_wrapper()
         self.mock_a2a_transaction()
         self._test_done_flag_set()

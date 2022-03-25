@@ -744,6 +744,16 @@ def __repr__() -> str
 
 Return a string representation of the state.
 
+<a id="packages.valory.skills.abstract_round_abci.base.StateDB.cleanup"></a>
+
+#### cleanup
+
+```python
+def cleanup(cleanup_history_depth: int) -> None
+```
+
+Reset the db.
+
 <a id="packages.valory.skills.abstract_round_abci.base.BasePeriodState"></a>
 
 ## BasePeriodState Objects
@@ -1901,6 +1911,16 @@ Observe timestamp from last block.
 
 - `timestamp`: the latest block's timestamp.
 
+<a id="packages.valory.skills.abstract_round_abci.base.AbciApp.cleanup"></a>
+
+#### cleanup
+
+```python
+def cleanup(cleanup_history_depth: int) -> None
+```
+
+Clear data.
+
 <a id="packages.valory.skills.abstract_round_abci.base.Period"></a>
 
 ## Period Objects
@@ -2137,7 +2157,7 @@ Process the 'commit' request.
 #### reset`_`blockchain
 
 ```python
-def reset_blockchain() -> None
+def reset_blockchain(is_replay: bool = False) -> None
 ```
 
 Reset blockchain after tendermint reset.
