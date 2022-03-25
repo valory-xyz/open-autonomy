@@ -23,6 +23,7 @@
 import warnings
 from typing import Any, Callable, Dict, List, Tuple, Union
 from unittest import mock
+from unittest.mock import MagicMock, PropertyMock
 
 import numpy as np
 import optuna
@@ -32,9 +33,19 @@ from aea.skills.base import SkillContext
 from optuna.distributions import UniformDistribution
 from optuna.exceptions import ExperimentalWarning
 from optuna.trial import TrialState
+from pmdarima import ARIMA
 from pmdarima.pipeline import Pipeline
+from pmdarima.preprocessing import FourierFeaturizer
+from statsmodels.tools.sm_exceptions import ConvergenceWarning
 
-from packages.valory.skills.apy_estimation_abci.ml.forecasting import train_forecaster
+from packages.valory.skills.apy_estimation_abci.ml.forecasting import (
+    PoolIdToForecasterType,
+    PoolIdToTestReportType,
+    PoolIdToTrainDataType,
+)
+from packages.valory.skills.apy_estimation_abci.ml.optimization import (
+    PoolToHyperParamsWithStatusType,
+)
 from packages.valory.skills.apy_estimation_abci.models import SharedState
 from packages.valory.skills.apy_estimation_abci.tools.etl import ResponseItemType
 
@@ -231,33 +242,28 @@ def no_action() -> Callable[[Any], None]:
 
 
 @pytest.fixture
-def transform_task_result() -> pd.DataFrame:
-    """Create a result of the `TransformTask`.
-
-    :return: a dummy `Task` Result.
-    """
-    return pd.DataFrame({"test": ["test1", "test2"]})
+def prepare_batch_task_result() -> pd.DataFrame:
+    """Create a dummy prepare batch task result."""
+    return pd.DataFrame({"id": ["pool1", "pool2"], "APY": [13.234, 42.34]})
 
 
 @pytest.fixture
-def optimize_task_result() -> optuna.Study:
+def study() -> MagicMock:
+    """Create a dummy optuna Study which has no trials finished."""
+    study = MagicMock(trials=(MagicMock(params={"x": 2.0}),))
+    type(study).best_params = PropertyMock(
+        side_effect=ValueError("Study has no trials finished!")
+    )
+    return study
+
+
+@pytest.fixture
+def optimize_task_result() -> PoolToHyperParamsWithStatusType:
     """Create a result of the `OptimizeTask`.
 
     :return: a dummy `Task` Result.
     """
-    study = optuna.create_study()
-
-    warnings.filterwarnings("ignore", category=ExperimentalWarning)
-
-    trial = optuna.trial.create_trial(
-        params={"x": 2.0},
-        distributions={"x": UniformDistribution(0, 10)},
-        value=4.0,
-    )
-
-    study.add_trial(trial)
-
-    return study
+    return {"test1": ({"x": 2.0}, False), "test2": ({"x": 2.4}, True)}
 
 
 @pytest.fixture
@@ -310,29 +316,72 @@ def observations() -> np.ndarray:
 
 
 @pytest.fixture
-def train_task_result(observations: np.ndarray) -> Pipeline:
-    """Create a result of the `TrainTask`.
+def hyperparameters() -> Dict[str, Union[bool, int]]:
+    """Hyperparameters for a pipeline."""
+    return {
+        "p": 1,
+        "q": 1,
+        "d": 1,
+        "m": 3,
+        "k": 1,
+        "suppress_warnings": True,
+    }
 
-    :param observations: the observations for the training.
-    :return: a dummy `Task` Result.
-    """
-    hyperparameters = 1, 1, 1, 3, 1
-    forecaster = train_forecaster(observations, *hyperparameters)
+
+@pytest.fixture
+def forecaster(hyperparameters: Dict[str, Union[bool, int]]) -> Pipeline:
+    """Create a dummy, untrained Pipeline."""
+    order = (hyperparameters["p"], hyperparameters["q"], hyperparameters["d"])
+
+    dummy_forecaster = Pipeline(
+        [
+            ("fourier", FourierFeaturizer(hyperparameters["m"])),
+            (
+                "arima",
+                ARIMA(order),
+            ),
+        ]
+    )
+
+    return dummy_forecaster
+
+
+@pytest.fixture
+def trained_forecaster(forecaster: Pipeline, observations: np.ndarray) -> Pipeline:
+    """Create a dummy, trained Pipeline."""
+    warnings.filterwarnings("ignore", category=ConvergenceWarning)
+    forecaster.fit(observations)
 
     return forecaster
 
 
 @pytest.fixture
-def test_task_result() -> Dict[str, str]:
+def train_task_input(observations: np.ndarray) -> PoolIdToTrainDataType:
+    """Create an input of the `TrainTask`."""
+    return {f"pool{i}.csv": observations for i in range(3)}
+
+
+@pytest.fixture
+def train_task_result(trained_forecaster: Pipeline) -> PoolIdToForecasterType:
+    """Create a result of the `TrainTask`.
+
+    :param trained_forecaster: a trained, dummy forecaster.
+    :return: a dummy `TrainTask` Result.
+    """
+    return {f"pool{i}.joblib": trained_forecaster for i in range(3)}
+
+
+@pytest.fixture
+def _test_task_result() -> PoolIdToTestReportType:
     """Create a result of the `TestTask`.
 
     :return: a dummy `Task` Result.
     """
-    return {"test": "test"}
+    return {f"pool{i}": {"test": "test"} for i in range(3)}
 
 
 @pytest.fixture
-def test_task_result_non_serializable() -> bytes:
+def _test_task_result_non_serializable() -> bytes:
     """Create a non-serializable result of the `TestTask`.
 
     :return: a dummy `Task` Result.
@@ -470,43 +519,44 @@ def transformed_historical_data(
 @pytest.fixture
 def batch() -> ResponseItemType:
     """Create a dummy batch of data."""
-    return [
-        {
-            "createdAtBlockNumber": "1",
-            "createdAtTimestamp": "1",
-            "id": "0x2b4c76d0dc16be1c31d4c1dc53bf9b45987fc75c",
-            "liquidityProviderCount": "1",
-            "reserve0": "1.4",
-            "reserve1": "1.4",
-            "reserveETH": "1.4",
-            "reserveUSD": "1.4",
-            "token0Price": "1.4",
-            "token1Price": "1.4",
-            "totalSupply": "1.4",
-            "trackedReserveETH": "1.4",
-            "untrackedVolumeUSD": "1.4",
-            "txCount": "1",
-            "volumeToken0": "1.2",
-            "volumeToken1": "1.2",
-            "volumeUSD": "1.2",
-            "forTimestamp": "1",
-            "blockNumber": "1",
-            "blockTimestamp": "100000000",
-            "ethPrice": "1.2",
-            "token0ID": "x",
-            "token0Name": "x",
-            "token0Symbol": "x",
-            "token1ID": "y",
-            "token1Name": "y",
-            "token1Symbol": "y",
-            "pairName": "x - y",
-            "updatedVolumeUSD": "1.2",
-            "updatedReserveUSD": "1.68",
-            "APY": "0.1",
-            "token0": {"id": "x", "name": "x", "symbol": "x"},
-            "token1": {"id": "y", "name": "y", "symbol": "y"},
-        }
-    ]
+    pool1_batch: Dict[str, Union[str, Dict[str, str]]] = {
+        "createdAtBlockNumber": "1",
+        "createdAtTimestamp": "1",
+        "id": "0x2b4c76d0dc16be1c31d4c1dc53bf9b45987fc75c",
+        "liquidityProviderCount": "1",
+        "reserve0": "1.4",
+        "reserve1": "1.4",
+        "reserveETH": "1.4",
+        "reserveUSD": "1.4",
+        "token0Price": "1.4",
+        "token1Price": "1.4",
+        "totalSupply": "1.4",
+        "trackedReserveETH": "1.4",
+        "untrackedVolumeUSD": "1.4",
+        "txCount": "1",
+        "volumeToken0": "1.2",
+        "volumeToken1": "1.2",
+        "volumeUSD": "1.2",
+        "forTimestamp": "1",
+        "blockNumber": "1",
+        "blockTimestamp": "100000000",
+        "ethPrice": "1.2",
+        "token0ID": "x",
+        "token0Name": "x",
+        "token0Symbol": "x",
+        "token1ID": "y",
+        "token1Name": "y",
+        "token1Symbol": "y",
+        "pairName": "x - y",
+        "updatedVolumeUSD": "1.2",
+        "updatedReserveUSD": "1.68",
+        "APY": "0.1",
+        "token0": {"id": "x", "name": "x", "symbol": "x"},
+        "token1": {"id": "y", "name": "y", "symbol": "y"},
+    }
+    pool2_batch = pool1_batch.copy()
+    pool2_batch["id"] = "x3"
+    return [pool1_batch, pool2_batch]
 
 
 class DummyPipeline(Pipeline):
@@ -515,6 +565,7 @@ class DummyPipeline(Pipeline):
     def __init__(self) -> None:
         """Initialize Dummy Pipeline."""
         super().__init__([])
+        self.updated: bool = False
 
     def _validate_steps(self) -> None:
         """Dummy steps validation."""
@@ -530,6 +581,8 @@ class DummyPipeline(Pipeline):
 
     def update(self, *args: Any) -> None:
         """Update the dummy pipeline."""
+        if len(args[0]):
+            self.updated = True
 
 
 def is_list_of_strings(lst: Any) -> bool:

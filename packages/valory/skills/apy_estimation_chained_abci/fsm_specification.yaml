@@ -9,8 +9,7 @@ alphabet_in:
 - RANDOMNESS_INVALID
 - ROUND_TIMEOUT
 default_start_state: RegistrationStartupRound
-final_states:
-- FinishedRegistrationFFWRound
+final_states: []
 label: packages.valory.skills.apy_estimation_chained_abci.composition.APYEstimationAbciAppChained
 start_states:
 - RegistrationStartupRound
@@ -19,7 +18,6 @@ states:
 - CollectLatestHistoryBatchRound
 - CycleResetRound
 - EstimateRound
-- FinishedRegistrationFFWRound
 - FreshModelResetRound
 - OptimizeRound
 - PrepareBatchRound
@@ -69,9 +67,9 @@ transition_func:
     (RandomnessRound, NO_MAJORITY): RandomnessRound
     (RandomnessRound, RANDOMNESS_INVALID): RandomnessRound
     (RandomnessRound, ROUND_TIMEOUT): RandomnessRound
-    (RegistrationRound, DONE): FinishedRegistrationFFWRound
+    (RegistrationRound, DONE): CollectHistoryRound
     (RegistrationStartupRound, DONE): CollectHistoryRound
-    (RegistrationStartupRound, FAST_FORWARD): FinishedRegistrationFFWRound
+    (RegistrationStartupRound, FAST_FORWARD): CollectHistoryRound
     (TestRound, DONE): TrainRound
     (TestRound, FILE_ERROR): RegistrationRound
     (TestRound, NO_MAJORITY): TestRound
