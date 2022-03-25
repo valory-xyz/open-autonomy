@@ -548,7 +548,10 @@ class TestTransformBehaviour(APYEstimationFSMBehaviourBaseCase):
         # Send historical data to IPFS and get the hash.
         if ipfs_succeed:
             hash_ = cast(BaseState, self.behaviour.current_state).send_to_ipfs(
-                os.path.join(tmp_path, "historical_data.json"),
+                os.path.join(
+                    tmp_path,
+                    f"historical_data_period_{self.period_state.period_count}.json",
+                ),
                 {"test": "test"},
                 filetype=SupportedFiletype.JSON,
             )
@@ -784,12 +787,18 @@ class TestPrepareBatchBehaviour(APYEstimationFSMBehaviourBaseCase):
         # Create a dictionary with all the dummy data to send to IPFS.
         data_to_send = {
             "hist": {
-                "filepath": os.path.join(tmp_path, "latest_observations.csv"),
+                "filepath": os.path.join(
+                    tmp_path,
+                    f"latest_observations_period_{self.period_state.period_count - 1}.csv",
+                ),
                 "obj": transformed_historical_data.iloc[[0, 2]].reset_index(drop=True),
                 "filetype": SupportedFiletype.CSV,
             },
             "batch": {
-                "filepath": os.path.join(tmp_path, "historical_data_batch_0.json"),
+                "filepath": os.path.join(
+                    tmp_path,
+                    f"historical_data_batch_0_period_{self.period_state.period_count}.json",
+                ),
                 "obj": batch,
                 "filetype": SupportedFiletype.JSON,
             },
@@ -1126,7 +1135,9 @@ class TestOptimizeBehaviour(APYEstimationFSMBehaviourBaseCase):
         data_to_send = {}
         for split in ("train", "test"):
             data_to_send[split] = {
-                "filepath": os.path.join(tmp_path, f"y_{split}/"),
+                "filepath": os.path.join(
+                    tmp_path, f"y_{split}", f"period_{self.period_state.period_count}"
+                ),
                 "obj": {
                     f"{split}_{i}": pd.DataFrame([i for i in range(5)])
                     for i in range(3)
@@ -1275,7 +1286,9 @@ class TestTrainBehaviour(APYEstimationFSMBehaviourBaseCase):
         # Create a dictionary with all the dummy data to send to IPFS.
         data_to_send = {
             "params": {
-                "filepath": os.path.join(tmp_path, "best_params/"),
+                "filepath": os.path.join(
+                    tmp_path, "best_params", f"period_{self.period_state.period_count}"
+                ),
                 "obj": {
                     "pool1.json": {"p": 1, "q": 1, "d": 1, "m": 1},
                     "pool2.json": {"p": 2, "q": 2, "d": 1, "m": 1},
@@ -1286,7 +1299,9 @@ class TestTrainBehaviour(APYEstimationFSMBehaviourBaseCase):
         }
         for split in ("train", "test"):
             data_to_send[split] = {
-                "filepath": os.path.join(tmp_path, f"y_{split}/"),
+                "filepath": os.path.join(
+                    tmp_path, f"y_{split}", f"period_{self.period_state.period_count}"
+                ),
                 "obj": {
                     f"pool{i}.csv": pd.DataFrame([i for i in range(5)])
                     for i in range(3)
@@ -1423,7 +1438,9 @@ class TestTestBehaviour(APYEstimationFSMBehaviourBaseCase):
         # Create a dictionary with all the dummy data to send to IPFS.
         data_to_send = {
             "model": {
-                "filepath": os.path.join(tmp_path, "forecasters/"),
+                "filepath": os.path.join(
+                    tmp_path, "forecasters", f"period_{self.period_state.period_count}"
+                ),
                 "obj": {f"pool{i}.joblib": DummyPipeline() for i in range(3)},
                 "multiple": True,
                 "filetype": SupportedFiletype.PM_PIPELINE,
@@ -1431,7 +1448,9 @@ class TestTestBehaviour(APYEstimationFSMBehaviourBaseCase):
         }
         for split in ("train", "test"):
             data_to_send[split] = {
-                "filepath": os.path.join(tmp_path, f"y_{split}/"),
+                "filepath": os.path.join(
+                    tmp_path, f"y_{split}", f"period_{self.period_state.period_count}"
+                ),
                 "obj": {
                     f"pool{i}.csv": pd.DataFrame([i for i in range(5)])
                     for i in range(3)
@@ -1568,13 +1587,20 @@ class TestUpdateForecasterBehaviour(APYEstimationFSMBehaviourBaseCase):
         # Create a dictionary with all the dummy data to send to IPFS.
         data_to_send = {
             "model": {
-                "filepath": os.path.join(tmp_path, "fully_trained_forecasters/"),
+                "filepath": os.path.join(
+                    tmp_path,
+                    "fully_trained_forecasters",
+                    f"period_{self.period_state.period_count - 1}",
+                ),
                 "obj": {f"pool{i}.joblib": DummyPipeline() for i in range(3)},
                 "multiple": True,
                 "filetype": SupportedFiletype.PM_PIPELINE,
             },
             "observation": {
-                "filepath": os.path.join(tmp_path, "latest_observations.csv"),
+                "filepath": os.path.join(
+                    tmp_path,
+                    f"latest_observations_period_{self.period_state.period_count}.csv",
+                ),
                 "obj": prepare_batch_task_result,
                 "filetype": SupportedFiletype.CSV,
             },
@@ -1704,7 +1730,11 @@ class TestEstimateBehaviour(APYEstimationFSMBehaviourBaseCase):
         # Send dummy forecasters to IPFS and get the hash.
         if ipfs_succeed:
             hash_ = cast(BaseState, self.behaviour.current_state).send_to_ipfs(
-                os.path.join(tmp_path, "fully_trained_forecasters"),
+                os.path.join(
+                    tmp_path,
+                    "fully_trained_forecasters",
+                    f"period_{self.period_state.period_count}",
+                ),
                 {f"pool{i}.joblib": DummyPipeline() for i in range(3)},
                 multiple=True,
                 filetype=SupportedFiletype.PM_PIPELINE,
@@ -1828,7 +1858,9 @@ class TestCycleResetBehaviour(APYEstimationFSMBehaviourBaseCase):
         # Send dummy forecasters to IPFS and get the hash.
         if ipfs_succeed:
             hash_ = cast(BaseState, self.behaviour.current_state).send_to_ipfs(
-                os.path.join(tmp_path, "estimations.csv"),
+                os.path.join(
+                    tmp_path, f"estimations_period_{self.period_state.period_count}.csv"
+                ),
                 pd.DataFrame({"pool1": [1.435, 4.234], "pool2": [3.45, 23.64]}),
                 filetype=SupportedFiletype.CSV,
             )
