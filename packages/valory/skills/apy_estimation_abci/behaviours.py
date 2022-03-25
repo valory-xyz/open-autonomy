@@ -477,8 +477,7 @@ class TransformBehaviour(APYEstimationBaseState):
             # Send the latest observations to IPFS and get the hash.
             latest_observations_save_path = os.path.join(
                 self.context.data_dir,
-                # We will use this batch in the next period, therefore we store it as `period_count + 1`.
-                f"latest_observations_period_{self.period_state.period_count + 1}.csv",
+                f"latest_observations_period_{self.period_state.period_count}.csv",
             )
             self._latest_observations_hist_hash = self.send_to_ipfs(
                 latest_observations_save_path,
@@ -599,11 +598,12 @@ class PrepareBatchBehaviour(APYEstimationBaseState):
 
     def setup(self) -> None:
         """Setup behaviour."""
+        # These are the previous and the currently fetched batches. They are required for the task.
         self._batches = (
             self.get_from_ipfs(
                 self.period_state.latest_observation_hist_hash,
                 self.context.data_dir,
-                filename=f"latest_observations_period_{self.period_state.period_count}.csv",
+                filename=f"latest_observations_period_{self.period_state.period_count - 1}.csv",
                 custom_loader=load_hist,
             ),
             self.get_from_ipfs(
