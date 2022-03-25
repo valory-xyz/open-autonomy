@@ -12,7 +12,7 @@ extra_css:
 strict: true
 
 nav:
-  - Home: 'index.md'
+  - Home: 'home.md'
   - Concepts:
     - Autonomous Economic Agents:
       - Introduction: 'aea.md'
