@@ -368,6 +368,11 @@ class CheckTransactionHistoryBehaviour(TransactionSettlementBaseState):
                 verified_log + f", all: {contract_api_msg.state.body}"
             )
 
+            status = cast(int, contract_api_msg.state.body["status"])
+            if status == -1:
+                self.context.logger.info(f"Tx hash {tx_hash} has no receipt!")
+                continue
+
             tx_data = cast(TxData, contract_api_msg.state.body["transaction"])
             revert_reason = yield from self._get_revert_reason(tx_data)
 
