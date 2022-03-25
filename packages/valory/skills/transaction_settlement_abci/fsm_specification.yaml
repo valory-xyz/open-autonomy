@@ -14,11 +14,10 @@ default_start_state: RandomnessTransactionSubmissionRound
 final_states:
 - FailedRound
 - FinishedTransactionSubmissionRound
-label: packages.valory.skills.transaction_settlement_abci.behaviours.TransactionSubmissionAbciApp
+label: packages.valory.skills.transaction_settlement_abci.rounds.TransactionSubmissionAbciApp
 start_states:
 - RandomnessTransactionSubmissionRound
 states:
-- CheckLateTxHashesRound
 - CheckTransactionHistoryRound
 - CollectSignatureRound
 - FailedRound
@@ -32,16 +31,11 @@ states:
 - SynchronizeLateMessagesRound
 - ValidateTransactionRound
 transition_func:
-    (CheckLateTxHashesRound, DONE): FinishedTransactionSubmissionRound
-    (CheckLateTxHashesRound, NEGATIVE): FailedRound
-    (CheckLateTxHashesRound, NONE): FailedRound
-    (CheckLateTxHashesRound, NO_MAJORITY): FailedRound
-    (CheckLateTxHashesRound, ROUND_TIMEOUT): CheckLateTxHashesRound
     (CheckTransactionHistoryRound, CHECK_LATE_ARRIVING_MESSAGE): SynchronizeLateMessagesRound
     (CheckTransactionHistoryRound, DONE): FinishedTransactionSubmissionRound
-    (CheckTransactionHistoryRound, NEGATIVE): FailedRound
+    (CheckTransactionHistoryRound, NEGATIVE): SelectKeeperTransactionSubmissionRoundB
     (CheckTransactionHistoryRound, NONE): FailedRound
-    (CheckTransactionHistoryRound, NO_MAJORITY): FailedRound
+    (CheckTransactionHistoryRound, NO_MAJORITY): CheckTransactionHistoryRound
     (CheckTransactionHistoryRound, ROUND_TIMEOUT): CheckTransactionHistoryRound
     (CollectSignatureRound, DONE): FinalizationRound
     (CollectSignatureRound, NO_MAJORITY): ResetRound
@@ -67,7 +61,7 @@ transition_func:
     (SelectKeeperTransactionSubmissionRoundBAfterTimeout, DONE): FinalizationRound
     (SelectKeeperTransactionSubmissionRoundBAfterTimeout, NO_MAJORITY): ResetRound
     (SelectKeeperTransactionSubmissionRoundBAfterTimeout, ROUND_TIMEOUT): ResetRound
-    (SynchronizeLateMessagesRound, DONE): CheckLateTxHashesRound
+    (SynchronizeLateMessagesRound, DONE): CheckTransactionHistoryRound
     (SynchronizeLateMessagesRound, MISSED_AND_LATE_MESSAGES_MISMATCH): FailedRound
     (SynchronizeLateMessagesRound, NONE): FailedRound
     (SynchronizeLateMessagesRound, NO_MAJORITY): SynchronizeLateMessagesRound

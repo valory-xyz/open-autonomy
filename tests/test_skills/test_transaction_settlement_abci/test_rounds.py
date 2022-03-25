@@ -469,7 +469,13 @@ class TestCheckTransactionHistoryRound(BaseCollectSameUntilThresholdRoundTest):
                 state_attr_checks=[
                     lambda state: state.final_verification_status,
                     lambda state: state.final_tx_hash,
-                ],
+                ]
+                if expected_event
+                not in {
+                    TransactionSettlementEvent.NEGATIVE,
+                    TransactionSettlementEvent.CHECK_LATE_ARRIVING_MESSAGE,
+                }
+                else [lambda state: state.final_verification_status],
                 most_voted_payload=expected_status + expected_tx_hash,
                 exit_event=expected_event,
             )

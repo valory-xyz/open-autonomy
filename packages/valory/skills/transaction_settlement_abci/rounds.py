@@ -387,16 +387,20 @@ class CheckTransactionHistoryRound(CollectSameUntilThresholdRound):
                 self.most_voted_payload
             )
 
-            # We only set the final tx hash if we are about to exit from the transaction settlement skill.
-            # Then, the skills which use the transaction settlement can check the tx hash
-            # and if it is None, then it means that the transaction has failed.
-            state = self.period_state.update(
-                period_state_class=self.period_state_class,
-                participant_to_check=self.collection,
-                final_verification_status=return_status,
-                final_tx_hash=return_tx_hash,
-                is_reset_params_set=True,
-            )
+            if return_status == VerificationStatus.NOT_VERIFIED:
+                # We don't update the state as we need to repeat all checks again later
+                state = self.period_state
+            else:
+                # We only set the final tx hash if we are about to exit from the transaction settlement skill.
+                # Then, the skills which use the transaction settlement can check the tx hash
+                # and if it is None, then it means that the transaction has failed.
+                state = self.period_state.update(
+                    period_state_class=self.period_state_class,
+                    participant_to_check=self.collection,
+                    final_verification_status=return_status,
+                    final_tx_hash=return_tx_hash,
+                    is_reset_params_set=True,
+                )
 
             if return_status == VerificationStatus.VERIFIED:
                 return state, Event.DONE
@@ -415,12 +419,6 @@ class CheckTransactionHistoryRound(CollectSameUntilThresholdRound):
         ):
             return self.period_state, Event.NO_MAJORITY
         return None
-
-
-class CheckLateTxHashesRound(CheckTransactionHistoryRound):
-    """A round in which agents check the late-arriving transaction hashes to see if any of them has been validated"""
-
-    round_id = "check_late_tx_hashes"
 
 
 class SynchronizeLateMessagesRound(CollectNonEmptyUntilThresholdRound):
@@ -494,16 +492,16 @@ class TransactionSubmissionAbciApp(AbciApp[Event]):
     Transition states:
         0. RandomnessTransactionSubmissionRound
             - done: 1.
-            - round timeout: 10.
+            - round timeout: 9.
             - no majority: 0.
         1. SelectKeeperTransactionSubmissionRoundA
             - done: 2.
-            - round timeout: 10.
-            - no majority: 10.
+            - round timeout: 9.
+            - no majority: 9.
         2. CollectSignatureRound
             - done: 3.
-            - round timeout: 10.
-            - no majority: 10.
+            - round timeout: 9.
+            - no majority: 9.
         3. FinalizationRound
             - done: 4.
             - check history: 5.
@@ -511,45 +509,39 @@ class TransactionSubmissionAbciApp(AbciApp[Event]):
             - finalization failed: 6.
             - check late arriving message: 8.
         4. ValidateTransactionRound
-            - done: 11.
+            - done: 10.
             - negative: 5.
             - none: 3.
             - validate timeout: 3.
             - no majority: 4.
         5. CheckTransactionHistoryRound
-            - done: 11.
-            - negative: 12.
-            - none: 12.
+            - done: 10.
+            - negative: 6.
+            - none: 11.
             - round timeout: 5.
-            - no majority: 12.
+            - no majority: 5.
             - check late arriving message: 8.
         6. SelectKeeperTransactionSubmissionRoundB
             - done: 3.
-            - round timeout: 10.
-            - no majority: 10.
+            - round timeout: 9.
+            - no majority: 9.
         7. SelectKeeperTransactionSubmissionRoundBAfterTimeout
             - done: 3.
             - check history: 5.
-            - round timeout: 10.
-            - no majority: 10.
+            - round timeout: 9.
+            - no majority: 9.
         8. SynchronizeLateMessagesRound
-            - done: 9.
+            - done: 5.
             - round timeout: 8.
             - no majority: 8.
-            - none: 12.
-            - missed and late messages mismatch: 12.
-        9. CheckLateTxHashesRound
-            - done: 11.
-            - negative: 12.
-            - none: 12.
-            - round timeout: 9.
-            - no majority: 12.
-        10. ResetRound
+            - none: 11.
+            - missed and late messages mismatch: 11.
+        9. ResetRound
             - done: 0.
-            - reset timeout: 12.
-            - no majority: 12.
-        11. FinishedTransactionSubmissionRound
-        12. FailedRound
+            - reset timeout: 11.
+            - no majority: 11.
+        10. FinishedTransactionSubmissionRound
+        11. FailedRound
 
     Final states: {FailedRound, FinishedTransactionSubmissionRound}
 
@@ -592,10 +584,10 @@ class TransactionSubmissionAbciApp(AbciApp[Event]):
         },
         CheckTransactionHistoryRound: {
             Event.DONE: FinishedTransactionSubmissionRound,
-            Event.NEGATIVE: FailedRound,
+            Event.NEGATIVE: SelectKeeperTransactionSubmissionRoundB,
             Event.NONE: FailedRound,
             Event.ROUND_TIMEOUT: CheckTransactionHistoryRound,
-            Event.NO_MAJORITY: FailedRound,
+            Event.NO_MAJORITY: CheckTransactionHistoryRound,
             Event.CHECK_LATE_ARRIVING_MESSAGE: SynchronizeLateMessagesRound,
         },
         SelectKeeperTransactionSubmissionRoundB: {
@@ -610,18 +602,11 @@ class TransactionSubmissionAbciApp(AbciApp[Event]):
             Event.NO_MAJORITY: ResetRound,
         },
         SynchronizeLateMessagesRound: {
-            Event.DONE: CheckLateTxHashesRound,
+            Event.DONE: CheckTransactionHistoryRound,
             Event.ROUND_TIMEOUT: SynchronizeLateMessagesRound,
             Event.NO_MAJORITY: SynchronizeLateMessagesRound,
             Event.NONE: FailedRound,
             Event.MISSED_AND_LATE_MESSAGES_MISMATCH: FailedRound,
-        },
-        CheckLateTxHashesRound: {
-            Event.DONE: FinishedTransactionSubmissionRound,
-            Event.NEGATIVE: FailedRound,
-            Event.NONE: FailedRound,
-            Event.ROUND_TIMEOUT: CheckLateTxHashesRound,
-            Event.NO_MAJORITY: FailedRound,
         },
         ResetRound: {
             Event.DONE: RandomnessTransactionSubmissionRound,
