@@ -466,12 +466,14 @@ class TestFetchAndBatchBehaviours(APYEstimationFSMBehaviourBaseCase):
         time.sleep(SLEEP_TIME_TWEAK + 0.01)
         self.behaviour.act_wrapper()
 
+    @pytest.mark.parametrize("total_days", (0, 3))
     def test_fetch_behaviour_stop_iteration(
         self,
         monkeypatch: MonkeyPatch,
         tmp_path: PosixPath,
         caplog: LogCaptureFixture,
         no_action: Callable[[Any], None],
+        total_days: int,
     ) -> None:
         """Test `FetchBehaviour`'s `async_act` after all the timestamps have been generated."""
         self.skill.skill_context.state.period.abci_app._last_timestamp = datetime.now()
@@ -500,9 +502,9 @@ class TestFetchAndBatchBehaviours(APYEstimationFSMBehaviourBaseCase):
         )
 
         # test with retrieved history and valid save path.
-        cast(FetchBehaviour, self.behaviour.current_state)._pairs_hist = [
-            {"test": "test"}
-        ]
+        current_state = cast(FetchBehaviour, self.behaviour.current_state)
+        current_state._pairs_hist = [{"pool1": "test"}, {"pool2": "test"}]
+        current_state._total_days = total_days
         self.behaviour.context._agent_context._data_dir = tmp_path  # type: ignore
         self.behaviour.act_wrapper()
         self.mock_a2a_transaction()
