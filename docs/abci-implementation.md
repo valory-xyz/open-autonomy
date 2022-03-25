@@ -23,15 +23,13 @@ interactions between the consensus node and the ABCI application:
 Some requests like `Info` and `InitChain` are proactively
 made by the consensus node upon genesis; most of the requests
 instead depend on the transactions stored in the mempool.
-The transaction are submitted by a third entity,
-the _User_, that uses the ABCI app
-by interacting with a Tendermint node
+The transaction are submitted by the Abci app's behaviours which interact with a Tendermint node
 through the [Tendermint RPC protocol](https://docs.tendermint.com/master/rpc/).
 At [this link](https://github.com/tendermint/abci/blob/master/types/types.proto),
 you can see the Protobuf definitions of those messages.
 
 In the following, we will review the most important interactions
-between a simple user, a Tendermint node, and an ABCI-application instance,
+between a simple behaviour, a Tendermint node, and an ABCI-application instance,
 with a focus on how the ABCI protocol comes into play.
 
 A quick overview of the ABCI protocol is depicted in this diagram:
@@ -40,7 +38,7 @@ A quick overview of the ABCI protocol is depicted in this diagram:
 
 ### Send a transaction
 
-The user can send a transaction by using the following three
+The behaviour can send a transaction by using the following three
 Tendermint RPC methods:
 
 - [`broadcast_tx_sync`](https://docs.tendermint.com/master/rpc/#/Tx/broadcast_tx_sync),
@@ -61,25 +59,25 @@ that makes the application layer and the consensus layer highly decoupled.
 <div class="mermaid">
     sequenceDiagram
 
-        participant User
+        participant Behaviour
         participant Tendermint node
         participant ABCI app
 
-        User->>Tendermint node: broadcast_tx_sync(tx=0x1234...)
-        activate User
-        note over User: wait until the transaction<br/>is added to the mempool
+        Behaviour->>Tendermint node: broadcast_tx_sync(tx=0x1234...)
+        activate Behaviour
+        note over Behaviour: wait until the transaction<br/>is added to the mempool
 
         Tendermint node->>ABCI app: RequestCheckTx(tx)
         alt tx is not valid
           ABCI app->>Tendermint node: ResponseCheckTx(ERROR)
-          Tendermint node->>User: ERROR
+          Tendermint node->>Behaviour: ERROR
         else tx is valid
           ABCI app->>Tendermint node: ResponseCheckTx(OK)
           Tendermint node->>Tendermint node: add tx to mempool
-          Tendermint node->>User: OK
+          Tendermint node->>Behaviour: OK
         end
 
-        deactivate User
+        deactivate Behaviour
 
 </div>
 
@@ -89,14 +87,14 @@ that makes the application layer and the consensus layer highly decoupled.
 <div class="mermaid">
     sequenceDiagram
 
-        participant User
+        participant Behaviour
         participant Tendermint node
         participant ABCI app
 
-        User->>Tendermint node: broadcast_tx_sync(tx=0x1234...)
-        activate User
-        note over User: user does not wait...
-        deactivate User
+        Behaviour->>Tendermint node: broadcast_tx_sync(tx=0x1234...)
+        activate Behaviour
+        note over Behaviour: behaviour does not wait...
+        deactivate Behaviour
 
 </div>
 
@@ -106,21 +104,21 @@ that makes the application layer and the consensus layer highly decoupled.
 <div class="mermaid">
     sequenceDiagram
 
-        participant User
+        participant Behaviour
         participant Tendermint node
         participant ABCI app
 
-        User->>Tendermint node: broadcast_tx_commit(tx=0x1234...)
-        activate User
-        note over User: wait until the transaction<br/>is committed to the chain
+        Behaviour->>Tendermint node: broadcast_tx_commit(tx=0x1234...)
+        activate Behaviour
+        note over Behaviour: wait until the transaction<br/>is committed to the chain
 
         Tendermint node->>ABCI app: RequestCheckTx(tx)
         alt tx is not valid
           ABCI app->>Tendermint node: ResponseCheckTx(ERROR)
-          Tendermint node->>User: ERROR
-          note over User: STOP
+          Tendermint node->>Behaviour: ERROR
+          note over Behaviour: STOP
         end
-        note over User, ABCI app: tx passed the mempool check
+        note over Behaviour, ABCI app: tx passed the mempool check
         ABCI app->>Tendermint node: ResponseCheckTx(OK)
         Tendermint node->>Tendermint node: add tx to mempool
         note over Tendermint node: eventually, the tx gets<br/>added to a committed block
@@ -135,11 +133,11 @@ that makes the application layer and the consensus layer highly decoupled.
         ABCI app->>Tendermint node: ResponseEndBlock(...)
 
         alt if ResponseDeliverTx(tx) == OK
-          Tendermint node->>User: ERROR
+          Tendermint node->>Behaviour: ERROR
         else
-          Tendermint node->>User: OK
+          Tendermint node->>Behaviour: OK
         end
-        deactivate User
+        deactivate Behaviour
 
 </div>
 
@@ -159,15 +157,15 @@ The consensus node forwards the query through the `Query` request.
 <div class="mermaid">
     sequenceDiagram
 
-        participant User
+        participant Behaviour
         participant Tendermint node
         participant ABCI app
 
-        User->>Tendermint node: query(path="/a/b/c", data=0x123...)
-        activate User
+        Behaviour->>Tendermint node: query(path="/a/b/c", data=0x123...)
+        activate Behaviour
         Tendermint node->>ABCI app: RequestQuery(...)
         ABCI app->>Tendermint node: ResponseQuery(...)
-        Tendermint node->>User: response(...)
-        deactivate User
+        Tendermint node->>Behaviour: response(...)
+        deactivate Behaviour
 
 </div>
