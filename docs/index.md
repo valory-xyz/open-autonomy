@@ -1,9 +1,7 @@
 # Consensus algorithms
 
-Consensus algorithms implements the [Valory](https://www.valory.xyz/) stack, a set of
-distributed consensus technologies built on top of the
-[open AEA framework](https://github.com/valory-xyz/open-aea) to facilitate the
-creation of dynamic, decentralised applications that depend on off-chain components.
+Consensus algorithms implements the [Valory](https://www.valory.xyz/) stack, which allows for the creation of autonomous applications that can be operated in a robust, transparent and decentralised way. The stack is realised on top of the
+[open AEA framework](https://github.com/valory-xyz/open-aea). It facilitates the creation of dynamic, decentralised applications that run off-chain.
 
 As opposed to traditional smart contracts, Valory apps go beyond simple, purely
 reactive applications and can show complex, proactive behaviours that contain
@@ -21,8 +19,8 @@ decentralized application with shared state that is fault tolerant.
 
 If at some point the application must take some action over an external service, i.e.
 settle a transaction on a blockchain, one of the agents can be randomly nominated as a keeper
-to perform that action. Multi-signature software can be used to avoid unilateral actions
-being taken, so all of the agents must approve and sign every action before it takes place and
+to perform that action. Multi-signature protocols are used to avoid unilateral actions
+being taken, so a threshold of agents must approve and sign every action before it takes place and
 verify it once it has been processed.
 
 There are some core concepts that make Valory apps possible. In the following sections
