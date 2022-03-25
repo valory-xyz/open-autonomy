@@ -109,7 +109,9 @@ class TestForecasting:
             "packages.valory.skills.apy_estimation_abci.ml.forecasting.train_forecaster",
             lambda _, **__: trained_forecaster,
         )
-        forecasters = train_forecaster_per_pool(train_task_input)
+        forecasters = train_forecaster_per_pool(
+            train_task_input, dict.fromkeys(train_task_input, {})
+        )
         assert len(forecasters) == len(train_task_input)
         for (id_actual, forecaster_actual), id_expected in zip(
             forecasters.items(), train_task_input.keys()
