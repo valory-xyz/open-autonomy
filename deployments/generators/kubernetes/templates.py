@@ -21,6 +21,7 @@
 
 from deployments.constants import IMAGE_VERSION
 
+
 HARDHAT_TEMPLATE: str = (
     """apiVersion: apps/v1
 kind: Deployment
@@ -144,8 +145,7 @@ spec:
 )
 
 
-AGENT_NODE_TEMPLATE: str = (
-    """apiVersion: v1
+AGENT_NODE_TEMPLATE: str = """apiVersion: v1
 kind: Service
 metadata:
   name: abci{validator_ix}
@@ -241,5 +241,5 @@ spec:
             claimName: 'build-vol-pvc'
 """ % (
     IMAGE_VERSION,
-    IMAGE_VERSION
+    IMAGE_VERSION,
 )
