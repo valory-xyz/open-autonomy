@@ -107,8 +107,6 @@ class _MetaRoundBehaviour(ABCMeta):
 
         # check uniqueness
         for b in behaviour_cls.behaviour_states:
-            if b.matching_round is None:
-                continue
             round_to_state[b.matching_round].append(b)
             if len(round_to_state[b.matching_round]) > 1:
                 state_class_ids = [
@@ -194,8 +192,6 @@ class AbstractRoundBehaviour(
         """Get round-to-state mapping."""
         result: Dict[Type[AbstractRound], StateType] = {}
         for state_behaviour_cls in behaviour_states:
-            if state_behaviour_cls.matching_round is None:
-                continue
             round_cls = state_behaviour_cls.matching_round
             if round_cls in result:
                 raise ValueError(
@@ -227,27 +223,14 @@ class AbstractRoundBehaviour(
         """Implement the behaviour."""
         self._process_current_round()
 
-        current_state = self.current_state
-        if current_state is None:
+        if self.current_state is None:
             return
 
-        current_state.act_wrapper()
+        self.current_state.act_wrapper()
 
-        if current_state.is_done():
-            current_state.clean_up()
-            # if next state is set, take the FSM behaviour transition
-            # this branch also handle the case when matching round of current state is not set
-            if self._next_state_cls is not None:
-                self.context.logger.debug(
-                    "overriding transition: current state: '%s', next state: '%s'",
-                    self.current_state.state_id if self.current_state else None,
-                    self._next_state_cls.state_id,
-                )
-                self.current_state = self.instantiate_state_cls(self._next_state_cls)
-                self._next_state_cls = None
-            else:
-                # otherwise, set it to None
-                self.current_state = None
+        if self.current_state.is_done():
+            self.current_state.clean_up()
+            self.current_state = None
 
     def _process_current_round(self) -> None:
         """Process current ABCIApp round."""
@@ -255,26 +238,23 @@ class AbstractRoundBehaviour(
         if (
             self.current_state is not None
             and self._last_round_height == current_round_height
-        ) and self.current_state.matching_round is not None:
+        ):
             # round has not changed - do nothing
             return
         self._last_round_height = current_round_height
         current_round_cls = type(self.context.state.period.current_round)
 
         # each round has a state behaviour associated to it
-        self._next_state_cls = self._round_to_state[current_round_cls]
+        next_state_cls = self._round_to_state[current_round_cls]
 
-        # checking if current state behaviour has a matching round.
-        #  if so, stop it and replace it with the new state behaviour
-        #  if not, then leave it running; the next state will be scheduled
-        #  when current state is done
-        if self.current_state is None:
-            self.current_state = self.instantiate_state_cls(self._next_state_cls)
-            return
-
-        current_state = cast(BaseState, self.current_state)
-        # current state cannot be replaced if matching_round is None
-        if current_state.matching_round is not None:
+        #  Stop the current state and replace it with the new state behaviour
+        if self.current_state is not None:
+            current_state = cast(BaseState, self.current_state)
             current_state.stop()
-            self.current_state = self.instantiate_state_cls(self._next_state_cls)
-            return
+            self.context.logger.debug(
+                "overriding transition: current state: '%s', next state: '%s'",
+                self.current_state.state_id if self.current_state else None,
+                next_state_cls.state_id,
+            )
+
+        self.current_state = self.instantiate_state_cls(next_state_cls)
