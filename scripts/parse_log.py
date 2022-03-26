@@ -61,7 +61,9 @@ AGENT_COLORS = [
 ]
 
 
-def parse_file(filename: str = LOG_FILE_PATH) -> None:  # pylint: disable=too-many-locals
+def parse_file(  # pylint: disable=too-many-locals
+    filename: str = LOG_FILE_PATH,
+) -> None:
     """Parses a log file, e2e or single agent."""
     periods: Dict[str, Any] = {}
     errors = []
