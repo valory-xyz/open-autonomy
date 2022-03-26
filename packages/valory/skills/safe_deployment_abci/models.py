@@ -21,7 +21,10 @@
 
 from typing import Any
 
-from packages.valory.skills.abstract_round_abci.models import BaseParams
+from packages.valory.skills.abstract_round_abci.models import ApiSpecs, BaseParams
+from packages.valory.skills.abstract_round_abci.models import (
+    BenchmarkTool as BaseBenchmarkTool,
+)
 from packages.valory.skills.abstract_round_abci.models import Requests as BaseRequests
 from packages.valory.skills.abstract_round_abci.models import (
     SharedState as BaseSharedState,
@@ -37,5 +40,10 @@ class SharedState(BaseSharedState):
         super().__init__(*args, abci_app_cls=SafeDeploymentAbciApp, **kwargs)
 
 
+class RandomnessApi(ApiSpecs):
+    """A model for randomness api specifications."""
+
+
 Params = BaseParams
 Requests = BaseRequests
+BenchmarkTool = BaseBenchmarkTool

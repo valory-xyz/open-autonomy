@@ -146,7 +146,7 @@ This class represents a base class for transaction payload classes.
 #### `__`init`__`
 
 ```python
-def __init__(sender: str, id_: Optional[str] = None) -> None
+def __init__(sender: str, id_: Optional[str] = None, round_count: int = ROUND_COUNT_DEFAULT) -> None
 ```
 
 Initialize a transaction payload.
@@ -155,6 +155,29 @@ Initialize a transaction payload.
 
 - `sender`: the sender (Ethereum) address
 - `id_`: the id of the transaction
+- `round_count`: the count of the round in which the payload was sent
+
+<a id="packages.valory.skills.abstract_round_abci.base.BaseTxPayload.round_count"></a>
+
+#### round`_`count
+
+```python
+@property
+def round_count() -> int
+```
+
+Get the round count.
+
+<a id="packages.valory.skills.abstract_round_abci.base.BaseTxPayload.round_count"></a>
+
+#### round`_`count
+
+```python
+@round_count.setter
+def round_count(round_count: int) -> None
+```
+
+Set the round count.
 
 <a id="packages.valory.skills.abstract_round_abci.base.BaseTxPayload.encode"></a>
 
@@ -629,6 +652,17 @@ def current_period_count() -> int
 
 Get the current period count.
 
+<a id="packages.valory.skills.abstract_round_abci.base.StateDB.round_count"></a>
+
+#### round`_`count
+
+```python
+@property
+def round_count() -> int
+```
+
+Get the round count.
+
 <a id="packages.valory.skills.abstract_round_abci.base.StateDB.cross_period_persisted_keys"></a>
 
 #### cross`_`period`_`persisted`_`keys
@@ -690,6 +724,16 @@ def get_all() -> Dict[str, Any]
 
 Get all key-value pairs from the data dictionary for the current period.
 
+<a id="packages.valory.skills.abstract_round_abci.base.StateDB.increment_round_count"></a>
+
+#### increment`_`round`_`count
+
+```python
+def increment_round_count() -> None
+```
+
+Increment the round count.
+
 <a id="packages.valory.skills.abstract_round_abci.base.StateDB.__repr__"></a>
 
 #### `__`repr`__`
@@ -699,6 +743,16 @@ def __repr__() -> str
 ```
 
 Return a string representation of the state.
+
+<a id="packages.valory.skills.abstract_round_abci.base.StateDB.cleanup"></a>
+
+#### cleanup
+
+```python
+def cleanup(cleanup_history_depth: int) -> None
+```
+
+Reset the db.
 
 <a id="packages.valory.skills.abstract_round_abci.base.BasePeriodState"></a>
 
@@ -732,6 +786,17 @@ def db() -> StateDB
 ```
 
 Get DB.
+
+<a id="packages.valory.skills.abstract_round_abci.base.BasePeriodState.round_count"></a>
+
+#### round`_`count
+
+```python
+@property
+def round_count() -> int
+```
+
+Get the round count.
 
 <a id="packages.valory.skills.abstract_round_abci.base.BasePeriodState.period_count"></a>
 
@@ -1896,6 +1961,16 @@ Observe timestamp from last block.
 
 - `timestamp`: the latest block's timestamp.
 
+<a id="packages.valory.skills.abstract_round_abci.base.AbciApp.cleanup"></a>
+
+#### cleanup
+
+```python
+def cleanup(cleanup_history_depth: int) -> None
+```
+
+Clear data.
+
 <a id="packages.valory.skills.abstract_round_abci.base.Period"></a>
 
 ## Period Objects
@@ -2132,7 +2207,7 @@ Process the 'commit' request.
 #### reset`_`blockchain
 
 ```python
-def reset_blockchain() -> None
+def reset_blockchain(is_replay: bool = False) -> None
 ```
 
 Reset blockchain after tendermint reset.

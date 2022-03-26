@@ -27,12 +27,12 @@ from typing import Dict, Generator, List, Optional, Type, Union, cast
 from packages.valory.protocols.ledger_api.message import LedgerApiMessage
 from packages.valory.skills.abstract_round_abci.base import BaseTxPayload
 from packages.valory.skills.abstract_round_abci.behaviour_utils import BaseState
-from packages.valory.skills.abstract_round_abci.utils import BenchmarkTool, VerifyDrand
+from packages.valory.skills.abstract_round_abci.utils import VerifyDrand
 
 
 RandomnessObservation = Optional[Dict[str, Union[str, int]]]
 
-benchmark_tool = BenchmarkTool()
+
 drand_check = VerifyDrand()
 
 
@@ -109,9 +109,7 @@ class RandomnessBehaviour(BaseState):
         - Retry until reciving valid values for randomness or retries exceed.
         - If retrieved values are valid continue else generate randomness from chain.
         """
-        with benchmark_tool.measure(
-            self,
-        ).local():
+        with self.context.benchmark_tool.measure(self.state_id).local():
             if self.context.randomness_api.is_retries_exceeded():
                 self.context.logger.info("Cannot retrieve randomness from api.")
                 self.context.logger.info("Generating randomness from chain.")
@@ -132,9 +130,7 @@ class RandomnessBehaviour(BaseState):
                 round_id=observation["round"],
                 randomness=observation["randomness"],
             )
-            with benchmark_tool.measure(
-                self,
-            ).consensus():
+            with self.context.benchmark_tool.measure(self.state_id).consensus():
                 yield from self.send_a2a_transaction(payload)
                 yield from self.wait_until_round_end()
 
@@ -171,9 +167,7 @@ class SelectKeeperBehaviour(BaseState):
         - Go to the next behaviour state (set done event).
         """
 
-        with benchmark_tool.measure(
-            self,
-        ).local():
+        with self.context.benchmark_tool.measure(self.state_id).local():
             # Sorted list of participants
             relevant_set = sorted(list(self.period_state.participants))
 
@@ -198,9 +192,7 @@ class SelectKeeperBehaviour(BaseState):
             self.context.logger.info(f"Selected a new keeper: {keeper_address}.")
             payload = self.payload_class(self.context.agent_address, keeper_address)
 
-        with benchmark_tool.measure(
-            self,
-        ).consensus():
+        with self.context.benchmark_tool.measure(self.state_id).consensus():
             yield from self.send_a2a_transaction(payload)
             yield from self.wait_until_round_end()
 

@@ -32,9 +32,12 @@ from unittest.mock import MagicMock
 import pytest
 
 from packages.open_aea.protocols.signing import SigningMessage
+from packages.valory.protocols.http import HttpMessage
+from packages.valory.protocols.ledger_api.message import LedgerApiMessage
 from packages.valory.skills.abstract_round_abci.base import (
     AbstractRound,
     BasePeriodState,
+    BaseTxPayload,
     Transaction,
 )
 from packages.valory.skills.abstract_round_abci.behaviour_utils import (
@@ -309,18 +312,24 @@ def test_async_behaviour_stop() -> None:
 class RoundA(AbstractRound):
     """Concrete ABCI round."""
 
+    round_id = "round_a"
+
     def end_block(self) -> Optional[Tuple[BasePeriodState, Enum]]:
         """Handle end block."""
         return None
 
-    round_id = "round_a"
+    def check_payload(self, payload: BaseTxPayload) -> None:
+        """Check payload."""
+
+    def process_payload(self, payload: BaseTxPayload) -> None:
+        """Process payload."""
 
 
 class StateATest(BaseState):
     """Concrete BaseState class."""
 
     state_id = "state_a"
-    matching_round: Optional[Type[RoundA]] = RoundA
+    matching_round: Type[RoundA] = RoundA
 
     def async_act(self) -> Generator:
         """Do the 'async_act'."""
@@ -345,13 +354,24 @@ def _get_status_wrong_patch(
     yield
 
 
+def _wait_until_transaction_delivered_patch(
+    *args: Any, **kwargs: Any
+) -> Generator[None, None, Tuple]:
+    """Patch `_wait_until_transaction_delivered` method"""
+    return False, HttpMessage(
+        performative=HttpMessage.Performative.RESPONSE,  # type: ignore
+        body=json.dumps({"tx_result": {"info": "TransactionNotValidError"}}),
+    )
+    yield
+
+
 class TestBaseState:
     """Tests for the 'BaseState' class."""
 
     def setup(self) -> None:
         """Set up the tests."""
         self.context_mock = MagicMock()
-        self.context_params_mock = MagicMock()
+        self.context_params_mock = MagicMock(ipfs_domain_name=None)
         self.context_state_period_state_mock = MagicMock()
         self.context_mock.params = self.context_params_mock
         self.context_mock.state.period_state = self.context_state_period_state_mock
@@ -402,18 +422,10 @@ class TestBaseState:
         assert self.behaviour.check_round_height_has_changed(current_height)
         assert not self.behaviour.check_round_height_has_changed(new_height)
 
-    def test_wait_until_round_end_negative_no_matching_round(self) -> None:
-        """Test 'wait_until_round_end' method, negative case (no matching round)."""
-        self.behaviour.matching_round = None
-        generator = self.behaviour.wait_until_round_end()
-        with pytest.raises(ValueError, match="No matching_round set!"):
-            generator.send(None)
-
     def test_wait_until_round_end_negative_last_round_or_matching_round(self) -> None:
         """Test 'wait_until_round_end' method, negative case (not in matching nor last round)."""
         self.behaviour.context.state.period.current_round_id = "current_round_id"
         self.behaviour.context.state.period.last_round_id = "last_round_id"
-        assert self.behaviour.matching_round is not None
         self.behaviour.matching_round.round_id = "matching_round"
         generator = self.behaviour.wait_until_round_end()
         with pytest.raises(
@@ -454,13 +466,6 @@ class TestBaseState:
         self.behaviour.set_done()
         assert self.behaviour.is_done()
 
-    def test_send_a2a_transaction_negative_no_matching_round(self) -> None:
-        """Test 'send_a2a_transaction' method, negative case (no matching round)."""
-        self.behaviour.matching_round = None
-        generator = self.behaviour.send_a2a_transaction(MagicMock())
-        with pytest.raises(ValueError, match="No matching_round set!"):
-            try_send(generator)
-
     @mock.patch.object(BaseState, "_send_transaction")
     def test_send_a2a_transaction_positive(self, *_: Any) -> None:
         """Test 'send_a2a_transaction' method, positive case."""
@@ -479,7 +484,7 @@ class TestBaseState:
         """Test 'async_act_wrapper' in sync mode."""
         self.behaviour.context.state.period.syncing_up = True
         self.behaviour.context.state.period.height = 0
-        self.behaviour.matching_round = None
+        self.behaviour.matching_round = MagicMock()
         self.behaviour.context.logger.info = lambda msg: logging.info(msg)  # type: ignore
 
         with mock.patch.object(logging, "info") as log_mock:
@@ -493,7 +498,7 @@ class TestBaseState:
         self.behaviour.context.state.period.syncing_up = True
         self.behaviour.context.state.period.height = 0
         self.behaviour.context.params.tendermint_check_sleep_delay = 3
-        self.behaviour.matching_round = None
+        self.behaviour.matching_round = MagicMock()
         self.behaviour.context.logger.info = lambda msg: logging.info(msg)  # type: ignore
 
         gen = self.behaviour.async_act_wrapper()
@@ -541,6 +546,31 @@ class TestBaseState:
         # send message to '_submit_tx'
         try_send(gen, obj=MagicMock(body='{"result": {"hash": "", "code": 0}}'))
         # send message to '_wait_until_transaction_delivered'
+        success_response = MagicMock(
+            status_code=200, body='{"result": {"tx_result": {"code": 0}}}'
+        )
+        try_send(gen, obj=success_response)
+
+    @mock.patch.object(BaseState, "_send_signing_request")
+    @mock.patch.object(Transaction, "encode", return_value=MagicMock())
+    @mock.patch.object(
+        BaseState,
+        "_build_http_request_message",
+        return_value=(MagicMock(), MagicMock()),
+    )
+    @mock.patch.object(BaseState, "_check_http_return_code_200", return_value=True)
+    @mock.patch.object(
+        BaseState,
+        "_wait_until_transaction_delivered",
+        new=_wait_until_transaction_delivered_patch,
+    )
+    def test_send_transaction_invalid_transaction(self, *_: Any) -> None:
+        """Test '_send_transaction', positive case."""
+        m = MagicMock(status_code=200)
+        gen = self.behaviour._send_transaction(m)
+        try_send(gen, obj=None)
+        try_send(gen, obj=m)
+        try_send(gen, obj=MagicMock(body='{"result": {"hash": "", "code": 0}}'))
         success_response = MagicMock(
             status_code=200, body='{"result": {"tx_result": {"code": 0}}}'
         )
@@ -867,7 +897,101 @@ class TestBaseState:
             gen,
             obj=MagicMock(performative=SigningMessage.Performative.SIGNED_TRANSACTION),
         )
+        try_send(
+            gen,
+            obj=MagicMock(
+                performative=LedgerApiMessage.Performative.TRANSACTION_DIGEST
+            ),
+        )
         try_send(gen, obj=m)
+
+    @mock.patch.object(BaseState, "_send_transaction_signing_request")
+    @mock.patch.object(BaseState, "_send_transaction_request")
+    @mock.patch.object(BaseState, "_send_transaction_receipt_request")
+    @mock.patch("packages.valory.skills.abstract_round_abci.behaviour_utils.Terms")
+    def test_send_raw_transaction_with_wrong_signing_performative(
+        self, *_: Any
+    ) -> None:
+        """Test 'send_raw_transaction'."""
+        m = MagicMock()
+        gen = self.behaviour.send_raw_transaction(m)
+        # trigger generator function
+        try_send(gen, obj=None)
+        try_send(
+            gen,
+            obj=MagicMock(performative=SigningMessage.Performative.ERROR),
+        )
+        try_send(gen, obj=m)
+        try_send(gen, obj=m)
+
+    @mock.patch.object(BaseState, "_send_transaction_signing_request")
+    @mock.patch.object(BaseState, "_send_transaction_request")
+    @mock.patch.object(BaseState, "_send_transaction_receipt_request")
+    @mock.patch("packages.valory.skills.abstract_round_abci.behaviour_utils.Terms")
+    def test_send_raw_transaction_transaction_digest_error(self, *_: Any) -> None:
+        """Test 'send_raw_transaction'."""
+        m = MagicMock()
+        gen = self.behaviour.send_raw_transaction(m)
+        # trigger generator function
+        try_send(gen, obj=None)
+        try_send(
+            gen,
+            obj=MagicMock(performative=SigningMessage.Performative.SIGNED_TRANSACTION),
+        )
+        try_send(
+            gen,
+            obj=MagicMock(performative=LedgerApiMessage.Performative.ERROR),
+        )
+        try_send(gen, obj=m)
+
+    @mock.patch.object(BaseState, "_send_transaction_signing_request")
+    @mock.patch.object(BaseState, "_send_transaction_request")
+    @mock.patch.object(BaseState, "_send_transaction_receipt_request")
+    @mock.patch("packages.valory.skills.abstract_round_abci.behaviour_utils.Terms")
+    def test_send_raw_transaction_transaction_digest_error_replacement_transaction_underpriced(
+        self, *_: Any
+    ) -> None:
+        """Test 'send_raw_transaction'."""
+        m = MagicMock()
+        gen = self.behaviour.send_raw_transaction(m)
+        # trigger generator function
+        try_send(gen, obj=None)
+        try_send(
+            gen,
+            obj=MagicMock(performative=SigningMessage.Performative.SIGNED_TRANSACTION),
+        )
+        try_send(
+            gen,
+            obj=MagicMock(
+                performative=LedgerApiMessage.Performative.ERROR,
+                message="replacement transaction underpriced",
+            ),
+        )
+        try_send(gen, obj=m)
+
+    @mock.patch.object(BaseState, "_send_transaction_signing_request")
+    @mock.patch.object(BaseState, "_send_transaction_request")
+    @mock.patch.object(BaseState, "_send_transaction_receipt_request")
+    @mock.patch("packages.valory.skills.abstract_round_abci.behaviour_utils.Terms")
+    def test_send_raw_transaction_transaction_digest_error_nonce_too_low(
+        self, *_: Any
+    ) -> None:
+        """Test 'send_raw_transaction'."""
+        m = MagicMock()
+        gen = self.behaviour.send_raw_transaction(m)
+        # trigger generator function
+        try_send(gen, obj=None)
+        try_send(
+            gen,
+            obj=MagicMock(performative=SigningMessage.Performative.SIGNED_TRANSACTION),
+        )
+        try_send(
+            gen,
+            obj=MagicMock(
+                performative=LedgerApiMessage.Performative.ERROR,
+                message="nonce too low",
+            ),
+        )
         try_send(gen, obj=m)
 
     @pytest.mark.parametrize("contract_address", [None, "contract_address"])
@@ -950,6 +1074,7 @@ def test_degenerate_state_async_act() -> None:
         matching_round = MagicMock()
 
     context = MagicMock()
+    context.params.ipfs_domain_name = None
     # this is needed to trigger execution of async_act
     context.state.period.syncing_up = False
 

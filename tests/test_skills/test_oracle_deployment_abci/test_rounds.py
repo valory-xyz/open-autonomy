@@ -21,7 +21,7 @@
 
 import logging  # noqa: F401
 from types import MappingProxyType
-from typing import Dict, FrozenSet, Optional, Type, cast
+from typing import Any, Dict, FrozenSet, Optional, Type, cast
 
 from packages.valory.skills.abstract_round_abci.base import AbstractRound
 from packages.valory.skills.abstract_round_abci.base import (
@@ -196,6 +196,8 @@ class BaseValidateRoundTest(BaseVotingRoundTest):
     ) -> None:
         """Test ValidateRound."""
 
+        self.period_state.update(tx_hashes_history=["test"])
+
         test_round = self.test_class(
             state=self.period_state, consensus_params=self.consensus_params
         )
@@ -277,6 +279,7 @@ class BaseSelectKeeperRoundTest(BaseCollectSameUntilThresholdRoundTest):
     test_payload: Type[SelectKeeperPayload]
 
     _period_state_class = PeriodState
+    _exit_event: Optional[Any] = None
 
     def test_run(
         self,
@@ -298,7 +301,9 @@ class BaseSelectKeeperRoundTest(BaseCollectSameUntilThresholdRoundTest):
                 ),
                 state_attr_checks=[lambda state: state.participant_to_selection.keys()],
                 most_voted_payload="keeper",
-                exit_event=self._event_class.DONE,
+                exit_event=self._event_class.DONE
+                if self._exit_event is None
+                else self._exit_event,
             )
         )
 

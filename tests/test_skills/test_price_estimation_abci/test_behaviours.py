@@ -38,7 +38,10 @@ from packages.valory.contracts.offchain_aggregator.contract import (
 )
 from packages.valory.protocols.contract_api.message import ContractApiMessage
 from packages.valory.skills.abstract_round_abci.base import StateDB
-from packages.valory.skills.abstract_round_abci.behaviour_utils import BaseState
+from packages.valory.skills.abstract_round_abci.behaviour_utils import (
+    BaseState,
+    make_degenerate_state,
+)
 from packages.valory.skills.price_estimation_abci.behaviours import (
     EstimateBehaviour,
     ObserveBehaviour,
@@ -46,12 +49,12 @@ from packages.valory.skills.price_estimation_abci.behaviours import (
     pack_for_server,
 )
 from packages.valory.skills.price_estimation_abci.payloads import ObservationPayload
-from packages.valory.skills.price_estimation_abci.rounds import Event
+from packages.valory.skills.price_estimation_abci.rounds import (
+    Event,
+    FinishedPriceAggregationRound,
+)
 from packages.valory.skills.price_estimation_abci.rounds import (
     PeriodState as PriceEstimationPeriodState,
-)
-from packages.valory.skills.transaction_settlement_abci.behaviours import (
-    RandomnessTransactionSubmissionBehaviour,
 )
 
 from tests.conftest import ROOT_DIR
@@ -423,14 +426,14 @@ class TestTransactionHashBehaviour(PriceEstimationFSMBehaviourBaseCase):
                 "participants": {"agent1"},
                 "participant_to_observations": {"agent1": 1.0},
                 "most_voted_estimate": 1.0,
-                "tx_hashes_history": [tx_hashes[1]],
+                "final_tx_hash": tx_hashes[1],
             }
         )
 
         # add new cycle, and dummy period data
         period_state.db._current_period_count = this_period_count  # type: ignore
         next_period_data = copy.deepcopy(period_data)
-        next_period_data["tx_hashes_history"] = [tx_hashes[0]]
+        next_period_data["final_tx_hash"] = tx_hashes[0]
         period_state.db.add_new_period(
             this_period_count,
             **period_data,
@@ -461,7 +464,10 @@ class TestTransactionHashBehaviour(PriceEstimationFSMBehaviourBaseCase):
         self._test_done_flag_set()
         self.end_round(Event.DONE)
         state = cast(BaseState, self.behaviour.current_state)
-        assert state.state_id == RandomnessTransactionSubmissionBehaviour.state_id
+        assert (
+            state.state_id
+            == make_degenerate_state(FinishedPriceAggregationRound.round_id).state_id
+        )
 
 
 class TestPackForServer(PriceEstimationFSMBehaviourBaseCase):

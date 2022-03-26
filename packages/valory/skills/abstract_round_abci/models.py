@@ -20,6 +20,8 @@
 """This module contains the shared state for the price estimation ABCI application."""
 import inspect
 import json
+from pathlib import Path
+from time import time
 from typing import Any, Callable, Dict, List, Optional, Tuple, Type, cast
 
 from aea.exceptions import enforce
@@ -60,6 +62,7 @@ class BaseParams(Model):  # pylint: disable=too-many-instance-attributes
         )
         self.reset_tendermint_after = self._ensure("reset_tendermint_after", kwargs)
         self.consensus_params = ConsensusParams.from_json(kwargs.pop("consensus", {}))
+        self.cleanup_history_depth = self._ensure("cleanup_history_depth", kwargs)
         period_setup_params = kwargs.pop("period_setup", {})
         # we sanitize for null values as these are just kept for schema definitions
         period_setup_params = {
@@ -225,3 +228,143 @@ class ApiSpecs(Model):  # pylint: disable=too-many-instance-attributes
     def is_retries_exceeded(self) -> bool:
         """Check if the retries amount has been exceeded."""
         return self._retries_attempted > self._retries
+
+
+class BenchmarkBlockTypes:  # pylint: disable=too-few-public-methods
+    """Benchmark block types."""
+
+    LOCAL = "local"
+    CONSENSUS = "consensus"
+    TOTAL = "total"
+
+
+class BenchmarkBlock:
+    """
+    Benchmark
+
+    This class represents logic to measure the code block using a
+    context manager.
+    """
+
+    start: float
+    total_time: float
+    block_type: str
+
+    def __init__(self, block_type: str) -> None:
+        """Benchmark for single round."""
+        self.block_type = block_type
+        self.start = 0
+        self.total_time = 0
+
+    def __enter__(
+        self,
+    ) -> None:
+        """Enter context."""
+        self.start = time()
+
+    def __exit__(self, *args: List, **kwargs: Dict) -> None:
+        """Exit context"""
+        self.total_time = time() - self.start
+
+
+class BenchmarkBehaviour:
+    """
+    BenchmarkBehaviour
+
+    This class represents logic to benchmark a single behaviour.
+    """
+
+    local_data: Dict[str, BenchmarkBlock]
+
+    def __init__(
+        self,
+    ) -> None:
+        """Initialize Benchmark behaviour object."""
+        self.local_data = {}
+
+    def _measure(self, block_type: str) -> BenchmarkBlock:
+        """
+        Returns a BenchmarkBlock object.
+
+        :param block_type: type of block (e.g. local, consensus, request)
+        :return: BenchmarkBlock
+        """
+
+        if block_type not in self.local_data:
+            self.local_data[block_type] = BenchmarkBlock(block_type)
+
+        return self.local_data[block_type]
+
+    def local(
+        self,
+    ) -> BenchmarkBlock:
+        """Measure local block."""
+        return self._measure(BenchmarkBlockTypes.LOCAL)
+
+    def consensus(
+        self,
+    ) -> BenchmarkBlock:
+        """Measure consensus block."""
+        return self._measure(BenchmarkBlockTypes.CONSENSUS)
+
+
+class BenchmarkTool(Model):
+    """
+    BenchmarkTool
+
+    Tool to benchmark ABCI apps.
+    """
+
+    benchmark_data: Dict[str, BenchmarkBehaviour]
+    log_dir: Path
+
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
+        """Benchmark tool for rounds behaviours."""
+        super().__init__(*args, **kwargs)
+        self.benchmark_data = {}
+        self.log_dir = Path(kwargs.pop("log_dir", "/logs"))
+
+    def measure(self, behaviour: str) -> BenchmarkBehaviour:
+        """Measure time to complete round."""
+        if behaviour not in self.benchmark_data:
+            self.benchmark_data[behaviour] = BenchmarkBehaviour()
+        return self.benchmark_data[behaviour]
+
+    @property
+    def data(
+        self,
+    ) -> List:
+        """Returns formatted data."""
+
+        behavioural_data = []
+        for behaviour, tool in self.benchmark_data.items():
+            data = {k: v.total_time for k, v in tool.local_data.items()}
+            data[BenchmarkBlockTypes.TOTAL] = sum(data.values())
+            behavioural_data.append({"behaviour": behaviour, "data": data})
+
+        return behavioural_data
+
+    def save(self, period: int = 0, reset: bool = True) -> None:
+        """Save logs to a file."""
+
+        try:
+            self.log_dir.mkdir(exist_ok=True)
+            agent_dir = self.log_dir / self.context.agent_address
+            agent_dir.mkdir(exist_ok=True)
+            filepath = agent_dir / f"{period}.json"
+
+            with open(str(filepath), "w+", encoding="utf-8") as outfile:
+                json.dump(self.data, outfile)
+            self.context.logger.info(f"Saving benchmarking data for period: {period}")
+
+        except PermissionError as e:  # pragma: nocover
+            self.context.logger.info(f"Error saving benchmark data:\n{e}")
+
+        if reset:
+            self.reset()
+
+    def reset(
+        self,
+    ) -> None:
+        """Reset benchmark data"""
+        self.benchmark_data = {}

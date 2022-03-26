@@ -22,6 +22,7 @@ import json
 from copy import copy
 from enum import Enum
 from pathlib import Path
+from tempfile import TemporaryDirectory
 from typing import Any, Dict, Type, cast
 from unittest import mock
 
@@ -67,6 +68,7 @@ class FSMBehaviourBaseCase(BaseSkillTestCase):
     contract_handler: ContractApiHandler
     signing_handler: SigningHandler
     old_tx_type_to_payload_cls: Dict[str, Type[BaseTxPayload]]
+    benchmark_dir: TemporaryDirectory
 
     @classmethod
     def setup(cls, **kwargs: Any) -> None:
@@ -100,9 +102,16 @@ class FSMBehaviourBaseCase(BaseSkillTestCase):
             LedgerApiHandler, cls._skill.skill_context.handlers.ledger_api
         )
 
+        if kwargs.get("param_overrides") is not None:
+            for param_name, param_value in kwargs["param_overrides"].items():
+                setattr(cls.behaviour.context.params, param_name, param_value)
+
         cls.behaviour.setup()
         cls._skill.skill_context.state.setup()
         cls._skill.skill_context.state.period.end_sync()
+
+        cls.benchmark_dir = TemporaryDirectory()
+        cls._skill.skill_context.benchmark_tool.log_dir = Path(cls.benchmark_dir.name)
         assert (
             cast(BaseState, cls.behaviour.current_state).state_id
             == cls.behaviour.initial_state_cls.state_id
@@ -124,12 +133,15 @@ class FSMBehaviourBaseCase(BaseSkillTestCase):
         self.skill.skill_context.state.period.abci_app._round_results.append(
             period_state
         )
-        if next_state.matching_round is not None:
-            self.skill.skill_context.state.period.abci_app._current_round = (
-                next_state.matching_round(
-                    period_state, self.skill.skill_context.params.consensus_params
-                )
+        self.skill.skill_context.state.period.abci_app._extend_previous_rounds_with_current_round()
+        self.skill.skill_context.behaviours.main._last_round_height = (
+            self.skill.skill_context.state.period.abci_app.current_round_height
+        )
+        self.skill.skill_context.state.period.abci_app._current_round = (
+            next_state.matching_round(
+                period_state, self.skill.skill_context.params.consensus_params
             )
+        )
 
     def mock_ledger_api_request(
         self, request_kwargs: Dict, response_kwargs: Dict
@@ -331,8 +343,6 @@ class FSMBehaviourBaseCase(BaseSkillTestCase):
         if current_state is None:
             return
         current_state = cast(BaseState, current_state)
-        if current_state.matching_round is None:
-            return
         abci_app = current_state.context.state.period.abci_app
         old_round = abci_app._current_round
         abci_app._last_round = old_round
@@ -340,6 +350,7 @@ class FSMBehaviourBaseCase(BaseSkillTestCase):
             current_state.matching_round
         ][done_event](abci_app.state, abci_app.consensus_params)
         abci_app._previous_rounds.append(old_round)
+        abci_app._current_round_height += 1
         self.behaviour._process_current_round()
 
     def _test_done_flag_set(self) -> None:
@@ -357,3 +368,4 @@ class FSMBehaviourBaseCase(BaseSkillTestCase):
     def teardown(cls) -> None:
         """Teardown the test class."""
         _MetaPayload.transaction_type_to_payload_cls = cls.old_tx_type_to_payload_cls  # type: ignore
+        cls.benchmark_dir.cleanup()

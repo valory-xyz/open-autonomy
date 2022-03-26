@@ -51,7 +51,8 @@ Retrieve randomness.
 ## SelectKeeperTransactionSubmissionBehaviourA Objects
 
 ```python
-class SelectKeeperTransactionSubmissionBehaviourA(SelectKeeperBehaviour)
+class SelectKeeperTransactionSubmissionBehaviourA(  # pylint: disable=too-many-ancestors
+    SelectKeeperBehaviour,  TransactionSettlementBaseState)
 ```
 
 Select the keeper agent.
@@ -61,11 +62,22 @@ Select the keeper agent.
 ## SelectKeeperTransactionSubmissionBehaviourB Objects
 
 ```python
-class SelectKeeperTransactionSubmissionBehaviourB(
+class SelectKeeperTransactionSubmissionBehaviourB(  # pylint: disable=too-many-ancestors
     SelectKeeperBehaviour,  TransactionSettlementBaseState)
 ```
 
-Select the keeper agent.
+Select the keeper b agent.
+
+<a id="packages.valory.skills.transaction_settlement_abci.behaviours.SelectKeeperTransactionSubmissionBehaviourBAfterTimeout"></a>
+
+## SelectKeeperTransactionSubmissionBehaviourBAfterTimeout Objects
+
+```python
+class SelectKeeperTransactionSubmissionBehaviourBAfterTimeout(  # pylint: disable=too-many-ancestors
+    SelectKeeperBehaviour,  TransactionSettlementBaseState)
+```
+
+Select the keeper b agent after a timeout.
 
 <a id="packages.valory.skills.transaction_settlement_abci.behaviours.ValidateTransactionBehaviour"></a>
 
@@ -130,7 +142,8 @@ Do the action.
 ## CheckLateTxHashesBehaviour Objects
 
 ```python
-class CheckLateTxHashesBehaviour(CheckTransactionHistoryBehaviour)
+class CheckLateTxHashesBehaviour(  # pylint: disable=too-many-ancestors
+    CheckTransactionHistoryBehaviour)
 ```
 
 Check the late-arriving transaction hashes.
@@ -240,37 +253,17 @@ Store a potentially late-arriving message locally.
 
 - `message`: the late arriving message to handle.
 
-<a id="packages.valory.skills.transaction_settlement_abci.behaviours.BaseResetBehaviour"></a>
+<a id="packages.valory.skills.transaction_settlement_abci.behaviours.ResetBehaviour"></a>
 
-## BaseResetBehaviour Objects
+## ResetBehaviour Objects
 
 ```python
-class BaseResetBehaviour(TransactionSettlementBaseState)
+class ResetBehaviour(TransactionSettlementBaseState)
 ```
 
 Reset state.
 
-<a id="packages.valory.skills.transaction_settlement_abci.behaviours.BaseResetBehaviour.start_reset"></a>
-
-#### start`_`reset
-
-```python
-def start_reset() -> Generator
-```
-
-Start tendermint reset.
-
-<a id="packages.valory.skills.transaction_settlement_abci.behaviours.BaseResetBehaviour.end_reset"></a>
-
-#### end`_`reset
-
-```python
-def end_reset() -> None
-```
-
-End tendermint reset.
-
-<a id="packages.valory.skills.transaction_settlement_abci.behaviours.BaseResetBehaviour.async_act"></a>
+<a id="packages.valory.skills.transaction_settlement_abci.behaviours.ResetBehaviour.async_act"></a>
 
 #### async`_`act
 
@@ -280,34 +273,6 @@ def async_act() -> Generator
 
 Do the action.
 
-Steps:
-- Trivially log the state.
-- Sleep for configured interval.
-- Build a registration transaction.
-- Send the transaction and wait for it to be mined.
-- Wait until ABCI application transitions to the next round.
-- Go to the next behaviour state (set done event).
-
-<a id="packages.valory.skills.transaction_settlement_abci.behaviours.ResetBehaviour"></a>
-
-## ResetBehaviour Objects
-
-```python
-class ResetBehaviour(BaseResetBehaviour)
-```
-
-Reset state.
-
-<a id="packages.valory.skills.transaction_settlement_abci.behaviours.ResetAndPauseBehaviour"></a>
-
-## ResetAndPauseBehaviour Objects
-
-```python
-class ResetAndPauseBehaviour(BaseResetBehaviour)
-```
-
-Reset and pause state.
-
 <a id="packages.valory.skills.transaction_settlement_abci.behaviours.TransactionSettlementRoundBehaviour"></a>
 
 ## TransactionSettlementRoundBehaviour Objects
@@ -316,5 +281,5 @@ Reset and pause state.
 class TransactionSettlementRoundBehaviour(AbstractRoundBehaviour)
 ```
 
-This behaviour manages the consensus stages for the transaction settlement.
+This behaviour manages the consensus stages for the basic transaction settlement.
 

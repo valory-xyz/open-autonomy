@@ -115,17 +115,6 @@ class StateB(BaseState):
         yield
 
 
-class StateC(BaseState):
-    """Dummy state behaviour."""
-
-    state_id = STATE_C_ID
-    matching_round = None
-
-    def async_act(self) -> Generator:
-        """Dummy act method."""
-        yield
-
-
 class ConcreteAbciApp(AbciApp):
     """Concrete ABCI App."""
 
@@ -151,6 +140,7 @@ class TestAbstractRoundBehaviour:
         context_mock = MagicMock()
         context_mock.state.period = self.period_mock
         context_mock.state.period.syncing_up = False
+        context_mock.params.ipfs_domain_name = None
         self.behaviour = ConcreteRoundBehaviour(name="", skill_context=context_mock)
 
     def test_setup(self) -> None:
@@ -242,8 +232,8 @@ class TestAbstractRoundBehaviour:
 
                 class MyRoundBehaviour(AbstractRoundBehaviour):
                     abci_app_cls = ConcreteAbciApp
-                    behaviour_states = [StateC, state_1, state_2]  # type: ignore
-                    initial_state_cls = StateC
+                    behaviour_states = [state_1, state_2]  # type: ignore
+                    initial_state_cls = state_1
 
                 MyRoundBehaviour(name=MagicMock(), skill_context=MagicMock())
 
@@ -317,21 +307,13 @@ class TestAbstractRoundBehaviour:
 
             class MyRoundBehaviour(AbstractRoundBehaviour):
                 abci_app_cls = ConcreteAbciApp
-                behaviour_states = [StateC, state_1, state_2]  # type: ignore
-                initial_state_cls = StateC
-
-    def test_get_round_to_state_mapping_matching_round_none(self) -> None:
-        """Test classmethod '_get_round_to_state_mapping' when a state has matching round none."""
-
-        class MyRoundBehaviour(AbstractRoundBehaviour):
-            abci_app_cls = ConcreteAbciApp
-            behaviour_states = [StateA, StateB, StateC]  # type: ignore
-            initial_state_cls = StateA
+                behaviour_states = [state_1, state_2]  # type: ignore
+                initial_state_cls = state_1
 
     def test_check_initial_state_in_set_of_states_negative_case(self) -> None:
         """Test classmethod '_check_initial_state_in_set_of_states' when initial state is NOT in the set."""
-        state_1 = MagicMock(state_id="state_id_1", matching_round=None)
-        state_2 = MagicMock(state_id="state_id_2", matching_round=None)
+        state_1 = MagicMock(state_id="state_id_1", matching_round=MagicMock())
+        state_2 = MagicMock(state_id="state_id_2", matching_round=MagicMock())
 
         with pytest.raises(
             ABCIAppInternalError,
@@ -402,64 +384,6 @@ class TestAbstractRoundBehaviour:
         )
 
         # check that if the round is changed, the behaviour transition is taken
-        self.behaviour.act()
-        assert isinstance(self.behaviour.current_state, StateB)
-
-    def test_act_with_round_change_but_matching_round_current_state_is_none(
-        self,
-    ) -> None:
-        """Test 'act', with round change but with matching round of current state equal to None."""
-        self.period_mock.current_round = RoundA(MagicMock(), MagicMock())
-        self.period_mock.current_round_height = 0
-
-        # instantiate state with matching round = None
-        self.behaviour.current_state = self.behaviour.instantiate_state_cls(StateC)  # type: ignore
-
-        # check that after act(), current state is same state
-        self.behaviour.act()
-        assert isinstance(self.behaviour.current_state, StateC)
-
-        # check that state does not change until done flag is set
-        self.behaviour.act()
-        assert isinstance(self.behaviour.current_state, StateC)
-
-        # after behaviour is done, the transition can be taken
-        self.behaviour.current_state.set_done()
-        # the next act schedules the next state
-        self.behaviour.act()
-        assert isinstance(self.behaviour.current_state, StateA)
-
-    def test_act_with_round_change_matching_round_current_state_is_none_and_round_change(
-        self,
-    ) -> None:
-        """Test 'act', with round change but with matching round None and round change."""
-        self.period_mock.current_round = RoundA(MagicMock(), MagicMock())
-        self.period_mock.current_round_height = 0
-
-        # instantiate state with matching round = None
-        self.behaviour.current_state = self.behaviour.instantiate_state_cls(StateC)  # type: ignore
-
-        # check that after act(), current state is same state
-        self.behaviour.act()
-        assert isinstance(self.behaviour.current_state, StateC)
-
-        # check that round does not change until done flag is set
-        self.behaviour.act()
-        assert isinstance(self.behaviour.current_state, StateC)
-
-        # change the round
-        self.period_mock.current_round = RoundB(MagicMock(), MagicMock())
-        self.period_mock.current_round_height = (
-            self.period_mock.current_round_height + 1
-        )
-
-        # check that even if round changes behaviour stays in the same state
-        self.behaviour.act()
-        assert isinstance(self.behaviour.current_state, StateC)
-
-        # after behaviour is done, the transition can be taken
-        self.behaviour.current_state.set_done()
-        # the next act schedules the next state
         self.behaviour.act()
         assert isinstance(self.behaviour.current_state, StateB)
 
@@ -534,6 +458,7 @@ def test_self_loops_in_abci_app_reinstantiate_behaviour_state() -> None:
     period.setup(MagicMock(), MagicMock(), MagicMock())
     context_mock = MagicMock()
     context_mock.state.period = period
+    context_mock.params.ipfs_domain_name = None
     behaviour = RoundBehaviour(name="", skill_context=context_mock)
     behaviour.setup()
 

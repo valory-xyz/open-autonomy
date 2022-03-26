@@ -8,12 +8,13 @@ aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
   README.md: QmSdHvedQdaQvWBPjhoDqqZioSFgr43sdTaJqbraDqDFFY
   __init__.py: QmbdzASxkeaGpU5FLXVJnBfyRgTYEo2CDz1BNebhepCCsA
-  behaviours.py: QmWgSRtsFA6ZJJXjtsMMf2HKShjFkXP4J3XHcaMLViLUN1
+  behaviours.py: QmdZDqteDnkcfoEVL9raJugwNpE5bEfu7yEsQYg4xiTfMD
   dialogues.py: QmfDThV4WCRzK88XDpW2hKDYCuEH4RxoHCoAkWpkBRGRPv
+  fsm_specification.yaml: QmegMy42CT1T8eqi4Jv1wXuPPc9zsif9VoWiBFKLWsZbyd
   handlers.py: QmUS4UE6hYLsHs1RW9KxaTNhrq5pmg9Vy3w7nPgc4wV5kg
-  models.py: QmP5Fx8V9U2qWqkLUJnCdSPvBPKdApYn8npJT9b4CMi8x5
-  payloads.py: QmXhrMb5b3exe1kmyGKZAU8A4FiXTGHLPGpnLY6wydo3bF
-  rounds.py: Qma5nxr7W5fttLjquvWvYqeJKy2ngmdLwqzHjcjGeg8zwp
+  models.py: QmeNMN5CE91cdGPnbpBMsCiueQedzFsr65SDYdZatKgcpu
+  payloads.py: QmNxFKPXvTpGc6ZbmboLB7J8nJGdFzEnFiaSy5bkccqG7d
+  rounds.py: QmYSp4H8UGCNDt5vzps5YPBccgPjys72JQZew7BJjk9Tgk
 fingerprint_ignore_patterns: []
 connections: []
 contracts:
@@ -44,6 +45,10 @@ models:
   abci_dialogues:
     args: {}
     class_name: AbciDialogues
+  benchmark_tool:
+    args:
+      log_dir: /logs
+    class_name: BenchmarkTool
   contract_api_dialogues:
     args: {}
     class_name: ContractApiDialogues
@@ -55,6 +60,7 @@ models:
     class_name: LedgerApiDialogues
   params:
     args:
+      cleanup_history_depth: 1
       consensus:
         max_participants: 1
       drand_public_key: 868f005eb8e6e4ca0a47c8a77ceaa5309a47978a7c71bc5cce96366b5d7a569937c529eeda66c7293784a9402801af31
@@ -72,6 +78,17 @@ models:
       tendermint_max_retries: 5
       tendermint_url: http://localhost:26657
     class_name: Params
+  randomness_api:
+    args:
+      api_id: cloudflare
+      headers: []
+      method: GET
+      parameters: []
+      response_key: null
+      response_type: dict
+      retries: 5
+      url: https://drand.cloudflare.com/public/latest
+    class_name: RandomnessApi
   requests:
     args: {}
     class_name: Requests

@@ -161,11 +161,11 @@ def top_n_pairs_q(top_n: int) -> bytes:
     return finalize_q(query)
 
 
-def pairs_q(block: int, top_n_ids: List[str]) -> bytes:
-    """Create a query to get data for the first `top_n` pools based on their total liquidity.
+def pairs_q(block: int, ids: List[str]) -> bytes:
+    """Create a query to get data for the given pools based on their total liquidity.
 
     :param block: the block for which the data are going to be fetched.
-    :param top_n_ids: the ids of the top_n pools to be fetched.
+    :param ids: the ids of the pools to be fetched.
     :return: the built query.
     """
 
@@ -175,7 +175,7 @@ def pairs_q(block: int, top_n_ids: List[str]) -> bytes:
         pairs(
             where: {id_in:
             [\""""
-        + '","'.join(top_n_ids)
+        + '","'.join(ids)
         + """"]},
             block: {number: """
         + str(block)

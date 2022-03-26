@@ -25,7 +25,10 @@ cluster-setup:
 	            --type=kubernetes.io/dockerconfigjson
 	kubectl create serviceaccount dashboard-admin-sa
 	kubectl create clusterrolebinding dashboard-admin-sa --clusterrole=cluster-admin --serviceaccount=default:dashboard-admin-sa
-	skaffold run --profile dashboard
+	helm repo add nfs-subdir-external-provisioner https://kubernetes-sigs.github.io/nfs-subdir-external-provisioner/
+	helm install nfs-server-provisioner nfs-ganesha-server-and-external-provisioner/nfs-server-provisioner \
+                                                       --set=image.tag=v3.0.0,resources.limits.cpu=200m
+	kubectl apply -f https://raw.githubusercontent.com/kubernetes/dashboard/v2.2.0/aio/deploy/recommended.yaml
 .PHONY: cluster-setup
 
 localcluster-start: 

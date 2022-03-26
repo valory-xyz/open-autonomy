@@ -19,9 +19,8 @@
 
 """Integration tests for the valory/apy_estimation_abci skill."""
 
-from typing import Tuple, cast
-
 import pytest
+from aea.configurations.data_types import PublicId
 
 from tests.fixture_helpers import UseGnosisSafeHardHatNet
 from tests.test_agents.base import BaseTestEnd2EndNormalExecution
@@ -29,127 +28,42 @@ from tests.test_agents.base import BaseTestEnd2EndNormalExecution
 
 ipfs_daemon = pytest.mark.usefixtures("ipfs_daemon")
 
-# check log messages of the happy path
-CHECK_STRINGS_LIST = []
-
-states_checks_config = {
-    "collect_history": {
-        "round_name": "collect_history",
-        "extra_logs": (),
-        "only_at_first_period": True,
-        "only_during_cycle": False,
-    },
-    "transform": {
-        "round_name": "transform",
-        "extra_logs": (),
-        "only_at_first_period": True,
-        "only_during_cycle": False,
-    },
-    "preprocess": {
-        "round_name": "preprocess",
-        "extra_logs": (),
-        "only_at_first_period": True,
-        "only_during_cycle": False,
-    },
-    "randomness": {
-        "round_name": "randomness",
-        "extra_logs": (),
-        "only_at_first_period": True,
-        "only_during_cycle": False,
-    },
-    "optimize": {
-        "round_name": "optimize",
-        "extra_logs": (),
-        "only_at_first_period": True,
-        "only_during_cycle": False,
-    },
-    "train": {
-        "round_name": "train",
-        "extra_logs": (),
-        "only_at_first_period": True,
-        "only_during_cycle": False,
-    },
-    "test": {
-        "round_name": "test",
-        "extra_logs": (),
-        "only_at_first_period": True,
-        "only_during_cycle": False,
-    },
-    "full_train": {
-        "round_name": "train",
-        "extra_logs": (),
-        "only_at_first_period": True,
-        "only_during_cycle": False,
-    },
-    "estimate": {
-        "round_name": "estimate",
-        "extra_logs": (),
-        "only_at_first_period": False,
-        "only_during_cycle": False,
-    },
-    "cycle_reset": {
-        "round_name": "cycle_reset",
-        "extra_logs": (),
-        "only_at_first_period": False,
-        "only_during_cycle": False,
-    },
-    "collect_batch": {
-        "round_name": "collect_batch",
-        "extra_logs": (),
-        "only_at_first_period": False,
-        "only_during_cycle": True,
-    },
-    "prepare_batch": {
-        "round_name": "prepare_batch",
-        "extra_logs": (),
-        "only_at_first_period": False,
-        "only_during_cycle": True,
-    },
-    "update_forecaster": {
-        "round_name": "update_forecaster",
-        "extra_logs": (),
-        "only_at_first_period": False,
-        "only_during_cycle": True,
-    },
+# round check log messages of the happy path
+EXPECTED_ROUND_LOG_COUNT = {
+    "collect_history": 1,
+    "transform": 1,
+    "preprocess": 1,
+    "randomness": 1,
+    "optimize": 1,
+    # One time for training before testing and one time for training on full data after having the final model.
+    "train": 2,
+    "test": 1,
+    "estimate": 2,
+    "cycle_reset": 2,
+    "collect_batch": 2,
+    "prepare_batch": 2,
+    "update_forecaster": 2,
 }
-
-
-def build_check_strings() -> None:
-    """Build check strings based on the `states_checks_config`."""
-    for period in (0, 1):
-        for _, config in states_checks_config.items():
-            if period == 0 and not config["only_during_cycle"]:
-                CHECK_STRINGS_LIST.append(
-                    f"Entered in the '{config['round_name']}' round for period {period}"
-                )
-
-                for log in cast(Tuple[str], config["extra_logs"]):
-                    CHECK_STRINGS_LIST.append(log)
-
-                CHECK_STRINGS_LIST.append(f"'{config['round_name']}' round is done")
-
-            elif period > 0 and not config["only_at_first_period"]:
-                CHECK_STRINGS_LIST.append(
-                    f"Entered in the '{config['round_name']}' round for period {period}"
-                )
-
-
-build_check_strings()
-CHECK_STRINGS = tuple(CHECK_STRINGS_LIST)
 
 
 @ipfs_daemon
 class BaseTestABCIAPYEstimationSkillNormalExecution(BaseTestEnd2EndNormalExecution):
     """Base class for the APY estimation e2e tests."""
 
-    agent_package = "valory/apy_estimation:0.1.0"
-    skill_package = "valory/apy_estimation_abci:0.1.0"
-    check_strings = CHECK_STRINGS
+    agent_package = "valory/apy_estimation_chained:0.1.0"
+    skill_package = "valory/apy_estimation_chained_abci:0.1.0"
+    round_check_strings_to_n_periods = EXPECTED_ROUND_LOG_COUNT
     ROUND_TIMEOUT_SECONDS = 120
     wait_to_finish = 240
+    __args_prefix = f"vendor.valory.skills.{PublicId.from_str(skill_package).name}.models.params.args"
+    extra_configs = [
+        {
+            "dotted_path": f"{__args_prefix}.ipfs_domain_name",
+            "value": "/dns/localhost/tcp/5001/http",
+        }
+    ]
 
 
-@pytest.mark.skip
 class TestABCIAPYEstimationSingleAgent(
     BaseTestABCIAPYEstimationSkillNormalExecution,
     UseGnosisSafeHardHatNet,
@@ -159,7 +73,6 @@ class TestABCIAPYEstimationSingleAgent(
     NB_AGENTS = 1
 
 
-@pytest.mark.skip
 class TestABCIAPYEstimationTwoAgents(
     BaseTestABCIAPYEstimationSkillNormalExecution,
     UseGnosisSafeHardHatNet,
@@ -169,7 +82,6 @@ class TestABCIAPYEstimationTwoAgents(
     NB_AGENTS = 2
 
 
-@pytest.mark.skip
 class TestABCIAPYEstimationFourAgents(
     BaseTestABCIAPYEstimationSkillNormalExecution,
     UseGnosisSafeHardHatNet,
@@ -177,3 +89,4 @@ class TestABCIAPYEstimationFourAgents(
     """Test that the ABCI apy_estimation_abci skill with four agents."""
 
     NB_AGENTS = 4
+    wait_to_finish = 300

@@ -24,7 +24,7 @@ import json
 import pprint
 from abc import ABC, abstractmethod
 from enum import Enum
-from functools import partial
+from functools import partial, wraps
 from typing import (
     Any,
     Callable,
@@ -71,6 +71,16 @@ from packages.valory.skills.abstract_round_abci.dialogues import (
     LedgerApiDialogue,
     LedgerApiDialogues,
     SigningDialogues,
+)
+from packages.valory.skills.abstract_round_abci.io.ipfs import (
+    IPFSInteract,
+    IPFSInteractionError,
+)
+from packages.valory.skills.abstract_round_abci.io.load import CustomLoaderType
+from packages.valory.skills.abstract_round_abci.io.store import (
+    CustomStorerType,
+    SupportedFiletype,
+    SupportedObjectType,
 )
 from packages.valory.skills.abstract_round_abci.models import (
     BaseParams,
@@ -308,6 +318,85 @@ class AsyncBehaviour(ABC):
         self.__state = self.AsyncState.READY
 
 
+def _check_ipfs_enabled(fn: Callable) -> Callable:
+    """Decorator that raises error if IPFS is not enabled."""
+
+    @wraps(fn)
+    def wrapper(*args: Any, **kwargs: Any) -> Any:
+        """The wrap that checks and raises the error."""
+        ipfs_enabled = args[0].ipfs_enabled
+
+        if not ipfs_enabled:  # pragma: no cover
+            raise ValueError(
+                "Trying to perform an IPFS operation, but IPFS has not been enabled! "
+                "Please set `ipfs_domain_name` configuration."
+            )
+
+        return fn(*args, **kwargs)
+
+    return wrapper
+
+
+class IPFSBehaviour(SimpleBehaviour, ABC):
+    """Behaviour for interactions with IPFS."""
+
+    def __init__(self, **kwargs: Any):
+        """Initialize an `IPFSBehaviour`."""
+        super().__init__(**kwargs)
+        self.ipfs_enabled = False
+        # If params are not found `AttributeError` will be raised. This is fine, because something will have gone wrong.
+        # If `ipfs_domain_name` is not specified for the skill, then we get a `None` default.
+        # Therefore, `IPFSBehaviour` will be disabled.
+        domain = getattr(self.params, "ipfs_domain_name", None)  # type: ignore  # pylint: disable=E1101
+        if domain is not None:  # pragma: nocover
+            self.ipfs_enabled = True
+            self._ipfs_interact = IPFSInteract(domain)
+
+    @_check_ipfs_enabled
+    def send_to_ipfs(
+        self,
+        filepath: str,
+        obj: SupportedObjectType,
+        multiple: bool = False,
+        filetype: Optional[SupportedFiletype] = None,
+        custom_storer: Optional[CustomStorerType] = None,
+        **kwargs: Any,
+    ) -> Optional[str]:
+        """Send a file to IPFS."""
+        try:
+            hash_ = self._ipfs_interact.store_and_send(
+                filepath, obj, multiple, filetype, custom_storer, **kwargs
+            )
+            self.context.logger.info(f"IPFS hash is: {hash_}")
+            return hash_
+        except IPFSInteractionError as e:  # pragma: no cover
+            self.context.logger.error(
+                f"An error occurred while trying to send a file to IPFS: {str(e)}"
+            )
+            return None
+
+    @_check_ipfs_enabled
+    def get_from_ipfs(  # pylint: disable=too-many-arguments
+        self,
+        hash_: str,
+        target_dir: str,
+        multiple: bool = False,
+        filename: Optional[str] = None,
+        filetype: Optional[SupportedFiletype] = None,
+        custom_loader: CustomLoaderType = None,
+    ) -> Optional[SupportedObjectType]:
+        """Get a file from IPFS."""
+        try:
+            return self._ipfs_interact.get_and_read(
+                hash_, target_dir, multiple, filename, filetype, custom_loader
+            )
+        except IPFSInteractionError as e:
+            self.context.logger.error(
+                f"An error occurred while trying to fetch a file from IPFS: {str(e)}"
+            )
+            return None
+
+
 class CleanUpBehaviour(SimpleBehaviour, ABC):
     """Class for clean-up related functionality of behaviours."""
 
@@ -337,17 +426,27 @@ class CleanUpBehaviour(SimpleBehaviour, ABC):
         )
 
 
-class BaseState(AsyncBehaviour, CleanUpBehaviour, ABC):
+class RPCResponseStatus(Enum):
+    """A custom status of an RPC response."""
+
+    SUCCESS = 1
+    INCORRECT_NONCE = 2
+    UNDERPRICED = 3
+    UNCLASSIFIED_ERROR = 4
+
+
+class BaseState(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
     """Base class for FSM states."""
 
     is_programmatically_defined = True
     state_id = ""
-    matching_round: Optional[Type[AbstractRound]] = None
+    matching_round: Type[AbstractRound]
     is_degenerate: bool = False
 
     def __init__(self, **kwargs: Any):  # pylint: disable=super-init-not-called
         """Initialize a base state behaviour."""
         AsyncBehaviour.__init__(self)
+        IPFSBehaviour.__init__(self, **kwargs)
         CleanUpBehaviour.__init__(self, **kwargs)
         self._is_done: bool = False
         self._is_started: bool = False
@@ -403,8 +502,6 @@ class BaseState(AsyncBehaviour, CleanUpBehaviour, ABC):
         :param timeout: the timeout for the wait
         :yield: None
         """
-        if self.matching_round is None:
-            raise ValueError("No matching_round set!")
         round_id = self.matching_round.round_id
         round_height = cast(SharedState, self.context.state).period.current_round_height
         if self.check_not_in_round(round_id) and self.check_not_in_last_round(round_id):
@@ -448,9 +545,10 @@ class BaseState(AsyncBehaviour, CleanUpBehaviour, ABC):
         :param: payload: the payload to send
         :yield: the responses
         """
-        if self.matching_round is None:
-            raise ValueError("No matching_round set!")
         stop_condition = self.is_round_ended(self.matching_round.round_id)
+        payload.round_count = cast(
+            SharedState, self.context.state
+        ).period_state.round_count
         yield from self._send_transaction(payload, stop_condition=stop_condition)
 
     def async_act_wrapper(self) -> Generator:
@@ -609,12 +707,29 @@ class BaseState(AsyncBehaviour, CleanUpBehaviour, ABC):
             if is_delivered:
                 self.context.logger.info("A2A transaction delivered!")
                 break
+            if isinstance(res, HttpMessage) and self._is_invalid_transaction(res):
+                self.context.logger.info(
+                    f"Tx sent but not delivered. Invalid transaction - not trying again! Response = {res}"
+                )
+                break
             # otherwise, repeat until done, or until stop condition is true
             self.context.logger.info(f"Tx sent but not delivered. Response = {res}")
             payload = payload.with_new_id()
         self.context.logger.info(
             "Stop condition is true, no more attempts to send the transaction."
         )
+
+    @staticmethod
+    def _is_invalid_transaction(res: HttpMessage) -> bool:
+        """Check if the transaction is invalid."""
+        try:
+            error_codes = ["TransactionNotValidError"]
+            body_ = json.loads(res.body)
+            return any(
+                [error_code in body_["tx_result"]["info"] for error_code in error_codes]
+            )
+        except Exception:  # pylint: disable=broad-except  # pragma: nocover
+            return False
 
     def _send_signing_request(
         self, raw_message: bytes, is_deprecated_mode: bool = False
@@ -1066,7 +1181,7 @@ class BaseState(AsyncBehaviour, CleanUpBehaviour, ABC):
 
     def send_raw_transaction(
         self, transaction: RawTransaction
-    ) -> Generator[None, None, Optional[str]]:
+    ) -> Generator[None, None, Tuple[Optional[str], RPCResponseStatus]]:
         """
         Send raw transactions to the ledger for mining.
 
@@ -1098,21 +1213,20 @@ class BaseState(AsyncBehaviour, CleanUpBehaviour, ABC):
         if (
             signature_response.performative
             != SigningMessage.Performative.SIGNED_TRANSACTION
-        ):  # pragma: nocover
+        ):
             self.context.logger.error("Error when requesting transaction signature.")
-            return None
+            return None, RPCResponseStatus.UNCLASSIFIED_ERROR
         self._send_transaction_request(signature_response)
         transaction_digest_msg = yield from self.wait_for_message()
         if (
             transaction_digest_msg.performative
             != LedgerApiMessage.Performative.TRANSACTION_DIGEST
-        ):  # pragma: nocover
-            self.context.logger.error(
-                f"Error when requesting transaction digest: {transaction_digest_msg.message}"
-            )
-            return None
+        ):
+            error = f"Error when requesting transaction digest: {transaction_digest_msg.message}"
+            self.context.logger.error(error)
+            return None, self.__parse_rpc_error(error)
         tx_hash = transaction_digest_msg.transaction_digest.body
-        return tx_hash
+        return tx_hash, RPCResponseStatus.SUCCESS
 
     def get_transaction_receipt(
         self,
@@ -1245,11 +1359,20 @@ class BaseState(AsyncBehaviour, CleanUpBehaviour, ABC):
         response = yield from self.wait_for_message()
         return response
 
+    @staticmethod
+    def __parse_rpc_error(error: str) -> RPCResponseStatus:
+        """Parse an RPC error and return an `RPCResponseStatus`"""
+        if "replacement transaction underpriced" in error:
+            return RPCResponseStatus.UNDERPRICED
+        if "nonce too low" in error:
+            return RPCResponseStatus.INCORRECT_NONCE
+        return RPCResponseStatus.UNCLASSIFIED_ERROR
+
 
 class DegenerateState(BaseState, ABC):
     """An abstract matching behaviour for final and degenerate rounds."""
 
-    matching_round: Optional[Type[AbstractRound]] = None
+    matching_round: Type[AbstractRound]
     is_degenerate: bool = True
 
     def async_act(self) -> Generator:

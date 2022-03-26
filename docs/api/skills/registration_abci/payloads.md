@@ -39,7 +39,7 @@ Represent a transaction payload of type 'registration'.
 #### `__`init`__`
 
 ```python
-def __init__(sender: str, initialisation: Optional[str] = None, id_: Optional[str] = None) -> None
+def __init__(sender: str, initialisation: Optional[str] = None, **kwargs: Any) -> None
 ```
 
 Initialize an 'select_keeper' transaction payload.
@@ -48,7 +48,7 @@ Initialize an 'select_keeper' transaction payload.
 
 - `sender`: the sender (Ethereum) address
 - `initialisation`: the initialisation data
-- `id_`: the id of the transaction
+- `kwargs`: the keyword arguments
 
 <a id="packages.valory.skills.registration_abci.payloads.RegistrationPayload.initialisation"></a>
 

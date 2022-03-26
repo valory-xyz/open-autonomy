@@ -33,7 +33,6 @@ from packages.valory.skills.abstract_round_abci.common import (
     RandomnessBehaviour,
     SelectKeeperBehaviour,
 )
-from packages.valory.skills.abstract_round_abci.utils import BenchmarkTool
 from packages.valory.skills.oracle_deployment_abci.models import Params
 from packages.valory.skills.oracle_deployment_abci.payloads import (
     DeployOraclePayload,
@@ -49,9 +48,6 @@ from packages.valory.skills.oracle_deployment_abci.rounds import (
     SelectKeeperOracleRound,
     ValidateOracleRound,
 )
-
-
-benchmark_tool = BenchmarkTool()
 
 
 class OracleDeploymentBaseState(BaseState):
@@ -107,18 +103,14 @@ class DeployOracleBehaviour(OracleDeploymentBaseState):
 
     def _not_deployer_act(self) -> Generator:
         """Do the non-deployer action."""
-        with benchmark_tool.measure(
-            self,
-        ).consensus():
+        with self.context.benchmark_tool.measure(self.state_id).consensus():
             yield from self.wait_until_round_end()
             self.set_done()
 
     def _deployer_act(self) -> Generator:
         """Do the deployer action."""
 
-        with benchmark_tool.measure(
-            self,
-        ).local():
+        with self.context.benchmark_tool.measure(self.state_id).local():
             self.context.logger.info(
                 "I am the designated sender, deploying the oracle contract..."
             )
@@ -131,9 +123,7 @@ class DeployOracleBehaviour(OracleDeploymentBaseState):
                 raise RuntimeError("Oracle deployment failed!")  # pragma: nocover
             payload = DeployOraclePayload(self.context.agent_address, contract_address)
 
-        with benchmark_tool.measure(
-            self,
-        ).consensus():
+        with self.context.benchmark_tool.measure(self.state_id).consensus():
             self.context.logger.info(f"Oracle contract address: {contract_address}")
             yield from self.send_a2a_transaction(payload)
             yield from self.wait_until_round_end()
@@ -156,7 +146,6 @@ class DeployOracleBehaviour(OracleDeploymentBaseState):
             _decimals=decimals,
             _description=description,
             _transmitters=[self.period_state.safe_contract_address],
-            gas=10 ** 7,
         )
         if (
             contract_api_response.performative
@@ -164,7 +153,7 @@ class DeployOracleBehaviour(OracleDeploymentBaseState):
         ):  # pragma: nocover
             self.context.logger.warning("get_deploy_transaction unsuccessful!")
             return None
-        tx_digest = yield from self.send_raw_transaction(
+        tx_digest, _ = yield from self.send_raw_transaction(
             contract_api_response.raw_transaction
         )
         if tx_digest is None:  # pragma: nocover
@@ -198,15 +187,11 @@ class ValidateOracleBehaviour(OracleDeploymentBaseState):
         - Go to the next behaviour state (set done event).
         """
 
-        with benchmark_tool.measure(
-            self,
-        ).local():
+        with self.context.benchmark_tool.measure(self.state_id).local():
             is_correct = yield from self.has_correct_contract_been_deployed()
             payload = ValidateOraclePayload(self.context.agent_address, is_correct)
 
-        with benchmark_tool.measure(
-            self,
-        ).consensus():
+        with self.context.benchmark_tool.measure(self.state_id).consensus():
             yield from self.send_a2a_transaction(payload)
             yield from self.wait_until_round_end()
 

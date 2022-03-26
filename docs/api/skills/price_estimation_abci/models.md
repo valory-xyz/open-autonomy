@@ -44,16 +44,6 @@ def __init__(*args: Any, **kwargs: Any) -> None
 
 Initialize the state.
 
-<a id="packages.valory.skills.price_estimation_abci.models.SharedState.setup"></a>
-
-#### setup
-
-```python
-def setup() -> None
-```
-
-Set up.
-
 <a id="packages.valory.skills.price_estimation_abci.models.RandomnessApi"></a>
 
 ## RandomnessApi Objects

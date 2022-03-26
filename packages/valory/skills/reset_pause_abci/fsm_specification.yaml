@@ -1,0 +1,19 @@
+alphabet_in:
+- DONE
+- NO_MAJORITY
+- RESET_AND_PAUSE_TIMEOUT
+default_start_state: ResetAndPauseRound
+final_states:
+- FinishedResetAndPauseErrorRound
+- FinishedResetAndPauseRound
+label: packages.valory.skills.reset_pause_abci.rounds.ResetPauseABCIApp
+start_states:
+- ResetAndPauseRound
+states:
+- FinishedResetAndPauseErrorRound
+- FinishedResetAndPauseRound
+- ResetAndPauseRound
+transition_func:
+    (ResetAndPauseRound, DONE): FinishedResetAndPauseRound
+    (ResetAndPauseRound, NO_MAJORITY): FinishedResetAndPauseErrorRound
+    (ResetAndPauseRound, RESET_AND_PAUSE_TIMEOUT): FinishedResetAndPauseErrorRound
