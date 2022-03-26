@@ -1,7 +1,7 @@
-name: "price_estimation_hardhat"
+name: "oracle_hardhat"
 author: "valory"
 version: 0.1.0
-agent: "valory/price_estimation_deployable:0.1.0"
+agent: valory/oracle_deployable:0.1.0
 network: hardhat
 number_of_agents: 4
 ---
@@ -16,7 +16,7 @@ valory_monitoring_backend: &monitoring_backend
     url: 'https://staging.oracle-server.autonolas.tech/deposit'
 
 
-public_id: valory/price_estimation_abci:0.1.0
+public_id: valory/oracle_abci:0.1.0
 type: skill
 models:
   0:

@@ -30,6 +30,7 @@ from packages.valory.skills.apy_estimation_abci.rounds import (
 )
 from packages.valory.skills.registration_abci.rounds import (
     AgentRegistrationAbciApp,
+    FinishedRegistrationFFWRound,
     FinishedRegistrationRound,
     RegistrationRound,
 )
@@ -37,6 +38,7 @@ from packages.valory.skills.registration_abci.rounds import (
 
 abci_app_transition_mapping: AbciAppTransitionMapping = {
     FinishedRegistrationRound: CollectHistoryRound,
+    FinishedRegistrationFFWRound: CollectHistoryRound,
     FailedAPYRound: RegistrationRound,
 }
 
