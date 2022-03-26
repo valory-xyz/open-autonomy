@@ -2092,10 +2092,12 @@ class Period:
         except AddBlockError as exception:
             raise exception
 
-    def reset_blockchain(
-        self,
-    ) -> None:
+    def reset_blockchain(self, is_replay: bool = False) -> None:
         """Reset blockchain after tendermint reset."""
+        if is_replay:  # pragma: nocover
+            self._block_construction_phase = (
+                Period._BlockConstructionState.WAITING_FOR_BEGIN_BLOCK
+            )
         self._blockchain = Blockchain()
 
     def _update_round(self) -> None:

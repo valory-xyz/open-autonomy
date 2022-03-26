@@ -76,7 +76,7 @@ from packages.valory.skills.abstract_round_abci.io.ipfs import (
     IPFSInteract,
     IPFSInteractionError,
 )
-from packages.valory.skills.abstract_round_abci.io.load import SupportedLoaderType
+from packages.valory.skills.abstract_round_abci.io.load import CustomLoaderType
 from packages.valory.skills.abstract_round_abci.io.store import (
     CustomStorerType,
     SupportedFiletype,
@@ -357,6 +357,7 @@ class IPFSBehaviour(SimpleBehaviour, ABC):
         self,
         filepath: str,
         obj: SupportedObjectType,
+        multiple: bool = False,
         filetype: Optional[SupportedFiletype] = None,
         custom_storer: Optional[CustomStorerType] = None,
         **kwargs: Any,
@@ -364,7 +365,7 @@ class IPFSBehaviour(SimpleBehaviour, ABC):
         """Send a file to IPFS."""
         try:
             hash_ = self._ipfs_interact.store_and_send(
-                filepath, obj, filetype, custom_storer, **kwargs
+                filepath, obj, multiple, filetype, custom_storer, **kwargs
             )
             self.context.logger.info(f"IPFS hash is: {hash_}")
             return hash_
@@ -375,18 +376,19 @@ class IPFSBehaviour(SimpleBehaviour, ABC):
             return None
 
     @_check_ipfs_enabled
-    def get_from_ipfs(
+    def get_from_ipfs(  # pylint: disable=too-many-arguments
         self,
         hash_: str,
         target_dir: str,
-        filename: str,
+        multiple: bool = False,
+        filename: Optional[str] = None,
         filetype: Optional[SupportedFiletype] = None,
-        custom_loader: SupportedLoaderType = None,
+        custom_loader: CustomLoaderType = None,
     ) -> Optional[SupportedObjectType]:
         """Get a file from IPFS."""
         try:
             return self._ipfs_interact.get_and_read(
-                hash_, target_dir, filename, filetype, custom_loader
+                hash_, target_dir, multiple, filename, filetype, custom_loader
             )
         except IPFSInteractionError as e:
             self.context.logger.error(
@@ -1211,7 +1213,7 @@ class BaseState(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
         if (
             signature_response.performative
             != SigningMessage.Performative.SIGNED_TRANSACTION
-        ):  # pragma: nocover
+        ):
             self.context.logger.error("Error when requesting transaction signature.")
             return None, RPCResponseStatus.UNCLASSIFIED_ERROR
         self._send_transaction_request(signature_response)
@@ -1219,7 +1221,7 @@ class BaseState(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
         if (
             transaction_digest_msg.performative
             != LedgerApiMessage.Performative.TRANSACTION_DIGEST
-        ):  # pragma: nocover
+        ):
             error = f"Error when requesting transaction digest: {transaction_digest_msg.message}"
             self.context.logger.error(error)
             return None, self.__parse_rpc_error(error)
