@@ -60,6 +60,7 @@ cluster-remove-deploy:
 	kubectl delete pv task-pv-volume
 	kubectl delete jobs -l job-name=config-nodes
 	kubectl delete pvc build-vol-pvc
+	kubectl delete pvc logs-pvc
 .PHONY: localcluster-remove-deploy
 
 cluster-create-deployments:
