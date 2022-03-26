@@ -129,15 +129,29 @@ Retrieve logs
 
 ```bash
 docker ps
-docker logs ID > node_${i}.txt
+docker logs ID > abci${i}.txt
 ```
 
 or
 
 ```bash
-for i in {1..4}; do scp root@178.62.4.138:node_${i}.txt node_${i}.txt; done
+for i in {1..4}; do scp root@178.62.4.138:abci${i}.txt abci${i}.txt; done
 ```
 
+and run script for checking path
+
+```bash
+./scripts/parse_logs.py -i abci${i}.txt
+```
+
+# Step 7
+
+Stop
+
+```bash
+cd deployments/build
+docker-compose kill
+```
 
 ## Developer mode
 
