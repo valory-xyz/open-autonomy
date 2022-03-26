@@ -44,3 +44,13 @@ def __init__(*args: Any, **kwargs: Any) -> None
 
 Initialize the parameters object.
 
+<a id="packages.valory.skills.oracle_deployment_abci.models.RandomnessApi"></a>
+
+## RandomnessApi Objects
+
+```python
+class RandomnessApi(ApiSpecs)
+```
+
+A model for randomness api specifications.
+

@@ -55,7 +55,6 @@ from packages.valory.skills.transaction_settlement_abci.payloads import (
     ValidatePayload,
 )
 from packages.valory.skills.transaction_settlement_abci.rounds import (
-    CheckLateTxHashesRound,
     CheckTransactionHistoryRound,
     CollectSignatureRound,
     FinalizationRound,
@@ -368,6 +367,11 @@ class CheckTransactionHistoryBehaviour(TransactionSettlementBaseState):
                 verified_log + f", all: {contract_api_msg.state.body}"
             )
 
+            status = cast(int, contract_api_msg.state.body["status"])
+            if status == -1:
+                self.context.logger.info(f"Tx hash {tx_hash} has no receipt!")
+                continue
+
             tx_data = cast(TxData, contract_api_msg.state.body["transaction"])
             revert_reason = yield from self._get_revert_reason(tx_data)
 
@@ -411,15 +415,6 @@ class CheckTransactionHistoryBehaviour(TransactionSettlementBaseState):
             return None
 
         return cast(str, contract_api_msg.state.body["revert_reason"])
-
-
-class CheckLateTxHashesBehaviour(  # pylint: disable=too-many-ancestors
-    CheckTransactionHistoryBehaviour
-):
-    """Check the late-arriving transaction hashes."""
-
-    state_id = "check_late_tx_hashes"
-    matching_round = CheckLateTxHashesRound
 
 
 class SynchronizeLateMessagesBehaviour(TransactionSettlementBaseState):
@@ -648,6 +643,5 @@ class TransactionSettlementRoundBehaviour(AbstractRoundBehaviour):
         SignatureBehaviour,  # type: ignore
         FinalizeBehaviour,  # type: ignore
         SynchronizeLateMessagesBehaviour,  # type: ignore
-        CheckLateTxHashesBehaviour,  # type: ignore
         ResetBehaviour,  # type: ignore
     }

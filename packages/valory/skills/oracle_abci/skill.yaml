@@ -1,0 +1,147 @@
+name: oracle_abci
+author: valory
+version: 0.1.0
+type: skill
+description: ABCI application for cryptocurrency price estimation aggregating observations
+  from different sources.
+license: Apache-2.0
+aea_version: '>=1.0.0, <2.0.0'
+fingerprint:
+  README.md: QmT7TN1DvhK4LtLzv2gSQphVJCsy49b11hRU8ixiiYtHrf
+  __init__.py: QmeAk7emAs7VRTMu26MQ22s44gYYQaWjJxnaZ9xaRpLKwp
+  behaviours.py: QmbYxgSyhorfskyfEmrEVh4RvXy9JnmDr2B9CvKHakGU2a
+  composition.py: QmRf8LeSXBtBtdFrjuBkE32eNERJHPxHCNdwAjxwgW9YB8
+  dialogues.py: QmfDThV4WCRzK88XDpW2hKDYCuEH4RxoHCoAkWpkBRGRPv
+  fsm_specification.yaml: QmVsPAu63oLj5TQfGjcjCFiebJTYjPqxBfTMHtW1eRwnvz
+  handlers.py: QmWJtuiUZUphDnxgsxc4Ym2sZT9qSSk3K7BBiKSZMMUEat
+  models.py: Qmb2eqJ2B7YjUE6TMxuGAguSphRgKHSZzCxg9VPpfzEuY7
+fingerprint_ignore_patterns: []
+connections: []
+contracts:
+- valory/gnosis_safe:0.1.0
+- valory/gnosis_safe_proxy_factory:0.1.0
+- valory/offchain_aggregator:0.1.0
+protocols:
+- valory/contract_api:1.0.0
+skills:
+- valory/abstract_round_abci:0.1.0
+- valory/oracle_deployment_abci:0.1.0
+- valory/price_estimation_abci:0.1.0
+- valory/registration_abci:0.1.0
+- valory/reset_pause_abci:0.1.0
+- valory/safe_deployment_abci:0.1.0
+- valory/transaction_settlement_abci:0.1.0
+behaviours:
+  main:
+    args: {}
+    class_name: OracleAbciAppConsensusBehaviour
+handlers:
+  abci:
+    args: {}
+    class_name: ABCIPriceEstimationHandler
+  contract_api:
+    args: {}
+    class_name: ContractApiHandler
+  http:
+    args: {}
+    class_name: HttpHandler
+  ledger_api:
+    args: {}
+    class_name: LedgerApiHandler
+  signing:
+    args: {}
+    class_name: SigningHandler
+models:
+  abci_dialogues:
+    args: {}
+    class_name: AbciDialogues
+  benchmark_tool:
+    args:
+      log_dir: /logs
+    class_name: BenchmarkTool
+  contract_api_dialogues:
+    args: {}
+    class_name: ContractApiDialogues
+  http_dialogues:
+    args: {}
+    class_name: HttpDialogues
+  ledger_api_dialogues:
+    args: {}
+    class_name: LedgerApiDialogues
+  params:
+    args:
+      broadcast_to_server: false
+      cleanup_history_depth: 1
+      consensus:
+        max_participants: 1
+      drand_public_key: 868f005eb8e6e4ca0a47c8a77ceaa5309a47978a7c71bc5cce96366b5d7a569937c529eeda66c7293784a9402801af31
+      keeper_timeout: 30.0
+      max_healthcheck: 120
+      observation_aggregator_function: median
+      observation_interval: 10
+      oracle:
+        min_answer: 1000000000000000000
+        max_answer: 1000000000000000000000000
+        decimals: 18
+        description: BTC
+      period_setup:
+        oracle_contract_address: null
+        safe_contract_address: null
+      reset_tendermint_after: 2
+      retry_attempts: 400
+      retry_timeout: 3
+      round_timeout_seconds: 30.0
+      service_id: price_estimation
+      sleep_time: 1
+      tendermint_check_sleep_delay: 3
+      tendermint_com_url: http://localhost:8080
+      tendermint_max_retries: 5
+      tendermint_url: http://localhost:26657
+    class_name: Params
+  price_api:
+    args:
+      api_id: coinbase
+      convert_id: USD
+      currency_id: BTC
+      headers: []
+      method: GET
+      parameters: []
+      response_key: data:amount
+      response_type: float
+      retries: 5
+      url: https://api.coinbase.com/v2/prices/BTC-USD/buy
+    class_name: PriceApi
+  randomness_api:
+    args:
+      api_id: cloudflare
+      headers: []
+      method: GET
+      parameters: []
+      response_key: null
+      response_type: dict
+      retries: 5
+      url: https://drand.cloudflare.com/public/latest
+    class_name: RandomnessApi
+  requests:
+    args: {}
+    class_name: Requests
+  server_api:
+    args:
+      api_id: oracle_server
+      headers:
+      - Content-Type: application/json
+      method: POST
+      parameters: []
+      response_key: null
+      response_type: dict
+      retries: 5
+      url: http://192.168.2.17:9999/deposit
+    class_name: ServerApi
+  signing_dialogues:
+    args: {}
+    class_name: SigningDialogues
+  state:
+    args: {}
+    class_name: SharedState
+dependencies: {}
+is_abstract: false

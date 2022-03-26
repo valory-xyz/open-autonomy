@@ -44,7 +44,7 @@ os.chdir(ROOT_DIR)
 BASE_DEPLOYMENT: str = """name: "deployment_case"
 author: "valory"
 version: 0.1.0
-agent: "valory/price_estimation_deployable:0.1.0"
+agent: "valory/oracle_deployable:0.1.0"
 network: hardhat
 number_of_agents: 1
 """

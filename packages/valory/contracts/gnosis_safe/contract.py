@@ -536,7 +536,7 @@ class GnosisSafeContract(Contract):
             if receipt is None:
                 raise ValueError  # pragma: nocover
         except (TransactionNotFound, ValueError):  # pragma: nocover
-            return dict(verified=False, status=0)
+            return dict(verified=False, status=-1)
 
         expected = dict(
             contract_address=contract_address,

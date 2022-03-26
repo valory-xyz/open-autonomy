@@ -113,6 +113,28 @@ def most_voted_tx_hash() -> str
 
 Get the most_voted_tx_hash.
 
+<a id="packages.valory.skills.transaction_settlement_abci.rounds.PeriodState.consecutive_finalizations"></a>
+
+#### consecutive`_`finalizations
+
+```python
+@property
+def consecutive_finalizations() -> int
+```
+
+Get the number of consecutive finalizations.
+
+<a id="packages.valory.skills.transaction_settlement_abci.rounds.PeriodState.finalizations_threshold_exceeded"></a>
+
+#### finalizations`_`threshold`_`exceeded
+
+```python
+@property
+def finalizations_threshold_exceeded() -> bool
+```
+
+Check if the number of consecutive finalizations has exceeded the allowed limit.
+
 <a id="packages.valory.skills.transaction_settlement_abci.rounds.PeriodState.missed_messages"></a>
 
 #### missed`_`messages
@@ -288,16 +310,6 @@ def end_block() -> Optional[Tuple[BasePeriodState, Enum]]
 
 Process the end of the block.
 
-<a id="packages.valory.skills.transaction_settlement_abci.rounds.CheckLateTxHashesRound"></a>
-
-## CheckLateTxHashesRound Objects
-
-```python
-class CheckLateTxHashesRound(CheckTransactionHistoryRound)
-```
-
-A round in which agents check the late-arriving transaction hashes to see if any of them has been validated
-
 <a id="packages.valory.skills.transaction_settlement_abci.rounds.SynchronizeLateMessagesRound"></a>
 
 ## SynchronizeLateMessagesRound Objects
@@ -365,16 +377,16 @@ Initial states: {RandomnessTransactionSubmissionRound}
 Transition states:
     0. RandomnessTransactionSubmissionRound
         - done: 1.
-        - round timeout: 10.
+        - round timeout: 9.
         - no majority: 0.
     1. SelectKeeperTransactionSubmissionRoundA
         - done: 2.
-        - round timeout: 10.
-        - no majority: 10.
+        - round timeout: 9.
+        - no majority: 9.
     2. CollectSignatureRound
         - done: 3.
-        - round timeout: 10.
-        - no majority: 10.
+        - round timeout: 9.
+        - no majority: 9.
     3. FinalizationRound
         - done: 4.
         - check history: 5.
@@ -382,44 +394,39 @@ Transition states:
         - finalization failed: 6.
         - check late arriving message: 8.
     4. ValidateTransactionRound
-        - done: 11.
+        - done: 10.
         - negative: 5.
         - none: 3.
         - validate timeout: 3.
         - no majority: 4.
     5. CheckTransactionHistoryRound
-        - done: 11.
-        - negative: 12.
-        - none: 12.
+        - done: 10.
+        - negative: 6.
+        - none: 11.
         - round timeout: 5.
-        - no majority: 12.
+        - no majority: 5.
         - check late arriving message: 8.
     6. SelectKeeperTransactionSubmissionRoundB
         - done: 3.
-        - round timeout: 10.
-        - no majority: 10.
+        - round timeout: 9.
+        - no majority: 9.
     7. SelectKeeperTransactionSubmissionRoundBAfterTimeout
         - done: 3.
-        - round timeout: 10.
-        - no majority: 10.
+        - check history: 5.
+        - round timeout: 9.
+        - no majority: 9.
     8. SynchronizeLateMessagesRound
-        - done: 9.
+        - done: 5.
         - round timeout: 8.
         - no majority: 8.
-        - none: 12.
-        - missed and late messages mismatch: 12.
-    9. CheckLateTxHashesRound
-        - done: 11.
-        - negative: 12.
-        - none: 12.
-        - round timeout: 9.
-        - no majority: 12.
-    10. ResetRound
+        - none: 11.
+        - missed and late messages mismatch: 11.
+    9. ResetRound
         - done: 0.
-        - reset timeout: 12.
-        - no majority: 12.
-    11. FinishedTransactionSubmissionRound
-    12. FailedRound
+        - reset timeout: 11.
+        - no majority: 11.
+    10. FinishedTransactionSubmissionRound
+    11. FailedRound
 
 Final states: {FailedRound, FinishedTransactionSubmissionRound}
 

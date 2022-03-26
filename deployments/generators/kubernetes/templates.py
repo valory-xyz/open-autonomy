@@ -119,6 +119,18 @@ spec:
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
+  name: logs-pvc
+spec:
+  storageClassName: nfs
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1000M
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
   name: build-vol-pvc
 spec:
   storageClassName: nfs
@@ -195,6 +207,8 @@ spec:
             value: "true"
         args: ["run", "--no-reload", "--host=0.0.0.0", "--port=8080"]
         volumeMounts:
+          - mountPath: /logs
+            name: logs
           - mountPath: /tendermint
             name: build
 
@@ -214,12 +228,18 @@ spec:
           - name: CLUSTERED
             value: "1"
         volumeMounts:
+          - mountPath: /logs
+            name: logs
           - mountPath: /build
             name: build
       volumes:
+        - name: logs
+          persistentVolumeClaim:
+            claimName: 'logs-pvc'
         - name: build
           persistentVolumeClaim:
             claimName: 'build-vol-pvc'
-"""
-    % (IMAGE_VERSION, IMAGE_VERSION)
+""" % (
+    IMAGE_VERSION,
+    IMAGE_VERSION
 )

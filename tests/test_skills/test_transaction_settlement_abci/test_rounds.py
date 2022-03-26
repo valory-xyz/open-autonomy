@@ -224,15 +224,35 @@ class TestSelectKeeperTransactionSubmissionRoundBAfterTimeout(
     test_class = SelectKeeperTransactionSubmissionRoundBAfterTimeout
     _period_state_class = TransactionSettlementPeriodState
 
-    def test_run(
-        self,
+    @pytest.mark.parametrize(
+        "attrs, exit_event",
+        (
+            (
+                {
+                    "missed_messages": 10,
+                    "consecutive_finalizations": 10,
+                },
+                TransactionSettlementEvent.CHECK_HISTORY,
+            ),
+            (
+                {
+                    "missed_messages": 10,
+                    "consecutive_finalizations": 0,
+                },
+                TransactionSettlementEvent.DONE,
+            ),
+        ),
+    )
+    def test_run(  # type: ignore
+        self, attrs: Dict[str, int], exit_event: TransactionSettlementEvent
     ) -> None:
         """Test `SelectKeeperTransactionSubmissionRoundBAfterTimeout`."""
-        self.period_state.update(missed_messages=10)
+        self._exit_event = exit_event
+        self.period_state.update(**attrs)  # type: ignore
         super().test_run()
-        assert (
-            cast(TransactionSettlementPeriodState, self.period_state).missed_messages
-            == 11
+        assert all(
+            getattr(self.period_state, attr_name) == attr_value + 1
+            for attr_name, attr_value in attrs.items()
         )
 
 
@@ -449,7 +469,13 @@ class TestCheckTransactionHistoryRound(BaseCollectSameUntilThresholdRoundTest):
                 state_attr_checks=[
                     lambda state: state.final_verification_status,
                     lambda state: state.final_tx_hash,
-                ],
+                ]
+                if expected_event
+                not in {
+                    TransactionSettlementEvent.NEGATIVE,
+                    TransactionSettlementEvent.CHECK_LATE_ARRIVING_MESSAGE,
+                }
+                else [lambda state: state.final_verification_status],
                 most_voted_payload=expected_status + expected_tx_hash,
                 exit_event=expected_event,
             )

@@ -49,7 +49,6 @@ from packages.valory.skills.abstract_round_abci.behaviour_utils import (
     make_degenerate_state,
 )
 from packages.valory.skills.transaction_settlement_abci.behaviours import (
-    CheckLateTxHashesBehaviour,
     CheckTransactionHistoryBehaviour,
     FinalizeBehaviour,
     RandomnessTransactionSubmissionBehaviour,
@@ -97,6 +96,10 @@ class TransactionSettlementFSMBehaviourBaseCase(FSMBehaviourBaseCase):
 
 class TestTransactionSettlementBaseState(PriceEstimationFSMBehaviourBaseCase):
     """Test `TransactionSettlementBaseState`."""
+
+    path_to_skill = Path(
+        ROOT_DIR, "packages", "valory", "skills", "transaction_settlement_abci"
+    )
 
     @pytest.mark.parametrize(
         "message, tx_digest, rpc_status, expected_data",
@@ -681,17 +684,19 @@ class TestCheckTransactionHistoryBehaviour(TransactionSettlementFSMBehaviourBase
         )
 
     @pytest.mark.parametrize(
-        "verified, hashes_history, revert_reason",
+        "verified, status, hashes_history, revert_reason",
         (
-            (0, None, "test"),
-            (0, [None], "test"),
-            (0, [None], "GS026"),
-            (1, [None], "test"),
+            (False, -1, [None], "test"),
+            (False, 0, None, "test"),
+            (False, 0, [None], "test"),
+            (False, 0, [None], "GS026"),
+            (True, 1, [None], "test"),
         ),
     )
     def test_check_tx_history_behaviour(
         self,
-        verified: int,
+        verified: bool,
+        status: int,
         hashes_history: Optional[List[Optional[str]]],
         revert_reason: str,
     ) -> None:
@@ -710,12 +715,16 @@ class TestCheckTransactionHistoryBehaviour(TransactionSettlementFSMBehaviourBase
                     callable="verify_tx",
                     state=TrState(
                         ledger_id="ethereum",
-                        body={"verified": verified, "transaction": {}},
+                        body={
+                            "verified": verified,
+                            "status": status,
+                            "transaction": {},
+                        },
                     ),
                 ),
             )
 
-            if not bool(verified):
+            if not verified and status != -1:
                 self.mock_contract_api_request(
                     request_kwargs=dict(
                         performative=ContractApiMessage.Performative.GET_STATE
@@ -777,7 +786,7 @@ class TestSynchronizeLateMessagesBehaviour(TransactionSettlementFSMBehaviourBase
             self.mock_a2a_transaction()
             self._test_done_flag_set()
             self.end_round(TransactionSettlementEvent.DONE)
-            self._check_state_id(CheckLateTxHashesBehaviour)  # type: ignore
+            self._check_state_id(CheckTransactionHistoryBehaviour)  # type: ignore
 
         else:
             cast(

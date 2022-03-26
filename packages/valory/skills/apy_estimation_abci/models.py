@@ -29,16 +29,11 @@ from packages.valory.skills.abstract_round_abci.models import Requests as BaseRe
 from packages.valory.skills.abstract_round_abci.models import (
     SharedState as BaseSharedState,
 )
-from packages.valory.skills.apy_estimation_abci.composition import (
-    APYEstimationAbciAppChained,
-)
-from packages.valory.skills.apy_estimation_abci.rounds import Event
+from packages.valory.skills.apy_estimation_abci.rounds import APYEstimationAbciApp
 
 
 Requests = BaseRequests
 BenchmarkTool = BaseBenchmarkTool
-
-MARGIN = 5
 
 
 class SharedState(BaseSharedState):
@@ -46,19 +41,7 @@ class SharedState(BaseSharedState):
 
     def __init__(self, *args: Any, **kwargs: Any) -> None:
         """Initialize the state."""
-        super().__init__(*args, abci_app_cls=APYEstimationAbciAppChained, **kwargs)
-
-    def setup(self) -> None:
-        """Set up."""
-        super().setup()
-
-        event_to_timeout_overrides = {
-            Event.ROUND_TIMEOUT: self.context.params.round_timeout_seconds,
-            Event.RESET_TIMEOUT: self.context.params.observation_interval + MARGIN,
-        }
-
-        for event, override in event_to_timeout_overrides.items():
-            APYEstimationAbciAppChained.event_to_timeout[event] = override
+        super().__init__(*args, abci_app_cls=APYEstimationAbciApp, **kwargs)
 
 
 class RandomnessApi(ApiSpecs):
