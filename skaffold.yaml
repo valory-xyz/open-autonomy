@@ -1,4 +1,4 @@
-apiVersion: skaffold/v2beta24
+apiVersion: skaffold/v2beta6
 kind: Config
 metadata:
   name: consensus-algorithms
@@ -21,6 +21,21 @@ build:
     context: deployments/Dockerfiles/hardhat
 
 profiles:
+  - name: cluster
+    patches:
+      - op: add
+        path: /build/artifacts/0/kaniko
+        value: {}
+      - op: add
+        path: /build/cluster
+        value: {}
+      - op: remove
+        path: /build/artifacts/1
+      - op: remove
+        path: /build/artifacts/1
+      - op: remove
+        path: /build/artifacts/0/docker
+
   - name: prod
   - name: dev
     patches:
@@ -30,4 +45,3 @@ profiles:
       - op: add
         path: /build/artifacts/0/docker/cliFlags
         value: ["no-cache", "true", "pull", "true", "force-rm", "true"]
-
