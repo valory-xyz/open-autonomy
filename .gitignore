@@ -1,5 +1,4 @@
-deployments/Dockerfiles/open_aea/packages 
-deployments/Dockerfiles/open_aea/Pipfile
+deployments/Dockerfiles/open_aea/packages
 # Local .terraform directories
 kubeconfig
 aws_creds
