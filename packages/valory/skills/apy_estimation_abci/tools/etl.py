@@ -103,18 +103,42 @@ def calc_apy(x: pd.Series) -> Optional[float]:
     return res
 
 
-def transform_hist_data(pairs_hist_raw: ResponseItemType) -> pd.DataFrame:
+def apply_hist_based_calculations(pairs_hist: pd.DataFrame) -> None:
+    """Fill the given pairs' history with the current change in USD and APY values."""
+    # Calculate the current change of volume in USD.
+    pairs_hist["currentChange"] = pairs_hist.groupby("id")[
+        "updatedVolumeUSD"
+    ].transform(calc_change)
+
+    # Drop NaN values (essentially, this is the first day's `current_change`, because we cannot calculate it).
+    pairs_hist.dropna(subset=["currentChange"], inplace=True)
+
+    if len(pairs_hist.index) == 0:
+        raise ValueError(
+            "APY cannot be calculated if there are not at least two observations for a pool!"
+        )
+
+    # Calculate APY.
+    pairs_hist["APY"] = pairs_hist.apply(calc_apy, axis=1)
+    # Drop rows with NaN APY values.
+    pairs_hist.dropna(subset=["APY"], inplace=True)
+
+
+def transform_hist_data(
+    pairs_hist_raw: ResponseItemType, batch: bool = False
+) -> pd.DataFrame:
     """Transform pairs' history into a dataframe and add extra fields.
 
     :param pairs_hist_raw: the pairs historical data non-transformed.
+    :param batch: whether the input is a batch which contains single a data point per pool.
     :return: a dataframe with the given historical data, containing extra fields. These are:
          * [token0ID, token0Name, token0Symbol]: split from `token0`.
          * [token1ID, token1Name, token1Symbol]: split from `token1`.
          * pairName: the current's pair's name, which is derived by: 'token0_name - token1_name'.
          * updatedVolumeUSD: the tracked volume USD, but if it is 0, then the untracked volume USD.
          * updatedReserveUSD: the tracked reserve USD, but if it is 0, then the untracked reserve USD.
-         * current_change: the current day's change in volume USD.
-         * APY: the APY.
+         * current_change: the current day's change in volume USD, only if `batch` is `False`.
+         * APY: the APY, only if `batch` is `False`.
 
          The dataframe is also sorted by the block's timestamp and the pair's tokens' names,
          and the entries for which the APY cannot be calculated are being dropped.
@@ -156,23 +180,8 @@ def transform_hist_data(pairs_hist_raw: ResponseItemType) -> pd.DataFrame:
         not_tracked_m, "reserveUSD"
     ]
 
-    # Calculate the current change of volume in USD.
-    pairs_hist["currentChange"] = pairs_hist.groupby("id")[
-        "updatedVolumeUSD"
-    ].transform(calc_change)
-
-    # Drop NaN values (essentially, this is the first day's `current_change`, because we cannot calculate it).
-    pairs_hist.dropna(subset=["currentChange"], inplace=True)
-
-    if len(pairs_hist.index) == 0:
-        raise ValueError(
-            "APY cannot be calculated if there are not at least two observations for a pool!"
-        )
-
-    # Calculate APY.
-    pairs_hist["APY"] = pairs_hist.apply(calc_apy, axis=1)
-    # Drop rows with NaN APY values.
-    pairs_hist.dropna(subset=["APY"], inplace=True)
+    if not batch:
+        apply_hist_based_calculations(pairs_hist)
 
     # Sort the dictionary.
     pairs_hist.sort_values(
@@ -182,6 +191,35 @@ def transform_hist_data(pairs_hist_raw: ResponseItemType) -> pd.DataFrame:
     )
 
     return pairs_hist
+
+
+def prepare_batch(
+    previous_batch: pd.DataFrame, current_batch_raw: ResponseItemType
+) -> pd.DataFrame:
+    """Prepare a batch, using the currently fetched batch from the subgraph and the last utilized batch.
+
+    :param previous_batch: the last utilized batch.
+    :param current_batch_raw: the currently fetched data, non-transformed.
+    :return: a dictionary with the pool ids, mapped to their current data point of the timeseries.
+    """
+    # Transform the current batch.
+    current_batch = transform_hist_data(current_batch_raw, batch=True)
+    # Append the current batch to the previous batch.
+    batches = pd.concat([previous_batch, current_batch])
+    # Calculate the last APY value per pool, using the batches.
+    prepared_batches = []
+    for pool_id, pool_batch in batches.groupby("id"):
+        if len(pool_batch.index) < 2:
+            raise ValueError(
+                f"Could not find any previous history in {pool_batch} for pool `{pool_id}`!"
+            )
+        # Since we have concatenated the current batch after the previous batch
+        # and `groupby` preserves the order of rows within each group,
+        # then we do not need to worry about the sorting of the batches.
+        apply_hist_based_calculations(pool_batch)
+        prepared_batches.append(pool_batch)
+
+    return pd.concat(prepared_batches)
 
 
 def apply_revert_token_cols_wrapper(

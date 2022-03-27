@@ -132,7 +132,6 @@ def get_participant_to_preprocess_payload(
     return {
         participant: PreprocessPayload(
             participant,
-            "pair_name",
             train_hash,
             test_hash,
         )
@@ -152,11 +151,11 @@ def get_participant_to_optimize_payload(
 
 def get_participant_to_train_payload(
     participants: FrozenSet[str],
-    model_hash: Optional[str],
+    models_hash: Optional[str],
 ) -> Dict[str, TrainingPayload]:
     """Get training payload."""
     return {
-        participant: TrainingPayload(participant, model_hash)
+        participant: TrainingPayload(participant, models_hash)
         for participant in participants
     }
 
@@ -173,11 +172,11 @@ def get_participant_to_test_payload(
 
 def get_participant_to_estimate_payload(
     participants: FrozenSet[str],
-    estimation: Optional[float],
+    estimations_hash: Optional[str],
 ) -> Dict[str, EstimatePayload]:
     """Get estimate payload."""
     return {
-        participant: EstimatePayload(participant, estimation)
+        participant: EstimatePayload(participant, estimations_hash)
         for participant in participants
     }
 
@@ -494,15 +493,15 @@ class TestEstimateRound(BaseCollectSameUntilThresholdRoundTest):
     @pytest.mark.parametrize(
         "n_estimations, most_voted_payload, expected_event",
         (
-            (0, 10.0, Event.ESTIMATION_CYCLE),
-            (59, 10.0, Event.DONE),
+            (0, "test_hash", Event.ESTIMATION_CYCLE),
+            (59, "test_hash", Event.DONE),
             (0, None, Event.FILE_ERROR),
         ),
     )
     def test_estimation_cycle_run(
         self,
         n_estimations: int,
-        most_voted_payload: Optional[int],
+        most_voted_payload: Optional[str],
         expected_event: Event,
     ) -> None:
         """Runs test."""
@@ -547,8 +546,7 @@ class TestCycleResetRound(BaseCollectSameUntilThresholdRoundTest):
                 round_payloads=get_participant_to_reset_payload(self.participants),
                 state_update_fn=lambda _period_state, _test_round: _period_state.update(
                     period_count=_test_round.most_voted_payload,
-                    most_voted_model="",
-                    pair_name="",
+                    most_voted_models="",
                     full_training=False,
                     n_estimations=1,
                     latest_observation_hist_hash="x0",
@@ -585,8 +583,7 @@ class TestFreshModelResetRound(BaseCollectSameUntilThresholdRoundTest):
                 round_payloads=get_participant_to_reset_payload(self.participants),
                 state_update_fn=lambda _period_state, _test_round: _period_state.update(
                     period_count=_test_round.most_voted_payload,
-                    most_voted_model="",
-                    pair_name="",
+                    most_voted_models="",
                     full_training=False,
                     n_estimations=1,
                     participants=get_participants(),
@@ -611,9 +608,8 @@ def test_period() -> None:
     period_count = 1
     period_setup_params: Dict = {}
     most_voted_randomness = 1
-    most_voted_estimate = 1.0
+    estimates_hash = "test_hash"
     full_training = False
-    pair_name = ""
     n_estimations = 1
 
     period_state = PeriodState(
@@ -623,9 +619,8 @@ def test_period() -> None:
                 participants=participants,
                 period_setup_params=period_setup_params,
                 most_voted_randomness=most_voted_randomness,
-                most_voted_estimate=most_voted_estimate,
+                most_voted_estimate=estimates_hash,
                 full_training=full_training,
-                pair_name=pair_name,
                 n_estimations=n_estimations,
             ),
         )
@@ -634,8 +629,7 @@ def test_period() -> None:
     assert period_state.participants == participants
     assert period_state.period_count == period_count
     assert period_state.most_voted_randomness == most_voted_randomness
-    assert period_state.most_voted_estimate == most_voted_estimate
+    assert period_state.estimates_hash == estimates_hash
     assert period_state.full_training == full_training
-    assert period_state.pair_name == pair_name
     assert period_state.n_estimations == n_estimations
     assert period_state.is_most_voted_estimate_set is not None

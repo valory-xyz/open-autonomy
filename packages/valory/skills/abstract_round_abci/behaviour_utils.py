@@ -76,7 +76,7 @@ from packages.valory.skills.abstract_round_abci.io.ipfs import (
     IPFSInteract,
     IPFSInteractionError,
 )
-from packages.valory.skills.abstract_round_abci.io.load import SupportedLoaderType
+from packages.valory.skills.abstract_round_abci.io.load import CustomLoaderType
 from packages.valory.skills.abstract_round_abci.io.store import (
     CustomStorerType,
     SupportedFiletype,
@@ -87,14 +87,6 @@ from packages.valory.skills.abstract_round_abci.models import (
     Requests,
     SharedState,
 )
-
-
-_DEFAULT_REQUEST_RETRY_DELAY = 1.0
-_DEFAULT_REQUEST_TIMEOUT = 10.0
-_DEFAULT_TX_TIMEOUT = 10.0
-_DEFAULT_TX_MAX_ATTEMPTS = 10
-
-_SYNC_MODE_WAIT = 3
 
 
 class SendException(Exception):
@@ -357,6 +349,7 @@ class IPFSBehaviour(SimpleBehaviour, ABC):
         self,
         filepath: str,
         obj: SupportedObjectType,
+        multiple: bool = False,
         filetype: Optional[SupportedFiletype] = None,
         custom_storer: Optional[CustomStorerType] = None,
         **kwargs: Any,
@@ -364,7 +357,7 @@ class IPFSBehaviour(SimpleBehaviour, ABC):
         """Send a file to IPFS."""
         try:
             hash_ = self._ipfs_interact.store_and_send(
-                filepath, obj, filetype, custom_storer, **kwargs
+                filepath, obj, multiple, filetype, custom_storer, **kwargs
             )
             self.context.logger.info(f"IPFS hash is: {hash_}")
             return hash_
@@ -375,18 +368,19 @@ class IPFSBehaviour(SimpleBehaviour, ABC):
             return None
 
     @_check_ipfs_enabled
-    def get_from_ipfs(
+    def get_from_ipfs(  # pylint: disable=too-many-arguments
         self,
         hash_: str,
         target_dir: str,
-        filename: str,
+        multiple: bool = False,
+        filename: Optional[str] = None,
         filetype: Optional[SupportedFiletype] = None,
-        custom_loader: SupportedLoaderType = None,
+        custom_loader: CustomLoaderType = None,
     ) -> Optional[SupportedObjectType]:
         """Get a file from IPFS."""
         try:
             return self._ipfs_interact.get_and_read(
-                hash_, target_dir, filename, filetype, custom_loader
+                hash_, target_dir, multiple, filename, filetype, custom_loader
             )
         except IPFSInteractionError as e:
             self.context.logger.error(
@@ -438,7 +432,7 @@ class BaseState(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
 
     is_programmatically_defined = True
     state_id = ""
-    matching_round: Optional[Type[AbstractRound]] = None
+    matching_round: Type[AbstractRound]
     is_degenerate: bool = False
 
     def __init__(self, **kwargs: Any):  # pylint: disable=super-init-not-called
@@ -448,6 +442,9 @@ class BaseState(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
         CleanUpBehaviour.__init__(self, **kwargs)
         self._is_done: bool = False
         self._is_started: bool = False
+        self._check_started: Optional[datetime.datetime] = None
+        self._timeout: float = 0
+        self._is_healthy: bool = False
         enforce(self.state_id != "", "State id not set.")
 
     @property
@@ -500,8 +497,6 @@ class BaseState(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
         :param timeout: the timeout for the wait
         :yield: None
         """
-        if self.matching_round is None:
-            raise ValueError("No matching_round set!")
         round_id = self.matching_round.round_id
         round_height = cast(SharedState, self.context.state).period.current_round_height
         if self.check_not_in_round(round_id) and self.check_not_in_last_round(round_id):
@@ -545,13 +540,14 @@ class BaseState(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
         :param: payload: the payload to send
         :yield: the responses
         """
-        if self.matching_round is None:
-            raise ValueError("No matching_round set!")
         stop_condition = self.is_round_ended(self.matching_round.round_id)
         payload.round_count = cast(
             SharedState, self.context.state
         ).period_state.round_count
-        yield from self._send_transaction(payload, stop_condition=stop_condition)
+        yield from self._send_transaction(
+            payload,
+            stop_condition=stop_condition,
+        )
 
     def async_act_wrapper(self) -> Generator:
         """Do the act, supporting asynchronous execution."""
@@ -613,10 +609,10 @@ class BaseState(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
         self,
         payload: BaseTxPayload,
         stop_condition: Callable[[], bool] = lambda: False,
-        request_timeout: float = _DEFAULT_REQUEST_TIMEOUT,
-        request_retry_delay: float = _DEFAULT_REQUEST_RETRY_DELAY,
-        tx_timeout: float = _DEFAULT_TX_TIMEOUT,
-        max_attempts: int = _DEFAULT_TX_MAX_ATTEMPTS,
+        request_timeout: Optional[float] = None,
+        request_retry_delay: Optional[float] = None,
+        tx_timeout: Optional[float] = None,
+        max_attempts: Optional[int] = None,
     ) -> Generator:
         """
         Send transaction and wait for the response, repeat until not successful.
@@ -649,6 +645,18 @@ class BaseState(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
         :param: max_attempts: max retry attempts
         :yield: the responses
         """
+        request_timeout = (
+            self.params.request_timeout if request_timeout is None else request_timeout
+        )
+        request_retry_delay = (
+            self.params.request_retry_delay
+            if request_retry_delay is None
+            else request_retry_delay
+        )
+        tx_timeout = self.params.tx_timeout if tx_timeout is None else tx_timeout
+        max_attempts = (
+            self.params.max_attempts if max_attempts is None else max_attempts
+        )
         while not stop_condition():
             self.context.logger.debug(
                 f"Trying to send payload: {pprint.pformat(payload.json)}"
@@ -696,7 +704,10 @@ class BaseState(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
 
             try:
                 is_delivered, res = yield from self._wait_until_transaction_delivered(
-                    tx_hash, timeout=tx_timeout, max_attempts=max_attempts
+                    tx_hash,
+                    timeout=tx_timeout,
+                    max_attempts=max_attempts,
+                    request_retry_delay=request_retry_delay,
                 )
             except TimeoutException:
                 self.context.logger.info(
@@ -1085,8 +1096,8 @@ class BaseState(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
         self,
         tx_hash: str,
         timeout: Optional[float] = None,
-        request_retry_delay: float = _DEFAULT_REQUEST_RETRY_DELAY,
-        max_attempts: int = _DEFAULT_TX_MAX_ATTEMPTS,
+        max_attempts: Optional[int] = None,
+        request_retry_delay: Optional[float] = None,
     ) -> Generator[None, None, Tuple[bool, Optional[HttpMessage]]]:
         """
         Wait until transaction is delivered.
@@ -1108,6 +1119,14 @@ class BaseState(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
             deadline = datetime.datetime.now() + datetime.timedelta(0, timeout)
         else:
             deadline = datetime.datetime.max
+        request_retry_delay = (
+            self.params.request_retry_delay
+            if request_retry_delay is None
+            else request_retry_delay
+        )
+        max_attempts = (
+            self.params.max_attempts if max_attempts is None else max_attempts
+        )
 
         for _ in range(max_attempts):
             request_timeout = (
@@ -1370,11 +1389,108 @@ class BaseState(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
             return RPCResponseStatus.INCORRECT_NONCE
         return RPCResponseStatus.UNCLASSIFIED_ERROR
 
+    def _start_reset(self) -> Generator:
+        """Start tendermint reset."""
+        if self._check_started is None and not self._is_healthy:
+            # we do the reset in the middle of the pause as there are no immediate transactions on either side of the reset
+            yield from self.wait_from_last_timestamp(
+                self.params.observation_interval / 2
+            )
+            self._check_started = datetime.datetime.now()
+            self._timeout = self.params.max_healthcheck
+            self._is_healthy = False
+        yield
+
+    def _end_reset(
+        self,
+    ) -> None:
+        """End tendermint reset."""
+        self._check_started = None
+        self._timeout = -1.0
+        self._is_healthy = True
+
+    def _is_timeout_expired(self) -> bool:
+        """Check if the timeout expired."""
+        if self._check_started is None or self._is_healthy:
+            return False  # pragma: no cover
+        return datetime.datetime.now() > self._check_started + datetime.timedelta(
+            0, self._timeout
+        )
+
+    def reset_tendermint_with_wait(
+        self,
+    ) -> Generator[None, None, None]:
+        """Resets the tendermint node."""
+        yield from self._start_reset()
+        if self._is_timeout_expired():
+            # if the Tendermint node cannot update the app then the app cannot work
+            raise RuntimeError("Error resetting tendermint node.")  # pragma: no cover
+
+        if not self._is_healthy:
+            self.context.logger.info(
+                f"Resetting tendermint node at end of period={self.period_state.period_count}."
+            )
+            request_message, http_dialogue = self._build_http_request_message(
+                "GET",
+                self.params.tendermint_com_url + "/hard_reset",
+            )
+            result = yield from self._do_request(request_message, http_dialogue)
+            try:
+                response = json.loads(result.body.decode())
+                if response.get("status"):
+                    self.context.logger.info(response.get("message"))
+                    self.context.logger.info(
+                        "Resetting tendermint node successful! Resetting local blockchain."
+                    )
+                    self.context.state.period.reset_blockchain(
+                        response.get("is_replay", False)
+                    )
+                    self.context.state.period.abci_app.cleanup(
+                        self.params.cleanup_history_depth
+                    )
+                    self._end_reset()
+                else:
+                    msg = response.get("message")
+                    self.context.logger.error(f"Error resetting: {msg}")
+                    yield from self.sleep(self.params.sleep_time)
+                    return  # pragma: no cover
+            except json.JSONDecodeError:
+                self.context.logger.error(
+                    "Error communicating with tendermint com server."
+                )
+                yield from self.sleep(self.params.sleep_time)
+                return  # pragma: no cover
+
+        status = yield from self._get_status()
+        try:
+            json_body = json.loads(status.body.decode())
+        except json.JSONDecodeError:
+            self.context.logger.error(
+                "Tendermint not accepting transactions yet, trying again!"
+            )
+            yield from self.sleep(self.params.sleep_time)
+            return  # pragma: nocover
+
+        remote_height = int(json_body["result"]["sync_info"]["latest_block_height"])
+        local_height = self.context.state.period.height
+        self.context.logger.info(
+            "local-height = %s, remote-height=%s", local_height, remote_height
+        )
+        if local_height != remote_height:
+            self.context.logger.info("local height != remote height; retrying...")
+            yield from self.sleep(self.params.sleep_time)
+            return  # pragma: nocover
+
+        self.context.logger.info(
+            "local height == remote height; continuing execution..."
+        )
+        yield from self.wait_from_last_timestamp(self.params.observation_interval / 2)
+
 
 class DegenerateState(BaseState, ABC):
     """An abstract matching behaviour for final and degenerate rounds."""
 
-    matching_round: Optional[Type[AbstractRound]] = None
+    matching_round: Type[AbstractRound]
     is_degenerate: bool = True
 
     def async_act(self) -> Generator:

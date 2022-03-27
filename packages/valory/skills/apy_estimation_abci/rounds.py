@@ -118,14 +118,14 @@ class PeriodState(BasePeriodState):
         return cast(str, self.db.get_strict("most_voted_params"))
 
     @property
-    def model_hash(self) -> str:
-        """Get the most_voted_model."""
-        return cast(str, self.db.get_strict("most_voted_model"))
+    def models_hash(self) -> str:
+        """Get the most_voted_models."""
+        return cast(str, self.db.get_strict("most_voted_models"))
 
     @property
-    def most_voted_estimate(self) -> float:
+    def estimates_hash(self) -> str:
         """Get the most_voted_estimate."""
-        return cast(float, self.db.get_strict("most_voted_estimate"))
+        return cast(str, self.db.get_strict("most_voted_estimate"))
 
     @property
     def is_most_voted_estimate_set(self) -> bool:
@@ -136,11 +136,6 @@ class PeriodState(BasePeriodState):
     def full_training(self) -> bool:
         """Get the full_training flag."""
         return cast(bool, self.db.get("full_training", False))
-
-    @property
-    def pair_name(self) -> str:
-        """Get the pair_name."""
-        return cast(str, self.db.get_strict("pair_name"))
 
     @property
     def n_estimations(self) -> int:
@@ -267,9 +262,6 @@ class PreprocessRound(CollectSameUntilThresholdRound, APYEstimationAbstractRound
                 period_state_class=PeriodState,
                 participant_to_preprocessing=self.collection,
                 most_voted_split=self.most_voted_payload,
-                pair_name=cast(
-                    PreprocessPayload, list(self.collection.values())[0]
-                ).pair_name,
             )
             return updated_state, Event.DONE
 
@@ -349,7 +341,7 @@ class TrainRound(CollectSameUntilThresholdRound, APYEstimationAbstractRound):
 
     round_id = "train"
     allowed_tx_type = TrainingPayload.transaction_type
-    payload_attribute = "model"
+    payload_attribute = "models_hash"
 
     def end_block(self) -> Optional[Tuple[BasePeriodState, Event]]:
         """Process the end of the block."""
@@ -360,7 +352,7 @@ class TrainRound(CollectSameUntilThresholdRound, APYEstimationAbstractRound):
             update_params = dict(
                 period_state_class=PeriodState,
                 participants_to_training=self.collection,
-                most_voted_model=self.most_voted_payload,
+                most_voted_models=self.most_voted_payload,
             )
 
             if self.period_state.full_training:
@@ -400,13 +392,13 @@ class UpdateForecasterRound(CollectSameUntilThresholdRound):
 
     round_id = "update_forecaster"
     allowed_tx_type = UpdatePayload.transaction_type
-    payload_attribute = "updated_model_hash"
+    payload_attribute = "updated_models_hash"
     period_state_class = PeriodState
     done_event = Event.DONE
     no_majority_event = Event.NO_MAJORITY
     none_event = Event.FILE_ERROR
     collection_key = "participant_to_update"
-    selection_key = "most_voted_model"
+    selection_key = "most_voted_models"
 
 
 class EstimateRound(CollectSameUntilThresholdRound, APYEstimationAbstractRound):
@@ -414,7 +406,7 @@ class EstimateRound(CollectSameUntilThresholdRound, APYEstimationAbstractRound):
 
     round_id = "estimate"
     allowed_tx_type = EstimatePayload.transaction_type
-    payload_attribute = "estimation"
+    payload_attribute = "estimations_hash"
 
     def end_block(self) -> Optional[Tuple[BasePeriodState, Event]]:
         """Process the end of the block."""
@@ -462,8 +454,7 @@ class BaseResetRound(CollectSameUntilThresholdRound, APYEstimationAbstractRound)
                 all_participants=self.period_state.all_participants,
                 full_training=False,
                 n_estimations=self.period_state.n_estimations,
-                pair_name=self.period_state.pair_name,
-                most_voted_model=self.period_state.model_hash,
+                most_voted_models=self.period_state.models_hash,
             )
             if self.round_id == "cycle_reset":
                 kwargs[

@@ -54,6 +54,8 @@ logging_config:
       propagate: false
 dependencies:
   open-aea-ledger-ethereum: {}
+skill_exception_policy: just_log
+connection_exception_policy: just_log
 default_connection: null
 ---
 public_id: valory/abci:0.1.0

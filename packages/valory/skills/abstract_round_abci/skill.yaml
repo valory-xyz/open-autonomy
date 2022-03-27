@@ -10,17 +10,17 @@ fingerprint:
   __init__.py: QmPuJK7gMKruSTcaYk9otrFncfD9h6vBZVoAtkwhTBgcxa
   abci_app_chain.py: QmeCPxwjec4pxtedv8NeG2Gmj58GY2GycXvgwfyjEyqPGm
   base.py: QmWppA8gC3DjEgFTsBNH9EyqkoSaa3neZy6W5EHa3DhDFC
-  behaviour_utils.py: QmYYujUw7SoF5G8gjSGvh95kWZAKyjDSrVUvTSgwX5BWwi
-  behaviours.py: QmNVt88WsMUfvYs33dDzLWH18T1jUzWa9noczfcWfZd8bX
+  behaviour_utils.py: QmXdFAUhwHyhkGJgQUv5e87wH62YrVffCiWG9MFjqpYSwx
+  behaviours.py: QmeNvG7nPdXdAvKsrLNjJDEnnRUhf5hVetrJLm45EzCVq2
   common.py: QmartV9MEhNr4J5CpxXez3KiZr5umfZEk61ExcnsT9JtiT
   dialogues.py: QmemiTJxfwp2PFxFQyAUHTx8FsthhWL3mYgonBhC3cTjWH
   handlers.py: QmZ5g9Mc9wqTt3699yweN46XJN5XU5yQnurjGP9spwi3iL
   io/__init__.py: QmPfA2syTybFaGmmMMt5gevZHEXPyjVf7wR1UE22NzpZZ3
-  io/ipfs.py: QmYDEwJxH9jvNkLgWG1TkdvpqBu2kTcx1ksbhw1jZ3uxZu
-  io/load.py: QmcQYtKgpJZBb3WAVsqqyxLfy5SfxiJ28h1L1qE6HBbMSV
+  io/ipfs.py: Qmc7BLSKb2kESC1wdCc7FxaLiSHcmPcfiBuXBuLXevUdE7
+  io/load.py: QmSa3vgVvQiMJabBvSnPjTMtYiDgrrHPugDGCvSf4kAfS3
   io/paths.py: QmT1e6Ygak8Fe4NxSrd2mb6EB1Rr6dsYZPL8dWh3aNMb12
-  io/store.py: QmUa5sLTW8dkhx2KK3iNoHFNss9BRrQ2bTMrad7hx54LdL
-  models.py: QmZykyriQHPxVornNU5tVAJkNgZDTTUrf6g936f93idJ5W
+  io/store.py: QmXHnLF1Jg2hmhUwYj4E4QoMmx6EoLhUtzEGqztLKtKFej
+  models.py: QmSN39VAyMxYxqGBaAnYjJNLwGDCCQGz8DgRxPW8QvU2YC
   serializer.py: QmV1rutPMEPbbMVwvM4My6s8fwT7S9KhgLTqrbjHLEfdJG
   utils.py: QmSWEFvrVYMYxkGT1LBh1b6yZPg5mZe5dqXqZcvxzwHZqD
 fingerprint_ignore_patterns: []

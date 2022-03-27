@@ -21,6 +21,7 @@
 
 
 import json
+import os.path
 from abc import ABC, abstractmethod
 from enum import Enum, auto
 from typing import Any, Callable, Dict, Optional, TypeVar, Union, cast
@@ -33,12 +34,27 @@ from packages.valory.skills.abstract_round_abci.io.paths import create_pathdirs
 
 
 StoredJSONType = Union[dict, list]
-NativelySupportedObjectType = Union[StoredJSONType, Pipeline, pd.DataFrame]
-NativelySupportedStorerType = Callable[[NativelySupportedObjectType, Any], None]
+NativelySupportedSingleObjectType = Union[StoredJSONType, Pipeline, pd.DataFrame]
+NativelySupportedMultipleObjectsType = Dict[str, NativelySupportedSingleObjectType]
+NativelySupportedObjectType = Union[
+    NativelySupportedSingleObjectType, NativelySupportedMultipleObjectsType
+]
+NativelySupportedStorerType = Callable[[str, NativelySupportedObjectType, Any], None]
 CustomObjectType = TypeVar("CustomObjectType")
-CustomStorerType = Callable[[CustomObjectType, Any], None]
-SupportedObjectType = Union[NativelySupportedObjectType, CustomObjectType]
+CustomStorerType = Callable[[str, CustomObjectType, Any], None]
+SupportedSingleObjectType = Union[NativelySupportedObjectType, CustomObjectType]
+SupportedMultipleObjectsType = Dict[str, SupportedSingleObjectType]
+SupportedObjectType = Union[SupportedSingleObjectType, SupportedMultipleObjectsType]
 SupportedStorerType = Union[NativelySupportedStorerType, CustomStorerType]
+NativelySupportedJSONStorerType = Callable[
+    [str, Union[StoredJSONType, Dict[str, StoredJSONType]], Any], None
+]
+NativelySupportedPipelineStorerType = Callable[
+    [str, Union[Pipeline, Dict[str, Pipeline]], Any], None
+]
+NativelySupportedDfStorerType = Callable[
+    [str, Union[pd.DataFrame, Dict[str, pd.DataFrame]], Any], None
+]
 
 
 class SupportedFiletype(Enum):
@@ -49,7 +65,7 @@ class SupportedFiletype(Enum):
     CSV = auto()
 
 
-class AbstractStorer(ABC):  # pylint: disable=too-few-public-methods
+class AbstractStorer(ABC):
     """An abstract `Storer` class."""
 
     def __init__(self, path: str):
@@ -59,14 +75,32 @@ class AbstractStorer(ABC):  # pylint: disable=too-few-public-methods
         create_pathdirs(path)
 
     @abstractmethod
-    def store(self, obj: SupportedObjectType, **kwargs: Any) -> None:
-        """Store a file."""
+    def store_single_file(
+        self, filename: str, obj: SupportedSingleObjectType, **kwargs: Any
+    ) -> None:
+        """Store a single file."""
+
+    def store(self, obj: SupportedObjectType, multiple: bool, **kwargs: Any) -> None:
+        """Store one or multiple files."""
+        if multiple:
+            if not isinstance(obj, dict):  # pragma: no cover
+                raise ValueError(
+                    f"Cannot store multiple files of type {type(obj)}!"
+                    f"Should be a dictionary of filenames mapped to their objects."
+                )
+            for filename, single_obj in obj.items():
+                filename = os.path.join(self._path, filename)
+                self.store_single_file(filename, single_obj, **kwargs)
+        else:
+            self.store_single_file(self._path, obj, **kwargs)
 
 
-class JSONStorer(AbstractStorer):  # pylint: disable=too-few-public-methods
+class JSONStorer(AbstractStorer):
     """A JSON file storer."""
 
-    def store(self, obj: NativelySupportedObjectType, **kwargs: Any) -> None:
+    def store_single_file(
+        self, filename: str, obj: NativelySupportedSingleObjectType, **kwargs: Any
+    ) -> None:
         """Store a JSON."""
         if not any(isinstance(obj, type_) for type_ in (dict, list)):
             raise ValueError(  # pragma: no cover
@@ -74,16 +108,18 @@ class JSONStorer(AbstractStorer):  # pylint: disable=too-few-public-methods
             )
 
         try:
-            with open(self._path, "w", encoding="utf-8") as f:
+            with open(filename, "w", encoding="utf-8") as f:
                 json.dump(obj, f, ensure_ascii=False, indent=4)
         except (TypeError, OSError) as e:  # pragma: no cover
             raise IOError(str(e)) from e
 
 
-class CSVStorer(AbstractStorer):  # pylint: disable=too-few-public-methods
+class CSVStorer(AbstractStorer):
     """A CSV file storer."""
 
-    def store(self, obj: NativelySupportedObjectType, **kwargs: Any) -> None:
+    def store_single_file(
+        self, filename: str, obj: NativelySupportedSingleObjectType, **kwargs: Any
+    ) -> None:
         """Store a pandas dataframe."""
         if not isinstance(obj, pd.DataFrame):
             raise ValueError(  # pragma: no cover
@@ -93,15 +129,17 @@ class CSVStorer(AbstractStorer):  # pylint: disable=too-few-public-methods
         index = kwargs.get("index", False)
 
         try:
-            obj.to_csv(self._path, index=index)
+            obj.to_csv(filename, index=index)
         except (TypeError, OSError) as e:  # pragma: no cover
             raise IOError(str(e)) from e
 
 
-class ForecasterStorer(AbstractStorer):  # pylint: disable=too-few-public-methods
+class ForecasterStorer(AbstractStorer):
     """A pmdarima Pipeline storer."""
 
-    def store(self, obj: NativelySupportedObjectType, **kwargs: Any) -> None:
+    def store_single_file(
+        self, filename: str, obj: NativelySupportedSingleObjectType, **kwargs: Any
+    ) -> None:
         """Store a pmdarima Pipeline."""
         if not isinstance(obj, Pipeline):
             raise ValueError(  # pragma: no cover
@@ -109,14 +147,12 @@ class ForecasterStorer(AbstractStorer):  # pylint: disable=too-few-public-method
             )
 
         try:
-            joblib.dump(obj, self._path)
+            joblib.dump(obj, filename)
         except (ValueError, OSError) as e:  # pragma: no cover
             raise IOError(str(e)) from e
 
 
-class Storer(
-    CSVStorer, ForecasterStorer, JSONStorer
-):  # pylint: disable=too-few-public-methods
+class Storer(AbstractStorer):
     """Class which stores files."""
 
     def __init__(
@@ -127,36 +163,36 @@ class Storer(
     ):
         """Initialize a `Storer`."""
         super().__init__(path)
+        self._filetype = filetype
+        self._custom_storer = custom_storer
         self.__filetype_to_storer: Dict[SupportedFiletype, SupportedStorerType] = {
             SupportedFiletype.JSON: cast(
-                Callable[[StoredJSONType, Any], None], JSONStorer(path).store
+                NativelySupportedJSONStorerType, JSONStorer(path).store_single_file
             ),
             SupportedFiletype.PM_PIPELINE: cast(
-                Callable[[Pipeline, Any], None], ForecasterStorer(path).store
+                NativelySupportedPipelineStorerType,
+                ForecasterStorer(path).store_single_file,
             ),
             SupportedFiletype.CSV: cast(
-                Callable[[pd.DataFrame, Any], None], CSVStorer(path).store
+                NativelySupportedDfStorerType, CSVStorer(path).store_single_file
             ),
         }
 
-        self.storer = self._get_storer_from_filetype(filetype, custom_storer)
+    def store_single_file(
+        self, filename: str, obj: NativelySupportedObjectType, **kwargs: Any
+    ) -> None:
+        """Store a single file."""
+        storer = self._get_single_storer_from_filetype()
+        storer(filename, obj, **kwargs)  # type: ignore
 
-    def _get_storer_from_filetype(
-        self,
-        filetype: Optional[SupportedFiletype],
-        custom_storer: Optional[CustomStorerType],
-    ) -> SupportedStorerType:
+    def _get_single_storer_from_filetype(self) -> SupportedStorerType:
         """Get a file storer from a given filetype or keep a custom storer."""
-        if filetype is not None:
-            return self.__filetype_to_storer[filetype]
+        if self._filetype is not None:
+            return self.__filetype_to_storer[self._filetype]
 
-        if custom_storer is not None:  # pragma: no cover
-            return custom_storer
+        if self._custom_storer is not None:  # pragma: no cover
+            return self._custom_storer
 
         raise ValueError(  # pragma: no cover
             "Please provide either a supported filetype or a custom storing function."
         )
-
-    def store(self, obj: SupportedObjectType, **kwargs: Any) -> None:
-        """Load a file from a given path."""
-        self.storer(obj, **kwargs)  # type: ignore

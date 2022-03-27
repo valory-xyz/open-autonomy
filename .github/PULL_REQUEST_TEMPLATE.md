@@ -8,19 +8,22 @@ If it fixes a bug or resolves a feature request, be sure to link to that issue.
 
 ## Types of changes
 
-What types of changes does your code introduce?
-_Put an `x` in the boxes that apply_
+What types of changes does your code introduce? (A **breaking change** is a fix or feature that would cause existing functionality and APIs to not work as expected.)
+_Put an `x` in the box that applies_
 
-- [ ] Bugfix (non-breaking change which fixes an issue)
-- [ ] New feature (non-breaking change which adds functionality)
-- [ ] Breaking change (fix or feature that would cause existing functionality to not work as expected)
+- [ ] Non-breaking fix (non-breaking change which fixes an issue)
+- [ ] Breaking fix (breaking change which fixes an issue)
+- [ ] Non-breaking feature (non-breaking change which adds functionality)
+- [ ] Breaking feature (breaking change which adds functionality)
+- [ ] Refactor (non-breaking change which changes implementation)
+- [ ] Messy (mixture of the above - requires explanation!)
 
 ## Checklist
 
 _Put an `x` in the boxes that apply._
 
 - [ ] I have read the [CONTRIBUTING](../blob/main/CONTRIBUTING.md) doc
-- [ ] I am making a pull request against the `develop` branch (left side). Also you should start your branch off our `develop`.
+- [ ] I am making a pull request against the `main` branch (left side). Also you should start your branch off our `main`.
 - [ ] Lint and unit tests pass locally with my changes
 - [ ] I have added tests that prove my fix is effective or that my feature works
 

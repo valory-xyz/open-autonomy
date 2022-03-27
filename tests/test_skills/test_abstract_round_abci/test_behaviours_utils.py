@@ -37,6 +37,7 @@ from packages.valory.protocols.ledger_api.message import LedgerApiMessage
 from packages.valory.skills.abstract_round_abci.base import (
     AbstractRound,
     BasePeriodState,
+    BaseTxPayload,
     Transaction,
 )
 from packages.valory.skills.abstract_round_abci.behaviour_utils import (
@@ -45,8 +46,13 @@ from packages.valory.skills.abstract_round_abci.behaviour_utils import (
     DegenerateState,
     SendException,
     TimeoutException,
-    _DEFAULT_REQUEST_RETRY_DELAY,
     make_degenerate_state,
+)
+from packages.valory.skills.abstract_round_abci.models import (
+    _DEFAULT_REQUEST_RETRY_DELAY,
+    _DEFAULT_REQUEST_TIMEOUT,
+    _DEFAULT_TX_MAX_ATTEMPTS,
+    _DEFAULT_TX_TIMEOUT,
 )
 
 from tests.helpers.base import try_send
@@ -311,18 +317,24 @@ def test_async_behaviour_stop() -> None:
 class RoundA(AbstractRound):
     """Concrete ABCI round."""
 
+    round_id = "round_a"
+
     def end_block(self) -> Optional[Tuple[BasePeriodState, Enum]]:
         """Handle end block."""
         return None
 
-    round_id = "round_a"
+    def check_payload(self, payload: BaseTxPayload) -> None:
+        """Check payload."""
+
+    def process_payload(self, payload: BaseTxPayload) -> None:
+        """Process payload."""
 
 
 class StateATest(BaseState):
     """Concrete BaseState class."""
 
     state_id = "state_a"
-    matching_round: Optional[Type[RoundA]] = RoundA
+    matching_round: Type[RoundA] = RoundA
 
     def async_act(self) -> Generator:
         """Do the 'async_act'."""
@@ -364,7 +376,13 @@ class TestBaseState:
     def setup(self) -> None:
         """Set up the tests."""
         self.context_mock = MagicMock()
-        self.context_params_mock = MagicMock(ipfs_domain_name=None)
+        self.context_params_mock = MagicMock(
+            ipfs_domain_name=None,
+            request_timeout=_DEFAULT_REQUEST_TIMEOUT,
+            request_retry_delay=_DEFAULT_REQUEST_RETRY_DELAY,
+            tx_timeout=_DEFAULT_TX_TIMEOUT,
+            max_attempts=_DEFAULT_TX_MAX_ATTEMPTS,
+        )
         self.context_state_period_state_mock = MagicMock()
         self.context_mock.params = self.context_params_mock
         self.context_mock.state.period_state = self.context_state_period_state_mock
@@ -415,18 +433,10 @@ class TestBaseState:
         assert self.behaviour.check_round_height_has_changed(current_height)
         assert not self.behaviour.check_round_height_has_changed(new_height)
 
-    def test_wait_until_round_end_negative_no_matching_round(self) -> None:
-        """Test 'wait_until_round_end' method, negative case (no matching round)."""
-        self.behaviour.matching_round = None
-        generator = self.behaviour.wait_until_round_end()
-        with pytest.raises(ValueError, match="No matching_round set!"):
-            generator.send(None)
-
     def test_wait_until_round_end_negative_last_round_or_matching_round(self) -> None:
         """Test 'wait_until_round_end' method, negative case (not in matching nor last round)."""
         self.behaviour.context.state.period.current_round_id = "current_round_id"
         self.behaviour.context.state.period.last_round_id = "last_round_id"
-        assert self.behaviour.matching_round is not None
         self.behaviour.matching_round.round_id = "matching_round"
         generator = self.behaviour.wait_until_round_end()
         with pytest.raises(
@@ -467,13 +477,6 @@ class TestBaseState:
         self.behaviour.set_done()
         assert self.behaviour.is_done()
 
-    def test_send_a2a_transaction_negative_no_matching_round(self) -> None:
-        """Test 'send_a2a_transaction' method, negative case (no matching round)."""
-        self.behaviour.matching_round = None
-        generator = self.behaviour.send_a2a_transaction(MagicMock())
-        with pytest.raises(ValueError, match="No matching_round set!"):
-            try_send(generator)
-
     @mock.patch.object(BaseState, "_send_transaction")
     def test_send_a2a_transaction_positive(self, *_: Any) -> None:
         """Test 'send_a2a_transaction' method, positive case."""
@@ -492,7 +495,7 @@ class TestBaseState:
         """Test 'async_act_wrapper' in sync mode."""
         self.behaviour.context.state.period.syncing_up = True
         self.behaviour.context.state.period.height = 0
-        self.behaviour.matching_round = None
+        self.behaviour.matching_round = MagicMock()
         self.behaviour.context.logger.info = lambda msg: logging.info(msg)  # type: ignore
 
         with mock.patch.object(logging, "info") as log_mock:
@@ -506,7 +509,7 @@ class TestBaseState:
         self.behaviour.context.state.period.syncing_up = True
         self.behaviour.context.state.period.height = 0
         self.behaviour.context.params.tendermint_check_sleep_delay = 3
-        self.behaviour.matching_round = None
+        self.behaviour.matching_round = MagicMock()
         self.behaviour.context.logger.info = lambda msg: logging.info(msg)  # type: ignore
 
         gen = self.behaviour.async_act_wrapper()
