@@ -670,6 +670,16 @@ Ledger connection (contract dispatcher) -> (ContractApiMessage | ContractApiMess
 
 the contract api response
 
+<a id="packages.valory.skills.abstract_round_abci.behaviour_utils.BaseState.reset_tendermint_with_wait"></a>
+
+#### reset`_`tendermint`_`with`_`wait
+
+```python
+def reset_tendermint_with_wait() -> Generator[None, None, None]
+```
+
+Resets the tendermint node.
+
 <a id="packages.valory.skills.abstract_round_abci.behaviour_utils.DegenerateState"></a>
 
 ## DegenerateState Objects
