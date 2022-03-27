@@ -38,6 +38,10 @@ from packages.valory.skills.abstract_round_abci.base import (
 
 
 NUMBER_OF_RETRIES: int = 5
+_DEFAULT_REQUEST_TIMEOUT = 10.0
+_DEFAULT_REQUEST_RETRY_DELAY = 1.0
+_DEFAULT_TX_TIMEOUT = 10.0
+_DEFAULT_TX_MAX_ATTEMPTS = 10
 
 
 class BaseParams(Model):  # pylint: disable=too-many-instance-attributes
@@ -63,6 +67,12 @@ class BaseParams(Model):  # pylint: disable=too-many-instance-attributes
         self.reset_tendermint_after = self._ensure("reset_tendermint_after", kwargs)
         self.consensus_params = ConsensusParams.from_json(kwargs.pop("consensus", {}))
         self.cleanup_history_depth = self._ensure("cleanup_history_depth", kwargs)
+        self.request_timeout = kwargs.pop("request_timeout", _DEFAULT_REQUEST_TIMEOUT)
+        self.request_retry_delay = kwargs.pop(
+            "request_retry_delay", _DEFAULT_REQUEST_RETRY_DELAY
+        )
+        self.tx_timeout = kwargs.pop("tx_timeout", _DEFAULT_TX_TIMEOUT)
+        self.max_attempts = kwargs.pop("max_attempts", _DEFAULT_TX_MAX_ATTEMPTS)
         period_setup_params = kwargs.pop("period_setup", {})
         # we sanitize for null values as these are just kept for schema definitions
         period_setup_params = {

@@ -46,8 +46,13 @@ from packages.valory.skills.abstract_round_abci.behaviour_utils import (
     DegenerateState,
     SendException,
     TimeoutException,
-    _DEFAULT_REQUEST_RETRY_DELAY,
     make_degenerate_state,
+)
+from packages.valory.skills.abstract_round_abci.models import (
+    _DEFAULT_REQUEST_RETRY_DELAY,
+    _DEFAULT_REQUEST_TIMEOUT,
+    _DEFAULT_TX_MAX_ATTEMPTS,
+    _DEFAULT_TX_TIMEOUT,
 )
 
 from tests.helpers.base import try_send
@@ -371,7 +376,13 @@ class TestBaseState:
     def setup(self) -> None:
         """Set up the tests."""
         self.context_mock = MagicMock()
-        self.context_params_mock = MagicMock(ipfs_domain_name=None)
+        self.context_params_mock = MagicMock(
+            ipfs_domain_name=None,
+            request_timeout=_DEFAULT_REQUEST_TIMEOUT,
+            request_retry_delay=_DEFAULT_REQUEST_RETRY_DELAY,
+            tx_timeout=_DEFAULT_TX_TIMEOUT,
+            max_attempts=_DEFAULT_TX_MAX_ATTEMPTS,
+        )
         self.context_state_period_state_mock = MagicMock()
         self.context_mock.params = self.context_params_mock
         self.context_mock.state.period_state = self.context_state_period_state_mock
