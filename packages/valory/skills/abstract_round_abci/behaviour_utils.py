@@ -1421,7 +1421,7 @@ class BaseState(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
         self,
     ) -> Generator[None, None, None]:
         """Resets the tendermint node."""
-        self._start_reset()
+        yield from self._start_reset()
         if self._is_timeout_expired():
             # if the Tendermint node cannot update the app then the app cannot work
             raise RuntimeError("Error resetting tendermint node.")  # pragma: no cover
