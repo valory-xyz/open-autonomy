@@ -421,6 +421,12 @@ class CheckTransactionHistoryRound(CollectSameUntilThresholdRound):
         return None
 
 
+class CheckLateTxHashesRound(CheckTransactionHistoryRound):
+    """A round in which agents check the late-arriving transaction hashes to see if any of them has been validated"""
+
+    round_id = "check_late_tx_hashes"
+
+
 class SynchronizeLateMessagesRound(CollectNonEmptyUntilThresholdRound):
     """A round in which agents synchronize potentially late arriving messages"""
 
@@ -602,11 +608,19 @@ class TransactionSubmissionAbciApp(AbciApp[Event]):
             Event.NO_MAJORITY: ResetRound,
         },
         SynchronizeLateMessagesRound: {
-            Event.DONE: CheckTransactionHistoryRound,
+            Event.DONE: CheckLateTxHashesRound,
             Event.ROUND_TIMEOUT: SynchronizeLateMessagesRound,
             Event.NO_MAJORITY: SynchronizeLateMessagesRound,
             Event.NONE: FailedRound,
             Event.MISSED_AND_LATE_MESSAGES_MISMATCH: FailedRound,
+        },
+        CheckLateTxHashesRound: {
+            Event.DONE: FinishedTransactionSubmissionRound,
+            Event.NEGATIVE: FailedRound,
+            Event.NONE: FailedRound,
+            Event.ROUND_TIMEOUT: CheckLateTxHashesRound,
+            Event.NO_MAJORITY: FailedRound,
+            Event.CHECK_LATE_ARRIVING_MESSAGE: SynchronizeLateMessagesRound,
         },
         ResetRound: {
             Event.DONE: RandomnessTransactionSubmissionRound,
