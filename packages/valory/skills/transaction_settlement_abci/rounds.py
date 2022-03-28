@@ -141,7 +141,7 @@ class PeriodState(BasePeriodState):  # pylint: disable=too-many-instance-attribu
     def finalizations_threshold_exceeded(self) -> bool:
         """Check if the number of consecutive finalizations has exceeded the allowed limit."""
         malicious_threshold = self.nb_participants // 3
-        return self.consecutive_finalizations > malicious_threshold + 1
+        return self.consecutive_finalizations > malicious_threshold
 
     @property
     def missed_messages(self) -> int:
