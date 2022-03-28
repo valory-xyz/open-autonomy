@@ -230,8 +230,12 @@ class TestSelectKeeperTransactionSubmissionRoundBAfterTimeout(
             (
                 {
                     "missed_messages": 10,
-                    "consecutive_finalizations": 10,
+                    # These are the `consecutive_finalizations` before entering the round.
+                    # Therefore, the `consecutive_finalizations` will become 2 after entering the round.
+                    "consecutive_finalizations": 1,
                 },
+                # Since we have 4 participants, and we now have 2 keepers that have retried,
+                # we should return a `CHECK_HISTORY` event.
                 TransactionSettlementEvent.CHECK_HISTORY,
             ),
             (
