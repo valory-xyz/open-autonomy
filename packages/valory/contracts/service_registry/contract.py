@@ -41,24 +41,20 @@ class ServiceRegistryContract(Contract):
 
     contract_id = PUBLIC_ID
 
-    @property
-    @functools.lru_cache
-    def json_data(self):
-        """Get contract build json"""
-        json_file_path = "./build/ServiceRegistry.json"
-        with open(json_file_path, "r") as file:
-            data = json.load(file)
-        return data
-
     @classmethod
-    def get_agent_addresses(cls, ledger_api: EthereumApi, contract_address: str) -> List[str]:
+    def get_agent_addresses(
+        cls,
+        ledger_api: EthereumApi,
+        contract_address: str,
+        service_id: int,
+    ) -> List[str]:
         """Retrieve on-chain service information"""
 
         contract_instance = cls.get_instance(ledger_api, contract_address)
 
         service_info = ledger_api.contract_method_call(
-            contract_instance,
-            "getServiceInfo",
-            # service_id,  # TODO: pass service_id as argument
+            contract_instance=contract_instance,
+            method_name="getServiceInfo",
+            serviceId=service_id,
         )
         return service_info[9]
