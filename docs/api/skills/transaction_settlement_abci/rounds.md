@@ -310,6 +310,16 @@ def end_block() -> Optional[Tuple[BasePeriodState, Enum]]
 
 Process the end of the block.
 
+<a id="packages.valory.skills.transaction_settlement_abci.rounds.CheckLateTxHashesRound"></a>
+
+## CheckLateTxHashesRound Objects
+
+```python
+class CheckLateTxHashesRound(CheckTransactionHistoryRound)
+```
+
+A round in which agents check the late-arriving transaction hashes to see if any of them has been validated
+
 <a id="packages.valory.skills.transaction_settlement_abci.rounds.SynchronizeLateMessagesRound"></a>
 
 ## SynchronizeLateMessagesRound Objects

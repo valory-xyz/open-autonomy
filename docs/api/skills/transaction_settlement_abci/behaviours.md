@@ -137,6 +137,17 @@ def async_act() -> Generator
 
 Do the action.
 
+<a id="packages.valory.skills.transaction_settlement_abci.behaviours.CheckLateTxHashesBehaviour"></a>
+
+## CheckLateTxHashesBehaviour Objects
+
+```python
+class CheckLateTxHashesBehaviour(  # pylint: disable=too-many-ancestors
+    CheckTransactionHistoryBehaviour)
+```
+
+Check the late-arriving transaction hashes.
+
 <a id="packages.valory.skills.transaction_settlement_abci.behaviours.SynchronizeLateMessagesBehaviour"></a>
 
 ## SynchronizeLateMessagesBehaviour Objects
