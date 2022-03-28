@@ -2157,7 +2157,7 @@ Process the 'commit' request.
 #### reset`_`blockchain
 
 ```python
-def reset_blockchain() -> None
+def reset_blockchain(is_replay: bool = False) -> None
 ```
 
 Reset blockchain after tendermint reset.

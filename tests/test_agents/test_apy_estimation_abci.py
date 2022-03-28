@@ -50,8 +50,8 @@ EXPECTED_ROUND_LOG_COUNT = {
 class BaseTestABCIAPYEstimationSkillNormalExecution(BaseTestEnd2EndNormalExecution):
     """Base class for the APY estimation e2e tests."""
 
-    agent_package = "valory/apy_estimation:0.1.0"
-    skill_package = "valory/apy_estimation_abci:0.1.0"
+    agent_package = "valory/apy_estimation_chained:0.1.0"
+    skill_package = "valory/apy_estimation_chained_abci:0.1.0"
     round_check_strings_to_n_periods = EXPECTED_ROUND_LOG_COUNT
     ROUND_TIMEOUT_SECONDS = 120
     wait_to_finish = 240
@@ -64,7 +64,6 @@ class BaseTestABCIAPYEstimationSkillNormalExecution(BaseTestEnd2EndNormalExecuti
     ]
 
 
-@pytest.mark.skip
 class TestABCIAPYEstimationSingleAgent(
     BaseTestABCIAPYEstimationSkillNormalExecution,
     UseGnosisSafeHardHatNet,
@@ -74,7 +73,6 @@ class TestABCIAPYEstimationSingleAgent(
     NB_AGENTS = 1
 
 
-@pytest.mark.skip
 class TestABCIAPYEstimationTwoAgents(
     BaseTestABCIAPYEstimationSkillNormalExecution,
     UseGnosisSafeHardHatNet,
@@ -84,7 +82,6 @@ class TestABCIAPYEstimationTwoAgents(
     NB_AGENTS = 2
 
 
-@pytest.mark.skip
 class TestABCIAPYEstimationFourAgents(
     BaseTestABCIAPYEstimationSkillNormalExecution,
     UseGnosisSafeHardHatNet,
@@ -92,3 +89,4 @@ class TestABCIAPYEstimationFourAgents(
     """Test that the ABCI apy_estimation_abci skill with four agents."""
 
     NB_AGENTS = 4
+    wait_to_finish = 300

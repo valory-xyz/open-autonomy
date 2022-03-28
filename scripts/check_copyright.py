@@ -319,6 +319,7 @@ def main() -> None:
             Path("packages", "valory", "skills").glob("**/*.py"),
             Path("tests").glob("**/*.py"),
             Path("scripts").glob("**/*.py"),
+            Path("replay_scripts").glob("**/*.py"),
         ),
     )
 

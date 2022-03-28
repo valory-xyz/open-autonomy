@@ -186,7 +186,6 @@ class PreprocessPayload(BaseAPYPayload):
     def __init__(  # pylint: disable=too-many-arguments
         self,
         sender: str,
-        pair_name: str,
         train_hash: Optional[str] = None,
         test_hash: Optional[str] = None,
         train_test: Optional[str] = None,
@@ -197,12 +196,10 @@ class PreprocessPayload(BaseAPYPayload):
         :param sender: the sender (Ethereum) address
         :param train_hash: the train data hash.
         :param test_hash: the test data hash.
-        :param pair_name: the name of the pool for which the preprocessed data are for.
         :param train_test: the train-test concatenated hash.
         :param kwargs: the keyword arguments
         """
         super().__init__(sender, **kwargs)
-        self._pair_name = pair_name
         self._train_hash = train_hash
         self._test_hash = test_hash
         self._train_test = train_test
@@ -220,18 +217,12 @@ class PreprocessPayload(BaseAPYPayload):
         return self._train_test
 
     @property
-    def pair_name(self) -> str:
-        """Get the pool pair's name."""
-        return self._pair_name
-
-    @property
     def data(self) -> Dict[str, Optional[str]]:
         """Get the data."""
         return {
             "train_test": self.train_test_hash
             if self.train_test_hash is not None
             else "",
-            "pair_name": self._pair_name,
         }
 
 
@@ -298,25 +289,25 @@ class TrainingPayload(BaseAPYPayload):
 
     transaction_type = TransactionType.TRAINING
 
-    def __init__(self, sender: str, model_hash: Optional[str], **kwargs: Any) -> None:
+    def __init__(self, sender: str, models_hash: Optional[str], **kwargs: Any) -> None:
         """Initialize a 'training' transaction payload.
 
         :param sender: the sender (Ethereum) address
-        :param model_hash: the model's hash.
+        :param models_hash: the model's hash.
         :param kwargs: the keyword arguments
         """
         super().__init__(sender, **kwargs)
-        self._model_hash = model_hash
+        self._models_hash = models_hash
 
     @property
-    def model(self) -> Optional[str]:
-        """Get the model's hash."""
-        return self._model_hash
+    def models_hash(self) -> Optional[str]:
+        """Get the models' hash."""
+        return self._models_hash
 
     @property
     def data(self) -> Dict[str, Optional[str]]:
         """Get the data."""
-        return {"model_hash": self.model} if self.model is not None else {}
+        return {"models_hash": self.models_hash} if self.models_hash is not None else {}
 
 
 class TestingPayload(BaseAPYPayload):
@@ -351,19 +342,19 @@ class UpdatePayload(BaseAPYPayload):
     transaction_type = TransactionType.UPDATE
 
     def __init__(
-        self, sender: str, updated_model_hash: Optional[str], **kwargs: Any
+        self, sender: str, updated_models_hash: Optional[str], **kwargs: Any
     ) -> None:
         """Initialize an 'update' transaction payload.
 
         :param sender: the sender (Ethereum) address
-        :param updated_model_hash: the updated model's hash.
+        :param updated_models_hash: the updated model's hash.
         :param kwargs: the keyword arguments
         """
         super().__init__(sender, **kwargs)
-        self._updated_model_hash = updated_model_hash
+        self._updated_model_hash = updated_models_hash
 
     @property
-    def updated_model_hash(self) -> Optional[str]:
+    def updated_models_hash(self) -> Optional[str]:
         """Get the updated model's hash."""
         return self._updated_model_hash
 
@@ -371,8 +362,8 @@ class UpdatePayload(BaseAPYPayload):
     def data(self) -> Dict[str, Optional[str]]:
         """Get the data."""
         return (
-            {"updated_model_hash": self.updated_model_hash}
-            if self.updated_model_hash is not None
+            {"updated_models_hash": self.updated_models_hash}
+            if self.updated_models_hash is not None
             else {}
         )
 
@@ -382,25 +373,31 @@ class EstimatePayload(BaseAPYPayload):
 
     transaction_type = TransactionType.ESTIMATION
 
-    def __init__(self, sender: str, estimation: Optional[float], **kwargs: Any) -> None:
+    def __init__(
+        self, sender: str, estimations_hash: Optional[str], **kwargs: Any
+    ) -> None:
         """Initialize an 'estimate' transaction payload.
 
         :param sender: the sender (Ethereum) address
-        :param estimation: the estimation.
+        :param estimations_hash: the hash of the estimations.
         :param kwargs: the keyword arguments
         """
         super().__init__(sender, **kwargs)
-        self._estimation = estimation
+        self._estimations_hash = estimations_hash
 
     @property
-    def estimation(self) -> Optional[float]:
-        """Get the estimation."""
-        return self._estimation
+    def estimations_hash(self) -> Optional[str]:
+        """Get the estimations' hash."""
+        return self._estimations_hash
 
     @property
-    def data(self) -> Dict[str, Optional[float]]:
+    def data(self) -> Dict[str, Optional[str]]:
         """Get the data."""
-        return {"estimation": self.estimation} if self.estimation is not None else {}
+        return (
+            {"estimations_hash": self.estimations_hash}
+            if self.estimations_hash is not None
+            else {}
+        )
 
 
 class ResetPayload(BaseAPYPayload):

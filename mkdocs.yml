@@ -1,27 +1,45 @@
-site_name: aea_consensus_algorithm
+site_name: Consensus Algorithms
 site_url: https://valory.xyz/
-site_description: Consensus algorithms implemented with the AEA framework.
+site_description: Consensus algorithms implemented with the open AEA framework.
 repo_url: https://github.com/valory-xyz/consensus-algorithms
 site_author: developer@valory.xyz
 
 theme: 'material'
 
+extra_css:
+  - stylesheets/extra.css
+
 strict: true
 
 nav:
-  - Home: 'index.md'
+  - Home: 'home.md'
+  - Concepts:
+    - Autonomous Economic Agents:
+      - Introduction: 'aea.md'
+      - Implementation: 'aea-implementation.md'
+    - Finite State Machines:
+      - Introduction: 'fsm.md'
+      - Implementation: 'fsm-implementation.md'
+    - Application BlockChain Interface:
+      - Introduction: 'abci.md'
+      - Implementation: 'abci-implementation.md'
+    - ABCI Applications:
+      - Introduction: 'abci_app.md'
+      - 'Implementation: ABCIApp': 'abci_app-implementation.md'
+      - 'Implementation: AsyncBehaviour': 'async_behaviour.md'
+      - 'Implementation: AbstractRoundBehaviour': 'abstract_round_behaviour.md'
+  - Demos:
+    - Simple ABCI: 'simple_abci.md'
+    - Price Estimation:
+      - Introduction: 'price_estimation_demo.md'
+      - How it works: 'price_estimation.md'
+      - FSM specification: 'fsm_diagram.md'
   - Preliminaries:
-    - AEA: 'aea.md'
-    - ABCI: 'abci.md'
-    - AsyncBehaviour: 'async_behaviour.md'
-    - Finite State Machine: 'fsm.md'
-    - ABCIApp: 'abci_app.md'
-  - Price Estimation:
-    - Demo: 'price_estimation_demo.md'
-    - How it works: 'price_estimation.md'
-    - FSM Diagram: 'fsm_diagram.md'
-  - Ethereum:
-    - Miscellaneous: 'ethereum_specifics.md'
+    - Requirements and set-up: 'requirements.md'
+  - Miscellaneous:
+    - Ethereum: 'ethereum_specifics.md'
+    - Delegate call vs call: 'delegate_call.md'
+    - Debugging using Tenderly: 'debugging.md'
   - API:
     - Connections:
       - ABCI:
@@ -64,12 +82,13 @@ nav:
         - Rounds: 'api/skills/oracle_deployment_abci/rounds.md'
       - Price Estimation ABCI:
         - Behaviours: 'api/skills/price_estimation_abci/behaviours.md'
-        - Composition: 'api/skills/price_estimation_abci/composition.md'
         - Dialogues: 'api/skills/price_estimation_abci/dialogues.md'
         - Handlers: 'api/skills/price_estimation_abci/handlers.md'
         - Models: 'api/skills/price_estimation_abci/models.md'
         - Payloads: 'api/skills/price_estimation_abci/payloads.md'
         - Rounds: 'api/skills/price_estimation_abci/rounds.md'
+      - Oracle ABCI:
+        - Composition: 'api/skills/oracle_abci/composition.md'
       - Registration ABCI:
         - Behaviours: 'api/skills/registration_abci/behaviours.md'
         - Payloads: 'api/skills/registration_abci/payloads.md'
