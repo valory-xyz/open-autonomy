@@ -387,16 +387,16 @@ Initial states: {RandomnessTransactionSubmissionRound}
 Transition states:
     0. RandomnessTransactionSubmissionRound
         - done: 1.
-        - round timeout: 9.
+        - round timeout: 10.
         - no majority: 0.
     1. SelectKeeperTransactionSubmissionRoundA
         - done: 2.
-        - round timeout: 9.
-        - no majority: 9.
+        - round timeout: 10.
+        - no majority: 10.
     2. CollectSignatureRound
         - done: 3.
-        - round timeout: 9.
-        - no majority: 9.
+        - round timeout: 10.
+        - no majority: 10.
     3. FinalizationRound
         - done: 4.
         - check history: 5.
@@ -404,39 +404,46 @@ Transition states:
         - finalization failed: 6.
         - check late arriving message: 8.
     4. ValidateTransactionRound
-        - done: 10.
+        - done: 11.
         - negative: 5.
         - none: 3.
         - validate timeout: 3.
         - no majority: 4.
     5. CheckTransactionHistoryRound
-        - done: 10.
+        - done: 11.
         - negative: 6.
-        - none: 11.
+        - none: 12.
         - round timeout: 5.
         - no majority: 5.
         - check late arriving message: 8.
     6. SelectKeeperTransactionSubmissionRoundB
         - done: 3.
-        - round timeout: 9.
-        - no majority: 9.
+        - round timeout: 10.
+        - no majority: 10.
     7. SelectKeeperTransactionSubmissionRoundBAfterTimeout
         - done: 3.
         - check history: 5.
-        - round timeout: 9.
-        - no majority: 9.
+        - round timeout: 10.
+        - no majority: 10.
     8. SynchronizeLateMessagesRound
-        - done: 5.
+        - done: 9.
         - round timeout: 8.
         - no majority: 8.
-        - none: 11.
-        - missed and late messages mismatch: 11.
-    9. ResetRound
+        - none: 12.
+        - missed and late messages mismatch: 12.
+    9. CheckLateTxHashesRound
+        - done: 11.
+        - negative: 12.
+        - none: 12.
+        - round timeout: 9.
+        - no majority: 12.
+        - check late arriving message: 8.
+    10. ResetRound
         - done: 0.
-        - reset timeout: 11.
-        - no majority: 11.
-    10. FinishedTransactionSubmissionRound
-    11. FailedRound
+        - reset timeout: 12.
+        - no majority: 12.
+    11. FinishedTransactionSubmissionRound
+    12. FailedRound
 
 Final states: {FailedRound, FinishedTransactionSubmissionRound}
 
