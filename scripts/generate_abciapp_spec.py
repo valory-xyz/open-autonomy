@@ -145,15 +145,24 @@ class DFA:
         return self.__dict__ == other.__dict__
 
     def dump(self, fp: TextIO, output_format: str = "yaml") -> None:
-        """Dumps this DFA spec. to a file in YAML/JSON format."""
+        """Dumps this DFA spec. to a file in YAML/JSON/Mermaid format."""
         dfa_export = self._get_exportable_repr()
 
         if output_format == "json":
             json.dump(dfa_export, fp, indent=4)
         elif output_format == "yaml":
             yaml.safe_dump(dfa_export, fp, indent=4)
+        elif output_format == "mermaid":
+            self._mermaid_dump(fp)
         else:
             raise ValueError(f"Unrecognized output format {output_format}.")
+
+    
+    def _mermaid_dump(self, fp: TextIO) -> None:
+        print("graph TD", file=fp)
+        for k, v in self.transition_func.items():
+            print(f"    {k[0]}({k[0]}) -->|{k[1]}| {v}({v})", file=fp)
+
 
     def _get_exportable_repr(self) -> Dict[str, Any]:
         """Retrieves an exportable respresentation for YAML/JSON dump of this DFA."""
@@ -306,7 +315,7 @@ def parse_arguments() -> argparse.Namespace:
         "-f",
         "--outformat",
         type=str,
-        choices=["json", "yaml"],
+        choices=["json", "yaml", "mermaid"],
         default="yaml",
         help="Output format.",
     )
