@@ -44,6 +44,19 @@ def __init__(*args: Any, **kwargs: Any) -> None
 
 Initialize the parameters object.
 
+We keep track of the nonce and tip across rounds and periods.
+We reuse it each time a new raw transaction is generated. If
+at the time of the new raw transaction being generated the nonce
+on the ledger does not match the nonce on the skill, then we ignore
+the skill nonce and tip (effectively we price fresh). Otherwise, we
+are in a re-submission scenario where we need to take account of the
+old tip.
+
+**Arguments**:
+
+- `args`: positional arguments
+- `kwargs`: keyword arguments
+
 <a id="packages.valory.skills.transaction_settlement_abci.models.RandomnessApi"></a>
 
 ## RandomnessApi Objects
