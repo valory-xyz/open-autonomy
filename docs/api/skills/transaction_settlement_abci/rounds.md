@@ -168,17 +168,6 @@ def late_arriving_tx_hashes() -> List[str]
 
 Get the late_arriving_tx_hashes.
 
-<a id="packages.valory.skills.transaction_settlement_abci.rounds.PeriodState.is_reset_params_set"></a>
-
-#### is`_`reset`_`params`_`set
-
-```python
-@property
-def is_reset_params_set() -> bool
-```
-
-Get the reset params flag.
-
 <a id="packages.valory.skills.transaction_settlement_abci.rounds.FailedRound"></a>
 
 ## FailedRound Objects
