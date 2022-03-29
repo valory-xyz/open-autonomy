@@ -418,6 +418,7 @@ class ValidateTransactionRound(VotingRound):
                 final_tx_hash=cast(PeriodState, self.period_state).tx_hashes_history[
                     -1
                 ],
+                keepers=deque(),
                 is_reset_params_set=True,
             )  # type: ignore
             return state, self.done_event
@@ -460,6 +461,7 @@ class CheckTransactionHistoryRound(CollectSameUntilThresholdRound):
                     participant_to_check=self.collection,
                     final_verification_status=return_status,
                     final_tx_hash=return_tx_hash,
+                    keepers=deque(),
                     is_reset_params_set=True,
                 )
 
