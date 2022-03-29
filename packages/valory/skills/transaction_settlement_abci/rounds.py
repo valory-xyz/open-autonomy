@@ -215,6 +215,24 @@ class FinalizationRound(OnlyKeeperSendsRound):
     allowed_tx_type = FinalizationTxPayload.transaction_type
     payload_attribute = "tx_data"
 
+    def _get_updated_keepers(self) -> Deque[str]:
+        """Get the keepers list updated, by adding the current keeper to it."""
+        keepers = cast(PeriodState, self.period_state).keepers
+        if self.period_state.most_voted_keeper_address not in keepers:
+            keepers.append(self.period_state.most_voted_keeper_address)
+
+        return keepers
+
+    def _get_reprioritized_keepers(self) -> Deque[str]:
+        """
+        Base method to re-prioritize keepers.
+
+        We do not need to re-prioritize for this round.
+
+        :return: the re-prioritized keepers.
+        """
+        return cast(PeriodState, self.period_state).keepers
+
     def _get_updated_hashes(self) -> List[str]:
         """Get the tx hashes history updated."""
         hashes = cast(PeriodState, self.period_state).tx_hashes_history
@@ -253,7 +271,11 @@ class FinalizationRound(OnlyKeeperSendsRound):
             return None
 
         if self.keeper_payload is None:  # pragma: no cover
-            return self.period_state, Event.FINALIZATION_FAILED
+            state = self.period_state.update(
+                period_state_class=PeriodState,
+                keepers=self._get_reprioritized_keepers(),
+            )
+            return state, Event.FINALIZATION_FAILED
 
         # check if the tx digest is not empty, thus we succeeded in finalization.
         # the tx digest will be empty if we receive an error in any of the following cases:
@@ -264,6 +286,7 @@ class FinalizationRound(OnlyKeeperSendsRound):
             state = self.period_state.update(
                 period_state_class=PeriodState,
                 tx_hashes_history=self._get_updated_hashes(),
+                keepers=self._get_updated_keepers(),
                 final_verification_status=VerificationStatus(
                     self.keeper_payload["status"]
                 ),
@@ -275,8 +298,35 @@ class FinalizationRound(OnlyKeeperSendsRound):
         state = self.period_state.update(
             period_state_class=PeriodState,
             final_verification_status=VerificationStatus(self.keeper_payload["status"]),
+            keepers=self._get_reprioritized_keepers(),
         )
         return state, self._get_check_or_fail_event()
+
+
+class FinalizationRoundAfterTimeout(FinalizationRound):
+    """A round in which finalization is performed after a `VALIDATE_TIMEOUT`."""
+
+    round_id = "finalization_after_timeout"
+
+    def _get_updated_keepers(self) -> Deque[str]:
+        """Get the keepers list updated."""
+        return self._get_reprioritized_keepers()
+
+    def _get_reprioritized_keepers(self) -> Deque[str]:
+        """
+        Update the keepers list to give priority to the next keeper and set the current to last.
+
+        We do this in order to make sure that:
+            1. We do not get stuck retrying with the same keeper all the time.
+            2. We cycle through all the keepers to try to resubmit.
+
+        :return: the re-prioritized keepers.
+        """
+        keepers = cast(PeriodState, self.period_state).keepers
+        current_keeper = keepers.popleft()
+        keepers.append(current_keeper)
+
+        return keepers
 
 
 class RandomnessTransactionSubmissionRound(CollectSameUntilThresholdRound):
