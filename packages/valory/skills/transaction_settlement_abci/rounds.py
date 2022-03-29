@@ -20,8 +20,9 @@
 """This module contains the data classes for the `transaction settlement` ABCI application."""
 import textwrap
 from abc import ABC
+from collections import deque
 from enum import Enum
-from typing import Dict, List, Mapping, Optional, Set, Tuple, Type, Union, cast
+from typing import Deque, Dict, List, Mapping, Optional, Set, Tuple, Type, Union, cast
 
 from packages.valory.skills.abstract_round_abci.base import (
     ABCIAppInternalError,
@@ -93,6 +94,16 @@ class PeriodState(BasePeriodState):  # pylint: disable=too-many-instance-attribu
     def tx_hashes_history(self) -> List[str]:
         """Get the current cycle's tx hashes history, which has not yet been verified."""
         return cast(List[str], self.db.get("tx_hashes_history", []))
+
+    @property
+    def keepers(self) -> Deque[str]:
+        """Get the current cycle's keepers who have tried to submit a transaction."""
+        return cast(deque, self.db.get("keepers", deque()))
+
+    @property
+    def keeper_in_priority(self) -> str:
+        """Get the first in priority keeper to try to re-submit a transaction."""
+        return self.keepers[0]
 
     @property
     def to_be_validated_tx_hash(self) -> str:
