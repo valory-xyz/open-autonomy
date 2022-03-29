@@ -20,8 +20,9 @@
 """Tests for valory/registration_abci skill's rounds."""
 
 import logging  # noqa: F401
+from collections import deque
 from types import MappingProxyType
-from typing import Dict, FrozenSet, List, Optional, cast
+from typing import Deque, Dict, FrozenSet, List, Optional, cast
 
 import pytest
 
@@ -198,6 +199,11 @@ def get_late_arriving_tx_hashes() -> List[str]:
     # We want the tx hashes to have a size which can be divided by 64 to be able to parse it.
     # Otherwise, they are not valid.
     return ["t" * 64, "e" * 64, "s" * 64, "t" * 64]
+
+
+def get_keepers() -> Deque[str]:
+    """Get dummy keepers."""
+    return deque(["agent_1", "agent_3"])
 
 
 class TestSelectKeeperTransactionSubmissionRoundA(BaseSelectKeeperRoundTest):
@@ -538,6 +544,7 @@ def test_period_states() -> None:
         (int(most_voted_randomness, base=16) // 10 ** 0 % 10) / 10
     )
     late_arriving_tx_hashes = get_late_arriving_tx_hashes()
+    keepers = get_keepers()
 
     period_state_____ = TransactionSettlementPeriodState(
         StateDB(
@@ -553,6 +560,7 @@ def test_period_states() -> None:
                 participant_to_signature=participant_to_signature,
                 final_tx_hash=final_tx_hash,
                 late_arriving_tx_hashes=late_arriving_tx_hashes,
+                keepers=keepers,
             ),
         )
     )
@@ -564,6 +572,8 @@ def test_period_states() -> None:
     assert period_state_____.participant_to_signature == participant_to_signature
     assert period_state_____.final_tx_hash == final_tx_hash
     assert period_state_____.late_arriving_tx_hashes == late_arriving_tx_hashes
+    assert period_state_____.keepers == keepers
+    assert period_state_____.keeper_in_priority == keepers.popleft()
 
     # test wrong tx hashes serialization
     period_state_____.update(late_arriving_tx_hashes=["test"])
