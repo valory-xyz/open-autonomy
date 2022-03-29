@@ -58,11 +58,6 @@ class TransactionParams(BaseParams):
         self.late_messages: List[ContractApiMessage] = []
         super().__init__(*args, **kwargs)
 
-    def reset_tx_params(self) -> None:
-        """Reset the transaction-related parameters."""
-        self.nonce = None
-        self.tip = None
-
 
 class RandomnessApi(ApiSpecs):
     """A model that wraps ApiSpecs for randomness api specifications."""
