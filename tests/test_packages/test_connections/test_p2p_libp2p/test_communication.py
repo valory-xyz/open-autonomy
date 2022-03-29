@@ -26,12 +26,11 @@ from unittest import mock
 from unittest.mock import Mock, call
 
 import pytest
-from aea_ledger_ethereum import EthereumCrypto
-from aea_ledger_fetchai import FetchAICrypto
-
 from aea.crypto.registries import make_crypto
 from aea.mail.base import Empty, Envelope
 from aea.multiplexer import Multiplexer
+from aea_ledger_ethereum import EthereumCrypto
+from aea_ledger_fetchai import FetchAICrypto
 
 from packages.fetchai.protocols.default import DefaultSerializer
 from packages.fetchai.protocols.default.message import DefaultMessage
@@ -178,7 +177,11 @@ class TestP2PLibp2pConnectionEchoEnvelope:
             performative=DefaultMessage.Performative.BYTES,
             content=b"hello",
         )
-        envelope = Envelope(to=addr_2, sender=addr_1, message=msg,)
+        envelope = Envelope(
+            to=addr_2,
+            sender=addr_1,
+            message=msg,
+        )
         self.multiplexer1.put(envelope)
         delivered_envelope = self.multiplexer2.get(block=True, timeout=20)
 
@@ -207,7 +210,11 @@ class TestP2PLibp2pConnectionEchoEnvelope:
             performative=DefaultMessage.Performative.BYTES,
             content=b"hello",
         )
-        original_envelope = Envelope(to=addr_2, sender=addr_1, message=msg,)
+        original_envelope = Envelope(
+            to=addr_2,
+            sender=addr_1,
+            message=msg,
+        )
 
         self.multiplexer1.put(original_envelope)
         delivered_envelope = self.multiplexer2.get(block=True, timeout=10)
@@ -315,7 +322,9 @@ class TestP2PLibp2pConnectionRouting:
                     content=b"hello",
                 )
                 envelope = Envelope(
-                    to=addrs[destination], sender=addrs[source], message=msg,
+                    to=addrs[destination],
+                    sender=addrs[source],
+                    message=msg,
                 )
 
                 self.multiplexers[source].put(envelope)
@@ -424,7 +433,11 @@ class TestP2PLibp2pConnectionEchoEnvelopeRelayOneDHTNode:
             performative=DefaultMessage.Performative.BYTES,
             content=b"hello",
         )
-        envelope = Envelope(to=addr_2, sender=addr_1, message=msg,)
+        envelope = Envelope(
+            to=addr_2,
+            sender=addr_1,
+            message=msg,
+        )
 
         self.multiplexer1.put(envelope)
         delivered_envelope = self.multiplexer2.get(block=True, timeout=20)
@@ -454,7 +467,11 @@ class TestP2PLibp2pConnectionEchoEnvelopeRelayOneDHTNode:
             performative=DefaultMessage.Performative.BYTES,
             content=b"hello",
         )
-        original_envelope = Envelope(to=addr_2, sender=addr_1, message=msg,)
+        original_envelope = Envelope(
+            to=addr_2,
+            sender=addr_1,
+            message=msg,
+        )
 
         self.multiplexer1.put(original_envelope)
         delivered_envelope = self.multiplexer2.get(block=True, timeout=10)
@@ -596,7 +613,9 @@ class TestP2PLibp2pConnectionRoutingRelayTwoDHTNodes:
                     content=b"hello",
                 )
                 envelope = Envelope(
-                    to=addrs[destination], sender=addrs[source], message=msg,
+                    to=addrs[destination],
+                    sender=addrs[source],
+                    message=msg,
                 )
 
                 self.multiplexers[source].put(envelope)
@@ -779,7 +798,11 @@ class TestP2PLibp2PSendEnvelope(BaseTestP2PLibp2p):
             performative=DefaultMessage.Performative.BYTES,
             content=b"hello",
         )
-        envelope = Envelope(to=addr_2, sender=addr_1, message=msg,)
+        envelope = Envelope(
+            to=addr_2,
+            sender=addr_1,
+            message=msg,
+        )
 
         # make the send to fail
         # note: we don't mock the genesis peer.
@@ -824,7 +847,11 @@ class TestP2PLibp2PReceiveEnvelope(BaseTestP2PLibp2p):
             performative=DefaultMessage.Performative.BYTES,
             content=b"hello",
         )
-        envelope = Envelope(to=addr_2, sender=addr_1, message=msg,)
+        envelope = Envelope(
+            to=addr_2,
+            sender=addr_1,
+            message=msg,
+        )
 
         # make the receive to fail
         with mock.patch.object(

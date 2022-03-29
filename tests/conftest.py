@@ -668,6 +668,7 @@ def libp2p_log_on_failure(fn: Callable) -> Callable:
     """
     Decorate a pytest method running a libp2p node to print its logs in case test fails.
 
+    # noqa: DAR101
     :return: decorated method.
     """
 
@@ -694,6 +695,7 @@ def libp2p_log_on_failure_all(cls):
     """
     Decorate every method of a class with `libp2p_log_on_failure`.
 
+    # noqa: DAR101
     :return: class with decorated methods.
     """
     for name, fn in inspect.getmembers(cls):

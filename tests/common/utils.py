@@ -30,7 +30,6 @@ from threading import Thread
 from typing import Any, Callable, List, Optional, Set, Tuple, Type, Union
 
 import pytest
-
 from aea.aea import AEA
 from aea.configurations.base import PublicId
 from aea.mail.base import Envelope
@@ -59,7 +58,7 @@ def timeit_context():
     """
     Context manager to measure execution time of code in context.
 
-    :return TimeItResult
+    :yield: TimeItResult
 
     example:
     with timeit_context() as result:
@@ -105,6 +104,7 @@ class AeaTool:
         """
         Wait till agent's outbox consumed completely.
 
+        # noqa: DAR101
         :return: AeaTool
         """
         start_time = time.time()
@@ -120,6 +120,7 @@ class AeaTool:
         """
         Wait till something appears on agents inbox and spin loop.
 
+        # noqa: DAR101
         :return: AeaTool
         """
         start_time = time.time()
@@ -133,6 +134,7 @@ class AeaTool:
         """
         Run AEA.react once to process inbox messages.
 
+        # noqa: DAR101
         :return: AeaTool
         """
         self.aea.handle_envelope(envelope)
@@ -159,6 +161,7 @@ class AeaTool:
         """
         Construct simple message, all arguments are optional.
 
+        # noqa: DAR101
         :return: Message
         """
         if isinstance(content, str):
@@ -183,6 +186,7 @@ class AeaTool:
         """
         Create envelope, if message is not passed use .dummy_message method.
 
+        # noqa: DAR101
         :return: Envelope
         """
         message = message or cls.dummy_default_message()
@@ -343,6 +347,7 @@ def dircmp_recursive(dircmp_obj: filecmp.dircmp) -> Tuple[Set[str], Set[str], Se
     """
     Compare the content of two directories, recursively.
 
+    # noqa: DAR003
     :param dircmp_obj: the filecmp.dircmp object.
     :return: three sets:
      - the set of files that are only in the left operand
@@ -356,6 +361,9 @@ def dircmp_recursive(dircmp_obj: filecmp.dircmp) -> Tuple[Set[str], Set[str], Se
         """
         Helper private function that also accepts the 'prefix' parameter.
 
+        # noqa: DAR003
+        # noqa: DAR101
+        # noqa: DAR201
         It is used to keep track of the path prefix during the recursive calls.
         """
 
@@ -382,6 +390,8 @@ def run_aea_subprocess(*args, cwd: str = ".") -> Tuple[subprocess.Popen, str, st
     """
     Run subprocess, bypassing ClickRunner.invoke.
 
+    # noqa: DAR101
+    # noqa: DAR201
     The reason is that for some reason ClickRunner.invoke doesn't capture
     well the stdout/stderr of nephew processes - children processes of children processes.
     """

@@ -23,10 +23,9 @@
 import json
 import os
 
+from aea.test_tools.test_cases import AEATestCaseEmpty
 from aea_ledger_ethereum.ethereum import EthereumCrypto as Ethereum
 from aea_ledger_fetchai import FetchAICrypto as FetchAI
-
-from aea.test_tools.test_cases import AEATestCaseEmpty
 
 from packages.open_aea.connections.p2p_libp2p.connection import (
     PUBLIC_ID as P2P_CONNECTION_PUBLIC_ID,

@@ -26,7 +26,6 @@ from asyncio.futures import Future
 from unittest.mock import Mock, patch
 
 import pytest
-
 from aea.configurations.base import ConnectionConfig
 from aea.configurations.constants import DEFAULT_LEDGER
 from aea.crypto.registries import make_crypto
@@ -120,7 +119,9 @@ class TestLibp2pClientConnectionFailureConnectionSetup:
         )
         with pytest.raises(Exception):
             P2PLibp2pMailboxConnection(
-                configuration=configuration, data_dir=self.t, identity=self.identity,
+                configuration=configuration,
+                data_dir=self.t,
+                identity=self.identity,
             )
 
     @classmethod

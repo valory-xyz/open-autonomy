@@ -31,12 +31,6 @@ from typing import Any, Dict, List, Optional, Tuple, cast
 from urllib.parse import urlparse
 
 import aiohttp
-from aiohttp.client_reqrep import ClientResponse
-from asn1crypto import x509  # type: ignore
-from ecdsa.curves import SECP256k1
-from ecdsa.keys import VerifyingKey
-from ecdsa.util import sigdecode_der
-
 from aea.configurations.base import PublicId
 from aea.configurations.constants import DEFAULT_LEDGER
 from aea.connections.base import Connection, ConnectionStates
@@ -45,6 +39,11 @@ from aea.exceptions import enforce
 from aea.helpers.acn.agent_record import AgentRecord
 from aea.helpers.acn.uri import Uri
 from aea.mail.base import Envelope
+from aiohttp.client_reqrep import ClientResponse
+from asn1crypto import x509  # type: ignore
+from ecdsa.curves import SECP256k1
+from ecdsa.keys import VerifyingKey
+from ecdsa.util import sigdecode_der
 
 from packages.fetchai.protocols.acn import acn_pb2
 from packages.fetchai.protocols.acn.message import AcnMessage
@@ -497,7 +496,10 @@ class SSLValidator:
     """Interprocess communication channel client using tcp sockets with TLS."""
 
     def __init__(
-        self, url: str, server_pub_key: str, logger: logging.Logger = _default_logger,
+        self,
+        url: str,
+        server_pub_key: str,
+        logger: logging.Logger = _default_logger,
     ) -> None:
         """
         Check ssl certificate with server pub key.
@@ -561,7 +563,11 @@ class SSLValidator:
         ssl_ctx = ssl.create_default_context(cadata=cadata)
         ssl_ctx.check_hostname = False
         ssl_ctx.verify_mode = ssl.CERT_REQUIRED
-        _, writer = await asyncio.open_connection(self.host, self.port, ssl=ssl_ctx,)
+        _, writer = await asyncio.open_connection(
+            self.host,
+            self.port,
+            ssl=ssl_ctx,
+        )
         session_pub_key = self._get_session_pub_key(writer)
         writer.close()
         return ssl_ctx, session_pub_key

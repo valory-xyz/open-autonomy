@@ -44,11 +44,7 @@ FilePaths = namedtuple("FilePaths", "abs_aea abs_acn rel_aea rel_acn")
 
 
 def get_all_file_paths(directory: str, extension: str = "") -> List[str]:
-    """
-    Get all nested files from a directory with a specific extension.
-
-    usage: get_all_file_paths("packages/valory/skills")
-    """
+    """Get all nested files from a directory with a specific extension."""
 
     return [
         os.path.join(root, file)

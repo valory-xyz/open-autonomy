@@ -26,7 +26,6 @@ from unittest.mock import Mock
 
 import pytest
 import requests
-
 from aea.mail.base import Envelope
 from aea.multiplexer import Multiplexer
 

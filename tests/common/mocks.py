@@ -58,7 +58,7 @@ def ctx_mock_Popen() -> MagicMock:
 
     Act as context manager.
 
-    :return: mock object.
+    :yield: mock object.
     """
     return_value = MagicMock()
     return_value.communicate.return_value = (MagicMock(), MagicMock())

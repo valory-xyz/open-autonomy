@@ -24,7 +24,6 @@ import tempfile
 from unittest.mock import Mock
 
 import pytest
-
 from aea.mail.base import Envelope
 from aea.multiplexer import Multiplexer
 
@@ -127,7 +126,11 @@ class TestSlowQueue:
                 content=b"hello",
             )
 
-            envelope = Envelope(to=addr, sender=self.conn.node.address, message=msg,)
+            envelope = Envelope(
+                to=addr,
+                sender=self.conn.node.address,
+                message=msg,
+            )
             return envelope
 
         try:

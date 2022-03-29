@@ -27,11 +27,10 @@ from unittest import mock
 from unittest.mock import Mock, call
 
 import pytest
-from aea_ledger_ethereum import EthereumCrypto
-from aea_ledger_fetchai import FetchAICrypto
-
 from aea.mail.base import Empty, Envelope
 from aea.multiplexer import Multiplexer
+from aea_ledger_ethereum import EthereumCrypto
+from aea_ledger_fetchai import FetchAICrypto
 
 from packages.fetchai.protocols.default.message import DefaultMessage
 from packages.fetchai.protocols.default.serialization import DefaultSerializer

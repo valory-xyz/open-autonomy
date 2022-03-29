@@ -8,6 +8,7 @@ from google.protobuf import message as _message
 from google.protobuf import reflection as _reflection
 from google.protobuf import symbol_database as _symbol_database
 
+
 # @@protoc_insertion_point(imports)
 
 _sym_db = _symbol_database.Default()
@@ -26,9 +27,9 @@ _DEFAULTMESSAGE_BYTES_PERFORMATIVE = _DEFAULTMESSAGE.nested_types_by_name[
 _DEFAULTMESSAGE_ERROR_PERFORMATIVE = _DEFAULTMESSAGE.nested_types_by_name[
     "Error_Performative"
 ]
-_DEFAULTMESSAGE_ERROR_PERFORMATIVE_ERRORDATAENTRY = _DEFAULTMESSAGE_ERROR_PERFORMATIVE.nested_types_by_name[
-    "ErrorDataEntry"
-]
+_DEFAULTMESSAGE_ERROR_PERFORMATIVE_ERRORDATAENTRY = (
+    _DEFAULTMESSAGE_ERROR_PERFORMATIVE.nested_types_by_name["ErrorDataEntry"]
+)
 _DEFAULTMESSAGE_END_PERFORMATIVE = _DEFAULTMESSAGE.nested_types_by_name[
     "End_Performative"
 ]

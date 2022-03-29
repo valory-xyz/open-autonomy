@@ -24,7 +24,6 @@ import tempfile
 import time
 
 import pytest
-
 from aea.crypto.registries import make_crypto
 from aea.mail.base import Envelope
 from aea.multiplexer import Multiplexer
@@ -69,6 +68,7 @@ class BaseTestLibp2pRelay:
         """
         Change state of a multiplexer (either connect or disconnect) and wait.
 
+        # noqa: DAR202
         :param multiplexer: the multiplexer to connect/disconnect.
         :param expected_is_connected: whether it should be connected or disconnected.
         :param timeout: the maximum number seconds to wait.

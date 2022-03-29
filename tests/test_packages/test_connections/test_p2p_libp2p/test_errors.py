@@ -30,7 +30,6 @@ from asyncio.futures import Future
 from unittest.mock import Mock, patch
 
 import pytest
-
 from aea.configurations.base import ConnectionConfig
 from aea.crypto.registries import make_crypto
 from aea.identity.base import Identity
