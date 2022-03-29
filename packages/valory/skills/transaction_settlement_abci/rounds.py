@@ -216,7 +216,7 @@ class FinalizationRound(OnlyKeeperSendsRound):
     payload_attribute = "tx_data"
 
     def _get_updated_hashes(self) -> List[str]:
-        """Update the tx hashes history."""
+        """Get the tx hashes history updated."""
         hashes = cast(PeriodState, self.period_state).tx_hashes_history
         tx_digest = cast(
             str,
