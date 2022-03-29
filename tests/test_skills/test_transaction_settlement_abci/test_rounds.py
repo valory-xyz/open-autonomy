@@ -53,7 +53,10 @@ from packages.valory.skills.transaction_settlement_abci.rounds import (
 from packages.valory.skills.transaction_settlement_abci.rounds import (
     Event as TransactionSettlementEvent,
 )
-from packages.valory.skills.transaction_settlement_abci.rounds import FinalizationRound
+from packages.valory.skills.transaction_settlement_abci.rounds import (
+    FinalizationRound,
+    FinalizationRoundAfterTimeout,
+)
 from packages.valory.skills.transaction_settlement_abci.rounds import (
     PeriodState as TransactionSettlementPeriodState,
 )
@@ -271,6 +274,17 @@ class TestFinalizationRound(BaseOnlyKeeperSendsRoundTest):
 
     _period_state_class = TransactionSettlementPeriodState
     _event_class = TransactionSettlementEvent
+    _round_class = FinalizationRound
+
+    def _update_keepers_hist(
+        self,
+        keepers_hist: Deque[str],
+        keeper: str,
+        exit_event: TransactionSettlementEvent,
+    ) -> None:
+        """Update keepers hist."""
+        if exit_event == TransactionSettlementEvent.DONE:
+            keepers_hist.append(keeper)
 
     @pytest.mark.parametrize(
         "tx_hashes_history, tx_digest, missed_messages, status, exit_event",
@@ -337,14 +351,22 @@ class TestFinalizationRound(BaseOnlyKeeperSendsRoundTest):
         """Runs tests."""
 
         keeper = sorted(list(self.participants))[0]
+        keepers_hist = deque(["agent2", "agent3"])
         self.period_state = cast(
             PeriodState,
             self.period_state.update(
-                most_voted_keeper_address=keeper, missed_messages=missed_messages
+                most_voted_keeper_address=keeper,
+                missed_messages=missed_messages,
+                tx_hashes_history=tx_hashes_history,
+                keepers=keepers_hist.copy(),
             ),
         )
+        tx_hashes_history.append(
+            tx_digest
+        ) if exit_event == TransactionSettlementEvent.DONE else tx_hashes_history
+        self._update_keepers_hist(keepers_hist, keeper, exit_event)
 
-        test_round = FinalizationRound(
+        test_round = self._round_class(
             state=self.period_state,
             consensus_params=self.consensus_params,
         )
@@ -363,12 +385,33 @@ class TestFinalizationRound(BaseOnlyKeeperSendsRoundTest):
                     },
                 ),
                 state_update_fn=lambda _period_state, _: _period_state.update(
-                    tx_hashes_history=tx_hashes_history
+                    tx_hashes_history=tx_hashes_history, keepers=keepers_hist
                 ),
-                state_attr_checks=[],
+                state_attr_checks=[
+                    lambda state: state.keepers,
+                    lambda state: state.tx_hashes_history,
+                ],
                 exit_event=exit_event,
             )
         )
+
+
+class TestFinalizationRoundAfterTimeout(TestFinalizationRound):
+    """Test FinalizationRoundAfterTimeout."""
+
+    _period_state_class = TransactionSettlementPeriodState
+    _event_class = TransactionSettlementEvent
+    _round_class = FinalizationRoundAfterTimeout
+
+    def _update_keepers_hist(
+        self,
+        keepers_hist: Deque[str],
+        keeper: str,
+        exit_event: TransactionSettlementEvent,
+    ) -> None:
+        """Update keepers hist."""
+        current_keeper = keepers_hist.popleft()
+        keepers_hist.append(current_keeper)
 
 
 class TestCollectSignatureRound(BaseCollectDifferentUntilThresholdRoundTest):
