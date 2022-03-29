@@ -184,11 +184,6 @@ class PeriodState(BasePeriodState):  # pylint: disable=too-many-instance-attribu
 
         return late_arriving_tx_hashes_parsed
 
-    @property
-    def is_reset_params_set(self) -> bool:
-        """Get the reset params flag."""
-        return cast(bool, self.db.get("is_reset_params_set", False))
-
 
 class FailedRound(DegenerateRound, ABC):
     """A round that represents that the period failed"""
@@ -292,7 +287,6 @@ class FinalizationRound(OnlyKeeperSendsRound):
                     self.keeper_payload["status"]
                 ),
                 consecutive_finalizations=0,
-                is_reset_params_set=False,
             )
             return state, Event.DONE
 
@@ -420,7 +414,6 @@ class ValidateTransactionRound(VotingRound):
                     -1
                 ],
                 keepers=deque(),
-                is_reset_params_set=True,
             )  # type: ignore
             return state, self.done_event
         if self.negative_vote_threshold_reached:
@@ -463,7 +456,6 @@ class CheckTransactionHistoryRound(CollectSameUntilThresholdRound):
                     final_verification_status=return_status,
                     final_tx_hash=return_tx_hash,
                     keepers=deque(),
-                    is_reset_params_set=True,
                 )
 
             if return_status == VerificationStatus.VERIFIED:

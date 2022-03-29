@@ -351,7 +351,6 @@ class TestFinalizeBehaviour(TransactionSettlementFSMBehaviourBaseCase):
                     initial_data=dict(
                         most_voted_keeper_address="most_voted_keeper_address",
                         participants=participants,
-                        is_reset_params_set=True,
                         keepers=deque(["other_agent"]),
                     ),
                 )

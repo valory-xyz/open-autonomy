@@ -183,11 +183,6 @@ class TransactionSettlementBaseState(BaseState, ABC):
         """Check for GS026."""
         return "GS026" in revert_reason
 
-    def _reset_params_if_flag_set(self) -> None:
-        """Reset tx parameters."""
-        if self.period_state.is_reset_params_set:
-            self.params.reset_tx_params()
-
 
 class RandomnessTransactionSubmissionBehaviour(RandomnessBehaviour):
     """Retrieve randomness."""
@@ -272,9 +267,6 @@ class ValidateTransactionBehaviour(TransactionSettlementBaseState):
                 f"tx {self.period_state.to_be_validated_tx_hash} receipt check timed out!"
             )
             return None
-
-        # Reset tx parameters.
-        self.params.reset_tx_params()
 
         contract_api_msg = yield from self._verify_tx(
             self.period_state.to_be_validated_tx_hash
@@ -533,10 +525,6 @@ class FinalizeBehaviour(TransactionSettlementBaseState):
         - Otherwise, wait until the next round.
         - If a timeout is hit, set exit A event, otherwise set done event.
         """
-
-        # Reset tx params if the flag has been set
-        self._reset_params_if_flag_set()
-
         if self._i_am_not_sending():
             yield from self._not_sender_act()
         else:
@@ -650,7 +638,6 @@ class ResetBehaviour(TransactionSettlementBaseState):
         self.context.logger.info(
             f"Period {self.period_state.period_count} was not finished. Resetting!"
         )
-        self.params.reset_tx_params()
         payload = ResetPayload(
             self.context.agent_address, self.period_state.period_count + 1
         )
