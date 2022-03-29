@@ -62,6 +62,7 @@ class Event(Enum):
     NEGATIVE = "negative"
     NONE = "none"
     VALIDATE_TIMEOUT = "validate_timeout"
+    CHECK_TIMEOUT = "check_timeout"
     RESET_TIMEOUT = "reset_timeout"
     CHECK_HISTORY = "check_history"
     CHECK_LATE_ARRIVING_MESSAGE = "check_late_arriving_message"
@@ -524,7 +525,7 @@ class TransactionSubmissionAbciApp(AbciApp[Event]):
             - done: 11.
             - negative: 6.
             - none: 12.
-            - round timeout: 5.
+            - check timeout: 5.
             - no majority: 5.
             - check late arriving message: 8.
         6. SelectKeeperTransactionSubmissionRoundB
@@ -546,7 +547,7 @@ class TransactionSubmissionAbciApp(AbciApp[Event]):
             - done: 11.
             - negative: 12.
             - none: 12.
-            - round timeout: 9.
+            - check timeout: 9.
             - no majority: 12.
             - check late arriving message: 8.
         10. ResetRound
@@ -561,6 +562,7 @@ class TransactionSubmissionAbciApp(AbciApp[Event]):
     Timeouts:
         round timeout: 30.0
         validate timeout: 30.0
+        check timeout: 30.0
         reset timeout: 30.0
     """
 
@@ -599,7 +601,7 @@ class TransactionSubmissionAbciApp(AbciApp[Event]):
             Event.DONE: FinishedTransactionSubmissionRound,
             Event.NEGATIVE: SelectKeeperTransactionSubmissionRoundB,
             Event.NONE: FailedRound,
-            Event.ROUND_TIMEOUT: CheckTransactionHistoryRound,
+            Event.CHECK_TIMEOUT: CheckTransactionHistoryRound,
             Event.NO_MAJORITY: CheckTransactionHistoryRound,
             Event.CHECK_LATE_ARRIVING_MESSAGE: SynchronizeLateMessagesRound,
         },
@@ -625,7 +627,7 @@ class TransactionSubmissionAbciApp(AbciApp[Event]):
             Event.DONE: FinishedTransactionSubmissionRound,
             Event.NEGATIVE: FailedRound,
             Event.NONE: FailedRound,
-            Event.ROUND_TIMEOUT: CheckLateTxHashesRound,
+            Event.CHECK_TIMEOUT: CheckLateTxHashesRound,
             Event.NO_MAJORITY: FailedRound,
             Event.CHECK_LATE_ARRIVING_MESSAGE: SynchronizeLateMessagesRound,
         },
@@ -644,5 +646,6 @@ class TransactionSubmissionAbciApp(AbciApp[Event]):
     event_to_timeout: Dict[Event, float] = {
         Event.ROUND_TIMEOUT: 30.0,
         Event.VALIDATE_TIMEOUT: 30.0,
+        Event.CHECK_TIMEOUT: 30.0,
         Event.RESET_TIMEOUT: 30.0,
     }
