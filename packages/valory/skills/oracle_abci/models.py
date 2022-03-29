@@ -99,6 +99,10 @@ class SharedState(BaseSharedState):
             self.context.params.retry_timeout * self.context.params.retry_attempts
             + MARGIN
         )
+        OracleAbciApp.event_to_timeout[TSEvent.CHECK_TIMEOUT] = (
+            self.context.params.retry_timeout * self.context.params.retry_attempts
+            + MARGIN
+        )
         OracleAbciApp.event_to_timeout[OracleEvent.DEPLOY_TIMEOUT] = (
             self.context.params.keeper_timeout + MARGIN
         )

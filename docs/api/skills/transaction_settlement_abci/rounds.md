@@ -402,7 +402,7 @@ Transition states:
         - done: 11.
         - negative: 6.
         - none: 12.
-        - round timeout: 5.
+        - check timeout: 5.
         - no majority: 5.
         - check late arriving message: 8.
     6. SelectKeeperTransactionSubmissionRoundB
@@ -424,7 +424,7 @@ Transition states:
         - done: 11.
         - negative: 12.
         - none: 12.
-        - round timeout: 9.
+        - check timeout: 9.
         - no majority: 12.
         - check late arriving message: 8.
     10. ResetRound
@@ -439,5 +439,6 @@ Final states: {FailedRound, FinishedTransactionSubmissionRound}
 Timeouts:
     round timeout: 30.0
     validate timeout: 30.0
+    check timeout: 30.0
     reset timeout: 30.0
 
