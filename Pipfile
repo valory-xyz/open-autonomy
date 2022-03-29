@@ -6,9 +6,12 @@ name = "pypi"
 [packages]
 open-aea = {version = "<2.0.0,>=1.6.0", extras = ["all"]}
 open-aea-ledger-ethereum = "<2.0.0,>=1.6.0"
+open-aea-ledger-cosmos = "<2.0.0,>=1.6.0"
+open-aea-ledger-fetchai = "<2.0.0,>=1.6.0"
 open-aea-cli-ipfs = "<2.0.0,>=1.6.0"
 
 [dev-packages]
+asn1crypto = "==1.4.0"
 bandit = "==1.7.0"
 black = "==21.6b0"
 bs4 = "==0.0.1"
