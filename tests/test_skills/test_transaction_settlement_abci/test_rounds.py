@@ -453,10 +453,18 @@ class TestCheckTransactionHistoryRound(BaseCollectSameUntilThresholdRoundTest):
         expected_event: TransactionSettlementEvent,
     ) -> None:
         """Run tests."""
-        self.period_state.update(missed_messages=missed_messages)
+        keepers = deque(["keeper2", "keeper1"])
+        self.period_state.update(missed_messages=missed_messages, keepers=keepers)
 
         test_round = CheckTransactionHistoryRound(
             state=self.period_state, consensus_params=self.consensus_params
+        )
+
+        keepers = (
+            deque()
+            if expected_event
+            in (TransactionSettlementEvent.DONE, TransactionSettlementEvent.NONE)
+            else keepers
         )
 
         self._complete_run(
@@ -475,17 +483,22 @@ class TestCheckTransactionHistoryRound(BaseCollectSameUntilThresholdRoundTest):
                     ),
                     final_verification_status=VerificationStatus(int(expected_status)),
                     tx_hashes_history=[expected_tx_hash],
+                    keepers=keepers,
                 ),
                 state_attr_checks=[
                     lambda state: state.final_verification_status,
                     lambda state: state.final_tx_hash,
+                    lambda state: state.keepers,
                 ]
                 if expected_event
                 not in {
                     TransactionSettlementEvent.NEGATIVE,
                     TransactionSettlementEvent.CHECK_LATE_ARRIVING_MESSAGE,
                 }
-                else [lambda state: state.final_verification_status],
+                else [
+                    lambda state: state.final_verification_status,
+                    lambda state: state.keepers,
+                ],
                 most_voted_payload=expected_status + expected_tx_hash,
                 exit_event=expected_event,
             )
