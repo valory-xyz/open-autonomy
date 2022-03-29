@@ -49,6 +49,7 @@ from packages.valory.skills.abstract_round_abci.behaviour_utils import (
     make_degenerate_state,
 )
 from packages.valory.skills.transaction_settlement_abci.behaviours import (
+    CheckLateTxHashesBehaviour,
     CheckTransactionHistoryBehaviour,
     FinalizeBehaviour,
     RandomnessTransactionSubmissionBehaviour,
@@ -786,7 +787,7 @@ class TestSynchronizeLateMessagesBehaviour(TransactionSettlementFSMBehaviourBase
             self.mock_a2a_transaction()
             self._test_done_flag_set()
             self.end_round(TransactionSettlementEvent.DONE)
-            self._check_state_id(CheckTransactionHistoryBehaviour)  # type: ignore
+            self._check_state_id(CheckLateTxHashesBehaviour)  # type: ignore
 
         else:
             cast(
