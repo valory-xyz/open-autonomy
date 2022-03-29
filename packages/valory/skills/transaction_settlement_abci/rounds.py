@@ -561,63 +561,69 @@ class TransactionSubmissionAbciApp(AbciApp[Event]):
     Transition states:
         0. RandomnessTransactionSubmissionRound
             - done: 1.
-            - round timeout: 10.
+            - round timeout: 11.
             - no majority: 0.
         1. SelectKeeperTransactionSubmissionRoundA
             - done: 2.
-            - round timeout: 10.
-            - no majority: 10.
+            - round timeout: 11.
+            - no majority: 11.
         2. CollectSignatureRound
             - done: 3.
-            - round timeout: 10.
-            - no majority: 10.
+            - round timeout: 11.
+            - no majority: 11.
         3. FinalizationRound
             - done: 4.
-            - check history: 5.
-            - round timeout: 7.
-            - finalization failed: 6.
-            - check late arriving message: 8.
-        4. ValidateTransactionRound
-            - done: 11.
-            - negative: 5.
-            - none: 3.
-            - validate timeout: 3.
-            - no majority: 4.
-        5. CheckTransactionHistoryRound
-            - done: 11.
-            - negative: 6.
-            - none: 12.
-            - round timeout: 5.
-            - no majority: 5.
-            - check late arriving message: 8.
-        6. SelectKeeperTransactionSubmissionRoundB
-            - done: 3.
-            - round timeout: 10.
-            - no majority: 10.
-        7. SelectKeeperTransactionSubmissionRoundBAfterTimeout
-            - done: 3.
-            - check history: 5.
-            - round timeout: 10.
-            - no majority: 10.
-        8. SynchronizeLateMessagesRound
-            - done: 9.
+            - check history: 6.
             - round timeout: 8.
-            - no majority: 8.
-            - none: 12.
-            - missed and late messages mismatch: 12.
-        9. CheckLateTxHashesRound
-            - done: 11.
-            - negative: 12.
-            - none: 12.
+            - finalization failed: 7.
+            - check late arriving message: 9.
+        4. ValidateTransactionRound
+            - done: 12.
+            - negative: 6.
+            - none: 3.
+            - validate timeout: 5.
+            - no majority: 4.
+        5. FinalizationRoundAfterTimeout
+            - done: 4.
+            - check history: 6.
+            - round timeout: 8.
+            - finalization failed: 7.
+            - check late arriving message: 9.
+        6. CheckTransactionHistoryRound
+            - done: 12.
+            - negative: 7.
+            - none: 13.
+            - round timeout: 6.
+            - no majority: 6.
+            - check late arriving message: 9.
+        7. SelectKeeperTransactionSubmissionRoundB
+            - done: 3.
+            - round timeout: 11.
+            - no majority: 11.
+        8. SelectKeeperTransactionSubmissionRoundBAfterTimeout
+            - done: 3.
+            - check history: 6.
+            - round timeout: 11.
+            - no majority: 11.
+        9. SynchronizeLateMessagesRound
+            - done: 10.
             - round timeout: 9.
-            - no majority: 12.
-            - check late arriving message: 8.
-        10. ResetRound
+            - no majority: 9.
+            - none: 13.
+            - missed and late messages mismatch: 13.
+        10. CheckLateTxHashesRound
+            - done: 12.
+            - negative: 13.
+            - none: 13.
+            - round timeout: 10.
+            - no majority: 13.
+            - check late arriving message: 9.
+        11. ResetRound
             - done: 0.
-            - reset timeout: 12.
-            - no majority: 12.
-        11. FinishedTransactionSubmissionRound
-        12. FailedRound
+            - reset timeout: 13.
+            - no majority: 13.
+        12. FinishedTransactionSubmissionRound
+        13. FailedRound
 
     Final states: {FailedRound, FinishedTransactionSubmissionRound}
 
@@ -655,8 +661,15 @@ class TransactionSubmissionAbciApp(AbciApp[Event]):
             Event.DONE: FinishedTransactionSubmissionRound,
             Event.NEGATIVE: CheckTransactionHistoryRound,
             Event.NONE: FinalizationRound,
-            Event.VALIDATE_TIMEOUT: FinalizationRound,
+            Event.VALIDATE_TIMEOUT: FinalizationRoundAfterTimeout,
             Event.NO_MAJORITY: ValidateTransactionRound,
+        },
+        FinalizationRoundAfterTimeout: {
+            Event.DONE: ValidateTransactionRound,
+            Event.CHECK_HISTORY: CheckTransactionHistoryRound,
+            Event.ROUND_TIMEOUT: SelectKeeperTransactionSubmissionRoundBAfterTimeout,
+            Event.FINALIZATION_FAILED: SelectKeeperTransactionSubmissionRoundB,
+            Event.CHECK_LATE_ARRIVING_MESSAGE: SynchronizeLateMessagesRound,
         },
         CheckTransactionHistoryRound: {
             Event.DONE: FinishedTransactionSubmissionRound,
