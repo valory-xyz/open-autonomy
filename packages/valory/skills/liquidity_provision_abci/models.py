@@ -75,6 +75,10 @@ class SharedState(BaseSharedState):
             self.context.params.retry_timeout * self.context.params.retry_attempts
             + MARGIN
         )
+        LiquidityProvisionAbciApp.event_to_timeout[TSEvent.CHECK_TIMEOUT] = (
+            self.context.params.retry_timeout * self.context.params.retry_attempts
+            + MARGIN
+        )
         LiquidityProvisionAbciApp.event_to_timeout[SafeEvent.DEPLOY_TIMEOUT] = (
             self.context.params.keeper_timeout + MARGIN
         )

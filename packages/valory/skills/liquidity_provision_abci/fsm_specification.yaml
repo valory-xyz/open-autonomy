@@ -1,6 +1,7 @@
 alphabet_in:
 - CHECK_HISTORY
 - CHECK_LATE_ARRIVING_MESSAGE
+- CHECK_TIMEOUT
 - DEPLOY_TIMEOUT
 - DONE
 - DONE_ENTER
@@ -49,17 +50,17 @@ states:
 - ValidateTransactionRound
 transition_func:
     (CheckLateTxHashesRound, CHECK_LATE_ARRIVING_MESSAGE): SynchronizeLateMessagesRound
+    (CheckLateTxHashesRound, CHECK_TIMEOUT): CheckLateTxHashesRound
     (CheckLateTxHashesRound, DONE): ResetAndPauseRound
     (CheckLateTxHashesRound, NEGATIVE): RegistrationRound
     (CheckLateTxHashesRound, NONE): RegistrationRound
     (CheckLateTxHashesRound, NO_MAJORITY): RegistrationRound
-    (CheckLateTxHashesRound, ROUND_TIMEOUT): CheckLateTxHashesRound
     (CheckTransactionHistoryRound, CHECK_LATE_ARRIVING_MESSAGE): SynchronizeLateMessagesRound
+    (CheckTransactionHistoryRound, CHECK_TIMEOUT): CheckTransactionHistoryRound
     (CheckTransactionHistoryRound, DONE): ResetAndPauseRound
     (CheckTransactionHistoryRound, NEGATIVE): SelectKeeperTransactionSubmissionRoundB
     (CheckTransactionHistoryRound, NONE): RegistrationRound
     (CheckTransactionHistoryRound, NO_MAJORITY): CheckTransactionHistoryRound
-    (CheckTransactionHistoryRound, ROUND_TIMEOUT): CheckTransactionHistoryRound
     (CollectSignatureRound, DONE): FinalizationRound
     (CollectSignatureRound, NO_MAJORITY): ResetRound
     (CollectSignatureRound, ROUND_TIMEOUT): ResetRound

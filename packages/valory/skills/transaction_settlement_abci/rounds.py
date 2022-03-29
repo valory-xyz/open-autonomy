@@ -63,6 +63,7 @@ class Event(Enum):
     NEGATIVE = "negative"
     NONE = "none"
     VALIDATE_TIMEOUT = "validate_timeout"
+    CHECK_TIMEOUT = "check_timeout"
     RESET_TIMEOUT = "reset_timeout"
     CHECK_HISTORY = "check_history"
     CHECK_LATE_ARRIVING_MESSAGE = "check_late_arriving_message"
@@ -554,83 +555,115 @@ class ResetRound(CollectSameUntilThresholdRound):
 class TransactionSubmissionAbciApp(AbciApp[Event]):
     """TransactionSubmissionAbciApp
 
-    Initial round: RandomnessTransactionSubmissionRound
+        Initial round: RandomnessTransactionSubmissionRound
 
-    Initial states: {RandomnessTransactionSubmissionRound}
+        Initial states: {RandomnessTransactionSubmissionRound}
 
-    Transition states:
-        0. RandomnessTransactionSubmissionRound
-            - done: 1.
-            - round timeout: 11.
-            - no majority: 0.
-        1. SelectKeeperTransactionSubmissionRoundA
-            - done: 2.
-            - round timeout: 11.
-            - no majority: 11.
-        2. CollectSignatureRound
-            - done: 3.
-            - round timeout: 11.
-            - no majority: 11.
-        3. FinalizationRound
-            - done: 4.
-            - check history: 6.
-            - round timeout: 8.
-            - finalization failed: 7.
-            - check late arriving message: 9.
-        4. ValidateTransactionRound
-            - done: 12.
-            - negative: 6.
-            - none: 3.
-            - validate timeout: 5.
-            - no majority: 4.
-        5. FinalizationRoundAfterTimeout
-            - done: 4.
-            - check history: 6.
-            - round timeout: 8.
-            - finalization failed: 7.
-            - check late arriving message: 9.
-        6. CheckTransactionHistoryRound
-            - done: 12.
-            - negative: 7.
-            - none: 13.
-            - round timeout: 6.
-            - no majority: 6.
-            - check late arriving message: 9.
-        7. SelectKeeperTransactionSubmissionRoundB
-            - done: 3.
-            - round timeout: 11.
-            - no majority: 11.
-        8. SelectKeeperTransactionSubmissionRoundBAfterTimeout
-            - done: 3.
-            - check history: 6.
-            - round timeout: 11.
-            - no majority: 11.
-        9. SynchronizeLateMessagesRound
-            - done: 10.
-            - round timeout: 9.
-            - no majority: 9.
-            - none: 13.
-            - missed and late messages mismatch: 13.
-        10. CheckLateTxHashesRound
-            - done: 12.
-            - negative: 13.
-            - none: 13.
-            - round timeout: 10.
-            - no majority: 13.
-            - check late arriving message: 9.
-        11. ResetRound
-            - done: 0.
-            - reset timeout: 13.
-            - no majority: 13.
-        12. FinishedTransactionSubmissionRound
-        13. FailedRound
+        Transition states:
+            0. RandomnessTransactionSubmissionRound
+                - done: 1.
+                - round timeout: 11.
+                - no majority: 0.
+            1. SelectKeeperTransactionSubmissionRoundA
+                - done: 2.
+                - round timeout: 11.
+                - no majority: 11.
+            2. CollectSignatureRound
+                - done: 3.
+                - round timeout: 11.
+                - no majority: 11.
+            3. FinalizationRound
+                - done: 4.
+                - check history: 6.
+                - round timeout: 8.
+                - finalization failed: 7.
+                - check late arriving message: 9.
+            4. ValidateTransactionRound
+                - done: 12.
+                - negative: 6.
+                - none: 3.
+                - validate timeout: 5.
+                - no majority: 4.
+    <<<<<<< HEAD
+            5. FinalizationRoundAfterTimeout
+                - done: 4.
+                - check history: 6.
+                - round timeout: 8.
+                - finalization failed: 7.
+                - check late arriving message: 9.
+            6. CheckTransactionHistoryRound
+                - done: 12.
+                - negative: 7.
+                - none: 13.
+                - round timeout: 6.
+                - no majority: 6.
+                - check late arriving message: 9.
+            7. SelectKeeperTransactionSubmissionRoundB
+    =======
+            5. CheckTransactionHistoryRound
+                - done: 11.
+                - negative: 6.
+                - none: 12.
+                - check timeout: 5.
+                - no majority: 5.
+                - check late arriving message: 8.
+            6. SelectKeeperTransactionSubmissionRoundB
+    >>>>>>> fix/receipt_missing
+                - done: 3.
+                - round timeout: 11.
+                - no majority: 11.
+            8. SelectKeeperTransactionSubmissionRoundBAfterTimeout
+                - done: 3.
+    <<<<<<< HEAD
+                - check history: 6.
+                - round timeout: 11.
+                - no majority: 11.
+            9. SynchronizeLateMessagesRound
+                - done: 10.
+                - round timeout: 9.
+                - no majority: 9.
+                - none: 13.
+                - missed and late messages mismatch: 13.
+            10. CheckLateTxHashesRound
+                - done: 12.
+                - negative: 13.
+                - none: 13.
+                - round timeout: 10.
+                - no majority: 13.
+                - check late arriving message: 9.
+            11. ResetRound
+    =======
+                - check history: 5.
+                - round timeout: 10.
+                - no majority: 10.
+            8. SynchronizeLateMessagesRound
+                - done: 9.
+                - round timeout: 8.
+                - no majority: 8.
+                - none: 12.
+                - missed and late messages mismatch: 12.
+            9. CheckLateTxHashesRound
+                - done: 11.
+                - negative: 12.
+                - none: 12.
+                - check timeout: 9.
+                - no majority: 12.
+                - check late arriving message: 8.
+            10. ResetRound
+    >>>>>>> fix/receipt_missing
+                - done: 0.
+                - reset timeout: 13.
+                - no majority: 13.
+            12. FinishedTransactionSubmissionRound
+            13. FailedRound
 
-    Final states: {FailedRound, FinishedTransactionSubmissionRound}
+        Final states: {FailedRound, FinishedTransactionSubmissionRound}
 
-    Timeouts:
-        round timeout: 30.0
-        validate timeout: 30.0
-        reset timeout: 30.0
+        Timeouts:
+            round timeout: 30.0
+            validate timeout: 30.0
+            check timeout: 30.0
+            reset timeout: 30.0
     """
 
     initial_round_cls: Type[AbstractRound] = RandomnessTransactionSubmissionRound
@@ -675,7 +708,7 @@ class TransactionSubmissionAbciApp(AbciApp[Event]):
             Event.DONE: FinishedTransactionSubmissionRound,
             Event.NEGATIVE: SelectKeeperTransactionSubmissionRoundB,
             Event.NONE: FailedRound,
-            Event.ROUND_TIMEOUT: CheckTransactionHistoryRound,
+            Event.CHECK_TIMEOUT: CheckTransactionHistoryRound,
             Event.NO_MAJORITY: CheckTransactionHistoryRound,
             Event.CHECK_LATE_ARRIVING_MESSAGE: SynchronizeLateMessagesRound,
         },
@@ -701,7 +734,7 @@ class TransactionSubmissionAbciApp(AbciApp[Event]):
             Event.DONE: FinishedTransactionSubmissionRound,
             Event.NEGATIVE: FailedRound,
             Event.NONE: FailedRound,
-            Event.ROUND_TIMEOUT: CheckLateTxHashesRound,
+            Event.CHECK_TIMEOUT: CheckLateTxHashesRound,
             Event.NO_MAJORITY: FailedRound,
             Event.CHECK_LATE_ARRIVING_MESSAGE: SynchronizeLateMessagesRound,
         },
@@ -720,5 +753,6 @@ class TransactionSubmissionAbciApp(AbciApp[Event]):
     event_to_timeout: Dict[Event, float] = {
         Event.ROUND_TIMEOUT: 30.0,
         Event.VALIDATE_TIMEOUT: 30.0,
+        Event.CHECK_TIMEOUT: 30.0,
         Event.RESET_TIMEOUT: 30.0,
     }
