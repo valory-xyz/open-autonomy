@@ -20,6 +20,7 @@ label: packages.valory.skills.oracle_abci.composition.OracleAbciApp
 start_states:
 - RegistrationStartupRound
 states:
+- CheckLateTxHashesRound
 - CheckTransactionHistoryRound
 - CollectObservationRound
 - CollectSignatureRound
@@ -45,6 +46,12 @@ states:
 - ValidateSafeRound
 - ValidateTransactionRound
 transition_func:
+    (CheckLateTxHashesRound, CHECK_LATE_ARRIVING_MESSAGE): SynchronizeLateMessagesRound
+    (CheckLateTxHashesRound, DONE): ResetAndPauseRound
+    (CheckLateTxHashesRound, NEGATIVE): ResetAndPauseRound
+    (CheckLateTxHashesRound, NONE): ResetAndPauseRound
+    (CheckLateTxHashesRound, NO_MAJORITY): ResetAndPauseRound
+    (CheckLateTxHashesRound, ROUND_TIMEOUT): CheckLateTxHashesRound
     (CheckTransactionHistoryRound, CHECK_LATE_ARRIVING_MESSAGE): SynchronizeLateMessagesRound
     (CheckTransactionHistoryRound, DONE): ResetAndPauseRound
     (CheckTransactionHistoryRound, NEGATIVE): SelectKeeperTransactionSubmissionRoundB
@@ -105,7 +112,7 @@ transition_func:
     (SelectKeeperTransactionSubmissionRoundBAfterTimeout, DONE): FinalizationRound
     (SelectKeeperTransactionSubmissionRoundBAfterTimeout, NO_MAJORITY): ResetRound
     (SelectKeeperTransactionSubmissionRoundBAfterTimeout, ROUND_TIMEOUT): ResetRound
-    (SynchronizeLateMessagesRound, DONE): CheckTransactionHistoryRound
+    (SynchronizeLateMessagesRound, DONE): CheckLateTxHashesRound
     (SynchronizeLateMessagesRound, MISSED_AND_LATE_MESSAGES_MISMATCH): ResetAndPauseRound
     (SynchronizeLateMessagesRound, NONE): ResetAndPauseRound
     (SynchronizeLateMessagesRound, NO_MAJORITY): SynchronizeLateMessagesRound

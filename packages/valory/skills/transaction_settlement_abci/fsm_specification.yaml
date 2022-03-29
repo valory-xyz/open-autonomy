@@ -18,6 +18,7 @@ label: packages.valory.skills.transaction_settlement_abci.rounds.TransactionSubm
 start_states:
 - RandomnessTransactionSubmissionRound
 states:
+- CheckLateTxHashesRound
 - CheckTransactionHistoryRound
 - CollectSignatureRound
 - FailedRound
@@ -31,6 +32,12 @@ states:
 - SynchronizeLateMessagesRound
 - ValidateTransactionRound
 transition_func:
+    (CheckLateTxHashesRound, CHECK_LATE_ARRIVING_MESSAGE): SynchronizeLateMessagesRound
+    (CheckLateTxHashesRound, DONE): FinishedTransactionSubmissionRound
+    (CheckLateTxHashesRound, NEGATIVE): FailedRound
+    (CheckLateTxHashesRound, NONE): FailedRound
+    (CheckLateTxHashesRound, NO_MAJORITY): FailedRound
+    (CheckLateTxHashesRound, ROUND_TIMEOUT): CheckLateTxHashesRound
     (CheckTransactionHistoryRound, CHECK_LATE_ARRIVING_MESSAGE): SynchronizeLateMessagesRound
     (CheckTransactionHistoryRound, DONE): FinishedTransactionSubmissionRound
     (CheckTransactionHistoryRound, NEGATIVE): SelectKeeperTransactionSubmissionRoundB
@@ -61,7 +68,7 @@ transition_func:
     (SelectKeeperTransactionSubmissionRoundBAfterTimeout, DONE): FinalizationRound
     (SelectKeeperTransactionSubmissionRoundBAfterTimeout, NO_MAJORITY): ResetRound
     (SelectKeeperTransactionSubmissionRoundBAfterTimeout, ROUND_TIMEOUT): ResetRound
-    (SynchronizeLateMessagesRound, DONE): CheckTransactionHistoryRound
+    (SynchronizeLateMessagesRound, DONE): CheckLateTxHashesRound
     (SynchronizeLateMessagesRound, MISSED_AND_LATE_MESSAGES_MISMATCH): FailedRound
     (SynchronizeLateMessagesRound, NONE): FailedRound
     (SynchronizeLateMessagesRound, NO_MAJORITY): SynchronizeLateMessagesRound

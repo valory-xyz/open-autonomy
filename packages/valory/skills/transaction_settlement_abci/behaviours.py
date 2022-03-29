@@ -55,6 +55,7 @@ from packages.valory.skills.transaction_settlement_abci.payloads import (
     ValidatePayload,
 )
 from packages.valory.skills.transaction_settlement_abci.rounds import (
+    CheckLateTxHashesRound,
     CheckTransactionHistoryRound,
     CollectSignatureRound,
     FinalizationRound,
@@ -294,10 +295,13 @@ class ValidateTransactionBehaviour(TransactionSettlementBaseState):
         return verified
 
 
+CHECK_TX_HISTORY = "check_transaction_history"
+
+
 class CheckTransactionHistoryBehaviour(TransactionSettlementBaseState):
     """Check the transaction history."""
 
-    state_id = "check_transaction_history"
+    state_id = CHECK_TX_HISTORY
     matching_round = CheckTransactionHistoryRound
 
     def async_act(self) -> Generator:
@@ -334,7 +338,7 @@ class CheckTransactionHistoryBehaviour(TransactionSettlementBaseState):
         """Check the transaction history."""
         history = (
             self.period_state.tx_hashes_history
-            if self.state_id == "check_transaction_history"
+            if self.state_id == CHECK_TX_HISTORY
             else self.period_state.late_arriving_tx_hashes
         )
 
@@ -379,7 +383,7 @@ class CheckTransactionHistoryBehaviour(TransactionSettlementBaseState):
                 if self._safe_nonce_reused(revert_reason):
                     check_expected_to_be_verified = (
                         "The next tx check"
-                        if self.state_id == "check_transaction_history"
+                        if self.state_id == CHECK_TX_HISTORY
                         else "One of the next tx checks"
                     )
                     self.context.logger.info(
@@ -415,6 +419,15 @@ class CheckTransactionHistoryBehaviour(TransactionSettlementBaseState):
             return None
 
         return cast(str, contract_api_msg.state.body["revert_reason"])
+
+
+class CheckLateTxHashesBehaviour(  # pylint: disable=too-many-ancestors
+    CheckTransactionHistoryBehaviour
+):
+    """Check the late-arriving transaction hashes."""
+
+    state_id = "check_late_tx_hashes"
+    matching_round = CheckLateTxHashesRound
 
 
 class SynchronizeLateMessagesBehaviour(TransactionSettlementBaseState):
@@ -643,5 +656,6 @@ class TransactionSettlementRoundBehaviour(AbstractRoundBehaviour):
         SignatureBehaviour,  # type: ignore
         FinalizeBehaviour,  # type: ignore
         SynchronizeLateMessagesBehaviour,  # type: ignore
+        CheckLateTxHashesBehaviour,  # type: ignore
         ResetBehaviour,  # type: ignore
     }
