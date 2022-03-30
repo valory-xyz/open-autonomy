@@ -22,7 +22,7 @@
 import logging  # noqa: F401
 from collections import deque
 from types import MappingProxyType
-from typing import Deque, Dict, FrozenSet, List, Optional, cast
+from typing import Deque, Dict, FrozenSet, List, Optional, Tuple, Union, cast
 
 import pytest
 
@@ -64,6 +64,7 @@ from packages.valory.skills.transaction_settlement_abci.rounds import (
     ResetRound,
     SelectKeeperTransactionSubmissionRoundA,
     SelectKeeperTransactionSubmissionRoundB,
+    SelectKeeperTransactionSubmissionRoundBAfterFail,
     SelectKeeperTransactionSubmissionRoundBAfterTimeout,
     SynchronizeLateMessagesRound,
     ValidateTransactionRound,
@@ -233,11 +234,23 @@ class TestSelectKeeperTransactionSubmissionRoundBAfterTimeout(
     test_class = SelectKeeperTransactionSubmissionRoundBAfterTimeout
     _period_state_class = TransactionSettlementPeriodState
 
+    def _attr_checks(
+        self, attrs: Dict[str, Union[List[str], int]]
+    ) -> Tuple[bool, bool]:
+        """The attribute checks to assert."""
+        state = cast(TransactionSettlementPeriodState, self.period_state)
+        return (
+            state.missed_messages == cast(int, attrs["missed_messages"]) + 1,
+            state.consecutive_finalizations
+            == cast(int, attrs["consecutive_finalizations"]) + 1,
+        )
+
     @pytest.mark.parametrize(
         "attrs, exit_event",
         (
             (
                 {
+                    "tx_hashes_history": ["test"],
                     "missed_messages": 10,
                     # These are the `consecutive_finalizations` before entering the round.
                     # Therefore, the `consecutive_finalizations` will become 2 after entering the round.
@@ -250,6 +263,13 @@ class TestSelectKeeperTransactionSubmissionRoundBAfterTimeout(
             (
                 {
                     "missed_messages": 10,
+                    "consecutive_finalizations": 1,
+                },
+                TransactionSettlementEvent.CHECK_LATE_ARRIVING_MESSAGE,
+            ),
+            (
+                {
+                    "missed_messages": 10,
                     "consecutive_finalizations": 0,
                 },
                 TransactionSettlementEvent.DONE,
@@ -257,15 +277,33 @@ class TestSelectKeeperTransactionSubmissionRoundBAfterTimeout(
         ),
     )
     def test_run(  # type: ignore
-        self, attrs: Dict[str, int], exit_event: TransactionSettlementEvent
+        self,
+        attrs: Dict[str, Union[List[str], int]],
+        exit_event: TransactionSettlementEvent,
     ) -> None:
         """Test `SelectKeeperTransactionSubmissionRoundBAfterTimeout`."""
         self._exit_event = exit_event
         self.period_state.update(participant_to_selection=dict.fromkeys(self.participants), **attrs)  # type: ignore
         super().test_run()
-        assert all(
-            getattr(self.period_state, attr_name) == attr_value + 1
-            for attr_name, attr_value in attrs.items()
+        assert all(self._attr_checks(attrs))
+
+
+class TestSelectKeeperTransactionSubmissionRoundBAfterFail(
+    TestSelectKeeperTransactionSubmissionRoundBAfterTimeout
+):
+    """Test `SelectKeeperTransactionSubmissionRoundBAfterFail`"""
+
+    test_class = SelectKeeperTransactionSubmissionRoundBAfterFail
+
+    def _attr_checks(
+        self, attrs: Dict[str, Union[List[str], int]]
+    ) -> Tuple[bool, bool]:
+        """The attribute checks to assert."""
+        state = cast(TransactionSettlementPeriodState, self.period_state)
+        return (
+            state.missed_messages == cast(int, attrs["missed_messages"]),
+            state.consecutive_finalizations
+            == cast(int, attrs["consecutive_finalizations"]) + 1,
         )
 
 
