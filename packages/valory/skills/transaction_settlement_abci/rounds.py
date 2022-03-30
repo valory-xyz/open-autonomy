@@ -21,7 +21,7 @@
 import textwrap
 from abc import ABC
 from enum import Enum
-from typing import Dict, List, Mapping, Optional, Set, Tuple, Type, Union, cast
+from typing import Any, Dict, List, Mapping, Optional, Set, Tuple, Type, Union, cast
 
 from packages.valory.skills.abstract_round_abci.base import (
     ABCIAppInternalError,
@@ -309,16 +309,21 @@ class SelectKeeperTransactionSubmissionRoundBAfterTimeout(
 
     round_id = "select_keeper_transaction_submission_b_after_timeout"
 
+    def _get_state_update_params(self) -> Dict[str, Any]:
+        """Get the state's update parameters."""
+        state = cast(PeriodState, self.period_state)
+
+        return dict(
+            missed_messages=state.missed_messages + 1,
+            consecutive_finalizations=state.consecutive_finalizations + 1,
+        )
+
     def end_block(self) -> Optional[Tuple[BasePeriodState, Enum]]:
         """Process the end of the block."""
         if self.threshold_reached:
-            state = cast(PeriodState, self.period_state)
             state = cast(
                 PeriodState,
-                self.period_state.update(
-                    missed_messages=state.missed_messages + 1,
-                    consecutive_finalizations=state.consecutive_finalizations + 1,
-                ),
+                self.period_state.update(**self._get_state_update_params()),
             )
             if state.finalizations_threshold_exceeded:
                 return state, Event.CHECK_HISTORY
