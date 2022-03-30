@@ -40,6 +40,7 @@ states:
 - SelectKeeperSafeRound
 - SelectKeeperTransactionSubmissionRoundA
 - SelectKeeperTransactionSubmissionRoundB
+- SelectKeeperTransactionSubmissionRoundBAfterFail
 - SelectKeeperTransactionSubmissionRoundBAfterTimeout
 - SynchronizeLateMessagesRound
 - TxHashRound
@@ -77,7 +78,7 @@ transition_func:
     (FinalizationRound, CHECK_HISTORY): CheckTransactionHistoryRound
     (FinalizationRound, CHECK_LATE_ARRIVING_MESSAGE): SynchronizeLateMessagesRound
     (FinalizationRound, DONE): ValidateTransactionRound
-    (FinalizationRound, FINALIZATION_FAILED): SelectKeeperTransactionSubmissionRoundB
+    (FinalizationRound, FINALIZATION_FAILED): SelectKeeperTransactionSubmissionRoundBAfterFail
     (FinalizationRound, ROUND_TIMEOUT): SelectKeeperTransactionSubmissionRoundBAfterTimeout
     (RandomnessOracleRound, DONE): SelectKeeperOracleRound
     (RandomnessOracleRound, NO_MAJORITY): RandomnessOracleRound
@@ -109,7 +110,13 @@ transition_func:
     (SelectKeeperTransactionSubmissionRoundB, DONE): FinalizationRound
     (SelectKeeperTransactionSubmissionRoundB, NO_MAJORITY): ResetRound
     (SelectKeeperTransactionSubmissionRoundB, ROUND_TIMEOUT): ResetRound
+    (SelectKeeperTransactionSubmissionRoundBAfterFail, CHECK_HISTORY): CheckTransactionHistoryRound
+    (SelectKeeperTransactionSubmissionRoundBAfterFail, CHECK_LATE_ARRIVING_MESSAGE): SynchronizeLateMessagesRound
+    (SelectKeeperTransactionSubmissionRoundBAfterFail, DONE): FinalizationRound
+    (SelectKeeperTransactionSubmissionRoundBAfterFail, NO_MAJORITY): ResetRound
+    (SelectKeeperTransactionSubmissionRoundBAfterFail, ROUND_TIMEOUT): ResetRound
     (SelectKeeperTransactionSubmissionRoundBAfterTimeout, CHECK_HISTORY): CheckTransactionHistoryRound
+    (SelectKeeperTransactionSubmissionRoundBAfterTimeout, CHECK_LATE_ARRIVING_MESSAGE): SynchronizeLateMessagesRound
     (SelectKeeperTransactionSubmissionRoundBAfterTimeout, DONE): FinalizationRound
     (SelectKeeperTransactionSubmissionRoundBAfterTimeout, NO_MAJORITY): ResetRound
     (SelectKeeperTransactionSubmissionRoundBAfterTimeout, ROUND_TIMEOUT): ResetRound

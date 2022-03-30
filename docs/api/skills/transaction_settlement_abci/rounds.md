@@ -247,7 +247,7 @@ class SelectKeeperTransactionSubmissionRoundBAfterTimeout(
     SelectKeeperTransactionSubmissionRoundB)
 ```
 
-A round in which a new keeper is selected for transaction submission after a round timeout of the first keeper
+A round in which a new keeper is selected for tx submission after a round timeout of the previous keeper
 
 <a id="packages.valory.skills.transaction_settlement_abci.rounds.SelectKeeperTransactionSubmissionRoundBAfterTimeout.end_block"></a>
 
@@ -258,6 +258,17 @@ def end_block() -> Optional[Tuple[BasePeriodState, Enum]]
 ```
 
 Process the end of the block.
+
+<a id="packages.valory.skills.transaction_settlement_abci.rounds.SelectKeeperTransactionSubmissionRoundBAfterFail"></a>
+
+## SelectKeeperTransactionSubmissionRoundBAfterFail Objects
+
+```python
+class SelectKeeperTransactionSubmissionRoundBAfterFail(
+    SelectKeeperTransactionSubmissionRoundBAfterTimeout)
+```
+
+A round in which a new keeper is selected for tx submission after a failure of the previous keeper
 
 <a id="packages.valory.skills.transaction_settlement_abci.rounds.ValidateTransactionRound"></a>
 
@@ -376,63 +387,70 @@ Initial states: {RandomnessTransactionSubmissionRound}
 Transition states:
     0. RandomnessTransactionSubmissionRound
         - done: 1.
-        - round timeout: 10.
+        - round timeout: 11.
         - no majority: 0.
     1. SelectKeeperTransactionSubmissionRoundA
         - done: 2.
-        - round timeout: 10.
-        - no majority: 10.
+        - round timeout: 11.
+        - no majority: 11.
     2. CollectSignatureRound
         - done: 3.
-        - round timeout: 10.
-        - no majority: 10.
+        - round timeout: 11.
+        - no majority: 11.
     3. FinalizationRound
         - done: 4.
         - check history: 5.
         - round timeout: 7.
-        - finalization failed: 6.
-        - check late arriving message: 8.
+        - finalization failed: 8.
+        - check late arriving message: 9.
     4. ValidateTransactionRound
-        - done: 11.
+        - done: 12.
         - negative: 5.
         - none: 3.
         - validate timeout: 3.
         - no majority: 4.
     5. CheckTransactionHistoryRound
-        - done: 11.
+        - done: 12.
         - negative: 6.
-        - none: 12.
+        - none: 13.
         - check timeout: 5.
         - no majority: 5.
-        - check late arriving message: 8.
+        - check late arriving message: 9.
     6. SelectKeeperTransactionSubmissionRoundB
         - done: 3.
-        - round timeout: 10.
-        - no majority: 10.
+        - round timeout: 11.
+        - no majority: 11.
     7. SelectKeeperTransactionSubmissionRoundBAfterTimeout
         - done: 3.
         - check history: 5.
-        - round timeout: 10.
-        - no majority: 10.
-    8. SynchronizeLateMessagesRound
-        - done: 9.
-        - round timeout: 8.
-        - no majority: 8.
-        - none: 12.
-        - missed and late messages mismatch: 12.
-    9. CheckLateTxHashesRound
-        - done: 11.
-        - negative: 12.
-        - none: 12.
-        - check timeout: 9.
-        - no majority: 12.
-        - check late arriving message: 8.
-    10. ResetRound
+        - check late arriving message: 9.
+        - round timeout: 11.
+        - no majority: 11.
+    8. SelectKeeperTransactionSubmissionRoundBAfterFail
+        - done: 3.
+        - check history: 5.
+        - check late arriving message: 9.
+        - round timeout: 11.
+        - no majority: 11.
+    9. SynchronizeLateMessagesRound
+        - done: 10.
+        - round timeout: 9.
+        - no majority: 9.
+        - none: 13.
+        - missed and late messages mismatch: 13.
+    10. CheckLateTxHashesRound
+        - done: 12.
+        - negative: 13.
+        - none: 13.
+        - check timeout: 10.
+        - no majority: 13.
+        - check late arriving message: 9.
+    11. ResetRound
         - done: 0.
-        - reset timeout: 12.
-        - no majority: 12.
-    11. FinishedTransactionSubmissionRound
-    12. FailedRound
+        - reset timeout: 13.
+        - no majority: 13.
+    12. FinishedTransactionSubmissionRound
+    13. FailedRound
 
 Final states: {FailedRound, FinishedTransactionSubmissionRound}
 

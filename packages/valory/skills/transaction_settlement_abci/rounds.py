@@ -21,7 +21,7 @@
 import textwrap
 from abc import ABC
 from enum import Enum
-from typing import Dict, List, Mapping, Optional, Set, Tuple, Type, Union, cast
+from typing import Any, Dict, List, Mapping, Optional, Set, Tuple, Type, Union, cast
 
 from packages.valory.skills.abstract_round_abci.base import (
     ABCIAppInternalError,
@@ -305,24 +305,49 @@ class SelectKeeperTransactionSubmissionRoundB(CollectSameUntilThresholdRound):
 class SelectKeeperTransactionSubmissionRoundBAfterTimeout(
     SelectKeeperTransactionSubmissionRoundB
 ):
-    """A round in which a new keeper is selected for transaction submission after a round timeout of the first keeper"""
+    """A round in which a new keeper is selected for tx submission after a round timeout of the previous keeper"""
 
     round_id = "select_keeper_transaction_submission_b_after_timeout"
+
+    def _get_state_update_params(self) -> Dict[str, Any]:
+        """Get the state's update parameters."""
+        state = cast(PeriodState, self.period_state)
+
+        return dict(
+            missed_messages=state.missed_messages + 1,
+            consecutive_finalizations=state.consecutive_finalizations + 1,
+        )
 
     def end_block(self) -> Optional[Tuple[BasePeriodState, Enum]]:
         """Process the end of the block."""
         if self.threshold_reached:
-            state = cast(PeriodState, self.period_state)
             state = cast(
                 PeriodState,
-                self.period_state.update(
-                    missed_messages=state.missed_messages + 1,
-                    consecutive_finalizations=state.consecutive_finalizations + 1,
-                ),
+                self.period_state.update(**self._get_state_update_params()),
             )
             if state.finalizations_threshold_exceeded:
-                return state, Event.CHECK_HISTORY
+                # we only stop re-selection if there are any previous transaction hashes or any missed messages.
+                if len(state.tx_hashes_history) > 0:
+                    return state, Event.CHECK_HISTORY
+                if state.should_check_late_messages:
+                    return state, Event.CHECK_LATE_ARRIVING_MESSAGE
         return super().end_block()
+
+
+class SelectKeeperTransactionSubmissionRoundBAfterFail(
+    SelectKeeperTransactionSubmissionRoundBAfterTimeout
+):
+    """A round in which a new keeper is selected for tx submission after a failure of the previous keeper"""
+
+    round_id = "select_keeper_transaction_submission_b_after_fail"
+
+    def _get_state_update_params(self) -> Dict[str, Any]:
+        """Get the state's update parameters."""
+        state = cast(PeriodState, self.period_state)
+
+        return dict(
+            consecutive_finalizations=state.consecutive_finalizations + 1,
+        )
 
 
 class ValidateTransactionRound(VotingRound):
@@ -491,63 +516,70 @@ class TransactionSubmissionAbciApp(AbciApp[Event]):
     Transition states:
         0. RandomnessTransactionSubmissionRound
             - done: 1.
-            - round timeout: 10.
+            - round timeout: 11.
             - no majority: 0.
         1. SelectKeeperTransactionSubmissionRoundA
             - done: 2.
-            - round timeout: 10.
-            - no majority: 10.
+            - round timeout: 11.
+            - no majority: 11.
         2. CollectSignatureRound
             - done: 3.
-            - round timeout: 10.
-            - no majority: 10.
+            - round timeout: 11.
+            - no majority: 11.
         3. FinalizationRound
             - done: 4.
             - check history: 5.
             - round timeout: 7.
-            - finalization failed: 6.
-            - check late arriving message: 8.
+            - finalization failed: 8.
+            - check late arriving message: 9.
         4. ValidateTransactionRound
-            - done: 11.
+            - done: 12.
             - negative: 5.
             - none: 3.
             - validate timeout: 3.
             - no majority: 4.
         5. CheckTransactionHistoryRound
-            - done: 11.
+            - done: 12.
             - negative: 6.
-            - none: 12.
+            - none: 13.
             - check timeout: 5.
             - no majority: 5.
-            - check late arriving message: 8.
+            - check late arriving message: 9.
         6. SelectKeeperTransactionSubmissionRoundB
             - done: 3.
-            - round timeout: 10.
-            - no majority: 10.
+            - round timeout: 11.
+            - no majority: 11.
         7. SelectKeeperTransactionSubmissionRoundBAfterTimeout
             - done: 3.
             - check history: 5.
-            - round timeout: 10.
-            - no majority: 10.
-        8. SynchronizeLateMessagesRound
-            - done: 9.
-            - round timeout: 8.
-            - no majority: 8.
-            - none: 12.
-            - missed and late messages mismatch: 12.
-        9. CheckLateTxHashesRound
-            - done: 11.
-            - negative: 12.
-            - none: 12.
-            - check timeout: 9.
-            - no majority: 12.
-            - check late arriving message: 8.
-        10. ResetRound
+            - check late arriving message: 9.
+            - round timeout: 11.
+            - no majority: 11.
+        8. SelectKeeperTransactionSubmissionRoundBAfterFail
+            - done: 3.
+            - check history: 5.
+            - check late arriving message: 9.
+            - round timeout: 11.
+            - no majority: 11.
+        9. SynchronizeLateMessagesRound
+            - done: 10.
+            - round timeout: 9.
+            - no majority: 9.
+            - none: 13.
+            - missed and late messages mismatch: 13.
+        10. CheckLateTxHashesRound
+            - done: 12.
+            - negative: 13.
+            - none: 13.
+            - check timeout: 10.
+            - no majority: 13.
+            - check late arriving message: 9.
+        11. ResetRound
             - done: 0.
-            - reset timeout: 12.
-            - no majority: 12.
-        11. FinishedTransactionSubmissionRound
-        12. FailedRound
+            - reset timeout: 13.
+            - no majority: 13.
+        12. FinishedTransactionSubmissionRound
+        13. FailedRound
 
     Final states: {FailedRound, FinishedTransactionSubmissionRound}
 
@@ -579,7 +611,7 @@ class TransactionSubmissionAbciApp(AbciApp[Event]):
             Event.DONE: ValidateTransactionRound,
             Event.CHECK_HISTORY: CheckTransactionHistoryRound,
             Event.ROUND_TIMEOUT: SelectKeeperTransactionSubmissionRoundBAfterTimeout,
-            Event.FINALIZATION_FAILED: SelectKeeperTransactionSubmissionRoundB,
+            Event.FINALIZATION_FAILED: SelectKeeperTransactionSubmissionRoundBAfterFail,
             Event.CHECK_LATE_ARRIVING_MESSAGE: SynchronizeLateMessagesRound,
         },
         ValidateTransactionRound: {
@@ -605,6 +637,14 @@ class TransactionSubmissionAbciApp(AbciApp[Event]):
         SelectKeeperTransactionSubmissionRoundBAfterTimeout: {
             Event.DONE: FinalizationRound,
             Event.CHECK_HISTORY: CheckTransactionHistoryRound,
+            Event.CHECK_LATE_ARRIVING_MESSAGE: SynchronizeLateMessagesRound,
+            Event.ROUND_TIMEOUT: ResetRound,
+            Event.NO_MAJORITY: ResetRound,
+        },
+        SelectKeeperTransactionSubmissionRoundBAfterFail: {
+            Event.DONE: FinalizationRound,
+            Event.CHECK_HISTORY: CheckTransactionHistoryRound,
+            Event.CHECK_LATE_ARRIVING_MESSAGE: SynchronizeLateMessagesRound,
             Event.ROUND_TIMEOUT: ResetRound,
             Event.NO_MAJORITY: ResetRound,
         },
