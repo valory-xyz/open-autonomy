@@ -59,6 +59,7 @@ from packages.valory.skills.transaction_settlement_abci.rounds import (
     CheckTransactionHistoryRound,
     CollectSignatureRound,
     FinalizationRound,
+    FinalizationRoundAfterTimeout,
     PeriodState,
     RandomnessTransactionSubmissionRound,
     ResetRound,
@@ -522,6 +523,10 @@ class FinalizeBehaviour(TransactionSettlementBaseState):
     state_id = "finalize"
     matching_round = FinalizationRound
 
+    def _i_am_not_sending(self) -> bool:
+        """Indicates if the current agent is the sender or not."""
+        return self.context.agent_address != self.period_state.most_voted_keeper_address
+
     def async_act(self) -> Generator[None, None, None]:
         """
         Do the action.
@@ -531,8 +536,7 @@ class FinalizeBehaviour(TransactionSettlementBaseState):
         - Otherwise, wait until the next round.
         - If a timeout is hit, set exit A event, otherwise set done event.
         """
-
-        if self.context.agent_address != self.period_state.most_voted_keeper_address:
+        if self._i_am_not_sending():
             yield from self._not_sender_act()
         else:
             yield from self._sender_act()
@@ -621,6 +625,19 @@ class FinalizeBehaviour(TransactionSettlementBaseState):
             super().handle_late_messages(message)
 
 
+class FinalizeBehaviourAfterTimeout(  # pylint: disable=too-many-ancestors
+    FinalizeBehaviour
+):
+    """Select the keeper b agent after a timeout."""
+
+    state_id = "finalize_after_timeout"
+    matching_round = FinalizationRoundAfterTimeout
+
+    def _i_am_not_sending(self) -> bool:
+        """Indicates if the current agent is the sender or not."""
+        return self.context.agent_address != self.period_state.keeper_in_priority
+
+
 class ResetBehaviour(TransactionSettlementBaseState):
     """Reset state."""
 
@@ -655,6 +672,7 @@ class TransactionSettlementRoundBehaviour(AbstractRoundBehaviour):
         CheckTransactionHistoryBehaviour,  # type: ignore
         SignatureBehaviour,  # type: ignore
         FinalizeBehaviour,  # type: ignore
+        FinalizeBehaviourAfterTimeout,  # type: ignore
         SynchronizeLateMessagesBehaviour,  # type: ignore
         CheckLateTxHashesBehaviour,  # type: ignore
         ResetBehaviour,  # type: ignore

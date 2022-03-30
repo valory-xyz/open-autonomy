@@ -20,8 +20,21 @@
 """This module contains the data classes for the `transaction settlement` ABCI application."""
 import textwrap
 from abc import ABC
+from collections import deque
 from enum import Enum
-from typing import Any, Dict, List, Mapping, Optional, Set, Tuple, Type, Union, cast
+from typing import (
+    Any,
+    Deque,
+    Dict,
+    List,
+    Mapping,
+    Optional,
+    Set,
+    Tuple,
+    Type,
+    Union,
+    cast,
+)
 
 from packages.valory.skills.abstract_round_abci.base import (
     ABCIAppInternalError,
@@ -94,6 +107,16 @@ class PeriodState(BasePeriodState):  # pylint: disable=too-many-instance-attribu
     def tx_hashes_history(self) -> List[str]:
         """Get the current cycle's tx hashes history, which has not yet been verified."""
         return cast(List[str], self.db.get("tx_hashes_history", []))
+
+    @property
+    def keepers(self) -> Deque[str]:
+        """Get the current cycle's keepers who have tried to submit a transaction."""
+        return cast(deque, self.db.get("keepers", deque()))
+
+    @property
+    def keeper_in_priority(self) -> str:
+        """Get the first in priority keeper to try to re-submit a transaction."""
+        return self.keepers[0]
 
     @property
     def to_be_validated_tx_hash(self) -> str:
@@ -200,8 +223,35 @@ class FinalizationRound(OnlyKeeperSendsRound):
     allowed_tx_type = FinalizationTxPayload.transaction_type
     payload_attribute = "tx_data"
 
+    def _get_updated_keepers(self) -> Deque[str]:
+        """
+        Get the keepers list updated, by adding the current keeper to it.
+
+        This method is responsible to update the queue that we want to store
+        with the keepers who have successfully finalized, in order to reuse them if the validation times out.
+        Therefore, if the current keeper has not finalized before, the condition will be True,
+        and the keeper will be appended to the returned queue.
+
+        :return: the re-prioritized keepers.
+        """
+        keepers = cast(PeriodState, self.period_state).keepers
+        if self.period_state.most_voted_keeper_address not in keepers:
+            keepers.append(self.period_state.most_voted_keeper_address)
+
+        return keepers
+
+    def _get_reprioritized_keepers(self) -> Deque[str]:
+        """
+        Base method to re-prioritize keepers.
+
+        We do not need to re-prioritize for this round.
+
+        :return: the re-prioritized keepers.
+        """
+        return cast(PeriodState, self.period_state).keepers
+
     def _get_updated_hashes(self) -> List[str]:
-        """Update the tx hashes history."""
+        """Get the tx hashes history updated."""
         hashes = cast(PeriodState, self.period_state).tx_hashes_history
         tx_digest = cast(
             str,
@@ -238,7 +288,11 @@ class FinalizationRound(OnlyKeeperSendsRound):
             return None
 
         if self.keeper_payload is None:  # pragma: no cover
-            return self.period_state, Event.FINALIZATION_FAILED
+            state = self.period_state.update(
+                period_state_class=PeriodState,
+                keepers=self._get_reprioritized_keepers(),
+            )
+            return state, Event.FINALIZATION_FAILED
 
         # check if the tx digest is not empty, thus we succeeded in finalization.
         # the tx digest will be empty if we receive an error in any of the following cases:
@@ -249,6 +303,7 @@ class FinalizationRound(OnlyKeeperSendsRound):
             state = self.period_state.update(
                 period_state_class=PeriodState,
                 tx_hashes_history=self._get_updated_hashes(),
+                keepers=self._get_updated_keepers(),
                 final_verification_status=VerificationStatus(
                     self.keeper_payload["status"]
                 ),
@@ -259,8 +314,43 @@ class FinalizationRound(OnlyKeeperSendsRound):
         state = self.period_state.update(
             period_state_class=PeriodState,
             final_verification_status=VerificationStatus(self.keeper_payload["status"]),
+            keepers=self._get_reprioritized_keepers(),
         )
         return state, self._get_check_or_fail_event()
+
+
+class FinalizationRoundAfterTimeout(FinalizationRound):
+    """A round in which finalization is performed after a `VALIDATE_TIMEOUT`."""
+
+    round_id = "finalization_after_timeout"
+
+    def _get_updated_keepers(self) -> Deque[str]:
+        """
+        Get the keepers list updated.
+
+        If the validation has timed out, we do not want to update the list again,
+        until we manage to settle. Instead, we always want to re-prioritize the keepers after someone tries to finalize,
+        so that we constantly try to replace one of the pending transactions.
+
+        :return: the re-prioritized keepers.
+        """
+        return self._get_reprioritized_keepers()
+
+    def _get_reprioritized_keepers(self) -> Deque[str]:
+        """
+        Update the keepers list to give priority to the next keeper and set the current to last.
+
+        We do this in order to make sure that:
+            1. We do not get stuck retrying with the same keeper all the time.
+            2. We cycle through all the keepers to try to resubmit.
+
+        :return: the re-prioritized keepers.
+        """
+        keepers = cast(PeriodState, self.period_state).keepers
+        current_keeper = keepers.popleft()
+        keepers.append(current_keeper)
+
+        return keepers
 
 
 class RandomnessTransactionSubmissionRound(CollectSameUntilThresholdRound):
@@ -377,6 +467,7 @@ class ValidateTransactionRound(VotingRound):
                 final_tx_hash=cast(PeriodState, self.period_state).tx_hashes_history[
                     -1
                 ],
+                keepers=deque(),
             )  # type: ignore
             return state, self.done_event
         if self.negative_vote_threshold_reached:
@@ -418,6 +509,7 @@ class CheckTransactionHistoryRound(CollectSameUntilThresholdRound):
                     participant_to_check=self.collection,
                     final_verification_status=return_status,
                     final_tx_hash=return_tx_hash,
+                    keepers=deque(),
                 )
 
             if return_status == VerificationStatus.VERIFIED:
@@ -516,70 +608,76 @@ class TransactionSubmissionAbciApp(AbciApp[Event]):
     Transition states:
         0. RandomnessTransactionSubmissionRound
             - done: 1.
-            - round timeout: 11.
+            - round timeout: 12.
             - no majority: 0.
         1. SelectKeeperTransactionSubmissionRoundA
             - done: 2.
-            - round timeout: 11.
-            - no majority: 11.
+            - round timeout: 12.
+            - no majority: 12.
         2. CollectSignatureRound
             - done: 3.
-            - round timeout: 11.
-            - no majority: 11.
+            - round timeout: 12.
+            - no majority: 12.
         3. FinalizationRound
             - done: 4.
-            - check history: 5.
-            - round timeout: 7.
-            - finalization failed: 8.
-            - check late arriving message: 9.
+            - check history: 6.
+            - round timeout: 8.
+            - finalization failed: 9.
+            - check late arriving message: 10.
         4. ValidateTransactionRound
-            - done: 12.
-            - negative: 5.
-            - none: 3.
-            - validate timeout: 3.
-            - no majority: 4.
-        5. CheckTransactionHistoryRound
-            - done: 12.
+            - done: 13.
             - negative: 6.
-            - none: 13.
-            - check timeout: 5.
-            - no majority: 5.
-            - check late arriving message: 9.
-        6. SelectKeeperTransactionSubmissionRoundB
+            - none: 3.
+            - validate timeout: 5.
+            - no majority: 4.
+        5. FinalizationRoundAfterTimeout
+            - done: 4.
+            - check history: 6.
+            - round timeout: 8.
+            - finalization failed: 7.
+            - check late arriving message: 10.
+        6. CheckTransactionHistoryRound
+            - done: 13.
+            - negative: 7.
+            - none: 14.
+            - check timeout: 6.
+            - no majority: 6.
+            - check late arriving message: 10.
+        7. SelectKeeperTransactionSubmissionRoundB
             - done: 3.
-            - round timeout: 11.
-            - no majority: 11.
-        7. SelectKeeperTransactionSubmissionRoundBAfterTimeout
+            - round timeout: 12.
+            - no majority: 12.
+        8. SelectKeeperTransactionSubmissionRoundBAfterTimeout
             - done: 3.
-            - check history: 5.
-            - check late arriving message: 9.
-            - round timeout: 11.
-            - no majority: 11.
-        8. SelectKeeperTransactionSubmissionRoundBAfterFail
+            - check history: 6.
+            - check late arriving message: 10.
+            - round timeout: 12.
+            - no majority: 12.
+        9. SelectKeeperTransactionSubmissionRoundBAfterFail
             - done: 3.
-            - check history: 5.
-            - check late arriving message: 9.
-            - round timeout: 11.
-            - no majority: 11.
-        9. SynchronizeLateMessagesRound
-            - done: 10.
-            - round timeout: 9.
-            - no majority: 9.
-            - none: 13.
-            - missed and late messages mismatch: 13.
-        10. CheckLateTxHashesRound
-            - done: 12.
-            - negative: 13.
-            - none: 13.
-            - check timeout: 10.
-            - no majority: 13.
-            - check late arriving message: 9.
-        11. ResetRound
+            - check history: 6.
+            - check late arriving message: 10.
+            - round timeout: 12.
+            - no majority: 12.
+        10. SynchronizeLateMessagesRound
+            - done: 11.
+            - round timeout: 10.
+            - no majority: 10.
+            - none: 14.
+            - missed and late messages mismatch: 14.
+        11. CheckLateTxHashesRound
+            - done: 13.
+            - negative: 14.
+            - none: 14.
+            - check timeout: 11.
+            - no majority: 14.
+            - check late arriving message: 10.
+        12. ResetRound
             - done: 0.
-            - reset timeout: 13.
-            - no majority: 13.
-        12. FinishedTransactionSubmissionRound
-        13. FailedRound
+            - reset timeout: 14.
+            - no majority: 14.
+        13. FinishedTransactionSubmissionRound
+        14. FailedRound
 
     Final states: {FailedRound, FinishedTransactionSubmissionRound}
 
@@ -618,8 +716,15 @@ class TransactionSubmissionAbciApp(AbciApp[Event]):
             Event.DONE: FinishedTransactionSubmissionRound,
             Event.NEGATIVE: CheckTransactionHistoryRound,
             Event.NONE: FinalizationRound,
-            Event.VALIDATE_TIMEOUT: FinalizationRound,
+            Event.VALIDATE_TIMEOUT: FinalizationRoundAfterTimeout,
             Event.NO_MAJORITY: ValidateTransactionRound,
+        },
+        FinalizationRoundAfterTimeout: {
+            Event.DONE: ValidateTransactionRound,
+            Event.CHECK_HISTORY: CheckTransactionHistoryRound,
+            Event.ROUND_TIMEOUT: SelectKeeperTransactionSubmissionRoundBAfterTimeout,
+            Event.FINALIZATION_FAILED: SelectKeeperTransactionSubmissionRoundB,
+            Event.CHECK_LATE_ARRIVING_MESSAGE: SynchronizeLateMessagesRound,
         },
         CheckTransactionHistoryRound: {
             Event.DONE: FinishedTransactionSubmissionRound,
