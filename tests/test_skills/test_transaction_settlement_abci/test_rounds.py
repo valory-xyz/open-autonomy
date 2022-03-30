@@ -261,7 +261,7 @@ class TestSelectKeeperTransactionSubmissionRoundBAfterTimeout(
     ) -> None:
         """Test `SelectKeeperTransactionSubmissionRoundBAfterTimeout`."""
         self._exit_event = exit_event
-        self.period_state.update(**attrs)  # type: ignore
+        self.period_state.update(participant_to_selection=dict.fromkeys(self.participants), **attrs)  # type: ignore
         super().test_run()
         assert all(
             getattr(self.period_state, attr_name) == attr_value + 1
@@ -527,6 +527,7 @@ class TestCheckTransactionHistoryRound(BaseCollectSameUntilThresholdRoundTest):
                     final_verification_status=VerificationStatus(int(expected_status)),
                     tx_hashes_history=[expected_tx_hash],
                     keepers=keepers,
+                    final_tx_hash="0xb0e6add595e00477cf347d09797b156719dc5233283ac76e4efce2a674fe72d9",
                 ),
                 state_attr_checks=[
                     lambda state: state.final_verification_status,
