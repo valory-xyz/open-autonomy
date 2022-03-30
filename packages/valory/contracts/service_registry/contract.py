@@ -20,14 +20,13 @@
 """This module contains the class to connect to the Service Registry contract."""
 
 import logging
-from typing import List
+from typing import Optional
 
+from aea.common import JSONLike
 from aea.configurations.base import PublicId
 from aea.contracts.base import Contract
-from aea_ledger_ethereum import EthereumApi
+from aea_ledger_ethereum import LedgerApi
 
-import functools
-import json
 
 PUBLIC_ID = PublicId.from_str("valory/service_registry:0.1.0")
 
@@ -42,12 +41,12 @@ class ServiceRegistryContract(Contract):
     contract_id = PUBLIC_ID
 
     @classmethod
-    def get_agent_addresses(
+    def get_service_info(
         cls,
-        ledger_api: EthereumApi,
+        ledger_api: LedgerApi,
         contract_address: str,
         service_id: int,
-    ) -> List[str]:
+    ) -> Optional[JSONLike]:
         """Retrieve on-chain service information"""
 
         contract_instance = cls.get_instance(ledger_api, contract_address)
@@ -57,4 +56,4 @@ class ServiceRegistryContract(Contract):
             method_name="getServiceInfo",
             serviceId=service_id,
         )
-        return service_info[9]
+        return service_info
