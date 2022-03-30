@@ -334,6 +334,22 @@ class SelectKeeperTransactionSubmissionRoundBAfterTimeout(
         return super().end_block()
 
 
+class SelectKeeperTransactionSubmissionRoundBAfterFail(
+    SelectKeeperTransactionSubmissionRoundBAfterTimeout
+):
+    """A round in which a new keeper is selected for tx submission after a failure of the previous keeper"""
+
+    round_id = "select_keeper_transaction_submission_b_after_fail"
+
+    def _get_state_update_params(self) -> Dict[str, Any]:
+        """Get the state's update parameters."""
+        state = cast(PeriodState, self.period_state)
+
+        return dict(
+            consecutive_finalizations=state.consecutive_finalizations + 1,
+        )
+
+
 class ValidateTransactionRound(VotingRound):
     """A round in which agents validate the transaction"""
 
@@ -588,7 +604,7 @@ class TransactionSubmissionAbciApp(AbciApp[Event]):
             Event.DONE: ValidateTransactionRound,
             Event.CHECK_HISTORY: CheckTransactionHistoryRound,
             Event.ROUND_TIMEOUT: SelectKeeperTransactionSubmissionRoundBAfterTimeout,
-            Event.FINALIZATION_FAILED: SelectKeeperTransactionSubmissionRoundB,
+            Event.FINALIZATION_FAILED: SelectKeeperTransactionSubmissionRoundBAfterFail,
             Event.CHECK_LATE_ARRIVING_MESSAGE: SynchronizeLateMessagesRound,
         },
         ValidateTransactionRound: {
@@ -612,6 +628,13 @@ class TransactionSubmissionAbciApp(AbciApp[Event]):
             Event.NO_MAJORITY: ResetRound,
         },
         SelectKeeperTransactionSubmissionRoundBAfterTimeout: {
+            Event.DONE: FinalizationRound,
+            Event.CHECK_HISTORY: CheckTransactionHistoryRound,
+            Event.CHECK_LATE_ARRIVING_MESSAGE: SynchronizeLateMessagesRound,
+            Event.ROUND_TIMEOUT: ResetRound,
+            Event.NO_MAJORITY: ResetRound,
+        },
+        SelectKeeperTransactionSubmissionRoundBAfterFail: {
             Event.DONE: FinalizationRound,
             Event.CHECK_HISTORY: CheckTransactionHistoryRound,
             Event.CHECK_LATE_ARRIVING_MESSAGE: SynchronizeLateMessagesRound,
