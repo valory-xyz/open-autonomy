@@ -212,7 +212,16 @@ class FinalizationRound(OnlyKeeperSendsRound):
     payload_attribute = "tx_data"
 
     def _get_updated_keepers(self) -> Deque[str]:
-        """Get the keepers list updated, by adding the current keeper to it."""
+        """
+        Get the keepers list updated, by adding the current keeper to it.
+
+        This method is responsible to update the queue that we want to store
+        with the keepers who have successfully finalized, in order to reuse them if the validation times out.
+        Therefore, if the current keeper has not finalized before, the condition will be True,
+        and the keeper will be appended to the returned queue.
+
+        :return: the re-prioritized keepers.
+        """
         keepers = cast(PeriodState, self.period_state).keepers
         if self.period_state.most_voted_keeper_address not in keepers:
             keepers.append(self.period_state.most_voted_keeper_address)
