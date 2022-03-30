@@ -326,7 +326,11 @@ class SelectKeeperTransactionSubmissionRoundBAfterTimeout(
                 self.period_state.update(**self._get_state_update_params()),
             )
             if state.finalizations_threshold_exceeded:
-                return state, Event.CHECK_HISTORY
+                # we only stop re-selection if there are any previous transaction hashes or any missed messages.
+                if len(state.tx_hashes_history) > 0:
+                    return state, Event.CHECK_HISTORY
+                if state.should_check_late_messages:
+                    return state, Event.CHECK_LATE_ARRIVING_MESSAGE
         return super().end_block()
 
 
@@ -610,6 +614,7 @@ class TransactionSubmissionAbciApp(AbciApp[Event]):
         SelectKeeperTransactionSubmissionRoundBAfterTimeout: {
             Event.DONE: FinalizationRound,
             Event.CHECK_HISTORY: CheckTransactionHistoryRound,
+            Event.CHECK_LATE_ARRIVING_MESSAGE: SynchronizeLateMessagesRound,
             Event.ROUND_TIMEOUT: ResetRound,
             Event.NO_MAJORITY: ResetRound,
         },
