@@ -305,7 +305,7 @@ class SelectKeeperTransactionSubmissionRoundB(CollectSameUntilThresholdRound):
 class SelectKeeperTransactionSubmissionRoundBAfterTimeout(
     SelectKeeperTransactionSubmissionRoundB
 ):
-    """A round in which a new keeper is selected for transaction submission after a round timeout of the first keeper"""
+    """A round in which a new keeper is selected for tx submission after a round timeout of the previous keeper"""
 
     round_id = "select_keeper_transaction_submission_b_after_timeout"
 
