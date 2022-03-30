@@ -304,7 +304,15 @@ class FinalizationRoundAfterTimeout(FinalizationRound):
     round_id = "finalization_after_timeout"
 
     def _get_updated_keepers(self) -> Deque[str]:
-        """Get the keepers list updated."""
+        """
+        Get the keepers list updated.
+
+        If the validation has timed out, we do not want to update the list again,
+        until we manage to settle. Instead, we always want to re-prioritize the keepers after someone tries to finalize,
+        so that we constantly try to replace one of the pending transactions.
+
+        :return: the re-prioritized keepers.
+        """
         return self._get_reprioritized_keepers()
 
     def _get_reprioritized_keepers(self) -> Deque[str]:
