@@ -20,6 +20,7 @@
 """Tests for valory/registration_abci skill's behaviours."""
 
 import time
+from collections import deque
 from pathlib import Path
 from typing import Any, Dict, Generator, List, Optional, Tuple, Type, Union, cast
 from unittest import mock
@@ -52,6 +53,7 @@ from packages.valory.skills.transaction_settlement_abci.behaviours import (
     CheckLateTxHashesBehaviour,
     CheckTransactionHistoryBehaviour,
     FinalizeBehaviour,
+    FinalizeBehaviourAfterTimeout,
     RandomnessTransactionSubmissionBehaviour,
     ResetBehaviour,
     SelectKeeperTransactionSubmissionBehaviourA,
@@ -333,6 +335,8 @@ class TestSignatureBehaviour(TransactionSettlementFSMBehaviourBaseCase):
 class TestFinalizeBehaviour(TransactionSettlementFSMBehaviourBaseCase):
     """Test FinalizeBehaviour."""
 
+    behaviour_class = FinalizeBehaviour
+
     def test_non_sender_act(
         self,
     ) -> None:
@@ -340,14 +344,14 @@ class TestFinalizeBehaviour(TransactionSettlementFSMBehaviourBaseCase):
         participants = frozenset({self.skill.skill_context.agent_address, "a_1", "a_2"})
         self.fast_forward_to_state(
             behaviour=self.behaviour,
-            state_id=FinalizeBehaviour.state_id,
+            state_id=self.behaviour_class.state_id,
             period_state=TransactionSettlementPeriodState(
                 StateDB(
                     initial_period=0,
                     initial_data=dict(
                         most_voted_keeper_address="most_voted_keeper_address",
                         participants=participants,
-                        is_reset_params_set=True,
+                        keepers=deque(["other_agent"]),
                     ),
                 )
             ),
@@ -357,7 +361,7 @@ class TestFinalizeBehaviour(TransactionSettlementFSMBehaviourBaseCase):
                 BaseState,
                 cast(BaseState, self.behaviour.current_state),
             ).state_id
-            == FinalizeBehaviour.state_id
+            == self.behaviour_class.state_id
         )
         self.behaviour.act_wrapper()
         self._test_done_flag_set()
@@ -450,7 +454,7 @@ class TestFinalizeBehaviour(TransactionSettlementFSMBehaviourBaseCase):
         participants = frozenset({self.skill.skill_context.agent_address, "a_1", "a_2"})
         self.fast_forward_to_state(
             behaviour=self.behaviour,
-            state_id=FinalizeBehaviour.state_id,
+            state_id=self.behaviour_class.state_id,
             period_state=TransactionSettlementPeriodState(
                 StateDB(
                     initial_period=0,
@@ -468,13 +472,14 @@ class TestFinalizeBehaviour(TransactionSettlementFSMBehaviourBaseCase):
                         ),
                         nonce=nonce,
                         max_priority_fee_per_gas=max_priority_fee_per_gas,
+                        keepers=deque([self.skill.skill_context.agent_address]),
                     ),
                 )
             ),
         )
 
         state = cast(BaseState, self.behaviour.current_state)
-        assert state.state_id == FinalizeBehaviour.state_id
+        assert state.state_id == self.behaviour_class.state_id
         self.behaviour.act_wrapper()
 
         self.mock_contract_api_request(
@@ -521,13 +526,14 @@ class TestFinalizeBehaviour(TransactionSettlementFSMBehaviourBaseCase):
         participants = frozenset({self.skill.skill_context.agent_address, "a_1", "a_2"})
         self.fast_forward_to_state(
             behaviour=self.behaviour,
-            state_id=FinalizeBehaviour.state_id,
+            state_id=self.behaviour_class.state_id,
             period_state=TransactionSettlementPeriodState(
                 StateDB(
                     initial_period=0,
                     initial_data=dict(
                         most_voted_keeper_address="most_voted_keeper_address",
                         participants=participants,
+                        keepers=deque([self.skill.skill_context.agent_address]),
                     ),
                 )
             ),
@@ -537,7 +543,7 @@ class TestFinalizeBehaviour(TransactionSettlementFSMBehaviourBaseCase):
                 BaseState,
                 cast(BaseState, self.behaviour.current_state),
             ).state_id
-            == FinalizeBehaviour.state_id
+            == self.behaviour_class.state_id
         )
 
         message = ContractApiMessage(ContractApiMessage.Performative.RAW_MESSAGE)  # type: ignore
@@ -552,6 +558,12 @@ class TestFinalizeBehaviour(TransactionSettlementFSMBehaviourBaseCase):
             mock_info.assert_called_with(
                 f"No callback defined for request with nonce: {message.dialogue_reference[0]}"
             )
+
+
+class TestFinalizeBehaviourAfterTimeout(TestFinalizeBehaviour):
+    """Test `TestFinalizeBehaviourAfterTimeout`."""
+
+    behaviour_class = FinalizeBehaviourAfterTimeout
 
 
 class TestValidateTransactionBehaviour(TransactionSettlementFSMBehaviourBaseCase):
@@ -685,17 +697,19 @@ class TestCheckTransactionHistoryBehaviour(TransactionSettlementFSMBehaviourBase
         )
 
     @pytest.mark.parametrize(
-        "verified, hashes_history, revert_reason",
+        "verified, status, hashes_history, revert_reason",
         (
-            (0, None, "test"),
-            (0, [None], "test"),
-            (0, [None], "GS026"),
-            (1, [None], "test"),
+            (False, -1, [None], "test"),
+            (False, 0, None, "test"),
+            (False, 0, [None], "test"),
+            (False, 0, [None], "GS026"),
+            (True, 1, [None], "test"),
         ),
     )
     def test_check_tx_history_behaviour(
         self,
-        verified: int,
+        verified: bool,
+        status: int,
         hashes_history: Optional[List[Optional[str]]],
         revert_reason: str,
     ) -> None:
@@ -714,12 +728,16 @@ class TestCheckTransactionHistoryBehaviour(TransactionSettlementFSMBehaviourBase
                     callable="verify_tx",
                     state=TrState(
                         ledger_id="ethereum",
-                        body={"verified": verified, "transaction": {}},
+                        body={
+                            "verified": verified,
+                            "status": status,
+                            "transaction": {},
+                        },
                     ),
                 ),
             )
 
-            if not bool(verified):
+            if not verified and status != -1:
                 self.mock_contract_api_request(
                     request_kwargs=dict(
                         performative=ContractApiMessage.Performative.GET_STATE

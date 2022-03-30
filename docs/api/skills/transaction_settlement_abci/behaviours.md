@@ -79,6 +79,17 @@ class SelectKeeperTransactionSubmissionBehaviourBAfterTimeout(  # pylint: disabl
 
 Select the keeper b agent after a timeout.
 
+<a id="packages.valory.skills.transaction_settlement_abci.behaviours.SelectKeeperTransactionSubmissionBehaviourBAfterFail"></a>
+
+## SelectKeeperTransactionSubmissionBehaviourBAfterFail Objects
+
+```python
+class SelectKeeperTransactionSubmissionBehaviourBAfterFail(  # pylint: disable=too-many-ancestors
+    SelectKeeperBehaviour,  TransactionSettlementBaseState)
+```
+
+Select the keeper b agent after a failure.
+
 <a id="packages.valory.skills.transaction_settlement_abci.behaviours.ValidateTransactionBehaviour"></a>
 
 ## ValidateTransactionBehaviour Objects
@@ -252,6 +263,17 @@ Store a potentially late-arriving message locally.
 **Arguments**:
 
 - `message`: the late arriving message to handle.
+
+<a id="packages.valory.skills.transaction_settlement_abci.behaviours.FinalizeBehaviourAfterTimeout"></a>
+
+## FinalizeBehaviourAfterTimeout Objects
+
+```python
+class FinalizeBehaviourAfterTimeout(  # pylint: disable=too-many-ancestors
+    FinalizeBehaviour)
+```
+
+Select the keeper b agent after a timeout.
 
 <a id="packages.valory.skills.transaction_settlement_abci.behaviours.ResetBehaviour"></a>
 

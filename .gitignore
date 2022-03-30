@@ -1,6 +1,6 @@
-kubeconfig
+deployments/Dockerfiles/open_aea/packages
 # Local .terraform directories
-deployments/Dockerfiles/open_aea/packages 
+kubeconfig
 aws_creds
 do_creds
 **/.terraform/*
