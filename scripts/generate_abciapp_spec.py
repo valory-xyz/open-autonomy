@@ -157,12 +157,26 @@ class DFA:
         else:
             raise ValueError(f"Unrecognized output format {output_format}.")
 
-    
     def _mermaid_dump(self, fp: TextIO) -> None:
-        print("graph TD", file=fp)
-        for k, v in self.transition_func.items():
-            print(f"    {k[0]}({k[0]}) -->|{k[1]}| {v}({v})", file=fp)
+        """Dumps this DFA spec. to a file in Mermaid format."""
+        print("stateDiagram-v2", file=fp)
 
+        aux_map: Dict[Tuple[str, str], Set[str]] = {}
+        for (s1, t), s2 in self.transition_func.items():
+            if (s1, s2) in aux_map:
+                aux_map[(s1, s2)].add(t)
+            else:
+                aux_map[(s1, s2)] = set([t])
+
+        for (s1, s2), t_set in aux_map.items():
+            if s1 in self.start_states: 
+                edge_label = '\\n'.join(t_set)
+                print(f"    {s1} --> {s2}: {edge_label}", file=fp)
+
+        for (s1, s2), t_set in aux_map.items():
+            if s1 not in self.start_states: 
+                edge_label = '\\n'.join(t_set)
+                print(f"    {s1} --> {s2}: {edge_label}", file=fp)
 
     def _get_exportable_repr(self) -> Dict[str, Any]:
         """Retrieves an exportable respresentation for YAML/JSON dump of this DFA."""
