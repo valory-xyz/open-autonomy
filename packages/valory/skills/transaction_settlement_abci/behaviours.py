@@ -116,9 +116,7 @@ class TransactionSettlementBaseState(BaseState, ABC):
             )
             return tx_data
 
-        if (
-            message.performative != ContractApiMessage.Performative.RAW_TRANSACTION
-        ):  # pragma: nocover
+        if message.performative != ContractApiMessage.Performative.RAW_TRANSACTION:
             self.context.logger.warning(
                 f"get_raw_safe_transaction unsuccessful! Received: {message}"
             )
