@@ -18,10 +18,16 @@
 # ------------------------------------------------------------------------------
 
 """Tests for valory/service_registry contract."""
+
+# To test locally, run a hardhat node:
+# docker run -p 8545:8545 -it valory/consensus-algorithms-hardhat:0.1.0
+
+
 import logging
-from typing import Dict
+from typing import Dict, List, Any, cast
 from pathlib import Path
 from aea.test_tools.test_contract import BaseContractTestCase
+
 from aea_ledger_ethereum import EthereumCrypto
 from packages.valory.contracts.service_registry.contract import (
     PUBLIC_ID,
@@ -29,7 +35,14 @@ from packages.valory.contracts.service_registry.contract import (
 )
 from unittest import mock
 from tests.conftest import ROOT_DIR
+# from tests.helpers.contracts import get_register_contract
+from web3 import Web3
+# from aea_ledger_ethereum import EthereumApi
 
+
+Address = hex
+ConfigHash = tuple
+AgentParams = List[tuple]
 
 CONTRACT_ADDRESS = "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266"
 COMPONENT_REGISTRY = "0x5FbDB2315678afecb367f032d93F642f64180aa3"
@@ -52,6 +65,14 @@ class TestServiceRegistryContract(BaseContractTestCase):
         ROOT_DIR, "packages", PUBLIC_ID.author, "contracts", PUBLIC_ID.name
     )
 
+    GAS: int = 10 ** 10
+    DEFAULT_MAX_FEE_PER_GAS: int = 10 ** 10
+    DEFAULT_MAX_PRIORITY_FEE_PER_GAS: int = 10 ** 10
+
+    @classmethod
+    def setup(cls, **kwargs: Any) -> None:
+        super().setup(**kwargs)
+
     @classmethod
     def finish_contract_deployment(cls) -> str:
         return CONTRACT_ADDRESS
@@ -61,29 +82,93 @@ class TestServiceRegistryContract(BaseContractTestCase):
         """Deploy contract."""
         return {}
 
+    @classmethod
+    def deployment_kwargs(cls) -> Dict[str, Any]:
+        """Contract deployment kwargs"""
 
+        _name: str = "TestServiceRegistry"
+        _symbol: str = "OLA"
+        _agentRegistry: Address = Web3.toChecksumAddress(AGENT_REGISTRY)
+        _gnosisSafeL2: Address = Web3.toChecksumAddress(ADDRESS_TWO)
+        _gnosisSafeProxyFactory: Address = Web3.toChecksumAddress(ADDRESS_THREE)
+
+        return dict(
+            _name=_name,
+            _symbol=_symbol,
+            _agentRegistry=_agentRegistry,
+            _gnosisSafeL2=_gnosisSafeL2,
+            _gnosisSafeProxyFactory=_gnosisSafeProxyFactory,
+            gas=cls.GAS,
+        )
+
+    def create_dummy_service(self, serviceId: int) -> bool:
+        """Create dummy service"""
+
+        owner: Address = Web3.toChecksumAddress(ADDRESS_ONE)
+        name: str = "dummy_service"
+        description: str = ""
+        config_hash: ConfigHash = ()
+        agent_ids: List[int] = [1, 2, 3]
+        agent_params: AgentParams = [()]
+        threshold: int = 256
+
+        kwargs = dict(
+            owner=owner,
+            name=name,
+            description=description,
+            configHash=config_hash,
+            agentIds=agent_ids,
+            agentParams=agent_params,
+            threshold=threshold,
+            serviceId=serviceId,
+        )
+
+        success = self.contract.contract_method_call(
+            self.ledger_api, "createService", **kwargs
+        )
+
+        return cast(bool, success)
+
+    def test_deployment(self) -> None:
+        """Test deployment"""
+
+        expected_keys = {'gas', 'chainId', 'value', 'nonce', 'maxFeePerGas', 'maxPriorityFeePerGas', 'data', 'from'}
+
+        tx = self.contract.get_deploy_transaction(
+            ledger_api=self.ledger_api,
+            deployer_address=str(self.deployer_crypto.address),
+            **self.deployment_kwargs(),
+        )
+
+        assert isinstance(tx, dict)
+        assert len(tx) == 8
+        assert not expected_keys.symmetric_difference(tx)
+        assert tx['data'].startswith("0x")
+
+    def test_verify_contract(self) -> None:
+        """Run verify test."""
+
+        assert self.contract_address is not None
+        result = self.contract.verify_contract(
+            ledger_api=self.ledger_api,
+            contract_address=self.contract_address,
+        )
+
+        logging.info(result)
+        assert result == "0x"  # TODO: not sure how I retrieve this
 
     def test_get_service_info(self):
+        """Test service info retrieval"""
+
+        service_id: int = 321
+
         assert self.contract_address is not None
+        assert self.create_dummy_service(service_id)
 
-        with mock.path.object(
-            self.ledger_api
-        ):
+        service_info = self.contract.get_service_info(
+            ledger_api=self.ledger_api,
+            contract_address=self.contract_address,
+            service_id=service_id,
+        )
 
-            result = self.contract.get_service_info(
-                ledger_api=self.ledger_api,
-                contract_address=self.contract_address,
-                service_id=1,
-            )
-            logging.error(str(result))
-            assert result
-
-
-    # def test_verify(self) -> None:
-    #     """Run verify test."""
-    #     assert self.contract_address is not None
-    #     result = self.contract.verify_contract(
-    #         ledger_api=self.ledger_api,
-    #         contract_address=self.contract_address,
-    #     )
-    #     assert result["verified"], "Contract not verified."
+        assert service_info['service_id'] == service_id

@@ -20,13 +20,15 @@
 """This module contains the class to connect to the Service Registry contract."""
 
 import logging
-from typing import Optional
+from typing import Dict, List, cast
 
 from aea.common import JSONLike
 from aea.configurations.base import PublicId
 from aea.contracts.base import Contract
-from aea_ledger_ethereum import LedgerApi
+from aea_ledger_ethereum import LedgerApi, EthereumApi
 
+
+address = hex
 
 PUBLIC_ID = PublicId.from_str("valory/service_registry:0.1.0")
 
@@ -41,12 +43,31 @@ class ServiceRegistryContract(Contract):
     contract_id = PUBLIC_ID
 
     @classmethod
+    def verify_contract(
+        cls, ledger_api: LedgerApi, contract_address: str
+    ) -> JSONLike:
+        """
+        Verify the contract's bytecode
+
+        :param ledger_api: the ledger API object
+        :param contract_address: the contract address
+        :return: the verified status
+        """
+        ledger_api = cast(EthereumApi, ledger_api)
+        deployed_bytecode = ledger_api.api.eth.get_code(contract_address).hex()
+        # local_bytecode = cls.contract_interface["ethereum"]["deployedBytecode"]  # noqa:  E800
+        # logging.error(deployed_bytecode)
+        # verified = deployed_bytecode == DEPLOYED_BYTECODE
+        # return dict(verified=verified)
+        return deployed_bytecode
+
+    @classmethod
     def get_service_info(
         cls,
         ledger_api: LedgerApi,
         contract_address: str,
         service_id: int,
-    ) -> Optional[JSONLike]:
+    ) -> Dict:
         """Retrieve on-chain service information"""
 
         contract_instance = cls.get_instance(ledger_api, contract_address)
@@ -56,4 +77,23 @@ class ServiceRegistryContract(Contract):
             method_name="getServiceInfo",
             serviceId=service_id,
         )
-        return service_info
+
+        owner: address = service_info[0]
+        name: str = service_info[1]
+        description: str = service_info[2]
+        config_hash: int = service_info[4]
+        threshold: int = service_info[5]
+        num_agent_ids: int = service_info[6]
+        agent_ids: List[int] = service_info[7]
+        agent_params: List = service_info[8]
+
+        return dict(
+            owner=owner,
+            name=name,
+            description=description,
+            config_hash=config_hash,
+            threshold=threshold,
+            num_agent_ids=num_agent_ids,
+            agent_ids=agent_ids,
+            agent_params=agent_params,
+        )
