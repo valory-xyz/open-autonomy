@@ -132,7 +132,7 @@ transition_func:
     (SwapBackTransactionHashRound, ROUND_TIMEOUT): StrategyEvaluationRound
     (SynchronizeLateMessagesRound, DONE): CheckLateTxHashesRound
     (SynchronizeLateMessagesRound, MISSED_AND_LATE_MESSAGES_MISMATCH): RegistrationRound
-    (SynchronizeLateMessagesRound, NONE): RegistrationRound
+    (SynchronizeLateMessagesRound, NONE): FinalizationRound
     (SynchronizeLateMessagesRound, NO_MAJORITY): SynchronizeLateMessagesRound
     (SynchronizeLateMessagesRound, ROUND_TIMEOUT): SynchronizeLateMessagesRound
     (ValidateSafeRound, DONE): StrategyEvaluationRound

@@ -84,7 +84,7 @@ transition_func:
     (SelectKeeperTransactionSubmissionRoundBAfterTimeout, ROUND_TIMEOUT): ResetRound
     (SynchronizeLateMessagesRound, DONE): CheckLateTxHashesRound
     (SynchronizeLateMessagesRound, MISSED_AND_LATE_MESSAGES_MISMATCH): FailedRound
-    (SynchronizeLateMessagesRound, NONE): FailedRound
+    (SynchronizeLateMessagesRound, NONE): FinalizationRound
     (SynchronizeLateMessagesRound, NO_MAJORITY): SynchronizeLateMessagesRound
     (SynchronizeLateMessagesRound, ROUND_TIMEOUT): SynchronizeLateMessagesRound
     (ValidateTransactionRound, DONE): FinishedTransactionSubmissionRound
