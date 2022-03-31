@@ -29,7 +29,7 @@ The summary of the constituent FSMs is as follows:
 | OracleDeployment        |      5  |            1  |            1  |      8  |                      14   |
 | PriceAggregation        |      9  |            1  |            1  |      4  |                       9   |
 | TransactionSubmission   |     10  |            1  |            2  |      9  |                      26   |
-| ResetPauseABCIApp       |         |               |               |         |                           |
+| ResetPauseABCIApp       |      3  |            1  |            2  |      3  |                       3   |
 | **OracleAbciApp**       | **21**  |        **2**  |        **0**  | **12**  |                  **66**   |
 
 (*) Transitions to a different state, i.e., not self-transitions.
@@ -56,6 +56,13 @@ transition_func:
     (RegistrationRound, DONE): FinishedRegistrationFFWRound
     (RegistrationStartupRound, DONE): FinishedRegistrationRound
     (RegistrationStartupRound, FAST_FORWARD): FinishedRegistrationFFWRound
+```
+
+```mermaid
+stateDiagram-v2
+    RegistrationRound --> FinishedRegistrationFFWRound: DONE
+    RegistrationStartupRound --> FinishedRegistrationRound: DONE
+    RegistrationStartupRound --> FinishedRegistrationFFWRound: FAST_FORWARD
 ```
 
 #### `SafeDeploymentAbciApp` FSM
@@ -98,6 +105,19 @@ transition_func:
     (ValidateSafeRound, VALIDATE_TIMEOUT): RandomnessSafeRound
 ```
 
+```mermaid
+stateDiagram-v2
+    RandomnessSafeRound --> SelectKeeperSafeRound: DONE
+    DeploySafeRound --> SelectKeeperSafeRound: DEPLOY_TIMEOUT,\nFAILED
+    DeploySafeRound --> ValidateSafeRound: DONE
+    RandomnessSafeRound --> RandomnessSafeRound: NO_MAJORITY,\nROUND_TIMEOUT
+    SelectKeeperSafeRound --> DeploySafeRound: DONE
+    SelectKeeperSafeRound --> RandomnessSafeRound: NO_MAJORITY,\nROUND_TIMEOUT
+    ValidateSafeRound --> FinishedSafeRound: DONE
+    ValidateSafeRound --> RandomnessSafeRound: NEGATIVE,\nNONE,\nNO_MAJORITY,\nVALIDATE_TIMEOUT
+```
+
+
 #### `OracleDeploymentAbciApp` FSM
 ```yaml
 alphabet_in:
@@ -138,6 +158,18 @@ transition_func:
     (ValidateOracleRound, VALIDATE_TIMEOUT): RandomnessOracleRound
 ```
 
+```mermaid
+stateDiagram-v2
+    RandomnessOracleRound --> SelectKeeperOracleRound: DONE
+    RandomnessOracleRound --> RandomnessOracleRound: NO_MAJORITY,\nROUND_TIMEOUT
+    DeployOracleRound --> SelectKeeperOracleRound: DEPLOY_TIMEOUT,\nFAILED
+    DeployOracleRound --> ValidateOracleRound: DONE
+    SelectKeeperOracleRound --> DeployOracleRound: DONE
+    SelectKeeperOracleRound --> RandomnessOracleRound: NO_MAJORITY,\nROUND_TIMEOUT
+    ValidateOracleRound --> FinishedOracleRound: DONE
+    ValidateOracleRound --> RandomnessOracleRound: NEGATIVE,\nNO_MAJORITY,\nNONE,\nVALIDATE_TIMEOUT
+```
+
 #### `PriceAggregationAbciApp` FSM
 ```yaml
 alphabet_in:
@@ -167,6 +199,16 @@ transition_func:
     (TxHashRound, NONE): CollectObservationRound
     (TxHashRound, NO_MAJORITY): CollectObservationRound
     (TxHashRound, ROUND_TIMEOUT): CollectObservationRound
+```
+
+```mermaid
+stateDiagram-v2
+    CollectObservationRound --> EstimateConsensusRound: DONE
+    CollectObservationRound --> CollectObservationRound: NO_MAJORITY,\nROUND_TIMEOUT
+    EstimateConsensusRound --> TxHashRound: DONE
+    EstimateConsensusRound --> CollectObservationRound: NO_MAJORITY,\nROUND_TIMEOUT
+    TxHashRound --> FinishedPriceAggregationRound: DONE
+    TxHashRound --> CollectObservationRound: NONE,\nNO_MAJORITY,\nROUND_TIMEOUT
 ```
 
 #### `TransactionSubmissionAbciApp` FSM
@@ -252,6 +294,43 @@ transition_func:
     (ValidateTransactionRound, VALIDATE_TIMEOUT): FinalizationRound
 ```
 
+```mermaid
+stateDiagram-v2
+    RandomnessTransactionSubmissionRound --> SelectKeeperTransactionSubmissionRoundA: DONE
+    RandomnessTransactionSubmissionRound --> RandomnessTransactionSubmissionRound: NO_MAJORITY
+    RandomnessTransactionSubmissionRound --> ResetRound: ROUND_TIMEOUT
+    SelectKeeperTransactionSubmissionRoundA --> CollectSignatureRound: DONE
+    SelectKeeperTransactionSubmissionRoundA --> ResetRound: NO_MAJORITY,\nROUND_TIMEOUT
+    CollectSignatureRound --> FinalizationRound: DONE
+    CollectSignatureRound --> ResetRound: NO_MAJORITY,\nROUND_TIMEOUT
+    FinalizationRound --> CheckTransactionHistoryRound: CHECK_HISTORY
+    FinalizationRound --> SynchronizeLateMessagesRound: CHECK_LATE_ARRIVING_MESSAGE
+    FinalizationRound --> ValidateTransactionRound: DONE
+    FinalizationRound --> SelectKeeperTransactionSubmissionRoundB: FINALIZATION_FAILED
+    FinalizationRound --> SelectKeeperTransactionSubmissionRoundBAfterTimeout: ROUND_TIMEOUT
+    SelectKeeperTransactionSubmissionRoundB --> FinalizationRound: DONE
+    SelectKeeperTransactionSubmissionRoundB --> ResetRound: NO_MAJORITY,\nROUND_TIMEOUT
+    SelectKeeperTransactionSubmissionRoundBAfterTimeout --> CheckTransactionHistoryRound: CHECK_HISTORY
+    SelectKeeperTransactionSubmissionRoundBAfterTimeout --> FinalizationRound: DONE
+    SelectKeeperTransactionSubmissionRoundBAfterTimeout --> ResetRound: NO_MAJORITY,\nROUND_TIMEOUT
+    ValidateTransactionRound --> FinishedTransactionSubmissionRound: DONE
+    ValidateTransactionRound --> CheckTransactionHistoryRound: NEGATIVE
+    ValidateTransactionRound --> FinalizationRound: NONE,\nVALIDATE_TIMEOUT
+    ValidateTransactionRound --> ValidateTransactionRound: NO_MAJORITY
+    CheckLateTxHashesRound --> FinishedTransactionSubmissionRound: DONE
+    CheckLateTxHashesRound --> FailedRound: NONE,\nNEGATIVE,\nNO_MAJORITY
+    CheckLateTxHashesRound --> CheckLateTxHashesRound: ROUND_TIMEOUT
+    CheckTransactionHistoryRound --> SynchronizeLateMessagesRound: CHECK_LATE_ARRIVING_MESSAGE
+    CheckTransactionHistoryRound --> FinishedTransactionSubmissionRound: DONE
+    CheckTransactionHistoryRound --> FailedRound: NONE,\nNEGATIVE,\nNO_MAJORITY
+    CheckTransactionHistoryRound --> CheckTransactionHistoryRound: ROUND_TIMEOUT
+    ResetRound --> RandomnessTransactionSubmissionRound: DONE
+    ResetRound --> FailedRound: NO_MAJORITY,\nRESET_TIMEOUT
+    SynchronizeLateMessagesRound --> CheckLateTxHashesRound: DONE
+    SynchronizeLateMessagesRound --> FailedRound: NONE,\nMISSED_AND_LATE_MESSAGES_MISMATCH
+    SynchronizeLateMessagesRound --> SynchronizeLateMessagesRound: NO_MAJORITY,\nROUND_TIMEOUT
+```
+
 ### `ResetPauseABCIApp` FSM
 
 ```yaml
@@ -274,6 +353,12 @@ transition_func:
     (ResetAndPauseRound, DONE): FinishedResetAndPauseRound
     (ResetAndPauseRound, NO_MAJORITY): FinishedResetAndPauseErrorRound
     (ResetAndPauseRound, RESET_AND_PAUSE_TIMEOUT): FinishedResetAndPauseErrorRound
+```
+
+```mermaid
+stateDiagram-v2
+    ResetAndPauseRound --> FinishedResetAndPauseRound: DONE
+    ResetAndPauseRound --> FinishedResetAndPauseErrorRound: RESET_AND_PAUSE_TIMEOUT,\nNO_MAJORITY
 ```
 
 
