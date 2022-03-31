@@ -21,15 +21,14 @@ interactions between the consensus node and the ABCI application:
 - `ApplySnapshotChunk`
 
 Some requests like `Info` and `InitChain` are proactively
-made by the consensus node upon genesis; most of the requests
+made by the consensus node upon genesis. Most of the requests
 instead depend on the transactions stored in the mempool.
-The transaction are submitted by the Abci app's behaviours which interact with a Tendermint node
+The transaction are submitted by the ABCI app's behaviours which interact with a Tendermint node
 through the [Tendermint RPC protocol](https://docs.tendermint.com/master/rpc/).
-At [this link](https://github.com/tendermint/abci/blob/master/types/types.proto),
-you can see the Protobuf definitions of those messages.
+See also the [Protobuf definitions](https://github.com/tendermint/abci/blob/master/types/types.proto) of those messages.
 
-In the following, we will review the most important interactions
-between a simple behaviour, a Tendermint node, and an ABCI-application instance,
+Below we will review the most important interactions
+between a simple behaviour, a Tendermint node, and an ABCI application instance,
 with a focus on how the ABCI protocol comes into play.
 
 A quick overview of the ABCI protocol is depicted in this diagram:

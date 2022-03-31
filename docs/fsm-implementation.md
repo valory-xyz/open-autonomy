@@ -1,23 +1,26 @@
-# FSM implementation
+# FSM Implementation
 
-The `abstract_round_abci` skill implements the abstract classes for
-implementation of a replicated FSM application. Here we'll explain the
-implementation of and relationship among its core concepts, which are the
-`Period State`, `Round`, `Period`, `Event` and `Behaviour`.
+!!!note
+    The snippets of code presented here are a simplified representation of the actual
+    implementation. We refer the reader to the corresponding API documentation for the complete details.
+
+Here, we explain the
+implementation of and relationship among the Valory stack FSMs core components, as discussed in the previous section. Namely,
+`Round`, `Behaviour`, `Period`, `PeriodState`, and `Event`. The `abstract_round_abci` skill implements the abstract classes for
+implementation of these components.
 
 
-### The Period State
+### Period State
 
 The `BasePeriodState` provides access to state variables stored in a `StateDB`
 shared by the agents throughout the entire period, and which can be updated
 during rounds. It provides access to information such as the participants and
 their votes in various types of voting rounds. This class is typically derived
-from during the implementation of a skill by the developer to provide additional
+during the implementation of a skill by the developer, in order to provide additional
 functionality that is relevant for the execution of that skill.
 
 ```python
 # skills.abstract_round_abci.base.py
-
 
 class BasePeriodState:
     """Class to represent a period state."""
@@ -44,7 +47,6 @@ round of the period in which consensus achieved over it.
 ```python
 # skills.abstract_round_abci.base.py
 
-
 class PeriodState(BasePeriodState):
     """Class to represent a period state."""
 
@@ -55,6 +57,7 @@ class PeriodState(BasePeriodState):
     @property
     def oracle_contract_address(self) -> str:
         """Get the oracle contract address."""
+    ...
 ```
 
 ### Round
@@ -79,14 +82,13 @@ of the `AbstractRound`, allowing agents to access period state information
 during a particular round.
 `ConsensusParams` are also passed upon initialization, which registers the
 number of participants and computes the consensus threshold,
-`ceil((2 * n + 1) / 3)`, which is used to determine whether there is sufficient
+`ceil((2*N + 1) / 3)`, which is used to determine whether there is sufficient
 agreement among the agents regarding the result of the behaviour that was
 executed during that round.
 
 
 ```python
 # skills.abstract_round_abci.base.py
-
 
 class AbstractRound(Generic[EventType, TransactionType], ABC):
     """This class represents an abstract round."""
@@ -119,12 +121,11 @@ class AbstractRound(Generic[EventType, TransactionType], ABC):
     ...
 ```
 
-An example of a concrete implementation here of is a `CollectionRound` in which
+An example of a concrete implementation is a `CollectionRound` in which
 data is collected, for example from a voting round or a price estimation round.
 
 ```python
 # skills.abstract_round_abci.base.py
-
 
 class CollectionRound(AbstractRound):
     """CollectionRound."""
@@ -141,8 +142,6 @@ Note that apart from the method for processing a particular payload, the
 developer also needs to implement a method for processing the end of a block.
 It needs to be implemented in a way that it can be used to check whether and how
 a round was ended by returning both the `BasePeriodState` and an `Event`.
-Before we'll look at the implementation an `Event` though, we'll first discuss
-the `Behaviour` whose execution triggers it.
 
 
 ### Behaviour
@@ -151,13 +150,12 @@ The abstract base class used for any concrete implementation of behaviour is the
 `BaseState`. It inherits directly from the `AsyncBehaviour` class and the same execution logic applies that leads to the periodic
 execution of the `act()` and `async_act()` methods.
 
-The `state_id` and `matching_round` both need to be provided by any class using
+The `state_id` and `matching_round` both need to be provided by any class implementing
 this base class, ensuring that a concrete implementation of the `AbstractRound`
 is associated during which this behaviour will be executed.
 
 ```python
 # skills.abstract_round_abci.behaviour_utils.py
-
 
 class BaseState(AsyncBehaviour, SimpleBehaviour, ABC):
     """Base class for FSM states."""
@@ -206,7 +204,6 @@ that the system needs to transition to. An implementation might look as follows:
 ```python
 # skills.abstract_round_abci.base.py
 
-
 class CollectSameUntilThresholdRound(CollectionRound):
     """CollectSameUntilThresholdRound"""
 
@@ -218,13 +215,12 @@ class CollectSameUntilThresholdRound(CollectionRound):
 
 ### Period
 
-A Period is a sequence of rounds. Its implementation is used to set up the
-local consensus engine and [ABCI application](./abci_app.md) and facilitates
+A Period is a sequence of rounds that is semantically meaningful. Its implementation is used to set up the
+local consensus engine and [ABCI application](./abci_app.md), and facilitates
 the interaction between these two.
 
 ```python
 # skills.abstract_round_abci.base.py
-
 
 class Period:
     """This class represents a period (i.e. a sequence of rounds)"""

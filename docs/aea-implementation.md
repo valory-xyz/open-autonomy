@@ -1,42 +1,52 @@
-# AEA implementation
+# AEA Implementation
 
 !!!note
+    It is assumed the reader has some familiarity with the
+    [open AEA framework](https://github.com/valory-xyz/open-aea).
+    See this __[introductory guide to the framework](https://valory-xyz.github.io/open-aea/)__ to help you get started in case you're not yet familiar.
 
-    This section merely serves as a summary, showcasing some aspects of the
-    implementation that are relevant for developers, and providing easy access to
-    sections in the guide and API documentation related to the concepts discussed.
+!!!note
+    The snippets of code presented here are a simplified representation of the actual
+    implementation. We refer the reader to the corresponding API documentation for the complete details.
 
-    The snippets of code here are a simplified representation of the actual
-    implementation. Details regarding the actual implementation can be found by
-    using links provided to the corresponding API documentation.
+This section merely serves as a summary, showcasing some aspects of the
+implementation that are relevant for developers, and providing easy access to
+sections in the guide and API documentation related to the concepts discussed.
 
-The [`DecisionMaker`](https://valory-xyz.github.io/open-aea/decision-maker/)
-is where a developers' or users' goals, preferences, message handling and wallet
+
+## AEA Main Components
+
+Every AEA is composed of a number of components that work together to achieve the pre-defined goals of the agent:
+
+- The [`DecisionMaker`](https://valory-xyz.github.io/open-aea/decision-maker/)
+is where the developers' or users' goals, preferences, message handling and wallet
 control reside.
-AEAs possess [`skills`](https://valory-xyz.github.io/open-aea/skill/) which
+- [`Skills`](https://valory-xyz.github.io/open-aea/skill/), which
 allow them to operate proactively, through the expression of
 [`Behaviour`](https://valory-xyz.github.io/open-aea/api/skills/base/#behaviour-objects),
 as well as reactively by managing incoming messages from other agents via a
-[`Handler`](https://valory-xyz.github.io/open-aea/api/skills/base/#handler-objects).
-Since there might exist a need to share a certain context which is relevant both
+[`Handler`](https://valory-xyz.github.io/open-aea/api/skills/base/#handler-objects). Every `Skill` is associated with an AEA, since it is registered to it.
+- Since there might exist a need to share a certain context which is relevant both
 to behaviors and handlers, this can be achieved via a
 [`Model`](https://valory-xyz.github.io/open-aea/api/skills/base/#model-objects).
 
 ![Simplified AEA](./images/simplified-aea.jpg)
 
-Every skill is associated with an agent since it is registered to it. Skills
-and agents have their own respective `context` attributes, instances of
-[`SkillContext`](https://valory-xyz.github.io/open-aea/api/skills/base/)
+
+- [`SkillContext`](https://valory-xyz.github.io/open-aea/api/skills/base/)
 and
-[`AgentContext`](https://valory-xyz.github.io/open-aea/api/context/base/),
-however each of these provides access to a shared state.
+[`AgentContext`](https://valory-xyz.github.io/open-aea/api/context/base/)
+allow Skills and agents, respectively, have their own `Context` attributes.
+However, each of these provides access to a shared state.
 This shared state is what agents can alter through the usage of skills.
 
 ![Skill components](./images/skill-components.jpg)
 
-AEAs interact with other agents, both AEAs and those in the outside world, via
+## AEA Communication
+
+AEAs interact with other agents, either within the same Valory app, and/or with agents in the outside world, via
 [interaction protocols](https://valory-xyz.github.io/open-aea/interaction-protocol/).
-In order to locate other agents they connect to the
+In order to locate other agents, they connect to the
 [Agent Communication Network (ACN)](https://valory-xyz.github.io/open-aea/acn/).
 More specifically, AEAs communicate asynchronously with other agents using
 [`Envelopes`](https://valory-xyz.github.io/open-aea/api/mail/base/#envelope-objects)
@@ -45,10 +55,10 @@ These messages adhere to specific messaging
 [protocols](https://valory-xyz.github.io/open-aea/protocol/).
 In order for AEAs to communicate with agents in the outside world they need to
 set up a [connection](https://valory-xyz.github.io/open-aea/connection/), which
-are managed by the
+is managed by the
 [`Mutliplexer`](https://valory-xyz.github.io/open-aea/api/multiplexer/).
 The execution of smart
-[contract](https://valory-xyz.github.io/open-aea/contract/)
+[`Contract`](https://valory-xyz.github.io/open-aea/contract/)
 related logic, for example, requires a connection to provide the agent with the
 necessary network access.
 
@@ -240,5 +250,3 @@ class Skill(Component):
         """Get the models."""
 ```
 -->
-
-
