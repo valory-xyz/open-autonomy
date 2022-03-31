@@ -316,6 +316,7 @@ class BaseSelectKeeperBehaviourTest(CommonBaseCase):
     select_keeper_behaviour_class: Type[BaseState]
     next_behaviour_class: Type[BaseState]
     done_event: Any
+    _period_state: Type[BasePeriodState] = BasePeriodState
 
     def test_select_keeper(
         self,
@@ -325,7 +326,7 @@ class BaseSelectKeeperBehaviourTest(CommonBaseCase):
         self.fast_forward_to_state(
             behaviour=self.behaviour,
             state_id=self.select_keeper_behaviour_class.state_id,
-            period_state=BasePeriodState(
+            period_state=self._period_state(
                 StateDB(
                     initial_period=0,
                     initial_data=dict(
@@ -358,7 +359,7 @@ class BaseSelectKeeperBehaviourTest(CommonBaseCase):
         self.fast_forward_to_state(
             behaviour=self.behaviour,
             state_id=self.select_keeper_behaviour_class.state_id,
-            period_state=BasePeriodState(
+            period_state=self._period_state(
                 StateDB(
                     initial_period=0,
                     initial_data=dict(

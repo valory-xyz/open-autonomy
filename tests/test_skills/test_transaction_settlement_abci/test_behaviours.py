@@ -53,7 +53,6 @@ from packages.valory.skills.transaction_settlement_abci.behaviours import (
     CheckLateTxHashesBehaviour,
     CheckTransactionHistoryBehaviour,
     FinalizeBehaviour,
-    FinalizeBehaviourAfterTimeout,
     RandomnessTransactionSubmissionBehaviour,
     ResetBehaviour,
     SelectKeeperTransactionSubmissionBehaviourA,
@@ -272,18 +271,42 @@ class TestSelectKeeperTransactionSubmissionBehaviourA(BaseSelectKeeperBehaviourT
     select_keeper_behaviour_class = SelectKeeperTransactionSubmissionBehaviourA
     next_behaviour_class = SignatureBehaviour
     done_event = TransactionSettlementEvent.DONE
+    _period_state = TransactionSettlementPeriodState
 
 
-class TestSelectKeeperTransactionSubmissionBehaviourB(BaseSelectKeeperBehaviourTest):
+class TestSelectKeeperTransactionSubmissionBehaviourB(
+    TestSelectKeeperTransactionSubmissionBehaviourA
+):
     """Test SelectKeeperBehaviour."""
-
-    path_to_skill = Path(
-        ROOT_DIR, "packages", "valory", "skills", "transaction_settlement_abci"
-    )
 
     select_keeper_behaviour_class = SelectKeeperTransactionSubmissionBehaviourB
     next_behaviour_class = FinalizeBehaviour
-    done_event = TransactionSettlementEvent.DONE
+
+    @mock.patch.object(
+        TransactionSettlementPeriodState,
+        "keepers_threshold_exceeded",
+        new_callable=mock.PropertyMock,
+    )
+    @pytest.mark.parametrize("threshold_exceeded", (True, False))
+    def test_select_keeper(
+        self, threshold_exceeded_mock: mock.PropertyMock, threshold_exceeded: bool
+    ) -> None:
+        """Test select keeper agent."""
+        threshold_exceeded_mock.return_value = threshold_exceeded
+        super().test_select_keeper()
+
+    @mock.patch.object(
+        TransactionSettlementPeriodState,
+        "keepers_threshold_exceeded",
+        new_callable=mock.PropertyMock,
+    )
+    @pytest.mark.parametrize("threshold_exceeded", (True, False))
+    def test_select_keeper_preexisting_keeper(
+        self, threshold_exceeded_mock: mock.PropertyMock, threshold_exceeded: bool
+    ) -> None:
+        """Test select keeper agent with pre-existing keeper."""
+        threshold_exceeded_mock.return_value = threshold_exceeded
+        super().test_select_keeper()
 
 
 class TestSignatureBehaviour(TransactionSettlementFSMBehaviourBaseCase):
@@ -558,12 +581,6 @@ class TestFinalizeBehaviour(TransactionSettlementFSMBehaviourBaseCase):
             mock_info.assert_called_with(
                 f"No callback defined for request with nonce: {message.dialogue_reference[0]}"
             )
-
-
-class TestFinalizeBehaviourAfterTimeout(TestFinalizeBehaviour):
-    """Test `TestFinalizeBehaviourAfterTimeout`."""
-
-    behaviour_class = FinalizeBehaviourAfterTimeout
 
 
 class TestValidateTransactionBehaviour(TransactionSettlementFSMBehaviourBaseCase):

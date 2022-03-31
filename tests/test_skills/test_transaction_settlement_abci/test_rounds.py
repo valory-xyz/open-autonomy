@@ -22,7 +22,8 @@
 import logging  # noqa: F401
 from collections import deque
 from types import MappingProxyType
-from typing import Deque, Dict, FrozenSet, List, Optional, Tuple, Union, cast
+from typing import Deque, Dict, FrozenSet, List, Optional, Union, cast
+from unittest import mock
 
 import pytest
 
@@ -53,10 +54,7 @@ from packages.valory.skills.transaction_settlement_abci.rounds import (
 from packages.valory.skills.transaction_settlement_abci.rounds import (
     Event as TransactionSettlementEvent,
 )
-from packages.valory.skills.transaction_settlement_abci.rounds import (
-    FinalizationRound,
-    FinalizationRoundAfterTimeout,
-)
+from packages.valory.skills.transaction_settlement_abci.rounds import FinalizationRound
 from packages.valory.skills.transaction_settlement_abci.rounds import (
     PeriodState as TransactionSettlementPeriodState,
 )
@@ -64,7 +62,6 @@ from packages.valory.skills.transaction_settlement_abci.rounds import (
     ResetRound,
     SelectKeeperTransactionSubmissionRoundA,
     SelectKeeperTransactionSubmissionRoundB,
-    SelectKeeperTransactionSubmissionRoundBAfterFail,
     SelectKeeperTransactionSubmissionRoundBAfterTimeout,
     SynchronizeLateMessagesRound,
     ValidateTransactionRound,
@@ -215,6 +212,7 @@ class TestSelectKeeperTransactionSubmissionRoundA(BaseSelectKeeperRoundTest):
 
     test_class = SelectKeeperTransactionSubmissionRoundA
     test_payload = SelectKeeperPayload
+    _period_state_class = TransactionSettlementPeriodState
     _event_class = TransactionSettlementEvent
 
 
@@ -223,7 +221,17 @@ class TestSelectKeeperTransactionSubmissionRoundB(BaseSelectKeeperRoundTest):
 
     test_class = SelectKeeperTransactionSubmissionRoundB
     test_payload = SelectKeeperPayload
+    _period_state_class = TransactionSettlementPeriodState
     _event_class = TransactionSettlementEvent
+
+    @pytest.mark.parametrize(
+        "keepers, most_voted_payload",
+        ((deque(), "keeper"), (deque(["test_keeper1", "test_keeper2"]), "")),
+    )
+    def test_run(self, keepers: Deque[str], most_voted_payload: str) -> None:
+        """Run tests."""
+        self._most_voted_payload = most_voted_payload
+        super().test_run(keepers)
 
 
 class TestSelectKeeperTransactionSubmissionRoundBAfterTimeout(
@@ -234,76 +242,54 @@ class TestSelectKeeperTransactionSubmissionRoundBAfterTimeout(
     test_class = SelectKeeperTransactionSubmissionRoundBAfterTimeout
     _period_state_class = TransactionSettlementPeriodState
 
-    def _attr_checks(
-        self, attrs: Dict[str, Union[List[str], int]]
-    ) -> Tuple[bool, bool]:
-        """The attribute checks to assert."""
-        state = cast(TransactionSettlementPeriodState, self.period_state)
-        return (
-            state.missed_messages == cast(int, attrs["missed_messages"]) + 1,
-            state.consecutive_finalizations
-            == cast(int, attrs["consecutive_finalizations"]) + 1,
-        )
-
+    @mock.patch.object(
+        TransactionSettlementPeriodState,
+        "keepers_threshold_exceeded",
+        new_callable=mock.PropertyMock,
+    )
     @pytest.mark.parametrize(
-        "attrs, exit_event",
+        "attrs, threshold_exceeded, exit_event",
         (
             (
                 {
                     "tx_hashes_history": ["test"],
                     "missed_messages": 10,
-                    # These are the `consecutive_finalizations` before entering the round.
-                    # Therefore, the `consecutive_finalizations` will become 2 after entering the round.
-                    "consecutive_finalizations": 1,
                 },
-                # Since we have 4 participants, and we now have 2 keepers that have retried,
-                # we should return a `CHECK_HISTORY` event.
+                True,
+                # Since the threshold has been exceeded, we should return a `CHECK_HISTORY` event.
                 TransactionSettlementEvent.CHECK_HISTORY,
             ),
             (
                 {
                     "missed_messages": 10,
-                    "consecutive_finalizations": 1,
                 },
+                True,
                 TransactionSettlementEvent.CHECK_LATE_ARRIVING_MESSAGE,
             ),
             (
                 {
                     "missed_messages": 10,
-                    "consecutive_finalizations": 0,
                 },
+                False,
                 TransactionSettlementEvent.DONE,
             ),
         ),
     )
     def test_run(  # type: ignore
         self,
+        threshold_exceeded_mock: mock.PropertyMock,
         attrs: Dict[str, Union[List[str], int]],
+        threshold_exceeded: bool,
         exit_event: TransactionSettlementEvent,
     ) -> None:
         """Test `SelectKeeperTransactionSubmissionRoundBAfterTimeout`."""
         self._exit_event = exit_event
         self.period_state.update(participant_to_selection=dict.fromkeys(self.participants), **attrs)  # type: ignore
-        super().test_run()
-        assert all(self._attr_checks(attrs))
-
-
-class TestSelectKeeperTransactionSubmissionRoundBAfterFail(
-    TestSelectKeeperTransactionSubmissionRoundBAfterTimeout
-):
-    """Test `SelectKeeperTransactionSubmissionRoundBAfterFail`"""
-
-    test_class = SelectKeeperTransactionSubmissionRoundBAfterFail
-
-    def _attr_checks(
-        self, attrs: Dict[str, Union[List[str], int]]
-    ) -> Tuple[bool, bool]:
-        """The attribute checks to assert."""
-        state = cast(TransactionSettlementPeriodState, self.period_state)
-        return (
-            state.missed_messages == cast(int, attrs["missed_messages"]),
-            state.consecutive_finalizations
-            == cast(int, attrs["consecutive_finalizations"]) + 1,
+        threshold_exceeded_mock.return_value = threshold_exceeded
+        super().test_run(deque(), "keeper")
+        assert (
+            cast(TransactionSettlementPeriodState, self.period_state).missed_messages
+            == cast(int, attrs["missed_messages"]) + 1
         )
 
 
@@ -313,16 +299,6 @@ class TestFinalizationRound(BaseOnlyKeeperSendsRoundTest):
     _period_state_class = TransactionSettlementPeriodState
     _event_class = TransactionSettlementEvent
     _round_class = FinalizationRound
-
-    def _update_keepers_hist(
-        self,
-        keepers_hist: Deque[str],
-        keeper: str,
-        exit_event: TransactionSettlementEvent,
-    ) -> None:
-        """Update keepers hist."""
-        if exit_event == TransactionSettlementEvent.DONE:
-            keepers_hist.append(keeper)
 
     @pytest.mark.parametrize(
         "tx_hashes_history, tx_digest, missed_messages, status, exit_event",
@@ -389,20 +365,17 @@ class TestFinalizationRound(BaseOnlyKeeperSendsRoundTest):
         """Runs tests."""
 
         keeper = sorted(list(self.participants))[0]
-        keepers_hist = deque(["agent2", "agent3"])
         self.period_state = cast(
             PeriodState,
             self.period_state.update(
                 most_voted_keeper_address=keeper,
                 missed_messages=missed_messages,
                 tx_hashes_history=tx_hashes_history,
-                keepers=keepers_hist.copy(),
             ),
         )
         tx_hashes_history.append(
             tx_digest
         ) if exit_event == TransactionSettlementEvent.DONE else tx_hashes_history
-        self._update_keepers_hist(keepers_hist, keeper, exit_event)
 
         test_round = self._round_class(
             state=self.period_state,
@@ -423,33 +396,14 @@ class TestFinalizationRound(BaseOnlyKeeperSendsRoundTest):
                     },
                 ),
                 state_update_fn=lambda _period_state, _: _period_state.update(
-                    tx_hashes_history=tx_hashes_history, keepers=keepers_hist
+                    tx_hashes_history=tx_hashes_history
                 ),
                 state_attr_checks=[
-                    lambda state: state.keepers,
                     lambda state: state.tx_hashes_history,
                 ],
                 exit_event=exit_event,
             )
         )
-
-
-class TestFinalizationRoundAfterTimeout(TestFinalizationRound):
-    """Test FinalizationRoundAfterTimeout."""
-
-    _period_state_class = TransactionSettlementPeriodState
-    _event_class = TransactionSettlementEvent
-    _round_class = FinalizationRoundAfterTimeout
-
-    def _update_keepers_hist(
-        self,
-        keepers_hist: Deque[str],
-        keeper: str,
-        exit_event: TransactionSettlementEvent,
-    ) -> None:
-        """Update keepers hist."""
-        current_keeper = keepers_hist.popleft()
-        keepers_hist.append(current_keeper)
 
 
 class TestCollectSignatureRound(BaseCollectDifferentUntilThresholdRoundTest):
@@ -542,10 +496,7 @@ class TestCheckTransactionHistoryRound(BaseCollectSameUntilThresholdRoundTest):
         )
 
         keepers = (
-            deque()
-            if expected_event
-            in (TransactionSettlementEvent.DONE, TransactionSettlementEvent.NONE)
-            else keepers
+            deque() if expected_event == TransactionSettlementEvent.DONE else keepers
         )
 
         self._complete_run(

@@ -20,8 +20,9 @@
 """Tests for valory/registration_abci skill's rounds."""
 
 import logging  # noqa: F401
+from collections import deque
 from types import MappingProxyType
-from typing import Any, Dict, FrozenSet, Optional, Type, cast
+from typing import Any, Deque, Dict, FrozenSet, Optional, Type, cast
 
 from packages.valory.skills.abstract_round_abci.base import AbstractRound
 from packages.valory.skills.abstract_round_abci.base import (
@@ -92,10 +93,11 @@ def get_most_voted_randomness() -> str:
 
 def get_participant_to_selection(
     participants: FrozenSet[str],
+    keeper: str = "keeper",
 ) -> Dict[str, SelectKeeperPayload]:
     """participant_to_selection"""
     return {
-        participant: SelectKeeperPayload(sender=participant, keeper="keeper")
+        participant: SelectKeeperPayload(sender=participant, keeper=keeper)
         for participant in participants
     }
 
@@ -280,27 +282,35 @@ class BaseSelectKeeperRoundTest(BaseCollectSameUntilThresholdRoundTest):
 
     _period_state_class = PeriodState
     _exit_event: Optional[Any] = None
+    _most_voted_payload = "keeper"
 
-    def test_run(
-        self,
-    ) -> None:
+    def test_run(self, keepers: Optional[Deque[str]] = None) -> None:
         """Run tests."""
+        if keepers is None:
+            keepers = deque()
 
         test_round = self.test_class(
-            state=self.period_state, consensus_params=self.consensus_params
+            state=self.period_state.update(keepers=deque(keepers)),
+            consensus_params=self.consensus_params,
         )
 
         self._complete_run(
             self._test_round(
                 test_round=test_round,
-                round_payloads=get_participant_to_selection(self.participants),
+                round_payloads=get_participant_to_selection(
+                    self.participants, self._most_voted_payload
+                ),
                 state_update_fn=lambda _period_state, _test_round: _period_state.update(
                     participant_to_selection=MappingProxyType(
-                        dict(get_participant_to_selection(self.participants))
+                        dict(
+                            get_participant_to_selection(
+                                self.participants, self._most_voted_payload
+                            )
+                        )
                     )
                 ),
                 state_attr_checks=[lambda state: state.participant_to_selection.keys()],
-                most_voted_payload="keeper",
+                most_voted_payload=self._most_voted_payload,
                 exit_event=self._event_class.DONE
                 if self._exit_event is None
                 else self._exit_event,
