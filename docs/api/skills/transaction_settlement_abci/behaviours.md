@@ -63,10 +63,26 @@ Select the keeper agent.
 
 ```python
 class SelectKeeperTransactionSubmissionBehaviourB(  # pylint: disable=too-many-ancestors
-    SelectKeeperBehaviour,  TransactionSettlementBaseState)
+    SelectKeeperTransactionSubmissionBehaviourA)
 ```
 
 Select the keeper b agent.
+
+<a id="packages.valory.skills.transaction_settlement_abci.behaviours.SelectKeeperTransactionSubmissionBehaviourB.async_act"></a>
+
+#### async`_`act
+
+```python
+def async_act() -> Generator
+```
+
+Do the action.
+
+Steps:
+    - Select a keeper randomly.
+    - Send the transaction with the keeper and wait for it to be mined.
+    - Wait until ABCI application transitions to the next round.
+    - Go to the next behaviour state (set done event).
 
 <a id="packages.valory.skills.transaction_settlement_abci.behaviours.SelectKeeperTransactionSubmissionBehaviourBAfterTimeout"></a>
 
@@ -78,17 +94,6 @@ class SelectKeeperTransactionSubmissionBehaviourBAfterTimeout(  # pylint: disabl
 ```
 
 Select the keeper b agent after a timeout.
-
-<a id="packages.valory.skills.transaction_settlement_abci.behaviours.SelectKeeperTransactionSubmissionBehaviourBAfterFail"></a>
-
-## SelectKeeperTransactionSubmissionBehaviourBAfterFail Objects
-
-```python
-class SelectKeeperTransactionSubmissionBehaviourBAfterFail(  # pylint: disable=too-many-ancestors
-    SelectKeeperBehaviour,  TransactionSettlementBaseState)
-```
-
-Select the keeper b agent after a failure.
 
 <a id="packages.valory.skills.transaction_settlement_abci.behaviours.ValidateTransactionBehaviour"></a>
 
@@ -263,17 +268,6 @@ Store a potentially late-arriving message locally.
 **Arguments**:
 
 - `message`: the late arriving message to handle.
-
-<a id="packages.valory.skills.transaction_settlement_abci.behaviours.FinalizeBehaviourAfterTimeout"></a>
-
-## FinalizeBehaviourAfterTimeout Objects
-
-```python
-class FinalizeBehaviourAfterTimeout(  # pylint: disable=too-many-ancestors
-    FinalizeBehaviour)
-```
-
-Select the keeper b agent after a timeout.
 
 <a id="packages.valory.skills.transaction_settlement_abci.behaviours.ResetBehaviour"></a>
 

@@ -24,13 +24,11 @@ states:
 - CollectSignatureRound
 - FailedRound
 - FinalizationRound
-- FinalizationRoundAfterTimeout
 - FinishedTransactionSubmissionRound
 - RandomnessTransactionSubmissionRound
 - ResetRound
 - SelectKeeperTransactionSubmissionRoundA
 - SelectKeeperTransactionSubmissionRoundB
-- SelectKeeperTransactionSubmissionRoundBAfterFail
 - SelectKeeperTransactionSubmissionRoundBAfterTimeout
 - SynchronizeLateMessagesRound
 - ValidateTransactionRound
@@ -53,13 +51,8 @@ transition_func:
     (FinalizationRound, CHECK_HISTORY): CheckTransactionHistoryRound
     (FinalizationRound, CHECK_LATE_ARRIVING_MESSAGE): SynchronizeLateMessagesRound
     (FinalizationRound, DONE): ValidateTransactionRound
-    (FinalizationRound, FINALIZATION_FAILED): SelectKeeperTransactionSubmissionRoundBAfterFail
+    (FinalizationRound, FINALIZATION_FAILED): FinalizationRound
     (FinalizationRound, ROUND_TIMEOUT): SelectKeeperTransactionSubmissionRoundBAfterTimeout
-    (FinalizationRoundAfterTimeout, CHECK_HISTORY): CheckTransactionHistoryRound
-    (FinalizationRoundAfterTimeout, CHECK_LATE_ARRIVING_MESSAGE): SynchronizeLateMessagesRound
-    (FinalizationRoundAfterTimeout, DONE): ValidateTransactionRound
-    (FinalizationRoundAfterTimeout, FINALIZATION_FAILED): SelectKeeperTransactionSubmissionRoundB
-    (FinalizationRoundAfterTimeout, ROUND_TIMEOUT): SelectKeeperTransactionSubmissionRoundBAfterTimeout
     (RandomnessTransactionSubmissionRound, DONE): SelectKeeperTransactionSubmissionRoundA
     (RandomnessTransactionSubmissionRound, NO_MAJORITY): RandomnessTransactionSubmissionRound
     (RandomnessTransactionSubmissionRound, ROUND_TIMEOUT): ResetRound
@@ -72,11 +65,6 @@ transition_func:
     (SelectKeeperTransactionSubmissionRoundB, DONE): FinalizationRound
     (SelectKeeperTransactionSubmissionRoundB, NO_MAJORITY): ResetRound
     (SelectKeeperTransactionSubmissionRoundB, ROUND_TIMEOUT): ResetRound
-    (SelectKeeperTransactionSubmissionRoundBAfterFail, CHECK_HISTORY): CheckTransactionHistoryRound
-    (SelectKeeperTransactionSubmissionRoundBAfterFail, CHECK_LATE_ARRIVING_MESSAGE): SynchronizeLateMessagesRound
-    (SelectKeeperTransactionSubmissionRoundBAfterFail, DONE): FinalizationRound
-    (SelectKeeperTransactionSubmissionRoundBAfterFail, NO_MAJORITY): ResetRound
-    (SelectKeeperTransactionSubmissionRoundBAfterFail, ROUND_TIMEOUT): ResetRound
     (SelectKeeperTransactionSubmissionRoundBAfterTimeout, CHECK_HISTORY): CheckTransactionHistoryRound
     (SelectKeeperTransactionSubmissionRoundBAfterTimeout, CHECK_LATE_ARRIVING_MESSAGE): SynchronizeLateMessagesRound
     (SelectKeeperTransactionSubmissionRoundBAfterTimeout, DONE): FinalizationRound
@@ -91,4 +79,4 @@ transition_func:
     (ValidateTransactionRound, NEGATIVE): CheckTransactionHistoryRound
     (ValidateTransactionRound, NONE): FinalizationRound
     (ValidateTransactionRound, NO_MAJORITY): ValidateTransactionRound
-    (ValidateTransactionRound, VALIDATE_TIMEOUT): FinalizationRoundAfterTimeout
+    (ValidateTransactionRound, VALIDATE_TIMEOUT): FinalizationRound

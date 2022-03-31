@@ -59,13 +59,11 @@ from packages.valory.skills.transaction_settlement_abci.rounds import (
     CheckTransactionHistoryRound,
     CollectSignatureRound,
     FinalizationRound,
-    FinalizationRoundAfterTimeout,
     PeriodState,
     RandomnessTransactionSubmissionRound,
     ResetRound,
     SelectKeeperTransactionSubmissionRoundA,
     SelectKeeperTransactionSubmissionRoundB,
-    SelectKeeperTransactionSubmissionRoundBAfterFail,
     SelectKeeperTransactionSubmissionRoundBAfterTimeout,
     SynchronizeLateMessagesRound,
     TransactionSubmissionAbciApp,
@@ -204,13 +202,35 @@ class SelectKeeperTransactionSubmissionBehaviourA(  # pylint: disable=too-many-a
 
 
 class SelectKeeperTransactionSubmissionBehaviourB(  # pylint: disable=too-many-ancestors
-    SelectKeeperBehaviour, TransactionSettlementBaseState
+    SelectKeeperTransactionSubmissionBehaviourA
 ):
     """Select the keeper b agent."""
 
     state_id = "select_keeper_transaction_submission_b"
     matching_round = SelectKeeperTransactionSubmissionRoundB
-    payload_class = SelectKeeperPayload
+
+    def async_act(self) -> Generator:
+        """
+        Do the action.
+
+        Steps:
+            - Select a keeper randomly.
+            - Send the transaction with the keeper and wait for it to be mined.
+            - Wait until ABCI application transitions to the next round.
+            - Go to the next behaviour state (set done event).
+        """
+        if self.period_state.keepers_threshold_exceeded:
+            payload = self.payload_class(self.context.agent_address, "")
+
+            with self.context.benchmark_tool.measure(self.state_id).consensus():
+                yield from self.send_a2a_transaction(payload)
+                yield from self.wait_until_round_end()
+
+            self.set_done()
+
+        else:
+            res = super().async_act()
+            yield from res
 
 
 class SelectKeeperTransactionSubmissionBehaviourBAfterTimeout(  # pylint: disable=too-many-ancestors
@@ -220,16 +240,6 @@ class SelectKeeperTransactionSubmissionBehaviourBAfterTimeout(  # pylint: disabl
 
     state_id = "select_keeper_transaction_submission_b_after_timeout"
     matching_round = SelectKeeperTransactionSubmissionRoundBAfterTimeout
-    payload_class = SelectKeeperPayload
-
-
-class SelectKeeperTransactionSubmissionBehaviourBAfterFail(  # pylint: disable=too-many-ancestors
-    SelectKeeperBehaviour, TransactionSettlementBaseState
-):
-    """Select the keeper b agent after a failure."""
-
-    state_id = "select_keeper_transaction_submission_b_after_fail"
-    matching_round = SelectKeeperTransactionSubmissionRoundBAfterFail
     payload_class = SelectKeeperPayload
 
 
@@ -525,7 +535,7 @@ class FinalizeBehaviour(TransactionSettlementBaseState):
 
     def _i_am_not_sending(self) -> bool:
         """Indicates if the current agent is the sender or not."""
-        return self.context.agent_address != self.period_state.most_voted_keeper_address
+        return self.context.agent_address != self.period_state.keeper_in_priority
 
     def async_act(self) -> Generator[None, None, None]:
         """
@@ -625,19 +635,6 @@ class FinalizeBehaviour(TransactionSettlementBaseState):
             super().handle_late_messages(message)
 
 
-class FinalizeBehaviourAfterTimeout(  # pylint: disable=too-many-ancestors
-    FinalizeBehaviour
-):
-    """Select the keeper b agent after a timeout."""
-
-    state_id = "finalize_after_timeout"
-    matching_round = FinalizationRoundAfterTimeout
-
-    def _i_am_not_sending(self) -> bool:
-        """Indicates if the current agent is the sender or not."""
-        return self.context.agent_address != self.period_state.keeper_in_priority
-
-
 class ResetBehaviour(TransactionSettlementBaseState):
     """Reset state."""
 
@@ -667,12 +664,10 @@ class TransactionSettlementRoundBehaviour(AbstractRoundBehaviour):
         SelectKeeperTransactionSubmissionBehaviourA,  # type: ignore
         SelectKeeperTransactionSubmissionBehaviourB,  # type: ignore
         SelectKeeperTransactionSubmissionBehaviourBAfterTimeout,  # type: ignore
-        SelectKeeperTransactionSubmissionBehaviourBAfterFail,  # type: ignore
         ValidateTransactionBehaviour,  # type: ignore
         CheckTransactionHistoryBehaviour,  # type: ignore
         SignatureBehaviour,  # type: ignore
         FinalizeBehaviour,  # type: ignore
-        FinalizeBehaviourAfterTimeout,  # type: ignore
         SynchronizeLateMessagesBehaviour,  # type: ignore
         CheckLateTxHashesBehaviour,  # type: ignore
         ResetBehaviour,  # type: ignore
