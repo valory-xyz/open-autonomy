@@ -1228,6 +1228,9 @@ class BaseState(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
             quantities_by_good_id={},
             nonce="",
         )
+        self.context.logger.info(
+            f"Sending signing request for transaction: {transaction}..."
+        )
         self._send_transaction_signing_request(transaction, terms)
         signature_response = yield from self.wait_for_message()
         signature_response = cast(SigningMessage, signature_response)
@@ -1237,8 +1240,12 @@ class BaseState(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
         ):
             self.context.logger.error("Error when requesting transaction signature.")
             return None, RPCResponseStatus.UNCLASSIFIED_ERROR
+        self.context.logger.info(
+            f"Received signature response: {signature_response}\n Sending transaction..."
+        )
         self._send_transaction_request(signature_response)
         transaction_digest_msg = yield from self.wait_for_message()
+        transaction_digest_msg = cast(LedgerApiMessage, transaction_digest_msg)
         if (
             transaction_digest_msg.performative
             != LedgerApiMessage.Performative.TRANSACTION_DIGEST
@@ -1246,6 +1253,9 @@ class BaseState(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
             error = f"Error when requesting transaction digest: {transaction_digest_msg.message}"
             self.context.logger.error(error)
             return None, self.__parse_rpc_error(error)
+        self.context.logger.info(
+            f"Transaction sent! Received transaction digest: {transaction_digest_msg}"
+        )
         tx_hash = transaction_digest_msg.transaction_digest.body
         return tx_hash, RPCResponseStatus.SUCCESS
 
