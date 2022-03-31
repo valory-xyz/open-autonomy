@@ -150,8 +150,17 @@ class TransactionSettlementBaseState(BaseState, ABC):
             )
         )
         # Set nonce and tip.
-        self.params.nonce = Nonce(int(cast(str, tx_data["nonce"])))
-        self.params.tip = int(cast(str, tx_data["max_priority_fee_per_gas"]))
+        nonce = Nonce(int(cast(str, tx_data["nonce"])))
+        tip = int(cast(str, tx_data["max_priority_fee_per_gas"]))
+        if nonce == self.params.nonce:
+            self.context.logger.info(
+                "Attempting to replace transaction "
+                f"with old tip {self.params.tip}, using new tip {tip}"
+            )
+        else:
+            self.context.logger.info(f"Sent transaction for mining with tip {tip}")
+            self.params.nonce = nonce
+        self.params.tip = tip
 
         return tx_data
 
