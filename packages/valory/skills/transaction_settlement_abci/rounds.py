@@ -102,7 +102,7 @@ class PeriodState(BasePeriodState):  # pylint: disable=too-many-instance-attribu
     @property
     def keepers(self) -> Deque[str]:
         """Get the current cycle's keepers who have tried to submit a transaction."""
-        return cast(deque, self.db.get("keepers", deque()))
+        return cast(Deque[str], self.db.get("keepers", deque()))
 
     @property
     def blacklisted_keepers(self) -> Set[str]:
