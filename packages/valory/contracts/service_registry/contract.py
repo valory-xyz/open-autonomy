@@ -20,7 +20,7 @@
 """This module contains the class to connect to the Service Registry contract."""
 
 import logging
-from typing import Dict, List, cast
+from typing import Dict, List, Tuple, cast
 
 from aea.common import JSONLike
 from aea.configurations.base import PublicId
@@ -28,9 +28,11 @@ from aea.contracts.base import Contract
 from aea_ledger_ethereum import LedgerApi, EthereumApi
 
 
+DEPLOYED_BYTECODE_HASH = "-0x25968f4b9631ae91"
+
 Address = hex
-ConfigHash = tuple
-AgentParams = List[tuple]
+ConfigHash = Tuple[bytes, int, int]
+AgentParams = Tuple[int, int]
 
 PUBLIC_ID = PublicId.from_str("valory/service_registry:0.1.0")
 
@@ -57,11 +59,8 @@ class ServiceRegistryContract(Contract):
         """
         ledger_api = cast(EthereumApi, ledger_api)
         deployed_bytecode = ledger_api.api.eth.get_code(contract_address).hex()
-        # local_bytecode = cls.contract_interface["ethereum"]["deployedBytecode"]  # noqa:  E800
-        # logging.error(deployed_bytecode)
-        # verified = deployed_bytecode == DEPLOYED_BYTECODE
-        # return dict(verified=verified)
-        return deployed_bytecode
+        verified = hex(hash(deployed_bytecode)) == DEPLOYED_BYTECODE_HASH
+        return dict(verified=verified)
 
     @classmethod
     def get_service_info(
