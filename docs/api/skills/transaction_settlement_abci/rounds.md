@@ -421,13 +421,13 @@ Transition states:
         - done: 4.
         - check history: 5.
         - round timeout: 7.
-        - finalization failed: 3.
+        - finalization failed: 6.
         - check late arriving message: 8.
     4. ValidateTransactionRound
         - done: 11.
         - negative: 5.
         - none: 3.
-        - validate timeout: 3.
+        - validate timeout: 6.
         - no majority: 4.
     5. CheckTransactionHistoryRound
         - done: 11.

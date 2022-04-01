@@ -569,13 +569,13 @@ class TransactionSubmissionAbciApp(AbciApp[Event]):
             - done: 4.
             - check history: 5.
             - round timeout: 7.
-            - finalization failed: 3.
+            - finalization failed: 6.
             - check late arriving message: 8.
         4. ValidateTransactionRound
             - done: 11.
             - negative: 5.
             - none: 3.
-            - validate timeout: 3.
+            - validate timeout: 6.
             - no majority: 4.
         5. CheckTransactionHistoryRound
             - done: 11.
@@ -644,14 +644,14 @@ class TransactionSubmissionAbciApp(AbciApp[Event]):
             Event.DONE: ValidateTransactionRound,
             Event.CHECK_HISTORY: CheckTransactionHistoryRound,
             Event.ROUND_TIMEOUT: SelectKeeperTransactionSubmissionRoundBAfterTimeout,
-            Event.FINALIZATION_FAILED: FinalizationRound,
+            Event.FINALIZATION_FAILED: SelectKeeperTransactionSubmissionRoundB,
             Event.CHECK_LATE_ARRIVING_MESSAGE: SynchronizeLateMessagesRound,
         },
         ValidateTransactionRound: {
             Event.DONE: FinishedTransactionSubmissionRound,
             Event.NEGATIVE: CheckTransactionHistoryRound,
             Event.NONE: FinalizationRound,
-            Event.VALIDATE_TIMEOUT: FinalizationRound,
+            Event.VALIDATE_TIMEOUT: SelectKeeperTransactionSubmissionRoundB,
             Event.NO_MAJORITY: ValidateTransactionRound,
         },
         CheckTransactionHistoryRound: {
