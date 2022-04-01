@@ -22,7 +22,19 @@ import textwrap
 from abc import ABC
 from collections import deque
 from enum import Enum
-from typing import Deque, Dict, List, Mapping, Optional, Set, Tuple, Type, Union, cast
+from typing import (
+    Any,
+    Deque,
+    Dict,
+    List,
+    Mapping,
+    Optional,
+    Set,
+    Tuple,
+    Type,
+    Union,
+    cast,
+)
 
 from packages.valory.skills.abstract_round_abci.base import (
     ABCIAppInternalError,
@@ -239,6 +251,16 @@ class FinalizationRound(OnlyKeeperSendsRound):
 
         return hashes
 
+    def _blacklist_keeper(self) -> Tuple[Deque[str], Set[str]]:
+        """Blacklist the current keeper."""
+        period_state = cast(PeriodState, self.period_state)
+        keepers = period_state.keepers
+        blacklisted_keepers = period_state.blacklisted_keepers
+        keepers.remove(period_state.most_voted_keeper_address)
+        blacklisted_keepers.add(period_state.most_voted_keeper_address)
+
+        return keepers, blacklisted_keepers
+
     def _get_check_or_fail_event(self) -> Event:
         """Return the appropriate check event or fail."""
         if VerificationStatus(
@@ -281,11 +303,23 @@ class FinalizationRound(OnlyKeeperSendsRound):
             )
             return state, Event.DONE
 
-        state = self.period_state.update(
+        update_params: Dict[str, Any] = dict(
             period_state_class=PeriodState,
             final_verification_status=VerificationStatus(self.keeper_payload["status"]),
         )
-        return state, self._get_check_or_fail_event()
+        if (
+            VerificationStatus(self.keeper_payload["status"])
+            == VerificationStatus.BLACKLIST
+        ):
+            (
+                update_params["keepers"],
+                update_params["blacklisted_keepers"],
+            ) = self._blacklist_keeper()
+
+        state = self.period_state.update(**update_params)
+        event = self._get_check_or_fail_event()
+
+        return state, event
 
 
 class RandomnessTransactionSubmissionRound(CollectSameUntilThresholdRound):
