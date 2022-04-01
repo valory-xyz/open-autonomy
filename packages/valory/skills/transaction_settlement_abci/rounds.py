@@ -84,6 +84,7 @@ class Event(Enum):
     CHECK_LATE_ARRIVING_MESSAGE = "check_late_arriving_message"
     FINALIZATION_FAILED = "finalization_failed"
     MISSED_AND_LATE_MESSAGES_MISMATCH = "missed_and_late_messages_mismatch"
+    KEEPER_BLACKLISTED = "keeper_blacklisted"
 
 
 class PeriodState(BasePeriodState):  # pylint: disable=too-many-instance-attributes
@@ -420,6 +421,10 @@ class SelectKeeperTransactionSubmissionRoundB(SelectKeeperTransactionSubmissionR
         if event != Event.DONE:
             return state, event
 
+        # Do not allow selecting a keeper who has been blacklisted for the period.
+        if state.most_voted_keeper_address in state.blacklisted_keepers:
+            return state, Event.KEEPER_BLACKLISTED
+
         if not state.keepers_threshold_exceeded:
             # init the number of retries for the new keeper and update the keepers' subset to include the new keeper
             state = state.update(keeper_retries=1, keepers=self._get_updated_keepers())
@@ -663,6 +668,7 @@ class TransactionSubmissionAbciApp(AbciApp[Event]):
             - check late arriving message: 8.
         6. SelectKeeperTransactionSubmissionRoundB
             - done: 3.
+            - keeper blacklisted: 6.
             - round timeout: 10.
             - no majority: 10.
         7. SelectKeeperTransactionSubmissionRoundBAfterTimeout
@@ -741,6 +747,7 @@ class TransactionSubmissionAbciApp(AbciApp[Event]):
         },
         SelectKeeperTransactionSubmissionRoundB: {
             Event.DONE: FinalizationRound,
+            Event.KEEPER_BLACKLISTED: SelectKeeperTransactionSubmissionRoundB,
             Event.ROUND_TIMEOUT: ResetRound,
             Event.NO_MAJORITY: ResetRound,
         },
