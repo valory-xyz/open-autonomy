@@ -450,7 +450,7 @@ Transition states:
         - done: 9.
         - round timeout: 8.
         - no majority: 8.
-        - none: 12.
+        - none: 3.
         - missed and late messages mismatch: 12.
     9. CheckLateTxHashesRound
         - done: 11.

@@ -104,7 +104,7 @@ class TestTransactionSettlementBaseState(PriceEstimationFSMBehaviourBaseCase):
     )
 
     @pytest.mark.parametrize(
-        "message, tx_digest, rpc_status, expected_data",
+        "message, tx_digest, rpc_status, expected_data, replacement",
         (
             (
                 MagicMock(
@@ -118,6 +118,7 @@ class TestTransactionSettlementBaseState(PriceEstimationFSMBehaviourBaseCase):
                     "nonce": "",
                     "max_priority_fee_per_gas": "",
                 },
+                False,
             ),
             (
                 MagicMock(
@@ -131,6 +132,7 @@ class TestTransactionSettlementBaseState(PriceEstimationFSMBehaviourBaseCase):
                     "nonce": "",
                     "max_priority_fee_per_gas": "",
                 },
+                False,
             ),
             (
                 MagicMock(performative=ContractApiMessage.Performative.RAW_MESSAGE),
@@ -142,6 +144,7 @@ class TestTransactionSettlementBaseState(PriceEstimationFSMBehaviourBaseCase):
                     "nonce": "",
                     "max_priority_fee_per_gas": "",
                 },
+                False,
             ),
             (
                 MagicMock(performative=ContractApiMessage.Performative.RAW_TRANSACTION),
@@ -153,6 +156,7 @@ class TestTransactionSettlementBaseState(PriceEstimationFSMBehaviourBaseCase):
                     "nonce": "",
                     "max_priority_fee_per_gas": "",
                 },
+                False,
             ),
             (
                 MagicMock(performative=ContractApiMessage.Performative.RAW_TRANSACTION),
@@ -164,6 +168,7 @@ class TestTransactionSettlementBaseState(PriceEstimationFSMBehaviourBaseCase):
                     "nonce": "",
                     "max_priority_fee_per_gas": "",
                 },
+                False,
             ),
             (
                 MagicMock(performative=ContractApiMessage.Performative.RAW_TRANSACTION),
@@ -175,6 +180,7 @@ class TestTransactionSettlementBaseState(PriceEstimationFSMBehaviourBaseCase):
                     "nonce": "",
                     "max_priority_fee_per_gas": "",
                 },
+                False,
             ),
             (
                 MagicMock(
@@ -191,6 +197,24 @@ class TestTransactionSettlementBaseState(PriceEstimationFSMBehaviourBaseCase):
                     "nonce": 0,
                     "max_priority_fee_per_gas": 10,
                 },
+                False,
+            ),
+            (
+                MagicMock(
+                    performative=ContractApiMessage.Performative.RAW_TRANSACTION,
+                    raw_transaction=MagicMock(
+                        body={"nonce": 0, "maxPriorityFeePerGas": 10}
+                    ),
+                ),
+                "test_digest",
+                RPCResponseStatus.SUCCESS,
+                {
+                    "status": VerificationStatus.PENDING,
+                    "tx_digest": "test_digest",
+                    "nonce": 0,
+                    "max_priority_fee_per_gas": 10,
+                },
+                True,
             ),
         ),
     )
@@ -200,6 +224,7 @@ class TestTransactionSettlementBaseState(PriceEstimationFSMBehaviourBaseCase):
         tx_digest: Optional[str],
         rpc_status: RPCResponseStatus,
         expected_data: TxDataType,
+        replacement: bool,
         monkeypatch: MonkeyPatch,
     ) -> None:
         """Test `_get_tx_data`."""
@@ -216,13 +241,11 @@ class TestTransactionSettlementBaseState(PriceEstimationFSMBehaviourBaseCase):
                 )
             ),
         )
-        assert (
-            cast(
-                BaseState,
-                cast(BaseState, self.behaviour.current_state),
-            ).state_id
-            == SignatureBehaviour.state_id
-        )
+        state = cast(SignatureBehaviour, self.behaviour.current_state)
+        assert state.state_id == SignatureBehaviour.state_id
+        # Set `nonce` to the same value as the returned, so that we test the tx replacement logging.
+        if replacement:
+            state.params.nonce = 0
 
         # patch the `send_raw_transaction` method
         def dummy_send_raw_transaction(
