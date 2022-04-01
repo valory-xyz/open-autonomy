@@ -4,6 +4,7 @@ alphabet_in:
 - CHECK_TIMEOUT
 - DONE
 - FINALIZATION_FAILED
+- KEEPER_BLACKLISTED
 - MISSED_AND_LATE_MESSAGES_MISMATCH
 - NEGATIVE
 - NONE
@@ -63,6 +64,7 @@ transition_func:
     (SelectKeeperTransactionSubmissionRoundA, NO_MAJORITY): ResetRound
     (SelectKeeperTransactionSubmissionRoundA, ROUND_TIMEOUT): ResetRound
     (SelectKeeperTransactionSubmissionRoundB, DONE): FinalizationRound
+    (SelectKeeperTransactionSubmissionRoundB, KEEPER_BLACKLISTED): SelectKeeperTransactionSubmissionRoundB
     (SelectKeeperTransactionSubmissionRoundB, NO_MAJORITY): ResetRound
     (SelectKeeperTransactionSubmissionRoundB, ROUND_TIMEOUT): ResetRound
     (SelectKeeperTransactionSubmissionRoundBAfterTimeout, CHECK_HISTORY): CheckTransactionHistoryRound
