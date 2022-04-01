@@ -416,7 +416,6 @@ class ValidateTransactionRound(VotingRound):
                 final_tx_hash=cast(PeriodState, self.period_state).tx_hashes_history[
                     -1
                 ],
-                keepers=deque(),
             )  # type: ignore
             return state, self.done_event
         if self.negative_vote_threshold_reached:
@@ -461,7 +460,6 @@ class CheckTransactionHistoryRound(CollectSameUntilThresholdRound):
                 )
 
             if return_status == VerificationStatus.VERIFIED:
-                state = state.update(keepers=deque())
                 return state, Event.DONE
             if (
                 return_status == VerificationStatus.NOT_VERIFIED

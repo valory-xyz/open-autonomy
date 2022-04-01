@@ -495,10 +495,6 @@ class TestCheckTransactionHistoryRound(BaseCollectSameUntilThresholdRoundTest):
             state=self.period_state, consensus_params=self.consensus_params
         )
 
-        keepers = (
-            deque() if expected_event == TransactionSettlementEvent.DONE else keepers
-        )
-
         self._complete_run(
             self._test_round(
                 test_round=test_round,
