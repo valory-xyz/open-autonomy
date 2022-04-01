@@ -28,7 +28,9 @@ from aea.contracts.base import Contract
 from aea_ledger_ethereum import LedgerApi, EthereumApi
 
 
-address = hex
+Address = hex
+ConfigHash = tuple
+AgentParams = List[tuple]
 
 PUBLIC_ID = PublicId.from_str("valory/service_registry:0.1.0")
 
@@ -78,14 +80,17 @@ class ServiceRegistryContract(Contract):
             serviceId=service_id,
         )
 
-        owner: address = service_info[0]
+        owner: Address = service_info[0]
         name: str = service_info[1]
         description: str = service_info[2]
-        config_hash: int = service_info[4]
-        threshold: int = service_info[5]
-        num_agent_ids: int = service_info[6]
-        agent_ids: List[int] = service_info[7]
-        agent_params: List = service_info[8]
+        config_hash: ConfigHash = service_info[3]
+        threshold: int = service_info[4]
+        num_agent_ids: int = service_info[5]
+        agent_ids: List[int] = service_info[6]
+        agent_params: AgentParams = service_info[7]
+        num_agent_instances: int = service_info[8]
+        agent_instances: List[Address] = service_info[9]
+        contract_address: Address = service_info[10]
 
         return dict(
             owner=owner,
@@ -96,4 +101,7 @@ class ServiceRegistryContract(Contract):
             num_agent_ids=num_agent_ids,
             agent_ids=agent_ids,
             agent_params=agent_params,
+            num_agent_instances=num_agent_instances,
+            agent_instances=agent_instances,
+            contract_address=contract_address,
         )

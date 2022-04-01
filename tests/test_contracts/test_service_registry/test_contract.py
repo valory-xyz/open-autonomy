@@ -58,6 +58,10 @@ AGENT_REGISTRY = "0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512"
 ADDRESS_ONE = "0x70997970c51812dc3a010c7d01b50e0d17dc79c8"
 ADDRESS_TWO = "0x3c44cdddb6a900fa2b585dd299e03d12fa4293bc"
 ADDRESS_THREE = "0x90f79bf6eb2c4f870365e785982e1f101e93b906"
+ADDRESS_FOUR = "0x15d34AAf54267DB7D7c367839AAf71A00a2C6A65"
+
+NONCE = 0
+CHAIN_ID = 31337
 
 
 class BaseServiceRegistryContractTest(BaseGanacheContractTest):
@@ -150,18 +154,62 @@ class TestServiceRegistryContract(BaseServiceRegistryContractTest):
 
         assert result == DEPLOYED_BYTECODE
 
+    # def test_get_service_info(self) -> None:
+    #     """Test service info retrieval"""
+    #
+    #     service_id: int = 1  # contract counter increments before assignment
+    #
+    #     assert self.contract_address is not None
+    #     assert self.create_dummy_service()
+    #
+    #     service_info = self.contract.get_service_info(
+    #         ledger_api=self.ledger_api,
+    #         contract_address=self.contract_address,
+    #         service_id=service_id,
+    #     )
+    #
+    #     assert service_info['service_id'] == service_id
+
     def test_get_service_info(self) -> None:
-        """Test service info retrieval"""
 
-        service_id: int = 1  # contract counter increments before assignment
+        owner: Address = self.key_pairs()[0][0]
+        name: str = "dummy_service"
+        description: str = "description"
+        config_hash: ConfigHash = (b"config_hash", 8, 8)
+        threshold: int = 0
+        num_agent_ids: int = 1
+        agent_ids: List[int] = [1, ]
+        agent_params: List = [(256, 256), ]
+        num_agent_instances: int = 1
+        agent_instances: List[Address] = [ADDRESS_ONE, ]
+        address: Address = ADDRESS_ONE
 
-        assert self.contract_address is not None
-        assert self.create_dummy_service()
-
-        service_info = self.contract.get_service_info(
-            ledger_api=self.ledger_api,
-            contract_address=self.contract_address,
-            service_id=service_id,
+        result = dict(
+            owner=owner,
+            name=name,
+            description=description,
+            config_hash=config_hash,
+            threshold=threshold,
+            num_agent_ids=num_agent_ids,
+            agent_ids=agent_ids,
+            agent_params=agent_params,
+            num_agent_instances=num_agent_instances,
+            agent_instances=agent_instances,
+            address=address,
         )
 
-        assert service_info['service_id'] == service_id
+        with mock.patch.object(
+                self.ledger_api.api.manager, "request_blocking", return_value=CHAIN_ID
+        ):
+            with mock.patch.object(
+                    self.ledger_api.api.manager, "call_contract_function", return_value=result
+            ):
+                service_info = self.contract.get_service_info(
+                    ledger_api=self.ledger_api,
+                    contract_address=self.contract_address,
+                    service_id=1,
+                )
+
+        logging.error(service_info)
+
+
