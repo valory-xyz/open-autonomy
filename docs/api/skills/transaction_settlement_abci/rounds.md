@@ -59,6 +59,28 @@ def tx_hashes_history() -> List[str]
 
 Get the current cycle's tx hashes history, which has not yet been verified.
 
+<a id="packages.valory.skills.transaction_settlement_abci.rounds.PeriodState.keepers"></a>
+
+#### keepers
+
+```python
+@property
+def keepers() -> Deque[str]
+```
+
+Get the current cycle's keepers who have tried to submit a transaction.
+
+<a id="packages.valory.skills.transaction_settlement_abci.rounds.PeriodState.keeper_in_priority"></a>
+
+#### keeper`_`in`_`priority
+
+```python
+@property
+def keeper_in_priority() -> str
+```
+
+Get the first in priority keeper to try to re-submit a transaction.
+
 <a id="packages.valory.skills.transaction_settlement_abci.rounds.PeriodState.to_be_validated_tx_hash"></a>
 
 #### to`_`be`_`validated`_`tx`_`hash
@@ -168,17 +190,6 @@ def late_arriving_tx_hashes() -> List[str]
 
 Get the late_arriving_tx_hashes.
 
-<a id="packages.valory.skills.transaction_settlement_abci.rounds.PeriodState.is_reset_params_set"></a>
-
-#### is`_`reset`_`params`_`set
-
-```python
-@property
-def is_reset_params_set() -> bool
-```
-
-Get the reset params flag.
-
 <a id="packages.valory.skills.transaction_settlement_abci.rounds.FailedRound"></a>
 
 ## FailedRound Objects
@@ -219,6 +230,16 @@ def end_block() -> Optional[Tuple[BasePeriodState, Enum]]
 
 Process the end of the block.
 
+<a id="packages.valory.skills.transaction_settlement_abci.rounds.FinalizationRoundAfterTimeout"></a>
+
+## FinalizationRoundAfterTimeout Objects
+
+```python
+class FinalizationRoundAfterTimeout(FinalizationRound)
+```
+
+A round in which finalization is performed after a `VALIDATE_TIMEOUT`.
+
 <a id="packages.valory.skills.transaction_settlement_abci.rounds.RandomnessTransactionSubmissionRound"></a>
 
 ## RandomnessTransactionSubmissionRound Objects
@@ -258,7 +279,7 @@ class SelectKeeperTransactionSubmissionRoundBAfterTimeout(
     SelectKeeperTransactionSubmissionRoundB)
 ```
 
-A round in which a new keeper is selected for transaction submission after a round timeout of the first keeper
+A round in which a new keeper is selected for tx submission after a round timeout of the previous keeper
 
 <a id="packages.valory.skills.transaction_settlement_abci.rounds.SelectKeeperTransactionSubmissionRoundBAfterTimeout.end_block"></a>
 
@@ -269,6 +290,17 @@ def end_block() -> Optional[Tuple[BasePeriodState, Enum]]
 ```
 
 Process the end of the block.
+
+<a id="packages.valory.skills.transaction_settlement_abci.rounds.SelectKeeperTransactionSubmissionRoundBAfterFail"></a>
+
+## SelectKeeperTransactionSubmissionRoundBAfterFail Objects
+
+```python
+class SelectKeeperTransactionSubmissionRoundBAfterFail(
+    SelectKeeperTransactionSubmissionRoundBAfterTimeout)
+```
+
+A round in which a new keeper is selected for tx submission after a failure of the previous keeper
 
 <a id="packages.valory.skills.transaction_settlement_abci.rounds.ValidateTransactionRound"></a>
 
@@ -387,67 +419,82 @@ Initial states: {RandomnessTransactionSubmissionRound}
 Transition states:
     0. RandomnessTransactionSubmissionRound
         - done: 1.
-        - round timeout: 10.
+        - round timeout: 12.
         - no majority: 0.
     1. SelectKeeperTransactionSubmissionRoundA
         - done: 2.
-        - round timeout: 10.
-        - no majority: 10.
+        - round timeout: 12.
+        - no majority: 12.
     2. CollectSignatureRound
         - done: 3.
-        - round timeout: 10.
-        - no majority: 10.
+        - round timeout: 12.
+        - no majority: 12.
     3. FinalizationRound
         - done: 4.
-        - check history: 5.
-        - round timeout: 7.
-        - finalization failed: 6.
-        - check late arriving message: 8.
-    4. ValidateTransactionRound
-        - done: 11.
-        - negative: 5.
-        - none: 3.
-        - validate timeout: 3.
-        - no majority: 4.
-    5. CheckTransactionHistoryRound
-        - done: 11.
-        - negative: 12.
-        - none: 12.
-        - round timeout: 5.
-        - no majority: 12.
-        - check late arriving message: 8.
-    6. SelectKeeperTransactionSubmissionRoundB
-        - done: 3.
-        - round timeout: 10.
-        - no majority: 10.
-    7. SelectKeeperTransactionSubmissionRoundBAfterTimeout
-        - done: 3.
-        - check history: 5.
-        - round timeout: 10.
-        - no majority: 10.
-    8. SynchronizeLateMessagesRound
-        - done: 9.
+        - check history: 6.
         - round timeout: 8.
-        - no majority: 8.
-        - none: 12.
-        - missed and late messages mismatch: 12.
-    9. CheckLateTxHashesRound
+        - finalization failed: 9.
+        - check late arriving message: 10.
+    4. ValidateTransactionRound
+        - done: 13.
+        - negative: 6.
+        - none: 3.
+        - validate timeout: 5.
+        - no majority: 4.
+    5. FinalizationRoundAfterTimeout
+        - done: 4.
+        - check history: 6.
+        - round timeout: 8.
+        - finalization failed: 7.
+        - check late arriving message: 10.
+    6. CheckTransactionHistoryRound
+        - done: 13.
+        - negative: 7.
+        - none: 14.
+        - check timeout: 6.
+        - no majority: 6.
+        - check late arriving message: 10.
+    7. SelectKeeperTransactionSubmissionRoundB
+        - done: 3.
+        - round timeout: 12.
+        - no majority: 12.
+    8. SelectKeeperTransactionSubmissionRoundBAfterTimeout
+        - done: 3.
+        - check history: 6.
+        - check late arriving message: 10.
+        - round timeout: 12.
+        - no majority: 12.
+    9. SelectKeeperTransactionSubmissionRoundBAfterFail
+        - done: 3.
+        - check history: 6.
+        - check late arriving message: 10.
+        - round timeout: 12.
+        - no majority: 12.
+    10. SynchronizeLateMessagesRound
         - done: 11.
-        - negative: 12.
-        - none: 12.
-        - round timeout: 9.
-        - no majority: 12.
-    10. ResetRound
+        - round timeout: 10.
+        - no majority: 10.
+        - none: 3.
+        - missed and late messages mismatch: 14.
+    11. CheckLateTxHashesRound
+        - done: 13.
+        - negative: 14.
+        - none: 14.
+        - check timeout: 11.
+        - no majority: 14.
+        - check late arriving message: 10.
+    12. ResetRound
         - done: 0.
-        - reset timeout: 12.
-        - no majority: 12.
-    11. FinishedTransactionSubmissionRound
-    12. FailedRound
+        - reset timeout: 14.
+        - no majority: 14.
+    13. FinishedTransactionSubmissionRound
+    14. FailedRound
 
 Final states: {FailedRound, FinishedTransactionSubmissionRound}
 
 Timeouts:
     round timeout: 30.0
     validate timeout: 30.0
+    check timeout: 30.0
     reset timeout: 30.0
 

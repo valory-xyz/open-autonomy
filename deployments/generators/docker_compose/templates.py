@@ -114,7 +114,7 @@ ABCI_NODE_TEMPLATE: str = (
 )
 
 if IMAGE_VERSION == "dev":
-    ABCI_NODE_TEMPLATE += "      - ../../packages/:/home/ubuntu/packages\n"
+    ABCI_NODE_TEMPLATE += "      - ../../packages:/home/ubuntu/packages:rw\n"
     ABCI_NODE_TEMPLATE += "      - ../../../open-aea/:/open-aea\n"
     TENDERMINT_NODE_TEMPLATE = TENDERMINT_NODE_TEMPLATE.replace(
         "DEV_MODE=0", "DEV_MODE=1"

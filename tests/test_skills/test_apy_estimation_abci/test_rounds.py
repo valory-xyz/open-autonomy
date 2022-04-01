@@ -463,7 +463,7 @@ class TestTestRound(BaseCollectSameUntilThresholdRoundTest):
         """Runs test."""
 
         test_round = _TestRound(
-            self.period_state.update(full_training=True), self.consensus_params
+            self.period_state.update(full_training=False), self.consensus_params
         )
         self._complete_run(
             self._test_round(
@@ -472,7 +472,7 @@ class TestTestRound(BaseCollectSameUntilThresholdRoundTest):
                 state_update_fn=lambda _period_state, _: _period_state.update(
                     full_training=True
                 ),
-                state_attr_checks=[lambda state: state.full_training],
+                state_attr_checks=[lambda state: bool(state.full_training)],
                 most_voted_payload="report_hash",
                 exit_event=Event.DONE,
             )
@@ -506,7 +506,9 @@ class TestEstimateRound(BaseCollectSameUntilThresholdRoundTest):
     ) -> None:
         """Runs test."""
 
-        test_round = EstimateRound(self.period_state, self.consensus_params)
+        test_round = EstimateRound(
+            self.period_state.update(n_estimations=n_estimations), self.consensus_params
+        )
         self._complete_run(
             self._test_round(
                 test_round=test_round,
@@ -539,21 +541,22 @@ class TestCycleResetRound(BaseCollectSameUntilThresholdRoundTest):
     ) -> None:
         """Run tests"""
 
-        test_round = CycleResetRound(self.period_state, self.consensus_params)
+        test_round = CycleResetRound(
+            self.period_state.update(
+                latest_observation_hist_hash="x0",
+                most_voted_models="",
+                full_training=True,
+            ),
+            self.consensus_params,
+        )
         self._complete_run(
             self._test_round(
                 test_round=test_round,
                 round_payloads=get_participant_to_reset_payload(self.participants),
                 state_update_fn=lambda _period_state, _test_round: _period_state.update(
-                    period_count=_test_round.most_voted_payload,
-                    most_voted_models="",
                     full_training=False,
-                    n_estimations=1,
-                    latest_observation_hist_hash="x0",
-                    participants=get_participants(),
-                    all_participants=get_participants(),
                 ),
-                state_attr_checks=[],
+                state_attr_checks=[lambda state: state.full_training],
                 most_voted_payload=1,
                 exit_event=Event.DONE,
             )
@@ -576,20 +579,20 @@ class TestFreshModelResetRound(BaseCollectSameUntilThresholdRoundTest):
     ) -> None:
         """Run tests"""
 
-        test_round = FreshModelResetRound(self.period_state, self.consensus_params)
+        test_round = FreshModelResetRound(
+            self.period_state.update(
+                n_estimations=1, full_training=True, most_voted_models=""
+            ),
+            self.consensus_params,
+        )
         self._complete_run(
             self._test_round(
                 test_round=test_round,
                 round_payloads=get_participant_to_reset_payload(self.participants),
                 state_update_fn=lambda _period_state, _test_round: _period_state.update(
-                    period_count=_test_round.most_voted_payload,
-                    most_voted_models="",
                     full_training=False,
-                    n_estimations=1,
-                    participants=get_participants(),
-                    all_participants=get_participants(),
                 ),
-                state_attr_checks=[],
+                state_attr_checks=[lambda state: state.full_training],
                 most_voted_payload=1,
                 exit_event=Event.DONE,
             )

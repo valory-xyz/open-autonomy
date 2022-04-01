@@ -59,11 +59,13 @@ from packages.valory.skills.transaction_settlement_abci.rounds import (
     CheckTransactionHistoryRound,
     CollectSignatureRound,
     FinalizationRound,
+    FinalizationRoundAfterTimeout,
     PeriodState,
     RandomnessTransactionSubmissionRound,
     ResetRound,
     SelectKeeperTransactionSubmissionRoundA,
     SelectKeeperTransactionSubmissionRoundB,
+    SelectKeeperTransactionSubmissionRoundBAfterFail,
     SelectKeeperTransactionSubmissionRoundBAfterTimeout,
     SynchronizeLateMessagesRound,
     TransactionSubmissionAbciApp,
@@ -114,9 +116,7 @@ class TransactionSettlementBaseState(BaseState, ABC):
             )
             return tx_data
 
-        if (
-            message.performative != ContractApiMessage.Performative.RAW_TRANSACTION
-        ):  # pragma: nocover
+        if message.performative != ContractApiMessage.Performative.RAW_TRANSACTION:
             self.context.logger.warning(
                 f"get_raw_safe_transaction unsuccessful! Received: {message}"
             )
@@ -148,8 +148,17 @@ class TransactionSettlementBaseState(BaseState, ABC):
             )
         )
         # Set nonce and tip.
-        self.params.nonce = Nonce(int(cast(str, tx_data["nonce"])))
-        self.params.tip = int(cast(str, tx_data["max_priority_fee_per_gas"]))
+        nonce = Nonce(int(cast(str, tx_data["nonce"])))
+        tip = int(cast(str, tx_data["max_priority_fee_per_gas"]))
+        if nonce == self.params.nonce:
+            self.context.logger.info(
+                "Attempting to replace transaction "
+                f"with old tip {self.params.tip}, using new tip {tip}"
+            )
+        else:
+            self.context.logger.info(f"Sent transaction for mining with tip {tip}")
+            self.params.nonce = nonce
+        self.params.tip = tip
 
         return tx_data
 
@@ -181,11 +190,6 @@ class TransactionSettlementBaseState(BaseState, ABC):
     def _safe_nonce_reused(revert_reason: str) -> bool:
         """Check for GS026."""
         return "GS026" in revert_reason
-
-    def _reset_params_if_flag_set(self) -> None:
-        """Reset tx parameters."""
-        if self.period_state.is_reset_params_set:
-            self.params.reset_tx_params()
 
 
 class RandomnessTransactionSubmissionBehaviour(RandomnessBehaviour):
@@ -223,6 +227,16 @@ class SelectKeeperTransactionSubmissionBehaviourBAfterTimeout(  # pylint: disabl
 
     state_id = "select_keeper_transaction_submission_b_after_timeout"
     matching_round = SelectKeeperTransactionSubmissionRoundBAfterTimeout
+    payload_class = SelectKeeperPayload
+
+
+class SelectKeeperTransactionSubmissionBehaviourBAfterFail(  # pylint: disable=too-many-ancestors
+    SelectKeeperBehaviour, TransactionSettlementBaseState
+):
+    """Select the keeper b agent after a failure."""
+
+    state_id = "select_keeper_transaction_submission_b_after_fail"
+    matching_round = SelectKeeperTransactionSubmissionRoundBAfterFail
     payload_class = SelectKeeperPayload
 
 
@@ -272,9 +286,6 @@ class ValidateTransactionBehaviour(TransactionSettlementBaseState):
             )
             return None
 
-        # Reset tx parameters.
-        self.params.reset_tx_params()
-
         contract_api_msg = yield from self._verify_tx(
             self.period_state.to_be_validated_tx_hash
         )
@@ -295,10 +306,13 @@ class ValidateTransactionBehaviour(TransactionSettlementBaseState):
         return verified
 
 
+CHECK_TX_HISTORY = "check_transaction_history"
+
+
 class CheckTransactionHistoryBehaviour(TransactionSettlementBaseState):
     """Check the transaction history."""
 
-    state_id = "check_transaction_history"
+    state_id = CHECK_TX_HISTORY
     matching_round = CheckTransactionHistoryRound
 
     def async_act(self) -> Generator:
@@ -335,7 +349,7 @@ class CheckTransactionHistoryBehaviour(TransactionSettlementBaseState):
         """Check the transaction history."""
         history = (
             self.period_state.tx_hashes_history
-            if self.state_id == "check_transaction_history"
+            if self.state_id == CHECK_TX_HISTORY
             else self.period_state.late_arriving_tx_hashes
         )
 
@@ -368,6 +382,11 @@ class CheckTransactionHistoryBehaviour(TransactionSettlementBaseState):
                 verified_log + f", all: {contract_api_msg.state.body}"
             )
 
+            status = cast(int, contract_api_msg.state.body["status"])
+            if status == -1:
+                self.context.logger.info(f"Tx hash {tx_hash} has no receipt!")
+                continue
+
             tx_data = cast(TxData, contract_api_msg.state.body["transaction"])
             revert_reason = yield from self._get_revert_reason(tx_data)
 
@@ -375,7 +394,7 @@ class CheckTransactionHistoryBehaviour(TransactionSettlementBaseState):
                 if self._safe_nonce_reused(revert_reason):
                     check_expected_to_be_verified = (
                         "The next tx check"
-                        if self.state_id == "check_transaction_history"
+                        if self.state_id == CHECK_TX_HISTORY
                         else "One of the next tx checks"
                     )
                     self.context.logger.info(
@@ -511,6 +530,10 @@ class FinalizeBehaviour(TransactionSettlementBaseState):
     state_id = "finalize"
     matching_round = FinalizationRound
 
+    def _i_am_not_sending(self) -> bool:
+        """Indicates if the current agent is the sender or not."""
+        return self.context.agent_address != self.period_state.most_voted_keeper_address
+
     def async_act(self) -> Generator[None, None, None]:
         """
         Do the action.
@@ -520,11 +543,7 @@ class FinalizeBehaviour(TransactionSettlementBaseState):
         - Otherwise, wait until the next round.
         - If a timeout is hit, set exit A event, otherwise set done event.
         """
-
-        # Reset tx params if the flag has been set
-        self._reset_params_if_flag_set()
-
-        if self.context.agent_address != self.period_state.most_voted_keeper_address:
+        if self._i_am_not_sending():
             yield from self._not_sender_act()
         else:
             yield from self._sender_act()
@@ -613,6 +632,19 @@ class FinalizeBehaviour(TransactionSettlementBaseState):
             super().handle_late_messages(message)
 
 
+class FinalizeBehaviourAfterTimeout(  # pylint: disable=too-many-ancestors
+    FinalizeBehaviour
+):
+    """Select the keeper b agent after a timeout."""
+
+    state_id = "finalize_after_timeout"
+    matching_round = FinalizationRoundAfterTimeout
+
+    def _i_am_not_sending(self) -> bool:
+        """Indicates if the current agent is the sender or not."""
+        return self.context.agent_address != self.period_state.keeper_in_priority
+
+
 class ResetBehaviour(TransactionSettlementBaseState):
     """Reset state."""
 
@@ -624,7 +656,6 @@ class ResetBehaviour(TransactionSettlementBaseState):
         self.context.logger.info(
             f"Period {self.period_state.period_count} was not finished. Resetting!"
         )
-        self.params.reset_tx_params()
         payload = ResetPayload(
             self.context.agent_address, self.period_state.period_count + 1
         )
@@ -643,10 +674,12 @@ class TransactionSettlementRoundBehaviour(AbstractRoundBehaviour):
         SelectKeeperTransactionSubmissionBehaviourA,  # type: ignore
         SelectKeeperTransactionSubmissionBehaviourB,  # type: ignore
         SelectKeeperTransactionSubmissionBehaviourBAfterTimeout,  # type: ignore
+        SelectKeeperTransactionSubmissionBehaviourBAfterFail,  # type: ignore
         ValidateTransactionBehaviour,  # type: ignore
         CheckTransactionHistoryBehaviour,  # type: ignore
         SignatureBehaviour,  # type: ignore
         FinalizeBehaviour,  # type: ignore
+        FinalizeBehaviourAfterTimeout,  # type: ignore
         SynchronizeLateMessagesBehaviour,  # type: ignore
         CheckLateTxHashesBehaviour,  # type: ignore
         ResetBehaviour,  # type: ignore
