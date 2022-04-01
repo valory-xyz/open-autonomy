@@ -394,11 +394,10 @@ class SelectKeeperTransactionSubmissionRoundB(SelectKeeperTransactionSubmissionR
             state = state.update(keeper_retries=state.keeper_retries + 1)
             return state, event
 
-        if state.final_verification_status != VerificationStatus.PENDING:
-            # init the number of retries for the new keeper and reprioritize the keepers' list
-            state = state.update(
-                keeper_retries=1, keepers=self._get_reprioritized_keepers()
-            )
+        # init the number of retries for the new keeper and reprioritize the keepers' list
+        state = state.update(
+            keeper_retries=1, keepers=self._get_reprioritized_keepers()
+        )
         return state, event
 
 
