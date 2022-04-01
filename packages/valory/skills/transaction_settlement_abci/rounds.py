@@ -326,11 +326,10 @@ class SelectKeeperTransactionSubmissionRoundA(CollectSameUntilThresholdRound):
     def end_block(self) -> Optional[Tuple[BasePeriodState, Enum]]:
         """Process the end of the block."""
         res = super().end_block()
-        if res is not None:
-            state, event = res
-        else:
+        if res is None:
             return None
 
+        state, event = res
         if event == Event.DONE:
             state = state.update(keepers=self._get_updated_keepers())
 
