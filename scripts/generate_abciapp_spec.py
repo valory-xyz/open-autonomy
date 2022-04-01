@@ -171,13 +171,13 @@ class DFA:
 
         for (s1, s2), t_set in aux_map.items():
             if s1 in self.start_states:
-                edge_label = '\\n'.join(t_set)
-                print(f"    {s1} --> {s2}: {edge_label}", file=fp)
+                edge_label = '<br />'.join(t_set)
+                print(f"    {s1} --> {s2}: <center>{edge_label}</center>", file=fp)
 
         for (s1, s2), t_set in aux_map.items():
             if s1 not in self.start_states:
-                edge_label = '\\n'.join(t_set)
-                print(f"    {s1} --> {s2}: {edge_label}", file=fp)
+                edge_label = '<br />'.join(t_set)
+                print(f"    {s1} --> {s2}: <center>{edge_label}</center>", file=fp)
 
     def _get_exportable_repr(self) -> Dict[str, Any]:
         """Retrieves an exportable respresentation for YAML/JSON dump of this DFA."""
