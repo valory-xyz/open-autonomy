@@ -125,11 +125,10 @@ class TransactionSettlementBaseState(BaseState, ABC):
         )
 
         if rpc_status == RPCResponseStatus.INCORRECT_NONCE:
-            self.context.logger.warning(
-                f"send_raw_transaction unsuccessful! Received: {rpc_status}"
-            )
             tx_data["status"] = VerificationStatus.ERROR
-            return tx_data
+
+        if rpc_status == RPCResponseStatus.INSUFFICIENT_FUNDS:
+            tx_data["status"] = VerificationStatus.BLACKLIST
 
         if rpc_status != RPCResponseStatus.SUCCESS:
             self.context.logger.warning(
