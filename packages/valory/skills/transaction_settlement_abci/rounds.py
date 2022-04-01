@@ -54,6 +54,9 @@ from packages.valory.skills.transaction_settlement_abci.payloads import (
 )
 
 
+KEEPER_ALLOWED_RETRIES = 3
+
+
 class Event(Enum):
     """Event enumeration for the price estimation demo."""
 
