@@ -22,13 +22,14 @@
 import logging
 from typing import Dict, List, Tuple, cast
 
+import hashlib
 from aea.common import JSONLike
 from aea.configurations.base import PublicId
 from aea.contracts.base import Contract
 from aea_ledger_ethereum import LedgerApi, EthereumApi
 
 
-DEPLOYED_BYTECODE_HASH = "-0x25968f4b9631ae91"
+DEPLOYED_BYTECODE_MD5_HASH = "dbddd97ffe22b97d04cfe242e3570fd0"
 
 Address = hex
 ConfigHash = Tuple[bytes, int, int]
@@ -59,7 +60,8 @@ class ServiceRegistryContract(Contract):
         """
         ledger_api = cast(EthereumApi, ledger_api)
         deployed_bytecode = ledger_api.api.eth.get_code(contract_address).hex()
-        verified = hex(hash(deployed_bytecode)) == DEPLOYED_BYTECODE_HASH
+        md5_hash = hashlib.md5(deployed_bytecode.encode("utf-8")).hexdigest()
+        verified = md5_hash == DEPLOYED_BYTECODE_MD5_HASH
         return dict(verified=verified)
 
     @classmethod
