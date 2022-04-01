@@ -424,7 +424,8 @@ class RPCResponseStatus(Enum):
     SUCCESS = 1
     INCORRECT_NONCE = 2
     UNDERPRICED = 3
-    UNCLASSIFIED_ERROR = 4
+    INSUFFICIENT_FUNDS = 4
+    UNCLASSIFIED_ERROR = 5
 
 
 class BaseState(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
@@ -1397,6 +1398,8 @@ class BaseState(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
             return RPCResponseStatus.UNDERPRICED
         if "nonce too low" in error:
             return RPCResponseStatus.INCORRECT_NONCE
+        if "insufficient funds" in error:
+            return RPCResponseStatus.INSUFFICIENT_FUNDS
         return RPCResponseStatus.UNCLASSIFIED_ERROR
 
     def _start_reset(self) -> Generator:
