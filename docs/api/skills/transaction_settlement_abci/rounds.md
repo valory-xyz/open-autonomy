@@ -92,6 +92,28 @@ def keeper_in_priority() -> str
 
 Get the first in priority keeper to try to re-submit a transaction.
 
+<a id="packages.valory.skills.transaction_settlement_abci.rounds.PeriodState.keeper_retries"></a>
+
+#### keeper`_`retries
+
+```python
+@property
+def keeper_retries() -> int
+```
+
+Get the number of times the current keeper has retried.
+
+<a id="packages.valory.skills.transaction_settlement_abci.rounds.PeriodState.keeper_retries_reached"></a>
+
+#### keeper`_`retries`_`reached
+
+```python
+@property
+def keeper_retries_reached() -> bool
+```
+
+Indicates if the keeper's allowed number of consecutive retries has been reached.
+
 <a id="packages.valory.skills.transaction_settlement_abci.rounds.PeriodState.to_be_validated_tx_hash"></a>
 
 #### to`_`be`_`validated`_`tx`_`hash
@@ -268,6 +290,19 @@ def end_block() -> Optional[Tuple[BasePeriodState, Enum]]
 ```
 
 Process the end of the block.
+
+If the keepers' subset is not full yet, re-select a keeper as normally.
+Otherwise, cycle through the keepers' subset, using the following logic:
+
+A `PENDING` verification status means that we have not received any errors,
+therefore, all we know is that the tx has not been mined yet due to low pricing.
+Consequently, we are going to retry with the same keeper in order to replace the transaction.
+However, if we receive a status other than `PENDING`, we need to cycle through the keepers' subset.
+Moreover, if the current keeper has reached the allowed number of retries, then we cycle anyway.
+
+**Returns**:
+
+a tuple with the updated state and exit event, if finished, otherwise `None`.
 
 <a id="packages.valory.skills.transaction_settlement_abci.rounds.SelectKeeperTransactionSubmissionRoundBAfterTimeout"></a>
 
