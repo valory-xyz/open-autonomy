@@ -392,8 +392,7 @@ class SelectKeeperTransactionSubmissionRoundB(SelectKeeperTransactionSubmissionR
         :return: the keepers queue re-prioritized.
         """
         keepers = cast(PeriodState, self.period_state).keepers
-        current_keeper = keepers.popleft()
-        keepers.append(current_keeper)
+        keepers.rotate(-1)
 
         return keepers
 
