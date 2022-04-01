@@ -228,19 +228,17 @@ class TestSelectKeeperTransactionSubmissionRoundB(BaseSelectKeeperRoundTest):
     _event_class = TransactionSettlementEvent
 
     @pytest.mark.parametrize(
-        "keepers, keeper_retries, most_voted_payload",
+        "keepers, keeper_retries, most_voted_payload, blacklisted",
         (
-            (deque(), 1, "keeper"),
+            (deque(), 1, "keeper", True),
+            (deque(), 1, "keeper", False),
             (
                 deque(["test_keeper1", "test_keeper2"]),
                 KEEPER_ALLOWED_RETRIES,
                 "",
+                False,
             ),
-            (
-                deque(["test_keeper1", "test_keeper2"]),
-                1,
-                "",
-            ),
+            (deque(["test_keeper1", "test_keeper2"]), 1, "", False),
         ),
     )
     def test_run(
@@ -248,10 +246,13 @@ class TestSelectKeeperTransactionSubmissionRoundB(BaseSelectKeeperRoundTest):
         keepers: Deque[str],
         keeper_retries: int,
         most_voted_payload: str,
+        blacklisted: bool,
     ) -> None:
         """Run tests."""
+        if blacklisted:
+            self._exit_event = TransactionSettlementEvent.KEEPER_BLACKLISTED
         self._most_voted_payload = most_voted_payload
-        super().test_run(keepers, keeper_retries)
+        super().test_run(keepers, keeper_retries, blacklisted)
 
 
 class TestSelectKeeperTransactionSubmissionRoundBAfterTimeout(
@@ -306,7 +307,7 @@ class TestSelectKeeperTransactionSubmissionRoundBAfterTimeout(
         self._exit_event = exit_event
         self.period_state.update(participant_to_selection=dict.fromkeys(self.participants), **attrs)  # type: ignore
         threshold_exceeded_mock.return_value = threshold_exceeded
-        super().test_run(deque(), 1, "keeper")
+        super().test_run(deque(), 1, "keeper", False)
         assert (
             cast(TransactionSettlementPeriodState, self.period_state).missed_messages
             == cast(int, attrs["missed_messages"]) + 1
@@ -372,6 +373,13 @@ class TestFinalizationRound(BaseOnlyKeeperSendsRoundTest):
                 VerificationStatus.PENDING.value,
                 TransactionSettlementEvent.DONE,
             ),
+            (
+                ["test"],
+                "",
+                0,
+                VerificationStatus.BLACKLIST.value,
+                TransactionSettlementEvent.FINALIZATION_FAILED,
+            ),
         ),
     )
     def test_finalization_round(
@@ -389,8 +397,12 @@ class TestFinalizationRound(BaseOnlyKeeperSendsRoundTest):
             PeriodState,
             self.period_state.update(
                 most_voted_keeper_address=keeper,
+                keepers=deque([keeper]),
                 missed_messages=missed_messages,
                 tx_hashes_history=tx_hashes_history,
+                blacklisted_keepers={keeper}
+                if status == VerificationStatus.BLACKLIST.value
+                else {},
             ),
         )
         tx_hashes_history.append(

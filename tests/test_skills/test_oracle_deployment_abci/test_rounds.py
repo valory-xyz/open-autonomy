@@ -291,6 +291,7 @@ class BaseSelectKeeperRoundTest(BaseCollectSameUntilThresholdRoundTest):
         self,
         keepers: Optional[Deque[str]] = None,
         keeper_retries: int = 1,
+        blacklisted: bool = False,
     ) -> None:
         """Run tests."""
         if keepers is None:
@@ -301,6 +302,7 @@ class BaseSelectKeeperRoundTest(BaseCollectSameUntilThresholdRoundTest):
                 keepers=deque(keepers),
                 keeper_retries=keeper_retries,
                 final_verification_status=VerificationStatus.PENDING,
+                blacklisted_keepers={self._most_voted_payload} if blacklisted else {},
             ),
             consensus_params=self.consensus_params,
         )

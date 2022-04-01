@@ -161,6 +161,18 @@ class TestTransactionSettlementBaseState(PriceEstimationFSMBehaviourBaseCase):
             (
                 MagicMock(performative=ContractApiMessage.Performative.RAW_TRANSACTION),
                 None,
+                RPCResponseStatus.INSUFFICIENT_FUNDS,
+                {
+                    "status": VerificationStatus.BLACKLIST,
+                    "tx_digest": "",
+                    "nonce": "",
+                    "max_priority_fee_per_gas": "",
+                },
+                False,
+            ),
+            (
+                MagicMock(performative=ContractApiMessage.Performative.RAW_TRANSACTION),
+                None,
                 RPCResponseStatus.UNCLASSIFIED_ERROR,
                 {
                     "status": VerificationStatus.PENDING,
