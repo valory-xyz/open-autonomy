@@ -54,7 +54,10 @@ from packages.valory.skills.transaction_settlement_abci.rounds import (
 from packages.valory.skills.transaction_settlement_abci.rounds import (
     Event as TransactionSettlementEvent,
 )
-from packages.valory.skills.transaction_settlement_abci.rounds import FinalizationRound
+from packages.valory.skills.transaction_settlement_abci.rounds import (
+    FinalizationRound,
+    KEEPER_ALLOWED_RETRIES,
+)
 from packages.valory.skills.transaction_settlement_abci.rounds import (
     PeriodState as TransactionSettlementPeriodState,
 )
@@ -225,13 +228,33 @@ class TestSelectKeeperTransactionSubmissionRoundB(BaseSelectKeeperRoundTest):
     _event_class = TransactionSettlementEvent
 
     @pytest.mark.parametrize(
-        "keepers, most_voted_payload",
-        ((deque(), "keeper"), (deque(["test_keeper1", "test_keeper2"]), "")),
+        "keepers, keeper_retries, most_voted_payload, final_verification_status",
+        (
+            (deque(), 1, "keeper", VerificationStatus.PENDING),
+            (
+                deque(["test_keeper1", "test_keeper2"]),
+                KEEPER_ALLOWED_RETRIES,
+                "",
+                VerificationStatus.INVALID_PAYLOAD,
+            ),
+            (
+                deque(["test_keeper1", "test_keeper2"]),
+                1,
+                "",
+                VerificationStatus.PENDING,
+            ),
+        ),
     )
-    def test_run(self, keepers: Deque[str], most_voted_payload: str) -> None:
+    def test_run(
+        self,
+        keepers: Deque[str],
+        keeper_retries: int,
+        most_voted_payload: str,
+        final_verification_status: VerificationStatus,
+    ) -> None:
         """Run tests."""
         self._most_voted_payload = most_voted_payload
-        super().test_run(keepers)
+        super().test_run(keepers, keeper_retries, final_verification_status)
 
 
 class TestSelectKeeperTransactionSubmissionRoundBAfterTimeout(
@@ -286,7 +309,7 @@ class TestSelectKeeperTransactionSubmissionRoundBAfterTimeout(
         self._exit_event = exit_event
         self.period_state.update(participant_to_selection=dict.fromkeys(self.participants), **attrs)  # type: ignore
         threshold_exceeded_mock.return_value = threshold_exceeded
-        super().test_run(deque(), "keeper")
+        super().test_run(deque(), 1, "keeper", VerificationStatus.PENDING)
         assert (
             cast(TransactionSettlementPeriodState, self.period_state).missed_messages
             == cast(int, attrs["missed_messages"]) + 1

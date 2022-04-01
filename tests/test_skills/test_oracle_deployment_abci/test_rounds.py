@@ -54,6 +54,9 @@ from packages.valory.skills.price_estimation_abci.payloads import (
     EstimatePayload,
     TransactionHashPayload,
 )
+from packages.valory.skills.transaction_settlement_abci.payload_tools import (
+    VerificationStatus,
+)
 from packages.valory.skills.transaction_settlement_abci.payloads import ValidatePayload
 
 from tests.test_skills.test_abstract_round_abci.test_base_rounds import (
@@ -284,13 +287,22 @@ class BaseSelectKeeperRoundTest(BaseCollectSameUntilThresholdRoundTest):
     _exit_event: Optional[Any] = None
     _most_voted_payload = "keeper"
 
-    def test_run(self, keepers: Optional[Deque[str]] = None) -> None:
+    def test_run(
+        self,
+        keepers: Optional[Deque[str]] = None,
+        keeper_retries: int = 1,
+        final_verification_status: VerificationStatus = VerificationStatus.PENDING,
+    ) -> None:
         """Run tests."""
         if keepers is None:
             keepers = deque()
 
         test_round = self.test_class(
-            state=self.period_state.update(keepers=deque(keepers)),
+            state=self.period_state.update(
+                keepers=deque(keepers),
+                keeper_retries=keeper_retries,
+                final_verification_status=final_verification_status,
+            ),
             consensus_params=self.consensus_params,
         )
 
