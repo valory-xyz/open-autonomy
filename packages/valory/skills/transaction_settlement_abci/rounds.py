@@ -359,20 +359,47 @@ class SelectKeeperTransactionSubmissionRoundB(SelectKeeperTransactionSubmissionR
         return keepers
 
     def end_block(self) -> Optional[Tuple[BasePeriodState, Enum]]:
-        """Process the end of the block."""
+        """
+        Process the end of the block.
+
+        If the keepers' subset is not full yet, re-select a keeper as normally.
+        Otherwise, cycle through the keepers' subset, using the following logic:
+
+        A `PENDING` verification status means that we have not received any errors,
+        therefore, all we know is that the tx has not been mined yet due to low pricing.
+        Consequently, we are going to retry with the same keeper in order to replace the transaction.
+        However, if we receive a status other than `PENDING`, we need to cycle through the keepers' subset.
+        Moreover, if the current keeper has reached the allowed number of retries, then we cycle anyway.
+
+        :return: a tuple with the updated state and exit event, if finished, otherwise `None`.
+        """
         res = super().end_block()
-        if res is not None:
-            state, event = res
-        else:
+        if res is None:
             return None
 
-        if event == Event.DONE:
-            if cast(PeriodState, state).most_voted_keeper_address == "":
-                keepers = self._get_reprioritized_keepers()
-            else:
-                keepers = self._get_updated_keepers()
-            state = state.update(keepers=keepers)
+        state, event = res
+        state = cast(PeriodState, state)
+        if event != Event.DONE:
+            return state, event
 
+        if not state.keepers_threshold_exceeded:
+            # init the number of retries for the new keeper and update the keepers' subset to include the new keeper
+            state = state.update(keeper_retries=1, keepers=self._get_updated_keepers())
+            return state, event
+
+        if (
+            not state.keeper_retries_reached
+            and state.final_verification_status == VerificationStatus.PENDING
+        ):
+            # increase the number of retries for the current keeper
+            state = state.update(keeper_retries=state.keeper_retries + 1)
+            return state, event
+
+        if state.final_verification_status != VerificationStatus.PENDING:
+            # init the number of retries for the new keeper and reprioritize the keepers' list
+            state = state.update(
+                keeper_retries=1, keepers=self._get_reprioritized_keepers()
+            )
         return state, event
 
 
