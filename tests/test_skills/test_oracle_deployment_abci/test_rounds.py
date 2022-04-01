@@ -291,7 +291,6 @@ class BaseSelectKeeperRoundTest(BaseCollectSameUntilThresholdRoundTest):
         self,
         keepers: Optional[Deque[str]] = None,
         keeper_retries: int = 1,
-        final_verification_status: VerificationStatus = VerificationStatus.PENDING,
     ) -> None:
         """Run tests."""
         if keepers is None:
@@ -301,7 +300,7 @@ class BaseSelectKeeperRoundTest(BaseCollectSameUntilThresholdRoundTest):
             state=self.period_state.update(
                 keepers=deque(keepers),
                 keeper_retries=keeper_retries,
-                final_verification_status=final_verification_status,
+                final_verification_status=VerificationStatus.PENDING,
             ),
             consensus_params=self.consensus_params,
         )

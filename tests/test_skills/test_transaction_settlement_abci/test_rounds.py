@@ -228,20 +228,18 @@ class TestSelectKeeperTransactionSubmissionRoundB(BaseSelectKeeperRoundTest):
     _event_class = TransactionSettlementEvent
 
     @pytest.mark.parametrize(
-        "keepers, keeper_retries, most_voted_payload, final_verification_status",
+        "keepers, keeper_retries, most_voted_payload",
         (
-            (deque(), 1, "keeper", VerificationStatus.PENDING),
+            (deque(), 1, "keeper"),
             (
                 deque(["test_keeper1", "test_keeper2"]),
                 KEEPER_ALLOWED_RETRIES,
                 "",
-                VerificationStatus.INVALID_PAYLOAD,
             ),
             (
                 deque(["test_keeper1", "test_keeper2"]),
                 1,
                 "",
-                VerificationStatus.PENDING,
             ),
         ),
     )
@@ -250,11 +248,10 @@ class TestSelectKeeperTransactionSubmissionRoundB(BaseSelectKeeperRoundTest):
         keepers: Deque[str],
         keeper_retries: int,
         most_voted_payload: str,
-        final_verification_status: VerificationStatus,
     ) -> None:
         """Run tests."""
         self._most_voted_payload = most_voted_payload
-        super().test_run(keepers, keeper_retries, final_verification_status)
+        super().test_run(keepers, keeper_retries)
 
 
 class TestSelectKeeperTransactionSubmissionRoundBAfterTimeout(
@@ -309,7 +306,7 @@ class TestSelectKeeperTransactionSubmissionRoundBAfterTimeout(
         self._exit_event = exit_event
         self.period_state.update(participant_to_selection=dict.fromkeys(self.participants), **attrs)  # type: ignore
         threshold_exceeded_mock.return_value = threshold_exceeded
-        super().test_run(deque(), 1, "keeper", VerificationStatus.PENDING)
+        super().test_run(deque(), 1, "keeper")
         assert (
             cast(TransactionSettlementPeriodState, self.period_state).missed_messages
             == cast(int, attrs["missed_messages"]) + 1
