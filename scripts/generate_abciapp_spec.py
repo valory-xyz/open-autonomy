@@ -19,6 +19,7 @@
 # ------------------------------------------------------------------------------
 """
 Generates the specification for a given ABCI app in YAML/JSON format using a simplified syntax for deterministic finite automata (DFA).
+Alternatively, it can also produce a Mermaid diagram source code.
 
 Example usage:
 
@@ -169,12 +170,12 @@ class DFA:
                 aux_map[(s1, s2)] = set([t])
 
         for (s1, s2), t_set in aux_map.items():
-            if s1 in self.start_states: 
+            if s1 in self.start_states:
                 edge_label = '\\n'.join(t_set)
                 print(f"    {s1} --> {s2}: {edge_label}", file=fp)
 
         for (s1, s2), t_set in aux_map.items():
-            if s1 not in self.start_states: 
+            if s1 not in self.start_states:
                 edge_label = '\\n'.join(t_set)
                 print(f"    {s1} --> {s2}: {edge_label}", file=fp)
 
