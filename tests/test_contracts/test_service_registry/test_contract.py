@@ -20,7 +20,6 @@
 """Tests for valory/service_registry contract."""
 
 # To test locally, run a hardhat node:
-# docker run -p 8545:8545 -it valory/consensus-algorithms-hardhat:0.1.0
 
 
 import logging
@@ -28,6 +27,16 @@ from typing import Dict, List, Tuple, Any, cast
 from pathlib import Path
 
 from aea_ledger_ethereum import EthereumCrypto
+
+from packages.valory.contracts.component_registry.contract import (
+    PUBLIC_ID as COMPONENT_REGISTRY_PUBLIC_ID,
+    ComponentRegistryContract,
+)
+
+from packages.valory.contracts.agent_registry.contract import (
+    PUBLIC_ID as AGENT_REGISTRY_PUBLIC_ID,
+    AgentRegistryContract,
+)
 
 from packages.valory.contracts.service_registry.contract import (
     PUBLIC_ID,
@@ -39,6 +48,7 @@ from tests.conftest import ROOT_DIR
 from web3 import Web3
 # from aea_ledger_ethereum import EthereumApi
 from tests.test_contracts.base import BaseContractTest, BaseGanacheContractTest
+from tests.helpers.contracts import get_register_contract
 
 Address = hex
 ConfigHash = Tuple[bytes, int, int]
@@ -47,6 +57,7 @@ AgentParams = Tuple[int, int]
 DEPLOYER_ADDRESS = "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266"
 CONTRACT_ADDRESS = "0x5FbDB2315678afecb367f032d93F642f64180aa3"
 AGENT_REGISTRY = "0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512"
+COMPONENT_REGISTRY = "0x9fE46736679d2D9a65F0992F2272dE9f3c7fa6e0"
 # REGISTRIES_MANAGER = "0x9fE46736679d2D9a65F0992F2272dE9f3c7fa6e0"
 # OWNER_COMPONENTS_AND_AGENTS = "0x8626f6940E2eb28930eFb4CeF49B2d1F2C9C1199"
 
@@ -57,6 +68,66 @@ ADDRESS_FOUR = "0x15d34AAf54267DB7D7c367839AAf71A00a2C6A65"
 
 NONCE = 0
 CHAIN_ID = 31337
+
+
+class BaseComponentRegistryTest(BaseContractTest):
+    """"""
+    contract: AgentRegistryContract
+    ledger_identifier = EthereumCrypto.identifier
+    contract_address = AGENT_REGISTRY
+    contract_directory = Path(
+        ROOT_DIR, "packages", COMPONENT_REGISTRY_PUBLIC_ID.author, "contracts", "component_registry"
+    )
+
+    GAS: int = 10 ** 10
+    DEFAULT_MAX_FEE_PER_GAS: int = 10 ** 10
+    DEFAULT_MAX_PRIORITY_FEE_PER_GAS: int = 10 ** 10
+
+    @classmethod
+    def deployment_kwargs(cls) -> Dict[str, Any]:
+        """Contract deployment kwargs"""
+
+        _name: str = "TestComponentRegistry"
+        _symbol: str = "OLA"
+        _bURI: str = "bURI"
+
+        return dict(
+            _name=_name,
+            _symbol=_symbol,
+            _bURI=_bURI,
+            gas=cls.GAS,
+        )
+
+
+class BaseAgentRegistryTest(BaseContractTest):
+    """"""
+    contract: AgentRegistryContract
+    ledger_identifier = EthereumCrypto.identifier
+    contract_address = AGENT_REGISTRY
+    contract_directory = Path(
+        ROOT_DIR, "packages", AGENT_REGISTRY_PUBLIC_ID.author, "contracts", "agent_registry"
+    )
+
+    GAS: int = 10 ** 10
+    DEFAULT_MAX_FEE_PER_GAS: int = 10 ** 10
+    DEFAULT_MAX_PRIORITY_FEE_PER_GAS: int = 10 ** 10
+
+    @classmethod
+    def deployment_kwargs(cls) -> Dict[str, Any]:
+        """Contract deployment kwargs"""
+
+        _name: str = "TestAgentRegistry"
+        _symbol: str = "OLA"
+        _bURI: str = "bURI"
+        _componentRegistry: Address = Web3.toChecksumAddress(COMPONENT_REGISTRY)
+
+        return dict(
+            _name=_name,
+            _symbol=_symbol,
+            _bURI=_bURI,
+            _componentRegistry=_componentRegistry,
+            gas=cls.GAS,
+        )
 
 
 class BaseServiceRegistryContractTest(BaseGanacheContractTest):
@@ -71,6 +142,50 @@ class BaseServiceRegistryContractTest(BaseGanacheContractTest):
     GAS: int = 10 ** 10
     DEFAULT_MAX_FEE_PER_GAS: int = 10 ** 10
     DEFAULT_MAX_PRIORITY_FEE_PER_GAS: int = 10 ** 10
+
+    @classmethod
+    def setup_class(cls) -> None:
+        super().setup_class()
+
+        # deploy agent registry contract
+        contract = get_register_contract(BaseAgentRegistryTest.contract_directory)
+        tx = contract.get_deploy_transaction(
+            ledger_api=cls.ledger_api,
+            deployer_address=str(cls.deployer_crypto.address),
+            **BaseAgentRegistryTest.deployment_kwargs(),
+        )
+        contract_address = tx.pop("contract_address", None)
+        tx_signed = cls.deployer_crypto.sign_transaction(tx)
+        tx_hash = cls.ledger_api.send_signed_transaction(tx_signed)
+        import time
+        time.sleep(0.5)  # give it time to mine the block
+        tx_receipt = cls.ledger_api.get_transaction_receipt(tx_hash)
+        contract_address = (
+            cast(Dict, tx_receipt)["contractAddress"]
+            if contract_address is None
+            else contract_address
+        )
+        assert contract_address == AGENT_REGISTRY
+
+        # deploy component registry contract
+        contract = get_register_contract(BaseComponentRegistryTest.contract_directory)
+        tx = contract.get_deploy_transaction(
+            ledger_api=cls.ledger_api,
+            deployer_address=str(cls.deployer_crypto.address),
+            **BaseComponentRegistryTest.deployment_kwargs(),
+        )
+        contract_address = tx.pop("contract_address", None)
+        tx_signed = cls.deployer_crypto.sign_transaction(tx)
+        tx_hash = cls.ledger_api.send_signed_transaction(tx_signed)
+        import time
+        time.sleep(0.5)  # give it time to mine the block
+        tx_receipt = cls.ledger_api.get_transaction_receipt(tx_hash)
+        contract_address = (
+            cast(Dict, tx_receipt)["contractAddress"]
+            if contract_address is None
+            else contract_address
+        )
+        assert contract_address == COMPONENT_REGISTRY
 
     @classmethod
     def deployment_kwargs(cls) -> Dict[str, Any]:
@@ -192,11 +307,14 @@ class TestServiceRegistryContract(BaseServiceRegistryContractTest):
     #     with mock.patch.object(
     #             self.ledger_api.api.manager, "request_blocking", return_value=CHAIN_ID
     #     ):
-    #         service_info = self.contract.get_service_info(
-    #             ledger_api=self.ledger_api,
-    #             contract_address=self.contract_address,
-    #             service_id=1,
-    #         )
+    #         with mock.patch.object(
+    #                 self.ledger_api.api.manager, "call_contract_function", return_value=result
+    #         ):
+    #             service_info = self.contract.get_service_info(
+    #                 ledger_api=self.ledger_api,
+    #                 contract_address=self.contract_address,
+    #                 service_id=1,
+    #             )
     #
     #     logging.error(service_info)
 

@@ -377,7 +377,7 @@ def _process_test_protocol(specification: Path, package_path: Path) -> None:
     replacements = [
         (
             f"from packages.valory.protocols.{package_path.name}",
-            f"from tests.data.generator.{package_path.name}",
+            f"from tests_.data.generator.{package_path.name}",
         )
     ]
     replace_in_directory(package_path.name, replacements)
