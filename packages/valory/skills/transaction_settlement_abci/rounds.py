@@ -118,6 +118,16 @@ class PeriodState(BasePeriodState):  # pylint: disable=too-many-instance-attribu
         return self.most_voted_keeper_address
 
     @property
+    def keeper_retries(self) -> int:
+        """Get the number of times the current keeper has retried."""
+        return cast(int, self.db.get_strict("keeper_retries"))
+
+    @property
+    def keeper_retries_reached(self) -> bool:
+        """Indicates if the keeper's allowed number of consecutive retries has been reached."""
+        return self.keeper_retries == KEEPER_ALLOWED_RETRIES
+
+    @property
     def to_be_validated_tx_hash(self) -> str:
         """
         Get the tx hash which is ready for validation.
