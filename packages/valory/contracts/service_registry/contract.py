@@ -119,24 +119,6 @@ class ServiceRegistryContract(Contract):
         )
 
     @classmethod
-    def owner_of(
-        cls,
-        ledger_api: LedgerApi,
-        contract_address: str,
-        service_id: int,
-    ) -> Address:
-        """Gets the allowance for a spender."""
-
-        contract_instance = cls.get_instance(ledger_api, contract_address)
-        owner = ledger_api.contract_method_call(
-            contract_instance=contract_instance,
-            method_name="ownerOf",
-            serviceId=service_id,
-        )
-
-        return owner
-
-    @classmethod
     def exists(
         cls,
         ledger_api: LedgerApi,
