@@ -21,7 +21,7 @@
 Generates the specification for a given ABCI app in YAML/JSON/Mermaid format.
 
 Generates the specification for a given ABCI app in YAML/JSON format using a simplified syntax for deterministic finite automata (DFA). Alternatively, it can also
-produce a Mermaid diagram source code. Example usage: ./generate_abciapp_spec.py -c packages.valory.skills.registration_abci.rounds.AgentRegistrationAbciApp -o
+produce a Mermaid diagram source code. Example of usage: ./generate_abciapp_spec.py -c packages.valory.skills.registration_abci.rounds.AgentRegistrationAbciApp -o
 output.yaml
 
 optional arguments:
@@ -310,7 +310,7 @@ def parse_arguments() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         script_name,
         description=f"Generates the specification for a given ABCI app in YAML/JSON format using a simplified syntax for "
-        "deterministic finite automata (DFA). Alternatively, it can also produce a Mermaid diagram source code. Example usage: "
+        "deterministic finite automata (DFA). Alternatively, it can also produce a Mermaid diagram source code. Example of usage: "
         f"./{script_name} -c packages.valory.skills.registration_abci.rounds.AgentRegistrationAbciApp -o output.yaml",
     )
     required = parser.add_argument_group("required arguments")
