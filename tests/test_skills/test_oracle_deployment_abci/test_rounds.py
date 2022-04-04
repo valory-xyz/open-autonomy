@@ -22,7 +22,7 @@
 import logging  # noqa: F401
 from collections import deque
 from types import MappingProxyType
-from typing import Any, Deque, Dict, FrozenSet, Optional, Type, cast
+from typing import Any, Deque, Dict, FrozenSet, Mapping, Optional, Type, cast
 
 from packages.valory.skills.abstract_round_abci.base import AbstractRound
 from packages.valory.skills.abstract_round_abci.base import (
@@ -281,18 +281,20 @@ class BaseSelectKeeperRoundTest(BaseCollectSameUntilThresholdRoundTest):
     """Test SelectKeeperTransactionSubmissionRoundA"""
 
     test_class: Type[CollectSameUntilThresholdRound]
-    test_payload: Type[SelectKeeperPayload]
+    test_payload: Type[BaseTxPayload]
 
     _period_state_class = PeriodState
     _exit_event: Optional[Any] = None
     _most_voted_payload = "keeper"
 
-    def test_run(
-        self,
-        keepers: Optional[Deque[str]] = None,
-        keeper_retries: int = 1,
-        blacklisted: bool = False,
-    ) -> None:
+    @staticmethod
+    def _participant_to_selection(
+        participants: FrozenSet[str], keepers: str
+    ) -> Mapping[str, BaseTxPayload]:
+        """Get participant to selection"""
+        return get_participant_to_selection(participants, keepers)
+
+    def test_run(self, keepers: Optional[Deque[str]] = None, blacklisted: bool = False) -> None:
         """Run tests."""
         if keepers is None:
             keepers = deque()
@@ -300,7 +302,6 @@ class BaseSelectKeeperRoundTest(BaseCollectSameUntilThresholdRoundTest):
         test_round = self.test_class(
             state=self.period_state.update(
                 keepers=deque(keepers),
-                keeper_retries=keeper_retries,
                 final_verification_status=VerificationStatus.PENDING,
                 blacklisted_keepers={self._most_voted_payload} if blacklisted else {},
             ),
@@ -310,13 +311,13 @@ class BaseSelectKeeperRoundTest(BaseCollectSameUntilThresholdRoundTest):
         self._complete_run(
             self._test_round(
                 test_round=test_round,
-                round_payloads=get_participant_to_selection(
+                round_payloads=self._participant_to_selection(
                     self.participants, self._most_voted_payload
                 ),
                 state_update_fn=lambda _period_state, _test_round: _period_state.update(
                     participant_to_selection=MappingProxyType(
                         dict(
-                            get_participant_to_selection(
+                            self._participant_to_selection(
                                 self.participants, self._most_voted_payload
                             )
                         )

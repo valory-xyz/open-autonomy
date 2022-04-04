@@ -22,7 +22,7 @@
 import logging  # noqa: F401
 from collections import deque
 from types import MappingProxyType
-from typing import Deque, Dict, FrozenSet, List, Optional, Union, cast
+from typing import Deque, Dict, FrozenSet, List, Mapping, Optional, Union, cast
 from unittest import mock
 
 import pytest
@@ -31,11 +31,8 @@ from packages.valory.skills.abstract_round_abci.base import ABCIAppInternalError
 from packages.valory.skills.abstract_round_abci.base import (
     BasePeriodState as PeriodState,
 )
-from packages.valory.skills.abstract_round_abci.base import StateDB
-from packages.valory.skills.oracle_deployment_abci.payloads import (
-    RandomnessPayload,
-    SelectKeeperPayload,
-)
+from packages.valory.skills.abstract_round_abci.base import BaseTxPayload, StateDB
+from packages.valory.skills.oracle_deployment_abci.payloads import RandomnessPayload
 from packages.valory.skills.transaction_settlement_abci.payload_tools import (
     VerificationStatus,
 )
@@ -43,6 +40,7 @@ from packages.valory.skills.transaction_settlement_abci.payloads import (
     CheckTransactionHistoryPayload,
     FinalizationTxPayload,
     ResetPayload,
+    SelectKeeperPayload,
     SignaturePayload,
     SynchronizeLateMessagesPayload,
     ValidatePayload,
@@ -54,10 +52,7 @@ from packages.valory.skills.transaction_settlement_abci.rounds import (
 from packages.valory.skills.transaction_settlement_abci.rounds import (
     Event as TransactionSettlementEvent,
 )
-from packages.valory.skills.transaction_settlement_abci.rounds import (
-    FinalizationRound,
-    KEEPER_ALLOWED_RETRIES,
-)
+from packages.valory.skills.transaction_settlement_abci.rounds import FinalizationRound
 from packages.valory.skills.transaction_settlement_abci.rounds import (
     PeriodState as TransactionSettlementPeriodState,
 )
@@ -113,10 +108,11 @@ def get_most_voted_randomness() -> str:
 
 def get_participant_to_selection(
     participants: FrozenSet[str],
+    keepers: str,
 ) -> Dict[str, SelectKeeperPayload]:
     """participant_to_selection"""
     return {
-        participant: SelectKeeperPayload(sender=participant, keeper="keeper")
+        participant: SelectKeeperPayload(sender=participant, keepers=keepers)
         for participant in participants
     }
 
@@ -129,11 +125,6 @@ def get_participant_to_period_count(
         participant: ResetPayload(sender=participant, period_count=period_count)
         for participant in participants
     }
-
-
-def get_most_voted_keeper_address() -> str:
-    """most_voted_keeper_address"""
-    return "keeper"
 
 
 def get_safe_contract_address() -> str:
@@ -205,9 +196,11 @@ def get_late_arriving_tx_hashes() -> List[str]:
     return ["t" * 64, "e" * 64, "s" * 64, "t" * 64]
 
 
-def get_keepers() -> Deque[str]:
+def get_keepers() -> str:
     """Get dummy keepers."""
-    return deque(["agent_1", "agent_3"])
+    retries = 1
+    agents = ["agent_1" + "-" * 35, "agent_3" + "-" * 35]
+    return retries.to_bytes(32, "big").hex() + "".join(agents)
 
 
 class TestSelectKeeperTransactionSubmissionRoundA(BaseSelectKeeperRoundTest):
@@ -218,33 +211,41 @@ class TestSelectKeeperTransactionSubmissionRoundA(BaseSelectKeeperRoundTest):
     _period_state_class = TransactionSettlementPeriodState
     _event_class = TransactionSettlementEvent
 
+    @staticmethod
+    def _participant_to_selection(
+        participants: FrozenSet[str], keepers: str
+    ) -> Mapping[str, BaseTxPayload]:
+        """Get participant to selection"""
+        return get_participant_to_selection(participants, keepers)
 
-class TestSelectKeeperTransactionSubmissionRoundB(BaseSelectKeeperRoundTest):
+
+class TestSelectKeeperTransactionSubmissionRoundB(
+    TestSelectKeeperTransactionSubmissionRoundA
+):
     """Test SelectKeeperTransactionSubmissionRoundB."""
 
     test_class = SelectKeeperTransactionSubmissionRoundB
-    test_payload = SelectKeeperPayload
-    _period_state_class = TransactionSettlementPeriodState
-    _event_class = TransactionSettlementEvent
 
     @pytest.mark.parametrize(
-        "keepers, keeper_retries, most_voted_payload, blacklisted",
+        "keepers, most_voted_payload, blacklisted",
         (
-            (deque(), 1, "keeper", True),
+            (deque(), "keeper", True),
             (deque(), 1, "keeper", False),
             (
                 deque(["test_keeper1", "test_keeper2"]),
-                KEEPER_ALLOWED_RETRIES,
                 "",
                 False,
             ),
-            (deque(["test_keeper1", "test_keeper2"]), 1, "", False),
+            (
+                deque(["test_keeper1", "test_keeper2"]),
+                "",
+                False,
+            ),
         ),
     )
     def test_run(
         self,
         keepers: Deque[str],
-        keeper_retries: int,
         most_voted_payload: str,
         blacklisted: bool,
     ) -> None:
@@ -252,7 +253,7 @@ class TestSelectKeeperTransactionSubmissionRoundB(BaseSelectKeeperRoundTest):
         if blacklisted:
             self._exit_event = TransactionSettlementEvent.KEEPER_BLACKLISTED
         self._most_voted_payload = most_voted_payload
-        super().test_run(keepers, keeper_retries, blacklisted)
+        super().test_run(keepers, blacklisted)
 
 
 class TestSelectKeeperTransactionSubmissionRoundBAfterTimeout(
@@ -261,7 +262,6 @@ class TestSelectKeeperTransactionSubmissionRoundBAfterTimeout(
     """Test SelectKeeperTransactionSubmissionRoundBAfterTimeout."""
 
     test_class = SelectKeeperTransactionSubmissionRoundBAfterTimeout
-    _period_state_class = TransactionSettlementPeriodState
 
     @mock.patch.object(
         TransactionSettlementPeriodState,
@@ -307,7 +307,7 @@ class TestSelectKeeperTransactionSubmissionRoundBAfterTimeout(
         self._exit_event = exit_event
         self.period_state.update(participant_to_selection=dict.fromkeys(self.participants), **attrs)  # type: ignore
         threshold_exceeded_mock.return_value = threshold_exceeded
-        super().test_run(deque(), 1, "keeper", False)
+        super().test_run(deque(), "keeper", False)
         assert (
             cast(TransactionSettlementPeriodState, self.period_state).missed_messages
             == cast(int, attrs["missed_messages"]) + 1
@@ -392,15 +392,16 @@ class TestFinalizationRound(BaseOnlyKeeperSendsRoundTest):
     ) -> None:
         """Runs tests."""
 
-        keeper = sorted(list(self.participants))[0]
+        self.participants = frozenset([f"agent_{i}" + "-" * 35 for i in range(4)])
+        keepers = deque(["agent_1" + "-" * 35, "agent_3" + "-" * 35])
         self.period_state = cast(
             PeriodState,
             self.period_state.update(
-                most_voted_keeper_address=keeper,
-                keepers=deque([keeper]),
+                participants=frozenset([f"agent_{i}" + "-" * 35 for i in range(4)]),
                 missed_messages=missed_messages,
                 tx_hashes_history=tx_hashes_history,
-                blacklisted_keepers={keeper}
+                keepers=get_keepers(),
+                blacklisted_keepers={keepers[0]}
                 if status == VerificationStatus.BLACKLIST.value
                 else {},
             ),
@@ -418,7 +419,7 @@ class TestFinalizationRound(BaseOnlyKeeperSendsRoundTest):
             self._test_round(
                 test_round=test_round,
                 keeper_payloads=FinalizationTxPayload(
-                    sender=keeper,
+                    sender=keepers[0],
                     tx_data={
                         "status": status,
                         "tx_digest": tx_digest,
@@ -520,7 +521,7 @@ class TestCheckTransactionHistoryRound(BaseCollectSameUntilThresholdRoundTest):
         expected_event: TransactionSettlementEvent,
     ) -> None:
         """Run tests."""
-        keepers = deque(["keeper2", "keeper1"])
+        keepers = get_keepers()
         self.period_state.update(missed_messages=missed_messages, keepers=keepers)
 
         test_round = CheckTransactionHistoryRound(
@@ -608,8 +609,7 @@ def test_period_states() -> None:
     participants = get_participants()
     participant_to_randomness = get_participant_to_randomness(participants, 1)
     most_voted_randomness = get_most_voted_randomness()
-    participant_to_selection = get_participant_to_selection(participants)
-    most_voted_keeper_address = get_most_voted_keeper_address()
+    participant_to_selection = get_participant_to_selection(participants, "test")
     safe_contract_address = get_safe_contract_address()
     most_voted_tx_hash = get_most_voted_tx_hash()
     participant_to_signature = get_participant_to_signature(participants)
@@ -619,6 +619,13 @@ def test_period_states() -> None:
     )
     late_arriving_tx_hashes = get_late_arriving_tx_hashes()
     keepers = get_keepers()
+    expected_keepers = deque(["agent_1" + "-" * 35, "agent_3" + "-" * 35])
+
+    # test `keeper_retries` property when no `keepers` are set.
+    period_state_____ = TransactionSettlementPeriodState(
+        StateDB(initial_period=0, initial_data=dict())
+    )
+    assert period_state_____.keeper_retries == 0
 
     period_state_____ = TransactionSettlementPeriodState(
         StateDB(
@@ -628,7 +635,6 @@ def test_period_states() -> None:
                 participant_to_randomness=participant_to_randomness,
                 most_voted_randomness=most_voted_randomness,
                 participant_to_selection=participant_to_selection,
-                most_voted_keeper_address=most_voted_keeper_address,
                 safe_contract_address=safe_contract_address,
                 most_voted_tx_hash=most_voted_tx_hash,
                 participant_to_signature=participant_to_signature,
@@ -640,14 +646,15 @@ def test_period_states() -> None:
     )
     assert period_state_____.keeper_randomness == actual_keeper_randomness
     assert period_state_____.most_voted_randomness == most_voted_randomness
-    assert period_state_____.most_voted_keeper_address == most_voted_keeper_address
     assert period_state_____.safe_contract_address == safe_contract_address
     assert period_state_____.most_voted_tx_hash == most_voted_tx_hash
     assert period_state_____.participant_to_signature == participant_to_signature
     assert period_state_____.final_tx_hash == final_tx_hash
     assert period_state_____.late_arriving_tx_hashes == late_arriving_tx_hashes
-    assert period_state_____.keepers == keepers
-    assert period_state_____.keeper_in_priority == keepers.popleft()
+    assert period_state_____.keepers == expected_keepers
+    assert period_state_____.keeper_retries == 1
+    assert period_state_____.most_voted_keeper_address == expected_keepers.popleft()
+    assert period_state_____.keepers_threshold_exceeded
 
     # test wrong tx hashes serialization
     period_state_____.update(late_arriving_tx_hashes=["test"])
@@ -656,6 +663,20 @@ def test_period_states() -> None:
         match="internal error: Cannot parse late arriving hashes: test!",
     ):
         _ = period_state_____.late_arriving_tx_hashes
+
+    # test wrong keepers serialization
+    period_state_____.update(keepers="test")
+    with pytest.raises(
+        ABCIAppInternalError,
+        match="internal error: Cannot parse keepers: test!",
+    ):
+        _ = period_state_____.keepers
+
+    with pytest.raises(
+        ABCIAppInternalError,
+        match="internal error: Cannot parse keepers: test!",
+    ):
+        _ = period_state_____.keeper_retries
 
 
 class TestResetRound(BaseCollectSameUntilThresholdRoundTest):
