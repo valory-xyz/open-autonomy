@@ -114,17 +114,6 @@ def keeper_retries() -> int
 
 Get the number of times the current keeper has retried.
 
-<a id="packages.valory.skills.transaction_settlement_abci.rounds.PeriodState.keeper_retries_reached"></a>
-
-#### keeper`_`retries`_`reached
-
-```python
-@property
-def keeper_retries_reached() -> bool
-```
-
-Indicates if the keeper's allowed number of consecutive retries has been reached.
-
 <a id="packages.valory.skills.transaction_settlement_abci.rounds.PeriodState.to_be_validated_tx_hash"></a>
 
 #### to`_`be`_`validated`_`tx`_`hash
