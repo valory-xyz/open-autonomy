@@ -30,6 +30,9 @@ from packages.valory.protocols.contract_api.custom_types import State
 from packages.valory.protocols.ledger_api.message import LedgerApiMessage
 from packages.valory.skills.abstract_round_abci.base import BasePeriodState, StateDB
 from packages.valory.skills.abstract_round_abci.behaviour_utils import BaseState
+from packages.valory.skills.transaction_settlement_abci.payload_tools import (
+    VerificationStatus,
+)
 
 from tests.conftest import ROOT_DIR
 from tests.test_skills.base import FSMBehaviourBaseCase
@@ -332,6 +335,7 @@ class BaseSelectKeeperBehaviourTest(CommonBaseCase):
                     initial_data=dict(
                         participants=participants,
                         most_voted_randomness="56cbde9e9bbcbdcaf92f183c678eaa5288581f06b1c9c7f884ce911776727688",
+                        final_verification_status=VerificationStatus.PENDING,
                     ),
                 )
             ),

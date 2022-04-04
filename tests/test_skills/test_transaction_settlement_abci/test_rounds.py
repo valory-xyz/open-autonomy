@@ -52,9 +52,7 @@ from packages.valory.skills.transaction_settlement_abci.rounds import (
 from packages.valory.skills.transaction_settlement_abci.rounds import (
     Event as TransactionSettlementEvent,
 )
-from packages.valory.skills.transaction_settlement_abci.rounds import (
-    FinalizationRound,
-)
+from packages.valory.skills.transaction_settlement_abci.rounds import FinalizationRound
 from packages.valory.skills.transaction_settlement_abci.rounds import (
     PeriodState as TransactionSettlementPeriodState,
 )
@@ -200,7 +198,9 @@ def get_late_arriving_tx_hashes() -> List[str]:
 
 def get_keepers() -> str:
     """Get dummy keepers."""
-    return "".join(["agent_1" + "-" * 35, "agent_3" + "-" * 35])
+    retries = 1
+    agents = ["agent_1" + "-" * 35, "agent_3" + "-" * 35]
+    return retries.to_bytes(32, "big").hex() + "".join(agents)
 
 
 class TestSelectKeeperTransactionSubmissionRoundA(BaseSelectKeeperRoundTest):
@@ -605,6 +605,12 @@ def test_period_states() -> None:
     keepers = get_keepers()
     expected_keepers = deque(["agent_1" + "-" * 35, "agent_3" + "-" * 35])
 
+    # test `keeper_retries` property when no `keepers` are set.
+    period_state_____ = TransactionSettlementPeriodState(
+        StateDB(initial_period=0, initial_data=dict())
+    )
+    assert period_state_____.keeper_retries == 0
+
     period_state_____ = TransactionSettlementPeriodState(
         StateDB(
             initial_period=0,
@@ -630,6 +636,7 @@ def test_period_states() -> None:
     assert period_state_____.final_tx_hash == final_tx_hash
     assert period_state_____.late_arriving_tx_hashes == late_arriving_tx_hashes
     assert period_state_____.keepers == expected_keepers
+    assert period_state_____.keeper_retries == 1
     assert period_state_____.most_voted_keeper_address == expected_keepers.popleft()
     assert period_state_____.keepers_threshold_exceeded
 
@@ -645,9 +652,15 @@ def test_period_states() -> None:
     period_state_____.update(keepers="test")
     with pytest.raises(
         ABCIAppInternalError,
-        match="internal error: Cannot parse keepers' addresses: test!",
+        match="internal error: Cannot parse keepers: test!",
     ):
         _ = period_state_____.keepers
+
+    with pytest.raises(
+        ABCIAppInternalError,
+        match="internal error: Cannot parse keepers: test!",
+    ):
+        _ = period_state_____.keeper_retries
 
 
 class TestResetRound(BaseCollectSameUntilThresholdRoundTest):
