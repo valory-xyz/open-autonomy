@@ -21,7 +21,7 @@
 import copy
 from typing import Any, Dict
 
-from google.protobuf.struct_pb2 import Struct
+from google.protobuf.struct_pb2 import Struct  # pylint: disable=no-name-in-module
 
 
 class DictProtobufStructSerializer:

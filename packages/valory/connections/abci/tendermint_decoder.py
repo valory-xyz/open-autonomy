@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021 Valory AG
+#   Copyright 2021-2022 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -23,7 +23,9 @@
 from typing import Callable, Optional, Tuple, cast
 
 from aea.exceptions import enforce
-from google.protobuf.timestamp_pb2 import Timestamp as TimestampPb
+from google.protobuf.timestamp_pb2 import (  # pylint: disable=no-name-in-module
+    Timestamp as TimestampPb,
+)
 
 from packages.valory.connections.abci.dialogues import AbciDialogue, AbciDialogues
 from packages.valory.connections.abci.tendermint.abci.types_pb2 import (  # type: ignore
