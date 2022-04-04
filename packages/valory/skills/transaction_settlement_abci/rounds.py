@@ -54,9 +54,6 @@ from packages.valory.skills.transaction_settlement_abci.payloads import (
 )
 
 
-KEEPER_ALLOWED_RETRIES = 3
-
-
 class Event(Enum):
     """Event enumeration for the price estimation demo."""
 
@@ -102,16 +99,20 @@ class PeriodState(BasePeriodState):  # pylint: disable=too-many-instance-attribu
     @property
     def keepers(self) -> Deque[str]:
         """Get the current cycle's keepers who have tried to submit a transaction."""
-        keepers_unparsed = cast(str, self.db.get("keepers", ""))
         address_length = 42
-        if len(keepers_unparsed) % address_length != 0:
-            # if we cannot parse the keepers, then the developer has serialized them incorrectly.
-            raise ABCIAppInternalError(
-                f"Cannot parse keepers' addresses: {keepers_unparsed}!"
-            )
-        keepers_parsed = textwrap.wrap(keepers_unparsed, address_length)
+        retries_length = 64
 
-        return deque(keepers_parsed)
+        if self.is_keeper_set:
+            keepers_unparsed = cast(str, self.db.get("keepers", ""))
+            if (len(keepers_unparsed) - retries_length) % address_length != 0:
+                # if we cannot parse the keepers, then the developer has serialized them incorrectly.
+                raise ABCIAppInternalError(f"Cannot parse keepers: {keepers_unparsed}!")
+            keepers_parsed = textwrap.wrap(
+                keepers_unparsed[retries_length:], address_length
+            )
+            return deque(keepers_parsed)
+
+        return deque()
 
     @property
     def keepers_threshold_exceeded(self) -> bool:
@@ -127,17 +128,25 @@ class PeriodState(BasePeriodState):  # pylint: disable=too-many-instance-attribu
     @property
     def is_keeper_set(self) -> bool:
         """Check whether keeper is set."""
-        return len(self.keepers) > 0
+        return bool(self.db.get("keepers", False))
 
     @property
     def keeper_retries(self) -> int:
         """Get the number of times the current keeper has retried."""
-        return cast(int, self.db.get_strict("keeper_retries"))
+        address_length = 42
+        retries_length = 64
 
-    @property
-    def keeper_retries_reached(self) -> bool:
-        """Indicates if the keeper's allowed number of consecutive retries has been reached."""
-        return self.keeper_retries == KEEPER_ALLOWED_RETRIES
+        if self.is_keeper_set:
+            keepers_unparsed = cast(str, self.db.get("keepers", ""))
+            if (len(keepers_unparsed) - retries_length) % address_length != 0:
+                # if we cannot parse the keepers, then the developer has serialized them incorrectly.
+                raise ABCIAppInternalError(f"Cannot parse keepers: {keepers_unparsed}!")
+            keeper_retries = int.from_bytes(
+                bytes.fromhex(keepers_unparsed[:retries_length]), "big"
+            )
+            return keeper_retries
+
+        return 0
 
     @property
     def to_be_validated_tx_hash(self) -> str:

@@ -208,6 +208,36 @@ class SelectKeeperTransactionSubmissionBehaviourA(  # pylint: disable=too-many-a
     matching_round = SelectKeeperTransactionSubmissionRoundA
     payload_class = SelectKeeperPayload
 
+    def __init__(self, **kwargs: Any) -> None:
+        """Initialize behaviour."""
+        super().__init__(**kwargs)
+        self._keepers: Deque[str] = deque()
+        self._keeper_retries: int = 1
+
+    @property
+    def serialized_keepers(self) -> str:
+        """Get the keepers serialized."""
+        keepers = "".join(self._keepers)
+        keeper_retries = self._keeper_retries.to_bytes(32, "big").hex()
+        concatenated = keeper_retries + keepers
+
+        return concatenated
+
+    def async_act(self) -> Generator:
+        """Do the action."""
+
+        with self.context.benchmark_tool.measure(self.state_id).local():
+            self._keepers.appendleft(self._select_keeper())
+            payload = self.payload_class(
+                self.context.agent_address, self.serialized_keepers
+            )
+
+        with self.context.benchmark_tool.measure(self.state_id).consensus():
+            yield from self.send_a2a_transaction(payload)
+            yield from self.wait_until_round_end()
+
+        self.set_done()
+
 
 class SelectKeeperTransactionSubmissionBehaviourB(  # pylint: disable=too-many-ancestors
     SelectKeeperTransactionSubmissionBehaviourA
@@ -217,19 +247,9 @@ class SelectKeeperTransactionSubmissionBehaviourB(  # pylint: disable=too-many-a
     state_id = "select_keeper_transaction_submission_b"
     matching_round = SelectKeeperTransactionSubmissionRoundB
 
-    def __init__(self, **kwargs: Any) -> None:
-        """Initialize behaviour."""
-        super().__init__(**kwargs)
-        self.__keepers: Deque[str] = deque()
-
     def setup(self) -> None:
         """Setup behaviour."""
-        self.__keepers = self.period_state.keepers
-
-    @property
-    def serialized_keepers(self) -> str:
-        """Get the keepers serialized."""
-        return "".join(self.__keepers)
+        self._keepers = self.period_state.keepers
 
     def async_act(self) -> Generator:
         """
@@ -238,7 +258,12 @@ class SelectKeeperTransactionSubmissionBehaviourB(  # pylint: disable=too-many-a
         Steps:
             - If we have not selected enough keepers for the period,
                 select a keeper randomly and add it to the keepers' queue, with top priority.
-            - Otherwise, reprioritize the keepers.
+            - Otherwise, cycle through the keepers' subset, using the following logic:
+                A `PENDING` verification status means that we have not received any errors,
+                therefore, all we know is that the tx has not been mined yet due to low pricing.
+                Consequently, we are going to retry with the same keeper in order to replace the transaction.
+                However, if we receive a status other than `PENDING`, we need to cycle through the keepers' subset.
+                Moreover, if the current keeper has reached the allowed number of retries, then we cycle anyway.
             - Send the transaction with the keepers and wait for it to be mined.
             - Wait until ABCI application transitions to the next round.
             - Go to the next behaviour state (set done event).
@@ -246,9 +271,15 @@ class SelectKeeperTransactionSubmissionBehaviourB(  # pylint: disable=too-many-a
 
         with self.context.benchmark_tool.measure(self.state_id).local():
             if self.period_state.keepers_threshold_exceeded:
-                self.__keepers.rotate(-1)
+                self._keepers.rotate(-1)
+            elif (
+                self.period_state.keeper_retries != self.params.keeper_allowed_retries
+                and self.period_state.final_verification_status
+                == VerificationStatus.PENDING
+            ):
+                self._keeper_retries = self.period_state.keeper_retries + 1
             else:
-                self.__keepers.appendleft(self._select_keeper())
+                self._keepers.appendleft(self._select_keeper())
 
             payload = self.payload_class(
                 self.context.agent_address, self.serialized_keepers
