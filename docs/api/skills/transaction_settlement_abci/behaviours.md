@@ -68,6 +68,37 @@ class SelectKeeperTransactionSubmissionBehaviourB(  # pylint: disable=too-many-a
 
 Select the keeper b agent.
 
+<a id="packages.valory.skills.transaction_settlement_abci.behaviours.SelectKeeperTransactionSubmissionBehaviourB.__init__"></a>
+
+#### `__`init`__`
+
+```python
+def __init__(**kwargs: Any) -> None
+```
+
+Initialize behaviour.
+
+<a id="packages.valory.skills.transaction_settlement_abci.behaviours.SelectKeeperTransactionSubmissionBehaviourB.setup"></a>
+
+#### setup
+
+```python
+def setup() -> None
+```
+
+Setup behaviour.
+
+<a id="packages.valory.skills.transaction_settlement_abci.behaviours.SelectKeeperTransactionSubmissionBehaviourB.serialized_keepers"></a>
+
+#### serialized`_`keepers
+
+```python
+@property
+def serialized_keepers() -> str
+```
+
+Get the keepers serialized.
+
 <a id="packages.valory.skills.transaction_settlement_abci.behaviours.SelectKeeperTransactionSubmissionBehaviourB.async_act"></a>
 
 #### async`_`act
@@ -79,8 +110,10 @@ def async_act() -> Generator
 Do the action.
 
 Steps:
-    - Select a keeper randomly.
-    - Send the transaction with the keeper and wait for it to be mined.
+    - If we have not selected enough keepers for the period,
+        select a keeper randomly and add it to the keepers' queue, with top priority.
+    - Otherwise, reprioritize the keepers.
+    - Send the transaction with the keepers and wait for it to be mined.
     - Wait until ABCI application transitions to the next round.
     - Go to the next behaviour state (set done event).
 
@@ -90,7 +123,7 @@ Steps:
 
 ```python
 class SelectKeeperTransactionSubmissionBehaviourBAfterTimeout(  # pylint: disable=too-many-ancestors
-    SelectKeeperBehaviour,  TransactionSettlementBaseState)
+    SelectKeeperTransactionSubmissionBehaviourB)
 ```
 
 Select the keeper b agent after a timeout.

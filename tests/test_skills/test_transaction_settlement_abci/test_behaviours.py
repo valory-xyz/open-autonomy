@@ -35,6 +35,7 @@ from aea.helpers.transaction.base import (
 )
 from aea.helpers.transaction.base import State as TrState
 from aea.helpers.transaction.base import TransactionDigest, TransactionReceipt
+from aea.skills.base import SkillContext
 
 from packages.open_aea.protocols.signing import SigningMessage
 from packages.valory.contracts.gnosis_safe.contract import (
@@ -397,7 +398,8 @@ class TestFinalizeBehaviour(TransactionSettlementFSMBehaviourBaseCase):
                     initial_data=dict(
                         most_voted_keeper_address="most_voted_keeper_address",
                         participants=participants,
-                        keepers=deque(["other_agent"]),
+                        # keeper needs to have length == 42 in order to be parsed
+                        keepers="other_agent" + "-" * 31,
                     ),
                 )
             ),
@@ -474,8 +476,10 @@ class TestFinalizeBehaviour(TransactionSettlementFSMBehaviourBaseCase):
             ),
         ),
     )
+    @mock.patch.object(SkillContext, "agent_address", new_callable=mock.PropertyMock)
     def test_sender_act(
         self,
+        agent_address_mock: mock.PropertyMock,
         resubmitting: bool,
         response_kwargs: Dict[
             str,
@@ -497,7 +501,11 @@ class TestFinalizeBehaviour(TransactionSettlementFSMBehaviourBaseCase):
             nonce = 0
             max_priority_fee_per_gas = 1
 
-        participants = frozenset({self.skill.skill_context.agent_address, "a_1", "a_2"})
+        # keepers need to have length == 42 in order to be parsed
+        agent_address_mock.return_value = "-" * 42
+        participants = frozenset(
+            {self.skill.skill_context.agent_address, "a_1" + "-" * 39, "a_2" + "-" * 39}
+        )
         self.fast_forward_to_state(
             behaviour=self.behaviour,
             state_id=self.behaviour_class.state_id,
@@ -518,7 +526,7 @@ class TestFinalizeBehaviour(TransactionSettlementFSMBehaviourBaseCase):
                         ),
                         nonce=nonce,
                         max_priority_fee_per_gas=max_priority_fee_per_gas,
-                        keepers=deque([self.skill.skill_context.agent_address]),
+                        keepers=self.skill.skill_context.agent_address,
                     ),
                 )
             ),

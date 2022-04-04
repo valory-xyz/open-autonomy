@@ -81,16 +81,27 @@ def keepers_threshold_exceeded() -> bool
 
 Check if the number of selected keepers has exceeded the allowed limit.
 
-<a id="packages.valory.skills.transaction_settlement_abci.rounds.PeriodState.keeper_in_priority"></a>
+<a id="packages.valory.skills.transaction_settlement_abci.rounds.PeriodState.most_voted_keeper_address"></a>
 
-#### keeper`_`in`_`priority
+#### most`_`voted`_`keeper`_`address
 
 ```python
 @property
-def keeper_in_priority() -> str
+def most_voted_keeper_address() -> str
 ```
 
 Get the first in priority keeper to try to re-submit a transaction.
+
+<a id="packages.valory.skills.transaction_settlement_abci.rounds.PeriodState.is_keeper_set"></a>
+
+#### is`_`keeper`_`set
+
+```python
+@property
+def is_keeper_set() -> bool
+```
+
+Check whether keeper is set.
 
 <a id="packages.valory.skills.transaction_settlement_abci.rounds.PeriodState.keeper_retries"></a>
 
@@ -261,16 +272,6 @@ class SelectKeeperTransactionSubmissionRoundA(CollectSameUntilThresholdRound)
 
 A round in which a keeper is selected for transaction submission
 
-<a id="packages.valory.skills.transaction_settlement_abci.rounds.SelectKeeperTransactionSubmissionRoundA.end_block"></a>
-
-#### end`_`block
-
-```python
-def end_block() -> Optional[Tuple[BasePeriodState, Enum]]
-```
-
-Process the end of the block.
-
 <a id="packages.valory.skills.transaction_settlement_abci.rounds.SelectKeeperTransactionSubmissionRoundB"></a>
 
 ## SelectKeeperTransactionSubmissionRoundB Objects
@@ -280,29 +281,6 @@ class SelectKeeperTransactionSubmissionRoundB(SelectKeeperTransactionSubmissionR
 ```
 
 A round in which a new keeper is selected for transaction submission
-
-<a id="packages.valory.skills.transaction_settlement_abci.rounds.SelectKeeperTransactionSubmissionRoundB.end_block"></a>
-
-#### end`_`block
-
-```python
-def end_block() -> Optional[Tuple[BasePeriodState, Enum]]
-```
-
-Process the end of the block.
-
-If the keepers' subset is not full yet, re-select a keeper as normally.
-Otherwise, cycle through the keepers' subset, using the following logic:
-
-A `PENDING` verification status means that we have not received any errors,
-therefore, all we know is that the tx has not been mined yet due to low pricing.
-Consequently, we are going to retry with the same keeper in order to replace the transaction.
-However, if we receive a status other than `PENDING`, we need to cycle through the keepers' subset.
-Moreover, if the current keeper has reached the allowed number of retries, then we cycle anyway.
-
-**Returns**:
-
-a tuple with the updated state and exit event, if finished, otherwise `None`.
 
 <a id="packages.valory.skills.transaction_settlement_abci.rounds.SelectKeeperTransactionSubmissionRoundBAfterTimeout"></a>
 
