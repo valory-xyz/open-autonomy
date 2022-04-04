@@ -103,6 +103,17 @@ def is_keeper_set() -> bool
 
 Check whether keeper is set.
 
+<a id="packages.valory.skills.transaction_settlement_abci.rounds.PeriodState.keeper_retries"></a>
+
+#### keeper`_`retries
+
+```python
+@property
+def keeper_retries() -> int
+```
+
+Get the number of times the current keeper has retried.
+
 <a id="packages.valory.skills.transaction_settlement_abci.rounds.PeriodState.to_be_validated_tx_hash"></a>
 
 #### to`_`be`_`validated`_`tx`_`hash

@@ -311,12 +311,24 @@ class TestSelectKeeperTransactionSubmissionBehaviourB(
         "keepers_threshold_exceeded",
         new_callable=mock.PropertyMock,
     )
-    @pytest.mark.parametrize("threshold_exceeded", (True, False))
+    @mock.patch.object(
+        TransactionSettlementPeriodState,
+        "keeper_retries",
+        new_callable=mock.PropertyMock,
+    )
+    @pytest.mark.parametrize(
+        "threshold_exceeded, keeper_retries", ((True, 1), (False, 1), (False, 3))
+    )
     def test_select_keeper(
-        self, threshold_exceeded_mock: mock.PropertyMock, threshold_exceeded: bool
+        self,
+        keeper_retries_mock: mock.PropertyMock,
+        threshold_exceeded_mock: mock.PropertyMock,
+        threshold_exceeded: bool,
+        keeper_retries: int,
     ) -> None:
         """Test select keeper agent."""
         threshold_exceeded_mock.return_value = threshold_exceeded
+        keeper_retries_mock.return_value = keeper_retries
         super().test_select_keeper()
 
     @mock.patch.object(
@@ -389,6 +401,7 @@ class TestFinalizeBehaviour(TransactionSettlementFSMBehaviourBaseCase):
     ) -> None:
         """Test finalize behaviour."""
         participants = frozenset({self.skill.skill_context.agent_address, "a_1", "a_2"})
+        retries = 1
         self.fast_forward_to_state(
             behaviour=self.behaviour,
             state_id=self.behaviour_class.state_id,
@@ -399,7 +412,9 @@ class TestFinalizeBehaviour(TransactionSettlementFSMBehaviourBaseCase):
                         most_voted_keeper_address="most_voted_keeper_address",
                         participants=participants,
                         # keeper needs to have length == 42 in order to be parsed
-                        keepers="other_agent" + "-" * 31,
+                        keepers=retries.to_bytes(32, "big").hex()
+                        + "other_agent"
+                        + "-" * 31,
                     ),
                 )
             ),
@@ -503,6 +518,7 @@ class TestFinalizeBehaviour(TransactionSettlementFSMBehaviourBaseCase):
 
         # keepers need to have length == 42 in order to be parsed
         agent_address_mock.return_value = "-" * 42
+        retries = 1
         participants = frozenset(
             {self.skill.skill_context.agent_address, "a_1" + "-" * 39, "a_2" + "-" * 39}
         )
@@ -513,7 +529,6 @@ class TestFinalizeBehaviour(TransactionSettlementFSMBehaviourBaseCase):
                 StateDB(
                     initial_period=0,
                     initial_data=dict(
-                        most_voted_keeper_address=self.skill.skill_context.agent_address,
                         safe_contract_address="safe_contract_address",
                         participants=participants,
                         participant_to_signature={},
@@ -526,7 +541,8 @@ class TestFinalizeBehaviour(TransactionSettlementFSMBehaviourBaseCase):
                         ),
                         nonce=nonce,
                         max_priority_fee_per_gas=max_priority_fee_per_gas,
-                        keepers=self.skill.skill_context.agent_address,
+                        keepers=retries.to_bytes(32, "big").hex()
+                        + self.skill.skill_context.agent_address,
                     ),
                 )
             ),
