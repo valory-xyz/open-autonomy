@@ -81,16 +81,27 @@ def keepers_threshold_exceeded() -> bool
 
 Check if the number of selected keepers has exceeded the allowed limit.
 
-<a id="packages.valory.skills.transaction_settlement_abci.rounds.PeriodState.keeper_in_priority"></a>
+<a id="packages.valory.skills.transaction_settlement_abci.rounds.PeriodState.most_voted_keeper_address"></a>
 
-#### keeper`_`in`_`priority
+#### most`_`voted`_`keeper`_`address
 
 ```python
 @property
-def keeper_in_priority() -> str
+def most_voted_keeper_address() -> str
 ```
 
 Get the first in priority keeper to try to re-submit a transaction.
+
+<a id="packages.valory.skills.transaction_settlement_abci.rounds.PeriodState.is_keeper_set"></a>
+
+#### is`_`keeper`_`set
+
+```python
+@property
+def is_keeper_set() -> bool
+```
+
+Check whether keeper is set.
 
 <a id="packages.valory.skills.transaction_settlement_abci.rounds.PeriodState.to_be_validated_tx_hash"></a>
 
@@ -239,16 +250,6 @@ class SelectKeeperTransactionSubmissionRoundA(CollectSameUntilThresholdRound)
 
 A round in which a keeper is selected for transaction submission
 
-<a id="packages.valory.skills.transaction_settlement_abci.rounds.SelectKeeperTransactionSubmissionRoundA.end_block"></a>
-
-#### end`_`block
-
-```python
-def end_block() -> Optional[Tuple[BasePeriodState, Enum]]
-```
-
-Process the end of the block.
-
 <a id="packages.valory.skills.transaction_settlement_abci.rounds.SelectKeeperTransactionSubmissionRoundB"></a>
 
 ## SelectKeeperTransactionSubmissionRoundB Objects
@@ -258,16 +259,6 @@ class SelectKeeperTransactionSubmissionRoundB(SelectKeeperTransactionSubmissionR
 ```
 
 A round in which a new keeper is selected for transaction submission
-
-<a id="packages.valory.skills.transaction_settlement_abci.rounds.SelectKeeperTransactionSubmissionRoundB.end_block"></a>
-
-#### end`_`block
-
-```python
-def end_block() -> Optional[Tuple[BasePeriodState, Enum]]
-```
-
-Process the end of the block.
 
 <a id="packages.valory.skills.transaction_settlement_abci.rounds.SelectKeeperTransactionSubmissionRoundBAfterTimeout"></a>
 
