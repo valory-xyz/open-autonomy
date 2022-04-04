@@ -206,7 +206,7 @@ spec:
           - name: CREATE_EMPTY_BLOCKS
             value: "true"
           - name: LOG_FILE
-            value: "logs/logs/node_{node_id}_logs.txt"
+            value: "logs/logs/node_{validator_ix}_logs.txt"
         args: ["run", "--no-reload", "--host=0.0.0.0", "--port=8080"]
         volumeMounts:
           - mountPath: /logs
@@ -230,7 +230,7 @@ spec:
           - name: CLUSTERED
             value: "1"
           - name: LOG_FILE
-            value: "logs/logs/aea_{node_id}_logs.txt"
+            value: "logs/logs/aea_{validator_ix}_logs.txt"
         volumeMounts:
           - mountPath: /logs
             name: logs
