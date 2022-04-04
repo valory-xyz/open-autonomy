@@ -99,7 +99,16 @@ class PeriodState(BasePeriodState):  # pylint: disable=too-many-instance-attribu
     @property
     def keepers(self) -> Deque[str]:
         """Get the current cycle's keepers who have tried to submit a transaction."""
-        return cast(deque, self.db.get("keepers", deque()))
+        keepers_unparsed = cast(str, self.db.get("keepers", ""))
+        address_length = 42
+        if len(keepers_unparsed) % address_length != 0:
+            # if we cannot parse the keepers, then the developer has serialized them incorrectly.
+            raise ABCIAppInternalError(
+                f"Cannot parse keepers' addresses: {keepers_unparsed}!"
+            )
+        keepers_parsed = textwrap.wrap(keepers_unparsed, address_length)
+
+        return deque(keepers_parsed)
 
     @property
     def keepers_threshold_exceeded(self) -> bool:
@@ -108,11 +117,14 @@ class PeriodState(BasePeriodState):  # pylint: disable=too-many-instance-attribu
         return len(self.keepers) > malicious_threshold
 
     @property
-    def keeper_in_priority(self) -> str:
+    def most_voted_keeper_address(self) -> str:
         """Get the first in priority keeper to try to re-submit a transaction."""
-        if self.keepers_threshold_exceeded:
-            return self.keepers[0]
-        return self.most_voted_keeper_address
+        return self.keepers[0]
+
+    @property
+    def is_keeper_set(self) -> bool:
+        """Check whether keeper is set."""
+        return len(self.keepers) > 0
 
     @property
     def to_be_validated_tx_hash(self) -> str:
@@ -288,78 +300,18 @@ class SelectKeeperTransactionSubmissionRoundA(CollectSameUntilThresholdRound):
 
     round_id = "select_keeper_transaction_submission_a"
     allowed_tx_type = SelectKeeperPayload.transaction_type
-    payload_attribute = "keeper"
+    payload_attribute = "keepers"
     period_state_class = PeriodState
     done_event = Event.DONE
     no_majority_event = Event.NO_MAJORITY
     collection_key = "participant_to_selection"
-    selection_key = "most_voted_keeper_address"
-
-    def _get_updated_keepers(self) -> Deque[str]:
-        """
-        Get the keepers list updated, by adding the current keeper to it.
-
-        This method is responsible to update the queue that we want to store
-        with the keepers who have been selected to finalize, in order to reuse only a subset of them.
-
-        :return: the updated keepers.
-        """
-        period_state = cast(PeriodState, self.period_state)
-        keepers = period_state.keepers
-        keepers.append(period_state.most_voted_keeper_address)
-
-        return keepers
-
-    def end_block(self) -> Optional[Tuple[BasePeriodState, Enum]]:
-        """Process the end of the block."""
-        res = super().end_block()
-        if res is not None:
-            state, event = res
-        else:
-            return None
-
-        if event == Event.DONE:
-            state = state.update(keepers=self._get_updated_keepers())
-
-        return state, event
+    selection_key = "keepers"
 
 
 class SelectKeeperTransactionSubmissionRoundB(SelectKeeperTransactionSubmissionRoundA):
     """A round in which a new keeper is selected for transaction submission"""
 
     round_id = "select_keeper_transaction_submission_b"
-
-    def _get_reprioritized_keepers(self) -> Deque[str]:
-        """
-        Update the keepers queue to give priority to the next keeper and set the current to last.
-
-        We do this in order to make sure that:
-            1. We do not get stuck retrying with the same keeper all the time.
-            2. We cycle through all the keepers to try to resubmit.
-
-        :return: the keepers queue re-prioritized.
-        """
-        keepers = cast(PeriodState, self.period_state).keepers
-        keepers.rotate(-1)
-
-        return keepers
-
-    def end_block(self) -> Optional[Tuple[BasePeriodState, Enum]]:
-        """Process the end of the block."""
-        res = super().end_block()
-        if res is not None:
-            state, event = res
-        else:
-            return None
-
-        if event == Event.DONE:
-            if cast(PeriodState, state).most_voted_keeper_address == "":
-                keepers = self._get_reprioritized_keepers()
-            else:
-                keepers = self._get_updated_keepers()
-            state = state.update(keepers=keepers)
-
-        return state, event
 
 
 class SelectKeeperTransactionSubmissionRoundBAfterTimeout(

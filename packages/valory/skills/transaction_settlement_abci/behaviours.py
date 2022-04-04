@@ -21,7 +21,8 @@
 import binascii
 import pprint
 from abc import ABC
-from typing import Any, Dict, Generator, Optional, Set, Tuple, Type, Union, cast
+from collections import deque
+from typing import Any, Deque, Dict, Generator, Optional, Set, Tuple, Type, Union, cast
 
 from aea.protocols.base import Message
 from web3.types import Nonce, TxData
@@ -216,38 +217,57 @@ class SelectKeeperTransactionSubmissionBehaviourB(  # pylint: disable=too-many-a
     state_id = "select_keeper_transaction_submission_b"
     matching_round = SelectKeeperTransactionSubmissionRoundB
 
+    def __init__(self, **kwargs: Any) -> None:
+        """Initialize behaviour."""
+        super().__init__(**kwargs)
+        self.__keepers: Deque[str] = deque()
+
+    def setup(self) -> None:
+        """Setup behaviour."""
+        self.__keepers = self.period_state.keepers
+
+    @property
+    def serialized_keepers(self) -> str:
+        """Get the keepers serialized."""
+        return "".join(self.__keepers)
+
     def async_act(self) -> Generator:
         """
         Do the action.
 
         Steps:
-            - Select a keeper randomly.
-            - Send the transaction with the keeper and wait for it to be mined.
+            - If we have not selected enough keepers for the period,
+                select a keeper randomly and add it to the keepers' queue, with top priority.
+            - Otherwise, reprioritize the keepers.
+            - Send the transaction with the keepers and wait for it to be mined.
             - Wait until ABCI application transitions to the next round.
             - Go to the next behaviour state (set done event).
         """
-        if self.period_state.keepers_threshold_exceeded:
-            payload = self.payload_class(self.context.agent_address, "")
 
-            with self.context.benchmark_tool.measure(self.state_id).consensus():
-                yield from self.send_a2a_transaction(payload)
-                yield from self.wait_until_round_end()
+        with self.context.benchmark_tool.measure(self.state_id).local():
+            if self.period_state.keepers_threshold_exceeded:
+                self.__keepers.rotate(-1)
+            else:
+                self.__keepers.appendleft(self._select_keeper())
 
-            self.set_done()
+            payload = self.payload_class(
+                self.context.agent_address, self.serialized_keepers
+            )
 
-        else:
-            res = super().async_act()
-            yield from res
+        with self.context.benchmark_tool.measure(self.state_id).consensus():
+            yield from self.send_a2a_transaction(payload)
+            yield from self.wait_until_round_end()
+
+        self.set_done()
 
 
 class SelectKeeperTransactionSubmissionBehaviourBAfterTimeout(  # pylint: disable=too-many-ancestors
-    SelectKeeperBehaviour, TransactionSettlementBaseState
+    SelectKeeperTransactionSubmissionBehaviourB
 ):
     """Select the keeper b agent after a timeout."""
 
     state_id = "select_keeper_transaction_submission_b_after_timeout"
     matching_round = SelectKeeperTransactionSubmissionRoundBAfterTimeout
-    payload_class = SelectKeeperPayload
 
 
 class ValidateTransactionBehaviour(TransactionSettlementBaseState):
@@ -542,7 +562,7 @@ class FinalizeBehaviour(TransactionSettlementBaseState):
 
     def _i_am_not_sending(self) -> bool:
         """Indicates if the current agent is the sender or not."""
-        return self.context.agent_address != self.period_state.keeper_in_priority
+        return self.context.agent_address != self.period_state.most_voted_keeper_address
 
     def async_act(self) -> Generator[None, None, None]:
         """
