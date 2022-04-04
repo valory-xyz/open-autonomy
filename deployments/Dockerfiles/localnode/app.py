@@ -29,9 +29,10 @@ from flask import Flask, Response, jsonify
 from tendermint import TendermintNode, TendermintParams
 from werkzeug.exceptions import InternalServerError, NotFound
 
+
 DEFAULT_LOG_FILE = "log.log"
 logging.basicConfig(
-    filename=os.environ.get('LOG_FILE', DEFAULT_LOG_FILE),
+    filename=os.environ.get("LOG_FILE", DEFAULT_LOG_FILE),
     level=logging.DEBUG,
     format=f"%(asctime)s %(levelname)s %(name)s %(threadName)s : %(message)s",  # noqa : W1309
 )
@@ -105,6 +106,7 @@ period_dumper = PeriodDumper(logger=app.logger)
 
 tendermint_node = TendermintNode(tendermint_params, logger=app.logger)
 tendermint_node.start()
+
 
 @app.route("/gentle_reset")
 def gentle_reset() -> Tuple[Any, int]:
