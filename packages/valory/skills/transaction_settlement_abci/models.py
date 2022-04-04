@@ -19,7 +19,7 @@
 
 """Custom objects for the transaction settlement ABCI application."""
 
-from typing import Any, List, Optional
+from typing import Any, List, Optional, Union
 
 from web3.types import Nonce
 
@@ -66,7 +66,7 @@ class TransactionParams(BaseParams):
         :param args: positional arguments
         :param kwargs: keyword arguments
         """
-        self.nonce: Optional[Nonce] = None
+        self.nonce: Optional[Union[Nonce, int]] = None
         self.tip: Optional[int] = None
         self.late_messages: List[ContractApiMessage] = []
         super().__init__(*args, **kwargs)
