@@ -164,20 +164,18 @@ class DFA:
 
         aux_map: Dict[Tuple[str, str], Set[str]] = {}
         for (s1, t), s2 in self.transition_func.items():
-            if (s1, s2) in aux_map:
-                aux_map[(s1, s2)].add(t)
-            else:
-                aux_map[(s1, s2)] = set([t])
+            aux_map.setdefault((s1, s2), set()).add(t)
 
+        # A small optimization to make the output nicer:
+        # (1) First, print the arrows that start from a start_state.
         for (s1, s2), t_set in aux_map.items():
             if s1 in self.start_states:
-                edge_label = '<br />'.join(t_set)
-                print(f"    {s1} --> {s2}: <center>{edge_label}</center>", file=fp)
+                print(f"    {s1} --> {s2}: <center>{'<br />'.join(t_set)}</center>", file=fp)
 
+        # (2) Then, print the rest of the arrows.
         for (s1, s2), t_set in aux_map.items():
             if s1 not in self.start_states:
-                edge_label = '<br />'.join(t_set)
-                print(f"    {s1} --> {s2}: <center>{edge_label}</center>", file=fp)
+                print(f"    {s1} --> {s2}: <center>{'<br />'.join(t_set)}</center>", file=fp)
 
     def _get_exportable_repr(self) -> Dict[str, Any]:
         """Retrieves an exportable respresentation for YAML/JSON dump of this DFA."""
