@@ -299,14 +299,17 @@ run-deploy:
 run-deployment:
 	if [ "${DEPLOYMENT_TYPE}" = "docker-compose" ];\
 	then\
-		cd deployments/build/ && \
+		cd deployments/build/ &&  \
+		sudo mkdir -p ./logs/logs && \
+		sudo chmod 777 -R ./logs && \
 		docker-compose up --force-recreate -t 600
 		exit 0
 	fi
 	if [ "${DEPLOYMENT_TYPE}" = "kubernetes" ];\
 	then\
+		kubectl create ns ${VERSION}
 		cd deployments/build/ && \
-		kubectl apply -f build.yaml && exit 0
+		kubectl apply -f build.yaml -n ${VERSION} && exit 0
 	fi
 	echo "Please ensure you have set the environment variable 'DEPLOYMENT_TYPE'"
 	exit 1
@@ -349,3 +352,11 @@ replay-agent:
 
 replay-tendermint:
 	python replay_scripts/tendermint_runner.py $(NODE_ID)
+
+teardown-docker-compose:
+	cd deployments/build/ && \
+		docker-compose kill && \
+		docker-compose down && \
+		echo "Deployment torndown!" && \
+		exit 0
+	echo "Failed to teardown deployment!" exit 1

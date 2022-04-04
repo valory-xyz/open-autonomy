@@ -44,4 +44,4 @@ profiles:
         value: Dockerfile.develop
       - op: add
         path: /build/artifacts/0/docker/cliFlags
-        value: ["no-cache", "true", "pull", "true", "force-rm", "true"]
+        value: ["--no-cache", "--pull", "--force-rm"]
