@@ -20,7 +20,7 @@
 """This module contains the class to connect to the Service Registry contract."""
 
 import logging
-from typing import Dict, List, Tuple, cast
+from typing import Dict, List, Tuple, Any, Optional, cast
 
 import hashlib
 from aea.common import JSONLike
@@ -65,44 +65,108 @@ class ServiceRegistryContract(Contract):
         return dict(verified=verified)
 
     @classmethod
+    def change_service_manager(
+        cls,
+        ledger_api,
+        contract_address,
+        new_manager: Address,
+        **tx_args: Any,
+    ) -> JSONLike:
+        """Change service manager"""
+
+        contract_instance = cls.get_instance(ledger_api, contract_address)
+        kwargs = dict(newManager=new_manager)
+
+        return ledger_api.build_transaction(
+            contract_instance,
+            "changeManager",
+            method_args=kwargs,
+            tx_args=tx_args,
+        )
+
+    @classmethod
+    def create_service(
+        cls,
+        ledger_api,
+        contract_address,
+        owner: Address,
+        name: str,
+        description: str,
+        config_hash: ConfigHash,
+        agent_ids: List[int],
+        agent_params: List[AgentParams],
+        threshold: int,
+        **tx_args: Any,
+    ) -> JSONLike:
+        """Create service on-chain"""
+
+        contract_instance = cls.get_instance(ledger_api, contract_address)
+        kwargs = dict(
+            owner=owner,
+            name=name,
+            description=description,
+            configHash=config_hash,
+            agentIds=agent_ids,
+            agentParams=agent_params,
+            threshold=threshold,
+        )
+
+        return ledger_api.build_transaction(
+            contract_instance,
+            "createService",
+            method_args=kwargs,
+            tx_args=tx_args,
+        )
+
+    @classmethod
+    def owner_of(
+        cls,
+        ledger_api: LedgerApi,
+        contract_address: str,
+        service_id: int,
+    ) -> Address:
+        """Gets the allowance for a spender."""
+
+        contract_instance = cls.get_instance(ledger_api, contract_address)
+        owner = ledger_api.contract_method_call(
+            contract_instance=contract_instance,
+            method_name="ownerOf",
+            serviceId=service_id,
+        )
+
+        return owner
+
+    @classmethod
+    def exists(
+        cls,
+        ledger_api: LedgerApi,
+        contract_address: str,
+        service_id: int,
+    ) -> bool:
+        """Check if the service id exists"""
+
+        contract_instance = cls.get_instance(ledger_api, contract_address)
+        exists = ledger_api.contract_method_call(
+            contract_instance=contract_instance,
+            method_name="exists",
+            serviceId=service_id,
+        )
+
+        return cast(bool, exists)
+
+    @classmethod
     def get_service_info(
         cls,
         ledger_api: LedgerApi,
         contract_address: str,
         service_id: int,
-    ) -> Dict:
+    ) -> JSONLike:
         """Retrieve on-chain service information"""
 
         contract_instance = cls.get_instance(ledger_api, contract_address)
 
-        service_info = ledger_api.contract_method_call(
+        return ledger_api.contract_method_call(
             contract_instance=contract_instance,
             method_name="getServiceInfo",
             serviceId=service_id,
-        )
-
-        owner: Address = service_info[0]
-        name: str = service_info[1]
-        description: str = service_info[2]
-        config_hash: ConfigHash = service_info[3]
-        threshold: int = service_info[4]
-        num_agent_ids: int = service_info[5]
-        agent_ids: List[int] = service_info[6]
-        agent_params: AgentParams = service_info[7]
-        num_agent_instances: int = service_info[8]
-        agent_instances: List[Address] = service_info[9]
-        contract_address: Address = service_info[10]
-
-        return dict(
-            owner=owner,
-            name=name,
-            description=description,
-            config_hash=config_hash,
-            threshold=threshold,
-            num_agent_ids=num_agent_ids,
-            agent_ids=agent_ids,
-            agent_params=agent_params,
-            num_agent_instances=num_agent_instances,
-            agent_instances=agent_instances,
-            contract_address=contract_address,
         )
