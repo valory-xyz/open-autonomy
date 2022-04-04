@@ -43,6 +43,10 @@ logging_config:
     standard:
       format: '[%(asctime)s] [%(levelname)s] %(message)s'
   handlers:
+    logfile:
+      class: logging.FileHandler
+      formatter: standard
+      filename: ${LOG_FILE:str:/logs/logs.log}
     console:
       class: logging.StreamHandler
       formatter: standard
@@ -51,6 +55,7 @@ logging_config:
     aea:
       handlers:
       - console
+      - logfile
       propagate: false
 dependencies:
   open-aea-ledger-ethereum: {}

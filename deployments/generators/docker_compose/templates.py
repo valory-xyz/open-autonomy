@@ -79,6 +79,7 @@ TENDERMINT_NODE_TEMPLATE: str = (
       - TMHOME=/tendermint/node{node_id}
       - CREATE_EMPTY_BLOCKS=true
       - DEV_MODE=0
+      - LOG_FILE=/logs/logs/node_{node_id}_logs.txt
     volumes:
       - ./build:/tendermint:Z
       - ./logs:/logs:Z
@@ -103,6 +104,7 @@ ABCI_NODE_TEMPLATE: str = (
     container_name: abci{node_id}
     image: "valory/consensus-algorithms-open-aea:%s"
     environment:
+      - LOG_FILE=/logs/logs/aea_{node_id}_logs.txt
 {agent_vars}
     networks:
       localnet:
