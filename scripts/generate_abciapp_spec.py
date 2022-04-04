@@ -18,18 +18,17 @@
 #
 # ------------------------------------------------------------------------------
 """
-Generates the specification for a given ABCI app in YAML/JSON format using a simplified syntax for deterministic finite automata (DFA).
-Alternatively, it can also produce a Mermaid diagram source code.
+Generates the specification for a given ABCI app in YAML/JSON/Mermaid format.
 
-Example usage:
-
-./generate_abciapp_spec.py -c packages.valory.skills.registration_abci.rounds.AgentRegistrationAbciApp -o output.yaml
+Generates the specification for a given ABCI app in YAML/JSON format using a simplified syntax for deterministic finite automata (DFA). Alternatively, it can also
+produce a Mermaid diagram source code. Example usage: ./generate_abciapp_spec.py -c packages.valory.skills.registration_abci.rounds.AgentRegistrationAbciApp -o
+output.yaml
 
 optional arguments:
   -h, --help            show this help message and exit
   -o OUTFILE, --outfile OUTFILE
                         Output file name.
-  -f {json,yaml}, --outformat {json,yaml}
+  -f {json,yaml,mermaid}, --outformat {json,yaml,mermaid}
                         Output format.
 
 required arguments:
@@ -170,12 +169,18 @@ class DFA:
         # (1) First, print the arrows that start from a start_state.
         for (s1, s2), t_set in aux_map.items():
             if s1 in self.start_states:
-                print(f"    {s1} --> {s2}: <center>{'<br />'.join(t_set)}</center>", file=fp)
+                print(
+                    f"    {s1} --> {s2}: <center>{'<br />'.join(t_set)}</center>",
+                    file=fp,
+                )
 
         # (2) Then, print the rest of the arrows.
         for (s1, s2), t_set in aux_map.items():
             if s1 not in self.start_states:
-                print(f"    {s1} --> {s2}: <center>{'<br />'.join(t_set)}</center>", file=fp)
+                print(
+                    f"    {s1} --> {s2}: <center>{'<br />'.join(t_set)}</center>",
+                    file=fp,
+                )
 
     def _get_exportable_repr(self) -> Dict[str, Any]:
         """Retrieves an exportable respresentation for YAML/JSON dump of this DFA."""
@@ -305,7 +310,7 @@ def parse_arguments() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         script_name,
         description=f"Generates the specification for a given ABCI app in YAML/JSON format using a simplified syntax for "
-        "deterministic finite automata (DFA). Example usage:\n"
+        "deterministic finite automata (DFA). Alternatively, it can also produce a Mermaid diagram source code. Example usage: "
         f"./{script_name} -c packages.valory.skills.registration_abci.rounds.AgentRegistrationAbciApp -o output.yaml",
     )
     required = parser.add_argument_group("required arguments")
