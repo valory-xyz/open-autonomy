@@ -28,7 +28,7 @@ from aea.contracts.base import Contract
 from aea_ledger_ethereum import EthereumApi, LedgerApi
 
 
-DEPLOYED_BYTECODE_MD5_HASH = "dbddd97ffe22b97d04cfe242e3570fd0"
+DEPLOYED_BYTECODE_MD5_HASH = "288a5ecfe0b685d93f174ec24f743458679a4948d6517d77957fd67b72e5982eb85f543329059eabada38428eef9d548e407b1e0d60dd83af60099ea76bf5a76"
 
 ConfigHash = Tuple[bytes, int, int]
 AgentParams = Tuple[int, int]
@@ -58,8 +58,8 @@ class ServiceRegistryContract(Contract):
         """
         ledger_api = cast(EthereumApi, ledger_api)
         deployed_bytecode = ledger_api.api.eth.get_code(contract_address).hex()
-        md5_hash = hashlib.md5(deployed_bytecode.encode("utf-8")).hexdigest()
-        verified = md5_hash == DEPLOYED_BYTECODE_MD5_HASH
+        sha512_hash = hashlib.sha512(deployed_bytecode.encode("utf-8")).hexdigest()
+        verified = DEPLOYED_BYTECODE_MD5_HASH == sha512_hash
         return dict(verified=verified)
 
     @classmethod
