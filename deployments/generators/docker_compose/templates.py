@@ -74,12 +74,11 @@ TENDERMINT_NODE_TEMPLATE: str = (
     image: "valory/consensus-algorithms-tendermint:%s"
     environment:
       - ID={node_id}
-      - LOG=${{LOG:-tendermint.log}}
       - PROXY_APP=tcp://abci{node_id}:26658
       - TMHOME=/tendermint/node{node_id}
       - CREATE_EMPTY_BLOCKS=true
       - DEV_MODE=0
-      - LOG_FILE=/logs/logs/node_{node_id}_logs.txt
+      - LOG=/logs/logs/node_{node_id}.txt
     volumes:
       - ./build:/tendermint:Z
       - ./logs:/logs:Z
@@ -104,7 +103,7 @@ ABCI_NODE_TEMPLATE: str = (
     container_name: abci{node_id}
     image: "valory/consensus-algorithms-open-aea:%s"
     environment:
-      - LOG_FILE=/logs/logs/aea_{node_id}_logs.txt
+      - LOG_FILE=/logs/logs/aea_{node_id}.txt
 {agent_vars}
     networks:
       localnet:
