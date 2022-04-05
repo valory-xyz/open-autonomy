@@ -36,28 +36,21 @@ from tests.conftest import ROOT_DIR
 from tests.test_contracts.base import BaseGanacheContractTest
 
 
-Address = hex
+Address = str  # hex
 ConfigHash = Tuple[bytes, int, int]
 AgentParams = Tuple[int, int]
 
 ADDRESS_ZERO = "0x0000000000000000000000000000000000000000"
-COMPONENT_REGISTRY = "0x5FbDB2315678afecb367f032d93F642f64180aa3"
 AGENT_REGISTRY = "0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512"
-REGISTRIES_MANAGER = "0x9fE46736679d2D9a65F0992F2272dE9f3c7fa6e0"
 OWNER = "0x8626f6940E2eb28930eFb4CeF49B2d1F2C9C1199"
 SERVICE_REGISTRY = "0xA51c1fc2f0D1a1b8494Ed1FE312d7C3a78Ed91C0"
-SERVICE_MANAGER = "0x0DCd1Bf9A1b36cE34237eEaFef220932846BCD82"
-
-ADDRESS_ONE = "0x70997970c51812dc3a010c7d01b50e0d17dc79c8"
-ADDRESS_TWO = "0x3c44cdddb6a900fa2b585dd299e03d12fa4293bc"
-ADDRESS_THREE = "0x90f79bf6eb2c4f870365e785982e1f101e93b906"
-ADDRESS_FOUR = "0x15d34AAf54267DB7D7c367839AAf71A00a2C6A65"
 
 NONCE = 0
 CHAIN_ID = 31337
 
 
 class BaseServiceRegistryContractTest(BaseGanacheContractTest):
+    """Base class for Service Registry contract tests"""
 
     contract: ServiceRegistryContract
     ledger_identifier = EthereumCrypto.identifier
@@ -152,7 +145,7 @@ class TestServiceRegistryContract(BaseServiceRegistryContractTest):
         assert result["verified"] is True
 
     @pytest.mark.parametrize("service_id, expected", [(0, False), (1, True)])
-    def test_exists(self, service_id: int, expected: int):
+    def test_exists(self, service_id: int, expected: int) -> None:
         """Test whether service id exists"""
 
         hex_str = "0x" + "0" * 63 + str(int(expected))
@@ -168,7 +161,7 @@ class TestServiceRegistryContract(BaseServiceRegistryContractTest):
 
         assert exists is expected
 
-    def test_get_service_info(self):
+    def test_get_service_info(self) -> None:
         """Test service info retrieval"""
 
         return_value = dict(

@@ -21,9 +21,8 @@
 
 import hashlib
 import logging
-from typing import Optional, Tuple, cast
+from typing import Any, Dict, Tuple, cast
 
-from aea.common import JSONLike
 from aea.configurations.base import PublicId
 from aea.contracts.base import Contract
 from aea_ledger_ethereum import EthereumApi, LedgerApi
@@ -31,7 +30,6 @@ from aea_ledger_ethereum import EthereumApi, LedgerApi
 
 DEPLOYED_BYTECODE_MD5_HASH = "dbddd97ffe22b97d04cfe242e3570fd0"
 
-Address = hex
 ConfigHash = Tuple[bytes, int, int]
 AgentParams = Tuple[int, int]
 
@@ -50,7 +48,7 @@ class ServiceRegistryContract(Contract):
     @classmethod
     def verify_contract(
         cls, ledger_api: LedgerApi, contract_address: str
-    ) -> Optional[JSONLike]:
+    ) -> Dict[str, bool]:
         """
         Verify the contract's bytecode
 
@@ -88,7 +86,7 @@ class ServiceRegistryContract(Contract):
         ledger_api: LedgerApi,
         contract_address: str,
         service_id: int,
-    ) -> Optional[JSONLike]:
+    ) -> Dict[str, Any]:
         """Retrieve on-chain service information"""
 
         contract_instance = cls.get_instance(ledger_api, contract_address)
