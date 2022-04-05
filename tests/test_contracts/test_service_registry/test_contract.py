@@ -181,7 +181,9 @@ class TestServiceRegistryContract(BaseServiceRegistryContractTest):
         assert self.contract_address is not None
 
         with mock.patch.object(
-            self.contract, "get_service_info", return_value=return_value
+            self.ledger_api,
+            "contract_method_call",
+            return_value=list(return_value.values()),
         ):
             result = self.contract.get_service_info(
                 ledger_api=self.ledger_api,
