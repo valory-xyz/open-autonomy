@@ -36,6 +36,7 @@ class VerificationStatus(Enum):
     INVALID_PAYLOAD = 3
     PENDING = 4
     ERROR = 5
+    BLACKLIST = 6
 
 
 class PayloadDeserializationError(Exception):

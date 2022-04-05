@@ -69,6 +69,9 @@ class TransactionParams(BaseParams):
         self.nonce: Optional[Nonce] = None
         self.tip: Optional[int] = None
         self.late_messages: List[ContractApiMessage] = []
+        self.keeper_allowed_retries: int = self._ensure(
+            "keeper_allowed_retries", kwargs
+        )
         super().__init__(*args, **kwargs)
 
 

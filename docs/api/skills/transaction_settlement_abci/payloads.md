@@ -99,24 +99,24 @@ Represent a transaction payload of type 'select_keeper'.
 #### `__`init`__`
 
 ```python
-def __init__(sender: str, keeper: str, **kwargs: Any) -> None
+def __init__(sender: str, keepers: str, **kwargs: Any) -> None
 ```
 
-Initialize an 'select_keeper' transaction payload.
+Initialize a 'select_keeper' transaction payload.
 
 **Arguments**:
 
 - `sender`: the sender (Ethereum) address
-- `keeper`: the keeper selection
+- `keepers`: the updated keepers
 - `kwargs`: the keyword arguments
 
-<a id="packages.valory.skills.transaction_settlement_abci.payloads.SelectKeeperPayload.keeper"></a>
+<a id="packages.valory.skills.transaction_settlement_abci.payloads.SelectKeeperPayload.keepers"></a>
 
-#### keeper
+#### keepers
 
 ```python
 @property
-def keeper() -> str
+def keepers() -> str
 ```
 
 Get the keeper.
@@ -127,7 +127,7 @@ Get the keeper.
 
 ```python
 @property
-def data() -> Dict
+def data() -> Dict[str, str]
 ```
 
 Get the data.
