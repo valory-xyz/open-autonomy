@@ -71,6 +71,7 @@ class TestParams:
             tendermint_check_sleep_delay=3,
             service_id="liquidity_rebalancing",
             keeper_timeout=1.0,
+            keeper_allowed_retries=3,
             rebalancing={
                 "chain": "Ethereum",
                 "token_base_address": "0xDc64a140Aa3E981100a9becA4E685f962f0cF6C9",
