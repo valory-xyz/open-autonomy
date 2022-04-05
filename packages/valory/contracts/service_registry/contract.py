@@ -19,14 +19,14 @@
 
 """This module contains the class to connect to the Service Registry contract."""
 
-import logging
-from typing import Dict, List, Tuple, Any, Optional, cast
-
 import hashlib
+import logging
+from typing import Optional, Tuple, cast
+
 from aea.common import JSONLike
 from aea.configurations.base import PublicId
 from aea.contracts.base import Contract
-from aea_ledger_ethereum import LedgerApi, EthereumApi
+from aea_ledger_ethereum import EthereumApi, LedgerApi
 
 
 DEPLOYED_BYTECODE_MD5_HASH = "dbddd97ffe22b97d04cfe242e3570fd0"
@@ -50,7 +50,7 @@ class ServiceRegistryContract(Contract):
     @classmethod
     def verify_contract(
         cls, ledger_api: LedgerApi, contract_address: str
-    ) -> JSONLike:
+    ) -> Optional[JSONLike]:
         """
         Verify the contract's bytecode
 
@@ -63,60 +63,6 @@ class ServiceRegistryContract(Contract):
         md5_hash = hashlib.md5(deployed_bytecode.encode("utf-8")).hexdigest()
         verified = md5_hash == DEPLOYED_BYTECODE_MD5_HASH
         return dict(verified=verified)
-
-    @classmethod
-    def change_service_manager(
-        cls,
-        ledger_api,
-        contract_address,
-        new_manager: Address,
-        **tx_args: Any,
-    ) -> JSONLike:
-        """Change service manager"""
-
-        contract_instance = cls.get_instance(ledger_api, contract_address)
-        kwargs = dict(newManager=new_manager)
-
-        return ledger_api.build_transaction(
-            contract_instance,
-            "changeManager",
-            method_args=kwargs,
-            tx_args=tx_args,
-        )
-
-    @classmethod
-    def create_service(
-        cls,
-        ledger_api,
-        contract_address,
-        owner: Address,
-        name: str,
-        description: str,
-        config_hash: ConfigHash,
-        agent_ids: List[int],
-        agent_params: List[AgentParams],
-        threshold: int,
-        **tx_args: Any,
-    ) -> JSONLike:
-        """Create service on-chain"""
-
-        contract_instance = cls.get_instance(ledger_api, contract_address)
-        kwargs = dict(
-            owner=owner,
-            name=name,
-            description=description,
-            configHash=config_hash,
-            agentIds=agent_ids,
-            agentParams=agent_params,
-            threshold=threshold,
-        )
-
-        return ledger_api.build_transaction(
-            contract_instance,
-            "createService",
-            method_args=kwargs,
-            tx_args=tx_args,
-        )
 
     @classmethod
     def exists(
@@ -142,13 +88,26 @@ class ServiceRegistryContract(Contract):
         ledger_api: LedgerApi,
         contract_address: str,
         service_id: int,
-    ) -> JSONLike:
+    ) -> Optional[JSONLike]:
         """Retrieve on-chain service information"""
 
         contract_instance = cls.get_instance(ledger_api, contract_address)
-
-        return ledger_api.contract_method_call(
+        service_info = ledger_api.contract_method_call(
             contract_instance=contract_instance,
             method_name="getServiceInfo",
             serviceId=service_id,
+        )
+
+        return dict(
+            owner=service_info[0],
+            name=service_info[1],
+            description=service_info[2],
+            config_hash=service_info[3],
+            threshold=service_info[4],
+            num_agent_ids=service_info[5],
+            agent_ids=service_info[6],
+            agent_params=service_info[7],
+            num_agent_instances=service_info[8],
+            agent_instances=service_info[9],
+            multisig=service_info[10],
         )
