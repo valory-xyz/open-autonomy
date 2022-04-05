@@ -648,6 +648,7 @@ def test_period_states() -> None:
     period_state_____ = TransactionSettlementPeriodState(
         StateDB(initial_period=0, initial_data=dict())
     )
+    assert period_state_____.keepers == deque()
     assert period_state_____.keeper_retries == 0
 
     period_state_____ = TransactionSettlementPeriodState(
