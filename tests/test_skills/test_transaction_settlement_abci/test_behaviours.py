@@ -22,7 +22,7 @@
 import time
 from collections import deque
 from pathlib import Path
-from typing import Any, Dict, Generator, List, Optional, Tuple, Type, Union, cast
+from typing import Any, Deque, Dict, Generator, List, Optional, Tuple, Type, Union, cast
 from unittest import mock
 from unittest.mock import MagicMock
 
@@ -320,7 +320,7 @@ class TestSelectKeeperTransactionSubmissionBehaviourB(
 
     @mock.patch.object(
         TransactionSettlementPeriodState,
-        "keepers_threshold_exceeded",
+        "keepers",
         new_callable=mock.PropertyMock,
     )
     @mock.patch.object(
@@ -329,31 +329,40 @@ class TestSelectKeeperTransactionSubmissionBehaviourB(
         new_callable=mock.PropertyMock,
     )
     @pytest.mark.parametrize(
-        "threshold_exceeded, keeper_retries", ((True, 1), (False, 1), (False, 3))
+        "keepers, keeper_retries, blacklisted",
+        (
+            (deque(f"keeper_{i}" for i in range(4)), 1, False),
+            (deque(("test_keeper",)), 2, True),
+            (deque(("test_keeper",)), 1, False),
+            (deque(("test_keeper",)), 3, False),
+        ),
     )
     def test_select_keeper(
         self,
         keeper_retries_mock: mock.PropertyMock,
-        threshold_exceeded_mock: mock.PropertyMock,
-        threshold_exceeded: bool,
+        keepers_mock: mock.PropertyMock,
+        keepers: Deque[str],
         keeper_retries: int,
+        blacklisted: bool,
     ) -> None:
         """Test select keeper agent."""
-        threshold_exceeded_mock.return_value = threshold_exceeded
+        keepers_mock.return_value = keepers
         keeper_retries_mock.return_value = keeper_retries
-        super().test_select_keeper()
+        super().test_select_keeper(blacklisted=blacklisted)
 
     @mock.patch.object(
         TransactionSettlementPeriodState,
-        "keepers_threshold_exceeded",
+        "keepers",
         new_callable=mock.PropertyMock,
     )
-    @pytest.mark.parametrize("threshold_exceeded", (True, False))
+    @pytest.mark.parametrize(
+        "keepers", (deque(f"keeper_{i}" for i in range(4)), deque(("test_keeper",)))
+    )
     def test_select_keeper_preexisting_keeper(
-        self, threshold_exceeded_mock: mock.PropertyMock, threshold_exceeded: bool
+        self, keepers_mock: mock.PropertyMock, keepers: Deque[str]
     ) -> None:
         """Test select keeper agent with pre-existing keeper."""
-        threshold_exceeded_mock.return_value = threshold_exceeded
+        keepers_mock.return_value = keepers
         super().test_select_keeper()
 
 

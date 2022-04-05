@@ -280,6 +280,10 @@ class SelectKeeperTransactionSubmissionBehaviourB(  # pylint: disable=too-many-a
             else:
                 self._keepers.appendleft(self._select_keeper())
 
+            # Do not allow selecting a keeper who has been blacklisted for the period.
+            if self._keepers[0] in self.period_state.blacklisted_keepers:
+                return
+
             payload = self.payload_class(
                 self.context.agent_address, self.serialized_keepers
             )
