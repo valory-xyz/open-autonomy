@@ -54,6 +54,10 @@ from packages.valory.skills.transaction_settlement_abci.payloads import (
 )
 
 
+ADDRESS_LENGTH = 42
+RETRIES_LENGTH = 64
+
+
 class Event(Enum):
     """Event enumeration for the price estimation demo."""
 
@@ -69,6 +73,7 @@ class Event(Enum):
     CHECK_LATE_ARRIVING_MESSAGE = "check_late_arriving_message"
     FINALIZATION_FAILED = "finalization_failed"
     MISSED_AND_LATE_MESSAGES_MISMATCH = "missed_and_late_messages_mismatch"
+    INCORRECT_SERIALIZATION = "incorrect_serialization"
 
 
 class PeriodState(BasePeriodState):  # pylint: disable=too-many-instance-attributes
@@ -99,19 +104,12 @@ class PeriodState(BasePeriodState):  # pylint: disable=too-many-instance-attribu
     @property
     def keepers(self) -> Deque[str]:
         """Get the current cycle's keepers who have tried to submit a transaction."""
-        address_length = 42
-        retries_length = 64
-
         if self.is_keeper_set:
-            keepers_unparsed = cast(str, self.db.get("keepers", ""))
-            if (len(keepers_unparsed) - retries_length) % address_length != 0:
-                # if we cannot parse the keepers, then the developer has serialized them incorrectly.
-                raise ABCIAppInternalError(f"Cannot parse keepers: {keepers_unparsed}!")
+            keepers_unparsed = cast(str, self.db.get_strict("keepers"))
             keepers_parsed = textwrap.wrap(
-                keepers_unparsed[retries_length:], address_length
+                keepers_unparsed[RETRIES_LENGTH:], ADDRESS_LENGTH
             )
             return deque(keepers_parsed)
-
         return deque()
 
     @property
@@ -133,19 +131,12 @@ class PeriodState(BasePeriodState):  # pylint: disable=too-many-instance-attribu
     @property
     def keeper_retries(self) -> int:
         """Get the number of times the current keeper has retried."""
-        address_length = 42
-        retries_length = 64
-
         if self.is_keeper_set:
-            keepers_unparsed = cast(str, self.db.get("keepers", ""))
-            if (len(keepers_unparsed) - retries_length) % address_length != 0:
-                # if we cannot parse the keepers, then the developer has serialized them incorrectly.
-                raise ABCIAppInternalError(f"Cannot parse keepers: {keepers_unparsed}!")
+            keepers_unparsed = cast(str, self.db.get_strict("keepers"))
             keeper_retries = int.from_bytes(
-                bytes.fromhex(keepers_unparsed[:retries_length]), "big"
+                bytes.fromhex(keepers_unparsed[:RETRIES_LENGTH]), "big"
             )
             return keeper_retries
-
         return 0
 
     @property
@@ -328,6 +319,19 @@ class SelectKeeperTransactionSubmissionRoundA(CollectSameUntilThresholdRound):
     no_majority_event = Event.NO_MAJORITY
     collection_key = "participant_to_selection"
     selection_key = "keepers"
+
+    def end_block(self) -> Optional[Tuple[BasePeriodState, Enum]]:
+        """Process the end of the block."""
+
+        if self.threshold_reached and self.most_voted_payload is not None:
+            if (
+                len(self.most_voted_payload) < RETRIES_LENGTH + ADDRESS_LENGTH
+                or (len(self.most_voted_payload) - RETRIES_LENGTH) % ADDRESS_LENGTH != 0
+            ):
+                # if we cannot parse the keepers' payload, then the developer has serialized it incorrectly.
+                return self.period_state, Event.INCORRECT_SERIALIZATION
+
+        return super().end_block()
 
 
 class SelectKeeperTransactionSubmissionRoundB(SelectKeeperTransactionSubmissionRoundA):
@@ -534,6 +538,7 @@ class TransactionSubmissionAbciApp(AbciApp[Event]):
             - done: 2.
             - round timeout: 10.
             - no majority: 10.
+            - incorrect serialization: 12.
         2. CollectSignatureRound
             - done: 3.
             - round timeout: 10.
@@ -561,12 +566,14 @@ class TransactionSubmissionAbciApp(AbciApp[Event]):
             - done: 3.
             - round timeout: 10.
             - no majority: 10.
+            - incorrect serialization: 12.
         7. SelectKeeperTransactionSubmissionRoundBAfterTimeout
             - done: 3.
             - check history: 5.
             - check late arriving message: 8.
             - round timeout: 10.
             - no majority: 10.
+            - incorrect serialization: 12.
         8. SynchronizeLateMessagesRound
             - done: 9.
             - round timeout: 8.
@@ -607,6 +614,7 @@ class TransactionSubmissionAbciApp(AbciApp[Event]):
             Event.DONE: CollectSignatureRound,
             Event.ROUND_TIMEOUT: ResetRound,
             Event.NO_MAJORITY: ResetRound,
+            Event.INCORRECT_SERIALIZATION: FailedRound,
         },
         CollectSignatureRound: {
             Event.DONE: FinalizationRound,
@@ -639,6 +647,7 @@ class TransactionSubmissionAbciApp(AbciApp[Event]):
             Event.DONE: FinalizationRound,
             Event.ROUND_TIMEOUT: ResetRound,
             Event.NO_MAJORITY: ResetRound,
+            Event.INCORRECT_SERIALIZATION: FailedRound,
         },
         SelectKeeperTransactionSubmissionRoundBAfterTimeout: {
             Event.DONE: FinalizationRound,
@@ -646,6 +655,7 @@ class TransactionSubmissionAbciApp(AbciApp[Event]):
             Event.CHECK_LATE_ARRIVING_MESSAGE: SynchronizeLateMessagesRound,
             Event.ROUND_TIMEOUT: ResetRound,
             Event.NO_MAJORITY: ResetRound,
+            Event.INCORRECT_SERIALIZATION: FailedRound,
         },
         SynchronizeLateMessagesRound: {
             Event.DONE: CheckLateTxHashesRound,

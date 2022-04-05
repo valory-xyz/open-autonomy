@@ -22,7 +22,7 @@
 import logging  # noqa: F401
 from collections import deque
 from types import MappingProxyType
-from typing import Deque, Dict, FrozenSet, List, Mapping, Optional, Union, cast
+from typing import Dict, FrozenSet, List, Mapping, Optional, Union, cast
 from unittest import mock
 
 import pytest
@@ -218,6 +218,30 @@ class TestSelectKeeperTransactionSubmissionRoundA(BaseSelectKeeperRoundTest):
         """Get participant to selection"""
         return get_participant_to_selection(participants, keepers)
 
+    @pytest.mark.parametrize(
+        "most_voted_payload, keepers, exit_event",
+        (
+            (
+                "incorrectly_serialized",
+                "",
+                TransactionSettlementEvent.INCORRECT_SERIALIZATION,
+            ),
+            (
+                int(1).to_bytes(32, "big").hex() + "new_keeper" + "-" * 32,
+                "",
+                TransactionSettlementEvent.DONE,
+            ),
+        ),
+    )
+    def test_run(
+        self,
+        most_voted_payload: str,
+        keepers: str,
+        exit_event: TransactionSettlementEvent,
+    ) -> None:
+        """Run tests."""
+        super().test_run(most_voted_payload, keepers, exit_event)
+
 
 class TestSelectKeeperTransactionSubmissionRoundB(
     TestSelectKeeperTransactionSubmissionRoundA
@@ -227,27 +251,31 @@ class TestSelectKeeperTransactionSubmissionRoundB(
     test_class = SelectKeeperTransactionSubmissionRoundB
 
     @pytest.mark.parametrize(
-        "keepers, most_voted_payload",
+        "most_voted_payload, keepers, exit_event",
         (
-            (deque(), "keeper"),
             (
-                deque(["test_keeper1", "test_keeper2"]),
+                int(1).to_bytes(32, "big").hex() + "new_keeper" + "-" * 32,
                 "",
+                TransactionSettlementEvent.DONE,
             ),
             (
-                deque(["test_keeper1", "test_keeper2"]),
-                "",
+                int(1).to_bytes(32, "big").hex() + "new_keeper" + "-" * 32,
+                int(1).to_bytes(32, "big").hex()
+                + "".join(
+                    [keeper + "-" * 30 for keeper in ("test_keeper1", "test_keeper2")]
+                ),
+                TransactionSettlementEvent.DONE,
             ),
         ),
     )
     def test_run(
         self,
-        keepers: Deque[str],
         most_voted_payload: str,
+        keepers: str,
+        exit_event: TransactionSettlementEvent,
     ) -> None:
         """Run tests."""
-        self._most_voted_payload = most_voted_payload
-        super().test_run(keepers)
+        super().test_run(most_voted_payload, keepers, exit_event)
 
 
 class TestSelectKeeperTransactionSubmissionRoundBAfterTimeout(
@@ -298,10 +326,11 @@ class TestSelectKeeperTransactionSubmissionRoundBAfterTimeout(
         exit_event: TransactionSettlementEvent,
     ) -> None:
         """Test `SelectKeeperTransactionSubmissionRoundBAfterTimeout`."""
-        self._exit_event = exit_event
         self.period_state.update(participant_to_selection=dict.fromkeys(self.participants), **attrs)  # type: ignore
         threshold_exceeded_mock.return_value = threshold_exceeded
-        super().test_run(deque(), "keeper")
+        most_voted_payload = int(1).to_bytes(32, "big").hex() + "new_keeper" + "-" * 32
+        keeper = ""
+        super().test_run(most_voted_payload, keeper, exit_event)
         assert (
             cast(TransactionSettlementPeriodState, self.period_state).missed_messages
             == cast(int, attrs["missed_messages"]) + 1
@@ -647,20 +676,6 @@ def test_period_states() -> None:
         match="internal error: Cannot parse late arriving hashes: test!",
     ):
         _ = period_state_____.late_arriving_tx_hashes
-
-    # test wrong keepers serialization
-    period_state_____.update(keepers="test")
-    with pytest.raises(
-        ABCIAppInternalError,
-        match="internal error: Cannot parse keepers: test!",
-    ):
-        _ = period_state_____.keepers
-
-    with pytest.raises(
-        ABCIAppInternalError,
-        match="internal error: Cannot parse keepers: test!",
-    ):
-        _ = period_state_____.keeper_retries
 
 
 class TestResetRound(BaseCollectSameUntilThresholdRoundTest):

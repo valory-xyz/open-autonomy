@@ -10,6 +10,7 @@ alphabet_in:
 - FAILED
 - FAST_FORWARD
 - FINALIZATION_FAILED
+- INCORRECT_SERIALIZATION
 - MISSED_AND_LATE_MESSAGES_MISMATCH
 - NEGATIVE
 - NONE
@@ -96,14 +97,17 @@ transition_func:
     (SelectKeeperSafeRound, NO_MAJORITY): RandomnessSafeRound
     (SelectKeeperSafeRound, ROUND_TIMEOUT): RandomnessSafeRound
     (SelectKeeperTransactionSubmissionRoundA, DONE): CollectSignatureRound
+    (SelectKeeperTransactionSubmissionRoundA, INCORRECT_SERIALIZATION): RegistrationRound
     (SelectKeeperTransactionSubmissionRoundA, NO_MAJORITY): ResetRound
     (SelectKeeperTransactionSubmissionRoundA, ROUND_TIMEOUT): ResetRound
     (SelectKeeperTransactionSubmissionRoundB, DONE): FinalizationRound
+    (SelectKeeperTransactionSubmissionRoundB, INCORRECT_SERIALIZATION): RegistrationRound
     (SelectKeeperTransactionSubmissionRoundB, NO_MAJORITY): ResetRound
     (SelectKeeperTransactionSubmissionRoundB, ROUND_TIMEOUT): ResetRound
     (SelectKeeperTransactionSubmissionRoundBAfterTimeout, CHECK_HISTORY): CheckTransactionHistoryRound
     (SelectKeeperTransactionSubmissionRoundBAfterTimeout, CHECK_LATE_ARRIVING_MESSAGE): SynchronizeLateMessagesRound
     (SelectKeeperTransactionSubmissionRoundBAfterTimeout, DONE): FinalizationRound
+    (SelectKeeperTransactionSubmissionRoundBAfterTimeout, INCORRECT_SERIALIZATION): RegistrationRound
     (SelectKeeperTransactionSubmissionRoundBAfterTimeout, NO_MAJORITY): ResetRound
     (SelectKeeperTransactionSubmissionRoundBAfterTimeout, ROUND_TIMEOUT): ResetRound
     (SleepRound, DONE): StrategyEvaluationRound

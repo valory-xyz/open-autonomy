@@ -4,6 +4,7 @@ alphabet_in:
 - CHECK_TIMEOUT
 - DONE
 - FINALIZATION_FAILED
+- INCORRECT_SERIALIZATION
 - MISSED_AND_LATE_MESSAGES_MISMATCH
 - NEGATIVE
 - NONE
@@ -60,14 +61,17 @@ transition_func:
     (ResetRound, NO_MAJORITY): FailedRound
     (ResetRound, RESET_TIMEOUT): FailedRound
     (SelectKeeperTransactionSubmissionRoundA, DONE): CollectSignatureRound
+    (SelectKeeperTransactionSubmissionRoundA, INCORRECT_SERIALIZATION): FailedRound
     (SelectKeeperTransactionSubmissionRoundA, NO_MAJORITY): ResetRound
     (SelectKeeperTransactionSubmissionRoundA, ROUND_TIMEOUT): ResetRound
     (SelectKeeperTransactionSubmissionRoundB, DONE): FinalizationRound
+    (SelectKeeperTransactionSubmissionRoundB, INCORRECT_SERIALIZATION): FailedRound
     (SelectKeeperTransactionSubmissionRoundB, NO_MAJORITY): ResetRound
     (SelectKeeperTransactionSubmissionRoundB, ROUND_TIMEOUT): ResetRound
     (SelectKeeperTransactionSubmissionRoundBAfterTimeout, CHECK_HISTORY): CheckTransactionHistoryRound
     (SelectKeeperTransactionSubmissionRoundBAfterTimeout, CHECK_LATE_ARRIVING_MESSAGE): SynchronizeLateMessagesRound
     (SelectKeeperTransactionSubmissionRoundBAfterTimeout, DONE): FinalizationRound
+    (SelectKeeperTransactionSubmissionRoundBAfterTimeout, INCORRECT_SERIALIZATION): FailedRound
     (SelectKeeperTransactionSubmissionRoundBAfterTimeout, NO_MAJORITY): ResetRound
     (SelectKeeperTransactionSubmissionRoundBAfterTimeout, ROUND_TIMEOUT): ResetRound
     (SynchronizeLateMessagesRound, DONE): CheckLateTxHashesRound
