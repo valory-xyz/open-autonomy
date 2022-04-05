@@ -396,6 +396,13 @@ class TestFinalizationRound(BaseOnlyKeeperSendsRoundTest):
                 VerificationStatus.PENDING.value,
                 TransactionSettlementEvent.DONE,
             ),
+            (
+                ["test"],
+                "",
+                0,
+                VerificationStatus.BLACKLIST.value,
+                TransactionSettlementEvent.FINALIZATION_FAILED,
+            ),
         ),
     )
     def test_finalization_round(
@@ -417,6 +424,9 @@ class TestFinalizationRound(BaseOnlyKeeperSendsRoundTest):
                 missed_messages=missed_messages,
                 tx_hashes_history=tx_hashes_history,
                 keepers=get_keepers(),
+                blacklisted_keepers={keepers[0]}
+                if status == VerificationStatus.BLACKLIST.value
+                else {},
             ),
         )
         tx_hashes_history.append(
@@ -638,6 +648,7 @@ def test_period_states() -> None:
     period_state_____ = TransactionSettlementPeriodState(
         StateDB(initial_period=0, initial_data=dict())
     )
+    assert period_state_____.keepers == deque()
     assert period_state_____.keeper_retries == 0
 
     period_state_____ = TransactionSettlementPeriodState(

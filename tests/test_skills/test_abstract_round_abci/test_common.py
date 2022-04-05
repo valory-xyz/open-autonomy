@@ -33,6 +33,9 @@ from packages.valory.skills.abstract_round_abci.behaviour_utils import BaseState
 from packages.valory.skills.transaction_settlement_abci.payload_tools import (
     VerificationStatus,
 )
+from packages.valory.skills.transaction_settlement_abci.rounds import (
+    PeriodState as TxSettlementPeriodState,
+)
 
 from tests.conftest import ROOT_DIR
 from tests.test_skills.base import FSMBehaviourBaseCase
@@ -321,8 +324,15 @@ class BaseSelectKeeperBehaviourTest(CommonBaseCase):
     done_event: Any
     _period_state: Type[BasePeriodState] = BasePeriodState
 
+    @mock.patch.object(
+        TxSettlementPeriodState,
+        "blacklisted_keepers",
+        new_callable=mock.PropertyMock,
+    )
     def test_select_keeper(
         self,
+        blacklisted_keepers_mock: mock.PropertyMock,
+        blacklisted: bool = False,
     ) -> None:
         """Test select keeper agent."""
         participants = frozenset({self.skill.skill_context.agent_address, "a_1", "a_2"})
@@ -347,6 +357,17 @@ class BaseSelectKeeperBehaviourTest(CommonBaseCase):
             ).state_id
             == self.select_keeper_behaviour_class.state_id
         )
+
+        if blacklisted:
+            # blacklist the selected keeper
+            blacklisted_keepers_mock.return_value = {
+                cast(TxSettlementPeriodState, self._period_state).keepers[0]
+            }
+            # enter behaviour (we expect it to return, because the keeper is blacklisted).
+            self.behaviour.act_wrapper()
+            # remove blacklisting to check re-entering behaviour and simulate selecting a non blacklisted keeper
+            blacklisted_keepers_mock.return_value = {}
+
         self.behaviour.act_wrapper()
         self.mock_a2a_transaction()
         self._test_done_flag_set()

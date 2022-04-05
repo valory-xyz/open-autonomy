@@ -22,7 +22,19 @@ import textwrap
 from abc import ABC
 from collections import deque
 from enum import Enum
-from typing import Deque, Dict, List, Mapping, Optional, Set, Tuple, Type, Union, cast
+from typing import (
+    Any,
+    Deque,
+    Dict,
+    List,
+    Mapping,
+    Optional,
+    Set,
+    Tuple,
+    Type,
+    Union,
+    cast,
+)
 
 from packages.valory.skills.abstract_round_abci.base import (
     ABCIAppInternalError,
@@ -73,6 +85,7 @@ class Event(Enum):
     CHECK_LATE_ARRIVING_MESSAGE = "check_late_arriving_message"
     FINALIZATION_FAILED = "finalization_failed"
     MISSED_AND_LATE_MESSAGES_MISMATCH = "missed_and_late_messages_mismatch"
+    KEEPER_BLACKLISTED = "keeper_blacklisted"
     INCORRECT_SERIALIZATION = "incorrect_serialization"
 
 
@@ -111,6 +124,11 @@ class PeriodState(BasePeriodState):  # pylint: disable=too-many-instance-attribu
             )
             return deque(keepers_parsed)
         return deque()
+
+    @property
+    def blacklisted_keepers(self) -> Set[str]:
+        """Get the current cycle's blacklisted keepers who cannot submit a transaction."""
+        return cast(Set[str], self.db.get("blacklisted_keepers", {}))
 
     @property
     def keepers_threshold_exceeded(self) -> bool:
@@ -246,6 +264,16 @@ class FinalizationRound(OnlyKeeperSendsRound):
 
         return hashes
 
+    def _blacklist_keeper(self) -> Tuple[Deque[str], Set[str]]:
+        """Blacklist the current keeper."""
+        period_state = cast(PeriodState, self.period_state)
+        keepers = period_state.keepers
+        blacklisted_keepers = period_state.blacklisted_keepers
+        keepers.remove(period_state.most_voted_keeper_address)
+        blacklisted_keepers.add(period_state.most_voted_keeper_address)
+
+        return keepers, blacklisted_keepers
+
     def _get_check_or_fail_event(self) -> Event:
         """Return the appropriate check event or fail."""
         if VerificationStatus(
@@ -288,11 +316,23 @@ class FinalizationRound(OnlyKeeperSendsRound):
             )
             return state, Event.DONE
 
-        state = self.period_state.update(
+        update_params: Dict[str, Any] = dict(
             period_state_class=PeriodState,
             final_verification_status=VerificationStatus(self.keeper_payload["status"]),
         )
-        return state, self._get_check_or_fail_event()
+        if (
+            VerificationStatus(self.keeper_payload["status"])
+            == VerificationStatus.BLACKLIST
+        ):
+            (
+                update_params["keepers"],
+                update_params["blacklisted_keepers"],
+            ) = self._blacklist_keeper()
+
+        state = self.period_state.update(**update_params)
+        event = self._get_check_or_fail_event()
+
+        return state, event
 
 
 class RandomnessTransactionSubmissionRound(CollectSameUntilThresholdRound):
@@ -564,6 +604,7 @@ class TransactionSubmissionAbciApp(AbciApp[Event]):
             - check late arriving message: 8.
         6. SelectKeeperTransactionSubmissionRoundB
             - done: 3.
+            - keeper blacklisted: 6.
             - round timeout: 10.
             - no majority: 10.
             - incorrect serialization: 12.
@@ -645,6 +686,7 @@ class TransactionSubmissionAbciApp(AbciApp[Event]):
         },
         SelectKeeperTransactionSubmissionRoundB: {
             Event.DONE: FinalizationRound,
+            Event.KEEPER_BLACKLISTED: SelectKeeperTransactionSubmissionRoundB,
             Event.ROUND_TIMEOUT: ResetRound,
             Event.NO_MAJORITY: ResetRound,
             Event.INCORRECT_SERIALIZATION: FailedRound,

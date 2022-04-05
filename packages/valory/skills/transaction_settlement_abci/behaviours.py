@@ -126,11 +126,10 @@ class TransactionSettlementBaseState(BaseState, ABC):
         )
 
         if rpc_status == RPCResponseStatus.INCORRECT_NONCE:
-            self.context.logger.warning(
-                f"send_raw_transaction unsuccessful! Received: {rpc_status}"
-            )
             tx_data["status"] = VerificationStatus.ERROR
-            return tx_data
+
+        if rpc_status == RPCResponseStatus.INSUFFICIENT_FUNDS:
+            tx_data["status"] = VerificationStatus.BLACKLIST
 
         if rpc_status != RPCResponseStatus.SUCCESS:
             self.context.logger.warning(
@@ -280,6 +279,10 @@ class SelectKeeperTransactionSubmissionBehaviourB(  # pylint: disable=too-many-a
                 self._keeper_retries = self.period_state.keeper_retries + 1
             else:
                 self._keepers.appendleft(self._select_keeper())
+
+            # Do not allow selecting a keeper who has been blacklisted for the period.
+            if self._keepers[0] in self.period_state.blacklisted_keepers:
+                return
 
             payload = self.payload_class(
                 self.context.agent_address, self.serialized_keepers
