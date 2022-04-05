@@ -272,6 +272,16 @@ class SelectKeeperTransactionSubmissionRoundA(CollectSameUntilThresholdRound)
 
 A round in which a keeper is selected for transaction submission
 
+<a id="packages.valory.skills.transaction_settlement_abci.rounds.SelectKeeperTransactionSubmissionRoundA.end_block"></a>
+
+#### end`_`block
+
+```python
+def end_block() -> Optional[Tuple[BasePeriodState, Enum]]
+```
+
+Process the end of the block.
+
 <a id="packages.valory.skills.transaction_settlement_abci.rounds.SelectKeeperTransactionSubmissionRoundB"></a>
 
 ## SelectKeeperTransactionSubmissionRoundB Objects
@@ -426,6 +436,7 @@ Transition states:
         - done: 2.
         - round timeout: 10.
         - no majority: 10.
+        - incorrect serialization: 12.
     2. CollectSignatureRound
         - done: 3.
         - round timeout: 10.
@@ -439,7 +450,7 @@ Transition states:
     4. ValidateTransactionRound
         - done: 11.
         - negative: 5.
-        - none: 3.
+        - none: 6.
         - validate timeout: 6.
         - no majority: 4.
     5. CheckTransactionHistoryRound
@@ -454,17 +465,19 @@ Transition states:
         - keeper blacklisted: 6.
         - round timeout: 10.
         - no majority: 10.
+        - incorrect serialization: 12.
     7. SelectKeeperTransactionSubmissionRoundBAfterTimeout
         - done: 3.
         - check history: 5.
         - check late arriving message: 8.
         - round timeout: 10.
         - no majority: 10.
+        - incorrect serialization: 12.
     8. SynchronizeLateMessagesRound
         - done: 9.
         - round timeout: 8.
         - no majority: 8.
-        - none: 3.
+        - none: 6.
         - missed and late messages mismatch: 12.
     9. CheckLateTxHashesRound
         - done: 11.

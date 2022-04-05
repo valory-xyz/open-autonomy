@@ -157,7 +157,16 @@ class SelectKeeperBehaviour(BaseState):
     payload_class: Type[BaseTxPayload]
 
     def _select_keeper(self) -> str:
-        """Select a new keeper."""
+        """
+        Select a new keeper randomly.
+
+        1. Sort the list of participants.
+        2. Randomly shuffle it.
+        3. Pick the first keeper in order.
+        4. If he has already been selected, pick the next one.
+
+        :return: the selected keeper's address.
+        """
         # Sorted list of participants
         relevant_set = sorted(list(self.period_state.participants))
 
