@@ -124,7 +124,7 @@ transition_func:
     (SwapBackTransactionHashRound, ROUND_TIMEOUT): StrategyEvaluationRound
     (SynchronizeLateMessagesRound, DONE): CheckLateTxHashesRound
     (SynchronizeLateMessagesRound, MISSED_AND_LATE_MESSAGES_MISMATCH): RegistrationRound
-    (SynchronizeLateMessagesRound, NONE): FinalizationRound
+    (SynchronizeLateMessagesRound, NONE): SelectKeeperTransactionSubmissionRoundB
     (SynchronizeLateMessagesRound, NO_MAJORITY): SynchronizeLateMessagesRound
     (SynchronizeLateMessagesRound, ROUND_TIMEOUT): SynchronizeLateMessagesRound
     (ValidateSafeRound, DONE): StrategyEvaluationRound
@@ -134,6 +134,6 @@ transition_func:
     (ValidateSafeRound, VALIDATE_TIMEOUT): RandomnessSafeRound
     (ValidateTransactionRound, DONE): ResetAndPauseRound
     (ValidateTransactionRound, NEGATIVE): CheckTransactionHistoryRound
-    (ValidateTransactionRound, NONE): FinalizationRound
+    (ValidateTransactionRound, NONE): SelectKeeperTransactionSubmissionRoundB
     (ValidateTransactionRound, NO_MAJORITY): ValidateTransactionRound
     (ValidateTransactionRound, VALIDATE_TIMEOUT): SelectKeeperTransactionSubmissionRoundB

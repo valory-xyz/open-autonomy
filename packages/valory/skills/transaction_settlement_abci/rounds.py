@@ -552,7 +552,7 @@ class TransactionSubmissionAbciApp(AbciApp[Event]):
         4. ValidateTransactionRound
             - done: 11.
             - negative: 5.
-            - none: 3.
+            - none: 6.
             - validate timeout: 6.
             - no majority: 4.
         5. CheckTransactionHistoryRound
@@ -578,7 +578,7 @@ class TransactionSubmissionAbciApp(AbciApp[Event]):
             - done: 9.
             - round timeout: 8.
             - no majority: 8.
-            - none: 3.
+            - none: 6.
             - missed and late messages mismatch: 12.
         9. CheckLateTxHashesRound
             - done: 11.
@@ -631,7 +631,7 @@ class TransactionSubmissionAbciApp(AbciApp[Event]):
         ValidateTransactionRound: {
             Event.DONE: FinishedTransactionSubmissionRound,
             Event.NEGATIVE: CheckTransactionHistoryRound,
-            Event.NONE: FinalizationRound,
+            Event.NONE: SelectKeeperTransactionSubmissionRoundB,
             Event.VALIDATE_TIMEOUT: SelectKeeperTransactionSubmissionRoundB,
             Event.NO_MAJORITY: ValidateTransactionRound,
         },
@@ -661,7 +661,7 @@ class TransactionSubmissionAbciApp(AbciApp[Event]):
             Event.DONE: CheckLateTxHashesRound,
             Event.ROUND_TIMEOUT: SynchronizeLateMessagesRound,
             Event.NO_MAJORITY: SynchronizeLateMessagesRound,
-            Event.NONE: FinalizationRound,
+            Event.NONE: SelectKeeperTransactionSubmissionRoundB,
             Event.MISSED_AND_LATE_MESSAGES_MISMATCH: FailedRound,
         },
         CheckLateTxHashesRound: {
