@@ -9,10 +9,10 @@ license: Apache-2.0
 aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
   README.md: QmZP7GPu67Ag2Fw8zgZnzpQPqaYJvr7w8Zy5VhQ8Jpekkg
-  __init__.py: QmRo1DRePomRccoY2tB3GnKV2rUoNFaaE26WDRKp4ATs33
-  check_dependencies.py: QmSKRF1tbFX9codM1Phe8FBk23pYG1XG4BLYPTHy9VoL4V
-  connection.py: QmYvyXBusgXe4x258HjZULjQiW4HAyu1vpjgDrH3WxEgaH
-  consts.py: QmWAHrbN2fhqEe8o6cVLtwhWaEFp6h5cUJtJddYWbibPJj
+  __init__.py: QmbSEneVAsNjbvN3WuLoBSzj47YUSTNyZYK7DZS7CS6HJL
+  check_dependencies.py: QmXAp7B4i7wDVsfwaku8URqn76ai6DP4cThaNDVTNez9AL
+  connection.py: QmTQcsUaAbsKrZWNNM5yC9NySYoyLZ8DyRxR4X7v54844x
+  consts.py: QmbfzhxqrSMMqPyUeupySvmwjXjgq9kRveo9SfPZCWmZfi
   libp2p_node/Makefile: QmYMR8evkEV166HXTxjaAYEBiQ9HFh2whKQ7uotXvr88TU
   libp2p_node/README.md: QmRBC7o5y1TBQGwviJ9XxywdeuSSz6dNgvGE9wQhFPES4D
   libp2p_node/acn/utils.go: QmNiWQ87SvY6qdqExFiZWcG734SocG8bZtVVj9z8A2ECM4
