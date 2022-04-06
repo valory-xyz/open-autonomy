@@ -18,7 +18,7 @@
 # ------------------------------------------------------------------------------
 
 """This module contains class representations corresponding to every custom type in the protocol specification."""
-
+# pylint: disable-all
 from enum import Enum
 from typing import Any, List
 

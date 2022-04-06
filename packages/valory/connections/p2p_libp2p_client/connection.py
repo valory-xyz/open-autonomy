@@ -18,6 +18,7 @@
 #
 # ------------------------------------------------------------------------------
 """This module contains the libp2p client connection."""
+# pylint: disable-all
 import asyncio
 import contextlib
 import hashlib
@@ -30,11 +31,6 @@ from asyncio.streams import StreamWriter
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
-from asn1crypto import x509  # type: ignore
-from ecdsa.curves import SECP256k1
-from ecdsa.keys import BadSignatureError, VerifyingKey
-from ecdsa.util import sigdecode_der
-
 from aea.configurations.base import PublicId
 from aea.configurations.constants import DEFAULT_LEDGER
 from aea.connections.base import Connection, ConnectionStates
@@ -44,6 +40,10 @@ from aea.helpers.acn.agent_record import AgentRecord
 from aea.helpers.acn.uri import Uri
 from aea.helpers.pipe import IPCChannelClient, TCPSocketChannelClient, TCPSocketProtocol
 from aea.mail.base import Envelope
+from asn1crypto import x509  # type: ignore
+from ecdsa.curves import SECP256k1  # type: ignore
+from ecdsa.keys import BadSignatureError, VerifyingKey  # type: ignore
+from ecdsa.util import sigdecode_der  # type: ignore
 
 from packages.valory.protocols.acn import acn_pb2
 from packages.valory.protocols.acn.message import AcnMessage
@@ -220,7 +220,9 @@ class NodeClient:
         """
         return await self.pipe.read()
 
-    async def register(self,) -> None:
+    async def register(
+        self,
+    ) -> None:
         """Register agent on the remote node."""
         agent_record = self.make_agent_record()
         acn_msg = acn_pb2.AcnMessage()
@@ -662,7 +664,10 @@ class TCPSocketChannelClientTLS(TCPSocketChannelClient):
         ssl_ctx.check_hostname = False
         ssl_ctx.verify_mode = ssl.CERT_REQUIRED
         reader, writer = await asyncio.open_connection(
-            self._host, self._port, loop=self._loop, ssl=ssl_ctx,
+            self._host,
+            self._port,
+            loop=self._loop,
+            ssl=ssl_ctx,
         )
         return TCPSocketProtocol(reader, writer, logger=self.logger, loop=self._loop)
 

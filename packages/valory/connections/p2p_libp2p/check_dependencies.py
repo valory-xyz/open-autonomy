@@ -19,6 +19,7 @@
 #
 # ------------------------------------------------------------------------------
 """Check that the dependencies 'gcc' and 'go' are installed in the system."""
+# pylint: disable-all
 import asyncio
 import os
 import platform
@@ -189,7 +190,8 @@ def main() -> None:  # pragma: nocover
 
 
 def _golang_module_build(
-    path: str, timeout: float = LIBP2P_NODE_DEPS_DOWNLOAD_TIMEOUT,
+    path: str,
+    timeout: float = LIBP2P_NODE_DEPS_DOWNLOAD_TIMEOUT,
 ) -> Optional[str]:
     """
     Builds go module located at `path`, downloads necessary dependencies

@@ -46,6 +46,7 @@ from packages.valory.protocols.acn import acn_pb2
 from packages.valory.protocols.acn.message import AcnMessage
 
 
+# pylint: disable-all
 _default_logger = logging.getLogger("aea.packages.valory.connections.p2p_libp2p")
 
 ACN_CURRENT_VERSION = "0.1.0"
