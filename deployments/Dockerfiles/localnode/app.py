@@ -32,7 +32,7 @@ from werkzeug.exceptions import InternalServerError, NotFound
 
 DEFAULT_LOG_FILE = "log.log"
 logging.basicConfig(
-    filename=os.environ.get("LOG", DEFAULT_LOG_FILE),
+    filename=os.environ.get("FLASK_LOG_FILE", DEFAULT_LOG_FILE),
     level=logging.DEBUG,
     format=f"%(asctime)s %(levelname)s %(name)s %(threadName)s : %(message)s",  # noqa : W1309
 )

@@ -27,6 +27,9 @@ from logging import Logger
 from typing import List, Optional
 
 
+DEFAULT_LOG_FILE = "tendermint.log"
+
+
 class TendermintParams:  # pylint: disable=too-few-public-methods
     """Tendermint node parameters."""
 
@@ -106,11 +109,12 @@ class TendermintNode:
         if self._process is not None:  # pragma: nocover
             return
         cmd = self._build_node_command()
-        self._process = (
-            subprocess.Popen(  # nosec # pylint: disable=consider-using-with,W1509
-                cmd, preexec_fn=os.setsid
+        with open(os.environ.get("LOG_FILE", DEFAULT_LOG_FILE), "a") as log_file:
+            self._process = (
+                subprocess.Popen(  # nosec # pylint: disable=consider-using-with,W1509
+                    cmd, preexec_fn=os.setsid, stdout=log_file
+                )
             )
-        )
 
     def stop(self) -> None:
         """Stop a Tendermint node process."""

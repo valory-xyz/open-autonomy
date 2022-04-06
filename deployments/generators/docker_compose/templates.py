@@ -78,7 +78,7 @@ TENDERMINT_NODE_TEMPLATE: str = (
       - TMHOME=/tendermint/node{node_id}
       - CREATE_EMPTY_BLOCKS=true
       - DEV_MODE=0
-      - LOG=/logs/logs/node_{node_id}.txt
+      - LOG_FILE=/logs/logs/node_{node_id}.txt
     volumes:
       - ./build:/tendermint:Z
       - ./logs:/logs:Z
