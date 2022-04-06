@@ -258,7 +258,7 @@ class TestTransactionSettlementBaseState(PriceEstimationFSMBehaviourBaseCase):
         assert state.state_id == SignatureBehaviour.state_id
         # Set `nonce` to the same value as the returned, so that we test the tx replacement logging.
         if replacement:
-            state.params.nonce = 0
+            state.params.nonce = 0  # type: ignore
 
         # patch the `send_raw_transaction` method
         def dummy_send_raw_transaction(

@@ -417,7 +417,7 @@ class P2PLibp2pClientConnection(Connection):
     async def _perform_connection_to_node(self) -> None:
         """Connect to node with retries."""
         for attempt in range(self.connect_retries):
-            if self.state not in [
+            if self.state not in [  # type: ignore
                 ConnectionStates.connecting,
                 ConnectionStates.connected,
             ]:
