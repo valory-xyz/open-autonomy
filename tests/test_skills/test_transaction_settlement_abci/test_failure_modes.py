@@ -66,7 +66,7 @@ from packages.valory.skills.price_estimation_abci.behaviours import (
     TransactionHashBehaviour,
 )
 from packages.valory.skills.price_estimation_abci.rounds import (
-    PeriodState as PeriodState,
+    PeriodState as PriceEstimationPeriodState,
 )
 from packages.valory.skills.transaction_settlement_abci.behaviours import (
     FinalizeBehaviour,
@@ -75,7 +75,7 @@ from packages.valory.skills.transaction_settlement_abci.behaviours import (
 from packages.valory.skills.transaction_settlement_abci.handlers import SigningHandler
 from packages.valory.skills.transaction_settlement_abci.payloads import SignaturePayload
 from packages.valory.skills.transaction_settlement_abci.rounds import (
-    PeriodState, TransactionSubmissionAbciApp, Event
+    PeriodState as TxSettlementPeriodState, TransactionSubmissionAbciApp, Event
 )
 from tests.conftest import ROOT_DIR, make_ledger_api_connection
 from tests.fixture_helpers import HardHatGnosisBaseTest
@@ -109,7 +109,8 @@ class OracleBehaviourBaseCase(FSMBehaviourBaseCase):
     path_to_skill = Path(ROOT_DIR, "packages", "valory", "skills", "oracle_abci")
 
     behaviour: OracleAbciAppConsensusBehaviour
-    period_state: PeriodState
+    tx_settlement_period_state: TxSettlementPeriodState
+    price_estimation_period_state: PriceEstimationPeriodState
 
 
 class OracleBehaviourHardHatGnosisBaseCase(
@@ -193,15 +194,25 @@ class OracleBehaviourHardHatGnosisBaseCase(
         )
 
         keeper_initial_retries = 1
-        cls.period_state = PeriodState(
+        cls.tx_settlement_period_state = TxSettlementPeriodState(
             StateDB(
                 initial_period=0,
                 initial_data=dict(
                     safe_contract_address=cls.safe_contract_address,
-                    most_voted_keeper_address=cls.keeper_address,
                     participants=frozenset(list(cls.safe_owners.keys())),
                     keepers=keeper_initial_retries.to_bytes(32, "big").hex()
                     + cls.keeper_address,
+                ),
+            )
+        )
+
+        cls.price_estimation_period_state = PriceEstimationPeriodState(
+            StateDB(
+                initial_period=0,
+                initial_data=dict(
+                    safe_contract_address=cls.safe_contract_address,
+                    participants=frozenset(list(cls.safe_owners.keys())),
+                    most_voted_keeper_address=cls.keeper_address,
                     most_voted_estimate=1,
                 ),
             )
@@ -303,7 +314,7 @@ class OracleBehaviourHardHatGnosisBaseCase(
         self,
         state_id: str,
         ncycles: int,
-        period_state: Union[PeriodState, PeriodState],
+        period_state: Union[TxSettlementPeriodState, PriceEstimationPeriodState],
         handlers: Optional[HandlersType] = None,
         expected_content: Optional[ExpectedContentType] = None,
         expected_types: Optional[ExpectedTypesType] = None,
@@ -414,7 +425,7 @@ class OracleBehaviourHardHatGnosisBaseCase(
         _, _, _, msg4 = self.process_n_messsages(
             DeployOracleBehaviour.state_id,
             cycles_enter,
-            self.period_state,
+            self.price_estimation_period_state,
             handlers_enter,
             expected_content_enter,
             expected_types_enter,
@@ -441,7 +452,7 @@ class OracleBehaviourHardHatGnosisBaseCase(
         _, msg_a, msg_b = self.process_n_messsages(
             TransactionHashBehaviour.state_id,
             cycles_enter,
-            self.period_state,
+            self.price_estimation_period_state,
             handlers_enter,
             expected_content_enter,
             expected_types_enter,
@@ -474,10 +485,7 @@ class OracleBehaviourHardHatGnosisBaseCase(
             for address, crypto in self.safe_owners.items()
         }
 
-        period_state = cast(
-            PeriodState,
-            self.period_state.update(
-                most_voted_tx_hash=safe_tx_hash,
+        self.tx_settlement_period_state.update(
                 participant_to_signature=participant_to_signature,
             ),
         )
@@ -506,7 +514,7 @@ class OracleBehaviourHardHatGnosisBaseCase(
         _, _, msg = self.process_n_messsages(
             FinalizeBehaviour.state_id,
             3,
-            period_state,
+            self.tx_settlement_period_state,
             handlers,
             expected_content,
             expected_types,
@@ -518,12 +526,6 @@ class OracleBehaviourHardHatGnosisBaseCase(
 
     def validate_tx(self, tx_digest: str) -> str:
         """Validate the given transaction."""
-        period_state = cast(
-            PeriodState,
-            self.period_state.update(
-                tx_hashes_history=[tx_digest],
-            ),
-        )
 
         handlers: HandlersType = [
             self.ledger_handler,
@@ -544,7 +546,7 @@ class OracleBehaviourHardHatGnosisBaseCase(
         _, verif_msg = self.process_n_messsages(
             ValidateTransactionBehaviour.state_id,
             2,
-            period_state,
+            self.tx_settlement_period_state,
             handlers,
             expected_content,
             expected_types,
