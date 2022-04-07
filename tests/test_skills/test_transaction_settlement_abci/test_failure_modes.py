@@ -136,9 +136,13 @@ class OracleBehaviourHardHatGnosisBaseCase(
     def setup(cls, **kwargs: Any) -> None:
         """Setup."""
         super().setup()
-        # register gnosis contract
+        # register gnosis and offchain aggregator contracts
         directory = Path(ROOT_DIR, "packages", "valory", "contracts", "gnosis_safe")
         gnosis = get_register_contract(directory)
+        directory = Path(
+            ROOT_DIR, "packages", "valory", "contracts", "offchain_aggregator"
+        )
+        _ = get_register_contract(directory)
         # set up a multiplexer with the required connections
         cls.running_loop = asyncio.new_event_loop()
         cls.thread_loop = Thread(target=cls.running_loop.run_forever)
