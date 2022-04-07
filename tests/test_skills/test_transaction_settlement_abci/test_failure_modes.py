@@ -192,7 +192,7 @@ class OracleBehaviourHardHatGnosisBaseCase(
             "decision_maker"
         )
 
-        keeper_retries = 1
+        keeper_initial_retries = 1
         cls.period_state = PeriodState(
             StateDB(
                 initial_period=0,
@@ -200,7 +200,7 @@ class OracleBehaviourHardHatGnosisBaseCase(
                     safe_contract_address=cls.safe_contract_address,
                     most_voted_keeper_address=cls.keeper_address,
                     participants=frozenset(list(cls.safe_owners.keys())),
-                    keepers=keeper_retries.to_bytes(32, "big").hex()
+                    keepers=keeper_initial_retries.to_bytes(32, "big").hex()
                     + cls.keeper_address,
                     most_voted_estimate=1,
                 ),
