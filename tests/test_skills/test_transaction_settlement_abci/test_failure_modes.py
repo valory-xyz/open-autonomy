@@ -29,7 +29,6 @@ from threading import Thread
 from typing import Any, Callable, Dict, List, Optional, Tuple, Union, cast
 from unittest import mock
 
-import pytest
 from aea.crypto.registries import make_crypto, make_ledger_api
 from aea.crypto.wallet import Wallet
 from aea.decision_maker.base import DecisionMaker
@@ -79,12 +78,8 @@ from packages.valory.skills.transaction_settlement_abci.payload_tools import (
     skill_input_hex_to_payload,
 )
 from packages.valory.skills.transaction_settlement_abci.payloads import SignaturePayload
-from packages.valory.skills.transaction_settlement_abci.rounds import Event
 from packages.valory.skills.transaction_settlement_abci.rounds import (
     PeriodState as TxSettlementPeriodState,
-)
-from packages.valory.skills.transaction_settlement_abci.rounds import (
-    TransactionSubmissionAbciApp,
 )
 
 from tests.conftest import ROOT_DIR, make_ledger_api_connection
@@ -667,18 +662,6 @@ class TestRepricing(OracleBehaviourHardHatGnosisBaseCase):
         self.deploy_oracle()
         self.gen_safe_tx_hash()
         self.sign_send_tx()
-
-        # get safe's tx hash and data
-        tx_hash, tx_data = self.get_safe_tx_hash_data()
-
-        # send first tx
-        self.sign_send_tx(
-            safe_tx_hash=tx_hash,
-            data=bytes.fromhex(tx_data),
-            to_address=self.multisend_contract_address,
-            safe_tx_gas=SAFE_TX_GAS_ENTER,
-            operation=SafeOperation.DELEGATE_CALL.value,
-        )
 
         # validate tx with timeout
         # send second tx
