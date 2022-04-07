@@ -198,9 +198,6 @@ class OracleBehaviourHardHatGnosisBaseCase(
             "decision_maker"
         )
 
-        cls.enter_nonce = 8
-        cls.exit_nonce = cls.enter_nonce + 1
-
         keeper_retries = 1
         cls.tx_settlement_period_state = TxSettlementPeriodState(
             StateDB(
