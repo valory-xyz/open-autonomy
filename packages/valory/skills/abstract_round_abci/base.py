@@ -1878,6 +1878,7 @@ class AbciApp(
         self._previous_rounds = self._previous_rounds[-cleanup_history_depth:]
         self._round_results = self._round_results[-cleanup_history_depth:]
         self.state.db.cleanup(cleanup_history_depth)
+        self.logger.info("AbciApp cleanup done")
 
 
 class Period:

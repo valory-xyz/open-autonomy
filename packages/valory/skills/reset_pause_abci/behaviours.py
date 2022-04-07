@@ -74,6 +74,7 @@ class ResetAndPauseBehaviour(ResetAndPauseBaseState):
             yield from self.reset_tendermint_with_wait()
         else:
             yield from self.wait_from_last_timestamp(self.params.observation_interval)
+        self.context.state.period.abci_app.cleanup(self.params.cleanup_history_depth)
         self.context.logger.info("Period end.")
         self.context.benchmark_tool.save(self.period_state.period_count)
 

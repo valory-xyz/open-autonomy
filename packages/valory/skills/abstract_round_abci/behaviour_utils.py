@@ -1455,9 +1455,6 @@ class BaseState(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
                     self.context.state.period.reset_blockchain(
                         response.get("is_replay", False)
                     )
-                    self.context.state.period.abci_app.cleanup(
-                        self.params.cleanup_history_depth
-                    )
                     self._end_reset()
                 else:
                     msg = response.get("message")
