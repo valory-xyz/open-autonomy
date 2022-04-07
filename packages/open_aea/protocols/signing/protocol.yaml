@@ -17,4 +17,5 @@ fingerprint:
   signing_pb2.py: QmcN7hX7Lg5UjW4HYJhKghqxaSJU3fh8WKvZ1HAFxsnLYz
 fingerprint_ignore_patterns: []
 dependencies:
-  protobuf: {}
+  protobuf:
+    version: ==3.19.4

@@ -17,4 +17,5 @@ fingerprint:
   serialization.py: QmVciGMgAZNCCh9U8ZGjVPf2arKMuzUW6HUdNXeo3gX2gd
 fingerprint_ignore_patterns: []
 dependencies:
-  protobuf: {}
+  protobuf:
+    version: ==3.19.4
