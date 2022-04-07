@@ -81,7 +81,7 @@ TENDERMINT_NODE_TEMPLATE: str = (
       - LOG_FILE=/logs/node_{node_id}.txt
     volumes:
       - ./build:/tendermint:Z
-      - ../persistent_data/logs:/logs:rw
+      - ../persistent_data/logs:/logs:Z
     working_dir: /tendermint
     command: ["run", "--no-reload", "--host=0.0.0.0", "--port=8080",]
     depends_on:
@@ -109,7 +109,7 @@ ABCI_NODE_TEMPLATE: str = (
       localnet:
         ipv4_address: 192.167.11.{localnet_address_postfix}
     volumes:
-      - ../persistent_data/logs:/home/ubuntu/logs:rw
+      - ../persistent_data/logs:/home/ubuntu/logs:Z
 """
     % IMAGE_VERSION
 )
