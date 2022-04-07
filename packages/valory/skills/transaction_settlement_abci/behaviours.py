@@ -21,7 +21,8 @@
 import binascii
 import pprint
 from abc import ABC
-from typing import Any, Dict, Generator, Optional, Set, Tuple, Type, Union, cast
+from collections import deque
+from typing import Any, Deque, Dict, Generator, Optional, Set, Tuple, Type, Union, cast
 
 from aea.protocols.base import Message
 from web3.types import Nonce, TxData
@@ -59,13 +60,11 @@ from packages.valory.skills.transaction_settlement_abci.rounds import (
     CheckTransactionHistoryRound,
     CollectSignatureRound,
     FinalizationRound,
-    FinalizationRoundAfterTimeout,
     PeriodState,
     RandomnessTransactionSubmissionRound,
     ResetRound,
     SelectKeeperTransactionSubmissionRoundA,
     SelectKeeperTransactionSubmissionRoundB,
-    SelectKeeperTransactionSubmissionRoundBAfterFail,
     SelectKeeperTransactionSubmissionRoundBAfterTimeout,
     SynchronizeLateMessagesRound,
     TransactionSubmissionAbciApp,
@@ -127,11 +126,10 @@ class TransactionSettlementBaseState(BaseState, ABC):
         )
 
         if rpc_status == RPCResponseStatus.INCORRECT_NONCE:
-            self.context.logger.warning(
-                f"send_raw_transaction unsuccessful! Received: {rpc_status}"
-            )
             tx_data["status"] = VerificationStatus.ERROR
-            return tx_data
+
+        if rpc_status == RPCResponseStatus.INSUFFICIENT_FUNDS:
+            tx_data["status"] = VerificationStatus.BLACKLIST
 
         if rpc_status != RPCResponseStatus.SUCCESS:
             self.context.logger.warning(
@@ -209,35 +207,101 @@ class SelectKeeperTransactionSubmissionBehaviourA(  # pylint: disable=too-many-a
     matching_round = SelectKeeperTransactionSubmissionRoundA
     payload_class = SelectKeeperPayload
 
+    def __init__(self, **kwargs: Any) -> None:
+        """Initialize behaviour."""
+        super().__init__(**kwargs)
+        self._keepers: Deque[str] = deque()
+        self._keeper_retries: int = 1
+
+    @property
+    def serialized_keepers(self) -> str:
+        """Get the keepers serialized."""
+        keepers = "".join(self._keepers)
+        keeper_retries = self._keeper_retries.to_bytes(32, "big").hex()
+        concatenated = keeper_retries + keepers
+
+        return concatenated
+
+    def async_act(self) -> Generator:
+        """Do the action."""
+
+        with self.context.benchmark_tool.measure(self.state_id).local():
+            self._keepers.appendleft(self._select_keeper())
+            payload = self.payload_class(
+                self.context.agent_address, self.serialized_keepers
+            )
+
+        with self.context.benchmark_tool.measure(self.state_id).consensus():
+            yield from self.send_a2a_transaction(payload)
+            yield from self.wait_until_round_end()
+
+        self.set_done()
+
 
 class SelectKeeperTransactionSubmissionBehaviourB(  # pylint: disable=too-many-ancestors
-    SelectKeeperBehaviour, TransactionSettlementBaseState
+    SelectKeeperTransactionSubmissionBehaviourA
 ):
     """Select the keeper b agent."""
 
     state_id = "select_keeper_transaction_submission_b"
     matching_round = SelectKeeperTransactionSubmissionRoundB
-    payload_class = SelectKeeperPayload
+
+    def setup(self) -> None:
+        """Setup behaviour."""
+        self._keepers = self.period_state.keepers
+
+    def async_act(self) -> Generator:
+        """
+        Do the action.
+
+        Steps:
+            - If we have not selected enough keepers for the period,
+                select a keeper randomly and add it to the keepers' queue, with top priority.
+            - Otherwise, cycle through the keepers' subset, using the following logic:
+                A `PENDING` verification status means that we have not received any errors,
+                therefore, all we know is that the tx has not been mined yet due to low pricing.
+                Consequently, we are going to retry with the same keeper in order to replace the transaction.
+                However, if we receive a status other than `PENDING`, we need to cycle through the keepers' subset.
+                Moreover, if the current keeper has reached the allowed number of retries, then we cycle anyway.
+            - Send the transaction with the keepers and wait for it to be mined.
+            - Wait until ABCI application transitions to the next round.
+            - Go to the next behaviour state (set done event).
+        """
+
+        with self.context.benchmark_tool.measure(self.state_id).local():
+            if self.period_state.keepers_threshold_exceeded:
+                self._keepers.rotate(-1)
+            elif (
+                self.period_state.keeper_retries != self.params.keeper_allowed_retries
+                and self.period_state.final_verification_status
+                == VerificationStatus.PENDING
+            ):
+                self._keeper_retries = self.period_state.keeper_retries + 1
+            else:
+                self._keepers.appendleft(self._select_keeper())
+
+            # Do not allow selecting a keeper who has been blacklisted for the period.
+            if self._keepers[0] in self.period_state.blacklisted_keepers:
+                return
+
+            payload = self.payload_class(
+                self.context.agent_address, self.serialized_keepers
+            )
+
+        with self.context.benchmark_tool.measure(self.state_id).consensus():
+            yield from self.send_a2a_transaction(payload)
+            yield from self.wait_until_round_end()
+
+        self.set_done()
 
 
 class SelectKeeperTransactionSubmissionBehaviourBAfterTimeout(  # pylint: disable=too-many-ancestors
-    SelectKeeperBehaviour, TransactionSettlementBaseState
+    SelectKeeperTransactionSubmissionBehaviourB
 ):
     """Select the keeper b agent after a timeout."""
 
     state_id = "select_keeper_transaction_submission_b_after_timeout"
     matching_round = SelectKeeperTransactionSubmissionRoundBAfterTimeout
-    payload_class = SelectKeeperPayload
-
-
-class SelectKeeperTransactionSubmissionBehaviourBAfterFail(  # pylint: disable=too-many-ancestors
-    SelectKeeperBehaviour, TransactionSettlementBaseState
-):
-    """Select the keeper b agent after a failure."""
-
-    state_id = "select_keeper_transaction_submission_b_after_fail"
-    matching_round = SelectKeeperTransactionSubmissionRoundBAfterFail
-    payload_class = SelectKeeperPayload
 
 
 class ValidateTransactionBehaviour(TransactionSettlementBaseState):
@@ -632,19 +696,6 @@ class FinalizeBehaviour(TransactionSettlementBaseState):
             super().handle_late_messages(message)
 
 
-class FinalizeBehaviourAfterTimeout(  # pylint: disable=too-many-ancestors
-    FinalizeBehaviour
-):
-    """Select the keeper b agent after a timeout."""
-
-    state_id = "finalize_after_timeout"
-    matching_round = FinalizationRoundAfterTimeout
-
-    def _i_am_not_sending(self) -> bool:
-        """Indicates if the current agent is the sender or not."""
-        return self.context.agent_address != self.period_state.keeper_in_priority
-
-
 class ResetBehaviour(TransactionSettlementBaseState):
     """Reset state."""
 
@@ -674,12 +725,10 @@ class TransactionSettlementRoundBehaviour(AbstractRoundBehaviour):
         SelectKeeperTransactionSubmissionBehaviourA,  # type: ignore
         SelectKeeperTransactionSubmissionBehaviourB,  # type: ignore
         SelectKeeperTransactionSubmissionBehaviourBAfterTimeout,  # type: ignore
-        SelectKeeperTransactionSubmissionBehaviourBAfterFail,  # type: ignore
         ValidateTransactionBehaviour,  # type: ignore
         CheckTransactionHistoryBehaviour,  # type: ignore
         SignatureBehaviour,  # type: ignore
         FinalizeBehaviour,  # type: ignore
-        FinalizeBehaviourAfterTimeout,  # type: ignore
         SynchronizeLateMessagesBehaviour,  # type: ignore
         CheckLateTxHashesBehaviour,  # type: ignore
         ResetBehaviour,  # type: ignore

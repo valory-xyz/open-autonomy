@@ -955,12 +955,16 @@ class TestBaseState:
         )
         try_send(gen, obj=m)
 
+    @pytest.mark.parametrize(
+        "message",
+        ("replacement transaction underpriced", "nonce too low", "insufficient funds"),
+    )
     @mock.patch.object(BaseState, "_send_transaction_signing_request")
     @mock.patch.object(BaseState, "_send_transaction_request")
     @mock.patch.object(BaseState, "_send_transaction_receipt_request")
     @mock.patch("packages.valory.skills.abstract_round_abci.behaviour_utils.Terms")
-    def test_send_raw_transaction_transaction_digest_error_replacement_transaction_underpriced(
-        self, *_: Any
+    def test_send_raw_transaction_errors(
+        self, _: Any, __: Any, ___: Any, ____: Any, message: str
     ) -> None:
         """Test 'send_raw_transaction'."""
         m = MagicMock()
@@ -975,32 +979,7 @@ class TestBaseState:
             gen,
             obj=MagicMock(
                 performative=LedgerApiMessage.Performative.ERROR,
-                message="replacement transaction underpriced",
-            ),
-        )
-        try_send(gen, obj=m)
-
-    @mock.patch.object(BaseState, "_send_transaction_signing_request")
-    @mock.patch.object(BaseState, "_send_transaction_request")
-    @mock.patch.object(BaseState, "_send_transaction_receipt_request")
-    @mock.patch("packages.valory.skills.abstract_round_abci.behaviour_utils.Terms")
-    def test_send_raw_transaction_transaction_digest_error_nonce_too_low(
-        self, *_: Any
-    ) -> None:
-        """Test 'send_raw_transaction'."""
-        m = MagicMock()
-        gen = self.behaviour.send_raw_transaction(m)
-        # trigger generator function
-        try_send(gen, obj=None)
-        try_send(
-            gen,
-            obj=MagicMock(performative=SigningMessage.Performative.SIGNED_TRANSACTION),
-        )
-        try_send(
-            gen,
-            obj=MagicMock(
-                performative=LedgerApiMessage.Performative.ERROR,
-                message="nonce too low",
+                message=message,
             ),
         )
         try_send(gen, obj=m)

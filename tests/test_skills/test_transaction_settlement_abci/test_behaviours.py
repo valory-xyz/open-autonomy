@@ -22,7 +22,7 @@
 import time
 from collections import deque
 from pathlib import Path
-from typing import Any, Dict, Generator, List, Optional, Tuple, Type, Union, cast
+from typing import Any, Deque, Dict, Generator, List, Optional, Tuple, Type, Union, cast
 from unittest import mock
 from unittest.mock import MagicMock
 
@@ -35,6 +35,7 @@ from aea.helpers.transaction.base import (
 )
 from aea.helpers.transaction.base import State as TrState
 from aea.helpers.transaction.base import TransactionDigest, TransactionReceipt
+from aea.skills.base import SkillContext
 
 from packages.open_aea.protocols.signing import SigningMessage
 from packages.valory.contracts.gnosis_safe.contract import (
@@ -53,7 +54,6 @@ from packages.valory.skills.transaction_settlement_abci.behaviours import (
     CheckLateTxHashesBehaviour,
     CheckTransactionHistoryBehaviour,
     FinalizeBehaviour,
-    FinalizeBehaviourAfterTimeout,
     RandomnessTransactionSubmissionBehaviour,
     ResetBehaviour,
     SelectKeeperTransactionSubmissionBehaviourA,
@@ -153,6 +153,18 @@ class TestTransactionSettlementBaseState(PriceEstimationFSMBehaviourBaseCase):
                 RPCResponseStatus.INCORRECT_NONCE,
                 {
                     "status": VerificationStatus.ERROR,
+                    "tx_digest": "",
+                    "nonce": "",
+                    "max_priority_fee_per_gas": "",
+                },
+                False,
+            ),
+            (
+                MagicMock(performative=ContractApiMessage.Performative.RAW_TRANSACTION),
+                None,
+                RPCResponseStatus.INSUFFICIENT_FUNDS,
+                {
+                    "status": VerificationStatus.BLACKLIST,
                     "tx_digest": "",
                     "nonce": "",
                     "max_priority_fee_per_gas": "",
@@ -295,18 +307,63 @@ class TestSelectKeeperTransactionSubmissionBehaviourA(BaseSelectKeeperBehaviourT
     select_keeper_behaviour_class = SelectKeeperTransactionSubmissionBehaviourA
     next_behaviour_class = SignatureBehaviour
     done_event = TransactionSettlementEvent.DONE
+    _period_state = TransactionSettlementPeriodState
 
 
-class TestSelectKeeperTransactionSubmissionBehaviourB(BaseSelectKeeperBehaviourTest):
+class TestSelectKeeperTransactionSubmissionBehaviourB(
+    TestSelectKeeperTransactionSubmissionBehaviourA
+):
     """Test SelectKeeperBehaviour."""
-
-    path_to_skill = Path(
-        ROOT_DIR, "packages", "valory", "skills", "transaction_settlement_abci"
-    )
 
     select_keeper_behaviour_class = SelectKeeperTransactionSubmissionBehaviourB
     next_behaviour_class = FinalizeBehaviour
-    done_event = TransactionSettlementEvent.DONE
+
+    @mock.patch.object(
+        TransactionSettlementPeriodState,
+        "keepers",
+        new_callable=mock.PropertyMock,
+    )
+    @mock.patch.object(
+        TransactionSettlementPeriodState,
+        "keeper_retries",
+        new_callable=mock.PropertyMock,
+    )
+    @pytest.mark.parametrize(
+        "keepers, keeper_retries, blacklisted",
+        (
+            (deque(f"keeper_{i}" for i in range(4)), 1, False),
+            (deque(("test_keeper",)), 2, True),
+            (deque(("test_keeper",)), 1, False),
+            (deque(("test_keeper",)), 3, False),
+        ),
+    )
+    def test_select_keeper(
+        self,
+        keeper_retries_mock: mock.PropertyMock,
+        keepers_mock: mock.PropertyMock,
+        keepers: Deque[str],
+        keeper_retries: int,
+        blacklisted: bool,
+    ) -> None:
+        """Test select keeper agent."""
+        keepers_mock.return_value = keepers
+        keeper_retries_mock.return_value = keeper_retries
+        super().test_select_keeper(blacklisted=blacklisted)
+
+    @mock.patch.object(
+        TransactionSettlementPeriodState,
+        "keepers",
+        new_callable=mock.PropertyMock,
+    )
+    @pytest.mark.parametrize(
+        "keepers", (deque(f"keeper_{i}" for i in range(4)), deque(("test_keeper",)))
+    )
+    def test_select_keeper_preexisting_keeper(
+        self, keepers_mock: mock.PropertyMock, keepers: Deque[str]
+    ) -> None:
+        """Test select keeper agent with pre-existing keeper."""
+        keepers_mock.return_value = keepers
+        super().test_select_keeper()
 
 
 class TestSignatureBehaviour(TransactionSettlementFSMBehaviourBaseCase):
@@ -365,6 +422,7 @@ class TestFinalizeBehaviour(TransactionSettlementFSMBehaviourBaseCase):
     ) -> None:
         """Test finalize behaviour."""
         participants = frozenset({self.skill.skill_context.agent_address, "a_1", "a_2"})
+        retries = 1
         self.fast_forward_to_state(
             behaviour=self.behaviour,
             state_id=self.behaviour_class.state_id,
@@ -374,7 +432,10 @@ class TestFinalizeBehaviour(TransactionSettlementFSMBehaviourBaseCase):
                     initial_data=dict(
                         most_voted_keeper_address="most_voted_keeper_address",
                         participants=participants,
-                        keepers=deque(["other_agent"]),
+                        # keeper needs to have length == 42 in order to be parsed
+                        keepers=retries.to_bytes(32, "big").hex()
+                        + "other_agent"
+                        + "-" * 31,
                     ),
                 )
             ),
@@ -451,8 +512,10 @@ class TestFinalizeBehaviour(TransactionSettlementFSMBehaviourBaseCase):
             ),
         ),
     )
+    @mock.patch.object(SkillContext, "agent_address", new_callable=mock.PropertyMock)
     def test_sender_act(
         self,
+        agent_address_mock: mock.PropertyMock,
         resubmitting: bool,
         response_kwargs: Dict[
             str,
@@ -474,7 +537,12 @@ class TestFinalizeBehaviour(TransactionSettlementFSMBehaviourBaseCase):
             nonce = 0
             max_priority_fee_per_gas = 1
 
-        participants = frozenset({self.skill.skill_context.agent_address, "a_1", "a_2"})
+        # keepers need to have length == 42 in order to be parsed
+        agent_address_mock.return_value = "-" * 42
+        retries = 1
+        participants = frozenset(
+            {self.skill.skill_context.agent_address, "a_1" + "-" * 39, "a_2" + "-" * 39}
+        )
         self.fast_forward_to_state(
             behaviour=self.behaviour,
             state_id=self.behaviour_class.state_id,
@@ -482,7 +550,6 @@ class TestFinalizeBehaviour(TransactionSettlementFSMBehaviourBaseCase):
                 StateDB(
                     initial_period=0,
                     initial_data=dict(
-                        most_voted_keeper_address=self.skill.skill_context.agent_address,
                         safe_contract_address="safe_contract_address",
                         participants=participants,
                         participant_to_signature={},
@@ -495,7 +562,8 @@ class TestFinalizeBehaviour(TransactionSettlementFSMBehaviourBaseCase):
                         ),
                         nonce=nonce,
                         max_priority_fee_per_gas=max_priority_fee_per_gas,
-                        keepers=deque([self.skill.skill_context.agent_address]),
+                        keepers=retries.to_bytes(32, "big").hex()
+                        + self.skill.skill_context.agent_address,
                     ),
                 )
             ),
@@ -581,12 +649,6 @@ class TestFinalizeBehaviour(TransactionSettlementFSMBehaviourBaseCase):
             mock_info.assert_called_with(
                 f"No callback defined for request with nonce: {message.dialogue_reference[0]}"
             )
-
-
-class TestFinalizeBehaviourAfterTimeout(TestFinalizeBehaviour):
-    """Test `TestFinalizeBehaviourAfterTimeout`."""
-
-    behaviour_class = FinalizeBehaviourAfterTimeout
 
 
 class TestValidateTransactionBehaviour(TransactionSettlementFSMBehaviourBaseCase):
