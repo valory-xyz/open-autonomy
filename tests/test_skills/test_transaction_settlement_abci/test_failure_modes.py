@@ -149,7 +149,7 @@ class OracleBehaviourHardHatGnosisBaseCase(
         cls.multiplexer.connect()
 
         # hardhat configuration
-        cls.safe_contract_address = "0x68FCdF52066CcE5612827E872c45767E5a1f6551"
+        cls.safe_contract_address = "0xd9Db270c1B5E3Bd161E8c8503c55cEABeE709552"
         safe_owners = {
             "0xBcd4042DE499D14e55001CcbB24a551F3b954096": "0xf214f2b2cd398c806f84e317254e0f0b801d0643303237d97a22a48e01628897",
             "0x71bE63f3384f5fb98995898A86B02Fb2426c5788": "0x701b615bbdfb9de65240bc28bd21bbc0d996645a3dd57e7b12bc2bdf6f192c82",
