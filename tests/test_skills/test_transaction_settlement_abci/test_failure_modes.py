@@ -29,6 +29,7 @@ from threading import Thread
 from typing import Any, Callable, Dict, List, Optional, Tuple, Union, cast
 from unittest import mock
 
+import pytest
 from aea.crypto.registries import make_crypto, make_ledger_api
 from aea.crypto.wallet import Wallet
 from aea.decision_maker.base import DecisionMaker
@@ -46,7 +47,6 @@ from packages.open_aea.protocols.signing.custom_types import (
     RawTransaction,
     SignedTransaction,
 )
-from packages.valory.contracts.gnosis_safe.contract import SafeOperation
 from packages.valory.protocols.contract_api import ContractApiMessage
 from packages.valory.protocols.ledger_api import LedgerApiMessage
 from packages.valory.protocols.ledger_api.custom_types import (
@@ -73,14 +73,25 @@ from packages.valory.skills.transaction_settlement_abci.behaviours import (
     ValidateTransactionBehaviour,
 )
 from packages.valory.skills.transaction_settlement_abci.handlers import SigningHandler
-from packages.valory.skills.transaction_settlement_abci.payloads import SignaturePayload
-from packages.valory.skills.transaction_settlement_abci.rounds import (
-    PeriodState as TxSettlementPeriodState, TransactionSubmissionAbciApp, Event
+from packages.valory.skills.transaction_settlement_abci.payload_tools import (
+    VerificationStatus,
+    hash_payload_to_hex,
+    skill_input_hex_to_payload,
 )
+from packages.valory.skills.transaction_settlement_abci.payloads import SignaturePayload
+from packages.valory.skills.transaction_settlement_abci.rounds import Event
+from packages.valory.skills.transaction_settlement_abci.rounds import (
+    PeriodState as TxSettlementPeriodState,
+)
+from packages.valory.skills.transaction_settlement_abci.rounds import (
+    TransactionSubmissionAbciApp,
+)
+
 from tests.conftest import ROOT_DIR, make_ledger_api_connection
 from tests.fixture_helpers import HardHatGnosisBaseTest
 from tests.helpers.contracts import get_register_contract
 from tests.test_skills.base import FSMBehaviourBaseCase
+
 
 HandlersType = List[Optional[Handler]]
 ExpectedContentType = List[
@@ -100,7 +111,8 @@ ExpectedTypesType = List[
     ]
 ]
 
-SAFE_TX_GAS_ENTER = 553000
+SAFE_TX_GAS = 120000
+ETHER_VALUE = 0
 
 
 class OracleBehaviourBaseCase(FSMBehaviourBaseCase):
@@ -389,7 +401,7 @@ class OracleBehaviourHardHatGnosisBaseCase(
                         decoded_logs.append({name: decoded_log})
         return decoded_logs
 
-    def deploy_oracle(self) -> str:
+    def deploy_oracle(self) -> None:
         """Deploy the oracle."""
         cycles_enter = 4
         handlers_enter: HandlersType = [
@@ -439,10 +451,13 @@ class OracleBehaviourHardHatGnosisBaseCase(
             msg4.transaction_receipt.receipt
         )
 
-        return oracle_contract_address
+        # update period state with oracle contract address
+        self.price_estimation_period_state.update(
+            oracle_contract_address=oracle_contract_address,
+        )
 
-    def get_safe_tx_hash_data(self) -> Tuple[str, str]:
-        """Get safe's transaction hash and data."""
+    def gen_safe_tx_hash(self) -> None:
+        """Generate safe's transaction hash."""
         cycles_enter = 3
         handlers_enter: HandlersType = [self.contract_handler] * cycles_enter
         expected_content_enter: ExpectedContentType = [
@@ -463,35 +478,43 @@ class OracleBehaviourHardHatGnosisBaseCase(
         )
 
         assert msg_a is not None and isinstance(msg_a, ContractApiMessage)
-        tx_data = cast(str, msg_a.raw_transaction.body["data"])[2:]
+        tx_data = cast(bytes, msg_a.raw_transaction.body["data"])
         assert msg_b is not None and isinstance(msg_b, ContractApiMessage)
         tx_hash = cast(str, msg_b.raw_transaction.body["tx_hash"])[2:]
 
-        return tx_hash, tx_data
+        payload = hash_payload_to_hex(
+            tx_hash,
+            ETHER_VALUE,
+            SAFE_TX_GAS,
+            self.price_estimation_period_state.oracle_contract_address,
+            tx_data,
+        )
 
-    def sign_send_tx(
-        self,
-        safe_tx_hash: str,
-        data: bytes,
-        to_address: str,
-        safe_tx_gas: int,
-        operation: int,
-    ) -> str:
+        # update period state with safe's tx hash
+        self.tx_settlement_period_state.update(
+            most_voted_tx_hash=payload,
+        )
+
+    def sign_send_tx(self) -> None:
         """Sign and send a transaction"""
-        participant_to_signature = {
-            address: SignaturePayload(
-                sender=address,
-                signature=crypto.sign_message(
-                    binascii.unhexlify(safe_tx_hash),
-                    is_deprecated_mode=True,
-                )[2:],
+        tx_params = skill_input_hex_to_payload(
+            self.tx_settlement_period_state.most_voted_tx_hash
+        )
+        safe_tx_hash_bytes = binascii.unhexlify(tx_params["safe_tx_hash"])
+        participant_to_signature = {}
+        for address, crypto in self.safe_owners.items():
+            signature_hex = crypto.sign_message(
+                safe_tx_hash_bytes,
+                is_deprecated_mode=True,
             )
-            for address, crypto in self.safe_owners.items()
-        }
+            signature_hex = signature_hex[2:]
+            participant_to_signature[address] = SignaturePayload(
+                sender=address,
+                signature=signature_hex,
+            )
 
         self.tx_settlement_period_state.update(
-                participant_to_signature=participant_to_signature,
-            ),
+            participant_to_signature=participant_to_signature,
         )
 
         handlers: HandlersType = [
@@ -515,7 +538,7 @@ class OracleBehaviourHardHatGnosisBaseCase(
                 "transaction_digest": TransactionDigest,
             },
         ]
-        _, _, msg = self.process_n_messsages(
+        msg1, _, msg3 = self.process_n_messsages(
             FinalizeBehaviour.state_id,
             3,
             self.tx_settlement_period_state,
@@ -523,12 +546,39 @@ class OracleBehaviourHardHatGnosisBaseCase(
             expected_content,
             expected_types,
         )
-        assert msg is not None and isinstance(msg, LedgerApiMessage)
-        tx_digest = msg.transaction_digest.body
+        assert msg1 is not None and isinstance(msg1, ContractApiMessage)
+        assert msg3 is not None and isinstance(msg3, LedgerApiMessage)
+        tx_digest = msg3.transaction_digest.body
 
-        return tx_digest
+        tx_data = {
+            "status": VerificationStatus.PENDING,
+            "tx_digest": cast(str, tx_digest),
+            "nonce": int(cast(str, msg1.raw_transaction.body["nonce"])),
+            "max_priority_fee_per_gas": int(
+                cast(
+                    str,
+                    msg1.raw_transaction.body["maxPriorityFeePerGas"],
+                )
+            ),
+        }
 
-    def validate_tx(self, tx_digest: str) -> str:
+        behaviour = cast(FinalizeBehaviour, self.behaviour.current_state)
+        assert behaviour.params.tip is not None
+        assert behaviour.params.nonce is not None
+        if tx_data["nonce"] == behaviour.params.nonce:
+            assert behaviour.params.tip * 10 == tx_data["max_priority_fee_per_gas"]
+        else:
+            assert behaviour.params.tip == tx_data["max_priority_fee_per_gas"]
+
+        hashes = self.tx_settlement_period_state.tx_hashes_history
+        hashes.append(tx_digest)
+
+        self.tx_settlement_period_state.update(
+            tx_hashes_history=hashes,
+            final_verification_status=tx_data["status"],
+        )
+
+    def validate_tx(self) -> None:
         """Validate the given transaction."""
 
         handlers: HandlersType = [
@@ -561,13 +611,18 @@ class OracleBehaviourHardHatGnosisBaseCase(
         ], f"Message not verified: {verif_msg.state.body}"
 
         # eventually replace with https://pypi.org/project/eth-event/
-        receipt = self.ethereum_api.get_transaction_receipt(tx_digest)
+        receipt = self.ethereum_api.get_transaction_receipt(
+            self.tx_settlement_period_state.to_be_validated_tx_hash
+        )
         logs = self.get_decoded_logs(self.gnosis_instance, receipt)
         assert all(
             [key != "ExecutionFailure" for dict_ in logs for key in dict_.keys()]
         )
 
-        return tx_digest
+        self.tx_settlement_period_state.update(
+            final_verification_status=VerificationStatus.VERIFIED,
+            final_tx_hash=self.tx_settlement_period_state.to_be_validated_tx_hash,
+        )
 
     @staticmethod
     def dummy_try_get_gas_pricing_wrapper(
@@ -609,13 +664,9 @@ class TestRepricing(OracleBehaviourHardHatGnosisBaseCase):
         Also, test that we are adjusting the gas correctly when repricing.
         """
 
-        # deploy oracle
-        oracle_contract_address = self.deploy_oracle()
-
-        # update period state with oracle contract address
-        self.period_state.update(
-            oracle_contract_address=oracle_contract_address,
-        )
+        self.deploy_oracle()
+        self.gen_safe_tx_hash()
+        self.sign_send_tx()
 
         # get safe's tx hash and data
         tx_hash, tx_data = self.get_safe_tx_hash_data()
