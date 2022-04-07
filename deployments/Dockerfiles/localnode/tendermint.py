@@ -18,7 +18,6 @@
 # ------------------------------------------------------------------------------
 
 """Tendermint manager."""
-
 import logging
 import os
 import signal
@@ -109,10 +108,12 @@ class TendermintNode:
         if self._process is not None:  # pragma: nocover
             return
         cmd = self._build_node_command()
-        with open(os.environ.get("LOG_FILE", DEFAULT_LOG_FILE), "a") as log_file:
+        log_file = os.environ.get("LOG_FILE", DEFAULT_LOG_FILE)
+
+        with open(log_file, "a") as file:
             self._process = (
                 subprocess.Popen(  # nosec # pylint: disable=consider-using-with,W1509
-                    cmd, preexec_fn=os.setsid, stdout=log_file
+                    cmd, preexec_fn=os.setsid, stdout=file
                 )
             )
 
