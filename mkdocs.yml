@@ -4,7 +4,8 @@ site_description: Consensus algorithms implemented with the open AEA framework.
 repo_url: https://github.com/valory-xyz/consensus-algorithms
 site_author: developer@valory.xyz
 
-theme: 'material'
+theme:
+   name: 'material'
 
 extra_css:
   - stylesheets/extra.css
@@ -12,14 +13,10 @@ extra_css:
 strict: true
 
 nav:
-  - Home: 'home.md'
-  - Concepts:
-    - Autonomous Economic Agents:
-      - Introduction: 'aea.md'
-      - Implementation: 'aea-implementation.md'
-    - Finite State Machines:
-      - Introduction: 'fsm.md'
-      - Implementation: 'fsm-implementation.md'
+  - Home: 'index.md'
+  - Preliminaries:
+    - Autonomous Economic Agents: 'aea.md'
+    - Finite State Machines: 'fsm.md'
     - Application BlockChain Interface:
       - Introduction: 'abci.md'
       - Implementation: 'abci-implementation.md'
@@ -104,9 +101,9 @@ nav:
     - Exceptions: exceptions.md
   - Deployment: deployment_description.md
 
-
 plugins:
-    - markdownmermaid
+  - markdownmermaid
+  - macros
 
 markdown_extensions:
   - pymdownx.superfences
@@ -117,6 +114,13 @@ markdown_extensions:
   - pymdownx.arithmatex
   - attr_list
   - md_in_html
+
+extra:
+    valory_stack: '[Valory stack](https://www.valory.xyz/)'
+    valory_app: 'Valory app'
+    open_aea: '[Open AEA](https://github.com/valory-xyz/open-aea)'
+    open_aea_doc: '[Open AEA documentation](https://valory-xyz.github.io/open-aea)'
+    open_aea_api: '[Open AEA API](https://valory-xyz.github.io/open-aea/api/)'
 
 #extra_css:
 #    - css/my-styles.css

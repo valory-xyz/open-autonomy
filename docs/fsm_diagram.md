@@ -35,6 +35,7 @@ The summary of the constituent FSMs is as follows:
 (*) Transitions to a different state, i.e., not self-transitions.
 
 #### `AgentRegistrationAbciApp` FSM
+
 ```yaml
 alphabet_in:
 - DONE
@@ -43,7 +44,7 @@ default_start_state: RegistrationStartupRound
 final_states:
 - FinishedRegistrationFFWRound
 - FinishedRegistrationRound
-label: packages.valory.skills.registration_abci.rounds.AgentRegistrationAbciApp
+label:     ckages.valory.skills.registration_abci.rounds.AgentRegira    tionAbciApp
 start_states:
 - RegistrationRound
 - RegistrationStartupRound
@@ -53,9 +54,9 @@ states:
 - RegistrationRound
 - RegistrationStartupRound
 transition_func:
-    (RegistrationRound, DONE): FinishedRegistrationFFWRound
-    (RegistrationStartupRound, DONE): FinishedRegistrationRound
-    (RegistrationStartupRound, FAST_FORWARD): FinishedRegistrationFFWRound
+    (RegistrationRound, DONE): nishedRegistrationFFWRound
+    (RegistrationStartupRound, DONE):     nishedRegistrationRound
+    (RegistrationStartupRound, FAST_FORWARD):     nishedRegistrationFFWRound
 ```
 
 ```mermaid
@@ -331,7 +332,7 @@ stateDiagram-v2
     ValidateTransactionRound --> ValidateTransactionRound: <center>NO_MAJORITY</center>
 ```
 
-### `ResetPauseABCIApp` FSM
+#### `ResetPauseABCIApp` FSM
 
 ```yaml
 alphabet_in:
