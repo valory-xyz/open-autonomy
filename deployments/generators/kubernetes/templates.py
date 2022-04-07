@@ -210,7 +210,7 @@ spec:
         args: ["run", "--no-reload", "--host=0.0.0.0", "--port=8080"]
         volumeMounts:
           - mountPath: /logs
-            name: logs
+            name: persistent_data
           - mountPath: /tendermint
             name: build
 
@@ -237,7 +237,7 @@ spec:
           - mountPath: /build
             name: build
       volumes:
-        - name: logs
+        - name: persistent_data
           persistentVolumeClaim:
             claimName: 'logs-pvc'
         - name: build

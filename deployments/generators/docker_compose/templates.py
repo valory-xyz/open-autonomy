@@ -78,10 +78,10 @@ TENDERMINT_NODE_TEMPLATE: str = (
       - TMHOME=/tendermint/node{node_id}
       - CREATE_EMPTY_BLOCKS=true
       - DEV_MODE=0
-      - LOG_FILE=/logs/logs/node_{node_id}.txt
+      - LOG_FILE=/logs/node_{node_id}.txt
     volumes:
       - ./build:/tendermint:Z
-      - ./logs:/logs:Z
+      - ../persistent_data/logs:/logs:rw
     working_dir: /tendermint
     command: ["run", "--no-reload", "--host=0.0.0.0", "--port=8080",]
     depends_on:
@@ -103,13 +103,13 @@ ABCI_NODE_TEMPLATE: str = (
     container_name: abci{node_id}
     image: "valory/consensus-algorithms-open-aea:%s"
     environment:
-      - LOG_FILE=/logs/logs/aea_{node_id}.txt
+      - LOG_FILE=/home/ubuntu/logs/aea_{node_id}.txt
 {agent_vars}
     networks:
       localnet:
         ipv4_address: 192.167.11.{localnet_address_postfix}
     volumes:
-      - ./logs/:/logs:z
+      - ../persistent_data/logs:/home/ubuntu/logs:rw
 """
     % IMAGE_VERSION
 )

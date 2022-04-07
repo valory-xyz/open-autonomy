@@ -1,6 +1,7 @@
 OPEN_AEA_REPO_PATH := "${OPEN_AEA_REPO_PATH}"
 DEPLOYMENT_TYPE := "${DEPLOYMENT_TYPE}"
 DEPLOYMENT_SPEC := "${DEPLOYMENT_SPEC}"
+PLATFORM_STR := $(shell uname)
 
 .PHONY: clean
 clean: clean-build clean-pyc clean-test clean-docs
@@ -296,11 +297,14 @@ run-deploy:
 
 .PHONY: run-deployment
 run-deployment:
+	if [ "${PLATFORM_STR}" = "Linux" ];\
+	then\
+		mkdir -p deployments/persistent_data/logs
+		sudo chown -R 1000:1000 -R deployments/persistent_data/logs
+	fi
 	if [ "${DEPLOYMENT_TYPE}" = "docker-compose" ];\
 	then\
 		cd deployments/build/ &&  \
-		sudo mkdir -p ./logs/logs && \
-		sudo chmod 777 -R ./logs && \
 		docker-compose up --force-recreate -t 600
 		exit 0
 	fi
