@@ -129,16 +129,9 @@ class OracleBehaviourHardHatGnosisBaseCase(
     decision_maker: DecisionMaker
     safe_owners: Dict
     safe_contract_address: str
-    multisend_contract_address: str
-    router_contract_address: str
     keeper_address: str
     ethereum_api: EthereumApi
     gnosis_instance: Any
-    # offchain_aggregator_instance: str: Any
-    multisend_instance: Any
-    router_instance: Any
-    enter_nonce: int
-    exit_nonce: int
 
     @classmethod
     def _setup_class(cls, **kwargs: Any) -> None:
@@ -148,22 +141,9 @@ class OracleBehaviourHardHatGnosisBaseCase(
     def setup(cls, **kwargs: Any) -> None:
         """Setup."""
         super().setup()
-        # register all contracts we need
-        directory = Path(
-            ROOT_DIR, "packages", "valory", "contracts", "uniswap_v2_router_02"
-        )
-        router = get_register_contract(directory)
-        directory = Path(
-            ROOT_DIR, "packages", "valory", "contracts", "uniswap_v2_erc20"
-        )
-        _ = get_register_contract(directory)
-        directory = Path(ROOT_DIR, "packages", "valory", "contracts", "multisend")
-        multisend = get_register_contract(directory)
+        # register gnosis contract
         directory = Path(ROOT_DIR, "packages", "valory", "contracts", "gnosis_safe")
         gnosis = get_register_contract(directory)
-        directory = Path(
-            ROOT_DIR, "packages", "valory", "contracts", "offchain_aggregator"
-        )
         # setup a multiplexer with the required connections
         cls.running_loop = asyncio.new_event_loop()
         cls.thread_loop = Thread(target=cls.running_loop.run_forever)
@@ -175,8 +155,6 @@ class OracleBehaviourHardHatGnosisBaseCase(
 
         # hardhat configuration
         cls.safe_contract_address = "0x68FCdF52066CcE5612827E872c45767E5a1f6551"
-        cls.multisend_contract_address = "0x2279B7A0a67DB372996a5FaB50D91eAA73d2eBe6"
-        cls.router_contract_address = "0xA51c1fc2f0D1a1b8494Ed1FE312d7C3a78Ed91C0"
         safe_owners = {
             "0xBcd4042DE499D14e55001CcbB24a551F3b954096": "0xf214f2b2cd398c806f84e317254e0f0b801d0643303237d97a22a48e01628897",
             "0x71bE63f3384f5fb98995898A86B02Fb2426c5788": "0x701b615bbdfb9de65240bc28bd21bbc0d996645a3dd57e7b12bc2bdf6f192c82",
@@ -251,12 +229,6 @@ class OracleBehaviourHardHatGnosisBaseCase(
         cls.ethereum_api = make_ledger_api("ethereum")
         cls.gnosis_instance = gnosis.get_instance(
             cls.ethereum_api, cls.safe_contract_address
-        )
-        cls.multisend_instance = multisend.get_instance(
-            cls.ethereum_api, cls.multisend_contract_address
-        )
-        cls.router_instance = router.get_instance(
-            cls.ethereum_api, cls.router_contract_address
         )
 
     @classmethod
