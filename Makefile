@@ -300,7 +300,7 @@ run-deployment:
 	if [ "${PLATFORM_STR}" = "Linux" ];\
 	then\
 		mkdir -p deployments/persistent_data/logs
-		sudo chown -R 1000:1000 -R deployments/persistent_data/logs
+	#sudo chown -R 1000:1000 -R deployments/persistent_data/logs
 	fi
 	if [ "${DEPLOYMENT_TYPE}" = "docker-compose" ];\
 	then\

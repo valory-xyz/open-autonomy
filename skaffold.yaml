@@ -13,6 +13,7 @@ build:
       dockerfile: Dockerfile
       buildArgs:
         AEA_VERSION: "latest"
+        AEA_AGENT: "valory/oracle_deployable:0.1.0"
 
   - image: valory/consensus-algorithms-tendermint
     context: deployments/Dockerfiles/localnode/
@@ -29,8 +30,6 @@ profiles:
       - op: add
         path: /build/cluster
         value: {}
-      - op: remove
-        path: /build/artifacts/1
       - op: remove
         path: /build/artifacts/1
       - op: remove

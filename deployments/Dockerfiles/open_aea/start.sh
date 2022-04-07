@@ -1,4 +1,5 @@
 #! /bin/bash
+sudo chown -R ubuntu:ubuntu /logs
 if [ "$DEBUG" == "1" ];
 then
     cowsay "Debugging..."
@@ -23,6 +24,12 @@ else
     echo -n $AEA_KEY > ethereum_private_key.txt
 
 fi
-aea add-key ethereum
-aea install
-aea run --aev
+if [ "$INSTALL" == "1" ];
+then
+    cowsay "Installing the necessary dependencies!"
+    aea install && cd .. && aea delete agent
+else
+    cowsay "Running the AEA!"
+    aea add-key ethereum
+    aea run --aev
+fi

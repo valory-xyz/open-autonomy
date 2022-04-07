@@ -1,5 +1,6 @@
 ARG AEA_VERSION=latest
 FROM valory/open-aea-user:${AEA_VERSION}
+ARG AEA_AGENT
 
 WORKDIR /home/ubuntu
 ENV PATH=$PATH:/home/ubuntu/.local/bin
@@ -30,6 +31,9 @@ RUN pipenv install --system --skip-lock
 RUN svn checkout https://github.com/valory-xyz/open-aea/trunk/packages packages
 
 COPY . /home/ubuntu
+VOLUME /home/ubuntu/logs
+
+RUN INSTALL=1 VALORY_APPLICATION=${AEA_AGENT} bash start.sh
 
 CMD ["start.sh"]
 
