@@ -591,10 +591,18 @@ class OracleBehaviourHardHatGnosisBaseCase(OracleBehaviourBaseCase, HardHatAMMBa
         behaviour = cast(FinalizeBehaviour, self.behaviour.current_state)
         assert behaviour.params.tip is not None
         assert behaviour.params.nonce is not None
-        if tx_data["nonce"] == behaviour.params.nonce:
-            assert behaviour.params.tip * 10 == tx_data["max_priority_fee_per_gas"]
+        # if we are repricing
+        if tx_data["nonce"] == stored_nonce:
+            assert stored_nonce is not None
+            assert stored_tip is not None
+            assert tx_data["max_priority_fee_per_gas"] == ceil(
+                stored_tip * 1.1
+            ), "The repriced tip does not match the one returned from the gas pricing method!"
+        # if we are not repricing
         else:
-            assert behaviour.params.tip == tx_data["max_priority_fee_per_gas"]
+            assert (
+                tx_data["max_priority_fee_per_gas"] == 3000000000
+            ), "The used tip does not match the one returned from the gas pricing method!"
 
         hashes = self.tx_settlement_period_state.tx_hashes_history
         hashes.append(tx_digest)
