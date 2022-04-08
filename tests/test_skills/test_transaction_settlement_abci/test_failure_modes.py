@@ -326,11 +326,13 @@ class OracleBehaviourHardHatGnosisBaseCase(OracleBehaviourBaseCase, HardHatAMMBa
             return incoming_message
         return None
 
-    def process_n_messsages(
+    def process_n_messages(
         self,
-        state_id: str,
         ncycles: int,
-        period_state: Union[TxSettlementPeriodState, PriceEstimationPeriodState],
+        period_state: Union[
+            TxSettlementPeriodState, PriceEstimationPeriodState, None
+        ] = None,
+        state_id: Optional[str] = None,
         handlers: Optional[HandlersType] = None,
         expected_content: Optional[ExpectedContentType] = None,
         expected_types: Optional[ExpectedTypesType] = None,
@@ -340,10 +342,11 @@ class OracleBehaviourHardHatGnosisBaseCase(OracleBehaviourBaseCase, HardHatAMMBa
 
         :param state_id: the behaviour to fast forward to
         :param ncycles: the number of message cycles to process
+        :param period_state: a period_state
         :param handlers: a list of handlers
         :param expected_content: the expected_content
         :param expected_types: the expected type
-        :param period_state: a period_state
+
         :return: tuple of incoming messages
         """
         handlers = [None] * ncycles if handlers is None else handlers
@@ -357,12 +360,13 @@ class OracleBehaviourHardHatGnosisBaseCase(OracleBehaviourBaseCase, HardHatAMMBa
             and len(expected_content) == ncycles
         ), "Number of cycles, handlers, contents and types does not match"
 
-        self.fast_forward_to_state(
-            behaviour=self.behaviour,
-            state_id=state_id,
-            period_state=period_state,
-        )
-        assert cast(BaseState, self.behaviour.current_state).state_id == state_id
+        if state_id is not None and period_state is not None:
+            self.fast_forward_to_state(
+                behaviour=self.behaviour,
+                state_id=state_id,
+                period_state=period_state,
+            )
+            assert cast(BaseState, self.behaviour.current_state).state_id == state_id
 
         incoming_messages = []
         for i in range(ncycles):
@@ -438,10 +442,10 @@ class OracleBehaviourHardHatGnosisBaseCase(OracleBehaviourBaseCase, HardHatAMMBa
                 "transaction_receipt": TransactionReceipt,
             },
         ]
-        _, _, _, msg4 = self.process_n_messsages(
-            DeployOracleBehaviour.state_id,
+        _, _, _, msg4 = self.process_n_messages(
             cycles_enter,
             self.price_estimation_period_state,
+            DeployOracleBehaviour.state_id,
             handlers_enter,
             expected_content_enter,
             expected_types_enter,
@@ -468,10 +472,10 @@ class OracleBehaviourHardHatGnosisBaseCase(OracleBehaviourBaseCase, HardHatAMMBa
                 "raw_transaction": RawTransaction,
             }
         ] * cycles_enter
-        _, msg_a, msg_b = self.process_n_messsages(
-            TransactionHashBehaviour.state_id,
+        _, msg_a, msg_b = self.process_n_messages(
             cycles_enter,
             self.price_estimation_period_state,
+            TransactionHashBehaviour.state_id,
             handlers_enter,
             expected_content_enter,
             expected_types_enter,
@@ -561,10 +565,10 @@ class OracleBehaviourHardHatGnosisBaseCase(OracleBehaviourBaseCase, HardHatAMMBa
                 "transaction_digest": TransactionDigest,
             },
         ]
-        msg1, _, msg3 = self.process_n_messsages(
-            FinalizeBehaviour.state_id,
+        msg1, _, msg3 = self.process_n_messages(
             3,
             self.tx_settlement_period_state,
+            None,
             handlers,
             expected_content,
             expected_types,
@@ -572,7 +576,6 @@ class OracleBehaviourHardHatGnosisBaseCase(OracleBehaviourBaseCase, HardHatAMMBa
         assert msg1 is not None and isinstance(msg1, ContractApiMessage)
         assert msg3 is not None and isinstance(msg3, LedgerApiMessage)
         tx_digest = msg3.transaction_digest.body
-
         tx_data = {
             "status": VerificationStatus.PENDING,
             "tx_digest": cast(str, tx_digest),
@@ -620,10 +623,10 @@ class OracleBehaviourHardHatGnosisBaseCase(OracleBehaviourBaseCase, HardHatAMMBa
                 "state": State,
             },
         ]
-        _, verif_msg = self.process_n_messsages(
-            ValidateTransactionBehaviour.state_id,
+        _, verif_msg = self.process_n_messages(
             2,
             self.tx_settlement_period_state,
+            ValidateTransactionBehaviour.state_id,
             handlers,
             expected_content,
             expected_types,
