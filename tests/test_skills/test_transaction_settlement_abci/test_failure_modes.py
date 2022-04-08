@@ -42,6 +42,7 @@ from aea.protocols.base import Message
 from aea.skills.base import Handler
 from aea_ledger_ethereum import EthereumApi
 from web3 import HTTPProvider, Web3
+from web3.providers import BaseProvider
 from web3.types import RPCEndpoint
 
 from packages.open_aea.protocols.signing import SigningMessage
@@ -126,7 +127,7 @@ class OracleBehaviourBaseCase(FSMBehaviourBaseCase):
 class OracleBehaviourHardHatGnosisBaseCase(OracleBehaviourBaseCase, HardHatAMMBaseTest):
     """Test tx settlement behaviours in a Hardhat environment, with Gnosis deployed."""
 
-    hardhat: Web3
+    hardhat_provider: BaseProvider
     running_loop: asyncio.AbstractEventLoop
     thread_loop: Thread
     multiplexer: Multiplexer
@@ -147,7 +148,9 @@ class OracleBehaviourHardHatGnosisBaseCase(OracleBehaviourBaseCase, HardHatAMMBa
         super().setup()
 
         # create an API for HardHat
-        cls.hardhat = Web3(provider=HTTPProvider("http://localhost:8545"))
+        cls.hardhat_provider = Web3(
+            provider=HTTPProvider("http://localhost:8545")
+        ).provider
 
         # register gnosis and offchain aggregator contracts
         directory = Path(ROOT_DIR, "packages", "valory", "contracts", "gnosis_safe")
@@ -694,15 +697,23 @@ class TestRepricing(OracleBehaviourHardHatGnosisBaseCase):
     ) -> None:
         """Test repricing with and without mocking ledger's `try_get_gas_pricing` method."""
 
-        if should_mock_ledger_pricing_mechanism:
-            with mock.patch.object(
-                EthereumApi,
-                "try_get_gas_pricing",
-                new_callable=OracleBehaviourHardHatGnosisBaseCase.dummy_try_get_gas_pricing_wrapper,
-            ):
+        try:
+            if should_mock_ledger_pricing_mechanism:
+                with mock.patch.object(
+                    EthereumApi,
+                    "try_get_gas_pricing",
+                    new_callable=OracleBehaviourHardHatGnosisBaseCase.dummy_try_get_gas_pricing_wrapper,
+                ):
+                    self._test_same_keeper()
+            else:
                 self._test_same_keeper()
-        else:
-            self._test_same_keeper()
+
+        finally:
+            # clear all txs
+            for tx in self.tx_settlement_period_state.tx_hashes_history:
+                self.hardhat_provider.make_request(
+                    RPCEndpoint("hardhat_dropTransaction"), (tx,)
+                )
 
     def _test_same_keeper(self) -> None:
         """
@@ -711,6 +722,7 @@ class TestRepricing(OracleBehaviourHardHatGnosisBaseCase):
         Test that we are using the same keeper to reprice when we fail or timeout for the first time.
         Also, test that we are adjusting the gas correctly when repricing.
         """
+
         # deploy the oracle
         self.deploy_oracle()
         # generate tx hash
@@ -718,13 +730,13 @@ class TestRepricing(OracleBehaviourHardHatGnosisBaseCase):
         # sign tx
         self.sign_tx()
         # stop HardHat's automatic mining
-        assert self.hardhat.provider.make_request(
+        assert self.hardhat_provider.make_request(
             RPCEndpoint("evm_setAutomine"), [False]
         ), "Disabling auto-mining failed!"
         # send tx first time, we expect it to be pending until we enable the mining back
         self.send_tx()
         # re-enable HardHat's automatic mining so that the second tx replaces the first, pending one
-        assert self.hardhat.provider.make_request(
+        assert self.hardhat_provider.make_request(
             RPCEndpoint("evm_setIntervalMining"), [1000]
         ), "Re-enabling auto-mining failed!"
         # send tx second time
