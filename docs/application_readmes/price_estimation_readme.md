@@ -199,7 +199,7 @@ Ensure accurate configuration, in particular, swap folder names of `configure_ag
 
 ```bash
 count=0
-docker ps --format '{{.ID}}' --filter='ancestor=valory/price_estimation:0.1.0' | while read -r line ; do docker logs "$line" > node_${count}.txt; (( count++ )); done
+docker ps --format {{"'{{.ID}}'"}} --filter='ancestor=valory/price_estimation:0.1.0' | while read -r line ; do docker logs "$line" > node_${count}.txt; (( count++ )); done
 ```
 
 To find exceptions in logs, e.g. `docker logs 1629f5bd397d | grep "Traceback (most recent call last):"`
@@ -207,5 +207,3 @@ To find exceptions in logs, e.g. `docker logs 1629f5bd397d | grep "Traceback (mo
 To save logs to file: `docker logs d425a72bada2 > node_4.txt`
 
 To copy files to local machine: `for i in {1..4}; do scp root@178.62.4.138:node_${i}.txt node_${i}.txt; done`
-
-
