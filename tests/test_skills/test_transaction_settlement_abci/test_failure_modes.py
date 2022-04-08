@@ -495,8 +495,8 @@ class OracleBehaviourHardHatGnosisBaseCase(OracleBehaviourBaseCase, HardHatAMMBa
             most_voted_tx_hash=payload,
         )
 
-    def sign_send_tx(self) -> None:
-        """Sign and send a transaction"""
+    def sign_tx(self) -> None:
+        """Sign a transaction"""
         tx_params = skill_input_hex_to_payload(
             self.tx_settlement_period_state.most_voted_tx_hash
         )
@@ -516,6 +516,29 @@ class OracleBehaviourHardHatGnosisBaseCase(OracleBehaviourBaseCase, HardHatAMMBa
         self.tx_settlement_period_state.update(
             participant_to_signature=participant_to_signature,
         )
+
+        actual_safe_owners = self.gnosis_instance.functions.getOwners().call()
+        expected_safe_owners = (
+            self.tx_settlement_period_state.participant_to_signature.keys()
+        )
+        assert len(actual_safe_owners) == len(expected_safe_owners)
+        assert all(
+            owner == signer
+            for owner, signer in zip(actual_safe_owners, expected_safe_owners)
+        )
+
+    def send_tx(self) -> None:
+        """Send a transaction"""
+
+        self.fast_forward_to_state(
+            behaviour=self.behaviour,
+            state_id=FinalizeBehaviour.state_id,
+            period_state=self.tx_settlement_period_state,
+        )
+        behaviour = cast(FinalizeBehaviour, self.behaviour.current_state)
+        assert behaviour.state_id == FinalizeBehaviour.state_id
+        stored_nonce = behaviour.params.nonce
+        stored_tip = behaviour.params.tip
 
         handlers: HandlersType = [
             self.contract_handler,
