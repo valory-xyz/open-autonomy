@@ -20,6 +20,7 @@
 """Test the base round classes."""
 
 import re
+from copy import deepcopy
 from enum import Enum
 from typing import (
     Any,
@@ -257,7 +258,7 @@ class BaseCollectDifferentUntilAllRoundTest(BaseRoundTestClass):
 
         actual_next_state = cast(
             self._period_state_class,  # type: ignore
-            state_update_fn(self.period_state, test_round),
+            state_update_fn(deepcopy(self.period_state), test_round),  # type: ignore
         )
 
         res = test_round.end_block()
@@ -308,7 +309,7 @@ class BaseCollectSameUntilThresholdRoundTest(BaseRoundTestClass):
 
         actual_next_state = cast(
             self._period_state_class,  # type: ignore
-            state_update_fn(self.period_state, test_round),
+            state_update_fn(deepcopy(self.period_state), test_round),  # type: ignore
         )
         res = test_round.end_block()
         yield res
@@ -346,7 +347,7 @@ class BaseOnlyKeeperSendsRoundTest(BaseRoundTestClass):
         yield test_round
         actual_next_state = cast(
             self._period_state_class,  # type: ignore
-            state_update_fn(self.period_state, test_round),  # type: ignore
+            state_update_fn(deepcopy(self.period_state), test_round),  # type: ignore
         )
         res = test_round.end_block()
         yield res
@@ -389,7 +390,7 @@ class BaseVotingRoundTest(BaseRoundTestClass):
 
         actual_next_state = cast(
             self._period_state_class,  # type: ignore
-            state_update_fn(self.period_state, test_round),  # type: ignore
+            state_update_fn(deepcopy(self.period_state), test_round),  # type: ignore
         )
         res = test_round.end_block()
         yield res
@@ -487,7 +488,7 @@ class BaseCollectDifferentUntilThresholdRoundTest(BaseRoundTestClass):
 
         actual_next_state = cast(
             self._period_state_class,  # type: ignore
-            state_update_fn(self.period_state, test_round),  # type: ignore
+            state_update_fn(deepcopy(self.period_state), test_round),  # type: ignore
         )
         res = test_round.end_block()
         yield res

@@ -64,7 +64,7 @@ abci_app_transition_mapping: AbciAppTransitionMapping = {
     FinishedOracleRound: CollectObservationRound,
     FinishedRegistrationFFWRound: CollectObservationRound,
     FinishedPriceAggregationRound: RandomnessTransactionSubmissionRound,
-    FailedRound: RegistrationRound,
+    FailedRound: ResetAndPauseRound,
     FinishedTransactionSubmissionRound: ResetAndPauseRound,
     FinishedResetAndPauseRound: CollectObservationRound,
     FinishedResetAndPauseErrorRound: RegistrationRound,

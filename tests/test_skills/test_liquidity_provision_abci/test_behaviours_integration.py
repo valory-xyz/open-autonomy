@@ -309,6 +309,8 @@ class TestLiquidityRebalancingHardhat(
             )
         )
 
+        keeper_retries = 1
+        keepers = "0xBcd4042DE499D14e55001CcbB24a551F3b954096"
         cls.default_period_state_settlement = TransactionSettlementPeriodState(
             StateDB(
                 initial_period=0,
@@ -316,6 +318,7 @@ class TestLiquidityRebalancingHardhat(
                     safe_contract_address=cls.safe_contract_address,
                     most_voted_keeper_address=cls.keeper_address,
                     participants=frozenset(list(cls.safe_owners.keys())),
+                    keepers=keeper_retries.to_bytes(32, "big").hex() + keepers,
                 ),
             )
         )

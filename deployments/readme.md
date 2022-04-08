@@ -22,6 +22,13 @@ Install the virtual environment:
 make new_env
 ```
 
+Clean up images to ensure no artifacts:
+
+```bash
+docker rm -vf $(docker ps -aq)
+docker rmi -f $(docker images -aq)
+```
+
 # Step 1
 
 First we need to build the images used for the deployment.
@@ -53,7 +60,7 @@ pipenv shell
 python deployments/click_create.py build-deployment \
   --deployment-type docker-compose  \
   --keys-file-path deployments/keys/ropsten_keys.txt \
-  --deployment-file-path deployments/deployment_specifications/price_estimation_ropsten.yaml 
+  --deployment-file-path deployments/deployment_specifications/oracle_ropsten.yaml 
 ```
 
 
@@ -122,7 +129,7 @@ Retrieve logs
 
 ```bash
 docker ps
-docker logs ID > node_${i}.txt
+docker logs ID > abci${i}.txt
 ```
 
 or
@@ -134,6 +141,20 @@ for i in {0..3}; do scp root@178.62.4.138:abci${i}.txt abci${i}.txt; done
 for i in {0..3}; do scp root@178.62.4.138:node${i}.txt node${i}.txt; done
 ```
 
+and run script for checking path
+
+```bash
+./scripts/parse_logs.py -i abci${i}.txt
+```
+
+# Step 7
+
+Stop
+
+```bash
+cd deployments/build
+docker-compose kill
+```
 
 ## Developer mode
 

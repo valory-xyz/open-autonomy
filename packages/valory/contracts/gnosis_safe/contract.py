@@ -432,6 +432,12 @@ class GnosisSafeContract(Contract):
             "from": sender_address,
             "gas": configured_gas,
         }
+        actual_nonce = ledger_api.api.eth.get_transaction_count(
+            ledger_api.api.toChecksumAddress(sender_address)
+        )
+        if actual_nonce != nonce:
+            nonce = actual_nonce
+            old_tip = None
         if gas_price is not None:
             tx_parameters["gasPrice"] = gas_price
         if max_fee_per_gas is not None:
@@ -449,12 +455,7 @@ class GnosisSafeContract(Contract):
         transaction_dict["gas"] = Wei(
             max(transaction_dict["gas"] + 75000, configured_gas)
         )
-        if nonce is None:
-            transaction_dict["nonce"] = ledger_api.api.eth.get_transaction_count(
-                ledger_api.api.toChecksumAddress(sender_address)
-            )
-        else:
-            transaction_dict["nonce"] = nonce  # pragma: nocover
+        transaction_dict["nonce"] = nonce  # pragma: nocover
 
         return transaction_dict
 
@@ -536,7 +537,7 @@ class GnosisSafeContract(Contract):
             if receipt is None:
                 raise ValueError  # pragma: nocover
         except (TransactionNotFound, ValueError):  # pragma: nocover
-            return dict(verified=False, status=0)
+            return dict(verified=False, status=-1)
 
         expected = dict(
             contract_address=contract_address,

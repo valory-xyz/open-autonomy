@@ -21,7 +21,8 @@
 import binascii
 import pprint
 from abc import ABC
-from typing import Any, Dict, Generator, Optional, Set, Tuple, Type, Union, cast
+from collections import deque
+from typing import Any, Deque, Dict, Generator, Optional, Set, Tuple, Type, Union, cast
 
 from aea.protocols.base import Message
 from web3.types import Nonce, TxData
@@ -114,9 +115,7 @@ class TransactionSettlementBaseState(BaseState, ABC):
             )
             return tx_data
 
-        if (
-            message.performative != ContractApiMessage.Performative.RAW_TRANSACTION
-        ):  # pragma: nocover
+        if message.performative != ContractApiMessage.Performative.RAW_TRANSACTION:
             self.context.logger.warning(
                 f"get_raw_safe_transaction unsuccessful! Received: {message}"
             )
@@ -127,11 +126,10 @@ class TransactionSettlementBaseState(BaseState, ABC):
         )
 
         if rpc_status == RPCResponseStatus.INCORRECT_NONCE:
-            self.context.logger.warning(
-                f"send_raw_transaction unsuccessful! Received: {rpc_status}"
-            )
             tx_data["status"] = VerificationStatus.ERROR
-            return tx_data
+
+        if rpc_status == RPCResponseStatus.INSUFFICIENT_FUNDS:
+            tx_data["status"] = VerificationStatus.BLACKLIST
 
         if rpc_status != RPCResponseStatus.SUCCESS:
             self.context.logger.warning(
@@ -148,8 +146,17 @@ class TransactionSettlementBaseState(BaseState, ABC):
             )
         )
         # Set nonce and tip.
-        self.params.nonce = Nonce(int(cast(str, tx_data["nonce"])))
-        self.params.tip = int(cast(str, tx_data["max_priority_fee_per_gas"]))
+        nonce = Nonce(int(cast(str, tx_data["nonce"])))
+        tip = int(cast(str, tx_data["max_priority_fee_per_gas"]))
+        if nonce == self.params.nonce:
+            self.context.logger.info(
+                "Attempting to replace transaction "
+                f"with old tip {self.params.tip}, using new tip {tip}"
+            )
+        else:
+            self.context.logger.info(f"Sent transaction for mining with tip {tip}")
+            self.params.nonce = nonce
+        self.params.tip = tip
 
         return tx_data
 
@@ -182,11 +189,6 @@ class TransactionSettlementBaseState(BaseState, ABC):
         """Check for GS026."""
         return "GS026" in revert_reason
 
-    def _reset_params_if_flag_set(self) -> None:
-        """Reset tx parameters."""
-        if self.period_state.is_reset_params_set:
-            self.params.reset_tx_params()
-
 
 class RandomnessTransactionSubmissionBehaviour(RandomnessBehaviour):
     """Retrieve randomness."""
@@ -205,25 +207,101 @@ class SelectKeeperTransactionSubmissionBehaviourA(  # pylint: disable=too-many-a
     matching_round = SelectKeeperTransactionSubmissionRoundA
     payload_class = SelectKeeperPayload
 
+    def __init__(self, **kwargs: Any) -> None:
+        """Initialize behaviour."""
+        super().__init__(**kwargs)
+        self._keepers: Deque[str] = deque()
+        self._keeper_retries: int = 1
+
+    @property
+    def serialized_keepers(self) -> str:
+        """Get the keepers serialized."""
+        keepers = "".join(self._keepers)
+        keeper_retries = self._keeper_retries.to_bytes(32, "big").hex()
+        concatenated = keeper_retries + keepers
+
+        return concatenated
+
+    def async_act(self) -> Generator:
+        """Do the action."""
+
+        with self.context.benchmark_tool.measure(self.state_id).local():
+            self._keepers.appendleft(self._select_keeper())
+            payload = self.payload_class(
+                self.context.agent_address, self.serialized_keepers
+            )
+
+        with self.context.benchmark_tool.measure(self.state_id).consensus():
+            yield from self.send_a2a_transaction(payload)
+            yield from self.wait_until_round_end()
+
+        self.set_done()
+
 
 class SelectKeeperTransactionSubmissionBehaviourB(  # pylint: disable=too-many-ancestors
-    SelectKeeperBehaviour, TransactionSettlementBaseState
+    SelectKeeperTransactionSubmissionBehaviourA
 ):
     """Select the keeper b agent."""
 
     state_id = "select_keeper_transaction_submission_b"
     matching_round = SelectKeeperTransactionSubmissionRoundB
-    payload_class = SelectKeeperPayload
+
+    def setup(self) -> None:
+        """Setup behaviour."""
+        self._keepers = self.period_state.keepers
+
+    def async_act(self) -> Generator:
+        """
+        Do the action.
+
+        Steps:
+            - If we have not selected enough keepers for the period,
+                select a keeper randomly and add it to the keepers' queue, with top priority.
+            - Otherwise, cycle through the keepers' subset, using the following logic:
+                A `PENDING` verification status means that we have not received any errors,
+                therefore, all we know is that the tx has not been mined yet due to low pricing.
+                Consequently, we are going to retry with the same keeper in order to replace the transaction.
+                However, if we receive a status other than `PENDING`, we need to cycle through the keepers' subset.
+                Moreover, if the current keeper has reached the allowed number of retries, then we cycle anyway.
+            - Send the transaction with the keepers and wait for it to be mined.
+            - Wait until ABCI application transitions to the next round.
+            - Go to the next behaviour state (set done event).
+        """
+
+        with self.context.benchmark_tool.measure(self.state_id).local():
+            if self.period_state.keepers_threshold_exceeded:
+                self._keepers.rotate(-1)
+            elif (
+                self.period_state.keeper_retries != self.params.keeper_allowed_retries
+                and self.period_state.final_verification_status
+                == VerificationStatus.PENDING
+            ):
+                self._keeper_retries = self.period_state.keeper_retries + 1
+            else:
+                self._keepers.appendleft(self._select_keeper())
+
+            # Do not allow selecting a keeper who has been blacklisted for the period.
+            if self._keepers[0] in self.period_state.blacklisted_keepers:
+                return
+
+            payload = self.payload_class(
+                self.context.agent_address, self.serialized_keepers
+            )
+
+        with self.context.benchmark_tool.measure(self.state_id).consensus():
+            yield from self.send_a2a_transaction(payload)
+            yield from self.wait_until_round_end()
+
+        self.set_done()
 
 
 class SelectKeeperTransactionSubmissionBehaviourBAfterTimeout(  # pylint: disable=too-many-ancestors
-    SelectKeeperBehaviour, TransactionSettlementBaseState
+    SelectKeeperTransactionSubmissionBehaviourB
 ):
     """Select the keeper b agent after a timeout."""
 
     state_id = "select_keeper_transaction_submission_b_after_timeout"
     matching_round = SelectKeeperTransactionSubmissionRoundBAfterTimeout
-    payload_class = SelectKeeperPayload
 
 
 class ValidateTransactionBehaviour(TransactionSettlementBaseState):
@@ -272,9 +350,6 @@ class ValidateTransactionBehaviour(TransactionSettlementBaseState):
             )
             return None
 
-        # Reset tx parameters.
-        self.params.reset_tx_params()
-
         contract_api_msg = yield from self._verify_tx(
             self.period_state.to_be_validated_tx_hash
         )
@@ -295,10 +370,13 @@ class ValidateTransactionBehaviour(TransactionSettlementBaseState):
         return verified
 
 
+CHECK_TX_HISTORY = "check_transaction_history"
+
+
 class CheckTransactionHistoryBehaviour(TransactionSettlementBaseState):
     """Check the transaction history."""
 
-    state_id = "check_transaction_history"
+    state_id = CHECK_TX_HISTORY
     matching_round = CheckTransactionHistoryRound
 
     def async_act(self) -> Generator:
@@ -335,7 +413,7 @@ class CheckTransactionHistoryBehaviour(TransactionSettlementBaseState):
         """Check the transaction history."""
         history = (
             self.period_state.tx_hashes_history
-            if self.state_id == "check_transaction_history"
+            if self.state_id == CHECK_TX_HISTORY
             else self.period_state.late_arriving_tx_hashes
         )
 
@@ -368,6 +446,11 @@ class CheckTransactionHistoryBehaviour(TransactionSettlementBaseState):
                 verified_log + f", all: {contract_api_msg.state.body}"
             )
 
+            status = cast(int, contract_api_msg.state.body["status"])
+            if status == -1:
+                self.context.logger.info(f"Tx hash {tx_hash} has no receipt!")
+                continue
+
             tx_data = cast(TxData, contract_api_msg.state.body["transaction"])
             revert_reason = yield from self._get_revert_reason(tx_data)
 
@@ -375,7 +458,7 @@ class CheckTransactionHistoryBehaviour(TransactionSettlementBaseState):
                 if self._safe_nonce_reused(revert_reason):
                     check_expected_to_be_verified = (
                         "The next tx check"
-                        if self.state_id == "check_transaction_history"
+                        if self.state_id == CHECK_TX_HISTORY
                         else "One of the next tx checks"
                     )
                     self.context.logger.info(
@@ -511,6 +594,10 @@ class FinalizeBehaviour(TransactionSettlementBaseState):
     state_id = "finalize"
     matching_round = FinalizationRound
 
+    def _i_am_not_sending(self) -> bool:
+        """Indicates if the current agent is the sender or not."""
+        return self.context.agent_address != self.period_state.most_voted_keeper_address
+
     def async_act(self) -> Generator[None, None, None]:
         """
         Do the action.
@@ -520,11 +607,7 @@ class FinalizeBehaviour(TransactionSettlementBaseState):
         - Otherwise, wait until the next round.
         - If a timeout is hit, set exit A event, otherwise set done event.
         """
-
-        # Reset tx params if the flag has been set
-        self._reset_params_if_flag_set()
-
-        if self.context.agent_address != self.period_state.most_voted_keeper_address:
+        if self._i_am_not_sending():
             yield from self._not_sender_act()
         else:
             yield from self._sender_act()
@@ -624,7 +707,6 @@ class ResetBehaviour(TransactionSettlementBaseState):
         self.context.logger.info(
             f"Period {self.period_state.period_count} was not finished. Resetting!"
         )
-        self.params.reset_tx_params()
         payload = ResetPayload(
             self.context.agent_address, self.period_state.period_count + 1
         )

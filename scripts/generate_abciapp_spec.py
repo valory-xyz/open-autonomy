@@ -18,17 +18,17 @@
 #
 # ------------------------------------------------------------------------------
 """
-Generates the specification for a given ABCI app in YAML/JSON format using a simplified syntax for deterministic finite automata (DFA).
+Generates the specification for a given ABCI app in YAML/JSON/Mermaid format.
 
-Example usage:
-
-./generate_abciapp_spec.py -c packages.valory.skills.registration_abci.rounds.AgentRegistrationAbciApp -o output.yaml
+Generates the specification for a given ABCI app in YAML/JSON format using a simplified syntax for deterministic finite automata (DFA). Alternatively, it can also
+produce a Mermaid diagram source code. Example of usage: ./generate_abciapp_spec.py -c packages.valory.skills.registration_abci.rounds.AgentRegistrationAbciApp -o
+output.yaml
 
 optional arguments:
   -h, --help            show this help message and exit
   -o OUTFILE, --outfile OUTFILE
                         Output file name.
-  -f {json,yaml}, --outformat {json,yaml}
+  -f {json,yaml,mermaid}, --outformat {json,yaml,mermaid}
                         Output format.
 
 required arguments:
@@ -145,15 +145,42 @@ class DFA:
         return self.__dict__ == other.__dict__
 
     def dump(self, fp: TextIO, output_format: str = "yaml") -> None:
-        """Dumps this DFA spec. to a file in YAML/JSON format."""
+        """Dumps this DFA spec. to a file in YAML/JSON/Mermaid format."""
         dfa_export = self._get_exportable_repr()
 
         if output_format == "json":
             json.dump(dfa_export, fp, indent=4)
         elif output_format == "yaml":
             yaml.safe_dump(dfa_export, fp, indent=4)
+        elif output_format == "mermaid":
+            self._mermaid_dump(fp)
         else:
             raise ValueError(f"Unrecognized output format {output_format}.")
+
+    def _mermaid_dump(self, fp: TextIO) -> None:
+        """Dumps this DFA spec. to a file in Mermaid format."""
+        print("stateDiagram-v2", file=fp)
+
+        aux_map: Dict[Tuple[str, str], Set[str]] = {}
+        for (s1, t), s2 in self.transition_func.items():
+            aux_map.setdefault((s1, s2), set()).add(t)
+
+        # A small optimization to make the output nicer:
+        # (1) First, print the arrows that start from a start_state.
+        for (s1, s2), t_set in aux_map.items():
+            if s1 in self.start_states:
+                print(
+                    f"    {s1} --> {s2}: <center>{'<br />'.join(t_set)}</center>",
+                    file=fp,
+                )
+
+        # (2) Then, print the rest of the arrows.
+        for (s1, s2), t_set in aux_map.items():
+            if s1 not in self.start_states:
+                print(
+                    f"    {s1} --> {s2}: <center>{'<br />'.join(t_set)}</center>",
+                    file=fp,
+                )
 
     def _get_exportable_repr(self) -> Dict[str, Any]:
         """Retrieves an exportable respresentation for YAML/JSON dump of this DFA."""
@@ -283,7 +310,7 @@ def parse_arguments() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         script_name,
         description=f"Generates the specification for a given ABCI app in YAML/JSON format using a simplified syntax for "
-        "deterministic finite automata (DFA). Example usage:\n"
+        "deterministic finite automata (DFA). Alternatively, it can also produce a Mermaid diagram source code. Example of usage: "
         f"./{script_name} -c packages.valory.skills.registration_abci.rounds.AgentRegistrationAbciApp -o output.yaml",
     )
     required = parser.add_argument_group("required arguments")
@@ -306,7 +333,7 @@ def parse_arguments() -> argparse.Namespace:
         "-f",
         "--outformat",
         type=str,
-        choices=["json", "yaml"],
+        choices=["json", "yaml", "mermaid"],
         default="yaml",
         help="Output format.",
     )
