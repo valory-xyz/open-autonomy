@@ -30,6 +30,7 @@ from threading import Thread
 from typing import Any, Callable, Dict, List, Optional, Tuple, Union, cast
 from unittest import mock
 
+import pytest
 from aea.crypto.registries import make_crypto, make_ledger_api
 from aea.crypto.wallet import Wallet
 from aea.decision_maker.base import DecisionMaker
@@ -686,12 +687,24 @@ class OracleBehaviourHardHatGnosisBaseCase(OracleBehaviourBaseCase, HardHatAMMBa
 class TestRepricing(OracleBehaviourHardHatGnosisBaseCase):
     """Test failure modes related to repricing."""
 
-    @mock.patch.object(
-        EthereumApi,
-        "try_get_gas_pricing",
-        new_callable=OracleBehaviourHardHatGnosisBaseCase.dummy_try_get_gas_pricing_wrapper,
-    )
-    def test_same_keeper(self, _: mock.Mock) -> None:
+    @pytest.mark.parametrize("should_mock_ledger_pricing_mechanism", (True, False))
+    def test_same_keeper(
+        self,
+        should_mock_ledger_pricing_mechanism: bool,
+    ) -> None:
+        """Test repricing with and without mocking ledger's `try_get_gas_pricing` method."""
+
+        if should_mock_ledger_pricing_mechanism:
+            with mock.patch.object(
+                EthereumApi,
+                "try_get_gas_pricing",
+                new_callable=OracleBehaviourHardHatGnosisBaseCase.dummy_try_get_gas_pricing_wrapper,
+            ):
+                self._test_same_keeper()
+        else:
+            self._test_same_keeper()
+
+    def _test_same_keeper(self) -> None:
         """
         Test repricing after the first failure.
 
