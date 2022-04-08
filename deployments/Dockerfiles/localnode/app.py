@@ -79,6 +79,12 @@ class PeriodDumper:
         self.resets += 1
 
 
+CONFIG_OVERRIDE = [
+    ("fast_sync = true", "fast_sync = false"),
+    ("max_num_outbound_peers = 10", "max_num_outbound_peers = 0"),
+]
+
+
 def update_sync_method() -> None:
     """Update sync method."""
 
@@ -86,14 +92,14 @@ def update_sync_method() -> None:
     with open(config_path, "r", encoding="UTF8") as fp:
         config = fp.read()
 
-    config = config.replace("fast_sync = true", "fast_sync = false")
+    for old, new in CONFIG_OVERRIDE:
+        config = config.replace(old, new)
 
     with open(config_path, "w+", encoding="UTF8") as fp:
         fp.write(config)
 
 
 update_sync_method()
-
 tendermint_params = TendermintParams(
     proxy_app=os.environ["PROXY_APP"],
     consensus_create_empty_blocks=os.environ["CREATE_EMPTY_BLOCKS"] == "true",
