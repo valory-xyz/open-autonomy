@@ -205,10 +205,12 @@ spec:
             value: /tendermint/node{validator_ix}
           - name: CREATE_EMPTY_BLOCKS
             value: "true"
+          - name: LOG_FILE
+            value: "logs/logs/node_{validator_ix}.txt"
         args: ["run", "--no-reload", "--host=0.0.0.0", "--port=8080"]
         volumeMounts:
           - mountPath: /logs
-            name: logs
+            name: persistent_data
           - mountPath: /tendermint
             name: build
 
@@ -227,13 +229,15 @@ spec:
             value: "agent-node-{validator_ix}"
           - name: CLUSTERED
             value: "1"
+          - name: LOG_FILE
+            value: "logs/logs/aea_{validator_ix}.txt"
         volumeMounts:
           - mountPath: /logs
             name: logs
           - mountPath: /build
             name: build
       volumes:
-        - name: logs
+        - name: persistent_data
           persistentVolumeClaim:
             claimName: 'logs-pvc'
         - name: build

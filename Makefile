@@ -1,6 +1,7 @@
 OPEN_AEA_REPO_PATH := "${OPEN_AEA_REPO_PATH}"
 DEPLOYMENT_TYPE := "${DEPLOYMENT_TYPE}"
 DEPLOYMENT_SPEC := "${DEPLOYMENT_SPEC}"
+PLATFORM_STR := $(shell uname)
 
 .PHONY: clean
 clean: clean-build clean-pyc clean-test clean-docs
@@ -246,7 +247,6 @@ build-images:
 		exit 1
 	fi
 	rsync -avu packages/ deployments/Dockerfiles/open_aea/packages
-	rsync -avu Pipfile* deployments/Dockerfiles/open_aea
 	if [ "${VERSION}" = "dev" ];\
 	then\
 		echo "building dev images!";\
@@ -297,16 +297,22 @@ run-deploy:
 
 .PHONY: run-deployment
 run-deployment:
+	if [ "${PLATFORM_STR}" = "Linux" ];\
+	then\
+		mkdir -p deployments/persistent_data/logs
+		sudo chown -R 1000:1000 -R deployments/persistent_data/logs
+	fi
 	if [ "${DEPLOYMENT_TYPE}" = "docker-compose" ];\
 	then\
-		cd deployments/build/ && \
+		cd deployments/build/ &&  \
 		docker-compose up --force-recreate -t 600
 		exit 0
 	fi
 	if [ "${DEPLOYMENT_TYPE}" = "kubernetes" ];\
 	then\
+		kubectl create ns ${VERSION}
 		cd deployments/build/ && \
-		kubectl apply -f build.yaml && exit 0
+		kubectl apply -f build.yaml -n ${VERSION} && exit 0
 	fi
 	echo "Please ensure you have set the environment variable 'DEPLOYMENT_TYPE'"
 	exit 1
@@ -349,3 +355,11 @@ replay-agent:
 
 replay-tendermint:
 	python replay_scripts/tendermint_runner.py $(NODE_ID)
+
+teardown-docker-compose:
+	cd deployments/build/ && \
+		docker-compose kill && \
+		docker-compose down && \
+		echo "Deployment torndown!" && \
+		exit 0
+	echo "Failed to teardown deployment!" exit 1

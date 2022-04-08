@@ -30,9 +30,10 @@ from tendermint import TendermintNode, TendermintParams
 from werkzeug.exceptions import InternalServerError, NotFound
 
 
+DEFAULT_LOG_FILE = "log.log"
 logging.basicConfig(
-    filename="log.log",
-    level=logging.ERROR,
+    filename=os.environ.get("FLASK_LOG_FILE", DEFAULT_LOG_FILE),
+    level=logging.DEBUG,
     format=f"%(asctime)s %(levelname)s %(name)s %(threadName)s : %(message)s",  # noqa : W1309
 )
 
@@ -105,11 +106,12 @@ tendermint_params = TendermintParams(
     consensus_create_empty_blocks=os.environ["CREATE_EMPTY_BLOCKS"] == "true",
     home=os.environ["TMHOME"],
 )
-tendermint_node = TendermintNode(tendermint_params)
-tendermint_node.start()
 
 app = Flask(__name__)
 period_dumper = PeriodDumper(logger=app.logger)
+
+tendermint_node = TendermintNode(tendermint_params, logger=app.logger)
+tendermint_node.start()
 
 
 @app.route("/gentle_reset")
