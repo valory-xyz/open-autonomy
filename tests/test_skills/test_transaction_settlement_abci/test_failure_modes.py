@@ -24,6 +24,7 @@ import asyncio
 import binascii
 import os
 import tempfile
+from math import ceil
 from pathlib import Path
 from threading import Thread
 from typing import Any, Callable, Dict, List, Optional, Tuple, Union, cast
@@ -627,6 +628,7 @@ class OracleBehaviourHardHatGnosisBaseCase(OracleBehaviourBaseCase, HardHatAMMBa
     def dummy_try_get_gas_pricing_wrapper(
         max_priority_fee_per_gas: int = 3000000000,
         max_fee_per_gas: int = 4000000000,
+        repricing_multiplier: float = 1.1,
     ) -> Callable[[Optional[str], Optional[Dict], Optional[int]], Dict[str, int]]:
         """A dummy wrapper of `EthereumAPI`'s `try_get_gas_pricing`."""
 
@@ -640,8 +642,8 @@ class OracleBehaviourHardHatGnosisBaseCase(OracleBehaviourBaseCase, HardHatAMMBa
             gas = max_fee_per_gas
 
             if old_tip is not None:
-                tip *= 10
-                gas *= 10
+                tip = ceil(max_priority_fee_per_gas * repricing_multiplier)
+                gas = ceil(max_fee_per_gas * repricing_multiplier)
             return {"maxPriorityFeePerGas": tip, "maxFeePerGas": gas}
 
         return dummy_try_get_gas_pricing
