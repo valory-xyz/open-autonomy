@@ -698,11 +698,23 @@ class TestRepricing(OracleBehaviourHardHatGnosisBaseCase):
         Test that we are using the same keeper to reprice when we fail or timeout for the first time.
         Also, test that we are adjusting the gas correctly when repricing.
         """
-
+        # deploy the oracle
         self.deploy_oracle()
+        # generate tx hash
         self.gen_safe_tx_hash()
-        self.sign_send_tx()
-
-        # validate tx with timeout
-        # send second tx
-        # check repricing and keeper used
+        # sign tx
+        self.sign_tx()
+        # stop HardHat's automatic mining
+        assert self.hardhat.provider.make_request(
+            RPCEndpoint("evm_setAutomine"), [False]
+        ), "Disabling auto-mining failed!"
+        # send tx first time, we expect it to be pending until we enable the mining back
+        self.send_tx()
+        # re-enable HardHat's automatic mining so that the second tx replaces the first, pending one
+        assert self.hardhat.provider.make_request(
+            RPCEndpoint("evm_setIntervalMining"), [1000]
+        ), "Re-enabling auto-mining failed!"
+        # send tx second time
+        self.send_tx()
+        # validate the tx
+        self.validate_tx()
