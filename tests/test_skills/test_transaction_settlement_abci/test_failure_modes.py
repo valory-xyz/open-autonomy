@@ -39,7 +39,8 @@ from aea.multiplexer import Multiplexer
 from aea.protocols.base import Message
 from aea.skills.base import Handler
 from aea_ledger_ethereum import EthereumApi
-from web3 import Web3
+from web3 import HTTPProvider, Web3
+from web3.types import RPCEndpoint
 
 from packages.open_aea.protocols.signing import SigningMessage
 from packages.open_aea.protocols.signing.custom_types import (
@@ -123,6 +124,7 @@ class OracleBehaviourBaseCase(FSMBehaviourBaseCase):
 class OracleBehaviourHardHatGnosisBaseCase(OracleBehaviourBaseCase, HardHatAMMBaseTest):
     """Test tx settlement behaviours in a Hardhat environment, with Gnosis deployed."""
 
+    hardhat: Web3
     running_loop: asyncio.AbstractEventLoop
     thread_loop: Thread
     multiplexer: Multiplexer
@@ -141,6 +143,10 @@ class OracleBehaviourHardHatGnosisBaseCase(OracleBehaviourBaseCase, HardHatAMMBa
     def setup(cls, **kwargs: Any) -> None:
         """Setup."""
         super().setup()
+
+        # create an API for HardHat
+        cls.hardhat = Web3(provider=HTTPProvider("http://localhost:8545"))
+
         # register gnosis and offchain aggregator contracts
         directory = Path(ROOT_DIR, "packages", "valory", "contracts", "gnosis_safe")
         gnosis = get_register_contract(directory)
