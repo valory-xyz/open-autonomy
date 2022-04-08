@@ -9,7 +9,7 @@ An [intelligent agent](https://en.wikipedia.org/wiki/Intelligent_agent) is a com
 
 
 
-A [multi-agent systems (MAS)](https://en.wikipedia.org/wiki/Multi-agent_system), also known as a self-organized system, is a computer system composed of multiple, intelligent agents that coordinate to solve a problem. Such systems are inherently decentralized: each of the agents pursues its
+A [multi-agent system (MAS)](https://en.wikipedia.org/wiki/Multi-agent_system), also known as a self-organized system, is a computer system composed of multiple, intelligent agents that coordinate to solve a problem. Such systems are inherently decentralized: each of the agents pursues its
 own objectives and as a result, conflicts of interest are expected to arise.
 Furthermore, agents operate asynchronously, and due to this decoupling and the
 absence of a central moderator the resulting system becomes fundamentally

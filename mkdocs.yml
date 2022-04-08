@@ -17,9 +17,7 @@ nav:
   - Preliminaries:
     - Autonomous Economic Agents: 'aea.md'
     - Finite State Machines: 'fsm.md'
-    - Application BlockChain Interface:
-      - Introduction: 'abci.md'
-      - Implementation: 'abci-implementation.md'
+    - Application BlockChain Interface: 'abci.md'
     - ABCI Applications:
       - Introduction: 'abci_app.md'
       - 'Implementation: ABCIApp': 'abci_app-implementation.md'
