@@ -103,13 +103,13 @@ ABCI_NODE_TEMPLATE: str = (
     container_name: abci{node_id}
     image: "valory/consensus-algorithms-open-aea:%s"
     environment:
-      - LOG_FILE=/home/ubuntu/logs/aea_{node_id}.txt
+      - LOG_FILE=/logs/aea_{node_id}.txt
 {agent_vars}
     networks:
       localnet:
         ipv4_address: 192.167.11.{localnet_address_postfix}
     volumes:
-      - ../persistent_data/logs:/home/ubuntu/logs:Z
+      - ../persistent_data/logs:/logs:Z
 """
     % IMAGE_VERSION
 )
