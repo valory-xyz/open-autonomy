@@ -109,7 +109,9 @@ ABCI_NODE_TEMPLATE: str = (
       localnet:
         ipv4_address: 192.167.11.{localnet_address_postfix}
     volumes:
+      - ../persistent_data:/persistent_data:Z
       - ../persistent_data/logs:/home/ubuntu/logs:Z
+      - ../persistent_data/venvs:/home/ubuntu/.local/share/virtualenvs:Z
 """
     % IMAGE_VERSION
 )
