@@ -111,7 +111,6 @@ ABCI_NODE_TEMPLATE: str = (
     volumes:
       - ../persistent_data:/persistent_data:Z
       - ../persistent_data/logs:/home/ubuntu/logs:Z
-      - ../persistent_data/venvs:/home/ubuntu/.local/share/virtualenvs:Z
 """
     % IMAGE_VERSION
 )
@@ -119,6 +118,7 @@ ABCI_NODE_TEMPLATE: str = (
 if IMAGE_VERSION == "dev":
     ABCI_NODE_TEMPLATE += "      - ../../packages:/home/ubuntu/packages:rw\n"
     ABCI_NODE_TEMPLATE += "      - ../../../open-aea/:/open-aea\n"
+    ABCI_NODE_TEMPLATE += "      - ../persistent_data/venvs:/home/ubuntu/.local/share/virtualenvs:Z\n"
     TENDERMINT_NODE_TEMPLATE = TENDERMINT_NODE_TEMPLATE.replace(
         "DEV_MODE=0", "DEV_MODE=1"
     )
