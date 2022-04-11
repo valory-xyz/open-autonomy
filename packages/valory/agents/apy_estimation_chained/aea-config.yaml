@@ -62,11 +62,3 @@ config:
 ---
 public_id: valory/p2p_libp2p_client:0.1.0
 type: connection
-config:
-  delegate_uri: null
-  entry_peers:
-  - /dns4/staging.acn.autonolas.tech/tcp/9003/p2p/16Uiu2HAkzqwxz5HdbnXS6mB4nTwJ3WysQa6udvbZ3te2sCHZ6ih2
-  - /dns4/staging.acn.autonolas.tech/tcp/9004/p2p/16Uiu2HAmCQqXLFWaqqUv8hFdFPDwwNQf9qEQox8Kcf78heb33e7x
-  public_uri: null
-  log_file: libp2p_client.log
-  local_uri: 127.0.0.1:9001
