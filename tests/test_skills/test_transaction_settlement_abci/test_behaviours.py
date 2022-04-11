@@ -116,8 +116,6 @@ class TestTransactionSettlementBaseState(PriceEstimationFSMBehaviourBaseCase):
                 {
                     "status": VerificationStatus.VERIFIED,
                     "tx_digest": "",
-                    "nonce": "",
-                    "max_priority_fee_per_gas": "",
                 },
                 False,
             ),
@@ -130,8 +128,6 @@ class TestTransactionSettlementBaseState(PriceEstimationFSMBehaviourBaseCase):
                 {
                     "status": VerificationStatus.ERROR,
                     "tx_digest": "",
-                    "nonce": "",
-                    "max_priority_fee_per_gas": "",
                 },
                 False,
             ),
@@ -142,8 +138,6 @@ class TestTransactionSettlementBaseState(PriceEstimationFSMBehaviourBaseCase):
                 {
                     "status": VerificationStatus.PENDING,
                     "tx_digest": "",
-                    "nonce": "",
-                    "max_priority_fee_per_gas": "",
                 },
                 False,
             ),
@@ -154,8 +148,6 @@ class TestTransactionSettlementBaseState(PriceEstimationFSMBehaviourBaseCase):
                 {
                     "status": VerificationStatus.ERROR,
                     "tx_digest": "",
-                    "nonce": "",
-                    "max_priority_fee_per_gas": "",
                 },
                 False,
             ),
@@ -166,8 +158,6 @@ class TestTransactionSettlementBaseState(PriceEstimationFSMBehaviourBaseCase):
                 {
                     "status": VerificationStatus.BLACKLIST,
                     "tx_digest": "",
-                    "nonce": "",
-                    "max_priority_fee_per_gas": "",
                 },
                 False,
             ),
@@ -178,8 +168,6 @@ class TestTransactionSettlementBaseState(PriceEstimationFSMBehaviourBaseCase):
                 {
                     "status": VerificationStatus.PENDING,
                     "tx_digest": "",
-                    "nonce": "",
-                    "max_priority_fee_per_gas": "",
                 },
                 False,
             ),
@@ -190,8 +178,6 @@ class TestTransactionSettlementBaseState(PriceEstimationFSMBehaviourBaseCase):
                 {
                     "status": VerificationStatus.PENDING,
                     "tx_digest": "",
-                    "nonce": "",
-                    "max_priority_fee_per_gas": "",
                 },
                 False,
             ),
@@ -199,7 +185,11 @@ class TestTransactionSettlementBaseState(PriceEstimationFSMBehaviourBaseCase):
                 MagicMock(
                     performative=ContractApiMessage.Performative.RAW_TRANSACTION,
                     raw_transaction=MagicMock(
-                        body={"nonce": 0, "maxPriorityFeePerGas": 10}
+                        body={
+                            "nonce": 0,
+                            "maxPriorityFeePerGas": 10,
+                            "maxFeePerGas": 20,
+                        }
                     ),
                 ),
                 "test_digest",
@@ -207,8 +197,6 @@ class TestTransactionSettlementBaseState(PriceEstimationFSMBehaviourBaseCase):
                 {
                     "status": VerificationStatus.PENDING,
                     "tx_digest": "test_digest",
-                    "nonce": 0,
-                    "max_priority_fee_per_gas": 10,
                 },
                 False,
             ),
@@ -216,7 +204,11 @@ class TestTransactionSettlementBaseState(PriceEstimationFSMBehaviourBaseCase):
                 MagicMock(
                     performative=ContractApiMessage.Performative.RAW_TRANSACTION,
                     raw_transaction=MagicMock(
-                        body={"nonce": 0, "maxPriorityFeePerGas": 10}
+                        body={
+                            "nonce": 0,
+                            "maxPriorityFeePerGas": 10,
+                            "maxFeePerGas": 20,
+                        }
                     ),
                 ),
                 "test_digest",
@@ -224,8 +216,6 @@ class TestTransactionSettlementBaseState(PriceEstimationFSMBehaviourBaseCase):
                 {
                     "status": VerificationStatus.PENDING,
                     "tx_digest": "test_digest",
-                    "nonce": 0,
-                    "max_priority_fee_per_gas": 10,
                 },
                 True,
             ),
@@ -898,8 +888,6 @@ class TestSynchronizeLateMessagesBehaviour(TransactionSettlementFSMBehaviourBase
                 return {
                     "status": VerificationStatus.PENDING,
                     "tx_digest": "test",
-                    "nonce": 0,
-                    "max_priority_fee_per_gas": 0,
                 }
 
             cast(  # type: ignore
