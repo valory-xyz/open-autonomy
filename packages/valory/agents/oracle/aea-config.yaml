@@ -10,16 +10,20 @@ connections:
 - valory/abci:0.1.0
 - valory/http_client:0.1.0
 - valory/ledger:0.1.0
+- valory/p2p_libp2p_client:0.1.0
 contracts:
 - valory/gnosis_safe:0.1.0
 - valory/gnosis_safe_proxy_factory:0.1.0
 - valory/offchain_aggregator:0.1.0
+- valory/service_registry:0.1.0
 protocols:
 - open_aea/signing:1.0.0
 - valory/abci:0.1.0
+- valory/acn:1.1.0
 - valory/contract_api:1.0.0
 - valory/http:1.0.0
 - valory/ledger_api:1.0.0
+- valory/tendermint:0.1.0
 skills:
 - valory/abstract_abci:0.1.0
 - valory/abstract_round_abci:0.1.0
@@ -62,3 +66,14 @@ public_id: valory/abci:0.1.0
 type: connection
 config:
   target_skill_id: valory/oracle_abci:0.1.0
+---
+public_id: valory/p2p_libp2p_client:0.1.0
+type: connection
+config:
+  delegate_uri: null
+  entry_peers:
+  - /dns4/staging.acn.autonolas.tech/tcp/9003/p2p/16Uiu2HAkzqwxz5HdbnXS6mB4nTwJ3WysQa6udvbZ3te2sCHZ6ih2
+  - /dns4/staging.acn.autonolas.tech/tcp/9004/p2p/16Uiu2HAmCQqXLFWaqqUv8hFdFPDwwNQf9qEQox8Kcf78heb33e7x
+  public_uri: null
+  log_file: libp2p_client.log
+  local_uri: 127.0.0.1:9001
