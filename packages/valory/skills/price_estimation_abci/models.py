@@ -52,6 +52,7 @@ class Params(OracleParams, TransactionParams):
             "observation_aggregator_function", kwargs
         )
         self.is_broadcasting_to_server = kwargs.pop("broadcast_to_server", False)
+        self.service_registry_address = kwargs.pop("service_registry_address")
         super().__init__(*args, **kwargs)
 
 

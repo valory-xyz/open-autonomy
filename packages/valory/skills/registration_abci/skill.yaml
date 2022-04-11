@@ -60,6 +60,7 @@ models:
       cleanup_history_depth: 1
       consensus:
         max_participants: 1
+      service_registry_address: 0xA51c1fc2f0D1a1b8494Ed1FE312d7C3a78Ed91C0
       drand_public_key: 868f005eb8e6e4ca0a47c8a77ceaa5309a47978a7c71bc5cce96366b5d7a569937c529eeda66c7293784a9402801af31
       keeper_timeout: 30.0
       max_healthcheck: 120
