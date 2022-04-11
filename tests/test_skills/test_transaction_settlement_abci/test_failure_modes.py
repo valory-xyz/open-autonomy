@@ -725,7 +725,7 @@ class TestRepricing(OracleBehaviourHardHatGnosisBaseCase):
                 self._test_same_keeper()
 
         finally:
-            # clear all txs
+            # clear all unmined txs. Mined txs will not be cleared, but this is not a problem
             for tx in self.tx_settlement_period_state.tx_hashes_history:
                 self.hardhat_provider.make_request(
                     RPCEndpoint("hardhat_dropTransaction"), (tx,)
