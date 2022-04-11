@@ -37,6 +37,7 @@ skills:
 default_ledger: ethereum
 required_ledgers:
 - ethereum
+- cosmos
 default_routing: {}
 connection_private_key_paths: {}
 private_key_paths: {}
@@ -57,6 +58,7 @@ logging_config:
       - console
       propagate: false
 dependencies:
+  open-aea-ledger-cosmos: {}
   open-aea-ledger-ethereum: {}
 skill_exception_policy: just_log
 connection_exception_policy: just_log
