@@ -8,6 +8,7 @@ from google.protobuf import message as _message
 from google.protobuf import reflection as _reflection
 from google.protobuf import symbol_database as _symbol_database
 
+
 # @@protoc_insertion_point(imports)
 
 _sym_db = _symbol_database.Default()
@@ -20,24 +21,26 @@ DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(
 
 _TENDERMINTMESSAGE = DESCRIPTOR.message_types_by_name["TendermintMessage"]
 _TENDERMINTMESSAGE_ERRORCODE = _TENDERMINTMESSAGE.nested_types_by_name["ErrorCode"]
-_TENDERMINTMESSAGE_TENDERMINT_CONFIG_REQUEST_PERFORMATIVE = _TENDERMINTMESSAGE.nested_types_by_name[
-    "Tendermint_Config_Request_Performative"
-]
-_TENDERMINTMESSAGE_TENDERMINT_CONFIG_RESPONSE_PERFORMATIVE = _TENDERMINTMESSAGE.nested_types_by_name[
-    "Tendermint_Config_Response_Performative"
-]
-_TENDERMINTMESSAGE_TENDERMINT_CONFIG_RESPONSE_PERFORMATIVE_INFOENTRY = _TENDERMINTMESSAGE_TENDERMINT_CONFIG_RESPONSE_PERFORMATIVE.nested_types_by_name[
-    "InfoEntry"
-]
+_TENDERMINTMESSAGE_TENDERMINT_CONFIG_REQUEST_PERFORMATIVE = (
+    _TENDERMINTMESSAGE.nested_types_by_name["Tendermint_Config_Request_Performative"]
+)
+_TENDERMINTMESSAGE_TENDERMINT_CONFIG_RESPONSE_PERFORMATIVE = (
+    _TENDERMINTMESSAGE.nested_types_by_name["Tendermint_Config_Response_Performative"]
+)
+_TENDERMINTMESSAGE_TENDERMINT_CONFIG_RESPONSE_PERFORMATIVE_INFOENTRY = (
+    _TENDERMINTMESSAGE_TENDERMINT_CONFIG_RESPONSE_PERFORMATIVE.nested_types_by_name[
+        "InfoEntry"
+    ]
+)
 _TENDERMINTMESSAGE_ERROR_PERFORMATIVE = _TENDERMINTMESSAGE.nested_types_by_name[
     "Error_Performative"
 ]
-_TENDERMINTMESSAGE_ERROR_PERFORMATIVE_INFOENTRY = _TENDERMINTMESSAGE_ERROR_PERFORMATIVE.nested_types_by_name[
-    "InfoEntry"
-]
-_TENDERMINTMESSAGE_ERRORCODE_ERRORCODEENUM = _TENDERMINTMESSAGE_ERRORCODE.enum_types_by_name[
-    "ErrorCodeEnum"
-]
+_TENDERMINTMESSAGE_ERROR_PERFORMATIVE_INFOENTRY = (
+    _TENDERMINTMESSAGE_ERROR_PERFORMATIVE.nested_types_by_name["InfoEntry"]
+)
+_TENDERMINTMESSAGE_ERRORCODE_ERRORCODEENUM = (
+    _TENDERMINTMESSAGE_ERRORCODE.enum_types_by_name["ErrorCodeEnum"]
+)
 TendermintMessage = _reflection.GeneratedProtocolMessageType(
     "TendermintMessage",
     (_message.Message,),
