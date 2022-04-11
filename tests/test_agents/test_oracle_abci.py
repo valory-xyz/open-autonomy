@@ -105,7 +105,7 @@ class TestAgentCatchup(BaseTestEnd2EndAgentCatchup, UseGnosisSafeHardHatNet):
     NB_AGENTS = 4
     agent_package = "valory/oracle:0.1.0"
     skill_package = "valory/oracle_abci:0.1.0"
-    KEEPER_TIMEOUT = 10
+    KEEPER_TIMEOUT = 30
     wait_to_finish = 180
     restart_after = 45
     round_check_strings_to_n_periods = EXPECTED_ROUND_LOG_COUNT
