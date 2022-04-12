@@ -117,6 +117,3 @@ config:
     ethereum:
       address: ${LEDGER_ADDRESS:str:http://hardhat:8545}
       chain_id: ${LEDGER_CHAIN_ID:int:31337}
----
-public_id: valory/p2p_libp2p_client:0.1.0
-type: connection

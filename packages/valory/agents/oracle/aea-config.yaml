@@ -68,6 +68,3 @@ public_id: valory/abci:0.1.0
 type: connection
 config:
   target_skill_id: valory/oracle_abci:0.1.0
----
-public_id: valory/p2p_libp2p_client:0.1.0
-type: connection
