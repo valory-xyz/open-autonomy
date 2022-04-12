@@ -25,7 +25,7 @@ from abc import ABC
 from collections import OrderedDict
 from datetime import datetime
 from enum import Enum
-from typing import Any, Generator, Optional, Tuple, Type
+from typing import Any, Dict, Generator, Optional, Tuple, Type, Union
 from unittest import mock
 from unittest.mock import MagicMock
 
@@ -1052,6 +1052,100 @@ class TestBaseState:
     def test_stop(self) -> None:
         """Test the stop method."""
         self.behaviour.stop()
+
+    @mock.patch.object(BaseState, "_start_reset")
+    @mock.patch.object(BaseState, "_is_timeout_expired")
+    def test_reset_tendermint_with_wait_timeout_expired(self, *_: mock.Mock) -> None:
+        """Test tendermint reset."""
+        with pytest.raises(RuntimeError, match="Error resetting tendermint node."):
+            next(self.behaviour.reset_tendermint_with_wait())
+
+    @mock.patch.object(BaseState, "_start_reset")
+    @mock.patch.object(
+        BaseState, "_build_http_request_message", return_value=(None, None)
+    )
+    @pytest.mark.parametrize(
+        "reset_response, status_response, local_height, n_iter",
+        (
+            (
+                {"message": "Tendermint reset was successful.", "status": True},
+                {"result": {"sync_info": {"latest_block_height": 1}}},
+                1,
+                3,
+            ),
+            (
+                {"message": "Tendermint reset was successful.", "status": True},
+                {"result": {"sync_info": {"latest_block_height": 1}}},
+                3,
+                3,
+            ),
+            (
+                {"message": "Error resetting tendermint.", "status": False},
+                {},
+                0,
+                2,
+            ),
+            (
+                "wrong_response",
+                {},
+                0,
+                2,
+            ),
+            (
+                {"message": "Reset Successful.", "status": True},
+                "not_accepting_txs_yet",
+                0,
+                3,
+            ),
+        ),
+    )
+    def test_reset_tendermint_with_wait(
+        self,
+        _build_http_request_message: mock.Mock,
+        _start_reset: mock.Mock,
+        reset_response: Union[Dict[str, Union[bool, str]], str],
+        status_response: Union[Dict[str, Union[int, str]], str],
+        local_height: int,
+        n_iter: int,
+    ) -> None:
+        """Test tendermint reset."""
+
+        def dummy_do_request(*_: Any) -> Generator[None, None, MagicMock]:
+            """Dummy `_do_request` method."""
+            yield
+            if reset_response == "wrong_response":
+                return mock.MagicMock(body=b"")
+            return mock.MagicMock(body=json.dumps(reset_response).encode())
+
+        def dummy_get_status(*_: Any) -> Generator[None, None, MagicMock]:
+            """Dummy `_get_status` method."""
+            yield
+            if status_response == "not_accepting_txs_yet":
+                return mock.MagicMock(body=b"")
+            return mock.MagicMock(body=json.dumps(status_response).encode())
+
+        def dummy_sleep(*_: Any) -> Generator[None, None, None]:
+            """Dummy `_get_status` method."""
+            yield
+
+        with mock.patch.object(
+            BaseState, "_is_timeout_expired", return_value=False
+        ), mock.patch.object(
+            BaseState, "wait_from_last_timestamp", new_callable=lambda *_: dummy_sleep
+        ), mock.patch.object(
+            BaseState, "_do_request", new_callable=lambda *_: dummy_do_request
+        ), mock.patch.object(
+            BaseState, "_get_status", new_callable=lambda *_: dummy_get_status
+        ), mock.patch.object(
+            BaseState, "sleep", new_callable=lambda *_: dummy_sleep
+        ):
+            self.behaviour.context.state.period.height = local_height
+            reset = self.behaviour.reset_tendermint_with_wait()
+            for _ in range(n_iter):
+                next(reset)
+            # perform the last iteration which also returns the result
+            with pytest.raises(StopIteration):
+                next(reset)
 
 
 def test_degenerate_state_async_act() -> None:
