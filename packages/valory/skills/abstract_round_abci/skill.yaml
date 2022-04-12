@@ -28,12 +28,16 @@ connections:
 - valory/abci:0.1.0
 - valory/http_client:0.1.0
 - valory/ledger:0.1.0
-contracts: []
+- valory/p2p_libp2p_client:0.1.0
+contracts:
+- valory/service_registry:0.1.0
 protocols:
 - valory/abci:0.1.0
 - valory/contract_api:1.0.0
 - valory/http:1.0.0
 - valory/ledger_api:1.0.0
+- valory/acn:1.1.0
+- valory/tendermint:0.1.0
 skills:
 - valory/abstract_abci:0.1.0
 behaviours:
