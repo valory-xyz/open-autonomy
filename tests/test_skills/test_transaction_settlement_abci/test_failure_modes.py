@@ -43,7 +43,7 @@ from aea.skills.base import Handler
 from aea_ledger_ethereum import EthereumApi
 from web3 import HTTPProvider, Web3
 from web3.providers import BaseProvider
-from web3.types import RPCEndpoint
+from web3.types import Nonce, RPCEndpoint, Wei
 
 from packages.open_aea.protocols.signing import SigningMessage
 from packages.open_aea.protocols.signing.custom_types import (
@@ -112,6 +112,9 @@ ExpectedTypesType = List[
 
 SAFE_TX_GAS = 120000
 ETHER_VALUE = 0
+DUMMY_MAX_PRIORITY_FEE_PER_GAS = 3000000000
+DUMMY_MAX_FEE_PER_GAS = 4000000000
+DUMMY_REPRICING_MULTIPLIER = 1.1
 
 
 class OracleBehaviourBaseCase(FSMBehaviourBaseCase):
@@ -546,7 +549,7 @@ class OracleBehaviourHardHatGnosisBaseCase(OracleBehaviourBaseCase, HardHatAMMBa
         behaviour = cast(FinalizeBehaviour, self.behaviour.current_state)
         assert behaviour.state_id == FinalizeBehaviour.state_id
         stored_nonce = behaviour.params.nonce
-        stored_tip = behaviour.params.tip
+        stored_gas_price = behaviour.params.gas_price
 
         handlers: HandlersType = [
             self.contract_handler,
@@ -583,30 +586,41 @@ class OracleBehaviourHardHatGnosisBaseCase(OracleBehaviourBaseCase, HardHatAMMBa
         tx_data = {
             "status": VerificationStatus.PENDING,
             "tx_digest": cast(str, tx_digest),
-            "nonce": int(cast(str, msg1.raw_transaction.body["nonce"])),
-            "max_priority_fee_per_gas": int(
-                cast(
-                    str,
-                    msg1.raw_transaction.body["maxPriorityFeePerGas"],
-                )
-            ),
         }
 
         behaviour = cast(FinalizeBehaviour, self.behaviour.current_state)
-        assert behaviour.params.tip is not None
+        assert behaviour.params.gas_price is not None
         assert behaviour.params.nonce is not None
+
+        nonce_used = Nonce(int(cast(str, msg1.raw_transaction.body["nonce"])))
+        gas_price_used = {
+            gas_price_param: Wei(
+                int(
+                    cast(
+                        str,
+                        msg1.raw_transaction.body[gas_price_param],
+                    )
+                )
+            )
+            for gas_price_param in ("maxPriorityFeePerGas", "maxFeePerGas")
+        }
+
         # if we are repricing
-        if tx_data["nonce"] == stored_nonce:
+        if nonce_used == stored_nonce:
             assert stored_nonce is not None
-            assert stored_tip is not None
-            assert tx_data["max_priority_fee_per_gas"] == ceil(
-                stored_tip * 1.1
-            ), "The repriced tip does not match the one returned from the gas pricing method!"
+            assert stored_gas_price is not None
+            assert gas_price_used == {
+                gas_price_param: ceil(
+                    stored_gas_price[gas_price_param] * DUMMY_REPRICING_MULTIPLIER
+                )
+                for gas_price_param in ("maxPriorityFeePerGas", "maxFeePerGas")
+            }, "The repriced parameters do not match the ones returned from the gas pricing method!"
         # if we are not repricing
         else:
-            assert (
-                tx_data["max_priority_fee_per_gas"] == 3000000000
-            ), "The used tip does not match the one returned from the gas pricing method!"
+            assert gas_price_used == {
+                "maxPriorityFeePerGas": DUMMY_MAX_PRIORITY_FEE_PER_GAS,
+                "maxFeePerGas": DUMMY_MAX_FEE_PER_GAS,
+            }, "The used parameters do not match the ones returned from the gas pricing method!"
 
         hashes = self.tx_settlement_period_state.tx_hashes_history
         hashes.append(tx_digest)
@@ -664,22 +678,24 @@ class OracleBehaviourHardHatGnosisBaseCase(OracleBehaviourBaseCase, HardHatAMMBa
 
     @staticmethod
     def dummy_try_get_gas_pricing_wrapper(
-        max_priority_fee_per_gas: int = 3000000000,
-        max_fee_per_gas: int = 4000000000,
-        repricing_multiplier: float = 1.1,
-    ) -> Callable[[Optional[str], Optional[Dict], Optional[int]], Dict[str, int]]:
+        max_priority_fee_per_gas: Wei = DUMMY_MAX_PRIORITY_FEE_PER_GAS,
+        max_fee_per_gas: Wei = DUMMY_MAX_FEE_PER_GAS,
+        repricing_multiplier: float = DUMMY_REPRICING_MULTIPLIER,
+    ) -> Callable[
+        [Optional[str], Optional[Dict], Optional[Dict[str, Wei]]], Dict[str, Wei]
+    ]:
         """A dummy wrapper of `EthereumAPI`'s `try_get_gas_pricing`."""
 
         def dummy_try_get_gas_pricing(
             _gas_price_strategy: Optional[str] = None,
             _extra_config: Optional[Dict] = None,
-            old_tip: Optional[int] = None,
-        ) -> Dict[str, int]:
+            old_price: Optional[Dict[str, Wei]] = None,
+        ) -> Dict[str, Wei]:
             """Get a dummy gas price."""
             tip = max_priority_fee_per_gas
             gas = max_fee_per_gas
 
-            if old_tip is not None:
+            if old_price is not None:
                 tip = ceil(max_priority_fee_per_gas * repricing_multiplier)
                 gas = ceil(max_fee_per_gas * repricing_multiplier)
             return {"maxPriorityFeePerGas": tip, "maxFeePerGas": gas}
@@ -709,7 +725,7 @@ class TestRepricing(OracleBehaviourHardHatGnosisBaseCase):
                 self._test_same_keeper()
 
         finally:
-            # clear all txs
+            # clear all unmined txs. Mined txs will not be cleared, but this is not a problem
             for tx in self.tx_settlement_period_state.tx_hashes_history:
                 self.hardhat_provider.make_request(
                     RPCEndpoint("hardhat_dropTransaction"), (tx,)
