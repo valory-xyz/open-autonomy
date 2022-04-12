@@ -549,7 +549,7 @@ class OracleBehaviourHardHatGnosisBaseCase(OracleBehaviourBaseCase, HardHatAMMBa
         behaviour = cast(FinalizeBehaviour, self.behaviour.current_state)
         assert behaviour.state_id == FinalizeBehaviour.state_id
         stored_nonce = behaviour.params.nonce
-        stored_gas_params = behaviour.params.gas_params
+        stored_gas_price = behaviour.params.gas_price
 
         handlers: HandlersType = [
             self.contract_handler,
@@ -589,35 +589,35 @@ class OracleBehaviourHardHatGnosisBaseCase(OracleBehaviourBaseCase, HardHatAMMBa
         }
 
         behaviour = cast(FinalizeBehaviour, self.behaviour.current_state)
-        assert behaviour.params.gas_params is not None
+        assert behaviour.params.gas_price is not None
         assert behaviour.params.nonce is not None
 
         nonce_used = Nonce(int(cast(str, msg1.raw_transaction.body["nonce"])))
-        gas_params_used = {
-            gas_param: Wei(
+        gas_price_used = {
+            gas_price_param: Wei(
                 int(
                     cast(
                         str,
-                        msg1.raw_transaction.body[gas_param],
+                        msg1.raw_transaction.body[gas_price_param],
                     )
                 )
             )
-            for gas_param in ("maxPriorityFeePerGas", "maxFeePerGas")
+            for gas_price_param in ("maxPriorityFeePerGas", "maxFeePerGas")
         }
 
         # if we are repricing
         if nonce_used == stored_nonce:
             assert stored_nonce is not None
-            assert stored_gas_params is not None
-            assert gas_params_used == {
-                gas_param: ceil(
-                    stored_gas_params[gas_param] * DUMMY_REPRICING_MULTIPLIER
+            assert stored_gas_price is not None
+            assert gas_price_used == {
+                gas_price_param: ceil(
+                    stored_gas_price[gas_price_param] * DUMMY_REPRICING_MULTIPLIER
                 )
-                for gas_param in ("maxPriorityFeePerGas", "maxFeePerGas")
+                for gas_price_param in ("maxPriorityFeePerGas", "maxFeePerGas")
             }, "The repriced parameters do not match the ones returned from the gas pricing method!"
         # if we are not repricing
         else:
-            assert gas_params_used == {
+            assert gas_price_used == {
                 "maxPriorityFeePerGas": DUMMY_MAX_PRIORITY_FEE_PER_GAS,
                 "maxFeePerGas": DUMMY_MAX_FEE_PER_GAS,
             }, "The used parameters do not match the ones returned from the gas pricing method!"

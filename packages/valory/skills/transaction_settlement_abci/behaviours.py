@@ -138,29 +138,29 @@ class TransactionSettlementBaseState(BaseState, ABC):
         tx_data["tx_digest"] = cast(str, tx_digest)
 
         nonce = Nonce(int(cast(str, message.raw_transaction.body["nonce"])))
-        gas_params = {
-            gas_param: Wei(
+        gas_price = {
+            gas_price_param: Wei(
                 int(
                     cast(
                         str,
-                        message.raw_transaction.body[gas_param],
+                        message.raw_transaction.body[gas_price_param],
                     )
                 )
             )
-            for gas_param in ("maxPriorityFeePerGas", "maxFeePerGas")
+            for gas_price_param in ("maxPriorityFeePerGas", "maxFeePerGas")
         }
         # Set nonce and tip.
         if nonce == self.params.nonce:
             self.context.logger.info(
                 "Attempting to replace transaction "
-                f"with old gas parameters {self.params.gas_params}, using new gas parameters {gas_params}"
+                f"with old gas price parameters {self.params.gas_price}, using new gas price parameters {gas_price}"
             )
         else:
             self.context.logger.info(
-                f"Sent transaction for mining with gas parameters {gas_params}"
+                f"Sent transaction for mining with gas parameters {gas_price}"
             )
             self.params.nonce = nonce
-        self.params.gas_params = gas_params
+        self.params.gas_price = gas_price
 
         return tx_data
 
@@ -685,7 +685,7 @@ class FinalizeBehaviour(TransactionSettlementBaseState):
                 for key, payload in self.period_state.participant_to_signature.items()
             },
             nonce=self.params.nonce,
-            old_price=self.params.gas_params,
+            old_price=self.params.gas_price,
             operation=tx_params["operation"],
         )
 

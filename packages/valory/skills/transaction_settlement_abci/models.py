@@ -67,7 +67,7 @@ class TransactionParams(BaseParams):
         :param kwargs: keyword arguments
         """
         self.nonce: Optional[Nonce] = None
-        self.gas_params: Optional[Dict[str, Wei]] = None
+        self.gas_price: Optional[Dict[str, Wei]] = None
         self.late_messages: List[ContractApiMessage] = []
         self.keeper_allowed_retries: int = self._ensure(
             "keeper_allowed_retries", kwargs
