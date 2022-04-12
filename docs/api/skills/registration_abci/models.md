@@ -24,23 +24,3 @@ def __init__(*args: Any, **kwargs: Any) -> None
 
 Initialize the state.
 
-<a id="packages.valory.skills.registration_abci.models.Params"></a>
-
-## Params Objects
-
-```python
-class Params(BaseParams)
-```
-
-Parameters.
-
-<a id="packages.valory.skills.registration_abci.models.Params.__init__"></a>
-
-#### `__`init`__`
-
-```python
-def __init__(*args: Any, **kwargs: Any) -> None
-```
-
-Initialize the parameters object.
-
