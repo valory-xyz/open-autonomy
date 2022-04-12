@@ -40,14 +40,6 @@ class SharedState(BaseSharedState):
         super().__init__(*args, abci_app_cls=AgentRegistrationAbciApp, **kwargs)
 
 
-class Params(BaseParams):
-    """Parameters."""
-
-    def __init__(self, *args: Any, **kwargs: Any) -> None:
-        """Initialize the parameters object."""
-        self.service_registry_address = kwargs.pop("service_registry_address")
-        super().__init__(*args, **kwargs)
-
-
+Params = BaseParams
 Requests = BaseRequests
 BenchmarkTool = BaseBenchmarkTool
