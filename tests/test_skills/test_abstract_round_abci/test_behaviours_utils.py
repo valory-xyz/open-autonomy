@@ -1115,37 +1115,36 @@ class TestBaseState:
         BaseState, "_build_http_request_message", return_value=(None, None)
     )
     @pytest.mark.parametrize(
-        "reset_response, status_response, local_height, n_iter",
+        "reset_response, status_response, local_height, n_iter, expecting_success",
         (
             (
                 {"message": "Tendermint reset was successful.", "status": True},
                 {"result": {"sync_info": {"latest_block_height": 1}}},
                 1,
                 3,
+                True,
             ),
             (
                 {"message": "Tendermint reset was successful.", "status": True},
                 {"result": {"sync_info": {"latest_block_height": 1}}},
                 3,
                 3,
+                False,
             ),
             (
                 {"message": "Error resetting tendermint.", "status": False},
                 {},
                 0,
                 2,
+                False,
             ),
-            (
-                "wrong_response",
-                {},
-                0,
-                2,
-            ),
+            ("wrong_response", {}, 0, 2, False),
             (
                 {"message": "Reset Successful.", "status": True},
                 "not_accepting_txs_yet",
                 0,
                 3,
+                False,
             ),
         ),
     )
@@ -1157,6 +1156,7 @@ class TestBaseState:
         status_response: Union[Dict[str, Union[int, str]], str],
         local_height: int,
         n_iter: int,
+        expecting_success: bool,
     ) -> None:
         """Test tendermint reset."""
 
@@ -1192,8 +1192,9 @@ class TestBaseState:
             for _ in range(n_iter):
                 next(reset)
             # perform the last iteration which also returns the result
-            with pytest.raises(StopIteration):
+            with pytest.raises(StopIteration) as e:
                 next(reset)
+                assert e == expecting_success
 
 
 def test_degenerate_state_async_act() -> None:
