@@ -1425,7 +1425,7 @@ class BaseState(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
     def _is_timeout_expired(self) -> bool:
         """Check if the timeout expired."""
         if self._check_started is None or self._is_healthy:
-            return False  # pragma: no cover
+            return False
         return datetime.datetime.now() > self._check_started + datetime.timedelta(
             0, self._timeout
         )
@@ -1437,7 +1437,7 @@ class BaseState(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
         yield from self._start_reset()
         if self._is_timeout_expired():
             # if the Tendermint node cannot update the app then the app cannot work
-            raise RuntimeError("Error resetting tendermint node.")  # pragma: no cover
+            raise RuntimeError("Error resetting tendermint node.")
 
         if not self._is_healthy:
             self.context.logger.info(
