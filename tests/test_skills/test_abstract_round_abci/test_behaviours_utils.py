@@ -1053,6 +1053,56 @@ class TestBaseState:
         """Test the stop method."""
         self.behaviour.stop()
 
+    @staticmethod
+    def dummy_sleep(*_: Any) -> Generator[None, None, None]:
+        """Dummy `sleep` method."""
+        yield
+
+    def test_start_reset(self) -> None:
+        """Test the `_start_reset` method."""
+        with mock.patch.object(
+            BaseState,
+            "wait_from_last_timestamp",
+            new_callable=lambda *_: self.dummy_sleep,
+        ):
+            res = self.behaviour._start_reset()
+            for _ in range(2):
+                next(res)
+            assert self.behaviour._check_started is not None
+            assert self.behaviour._check_started <= datetime.now()
+            assert self.behaviour._timeout == self.behaviour.params.max_healthcheck
+            assert not self.behaviour._is_healthy
+
+    def test_end_reset(self) -> None:
+        """Test the `_end_reset` method."""
+        self.behaviour._end_reset()
+        assert self.behaviour._check_started is None
+        assert self.behaviour._timeout == -1.0
+        assert self.behaviour._is_healthy
+
+    @pytest.mark.parametrize(
+        "check_started, is_healthy, timeout, expiration_expected",
+        (
+            (None, True, 0, False),
+            (None, False, 0, False),
+            (datetime(1, 1, 1), True, 0, False),
+            (datetime.now(), False, 1000, False),
+            (datetime(1, 1, 1), False, 0, True),
+        ),
+    )
+    def test_is_timeout_expired(
+        self,
+        check_started: Optional[datetime],
+        is_healthy: bool,
+        timeout: float,
+        expiration_expected: bool,
+    ) -> None:
+        """Test the `_is_timeout_expired` method."""
+        self.behaviour._check_started = check_started
+        self.behaviour._is_healthy = is_healthy
+        self.behaviour._timeout = timeout
+        assert self.behaviour._is_timeout_expired() == expiration_expected
+
     @mock.patch.object(BaseState, "_start_reset")
     @mock.patch.object(BaseState, "_is_timeout_expired")
     def test_reset_tendermint_with_wait_timeout_expired(self, *_: mock.Mock) -> None:
@@ -1124,20 +1174,18 @@ class TestBaseState:
                 return mock.MagicMock(body=b"")
             return mock.MagicMock(body=json.dumps(status_response).encode())
 
-        def dummy_sleep(*_: Any) -> Generator[None, None, None]:
-            """Dummy `_get_status` method."""
-            yield
-
         with mock.patch.object(
             BaseState, "_is_timeout_expired", return_value=False
         ), mock.patch.object(
-            BaseState, "wait_from_last_timestamp", new_callable=lambda *_: dummy_sleep
+            BaseState,
+            "wait_from_last_timestamp",
+            new_callable=lambda *_: self.dummy_sleep,
         ), mock.patch.object(
             BaseState, "_do_request", new_callable=lambda *_: dummy_do_request
         ), mock.patch.object(
             BaseState, "_get_status", new_callable=lambda *_: dummy_get_status
         ), mock.patch.object(
-            BaseState, "sleep", new_callable=lambda *_: dummy_sleep
+            BaseState, "sleep", new_callable=lambda *_: self.dummy_sleep
         ):
             self.behaviour.context.state.period.height = local_height
             reset = self.behaviour.reset_tendermint_with_wait()
