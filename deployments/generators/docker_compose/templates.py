@@ -72,6 +72,7 @@ TENDERMINT_NODE_TEMPLATE: str = (
     container_name: node{node_id}
     hostname: node{node_id}
     image: "valory/consensus-algorithms-tendermint:%s"
+    restart: always
     environment:
       - ID={node_id}
       - PROXY_APP=tcp://abci{node_id}:26658
