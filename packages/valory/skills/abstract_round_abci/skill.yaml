@@ -20,7 +20,7 @@ fingerprint:
   io/load.py: QmSa3vgVvQiMJabBvSnPjTMtYiDgrrHPugDGCvSf4kAfS3
   io/paths.py: QmT1e6Ygak8Fe4NxSrd2mb6EB1Rr6dsYZPL8dWh3aNMb12
   io/store.py: QmXHnLF1Jg2hmhUwYj4E4QoMmx6EoLhUtzEGqztLKtKFej
-  models.py: QmNPS5EgE1PosPmzCD6X3HPMPypKY9ByqkNjhRFkahcB8y
+  models.py: QmfDcmAtSYvY9u5QPmvM99RgtbDP573wTzcuLYWsXicm8p
   serializer.py: QmV1rutPMEPbbMVwvM4My6s8fwT7S9KhgLTqrbjHLEfdJG
   utils.py: QmSWEFvrVYMYxkGT1LBh1b6yZPg5mZe5dqXqZcvxzwHZqD
 fingerprint_ignore_patterns: []

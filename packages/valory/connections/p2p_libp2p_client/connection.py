@@ -324,7 +324,7 @@ class P2PLibp2pClientConnection(Connection):
             save_path = cert_request.get_absolute_save_path(Path(self.data_dir))
             if not save_path.is_file():
                 raise Exception(  # pragma: nocover
-                    "cert_request 'save_path' field is not a file. "
+                    f"cert_request 'save_path' field is not a file:\n{save_path}\n"
                     "Please ensure that 'issue-certificates' command is called beforehand"
                 )
 

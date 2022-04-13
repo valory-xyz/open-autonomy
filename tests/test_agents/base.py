@@ -53,7 +53,7 @@ class BaseTestEnd2End(AEATestCaseMany, BaseTendermintTestClass):
     capture_log = True
     ROUND_TIMEOUT_SECONDS = 10.0
     KEEPER_TIMEOUT = 30.0
-    HEALTH_CHECK_MAX_RETRIES = 20
+    HEALTH_CHECK_MAX_RETRIES = 5
     HEALTH_CHECK_SLEEP_INTERVAL = 3.0
     cli_log_options = ["-v", "DEBUG"]
     processes: List
@@ -148,6 +148,8 @@ class BaseTestEnd2End(AEATestCaseMany, BaseTendermintTestClass):
                 self.generate_private_key("ethereum", "ethereum_private_key.txt")
             self.add_private_key("ethereum", "ethereum_private_key.txt")
             self.__set_configs(node)
+            # issue certificates for libp2p proof of representation
+            self.run_cli_command("issue-certificates", cwd=self._get_cwd())
 
         # run 'aea install' in only one AEA project, to save time
         self.set_agent_context(self.agent_names[0])
