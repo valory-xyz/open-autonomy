@@ -21,7 +21,7 @@ In the remaining of this section, we will consider [Tendermint](https://tendermi
     In other words, {{valory_app}}s rely on the underlying ABCI, but a {{valory_app}} **is not** an ABCI application.
 
 
-## Brief Introduction to Tendermint
+## Brief Overview of Tendermint
 
 [Tendermint](https://docs.tendermint.com/) is a software for securely and consistently replicating
 an application on many machines. It ensures that the replication is Byzantine fault-tolerant (BFT),
@@ -67,7 +67,7 @@ for the complete details.
 
 When building an ABCI-based application, it must be taken into account both the callbacks received by the consensus node (i.e., information that the application must process and respond), and the proactive execution of transactions that the application wishes to execute.
 
-### Receiving Information from the Consensus Node
+### Reactive Callbacks from the Consensus Node
 
 The ABCI protocol specifies a number of [method calls](https://docs.tendermint.com/master/spec/abci/abci.html) that follow request-response interactions between the consensus node and the ABCI application. That is, the application will receive a number of callbacks related to events occurring at the consensus layer that are grouped according to their specific functionality as follows:
 
@@ -80,7 +80,7 @@ Additionally, there is a `Flush` method that is called on every connection, and 
 
 Some requests like `Info` and `InitChain` are proactively made by the consensus node upon genesis. Most of the requests instead depend on the transactions stored in the mempool.
 
-### Executing Transactions on the Blockchain
+### Proactive Calls to the Blockchain
 
 The transactions are submitted by the ABCI app's behaviours which interact with a Tendermint node
 through the [Tendermint RPC protocol](https://docs.tendermint.com/master/rpc/).
@@ -112,8 +112,24 @@ Tendermint RPC methods:
 Note that the above methods take as input a transaction, i.e., a sequence of bytes.
 The consensus node does not know the meaning of the content of the transaction,
 as its meaning resides in the ABCI application logic. This is a key feature
-that makes the application layer and the consensus layer highly decoupled. See below three examples of the flow of submitting a transaction.
+that makes the application layer and the consensus layer highly decoupled.
 
+## Transaction Examples
+
+In this section we depict sequence diagrams for the three transactions presented above, showing how both the proactive and reactive calls work.
+The figure below shows the sequence of actions on the different components on a Tendermint application, e.g., for the request [`broadcast_tx_sync`](https://docs.tendermint.com/master/rpc/#/Tx/broadcast_tx_sync):
+
+<figure markdown>
+![](./images/tendermint_transaction.svg)
+<figcaption>Sequence of actions to submit a transaction on Tendermint.</figcaption>
+</figure>
+
+1. An application bevaviour initiates the process by submitting a request, e.g., [`broadcast_tx_sync`](https://docs.tendermint.com/master/rpc/#/Tx/broadcast_tx_sync).
+2. The Tendermint nodes handle the transaction and handle any required networking or consensus actions to be done at this stage. This is transparent from the point of view of the application. Each Tendermint node notifies its associated application through the ABCI interface by calling, e.g., `CheckTx` callbck method.
+3. The applications respond accordingly throught the ABCI interface. Again, at this point the Tendermint nodes will handle the networking and consensus layer transparently.
+4. Finally, the calling behaviour receives response of the executed transaction (if applies).
+
+A more detailed sequence diagram corresponding to this transaction can be shown below:
 
 <figure markdown>
 <div class="mermaid">
@@ -127,21 +143,23 @@ that makes the application layer and the consensus layer highly decoupled. See b
         activate Behaviour
         note over Behaviour: wait until the transaction<br/>is added to the mempool
 
-        Tendermint node->>ABCI app: RequestCheckTx(tx)
+        Tendermint node->>ABCI app: [Request] CheckTx(tx)
         alt tx is not valid
-          ABCI app->>Tendermint node: ResponseCheckTx(ERROR)
+          ABCI app->>Tendermint node: [Response] CheckTx(tx) = ERROR
           Tendermint node->>Behaviour: ERROR
         else tx is valid
-          ABCI app->>Tendermint node: ResponseCheckTx(OK)
+          ABCI app->>Tendermint node: [Response] CheckTx(tx) = OK
           Tendermint node->>Tendermint node: add tx to mempool
           Tendermint node->>Behaviour: OK
         end
 
         deactivate Behaviour
-
 </div>
-<figcaption>Flow diagram of the ``broadcast_tx_sync`` method</figcaption>
+<figcaption>Sequence diagram of the ``broadcast_tx_sync`` method</figcaption>
 </figure>
+
+
+Similarly, for the [`broadcast_tx_async`](https://docs.tendermint.com/master/rpc/#/Tx/broadcast_tx_async) and the [`broadcast_tx_commit`](https://docs.tendermint.com/master/rpc/#/Tx/broadcast_tx_commit) transactions we show the corresponding sequence diagrams:
 
 
 <figure markdown>
@@ -157,7 +175,7 @@ that makes the application layer and the consensus layer highly decoupled. See b
         note over Behaviour: behaviour does not wait...
         deactivate Behaviour
 </div>
-<figcaption>Flow diagram of the ``broadcast_tx_async`` method</figcaption>
+<figcaption>Flow diagram for the ``broadcast_tx_async`` request</figcaption>
 </figure>
 
 <figure markdown>
@@ -172,34 +190,34 @@ that makes the application layer and the consensus layer highly decoupled. See b
         activate Behaviour
         note over Behaviour: wait until the transaction<br/>is committed to the chain
 
-        Tendermint node->>ABCI app: RequestCheckTx(tx)
+        Tendermint node->>ABCI app: [Request] CheckTx(tx)
         alt tx is not valid
-          ABCI app->>Tendermint node: ResponseCheckTx(ERROR)
+          ABCI app->>Tendermint node: [Response] CheckTx(tx) = ERROR
           Tendermint node->>Behaviour: ERROR
           note over Behaviour: STOP
         end
         note over Behaviour, ABCI app: tx passed the mempool check
-        ABCI app->>Tendermint node: ResponseCheckTx(OK)
+        ABCI app->>Tendermint node: [Response] CheckTx(tx) = OK
         Tendermint node->>Tendermint node: add tx to mempool
         note over Tendermint node: eventually, the tx gets<br/>added to a committed block
         note over Tendermint node: on receipt of such block:
-        Tendermint node->>ABCI app: RequestBeginBlock(...)
-        ABCI app->>Tendermint node: ResponseBeginBlock(...)
+        Tendermint node->>ABCI app: [Request] BeginBlock(...)
+        ABCI app->>Tendermint node: [Response] BeginBlock(...)
         loop for tx_i in block
-          Tendermint node->>ABCI app: RequestDeliverTx(tx_i)
-          ABCI app->>Tendermint node: ResponseDeliverTx(tx_i)
+          Tendermint node->>ABCI app: [Request] DeliverTx(tx_i)
+          ABCI app->>Tendermint node: [Response] DeliverTx(tx_i)
         end
-        Tendermint node->>ABCI app: RequestEndBlock(...)
-        ABCI app->>Tendermint node: ResponseEndBlock(...)
+        Tendermint node->>ABCI app: [Request] EndBlock(...)
+        ABCI app->>Tendermint node: [Response] EndBlock(...)
 
-        alt if ResponseDeliverTx(tx) == OK
+        alt if [Response] DeliverTx(tx) == OK
           Tendermint node->>Behaviour: ERROR
         else
           Tendermint node->>Behaviour: OK
         end
         deactivate Behaviour
 </div>
-<figcaption>Flow diagram of the ``broadcast_tx_commit`` method</figcaption>
+<figcaption>Flow diagram for the ``broadcast_tx_commit`` request</figcaption>
 </figure>
 
 Also, the ABCI application state can be queried by means of the
@@ -211,7 +229,7 @@ supports.
 
 The consensus node forwards the query through the `Query` request.
 
-
+<figure markdown>
 <div class="mermaid">
     sequenceDiagram
 
@@ -221,9 +239,10 @@ The consensus node forwards the query through the `Query` request.
 
         Behaviour->>Tendermint node: query(path="/a/b/c", data=0x123...)
         activate Behaviour
-        Tendermint node->>ABCI app: RequestQuery(...)
-        ABCI app->>Tendermint node: ResponseQuery(...)
+        Tendermint node->>ABCI app: [Request] Query(...)
+        ABCI app->>Tendermint node: [Response] Query(...)
         Tendermint node->>Behaviour: response(...)
         deactivate Behaviour
-
 </div>
+<figcaption>Flow diagram for the ``abci_query`` request</figcaption>
+</figure>

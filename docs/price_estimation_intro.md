@@ -1,29 +1,25 @@
-# Price estimation internals
+# Price Oracle - How it Works
 
-Documentation of the price estimation demo.
-
-## Introduction
-
-The estimate is an average of a set of observations
+The goal of this {{valory_app}} is to provide an estimation as an average of a set of observations
 on the Bitcoin price coming from different sources,
-e.g. CoinMarketCap, CoinGecko, Binance and Coinbase.
+e.g., CoinMarketCap, CoinGecko, Binance and Coinbase.
 Each AEA shares an observation from one of the sources above
 by committing it to a temporary blockchain made with Tendermint.
 Once all the observation are settled, each AEA
 runs a script to aggregate the observations to compute an estimate,
-and we say that the consensus is reached when one estimate
-reaches `ceil((2n + 1) / 3)` of the total voting power committed
+and the consensus is reached when one estimate
+reaches $\lceil(2n + 1) / 3\rceil$ of the total voting power committed
 on the temporary blockchain.
 Once the consensus on an estimate has been reached, a multi-signature transaction
-with `ceil((2n + 1) / 3)` of the participants' signature is settled on the
-Ethereum chain (in the POC this is the hardhat node).
+with $\lceil(2n + 1) / 3\rceil$ of the participants' signature is settled on the
+Ethereum chain (in the demo this is emulated by the Hardhat node).
 
-Alongside the finite-state machine behaviour, the AEAs runs
-an ABCI application instance which receives all the updates from the
+Alongside the FSM behaviours executed at each state, the AEAs runs
+an {{abci_app}} instance which receives all the updates from the
 underlying Tendermint network.
 
 
-## Setup
+## Overview of the Demo
 
 The network is composed of:
 
@@ -31,9 +27,9 @@ The network is composed of:
 - A set of $n$ Tendermint nodes
 - A set of $n$ AEAs, in one-to-one connection with one Tendermint node.
 
-![](./images/agent-to-node_connections.svg)
+![](./images/oracle_diagram.svg)
 
-Agents communicate directly to their local tendermint node, whereas the `ABCIApp`
+Agents communicate directly to their local tendermint node, whereas the `AbciApp`
 is used to handle requests they receive (e.g. in response to their behaviour).
 
 The AEAs have the following custom components:
@@ -57,16 +53,16 @@ Moreover, it has the following demo-specific components:
     with a finalization step over an Ethereum chain.
 
 
-## Price estimation as a proof of concept
+## Price Estimation as a Proof of Concept
 
-The ABCI-based replicated FSM (`ABCIApp`) used for price estimation consists
-of several smaller modules, each of which is an `ABCIApp` of its own. Each of
+The ABCI-based replicated FSM (`AbciApp`) used for price estimation consists
+of several smaller modules, each of which is an `AbciApp` of its own. Each of
 them is a `Skill`, which implies that they operate independently of each other,
-however they can be combined to create a larger `ABCIApp`, provided that the
+however they can be combined to create a larger `AbciApp`, provided that the
 developer specifies the required transition mapping to connect these FSMs.
 This modularity allows a developer to use a subset of these skills in different
 contexts, potentially in combination with skills they themselves define, to
-create another composite `ABCIApp` that performs according to their particular
+create another composite `AbciApp` that performs according to their particular
 needs. Specifically, the `PriceEstimationAbciApp` is created by combining the
 following parts:
 
@@ -75,7 +71,7 @@ following parts:
 - `OracleDeploymentAbciApp`
 - `PriceAggregationAbciApp`
 - `TransactionSubmissionAbciApp`
-
+- `ResetPauseABCIApp`
 
 ### The `AgentRegistrationAbciApp`
 
@@ -247,7 +243,7 @@ its constituent parts. However, in order to combine the various FSMs previously
 discussed, a transition mapping between states of these FSMs also needs to be
 provided. In order to combine the different FSMs we need to connect them by
 providing the necessary transition mapping. As per the code implemented in the
-[demo](./price_estimation_demo.md), the implementation looks as follows:
+[demo](./price_estimation_details.md), the implementation looks as follows:
 
 ```python
 
@@ -312,7 +308,7 @@ class PriceEstimationConsensusBehaviour(AbstractRoundBehaviour):
 
 ```
 
-Have a look at the [FSM diagram](./fsm_diagram.md) of the application in order
+Have a look at the [FSM diagram](./price_estimation_fsms.md) of the application in order
 to see what the encoded state transitions in the final composite FSM look like.
 
 !!! warning
