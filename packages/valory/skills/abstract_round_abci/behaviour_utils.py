@@ -1432,7 +1432,7 @@ class BaseState(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
 
     def reset_tendermint_with_wait(
         self,
-    ) -> Generator[None, None, None]:
+    ) -> Generator[None, None, bool]:
         """Resets the tendermint node."""
         yield from self._start_reset()
         if self._is_timeout_expired():
@@ -1466,13 +1466,13 @@ class BaseState(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
                     msg = response.get("message")
                     self.context.logger.error(f"Error resetting: {msg}")
                     yield from self.sleep(self.params.sleep_time)
-                    return  # pragma: no cover
+                    return False
             except json.JSONDecodeError:
                 self.context.logger.error(
                     "Error communicating with tendermint com server."
                 )
                 yield from self.sleep(self.params.sleep_time)
-                return  # pragma: no cover
+                return False
 
         status = yield from self._get_status()
         try:
@@ -1482,7 +1482,7 @@ class BaseState(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
                 "Tendermint not accepting transactions yet, trying again!"
             )
             yield from self.sleep(self.params.sleep_time)
-            return  # pragma: nocover
+            return False
 
         remote_height = int(json_body["result"]["sync_info"]["latest_block_height"])
         local_height = self.context.state.period.height
@@ -1492,12 +1492,13 @@ class BaseState(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
         if local_height != remote_height:
             self.context.logger.info("local height != remote height; retrying...")
             yield from self.sleep(self.params.sleep_time)
-            return  # pragma: nocover
+            return False
 
         self.context.logger.info(
             "local height == remote height; continuing execution..."
         )
         yield from self.wait_from_last_timestamp(self.params.observation_interval / 2)
+        return True
 
 
 class DegenerateState(BaseState, ABC):
