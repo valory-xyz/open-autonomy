@@ -53,7 +53,7 @@ class BaseTestEnd2End(AEATestCaseMany, BaseTendermintTestClass):
     capture_log = True
     ROUND_TIMEOUT_SECONDS = 10.0
     KEEPER_TIMEOUT = 30.0
-    HEALTH_CHECK_MAX_RETRIES = 5
+    HEALTH_CHECK_MAX_RETRIES = 20
     HEALTH_CHECK_SLEEP_INTERVAL = 3.0
     cli_log_options = ["-v", "DEBUG"]
     processes: List

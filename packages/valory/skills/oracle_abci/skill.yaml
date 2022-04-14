@@ -93,7 +93,6 @@ models:
       retry_timeout: 3
       round_timeout_seconds: 30.0
       service_id: price_estimation
-      service_registry_address: '0xa51c1fc2f0d1a1b8494ed1fe312d7c3a78ed91c0'
       sleep_time: 1
       tendermint_check_sleep_delay: 3
       tendermint_com_url: http://localhost:8080
