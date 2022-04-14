@@ -59,7 +59,7 @@ from packages.valory.skills.transaction_settlement_abci.rounds import (
 
 from tests.conftest import ROOT_DIR
 from tests.test_skills.base import FSMBehaviourBaseCase
-from tests.test_skills.integration.base import (
+from tests.test_skills.integration import (
     AMMIntegrationBaseCase,
     ExpectedContentType,
     ExpectedTypesType,
