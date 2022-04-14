@@ -515,7 +515,7 @@ class SynchronizeLateMessagesBehaviour(TransactionSettlementBaseState):
     def __init__(self, **kwargs: Any):
         """Initialize a `SynchronizeLateMessagesBehaviour`"""
         super().__init__(**kwargs)
-        self._tx_hashes: str = ""
+        self._tx_hashes: str = self.params.tx_hash
 
     def async_act(self) -> Generator:
         """Do the action."""
