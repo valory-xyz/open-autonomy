@@ -145,7 +145,8 @@ class TransactionSettlementBaseState(BaseState, ABC):
                 message.raw_transaction.body["maxPriorityFeePerGas"],
             )
         )
-        # Set nonce and tip.
+        # Set hash, nonce and tip.
+        self.params.tx_hash = cast(str, tx_data["tx_digest"])
         nonce = Nonce(int(cast(str, tx_data["nonce"])))
         tip = int(cast(str, tx_data["max_priority_fee_per_gas"]))
         if nonce == self.params.nonce:
