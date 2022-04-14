@@ -1006,6 +1006,27 @@ class TestBaseState:
             # wait for message
             try_send(gen, obj=MagicMock())
 
+    @mock.patch.object(
+        BaseState, "_build_http_request_message", return_value=(None, None)
+    )
+    def test_get_status(self, _: mock.Mock) -> None:
+        """Test '_get_status'."""
+        expected_result = json.dumps("Test result.").encode()
+
+        def dummy_do_request(*_: Any) -> Generator[None, None, MagicMock]:
+            """Dummy `_do_request` method."""
+            yield
+            return mock.MagicMock(body=expected_result)
+
+        with mock.patch.object(BaseState, "_do_request", side_effect=dummy_do_request):
+            get_status_generator = self.behaviour._get_status()
+            next(get_status_generator)
+            with pytest.raises(StopIteration) as e:
+                next(get_status_generator)
+            res = e.value.args[0]
+            assert isinstance(res, MagicMock)
+            assert res.body == expected_result
+
     def test_default_callback_request_stopped(self) -> None:
         """Test 'default_callback_request' when stopped."""
         message = MagicMock()

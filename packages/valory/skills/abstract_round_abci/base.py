@@ -2094,7 +2094,7 @@ class Period:
 
     def reset_blockchain(self, is_replay: bool = False) -> None:
         """Reset blockchain after tendermint reset."""
-        if is_replay:  # pragma: nocover
+        if is_replay:
             self._block_construction_phase = (
                 Period._BlockConstructionState.WAITING_FOR_BEGIN_BLOCK
             )
