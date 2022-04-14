@@ -11,10 +11,17 @@ ssh root@178.62.4.138
 
 # Prerequisites
 
-- Skaffold `>=v1.33.0`
+- Skaffold `==v1.33.0`
 - Docker
 - Docker-Compose
 - Python `>=3.7`
+
+Install Skaffold to manage containers & tagging:
+
+```bash
+curl -Lo skaffold https://storage.googleapis.com/skaffold/releases/v1.33.0/skaffold-linux-amd64 && \
+sudo install skaffold /usr/local/bin/
+```
 
 Install the virtual environment:
 
@@ -135,7 +142,10 @@ docker logs ID > abci${i}.txt
 or
 
 ```bash
-for i in {1..4}; do scp root@178.62.4.138:abci${i}.txt abci${i}.txt; done
+for i in {0..3}; do ssh root@178.62.4.138 "docker logs abci${i} > abci${i}.txt"; done
+for i in {0..3}; do ssh root@178.62.4.138 "docker logs node${i} > node${i}.txt"; done
+for i in {0..3}; do scp root@178.62.4.138:abci${i}.txt abci${i}.txt; done
+for i in {0..3}; do scp root@178.62.4.138:node${i}.txt node${i}.txt; done
 ```
 
 and run script for checking path
@@ -200,3 +210,86 @@ docker-compose up --force-recreate
 ```
 
 
+# Background info:
+
+File tree (from level `deployments/build/`):
+
+``` bash
+build/
+  node0/
+    config/
+      config.toml  # general validator config
+      genesis.json  # the genesis file with all the validators in it
+      node_key.json  # the key file of the node
+      priv_validator_key.json  # the key file of the validator
+    data/
+      priv_validator_state.json  # contains the configuration of the state at startup
+```
+
+The network configuration is passed directly to the node.
+
+Example genesis file:
+``` json
+{
+  "genesis_time": "2022-04-07T17:24:42.830360304Z",
+  "chain_id": "chain-9sL6vh",
+  "initial_height": "0",
+  "consensus_params": {
+    "block": {
+      "max_bytes": "22020096",
+      "max_gas": "-1",
+      "time_iota_ms": "1000"
+    },
+    "evidence": {
+      "max_age_num_blocks": "100000",
+      "max_age_duration": "172800000000000",
+      "max_bytes": "1048576"
+    },
+    "validator": {
+      "pub_key_types": [
+        "ed25519"
+      ]
+    },
+    "version": {}
+  },
+  "validators": [
+    {
+      "address": "1496C02B6A7243B791EED40BD507BDDF46748F0A",
+      "pub_key": {
+        "type": "tendermint/PubKeyEd25519",
+        "value": "rRqP11v8hil6dTYLgZHz8e7CbCEwF0O23OOp8ZyF9PM="
+      },
+      "power": "1",
+      "name": "node0"
+    },
+    {
+      "address": "585ADCC6C87222505715F5C24A598D5EE9D947E5",
+      "pub_key": {
+        "type": "tendermint/PubKeyEd25519",
+        "value": "1UDW597G1MBYDZ5WvklFxAkbBCkaGCMeipdnvll33ds="
+      },
+      "power": "1",
+      "name": "node1"
+    },
+    {
+      "address": "8E67A1A005E3E7DBAC769C38B718C51382876BDA",
+      "pub_key": {
+        "type": "tendermint/PubKeyEd25519",
+        "value": "SjoyI8ZFsnFro0sw9mfVkH0YLd0MCv5gqlGFq++G5E8="
+      },
+      "power": "1",
+      "name": "node2"
+    },
+    {
+      "address": "D4D28787301A651F1F1985C4CAA03C723DA9179F",
+      "pub_key": {
+        "type": "tendermint/PubKeyEd25519",
+        "value": "w9x8PXCMxRvnORBsLGckhA+S8g8xFmi5vGOK7roptvM="
+      },
+      "power": "1",
+      "name": "node3"
+    }
+  ],
+  "app_hash": ""
+}
+```

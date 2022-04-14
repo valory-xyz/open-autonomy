@@ -30,9 +30,10 @@ from tendermint import TendermintNode, TendermintParams
 from werkzeug.exceptions import InternalServerError, NotFound
 
 
+DEFAULT_LOG_FILE = "log.log"
 logging.basicConfig(
-    filename="log.log",
-    level=logging.ERROR,
+    filename=os.environ.get("FLASK_LOG_FILE", DEFAULT_LOG_FILE),
+    level=logging.DEBUG,
     format=f"%(asctime)s %(levelname)s %(name)s %(threadName)s : %(message)s",  # noqa : W1309
 )
 
@@ -79,6 +80,12 @@ class PeriodDumper:
         self.resets += 1
 
 
+CONFIG_OVERRIDE = [
+    ("fast_sync = true", "fast_sync = false"),
+    ("max_num_outbound_peers = 10", "max_num_outbound_peers = 0"),
+]
+
+
 def update_sync_method() -> None:
     """Update sync method."""
 
@@ -86,24 +93,25 @@ def update_sync_method() -> None:
     with open(config_path, "r", encoding="UTF8") as fp:
         config = fp.read()
 
-    config = config.replace("fast_sync = true", "fast_sync = false")
+    for old, new in CONFIG_OVERRIDE:
+        config = config.replace(old, new)
 
     with open(config_path, "w+", encoding="UTF8") as fp:
         fp.write(config)
 
 
 update_sync_method()
-
 tendermint_params = TendermintParams(
     proxy_app=os.environ["PROXY_APP"],
     consensus_create_empty_blocks=os.environ["CREATE_EMPTY_BLOCKS"] == "true",
     home=os.environ["TMHOME"],
 )
-tendermint_node = TendermintNode(tendermint_params)
-tendermint_node.start()
 
 app = Flask(__name__)
 period_dumper = PeriodDumper(logger=app.logger)
+
+tendermint_node = TendermintNode(tendermint_params, logger=app.logger)
+tendermint_node.start()
 
 
 @app.route("/gentle_reset")

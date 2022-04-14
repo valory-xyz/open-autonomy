@@ -183,10 +183,11 @@ spec:
       - name: node{validator_ix}
         image: valory/consensus-algorithms-tendermint:%s
         imagePullPolicy: Always
+        restart: always
         resources:
           limits:
-            memory: "512Mi"
-            cpu: "0.5"
+            memory: "1512Mi"
+            cpu: "1"
           requests:
             cpu: "0.05"
             memory: "128Mi"
@@ -205,10 +206,12 @@ spec:
             value: /tendermint/node{validator_ix}
           - name: CREATE_EMPTY_BLOCKS
             value: "true"
+          - name: LOG_FILE
+            value: "/logs/node_{validator_ix}.txt"
         args: ["run", "--no-reload", "--host=0.0.0.0", "--port=8080"]
         volumeMounts:
           - mountPath: /logs
-            name: logs
+            name: persistent-data
           - mountPath: /tendermint
             name: build
 
@@ -217,8 +220,8 @@ spec:
         imagePullPolicy: Always
         resources:
           limits:
-            memory: "512Mi"
-            cpu: "0.5"
+            memory: "1512Mi"
+            cpu: "1"
           requests:
             cpu: "0.05"
             memory: "128Mi"
@@ -227,13 +230,15 @@ spec:
             value: "agent-node-{validator_ix}"
           - name: CLUSTERED
             value: "1"
+          - name: LOG_FILE
+            value: "/home/ubuntu/logs/aea_{validator_ix}.txt"
         volumeMounts:
-          - mountPath: /logs
-            name: logs
+          - mountPath: /home/ubuntu/logs
+            name: persistent-data
           - mountPath: /build
             name: build
       volumes:
-        - name: logs
+        - name: persistent-data
           persistentVolumeClaim:
             claimName: 'logs-pvc'
         - name: build
