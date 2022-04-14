@@ -679,6 +679,7 @@ def test_period_states() -> None:
     assert period_state_____.keeper_retries == 1
     assert period_state_____.most_voted_keeper_address == expected_keepers.popleft()
     assert period_state_____.keepers_threshold_exceeded
+    assert isinstance(period_state_____.blacklisted_keepers, set)
 
     # test wrong tx hashes serialization
     period_state_____.update(late_arriving_tx_hashes=["test"])
