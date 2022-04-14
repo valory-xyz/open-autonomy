@@ -538,9 +538,14 @@ class SynchronizeLateMessagesBehaviour(TransactionSettlementBaseState):
 
         self.set_done()
 
-    def set_done(self) -> None:
-        """Set the behaviour to done and clean the local late message parameter."""
-        super().set_done()
+    def clean_up(self) -> None:
+        """
+        Clean up the behaviour.
+
+        Clean the local `tx_hash` and `late_messages` parameters if we were able to complete the round,
+        and have therefore been synced.
+        """
+        self.params.tx_hash = ""
         self.params.late_messages = []
 
 
@@ -685,6 +690,10 @@ class FinalizeBehaviour(TransactionSettlementBaseState):
 
         tx_data = yield from self._get_tx_data(contract_api_msg)
         return tx_data
+
+    def clean_up(self) -> None:
+        """Clean the local tx hash parameter if we were able to complete the round, and have therefore been synced."""
+        self.params.tx_hash = ""
 
     def handle_late_messages(self, message: Message) -> None:
         """Store a potentially late-arriving message locally.
