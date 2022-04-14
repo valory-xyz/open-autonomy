@@ -18,7 +18,6 @@
 # ------------------------------------------------------------------------------
 
 """Integration tests for various transaction settlement skill's failure modes."""
-import binascii
 from math import ceil
 from pathlib import Path
 from typing import Any, Callable, Dict, Optional, cast
@@ -26,8 +25,7 @@ from unittest import mock
 
 import pytest
 from aea_ledger_ethereum import EthereumApi
-from web3.types import Nonce, Wei
-from web3.types import RPCEndpoint
+from web3.types import RPCEndpoint, Wei
 
 from packages.open_aea.protocols.signing import SigningMessage
 from packages.open_aea.protocols.signing.custom_types import (
@@ -37,7 +35,6 @@ from packages.open_aea.protocols.signing.custom_types import (
 from packages.valory.protocols.contract_api import ContractApiMessage
 from packages.valory.protocols.ledger_api import LedgerApiMessage
 from packages.valory.protocols.ledger_api.custom_types import (
-    State,
     TransactionDigest,
     TransactionReceipt,
 )
@@ -54,19 +51,13 @@ from packages.valory.skills.price_estimation_abci.behaviours import (
 from packages.valory.skills.price_estimation_abci.rounds import (
     PeriodState as PriceEstimationPeriodState,
 )
-from packages.valory.skills.transaction_settlement_abci.behaviours import (
-    FinalizeBehaviour,
-    ValidateTransactionBehaviour,
-)
 from packages.valory.skills.transaction_settlement_abci.payload_tools import (
-    VerificationStatus,
     hash_payload_to_hex,
-    skill_input_hex_to_payload,
 )
-from packages.valory.skills.transaction_settlement_abci.payloads import SignaturePayload
 from packages.valory.skills.transaction_settlement_abci.rounds import (
     PeriodState as TxSettlementPeriodState,
 )
+
 from tests.conftest import ROOT_DIR
 from tests.test_skills.base import FSMBehaviourBaseCase
 from tests.test_skills.integration.base import (
@@ -75,6 +66,7 @@ from tests.test_skills.integration.base import (
     GnosisIntegrationBaseCase,
     HandlersType,
 )
+
 
 SAFE_TX_GAS = 120000
 ETHER_VALUE = 0
@@ -95,7 +87,6 @@ class TransactionSettlementIntegrationBaseCase(
 ):
     """Base case for integration testing TransactionSettlement FSM Behaviour."""
 
-    tx_settlement_period_state: TxSettlementPeriodState
     price_estimation_period_state: PriceEstimationPeriodState
 
     @classmethod
@@ -220,167 +211,6 @@ class TransactionSettlementIntegrationBaseCase(
         # update period state with safe's tx hash
         self.tx_settlement_period_state.update(
             most_voted_tx_hash=payload,
-        )
-
-    def sign_tx(self) -> None:
-        """Sign a transaction"""
-        tx_params = skill_input_hex_to_payload(
-            self.tx_settlement_period_state.most_voted_tx_hash
-        )
-        safe_tx_hash_bytes = binascii.unhexlify(tx_params["safe_tx_hash"])
-        participant_to_signature = {}
-        for address, crypto in self.safe_owners.items():
-            signature_hex = crypto.sign_message(
-                safe_tx_hash_bytes,
-                is_deprecated_mode=True,
-            )
-            signature_hex = signature_hex[2:]
-            participant_to_signature[address] = SignaturePayload(
-                sender=address,
-                signature=signature_hex,
-            )
-
-        self.tx_settlement_period_state.update(
-            participant_to_signature=participant_to_signature,
-        )
-
-        actual_safe_owners = self.gnosis_instance.functions.getOwners().call()
-        expected_safe_owners = (
-            self.tx_settlement_period_state.participant_to_signature.keys()
-        )
-        assert len(actual_safe_owners) == len(expected_safe_owners)
-        assert all(
-            owner == signer
-            for owner, signer in zip(actual_safe_owners, expected_safe_owners)
-        )
-
-    def send_tx(self) -> None:
-        """Send a transaction"""
-
-        self.fast_forward_to_state(
-            behaviour=self.behaviour,
-            state_id=FinalizeBehaviour.state_id,
-            period_state=self.tx_settlement_period_state,
-        )
-        behaviour = cast(FinalizeBehaviour, self.behaviour.current_state)
-        assert behaviour.state_id == FinalizeBehaviour.state_id
-        stored_nonce = behaviour.params.nonce
-        stored_gas_price = behaviour.params.gas_price
-
-        handlers: HandlersType = [
-            self.contract_handler,
-            self.signing_handler,
-            self.ledger_handler,
-        ]
-        expected_content: ExpectedContentType = [
-            {"performative": ContractApiMessage.Performative.RAW_TRANSACTION},
-            {"performative": SigningMessage.Performative.SIGNED_TRANSACTION},
-            {"performative": LedgerApiMessage.Performative.TRANSACTION_DIGEST},
-        ]
-        expected_types: ExpectedTypesType = [
-            {
-                "raw_transaction": RawTransaction,
-            },
-            {
-                "signed_transaction": SignedTransaction,
-            },
-            {
-                "transaction_digest": TransactionDigest,
-            },
-        ]
-        msg1, _, msg3 = self.process_n_messages(
-            3,
-            self.tx_settlement_period_state,
-            None,
-            handlers,
-            expected_content,
-            expected_types,
-        )
-        assert msg1 is not None and isinstance(msg1, ContractApiMessage)
-        assert msg3 is not None and isinstance(msg3, LedgerApiMessage)
-        tx_digest = msg3.transaction_digest.body
-        tx_data = {
-            "status": VerificationStatus.PENDING,
-            "tx_digest": cast(str, tx_digest),
-        }
-
-        behaviour = cast(FinalizeBehaviour, self.behaviour.current_state)
-        assert behaviour.params.gas_price is not None
-        assert behaviour.params.nonce is not None
-
-        nonce_used = Nonce(int(cast(str, msg1.raw_transaction.body["nonce"])))
-        gas_price_used = {
-            gas_price_param: Wei(
-                int(
-                    cast(
-                        str,
-                        msg1.raw_transaction.body[gas_price_param],
-                    )
-                )
-            )
-            for gas_price_param in ("maxPriorityFeePerGas", "maxFeePerGas")
-        }
-
-        # if we are repricing
-        if nonce_used == stored_nonce:
-            assert stored_nonce is not None
-            assert stored_gas_price is not None
-            assert gas_price_used == {
-                gas_price_param: ceil(
-                    stored_gas_price[gas_price_param] * DUMMY_REPRICING_MULTIPLIER
-                )
-                for gas_price_param in ("maxPriorityFeePerGas", "maxFeePerGas")
-            }, "The repriced parameters do not match the ones returned from the gas pricing method!"
-        # if we are not repricing
-        else:
-            assert gas_price_used == {
-                "maxPriorityFeePerGas": DUMMY_MAX_PRIORITY_FEE_PER_GAS,
-                "maxFeePerGas": DUMMY_MAX_FEE_PER_GAS,
-            }, "The used parameters do not match the ones returned from the gas pricing method!"
-
-        hashes = self.tx_settlement_period_state.tx_hashes_history
-        hashes.append(tx_digest)
-
-        self.tx_settlement_period_state.update(
-            tx_hashes_history=hashes,
-            final_verification_status=tx_data["status"],
-        )
-
-    def validate_tx(self) -> None:
-        """Validate the given transaction."""
-
-        handlers: HandlersType = [
-            self.ledger_handler,
-            self.contract_handler,
-        ]
-        expected_content: ExpectedContentType = [
-            {"performative": LedgerApiMessage.Performative.TRANSACTION_RECEIPT},
-            {"performative": ContractApiMessage.Performative.STATE},
-        ]
-        expected_types: ExpectedTypesType = [
-            {
-                "transaction_receipt": TransactionReceipt,
-            },
-            {
-                "state": State,
-            },
-        ]
-        _, verif_msg = self.process_n_messages(
-            2,
-            self.tx_settlement_period_state,
-            ValidateTransactionBehaviour.state_id,
-            handlers,
-            expected_content,
-            expected_types,
-        )
-        assert verif_msg is not None and isinstance(verif_msg, ContractApiMessage)
-        assert verif_msg.state.body[
-            "verified"
-        ], f"Message not verified: {verif_msg.state.body}"
-
-        self.tx_settlement_period_state.update(
-            final_verification_status=VerificationStatus.VERIFIED,
-            final_tx_hash=self.tx_settlement_period_state.to_be_validated_tx_hash,
         )
 
     @staticmethod

@@ -21,8 +21,10 @@
 
 
 import asyncio
+import binascii
 import os
 import tempfile
+from math import ceil
 from pathlib import Path
 from threading import Thread
 from typing import Any, Dict, List, Optional, Tuple, Union, cast
@@ -40,26 +42,34 @@ from aea.skills.base import Handler
 from aea_ledger_ethereum import EthereumApi
 from web3 import HTTPProvider, Web3
 from web3.providers import BaseProvider
+from web3.types import Nonce, Wei
 
+from packages.open_aea.protocols.signing import SigningMessage
+from packages.valory.protocols.contract_api import ContractApiMessage
+from packages.valory.protocols.contract_api.custom_types import RawTransaction, State
+from packages.valory.protocols.ledger_api import LedgerApiMessage
+from packages.valory.protocols.ledger_api.custom_types import (
+    SignedTransaction,
+    TransactionDigest,
+    TransactionReceipt,
+)
 from packages.valory.skills.abstract_round_abci.behaviour_utils import BaseState
-from packages.valory.skills.liquidity_rebalancing_abci.behaviours import (
-    LiquidityRebalancingConsensusBehaviour,
-)
-from packages.valory.skills.liquidity_rebalancing_abci.handlers import (
-    ContractApiHandler,
-    HttpHandler,
-    LedgerApiHandler,
-)
 from packages.valory.skills.liquidity_rebalancing_abci.rounds import (
     PeriodState as LiquidityRebalancingPeriodState,
-)
-from packages.valory.skills.oracle_abci.behaviours import (
-    OracleAbciAppConsensusBehaviour,
 )
 from packages.valory.skills.price_estimation_abci.rounds import (
     PeriodState as PriceEstimationPeriodState,
 )
+from packages.valory.skills.transaction_settlement_abci.behaviours import (
+    FinalizeBehaviour,
+    ValidateTransactionBehaviour,
+)
 from packages.valory.skills.transaction_settlement_abci.handlers import SigningHandler
+from packages.valory.skills.transaction_settlement_abci.payload_tools import (
+    VerificationStatus,
+    skill_input_hex_to_payload,
+)
+from packages.valory.skills.transaction_settlement_abci.payloads import SignaturePayload
 from packages.valory.skills.transaction_settlement_abci.rounds import (
     PeriodState as TxSettlementPeriodState,
 )
@@ -87,6 +97,11 @@ ExpectedTypesType = List[
         ]
     ]
 ]
+
+
+DUMMY_MAX_PRIORITY_FEE_PER_GAS = 3000000000
+DUMMY_MAX_FEE_PER_GAS = 4000000000
+DUMMY_REPRICING_MULTIPLIER = 1.1
 
 
 class _IntegrationBaseCase(FSMBehaviourBaseCase):
@@ -293,7 +308,7 @@ class _IntegrationBaseCase(FSMBehaviourBaseCase):
         return tuple(incoming_messages)
 
 
-class _SafeConfiguredIntegrationBaseCase(_IntegrationBaseCase):
+class _SafeConfiguredHelperIntegration(_IntegrationBaseCase):
     """Base test class for integration tests with Gnosis, but no contract, deployed."""
 
     safe_owners: Dict[str, Crypto]
@@ -318,7 +333,196 @@ class _SafeConfiguredIntegrationBaseCase(_IntegrationBaseCase):
         assert cls.keeper_address in cls.safe_owners
 
 
-class _HarHatIntegrationBaseCase(_IntegrationBaseCase):
+class _GnosisHelperIntegration(_SafeConfiguredHelperIntegration):
+    """Class that assists Gnosis instantiation."""
+
+    safe_contract_address: str = "0x68FCdF52066CcE5612827E872c45767E5a1f6551"
+    ethereum_api: EthereumApi
+    gnosis_instance: Any
+
+    @classmethod
+    def setup(cls, **kwargs: Any) -> None:
+        """Setup."""
+        super().setup()
+
+        # register gnosis contract
+        directory = Path(ROOT_DIR, "packages", "valory", "contracts", "gnosis_safe")
+        gnosis = get_register_contract(directory)
+
+        cls.ethereum_api = make_ledger_api("ethereum")
+        cls.gnosis_instance = gnosis.get_instance(
+            cls.ethereum_api, cls.safe_contract_address
+        )
+
+
+class _TxHelperIntegration(_GnosisHelperIntegration):
+    """Class that assists tx settlement related operations."""
+
+    tx_settlement_period_state: TxSettlementPeriodState
+
+    def sign_tx(self) -> None:
+        """Sign a transaction"""
+        tx_params = skill_input_hex_to_payload(
+            self.tx_settlement_period_state.most_voted_tx_hash
+        )
+        safe_tx_hash_bytes = binascii.unhexlify(tx_params["safe_tx_hash"])
+        participant_to_signature = {}
+        for address, crypto in self.safe_owners.items():
+            signature_hex = crypto.sign_message(
+                safe_tx_hash_bytes,
+                is_deprecated_mode=True,
+            )
+            signature_hex = signature_hex[2:]
+            participant_to_signature[address] = SignaturePayload(
+                sender=address,
+                signature=signature_hex,
+            )
+
+        self.tx_settlement_period_state.update(
+            participant_to_signature=participant_to_signature,
+        )
+
+        actual_safe_owners = self.gnosis_instance.functions.getOwners().call()
+        expected_safe_owners = (
+            self.tx_settlement_period_state.participant_to_signature.keys()
+        )
+        assert len(actual_safe_owners) == len(expected_safe_owners)
+        assert all(
+            owner == signer
+            for owner, signer in zip(actual_safe_owners, expected_safe_owners)
+        )
+
+    def send_tx(self) -> None:
+        """Send a transaction"""
+
+        self.fast_forward_to_state(
+            behaviour=self.behaviour,
+            state_id=FinalizeBehaviour.state_id,
+            period_state=self.tx_settlement_period_state,
+        )
+        behaviour = cast(FinalizeBehaviour, self.behaviour.current_state)
+        assert behaviour.state_id == FinalizeBehaviour.state_id
+        stored_nonce = behaviour.params.nonce
+        stored_gas_price = behaviour.params.gas_price
+
+        handlers: HandlersType = [
+            self.contract_handler,
+            self.signing_handler,
+            self.ledger_handler,
+        ]
+        expected_content: ExpectedContentType = [
+            {"performative": ContractApiMessage.Performative.RAW_TRANSACTION},
+            {"performative": SigningMessage.Performative.SIGNED_TRANSACTION},
+            {"performative": LedgerApiMessage.Performative.TRANSACTION_DIGEST},
+        ]
+        expected_types: ExpectedTypesType = [
+            {
+                "raw_transaction": RawTransaction,
+            },
+            {
+                "signed_transaction": SignedTransaction,
+            },
+            {
+                "transaction_digest": TransactionDigest,
+            },
+        ]
+        msg1, _, msg3 = self.process_n_messages(
+            3,
+            self.tx_settlement_period_state,
+            None,
+            handlers,
+            expected_content,
+            expected_types,
+        )
+        assert msg1 is not None and isinstance(msg1, ContractApiMessage)
+        assert msg3 is not None and isinstance(msg3, LedgerApiMessage)
+        tx_digest = msg3.transaction_digest.body
+        tx_data = {
+            "status": VerificationStatus.PENDING,
+            "tx_digest": cast(str, tx_digest),
+        }
+
+        behaviour = cast(FinalizeBehaviour, self.behaviour.current_state)
+        assert behaviour.params.gas_price is not None
+        assert behaviour.params.nonce is not None
+
+        nonce_used = Nonce(int(cast(str, msg1.raw_transaction.body["nonce"])))
+        gas_price_used = {
+            gas_price_param: Wei(
+                int(
+                    cast(
+                        str,
+                        msg1.raw_transaction.body[gas_price_param],
+                    )
+                )
+            )
+            for gas_price_param in ("maxPriorityFeePerGas", "maxFeePerGas")
+        }
+
+        # if we are repricing
+        if nonce_used == stored_nonce:
+            assert stored_nonce is not None
+            assert stored_gas_price is not None
+            assert gas_price_used == {
+                gas_price_param: ceil(
+                    stored_gas_price[gas_price_param] * DUMMY_REPRICING_MULTIPLIER
+                )
+                for gas_price_param in ("maxPriorityFeePerGas", "maxFeePerGas")
+            }, "The repriced parameters do not match the ones returned from the gas pricing method!"
+        # if we are not repricing
+        else:
+            assert gas_price_used == {
+                "maxPriorityFeePerGas": DUMMY_MAX_PRIORITY_FEE_PER_GAS,
+                "maxFeePerGas": DUMMY_MAX_FEE_PER_GAS,
+            }, "The used parameters do not match the ones returned from the gas pricing method!"
+
+        hashes = self.tx_settlement_period_state.tx_hashes_history
+        hashes.append(tx_digest)
+
+        self.tx_settlement_period_state.update(
+            tx_hashes_history=hashes,
+            final_verification_status=tx_data["status"],
+        )
+
+    def validate_tx(self) -> None:
+        """Validate the sent transaction."""
+
+        handlers: HandlersType = [
+            self.ledger_handler,
+            self.contract_handler,
+        ]
+        expected_content: ExpectedContentType = [
+            {"performative": LedgerApiMessage.Performative.TRANSACTION_RECEIPT},
+            {"performative": ContractApiMessage.Performative.STATE},
+        ]
+        expected_types: ExpectedTypesType = [
+            {
+                "transaction_receipt": TransactionReceipt,
+            },
+            {
+                "state": State,
+            },
+        ]
+        _, verif_msg = self.process_n_messages(
+            2,
+            self.tx_settlement_period_state,
+            ValidateTransactionBehaviour.state_id,
+            handlers,
+            expected_content,
+            expected_types,
+        )
+        assert verif_msg is not None and isinstance(verif_msg, ContractApiMessage)
+        assert verif_msg.state.body[
+            "verified"
+        ], f"Message not verified: {verif_msg.state.body}"
+
+        self.tx_settlement_period_state.update(
+            final_verification_status=VerificationStatus.VERIFIED,
+            final_tx_hash=self.tx_settlement_period_state.to_be_validated_tx_hash,
+        )
+
+
+class _HarHatHelperIntegration(_IntegrationBaseCase):
     """Base test class for integration tests with HardHat provider."""
 
     hardhat_provider: BaseProvider
@@ -335,43 +539,28 @@ class _HarHatIntegrationBaseCase(_IntegrationBaseCase):
 
 
 class GnosisIntegrationBaseCase(
-    _SafeConfiguredIntegrationBaseCase, _HarHatIntegrationBaseCase, HardHatAMMBaseTest
+    _TxHelperIntegration, _HarHatHelperIntegration, HardHatAMMBaseTest
 ):
     """Base test class for integration tests in a Hardhat environment, with Gnosis deployed."""
 
     # TODO change this class to use the `HardHatGnosisBaseTest` instead of `HardHatAMMBaseTest`.
-
-    safe_contract_address: str = "0x68FCdF52066CcE5612827E872c45767E5a1f6551"
-    ethereum_api: EthereumApi
-    gnosis_instance: Any
 
     @classmethod
     def setup(cls, **kwargs: Any) -> None:
         """Setup."""
         super().setup()
 
-        # register gnosis and offchain aggregator contracts
-        directory = Path(ROOT_DIR, "packages", "valory", "contracts", "gnosis_safe")
-        gnosis = get_register_contract(directory)
+        # register offchain aggregator contract
         directory = Path(
             ROOT_DIR, "packages", "valory", "contracts", "offchain_aggregator"
         )
         _ = get_register_contract(directory)
 
-        cls.ethereum_api = make_ledger_api("ethereum")
-        cls.gnosis_instance = gnosis.get_instance(
-            cls.ethereum_api, cls.safe_contract_address
-        )
-
 
 class AMMIntegrationBaseCase(
-    _SafeConfiguredIntegrationBaseCase, _HarHatIntegrationBaseCase, HardHatAMMBaseTest
+    _TxHelperIntegration, _HarHatHelperIntegration, HardHatAMMBaseTest
 ):
     """Base test class for integration tests in a Hardhat environment, with AMM interaction."""
-
-    safe_contract_address: str = "0x68FCdF52066CcE5612827E872c45767E5a1f6551"
-    ethereum_api: EthereumApi
-    gnosis_instance: Any
 
     @classmethod
     def setup(cls, **kwargs: Any) -> None:
@@ -389,10 +578,3 @@ class AMMIntegrationBaseCase(
         _ = get_register_contract(directory)
         directory = Path(ROOT_DIR, "packages", "valory", "contracts", "multisend")
         _ = get_register_contract(directory)
-        directory = Path(ROOT_DIR, "packages", "valory", "contracts", "gnosis_safe")
-        gnosis = get_register_contract(directory)
-
-        cls.ethereum_api = make_ledger_api("ethereum")
-        cls.gnosis_instance = gnosis.get_instance(
-            cls.ethereum_api, cls.safe_contract_address
-        )

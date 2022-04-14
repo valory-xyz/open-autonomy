@@ -19,68 +19,50 @@
 
 """Tests for valory/liquidity_rebalancing_abci skill behaviours with Hardhat."""
 
-import binascii
 import json
 from copy import deepcopy
 from pathlib import Path
-from typing import Any, Dict, List, cast
-from typing import Optional
+from typing import Any, Dict, List, Optional, cast
 
 from aea.helpers.transaction.base import RawTransaction, State
 from aea.skills.base import Handler
 from web3 import Web3
 
-from packages.open_aea.protocols.signing import SigningMessage
-from packages.open_aea.protocols.signing.custom_types import (
-    RawTransaction,
-    SignedTransaction,
-)
 from packages.valory.contracts.gnosis_safe.contract import SafeOperation
 from packages.valory.protocols.contract_api import ContractApiMessage
-from packages.valory.protocols.ledger_api import LedgerApiMessage
-from packages.valory.protocols.ledger_api.custom_types import (
-    State,
-    TransactionDigest,
-    TransactionReceipt,
-)
 from packages.valory.skills.abstract_round_abci.base import StateDB
 from packages.valory.skills.liquidity_rebalancing_abci.behaviours import (
     EnterPoolTransactionHashBehaviour,
     ExitPoolTransactionHashBehaviour,
+    LiquidityRebalancingConsensusBehaviour,
     SAFE_TX_GAS_ENTER,
     SAFE_TX_GAS_EXIT,
     SAFE_TX_GAS_SWAP_BACK,
     SwapBackTransactionHashBehaviour,
     parse_tx_token_balance,
-    LiquidityRebalancingConsensusBehaviour,
 )
 from packages.valory.skills.liquidity_rebalancing_abci.handlers import (
-    LedgerApiHandler,
-    HttpHandler,
     ContractApiHandler,
+    HttpHandler,
+    LedgerApiHandler,
     SigningHandler,
 )
 from packages.valory.skills.liquidity_rebalancing_abci.rounds import (
     PeriodState as LiquidityRebalancingPeriodState,
 )
-from packages.valory.skills.transaction_settlement_abci.behaviours import (
-    FinalizeBehaviour,
-    ValidateTransactionBehaviour,
-)
 from packages.valory.skills.transaction_settlement_abci.payload_tools import (
     hash_payload_to_hex,
 )
-from packages.valory.skills.transaction_settlement_abci.payloads import SignaturePayload
 from packages.valory.skills.transaction_settlement_abci.rounds import (
     PeriodState as TransactionSettlementPeriodState,
 )
+
 from tests.conftest import ROOT_DIR
 from tests.test_skills.base import FSMBehaviourBaseCase
 from tests.test_skills.integration.base import (
     AMMIntegrationBaseCase,
     ExpectedContentType,
     ExpectedTypesType,
-    HandlersType,
 )
 from tests.test_skills.test_liquidity_rebalancing_abci.test_behaviours import (
     A_WETH_POOL_ADDRESS,
@@ -90,8 +72,6 @@ from tests.test_skills.test_liquidity_rebalancing_abci.test_behaviours import (
     TOKEN_A_ADDRESS,
     TOKEN_B_ADDRESS,
     WETH_ADDRESS,
-)
-from tests.test_skills.test_liquidity_rebalancing_abci.test_behaviours import (
     get_default_strategy,
 )
 
@@ -122,7 +102,6 @@ class LiquidityProvisionIntegrationBaseCase(
     exit_nonce: int
     swap_back_nonce: int
     default_period_state_hash: LiquidityRebalancingPeriodState
-    default_period_state_settlement: TransactionSettlementPeriodState
 
     @classmethod
     def setup(cls, **kwargs: Any) -> None:
@@ -170,7 +149,7 @@ class LiquidityProvisionIntegrationBaseCase(
 
         keeper_retries = 1
         keepers = next(iter(cls.agents.keys()))
-        cls.default_period_state_settlement = TransactionSettlementPeriodState(
+        cls.tx_settlement_period_state = TransactionSettlementPeriodState(
             StateDB(
                 initial_period=0,
                 initial_data=dict(
@@ -208,131 +187,30 @@ class LiquidityProvisionIntegrationBaseCase(
                         decoded_logs.append({name: decoded_log})
         return decoded_logs
 
-    def send_and_validate(
-        self,
-        tx_hash: str,
-        data: bytes,
-        to_address: str,
-        safe_tx_gas: int,
-        operation: int,
-    ) -> str:
-        """Send and validate a transaction"""
-        # Sign and send the transaction
-        participant_to_signature = {
-            address: SignaturePayload(
-                sender=address,
-                signature=crypto.sign_message(
-                    binascii.unhexlify(tx_hash),
-                    is_deprecated_mode=True,
-                )[2:],
-            )
-            for address, crypto in self.safe_owners.items()
-        }
-
-        payload_string = hash_payload_to_hex(
-            tx_hash,
-            ether_value=0,
-            safe_tx_gas=safe_tx_gas,
-            to_address=to_address,
-            data=data,
-            operation=operation,
-        )
-
-        period_state = cast(
-            TransactionSettlementPeriodState,
-            self.default_period_state_settlement.update(
-                most_voted_tx_hash=payload_string,
-                participant_to_signature=participant_to_signature,
-            ),
-        )
-
-        handlers: HandlersType = [
-            self.contract_handler,
-            self.signing_handler,
-            self.ledger_handler,
-        ]
-        expected_content: ExpectedContentType = [
-            {
-                "performative": ContractApiMessage.Performative.RAW_TRANSACTION  # type: ignore
-            },
-            {
-                "performative": SigningMessage.Performative.SIGNED_TRANSACTION  # type: ignore
-            },
-            {
-                "performative": LedgerApiMessage.Performative.TRANSACTION_DIGEST  # type: ignore
-            },
-        ]
-        expected_types: ExpectedTypesType = [
-            {
-                "raw_transaction": RawTransaction,
-            },
-            {
-                "signed_transaction": SignedTransaction,
-            },
-            {
-                "transaction_digest": TransactionDigest,
-            },
-        ]
-        _, _, msg = self.process_n_messages(
-            3,
-            period_state,
-            FinalizeBehaviour.state_id,
-            handlers,
-            expected_content,
-            expected_types,
-        )
-        assert msg is not None and isinstance(msg, LedgerApiMessage)
-        tx_digest = msg.transaction_digest.body
-
-        # Validate the transaction
-
-        period_state = cast(
-            TransactionSettlementPeriodState,
-            self.default_period_state_settlement.update(
-                most_voted_tx_hash=payload_string,
-                tx_hashes_history=[tx_digest],
-            ),
-        )
-
-        handlers = [
-            self.ledger_handler,
-            self.contract_handler,
-        ]
-        expected_content = [
-            {
-                "performative": LedgerApiMessage.Performative.TRANSACTION_RECEIPT  # type: ignore
-            },
-            {"performative": ContractApiMessage.Performative.STATE},  # type: ignore
-        ]
-        expected_types = [
-            {
-                "transaction_receipt": TransactionReceipt,
-            },
-            {
-                "state": State,
-            },
-        ]
-        _, verif_msg = self.process_n_messages(
-            2,
-            period_state,
-            ValidateTransactionBehaviour.state_id,
-            handlers,
-            expected_content,
-            expected_types,
-        )
-        assert verif_msg is not None and isinstance(verif_msg, ContractApiMessage)
-        assert verif_msg.state.body[
-            "verified"
-        ], f"Message not verified: {verif_msg.state.body}"
+    def validate_tx(self) -> None:
+        """Validate the sent transaction."""
+        super().validate_tx()
 
         # eventually replace with https://pypi.org/project/eth-event/
-        receipt = self.ethereum_api.get_transaction_receipt(tx_digest)
+        receipt = self.ethereum_api.get_transaction_receipt(
+            self.tx_settlement_period_state.to_be_validated_tx_hash
+        )
         logs = self.get_decoded_logs(self.gnosis_instance, receipt)
+
         assert all(
             [key != "ExecutionFailure" for dict_ in logs for key in dict_.keys()]
         )
 
-        return tx_digest
+    def send_and_validate(
+        self,
+    ) -> None:
+        """Send and validate a transaction"""
+        # Sign the transaction
+        self.sign_tx()
+        # Send the transaction
+        self.send_tx()
+        # Validate the transaction
+        self.validate_tx()
 
 
 class TestLiquidityRebalancingHardhat(LiquidityProvisionIntegrationBaseCase):
@@ -381,14 +259,22 @@ class TestLiquidityRebalancingHardhat(LiquidityProvisionIntegrationBaseCase):
         tx_hash_enter = cast(str, msg_b.raw_transaction.body["tx_hash"])[2:]
         assert tx_hash_enter == self.most_voted_tx_hash_enter
 
-        # Send and validate
-        tx_digest_enter = self.send_and_validate(
-            tx_hash=tx_hash_enter,
-            data=bytes.fromhex(self.multisend_data_enter),
-            to_address=self.multisend_contract_address,
-            safe_tx_gas=SAFE_TX_GAS_ENTER,
-            operation=SafeOperation.DELEGATE_CALL.value,
+        payload = hash_payload_to_hex(
+            tx_hash_enter,
+            0,
+            SAFE_TX_GAS_ENTER,
+            self.multisend_contract_address,
+            bytes.fromhex(self.multisend_data_enter),
+            SafeOperation.DELEGATE_CALL.value,
         )
+
+        # update period state with safe's tx hash
+        self.tx_settlement_period_state.update(
+            most_voted_tx_hash=payload,
+        )
+
+        # Sign, send, validate
+        self.send_and_validate()
 
         # EXIT POOL ------------------------------------------------------
 
@@ -399,7 +285,7 @@ class TestLiquidityRebalancingHardhat(LiquidityProvisionIntegrationBaseCase):
             LiquidityRebalancingPeriodState,
             self.default_period_state_hash.update(
                 most_voted_strategy=json.dumps(strategy),
-                final_tx_hash=tx_digest_enter,
+                final_tx_hash=self.tx_settlement_period_state.final_tx_hash,
             ),
         )
 
@@ -520,14 +406,22 @@ class TestLiquidityRebalancingHardhat(LiquidityProvisionIntegrationBaseCase):
             amount_lp_received == 1000
         ), f"LP amount received is not correct: {amount_lp_received} != 1000"
 
-        # Send and validate
-        tx_digest_exit = self.send_and_validate(
-            tx_hash=tx_hash_exit,
-            data=bytes.fromhex(self.multisend_data_exit),
-            to_address=self.multisend_contract_address,
-            safe_tx_gas=SAFE_TX_GAS_EXIT,
-            operation=SafeOperation.DELEGATE_CALL.value,
+        payload = hash_payload_to_hex(
+            tx_hash_exit,
+            0,
+            SAFE_TX_GAS_EXIT,
+            self.multisend_contract_address,
+            bytes.fromhex(self.multisend_data_exit),
+            SafeOperation.DELEGATE_CALL.value,
         )
+
+        # update period state with safe's tx hash
+        self.tx_settlement_period_state.update(
+            most_voted_tx_hash=payload,
+        )
+
+        # Sign, send, validate
+        self.send_and_validate()
 
         # SWAP BACK ------------------------------------------------------
 
@@ -538,7 +432,7 @@ class TestLiquidityRebalancingHardhat(LiquidityProvisionIntegrationBaseCase):
             LiquidityRebalancingPeriodState,
             self.default_period_state_hash.update(
                 most_voted_strategy=json.dumps(strategy),
-                final_tx_hash=tx_digest_exit,
+                final_tx_hash=self.tx_settlement_period_state.final_tx_hash,
             ),
         )
 
@@ -627,11 +521,19 @@ class TestLiquidityRebalancingHardhat(LiquidityProvisionIntegrationBaseCase):
             amount_b_received == 1000
         ), f"Token B amount received is not correct: {amount_b_received} != 1000"
 
-        # Send and validate
-        self.send_and_validate(
-            tx_hash=tx_hash_swap_back,
-            data=bytes.fromhex(self.multisend_data_swap_back),
-            to_address=self.multisend_contract_address,
-            safe_tx_gas=SAFE_TX_GAS_SWAP_BACK,
-            operation=SafeOperation.DELEGATE_CALL.value,
+        payload = hash_payload_to_hex(
+            tx_hash_swap_back,
+            0,
+            SAFE_TX_GAS_SWAP_BACK,
+            self.multisend_contract_address,
+            bytes.fromhex(self.multisend_data_swap_back),
+            SafeOperation.DELEGATE_CALL.value,
         )
+
+        # update period state with safe's tx hash
+        self.tx_settlement_period_state.update(
+            most_voted_tx_hash=payload,
+        )
+
+        # Sign, send, validate
+        self.send_and_validate()
