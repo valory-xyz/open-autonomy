@@ -54,17 +54,17 @@ jobs:
     - uses: actions/setup-python@master
       with:
         python-version: ${{ matrix.python-version }}
-    # - name: Install dependencies
-    #   run:  |
-    #     sudo apt-get update --fix-missing
-    #     sudo apt-get autoremove
-    #     sudo apt-get autoclean
-    #     pip install tox
-    #     pip install --user --upgrade setuptools
-    # - name: Check copyright
-    #   run: tox -e check-copyright
-    # - name: Check docs
-    #   run: tox -e check-api-docs
+    - name: Install dependencies
+      run:  |
+        sudo apt-get update --fix-missing
+        sudo apt-get autoremove
+        sudo apt-get autoclean
+        pip install tox
+        pip install --user --upgrade setuptools
+    - name: Check copyright
+      run: tox -e check-copyright
+    - name: Check docs
+      run: tox -e check-api-docs
 
   linter_checks:
     continue-on-error: False
@@ -82,52 +82,52 @@ jobs:
     - uses: actions/setup-python@master
       with:
         python-version: ${{ matrix.python-version }}
-    # - name: Install dependencies
-    #   run:  |
-    #     sudo apt-get update --fix-missing
-    #     sudo apt-get autoremove
-    #     sudo apt-get autoclean
-    #     pip install tox
-    #     pip install --user --upgrade setuptools
-    #     # install Protobuf compiler
-    #     wget https://github.com/protocolbuffers/protobuf/releases/download/v3.19.4/protoc-3.19.4-linux-x86_64.zip
-    #     unzip protoc-3.19.4-linux-x86_64.zip -d protoc
-    #     sudo mv protoc/bin/protoc /usr/local/bin/protoc
-    #     # install IPFS
-    #     sudo apt-get install -y wget
-    #     sudo npm install -g markdown-spellcheck
-    #     wget -O ./go-ipfs.tar.gz https://dist.ipfs.io/go-ipfs/v0.6.0/go-ipfs_v0.6.0_linux-amd64.tar.gz
-    #     tar xvfz go-ipfs.tar.gz
-    #     sudo mv go-ipfs/ipfs /usr/local/bin/ipfs
-    #     ipfs init
-    #     make protolint_install
-    # - name: Check generate protocols
-    #   run: tox -e check-generate-all-protocols
-    # - name: Security checks
-    #   run: |
-    #     tox -e bandit
-    #     tox -e safety
-    # - name: Check packages
-    #   run: tox -e check-packages
-    # - name: Check hash
-    #   run: tox -e check-hash
-    # - name: Code style check
-    #   run: |
-    #     tox -e black-check
-    #     tox -e isort-check
-    #     tox -e flake8
-    #     tox -e vulture
-    #     tox -e darglint
-    # - name: Static type check
-    #   run: tox -e mypy
-    # - name: Pylint
-    #   run: tox -e pylint
-    # - name: Check spelling
-    #   run: tox -e spell-check
-    # - name: AbciApp consistency checks
-    #   run: |
-    #     tox -e check-abci-docstrings
-    #     tox -e check-abciapp-specs
+    - name: Install dependencies
+      run:  |
+        sudo apt-get update --fix-missing
+        sudo apt-get autoremove
+        sudo apt-get autoclean
+        pip install tox
+        pip install --user --upgrade setuptools
+        # install Protobuf compiler
+        wget https://github.com/protocolbuffers/protobuf/releases/download/v3.19.4/protoc-3.19.4-linux-x86_64.zip
+        unzip protoc-3.19.4-linux-x86_64.zip -d protoc
+        sudo mv protoc/bin/protoc /usr/local/bin/protoc
+        # install IPFS
+        sudo apt-get install -y wget
+        sudo npm install -g markdown-spellcheck
+        wget -O ./go-ipfs.tar.gz https://dist.ipfs.io/go-ipfs/v0.6.0/go-ipfs_v0.6.0_linux-amd64.tar.gz
+        tar xvfz go-ipfs.tar.gz
+        sudo mv go-ipfs/ipfs /usr/local/bin/ipfs
+        ipfs init
+        make protolint_install
+    - name: Check generate protocols
+      run: tox -e check-generate-all-protocols
+    - name: Security checks
+      run: |
+        tox -e bandit
+        tox -e safety
+    - name: Check packages
+      run: tox -e check-packages
+    - name: Check hash
+      run: tox -e check-hash
+    - name: Code style check
+      run: |
+        tox -e black-check
+        tox -e isort-check
+        tox -e flake8
+        tox -e vulture
+        tox -e darglint
+    - name: Static type check
+      run: tox -e mypy
+    - name: Pylint
+      run: tox -e pylint
+    - name: Check spelling
+      run: tox -e spell-check
+    - name: AbciApp consistency checks
+      run: |
+        tox -e check-abci-docstrings
+        tox -e check-abciapp-specs
 
   test:
     continue-on-error: True
