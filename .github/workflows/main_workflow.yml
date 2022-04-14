@@ -230,6 +230,9 @@ jobs:
     timeout-minutes: 40
 
     steps:
+      - name: Fix permission issue
+        run: |
+          git config --global --add safe.directory /github/workspace
       - uses: actions/checkout@master
       - name: Checkout submodules
         uses: srt32/git-actions@v0.0.3
