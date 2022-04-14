@@ -12,7 +12,7 @@ build:
     docker:
       dockerfile: Dockerfile
       buildArgs:
-        AEA_VERSION: "latest"
+        AEA_VERSION: "0.1.6"
 
   - image: valory/consensus-algorithms-tendermint
     context: deployments/Dockerfiles/localnode/
@@ -44,4 +44,4 @@ profiles:
         value: Dockerfile.develop
       - op: add
         path: /build/artifacts/0/docker/cliFlags
-        value: ["no-cache", "true", "pull", "true", "force-rm", "true"]
+        value: ["--no-cache", "--pull", "--force-rm"]

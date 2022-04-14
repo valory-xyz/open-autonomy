@@ -1,23 +1,23 @@
 # ABCI Applications
 
-In this section, we describe the ABCI-based Finite-State Machine Application
-(`ABCIApp`), the Finite-State Machine Behaviour (`AbstractRoundBehaviour`),
+In this section, we describe the ABCI-based FSM Application
+(`ABCIApp`), the FSM Behaviour (`AbstractRoundBehaviour`),
 and the interplay between the two. An understanding of the
-[Application BlockChain Interface](./abci.md) and the constituents parts of
-a [Finite State Machines](./fsm.md) - the `Period` containing a sequence of
-concrete implementations of the `AbstractRound`, the implementation of
-`Behavior` to be executed during these rounds, and the `PeriodState` providing
-access to the shared state throughout a `Period` - is a prerequisite to
-understanding how ABCI applications interact with the consensus engine.
+[ABCI](./abci.md) and the constituents parts of
+the Valory [FSMs](./fsm.md) (namely, the `Period` containing a sequence of
+concrete implementations of the `AbstractRound`; the implementation of
+`Behavior` to be executed during these rounds; and the `PeriodState` providing
+access to the shared state throughout a `Period`) is a prerequisite to
+understan how ABCI applications interact with the consensus engine.
 
 
-## The `ABCIApp`: an ABCI-based replicated FSM
+## The `ABCIApp`: an ABCI-Based Replicated FSM
 
-The `ABCIApp` is a finite-state machine implemented as an ABCI Application,
-that defines the finite-state machine of a period of the consensus on a
-temporary blockchain. We call _round_ a state in an ABCIApp, and _period_ an
-execution of the `ABCIApp`. The state of the `ABCIApp` is updated through
-transactions committed to a temporary blockchain.
+The `ABCIApp` is a FSM implemented as an ABCI Application,
+defining the transitions of a `Period` of the consensus on a
+temporary blockchain.<!-- We call _round_ a state in an ABCIApp, and _period_ an execution of the `ABCIApp`. -->
+The state of the `ABCIApp` is updated through
+transactions committed to the temporary blockchain.
 
 This ledger is local with respect to the `Period`, which is to say that its
 existence is controlled by, and only relevant in context of, the Period. It is

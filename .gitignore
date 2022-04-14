@@ -1,4 +1,5 @@
 deployments/Dockerfiles/open_aea/packages
+deployments/persistent_data
 # Local .terraform directories
 kubeconfig
 aws_creds
