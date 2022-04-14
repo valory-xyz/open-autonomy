@@ -396,24 +396,3 @@ class AMMIntegrationBaseCase(
         cls.gnosis_instance = gnosis.get_instance(
             cls.ethereum_api, cls.safe_contract_address
         )
-
-
-class LiquidityRebalancingBehaviourBaseCase(FSMBehaviourBaseCase):
-    """Base case for testing LiquidityRebalancing FSMBehaviour."""
-
-    path_to_skill = Path(
-        ROOT_DIR, "packages", "valory", "skills", "liquidity_provision_abci"
-    )
-
-    behaviour: LiquidityRebalancingConsensusBehaviour
-    ledger_handler: LedgerApiHandler
-    http_handler: HttpHandler
-    contract_handler: ContractApiHandler
-    signing_handler: SigningHandler
-
-
-class OracleBehaviourBaseCase(FSMBehaviourBaseCase):
-    """Base case for testing the oracle."""
-
-    path_to_skill = Path(ROOT_DIR, "packages", "valory", "skills", "oracle_abci")
-    behaviour: OracleAbciAppConsensusBehaviour
