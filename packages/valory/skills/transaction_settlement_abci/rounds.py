@@ -430,9 +430,9 @@ class ValidateTransactionRound(VotingRound):
                 period_state_class=self.period_state_class,
                 participant_to_votes=self.collection,
                 final_verification_status=VerificationStatus.VERIFIED,
-                final_tx_hash=cast(PeriodState, self.period_state).tx_hashes_history[
-                    -1
-                ],
+                final_tx_hash=cast(
+                    PeriodState, self.period_state
+                ).to_be_validated_tx_hash,
             )  # type: ignore
             return state, self.done_event
         if self.negative_vote_threshold_reached:

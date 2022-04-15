@@ -37,7 +37,7 @@ from typing import (
 )
 
 from aea.protocols.base import Message
-from web3.types import Nonce, TxData
+from web3.types import Nonce, TxData, Wei
 
 from packages.valory.contracts.gnosis_safe.contract import GnosisSafeContract
 from packages.valory.protocols.contract_api.message import ContractApiMessage
@@ -84,7 +84,7 @@ from packages.valory.skills.transaction_settlement_abci.rounds import (
 )
 
 
-TxDataType = Dict[str, Union[VerificationStatus, str, int]]
+TxDataType = Dict[str, Union[VerificationStatus, str]]
 
 
 drand_check = VerifyDrand()
@@ -110,8 +110,6 @@ class TransactionSettlementBaseState(BaseState, ABC):
         tx_data: TxDataType = {
             "status": VerificationStatus.PENDING,
             "tx_digest": "",
-            "nonce": "",
-            "max_priority_fee_per_gas": "",
         }
 
         if (
@@ -150,26 +148,32 @@ class TransactionSettlementBaseState(BaseState, ABC):
             return tx_data
 
         tx_data["tx_digest"] = cast(str, tx_digest)
-        tx_data["nonce"] = int(cast(str, message.raw_transaction.body["nonce"]))
-        tx_data["max_priority_fee_per_gas"] = int(
-            cast(
-                str,
-                message.raw_transaction.body["maxPriorityFeePerGas"],
+
+        nonce = Nonce(int(cast(str, message.raw_transaction.body["nonce"])))
+        gas_price = {
+            gas_price_param: Wei(
+                int(
+                    cast(
+                        str,
+                        message.raw_transaction.body[gas_price_param],
+                    )
+                )
             )
-        )
+            for gas_price_param in ("maxPriorityFeePerGas", "maxFeePerGas")
+        }
         # Set hash, nonce and tip.
         self.params.tx_hash = cast(str, tx_data["tx_digest"])
-        nonce = Nonce(int(cast(str, tx_data["nonce"])))
-        tip = int(cast(str, tx_data["max_priority_fee_per_gas"]))
         if nonce == self.params.nonce:
             self.context.logger.info(
                 "Attempting to replace transaction "
-                f"with old tip {self.params.tip}, using new tip {tip}"
+                f"with old gas price parameters {self.params.gas_price}, using new gas price parameters {gas_price}"
             )
         else:
-            self.context.logger.info(f"Sent transaction for mining with tip {tip}")
+            self.context.logger.info(
+                f"Sent transaction for mining with gas parameters {gas_price}"
+            )
             self.params.nonce = nonce
-        self.params.tip = tip
+        self.params.gas_price = gas_price
 
         return tx_data
 
@@ -667,10 +671,13 @@ class FinalizeBehaviour(TransactionSettlementBaseState):
                 self.context.logger.debug(
                     f"Signatures: {pprint.pformat(self.period_state.participant_to_signature)}"
                 )
-            tx_data["status"] = cast(VerificationStatus, tx_data["status"]).value
+            tx_data_serialized = {
+                "tx_digest": tx_data["tx_digest"],
+                "status": cast(VerificationStatus, tx_data["status"]).value,
+            }
             payload = FinalizationTxPayload(
                 self.context.agent_address,
-                cast(Dict[str, Union[str, int]], tx_data),
+                cast(Dict[str, Union[str, int]], tx_data_serialized),
             )
 
         with self.context.benchmark_tool.measure(self.state_id).consensus():
@@ -681,7 +688,7 @@ class FinalizeBehaviour(TransactionSettlementBaseState):
 
     def _send_safe_transaction(
         self,
-    ) -> Generator[None, None, Dict[str, Union[VerificationStatus, str, int]]]:
+    ) -> Generator[None, None, TxDataType]:
         """Send a Safe transaction using the participants' signatures."""
         tx_params = skill_input_hex_to_payload(self.period_state.most_voted_tx_hash)
 
@@ -701,7 +708,7 @@ class FinalizeBehaviour(TransactionSettlementBaseState):
                 for key, payload in self.period_state.participant_to_signature.items()
             },
             nonce=self.params.nonce,
-            old_tip=self.params.tip,
+            old_price=self.params.gas_price,
             operation=tx_params["operation"],
         )
 
