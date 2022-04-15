@@ -66,6 +66,7 @@ class TransactionParams(BaseParams):
         :param args: positional arguments
         :param kwargs: keyword arguments
         """
+        self.tx_hash: str = ""
         self.nonce: Optional[Nonce] = None
         self.gas_price: Optional[Dict[str, Wei]] = None
         self.late_messages: List[ContractApiMessage] = []

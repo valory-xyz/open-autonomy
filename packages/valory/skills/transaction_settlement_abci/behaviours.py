@@ -22,7 +22,19 @@ import binascii
 import pprint
 from abc import ABC
 from collections import deque
-from typing import Any, Deque, Dict, Generator, Optional, Set, Tuple, Type, Union, cast
+from typing import (
+    Any,
+    Deque,
+    Dict,
+    Generator,
+    Iterator,
+    Optional,
+    Set,
+    Tuple,
+    Type,
+    Union,
+    cast,
+)
 
 from aea.protocols.base import Message
 from web3.types import Nonce, TxData, Wei
@@ -149,7 +161,9 @@ class TransactionSettlementBaseState(BaseState, ABC):
             )
             for gas_price_param in ("maxPriorityFeePerGas", "maxFeePerGas")
         }
-        # Set nonce and tip.
+        # Set hash, nonce and tip.
+        self.params.tx_hash = cast(str, tx_data["tx_digest"])
+        nonce = Nonce(int(cast(str, tx_data["nonce"])))
         if nonce == self.params.nonce:
             self.context.logger.info(
                 "Attempting to replace transaction "
@@ -518,14 +532,19 @@ class SynchronizeLateMessagesBehaviour(TransactionSettlementBaseState):
     def __init__(self, **kwargs: Any):
         """Initialize a `SynchronizeLateMessagesBehaviour`"""
         super().__init__(**kwargs)
-        self._tx_hashes: str = ""
+        # if we timed out during finalization, but we managed to receive a tx hash,
+        # then we sync it here by initializing the `_tx_hashes` with the unsynced hash.
+        self._tx_hashes: str = self.params.tx_hash
+        self._messages_iterator: Iterator[ContractApiMessage] = iter(
+            self.params.late_messages
+        )
 
     def async_act(self) -> Generator:
         """Do the action."""
 
         with self.context.benchmark_tool.measure(self.state_id).local():
-            if len(self.params.late_messages) > 0:
-                current_message = self.params.late_messages.pop()
+            current_message = next(self._messages_iterator, None)
+            if current_message is not None:
                 tx_data = yield from self._get_tx_data(current_message)
                 # here, we concatenate the tx_hashes of all the late-arriving messages. Later, we will parse them.
                 self._tx_hashes += cast(str, tx_data["tx_digest"])
@@ -541,9 +560,14 @@ class SynchronizeLateMessagesBehaviour(TransactionSettlementBaseState):
 
         self.set_done()
 
-    def set_done(self) -> None:
-        """Set the behaviour to done and clean the local late message parameter."""
-        super().set_done()
+    def clean_up(self) -> None:
+        """
+        Clean up the behaviour.
+
+        Clean the local `tx_hash` and `late_messages` parameters if we were able to complete the round,
+        and have therefore been synced.
+        """
+        self.params.tx_hash = ""
         self.params.late_messages = []
 
 
@@ -691,6 +715,10 @@ class FinalizeBehaviour(TransactionSettlementBaseState):
 
         tx_data = yield from self._get_tx_data(contract_api_msg)
         return tx_data
+
+    def clean_up(self) -> None:
+        """Clean the local tx hash parameter if we were able to complete the round, and have therefore been synced."""
+        self.params.tx_hash = ""
 
     def handle_late_messages(self, message: Message) -> None:
         """Store a potentially late-arriving message locally.
