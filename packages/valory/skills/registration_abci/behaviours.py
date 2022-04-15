@@ -112,7 +112,7 @@ class RegistrationStartupBehaviour(RegistrationBaseBehaviour):
             contract_address=self.params.service_registry_address,
             contract_id=str(ServiceRegistryContract.contract_id),
             contract_callable="get_service_info",
-            # service_id=self.params.on_chain_service_id
+            service_id=self.params.on_chain_service_id
         )
         if contract_api_response.performative != performative:
             self.context.logger.warning("get_service_info unsuccessful!")
