@@ -213,6 +213,13 @@ class TransactionSettlementIntegrationBaseCase(
             most_voted_tx_hash=payload,
         )
 
+    def clear_unmined_txs(self) -> None:
+        """Clear all unmined txs. Mined txs will not be cleared, but this is not a problem."""
+        for tx in self.tx_settlement_period_state.tx_hashes_history:
+            self.hardhat_provider.make_request(
+                RPCEndpoint("hardhat_dropTransaction"), (tx,)
+            )
+
     @staticmethod
     def dummy_try_get_gas_pricing_wrapper(
         max_priority_fee_per_gas: Wei = DUMMY_MAX_PRIORITY_FEE_PER_GAS,
@@ -262,11 +269,7 @@ class TestRepricing(TransactionSettlementIntegrationBaseCase):
                 self._test_same_keeper()
 
         finally:
-            # clear all unmined txs. Mined txs will not be cleared, but this is not a problem
-            for tx in self.tx_settlement_period_state.tx_hashes_history:
-                self.hardhat_provider.make_request(
-                    RPCEndpoint("hardhat_dropTransaction"), (tx,)
-                )
+            self.clear_unmined_txs()
 
     def _test_same_keeper(self) -> None:
         """
