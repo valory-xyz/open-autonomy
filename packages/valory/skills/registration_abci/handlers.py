@@ -31,9 +31,13 @@ from packages.valory.skills.abstract_round_abci.handlers import (
 from packages.valory.skills.abstract_round_abci.handlers import (
     SigningHandler as AbstractRoundSigningHandler,
 )
+from packages.valory.skills.abstract_round_abci.handlers import (
+    TendermintHandler as AbstractRoundTendermintHandler,
+)
 
 
 HttpHandler = AbstractRoundHttpHandler
 SigningHandler = AbstractRoundSigningHandler
 LedgerApiHandler = AbstractRoundLedgerApiHandler
 ContractApiHandler = AbstractRoundContractApiHandler
+TendermintHandler = AbstractRoundTendermintHandler

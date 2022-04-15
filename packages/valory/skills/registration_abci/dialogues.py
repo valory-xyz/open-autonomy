@@ -18,7 +18,12 @@
 # ------------------------------------------------------------------------------
 
 """This module contains the classes required for dialogue management."""
-
+from packages.valory.protocols.tendermint.dialogues import (
+    TendermintDialogue as BaseTendermintDialogue,
+)
+from packages.valory.protocols.tendermint.dialogues import (
+    TendermintDialogues as BaseTendermintDialogues,
+)
 from packages.valory.skills.abstract_round_abci.dialogues import (
     AbciDialogue as BaseAbciDialogue,
 )
@@ -69,3 +74,7 @@ LedgerApiDialogues = BaseLedgerApiDialogues
 
 ContractApiDialogue = BaseContractApiDialogue
 ContractApiDialogues = BaseContractApiDialogues
+
+
+TendermintDialogue = BaseTendermintDialogue
+TendermintDialogues = BaseTendermintDialogues

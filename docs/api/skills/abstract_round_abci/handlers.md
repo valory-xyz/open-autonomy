@@ -192,3 +192,13 @@ class ContractApiHandler(AbstractResponseHandler)
 
 Implement the contract api handler.
 
+<a id="packages.valory.skills.abstract_round_abci.handlers.TendermintHandler"></a>
+
+## TendermintHandler Objects
+
+```python
+class TendermintHandler(AbstractResponseHandler)
+```
+
+The Tendermint request / response handler.
+
