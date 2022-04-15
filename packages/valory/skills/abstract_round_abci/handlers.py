@@ -32,6 +32,7 @@ from packages.valory.protocols.abci.custom_types import Events
 from packages.valory.protocols.contract_api import ContractApiMessage
 from packages.valory.protocols.http import HttpMessage
 from packages.valory.protocols.ledger_api import LedgerApiMessage
+from packages.valory.protocols.tendermint.message import TendermintMessage
 from packages.valory.skills.abstract_abci.handlers import ABCIHandler
 from packages.valory.skills.abstract_round_abci.base import (
     ABCIAppInternalError,
@@ -413,5 +414,18 @@ class ContractApiHandler(AbstractResponseHandler):
             ContractApiMessage.Performative.RAW_MESSAGE,
             ContractApiMessage.Performative.ERROR,
             ContractApiMessage.Performative.STATE,
+        }
+    )
+
+
+class TendermintHandler(AbstractResponseHandler):
+    """The Tendermint request / response handler."""
+
+    SUPPORTED_PROTOCOL: Optional[PublicId] = TendermintMessage.protocol_id
+    allowed_response_performatives = frozenset(
+        {
+            TendermintMessage.Performative.ERROR,
+            TendermintMessage.Performative.TENDERMINT_CONFIG_REQUEST,
+            TendermintMessage.Performative.TENDERMINT_CONFIG_RESPONSE,
         }
     )
