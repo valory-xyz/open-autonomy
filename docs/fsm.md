@@ -112,7 +112,7 @@ In order to define more formally a period, two sets of special states are define
 
 In order to facilitate rapid development of complex applications, the {{valory_stack}} offers a mechanism to extend and reuse already develoed components known as _FSM composition_.
 
-Departing from a collection of FSMs, sayFSM$_1$, FSM$_2$, ..., FSM$_n$, a composed FSM can be constructed with a composition mechanism that follows certain rules. Most importantly, an FSM$_i$ can transit from a final state to a start state of another FSM$_j$. If such a inter-FSM transition is defined, the composition mechanism will enforce that all the transitions ending in the final state of FSM$_i$ be re-arranged to point to the corresponding start state of FSM$_j$. The collection of transitions between FSMs are described in what we call the _FSM transition mapping_.
+Departing from a collection of FSMs, say FSM1, FSM2, ..., FSM$n$, a composed FSM can be constructed with a composition mechanism that follows certain rules. Most importantly, an FSM$i$ can transit from a final state to a start state of another FSM$j$. If such a inter-FSM transition is defined, the composition mechanism will enforce that all the transitions ending in the final state of FSM$i$ be re-arranged to point to the corresponding start state of FSM$j$. The collection of transitions between FSMs are described in what we call the _FSM transition mapping_.
 
 <figure markdown>
   ![](./images/fsm_composition.svg){align=center}
@@ -125,7 +125,7 @@ The figure above depicts a excerpt of a composition stage of three FSMs. Note ho
 
 !!!note
     For clarity, the snippets of code presented here are a simplified version of the actual
-    implementation. We refer the reader to the {{open_aea_api}} for the complete details.
+    implementation. We refer the reader to the {{valory_stack_api}} for the complete details.
 
 Now, we discuss the main components of the {{valory_stack}} FSMs presented above. Namely,
 `Round`, `Behaviour`, `Period`, `PeriodState`, and `Event`. The `abstract_round_abci` skill implements the abstract classes for
@@ -337,7 +337,7 @@ class CollectSameUntilThresholdRound(CollectionRound):
 ### Period
 
 The implementation of a period is used to set up the
-local consensus engine and the [ABCI application](./abci_app.md), and facilitates
+local consensus engine and the [ABCI application](./abci_app_intro.md), and facilitates
 the interaction between these two.
 
 ```python
@@ -352,5 +352,5 @@ class Period:
 ```
 
 The actual round transition logic is implemented as part of the
-[Application BlockChain Interface Application](./abci_app.md) and the
+[Application BlockChain Interface Application](./abci_app_intro.md) and the
 `AbstractRoundBehaviour` is in control of its execution.

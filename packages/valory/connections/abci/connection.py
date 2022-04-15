@@ -338,7 +338,8 @@ class TcpServerChannel:  # pylint: disable=too-many-instance-attributes
             self.logger.warning(f"Could not create dialogue for message={message}")
             return
 
-        peer_name = self._request_id_to_socket[dialogue.incomplete_dialogue_label]
+        # we only deal with atomic request-response cycles, so it is safe to remove the reference
+        peer_name = self._request_id_to_socket.pop(dialogue.incomplete_dialogue_label)
         _reader, writer = self._streams_by_socket[peer_name]
         protobuf_message = _TendermintProtocolEncoder.process(message)
         data = _TendermintABCISerializer.write_message(protobuf_message)
