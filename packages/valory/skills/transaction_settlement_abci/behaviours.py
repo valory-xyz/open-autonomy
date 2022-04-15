@@ -22,10 +22,22 @@ import binascii
 import pprint
 from abc import ABC
 from collections import deque
-from typing import Any, Deque, Dict, Generator, Optional, Set, Tuple, Type, Union, cast
+from typing import (
+    Any,
+    Deque,
+    Dict,
+    Generator,
+    Iterator,
+    Optional,
+    Set,
+    Tuple,
+    Type,
+    Union,
+    cast,
+)
 
 from aea.protocols.base import Message
-from web3.types import Nonce, TxData
+from web3.types import Nonce, TxData, Wei
 
 from packages.valory.contracts.gnosis_safe.contract import GnosisSafeContract
 from packages.valory.protocols.contract_api.message import ContractApiMessage
@@ -72,7 +84,7 @@ from packages.valory.skills.transaction_settlement_abci.rounds import (
 )
 
 
-TxDataType = Dict[str, Union[VerificationStatus, str, int]]
+TxDataType = Dict[str, Union[VerificationStatus, str]]
 
 
 drand_check = VerifyDrand()
@@ -98,8 +110,6 @@ class TransactionSettlementBaseState(BaseState, ABC):
         tx_data: TxDataType = {
             "status": VerificationStatus.PENDING,
             "tx_digest": "",
-            "nonce": "",
-            "max_priority_fee_per_gas": "",
         }
 
         if (
@@ -138,25 +148,32 @@ class TransactionSettlementBaseState(BaseState, ABC):
             return tx_data
 
         tx_data["tx_digest"] = cast(str, tx_digest)
-        tx_data["nonce"] = int(cast(str, message.raw_transaction.body["nonce"]))
-        tx_data["max_priority_fee_per_gas"] = int(
-            cast(
-                str,
-                message.raw_transaction.body["maxPriorityFeePerGas"],
+
+        nonce = Nonce(int(cast(str, message.raw_transaction.body["nonce"])))
+        gas_price = {
+            gas_price_param: Wei(
+                int(
+                    cast(
+                        str,
+                        message.raw_transaction.body[gas_price_param],
+                    )
+                )
             )
-        )
-        # Set nonce and tip.
-        nonce = Nonce(int(cast(str, tx_data["nonce"])))
-        tip = int(cast(str, tx_data["max_priority_fee_per_gas"]))
+            for gas_price_param in ("maxPriorityFeePerGas", "maxFeePerGas")
+        }
+        # Set hash, nonce and tip.
+        self.params.tx_hash = cast(str, tx_data["tx_digest"])
         if nonce == self.params.nonce:
             self.context.logger.info(
                 "Attempting to replace transaction "
-                f"with old tip {self.params.tip}, using new tip {tip}"
+                f"with old gas price parameters {self.params.gas_price}, using new gas price parameters {gas_price}"
             )
         else:
-            self.context.logger.info(f"Sent transaction for mining with tip {tip}")
+            self.context.logger.info(
+                f"Sent transaction for mining with gas parameters {gas_price}"
+            )
             self.params.nonce = nonce
-        self.params.tip = tip
+        self.params.gas_price = gas_price
 
         return tx_data
 
@@ -514,14 +531,19 @@ class SynchronizeLateMessagesBehaviour(TransactionSettlementBaseState):
     def __init__(self, **kwargs: Any):
         """Initialize a `SynchronizeLateMessagesBehaviour`"""
         super().__init__(**kwargs)
-        self._tx_hashes: str = ""
+        # if we timed out during finalization, but we managed to receive a tx hash,
+        # then we sync it here by initializing the `_tx_hashes` with the unsynced hash.
+        self._tx_hashes: str = self.params.tx_hash
+        self._messages_iterator: Iterator[ContractApiMessage] = iter(
+            self.params.late_messages
+        )
 
     def async_act(self) -> Generator:
         """Do the action."""
 
         with self.context.benchmark_tool.measure(self.state_id).local():
-            if len(self.params.late_messages) > 0:
-                current_message = self.params.late_messages.pop()
+            current_message = next(self._messages_iterator, None)
+            if current_message is not None:
                 tx_data = yield from self._get_tx_data(current_message)
                 # here, we concatenate the tx_hashes of all the late-arriving messages. Later, we will parse them.
                 self._tx_hashes += cast(str, tx_data["tx_digest"])
@@ -537,9 +559,14 @@ class SynchronizeLateMessagesBehaviour(TransactionSettlementBaseState):
 
         self.set_done()
 
-    def set_done(self) -> None:
-        """Set the behaviour to done and clean the local late message parameter."""
-        super().set_done()
+    def clean_up(self) -> None:
+        """
+        Clean up the behaviour.
+
+        Clean the local `tx_hash` and `late_messages` parameters if we were able to complete the round,
+        and have therefore been synced.
+        """
+        self.params.tx_hash = ""
         self.params.late_messages = []
 
 
@@ -644,10 +671,13 @@ class FinalizeBehaviour(TransactionSettlementBaseState):
                 self.context.logger.debug(
                     f"Signatures: {pprint.pformat(self.period_state.participant_to_signature)}"
                 )
-            tx_data["status"] = cast(VerificationStatus, tx_data["status"]).value
+            tx_data_serialized = {
+                "tx_digest": tx_data["tx_digest"],
+                "status": cast(VerificationStatus, tx_data["status"]).value,
+            }
             payload = FinalizationTxPayload(
                 self.context.agent_address,
-                cast(Dict[str, Union[str, int]], tx_data),
+                cast(Dict[str, Union[str, int]], tx_data_serialized),
             )
 
         with self.context.benchmark_tool.measure(self.state_id).consensus():
@@ -658,7 +688,7 @@ class FinalizeBehaviour(TransactionSettlementBaseState):
 
     def _send_safe_transaction(
         self,
-    ) -> Generator[None, None, Dict[str, Union[VerificationStatus, str, int]]]:
+    ) -> Generator[None, None, TxDataType]:
         """Send a Safe transaction using the participants' signatures."""
         tx_params = skill_input_hex_to_payload(self.period_state.most_voted_tx_hash)
 
@@ -678,12 +708,16 @@ class FinalizeBehaviour(TransactionSettlementBaseState):
                 for key, payload in self.period_state.participant_to_signature.items()
             },
             nonce=self.params.nonce,
-            old_tip=self.params.tip,
+            old_price=self.params.gas_price,
             operation=tx_params["operation"],
         )
 
         tx_data = yield from self._get_tx_data(contract_api_msg)
         return tx_data
+
+    def clean_up(self) -> None:
+        """Clean the local tx hash parameter if we were able to complete the round, and have therefore been synced."""
+        self.params.tx_hash = ""
 
     def handle_late_messages(self, message: Message) -> None:
         """Store a potentially late-arriving message locally.

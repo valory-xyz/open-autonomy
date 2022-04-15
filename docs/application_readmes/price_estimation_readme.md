@@ -1,20 +1,19 @@
-# ABCI Price Estimation with AEAs
+# ABCI Application Price Oracle with AEAs
 
-This demo is about a network of AEAs reaching
-Byzantine fault-tolerant consensus, powered by Tendermint,
-on a price estimate of Bitcoin price in US dollars.
+This demo consists of a network of AEAs, impemented as {{abci_app}}s reaching
+Byzantine fault-tolerant consensus, that work as an Oracle to jointly agre on a price estimate
+of the current Bitcoin price in US dollars. The udnerlying
+consensus mechanism for the {{abci_app}} is powered by Tendermint.
 
-For more details, please read <a href="../price_estimation/">this page</a>.
+## Requirements
 
-## Preliminaries
-
-Make sure you have installed on your machine:
+In addition to the general requirements presented for setting up the {{valory_stack}}, make sure that you have installed on your machine:
 
 - [Docker Engine](https://docs.docker.com/engine/install/)
 - [Docker Compose](https://docs.docker.com/compose/install/)
 - [Kind](https://kind.sigs.k8s.io/docs/user/quick-start/#installation)
 
-## Run a local demo
+## Running the Local Demo
 
 To set up the network:
 
@@ -24,7 +23,7 @@ make localnet-start
 
 This will spawn:
 
-- a network of 4 Tendermint nodes, each one trying to connect to
+- A network of 4 Tendermint nodes, each one trying to connect to
   a separate ABCI application instance;
 - 4 AEAs, each one running an instance of the ABCI application,
   and a finite-state machine behaviour to interact with
