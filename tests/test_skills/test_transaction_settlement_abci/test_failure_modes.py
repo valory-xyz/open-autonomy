@@ -51,7 +51,12 @@ from packages.valory.skills.price_estimation_abci.behaviours import (
 from packages.valory.skills.price_estimation_abci.rounds import (
     PeriodState as PriceEstimationPeriodState,
 )
+from packages.valory.skills.transaction_settlement_abci.behaviours import (
+    SelectKeeperTransactionSubmissionBehaviourA,
+    SelectKeeperTransactionSubmissionBehaviourB,
+)
 from packages.valory.skills.transaction_settlement_abci.payload_tools import (
+    VerificationStatus,
     hash_payload_to_hex,
 )
 from packages.valory.skills.transaction_settlement_abci.rounds import (
@@ -65,6 +70,7 @@ from tests.test_skills.integration import (
     ExpectedTypesType,
     GnosisIntegrationBaseCase,
     HandlersType,
+    IntegrationBaseCase,
 )
 
 
@@ -213,6 +219,13 @@ class TransactionSettlementIntegrationBaseCase(
             most_voted_tx_hash=payload,
         )
 
+    def clear_unmined_txs(self) -> None:
+        """Clear all unmined txs. Mined txs will not be cleared, but this is not a problem."""
+        for tx in self.tx_settlement_period_state.tx_hashes_history:
+            self.hardhat_provider.make_request(
+                RPCEndpoint("hardhat_dropTransaction"), (tx,)
+            )
+
     @staticmethod
     def dummy_try_get_gas_pricing_wrapper(
         max_priority_fee_per_gas: Wei = DUMMY_MAX_PRIORITY_FEE_PER_GAS,
@@ -262,11 +275,7 @@ class TestRepricing(TransactionSettlementIntegrationBaseCase):
                 self._test_same_keeper()
 
         finally:
-            # clear all unmined txs. Mined txs will not be cleared, but this is not a problem
-            for tx in self.tx_settlement_period_state.tx_hashes_history:
-                self.hardhat_provider.make_request(
-                    RPCEndpoint("hardhat_dropTransaction"), (tx,)
-                )
+            self.clear_unmined_txs()
 
     def _test_same_keeper(self) -> None:
         """
@@ -296,3 +305,103 @@ class TestRepricing(TransactionSettlementIntegrationBaseCase):
         self.send_tx()
         # validate the tx
         self.validate_tx()
+
+
+class TestKeepers(OracleBehaviourBaseCase, IntegrationBaseCase):
+    """Test the keepers related functionality for the tx settlement skill."""
+
+    @classmethod
+    def setup(cls, **kwargs: Any) -> None:
+        """Set up the test class."""
+        super().setup()
+
+        cls.tx_settlement_period_state = TxSettlementPeriodState(
+            StateDB(
+                initial_period=0,
+                initial_data=dict(
+                    participants=frozenset(list(cls.agents.keys())),
+                ),
+            )
+        )
+
+    def select_keeper(self, first_time: bool = False) -> None:
+        """Select a keeper."""
+
+        if first_time:
+            state_id = SelectKeeperTransactionSubmissionBehaviourA.state_id
+        else:
+            state_id = SelectKeeperTransactionSubmissionBehaviourB.state_id
+
+        # select keeper
+        self.fast_forward_to_state(
+            self.behaviour,
+            state_id,
+            self.tx_settlement_period_state,
+        )
+        assert self.behaviour.current_state is not None
+        assert self.behaviour.current_state.state_id == state_id
+
+        self.behaviour.act_wrapper()
+        # update keepers.
+        self.tx_settlement_period_state.update(
+            # we cast to A class, because it is the top level one between A & B, and we need `serialized_keepers`
+            keepers=cast(
+                SelectKeeperTransactionSubmissionBehaviourA,
+                self.behaviour.current_state,
+            ).serialized_keepers
+        )
+
+    def test_keepers_alternating(self) -> None:
+        """Test that we are alternating the keepers when we fail or timeout more than `keeper_allowed_retries` times."""
+        # set randomness
+        self.tx_settlement_period_state.update(
+            most_voted_randomness="0xabcd",
+            final_verification_status=VerificationStatus.PENDING,
+        )
+
+        # select keeper a
+        self.select_keeper(first_time=True)
+        assert isinstance(
+            self.behaviour.current_state, SelectKeeperTransactionSubmissionBehaviourA
+        )
+        assert self.tx_settlement_period_state.keeper_retries == 1
+        assert self.tx_settlement_period_state.is_keeper_set
+        assert (
+            self.tx_settlement_period_state.most_voted_keeper_address
+            == "0xBcd4042DE499D14e55001CcbB24a551F3b954096"
+        )
+
+        for i in range(self.behaviour.current_state.params.keeper_allowed_retries - 1):
+            # select keeper b
+            self.select_keeper()
+            assert isinstance(
+                self.behaviour.current_state,
+                SelectKeeperTransactionSubmissionBehaviourB,
+            )
+            # +2 because we selected once for keeperA and also index starts from 0.
+            assert self.tx_settlement_period_state.keeper_retries == i + 2
+            # ensure that we select the same keeper until the `keeper_allowed_retries` is reached.
+            assert (
+                self.tx_settlement_period_state.most_voted_keeper_address
+                == "0xBcd4042DE499D14e55001CcbB24a551F3b954096"
+            )
+
+        assert (
+            self.tx_settlement_period_state.keeper_retries
+            == self.behaviour.current_state.params.keeper_allowed_retries
+        )
+        # select keeper b after retries are reached.
+        self.select_keeper()
+        assert isinstance(
+            self.behaviour.current_state, SelectKeeperTransactionSubmissionBehaviourB
+        )
+        assert self.tx_settlement_period_state.keeper_retries == 1
+        # ensure that we select another keeper now that the `keeper_allowed_retries` is reached.
+        assert (
+            self.tx_settlement_period_state.most_voted_keeper_address
+            != "0xBcd4042DE499D14e55001CcbB24a551F3b954096"
+        )
+        assert (
+            "0xBcd4042DE499D14e55001CcbB24a551F3b954096"
+            in self.tx_settlement_period_state.keepers
+        )
