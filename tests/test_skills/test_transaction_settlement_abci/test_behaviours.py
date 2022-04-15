@@ -651,7 +651,7 @@ class TestFinalizeBehaviour(TransactionSettlementFSMBehaviourBaseCase):
             )
 
     def test_clean_up(self) -> None:
-        """Test clean-up."""
+        """Ensure that the clean-up method resets the `tx_hash` param properly."""
         self.fast_forward_to_state(
             self.behaviour, self.behaviour_class.state_id, MagicMock()
         )
@@ -919,7 +919,7 @@ class TestSynchronizeLateMessagesBehaviour(TransactionSettlementFSMBehaviourBase
                 self.behaviour.act_wrapper()
 
     def test_clean_up(self) -> None:
-        """Test clean-up."""
+        """Ensure that the clean-up method resets the params properly."""
         self.fast_forward_to_state(
             self.behaviour, SynchronizeLateMessagesBehaviour.state_id, MagicMock()
         )

@@ -527,6 +527,8 @@ class SynchronizeLateMessagesBehaviour(TransactionSettlementBaseState):
     def __init__(self, **kwargs: Any):
         """Initialize a `SynchronizeLateMessagesBehaviour`"""
         super().__init__(**kwargs)
+        # if we timed out during finalization, but we managed to receive a tx hash,
+        # then we sync it here by initializing the `_tx_hashes` with the unsynced hash.
         self._tx_hashes: str = self.params.tx_hash
         self._messages_iterator: Iterator[ContractApiMessage] = iter(
             self.params.late_messages
