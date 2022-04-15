@@ -650,6 +650,18 @@ class TestFinalizeBehaviour(TransactionSettlementFSMBehaviourBaseCase):
                 f"No callback defined for request with nonce: {message.dialogue_reference[0]}"
             )
 
+    def test_clean_up(self) -> None:
+        """Ensure that the clean-up method resets the `tx_hash` param properly."""
+        self.fast_forward_to_state(
+            self.behaviour, self.behaviour_class.state_id, MagicMock()
+        )
+        assert self.behaviour.current_state is not None
+        assert self.behaviour.current_state.state_id == self.behaviour_class.state_id
+
+        self.behaviour.current_state.params.tx_hash = "test"
+        self.behaviour.current_state.clean_up()
+        assert self.behaviour.current_state.params.tx_hash == ""
+
 
 class TestValidateTransactionBehaviour(TransactionSettlementFSMBehaviourBaseCase):
     """Test ValidateTransactionBehaviour."""
@@ -856,9 +868,13 @@ class TestSynchronizeLateMessagesBehaviour(TransactionSettlementFSMBehaviourBase
         state = cast(BaseState, self.behaviour.current_state)
         assert state.state_id == expected.state_id
 
-    @pytest.mark.parametrize("late_message_empty", (True, False))
-    def test_async_act(self, late_message_empty: bool) -> None:
+    @pytest.mark.parametrize("late_messages", ([], [MagicMock, MagicMock]))
+    def test_async_act(self, late_messages: List[MagicMock]) -> None:
         """Test `async_act`"""
+        cast(
+            TransactionSettlementBaseState, self.behaviour.current_state
+        ).params.late_messages = late_messages
+
         participants = frozenset({self.skill.skill_context.agent_address, "a_1", "a_2"})
         self.fast_forward_to_state(
             behaviour=self.behaviour,
@@ -876,10 +892,7 @@ class TestSynchronizeLateMessagesBehaviour(TransactionSettlementFSMBehaviourBase
         )
         self._check_state_id(SynchronizeLateMessagesBehaviour)  # type: ignore
 
-        if late_message_empty:
-            cast(
-                TransactionSettlementBaseState, self.behaviour.current_state
-            ).params.late_messages = []
+        if not late_messages:
             self.behaviour.act_wrapper()
             self.mock_a2a_transaction()
             self._test_done_flag_set()
@@ -887,9 +900,6 @@ class TestSynchronizeLateMessagesBehaviour(TransactionSettlementFSMBehaviourBase
             self._check_state_id(CheckLateTxHashesBehaviour)  # type: ignore
 
         else:
-            cast(
-                TransactionSettlementBaseState, self.behaviour.current_state
-            ).params.late_messages = [MagicMock(), MagicMock()]
 
             def _dummy_get_tx_data(
                 _: ContractApiMessage,
@@ -905,8 +915,22 @@ class TestSynchronizeLateMessagesBehaviour(TransactionSettlementFSMBehaviourBase
             cast(  # type: ignore
                 TransactionSettlementBaseState, self.behaviour.current_state
             )._get_tx_data = _dummy_get_tx_data  # type: ignore
-            self.behaviour.act_wrapper()
-            self.behaviour.act_wrapper()
+            for _ in range(len(late_messages)):
+                self.behaviour.act_wrapper()
+
+    def test_clean_up(self) -> None:
+        """Ensure that the clean-up method resets the params properly."""
+        self.fast_forward_to_state(
+            self.behaviour, SynchronizeLateMessagesBehaviour.state_id, MagicMock()
+        )
+        assert self.behaviour.current_state is not None
+        self._check_state_id(SynchronizeLateMessagesBehaviour)
+
+        self.behaviour.current_state.params.tx_hash = "test"
+        self.behaviour.current_state.params.late_messages = [MagicMock()]
+        self.behaviour.current_state.clean_up()
+        assert self.behaviour.current_state.params.tx_hash == ""
+        assert self.behaviour.current_state.params.late_messages == []
 
 
 class TestResetBehaviour(TransactionSettlementFSMBehaviourBaseCase):
