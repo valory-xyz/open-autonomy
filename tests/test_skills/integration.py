@@ -104,7 +104,7 @@ DUMMY_MAX_FEE_PER_GAS = 4000000000
 DUMMY_REPRICING_MULTIPLIER = 1.1
 
 
-class _IntegrationBaseCase(FSMBehaviourBaseCase):
+class IntegrationBaseCase(FSMBehaviourBaseCase):
     """Base test class for integration tests."""
 
     running_loop: asyncio.AbstractEventLoop
@@ -308,7 +308,7 @@ class _IntegrationBaseCase(FSMBehaviourBaseCase):
         return tuple(incoming_messages)
 
 
-class _SafeConfiguredHelperIntegration(_IntegrationBaseCase):
+class _SafeConfiguredHelperIntegration(IntegrationBaseCase):
     """Base test class for integration tests with Gnosis, but no contract, deployed."""
 
     safe_owners: Dict[str, Crypto]
@@ -522,7 +522,7 @@ class _TxHelperIntegration(_GnosisHelperIntegration):
         )
 
 
-class _HarHatHelperIntegration(_IntegrationBaseCase):
+class _HarHatHelperIntegration(IntegrationBaseCase):
     """Base test class for integration tests with HardHat provider."""
 
     hardhat_provider: BaseProvider
