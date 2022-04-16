@@ -37,4 +37,4 @@ jobs:
     - name: Generate Documentation
       run: tox -e docs
     - name: Check spelling
-      run: tox -e spell_check
+      run: tox -e spell-check
