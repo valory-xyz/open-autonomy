@@ -54,7 +54,7 @@ Every AEA is composed of a number of components that work together to achieve th
 is the "economic brain" of the AEA, where the developers' or users' goals, preferences, message handling and wallet
 control reside. It is composed of a number of components:
     - The [`Wallet`](https://valory-xyz.github.io/open-aea/api/crypto/wallet/),
-    containing access to crypto addresses, public and private_keys.
+    containing access to crypto addresses, public and private keys.
     [`Crypto`](https://valory-xyz.github.io/open-aea/api/crypto/base/) objects
     are used to load and encrypt private keys stored in an agents' environment.
     - A [`Resources`](https://valory-xyz.github.io/open-aea/api/registries/resources/) object,
@@ -93,7 +93,7 @@ as well as reactively by managing incoming messages from other agents via a
 
 
 - Since there might exist a need to share a certain context which is relevant both
-to behaviors and handlers, this can be achieved via a
+to behaviours and handlers, this can be achieved via a
 [`Model`](https://valory-xyz.github.io/open-aea/api/skills/base/#model-objects).
 
 ![Simplified AEA](./images/simplified-aea.jpg)

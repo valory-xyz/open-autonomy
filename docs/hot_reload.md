@@ -12,7 +12,7 @@ OPEN_AEA_REPO_PATH="/path/to/open-aea-repo"
 DEPLOYMENT_TYPE="docker-compose"
 DEPLOYMENT_SPEC="/path/to/deployment-spec"
 ```
-Default deployment specs are stored in `deployments/deployment_specifications`
+Default deployment specifications are stored in `deployments/deployment_specifications`
 
 *Tip: You can also store above variables in .bashrc file*
 

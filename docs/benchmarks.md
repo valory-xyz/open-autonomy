@@ -2,13 +2,13 @@
 
 ## How to use benchmarking tools
 
-1. Setup agent runtime environment using deployment configs given in `deployments/`
+1. Setup agent runtime environment using deployment configurations given in `deployments/`
 2. Run agents for 1 period and wait till the round where you called `BenchmarkTool.save` method. (You can also run agents for N periods if you want more data).
 3. Point aggregation script to the directory containing benchmark data, this will generate a `benchmarks.html` file containing benchmark stats in your current directory.
 
 ## For example
 
-Run benchmarks for oracle/price_esimation skill
+Run benchmarks for oracle/price_estimation skill
 
 ```
 make run-oracle 
