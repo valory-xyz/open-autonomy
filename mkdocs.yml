@@ -27,7 +27,13 @@ nav:
     - Interactions between Components: 'abci_app_interactions.md'
   - Using the Stack:
     - Requirements and Set-Up: 'using_stack_requirements.md'
-    - Cloud Deployment: 'using_stack_deployment.md'
+    - Developer Tooling:
+      - Hot Reload: 'hot_reload.md'
+      - Replay: 'tendermint_replays.md'
+      - Benchmarking: 'benchmarks.md'
+    - Deployment:
+      - Local Deployment: 'application_deployment.md'
+      - Cloud Deployment: 'using_stack_deployment.md'
   - Demos:
     - Simple ABCI: 'simple_abci.md'
     - Price Oracle:

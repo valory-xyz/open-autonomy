@@ -363,3 +363,22 @@ teardown-docker-compose:
 		echo "Deployment torndown!" && \
 		exit 0
 	echo "Failed to teardown deployment!" exit 1
+
+
+.PHONY: check_abci_specs
+check_abci_specs:
+	cp scripts/generate_abciapp_spec.py generate_abciapp_spec.py
+	python generate_abciapp_spec.py -c packages.valory.skills.apy_estimation_abci.rounds.APYEstimationAbciApp > packages/valory/skills/apy_estimation_abci/fsm_specification.yaml || (echo "Failed to check apy_estimation_abci consistency" && exit 1)
+	python generate_abciapp_spec.py -c packages.valory.skills.apy_estimation_chained_abci.composition.APYEstimationAbciAppChained > packages/valory/skills/apy_estimation_chained_abci/fsm_specification.yaml || (echo "Failed to check apy_estimation_chained_abci consistency" && exit 1)
+	python generate_abciapp_spec.py -c packages.valory.skills.liquidity_provision_abci.composition.LiquidityProvisionAbciApp > packages/valory/skills/liquidity_provision_abci/fsm_specification.yaml || (echo "Failed to check liquidity_provision_abci consistency" && exit 1)
+	python generate_abciapp_spec.py -c packages.valory.skills.liquidity_rebalancing_abci.rounds.LiquidityRebalancingAbciApp > packages/valory/skills/liquidity_rebalancing_abci/fsm_specification.yaml || (echo "Failed to check liquidity_rebalancing_abci consistency" && exit 1)
+	python generate_abciapp_spec.py -c packages.valory.skills.oracle_abci.composition.OracleAbciApp > packages/valory/skills/oracle_abci/fsm_specification.yaml || (echo "Failed to check oracle_abci consistency" && exit 1)
+	python generate_abciapp_spec.py -c packages.valory.skills.oracle_deployment_abci.rounds.OracleDeploymentAbciApp > packages/valory/skills/oracle_deployment_abci/fsm_specification.yaml || (echo "Failed to check oracle_deployment_abci consistency" && exit 1)
+	python generate_abciapp_spec.py -c packages.valory.skills.price_estimation_abci.rounds.PriceAggregationAbciApp > packages/valory/skills/price_estimation_abci/fsm_specification.yaml || (echo "Failed to check price_estimation_abci consistency" && exit 1)
+	python generate_abciapp_spec.py -c packages.valory.skills.registration_abci.rounds.AgentRegistrationAbciApp > packages/valory/skills/registration_abci/fsm_specification.yaml || (echo "Failed to check registration_abci consistency" && exit 1)
+	python generate_abciapp_spec.py -c packages.valory.skills.reset_pause_abci.rounds.ResetPauseABCIApp > packages/valory/skills/reset_pause_abci/fsm_specification.yaml || (echo "Failed to check reset_pause_abci consistency" && exit 1)
+	python generate_abciapp_spec.py -c packages.valory.skills.safe_deployment_abci.rounds.SafeDeploymentAbciApp > packages/valory/skills/safe_deployment_abci/fsm_specification.yaml || (echo "Failed to check safe_deployment_abci consistency" && exit 1)
+	python generate_abciapp_spec.py -c packages.valory.skills.simple_abci.rounds.SimpleAbciApp > packages/valory/skills/simple_abci/fsm_specification.yaml || (echo "Failed to check simple_abci consistency" && exit 1)
+	python generate_abciapp_spec.py -c packages.valory.skills.transaction_settlement_abci.rounds.TransactionSubmissionAbciApp > packages/valory/skills/transaction_settlement_abci/fsm_specification.yaml || (echo "Failed to check transaction_settlement_abci consistency" && exit 1)
+	rm generate_abciapp_spec.py
+	echo "Successfully validated abcis!"

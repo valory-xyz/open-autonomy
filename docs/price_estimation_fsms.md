@@ -1,5 +1,5 @@
 ### High-Level Description of the Constituent FSMs.
-For reference, we provide a high-level descritpion of the FSMs that constitute
+For reference, we provide a high-level description of the FSMs that constitute
 the Price Estimation demo using a simplified syntax.
 The syntax should be easy to understand for a reader familiar with conventional
 automata textbook notation.

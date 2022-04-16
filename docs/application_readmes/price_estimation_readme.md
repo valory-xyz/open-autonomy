@@ -1,8 +1,8 @@
 # ABCI Application Price Oracle with AEAs
 
-This demo consists of a network of AEAs, impemented as {{abci_app}}s reaching
-Byzantine fault-tolerant consensus, that work as an Oracle to jointly agre on a price estimate
-of the current Bitcoin price in US dollars. The udnerlying
+This demo consists of a network of AEAs, implemented as {{abci_app}}s reaching
+Byzantine fault-tolerant consensus, that work as an Oracle to jointly agree on a price estimate
+of the current Bitcoin price in US dollars. The underlying
 consensus mechanism for the {{abci_app}} is powered by Tendermint.
 
 ## Requirements

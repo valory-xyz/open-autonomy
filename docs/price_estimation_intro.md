@@ -211,7 +211,7 @@ on-chain in the next block that is mined.
 5. `CheckTransactionHistoryRound` <br/>
    This round is triggered if the `ValidateTransactionRound` returns with
    a `NEGATIVE` `Event`, which means that the transaction has not been validated.
-   During the round, the agents check the transaction history upt to this point again
+   During the round, the agents check the transaction history up to this point again
    in order to specify the cause of the problem, e.g., a transaction of a keeper
    was settled before another keeper managed to do so, a payload is invalid, etc.
 

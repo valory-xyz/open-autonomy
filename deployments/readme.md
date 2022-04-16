@@ -29,11 +29,12 @@ Install the virtual environment:
 make new_env
 ```
 
-Clean up images to ensure no artifacts:
+Optionally, clean up images & build cache to ensure no artefacts (check with `docker system df` for disc space usage):
 
 ```bash
 docker rm -vf $(docker ps -aq)
 docker rmi -f $(docker images -aq)
+docker builder prune --all
 ```
 
 # Step 1
@@ -115,7 +116,7 @@ Successfully initialized 4 node directories
 
 We now need to spin up a local hardhat node so that we have a chain to interact with.
 
-This is done in a seperate terminal via docker as so;
+This is done in a separate terminal via docker as so;
 ```bash
 docker run -p 8545:8545 -it valory/consensus-algorithms-hardhat:0.1.0
 ```
@@ -165,8 +166,8 @@ docker-compose kill
 
 ## Developer mode
 
-In developer mode, the aea docker-image is overwritten and instead launches the aea with watcher.py
-On any changes to components within both the packages directory or the open-aea repository the watcher.py will;
+In developer mode, the aea docker-image is overwritten and instead launches the aea with `watcher.py`
+On any changes to components within both the packages directory or the open-aea repository the `watcher.py` will;
 
 - stop the running aea
 - fingerprint the packages
