@@ -22,7 +22,19 @@
 import time
 from collections import deque
 from pathlib import Path
-from typing import Any, Deque, Dict, Generator, List, Optional, Tuple, Type, Union, cast
+from typing import (
+    Any,
+    Deque,
+    Dict,
+    Generator,
+    List,
+    Optional,
+    Set,
+    Tuple,
+    Type,
+    Union,
+    cast,
+)
 from unittest import mock
 from unittest.mock import MagicMock
 
@@ -319,12 +331,15 @@ class TestSelectKeeperTransactionSubmissionBehaviourB(
         new_callable=mock.PropertyMock,
     )
     @pytest.mark.parametrize(
-        "keepers, keeper_retries, blacklisted",
+        "keepers, keeper_retries, blacklisted_keepers",
         (
-            (deque(f"keeper_{i}" for i in range(4)), 1, False),
-            (deque(("test_keeper",)), 2, True),
-            (deque(("test_keeper",)), 1, False),
-            (deque(("test_keeper",)), 3, False),
+            (deque(f"keeper_{i}" for i in range(4)), 1, set()),
+            (deque(("test_keeper",)), 2, set()),
+            (deque(("test_keeper",)), 2, {"a1"}),
+            (deque(("test_keeper",)), 2, {"test_keeper"}),
+            (deque(("test_keeper",)), 2, {"a_1", "a_2", "test_keeper"}),
+            (deque(("test_keeper",)), 1, set()),
+            (deque(("test_keeper",)), 3, set()),
         ),
     )
     def test_select_keeper(
@@ -333,27 +348,12 @@ class TestSelectKeeperTransactionSubmissionBehaviourB(
         keepers_mock: mock.PropertyMock,
         keepers: Deque[str],
         keeper_retries: int,
-        blacklisted: bool,
+        blacklisted_keepers: Set[str],
     ) -> None:
         """Test select keeper agent."""
         keepers_mock.return_value = keepers
         keeper_retries_mock.return_value = keeper_retries
-        super().test_select_keeper(blacklisted=blacklisted)
-
-    @mock.patch.object(
-        TransactionSettlementPeriodState,
-        "keepers",
-        new_callable=mock.PropertyMock,
-    )
-    @pytest.mark.parametrize(
-        "keepers", (deque(f"keeper_{i}" for i in range(4)), deque(("test_keeper",)))
-    )
-    def test_select_keeper_preexisting_keeper(
-        self, keepers_mock: mock.PropertyMock, keepers: Deque[str]
-    ) -> None:
-        """Test select keeper agent with pre-existing keeper."""
-        keepers_mock.return_value = keepers
-        super().test_select_keeper()
+        super().test_select_keeper(blacklisted_keepers)
 
 
 class TestSignatureBehaviour(TransactionSettlementFSMBehaviourBaseCase):
