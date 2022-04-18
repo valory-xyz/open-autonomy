@@ -417,7 +417,12 @@ class TestKeepers(OracleBehaviourBaseCase, IntegrationBaseCase):
     def test_rotation(self) -> None:
         """Test keepers rotating when threshold reached."""
         # set more keepers than the threshold
-        keepers = deque(("0xBcd4042DE499D14e55001CcbB24a551F3b954096", "0x71bE63f3384f5fb98995898A86B02Fb2426c5788"))
+        keepers = deque(
+            (
+                "0xBcd4042DE499D14e55001CcbB24a551F3b954096",
+                "0x71bE63f3384f5fb98995898A86B02Fb2426c5788",
+            )
+        )
         keeper_retries = 1
 
         self.tx_settlement_period_state.update(
@@ -430,12 +435,10 @@ class TestKeepers(OracleBehaviourBaseCase, IntegrationBaseCase):
             # select keeper b
             self.select_keeper()
             assert isinstance(
-                self.behaviour.current_state, SelectKeeperTransactionSubmissionBehaviourB
+                self.behaviour.current_state,
+                SelectKeeperTransactionSubmissionBehaviourB,
             )
             assert self.tx_settlement_period_state.keeper_retries == 1
             assert self.tx_settlement_period_state.is_keeper_set
             expected_keepers.rotate(-1)
-            assert (
-                    self.tx_settlement_period_state.keepers
-                    == expected_keepers
-            )
+            assert self.tx_settlement_period_state.keepers == expected_keepers
