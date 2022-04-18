@@ -70,17 +70,6 @@ def keepers() -> Deque[str]
 
 Get the current cycle's keepers who have tried to submit a transaction.
 
-<a id="packages.valory.skills.transaction_settlement_abci.rounds.PeriodState.blacklisted_keepers"></a>
-
-#### blacklisted`_`keepers
-
-```python
-@property
-def blacklisted_keepers() -> Set[str]
-```
-
-Get the current cycle's blacklisted keepers who cannot submit a transaction.
-
 <a id="packages.valory.skills.transaction_settlement_abci.rounds.PeriodState.keepers_threshold_exceeded"></a>
 
 #### keepers`_`threshold`_`exceeded
