@@ -353,7 +353,7 @@ class TestKeepers(OracleBehaviourBaseCase, IntegrationBaseCase):
 
     def test_keepers_alternating(self) -> None:
         """Test that we are alternating the keepers when we fail or timeout more than `keeper_allowed_retries` times."""
-        # set randomness
+        # init period state
         self.tx_settlement_period_state.update(
             most_voted_randomness="0xabcd",
             final_verification_status=VerificationStatus.PENDING,
