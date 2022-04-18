@@ -118,6 +118,9 @@ inter-FSM
 Chainlink
 Libp2p
 libp2p
+RandomnessStartupRound
+SelectKeeperAtStartupRound
+SimpleAbciApp
  - docs/index.md
 README.md
 s_

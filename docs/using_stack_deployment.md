@@ -6,11 +6,12 @@ The deployment has been implemented using a minimal distribution of Kubernetes t
 
 This approach leads to a number of key benefits for node operators and infrastructure providers:
 
-1. No reliance upon an individual provider. We currently provide coverage for both Digital Ocean and for Amazon Web Services (AWS).
+1. No reliance upon an individual provider. We currently provide documentation coverage for both Digital Ocean and for Amazon Web Services (AWS).
 2. Lower costs compared to using a managed alternative.
 3. Easily portable across different cloud providers.
 
 We have 3 deployment options available for external operators.
+
 - Docker Compose: This approach is advised for beginners/less experienced users.
 - Kubernetes Cluster: We provide full deployments for Kubernetes:
     - Single Node - This deployment approach is recommended for individual applications.
@@ -43,7 +44,7 @@ The domain can be acquired from a domain registrar such as [goDaddy](https://www
 git clone git@github.com:valory-xyz/external-node-operators.git
 ```
 
-### Setup on Digital Ocean Cloud Provider
+#### Setup on Digital Ocean Cloud Provider
 1. We need to first create an authentication file to be used by terraform to create cloud resources. This can be done from the [API Settings](https://cloud.digitalocean.com/account/api/tokens). Save this file within the root directory as ```infra/do_token```
 2. Now we have our authentication token, we need to setup the domain we registered earlier. This is again done from the [Network & Domains](https://cloud.digitalocean.com/networking/domains) section of Digital Ocean.
 3. Create a new domain by entering your domain
@@ -62,7 +63,7 @@ terraform apply # deploy resources and approve when prompted.
 ```
 This will generate a kubeconfig which can be used to interact with the newly deployed resources. NOTE. This provides root access to the cluster so ensure that it is protected.
 
-### Setup on AWS
+#### Setup on AWS Cloud Provider
 1. Login to AWS console.
 2. Create a Hosted Zone.
 3. Use the Hosted Zones generated Nameservers to update the registrar with the correct Nameservers
