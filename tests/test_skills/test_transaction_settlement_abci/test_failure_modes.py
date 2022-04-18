@@ -18,6 +18,7 @@
 # ------------------------------------------------------------------------------
 
 """Integration tests for various transaction settlement skill's failure modes."""
+from collections import deque
 from math import ceil
 from pathlib import Path
 from typing import Any, Callable, Dict, Optional, cast
@@ -315,11 +316,13 @@ class TestKeepers(OracleBehaviourBaseCase, IntegrationBaseCase):
         """Set up the test class."""
         super().setup()
 
+        # init period state
         cls.tx_settlement_period_state = TxSettlementPeriodState(
             StateDB(
                 initial_period=0,
                 initial_data=dict(
                     participants=frozenset(list(cls.agents.keys())),
+                    most_voted_randomness="0xabcd",
                 ),
             )
         )
@@ -353,9 +356,8 @@ class TestKeepers(OracleBehaviourBaseCase, IntegrationBaseCase):
 
     def test_keepers_alternating(self) -> None:
         """Test that we are alternating the keepers when we fail or timeout more than `keeper_allowed_retries` times."""
-        # set randomness
+        # set verification status
         self.tx_settlement_period_state.update(
-            most_voted_randomness="0xabcd",
             final_verification_status=VerificationStatus.PENDING,
         )
 
@@ -370,6 +372,8 @@ class TestKeepers(OracleBehaviourBaseCase, IntegrationBaseCase):
             self.tx_settlement_period_state.most_voted_keeper_address
             == "0xBcd4042DE499D14e55001CcbB24a551F3b954096"
         )
+        # ensure that we only have one keeper.
+        assert len(self.tx_settlement_period_state.keepers) == 1
 
         for i in range(self.behaviour.current_state.params.keeper_allowed_retries - 1):
             # select keeper b
@@ -385,6 +389,8 @@ class TestKeepers(OracleBehaviourBaseCase, IntegrationBaseCase):
                 self.tx_settlement_period_state.most_voted_keeper_address
                 == "0xBcd4042DE499D14e55001CcbB24a551F3b954096"
             )
+            # ensure that we only have one keeper.
+            assert len(self.tx_settlement_period_state.keepers) == 1
 
         assert (
             self.tx_settlement_period_state.keeper_retries
@@ -405,3 +411,34 @@ class TestKeepers(OracleBehaviourBaseCase, IntegrationBaseCase):
             "0xBcd4042DE499D14e55001CcbB24a551F3b954096"
             in self.tx_settlement_period_state.keepers
         )
+        # ensure that we only have two keepers, the old one and the new one.
+        assert len(self.tx_settlement_period_state.keepers) == 2
+
+    def test_rotation(self) -> None:
+        """Test keepers rotating when threshold reached."""
+        # set more keepers than the threshold
+        keepers = deque(
+            (
+                "0xBcd4042DE499D14e55001CcbB24a551F3b954096",
+                "0x71bE63f3384f5fb98995898A86B02Fb2426c5788",
+            )
+        )
+        keeper_retries = 1
+
+        self.tx_settlement_period_state.update(
+            keepers=int(keeper_retries).to_bytes(32, "big").hex() + "".join(keepers),
+        )
+
+        expected_keepers = keepers.copy()
+        # test twice as many times as the number of participants
+        for _ in range(len(self.tx_settlement_period_state.participants) * 2):
+            # select keeper b
+            self.select_keeper()
+            assert isinstance(
+                self.behaviour.current_state,
+                SelectKeeperTransactionSubmissionBehaviourB,
+            )
+            assert self.tx_settlement_period_state.keeper_retries == 1
+            assert self.tx_settlement_period_state.is_keeper_set
+            expected_keepers.rotate(-1)
+            assert self.tx_settlement_period_state.keepers == expected_keepers

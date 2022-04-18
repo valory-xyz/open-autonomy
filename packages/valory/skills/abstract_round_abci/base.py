@@ -664,6 +664,11 @@ class BasePeriodState:
         return self.db.get("most_voted_keeper_address", None) is not None
 
     @property
+    def blacklisted_keepers(self) -> Set[str]:
+        """Get the current cycle's blacklisted keepers who cannot submit a transaction."""
+        return cast(Set[str], self.db.get("blacklisted_keepers", set()))
+
+    @property
     def participant_to_selection(self) -> Mapping:
         """Check whether keeper is set."""
         return cast(Dict, self.db.get_strict("participant_to_selection"))
