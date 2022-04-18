@@ -370,6 +370,8 @@ class TestKeepers(OracleBehaviourBaseCase, IntegrationBaseCase):
             self.tx_settlement_period_state.most_voted_keeper_address
             == "0xBcd4042DE499D14e55001CcbB24a551F3b954096"
         )
+        # ensure that we only have one keeper.
+        assert len(self.tx_settlement_period_state.keepers) == 1
 
         for i in range(self.behaviour.current_state.params.keeper_allowed_retries - 1):
             # select keeper b
@@ -385,6 +387,8 @@ class TestKeepers(OracleBehaviourBaseCase, IntegrationBaseCase):
                 self.tx_settlement_period_state.most_voted_keeper_address
                 == "0xBcd4042DE499D14e55001CcbB24a551F3b954096"
             )
+            # ensure that we only have one keeper.
+            assert len(self.tx_settlement_period_state.keepers) == 1
 
         assert (
             self.tx_settlement_period_state.keeper_retries
@@ -405,3 +409,5 @@ class TestKeepers(OracleBehaviourBaseCase, IntegrationBaseCase):
             "0xBcd4042DE499D14e55001CcbB24a551F3b954096"
             in self.tx_settlement_period_state.keepers
         )
+        # ensure that we only have two keepers, the old one and the new one.
+        assert len(self.tx_settlement_period_state.keepers) == 2
