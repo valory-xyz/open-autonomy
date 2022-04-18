@@ -75,8 +75,8 @@ class RegistrationStartupRound(CollectDifferentUntilAllRound):
         ):
             initialisation = json.loads(self.most_voted_payload)
             state = self.period_state.update(
-                participants=self.collection,
-                all_participants=self.collection,
+                participants=frozenset(self.collection),
+                all_participants=frozenset(self.collection),
                 period_state_class=BasePeriodState,
                 **initialisation,
             )
@@ -86,8 +86,8 @@ class RegistrationStartupRound(CollectDifferentUntilAllRound):
             and self.block_confirmations > self.required_block_confirmations
         ):
             state = self.period_state.update(
-                participants=self.collection,
-                all_participants=self.collection,
+                participants=frozenset(self.collection),
+                all_participants=frozenset(self.collection),
                 period_state_class=BasePeriodState,
             )
             return state, Event.DONE
@@ -113,7 +113,7 @@ class RegistrationRound(CollectDifferentUntilThresholdRound):
             > self.required_block_confirmations  # we also wait here as it gives more (available) agents time to join
         ):
             state = self.period_state.update(
-                participants=frozenset(list(self.collection.keys())),
+                participants=frozenset(self.collection),
                 period_state_class=BasePeriodState,
             )
             return state, Event.DONE

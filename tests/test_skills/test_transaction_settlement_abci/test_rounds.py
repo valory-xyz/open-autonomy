@@ -665,6 +665,7 @@ def test_period_states() -> None:
                 final_tx_hash=final_tx_hash,
                 late_arriving_tx_hashes=late_arriving_tx_hashes,
                 keepers=keepers,
+                blacklisted_keepers={"test"},
             ),
         )
     )
@@ -679,7 +680,9 @@ def test_period_states() -> None:
     assert period_state_____.keeper_retries == 1
     assert period_state_____.most_voted_keeper_address == expected_keepers.popleft()
     assert period_state_____.keepers_threshold_exceeded
-    assert isinstance(period_state_____.blacklisted_keepers, set)
+    assert period_state_____.blacklisted_keepers == {"test"}
+    updated_state = period_state_____.update(period_count=1)
+    assert updated_state.blacklisted_keepers == set()
 
     # test wrong tx hashes serialization
     period_state_____.update(late_arriving_tx_hashes=["test"])

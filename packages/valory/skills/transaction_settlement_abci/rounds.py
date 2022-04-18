@@ -126,11 +126,6 @@ class PeriodState(BasePeriodState):  # pylint: disable=too-many-instance-attribu
         return deque()
 
     @property
-    def blacklisted_keepers(self) -> Set[str]:
-        """Get the current cycle's blacklisted keepers who cannot submit a transaction."""
-        return cast(Set[str], self.db.get("blacklisted_keepers", set()))
-
-    @property
     def keepers_threshold_exceeded(self) -> bool:
         """Check if the number of selected keepers has exceeded the allowed limit."""
         malicious_threshold = self.nb_participants // 3
