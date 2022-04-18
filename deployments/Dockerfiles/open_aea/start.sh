@@ -25,4 +25,4 @@ else
 fi
 aea add-key ethereum
 aea install
-aea run --aev
+aea run --aev --profiling 60
