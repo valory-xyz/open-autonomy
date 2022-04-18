@@ -315,11 +315,13 @@ class TestKeepers(OracleBehaviourBaseCase, IntegrationBaseCase):
         """Set up the test class."""
         super().setup()
 
+        # init period state
         cls.tx_settlement_period_state = TxSettlementPeriodState(
             StateDB(
                 initial_period=0,
                 initial_data=dict(
                     participants=frozenset(list(cls.agents.keys())),
+                    most_voted_randomness="0xabcd",
                 ),
             )
         )
@@ -353,9 +355,8 @@ class TestKeepers(OracleBehaviourBaseCase, IntegrationBaseCase):
 
     def test_keepers_alternating(self) -> None:
         """Test that we are alternating the keepers when we fail or timeout more than `keeper_allowed_retries` times."""
-        # init period state
+        # set verification status
         self.tx_settlement_period_state.update(
-            most_voted_randomness="0xabcd",
             final_verification_status=VerificationStatus.PENDING,
         )
 
