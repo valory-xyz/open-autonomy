@@ -126,6 +126,9 @@ class TestTransactionSettlementBaseState(PriceEstimationFSMBehaviourBaseCase):
                 None,
                 RPCResponseStatus.SUCCESS,
                 {
+                    "blacklisted_keepers": set(),
+                    "keeper_retries": 2,
+                    "keepers": deque(("agent_1" + "-" * 35, "agent_3" + "-" * 35)),
                     "status": VerificationStatus.VERIFIED,
                     "tx_digest": "",
                 },
@@ -138,6 +141,9 @@ class TestTransactionSettlementBaseState(PriceEstimationFSMBehaviourBaseCase):
                 None,
                 RPCResponseStatus.SUCCESS,
                 {
+                    "blacklisted_keepers": set(),
+                    "keeper_retries": 2,
+                    "keepers": deque(("agent_1" + "-" * 35, "agent_3" + "-" * 35)),
                     "status": VerificationStatus.ERROR,
                     "tx_digest": "",
                 },
@@ -148,6 +154,9 @@ class TestTransactionSettlementBaseState(PriceEstimationFSMBehaviourBaseCase):
                 None,
                 RPCResponseStatus.SUCCESS,
                 {
+                    "blacklisted_keepers": set(),
+                    "keeper_retries": 2,
+                    "keepers": deque(("agent_1" + "-" * 35, "agent_3" + "-" * 35)),
                     "status": VerificationStatus.PENDING,
                     "tx_digest": "",
                 },
@@ -158,6 +167,9 @@ class TestTransactionSettlementBaseState(PriceEstimationFSMBehaviourBaseCase):
                 None,
                 RPCResponseStatus.INCORRECT_NONCE,
                 {
+                    "blacklisted_keepers": set(),
+                    "keeper_retries": 2,
+                    "keepers": deque(("agent_1" + "-" * 35, "agent_3" + "-" * 35)),
                     "status": VerificationStatus.ERROR,
                     "tx_digest": "",
                 },
@@ -168,6 +180,9 @@ class TestTransactionSettlementBaseState(PriceEstimationFSMBehaviourBaseCase):
                 None,
                 RPCResponseStatus.INSUFFICIENT_FUNDS,
                 {
+                    "blacklisted_keepers": {"agent_1" + "-" * 35},
+                    "keeper_retries": 1,
+                    "keepers": deque(("agent_3" + "-" * 35,)),
                     "status": VerificationStatus.BLACKLIST,
                     "tx_digest": "",
                 },
@@ -178,6 +193,9 @@ class TestTransactionSettlementBaseState(PriceEstimationFSMBehaviourBaseCase):
                 None,
                 RPCResponseStatus.UNCLASSIFIED_ERROR,
                 {
+                    "blacklisted_keepers": set(),
+                    "keeper_retries": 2,
+                    "keepers": deque(("agent_1" + "-" * 35, "agent_3" + "-" * 35)),
                     "status": VerificationStatus.PENDING,
                     "tx_digest": "",
                 },
@@ -188,6 +206,9 @@ class TestTransactionSettlementBaseState(PriceEstimationFSMBehaviourBaseCase):
                 None,
                 RPCResponseStatus.UNDERPRICED,
                 {
+                    "blacklisted_keepers": set(),
+                    "keeper_retries": 2,
+                    "keepers": deque(("agent_1" + "-" * 35, "agent_3" + "-" * 35)),
                     "status": VerificationStatus.PENDING,
                     "tx_digest": "",
                 },
@@ -207,6 +228,9 @@ class TestTransactionSettlementBaseState(PriceEstimationFSMBehaviourBaseCase):
                 "test_digest",
                 RPCResponseStatus.SUCCESS,
                 {
+                    "blacklisted_keepers": set(),
+                    "keeper_retries": 2,
+                    "keepers": deque(("agent_1" + "-" * 35, "agent_3" + "-" * 35)),
                     "status": VerificationStatus.PENDING,
                     "tx_digest": "test_digest",
                 },
@@ -226,6 +250,9 @@ class TestTransactionSettlementBaseState(PriceEstimationFSMBehaviourBaseCase):
                 "test_digest",
                 RPCResponseStatus.SUCCESS,
                 {
+                    "blacklisted_keepers": set(),
+                    "keeper_retries": 2,
+                    "keepers": deque(("agent_1" + "-" * 35, "agent_3" + "-" * 35)),
                     "status": VerificationStatus.PENDING,
                     "tx_digest": "test_digest",
                 },
@@ -251,7 +278,9 @@ class TestTransactionSettlementBaseState(PriceEstimationFSMBehaviourBaseCase):
                 StateDB(
                     initial_period=0,
                     initial_data=dict(
-                        most_voted_tx_hash="b0e6add595e00477cf347d09797b156719dc5233283ac76e4efce2a674fe72d900000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000002625a000x77E9b2EF921253A171Fa0CB9ba80558648Ff7215b0e6add595e00477cf347d09797b156719dc5233283ac76e4efce2a674fe72d9b0e6add595e00477cf347d09797b156719dc5233283ac76e4efce2a674fe72d9"
+                        most_voted_tx_hash="b0e6add595e00477cf347d09797b156719dc5233283ac76e4efce2a674fe72d900000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000002625a000x77E9b2EF921253A171Fa0CB9ba80558648Ff7215b0e6add595e00477cf347d09797b156719dc5233283ac76e4efce2a674fe72d9b0e6add595e00477cf347d09797b156719dc5233283ac76e4efce2a674fe72d9",
+                        keepers=int(2).to_bytes(32, "big").hex()
+                        + "".join(deque(("agent_1" + "-" * 35, "agent_3" + "-" * 35))),
                     ),
                 )
             ),
