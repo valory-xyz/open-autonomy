@@ -339,7 +339,7 @@ Represent a transaction payload of type 'finalization'.
 #### `__`init`__`
 
 ```python
-def __init__(sender: str, tx_data: Optional[Dict[str, Union[str, int]]] = None, **kwargs: Any) -> None
+def __init__(sender: str, tx_data: Optional[Dict[str, Union[str, int, bool]]] = None, **kwargs: Any) -> None
 ```
 
 Initialize an 'finalization' transaction payload.
@@ -356,7 +356,7 @@ Initialize an 'finalization' transaction payload.
 
 ```python
 @property
-def tx_data() -> Optional[Dict[str, Union[str, int]]]
+def tx_data() -> Optional[Dict[str, Union[str, int, bool]]]
 ```
 
 Get the tx_data.
@@ -367,7 +367,7 @@ Get the tx_data.
 
 ```python
 @property
-def data() -> Dict[str, Dict[str, Union[str, int]]]
+def data() -> Dict[str, Dict[str, Union[str, int, bool]]]
 ```
 
 Get the data.

@@ -36,6 +36,17 @@ def params() -> TransactionParams
 
 Return the params.
 
+<a id="packages.valory.skills.transaction_settlement_abci.behaviours.TransactionSettlementBaseState.serialized_keepers"></a>
+
+#### serialized`_`keepers
+
+```python
+@staticmethod
+def serialized_keepers(keepers: Deque[str], keeper_retries: int) -> str
+```
+
+Get the keepers serialized.
+
 <a id="packages.valory.skills.transaction_settlement_abci.behaviours.RandomnessTransactionSubmissionBehaviour"></a>
 
 ## RandomnessTransactionSubmissionBehaviour Objects
@@ -57,27 +68,6 @@ class SelectKeeperTransactionSubmissionBehaviourA(  # pylint: disable=too-many-a
 
 Select the keeper agent.
 
-<a id="packages.valory.skills.transaction_settlement_abci.behaviours.SelectKeeperTransactionSubmissionBehaviourA.__init__"></a>
-
-#### `__`init`__`
-
-```python
-def __init__(**kwargs: Any) -> None
-```
-
-Initialize behaviour.
-
-<a id="packages.valory.skills.transaction_settlement_abci.behaviours.SelectKeeperTransactionSubmissionBehaviourA.serialized_keepers"></a>
-
-#### serialized`_`keepers
-
-```python
-@property
-def serialized_keepers() -> str
-```
-
-Get the keepers serialized.
-
 <a id="packages.valory.skills.transaction_settlement_abci.behaviours.SelectKeeperTransactionSubmissionBehaviourA.async_act"></a>
 
 #### async`_`act
@@ -98,16 +88,6 @@ class SelectKeeperTransactionSubmissionBehaviourB(  # pylint: disable=too-many-a
 ```
 
 Select the keeper b agent.
-
-<a id="packages.valory.skills.transaction_settlement_abci.behaviours.SelectKeeperTransactionSubmissionBehaviourB.setup"></a>
-
-#### setup
-
-```python
-def setup() -> None
-```
-
-Setup behaviour.
 
 <a id="packages.valory.skills.transaction_settlement_abci.behaviours.SelectKeeperTransactionSubmissionBehaviourB.async_act"></a>
 
