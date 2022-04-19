@@ -103,6 +103,15 @@ class TransactionSettlementBaseState(BaseState, ABC):
         """Return the params."""
         return cast(TransactionParams, super().params)
 
+    @staticmethod
+    def serialized_keepers(keepers: Deque[str], keeper_retries: int) -> str:
+        """Get the keepers serialized."""
+        keepers_ = "".join(keepers)
+        keeper_retries_ = keeper_retries.to_bytes(32, "big").hex()
+        concatenated = keeper_retries_ + keepers_
+
+        return concatenated
+
     def _get_tx_data(
         self, message: ContractApiMessage
     ) -> Generator[None, None, TxDataType]:
@@ -231,28 +240,13 @@ class SelectKeeperTransactionSubmissionBehaviourA(  # pylint: disable=too-many-a
     matching_round = SelectKeeperTransactionSubmissionRoundA
     payload_class = SelectKeeperPayload
 
-    def __init__(self, **kwargs: Any) -> None:
-        """Initialize behaviour."""
-        super().__init__(**kwargs)
-        self._keepers: Deque[str] = deque()
-        self._keeper_retries: int = 1
-
-    @property
-    def serialized_keepers(self) -> str:
-        """Get the keepers serialized."""
-        keepers = "".join(self._keepers)
-        keeper_retries = self._keeper_retries.to_bytes(32, "big").hex()
-        concatenated = keeper_retries + keepers
-
-        return concatenated
-
     def async_act(self) -> Generator:
         """Do the action."""
 
         with self.context.benchmark_tool.measure(self.state_id).local():
-            self._keepers.appendleft(self._select_keeper())
+            keepers = deque((self._select_keeper(),))
             payload = self.payload_class(
-                self.context.agent_address, self.serialized_keepers
+                self.context.agent_address, self.serialized_keepers(keepers, 1)
             )
 
         with self.context.benchmark_tool.measure(self.state_id).consensus():
@@ -269,10 +263,6 @@ class SelectKeeperTransactionSubmissionBehaviourB(  # pylint: disable=too-many-a
 
     state_id = "select_keeper_transaction_submission_b"
     matching_round = SelectKeeperTransactionSubmissionRoundB
-
-    def setup(self) -> None:
-        """Setup behaviour."""
-        self._keepers = self.period_state.keepers
 
     def async_act(self) -> Generator:
         """
@@ -293,19 +283,23 @@ class SelectKeeperTransactionSubmissionBehaviourB(  # pylint: disable=too-many-a
         """
 
         with self.context.benchmark_tool.measure(self.state_id).local():
+            keepers = self.period_state.keepers
+            keeper_retries = 1
+
             if self.period_state.keepers_threshold_exceeded:
-                self._keepers.rotate(-1)
+                keepers.rotate(-1)
             elif (
                 self.period_state.keeper_retries != self.params.keeper_allowed_retries
                 and self.period_state.final_verification_status
                 == VerificationStatus.PENDING
             ):
-                self._keeper_retries = self.period_state.keeper_retries + 1
+                keeper_retries += self.period_state.keeper_retries
             else:
-                self._keepers.appendleft(self._select_keeper())
+                keepers.appendleft(self._select_keeper())
 
             payload = self.payload_class(
-                self.context.agent_address, self.serialized_keepers
+                self.context.agent_address,
+                self.serialized_keepers(keepers, keeper_retries),
             )
 
         with self.context.benchmark_tool.measure(self.state_id).consensus():
