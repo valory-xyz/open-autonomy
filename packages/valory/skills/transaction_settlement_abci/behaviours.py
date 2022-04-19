@@ -668,13 +668,27 @@ class FinalizeBehaviour(TransactionSettlementBaseState):
                 self.context.logger.debug(
                     f"Signatures: {pprint.pformat(self.period_state.participant_to_signature)}"
                 )
+
+            tx_hashes_history = self.period_state.tx_hashes_history
+            if tx_data["tx_digest"] != "":
+                tx_hashes_history.append(cast(str, tx_data["tx_digest"]))
+
             tx_data_serialized = {
-                "tx_digest": tx_data["tx_digest"],
-                "status": cast(VerificationStatus, tx_data["status"]).value,
+                "status_value": cast(VerificationStatus, tx_data["status"]).value,
+                "serialized_keepers": self.serialized_keepers(
+                    cast(Deque[str], tx_data["keepers"]),
+                    cast(int, tx_data["keeper_retries"]),
+                ),
+                "blacklisted_keepers": "".join(
+                    cast(Set[str], tx_data["blacklisted_keepers"])
+                ),
+                "tx_hashes_history": "".join(tx_hashes_history),
+                "received_hash": bool(tx_data["tx_digest"]),
             }
+
             payload = FinalizationTxPayload(
                 self.context.agent_address,
-                cast(Dict[str, Union[str, int]], tx_data_serialized),
+                cast(Dict[str, Union[str, int, bool]], tx_data_serialized),
             )
 
         with self.context.benchmark_tool.measure(self.state_id).consensus():
