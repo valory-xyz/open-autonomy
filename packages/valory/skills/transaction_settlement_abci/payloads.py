@@ -81,25 +81,25 @@ class SelectKeeperPayload(BaseTxPayload):
 
     transaction_type = TransactionType.SELECT_KEEPER
 
-    def __init__(self, sender: str, keeper: str, **kwargs: Any) -> None:
-        """Initialize an 'select_keeper' transaction payload.
+    def __init__(self, sender: str, keepers: str, **kwargs: Any) -> None:
+        """Initialize a 'select_keeper' transaction payload.
 
         :param sender: the sender (Ethereum) address
-        :param keeper: the keeper selection
+        :param keepers: the updated keepers
         :param kwargs: the keyword arguments
         """
         super().__init__(sender, **kwargs)
-        self._keeper = keeper
+        self._keepers = keepers
 
     @property
-    def keeper(self) -> str:
+    def keepers(self) -> str:
         """Get the keeper."""
-        return self._keeper
+        return self._keepers
 
     @property
-    def data(self) -> Dict:
+    def data(self) -> Dict[str, str]:
         """Get the data."""
-        return dict(keeper=self.keeper)
+        return dict(keepers=self.keepers)
 
 
 class ValidatePayload(BaseTxPayload):
@@ -214,7 +214,7 @@ class FinalizationTxPayload(BaseTxPayload):
     def __init__(
         self,
         sender: str,
-        tx_data: Optional[Dict[str, Union[str, int]]] = None,
+        tx_data: Optional[Dict[str, Union[str, int, bool]]] = None,
         **kwargs: Any
     ) -> None:
         """Initialize an 'finalization' transaction payload.
@@ -227,12 +227,12 @@ class FinalizationTxPayload(BaseTxPayload):
         self._tx_data = tx_data
 
     @property
-    def tx_data(self) -> Optional[Dict[str, Union[str, int]]]:
+    def tx_data(self) -> Optional[Dict[str, Union[str, int, bool]]]:
         """Get the tx_data."""
         return self._tx_data
 
     @property
-    def data(self) -> Dict[str, Dict[str, Union[str, int]]]:
+    def data(self) -> Dict[str, Dict[str, Union[str, int, bool]]]:
         """Get the data."""
         return dict(tx_data=self._tx_data) if self._tx_data is not None else {}
 

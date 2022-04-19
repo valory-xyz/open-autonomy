@@ -1042,6 +1042,12 @@ class TestPeriod:
         self.period = Period(abci_app_cls=AbciAppTest)
         self.period.setup(MagicMock(), MagicMock(), MagicMock())
 
+    @pytest.mark.parametrize("n_blocks", (0, 1, 10))
+    def test_height(self, n_blocks: int) -> None:
+        """Test 'height' property."""
+        self.period._blockchain._blocks = [MagicMock() for _ in range(n_blocks)]
+        assert self.period.height == n_blocks
+
     def test_is_finished(self) -> None:
         """Test 'is_finished' property."""
         assert not self.period.is_finished
@@ -1195,6 +1201,17 @@ class TestPeriod:
             self.period.commit()
         assert not isinstance(self.period.abci_app._current_round, ConcreteRoundA)
         assert self.period.latest_state == round_result
+
+    @pytest.mark.parametrize("is_replay", (True, False))
+    def test_reset_blockchain(self, is_replay: bool) -> None:
+        """Test `reset_blockchain` method."""
+        self.period.reset_blockchain(is_replay)
+        if is_replay:
+            assert (
+                self.period._block_construction_phase
+                == Period._BlockConstructionState.WAITING_FOR_BEGIN_BLOCK
+            )
+        assert self.period._blockchain.height == 0
 
 
 def test_meta_abci_app_when_instance_not_subclass_of_abstract_round() -> None:

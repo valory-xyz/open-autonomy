@@ -12,7 +12,7 @@ build:
     docker:
       dockerfile: Dockerfile
       buildArgs:
-        AEA_VERSION: "latest"
+        AEA_VERSION: "0.1.6"
         AEA_AGENT: "valory/oracle_deployable:0.1.0"
 
   - image: valory/consensus-algorithms-tendermint

@@ -424,7 +424,8 @@ class RPCResponseStatus(Enum):
     SUCCESS = 1
     INCORRECT_NONCE = 2
     UNDERPRICED = 3
-    UNCLASSIFIED_ERROR = 4
+    INSUFFICIENT_FUNDS = 4
+    UNCLASSIFIED_ERROR = 5
 
 
 class BaseState(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
@@ -1397,6 +1398,8 @@ class BaseState(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
             return RPCResponseStatus.UNDERPRICED
         if "nonce too low" in error:
             return RPCResponseStatus.INCORRECT_NONCE
+        if "insufficient funds" in error:
+            return RPCResponseStatus.INSUFFICIENT_FUNDS
         return RPCResponseStatus.UNCLASSIFIED_ERROR
 
     def _start_reset(self) -> Generator:
@@ -1422,19 +1425,19 @@ class BaseState(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
     def _is_timeout_expired(self) -> bool:
         """Check if the timeout expired."""
         if self._check_started is None or self._is_healthy:
-            return False  # pragma: no cover
+            return False
         return datetime.datetime.now() > self._check_started + datetime.timedelta(
             0, self._timeout
         )
 
     def reset_tendermint_with_wait(
         self,
-    ) -> Generator[None, None, None]:
+    ) -> Generator[None, None, bool]:
         """Resets the tendermint node."""
         yield from self._start_reset()
         if self._is_timeout_expired():
             # if the Tendermint node cannot update the app then the app cannot work
-            raise RuntimeError("Error resetting tendermint node.")  # pragma: no cover
+            raise RuntimeError("Error resetting tendermint node.")
 
         if not self._is_healthy:
             self.context.logger.info(
@@ -1463,13 +1466,13 @@ class BaseState(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
                     msg = response.get("message")
                     self.context.logger.error(f"Error resetting: {msg}")
                     yield from self.sleep(self.params.sleep_time)
-                    return  # pragma: no cover
+                    return False
             except json.JSONDecodeError:
                 self.context.logger.error(
                     "Error communicating with tendermint com server."
                 )
                 yield from self.sleep(self.params.sleep_time)
-                return  # pragma: no cover
+                return False
 
         status = yield from self._get_status()
         try:
@@ -1479,7 +1482,7 @@ class BaseState(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
                 "Tendermint not accepting transactions yet, trying again!"
             )
             yield from self.sleep(self.params.sleep_time)
-            return  # pragma: nocover
+            return False
 
         remote_height = int(json_body["result"]["sync_info"]["latest_block_height"])
         local_height = self.context.state.period.height
@@ -1489,12 +1492,13 @@ class BaseState(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
         if local_height != remote_height:
             self.context.logger.info("local height != remote height; retrying...")
             yield from self.sleep(self.params.sleep_time)
-            return  # pragma: nocover
+            return False
 
         self.context.logger.info(
             "local height == remote height; continuing execution..."
         )
         yield from self.wait_from_last_timestamp(self.params.observation_interval / 2)
+        return True
 
 
 class DegenerateState(BaseState, ABC):

@@ -22,7 +22,19 @@
 import time
 from collections import deque
 from pathlib import Path
-from typing import Any, Dict, Generator, List, Optional, Tuple, Type, Union, cast
+from typing import (
+    Any,
+    Deque,
+    Dict,
+    Generator,
+    List,
+    Optional,
+    Set,
+    Tuple,
+    Type,
+    Union,
+    cast,
+)
 from unittest import mock
 from unittest.mock import MagicMock
 
@@ -35,6 +47,7 @@ from aea.helpers.transaction.base import (
 )
 from aea.helpers.transaction.base import State as TrState
 from aea.helpers.transaction.base import TransactionDigest, TransactionReceipt
+from aea.skills.base import SkillContext
 
 from packages.open_aea.protocols.signing import SigningMessage
 from packages.valory.contracts.gnosis_safe.contract import (
@@ -53,7 +66,6 @@ from packages.valory.skills.transaction_settlement_abci.behaviours import (
     CheckLateTxHashesBehaviour,
     CheckTransactionHistoryBehaviour,
     FinalizeBehaviour,
-    FinalizeBehaviourAfterTimeout,
     RandomnessTransactionSubmissionBehaviour,
     ResetBehaviour,
     SelectKeeperTransactionSubmissionBehaviourA,
@@ -114,10 +126,11 @@ class TestTransactionSettlementBaseState(PriceEstimationFSMBehaviourBaseCase):
                 None,
                 RPCResponseStatus.SUCCESS,
                 {
+                    "blacklisted_keepers": set(),
+                    "keeper_retries": 2,
+                    "keepers": deque(("agent_1" + "-" * 35, "agent_3" + "-" * 35)),
                     "status": VerificationStatus.VERIFIED,
                     "tx_digest": "",
-                    "nonce": "",
-                    "max_priority_fee_per_gas": "",
                 },
                 False,
             ),
@@ -128,10 +141,11 @@ class TestTransactionSettlementBaseState(PriceEstimationFSMBehaviourBaseCase):
                 None,
                 RPCResponseStatus.SUCCESS,
                 {
+                    "blacklisted_keepers": set(),
+                    "keeper_retries": 2,
+                    "keepers": deque(("agent_1" + "-" * 35, "agent_3" + "-" * 35)),
                     "status": VerificationStatus.ERROR,
                     "tx_digest": "",
-                    "nonce": "",
-                    "max_priority_fee_per_gas": "",
                 },
                 False,
             ),
@@ -140,10 +154,11 @@ class TestTransactionSettlementBaseState(PriceEstimationFSMBehaviourBaseCase):
                 None,
                 RPCResponseStatus.SUCCESS,
                 {
+                    "blacklisted_keepers": set(),
+                    "keeper_retries": 2,
+                    "keepers": deque(("agent_1" + "-" * 35, "agent_3" + "-" * 35)),
                     "status": VerificationStatus.PENDING,
                     "tx_digest": "",
-                    "nonce": "",
-                    "max_priority_fee_per_gas": "",
                 },
                 False,
             ),
@@ -152,10 +167,24 @@ class TestTransactionSettlementBaseState(PriceEstimationFSMBehaviourBaseCase):
                 None,
                 RPCResponseStatus.INCORRECT_NONCE,
                 {
+                    "blacklisted_keepers": set(),
+                    "keeper_retries": 2,
+                    "keepers": deque(("agent_1" + "-" * 35, "agent_3" + "-" * 35)),
                     "status": VerificationStatus.ERROR,
                     "tx_digest": "",
-                    "nonce": "",
-                    "max_priority_fee_per_gas": "",
+                },
+                False,
+            ),
+            (
+                MagicMock(performative=ContractApiMessage.Performative.RAW_TRANSACTION),
+                None,
+                RPCResponseStatus.INSUFFICIENT_FUNDS,
+                {
+                    "blacklisted_keepers": {"agent_1" + "-" * 35},
+                    "keeper_retries": 1,
+                    "keepers": deque(("agent_3" + "-" * 35,)),
+                    "status": VerificationStatus.BLACKLIST,
+                    "tx_digest": "",
                 },
                 False,
             ),
@@ -164,10 +193,11 @@ class TestTransactionSettlementBaseState(PriceEstimationFSMBehaviourBaseCase):
                 None,
                 RPCResponseStatus.UNCLASSIFIED_ERROR,
                 {
+                    "blacklisted_keepers": set(),
+                    "keeper_retries": 2,
+                    "keepers": deque(("agent_1" + "-" * 35, "agent_3" + "-" * 35)),
                     "status": VerificationStatus.PENDING,
                     "tx_digest": "",
-                    "nonce": "",
-                    "max_priority_fee_per_gas": "",
                 },
                 False,
             ),
@@ -176,10 +206,11 @@ class TestTransactionSettlementBaseState(PriceEstimationFSMBehaviourBaseCase):
                 None,
                 RPCResponseStatus.UNDERPRICED,
                 {
+                    "blacklisted_keepers": set(),
+                    "keeper_retries": 2,
+                    "keepers": deque(("agent_1" + "-" * 35, "agent_3" + "-" * 35)),
                     "status": VerificationStatus.PENDING,
                     "tx_digest": "",
-                    "nonce": "",
-                    "max_priority_fee_per_gas": "",
                 },
                 False,
             ),
@@ -187,16 +218,21 @@ class TestTransactionSettlementBaseState(PriceEstimationFSMBehaviourBaseCase):
                 MagicMock(
                     performative=ContractApiMessage.Performative.RAW_TRANSACTION,
                     raw_transaction=MagicMock(
-                        body={"nonce": 0, "maxPriorityFeePerGas": 10}
+                        body={
+                            "nonce": 0,
+                            "maxPriorityFeePerGas": 10,
+                            "maxFeePerGas": 20,
+                        }
                     ),
                 ),
                 "test_digest",
                 RPCResponseStatus.SUCCESS,
                 {
+                    "blacklisted_keepers": set(),
+                    "keeper_retries": 2,
+                    "keepers": deque(("agent_1" + "-" * 35, "agent_3" + "-" * 35)),
                     "status": VerificationStatus.PENDING,
                     "tx_digest": "test_digest",
-                    "nonce": 0,
-                    "max_priority_fee_per_gas": 10,
                 },
                 False,
             ),
@@ -204,16 +240,21 @@ class TestTransactionSettlementBaseState(PriceEstimationFSMBehaviourBaseCase):
                 MagicMock(
                     performative=ContractApiMessage.Performative.RAW_TRANSACTION,
                     raw_transaction=MagicMock(
-                        body={"nonce": 0, "maxPriorityFeePerGas": 10}
+                        body={
+                            "nonce": 0,
+                            "maxPriorityFeePerGas": 10,
+                            "maxFeePerGas": 20,
+                        }
                     ),
                 ),
                 "test_digest",
                 RPCResponseStatus.SUCCESS,
                 {
+                    "blacklisted_keepers": set(),
+                    "keeper_retries": 2,
+                    "keepers": deque(("agent_1" + "-" * 35, "agent_3" + "-" * 35)),
                     "status": VerificationStatus.PENDING,
                     "tx_digest": "test_digest",
-                    "nonce": 0,
-                    "max_priority_fee_per_gas": 10,
                 },
                 True,
             ),
@@ -237,7 +278,9 @@ class TestTransactionSettlementBaseState(PriceEstimationFSMBehaviourBaseCase):
                 StateDB(
                     initial_period=0,
                     initial_data=dict(
-                        most_voted_tx_hash="b0e6add595e00477cf347d09797b156719dc5233283ac76e4efce2a674fe72d900000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000002625a000x77E9b2EF921253A171Fa0CB9ba80558648Ff7215b0e6add595e00477cf347d09797b156719dc5233283ac76e4efce2a674fe72d9b0e6add595e00477cf347d09797b156719dc5233283ac76e4efce2a674fe72d9"
+                        most_voted_tx_hash="b0e6add595e00477cf347d09797b156719dc5233283ac76e4efce2a674fe72d900000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000002625a000x77E9b2EF921253A171Fa0CB9ba80558648Ff7215b0e6add595e00477cf347d09797b156719dc5233283ac76e4efce2a674fe72d9b0e6add595e00477cf347d09797b156719dc5233283ac76e4efce2a674fe72d9",
+                        keepers=int(2).to_bytes(32, "big").hex()
+                        + "".join(deque(("agent_1" + "-" * 35, "agent_3" + "-" * 35))),
                     ),
                 )
             ),
@@ -295,18 +338,51 @@ class TestSelectKeeperTransactionSubmissionBehaviourA(BaseSelectKeeperBehaviourT
     select_keeper_behaviour_class = SelectKeeperTransactionSubmissionBehaviourA
     next_behaviour_class = SignatureBehaviour
     done_event = TransactionSettlementEvent.DONE
+    _period_state = TransactionSettlementPeriodState
 
 
-class TestSelectKeeperTransactionSubmissionBehaviourB(BaseSelectKeeperBehaviourTest):
+class TestSelectKeeperTransactionSubmissionBehaviourB(
+    TestSelectKeeperTransactionSubmissionBehaviourA
+):
     """Test SelectKeeperBehaviour."""
-
-    path_to_skill = Path(
-        ROOT_DIR, "packages", "valory", "skills", "transaction_settlement_abci"
-    )
 
     select_keeper_behaviour_class = SelectKeeperTransactionSubmissionBehaviourB
     next_behaviour_class = FinalizeBehaviour
-    done_event = TransactionSettlementEvent.DONE
+
+    @mock.patch.object(
+        TransactionSettlementPeriodState,
+        "keepers",
+        new_callable=mock.PropertyMock,
+    )
+    @mock.patch.object(
+        TransactionSettlementPeriodState,
+        "keeper_retries",
+        new_callable=mock.PropertyMock,
+    )
+    @pytest.mark.parametrize(
+        "keepers, keeper_retries, blacklisted_keepers",
+        (
+            (deque(f"keeper_{i}" for i in range(4)), 1, set()),
+            (deque(("test_keeper",)), 2, set()),
+            (deque(("test_keeper",)), 2, {"a1"}),
+            (deque(("test_keeper",)), 2, {"test_keeper"}),
+            (deque(("test_keeper",)), 2, {"a_1", "a_2", "test_keeper"}),
+            (deque(("test_keeper",)), 1, set()),
+            (deque(("test_keeper",)), 3, set()),
+        ),
+    )
+    def test_select_keeper(
+        self,
+        keeper_retries_mock: mock.PropertyMock,
+        keepers_mock: mock.PropertyMock,
+        keepers: Deque[str],
+        keeper_retries: int,
+        blacklisted_keepers: Set[str],
+    ) -> None:
+        """Test select keeper agent."""
+        keepers_mock.return_value = keepers
+        keeper_retries_mock.return_value = keeper_retries
+        super().test_select_keeper(blacklisted_keepers=blacklisted_keepers)
 
 
 class TestSignatureBehaviour(TransactionSettlementFSMBehaviourBaseCase):
@@ -365,6 +441,7 @@ class TestFinalizeBehaviour(TransactionSettlementFSMBehaviourBaseCase):
     ) -> None:
         """Test finalize behaviour."""
         participants = frozenset({self.skill.skill_context.agent_address, "a_1", "a_2"})
+        retries = 1
         self.fast_forward_to_state(
             behaviour=self.behaviour,
             state_id=self.behaviour_class.state_id,
@@ -374,7 +451,10 @@ class TestFinalizeBehaviour(TransactionSettlementFSMBehaviourBaseCase):
                     initial_data=dict(
                         most_voted_keeper_address="most_voted_keeper_address",
                         participants=participants,
-                        keepers=deque(["other_agent"]),
+                        # keeper needs to have length == 42 in order to be parsed
+                        keepers=retries.to_bytes(32, "big").hex()
+                        + "other_agent"
+                        + "-" * 31,
                     ),
                 )
             ),
@@ -451,8 +531,10 @@ class TestFinalizeBehaviour(TransactionSettlementFSMBehaviourBaseCase):
             ),
         ),
     )
+    @mock.patch.object(SkillContext, "agent_address", new_callable=mock.PropertyMock)
     def test_sender_act(
         self,
+        agent_address_mock: mock.PropertyMock,
         resubmitting: bool,
         response_kwargs: Dict[
             str,
@@ -474,7 +556,12 @@ class TestFinalizeBehaviour(TransactionSettlementFSMBehaviourBaseCase):
             nonce = 0
             max_priority_fee_per_gas = 1
 
-        participants = frozenset({self.skill.skill_context.agent_address, "a_1", "a_2"})
+        # keepers need to have length == 42 in order to be parsed
+        agent_address_mock.return_value = "-" * 42
+        retries = 1
+        participants = frozenset(
+            {self.skill.skill_context.agent_address, "a_1" + "-" * 39, "a_2" + "-" * 39}
+        )
         self.fast_forward_to_state(
             behaviour=self.behaviour,
             state_id=self.behaviour_class.state_id,
@@ -482,7 +569,6 @@ class TestFinalizeBehaviour(TransactionSettlementFSMBehaviourBaseCase):
                 StateDB(
                     initial_period=0,
                     initial_data=dict(
-                        most_voted_keeper_address=self.skill.skill_context.agent_address,
                         safe_contract_address="safe_contract_address",
                         participants=participants,
                         participant_to_signature={},
@@ -495,7 +581,8 @@ class TestFinalizeBehaviour(TransactionSettlementFSMBehaviourBaseCase):
                         ),
                         nonce=nonce,
                         max_priority_fee_per_gas=max_priority_fee_per_gas,
-                        keepers=deque([self.skill.skill_context.agent_address]),
+                        keepers=retries.to_bytes(32, "big").hex()
+                        + self.skill.skill_context.agent_address,
                     ),
                 )
             ),
@@ -582,11 +669,17 @@ class TestFinalizeBehaviour(TransactionSettlementFSMBehaviourBaseCase):
                 f"No callback defined for request with nonce: {message.dialogue_reference[0]}"
             )
 
+    def test_clean_up(self) -> None:
+        """Ensure that the clean-up method resets the `tx_hash` param properly."""
+        self.fast_forward_to_state(
+            self.behaviour, self.behaviour_class.state_id, MagicMock()
+        )
+        assert self.behaviour.current_state is not None
+        assert self.behaviour.current_state.state_id == self.behaviour_class.state_id
 
-class TestFinalizeBehaviourAfterTimeout(TestFinalizeBehaviour):
-    """Test `TestFinalizeBehaviourAfterTimeout`."""
-
-    behaviour_class = FinalizeBehaviourAfterTimeout
+        self.behaviour.current_state.params.tx_hash = "test"
+        self.behaviour.current_state.clean_up()
+        assert self.behaviour.current_state.params.tx_hash == ""
 
 
 class TestValidateTransactionBehaviour(TransactionSettlementFSMBehaviourBaseCase):
@@ -604,7 +697,7 @@ class TestValidateTransactionBehaviour(TransactionSettlementFSMBehaviourBaseCase
                     initial_period=0,
                     initial_data=dict(
                         safe_contract_address="safe_contract_address",
-                        tx_hashes_history=["final_tx_hash"],
+                        tx_hashes_history="t" * 66,
                         final_tx_hash="dummy_hash",
                         participants=participants,
                         most_voted_keeper_address=most_voted_keeper_address,
@@ -694,7 +787,7 @@ class TestValidateTransactionBehaviour(TransactionSettlementFSMBehaviourBaseCase
 class TestCheckTransactionHistoryBehaviour(TransactionSettlementFSMBehaviourBaseCase):
     """Test CheckTransactionHistoryBehaviour."""
 
-    def _fast_forward(self, hashes_history: Optional[List[Optional[str]]]) -> None:
+    def _fast_forward(self, hashes_history: str) -> None:
         """Fast-forward to relevant state."""
         self.fast_forward_to_state(
             behaviour=self.behaviour,
@@ -722,25 +815,25 @@ class TestCheckTransactionHistoryBehaviour(TransactionSettlementFSMBehaviourBase
     @pytest.mark.parametrize(
         "verified, status, hashes_history, revert_reason",
         (
-            (False, -1, [None], "test"),
-            (False, 0, None, "test"),
-            (False, 0, [None], "test"),
-            (False, 0, [None], "GS026"),
-            (True, 1, [None], "test"),
+            (False, -1, "0x" + "t" * 64, "test"),
+            (False, 0, "", "test"),
+            (False, 0, "0x" + "t" * 64, "test"),
+            (False, 0, "0x" + "t" * 64, "GS026"),
+            (True, 1, "0x" + "t" * 64, "test"),
         ),
     )
     def test_check_tx_history_behaviour(
         self,
         verified: bool,
         status: int,
-        hashes_history: Optional[List[Optional[str]]],
+        hashes_history: str,
         revert_reason: str,
     ) -> None:
         """Test CheckTransactionHistoryBehaviour."""
         self._fast_forward(hashes_history)
         self.behaviour.act_wrapper()
 
-        if hashes_history is not None:
+        if hashes_history:
             self.mock_contract_api_request(
                 request_kwargs=dict(
                     performative=ContractApiMessage.Performative.GET_STATE
@@ -794,9 +887,13 @@ class TestSynchronizeLateMessagesBehaviour(TransactionSettlementFSMBehaviourBase
         state = cast(BaseState, self.behaviour.current_state)
         assert state.state_id == expected.state_id
 
-    @pytest.mark.parametrize("late_message_empty", (True, False))
-    def test_async_act(self, late_message_empty: bool) -> None:
+    @pytest.mark.parametrize("late_messages", ([], [MagicMock, MagicMock]))
+    def test_async_act(self, late_messages: List[MagicMock]) -> None:
         """Test `async_act`"""
+        cast(
+            TransactionSettlementBaseState, self.behaviour.current_state
+        ).params.late_messages = late_messages
+
         participants = frozenset({self.skill.skill_context.agent_address, "a_1", "a_2"})
         self.fast_forward_to_state(
             behaviour=self.behaviour,
@@ -814,10 +911,7 @@ class TestSynchronizeLateMessagesBehaviour(TransactionSettlementFSMBehaviourBase
         )
         self._check_state_id(SynchronizeLateMessagesBehaviour)  # type: ignore
 
-        if late_message_empty:
-            cast(
-                TransactionSettlementBaseState, self.behaviour.current_state
-            ).params.late_messages = []
+        if not late_messages:
             self.behaviour.act_wrapper()
             self.mock_a2a_transaction()
             self._test_done_flag_set()
@@ -825,9 +919,6 @@ class TestSynchronizeLateMessagesBehaviour(TransactionSettlementFSMBehaviourBase
             self._check_state_id(CheckLateTxHashesBehaviour)  # type: ignore
 
         else:
-            cast(
-                TransactionSettlementBaseState, self.behaviour.current_state
-            ).params.late_messages = [MagicMock(), MagicMock()]
 
             def _dummy_get_tx_data(
                 _: ContractApiMessage,
@@ -836,15 +927,27 @@ class TestSynchronizeLateMessagesBehaviour(TransactionSettlementFSMBehaviourBase
                 return {
                     "status": VerificationStatus.PENDING,
                     "tx_digest": "test",
-                    "nonce": 0,
-                    "max_priority_fee_per_gas": 0,
                 }
 
             cast(  # type: ignore
                 TransactionSettlementBaseState, self.behaviour.current_state
             )._get_tx_data = _dummy_get_tx_data  # type: ignore
-            self.behaviour.act_wrapper()
-            self.behaviour.act_wrapper()
+            for _ in range(len(late_messages)):
+                self.behaviour.act_wrapper()
+
+    def test_clean_up(self) -> None:
+        """Ensure that the clean-up method resets the params properly."""
+        self.fast_forward_to_state(
+            self.behaviour, SynchronizeLateMessagesBehaviour.state_id, MagicMock()
+        )
+        assert self.behaviour.current_state is not None
+        self._check_state_id(SynchronizeLateMessagesBehaviour)
+
+        self.behaviour.current_state.params.tx_hash = "test"
+        self.behaviour.current_state.params.late_messages = [MagicMock()]
+        self.behaviour.current_state.clean_up()
+        assert self.behaviour.current_state.params.tx_hash == ""
+        assert self.behaviour.current_state.params.late_messages == []
 
 
 class TestResetBehaviour(TransactionSettlementFSMBehaviourBaseCase):

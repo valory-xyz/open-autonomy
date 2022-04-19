@@ -55,8 +55,8 @@ logging_config:
   loggers:
     aea:
       handlers:
-      - console
       - logfile
+      - console
       propagate: false
 dependencies:
   open-aea-ledger-ethereum: {}

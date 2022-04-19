@@ -19,9 +19,9 @@
 
 """Custom objects for the transaction settlement ABCI application."""
 
-from typing import Any, List, Optional
+from typing import Any, Dict, List, Optional
 
-from web3.types import Nonce
+from web3.types import Nonce, Wei
 
 from packages.valory.protocols.contract_api import ContractApiMessage
 from packages.valory.skills.abstract_round_abci.models import ApiSpecs, BaseParams
@@ -66,9 +66,13 @@ class TransactionParams(BaseParams):
         :param args: positional arguments
         :param kwargs: keyword arguments
         """
+        self.tx_hash: str = ""
         self.nonce: Optional[Nonce] = None
-        self.tip: Optional[int] = None
+        self.gas_price: Optional[Dict[str, Wei]] = None
         self.late_messages: List[ContractApiMessage] = []
+        self.keeper_allowed_retries: int = self._ensure(
+            "keeper_allowed_retries", kwargs
+        )
         super().__init__(*args, **kwargs)
 
 

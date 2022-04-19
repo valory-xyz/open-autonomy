@@ -17,7 +17,7 @@
 #
 # ------------------------------------------------------------------------------
 
-"""Test the base.py module of the skill."""
+"""Test the rounds of the skill."""
 from typing import Dict, FrozenSet, Optional, Tuple
 from unittest import mock
 
