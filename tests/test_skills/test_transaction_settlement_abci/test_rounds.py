@@ -22,16 +22,16 @@
 import logging  # noqa: F401
 from collections import deque
 from types import MappingProxyType
-from typing import Dict, FrozenSet, List, Mapping, Optional, Union, cast
+from typing import Deque, Dict, FrozenSet, List, Mapping, Optional, Set, Union, cast
 from unittest import mock
 
 import pytest
 
-from packages.valory.skills.abstract_round_abci.base import ABCIAppInternalError
 from packages.valory.skills.abstract_round_abci.base import (
-    BasePeriodState as PeriodState,
+    ABCIAppInternalError,
+    BaseTxPayload,
+    StateDB,
 )
-from packages.valory.skills.abstract_round_abci.base import BaseTxPayload, StateDB
 from packages.valory.skills.oracle_deployment_abci.payloads import RandomnessPayload
 from packages.valory.skills.transaction_settlement_abci.payload_tools import (
     VerificationStatus,
@@ -196,11 +196,9 @@ def get_late_arriving_tx_hashes() -> List[str]:
     return ["t" * 64, "e" * 64, "s" * 64, "t" * 64]
 
 
-def get_keepers() -> str:
+def get_keepers(keepers: Deque[str], retries: int = 1) -> str:
     """Get dummy keepers."""
-    retries = 1
-    agents = ["agent_1" + "-" * 35, "agent_3" + "-" * 35]
-    return retries.to_bytes(32, "big").hex() + "".join(agents)
+    return retries.to_bytes(32, "big").hex() + "".join(keepers)
 
 
 class TestSelectKeeperTransactionSubmissionRoundA(BaseSelectKeeperRoundTest):
@@ -414,24 +412,29 @@ class TestFinalizationRound(BaseOnlyKeeperSendsRoundTest):
         exit_event: TransactionSettlementEvent,
     ) -> None:
         """Runs tests."""
-
+        keeper_retries = 2
+        blacklisted_keepers: Set[str] = set()
         self.participants = frozenset([f"agent_{i}" + "-" * 35 for i in range(4)])
-        keepers = deque(["agent_1" + "-" * 35, "agent_3" + "-" * 35])
+        keepers = deque(("agent_1" + "-" * 35, "agent_3" + "-" * 35))
         self.period_state = cast(
-            PeriodState,
+            TransactionSettlementPeriodState,
             self.period_state.update(
                 participants=frozenset([f"agent_{i}" + "-" * 35 for i in range(4)]),
                 missed_messages=missed_messages,
                 tx_hashes_history=tx_hashes_history,
-                keepers=get_keepers(),
-                blacklisted_keepers={keepers[0]}
-                if status == VerificationStatus.BLACKLIST.value
-                else {},
+                keepers=get_keepers(keepers, keeper_retries),
+                blacklisted_keepers=blacklisted_keepers,
             ),
         )
+
+        sender = keepers[0]
         tx_hashes_history.append(
             tx_digest
         ) if exit_event == TransactionSettlementEvent.DONE else tx_hashes_history
+        if status == VerificationStatus.BLACKLIST.value:
+            popped = keepers.popleft()
+            blacklisted_keepers = {popped}
+            keeper_retries = 1
 
         test_round = self._round_class(
             state=self.period_state,
@@ -442,20 +445,22 @@ class TestFinalizationRound(BaseOnlyKeeperSendsRoundTest):
             self._test_round(
                 test_round=test_round,
                 keeper_payloads=FinalizationTxPayload(
-                    sender=keepers[0],
+                    sender=sender,
                     tx_data={
                         "status": status,
                         "tx_digest": tx_digest,
-                        "nonce": 0,
-                        "max_fee_per_gas": 0,
-                        "max_priority_fee_per_gas": 0,
                     },
                 ),
                 state_update_fn=lambda _period_state, _: _period_state.update(
-                    tx_hashes_history=tx_hashes_history
+                    tx_hashes_history=tx_hashes_history,
+                    blacklisted_keepers=blacklisted_keepers,
+                    keepers=get_keepers(keepers, keeper_retries),
+                    keeper_retries=keeper_retries,
                 ),
                 state_attr_checks=[
                     lambda state: state.tx_hashes_history,
+                    lambda state: state.blacklisted_keepers,
+                    lambda state: state.keepers,
                 ],
                 exit_event=exit_event,
             )
@@ -544,7 +549,7 @@ class TestCheckTransactionHistoryRound(BaseCollectSameUntilThresholdRoundTest):
         expected_event: TransactionSettlementEvent,
     ) -> None:
         """Run tests."""
-        keepers = get_keepers()
+        keepers = get_keepers(deque(("agent_1" + "-" * 35, "agent_3" + "-" * 35)))
         self.period_state.update(missed_messages=missed_messages, keepers=keepers)
 
         test_round = CheckTransactionHistoryRound(
@@ -641,7 +646,7 @@ def test_period_states() -> None:
         (int(most_voted_randomness, base=16) // 10 ** 0 % 10) / 10
     )
     late_arriving_tx_hashes = get_late_arriving_tx_hashes()
-    keepers = get_keepers()
+    keepers = get_keepers(deque(("agent_1" + "-" * 35, "agent_3" + "-" * 35)))
     expected_keepers = deque(["agent_1" + "-" * 35, "agent_3" + "-" * 35])
 
     # test `keeper_retries` property when no `keepers` are set.
