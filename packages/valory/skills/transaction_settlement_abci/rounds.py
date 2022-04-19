@@ -55,6 +55,7 @@ from packages.valory.skills.transaction_settlement_abci.payloads import (
 
 
 ADDRESS_LENGTH = 42
+TX_HASH_LENGTH = 66
 RETRIES_LENGTH = 64
 
 
@@ -100,7 +101,8 @@ class PeriodState(BasePeriodState):  # pylint: disable=too-many-instance-attribu
     @property
     def tx_hashes_history(self) -> List[str]:
         """Get the current cycle's tx hashes history, which has not yet been verified."""
-        return cast(List[str], self.db.get("tx_hashes_history", []))
+        raw = cast(str, self.db.get("tx_hashes_history", ""))
+        return textwrap.wrap(raw, TX_HASH_LENGTH)
 
     @property
     def keepers(self) -> Deque[str]:
