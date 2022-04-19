@@ -107,9 +107,8 @@ class AEARunner:
         os.chdir(ROOT)
         if Path(AGENT_DIR).exists():
             shutil.rmtree(AGENT_DIR)
-
         self.process = subprocess.Popen(  # nosec
-            ["/bin/bash", BASE_START_FILE], preexec_fn=os.setsid,
+            ["/bin/bash", BASE_START_FILE], preexec_fn=os.setsid
         )
 
     def stop(
