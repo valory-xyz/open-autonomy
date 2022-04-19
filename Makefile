@@ -363,3 +363,13 @@ teardown-docker-compose:
 		echo "Deployment torndown!" && \
 		exit 0
 	echo "Failed to teardown deployment!" exit 1
+
+teardown-kubernetes:
+cluster-remove-deploy:
+	if [ "${VERSION}" = "" ];\
+	then\
+		echo "Ensure you have exported a version to build!";\
+		exit 1
+	fi
+	kubectl delete ns ${VERSION}
+

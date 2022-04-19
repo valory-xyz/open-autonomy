@@ -86,6 +86,8 @@ class AEARunner:
 
         self.process = None
 
+        self.start(install=True)
+
     @staticmethod
     def restart_tendermint() -> None:
         """Restart respective tendermint node."""
@@ -98,17 +100,21 @@ class AEARunner:
 
     def start(
         self,
+        install=False,
     ) -> None:
         """Start AEA process."""
 
         if self.process is not None:
             return
-        write("Starting Agent.")
+        write("Starting Agent." if not install else "Installing agent.")
         os.chdir(ROOT)
         if Path(AGENT_DIR).exists():
             shutil.rmtree(AGENT_DIR)
+
+        env = os.environ.copy()
+        env.update({"INSTALL": "1" if install else "0"})
         self.process = subprocess.Popen(  # nosec
-            ["/bin/bash", BASE_START_FILE], preexec_fn=os.setsid
+            ["/bin/bash", BASE_START_FILE], preexec_fn=os.setsid, env=env
         )
 
     def stop(
