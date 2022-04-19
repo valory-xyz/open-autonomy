@@ -431,7 +431,7 @@ class CheckTransactionHistoryBehaviour(TransactionSettlementBaseState):
             else self.period_state.late_arriving_tx_hashes
         )
 
-        if history is None:
+        if not history:
             self.context.logger.error(
                 "An unexpected error occurred! The state's history does not contain any transaction hashes, "
                 f"but entered the `{self.state_id}` state."
