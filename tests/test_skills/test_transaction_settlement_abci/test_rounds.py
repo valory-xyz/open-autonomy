@@ -449,8 +449,11 @@ class TestFinalizationRound(BaseOnlyKeeperSendsRoundTest):
                 keeper_payloads=FinalizationTxPayload(
                     sender=sender,
                     tx_data={
-                        "status": status,
-                        "tx_digest": tx_digest,
+                        "status_value": status,
+                        "serialized_keepers": get_keepers(keepers, keeper_retries),
+                        "blacklisted_keepers": blacklisted_keepers,
+                        "tx_hashes_history": tx_hashes_history,
+                        "received_hash": bool(tx_digest),
                     },
                 ),
                 state_update_fn=lambda _period_state, _: _period_state.update(
@@ -458,11 +461,14 @@ class TestFinalizationRound(BaseOnlyKeeperSendsRoundTest):
                     blacklisted_keepers=blacklisted_keepers,
                     keepers=get_keepers(keepers, keeper_retries),
                     keeper_retries=keeper_retries,
+                    final_verification_status=VerificationStatus(status),
                 ),
                 state_attr_checks=[
                     lambda state: state.tx_hashes_history,
                     lambda state: state.blacklisted_keepers,
                     lambda state: state.keepers,
+                    lambda state: state.keeper_retries,
+                    lambda state: state.final_verification_status,
                 ],
                 exit_event=exit_event,
             )
