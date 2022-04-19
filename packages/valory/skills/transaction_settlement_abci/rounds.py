@@ -521,16 +521,16 @@ class TransactionSubmissionAbciApp(AbciApp[Event]):
     Transition states:
         0. RandomnessTransactionSubmissionRound
             - done: 1.
-            - round timeout: 10.
+            - round timeout: 0.
             - no majority: 0.
         1. SelectKeeperTransactionSubmissionRoundA
             - done: 2.
-            - round timeout: 10.
+            - round timeout: 1.
             - no majority: 10.
             - incorrect serialization: 12.
         2. CollectSignatureRound
             - done: 3.
-            - round timeout: 10.
+            - round timeout: 2.
             - no majority: 10.
         3. FinalizationRound
             - done: 4.
@@ -554,14 +554,14 @@ class TransactionSubmissionAbciApp(AbciApp[Event]):
         6. SelectKeeperTransactionSubmissionRoundB
             - done: 3.
             - keeper blacklisted: 6.
-            - round timeout: 10.
+            - round timeout: 6.
             - no majority: 10.
             - incorrect serialization: 12.
         7. SelectKeeperTransactionSubmissionRoundBAfterTimeout
             - done: 3.
             - check history: 5.
             - check late arriving message: 8.
-            - round timeout: 10.
+            - round timeout: 7.
             - no majority: 10.
             - incorrect serialization: 12.
         8. SynchronizeLateMessagesRound
@@ -597,18 +597,18 @@ class TransactionSubmissionAbciApp(AbciApp[Event]):
     transition_function: AbciAppTransitionFunction = {
         RandomnessTransactionSubmissionRound: {
             Event.DONE: SelectKeeperTransactionSubmissionRoundA,
-            Event.ROUND_TIMEOUT: ResetRound,
+            Event.ROUND_TIMEOUT: RandomnessTransactionSubmissionRound,
             Event.NO_MAJORITY: RandomnessTransactionSubmissionRound,
         },
         SelectKeeperTransactionSubmissionRoundA: {
             Event.DONE: CollectSignatureRound,
-            Event.ROUND_TIMEOUT: ResetRound,
+            Event.ROUND_TIMEOUT: SelectKeeperTransactionSubmissionRoundA,
             Event.NO_MAJORITY: ResetRound,
             Event.INCORRECT_SERIALIZATION: FailedRound,
         },
         CollectSignatureRound: {
             Event.DONE: FinalizationRound,
-            Event.ROUND_TIMEOUT: ResetRound,
+            Event.ROUND_TIMEOUT: CollectSignatureRound,
             Event.NO_MAJORITY: ResetRound,
         },
         FinalizationRound: {
@@ -636,7 +636,7 @@ class TransactionSubmissionAbciApp(AbciApp[Event]):
         SelectKeeperTransactionSubmissionRoundB: {
             Event.DONE: FinalizationRound,
             Event.KEEPER_BLACKLISTED: SelectKeeperTransactionSubmissionRoundB,
-            Event.ROUND_TIMEOUT: ResetRound,
+            Event.ROUND_TIMEOUT: SelectKeeperTransactionSubmissionRoundB,
             Event.NO_MAJORITY: ResetRound,
             Event.INCORRECT_SERIALIZATION: FailedRound,
         },
@@ -644,7 +644,7 @@ class TransactionSubmissionAbciApp(AbciApp[Event]):
             Event.DONE: FinalizationRound,
             Event.CHECK_HISTORY: CheckTransactionHistoryRound,
             Event.CHECK_LATE_ARRIVING_MESSAGE: SynchronizeLateMessagesRound,
-            Event.ROUND_TIMEOUT: ResetRound,
+            Event.ROUND_TIMEOUT: SelectKeeperTransactionSubmissionRoundBAfterTimeout,
             Event.NO_MAJORITY: ResetRound,
             Event.INCORRECT_SERIALIZATION: FailedRound,
         },
