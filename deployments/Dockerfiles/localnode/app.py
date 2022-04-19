@@ -50,7 +50,9 @@ class PeriodDumper:
 
         self.resets = 0
         self.logger = logger
-        self.dump_dir = Path("/home/ubuntu/logs/tm_state/dump") if dump_dir is None else dump_dir
+        self.dump_dir = (
+            Path("/home/ubuntu/logs/tm_state/dump") if dump_dir is None else dump_dir
+        )
 
         if self.dump_dir.is_dir():
             shutil.rmtree(str(self.dump_dir), onerror=self.readonly_handler)
