@@ -22,19 +22,7 @@ import textwrap
 from abc import ABC
 from collections import deque
 from enum import Enum
-from typing import (
-    Any,
-    Deque,
-    Dict,
-    List,
-    Mapping,
-    Optional,
-    Set,
-    Tuple,
-    Type,
-    Union,
-    cast,
-)
+from typing import Deque, Dict, List, Mapping, Optional, Set, Tuple, Type, cast
 
 from packages.valory.skills.abstract_round_abci.base import (
     ABCIAppInternalError,
@@ -67,6 +55,7 @@ from packages.valory.skills.transaction_settlement_abci.payloads import (
 
 
 ADDRESS_LENGTH = 42
+TX_HASH_LENGTH = 66
 RETRIES_LENGTH = 64
 
 
@@ -112,7 +101,8 @@ class PeriodState(BasePeriodState):  # pylint: disable=too-many-instance-attribu
     @property
     def tx_hashes_history(self) -> List[str]:
         """Get the current cycle's tx hashes history, which has not yet been verified."""
-        return cast(List[str], self.db.get("tx_hashes_history", []))
+        raw = cast(str, self.db.get("tx_hashes_history", ""))
+        return textwrap.wrap(raw, TX_HASH_LENGTH)
 
     @property
     def keepers(self) -> Deque[str]:
@@ -246,49 +236,11 @@ class FinalizationRound(OnlyKeeperSendsRound):
     allowed_tx_type = FinalizationTxPayload.transaction_type
     payload_attribute = "tx_data"
 
-    def _get_updated_hashes(self) -> List[str]:
-        """Get the tx hashes history updated."""
-        hashes = cast(PeriodState, self.period_state).tx_hashes_history
-        tx_digest = cast(
-            str,
-            cast(Dict[str, Union[VerificationStatus, str, int]], self.keeper_payload)[
-                "tx_digest"
-            ],
-        )
-        hashes.append(tx_digest)
-
-        return hashes
-
-    def _blacklist_keeper(self) -> Tuple[Deque[str], Set[str]]:
-        """Blacklist the current keeper."""
-        period_state = cast(PeriodState, self.period_state)
-        keepers = period_state.keepers
-        blacklisted_keepers = period_state.blacklisted_keepers
-        keepers.remove(period_state.most_voted_keeper_address)
-        blacklisted_keepers.add(period_state.most_voted_keeper_address)
-
-        return keepers, blacklisted_keepers
-
-    def _get_check_or_fail_event(self) -> Event:
-        """Return the appropriate check event or fail."""
-        if VerificationStatus(
-            cast(Dict[str, Union[VerificationStatus, str, int]], self.keeper_payload)[
-                "status"
-            ]
-        ) not in (
-            VerificationStatus.ERROR,
-            VerificationStatus.VERIFIED,
-        ):
-            # This means that getting raw safe transaction succeeded,
-            # but either requesting tx signature or requesting tx digest failed.
-            return Event.FINALIZATION_FAILED
-        if len(cast(PeriodState, self.period_state).tx_hashes_history) > 0:
-            return Event.CHECK_HISTORY
-        if cast(PeriodState, self.period_state).should_check_late_messages:
-            return Event.CHECK_LATE_ARRIVING_MESSAGE
-        return Event.FINALIZATION_FAILED
-
-    def end_block(self) -> Optional[Tuple[BasePeriodState, Enum]]:
+    def end_block(
+        self,
+    ) -> Optional[
+        Tuple[BasePeriodState, Enum]
+    ]:  # pylint: disable=too-many-return-statements
         """Process the end of the block."""
         if not self.has_keeper_sent_payload:
             return None
@@ -296,38 +248,40 @@ class FinalizationRound(OnlyKeeperSendsRound):
         if self.keeper_payload is None:  # pragma: no cover
             return self.period_state, Event.FINALIZATION_FAILED
 
-        # check if the tx digest is not empty, thus we succeeded in finalization.
-        # the tx digest will be empty if we receive an error in any of the following cases:
+        verification_status = VerificationStatus(self.keeper_payload["status_value"])
+        state = cast(
+            PeriodState,
+            self.period_state.update(
+                period_state_class=PeriodState,
+                tx_hashes_history=self.keeper_payload["tx_hashes_history"],
+                final_verification_status=verification_status,
+                keepers=self.keeper_payload["serialized_keepers"],
+                blacklisted_keepers=self.keeper_payload["blacklisted_keepers"],
+            ),
+        )
+
+        # check if we succeeded in finalization.
+        # we may fail in any of the following cases:
         # 1. Getting raw safe transaction.
         # 2. Requesting transaction signature.
         # 3. Requesting transaction digest.
-        if self.keeper_payload["tx_digest"] != "":
-            state = self.period_state.update(
-                period_state_class=PeriodState,
-                tx_hashes_history=self._get_updated_hashes(),
-                final_verification_status=VerificationStatus(
-                    self.keeper_payload["status"]
-                ),
-            )
+        if self.keeper_payload["received_hash"]:
             return state, Event.DONE
-
-        update_params: Dict[str, Any] = dict(
-            period_state_class=PeriodState,
-            final_verification_status=VerificationStatus(self.keeper_payload["status"]),
-        )
-        if (
-            VerificationStatus(self.keeper_payload["status"])
-            == VerificationStatus.BLACKLIST
+        # This means that getting raw safe transaction succeeded,
+        # but either requesting tx signature or requesting tx digest failed.
+        if verification_status not in (
+            VerificationStatus.ERROR,
+            VerificationStatus.VERIFIED,
         ):
-            (
-                update_params["keepers"],
-                update_params["blacklisted_keepers"],
-            ) = self._blacklist_keeper()
-
-        state = self.period_state.update(**update_params)
-        event = self._get_check_or_fail_event()
-
-        return state, event
+            return state, Event.FINALIZATION_FAILED
+        # if there is a tx hash history, then check it for validated txs.
+        if state.tx_hashes_history:
+            return state, Event.CHECK_HISTORY
+        # if there could be any late messages, check if any has arrived.
+        if state.should_check_late_messages:
+            return state, Event.CHECK_LATE_ARRIVING_MESSAGE
+        # otherwise fail.
+        return state, Event.FINALIZATION_FAILED
 
 
 class RandomnessTransactionSubmissionRound(CollectSameUntilThresholdRound):

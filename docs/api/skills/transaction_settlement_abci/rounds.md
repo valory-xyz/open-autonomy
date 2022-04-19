@@ -236,7 +236,9 @@ A round that represents transaction signing has finished
 #### end`_`block
 
 ```python
-def end_block() -> Optional[Tuple[BasePeriodState, Enum]]
+def end_block() -> Optional[
+        Tuple[BasePeriodState, Enum]
+    ]
 ```
 
 Process the end of the block.
