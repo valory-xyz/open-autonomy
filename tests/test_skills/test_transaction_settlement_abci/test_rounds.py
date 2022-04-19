@@ -293,7 +293,7 @@ class TestSelectKeeperTransactionSubmissionRoundBAfterTimeout(
         (
             (
                 {
-                    "tx_hashes_history": ["test"],
+                    "tx_hashes_history": "t" * 66,
                     "missed_messages": 10,
                 },
                 True,
@@ -319,7 +319,7 @@ class TestSelectKeeperTransactionSubmissionRoundBAfterTimeout(
     def test_run(  # type: ignore
         self,
         threshold_exceeded_mock: mock.PropertyMock,
-        attrs: Dict[str, Union[List[str], int]],
+        attrs: Dict[str, Union[str, int]],
         threshold_exceeded: bool,
         exit_event: TransactionSettlementEvent,
     ) -> None:
@@ -346,56 +346,56 @@ class TestFinalizationRound(BaseOnlyKeeperSendsRoundTest):
         "tx_hashes_history, tx_digest, missed_messages, status, exit_event",
         (
             (
-                [],
+                "",
                 "",
                 1,
                 VerificationStatus.ERROR.value,
                 TransactionSettlementEvent.CHECK_LATE_ARRIVING_MESSAGE,
             ),
             (
-                [],
+                "",
                 "",
                 0,
                 VerificationStatus.ERROR.value,
                 TransactionSettlementEvent.FINALIZATION_FAILED,
             ),
             (
-                ["test"],
+                "t" * 66,
                 "",
                 0,
                 VerificationStatus.VERIFIED.value,
                 TransactionSettlementEvent.CHECK_HISTORY,
             ),
             (
-                ["test"],
+                "t" * 66,
                 "",
                 0,
                 VerificationStatus.ERROR.value,
                 TransactionSettlementEvent.CHECK_HISTORY,
             ),
             (
-                [],
+                "",
                 "",
                 0,
                 VerificationStatus.PENDING.value,
                 TransactionSettlementEvent.FINALIZATION_FAILED,
             ),
             (
-                [],
-                "tx_digest",
+                "",
+                "tx_digest" + "t" * 57,
                 0,
                 VerificationStatus.PENDING.value,
                 TransactionSettlementEvent.DONE,
             ),
             (
-                ["test"],
-                "tx_digest",
+                "t" * 66,
+                "tx_digest" + "t" * 57,
                 0,
                 VerificationStatus.PENDING.value,
                 TransactionSettlementEvent.DONE,
             ),
             (
-                ["test"],
+                "t" * 66,
                 "",
                 0,
                 VerificationStatus.BLACKLIST.value,
@@ -405,7 +405,7 @@ class TestFinalizationRound(BaseOnlyKeeperSendsRoundTest):
     )
     def test_finalization_round(
         self,
-        tx_hashes_history: List[str],
+        tx_hashes_history: str,
         tx_digest: str,
         missed_messages: int,
         status: int,
@@ -428,9 +428,11 @@ class TestFinalizationRound(BaseOnlyKeeperSendsRoundTest):
         )
 
         sender = keepers[0]
-        tx_hashes_history.append(
+        tx_hashes_history += (
             tx_digest
-        ) if exit_event == TransactionSettlementEvent.DONE else tx_hashes_history
+            if exit_event == TransactionSettlementEvent.DONE
+            else tx_hashes_history
+        )
         if status == VerificationStatus.BLACKLIST.value:
             popped = keepers.popleft()
             blacklisted_keepers = {popped}

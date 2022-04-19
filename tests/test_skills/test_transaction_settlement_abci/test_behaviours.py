@@ -668,7 +668,7 @@ class TestValidateTransactionBehaviour(TransactionSettlementFSMBehaviourBaseCase
                     initial_period=0,
                     initial_data=dict(
                         safe_contract_address="safe_contract_address",
-                        tx_hashes_history=["final_tx_hash"],
+                        tx_hashes_history="t" * 66,
                         final_tx_hash="dummy_hash",
                         participants=participants,
                         most_voted_keeper_address=most_voted_keeper_address,
@@ -758,7 +758,7 @@ class TestValidateTransactionBehaviour(TransactionSettlementFSMBehaviourBaseCase
 class TestCheckTransactionHistoryBehaviour(TransactionSettlementFSMBehaviourBaseCase):
     """Test CheckTransactionHistoryBehaviour."""
 
-    def _fast_forward(self, hashes_history: Optional[List[Optional[str]]]) -> None:
+    def _fast_forward(self, hashes_history: str) -> None:
         """Fast-forward to relevant state."""
         self.fast_forward_to_state(
             behaviour=self.behaviour,
@@ -786,25 +786,25 @@ class TestCheckTransactionHistoryBehaviour(TransactionSettlementFSMBehaviourBase
     @pytest.mark.parametrize(
         "verified, status, hashes_history, revert_reason",
         (
-            (False, -1, [None], "test"),
-            (False, 0, None, "test"),
-            (False, 0, [None], "test"),
-            (False, 0, [None], "GS026"),
-            (True, 1, [None], "test"),
+            (False, -1, "0x" + "t" * 64, "test"),
+            (False, 0, "", "test"),
+            (False, 0, "0x" + "t" * 64, "test"),
+            (False, 0, "0x" + "t" * 64, "GS026"),
+            (True, 1, "0x" + "t" * 64, "test"),
         ),
     )
     def test_check_tx_history_behaviour(
         self,
         verified: bool,
         status: int,
-        hashes_history: Optional[List[Optional[str]]],
+        hashes_history: str,
         revert_reason: str,
     ) -> None:
         """Test CheckTransactionHistoryBehaviour."""
         self._fast_forward(hashes_history)
         self.behaviour.act_wrapper()
 
-        if hashes_history is not None:
+        if hashes_history:
             self.mock_contract_api_request(
                 request_kwargs=dict(
                     performative=ContractApiMessage.Performative.GET_STATE
