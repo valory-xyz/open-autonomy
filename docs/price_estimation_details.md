@@ -1,20 +1,19 @@
-# ABCI Price Estimation with AEAs
+# ABCI Application Price Oracle with AEAs
 
-This demo is about a network of AEAs reaching
-Byzantine fault-tolerant consensus, powered by Tendermint,
-on a price estimate of Bitcoin price in US dollars.
+This demo consists of a network of AEAs, implemented as {{abci_app}}s reaching
+Byzantine fault-tolerant consensus, that work as an Oracle to jointly agree on a price estimate
+of the current Bitcoin price in US dollars. The underlying
+consensus mechanism for the {{abci_app}} is powered by Tendermint.
 
-For more details, please read <a href="../price_estimation/">this page</a>.
+## Requirements
 
-## Preliminaries
-
-Make sure you have installed on your machine:
+In addition to the general requirements presented for setting up the {{valory_stack}}, make sure that you have installed on your machine:
 
 - [Docker Engine](https://docs.docker.com/engine/install/)
 - [Docker Compose](https://docs.docker.com/compose/install/)
 - [Kind](https://kind.sigs.k8s.io/docs/user/quick-start/#installation)
 
-## Run a local demo
+## Running the Local Demo
 
 To set up the network:
 
@@ -24,13 +23,13 @@ make localnet-start
 
 This will spawn:
 
-- a network of 4 Tendermint nodes, each one trying to connect to
+- A network of 4 Tendermint nodes, each one trying to connect to
   a separate ABCI application instance;
 - 4 AEAs, each one running an instance of the ABCI application,
   and a finite-state machine behaviour to interact with
   the round phases.
 
-The following is the output of a single AEA (you can use `docker logs --follow`):
+The following is the output of a single AEA (you can use `docker logs {container_id} --follow`):
 ```
 info: Building package (connection, valory/abci:0.1.0)...
 info: Running command '/usr/bin/python3 check_dependencies.py /home/ubuntu/price_estimation/.build/connection/valory/abci'...
@@ -112,100 +111,3 @@ info: [price_estimation] transaction signing was successful.
 info: [price_estimation] 'estimate' behaviour state is done
 info: [price_estimation] Consensus reached on estimate: 44172.06142864574
 ```
-
-
-## Deployment to a Cluster
-
-We use scaffold to orchestrate the deployment of the application to any kubernetes cluster.
-
-In order to interact with skaffold, the local kubectl must be configured to point towards a cluster
-
-### Required Dependencies
-
-- [Skaffold](https://skaffold.dev/docs/install/): Deployment Orchestration
-- [Kind](https://kind.sigs.k8s.io/docs/user/quick-start/#installation): Local Cluster deployment and management.
-- [Kubectl](https://kubernetes.io/docs/tasks/tools/): kubernetes cli tool
-- [Docker](https://docs.docker.com/get-docker/): Container backend
-
-### Quick Cluster Deploy
-```
-make localcluster-start
-make localcluster-deploy
-```
-
-## Cluster Development
-
-### To Configure Local Cluster
-
-1. create a local cluster and save the kubeconfig locally
-```bash
-# build cluster and get kubeconfig
-kind create cluster
-```
-2. login to docker
-```bash
-docker login -u valory
-```
-3. deploy registry credentials to the cluster
-```bash
-kubectl create secret generic regcred \
-            --from-file=.dockerconfigjson=/home/$(whoami)/.docker/config.json \
-            --type=kubernetes.io/dockerconfigjson
-```
-4. set skaffold configuration to use a remote registry
-```bash
-skaffold config set local-cluster false
-```
-5. (optional) deploy monitoring and dashboard
-```bash
-# create dashboard user and deploy dashboard configuration
-kubectl create serviceaccount dashboard-admin-sa
-kubectl create clusterrolebinding dashboard-admin-sa --clusterrole=cluster-admin --serviceaccount=default:dashboard-admin-sa
-skaffold run --profile dashboard
-
-# launch dashboard app in firefox
-./kubernetes_configs/setup_dashboard.sh
-```
-6. optional retrieve the token for the dashboard
-```bash
-echo (kubectl describe secret (kubectl get secret | grep admin | awk '{print $1}') | grep token: | awk '{print $2}')
-```
-
-
-### To Deploy Poc
-
-```bash
-# deploy poc to cluster
-skaffold run --profile minikube
-```
-
-### Dev mode
-Watch for changes and automatically build tag and deploy and changes within the context of the build directories
-
-```bash
-# deploy poc to cluster
-skaffold dev --profile minikube
-```
-
-### tear down
-```
-kind delete cluster
-```
-
-
-## Deployment on Ropsten
-
-Ensure accurate configuration, in particular, swap folder names of `configure_agents` and `configure_agents_ropsten` (`mv configure_agents configure_agents_old` and `mv configure_agents_ropsten configure_agents`). Then run `make localnet-start` from within the node: `ssh root@178.62.4.138`
-
-```bash
-count=0
-docker ps --format '{{.ID}}' --filter='ancestor=valory/price_estimation:0.1.0' | while read -r line ; do docker logs "$line" > node_${count}.txt; (( count++ )); done
-```
-
-To find exceptions in logs, e.g. `docker logs 1629f5bd397d | grep "Traceback (most recent call last):"`
-
-To save logs to file: `docker logs d425a72bada2 > node_4.txt`
-
-To copy files to local machine: `for i in {1..4}; do scp root@178.62.4.138:node_${i}.txt node_${i}.txt; done`
-
-

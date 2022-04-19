@@ -11,7 +11,7 @@ fingerprint:
   __init__.py: QmNuC15NDuuzyfhdpYLpoVajvPGXN3EKR9GdBHDdM1mzgM
   behaviours.py: QmUUXzvYwRrCLMSqxid7WqDibGJwW5HovVe4WCJBKzgqvS
   dialogues.py: QmfDThV4WCRzK88XDpW2hKDYCuEH4RxoHCoAkWpkBRGRPv
-  fsm_specification.yaml: QmX3XcnEMJ8JLTkftDnFoanehLEJbqLgYM6cR9Y4DfPSYT
+  fsm_specification.yaml: QmWEBs5ua77LDEtg8ybHCjyrniosWdpDzMUPeJMWURtwsX
   handlers.py: QmRbhnYTWnUPsWHYg9CbLhWQTFfw9faRZwjbTD6BGv7YtD
   models.py: QmRALTaiv4Ny6PVjYbQQcBKaHjKSbpVABaxociC2Bkhgrh
   payloads.py: QmciRtUWZHMaGV2givznHWNQ4Ky44MciprcwadLYjxcu4s
@@ -77,6 +77,7 @@ models:
       consensus:
         max_participants: 1
       drand_public_key: 868f005eb8e6e4ca0a47c8a77ceaa5309a47978a7c71bc5cce96366b5d7a569937c529eeda66c7293784a9402801af31
+      keeper_allowed_retries: 3
       keeper_timeout: 30.0
       max_healthcheck: 120
       observation_interval: 10

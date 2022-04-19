@@ -1,52 +1,49 @@
-# AsyncBehaviour implementation
+# The `AsyncBehaviour` Class
 
 !!!note
-
-    The snippets of code here are a simplified representation of the actual
-    implementation.
+    For clarity, the snippets of code presented here are a simplified version of the actual
+    implementation. We refer the reader to the {{valory_stack_api}} for the complete details.
 
 The `AsyncBehaviour` class, introduced in the `valory/abstract_round_abci`
-skill, is a mixin class that allows the AEA developer to use
-asynchronous programming patterns in a `Behaviour` implementation.
+Skill, is a mixin class that allows the AEA developer to use
+asynchronous programming patterns in a `Behaviour` implementation. Since it is usual that many of the tasks to be carried by the state behaviours are long-running, this is the base class from which FSM Behaviours will be typically derived from.
 
-## Why?
+## The Need for Asynchronous Behaviours
 
 The main motivation behind the `AsyncBehaviour` utility class
 is that in idiomatic AEA behaviour development, the `act` method
 cannot contain blocking code or long-running tasks, as otherwise
-the AEA thread that executes all the behaviours would get stuck.
+the AEA main thread that executes all the behaviours would get stuck.
 For example, in order to interact with an external component through
-a request-response pattern (e.g. sending requests to an HTTP server,
-request the [Decision Maker](https://valory-xyz.github.io/open-aea/decision-maker/)
-to sign a transaction), the usual approach is to:
+a request-response pattern, e.g., sending a request to an HTTP server and waiting for its response, or
+request the [Decision Maker](https://valory-xyz.github.io/open-aea/decision-maker/) to sign a transaction. The usual approach in this case is to:
 
-- send the message from the `act` method and update the state
-  into "waiting for the response" (e.g. by updating an attribute in
+1. Send the message from the `act()` method and update the state
+  into "waiting for the response" (e.g., by updating an attribute in
   the shared state or in the behaviour instance, or by using the
-  ["State pattern"](https://gameprogrammingpatterns.com/state.html)),
-  such that the next call to `act` can be intercepted and controlled by the developer;
-- receive the response in a concrete `Handler` object that is registered
-  to process messages of the response protocol;
-- handle the response in the handler's `handle()` method according to the
+  [state pattern](https://gameprogrammingpatterns.com/state.html)),
+  such that the next call to `act()` can be intercepted and controlled by the developer.
+2. Receive the response in a concrete `Handler` object that is registered
+  to process messages of the response protocol.
+3. Handle the response in the handler's `handle()` method according to the
   skill business logic and the current state behaviour, and notify
   the behaviour about the change of state (e.g. by updating an attribute
   in the shared state such that the next `act` call can read it and take
   a different execution path).
 
-For large and complex skills, this development approach is quite expensive
+For large and complex skills, this development approach is quite error-prone and expensive
 in terms of maintainability, as the business logic does not reside in a single
-skill component (in a behaviour class), but in many skill components
-(in the handler classes, one for each interaction protocol required by the behaviour).
+skill component (i.e., in a behaviour class), but also in several other skill components (i.e., in the handler classes, one for each interaction protocol required by the behaviour).
 
-## Asynchronous programming to the rescue
+## Asynchronous Programming to the Rescue
 
 A well-known programming technique that turned out very useful in the
-web development community is **asynchronous programming**.
+web development community is [asynchronous programming](https://en.wikipedia.org/wiki/Asynchrony_(computer_programming)).
 
 Informally, a programming language that supports asynchronous
-programming features allows running blocking operations _asynchronously_:
+programming allows running blocking operations _asynchronously_:
 the operation is not run in the same thread where the call happened,
-but it is delegated to another executor, e.g. another thread/process,
+but it is delegated to another executor, e.g., another thread/process,
 allowing the caller function execution being "suspended" until the operation has completed.
 Once the blocking operation has completed, the execution of the function
 can process the result and continue as usual.
@@ -242,8 +239,8 @@ for `Behaviour`, and `H` is a shorthand for `Handler`.
         participant Seller
         participant Ledger
 
-        SearchB->>SOEF: "search for sellers"
-        SOEF->>SearchH: listOfAgents
+        SearchB->>ADS: "search for sellers"
+        ADS->>SearchH: listOfAgents
         SearchH->>Seller: call for proposals
         Seller->>FipaH: proposals
         note over FipaH, Seller: buyer and seller negotiate...
@@ -259,15 +256,14 @@ for `Behaviour`, and `H` is a shorthand for `Handler`.
 
 The participants `SearchB`, `SearchH`, `TransactionB`, `SigningH`, `LedgerH`, `FipaH`
 and `DecisionMaker` are **internal components** of the buyer AEA,
-whereas `SOEF`, `Seller`, and `Ledger` are **external actors**.
+whereas `ADS`, `Seller`, and `Ledger` are **external actors**.
 
 Follows the breakdown of each message exchange:
 
 - The buyer starts by searching for seller of the desired data,
-  and the search behaviour (`SearchB`) sends a search request to the
-  [SOEF](https://docs.fetch.ai/soef/simple-oef/), the search & discovery
-  agent service;
-- The search result of the SOEF gets routed to the search handler (`SearchH`),
+  and the search behaviour (`SearchB`) sends a search request to an
+  agent discovery service (ADS);
+- The search result of the ADS gets routed to the search handler (`SearchH`),
   which selects one of the sellers, and sends a "call for proposal" (CFP) message to him.
   The CFP is the first message of a
   [FIPA protocol interaction](http://www.fipa.org/repository/ips.php3).
@@ -314,7 +310,7 @@ class GenericBuyerBehaviour(OneShotBehaviour, AsyncBehaviour):
 
     def async_act(self):
         search_request = build_search_request(...)
-        # send search request to the SOEF
+        # send search request to the ADS
         # and (asynchronously) wait for the response
         response = yield from send(search_request)
         agents = response.result
@@ -365,4 +361,3 @@ is identified by the [(dialogue) identifier](https://valory-xyz.github.io/open-a
 of the interaction.
 However, note that the handler code in this case is _skill-independent_,
 which means that they do not contribute to the business logic.
-

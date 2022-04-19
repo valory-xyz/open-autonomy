@@ -44,4 +44,4 @@ RUN chmod 777 -R /tendermint
 ENTRYPOINT ["/usr/bin/flask"]
 CMD ["run", "--no-reload", "--host=0.0.0.0", "--port=8080"]
 
-HEALTHCHECK --interval=3s --timeout=600s --retries=600 CMD netstat -ltn | grep -c 26658 > /dev/null; if [ 0 != $? ]; then exit 1; fi;
+HEALTHCHECK --interval=3s --timeout=600s --retries=600 CMD netstat -ltn | grep -c 26657 > /dev/null; if [ 0 != $? ]; then exit 1; fi;

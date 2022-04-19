@@ -24,7 +24,17 @@ jobs:
     - uses: actions/setup-python@master
       with:
         python-version: ${{ matrix.python-version }}
+    - uses: actions/setup-node@v1
+      with:
+        node-version: 12.x
     - name: Install dependencies
-      run:  pip install tox
+      run: |
+        sudo apt-get update --fix-missing
+        sudo apt-get autoremove
+        sudo apt-get autoclean
+        pip install tox
+        sudo npm install -g markdown-spellcheck
     - name: Generate Documentation
       run: tox -e docs
+    - name: Check spelling
+      run: tox -e spell-check

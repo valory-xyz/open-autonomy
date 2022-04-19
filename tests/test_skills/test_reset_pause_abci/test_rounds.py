@@ -17,7 +17,7 @@
 #
 # ------------------------------------------------------------------------------
 
-"""Test the base.py module of the skill."""
+"""Test the rounds of the skill."""
 import logging  # noqa: F401
 from typing import Dict, FrozenSet
 
