@@ -19,7 +19,7 @@
 
 """This module contains the handler for the 'abstract_round_abci' skill."""
 from abc import ABC
-from typing import Callable, FrozenSet, Optional, cast
+from typing import Dict, Callable, FrozenSet, Optional, cast
 
 from aea.configurations.data_types import PublicId
 from aea.protocols.base import Message
@@ -33,6 +33,8 @@ from packages.valory.protocols.contract_api import ContractApiMessage
 from packages.valory.protocols.http import HttpMessage
 from packages.valory.protocols.ledger_api import LedgerApiMessage
 from packages.valory.protocols.tendermint.message import TendermintMessage
+from packages.valory.protocols.tendermint.dialogues import TendermintDialogues
+from packages.valory.skills.abstract_round_abci.base import BasePeriodState
 from packages.valory.skills.abstract_abci.handlers import ABCIHandler
 from packages.valory.skills.abstract_round_abci.base import (
     ABCIAppInternalError,
@@ -418,14 +420,69 @@ class ContractApiHandler(AbstractResponseHandler):
     )
 
 
-class TendermintHandler(AbstractResponseHandler):
+class TendermintHandler(Handler):
     """The Tendermint request / response handler."""
 
     SUPPORTED_PROTOCOL: Optional[PublicId] = TendermintMessage.protocol_id
-    allowed_response_performatives = frozenset(
-        {
-            TendermintMessage.Performative.ERROR,
-            TendermintMessage.Performative.TENDERMINT_CONFIG_REQUEST,
-            TendermintMessage.Performative.TENDERMINT_CONFIG_RESPONSE,
-        }
-    )
+
+    @property
+    def period_state(self) -> BasePeriodState:
+        """Period State"""
+        return cast(BasePeriodState, cast(SharedState, self.context.state).period_state)
+
+    @property
+    def registered_addresses(self) -> Optional[Dict[str, Dict]]:
+        """Registered addresses"""
+        return self.period_state.db.initial_data.get("registered_addresses")
+
+    @property
+    def protocol_dialogues(self) -> Optional[Dialogues]:
+        """Tendermint request / response protocol dialogues"""
+
+        attribute = cast(PublicId, self.SUPPORTED_PROTOCOL).name + "_dialogues"
+        return getattr(self.context, attribute, None)
+
+    def handle(self, message: Message):
+        """Handle incoming messages"""
+
+        message = cast(TendermintMessage, message)
+        if message.performative == TendermintMessage.Performative.TENDERMINT_CONFIG_REQUEST:
+            self._handle_request(message)
+        elif message.performative == TendermintMessage.Performative.TENDERMINT_CONFIG_RESPONSE:
+            self._handle_response(message)
+        elif message.performative == TendermintMessage.Performative.ERROR:
+            self.context.logger.info(f"Error: {message.performative}")
+        else:
+            self.context.logger.info(f"Performative not recognized: {message.performative}")
+
+    def _handle_request(self, message: TendermintMessage) -> None:
+        """Handler tendermint request message"""
+
+        dialogues = cast(TendermintDialogues, self.protocol_dialogues)
+        dialogues.update(message)
+        if not self.registered_addresses:
+            self.context.logger.info(f"No registered addresses")
+            return
+        elif message.sender not in self.registered_addresses:
+            self.context.logger.info(f"Sender not registered on-chain: {message}")
+            return
+
+        info = self.context.registration_behaviour.personal_tendermint_info
+        response_message, _ = dialogues.create(
+            counterparty=message.sender,
+            performative=TendermintMessage.Performative.TENDERMINT_CONFIG_RESPONSE,
+            info=info,
+        )
+        self.context.outbox.put_message(message=response_message)
+        self.context.logger.info(f"Sending request response: {response_message}")
+
+    def _handle_response(self, message: TendermintMessage) -> None:
+        """Process tendermint response messages"""
+
+        if message.sender not in self.registered_addresses:
+            self.context.logger.warning(f"Request from agent not registered on-chain:\n{message}")
+        elif message.performative == TendermintMessage.Performative.TENDERMINT_CONFIG_RESPONSE:
+            self.registered_addresses[message.sender] = message.info
+            self.context.logger.info(f"Collected {message.sender}: {message.info}")
+        else:
+            self.context.logger.info(f"Error on request response: \n{message}")
