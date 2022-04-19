@@ -22,7 +22,7 @@
 import logging  # noqa: F401
 from collections import deque
 from types import MappingProxyType
-from typing import Deque, Dict, FrozenSet, List, Mapping, Optional, Set, Union, cast
+from typing import Deque, Dict, FrozenSet, List, Mapping, Optional, Union, cast
 from unittest import mock
 
 import pytest
@@ -413,7 +413,7 @@ class TestFinalizationRound(BaseOnlyKeeperSendsRoundTest):
     ) -> None:
         """Runs tests."""
         keeper_retries = 2
-        blacklisted_keepers: Set[str] = set()
+        blacklisted_keepers = ""
         self.participants = frozenset([f"agent_{i}" + "-" * 35 for i in range(4)])
         keepers = deque(("agent_1" + "-" * 35, "agent_3" + "-" * 35))
         self.period_state = cast(
@@ -435,7 +435,7 @@ class TestFinalizationRound(BaseOnlyKeeperSendsRoundTest):
         )
         if status == VerificationStatus.BLACKLIST.value:
             popped = keepers.popleft()
-            blacklisted_keepers = {popped}
+            blacklisted_keepers += popped
             keeper_retries = 1
 
         test_round = self._round_class(
@@ -672,7 +672,7 @@ def test_period_states() -> None:
                 final_tx_hash=final_tx_hash,
                 late_arriving_tx_hashes=late_arriving_tx_hashes,
                 keepers=keepers,
-                blacklisted_keepers={"test"},
+                blacklisted_keepers="t" * 42,
             ),
         )
     )
@@ -687,7 +687,7 @@ def test_period_states() -> None:
     assert period_state_____.keeper_retries == 1
     assert period_state_____.most_voted_keeper_address == expected_keepers.popleft()
     assert period_state_____.keepers_threshold_exceeded
-    assert period_state_____.blacklisted_keepers == {"test"}
+    assert period_state_____.blacklisted_keepers == {"t" * 42}
     updated_state = period_state_____.update(period_count=1)
     assert updated_state.blacklisted_keepers == set()
 

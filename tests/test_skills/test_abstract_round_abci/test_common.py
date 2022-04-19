@@ -341,7 +341,7 @@ class BaseSelectKeeperBehaviourTest(CommonBaseCase):
                         participants=participants,
                         most_voted_randomness="56cbde9e9bbcbdcaf92f183c678eaa5288581f06b1c9c7f884ce911776727688",
                         final_verification_status=VerificationStatus.PENDING,
-                        blacklisted_keepers=blacklisted_keepers,
+                        blacklisted_keepers="".join(blacklisted_keepers),
                     ),
                 )
             ),
