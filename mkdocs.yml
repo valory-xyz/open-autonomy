@@ -44,6 +44,7 @@ nav:
     - Ethereum: 'ethereum_specifics.md'
     - Delegate call vs call: 'delegate_call.md'
     - Debugging Using Tenderly: 'debugging.md'
+    - Counter Example: 'counter_example.md'
   - API:
     - Connections:
       - ABCI:

@@ -28,6 +28,7 @@ from unittest import mock
 
 import pytest
 from aea.exceptions import AEAActException
+from aea.skills.base import SkillContext
 
 from packages.valory.protocols.contract_api.custom_types import State
 from packages.valory.protocols.ledger_api.message import LedgerApiMessage
@@ -324,13 +325,24 @@ class BaseSelectKeeperBehaviourTest(CommonBaseCase):
     done_event: Any
     _period_state: Type[BasePeriodState] = BasePeriodState
 
+    @mock.patch.object(SkillContext, "agent_address", new_callable=mock.PropertyMock)
     @pytest.mark.parametrize(
         "blacklisted_keepers",
-        (set(), {"a_1"}, {"test_agent_address"}, {"a_1", "a_2", "test_agent_address"}),
+        (
+            set(),
+            {"a_1"},
+            {"test_agent_address" + "t" * 24},
+            {"a_1" + "t" * 39, "a_2" + "t" * 39, "test_agent_address" + "t" * 24},
+        ),
     )
-    def test_select_keeper(self, blacklisted_keepers: Set[str]) -> None:
+    def test_select_keeper(
+        self, agent_address_mock: mock.Mock, blacklisted_keepers: Set[str]
+    ) -> None:
         """Test select keeper agent."""
-        participants = frozenset({self.skill.skill_context.agent_address, "a_1", "a_2"})
+        agent_address_mock.return_value = "test_agent_address" + "t" * 24
+        participants = frozenset(
+            {self.skill.skill_context.agent_address, "a_1" + "t" * 39, "a_2" + "t" * 39}
+        )
         self.fast_forward_to_state(
             behaviour=self.behaviour,
             state_id=self.select_keeper_behaviour_class.state_id,
@@ -341,7 +353,7 @@ class BaseSelectKeeperBehaviourTest(CommonBaseCase):
                         participants=participants,
                         most_voted_randomness="56cbde9e9bbcbdcaf92f183c678eaa5288581f06b1c9c7f884ce911776727688",
                         final_verification_status=VerificationStatus.PENDING,
-                        blacklisted_keepers=blacklisted_keepers,
+                        blacklisted_keepers="".join(blacklisted_keepers),
                     ),
                 )
             ),

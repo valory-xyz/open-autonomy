@@ -30,7 +30,8 @@ If you are setting up the environment for the first time, follow these steps:
       make new_env && pipenv shell
       ```
 
-If you already have the environment set up and you are updating the repository during development (e.g., pulling the main Git branch), we recommend that you follow these steps:
+If you already have the environment set up and you are updating the repository during development (e.g. pulling the main Git branch), we recommend that you follow these steps:
+
 1. Update the Git submodules:
       ```bash
       git submodule update --init --recursive
