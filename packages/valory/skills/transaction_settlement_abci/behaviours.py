@@ -84,7 +84,7 @@ from packages.valory.skills.transaction_settlement_abci.rounds import (
 )
 
 
-TxDataType = Dict[str, Union[VerificationStatus, str]]
+TxDataType = Dict[str, Union[VerificationStatus, Deque[str], int, Set[str], str]]
 
 
 drand_check = VerifyDrand()
@@ -109,6 +109,9 @@ class TransactionSettlementBaseState(BaseState, ABC):
         """Get the transaction data from a `ContractApiMessage`."""
         tx_data: TxDataType = {
             "status": VerificationStatus.PENDING,
+            "keepers": self.period_state.keepers,
+            "keeper_retries": self.period_state.keeper_retries,
+            "blacklisted_keepers": self.period_state.blacklisted_keepers,
             "tx_digest": "",
         }
 
@@ -139,7 +142,11 @@ class TransactionSettlementBaseState(BaseState, ABC):
             tx_data["status"] = VerificationStatus.ERROR
 
         if rpc_status == RPCResponseStatus.INSUFFICIENT_FUNDS:
+            # blacklist self.
             tx_data["status"] = VerificationStatus.BLACKLIST
+            blacklisted = cast(Deque[str], tx_data["keepers"]).popleft()
+            tx_data["keeper_retries"] = 1
+            cast(Set[str], tx_data["blacklisted_keepers"]).add(blacklisted)
 
         if rpc_status != RPCResponseStatus.SUCCESS:
             self.context.logger.warning(
