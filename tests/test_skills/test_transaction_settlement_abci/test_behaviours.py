@@ -382,7 +382,7 @@ class TestSelectKeeperTransactionSubmissionBehaviourB(
         """Test select keeper agent."""
         keepers_mock.return_value = keepers
         keeper_retries_mock.return_value = keeper_retries
-        super().test_select_keeper(blacklisted_keepers)
+        super().test_select_keeper(blacklisted_keepers=blacklisted_keepers)
 
 
 class TestSignatureBehaviour(TransactionSettlementFSMBehaviourBaseCase):
