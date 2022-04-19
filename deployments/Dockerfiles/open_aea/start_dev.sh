@@ -1,4 +1,4 @@
-sudo chown -R ubuntu:ubuntu /logs
+echo "Starting Dev image and installing Valory app dependencies."
 sudo chown -R ubuntu:ubuntu /home/ubuntu
 sudo chown -R ubuntu:ubuntu /open-aea
 
