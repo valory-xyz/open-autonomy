@@ -72,6 +72,7 @@ TENDERMINT_NODE_TEMPLATE: str = (
     container_name: node{node_id}
     hostname: node{node_id}
     image: "valory/consensus-algorithms-tendermint:%s"
+    restart: always
     environment:
       - ID={node_id}
       - PROXY_APP=tcp://abci{node_id}:26658
@@ -103,13 +104,13 @@ ABCI_NODE_TEMPLATE: str = (
     container_name: abci{node_id}
     image: "valory/consensus-algorithms-open-aea:%s"
     environment:
-      - LOG_FILE=/logs/aea_{node_id}.txt
+      - LOG_FILE=/home/ubuntu/logs/aea_{node_id}.txt
 {agent_vars}
     networks:
       localnet:
         ipv4_address: 192.167.11.{localnet_address_postfix}
     volumes:
-      - ../persistent_data/logs:/logs:Z
+      - ../persistent_data/logs:/home/ubuntu/logs:Z
 """
     % IMAGE_VERSION
 )
