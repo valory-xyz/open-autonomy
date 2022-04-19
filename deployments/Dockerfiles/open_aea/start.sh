@@ -1,5 +1,4 @@
 #! /bin/bash
-sudo chown -R ubuntu:ubuntu /logs
 if [ "$DEBUG" == "1" ];
 then
     cowsay "Debugging..."
