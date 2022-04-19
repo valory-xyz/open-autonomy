@@ -220,3 +220,27 @@ def __init__(**kwargs: Any) -> None
 
 Initialize dialogues.
 
+<a id="packages.valory.skills.abstract_round_abci.dialogues.TendermintDialogues"></a>
+
+## TendermintDialogues Objects
+
+```python
+class TendermintDialogues(Model,  BaseTendermintDialogues)
+```
+
+The dialogues class keeps track of all dialogues.
+
+<a id="packages.valory.skills.abstract_round_abci.dialogues.TendermintDialogues.__init__"></a>
+
+#### `__`init`__`
+
+```python
+def __init__(**kwargs: Any) -> None
+```
+
+Initialize dialogues.
+
+**Arguments**:
+
+- `kwargs`: keyword arguments
+
