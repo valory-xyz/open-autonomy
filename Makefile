@@ -140,19 +140,15 @@ test:
 	pytest -rfE --doctest-modules aea_consensus_algorithms tests/ --cov=aea_consensus_algorithms --cov-report=html --cov=packages/valory --cov-report=xml --cov-report=term --cov-report=term-missing --cov-config=.coveragerc
 	find . -name ".coverage*" -not -name ".coveragerc" -exec rm -fr "{}" \;
 
-
-.PHONY: checks
-checks:
+.PHONY: all-checks
+all-checks:
 	make clean \
-	&& python scripts/generate_abci_docstrings.py \
-	&& make static \
-	&& make lint \
-	&& make pylint \
-	&& make copyright \
-	&& make docs \
-	&& tox -e check-api-docs \
-	&& make hashes \
+	&& make formatters \
+	&& make code-checks \
 	&& make security \
+	&& make generators \
+	&& make common-checks-1 \
+	&& make common-checks-2
 
 .PHONY: test-skill
 test-skill:
