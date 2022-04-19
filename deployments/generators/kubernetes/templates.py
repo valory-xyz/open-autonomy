@@ -183,7 +183,6 @@ spec:
       - name: node{validator_ix}
         image: valory/consensus-algorithms-tendermint:%s
         imagePullPolicy: Always
-        restart: always
         resources:
           limits:
             memory: "1512Mi"
