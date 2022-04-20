@@ -62,6 +62,7 @@ from packages.valory.skills.transaction_settlement_abci.rounds import (
     SelectKeeperTransactionSubmissionRoundB,
     SelectKeeperTransactionSubmissionRoundBAfterTimeout,
     SynchronizeLateMessagesRound,
+    TX_HASH_LENGTH,
     ValidateTransactionRound,
 )
 
@@ -183,7 +184,7 @@ def get_participant_to_late_arriving_tx_hashes(
     """participant_to_selection"""
     return {
         participant: SynchronizeLateMessagesPayload(
-            sender=participant, tx_hashes="1" * 64 + "2" * 64
+            sender=participant, tx_hashes="1" * TX_HASH_LENGTH + "2" * TX_HASH_LENGTH
         )
         for participant in participants
     }
@@ -193,7 +194,12 @@ def get_late_arriving_tx_hashes() -> List[str]:
     """Get dummy late-arriving tx hashes."""
     # We want the tx hashes to have a size which can be divided by 64 to be able to parse it.
     # Otherwise, they are not valid.
-    return ["t" * 64, "e" * 64, "s" * 64, "t" * 64]
+    return [
+        "t" * TX_HASH_LENGTH,
+        "e" * TX_HASH_LENGTH,
+        "s" * TX_HASH_LENGTH,
+        "t" * TX_HASH_LENGTH,
+    ]
 
 
 def get_keepers(keepers: Deque[str], retries: int = 1) -> str:
@@ -631,9 +637,10 @@ class TestSynchronizeLateMessagesRound(BaseCollectNonEmptyUntilThresholdRound):
                     self.participants
                 ),
                 state_update_fn=lambda _period_state, _: _period_state.update(
-                    late_arriving_tx_hashes=["1" * 64, "2" * 64]
+                    late_arriving_tx_hashes=["1" * TX_HASH_LENGTH, "2" * TX_HASH_LENGTH]
+                    * len(self.participants)
                 ),
-                state_attr_checks=[],
+                state_attr_checks=[lambda state: state.late_arriving_tx_hashes],
                 exit_event=expected_event,
             )
         )

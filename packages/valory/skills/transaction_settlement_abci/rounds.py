@@ -197,14 +197,13 @@ class PeriodState(BasePeriodState):  # pylint: disable=too-many-instance-attribu
             List[str], self.db.get_strict("late_arriving_tx_hashes")
         )
         late_arriving_tx_hashes_parsed = []
-        hashes_length = 64
         for unparsed_hash in late_arriving_tx_hashes_unparsed:
-            if len(unparsed_hash) % hashes_length != 0:
+            if len(unparsed_hash) % TX_HASH_LENGTH != 0:
                 # if we cannot parse the hashes, then the developer has serialized them incorrectly.
                 raise ABCIAppInternalError(
                     f"Cannot parse late arriving hashes: {unparsed_hash}!"
                 )
-            parsed_hashes = textwrap.wrap(unparsed_hash, hashes_length)
+            parsed_hashes = textwrap.wrap(unparsed_hash, TX_HASH_LENGTH)
             late_arriving_tx_hashes_parsed.extend(parsed_hashes)
 
         return late_arriving_tx_hashes_parsed
