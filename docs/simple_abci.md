@@ -47,7 +47,7 @@ The main modules to take into account in this development step are:
 
 - `behaviours.py`: Contains the implementation of the behaviours to be executed at each state of the FSM. Each behaviour is one-to-one associated to a round. It also contains the `SimpleAbciConsensusBehaviour` class, which can be thought as the "main" class for the skill behaviour, and will be discussed in a separate section below.
 - `rounds.py`: Contains the implementation of the rounds associated to each state and the shared `PeriodState`. It also contains the declaration of the FSM events, and the `SimpleAbciApp` which defines the transition function of the FSM, which will be also discussed in a separate section.
-- `payloads.py`:
+- `payloads.py`: Contains the implementation of the payloads associated to each state. One payload can be used per state. Payloads are used so sync data between agents, and therefore the application state.
 
 
 ### `RegistrationRound` and `RegistrationBehaviour`
@@ -97,14 +97,15 @@ classDiagram
       +end_block()
     }
 </div>
-<figcaption>Hierarchy of the `RegistrationRound` class (some methods and fields are ommited)</figcaption>
+<figcaption>Hierarchy of the `RegistrationRound` class (some methods and fields are omitted)</figcaption>
 </figure>
 
 As it can be seen, it inherits from the main abstract class `AbstractRound` through a series of intermediate classes:
+
 - `CollectionRound`: Helper class for rounds where the application is expected to wait until some some sort of value is collected: either a common value (e.g., a common randomness observation), or a collection of different values (e.g., exchange values from different sources).
-- `CollectDifferentUntilAllRound`: Helper class for rounds that should wait until a collection of different values is collected. In this case, it corresponds to the agent addresses.
+- `CollectDifferentUntilAllRound`: Helper class for rounds that should wait until a collection of different values is collected, one from each agent ("all").
 - `SimpleABCIAbstractRound`: Helper class particular to the Simple {{abci_app}} which contains common methods for all rounds.
-- `RegistrationRound`: Class that implements the particular instance of the `AbstractRound`. Many of the functionalities are already covered by the partent classes, but any concrete implementation of `AbstractRound` need to implement the abstract method `end_block()`. The method `end_block()` has the responsibility of checking the conditions to transit to the next state, and as such, it must return (1) a reference to the (updated) period state, and (2) an event that will define the transition to the next state in the FSM.
+- `RegistrationRound`: Class that implements the particular instance of the `AbstractRound`. Many of the functionalities are already covered by the parent classes, but any concrete implementation of `AbstractRound` need to implement the abstract method `end_block()`. The method `end_block()` has the responsibility of checking the conditions to transit to the next state, and as such, it must return (1) a reference to the (updated) period state, and (2) an event that will define the transition to the next state in the FSM.
 
 
 To sum up, the `RegistrationRound` simply waits to collect all agent addresses (a mechanism inherited from `CollectDifferentUntilAllRound`) and it produces the `DONE` event when it finishes. The agents send their address through the proactive behaviour discussed below.
@@ -116,10 +117,10 @@ On the other hand, the `RegistrationBehaviour` hierarchy is as follows:
 classDiagram
     SimpleABCIBaseState<|-- RegistrationBehaviour
     BaseState <|-- SimpleABCIBaseState
-    AsyncBehaviour <|-- BaseState
     IPFSBehaviour <|-- BaseState
+    AsyncBehaviour <|-- BaseState
     CleanUpBehaviour <|-- BaseState
-    SimpleBehaviour <|-- IPFSBehaviour
+    SimpleBehaviour <|-- AsyncBehaviour
     Behaviour <|-- SimpleBehaviour
 
     class AsyncBehaviour{
@@ -136,7 +137,7 @@ classDiagram
         +async_act()
     }
 </div>
-<figcaption>Hierarchy of the `RegistrationBehaviour` class (some methods and fields are ommited)</figcaption>
+<figcaption>Hierarchy of the `RegistrationBehaviour` class (some methods and fields are omitted)</figcaption>
 </figure>
 
 As it can be seen, the `RegistrationBehaviour` inherits from `BaseState`, which is the base class for FSM states. This class aggregates the functionality from some other classes, most notably from the `AsyncBehaviour` class which defines the `async_act()` abstract method, which must be implemented in the `RegistrationBehaviour` class. In this case, `async_act()` does the following:
@@ -192,7 +193,7 @@ classDiagram
     +transaction_type = TransactionType.REGISTRATION
   }
 </div>
-<figcaption>Hierarchy of the `RegistrationPayload` class (some methods and fields are ommited)</figcaption>
+<figcaption>Hierarchy of the `RegistrationPayload` class (some methods and fields are omitted)</figcaption>
 </figure>
 
 The class `RegistrationPayload` is simply a wrapper for the data to be sent by the
@@ -205,7 +206,7 @@ The remaining states from the FSM follow a similar approach in the definition of
 ### `RandomnessStartupRound` and `RandomnessStartupBehaviour`
 As opposed to `RegistrationRound`, the class `RandomnessStartupRound` inherits from the helper abstract class `CollectSameUntilThresholdRound`. That is, the round will wait until 2/3 of the agents have agreed in the same collected value (in this case, a random string from a decentralized randomness source). If for whatever reason agents do not agree within a given timeframe, this state is revisited. As above, the method `end_block()` must be implemented, and it must return the appropriate events accordingly.
 
-The `RandomnessBehaviour` on the other hand is the proactive part that connects to the distriubuted randomness service, reads the value,  commits it to the temporary blockchain, and stores it in the period state.
+The `RandomnessBehaviour` on the other hand is the proactive part that connects to the distributed randomness service, reads the value,  commits it to the temporary blockchain, and stores it in the period state.
 As above, all these operations are carried on the `async_act()` method, and the
 payload class `RandomnessPayload` encapsulates the collected randomness as well as the round identifier.
 
