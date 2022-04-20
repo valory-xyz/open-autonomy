@@ -74,7 +74,6 @@ class Event(Enum):
     CHECK_LATE_ARRIVING_MESSAGE = "check_late_arriving_message"
     FINALIZATION_FAILED = "finalization_failed"
     MISSED_AND_LATE_MESSAGES_MISMATCH = "missed_and_late_messages_mismatch"
-    KEEPER_BLACKLISTED = "keeper_blacklisted"
     INCORRECT_SERIALIZATION = "incorrect_serialization"
 
 
@@ -553,7 +552,6 @@ class TransactionSubmissionAbciApp(AbciApp[Event]):
             - check late arriving message: 8.
         6. SelectKeeperTransactionSubmissionRoundB
             - done: 3.
-            - keeper blacklisted: 6.
             - round timeout: 6.
             - no majority: 10.
             - incorrect serialization: 12.
@@ -635,7 +633,6 @@ class TransactionSubmissionAbciApp(AbciApp[Event]):
         },
         SelectKeeperTransactionSubmissionRoundB: {
             Event.DONE: FinalizationRound,
-            Event.KEEPER_BLACKLISTED: SelectKeeperTransactionSubmissionRoundB,
             Event.ROUND_TIMEOUT: SelectKeeperTransactionSubmissionRoundB,
             Event.NO_MAJORITY: ResetRound,
             Event.INCORRECT_SERIALIZATION: FailedRound,
