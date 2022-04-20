@@ -18,17 +18,18 @@
 # ------------------------------------------------------------------------------
 
 """HTTP server to control the tendermint execution environment."""
+import ast
 import logging
 import os
 import shutil
 import stat
+import traceback
 from pathlib import Path
-from typing import Any, Callable, Optional, Tuple
+from typing import Any, Callable, Optional, Tuple, Dict
 
-from flask import Flask, Response, jsonify
+from flask import Flask, Response, jsonify, request
 from tendermint import TendermintNode, TendermintParams
 from werkzeug.exceptions import InternalServerError, NotFound
-
 
 DEFAULT_LOG_FILE = "log.log"
 logging.basicConfig(
@@ -63,7 +64,7 @@ class PeriodDumper:
         func(path)
 
     def dump_period(
-        self,
+            self,
     ) -> None:
         """Dump tendermint run data for replay"""
         store_dir = self.dump_dir / f"period_{self.resets}"
@@ -111,7 +112,27 @@ app = Flask(__name__)
 period_dumper = PeriodDumper(logger=app.logger)
 
 tendermint_node = TendermintNode(tendermint_params, logger=app.logger)
-tendermint_node.start()
+
+
+@app.route("/start")
+def start() -> Response:
+    try:
+        tendermint_node.start()
+        return Response(response="Tendermint node started", status=200)
+    except Exception:
+        return Response(response=traceback.format_exc(), status=400)
+
+
+@app.route("/params", methods=['POST', 'GET'])
+def params() -> Response:
+    if request.method == "GET":
+        info = tendermint_node.params
+        return Response(response=info, status=200)
+    else:
+        raw_data: bytes = request.get_data()
+        kwargs: Dict[str, str] = ast.literal_eval(raw_data.decode("utf-8"))
+        tendermint_node.params = TendermintParams(**kwargs)
+        return Response(response="TendermintParams updated", status=200)
 
 
 @app.route("/gentle_reset")
