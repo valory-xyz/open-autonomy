@@ -11,7 +11,7 @@ alphabet_in:
 - FAST_FORWARD
 - FINALIZATION_FAILED
 - INCORRECT_SERIALIZATION
-- KEEPER_BLACKLISTED
+- INSUFFICIENT_FUNDS
 - MISSED_AND_LATE_MESSAGES_MISMATCH
 - NEGATIVE
 - NONE
@@ -78,6 +78,7 @@ transition_func:
     (FinalizationRound, CHECK_LATE_ARRIVING_MESSAGE): SynchronizeLateMessagesRound
     (FinalizationRound, DONE): ValidateTransactionRound
     (FinalizationRound, FINALIZATION_FAILED): SelectKeeperTransactionSubmissionRoundB
+    (FinalizationRound, INSUFFICIENT_FUNDS): SelectKeeperTransactionSubmissionRoundB
     (FinalizationRound, ROUND_TIMEOUT): SelectKeeperTransactionSubmissionRoundBAfterTimeout
     (RandomnessSafeRound, DONE): SelectKeeperSafeRound
     (RandomnessSafeRound, NO_MAJORITY): RandomnessSafeRound
@@ -103,7 +104,6 @@ transition_func:
     (SelectKeeperTransactionSubmissionRoundA, ROUND_TIMEOUT): SelectKeeperTransactionSubmissionRoundA
     (SelectKeeperTransactionSubmissionRoundB, DONE): FinalizationRound
     (SelectKeeperTransactionSubmissionRoundB, INCORRECT_SERIALIZATION): RegistrationRound
-    (SelectKeeperTransactionSubmissionRoundB, KEEPER_BLACKLISTED): SelectKeeperTransactionSubmissionRoundB
     (SelectKeeperTransactionSubmissionRoundB, NO_MAJORITY): ResetRound
     (SelectKeeperTransactionSubmissionRoundB, ROUND_TIMEOUT): SelectKeeperTransactionSubmissionRoundB
     (SelectKeeperTransactionSubmissionRoundBAfterTimeout, CHECK_HISTORY): CheckTransactionHistoryRound

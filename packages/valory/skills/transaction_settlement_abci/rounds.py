@@ -74,6 +74,7 @@ class Event(Enum):
     CHECK_LATE_ARRIVING_MESSAGE = "check_late_arriving_message"
     FINALIZATION_FAILED = "finalization_failed"
     MISSED_AND_LATE_MESSAGES_MISMATCH = "missed_and_late_messages_mismatch"
+    INSUFFICIENT_FUNDS = "insufficient_funds"
     INCORRECT_SERIALIZATION = "incorrect_serialization"
 
 
@@ -266,6 +267,9 @@ class FinalizationRound(OnlyKeeperSendsRound):
         # 3. Requesting transaction digest.
         if self.keeper_payload["received_hash"]:
             return state, Event.DONE
+        # If keeper has been blacklisted, return an `INSUFFICIENT_FUNDS` event.
+        if verification_status == VerificationStatus.BLACKLIST:
+            return state, Event.INSUFFICIENT_FUNDS
         # This means that getting raw safe transaction succeeded,
         # but either requesting tx signature or requesting tx digest failed.
         if verification_status not in (
@@ -537,6 +541,7 @@ class TransactionSubmissionAbciApp(AbciApp[Event]):
             - round timeout: 7.
             - finalization failed: 6.
             - check late arriving message: 8.
+            - insufficient funds: 6.
         4. ValidateTransactionRound
             - done: 11.
             - negative: 5.
@@ -615,6 +620,7 @@ class TransactionSubmissionAbciApp(AbciApp[Event]):
             Event.ROUND_TIMEOUT: SelectKeeperTransactionSubmissionRoundBAfterTimeout,
             Event.FINALIZATION_FAILED: SelectKeeperTransactionSubmissionRoundB,
             Event.CHECK_LATE_ARRIVING_MESSAGE: SynchronizeLateMessagesRound,
+            Event.INSUFFICIENT_FUNDS: SelectKeeperTransactionSubmissionRoundB,
         },
         ValidateTransactionRound: {
             Event.DONE: FinishedTransactionSubmissionRound,

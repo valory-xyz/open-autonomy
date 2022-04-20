@@ -399,7 +399,7 @@ class TestFinalizationRound(BaseOnlyKeeperSendsRoundTest):
                 "",
                 0,
                 VerificationStatus.BLACKLIST.value,
-                TransactionSettlementEvent.FINALIZATION_FAILED,
+                TransactionSettlementEvent.INSUFFICIENT_FUNDS,
             ),
         ),
     )
