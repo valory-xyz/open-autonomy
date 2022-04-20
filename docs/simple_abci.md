@@ -275,9 +275,10 @@ Recall that each behaviour is in one-to-one correspondence with a round. Upon in
 
 
 
-## Specification of the FSMs
+## Specification of the FSM
 
-For convenience, we provide a simplified syntax to describe concisely the FSM of the {{abci_app}}s.
+For convenience, we provide a simplified YAML syntax to describe concisely the FSM of the {{abci_app}}s. For the case of
+the Simple {{abci_app}} the specification is as follows:
 
 ```yaml
 alphabet_in:
