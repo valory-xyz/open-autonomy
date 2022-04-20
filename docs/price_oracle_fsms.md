@@ -1,4 +1,5 @@
-### High-Level Description of the Constituent FSMs.
+# Price Oracle - Description of the FSMs
+
 For reference, we provide a high-level description of the FSMs that constitute
 the Price Estimation demo using a simplified syntax.
 The syntax should be easy to understand for a reader familiar with conventional
