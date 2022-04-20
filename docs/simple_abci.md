@@ -29,7 +29,7 @@ stateDiagram-v2
 <figcaption>Simple ABCI Application FSM</figcaption>
 </figure>
 
-Recall that, from the point of view of the developer, the application FSM is replicated transparently in all the AEAs. The developer can simply focus on developing the FSM as if it were being executed in a single machine, and the underlying consensus layer will handle the replication mechanism.
+Recall that, from the point of view of the developer, the application FSM is replicated transparently in all the AEAs. The developer can simply focus on developing the FSM as if it were being executed in a single machine, and the underlying consensus layer will handle the replication mechanism across different machines.
 
 The `valory/simple_abci` skill is the main component of the {{abci_app}}. It implements the FSM rounds and behaviours associated to each state. Below we discuss the rounds and behaviours associated to each state.
 
@@ -216,7 +216,8 @@ Recall that each behaviour is in one-to-one correspondence with a round. Upon in
 
 
 
-
+----
+Delete?:
 
 <div class="admonition note">
   <p class="admonition-title">Note</p>
