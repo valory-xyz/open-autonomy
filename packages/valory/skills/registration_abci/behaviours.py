@@ -20,7 +20,7 @@
 """This module contains the behaviours for the 'abci' skill."""
 import json
 
-from typing import Optional, Generator, Set, Type, Dict, cast
+from typing import Optional, Generator, Union, List, Set, Type, Dict, cast
 
 from packages.valory.skills.abstract_round_abci.behaviours import (
     AbstractRoundBehaviour,
@@ -45,6 +45,17 @@ from packages.valory.skills.registration_abci.models import Params
 from packages.valory.skills.abstract_round_abci.models import Requests
 
 TENDERMINT_CALLBACK_REQUEST_TIMEOUT = 1
+
+
+Params = Dict[
+    str,
+    Union[
+        str,  # proxy_app, p2p_laddr, rpc_laddr
+        List[str],  # p2p_seeds
+        bool,  # consensus_create_empty_blocks
+        Optional[str],  # home
+    ]
+]
 
 
 class RegistrationBaseBehaviour(BaseState):
@@ -83,12 +94,12 @@ class RegistrationStartupBehaviour(RegistrationBaseBehaviour):
 
     state_id = "registration_startup"
     matching_round = RegistrationStartupRound
-    collected: Dict[str, Dict[str, str]] = dict()
-    personal_tendermint_info: Optional[Dict[str, str]] = None
+    collected: Dict[str, str] = dict()
+    local_tendermint_params: Optional[Params] = None
     ENCODING: str = "utf-8"
 
     @property
-    def registered_addresses(self) -> Optional[Set[str]]:
+    def registered_addresses(self) -> Optional[Dict[str, str]]:
         """Agent addresses registered on-chain for the service"""
         return self.period_state.db.initial_data.get("registered_addresses")
 
@@ -159,7 +170,7 @@ class RegistrationStartupBehaviour(RegistrationBaseBehaviour):
 
         # setup storage for collected tendermint configuration info
         info = dict(zip(registered_addresses, ({} for _ in range(len(registered_addresses)))))
-        info[self.context.agent_address] = self.personal_tendermint_info
+        info[self.context.agent_address] = self.local_tendermint_params  # TODO: is completely incorrect still
 
         self.period_state.db.initial_data.update(dict(registered_addresses=info))
         self.context.logger.info(f"Registered addresses retrieved from service registry contract")
@@ -183,7 +194,7 @@ class RegistrationStartupBehaviour(RegistrationBaseBehaviour):
         result = yield from self._do_request(message, dialogue)
         try:
             response = json.loads(result.body.decode())
-            self.personal_tendermint_info = response
+            self.local_tendermint_params = response
             self.context.logger.info("Local Tendermint configuration obtained")
             return True
         except json.JSONDecodeError:
@@ -194,7 +205,9 @@ class RegistrationStartupBehaviour(RegistrationBaseBehaviour):
         """Make HTTP POST request to update agent's local Tendermint node"""
 
         url = self.tendermint_parameter_url
-        content = str(self.registered_addresses).encode(self.ENCODING)
+        params = self.local_tendermint_params
+        params["p2p_seeds"] = list(self.registered_addresses.values())
+        content = str(params).encode(self.ENCODING)
         kwargs = dict(method="POST", url=url, content=content)
         message, dialogue = self._build_http_request_message(**kwargs)
         result = yield from self._do_request(message, dialogue)
@@ -205,11 +218,33 @@ class RegistrationStartupBehaviour(RegistrationBaseBehaviour):
             self.context.logger.info("Error communicating with tendermint com server")
             return False
 
+    def start_tendermint(self) -> Generator[None, None, bool]:  # TODO: move to behaviour_utils.py
+        """Start up local Tendermint node"""
+
+        url = self.params.tendermint_com_url + "/start"
+        message, dialogue = self._build_http_request_message("GET", url)
+        result = yield from self._do_request(message, dialogue)
+        try:
+            response = json.loads(result.body.decode())
+            if response.get("status") == 200:
+                self.context.logger.info(response.get("message"))
+                return True
+            else:
+                error_message = f"Error starting Tendermint: {response}"
+                self.context.logger.error(error_message)
+                yield from self.sleep(self.params.sleep_time)
+                return False
+        except json.JSONDecodeError:
+            error_message = "Error communicating with Tendermint server"
+            self.context.logger.error(error_message)
+            yield from self.sleep(self.params.sleep_time)
+            return False
+
     def async_act(self) -> Generator:
         """Act asynchronously"""
 
         # collect personal tendermint configuration
-        if not self.personal_tendermint_info:
+        if not self.local_tendermint_params:
             successful = yield from self.get_tendermint_configuration()
             if not successful:
                 return
@@ -224,17 +259,8 @@ class RegistrationStartupBehaviour(RegistrationBaseBehaviour):
         not_yet_collected = set(self.registered_addresses).difference(self.collected)
         any(map(self.make_tendermint_request, not_yet_collected))  # consume
 
-        # collect responses one-by-one
-        # timeout = TENDERMINT_CALLBACK_REQUEST_TIMEOUT
-        # for address in not_yet_collected:
-        #     response = yield from self.wait_for_message(timeout=timeout)
-        #     try:
-        #         self.process_response(cast(TendermintMessage, response))
-        #     except json.JSONDecodeError:
-        #         self.context.logger.error(f"Failed processing tendermint response from {address}")
-
         # if not complete, continue collecting next async_act call
-        if self.registered_addresses.difference(self.collected):
+        if set(self.registered_addresses).difference(self.collected):
             return
 
         # all information collected, update configuration
@@ -243,7 +269,9 @@ class RegistrationStartupBehaviour(RegistrationBaseBehaviour):
             return
 
         # restart Tendermint with updated configuration
-        self.reset_tendermint_with_wait()
+        successful = self.start_tendermint()
+        if not successful:
+            return
 
         yield from super().async_act()
 
