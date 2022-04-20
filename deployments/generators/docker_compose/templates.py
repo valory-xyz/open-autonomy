@@ -102,7 +102,7 @@ ABCI_NODE_TEMPLATE: str = (
     mem_reservation: 256M
     cpus: 0.5
     container_name: abci{node_id}
-    image: "valory/consensus-algorithms-open-aea:%s"
+    image: "valory/consensus-algorithms-open-aea-{valory_app}:%s"
     environment:
       - LOG_FILE=/home/ubuntu/logs/aea_{node_id}.txt
 {agent_vars}

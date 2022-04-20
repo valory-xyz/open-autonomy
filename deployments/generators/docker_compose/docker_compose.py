@@ -63,10 +63,11 @@ def build_docker_compose_yml(max_participants: int) -> str:
     )
 
 
-def build_agent_config(node_id: int, number_of_agents: int, agent_vars: Dict) -> str:
+def build_agent_config(valory_app: str, node_id: int, number_of_agents: int, agent_vars: Dict) -> str:
     """Build agent config."""
 
     return ABCI_NODE_TEMPLATE.format(
+        valory_app=valory_app,
         node_id=node_id,
         agent_vars="".join([f"      - {k}={v}\n" for k, v in agent_vars.items()]),
         localnet_address_postfix=node_id + number_of_agents + 3,
@@ -113,10 +114,12 @@ class DockerComposeGenerator(BaseDeploymentGenerator):
         agent_vars = valory_application.generate_agents()  # type: ignore
         agent_vars = self.get_deployment_network_configuration(agent_vars)
 
+        image_name = valory_application.agent_public_id.name.replace("_", "-")
+
         agents = "".join(
             [
                 build_agent_config(
-                    i, self.deployment_spec.number_of_agents, agent_vars[i]
+                    image_name, i, self.deployment_spec.number_of_agents, agent_vars[i]
                 )
                 for i in range(self.deployment_spec.number_of_agents)
             ]
