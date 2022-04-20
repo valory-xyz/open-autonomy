@@ -31,20 +31,28 @@ stateDiagram-v2
 
 Recall that, from the point of view of the developer, the application FSM is replicated transparently in all the AEAs. The developer can simply focus on developing the FSM as if it were being executed in a single machine, and the underlying consensus layer will handle the replication mechanism across different machines.
 
-The `valory/simple_abci` skill is the main component of the {{abci_app}}. It implements the FSM rounds and behaviours associated to each state. Below we discuss the rounds and behaviours associated to each state.
+The `valory/simple_abci` skill is the main component of the {{abci_app}}. In
+general terms, the developer should put the focus on the four action points below:
 
-## Implementation of State Rounds and Behaviours
+1. Implement the `Rounds`, `Behaviours` and `Payloads` associated with each FSM state.
+2. Implement the `AbciApp` class.
+3. Implement the `AbstractRoundBehaviour` class.
 
-The main files to take into account are:
+Below we discuss these points in detail for the case of the Simple {{abci_app}}.
 
-- `behaviours.py`: Contains the implementation of the behaviours to be executed at each state of the FSM. Each behaviour is one-to-one associated to a round. It also contains the `SimpleAbciConsensusBehaviour` class, which can be thought as the "main" class for the skill behaviour.
-- `rounds.py`: Contains the implementation of the rounds associated to each state and the shared `PeriodState`. It also contains the declaration of the FSM events, and the `SimpleAbciApp` which defines the transition function of the FSM.
 
+## Implementation of the Rounds, Behaviours and Payloads for Each State
+
+The main modules to take into account in this development step are:
+
+- `behaviours.py`: Contains the implementation of the behaviours to be executed at each state of the FSM. Each behaviour is one-to-one associated to a round. It also contains the `SimpleAbciConsensusBehaviour` class, which can be thought as the "main" class for the skill behaviour, and will be discussed in a separate section below.
+- `rounds.py`: Contains the implementation of the rounds associated to each state and the shared `PeriodState`. It also contains the declaration of the FSM events, and the `SimpleAbciApp` which defines the transition function of the FSM, which will be also discussed in a separate section.
+- `payloads.py`:
 
 
 ### `RegistrationRound` and `RegistrationBehaviour`
 
-The `RegistrationRound` and `RegistrationBehaviour` are the round and behaviour associated to the start state of the application FSM. The hierarchy diagram for the `RegistrationRound` is depicted below:
+The `RegistrationRound` and `RegistrationBehaviour` are the round and behaviour classes associated to the start state of the application FSM. The hierarchy diagram for the `RegistrationRound` is depicted below:
 
 <figure markdown>
 <div class="mermaid">
@@ -96,7 +104,7 @@ As it can be seen, it inherits from the main abstract class `AbstractRound` thro
 - `CollectionRound`: Helper class for rounds where the application is expected to wait until some some sort of value is collected: either a common value (e.g., a common randomness observation), or a collection of different values (e.g., exchange values from different sources).
 - `CollectDifferentUntilAllRound`: Helper class for rounds that should wait until a collection of different values is collected. In this case, it corresponds to the agent addresses.
 - `SimpleABCIAbstractRound`: Helper class particular to the Simple {{abci_app}} which contains common methods for all rounds.
-- `RegistrationRound`: Class that implements the particular instance of the `AbstractRound`. Many of the functionlities are already covered by the partent classes, but any concrete implementation of `AbstractRound` need to implement the abstract method `end_block()`. The method `end_block()` has the responsibility of checking the conditions to transit to the next state, and as such, it must return (1) a reference to the (updated) period state, and (2) an event that will define the transition to the next state in the FSM.
+- `RegistrationRound`: Class that implements the particular instance of the `AbstractRound`. Many of the functionalities are already covered by the partent classes, but any concrete implementation of `AbstractRound` need to implement the abstract method `end_block()`. The method `end_block()` has the responsibility of checking the conditions to transit to the next state, and as such, it must return (1) a reference to the (updated) period state, and (2) an event that will define the transition to the next state in the FSM.
 
 
 To sum up, the `RegistrationRound` simply waits to collect all agent addresses (a mechanism inherited from `CollectDifferentUntilAllRound`) and it produces the `DONE` event when it finishes. The agents send their address through the proactive behaviour discussed below.
@@ -133,35 +141,87 @@ classDiagram
 
 As it can be seen, the `RegistrationBehaviour` inherits from `BaseState`, which is the base class for FSM states. This class aggregates the functionality from some other classes, most notably from the `AsyncBehaviour` class which defines the `async_act()` abstract method, which must be implemented in the `RegistrationBehaviour` class. In this case, `async_act()` does the following:
 
-1. Build a registration transaction.
-2. Send the transaction and wait for it to be mined.
+1. Build the registration transaction payload.
+2. Send the transaction payload and wait for it to be mined.
 3. Wait until the {{abci_app}} transitions to the next round.
 4. Go to the next behaviour state (set done event).
 
+An excerpt of the code corresponding to the `RegistrationBehaviour` is:
 
-The remaining FSM states follow a similar approach in the definition of the rounds and behaviours, so we will ommit the class diagrams.
+```python
+class RegistrationBaseBehaviour(BaseState):
+    """Register to the next periods."""
+
+    def async_act(self) -> Generator:
+      # Build the registration transaction payload.
+      initialisation = (
+        json.dumps(self.period_state.db.initial_data, sort_keys=True)
+          if self.period_state.db.initial_data != {}
+          else None
+          )
+      payload = RegistrationPayload(
+        self.context.agent_address, initialisation=initialisation
+        )
+
+      # Send the transaction payload and wait for it to be mined.
+      yield from self.send_a2a_transaction(payload)
+
+      # Wait until the ABCI Application transitions to the next round.
+      yield from self.wait_until_round_end()
+      self.set_done()
+```
+
+Finally, the hierarchy for the `RegistrationPayload` is as follows:
+
+<figure markdown>
+<div class="mermaid">
+classDiagram
+  BaseSimpleAbciPayload <|-- RegistrationPayload
+  BaseTxPayload <|-- BaseSimpleAbciPayload
+
+  class BaseTxPayload {
+    +transaction_type
+    +sender
+    +id_
+    +round_count
+    +_initialisation    
+    +round_count()
+  }
+
+  class RegistrationPayload{
+    +transaction_type = TransactionType.REGISTRATION
+  }
+</div>
+<figcaption>Hierarchy of the `RegistrationPayload` class (some methods and fields are ommited)</figcaption>
+</figure>
+
+The class `RegistrationPayload` is simply a wrapper for the data to be sent by the
+corresponding behaviour in the `async_act()` method.
+
+
+The remaining states from the FSM follow a similar approach in the definition of the rounds, behaviours and payloads. Therefore, we will omit most of the details and highlight only the relevant information for them.
 
 
 ### `RandomnessStartupRound` and `RandomnessStartupBehaviour`
-As opposed to `RegistrationRound`, the class `RandomnessStartupRound` inherits from the helper abstract class `CollectSameUntilThresholdRound`. That is, the round will wait until 2/3 of the agents have agreed in the same collected value (in this case, a random string from a decentralized randomness source). If for whatever reason agents do not agree within a given timeframe, this state is revisited. As above, the method `end_block()` must be implemented, and it must return the approppriate events accordingly.
+As opposed to `RegistrationRound`, the class `RandomnessStartupRound` inherits from the helper abstract class `CollectSameUntilThresholdRound`. That is, the round will wait until 2/3 of the agents have agreed in the same collected value (in this case, a random string from a decentralized randomness source). If for whatever reason agents do not agree within a given timeframe, this state is revisited. As above, the method `end_block()` must be implemented, and it must return the appropriate events accordingly.
 
 The `RandomnessBehaviour` on the other hand is the proactive part that connects to the distriubuted randomness service, reads the value,  commits it to the temporary blockchain, and stores it in the period state.
-As above, all these operations are carried on the `async_act()` method.
+As above, all these operations are carried on the `async_act()` method, and the
+payload class `RandomnessPayload` encapsulates the collected randomness as well as the round identifier.
 
 ### `SelectKeeperAtStartupRound` and `SelectKeeperAtStartupBehaviour`
-In this case, `SelectKeeperAtStartupRound` inherits from the class `CollectSameUntilThresholdRound` as above. The value to be agreed by 2/3 of the agents is the address of the agent that will be designated as a keeper. Again, the `end_block()` method must handle the approppriate events to return, deppending on the status of the consensus.
+In this case, `SelectKeeperAtStartupRound` inherits from the class `CollectSameUntilThresholdRound` as above. The value to be agreed by 2/3 of the agents is the address of the agent that will be designated as a keeper. Again, the `end_block()` method must handle the appropriate events to return, depending on the status of the consensus.
 
 
-The `SelectKeeperAtStartupBehaviour` is in charge of executing the operation of selecting the keeper, which is a deterministic function of the randomness collected in the previous round. The behaviour accesses the randomness through the period state, commits the output to the temporary blockchain, and it also records it on the period state.
+The `SelectKeeperAtStartupBehaviour` is in charge of executing the operation of selecting the keeper, which is a deterministic function of the randomness collected in the previous round. The behaviour accesses the randomness through the period state, commits the output to the temporary blockchain, and it also records it on the period state. The corresponding payload class, `SelectKeeperPayload` stores the selected keeper.
 
 
 ### `ResetAndPauseRound` and `ResetAndPauseBehaviour`
 The `ResetAndPauseRound` also inherits from  `CollectSameUntilThresholdRound`. The value that the rounds waits that the agents agree is simply the period number (an increasing integer). Once 2/3 of the agents have agreed on it, the {{abci_app}} transitions again to the `RandomnessStartupRound`.
 
+The `ResetAndPauseBehaviour` class simply logs the state, sleeps for a configured interval, and submits the transaction payload (period number) to the temporary blockchain and to the period state. As usual, the functionality is encoded in `end_block()`. For convention, the payload associated to the class `ResetPayload` contains the round identifier.
 
-The `ResetAndPauseBehaviour` class simply logs the state, sleeps for a configured interval, and submits the transaction payload (period number) to the temporary blockchain and to the period state. As usual, the functionality is encoded in `end_block()`.
-
-### Implementation of `SimpleAbciApp`
+## Implementation of `SimpleAbciApp`
 This class can be found on `rounds.py`, and it simply encodes the basic parameters of the FSM transition function depicted above. Namely, it defines:
 - the initial round,
 - the set of initial states,
@@ -204,8 +264,8 @@ class SimpleAbciApp(AbciApp[Event]):
 
 For example, upon receiving the event `DONE` being in the state `SelectKeeperAtStartupRound`, the FSM will transit to `ResetAndPauseRound`.
 
-### Implementation of `SimpleAbciConsensusBehaviour`
-This class can be found in `behaviours.py`, and is the main behaviour class, aggregating the behaviours from the different states. It is a subclass of `AbstractRoundBehaviour`. The programer needs to define:
+## Implementation of `SimpleAbciConsensusBehaviour`
+This class can be found in `behaviours.py`, and is the main behaviour class, aggregating the behaviours from the different states. It is a subclass of `AbstractRoundBehaviour`. The developer needs to define:
 
 - the initial behaviour,
 - the `AbciApp` associated to the behaviour,
@@ -215,17 +275,9 @@ Recall that each behaviour is in one-to-one correspondence with a round. Upon in
 
 
 
+## Specification of the FSMs
 
-----
-Delete?:
-
-<div class="admonition note">
-  <p class="admonition-title">Note</p>
-  <p>Still incomplete!</p>
-</div>
-
-
-It's specification is relatively simple:
+For convenience, we provide a simplified syntax to describe concisely the FSM of the {{abci_app}}s.
 
 ```yaml
 alphabet_in:
@@ -256,11 +308,15 @@ transition_func:
     (SelectKeeperAtStartupRound, ROUND_TIMEOUT): RegistrationRound
 ```
 
+## Running the Tests
+There are several end-to-end tests where the developer can see the {{abci_app}} operation. Ensure that your system meets the [stack requirements](./using_stack_requirements.md) before launching the tests. To run the tests, execute the command
 
-It can be ran as an end-to-end test:
 ```bash
 pytest tests/test_agents/test_simple_abci.py
 ```
-The tests nicely demonstrate how the same code can be run as a single agent app or as a multi-agent service.
+The tests nicely demonstrate how the same code can be run as a single agent app or as a multi-agent service with two or four agents. The diagram below depicts the architecture for the latter test case:
 
-We recommend using the simple abci as a starting point for development of your own {{valory_app}}.
+<figure markdown>
+  ![](./images/simple_abci_app_four_agents.svg){align=center}
+  <figcaption>Test case architecture for the Simple ABCI Application with 4 agents</figcaption>
+</figure>
