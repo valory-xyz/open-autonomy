@@ -21,7 +21,7 @@
 from collections import deque
 from math import ceil
 from pathlib import Path
-from typing import Any, Callable, Dict, Optional, cast
+from typing import Any, Callable, Deque, Dict, Optional, cast
 from unittest import mock
 
 import pytest
@@ -55,6 +55,7 @@ from packages.valory.skills.price_estimation_abci.rounds import (
 from packages.valory.skills.transaction_settlement_abci.behaviours import (
     SelectKeeperTransactionSubmissionBehaviourA,
     SelectKeeperTransactionSubmissionBehaviourB,
+    TransactionSettlementBaseState,
 )
 from packages.valory.skills.transaction_settlement_abci.payload_tools import (
     VerificationStatus,
@@ -327,7 +328,19 @@ class TestKeepers(OracleBehaviourBaseCase, IntegrationBaseCase):
             )
         )
 
-    def select_keeper(self, first_time: bool = False) -> None:
+    @mock.patch.object(
+        TransactionSettlementBaseState,
+        "serialized_keepers",
+        side_effect=lambda keepers, retries: retries.to_bytes(32, "big").hex()
+        + "".join(keepers),
+    )
+    def select_keeper(
+        self,
+        serialized_keepers_mock: mock.Mock,
+        expected_keepers: Deque[str],
+        expected_retries: int,
+        first_time: bool = False,
+    ) -> None:
         """Select a keeper."""
 
         if first_time:
@@ -345,13 +358,15 @@ class TestKeepers(OracleBehaviourBaseCase, IntegrationBaseCase):
         assert self.behaviour.current_state.state_id == state_id
 
         self.behaviour.act_wrapper()
+        serialized_keepers_mock.assert_called_with(expected_keepers, expected_retries)
+
         # update keepers.
         self.tx_settlement_period_state.update(
             # we cast to A class, because it is the top level one between A & B, and we need `serialized_keepers`
             keepers=cast(
                 SelectKeeperTransactionSubmissionBehaviourA,
                 self.behaviour.current_state,
-            ).serialized_keepers
+            ).serialized_keepers(expected_keepers, expected_retries)
         )
 
     def test_keepers_alternating(self) -> None:
@@ -362,57 +377,34 @@ class TestKeepers(OracleBehaviourBaseCase, IntegrationBaseCase):
         )
 
         # select keeper a
-        self.select_keeper(first_time=True)
+        self.select_keeper(
+            expected_keepers=deque(("0xBcd4042DE499D14e55001CcbB24a551F3b954096",)),
+            expected_retries=1,
+            first_time=True,
+        )
         assert isinstance(
             self.behaviour.current_state, SelectKeeperTransactionSubmissionBehaviourA
         )
-        assert self.tx_settlement_period_state.keeper_retries == 1
-        assert self.tx_settlement_period_state.is_keeper_set
-        assert (
-            self.tx_settlement_period_state.most_voted_keeper_address
-            == "0xBcd4042DE499D14e55001CcbB24a551F3b954096"
-        )
-        # ensure that we only have one keeper.
-        assert len(self.tx_settlement_period_state.keepers) == 1
 
         for i in range(self.behaviour.current_state.params.keeper_allowed_retries - 1):
             # select keeper b
-            self.select_keeper()
-            assert isinstance(
-                self.behaviour.current_state,
-                SelectKeeperTransactionSubmissionBehaviourB,
-            )
-            # +2 because we selected once for keeperA and also index starts from 0.
-            assert self.tx_settlement_period_state.keeper_retries == i + 2
             # ensure that we select the same keeper until the `keeper_allowed_retries` is reached.
-            assert (
-                self.tx_settlement_period_state.most_voted_keeper_address
-                == "0xBcd4042DE499D14e55001CcbB24a551F3b954096"
+            # +2 because we selected once for keeperA and also index starts from 0.
+            self.select_keeper(
+                expected_keepers=deque(("0xBcd4042DE499D14e55001CcbB24a551F3b954096",)),
+                expected_retries=i + 2,
             )
-            # ensure that we only have one keeper.
-            assert len(self.tx_settlement_period_state.keepers) == 1
 
-        assert (
-            self.tx_settlement_period_state.keeper_retries
-            == self.behaviour.current_state.params.keeper_allowed_retries
-        )
         # select keeper b after retries are reached.
-        self.select_keeper()
-        assert isinstance(
-            self.behaviour.current_state, SelectKeeperTransactionSubmissionBehaviourB
+        self.select_keeper(
+            expected_keepers=deque(
+                (
+                    "0xFABB0ac9d68B0B445fB7357272Ff202C5651694a",
+                    "0xBcd4042DE499D14e55001CcbB24a551F3b954096",
+                )
+            ),
+            expected_retries=1,
         )
-        assert self.tx_settlement_period_state.keeper_retries == 1
-        # ensure that we select another keeper now that the `keeper_allowed_retries` is reached.
-        assert (
-            self.tx_settlement_period_state.most_voted_keeper_address
-            != "0xBcd4042DE499D14e55001CcbB24a551F3b954096"
-        )
-        assert (
-            "0xBcd4042DE499D14e55001CcbB24a551F3b954096"
-            in self.tx_settlement_period_state.keepers
-        )
-        # ensure that we only have two keepers, the old one and the new one.
-        assert len(self.tx_settlement_period_state.keepers) == 2
 
     def test_rotation(self) -> None:
         """Test keepers rotating when threshold reached."""
@@ -432,13 +424,7 @@ class TestKeepers(OracleBehaviourBaseCase, IntegrationBaseCase):
         expected_keepers = keepers.copy()
         # test twice as many times as the number of participants
         for _ in range(len(self.tx_settlement_period_state.participants) * 2):
-            # select keeper b
-            self.select_keeper()
-            assert isinstance(
-                self.behaviour.current_state,
-                SelectKeeperTransactionSubmissionBehaviourB,
-            )
-            assert self.tx_settlement_period_state.keeper_retries == 1
-            assert self.tx_settlement_period_state.is_keeper_set
+            # rotate expected keepers
             expected_keepers.rotate(-1)
-            assert self.tx_settlement_period_state.keepers == expected_keepers
+            # select keeper b
+            self.select_keeper(expected_keepers=expected_keepers, expected_retries=1)

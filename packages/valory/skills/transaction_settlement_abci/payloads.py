@@ -214,7 +214,7 @@ class FinalizationTxPayload(BaseTxPayload):
     def __init__(
         self,
         sender: str,
-        tx_data: Optional[Dict[str, Union[str, int]]] = None,
+        tx_data: Optional[Dict[str, Union[str, int, bool]]] = None,
         **kwargs: Any
     ) -> None:
         """Initialize an 'finalization' transaction payload.
@@ -227,12 +227,12 @@ class FinalizationTxPayload(BaseTxPayload):
         self._tx_data = tx_data
 
     @property
-    def tx_data(self) -> Optional[Dict[str, Union[str, int]]]:
+    def tx_data(self) -> Optional[Dict[str, Union[str, int, bool]]]:
         """Get the tx_data."""
         return self._tx_data
 
     @property
-    def data(self) -> Dict[str, Dict[str, Union[str, int]]]:
+    def data(self) -> Dict[str, Dict[str, Union[str, int, bool]]]:
         """Get the data."""
         return dict(tx_data=self._tx_data) if self._tx_data is not None else {}
 

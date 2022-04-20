@@ -480,7 +480,7 @@ class _TxHelperIntegration(_GnosisHelperIntegration):
         hashes.append(tx_digest)
 
         self.tx_settlement_period_state.update(
-            tx_hashes_history=hashes,
+            tx_hashes_history="".join(hashes),
             final_verification_status=tx_data["status"],
         )
 

@@ -236,7 +236,9 @@ A round that represents transaction signing has finished
 #### end`_`block
 
 ```python
-def end_block() -> Optional[Tuple[BasePeriodState, Enum]]
+def end_block() -> Optional[
+        Tuple[BasePeriodState, Enum]
+    ]
 ```
 
 Process the end of the block.
@@ -419,16 +421,16 @@ Initial states: {RandomnessTransactionSubmissionRound}
 Transition states:
     0. RandomnessTransactionSubmissionRound
         - done: 1.
-        - round timeout: 10.
+        - round timeout: 0.
         - no majority: 0.
     1. SelectKeeperTransactionSubmissionRoundA
         - done: 2.
-        - round timeout: 10.
+        - round timeout: 1.
         - no majority: 10.
         - incorrect serialization: 12.
     2. CollectSignatureRound
         - done: 3.
-        - round timeout: 10.
+        - round timeout: 2.
         - no majority: 10.
     3. FinalizationRound
         - done: 4.
@@ -452,14 +454,14 @@ Transition states:
     6. SelectKeeperTransactionSubmissionRoundB
         - done: 3.
         - keeper blacklisted: 6.
-        - round timeout: 10.
+        - round timeout: 6.
         - no majority: 10.
         - incorrect serialization: 12.
     7. SelectKeeperTransactionSubmissionRoundBAfterTimeout
         - done: 3.
         - check history: 5.
         - check late arriving message: 8.
-        - round timeout: 10.
+        - round timeout: 7.
         - no majority: 10.
         - incorrect serialization: 12.
     8. SynchronizeLateMessagesRound
