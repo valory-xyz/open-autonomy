@@ -36,7 +36,7 @@ from aea_swarm.analyse.cli import cmd1
 
 @click.group(name="swarm")  # type: ignore
 @click.pass_context
-def swarm_cli(click_context: click.Context) -> None:
+def swarm_cli(click_context: click.Context) -> None:  # pylint: disable=unused-argument
     """Command-line tool for setting up an swarms of AEAs."""
 
 
