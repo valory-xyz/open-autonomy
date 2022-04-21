@@ -25,12 +25,14 @@ import shutil
 import stat
 import traceback
 from pathlib import Path
-from typing import Any, Callable, Optional, Tuple, Dict
+from typing import Any, Callable, Dict, Optional, Tuple
 
 from flask import Flask, Response, jsonify, request
 from tendermint import TendermintNode, TendermintParams
 from werkzeug.exceptions import InternalServerError, NotFound
 
+
+ENCODING = "utf-8"
 DEFAULT_LOG_FILE = "log.log"
 logging.basicConfig(
     filename=os.environ.get("FLASK_LOG_FILE", DEFAULT_LOG_FILE),
@@ -64,7 +66,7 @@ class PeriodDumper:
         func(path)
 
     def dump_period(
-            self,
+        self,
     ) -> None:
         """Dump tendermint run data for replay"""
         store_dir = self.dump_dir / f"period_{self.resets}"
@@ -76,7 +78,7 @@ class PeriodDumper:
             self.logger.info(f"Dumped data for period {self.resets}")
         except OSError:
             self.logger.info(
-                f"Error occured while dumping data for period {self.resets}"
+                f"Error occurred while dumping data for period {self.resets}"
             )
         self.resets += 1
 
@@ -116,23 +118,28 @@ tendermint_node = TendermintNode(tendermint_params, logger=app.logger)
 
 @app.route("/start")
 def start() -> Response:
+    """Start Tendermint node"""
     try:
         tendermint_node.start()
         return Response(response="Tendermint node started", status=200)
-    except Exception:
+    except Exception:  # pylint: disable=broad-except
         return Response(response=traceback.format_exc(), status=400)
 
 
-@app.route("/params", methods=['POST', 'GET'])
+@app.route("/params", methods=["POST", "GET"])
 def params() -> Response:
+    """Get or update TendermintParams on TendermintNode"""
     if request.method == "GET":
-        info = tendermint_node.params
+        info: bytes = str(vars(tendermint_node.params)).encode(ENCODING)
         return Response(response=info, status=200)
-    else:
-        raw_data: bytes = request.get_data()
-        kwargs: Dict[str, str] = ast.literal_eval(raw_data.decode("utf-8"))
-        tendermint_node.params = TendermintParams(**kwargs)
-        return Response(response="TendermintParams updated", status=200)
+    else:  # requires (re)start to become effective
+        try:
+            raw_data: bytes = request.get_data()
+            kwargs: Dict[str, Any] = ast.literal_eval(raw_data.decode(ENCODING))
+            tendermint_node.params = TendermintParams(**kwargs)
+            return Response(response="TendermintParams updated", status=200)
+        except Exception:  # pylint: disable=broad-except
+            return Response(response=traceback.format_exc(), status=400)
 
 
 @app.route("/gentle_reset")

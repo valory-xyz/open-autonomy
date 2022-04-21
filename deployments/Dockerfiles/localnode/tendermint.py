@@ -35,10 +35,10 @@ class TendermintParams:  # pylint: disable=too-few-public-methods
     def __init__(  # pylint: disable=too-many-arguments
         self,
         proxy_app: str,
-        # p2p_seeds: List[str],
         consensus_create_empty_blocks: bool,
         p2p_laddr: str = "tcp://0.0.0.0:26656",
         rpc_laddr: str = "tcp://0.0.0.0:26657",
+        p2p_seeds: Optional[List[str]] = None,
         home: Optional[str] = None,
     ):
         """
@@ -53,7 +53,7 @@ class TendermintParams:  # pylint: disable=too-few-public-methods
         self.proxy_app = proxy_app
         self.p2p_laddr = p2p_laddr
         self.rpc_laddr = rpc_laddr
-        # self.p2p_seeds = p2p_seeds # :noqa E800
+        self.p2p_seeds = p2p_seeds or []
         self.consensus_create_empty_blocks = consensus_create_empty_blocks
         self.home = home
 
@@ -91,7 +91,7 @@ class TendermintNode:
             f"--proxy_app={self.params.proxy_app}",
             f"--rpc.laddr={self.params.rpc_laddr}",
             f"--p2p.laddr={self.params.p2p_laddr}",
-            # f"--p2p.seeds={','.join(self.params.p2p_seeds)}", # noqa: E800
+            f"--p2p.seeds={','.join(self.params.p2p_seeds)}",
             f"--consensus.create_empty_blocks={str(self.params.consensus_create_empty_blocks).lower()}",
         ]
         if self.params.home is not None:  # pragma: nocover
