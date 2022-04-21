@@ -8,7 +8,7 @@ aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
   README.md: QmYgDsnQnryPwFXnaNTns1ypH9jqvYeHGgmP9K2y4tXFJy
   __init__.py: QmcMo5TeB1s4UWwEwXT8Xdsw7nNXzwJe7YXE3RgsSwEp7R
-  behaviours.py: QmX1MAQq3L4ZvQGZxzjKgMbbAhd19uV17p7EfpHWeJrZKT
+  behaviours.py: QmfQdBc3YsVxrKVzrM54EdzqYn1cXT44fntEhvgd7tK7RJ
   dialogues.py: QmT6ojZQVrHPZC8vU4qMUAYwSuoyfENztqPgqMr2DyLQ13
   fsm_specification.yaml: QmXVQp8pmwwURGntFJ41QziXMFysTpkZy9wjVn1KoACZgA
   handlers.py: QmaBseoR7MqbNV4A1Bj3694zavs3bbt3YrV2RyiAuWhQv7
@@ -74,7 +74,6 @@ models:
       round_timeout_seconds: 30.0
       service_id: registration
       service_registry_address: null
-      on_chain_service_id: null
       sleep_time: 1
       tendermint_check_sleep_delay: 3
       tendermint_com_url: http://localhost:8080

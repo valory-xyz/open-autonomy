@@ -197,8 +197,51 @@ Implement the contract api handler.
 ## TendermintHandler Objects
 
 ```python
-class TendermintHandler(AbstractResponseHandler)
+class TendermintHandler(Handler)
 ```
 
 The Tendermint request / response handler.
+
+<a id="packages.valory.skills.abstract_round_abci.handlers.TendermintHandler.period_state"></a>
+
+#### period`_`state
+
+```python
+@property
+def period_state() -> BasePeriodState
+```
+
+Period State
+
+<a id="packages.valory.skills.abstract_round_abci.handlers.TendermintHandler.registered_addresses"></a>
+
+#### registered`_`addresses
+
+```python
+@property
+def registered_addresses() -> Dict[str, str]
+```
+
+Registered addresses retrieved on-chain from service registry contract
+
+<a id="packages.valory.skills.abstract_round_abci.handlers.TendermintHandler.dialogues"></a>
+
+#### dialogues
+
+```python
+@property
+def dialogues() -> Optional[TendermintDialogues]
+```
+
+Tendermint request / response protocol dialogues
+
+<a id="packages.valory.skills.abstract_round_abci.handlers.TendermintHandler.handle"></a>
+
+#### handle
+
+```python
+def handle(message: TendermintMessage) -> None
+```
+
+Handle incoming Tendermint messages
 
