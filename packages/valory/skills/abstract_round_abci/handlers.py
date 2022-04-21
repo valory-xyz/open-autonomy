@@ -433,7 +433,7 @@ class TendermintHandler(Handler):
         return cast(BasePeriodState, cast(SharedState, self.context.state).period_state)
 
     @property
-    def registered_addresses(self) -> Optional[Dict[str, Dict]]:
+    def registered_addresses(self) -> Optional[Dict[str, str]]:
         """Registered addresses retrieved on-chain from service registry contract"""
         return self.period_state.db.initial_data.get("registered_addresses")
 
@@ -450,7 +450,7 @@ class TendermintHandler(Handler):
         message = cast(TendermintMessage, message)
         dialogue = self.dialogues.update(message)
         if dialogue is None:
-            self._handle_unidentified_dialogue(message)
+            self.context.logger.info(f"Unidentified Tendermint dialogue: {message}")
             return
 
         dialogue = cast(TendermintDialogue, dialogue)
@@ -461,22 +461,7 @@ class TendermintHandler(Handler):
         elif message.performative == TendermintMessage.Performative.ERROR:
             self._handle_error(message, dialogue)
         else:
-            self._handle_invalid_performative(message, dialogue)
-
-    def _handle_unidentified_dialogue(self, message: Message):
-        """Handle an unidentified Tendermint dialogue"""
-
-        error_message = "Unidentified Tendermint message dialogue"
-        self.context.logger.info(f"{error_message}: {message}")
-        tendermint_dialogues = self.dialogues
-        response, _ = tendermint_dialogues.create(
-            counterparty=message.sender,
-            performative=TendermintMessage.Performative.ERROR,
-            error_code=TendermintMessage.ErrorCode.INVALID_REQUEST,
-            error_msg=error_message,
-            info={"message": message.encode()},
-        )
-        self.context.outbox.put_message(message=response)
+            self.context.logger.info(f"Performative not recognized: {message}")
 
     def _reply_with_tendermint_error(
         self,
@@ -493,6 +478,8 @@ class TendermintHandler(Handler):
             info={"message": message.encode()},
         )
         self.context.outbox.put_message(response)
+        log_message = f"Error response sent\nreceived: {message}\nsent: {response}"
+        self.context.logger.info(log_message)
 
     def _handle_request(self, message: TendermintMessage, dialogue: TendermintDialogue) -> None:
         """Handler Tendermint request message"""
@@ -522,23 +509,21 @@ class TendermintHandler(Handler):
         if message.sender not in self.registered_addresses:
             error_message = f"Request from agent not registered on-chain"
             self._reply_with_tendermint_error(message, dialogue, error_message)
-        elif message.performative == TendermintMessage.Performative.TENDERMINT_CONFIG_RESPONSE:
-            # e.g. http://node2:26657 (docker-compose), or tcp://0.0.0.0:26656
-            try:  # validate  TODO: http://node2:26657 considered invalid
-                parse_result = urlparse(message.info["address"])
-                ipaddress.ip_network(parse_result.hostname)
-            except ValueError as e:
-                error_message = f"Failed to parse Tendermint address: {e}"
-                self._reply_with_tendermint_error(message, dialogue, error_message)
-                return
-            self.registered_addresses[message.sender] = parse_result.geturl()
-            self.context.logger.info(f"Collected {message.sender}: {message.info}")
-            self.dialogues.dialogue_stats.add_dialogue_endstate(
-                TendermintDialogue.EndState.CONFIG_SHARED, dialogue.is_self_initiated
-            )
-        else:
-            error_message = "Error on request response"
+            return
+
+        try:  # validate
+            parse_result = urlparse(message.info["address"])
+            ipaddress.ip_network(parse_result.hostname)
+        except ValueError as e:
+            error_message = f"Failed to parse Tendermint address: {e}"
             self._reply_with_tendermint_error(message, dialogue, error_message)
+            return
+
+        self.registered_addresses[message.sender] = parse_result.geturl()
+        self.context.logger.info(f"Collected {message.sender}: {message.info}")
+        self.dialogues.dialogue_stats.add_dialogue_endstate(
+            TendermintDialogue.EndState.CONFIG_SHARED, dialogue.is_self_initiated
+        )
 
     def _handle_error(self, message: TendermintMessage, dialogue: TendermintDialogue) -> None:
         """Handle error message as response"""
@@ -554,7 +539,3 @@ class TendermintHandler(Handler):
         self.dialogues.dialogue_stats.add_dialogue_endstate(
             TendermintDialogue.EndState.CONFIG_NOT_SHARED, dialogue.is_self_initiated
         )
-
-    def _handle_invalid_performative(self, message: TendermintMessage, dialogue: TendermintDialogue):
-        error_message = "Performative not recognized"
-        self._reply_with_tendermint_error(message, dialogue, error_message)
