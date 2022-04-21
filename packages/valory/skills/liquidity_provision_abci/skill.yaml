@@ -12,7 +12,7 @@ fingerprint:
   behaviours.py: QmZQeqJJ8j38y2LPvAfLnTwL3oSdjSeAYCjt4jH7JF315Z
   composition.py: QmXdsJZJJPba243WZ2jcoiJz4vFuw5ujFUXuEjoTkxY81H
   dialogues.py: QmfDThV4WCRzK88XDpW2hKDYCuEH4RxoHCoAkWpkBRGRPv
-  fsm_specification.yaml: QmXVfZh7aqhkGd6phVVDX7Rr3YFq2gkj7rfpPbiwoTSWAP
+  fsm_specification.yaml: QmVxqSkwxpkHh99cv9k4huJBF2MWCawC6SkGUYXE4egC73
   handlers.py: QmRbhnYTWnUPsWHYg9CbLhWQTFfw9faRZwjbTD6BGv7YtD
   models.py: Qmdb5Dve5jFq5UvYLALfXeXSxrQa3tifYWeTjo6iSqttmJ
 fingerprint_ignore_patterns: []
@@ -85,6 +85,7 @@ models:
       keeper_timeout: 30.0
       max_healthcheck: 120
       observation_interval: 10
+      on_chain_service_id: null
       period_setup: {}
       rebalancing:
         chain: Ethereum
@@ -106,7 +107,6 @@ models:
       round_timeout_seconds: 30.0
       service_id: liquidity_rebalancing
       service_registry_address: null
-      on_chain_service_id: null
       sleep_time: 1
       tendermint_check_sleep_delay: 3
       tendermint_com_url: http://localhost:8080

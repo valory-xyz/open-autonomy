@@ -22,7 +22,19 @@
 import time
 from collections import deque
 from pathlib import Path
-from typing import Any, Deque, Dict, Generator, List, Optional, Tuple, Type, Union, cast
+from typing import (
+    Any,
+    Deque,
+    Dict,
+    Generator,
+    List,
+    Optional,
+    Set,
+    Tuple,
+    Type,
+    Union,
+    cast,
+)
 from unittest import mock
 from unittest.mock import MagicMock
 
@@ -114,6 +126,9 @@ class TestTransactionSettlementBaseState(PriceEstimationFSMBehaviourBaseCase):
                 None,
                 RPCResponseStatus.SUCCESS,
                 {
+                    "blacklisted_keepers": set(),
+                    "keeper_retries": 2,
+                    "keepers": deque(("agent_1" + "-" * 35, "agent_3" + "-" * 35)),
                     "status": VerificationStatus.VERIFIED,
                     "tx_digest": "",
                 },
@@ -126,6 +141,9 @@ class TestTransactionSettlementBaseState(PriceEstimationFSMBehaviourBaseCase):
                 None,
                 RPCResponseStatus.SUCCESS,
                 {
+                    "blacklisted_keepers": set(),
+                    "keeper_retries": 2,
+                    "keepers": deque(("agent_1" + "-" * 35, "agent_3" + "-" * 35)),
                     "status": VerificationStatus.ERROR,
                     "tx_digest": "",
                 },
@@ -136,6 +154,9 @@ class TestTransactionSettlementBaseState(PriceEstimationFSMBehaviourBaseCase):
                 None,
                 RPCResponseStatus.SUCCESS,
                 {
+                    "blacklisted_keepers": set(),
+                    "keeper_retries": 2,
+                    "keepers": deque(("agent_1" + "-" * 35, "agent_3" + "-" * 35)),
                     "status": VerificationStatus.PENDING,
                     "tx_digest": "",
                 },
@@ -146,6 +167,9 @@ class TestTransactionSettlementBaseState(PriceEstimationFSMBehaviourBaseCase):
                 None,
                 RPCResponseStatus.INCORRECT_NONCE,
                 {
+                    "blacklisted_keepers": set(),
+                    "keeper_retries": 2,
+                    "keepers": deque(("agent_1" + "-" * 35, "agent_3" + "-" * 35)),
                     "status": VerificationStatus.ERROR,
                     "tx_digest": "",
                 },
@@ -156,6 +180,9 @@ class TestTransactionSettlementBaseState(PriceEstimationFSMBehaviourBaseCase):
                 None,
                 RPCResponseStatus.INSUFFICIENT_FUNDS,
                 {
+                    "blacklisted_keepers": {"agent_1" + "-" * 35},
+                    "keeper_retries": 1,
+                    "keepers": deque(("agent_3" + "-" * 35,)),
                     "status": VerificationStatus.BLACKLIST,
                     "tx_digest": "",
                 },
@@ -166,6 +193,9 @@ class TestTransactionSettlementBaseState(PriceEstimationFSMBehaviourBaseCase):
                 None,
                 RPCResponseStatus.UNCLASSIFIED_ERROR,
                 {
+                    "blacklisted_keepers": set(),
+                    "keeper_retries": 2,
+                    "keepers": deque(("agent_1" + "-" * 35, "agent_3" + "-" * 35)),
                     "status": VerificationStatus.PENDING,
                     "tx_digest": "",
                 },
@@ -176,6 +206,9 @@ class TestTransactionSettlementBaseState(PriceEstimationFSMBehaviourBaseCase):
                 None,
                 RPCResponseStatus.UNDERPRICED,
                 {
+                    "blacklisted_keepers": set(),
+                    "keeper_retries": 2,
+                    "keepers": deque(("agent_1" + "-" * 35, "agent_3" + "-" * 35)),
                     "status": VerificationStatus.PENDING,
                     "tx_digest": "",
                 },
@@ -195,6 +228,9 @@ class TestTransactionSettlementBaseState(PriceEstimationFSMBehaviourBaseCase):
                 "test_digest",
                 RPCResponseStatus.SUCCESS,
                 {
+                    "blacklisted_keepers": set(),
+                    "keeper_retries": 2,
+                    "keepers": deque(("agent_1" + "-" * 35, "agent_3" + "-" * 35)),
                     "status": VerificationStatus.PENDING,
                     "tx_digest": "test_digest",
                 },
@@ -214,6 +250,9 @@ class TestTransactionSettlementBaseState(PriceEstimationFSMBehaviourBaseCase):
                 "test_digest",
                 RPCResponseStatus.SUCCESS,
                 {
+                    "blacklisted_keepers": set(),
+                    "keeper_retries": 2,
+                    "keepers": deque(("agent_1" + "-" * 35, "agent_3" + "-" * 35)),
                     "status": VerificationStatus.PENDING,
                     "tx_digest": "test_digest",
                 },
@@ -239,7 +278,9 @@ class TestTransactionSettlementBaseState(PriceEstimationFSMBehaviourBaseCase):
                 StateDB(
                     initial_period=0,
                     initial_data=dict(
-                        most_voted_tx_hash="b0e6add595e00477cf347d09797b156719dc5233283ac76e4efce2a674fe72d900000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000002625a000x77E9b2EF921253A171Fa0CB9ba80558648Ff7215b0e6add595e00477cf347d09797b156719dc5233283ac76e4efce2a674fe72d9b0e6add595e00477cf347d09797b156719dc5233283ac76e4efce2a674fe72d9"
+                        most_voted_tx_hash="b0e6add595e00477cf347d09797b156719dc5233283ac76e4efce2a674fe72d900000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000002625a000x77E9b2EF921253A171Fa0CB9ba80558648Ff7215b0e6add595e00477cf347d09797b156719dc5233283ac76e4efce2a674fe72d9b0e6add595e00477cf347d09797b156719dc5233283ac76e4efce2a674fe72d9",
+                        keepers=int(2).to_bytes(32, "big").hex()
+                        + "".join(deque(("agent_1" + "-" * 35, "agent_3" + "-" * 35))),
                     ),
                 )
             ),
@@ -319,12 +360,15 @@ class TestSelectKeeperTransactionSubmissionBehaviourB(
         new_callable=mock.PropertyMock,
     )
     @pytest.mark.parametrize(
-        "keepers, keeper_retries, blacklisted",
+        "keepers, keeper_retries, blacklisted_keepers",
         (
-            (deque(f"keeper_{i}" for i in range(4)), 1, False),
-            (deque(("test_keeper",)), 2, True),
-            (deque(("test_keeper",)), 1, False),
-            (deque(("test_keeper",)), 3, False),
+            (deque(f"keeper_{i}" for i in range(4)), 1, set()),
+            (deque(("test_keeper",)), 2, set()),
+            (deque(("test_keeper",)), 2, {"a1"}),
+            (deque(("test_keeper",)), 2, {"test_keeper"}),
+            (deque(("test_keeper",)), 2, {"a_1", "a_2", "test_keeper"}),
+            (deque(("test_keeper",)), 1, set()),
+            (deque(("test_keeper",)), 3, set()),
         ),
     )
     def test_select_keeper(
@@ -333,27 +377,12 @@ class TestSelectKeeperTransactionSubmissionBehaviourB(
         keepers_mock: mock.PropertyMock,
         keepers: Deque[str],
         keeper_retries: int,
-        blacklisted: bool,
+        blacklisted_keepers: Set[str],
     ) -> None:
         """Test select keeper agent."""
         keepers_mock.return_value = keepers
         keeper_retries_mock.return_value = keeper_retries
-        super().test_select_keeper(blacklisted=blacklisted)
-
-    @mock.patch.object(
-        TransactionSettlementPeriodState,
-        "keepers",
-        new_callable=mock.PropertyMock,
-    )
-    @pytest.mark.parametrize(
-        "keepers", (deque(f"keeper_{i}" for i in range(4)), deque(("test_keeper",)))
-    )
-    def test_select_keeper_preexisting_keeper(
-        self, keepers_mock: mock.PropertyMock, keepers: Deque[str]
-    ) -> None:
-        """Test select keeper agent with pre-existing keeper."""
-        keepers_mock.return_value = keepers
-        super().test_select_keeper()
+        super().test_select_keeper(blacklisted_keepers=blacklisted_keepers)
 
 
 class TestSignatureBehaviour(TransactionSettlementFSMBehaviourBaseCase):
@@ -668,7 +697,7 @@ class TestValidateTransactionBehaviour(TransactionSettlementFSMBehaviourBaseCase
                     initial_period=0,
                     initial_data=dict(
                         safe_contract_address="safe_contract_address",
-                        tx_hashes_history=["final_tx_hash"],
+                        tx_hashes_history="t" * 66,
                         final_tx_hash="dummy_hash",
                         participants=participants,
                         most_voted_keeper_address=most_voted_keeper_address,
@@ -758,7 +787,7 @@ class TestValidateTransactionBehaviour(TransactionSettlementFSMBehaviourBaseCase
 class TestCheckTransactionHistoryBehaviour(TransactionSettlementFSMBehaviourBaseCase):
     """Test CheckTransactionHistoryBehaviour."""
 
-    def _fast_forward(self, hashes_history: Optional[List[Optional[str]]]) -> None:
+    def _fast_forward(self, hashes_history: str) -> None:
         """Fast-forward to relevant state."""
         self.fast_forward_to_state(
             behaviour=self.behaviour,
@@ -786,25 +815,25 @@ class TestCheckTransactionHistoryBehaviour(TransactionSettlementFSMBehaviourBase
     @pytest.mark.parametrize(
         "verified, status, hashes_history, revert_reason",
         (
-            (False, -1, [None], "test"),
-            (False, 0, None, "test"),
-            (False, 0, [None], "test"),
-            (False, 0, [None], "GS026"),
-            (True, 1, [None], "test"),
+            (False, -1, "0x" + "t" * 64, "test"),
+            (False, 0, "", "test"),
+            (False, 0, "0x" + "t" * 64, "test"),
+            (False, 0, "0x" + "t" * 64, "GS026"),
+            (True, 1, "0x" + "t" * 64, "test"),
         ),
     )
     def test_check_tx_history_behaviour(
         self,
         verified: bool,
         status: int,
-        hashes_history: Optional[List[Optional[str]]],
+        hashes_history: str,
         revert_reason: str,
     ) -> None:
         """Test CheckTransactionHistoryBehaviour."""
         self._fast_forward(hashes_history)
         self.behaviour.act_wrapper()
 
-        if hashes_history is not None:
+        if hashes_history:
             self.mock_contract_api_request(
                 request_kwargs=dict(
                     performative=ContractApiMessage.Performative.GET_STATE

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021 Valory AG
+#   Copyright 2021-2022 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -19,9 +19,9 @@
 
 """Base test."""
 
-import aea_consensus_algorithms
+import aea_swarm
 
 
 def test_version() -> None:
     """Test the version."""
-    assert aea_consensus_algorithms.__version__ == "0.1.0"
+    assert aea_swarm.__version__ == "0.1.0"

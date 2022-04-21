@@ -84,7 +84,7 @@ from packages.valory.skills.transaction_settlement_abci.rounds import (
 )
 
 
-TxDataType = Dict[str, Union[VerificationStatus, str]]
+TxDataType = Dict[str, Union[VerificationStatus, Deque[str], int, Set[str], str]]
 
 
 drand_check = VerifyDrand()
@@ -103,12 +103,24 @@ class TransactionSettlementBaseState(BaseState, ABC):
         """Return the params."""
         return cast(TransactionParams, super().params)
 
+    @staticmethod
+    def serialized_keepers(keepers: Deque[str], keeper_retries: int) -> str:
+        """Get the keepers serialized."""
+        keepers_ = "".join(keepers)
+        keeper_retries_ = keeper_retries.to_bytes(32, "big").hex()
+        concatenated = keeper_retries_ + keepers_
+
+        return concatenated
+
     def _get_tx_data(
         self, message: ContractApiMessage
     ) -> Generator[None, None, TxDataType]:
         """Get the transaction data from a `ContractApiMessage`."""
         tx_data: TxDataType = {
             "status": VerificationStatus.PENDING,
+            "keepers": self.period_state.keepers,
+            "keeper_retries": self.period_state.keeper_retries,
+            "blacklisted_keepers": self.period_state.blacklisted_keepers,
             "tx_digest": "",
         }
 
@@ -137,9 +149,19 @@ class TransactionSettlementBaseState(BaseState, ABC):
 
         if rpc_status == RPCResponseStatus.INCORRECT_NONCE:
             tx_data["status"] = VerificationStatus.ERROR
+            self.context.logger.warning(
+                "send_raw_transaction unsuccessful! Incorrect nonce."
+            )
 
         if rpc_status == RPCResponseStatus.INSUFFICIENT_FUNDS:
+            # blacklist self.
             tx_data["status"] = VerificationStatus.BLACKLIST
+            blacklisted = cast(Deque[str], tx_data["keepers"]).popleft()
+            tx_data["keeper_retries"] = 1
+            cast(Set[str], tx_data["blacklisted_keepers"]).add(blacklisted)
+            self.context.logger.warning(
+                "send_raw_transaction unsuccessful! Insufficient funds."
+            )
 
         if rpc_status != RPCResponseStatus.SUCCESS:
             self.context.logger.warning(
@@ -224,28 +246,13 @@ class SelectKeeperTransactionSubmissionBehaviourA(  # pylint: disable=too-many-a
     matching_round = SelectKeeperTransactionSubmissionRoundA
     payload_class = SelectKeeperPayload
 
-    def __init__(self, **kwargs: Any) -> None:
-        """Initialize behaviour."""
-        super().__init__(**kwargs)
-        self._keepers: Deque[str] = deque()
-        self._keeper_retries: int = 1
-
-    @property
-    def serialized_keepers(self) -> str:
-        """Get the keepers serialized."""
-        keepers = "".join(self._keepers)
-        keeper_retries = self._keeper_retries.to_bytes(32, "big").hex()
-        concatenated = keeper_retries + keepers
-
-        return concatenated
-
     def async_act(self) -> Generator:
         """Do the action."""
 
         with self.context.benchmark_tool.measure(self.state_id).local():
-            self._keepers.appendleft(self._select_keeper())
+            keepers = deque((self._select_keeper(),))
             payload = self.payload_class(
-                self.context.agent_address, self.serialized_keepers
+                self.context.agent_address, self.serialized_keepers(keepers, 1)
             )
 
         with self.context.benchmark_tool.measure(self.state_id).consensus():
@@ -262,10 +269,6 @@ class SelectKeeperTransactionSubmissionBehaviourB(  # pylint: disable=too-many-a
 
     state_id = "select_keeper_transaction_submission_b"
     matching_round = SelectKeeperTransactionSubmissionRoundB
-
-    def setup(self) -> None:
-        """Setup behaviour."""
-        self._keepers = self.period_state.keepers
 
     def async_act(self) -> Generator:
         """
@@ -286,23 +289,27 @@ class SelectKeeperTransactionSubmissionBehaviourB(  # pylint: disable=too-many-a
         """
 
         with self.context.benchmark_tool.measure(self.state_id).local():
+            keepers = self.period_state.keepers
+            keeper_retries = 1
+
             if self.period_state.keepers_threshold_exceeded:
-                self._keepers.rotate(-1)
+                keepers.rotate(-1)
+                self.context.logger.info(f"Rotated keepers to: {keepers}.")
             elif (
                 self.period_state.keeper_retries != self.params.keeper_allowed_retries
                 and self.period_state.final_verification_status
                 == VerificationStatus.PENDING
             ):
-                self._keeper_retries = self.period_state.keeper_retries + 1
+                keeper_retries += self.period_state.keeper_retries
+                self.context.logger.info(
+                    f"Kept keepers and incremented retries: {keepers}."
+                )
             else:
-                self._keepers.appendleft(self._select_keeper())
-
-            # Do not allow selecting a keeper who has been blacklisted for the period.
-            if self._keepers[0] in self.period_state.blacklisted_keepers:
-                return
+                keepers.appendleft(self._select_keeper())
 
             payload = self.payload_class(
-                self.context.agent_address, self.serialized_keepers
+                self.context.agent_address,
+                self.serialized_keepers(keepers, keeper_retries),
             )
 
         with self.context.benchmark_tool.measure(self.state_id).consensus():
@@ -434,7 +441,7 @@ class CheckTransactionHistoryBehaviour(TransactionSettlementBaseState):
             else self.period_state.late_arriving_tx_hashes
         )
 
-        if history is None:
+        if not history:
             self.context.logger.error(
                 "An unexpected error occurred! The state's history does not contain any transaction hashes, "
                 f"but entered the `{self.state_id}` state."
@@ -642,6 +649,9 @@ class FinalizeBehaviour(TransactionSettlementBaseState):
     def _not_sender_act(self) -> Generator:
         """Do the non-sender action."""
         with self.context.benchmark_tool.measure(self.state_id).consensus():
+            self.context.logger.info(
+                f"Waiting for the keeper to do its keeping: {self.period_state.most_voted_keeper_address}"
+            )
             yield from self.wait_until_round_end()
         self.set_done()
 
@@ -671,13 +681,27 @@ class FinalizeBehaviour(TransactionSettlementBaseState):
                 self.context.logger.debug(
                     f"Signatures: {pprint.pformat(self.period_state.participant_to_signature)}"
                 )
+
+            tx_hashes_history = self.period_state.tx_hashes_history
+            if tx_data["tx_digest"] != "":
+                tx_hashes_history.append(cast(str, tx_data["tx_digest"]))
+
             tx_data_serialized = {
-                "tx_digest": tx_data["tx_digest"],
-                "status": cast(VerificationStatus, tx_data["status"]).value,
+                "status_value": cast(VerificationStatus, tx_data["status"]).value,
+                "serialized_keepers": self.serialized_keepers(
+                    cast(Deque[str], tx_data["keepers"]),
+                    cast(int, tx_data["keeper_retries"]),
+                ),
+                "blacklisted_keepers": "".join(
+                    cast(Set[str], tx_data["blacklisted_keepers"])
+                ),
+                "tx_hashes_history": "".join(tx_hashes_history),
+                "received_hash": bool(tx_data["tx_digest"]),
             }
+
             payload = FinalizationTxPayload(
                 self.context.agent_address,
-                cast(Dict[str, Union[str, int]], tx_data_serialized),
+                cast(Dict[str, Union[str, int, bool]], tx_data_serialized),
             )
 
         with self.context.benchmark_tool.measure(self.state_id).consensus():
