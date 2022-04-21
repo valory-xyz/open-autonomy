@@ -106,7 +106,7 @@ class TestRegistrationStartupRound(BaseCollectDifferentUntilAllRoundTest):
             state_update_fn=lambda *x: PeriodState(
                 StateDB(
                     initial_period=0,
-                    initial_data=dict(participants=test_round.collection),
+                    initial_data=dict(participants=frozenset(test_round.collection)),
                 )
             ),
             state_attr_checks=[lambda state: state.participants],

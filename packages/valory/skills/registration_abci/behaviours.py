@@ -113,7 +113,7 @@ class RegistrationStartupBehaviour(RegistrationBaseBehaviour):
 
         performative = ContractApiMessage.Performative.GET_STATE
         contract_api_response = yield from self.get_contract_api_response(
-            performative=performative,
+            performative=performative,  # type: ignore
             contract_address=self.params.service_registry_address,
             contract_id=str(ServiceRegistryContract.contract_id),
             contract_callable="verify_contract",
@@ -129,10 +129,11 @@ class RegistrationStartupBehaviour(RegistrationBaseBehaviour):
         service_id = cast(self.params, Params).on_chain_service_id
         performative = ContractApiMessage.Performative.GET_STATE
         contract_api_response = yield from self.get_contract_api_response(
-            performative=performative,
+            performative=performative,  # type: ignore
             contract_address=self.params.service_registry_address,
             contract_id=str(ServiceRegistryContract.contract_id),
             contract_callable="get_service_info",
+            service_id=self.params.on_chain_service_id,
             service_id=service_id,
         )
         if contract_api_response.performative != performative:
@@ -140,7 +141,7 @@ class RegistrationStartupBehaviour(RegistrationBaseBehaviour):
             return {}
         return cast(dict, contract_api_response.state.body["verified"])
 
-    def get_addresses(self) -> bool:
+    def get_addresses(self) -> Generator[None, None, bool]:
         """Get addresses of agents registered for the service"""
 
         if self.params.service_registry_address is None:  # 0xa51c1fc2f0d1a1b8494ed1fe312d7c3a78ed91c0
@@ -148,13 +149,13 @@ class RegistrationStartupBehaviour(RegistrationBaseBehaviour):
 
         is_deployed = yield from self.is_correct_contract()
         if not is_deployed:
-            self.context.logger.info(f"Service registry contract not deployed")
+            self.context.logger.info("Service registry contract not deployed")
             return False
 
         # checks if service exists as prerequisite condition
         service_info = yield from self.get_service_info()
         if not service_info:
-            self.context.logger.info(f"Service info could not be retrieved")
+            self.context.logger.info("Service info could not be retrieved")
             return False
 
         # put service info in the shared state for p2p message handler

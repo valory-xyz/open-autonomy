@@ -1,5 +1,6 @@
-### High-Level Description of the Constituent FSMs.
-For reference, we provide a high-level descritpion of the FSMs that constitute
+# Price Oracle - Description of the FSMs
+
+For reference, we provide a high-level description of the FSMs that constitute
 the Price Estimation demo using a simplified syntax.
 The syntax should be easy to understand for a reader familiar with conventional
 automata textbook notation.
@@ -12,6 +13,7 @@ specification into code, e.g., for agent development, or for conducting some
 formal analysis using a model checker like SPIN.
 
 Each FSM object is defined by a collection of seven input parameters:
+
 * label (optional),
 * states,
 * default start state,
@@ -22,6 +24,7 @@ Each FSM object is defined by a collection of seven input parameters:
 
 The summary of the constituent FSMs is as follows:
 
+```
 | FSM                     | States  | Start states  | Final states  | Events  | Non-trivial transitions (*)   |
 |-----------------------  |-------: |-------------: |-------------: |-------: |------------------------:  |
 | AgentRegistration       |      4  |            2  |            2  |      3  |                       3   |
@@ -31,8 +34,9 @@ The summary of the constituent FSMs is as follows:
 | TransactionSubmission   |     10  |            1  |            2  |      9  |                      26   |
 | ResetPauseABCIApp       |      3  |            1  |            2  |      3  |                       3   |
 | **OracleAbciApp**       | **21**  |        **2**  |        **0**  | **12**  |                  **66**   |
+```
 
-(*) Transitions to a different state, i.e., not self-transitions.
+(`*`) Transitions to a different state, i.e., not self-transitions.
 
 #### `AgentRegistrationAbciApp` FSM
 

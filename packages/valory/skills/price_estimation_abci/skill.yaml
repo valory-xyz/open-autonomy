@@ -11,7 +11,7 @@ fingerprint:
   __init__.py: QmexF3zcMh8ZETYFKv4od3HFXqMT3CYGfpMm8HXXa7oWa6
   behaviours.py: QmZpUAL6x4FM6FA4mpdRWDtp1jUyMScc2oy6izRtVJaFQF
   dialogues.py: QmdBmUMWoPbS2faqn8LicQVJfN6a2WjtdZDWFbiYoy7hfY
-  fsm_specification.yaml: QmPpKTMjxvKz6zzpyRLhgfmGzohGvMa67JzV7XPtKGayLw
+  fsm_specification.yaml: QmQud8eWv16JEarcwBGsgDUFKVxaL3y5dLYpQ8qCMr7UHn
   handlers.py: QmSLoyFCRkCW5iXpHzwfoUduANi9JU9BoRUghwBhbUnRcP
   models.py: QmYeU8MtzqcsdabUDqQRcfKsnAGjpvBxJZ2dfRHdPQnudM
   payloads.py: QmR99Myja4scfiZpNrUkFfSHAZ3VthG3Ppx7wnk7M7UiWi
@@ -75,6 +75,7 @@ models:
       max_healthcheck: 120
       observation_aggregator_function: median
       observation_interval: 10
+      on_chain_service_id: null
       oracle:
         min_answer: 1000000000000000000
         max_answer: 1000000000000000000000000
@@ -89,7 +90,6 @@ models:
       round_timeout_seconds: 30.0
       service_id: price_estimation
       service_registry_address: null
-      on_chain_service_id: null
       sleep_time: 1
       tendermint_check_sleep_delay: 3
       tendermint_com_url: http://localhost:8080

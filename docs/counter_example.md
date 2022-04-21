@@ -21,6 +21,7 @@ make localnet-start
 ```
 
 The network is made of:
+
 - 4 Tendermint nodes, `node0`, `node1`, `node2`, and `node3`,
 which are listening at ports `26657`, `26667`, `26677`, `26687`
 for RCP requests, respectively, and
@@ -76,7 +77,7 @@ representing the app state.
 You can verify that running the same query against the other
 nodes will give you the same response, e.g.
 
-```
+```bash
 curl http://localhost:26667/abci_query
 ```
 
@@ -84,7 +85,7 @@ curl http://localhost:26667/abci_query
 
 To send a transaction and update the ABCI application state:
 
-```
+```bash
 curl http://localhost:26657/broadcast_tx_commit\?tx\=0x01
 ```
 
@@ -190,7 +191,7 @@ ERROR: the next count must be a unitary increment.
 describes  the reason why the transaction has been rejected.
 
 Now, the query request
-```
+```bash
 curl http://localhost:26667/abci_query
 ```
 
@@ -225,14 +226,14 @@ how to use an AEA to interact with the Tendermint network built above.
 First, open a terminal to the root of this repository, 
 and fetch the `counter_client` agent:
 
-```
+```bash
 aea fetch valory/counter_client:0.1.0
 ```
 
 This will copy the agent project in the `counter_client` directory.
 
 Then, enter into the project, and generate a private key:
-```
+```bash
 cd counter_client
 aea generate-key ethereum
 aea install
@@ -240,14 +241,14 @@ aea install
 
 You can see the Tendermint node the skill is configured to interact with 
 using the following command:
-```
+```bash
 aea config get vendor.valory.skills.counter_client.models.params.args.tendermint_url
 ```
 
 It will print `localhost:26657`, i.e. `node0`.
 
 Finally, run the agent:
-```
+```bash
 aea run
 ```
 

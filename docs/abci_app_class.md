@@ -103,7 +103,7 @@ direction LR
 
 The mandatory field `initial_round_cls` indicates the round associated to the initial state of the FSM.
 The set of `initial_states` is optionally provided by the developer. If none is provided,
-provided a set containint the `initial_round_cls` is inferred automatically.
+provided a set containing the `initial_round_cls` is inferred automatically.
 When the {{abci_app}} processes an `Event` it schedules the round associated to the next state by looking at the corresponding transition from the `transition_function` and sets the associated timeouts, if
 any.
 

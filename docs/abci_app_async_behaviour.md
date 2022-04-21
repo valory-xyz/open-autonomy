@@ -6,7 +6,7 @@
 
 The `AsyncBehaviour` class, introduced in the `valory/abstract_round_abci`
 Skill, is a mixin class that allows the AEA developer to use
-asynchronous programming patterns in a `Behaviour` implementation. Since it is usual that many of the tasks to be carried by the state behaviours are long-running, this is the base class from which FSM Behaviours will be typially derived from.
+asynchronous programming patterns in a `Behaviour` implementation. Since it is usual that many of the tasks to be carried by the state behaviours are long-running, this is the base class from which FSM Behaviours will be typically derived from.
 
 ## The Need for Asynchronous Behaviours
 
@@ -239,8 +239,8 @@ for `Behaviour`, and `H` is a shorthand for `Handler`.
         participant Seller
         participant Ledger
 
-        SearchB->>SOEF: "search for sellers"
-        SOEF->>SearchH: listOfAgents
+        SearchB->>ADS: "search for sellers"
+        ADS->>SearchH: listOfAgents
         SearchH->>Seller: call for proposals
         Seller->>FipaH: proposals
         note over FipaH, Seller: buyer and seller negotiate...
@@ -256,15 +256,14 @@ for `Behaviour`, and `H` is a shorthand for `Handler`.
 
 The participants `SearchB`, `SearchH`, `TransactionB`, `SigningH`, `LedgerH`, `FipaH`
 and `DecisionMaker` are **internal components** of the buyer AEA,
-whereas `SOEF`, `Seller`, and `Ledger` are **external actors**.
+whereas `ADS`, `Seller`, and `Ledger` are **external actors**.
 
 Follows the breakdown of each message exchange:
 
 - The buyer starts by searching for seller of the desired data,
-  and the search behaviour (`SearchB`) sends a search request to the
-  [SOEF](https://docs.fetch.ai/soef/simple-oef/), the search & discovery
-  agent service;
-- The search result of the SOEF gets routed to the search handler (`SearchH`),
+  and the search behaviour (`SearchB`) sends a search request to an
+  agent discovery service (ADS);
+- The search result of the ADS gets routed to the search handler (`SearchH`),
   which selects one of the sellers, and sends a "call for proposal" (CFP) message to him.
   The CFP is the first message of a
   [FIPA protocol interaction](http://www.fipa.org/repository/ips.php3).
@@ -311,7 +310,7 @@ class GenericBuyerBehaviour(OneShotBehaviour, AsyncBehaviour):
 
     def async_act(self):
         search_request = build_search_request(...)
-        # send search request to the SOEF
+        # send search request to the ADS
         # and (asynchronously) wait for the response
         response = yield from send(search_request)
         agents = response.result
