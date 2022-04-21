@@ -149,6 +149,9 @@ class TransactionSettlementBaseState(BaseState, ABC):
 
         if rpc_status == RPCResponseStatus.INCORRECT_NONCE:
             tx_data["status"] = VerificationStatus.ERROR
+            self.context.logger.warning(
+                "send_raw_transaction unsuccessful! Incorrect nonce."
+            )
 
         if rpc_status == RPCResponseStatus.INSUFFICIENT_FUNDS:
             # blacklist self.
@@ -156,6 +159,9 @@ class TransactionSettlementBaseState(BaseState, ABC):
             blacklisted = cast(Deque[str], tx_data["keepers"]).popleft()
             tx_data["keeper_retries"] = 1
             cast(Set[str], tx_data["blacklisted_keepers"]).add(blacklisted)
+            self.context.logger.warning(
+                "send_raw_transaction unsuccessful! Insufficient funds."
+            )
 
         if rpc_status != RPCResponseStatus.SUCCESS:
             self.context.logger.warning(
@@ -288,12 +294,16 @@ class SelectKeeperTransactionSubmissionBehaviourB(  # pylint: disable=too-many-a
 
             if self.period_state.keepers_threshold_exceeded:
                 keepers.rotate(-1)
+                self.context.logger.info(f"Rotated keepers to: {keepers}.")
             elif (
                 self.period_state.keeper_retries != self.params.keeper_allowed_retries
                 and self.period_state.final_verification_status
                 == VerificationStatus.PENDING
             ):
                 keeper_retries += self.period_state.keeper_retries
+                self.context.logger.info(
+                    f"Kept keepers and incremented retries: {keepers}."
+                )
             else:
                 keepers.appendleft(self._select_keeper())
 
@@ -639,6 +649,9 @@ class FinalizeBehaviour(TransactionSettlementBaseState):
     def _not_sender_act(self) -> Generator:
         """Do the non-sender action."""
         with self.context.benchmark_tool.measure(self.state_id).consensus():
+            self.context.logger.info(
+                f"Waiting for the keeper to do its keeping: {self.period_state.most_voted_keeper_address}"
+            )
             yield from self.wait_until_round_end()
         self.set_done()
 

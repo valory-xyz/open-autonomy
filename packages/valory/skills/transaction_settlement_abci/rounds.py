@@ -67,6 +67,7 @@ class Event(Enum):
     NO_MAJORITY = "no_majority"
     NEGATIVE = "negative"
     NONE = "none"
+    FINALIZE_TIMEOUT = "finalize_timeout"
     VALIDATE_TIMEOUT = "validate_timeout"
     CHECK_TIMEOUT = "check_timeout"
     RESET_TIMEOUT = "reset_timeout"
@@ -613,7 +614,7 @@ class TransactionSubmissionAbciApp(AbciApp[Event]):
         FinalizationRound: {
             Event.DONE: ValidateTransactionRound,
             Event.CHECK_HISTORY: CheckTransactionHistoryRound,
-            Event.ROUND_TIMEOUT: SelectKeeperTransactionSubmissionRoundBAfterTimeout,
+            Event.FINALIZE_TIMEOUT: SelectKeeperTransactionSubmissionRoundBAfterTimeout,
             Event.FINALIZATION_FAILED: SelectKeeperTransactionSubmissionRoundB,
             Event.CHECK_LATE_ARRIVING_MESSAGE: SynchronizeLateMessagesRound,
         },
@@ -676,6 +677,7 @@ class TransactionSubmissionAbciApp(AbciApp[Event]):
     }
     event_to_timeout: Dict[Event, float] = {
         Event.ROUND_TIMEOUT: 30.0,
+        Event.FINALIZE_TIMEOUT: 30.0,
         Event.VALIDATE_TIMEOUT: 30.0,
         Event.CHECK_TIMEOUT: 30.0,
         Event.RESET_TIMEOUT: 30.0,
