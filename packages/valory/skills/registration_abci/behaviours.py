@@ -80,7 +80,7 @@ class RegistrationStartupBehaviour(RegistrationBaseBehaviour):
 
     state_id = "registration_startup"
     matching_round = RegistrationStartupRound
-    collected: Dict[str, Dict[str, str]] = dict()
+    collected: Dict[str, str] = dict()
 
     @property
     def registered_addresses(self) -> Set[str]:
@@ -158,7 +158,7 @@ class RegistrationStartupBehaviour(RegistrationBaseBehaviour):
         """Make Tendermint callback request"""
 
         dialogues = cast(TendermintDialogues, self.context.http_dialogues)
-        performative = TendermintMessage.Performative.TENDERMINT_CONFIG_REQUEST
+        performative = TendermintMessage.Performative.REQUEST
         message, dialogue = dialogues.create(
             counterparty=address, performative=performative
         )
@@ -177,10 +177,7 @@ class RegistrationStartupBehaviour(RegistrationBaseBehaviour):
             self.context.logger.warning(
                 f"Request from agent not registered on-chain:\n{message}"
             )
-        elif (
-            message.performative
-            == TendermintMessage.Performative.TENDERMINT_CONFIG_RESPONSE
-        ):
+        elif message.performative == TendermintMessage.Performative.RESPONSE:
             self.collected[message.sender] = message.info
             self.context.logger.info(f"Collected {message.sender}: {message.info}")
         else:
