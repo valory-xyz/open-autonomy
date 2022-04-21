@@ -246,14 +246,13 @@ build-images:
 		echo "Ensure you have exported a version to build!";\
 		exit 1
 	fi
-	rsync -avu packages/ deployments/Dockerfiles/open_aea/packages
 	if [ "${VERSION}" = "dev" ];\
 	then\
 		echo "building dev images!";\
-		skaffold build --build-concurrency=0 --push=false -p dev && exit 0
+	 	python deployments/click_create.py build-images --deployment-file-path ${DEPLOYMENT_SPEC} --profile dev && exit 0
 		exit 1
 	fi
-	skaffold build --build-concurrency=0 --push=false -p prod && exit 0
+	python deployments/click_create.py build-images --deployment-file-path ${DEPLOYMENT_SPEC} --profile prod && exit 0
 	exit 1
 
 .PHONY: run-hardhat
@@ -279,7 +278,7 @@ run-oracle-dev:
 	fi
 	export VERSION=dev
 	make build-images && \
-     	python deployments/click_create.py build-deployment --valory-app oracle_hardhat --deployment-type docker-compose --configure-tendermint && \
+     	python deployments/click_create.py build-deployment --deployment-file-path ${DEPLOYMENT_SPEC} --deployment-type docker-compose --configure-tendermint && \
      	make run-deploy
 
 .PHONY: run-oracle

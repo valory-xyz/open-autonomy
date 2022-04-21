@@ -7,13 +7,13 @@ build:
     envTemplate:
       template: "{{.VERSION}}"
   artifacts:
-  - image: valory/consensus-algorithms-open-aea
+  - image: "valory/consensus-algorithms-open-aea-{{.VALORY_APP}}"
     context: deployments/Dockerfiles/open_aea/
     docker:
       dockerfile: Dockerfile
       buildArgs:
         AEA_VERSION: "0.1.6"
-        AEA_AGENT: "valory/oracle_deployable:0.1.0"
+        AEA_AGENT: "{{.AEA_AGENT}}"
 
   - image: valory/consensus-algorithms-tendermint
     context: deployments/Dockerfiles/localnode/
