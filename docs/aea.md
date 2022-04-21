@@ -54,7 +54,7 @@ Every AEA is composed of a number of components that work together to achieve th
 is the "economic brain" of the AEA, where the developers' or users' goals, preferences, message handling and wallet
 control reside. It is composed of a number of components:
     - The [`Wallet`](https://valory-xyz.github.io/open-aea/api/crypto/wallet/),
-    containing access to crypto addresses, public and private_keys.
+    containing access to crypto addresses, public and private keys.
     [`Crypto`](https://valory-xyz.github.io/open-aea/api/crypto/base/) objects
     are used to load and encrypt private keys stored in an agents' environment.
     - A [`Resources`](https://valory-xyz.github.io/open-aea/api/registries/resources/) object,
@@ -84,10 +84,16 @@ control reside. It is composed of a number of components:
 allow AEAs to operate proactively, through the expression of
 [`Behaviour`](https://valory-xyz.github.io/open-aea/api/skills/base/#behaviour-objects),
 as well as reactively by managing incoming messages from other agents via a
-[`Handler`](https://valory-xyz.github.io/open-aea/api/skills/base/#handler-objects). Every [`Skill`](https://valory-xyz.github.io/open-aea/skill/) has access to its
+[`Handlers`](https://valory-xyz.github.io/open-aea/api/skills/base/#handler-objects). Every [`Skill`](https://valory-xyz.github.io/open-aea/skill/) has access to its
 [`SkillContext`](https://valory-xyz.github.io/open-aea/api/skills/base/).
+
+    - [`Handlers`](https://valory-xyz.github.io/open-aea/api/skills/base/#handler-objects) implement AEAs' reactive behaviour. Each [`Skill`](https://valory-xyz.github.io/open-aea/skill/) has zero, one or more handler objects. There is a one-to-one correspondence between [`Handlers`](https://valory-xyz.github.io/open-aea/api/skills/base/#handler-objects) and [`Protocols`](https://valory-xyz.github.io/open-aea/api/protocols/base/#protocol-objects) in an AEA (also known as registered protocols). If an AEA understands a [`Protocol`](https://valory-xyz.github.io/open-aea/api/protocols/base/#protocol-objects) referenced in a received [`Envelope`](https://valory-xyz.github.io/open-aea/api/mail/base/#envelope-objects) (i.e., the protocol is registered in this AEA), this envelope is sent to the corresponding [`Handler`](https://valory-xyz.github.io/open-aea/api/skills/base/#handler-objects) which executes the AEA's reaction to this [`Message`](https://valory-xyz.github.io/open-aea/api/protocols/base/).
+
+    - [`Behaviours`](https://valory-xyz.github.io/open-aea/api/skills/base/#behaviour-objects) encapsulate actions which further the AEAs goal and are initiated by internals of the AEA rather than external events. [`Behaviours`](https://valory-xyz.github.io/open-aea/api/skills/base/#behaviour-objects) implement AEAs' proactiveness. The {{open_aea}} framework provides a number of abstract base classes implementing different types of simple and composite [`Behaviours`](https://valory-xyz.github.io/open-aea/api/skills/base/#behaviour-objects) (e.g., cyclic, one-shot, finite-state-machine, etc), and these define how often and in what order a behaviour and its sub-behaviours must be executed. [`Behaviours`](https://valory-xyz.github.io/open-aea/api/skills/base/#behaviour-objects) act as a user in a traditional blockchain.
+
+
 - Since there might exist a need to share a certain context which is relevant both
-to behaviors and handlers, this can be achieved via a
+to behaviours and handlers, this can be achieved via a
 [`Model`](https://valory-xyz.github.io/open-aea/api/skills/base/#model-objects).
 
 ![Simplified AEA](./images/simplified-aea.jpg)
@@ -122,7 +128,7 @@ For example, The logic related to the execution of a smart
 [`Contract`](https://valory-xyz.github.io/open-aea/contract/)
 requires a connection to provide the agent with the
 necessary blockchain network access.
-Connection is responsible for translating between the framework-specific Envelope with its Message and the external service or third-party protocol (e.g. HTTP).
+Connection is responsible for translating between the framework-specific [`Envelope`](https://valory-xyz.github.io/open-aea/api/mail/base/#envelope-objects) with its [`Message`](https://valory-xyz.github.io/open-aea/api/protocols/base/) and the external service or third-party protocol (e.g. HTTP).
 
 The AEAs [`Identity`](https://valory-xyz.github.io/open-aea/api/identity/base/)
 provides access to any associated addresses and public keys.

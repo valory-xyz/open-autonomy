@@ -8,9 +8,9 @@ aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
   README.md: Qmcvjeds5EyiUvea61GNy8YE4rYzvMDh79GJMhBz3NK7Q5
   __init__.py: QmUFuoq77B1FjZSeHGAyW8AgJnGNh9Z1amEGK7UTH8iP7J
-  behaviours.py: QmSypx16787QZTkWxY5nUJpieE7X6Sq8YDCRABt5JoeJL1
+  behaviours.py: QmWhtx7pKtsQCk5XpvYmkxw4CGVpSAaJSfdZqJZizco5wF
   dialogues.py: Qmd54DnNEsybMJb78HTcW2HABVBZCL1FuQL8ELKq3xB6Jw
-  fsm_specification.yaml: QmNqaU5EuBQfJ9MstwNoHP4BU1uW6jMMHf7XPYsxdEcaWZ
+  fsm_specification.yaml: QmUeA76vgnHNSyrQDsU1zWgMwB13WXk6ZqorvAcactLPwY
   handlers.py: QmetZ5zoEr9SSkqgR9zfWdB9CEsDeBQqrXypYZ1f9UAF6H
   models.py: QmPegRgrqVr6fMECoYCd3k7VDKdndBNMTuiPVrGTM9SW3o
   payloads.py: QmSds2L9BKR4157xqGgH22dG8ojq6hc1BG2JH9NgzhxgVp
@@ -61,6 +61,7 @@ models:
       keeper_timeout: 30.0
       max_healthcheck: 120
       observation_interval: 10
+      on_chain_service_id: null
       period_setup: {}
       reset_tendermint_after: 2
       retry_attempts: 400

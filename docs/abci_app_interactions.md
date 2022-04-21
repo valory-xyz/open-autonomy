@@ -1,70 +1,7 @@
+# Interactions between Components in an {{abci_app}}
 
-# AbstractRoundBehaviour implementation
+In this section we present sequence diagrams in order to help understand the transmitted messages and method calls between the software components that are part of an {{abci_app}}.
 
-The `AbstractRoundBehaviour` takes care of the processing of the current round
-and transition to the subsequent round, implementation of which resides in the
-`act()` method. Whenever a round change in the AbciApp is detected, the
-`AbstractRoundBehaviour` schedules the state behaviour associated with the
-current round, ensuring state transition cannot occur without first invoking the
-associated behavioral change.
-
-```python
-# skills.abstract_round_abci.behaviours.py
-
-
-StateType = Type[BaseState]
-
-
-class AbstractRoundBehaviour(
-    Behaviour, ABC, Generic[EventType], metaclass=_MetaRoundBehaviour
-):
-    """This behaviour implements an abstract round behaviour."""
-
-    abci_app_cls: Type[AbciApp[EventType]]
-    behaviour_states: AbstractSet[StateType]
-    initial_state_cls: StateType
-
-    def instantiate_state_cls(self, state_cls: StateType) -> BaseState:
-        return state_cls(name=state_cls.state_id, skill_context=self.context)
-
-    def setup(self) -> None:
-        self.current_state = self.instantiate_state_cls(self.initial_state_cls)
-
-    def act(self) -> None:
-        """Implement the behaviour."""
-        self._process_current_round()
-        self.current_state = self.instantiate_state_cls(self._next_state_cls)
-    ...
-```
-
-The concrete implementation of which requires the developer to provide the
-`AbciApp`, a set of `BaseStates` encoding the different types of behaviour and
-the initial behaviour. Similar to the role of `_MetaAbciApp` in the case of the
-`AbciApp`, the`_MetaRoundBehaviour` metaclass provided here check the
-logic of the `AbstractRoundBehaviour` implementation, ensuring that:
-
-    - abci_app_cls, behaviour_states and initial_state_cls are set
-    - that each `state_id` is unique
-    - that the `initial_state_cls` is part of the `behaviour_states`
-    - rounds are unique across behavioural states
-    - that all of behavioural states are covered during rounds
-
-A concrete implementation of a subclass of `AbstractRoundBehaviour` looks
-as follows:
-
-```python
-class MyFSMBehaviour(AbstractRoundBehaviour):
-    """My ABCI-based Finite-State Machine Application execution behaviour"""
-
-    abci_app_cls: ABCIApp = MyAbciApp
-    initial_state_cls: StateType = RoundA
-    behaviour_states = {
-      RoundA,
-      RoundB,
-      FinalRound,
-    }
-    ...
-```
 
 
 ## The `ABCIApp` - `AbstractRoundBehaviour` interaction
@@ -99,9 +36,6 @@ looks as follows:
 5. Cycles of such rounds may, either entirely or in part, be repeated until a
    final state is reached, implemented as a
 
-
-The [price estimation demo](./price_estimation_demo.md)
-showcases deployment and operation of AEAs using an ABCIApp.
 
 ## AbstractRoundBehaviour:
 
@@ -138,4 +72,63 @@ AEA event loop.
         activate State2
         State2->>AbsRoundBehaviour: return
         deactivate State2
+</div>
+
+
+
+The following diagram describes the addition of transactions to the transaction
+pool:
+
+<div class="mermaid">
+    sequenceDiagram
+        participant ConsensusEngine
+        participant ABCIHandler
+        participant Period
+        participant Round
+        activate Round
+        note over ConsensusEngine,ABCIHandler: client submits transaction tx
+        ConsensusEngine->>ABCIHandler: RequestCheckTx(tx)
+        ABCIHandler->>Period: check_tx(tx)
+        Period->>Round: check_tx(tx)
+        Round->>Period: OK
+        Period->>ABCIHandler: OK
+        ABCIHandler->>ConsensusEngine: ResponseCheckTx(tx)
+        note over ConsensusEngine,ABCIHandler: tx is added to tx pool
+</div>
+
+The following diagram describes the delivery of transactions in a block:
+
+<div class="mermaid">
+    sequenceDiagram
+        participant ConsensusEngine
+        participant ABCIHandler
+        participant Period
+        participant Round1
+        participant Round2
+        activate Round1
+        note over Round1,Round2: Round1 is the active round,<br/>Round2 is the next round
+        note over ConsensusEngine,ABCIHandler: validated block ready to<br/>be submitted to the ABCI app
+        ConsensusEngine->>ABCIHandler: RequestBeginBlock()
+        ABCIHandler->>Period: begin_block()
+        Period->>ABCIHandler: ResponseBeginBlock(OK)
+        ABCIHandler->>ConsensusEngine: OK
+        loop for tx_i in block
+            ConsensusEngine->>ABCIHandler: RequestDeliverTx(tx_i)
+            ABCIHandler->>Period: deliver_tx(tx_i)
+            Period->>Round1: deliver_tx(tx_i)
+            Round1->>Period: OK
+            Period->>ABCIHandler: OK
+            ABCIHandler->>ConsensusEngine: ResponseDeliverTx(OK)
+        end
+        ConsensusEngine->>ABCIHandler: RequestEndBlock()
+        ABCIHandler->>Period: end_block()
+        alt if condition is true
+            note over Period,Round1: replace Round1 with Round2
+            deactivate Round1
+            Period->>Round2: schedule
+            activate Round2
+        end
+        Period->>ABCIHandler: OK
+        ABCIHandler->>ConsensusEngine: ResponseEndBlock(OK)
+        deactivate Round2
 </div>

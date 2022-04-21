@@ -12,9 +12,9 @@ fingerprint:
   behaviours.py: QmbYxgSyhorfskyfEmrEVh4RvXy9JnmDr2B9CvKHakGU2a
   composition.py: QmTMTXbxA32JvoohYjHTDohMpc2cyWZdLDZyKtCUSvaAnK
   dialogues.py: QmfDThV4WCRzK88XDpW2hKDYCuEH4RxoHCoAkWpkBRGRPv
-  fsm_specification.yaml: QmcHWYuuc1aobYZ8RtKXYAyhAA1GMTUiZudn3w9z99pKNF
+  fsm_specification.yaml: QmUN7yW41YY8GjBxRBBwBz9yHAqgqqdTm5XzuFTd8bjzg5
   handlers.py: QmWJtuiUZUphDnxgsxc4Ym2sZT9qSSk3K7BBiKSZMMUEat
-  models.py: QmSEktJzothtSijG3PZgKStVEn4V8rzdLcsYzqA2TbFiyh
+  models.py: QmPYLeEtiZaHQ7BEkz3KvrXkwFUkr44x5bVNDveRX3vqww
 fingerprint_ignore_patterns: []
 connections: []
 contracts:
@@ -80,6 +80,7 @@ models:
       max_healthcheck: 120
       observation_aggregator_function: median
       observation_interval: 10
+      on_chain_service_id: null
       oracle:
         min_answer: 1000000000000000000
         max_answer: 1000000000000000000000000

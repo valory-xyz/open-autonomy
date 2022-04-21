@@ -22,16 +22,16 @@
 import logging  # noqa: F401
 from collections import deque
 from types import MappingProxyType
-from typing import Dict, FrozenSet, List, Mapping, Optional, Union, cast
+from typing import Deque, Dict, FrozenSet, List, Mapping, Optional, Union, cast
 from unittest import mock
 
 import pytest
 
-from packages.valory.skills.abstract_round_abci.base import ABCIAppInternalError
 from packages.valory.skills.abstract_round_abci.base import (
-    BasePeriodState as PeriodState,
+    ABCIAppInternalError,
+    BaseTxPayload,
+    StateDB,
 )
-from packages.valory.skills.abstract_round_abci.base import BaseTxPayload, StateDB
 from packages.valory.skills.oracle_deployment_abci.payloads import RandomnessPayload
 from packages.valory.skills.transaction_settlement_abci.payload_tools import (
     VerificationStatus,
@@ -62,6 +62,7 @@ from packages.valory.skills.transaction_settlement_abci.rounds import (
     SelectKeeperTransactionSubmissionRoundB,
     SelectKeeperTransactionSubmissionRoundBAfterTimeout,
     SynchronizeLateMessagesRound,
+    TX_HASH_LENGTH,
     ValidateTransactionRound,
 )
 
@@ -183,7 +184,7 @@ def get_participant_to_late_arriving_tx_hashes(
     """participant_to_selection"""
     return {
         participant: SynchronizeLateMessagesPayload(
-            sender=participant, tx_hashes="1" * 64 + "2" * 64
+            sender=participant, tx_hashes="1" * TX_HASH_LENGTH + "2" * TX_HASH_LENGTH
         )
         for participant in participants
     }
@@ -193,14 +194,17 @@ def get_late_arriving_tx_hashes() -> List[str]:
     """Get dummy late-arriving tx hashes."""
     # We want the tx hashes to have a size which can be divided by 64 to be able to parse it.
     # Otherwise, they are not valid.
-    return ["t" * 64, "e" * 64, "s" * 64, "t" * 64]
+    return [
+        "t" * TX_HASH_LENGTH,
+        "e" * TX_HASH_LENGTH,
+        "s" * TX_HASH_LENGTH,
+        "t" * TX_HASH_LENGTH,
+    ]
 
 
-def get_keepers() -> str:
+def get_keepers(keepers: Deque[str], retries: int = 1) -> str:
     """Get dummy keepers."""
-    retries = 1
-    agents = ["agent_1" + "-" * 35, "agent_3" + "-" * 35]
-    return retries.to_bytes(32, "big").hex() + "".join(agents)
+    return retries.to_bytes(32, "big").hex() + "".join(keepers)
 
 
 class TestSelectKeeperTransactionSubmissionRoundA(BaseSelectKeeperRoundTest):
@@ -295,7 +299,7 @@ class TestSelectKeeperTransactionSubmissionRoundBAfterTimeout(
         (
             (
                 {
-                    "tx_hashes_history": ["test"],
+                    "tx_hashes_history": "t" * 66,
                     "missed_messages": 10,
                 },
                 True,
@@ -321,7 +325,7 @@ class TestSelectKeeperTransactionSubmissionRoundBAfterTimeout(
     def test_run(  # type: ignore
         self,
         threshold_exceeded_mock: mock.PropertyMock,
-        attrs: Dict[str, Union[List[str], int]],
+        attrs: Dict[str, Union[str, int]],
         threshold_exceeded: bool,
         exit_event: TransactionSettlementEvent,
     ) -> None:
@@ -348,56 +352,56 @@ class TestFinalizationRound(BaseOnlyKeeperSendsRoundTest):
         "tx_hashes_history, tx_digest, missed_messages, status, exit_event",
         (
             (
-                [],
+                "",
                 "",
                 1,
                 VerificationStatus.ERROR.value,
                 TransactionSettlementEvent.CHECK_LATE_ARRIVING_MESSAGE,
             ),
             (
-                [],
+                "",
                 "",
                 0,
                 VerificationStatus.ERROR.value,
                 TransactionSettlementEvent.FINALIZATION_FAILED,
             ),
             (
-                ["test"],
+                "t" * 66,
                 "",
                 0,
                 VerificationStatus.VERIFIED.value,
                 TransactionSettlementEvent.CHECK_HISTORY,
             ),
             (
-                ["test"],
+                "t" * 66,
                 "",
                 0,
                 VerificationStatus.ERROR.value,
                 TransactionSettlementEvent.CHECK_HISTORY,
             ),
             (
-                [],
+                "",
                 "",
                 0,
                 VerificationStatus.PENDING.value,
                 TransactionSettlementEvent.FINALIZATION_FAILED,
             ),
             (
-                [],
-                "tx_digest",
+                "",
+                "tx_digest" + "t" * 57,
                 0,
                 VerificationStatus.PENDING.value,
                 TransactionSettlementEvent.DONE,
             ),
             (
-                ["test"],
-                "tx_digest",
+                "t" * 66,
+                "tx_digest" + "t" * 57,
                 0,
                 VerificationStatus.PENDING.value,
                 TransactionSettlementEvent.DONE,
             ),
             (
-                ["test"],
+                "t" * 66,
                 "",
                 0,
                 VerificationStatus.BLACKLIST.value,
@@ -407,31 +411,38 @@ class TestFinalizationRound(BaseOnlyKeeperSendsRoundTest):
     )
     def test_finalization_round(
         self,
-        tx_hashes_history: List[str],
+        tx_hashes_history: str,
         tx_digest: str,
         missed_messages: int,
         status: int,
         exit_event: TransactionSettlementEvent,
     ) -> None:
         """Runs tests."""
-
+        keeper_retries = 2
+        blacklisted_keepers = ""
         self.participants = frozenset([f"agent_{i}" + "-" * 35 for i in range(4)])
-        keepers = deque(["agent_1" + "-" * 35, "agent_3" + "-" * 35])
+        keepers = deque(("agent_1" + "-" * 35, "agent_3" + "-" * 35))
         self.period_state = cast(
-            PeriodState,
+            TransactionSettlementPeriodState,
             self.period_state.update(
                 participants=frozenset([f"agent_{i}" + "-" * 35 for i in range(4)]),
                 missed_messages=missed_messages,
                 tx_hashes_history=tx_hashes_history,
-                keepers=get_keepers(),
-                blacklisted_keepers={keepers[0]}
-                if status == VerificationStatus.BLACKLIST.value
-                else {},
+                keepers=get_keepers(keepers, keeper_retries),
+                blacklisted_keepers=blacklisted_keepers,
             ),
         )
-        tx_hashes_history.append(
+
+        sender = keepers[0]
+        tx_hashes_history += (
             tx_digest
-        ) if exit_event == TransactionSettlementEvent.DONE else tx_hashes_history
+            if exit_event == TransactionSettlementEvent.DONE
+            else tx_hashes_history
+        )
+        if status == VerificationStatus.BLACKLIST.value:
+            popped = keepers.popleft()
+            blacklisted_keepers += popped
+            keeper_retries = 1
 
         test_round = self._round_class(
             state=self.period_state,
@@ -442,20 +453,28 @@ class TestFinalizationRound(BaseOnlyKeeperSendsRoundTest):
             self._test_round(
                 test_round=test_round,
                 keeper_payloads=FinalizationTxPayload(
-                    sender=keepers[0],
+                    sender=sender,
                     tx_data={
-                        "status": status,
-                        "tx_digest": tx_digest,
-                        "nonce": 0,
-                        "max_fee_per_gas": 0,
-                        "max_priority_fee_per_gas": 0,
+                        "status_value": status,
+                        "serialized_keepers": get_keepers(keepers, keeper_retries),
+                        "blacklisted_keepers": blacklisted_keepers,
+                        "tx_hashes_history": tx_hashes_history,
+                        "received_hash": bool(tx_digest),
                     },
                 ),
                 state_update_fn=lambda _period_state, _: _period_state.update(
-                    tx_hashes_history=tx_hashes_history
+                    tx_hashes_history=tx_hashes_history,
+                    blacklisted_keepers=blacklisted_keepers,
+                    keepers=get_keepers(keepers, keeper_retries),
+                    keeper_retries=keeper_retries,
+                    final_verification_status=VerificationStatus(status),
                 ),
                 state_attr_checks=[
                     lambda state: state.tx_hashes_history,
+                    lambda state: state.blacklisted_keepers,
+                    lambda state: state.keepers,
+                    lambda state: state.keeper_retries,
+                    lambda state: state.final_verification_status,
                 ],
                 exit_event=exit_event,
             )
@@ -544,7 +563,7 @@ class TestCheckTransactionHistoryRound(BaseCollectSameUntilThresholdRoundTest):
         expected_event: TransactionSettlementEvent,
     ) -> None:
         """Run tests."""
-        keepers = get_keepers()
+        keepers = get_keepers(deque(("agent_1" + "-" * 35, "agent_3" + "-" * 35)))
         self.period_state.update(missed_messages=missed_messages, keepers=keepers)
 
         test_round = CheckTransactionHistoryRound(
@@ -618,9 +637,10 @@ class TestSynchronizeLateMessagesRound(BaseCollectNonEmptyUntilThresholdRound):
                     self.participants
                 ),
                 state_update_fn=lambda _period_state, _: _period_state.update(
-                    late_arriving_tx_hashes=["1" * 64, "2" * 64]
+                    late_arriving_tx_hashes=["1" * TX_HASH_LENGTH, "2" * TX_HASH_LENGTH]
+                    * len(self.participants)
                 ),
-                state_attr_checks=[],
+                state_attr_checks=[lambda state: state.late_arriving_tx_hashes],
                 exit_event=expected_event,
             )
         )
@@ -641,7 +661,7 @@ def test_period_states() -> None:
         (int(most_voted_randomness, base=16) // 10 ** 0 % 10) / 10
     )
     late_arriving_tx_hashes = get_late_arriving_tx_hashes()
-    keepers = get_keepers()
+    keepers = get_keepers(deque(("agent_1" + "-" * 35, "agent_3" + "-" * 35)))
     expected_keepers = deque(["agent_1" + "-" * 35, "agent_3" + "-" * 35])
 
     # test `keeper_retries` property when no `keepers` are set.
@@ -665,6 +685,7 @@ def test_period_states() -> None:
                 final_tx_hash=final_tx_hash,
                 late_arriving_tx_hashes=late_arriving_tx_hashes,
                 keepers=keepers,
+                blacklisted_keepers="t" * 42,
             ),
         )
     )
@@ -679,6 +700,9 @@ def test_period_states() -> None:
     assert period_state_____.keeper_retries == 1
     assert period_state_____.most_voted_keeper_address == expected_keepers.popleft()
     assert period_state_____.keepers_threshold_exceeded
+    assert period_state_____.blacklisted_keepers == {"t" * 42}
+    updated_state = period_state_____.update(period_count=1)
+    assert updated_state.blacklisted_keepers == set()
 
     # test wrong tx hashes serialization
     period_state_____.update(late_arriving_tx_hashes=["test"])

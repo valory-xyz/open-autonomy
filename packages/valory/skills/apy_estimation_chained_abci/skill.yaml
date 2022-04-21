@@ -11,7 +11,7 @@ fingerprint:
   behaviours.py: QmS9ZUHqD2yyi5zxUSpqbbKZCLe54BJA8bnJk8HvjQeoCJ
   composition.py: QmR4YsEW8MHdxAvJ7V2e8NczXAeT4NCDYpze7eJ1ssnPcR
   dialogues.py: QmfDThV4WCRzK88XDpW2hKDYCuEH4RxoHCoAkWpkBRGRPv
-  fsm_specification.yaml: QmZ6B9Eu7tUUH8bxi62EpwrdUKRBN9zQKy5QnQTvgz3YLa
+  fsm_specification.yaml: QmXSANe3F3SXRRbY1wKukjByYurQ3kJsQsdXWawjoAqskh
   handlers.py: QmRaY4dNFoVbM5eAaJi9GEQwKu6MKqKt5YppzzESQpuMRZ
   models.py: QmS9Fkg46KXHAxdq4NV4ckFD2xv2uNQfLR1374xqucvvJh
 fingerprint_ignore_patterns: []
@@ -92,6 +92,7 @@ models:
       keeper_timeout: 30.0
       max_healthcheck: 120
       observation_interval: 10
+      on_chain_service_id: null
       optimizer:
         n_trials: 2
         timeout: null
@@ -157,7 +158,7 @@ dependencies:
   numpy:
     version: <1.22,>=1.21.4
   open-aea-cli-ipfs:
-    version: <2.0.0,>=1.6.0
+    version: <2.0.0,>=1.7.0
   optuna:
     version: <2.11,>=2.10.0
   pandas:

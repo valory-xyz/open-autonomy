@@ -1,5 +1,6 @@
-### High-Level Description of the Constituent FSMs.
-For reference, we provide a high-level descritpion of the FSMs that constitute
+# Price Oracle - Description of the FSMs
+
+For reference, we provide a high-level description of the FSMs that constitute
 the Price Estimation demo using a simplified syntax.
 The syntax should be easy to understand for a reader familiar with conventional
 automata textbook notation.
@@ -12,6 +13,7 @@ specification into code, e.g., for agent development, or for conducting some
 formal analysis using a model checker like SPIN.
 
 Each FSM object is defined by a collection of seven input parameters:
+
 * label (optional),
 * states,
 * default start state,
@@ -22,6 +24,7 @@ Each FSM object is defined by a collection of seven input parameters:
 
 The summary of the constituent FSMs is as follows:
 
+```
 | FSM                     | States  | Start states  | Final states  | Events  | Non-trivial transitions (*)   |
 |-----------------------  |-------: |-------------: |-------------: |-------: |------------------------:  |
 | AgentRegistration       |      4  |            2  |            2  |      3  |                       3   |
@@ -31,8 +34,9 @@ The summary of the constituent FSMs is as follows:
 | TransactionSubmission   |     10  |            1  |            2  |      9  |                      26   |
 | ResetPauseABCIApp       |      3  |            1  |            2  |      3  |                       3   |
 | **OracleAbciApp**       | **21**  |        **2**  |        **0**  | **12**  |                  **66**   |
+```
 
-(*) Transitions to a different state, i.e., not self-transitions.
+(`*`) Transitions to a different state, i.e., not self-transitions.
 
 #### `AgentRegistrationAbciApp` FSM
 
@@ -59,12 +63,15 @@ transition_func:
     (RegistrationStartupRound, FAST_FORWARD):     nishedRegistrationFFWRound
 ```
 
-```mermaid
+<figure markdown>
+<div class="mermaid">
 stateDiagram-v2
     RegistrationRound --> FinishedRegistrationFFWRound: <center>DONE</center>
     RegistrationStartupRound --> FinishedRegistrationRound: <center>DONE</center>
     RegistrationStartupRound --> FinishedRegistrationFFWRound: <center>FAST_FORWARD</center>
-```
+</div>
+<figcaption>AgentRegistrationAbciApp FSM</figcaption>
+</figure>
 
 #### `SafeDeploymentAbciApp` FSM
 ```yaml
@@ -106,7 +113,8 @@ transition_func:
     (ValidateSafeRound, VALIDATE_TIMEOUT): RandomnessSafeRound
 ```
 
-```mermaid
+<figure markdown>
+<div class="mermaid">
 stateDiagram-v2
     RandomnessSafeRound --> SelectKeeperSafeRound: <center>DONE</center>
     RandomnessSafeRound --> RandomnessSafeRound: <center>NO_MAJORITY<br />ROUND_TIMEOUT</center>
@@ -116,7 +124,10 @@ stateDiagram-v2
     SelectKeeperSafeRound --> RandomnessSafeRound: <center>NO_MAJORITY<br />ROUND_TIMEOUT</center>
     ValidateSafeRound --> FinishedSafeRound: <center>DONE</center>
     ValidateSafeRound --> RandomnessSafeRound: <center>NO_MAJORITY<br />NONE<br />NEGATIVE<br />VALIDATE_TIMEOUT</center>
-```
+</div>
+<figcaption>SafeDeploymentAbciApp FSM</figcaption>
+</figure>
+
 
 
 #### `OracleDeploymentAbciApp` FSM
@@ -159,7 +170,8 @@ transition_func:
     (ValidateOracleRound, VALIDATE_TIMEOUT): RandomnessOracleRound
 ```
 
-```mermaid
+<figure markdown>
+<div class="mermaid">
 stateDiagram-v2
     RandomnessOracleRound --> SelectKeeperOracleRound: <center>DONE</center>
     RandomnessOracleRound --> RandomnessOracleRound: <center>NO_MAJORITY<br />ROUND_TIMEOUT</center>
@@ -169,7 +181,9 @@ stateDiagram-v2
     SelectKeeperOracleRound --> RandomnessOracleRound: <center>NO_MAJORITY<br />ROUND_TIMEOUT</center>
     ValidateOracleRound --> FinishedOracleRound: <center>DONE</center>
     ValidateOracleRound --> RandomnessOracleRound: <center>NO_MAJORITY<br />NONE<br />NEGATIVE<br />VALIDATE_TIMEOUT</center>
-```
+</div>
+<figcaption>OracleDeploymentAbciApp FSM</figcaption>
+</figure>
 
 #### `PriceAggregationAbciApp` FSM
 ```yaml
@@ -202,7 +216,8 @@ transition_func:
     (TxHashRound, ROUND_TIMEOUT): CollectObservationRound
 ```
 
-```mermaid
+<figure markdown>
+<div class="mermaid">
 stateDiagram-v2
     CollectObservationRound --> EstimateConsensusRound: <center>DONE</center>
     CollectObservationRound --> CollectObservationRound: <center>ROUND_TIMEOUT<br />NO_MAJORITY</center>
@@ -210,7 +225,9 @@ stateDiagram-v2
     EstimateConsensusRound --> CollectObservationRound: <center>ROUND_TIMEOUT<br />NO_MAJORITY</center>
     TxHashRound --> FinishedPriceAggregationRound: <center>DONE</center>
     TxHashRound --> CollectObservationRound: <center>ROUND_TIMEOUT<br />NONE<br />NO_MAJORITY</center>
-```
+</div>
+<figcaption>PriceAggregationAbciApp FSM</figcaption>
+</figure>
 
 #### `TransactionSubmissionAbciApp` FSM
 ```yaml
@@ -295,7 +312,8 @@ transition_func:
     (ValidateTransactionRound, VALIDATE_TIMEOUT): FinalizationRound
 ```
 
-```mermaid
+<figure markdown>
+<div class="mermaid">
 stateDiagram-v2
     RandomnessTransactionSubmissionRound --> SelectKeeperTransactionSubmissionRoundA: <center>DONE</center>
     RandomnessTransactionSubmissionRound --> RandomnessTransactionSubmissionRound: <center>NO_MAJORITY</center>
@@ -330,7 +348,9 @@ stateDiagram-v2
     ValidateTransactionRound --> CheckTransactionHistoryRound: <center>NEGATIVE</center>
     ValidateTransactionRound --> FinalizationRound: <center>VALIDATE_TIMEOUT<br />NONE</center>
     ValidateTransactionRound --> ValidateTransactionRound: <center>NO_MAJORITY</center>
-```
+</div>
+<figcaption>TransactionSubmissionAbciApp FSM</figcaption>
+</figure>
 
 #### `ResetPauseABCIApp` FSM
 
@@ -356,11 +376,14 @@ transition_func:
     (ResetAndPauseRound, RESET_AND_PAUSE_TIMEOUT): FinishedResetAndPauseErrorRound
 ```
 
-```mermaid
+<figure markdown>
+<div class="mermaid">
 stateDiagram-v2
     ResetAndPauseRound --> FinishedResetAndPauseRound: <center>DONE</center>
     ResetAndPauseRound --> FinishedResetAndPauseErrorRound: <center>NO_MAJORITY<br />RESET_AND_PAUSE_TIMEOUT</center>
-```
+</div>
+<figcaption>ResetPauseABCIApp FSM</figcaption>
+</figure>
 
 
 #### `OracleAbciApp` FSM
@@ -539,7 +562,8 @@ transition_func:
     (ValidateTransactionRound, VALIDATE_TIMEOUT): FinalizationRound
 ```
 
-```mermaid
+<figure markdown>
+<div class="mermaid">
 stateDiagram-v2
     RegistrationStartupRound --> RandomnessSafeRound: <center>DONE</center>
     RegistrationStartupRound --> CollectObservationRound: <center>FAST_FORWARD</center>
@@ -601,4 +625,6 @@ stateDiagram-v2
     ValidateTransactionRound --> CheckTransactionHistoryRound: <center>NEGATIVE</center>
     ValidateTransactionRound --> FinalizationRound: <center>NONE<br />VALIDATE_TIMEOUT</center>
     ValidateTransactionRound --> ValidateTransactionRound: <center>NO_MAJORITY</center>
-```
+</div>
+<figcaption>OracleAbciApp FSM</figcaption>
+</figure>

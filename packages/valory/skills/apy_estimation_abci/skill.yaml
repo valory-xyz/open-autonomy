@@ -10,7 +10,7 @@ fingerprint:
   __init__.py: Qmb163B19kEpc6PfbLnmQxPbeEWA2ubTghVwG2YUeNYusu
   behaviours.py: QmRvaxN6zCN3gYcjTEcAkQShsm3BNrYGxEjFB17ZGtjVGC
   dialogues.py: QmdBmUMWoPbS2faqn8LicQVJfN6a2WjtdZDWFbiYoy7hfY
-  fsm_specification.yaml: QmWpHTiaY91oUmAoYiAZjcg5i3UsqktRHCcZZkEDpqEqcf
+  fsm_specification.yaml: QmY23cTtSwKmfoQzRQ6x55U8KjEyUptqrMm6o8f8BHXv5W
   handlers.py: QmdxbcVLL3JU6onvxLrDmJX1r2vQPbzp1co1eaHGJkAwfD
   ml/__init__.py: QmQdxHMEM19JH1FzG9EKQC5mpngbBAz9hyX8XDwGX915BM
   ml/forecasting.py: QmPqfSmL2vcLCtJJ5Q9XhD1S2BtLfsqxGeHqq86sjg9EqE
@@ -102,6 +102,7 @@ models:
       keeper_timeout: 30.0
       max_healthcheck: 120
       observation_interval: 10
+      on_chain_service_id: null
       optimizer:
         n_trials: 2
         timeout: null
