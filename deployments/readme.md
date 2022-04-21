@@ -41,16 +41,33 @@ docker builder prune --all
 
 First we need to build the images used for the deployment.
 
-Images are built & tagged by scaffold based on an environment variable `$VERSION`.
+Images are built & tagged by a python script which uses calls Skaffold based on an environment variable `$VERSION`.
 
 This is done from the root directory.
 
 ```bash
 make clean
 export VERSION=0.1.0
-rsync -avu packages/ deployments/Dockerfiles/open_aea/packages
-skaffold build --build-concurrency=0 --push=false
+python deployments/click_create.py build-images \
+    --valory-app  oracle_hardhat \
+    --profile $VERSION
 ```
+
+From this command, we receive the below output showing custom images being built and tagged for the specified valory app and version.
+
+```bash
+...
+... 
+Generating tags...
+ - valory/consensus-algorithms-open-aea -> valory/consensus-algorithms-open-aea:oracle_deployableV0.1.0
+ - valory/consensus-algorithms-tendermint -> valory/consensus-algorithms-tendermint:oracle_deployableV0.1.0
+ - valory/consensus-algorithms-hardhat -> valory/consensus-algorithms-hardhat:oracle_deployableV0.1.0
+Checking cache...
+ - valory/consensus-algorithms-open-aea: Found Locally
+ - valory/consensus-algorithms-tendermint: Found Locally
+ - valory/consensus-algorithms-hardhat: Found Locally
+```
+
 
 # Step 2
 

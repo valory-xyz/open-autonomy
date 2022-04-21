@@ -361,16 +361,17 @@ teardown-docker-compose:
 		docker-compose down && \
 		echo "Deployment torndown!" && \
 		exit 0
-	echo "Failed to teardown deployment!" exit 1
+	echo "Failed to teardown deployment!"
+	exit 1
 
 teardown-kubernetes:
-cluster-remove-deploy:
 	if [ "${VERSION}" = "" ];\
 	then\
 		echo "Ensure you have exported a version to build!";\
 		exit 1
 	fi
-	kubectl delete ns ${VERSION}
+	kubectl delete ns ${VERSION} && exit 0
+	exit 1
 
 .PHONY: check_abci_specs
 check_abci_specs:

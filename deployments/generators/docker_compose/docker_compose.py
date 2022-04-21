@@ -114,7 +114,7 @@ class DockerComposeGenerator(BaseDeploymentGenerator):
         agent_vars = valory_application.generate_agents()  # type: ignore
         agent_vars = self.get_deployment_network_configuration(agent_vars)
 
-        image_name = valory_application.agent_public_id.name.replace("_", "-")
+        image_name = valory_application.agent_public_id.name
 
         agents = "".join(
             [

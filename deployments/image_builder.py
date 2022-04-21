@@ -5,7 +5,7 @@ import shutil
 from deployments.create_deployment import validate_deployment_spec_path
 from typing import Optional
 import yaml
-
+from aea.configurations.utils import PublicId
 
 class ImageBuilder(object):
     """Class to build images using skaffold."""
@@ -21,7 +21,9 @@ class ImageBuilder(object):
     ):
         """Command to build images from for skaffold deployment."""
         env = os.environ.copy()
+        agent_id = PublicId.from_str(aea_agent)
         env["AEA_AGENT"] = aea_agent
+        env["VERSION"] = f"{agent_id.name}V{env['VERSION']}"
         skaffold_profile = "prod" if profile != "dev" else profile
         cmd = f"skaffold build --build-concurrency={build_concurrency} --push={'true' if push else 'false'} -p {skaffold_profile}"
         self._process = (
@@ -30,7 +32,7 @@ class ImageBuilder(object):
             )
         )
         if self._process.wait() != 0:
-            raise Exception(f'Failed to build images. Check Skaffold cmd {cmd}')
+            raise Exception(f"Failed to build images. Check Skaffold cmd {cmd}")
 
     @staticmethod
     def _copy_packages(
