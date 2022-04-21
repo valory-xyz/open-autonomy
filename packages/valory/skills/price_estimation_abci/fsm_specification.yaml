@@ -25,3 +25,4 @@ transition_func:
     (TxHashRound, NONE): CollectObservationRound
     (TxHashRound, NO_MAJORITY): CollectObservationRound
     (TxHashRound, ROUND_TIMEOUT): CollectObservationRound
+

@@ -70,17 +70,6 @@ def keepers() -> Deque[str]
 
 Get the current cycle's keepers who have tried to submit a transaction.
 
-<a id="packages.valory.skills.transaction_settlement_abci.rounds.PeriodState.blacklisted_keepers"></a>
-
-#### blacklisted`_`keepers
-
-```python
-@property
-def blacklisted_keepers() -> Set[str]
-```
-
-Get the current cycle's blacklisted keepers who cannot submit a transaction.
-
 <a id="packages.valory.skills.transaction_settlement_abci.rounds.PeriodState.keepers_threshold_exceeded"></a>
 
 #### keepers`_`threshold`_`exceeded
@@ -247,7 +236,9 @@ A round that represents transaction signing has finished
 #### end`_`block
 
 ```python
-def end_block() -> Optional[Tuple[BasePeriodState, Enum]]
+def end_block() -> Optional[
+        Tuple[BasePeriodState, Enum]
+    ]
 ```
 
 Process the end of the block.
@@ -430,21 +421,21 @@ Initial states: {RandomnessTransactionSubmissionRound}
 Transition states:
     0. RandomnessTransactionSubmissionRound
         - done: 1.
-        - round timeout: 10.
+        - round timeout: 0.
         - no majority: 0.
     1. SelectKeeperTransactionSubmissionRoundA
         - done: 2.
-        - round timeout: 10.
+        - round timeout: 1.
         - no majority: 10.
         - incorrect serialization: 12.
     2. CollectSignatureRound
         - done: 3.
-        - round timeout: 10.
+        - round timeout: 2.
         - no majority: 10.
     3. FinalizationRound
         - done: 4.
         - check history: 5.
-        - round timeout: 7.
+        - finalize timeout: 7.
         - finalization failed: 6.
         - check late arriving message: 8.
     4. ValidateTransactionRound
@@ -463,14 +454,14 @@ Transition states:
     6. SelectKeeperTransactionSubmissionRoundB
         - done: 3.
         - keeper blacklisted: 6.
-        - round timeout: 10.
+        - round timeout: 6.
         - no majority: 10.
         - incorrect serialization: 12.
     7. SelectKeeperTransactionSubmissionRoundBAfterTimeout
         - done: 3.
         - check history: 5.
         - check late arriving message: 8.
-        - round timeout: 10.
+        - round timeout: 7.
         - no majority: 10.
         - incorrect serialization: 12.
     8. SynchronizeLateMessagesRound
@@ -497,6 +488,7 @@ Final states: {FailedRound, FinishedTransactionSubmissionRound}
 
 Timeouts:
     round timeout: 30.0
+    finalize timeout: 30.0
     validate timeout: 30.0
     check timeout: 30.0
     reset timeout: 30.0

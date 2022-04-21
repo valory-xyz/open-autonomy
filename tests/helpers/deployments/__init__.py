@@ -17,4 +17,4 @@
 #
 # ------------------------------------------------------------------------------
 
-"""Tests package for the 'aea_consensus_algorithms' library."""
+"""Tests package for the 'aea_swarm' library."""

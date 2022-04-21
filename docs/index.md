@@ -4,7 +4,7 @@ Consensus algorithms implements the {{valory_stack}}, which allows for the creat
 {{open_aea}} framework, and it facilitates the creation of dynamic, decentralized applications that run off-chain.
 
 As opposed to traditional smart contracts, {{valory_app}}s go beyond simple, purely
-reactive applications and can show complex, proactive behaviors that contain
+reactive applications and can show complex, proactive behaviours that contain
 off-chain logic without giving up on decentralization.
 
 ## How it works
@@ -22,6 +22,6 @@ For this reason, there is the requirement that a minimum number of agents approv
 
 There are some core concepts that make {{valory_app}}s possible, and we will be discussing them in the following sections. Namely:
 
-- _Autonomous economic agent (AEA)_ and _multi-agent sytem (MAS)_,
+- _Autonomous economic agent (AEA)_ and _multi-agent system (MAS)_,
 - _Finite-state machine (FSM)_,
 - _Application BlockChain Interface (ABCI)_.
