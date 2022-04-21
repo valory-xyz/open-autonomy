@@ -78,7 +78,11 @@ generators:
 
 .PHONY: abci-docstrings
 abci-docstrings:
-	python scripts/generate_abci_docstrings.py
+	cp scripts/generate_abci_docstrings.py generate_abci_docstrings.py
+	python generate_abci_docstrings.py
+	rm generate_abci_docstrings.py
+	echo "Successfully validated abcis!"
+	
 
 .PHONY: common-checks-1
 common-checks-1:
