@@ -160,15 +160,24 @@ class SelectKeeperBehaviour(BaseState):
         """
         Select a new keeper randomly.
 
-        1. Sort the list of participants.
+        1. Sort the list of participants who are not blacklisted as keepers.
         2. Randomly shuffle it.
         3. Pick the first keeper in order.
         4. If he has already been selected, pick the next one.
 
         :return: the selected keeper's address.
         """
-        # Sorted list of participants
-        relevant_set = sorted(list(self.period_state.participants))
+        # Get all the participants who have not been blacklisted as keepers
+        non_blacklisted = (
+            self.period_state.participants - self.period_state.blacklisted_keepers
+        )
+        if not non_blacklisted:
+            raise RuntimeError(
+                "Cannot continue if all the keepers have been blacklisted!"
+            )
+
+        # Sorted list of participants who are not blacklisted as keepers
+        relevant_set = sorted(list(non_blacklisted))
 
         # Random shuffling of the set
         random.Random(self.period_state.keeper_randomness).shuffle(relevant_set)

@@ -31,7 +31,7 @@ Tendermint consists of two chief technical components:
 a blockchain consensus engine, and a generic application interface:
 
 - [Tendermint Core](https://tendermint.com/core/) is the underlying consensus engine, which ensures that the same transactions are recorded on every machine in the same order.
-- The  [Application BlockChain Interface (ABCI)](https://docs.tendermint.com/master/spec/abci/) is the inteface that
+- The  [Application BlockChain Interface (ABCI)](https://docs.tendermint.com/master/spec/abci/) is the interface that
   enables the transactions to be processed in any programming language.
   Unlike other blockchain and consensus solutions, which come pre-packaged with
   built-in state machines, developers can use [Tendermint](https://tendermint.com/) for
@@ -124,9 +124,9 @@ The figure below shows the sequence of actions on the different components on a 
 <figcaption>Sequence of actions to submit a transaction on Tendermint.</figcaption>
 </figure>
 
-1. An application bevaviour initiates the process by submitting a request, e.g., [`broadcast_tx_sync`](https://docs.tendermint.com/master/rpc/#/Tx/broadcast_tx_sync).
-2. The Tendermint nodes handle the transaction and handle any required networking or consensus actions to be done at this stage. This is transparent from the point of view of the application. Each Tendermint node notifies its associated application through the ABCI interface by calling, e.g., `CheckTx` callbck method.
-3. The applications respond accordingly throught the ABCI interface. Again, at this point the Tendermint nodes will handle the networking and consensus layer transparently.
+1. An application behaviour initiates the process by submitting a request, e.g., [`broadcast_tx_sync`](https://docs.tendermint.com/master/rpc/#/Tx/broadcast_tx_sync).
+2. The Tendermint nodes handle the transaction and handle any required networking or consensus actions to be done at this stage. This is transparent from the point of view of the application. Each Tendermint node notifies its associated application through the ABCI interface by calling, e.g., `CheckTx` callback method.
+3. The applications respond accordingly through the ABCI interface. Again, at this point the Tendermint nodes will handle the networking and consensus layer transparently.
 4. Finally, the calling behaviour receives response of the executed transaction (if applies).
 
 A more detailed sequence diagram corresponding to this transaction can be shown below:

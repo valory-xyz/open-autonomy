@@ -22,6 +22,7 @@ import datetime
 import heapq
 import itertools
 import logging
+import textwrap
 import uuid
 from abc import ABC, ABCMeta, abstractmethod
 from collections import Counter
@@ -64,6 +65,7 @@ ERROR_CODE = 1
 LEDGER_API_ADDRESS = str(LEDGER_CONNECTION_PUBLIC_ID)
 ROUND_COUNT_DEFAULT = -1
 MIN_HISTORY_DEPTH = 1
+ADDRESS_LENGTH = 42
 
 EventType = TypeVar("EventType")
 TransactionType = TypeVar("TransactionType")
@@ -662,6 +664,12 @@ class BasePeriodState:
     def is_keeper_set(self) -> bool:
         """Check whether keeper is set."""
         return self.db.get("most_voted_keeper_address", None) is not None
+
+    @property
+    def blacklisted_keepers(self) -> Set[str]:
+        """Get the current cycle's blacklisted keepers who cannot submit a transaction."""
+        raw = cast(str, self.db.get("blacklisted_keepers", ""))
+        return set(textwrap.wrap(raw, ADDRESS_LENGTH))
 
     @property
     def participant_to_selection(self) -> Mapping:

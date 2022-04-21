@@ -23,8 +23,12 @@ import binascii
 import json
 import time
 from pathlib import Path
-from typing import Any, Type, cast
+from typing import Any, Set, Type, cast
 from unittest import mock
+
+import pytest
+from aea.exceptions import AEAActException
+from aea.skills.base import SkillContext
 
 from packages.valory.protocols.contract_api.custom_types import State
 from packages.valory.protocols.ledger_api.message import LedgerApiMessage
@@ -32,9 +36,6 @@ from packages.valory.skills.abstract_round_abci.base import BasePeriodState, Sta
 from packages.valory.skills.abstract_round_abci.behaviour_utils import BaseState
 from packages.valory.skills.transaction_settlement_abci.payload_tools import (
     VerificationStatus,
-)
-from packages.valory.skills.transaction_settlement_abci.rounds import (
-    PeriodState as TxSettlementPeriodState,
 )
 
 from tests.conftest import ROOT_DIR
@@ -324,18 +325,24 @@ class BaseSelectKeeperBehaviourTest(CommonBaseCase):
     done_event: Any
     _period_state: Type[BasePeriodState] = BasePeriodState
 
-    @mock.patch.object(
-        TxSettlementPeriodState,
+    @mock.patch.object(SkillContext, "agent_address", new_callable=mock.PropertyMock)
+    @pytest.mark.parametrize(
         "blacklisted_keepers",
-        new_callable=mock.PropertyMock,
+        (
+            set(),
+            {"a_1"},
+            {"test_agent_address" + "t" * 24},
+            {"a_1" + "t" * 39, "a_2" + "t" * 39, "test_agent_address" + "t" * 24},
+        ),
     )
     def test_select_keeper(
-        self,
-        blacklisted_keepers_mock: mock.PropertyMock,
-        blacklisted: bool = False,
+        self, agent_address_mock: mock.Mock, blacklisted_keepers: Set[str]
     ) -> None:
         """Test select keeper agent."""
-        participants = frozenset({self.skill.skill_context.agent_address, "a_1", "a_2"})
+        agent_address_mock.return_value = "test_agent_address" + "t" * 24
+        participants = frozenset(
+            {self.skill.skill_context.agent_address, "a_1" + "t" * 39, "a_2" + "t" * 39}
+        )
         self.fast_forward_to_state(
             behaviour=self.behaviour,
             state_id=self.select_keeper_behaviour_class.state_id,
@@ -346,34 +353,35 @@ class BaseSelectKeeperBehaviourTest(CommonBaseCase):
                         participants=participants,
                         most_voted_randomness="56cbde9e9bbcbdcaf92f183c678eaa5288581f06b1c9c7f884ce911776727688",
                         final_verification_status=VerificationStatus.PENDING,
+                        blacklisted_keepers="".join(blacklisted_keepers),
                     ),
                 )
             ),
         )
+        assert self.behaviour.current_state is not None
         assert (
-            cast(
-                BaseState,
-                cast(BaseState, self.behaviour.current_state),
-            ).state_id
+            self.behaviour.current_state.state_id
             == self.select_keeper_behaviour_class.state_id
         )
 
-        if blacklisted:
-            # blacklist the selected keeper
-            blacklisted_keepers_mock.return_value = {
-                cast(TxSettlementPeriodState, self._period_state).keepers[0]
-            }
-            # enter behaviour (we expect it to return, because the keeper is blacklisted).
+        if (
+            self.behaviour.current_state.period_state.participants
+            - self.behaviour.current_state.period_state.blacklisted_keepers
+        ):
             self.behaviour.act_wrapper()
-            # remove blacklisting to check re-entering behaviour and simulate selecting a non blacklisted keeper
-            blacklisted_keepers_mock.return_value = {}
-
-        self.behaviour.act_wrapper()
-        self.mock_a2a_transaction()
-        self._test_done_flag_set()
-        self.end_round(self.done_event)
-        state = cast(BaseState, self.behaviour.current_state)
-        assert state.state_id == self.next_behaviour_class.state_id
+            self.mock_a2a_transaction()
+            self._test_done_flag_set()
+            self.end_round(self.done_event)
+            assert (
+                self.behaviour.current_state.state_id
+                == self.next_behaviour_class.state_id
+            )
+        else:
+            with pytest.raises(
+                AEAActException,
+                match="Cannot continue if all the keepers have been blacklisted!",
+            ):
+                self.behaviour.act_wrapper()
 
     def test_select_keeper_preexisting_keeper(
         self,
