@@ -22,6 +22,15 @@
 import click
 from aea.cli.core import cli as aea_cli
 
+from aea_swarm.__version__ import (
+    __author__,
+    __copyright__,
+    __description__,
+    __license__,
+    __title__,
+    __url__,
+    __version__,
+)
 from aea_swarm.analyse.cli import cmd1
 
 
