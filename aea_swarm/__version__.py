@@ -2,6 +2,7 @@
 # ------------------------------------------------------------------------------
 #
 #   Copyright 2022 Valory AG
+#   Copyright 2018-2019 Fetch.AI Limited
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -17,4 +18,12 @@
 #
 # ------------------------------------------------------------------------------
 
-"""Tests package for the 'aea_swarm' library."""
+"""Specifies the version of the AEA package."""
+
+__title__ = "swarm"
+__description__ = "CLI tool for AEA swarms"
+__url__ = "https://github.com/valory-xyz/consensus-algorithms.git"
+__version__ = "0.1.0"
+__author__ = "Valory AG"
+__license__ = "Apache-2.0"
+__copyright__ = "2021-2022 Valory AG"

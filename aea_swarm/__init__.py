@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2022 Valory AG
+#   Copyright 2021-2022 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -17,4 +17,23 @@
 #
 # ------------------------------------------------------------------------------
 
-"""Tests package for the 'aea_swarm' library."""
+"""Consensus algorithms implemented with the AEA framework."""
+
+import click
+from aea.cli.core import cli as aea_cli
+
+from aea_swarm.analyse.cli import cmd1
+
+
+@click.group(name="swarm")  # type: ignore
+@click.pass_context
+def swarm_cli(click_context: click.Context) -> None:
+    """Command-line tool for setting up an swarms of AEAs."""
+
+
+swarm_cli.add_command(cmd1)
+
+cli = click.CommandCollection(sources=[aea_cli, swarm_cli])
+
+if __name__ == "__main__":
+    cli(prog_name="swarm")  # pragma: no cover

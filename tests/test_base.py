@@ -19,9 +19,9 @@
 
 """Base test."""
 
-import aea_consensus_algorithms
+import aea_swarm
 
 
 def test_version() -> None:
     """Test the version."""
-    assert aea_consensus_algorithms.__version__ == "0.1.0"
+    assert aea_swarm.__version__.__version__ == "0.1.0"
