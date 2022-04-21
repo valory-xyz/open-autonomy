@@ -406,4 +406,5 @@ examples/price_estimation_dev/docker-compose.yml
 .vscode/
 
 generate_abciapp_spec.py
+generate_abci_docstrings
 
