@@ -183,7 +183,7 @@ class TestTransactionSettlementBaseState(PriceEstimationFSMBehaviourBaseCase):
                     "blacklisted_keepers": {"agent_1" + "-" * 35},
                     "keeper_retries": 1,
                     "keepers": deque(("agent_3" + "-" * 35,)),
-                    "status": VerificationStatus.BLACKLIST,
+                    "status": VerificationStatus.INSUFFICIENT_FUNDS,
                     "tx_digest": "",
                 },
                 False,
