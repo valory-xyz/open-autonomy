@@ -562,19 +562,12 @@ class SynchronizeLateMessagesBehaviour(TransactionSettlementBaseState):
 
         with self.context.benchmark_tool.measure(self.state_id).consensus():
             yield from self.send_a2a_transaction(payload)
+            # reset the local parameters if we were able to send them.
+            self.params.tx_hash = ""
+            self.params.late_messages = []
             yield from self.wait_until_round_end()
 
         self.set_done()
-
-    def clean_up(self) -> None:
-        """
-        Clean up the behaviour.
-
-        Clean the local `tx_hash` and `late_messages` parameters if we were able to complete the round,
-        and have therefore been synced.
-        """
-        self.params.tx_hash = ""
-        self.params.late_messages = []
 
 
 class SignatureBehaviour(TransactionSettlementBaseState):
@@ -706,6 +699,8 @@ class FinalizeBehaviour(TransactionSettlementBaseState):
 
         with self.context.benchmark_tool.measure(self.state_id).consensus():
             yield from self.send_a2a_transaction(payload)
+            # reset the local tx hash parameter if we were able to send it
+            self.params.tx_hash = ""
             yield from self.wait_until_round_end()
 
         self.set_done()
@@ -738,10 +733,6 @@ class FinalizeBehaviour(TransactionSettlementBaseState):
 
         tx_data = yield from self._get_tx_data(contract_api_msg)
         return tx_data
-
-    def clean_up(self) -> None:
-        """Clean the local tx hash parameter if we were able to complete the round, and have therefore been synced."""
-        self.params.tx_hash = ""
 
     def handle_late_messages(self, message: Message) -> None:
         """Store a potentially late-arriving message locally.
