@@ -102,6 +102,11 @@ class RegistrationStartupBehaviour(RegistrationBaseBehaviour):
         """Tendermint URL for obtaining and updating parameters"""
         return f"{self.params.tendermint_com_url}/params"
 
+    @property
+    def tendermint_start_url(self) -> str:
+        """Tendermint URL for obtaining and updating parameters"""
+        return f"{self.params.tendermint_com_url}/start"
+
     def is_correct_contract(self) -> Generator[None, None, bool]:
         """Contract deployment verification."""
 
@@ -190,7 +195,7 @@ class RegistrationStartupBehaviour(RegistrationBaseBehaviour):
     def get_tendermint_configuration(self) -> Generator[None, None, bool]:
         """Make HTTP GET request to obtain agent's local Tendermint node parameters"""
 
-        url = self.tendermint_parameter_url
+        url = self.tendermint_start_url
         message, dialogue = self._build_http_request_message(method="GET", url=url)
         result = yield from self._do_request(message, dialogue)
         try:
@@ -224,7 +229,7 @@ class RegistrationStartupBehaviour(RegistrationBaseBehaviour):
     def start_tendermint(self) -> Generator[None, None, bool]:
         """Start up local Tendermint node"""
 
-        url = self.params.tendermint_com_url + "/start"
+        url = self.tendermint_start_url
         message, dialogue = self._build_http_request_message("GET", url)
         result = yield from self._do_request(message, dialogue)
         try:
@@ -252,7 +257,7 @@ class RegistrationStartupBehaviour(RegistrationBaseBehaviour):
                 yield from self.sleep(self.params.sleep_time)
                 return
 
-        # make service registry calls
+        # make service registry call
         if not self.registered_addresses:
             successful = yield from self.get_addresses()
             if not successful:
