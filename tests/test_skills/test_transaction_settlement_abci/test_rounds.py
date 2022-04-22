@@ -30,6 +30,7 @@ import pytest
 from packages.valory.skills.abstract_round_abci.base import (
     ABCIAppInternalError,
     BaseTxPayload,
+    MAX_INT_256,
     StateDB,
 )
 from packages.valory.skills.oracle_deployment_abci.payloads import RandomnessPayload
@@ -657,9 +658,7 @@ def test_period_states() -> None:
     most_voted_tx_hash = get_most_voted_tx_hash()
     participant_to_signature = get_participant_to_signature(participants)
     final_tx_hash = get_final_tx_hash()
-    actual_keeper_randomness = float(
-        (int(most_voted_randomness, base=16) // 10 ** 0 % 10) / 10
-    )
+    actual_keeper_randomness = int(most_voted_randomness, base=16) / MAX_INT_256
     late_arriving_tx_hashes = get_late_arriving_tx_hashes()
     keepers = get_keepers(deque(("agent_1" + "-" * 35, "agent_3" + "-" * 35)))
     expected_keepers = deque(["agent_1" + "-" * 35, "agent_3" + "-" * 35])
@@ -689,7 +688,9 @@ def test_period_states() -> None:
             ),
         )
     )
-    assert period_state_____.keeper_randomness == actual_keeper_randomness
+    assert (
+        abs(period_state_____.keeper_randomness - actual_keeper_randomness) < 1e-10
+    )  # avoid equality comparisons between floats
     assert period_state_____.most_voted_randomness == most_voted_randomness
     assert period_state_____.safe_contract_address == safe_contract_address
     assert period_state_____.most_voted_tx_hash == most_voted_tx_hash
