@@ -264,6 +264,7 @@ class IntegrationBaseCase(FSMBehaviourBaseCase):
         handlers: Optional[HandlersType] = None,
         expected_content: Optional[ExpectedContentType] = None,
         expected_types: Optional[ExpectedTypesType] = None,
+        fail_send_a2a: bool = False
     ) -> Tuple[Optional[Message], ...]:
         """
         Process n message cycles.
@@ -274,6 +275,7 @@ class IntegrationBaseCase(FSMBehaviourBaseCase):
         :param handlers: a list of handlers
         :param expected_content: the expected_content
         :param expected_types: the expected type
+        :param fail_send_a2a: flag that indicates whether we want to simulate a failure in the `send_a2a_transaction`
 
         :return: tuple of incoming messages
         """
@@ -304,7 +306,8 @@ class IntegrationBaseCase(FSMBehaviourBaseCase):
             incoming_messages.append(incoming_message)
 
         self.behaviour.act_wrapper()
-        self.mock_a2a_transaction()
+        if not fail_send_a2a:
+            self.mock_a2a_transaction()
         return tuple(incoming_messages)
 
 
@@ -392,7 +395,7 @@ class _TxHelperIntegration(_GnosisHelperIntegration):
             for owner, signer in zip(actual_safe_owners, expected_safe_owners)
         )
 
-    def send_tx(self) -> None:
+    def send_tx(self, simulate_timeout: bool = False) -> None:
         """Send a transaction"""
 
         self.fast_forward_to_state(
@@ -433,6 +436,7 @@ class _TxHelperIntegration(_GnosisHelperIntegration):
             handlers,
             expected_content,
             expected_types,
+            fail_send_a2a=simulate_timeout,
         )
         assert msg1 is not None and isinstance(msg1, ContractApiMessage)
         assert msg3 is not None and isinstance(msg3, LedgerApiMessage)
@@ -476,13 +480,25 @@ class _TxHelperIntegration(_GnosisHelperIntegration):
                 "maxFeePerGas": DUMMY_MAX_FEE_PER_GAS,
             }, "The used parameters do not match the ones returned from the gas pricing method!"
 
-        hashes = self.tx_settlement_period_state.tx_hashes_history
-        hashes.append(tx_digest)
+        if not simulate_timeout:
+            hashes = self.tx_settlement_period_state.tx_hashes_history
+            hashes.append(tx_digest)
+            update_params = dict(
+                tx_hashes_history="".join(hashes),
+                final_verification_status=tx_data["status"],
+            )
+        else:
+            # store the tx hash that we have missed and update missed messages.
+            assert isinstance(
+                self.behaviour.current_state, FinalizeBehaviour
+            )
+            self.mock_a2a_transaction()
+            self.behaviour.current_state.params.tx_hash = tx_digest
+            update_params = dict(
+                missed_messages=self.tx_settlement_period_state.missed_messages + 1,
+            )
 
-        self.tx_settlement_period_state.update(
-            tx_hashes_history="".join(hashes),
-            final_verification_status=tx_data["status"],
-        )
+        self.tx_settlement_period_state.update(**update_params)
 
     def validate_tx(self) -> None:
         """Validate the sent transaction."""

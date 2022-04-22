@@ -31,11 +31,12 @@ from web3.types import RPCEndpoint, Wei
 from packages.open_aea.protocols.signing import SigningMessage
 from packages.open_aea.protocols.signing.custom_types import (
     RawTransaction,
-    SignedTransaction,
+    SignedTransaction, SignedMessage,
 )
 from packages.valory.protocols.contract_api import ContractApiMessage
 from packages.valory.protocols.ledger_api import LedgerApiMessage
 from packages.valory.protocols.ledger_api.custom_types import (
+    State,
     TransactionDigest,
     TransactionReceipt,
 )
@@ -53,10 +54,13 @@ from packages.valory.skills.price_estimation_abci.rounds import (
     PeriodState as PriceEstimationPeriodState,
 )
 from packages.valory.skills.transaction_settlement_abci.behaviours import (
+    CheckLateTxHashesBehaviour,
     SelectKeeperTransactionSubmissionBehaviourA,
     SelectKeeperTransactionSubmissionBehaviourB,
-    TransactionSettlementBaseState,
+    SynchronizeLateMessagesBehaviour,
+    TransactionSettlementBaseState, FinalizeBehaviour,
 )
+from packages.valory.skills.transaction_settlement_abci.models import TransactionParams
 from packages.valory.skills.transaction_settlement_abci.payload_tools import (
     VerificationStatus,
     hash_payload_to_hex,
@@ -428,3 +432,155 @@ class TestKeepers(OracleBehaviourBaseCase, IntegrationBaseCase):
             expected_keepers.rotate(-1)
             # select keeper b
             self.select_keeper(expected_keepers=expected_keepers, expected_retries=1)
+
+
+class TestSyncing(TransactionSettlementIntegrationBaseCase):
+    """Test late tx hashes synchronization."""
+
+    @classmethod
+    def setup(cls, **kwargs: Any) -> None:
+        """Set up the test class."""
+        super().setup()
+
+        # update period state
+        cls.tx_settlement_period_state.update(missed_messages=0)
+
+    def sync_late_messages(self) -> None:
+        """Synchronize late messages."""
+        params = cast(TransactionParams, self.behaviour.current_state.params)
+        late_messages_len = len(params.late_messages) + int(bool(params.tx_hash))
+        handlers: HandlersType = [
+            self.signing_handler,
+            self.ledger_handler,
+        ] * late_messages_len
+        expected_content: ExpectedContentType = [
+            {"performative": SigningMessage.Performative.SIGNED_MESSAGE},
+            {"performative": LedgerApiMessage.Performative.TRANSACTION_DIGEST},
+        ] * late_messages_len
+        expected_types: ExpectedTypesType = [
+            {
+                "signed_message": SignedMessage,
+            },
+            {
+                "transaction_digest": TransactionDigest,
+            },
+        ] * late_messages_len
+        msgs = self.process_n_messages(
+            len(handlers),
+            self.tx_settlement_period_state,
+            SynchronizeLateMessagesBehaviour.state_id,
+            handlers,
+            expected_content,
+            expected_types,
+        )
+        assert isinstance(
+            self.behaviour.current_state, SynchronizeLateMessagesBehaviour
+        )
+        assert (
+            self.behaviour.current_state.state_id
+            == SynchronizeLateMessagesBehaviour.state_id
+        )
+        assert self.behaviour.current_state.params.tx_hash == ""
+        assert self.behaviour.current_state.params.late_messages == []
+
+        tx_digest_msgs = msgs[0::2]
+        expected_sync_result = params.tx_hash
+        for i in range(len(tx_digest_msgs)):
+            current_message = tx_digest_msgs[i]
+            assert current_message is not None and isinstance(
+                current_message, LedgerApiMessage
+            )
+            tx_digest = current_message.transaction_digest.body
+            assert isinstance(tx_digest, str)
+            assert (
+                tx_digest
+            ), f"No tx digest retrieved for message {i}: {current_message}!"
+            expected_sync_result += tx_digest
+
+        assert self.behaviour.current_state._tx_hashes == expected_sync_result
+        self.tx_settlement_period_state.update(
+            late_arriving_tx_hashes=expected_sync_result,
+        )
+        self.tx_settlement_period_state.update(
+            missed_messages=self.behaviour.current_state.period_state.missed_messages
+            - len(self.behaviour.current_state.period_state.late_arriving_tx_hashes),
+        )
+
+    def check_late_tx_hashes(self) -> None:
+        """Check the late transaction hashes to see if any is validated."""
+        handlers: HandlersType = [
+            self.contract_handler,
+        ] * len(self.tx_settlement_period_state.late_arriving_tx_hashes)
+        expected_content: ExpectedContentType = [
+            {"performative": ContractApiMessage.Performative.STATE},
+        ] * len(self.tx_settlement_period_state.late_arriving_tx_hashes)
+        expected_types: ExpectedTypesType = [
+            {
+                "state": State,
+            },
+        ] * len(self.tx_settlement_period_state.late_arriving_tx_hashes)
+        msgs = self.process_n_messages(
+            len(self.tx_settlement_period_state.late_arriving_tx_hashes),
+            self.tx_settlement_period_state,
+            CheckLateTxHashesBehaviour.state_id,
+            handlers,
+            expected_content,
+            expected_types,
+        )
+        assert isinstance(self.behaviour.current_state, CheckLateTxHashesBehaviour)
+        assert (
+            self.behaviour.current_state.state_id == CheckLateTxHashesBehaviour.state_id
+        )
+
+        verif_msgs = msgs[1::2]
+        verified_idx = -1
+        verified_count = 0
+        for i in range(len(verif_msgs)):
+            current_message = verif_msgs[i]
+            assert current_message is not None and isinstance(
+                current_message, ContractApiMessage
+            )
+            if current_message.state.body["verified"]:
+                verified_idx = i
+                verified_count += 1
+        assert verified_idx != -1, f"No message has been verified: {verif_msgs}"
+        assert verified_count == 1, "More than 1 messages have been verified!"
+
+        self.tx_settlement_period_state.update(
+            final_verification_status=VerificationStatus.VERIFIED,
+            final_tx_hash=self.tx_settlement_period_state.late_arriving_tx_hashes[
+                -verified_idx
+            ],
+        )
+
+    @mock.patch.object(
+        EthereumApi,
+        "try_get_gas_pricing",
+        side_effect=TransactionSettlementIntegrationBaseCase.dummy_try_get_gas_pricing_wrapper(),
+    )
+    def test_sync_local_hash(self, _: mock.Mock) -> None:
+        """Test the case in which we have received a tx hash during finalization, but timed out before sharing it."""
+        # deploy the oracle
+        self.deploy_oracle()
+        # generate tx hash
+        self.gen_safe_tx_hash()
+        # sign tx
+        self.sign_tx()
+        # send tx, but do not update the state in order to simulate a round's time out.
+        self.send_tx(simulate_timeout=True)
+        # check that we have increased the number of missed messages.
+        assert self.tx_settlement_period_state.missed_messages == 1
+        # store the tx hash that we have missed.
+        assert isinstance(
+            self.behaviour.current_state, FinalizeBehaviour
+        )
+        missed_hash = self.behaviour.current_state.params.tx_hash
+        # sync the tx hash that we missed before
+        self.sync_late_messages()
+        # check that we have decreased the number of missed messages.
+        assert self.tx_settlement_period_state.missed_messages == 0
+        assert (
+            self.tx_settlement_period_state.final_verification_status
+            == VerificationStatus.VERIFIED
+        )
+        assert self.tx_settlement_period_state.final_tx_hash == missed_hash
