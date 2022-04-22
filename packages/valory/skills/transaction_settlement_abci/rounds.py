@@ -268,7 +268,7 @@ class FinalizationRound(OnlyKeeperSendsRound):
         if self.keeper_payload["received_hash"]:
             return state, Event.DONE
         # If keeper has been blacklisted, return an `INSUFFICIENT_FUNDS` event.
-        if verification_status == VerificationStatus.BLACKLIST:
+        if verification_status == VerificationStatus.INSUFFICIENT_FUNDS:
             return state, Event.INSUFFICIENT_FUNDS
         # This means that getting raw safe transaction succeeded,
         # but either requesting tx signature or requesting tx digest failed.
