@@ -1,4 +1,4 @@
-# ABCI Application Price Oracle with AEAs
+# Price Oracle - Running the Demo
 
 This demo consists of a network of AEAs, implemented as {{abci_app}}s reaching
 Byzantine fault-tolerant consensus, that work as an Oracle to jointly agree on a price estimate
@@ -12,13 +12,14 @@ In addition to the general requirements presented for setting up the {{valory_st
 - [Docker Engine](https://docs.docker.com/engine/install/)
 - [Docker Compose](https://docs.docker.com/compose/install/)
 - [Kind](https://kind.sigs.k8s.io/docs/user/quick-start/#installation)
+- Skaffold
 
 ## Running the Local Demo
 
 To set up the network:
 
 ```
-make localnet-start
+make run-oracle
 ```
 
 This will spawn:

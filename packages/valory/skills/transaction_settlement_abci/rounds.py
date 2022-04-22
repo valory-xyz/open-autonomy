@@ -67,6 +67,7 @@ class Event(Enum):
     NO_MAJORITY = "no_majority"
     NEGATIVE = "negative"
     NONE = "none"
+    FINALIZE_TIMEOUT = "finalize_timeout"
     VALIDATE_TIMEOUT = "validate_timeout"
     CHECK_TIMEOUT = "check_timeout"
     RESET_TIMEOUT = "reset_timeout"
@@ -197,14 +198,13 @@ class PeriodState(BasePeriodState):  # pylint: disable=too-many-instance-attribu
             List[str], self.db.get_strict("late_arriving_tx_hashes")
         )
         late_arriving_tx_hashes_parsed = []
-        hashes_length = 64
         for unparsed_hash in late_arriving_tx_hashes_unparsed:
-            if len(unparsed_hash) % hashes_length != 0:
+            if len(unparsed_hash) % TX_HASH_LENGTH != 0:
                 # if we cannot parse the hashes, then the developer has serialized them incorrectly.
                 raise ABCIAppInternalError(
                     f"Cannot parse late arriving hashes: {unparsed_hash}!"
                 )
-            parsed_hashes = textwrap.wrap(unparsed_hash, hashes_length)
+            parsed_hashes = textwrap.wrap(unparsed_hash, TX_HASH_LENGTH)
             late_arriving_tx_hashes_parsed.extend(parsed_hashes)
 
         return late_arriving_tx_hashes_parsed
@@ -535,7 +535,7 @@ class TransactionSubmissionAbciApp(AbciApp[Event]):
         3. FinalizationRound
             - done: 4.
             - check history: 5.
-            - round timeout: 7.
+            - finalize timeout: 7.
             - finalization failed: 6.
             - check late arriving message: 8.
         4. ValidateTransactionRound
@@ -588,6 +588,7 @@ class TransactionSubmissionAbciApp(AbciApp[Event]):
 
     Timeouts:
         round timeout: 30.0
+        finalize timeout: 30.0
         validate timeout: 30.0
         check timeout: 30.0
         reset timeout: 30.0
@@ -614,7 +615,7 @@ class TransactionSubmissionAbciApp(AbciApp[Event]):
         FinalizationRound: {
             Event.DONE: ValidateTransactionRound,
             Event.CHECK_HISTORY: CheckTransactionHistoryRound,
-            Event.ROUND_TIMEOUT: SelectKeeperTransactionSubmissionRoundBAfterTimeout,
+            Event.FINALIZE_TIMEOUT: SelectKeeperTransactionSubmissionRoundBAfterTimeout,
             Event.FINALIZATION_FAILED: SelectKeeperTransactionSubmissionRoundB,
             Event.CHECK_LATE_ARRIVING_MESSAGE: SynchronizeLateMessagesRound,
         },
@@ -677,6 +678,7 @@ class TransactionSubmissionAbciApp(AbciApp[Event]):
     }
     event_to_timeout: Dict[Event, float] = {
         Event.ROUND_TIMEOUT: 30.0,
+        Event.FINALIZE_TIMEOUT: 30.0,
         Event.VALIDATE_TIMEOUT: 30.0,
         Event.CHECK_TIMEOUT: 30.0,
         Event.RESET_TIMEOUT: 30.0,

@@ -78,7 +78,11 @@ generators:
 
 .PHONY: abci-docstrings
 abci-docstrings:
-	python scripts/generate_abci_docstrings.py
+	cp scripts/generate_abci_docstrings.py generate_abci_docstrings.py
+	python generate_abci_docstrings.py
+	rm generate_abci_docstrings.py
+	echo "Successfully validated abcis!"
+	
 
 .PHONY: common-checks-1
 common-checks-1:
@@ -99,20 +103,20 @@ check-copyright:
 
 .PHONY: lint
 lint:
-	black aea_consensus_algorithms packages/valory scripts tests deployments
-	isort aea_consensus_algorithms packages/valory scripts tests deployments
-	flake8 aea_consensus_algorithms packages/valory scripts tests deployments
-	vulture aea_consensus_algorithms scripts/whitelist.py
-	darglint aea_consensus_algorithms scripts packages/valory/* tests deployments
+	black aea_swarm packages/valory scripts tests deployments
+	isort aea_swarm packages/valory scripts tests deployments
+	flake8 aea_swarm packages/valory scripts tests deployments
+	vulture aea_swarm scripts/whitelist.py
+	darglint aea_swarm scripts packages/valory/* tests deployments
 
 .PHONY: pylint
 pylint:
-	pylint -j4 aea_consensus_algorithms packages/valory scripts deployments
+	pylint -j4 aea_swarm packages/valory scripts deployments
 
 
 .PHONY: static
 static:
-	mypy aea_consensus_algorithms packages/valory scripts deployments --disallow-untyped-defs
+	mypy aea_swarm packages/valory scripts deployments --disallow-untyped-defs
 	mypy tests --disallow-untyped-defs
 
 .PHONY: package_checks
@@ -137,7 +141,7 @@ common_checks: security misc_checks lint static docs
 
 .PHONY: test
 test:
-	pytest -rfE --doctest-modules aea_consensus_algorithms tests/ --cov=aea_consensus_algorithms --cov-report=html --cov=packages/valory --cov-report=xml --cov-report=term --cov-report=term-missing --cov-config=.coveragerc
+	pytest -rfE --doctest-modules aea_swarm tests/ --cov=aea_swarm --cov-report=html --cov=packages/valory --cov-report=xml --cov-report=term --cov-report=term-missing --cov-config=.coveragerc
 	find . -name ".coverage*" -not -name ".coveragerc" -exec rm -fr "{}" \;
 
 .PHONY: all-checks
