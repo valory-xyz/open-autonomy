@@ -22,7 +22,7 @@ import struct
 from abc import ABC
 from enum import Enum
 from types import MappingProxyType
-from typing import Dict, List, Mapping, Optional, Sequence, Tuple, Type, cast
+from typing import Dict, List, Mapping, Optional, Tuple, Type, cast
 
 from packages.valory.skills.abstract_round_abci.base import (
     AbciApp,

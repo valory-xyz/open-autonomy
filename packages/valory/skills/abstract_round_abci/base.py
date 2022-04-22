@@ -648,7 +648,9 @@ class BasePeriodState:
     @property
     def keeper_randomness(self) -> float:
         """Get the keeper's random number [0-1]."""
-        return int(self.most_voted_randomness, base=16) / MAX_INT_256  # DRAND uses sha256 values
+        return (
+            int(self.most_voted_randomness, base=16) / MAX_INT_256
+        )  # DRAND uses sha256 values
 
     @property
     def most_voted_randomness(self) -> str:
