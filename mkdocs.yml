@@ -37,9 +37,9 @@ nav:
   - Demos:
     - Simple ABCI: 'simple_abci.md'
     - Price Oracle:
-      - Introduction: 'price_estimation_intro.md'
-      - How it works: 'price_estimation_details.md'
-      - FSM specification: 'price_estimation_fsms.md'
+      - Introduction: 'price_oracle_intro.md'
+      - Running the Demo: 'price_oracle_running.md'
+      - FSM Specification: 'price_oracle_fsms.md'
   - Miscellaneous:
     - Ethereum: 'ethereum_specifics.md'
     - Delegate call vs call: 'delegate_call.md'

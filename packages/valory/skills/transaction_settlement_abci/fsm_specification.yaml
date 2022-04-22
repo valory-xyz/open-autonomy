@@ -4,6 +4,7 @@ alphabet_in:
 - CHECK_TIMEOUT
 - DONE
 - FINALIZATION_FAILED
+- FINALIZE_TIMEOUT
 - INCORRECT_SERIALIZATION
 - INSUFFICIENT_FUNDS
 - MISSED_AND_LATE_MESSAGES_MISMATCH
@@ -54,8 +55,8 @@ transition_func:
     (FinalizationRound, CHECK_LATE_ARRIVING_MESSAGE): SynchronizeLateMessagesRound
     (FinalizationRound, DONE): ValidateTransactionRound
     (FinalizationRound, FINALIZATION_FAILED): SelectKeeperTransactionSubmissionRoundB
+    (FinalizationRound, FINALIZE_TIMEOUT): SelectKeeperTransactionSubmissionRoundBAfterTimeout
     (FinalizationRound, INSUFFICIENT_FUNDS): SelectKeeperTransactionSubmissionRoundB
-    (FinalizationRound, ROUND_TIMEOUT): SelectKeeperTransactionSubmissionRoundBAfterTimeout
     (RandomnessTransactionSubmissionRound, DONE): SelectKeeperTransactionSubmissionRoundA
     (RandomnessTransactionSubmissionRound, NO_MAJORITY): RandomnessTransactionSubmissionRound
     (RandomnessTransactionSubmissionRound, ROUND_TIMEOUT): RandomnessTransactionSubmissionRound
