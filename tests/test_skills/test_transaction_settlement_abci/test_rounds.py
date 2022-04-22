@@ -405,8 +405,8 @@ class TestFinalizationRound(BaseOnlyKeeperSendsRoundTest):
                 "t" * 66,
                 "",
                 0,
-                VerificationStatus.BLACKLIST.value,
-                TransactionSettlementEvent.FINALIZATION_FAILED,
+                VerificationStatus.INSUFFICIENT_FUNDS.value,
+                TransactionSettlementEvent.INSUFFICIENT_FUNDS,
             ),
         ),
     )
@@ -440,7 +440,7 @@ class TestFinalizationRound(BaseOnlyKeeperSendsRoundTest):
             if exit_event == TransactionSettlementEvent.DONE
             else tx_hashes_history
         )
-        if status == VerificationStatus.BLACKLIST.value:
+        if status == VerificationStatus.INSUFFICIENT_FUNDS.value:
             popped = keepers.popleft()
             blacklisted_keepers += popped
             keeper_retries = 1
