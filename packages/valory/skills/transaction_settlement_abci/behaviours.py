@@ -155,7 +155,7 @@ class TransactionSettlementBaseState(BaseState, ABC):
 
         if rpc_status == RPCResponseStatus.INSUFFICIENT_FUNDS:
             # blacklist self.
-            tx_data["status"] = VerificationStatus.BLACKLIST
+            tx_data["status"] = VerificationStatus.INSUFFICIENT_FUNDS
             blacklisted = cast(Deque[str], tx_data["keepers"]).popleft()
             tx_data["keeper_retries"] = 1
             cast(Set[str], tx_data["blacklisted_keepers"]).add(blacklisted)
