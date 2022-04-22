@@ -36,7 +36,6 @@ CONFIG_OVERRIDE = [
     ("fast_sync = true", "fast_sync = false"),
     ("max_num_outbound_peers = 10", "max_num_outbound_peers = 0"),
     ("pex = true", "pex = false"),
-    ("double_sign_check_height = 0", "double_sign_check_height = 10"),
 ]
 
 logging.basicConfig(
