@@ -430,6 +430,12 @@ class TendermintHandler(Handler):
 
     SUPPORTED_PROTOCOL: Optional[PublicId] = TendermintMessage.protocol_id
 
+    def setup(self) -> None:
+        """Set up the handler."""
+
+    def teardown(self) -> None:
+        """Tear down the handler."""
+
     @property
     def period_state(self) -> BasePeriodState:
         """Period State"""
