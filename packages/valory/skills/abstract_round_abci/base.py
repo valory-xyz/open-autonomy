@@ -66,6 +66,7 @@ LEDGER_API_ADDRESS = str(LEDGER_CONNECTION_PUBLIC_ID)
 ROUND_COUNT_DEFAULT = -1
 MIN_HISTORY_DEPTH = 1
 ADDRESS_LENGTH = 42
+MAX_INT_256 = 2 ** 256 - 1
 
 EventType = TypeVar("EventType")
 TransactionType = TypeVar("TransactionType")
@@ -647,8 +648,7 @@ class BasePeriodState:
     @property
     def keeper_randomness(self) -> float:
         """Get the keeper's random number [0-1]."""
-        res = int(self.most_voted_randomness, base=16) // 10 ** 0 % 10
-        return cast(float, res / 10)
+        return int(self.most_voted_randomness, base=16) / MAX_INT_256  # DRAND uses sha256 values
 
     @property
     def most_voted_randomness(self) -> str:
