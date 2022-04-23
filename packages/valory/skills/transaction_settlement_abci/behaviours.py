@@ -106,6 +106,8 @@ class TransactionSettlementBaseState(BaseState, ABC):
     @staticmethod
     def serialized_keepers(keepers: Deque[str], keeper_retries: int) -> str:
         """Get the keepers serialized."""
+        if len(keepers) == 0:
+            return ""
         keepers_ = "".join(keepers)
         keeper_retries_ = keeper_retries.to_bytes(32, "big").hex()
         concatenated = keeper_retries_ + keepers_
@@ -292,7 +294,9 @@ class SelectKeeperTransactionSubmissionBehaviourB(  # pylint: disable=too-many-a
             keepers = self.period_state.keepers
             keeper_retries = 1
 
-            if self.period_state.keepers_threshold_exceeded:
+            if (
+                self.period_state.keepers_threshold_exceeded
+            ):  # TODO: I think this should be second prio
                 keepers.rotate(-1)
                 self.context.logger.info(f"Rotated keepers to: {keepers}.")
             elif (
