@@ -316,11 +316,11 @@ class TestTransactionSettlementBaseState(PriceEstimationFSMBehaviourBaseCase):
             assert res.value == expected_data
 
         """Test the serialized_keepers method."""
-        state = self.behaviour.current_state
-        assert state is not None
-        assert state.serialized_keepers(deque([]), 1) == ""
+        state_ = self.behaviour.current_state
+        assert state_ is not None
+        assert state_.serialized_keepers(deque([]), 1) == ""
         assert (
-            state.serialized_keepers(deque(["-" * 42]), 1)
+            state_.serialized_keepers(deque(["-" * 42]), 1)
             == "0000000000000000000000000000000000000000000000000000000000000001------------------------------------------"
         )
 
