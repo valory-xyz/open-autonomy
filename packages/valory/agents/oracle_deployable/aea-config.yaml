@@ -60,7 +60,7 @@ logging_config:
       propagate: false
 dependencies:
   open-aea-ledger-ethereum: {}
-skill_exception_policy: just_log
+skill_exception_policy: stop_and_exit
 connection_exception_policy: just_log
 default_connection: null
 ---
