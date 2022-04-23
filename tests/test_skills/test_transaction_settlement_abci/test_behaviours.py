@@ -317,7 +317,10 @@ class TestTransactionSettlementBaseState(PriceEstimationFSMBehaviourBaseCase):
 
         """Test the serialized_keepers method."""
         assert self.behaviour.current_state.serialized_keepers("", 1) == ""
-        assert self.behaviour.current_state.serialized_keepers("-" * 42, 1) == "0000000000000000000000000000000000000000000000000000000000000001------------------------------------------"
+        assert (
+            self.behaviour.current_state.serialized_keepers("-" * 42, 1)
+            == "0000000000000000000000000000000000000000000000000000000000000001------------------------------------------"
+        )
 
 
 class TestRandomnessInOperation(BaseRandomnessBehaviourTest):
