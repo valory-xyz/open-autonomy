@@ -1,13 +1,13 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2022 Valory AG
+#   Copyright 2022 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
 #   You may obtain a copy of the License at
 #
-#       http://www.apache.org/licenses/LICENSE-2.0
+#       http: //www.apache.org/licenses/LICENSE-2.0
 #
 #   Unless required by applicable law or agreed to in writing, software
 #   distributed under the License is distributed on an "AS IS" BASIS,
@@ -17,4 +17,13 @@
 #
 # ------------------------------------------------------------------------------
 
-"""Consensus algorithms implemented with the AEA framework."""
+"""Deploy CLI module."""
+
+import click
+
+
+@click.group(name="deploy")
+def deploy_group() -> None:
+    """Deploy an AEA project."""
+
+    click.echo("Deploy module.")
