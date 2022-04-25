@@ -141,7 +141,9 @@ def hard_reset() -> Tuple[Any, int]:
         tendermint_node.stop()
         if IS_DEV_MODE:
             period_dumper.dump_period()
+
         tendermint_node.prune_blocks()
+        tendermint_node.reset_genesis_file()
         tendermint_node.start()
         return jsonify({"message": "Reset successful.", "status": True}), 200
     except Exception as e:  # pylint: disable=W0703
