@@ -117,8 +117,9 @@ class RegistrationStartupBehaviour(RegistrationBaseBehaviour):
             contract_id=str(ServiceRegistryContract.contract_id),
             contract_callable="verify_contract",
         )
-        if contract_api_response.performative != performative:
-            self.context.logger.warning("`verify_contract` call unsuccessful!")
+        self.context.logger.info("Service info could not be retrieved")
+        if contract_api_response.performative != ContractApiMessage.Performative.STATE:
+            self.context.logger.info("`verify_contract` call unsuccessful!")
             return False
         return cast(bool, contract_api_response.state.body["verified"])
 
@@ -133,7 +134,7 @@ class RegistrationStartupBehaviour(RegistrationBaseBehaviour):
             contract_callable="get_service_info",
             service_id=self.params.on_chain_service_id,
         )
-        if contract_api_response.performative != performative:
+        if contract_api_response.performative != ContractApiMessage.Performative.STATE:
             self.context.logger.warning("get_service_info unsuccessful!")
             return {}
         return cast(dict, contract_api_response.state.body["verified"])
@@ -144,9 +145,9 @@ class RegistrationStartupBehaviour(RegistrationBaseBehaviour):
         if self.params.service_registry_address is None:
             raise RuntimeError("Service registry contract address not provided")
 
-        is_deployed = yield from self.is_correct_contract()
-        if not is_deployed:
-            self.context.logger.info("Service registry contract not deployed")
+        correctly_deployed = yield from self.is_correct_contract()
+        if not correctly_deployed:
+            self.context.logger.info("Service registry contract not deployed or incorrect")
             return False
 
         # checks if service exists
@@ -164,7 +165,7 @@ class RegistrationStartupBehaviour(RegistrationBaseBehaviour):
 
         my_address = self.context.agent_address
         if my_address not in registered_addresses:
-            log_msg = f"You ({my_address}) are not registered:\n{service_info}"
+            log_msg = f"You are not registered:\n{service_info}"
             self.context.logger.info(log_msg)
             return False
 
@@ -195,7 +196,7 @@ class RegistrationStartupBehaviour(RegistrationBaseBehaviour):
     def get_tendermint_configuration(self) -> Generator[None, None, bool]:
         """Make HTTP GET request to obtain agent's local Tendermint node parameters"""
 
-        url = self.tendermint_start_url
+        url = self.tendermint_parameter_url
         message, dialogue = self._build_http_request_message(method="GET", url=url)
         result = yield from self._do_request(message, dialogue)
         try:
@@ -204,7 +205,7 @@ class RegistrationStartupBehaviour(RegistrationBaseBehaviour):
             self.context.logger.info("Local Tendermint configuration obtained")
             return True
         except json.JSONDecodeError:
-            self.context.logger.info("Error communicating with Tendermint server")
+            self.context.logger.error("Error communicating with Tendermint server on get_tendermint_configuration")
             return False
 
     def update_tendermint_configuration(self) -> Generator[None, None, bool]:
@@ -238,7 +239,7 @@ class RegistrationStartupBehaviour(RegistrationBaseBehaviour):
                 self.context.logger.info(response.get("message"))
                 return True
             error_message = f"Error starting Tendermint: {response}"
-            self.context.logger.error(error_message)
+            self.context.logger.info(error_message)
             yield from self.sleep(self.params.sleep_time)
             return False
         except json.JSONDecodeError:

@@ -20,10 +20,12 @@
 """Tests for valory/registration_abci skill's behaviours."""
 import logging
 import json
+import time
 from pathlib import Path
 from typing import cast
 from unittest import mock
 import pytest
+from _pytest.logging import LogCaptureFixture
 
 from packages.valory.skills.abstract_round_abci.base import StateDB
 from packages.valory.skills.abstract_round_abci.behaviour_utils import (
@@ -45,6 +47,7 @@ from packages.valory.skills.registration_abci.rounds import (
 )
 from packages.valory.protocols.contract_api.message import ContractApiMessage
 from packages.valory.contracts.service_registry.contract import ServiceRegistryContract
+from packages.valory.protocols.tendermint.message import TendermintMessage
 
 from tests.conftest import ROOT_DIR
 from tests.test_skills.base import FSMBehaviourBaseCase
@@ -97,55 +100,13 @@ class TestRegistrationStartupBehaviour(RegistrationAbciBaseCase):
     def state(self) -> RegistrationStartupBehaviour:
         return cast(RegistrationStartupBehaviour, self.behaviour.current_state)
 
-    # @pytest.mark.parametrize(
-    #     "request_performative, response_performative, expected",
-    #     [
-    #         (
-    #             ContractApiMessage.Performative.GET_STATE,
-    #             ContractApiMessage.Performative.GET_STATE,
-    #             True,
-    #         ),
-    #         (
-    #             ContractApiMessage.Performative.GET_STATE,
-    #             ContractApiMessage.Performative.ERROR,
-    #             False,
-    #         ),
-    #     ]
-    # )
-    # def test_is_correct_contract(
-    #     self,
-    #     request_performative: ContractApiMessage.Performative,
-    #     response_performative: ContractApiMessage.Performative,
-    #     expected: bool,
-    # ):
-    #     request_kwargs = dict(
-    #         performative=request_performative
-    #     )
-    #     response_kwargs = dict(
-    #         performative=response_performative
-    #     )
-    #
-    #     self.mock_contract_api_request(
-    #         contract_id=CONTRACT_ID,
-    #         request_kwargs=request_kwargs,
-    #         response_kwargs=response_kwargs,
-    #     )
-    #     x = self.state.is_correct_contract()
-    #     logging.error(str(x))
+    @property
+    def logger(self) -> str:
+        return "aea.test_agent_name.packages.valory.skills.registration_abci"
 
-    def test_registration(self):
-        """Sequentially stepping through the execution"""
-
-        assert self.state.registered_addresses == {}
-
-        self.behaviour.act_wrapper()
-        assert self.state.registered_addresses == {}
-
-        # 1. collect personal tendermint configuration
-        url = self.state.tendermint_start_url
-        request_kwargs = dict(method="GET", url=url)
-
-        mock_params = dict(
+    @property
+    def tendermint_mock_params(self):
+        return dict(
             proxy_app="",
             p2p_seeds=[],
             consensus_create_empty_blocks=True,
@@ -154,68 +115,177 @@ class TestRegistrationStartupBehaviour(RegistrationAbciBaseCase):
             home=None,
         )
 
-        response_kwargs = dict(
+    @property
+    def tendermint_request_kwargs(self):
+        return dict(method="GET", url=self.state.tendermint_parameter_url)
+
+    @property
+    def tendermint_response_kwargs(self):
+        return dict(
             version="",
             status_code=200,
-            body=json.dumps(mock_params).encode(self.state.ENCODING),
+            body=json.dumps(self.tendermint_mock_params).encode(self.state.ENCODING),
         )
 
-        # mock service registry address (else RuntimeError)
-        with mock.patch.object(
-            self.state.params,
-            "service_registry_address",
-            return_value="0xa51c1fc2f0d1a1b8494ed1fe312d7c3a78ed91c0"
-        ):
+    def mock_is_correct_contract(self):
+        self.mock_contract_api_request(
+            contract_id="valory/service_registry:0.1.0",
+            request_kwargs=dict(performative=ContractApiMessage.Performative.GET_STATE),
+            response_kwargs=dict(
+                performative=ContractApiMessage.Performative.STATE,
+                callable="verify_contract",
+                state=ContractApiMessage.State(
+                    ledger_id="ethereum", body={"verified": True}
+                )
+            ),
+        )
+
+    def test_init(self):
+        """Empty init"""
+        assert self.state.registered_addresses == {}
+        assert self.state.local_tendermint_params is None
+
+    def test_get_tendermint_configuration_failure(self, caplog: LogCaptureFixture):
+        """Test get tendermint configuration """
+
+        with caplog.at_level(logging.ERROR, logger=self.logger):
+            self.behaviour.act_wrapper()
+            request_kwargs = dict(method="GET", url=self.state.tendermint_parameter_url)
+            response_kwargs = dict(body=b"")
             self.mock_http_request(request_kwargs, response_kwargs)
+            assert "Error communicating with Tendermint server on get_tendermint_configuration" in caplog.text
 
-        # 2. make service registry calls
-        self.state.params.service_registry_address = SERVICE_REGISTRY_ADDRESS
+    def test_service_registry_contract_address_not_provided(self):
+        """Test service registry contract address not provided"""
 
-        # mock is_correct_contract
-        performative = ContractApiMessage.Performative.GET_STATE
-        request_kwargs = dict(
-            performative=performative,
-        )
-        response_kwargs = dict(
-            performative=performative,
-        )
+        with pytest.raises(Exception):
+            self.behaviour.act_wrapper()
+            self.mock_http_request(self.tendermint_request_kwargs, self.tendermint_response_kwargs)
+
+    def test_get_tendermint_configuration(self, caplog: LogCaptureFixture):
+        """Test get tendermint configuration"""
+
+        with caplog.at_level(logging.INFO, logger=self.logger):
+            with mock.patch.object(
+                self.state.params,
+                "service_registry_address",
+                return_value="0xa51c1fc2f0d1a1b8494ed1fe312d7c3a78ed91c0"
+            ):
+                self.behaviour.act_wrapper()
+                self.mock_http_request(self.tendermint_request_kwargs, self.tendermint_response_kwargs)
+                assert "Local Tendermint configuration obtained" in caplog.text
+                assert "Service registry contract not deployed" not in caplog.text
+
+    def test_service_registry_contract_not_deployed(self, caplog: LogCaptureFixture):
+        """Test service registry contract not deployed"""
+
+        with caplog.at_level(logging.INFO, logger=self.logger):
+            with mock.patch.object(
+                self.state.params,
+                "service_registry_address",
+                return_value="0xa51c1fc2f0d1a1b8494ed1fe312d7c3a78ed91c0"
+            ):
+                self.behaviour.act_wrapper()
+                self.mock_http_request(self.tendermint_request_kwargs, self.tendermint_response_kwargs)
+                self.mock_contract_api_request(
+                    contract_id="valory/service_registry:0.1.0",
+                    request_kwargs=dict(performative=ContractApiMessage.Performative.GET_STATE),
+                    response_kwargs=dict(
+                        performative=ContractApiMessage.Performative.ERROR,
+                        callable="verify_contract",
+                    ),
+                )
+                assert "`verify_contract` call unsuccessful!" in caplog.text
+                assert "Service registry contract not deployed" in caplog.text
+
+    def test_service_info_could_not_be_retrieved(self, caplog: LogCaptureFixture):
+        """Test service registry contract not deployed"""
+
+        with caplog.at_level(logging.INFO, logger=self.logger):
+            with mock.patch.object(
+                self.state.params,
+                "service_registry_address",
+                return_value="0xa51c1fc2f0d1a1b8494ed1fe312d7c3a78ed91c0"
+            ):
+                self.behaviour.act_wrapper()
+                self.mock_http_request(self.tendermint_request_kwargs, self.tendermint_response_kwargs)
+                self.mock_is_correct_contract()
+                assert "Service info could not be retrieved" in caplog.text
+
+    def mock_get_service_info(self, *agent_instances: str):
+        body = {"verified": {"agent_instances": list(agent_instances)}}
         self.mock_contract_api_request(
-            contract_id=CONTRACT_ID,
-            request_kwargs=request_kwargs,
-            response_kwargs=response_kwargs,
+            contract_id="valory/service_registry:0.1.0",
+            request_kwargs=dict(performative=ContractApiMessage.Performative.GET_STATE),
+            response_kwargs=dict(
+                performative=ContractApiMessage.Performative.STATE,
+                callable="get_service_info",
+                state=ContractApiMessage.State(
+                    ledger_id="ethereum", body=body,
+                )
+            ),
         )
 
-        # mock get_service_info
-        request_kwargs = dict(
-            performative=performative,
-            contract_address=SERVICE_REGISTRY_ADDRESS,
-            contract_id=str(ServiceRegistryContract.contract_id),
-            contract_callable="get_service_info",
-            service_id=ON_CHAIN_SERVICE_ID,
-        )
-        response_kwargs = dict(
-            performative=performative,
-        )
-        self.mock_contract_api_request(
-            contract_id=CONTRACT_ID,
-            request_kwargs=request_kwargs,
-            response_kwargs=response_kwargs,
-        )
+    def test_no_agent_instances_registered(self, caplog: LogCaptureFixture):
+        """Test no agent instances registered"""
 
+        with caplog.at_level(logging.INFO, logger=self.logger):
+            with mock.patch.object(
+                self.state.params,
+                "service_registry_address",
+                return_value="0xa51c1fc2f0d1a1b8494ed1fe312d7c3a78ed91c0"
+            ):
+                with mock.patch.object(
+                    self.state.params,
+                    "on_chain_service_id",
+                    return_value="42"
+                ):
+                    self.behaviour.act_wrapper()
+                    self.mock_http_request(self.tendermint_request_kwargs, self.tendermint_response_kwargs)
+                    self.mock_is_correct_contract()
+                    self.mock_get_service_info()
+                    assert "No agent instances registered:" in caplog.text
 
+    def test_node_operator_agent_not_registered(self, caplog: LogCaptureFixture):
+        """Test node operator agent not registered"""
 
-        # mock the super().async_act() call
+        with caplog.at_level(logging.INFO, logger=self.logger):
+            with mock.patch.object(
+                self.state.params,
+                "service_registry_address",
+                return_value="0xa51c1fc2f0d1a1b8494ed1fe312d7c3a78ed91c0"
+            ):
+                with mock.patch.object(
+                    self.state.params,
+                    "on_chain_service_id",
+                    return_value="42"
+                ):
+                    self.behaviour.act_wrapper()
+                    self.mock_http_request(self.tendermint_request_kwargs, self.tendermint_response_kwargs)
+                    self.mock_is_correct_contract()
+                    self.mock_get_service_info("0xAlice", "0xBob")
+                    assert "You are not registered:" in caplog.text
 
-        # self.mock_a2a_transaction()
-        # self._test_done_flag_set()
-        #
-        # self.end_round(Event.DONE)
-        # state = cast(BaseState, self.behaviour.current_state)
-        # assert state.state_id == self.next_behaviour_class.state_id
+    def test_registered_addresses_retrieved(self, caplog: LogCaptureFixture):
+        """Test registered addresses retrieved"""
 
+        with caplog.at_level(logging.INFO, logger=self.logger):
+            with mock.patch.object(
+                self.state.params,
+                "service_registry_address",
+                return_value="0xa51c1fc2f0d1a1b8494ed1fe312d7c3a78ed91c0"
+            ):
+                with mock.patch.object(
+                    self.state.params,
+                    "on_chain_service_id",
+                    return_value="42"
+                ):
+                    self.behaviour.act_wrapper()
+                    self.mock_http_request(self.tendermint_request_kwargs, self.tendermint_response_kwargs)
+                    self.mock_is_correct_contract()
+                    self.mock_get_service_info("0xAlice", "0xBob", self.state.context.agent_address)
+                    assert "Registered addresses retrieved from service registry contract" in caplog.text
 
-        # my_address = self.state.context.agent_address
-        # [my_address, "http://0.0.0.0:26657"]
 
 class TestRegistrationBehaviour(BaseRegistrationTestBehaviour):
     """Test case to test RegistrationBehaviour."""
