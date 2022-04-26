@@ -215,6 +215,7 @@ class RegistrationStartupBehaviour(RegistrationBaseBehaviour):
         result = yield from self._do_request(message, dialogue)
         try:
             response = json.loads(result.body.decode())
+            self.context.logger.info("Local TendermintNode started")
             return response["status"] == 200
         except json.JSONDecodeError:
             self.context.logger.info("Error communicating with tendermint server")
@@ -248,12 +249,14 @@ class RegistrationStartupBehaviour(RegistrationBaseBehaviour):
         if not self.local_tendermint_params:
             successful = yield from self.get_tendermint_configuration()
             if not successful:
+                yield from self.sleep(self.params.sleep_time)
                 return
 
         # make service registry calls
         if not self.registered_addresses:
             successful = yield from self.get_addresses()
             if not successful:
+                yield from self.sleep(self.params.sleep_time)
                 return
 
         # request tendermint config information from all agents
@@ -262,16 +265,19 @@ class RegistrationStartupBehaviour(RegistrationBaseBehaviour):
 
         # if not complete, continue collecting next async_act call
         if set(self.registered_addresses).difference(self.collected):
+            yield from self.sleep(self.params.sleep_time)
             return
 
         # all information collected, update configuration
         successful = yield from self.update_tendermint_configuration()
         if not successful:
+            yield from self.sleep(self.params.sleep_time)
             return
 
         # restart Tendermint with updated configuration
         successful = yield from self.start_tendermint()
         if not successful:
+            yield from self.sleep(self.params.sleep_time)
             return
 
         yield from super().async_act()
