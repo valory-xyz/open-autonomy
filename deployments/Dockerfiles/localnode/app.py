@@ -18,6 +18,7 @@
 # ------------------------------------------------------------------------------
 
 """HTTP server to control the tendermint execution environment."""
+import json
 import logging
 import os
 import shutil
@@ -25,12 +26,15 @@ import stat
 from pathlib import Path
 from typing import Any, Callable, Optional, Tuple
 
-from flask import Flask, Response, jsonify
+from flask import Flask, Response, jsonify, request
 from tendermint import TendermintNode, TendermintParams
 from werkzeug.exceptions import InternalServerError, NotFound
 
 
 DEFAULT_LOG_FILE = "log.log"
+DEFAULT_GENESIS_TIME = json.loads(
+    Path(str(os.environ["TMHOME"]), "config", "genesis.json").read_text()
+).get("genesis_time")
 IS_DEV_MODE = os.environ.get("DEV_MODE", "0") == "1"
 CONFIG_OVERRIDE = [
     ("fast_sync = true", "fast_sync = false"),
@@ -143,7 +147,9 @@ def hard_reset() -> Tuple[Any, int]:
             period_dumper.dump_period()
 
         tendermint_node.prune_blocks()
-        tendermint_node.reset_genesis_file()
+        tendermint_node.reset_genesis_file(
+            request.args.get("genesis_time", DEFAULT_GENESIS_TIME)
+        )
         tendermint_node.start()
         return jsonify({"message": "Reset successful.", "status": True}), 200
     except Exception as e:  # pylint: disable=W0703
