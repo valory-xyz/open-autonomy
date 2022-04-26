@@ -19,21 +19,18 @@
 
 """This module contains the handler for the 'safe_deployment_abci' skill."""
 
+
 from packages.valory.skills.abstract_round_abci.handlers import (
-    ContractApiHandler as AbstractRoundContractApiHandler,
-)
-from packages.valory.skills.abstract_round_abci.handlers import (
-    HttpHandler as AbstractRoundHttpHandler,
-)
-from packages.valory.skills.abstract_round_abci.handlers import (
-    LedgerApiHandler as AbstractRoundLedgerApiHandler,
-)
-from packages.valory.skills.abstract_round_abci.handlers import (
-    SigningHandler as AbstractRoundSigningHandler,
+    ContractApiHandler as BaseContractApiHandler,
+    HttpHandler as BaseHttpHandler,
+    LedgerApiHandler as BaseLedgerApiHandler,
+    SigningHandler as BaseSigningHandler,
+    TendermintHandler as BaseTendermintHandler,
 )
 
+HttpHandler = BaseHttpHandler
+SigningHandler = BaseSigningHandler
+LedgerApiHandler = BaseLedgerApiHandler
+ContractApiHandler = BaseContractApiHandler
+TendermintHandler = BaseTendermintHandler
 
-HttpHandler = AbstractRoundHttpHandler
-SigningHandler = AbstractRoundSigningHandler
-LedgerApiHandler = AbstractRoundLedgerApiHandler
-ContractApiHandler = AbstractRoundContractApiHandler

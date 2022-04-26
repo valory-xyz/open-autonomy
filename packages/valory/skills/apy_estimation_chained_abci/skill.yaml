@@ -12,7 +12,7 @@ fingerprint:
   composition.py: QmR4YsEW8MHdxAvJ7V2e8NczXAeT4NCDYpze7eJ1ssnPcR
   dialogues.py: QmfDThV4WCRzK88XDpW2hKDYCuEH4RxoHCoAkWpkBRGRPv
   fsm_specification.yaml: QmXSANe3F3SXRRbY1wKukjByYurQ3kJsQsdXWawjoAqskh
-  handlers.py: QmRaY4dNFoVbM5eAaJi9GEQwKu6MKqKt5YppzzESQpuMRZ
+  handlers.py: QmfADToZi2gdB3FP2zzDcLuHw8Zb7iFAzTDa63kZPjhSUe
   models.py: QmS9Fkg46KXHAxdq4NV4ckFD2xv2uNQfLR1374xqucvvJh
 fingerprint_ignore_patterns: []
 connections:
@@ -50,6 +50,9 @@ handlers:
   signing:
     args: {}
     class_name: SigningHandler
+  tendermint:
+    args: {}
+    class_name: TendermintHandler
 models:
   abci_dialogues:
     args: {}
