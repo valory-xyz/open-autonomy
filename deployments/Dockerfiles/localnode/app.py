@@ -18,7 +18,7 @@
 # ------------------------------------------------------------------------------
 
 """HTTP server to control the tendermint execution environment."""
-import ast
+
 import logging
 import os
 import shutil
@@ -27,7 +27,7 @@ import traceback
 from pathlib import Path
 from typing import Any, Callable, Dict, Optional, Tuple
 
-from flask import Flask, Response, jsonify, request
+from flask import Flask, Response, jsonify, request, json
 from tendermint import TendermintNode, TendermintParams
 from werkzeug.exceptions import InternalServerError, NotFound
 
@@ -121,9 +121,9 @@ def start() -> Response:
     """Start Tendermint node"""
     try:
         tendermint_node.start()
-        return Response(response="Tendermint node started", status=200)
+        return jsonify(response="Tendermint node started", status=200)
     except Exception:  # pylint: disable=broad-except
-        return Response(response=traceback.format_exc(), status=400)
+        return jsonify(response=traceback.format_exc(), status=400)
 
 
 @app.route("/params", methods=["POST", "GET"])
@@ -131,15 +131,18 @@ def params() -> Response:
     """Get or update TendermintParams on TendermintNode"""
     if request.method == "GET":
         info: bytes = str(vars(tendermint_node.params)).encode(ENCODING)
-        return Response(response=info, status=200)
+        return jsonify(response=info, status=200)
     else:  # requires (re)start to become effective
+        # 2. populate genesis file, update persistent peers, start again
         try:
+            tendermint_node.stop()  # stops node if it is running
+
             raw_data: bytes = request.get_data()
-            kwargs: Dict[str, Any] = ast.literal_eval(raw_data.decode(ENCODING))
+            kwargs: Dict[str, Any] = json.loads(raw_data.decode(ENCODING))
             tendermint_node.params = TendermintParams(**kwargs)
-            return Response(response="TendermintParams updated", status=200)
+            return jsonify(response="TendermintParams updated", status=200)
         except Exception:  # pylint: disable=broad-except
-            return Response(response=traceback.format_exc(), status=400)
+            return jsonify(response=traceback.format_exc(), status=400)
 
 
 @app.route("/gentle_reset")
