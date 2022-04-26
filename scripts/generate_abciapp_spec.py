@@ -73,7 +73,7 @@ class DFA:
             set, zip(*transition_func.keys())
         )
 
-        transition_func_states = transition_func_in_states
+        transition_func_states = transition_func_in_states.copy()
         transition_func_states.update(transition_func.values())  # type: ignore
 
         orphan_states = states - (start_states | set(transition_func.values()))
