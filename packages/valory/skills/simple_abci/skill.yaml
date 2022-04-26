@@ -11,7 +11,7 @@ fingerprint:
   behaviours.py: QmXyZ94RSXGKwZ9tjkMf3VAaCS2zF3tbd1rcLiMPi4LX2C
   dialogues.py: QmfDThV4WCRzK88XDpW2hKDYCuEH4RxoHCoAkWpkBRGRPv
   fsm_specification.yaml: QmWMofiURpyQ4ggFmiYCdmVB4imVX7U6ACo371EAB9L14h
-  handlers.py: QmZXDriJtB3cN8NBWrYLVpFekWMZdjm8veF97oLrGFRot3
+  handlers.py: QmbiWWko8gX4DuD3ifmyNRgEKpfjX2F8bKSAJESLK6BeNR
   models.py: QmaS5Qvg6DtqkTixSyQpHFJQaLfx1hgmodVKD2zbtjzW6i
   payloads.py: QmVUVKakCZrUQxqU3fmkzLjk6fjbKtr7zxe9pRMBvjEPW5
   rounds.py: QmeqKuaHZAzGqSb1h81TWPoPLJYFDA1NNGotd7fkiFbK1W
@@ -49,6 +49,9 @@ handlers:
   signing:
     args: {}
     class_name: SigningHandler
+  tendermint:
+    args: {}
+    class_name: TendermintHandler
 models:
   abci_dialogues:
     args: {}

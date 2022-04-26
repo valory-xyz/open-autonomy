@@ -19,23 +19,18 @@
 
 """This module contains the handler for the 'price_estimation_abci' skill."""
 
-from packages.valory.skills.abstract_round_abci.handlers import ABCIRoundHandler
 from packages.valory.skills.abstract_round_abci.handlers import (
+    ABCIRoundHandler,
     ContractApiHandler as BaseContractApiHandler,
-)
-from packages.valory.skills.abstract_round_abci.handlers import (
     HttpHandler as BaseHttpHandler,
-)
-from packages.valory.skills.abstract_round_abci.handlers import (
     LedgerApiHandler as BaseLedgerApiHandler,
-)
-from packages.valory.skills.abstract_round_abci.handlers import (
     SigningHandler as BaseSigningHandler,
+    TendermintHandler as BaseTendermintHandler,
 )
-
 
 ABCILiquidityRebalancing = ABCIRoundHandler
 HttpHandler = BaseHttpHandler
 SigningHandler = BaseSigningHandler
 LedgerApiHandler = BaseLedgerApiHandler
 ContractApiHandler = BaseContractApiHandler
+TendermintHandler = BaseTendermintHandler

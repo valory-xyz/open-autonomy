@@ -11,7 +11,7 @@ fingerprint:
   behaviours.py: QmSpKdptrigJPeSxwRygGoTk2fAKNRQQPnpzJYFCE4SbG7
   dialogues.py: QmT6ojZQVrHPZC8vU4qMUAYwSuoyfENztqPgqMr2DyLQ13
   fsm_specification.yaml: QmXVQp8pmwwURGntFJ41QziXMFysTpkZy9wjVn1KoACZgA
-  handlers.py: QmaBseoR7MqbNV4A1Bj3694zavs3bbt3YrV2RyiAuWhQv7
+  handlers.py: QmQZyDmcuSyFcavCanyo3cMTxjYqcCDGy85VDZ4PKxPW7C
   models.py: QmP1o1MJF1qQtRurgzZ2fdRHWdu3G6xrTxUWy9GdYtHihT
   payloads.py: QmdJ8VRZmEXnJWx4oNcizaxjgBtEhanFBY2cU3g4UWM7s5
   rounds.py: QmUq6h9dV27yVpqBqsXUEtrDoTKqinCgAWtaMKvEe8Nv18
@@ -89,5 +89,8 @@ models:
   state:
     args: {}
     class_name: SharedState
+  tendermint_dialogues:
+    args: {}
+    class_name: TendermintDialogues
 dependencies: {}
 is_abstract: true
