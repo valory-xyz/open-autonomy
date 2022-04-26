@@ -379,6 +379,13 @@ class Blockchain:
         """Get the blocks."""
         return tuple(self._blocks)
 
+    @property
+    def last_block(
+        self,
+    ) -> Block:
+        """Returns the last stored block."""
+        return self._blocks[-1]
+
 
 class BlockBuilder:
     """Helper class to build a block."""
@@ -1606,6 +1613,8 @@ class AbciApp(
     event_to_timeout: EventToTimeout = {}
     cross_period_persisted_keys: List[str] = []
 
+    last_round_transition_timestamp: Optional[str]
+
     def __init__(
         self,
         state: BasePeriodState,
@@ -1934,6 +1943,7 @@ class Period:
         self._block_builder = BlockBuilder()
         self._abci_app_cls = abci_app_cls
         self._abci_app: Optional[AbciApp] = None
+        self.last_round_transition_timestamp: Optional[datetime.datetime] = None
 
     def setup(self, *args: Any, **kwargs: Any) -> None:
         """
@@ -2124,4 +2134,5 @@ class Period:
         _logger.debug(
             f"updating round, current_round {self.current_round.round_id}, event: {event}, round result {round_result}"
         )
+        self.last_round_transition_timestamp = self._blockchain.last_block.timestamp
         self.abci_app.process_event(event, result=round_result)
