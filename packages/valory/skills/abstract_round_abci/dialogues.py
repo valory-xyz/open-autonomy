@@ -56,8 +56,8 @@ from packages.valory.protocols.ledger_api.dialogues import (
 from packages.valory.protocols.ledger_api.dialogues import (
     LedgerApiDialogues as BaseLedgerApiDialogues,
 )
-from packages.valory.protocols.tendermint.dialogues import TendermintDialogue
 from packages.valory.protocols.tendermint.dialogues import (
+    TendermintDialogue as BaseTendermintDialogue,
     TendermintDialogues as BaseTendermintDialogues,
 )
 
@@ -304,6 +304,9 @@ class ContractApiDialogues(Model, BaseContractApiDialogues):
         )
 
 
+TendermintDialogue = BaseTendermintDialogue
+
+
 class TendermintDialogues(Model, BaseTendermintDialogues):
     """The dialogues class keeps track of all dialogues."""
 
@@ -328,6 +331,6 @@ class TendermintDialogues(Model, BaseTendermintDialogues):
 
         BaseTendermintDialogues.__init__(
             self,
-            self_address=self.self_address,
+            self_address=self.context.agent_address,
             role_from_first_message=role_from_first_message,
         )
