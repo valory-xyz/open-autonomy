@@ -103,9 +103,9 @@ class FSMBehaviourBaseCase(BaseSkillTestCase):
         cls.ledger_handler = cast(
             LedgerApiHandler, cls._skill.skill_context.handlers.ledger_api
         )
-        # cls.tendermint_handler = cast(
-        #     SigningHandler, cls._skill.skill_context.handlers.tendermint
-        # )
+        cls.tendermint_handler = cast(
+            TendermintHandler, cls._skill.skill_context.handlers.tendermint
+        )
 
         if kwargs.get("param_overrides") is not None:
             for param_name, param_value in kwargs["param_overrides"].items():

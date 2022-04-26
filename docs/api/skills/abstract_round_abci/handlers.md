@@ -202,6 +202,26 @@ class TendermintHandler(Handler)
 
 The Tendermint request / response handler.
 
+<a id="packages.valory.skills.abstract_round_abci.handlers.TendermintHandler.setup"></a>
+
+#### setup
+
+```python
+def setup() -> None
+```
+
+Set up the handler.
+
+<a id="packages.valory.skills.abstract_round_abci.handlers.TendermintHandler.teardown"></a>
+
+#### teardown
+
+```python
+def teardown() -> None
+```
+
+Tear down the handler.
+
 <a id="packages.valory.skills.abstract_round_abci.handlers.TendermintHandler.period_state"></a>
 
 #### period`_`state
