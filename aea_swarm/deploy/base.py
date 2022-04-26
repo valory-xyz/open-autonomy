@@ -265,25 +265,27 @@ class DeploymentConfigValidator(validation.ConfigValidator):
                     "All keys of list like override should be of type int."
                 )
             nums = set(field_override.keys())
-            assert len(nums) == len(
-                field_override.keys()
-            ), "Non-unique item in override"
-            assert (
-                len(nums) == self.deployment_spec["number_of_agents"]
-            ), "Not enough items in override"
-            assert nums == set(
-                range(0, self.deployment_spec["number_of_agents"])
-            ), "Overrides incorrectly indexed"
+
+            if len(nums) != len(field_override.keys()):
+                raise ValueError("Non-unique item in override")
+
+            if len(nums) != self.deployment_spec["number_of_agents"]:
+                raise ValueError("Not enough items in override")
+
+            if nums != set(range(0, self.deployment_spec["number_of_agents"])):
+                raise ValueError("Overrides incorrectly indexed")
+
             for override in field_override[component_index]:
                 for nested_override, nested_value in override.items():
                     for (
                         nested_override_key,
                         nested_override_value,
                     ) in nested_value.items():
-                        assert (
+                        if (
                             nested_override_key
-                            in config_class.NESTED_FIELDS_ALLOWED_TO_UPDATE  # type: ignore
-                        ), "Trying to override non-nested field."
+                            not in config_class.NESTED_FIELDS_ALLOWED_TO_UPDATE  # type: ignore
+                        ):
+                            raise ValueError("Trying to override non-nested field.")
 
                         env_var_name = "_".join(
                             [
@@ -335,8 +337,9 @@ class BaseDeployment:
         with open(str(file_path), "r", encoding="utf8") as f:
             keys = json.loads(f.read())
         for key in keys:
-            assert "address" in key.keys(), "Key file incorrectly formatted."
-            assert "private_key" in key.keys(), "Key file incorrectly formatted."
+            if "address" not in key.keys() and "private_key" not in key.keys():
+                raise ValueError("Key file incorrectly formatted.")
+
         self.private_keys = [f["private_key"] for f in keys]
 
     def _process_model_args_overrides(self, agent_n: int) -> Dict:
