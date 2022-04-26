@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2022 Valory AG
+#   Copyright 2022 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -16,7 +16,4 @@
 #   limitations under the License.
 #
 # ------------------------------------------------------------------------------
-
-"""Consensus algorithms implemented with the AEA framework."""
-
-from .__version__ import __version__
+"""Constants"""

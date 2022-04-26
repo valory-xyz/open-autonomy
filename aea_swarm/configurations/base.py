@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2022 Valory AG
+#   Copyright 2022 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -17,6 +17,17 @@
 #
 # ------------------------------------------------------------------------------
 
-"""Consensus algorithms implemented with the AEA framework."""
+"""Base configurations."""
 
-from .__version__ import __version__
+from pathlib import Path
+
+
+CONFIG_PATH = Path(__file__).absolute().parent
+SCHEMAS_DIR = CONFIG_PATH / "schemas"
+
+
+class Files:  # pylint: disable=too-few-public-methods
+    """This is a namespace used for various file paths."""
+
+    schema_dir = SCHEMAS_DIR
+    deployment_schema = SCHEMAS_DIR / "deployment_schema.json"
