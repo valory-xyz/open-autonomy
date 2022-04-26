@@ -456,6 +456,17 @@ def blocks() -> Tuple[Block, ...]
 
 Get the blocks.
 
+<a id="packages.valory.skills.abstract_round_abci.base.Blockchain.last_block"></a>
+
+#### last`_`block
+
+```python
+@property
+def last_block() -> Block
+```
+
+Returns the last stored block.
+
 <a id="packages.valory.skills.abstract_round_abci.base.BlockBuilder"></a>
 
 ## BlockBuilder Objects
