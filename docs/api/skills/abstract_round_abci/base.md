@@ -401,7 +401,7 @@ The consistency of the data in the blocks is guaranteed by Tendermint.
 #### `__`init`__`
 
 ```python
-def __init__() -> None
+def __init__(height_offset: int = 0) -> None
 ```
 
 Initialize the blockchain.
@@ -2115,6 +2115,28 @@ def last_timestamp() -> datetime.datetime
 ```
 
 Get the last timestamp.
+
+<a id="packages.valory.skills.abstract_round_abci.base.Period.last_round_transition_timestamp"></a>
+
+#### last`_`round`_`transition`_`timestamp
+
+```python
+@property
+def last_round_transition_timestamp() -> datetime.datetime
+```
+
+Returns the timestamp for last round transition.
+
+<a id="packages.valory.skills.abstract_round_abci.base.Period.last_round_transition_block_height"></a>
+
+#### last`_`round`_`transition`_`block`_`height
+
+```python
+@property
+def last_round_transition_block_height() -> int
+```
+
+Returns the timestamp for last round transition.
 
 <a id="packages.valory.skills.abstract_round_abci.base.Period.latest_state"></a>
 
