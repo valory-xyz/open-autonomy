@@ -226,9 +226,9 @@ class RegistrationStartupBehaviour(RegistrationBaseBehaviour):
         url = self.tendermint_parameter_url
         params = cast(TendermintParams, self.local_tendermint_params)
         params["p2p_seeds"] = list(self.registered_addresses.values())
-        content = str(params).encode(self.ENCODING)
+        content = json.dumps(params).encode(self.ENCODING)
         message, dialogue = self._build_http_request_message(
-            method="POST", url=url, content=content
+            method="POST", url=url, content=content,
         )
         result = yield from self._do_request(message, dialogue)
         try:
@@ -236,7 +236,7 @@ class RegistrationStartupBehaviour(RegistrationBaseBehaviour):
             self.context.logger.info(f"Local TendermintNode started: {response}")
             return True
         except json.JSONDecodeError:
-            self.context.logger.info("Error communicating with Tendermint server")
+            self.context.logger.info(f"Error communicating with Tendermint server: {result}")
         return False
 
     def start_tendermint(self) -> Generator[None, None, bool]:
@@ -247,15 +247,10 @@ class RegistrationStartupBehaviour(RegistrationBaseBehaviour):
         result = yield from self._do_request(message, dialogue)
         try:
             response = json.loads(result.body.decode())
-            if response.get("status") == 200:
-                self.context.logger.info(response.get("message"))
-                return True
-            error_message = f"Error starting Tendermint: {response}"
-            self.context.logger.info(error_message)
-            yield from self.sleep(self.params.sleep_time)
-            return False
+            self.context.logger.info(f"Tendermint node started: {response}")
+            return True
         except json.JSONDecodeError:
-            error_message = "Error communicating with Tendermint server"
+            error_message = "Error communicating with Tendermint server on start_tendermint"
             self.context.logger.error(error_message)
             yield from self.sleep(self.params.sleep_time)
         return False
