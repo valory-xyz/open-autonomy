@@ -295,7 +295,7 @@ run-oracle-dev:
 	fi
 	export VERSION=dev
 	make build-images && \
-     	python deployments/click_create.py build-deployment --valory-app oracle --deployment-type docker-compose --configure-tendermint && \
+     	python deployments/click_create.py build-deployment --valory-app oracle_hardhat --deployment-type docker-compose --configure-tendermint && \
      	make run-deploy
 
 .PHONY: run-oracle
