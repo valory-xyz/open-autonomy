@@ -137,7 +137,7 @@ Class to assist with generating deployments.
 #### `__`init`__`
 
 ```python
-def __init__(path_to_deployment_spec: str, private_keys_file_path: Path) -> None
+def __init__(path_to_deployment_spec: str, private_keys_file_path: Path, package_dir: Path) -> None
 ```
 
 Initialize the Base Deployment.
