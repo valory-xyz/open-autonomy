@@ -36,6 +36,7 @@ def generate_deployment(
     type_of_deployment: str,
     private_keys_file_path: Path,
     deployment_file_path: Path,
+    package_dir: Path,
     build_dir: Path,
 ) -> str:
     """Generate the deployment build for the valory app."""
@@ -47,6 +48,7 @@ def generate_deployment(
     deployment_spec = BaseDeployment(
         path_to_deployment_spec=str(deployment_file_path),
         private_keys_file_path=Path(private_keys_file_path),
+        package_dir=package_dir,
     )
 
     deployment = cast(

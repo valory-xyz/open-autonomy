@@ -51,7 +51,7 @@ from aea.helpers.base import cd
 from aea.helpers.io import open_file
 
 from aea_swarm.configurations.base import Files
-from deployments.constants import NETWORKS, PACKAGES_DIRECTORY
+from aea_swarm.deploy.constants import NETWORKS
 
 
 COMPONENT_CONFIGS: Dict = {
@@ -310,11 +310,16 @@ class BaseDeployment:
     network: str
     number_of_agents: int
     private_keys: list
+    package_dir: Path
 
     def __init__(
-        self, path_to_deployment_spec: str, private_keys_file_path: Path
+        self,
+        path_to_deployment_spec: str,
+        private_keys_file_path: Path,
+        package_dir: Path,
     ) -> None:
         """Initialize the Base Deployment."""
+        self.package_dir = package_dir
         self.overrides: list = []
         self.validator = DeploymentConfigValidator(
             schema_filename=str(Files.deployment_schema)
@@ -389,7 +394,7 @@ class BaseDeployment:
         if local_registry is False:
             raise ValueError("Remote registry not yet supported, use local!")
         source_path = try_get_item_source_path(
-            str(PACKAGES_DIRECTORY),
+            str(self.package_dir),
             self.agent_public_id.author,
             AGENTS,
             self.agent_public_id.name,
