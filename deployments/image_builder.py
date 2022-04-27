@@ -42,7 +42,7 @@ class ImageBuilder:
         profile: str,
         push: bool = False,
         build_concurrency: int = 0,
-    ):
+    ) -> None:
         """Command to build images from for skaffold deployment."""
         env = os.environ.copy()
         agent_id = PublicId.from_str(aea_agent)
@@ -92,7 +92,7 @@ class ImageBuilder:
         deployment_file_path: Optional[str],
         valory_application: Optional[str],
         push: bool = False,
-    ):
+    ) -> None:
         """Build images using the subprocess."""
         aea_agent = self.get_aea_agent(
             deployment_file_path=deployment_file_path,
