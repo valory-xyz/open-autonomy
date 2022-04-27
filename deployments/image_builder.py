@@ -64,10 +64,10 @@ class ImageBuilder:
         build_dir: str = "deployments/Dockerfiles/open_aea",
     ) -> None:
         """Copy packages for image building."""
-        shutil.copytree(
+        shutil.copytree(  # type: ignore
             src=Path(package_dir),
             dst=Path(build_dir) / "packages",
-            dirs_exist_ok=True,  # type: ignore
+            dirs_exist_ok=True,
         )
 
     @staticmethod
