@@ -95,6 +95,12 @@ def build_deployment(
 
     package_dir = Path(package_dir)
     build_dir = Path(output_dir, "abci_build")
+
+    if not package_dir.is_dir():
+        raise click.ClickException(
+            f"Packages directory does not exists @ {package_dir}"
+        )
+
     if build_dir.is_dir():
         if not force_overwrite:
             raise click.ClickException(f"Build already exists @ {output_dir}")
