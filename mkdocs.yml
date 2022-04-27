@@ -14,6 +14,7 @@ strict: true
 
 nav:
   - Home: 'index.md'
+  - Get started: 'get_started.md'
   - Preliminaries:
     - Autonomous Economic Agents: 'aea.md'
     - Finite State Machines: 'fsm.md'
@@ -130,6 +131,8 @@ extra:
     open_aea_doc: '[Open AEA documentation](https://valory-xyz.github.io/open-aea)'
     open_aea_api: '[Open AEA API](https://valory-xyz.github.io/open-aea/api/)'
     abci_app: 'ABCI Application'
+    agent_service: 'Agent Service'
+
 
 #extra_css:
 #    - css/my-styles.css
