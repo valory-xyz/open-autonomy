@@ -215,11 +215,13 @@ make build-images
 This will build and tag the development Dockerfile in deployments/Dockerfiles.
 
 ### Push Images To Registry (Optional)
+
+This will push the images which have been built to the default docker registry.
+
 ```bash
 export VERSION=dev
 make push-images
 ```
-This will push the images which have built to the default docker registry.
 
 To then build a deployment for developer mode, nothing extra other than the environment variable is needed.
 
