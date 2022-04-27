@@ -343,9 +343,10 @@ class Blockchain:
     The consistency of the data in the blocks is guaranteed by Tendermint.
     """
 
-    def __init__(self) -> None:
+    def __init__(self, height_offset: int = 0) -> None:
         """Initialize the blockchain."""
         self._blocks: List[Block] = []
+        self._height_offset = height_offset
 
     def add_block(self, block: Block) -> None:
         """Add a block to the list."""
@@ -372,7 +373,7 @@ class Blockchain:
     @property
     def length(self) -> int:
         """Get the blockchain length."""
-        return len(self._blocks)
+        return len(self._blocks) + self._height_offset
 
     @property
     def blocks(self) -> Tuple[Block, ...]:
@@ -1613,8 +1614,6 @@ class AbciApp(
     event_to_timeout: EventToTimeout = {}
     cross_period_persisted_keys: List[str] = []
 
-    last_round_transition_timestamp: Optional[str]
-
     def __init__(
         self,
         state: BasePeriodState,
@@ -1943,7 +1942,8 @@ class Period:
         self._block_builder = BlockBuilder()
         self._abci_app_cls = abci_app_cls
         self._abci_app: Optional[AbciApp] = None
-        self.last_round_transition_timestamp: Optional[datetime.datetime] = None
+        self._last_round_transition_timestamp: Optional[datetime.datetime] = None
+        self._last_round_transition_block_height: Optional[int] = None
 
     def setup(self, *args: Any, **kwargs: Any) -> None:
         """
@@ -2034,6 +2034,28 @@ class Period:
         return last_timestamp
 
     @property
+    def last_round_transition_timestamp(
+        self,
+    ) -> datetime.datetime:
+        """Returns the timestamp for last round transition."""
+        if self._last_round_transition_timestamp is None:
+            raise ValueError("Value of last_round_transition_timestamp cannot be None.")
+
+        return self._last_round_transition_timestamp
+
+    @property
+    def last_round_transition_block_height(
+        self,
+    ) -> int:
+        """Returns the timestamp for last round transition."""
+        if self._last_round_transition_block_height is None:
+            raise ValueError(
+                "Value of last_round_transition_block_height cannot be None."
+            )
+
+        return self._last_round_transition_block_height
+
+    @property
     def latest_state(self) -> BasePeriodState:
         """Get the latest state."""
         return self.abci_app.state
@@ -2118,7 +2140,7 @@ class Period:
             self._block_construction_phase = (
                 Period._BlockConstructionState.WAITING_FOR_BEGIN_BLOCK
             )
-        self._blockchain = Blockchain()
+        self._blockchain = Blockchain(self.last_round_transition_block_height)
 
     def _update_round(self) -> None:
         """
@@ -2134,5 +2156,8 @@ class Period:
         _logger.debug(
             f"updating round, current_round {self.current_round.round_id}, event: {event}, round result {round_result}"
         )
-        self.last_round_transition_timestamp = self._blockchain.last_block.timestamp
+        self._last_round_transition_timestamp = self._blockchain.last_block.timestamp
+        self._last_round_transition_block_height = (
+            self._blockchain.last_block.header.height
+        )
         self.abci_app.process_event(event, result=round_result)

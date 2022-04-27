@@ -133,11 +133,11 @@ class TendermintNode:
             ["tendermint", "--home", str(self.params.home), "unsafe-reset-all"]
         )
 
-    def reset_genesis_file(self, genesis_time: str) -> None:
+    def reset_genesis_file(self, genesis_time: str, initial_height: str) -> None:
         """Reset genesis file."""
 
         genesis_file = Path(str(self.params.home), "config", "genesis.json")
         genesis_config = json.loads(genesis_file.read_text())
         genesis_config["genesis_time"] = genesis_time
-        genesis_config["initial_height"] = "0"
+        genesis_config["initial_height"] = initial_height
         genesis_file.write_text(json.dumps(genesis_config, indent=2))

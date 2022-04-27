@@ -32,9 +32,6 @@ from werkzeug.exceptions import InternalServerError, NotFound
 
 
 DEFAULT_LOG_FILE = "log.log"
-DEFAULT_GENESIS_TIME = json.loads(
-    Path(str(os.environ["TMHOME"]), "config", "genesis.json").read_text()
-).get("genesis_time")
 IS_DEV_MODE = os.environ.get("DEV_MODE", "0") == "1"
 CONFIG_OVERRIDE = [
     ("fast_sync = true", "fast_sync = false"),
@@ -47,6 +44,15 @@ logging.basicConfig(
     level=logging.DEBUG,
     format=f"%(asctime)s %(levelname)s %(name)s %(threadName)s : %(message)s",  # noqa : W1309
 )
+
+
+def get_default_genesis_time() -> str:
+    """Return current genesis time."""
+    return str(
+        json.loads(
+            Path(str(os.environ["TMHOME"]), "config", "genesis.json").read_text()
+        ).get("genesis_time")
+    )
 
 
 def override_config_toml() -> None:
@@ -148,7 +154,8 @@ def hard_reset() -> Tuple[Any, int]:
 
         tendermint_node.prune_blocks()
         tendermint_node.reset_genesis_file(
-            request.args.get("genesis_time", DEFAULT_GENESIS_TIME)
+            request.args.get("genesis_time", get_default_genesis_time()),
+            request.args.get("intial_height", "0"),
         )
         tendermint_node.start()
         return jsonify({"message": "Reset successful.", "status": True}), 200
