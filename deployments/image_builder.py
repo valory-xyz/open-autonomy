@@ -34,7 +34,7 @@ from deployments.create_deployment import validate_deployment_spec_path
 class ImageBuilder:
     """Class to build images using skaffold."""
 
-    _process: None
+    _process: subprocess.Popen
 
     def _build(
         self,
@@ -65,11 +65,15 @@ class ImageBuilder:
     ) -> None:
         """Copy packages for image building."""
         shutil.copytree(
-            Path(package_dir), Path(build_dir) / "packages", dirs_exist_ok=True
+            src=Path(package_dir),
+            dst=Path(build_dir) / "packages",
+            dirs_exist_ok=True,  # type: ignore
         )
 
     @staticmethod
-    def get_aea_agent(deployment_file_path: str, valory_application: str) -> str:
+    def get_aea_agent(
+        deployment_file_path: Optional[str], valory_application: Optional[str]
+    ) -> str:
         """Validate and retrieve aea agent from spec."""
         deploy_path = Path(
             validate_deployment_spec_path(
@@ -90,6 +94,9 @@ class ImageBuilder:
         push: bool = False,
     ):
         """Build images using the subprocess."""
-        aea_agent = self.get_aea_agent(deployment_file_path, valory_application)
+        aea_agent = self.get_aea_agent(
+            deployment_file_path=deployment_file_path,
+            valory_application=valory_application,
+        )
         self._copy_packages()
         self._build(aea_agent, profile, push)
