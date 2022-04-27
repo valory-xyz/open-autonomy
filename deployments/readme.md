@@ -212,16 +212,17 @@ The 2nd method is more manual and demonstrates the exact steps required to clean
 export VERSION=dev
 make build-images
 ```
+Images are built and tagged on an application by application basis. This is so that valory images are pre-installed with the necessary dependencies to allow fast start up in production.
+
 This will build and tag the development Dockerfile in deployments/Dockerfiles.
 
 ### Push Images To Registry (Optional)
 
-This will push the images which have been built to the default docker registry.
-
 ```bash
-export VERSION=dev
 make push-images
 ```
+
+This will push the images which have been built to the default docker registry, which allows the images to be pulled into kubernetes deployments.
 
 To then build a deployment for developer mode, nothing extra other than the environment variable is needed.
 
