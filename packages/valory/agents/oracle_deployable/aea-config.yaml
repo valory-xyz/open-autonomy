@@ -75,9 +75,6 @@ config:
 public_id: valory/oracle_abci:0.1.0
 type: skill
 models:
-  benchmark_tool:
-    args:
-      log_dir: /home/ubuntu/logs/benchmarking
   price_api:
     args:
       url: ${SKILL_ORACLE_ABCI_MODELS_PRICE_API_ARGS_URL:str}
