@@ -1205,6 +1205,7 @@ class TestPeriod:
     @pytest.mark.parametrize("is_replay", (True, False))
     def test_reset_blockchain(self, is_replay: bool) -> None:
         """Test `reset_blockchain` method."""
+        self.period._last_round_transition_block_height = 0
         self.period.reset_blockchain(is_replay)
         if is_replay:
             assert (
