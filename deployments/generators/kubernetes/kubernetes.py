@@ -48,7 +48,11 @@ class KubernetesGenerator(BaseDeploymentGenerator):
         self.resources: List[str] = []
 
     def build_agent_deployment(
-        self, image_name: str, agent_ix: int, number_of_agents: int, agent_vars: Dict[str, Any]
+        self,
+        image_name: str,
+        agent_ix: int,
+        number_of_agents: int,
+        agent_vars: Dict[str, Any],
     ) -> str:
         """Build agent deployment."""
         host_names = ", ".join(

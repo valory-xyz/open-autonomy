@@ -44,11 +44,14 @@ def validate_deployment_spec_path(
     valory_application: Optional[str],
     deployment_file_path: Optional[str],
 ) -> str:
+    """Validate if a path contains a deployment spec."""
     if valory_application is not None and deployment_file_path is None:
         deployment_file_path = AGENTS[valory_application]
     elif valory_application is None and deployment_file_path is not None:
         if not Path(deployment_file_path).exists():
-            raise ValueError(f"Specified deployment path does not exist: {deployment_file_path}")
+            raise ValueError(
+                f"Specified deployment path does not exist: {deployment_file_path}"
+            )
     else:
         raise ValueError(
             "Much specify either a path to a deployment or a known application."

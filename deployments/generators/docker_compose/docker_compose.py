@@ -63,7 +63,9 @@ def build_docker_compose_yml(max_participants: int) -> str:
     )
 
 
-def build_agent_config(valory_app: str, node_id: int, number_of_agents: int, agent_vars: Dict) -> str:
+def build_agent_config(
+    valory_app: str, node_id: int, number_of_agents: int, agent_vars: Dict
+) -> str:
     """Build agent config."""
 
     return ABCI_NODE_TEMPLATE.format(

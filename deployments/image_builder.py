@@ -1,13 +1,37 @@
-import subprocess
-from pathlib import Path
+# -*- coding: utf-8 -*-
+# ------------------------------------------------------------------------------
+#
+#   Copyright 2022 Valory AG
+#
+#   Licensed under the Apache License, Version 2.0 (the "License");
+#   you may not use this file except in compliance with the License.
+#   You may obtain a copy of the License at
+#
+#       http://www.apache.org/licenses/LICENSE-2.0
+#
+#   Unless required by applicable law or agreed to in writing, software
+#   distributed under the License is distributed on an "AS IS" BASIS,
+#   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#   See the License for the specific language governing permissions and
+#   limitations under the License.
+#
+# ------------------------------------------------------------------------------
+
+"""Image building."""
+
 import os
 import shutil
-from deployments.create_deployment import validate_deployment_spec_path
+import subprocess  # nosec
+from pathlib import Path
 from typing import Optional
+
 import yaml
 from aea.configurations.utils import PublicId
 
-class ImageBuilder(object):
+from deployments.create_deployment import validate_deployment_spec_path
+
+
+class ImageBuilder:
     """Class to build images using skaffold."""
 
     _process: None
@@ -45,15 +69,15 @@ class ImageBuilder(object):
         )
 
     @staticmethod
-    def _get_aea_agent(deployment_file_path: str, valory_application: str) -> None:
-        """validate and retrieve aea agent from spec."""
+    def get_aea_agent(deployment_file_path: str, valory_application: str) -> str:
+        """Validate and retrieve aea agent from spec."""
         deploy_path = Path(
             validate_deployment_spec_path(
                 deployment_file_path=deployment_file_path,
                 valory_application=valory_application,
             )
         )
-        with open(deploy_path, "r") as stream:
+        with open(deploy_path, "r", encoding="utf-8") as stream:
             deployment_spec = yaml.safe_load_all(stream)
             agent = list(deployment_spec)[0]["agent"]
         return agent
@@ -65,7 +89,7 @@ class ImageBuilder(object):
         valory_application: Optional[str],
         push: bool = False,
     ):
-        """"""
-        aea_agent = self._get_aea_agent(deployment_file_path, valory_application)
+        """Build images using the subprocess."""
+        aea_agent = self.get_aea_agent(deployment_file_path, valory_application)
         self._copy_packages()
         self._build(aea_agent, profile, push)
