@@ -255,6 +255,23 @@ build-images:
 	python deployments/click_create.py build-images --deployment-file-path ${DEPLOYMENT_SPEC} --profile prod && exit 0
 	exit 1
 
+.ONESHELL: push-images
+push-images:
+	sudo make clean
+	if [ "${VERSION}" = "" ];\
+	then\
+		echo "Ensure you have exported a version to build!";\
+		exit 1
+	fi
+	if [ "${VERSION}" = "dev" ];\
+	then\
+		echo "building dev images!";\
+	 	python deployments/click_create.py build-images --deployment-file-path ${DEPLOYMENT_SPEC} --profile dev --push && exit 0
+		exit 1
+	fi
+	python deployments/click_create.py build-images --deployment-file-path ${DEPLOYMENT_SPEC} --profile prod --push && exit 0
+	exit 1
+
 .PHONY: run-hardhat
 run-hardhat:
 	docker run -p 8545:8545 -it valory/consensus-algorithms-hardhat:0.1.0
@@ -278,7 +295,7 @@ run-oracle-dev:
 	fi
 	export VERSION=dev
 	make build-images && \
-     	python deployments/click_create.py build-deployment --deployment-file-path ${DEPLOYMENT_SPEC} --deployment-type docker-compose --configure-tendermint && \
+     	python deployments/click_create.py build-deployment --valory-app oracle --deployment-type docker-compose --configure-tendermint && \
      	make run-deploy
 
 .PHONY: run-oracle
@@ -310,6 +327,9 @@ run-deployment:
 	if [ "${DEPLOYMENT_TYPE}" = "kubernetes" ];\
 	then\
 		kubectl create ns ${VERSION}
+		kubectl create secret generic regcred \
+          --from-file=.dockerconfigjson=/home/$(shell whoami)/.docker/config.json \
+          --type=kubernetes.io/dockerconfigjson -n ${VERSION}
 		cd deployments/build/ && \
 		kubectl apply -f build.yaml -n ${VERSION} && exit 0
 	fi

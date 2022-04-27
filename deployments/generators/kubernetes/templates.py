@@ -183,7 +183,6 @@ spec:
       - name: node{validator_ix}
         image: valory/consensus-algorithms-tendermint:%s
         imagePullPolicy: Always
-        restart: always
         resources:
           limits:
             memory: "1512Mi"
@@ -216,7 +215,7 @@ spec:
             name: build
 
       - name: aea
-        image: valory/consensus-algorithms-open-aea:%s
+        image: valory/consensus-algorithms-open-aea:{valory_app}V%s
         imagePullPolicy: Always
         resources:
           limits:
