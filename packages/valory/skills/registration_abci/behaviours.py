@@ -19,11 +19,13 @@
 
 """This module contains the behaviours for the 'abci' skill."""
 import json
-from typing import Dict, Generator, List, Optional, Set, Type, Union, cast
+from typing import Iterable, Dict, Generator, List, Optional, Set, Type, Union, cast
+import collections
 
 from packages.valory.contracts.service_registry.contract import ServiceRegistryContract
 from packages.valory.protocols.contract_api import ContractApiMessage
 from packages.valory.protocols.tendermint import TendermintMessage
+from packages.valory.skills.abstract_round_abci.behaviour_utils import TimeoutException
 from packages.valory.skills.abstract_round_abci.behaviours import (
     AbstractRoundBehaviour,
     BaseState,
@@ -50,6 +52,13 @@ TendermintParams = Dict[
         Optional[str],  # home
     ],
 ]
+
+TENDERMINT_CALLBACK_RESPONSE_TIMEOUT = 1
+
+
+def consume(iterator: Iterable) -> None:
+    """Consume the iterator"""
+    collections.deque(iterator, maxlen=0)
 
 
 class RegistrationBaseBehaviour(BaseState):
@@ -88,7 +97,6 @@ class RegistrationStartupBehaviour(RegistrationBaseBehaviour):
 
     state_id = "registration_startup"
     matching_round = RegistrationStartupRound
-    collected: Dict[str, str] = dict()
     local_tendermint_params: Optional[TendermintParams] = None
     ENCODING: str = "utf-8"
 
@@ -98,9 +106,20 @@ class RegistrationStartupBehaviour(RegistrationBaseBehaviour):
         return self.period_state.db.initial_data.get("registered_addresses", {})
 
     @property
+    def not_yet_collected(self) -> List[str]:
+        if "registered_addresses" not in self.period_state.db.initial_data:
+            raise RuntimeError("Must collect addresses from service registry first")
+        return [k for k, v in self.registered_addresses.items() if not v]
+
+    @property
     def tendermint_parameter_url(self) -> str:
         """Tendermint URL for obtaining and updating parameters"""
         return f"{self.params.tendermint_com_url}/params"
+
+    @property
+    def tendermint_start_url(self) -> str:
+        """Tendermint URL for obtaining and updating parameters"""
+        return f"{self.params.tendermint_com_url}/start"
 
     def is_correct_contract(self) -> Generator[None, None, bool]:
         """Contract deployment verification."""
@@ -112,8 +131,9 @@ class RegistrationStartupBehaviour(RegistrationBaseBehaviour):
             contract_id=str(ServiceRegistryContract.contract_id),
             contract_callable="verify_contract",
         )
-        if contract_api_response.performative != performative:
-            self.context.logger.warning("`verify_contract` call unsuccessful!")
+        self.context.logger.info("Service info could not be retrieved")
+        if contract_api_response.performative != ContractApiMessage.Performative.STATE:
+            self.context.logger.info("`verify_contract` call unsuccessful!")
             return False
         return cast(bool, contract_api_response.state.body["verified"])
 
@@ -128,10 +148,10 @@ class RegistrationStartupBehaviour(RegistrationBaseBehaviour):
             contract_callable="get_service_info",
             service_id=self.params.on_chain_service_id,
         )
-        if contract_api_response.performative != performative:
-            self.context.logger.warning("get_service_info unsuccessful!")
+        if contract_api_response.performative != ContractApiMessage.Performative.STATE:
+            self.context.logger.info("get_service_info unsuccessful!")
             return {}
-        return cast(dict, contract_api_response.state.body["verified"])
+        return cast(dict, contract_api_response.state.body["info"])
 
     def get_addresses(self) -> Generator[None, None, bool]:
         """Get addresses of agents registered for the service"""
@@ -139,9 +159,9 @@ class RegistrationStartupBehaviour(RegistrationBaseBehaviour):
         if self.params.service_registry_address is None:
             raise RuntimeError("Service registry contract address not provided")
 
-        is_deployed = yield from self.is_correct_contract()
-        if not is_deployed:
-            self.context.logger.info("Service registry contract not deployed")
+        correctly_deployed = yield from self.is_correct_contract()
+        if not correctly_deployed:
+            self.context.logger.info("Service registry contract not deployed or incorrect")
             return False
 
         # checks if service exists
@@ -159,33 +179,18 @@ class RegistrationStartupBehaviour(RegistrationBaseBehaviour):
 
         my_address = self.context.agent_address
         if my_address not in registered_addresses:
-            log_msg = f"You ({my_address}) are not registered:\n{service_info}"
+            log_msg = f"You are not registered:\n{service_info}"
             self.context.logger.info(log_msg)
             return False
 
         # setup storage for collected tendermint configuration info
         info: Dict[str, str] = dict.fromkeys(registered_addresses)
-        info[self.context.agent_address] = self.context.params.tendermint_url
+        info[self.context.agent_address] = self.context.params.tendermint_url  # TODO
 
         self.period_state.db.initial_data.update(dict(registered_addresses=info))
         log_msg = "Registered addresses retrieved from service registry contract"
         self.context.logger.info(log_msg)
         return True
-
-    def make_tendermint_request(self, address: str) -> None:
-        """Make Tendermint callback request"""
-
-        dialogues = cast(TendermintDialogues, self.context.tendermint_dialogues)
-        performative = TendermintMessage.Performative.REQUEST
-        message, dialogue = dialogues.create(
-            counterparty=address, performative=performative
-        )
-        message = cast(TendermintMessage, message)
-        dialogue = cast(TendermintDialogue, dialogue)
-        self.context.outbox.put_message(message=message)
-        nonce = self._get_request_nonce_from_dialogue(dialogue)
-        requests = cast(Requests, self.context.requests)
-        requests.request_id_to_callback[nonce] = self.get_callback_request()
 
     def get_tendermint_configuration(self) -> Generator[None, None, bool]:
         """Make HTTP GET request to obtain agent's local Tendermint node parameters"""
@@ -199,7 +204,28 @@ class RegistrationStartupBehaviour(RegistrationBaseBehaviour):
             self.context.logger.info("Local Tendermint configuration obtained")
             return True
         except json.JSONDecodeError:
-            self.context.logger.info("Error communicating with Tendermint server")
+            self.context.logger.error("Error communicating with Tendermint server on get_tendermint_configuration")
+            return False
+
+    def get_tendermint_response(self, address: str) -> Generator[None, None, bool]:
+        """Get Tendermint response"""
+
+        dialogues = cast(TendermintDialogues, self.context.tendermint_dialogues)
+        performative = TendermintMessage.Performative.REQUEST
+        message, dialogue = dialogues.create(
+            counterparty=address, performative=performative
+        )
+        message = cast(TendermintMessage, message)
+        dialogue = cast(TendermintDialogue, dialogue)
+        self.context.outbox.put_message(message=message)
+        nonce = self._get_request_nonce_from_dialogue(dialogue)
+        requests = cast(Requests, self.context.requests)
+        requests.request_id_to_callback[nonce] = self.get_callback_request()
+        try:
+            timeout = TENDERMINT_CALLBACK_RESPONSE_TIMEOUT
+            yield from self.wait_for_message(timeout=timeout)
+            return True
+        except TimeoutException:
             return False
 
     def update_tendermint_configuration(self) -> Generator[None, None, bool]:
@@ -208,38 +234,32 @@ class RegistrationStartupBehaviour(RegistrationBaseBehaviour):
         url = self.tendermint_parameter_url
         params = cast(TendermintParams, self.local_tendermint_params)
         params["p2p_seeds"] = list(self.registered_addresses.values())
-        content = str(params).encode(self.ENCODING)
+        content = json.dumps(params).encode(self.ENCODING)
         message, dialogue = self._build_http_request_message(
-            method="POST", url=url, content=content
+            method="POST", url=url, content=content,
         )
         result = yield from self._do_request(message, dialogue)
         try:
             response = json.loads(result.body.decode())
-            self.context.logger.info("Local TendermintNode started")
-            return response["status"] == 200
+            self.context.logger.info(f"Local TendermintNode updated: {response}")
+            return True
         except json.JSONDecodeError:
-            self.context.logger.info("Error communicating with tendermint server")
+            self.context.logger.info(f"Error communicating with Tendermint server on update_tendermint_configuration")
             return False
 
     def start_tendermint(self) -> Generator[None, None, bool]:
         """Start up local Tendermint node"""
 
-        url = self.params.tendermint_com_url + "/start"
+        url = self.tendermint_start_url
         message, dialogue = self._build_http_request_message("GET", url)
         result = yield from self._do_request(message, dialogue)
         try:
             response = json.loads(result.body.decode())
-            if response.get("status") == 200:
-                self.context.logger.info(response.get("message"))
-                return True
-            error_message = f"Error starting Tendermint: {response}"
-            self.context.logger.error(error_message)
-            yield from self.sleep(self.params.sleep_time)
-            return False
+            self.context.logger.info(f"Tendermint node started: {response}")
+            return True
         except json.JSONDecodeError:
-            error_message = "Error communicating with Tendermint server"
+            error_message = "Error communicating with Tendermint server on start_tendermint"
             self.context.logger.error(error_message)
-            yield from self.sleep(self.params.sleep_time)
             return False
 
     def async_act(self) -> Generator:
@@ -252,23 +272,26 @@ class RegistrationStartupBehaviour(RegistrationBaseBehaviour):
                 yield from self.sleep(self.params.sleep_time)
                 return
 
-        # make service registry calls
+        # make service registry call
         if not self.registered_addresses:
             successful = yield from self.get_addresses()
             if not successful:
                 yield from self.sleep(self.params.sleep_time)
                 return
 
-        # request tendermint config information from all agents
-        not_yet_collected = set(self.registered_addresses).difference(self.collected)
-        any(map(self.make_tendermint_request, not_yet_collected))  # consume
+        # collect Tendermint config information  # TODO: concurrent
+        for address in self.not_yet_collected:
+            yield from self.get_tendermint_response(address)
 
-        # if not complete, continue collecting next async_act call
-        if set(self.registered_addresses).difference(self.collected):
+        if not any(self.not_yet_collected):
+            self.context.logger.info("Completed collecting Tendermint responses")
+        else:
+            missing = sorted(self.not_yet_collected)
+            self.context.logger.info(f"Still missing info on: {missing}")
             yield from self.sleep(self.params.sleep_time)
             return
 
-        # all information collected, update configuration
+        # update Tendermint configuration
         successful = yield from self.update_tendermint_configuration()
         if not successful:
             yield from self.sleep(self.params.sleep_time)

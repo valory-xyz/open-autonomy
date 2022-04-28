@@ -50,7 +50,7 @@ from packages.valory.skills.abstract_round_abci.behaviours import (
     AbstractRoundBehaviour,
     BaseState,
 )
-from packages.valory.skills.price_estimation_abci.handlers import (
+from packages.valory.skills.abstract_round_abci.handlers import (
     ContractApiHandler,
     HttpHandler,
     LedgerApiHandler,

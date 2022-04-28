@@ -471,6 +471,24 @@ class TendermintHandler(Handler):
         else:
             self.context.logger.info(f"Performative not recognized: {message}")
 
+        nonce = dialogue.dialogue_label.dialogue_reference[0]
+        ctx_requests = cast(Requests, self.context.requests)
+
+        try:
+            callback = cast(
+                Callable,
+                ctx_requests.request_id_to_callback.pop(nonce),
+            )
+        except KeyError as e:
+            raise ABCIAppInternalError(
+                f"No callback defined for request with nonce: {nonce}"
+            ) from e
+
+        current_state = cast(
+            AbstractRoundBehaviour, self.context.behaviours.main
+        ).current_state
+        callback(message, current_state)
+
     def _reply_with_tendermint_error(
         self,
         message: TendermintMessage,
@@ -483,7 +501,7 @@ class TendermintHandler(Handler):
             target_message=message,
             error_code=TendermintMessage.ErrorCode.INVALID_REQUEST,
             error_msg=error_message,
-            info={"message": message.encode()},
+            error_data={"message": message.encode()},
         )
         self.context.outbox.put_message(response)
         log_message = f"Error response sent\nreceived: {message}\nsent: {response}"
@@ -528,6 +546,7 @@ class TendermintHandler(Handler):
             ipaddress.ip_network(parse_result.hostname)
         except ValueError as e:
             error_message = f"Failed to parse Tendermint address: {e}"
+            self.context.logger.info(f"Invalid response: {error_message}\n{message}")
             self._reply_with_tendermint_error(message, dialogue, error_message)
             return
 
