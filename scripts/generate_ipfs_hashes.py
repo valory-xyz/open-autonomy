@@ -89,7 +89,10 @@ def _get_all_packages(vendor: str = "") -> List[Tuple[PackageType, Path]]:
     packages = list(
         map(
             package_type_and_path,
-            filter(operator.methodcaller("is_dir"), Path("packages").glob("*/*/*/")),
+            filter(
+                lambda x: x.is_dir() and x.parent.name != "services",
+                Path("packages").glob("*/*/*/"),
+            ),
         )
     )
 
