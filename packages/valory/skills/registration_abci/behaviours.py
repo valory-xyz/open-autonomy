@@ -106,7 +106,7 @@ class RegistrationStartupBehaviour(RegistrationBaseBehaviour):
         return self.period_state.db.initial_data.get("registered_addresses", {})
 
     @property
-    def not_yet_collected(self) -> Generator:
+    def not_yet_collected(self) -> List[str]:
         if "registered_addresses" not in self.period_state.db.initial_data:
             raise RuntimeError("Must collect addresses from service registry first")
         return [k for k, v in self.registered_addresses.items() if not v]

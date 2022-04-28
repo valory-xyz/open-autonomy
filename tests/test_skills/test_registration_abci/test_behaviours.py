@@ -31,7 +31,6 @@ from aea.exceptions import AEAActException
 from packages.valory.skills.abstract_round_abci.base import StateDB
 from packages.valory.skills.abstract_round_abci.behaviour_utils import (
     BaseState,
-    BaseParams,
     make_degenerate_state,
 )
 from packages.valory.skills.registration_abci.behaviours import (
@@ -389,8 +388,6 @@ class TestRegistrationStartupBehaviour(RegistrationAbciBaseCase):
 
             assert not any(self.state.not_yet_collected)
             assert "Completed collecting Tendermint responses" in caplog.text
-            # assert any(self.state.not_yet_collected)
-            # assert "Still missing info on: " in caplog.text
 
     @pytest.mark.parametrize(
         "valid_response, log_message",
