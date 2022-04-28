@@ -24,10 +24,10 @@ import shutil
 from pathlib import Path
 
 import click
-
+from aea.cli.utils.click_utils import PublicIdParameter
 from aea.configurations.constants import PACKAGES
 from aea.configurations.data_types import PublicId
-from aea.cli.utils.click_utils import PublicIdParameter
+
 from aea_swarm.deploy.build import generate_deployment
 from aea_swarm.deploy.generators.docker_compose.base import DockerComposeGenerator
 from aea_swarm.deploy.generators.kubernetes.base import KubernetesGenerator

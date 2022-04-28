@@ -18,7 +18,6 @@
 # ------------------------------------------------------------------------------
 
 """Docker-compose Deployment Generator."""
-import os
 from pathlib import Path
 from typing import Dict, Type
 
