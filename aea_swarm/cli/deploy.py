@@ -25,7 +25,9 @@ from pathlib import Path
 
 import click
 
-from aea_swarm.constants import PACKAGE_FOLDER
+from aea.configurations.constants import PACKAGES
+from aea.configurations.data_types import PublicId
+from aea.cli.utils.click_utils import PublicIdParameter
 from aea_swarm.deploy.build import generate_deployment
 from aea_swarm.deploy.generators.docker_compose.base import DockerComposeGenerator
 from aea_swarm.deploy.generators.kubernetes.base import KubernetesGenerator
@@ -38,8 +40,8 @@ def deploy_group() -> None:
 
 @deploy_group.command(name="build")
 @click.argument(
-    "deployment-file-path",
-    type=click.Path(exists=True, file_okay=True, dir_okay=False),
+    "service-id",
+    type=PublicIdParameter(),
 )
 @click.argument("keys_file", type=str, required=True)
 @click.option(
@@ -65,7 +67,7 @@ def deploy_group() -> None:
 @click.option(
     "--package-dir",
     type=click.Path(exists=False, dir_okay=True),
-    default=Path.cwd() / PACKAGE_FOLDER,
+    default=Path.cwd() / PACKAGES,
     help="Path to packages folder (For local usage).",
 )
 @click.option(
@@ -83,7 +85,7 @@ def deploy_group() -> None:
     help="Remove existing build and overwrite with new one.",
 )
 def build_deployment(
-    deployment_file_path: Path,
+    service_id: PublicId,
     keys_file: Path,
     deployment_type: str,
     output_dir: Path,
@@ -109,6 +111,7 @@ def build_deployment(
     build_dir.mkdir()
     _build_dirs(build_dir)
 
+    deployment_file_path = _find_path_to_service_file(service_id, package_dir)
     try:
         report = generate_deployment(
             type_of_deployment=deployment_type,
@@ -120,6 +123,17 @@ def build_deployment(
         click.echo(report)
     except ValueError as e:
         raise click.ClickException(str(e)) from e
+
+
+def _find_path_to_service_file(public_id: PublicId, package_dir: Path) -> Path:
+    """Find path to service file using package dir."""
+    service_file = (
+        package_dir / public_id.author / "services" / public_id.name / "service.yaml"
+    )
+    if not service_file.is_file():
+        raise click.ClickException(f"Cannot find service file for {public_id}")
+
+    return service_file
 
 
 def _build_dirs(build_dir: Path) -> None:
