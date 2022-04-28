@@ -17,6 +17,9 @@ build:
 
   - image: valory/consensus-algorithms-tendermint
     context: deployments/Dockerfiles/localnode/
+    docker:
+      dockerfile: Dockerfile
+
 
   - image: valory/consensus-algorithms-hardhat
     context: deployments/Dockerfiles/hardhat
@@ -43,4 +46,7 @@ profiles:
         value: Dockerfile.develop
       - op: add
         path: /build/artifacts/0/docker/cliFlags
+        value: ["--no-cache", "--pull", "--force-rm"]
+      - op: add
+        path: /build/artifacts/1/docker/cliFlags
         value: ["--no-cache", "--pull", "--force-rm"]
