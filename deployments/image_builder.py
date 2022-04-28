@@ -48,7 +48,10 @@ class ImageBuilder:
         agent_id = PublicId.from_str(aea_agent)
         env["AEA_AGENT"] = aea_agent
         env["VERSION"] = f"{agent_id.name}V{env['VERSION']}"
-        skaffold_profile = "prod" if profile != "dev" else profile
+        if profile in ["cluster", "dev"]:
+            skaffold_profile = profile
+        else:
+            skaffold_profile = "prod"
         cmd = f"skaffold build --build-concurrency={build_concurrency} --push={'true' if push else 'false'} -p {skaffold_profile}"
         self._process = (
             subprocess.Popen(  # nosec # pylint: disable=consider-using-with,W1509
