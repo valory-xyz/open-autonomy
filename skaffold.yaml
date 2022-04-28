@@ -12,7 +12,7 @@ build:
     docker:
       dockerfile: Dockerfile
       buildArgs:
-        AEA_VERSION: "0.1.6"
+        AEA_VERSION: "0.1.7"
         AEA_AGENT: "{{.AEA_AGENT}}"
 
   - image: valory/consensus-algorithms-tendermint
@@ -31,7 +31,7 @@ profiles:
         path: /build/artifacts/0/kaniko
         value: 
           buildArgs:
-            AEA_VERSION: "0.1.6"
+            AEA_VERSION: "0.1.7"
             AEA_AGENT: "{{.AEA_AGENT}}"
       - op: add
         path: /build/cluster
