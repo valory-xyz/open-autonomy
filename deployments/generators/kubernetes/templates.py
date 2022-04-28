@@ -99,7 +99,7 @@ spec:
       - name: regcred
       containers:
       - name: config-nodes
-        image: valory/consensus-algorithms-tendermint:%s
+        image: valory/consensus-algorithms-tendermint:{valory_app}V%s
         command: ['/usr/bin/tendermint']
         args: ["testnet",
          "--config",
