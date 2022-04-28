@@ -23,7 +23,7 @@ Commands:
 ```
 $ swarm deploy build --help
 
-Usage: swarm deploy build [OPTIONS] DEPLOYMENT_FILE_PATH KEYS_FILE
+Usage: swarm deploy build [OPTIONS] PUBLIC_ID KEYS_FILE
 
   Build the agent and its components.
 
@@ -41,7 +41,7 @@ To create an environment you'll need a deployment specefications file and a file
 
 ```
 # create a docker deployment
-$ swarm deploy build deployments/deployment_specifications/oracle_hardhat.yaml deployments/keys/hardhat_keys.json
+$ swarm deploy build valory/oracle_hardhat deployments/keys/hardhat_keys.json
 ```
 
 This will create a deployment environment with following directory structure
@@ -68,3 +68,4 @@ abci_build/
 ```
 
 To run this deployment go to the `abci_build` and run `docker-compose up`.
+
