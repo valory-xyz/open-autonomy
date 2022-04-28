@@ -470,6 +470,7 @@ class TendermintHandler(Handler):
             self._handle_error(message, dialogue)
         else:
             self.context.logger.info(f"Performative not recognized: {message}")
+            return
 
         nonce = dialogue.dialogue_label.dialogue_reference[0]
         ctx_requests = cast(Requests, self.context.requests)
@@ -514,11 +515,13 @@ class TendermintHandler(Handler):
 
         if not self.registered_addresses:
             error_message = "No registered addresses retrieved yet"
+            self.context.logger.info(error_message)
             self._reply_with_tendermint_error(message, dialogue, error_message)
             return
 
         if message.sender not in self.registered_addresses:
             error_message = "Sender not registered for on-chain service"
+            self.context.logger.info(error_message)
             self._reply_with_tendermint_error(message, dialogue, error_message)
             return
 
@@ -537,7 +540,8 @@ class TendermintHandler(Handler):
         """Process Tendermint response messages"""
 
         if message.sender not in self.registered_addresses:
-            error_message = "Request from agent not registered on-chain"
+            error_message = "Response from agent not registered on-chain"
+            self.context.logger.info(f"Invalid response: {error_message}\n{message}")
             self._reply_with_tendermint_error(message, dialogue, error_message)
             return
 
