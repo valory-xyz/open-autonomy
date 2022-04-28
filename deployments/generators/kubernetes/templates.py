@@ -230,9 +230,9 @@ spec:
           - name: CLUSTERED
             value: "1"
           - name: LOG_FILE
-            value: "/home/ubuntu/logs/aea_{validator_ix}.txt"
+            value: "/logs/aea_{validator_ix}.txt"
         volumeMounts:
-          - mountPath: /home/ubuntu/logs
+          - mountPath: /logs
             name: persistent-data
           - mountPath: /build
             name: build
