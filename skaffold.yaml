@@ -29,10 +29,16 @@ profiles:
     patches:
       - op: add
         path: /build/artifacts/0/kaniko
-        value: {}
+        value: 
+          buildArgs:
+            AEA_VERSION: "0.1.6"
+            AEA_AGENT: "{{.AEA_AGENT}}"
       - op: add
         path: /build/cluster
-        value: {}
+        value:
+          pullSecretName: regcred
+          dockerConfig:
+            path: ~/.docker/config.json
       - op: remove
         path: /build/artifacts/1
       - op: remove
