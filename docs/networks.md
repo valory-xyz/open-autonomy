@@ -24,7 +24,7 @@ a local Hardhat node as our target chain, with its default id.
 ## Ledger configuration for tests
 Tests that make calls to a chain usually inherit from `BaseContractTest`, located at
 `/tests/test_contracts/base.py`. That class defines the `_setup_class` method that overrides
-the ledger's connection configuration:
+the `valory/ledger` connection's configuration:
 ```
 new_config = {
     "address": url,
