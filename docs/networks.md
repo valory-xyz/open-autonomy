@@ -1,7 +1,7 @@
 # Running agents and tests against different networks
 
 Sometimes agents and tests need to be run on specific networks. In the case of Ethereum,
-you might want to use developer environments like Hardhad or Ganache as your testbed, but at some point you will also require running on top of a testnet like Ropsten or, ultimately, the main chain.
+you might want to use developer environments like Hardhat or Ganache as your testbed, but at some point you will also require running on top of a public testnet like Ropsten or, ultimately, the main chain.
 
 To switch chains, you will first need to edit your chain configuration, as well as verify that
 the relevant addresses that come into play are funded. After that, the ledger configuration
