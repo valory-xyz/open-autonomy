@@ -84,7 +84,7 @@ def deploy_group() -> None:
     default=False,
     help="Remove existing build and overwrite with new one.",
 )
-def build_deployment(
+def build_deployment(  # pylint: disable=too-many-arguments
     service_id: PublicId,
     keys_file: Path,
     deployment_type: str,
