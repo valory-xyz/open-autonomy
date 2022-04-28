@@ -44,7 +44,7 @@ class KubernetesGenerator(BaseDeploymentGenerator):
     ) -> None:
         """Initialise the deployment generator."""
         super().__init__(deployment_spec)
-        self.image_name = None
+        self.image_name: str = ""
         self.output = ""
         self.resources: List[str] = []
 
