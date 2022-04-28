@@ -19,11 +19,11 @@
 
 """Deployment Templates."""
 
-from deployments.constants import IMAGE_VERSION
+from aea_swarm.deploy.constants import IMAGE_VERSION
 
 
 TENDERMINT_CONFIG_TEMPLATE: str = (
-    """docker run --rm -v $(pwd)/deployments/build/build:/tendermint:Z \
+    """docker run --rm -v {build_dir}/nodes:/tendermint:Z \
 --entrypoint=/usr/bin/tendermint \
 valory/consensus-algorithms-tendermint:%s  \
     testnet \
@@ -80,8 +80,8 @@ TENDERMINT_NODE_TEMPLATE: str = (
       - DEV_MODE=0
       - LOG_FILE=/logs/node_{node_id}.txt
     volumes:
-      - ./build:/tendermint:Z
-      - ../persistent_data/logs:/logs:Z
+      - ./nodes:/tendermint:Z
+      - ./persistent_data/logs:/logs:Z
     working_dir: /tendermint
     command: ["run", "--no-reload", "--host=0.0.0.0", "--port=8080",]
     depends_on:
@@ -109,7 +109,7 @@ ABCI_NODE_TEMPLATE: str = (
       localnet:
         ipv4_address: 192.167.11.{localnet_address_postfix}
     volumes:
-      - ../persistent_data/logs:/home/ubuntu/logs:Z
+      - ./persistent_data/logs:/home/ubuntu/logs:Z
 """
     % IMAGE_VERSION
 )

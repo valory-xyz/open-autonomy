@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021 Valory AG
+#   Copyright 2021-2022 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -20,13 +20,14 @@
 
 """Script to create environment for benchmarking n agents."""
 
+from pathlib import Path
 from typing import Any, Dict, List, Type
 
 import yaml
 
-from deployments.base_deployments import BaseDeployment, BaseDeploymentGenerator
-from deployments.constants import TENDERMINT_CONFIGURATION_OVERRIDES
-from deployments.generators.kubernetes.templates import (
+from aea_swarm.deploy.base import BaseDeployment, BaseDeploymentGenerator
+from aea_swarm.deploy.constants import TENDERMINT_CONFIGURATION_OVERRIDES
+from aea_swarm.deploy.generators.kubernetes.templates import (
     AGENT_NODE_TEMPLATE,
     CLUSTER_CONFIGURATION_TEMPLATE,
 )
@@ -38,12 +39,9 @@ class KubernetesGenerator(BaseDeploymentGenerator):
     output_name = "build.yaml"
     deployment_type = "kubernetes"
 
-    def __init__(
-        self,
-        deployment_spec: BaseDeployment,
-    ) -> None:
+    def __init__(self, deployment_spec: BaseDeployment, build_dir: Path) -> None:
         """Initialise the deployment generator."""
-        super().__init__(deployment_spec)
+        super().__init__(deployment_spec, build_dir)
         self.output = ""
         self.resources: List[str] = []
 
@@ -90,6 +88,7 @@ class KubernetesGenerator(BaseDeploymentGenerator):
             number_of_validators=valory_application.number_of_agents,
             host_names=host_names,
         )
+        self.write_config(config_job_yaml)
         return config_job_yaml
 
     def _apply_cluster_specific_tendermint_params(  # pylint: disable= no-self-use
@@ -128,8 +127,8 @@ class KubernetesGenerator(BaseDeploymentGenerator):
         else:
             output = "---\n".join([self.output, configure_tendermint_resource])
 
-        if not self.config_dir.is_dir():
-            self.config_dir.mkdir()
+        if not self.build_dir.is_dir():
+            self.build_dir.mkdir()
 
-        with open(self.config_dir / self.output_name, "w", encoding="utf8") as f:
+        with open(self.build_dir / self.output_name, "w", encoding="utf8") as f:
             f.write(output)

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021 Valory AG
+#   Copyright 2021-2022 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -20,7 +20,6 @@
 """Constants for generating deployments environment."""
 import os
 import socket
-from pathlib import Path
 from string import Template
 from typing import Any, Dict
 
@@ -74,20 +73,12 @@ TENDERMINT_CONFIGURATION_OVERRIDES: Dict[str, Dict[str, Any]] = {
     }
 }
 
-ROOT_DIR = Path(os.getcwd())
-CONFIG_DIRECTORY = ROOT_DIR / "deployments" / "build"
-PACKAGES_DIRECTORY = ROOT_DIR / "packages"
-
-DEPLOYMENT_SPEC_DIR = ROOT_DIR / "deployments" / "deployment_specifications"
-
 DEPLOYMENT_REPORT: Template = Template(
     """
 Generated Deployment!\n\n
-Application:          $app
 Type:                 $type
 Agents:               $agents
 Network:              $network
 Build Length          $size\n\n
 """
 )
-DEFAULT_KEY_PATH = ROOT_DIR / "deployments" / "keys" / "hardhat_keys.json"

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021 Valory AG
+#   Copyright 2021-2022 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -20,11 +20,9 @@
 """Base deployments module."""
 import abc
 import json
-import os
 from copy import copy
 from logging import getLogger
 from pathlib import Path
-from shutil import rmtree
 from typing import Any, Dict, List, Tuple, Type
 
 import jsonschema
@@ -52,12 +50,8 @@ from aea.configurations.data_types import PublicId
 from aea.helpers.base import cd
 from aea.helpers.io import open_file
 
-from deployments.constants import (
-    CONFIG_DIRECTORY,
-    DEFAULT_KEY_PATH,
-    NETWORKS,
-    PACKAGES_DIRECTORY,
-)
+from aea_swarm.configurations.base import Files
+from aea_swarm.deploy.constants import NETWORKS
 
 
 COMPONENT_CONFIGS: Dict = {
@@ -271,25 +265,27 @@ class DeploymentConfigValidator(validation.ConfigValidator):
                     "All keys of list like override should be of type int."
                 )
             nums = set(field_override.keys())
-            assert len(nums) == len(
-                field_override.keys()
-            ), "Non-unique item in override"
-            assert (
-                len(nums) == self.deployment_spec["number_of_agents"]
-            ), "Not enough items in override"
-            assert nums == set(
-                range(0, self.deployment_spec["number_of_agents"])
-            ), "Overrides incorrectly indexed"
+
+            if len(nums) != len(field_override.keys()):
+                raise ValueError("Non-unique item in override")
+
+            if len(nums) != self.deployment_spec["number_of_agents"]:
+                raise ValueError("Not enough items in override")
+
+            if nums != set(range(0, self.deployment_spec["number_of_agents"])):
+                raise ValueError("Overrides incorrectly indexed")
+
             for override in field_override[component_index]:
                 for nested_override, nested_value in override.items():
                     for (
                         nested_override_key,
                         nested_override_value,
                     ) in nested_value.items():
-                        assert (
+                        if (
                             nested_override_key
-                            in config_class.NESTED_FIELDS_ALLOWED_TO_UPDATE  # type: ignore
-                        ), "Trying to override non-nested field."
+                            not in config_class.NESTED_FIELDS_ALLOWED_TO_UPDATE  # type: ignore
+                        ):
+                            raise ValueError("Trying to override non-nested field.")
 
                         env_var_name = "_".join(
                             [
@@ -314,16 +310,19 @@ class BaseDeployment:
     network: str
     number_of_agents: int
     private_keys: list
+    package_dir: Path
 
     def __init__(
         self,
         path_to_deployment_spec: str,
-        private_keys_file_path: Path = DEFAULT_KEY_PATH,
+        private_keys_file_path: Path,
+        package_dir: Path,
     ) -> None:
         """Initialize the Base Deployment."""
+        self.package_dir = package_dir
         self.overrides: list = []
         self.validator = DeploymentConfigValidator(
-            schema_filename="deployments/deployment_schema.json"
+            schema_filename=str(Files.deployment_schema)
         )
         with open(path_to_deployment_spec, "r", encoding="utf8") as file:
             for ix, document in enumerate(yaml.load_all(file, Loader=yaml.SafeLoader)):
@@ -343,8 +342,9 @@ class BaseDeployment:
         with open(str(file_path), "r", encoding="utf8") as f:
             keys = json.loads(f.read())
         for key in keys:
-            assert "address" in key.keys(), "Key file incorrectly formatted."
-            assert "private_key" in key.keys(), "Key file incorrectly formatted."
+            if "address" not in key.keys() and "private_key" not in key.keys():
+                raise ValueError("Key file incorrectly formatted.")
+
         self.private_keys = [f["private_key"] for f in keys]
 
     def _process_model_args_overrides(self, agent_n: int) -> Dict:
@@ -394,7 +394,7 @@ class BaseDeployment:
         if local_registry is False:
             raise ValueError("Remote registry not yet supported, use local!")
         source_path = try_get_item_source_path(
-            str(PACKAGES_DIRECTORY),
+            str(self.package_dir),
             self.agent_public_id.author,
             AGENTS,
             self.agent_public_id.name,
@@ -409,24 +409,15 @@ class BaseDeploymentGenerator:
     output_name: str
     old_wd: str
     deployment_type: str
+    build_dir: Path
 
-    def __init__(self, deployment_spec: BaseDeployment):
+    def __init__(self, deployment_spec: BaseDeployment, build_dir: Path):
         """Initialise with only kwargs."""
         self.network_config = NETWORKS[self.deployment_type][deployment_spec.network]
         self.deployment_spec = deployment_spec
-        self.config_dir = Path(CONFIG_DIRECTORY)
+        self.build_dir = Path(build_dir)
+
         self.output = ""
-
-    def setup(self) -> None:
-        """Set up the directory for the configuration to written to."""
-        self.old_wd = os.getcwd()
-        if self.config_dir.is_dir():
-            rmtree(str(self.config_dir))
-        self.config_dir.mkdir()
-
-    def teardown(self) -> None:
-        """Move back to original wd"""
-        os.chdir(self.old_wd)
 
     @abc.abstractmethod
     def generate(self, valory_application: Type[BaseDeployment]) -> str:
@@ -440,11 +431,7 @@ class BaseDeploymentGenerator:
 
     def write_config(self) -> None:
         """Write output to build dir"""
-
-        if not self.config_dir.is_dir():
-            self.config_dir.mkdir()
-
-        with open(self.config_dir / self.output_name, "w", encoding="utf8") as f:
+        with open(self.build_dir / self.output_name, "w", encoding="utf8") as f:
             f.write(self.output)
 
     def get_deployment_network_configuration(

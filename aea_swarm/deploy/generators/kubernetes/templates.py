@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021 Valory AG
+#   Copyright 2021-2022 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -19,7 +19,7 @@
 
 """Kubernetes Templates module."""
 
-from deployments.constants import IMAGE_VERSION
+from aea_swarm.deploy.constants import IMAGE_VERSION
 
 
 HARDHAT_TEMPLATE: str = (
@@ -109,7 +109,7 @@ spec:
          ]
         volumeMounts:
           - mountPath: /tendermint
-            name: build
+            name: nodes
       volumes:
         - name: build
           persistentVolumeClaim:
@@ -213,7 +213,7 @@ spec:
           - mountPath: /logs
             name: persistent-data
           - mountPath: /tendermint
-            name: build
+            name: nodes
 
       - name: aea
         image: valory/consensus-algorithms-open-aea:%s

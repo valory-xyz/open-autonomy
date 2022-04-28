@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021 Valory AG
+#   Copyright 2021-2022 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -18,11 +18,12 @@
 # ------------------------------------------------------------------------------
 
 """Docker-compose Deployment Generator."""
+import os
+from pathlib import Path
 from typing import Dict, Type
 
-from deployments import BaseDeployment, BaseDeploymentGenerator
-
-from .templates import (
+from aea_swarm.deploy.base import BaseDeployment, BaseDeploymentGenerator
+from aea_swarm.deploy.generators.docker_compose.templates import (
     ABCI_NODE_TEMPLATE,
     DOCKER_COMPOSE_TEMPLATE,
     TENDERMINT_CONFIG_TEMPLATE,
@@ -79,9 +80,9 @@ class DockerComposeGenerator(BaseDeploymentGenerator):
     output_name = "docker-compose.yaml"
     deployment_type = "docker-compose"
 
-    def __init__(self, deployment_spec: BaseDeployment) -> None:
+    def __init__(self, deployment_spec: BaseDeployment, build_dir: Path) -> None:
         """Initialise the deployment generator."""
-        super().__init__(deployment_spec)
+        super().__init__(deployment_spec, build_dir)
         self.output = ""
         self.config_cmd = ""
 
@@ -97,6 +98,7 @@ class DockerComposeGenerator(BaseDeploymentGenerator):
                 ]
             ),
             validators=self.deployment_spec.number_of_agents,
+            build_dir=self.build_dir,
         )
         self.config_cmd = " ".join(
             [
@@ -105,14 +107,14 @@ class DockerComposeGenerator(BaseDeploymentGenerator):
                 if f != ""
             ]
         )
+        print(os.popen(self.config_cmd).read())  # nosec
         return self.config_cmd
 
     def generate(self, valory_application: Type[BaseDeployment]) -> str:
         """Generate the new configuration."""
 
-        agent_vars = valory_application.generate_agents()  # type: ignore
+        agent_vars = self.deployment_spec.generate_agents()
         agent_vars = self.get_deployment_network_configuration(agent_vars)
-
         agents = "".join(
             [
                 build_agent_config(
@@ -127,7 +129,6 @@ class DockerComposeGenerator(BaseDeploymentGenerator):
                 for i in range(self.deployment_spec.number_of_agents)
             ]
         )
-
         self.output = DOCKER_COMPOSE_TEMPLATE.format(
             abci_nodes=agents,
             tendermint_nodes=tendermint_nodes,
