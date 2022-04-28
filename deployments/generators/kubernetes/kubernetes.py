@@ -92,6 +92,7 @@ class KubernetesGenerator(BaseDeploymentGenerator):
         )
 
         config_job_yaml = CLUSTER_CONFIGURATION_TEMPLATE.format(
+            valory_app=self.image_name,
             number_of_validators=valory_application.number_of_agents,
             host_names=host_names,
         )
@@ -107,15 +108,18 @@ class KubernetesGenerator(BaseDeploymentGenerator):
 
     def generate(self, valory_application: Type[BaseDeployment]) -> str:
         """Generate the deployment."""
-        self.resources.append(self.generate_config_tendermint(valory_application))
         agent_vars = valory_application.generate_agents()  # type:ignore
         agent_vars = self._apply_cluster_specific_tendermint_params(agent_vars)
         agent_vars = self.get_deployment_network_configuration(agent_vars)
-        image_name = valory_application.agent_public_id.name
+        self.image_name = valory_application.agent_public_id.name
+        self.resources.append(self.generate_config_tendermint(valory_application))
         agents = "\n---\n".join(
             [
                 self.build_agent_deployment(
-                    image_name, i, self.deployment_spec.number_of_agents, agent_vars[i]
+                    self.image_name,
+                    i,
+                    self.deployment_spec.number_of_agents,
+                    agent_vars[i],
                 )
                 for i in range(self.deployment_spec.number_of_agents)
             ]
