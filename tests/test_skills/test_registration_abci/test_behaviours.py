@@ -311,7 +311,7 @@ class TestRegistrationStartupBehaviour(RegistrationAbciBaseCase):
             assert log_message in caplog.text
 
     def test_service_registry_contract_not_deployed(self, caplog: LogCaptureFixture) -> None:
-        """Test service registry contract not deployed"""
+        """Test service registry contract not correctly deployed"""
 
         with as_context(
             caplog.at_level(logging.INFO, logger=self.logger),
@@ -321,7 +321,7 @@ class TestRegistrationStartupBehaviour(RegistrationAbciBaseCase):
             self.mock_get_local_tendermint_params()
             self.mock_is_correct_contract(error_response=True)
             assert "`verify_contract` call unsuccessful!" in caplog.text
-            assert "Service registry contract not deployed or incorrect" in caplog.text
+            assert "Service registry contract not correctly deployed" in caplog.text
 
     def test_get_service_info_failure(self, caplog: LogCaptureFixture) -> None:
         """Test get service info failure"""
@@ -423,7 +423,7 @@ class TestRegistrationStartupBehaviour(RegistrationAbciBaseCase):
         "valid_response, log_message",
         [
             (True, "Local TendermintNode updated: "),
-            (False, "Error communicating with Tendermint server on update_tendermint_configuration")
+            (False, "Error communicating with Tendermint server on update_tendermint")
         ]
     )
     def test_tendermint_config_update(self, valid_response: bool, log_message: str, caplog: LogCaptureFixture) -> None:

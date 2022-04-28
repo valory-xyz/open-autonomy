@@ -161,7 +161,7 @@ class RegistrationStartupBehaviour(RegistrationBaseBehaviour):
 
         correctly_deployed = yield from self.is_correct_contract()
         if not correctly_deployed:
-            self.context.logger.info("Service registry contract not deployed or incorrect")
+            self.context.logger.info("Service registry contract not correctly deployed")
             return False
 
         # checks if service exists
@@ -228,7 +228,7 @@ class RegistrationStartupBehaviour(RegistrationBaseBehaviour):
         except TimeoutException:
             return False
 
-    def update_tendermint_configuration(self) -> Generator[None, None, bool]:
+    def update_tendermint(self) -> Generator[None, None, bool]:
         """Make HTTP POST request to update agent's local Tendermint node"""
 
         url = self.tendermint_parameter_url
@@ -244,7 +244,7 @@ class RegistrationStartupBehaviour(RegistrationBaseBehaviour):
             self.context.logger.info(f"Local TendermintNode updated: {response}")
             return True
         except json.JSONDecodeError:
-            self.context.logger.info(f"Error communicating with Tendermint server on update_tendermint_configuration")
+            self.context.logger.info("Error communicating with Tendermint server on update_tendermint")
             return False
 
     def start_tendermint(self) -> Generator[None, None, bool]:
@@ -258,8 +258,7 @@ class RegistrationStartupBehaviour(RegistrationBaseBehaviour):
             self.context.logger.info(f"Tendermint node started: {response}")
             return True
         except json.JSONDecodeError:
-            error_message = "Error communicating with Tendermint server on start_tendermint"
-            self.context.logger.error(error_message)
+            self.context.logger.error("Error communicating with Tendermint server on start_tendermint")
             return False
 
     def async_act(self) -> Generator:
@@ -292,7 +291,7 @@ class RegistrationStartupBehaviour(RegistrationBaseBehaviour):
             return
 
         # update Tendermint configuration
-        successful = yield from self.update_tendermint_configuration()
+        successful = yield from self.update_tendermint()
         if not successful:
             yield from self.sleep(self.params.sleep_time)
             return
