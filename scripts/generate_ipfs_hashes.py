@@ -27,7 +27,6 @@ This script requires that you have IPFS installed:
 import argparse
 import collections
 import csv
-import operator
 import os
 import pprint
 import re
