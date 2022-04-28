@@ -5,6 +5,10 @@ agent: valory/oracle_deployable:0.1.0
 network: ropsten
 number_of_agents: 4
 ---
+benchmark_persistence_params: &benchmark_persistence_params
+  args:
+    log_dir: /benchmarking
+
 period_setup_args: &period_setup_args
   args:
     period_setup:
@@ -36,6 +40,8 @@ models:
         <<: *period_setup_args
     - server_api:
        <<: *monitoring_backend
+    - benchmark_tool:
+        <<: *benchmark_persistence_params
   1:
     - price_api:
         args:
@@ -52,6 +58,8 @@ models:
         <<: *period_setup_args
     - server_api:
        <<: *monitoring_backend
+    - benchmark_tool:
+        <<: *benchmark_persistence_params
   2:
     - price_api:
         args:
@@ -68,6 +76,8 @@ models:
         <<: *period_setup_args
     - server_api:
        <<: *monitoring_backend
+    - benchmark_tool:
+        <<: *benchmark_persistence_params
   3:
     - price_api:
         args:
@@ -84,3 +94,5 @@ models:
         <<: *period_setup_args
     - server_api:
        <<: *monitoring_backend
+    - benchmark_tool:
+        <<: *benchmark_persistence_params
