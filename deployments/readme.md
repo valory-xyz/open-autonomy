@@ -53,7 +53,7 @@ python deployments/click_create.py build-images \
     --profile $VERSION
 ```
 
-From this command, we receive the below output showing custom images being built and tagged for the specified valory app and version.
+From this command, we receive the below output showing custom images being built and tagged for the specified Valory app and version.
 
 ```bash
 ...
@@ -194,6 +194,8 @@ On any changes to components within both the packages directory or the open-aea 
 
 Without actually requiring a rebuild of the images!
 
+Developer mode will also store much more granular information allowing the developer to replay the application state.
+
 There are 2 ways of entering into an interactive development environment.
 
 The easiest, is to make use of the convenience commands;
@@ -212,7 +214,7 @@ The 2nd method is more manual and demonstrates the exact steps required to clean
 export VERSION=dev
 make build-images
 ```
-Images are built and tagged on an application by application basis. This is so that valory images are pre-installed with the necessary dependencies to allow fast start up in production.
+Images are built and tagged on an application by application basis. This is so that Valory images are pre-installed with the necessary dependencies to allow fast start up in production.
 
 This will build and tag the development Dockerfile in deployments/Dockerfiles.
 
@@ -235,8 +237,26 @@ To run the development deployment
 cd deployments/build
 docker-compose up --force-recreate
 ```
+# Logs 
 
+## Persistent in docker-compose
 
+By default, the logs from AEA's and their nodes are stored within;
+
+```bash
+ls deployments/persistent_data
+logs
+```
+
+When running the application in Development mode, the application will store additional data within the persistent data directory:
+```bash
+ls deployments/persistent_data
+benchmarking  logs  tm_state
+```
+
+- benchmarking - This directory contains benchmarking data from the running agents.
+- tm_state - This directory contains the tendermint message state from the running agents, allowing replay of the application.
+- 
 # Background info:
 
 File tree (from level `deployments/build/`):
