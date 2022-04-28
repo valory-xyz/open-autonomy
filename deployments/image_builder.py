@@ -64,6 +64,9 @@ class ImageBuilder:
         build_dir: str = "deployments/Dockerfiles/open_aea",
     ) -> None:
         """Copy packages for image building."""
+        build_package_dir = Path(build_dir) / "packages"
+        if build_package_dir.exists():
+            shutil.rmtree(build_package_dir)
         shutil.copytree(  # type: ignore # pylint: disable=E1123
             src=Path(package_dir), dst=Path(build_dir) / "packages", dirs_exist_ok=True
         )

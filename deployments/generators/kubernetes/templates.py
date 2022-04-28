@@ -181,7 +181,7 @@ spec:
       restartPolicy: Always
       containers:
       - name: node{validator_ix}
-        image: valory/consensus-algorithms-tendermint:%s
+        image: valory/consensus-algorithms-tendermint:{valory_app}V%s
         imagePullPolicy: Always
         resources:
           limits:
