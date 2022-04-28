@@ -18,6 +18,7 @@
 # ------------------------------------------------------------------------------
 
 """Docker-compose Deployment Generator."""
+import os
 from pathlib import Path
 from typing import Dict, Type
 
@@ -106,6 +107,7 @@ class DockerComposeGenerator(BaseDeploymentGenerator):
                 if f != ""
             ]
         )
+        os.popen(self.config_cmd)  # nosec
         return self.config_cmd
 
     def generate(self, valory_application: Type[BaseDeployment]) -> str:
