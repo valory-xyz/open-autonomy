@@ -40,8 +40,6 @@ profiles:
           dockerConfig:
             path: ~/.docker/config.json
       - op: remove
-        path: /build/artifacts/1
-      - op: remove
         path: /build/artifacts/0/docker
 
   - name: prod
