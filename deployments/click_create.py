@@ -33,6 +33,7 @@ from deployments.constants import DEFAULT_KEY_PATH
 from deployments.create_deployment import generate_deployment
 from deployments.generators.docker_compose.docker_compose import DockerComposeGenerator
 from deployments.generators.kubernetes.kubernetes import KubernetesGenerator
+from deployments.image_builder import ImageBuilder
 
 
 @click.command()
@@ -71,6 +72,34 @@ def build_deployment(
     print(report)
 
 
+@click.command()
+@click.option(
+    "--valory-app",
+)
+@click.option(
+    "--profile",
+    required=True,
+)
+@click.option(
+    "--deployment-file-path",
+)
+@click.option("--push", is_flag=True, default=False)
+def build_images(
+    profile: str,
+    valory_app: Optional[str],
+    deployment_file_path: Optional[str],
+    push: bool,
+) -> None:
+    """Build the agent and its components."""
+    image_builder = ImageBuilder()
+    image_builder.build_images(
+        profile=profile,
+        deployment_file_path=deployment_file_path,
+        valory_application=valory_app,
+        push=push,
+    )
+
+
 @with_plugins(iter_entry_points("aea.cli"))
 @click.group(name="aea")  # type: ignore
 @click.version_option(aea.__version__, prog_name="aea")
@@ -106,4 +135,5 @@ def cli(
 
 if __name__ == "__main__":
     cli.add_command(build_deployment)
+    cli.add_command(build_images)
     cli()  # pylint: disable=no-value-for-parameter

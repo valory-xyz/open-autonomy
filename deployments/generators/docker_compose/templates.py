@@ -102,15 +102,15 @@ ABCI_NODE_TEMPLATE: str = (
     mem_reservation: 256M
     cpus: 0.5
     container_name: abci{node_id}
-    image: "valory/consensus-algorithms-open-aea:%s"
+    image: "valory/consensus-algorithms-open-aea:{valory_app}V%s"
     environment:
-      - LOG_FILE=/home/ubuntu/logs/aea_{node_id}.txt
+      - LOG_FILE=/logs/aea_{node_id}.txt
 {agent_vars}
     networks:
       localnet:
         ipv4_address: 192.167.11.{localnet_address_postfix}
     volumes:
-      - ../persistent_data/logs:/home/ubuntu/logs:Z
+      - ../persistent_data/logs:/logs:Z
 """
     % IMAGE_VERSION
 )
@@ -118,9 +118,8 @@ ABCI_NODE_TEMPLATE: str = (
 if IMAGE_VERSION == "dev":
     ABCI_NODE_TEMPLATE += "      - ../../packages:/home/ubuntu/packages:rw\n"
     ABCI_NODE_TEMPLATE += "      - ../../../open-aea/:/open-aea\n"
-    TENDERMINT_NODE_TEMPLATE += (
-        "      - ../persistent_data/tm_state:/home/ubuntu/tm_state:Z"
-    )
+    ABCI_NODE_TEMPLATE += "      - ../persistent_data/benchmarking:/benchmarking:Z\n"
+    TENDERMINT_NODE_TEMPLATE += "      - ../persistent_data/tm_state:/tm_state:Z"
     TENDERMINT_NODE_TEMPLATE = TENDERMINT_NODE_TEMPLATE.replace(
         "DEV_MODE=0", "DEV_MODE=1"
     )

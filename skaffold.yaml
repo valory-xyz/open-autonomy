@@ -12,11 +12,14 @@ build:
     docker:
       dockerfile: Dockerfile
       buildArgs:
-        AEA_VERSION: "0.1.6"
-        AEA_AGENT: "valory/oracle_deployable:0.1.0"
+        AEA_VERSION: "0.1.7"
+        AEA_AGENT: "{{.AEA_AGENT}}"
 
   - image: valory/consensus-algorithms-tendermint
     context: deployments/Dockerfiles/localnode/
+    docker:
+      dockerfile: Dockerfile
+
 
   - image: valory/consensus-algorithms-hardhat
     context: deployments/Dockerfiles/hardhat
@@ -26,14 +29,20 @@ profiles:
     patches:
       - op: add
         path: /build/artifacts/0/kaniko
-        value: {}
+        value: 
+          buildArgs:
+            AEA_VERSION: "0.1.7"
+            AEA_AGENT: "{{.AEA_AGENT}}"
       - op: add
         path: /build/cluster
-        value: {}
-      - op: remove
-        path: /build/artifacts/1
+        value:
+          pullSecretName: regcred
+          dockerConfig:
+            path: ~/.docker/config.json
       - op: remove
         path: /build/artifacts/0/docker
+      - op: remove
+        path: /build/artifacts/1/docker
 
   - name: prod
   - name: dev
@@ -43,4 +52,7 @@ profiles:
         value: Dockerfile.develop
       - op: add
         path: /build/artifacts/0/docker/cliFlags
+        value: ["--no-cache", "--pull", "--force-rm"]
+      - op: add
+        path: /build/artifacts/1/docker/cliFlags
         value: ["--no-cache", "--pull", "--force-rm"]

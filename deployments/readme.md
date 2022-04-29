@@ -41,16 +41,33 @@ docker builder prune --all
 
 First we need to build the images used for the deployment.
 
-Images are built & tagged by scaffold based on an environment variable `$VERSION`.
+Images are built & tagged by a python script which uses calls Skaffold based on an environment variable `$VERSION`.
 
 This is done from the root directory.
 
 ```bash
 make clean
 export VERSION=0.1.0
-rsync -avu packages/ deployments/Dockerfiles/open_aea/packages
-skaffold build --build-concurrency=0 --push=false
+python deployments/click_create.py build-images \
+    --valory-app  oracle_hardhat \
+    --profile $VERSION
 ```
+
+From this command, we receive the below output showing custom images being built and tagged for the specified Valory app and version.
+
+```bash
+...
+... 
+Generating tags...
+ - valory/consensus-algorithms-open-aea -> valory/consensus-algorithms-open-aea:oracle_deployableV0.1.0
+ - valory/consensus-algorithms-tendermint -> valory/consensus-algorithms-tendermint:oracle_deployableV0.1.0
+ - valory/consensus-algorithms-hardhat -> valory/consensus-algorithms-hardhat:oracle_deployableV0.1.0
+Checking cache...
+ - valory/consensus-algorithms-open-aea: Found Locally
+ - valory/consensus-algorithms-tendermint: Found Locally
+ - valory/consensus-algorithms-hardhat: Found Locally
+```
+
 
 # Step 2
 
@@ -177,6 +194,8 @@ On any changes to components within both the packages directory or the open-aea 
 
 Without actually requiring a rebuild of the images!
 
+Developer mode will also store much more granular information allowing the developer to replay the application state.
+
 There are 2 ways of entering into an interactive development environment.
 
 The easiest, is to make use of the convenience commands;
@@ -195,8 +214,17 @@ The 2nd method is more manual and demonstrates the exact steps required to clean
 export VERSION=dev
 make build-images
 ```
+Images are built and tagged on an application by application basis. This is so that Valory images are pre-installed with the necessary dependencies to allow fast start up in production.
+
 This will build and tag the development Dockerfile in deployments/Dockerfiles.
 
+### Push Images To Registry (Optional)
+
+```bash
+make push-images
+```
+
+This will push the images which have been built to the default docker registry, which allows the images to be pulled into kubernetes deployments.
 
 To then build a deployment for developer mode, nothing extra other than the environment variable is needed.
 
@@ -209,8 +237,26 @@ To run the development deployment
 cd deployments/build
 docker-compose up --force-recreate
 ```
+# Logs 
 
+## Persistent in docker-compose
 
+By default, the logs from AEA's and their nodes are stored within;
+
+```bash
+ls deployments/persistent_data
+logs
+```
+
+When running the application in Development mode, the application will store additional data within the persistent data directory:
+```bash
+ls deployments/persistent_data
+benchmarking  logs  tm_state
+```
+
+- benchmarking - This directory contains benchmarking data from the running agents.
+- tm_state - This directory contains the tendermint message state from the running agents, allowing replay of the application.
+- 
 # Background info:
 
 File tree (from level `deployments/build/`):

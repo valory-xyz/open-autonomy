@@ -99,7 +99,7 @@ spec:
       - name: regcred
       containers:
       - name: config-nodes
-        image: valory/consensus-algorithms-tendermint:%s
+        image: valory/consensus-algorithms-tendermint:{valory_app}V%s
         command: ['/usr/bin/tendermint']
         args: ["testnet",
          "--config",
@@ -181,9 +181,8 @@ spec:
       restartPolicy: Always
       containers:
       - name: node{validator_ix}
-        image: valory/consensus-algorithms-tendermint:%s
+        image: valory/consensus-algorithms-tendermint:{valory_app}V%s
         imagePullPolicy: Always
-        restart: always
         resources:
           limits:
             memory: "1512Mi"
@@ -216,7 +215,7 @@ spec:
             name: build
 
       - name: aea
-        image: valory/consensus-algorithms-open-aea:%s
+        image: valory/consensus-algorithms-open-aea:{valory_app}V%s
         imagePullPolicy: Always
         resources:
           limits:
@@ -231,9 +230,9 @@ spec:
           - name: CLUSTERED
             value: "1"
           - name: LOG_FILE
-            value: "/home/ubuntu/logs/aea_{validator_ix}.txt"
+            value: "/logs/aea_{validator_ix}.txt"
         volumeMounts:
-          - mountPath: /home/ubuntu/logs
+          - mountPath: /logs
             name: persistent-data
           - mountPath: /build
             name: build
