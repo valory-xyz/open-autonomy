@@ -129,3 +129,38 @@ Options:
 3. Run `swarm replay tendermint` . This will spawn a tendermint network with the available dumps.
 
 4. Now  you can run replays for particular agents using `swarm replay agent AGENT_ID`. `AGENT_ID` is a number between `0` and the number of available agents `-1`. E.g. `swarm replay agent 0` will run the replay for the first agent.
+
+
+## Analyse
+
+### benchmarks
+
+```
+$ swarm analyse benchmarks --help
+
+Usage: swarm analyse benchmarks [OPTIONS] PATH
+
+  Benchmark Aggregator.
+
+Options:
+  -b, --block-type [local|consensus|total|all]
+  -d, --period INTEGER
+  -o, --output FILE
+  --help                          Show this message and exit.
+```
+
+Aggregating results from deployments.
+
+To use this tool you'll need benchmark data generated from agent runtime. To generate benchmark data run
+
+```
+# TODO
+```
+
+By default this will create a 4 agent runtime where you can wait until all 4 agents are at the end of the first period (you can wait for more periods if you want) and then you can stop the runtime. The data will be stored in abci_build/persistent_data/benchmarks folder. You can use this tool to aggregate this data.
+
+```
+swarm analyse benchmarks abci_build/persistent_data/benchmarks
+```
+
+By default tool will generate output for all periods but you can specify which period to generate output for, same goes for block types as well.

@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
@@ -18,19 +17,15 @@
 #
 # ------------------------------------------------------------------------------
 
-"""No flaky"""
+"""Analyse ABCI app definitions for docstrings."""
 
-import argparse
 import importlib
 import re
 import subprocess  # nosec
 import sys
 from pathlib import Path
-from typing import Any, Callable, Optional, Type, cast
-from warnings import filterwarnings
+from typing import Any, Optional, cast
 
-
-filterwarnings("ignore")
 
 INDENT = " " * 4
 NEWLINE = "\n"
@@ -69,16 +64,6 @@ def check_working_tree_is_dirty() -> None:
             sys.exit(1)
 
     print("All good!")
-
-
-def add_docstring(func: Callable) -> Callable:
-    """A decorator for dynamically generating doc strings"""
-
-    def wrapped(cls: Type) -> Type:
-        cls.__doc__ = func(cls)
-        return cls
-
-    return wrapped
 
 
 def docstring_abci_app(abci_app: Any) -> str:  # pylint: disable-msg=too-many-locals
@@ -153,36 +138,3 @@ def process_module(module_path: Path) -> Optional[str]:
             return update_docstrings(module_path, docstring, obj)
 
     return None
-
-
-def parse_args() -> argparse.Namespace:
-    """Get cli args."""
-
-    argparser = argparse.ArgumentParser()
-    argparser.add_argument(
-        "--check-clean", action="store_true", help="Check if the working tree is clean."
-    )
-
-    return argparser.parse_args()
-
-
-def main(args: argparse.Namespace) -> None:
-    """Main function."""
-    no_update = set()
-    abci_compositions = Path("packages").glob("*/skills/*/rounds.py")
-    for path in sorted(abci_compositions):
-        print(f"Processing: {path}")
-        file = process_module(path)
-        if file is not None:
-            no_update.add(file)
-
-    if args.check_clean:
-        check_working_tree_is_dirty()
-    else:
-        if len(no_update) > 0:
-            print("Following files doesn't need to be updated.")
-            print("\n".join(sorted(no_update)))
-
-
-if __name__ == "__main__":
-    main(args=parse_args())
