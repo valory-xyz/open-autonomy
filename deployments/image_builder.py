@@ -48,7 +48,7 @@ class ImageBuilder:
         agent_id = PublicId.from_str(aea_agent)
         env["AEA_AGENT"] = aea_agent
         env["VERSION"] = f"{agent_id.name}V{env['VERSION']}"
-        if profile in ["cluster", "dev"]:
+        if profile in ["cluster", "dev", "dependencies"]:
             skaffold_profile = profile
         else:
             skaffold_profile = "prod"

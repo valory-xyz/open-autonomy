@@ -246,6 +246,7 @@ build-images:
 		echo "Ensure you have exported a version to build!";\
 		exit 1
 	fi
+	python deployments/click_create.py build-images --deployment-file-path ${DEPLOYMENT_SPEC} --profile dependencies || (echo failed && exit 1)
 	if [ "${VERSION}" = "dev" ];\
 	then\
 		echo "building dev images!";\
@@ -264,6 +265,7 @@ push-images:
 		exit 1
 	fi
 	if [ "${VERSION}" = "dev" ];\
+	python deployments/click_create.py build-images --deployment-file-path ${DEPLOYMENT_SPEC} --profile dependencies --push || (echo failed && exit 1)
 	then\
 		echo "building dev images!";\
 	 	python deployments/click_create.py build-images --deployment-file-path ${DEPLOYMENT_SPEC} --profile dev --push && exit 0
