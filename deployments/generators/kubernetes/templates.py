@@ -209,6 +209,8 @@ spec:
             value: "/logs/node_{validator_ix}.txt"
         args: ["run", "--no-reload", "--host=0.0.0.0", "--port=8080"]
         volumeMounts:
+          - mountPath: /tm_state
+            name: persistent-data
           - mountPath: /logs
             name: persistent-data
           - mountPath: /tendermint
