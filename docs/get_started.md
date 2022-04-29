@@ -105,7 +105,7 @@ To answer this question, let us focus on a concrete state, namely, the SelectKee
 
 A high level view of what occurs is as follows:
 
-1. Prepare the vote. Each agent determines what agent he wishes to fote for the new Keeper. Since there is the need to reach an agreement, we consider that each agent wants to vote for "Agent $M\pmod 4+1$," where $M$ is the value of the current period. Thus, the agent prepares an appropriate _payload_ that contains that information.
+1. Prepare the vote. Each agent determines what agent he wishes to vote for the new Keeper. Since there is the need to reach an agreement, we consider that each agent wants to vote for "Agent $M\pmod 4+1$," where $M$ is the value of the current period. Thus, the agent prepares an appropriate _payload_ that contains that information.
 
   ![](./images/hello_world_sequence_1.svg)
 
@@ -124,7 +124,7 @@ A high level view of what occurs is as follows:
   ![](./images/hello_world_sequence_4.svg)
 
 5. A certain skill component (_Round_) receives and processes this information. If a $2/3$ majority of the agents voted for a certain Keeper, then this value is stored to be used in future phases of the service. After finalizing all this processing, the same skill component outputs the event that indicates the success of the expected actions at that state.
-6. The event casted in the previous step is received by the component that actually manages the service FSM (_AbciApp_). This component processes the event according to the transition function and moves the current state of the FSM approppriately.
+6. The event cast in the previous step is received by the component that actually manages the service FSM (_AbciApp_). This component processes the event according to the transition function and moves the current state of the FSM appropriately.
 
   ![](./images/hello_world_sequence_5.svg)
 
@@ -138,6 +138,8 @@ A high level view of what occurs is as follows:
     * **`Payloads`**: Associated to each behaviour. They define the contents of the transaction of the corresponding behaviour.
     * **`RoundBehaviour`**: This can be seen as the main class of the skill, which aggregates the `AbciApp` and ensures to establish a one-to-one relationship between the rounds and behaviours associated to each state of the FSM.
 
+
+
 The hello_world skill therefore would look like something like this:
 
 ## Executing the Main Functionality
@@ -149,8 +151,8 @@ Mimicking the steps that occurred in the previous state, it is not difficult to 
 1. Upon entering the PrintMessage state, the associated behaviour, say `PrintMessageBehaviour` will be in charge of executing the appropriate functionality. For Agent 2, it will be printing the celebrated message "Agent 2 says: Hello World". The rest of the agents can simply do nothing.
 2. In any case, a dummy message (e.g., a constant value) must be sent by all the agents so that the consensus mechanism does its work.
 3. The consensus mechanism will execute its protocol
-4. The result of the consensus will be forwarded to all the agents through the ABCI.
-5. The `PrintMessageRound` will receive a callback originated from the conensus mechanism. It will verify that all agents have responded, and it will then cast the `DONE` event.
+4. The result of the consensus will be forwarded to all the agents through ABCI.
+5. The `PrintMessageRound` will receive a callback originated from the consensus mechanism. It will verify that all agents have responded, and it will then cast the `DONE` event.
 6. The `AbciApp` will take over and process the event `DONE`, and move the current state of the FSM to the next state, ResetAndPause.
 
 As a result, we have finished a "happy path" of execution of the FSM, concluding with the expected output:
@@ -164,11 +166,9 @@ As a summary, find below an image which shows the main components of an agent an
 
 <figure markdown>
 ![](./images/hello_world_agent_internal.svg)
-<figcaption>Main components of an agent that play a role in an {{agent_service}}</figcaption>
+<figcaption>Main components of an agent that play a role in an {{agent_service}}. Red arrows indicate a high-level flow of messages when the agent is in the SelectKeeper state.</figcaption>
 </figure>
 
 
 ## Further Reading
-
-
-Remaining: ABCI interface, PeriodState Build the helloworld example.
+While this walktrhough to a simple Hello World example gives a bird's eye view of the main elements that play a role in an {{agent_service}} and inside an agent, there are a few more elements in the {{valory_stack}} that facilitate building complex applications and interact with real blockchains and other networks. We refer the reader to the more advanced sections where we explore in detail the stack. 
