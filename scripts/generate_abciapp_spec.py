@@ -77,38 +77,47 @@ class DFA:
         transition_func_states.update(transition_func.values())  # type: ignore
 
         orphan_states = states - (start_states | set(transition_func.values()))
+
+        lines = []
         if orphan_states:
-            raise DFASpecificationError(
-                f"DFA spec. contains orphan states: {orphan_states}."
+            lines.append(
+                f" - DFA spec. contains orphan states: {orphan_states}."
             )
         if not transition_func_states.issubset(states):
-            raise DFASpecificationError(
-                f"DFA spec. transition function contains unexpected states: {transition_func_states-states}."  # type: ignore
+            lines.append(
+                f" - Transition function contains unexpected states: {transition_func_states-states}."  # type: ignore
             )
         if not transition_func_alphabet_in.issubset(alphabet_in):
-            raise DFASpecificationError(
-                f"DFA spec. transition function contains unexpected input symbols: {transition_func_alphabet_in-alphabet_in}."  # type: ignore
+            lines.append(
+                f" - Transition function contains unexpected input symbols: {transition_func_alphabet_in-alphabet_in}."  # type: ignore
+            )
+        if not alphabet_in.issubset(transition_func_alphabet_in):
+            lines.append(
+                f" - Unused input symbols: {alphabet_in-transition_func_alphabet_in}."  # type: ignore
             )
         if default_start_state not in start_states:
-            raise DFASpecificationError(
-                "DFA spec. default start state is not in start states set."
+            lines.append(
+                " - Default start state is not in start states set."
             )
         if not start_states.issubset(states):
-            raise DFASpecificationError(
-                f"DFA spec. start state set contains unexpected states: {start_states-states}"
+            lines.append(
+                f" - Start state set contains unexpected states: {start_states-states}."
             )
         if not final_states.issubset(states):
-            raise DFASpecificationError(
-                f"DFA spec. final state set contains unexpected states: {final_states-states}"
+            lines.append(
+                f" - Final state set contains unexpected states: {final_states-states}."
             )
         if start_states & final_states:
-            raise DFASpecificationError(
-                f"DFA spec. final state set contains start states: {start_states & final_states}"
+            lines.append(
+                f" - Final state set contains start states: {start_states & final_states}."
             )
         if transition_func_in_states & final_states:
-            raise DFASpecificationError(
-                f"DFA spec. has transitions out from final states: {transition_func_in_states & final_states}"
+            lines.append(
+                f" - Transitions out from final states: {transition_func_in_states & final_states}."
             )
+
+        if len(lines) > 0:
+            raise DFASpecificationError("DFA spec. has the following issues:\n" + "\n".join(lines))
 
         self.label = label
         self.states = states
@@ -322,7 +331,8 @@ def parse_arguments() -> argparse.Namespace:
         "deterministic finite automata (DFA). Alternatively, it can also produce a Mermaid diagram source code. Example of usage: "
         f"./{script_name} -c packages.valory.skills.registration_abci.rounds.AgentRegistrationAbciApp -o output.yaml",
     )
-    parser.add_argument(
+    required = parser.add_argument_group("required arguments")
+    required.add_argument(
         "classfqn",
         type=str,
         help="ABCI App class fully qualified name.",
