@@ -15,6 +15,34 @@ def analyse_group() -> None
 
 Analyse an AEA project.
 
+<a id="aea_swarm.cli.analyse.abci_group"></a>
+
+#### abci`_`group
+
+```python
+@analyse_group.group(name="abci")
+def abci_group() -> None
+```
+
+Analyse ABCI apps.
+
+<a id="aea_swarm.cli.analyse.docstrings"></a>
+
+#### docstrings
+
+```python
+@abci_group.command(name="docstrings")
+@click.argument(
+    "packages_dir",
+    type=click.Path(dir_okay=True, file_okay=False, exists=True),
+    default=Path("packages/"),
+)
+@click.option("--check", is_flag=True, default=False)
+def docstrings(packages_dir: Path, check: bool) -> None
+```
+
+Analyse ABCI docstring definitions.
+
 <a id="aea_swarm.cli.analyse.benchmark"></a>
 
 #### benchmark
