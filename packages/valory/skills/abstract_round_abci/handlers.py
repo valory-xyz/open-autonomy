@@ -514,11 +514,13 @@ class TendermintHandler(Handler):
 
         if not self.registered_addresses:
             error_message = "No registered addresses retrieved yet"
+            self.context.logger.info(f"Invalid request: {error_message}\n{message}")
             self._reply_with_tendermint_error(message, dialogue, error_message)
             return
 
         if message.sender not in self.registered_addresses:
             error_message = "Sender not registered for on-chain service"
+            self.context.logger.info(f"Invalid request: {error_message}\n{message}")
             self._reply_with_tendermint_error(message, dialogue, error_message)
             return
 
@@ -538,6 +540,7 @@ class TendermintHandler(Handler):
 
         if message.sender not in self.registered_addresses:
             error_message = "Request from agent not registered on-chain"
+            self.context.logger.info(f"Invalid response: {error_message}\n{message}")
             self._reply_with_tendermint_error(message, dialogue, error_message)
             return
 
