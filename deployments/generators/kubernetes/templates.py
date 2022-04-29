@@ -274,7 +274,6 @@ spec:
         - name: persistent-data-tm
           persistentVolumeClaim:
             claimName: 'tendermint-pvc'
-            
         - name: build
           persistentVolumeClaim:
             claimName: 'build-vol-pvc'
