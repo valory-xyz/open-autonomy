@@ -132,6 +132,30 @@ spec:
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
+  name: tendermint-pvc
+spec:
+  storageClassName: nfs
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1000M
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: benchmark-pvc
+spec:
+  storageClassName: nfs
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1000M
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
   name: build-vol-pvc
 spec:
   storageClassName: nfs
@@ -210,7 +234,7 @@ spec:
         args: ["run", "--no-reload", "--host=0.0.0.0", "--port=8080"]
         volumeMounts:
           - mountPath: /tm_state
-            name: persistent-data
+            name: persistent-data-tm
           - mountPath: /logs
             name: persistent-data
           - mountPath: /tendermint
@@ -236,12 +260,21 @@ spec:
         volumeMounts:
           - mountPath: /logs
             name: persistent-data
+          - mountPath: /benchmark
+            name: persistent-data-benchmark
           - mountPath: /build
             name: build
       volumes:
         - name: persistent-data
           persistentVolumeClaim:
             claimName: 'logs-pvc'
+        - name: persistent-data-benchmark
+          persistentVolumeClaim:
+            claimName: 'benchmark-pvc'
+        - name: persistent-data-tm
+          persistentVolumeClaim:
+            claimName: 'tendermint-pvc'
+            
         - name: build
           persistentVolumeClaim:
             claimName: 'build-vol-pvc'
