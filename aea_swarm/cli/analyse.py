@@ -28,6 +28,7 @@ from aea_swarm.analyse.abci.docstrings import (
     check_working_tree_is_dirty,
     process_module,
 )
+from aea_swarm.analyse.abci.logs import parse_file
 from aea_swarm.analyse.benchmark.aggregate import BlockTypes, aggregate
 
 
@@ -68,6 +69,17 @@ def docstrings(packages_dir: Path, check: bool) -> None:
         if len(no_update) > 0:
             click.echo("\nFollowing files doesn't need to be updated.\n")
             click.echo("\n".join(sorted(no_update)))
+
+
+@abci_group.command(name="logs")
+@click.argument("file", type=click.Path(file_okay=True, dir_okay=False, exists=True))
+def parse_logs(file: Path) -> None:
+    """Parse logs."""
+
+    try:
+        parse_file(str(file))
+    except Exception as e:  # pylint: disable=broad-except
+        raise click.ClickException(str(e)) from e
 
 
 @analyse_group.command(name="benchmarks")
