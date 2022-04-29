@@ -66,7 +66,7 @@ def parse_arguments() -> argparse.Namespace:
     required.add_argument(
         "-i",
         "--infile",
-        type=argparse.FileType("r"),
+        type=str,
         help="Input file name.",
     )
     parser.add_argument(

@@ -183,7 +183,7 @@ class TestTransactionSettlementBaseState(PriceEstimationFSMBehaviourBaseCase):
                     "blacklisted_keepers": {"agent_1" + "-" * 35},
                     "keeper_retries": 1,
                     "keepers": deque(("agent_3" + "-" * 35,)),
-                    "status": VerificationStatus.BLACKLIST,
+                    "status": VerificationStatus.INSUFFICIENT_FUNDS,
                     "tx_digest": "",
                 },
                 False,
@@ -314,6 +314,15 @@ class TestTransactionSettlementBaseState(PriceEstimationFSMBehaviourBaseCase):
             next(tx_data_iterator)
         except StopIteration as res:
             assert res.value == expected_data
+
+        """Test the serialized_keepers method."""
+        state_ = self.behaviour.current_state
+        assert state_ is not None
+        assert state_.serialized_keepers(deque([]), 1) == ""
+        assert (
+            state_.serialized_keepers(deque(["-" * 42]), 1)
+            == "0000000000000000000000000000000000000000000000000000000000000001------------------------------------------"
+        )
 
 
 class TestRandomnessInOperation(BaseRandomnessBehaviourTest):

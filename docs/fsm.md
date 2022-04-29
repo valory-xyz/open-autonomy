@@ -112,14 +112,32 @@ In order to define more formally a period, two sets of special states are define
 
 In order to facilitate rapid development of complex applications, the {{valory_stack}} offers a mechanism to extend and reuse already developed components known as _FSM composition_.
 
-Departing from a collection of FSMs, say FSM1, FSM2, ..., FSM$n$, a composed FSM can be constructed with a composition mechanism that follows certain rules. Most importantly, an FSM$i$ can transit from a final state to a start state of another FSM$j$. If such a inter-FSM transition is defined, the composition mechanism will enforce that all the transitions ending in the final state of FSM$i$ be re-arranged to point to the corresponding start state of FSM$j$. The collection of transitions between FSMs are described in what we call the _FSM transition mapping_.
+Departing from a collection of FSMs, say FSM1, FSM2, ..., FSM$n$, a composed FSM can be constructed with a composition mechanism that follows certain rules. The most important rules to take into account are:
+
+1. when composing FSMs, an FSM$i$ can only transit from a final state to a start state of another FSM$j$, and
+2. a given FSM can only be used once in a composition.
+
+If an inter-FSM transition is defined, e.g., from a final state $Z$ from FSM1 to a start state $A$ from FSM2, the composition mechanism will enforce that all the transitions ending in the final state $Z$ of FSM1 be redirected to the start state $A$ of FSM2. The collection of transitions between FSMs are described in what we call the _FSM transition mapping_. See an example below.
 
 <figure markdown>
   ![](./images/fsm_composition.svg){align=center}
   <figcaption>How the FSM composition process works</figcaption>
 </figure>
 
-The figure above depicts a excerpt of a composition stage of three FSMs. Note how the finish states of FSM1 are linked to start states of FSM2 and FSM3. We remark that the transitions indicated by the FSM transition mapping are not regular transitions that respond to events, rather they are merely a construct to indicate how the states in the aggregated FSM must be connected.
+The figure above depicts an excerpt of a composition of three FSMs into a single one. Note how the finish states of FSM1 are linked to start states of FSM2 and FSM3. We remark that the transitions indicated by the FSM transition mapping are not regular transitions that respond to events, rather they are merely a construct to indicate how the states in the aggregated FSM must be connected.
+
+!!! warning "Important"
+
+    The result of a composition of a collection of FSMs is an FSM whose set of spaces is a subset of the union of state spaces of the constituent FSMs. For this reason is it not possible to "reuse" a given FSM twice in a composition. All the final states of the constituent FSMs that are defined in the transition mapping will be removed, as exemplified in the figure above.
+
+    Therefore, althought it might be useful and intuitive thinking of a composed FSM in terms of its constituent FSMs, the structure is not retained internally by the {{valory_app}}. For example, consider the following setting:
+
+    <figure markdown>
+      ![](./images/fsm_composition_2.svg){align=center}
+      <figcaption>FSM composition with two sources</figcaption>
+    </figure>
+
+    Note that in the composed FSM, when transitioning to A3, the FSM loses track of what was the FSM from which it transitioned (either FSM1 or FSM2). Nevertheless, if the business logic in state A3 requires knowledge of what was the history of visited states before reaching it (e.g., in order to execute a different action), the developer has access to that history through the field `_previous_rounds` from the class [`AbciApp`](./abci_app_class.md) which will be discussed in a separate section.
 
 ## Implementation Details of FSMs
 
