@@ -39,6 +39,7 @@ COPY config-template.toml /etc/tendermint/config-template.toml
 
 RUN chmod 777 -R /app
 RUN chmod 777 -R /tendermint
+RUN chmod 777 -R /tm_state
 
 
 ENTRYPOINT ["/usr/bin/flask"]
