@@ -19,14 +19,13 @@
 
 """Test the handlers.py module of the skill."""
 
+import logging
 from typing import Any, cast
 from unittest import mock
 from unittest.mock import MagicMock
-import logging
 
 import pytest
 from _pytest.logging import LogCaptureFixture
-from testfixtures import LogCapture
 from aea.configurations.data_types import PublicId
 from aea.protocols.base import Message
 
@@ -275,7 +274,9 @@ class TestTendermintHandler:
         self.handler.context.logger = logging.getLogger()
         self.dialogues = TendermintDialogues(name="dummy", skill_context=self.context)
 
-    def test_handle_unidentified_tendermint_dialogue(self, caplog: LogCaptureFixture) -> None:
+    def test_handle_unidentified_tendermint_dialogue(
+        self, caplog: LogCaptureFixture
+    ) -> None:
         """Test unidentified tendermint dialogue"""
         message = Message()
         with mock.patch.object(self.handler.dialogues, "update", return_value=None):
@@ -295,7 +296,9 @@ class TestTendermintHandler:
         self.handler.handle(message)
         assert "Sending Tendermint request response: " in caplog.text
 
-    def test_handle_request_no_registered_addresses(self, caplog: LogCaptureFixture) -> None:
+    def test_handle_request_no_registered_addresses(
+        self, caplog: LogCaptureFixture
+    ) -> None:
         """Test handle request no registered addresses"""
         performative = TendermintMessage.Performative.REQUEST
         message = TendermintMessage(performative)  # type: ignore
@@ -305,7 +308,9 @@ class TestTendermintHandler:
         assert "No registered addresses retrieved yet" in caplog.text
         assert "Error response sent" in caplog.text
 
-    def test_handle_request_sender_not_in_registered_addresses(self, caplog: LogCaptureFixture) -> None:
+    def test_handle_request_sender_not_in_registered_addresses(
+        self, caplog: LogCaptureFixture
+    ) -> None:
         """Test handle request sender not in registered addresses"""
         performative = TendermintMessage.Performative.REQUEST
         message = TendermintMessage(performative)  # type: ignore
@@ -314,7 +319,9 @@ class TestTendermintHandler:
         assert "Sender not registered for on-chain service" in caplog.text
         assert f"Error response sent\nreceived: {message}" in caplog.text
 
-    def test_handle_response_sender_not_in_registered_addresses(self, caplog: LogCaptureFixture) -> None:
+    def test_handle_response_sender_not_in_registered_addresses(
+        self, caplog: LogCaptureFixture
+    ) -> None:
         """Test handle response sender not in registered addresses"""
         performative = TendermintMessage.Performative.RESPONSE
         message = TendermintMessage(performative, info="info")  # type: ignore
@@ -366,25 +373,43 @@ class TestTendermintHandler:
         self.handler.handle(message)
         assert "Error response received" in caplog.text
 
-    def test_handle_performative_not_recognized(self, caplog: LogCaptureFixture) -> None:
-        """Test no target message retrieved"""
+    def test_handle_performative_not_recognized(
+        self, caplog: LogCaptureFixture
+    ) -> None:
+        """Test performative no recognized"""
         message = self.make_error_message()
         message._slots.performative = "wacky"
         self.handler.handle(message)
         assert f"Performative not recognized: {message}" in caplog.text
 
-    def test_handle_error_no_target_message_retrieved(self, caplog: LogCaptureFixture) -> None:
-        """Test no target message retrieved"""
+    def test_handle_error_no_target_message_retrieved(
+        self, caplog: LogCaptureFixture
+    ) -> None:
+        """Test handle error no target message retrieved"""
         message = self.make_error_message()
         nonce = "0"
         dialogue = TendermintDialogue(mock.Mock(), "Bob", mock.Mock())
         dialogue.dialogue_label.dialogue_reference = nonce, "stub"
-        self.context.requests.request_id_to_callback = {}
         self.handler.dialogues.update = lambda _: dialogue  # type: ignore
-        with pytest.raises(ABCIAppInternalError):
-            self.handler.handle(message)
-        assert f"No callback defined for request with nonce: {nonce}"
-        callback = lambda *args, **kwargs: None
+        callback = lambda *args, **kwargs: None  # noqa: E731
         self.context.requests.request_id_to_callback = {nonce: callback}
         self.handler.handle(message)
-        assert "Received error message but could not retrieve target message" in caplog.text
+        assert (
+            "Received error message but could not retrieve target message"
+            in caplog.text
+        )
+
+    def test_no_callback_defined_for_request_nonce(
+        self, caplog: LogCaptureFixture
+    ) -> None:
+        """Test no callback defined for request nonce"""
+        performative = TendermintMessage.Performative.RESPONSE
+        info = "http://0.0.0.0:25567"
+        message = TendermintMessage(performative, info=info)  # type: ignore
+        message.sender = "Alice"
+        initial_data = {"registered_addresses": {message.sender: None}}
+        self.handler.period_state.db.initial_data = initial_data  # type: ignore
+        self.context.requests.request_id_to_callback = {}
+        with pytest.raises(ABCIAppInternalError):
+            self.handler.handle(message)
+        assert "No callback defined for request with nonce:"
