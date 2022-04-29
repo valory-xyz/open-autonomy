@@ -67,6 +67,7 @@ class Event(Enum):
     NO_MAJORITY = "no_majority"
     NEGATIVE = "negative"
     NONE = "none"
+    FINALIZE_TIMEOUT = "finalize_timeout"
     VALIDATE_TIMEOUT = "validate_timeout"
     CHECK_TIMEOUT = "check_timeout"
     RESET_TIMEOUT = "reset_timeout"
@@ -74,7 +75,7 @@ class Event(Enum):
     CHECK_LATE_ARRIVING_MESSAGE = "check_late_arriving_message"
     FINALIZATION_FAILED = "finalization_failed"
     MISSED_AND_LATE_MESSAGES_MISMATCH = "missed_and_late_messages_mismatch"
-    KEEPER_BLACKLISTED = "keeper_blacklisted"
+    INSUFFICIENT_FUNDS = "insufficient_funds"
     INCORRECT_SERIALIZATION = "incorrect_serialization"
 
 
@@ -197,14 +198,13 @@ class PeriodState(BasePeriodState):  # pylint: disable=too-many-instance-attribu
             List[str], self.db.get_strict("late_arriving_tx_hashes")
         )
         late_arriving_tx_hashes_parsed = []
-        hashes_length = 64
         for unparsed_hash in late_arriving_tx_hashes_unparsed:
-            if len(unparsed_hash) % hashes_length != 0:
+            if len(unparsed_hash) % TX_HASH_LENGTH != 0:
                 # if we cannot parse the hashes, then the developer has serialized them incorrectly.
                 raise ABCIAppInternalError(
                     f"Cannot parse late arriving hashes: {unparsed_hash}!"
                 )
-            parsed_hashes = textwrap.wrap(unparsed_hash, hashes_length)
+            parsed_hashes = textwrap.wrap(unparsed_hash, TX_HASH_LENGTH)
             late_arriving_tx_hashes_parsed.extend(parsed_hashes)
 
         return late_arriving_tx_hashes_parsed
@@ -267,6 +267,9 @@ class FinalizationRound(OnlyKeeperSendsRound):
         # 3. Requesting transaction digest.
         if self.keeper_payload["received_hash"]:
             return state, Event.DONE
+        # If keeper has been blacklisted, return an `INSUFFICIENT_FUNDS` event.
+        if verification_status == VerificationStatus.INSUFFICIENT_FUNDS:
+            return state, Event.INSUFFICIENT_FUNDS
         # This means that getting raw safe transaction succeeded,
         # but either requesting tx signature or requesting tx digest failed.
         if verification_status not in (
@@ -535,9 +538,10 @@ class TransactionSubmissionAbciApp(AbciApp[Event]):
         3. FinalizationRound
             - done: 4.
             - check history: 5.
-            - round timeout: 7.
+            - finalize timeout: 7.
             - finalization failed: 6.
             - check late arriving message: 8.
+            - insufficient funds: 6.
         4. ValidateTransactionRound
             - done: 11.
             - negative: 5.
@@ -553,7 +557,6 @@ class TransactionSubmissionAbciApp(AbciApp[Event]):
             - check late arriving message: 8.
         6. SelectKeeperTransactionSubmissionRoundB
             - done: 3.
-            - keeper blacklisted: 6.
             - round timeout: 6.
             - no majority: 10.
             - incorrect serialization: 12.
@@ -588,6 +591,7 @@ class TransactionSubmissionAbciApp(AbciApp[Event]):
 
     Timeouts:
         round timeout: 30.0
+        finalize timeout: 30.0
         validate timeout: 30.0
         check timeout: 30.0
         reset timeout: 30.0
@@ -614,9 +618,10 @@ class TransactionSubmissionAbciApp(AbciApp[Event]):
         FinalizationRound: {
             Event.DONE: ValidateTransactionRound,
             Event.CHECK_HISTORY: CheckTransactionHistoryRound,
-            Event.ROUND_TIMEOUT: SelectKeeperTransactionSubmissionRoundBAfterTimeout,
+            Event.FINALIZE_TIMEOUT: SelectKeeperTransactionSubmissionRoundBAfterTimeout,
             Event.FINALIZATION_FAILED: SelectKeeperTransactionSubmissionRoundB,
             Event.CHECK_LATE_ARRIVING_MESSAGE: SynchronizeLateMessagesRound,
+            Event.INSUFFICIENT_FUNDS: SelectKeeperTransactionSubmissionRoundB,
         },
         ValidateTransactionRound: {
             Event.DONE: FinishedTransactionSubmissionRound,
@@ -635,7 +640,6 @@ class TransactionSubmissionAbciApp(AbciApp[Event]):
         },
         SelectKeeperTransactionSubmissionRoundB: {
             Event.DONE: FinalizationRound,
-            Event.KEEPER_BLACKLISTED: SelectKeeperTransactionSubmissionRoundB,
             Event.ROUND_TIMEOUT: SelectKeeperTransactionSubmissionRoundB,
             Event.NO_MAJORITY: ResetRound,
             Event.INCORRECT_SERIALIZATION: FailedRound,
@@ -677,6 +681,7 @@ class TransactionSubmissionAbciApp(AbciApp[Event]):
     }
     event_to_timeout: Dict[Event, float] = {
         Event.ROUND_TIMEOUT: 30.0,
+        Event.FINALIZE_TIMEOUT: 30.0,
         Event.VALIDATE_TIMEOUT: 30.0,
         Event.CHECK_TIMEOUT: 30.0,
         Event.RESET_TIMEOUT: 30.0,

@@ -1,4 +1,4 @@
-# Price Oracle - How it Works
+# Price Oracle - Introduction
 
 The goal of this {{valory_app}} is to provide an estimation as an average of a set of observations
 on the Bitcoin price coming from different sources,
@@ -243,7 +243,7 @@ its constituent parts. However, in order to combine the various FSMs previously
 discussed, a transition mapping between states of these FSMs also needs to be
 provided. In order to combine the different FSMs we need to connect them by
 providing the necessary transition mapping. As per the code implemented in the
-[demo](./price_estimation_details.md), the implementation looks as follows:
+[demo](./price_oracle_running.md), the implementation looks as follows:
 
 ```python
 
@@ -308,7 +308,7 @@ class PriceEstimationConsensusBehaviour(AbstractRoundBehaviour):
 
 ```
 
-Have a look at the [FSM diagram](./price_estimation_fsms.md) of the application in order
+Have a look at the [FSM diagram](./price_oracle_fsms.md) of the application in order
 to see what the encoded state transitions in the final composite FSM look like.
 
 !!! warning

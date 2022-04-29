@@ -169,7 +169,7 @@ class BaseTestEnd2End(AEATestCaseMany, BaseTendermintTestClass):
         full_strings = {}
         for round_str, n_periods in round_check_strings_to_n_periods.items():
             entered_str = f"Entered in the '{round_str}' round for period"
-            done_str = f"'{round_str}' round is done"
+            done_str = f"'{round_str}' round is done with event: Event.DONE"
             full_strings[entered_str] = n_periods
             full_strings[done_str] = n_periods
 

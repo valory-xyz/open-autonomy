@@ -35,6 +35,7 @@ Optionally, clean up images & build cache to ensure no artefacts (check with `do
 docker rm -vf $(docker ps -aq)
 docker rmi -f $(docker images -aq)
 docker builder prune --all
+rm -rf deployments/persistent_data/logs
 ```
 
 # Step 1

@@ -30,6 +30,7 @@ import pytest
 from packages.valory.skills.abstract_round_abci.base import (
     ABCIAppInternalError,
     BaseTxPayload,
+    MAX_INT_256,
     StateDB,
 )
 from packages.valory.skills.oracle_deployment_abci.payloads import RandomnessPayload
@@ -62,6 +63,7 @@ from packages.valory.skills.transaction_settlement_abci.rounds import (
     SelectKeeperTransactionSubmissionRoundB,
     SelectKeeperTransactionSubmissionRoundBAfterTimeout,
     SynchronizeLateMessagesRound,
+    TX_HASH_LENGTH,
     ValidateTransactionRound,
 )
 
@@ -183,7 +185,7 @@ def get_participant_to_late_arriving_tx_hashes(
     """participant_to_selection"""
     return {
         participant: SynchronizeLateMessagesPayload(
-            sender=participant, tx_hashes="1" * 64 + "2" * 64
+            sender=participant, tx_hashes="1" * TX_HASH_LENGTH + "2" * TX_HASH_LENGTH
         )
         for participant in participants
     }
@@ -193,7 +195,12 @@ def get_late_arriving_tx_hashes() -> List[str]:
     """Get dummy late-arriving tx hashes."""
     # We want the tx hashes to have a size which can be divided by 64 to be able to parse it.
     # Otherwise, they are not valid.
-    return ["t" * 64, "e" * 64, "s" * 64, "t" * 64]
+    return [
+        "t" * TX_HASH_LENGTH,
+        "e" * TX_HASH_LENGTH,
+        "s" * TX_HASH_LENGTH,
+        "t" * TX_HASH_LENGTH,
+    ]
 
 
 def get_keepers(keepers: Deque[str], retries: int = 1) -> str:
@@ -398,8 +405,8 @@ class TestFinalizationRound(BaseOnlyKeeperSendsRoundTest):
                 "t" * 66,
                 "",
                 0,
-                VerificationStatus.BLACKLIST.value,
-                TransactionSettlementEvent.FINALIZATION_FAILED,
+                VerificationStatus.INSUFFICIENT_FUNDS.value,
+                TransactionSettlementEvent.INSUFFICIENT_FUNDS,
             ),
         ),
     )
@@ -433,7 +440,7 @@ class TestFinalizationRound(BaseOnlyKeeperSendsRoundTest):
             if exit_event == TransactionSettlementEvent.DONE
             else tx_hashes_history
         )
-        if status == VerificationStatus.BLACKLIST.value:
+        if status == VerificationStatus.INSUFFICIENT_FUNDS.value:
             popped = keepers.popleft()
             blacklisted_keepers += popped
             keeper_retries = 1
@@ -631,9 +638,10 @@ class TestSynchronizeLateMessagesRound(BaseCollectNonEmptyUntilThresholdRound):
                     self.participants
                 ),
                 state_update_fn=lambda _period_state, _: _period_state.update(
-                    late_arriving_tx_hashes=["1" * 64, "2" * 64]
+                    late_arriving_tx_hashes=["1" * TX_HASH_LENGTH, "2" * TX_HASH_LENGTH]
+                    * len(self.participants)
                 ),
-                state_attr_checks=[],
+                state_attr_checks=[lambda state: state.late_arriving_tx_hashes],
                 exit_event=expected_event,
             )
         )
@@ -650,9 +658,7 @@ def test_period_states() -> None:
     most_voted_tx_hash = get_most_voted_tx_hash()
     participant_to_signature = get_participant_to_signature(participants)
     final_tx_hash = get_final_tx_hash()
-    actual_keeper_randomness = float(
-        (int(most_voted_randomness, base=16) // 10 ** 0 % 10) / 10
-    )
+    actual_keeper_randomness = int(most_voted_randomness, base=16) / MAX_INT_256
     late_arriving_tx_hashes = get_late_arriving_tx_hashes()
     keepers = get_keepers(deque(("agent_1" + "-" * 35, "agent_3" + "-" * 35)))
     expected_keepers = deque(["agent_1" + "-" * 35, "agent_3" + "-" * 35])
@@ -682,7 +688,9 @@ def test_period_states() -> None:
             ),
         )
     )
-    assert period_state_____.keeper_randomness == actual_keeper_randomness
+    assert (
+        abs(period_state_____.keeper_randomness - actual_keeper_randomness) < 1e-10
+    )  # avoid equality comparisons between floats
     assert period_state_____.most_voted_randomness == most_voted_randomness
     assert period_state_____.safe_contract_address == safe_contract_address
     assert period_state_____.most_voted_tx_hash == most_voted_tx_hash

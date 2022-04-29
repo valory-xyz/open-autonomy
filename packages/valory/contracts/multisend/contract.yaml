@@ -7,9 +7,9 @@ license: Apache-2.0
 aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
   README.md: QmUr1WWtQM1W7hR4Xixxs5cGH1J5rwztWaK42wie9YqPh5
-  __init__.py: QmXyEcDdisehvHiMnJ1vaJwcZTDZzLm4h7MDU5cHR8TET7
+  __init__.py: QmczcyTcTp2Dzmkp6rRa5YN2tDjKwyPTKFX2goDtv9GpS5
   build/MultiSend.json: QmSg3P5wrqdjUwGShZxZi4pM4xtGtV98DiRZ8hSmYqhPmU
-  contract.py: QmbSDh9mL2gZWzKPEzQpecqomyG1xFK4uRqL1oa1XjYG5j
+  contract.py: QmVAkFEt6LyPH9LX9ce99h1U9Sd8H9graXW5fXW9Y43egG
 fingerprint_ignore_patterns: []
 contracts: []
 class_name: MultiSendContract
