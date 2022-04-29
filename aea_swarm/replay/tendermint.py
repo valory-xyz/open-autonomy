@@ -27,14 +27,9 @@ import signal
 import subprocess  # nosec
 import time
 from pathlib import Path
-from typing import List, Optional
+from typing import Dict, List, Optional
 
-import click
-from flask import Flask, jsonify
-
-
-TENDERMINT_BIN = shutil.which("tendermint")
-BUILD_DIR = Path("deployments/build/").absolute()
+from flask import Flask
 
 
 class RanOutOfDumpsToReplay(Exception):
@@ -86,9 +81,14 @@ class TendermintRunner:
         self,
     ) -> None:
         """Start tendermint process."""
-        self.process = subprocess.Popen(  # nosec
+
+        tendermint_bin = shutil.which("tendermint")
+        if tendermint_bin is None:
+            raise ValueError("Cannot find tendermint installation.")
+
+        self.process = subprocess.Popen(  # nosec  # pylint: disable=subprocess-run-check,consider-using-with
             [
-                str(TENDERMINT_BIN),
+                str(tendermint_bin),
                 "node",
                 f"--p2p.laddr=tcp://127.0.0.1:2663{self.node_id}",
                 f"--rpc.laddr=tcp://localhost:2664{self.node_id}",
@@ -121,10 +121,11 @@ class TendermintNetwork:
     dump_dir: Path
     number_of_nodes: int
     nodes: List[TendermintRunner]
+    reset_periods: int
 
     _recent_reset: bool
 
-    def __init__(self, dump_dir: Path) -> None:
+    def init(self, dump_dir: Path) -> None:
         """Initialize object."""
 
         self.dump_dir = dump_dir
@@ -138,11 +139,6 @@ class TendermintNetwork:
 
         self.nodes = []
         self._recent_reset = True
-
-    def build(
-        self,
-    ) -> None:
-        """Build tendermint nodes."""
         for node_id in range(self.number_of_nodes):
             self.nodes.append(
                 TendermintRunner(node_id, self.dump_dir, self.reset_periods)
@@ -193,42 +189,30 @@ class TendermintNetwork:
             self.stop()
 
 
-tendermint_network: TendermintNetwork
-
 app = Flask(__name__)
+tendermint_network = TendermintNetwork()
 
 
 @app.route("/<int:node_id>/hard_reset")
-def hard_reset(node_id: int):
+def hard_reset(node_id: int) -> Dict:
     """Reset tendermint node."""
-    global tendermint_network
+    global tendermint_network  # pylint: disable=global-variable-not-assigned
 
     try:
         tendermint_network.update_period(node_id)
-        app.logger.info(f"Restarted node {node_id}")
-        return (
-            jsonify(
-                {"message": "Reset successful.", "status": True, "is_replay": True}
-            ),
-            200,
-        )
+        return {"message": "Reset successful.", "status": True, "is_replay": True}
+
     except RanOutOfDumpsToReplay:
-        app.logger.info("Ran out of dumps to replay, Stopping the node.")
         tendermint_network.stop_node(node_id)
-        return (
-            jsonify(
-                {
-                    "message": "Ran out of dumps to replay, You can stop the agent replay now.",
-                    "status": False,
-                    "is_replay": True,
-                }
-            ),
-            500,
-        )
+        return {
+            "message": "Ran out of dumps to replay, You can stop the agent replay now.",
+            "status": False,
+            "is_replay": True,
+        }
 
 
 @app.get("/<int:node_id>/status")
-def status(node_id: int):
+def status(node_id: int) -> Dict:
     """
     Status
 
@@ -239,51 +223,24 @@ def status(node_id: int):
     :return: response
     """
 
-    global tendermint_network
-    return jsonify(
-        {
-            "result": {
-                "sync_info": {
-                    "latest_block_height": tendermint_network.get_last_block_height(
-                        node_id
-                    )
-                }
+    global tendermint_network  # pylint: disable=global-variable-not-assigned
+
+    return {
+        "result": {
+            "sync_info": {
+                "latest_block_height": tendermint_network.get_last_block_height(node_id)
             }
         }
-    )
+    }
 
 
 @app.get("/<int:node_id>/broadcast_tx_sync")
-def broadcast_tx_sync(node_id: int):
+def broadcast_tx_sync(node_id: int) -> Dict:  # pylint: disable=unused-argument
     """Similar as /status"""
-    return jsonify({"result": {"hash": "", "code": 0}})
+    return {"result": {"hash": "", "code": 0}}
 
 
 @app.get("/<int:node_id>/tx")
-def tx(node_id: int):
+def tx(node_id: int) -> Dict:  # pylint: disable=unused-argument
     """Similar as /status"""
-    return jsonify({"result": {"tx_result": {"code": 0}}})
-
-
-@click.command()
-@click.option(
-    "--build",
-    "build_dir",
-    type=click.Path(dir_okay=True, exists=True),
-    default=BUILD_DIR,
-)
-def main(build_dir: Path):
-    """Main function."""
-
-    build_dir = Path(build_dir).absolute()
-    dump_dir = build_dir / "logs" / "dump"
-
-    global tendermint_network
-    tendermint_network = TendermintNetwork(dump_dir)
-    tendermint_network.build()
-    tendermint_network.start()
-    app.run(host="localhost", port=8080)
-
-
-if __name__ == "__main__":
-    main()
+    return {"result": {"tx_result": {"code": 0}}}

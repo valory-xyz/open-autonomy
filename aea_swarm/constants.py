@@ -18,4 +18,4 @@
 # ------------------------------------------------------------------------------
 """Constants"""
 
-PACKAGE_FOLDER = "packages"
+DEFAULT_BUILD_FOLDER = "abci_build"

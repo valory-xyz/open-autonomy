@@ -50,12 +50,10 @@ def generate_deployment(
         private_keys_file_path=Path(private_keys_file_path),
         package_dir=package_dir,
     )
-
     deployment = cast(
         BaseDeploymentGenerator,
         DeploymentGenerator(deployment_spec=deployment_spec, build_dir=build_dir),
     )
-
     deployment.generate(deployment_spec)  # type: ignore
     deployment.write_config()
     deployment.generate_config_tendermint(deployment_spec)  # type: ignore

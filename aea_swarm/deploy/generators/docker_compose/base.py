@@ -107,7 +107,7 @@ class DockerComposeGenerator(BaseDeploymentGenerator):
                 if f != ""
             ]
         )
-        print(os.popen(self.config_cmd).read())  # nosec
+        os.popen(self.config_cmd).read()  # nosec
         return self.config_cmd
 
     def generate(self, valory_application: Type[BaseDeployment]) -> str:

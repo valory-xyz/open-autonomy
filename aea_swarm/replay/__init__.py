@@ -17,26 +17,4 @@
 #
 # ------------------------------------------------------------------------------
 
-"""Core for cli."""
-
-import click
-from aea.cli.core import cli as aea_cli
-
-from aea_swarm.cli.analyse import analyse_group
-from aea_swarm.cli.deploy import deploy_group
-from aea_swarm.cli.develop import develop_group
-from aea_swarm.cli.replay import replay_group
-
-
-@click.group(name="swarm")  # type: ignore
-@click.pass_context
-def swarm_cli(click_context: click.Context) -> None:  # pylint: disable=unused-argument
-    """Command-line tool for setting up an swarms of AEAs."""
-
-
-swarm_cli.add_command(analyse_group)
-swarm_cli.add_command(deploy_group)
-swarm_cli.add_command(develop_group)
-swarm_cli.add_command(replay_group)
-
-cli = click.CommandCollection(sources=[aea_cli, swarm_cli])
+"""Replay tools."""

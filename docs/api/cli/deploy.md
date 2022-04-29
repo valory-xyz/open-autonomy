@@ -22,8 +22,8 @@ Deploy an AEA project.
 ```python
 @deploy_group.command(name="build")
 @click.argument(
-    "deployment-file-path",
-    type=click.Path(exists=True, file_okay=True, dir_okay=False),
+    "service-id",
+    type=PublicIdParameter(),
 )
 @click.argument("keys_file", type=str, required=True)
 @click.option(
@@ -49,7 +49,7 @@ Deploy an AEA project.
 @click.option(
     "--package-dir",
     type=click.Path(exists=False, dir_okay=True),
-    default=Path.cwd() / PACKAGE_FOLDER,
+    default=Path.cwd() / PACKAGES,
     help="Path to packages folder (For local usage).",
 )
 @click.option(
@@ -66,7 +66,7 @@ Deploy an AEA project.
     default=False,
     help="Remove existing build and overwrite with new one.",
 )
-def build_deployment(deployment_file_path: Path, keys_file: Path, deployment_type: str, output_dir: Path, package_dir: Path, dev_mode: bool, force_overwrite: bool) -> None
+def build_deployment(service_id: PublicId, keys_file: Path, deployment_type: str, output_dir: Path, package_dir: Path, dev_mode: bool, force_overwrite: bool) -> None
 ```
 
 Build the agent and its components.
