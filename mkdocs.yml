@@ -34,6 +34,7 @@ nav:
     - Deployment:
       - Local Deployment: 'application_deployment.md'
       - Cloud Deployment: 'using_stack_deployment.md'
+    - Running on other networks: 'networks.md'
   - Demos:
     - Simple ABCI: 'simple_abci.md'
     - Price Oracle:
