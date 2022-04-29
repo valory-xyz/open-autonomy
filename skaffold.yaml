@@ -12,26 +12,31 @@ build:
     docker:
       dockerfile: Dockerfile
       buildArgs:
-        AEA_VERSION: "0.1.7"
+        AEA_VERSION: "1.7.0"
         AEA_AGENT: "{{.AEA_AGENT}}"
 
-  - image: valory/consensus-algorithms-tendermint
-    context: deployments/Dockerfiles/localnode/
-    docker:
-      dockerfile: Dockerfile
-
-
-  - image: valory/consensus-algorithms-hardhat
-    context: deployments/Dockerfiles/hardhat
 
 profiles:
+  - name: prod
+  - name: dependencies
+    build:
+      tagPolicy:
+        envTemplate:
+          template: "0.1.0"
+      artifacts:
+      - image: valory/consensus-algorithms-tendermint
+        context: deployments/Dockerfiles/localnode/
+        docker:
+          dockerfile: Dockerfile
+      - image: valory/consensus-algorithms-hardhat
+        context: deployments/Dockerfiles/hardhat
   - name: cluster
     patches:
       - op: add
         path: /build/artifacts/0/kaniko
-        value: 
+        value:
           buildArgs:
-            AEA_VERSION: "0.1.7"
+            AEA_VERSION: "1.7.0"
             AEA_AGENT: "{{.AEA_AGENT}}"
       - op: add
         path: /build/cluster
@@ -41,10 +46,6 @@ profiles:
             path: ~/.docker/config.json
       - op: remove
         path: /build/artifacts/0/docker
-      - op: remove
-        path: /build/artifacts/1/docker
-
-  - name: prod
   - name: dev
     patches:
       - op: replace
@@ -52,7 +53,4 @@ profiles:
         value: Dockerfile.develop
       - op: add
         path: /build/artifacts/0/docker/cliFlags
-        value: ["--no-cache", "--pull", "--force-rm"]
-      - op: add
-        path: /build/artifacts/1/docker/cliFlags
         value: ["--no-cache", "--pull", "--force-rm"]

@@ -19,7 +19,7 @@
 
 """Deployment Templates."""
 
-from deployments.constants import IMAGE_VERSION
+from deployments.constants import HARDHAT_VERSION, IMAGE_VERSION, TENDERMINT_VERSION
 
 
 TENDERMINT_CONFIG_TEMPLATE: str = (
@@ -32,7 +32,7 @@ valory/consensus-algorithms-tendermint:%s  \
         --o . \
         {hosts}
 """
-    % IMAGE_VERSION
+    % TENDERMINT_VERSION
 )
 
 DOCKER_COMPOSE_TEMPLATE: str = """version: "2.4"
@@ -60,7 +60,7 @@ HARDHAT_NODE_TEMPLATE: str = (
       localnet:
         ipv4_address: 192.167.11.2
 """
-    % IMAGE_VERSION
+    % HARDHAT_VERSION
 )
 
 TENDERMINT_NODE_TEMPLATE: str = (
@@ -92,7 +92,7 @@ TENDERMINT_NODE_TEMPLATE: str = (
       - ./build:/tendermint:Z
       - ../persistent_data/logs:/logs:Z
 """
-    % IMAGE_VERSION
+    % TENDERMINT_VERSION
 )
 
 ABCI_NODE_TEMPLATE: str = (
@@ -100,9 +100,9 @@ ABCI_NODE_TEMPLATE: str = (
   abci{node_id}:
     mem_limit: 1024m
     mem_reservation: 256M
-    cpus: 0.5
+    cpus: 1
     container_name: abci{node_id}
-    image: "valory/consensus-algorithms-open-aea:{valory_app}V%s"
+    image: valory/consensus-algorithms-open-aea:{valory_app}V%s
     environment:
       - LOG_FILE=/logs/aea_{node_id}.txt
 {agent_vars}

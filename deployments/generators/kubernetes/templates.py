@@ -19,7 +19,7 @@
 
 """Kubernetes Templates module."""
 
-from deployments.constants import IMAGE_VERSION
+from deployments.constants import HARDHAT_VERSION, IMAGE_VERSION, TENDERMINT_VERSION
 
 
 HARDHAT_TEMPLATE: str = (
@@ -83,7 +83,7 @@ spec:
 status:
   loadBalancer: {}
 """
-    % IMAGE_VERSION
+    % HARDHAT_VERSION
 )
 
 
@@ -99,7 +99,7 @@ spec:
       - name: regcred
       containers:
       - name: config-nodes
-        image: valory/consensus-algorithms-tendermint:{valory_app}V%s
+        image: valory/consensus-algorithms-tendermint:%s
         command: ['/usr/bin/tendermint']
         args: ["testnet",
          "--config",
@@ -141,7 +141,7 @@ spec:
     requests:
       storage: 1000M
 """
-    % IMAGE_VERSION
+    % TENDERMINT_VERSION
 )
 
 
@@ -181,7 +181,7 @@ spec:
       restartPolicy: Always
       containers:
       - name: node{validator_ix}
-        image: valory/consensus-algorithms-tendermint:{valory_app}V%s
+        image: valory/consensus-algorithms-tendermint:%s
         imagePullPolicy: Always
         resources:
           limits:
@@ -244,6 +244,6 @@ spec:
           persistentVolumeClaim:
             claimName: 'build-vol-pvc'
 """ % (
-    IMAGE_VERSION,
+    TENDERMINT_VERSION,
     IMAGE_VERSION,
 )
