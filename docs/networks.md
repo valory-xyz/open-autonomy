@@ -48,4 +48,23 @@ cls.ledger_api = ledger_apis_registry.make(
 As before, edit here the `address` and `chain_id` fields. That should suffice for your
 test to use the desired network.
 
-## Ledger configuration for end to end tests
+## Configuration for end to end tests
+End to end agent tests inherit from the `BaseTestEnd2End` in `tests/test_agents.py`. That
+class defines an `extra_configs` attribute that is used to set the agent's configuration overrides.
+If your tests override that attribute, parameters defined there will be used by the agent.
+This does not only apply to `valory/ledger` connection, but to any agent configuration:
+```
+from tests.test_agents.base import BaseTestEnd2End
+
+class MySuperHelpfulEndToEndTestBase(BaseTestEnd2End):
+    """Base class for my super helpful e2e tests."""
+
+    extra_configs = [
+        {
+            "dotted_path": "vendor.valory.skills.my_super_skill_abci.models.params.args.ipfs_domain_name",
+            "value": "/dns/localhost/tcp/5001/http",
+        }
+    ]
+```
+
+All tests that inherit from this test base class will use the new configuration.
