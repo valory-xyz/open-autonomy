@@ -18,23 +18,15 @@
 #
 # ------------------------------------------------------------------------------
 
-"""Script to build and run agents from docker-compose.yaml"""
+"""Tools to build and run agents from existing deployments."""
 
 import os
 import signal
 import subprocess  # nosec
 import sys
-import time
 from pathlib import Path
 from tempfile import TemporaryDirectory
 from typing import Dict, List, Optional
-
-import click
-import yaml
-
-
-REGISTRY_PATH = Path("packages/").absolute()
-BUILD_DIR = Path("deployments/build/").absolute()
 
 
 class AgentRunner:
@@ -53,7 +45,7 @@ class AgentRunner:
         self.agent_data = agent_data
         self.registry_path = registry_path
         self.agent_env = os.environ.copy()
-        self.agent_dir = TemporaryDirectory()
+        self.agent_dir = TemporaryDirectory()  # pylint: disable=consider-using-with
         self.cwd = Path(".").resolve().absolute()
 
         agent_env_data = self.agent_data["environment"]
@@ -75,7 +67,7 @@ class AgentRunner:
         os.chdir(agent_dir)
 
         print(f"Loading {self.agent_env['VALORY_APPLICATION']}")
-        subprocess.run(  # nosec
+        subprocess.run(  # nosec  # pylint: disable=subprocess-run-check
             [
                 *self.aea_cli,
                 "--registry-path",
@@ -90,14 +82,16 @@ class AgentRunner:
         )
         os.chdir(agent_dir / "agent")
         Path(agent_dir, "agent", "ethereum_private_key.txt").write_text(
-            self.agent_env["AEA_KEY"]
+            self.agent_env["AEA_KEY"], encoding="utf-8"
         )
 
-        subprocess.run(  # nosec
+        subprocess.run(  # nosec # pylint: disable=subprocess-run-check
             [*self.aea_cli, "add-key", "ethereum"], env=self.agent_env
         )
-        subprocess.run([*self.aea_cli, "install"], env=self.agent_env)  # nosec
-        self.process = subprocess.Popen(  # nosec
+        subprocess.run(  # nosec # pylint: disable=subprocess-run-check
+            [*self.aea_cli, "install"], env=self.agent_env
+        )
+        self.process = subprocess.Popen(  # nosec # pylint: disable=subprocess-run-check,consider-using-with
             [*self.aea_cli, "run", "--aev"], env=self.agent_env
         )
 
@@ -111,39 +105,3 @@ class AgentRunner:
             return
 
         os.kill(os.getpgid(self.process.pid), signal.SIGTERM)
-
-
-@click.command()
-@click.argument("agent", type=int, required=True)
-@click.option(
-    "--build",
-    "build_path",
-    type=click.Path(exists=True, dir_okay=True),
-    default=BUILD_DIR,
-)
-@click.option(
-    "--registry",
-    "registry_path",
-    type=click.Path(exists=True, dir_okay=True),
-    default=REGISTRY_PATH,
-)
-def main(agent: int, build_path: Path, registry_path: Path) -> None:
-    """Agent runner."""
-    build_path = Path(build_path).absolute()
-    registry_path = Path(registry_path).absolute()
-
-    docker_compose_file = build_path / "docker-compose.yaml"
-    with open(str(docker_compose_file), "r", encoding="utf-8") as fp:
-        docker_compose_config = yaml.safe_load(fp)
-    agent_data = docker_compose_config["services"][f"abci{agent}"]
-    runner = AgentRunner(agent, agent_data, registry_path)
-    try:
-        runner.start()
-        while True:
-            time.sleep(1)
-    except KeyboardInterrupt:
-        runner.stop()
-
-
-if __name__ == "__main__":
-    main()

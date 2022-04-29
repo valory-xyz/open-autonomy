@@ -69,3 +69,63 @@ abci_build/
 
 To run this deployment go to the `abci_build` and run `docker-compose up`.
 
+## Replay
+
+Replay tools can be use the re run the agents using data dumps from previous runs.
+
+**Note: Replay only works for deployments which were ran in dev mode**
+
+```
+$ swarm replay
+
+Usage: swarm replay [OPTIONS] COMMAND [ARGS]...
+
+  Replay tools.
+
+Options:
+  --help  Show this message and exit.
+
+Commands:
+  agent       Agent runner.
+  tendermint  Tendermint runner.
+```
+
+### agent
+
+```
+$  swarm replay agent --help
+
+Usage: swarm replay agent [OPTIONS] AGENT
+
+  Agent runner.
+
+Options:
+  --build PATH     Path to build dir.
+  --registry PATH  Path to registry folder.
+  --help           Show this message and exit.
+```
+
+### tendermint
+
+```
+$ swarm replay tendermint --help
+
+Usage: swarm replay tendermint [OPTIONS]
+
+  Tendermint runner.
+
+Options:
+  --build PATH  Path to build directory.
+  --help        Show this message and exit.
+```
+
+
+## Replay agents runs from Tendermint dumps
+
+1. Run your preferred app in dev mode, for example run oracle in dev using `make run-oracle-dev` and in a separate terminal run `make run-hardhat`.
+
+2. Wait until at least one reset (`reset_and_pause` round) has occurred, because the Tendermint server will only dump Tendermint data on resets. Once you have a data dump stop the app.
+
+3. Run `swarm replay tendermint` . This will spawn a tendermint network with the available dumps.
+
+4. Now  you can run replays for particular agents using `swarm replay agent AGENT_ID`. `AGENT_ID` is a number between `0` and the number of available agents `-1`. E.g. `swarm replay agent 0` will run the replay for the first agent.
