@@ -24,6 +24,7 @@ from typing import Dict
 
 from setuptools import find_packages, setup  # type: ignore
 
+
 PACKAGE_NAME = "aea_swarm"
 here = os.path.abspath(os.path.dirname(__file__))
 

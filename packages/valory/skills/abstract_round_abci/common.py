@@ -179,8 +179,9 @@ class SelectKeeperBehaviour(BaseState):
         # Sorted list of participants who are not blacklisted as keepers
         relevant_set = sorted(list(non_blacklisted))
 
-        # Random shuffling of the set
-        random.Random(self.period_state.keeper_randomness).shuffle(relevant_set)
+        # Random seeding and shuffling of the set
+        random.seed(self.period_state.keeper_randomness)
+        random.shuffle(relevant_set)
 
         # If the keeper is not set yet, pick the first address
         keeper_address = relevant_set[0]

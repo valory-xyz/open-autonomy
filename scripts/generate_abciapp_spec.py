@@ -69,10 +69,11 @@ class DFA:
         transition_func: Dict[Tuple[str, str], str],
     ):  # pylint: disable=too-many-arguments
         """Initialize DFA object."""
-        transition_func_states, transition_func_alphabet_in = map(
+        transition_func_in_states, transition_func_alphabet_in = map(
             set, zip(*transition_func.keys())
         )
 
+        transition_func_states = transition_func_in_states.copy()
         transition_func_states.update(transition_func.values())  # type: ignore
 
         orphan_states = states - (start_states | set(transition_func.values()))
@@ -99,6 +100,14 @@ class DFA:
         if not final_states.issubset(states):
             raise DFASpecificationError(
                 f"DFA spec. final state set contains unexpected states: {final_states-states}"
+            )
+        if start_states & final_states:
+            raise DFASpecificationError(
+                f"DFA spec. final state set contains start states: {start_states & final_states}"
+            )
+        if transition_func_in_states & final_states:
+            raise DFASpecificationError(
+                f"DFA spec. has transitions out from final states: {transition_func_in_states & final_states}"
             )
 
         self.label = label
@@ -345,7 +354,12 @@ def main() -> None:
     logging.basicConfig(format="%(levelname)s: %(message)s", level=logging.INFO)
     arguments = parse_arguments()
     module_name, class_name = arguments.classfqn.rsplit(".", 1)
-    module = importlib.import_module(module_name)
+
+    try:
+        module = importlib.import_module(module_name)
+    except Exception as e:
+        raise Exception(f'Failed to load "{module_name}". Please, verify that '
+                        'AbciApps and classes are correctly defined within the module. ') from e
 
     if not hasattr(module, class_name):
         raise Exception(f'Class "{class_name}" is not in "{module_name}".')

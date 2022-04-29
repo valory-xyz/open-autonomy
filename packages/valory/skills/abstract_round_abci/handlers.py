@@ -470,25 +470,6 @@ class TendermintHandler(Handler):
             self._handle_error(message, dialogue)
         else:
             self.context.logger.info(f"Performative not recognized: {message}")
-            return
-
-        nonce = dialogue.dialogue_label.dialogue_reference[0]
-        ctx_requests = cast(Requests, self.context.requests)
-
-        try:
-            callback = cast(
-                Callable,
-                ctx_requests.request_id_to_callback.pop(nonce),
-            )
-        except KeyError as e:
-            raise ABCIAppInternalError(
-                f"No callback defined for request with nonce: {nonce}"
-            ) from e
-
-        current_state = cast(
-            AbstractRoundBehaviour, self.context.behaviours.main
-        ).current_state
-        callback(message, current_state)
 
     def _reply_with_tendermint_error(
         self,
@@ -515,13 +496,13 @@ class TendermintHandler(Handler):
 
         if not self.registered_addresses:
             error_message = "No registered addresses retrieved yet"
-            self.context.logger.info(error_message)
+            self.context.logger.info(f"Invalid request: {error_message}\n{message}")
             self._reply_with_tendermint_error(message, dialogue, error_message)
             return
 
         if message.sender not in self.registered_addresses:
             error_message = "Sender not registered for on-chain service"
-            self.context.logger.info(error_message)
+            self.context.logger.info(f"Invalid request: {error_message}\n{message}")
             self._reply_with_tendermint_error(message, dialogue, error_message)
             return
 
@@ -560,6 +541,24 @@ class TendermintHandler(Handler):
         dialogues.dialogue_stats.add_dialogue_endstate(
             TendermintDialogue.EndState.CONFIG_SHARED, dialogue.is_self_initiated
         )
+
+        nonce = dialogue.dialogue_label.dialogue_reference[0]
+        ctx_requests = cast(Requests, self.context.requests)
+
+        try:
+            callback = cast(
+                Callable,
+                ctx_requests.request_id_to_callback.pop(nonce),
+            )
+        except KeyError as e:
+            raise ABCIAppInternalError(
+                f"No callback defined for request with nonce: {nonce}"
+            ) from e
+
+        current_state = cast(
+            AbstractRoundBehaviour, self.context.behaviours.main
+        ).current_state
+        callback(message, current_state)
 
     def _handle_error(
         self, message: TendermintMessage, dialogue: TendermintDialogue
