@@ -43,6 +43,18 @@ def docstrings(packages_dir: Path, check: bool) -> None
 
 Analyse ABCI docstring definitions.
 
+<a id="aea_swarm.cli.analyse.parse_logs"></a>
+
+#### parse`_`logs
+
+```python
+@abci_group.command(name="logs")
+@click.argument("file", type=click.Path(file_okay=True, dir_okay=False, exists=True))
+def parse_logs(file: Path) -> None
+```
+
+Parse logs.
+
 <a id="aea_swarm.cli.analyse.benchmark"></a>
 
 #### benchmark
