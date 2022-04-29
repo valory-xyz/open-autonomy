@@ -162,9 +162,8 @@ class RegistrationStartupBehaviour(RegistrationBaseBehaviour):
 
         correctly_deployed = yield from self.is_correct_contract()
         if not correctly_deployed:
-            self.context.logger.info(
-                "Service registry contract not correctly deployed"
-            )
+            log_message = "Service registry contract not correctly deployed"
+            self.context.logger.info(log_message)
             return False
 
         # checks if service exists
@@ -188,7 +187,7 @@ class RegistrationStartupBehaviour(RegistrationBaseBehaviour):
 
         # setup storage for collected tendermint configuration info
         info: Dict[str, str] = dict.fromkeys(registered_addresses)
-        info[self.context.agent_address] = self.context.params.tendermint_url  # TODO
+        info[self.context.agent_address] = self.context.params.tendermint_url
 
         self.period_state.db.initial_data.update(dict(registered_addresses=info))
         log_msg = "Registered addresses retrieved from service registry contract"
@@ -199,8 +198,7 @@ class RegistrationStartupBehaviour(RegistrationBaseBehaviour):
         """Make HTTP GET request to obtain agent's local Tendermint node parameters"""
 
         url = self.tendermint_parameter_url
-        message, dialogue = self._build_http_request_message(method="GET", url=url)
-        result = yield from self._do_request(message, dialogue)
+        result = yield from self.get_http_response(method="GET", url=url)
         try:
             response = json.loads(result.body.decode())
             self.local_tendermint_params = response
@@ -240,12 +238,9 @@ class RegistrationStartupBehaviour(RegistrationBaseBehaviour):
         params = cast(TendermintParams, self.local_tendermint_params)
         params["p2p_seeds"] = list(self.registered_addresses.values())
         content = json.dumps(params).encode(self.ENCODING)
-        message, dialogue = self._build_http_request_message(
-            method="POST",
-            url=url,
-            content=content,
+        result = yield from self.get_http_response(
+            method="POST", url=url, content=content
         )
-        result = yield from self._do_request(message, dialogue)
         try:
             response = json.loads(result.body.decode())
             self.context.logger.info(f"Local TendermintNode updated: {response}")
@@ -260,8 +255,7 @@ class RegistrationStartupBehaviour(RegistrationBaseBehaviour):
         """Start up local Tendermint node"""
 
         url = self.tendermint_start_url
-        message, dialogue = self._build_http_request_message("GET", url)
-        result = yield from self._do_request(message, dialogue)
+        result = yield from self.get_http_response(method="GET", url=url)
         try:
             response = json.loads(result.body.decode())
             self.context.logger.info(f"Tendermint node started: {response}")
@@ -275,21 +269,21 @@ class RegistrationStartupBehaviour(RegistrationBaseBehaviour):
     def async_act(self) -> Generator:
         """Act asynchronously"""
 
-        # collect personal tendermint configuration
+        # collect personal Tendermint configuration
         if not self.local_tendermint_params:
             successful = yield from self.get_tendermint_configuration()
             if not successful:
                 yield from self.sleep(self.params.sleep_time)
                 return
 
-        # make service registry call
+        # make service registry contract call
         if not self.registered_addresses:
             successful = yield from self.get_addresses()
             if not successful:
                 yield from self.sleep(self.params.sleep_time)
                 return
 
-        # collect Tendermint config information  # TODO: concurrent
+        # collect Tendermint config information
         for address in self.not_yet_collected:
             yield from self.get_tendermint_response(address)
 
