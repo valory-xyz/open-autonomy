@@ -58,8 +58,7 @@ def parse_arguments() -> argparse.Namespace:
     )
     required = parser.add_argument_group("required arguments")
     required.add_argument(
-        "-c",
-        "--classfqn",
+        "classfqn",
         type=str,
         help="ABCI App class fully qualified name.",
     )

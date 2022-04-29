@@ -322,12 +322,9 @@ def parse_arguments() -> argparse.Namespace:
         "deterministic finite automata (DFA). Alternatively, it can also produce a Mermaid diagram source code. Example of usage: "
         f"./{script_name} -c packages.valory.skills.registration_abci.rounds.AgentRegistrationAbciApp -o output.yaml",
     )
-    required = parser.add_argument_group("required arguments")
-    required.add_argument(
-        "-c",
-        "--classfqn",
+    parser.add_argument(
+        "classfqn",
         type=str,
-        required=True,
         help="ABCI App class fully qualified name.",
     )
     parser.add_argument(
