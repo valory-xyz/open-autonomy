@@ -438,6 +438,7 @@ Transition states:
         - finalize timeout: 7.
         - finalization failed: 6.
         - check late arriving message: 8.
+        - insufficient funds: 6.
     4. ValidateTransactionRound
         - done: 11.
         - negative: 5.
@@ -453,7 +454,6 @@ Transition states:
         - check late arriving message: 8.
     6. SelectKeeperTransactionSubmissionRoundB
         - done: 3.
-        - keeper blacklisted: 6.
         - round timeout: 6.
         - no majority: 10.
         - incorrect serialization: 12.
