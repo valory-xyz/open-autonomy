@@ -160,6 +160,14 @@ As a result, we have finished a "happy path" of execution of the FSM, concluding
 <figcaption>Result of the execution the second period of the Hello World {{agent_service}}</figcaption>
 </figure>
 
+As a summary, find below an image which shows the main components of an agent and a skill presented in this section. Of course, this is not a complete picture of what is inside the agent, but it should give a good idea of what are the main elements that play a role in an {{agent_service}}.
+
+<figure markdown>
+![](./images/hello_world_agent_internal.svg)
+<figcaption>Main components of an agent that play a role in an {{agent_service}}</figcaption>
+</figure>
+
+
 ## Further Reading
 
 
