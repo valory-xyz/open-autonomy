@@ -1944,7 +1944,6 @@ class Period:
         self._abci_app_cls = abci_app_cls
         self._abci_app: Optional[AbciApp] = None
         self._last_round_transition_timestamp: Optional[datetime.datetime] = None
-        self._last_round_transition_block_height: Optional[int] = None
 
     def setup(self, *args: Any, **kwargs: Any) -> None:
         """
@@ -2043,18 +2042,6 @@ class Period:
             raise ValueError("Value of last_round_transition_timestamp cannot be None.")
 
         return self._last_round_transition_timestamp
-
-    @property
-    def last_round_transition_block_height(
-        self,
-    ) -> int:
-        """Returns the timestamp for last round transition."""
-        if self._last_round_transition_block_height is None:
-            raise ValueError(
-                "Value of last_round_transition_block_height cannot be None."
-            )
-
-        return self._last_round_transition_block_height
 
     @property
     def latest_state(self) -> BasePeriodState:
@@ -2158,7 +2145,4 @@ class Period:
             f"updating round, current_round {self.current_round.round_id}, event: {event}, round result {round_result}"
         )
         self._last_round_transition_timestamp = self._blockchain.last_block.timestamp
-        self._last_round_transition_block_height = (
-            self._blockchain.last_block.header.height
-        )
         self.abci_app.process_event(event, result=round_result)
