@@ -43,6 +43,9 @@ def get_ip() -> str:
 DEFAULT_IMAGE_VERSION = "0.1.0"
 IMAGE_VERSION = os.environ.get("VERSION", DEFAULT_IMAGE_VERSION)
 
+TENDERMINT_VERSION = "0.1.0"
+HARDHAT_VERSION = "0.1.0"
+
 NETWORKS = {
     "docker-compose": {
         "hardhat": {

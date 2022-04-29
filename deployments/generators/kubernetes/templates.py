@@ -19,7 +19,7 @@
 
 """Kubernetes Templates module."""
 
-from deployments.constants import IMAGE_VERSION
+from deployments.constants import HARDHAT_VERSION, IMAGE_VERSION, TENDERMINT_VERSION
 
 
 HARDHAT_TEMPLATE: str = (
@@ -83,7 +83,7 @@ spec:
 status:
   loadBalancer: {}
 """
-    % IMAGE_VERSION
+    % HARDHAT_VERSION
 )
 
 
@@ -141,7 +141,7 @@ spec:
     requests:
       storage: 1000M
 """
-    % IMAGE_VERSION
+    % TENDERMINT_VERSION
 )
 
 
@@ -183,7 +183,6 @@ spec:
       - name: node{validator_ix}
         image: valory/consensus-algorithms-tendermint:%s
         imagePullPolicy: Always
-        restart: always
         resources:
           limits:
             memory: "1512Mi"
@@ -210,13 +209,15 @@ spec:
             value: "/logs/node_{validator_ix}.txt"
         args: ["run", "--no-reload", "--host=0.0.0.0", "--port=8080"]
         volumeMounts:
+          - mountPath: /tm_state
+            name: persistent-data
           - mountPath: /logs
             name: persistent-data
           - mountPath: /tendermint
             name: build
 
       - name: aea
-        image: valory/consensus-algorithms-open-aea:%s
+        image: valory/consensus-algorithms-open-aea:{valory_app}V%s
         imagePullPolicy: Always
         resources:
           limits:
@@ -231,9 +232,9 @@ spec:
           - name: CLUSTERED
             value: "1"
           - name: LOG_FILE
-            value: "/home/ubuntu/logs/aea_{validator_ix}.txt"
+            value: "/logs/aea_{validator_ix}.txt"
         volumeMounts:
-          - mountPath: /home/ubuntu/logs
+          - mountPath: /logs
             name: persistent-data
           - mountPath: /build
             name: build
@@ -245,6 +246,6 @@ spec:
           persistentVolumeClaim:
             claimName: 'build-vol-pvc'
 """ % (
-    IMAGE_VERSION,
+    TENDERMINT_VERSION,
     IMAGE_VERSION,
 )

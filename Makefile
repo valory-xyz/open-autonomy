@@ -250,14 +250,32 @@ build-images:
 		echo "Ensure you have exported a version to build!";\
 		exit 1
 	fi
-	rsync -avu packages/ deployments/Dockerfiles/open_aea/packages
+	python deployments/click_create.py build-images --deployment-file-path ${DEPLOYMENT_SPEC} --profile dependencies || (echo failed && exit 1)
 	if [ "${VERSION}" = "dev" ];\
 	then\
 		echo "building dev images!";\
-		skaffold build --build-concurrency=0 --push=false -p dev && exit 0
+	 	python deployments/click_create.py build-images --deployment-file-path ${DEPLOYMENT_SPEC} --profile dev && exit 0
 		exit 1
 	fi
-	skaffold build --build-concurrency=0 --push=false -p prod && exit 0
+	python deployments/click_create.py build-images --deployment-file-path ${DEPLOYMENT_SPEC} --profile prod && exit 0
+	exit 1
+
+.ONESHELL: push-images
+push-images:
+	sudo make clean
+	if [ "${VERSION}" = "" ];\
+	then\
+		echo "Ensure you have exported a version to build!";\
+		exit 1
+	fi
+	if [ "${VERSION}" = "dev" ];\
+	python deployments/click_create.py build-images --deployment-file-path ${DEPLOYMENT_SPEC} --profile dependencies --push || (echo failed && exit 1)
+	then\
+		echo "building dev images!";\
+	 	python deployments/click_create.py build-images --deployment-file-path ${DEPLOYMENT_SPEC} --profile dev --push && exit 0
+		exit 1
+	fi
+	python deployments/click_create.py build-images --deployment-file-path ${DEPLOYMENT_SPEC} --profile prod --push && exit 0
 	exit 1
 
 .PHONY: run-hardhat
@@ -315,6 +333,9 @@ run-deployment:
 	if [ "${DEPLOYMENT_TYPE}" = "kubernetes" ];\
 	then\
 		kubectl create ns ${VERSION}
+		kubectl create secret generic regcred \
+          --from-file=.dockerconfigjson=/home/$(shell whoami)/.docker/config.json \
+          --type=kubernetes.io/dockerconfigjson -n ${VERSION}
 		cd deployments/build/ && \
 		kubectl apply -f build.yaml -n ${VERSION} && exit 0
 	fi
@@ -366,8 +387,17 @@ teardown-docker-compose:
 		docker-compose down && \
 		echo "Deployment torndown!" && \
 		exit 0
-	echo "Failed to teardown deployment!" exit 1
+	echo "Failed to teardown deployment!"
+	exit 1
 
+teardown-kubernetes:
+	if [ "${VERSION}" = "" ];\
+	then\
+		echo "Ensure you have exported a version to build!";\
+		exit 1
+	fi
+	kubectl delete ns ${VERSION} && exit 0
+	exit 1
 
 .PHONY: check_abci_specs
 check_abci_specs:
@@ -386,3 +416,4 @@ check_abci_specs:
 	python generate_abciapp_spec.py -c packages.valory.skills.transaction_settlement_abci.rounds.TransactionSubmissionAbciApp > packages/valory/skills/transaction_settlement_abci/fsm_specification.yaml || (echo "Failed to check transaction_settlement_abci consistency" && exit 1)
 	rm generate_abciapp_spec.py
 	echo "Successfully validated abcis!"
+
