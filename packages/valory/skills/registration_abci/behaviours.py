@@ -18,9 +18,9 @@
 # ------------------------------------------------------------------------------
 
 """This module contains the behaviours for the 'abci' skill."""
-import json
-from typing import Iterable, Dict, Generator, List, Optional, Set, Type, Union, cast
 import collections
+import json
+from typing import Dict, Generator, Iterable, List, Optional, Set, Type, Union, cast
 
 from packages.valory.contracts.service_registry.contract import ServiceRegistryContract
 from packages.valory.protocols.contract_api import ContractApiMessage
@@ -107,6 +107,7 @@ class RegistrationStartupBehaviour(RegistrationBaseBehaviour):
 
     @property
     def not_yet_collected(self) -> List[str]:
+        """Addresses not yet collected"""
         if "registered_addresses" not in self.period_state.db.initial_data:
             raise RuntimeError("Must collect addresses from service registry first")
         return [k for k, v in self.registered_addresses.items() if not v]
@@ -161,7 +162,9 @@ class RegistrationStartupBehaviour(RegistrationBaseBehaviour):
 
         correctly_deployed = yield from self.is_correct_contract()
         if not correctly_deployed:
-            self.context.logger.info("Service registry contract not deployed or incorrect")
+            self.context.logger.info(
+                "Service registry contract not deployed or incorrect"
+            )
             return False
 
         # checks if service exists
@@ -204,7 +207,9 @@ class RegistrationStartupBehaviour(RegistrationBaseBehaviour):
             self.context.logger.info("Local Tendermint configuration obtained")
             return True
         except json.JSONDecodeError:
-            self.context.logger.error("Error communicating with Tendermint server on get_tendermint_configuration")
+            self.context.logger.error(
+                "Error communicating with Tendermint server on get_tendermint_configuration"
+            )
             return False
 
     def get_tendermint_response(self, address: str) -> Generator[None, None, bool]:
@@ -236,7 +241,9 @@ class RegistrationStartupBehaviour(RegistrationBaseBehaviour):
         params["p2p_seeds"] = list(self.registered_addresses.values())
         content = json.dumps(params).encode(self.ENCODING)
         message, dialogue = self._build_http_request_message(
-            method="POST", url=url, content=content,
+            method="POST",
+            url=url,
+            content=content,
         )
         result = yield from self._do_request(message, dialogue)
         try:
@@ -244,7 +251,9 @@ class RegistrationStartupBehaviour(RegistrationBaseBehaviour):
             self.context.logger.info(f"Local TendermintNode updated: {response}")
             return True
         except json.JSONDecodeError:
-            self.context.logger.info(f"Error communicating with Tendermint server on update_tendermint_configuration")
+            self.context.logger.info(
+                "Error communicating with Tendermint server on update_tendermint_configuration"
+            )
             return False
 
     def start_tendermint(self) -> Generator[None, None, bool]:
@@ -258,7 +267,9 @@ class RegistrationStartupBehaviour(RegistrationBaseBehaviour):
             self.context.logger.info(f"Tendermint node started: {response}")
             return True
         except json.JSONDecodeError:
-            error_message = "Error communicating with Tendermint server on start_tendermint"
+            error_message = (
+                "Error communicating with Tendermint server on start_tendermint"
+            )
             self.context.logger.error(error_message)
             return False
 

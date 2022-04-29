@@ -58,6 +58,8 @@ from packages.valory.protocols.ledger_api.dialogues import (
 )
 from packages.valory.protocols.tendermint.dialogues import (
     TendermintDialogue as BaseTendermintDialogue,
+)
+from packages.valory.protocols.tendermint.dialogues import (
     TendermintDialogues as BaseTendermintDialogues,
 )
 
