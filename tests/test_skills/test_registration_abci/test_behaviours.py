@@ -22,7 +22,7 @@ import json
 import logging
 from contextlib import ExitStack, contextmanager
 from pathlib import Path
-from typing import Any, Dict, List, Tuple, cast
+from typing import Any, Dict, Generator, List, cast
 from unittest import mock
 
 import pytest
@@ -63,7 +63,7 @@ DUMMY_ADDRESS = "http://0.0.0.0:25567"
 
 
 @contextmanager
-def as_context(*contexts):
+def as_context(*contexts: Any) -> Generator[None, None, None]:
     """Set contexts"""
     with ExitStack() as stack:
         consume(map(stack.enter_context, contexts))
@@ -111,9 +111,9 @@ class TestRegistrationStartupBehaviour(RegistrationAbciBaseCase):
     other_agents: List[str] = ["0xAlice", "0xBob", "0xCharlie"]
 
     @property
-    def agent_instances(self) -> Tuple[Any, str]:
+    def agent_instances(self) -> List[str]:
         """Agent instance addresses"""
-        return *self.other_agents, self.state.context.agent_address
+        return [*self.other_agents, self.state.context.agent_address]
 
     @property
     def state(self) -> RegistrationStartupBehaviour:
@@ -172,7 +172,7 @@ class TestRegistrationStartupBehaviour(RegistrationAbciBaseCase):
         )
 
     # mock contract calls
-    def mock_is_correct_contract(self, error_response=False) -> None:
+    def mock_is_correct_contract(self, error_response: bool = False) -> None:
         """Mock service registry contract call to for contract verification"""
         request_kwargs = dict(performative=ContractApiMessage.Performative.GET_STATE)
         state = ContractApiMessage.State(ledger_id="ethereum", body={"verified": True})
@@ -191,7 +191,7 @@ class TestRegistrationStartupBehaviour(RegistrationAbciBaseCase):
         )
 
     def mock_get_service_info(
-        self, *agent_instances: str, error_response=False
+        self, *agent_instances: str, error_response: bool = False
     ) -> None:
         """Mock get service info"""
         request_kwargs = dict(performative=ContractApiMessage.Performative.GET_STATE)
@@ -250,12 +250,12 @@ class TestRegistrationStartupBehaviour(RegistrationAbciBaseCase):
     def mock_get_tendermint_info(self, *addresses: str) -> None:
         """Mock get Tendermint info"""
         for _ in addresses:
-            request_kwargs = dict()
+            request_kwargs: Dict = dict()
             response_kwargs = dict(info=DUMMY_ADDRESS)
             self.mock_tendermint_request(request_kwargs, response_kwargs)
 
     # mock HTTP requests
-    def mock_get_local_tendermint_params(self, valid_response=True) -> None:
+    def mock_get_local_tendermint_params(self, valid_response: bool = True) -> None:
         """Mock Tendermint get local params"""
         url = self.state.tendermint_parameter_url
         request_kwargs = dict(method="GET", url=url)
@@ -266,7 +266,7 @@ class TestRegistrationStartupBehaviour(RegistrationAbciBaseCase):
         response_kwargs = dict(status_code=200, body=body)
         self.mock_http_request(request_kwargs, response_kwargs)
 
-    def mock_tendermint_update(self, valid_response=True) -> None:
+    def mock_tendermint_update(self, valid_response: bool = True) -> None:
         """Mock Tendermint update"""
         params = self.state.local_tendermint_params
         body = json.dumps(params).encode(self.state.ENCODING)
@@ -276,7 +276,7 @@ class TestRegistrationStartupBehaviour(RegistrationAbciBaseCase):
         response_kwargs = dict(status_code=200, body=body)
         self.mock_http_request(request_kwargs, response_kwargs)
 
-    def mock_tendermint_start(self, valid_response=True) -> None:
+    def mock_tendermint_start(self, valid_response: bool = True) -> None:
         """Mock tendermint start"""
         url = self.state.tendermint_start_url
         request_kwargs = dict(method="GET", url=url)
@@ -314,7 +314,7 @@ class TestRegistrationStartupBehaviour(RegistrationAbciBaseCase):
         ],
     )
     def test_get_tendermint_configuration(
-        self, valid_response, log_message, caplog: LogCaptureFixture
+        self, valid_response: bool, log_message: str, caplog: LogCaptureFixture
     ) -> None:
         """Test get tendermint configuration"""
 

@@ -4,6 +4,16 @@
 
 This module contains the behaviours for the 'abci' skill.
 
+<a id="packages.valory.skills.registration_abci.behaviours.consume"></a>
+
+#### consume
+
+```python
+def consume(iterator: Iterable) -> None
+```
+
+Consume the iterator
+
 <a id="packages.valory.skills.registration_abci.behaviours.RegistrationBaseBehaviour"></a>
 
 ## RegistrationBaseBehaviour Objects
@@ -51,6 +61,17 @@ def registered_addresses() -> Dict[str, str]
 
 Agent addresses registered on-chain for the service
 
+<a id="packages.valory.skills.registration_abci.behaviours.RegistrationStartupBehaviour.not_yet_collected"></a>
+
+#### not`_`yet`_`collected
+
+```python
+@property
+def not_yet_collected() -> List[str]
+```
+
+Agent addresses for which no Tendermint information has been retrieved
+
 <a id="packages.valory.skills.registration_abci.behaviours.RegistrationStartupBehaviour.tendermint_parameter_url"></a>
 
 #### tendermint`_`parameter`_`url
@@ -58,6 +79,17 @@ Agent addresses registered on-chain for the service
 ```python
 @property
 def tendermint_parameter_url() -> str
+```
+
+Tendermint URL for obtaining and updating parameters
+
+<a id="packages.valory.skills.registration_abci.behaviours.RegistrationStartupBehaviour.tendermint_start_url"></a>
+
+#### tendermint`_`start`_`url
+
+```python
+@property
+def tendermint_start_url() -> str
 ```
 
 Tendermint URL for obtaining and updating parameters
@@ -92,16 +124,6 @@ def get_addresses() -> Generator[None, None, bool]
 
 Get addresses of agents registered for the service
 
-<a id="packages.valory.skills.registration_abci.behaviours.RegistrationStartupBehaviour.make_tendermint_request"></a>
-
-#### make`_`tendermint`_`request
-
-```python
-def make_tendermint_request(address: str) -> None
-```
-
-Make Tendermint callback request
-
 <a id="packages.valory.skills.registration_abci.behaviours.RegistrationStartupBehaviour.get_tendermint_configuration"></a>
 
 #### get`_`tendermint`_`configuration
@@ -112,12 +134,22 @@ def get_tendermint_configuration() -> Generator[None, None, bool]
 
 Make HTTP GET request to obtain agent's local Tendermint node parameters
 
-<a id="packages.valory.skills.registration_abci.behaviours.RegistrationStartupBehaviour.update_tendermint_configuration"></a>
+<a id="packages.valory.skills.registration_abci.behaviours.RegistrationStartupBehaviour.get_tendermint_response"></a>
 
-#### update`_`tendermint`_`configuration
+#### get`_`tendermint`_`response
 
 ```python
-def update_tendermint_configuration() -> Generator[None, None, bool]
+def get_tendermint_response(address: str) -> Generator[None, None, bool]
+```
+
+Get Tendermint response
+
+<a id="packages.valory.skills.registration_abci.behaviours.RegistrationStartupBehaviour.update_tendermint"></a>
+
+#### update`_`tendermint
+
+```python
+def update_tendermint() -> Generator[None, None, bool]
 ```
 
 Make HTTP POST request to update agent's local Tendermint node
