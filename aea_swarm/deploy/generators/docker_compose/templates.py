@@ -19,7 +19,11 @@
 
 """Deployment Templates."""
 
+<<<<<<< HEAD:aea_swarm/deploy/generators/docker_compose/templates.py
 from aea_swarm.deploy.constants import IMAGE_VERSION
+=======
+from deployments.constants import HARDHAT_VERSION, IMAGE_VERSION, TENDERMINT_VERSION
+>>>>>>> main:deployments/generators/docker_compose/templates.py
 
 
 TENDERMINT_CONFIG_TEMPLATE: str = (
@@ -32,7 +36,7 @@ valory/consensus-algorithms-tendermint:%s  \
         --o . \
         {hosts}
 """
-    % IMAGE_VERSION
+    % TENDERMINT_VERSION
 )
 
 DOCKER_COMPOSE_TEMPLATE: str = """version: "2.4"
@@ -60,7 +64,7 @@ HARDHAT_NODE_TEMPLATE: str = (
       localnet:
         ipv4_address: 192.167.11.2
 """
-    % IMAGE_VERSION
+    % HARDHAT_VERSION
 )
 
 TENDERMINT_NODE_TEMPLATE: str = (
@@ -72,6 +76,7 @@ TENDERMINT_NODE_TEMPLATE: str = (
     container_name: node{node_id}
     hostname: node{node_id}
     image: "valory/consensus-algorithms-tendermint:%s"
+    restart: always
     environment:
       - ID={node_id}
       - PROXY_APP=tcp://abci{node_id}:26658
@@ -90,8 +95,11 @@ TENDERMINT_NODE_TEMPLATE: str = (
     networks:
       localnet:
         ipv4_address: 192.167.11.{localnet_address_postfix}
+    volumes:
+      - ./build:/tendermint:Z
+      - ../persistent_data/logs:/logs:Z
 """
-    % IMAGE_VERSION
+    % TENDERMINT_VERSION
 )
 
 ABCI_NODE_TEMPLATE: str = (
@@ -99,17 +107,17 @@ ABCI_NODE_TEMPLATE: str = (
   abci{node_id}:
     mem_limit: 1024m
     mem_reservation: 256M
-    cpus: 0.5
+    cpus: 1
     container_name: abci{node_id}
-    image: "valory/consensus-algorithms-open-aea:%s"
+    image: valory/consensus-algorithms-open-aea:{valory_app}V%s
     environment:
-      - LOG_FILE=/home/ubuntu/logs/aea_{node_id}.txt
+      - LOG_FILE=/logs/aea_{node_id}.txt
 {agent_vars}
     networks:
       localnet:
         ipv4_address: 192.167.11.{localnet_address_postfix}
     volumes:
-      - ./persistent_data/logs:/home/ubuntu/logs:Z
+      - ../persistent_data/logs:/logs:Z
 """
     % IMAGE_VERSION
 )
@@ -117,6 +125,8 @@ ABCI_NODE_TEMPLATE: str = (
 if IMAGE_VERSION == "dev":
     ABCI_NODE_TEMPLATE += "      - ../../packages:/home/ubuntu/packages:rw\n"
     ABCI_NODE_TEMPLATE += "      - ../../../open-aea/:/open-aea\n"
+    ABCI_NODE_TEMPLATE += "      - ../persistent_data/benchmarking:/benchmarking:Z\n"
+    TENDERMINT_NODE_TEMPLATE += "      - ../persistent_data/tm_state:/tm_state:Z"
     TENDERMINT_NODE_TEMPLATE = TENDERMINT_NODE_TEMPLATE.replace(
         "DEV_MODE=0", "DEV_MODE=1"
     )
