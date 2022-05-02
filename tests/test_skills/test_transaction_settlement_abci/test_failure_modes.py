@@ -535,18 +535,17 @@ class TestSyncing(TransactionSettlementIntegrationBaseCase):
             self.behaviour.current_state.state_id == CheckLateTxHashesBehaviour.state_id
         )
 
-        verif_msgs = msgs[1::2]
         verified_idx = -1
         verified_count = 0
-        for i in range(len(verif_msgs)):
-            current_message = verif_msgs[i]
+        for i in range(len(msgs)):
+            current_message = msgs[i]
             assert current_message is not None and isinstance(
                 current_message, ContractApiMessage
             )
             if current_message.state.body["verified"]:
                 verified_idx = i
                 verified_count += 1
-        assert verified_idx != -1, f"No message has been verified: {verif_msgs}"
+        assert verified_idx != -1, f"No message has been verified: {msgs}"
         assert verified_count == 1, "More than 1 messages have been verified!"
 
         self.tx_settlement_period_state.update(
