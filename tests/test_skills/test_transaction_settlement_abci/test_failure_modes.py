@@ -403,7 +403,7 @@ class TestKeepers(OracleBehaviourBaseCase, IntegrationBaseCase):
         self.select_keeper(
             expected_keepers=deque(
                 (
-                    "0xFABB0ac9d68B0B445fB7357272Ff202C5651694a",
+                    "0x71bE63f3384f5fb98995898A86B02Fb2426c5788",
                     "0xBcd4042DE499D14e55001CcbB24a551F3b954096",
                 )
             ),
