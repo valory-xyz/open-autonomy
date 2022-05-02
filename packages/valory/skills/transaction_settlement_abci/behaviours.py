@@ -414,10 +414,13 @@ class CheckTransactionHistoryBehaviour(TransactionSettlementBaseState):
             verification_status, tx_hash = yield from self._check_tx_history()
 
             if verification_status == VerificationStatus.VERIFIED:
-                self.context.logger.info(
-                    f"A previous transaction {tx_hash} has already been verified for "
-                    f"{self.period_state.to_be_validated_tx_hash}."
+                msg = f"A previous transaction {tx_hash} has already been verified "
+                msg += (
+                    f"for {self.period_state.to_be_validated_tx_hash}."
+                    if self.period_state.tx_hashes_history
+                    else "and was synced after the finalization round timed out."
                 )
+                self.context.logger.info(msg)
             elif verification_status == VerificationStatus.NOT_VERIFIED:
                 self.context.logger.info(
                     f"No previous transaction has been verified for "
