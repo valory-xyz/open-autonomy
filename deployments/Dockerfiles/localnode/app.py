@@ -19,6 +19,7 @@
 
 """HTTP server to control the tendermint execution environment."""
 
+import json
 import logging
 import os
 import shutil
@@ -27,13 +28,14 @@ import traceback
 from pathlib import Path
 from typing import Any, Callable, Dict, Optional, Tuple
 
-from flask import Flask, Response, jsonify, request, json
+from flask import Flask, Response, jsonify, request
 from tendermint import TendermintNode, TendermintParams
 from werkzeug.exceptions import InternalServerError, NotFound
 
 
 ENCODING = "utf-8"
 DEFAULT_LOG_FILE = "log.log"
+TMHOME = Path(os.environ.get("TMHOME", "~/.tendermint")).resolve()
 logging.basicConfig(
     filename=os.environ.get("FLASK_LOG_FILE", DEFAULT_LOG_FILE),
     level=logging.DEBUG,
@@ -126,23 +128,45 @@ def start() -> Response:
         return jsonify(response=traceback.format_exc(), status=400)
 
 
-@app.route("/params", methods=["POST", "GET"])
-def params() -> Response:
-    """Get or update TendermintParams on TendermintNode"""
-    if request.method == "GET":
-        info: bytes = str(vars(tendermint_node.params)).encode(ENCODING)
-        return jsonify(response=info, status=200)
-    else:  # requires (re)start to become effective
-        # 2. populate genesis file, update persistent peers, start again
-        try:
-            tendermint_node.stop()  # stops node if it is running
+@app.get("/params")
+def get_params() -> Dict:
+    """Get tendermint params."""
+    try:
+        priv_key_file = TMHOME / "config" / "priv_validator_key.json"
+        priv_key_data = json.loads(priv_key_file.read_text(encoding="utf-8"))
+        del priv_key_data["priv_key"]
+        return {"params": priv_key_data, "status": True, "error": None}
+    except (FileNotFoundError, json.JSONDecodeError):
+        return {"params": {}, "status": False, "error": traceback.format_exc()}
 
-            raw_data: bytes = request.get_data()
-            kwargs: Dict[str, Any] = json.loads(raw_data.decode(ENCODING))
-            tendermint_node.params = TendermintParams(**kwargs)
-            return jsonify(response="TendermintParams updated", status=200)
-        except Exception:  # pylint: disable=broad-except
-            return jsonify(response=traceback.format_exc(), status=400)
+
+@app.post("/params")
+def update_params() -> Dict:
+    """Update validator params."""
+
+    try:
+        data = request.get_json()
+        genesis_file = TMHOME / "config" / "genesis.json"
+        genesis_data = {}
+        genesis_data["genesis_time"] = data["genesis_config"]["genesis_time"]
+        genesis_data["chain_id"] = data["genesis_config"]["chain_id"]
+        genesis_data["consensus_params"] = data["genesis_config"]["consensus_params"]
+        genesis_data["initial_height"] = "0"
+        genesis_data["validators"] = [
+            {
+                "address": validator["address"],
+                "pub_key": validator["pub_key"],
+                "power": validator["power"],
+                "name": validator["name"],
+            }
+            for validator in data["validators"]
+        ]
+        genesis_data["app_hash"] = ""
+        genesis_file.write_text(json.dumps(genesis_data, indent=2), encoding="utf-8")
+
+        return {"status": True, "error": None}
+    except (FileNotFoundError, json.JSONDecodeError, PermissionError):
+        return {"status": False, "error": traceback.format_exc()}
 
 
 @app.route("/gentle_reset")
@@ -195,4 +219,4 @@ def handle_server_error(e: InternalServerError) -> Response:
 
 
 if __name__ == "__main__":
-    app.run()
+    app.run(port=8080)
