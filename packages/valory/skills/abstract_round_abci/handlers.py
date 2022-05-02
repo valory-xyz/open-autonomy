@@ -18,8 +18,10 @@
 # ------------------------------------------------------------------------------
 
 """This module contains the handler for the 'abstract_round_abci' skill."""
+import ipaddress
 from abc import ABC
-from typing import Callable, FrozenSet, Optional, cast
+from typing import Callable, Dict, FrozenSet, Optional, cast
+from urllib.parse import urlparse
 
 from aea.configurations.data_types import PublicId
 from aea.protocols.base import Message
@@ -32,11 +34,16 @@ from packages.valory.protocols.abci.custom_types import Events
 from packages.valory.protocols.contract_api import ContractApiMessage
 from packages.valory.protocols.http import HttpMessage
 from packages.valory.protocols.ledger_api import LedgerApiMessage
+from packages.valory.protocols.tendermint.dialogues import (
+    TendermintDialogue,
+    TendermintDialogues,
+)
 from packages.valory.protocols.tendermint.message import TendermintMessage
 from packages.valory.skills.abstract_abci.handlers import ABCIHandler
 from packages.valory.skills.abstract_round_abci.base import (
     ABCIAppInternalError,
     AddBlockError,
+    BasePeriodState,
     ERROR_CODE,
     LateArrivingTransaction,
     OK_CODE,
@@ -418,14 +425,156 @@ class ContractApiHandler(AbstractResponseHandler):
     )
 
 
-class TendermintHandler(AbstractResponseHandler):
+class TendermintHandler(Handler):
     """The Tendermint request / response handler."""
 
     SUPPORTED_PROTOCOL: Optional[PublicId] = TendermintMessage.protocol_id
-    allowed_response_performatives = frozenset(
-        {
-            TendermintMessage.Performative.ERROR,
-            TendermintMessage.Performative.TENDERMINT_CONFIG_REQUEST,
-            TendermintMessage.Performative.TENDERMINT_CONFIG_RESPONSE,
-        }
-    )
+
+    def setup(self) -> None:
+        """Set up the handler."""
+
+    def teardown(self) -> None:
+        """Tear down the handler."""
+
+    @property
+    def period_state(self) -> BasePeriodState:
+        """Period State"""
+        return cast(BasePeriodState, cast(SharedState, self.context.state).period_state)
+
+    @property
+    def registered_addresses(self) -> Dict[str, str]:
+        """Registered addresses retrieved on-chain from service registry contract"""
+        return self.period_state.db.initial_data.get("registered_addresses", {})
+
+    @property
+    def dialogues(self) -> Optional[TendermintDialogues]:
+        """Tendermint request / response protocol dialogues"""
+
+        attribute = cast(PublicId, self.SUPPORTED_PROTOCOL).name + "_dialogues"
+        return getattr(self.context, attribute, None)
+
+    def handle(self, message: TendermintMessage) -> None:
+        """Handle incoming Tendermint messages"""
+
+        dialogues = cast(TendermintDialogues, self.dialogues)
+        dialogue = cast(TendermintDialogue, dialogues.update(message))
+        if dialogue is None:
+            self.context.logger.info(f"Unidentified Tendermint dialogue: {message}")
+            return
+
+        if message.performative == TendermintMessage.Performative.REQUEST:
+            self._handle_request(message, dialogue)
+        elif message.performative == TendermintMessage.Performative.RESPONSE:
+            self._handle_response(message, dialogue)
+        elif message.performative == TendermintMessage.Performative.ERROR:
+            self._handle_error(message, dialogue)
+        else:
+            self.context.logger.info(f"Performative not recognized: {message}")
+
+    def _reply_with_tendermint_error(
+        self,
+        message: TendermintMessage,
+        dialogue: TendermintDialogue,
+        error_message: str,
+    ) -> None:
+        """Reply with Tendermint error"""
+        response = dialogue.reply(
+            performative=TendermintMessage.Performative.ERROR,
+            target_message=message,
+            error_code=TendermintMessage.ErrorCode.INVALID_REQUEST,
+            error_msg=error_message,
+            error_data={"message": message.encode()},
+        )
+        self.context.outbox.put_message(response)
+        log_message = f"Error response sent\nreceived: {message}\nsent: {response}"
+        self.context.logger.info(log_message)
+
+    def _handle_request(
+        self, message: TendermintMessage, dialogue: TendermintDialogue
+    ) -> None:
+        """Handler Tendermint request message"""
+
+        if not self.registered_addresses:
+            error_message = "No registered addresses retrieved yet"
+            self.context.logger.info(f"Invalid request: {error_message}\n{message}")
+            self._reply_with_tendermint_error(message, dialogue, error_message)
+            return
+
+        if message.sender not in self.registered_addresses:
+            error_message = "Sender not registered for on-chain service"
+            self.context.logger.info(f"Invalid request: {error_message}\n{message}")
+            self._reply_with_tendermint_error(message, dialogue, error_message)
+            return
+
+        info = self.registered_addresses[self.context.agent_address]
+        response = dialogue.reply(
+            performative=TendermintMessage.Performative.RESPONSE,
+            target_message=message,
+            info=info,
+        )
+        self.context.outbox.put_message(message=response)
+        self.context.logger.info(f"Sending Tendermint request response: {response}")
+
+    def _handle_response(
+        self, message: TendermintMessage, dialogue: TendermintDialogue
+    ) -> None:
+        """Process Tendermint response messages"""
+
+        if message.sender not in self.registered_addresses:
+            error_message = "Response from agent not registered on-chain"
+            self.context.logger.info(f"Invalid response: {error_message}\n{message}")
+            self._reply_with_tendermint_error(message, dialogue, error_message)
+            return
+
+        try:  # validate message contains a valid address
+            parse_result = urlparse(message.info)
+            ipaddress.ip_network(parse_result.hostname)
+        except ValueError as e:
+            error_message = f"Failed to parse Tendermint address: {e}"
+            self.context.logger.info(f"Invalid response: {error_message}\n{message}")
+            self._reply_with_tendermint_error(message, dialogue, error_message)
+            return
+
+        self.registered_addresses[message.sender] = parse_result.geturl()
+        self.context.logger.info(f"Collected {message.sender}: {message.info}")
+        dialogues = cast(TendermintDialogues, self.dialogues)
+        dialogues.dialogue_stats.add_dialogue_endstate(
+            TendermintDialogue.EndState.CONFIG_SHARED, dialogue.is_self_initiated
+        )
+
+        nonce = dialogue.dialogue_label.dialogue_reference[0]
+        ctx_requests = cast(Requests, self.context.requests)
+
+        try:
+            callback = cast(
+                Callable,
+                ctx_requests.request_id_to_callback.pop(nonce),
+            )
+        except KeyError as e:
+            raise ABCIAppInternalError(
+                f"No callback defined for request with nonce: {nonce}"
+            ) from e
+
+        current_state = cast(
+            AbstractRoundBehaviour, self.context.behaviours.main
+        ).current_state
+        callback(message, current_state)
+
+    def _handle_error(
+        self, message: TendermintMessage, dialogue: TendermintDialogue
+    ) -> None:
+        """Handle error message as response"""
+
+        target_message = dialogue.get_message_by_id(message.target)
+        if not target_message:
+            log_message = "Received error message but could not retrieve target message"
+            self.context.logger.info(log_message)
+            return
+
+        self.context.logger.info(
+            f"Error response received\nsent: {target_message}\nreceived: {message}"
+        )
+        dialogues = cast(TendermintDialogues, self.dialogues)
+        dialogues.dialogue_stats.add_dialogue_endstate(
+            TendermintDialogue.EndState.CONFIG_NOT_SHARED, dialogue.is_self_initiated
+        )

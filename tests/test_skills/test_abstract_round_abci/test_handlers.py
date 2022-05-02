@@ -18,16 +18,21 @@
 # ------------------------------------------------------------------------------
 
 """Test the handlers.py module of the skill."""
+
+import logging
 from typing import Any, cast
 from unittest import mock
 from unittest.mock import MagicMock
 
 import pytest
+from _pytest.logging import LogCaptureFixture
 from aea.configurations.data_types import PublicId
+from aea.protocols.base import Message
 
 from packages.valory.protocols.abci import AbciMessage
 from packages.valory.protocols.abci.custom_types import CheckTxType, CheckTxTypeEnum
 from packages.valory.protocols.http import HttpMessage
+from packages.valory.protocols.tendermint import TendermintMessage
 from packages.valory.skills.abstract_round_abci.base import (
     ABCIAppInternalError,
     AddBlockError,
@@ -38,10 +43,13 @@ from packages.valory.skills.abstract_round_abci.base import (
 from packages.valory.skills.abstract_round_abci.dialogues import (
     AbciDialogue,
     AbciDialogues,
+    TendermintDialogue,
+    TendermintDialogues,
 )
 from packages.valory.skills.abstract_round_abci.handlers import (
     ABCIRoundHandler,
     AbstractResponseHandler,
+    TendermintHandler,
     exception_to_info_msg,
 )
 
@@ -254,3 +262,154 @@ class TestAbstractResponseHandler:
             self.handler.handle(
                 MagicMock(performative=HttpMessage.Performative.RESPONSE)
             )
+
+
+class TestTendermintHandler:
+    """Test Tendermint Handler"""
+
+    def setup(self) -> None:
+        """Set up the tests."""
+        self.context = MagicMock(skill_id=PublicId.from_str("dummy/skill:0.1.0"))
+        self.handler = TendermintHandler(name="dummy", skill_context=self.context)
+        self.handler.context.logger = logging.getLogger()
+        self.dialogues = TendermintDialogues(name="dummy", skill_context=self.context)
+
+    def test_handle_unidentified_tendermint_dialogue(
+        self, caplog: LogCaptureFixture
+    ) -> None:
+        """Test unidentified tendermint dialogue"""
+        message = Message()
+        with mock.patch.object(self.handler.dialogues, "update", return_value=None):
+            self.handler.handle(message)
+            assert "Unidentified Tendermint dialogue: " in caplog.text
+
+    def test_handle_request(self, caplog: LogCaptureFixture) -> None:
+        """Test handle request"""
+        performative = TendermintMessage.Performative.REQUEST
+        message = TendermintMessage(performative)  # type: ignore
+        message.sender = "Alice"
+        tendermint_address = "http://0.0.0.0:25567"
+        registered_addresses = {message.sender: tendermint_address}
+        initial_data = {"registered_addresses": registered_addresses}
+        self.handler.period_state.db.initial_data = initial_data  # type: ignore
+        self.context.agent_address = message.sender
+        self.handler.handle(message)
+        assert "Sending Tendermint request response: " in caplog.text
+
+    def test_handle_request_no_registered_addresses(
+        self, caplog: LogCaptureFixture
+    ) -> None:
+        """Test handle request no registered addresses"""
+        performative = TendermintMessage.Performative.REQUEST
+        message = TendermintMessage(performative)  # type: ignore
+        message.sender = "Alice"
+        self.handler.period_state.db.initial_data = {}  # type: ignore
+        self.handler.handle(message)
+        assert "No registered addresses retrieved yet" in caplog.text
+        assert "Error response sent" in caplog.text
+
+    def test_handle_request_sender_not_in_registered_addresses(
+        self, caplog: LogCaptureFixture
+    ) -> None:
+        """Test handle request sender not in registered addresses"""
+        performative = TendermintMessage.Performative.REQUEST
+        message = TendermintMessage(performative)  # type: ignore
+        message.sender = "Alice"
+        self.handler.handle(message)
+        assert "Sender not registered for on-chain service" in caplog.text
+        assert f"Error response sent\nreceived: {message}" in caplog.text
+
+    def test_handle_response_sender_not_in_registered_addresses(
+        self, caplog: LogCaptureFixture
+    ) -> None:
+        """Test handle response sender not in registered addresses"""
+        performative = TendermintMessage.Performative.RESPONSE
+        message = TendermintMessage(performative, info="info")  # type: ignore
+        message.sender = "Alice"
+        self.handler.period_state.db.initial_data = {}  # type: ignore
+        self.handler.handle(message)
+        assert "Response from agent not registered on-chain" in caplog.text
+        assert f"Error response sent\nreceived: {message}" in caplog.text
+
+    def test_handle_response_valid_addresses(self, caplog: LogCaptureFixture) -> None:
+        """Test handle response valid address"""
+        performative = TendermintMessage.Performative.RESPONSE
+        info = "http://0.0.0.0:25567"
+        message = TendermintMessage(performative, info=info)  # type: ignore
+        message.sender = "Alice"
+        initial_data = {"registered_addresses": {message.sender: None}}
+        self.handler.period_state.db.initial_data = initial_data  # type: ignore
+        self.handler.handle(message)
+        assert f"Collected {message.sender}: {message.info}" in caplog.text
+
+    def test_handle_response_invalid_addresses(self, caplog: LogCaptureFixture) -> None:
+        """Test handle response invalid address"""
+        performative = TendermintMessage.Performative.RESPONSE
+        info = "sudo rm -rf /"
+        message = TendermintMessage(performative, info=info)  # type: ignore
+        message.sender = "Alice"
+        initial_data = {"registered_addresses": {message.sender: None}}
+        self.handler.period_state.db.initial_data = initial_data  # type: ignore
+        self.handler.handle(message)
+        assert "Failed to parse Tendermint address: " in caplog.text
+
+    def make_error_message(self) -> TendermintMessage:
+        """Make dummy error message"""
+        performative = TendermintMessage.Performative.ERROR
+        error_code = TendermintMessage.ErrorCode.INVALID_REQUEST
+        error_msg, error_data = "", {}  # type: ignore
+        message = TendermintMessage(
+            performative,  # type: ignore
+            error_code=error_code,
+            error_msg=error_msg,
+            error_data=error_data,
+        )
+        message.sender = "Alice"
+        return message
+
+    def test_handle_error(self, caplog: LogCaptureFixture) -> None:
+        """Test handle error"""
+        message = self.make_error_message()
+        self.handler.handle(message)
+        assert "Error response received" in caplog.text
+
+    def test_handle_performative_not_recognized(
+        self, caplog: LogCaptureFixture
+    ) -> None:
+        """Test performative no recognized"""
+        message = self.make_error_message()
+        message._slots.performative = "wacky"
+        self.handler.handle(message)
+        assert f"Performative not recognized: {message}" in caplog.text
+
+    def test_handle_error_no_target_message_retrieved(
+        self, caplog: LogCaptureFixture
+    ) -> None:
+        """Test handle error no target message retrieved"""
+        message = self.make_error_message()
+        nonce = "0"
+        dialogue = TendermintDialogue(mock.Mock(), "Bob", mock.Mock())
+        dialogue.dialogue_label.dialogue_reference = nonce, "stub"
+        self.handler.dialogues.update = lambda _: dialogue  # type: ignore
+        callback = lambda *args, **kwargs: None  # noqa: E731
+        self.context.requests.request_id_to_callback = {nonce: callback}
+        self.handler.handle(message)
+        assert (
+            "Received error message but could not retrieve target message"
+            in caplog.text
+        )
+
+    def test_no_callback_defined_for_request_nonce(
+        self, caplog: LogCaptureFixture
+    ) -> None:
+        """Test no callback defined for request nonce"""
+        performative = TendermintMessage.Performative.RESPONSE
+        info = "http://0.0.0.0:25567"
+        message = TendermintMessage(performative, info=info)  # type: ignore
+        message.sender = "Alice"
+        initial_data = {"registered_addresses": {message.sender: None}}
+        self.handler.period_state.db.initial_data = initial_data  # type: ignore
+        self.context.requests.request_id_to_callback = {}
+        with pytest.raises(ABCIAppInternalError):
+            self.handler.handle(message)
+        assert "No callback defined for request with nonce:"

@@ -9,18 +9,18 @@ fingerprint:
   README.md: QmYNXPppPSnW61ipqKNH8pyMh8qzTERwQaducYYq1dnBJb
   __init__.py: QmPuJK7gMKruSTcaYk9otrFncfD9h6vBZVoAtkwhTBgcxa
   abci_app_chain.py: QmeCPxwjec4pxtedv8NeG2Gmj58GY2GycXvgwfyjEyqPGm
-  base.py: Qmave4tLgvGTFqTxVXpiTdpUCBX5B4WXKxaojzTgR5vVsm
+  base.py: QmRAFqSRS1111MGV4FJec9aeBBQFyi7BN6o7oxfZDtn9ng
   behaviour_utils.py: Qmewx981tf8LxxtZuca6RcQU46guFPdDYc6GLb6dCFE2Tm
   behaviours.py: QmeNvG7nPdXdAvKsrLNjJDEnnRUhf5hVetrJLm45EzCVq2
-  common.py: QmfGTW6d8bouhEeD5eaXaNzJNBnrujSsPCZkw4i9T2yERx
-  dialogues.py: Qmf3DmKDnx9bZL7BqhcokM3PPRYndZKhK1PC1SFnQdGYUU
-  handlers.py: QmUg3y4KEe3SvXnVVarbgkbiR3Rf8GULmppAmWzCTB365Y
+  common.py: QmPUbu6Qqx1Dr6x9vLyChp4L1YSFhLEonZdUjQ1G2N4Zkn
+  dialogues.py: QmRwAxxs4Zt4N2suXzNKqpSuwQDLgjh9hR4nfALfcTshku
+  handlers.py: QmYPB2eZ2sVVukhsPMCUwZ4b74uesuedVvB2FEcE8QpFq9
   io/__init__.py: QmPfA2syTybFaGmmMMt5gevZHEXPyjVf7wR1UE22NzpZZ3
   io/ipfs.py: Qmc7BLSKb2kESC1wdCc7FxaLiSHcmPcfiBuXBuLXevUdE7
   io/load.py: QmSa3vgVvQiMJabBvSnPjTMtYiDgrrHPugDGCvSf4kAfS3
   io/paths.py: QmT1e6Ygak8Fe4NxSrd2mb6EB1Rr6dsYZPL8dWh3aNMb12
   io/store.py: QmXHnLF1Jg2hmhUwYj4E4QoMmx6EoLhUtzEGqztLKtKFej
-  models.py: QmfDcmAtSYvY9u5QPmvM99RgtbDP573wTzcuLYWsXicm8p
+  models.py: QmWojBUxvCtrd8P1FYVBkmYgomqVBJtWcuvxn4Vr2NeP6d
   serializer.py: QmV1rutPMEPbbMVwvM4My6s8fwT7S9KhgLTqrbjHLEfdJG
   utils.py: QmSWEFvrVYMYxkGT1LBh1b6yZPg5mZe5dqXqZcvxzwHZqD
 fingerprint_ignore_patterns: []

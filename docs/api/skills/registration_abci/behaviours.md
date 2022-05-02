@@ -4,6 +4,16 @@
 
 This module contains the behaviours for the 'abci' skill.
 
+<a id="packages.valory.skills.registration_abci.behaviours.consume"></a>
+
+#### consume
+
+```python
+def consume(iterator: Iterable) -> None
+```
+
+Consume the iterator
+
 <a id="packages.valory.skills.registration_abci.behaviours.RegistrationBaseBehaviour"></a>
 
 ## RegistrationBaseBehaviour Objects
@@ -46,10 +56,43 @@ Register to the next periods.
 
 ```python
 @property
-def registered_addresses() -> Set[str]
+def registered_addresses() -> Dict[str, str]
 ```
 
 Agent addresses registered on-chain for the service
+
+<a id="packages.valory.skills.registration_abci.behaviours.RegistrationStartupBehaviour.not_yet_collected"></a>
+
+#### not`_`yet`_`collected
+
+```python
+@property
+def not_yet_collected() -> List[str]
+```
+
+Agent addresses for which no Tendermint information has been retrieved
+
+<a id="packages.valory.skills.registration_abci.behaviours.RegistrationStartupBehaviour.tendermint_parameter_url"></a>
+
+#### tendermint`_`parameter`_`url
+
+```python
+@property
+def tendermint_parameter_url() -> str
+```
+
+Tendermint URL for obtaining and updating parameters
+
+<a id="packages.valory.skills.registration_abci.behaviours.RegistrationStartupBehaviour.tendermint_start_url"></a>
+
+#### tendermint`_`start`_`url
+
+```python
+@property
+def tendermint_start_url() -> str
+```
+
+Tendermint URL for obtaining and updating parameters
 
 <a id="packages.valory.skills.registration_abci.behaviours.RegistrationStartupBehaviour.is_correct_contract"></a>
 
@@ -81,25 +124,45 @@ def get_addresses() -> Generator[None, None, bool]
 
 Get addresses of agents registered for the service
 
-<a id="packages.valory.skills.registration_abci.behaviours.RegistrationStartupBehaviour.make_tendermint_request"></a>
+<a id="packages.valory.skills.registration_abci.behaviours.RegistrationStartupBehaviour.get_tendermint_configuration"></a>
 
-#### make`_`tendermint`_`request
-
-```python
-def make_tendermint_request(address: str) -> None
-```
-
-Make Tendermint callback request
-
-<a id="packages.valory.skills.registration_abci.behaviours.RegistrationStartupBehaviour.process_response"></a>
-
-#### process`_`response
+#### get`_`tendermint`_`configuration
 
 ```python
-def process_response(message: TendermintMessage) -> None
+def get_tendermint_configuration() -> Generator[None, None, bool]
 ```
 
-Process tendermint response messages
+Make HTTP GET request to obtain agent's local Tendermint node parameters
+
+<a id="packages.valory.skills.registration_abci.behaviours.RegistrationStartupBehaviour.get_tendermint_response"></a>
+
+#### get`_`tendermint`_`response
+
+```python
+def get_tendermint_response(address: str) -> Generator[None, None, bool]
+```
+
+Get Tendermint response
+
+<a id="packages.valory.skills.registration_abci.behaviours.RegistrationStartupBehaviour.update_tendermint"></a>
+
+#### update`_`tendermint
+
+```python
+def update_tendermint() -> Generator[None, None, bool]
+```
+
+Make HTTP POST request to update agent's local Tendermint node
+
+<a id="packages.valory.skills.registration_abci.behaviours.RegistrationStartupBehaviour.start_tendermint"></a>
+
+#### start`_`tendermint
+
+```python
+def start_tendermint() -> Generator[None, None, bool]
+```
+
+Start up local Tendermint node
 
 <a id="packages.valory.skills.registration_abci.behaviours.RegistrationStartupBehaviour.async_act"></a>
 

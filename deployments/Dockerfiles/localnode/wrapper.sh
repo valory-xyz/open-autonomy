@@ -36,4 +36,5 @@ fi
 
 chmod 777 -R /tendermint
 chmod 777 -R /app
-          
+chmod 777 -R /tm_state
+
