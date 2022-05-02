@@ -315,6 +315,15 @@ class TestTransactionSettlementBaseState(PriceEstimationFSMBehaviourBaseCase):
         except StopIteration as res:
             assert res.value == expected_data
 
+        """Test the serialized_keepers method."""
+        state_ = self.behaviour.current_state
+        assert state_ is not None
+        assert state_.serialized_keepers(deque([]), 1) == ""
+        assert (
+            state_.serialized_keepers(deque(["-" * 42]), 1)
+            == "0000000000000000000000000000000000000000000000000000000000000001------------------------------------------"
+        )
+
 
 class TestRandomnessInOperation(BaseRandomnessBehaviourTest):
     """Test randomness in operation."""

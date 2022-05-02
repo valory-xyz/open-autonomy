@@ -31,11 +31,32 @@ from werkzeug.exceptions import InternalServerError, NotFound
 
 
 DEFAULT_LOG_FILE = "log.log"
+IS_DEV_MODE = os.environ.get("DEV_MODE", "0") == "1"
+CONFIG_OVERRIDE = [
+    ("fast_sync = true", "fast_sync = false"),
+    ("max_num_outbound_peers = 10", "max_num_outbound_peers = 0"),
+    ("pex = true", "pex = false"),
+]
+
 logging.basicConfig(
     filename=os.environ.get("FLASK_LOG_FILE", DEFAULT_LOG_FILE),
     level=logging.DEBUG,
     format=f"%(asctime)s %(levelname)s %(name)s %(threadName)s : %(message)s",  # noqa : W1309
 )
+
+
+def override_config_toml() -> None:
+    """Update sync method."""
+
+    config_path = str(Path(os.environ["TMHOME"]) / "config" / "config.toml")
+    with open(config_path, "r", encoding="UTF8") as fp:
+        config = fp.read()
+
+    for old, new in CONFIG_OVERRIDE:
+        config = config.replace(old, new)
+
+    with open(config_path, "w+", encoding="UTF8") as fp:
+        fp.write(config)
 
 
 class PeriodDumper:
@@ -50,17 +71,20 @@ class PeriodDumper:
 
         self.resets = 0
         self.logger = logger
-        self.dump_dir = Path("/logs/dump") if dump_dir is None else dump_dir
+        self.dump_dir = Path("/tm_state") if dump_dir is None else dump_dir
 
         if self.dump_dir.is_dir():
             shutil.rmtree(str(self.dump_dir), onerror=self.readonly_handler)
-        self.dump_dir.mkdir()
+        self.dump_dir.mkdir(exist_ok=True)
 
     @staticmethod
     def readonly_handler(func: Callable, path: str, execinfo: Any) -> None:
         """If permission is readonly, we change and retry."""
-        os.chmod(path, stat.S_IWRITE)
-        func(path)
+        try:
+            os.chmod(path, stat.S_IWRITE)
+            func(path)
+        except (FileNotFoundError, OSError):
+            return
 
     def dump_period(
         self,
@@ -80,27 +104,7 @@ class PeriodDumper:
         self.resets += 1
 
 
-CONFIG_OVERRIDE = [
-    ("fast_sync = true", "fast_sync = false"),
-    ("max_num_outbound_peers = 10", "max_num_outbound_peers = 0"),
-]
-
-
-def update_sync_method() -> None:
-    """Update sync method."""
-
-    config_path = str(Path(os.environ["TMHOME"]) / "config" / "config.toml")
-    with open(config_path, "r", encoding="UTF8") as fp:
-        config = fp.read()
-
-    for old, new in CONFIG_OVERRIDE:
-        config = config.replace(old, new)
-
-    with open(config_path, "w+", encoding="UTF8") as fp:
-        fp.write(config)
-
-
-update_sync_method()
+override_config_toml()
 tendermint_params = TendermintParams(
     proxy_app=os.environ["PROXY_APP"],
     consensus_create_empty_blocks=os.environ["CREATE_EMPTY_BLOCKS"] == "true",
@@ -135,7 +139,7 @@ def hard_reset() -> Tuple[Any, int]:
     """Reset the node forcefully, and prune the blocks"""
     try:
         tendermint_node.stop()
-        if os.environ.get("DEV_MODE", "0") == "1":
+        if IS_DEV_MODE:
             period_dumper.dump_period()
         tendermint_node.prune_blocks()
         tendermint_node.start()

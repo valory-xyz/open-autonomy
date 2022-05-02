@@ -5,16 +5,19 @@ agent: valory/oracle_deployable:0.1.0
 network: hardhat
 number_of_agents: 4
 ---
+
+benchmark_persistence_params: &benchmark_persistence_params
+  args:
+    log_dir: /benchmarking
+
 observation_params: &observation_params
   args:
     observation_interval: 30
     broadcast_to_server: false
 
-
 valory_monitoring_backend: &monitoring_backend
   args:
     url: 'https://staging.oracle-server.autonolas.tech/deposit'
-
 
 public_id: valory/oracle_abci:0.1.0
 type: skill
@@ -35,6 +38,8 @@ models:
        <<: *observation_params
     - server_api:
        <<: *monitoring_backend
+    - benchmark_tool:
+        <<: *benchmark_persistence_params
   1:
     - price_api:
         args:
@@ -51,6 +56,8 @@ models:
         <<: *observation_params
     - server_api:
         <<: *monitoring_backend
+    - benchmark_tool:
+        <<: *benchmark_persistence_params
   2:
     - price_api:
         args:
@@ -67,6 +74,8 @@ models:
         <<: *observation_params
     - server_api:
         <<: *monitoring_backend
+    - benchmark_tool:
+        <<: *benchmark_persistence_params
   3:
     - price_api:
         args:
@@ -83,3 +92,5 @@ models:
         <<: *observation_params
     - server_api:
         <<: *monitoring_backend
+    - benchmark_tool:
+        <<: *benchmark_persistence_params
