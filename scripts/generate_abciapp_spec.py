@@ -78,46 +78,46 @@ class DFA:
 
         orphan_states = states - (start_states | set(transition_func.values()))
 
-        lines = []
+        error_strings = []
         if orphan_states:
-            lines.append(
+            error_strings.append(
                 f" - DFA spec. contains orphan states: {orphan_states}."
             )
         if not transition_func_states.issubset(states):
-            lines.append(
+            error_strings.append(
                 f" - Transition function contains unexpected states: {transition_func_states-states}."  # type: ignore
             )
         if not transition_func_alphabet_in.issubset(alphabet_in):
-            lines.append(
+            error_strings.append(
                 f" - Transition function contains unexpected input symbols: {transition_func_alphabet_in-alphabet_in}."  # type: ignore
             )
         if not alphabet_in.issubset(transition_func_alphabet_in):
-            lines.append(
+            error_strings.append(
                 f" - Unused input symbols: {alphabet_in-transition_func_alphabet_in}."  # type: ignore
             )
         if default_start_state not in start_states:
-            lines.append(
+            error_strings.append(
                 " - Default start state is not in start states set."
             )
         if not start_states.issubset(states):
-            lines.append(
+            error_strings.append(
                 f" - Start state set contains unexpected states: {start_states-states}."
             )
         if not final_states.issubset(states):
-            lines.append(
+            error_strings.append(
                 f" - Final state set contains unexpected states: {final_states-states}."
             )
         if start_states & final_states:
-            lines.append(
+            error_strings.append(
                 f" - Final state set contains start states: {start_states & final_states}."
             )
         if transition_func_in_states & final_states:
-            lines.append(
+            error_strings.append(
                 f" - Transitions out from final states: {transition_func_in_states & final_states}."
             )
 
-        if len(lines) > 0:
-            raise DFASpecificationError("DFA spec. has the following issues:\n" + "\n".join(lines))
+        if len(error_strings) > 0:
+            raise DFASpecificationError("DFA spec. has the following issues:\n" + "\n".join(error_strings))
 
         self.label = label
         self.states = states
@@ -333,8 +333,10 @@ def parse_arguments() -> argparse.Namespace:
     )
     required = parser.add_argument_group("required arguments")
     required.add_argument(
-        "classfqn",
+        "-c",
+        "--classfqn",
         type=str,
+        required=True,
         help="ABCI App class fully qualified name.",
     )
     parser.add_argument(
