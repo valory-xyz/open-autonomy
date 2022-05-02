@@ -1,12 +1,12 @@
 # Get Started
 
-This section is aimed at giving a general, introductory overview of the library and a high-level view of the main elements that make an Agent Service, without delving into the specific details. Hopefully this will give and overall understanding on the development process and the main components involved, without needing to delve into the particular details.
+This section is aimed at giving a general, introductory overview of the library and a high-level view of the main elements that make an Agent Service, without delving into the specific details. Hopefully this will give a global understanding on the development process and the relationship between the main components of the stack.
 
 We start with a simple "Hello World" example service, and we will add progressively more complexity and functionality to it.
 
 
-## Hello World!
-We start our tour to the framework by visiting an elementary example. The goal is to come up with a service composed of four agents. The functionality of this service will be extremely simple: Each agent will output the following message to its own console:
+## A Hello World! {agent_service}
+We start our tour to the framework by visiting an elementary example. The goal is to come up with a service composed of four agents. The functionality of this service will be extremely simple. Namely, each agent will output the following message to its own console:
 > "Agent $i$ says: Hello World!"
 
 More concretely, we divide the timeline into _periods_, and within each period, _only one designated agent will print the message_. The other agents will print nothing. Think of a period as an interval where the service carries out an iteration of its intended functionality.
@@ -23,7 +23,7 @@ The architecture of this {{agent_service}} is as simple as it can be: four agent
 
     Every {{agent_service}} has an associated *consensus mechanism*:
 
-    * The consensus mechanism is the component that makes possible for the agents to reach agreement on certain decentralized operations.
+    * The consensus mechanism is the component that makes possible for the agents to synchronise data. This allows them to, e.g., reach agreement on certain decentralized operations or simply share information.
 
     * Anything happening at the consensus network is completely transparent to the developer. An application run by the {{agent_service}} can be thought and developed as a single "virtual" application.
 
@@ -37,7 +37,7 @@ This is what the service would look like in all its glory:
 
 Even though printing "Hello World" on their local console is far from being an exciting functionality, this example shows a number of  nontrivial elements that are key elements in an {{agent_service}}:
 
-* The service defines a sequence of "atomic" well-defined actions whose execution in the appropriate order achieves the intended functionality.
+* The service defines a sequence of "atomic," well-defined actions whose execution in the appropriate order achieves the intended functionality.
 * The agents have to interact with each other to execute the overall functionality, and reach a consensus on a number of decisions at certain moments (e.g., who is the agent that prints the message in each period).
 * The agents are also allowed to execute actions on their own. In this simple example it just consists of printing a local message.
 * Agents have to use a global store for persistent data (e.g., which was the last agent that printed the message).
@@ -58,7 +58,7 @@ The first step when designing an {{agent_service}} is to divide the intended fun
 3. [If Step 2 OK] The Keeper prints the message "Hello World" on its local console.
 4. Pause for a while and go to Step 2.
 
-The reader should have probably already identified Steps 2 and 3. Step 1 is a requirement in each {{agent_service}}: it is simply a preliminary stage where each agent shows its willingness to participate actively in the service. This will allow all the agents to have an idea on what agents are participating in the service. Step 4, on the other hand is also a standard step in services that "loop", like the Hello World service. It serves as a synchronization point to allow agents wait to ensure that all agents have finished their tasks.
+The reader should have probably already identified Steps 2 and 3. Step 1 is a requirement in each {{agent_service}}: it is simply a preliminary stage where each agent shows its willingness to participate actively in the service. This will allow all the agents to have an idea on what agents are participating in the service. Step 4, on the other hand is also a standard step in services that "loop", like the Hello World service. It serves as a "sleep" block of the {{agent_service}}.
 
 Graphically, the sequence of atomic steps that the service is following can be seen as
 
@@ -75,13 +75,13 @@ This sequence diagram of operations can be interpreted as a finite state machine
 
     * a set of _states_,
     * a set of _events_, and
-    * a _state transition function_.
+    * a [_state-transition function_](https://en.wikipedia.org/wiki/Finite-state_machine#Mathematical_model).
 
-    The state transition function indicates how to move from a given state once an event has been received. At any timepoint, an FSM can only be located at a given state (_current state_). You can find a brief introduction about FSMs on Wikipedia, but for our purposes it is enough to understand the three bullet points above.
+    The [state-transition function](https://en.wikipedia.org/wiki/Finite-state_machine#Mathematical_model) indicates how to move from a given state once an event has been received. At any timepoint, an FSM can only be located at a given state (_current state_). You can find a brief introduction about FSMs on Wikipedia, but for our purposes it is enough to understand the three bullet points above.
 
     Note that, according to the most the rigorous definition of an FSM, besides the current state, the FSM "has no other memory." That is, it does not know _how_ it arrived at a given state. Of course, in order to develop useful {{agent_service}}s, the {{valory_stack}} equips these FSMs with persistent storage.
 
-Each agent runs internally a process or application that implements the service FSM, processes events and transit to new states according to the state transition function. The component that encapsulates this functionality is an agent _skill_. As its name suggests, a skill is some sort of "knowledge" that the agent possesses.
+Each agent runs internally a process or application that implements the service FSM, processes events and transit to new states according to the state-transition function. The component that encapsulates this functionality is an agent _skill_. As its name suggests, a skill is some sort of "knowledge" that the agent possesses.
 
 Let us call `hello_world`the skill that encapsulates the Hello World functionality. A zoom on an agent would look like this:
 
@@ -99,13 +99,13 @@ Observe that Agent 2 has three additional skills. In fact, an agent can have one
 
 ## Transitioning through the FSM
 
-But how exactly do an agent transition through the FSM? That is, how are the events generated, and how are they received?
+But how exactly does an agent transition through the FSM? That is, how are the events generated, and how are they received?
 
 To answer this question, let us focus on a concrete state, namely, the SelectKeeper state. Several things are expected when the service is at this point.
 
 A high level view of what occurs is as follows:
 
-1. Prepare the vote. Each agent determines what agent he wishes to vote for the new Keeper. Since there is the need to reach an agreement, we consider that each agent wants to vote for "Agent $M\pmod 4+1$," where $M$ is the value of the current period. Thus, the agent prepares an appropriate _payload_ that contains that information.
+1. Prepare the vote. Each agent determines what agent he wishes to vote for as the new Keeper. Since there is the need to reach an agreement, we consider that each agent wants to vote for "Agent $M\pmod 4+1$," where $M$ is the value of the current period. Thus, the agent prepares an appropriate _payload_ that contains that information.
 
   ![](./images/hello_world_sequence_1.svg)
 
@@ -123,8 +123,8 @@ A high level view of what occurs is as follows:
 
   ![](./images/hello_world_sequence_4.svg)
 
-5. A certain skill component (_Round_) receives and processes this information. If a $2/3$ majority of the agents voted for a certain Keeper, then this value is stored to be used in future phases of the service. After finalizing all this processing, the same skill component outputs the event that indicates the success of the expected actions at that state.
-6. The event cast in the previous step is received by the component that actually manages the service FSM (_AbciApp_). This component processes the event according to the transition function and moves the current state of the FSM appropriately.
+5. A certain skill component (_Round_) receives and processes this information. If strictly more than $2/3$ of the agents voted for a certain Keeper, then the agent records this result persistently to be used in future phases of the service. After finalizing all this processing, the same skill component outputs the event that indicates the success of the expected actions at that state.
+6. The event cast in the previous step is received by the component that actually manages the service FSM (_AbciApp_). This component processes the event according to the state-transition function and moves the current state of the FSM appropriately.
 
   ![](./images/hello_world_sequence_5.svg)
 
@@ -139,8 +139,7 @@ A high level view of what occurs is as follows:
     * **`RoundBehaviour`**: This can be seen as the main class of the skill, which aggregates the `AbciApp` and ensures to establish a one-to-one relationship between the rounds and behaviours associated to each state of the FSM.
 
 
-
-The hello_world skill therefore would look like something like this:
+At this point, the walktrhough that we have presented, i.e., a single transition from one state of the FSM, has essentially introduced the main components of an agent and the main interactions that occur in an {{agent_service}}. It is impotant that the developer keeps these concepts in mind, since executions of further state transitions can be easily mapped with what has been presented here so far.
 
 ## Executing the Main Functionality
 
@@ -162,7 +161,7 @@ As a result, we have finished a "happy path" of execution of the FSM, concluding
 <figcaption>Result of the execution the second period of the Hello World {{agent_service}}</figcaption>
 </figure>
 
-As a summary, find below an image which shows the main components of an agent and a skill presented in this section. Of course, this is not a complete picture of what is inside the agent, but it should give a good idea of what are the main elements that play a role in an {{agent_service}}.
+As a summary, find below an image which shows the main components of the agent and the skill related to the Hello World {{agent_service}} presented in this overview. Of course, this is by no means the complete picture of what is inside an agent, but it should give a good intuition of what are the main elements that play a role in any {{agent_service}} and how they interact.
 
 <figure markdown>
 ![](./images/hello_world_agent_internal.svg)
@@ -171,4 +170,4 @@ As a summary, find below an image which shows the main components of an agent an
 
 
 ## Further Reading
-While this walktrhough to a simple Hello World example gives a bird's eye view of the main elements that play a role in an {{agent_service}} and inside an agent, there are a few more elements in the {{valory_stack}} that facilitate building complex applications and interact with real blockchains and other networks. We refer the reader to the more advanced sections where we explore in detail the stack. 
+While this walkthrough to a simple Hello World example gives a bird's eye view of the main elements that play a role in an {{agent_service}} and inside an agent, there are a few more elements in the {{valory_stack}} that facilitate building complex applications and interact with real blockchains and other networks. We refer the reader to the more advanced sections where we explore in detail the stack.

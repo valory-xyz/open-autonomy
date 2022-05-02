@@ -14,7 +14,7 @@ strict: true
 
 nav:
   - Home: 'index.md'
-  - Get started: 'get_started.md'
+  - Get Started: 'get_started.md'
   - Preliminaries:
     - Autonomous Economic Agents: 'aea.md'
     - Finite State Machines: 'fsm.md'
