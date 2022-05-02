@@ -11,7 +11,7 @@ We start our tour to the framework by visiting an elementary example. The goal i
 
 More concretely, we divide the timeline into _periods_, and within each period, _only one designated agent will print the message_. The other agents will print nothing. Think of a period as an interval where the service carries out an iteration of its intended functionality.
 
-The architecture of this {{agent_service}} is as simple as it can be: four agents that are inherently connected through a _consensus mechanism_.
+The architecture of this {{agent_service}} is as simple as it can be: four agents that are inherently connected through a _consensus gadget_.
 
 <figure markdown>
 ![](./images/hello_world_architecture.svg)
@@ -21,11 +21,11 @@ The architecture of this {{agent_service}} is as simple as it can be: four agent
 
 !!! warning "Important"
 
-    Every {{agent_service}} has an associated *consensus mechanism*:
+    Every {{agent_service}} has an associated *consensus gadget*:
 
-    * The consensus mechanism is the component that makes possible for the agents to synchronise data. This allows them to, e.g., reach agreement on certain decentralized operations or simply share information.
+    * The consensus gadget is the component that makes possible for the agents to synchronise data. This allows them to, e.g., reach agreement on certain decentralized operations or simply share information.
 
-    * Anything happening at the consensus network is completely transparent to the developer. An application run by the {{agent_service}} can be thought and developed as a single "virtual" application.
+    * Anything happening at the consensus network is completely abstracted away to the developer. An application run by the {{agent_service}} can be thought and developed as a single "virtual" application.
 
 
 This is what the service would look like in all its glory:
@@ -38,9 +38,10 @@ This is what the service would look like in all its glory:
 Even though printing "Hello World" on their local console is far from being an exciting functionality, this example shows a number of  nontrivial elements that are key elements in an {{agent_service}}:
 
 * The service defines a sequence of "atomic," well-defined actions whose execution in the appropriate order achieves the intended functionality.
-* The agents have to interact with each other to execute the overall functionality, and reach a consensus on a number of decisions at certain moments (e.g., who is the agent that prints the message in each period).
-* The agents are also allowed to execute actions on their own. In this simple example it just consists of printing a local message.
+* Agents have to interact with each other to execute the overall functionality, and reach a consensus on a number of decisions at certain moments (e.g., who is the agent that prints the message in each period).
+* Agents are also allowed to execute actions on their own. In this simple example it just consists of printing a local message.
 * Agents have to use a global store for persistent data (e.g., which was the last agent that printed the message).
+* Finally, the application can progress make progress even if some agent is faulty or malicious (up to a certain threshold of malicious agents).
 
 Of course, in this toy example we assume that the agent that prints the message will behave honestly. When this printing functionality is replaced by other critical operations, like sending a transaction to a blockchain, it is not enough with trusting that the agent will behave honestly, and further security and cryptographic mechanisms will be required.
 
@@ -67,7 +68,7 @@ Graphically, the sequence of atomic steps that the service is following can be s
 <figcaption>Diagram of atomic operations of the Hello World service</figcaption>
 </figure>
 
-This sequence diagram of operations can be interpreted as a finite state machine (FSM) that defines the service. Ignoring network latency and delays caused by the underlying consensus mechanism, it can be considered that at any given time, **all agents have the same view of the service FSM**, and **all agents execute the same transitions**. This is one of the key concepts of the {{valory_stack}}.
+This sequence diagram of operations can be interpreted as a finite state machine (FSM) that defines the service. Ignoring network latency and delays caused by the underlying consensus gadget, it can be considered that at any given time, **all agents have the same view of the service FSM**, and **all agents execute the same transitions**. This is one of the key concepts of the {{valory_stack}}.
 
 !!! note
 
@@ -105,35 +106,41 @@ To answer this question, let us focus on a concrete state, namely, the SelectKee
 
 A high level view of what occurs is as follows:
 
-1. Prepare the vote. Each agent determines what agent he wishes to vote for as the new Keeper. Since there is the need to reach an agreement, we consider that each agent wants to vote for "Agent $M\pmod 4+1$," where $M$ is the value of the current period. Thus, the agent prepares an appropriate _payload_ that contains that information.
+1.  Prepare the vote. Each agent determines what agent he wishes to vote for as the new Keeper. Since there is the need to reach an agreement, we consider that each agent wants to vote for "Agent $M\pmod 4+1$," where $M$ is the value of the current period. Thus, the agent prepares an appropriate _payload_ that contains that information.
 
-  ![](./images/hello_world_sequence_1.svg)
+    ![](./images/hello_world_sequence_1.svg)
 
 
-2. Send the vote. The hello_world skill has a component (_Behaviour_) that is in charge of casting the vote to the consensus mechanism.
+2.  Send the vote. The hello_world skill has a component (_Behaviour_) that is in charge of casting the vote to the consensus gadget.
 
-  ![](./images/hello_world_sequence_2.svg)
+    ![](./images/hello_world_sequence_2.svg)
 
-3. The consensus mechanism reads the agents' outputs, and ensures transparently that the collection of responses observed is consistent.
-    * Note that this does not mean that the consensus mechanism ensures that all the agents vote the same. Rather, it means that all the agents reach an agreement on what vote was sent by each of them.
 
-  ![](./images/hello_world_sequence_3.svg)
+3.  The consensus gadget reads the agents' outputs, and ensures that the collection of responses observed is consistent. The gadget takes the responsibility of executing the consensus algorithm, which is abstracted away to the developer of the {{agent_service}}.
+    *   Note that this does not mean that the consensus gadget ensures that all the agents vote the same. Rather, it means that all the agents reach an agreement on what vote was sent by each of them.
 
-4. Once the consensus phase is finished (and persistently stored in a blockchain), each agent is notified with the corresponding information via an interface called _ABCI_.
+    ![](./images/hello_world_sequence_3.svg)
 
-  ![](./images/hello_world_sequence_4.svg)
 
-5. A certain skill component (_Round_) receives and processes this information. If strictly more than $2/3$ of the agents voted for a certain Keeper, then the agent records this result persistently to be used in future phases of the service. After finalizing all this processing, the same skill component outputs the event that indicates the success of the expected actions at that state.
-6. The event cast in the previous step is received by the component that actually manages the service FSM (_AbciApp_). This component processes the event according to the state-transition function and moves the current state of the FSM appropriately.
+4.  Once the consensus phase is finished (and persistently stored in a temporary blockchain maintained by the agents), each agent is notified with the corresponding information via an interface called _ABCI_.
 
-  ![](./images/hello_world_sequence_5.svg)
+    ![](./images/hello_world_sequence_4.svg)
+
+
+5.  A certain skill component (_Round_) receives and processes this information. If strictly more than $2/3$ of the agents voted for a certain Keeper, then the agent records this result persistently to be used in future phases of the service. After finalizing all this processing, the same skill component outputs the event that indicates the success of the expected actions at that state.
+
+
+6.  The event cast in the previous step is received by the component that actually manages the service FSM (_AbciApp_). This component processes the event according to the state-transition function and moves the current state of the FSM appropriately.
+
+    ![](./images/hello_world_sequence_5.svg)
+
 
 !!! warning "Important"
 
     As illustrated by the example above, there are a number of components from a skill in the {{valory_stack}} that the developer needs to define in order to build an {{agent_service}}. More concretely, these are:
 
     * **`AbciApp`**: The component that defines the FSM itself and the transitions between states.
-    * **`Rounds`**: The components that process the input from the consensus mechanism and outputs the appropriate events to make the next transition. **There must be one round per FSM state.**
+    * **`Rounds`**: The components that process the input from the consensus gadget and outputs the appropriate events to make the next transition. **There must be one round per FSM state.**
     * **`Behaviours`**: The components that execute the proactive action expected at each state. E.g., cast a vote for a Keeper, print a message on screen, execute a transaction on a blockchain, etc. **There must be one behaviour per FSM state.**
     * **`Payloads`**: Associated to each behaviour. They define the contents of the transaction of the corresponding behaviour.
     * **`RoundBehaviour`**: This can be seen as the main class of the skill, which aggregates the `AbciApp` and ensures to establish a one-to-one relationship between the rounds and behaviours associated to each state of the FSM.
@@ -148,10 +155,10 @@ Still, the service has only transitioned to a new state on its FSM. But, what wo
 Mimicking the steps that occurred in the previous state, it is not difficult to see that this is what would actually happen:
 
 1. Upon entering the PrintMessage state, the associated behaviour, say `PrintMessageBehaviour` will be in charge of executing the appropriate functionality. For Agent 2, it will be printing the celebrated message "Agent 2 says: Hello World". The rest of the agents can simply do nothing.
-2. In any case, a dummy message (e.g., a constant value) must be sent by all the agents so that the consensus mechanism does its work.
-3. The consensus mechanism will execute its protocol
+2. In any case, a dummy message (e.g., a constant value) must be sent by all the agents so that the consensus gadget does its work.
+3. The consensus gadget will execute its protocol
 4. The result of the consensus will be forwarded to all the agents through ABCI.
-5. The `PrintMessageRound` will receive a callback originated from the consensus mechanism. It will verify that all agents have responded, and it will then cast the `DONE` event.
+5. The `PrintMessageRound` will receive a callback originated from the consensus gadget. It will verify that all agents have responded, and it will then cast the `DONE` event.
 6. The `AbciApp` will take over and process the event `DONE`, and move the current state of the FSM to the next state, ResetAndPause.
 
 As a result, we have finished a "happy path" of execution of the FSM, concluding with the expected output:
