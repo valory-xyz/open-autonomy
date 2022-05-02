@@ -581,6 +581,8 @@ class TestSyncing(TransactionSettlementIntegrationBaseCase):
         self.sync_late_messages()
         # check that we have decreased the number of missed messages.
         assert self.tx_settlement_period_state.missed_messages == 0
+        # check the tx hash that we missed before to see if it is verified
+        self.check_late_tx_hashes()
         assert (
             self.tx_settlement_period_state.final_verification_status
             == VerificationStatus.VERIFIED
