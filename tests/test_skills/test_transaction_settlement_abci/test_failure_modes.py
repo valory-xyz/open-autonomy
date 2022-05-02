@@ -31,7 +31,8 @@ from web3.types import RPCEndpoint, Wei
 from packages.open_aea.protocols.signing import SigningMessage
 from packages.open_aea.protocols.signing.custom_types import (
     RawTransaction,
-    SignedTransaction, SignedMessage,
+    SignedMessage,
+    SignedTransaction,
 )
 from packages.valory.protocols.contract_api import ContractApiMessage
 from packages.valory.protocols.ledger_api import LedgerApiMessage
@@ -55,12 +56,12 @@ from packages.valory.skills.price_estimation_abci.rounds import (
 )
 from packages.valory.skills.transaction_settlement_abci.behaviours import (
     CheckLateTxHashesBehaviour,
+    FinalizeBehaviour,
     SelectKeeperTransactionSubmissionBehaviourA,
     SelectKeeperTransactionSubmissionBehaviourB,
     SynchronizeLateMessagesBehaviour,
-    TransactionSettlementBaseState, FinalizeBehaviour,
+    TransactionSettlementBaseState,
 )
-from packages.valory.skills.transaction_settlement_abci.models import TransactionParams
 from packages.valory.skills.transaction_settlement_abci.payload_tools import (
     VerificationStatus,
     hash_payload_to_hex,
@@ -68,7 +69,6 @@ from packages.valory.skills.transaction_settlement_abci.payload_tools import (
 from packages.valory.skills.transaction_settlement_abci.rounds import (
     PeriodState as TxSettlementPeriodState,
 )
-
 from tests.conftest import ROOT_DIR
 from tests.test_skills.base import FSMBehaviourBaseCase
 from tests.test_skills.integration import (
@@ -78,7 +78,6 @@ from tests.test_skills.integration import (
     HandlersType,
     IntegrationBaseCase,
 )
-
 
 SAFE_TX_GAS = 120000
 ETHER_VALUE = 0
@@ -477,6 +476,7 @@ class TestSyncing(TransactionSettlementIntegrationBaseCase):
             expected_content,
             expected_types,
         )
+
         assert isinstance(
             self.behaviour.current_state, SynchronizeLateMessagesBehaviour
         )
@@ -573,9 +573,7 @@ class TestSyncing(TransactionSettlementIntegrationBaseCase):
         # check that we have increased the number of missed messages.
         assert self.tx_settlement_period_state.missed_messages == 1
         # store the tx hash that we have missed.
-        assert isinstance(
-            self.behaviour.current_state, FinalizeBehaviour
-        )
+        assert isinstance(self.behaviour.current_state, FinalizeBehaviour)
         missed_hash = self.behaviour.current_state.params.tx_hash
         # sync the tx hash that we missed before
         self.sync_late_messages()

@@ -264,7 +264,7 @@ class IntegrationBaseCase(FSMBehaviourBaseCase):
         handlers: Optional[HandlersType] = None,
         expected_content: Optional[ExpectedContentType] = None,
         expected_types: Optional[ExpectedTypesType] = None,
-        fail_send_a2a: bool = False
+        fail_send_a2a: bool = False,
     ) -> Tuple[Optional[Message], ...]:
         """
         Process n message cycles.
@@ -440,16 +440,6 @@ class _TxHelperIntegration(_GnosisHelperIntegration):
         )
         assert msg1 is not None and isinstance(msg1, ContractApiMessage)
         assert msg3 is not None and isinstance(msg3, LedgerApiMessage)
-        tx_digest = msg3.transaction_digest.body
-        tx_data = {
-            "status": VerificationStatus.PENDING,
-            "tx_digest": cast(str, tx_digest),
-        }
-
-        behaviour = cast(FinalizeBehaviour, self.behaviour.current_state)
-        assert behaviour.params.gas_price is not None
-        assert behaviour.params.nonce is not None
-
         nonce_used = Nonce(int(cast(str, msg1.raw_transaction.body["nonce"])))
         gas_price_used = {
             gas_price_param: Wei(
@@ -462,6 +452,19 @@ class _TxHelperIntegration(_GnosisHelperIntegration):
             )
             for gas_price_param in ("maxPriorityFeePerGas", "maxFeePerGas")
         }
+        tx_digest = msg3.transaction_digest.body
+        tx_data = {
+            "status": VerificationStatus.PENDING,
+            "tx_digest": cast(str, tx_digest),
+        }
+
+        behaviour = cast(FinalizeBehaviour, self.behaviour.current_state)
+        assert behaviour.params.gas_price == gas_price_used
+        assert behaviour.params.nonce == nonce_used
+        if simulate_timeout:
+            assert behaviour.params.tx_hash == tx_digest
+        else:
+            assert behaviour.params.tx_hash == ""
 
         # if we are repricing
         if nonce_used == stored_nonce:
@@ -489,16 +492,14 @@ class _TxHelperIntegration(_GnosisHelperIntegration):
             )
         else:
             # store the tx hash that we have missed and update missed messages.
-            assert isinstance(
-                self.behaviour.current_state, FinalizeBehaviour
-            )
+            assert isinstance(self.behaviour.current_state, FinalizeBehaviour)
             self.mock_a2a_transaction()
             self.behaviour.current_state.params.tx_hash = tx_digest
             update_params = dict(
                 missed_messages=self.tx_settlement_period_state.missed_messages + 1,
             )
 
-        self.tx_settlement_period_state.update(**update_params)
+        self.tx_settlement_period_state.update(None, None, **update_params)
 
     def validate_tx(self) -> None:
         """Validate the sent transaction."""
