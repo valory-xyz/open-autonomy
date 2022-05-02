@@ -447,8 +447,12 @@ class TestSyncing(TransactionSettlementIntegrationBaseCase):
 
     def sync_late_messages(self) -> None:
         """Synchronize late messages."""
-        params = cast(TransactionParams, self.behaviour.current_state.params)
-        late_messages_len = len(params.late_messages) + int(bool(params.tx_hash))
+        params = cast(
+            TransactionSettlementBaseState, self.behaviour.current_state
+        ).params
+        late_messages_len = len(params.late_messages)
+        expected_sync_result = params.tx_hash
+
         handlers: HandlersType = [
             self.signing_handler,
             self.ledger_handler,
@@ -484,7 +488,6 @@ class TestSyncing(TransactionSettlementIntegrationBaseCase):
         assert self.behaviour.current_state.params.late_messages == []
 
         tx_digest_msgs = msgs[0::2]
-        expected_sync_result = params.tx_hash
         for i in range(len(tx_digest_msgs)):
             current_message = tx_digest_msgs[i]
             assert current_message is not None and isinstance(
@@ -499,7 +502,7 @@ class TestSyncing(TransactionSettlementIntegrationBaseCase):
 
         assert self.behaviour.current_state._tx_hashes == expected_sync_result
         self.tx_settlement_period_state.update(
-            late_arriving_tx_hashes=expected_sync_result,
+            late_arriving_tx_hashes=[expected_sync_result],
         )
         self.tx_settlement_period_state.update(
             missed_messages=self.behaviour.current_state.period_state.missed_messages
