@@ -69,6 +69,7 @@ from packages.valory.skills.transaction_settlement_abci.payload_tools import (
 from packages.valory.skills.transaction_settlement_abci.rounds import (
     PeriodState as TxSettlementPeriodState,
 )
+
 from tests.conftest import ROOT_DIR
 from tests.test_skills.base import FSMBehaviourBaseCase
 from tests.test_skills.integration import (
@@ -78,6 +79,7 @@ from tests.test_skills.integration import (
     HandlersType,
     IntegrationBaseCase,
 )
+
 
 SAFE_TX_GAS = 120000
 ETHER_VALUE = 0
