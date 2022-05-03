@@ -55,8 +55,8 @@ The main questions that we try to answer at this point are:
 The first step when designing an {{agent_service}} is to divide the intended functionality into "atomic" steps. For example, for the Hello World service, we identify these steps as
 
 1. Each agent registers to the service.
-2. [If Step 1 OK] Agents select what is the next agent to print the message. We call this agent the _Keeper_.
-3. [If Step 2 OK] The Keeper prints the message "Hello World" on its local console.
+2. [If Step 1 OK] Agents select what is the next agent to print the message. We call this agent the _keeper_.
+3. [If Step 2 OK] The keeper prints the message "Hello World" on its local console.
 4. Pause for a while and go to Step 2.
 
 The reader should have probably already identified Steps 2 and 3. Step 1 is a requirement in each {{agent_service}}: it is simply a preliminary stage where each agent shows its willingness to participate actively in the service. This will allow all the agents to have an idea on what agents are participating in the service. Step 4, on the other hand is also a standard step in services that "loop", like the Hello World service. It serves as a "sleep" block of the {{agent_service}}.
@@ -106,7 +106,7 @@ To answer this question, let us focus on a concrete state, namely, the SelectKee
 
 A high level view of what occurs is as follows:
 
-1.  Prepare the vote. Each agent determines what agent he wishes to vote for as the new Keeper. Since there is the need to reach an agreement, we consider that each agent wants to vote for "Agent $M\pmod 4+1$," where $M$ is the value of the current period. Thus, the agent prepares an appropriate _payload_ that contains that information.
+1.  Prepare the vote. Each agent determines what agent he wishes to vote for as the new keeper. Since there is the need to reach an agreement, we consider that each agent wants to vote for "Agent $M\pmod 4+1$," where $M$ is the value of the current period. Thus, the agent prepares an appropriate _payload_ that contains that information.
 
     ![](./images/hello_world_sequence_1.svg)
 
@@ -127,7 +127,7 @@ A high level view of what occurs is as follows:
     ![](./images/hello_world_sequence_4.svg)
 
 
-5.  A certain skill component (_Round_) receives and processes this information. If strictly more than $2/3$ of the agents voted for a certain Keeper, then the agent records this result persistently to be used in future phases of the service. After finalizing all this processing, the same skill component outputs the event that indicates the success of the expected actions at that state.
+5.  A certain skill component (_Round_) receives and processes this information. If strictly more than $2/3$ of the agents voted for a certain keeper, then the agent records this result persistently to be used in future phases of the service. After finalizing all this processing, the same skill component outputs the event that indicates the success of the expected actions at that state.
 
 
 6.  The event cast in the previous step is received by the component that actually manages the service FSM (_AbciApp_). This component processes the event according to the state-transition function and moves the current state of the FSM appropriately.
@@ -141,7 +141,7 @@ A high level view of what occurs is as follows:
 
     * **`AbciApp`**: The component that defines the FSM itself and the transitions between states.
     * **`Rounds`**: The components that process the input from the consensus gadget and outputs the appropriate events to make the next transition. **There must be one round per FSM state.**
-    * **`Behaviours`**: The components that execute the proactive action expected at each state. E.g., cast a vote for a Keeper, print a message on screen, execute a transaction on a blockchain, etc. **There must be one behaviour per FSM state.**
+    * **`Behaviours`**: The components that execute the proactive action expected at each state. E.g., cast a vote for a keeper, print a message on screen, execute a transaction on a blockchain, etc. **There must be one behaviour per FSM state.**
     * **`Payloads`**: Associated to each behaviour. They define the contents of the transaction of the corresponding behaviour.
     * **`RoundBehaviour`**: This can be seen as the main class of the skill, which aggregates the `AbciApp` and ensures to establish a one-to-one relationship between the rounds and behaviours associated to each state of the FSM.
 
@@ -154,12 +154,12 @@ Still, the service has only transitioned to a new state on its FSM. But, what wo
 
 Mimicking the steps that occurred in the previous state, it is not difficult to see that this is what would actually happen:
 
-1. Upon entering the PrintMessage state, the associated behaviour, say `PrintMessageBehaviour` will be in charge of executing the appropriate functionality. For Agent 2, it will be printing the celebrated message "Agent 2 says: Hello World". The rest of the agents can simply do nothing.
-2. In any case, a dummy message (e.g., a constant value) must be sent by all the agents so that the consensus gadget does its work.
-3. The consensus gadget will execute its protocol
-4. The result of the consensus will be forwarded to all the agents through ABCI.
-5. The `PrintMessageRound` will receive a callback originated from the consensus gadget. It will verify that all agents have responded, and it will then cast the `DONE` event.
-6. The `AbciApp` will take over and process the event `DONE`, and move the current state of the FSM to the next state, ResetAndPause.
+1.   Upon entering the PrintMessage state, the associated behaviour, say `PrintMessageBehaviour` will be in charge of executing the appropriate functionality. For Agent 2, it will be printing the celebrated message "Agent 2 says: Hello World". The rest of the agents can simply do nothing.
+2.   In any case, a dummy message (e.g., a constant value "Task completed") must be sent by all the agents so that the consensus gadget does its work.
+3.   The consensus gadget will execute its protocol
+4.   The result of the consensus will be forwarded to all the agents through ABCI.
+5.   The `PrintMessageRound` will receive a callback originated from the consensus gadget. It will verify that all agents have responded, and it will then cast the `DONE` event.
+6.   The `AbciApp` will take over and process the event `DONE`, and move the current state of the FSM to the next state, ResetAndPause.
 
 As a result, we have finished a "happy path" of execution of the FSM, concluding with the expected output:
 
@@ -168,7 +168,20 @@ As a result, we have finished a "happy path" of execution of the FSM, concluding
 <figcaption>Result of the execution the second period of the Hello World {{agent_service}}</figcaption>
 </figure>
 
-As a summary, find below an image which shows the main components of the agent and the skill related to the Hello World {{agent_service}} presented in this overview. Of course, this is by no means the complete picture of what is inside an agent, but it should give a good intuition of what are the main elements that play a role in any {{agent_service}} and how they interact.
+
+!!! note
+
+    In Step 2 of the main (printing) functionality, by design, we have required that all agents respond with a dummy constant value.
+    We remark that not all states of the FSM require that all agents respond. In this example, we could simply have required that the keeper sends the "Task completed" message, and the remaining agents would simply wait for that single message.
+
+    Other states might have different waiting conditions, e.g.,
+      * wait that all agents respond with a different value, or
+      * wait that more than a threshold of agents respond with the same value.
+
+    When the waiting condition is not met during a certain interval, a special timeout event is generated by the `Round`, and the developer is in charge of defining how the FSM will transit in that case.
+
+## Bird's Eye view
+As a summary, find below an image which shows the main components of the agent and the skill related to the Hello World {{agent_service}} presented in this overview. Of course, this is by no means the complete picture of what is inside an agent, but it should give the developer a good intuition of what are the main elements that play a role in any {{agent_service}} and how they interact.
 
 <figure markdown>
 ![](./images/hello_world_agent_internal.svg)

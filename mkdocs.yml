@@ -124,8 +124,8 @@ markdown_extensions:
   - md_in_html
 
 extra:
-    valory_stack: '[Valory stack](https://www.valory.xyz/)'
-    valory_stack_api: '[Valory stack API](https://www.valory.xyz/)'
+    valory_stack: '[Valory stack](https://davidminarsch.github.io/temp-docs-valory/)'
+    valory_stack_api: '[Valory stack API](https://davidminarsch.github.io/temp-docs-valory/)'
     valory_app: 'Valory app'
     open_aea: '[Open AEA](https://github.com/valory-xyz/open-aea)'
     open_aea_doc: '[Open AEA documentation](https://valory-xyz.github.io/open-aea)'
