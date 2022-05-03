@@ -5,7 +5,7 @@ This section is aimed at giving a general, introductory overview of the library 
 We start with a simple "Hello World" example service, and we will add progressively more complexity and functionality to it.
 
 
-## A Hello World! {agent_service}
+## A Hello World! {{agent_service}}
 We start our tour to the framework by visiting an elementary example. The goal is to come up with a service composed of four agents. The functionality of this service will be extremely simple. Namely, each agent will output the following message to its own console:
 > "Agent $i$ says: Hello World!"
 
