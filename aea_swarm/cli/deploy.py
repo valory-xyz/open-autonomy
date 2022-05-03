@@ -22,6 +22,7 @@
 import os
 import shutil
 from pathlib import Path
+from typing import Optional
 
 import click
 from aea.cli.utils.click_utils import PublicIdParameter
@@ -31,6 +32,7 @@ from aea.configurations.data_types import PublicId
 from aea_swarm.deploy.build import generate_deployment
 from aea_swarm.deploy.generators.docker_compose.base import DockerComposeGenerator
 from aea_swarm.deploy.generators.kubernetes.base import KubernetesGenerator
+from aea_swarm.deploy.image import ImageBuilder
 
 
 @click.group(name="deploy")
@@ -38,7 +40,12 @@ def deploy_group() -> None:
     """Deploy an AEA project."""
 
 
-@deploy_group.command(name="build")
+@deploy_group.group(name="build")
+def build_group() -> None:
+    """Build tools"""
+
+
+@build_group.command(name="deployment")
 @click.argument(
     "service-id",
     type=PublicIdParameter(),
@@ -93,7 +100,7 @@ def build_deployment(  # pylint: disable=too-many-arguments
     dev_mode: bool,  # pylint: disable=unused-argument
     force_overwrite: bool,
 ) -> None:
-    """Build the agent and its components."""
+    """Build deployment setup for 4 agents."""
 
     package_dir = Path(package_dir)
     build_dir = Path(output_dir, "abci_build")
@@ -148,3 +155,31 @@ def _build_dirs(build_dir: Path) -> None:
         path = Path(build_dir, *dir_path)
         path.mkdir()
         os.chown(path, 1000, 1000)
+
+
+@build_group.command(name="image")
+@click.option(
+    "--valory-app",
+)
+@click.option(
+    "--profile",
+    required=True,
+)
+@click.option(
+    "--deployment-file-path",
+)
+@click.option("--push", is_flag=True, default=False)
+def build_images(
+    profile: str,
+    valory_app: Optional[str],
+    deployment_file_path: Optional[str],
+    push: bool,
+) -> None:
+    """Build image using skaffold."""
+    image_builder = ImageBuilder()
+    image_builder.build_images(
+        profile=profile,
+        deployment_file_path=deployment_file_path,
+        valory_application=valory_app,
+        push=push,
+    )
