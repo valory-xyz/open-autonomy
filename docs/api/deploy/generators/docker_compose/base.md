@@ -39,7 +39,7 @@ Build content for `docker-compose.yml`.
 #### build`_`agent`_`config
 
 ```python
-def build_agent_config(node_id: int, number_of_agents: int, agent_vars: Dict) -> str
+def build_agent_config(valory_app: str, node_id: int, number_of_agents: int, agent_vars: Dict) -> str
 ```
 
 Build agent config.

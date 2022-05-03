@@ -15,12 +15,23 @@ def deploy_group() -> None
 
 Deploy an AEA project.
 
+<a id="aea_swarm.cli.deploy.build_group"></a>
+
+#### build`_`group
+
+```python
+@deploy_group.group(name="build")
+def build_group() -> None
+```
+
+Build tools
+
 <a id="aea_swarm.cli.deploy.build_deployment"></a>
 
 #### build`_`deployment
 
 ```python
-@deploy_group.command(name="build")
+@build_group.command(name="deployment")
 @click.argument(
     "service-id",
     type=PublicIdParameter(),
@@ -69,5 +80,27 @@ Deploy an AEA project.
 def build_deployment(service_id: PublicId, keys_file: Path, deployment_type: str, output_dir: Path, package_dir: Path, dev_mode: bool, force_overwrite: bool) -> None
 ```
 
-Build the agent and its components.
+Build deployment setup for 4 agents.
+
+<a id="aea_swarm.cli.deploy.build_images"></a>
+
+#### build`_`images
+
+```python
+@build_group.command(name="image")
+@click.option(
+    "--valory-app",
+)
+@click.option(
+    "--profile",
+    required=True,
+)
+@click.option(
+    "--deployment-file-path",
+)
+@click.option("--push", is_flag=True, default=False)
+def build_images(profile: str, valory_app: Optional[str], deployment_file_path: Optional[str], push: bool) -> None
+```
+
+Build image using skaffold.
 

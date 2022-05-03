@@ -29,7 +29,7 @@ Initialise the deployment generator.
 #### build`_`agent`_`deployment
 
 ```python
-def build_agent_deployment(agent_ix: int, number_of_agents: int, agent_vars: Dict[str, Any]) -> str
+def build_agent_deployment(image_name: str, agent_ix: int, number_of_agents: int, agent_vars: Dict[str, Any]) -> str
 ```
 
 Build agent deployment.
