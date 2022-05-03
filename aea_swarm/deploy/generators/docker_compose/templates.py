@@ -19,11 +19,11 @@
 
 """Deployment Templates."""
 
-<<<<<<< HEAD:aea_swarm/deploy/generators/docker_compose/templates.py
-from aea_swarm.deploy.constants import IMAGE_VERSION
-=======
-from deployments.constants import HARDHAT_VERSION, IMAGE_VERSION, TENDERMINT_VERSION
->>>>>>> main:deployments/generators/docker_compose/templates.py
+from aea_swarm.deploy.constants import (
+    HARDHAT_VERSION,
+    IMAGE_VERSION,
+    TENDERMINT_VERSION,
+)
 
 
 TENDERMINT_CONFIG_TEMPLATE: str = (
