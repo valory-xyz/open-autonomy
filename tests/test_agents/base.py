@@ -149,6 +149,8 @@ class BaseTestEnd2End(AEATestCaseMany, BaseTendermintTestClass):
             self.add_private_key("ethereum", "ethereum_private_key.txt")
             self.__set_configs(node)
             # issue certificates for libp2p proof of representation
+            self.generate_private_key("cosmos", "cosmos_private_key.txt")
+            self.add_private_key("cosmos", "cosmos_private_key.txt")
             self.run_cli_command("issue-certificates", cwd=self._get_cwd())
 
         # run 'aea install' in only one AEA project, to save time

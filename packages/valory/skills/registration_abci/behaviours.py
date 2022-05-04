@@ -269,43 +269,43 @@ class RegistrationStartupBehaviour(RegistrationBaseBehaviour):
     def async_act(self) -> Generator:
         """Act asynchronously"""
 
-        # collect personal Tendermint configuration
-        if not self.local_tendermint_params:
-            successful = yield from self.get_tendermint_configuration()
-            if not successful:
-                yield from self.sleep(self.params.sleep_time)
-                return
-
-        # make service registry contract call
-        if not self.registered_addresses:
-            successful = yield from self.get_addresses()
-            if not successful:
-                yield from self.sleep(self.params.sleep_time)
-                return
-
-        # collect Tendermint config information
-        for address in self.not_yet_collected:
-            yield from self.get_tendermint_response(address)
-
-        if not any(self.not_yet_collected):
-            self.context.logger.info("Completed collecting Tendermint responses")
-        else:
-            missing = sorted(self.not_yet_collected)
-            self.context.logger.info(f"Still missing info on: {missing}")
-            yield from self.sleep(self.params.sleep_time)
-            return
-
-        # update Tendermint configuration
-        successful = yield from self.update_tendermint()
-        if not successful:
-            yield from self.sleep(self.params.sleep_time)
-            return
-
-        # restart Tendermint with updated configuration
-        successful = yield from self.start_tendermint()
-        if not successful:
-            yield from self.sleep(self.params.sleep_time)
-            return
+        # # collect personal Tendermint configuration
+        # if not self.local_tendermint_params:
+        #     successful = yield from self.get_tendermint_configuration()
+        #     if not successful:
+        #         yield from self.sleep(self.params.sleep_time)
+        #         return
+        #
+        # # make service registry contract call
+        # if not self.registered_addresses:
+        #     successful = yield from self.get_addresses()
+        #     if not successful:
+        #         yield from self.sleep(self.params.sleep_time)
+        #         return
+        #
+        # # collect Tendermint config information
+        # for address in self.not_yet_collected:
+        #     yield from self.get_tendermint_response(address)
+        #
+        # if not any(self.not_yet_collected):
+        #     self.context.logger.info("Completed collecting Tendermint responses")
+        # else:
+        #     missing = sorted(self.not_yet_collected)
+        #     self.context.logger.info(f"Still missing info on: {missing}")
+        #     yield from self.sleep(self.params.sleep_time)
+        #     return
+        #
+        # # update Tendermint configuration
+        # successful = yield from self.update_tendermint()
+        # if not successful:
+        #     yield from self.sleep(self.params.sleep_time)
+        #     return
+        #
+        # # restart Tendermint with updated configuration
+        # successful = yield from self.start_tendermint()
+        # if not successful:
+        #     yield from self.sleep(self.params.sleep_time)
+        #     return
 
         yield from super().async_act()
 
