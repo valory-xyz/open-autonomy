@@ -58,3 +58,58 @@ def test_encode_decode_ii() -> None:
     assert isinstance(encoded, bytes)
     decoded = DictProtobufStructSerializer.decode(encoded)
     assert case == decoded
+
+
+def test_encode_decode_nan() -> None:
+    """Test encode decode logic."""
+    case = {
+        "key1": True,
+        "key2": float("nan"),
+        "key3": 100,
+        "key4": "some string",
+        "key5": b"some bytes string",
+        "key6": {"key1": True, "key2": 0.12},
+        "_need_patch": {},
+    }
+    encoded = DictProtobufStructSerializer.encode(case)
+    case.pop("_need_patch")
+    assert isinstance(encoded, bytes)
+    decoded = DictProtobufStructSerializer.decode(encoded)
+    assert case == decoded
+
+
+def test_encode_non_unicode() -> None:
+    """Test encode decode logic."""
+    case = {
+        "key1": True,
+        "key2": 0.12,
+        "key3": 100,
+        "key4": "\x7f\x7f\x7fZZ`ZZZZQZ",
+        "key5": b"\xb2\xda\xda\x1a",
+        "key6": {"key1": True, "key2": 0.12},
+        "_need_patch": {},
+    }
+    encoded = DictProtobufStructSerializer.encode(case)
+    case.pop("_need_patch")
+    assert isinstance(encoded, bytes)
+    decoded = DictProtobufStructSerializer.decode(encoded)
+    assert case == decoded
+
+
+def test_decode_non_unicode() -> None:
+    """Test encode decode logic."""
+    case = {
+        "key1": False,
+        "key2": 1.5368513858822923e308,
+        "key3": -38,
+        "key4": "\x7f\x7f\x7fZZ`ZZZZQZ",
+        "key5": b"\xb2\xda\xda\x1a",
+        "key6": {"key1": True, "key2": 0.12},
+        "_need_patch": {},
+    }
+
+    encoded = DictProtobufStructSerializer.encode(case)
+    case.pop("_need_patch")
+    assert isinstance(encoded, bytes)
+    decoded = DictProtobufStructSerializer.decode(encoded)
+    assert case == decoded
