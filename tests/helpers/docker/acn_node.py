@@ -30,7 +30,7 @@ from docker.models.containers import Container
 from tests.helpers.docker.base import DockerImage
 
 
-DEFAULT_ACN_CONFIG = dict(
+DEFAULT_ACN_CONFIG: Dict[str, str] = dict(
     AEA_P2P_ID="d9e43d3f0266d14b3af8627a626fa734450b1c0fcdec6f88f79bcf5543b4668c",
     AEA_P2P_URI_PUBLIC="0.0.0.0:5000",
     AEA_P2P_URI="0.0.0.0:5000",
@@ -42,17 +42,18 @@ DEFAULT_ACN_CONFIG = dict(
 
 class ACNNodeDockerImage(DockerImage):
     """Wrapper to Ganache Docker image."""
+
     uris: List = [
         "AEA_P2P_URI_PUBLIC",
         "AEA_P2P_URI",
         "AEA_P2P_DELEGATE_URI",
-        "AEA_P2P_URI_MONITORING"
+        "AEA_P2P_URI_MONITORING",
     ]
 
     def __init__(
-            self,
-            client: DockerClient,
-            config: Optional[Dict] = None,
+        self,
+        client: DockerClient,
+        config: Optional[Dict] = None,
     ):
         """
         Initialize the Ganache Docker image.
@@ -71,9 +72,10 @@ class ACNNodeDockerImage(DockerImage):
     def _make_ports(self) -> Dict:
         """Make ports dictionary for Docker."""
 
-        return {f"{port}/tcp": ("0.0.0.0", port)
-                for port in [self._config[uri].split(":")[1] for uri in self.uris]
-                }  # nosec
+        return {  # nosec
+            f"{port}/tcp": ("0.0.0.0", port)  # nosec
+            for port in [self._config[uri].split(":")[1] for uri in self.uris]
+        }  # nosec
 
     def create(self) -> Container:
         """Create the container."""
@@ -85,7 +87,7 @@ class ACNNodeDockerImage(DockerImage):
     def wait(self, max_attempts: int = 15, sleep_rate: float = 1.0) -> bool:
         """Wait until the image is up."""
         uris = set([self._config[uri] for uri in self.uris])
-        ready_uris = []
+        ready_uris: List[str] = []
         for uri in uris:
             if uri in ready_uris:
                 continue
@@ -102,5 +104,3 @@ class ACNNodeDockerImage(DockerImage):
                     )
                     time.sleep(sleep_rate)
         return False
-
-
