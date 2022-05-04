@@ -113,3 +113,18 @@ def test_decode_non_unicode() -> None:
     assert isinstance(encoded, bytes)
     decoded = DictProtobufStructSerializer.decode(encoded)
     assert case == decoded
+
+
+def test_encode_non_unicode_2() -> None:
+    """Test encode decode logic."""
+    DictProtobufStructSerializer.encode({"key": "∢∢\ude22⋦"})
+
+
+def test_decode_empty() -> None:
+    """Test encode decode logic."""
+    DictProtobufStructSerializer.decode(b"\n")
+
+
+def test_bytes_to_str() -> None:
+    """Test encode decode logic."""
+    DictProtobufStructSerializer._bytes_to_str(b"\xc3")

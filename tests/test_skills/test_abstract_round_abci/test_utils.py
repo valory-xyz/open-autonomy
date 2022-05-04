@@ -88,3 +88,15 @@ class TestVerifyDrand:
 
         assert not result
         assert error == "Failed bls.Verify check."
+
+    def test_negative(
+        self,
+    ) -> None:
+        """Test verify method."""
+        self.drand_check._int_to_bytes_big(-19190)
+
+    def test_overflow(
+        self,
+    ) -> None:
+        """Test verify method."""
+        self.drand_check._int_to_bytes_big(165930994849066749469481)
