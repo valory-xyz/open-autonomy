@@ -45,4 +45,4 @@ RUN chmod 777 -R /tm_state
 ENTRYPOINT ["/usr/bin/flask"]
 CMD ["run", "--no-reload", "--host=0.0.0.0", "--port=8080"]
 
-HEALTHCHECK --interval=3s --timeout=10s --retries=3 CMD netstat -ltn | grep -c 26657 > /dev/null; if [ 0 != $? ]; then exit 1; fi;
+HEALTHCHECK --interval=3s --timeout=600s --retries=600 CMD netstat -ltn | grep -c 26657 > /dev/null; if [ 0 != $? ]; then exit 1; fi;
