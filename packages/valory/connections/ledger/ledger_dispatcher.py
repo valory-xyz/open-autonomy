@@ -240,13 +240,13 @@ class LedgerApiRequestDispatcher(RequestDispatcher):
             and attempts < retry_attempts
             and self.connection_state.get() == ConnectionStates.connected
         ):
-            time.sleep(retry_timeout ** attempts)
             transaction_receipt = api.get_transaction_receipt(
                 message.transaction_digest.body
             )
             if transaction_receipt is not None:
                 is_settled = api.is_transaction_settled(transaction_receipt)
             attempts += 1
+            time.sleep(retry_timeout ** attempts)
         attempts = 0
         transaction = api.get_transaction(message.transaction_digest.body)
         while (
@@ -254,9 +254,9 @@ class LedgerApiRequestDispatcher(RequestDispatcher):
             and attempts < retry_attempts
             and self.connection_state.get() == ConnectionStates.connected
         ):
-            time.sleep(retry_timeout ** attempts)
             transaction = api.get_transaction(message.transaction_digest.body)
             attempts += 1
+            time.sleep(retry_timeout ** attempts)
         if not is_settled:  # pragma: nocover
             response = self.get_error_message(
                 ValueError("Transaction not settled within timeout"),
