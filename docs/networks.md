@@ -8,6 +8,7 @@ ultimately, the main chain.
 To switch chains, you will first need to edit your chain configuration, as well as verify that
 the relevant addresses that come into play are funded. After that, the `valory/ledger` connection's
 configuration must be modified, and the process is slightly different for agents than for tests.
+Last but not least, it is important to keep in mind what the average block times are in the deploying network.
 
 ## Ledger configuration for Agents
 Look at you agent's `aea-config.yaml` last section. It should look like this:
@@ -68,3 +69,30 @@ class MySuperHelpfulEndToEndTestBase(BaseTestEnd2End):
 ```
 
 All tests that inherit from this test base class will use the new configuration.
+
+## Configuration for validation timeout
+This is going to play a significant role when performing transactions, since the validation logic is based on that. 
+More specifically, the corresponding `validate_timeout` specified in the `skill.yaml` files of your skills 
+should not be less than the average block time of the network, because timeouts  and unnecessary repricing 
+will happen too often. For example, at the time this document is written, the average block time 
+in the ethereum mainnet is 13.3 seconds. Therefore, we should never specify a value less than that, and it 
+would also be reasonable to allow for more time before giving up, because it is not rare for block times to be higher. 
+The underlying mechanism will take care to backoff exponentially, with `retry_timeout` as a base, 
+while checking if the transaction has been validated, and stop when the `validate_timeout` is reached. 
+An example configuration for ethereum mainnent is provided below:
+
+```yaml
+models:
+  params:
+    args:
+      retry_attempts: 40
+      retry_timeout: 3
+      validate_timeout: 1205
+```
+
+This creates the following condition:
+```python
+min(retry_timeout ** n_retries, validate_timeout)
+```
+
+where `n_retries ∈ [1, retry_attempts]` is the number of times we have tried so far.
