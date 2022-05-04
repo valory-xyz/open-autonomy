@@ -74,20 +74,20 @@ class DictProtobufStructSerializer:
         return value.encode("utf-8")
 
     @classmethod
-    def _patch_dict(cls, dictionnary: Dict[str, Any]) -> None:
+    def _patch_dict(cls, dictionary: Dict[str, Any]) -> None:
         need_patch: Dict[str, bool] = {}
-        for key, value in dictionnary.items():
+        for key, value in dictionary.items():
             if isinstance(value, bytes):
                 # convert bytes values to string, as protobuf.Struct does support byte fields
-                dictionnary[key] = cls._bytes_to_str(value)
-                if cls.NEED_PATCH in dictionnary:
-                    dictionnary[cls.NEED_PATCH][key] = True
+                dictionary[key] = cls._bytes_to_str(value)
+                if cls.NEED_PATCH in dictionary:
+                    dictionary[cls.NEED_PATCH][key] = True
                 else:
                     need_patch[key] = True
             elif isinstance(value, int) and not isinstance(value, bool):
                 # protobuf Struct store int as float under numeric_value type
-                if cls.NEED_PATCH in dictionnary:
-                    dictionnary[cls.NEED_PATCH][key] = True
+                if cls.NEED_PATCH in dictionary:
+                    dictionary[cls.NEED_PATCH][key] = True
                 else:
                     need_patch[key] = True
             elif isinstance(value, dict):
@@ -104,7 +104,7 @@ class DictProtobufStructSerializer:
                     )
                 )
         if len(need_patch) > 0:
-            dictionnary[cls.NEED_PATCH] = need_patch
+            dictionary[cls.NEED_PATCH] = need_patch
 
     @classmethod
     def _patch_dict_restore(cls, dictionary: Dict[str, Any]) -> None:
