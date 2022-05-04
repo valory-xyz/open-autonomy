@@ -15,7 +15,7 @@ def random_selection(elements: List[str], randomness: float) -> str
 Select a random element from a list.
 
 :param: elements: a list of elements to choose among
-:param: randomness: a random number in the [0,1) interval
+:param: randomness: a random number in the [0,1] interval
 
 **Returns**:
 
