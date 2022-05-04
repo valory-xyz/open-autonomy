@@ -118,6 +118,7 @@ app = Flask(__name__)
 period_dumper = PeriodDumper(logger=app.logger)
 
 tendermint_node = TendermintNode(tendermint_params, logger=app.logger)
+tendermint_node.start()  # tendermint sync check in async_act first call
 
 
 @app.route("/start")
