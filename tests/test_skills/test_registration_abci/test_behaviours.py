@@ -129,12 +129,11 @@ class TestRegistrationStartupBehaviour(RegistrationAbciBaseCase):
     def tendermint_mock_params(self) -> Dict[str, Any]:
         """Tendermint mock params"""
         return dict(
-            proxy_app="",
-            p2p_seeds=[],
-            consensus_create_empty_blocks=True,
-            p2p_laddr="tcp://0.0.0.0:26656",
-            rpc_laddr="tcp://0.0.0.0:26657",
-            home=None,
+            address='3877157BFE637FCD7B9FC4B1CEC231F4CA99FDCA',
+            pub_key=dict(
+                type='tendermint/PubKeyEd25519',
+                value='7y7ycBMMABj5Onf74ITYtUS3uZ6SsCQKZML87mIX+r4=',
+            )
         )
 
     # mock patches
