@@ -10,9 +10,9 @@ fingerprint:
   __init__.py: QmXWin5fsEAnCyYehninEjeP6diL3AwjNj6piBTxd2SQBA
   behaviours.py: QmWAjsSfxG8EntrbYXcgrfDtiBCp9st2gtqxoqJorZJza2
   dialogues.py: QmfDThV4WCRzK88XDpW2hKDYCuEH4RxoHCoAkWpkBRGRPv
-  fsm_specification.yaml: QmZKFTEhLUGRyr6L1RiWfHs8876PS6gCwrtAKKvL7FS4Pk
+  fsm_specification.yaml: QmNu4shQzR2dMVcYZaAkeavbk9gjQdnhZzWqZJNkPDzAcg
   handlers.py: QmRB6Yfy3u1qBxANaimEKsUCnmvddZhv4iiVpeVzNXhQDc
-  models.py: QmbpHnoHSG98a4V7P5uT5evjsAk5DNrcV8Wg3UP6iswwwD
+  models.py: QmSNySQFdHrhBK97rZwNdR7jpH5mP9Qru373ZMvzfkfbGY
   payloads.py: QmbvjGtVfX1LdBUbhHM16QMEfMSRRWQF1zRR8CPiUPBWzh
   rounds.py: QmXGAhFbpko7zZoeJT4wtXYQB9G4JJAbqUCkUppT5zNc88
 fingerprint_ignore_patterns: []
@@ -63,6 +63,7 @@ models:
       consensus:
         max_participants: 1
       drand_public_key: 868f005eb8e6e4ca0a47c8a77ceaa5309a47978a7c71bc5cce96366b5d7a569937c529eeda66c7293784a9402801af31
+      keeper_allowed_retries: 3
       keeper_timeout: 30.0
       max_healthcheck: 120
       observation_interval: 10
@@ -82,6 +83,17 @@ models:
       tendermint_max_retries: 5
       tendermint_url: http://localhost:26657
     class_name: Params
+  randomness_api:
+    args:
+      api_id: cloudflare
+      headers: []
+      method: GET
+      parameters: []
+      response_key: null
+      response_type: dict
+      retries: 5
+      url: https://drand.cloudflare.com/public/latest
+    class_name: RandomnessApi
   requests:
     args: {}
     class_name: Requests

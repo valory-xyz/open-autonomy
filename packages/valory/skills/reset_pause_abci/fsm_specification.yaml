@@ -17,3 +17,4 @@ transition_func:
     (ResetAndPauseRound, DONE): FinishedResetAndPauseRound
     (ResetAndPauseRound, NO_MAJORITY): FinishedResetAndPauseErrorRound
     (ResetAndPauseRound, RESET_AND_PAUSE_TIMEOUT): FinishedResetAndPauseErrorRound
+

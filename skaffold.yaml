@@ -1,4 +1,4 @@
-apiVersion: skaffold/v2beta24
+apiVersion: skaffold/v2beta6
 kind: Config
 metadata:
   name: consensus-algorithms
@@ -12,16 +12,40 @@ build:
     docker:
       dockerfile: Dockerfile
       buildArgs:
-        AEA_VERSION: "latest"
+        AEA_VERSION: "1.7.0"
+        AEA_AGENT: "{{.AEA_AGENT}}"
 
-  - image: valory/consensus-algorithms-tendermint
-    context: deployments/Dockerfiles/localnode/
-
-  - image: valory/consensus-algorithms-hardhat
-    context: deployments/Dockerfiles/hardhat
 
 profiles:
   - name: prod
+  - name: dependencies
+    build:
+      tagPolicy:
+        envTemplate:
+          template: "0.1.0"
+      artifacts:
+      - image: valory/consensus-algorithms-tendermint
+        context: deployments/Dockerfiles/localnode/
+        docker:
+          dockerfile: Dockerfile
+      - image: valory/consensus-algorithms-hardhat
+        context: deployments/Dockerfiles/hardhat
+  - name: cluster
+    patches:
+      - op: add
+        path: /build/artifacts/0/kaniko
+        value:
+          buildArgs:
+            AEA_VERSION: "1.7.0"
+            AEA_AGENT: "{{.AEA_AGENT}}"
+      - op: add
+        path: /build/cluster
+        value:
+          pullSecretName: regcred
+          dockerConfig:
+            path: ~/.docker/config.json
+      - op: remove
+        path: /build/artifacts/0/docker
   - name: dev
     patches:
       - op: replace
@@ -29,5 +53,4 @@ profiles:
         value: Dockerfile.develop
       - op: add
         path: /build/artifacts/0/docker/cliFlags
-        value: ["no-cache", "true", "pull", "true", "force-rm", "true"]
-
+        value: ["--no-cache", "--pull", "--force-rm"]

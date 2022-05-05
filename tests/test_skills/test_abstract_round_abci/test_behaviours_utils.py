@@ -25,7 +25,7 @@ from abc import ABC
 from collections import OrderedDict
 from datetime import datetime
 from enum import Enum
-from typing import Any, Generator, Optional, Tuple, Type
+from typing import Any, Dict, Generator, Optional, Tuple, Type, Union
 from unittest import mock
 from unittest.mock import MagicMock
 
@@ -33,9 +33,11 @@ import pytest
 
 from packages.open_aea.protocols.signing import SigningMessage
 from packages.valory.protocols.http import HttpMessage
+from packages.valory.protocols.ledger_api.message import LedgerApiMessage
 from packages.valory.skills.abstract_round_abci.base import (
     AbstractRound,
     BasePeriodState,
+    BaseTxPayload,
     Transaction,
 )
 from packages.valory.skills.abstract_round_abci.behaviour_utils import (
@@ -44,8 +46,13 @@ from packages.valory.skills.abstract_round_abci.behaviour_utils import (
     DegenerateState,
     SendException,
     TimeoutException,
-    _DEFAULT_REQUEST_RETRY_DELAY,
     make_degenerate_state,
+)
+from packages.valory.skills.abstract_round_abci.models import (
+    _DEFAULT_REQUEST_RETRY_DELAY,
+    _DEFAULT_REQUEST_TIMEOUT,
+    _DEFAULT_TX_MAX_ATTEMPTS,
+    _DEFAULT_TX_TIMEOUT,
 )
 
 from tests.helpers.base import try_send
@@ -310,18 +317,24 @@ def test_async_behaviour_stop() -> None:
 class RoundA(AbstractRound):
     """Concrete ABCI round."""
 
+    round_id = "round_a"
+
     def end_block(self) -> Optional[Tuple[BasePeriodState, Enum]]:
         """Handle end block."""
         return None
 
-    round_id = "round_a"
+    def check_payload(self, payload: BaseTxPayload) -> None:
+        """Check payload."""
+
+    def process_payload(self, payload: BaseTxPayload) -> None:
+        """Process payload."""
 
 
 class StateATest(BaseState):
     """Concrete BaseState class."""
 
     state_id = "state_a"
-    matching_round: Optional[Type[RoundA]] = RoundA
+    matching_round: Type[RoundA] = RoundA
 
     def async_act(self) -> Generator:
         """Do the 'async_act'."""
@@ -363,7 +376,13 @@ class TestBaseState:
     def setup(self) -> None:
         """Set up the tests."""
         self.context_mock = MagicMock()
-        self.context_params_mock = MagicMock(ipfs_domain_name=None)
+        self.context_params_mock = MagicMock(
+            ipfs_domain_name=None,
+            request_timeout=_DEFAULT_REQUEST_TIMEOUT,
+            request_retry_delay=_DEFAULT_REQUEST_RETRY_DELAY,
+            tx_timeout=_DEFAULT_TX_TIMEOUT,
+            max_attempts=_DEFAULT_TX_MAX_ATTEMPTS,
+        )
         self.context_state_period_state_mock = MagicMock()
         self.context_mock.params = self.context_params_mock
         self.context_mock.state.period_state = self.context_state_period_state_mock
@@ -414,18 +433,10 @@ class TestBaseState:
         assert self.behaviour.check_round_height_has_changed(current_height)
         assert not self.behaviour.check_round_height_has_changed(new_height)
 
-    def test_wait_until_round_end_negative_no_matching_round(self) -> None:
-        """Test 'wait_until_round_end' method, negative case (no matching round)."""
-        self.behaviour.matching_round = None
-        generator = self.behaviour.wait_until_round_end()
-        with pytest.raises(ValueError, match="No matching_round set!"):
-            generator.send(None)
-
     def test_wait_until_round_end_negative_last_round_or_matching_round(self) -> None:
         """Test 'wait_until_round_end' method, negative case (not in matching nor last round)."""
         self.behaviour.context.state.period.current_round_id = "current_round_id"
         self.behaviour.context.state.period.last_round_id = "last_round_id"
-        assert self.behaviour.matching_round is not None
         self.behaviour.matching_round.round_id = "matching_round"
         generator = self.behaviour.wait_until_round_end()
         with pytest.raises(
@@ -466,13 +477,6 @@ class TestBaseState:
         self.behaviour.set_done()
         assert self.behaviour.is_done()
 
-    def test_send_a2a_transaction_negative_no_matching_round(self) -> None:
-        """Test 'send_a2a_transaction' method, negative case (no matching round)."""
-        self.behaviour.matching_round = None
-        generator = self.behaviour.send_a2a_transaction(MagicMock())
-        with pytest.raises(ValueError, match="No matching_round set!"):
-            try_send(generator)
-
     @mock.patch.object(BaseState, "_send_transaction")
     def test_send_a2a_transaction_positive(self, *_: Any) -> None:
         """Test 'send_a2a_transaction' method, positive case."""
@@ -491,7 +495,7 @@ class TestBaseState:
         """Test 'async_act_wrapper' in sync mode."""
         self.behaviour.context.state.period.syncing_up = True
         self.behaviour.context.state.period.height = 0
-        self.behaviour.matching_round = None
+        self.behaviour.matching_round = MagicMock()
         self.behaviour.context.logger.info = lambda msg: logging.info(msg)  # type: ignore
 
         with mock.patch.object(logging, "info") as log_mock:
@@ -505,7 +509,7 @@ class TestBaseState:
         self.behaviour.context.state.period.syncing_up = True
         self.behaviour.context.state.period.height = 0
         self.behaviour.context.params.tendermint_check_sleep_delay = 3
-        self.behaviour.matching_round = None
+        self.behaviour.matching_round = MagicMock()
         self.behaviour.context.logger.info = lambda msg: logging.info(msg)  # type: ignore
 
         gen = self.behaviour.async_act_wrapper()
@@ -904,7 +908,80 @@ class TestBaseState:
             gen,
             obj=MagicMock(performative=SigningMessage.Performative.SIGNED_TRANSACTION),
         )
+        try_send(
+            gen,
+            obj=MagicMock(
+                performative=LedgerApiMessage.Performative.TRANSACTION_DIGEST
+            ),
+        )
         try_send(gen, obj=m)
+
+    @mock.patch.object(BaseState, "_send_transaction_signing_request")
+    @mock.patch.object(BaseState, "_send_transaction_request")
+    @mock.patch.object(BaseState, "_send_transaction_receipt_request")
+    @mock.patch("packages.valory.skills.abstract_round_abci.behaviour_utils.Terms")
+    def test_send_raw_transaction_with_wrong_signing_performative(
+        self, *_: Any
+    ) -> None:
+        """Test 'send_raw_transaction'."""
+        m = MagicMock()
+        gen = self.behaviour.send_raw_transaction(m)
+        # trigger generator function
+        try_send(gen, obj=None)
+        try_send(
+            gen,
+            obj=MagicMock(performative=SigningMessage.Performative.ERROR),
+        )
+        try_send(gen, obj=m)
+        try_send(gen, obj=m)
+
+    @mock.patch.object(BaseState, "_send_transaction_signing_request")
+    @mock.patch.object(BaseState, "_send_transaction_request")
+    @mock.patch.object(BaseState, "_send_transaction_receipt_request")
+    @mock.patch("packages.valory.skills.abstract_round_abci.behaviour_utils.Terms")
+    def test_send_raw_transaction_transaction_digest_error(self, *_: Any) -> None:
+        """Test 'send_raw_transaction'."""
+        m = MagicMock()
+        gen = self.behaviour.send_raw_transaction(m)
+        # trigger generator function
+        try_send(gen, obj=None)
+        try_send(
+            gen,
+            obj=MagicMock(performative=SigningMessage.Performative.SIGNED_TRANSACTION),
+        )
+        try_send(
+            gen,
+            obj=MagicMock(performative=LedgerApiMessage.Performative.ERROR),
+        )
+        try_send(gen, obj=m)
+
+    @pytest.mark.parametrize(
+        "message",
+        ("replacement transaction underpriced", "nonce too low", "insufficient funds"),
+    )
+    @mock.patch.object(BaseState, "_send_transaction_signing_request")
+    @mock.patch.object(BaseState, "_send_transaction_request")
+    @mock.patch.object(BaseState, "_send_transaction_receipt_request")
+    @mock.patch("packages.valory.skills.abstract_round_abci.behaviour_utils.Terms")
+    def test_send_raw_transaction_errors(
+        self, _: Any, __: Any, ___: Any, ____: Any, message: str
+    ) -> None:
+        """Test 'send_raw_transaction'."""
+        m = MagicMock()
+        gen = self.behaviour.send_raw_transaction(m)
+        # trigger generator function
+        try_send(gen, obj=None)
+        try_send(
+            gen,
+            obj=MagicMock(performative=SigningMessage.Performative.SIGNED_TRANSACTION),
+        )
+        try_send(
+            gen,
+            obj=MagicMock(
+                performative=LedgerApiMessage.Performative.ERROR,
+                message=message,
+            ),
+        )
         try_send(gen, obj=m)
 
     @pytest.mark.parametrize("contract_address", [None, "contract_address"])
@@ -928,6 +1005,27 @@ class TestBaseState:
             try_send(gen, obj=None)
             # wait for message
             try_send(gen, obj=MagicMock())
+
+    @mock.patch.object(
+        BaseState, "_build_http_request_message", return_value=(None, None)
+    )
+    def test_get_status(self, _: mock.Mock) -> None:
+        """Test '_get_status'."""
+        expected_result = json.dumps("Test result.").encode()
+
+        def dummy_do_request(*_: Any) -> Generator[None, None, MagicMock]:
+            """Dummy `_do_request` method."""
+            yield
+            return mock.MagicMock(body=expected_result)
+
+        with mock.patch.object(BaseState, "_do_request", side_effect=dummy_do_request):
+            get_status_generator = self.behaviour._get_status()
+            next(get_status_generator)
+            with pytest.raises(StopIteration) as e:
+                next(get_status_generator)
+            res = e.value.args[0]
+            assert isinstance(res, MagicMock)
+            assert res.body == expected_result
 
     def test_default_callback_request_stopped(self) -> None:
         """Test 'default_callback_request' when stopped."""
@@ -975,6 +1073,149 @@ class TestBaseState:
     def test_stop(self) -> None:
         """Test the stop method."""
         self.behaviour.stop()
+
+    @staticmethod
+    def dummy_sleep(*_: Any) -> Generator[None, None, None]:
+        """Dummy `sleep` method."""
+        yield
+
+    def test_start_reset(self) -> None:
+        """Test the `_start_reset` method."""
+        with mock.patch.object(
+            BaseState,
+            "wait_from_last_timestamp",
+            new_callable=lambda *_: self.dummy_sleep,
+        ):
+            res = self.behaviour._start_reset()
+            for _ in range(2):
+                next(res)
+            assert self.behaviour._check_started is not None
+            assert self.behaviour._check_started <= datetime.now()
+            assert self.behaviour._timeout == self.behaviour.params.max_healthcheck
+            assert not self.behaviour._is_healthy
+
+    def test_end_reset(self) -> None:
+        """Test the `_end_reset` method."""
+        self.behaviour._end_reset()
+        assert self.behaviour._check_started is None
+        assert self.behaviour._timeout == -1.0
+        assert self.behaviour._is_healthy
+
+    @pytest.mark.parametrize(
+        "check_started, is_healthy, timeout, expiration_expected",
+        (
+            (None, True, 0, False),
+            (None, False, 0, False),
+            (datetime(1, 1, 1), True, 0, False),
+            (datetime.now(), False, 1000, False),
+            (datetime(1, 1, 1), False, 0, True),
+        ),
+    )
+    def test_is_timeout_expired(
+        self,
+        check_started: Optional[datetime],
+        is_healthy: bool,
+        timeout: float,
+        expiration_expected: bool,
+    ) -> None:
+        """Test the `_is_timeout_expired` method."""
+        self.behaviour._check_started = check_started
+        self.behaviour._is_healthy = is_healthy
+        self.behaviour._timeout = timeout
+        assert self.behaviour._is_timeout_expired() == expiration_expected
+
+    @mock.patch.object(BaseState, "_start_reset")
+    @mock.patch.object(BaseState, "_is_timeout_expired")
+    def test_reset_tendermint_with_wait_timeout_expired(self, *_: mock.Mock) -> None:
+        """Test tendermint reset."""
+        with pytest.raises(RuntimeError, match="Error resetting tendermint node."):
+            next(self.behaviour.reset_tendermint_with_wait())
+
+    @mock.patch.object(BaseState, "_start_reset")
+    @mock.patch.object(
+        BaseState, "_build_http_request_message", return_value=(None, None)
+    )
+    @pytest.mark.parametrize(
+        "reset_response, status_response, local_height, n_iter, expecting_success",
+        (
+            (
+                {"message": "Tendermint reset was successful.", "status": True},
+                {"result": {"sync_info": {"latest_block_height": 1}}},
+                1,
+                3,
+                True,
+            ),
+            (
+                {"message": "Tendermint reset was successful.", "status": True},
+                {"result": {"sync_info": {"latest_block_height": 1}}},
+                3,
+                3,
+                False,
+            ),
+            (
+                {"message": "Error resetting tendermint.", "status": False},
+                {},
+                0,
+                2,
+                False,
+            ),
+            ("wrong_response", {}, 0, 2, False),
+            (
+                {"message": "Reset Successful.", "status": True},
+                "not_accepting_txs_yet",
+                0,
+                3,
+                False,
+            ),
+        ),
+    )
+    def test_reset_tendermint_with_wait(
+        self,
+        _build_http_request_message: mock.Mock,
+        _start_reset: mock.Mock,
+        reset_response: Union[Dict[str, Union[bool, str]], str],
+        status_response: Union[Dict[str, Union[int, str]], str],
+        local_height: int,
+        n_iter: int,
+        expecting_success: bool,
+    ) -> None:
+        """Test tendermint reset."""
+
+        def dummy_do_request(*_: Any) -> Generator[None, None, MagicMock]:
+            """Dummy `_do_request` method."""
+            yield
+            if reset_response == "wrong_response":
+                return mock.MagicMock(body=b"")
+            return mock.MagicMock(body=json.dumps(reset_response).encode())
+
+        def dummy_get_status(*_: Any) -> Generator[None, None, MagicMock]:
+            """Dummy `_get_status` method."""
+            yield
+            if status_response == "not_accepting_txs_yet":
+                return mock.MagicMock(body=b"")
+            return mock.MagicMock(body=json.dumps(status_response).encode())
+
+        with mock.patch.object(
+            BaseState, "_is_timeout_expired", return_value=False
+        ), mock.patch.object(
+            BaseState,
+            "wait_from_last_timestamp",
+            new_callable=lambda *_: self.dummy_sleep,
+        ), mock.patch.object(
+            BaseState, "_do_request", new_callable=lambda *_: dummy_do_request
+        ), mock.patch.object(
+            BaseState, "_get_status", new_callable=lambda *_: dummy_get_status
+        ), mock.patch.object(
+            BaseState, "sleep", new_callable=lambda *_: self.dummy_sleep
+        ):
+            self.behaviour.context.state.period.height = local_height
+            reset = self.behaviour.reset_tendermint_with_wait()
+            for _ in range(n_iter):
+                next(reset)
+            # perform the last iteration which also returns the result
+            with pytest.raises(StopIteration) as e:
+                next(reset)
+                assert e == expecting_success
 
 
 def test_degenerate_state_async_act() -> None:

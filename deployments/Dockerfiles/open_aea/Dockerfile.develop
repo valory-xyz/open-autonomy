@@ -1,4 +1,4 @@
-ARG AEA_VERSION="latest"
+ARG AEA_VERSION=latest
 FROM valory/open-aea-user:${AEA_VERSION}
 
 MAINTAINER Valory AG
@@ -13,15 +13,15 @@ RUN sudo apt remove --purge python3-virtualenv
 
 RUN python -m pip install --upgrade pip
 
-COPY start_dev.sh /home/ubuntu/start_dev.sh
-COPY start.sh /home/ubuntu/start.sh
-COPY watcher.py /home/ubuntu/watcher.py
-
 WORKDIR /home/ubuntu
 COPY Pipfile.dev /home/ubuntu/Pipfile
 RUN python -m pip install --force-reinstall pipenv virtualenv --user
 RUN pipenv --python 3.8
 RUN pipenv install --skip-lock --system
+
+COPY start_dev.sh /home/ubuntu/start_dev.sh
+COPY start.sh /home/ubuntu/start.sh
+COPY watcher.py /home/ubuntu/watcher.py
 
 CMD ["./start_dev.sh"]
 

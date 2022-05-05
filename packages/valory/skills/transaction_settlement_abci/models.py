@@ -19,9 +19,9 @@
 
 """Custom objects for the transaction settlement ABCI application."""
 
-from typing import Any, List, Optional
+from typing import Any, Dict, List, Optional
 
-from web3.types import Nonce
+from web3.types import Nonce, Wei
 
 from packages.valory.protocols.contract_api import ContractApiMessage
 from packages.valory.skills.abstract_round_abci.models import ApiSpecs, BaseParams
@@ -52,16 +52,28 @@ class TransactionParams(BaseParams):
     """Transaction settlement agent-specific parameters."""
 
     def __init__(self, *args: Any, **kwargs: Any) -> None:
-        """Initialize the parameters object."""
-        self.nonce: Optional[Nonce] = None
-        self.tip: Optional[int] = None
-        self.late_messages: List[ContractApiMessage] = []
-        super().__init__(*args, **kwargs)
+        """
+        Initialize the parameters object.
 
-    def reset_tx_params(self) -> None:
-        """Reset the transaction-related parameters."""
-        self.nonce = None
-        self.tip = None
+        We keep track of the nonce and tip across rounds and periods.
+        We reuse it each time a new raw transaction is generated. If
+        at the time of the new raw transaction being generated the nonce
+        on the ledger does not match the nonce on the skill, then we ignore
+        the skill nonce and tip (effectively we price fresh). Otherwise, we
+        are in a re-submission scenario where we need to take account of the
+        old tip.
+
+        :param args: positional arguments
+        :param kwargs: keyword arguments
+        """
+        self.tx_hash: str = ""
+        self.nonce: Optional[Nonce] = None
+        self.gas_price: Optional[Dict[str, Wei]] = None
+        self.late_messages: List[ContractApiMessage] = []
+        self.keeper_allowed_retries: int = self._ensure(
+            "keeper_allowed_retries", kwargs
+        )
+        super().__init__(*args, **kwargs)
 
 
 class RandomnessApi(ApiSpecs):

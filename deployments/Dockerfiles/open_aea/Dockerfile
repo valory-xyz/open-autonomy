@@ -1,5 +1,6 @@
-ARG AEA_VERSION="latest"
+ARG AEA_VERSION=latest
 FROM valory/open-aea-user:${AEA_VERSION}
+ARG AEA_AGENT
 
 WORKDIR /home/ubuntu
 ENV PATH=$PATH:/home/ubuntu/.local/bin
@@ -11,7 +12,7 @@ RUN sudo apt-get install python3.8 python3.8-dev git -y
 RUN cd /usr/bin && sudo rm python3 && sudo ln -s python3.8 python3 && sudo ln -s python3.8 python
 # used in Docker-compose to wait until Hardhat node is up
 RUN sudo apt-get install net-tools subversion -y
-RUN python -m pip install --upgrade pip cowsay
+RUN python -m pip install --upgrade pip
 
 RUN sudo apt-get install -y wget
 RUN wget -O ./go-ipfs.tar.gz https://dist.ipfs.io/go-ipfs/v0.6.0/go-ipfs_v0.6.0_linux-amd64.tar.gz
@@ -23,11 +24,16 @@ WORKDIR /home/ubuntu
 
 COPY Pipfile .
 
+RUN python -m pip install --force-reinstall pipenv virtualenv --user
+RUN pipenv --python 3.8
 RUN pipenv install --system --skip-lock
 
 RUN svn checkout https://github.com/valory-xyz/open-aea/trunk/packages packages
 
 COPY . /home/ubuntu
+VOLUME /home/ubuntu/logs
+
+RUN INSTALL=1 VALORY_APPLICATION=${AEA_AGENT} bash start.sh
 
 CMD ["start.sh"]
 

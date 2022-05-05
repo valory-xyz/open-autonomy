@@ -33,7 +33,7 @@ from aea.configurations.constants import PACKAGES
 
 DOCS_DIR = Path("docs/")
 API_DIR = DOCS_DIR / "api/"
-AEA_DIR = Path("aea_consensus_algorithms")
+AEA_DIR = Path("aea_swarm")
 PACKAGES_DIR = Path(PACKAGES)
 DEFAULT_PACKAGES = {
     (ComponentType.CONNECTION, "valory/abci:latest"),
@@ -42,6 +42,7 @@ DEFAULT_PACKAGES = {
     (ComponentType.PROTOCOL, "valory/abci:latest"),
     (ComponentType.SKILL, "valory/abstract_abci:latest"),
     (ComponentType.SKILL, "valory/abstract_round_abci:latest"),
+    (ComponentType.SKILL, "valory/oracle_abci:latest"),
     (ComponentType.SKILL, "valory/oracle_deployment_abci:latest"),
     (ComponentType.SKILL, "valory/price_estimation_abci:latest"),
     (ComponentType.SKILL, "valory/registration_abci:latest"),

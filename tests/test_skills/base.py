@@ -137,12 +137,11 @@ class FSMBehaviourBaseCase(BaseSkillTestCase):
         self.skill.skill_context.behaviours.main._last_round_height = (
             self.skill.skill_context.state.period.abci_app.current_round_height
         )
-        if next_state.matching_round is not None:
-            self.skill.skill_context.state.period.abci_app._current_round = (
-                next_state.matching_round(
-                    period_state, self.skill.skill_context.params.consensus_params
-                )
+        self.skill.skill_context.state.period.abci_app._current_round = (
+            next_state.matching_round(
+                period_state, self.skill.skill_context.params.consensus_params
             )
+        )
 
     def mock_ledger_api_request(
         self, request_kwargs: Dict, response_kwargs: Dict
@@ -344,8 +343,6 @@ class FSMBehaviourBaseCase(BaseSkillTestCase):
         if current_state is None:
             return
         current_state = cast(BaseState, current_state)
-        if current_state.matching_round is None:
-            return
         abci_app = current_state.context.state.period.abci_app
         old_round = abci_app._current_round
         abci_app._last_round = old_round

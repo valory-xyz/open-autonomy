@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021 Valory AG
+#   Copyright 2021-2022 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -23,16 +23,27 @@ from typing import Any
 
 import pandas as pd
 from aea.skills.tasks import Task
-from optuna import Study
-from pmdarima.pipeline import Pipeline
 
 from packages.valory.skills.apy_estimation_abci.ml.forecasting import (
-    TestReportType,
-    test_forecaster,
-    train_forecaster,
+    PoolIdToForecasterType,
+    PoolIdToTestReportType,
+    estimate_apy_per_pool,
+    test_forecaster_per_pool,
+    train_forecaster_per_pool,
+    update_forecaster_per_pool,
 )
-from packages.valory.skills.apy_estimation_abci.ml.optimization import optimize
-from packages.valory.skills.apy_estimation_abci.tools.etl import transform_hist_data
+from packages.valory.skills.apy_estimation_abci.ml.optimization import (
+    PoolToHyperParamsWithStatusType,
+    optimize,
+)
+from packages.valory.skills.apy_estimation_abci.ml.preprocessing import (
+    TrainTestSplitType,
+    prepare_pair_data,
+)
+from packages.valory.skills.apy_estimation_abci.tools.etl import (
+    prepare_batch,
+    transform_hist_data,
+)
 
 
 class TransformTask(Task):
@@ -43,25 +54,57 @@ class TransformTask(Task):
         return transform_hist_data(*args, **kwargs)
 
 
-class OptimizeTask(Task):
-    """Run an optimization study."""
+class PreprocessTask(Task):
+    """Preprocess historical data."""
 
-    def execute(self, *args: Any, **kwargs: Any) -> Study:
+    def execute(self, *args: Any, **kwargs: Any) -> TrainTestSplitType:
+        """Execute the task."""
+        return prepare_pair_data(*args, **kwargs)
+
+
+class PrepareBatchTask(Task):
+    """Prepare a batch."""
+
+    def execute(self, *args: Any, **kwargs: Any) -> pd.DataFrame:
+        """Execute the task."""
+        return prepare_batch(*args, **kwargs)
+
+
+class OptimizeTask(Task):
+    """Run an optimization study per pool."""
+
+    def execute(self, *args: Any, **kwargs: Any) -> PoolToHyperParamsWithStatusType:
         """Execute the task."""
         return optimize(*args, **kwargs)
 
 
 class TrainTask(Task):
-    """Train a forecaster."""
+    """Train forecasters."""
 
-    def execute(self, *args: Any, **kwargs: Any) -> Pipeline:
+    def execute(self, *args: Any, **kwargs: Any) -> PoolIdToForecasterType:
         """Execute the task."""
-        return train_forecaster(*args, **kwargs)
+        return train_forecaster_per_pool(*args, **kwargs)
 
 
 class TestTask(Task):
-    """Test a forecaster."""
+    """Test forecasters."""
 
-    def execute(self, *args: Any, **kwargs: Any) -> TestReportType:
+    def execute(self, *args: Any, **kwargs: Any) -> PoolIdToTestReportType:
         """Execute the task."""
-        return test_forecaster(*args, **kwargs)
+        return test_forecaster_per_pool(*args, **kwargs)
+
+
+class UpdateTask(Task):
+    """Update forecasters."""
+
+    def execute(self, *args: Any, **kwargs: Any) -> None:
+        """Execute the task."""
+        return update_forecaster_per_pool(*args, **kwargs)
+
+
+class EstimateTask(Task):
+    """Estimate APYs."""
+
+    def execute(self, *args: Any, **kwargs: Any) -> pd.DataFrame:
+        """Execute the task."""
+        return estimate_apy_per_pool(*args, **kwargs)

@@ -28,8 +28,8 @@ from deployments.generators.kubernetes.kubernetes import KubernetesGenerator
 
 
 AGENTS: Dict[str, str] = {
-    "oracle_hardhat": "./deployments/deployment_specifications/price_estimation_hardhat.yaml",
-    "oracle_ropsten": "./deployments/deployment_specifications/price_estimation_ropsten.yaml",
+    "oracle_hardhat": "./deployments/deployment_specifications/oracle_hardhat.yaml",
+    "oracle_ropsten": "./deployments/deployment_specifications/oracle_ropsten.yaml",
     "apy_hardhat": "./deployments/deployment_specifications/apy_estimation_hardhat.yaml",
 }
 
@@ -38,6 +38,25 @@ DEPLOYMENT_OPTIONS = {
     "kubernetes": KubernetesGenerator,
     "docker-compose": DockerComposeGenerator,
 }
+
+
+def validate_deployment_spec_path(
+    valory_application: Optional[str],
+    deployment_file_path: Optional[str],
+) -> str:
+    """Validate if a path contains a deployment spec."""
+    if valory_application is not None and deployment_file_path is None:
+        deployment_file_path = AGENTS[valory_application]
+    elif valory_application is None and deployment_file_path is not None:
+        if not Path(deployment_file_path).exists():
+            raise ValueError(
+                f"Specified deployment path does not exist: {deployment_file_path}"
+            )
+    else:
+        raise ValueError(
+            "Much specify either a path to a deployment or a known application."
+        )
+    return deployment_file_path
 
 
 def generate_deployment(
@@ -49,15 +68,9 @@ def generate_deployment(
 ) -> str:
     """Generate the deployment build for the valory app."""
     deployment_generator = DEPLOYMENT_OPTIONS[type_of_deployment]
-    if valory_application is not None and deployment_file_path is None:
-        deployment_file_path = AGENTS[valory_application]
-    elif valory_application is None and deployment_file_path is not None:
-        if not Path(deployment_file_path).exists():
-            raise ValueError("Specified deployment path does not exist!")
-    else:
-        raise ValueError(
-            "Much specify either a path to a deployment or a known application."
-        )
+    deployment_file_path = validate_deployment_spec_path(
+        valory_application, deployment_file_path
+    )
 
     app_instance = BaseDeployment(
         path_to_deployment_spec=deployment_file_path,

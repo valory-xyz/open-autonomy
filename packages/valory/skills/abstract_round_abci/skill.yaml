@@ -9,18 +9,18 @@ fingerprint:
   README.md: QmYNXPppPSnW61ipqKNH8pyMh8qzTERwQaducYYq1dnBJb
   __init__.py: QmPuJK7gMKruSTcaYk9otrFncfD9h6vBZVoAtkwhTBgcxa
   abci_app_chain.py: QmeCPxwjec4pxtedv8NeG2Gmj58GY2GycXvgwfyjEyqPGm
-  base.py: QmV4BnY75FBjJBYN5nwBtmuxRDZ1mxtu91WXVdUTs5TLZ6
-  behaviour_utils.py: QmbNpB65vJVEBBe42WMQyEWrrPN5vah4pup2oo1LSMiKT8
-  behaviours.py: QmNVt88WsMUfvYs33dDzLWH18T1jUzWa9noczfcWfZd8bX
-  common.py: QmartV9MEhNr4J5CpxXez3KiZr5umfZEk61ExcnsT9JtiT
+  base.py: QmU977VJtvD3pcseQ34RdbkuktePCrLwCPuFzq9o1fk7oM
+  behaviour_utils.py: Qmewx981tf8LxxtZuca6RcQU46guFPdDYc6GLb6dCFE2Tm
+  behaviours.py: QmeNvG7nPdXdAvKsrLNjJDEnnRUhf5hVetrJLm45EzCVq2
+  common.py: QmPUbu6Qqx1Dr6x9vLyChp4L1YSFhLEonZdUjQ1G2N4Zkn
   dialogues.py: QmemiTJxfwp2PFxFQyAUHTx8FsthhWL3mYgonBhC3cTjWH
   handlers.py: QmZ5g9Mc9wqTt3699yweN46XJN5XU5yQnurjGP9spwi3iL
   io/__init__.py: QmPfA2syTybFaGmmMMt5gevZHEXPyjVf7wR1UE22NzpZZ3
-  io/ipfs.py: QmYDEwJxH9jvNkLgWG1TkdvpqBu2kTcx1ksbhw1jZ3uxZu
-  io/load.py: QmcQYtKgpJZBb3WAVsqqyxLfy5SfxiJ28h1L1qE6HBbMSV
+  io/ipfs.py: Qmc7BLSKb2kESC1wdCc7FxaLiSHcmPcfiBuXBuLXevUdE7
+  io/load.py: QmSa3vgVvQiMJabBvSnPjTMtYiDgrrHPugDGCvSf4kAfS3
   io/paths.py: QmT1e6Ygak8Fe4NxSrd2mb6EB1Rr6dsYZPL8dWh3aNMb12
-  io/store.py: QmUa5sLTW8dkhx2KK3iNoHFNss9BRrQ2bTMrad7hx54LdL
-  models.py: QmZykyriQHPxVornNU5tVAJkNgZDTTUrf6g936f93idJ5W
+  io/store.py: QmXHnLF1Jg2hmhUwYj4E4QoMmx6EoLhUtzEGqztLKtKFej
+  models.py: QmSN39VAyMxYxqGBaAnYjJNLwGDCCQGz8DgRxPW8QvU2YC
   serializer.py: QmRxo3fQzCoLQn5okQKuQEsVP19WWzXYQsYbNxWaCtaeMy
   utils.py: QmSWEFvrVYMYxkGT1LBh1b6yZPg5mZe5dqXqZcvxzwHZqD
 fingerprint_ignore_patterns: []
@@ -89,7 +89,7 @@ dependencies:
   joblib:
     version: <1.2,>=1.1.0
   open-aea-cli-ipfs:
-    version: <2.0.0,>=1.6.0
+    version: <2.0.0,>=1.7.0
   pandas:
     version: <1.4,>=1.3.4
   pmdarima:

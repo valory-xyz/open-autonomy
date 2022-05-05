@@ -21,10 +21,23 @@
 import binascii
 import pprint
 from abc import ABC
-from typing import Any, Dict, Generator, Optional, Set, Tuple, Type, Union, cast
+from collections import deque
+from typing import (
+    Any,
+    Deque,
+    Dict,
+    Generator,
+    Iterator,
+    Optional,
+    Set,
+    Tuple,
+    Type,
+    Union,
+    cast,
+)
 
 from aea.protocols.base import Message
-from web3.types import Nonce, TxData
+from web3.types import Nonce, TxData, Wei
 
 from packages.valory.contracts.gnosis_safe.contract import GnosisSafeContract
 from packages.valory.protocols.contract_api.message import ContractApiMessage
@@ -71,7 +84,7 @@ from packages.valory.skills.transaction_settlement_abci.rounds import (
 )
 
 
-TxDataType = Dict[str, Union[VerificationStatus, str, int]]
+TxDataType = Dict[str, Union[VerificationStatus, Deque[str], int, Set[str], str]]
 
 
 drand_check = VerifyDrand()
@@ -90,15 +103,27 @@ class TransactionSettlementBaseState(BaseState, ABC):
         """Return the params."""
         return cast(TransactionParams, super().params)
 
+    @staticmethod
+    def serialized_keepers(keepers: Deque[str], keeper_retries: int) -> str:
+        """Get the keepers serialized."""
+        if len(keepers) == 0:
+            return ""
+        keepers_ = "".join(keepers)
+        keeper_retries_ = keeper_retries.to_bytes(32, "big").hex()
+        concatenated = keeper_retries_ + keepers_
+
+        return concatenated
+
     def _get_tx_data(
         self, message: ContractApiMessage
     ) -> Generator[None, None, TxDataType]:
         """Get the transaction data from a `ContractApiMessage`."""
         tx_data: TxDataType = {
             "status": VerificationStatus.PENDING,
+            "keepers": self.period_state.keepers,
+            "keeper_retries": self.period_state.keeper_retries,
+            "blacklisted_keepers": self.period_state.blacklisted_keepers,
             "tx_digest": "",
-            "nonce": "",
-            "max_priority_fee_per_gas": "",
         }
 
         if (
@@ -114,9 +139,7 @@ class TransactionSettlementBaseState(BaseState, ABC):
             )
             return tx_data
 
-        if (
-            message.performative != ContractApiMessage.Performative.RAW_TRANSACTION
-        ):  # pragma: nocover
+        if message.performative != ContractApiMessage.Performative.RAW_TRANSACTION:
             self.context.logger.warning(
                 f"get_raw_safe_transaction unsuccessful! Received: {message}"
             )
@@ -127,11 +150,20 @@ class TransactionSettlementBaseState(BaseState, ABC):
         )
 
         if rpc_status == RPCResponseStatus.INCORRECT_NONCE:
-            self.context.logger.warning(
-                f"send_raw_transaction unsuccessful! Received: {rpc_status}"
-            )
             tx_data["status"] = VerificationStatus.ERROR
-            return tx_data
+            self.context.logger.warning(
+                "send_raw_transaction unsuccessful! Incorrect nonce."
+            )
+
+        if rpc_status == RPCResponseStatus.INSUFFICIENT_FUNDS:
+            # blacklist self.
+            tx_data["status"] = VerificationStatus.INSUFFICIENT_FUNDS
+            blacklisted = cast(Deque[str], tx_data["keepers"]).popleft()
+            tx_data["keeper_retries"] = 1
+            cast(Set[str], tx_data["blacklisted_keepers"]).add(blacklisted)
+            self.context.logger.warning(
+                "send_raw_transaction unsuccessful! Insufficient funds."
+            )
 
         if rpc_status != RPCResponseStatus.SUCCESS:
             self.context.logger.warning(
@@ -140,16 +172,32 @@ class TransactionSettlementBaseState(BaseState, ABC):
             return tx_data
 
         tx_data["tx_digest"] = cast(str, tx_digest)
-        tx_data["nonce"] = int(cast(str, message.raw_transaction.body["nonce"]))
-        tx_data["max_priority_fee_per_gas"] = int(
-            cast(
-                str,
-                message.raw_transaction.body["maxPriorityFeePerGas"],
+
+        nonce = Nonce(int(cast(str, message.raw_transaction.body["nonce"])))
+        gas_price = {
+            gas_price_param: Wei(
+                int(
+                    cast(
+                        str,
+                        message.raw_transaction.body[gas_price_param],
+                    )
+                )
             )
-        )
-        # Set nonce and tip.
-        self.params.nonce = Nonce(int(cast(str, tx_data["nonce"])))
-        self.params.tip = int(cast(str, tx_data["max_priority_fee_per_gas"]))
+            for gas_price_param in ("maxPriorityFeePerGas", "maxFeePerGas")
+        }
+        # Set hash, nonce and tip.
+        self.params.tx_hash = cast(str, tx_data["tx_digest"])
+        if nonce == self.params.nonce:
+            self.context.logger.info(
+                "Attempting to replace transaction "
+                f"with old gas price parameters {self.params.gas_price}, using new gas price parameters {gas_price}"
+            )
+        else:
+            self.context.logger.info(
+                f"Sent transaction for mining with gas parameters {gas_price}"
+            )
+            self.params.nonce = nonce
+        self.params.gas_price = gas_price
 
         return tx_data
 
@@ -182,11 +230,6 @@ class TransactionSettlementBaseState(BaseState, ABC):
         """Check for GS026."""
         return "GS026" in revert_reason
 
-    def _reset_params_if_flag_set(self) -> None:
-        """Reset tx parameters."""
-        if self.period_state.is_reset_params_set:
-            self.params.reset_tx_params()
-
 
 class RandomnessTransactionSubmissionBehaviour(RandomnessBehaviour):
     """Retrieve randomness."""
@@ -205,25 +248,88 @@ class SelectKeeperTransactionSubmissionBehaviourA(  # pylint: disable=too-many-a
     matching_round = SelectKeeperTransactionSubmissionRoundA
     payload_class = SelectKeeperPayload
 
+    def async_act(self) -> Generator:
+        """Do the action."""
+
+        with self.context.benchmark_tool.measure(self.state_id).local():
+            keepers = deque((self._select_keeper(),))
+            payload = self.payload_class(
+                self.context.agent_address, self.serialized_keepers(keepers, 1)
+            )
+
+        with self.context.benchmark_tool.measure(self.state_id).consensus():
+            yield from self.send_a2a_transaction(payload)
+            yield from self.wait_until_round_end()
+
+        self.set_done()
+
 
 class SelectKeeperTransactionSubmissionBehaviourB(  # pylint: disable=too-many-ancestors
-    SelectKeeperBehaviour, TransactionSettlementBaseState
+    SelectKeeperTransactionSubmissionBehaviourA
 ):
     """Select the keeper b agent."""
 
     state_id = "select_keeper_transaction_submission_b"
     matching_round = SelectKeeperTransactionSubmissionRoundB
-    payload_class = SelectKeeperPayload
+
+    def async_act(self) -> Generator:
+        """
+        Do the action.
+
+        Steps:
+            - If we have not selected enough keepers for the period,
+                select a keeper randomly and add it to the keepers' queue, with top priority.
+            - Otherwise, cycle through the keepers' subset, using the following logic:
+                A `PENDING` verification status means that we have not received any errors,
+                therefore, all we know is that the tx has not been mined yet due to low pricing.
+                Consequently, we are going to retry with the same keeper in order to replace the transaction.
+                However, if we receive a status other than `PENDING`, we need to cycle through the keepers' subset.
+                Moreover, if the current keeper has reached the allowed number of retries, then we cycle anyway.
+            - Send the transaction with the keepers and wait for it to be mined.
+            - Wait until ABCI application transitions to the next round.
+            - Go to the next behaviour state (set done event).
+        """
+
+        with self.context.benchmark_tool.measure(self.state_id).local():
+            keepers = self.period_state.keepers
+            keeper_retries = 1
+
+            if (
+                self.period_state.keepers_threshold_exceeded
+            ):  # TODO: I think this should be second prio
+                keepers.rotate(-1)
+                self.context.logger.info(f"Rotated keepers to: {keepers}.")
+            elif (
+                self.period_state.keeper_retries != self.params.keeper_allowed_retries
+                and self.period_state.final_verification_status
+                == VerificationStatus.PENDING
+            ):
+                keeper_retries += self.period_state.keeper_retries
+                self.context.logger.info(
+                    f"Kept keepers and incremented retries: {keepers}."
+                )
+            else:
+                keepers.appendleft(self._select_keeper())
+
+            payload = self.payload_class(
+                self.context.agent_address,
+                self.serialized_keepers(keepers, keeper_retries),
+            )
+
+        with self.context.benchmark_tool.measure(self.state_id).consensus():
+            yield from self.send_a2a_transaction(payload)
+            yield from self.wait_until_round_end()
+
+        self.set_done()
 
 
 class SelectKeeperTransactionSubmissionBehaviourBAfterTimeout(  # pylint: disable=too-many-ancestors
-    SelectKeeperBehaviour, TransactionSettlementBaseState
+    SelectKeeperTransactionSubmissionBehaviourB
 ):
     """Select the keeper b agent after a timeout."""
 
     state_id = "select_keeper_transaction_submission_b_after_timeout"
     matching_round = SelectKeeperTransactionSubmissionRoundBAfterTimeout
-    payload_class = SelectKeeperPayload
 
 
 class ValidateTransactionBehaviour(TransactionSettlementBaseState):
@@ -272,9 +378,6 @@ class ValidateTransactionBehaviour(TransactionSettlementBaseState):
             )
             return None
 
-        # Reset tx parameters.
-        self.params.reset_tx_params()
-
         contract_api_msg = yield from self._verify_tx(
             self.period_state.to_be_validated_tx_hash
         )
@@ -295,10 +398,13 @@ class ValidateTransactionBehaviour(TransactionSettlementBaseState):
         return verified
 
 
+CHECK_TX_HISTORY = "check_transaction_history"
+
+
 class CheckTransactionHistoryBehaviour(TransactionSettlementBaseState):
     """Check the transaction history."""
 
-    state_id = "check_transaction_history"
+    state_id = CHECK_TX_HISTORY
     matching_round = CheckTransactionHistoryRound
 
     def async_act(self) -> Generator:
@@ -308,10 +414,13 @@ class CheckTransactionHistoryBehaviour(TransactionSettlementBaseState):
             verification_status, tx_hash = yield from self._check_tx_history()
 
             if verification_status == VerificationStatus.VERIFIED:
-                self.context.logger.info(
-                    f"A previous transaction {tx_hash} has already been verified for "
-                    f"{self.period_state.to_be_validated_tx_hash}."
+                msg = f"A previous transaction {tx_hash} has already been verified "
+                msg += (
+                    f"for {self.period_state.to_be_validated_tx_hash}."
+                    if self.period_state.tx_hashes_history
+                    else "and was synced after the finalization round timed out."
                 )
+                self.context.logger.info(msg)
             elif verification_status == VerificationStatus.NOT_VERIFIED:
                 self.context.logger.info(
                     f"No previous transaction has been verified for "
@@ -335,11 +444,11 @@ class CheckTransactionHistoryBehaviour(TransactionSettlementBaseState):
         """Check the transaction history."""
         history = (
             self.period_state.tx_hashes_history
-            if self.state_id == "check_transaction_history"
+            if self.state_id == CHECK_TX_HISTORY
             else self.period_state.late_arriving_tx_hashes
         )
 
-        if history is None:
+        if not history:
             self.context.logger.error(
                 "An unexpected error occurred! The state's history does not contain any transaction hashes, "
                 f"but entered the `{self.state_id}` state."
@@ -368,6 +477,11 @@ class CheckTransactionHistoryBehaviour(TransactionSettlementBaseState):
                 verified_log + f", all: {contract_api_msg.state.body}"
             )
 
+            status = cast(int, contract_api_msg.state.body["status"])
+            if status == -1:
+                self.context.logger.info(f"Tx hash {tx_hash} has no receipt!")
+                continue
+
             tx_data = cast(TxData, contract_api_msg.state.body["transaction"])
             revert_reason = yield from self._get_revert_reason(tx_data)
 
@@ -375,7 +489,7 @@ class CheckTransactionHistoryBehaviour(TransactionSettlementBaseState):
                 if self._safe_nonce_reused(revert_reason):
                     check_expected_to_be_verified = (
                         "The next tx check"
-                        if self.state_id == "check_transaction_history"
+                        if self.state_id == CHECK_TX_HISTORY
                         else "One of the next tx checks"
                     )
                     self.context.logger.info(
@@ -431,14 +545,19 @@ class SynchronizeLateMessagesBehaviour(TransactionSettlementBaseState):
     def __init__(self, **kwargs: Any):
         """Initialize a `SynchronizeLateMessagesBehaviour`"""
         super().__init__(**kwargs)
-        self._tx_hashes: str = ""
+        # if we timed out during finalization, but we managed to receive a tx hash,
+        # then we sync it here by initializing the `_tx_hashes` with the unsynced hash.
+        self._tx_hashes: str = self.params.tx_hash
+        self._messages_iterator: Iterator[ContractApiMessage] = iter(
+            self.params.late_messages
+        )
 
     def async_act(self) -> Generator:
         """Do the action."""
 
         with self.context.benchmark_tool.measure(self.state_id).local():
-            if len(self.params.late_messages) > 0:
-                current_message = self.params.late_messages.pop()
+            current_message = next(self._messages_iterator, None)
+            if current_message is not None:
                 tx_data = yield from self._get_tx_data(current_message)
                 # here, we concatenate the tx_hashes of all the late-arriving messages. Later, we will parse them.
                 self._tx_hashes += cast(str, tx_data["tx_digest"])
@@ -450,14 +569,12 @@ class SynchronizeLateMessagesBehaviour(TransactionSettlementBaseState):
 
         with self.context.benchmark_tool.measure(self.state_id).consensus():
             yield from self.send_a2a_transaction(payload)
+            # reset the local parameters if we were able to send them.
+            self.params.tx_hash = ""
+            self.params.late_messages = []
             yield from self.wait_until_round_end()
 
         self.set_done()
-
-    def set_done(self) -> None:
-        """Set the behaviour to done and clean the local late message parameter."""
-        super().set_done()
-        self.params.late_messages = []
 
 
 class SignatureBehaviour(TransactionSettlementBaseState):
@@ -511,6 +628,10 @@ class FinalizeBehaviour(TransactionSettlementBaseState):
     state_id = "finalize"
     matching_round = FinalizationRound
 
+    def _i_am_not_sending(self) -> bool:
+        """Indicates if the current agent is the sender or not."""
+        return self.context.agent_address != self.period_state.most_voted_keeper_address
+
     def async_act(self) -> Generator[None, None, None]:
         """
         Do the action.
@@ -520,11 +641,7 @@ class FinalizeBehaviour(TransactionSettlementBaseState):
         - Otherwise, wait until the next round.
         - If a timeout is hit, set exit A event, otherwise set done event.
         """
-
-        # Reset tx params if the flag has been set
-        self._reset_params_if_flag_set()
-
-        if self.context.agent_address != self.period_state.most_voted_keeper_address:
+        if self._i_am_not_sending():
             yield from self._not_sender_act()
         else:
             yield from self._sender_act()
@@ -532,6 +649,9 @@ class FinalizeBehaviour(TransactionSettlementBaseState):
     def _not_sender_act(self) -> Generator:
         """Do the non-sender action."""
         with self.context.benchmark_tool.measure(self.state_id).consensus():
+            self.context.logger.info(
+                f"Waiting for the keeper to do its keeping: {self.period_state.most_voted_keeper_address}"
+            )
             yield from self.wait_until_round_end()
         self.set_done()
 
@@ -561,21 +681,40 @@ class FinalizeBehaviour(TransactionSettlementBaseState):
                 self.context.logger.debug(
                     f"Signatures: {pprint.pformat(self.period_state.participant_to_signature)}"
                 )
-            tx_data["status"] = cast(VerificationStatus, tx_data["status"]).value
+
+            tx_hashes_history = self.period_state.tx_hashes_history
+            if tx_data["tx_digest"] != "":
+                tx_hashes_history.append(cast(str, tx_data["tx_digest"]))
+
+            tx_data_serialized = {
+                "status_value": cast(VerificationStatus, tx_data["status"]).value,
+                "serialized_keepers": self.serialized_keepers(
+                    cast(Deque[str], tx_data["keepers"]),
+                    cast(int, tx_data["keeper_retries"]),
+                ),
+                "blacklisted_keepers": "".join(
+                    cast(Set[str], tx_data["blacklisted_keepers"])
+                ),
+                "tx_hashes_history": "".join(tx_hashes_history),
+                "received_hash": bool(tx_data["tx_digest"]),
+            }
+
             payload = FinalizationTxPayload(
                 self.context.agent_address,
-                cast(Dict[str, Union[str, int]], tx_data),
+                cast(Dict[str, Union[str, int, bool]], tx_data_serialized),
             )
 
         with self.context.benchmark_tool.measure(self.state_id).consensus():
             yield from self.send_a2a_transaction(payload)
+            # reset the local tx hash parameter if we were able to send it
+            self.params.tx_hash = ""
             yield from self.wait_until_round_end()
 
         self.set_done()
 
     def _send_safe_transaction(
         self,
-    ) -> Generator[None, None, Dict[str, Union[VerificationStatus, str, int]]]:
+    ) -> Generator[None, None, TxDataType]:
         """Send a Safe transaction using the participants' signatures."""
         tx_params = skill_input_hex_to_payload(self.period_state.most_voted_tx_hash)
 
@@ -595,7 +734,7 @@ class FinalizeBehaviour(TransactionSettlementBaseState):
                 for key, payload in self.period_state.participant_to_signature.items()
             },
             nonce=self.params.nonce,
-            old_tip=self.params.tip,
+            old_price=self.params.gas_price,
             operation=tx_params["operation"],
         )
 
@@ -624,7 +763,6 @@ class ResetBehaviour(TransactionSettlementBaseState):
         self.context.logger.info(
             f"Period {self.period_state.period_count} was not finished. Resetting!"
         )
-        self.params.reset_tx_params()
         payload = ResetPayload(
             self.context.agent_address, self.period_state.period_count + 1
         )

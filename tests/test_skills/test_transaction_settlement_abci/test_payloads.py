@@ -49,10 +49,10 @@ def test_randomness_payload() -> None:
 def test_select_keeper_payload() -> None:
     """Test `SelectKeeperPayload`."""
 
-    payload = SelectKeeperPayload(sender="sender", keeper="test")
+    payload = SelectKeeperPayload(sender="sender", keepers="test")
 
-    assert payload.keeper == "test"
-    assert payload.data == {"keeper": "test"}
+    assert payload.keepers == "test"
+    assert payload.data == {"keepers": "test"}
     assert payload.transaction_type == TransactionType.SELECT_KEEPER
 
 

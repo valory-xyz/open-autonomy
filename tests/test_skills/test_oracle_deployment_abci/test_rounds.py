@@ -21,7 +21,7 @@
 
 import logging  # noqa: F401
 from types import MappingProxyType
-from typing import Dict, FrozenSet, Optional, Type, cast
+from typing import Any, Dict, FrozenSet, Mapping, Optional, Type, cast
 
 from packages.valory.skills.abstract_round_abci.base import AbstractRound
 from packages.valory.skills.abstract_round_abci.base import (
@@ -30,6 +30,7 @@ from packages.valory.skills.abstract_round_abci.base import (
 from packages.valory.skills.abstract_round_abci.base import (
     BaseTxPayload,
     CollectSameUntilThresholdRound,
+    MAX_INT_256,
     StateDB,
     VotingRound,
 )
@@ -52,6 +53,9 @@ from packages.valory.skills.oracle_deployment_abci.rounds import (
 from packages.valory.skills.price_estimation_abci.payloads import (
     EstimatePayload,
     TransactionHashPayload,
+)
+from packages.valory.skills.transaction_settlement_abci.payload_tools import (
+    VerificationStatus,
 )
 from packages.valory.skills.transaction_settlement_abci.payloads import ValidatePayload
 
@@ -92,10 +96,11 @@ def get_most_voted_randomness() -> str:
 
 def get_participant_to_selection(
     participants: FrozenSet[str],
+    keeper: str = "keeper",
 ) -> Dict[str, SelectKeeperPayload]:
     """participant_to_selection"""
     return {
-        participant: SelectKeeperPayload(sender=participant, keeper="keeper")
+        participant: SelectKeeperPayload(sender=participant, keeper=keeper)
         for participant in participants
     }
 
@@ -196,7 +201,7 @@ class BaseValidateRoundTest(BaseVotingRoundTest):
     ) -> None:
         """Test ValidateRound."""
 
-        self.period_state.update(tx_hashes_history=["test"])
+        self.period_state.update(tx_hashes_history="t" * 66)
 
         test_round = self.test_class(
             state=self.period_state, consensus_params=self.consensus_params
@@ -276,31 +281,54 @@ class BaseSelectKeeperRoundTest(BaseCollectSameUntilThresholdRoundTest):
     """Test SelectKeeperTransactionSubmissionRoundA"""
 
     test_class: Type[CollectSameUntilThresholdRound]
-    test_payload: Type[SelectKeeperPayload]
+    test_payload: Type[BaseTxPayload]
 
     _period_state_class = PeriodState
 
+    @staticmethod
+    def _participant_to_selection(
+        participants: FrozenSet[str], keepers: str
+    ) -> Mapping[str, BaseTxPayload]:
+        """Get participant to selection"""
+        return get_participant_to_selection(participants, keepers)
+
     def test_run(
         self,
+        most_voted_payload: str = "keeper",
+        keepers: str = "",
+        exit_event: Optional[Any] = None,
     ) -> None:
         """Run tests."""
-
         test_round = self.test_class(
-            state=self.period_state, consensus_params=self.consensus_params
+            state=self.period_state.update(
+                keepers=keepers,
+                final_verification_status=VerificationStatus.PENDING,
+            ),
+            consensus_params=self.consensus_params,
         )
 
         self._complete_run(
             self._test_round(
                 test_round=test_round,
-                round_payloads=get_participant_to_selection(self.participants),
+                round_payloads=self._participant_to_selection(
+                    self.participants, most_voted_payload
+                ),
                 state_update_fn=lambda _period_state, _test_round: _period_state.update(
                     participant_to_selection=MappingProxyType(
-                        dict(get_participant_to_selection(self.participants))
+                        dict(
+                            self._participant_to_selection(
+                                self.participants, most_voted_payload
+                            )
+                        )
                     )
                 ),
-                state_attr_checks=[lambda state: state.participant_to_selection.keys()],
-                most_voted_payload="keeper",
-                exit_event=self._event_class.DONE,
+                state_attr_checks=[
+                    lambda state: state.participant_to_selection.keys()
+                    if exit_event is None
+                    else None
+                ],
+                most_voted_payload=most_voted_payload,
+                exit_event=self._event_class.DONE if exit_event is None else exit_event,
             )
         )
 
@@ -324,9 +352,7 @@ def test_period_states() -> None:
     safe_contract_address = get_safe_contract_address()
     oracle_contract_address = get_safe_contract_address()
     participant_to_votes = get_participant_to_votes(participants)
-    actual_keeper_randomness = float(
-        (int(most_voted_randomness, base=16) // 10 ** 0 % 10) / 10
-    )
+    actual_keeper_randomness = int(most_voted_randomness, base=16) / MAX_INT_256
 
     period_state__ = OracleDeploymentPeriodState(
         StateDB(
@@ -343,7 +369,9 @@ def test_period_states() -> None:
             ),
         )
     )
-    assert period_state__.keeper_randomness == actual_keeper_randomness
+    assert (
+        abs(period_state__.keeper_randomness - actual_keeper_randomness) < 1e-10
+    )  # avoid equality comparisons between floats
     assert period_state__.most_voted_randomness == most_voted_randomness
     assert period_state__.most_voted_keeper_address == most_voted_keeper_address
     assert period_state__.safe_contract_address == safe_contract_address

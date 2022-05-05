@@ -36,6 +36,17 @@ def params() -> TransactionParams
 
 Return the params.
 
+<a id="packages.valory.skills.transaction_settlement_abci.behaviours.TransactionSettlementBaseState.serialized_keepers"></a>
+
+#### serialized`_`keepers
+
+```python
+@staticmethod
+def serialized_keepers(keepers: Deque[str], keeper_retries: int) -> str
+```
+
+Get the keepers serialized.
+
 <a id="packages.valory.skills.transaction_settlement_abci.behaviours.RandomnessTransactionSubmissionBehaviour"></a>
 
 ## RandomnessTransactionSubmissionBehaviour Objects
@@ -57,16 +68,49 @@ class SelectKeeperTransactionSubmissionBehaviourA(  # pylint: disable=too-many-a
 
 Select the keeper agent.
 
+<a id="packages.valory.skills.transaction_settlement_abci.behaviours.SelectKeeperTransactionSubmissionBehaviourA.async_act"></a>
+
+#### async`_`act
+
+```python
+def async_act() -> Generator
+```
+
+Do the action.
+
 <a id="packages.valory.skills.transaction_settlement_abci.behaviours.SelectKeeperTransactionSubmissionBehaviourB"></a>
 
 ## SelectKeeperTransactionSubmissionBehaviourB Objects
 
 ```python
 class SelectKeeperTransactionSubmissionBehaviourB(  # pylint: disable=too-many-ancestors
-    SelectKeeperBehaviour,  TransactionSettlementBaseState)
+    SelectKeeperTransactionSubmissionBehaviourA)
 ```
 
 Select the keeper b agent.
+
+<a id="packages.valory.skills.transaction_settlement_abci.behaviours.SelectKeeperTransactionSubmissionBehaviourB.async_act"></a>
+
+#### async`_`act
+
+```python
+def async_act() -> Generator
+```
+
+Do the action.
+
+Steps:
+    - If we have not selected enough keepers for the period,
+        select a keeper randomly and add it to the keepers' queue, with top priority.
+    - Otherwise, cycle through the keepers' subset, using the following logic:
+        A `PENDING` verification status means that we have not received any errors,
+        therefore, all we know is that the tx has not been mined yet due to low pricing.
+        Consequently, we are going to retry with the same keeper in order to replace the transaction.
+        However, if we receive a status other than `PENDING`, we need to cycle through the keepers' subset.
+        Moreover, if the current keeper has reached the allowed number of retries, then we cycle anyway.
+    - Send the transaction with the keepers and wait for it to be mined.
+    - Wait until ABCI application transitions to the next round.
+    - Go to the next behaviour state (set done event).
 
 <a id="packages.valory.skills.transaction_settlement_abci.behaviours.SelectKeeperTransactionSubmissionBehaviourBAfterTimeout"></a>
 
@@ -74,7 +118,7 @@ Select the keeper b agent.
 
 ```python
 class SelectKeeperTransactionSubmissionBehaviourBAfterTimeout(  # pylint: disable=too-many-ancestors
-    SelectKeeperBehaviour,  TransactionSettlementBaseState)
+    SelectKeeperTransactionSubmissionBehaviourB)
 ```
 
 Select the keeper b agent after a timeout.
@@ -177,16 +221,6 @@ def async_act() -> Generator
 ```
 
 Do the action.
-
-<a id="packages.valory.skills.transaction_settlement_abci.behaviours.SynchronizeLateMessagesBehaviour.set_done"></a>
-
-#### set`_`done
-
-```python
-def set_done() -> None
-```
-
-Set the behaviour to done and clean the local late message parameter.
 
 <a id="packages.valory.skills.transaction_settlement_abci.behaviours.SignatureBehaviour"></a>
 

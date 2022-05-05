@@ -56,7 +56,7 @@ DEFAULT_RPC_PORT = 26657
 DEFAULT_LISTEN_ADDRESS = "0.0.0.0"  # nosec
 DEFAULT_P2P_LISTEN_ADDRESS = f"tcp://{DEFAULT_LISTEN_ADDRESS}:{DEFAULT_P2P_PORT}"
 DEFAULT_RPC_LISTEN_ADDRESS = f"tcp://{LOCALHOST}:{DEFAULT_RPC_PORT}"
-MAX_READ_IN_BYTES = 2 ** 16  # Max we'll consume on a read stream (64 KiB)
+MAX_READ_IN_BYTES = 2 ** 20  # Max we'll consume on a read stream (1 MiB)
 MAX_VARINT_BYTES = 10  # Max size of varint we support
 
 
@@ -338,7 +338,8 @@ class TcpServerChannel:  # pylint: disable=too-many-instance-attributes
             self.logger.warning(f"Could not create dialogue for message={message}")
             return
 
-        peer_name = self._request_id_to_socket[dialogue.incomplete_dialogue_label]
+        # we only deal with atomic request-response cycles, so it is safe to remove the reference
+        peer_name = self._request_id_to_socket.pop(dialogue.incomplete_dialogue_label)
         _reader, writer = self._streams_by_socket[peer_name]
         protobuf_message = _TendermintProtocolEncoder.process(message)
         data = _TendermintABCISerializer.write_message(protobuf_message)

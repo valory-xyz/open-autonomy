@@ -19,7 +19,11 @@
 
 """Kubernetes Templates module."""
 
-HARDHAT_TEMPLATE: str = """apiVersion: apps/v1
+from deployments.constants import HARDHAT_VERSION, IMAGE_VERSION, TENDERMINT_VERSION
+
+
+HARDHAT_TEMPLATE: str = (
+    """apiVersion: apps/v1
 kind: Deployment
 metadata:
   labels:
@@ -50,7 +54,7 @@ spec:
             - "0.0.0.0"
           command:
             - /bin/bash
-          image: valory/consensus-algorithms-hardhat:0.1.0
+          image: valory/consensus-algorithms-hardhat:%s
           name: hardhat
           ports:
             - name: http
@@ -79,9 +83,12 @@ spec:
 status:
   loadBalancer: {}
 """
+    % HARDHAT_VERSION
+)
 
 
-CLUSTER_CONFIGURATION_TEMPLATE: str = """apiVersion: batch/v1
+CLUSTER_CONFIGURATION_TEMPLATE: str = (
+    """apiVersion: batch/v1
 kind: Job
 metadata:
   name: config-nodes
@@ -92,7 +99,7 @@ spec:
       - name: regcred
       containers:
       - name: config-nodes
-        image: valory/consensus-algorithms-tendermint:0.1.0
+        image: valory/consensus-algorithms-tendermint:%s
         command: ['/usr/bin/tendermint']
         args: ["testnet",
          "--config",
@@ -113,6 +120,42 @@ spec:
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
+  name: logs-pvc
+spec:
+  storageClassName: nfs
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1000M
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: tendermint-pvc
+spec:
+  storageClassName: nfs
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1000M
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: benchmark-pvc
+spec:
+  storageClassName: nfs
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1000M
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
   name: build-vol-pvc
 spec:
   storageClassName: nfs
@@ -122,6 +165,8 @@ spec:
     requests:
       storage: 1000M
 """
+    % TENDERMINT_VERSION
+)
 
 
 AGENT_NODE_TEMPLATE: str = """apiVersion: v1
@@ -160,14 +205,14 @@ spec:
       restartPolicy: Always
       containers:
       - name: node{validator_ix}
-        image: valory/consensus-algorithms-tendermint:0.1.0
+        image: valory/consensus-algorithms-tendermint:%s
         imagePullPolicy: Always
         resources:
           limits:
-            memory: "1024Mi"
+            memory: "1512Mi"
             cpu: "1"
           requests:
-            cpu: "500m"
+            cpu: "0.05"
             memory: "128Mi"
         ports:
           - containerPort: 26656
@@ -184,31 +229,55 @@ spec:
             value: /tendermint/node{validator_ix}
           - name: CREATE_EMPTY_BLOCKS
             value: "true"
+          - name: LOG_FILE
+            value: "/logs/node_{validator_ix}.txt"
         args: ["run", "--no-reload", "--host=0.0.0.0", "--port=8080"]
         volumeMounts:
+          - mountPath: /tm_state
+            name: persistent-data-tm
+          - mountPath: /logs
+            name: persistent-data
           - mountPath: /tendermint
             name: build
 
       - name: aea
-        image: valory/consensus-algorithms-open-aea:0.1.0
+        image: valory/consensus-algorithms-open-aea:{valory_app}V%s
         imagePullPolicy: Always
         resources:
           limits:
-            memory: "1024Mi"
+            memory: "1512Mi"
             cpu: "1"
           requests:
-            cpu: "500m"
+            cpu: "0.05"
             memory: "128Mi"
         env:
           - name: HOSTNAME
             value: "agent-node-{validator_ix}"
           - name: CLUSTERED
             value: "1"
+          - name: LOG_FILE
+            value: "/logs/aea_{validator_ix}.txt"
         volumeMounts:
+          - mountPath: /logs
+            name: persistent-data
+          - mountPath: /benchmark
+            name: persistent-data-benchmark
           - mountPath: /build
             name: build
       volumes:
+        - name: persistent-data
+          persistentVolumeClaim:
+            claimName: 'logs-pvc'
+        - name: persistent-data-benchmark
+          persistentVolumeClaim:
+            claimName: 'benchmark-pvc'
+        - name: persistent-data-tm
+          persistentVolumeClaim:
+            claimName: 'tendermint-pvc'
         - name: build
           persistentVolumeClaim:
             claimName: 'build-vol-pvc'
-"""
+""" % (
+    TENDERMINT_VERSION,
+    IMAGE_VERSION,
+)

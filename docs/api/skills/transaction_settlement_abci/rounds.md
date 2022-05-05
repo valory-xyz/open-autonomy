@@ -59,6 +59,61 @@ def tx_hashes_history() -> List[str]
 
 Get the current cycle's tx hashes history, which has not yet been verified.
 
+<a id="packages.valory.skills.transaction_settlement_abci.rounds.PeriodState.keepers"></a>
+
+#### keepers
+
+```python
+@property
+def keepers() -> Deque[str]
+```
+
+Get the current cycle's keepers who have tried to submit a transaction.
+
+<a id="packages.valory.skills.transaction_settlement_abci.rounds.PeriodState.keepers_threshold_exceeded"></a>
+
+#### keepers`_`threshold`_`exceeded
+
+```python
+@property
+def keepers_threshold_exceeded() -> bool
+```
+
+Check if the number of selected keepers has exceeded the allowed limit.
+
+<a id="packages.valory.skills.transaction_settlement_abci.rounds.PeriodState.most_voted_keeper_address"></a>
+
+#### most`_`voted`_`keeper`_`address
+
+```python
+@property
+def most_voted_keeper_address() -> str
+```
+
+Get the first in priority keeper to try to re-submit a transaction.
+
+<a id="packages.valory.skills.transaction_settlement_abci.rounds.PeriodState.is_keeper_set"></a>
+
+#### is`_`keeper`_`set
+
+```python
+@property
+def is_keeper_set() -> bool
+```
+
+Check whether keeper is set.
+
+<a id="packages.valory.skills.transaction_settlement_abci.rounds.PeriodState.keeper_retries"></a>
+
+#### keeper`_`retries
+
+```python
+@property
+def keeper_retries() -> int
+```
+
+Get the number of times the current keeper has retried.
+
 <a id="packages.valory.skills.transaction_settlement_abci.rounds.PeriodState.to_be_validated_tx_hash"></a>
 
 #### to`_`be`_`validated`_`tx`_`hash
@@ -146,17 +201,6 @@ def late_arriving_tx_hashes() -> List[str]
 
 Get the late_arriving_tx_hashes.
 
-<a id="packages.valory.skills.transaction_settlement_abci.rounds.PeriodState.is_reset_params_set"></a>
-
-#### is`_`reset`_`params`_`set
-
-```python
-@property
-def is_reset_params_set() -> bool
-```
-
-Get the reset params flag.
-
 <a id="packages.valory.skills.transaction_settlement_abci.rounds.FailedRound"></a>
 
 ## FailedRound Objects
@@ -192,7 +236,9 @@ A round that represents transaction signing has finished
 #### end`_`block
 
 ```python
-def end_block() -> Optional[Tuple[BasePeriodState, Enum]]
+def end_block() -> Optional[
+        Tuple[BasePeriodState, Enum]
+    ]
 ```
 
 Process the end of the block.
@@ -217,12 +263,22 @@ class SelectKeeperTransactionSubmissionRoundA(CollectSameUntilThresholdRound)
 
 A round in which a keeper is selected for transaction submission
 
+<a id="packages.valory.skills.transaction_settlement_abci.rounds.SelectKeeperTransactionSubmissionRoundA.end_block"></a>
+
+#### end`_`block
+
+```python
+def end_block() -> Optional[Tuple[BasePeriodState, Enum]]
+```
+
+Process the end of the block.
+
 <a id="packages.valory.skills.transaction_settlement_abci.rounds.SelectKeeperTransactionSubmissionRoundB"></a>
 
 ## SelectKeeperTransactionSubmissionRoundB Objects
 
 ```python
-class SelectKeeperTransactionSubmissionRoundB(CollectSameUntilThresholdRound)
+class SelectKeeperTransactionSubmissionRoundB(SelectKeeperTransactionSubmissionRoundA)
 ```
 
 A round in which a new keeper is selected for transaction submission
@@ -236,7 +292,7 @@ class SelectKeeperTransactionSubmissionRoundBAfterTimeout(
     SelectKeeperTransactionSubmissionRoundB)
 ```
 
-A round in which a new keeper is selected for transaction submission after a round timeout of the first keeper
+A round in which a new keeper is selected for tx submission after a round timeout of the previous keeper
 
 <a id="packages.valory.skills.transaction_settlement_abci.rounds.SelectKeeperTransactionSubmissionRoundBAfterTimeout.end_block"></a>
 
@@ -365,55 +421,62 @@ Initial states: {RandomnessTransactionSubmissionRound}
 Transition states:
     0. RandomnessTransactionSubmissionRound
         - done: 1.
-        - round timeout: 10.
+        - round timeout: 0.
         - no majority: 0.
     1. SelectKeeperTransactionSubmissionRoundA
         - done: 2.
-        - round timeout: 10.
+        - round timeout: 1.
         - no majority: 10.
+        - incorrect serialization: 12.
     2. CollectSignatureRound
         - done: 3.
-        - round timeout: 10.
+        - round timeout: 2.
         - no majority: 10.
     3. FinalizationRound
         - done: 4.
         - check history: 5.
-        - round timeout: 7.
+        - finalize timeout: 7.
         - finalization failed: 6.
         - check late arriving message: 8.
+        - insufficient funds: 6.
     4. ValidateTransactionRound
         - done: 11.
         - negative: 5.
-        - none: 3.
-        - validate timeout: 3.
+        - none: 6.
+        - validate timeout: 6.
         - no majority: 4.
     5. CheckTransactionHistoryRound
         - done: 11.
-        - negative: 12.
+        - negative: 6.
         - none: 12.
-        - round timeout: 5.
-        - no majority: 12.
+        - check timeout: 5.
+        - no majority: 5.
         - check late arriving message: 8.
     6. SelectKeeperTransactionSubmissionRoundB
         - done: 3.
-        - round timeout: 10.
+        - round timeout: 6.
         - no majority: 10.
+        - incorrect serialization: 12.
     7. SelectKeeperTransactionSubmissionRoundBAfterTimeout
         - done: 3.
-        - round timeout: 10.
+        - check history: 5.
+        - check late arriving message: 8.
+        - round timeout: 7.
         - no majority: 10.
+        - incorrect serialization: 12.
     8. SynchronizeLateMessagesRound
         - done: 9.
         - round timeout: 8.
         - no majority: 8.
-        - none: 12.
+        - none: 6.
         - missed and late messages mismatch: 12.
     9. CheckLateTxHashesRound
         - done: 11.
         - negative: 12.
         - none: 12.
-        - round timeout: 9.
+        - check timeout: 9.
         - no majority: 12.
+        - check late arriving message: 8.
     10. ResetRound
         - done: 0.
         - reset timeout: 12.
@@ -425,6 +488,8 @@ Final states: {FailedRound, FinishedTransactionSubmissionRound}
 
 Timeouts:
     round timeout: 30.0
+    finalize timeout: 30.0
     validate timeout: 30.0
+    check timeout: 30.0
     reset timeout: 30.0
 

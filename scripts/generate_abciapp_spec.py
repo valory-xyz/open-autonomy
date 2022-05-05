@@ -18,17 +18,17 @@
 #
 # ------------------------------------------------------------------------------
 """
-Generates the specification for a given ABCI app in YAML/JSON format using a simplified syntax for deterministic finite automata (DFA).
+Generates the specification for a given ABCI app in YAML/JSON/Mermaid format.
 
-Example usage:
-
-./generate_abciapp_spec.py -c packages.valory.skills.registration_abci.rounds.AgentRegistrationAbciApp -o output.yaml
+Generates the specification for a given ABCI app in YAML/JSON format using a simplified syntax for deterministic finite automata (DFA). Alternatively, it can also
+produce a Mermaid diagram source code. Example of usage: ./generate_abciapp_spec.py -c packages.valory.skills.registration_abci.rounds.AgentRegistrationAbciApp -o
+output.yaml
 
 optional arguments:
   -h, --help            show this help message and exit
   -o OUTFILE, --outfile OUTFILE
                         Output file name.
-  -f {json,yaml}, --outformat {json,yaml}
+  -f {json,yaml,mermaid}, --outformat {json,yaml,mermaid}
                         Output format.
 
 required arguments:
@@ -69,37 +69,55 @@ class DFA:
         transition_func: Dict[Tuple[str, str], str],
     ):  # pylint: disable=too-many-arguments
         """Initialize DFA object."""
-        transition_func_states, transition_func_alphabet_in = map(
+        transition_func_in_states, transition_func_alphabet_in = map(
             set, zip(*transition_func.keys())
         )
 
+        transition_func_states = transition_func_in_states.copy()
         transition_func_states.update(transition_func.values())  # type: ignore
 
         orphan_states = states - (start_states | set(transition_func.values()))
+
+        error_strings = []
         if orphan_states:
-            raise DFASpecificationError(
-                f"DFA spec. contains orphan states: {orphan_states}."
+            error_strings.append(
+                f" - DFA spec. contains orphan states: {orphan_states}."
             )
         if not transition_func_states.issubset(states):
-            raise DFASpecificationError(
-                f"DFA spec. transition function contains unexpected states: {transition_func_states-states}."  # type: ignore
+            error_strings.append(
+                f" - Transition function contains unexpected states: {transition_func_states-states}."  # type: ignore
             )
         if not transition_func_alphabet_in.issubset(alphabet_in):
-            raise DFASpecificationError(
-                f"DFA spec. transition function contains unexpected input symbols: {transition_func_alphabet_in-alphabet_in}."  # type: ignore
+            error_strings.append(
+                f" - Transition function contains unexpected input symbols: {transition_func_alphabet_in-alphabet_in}."  # type: ignore
+            )
+        if not alphabet_in.issubset(transition_func_alphabet_in):
+            error_strings.append(
+                f" - Unused input symbols: {alphabet_in-transition_func_alphabet_in}."  # type: ignore
             )
         if default_start_state not in start_states:
-            raise DFASpecificationError(
-                "DFA spec. default start state is not in start states set."
+            error_strings.append(
+                " - Default start state is not in start states set."
             )
         if not start_states.issubset(states):
-            raise DFASpecificationError(
-                f"DFA spec. start state set contains unexpected states: {start_states-states}"
+            error_strings.append(
+                f" - Start state set contains unexpected states: {start_states-states}."
             )
         if not final_states.issubset(states):
-            raise DFASpecificationError(
-                f"DFA spec. final state set contains unexpected states: {final_states-states}"
+            error_strings.append(
+                f" - Final state set contains unexpected states: {final_states-states}."
             )
+        if start_states & final_states:
+            error_strings.append(
+                f" - Final state set contains start states: {start_states & final_states}."
+            )
+        if transition_func_in_states & final_states:
+            error_strings.append(
+                f" - Transitions out from final states: {transition_func_in_states & final_states}."
+            )
+
+        if len(error_strings) > 0:
+            raise DFASpecificationError("DFA spec. has the following issues:\n" + "\n".join(error_strings))
 
         self.label = label
         self.states = states
@@ -145,15 +163,42 @@ class DFA:
         return self.__dict__ == other.__dict__
 
     def dump(self, fp: TextIO, output_format: str = "yaml") -> None:
-        """Dumps this DFA spec. to a file in YAML/JSON format."""
+        """Dumps this DFA spec. to a file in YAML/JSON/Mermaid format."""
         dfa_export = self._get_exportable_repr()
 
         if output_format == "json":
             json.dump(dfa_export, fp, indent=4)
         elif output_format == "yaml":
             yaml.safe_dump(dfa_export, fp, indent=4)
+        elif output_format == "mermaid":
+            self._mermaid_dump(fp)
         else:
             raise ValueError(f"Unrecognized output format {output_format}.")
+
+    def _mermaid_dump(self, fp: TextIO) -> None:
+        """Dumps this DFA spec. to a file in Mermaid format."""
+        print("stateDiagram-v2", file=fp)
+
+        aux_map: Dict[Tuple[str, str], Set[str]] = {}
+        for (s1, t), s2 in self.transition_func.items():
+            aux_map.setdefault((s1, s2), set()).add(t)
+
+        # A small optimization to make the output nicer:
+        # (1) First, print the arrows that start from a start_state.
+        for (s1, s2), t_set in aux_map.items():
+            if s1 in self.start_states:
+                print(
+                    f"    {s1} --> {s2}: <center>{'<br />'.join(t_set)}</center>",
+                    file=fp,
+                )
+
+        # (2) Then, print the rest of the arrows.
+        for (s1, s2), t_set in aux_map.items():
+            if s1 not in self.start_states:
+                print(
+                    f"    {s1} --> {s2}: <center>{'<br />'.join(t_set)}</center>",
+                    file=fp,
+                )
 
     def _get_exportable_repr(self) -> Dict[str, Any]:
         """Retrieves an exportable respresentation for YAML/JSON dump of this DFA."""
@@ -283,7 +328,7 @@ def parse_arguments() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         script_name,
         description=f"Generates the specification for a given ABCI app in YAML/JSON format using a simplified syntax for "
-        "deterministic finite automata (DFA). Example usage:\n"
+        "deterministic finite automata (DFA). Alternatively, it can also produce a Mermaid diagram source code. Example of usage: "
         f"./{script_name} -c packages.valory.skills.registration_abci.rounds.AgentRegistrationAbciApp -o output.yaml",
     )
     required = parser.add_argument_group("required arguments")
@@ -306,7 +351,7 @@ def parse_arguments() -> argparse.Namespace:
         "-f",
         "--outformat",
         type=str,
-        choices=["json", "yaml"],
+        choices=["json", "yaml", "mermaid"],
         default="yaml",
         help="Output format.",
     )
@@ -318,7 +363,12 @@ def main() -> None:
     logging.basicConfig(format="%(levelname)s: %(message)s", level=logging.INFO)
     arguments = parse_arguments()
     module_name, class_name = arguments.classfqn.rsplit(".", 1)
-    module = importlib.import_module(module_name)
+
+    try:
+        module = importlib.import_module(module_name)
+    except Exception as e:
+        raise Exception(f'Failed to load "{module_name}". Please, verify that '
+                        'AbciApps and classes are correctly defined within the module. ') from e
 
     if not hasattr(module, class_name):
         raise Exception(f'Class "{class_name}" is not in "{module_name}".')

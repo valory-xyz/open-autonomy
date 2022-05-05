@@ -228,7 +228,7 @@ Initialize an `IPFSBehaviour`.
 
 ```python
 @_check_ipfs_enabled
-def send_to_ipfs(filepath: str, obj: SupportedObjectType, filetype: Optional[SupportedFiletype] = None, custom_storer: Optional[CustomStorerType] = None, **kwargs: Any, ,) -> Optional[str]
+def send_to_ipfs(filepath: str, obj: SupportedObjectType, multiple: bool = False, filetype: Optional[SupportedFiletype] = None, custom_storer: Optional[CustomStorerType] = None, **kwargs: Any, ,) -> Optional[str]
 ```
 
 Send a file to IPFS.
@@ -239,7 +239,7 @@ Send a file to IPFS.
 
 ```python
 @_check_ipfs_enabled
-def get_from_ipfs(hash_: str, target_dir: str, filename: str, filetype: Optional[SupportedFiletype] = None, custom_loader: SupportedLoaderType = None) -> Optional[SupportedObjectType]
+def get_from_ipfs(hash_: str, target_dir: str, multiple: bool = False, filename: Optional[str] = None, filetype: Optional[SupportedFiletype] = None, custom_loader: CustomLoaderType = None) -> Optional[SupportedObjectType]
 ```
 
 Get a file from IPFS.
@@ -669,6 +669,16 @@ Ledger connection (contract dispatcher) -> (ContractApiMessage | ContractApiMess
 **Returns**:
 
 the contract api response
+
+<a id="packages.valory.skills.abstract_round_abci.behaviour_utils.BaseState.reset_tendermint_with_wait"></a>
+
+#### reset`_`tendermint`_`with`_`wait
+
+```python
+def reset_tendermint_with_wait() -> Generator[None, None, bool]
+```
+
+Resets the tendermint node.
 
 <a id="packages.valory.skills.abstract_round_abci.behaviour_utils.DegenerateState"></a>
 

@@ -4,7 +4,7 @@
 - **Target branch:** double-check the PR is opened against the correct branch before submitting
 - **Naming convention:** name of the branch should be in kebab case with not more than two or three words. for example `some-feature` or `feat/some-feature`.
 - **Tag relevant ticket/issue:** describe the purpose of the PR properly with relevant ticket/issue. Also attaching a tag such as enhancement/bug/test would help.
-- **Include a sensible description:** decriptions help reviewers to understand the purpose and context of the proposed changes.
+- **Include a sensible description:** descriptions help reviewers to understand the purpose and context of the proposed changes.
 - **Properly comment non-obvious  code** to avoid confusion during the review and enhance maintainability.
 - **Code reviews:** two reviewers will be assigned to a PR.
 - **Linters:** make sure every linter and checks pass before making a commit. Linters help us maintain a coherent codebase with a common code style, proper API documentation and will help you catch most errors before even running your code.
@@ -52,6 +52,9 @@ def some_method(some_arg: Type) -> ReturnType:
     - types of exceptions it might raise
     """
 ```
+- To run documentation server use `mkdocs serve`.
+- After editing documentation use `./scripts/spell-check.sh` to ensure spelling is correct.
+
 ### Some more suggestions to help you write better code.
 
 - Always use guard clauses where possible. This leads to more efficient code that has less nesting and is much easier to read.
@@ -65,5 +68,6 @@ def some_method(some_arg: Type) -> ReturnType:
     - Non deterministic libraries, like ML frameworks that do not guarantee exact same results under the same initial conditions.
     - Using the agent's local time to make decisions along the execution flow. Agents synchronize using the consensus engine, and that's the only reliable source of "time" you should use. Block timestamp is one handy property common to all agents and can be used as a `time.now()` equivalent.
     - Using local resources that are not shared among all agents to make decisions.
-    - Using `json.dumps` without sorting the keys and inpus: https://docs.python.org/3/library/json.html#json.dump . When adding lists, ensure the lists are sorted too.
+    - Using `json.dumps` without sorting the keys and inputs: https://docs.python.org/3/library/json.html#json.dump . When adding lists, ensure the lists are sorted too.
 - Sometimes it is required to retry interactions with external services. There are generally two ways retries can be implemented. On the behaviour level and on the round level. The default retry should be implemented via round transitions. For instance, when agents cannot finish their behaviour level activities because of failure of an external service they can signal this via the payload (e.g. sending an explicit "None"). Then at the round level the agents can coordinate transition to the next state: either retrying the current state or transitioning to another state. Behaviour level retries should be limited when making calls to external services where the agent is the only one retrieving such information (e.g. in the oracle each agent interacts with a different external api and the retries are naturally timed out by the round timeout).
+- It is desirable that skills have their own unit tests. The Open AEA framework offers tools to make easier for developers to write tests for their skills. Beware that the AEA skill testing framework might have some limitation with respect to idiomatic Python testing. For example, it is a known issue that [patching skill module-level components does not work](https://github.com/valory-xyz/consensus-algorithms/issues/289), but only instance-based patching is effective (e.g. using [`patch.object`](https://docs.python.org/3/library/unittest.mock.html#unittest.mock.patch.object)).

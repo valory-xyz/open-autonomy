@@ -926,6 +926,17 @@ def is_keeper_set() -> bool
 
 Check whether keeper is set.
 
+<a id="packages.valory.skills.abstract_round_abci.base.BasePeriodState.blacklisted_keepers"></a>
+
+#### blacklisted`_`keepers
+
+```python
+@property
+def blacklisted_keepers() -> Set[str]
+```
+
+Get the current cycle's blacklisted keepers who cannot submit a transaction.
+
 <a id="packages.valory.skills.abstract_round_abci.base.BasePeriodState.participant_to_selection"></a>
 
 #### participant`_`to`_`selection
@@ -2157,7 +2168,7 @@ Process the 'commit' request.
 #### reset`_`blockchain
 
 ```python
-def reset_blockchain() -> None
+def reset_blockchain(is_replay: bool = False) -> None
 ```
 
 Reset blockchain after tendermint reset.

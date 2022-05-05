@@ -1,6 +1,7 @@
-kubeconfig
+deployments/Dockerfiles/open_aea/packages
+deployments/persistent_data
 # Local .terraform directories
-deployments/Dockerfiles/open_aea/packages 
+kubeconfig
 aws_creds
 do_creds
 **/.terraform/*
@@ -386,6 +387,9 @@ Pipfile.lock
 !packages/valory/contracts/gnosis_safe_proxy_factory/build
 !packages/valory/contracts/multisend/build
 !packages/valory/contracts/offchain_aggregator/build
+!packages/valory/contracts/component_registry/build
+!packages/valory/contracts/agent_registry/build
+!packages/valory/contracts/service_registry/build
 
 # benchmark data.
 
@@ -400,3 +404,7 @@ examples/price_estimation_dev/configure_agents
 examples/price_estimation_dev/docker-compose.yml
 
 .vscode/
+
+generate_abciapp_spec.py
+generate_abci_docstrings
+

@@ -1,7 +1,9 @@
-sudo chown -R ubuntu:ubuntu /logs
-sudo chown -R ubuntu:ubuntu /home/ubuntu/packages
+echo "Starting Dev image and installing Valory app dependencies."
+sudo chown -R ubuntu:ubuntu /home/ubuntu
 sudo chown -R ubuntu:ubuntu /open-aea
+sudo chown -R ubuntu:ubuntu /benchmarking
 
 pipenv install --skip-lock --dev
 
+INSTALL=1 pipenv run bash start.sh
 pipenv run python /home/ubuntu/watcher.py
