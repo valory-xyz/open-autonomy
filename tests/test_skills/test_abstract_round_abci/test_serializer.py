@@ -19,11 +19,14 @@
 """Test the serializer.py module of the skill."""
 
 import math
+import sys
 from collections import defaultdict
 from typing import Any, Dict
 
+import atheris  # type: ignore
 import hypothesis.strategies as st
 import pytest
+from google.protobuf.struct_pb2 import Struct
 from hypothesis import given
 
 from packages.valory.skills.abstract_round_abci import serializer
@@ -136,6 +139,30 @@ def test_encode_nan() -> None:
     serialized = serializer.DictProtobufStructSerializer.encode(case)
     deserialized = serializer.DictProtobufStructSerializer.decode(serialized)
     assert math.isnan(deserialized["key"])
+
+
+@pytest.mark.skip
+def test_fuzz_encode() -> None:
+    """Fuzz test for serializer. Run directly as a function, not through pytest"""
+
+    @atheris.instrument_func
+    def test_encode(input_bytes: bytes) -> None:
+        """Test encode decode logic."""
+        fdp = atheris.FuzzedDataProvider(input_bytes)
+        case = {
+            "key1": fdp.ConsumeBool(),
+            "key2": fdp.ConsumeFloat(),
+            "key3": fdp.ConsumeInt(4),
+            "key4": fdp.ConsumeString(12),
+            "key5": fdp.ConsumeBytes(12),
+            "key6": Struct(),
+            "_need_patch": {},
+        }
+        serializer.to_bytes(case)
+
+    atheris.instrument_all()
+    atheris.Setup(sys.argv, test_encode)
+    atheris.Fuzz()
 
 
 def test_encode_non_unicode_raises() -> None:
