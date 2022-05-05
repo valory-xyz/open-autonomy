@@ -22,6 +22,7 @@ Serialize nested dictionaries to bytes using google.protobuf.Struct.
 Prerequisites:
 - All keys must be of type: str
 - Values must be of type: bool, int, float, str, bytes, dict
+- Strings must be unicode, as google.protobuf.Struct does not support bytes
 
 The following encoding is required and performed,
 and sentinel values are added for decoding:
@@ -92,3 +93,10 @@ def unpatch(data: Dict[str, Any]) -> Dict[str, Any]:
             raise NotImplementedError(f"Encoding of `{type(value)}` not supported")
 
     return data
+
+
+class DictProtobufStructSerializer:
+    """Class to keep backwards compatibility"""
+
+    encode = to_bytes
+    decode = from_bytes
