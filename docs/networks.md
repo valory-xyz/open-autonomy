@@ -76,8 +76,9 @@ More specifically, the corresponding `validate_timeout` specified in the `skill.
 should not be less than the average block time of the network, because timeouts  and unnecessary repricing 
 will happen too often. For example, at the time this document is written, the average block time 
 in the ethereum mainnet is 13.3 seconds. Therefore, we should never specify a value less than that, and it 
-would also be reasonable to allow for more time before giving up, because it is not rare for block times to be higher and since there is no guarantee that a transaction will make it into the next block. 
-The underlying mechanism will take care to backoff exponentially, with `retry_timeout` as a base, 
+would also be reasonable to allow for more time before giving up, because it is not rare for block times to be higher 
+and since there is no guarantee that a transaction will make it into the next block. 
+The underlying mechanism will take care to backoff linearly, with `retry_timeout` as a base, 
 while checking if the transaction has been validated, and stop when the `validate_timeout` is reached. 
 An example configuration for ethereum mainnent is provided below:
 
@@ -85,14 +86,24 @@ An example configuration for ethereum mainnent is provided below:
 models:
   params:
     args:
-      retry_attempts: 40
-      retry_timeout: 3
+      retry_attempts: 13
+      retry_timeout: 13.3
       validate_timeout: 1205
 ```
 
 This creates the following condition:
 ```python
-min(retry_timeout ** n_retries, validate_timeout)
+min(retry_timeout * ((n_retries / 2) * (n_retries + 1)), validate_timeout) = min(13.3 * n_retries, 1205)
 ```
 
 where `n_retries ∈ [1, retry_attempts]` is the number of times we have tried so far.
+
+So for example if we are in the fourth retry:
+```python
+min(13.3 * ((4 / 2) * (4 + 1)), 1205) = min(133, 1205) = 133
+```
+
+but in the last retry:
+```python
+min(13.3 * ((13 / 2) * (13 + 1)), 1205) = min(1210.3, 1205) = 1205
+```
