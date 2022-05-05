@@ -18,6 +18,7 @@
 # ------------------------------------------------------------------------------
 """Test the serializer.py module of the skill."""
 
+import math
 from collections import defaultdict
 from typing import Any, Dict
 
@@ -125,3 +126,22 @@ def test_randomized_mapping(zipper: Any) -> None:
 def test_randomized_nested_mapping(data: Any) -> None:
     """Test randomized nested mappings"""
     assert is_serializer_compatible({"key": data})
+
+
+def test_encode_nan() -> None:
+    """Test encode Nan."""
+    case = {
+        "key": float("nan"),
+    }
+    serialized = serializer.DictProtobufStructSerializer.encode(case)
+    deserialized = serializer.DictProtobufStructSerializer.decode(serialized)
+    assert math.isnan(deserialized["key"])
+
+
+def test_encode_non_unicode_raises() -> None:
+    """Test encode non unicode."""
+    case = {
+        "key": b"\xb2\xda\xda\x1a",
+    }
+    with pytest.raises(UnicodeDecodeError):
+        serializer.DictProtobufStructSerializer.encode(case)
