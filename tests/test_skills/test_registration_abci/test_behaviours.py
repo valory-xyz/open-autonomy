@@ -126,15 +126,16 @@ class TestRegistrationStartupBehaviour(RegistrationAbciBaseCase):
         return "aea.test_agent_name.packages.valory.skills.registration_abci"
 
     @property
-    def tendermint_mock_params(self) -> Dict[str, Any]:
+    def tendermint_mock_params(self) -> Dict[str, Dict[str, Any]]:
         """Tendermint mock params"""
-        return dict(
+        info = dict(
             address='3877157BFE637FCD7B9FC4B1CEC231F4CA99FDCA',
             pub_key=dict(
                 type='tendermint/PubKeyEd25519',
                 value='7y7ycBMMABj5Onf74ITYtUS3uZ6SsCQKZML87mIX+r4=',
             )
         )
+        return dict(params=info, status=True, error=None)
 
     # mock patches
     @property
