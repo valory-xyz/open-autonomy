@@ -95,7 +95,7 @@ def unpatch(data: Dict[str, Any]) -> Dict[str, Any]:
     return data
 
 
-class DictProtobufStructSerializer:
+class DictProtobufStructSerializer:  # pylint: disable=too-few-public-methods
     """Class to keep backwards compatibility"""
 
     encode = to_bytes
