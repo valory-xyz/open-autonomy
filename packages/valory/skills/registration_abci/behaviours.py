@@ -201,8 +201,10 @@ class RegistrationStartupBehaviour(RegistrationBaseBehaviour):
         result = yield from self.get_http_response(method="GET", url=url)
         try:
             response = json.loads(result.body.decode())
-            self.local_tendermint_params = response['params']
-            self.context.logger.info(f"Local Tendermint configuration obtained: {response}")
+            self.local_tendermint_params = response["params"]
+            self.context.logger.info(
+                f"Local Tendermint configuration obtained: {response}"
+            )
             return True
         except json.JSONDecodeError:
             self.context.logger.error(

@@ -96,9 +96,7 @@ class PeriodDumper:
         store_dir = self.dump_dir / f"period_{self.resets}"
         store_dir.mkdir(exist_ok=True)
         try:
-            shutil.copytree(
-                str(TMHOME), str(store_dir / ("node" + os.environ["ID"]))
-            )
+            shutil.copytree(str(TMHOME), str(store_dir / ("node" + os.environ["ID"])))
             self.logger.info(f"Dumped data for period {self.resets}")
         except OSError:
             self.logger.info(
@@ -222,4 +220,4 @@ def handle_server_error(e: InternalServerError) -> Response:
 
 
 if __name__ == "__main__":
-    app.run(port=8080)
+    app.run()
