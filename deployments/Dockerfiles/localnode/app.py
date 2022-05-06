@@ -18,19 +18,24 @@
 # ------------------------------------------------------------------------------
 
 """HTTP server to control the tendermint execution environment."""
+
+import json
 import logging
 import os
 import shutil
 import stat
+import traceback
 from pathlib import Path
-from typing import Any, Callable, Optional, Tuple
+from typing import Any, Callable, Dict, Optional, Tuple
 
-from flask import Flask, Response, jsonify
+from flask import Flask, Response, jsonify, request
 from tendermint import TendermintNode, TendermintParams
 from werkzeug.exceptions import InternalServerError, NotFound
 
 
+ENCODING = "utf-8"
 DEFAULT_LOG_FILE = "log.log"
+TMHOME = Path(os.environ.get("TMHOME", "~/.tendermint")).resolve()
 IS_DEV_MODE = os.environ.get("DEV_MODE", "0") == "1"
 CONFIG_OVERRIDE = [
     ("fast_sync = true", "fast_sync = false"),
@@ -48,14 +53,14 @@ logging.basicConfig(
 def override_config_toml() -> None:
     """Update sync method."""
 
-    config_path = str(Path(os.environ["TMHOME"]) / "config" / "config.toml")
-    with open(config_path, "r", encoding="UTF8") as fp:
+    config_path = TMHOME / "config" / "config.toml"
+    with open(config_path, "r", encoding=ENCODING) as fp:
         config = fp.read()
 
     for old, new in CONFIG_OVERRIDE:
         config = config.replace(old, new)
 
-    with open(config_path, "w+", encoding="UTF8") as fp:
+    with open(config_path, "w+", encoding=ENCODING) as fp:
         fp.write(config)
 
 
@@ -71,7 +76,7 @@ class PeriodDumper:
 
         self.resets = 0
         self.logger = logger
-        self.dump_dir = Path("/tm_state") if dump_dir is None else dump_dir
+        self.dump_dir = dump_dir or Path("/tm_state")
 
         if self.dump_dir.is_dir():
             shutil.rmtree(str(self.dump_dir), onerror=self.readonly_handler)
@@ -86,20 +91,16 @@ class PeriodDumper:
         except (FileNotFoundError, OSError):
             return
 
-    def dump_period(
-        self,
-    ) -> None:
+    def dump_period(self) -> None:
         """Dump tendermint run data for replay"""
         store_dir = self.dump_dir / f"period_{self.resets}"
         store_dir.mkdir(exist_ok=True)
         try:
-            shutil.copytree(
-                os.environ["TMHOME"], str(store_dir / ("node" + os.environ["ID"]))
-            )
+            shutil.copytree(str(TMHOME), str(store_dir / ("node" + os.environ["ID"])))
             self.logger.info(f"Dumped data for period {self.resets}")
         except OSError:
             self.logger.info(
-                f"Error occured while dumping data for period {self.resets}"
+                f"Error occurred while dumping data for period {self.resets}"
             )
         self.resets += 1
 
@@ -108,14 +109,65 @@ override_config_toml()
 tendermint_params = TendermintParams(
     proxy_app=os.environ["PROXY_APP"],
     consensus_create_empty_blocks=os.environ["CREATE_EMPTY_BLOCKS"] == "true",
-    home=os.environ["TMHOME"],
+    home=str(TMHOME),
 )
 
 app = Flask(__name__)
 period_dumper = PeriodDumper(logger=app.logger)
 
 tendermint_node = TendermintNode(tendermint_params, logger=app.logger)
-tendermint_node.start()
+tendermint_node.start()  # tendermint sync check in async_act first call
+
+
+@app.route("/start")
+def start() -> Response:
+    """Start Tendermint node"""
+    try:
+        tendermint_node.start()
+        return jsonify(response="Tendermint node started", status=200)
+    except Exception:  # pylint: disable=broad-except
+        return jsonify(response=traceback.format_exc(), status=400)
+
+
+@app.get("/params")
+def get_params() -> Dict:
+    """Get tendermint params."""
+    try:
+        priv_key_file = TMHOME / "config" / "priv_validator_key.json"
+        priv_key_data = json.loads(priv_key_file.read_text(encoding=ENCODING))
+        del priv_key_data["priv_key"]
+        return {"params": priv_key_data, "status": True, "error": None}
+    except (FileNotFoundError, json.JSONDecodeError):
+        return {"params": {}, "status": False, "error": traceback.format_exc()}
+
+
+@app.post("/params")
+def update_params() -> Dict:
+    """Update validator params."""
+
+    try:
+        data = request.get_json()
+        genesis_file = TMHOME / "config" / "genesis.json"
+        genesis_data = {}
+        genesis_data["genesis_time"] = data["genesis_config"]["genesis_time"]
+        genesis_data["chain_id"] = data["genesis_config"]["chain_id"]
+        genesis_data["consensus_params"] = data["genesis_config"]["consensus_params"]
+        genesis_data["initial_height"] = "0"
+        genesis_data["validators"] = [
+            {
+                "address": validator["address"],
+                "pub_key": validator["pub_key"],
+                "power": validator["power"],
+                "name": validator["name"],
+            }
+            for validator in data["validators"]
+        ]
+        genesis_data["app_hash"] = ""
+        genesis_file.write_text(json.dumps(genesis_data, indent=2), encoding=ENCODING)
+
+        return {"status": True, "error": None}
+    except (FileNotFoundError, json.JSONDecodeError, PermissionError):
+        return {"status": False, "error": traceback.format_exc()}
 
 
 @app.route("/gentle_reset")
