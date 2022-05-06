@@ -43,6 +43,8 @@ ENCODING = "utf-8"
 def to_bytes(data: Dict[str, Any]) -> bytes:
     """Serialize to bytes using protobuf. Adds extra data for type-casting."""
 
+    if SENTINEL in data.keys():
+        raise ValueError("SENTINEL is a serializer-reserved keyword")
     pstruct = Struct()
     pstruct.update(patch(copy.deepcopy(data)))  # pylint: disable=no-member
     return pstruct.SerializeToString(deterministic=True)
@@ -61,14 +63,14 @@ def patch(data: Dict[str, Any]) -> Dict[str, Any]:
 
     patches: Dict[str, str] = {}
     for key, value in data.items():
-        if isinstance(value, (bool, float, str)):
+        if isinstance(value, (bool, float, str, Struct)):
             pass
         elif isinstance(value, bytes):
             data[key], patches[key] = value.decode(ENCODING), "bytes"
         elif isinstance(value, int):
             data[key], patches[key] = str(value), "int"
         elif isinstance(value, dict):
-            data[key] = patch(value)
+            data[key], patches[key] = patch(value), "dict"
         else:
             raise NotImplementedError(f"Encoding of `{type(value)}` not supported")
 
@@ -84,6 +86,11 @@ def unpatch(data: Dict[str, Any]) -> Dict[str, Any]:
     patches = dict(data.pop(SENTINEL, {}))
     for key, value in data.items():
         if isinstance(value, Struct):
+            if value == Struct():
+                data[key] = (
+                    dict() if key in patches and patches[key] == "dict" else Struct()
+                )
+                continue
             data[key] = unpatch(dict(value))
         elif key in patches:
             data[key] = int(value) if patches[key] == "int" else value.encode(ENCODING)

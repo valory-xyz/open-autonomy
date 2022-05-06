@@ -47,7 +47,6 @@ def test_encode_decode_i() -> None:
         "_need_patch": {},
     }
     encoded = DictProtobufStructSerializer.encode(case)
-    case.pop("_need_patch")
     assert isinstance(encoded, bytes)
     decoded = DictProtobufStructSerializer.decode(encoded)
     assert case == decoded
@@ -209,3 +208,12 @@ def test_encode_non_unicode_raises() -> None:
     }
     with pytest.raises(UnicodeDecodeError):
         serializer.DictProtobufStructSerializer.encode(case)
+
+
+def test_sentinel_raises() -> None:
+    """Test SENTINEL."""
+    case = {
+        "SENTINEL": 1,
+    }
+    with pytest.raises(ValueError):
+        serializer.to_bytes(case)
