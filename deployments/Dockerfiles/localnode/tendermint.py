@@ -39,7 +39,7 @@ class TendermintParams:  # pylint: disable=too-few-public-methods
         consensus_create_empty_blocks: bool,
         p2p_laddr: str = "tcp://0.0.0.0:26656",
         rpc_laddr: str = "tcp://0.0.0.0:26657",
-        p2p_seeds: Optional[List[str]] = None,
+        # p2p_seeds: Optional[List[str]] = None,
         home: Optional[str] = None,
     ):
         """
