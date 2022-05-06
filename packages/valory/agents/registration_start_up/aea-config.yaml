@@ -1,0 +1,79 @@
+agent_name: registration_start_up_abci
+author: valory
+version: 0.1.0
+license: Apache-2.0
+description: Registration start-up ABCI example.
+aea_version: '>=1.0.0, <2.0.0'
+fingerprint: {}
+fingerprint_ignore_patterns: []
+connections:
+- valory/abci:0.1.0
+- valory/http_client:0.1.0
+- valory/ledger:0.1.0
+- valory/p2p_libp2p_client:0.1.0
+contracts:
+- valory/service_registry:0.1.0
+protocols:
+- open_aea/signing:1.0.0
+- valory/abci:0.1.0
+- valory/acn:1.1.0
+- valory/contract_api:1.0.0
+- valory/http:1.0.0
+- valory/ledger_api:1.0.0
+- valory/tendermint:0.1.0
+skills:
+- valory/abstract_abci:0.1.0
+- valory/abstract_round_abci:0.1.0
+- valory/registration_abci:0.1.0
+default_ledger: ethereum
+required_ledgers:
+- ethereum
+- cosmos
+default_routing: {}  # valory/tendermint:0.1.0: valory/p2p_libp2p_client:0.1.0
+connection_private_key_paths: {}
+private_key_paths: {}
+logging_config:
+  version: 1
+  disable_existing_loggers: false
+  formatters:
+    standard:
+      format: '[%(asctime)s] [%(levelname)s] %(message)s'
+  handlers:
+    logfile:
+      class: logging.FileHandler
+      formatter: standard
+      filename: ${LOG_FILE:str:/logs/logs.log}
+      level: INFO
+    console:
+      class: logging.StreamHandler
+      formatter: standard
+      stream: ext://sys.stdout
+  loggers:
+    aea:
+      handlers:
+      - logfile
+      - console
+      propagate: false
+dependencies:
+  open-aea-ledger-cosmos: {}
+  open-aea-ledger-ethereum: {}
+skill_exception_policy: stop_and_exit
+connection_exception_policy: just_log
+default_connection: null
+---
+public_id: valory/abci:0.1.0
+type: connection
+config:
+  target_skill_id: valory/registration_abci:0.1.0
+  host: ${ABCI_HOST:str}
+  port: ${ABCI_PORT:int:26658}
+  use_tendermint: ${ABCI_USE_TENDERMINT:bool:false}
+---
+public_id: valory/registration_abci:0.1.0
+type: skill
+models:
+  params:
+    tendermint_url: ${TENDERMINT_URL:str}  # http://localhost:26657
+    tendermint_com_url: ${TENDERMINT_COM_URL:str}  # http://localhost:8080
+    service_registry_address: ${SKILL_ORACLE_ABCI_MODELS_PARAMS_ARGS_SERVICE_REGISTRY_ADDRESS:str:none}  # null
+    on_chain_service_id: ${SKILL_ORACLE_ABCI_MODELS_PARAMS_ARGS_ON_CHAIN_SERVICE_ID:str:none}  # null
