@@ -18,9 +18,13 @@
 # ------------------------------------------------------------------------------
 
 """Test the utils.py module of the skill."""
+import sys
 from unittest import mock
 
-from packages.valory.skills.abstract_round_abci.utils import VerifyDrand
+import atheris  # type: ignore
+import pytest
+
+from packages.valory.skills.abstract_round_abci.utils import MAX_UINT8, VerifyDrand
 
 
 DRAND_PUBLIC_KEY: str = "868f005eb8e6e4ca0a47c8a77ceaa5309a47978a7c71bc5cce96366b5d7a569937c529eeda66c7293784a9402801af31"
@@ -88,3 +92,34 @@ class TestVerifyDrand:
 
         assert not result
         assert error == "Failed bls.Verify check."
+
+    def test_negative(
+        self,
+    ) -> None:
+        """Test verify method."""
+        with pytest.raises(ValueError):
+            self.drand_check._int_to_bytes_big(-1)
+
+    def test_overflow(
+        self,
+    ) -> None:
+        """Test verify method."""
+        with pytest.raises(ValueError):
+            self.drand_check._int_to_bytes_big(MAX_UINT8 + 1)
+
+
+@pytest.mark.skip
+def test_fuzz_drand() -> None:
+    """Fuzz test for VerifyDrand. Run directly as a function, not through pytest"""
+
+    @atheris.instrument_func
+    def test_verify(input_bytes: bytes) -> None:
+        """Test VerifyDrand."""
+        fdp = atheris.FuzzedDataProvider(input_bytes)
+        VerifyDrand._int_to_bytes_big(
+            fdp.ConsumeInt(16)
+        )  # pylint: disable=protected-access
+
+    atheris.instrument_all()
+    atheris.Setup(sys.argv, test_verify)
+    atheris.Fuzz()
