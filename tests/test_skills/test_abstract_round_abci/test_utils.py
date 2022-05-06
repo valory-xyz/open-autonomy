@@ -93,19 +93,11 @@ class TestVerifyDrand:
         assert not result
         assert error == "Failed bls.Verify check."
 
-    def test_negative(
-        self,
-    ) -> None:
+    @pytest.mark.parametrize("value", (-1, MAX_UINT8 + 1))
+    def test_negative_and_overflow(self, value: int) -> None:
         """Test verify method."""
         with pytest.raises(ValueError):
-            self.drand_check._int_to_bytes_big(-1)
-
-    def test_overflow(
-        self,
-    ) -> None:
-        """Test verify method."""
-        with pytest.raises(ValueError):
-            self.drand_check._int_to_bytes_big(MAX_UINT8 + 1)
+            self.drand_check._int_to_bytes_big(value)
 
 
 @pytest.mark.skip
