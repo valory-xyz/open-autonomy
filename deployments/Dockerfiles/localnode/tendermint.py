@@ -54,7 +54,7 @@ class TendermintParams:  # pylint: disable=too-few-public-methods
         self.proxy_app = proxy_app
         self.p2p_laddr = p2p_laddr
         self.rpc_laddr = rpc_laddr
-        self.p2p_seeds = p2p_seeds or []
+        # self.p2p_seeds = p2p_seeds # :noqa E800
         self.consensus_create_empty_blocks = consensus_create_empty_blocks
         self.home = home
 
