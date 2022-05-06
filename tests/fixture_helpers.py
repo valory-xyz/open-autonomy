@@ -27,6 +27,7 @@ from eth_account import Account
 
 from tests.conftest import GANACHE_CONFIGURATION
 from tests.helpers.constants import KEY_PAIRS, LOCALHOST
+from tests.helpers.docker.acn_node import ACNNodeDockerImage, DEFAULT_ACN_CONFIG
 from tests.helpers.docker.amm_net import AMMNetDockerImage
 from tests.helpers.docker.base import DockerBaseTest, DockerImage
 from tests.helpers.docker.ganache import (
@@ -102,6 +103,46 @@ class UseGanache:
                 for key, _ in ganache_configuration.get("accounts_balances", [])
             ],
         )
+
+
+@pytest.mark.integration
+class UseACNNode:
+    """Inherit from this class to use ACN local net with deployed."""
+
+    configuration: Dict = DEFAULT_ACN_CONFIG
+    _acn_node_image: ACNNodeDockerImage
+
+    @classmethod
+    @pytest.fixture(autouse=True)
+    def _start_acn(self, acn_node: Any, acn_config: Any) -> None:
+        """Start an HardHat instance."""
+        self._acn_node_image = acn_node
+        self.configuration = acn_config
+
+
+class ACNNodeBaseTest(DockerBaseTest):
+    """Base pytest class for Ganache."""
+
+    configuration: Dict = DEFAULT_ACN_CONFIG
+
+    @classmethod
+    def setup_class_kwargs(cls) -> Dict[str, Any]:
+        """Get kwargs for _setup_class call."""
+        setup_class_kwargs = {
+            "config": cls.configuration,
+        }
+        return setup_class_kwargs
+
+    @classmethod
+    def _build_image(cls) -> DockerImage:
+        """Build the image."""
+        client = docker.from_env()
+        return ACNNodeDockerImage(client, config=cls.configuration)
+
+    @classmethod
+    def url(cls) -> str:
+        """Get the url under which the image is reachable."""
+        return str(cls.configuration.get("AEA_P2P_URI_PUBLIC"))
 
 
 class GanacheBaseTest(DockerBaseTest):
