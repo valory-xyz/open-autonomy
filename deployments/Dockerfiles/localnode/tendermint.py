@@ -23,6 +23,7 @@ import os
 import signal
 import subprocess  # nosec:
 from logging import Logger
+from threading import Thread
 from typing import List, Optional
 
 
@@ -35,10 +36,10 @@ class TendermintParams:  # pylint: disable=too-few-public-methods
     def __init__(  # pylint: disable=too-many-arguments
         self,
         proxy_app: str,
-        # p2p_seeds: List[str],
         consensus_create_empty_blocks: bool,
         p2p_laddr: str = "tcp://0.0.0.0:26656",
         rpc_laddr: str = "tcp://0.0.0.0:26657",
+        p2p_seeds: Optional[List[str]] = None,
         home: Optional[str] = None,
     ):
         """
@@ -53,7 +54,7 @@ class TendermintParams:  # pylint: disable=too-few-public-methods
         self.proxy_app = proxy_app
         self.p2p_laddr = p2p_laddr
         self.rpc_laddr = rpc_laddr
-        # self.p2p_seeds = p2p_seeds # :noqa E800
+        self.p2p_seeds = p2p_seeds or []
         self.consensus_create_empty_blocks = consensus_create_empty_blocks
         self.home = home
 
@@ -68,10 +69,13 @@ class TendermintNode:
         :param params: the parameters.
         :param logger: the logger.
         """
+        self.log_file = os.environ.get("LOG_FILE", DEFAULT_LOG_FILE)
         self.params = params
         self.logger = logger or logging.getLogger()
 
         self._process: Optional[subprocess.Popen] = None
+        self._status_check_process = Thread(target=self.check_server_status)
+        self._status_check_process.start()
 
     def _build_init_command(self) -> List[str]:
         """Build the 'init' command."""
@@ -91,7 +95,7 @@ class TendermintNode:
             f"--proxy_app={self.params.proxy_app}",
             f"--rpc.laddr={self.params.rpc_laddr}",
             f"--p2p.laddr={self.params.p2p_laddr}",
-            # f"--p2p.seeds={','.join(self.params.p2p_seeds)}", # noqa: E800
+            f"--p2p.seeds={','.join(self.params.p2p_seeds)}",
             f"--consensus.create_empty_blocks={str(self.params.consensus_create_empty_blocks).lower()}",
         ]
         if self.params.home is not None:  # pragma: nocover
@@ -108,14 +112,41 @@ class TendermintNode:
         if self._process is not None:  # pragma: nocover
             return
         cmd = self._build_node_command()
-        log_file = os.environ.get("LOG_FILE", DEFAULT_LOG_FILE)
 
-        with open(log_file, "a") as file:
-            self._process = (
-                subprocess.Popen(  # nosec # pylint: disable=consider-using-with,W1509
-                    cmd, preexec_fn=os.setsid, stdout=file
-                )
+        self._process = (
+            subprocess.Popen(  # nosec # pylint: disable=consider-using-with,W1509
+                cmd,
+                preexec_fn=os.setsid,  # stdout=file
+                stdout=subprocess.PIPE,
+                stderr=subprocess.STDOUT,
+                bufsize=1,
+                universal_newlines=True,
             )
+        )
+
+    def check_server_status(
+        self,
+    ) -> None:
+        """Check server status."""
+        while True:
+            try:
+                if self._process is None:
+                    continue
+                line = self._process.stdout.readline()  # type: ignore
+                if line.find("RPC HTTP server stopped") > 0:
+                    self.stop()
+                    self.start()
+                    self.write_line(
+                        "Restarted the HTTP RCP server, as a connection was dropped!\n"
+                    )
+                self.write_line(line)
+            except Exception as e:
+                print("Error!", str(e))
+
+    def write_line(self, line: str) -> None:
+        """Open and write a line to the log file."""
+        with open(self.log_file, "a") as file:
+            file.write(f"{line}")
 
     def stop(self) -> None:
         """Stop a Tendermint node process."""
