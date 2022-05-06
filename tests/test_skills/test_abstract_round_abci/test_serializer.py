@@ -30,6 +30,43 @@ from google.protobuf.struct_pb2 import Struct
 from hypothesis import given
 
 from packages.valory.skills.abstract_round_abci import serializer
+from packages.valory.skills.abstract_round_abci.serializer import (
+    DictProtobufStructSerializer,
+)
+
+
+def test_encode_decode_i() -> None:
+    """Test encode decode logic."""
+    case = {
+        "key1": True,
+        "key2": 0.12,
+        "key3": 100,
+        "key4": "some string",
+        "key5": b"some bytes string",
+        "key6": Struct(),
+        "_need_patch": {},
+    }
+    encoded = DictProtobufStructSerializer.encode(case)
+    case.pop("_need_patch")
+    assert isinstance(encoded, bytes)
+    decoded = DictProtobufStructSerializer.decode(encoded)
+    assert case == decoded
+
+
+def test_encode_decode_ii() -> None:
+    """Test encode decode logic."""
+    case = {
+        "key1": True,
+        "key2": 0.12,
+        "key3": 100,
+        "key4": "some string",
+        "key5": b"some bytes string",
+        "key6": {"key1": True, "key2": 0.12},
+    }
+    encoded = DictProtobufStructSerializer.encode(case)
+    assert isinstance(encoded, bytes)
+    decoded = DictProtobufStructSerializer.decode(encoded)
+    assert case == decoded
 
 
 # utility functions

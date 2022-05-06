@@ -33,7 +33,6 @@ from aea_ledger_ethereum import EthereumCrypto
 from hypothesis import given
 from hypothesis.strategies import booleans, dictionaries, floats, one_of, text
 
-from packages.valory.skills.abstract_round_abci import serializer
 from packages.valory.skills.abstract_round_abci.base import (
     ABCIAppException,
     ABCIAppInternalError,
@@ -60,6 +59,9 @@ from packages.valory.skills.abstract_round_abci.base import (
     _MetaPayload,
 )
 from packages.valory.skills.abstract_round_abci.base import _logger as default_logger
+from packages.valory.skills.abstract_round_abci.serializer import (
+    DictProtobufStructSerializer,
+)
 
 
 class PayloadEnum(Enum):
@@ -281,10 +283,10 @@ def test_verify_transaction_negative_case(*_mocks: Any) -> None:
 )
 def test_dict_serializer_is_deterministic(obj: Any) -> None:
     """Test that 'DictProtobufStructSerializer' is deterministic."""
-    obj_bytes = serializer.to_bytes(obj)
+    obj_bytes = DictProtobufStructSerializer.encode(obj)
     for _ in range(100):
-        assert serializer.to_bytes(obj) == obj_bytes
-        assert serializer.from_bytes(obj_bytes) == obj
+        assert obj_bytes == DictProtobufStructSerializer.encode(obj)
+        assert obj == DictProtobufStructSerializer.decode(obj_bytes)
 
 
 class TestMetaPayloadUtilityMethods:

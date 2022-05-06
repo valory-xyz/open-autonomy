@@ -53,7 +53,9 @@ from packages.valory.connections.ledger.base import (
     CONNECTION_ID as LEDGER_CONNECTION_PUBLIC_ID,
 )
 from packages.valory.protocols.abci.custom_types import Header
-from packages.valory.skills.abstract_round_abci import serializer
+from packages.valory.skills.abstract_round_abci.serializer import (
+    DictProtobufStructSerializer,
+)
 
 
 _logger = logging.getLogger("aea.packages.valory.skills.abstract_round_abci.base")
@@ -204,12 +206,12 @@ class BaseTxPayload(ABC, metaclass=_MetaPayload):
 
     def encode(self) -> bytes:
         """Encode the payload."""
-        return serializer.to_bytes(self.json)
+        return DictProtobufStructSerializer.encode(self.json)
 
     @classmethod
     def decode(cls, obj: bytes) -> "BaseTxPayload":
         """Decode the payload."""
-        return cls.from_json(serializer.from_bytes(obj))
+        return cls.from_json(DictProtobufStructSerializer.decode(obj))
 
     @classmethod
     def from_json(cls, obj: Dict) -> "BaseTxPayload":
@@ -279,12 +281,12 @@ class Transaction(ABC):
     def encode(self) -> bytes:
         """Encode the transaction."""
         data = dict(payload=self.payload.json, signature=self.signature)
-        return serializer.to_bytes(data)
+        return DictProtobufStructSerializer.encode(data)
 
     @classmethod
     def decode(cls, obj: bytes) -> "Transaction":
         """Decode the transaction."""
-        data = serializer.from_bytes(obj)
+        data = DictProtobufStructSerializer.decode(obj)
         signature = data["signature"]
         payload_dict = data["payload"]
         payload = BaseTxPayload.from_json(payload_dict)
@@ -297,7 +299,7 @@ class Transaction(ABC):
         :param ledger_id: the ledger id of the address
         :raises: SignatureNotValidError: if the signature is not valid.
         """
-        payload_bytes = serializer.to_bytes(self.payload.json)
+        payload_bytes = DictProtobufStructSerializer.encode(self.payload.json)
         addresses = LedgerApis.recover_message(
             identifier=ledger_id, message=payload_bytes, signature=self.signature
         )
