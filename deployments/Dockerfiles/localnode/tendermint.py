@@ -137,7 +137,7 @@ class TendermintNode:
                     self.stop()
                     self.start()
                     self.write_line(
-                        "Restarted the HTTP RCP server, as a connection was dropped!\n"
+                        "Restarted the HTTP RPC server, as a connection was dropped!\n"
                     )
                 self.write_line(line)
             except Exception as e:
