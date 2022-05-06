@@ -81,11 +81,11 @@ class PeriodDumper:
 
         self.resets = 0
         self.logger = logger
-        self.dump_dir = Path("/logs/dump") if dump_dir is None else dump_dir
+        self.dump_dir = Path("/tm_state") if dump_dir is None else dump_dir
 
         if self.dump_dir.is_dir():
             shutil.rmtree(str(self.dump_dir), onerror=self.readonly_handler)
-        self.dump_dir.mkdir()
+        self.dump_dir.mkdir(exist_ok=True)
 
     @staticmethod
     def readonly_handler(func: Callable, path: str, execinfo: Any) -> None:
@@ -93,7 +93,7 @@ class PeriodDumper:
         try:
             os.chmod(path, stat.S_IWRITE)
             func(path)
-        except FileNotFoundError:
+        except (FileNotFoundError, OSError):
             return
 
     def dump_period(
