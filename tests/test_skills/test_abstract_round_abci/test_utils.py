@@ -109,17 +109,25 @@ class TestVerifyDrand:
 
 
 @pytest.mark.skip
-def test_fuzz_drand() -> None:
+def test_fuzz_verify_drand() -> None:
     """Fuzz test for VerifyDrand. Run directly as a function, not through pytest"""
 
     @atheris.instrument_func
-    def test_verify(input_bytes: bytes) -> None:
+    def test_verify_int_to_bytes_big(input_bytes: bytes) -> None:
         """Test VerifyDrand."""
         fdp = atheris.FuzzedDataProvider(input_bytes)
         VerifyDrand._int_to_bytes_big(
             fdp.ConsumeInt(16)
         )  # pylint: disable=protected-access
 
+    @atheris.instrument_func
+    def test_verify_randomness_hash(input_bytes: bytes) -> None:
+        """Test VerifyDrand."""
+        fdp = atheris.FuzzedDataProvider(input_bytes)
+        VerifyDrand._verify_randomness_hash(
+            fdp.ConsumeBytes(16), fdp.ConsumeBytes(16)
+        )  # pylint: disable=protected-access
+
     atheris.instrument_all()
-    atheris.Setup(sys.argv, test_verify)
+    atheris.Setup(sys.argv, test_verify_int_to_bytes_big)
     atheris.Fuzz()
