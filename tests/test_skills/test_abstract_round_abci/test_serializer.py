@@ -208,12 +208,3 @@ def test_encode_non_unicode_raises() -> None:
     }
     with pytest.raises(UnicodeDecodeError):
         serializer.DictProtobufStructSerializer.encode(case)
-
-
-def test_sentinel_raises() -> None:
-    """Test SENTINEL."""
-    case = {
-        "SENTINEL": 1,
-    }
-    with pytest.raises(ValueError):
-        serializer.to_bytes(case)

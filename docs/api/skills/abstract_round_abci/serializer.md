@@ -39,7 +39,7 @@ Deserialize patched-up python dict from protobuf bytes.
 #### patch
 
 ```python
-def patch(data: Dict[str, Any]) -> Dict[str, Any]
+def patch(data: Dict[str, Any]) -> Tuple[Dict[str, Any], Dict[str, Any]]
 ```
 
 Patch for protobuf serialization. In-place operation.
@@ -49,7 +49,7 @@ Patch for protobuf serialization. In-place operation.
 #### unpatch
 
 ```python
-def unpatch(data: Dict[str, Any]) -> Dict[str, Any]
+def unpatch(data: Dict[str, Any], patches: Dict[str, Any]) -> Dict[str, Any]
 ```
 
 Unpatch for protobuf deserialization. In-place operation.

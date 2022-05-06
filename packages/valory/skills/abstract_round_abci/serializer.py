@@ -31,22 +31,22 @@ and sentinel values are added for decoding:
 """
 
 import copy
-from typing import Any, Dict
+from typing import Any, Dict, Tuple
 
 from google.protobuf.struct_pb2 import Struct
 
 
-SENTINEL = "SENTINEL"
 ENCODING = "utf-8"
 
 
 def to_bytes(data: Dict[str, Any]) -> bytes:
     """Serialize to bytes using protobuf. Adds extra data for type-casting."""
 
-    if SENTINEL in data.keys():
-        raise ValueError("SENTINEL is a serializer-reserved keyword")
     pstruct = Struct()
-    pstruct.update(patch(copy.deepcopy(data)))  # pylint: disable=no-member
+    patched_data, patches = patch(copy.deepcopy(data))
+    pstruct.update(  # pylint: disable=no-member
+        {"data": patched_data, "patches": patches}
+    )
     return pstruct.SerializeToString(deterministic=True)
 
 
@@ -55,13 +55,14 @@ def from_bytes(buffer: bytes) -> Dict[str, Any]:
 
     pstruct = Struct()
     pstruct.ParseFromString(buffer)
-    return unpatch(dict(pstruct))
+    data = dict(pstruct)
+    return unpatch(data["data"], data["patches"])
 
 
-def patch(data: Dict[str, Any]) -> Dict[str, Any]:
+def patch(data: Dict[str, Any]) -> Tuple[Dict[str, Any], Dict[str, Any]]:
     """Patch for protobuf serialization. In-place operation."""
 
-    patches: Dict[str, str] = {}
+    patches: Dict[str, Any] = {}
     for key, value in data.items():
         if isinstance(value, (bool, float, str, Struct)):
             pass
@@ -70,20 +71,16 @@ def patch(data: Dict[str, Any]) -> Dict[str, Any]:
         elif isinstance(value, int):
             data[key], patches[key] = str(value), "int"
         elif isinstance(value, dict):
-            data[key], patches[key] = patch(value), "dict"
+            data[key], patches[key] = patch(value)
         else:
             raise NotImplementedError(f"Encoding of `{type(value)}` not supported")
 
-    if patches:
-        data[SENTINEL] = patches
-
-    return data
+    return data, patches
 
 
-def unpatch(data: Dict[str, Any]) -> Dict[str, Any]:
+def unpatch(data: Dict[str, Any], patches: Dict[str, Any]) -> Dict[str, Any]:
     """Unpatch for protobuf deserialization. In-place operation."""
 
-    patches = dict(data.pop(SENTINEL, {}))
     for key, value in data.items():
         if isinstance(value, Struct):
             if value == Struct():
@@ -91,7 +88,7 @@ def unpatch(data: Dict[str, Any]) -> Dict[str, Any]:
                     dict() if key in patches and patches[key] == "dict" else Struct()
                 )
                 continue
-            data[key] = unpatch(dict(value))
+            data[key] = unpatch(dict(value), patches[key] if key in patches else {})
         elif key in patches:
             data[key] = int(value) if patches[key] == "int" else value.encode(ENCODING)
         elif isinstance(value, (bool, float, str, int)):
