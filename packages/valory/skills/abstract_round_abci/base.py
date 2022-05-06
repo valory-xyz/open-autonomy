@@ -1943,7 +1943,6 @@ class Period:
         self._block_builder = BlockBuilder()
         self._abci_app_cls = abci_app_cls
         self._abci_app: Optional[AbciApp] = None
-        self._last_round_transition_timestamp: Optional[datetime.datetime] = None
 
     def setup(self, *args: Any, **kwargs: Any) -> None:
         """
@@ -2038,10 +2037,12 @@ class Period:
         self,
     ) -> datetime.datetime:
         """Returns the timestamp for last round transition."""
-        if self._last_round_transition_timestamp is None:
-            raise ValueError("Value of last_round_transition_timestamp cannot be None.")
+        if self._blockchain.height == 0:
+            raise ValueError(
+                "Trying to access `last_round_transition_timestamp` while blockchain has no blocks yet."
+            )
 
-        return self._last_round_transition_timestamp
+        return self._blockchain.last_block.timestamp
 
     @property
     def latest_state(self) -> BasePeriodState:
@@ -2144,5 +2145,4 @@ class Period:
         _logger.debug(
             f"updating round, current_round {self.current_round.round_id}, event: {event}, round result {round_result}"
         )
-        self._last_round_transition_timestamp = self._blockchain.last_block.timestamp
         self.abci_app.process_event(event, result=round_result)

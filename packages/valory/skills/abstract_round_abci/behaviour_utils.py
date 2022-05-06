@@ -1444,9 +1444,8 @@ class BaseState(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
             self.context.logger.info(
                 f"Resetting tendermint node at end of period={self.period_state.period_count}."
             )
-            last_round_transition_timestamp = cast(
-                datetime.datetime,
-                self.context.state.period.last_round_transition_timestamp,
+            last_round_transition_timestamp = (
+                self.context.state.period.last_round_transition_timestamp
             )
             time_string = last_round_transition_timestamp.astimezone(pytz.UTC).strftime(
                 "%Y-%m-%dT%H:%M:%S.%fZ"

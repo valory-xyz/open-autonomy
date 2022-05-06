@@ -1116,16 +1116,18 @@ class TestPeriod:
         self, timestamp: Optional[MagicMock]
     ) -> None:
         """Test 'last_round_transition_timestamp' method."""
-        self.period._last_round_transition_timestamp = timestamp
-
         if timestamp is None:
+            assert self.period._blockchain.height == 0
             with pytest.raises(
                 ValueError,
-                match="Value of last_round_transition_timestamp cannot be None.",
+                match="Trying to access `last_round_transition_timestamp` while blockchain has no blocks yet.",
             ):
                 _ = self.period.last_round_transition_timestamp
 
         else:
+            self.period._blockchain.add_block(
+                Block(MagicMock(height=1, timestamp=timestamp), [])
+            )
             assert self.period.last_round_transition_timestamp == timestamp
 
     def test_begin_block_negative_is_finished(self) -> None:
