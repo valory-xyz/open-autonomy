@@ -286,7 +286,7 @@ def test_dict_serializer_is_deterministic(obj: Any) -> None:
     obj_bytes = DictProtobufStructSerializer.encode(obj)
     for _ in range(100):
         assert obj_bytes == DictProtobufStructSerializer.encode(obj)
-    assert obj == DictProtobufStructSerializer.decode(obj_bytes)
+        assert obj == DictProtobufStructSerializer.decode(obj_bytes)
 
 
 class TestMetaPayloadUtilityMethods:
