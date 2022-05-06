@@ -1111,6 +1111,25 @@ class TestPeriod:
         """Test 'latest_result' property getter."""
         assert self.period.latest_state
 
+    @pytest.mark.parametrize("timestamp", (None, MagicMock()))
+    def test_last_round_transition_timestamp(
+        self, timestamp: Optional[MagicMock]
+    ) -> None:
+        """Test 'last_round_transition_timestamp' method."""
+        if timestamp is None:
+            assert self.period._blockchain.height == 0
+            with pytest.raises(
+                ValueError,
+                match="Trying to access `last_round_transition_timestamp` while blockchain has no blocks yet.",
+            ):
+                _ = self.period.last_round_transition_timestamp
+
+        else:
+            self.period._blockchain.add_block(
+                Block(MagicMock(height=1, timestamp=timestamp), [])
+            )
+            assert self.period.last_round_transition_timestamp == timestamp
+
     def test_begin_block_negative_is_finished(self) -> None:
         """Test 'begin_block' method, negative case (period is finished)."""
         self.period.abci_app._current_round = None

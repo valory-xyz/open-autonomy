@@ -343,7 +343,9 @@ class Blockchain:
     The consistency of the data in the blocks is guaranteed by Tendermint.
     """
 
-    def __init__(self) -> None:
+    def __init__(
+        self,
+    ) -> None:
         """Initialize the blockchain."""
         self._blocks: List[Block] = []
 
@@ -378,6 +380,13 @@ class Blockchain:
     def blocks(self) -> Tuple[Block, ...]:
         """Get the blocks."""
         return tuple(self._blocks)
+
+    @property
+    def last_block(
+        self,
+    ) -> Block:
+        """Returns the last stored block."""
+        return self._blocks[-1]
 
 
 class BlockBuilder:
@@ -2022,6 +2031,18 @@ class Period:
         if last_timestamp is None:
             raise ABCIAppInternalError("last timestamp is None")
         return last_timestamp
+
+    @property
+    def last_round_transition_timestamp(
+        self,
+    ) -> datetime.datetime:
+        """Returns the timestamp for last round transition."""
+        if self._blockchain.height == 0:
+            raise ValueError(
+                "Trying to access `last_round_transition_timestamp` while blockchain has no blocks yet."
+            )
+
+        return self._blockchain.last_block.timestamp
 
     @property
     def latest_state(self) -> BasePeriodState:
