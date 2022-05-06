@@ -95,7 +95,7 @@ class TendermintNode:
             f"--proxy_app={self.params.proxy_app}",
             f"--rpc.laddr={self.params.rpc_laddr}",
             f"--p2p.laddr={self.params.p2p_laddr}",
-            #  f"--p2p.seeds={','.join(self.params.p2p_seeds)}",  # noqa: E800
+            #  f"--p2p.seeds={','.join(self.params.p2p_seeds)}", # noqa: E800
             f"--consensus.create_empty_blocks={str(self.params.consensus_create_empty_blocks).lower()}",
         ]
         if self.params.home is not None:  # pragma: nocover
