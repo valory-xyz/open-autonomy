@@ -319,7 +319,7 @@ to see what the encoded state transitions in the final composite FSM look like.
 
 ### Known Limitations
 The `TransactionSettlementSkill` has a known limitation that concerns the revert reason lookup. 
-While checking the history in `CheckTransactionHistoryRound`, an error may get raised: 
+While checking the history in `CheckTransactionHistoryRound`, an exception may get raised: 
 
 ```
 ValueError: The given transaction has not been reverted!
@@ -331,3 +331,7 @@ the tx locally. However, there is an important limitation with this method. The 
 executed in isolation. This means that transactions which occurred prior to the replayed transaction within 
 the same block will not be accounted for! Therefore, the replay will not raise a `SolidityError` in such case, 
 because both the txs happened in the same block.
+
+The exception is handled automatically and logged as an error, so it does not affect the execution. 
+However, as a side effect, we may end the round with a failure status even though the transaction has settled, 
+because we have not managed to detect it.
