@@ -1255,6 +1255,31 @@ class TestBaseState:
                 next(reset)
                 assert e == expecting_success
 
+    @pytest.mark.skip
+    def test_fuzz_submit_tx(self) -> None:
+        """Test '_submit_tx'.
+
+        Do not run this test through pytest. Add the following lines at the bottom
+        of the file and run it as a script:
+        t = TestBaseState()
+        t.setup()
+        t.test_fuzz_submit_tx()
+        """
+
+        @atheris.instrument_func
+        def fuzz_submit_tx(input_bytes: bytes) -> None:
+            """Fuzz '_submit_tx'.
+
+            Mock context manager decorators don't work here.
+
+            :param input_bytes: fuzz input
+            """
+            self.behaviour._submit_tx(input_bytes)
+
+        atheris.instrument_all()
+        atheris.Setup(sys.argv, fuzz_submit_tx)
+        atheris.Fuzz()
+
 
 def test_degenerate_state_async_act() -> None:
     """Test DegenerateState.async_act."""
