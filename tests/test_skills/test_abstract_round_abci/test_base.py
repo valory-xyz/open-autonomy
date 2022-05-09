@@ -286,7 +286,7 @@ def test_dict_serializer_is_deterministic(obj: Any) -> None:
     obj_bytes = DictProtobufStructSerializer.encode(obj)
     for _ in range(100):
         assert obj_bytes == DictProtobufStructSerializer.encode(obj)
-    assert obj == DictProtobufStructSerializer.decode(obj_bytes)
+        assert obj == DictProtobufStructSerializer.decode(obj_bytes)
 
 
 class TestMetaPayloadUtilityMethods:
@@ -1110,6 +1110,25 @@ class TestPeriod:
     def test_latest_result(self) -> None:
         """Test 'latest_result' property getter."""
         assert self.period.latest_state
+
+    @pytest.mark.parametrize("timestamp", (None, MagicMock()))
+    def test_last_round_transition_timestamp(
+        self, timestamp: Optional[MagicMock]
+    ) -> None:
+        """Test 'last_round_transition_timestamp' method."""
+        if timestamp is None:
+            assert self.period._blockchain.height == 0
+            with pytest.raises(
+                ValueError,
+                match="Trying to access `last_round_transition_timestamp` while blockchain has no blocks yet.",
+            ):
+                _ = self.period.last_round_transition_timestamp
+
+        else:
+            self.period._blockchain.add_block(
+                Block(MagicMock(height=1, timestamp=timestamp), [])
+            )
+            assert self.period.last_round_transition_timestamp == timestamp
 
     def test_begin_block_negative_is_finished(self) -> None:
         """Test 'begin_block' method, negative case (period is finished)."""

@@ -18,11 +18,13 @@
 # ------------------------------------------------------------------------------
 
 """Tendermint manager."""
+import json
 import logging
 import os
 import signal
 import subprocess  # nosec:
 from logging import Logger
+from pathlib import Path
 from typing import List, Optional
 
 
@@ -111,6 +113,7 @@ class TendermintNode:
         log_file = os.environ.get("LOG_FILE", DEFAULT_LOG_FILE)
 
         with open(log_file, "a") as file:
+            file.write("\n" + ("=" * 32) + "\n" + "start" + "\n" + ("=" * 32) + "\n")
             self._process = (
                 subprocess.Popen(  # nosec # pylint: disable=consider-using-with,W1509
                     cmd, preexec_fn=os.setsid, stdout=file
@@ -129,3 +132,11 @@ class TendermintNode:
         subprocess.call(  # nosec:
             ["tendermint", "--home", str(self.params.home), "unsafe-reset-all"]
         )
+
+    def reset_genesis_file(self, genesis_time: str) -> None:
+        """Reset genesis file."""
+
+        genesis_file = Path(str(self.params.home), "config", "genesis.json")
+        genesis_config = json.loads(genesis_file.read_text())
+        genesis_config["genesis_time"] = genesis_time
+        genesis_file.write_text(json.dumps(genesis_config, indent=2))
