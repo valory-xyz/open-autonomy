@@ -20,6 +20,7 @@
 """Test the behaviours_utils.py module of the skill."""
 import json
 import logging
+import sys
 import time
 from abc import ABC
 from collections import OrderedDict
@@ -29,6 +30,7 @@ from typing import Any, Dict, Generator, Optional, Tuple, Type, Union
 from unittest import mock
 from unittest.mock import MagicMock
 
+import atheris  # type: ignore
 import pytest
 
 from packages.open_aea.protocols.signing import SigningMessage
@@ -785,6 +787,42 @@ class TestBaseState:
         ):
             self.behaviour._send_signing_request(b"")
 
+    @pytest.mark.skip
+    def test_fuzz_send_signing_request(self) -> None:
+        """Test '_send_signing_request'.
+
+        Do not run this test through pytest. Add the following lines at the bottom
+        of the file and run it as a script:
+        t = TestBaseState()
+        t.setup()
+        t.test_fuzz_send_signing_request()
+        """
+
+        @atheris.instrument_func
+        def fuzz_send_signing_request(input_bytes: bytes) -> None:
+            """Fuzz '_send_signing_request'.
+
+            Mock context manager decorators don't work here.
+
+            :param input_bytes: fuzz input
+            """
+            with mock.patch.object(
+                self.behaviour.context.signing_dialogues,
+                "create",
+                return_value=(MagicMock(), MagicMock()),
+            ):
+                with mock.patch(
+                    "packages.valory.skills.abstract_round_abci.behaviour_utils.RawMessage"
+                ):
+                    with mock.patch(
+                        "packages.valory.skills.abstract_round_abci.behaviour_utils.Terms"
+                    ):
+                        self.behaviour._send_signing_request(input_bytes)
+
+        atheris.instrument_all()
+        atheris.Setup(sys.argv, fuzz_send_signing_request)
+        atheris.Fuzz()
+
     @mock.patch.object(BaseState, "_get_request_nonce_from_dialogue")
     @mock.patch("packages.valory.skills.abstract_round_abci.behaviour_utils.RawMessage")
     @mock.patch("packages.valory.skills.abstract_round_abci.behaviour_utils.Terms")
@@ -1216,6 +1254,31 @@ class TestBaseState:
             with pytest.raises(StopIteration) as e:
                 next(reset)
                 assert e == expecting_success
+
+    @pytest.mark.skip
+    def test_fuzz_submit_tx(self) -> None:
+        """Test '_submit_tx'.
+
+        Do not run this test through pytest. Add the following lines at the bottom
+        of the file and run it as a script:
+        t = TestBaseState()
+        t.setup()
+        t.test_fuzz_submit_tx()
+        """
+
+        @atheris.instrument_func
+        def fuzz_submit_tx(input_bytes: bytes) -> None:
+            """Fuzz '_submit_tx'.
+
+            Mock context manager decorators don't work here.
+
+            :param input_bytes: fuzz input
+            """
+            self.behaviour._submit_tx(input_bytes)
+
+        atheris.instrument_all()
+        atheris.Setup(sys.argv, fuzz_submit_tx)
+        atheris.Fuzz()
 
 
 def test_degenerate_state_async_act() -> None:
