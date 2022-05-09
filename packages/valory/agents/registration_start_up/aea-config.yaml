@@ -68,12 +68,12 @@ config:
   host: ${ABCI_HOST:str}
   port: ${ABCI_PORT:int:26658}
   use_tendermint: ${ABCI_USE_TENDERMINT:bool:false}
----
-public_id: valory/registration_abci:0.1.0
-type: skill
-models:
-  params:
-    tendermint_url: ${TENDERMINT_URL:str}  # http://localhost:26657
-    tendermint_com_url: ${TENDERMINT_COM_URL:str}  # http://localhost:8080
-    service_registry_address: ${SKILL_ORACLE_ABCI_MODELS_PARAMS_ARGS_SERVICE_REGISTRY_ADDRESS:str:none}  # null
-    on_chain_service_id: ${SKILL_ORACLE_ABCI_MODELS_PARAMS_ARGS_ON_CHAIN_SERVICE_ID:str:none}  # null
+#---
+#public_id: valory/registration_abci:0.1.0
+#type: skill
+#models:
+#  params:
+#    tendermint_url: ${TENDERMINT_URL:str}  # http://localhost:26657
+#    tendermint_com_url: ${TENDERMINT_COM_URL:str}  # http://localhost:8080
+#    service_registry_address: ${SKILL_ORACLE_ABCI_MODELS_PARAMS_ARGS_SERVICE_REGISTRY_ADDRESS:str:none}  # null
+#    on_chain_service_id: ${SKILL_ORACLE_ABCI_MODELS_PARAMS_ARGS_ON_CHAIN_SERVICE_ID:str:none}  # null

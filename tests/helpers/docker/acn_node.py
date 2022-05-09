@@ -28,7 +28,7 @@ from docker import DockerClient
 from docker.models.containers import Container
 
 from tests.helpers.docker.base import DockerImage
-
+from aea_ledger_cosmos import CosmosCrypto
 
 DEFAULT_ACN_CONFIG: Dict[str, str] = dict(
     AEA_P2P_ID="d9e43d3f0266d14b3af8627a626fa734450b1c0fcdec6f88f79bcf5543b4668c",
@@ -36,12 +36,12 @@ DEFAULT_ACN_CONFIG: Dict[str, str] = dict(
     AEA_P2P_URI="0.0.0.0:5000",
     AEA_P2P_DELEGATE_URI="0.0.0.0:11000",
     AEA_P2P_URI_MONITORING="0.0.0.0:8080",
-    ACN_LOG_FILE="/acn_data/libp2p_node.log",
+    ACN_LOG_FILE="/acn/libp2p_node.log",
 )
 
 
 class ACNNodeDockerImage(DockerImage):
-    """Wrapper to Ganache Docker image."""
+    """Wrapper to ACNNode Docker image."""
 
     uris: List = [
         "AEA_P2P_URI_PUBLIC",
@@ -56,7 +56,7 @@ class ACNNodeDockerImage(DockerImage):
         config: Optional[Dict] = None,
     ):
         """
-        Initialize the Ganache Docker image.
+        Initialize the ACNNode Docker image.
 
         :param client: the Docker client.
         :param config: optional configuration to command line.
@@ -80,7 +80,7 @@ class ACNNodeDockerImage(DockerImage):
     def create(self) -> Container:
         """Create the container."""
         container = self._client.containers.run(
-            self.tag, detach=True, ports=self._make_ports(), environment=self._config
+            self.tag, '--config-from-env', detach=True, ports=self._make_ports(), environment=self._config
         )
         return container
 
@@ -98,9 +98,10 @@ class ACNNodeDockerImage(DockerImage):
                     response = requests.get(uri)
                     enforce(response.status_code == 200, "")
                     ready_uris.append(uri)
+                    logging.info(f"URI ready: {uri}")
                 except Exception:
                     logging.error(
-                        "Attempt %s failed. Retrying in %s seconds...", i, sleep_rate
+                        f"Attempt {i} failed on {uri}. Retrying in {sleep_rate} seconds..."
                     )
                     time.sleep(sleep_rate)
         return False

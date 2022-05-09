@@ -79,6 +79,7 @@ models:
       tendermint_com_url: http://localhost:8080
       tendermint_max_retries: 5
       tendermint_url: http://localhost:26657
+      # acn_delegate_peer_address: /dns4/0.0.0.0/tcp/5000/p2p/16Uiu2HAmS4zF7P3KLH5A5KKRAFLDAGzQRz2p9Vsz6avHfeqfNyWQ
     class_name: Params
   requests:
     args: {}

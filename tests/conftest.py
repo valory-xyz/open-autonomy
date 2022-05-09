@@ -64,6 +64,10 @@ from tests.helpers.docker.tendermint import (
     DEFAULT_TENDERMINT_PORT,
     TendermintDockerImage,
 )
+from tests.helpers.docker.acn_node import (
+    DEFAULT_ACN_CONFIG,
+    ACNNodeDockerImage,
+)
 
 
 def get_key(key_path: Path) -> str:
@@ -375,10 +379,24 @@ def gnosis_safe_contract(
 
 @pytest.fixture(scope="module")
 def ipfs_daemon() -> Iterator[bool]:
-    """Starts an IPFS daemon for the tests."""
+    """Starts an IPFS daemon for tDEFAULT_ABCI_HOSThe tests."""
     print("Starting IPFS daemon...")
     daemon = IPFSDaemon(offline=True)
     daemon.start()
     yield daemon.is_started()
     print("Tearing down IPFS daemon...")
     daemon.stop()
+
+
+@pytest.fixture(scope="function")
+def acn_node(
+    config: Dict = None,
+    timeout: float = 2.0,
+    max_attempts: int = 10,
+) -> Generator:
+    """Launch the Ganache image."""
+    client = docker.from_env()
+    config = config or DEFAULT_ACN_CONFIG
+    logging.info(f"Launching ACNNode with the following config: {config}")
+    image = ACNNodeDockerImage(client, config)
+    yield from launch_image(image, timeout=timeout, max_attempts=max_attempts)

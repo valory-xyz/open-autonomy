@@ -18,27 +18,49 @@
 # ------------------------------------------------------------------------------
 
 """Integration tests for the valory/registration skill."""
+
+from typing import Any
 import pytest
 
 from tests.fixture_helpers import UseACNNode
 
 from aea.test_tools.test_cases import AEATestCaseMany
-from tests.fixture_helpers import UseTendermint
+from tests.test_agents.base import BaseTestEnd2EndNormalExecution
+from tests.fixture_helpers import UseTendermint, ACNNodeBaseTest, UseGnosisSafeHardHatNet
 
 
 # IntegrationBaseCase
 
 @pytest.mark.e2e
 @pytest.mark.integration
-class TestRegistrationStartUpSkill(AEATestCaseMany, UseTendermint):  #, UseACNNode):
-    """Test registration start up skill interaction with Tendermint and the ACN."""
+class TestRegistrationStartUpSkill(BaseTestEnd2EndNormalExecution, UseACNNode):
+    """
+    Test registration start-up skill.
 
-    IS_LOCAL = True
-    capture_log = True
-    cli_log_options = ["-v", "DEBUG"]
+    Requires Tendermint, the ACN and access to the on chain protocol service registry contract.
+    See the RegistrationStartupBehaviour.async_act method for details.
+    """
 
-    def test_run(self) -> None:
-        """Run the ABCI skill."""
-        agent_name = "registration_start_up_aea"
+    NB_AGENTS = 1
+    agent_package = "valory/oracle:0.1.0"  # "valory/registration_start_up:0.1.0"
+    skill_package = "valory/oracle_abci:0.1.0"
+    wait_to_finish = 180
 
-
+    #
+    # IS_LOCAL = False
+    # capture_log = True
+    # cli_log_options = ["-v", "DEBUG"]
+    #
+    # @classmethod
+    # def _setup_class(cls, **kwargs) -> None:
+    #     """Setup test."""
+    #
+    # # @classmethod
+    # # def setup(cls, **kwargs: Any) -> None:
+    # #     """Setup."""
+    # #     super().setup()
+    #
+    # def test_run(self) -> None:
+    #     """Run the ABCI skill."""
+    #     agent_name = "registration_start_up_aea"
+    #     # self.fetch_agent("valory/counter:0.1.0", agent_name, is_local=self.IS_LOCAL)
