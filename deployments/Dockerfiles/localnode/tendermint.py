@@ -22,6 +22,7 @@ import logging
 import os
 import signal
 import subprocess  # nosec:
+import time
 from logging import Logger
 from threading import Thread
 from typing import List, Optional
@@ -39,7 +40,6 @@ class TendermintParams:  # pylint: disable=too-few-public-methods
         consensus_create_empty_blocks: bool,
         p2p_laddr: str = "tcp://0.0.0.0:26656",
         rpc_laddr: str = "tcp://0.0.0.0:26657",
-        # p2p_seeds: Optional[List[str]] = None,
         home: Optional[str] = None,
     ):
         """
@@ -54,7 +54,6 @@ class TendermintParams:  # pylint: disable=too-few-public-methods
         self.proxy_app = proxy_app
         self.p2p_laddr = p2p_laddr
         self.rpc_laddr = rpc_laddr
-        # self.p2p_seeds = p2p_seeds # :noqa E800
         self.consensus_create_empty_blocks = consensus_create_empty_blocks
         self.home = home
 
@@ -74,8 +73,7 @@ class TendermintNode:
         self.logger = logger or logging.getLogger()
 
         self._process: Optional[subprocess.Popen] = None
-        self._status_check_process = Thread(target=self.check_server_status)
-        self._status_check_process.start()
+        self._monitoring: Optional[Thread] = None
 
     def _build_init_command(self) -> List[str]:
         """Build the 'init' command."""
@@ -95,7 +93,6 @@ class TendermintNode:
             f"--proxy_app={self.params.proxy_app}",
             f"--rpc.laddr={self.params.rpc_laddr}",
             f"--p2p.laddr={self.params.p2p_laddr}",
-            # f"--p2p.seeds={','.join(self.params.p2p_seeds)}", # noqa: E800
             f"--consensus.create_empty_blocks={str(self.params.consensus_create_empty_blocks).lower()}",
         ]
         if self.params.home is not None:  # pragma: nocover
@@ -123,6 +120,10 @@ class TendermintNode:
                 universal_newlines=True,
             )
         )
+        if self._monitoring is not None:  # pragma: nocover
+            return
+        self._monitoring = Thread(target=self.check_server_status)
+        self._monitoring.start()
 
     def check_server_status(
         self,
@@ -130,7 +131,10 @@ class TendermintNode:
         """Check server status."""
         while True:
             try:
+                if self._monitoring is None:
+                    break  # break from the loop immediately.
                 if self._process is None:
+                    time.sleep(0.05)
                     continue
                 line = self._process.stdout.readline()  # type: ignore
                 if line.find("RPC HTTP server stopped") > 0:
@@ -142,16 +146,18 @@ class TendermintNode:
                 self.write_line(line)
             except Exception as e:
                 print("Error!", str(e))
+        self.write_line("Monitoring thread terminated\n")
 
     def write_line(self, line: str) -> None:
         """Open and write a line to the log file."""
         with open(self.log_file, "a") as file:
-            file.write(f"{line}")
+            file.write(line)
 
     def stop(self) -> None:
         """Stop a Tendermint node process."""
         if self._process is None:
             return
+        self._monitoring = None
         os.killpg(os.getpgid(self._process.pid), signal.SIGTERM)
         self._process = None
 
