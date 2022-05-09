@@ -1441,9 +1441,7 @@ class BaseState(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
             result = yield from self._do_request(request_message, http_dialogue)
             return json.loads(result.body.decode())["app_hash"]
         except (json.JSONDecodeError, KeyError) as e:
-            self.context.logger.error(
-                f"Error while trying to get the app hash: {e}"
-            )
+            self.context.logger.error(f"Error while trying to get the app hash: {e}")
             return None
 
     def reset_tendermint_with_wait(

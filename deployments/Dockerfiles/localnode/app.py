@@ -24,7 +24,7 @@ import os
 import shutil
 import stat
 from pathlib import Path
-from typing import Any, Callable, Optional, Tuple, Dict
+from typing import Any, Callable, Dict, Optional, Tuple
 
 from flask import Flask, Response, jsonify, request
 from tendermint import TendermintNode, TendermintParams
