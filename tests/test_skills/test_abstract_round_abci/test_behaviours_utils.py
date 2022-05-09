@@ -1124,6 +1124,36 @@ class TestBaseState:
         self.behaviour._timeout = timeout
         assert self.behaviour._is_timeout_expired() == expiration_expected
 
+    @mock.patch.object(
+        BaseState, "_build_http_request_message", return_value=(None, None)
+    )
+    @pytest.mark.parametrize("response", ({"app_hash": "test"}, None))
+    def test_get_app_hash(
+        self, _build_http_request_message: mock.Mock, response: Optional[Dict[str, str]]
+    ) -> None:
+        """Test the `_get_app_hash` method."""
+
+        def dummy_do_request(*_: Any) -> Generator[None, None, MagicMock]:
+            """Dummy `_do_request` method."""
+            yield
+            if response is None:
+                return mock.MagicMock(body=b"")
+            return mock.MagicMock(body=json.dumps(response).encode())
+
+        with mock.patch.object(
+            BaseState, "_do_request", new_callable=lambda *_: dummy_do_request
+        ):
+            app_hash_iter = self.behaviour._get_app_hash()
+            next(app_hash_iter)
+            # perform the last iteration which also returns the result
+            try:
+                next(app_hash_iter)
+            except StopIteration as e:
+                if response is None:
+                    assert e.value is None
+                else:
+                    assert e.value == response["app_hash"]
+
     @mock.patch.object(BaseState, "_start_reset")
     @mock.patch.object(BaseState, "_is_timeout_expired")
     def test_reset_tendermint_with_wait_timeout_expired(self, *_: mock.Mock) -> None:
