@@ -146,7 +146,7 @@ def hash_payload_to_hex(  # pylint: disable=too-many-arguments, too-many-locals
 
 def skill_input_hex_to_payload(payload: str) -> dict:
     """Decode payload."""
-    if len(payload) < 448:
+    if len(payload) < 234:
         raise PayloadDeserializationError()  # pragma: nocover
     tx_params = dict(
         safe_tx_hash=payload[:64],
