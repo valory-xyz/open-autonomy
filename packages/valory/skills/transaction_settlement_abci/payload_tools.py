@@ -26,6 +26,8 @@ from packages.valory.contracts.gnosis_safe.contract import SafeOperation
 
 
 NULL_ADDRESS: str = "0x" + "0" * 40
+MAX_UINT256 = 2 ** 256 - 1
+MAX_UINT8 = 2 ** 8 - 1
 
 
 class VerificationStatus(Enum):
@@ -108,6 +110,19 @@ def hash_payload_to_hex(  # pylint: disable=too-many-arguments, too-many-locals
     if len(to_address) != 42 or len(gas_token) != 42 or len(refund_receiver) != 42:
         raise ValueError("cannot encode address of non 42 length")  # pragma: nocover
 
+    if (
+        ether_value > MAX_UINT256
+        or safe_tx_gas > MAX_UINT256
+        or base_gas > MAX_UINT256
+        or safe_gas_price > MAX_UINT256
+    ):
+        raise ValueError(
+            "Value if bigger than the max 256 bit value"
+        )  # pragma: nocover
+
+    if operation not in [v.value for v in SafeOperation]:
+        raise ValueError("SafeOperation value is not valid")  # pragma: nocover
+
     ether_value_ = ether_value.to_bytes(32, "big").hex()
     safe_tx_gas_ = safe_tx_gas.to_bytes(32, "big").hex()
     operation_ = operation.to_bytes(1, "big").hex()
@@ -131,7 +146,7 @@ def hash_payload_to_hex(  # pylint: disable=too-many-arguments, too-many-locals
 
 def skill_input_hex_to_payload(payload: str) -> dict:
     """Decode payload."""
-    if len(payload) < 234:
+    if len(payload) < 448:
         raise PayloadDeserializationError()  # pragma: nocover
     tx_params = dict(
         safe_tx_hash=payload[:64],

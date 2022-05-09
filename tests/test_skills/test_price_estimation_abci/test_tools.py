@@ -19,6 +19,9 @@
 
 """Test the tools.py module of the skill."""
 
+import sys
+
+import atheris  # type: ignore
 import pytest
 
 from packages.valory.skills.abstract_round_abci.common import random_selection
@@ -43,3 +46,39 @@ def test_to_int_positive() -> None:
     assert to_int(0.542, 5) == 54200
     assert to_int(0.542, 2) == 54
     assert to_int(542, 2) == 54200
+
+
+@pytest.mark.skip
+def test_fuzz_to_int() -> None:
+    """Test fuzz to_int."""
+
+    @atheris.instrument_func
+    def fuzz_to_int(input_bytes: bytes) -> None:
+        """Fuzz to_int."""
+        fdp = atheris.FuzzedDataProvider(input_bytes)
+        estimate = fdp.ConsumeFloat()
+        decimals = fdp.ConsumeInt(4)
+        to_int(estimate, decimals)
+
+    atheris.instrument_all()
+    atheris.Setup(sys.argv, fuzz_to_int)
+    atheris.Fuzz()
+
+
+@pytest.mark.skip
+def test_fuzz_random_selection() -> None:
+    """Test fuzz random_selection."""
+
+    @atheris.instrument_func
+    def fuzz_random_selection(input_bytes: bytes) -> None:
+        """Fuzz random_selection."""
+        fdp = atheris.FuzzedDataProvider(input_bytes)
+        elements = [fdp.ConsumeString(12) for _ in range(4)]
+        randomness = fdp.ConsumeFloat()
+        if randomness > 1 or randomness < 0:
+            return
+        random_selection(elements, randomness)
+
+    atheris.instrument_all()
+    atheris.Setup(sys.argv, fuzz_random_selection)
+    atheris.Fuzz()
