@@ -343,11 +343,10 @@ class Blockchain:
     The consistency of the data in the blocks is guaranteed by Tendermint.
     """
 
-    def __init__(
-        self,
-    ) -> None:
+    def __init__(self, height_offset: int = 0) -> None:
         """Initialize the blockchain."""
         self._blocks: List[Block] = []
+        self._height_offset = height_offset
 
     def add_block(self, block: Block) -> None:
         """Add a block to the list."""
@@ -374,7 +373,7 @@ class Blockchain:
     @property
     def length(self) -> int:
         """Get the blockchain length."""
-        return len(self._blocks)
+        return len(self._blocks) + self._height_offset
 
     @property
     def blocks(self) -> Tuple[Block, ...]:
@@ -2129,7 +2128,7 @@ class Period:
             self._block_construction_phase = (
                 Period._BlockConstructionState.WAITING_FOR_BEGIN_BLOCK
             )
-        self._blockchain = Blockchain()
+        self._blockchain = Blockchain(self.height)
 
     def _update_round(self) -> None:
         """
