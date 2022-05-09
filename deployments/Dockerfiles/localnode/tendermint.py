@@ -146,9 +146,7 @@ class TendermintNode:
                 self.write_line(line)
             except Exception as e:
                 print("Error!", str(e))
-        self.write_line(
-            "Monitoring thread terminated\n"
-        )
+        self.write_line("Monitoring thread terminated\n")
 
     def write_line(self, line: str) -> None:
         """Open and write a line to the log file."""
