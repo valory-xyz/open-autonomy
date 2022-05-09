@@ -1457,9 +1457,7 @@ class BaseState(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
                     ("genesis_time", time_string),
                     (
                         "initial_height",
-                        str(
-                            self.context.state.period.height
-                        ),
+                        str(self.context.state.period.height),
                     ),
                 ],
             )
