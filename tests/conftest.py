@@ -379,7 +379,7 @@ def gnosis_safe_contract(
 
 @pytest.fixture(scope="module")
 def ipfs_daemon() -> Iterator[bool]:
-    """Starts an IPFS daemon for tDEFAULT_ABCI_HOSThe tests."""
+    """Starts an IPFS daemon for the tests."""
     print("Starting IPFS daemon...")
     daemon = IPFSDaemon(offline=True)
     daemon.start()
