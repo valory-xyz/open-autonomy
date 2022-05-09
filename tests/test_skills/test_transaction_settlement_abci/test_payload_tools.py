@@ -194,6 +194,3 @@ def test_fuzz_skill_input_hex_to_payload() -> None:
     atheris.instrument_all()
     atheris.Setup(sys.argv, fuzz_skill_input_hex_to_payload)
     atheris.Fuzz()
-
-
-test_fuzz_skill_input_hex_to_payload()
