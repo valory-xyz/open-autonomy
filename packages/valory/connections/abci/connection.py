@@ -28,6 +28,7 @@ from typing import Any, Dict, List, Optional, Tuple, cast
 
 from aea.configurations.base import PublicId
 from aea.connections.base import Connection, ConnectionStates
+from aea.exceptions import enforce
 from aea.mail.base import Envelope
 from aea.protocols.dialogue.base import DialogueLabel
 from google.protobuf.message import DecodeError
@@ -116,21 +117,25 @@ class _TendermintABCISerializer:
         :return: the decoded int.
 
         :raise: DecodeVarintError if the varint could not be decoded.
+        :raise: EOFError if EOF byte is read and the process of decoding a varint has not started.
         """
+        enforce(max_length >= 1, "max bytes must be at least one")
         nb_read_bytes = 0
         shift = 0
         result = 0
         success = False
         byte = await cls._read_one(buffer)
-        nb_read_bytes += 1
         while byte is not None and nb_read_bytes <= max_length:
+            nb_read_bytes += 1
             result |= (byte & 0x7F) << shift
             shift += 7
             if not byte & 0x80:
                 success = True
                 break
             byte = await cls._read_one(buffer)
-            nb_read_bytes += 1
+        # byte is None when EOF is reached
+        if byte is None and nb_read_bytes == 0:
+            raise EOFError()
         if not success:
             raise DecodeVarintError("could not decode varint")
         return result >> 1
@@ -170,11 +175,21 @@ class VarintMessageReader:  # pylint: disable=too-few-public-methods
         """Read next message."""
         varint = await _TendermintABCISerializer.decode_varint(self._reader)
         if varint > MAX_READ_IN_BYTES:
+            await self.discard_until(varint)
             raise TooLargeVarint()
         message_bytes = await self.read_until(varint)
         if len(message_bytes) < varint:
             raise ShortBufferLengthError(varint, message_bytes)
         return message_bytes
+
+    async def discard_until(self, n: int) -> None:
+        """Discard the next n bytes from the stream chunk by chunk."""
+        read_bytes = 0
+        chunk_size = 10 ** 4  # 10K at a time
+        while read_bytes < n:
+            bytes_to_read = min(chunk_size, n - read_bytes)
+            data = await self._reader.read(bytes_to_read)
+            read_bytes += len(data)
 
     async def read_until(self, n: int) -> bytes:
         """Wait until n bytes are read from the stream."""
@@ -304,6 +319,9 @@ class TcpServerChannel:  # pylint: disable=too-many-instance-attributes
                     self.logger.info("connection at EOF, stop receiving loop.")
                     return
                 continue
+            except EOFError:
+                self.logger.info("connection at EOF, stop receiving loop.")
+                return
             except CancelledError:  # pragma: nocover
                 self.logger.debug(f"Read task for peer {peer_name} cancelled.")
                 return
