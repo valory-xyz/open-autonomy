@@ -1184,7 +1184,7 @@ class TestBaseState:
                 1,
                 2,
                 False,
-                None,
+                "",
             ),
             (
                 {"message": "Tendermint reset was successful.", "status": True},
