@@ -59,7 +59,7 @@ Build tools
 )
 @click.option(
     "--package-dir",
-    type=click.Path(exists=False, dir_okay=True),
+    type=click.Path(exists=True, dir_okay=True),
     default=Path.cwd() / PACKAGES,
     help="Path to packages folder (For local usage).",
 )
@@ -88,18 +88,37 @@ Build deployment setup for 4 agents.
 
 ```python
 @build_group.command(name="image")
-@click.option(
-    "--valory-app",
+@click.argument(
+    "service-id",
+    type=PublicIdParameter(),
 )
 @click.option(
-    "--profile",
-    required=True,
+    "--package-dir",
+    type=click.Path(exists=True, dir_okay=True),
+    default=Path.cwd() / PACKAGES,
+    help="Path to packages folder (For local usage).",
 )
 @click.option(
-    "--deployment-file-path",
+    "--build-dir",
+    type=click.Path(exists=True, dir_okay=True),
+    default=Path.cwd() / "deployments" / "Dockerfiles" / "open_aea",
+    help="Path to build directory.",
 )
-@click.option("--push", is_flag=True, default=False)
-def build_images(profile: str, valory_app: Optional[str], deployment_file_path: Optional[str], push: bool) -> None
+@click.option(
+    "--skaffold-dir",
+    type=click.Path(exists=True, dir_okay=True),
+    default=Path.cwd(),
+    help="Path to directory containing the skaffold config.",
+)
+@click.option(
+    "--version",
+    type=str,
+    default="0.1.0",
+    help="Image version",
+)
+@click.option("--push", is_flag=True, default=False, help="Push image after build.")
+@image_profile_flag()
+def build_images(service_id: str, profile: str, package_dir: Path, build_dir: Path, skaffold_dir: Path, version: str, push: bool) -> None
 ```
 
 Build image using skaffold.
