@@ -103,10 +103,7 @@ class RegistrationRound(CollectDifferentUntilAllRound, HelloWorldABCIAbstractRou
 
     def end_block(self) -> Optional[Tuple[BasePeriodState, Event]]:
         """Process the end of the block."""
-        
-        logging.info("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
-        print("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX")
-                
+
         if self.collection_threshold_reached:
             state = self.period_state.update(
                 participants=self.collection,
@@ -120,7 +117,7 @@ class RegistrationRound(CollectDifferentUntilAllRound, HelloWorldABCIAbstractRou
 class SelectKeeperRound(CollectSameUntilThresholdRound, HelloWorldABCIAbstractRound):
     """A round in a which keeper is selected"""
 
-    round_id = "select_keeper_at_startup"
+    round_id = "select_keeper"
     allowed_tx_type = SelectKeeperPayload.transaction_type
     payload_attribute = "keeper"
 
