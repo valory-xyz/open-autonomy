@@ -67,10 +67,9 @@ class ResetAndPauseBehaviour(ResetAndPauseBaseState):
         - Wait until ABCI application transitions to the next round.
         - Go to the next behaviour state (set done event).
         """
-        if (
-            self.period_state.period_count != 0
-            and self.period_state.period_count % self.params.reset_tendermint_after == 0
-        ):
+        # + 1 because `period_count` starts from 0
+        n_periods_done = self.period_state.period_count + 1
+        if n_periods_done % self.params.reset_tendermint_after == 0:
             tendermint_reset = yield from self.reset_tendermint_with_wait()
             if not tendermint_reset:
                 return
