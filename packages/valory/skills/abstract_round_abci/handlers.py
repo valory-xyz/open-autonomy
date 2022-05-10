@@ -528,7 +528,8 @@ class TendermintHandler(Handler):
 
         try:  # validate message contains a valid address
             parse_result = urlparse(message.info)
-            ipaddress.ip_network(parse_result.hostname)
+            if parse_result.hostname != "localhost":
+                ipaddress.ip_network(parse_result.hostname)
         except ValueError as e:
             error_message = f"Failed to parse Tendermint address: {e}"
             self.context.logger.info(f"Invalid response: {error_message}\n{message}")
