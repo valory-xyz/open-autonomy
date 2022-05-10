@@ -27,7 +27,6 @@ from packages.valory.contracts.gnosis_safe.contract import SafeOperation
 
 NULL_ADDRESS: str = "0x" + "0" * 40
 MAX_UINT256 = 2 ** 256 - 1
-MAX_UINT8 = 2 ** 8 - 1
 
 
 class VerificationStatus(Enum):
