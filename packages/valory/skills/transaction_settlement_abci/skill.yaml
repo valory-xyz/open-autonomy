@@ -8,11 +8,11 @@ aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
   README.md: Qmes4T968eLYkfRc1o3oXMa3irSMo6CY95kaAGvM3LfzAF
   __init__.py: QmUJJPrwqyWYnqeYpGypjgsQoXiGFpjHogSrrDmAedpdzV
-  behaviours.py: QmbG6yDYs5U7Kzv1tLQLAp9yFSoMeGtQNnJYMdbLKfmtjp
+  behaviours.py: QmV46siL4QrT4xn2iw2AWLMZwWAZ2jKjp7oXkSLnPWJzVD
   dialogues.py: QmfDThV4WCRzK88XDpW2hKDYCuEH4RxoHCoAkWpkBRGRPv
   fsm_specification.yaml: QmPZuCw7qesAcrqebg3ktHkTtkzDzJfUFL9cUEnpA1vxtD
   handlers.py: QmXEZTJVJHNhpHJMjhPRHdhmYMmVpu6LfNyYDE2k4mjLVA
-  models.py: Qmb8Euw1JFPaM6LVuAbENYje4TyTGQdGnC29i7UNRodvGD
+  models.py: QmTRz2RdzomkGpHYud3zKc31rLBzcFyUc2b2GwMoFShN8V
   payload_tools.py: QmeC21j7moiYR75xQo9f9bBzdvW3FQDmecAogG5gbZevfZ
   payloads.py: QmRYqBh9fDEXP4GxwjbNtGwHqaYmDUx5zBsWZxW6fhWwQp
   rounds.py: QmPacDvAEHimaoBqWwyhc5wKavvGhF7kZWtsHwkqVCLpvM
@@ -65,6 +65,8 @@ models:
       consensus:
         max_participants: 1
       drand_public_key: 868f005eb8e6e4ca0a47c8a77ceaa5309a47978a7c71bc5cce96366b5d7a569937c529eeda66c7293784a9402801af31
+      finalize_timeout: 60.0
+      history_check_timeout: 1205
       keeper_allowed_retries: 3
       keeper_timeout: 30.0
       max_healthcheck: 120
@@ -79,6 +81,7 @@ models:
       tendermint_com_url: http://localhost:8080
       tendermint_max_retries: 5
       tendermint_url: http://localhost:26657
+      validate_timeout: 1205
     class_name: TransactionParams
   randomness_api:
     args:

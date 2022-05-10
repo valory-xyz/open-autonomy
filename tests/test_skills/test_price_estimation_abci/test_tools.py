@@ -19,6 +19,8 @@
 
 """Test the tools.py module of the skill."""
 
+import pytest
+
 from packages.valory.skills.abstract_round_abci.common import random_selection
 from packages.valory.skills.price_estimation_abci.behaviours import to_int
 
@@ -27,6 +29,13 @@ def test_random_selection_function() -> None:
     """Test `random_selection` function."""
 
     assert random_selection(["hello", "world", "!"], 0.1) == "hello"
+
+
+@pytest.mark.parametrize("value", (-1, 2))
+def test_random_selection_function_raises(value: int) -> None:
+    """Test `random_selection` function."""
+    with pytest.raises(ValueError):
+        random_selection(["hello", "world", "!"], value)
 
 
 def test_to_int_positive() -> None:
