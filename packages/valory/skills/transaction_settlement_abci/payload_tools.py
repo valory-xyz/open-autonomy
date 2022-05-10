@@ -117,7 +117,7 @@ def hash_payload_to_hex(  # pylint: disable=too-many-arguments, too-many-locals
         or safe_gas_price > MAX_UINT256
     ):
         raise ValueError(
-            "Value if bigger than the max 256 bit value"
+            "Value is bigger than the max 256 bit value"
         )  # pragma: nocover
 
     if operation not in [v.value for v in SafeOperation]:
