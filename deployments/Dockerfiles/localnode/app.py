@@ -40,7 +40,7 @@ CONFIG_OVERRIDE = [
 ]
 
 logging.basicConfig(
-    filename=os.environ.get("FLASK_LOG_FILE", DEFAULT_LOG_FILE),
+    filename=os.environ.get("LOG_FILE", DEFAULT_LOG_FILE),
     level=logging.DEBUG,
     format=f"%(asctime)s %(levelname)s %(name)s %(threadName)s : %(message)s",  # noqa : W1309
 )
