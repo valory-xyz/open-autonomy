@@ -26,7 +26,7 @@ from eth_typing.bls import BLSPubkey, BLSSignature
 from py_ecc.bls import G2Basic as bls  # type: ignore
 
 
-MAX_UINT8 = 2 ** 64 - 1
+MAX_UINT64 = 2 ** 64 - 1
 
 
 class VerifyDrand:  # pylint: disable=too-few-public-methods
@@ -42,7 +42,7 @@ class VerifyDrand:  # pylint: disable=too-few-public-methods
     @classmethod
     def _int_to_bytes_big(cls, value: int) -> bytes:
         """Convert int to bytes."""
-        if value < 0 or value > MAX_UINT8:
+        if value < 0 or value > MAX_UINT64:
             raise ValueError(
                 "VerifyDrand can only handle positive numbers representable with 8 bytes"
             )

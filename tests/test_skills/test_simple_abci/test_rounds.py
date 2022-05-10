@@ -19,9 +19,13 @@
 
 """Test the rounds of the skill."""
 import logging  # noqa: F401
+import sys
 from types import MappingProxyType
 from typing import Dict, FrozenSet, cast
 from unittest import mock
+
+import atheris  # type: ignore
+import pytest
 
 from packages.valory.skills.abstract_round_abci.base import (
     AbstractRound,
@@ -296,6 +300,23 @@ def test_rotate_list_method() -> None:
 
     ex_list = [1, 2, 3, 4, 5]
     assert rotate_list(ex_list, 2) == [3, 4, 5, 1, 2]
+
+
+@pytest.mark.skip
+def test_fuzz_rotate_list() -> None:
+    """Test fuzz rotate_list."""
+
+    @atheris.instrument_func
+    def fuzz_rotate_list(input_bytes: bytes) -> None:
+        """Fuzz rotate_list."""
+        fdp = atheris.FuzzedDataProvider(input_bytes)
+        elements = [fdp.ConsumeString(4) for _ in range(10)]
+        positions = fdp.ConsumeInt(4)
+        rotate_list(elements, positions)
+
+    atheris.instrument_all()
+    atheris.Setup(sys.argv, fuzz_rotate_list)
+    atheris.Fuzz()
 
 
 def test_period_state() -> None:  # pylint:too-many-locals
