@@ -92,6 +92,8 @@ common-checks-1:
 common-checks-2:
 	tox -e check-api-docs
 	tox -e check-abci-docstrings
+	tox -e check-abciapp-specs
+	tox -e check-handlers
 
 .PHONY: copyright
 copyright:
