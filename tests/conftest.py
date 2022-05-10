@@ -115,17 +115,18 @@ def tendermint_port() -> int:
 
 
 @pytest.fixture(scope="function")
-def tendermint(
+def agents_with_tendermint(
+    n_agents: int,
     tendermint_port: Any,
     abci_host: str = DEFAULT_ABCI_HOST,
     abci_port: int = DEFAULT_ABCI_PORT,
     timeout: float = 2.0,
     max_attempts: int = 10,
 ) -> Generator:
-    """Launch the Ganache image."""
+    """Launch our Flask app image which is used to communicate with Tendermint."""
     client = docker.from_env()
     logging.info(f"Launching Tendermint at port {tendermint_port}")
-    image = TendermintDockerImage(client, abci_host, abci_port, tendermint_port)
+    image = TendermintDockerImage(client, n_agents, abci_host, abci_port, tendermint_port)
     yield from launch_image(image, timeout=timeout, max_attempts=max_attempts)
 
 

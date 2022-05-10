@@ -48,21 +48,24 @@ logger = logging.getLogger(__name__)
 class UseTendermint:
     """Inherit from this class to use Tendermint."""
 
+    NB_AGENTS: int = 1
+
     @pytest.fixture(autouse=True)
-    def _start_tendermint(self, tendermint: Any, tendermint_port: Any) -> None:
+    @pytest.mark.parametrize("agents_with_tendermint", (NB_AGENTS,), indirect=True)
+    def _start_tendermint(self, agents_with_tendermint: Any, tendermint_port: Any) -> None:
         """Start a Tendermint image."""
-        self._tendermint_image = tendermint
+        self._agents_with_tendermint_image = agents_with_tendermint
         self.tendermint_port = tendermint_port
 
     @property
     def abci_host(self) -> str:
         """Get the abci host address."""
-        return self._tendermint_image.abci_host
+        return self._agents_with_tendermint_image.abci_host
 
     @property
     def abci_port(self) -> int:
         """Get the abci port."""
-        return self._tendermint_image.abci_port
+        return self._agents_with_tendermint_image.abci_port
 
     @property
     def node_address(self) -> str:
