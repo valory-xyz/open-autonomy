@@ -57,9 +57,7 @@ class PrintMessagePayload(BaseHelloWorldAbciPayload):
 
     transaction_type = TransactionType.PRINT_MESSAGE
 
-    def __init__(
-        self, sender: str, message: str, **kwargs: Any
-    ) -> None:
+    def __init__(self, sender: str, message: str, **kwargs: Any) -> None:
         """Initialize an 'select_keeper' transaction payload.
 
         :param sender: the sender (Ethereum) address

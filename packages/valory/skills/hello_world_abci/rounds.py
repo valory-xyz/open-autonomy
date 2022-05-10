@@ -20,10 +20,8 @@
 
 from abc import ABC
 from enum import Enum
-import logging
-import struct
 from types import MappingProxyType
-from typing import Dict, List, Mapping, Optional, Tuple, Type, cast
+from typing import Dict, Mapping, Optional, Tuple, Type, cast
 
 from packages.valory.skills.abstract_round_abci.base import (
     AbciApp,
@@ -49,16 +47,6 @@ class Event(Enum):
     ROUND_TIMEOUT = "round_timeout"
     NO_MAJORITY = "no_majority"
     RESET_TIMEOUT = "reset_timeout"
-
-
-def encode_float(value: float) -> bytes:  # pragma: nocover
-    """Encode a float value."""
-    return struct.pack("d", value)
-
-
-def rotate_list(my_list: list, positions: int) -> List[str]:
-    """Rotate a list n positions."""
-    return my_list[positions:] + my_list[:positions]
 
 
 class PeriodState(BasePeriodState):  # pylint: disable=too-many-instance-attributes
