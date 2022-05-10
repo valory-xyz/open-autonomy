@@ -171,6 +171,29 @@ class HelloWorldAbciApp(AbciApp[Event]):
 
     Initial round: RegistrationRound
 
+    Initial states: {RegistrationRound}
+
+    Transition states:
+        0. RegistrationRound
+            - done: 1.
+        1. SelectKeeperRound
+            - done: 2.
+            - round timeout: 0.
+            - no majority: 0.
+        2. PrintMessageRound
+            - done: 3.
+            - round timeout: 0.
+            - no majority: 0.
+        3. ResetAndPauseRound
+            - done: 1.
+            - reset timeout: 0.
+            - no majority: 0.
+
+    Final states: {}
+
+    Timeouts:
+        round timeout: 30.0
+        reset timeout: 30.0
     """
 
     initial_round_cls: Type[AbstractRound] = RegistrationRound
