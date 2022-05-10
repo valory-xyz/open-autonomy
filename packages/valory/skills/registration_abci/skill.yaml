@@ -11,7 +11,7 @@ fingerprint:
   behaviours.py: QmYxdxzpvf7YyjKwkqEL57gucAwikj2FqESaLKkFespBVD
   dialogues.py: QmT6ojZQVrHPZC8vU4qMUAYwSuoyfENztqPgqMr2DyLQ13
   fsm_specification.yaml: QmXVQp8pmwwURGntFJ41QziXMFysTpkZy9wjVn1KoACZgA
-  handlers.py: Qmf5UUAL6evEpLxWiJasYaFh4fAWk7Q7Z8cK8AEVM6Xj9B
+  handlers.py: QmZ1Ar3xj94GYyknpGWSCtkzQpUb2etuWbHjs4owJ4PVpC
   models.py: QmP1o1MJF1qQtRurgzZ2fdRHWdu3G6xrTxUWy9GdYtHihT
   payloads.py: QmdJ8VRZmEXnJWx4oNcizaxjgBtEhanFBY2cU3g4UWM7s5
   rounds.py: QmUq6h9dV27yVpqBqsXUEtrDoTKqinCgAWtaMKvEe8Nv18
@@ -26,6 +26,9 @@ behaviours:
     args: {}
     class_name: AgentRegistrationRoundBehaviour
 handlers:
+  abci:
+    args: {}
+    class_name: ABCIRoundHandler
   contract_api:
     args: {}
     class_name: ContractApiHandler
@@ -93,4 +96,4 @@ models:
     args: {}
     class_name: TendermintDialogues
 dependencies: {}
-is_abstract: true
+is_abstract: false
