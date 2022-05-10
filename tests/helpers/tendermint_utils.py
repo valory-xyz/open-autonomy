@@ -20,13 +20,10 @@
 """Helpers for Tendermint."""
 import subprocess  # nosec
 from pathlib import Path
-from typing import Any, List
+from typing import List
 
-import pytest
-
-from tests.helpers.base import tendermint_health_check
+from tests.fixture_helpers import UseTendermint
 from tests.helpers.constants import LOCALHOST
-
 
 _TCP = "tcp://"
 _HTTP = "http://"
@@ -64,7 +61,7 @@ class TendermintNodeInfo:
         return f"{_TCP}{_LOCAL_ADDRESS}:{self.p2p_port}"
 
 
-class TendermintLocalNetworkBuilder:
+class TendermintLocalNetworkBuilder(UseTendermint):
     """Build a local Tendermint network."""
 
     def __init__(
@@ -82,7 +79,6 @@ class TendermintLocalNetworkBuilder:
 
     def _create(self) -> None:
         """Create a Tendermint local network."""
-        self._create_testnet()
         self.nodes = [
             TendermintNodeInfo(
                 self._get_node_id(i),
@@ -94,20 +90,8 @@ class TendermintLocalNetworkBuilder:
             for i in range(self.nb_nodes)
         ]
 
-    def _create_testnet(self) -> None:
-        """Create a testnet calling 'tendermint testnet'."""
-        subprocess.call(  # nosec
-            [
-                "tendermint",
-                "testnet",
-                "--v",
-                str(self.nb_nodes),
-                "--o",
-                str(self.directory),
-            ]
-        )
-
-    def _get_node_id(self, i: int) -> str:
+    @staticmethod
+    def _get_node_id(i: int) -> str:
         """Get the node id."""
         node_name = f"node{i}"
         process = subprocess.Popen(  # nosec
@@ -121,34 +105,7 @@ class TendermintLocalNetworkBuilder:
         """Get p2p seeds."""
         return [f"{_TCP}{n.node_id}@{_LOCAL_ADDRESS}:{n.p2p_port}" for n in self.nodes]
 
-    def get_command(self, i: int) -> List[str]:
-        """Get command-line command for the ith process."""
-        n = self.nodes[i]
-        return [
-            "tendermint",
-            "node",
-            "--home",
-            str(n.home),
-            f"--rpc.laddr={n.rpc_laddr}",
-            f"--p2p.laddr={n.p2p_laddr}",
-            f"--p2p.seeds={','.join(self.get_p2p_seeds())}",
-            f"--consensus.create_empty_blocks={self.consensus_create_empty_blocks}",
-        ]
-
     @property
     def http_rpc_laddrs(self) -> List[str]:
         """Get HTTP RPC listening addresses."""
         return [node.get_http_addr(LOCALHOST) for node in self.nodes]
-
-
-class BaseTendermintTestClass:
-    """MixIn class for Pytest classes."""
-
-    @staticmethod
-    def health_check(
-        tendermint_net: TendermintLocalNetworkBuilder, **kwargs: Any
-    ) -> None:
-        """Do a health-check of the Tendermint network."""
-        for rpc_addr in tendermint_net.http_rpc_laddrs:
-            if not tendermint_health_check(rpc_addr, **kwargs):
-                pytest.fail(f"Tendermint node {rpc_addr} did not pass health-check")
