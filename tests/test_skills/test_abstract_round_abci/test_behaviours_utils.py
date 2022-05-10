@@ -1127,7 +1127,9 @@ class TestBaseState:
     @mock.patch.object(
         BaseState, "_build_http_request_message", return_value=(None, None)
     )
-    @pytest.mark.parametrize("response", ({"app_hash": "test"}, None))
+    @pytest.mark.parametrize(
+        "response", ({"app_hash": "test"}, {"error": "test"}, None)
+    )
     def test_get_app_hash(
         self, _build_http_request_message: mock.Mock, response: Optional[Dict[str, str]]
     ) -> None:
@@ -1149,8 +1151,8 @@ class TestBaseState:
             try:
                 next(app_hash_iter)
             except StopIteration as e:
-                if response is None:
-                    assert e.value is None
+                if response is None or response.get("app_hash") is None:
+                    assert e.value == ""
                 else:
                     assert e.value == response["app_hash"]
 
