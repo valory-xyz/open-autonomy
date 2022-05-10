@@ -22,20 +22,22 @@ import logging
 import time
 from typing import Dict, List, Optional
 
-import requests
+import socket
 from aea.exceptions import enforce
 from docker import DockerClient
 from docker.models.containers import Container
 
 from tests.helpers.docker.base import DockerImage
-from aea_ledger_cosmos import CosmosCrypto
+
+
+_LOCAL_ADDRESS = "0.0.0.0"  # nosec
 
 DEFAULT_ACN_CONFIG: Dict[str, str] = dict(
     AEA_P2P_ID="d9e43d3f0266d14b3af8627a626fa734450b1c0fcdec6f88f79bcf5543b4668c",
-    AEA_P2P_URI_PUBLIC="0.0.0.0:5000",
-    AEA_P2P_URI="0.0.0.0:5000",
-    AEA_P2P_DELEGATE_URI="0.0.0.0:11000",
-    AEA_P2P_URI_MONITORING="0.0.0.0:8080",
+    AEA_P2P_URI_PUBLIC=f"{_LOCAL_ADDRESS}:5000",
+    AEA_P2P_URI=f"{_LOCAL_ADDRESS}:5000",
+    AEA_P2P_DELEGATE_URI=f"{_LOCAL_ADDRESS}:11000",
+    AEA_P2P_URI_MONITORING=f"{_LOCAL_ADDRESS}:8080",
     ACN_LOG_FILE="/acn/libp2p_node.log",
 )
 
@@ -72,10 +74,10 @@ class ACNNodeDockerImage(DockerImage):
     def _make_ports(self) -> Dict:
         """Make ports dictionary for Docker."""
 
-        return {  # nosec
-            f"{port}/tcp": ("0.0.0.0", port)  # nosec
+        return {
+            f"{port}/tcp": (_LOCAL_ADDRESS, port)
             for port in [self._config[uri].split(":")[1] for uri in self.uris]
-        }  # nosec
+        }
 
     def create(self) -> Container:
         """Create the container."""
@@ -86,22 +88,22 @@ class ACNNodeDockerImage(DockerImage):
 
     def wait(self, max_attempts: int = 15, sleep_rate: float = 1.0) -> bool:
         """Wait until the image is up."""
-        uris = set([self._config[uri] for uri in self.uris])
-        ready_uris: List[str] = []
-        for uri in uris:
-            if uri in ready_uris:
-                continue
-            if set(ready_uris) == uris:
-                return True
-            for i in range(max_attempts):
+
+        i, to_be_connected = 0, {self._config[uri] for uri in self.uris}
+        while i < max_attempts and to_be_connected:
+            i += 1
+            for uri in to_be_connected:
                 try:
-                    response = requests.get(uri)
-                    enforce(response.status_code == 200, "")
-                    ready_uris.append(uri)
+                    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                    host, port = uri.split(":")
+                    result = sock.connect_ex((host, int(port)))
+                    sock.close()
+                    enforce(result == 0, "")
+                    to_be_connected.remove(uri)
                     logging.info(f"URI ready: {uri}")
+                    break
                 except Exception:
-                    logging.error(
-                        f"Attempt {i} failed on {uri}. Retrying in {sleep_rate} seconds..."
-                    )
+                    logging.error(f"Attempt {i} failed on {uri}. Retrying in {sleep_rate} seconds...")
                     time.sleep(sleep_rate)
-        return False
+
+        return not to_be_connected
