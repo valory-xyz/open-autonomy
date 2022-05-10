@@ -26,6 +26,7 @@ import stat
 from pathlib import Path
 from typing import Any, Callable, Dict, Optional, Tuple
 
+import requests
 from flask import Flask, Response, jsonify, request
 from tendermint import TendermintNode, TendermintParams
 from werkzeug.exceptions import InternalServerError, NotFound
@@ -147,6 +148,22 @@ def gentle_reset() -> Tuple[Any, int]:
             jsonify(
                 {"message": f"Reset failed with error : {str(e)}", "status": False}
             ),
+            200,
+        )
+
+
+@app.route("/app_hash")
+def app_hash() -> Tuple[Any, int]:
+    """Get the app hash."""
+    try:
+        endpoint = f"{tendermint_params.rpc_laddr.replace('tcp', 'http')}/header"
+        height = request.args.get("height")
+        params = {"height": height} if height is not None else None
+        res = requests.get(endpoint, params)
+        return res.json()["result"], res.status_code
+    except Exception as e:  # pylint: disable=W0703
+        return (
+            jsonify({"error": f"Could not get the app hash: {str(e)}"}),
             200,
         )
 
