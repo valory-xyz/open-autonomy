@@ -1431,18 +1431,27 @@ class BaseState(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
             0, self._timeout
         )
 
-    def _get_app_hash(self) -> Generator[None, None, Optional[str]]:
+    def _get_app_hash(self) -> Generator[None, None, str]:
         """Get the app hash from Tendermint."""
         try:
             request_message, http_dialogue = self._build_http_request_message(
                 "GET",
-                self.params.tendermint_com_url + "/header",
+                self.params.tendermint_com_url + "/app_hash",
+                parameters=[("height", self.context.state.period.height)],
             )
             result = yield from self._do_request(request_message, http_dialogue)
-            return json.loads(result.body.decode())["app_hash"]
+            json_res = json.loads(result.body.decode())
+            app_hash = json_res.get("app_hash", "")
+            if app_hash == "":
+                error = json_res.get("error", None)
+                if error is not None:
+                    self.context.logger.error(
+                        f"Error while trying to get the app hash: {error}"
+                    )
+            return app_hash
         except (json.JSONDecodeError, KeyError) as e:
             self.context.logger.error(f"Error while trying to get the app hash: {e}")
-            return None
+            return ""
 
     def reset_tendermint_with_wait(
         self,
@@ -1459,7 +1468,7 @@ class BaseState(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
             )
 
             app_hash = yield from self._get_app_hash()
-            if app_hash is None:
+            if app_hash == "":
                 yield from self.sleep(self.params.sleep_time)
                 return False
 
