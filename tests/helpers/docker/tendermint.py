@@ -18,6 +18,8 @@
 # ------------------------------------------------------------------------------
 
 """Tendermint Docker image."""
+import os
+import subprocess
 import time
 from typing import List
 
@@ -25,7 +27,6 @@ import docker
 from docker.models.containers import Container
 
 from tests.helpers.docker.base import DockerImage
-
 
 DEFAULT_TENDERMINT_PORT = 26657
 DEFAULT_ABCI_PORT = 26658
@@ -42,21 +43,46 @@ class TendermintDockerImage(DockerImage):
     def __init__(
         self,
         client: docker.DockerClient,
+        n_agents: int,
         abci_host: str = DEFAULT_ABCI_HOST,
         abci_port: int = DEFAULT_ABCI_PORT,
         port: int = DEFAULT_TENDERMINT_PORT,
     ):
         """Initialize."""
         super().__init__(client)
+        self.n_agents = n_agents
         self.abci_host = abci_host
         self.abci_port = abci_port
         self.port = port
         self.proxy_app = f"tcp://{self.abci_host}:{self.abci_port}"
+        self.__create_image()
+
+    def __create_image(self) -> None:
+        """Create and tag an image from our Flask with Tendermint Dockerfile."""
+        cmd = [
+            "docker",
+            "run",
+            "--rm",
+            "-v",
+            f"{os.getcwd()}/deployments/build/build:/tendermint:Z",
+            f"--entrypoint=/usr/bin/tendermint",
+            f"{self.tag}",
+            "testnet",
+            "--config",
+            "/etc/tendermint/config-template.toml",
+            f"--v",
+            f"{self.n_agents}",
+            "--o",
+            ".",
+        ]
+        for i in range(self.n_agents):
+            cmd.append(f"--hostname=node{i}")
+        subprocess.Popen(cmd)
 
     @property
     def tag(self) -> str:
         """Get the tag."""
-        return "tendermint/tendermint:v0.34.11"
+        return "valory/consensus-algorithms-tendermint:0.1.0"
 
     def _build_command(self) -> List[str]:
         """Build command."""
