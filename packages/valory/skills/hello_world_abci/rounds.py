@@ -16,11 +16,12 @@
 #   limitations under the License.
 #
 # ------------------------------------------------------------------------------
-
 """This module contains the data classes for the Hello World ABCI application."""
-import struct
+
 from abc import ABC
 from enum import Enum
+import logging
+import struct
 from types import MappingProxyType
 from typing import Dict, List, Mapping, Optional, Tuple, Type, cast
 
@@ -42,7 +43,7 @@ from packages.valory.skills.hello_world_abci.payloads import (
 
 
 class Event(Enum):
-    """Event enumeration for the simple abci demo."""
+    """Event enumeration for the Hello World ABCI demo."""
 
     DONE = "done"
     ROUND_TIMEOUT = "round_timeout"
@@ -77,7 +78,7 @@ class PeriodState(BasePeriodState):  # pylint: disable=too-many-instance-attribu
 
 
 class HelloWorldABCIAbstractRound(AbstractRound[Event, TransactionType], ABC):
-    """Abstract round for the simple abci skill."""
+    """Abstract round for the Hello World ABCI skill."""
 
     @property
     def period_state(self) -> PeriodState:
@@ -102,6 +103,10 @@ class RegistrationRound(CollectDifferentUntilAllRound, HelloWorldABCIAbstractRou
 
     def end_block(self) -> Optional[Tuple[BasePeriodState, Event]]:
         """Process the end of the block."""
+        
+        logging.info("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+        print("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX")
+                
         if self.collection_threshold_reached:
             state = self.period_state.update(
                 participants=self.collection,

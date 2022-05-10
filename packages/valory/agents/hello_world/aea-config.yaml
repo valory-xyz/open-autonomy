@@ -1,4 +1,4 @@
-agent_name: hello_world_abci
+agent_name: hello_world
 author: valory
 version: 0.1.0
 license: Apache-2.0
@@ -20,7 +20,7 @@ protocols:
 skills:
 - valory/abstract_abci:0.1.0
 - valory/abstract_round_abci:0.1.0
-- valory/hello_world:0.1.0
+- valory/hello_world_abci:0.1.0
 default_ledger: ethereum
 required_ledgers:
 - ethereum
@@ -50,4 +50,4 @@ default_connection: null
 public_id: valory/abci:0.1.0
 type: connection
 config:
-  target_skill_id: valory/hello_world:0.1.0
+  target_skill_id: valory/hello_world_abci:0.1.0

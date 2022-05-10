@@ -44,6 +44,16 @@ from packages.valory.skills.hello_world_abci.rounds import (
 )
 
 
+HELLO_WORLD_MSG = " _    _      _ _         _          _         _     _ _ \n"\
+                  "| |  | |    | | |       \ \        / /       | |   | | |\n"\
+                  "| |__| | ___| | | ___    \ \  /\  / /__  _ __| | __| | |\n"\
+                  "|  __  |/ _ \ | |/ _ \    \ \/  \/ / _ \| '__| |/ _` | |\n"\
+                  "| |  | |  __/ | | (_) |    \  /\  / (_) | |  | | (_| |_|\n"\
+                  "|_|  |_|\___|_|_|\___/      \/  \/ \___/|_|  |_|\__,_(_)\n"
+                  
+NOTHING_MSG = ":|"
+
+
 def random_selection(elements: List[str], randomness: float) -> str:
     """
     Select a random element from a list.
@@ -87,6 +97,7 @@ class RegistrationBehaviour(HelloWorldABCIBaseState):
         - Go to the next behaviour state (set done event).
         """
 
+        print("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
         with self.context.benchmark_tool.measure(self.state_id).local():
             payload = RegistrationPayload(self.context.agent_address)
 
@@ -115,10 +126,7 @@ class SelectKeeperBehaviour(HelloWorldABCIBaseState, ABC):
         """
 
         with self.context.benchmark_tool.measure(self.state_id).local():
-            keeper_address = random_selection(
-                sorted(self.period_state.participants),
-                self.period_state.keeper_randomness,
-            )
+            keeper_address = sorted(self.period_state.participants)[self.period_state.period_count % self.period_state.nb_participants]
 
             self.context.logger.info(f"Selected a new keeper: {keeper_address}.")
             payload = SelectKeeperPayload(self.context.agent_address, keeper_address)
@@ -143,10 +151,15 @@ class PrintMessageBehaviour(HelloWorldABCIBaseState, ABC):
         Print message
         """
 
-        msg = "Hello World " + str(self.period_state.period_count) + " from " + str(self.context.agent_address)
-        print(msg)
-        self.context.logger.info(msg)
-        payload = PrintMessagePayload(self.context.agent_address, msg)
+        printed_message = f"(Agent {self.context.agent_address} in period {self.period_state.period_count} says:\n"
+        if (self.context.agent_address == self.period_state.most_voted_keeper_address):
+            printed_message += HELLO_WORLD_MSG
+        else:
+            printed_message += NOTHING_MSG
+
+        print(printed_message)
+        self.context.logger.info(printed_message)
+        payload = PrintMessagePayload(self.context.agent_address, printed_message)
 
         with self.context.benchmark_tool.measure(self.state_id).consensus():
             yield from self.send_a2a_transaction(payload)

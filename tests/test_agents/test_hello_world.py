@@ -17,13 +17,31 @@
 #
 # ------------------------------------------------------------------------------
 
-"""
-This module contains the ABCI Hello World skill for an AEA.
+"""End2end tests for the valory/hello_world skill."""
 
-It implements an ABCI application for a Hello World! demonstration.
-"""
-
-from aea.configurations.base import PublicId
+from tests.test_agents.base import BaseTestEnd2EndNormalExecution
 
 
-PUBLIC_ID = PublicId.from_str("valory/hello_world_abci:0.1.0")
+# round check log messages of the happy path
+EXPECTED_ROUND_LOG_COUNT = {
+    "registration": 1,
+    "print_message": 3,
+    "select_keeper": 2,
+    "reset_and_pause": 2,
+}
+
+# strict check log messages of the happy path
+STRICT_CHECK_STRINGS = ("Period end",)
+
+
+class TestHelloWorldABCIFourAgents(
+    BaseTestEnd2EndNormalExecution,
+):
+    """Test that the ABCI simple_abci skill with four agents."""
+
+    NB_AGENTS = 4
+    agent_package = "valory/hello_world:0.1.0"
+    skill_package = "valory/hello_world_abci:0.1.0"
+    wait_to_finish = 120
+    round_check_strings_to_n_periods = EXPECTED_ROUND_LOG_COUNT
+    strict_check_strings = STRICT_CHECK_STRINGS
