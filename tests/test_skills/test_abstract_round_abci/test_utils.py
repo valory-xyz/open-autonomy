@@ -24,7 +24,7 @@ from unittest import mock
 import atheris  # type: ignore
 import pytest
 
-from packages.valory.skills.abstract_round_abci.utils import MAX_UINT8, VerifyDrand
+from packages.valory.skills.abstract_round_abci.utils import MAX_UINT64, VerifyDrand
 
 
 DRAND_PUBLIC_KEY: str = "868f005eb8e6e4ca0a47c8a77ceaa5309a47978a7c71bc5cce96366b5d7a569937c529eeda66c7293784a9402801af31"
@@ -93,7 +93,7 @@ class TestVerifyDrand:
         assert not result
         assert error == "Failed bls.Verify check."
 
-    @pytest.mark.parametrize("value", (-1, MAX_UINT8 + 1))
+    @pytest.mark.parametrize("value", (-1, MAX_UINT64 + 1))
     def test_negative_and_overflow(self, value: int) -> None:
         """Test verify method."""
         with pytest.raises(ValueError):

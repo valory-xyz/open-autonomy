@@ -473,6 +473,16 @@ class TestBaseState:
         with pytest.raises(StopIteration):
             gen.send(MagicMock())
 
+    def test_wait_from_last_timestamp_negative(self) -> None:
+        """Test 'wait_from_last_timestamp'."""
+        timeout = -1.0
+        last_timestamp = datetime.now()
+        self.behaviour.context.state.period.abci_app.last_timestamp = last_timestamp
+        with pytest.raises(ValueError):
+            gen = self.behaviour.wait_from_last_timestamp(timeout)
+            # trigger first execution
+            try_send(gen)
+
     def test_set_done(self) -> None:
         """Test 'set_done' method."""
         assert not self.behaviour.is_done()
