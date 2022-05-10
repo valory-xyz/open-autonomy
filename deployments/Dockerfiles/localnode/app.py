@@ -145,7 +145,7 @@ def gentle_reset() -> Tuple[Any, int]:
     except Exception as e:  # pylint: disable=W0703
         return (
             jsonify(
-                {"message": f"Reset failed with error : f{str(e)}", "status": False}
+                {"message": f"Reset failed with error : {str(e)}", "status": False}
             ),
             200,
         )
@@ -170,7 +170,7 @@ def hard_reset() -> Tuple[Any, int]:
     except Exception as e:  # pylint: disable=W0703
         return (
             jsonify(
-                {"message": f"Reset failed with error : f{str(e)}", "status": False}
+                {"message": f"Reset failed with error : {str(e)}", "status": False}
             ),
             200,
         )
