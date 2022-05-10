@@ -22,13 +22,13 @@
 import os
 import shutil
 from pathlib import Path
-from typing import Optional
 
 import click
 from aea.cli.utils.click_utils import PublicIdParameter
 from aea.configurations.constants import PACKAGES
 from aea.configurations.data_types import PublicId
 
+from aea_swarm.cli.utils.click_utils import image_profile_flag
 from aea_swarm.deploy.build import generate_deployment
 from aea_swarm.deploy.generators.docker_compose.base import DockerComposeGenerator
 from aea_swarm.deploy.generators.kubernetes.base import KubernetesGenerator
@@ -73,7 +73,7 @@ def build_group() -> None:
 )
 @click.option(
     "--package-dir",
-    type=click.Path(exists=False, dir_okay=True),
+    type=click.Path(exists=True, dir_okay=True),
     default=Path.cwd() / PACKAGES,
     help="Path to packages folder (For local usage).",
 )
@@ -132,6 +132,70 @@ def build_deployment(  # pylint: disable=too-many-arguments
         raise click.ClickException(str(e)) from e
 
 
+@build_group.command(name="image")
+@click.argument(
+    "service-id",
+    type=PublicIdParameter(),
+)
+@click.option(
+    "--package-dir",
+    type=click.Path(exists=True, dir_okay=True),
+    default=Path.cwd() / PACKAGES,
+    help="Path to packages folder (For local usage).",
+)
+@click.option(
+    "--build-dir",
+    type=click.Path(exists=True, dir_okay=True),
+    default=Path.cwd() / "deployments" / "Dockerfiles" / "open_aea",
+    help="Path to build directory.",
+)
+@click.option(
+    "--skaffold-dir",
+    type=click.Path(exists=True, dir_okay=True),
+    default=Path.cwd(),
+    help="Path to directory containing the skaffold config.",
+)
+@click.option(
+    "--version",
+    type=str,
+    default="0.1.0",
+    help="Image version",
+)
+@click.option("--push", is_flag=True, default=False, help="Push image after build.")
+@image_profile_flag()
+def build_images(  # pylint: disable=too-many-arguments
+    service_id: str,
+    profile: str,
+    package_dir: Path,
+    build_dir: Path,
+    skaffold_dir: Path,
+    version: str,
+    push: bool,
+) -> None:
+    """Build image using skaffold."""
+
+    package_dir = Path(package_dir).absolute()
+    build_dir = Path(build_dir).absolute()
+    skaffold_dir = Path(skaffold_dir).absolute()
+
+    try:
+        click.echo(
+            f"Building image with:\n\tProfile: {profile}\n\tServiceId: {service_id}\n"
+        )
+        deployment_file_path = _find_path_to_service_file(service_id, package_dir)
+        ImageBuilder.build_images(
+            profile=profile,
+            deployment_file_path=deployment_file_path,
+            push=push,
+            package_dir=package_dir,
+            build_dir=build_dir,
+            version=version,
+            skaffold_dir=skaffold_dir,
+        )
+    except Exception as e:  # pylint: disable=broad-except
+        raise click.ClickException(str(e)) from e
+
+
 def _find_path_to_service_file(public_id: PublicId, package_dir: Path) -> Path:
     """Find path to service file using package dir."""
     service_file = (
@@ -155,31 +219,3 @@ def _build_dirs(build_dir: Path) -> None:
         path = Path(build_dir, *dir_path)
         path.mkdir()
         os.chown(path, 1000, 1000)
-
-
-@build_group.command(name="image")
-@click.option(
-    "--valory-app",
-)
-@click.option(
-    "--profile",
-    required=True,
-)
-@click.option(
-    "--deployment-file-path",
-)
-@click.option("--push", is_flag=True, default=False)
-def build_images(
-    profile: str,
-    valory_app: Optional[str],
-    deployment_file_path: Optional[str],
-    push: bool,
-) -> None:
-    """Build image using skaffold."""
-    image_builder = ImageBuilder()
-    image_builder.build_images(
-        profile=profile,
-        deployment_file_path=deployment_file_path,
-        valory_application=valory_app,
-        push=push,
-    )

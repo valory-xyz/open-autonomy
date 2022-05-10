@@ -23,50 +23,94 @@ import os
 import shutil
 import subprocess  # nosec
 from pathlib import Path
-from typing import Optional
+from typing import IO, cast
 
 import yaml
 from aea.configurations.utils import PublicId
 
 
+class ImageProfiles:  # pylint: disable=too-few-public-methods
+    """Image build profiles."""
+
+    CLUSTER = "cluster"
+    DEVELOPMENT = "dev"
+    PRODUCTION = "prod"
+    DEPENDENCIES = "dependencies"
+    ALL = (CLUSTER, DEVELOPMENT, PRODUCTION, DEPENDENCIES)
+
+
 class ImageBuilder:
     """Class to build images using skaffold."""
 
-    _process: subprocess.Popen
+    @classmethod
+    def build_images(  # pylint: disable=too-many-arguments
+        cls,
+        profile: str,
+        deployment_file_path: Path,
+        package_dir: Path,
+        build_dir: Path,
+        skaffold_dir: Path,
+        version: str,
+        push: bool = False,
+    ) -> None:
+        """Build images using the subprocess."""
+        aea_agent = cls.get_aea_agent(deployment_file_path=deployment_file_path)
+        cls._copy_packages(package_dir=package_dir, build_dir=build_dir)
+        cls._build(aea_agent, profile, skaffold_dir, version, push)
 
-    def _build(
-        self,
+    @classmethod
+    def _build(  # pylint: disable=too-many-arguments
+        cls,
         aea_agent: str,
         profile: str,
+        skaffold_dir: Path,
+        version: str,
         push: bool = False,
         build_concurrency: int = 0,
     ) -> None:
         """Command to build images from for skaffold deployment."""
-        env = os.environ.copy()
-        agent_id = PublicId.from_str(aea_agent)
-        env["AEA_AGENT"] = aea_agent
-        env["VERSION"] = f"{agent_id.name}V{env['VERSION']}"
 
-        if profile in ["cluster", "dev", "dependencies"]:
-            skaffold_profile = profile
+        agent_id = PublicId.from_str(aea_agent)
+        env = os.environ.copy()
+        env["AEA_AGENT"] = aea_agent
+        env["VERSION"] = f"{agent_id.name}-{version}"
+
+        if profile == ImageProfiles.CLUSTER:
+            if env.get("KUBECONFIG") is None:
+                raise ValueError("Please setup KUBECONFIG variable.")
         else:
-            skaffold_profile = "prod"
-        cmd = f"skaffold build --build-concurrency={build_concurrency} --push={'true' if push else 'false'} -p {skaffold_profile}"
-        self._process = (
-            subprocess.Popen(  # nosec # pylint: disable=consider-using-with,W1509
-                cmd.split(), preexec_fn=os.setsid, env=env
-            )
+            # deleting KUBECONFIG var for none cluster builds will avoid uneccessary warnings
+            if env.get("KUBECONFIG") is not None:
+                del env["KUBECONFIG"]
+
+        process = subprocess.Popen(  # nosec # pylint: disable=consider-using-with,W1509
+            [
+                "skaffold",
+                "build",
+                f"--build-concurrency={build_concurrency}",
+                f"--push={str(push).lower()}",
+                "-p",
+                profile,
+            ],
+            preexec_fn=os.setsid,
+            env=env,
+            stdout=subprocess.PIPE,
+            cwd=str(skaffold_dir),
         )
-        if self._process.wait() != 0:
-            raise Exception(f"Failed to build images. Check Skaffold cmd {cmd}")
+        for output in cast(IO[bytes], process.stdout).readlines():
+            print(f"[Skaffold] {output.decode().strip()}")
+
+        if process.wait() != 0:
+            raise Exception("Failed to build images.")
 
     @staticmethod
     def _copy_packages(
-        package_dir: str = "packages",
-        build_dir: str = "deployments/Dockerfiles/open_aea",
+        package_dir: Path,
+        build_dir: Path,
     ) -> None:
         """Copy packages for image building."""
         build_package_dir = Path(build_dir) / "packages"
+
         if build_package_dir.exists():
             shutil.rmtree(build_package_dir)
         shutil.copytree(  # type: ignore # pylint: disable=E1123
@@ -74,26 +118,11 @@ class ImageBuilder:
         )
 
     @staticmethod
-    def get_aea_agent(  # pylint: disable=unused-argument
-        deployment_file_path: Optional[str], valory_application: Optional[str]
-    ) -> str:
+    def get_aea_agent(deployment_file_path: Path) -> str:
         """Validate and retrieve aea agent from spec."""
-        with open(str(deployment_file_path), "r", encoding="utf-8") as stream:
-            deployment_spec = yaml.safe_load_all(stream)
-            agent = list(deployment_spec)[0]["agent"]
-        return agent
 
-    def build_images(
-        self,
-        profile: str,
-        deployment_file_path: Optional[str],
-        valory_application: Optional[str],
-        push: bool = False,
-    ) -> None:
-        """Build images using the subprocess."""
-        aea_agent = self.get_aea_agent(
-            deployment_file_path=deployment_file_path,
-            valory_application=valory_application,
-        )
-        self._copy_packages()
-        self._build(aea_agent, profile, push)
+        with open(deployment_file_path, "r", encoding="utf-8") as stream:
+            deployment_spec, *_ = yaml.safe_load_all(stream)
+            agent = deployment_spec["agent"]
+
+        return agent
