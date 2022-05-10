@@ -131,6 +131,16 @@ async def read_next_message() -> bytes
 
 Read next message.
 
+<a id="packages.valory.connections.abci.connection.VarintMessageReader.discard_until"></a>
+
+#### discard`_`until
+
+```python
+async def discard_until(n: int) -> None
+```
+
+Discard the next n bytes from the stream chunk by chunk.
+
 <a id="packages.valory.connections.abci.connection.VarintMessageReader.read_until"></a>
 
 #### read`_`until
