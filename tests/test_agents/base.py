@@ -123,26 +123,6 @@ class BaseTestEnd2End(AEATestCaseMany, BaseTendermintTestClass):
             str(self.t),
             type_="str",
         )
-
-        # private cosmos key (AEA_P2P_ID): d9e43d3f0266d14b3af8627a626fa734450b1c0fcdec6f88f79bcf5543b4668c
-        acn_entry_peer = "/dns4/0.0.0.0/tcp/5000/p2p/16Uiu2HAmS4zF7P3KLH5A5KKRAFLDAGzQRz2p9Vsz6avHfeqfNyWQ"
-        public_key = "03c74dbfbe7bbc1b42429f78778017a3cd7eaf9d59d1634c9505a3f7c1a9350e71"
-        self.set_config(
-            f"vendor.valory.connections.p2p_libp2p_client.config.nodes",
-            json.dumps([dict(uri=acn_entry_peer, public_key=public_key)]),
-            type_="list",
-        )
-
-        self.set_config(
-            f"vendor.valory.connections.p2p_libp2p_client.cert_requests",
-            json.dumps([dict(
-                identifier="acn", ledger_id="ethereum", message_format="{public_key}",
-                not_after="2022-01-01", not_before="2021-01-01",
-                public_key=public_key, save_path=".certs/acn_cosmos.txt",
-                )]),
-            type_="list",
-        )
-
         self.__set_extra_configs()
 
     def setup(self) -> None:

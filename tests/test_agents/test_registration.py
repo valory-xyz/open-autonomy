@@ -24,43 +24,60 @@ import pytest
 
 from tests.fixture_helpers import UseACNNode
 
-from aea.test_tools.test_cases import AEATestCaseMany
 from tests.test_agents.base import BaseTestEnd2EndNormalExecution
-from tests.fixture_helpers import UseTendermint, ACNNodeBaseTest, UseGnosisSafeHardHatNet
+from tests.fixture_helpers import UseGnosisSafeHardHatNet
 
 
-# IntegrationBaseCase
+# strict check log messages of the happy path
+STRICT_CHECK_STRINGS = (
+    "Local Tendermint configuration obtained",
+    "ServiceRegistryContract.getServiceInfo response",
+    "Registered addresses retrieved from service registry contract",
+    "Completed collecting Tendermint responses",
+    "Local TendermintNode updated",
+    "Tendermint node restarted",
+)
+
+
+class ACNClientConnectionEndToEndTestBase(BaseTestEnd2EndNormalExecution):
+    """Base class for e2e tests using the ACN client connection"""
+
+    skill_package = "valory/registration_abci:0.1.0"
+    agent_package = "valory/registration_start_up:0.1.0"
+    wait_to_finish = 120
+
+    prefix = "vendor.valory.skills.registration_abci.models.params.args"
+
+    extra_configs = [
+        # {
+        #     "dotted_path": f"{prefix}.tendermint_com_url",
+        #     "value": "",
+        # },
+        {
+            "dotted_path": f"{prefix}.service_registry_address",
+            # "value": "0xa51c1fc2f0d1a1b8494ed1fe312d7c3a78ed91c0",
+            "value": "0xA51c1fc2f0D1a1b8494Ed1FE312d7C3a78Ed91C0",
+        },
+        {
+            "dotted_path": f"{prefix}.on_chain_service_id",
+            "value": "1",
+        },
+    ]
+
 
 @pytest.mark.e2e
 @pytest.mark.integration
-class TestRegistrationStartUpSkill(BaseTestEnd2EndNormalExecution, UseACNNode):
-    """
-    Test registration start-up skill.
-
-    Requires Tendermint, the ACN and access to the on chain protocol service registry contract.
-    See the RegistrationStartupBehaviour.async_act method for details.
-    """
+class TestRegistrationStartUpSingleAgent(ACNClientConnectionEndToEndTestBase, UseGnosisSafeHardHatNet, UseACNNode):
+    """Test registration start-up skill with a single agent."""
 
     NB_AGENTS = 1
-    agent_package = "valory/oracle:0.1.0"  # "valory/registration_start_up:0.1.0"
-    skill_package = "valory/oracle_abci:0.1.0"
-    wait_to_finish = 180
+    strict_check_strings = STRICT_CHECK_STRINGS
 
-    #
-    # IS_LOCAL = False
-    # capture_log = True
-    # cli_log_options = ["-v", "DEBUG"]
-    #
-    # @classmethod
-    # def _setup_class(cls, **kwargs) -> None:
-    #     """Setup test."""
-    #
-    # # @classmethod
-    # # def setup(cls, **kwargs: Any) -> None:
-    # #     """Setup."""
-    # #     super().setup()
-    #
-    # def test_run(self) -> None:
-    #     """Run the ABCI skill."""
-    #     agent_name = "registration_start_up_aea"
-    #     # self.fetch_agent("valory/counter:0.1.0", agent_name, is_local=self.IS_LOCAL)
+
+@pytest.mark.e2e
+@pytest.mark.integration
+class TestRegistrationStartUpTwoAgents(ACNClientConnectionEndToEndTestBase, UseGnosisSafeHardHatNet, UseACNNode):
+    """Test registration start-up skill with two agents."""
+
+    NB_AGENTS = 2
+    strict_check_strings = STRICT_CHECK_STRINGS
