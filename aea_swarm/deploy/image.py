@@ -21,6 +21,7 @@
 
 import os
 import shutil
+import signal
 import subprocess  # nosec
 from pathlib import Path
 from typing import IO, cast
@@ -83,25 +84,39 @@ class ImageBuilder:
             if env.get("KUBECONFIG") is not None:
                 del env["KUBECONFIG"]
 
-        process = subprocess.Popen(  # nosec # pylint: disable=consider-using-with,W1509
-            [
-                "skaffold",
-                "build",
-                f"--build-concurrency={build_concurrency}",
-                f"--push={str(push).lower()}",
-                "-p",
-                profile,
-            ],
-            preexec_fn=os.setsid,
-            env=env,
-            stdout=subprocess.PIPE,
-            cwd=str(skaffold_dir),
-        )
-        for output in cast(IO[bytes], process.stdout).readlines():
-            print(f"[Skaffold] {output.decode().strip()}")
+        try:
+            process = (
+                subprocess.Popen(  # nosec # pylint: disable=consider-using-with,W1509
+                    [
+                        "skaffold",
+                        "build",
+                        f"--build-concurrency={build_concurrency}",
+                        f"--push={str(push).lower()}",
+                        "-p",
+                        profile,
+                    ],
+                    preexec_fn=os.setsid,
+                    env=env,
+                    stdout=subprocess.PIPE,
+                    cwd=str(skaffold_dir),
+                )
+            )
 
-        if process.wait() != 0:
-            raise Exception("Failed to build images.")
+            for output in cast(IO[bytes], process.stdout).readlines():
+                print(f"[Skaffold] {output.decode().strip()}")
+
+        except KeyboardInterrupt:
+            cast(IO[bytes], process.stdout).close()
+            process.send_signal(signal.SIGTERM)
+
+        process.wait(timeout=30)
+        poll = process.poll()
+        if poll is None:
+            process.terminate()
+            process.wait(2)
+
+        if process.returncode != 0:
+            print("Image build failed.")
 
     @staticmethod
     def _copy_packages(
