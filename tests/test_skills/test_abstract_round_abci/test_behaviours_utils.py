@@ -70,6 +70,10 @@ class AsyncBehaviourTest(AsyncBehaviour, ABC):
     def async_act(self) -> Generator:
         """Do 'async_act'."""
 
+    def latest_timestamp(self) -> datetime:
+        """Get the latest timestamp."""
+        return datetime.now()
+
 
 def async_behaviour_initial_state_is_ready() -> None:
     """Check that the initial async state is "READY"."""
@@ -89,6 +93,9 @@ def test_async_behaviour_ticks() -> None:
             self.counter += 1
             yield
             self.counter += 1
+
+        def latest_timestamp(self) -> datetime:
+            return datetime.now()
 
     behaviour = MyAsyncBehaviour()
     assert behaviour.counter == 0
@@ -118,6 +125,9 @@ def test_async_behaviour_wait_for_message() -> None:
                 lambda message: message == expected_message
             )
             self.counter += 1
+
+        def latest_timestamp(self) -> datetime:
+            return datetime.now()
 
     behaviour = MyAsyncBehaviour()
     assert behaviour.counter == 0
@@ -156,8 +166,21 @@ def test_async_behaviour_wait_for_message() -> None:
 def test_async_behaviour_wait_for_message_raises_timeout_exception() -> None:
     """Test 'wait_for_message' when it raises TimeoutException."""
 
+    condition = False
+
+    class MyAsyncBehaviour(AsyncBehaviourTest):
+        counter = 0
+
+        def async_act(self) -> Generator:
+            self.counter += 1
+            yield from self.wait_for_condition(lambda: condition)
+            self.counter += 1
+
+        def latest_timestamp(self) -> datetime:
+            return datetime.now()
+
     with pytest.raises(TimeoutException):
-        behaviour = AsyncBehaviourTest()
+        behaviour = MyAsyncBehaviour()
         gen = behaviour.wait_for_message(lambda _: False, timeout=0.01)
         # trigger function
         try_send(gen)
@@ -179,6 +202,9 @@ def test_async_behaviour_wait_for_condition() -> None:
             self.counter += 1
             yield from self.wait_for_condition(lambda: condition)
             self.counter += 1
+
+        def latest_timestamp(self) -> datetime:
+            return datetime.now()
 
     behaviour = MyAsyncBehaviour()
     assert behaviour.counter == 0
@@ -208,6 +234,9 @@ def test_async_behaviour_wait_for_condition_with_timeout() -> None:
             self.counter += 1
             yield from self.wait_for_condition(lambda: False, timeout=0.05)
             self.counter += 1
+
+        def latest_timestamp(self) -> datetime:
+            return datetime.now()
 
     behaviour = MyAsyncBehaviour()
     assert behaviour.counter == 0
@@ -242,6 +271,9 @@ def test_async_behaviour_sleep() -> None:
             yield from self.sleep(timedelta)
             self.counter += 1
             self.last_datetime = datetime.now()
+
+        def latest_timestamp(self) -> datetime:
+            return datetime.now()
 
     behaviour = MyAsyncBehaviour()
     assert behaviour.counter == 0
@@ -279,6 +311,9 @@ def test_async_behaviour_without_yield() -> None:
         def async_act(self) -> Generator:
             pass
 
+        def latest_timestamp(self) -> datetime:
+            return datetime.now()
+
     behaviour = MyAsyncBehaviour()
     behaviour.act()
     assert behaviour.state == AsyncBehaviour.AsyncState.READY
@@ -294,6 +329,9 @@ def test_async_behaviour_raise_stopiteration() -> None:
         def async_act(self) -> Generator:
             pass
 
+        def latest_timestamp(self) -> datetime:
+            return datetime.now()
+
     behaviour = MyAsyncBehaviour()
     behaviour.act()
     assert behaviour.state == AsyncBehaviour.AsyncState.READY
@@ -305,6 +343,9 @@ def test_async_behaviour_stop() -> None:
     class MyAsyncBehaviour(AsyncBehaviourTest):
         def async_act(self) -> Generator:
             yield
+
+        def latest_timestamp(self) -> datetime:
+            return datetime.now()
 
     behaviour = MyAsyncBehaviour()
     assert behaviour.is_stopped
@@ -518,14 +559,19 @@ class TestBaseState:
     @mock.patch.object(BaseState, "_get_status", _get_status_wrong_patch)
     def test_async_act_wrapper_agent_sync_mode_where_height_dont_match(self) -> None:
         """Test 'async_act_wrapper' in sync mode."""
-        self.behaviour.context.state.period.syncing_up = True
-        self.behaviour.context.state.period.height = 0
-        self.behaviour.context.params.tendermint_check_sleep_delay = 3
-        self.behaviour.matching_round = MagicMock()
-        self.behaviour.context.logger.info = lambda msg: logging.info(msg)  # type: ignore
+        with mock.patch.object(
+            BaseState,
+            "latest_timestamp",
+            return_value=datetime.now(),
+        ):
+            self.behaviour.context.state.period.syncing_up = True
+            self.behaviour.context.state.period.height = 0
+            self.behaviour.context.params.tendermint_check_sleep_delay = 3
+            self.behaviour.matching_round = MagicMock()
+            self.behaviour.context.logger.info = lambda msg: logging.info(msg)  # type: ignore
 
-        gen = self.behaviour.async_act_wrapper()
-        try_send(gen)
+            gen = self.behaviour.async_act_wrapper()
+            try_send(gen)
 
     @pytest.mark.parametrize("exception_cls", [StopIteration])
     def test_async_act_wrapper_exception(self, exception_cls: Exception) -> None:
@@ -560,19 +606,24 @@ class TestBaseState:
     @mock.patch.object(BaseState, "_check_http_return_code_200", return_value=True)
     def test_send_transaction_positive(self, *_: Any) -> None:
         """Test '_send_transaction', positive case."""
-        m = MagicMock(status_code=200)
-        gen = self.behaviour._send_transaction(m)
-        # trigger generator function
-        try_send(gen, obj=None)
-        # send message to 'wait_for_message'
-        try_send(gen, obj=m)
-        # send message to '_submit_tx'
-        try_send(gen, obj=MagicMock(body='{"result": {"hash": "", "code": 0}}'))
-        # send message to '_wait_until_transaction_delivered'
-        success_response = MagicMock(
-            status_code=200, body='{"result": {"tx_result": {"code": 0}}}'
-        )
-        try_send(gen, obj=success_response)
+        with mock.patch.object(
+            BaseState,
+            "latest_timestamp",
+            return_value=datetime.now(),
+        ):
+            m = MagicMock(status_code=200)
+            gen = self.behaviour._send_transaction(m)
+            # trigger generator function
+            try_send(gen, obj=None)
+            # send message to 'wait_for_message'
+            try_send(gen, obj=m)
+            # send message to '_submit_tx'
+            try_send(gen, obj=MagicMock(body='{"result": {"hash": "", "code": 0}}'))
+            # send message to '_wait_until_transaction_delivered'
+            success_response = MagicMock(
+                status_code=200, body='{"result": {"tx_result": {"code": 0}}}'
+            )
+            try_send(gen, obj=success_response)
 
     @mock.patch.object(BaseState, "_send_signing_request")
     @mock.patch.object(Transaction, "encode", return_value=MagicMock())
@@ -589,15 +640,20 @@ class TestBaseState:
     )
     def test_send_transaction_invalid_transaction(self, *_: Any) -> None:
         """Test '_send_transaction', positive case."""
-        m = MagicMock(status_code=200)
-        gen = self.behaviour._send_transaction(m)
-        try_send(gen, obj=None)
-        try_send(gen, obj=m)
-        try_send(gen, obj=MagicMock(body='{"result": {"hash": "", "code": 0}}'))
-        success_response = MagicMock(
-            status_code=200, body='{"result": {"tx_result": {"code": 0}}}'
-        )
-        try_send(gen, obj=success_response)
+        with mock.patch.object(
+            BaseState,
+            "latest_timestamp",
+            return_value=datetime.now(),
+        ):
+            m = MagicMock(status_code=200)
+            gen = self.behaviour._send_transaction(m)
+            try_send(gen, obj=None)
+            try_send(gen, obj=m)
+            try_send(gen, obj=MagicMock(body='{"result": {"hash": "", "code": 0}}'))
+            success_response = MagicMock(
+                status_code=200, body='{"result": {"tx_result": {"code": 0}}}'
+            )
+            try_send(gen, obj=success_response)
 
     @mock.patch.object(BaseState, "_send_signing_request")
     def test_send_transaction_signing_error(self, *_: Any) -> None:
@@ -686,17 +742,24 @@ class TestBaseState:
             gen = self.behaviour._send_transaction(
                 m, request_retry_delay=delay, tx_timeout=timeout, max_attempts=0
             )
-            # trigger generator function
-            try_send(gen, obj=None)
-            # send message to 'wait_for_message'
-            try_send(gen, obj=m)
-            # send message to '_submit_tx'
-            try_send(gen, obj=MagicMock(body='{"result": {"hash": "", "code": 0}}'))
-            # send message to '_wait_until_transaction_delivered'
-            time.sleep(timeout)
-            try_send(gen, obj=m)
+            with mock.patch.object(
+                BaseState,
+                "latest_timestamp",
+                return_value=datetime.now(),
+            ):
+                # trigger generator function
+                try_send(gen, obj=None)
+                # send message to 'wait_for_message'
+                try_send(gen, obj=m)
+                # send message to '_submit_tx'
+                try_send(gen, obj=MagicMock(body='{"result": {"hash": "", "code": 0}}'))
+                # send message to '_wait_until_transaction_delivered'
+                time.sleep(timeout)
+                try_send(gen, obj=m)
 
-            mock_info.assert_called_with("Tx sent but not delivered. Response = None")
+                mock_info.assert_called_with(
+                    "Tx sent but not delivered. Response = None"
+                )
 
     @mock.patch.object(BaseState, "_send_signing_request")
     @mock.patch.object(Transaction, "encode", return_value=MagicMock())
@@ -712,21 +775,28 @@ class TestBaseState:
         gen = self.behaviour._send_transaction(m)
 
         with mock.patch.object(self.behaviour.context.logger, "info") as mock_info:
-            # trigger generator function
-            try_send(gen, obj=None)
-            # send message to 'wait_for_message'
-            try_send(gen, obj=m)
-            # send message to '_submit_tx'
-            try_send(gen, obj=MagicMock(body='{"result": {"hash": "", "code": -1}}'))
-            # send message to '_wait_until_transaction_delivered'
-            success_response = MagicMock(
-                status_code=200, body='{"result": {"tx_result": {"code": 0}}}'
-            )
-            try_send(gen, obj=success_response)
+            with mock.patch.object(
+                BaseState,
+                "latest_timestamp",
+                return_value=datetime.now(),
+            ):
+                # trigger generator function
+                try_send(gen, obj=None)
+                # send message to 'wait_for_message'
+                try_send(gen, obj=m)
+                # send message to '_submit_tx'
+                try_send(
+                    gen, obj=MagicMock(body='{"result": {"hash": "", "code": -1}}')
+                )
+                # send message to '_wait_until_transaction_delivered'
+                success_response = MagicMock(
+                    status_code=200, body='{"result": {"tx_result": {"code": 0}}}'
+                )
+                try_send(gen, obj=success_response)
 
-            mock_info.assert_called_with(
-                "Received tendermint code != 0. Retrying in 1.0 seconds..."
-            )
+                mock_info.assert_called_with(
+                    "Received tendermint code != 0. Retrying in 1.0 seconds..."
+                )
 
     @pytest.mark.skip
     @mock.patch.object(BaseState, "_send_signing_request")
@@ -767,6 +837,7 @@ class TestBaseState:
             try_send(gen, obj=m)
 
     @mock.patch.object(BaseState, "_send_signing_request")
+    @mock.patch.object(BaseState, "latest_timestamp", return_value=datetime.now())
     @mock.patch.object(Transaction, "encode", return_value=MagicMock())
     @mock.patch.object(
         BaseState,
@@ -1134,13 +1205,18 @@ class TestBaseState:
             "wait_from_last_timestamp",
             new_callable=lambda *_: self.dummy_sleep,
         ):
-            res = self.behaviour._start_reset()
-            for _ in range(2):
-                next(res)
-            assert self.behaviour._check_started is not None
-            assert self.behaviour._check_started <= datetime.now()
-            assert self.behaviour._timeout == self.behaviour.params.max_healthcheck
-            assert not self.behaviour._is_healthy
+            with mock.patch.object(
+                BaseState,
+                "latest_timestamp",
+                return_value=datetime.now(),
+            ):
+                res = self.behaviour._start_reset()
+                for _ in range(2):
+                    next(res)
+                assert self.behaviour._check_started is not None
+                assert self.behaviour._check_started <= datetime.now()
+                assert self.behaviour._timeout == self.behaviour.params.max_healthcheck
+                assert not self.behaviour._is_healthy
 
     def test_end_reset(self) -> None:
         """Test the `_end_reset` method."""
@@ -1167,10 +1243,20 @@ class TestBaseState:
         expiration_expected: bool,
     ) -> None:
         """Test the `_is_timeout_expired` method."""
-        self.behaviour._check_started = check_started
-        self.behaviour._is_healthy = is_healthy
-        self.behaviour._timeout = timeout
-        assert self.behaviour._is_timeout_expired() == expiration_expected
+        with mock.patch.object(
+            BaseState,
+            "latest_timestamp",
+            return_value=datetime.now(),
+        ):
+            with mock.patch.object(
+                BaseState,
+                "latest_timestamp",
+                return_value=datetime.now(),
+            ):
+                self.behaviour._check_started = check_started
+                self.behaviour._is_healthy = is_healthy
+                self.behaviour._timeout = timeout
+                assert self.behaviour._is_timeout_expired() == expiration_expected
 
     @mock.patch.object(BaseState, "_start_reset")
     @mock.patch.object(BaseState, "_is_timeout_expired")
