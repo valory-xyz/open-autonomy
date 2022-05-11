@@ -41,7 +41,7 @@ from packages.valory.skills.abstract_round_abci.behaviours import (
     AbstractRoundBehaviour,
     BaseState,
 )
-from packages.valory.skills.liquidity_rebalancing_abci.models import Params, SharedState
+from packages.valory.skills.liquidity_rebalancing_abci.models import Params
 from packages.valory.skills.liquidity_rebalancing_abci.payloads import (
     SleepPayload,
     StrategyEvaluationPayload,
@@ -365,9 +365,7 @@ class StrategyEvaluationBehaviour(LiquidityRebalancingBaseBehaviour):
 
     def get_dummy_strategy(self) -> dict:
         """Get a dummy strategy."""
-        last_timestamp = cast(
-            SharedState, self.context.state
-        ).period.abci_app.last_timestamp.timestamp()
+        last_timestamp = self.latest_timestamp()
 
         strategy = {
             "action": StrategyType.ENTER.value,
@@ -377,7 +375,7 @@ class StrategyEvaluationBehaviour(LiquidityRebalancingBaseBehaviour):
                 "exit": SAFE_TX_GAS_EXIT,
                 "swap_back": SAFE_TX_GAS_SWAP_BACK,
             },
-            "deadline": int(last_timestamp)
+            "deadline": int(last_timestamp.timestamp())
             + self.params.rebalancing_params["deadline"],
             "chain": self.params.rebalancing_params["chain"],
             "token_base": {
