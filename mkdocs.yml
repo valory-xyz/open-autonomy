@@ -33,6 +33,7 @@ nav:
       - Replay: 'tendermint_replays.md'
       - Benchmarking: 'benchmarks.md'
     - Deployment:
+      - Container Control Flow: 'control_flow.md'
       - Local Deployment: 'application_deployment.md'
       - Cloud Deployment: 'using_stack_deployment.md'
     - Running on other networks: 'networks.md'
