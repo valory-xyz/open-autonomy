@@ -1152,7 +1152,7 @@ class TestBaseState:
                 next(app_hash_iter)
             except StopIteration as e:
                 if response is None or response.get("app_hash") is None:
-                    assert e.value == ""
+                    assert e.value is None
                 else:
                     assert e.value == response["app_hash"]
 
@@ -1184,7 +1184,7 @@ class TestBaseState:
                 1,
                 2,
                 False,
-                "",
+                None,
             ),
             (
                 {"message": "Tendermint reset was successful.", "status": True},
