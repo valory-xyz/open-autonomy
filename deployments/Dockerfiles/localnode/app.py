@@ -156,11 +156,12 @@ def gentle_reset() -> Tuple[Any, int]:
 def app_hash() -> Tuple[Any, int]:
     """Get the app hash."""
     try:
-        endpoint = f"{tendermint_params.rpc_laddr.replace('tcp', 'http')}/header"
+        endpoint = f"{tendermint_params.rpc_laddr.replace('tcp', 'http')}/block"
         height = request.args.get("height")
         params = {"height": height} if height is not None else None
         res = requests.get(endpoint, params)
-        return res.json()["result"], res.status_code
+        app_hash_ = res.json()["result"]["block"]["header"]["app_hash"]
+        return jsonify({"app_hash": app_hash_}), res.status_code
     except Exception as e:  # pylint: disable=W0703
         return (
             jsonify({"error": f"Could not get the app hash: {str(e)}"}),
