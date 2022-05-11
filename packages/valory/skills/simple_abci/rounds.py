@@ -16,11 +16,9 @@
 #   limitations under the License.
 #
 # ------------------------------------------------------------------------------
-"""This module contains the data classes for the simple ABCI application."""
 
-import logging
+"""This module contains the data classes for the simple ABCI application."""
 import struct
-import sys
 from abc import ABC
 from enum import Enum
 from types import MappingProxyType
@@ -41,9 +39,6 @@ from packages.valory.skills.simple_abci.payloads import (
     SelectKeeperPayload,
     TransactionType,
 )
-
-
-_logger = logging.getLogger("aea.packages.valory.skills.abstract_round_abci.base")
 
 
 class Event(Enum):
@@ -115,14 +110,6 @@ class RegistrationRound(CollectDifferentUntilAllRound, SimpleABCIAbstractRound):
 
     def end_block(self) -> Optional[Tuple[BasePeriodState, Event]]:
         """Process the end of the block."""
-
-        _logger.info("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
-        print("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX")
-        print(
-            "fatal errorXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX",
-            file=sys.stderr,
-        )
-
         if self.collection_threshold_reached:
             state = self.period_state.update(
                 participants=self.collection,
