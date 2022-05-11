@@ -1437,7 +1437,9 @@ class BaseState(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
             request_message, http_dialogue = self._build_http_request_message(
                 "GET",
                 self.params.tendermint_com_url + "/app_hash",
-                parameters=[("height", self.context.state.period.height)],
+                parameters=[
+                    ("height", self.context.state.period.last_round_transition_height)
+                ],
             )
             result = yield from self._do_request(request_message, http_dialogue)
             json_res = json.loads(result.body.decode())
