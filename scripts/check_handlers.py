@@ -32,6 +32,13 @@ from pathlib import Path
 import yaml
 
 
+# Special skills that only define one handler
+BASIC_SKILLS = ("abstract_abci", "counter", "counter_client")
+
+# Handlers that every non-basic skill must declare
+COMMON_HANDLERS = ("abci", "http", "contract_api", "ledger_api", "signing")
+
+
 def check_handlers():
     """Check handlers"""
     skill_yamls = [*Path("packages/").glob("**/skill.yaml")]
@@ -45,6 +52,7 @@ def check_handlers():
 
         # Load module
         module_name = str(handler_file_path).replace(".py", "").replace("/", ".")
+        skill_name = module_name.split(".")[-2]
         print(f"Checking: {module_name}")
         try:
             module = importlib.import_module(module_name)
@@ -57,6 +65,14 @@ def check_handlers():
         # Load skill.yaml
         with open(str(yaml_file), mode="r", encoding="utf-8") as fp:
             config = yaml.safe_load(fp)
+
+            # Check for the common handlers
+            if skill_name not in BASIC_SKILLS:
+                for common_handler in COMMON_HANDLERS:
+                    assert (
+                        common_handler in config["handlers"].keys()
+                    ), f"Common handler '{common_handler}' is not defined in {yaml_file}"
+
             # Check for missing handlers
             for handler_info in config["handlers"].values():
                 assert (
