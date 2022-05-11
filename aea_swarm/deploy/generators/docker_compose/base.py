@@ -22,6 +22,11 @@ import os
 from pathlib import Path
 from typing import Dict, Type
 
+from aea_swarm.constants import (
+    DEFAULT_IMAGE_VERSION,
+    OPEN_AEA_IMAGE_NAME,
+    TENDERMINT_IMAGE_NAME,
+)
 from aea_swarm.deploy.base import BaseDeployment, BaseDeploymentGenerator
 from aea_swarm.deploy.generators.docker_compose.templates import (
     ABCI_NODE_TEMPLATE,
@@ -31,50 +36,52 @@ from aea_swarm.deploy.generators.docker_compose.templates import (
 )
 
 
-def build_tendermint_node_config(node_id: int) -> str:
+def build_tendermint_node_config(node_id: int, dev_mode: bool = False) -> str:
     """Build tendermint node config for docker compose."""
 
-    return TENDERMINT_NODE_TEMPLATE.format(
+    config = TENDERMINT_NODE_TEMPLATE.format(
         node_id=node_id,
         localnet_address_postfix=node_id + 3,
         localnet_port_range=node_id,
+        tendermint_image_name=TENDERMINT_IMAGE_NAME,
+        tendermint_image_version=DEFAULT_IMAGE_VERSION,
     )
 
+    if dev_mode:
+        config += "      - ./persistent_data/tm_state:/tm_state:Z"
+        config = config.replace("DEV_MODE=0", "DEV_MODE=1")
 
-def build_abci_node_config(node_id: int, max_participants: int) -> str:
-    """Build tendermint node config for docker compose."""
-
-    return ABCI_NODE_TEMPLATE.format(
-        node_id=node_id, localnet_address_postfix=node_id + max_participants + 3
-    )
+    return config
 
 
-def build_docker_compose_yml(max_participants: int) -> str:
-    """Build content for `docker-compose.yml`."""
-
-    tendermint_nodes = ""
-    abci_nodes = ""
-
-    for i in range(max_participants):
-        tendermint_nodes += build_tendermint_node_config(i)
-        abci_nodes += build_abci_node_config(i, max_participants)
-
-    return DOCKER_COMPOSE_TEMPLATE.format(
-        tendermint_nodes=tendermint_nodes, abci_nodes=abci_nodes
-    )
-
-
-def build_agent_config(
-    valory_app: str, node_id: int, number_of_agents: int, agent_vars: Dict
+def build_agent_config(  # pylint: disable=too-many-arguments
+    valory_app: str,
+    node_id: int,
+    number_of_agents: int,
+    agent_vars: Dict,
+    dev_mode: bool = False,
+    package_dir: Path = Path.cwd().absolute() / "packages",
+    open_aea_dir: Path = Path.cwd().absolute().parent / "open-aea",
+    open_aea_image_name: str = OPEN_AEA_IMAGE_NAME,
+    open_aea_image_version: str = DEFAULT_IMAGE_VERSION,
 ) -> str:
     """Build agent config."""
 
-    return ABCI_NODE_TEMPLATE.format(
+    config = ABCI_NODE_TEMPLATE.format(
         valory_app=valory_app,
         node_id=node_id,
         agent_vars="".join([f"      - {k}={v}\n" for k, v in agent_vars.items()]),
         localnet_address_postfix=node_id + number_of_agents + 3,
+        open_aea_image_name=open_aea_image_name,
+        open_aea_image_version=open_aea_image_version,
     )
+
+    if dev_mode:
+        config += "      - ./persistent_data/benchmarks:/benchmarks:Z\n"
+        config += f"      - {package_dir}:/home/ubuntu/packages:rw\n"
+        config += f"      - {open_aea_dir}:/open-aea\n"
+
+    return config
 
 
 class DockerComposeGenerator(BaseDeploymentGenerator):
@@ -102,6 +109,8 @@ class DockerComposeGenerator(BaseDeploymentGenerator):
             ),
             validators=self.deployment_spec.number_of_agents,
             build_dir=self.build_dir,
+            tendermint_image_name=TENDERMINT_IMAGE_NAME,
+            tendermint_image_version=DEFAULT_IMAGE_VERSION,
         )
         self.config_cmd = " ".join(
             [
@@ -113,7 +122,9 @@ class DockerComposeGenerator(BaseDeploymentGenerator):
         os.popen(self.config_cmd).read()  # nosec
         return self.config_cmd
 
-    def generate(self, valory_application: Type[BaseDeployment]) -> str:
+    def generate(
+        self, valory_application: Type[BaseDeployment], dev_mode: bool = False
+    ) -> str:
         """Generate the new configuration."""
 
         agent_vars = self.deployment_spec.generate_agents()
@@ -121,17 +132,27 @@ class DockerComposeGenerator(BaseDeploymentGenerator):
 
         image_name = valory_application.agent_public_id.name
 
+        if dev_mode:
+            version = "dev"
+        else:
+            version = DEFAULT_IMAGE_VERSION
+
         agents = "".join(
             [
                 build_agent_config(
-                    image_name, i, self.deployment_spec.number_of_agents, agent_vars[i]
+                    image_name,
+                    i,
+                    self.deployment_spec.number_of_agents,
+                    agent_vars[i],
+                    dev_mode,
+                    open_aea_image_version=version,
                 )
                 for i in range(self.deployment_spec.number_of_agents)
             ]
         )
         tendermint_nodes = "".join(
             [
-                build_tendermint_node_config(i)
+                build_tendermint_node_config(i, dev_mode)
                 for i in range(self.deployment_spec.number_of_agents)
             ]
         )

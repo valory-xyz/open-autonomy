@@ -38,6 +38,7 @@ def generate_deployment(
     deployment_file_path: Path,
     package_dir: Path,
     build_dir: Path,
+    dev_mode: bool = False,
 ) -> str:
     """Generate the deployment build for the valory app."""
 
@@ -54,7 +55,7 @@ def generate_deployment(
         BaseDeploymentGenerator,
         DeploymentGenerator(deployment_spec=deployment_spec, build_dir=build_dir),
     )
-    deployment.generate(deployment_spec)  # type: ignore
+    deployment.generate(deployment_spec, dev_mode)  # type: ignore
     deployment.write_config()
     deployment.generate_config_tendermint(deployment_spec)  # type: ignore
 

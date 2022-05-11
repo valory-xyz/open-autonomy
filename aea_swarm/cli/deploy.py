@@ -29,6 +29,7 @@ from aea.configurations.constants import PACKAGES
 from aea.configurations.data_types import PublicId
 
 from aea_swarm.cli.utils.click_utils import image_profile_flag
+from aea_swarm.constants import DEFAULT_IMAGE_VERSION
 from aea_swarm.deploy.build import generate_deployment
 from aea_swarm.deploy.generators.docker_compose.base import DockerComposeGenerator
 from aea_swarm.deploy.generators.kubernetes.base import KubernetesGenerator
@@ -97,7 +98,7 @@ def build_deployment(  # pylint: disable=too-many-arguments
     deployment_type: str,
     output_dir: Path,
     package_dir: Path,
-    dev_mode: bool,  # pylint: disable=unused-argument
+    dev_mode: bool,
     force_overwrite: bool,
 ) -> None:
     """Build deployment setup for 4 agents."""
@@ -126,6 +127,7 @@ def build_deployment(  # pylint: disable=too-many-arguments
             private_keys_file_path=keys_file,
             package_dir=package_dir,
             build_dir=build_dir,
+            dev_mode=dev_mode,
         )
         click.echo(report)
     except ValueError as e:
@@ -158,7 +160,7 @@ def build_deployment(  # pylint: disable=too-many-arguments
 @click.option(
     "--version",
     type=str,
-    default="0.1.0",
+    default=DEFAULT_IMAGE_VERSION,
     help="Image version",
 )
 @click.option("--push", is_flag=True, default=False, help="Push image after build.")

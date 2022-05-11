@@ -55,6 +55,10 @@ class ImageBuilder:
         push: bool = False,
     ) -> None:
         """Build images using the subprocess."""
+
+        if profile == ImageProfiles.DEVELOPMENT:
+            version = "dev"
+
         aea_agent = cls.get_aea_agent(deployment_file_path=deployment_file_path)
         cls._copy_packages(package_dir=package_dir, build_dir=build_dir)
         cls._build(aea_agent, profile, skaffold_dir, version, push)

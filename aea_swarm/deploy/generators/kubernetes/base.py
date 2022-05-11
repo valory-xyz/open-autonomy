@@ -106,7 +106,9 @@ class KubernetesGenerator(BaseDeploymentGenerator):
             agent.update(TENDERMINT_CONFIGURATION_OVERRIDES[self.deployment_type])
         return agent_params
 
-    def generate(self, valory_application: Type[BaseDeployment]) -> str:
+    def generate(  # pylint: disable=unused-argument
+        self, valory_application: Type[BaseDeployment], dev_mode: bool = False
+    ) -> str:
         """Generate the deployment."""
         agent_vars = valory_application.generate_agents()  # type:ignore
         agent_vars = self._apply_cluster_specific_tendermint_params(agent_vars)
