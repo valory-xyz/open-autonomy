@@ -6,27 +6,24 @@ description: Hello World ABCI application.
 license: Apache-2.0
 aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
-  README.md: QmcrYgwC9YG6is71nJqyZijVEgAZct3sosuwypZhQZmCwb
+  README.md: QmVxvpqGSFfXbJ9GyWLqaAsVB2cYn92m7wybxb7wggi1Ri
   __init__.py: QmR2xbdp5bQTP44mAQB1utN7Tp16HM2akMLA51RC2PYdUN
-  behaviours.py: QmY8QsN6wJ4wuGRcC2cNCQg6LzAvxPSgKsKbN1YqsG7Avu
-  dialogues.py: QmfDThV4WCRzK88XDpW2hKDYCuEH4RxoHCoAkWpkBRGRPv
+  behaviours.py: QmUsV7YsEgbwMnDZHgXNzwF4bdFaH7YPAtKLaKCz5WYb9t
+  dialogues.py: QmbhsSNfPQBL4qeq3B2yDmr1TXGeg1TLjcW2YJNcFwUe8P
   fsm_specification.yaml: QmNyPHYvkYJnJPSQB53owEt7Kjj2jnvfUR5ucNzVug1xLS
-  handlers.py: QmU2fqUURy6jkwoDUzgnCM6F3iieP18vvx3uhdUgNNH8CN
-  models.py: QmU6S9DdsccExPnyt5Y8Jgjptgg6BbbevKppgAoLrosLe3
+  handlers.py: QmSeSEdJzN4YtM2Qy59SHsfERtS58HyyFMkpyu9JR7pqxu
+  models.py: QmWL6tQvUwLDWkGEtJNTy42zQ6TG6h1dV8VBYYQB82oiC3
   payloads.py: QmWFfkHiAsbkgDDgwVRHHWgfLtog6RTm5JVsqMDXp5oGTv
   rounds.py: QmZR2r1q8FjcqHqepQArQgrwvmDHXzNEiWYYbq6AvqykHx
 fingerprint_ignore_patterns: []
 connections:
 - valory/abci:0.1.0
 - valory/http_client:0.1.0
-- valory/ledger:0.1.0
 contracts: []
 protocols:
 - open_aea/signing:1.0.0
 - valory/abci:0.1.0
-- valory/contract_api:1.0.0
 - valory/http:1.0.0
-- valory/ledger_api:1.0.0
 skills:
 - valory/abstract_round_abci:0.1.0
 behaviours:
@@ -37,15 +34,9 @@ handlers:
   abci:
     args: {}
     class_name: HelloWorldABCIHandler
-  contract_api:
-    args: {}
-    class_name: ContractApiHandler
   http:
     args: {}
     class_name: HttpHandler
-  ledger_api:
-    args: {}
-    class_name: LedgerApiHandler
   signing:
     args: {}
     class_name: SigningHandler
@@ -57,15 +48,9 @@ models:
     args:
       log_dir: /logs
     class_name: BenchmarkTool
-  contract_api_dialogues:
-    args: {}
-    class_name: ContractApiDialogues
   http_dialogues:
     args: {}
     class_name: HttpDialogues
-  ledger_api_dialogues:
-    args: {}
-    class_name: LedgerApiDialogues
   params:
     args:
       cleanup_history_depth: 1
@@ -87,17 +72,6 @@ models:
       tendermint_max_retries: 5
       tendermint_url: http://localhost:26657
     class_name: Params
-  randomness_api:
-    args:
-      api_id: cloudflare
-      headers: []
-      method: GET
-      parameters: []
-      response_key: null
-      response_type: dict
-      retries: 5
-      url: https://drand.cloudflare.com/public/latest
-    class_name: RandomnessApi
   requests:
     args: {}
     class_name: Requests

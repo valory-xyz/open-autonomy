@@ -1,4 +1,4 @@
-# Simple abci
+# Hello World abci
 
 ## Description
 
@@ -7,48 +7,28 @@ application for a simple demonstration.
 
 ## Behaviours
 
-* `BaseResetBehaviour`
+* `HelloWorldABCIBaseState`
 
-   Reset state.
-
-* `RandomnessAtStartupBehaviour`
-
-   Retrieve randomness at startup.
-
-* `RandomnessBehaviour`
-
-   Check whether Tendermint nodes are running.
+   Base state behaviour for the Hello World abci skill.
 
 * `RegistrationBehaviour`
 
    Register to the next round.
 
-* `ResetAndPauseBehaviour`
-
-   Reset state.
-
-* `SelectKeeperAAtStartupBehaviour`
-
-   Select the keeper agent at startup.
-
 * `SelectKeeperBehaviour`
 
    Select the keeper agent.
 
-* `SimpleABCIBaseState`
+* `PrintMessageBehaviour`
 
-   Base state behaviour for the simple abci skill.
+   Prints the celebrated 'HELLO WORLD!' message.
 
-* `SimpleAbciConsensusBehaviour`
+* `ResetAndPauseBehaviour`
 
-   This behaviour manages the consensus stages for the simple abci app.
-
+   Reset state.
 
 ## Handlers
 
-* `SimpleABCIHandler`
+* `HelloWorldABCIHandler`
 * `HttpHandler`
 * `SigningHandler`
-* `LedgerApiHandler`
-* `ContractApiHandler`
-

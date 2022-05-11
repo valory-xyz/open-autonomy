@@ -117,7 +117,7 @@ class SelectKeeperBehaviour(HelloWorldABCIBaseState, ABC):
 
 
 class PrintMessageBehaviour(HelloWorldABCIBaseState, ABC):
-    """Select the keeper agent."""
+    """Prints the celebrated 'HELLO WORLD!' message."""
 
     state_id = "print_message"
     matching_round = PrintMessageRound
