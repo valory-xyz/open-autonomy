@@ -18,14 +18,16 @@
 # ------------------------------------------------------------------------------
 
 """Tendermint Docker image."""
+import os
+import subprocess
 import time
 from typing import List
 
 import docker
 from docker.models.containers import Container
 
+from deployments.constants import TENDERMINT_VERSION
 from tests.helpers.docker.base import DockerImage
-
 
 DEFAULT_TENDERMINT_PORT = 26657
 DEFAULT_ABCI_PORT = 26658
@@ -92,3 +94,80 @@ class TendermintDockerImage(DockerImage):
         """
         time.sleep(_SLEEP_TIME)
         return True
+
+
+class FlaskTendermintDockerImage(TendermintDockerImage):
+    """Flask app with Tendermint Docker image."""
+
+    @property
+    def tag(self) -> str:
+        """Get the tag."""
+        return f"valory/consensus-algorithms-tendermint:{TENDERMINT_VERSION}"
+
+    def _build_command(self) -> List[str]:
+        """Build command."""
+        return ["run", "--no-reload", "--host=0.0.0.0", "--port=8080"]
+
+    def _create_one(self, i: int) -> Container:
+        """Create a node container."""
+        name = f"node{i}"
+        run_kwargs = dict(
+            image=self.tag,
+            command=self._build_command(),
+            name=name,
+            hostname=name,
+            detach=True,
+            mem_limit="1024m",
+            mem_reservation="256M",
+            environment={
+                "ID": i,
+                "PROXY_APP": f"tcp://abci{i}:{self.abci_port}",
+                "TMHOME": f"/tendermint/{name}",
+                "CREATE_EMPTY_BLOCKS": "true",
+                "DEV_MODE": "1",
+                "LOG_FILE": f"/logs/{name}.txt",
+            },
+            working_dir="/tendermint",
+            volumes=[
+                "./build:/tendermint:Z",
+                "../persistent_data/logs:/logs:Z",
+                "../persistent_data/tm_state:/tm_state:Z",
+            ],
+            ports={
+                f"{DEFAULT_TENDERMINT_PORT}/tcp": ("0.0.0.0", self.port + i),
+            },
+            extra_hosts={self.abci_host: "host-gateway"}
+            if self.abci_host == DEFAULT_ABCI_HOST
+            else {},
+        )
+        container = self._client.containers.run(**run_kwargs)
+        return container
+
+    def _create_config(self, nb_nodes: int) -> None:
+        """Create necessary configuration."""
+        cmd = [
+            "docker",
+            "run",
+            "--rm",
+            "-v",
+            f"{os.getcwd()}/deployments/build/build:/tendermint:Z",
+            f"--entrypoint=/usr/bin/tendermint",
+            self.tag,
+            "testnet",
+            "--config",
+            "/etc/tendermint/config-template.toml",
+            f"--v",
+            f"{nb_nodes}",
+            "--o",
+            ".",
+        ]
+        for i in range(nb_nodes):
+            cmd.append(f"--hostname=node{i}")
+
+        subprocess.call(cmd)  # nosec
+
+    def create_many(self, nb_containers: int) -> List[Container]:
+        """Create a list of node containers."""
+        self._create_config(nb_containers)
+        containers = [self._create_one(i) for i in range(nb_containers)]
+        return containers
