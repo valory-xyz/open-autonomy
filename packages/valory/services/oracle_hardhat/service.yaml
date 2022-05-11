@@ -8,7 +8,7 @@ number_of_agents: 4
 
 benchmark_persistence_params: &benchmark_persistence_params
   args:
-    log_dir: /benchmarking
+    log_dir: /benchmarks
 
 observation_params: &observation_params
   args:
