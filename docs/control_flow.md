@@ -117,6 +117,25 @@ I[2022-05-11|13:45:41.395] Reset private validator file to genesis state module=
 
 
 # AEA Network interruption Flow
+When we have an issue with the AEA losing connection to the Tendermint process, caused by failure of the AEA, the sudden closure of the tcp connection will trigger a restart of the tendermint process.
+
+This can bre triggered by kill a running aea-process while running a docker-compose deployment
+
+
+```bash 
+# kill the aea
+docker-compose kill abci0 && docker-compose up -d abci0
+```
+
+```bash
+tail -f deployments/persistent_data/logs/node_0.txt
+
+Tendermint process stopped
+Tendermint process started
+Restarted the HTTP RPC server, as a connection was dropped with message:
+		 E[2022-05-11|13:15:11.368] Stopping abci.socketClient for error: read message: EOF module=abci-client connection=consensus
+```
+
 
 ```mermaid
 sequenceDiagram
@@ -136,6 +155,33 @@ sequenceDiagram
 ```
 
 # Tendermint Network interruption Flow
+When we have an issue with the Tendermint process connecting to the AEA, the sudden closure of the tcp connection will trigger a restart of the tendermint process.
+
+The effect of this on the AEA, can be demonstrated as so;
+```bash 
+# kill the node
+docker-compose kill node0 && docker-compose up -d node0
+```
+The logs for the associated AEA show;
+
+```bash
+[2022-05-11 13:35:31,336] [INFO] [agent] Entered in the 'validate_oracle' round for period 0
+[2022-05-11 13:35:31,338] [INFO] [agent] Entered in the 'validate_oracle' behaviour state
+[2022-05-11 13:35:31,776] [ERROR] [agent] an error occurred while reading a message: DecodeVarintError: could not decode varint. The message will be ignored.
+[2022-05-11 13:35:31,777] [INFO] [agent] connection at EOF, stop receiving loop.
+[2022-05-11 13:35:31,777] [ERROR] [agent] an error occurred while reading a message: DecodeVarintError: could not decode varint. The message will be ignored.
+[2022-05-11 13:35:31,777] [INFO] [agent] connection at EOF, stop receiving loop.
+[2022-05-11 13:35:31,777] [ERROR] [agent] an error occurred while reading a message: DecodeVarintError: could not decode varint. The message will be ignored.
+[2022-05-11 13:35:31,777] [INFO] [agent] connection at EOF, stop receiving loop.
+[2022-05-11 13:35:31,777] [ERROR] [agent] an error occurred while reading a message: DecodeVarintError: could not decode varint. The message will be ignored.
+[2022-05-11 13:35:31,777] [INFO] [agent] connection at EOF, stop receiving loop.
+[2022-05-11 13:35:35,083] [INFO] [agent] arrived block with timestamp: 2022-05-11 13:35:31.193869
+[2022-05-11 13:35:35,083] [INFO] [agent] current AbciApp time: 2022-05-11 13:35:29.879421
+[2022-05-11 13:35:35,127] [INFO] [agent] 'validate_oracle' round is done with event: Event.DONE
+[2022-05-11 13:35:35,128] [INFO] [agent] scheduling timeout of 7.0 seconds for event Event.ROUND_TIMEOUT with deadline 2022-05-11 13:35:38.193869
+```
+Notice how the AEA continues as soon as it is able to re-establish a connection.
+
 
 ```mermaid
 sequenceDiagram

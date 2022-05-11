@@ -22,13 +22,29 @@ import logging
 import os
 import signal
 import subprocess  # nosec:
-import time
 from logging import Logger
-from threading import Thread
-from typing import List, Optional
+from threading import Event, Thread
+from typing import Any, List, Optional
 
 
 DEFAULT_LOG_FILE = "tendermint.log"
+
+
+class StoppableThread(Thread):
+    """Thread class with a stop() method."""
+
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
+        """Initialise the thread."""
+        super(StoppableThread, self).__init__(*args, **kwargs)
+        self._stop_event = Event()
+
+    def stop(self) -> None:
+        """Set the stop event."""
+        self._stop_event.set()
+
+    def stopped(self) -> bool:
+        """Check if the thread is stopped."""
+        return self._stop_event.is_set()
 
 
 class TendermintParams:  # pylint: disable=too-few-public-methods
@@ -73,7 +89,7 @@ class TendermintNode:
         self.logger = logger or logging.getLogger()
 
         self._process: Optional[subprocess.Popen] = None
-        self._monitoring: Optional[Thread] = None
+        self._monitoring: Optional[StoppableThread] = None
 
     def _build_init_command(self) -> List[str]:
         """Build the 'init' command."""
@@ -104,7 +120,7 @@ class TendermintNode:
         cmd = self._build_init_command()
         subprocess.call(cmd)  # nosec
 
-    def start(self) -> None:
+    def _start_tm_process(self) -> None:
         """Start a Tendermint node process."""
         if self._process is not None:  # pragma: nocover
             return
@@ -120,49 +136,69 @@ class TendermintNode:
                 universal_newlines=True,
             )
         )
-        if self._monitoring is not None:  # pragma: nocover
-            return
-        self._monitoring = Thread(target=self.check_server_status)
+        self.write_line("Tendermint process started\n")
+
+    def _start_monitoring_thread(self) -> None:
+        """Start a monitoring thread."""
+        self._monitoring = StoppableThread(target=self.check_server_status)
         self._monitoring.start()
 
-    def check_server_status(
-        self,
-    ) -> None:
-        """Check server status."""
-        while True:
-            try:
-                if self._monitoring is None:
-                    break  # break from the loop immediately.
-                if self._process is None:
-                    time.sleep(0.05)
-                    continue
-                line = self._process.stdout.readline()  # type: ignore
-                if line.find("RPC HTTP server stopped") > 0:
-                    self.stop()
-                    self.start()
-                    self.write_line(
-                        "Restarted the HTTP RPC server, as a connection was dropped!\n"
-                    )
-                self.write_line(line)
-            except Exception as e:
-                print("Error!", str(e))
-        self.write_line("Monitoring thread terminated\n")
+    def start(self) -> None:
+        """Start a Tendermint node process."""
+        self._start_tm_process()
+        self._start_monitoring_thread()
 
-    def write_line(self, line: str) -> None:
-        """Open and write a line to the log file."""
-        with open(self.log_file, "a") as file:
-            file.write(line)
-
-    def stop(self) -> None:
+    def _stop_tm_process(self) -> None:
         """Stop a Tendermint node process."""
         if self._process is None:
             return
-        self._monitoring = None
         os.killpg(os.getpgid(self._process.pid), signal.SIGTERM)
         self._process = None
+        self.write_line("Tendermint process stopped\n")
+
+    def _stop_monitoring_thread(self) -> None:
+        """Stop a monitoring process."""
+        if self._monitoring is not None:
+            self._monitoring.stop()  # set stop event
+            self._monitoring.join()
+
+    def stop(self) -> None:
+        """Stop a Tendermint node process."""
+        self._stop_monitoring_thread()
+        self._stop_tm_process()
 
     def prune_blocks(self) -> None:
         """Prune blocks from the Tendermint state"""
         subprocess.call(  # nosec:
             ["tendermint", "--home", str(self.params.home), "unsafe-reset-all"]
         )
+
+    def write_line(self, line: str) -> None:
+        """Open and write a line to the log file."""
+        with open(self.log_file, "a") as file:
+            file.write(line)
+
+    def check_server_status(
+        self,
+    ) -> None:
+        """Check server status."""
+        self.write_line("Monitoring thread started\n")
+        while True:
+            try:
+                if self._monitoring.stopped():  # type: ignore
+                    break  # break from the loop immediately.
+                line = self._process.stdout.readline()  # type: ignore
+                self.write_line(line)
+                for trigger in [
+                    "RPC HTTP server stopped",  # this occurs when we lose connection from the tm side
+                    "Stopping abci.socketClient for error: read message: EOF module=abci-client connection=",  # this occurs when we lose connection from the AEA side.
+                ]:
+                    if line.find(trigger) >= 0:
+                        self._stop_tm_process()
+                        self._start_tm_process()
+                        self.write_line(
+                            f"Restarted the HTTP RPC server, as a connection was dropped with message:\n\t\t {line}\n"
+                        )
+            except Exception as e:
+                self.write_line(f"Error!: {str(e)}")
+        self.write_line("Monitoring thread terminated\n")
