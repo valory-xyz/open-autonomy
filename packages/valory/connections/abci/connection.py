@@ -24,7 +24,7 @@ import subprocess  # nosec
 from asyncio import AbstractEventLoop, AbstractServer, CancelledError, Task
 from io import BytesIO
 from logging import Logger
-from typing import Any, Dict, List, Optional, Tuple, cast
+from typing import Any, Dict, List, Optional, Tuple, cast, Generator, Type
 
 from aea.configurations.base import PublicId
 from aea.connections.base import Connection, ConnectionStates
@@ -157,6 +157,33 @@ class _TendermintABCISerializer:
         buffer.write(encoded)
         buffer.write(protobuf_bytes)
         return buffer.getvalue()
+
+    @classmethod
+    def read_messages(
+        cls, buffer: BytesIO, message_cls: Type
+    ) -> Generator[Request, None, None]:
+        """
+        Return an iterator over the messages found in the `reader` buffer.
+
+        :param: buffer: the buffer to read messages from.
+        :param: message_cls: the message class to instantiate.
+        :yield: a new message.
+
+        :raise: DecodeVarintError if the varint cannot be decoded correctly.
+        :raise: ShortBufferLengthError if the buffer length is shorter than expected.
+        :raise: google.protobuf.message.DecodeError if the Protobuf decoding fails.
+        """
+        total_length = buffer.getbuffer().nbytes
+        while buffer.tell() < total_length:
+            length = cls.decode_varint(buffer)
+            data = buffer.read(length)
+            if len(data) < length:
+                raise ShortBufferLengthError(
+                    f"expected buffer of length {length}, got {len(data)}"
+                )
+            message = message_cls()
+            message.ParseFromString(data)
+            yield message
 
 
 class VarintMessageReader:  # pylint: disable=too-few-public-methods
