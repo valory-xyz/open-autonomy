@@ -20,11 +20,13 @@
 """Tests for valory/price_estimation_abci skill's behaviours."""
 import copy
 import json
+import sys
 import time
 from pathlib import Path
 from typing import Any, Dict, Union, cast
 from unittest import mock
 
+import atheris  # type: ignore
 import pytest
 from aea.exceptions import AEAEnforceError
 from aea.helpers.transaction.base import RawTransaction, SignedMessage
@@ -506,3 +508,33 @@ class TestPackForServer(PriceEstimationFSMBehaviourBaseCase):
         else:
             with pytest.raises((OverflowError, AEAEnforceError)):
                 pack_for_server(**kwargs)
+
+
+@pytest.mark.skip
+def test_fuzz_pack_for_server() -> None:
+    """Test fuzz pack_for_server."""
+
+    @atheris.instrument_func
+    def fuzz_pack_for_server(input_bytes: bytes) -> None:
+        """Fuzz pack_for_server."""
+        fdp = atheris.FuzzedDataProvider(input_bytes)
+        participants = [fdp.ConsumeStr(12) for _ in range(4)]
+        decimals = fdp.ConsumeInt(4)
+        period_count = fdp.ConsumeInt(4)
+        estimate = fdp.ConsumeFloat()
+        observations = {p: fdp.ConsumeFloat() for p in participants}
+        data_source = fdp.ConsumeStr(12)
+        unit = fdp.ConsumeStr(12)
+        pack_for_server(
+            participants,
+            decimals,
+            period_count,
+            estimate,
+            observations,
+            data_source,
+            unit,
+        )
+
+    atheris.instrument_all()
+    atheris.Setup(sys.argv, fuzz_pack_for_server)
+    atheris.Fuzz()
