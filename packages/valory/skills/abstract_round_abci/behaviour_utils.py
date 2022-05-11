@@ -171,18 +171,17 @@ class AsyncBehaviour(ABC):
         self.__notified = True
         self.__message = message
 
-    @classmethod
     def wait_for_condition(
-        cls, condition: Callable[[], bool], timeout: Optional[float] = None
+        self, condition: Callable[[], bool], timeout: Optional[float] = None
     ) -> Generator[None, None, None]:
         """Wait for a condition to happen."""
         if timeout is not None:
-            deadline = datetime.datetime.now() + datetime.timedelta(0, timeout)
+            deadline = self.latest_timestamp() + datetime.timedelta(0, timeout)
         else:
             deadline = datetime.datetime.max
 
         while not condition():
-            if timeout is not None and datetime.datetime.now() > deadline:
+            if timeout is not None and self.latest_timestamp() > deadline:
                 raise TimeoutException()
             yield
 
@@ -195,10 +194,10 @@ class AsyncBehaviour(ABC):
         :param seconds: the seconds
         :yield: None
         """
-        deadline = datetime.datetime.now() + datetime.timedelta(0, seconds)
+        deadline = self.latest_timestamp() + datetime.timedelta(0, seconds)
 
         def _wait_until() -> bool:
-            return datetime.datetime.now() > deadline
+            return self.latest_timestamp() > deadline
 
         yield from self.wait_for_condition(_wait_until)
 
@@ -219,7 +218,7 @@ class AsyncBehaviour(ABC):
         :yield: None
         """
         if timeout is not None:
-            deadline = datetime.datetime.now() + datetime.timedelta(0, timeout)
+            deadline = self.latest_timestamp() + datetime.timedelta(0, timeout)
         else:
             deadline = datetime.datetime.max
 
@@ -228,7 +227,7 @@ class AsyncBehaviour(ABC):
             message = None
             while message is None or not condition(message):
                 message = yield
-                if timeout is not None and datetime.datetime.now() > deadline:
+                if timeout is not None and self.latest_timestamp() > deadline:
                     raise TimeoutException()
             message = cast(Message, message)
             return message
@@ -309,6 +308,10 @@ class AsyncBehaviour(ABC):
         and therefore the state needs to be reset.
         """
         self.__state = self.AsyncState.READY
+
+    @abstractmethod
+    def latest_timestamp(self) -> datetime.datetime:
+        """Get the latest timestamp."""
 
 
 def _check_ipfs_enabled(fn: Callable) -> Callable:
@@ -525,7 +528,7 @@ class BaseState(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
         ).period.abci_app.last_timestamp + datetime.timedelta(seconds=seconds)
 
         def _wait_until() -> bool:
-            return datetime.datetime.now() > deadline
+            return self.latest_timestamp() > deadline
 
         yield from self.wait_for_condition(_wait_until)
 
@@ -1120,7 +1123,7 @@ class BaseState(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
         :return: True if it is delivered successfully, False otherwise
         """
         if timeout is not None:
-            deadline = datetime.datetime.now() + datetime.timedelta(0, timeout)
+            deadline = self.latest_timestamp() + datetime.timedelta(0, timeout)
         else:
             deadline = datetime.datetime.max
         request_retry_delay = (
@@ -1134,7 +1137,7 @@ class BaseState(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
 
         for _ in range(max_attempts):
             request_timeout = (
-                (deadline - datetime.datetime.now()).total_seconds()
+                (deadline - self.latest_timestamp()).total_seconds()
                 if timeout is not None
                 else None
             )
@@ -1412,7 +1415,7 @@ class BaseState(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
             yield from self.wait_from_last_timestamp(
                 self.params.observation_interval / 2
             )
-            self._check_started = datetime.datetime.now()
+            self._check_started = self.latest_timestamp()
             self._timeout = self.params.max_healthcheck
             self._is_healthy = False
         yield
@@ -1429,7 +1432,7 @@ class BaseState(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
         """Check if the timeout expired."""
         if self._check_started is None or self._is_healthy:
             return False
-        return datetime.datetime.now() > self._check_started + datetime.timedelta(
+        return self.latest_timestamp() > self._check_started + datetime.timedelta(
             0, self._timeout
         )
 
@@ -1511,6 +1514,10 @@ class BaseState(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
         )
         yield from self.wait_from_last_timestamp(self.params.observation_interval / 2)
         return True
+
+    def latest_timestamp(self) -> datetime.datetime:
+        """Return the latest timestamp."""
+        return cast(SharedState, self.context.state).period.abci_app.last_timestamp
 
 
 class DegenerateState(BaseState, ABC):

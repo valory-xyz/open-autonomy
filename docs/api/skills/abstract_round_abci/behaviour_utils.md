@@ -127,8 +127,7 @@ and it was not already notified.
 #### wait`_`for`_`condition
 
 ```python
-@classmethod
-def wait_for_condition(cls, condition: Callable[[], bool], timeout: Optional[float] = None) -> Generator[None, None, None]
+def wait_for_condition(condition: Callable[[], bool], timeout: Optional[float] = None) -> Generator[None, None, None]
 ```
 
 Wait for a condition to happen.
@@ -201,6 +200,17 @@ def stop() -> None
 ```
 
 Stop the execution of the behaviour.
+
+<a id="packages.valory.skills.abstract_round_abci.behaviour_utils.AsyncBehaviour.latest_timestamp"></a>
+
+#### latest`_`timestamp
+
+```python
+@abstractmethod
+def latest_timestamp() -> datetime.datetime
+```
+
+Get the latest timestamp.
 
 <a id="packages.valory.skills.abstract_round_abci.behaviour_utils.IPFSBehaviour"></a>
 
@@ -679,6 +689,16 @@ def reset_tendermint_with_wait() -> Generator[None, None, bool]
 ```
 
 Resets the tendermint node.
+
+<a id="packages.valory.skills.abstract_round_abci.behaviour_utils.BaseState.latest_timestamp"></a>
+
+#### latest`_`timestamp
+
+```python
+def latest_timestamp() -> datetime.datetime
+```
+
+Return the latest timestamp.
 
 <a id="packages.valory.skills.abstract_round_abci.behaviour_utils.DegenerateState"></a>
 
