@@ -21,11 +21,11 @@
 """Script to create environment for benchmarking n agents."""
 
 from pathlib import Path
-from typing import Any, Dict, List, Type
+from typing import Any, Dict, List, cast
 
 import yaml
 
-from aea_swarm.deploy.base import BaseDeployment, BaseDeploymentGenerator
+from aea_swarm.deploy.base import BaseDeploymentGenerator, DeploymentSpec
 from aea_swarm.deploy.constants import TENDERMINT_CONFIGURATION_OVERRIDES
 from aea_swarm.deploy.generators.kubernetes.templates import (
     AGENT_NODE_TEMPLATE,
@@ -36,14 +36,13 @@ from aea_swarm.deploy.generators.kubernetes.templates import (
 class KubernetesGenerator(BaseDeploymentGenerator):
     """Kubernetes Deployment Generator."""
 
-    output_name = "build.yaml"
-    deployment_type = "kubernetes"
+    image_name: str
+    output_name: str = "build.yaml"
+    deployment_type: str = "kubernetes"
 
-    def __init__(self, deployment_spec: BaseDeployment, build_dir: Path) -> None:
+    def __init__(self, deployment_spec: DeploymentSpec, build_dir: Path) -> None:
         """Initialise the deployment generator."""
         super().__init__(deployment_spec, build_dir)
-        self.image_name: str = ""
-        self.output = ""
         self.resources: List[str] = []
 
     def build_agent_deployment(
@@ -54,6 +53,7 @@ class KubernetesGenerator(BaseDeploymentGenerator):
         agent_vars: Dict[str, Any],
     ) -> str:
         """Build agent deployment."""
+
         host_names = ", ".join(
             [f'"--hostname=abci{i}"' for i in range(number_of_agents)]
         )
@@ -80,23 +80,27 @@ class KubernetesGenerator(BaseDeploymentGenerator):
         return res
 
     def generate_config_tendermint(
-        self, valory_application: Type[BaseDeployment]
-    ) -> str:
+        self,
+    ) -> "KubernetesGenerator":
         """Build configuration job."""
+
+        if self.tendermint_job_config is not None:
+            return self
+
         host_names = ", ".join(
             [
                 f'"--hostname=abci{i}"'
-                for i in range(valory_application.number_of_agents)
+                for i in range(self.deployment_spec.number_of_agents)
             ]
         )
 
-        config_job_yaml = CLUSTER_CONFIGURATION_TEMPLATE.format(
-            valory_app=self.image_name,
-            number_of_validators=valory_application.number_of_agents,
+        self.tendermint_job_config = CLUSTER_CONFIGURATION_TEMPLATE.format(
+            valory_app=self.deployment_spec.agent_public_id.name,
+            number_of_validators=self.deployment_spec.number_of_agents,
             host_names=host_names,
         )
-        self.write_config(config_job_yaml)
-        return config_job_yaml
+
+        return self
 
     def _apply_cluster_specific_tendermint_params(  # pylint: disable= no-self-use
         self, agent_params: List
@@ -107,14 +111,16 @@ class KubernetesGenerator(BaseDeploymentGenerator):
         return agent_params
 
     def generate(  # pylint: disable=unused-argument
-        self, valory_application: Type[BaseDeployment], dev_mode: bool = False
-    ) -> str:
+        self,
+        dev_mode: bool = False,
+    ) -> "KubernetesGenerator":
         """Generate the deployment."""
-        agent_vars = valory_application.generate_agents()  # type:ignore
+
+        agent_vars = self.deployment_spec.generate_agents()  # type:ignore
         agent_vars = self._apply_cluster_specific_tendermint_params(agent_vars)
         agent_vars = self.get_deployment_network_configuration(agent_vars)
-        self.image_name = valory_application.agent_public_id.name
-        self.resources.append(self.generate_config_tendermint(valory_application))
+        self.image_name = self.deployment_spec.agent_public_id.name
+
         agents = "\n---\n".join(
             [
                 self.build_agent_deployment(
@@ -128,20 +134,17 @@ class KubernetesGenerator(BaseDeploymentGenerator):
         )
         self.resources.append(agents)
         self.output = "\n---\n".join(self.resources)
-        return self.output
+        return self
 
-    def write_config(  # pylint: disable=arguments-differ
-        self, configure_tendermint_resource: str = ""
-    ) -> None:
+    def write_config(
+        self,
+    ) -> "KubernetesGenerator":
         """Write output to build dir"""
 
-        if configure_tendermint_resource == "":
-            output = self.output
-        else:
-            output = "---\n".join([self.output, configure_tendermint_resource])
-
+        output = "---\n".join([self.output, cast(str, self.tendermint_job_config)])
         if not self.build_dir.is_dir():
             self.build_dir.mkdir()
-
         with open(self.build_dir / self.output_name, "w", encoding="utf8") as f:
             f.write(output)
+
+        return self

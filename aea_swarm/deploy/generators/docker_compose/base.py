@@ -20,14 +20,14 @@
 """Docker-compose Deployment Generator."""
 import os
 from pathlib import Path
-from typing import Dict, Type
+from typing import Dict
 
 from aea_swarm.constants import (
     DEFAULT_IMAGE_VERSION,
     OPEN_AEA_IMAGE_NAME,
     TENDERMINT_IMAGE_NAME,
 )
-from aea_swarm.deploy.base import BaseDeployment, BaseDeploymentGenerator
+from aea_swarm.deploy.base import BaseDeploymentGenerator
 from aea_swarm.deploy.generators.docker_compose.templates import (
     ABCI_NODE_TEMPLATE,
     DOCKER_COMPOSE_TEMPLATE,
@@ -87,19 +87,17 @@ def build_agent_config(  # pylint: disable=too-many-arguments
 class DockerComposeGenerator(BaseDeploymentGenerator):
     """Class to automate the generation of Deployments."""
 
-    output_name = "docker-compose.yaml"
-    deployment_type = "docker-compose"
-
-    def __init__(self, deployment_spec: BaseDeployment, build_dir: Path) -> None:
-        """Initialise the deployment generator."""
-        super().__init__(deployment_spec, build_dir)
-        self.output = ""
-        self.config_cmd = ""
+    output_name: str = "docker-compose.yaml"
+    deployment_type: str = "docker-compose"
 
     def generate_config_tendermint(
-        self, valory_application: Type[BaseDeployment]
-    ) -> str:
+        self,
+    ) -> "DockerComposeGenerator":
         """Generate the command to configure tendermint testnet."""
+
+        if self.tendermint_job_config is not None:
+            return self
+
         run_cmd = TENDERMINT_CONFIG_TEMPLATE.format(
             hosts=" \\\n".join(
                 [
@@ -112,25 +110,27 @@ class DockerComposeGenerator(BaseDeploymentGenerator):
             tendermint_image_name=TENDERMINT_IMAGE_NAME,
             tendermint_image_version=DEFAULT_IMAGE_VERSION,
         )
-        self.config_cmd = " ".join(
+        self.tendermint_job_config = " ".join(
             [
                 f
                 for f in run_cmd.replace("\n", "").replace("\\", "").split(" ")
                 if f != ""
             ]
         )
-        os.popen(self.config_cmd).read()  # nosec
-        return self.config_cmd
+        for line in os.popen(self.tendermint_job_config).read().split("\n"):  # nosec
+            print(f"[Tendermint] {line}")
+
+        return self
 
     def generate(
-        self, valory_application: Type[BaseDeployment], dev_mode: bool = False
-    ) -> str:
+        self,
+        dev_mode: bool = False,
+    ) -> "DockerComposeGenerator":
         """Generate the new configuration."""
 
         agent_vars = self.deployment_spec.generate_agents()
         agent_vars = self.get_deployment_network_configuration(agent_vars)
-
-        image_name = valory_application.agent_public_id.name
+        image_name = self.deployment_spec.agent_public_id.name
 
         if dev_mode:
             version = "dev"
@@ -160,4 +160,5 @@ class DockerComposeGenerator(BaseDeploymentGenerator):
             abci_nodes=agents,
             tendermint_nodes=tendermint_nodes,
         )
-        return self.output
+
+        return self

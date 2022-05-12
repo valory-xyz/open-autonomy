@@ -22,6 +22,7 @@
 import os
 import shutil
 from pathlib import Path
+from typing import Optional
 
 import click
 from aea.cli.utils.click_utils import PublicIdParameter
@@ -58,6 +59,13 @@ def build_group() -> None:
     type=click.Path(exists=False, dir_okay=True),
     default=Path.cwd(),
     help="Path to output dir.",
+)
+@click.option(
+    "--n",
+    "number_of_agents",
+    type=int,
+    default=None,
+    help="Number of agents.",
 )
 @click.option(
     "--docker",
@@ -100,8 +108,9 @@ def build_deployment(  # pylint: disable=too-many-arguments
     package_dir: Path,
     dev_mode: bool,
     force_overwrite: bool,
+    number_of_agents: Optional[int] = None,
 ) -> None:
-    """Build deployment setup for 4 agents."""
+    """Build deployment setup for n agents."""
 
     package_dir = Path(package_dir)
     build_dir = Path(output_dir, "abci_build")
@@ -122,9 +131,10 @@ def build_deployment(  # pylint: disable=too-many-arguments
     deployment_file_path = _find_path_to_service_file(service_id, package_dir)
     try:
         report = generate_deployment(
-            type_of_deployment=deployment_type,
             deployment_file_path=deployment_file_path,
+            type_of_deployment=deployment_type,
             private_keys_file_path=keys_file,
+            number_of_agents=number_of_agents,
             package_dir=package_dir,
             build_dir=build_dir,
             dev_mode=dev_mode,

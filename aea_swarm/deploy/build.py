@@ -18,9 +18,9 @@
 # ------------------------------------------------------------------------------
 """Script for generating deployment environments."""
 from pathlib import Path
-from typing import cast
+from typing import Optional, cast
 
-from aea_swarm.deploy.base import BaseDeployment, BaseDeploymentGenerator
+from aea_swarm.deploy.base import BaseDeploymentGenerator, DeploymentSpec
 from aea_swarm.deploy.constants import DEPLOYMENT_REPORT
 from aea_swarm.deploy.generators.docker_compose.base import DockerComposeGenerator
 from aea_swarm.deploy.generators.kubernetes.base import KubernetesGenerator
@@ -32,37 +32,42 @@ DEPLOYMENT_OPTIONS = {
 }
 
 
-def generate_deployment(
+def generate_deployment(  # pylint: disable=too-many-arguments
     type_of_deployment: str,
     private_keys_file_path: Path,
     deployment_file_path: Path,
     package_dir: Path,
     build_dir: Path,
+    number_of_agents: Optional[int] = None,
     dev_mode: bool = False,
 ) -> str:
     """Generate the deployment build for the valory app."""
 
-    DeploymentGenerator = DEPLOYMENT_OPTIONS.get(type_of_deployment)
-    if DeploymentGenerator is None:
-        raise ValueError(f"Cannot find deployment generator for {type_of_deployment}")
-
-    deployment_spec = BaseDeployment(
+    deployment_spec = DeploymentSpec(
         path_to_deployment_spec=str(deployment_file_path),
         private_keys_file_path=Path(private_keys_file_path),
         package_dir=package_dir,
+        number_of_agents=number_of_agents,
     )
+
+    DeploymentGenerator = DEPLOYMENT_OPTIONS.get(type_of_deployment)
+    if DeploymentGenerator is None:
+        raise ValueError(f"Cannot find deployment generator for {type_of_deployment}")
     deployment = cast(
         BaseDeploymentGenerator,
         DeploymentGenerator(deployment_spec=deployment_spec, build_dir=build_dir),
     )
-    deployment.generate(deployment_spec, dev_mode)  # type: ignore
-    deployment.write_config()
-    deployment.generate_config_tendermint(deployment_spec)  # type: ignore
+
+    deployment.generate(dev_mode).generate_config_tendermint().write_config()
 
     return DEPLOYMENT_REPORT.substitute(
         **{
             "type": type_of_deployment,
-            "agents": deployment_spec.number_of_agents,
+            "agents": (
+                deployment_spec.number_of_agents
+                if number_of_agents is None
+                else number_of_agents
+            ),
             "network": deployment_spec.network,
             "size": len(deployment.output),
         }
