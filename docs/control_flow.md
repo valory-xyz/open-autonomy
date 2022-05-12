@@ -191,7 +191,7 @@ sequenceDiagram
    FlaskServer-->+TendermintProcess: starts_tendermint_process
    
    AEA->>+TendermintProcess: tcp port 26557
-   TendermintProcess->>+AEA: losses connection
+   TendermintProcess->>+AEA: loses connection
    TendermintProcess->>+TendermintProcess: HTTPServer crashes
    MonitoringThread->>+TendermintProcess: restart Tendermint process
    AEA->>+TendermintProcess: reconnects on tcp port
