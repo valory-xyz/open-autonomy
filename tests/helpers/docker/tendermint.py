@@ -54,12 +54,16 @@ class TendermintDockerImage(DockerImage):
         abci_host: str = DEFAULT_ABCI_HOST,
         abci_port: int = DEFAULT_ABCI_PORT,
         port: int = DEFAULT_TENDERMINT_PORT,
+        p2p_port: int = DEFAULT_P2P_PORT,
+        com_port: int = DEFAULT_TENDERMINT_COM_PORT,
     ):
         """Initialize."""
         super().__init__(client)
         self.abci_host = abci_host
         self.abci_port = abci_port
         self.port = port
+        self.p2p_port = p2p_port
+        self.com_port = com_port
         self.proxy_app = f"tcp://{self.abci_host}:{self.abci_port}"
 
     @property
