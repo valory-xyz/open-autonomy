@@ -180,12 +180,11 @@ def launch_many_containers(
     """
     _pre_launch(image)
     containers = image.create_many(nb_containers)
-    [
+    for container in containers:
         _start_container(image, container, timeout, max_attempts)
-        for container in containers
-    ]
     yield image
-    [_stop_container(container, image.tag) for container in containers]
+    for container in containers:
+        _stop_container(container, image.tag)
 
 
 class DockerBaseTest(ABC):
