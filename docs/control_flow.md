@@ -6,7 +6,7 @@ Within a deployment, each individual agent in the service manages:
 
 Each of these is implemented as a docker image which is deployed in a 1-2-1 relationship.
 
-The tendermint image is implemented as a flask server built on top of the ```valory/tendermint``` image.
+The Tendermint process is managed by a separate process, via a Flask server. The image containing the Flask server and Tendermint node are built on top of the ```valory/tendermint``` image.
 
 ## Tendermint Image control flow. 
 
