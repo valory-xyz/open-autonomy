@@ -166,7 +166,7 @@ class FlaskTendermintDockerImage(TendermintDockerImage):
 
     def _create_one(self, i: int) -> Container:
         """Create a node container."""
-        name = f"node{i}"
+        name = self.get_node_name(i)
         run_kwargs = dict(
             image=self.tag,
             command=self._build_command(),
