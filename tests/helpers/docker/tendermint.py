@@ -21,12 +21,15 @@
 import os
 import subprocess
 import time
-from typing import List
+from typing import Any, List
 
 import docker
+import pytest
 from docker.models.containers import Container
 
 from deployments.constants import TENDERMINT_VERSION
+
+from tests.helpers.base import tendermint_health_check
 from tests.helpers.docker.base import DockerImage
 
 
@@ -228,3 +231,12 @@ class FlaskTendermintDockerImage(TendermintDockerImage):
         self._create_config(nb_containers)
         containers = [self._create_one(i) for i in range(nb_containers)]
         return containers
+
+    def health_check(self, **kwargs: Any) -> None:
+        """Do a health-check of the Tendermint network."""
+        http_rpc_laddresses = [self.get_addr(_HTTP, i) for i in range(self.nb_nodes)]
+        for http_rpc_laddr in http_rpc_laddresses:
+            if not tendermint_health_check(http_rpc_laddr, **kwargs):
+                pytest.fail(
+                    f"Tendermint node {http_rpc_laddr} did not pass health-check"
+                )
