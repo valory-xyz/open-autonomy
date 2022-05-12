@@ -19,7 +19,7 @@
 
 """Tendermint Docker image."""
 import os
-import subprocess
+import subprocess  # nosec
 import time
 from typing import Any, List
 
@@ -35,7 +35,7 @@ from tests.helpers.docker.base import DockerImage
 
 _TCP = "tcp://"
 _HTTP = "http://"
-_LOCAL_ADDRESS = "0.0.0.0"
+_LOCAL_ADDRESS = "0.0.0.0"  # nosec
 
 DEFAULT_TENDERMINT_PORT = 26657
 DEFAULT_P2P_PORT = 26656
@@ -193,7 +193,10 @@ class FlaskTendermintDockerImage(TendermintDockerImage):
                 f"{os.path.dirname(os.getcwd())}/deployments/persistent_data/tm_state:/tm_state:Z",
             ],
             ports={
-                f"{DEFAULT_TENDERMINT_PORT}/tcp": ("0.0.0.0", self.port + i * 10),
+                f"{DEFAULT_TENDERMINT_PORT}/tcp": (
+                    "0.0.0.0",  # nosec,
+                    self.port + i * 10,
+                )
             },
             extra_hosts={self.abci_host: "host-gateway"}
             if self.abci_host == DEFAULT_ABCI_HOST
