@@ -117,9 +117,13 @@ I[2022-05-11|13:45:41.395] Reset private validator file to genesis state module=
 
 
 # AEA Network interruption Flow
-When we have an issue with the AEA losing connection to the Tendermint process, caused by failure of the AEA, the sudden closure of the tcp connection will trigger a restart of the Tendermint process.
+When we have an issue with the AEA losing connection to the Tendermint process, caused by failure of the AEA, the sudden closure of the TCP connection will trigger a restart of the Tendermint process.
 
-This can be triggered by kill a running aea-process while running a docker-compose deployment.
+This failure of connection could be caused by a re-scheduling of the pod to another host within the cluster, or by another unexpected restart of the AEA container.
+
+This can be simulated by kill a running aea-process while running a docker-compose deployment.
+
+This will interrupt the TCP connection between the AEA and the Tendermint process, managed by the Flask process. The typical behaviour for Tendermint upon such an event is to stop the module responsible for handling *all* http traffic. We watch for this event, and then restart the Tendermint process upon detecting it.
 
 
 ```bash 
