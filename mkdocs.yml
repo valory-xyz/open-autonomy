@@ -29,7 +29,6 @@ nav:
     - Requirements and Set-Up: 'using_stack_requirements.md'
     - Developer Tooling:
       - Hot Reload: 'hot_reload.md'
-      - Replay: 'tendermint_replays.md'
       - Benchmarking: 'benchmarks.md'
     - Deployment:
       - Local Deployment: 'application_deployment.md'

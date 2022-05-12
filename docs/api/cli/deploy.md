@@ -15,12 +15,23 @@ def deploy_group() -> None
 
 Deploy an AEA project.
 
+<a id="aea_swarm.cli.deploy.build_group"></a>
+
+#### build`_`group
+
+```python
+@deploy_group.group(name="build")
+def build_group() -> None
+```
+
+Build tools
+
 <a id="aea_swarm.cli.deploy.build_deployment"></a>
 
 #### build`_`deployment
 
 ```python
-@deploy_group.command(name="build")
+@build_group.command(name="deployment")
 @click.argument(
     "service-id",
     type=PublicIdParameter(),
@@ -48,7 +59,7 @@ Deploy an AEA project.
 )
 @click.option(
     "--package-dir",
-    type=click.Path(exists=False, dir_okay=True),
+    type=click.Path(exists=True, dir_okay=True),
     default=Path.cwd() / PACKAGES,
     help="Path to packages folder (For local usage).",
 )
@@ -69,5 +80,46 @@ Deploy an AEA project.
 def build_deployment(service_id: PublicId, keys_file: Path, deployment_type: str, output_dir: Path, package_dir: Path, dev_mode: bool, force_overwrite: bool) -> None
 ```
 
-Build the agent and its components.
+Build deployment setup for 4 agents.
+
+<a id="aea_swarm.cli.deploy.build_images"></a>
+
+#### build`_`images
+
+```python
+@build_group.command(name="image")
+@click.argument(
+    "service-id",
+    type=PublicIdParameter(),
+)
+@click.option(
+    "--package-dir",
+    type=click.Path(exists=True, dir_okay=True),
+    default=Path.cwd() / PACKAGES,
+    help="Path to packages folder (For local usage).",
+)
+@click.option(
+    "--build-dir",
+    type=click.Path(exists=True, dir_okay=True),
+    default=Path.cwd() / "deployments" / "Dockerfiles" / "open_aea",
+    help="Path to build directory.",
+)
+@click.option(
+    "--skaffold-dir",
+    type=click.Path(exists=True, dir_okay=True),
+    default=Path.cwd(),
+    help="Path to directory containing the skaffold config.",
+)
+@click.option(
+    "--version",
+    type=str,
+    default="0.1.0",
+    help="Image version",
+)
+@click.option("--push", is_flag=True, default=False, help="Push image after build.")
+@image_profile_flag()
+def build_images(service_id: str, profile: str, package_dir: Path, build_dir: Path, skaffold_dir: Path, version: str, push: bool) -> None
+```
+
+Build image using skaffold.
 
