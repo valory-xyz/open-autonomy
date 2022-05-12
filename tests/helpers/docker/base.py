@@ -30,6 +30,7 @@ import docker
 import pytest
 from docker.models.containers import Container
 
+
 logger = logging.getLogger(__name__)
 
 
@@ -116,7 +117,7 @@ def _pre_launch(image: DockerImage) -> None:
 
 
 def _start_container(
-    image: DockerImage, container: Container, timeout, max_attempts
+    image: DockerImage, container: Container, timeout: float, max_attempts: int
 ) -> None:
     """
     Start a container.
@@ -125,7 +126,6 @@ def _start_container(
     :param container: the container to start, created from the image.
     :param timeout: timeout to launch
     :param max_attempts: max launch attempts
-    :yield: image
     """
     container.start()
     logger.info(f"Setting up image {image.tag}...")
@@ -150,7 +150,7 @@ def _stop_container(container: Container, tag: str) -> None:
 
 def launch_image(
     image: DockerImage, timeout: float = 2.0, max_attempts: int = 10
-) -> Generator:
+) -> Generator[DockerImage, None, None]:
     """
     Launch a single container.
 
@@ -168,7 +168,7 @@ def launch_image(
 
 def launch_many_containers(
     image: DockerImage, nb_containers: int, timeout: float = 2.0, max_attempts: int = 10
-) -> List[Container]:
+) -> Generator[DockerImage, None, None]:
     """
     Launch many containers from an image.
 
