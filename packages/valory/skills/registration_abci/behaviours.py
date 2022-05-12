@@ -135,10 +135,12 @@ class RegistrationStartupBehaviour(RegistrationBaseBehaviour):
             contract_id=str(ServiceRegistryContract.contract_id),
             contract_callable="verify_contract",
         )
-        self.context.logger.info("Service info could not be retrieved")
+        answer = contract_api_response.performative != ContractApiMessage.Performative.STATE
+        self.context.logger.info(f"verify_contract response IS {answer}: {contract_api_response}")
         if contract_api_response.performative != ContractApiMessage.Performative.STATE:
-            self.context.logger.info("`verify_contract` call unsuccessful!")
+            self.context.logger.info("verify_contract call unsuccessful!")
             return False
+        self.context.logger.info(f"VALID response: {contract_api_response}")
         return cast(bool, contract_api_response.state.body["verified"])
 
     def get_service_info(self) -> Generator[None, None, dict]:
@@ -168,11 +170,11 @@ class RegistrationStartupBehaviour(RegistrationBaseBehaviour):
         if self.params.service_registry_address is None:
             raise RuntimeError("Service registry contract address not provided")
 
-        # correctly_deployed = yield from self.is_correct_contract()
-        # if not correctly_deployed:
-        #     log_message = "Service registry contract not correctly deployed"
-        #     self.context.logger.info(log_message)
-        #     return False
+        correctly_deployed = yield from self.is_correct_contract()
+        if not correctly_deployed:
+            log_message = "Service registry contract not correctly deployed"
+            self.context.logger.info(log_message)
+            return False
 
         # checks if service exists
         service_info = yield from self.get_service_info()
@@ -183,10 +185,6 @@ class RegistrationStartupBehaviour(RegistrationBaseBehaviour):
         # put service info in the shared state for p2p message handler
         registered_addresses = set(service_info["agent_instances"])
         self.context.logger.info(f"on-chain addresses:\n{registered_addresses}")
-        registered_addresses = [
-            '0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266',
-            "0x70997970C51812dc3A010C7d01b50e0d17dc79C8",
-        ]
         if not registered_addresses:
             log_msg = f"No agent instances registered:\n{service_info}"
             self.context.logger.info(log_msg)
@@ -204,7 +202,7 @@ class RegistrationStartupBehaviour(RegistrationBaseBehaviour):
 
         self.period_state.db.initial_data.update(dict(registered_addresses=info))
         log_msg = "Registered addresses retrieved from service registry contract"
-        self.context.logger.info(f"{log_msg}:\n{sorted(info)}")
+        self.context.logger.info(f"{log_msg}:\n{info}")
         return True
 
     def get_tendermint_configuration(self) -> Generator[None, None, bool]:
@@ -225,6 +223,7 @@ class RegistrationStartupBehaviour(RegistrationBaseBehaviour):
 
     def get_tendermint_response(self, address: str) -> Generator[None, None, bool]:
         """Get Tendermint response"""  # TODO: rename: request_tendermint_info
+        self.context.logger.info("Trying to get_tendermint_response")
 
         dialogues = cast(TendermintDialogues, self.context.tendermint_dialogues)
         performative = TendermintMessage.Performative.REQUEST
@@ -233,17 +232,19 @@ class RegistrationStartupBehaviour(RegistrationBaseBehaviour):
         )
         message = cast(TendermintMessage, message)
         dialogue = cast(TendermintDialogue, dialogue)
-        connection_id, uri = PUBLIC_ID, PUBLIC_ID.to_uri_path
-        context = EnvelopeContext(connection_id=connection_id)
+        context = EnvelopeContext(connection_id=PUBLIC_ID)
         self.context.outbox.put_message(message=message, context=context)
         nonce = self._get_request_nonce_from_dialogue(dialogue)
         requests = cast(Requests, self.context.requests)
         requests.request_id_to_callback[nonce] = self.get_callback_request()
         try:
+            self.context.logger.info("Waiting for tendermint_response message")
             timeout = TENDERMINT_CALLBACK_RESPONSE_TIMEOUT
-            yield from self.wait_for_message(timeout=timeout)
+            msg = yield from self.wait_for_message(timeout=timeout)
+            self.context.logger.info(f"Tendermint response msg: {msg}")
             return True
         except TimeoutException:
+            self.context.logger.info("Timeout in get_tendermint_response")
             return False
 
     def update_tendermint(self) -> Generator[None, None, bool]:
@@ -292,28 +293,24 @@ class RegistrationStartupBehaviour(RegistrationBaseBehaviour):
         #     if not successful:
         #         yield from self.sleep(self.params.sleep_time)
         #         return
-        #
-        # # make service registry contract call
-        # if not self.registered_addresses:
-        #     successful = yield from self.get_addresses()
-        #     if not successful:
-        #         yield from self.sleep(self.params.sleep_time)
-        #         return
 
-        registered_addresses = [
-            '0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266',
-            "0x70997970C51812dc3A010C7d01b50e0d17dc79C8",
-        ]
-        info: Dict[str, str] = dict.fromkeys(registered_addresses)
-        info[self.context.agent_address] = self.context.params.tendermint_url
-        self.period_state.db.initial_data.update(dict(registered_addresses=info))
-        self.context.logger.info(f"test info: {info}")
+        self.context.logger.info(f"My address: {self.context.agent_address}")
+
+        # make service registry contract call
+        if not self.registered_addresses:
+            successful = yield from self.get_addresses()
+            if not successful:
+                yield from self.sleep(self.params.sleep_time)
+                return
+
+        self.context.logger.info(f"not yet collected: {self.not_yet_collected}")
         # collect Tendermint config information
         for address in self.not_yet_collected:
             yield from self.get_tendermint_response(address)
 
         if not any(self.not_yet_collected):
-            self.context.logger.info("Completed collecting Tendermint responses")
+            log_msg = "Completed collecting Tendermint responses"
+            self.context.logger.info(f"{log_msg}: {self.registered_addresses}")
         else:
             missing = sorted(self.not_yet_collected)
             self.context.logger.info(f"Still missing info on: {missing}")
