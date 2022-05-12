@@ -1,8 +1,8 @@
 # Application Control Flow
 
 Within a deployment, each individual agent in the service manages:
-- Tendermint Node
-- ABCI application
+- a Tendermint Node
+- an ABCI application
 
 Each of these is implemented as a docker image which is deployed in a 1-2-1 relationship.
 
