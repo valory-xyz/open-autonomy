@@ -492,6 +492,14 @@ async def test_decode_varint_raises_exception_when_failing() -> None:
         await _TendermintABCISerializer.decode_varint(reader)  # type: ignore
 
 
+@pytest.mark.asyncio
+async def test_decode_varint_raises_eof_error() -> None:
+    """Test that decode_varint raises exception when the EOF of the stream is reached."""
+    with pytest.raises(EOFError, match=""):
+        reader = AsyncBytesIO(b"")
+        await _TendermintABCISerializer.decode_varint(reader)  # type: ignore
+
+
 def test_dep_util() -> None:
     """Test dependency utils."""
     assert dep_utils.nth([0, 1, 2, 3], 1, -1) == 1
