@@ -7,7 +7,7 @@ We start with a simple "Hello World" example service, and we will add progressiv
 
 ## A Hello World! {{agent_service}}
 We start our tour to the framework by visiting an elementary example. The goal is to come up with a service composed of four agents. The functionality of this service will be extremely simple. Namely, each agent will output the following message to its own console:
-> "Agent $i$ in period $j$ says: Hello World!"
+> "Agent $i$ says: Hello World!"
 
 More concretely, we divide the timeline into _periods_, and within each period, _only one designated agent will print the message_. The other agents will print nothing. Think of a period as an interval where the service carries out an iteration of its intended functionality.
 
@@ -84,7 +84,7 @@ This sequence diagram of operations can be interpreted as a finite state machine
 
 Each agent runs internally a process or application that implements the service FSM, processes events and transit to new states according to the state-transition function. The component that encapsulates this functionality is an agent _skill_. As its name suggests, a skill is some sort of "knowledge" that the agent possesses.
 
-Let us call `hello_world_abci`the skill that encapsulates the Hello World functionality (the reason for the suffix `abci` will be explained below). A zoom on an agent would look like this:
+Let us call `hello_world`the skill that encapsulates the Hello World functionality. A zoom on an agent would look like this:
 
 <figure markdown>
 ![](./images/hello_world_zoom_agent.svg)
@@ -122,12 +122,12 @@ A high level view of what occurs is as follows:
     ![](./images/hello_world_sequence_3.svg)
 
 
-4.  Once the consensus phase is finished (and persistently stored in a temporary blockchain maintained by the agents), each agent is notified with the corresponding information via an interface called _ABCI_ (this is why we called the skill `hello_world_abci`).
+4.  Once the consensus phase is finished (and persistently stored in a temporary blockchain maintained by the agents), each agent is notified with the corresponding information via an interface called _ABCI_.
 
     ![](./images/hello_world_sequence_4.svg)
 
 
-5.  A certain skill component (called _Round_) receives and processes this information. If strictly more than $2/3$ of the agents voted for a certain keeper, then the agent records this result persistently to be used in future phases of the service. After finalizing all this processing, the same skill component outputs the event that indicates the success of the expected actions at that state.
+5.  A certain skill component (_Round_) receives and processes this information. If strictly more than $2/3$ of the agents voted for a certain keeper, then the agent records this result persistently to be used in future phases of the service. After finalizing all this processing, the same skill component outputs the event that indicates the success of the expected actions at that state.
 
 
 6.  The event cast in the previous step is received by the component that actually manages the service FSM (_AbciApp_). This component processes the event according to the state-transition function and moves the current state of the FSM appropriately.
@@ -145,10 +145,6 @@ A high level view of what occurs is as follows:
     * **`Payloads`**: Associated to each behaviour. They define the contents of the transaction of the corresponding behaviour.
     * **`RoundBehaviour`**: This can be seen as the main class of the skill, which aggregates the `AbciApp` and ensures to establish a one-to-one relationship between the rounds and behaviours associated to each state of the FSM.
 
-
-!!! Note
-
-    As you have probably realized at this point, there are several items which are called after the interface that connects with the consensus gadget, i.e., the Application Blockchain Interface (ABCI). In case you are not familiar with it, for now, it is enough to know that it is an interface that abstracts away the protocol executed at the consensus gadget, and it produces callbacks to the skill when relevant events occur (e.g., agreement on a block). You can read more about the ABCI [here](https://docs.tendermint.com/master/spec/abci/).
 
 At this point, the walktrhough that we have presented, i.e., a single transition from one state of the FSM, has essentially introduced the main components of an agent and the main interactions that occur in an {{agent_service}}. It is impotant that the developer keeps these concepts in mind, since executions of further state transitions can be easily mapped with what has been presented here so far.
 
@@ -193,242 +189,6 @@ As a summary, find below an image which shows the main components of the agent a
 <figcaption>Main components of an agent that play a role in an {{agent_service}}. Red arrows indicate a high-level flow of messages when the agent is in the SelectKeeper state.</figcaption>
 </figure>
 
-## Coding the Hello World! {{agent_service}}: A Primer
-So far, we have given a conceptual description of the Hello World {{agent_service}}. As we have seen, there are a number of components that the developer needs to focus in order to fully define the service.
-
-The objective of this section is to explore what are the main steps to code and get the service running. Note that the complete code for the example can be found in
-
-* `packages/valory/agents/hello_world`: the Hello World agent,
-* `packages/valory/skills/hello_world_abci`: the hello_world_abci skill.
-
-### Coding the Agent
-Agents are defined through the {{open_aea}} library as YAML files, which specify what components is the agent composed of, together with some other configuration parameters. Agents components can be, for example, connections, contracts, protocols or skills. We refer to the {{open_aea_doc}} for the complete details, although the reader might already have some intuition about their meaning.
-
-This is an excerpt of the `/agents/hello_world/aea-config.yaml` file:
-
-```yaml
-# ...
-connections:
-- valory/abci:0.1.0
-- valory/http_client:0.1.0
-contracts: []
-protocols:
-- open_aea/signing:1.0.0
-- valory/abci:0.1.0
-- valory/http:1.0.0
-skills:
-- valory/abstract_abci:0.1.0
-- valory/abstract_round_abci:0.1.0
-- valory/hello_world_abci:0.1.0
-# ...
-```
-
-It is mandatory that all agents that will be part of an {{agent_service}} have the `abci` connection, the `abci` protocol, as well as the `abstract_abci` and `abstract_round_abci` skills. These are the essential components that allow to interact with the consensus gadget, and contain helper and base classes that simplify the process of building the code for the skill.
-
-Additionally, the agent can use other connections, protocols or skills, deppending of its particular needs. In the example, the `http_client` connection and the `http` protocol allows the agent to interact with HTTP servers (although we are not using it in this service). Similarly, you can add the `ledger` connection and the `ledger_api` protocol in case the agent needs to interact with a blockchain.
-
-Note that the agent also includes the `hello_world_abci` skill, which is the one that we need to code for this example. Except that, there is no more to code to write for the agent. The {{open_aea}} library will be in charge of reading this configuration file and execute its skills accordingly.
-
-Note that although it is possible to develop your own protocols and connections, the {{valory_stack}} provides a number of typical ones which can be reused. Therefore, it is usual that the developer focuses most of its programming efforts in coding the particular skill/s for the agent.
-
-### Coding the Skill
-
-Recall that the skill needs to define the `AbciApp`; the `Rounds`, `Behaviours` and `Payloads` associated to each state of the FSM; and the main skill class, i.e., the `RoundBehaviour` class. Let's look how each of these objects are imlemented. The files referenced below are all placed within `packages/valory/skills/hello_world_abci`:
-
-  **`rounds.py`**: This file defines both the `Rounds` and the `AbciApp` class. This is how the printing round (`PrintMessageRound`) inherits from the stack classes:
-
-  <figure markdown>
-  <div class="mermaid">
-  classDiagram
-      AbstractRound <|-- CollectionRound
-      CollectionRound <|-- CollectDifferentUntilAllRound
-      CollectDifferentUntilAllRound <|-- PrintMessageRound
-      HelloWorldABCIAbstractRound <|-- PrintMessageRound
-      AbstractRound <|-- HelloWorldABCIAbstractRound
-
-      class AbstractRound{
-        +round_id
-        +allowed_tx_type
-        +payload_attribute
-        -_state
-        +period_state()
-        +end_block()*
-        +check_payload()*
-        +process_payload()*
-      }
-      class HelloWorldABCIAbstractRound{
-        +period_state()
-        -_return_no_majority_event()
-      }
-      class CollectionRound{
-        -collection
-        +payloads()
-        +payloads_count()
-        +process_payload()
-        +check_payload()
-      }
-      class CollectDifferentUntilAllRound{
-        +process_payload()
-        +check_payload()
-        +collection_threshold_reached()
-        +most_voted_payload()
-      }
-      class PrintMessageRound{
-        +round_id = "print_message"
-        +allowed_tx_type = PrintMessagePayload.transaction_type
-        +payload_attribute = "message"        
-        +end_block()
-      }
-  </div>
-  <figcaption>Hierarchy of the `PrintMessageRound` class (some methods and fields are omitted)</figcaption>
-  </figure>
-
-  Note that the `HelloWorldABCIAbstractRound` is merely a convenience class defined in the same file. The class `CollectDifferentUntilAllRound` is a helper class for rounds that expect that each agent sends a different message. In this case, the message to be sent is the agent printed by each agent, which will be obviously different for each agent (one of them will be the celebrated 'Hello World' message, and the others will be 'empty' messages). Other helper classes exist within the stack to account for rounds that expect agents to agree on a common value.
-
-  Since most of the logic is already implemented in the base classes, the programmer only needs to define a few parameters and methods within the `Round`. Most notably, the method `end_block`, which is triggered when the ABCI notifies the end of a block in the consensus gadget:
-
-  ``` Python
-  class PrintMessageRound(CollectDifferentUntilAllRound, HelloWorldABCIAbstractRound):
-
-    (...)
-
-    def end_block(self) -> Optional[Tuple[BasePeriodState, Event]]:
-      if self.collection_threshold_reached:
-          state = self.period_state.update(
-              participants=self.collection,
-              all_participants=self.collection,
-              period_state_class=PeriodState,
-          )
-          return state, Event.DONE
-      return None
-  ```
-
-  The method updates a number of variables collected at that point, and returns the appropriate event (`DONE`) so that the `AbciApp` can process and transit to the next round.
-
-  Observe that the `RegistrationRound` is very similar to the `PrintMessageRound`, as it simply has to collect the different addresses that each agent sends.
-
-  After having defined the `Rounds`, the `HelloWorldAbciApp` does not have much mystery. It simply defines the transitions from one state to another in the FSM, arranged as Python dictionaries. For example,
-
-  ``` Python
-  SelectKeeperRound: {
-      Event.DONE: PrintMessageRound,
-      Event.ROUND_TIMEOUT: RegistrationRound,
-      Event.NO_MAJORITY: RegistrationRound,
-  },  
-  ```
-
-  denotes the three possible transitions from the `SelectKeeperRound` to the corresponding `Rounds`, according to the FSM depicted above.
-
-
-**`behaviours.py`**: This file defines the `Behaviours`, which encode the proactive actions occurring at each state of the FSM. The class diagram for the `PrintMessageBehaviour` is as follows:
-
-  <figure markdown>
-  <div class="mermaid">
-  classDiagram
-      HelloWorldABCIBaseState <|-- PrintMessageBehaviour
-      BaseState <|-- HelloWorldABCIBaseState
-      IPFSBehaviour <|-- BaseState
-      AsyncBehaviour <|-- BaseState
-      CleanUpBehaviour <|-- BaseState
-      SimpleBehaviour <|-- AsyncBehaviour
-      Behaviour <|-- SimpleBehaviour
-
-      class AsyncBehaviour{
-          +async_act()*
-          +async_act_wrapper()*
-      }
-      class HelloWorldABCIBaseState {
-          +period_state()
-          +params()
-      }
-      class PrintMessageBehaviour{
-          +state_id = "print_message"
-          +matching_round = PrintMessageRound       
-          +async_act()
-      }
-  </div>
-  <figcaption>Hierarchy of the `PrintMessageBehaviour` class (some methods and fields are omitted)</figcaption>
-  </figure>
-
-Again, the `HelloWorldABCIBaseState` is a convenience class, and the upper class in the hierarchy are abstract classes from the stack that facilitate reusability of code when implementing the `Behaviour`. An excerpt of its code is:
-
-``` python
-class PrintMessageBehaviour(HelloWorldABCIBaseState, ABC):
-
-    state_id = "print_message"
-    matching_round = PrintMessageRound
-
-    def async_act(self) -> Generator:
-
-        printed_message = f"Agent {self.context.agent_address} in period {self.period_state.period_count} says: "
-        if self.context.agent_address == self.period_state.most_voted_keeper_address:
-            printed_message += "HELLO WORLD!"
-        else:
-            printed_message += ":|"
-
-        print(printed_message)
-
-        payload = PrintMessagePayload(self.context.agent_address, printed_message)
-
-        yield from self.send_a2a_transaction(payload)
-        yield from self.wait_until_round_end()
-
-        self.set_done()
-```
-
-Let us remark a number of noteworthy points from this code:
-
-1.  The `matching_round` variable must be set to the corresponding `Round`.
-2.  Within `async_act()`, The action must be executed (in this case, print 'Hello World' sequentially). Note how the agent reads the `context` and `period_state` to determine if it is the keeper agent.
-3.  After the action has been executed, the agent must prepare the `Payload` associated with this state. The payload can be anything that other agents might find useful for the action in this or future states. In this case, we simply send the message printed to the console.
-4.  The agent must send the `Payload`, which the consensus gadget will be in charge of synchronizing with all the agents.
-5.  The agent must wait until the consensus gadgets finishes its work, and mark the state as 'done'.
-
-Steps 3, 4, 5 above are common for all the `Behaviours` in the {{agent_service}} skills.
-
-Once all the `Behaviours` are defined, it is time to define the `RoundBehaviour` class. This class follows a quite standard structure in all the {{agent_service}}s, and the reader can easily infer what is it from the source code:
-
-```python
-class HelloWorldRoundBehaviour(AbstractRoundBehaviour):
-    """This behaviour manages the consensus stages for the Hello World abci app."""
-
-    initial_state_cls = RegistrationBehaviour
-    abci_app_cls = HelloWorldAbciApp
-    behaviour_states: Set[Type[HelloWorldABCIBaseState]] = {  
-        RegistrationBehaviour,
-        SelectKeeperBehaviour,
-        PrintMessageBehaviour,
-        ResetAndPauseBehaviour,
-    }
-```
-
-**`payloads.py`**: This file defines the payloads associated to the consensus engine for each of the states. Payload classes are mostly used to encapsulate the data values, and carry almost no business logic. For illustration purposes, consider the payload associated to the `PrintMessageBehaviour`:
-
-``` python
-class PrintMessagePayload(BaseHelloWorldAbciPayload):
-
-    transaction_type = TransactionType.PRINT_MESSAGE
-
-    def __init__(self, sender: str, message: str, **kwargs: Any) -> None:
-        super().__init__(sender, **kwargs)
-        self._message = message
-
-    @property
-    def message(self) -> str:
-        return self._message
-
-    @property
-    def data(self) -> Dict:
-        return dict(message=self._message)
-```
-
-
-**Other required components.**  As you an see, there are a number of extra files which define other components required by the agent that we have not addressed so far.
-Let us briefly describe the purposes of each one:
-
-* `skill.yaml`: This is the skill specification file. Similarly as the agent, it defines the components (protocols, connections, etc.) required by the skill, as well as a number of configuration parameters.
-* `dialogues.py`
-
 
 ## Further Reading
-While this walkthrough to a simple Hello World example gives a general overview of the main elements that play a role in an {{agent_service}} and inside an agent, there are a few more elements in the {{valory_stack}} that facilitate building complex applications and interact with real blockchains and other networks. We refer the reader to the more advanced sections where we explore in detail the stack.
+While this walkthrough to a simple Hello World example gives a bird's eye view of the main elements that play a role in an {{agent_service}} and inside an agent, there are a few more elements in the {{valory_stack}} that facilitate building complex applications and interact with real blockchains and other networks. We refer the reader to the more advanced sections where we explore in detail the stack.
