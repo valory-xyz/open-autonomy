@@ -119,6 +119,47 @@ class FlaskTendermintDockerImage(TendermintDockerImage):
         """Get the tag."""
         return f"valory/consensus-algorithms-tendermint:{TENDERMINT_VERSION}"
 
+    @staticmethod
+    def get_node_name(i: int) -> str:
+        """Get the ith node's name."""
+        return f"node{i}"
+
+    def _get_node_id(self, i: int) -> str:
+        """Get the node id."""
+        cmd = [
+            "docker",
+            "exec",
+            self.get_node_name(i),
+            "tendermint",
+            "--home",
+            self.get_node_name(i),
+            "show-node-id",
+        ]
+        process = subprocess.Popen(  # nosec
+            cmd,
+            stdout=subprocess.PIPE,
+        )
+        output, _ = process.communicate()
+        node_id = output.decode().strip()
+        return node_id
+
+    def get_addr(self, prefix: str, i: int, p2p: bool = False) -> str:
+        """Get a node's address."""
+        valid_prefixes = {_TCP, _HTTP}
+        if prefix not in valid_prefixes:
+            raise ValueError(f"Invalid prefix! Should be one of: {valid_prefixes}")
+
+        port = self.p2p_port if p2p else self.port
+        return f"{prefix}{self._get_node_id(i)}@{_LOCAL_ADDRESS}:{port + i * 10}"
+
+    @property
+    def p2p_seeds(self) -> List[str]:
+        """Get p2p seeds."""
+        if self.nb_nodes is None:
+            raise ValueError("Trying to get p2p seeds before initializing containers!")
+
+        return [self.get_addr(_TCP, i) for i in range(self.nb_nodes)]
+
     def _build_command(self) -> List[str]:
         """Build command."""
         return ["run", "--no-reload", "--host=0.0.0.0", "--port=8080"]
