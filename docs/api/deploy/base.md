@@ -122,27 +122,27 @@ def try_to_process_nested_fields(component_id: ComponentId, component_index: int
 
 Try to process component with nested overrides.
 
-<a id="aea_swarm.deploy.base.BaseDeployment"></a>
+<a id="aea_swarm.deploy.base.DeploymentSpec"></a>
 
-## BaseDeployment Objects
+## DeploymentSpec Objects
 
 ```python
-class BaseDeployment()
+class DeploymentSpec()
 ```
 
 Class to assist with generating deployments.
 
-<a id="aea_swarm.deploy.base.BaseDeployment.__init__"></a>
+<a id="aea_swarm.deploy.base.DeploymentSpec.__init__"></a>
 
 #### `__`init`__`
 
 ```python
-def __init__(path_to_deployment_spec: str, private_keys_file_path: Path, package_dir: Path) -> None
+def __init__(path_to_deployment_spec: str, private_keys_file_path: Path, package_dir: Path, number_of_agents: Optional[int] = None) -> None
 ```
 
 Initialize the Base Deployment.
 
-<a id="aea_swarm.deploy.base.BaseDeployment.read_keys"></a>
+<a id="aea_swarm.deploy.base.DeploymentSpec.read_keys"></a>
 
 #### read`_`keys
 
@@ -152,7 +152,7 @@ def read_keys(file_path: Path) -> None
 
 Read in keys from a file on disk.
 
-<a id="aea_swarm.deploy.base.BaseDeployment.generate_agents"></a>
+<a id="aea_swarm.deploy.base.DeploymentSpec.generate_agents"></a>
 
 #### generate`_`agents
 
@@ -162,7 +162,7 @@ def generate_agents() -> List
 
 Generate multiple agent.
 
-<a id="aea_swarm.deploy.base.BaseDeployment.generate_common_vars"></a>
+<a id="aea_swarm.deploy.base.DeploymentSpec.generate_common_vars"></a>
 
 #### generate`_`common`_`vars
 
@@ -172,7 +172,7 @@ def generate_common_vars(agent_n: int) -> Dict
 
 Retrieve vars common for valory apps.
 
-<a id="aea_swarm.deploy.base.BaseDeployment.generate_agent"></a>
+<a id="aea_swarm.deploy.base.DeploymentSpec.generate_agent"></a>
 
 #### generate`_`agent
 
@@ -182,7 +182,7 @@ def generate_agent(agent_n: int) -> Dict[Any, Any]
 
 Generate next agent.
 
-<a id="aea_swarm.deploy.base.BaseDeployment.load_agent"></a>
+<a id="aea_swarm.deploy.base.DeploymentSpec.load_agent"></a>
 
 #### load`_`agent
 
@@ -192,7 +192,7 @@ def load_agent() -> List[Dict[str, str]]
 
 Using specified valory app, try to load the aea.
 
-<a id="aea_swarm.deploy.base.BaseDeployment.locate_agent_from_package_directory"></a>
+<a id="aea_swarm.deploy.base.DeploymentSpec.locate_agent_from_package_directory"></a>
 
 #### locate`_`agent`_`from`_`package`_`directory
 
@@ -217,7 +217,7 @@ Base Deployment Class.
 #### `__`init`__`
 
 ```python
-def __init__(deployment_spec: BaseDeployment, build_dir: Path)
+def __init__(deployment_spec: DeploymentSpec, build_dir: Path)
 ```
 
 Initialise with only kwargs.
@@ -228,7 +228,7 @@ Initialise with only kwargs.
 
 ```python
 @abc.abstractmethod
-def generate(valory_application: Type[BaseDeployment], dev_mode: bool = False) -> str
+def generate(dev_mode: bool = False) -> "BaseDeploymentGenerator"
 ```
 
 Generate the deployment configuration.
@@ -239,20 +239,10 @@ Generate the deployment configuration.
 
 ```python
 @abc.abstractmethod
-def generate_config_tendermint(valory_application: Type[BaseDeployment]) -> str
+def generate_config_tendermint() -> "BaseDeploymentGenerator"
 ```
 
 Generate the deployment configuration.
-
-<a id="aea_swarm.deploy.base.BaseDeploymentGenerator.write_config"></a>
-
-#### write`_`config
-
-```python
-def write_config() -> None
-```
-
-Write output to build dir
 
 <a id="aea_swarm.deploy.base.BaseDeploymentGenerator.get_deployment_network_configuration"></a>
 
@@ -263,4 +253,14 @@ def get_deployment_network_configuration(agent_vars: List[Dict[str, Any]]) -> Li
 ```
 
 Retrieve the appropriate network configuration based on deployment & network.
+
+<a id="aea_swarm.deploy.base.BaseDeploymentGenerator.write_config"></a>
+
+#### write`_`config
+
+```python
+def write_config() -> "BaseDeploymentGenerator"
+```
+
+Write output to build dir
 
