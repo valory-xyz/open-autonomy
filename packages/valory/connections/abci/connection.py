@@ -66,7 +66,20 @@ class DecodeVarintError(Exception):
 
 
 class TooLargeVarint(Exception):
-    """This exception is raised when a too large size of bytes is received."""
+    """This exception is raised when a message with varint exceeding the max size is received."""
+
+    def __init__(self, received_size: int, max_size: int = MAX_READ_IN_BYTES):
+        """
+        Initialize the exception object.
+
+        :param received_size: the received size.
+        :param max_size: the maximum amount the connection supports.
+        """
+        super().__init__(
+            f"The max message size is {max_size}, received message with varint {received_size}."
+        )
+        self.received_size = received_size
+        self.max_size = max_size
 
 
 class ShortBufferLengthError(Exception):
@@ -175,21 +188,11 @@ class VarintMessageReader:  # pylint: disable=too-few-public-methods
         """Read next message."""
         varint = await _TendermintABCISerializer.decode_varint(self._reader)
         if varint > MAX_READ_IN_BYTES:
-            await self.discard_until(varint)
-            raise TooLargeVarint()
+            raise TooLargeVarint(received_size=varint, max_size=MAX_READ_IN_BYTES)
         message_bytes = await self.read_until(varint)
         if len(message_bytes) < varint:
             raise ShortBufferLengthError(varint, message_bytes)
         return message_bytes
-
-    async def discard_until(self, n: int) -> None:
-        """Discard the next n bytes from the stream chunk by chunk."""
-        read_bytes = 0
-        chunk_size = 10 ** 4  # 10K at a time
-        while read_bytes < n:
-            bytes_to_read = min(chunk_size, n - read_bytes)
-            data = await self._reader.read(bytes_to_read)
-            read_bytes += len(data)
 
     async def read_until(self, n: int) -> bytes:
         """Wait until n bytes are read from the stream."""
@@ -307,7 +310,6 @@ class TcpServerChannel:  # pylint: disable=too-many-instance-attributes
                 message.ParseFromString(message_bytes)
             except (
                 DecodeVarintError,
-                TooLargeVarint,
                 DecodeError,
             ) as e:  # pragma: nocover
                 self.logger.error(
@@ -319,6 +321,14 @@ class TcpServerChannel:  # pylint: disable=too-many-instance-attributes
                     self.logger.info("connection at EOF, stop receiving loop.")
                     return
                 continue
+            except TooLargeVarint as e:
+                self.logger.error(
+                    f"A message exceeding the configured max size was received. "
+                    f"{type(e).__name__}: {e} "
+                    f"Closing the connection to the node."
+                )
+                await self.disconnect()
+                return
             except EOFError:
                 self.logger.info("connection at EOF, stop receiving loop.")
                 return
@@ -557,6 +567,13 @@ class ABCIServerConnection(Connection):  # pylint: disable=too-many-instance-att
         )
         self.logger.debug(f"Tendermint parameters: {self.params}")
         self.node = TendermintNode(self.params, self.logger)
+
+    def _ensure_connected(self) -> None:
+        """Ensure that the connection and the channel are ready."""
+        super()._ensure_connected()
+
+        if self.channel.is_stopped:
+            raise ConnectionError("The channel is stopped.")
 
     async def connect(self) -> None:
         """
