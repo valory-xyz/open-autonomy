@@ -185,9 +185,9 @@ class FlaskTendermintDockerImage(TendermintDockerImage):
             },
             working_dir="/tendermint",
             volumes=[
-                "./build:/tendermint:Z",
-                "../persistent_data/logs:/logs:Z",
-                "../persistent_data/tm_state:/tm_state:Z",
+                f"{os.getcwd()}/deployments/build/build:/tendermint:Z",
+                f"{os.path.dirname(os.getcwd())}/deployments/persistent_data/logs:/logs:Z",
+                f"{os.path.dirname(os.getcwd())}/deployments/persistent_data/tm_state:/tm_state:Z",
             ],
             ports={
                 f"{DEFAULT_TENDERMINT_PORT}/tcp": ("0.0.0.0", self.port + i),
