@@ -11,7 +11,7 @@ fingerprint:
   behaviours.py: QmZUyyQWAXhPWY3ny2HZkykb5fJgHjkqxKPFVYfR1wCSh1
   dialogues.py: QmfDThV4WCRzK88XDpW2hKDYCuEH4RxoHCoAkWpkBRGRPv
   fsm_specification.yaml: QmXVQp8pmwwURGntFJ41QziXMFysTpkZy9wjVn1KoACZgA
-  handlers.py: QmThK5PB67624VnCWmBXBz1MzwVp9XBWA97x3rsAwADnW1
+  handlers.py: QmdoWWfcs7T2npA7jLzjAqfiMLXszHJk8J6Kr2C1Gm1HSN
   models.py: QmP1o1MJF1qQtRurgzZ2fdRHWdu3G6xrTxUWy9GdYtHihT
   payloads.py: QmdJ8VRZmEXnJWx4oNcizaxjgBtEhanFBY2cU3g4UWM7s5
   rounds.py: QmUq6h9dV27yVpqBqsXUEtrDoTKqinCgAWtaMKvEe8Nv18
@@ -26,6 +26,9 @@ behaviours:
     args: {}
     class_name: AgentRegistrationRoundBehaviour
 handlers:
+  abci:
+    args: {}
+    class_name: ABCIHandler
   contract_api:
     args: {}
     class_name: ContractApiHandler
