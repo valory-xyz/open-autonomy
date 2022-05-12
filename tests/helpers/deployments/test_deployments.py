@@ -24,11 +24,11 @@ import tempfile
 from abc import ABC
 from glob import glob
 from pathlib import Path
-from typing import Any, List, Tuple
+from typing import Any, List, Tuple, cast
 
 import yaml
 
-from aea_swarm.deploy.base import BaseDeployment, BaseDeploymentGenerator
+from aea_swarm.deploy.base import BaseDeploymentGenerator, DeploymentSpec
 from aea_swarm.deploy.generators.docker_compose.base import DockerComposeGenerator
 from aea_swarm.deploy.generators.kubernetes.base import KubernetesGenerator
 
@@ -170,9 +170,9 @@ class BaseDeploymentTests(ABC, CleanDirectoryClass):
 
     def load_deployer_and_app(
         self, app: str, deployer: BaseDeploymentGenerator
-    ) -> Tuple[BaseDeploymentGenerator, BaseDeployment]:
+    ) -> Tuple[BaseDeploymentGenerator, DeploymentSpec]:
         """Handles loading the 2 required instances"""
-        app_instance = BaseDeployment(
+        app_instance = DeploymentSpec(
             path_to_deployment_spec=app,
             private_keys_file_path=DEFAULT_KEY_PATH,
             package_dir=PACKAGES_DIR,
@@ -264,8 +264,10 @@ class TestTendermintDeploymentGenerators(BaseDeploymentTests):
                 deployer_instance, app_instance = self.load_deployer_and_app(
                     spec_path, deployment_generator
                 )
-                res = deployer_instance.generate_config_tendermint(app_instance)  # type: ignore
-                assert len(res) >= 1, "Failed to generate Tendermint Config"
+                res = deployer_instance.generate_config_tendermint()  # type: ignore
+                assert (
+                    len(cast(str, res.tendermint_job_config)) >= 1
+                ), "Failed to generate Tendermint Config"
 
 
 class TestDeploymentLoadsAgent(BaseDeploymentTests):
