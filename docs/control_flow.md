@@ -1,6 +1,6 @@
 # Application Control Flow
 
-Within a deployment, each individual tendermint node consists of a:
+Within a deployment, each individual agent in the service manages:
 - Tendermint Node
 - ABCI application
 
