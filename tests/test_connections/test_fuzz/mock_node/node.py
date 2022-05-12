@@ -62,6 +62,14 @@ class MockNode:
 
         self.channel = channel
 
+    def connect(self) -> None:
+        """Connect the node."""
+        self.channel.connect()
+
+    def disconnect(self) -> None:
+        """Disconnect the node."""
+        self.channel.disconnect()
+
     def info(self, version: str, block_version: int, p2p_version: int) -> bool:
         request = abci_types.RequestInfo()
         request.version = version

@@ -18,16 +18,20 @@
 #
 # ------------------------------------------------------------------------------
 """TcpChannel for MockNode"""
-
+import asyncio
 import logging
 import socket
-from io import BytesIO
-from typing import Dict, Generator
+from asyncio import AbstractEventLoop
+from threading import Thread
+from typing import Dict, Optional, cast
 
 from aea.exceptions import enforce
 
 import packages.valory.connections.abci.tendermint.abci.types_pb2 as abci_types  # type: ignore
-from packages.valory.connections.abci.connection import _TendermintABCISerializer
+from packages.valory.connections.abci.connection import (
+    VarintMessageReader,
+    _TendermintABCISerializer,
+)
 
 from tests.test_connections.test_fuzz.mock_node.channels.base import BaseChannel
 
@@ -52,12 +56,63 @@ class TcpChannel(BaseChannel):
         """
         super().__init__(**kwargs)
 
-        host = kwargs.get("host", "localhost")
-        port = kwargs.get("port", 26658)
+        self.host: str = cast(str, kwargs.get("host", "localhost"))
+        self.port: int = cast(int, kwargs.get("port", 26658))
         self.logger = _default_logger
 
-        self.tcp_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.tcp_socket.connect((host, port))
+        # attributes for the channel state
+        self.loop: Optional[AbstractEventLoop] = None
+        self.loop_thread: Optional[Thread] = None
+        self.message_reader: Optional[VarintMessageReader] = None
+        self.reader: Optional[asyncio.StreamReader] = None
+        self.writer: Optional[asyncio.StreamWriter] = None
+
+    @property
+    def is_connected(self) -> bool:
+        """Check whether the channel is connected."""
+        return self.loop_thread is not None
+
+    def connect(self) -> None:
+        """Set up the channel."""
+        if self.is_connected:
+            return
+        self.loop = asyncio.new_event_loop()
+        self.loop_thread = Thread(target=self._run_loop_in_thread, args=(self.loop,))
+        self.loop_thread.start()
+
+        # set up asyncio connection
+        future = asyncio.run_coroutine_threadsafe(
+            asyncio.open_connection(
+                self.host, self.port, loop=self.loop, family=socket.AF_INET
+            ),
+            self.loop,
+        )
+        self.reader, self.writer = future.result()
+        self.message_reader = VarintMessageReader(self.reader)
+
+    def disconnect(self) -> None:
+        """Tear down the channel."""
+        if not self.is_connected:
+            return
+
+        cast(asyncio.StreamWriter, self.writer).close()
+
+        loop = cast(AbstractEventLoop, self.loop)
+        loop.call_soon_threadsafe(loop.stop)
+        cast(Thread, self.loop_thread).join(5)
+
+        # restore channel state
+        self.loop = None
+        self.loop_thread = None
+        self.message_reader = None
+        self.reader = None
+        self.writer = None
+
+    @staticmethod
+    def _run_loop_in_thread(loop: AbstractEventLoop) -> None:
+        """Run an asyncio loop in the thread of the caller."""
+        asyncio.set_event_loop(loop)
+        loop.run_forever()
 
     def _get_response(self) -> abci_types.Response:
         """
@@ -70,38 +125,23 @@ class TcpChannel(BaseChannel):
             - Responses are sent in the same order as the reqs.
 
         """
-        data = BytesIO()
+        future = asyncio.run_coroutine_threadsafe(
+            cast(VarintMessageReader, self.message_reader).read_next_message(),
+            cast(AbstractEventLoop, self.loop),
+        )
+        message_bytes = future.result()
+        message = abci_types.Response()
+        message.ParseFromString(message_bytes)
+        return message
 
-        bits = self.tcp_socket.recv(self.MAX_READ_IN_BYTES)
-
-        if len(bits) == 0:
-            raise EOFError
-
-        self.logger.debug(f"Received {len(bits)} bytes from abci")
-        data.write(bits)
-        data.seek(0)
-
-        message_iterator: Generator[
-            abci_types.Response, None, None
-        ] = _TendermintABCISerializer.read_messages(data, abci_types.Response)
-        sentinel = object()
-        num_messages = 0
-        response = None
-
-        while True:
-            message = next(message_iterator, sentinel)
-            if response is None:
-                response = message
-
-            if message == sentinel:
-                # we reached the end of the iterator
-                break
-
-            num_messages += 1
-
-        enforce(num_messages == 1, "a single message was expected")
-
-        return response
+    def _send_data(self, data: bytes) -> None:
+        """Send data over the TCP connection."""
+        cast(asyncio.StreamWriter, self.writer).write(data)
+        future = asyncio.run_coroutine_threadsafe(
+            cast(asyncio.StreamWriter, self.writer).drain(),
+            cast(AbstractEventLoop, self.loop),
+        )
+        future.result()
 
     def send_info(self, request: abci_types.RequestInfo) -> abci_types.ResponseInfo:
         """
@@ -116,7 +156,7 @@ class TcpChannel(BaseChannel):
 
         data = _TendermintABCISerializer.write_message(message)
 
-        self.tcp_socket.send(data)
+        self._send_data(data)
 
         response = self._get_response()
         response_type = response.WhichOneof("value")
@@ -140,7 +180,7 @@ class TcpChannel(BaseChannel):
 
         data = _TendermintABCISerializer.write_message(message)
 
-        self.tcp_socket.send(data)
+        self._send_data(data)
 
         response = self._get_response()
         response_type = response.WhichOneof("value")
@@ -164,7 +204,7 @@ class TcpChannel(BaseChannel):
 
         data = _TendermintABCISerializer.write_message(message)
 
-        self.tcp_socket.send(data)
+        self._send_data(data)
 
         response = self._get_response()
         response_type = response.WhichOneof("value")
@@ -190,7 +230,7 @@ class TcpChannel(BaseChannel):
 
         data = _TendermintABCISerializer.write_message(message)
 
-        self.tcp_socket.send(data)
+        self._send_data(data)
 
         response = self._get_response()
         response_type = response.WhichOneof("value")
@@ -216,7 +256,7 @@ class TcpChannel(BaseChannel):
 
         data = _TendermintABCISerializer.write_message(message)
 
-        self.tcp_socket.send(data)
+        self._send_data(data)
 
         response = self._get_response()
         response_type = response.WhichOneof("value")
@@ -242,7 +282,7 @@ class TcpChannel(BaseChannel):
 
         data = _TendermintABCISerializer.write_message(message)
 
-        self.tcp_socket.send(data)
+        self._send_data(data)
 
         response = self._get_response()
         response_type = response.WhichOneof("value")
@@ -266,7 +306,7 @@ class TcpChannel(BaseChannel):
 
         data = _TendermintABCISerializer.write_message(message)
 
-        self.tcp_socket.send(data)
+        self._send_data(data)
 
         response = self._get_response()
         response_type = response.WhichOneof("value")
@@ -292,7 +332,7 @@ class TcpChannel(BaseChannel):
 
         data = _TendermintABCISerializer.write_message(message)
 
-        self.tcp_socket.send(data)
+        self._send_data(data)
 
         response = self._get_response()
         response_type = response.WhichOneof("value")
@@ -318,7 +358,7 @@ class TcpChannel(BaseChannel):
 
         data = _TendermintABCISerializer.write_message(message)
 
-        self.tcp_socket.send(data)
+        self._send_data(data)
 
         response = self._get_response()
         response_type = response.WhichOneof("value")
@@ -344,7 +384,7 @@ class TcpChannel(BaseChannel):
 
         data = _TendermintABCISerializer.write_message(message)
 
-        self.tcp_socket.send(data)
+        self._send_data(data)
 
         response = self._get_response()
         response_type = response.WhichOneof("value")
@@ -370,7 +410,7 @@ class TcpChannel(BaseChannel):
 
         data = _TendermintABCISerializer.write_message(message)
 
-        self.tcp_socket.send(data)
+        self._send_data(data)
 
         response = self._get_response()
         response_type = response.WhichOneof("value")
@@ -396,7 +436,7 @@ class TcpChannel(BaseChannel):
 
         data = _TendermintABCISerializer.write_message(message)
 
-        self.tcp_socket.send(data)
+        self._send_data(data)
 
         response = self._get_response()
         response_type = response.WhichOneof("value")
@@ -422,7 +462,7 @@ class TcpChannel(BaseChannel):
 
         data = _TendermintABCISerializer.write_message(message)
 
-        self.tcp_socket.send(data)
+        self._send_data(data)
 
         response = self._get_response()
         response_type = response.WhichOneof("value")
@@ -448,7 +488,7 @@ class TcpChannel(BaseChannel):
 
         data = _TendermintABCISerializer.write_message(message)
 
-        self.tcp_socket.send(data)
+        self._send_data(data)
 
         response = self._get_response()
         response_type = response.WhichOneof("value")
@@ -474,7 +514,7 @@ class TcpChannel(BaseChannel):
 
         data = _TendermintABCISerializer.write_message(message)
 
-        self.tcp_socket.send(data)
+        self._send_data(data)
 
         response = self._get_response()
         response_type = response.WhichOneof("value")

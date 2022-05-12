@@ -30,6 +30,20 @@ class BaseChannel:
         """Initializes a channel"""
         pass
 
+    def connect(self) -> None:
+        """
+        Set up the channel.
+
+        By default, it is a no-op.
+        """
+
+    def disconnect(self) -> None:
+        """
+        Tear down the channel.
+
+        By default, it is a no-op.
+        """
+
     def send_info(self, request: abci_types.RequestInfo) -> abci_types.ResponseInfo:
         """
         Sends an info request.
