@@ -321,7 +321,7 @@ class TcpServerChannel:  # pylint: disable=too-many-instance-attributes
                     self.logger.info("connection at EOF, stop receiving loop.")
                     return
                 continue
-            except TooLargeVarint as e:
+            except TooLargeVarint as e:  # pragma: nocover
                 self.logger.error(
                     f"A message exceeding the configured max size was received. "
                     f"{type(e).__name__}: {e} "
