@@ -11,7 +11,7 @@ fingerprint:
   behaviours.py: QmWhtx7pKtsQCk5XpvYmkxw4CGVpSAaJSfdZqJZizco5wF
   dialogues.py: Qmd54DnNEsybMJb78HTcW2HABVBZCL1FuQL8ELKq3xB6Jw
   fsm_specification.yaml: QmUeA76vgnHNSyrQDsU1zWgMwB13WXk6ZqorvAcactLPwY
-  handlers.py: QmetZ5zoEr9SSkqgR9zfWdB9CEsDeBQqrXypYZ1f9UAF6H
+  handlers.py: QmRdZj98pGjhpDSAB1Kgymeauwq1impiX8Cs2H8Un1CeBs
   models.py: QmPegRgrqVr6fMECoYCd3k7VDKdndBNMTuiPVrGTM9SW3o
   payloads.py: QmSds2L9BKR4157xqGgH22dG8ojq6hc1BG2JH9NgzhxgVp
   rounds.py: QmfXwDXfqLQWS5THNPaz4N7rk515hJqyd3u4aV6W995FH1
@@ -29,6 +29,9 @@ behaviours:
     args: {}
     class_name: ResetPauseABCIConsensusBehaviour
 handlers:
+  abci:
+    args: {}
+    class_name: ABCIHandler
   contract_api:
     args: {}
     class_name: ContractApiHandler
