@@ -486,7 +486,9 @@ async def test_encode_decode_varint(value: int) -> None:
 async def test_decode_varint_raises_exception_when_failing() -> None:
     """Test that decode_varint raises exception when the decoding fails."""
     with pytest.raises(DecodeVarintError, match="could not decode varint"):
-        reader = AsyncBytesIO(b"")
+        # set CONTINUE_BIT so to trigger an exception
+        b = b"\x80"
+        reader = AsyncBytesIO(b)
         await _TendermintABCISerializer.decode_varint(reader)  # type: ignore
 
 
