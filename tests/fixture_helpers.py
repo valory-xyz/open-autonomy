@@ -75,8 +75,6 @@ class UseTendermint:
 class UseFlaskTendermint1Node:
     """Inherit from this class to use flask server with Tendermint."""
 
-    # @pytest.mark.parametrize("nb_nodes", (1,), indirect=True)
-
     @pytest.fixture(autouse=True)
     def _start_tendermint(
         self, flask_tendermint: FlaskTendermintDockerImage, tendermint_port: Any
@@ -116,30 +114,6 @@ class UseFlaskTendermint1Node:
     def health_check(self, **kwargs: Any) -> None:
         """Perform a health check."""
         self._tendermint_image.health_check(**kwargs)
-
-
-@pytest.mark.integration
-class UseFlaskTendermint2Nodes(UseTendermint):
-    """Inherit from this class to use flask server with Tendermint."""
-
-    @pytest.fixture(autouse=True)
-    @pytest.mark.parametrize("nb_nodes", (2,), indirect=True)
-    def _start_tendermint(self, flask_tendermint: Any, tendermint_port: Any) -> None:
-        """Start a Tendermint image."""
-        self._tendermint_image = flask_tendermint
-        self.tendermint_port = tendermint_port
-
-
-@pytest.mark.integration
-class UseFlaskTendermint4Nodes(UseTendermint):
-    """Inherit from this class to use flask server with Tendermint."""
-
-    @pytest.fixture(autouse=True)
-    @pytest.mark.parametrize("nb_nodes", (4,), indirect=True)
-    def _start_tendermint(self, flask_tendermint: Any, tendermint_port: Any) -> None:
-        """Start a Tendermint image."""
-        self._tendermint_image = flask_tendermint
-        self.tendermint_port = tendermint_port
 
 
 @pytest.mark.integration
