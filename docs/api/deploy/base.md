@@ -228,7 +228,7 @@ Initialise with only kwargs.
 
 ```python
 @abc.abstractmethod
-def generate(valory_application: Type[BaseDeployment]) -> str
+def generate(valory_application: Type[BaseDeployment], dev_mode: bool = False) -> str
 ```
 
 Generate the deployment configuration.

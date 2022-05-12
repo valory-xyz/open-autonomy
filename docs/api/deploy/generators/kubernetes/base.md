@@ -49,7 +49,7 @@ Build configuration job.
 #### generate
 
 ```python
-def generate(valory_application: Type[BaseDeployment]) -> str
+def generate(valory_application: Type[BaseDeployment], dev_mode: bool = False) -> str
 ```
 
 Generate the deployment.

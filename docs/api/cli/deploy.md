@@ -113,7 +113,7 @@ Build deployment setup for 4 agents.
 @click.option(
     "--version",
     type=str,
-    default="0.1.0",
+    default=DEFAULT_IMAGE_VERSION,
     help="Image version",
 )
 @click.option("--push", is_flag=True, default=False, help="Push image after build.")

@@ -19,25 +19,16 @@
 
 """Deployment Templates."""
 
-from aea_swarm.deploy.constants import (
-    HARDHAT_VERSION,
-    IMAGE_VERSION,
-    TENDERMINT_VERSION,
-)
 
-
-TENDERMINT_CONFIG_TEMPLATE: str = (
-    """docker run --rm -v {build_dir}/nodes:/tendermint:Z \
+TENDERMINT_CONFIG_TEMPLATE: str = """docker run --rm -v {build_dir}/nodes:/tendermint:Z \
 --entrypoint=/usr/bin/tendermint \
-valory/consensus-algorithms-tendermint:%s  \
+{tendermint_image_name}:{tendermint_image_version}  \
     testnet \
         --config /etc/tendermint/config-template.toml \
         --v {validators} \
         --o . \
         {hosts}
 """
-    % TENDERMINT_VERSION
-)
 
 DOCKER_COMPOSE_TEMPLATE: str = """version: "2.4"
 services:
@@ -52,11 +43,10 @@ networks:
         - subnet: 192.167.11.0/24
 """
 
-HARDHAT_NODE_TEMPLATE: str = (
-    """
+HARDHAT_NODE_TEMPLATE: str = """
   hardhat:
     container_name: hardhat
-    image: "valory/consensus-algorithms-hardhat:%s "
+    image: "{hardhat_image_name}:{hardhat_image_version}}"
     ports:
       - "8545:8545"
     working_dir: /home/ubuntu/build
@@ -64,18 +54,15 @@ HARDHAT_NODE_TEMPLATE: str = (
       localnet:
         ipv4_address: 192.167.11.2
 """
-    % HARDHAT_VERSION
-)
 
-TENDERMINT_NODE_TEMPLATE: str = (
-    """
+TENDERMINT_NODE_TEMPLATE: str = """
   node{node_id}:
     mem_limit: 1024m
     mem_reservation: 256M
     cpus: 0.5
     container_name: node{node_id}
     hostname: node{node_id}
-    image: "valory/consensus-algorithms-tendermint:%s"
+    image: "{tendermint_image_name}:{tendermint_image_version}"
     restart: always
     environment:
       - ID={node_id}
@@ -84,9 +71,6 @@ TENDERMINT_NODE_TEMPLATE: str = (
       - CREATE_EMPTY_BLOCKS=true
       - DEV_MODE=0
       - LOG_FILE=/logs/node_{node_id}.txt
-    volumes:
-      - ./nodes:/tendermint:Z
-      - ./persistent_data/logs:/logs:Z
     working_dir: /tendermint
     command: ["run", "--no-reload", "--host=0.0.0.0", "--port=8080",]
     depends_on:
@@ -96,20 +80,17 @@ TENDERMINT_NODE_TEMPLATE: str = (
       localnet:
         ipv4_address: 192.167.11.{localnet_address_postfix}
     volumes:
-      - ./build:/tendermint:Z
-      - ../persistent_data/logs:/logs:Z
+      - ./nodes:/tendermint:Z
+      - ./persistent_data/logs:/logs:Z
 """
-    % TENDERMINT_VERSION
-)
 
-ABCI_NODE_TEMPLATE: str = (
-    """
+ABCI_NODE_TEMPLATE: str = """
   abci{node_id}:
     mem_limit: 1024m
     mem_reservation: 256M
     cpus: 1
     container_name: abci{node_id}
-    image: valory/consensus-algorithms-open-aea:{valory_app}V%s
+    image: {open_aea_image_name}:{valory_app}-{open_aea_image_version}
     environment:
       - LOG_FILE=/logs/aea_{node_id}.txt
 {agent_vars}
@@ -117,16 +98,5 @@ ABCI_NODE_TEMPLATE: str = (
       localnet:
         ipv4_address: 192.167.11.{localnet_address_postfix}
     volumes:
-      - ../persistent_data/logs:/logs:Z
+      - ./persistent_data/logs:/logs:Z
 """
-    % IMAGE_VERSION
-)
-
-if IMAGE_VERSION == "dev":
-    ABCI_NODE_TEMPLATE += "      - ../../packages:/home/ubuntu/packages:rw\n"
-    ABCI_NODE_TEMPLATE += "      - ../../../open-aea/:/open-aea\n"
-    ABCI_NODE_TEMPLATE += "      - ../persistent_data/benchmarking:/benchmarking:Z\n"
-    TENDERMINT_NODE_TEMPLATE += "      - ../persistent_data/tm_state:/tm_state:Z"
-    TENDERMINT_NODE_TEMPLATE = TENDERMINT_NODE_TEMPLATE.replace(
-        "DEV_MODE=0", "DEV_MODE=1"
-    )

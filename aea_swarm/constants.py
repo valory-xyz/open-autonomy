@@ -19,3 +19,7 @@
 """Constants"""
 
 DEFAULT_BUILD_FOLDER = "abci_build"
+DEFAULT_IMAGE_VERSION = "0.1.0"
+OPEN_AEA_IMAGE_NAME = "valory/consensus-algorithms-open-aea"
+TENDERMINT_IMAGE_NAME = "valory/consensus-algorithms-tendermint"
+HARDHAT_IMAGE_NAME = "valory/consensus-algorithms-hardhat"

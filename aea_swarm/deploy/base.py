@@ -420,7 +420,9 @@ class BaseDeploymentGenerator:
         self.output = ""
 
     @abc.abstractmethod
-    def generate(self, valory_application: Type[BaseDeployment]) -> str:
+    def generate(
+        self, valory_application: Type[BaseDeployment], dev_mode: bool = False
+    ) -> str:
         """Generate the deployment configuration."""
 
     @abc.abstractmethod

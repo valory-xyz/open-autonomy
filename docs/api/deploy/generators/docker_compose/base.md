@@ -9,37 +9,17 @@ Docker-compose Deployment Generator.
 #### build`_`tendermint`_`node`_`config
 
 ```python
-def build_tendermint_node_config(node_id: int) -> str
+def build_tendermint_node_config(node_id: int, dev_mode: bool = False) -> str
 ```
 
 Build tendermint node config for docker compose.
-
-<a id="aea_swarm.deploy.generators.docker_compose.base.build_abci_node_config"></a>
-
-#### build`_`abci`_`node`_`config
-
-```python
-def build_abci_node_config(node_id: int, max_participants: int) -> str
-```
-
-Build tendermint node config for docker compose.
-
-<a id="aea_swarm.deploy.generators.docker_compose.base.build_docker_compose_yml"></a>
-
-#### build`_`docker`_`compose`_`yml
-
-```python
-def build_docker_compose_yml(max_participants: int) -> str
-```
-
-Build content for `docker-compose.yml`.
 
 <a id="aea_swarm.deploy.generators.docker_compose.base.build_agent_config"></a>
 
 #### build`_`agent`_`config
 
 ```python
-def build_agent_config(valory_app: str, node_id: int, number_of_agents: int, agent_vars: Dict) -> str
+def build_agent_config(valory_app: str, node_id: int, number_of_agents: int, agent_vars: Dict, dev_mode: bool = False, package_dir: Path = Path.cwd().absolute() / "packages", open_aea_dir: Path = Path.cwd().absolute().parent / "open-aea", open_aea_image_name: str = OPEN_AEA_IMAGE_NAME, open_aea_image_version: str = DEFAULT_IMAGE_VERSION) -> str
 ```
 
 Build agent config.
@@ -79,7 +59,7 @@ Generate the command to configure tendermint testnet.
 #### generate
 
 ```python
-def generate(valory_application: Type[BaseDeployment]) -> str
+def generate(valory_application: Type[BaseDeployment], dev_mode: bool = False) -> str
 ```
 
 Generate the new configuration.

@@ -1,7 +1,7 @@
 echo "Starting Dev image and installing Valory app dependencies."
 sudo chown -R ubuntu:ubuntu /home/ubuntu
 sudo chown -R ubuntu:ubuntu /open-aea
-sudo chown -R ubuntu:ubuntu /benchmarking
+sudo chown -R ubuntu:ubuntu /benchmarks
 
 pipenv install --skip-lock --dev
 
