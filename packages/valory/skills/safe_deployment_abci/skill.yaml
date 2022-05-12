@@ -11,7 +11,7 @@ fingerprint:
   behaviours.py: QmdZDqteDnkcfoEVL9raJugwNpE5bEfu7yEsQYg4xiTfMD
   dialogues.py: QmfDThV4WCRzK88XDpW2hKDYCuEH4RxoHCoAkWpkBRGRPv
   fsm_specification.yaml: QmZR2tTuXqSCQX9xa1RwycwFWQMqSyekt2p8wFnpaufmmo
-  handlers.py: QmUS4UE6hYLsHs1RW9KxaTNhrq5pmg9Vy3w7nPgc4wV5kg
+  handlers.py: QmbwpZv7owtiq4LVbN8vGat7vy2PTAh3bNBPc4y1Q39r2c
   models.py: QmTk2kmTcXYeYwLiGnmm1Tfte2qWoCuo7wAPFxVycvv4KK
   payloads.py: QmNxFKPXvTpGc6ZbmboLB7J8nJGdFzEnFiaSy5bkccqG7d
   rounds.py: QmYSp4H8UGCNDt5vzps5YPBccgPjys72JQZew7BJjk9Tgk
@@ -29,6 +29,9 @@ behaviours:
     args: {}
     class_name: SafeDeploymentRoundBehaviour
 handlers:
+  abci:
+    args: {}
+    class_name: ABCIHandler
   contract_api:
     args: {}
     class_name: ContractApiHandler
