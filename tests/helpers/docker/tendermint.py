@@ -160,6 +160,7 @@ class FlaskTendermintDockerImage(TendermintDockerImage):
 
     def _create_config(self, nb_nodes: int) -> None:
         """Create necessary configuration."""
+        self.nb_nodes = nb_nodes
         cmd = [
             "docker",
             "run",
