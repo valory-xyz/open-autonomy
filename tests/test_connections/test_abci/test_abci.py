@@ -30,6 +30,7 @@ from unittest.mock import MagicMock
 import pytest
 import requests
 from aea.configurations.base import ConnectionConfig
+from aea.connections.base import ConnectionStates
 from aea.identity.base import Identity
 from aea.mail.base import Envelope
 from aea.protocols.base import Address, Message
@@ -460,6 +461,24 @@ async def test_connection_standalone_tendermint_setup() -> None:
     await connection.connect()
     await asyncio.sleep(2.0)
     await connection.disconnect()
+
+
+def test_ensure_connected_raises_connection_error() -> None:
+    """Test '_ensure_connected' raises ConnectionError if the channel is not connected."""
+    configuration_mock = ConnectionConfig(
+        connection_id=ABCIServerConnection.connection_id,
+        target_skill_id="dummy_author/dummy:0.1.0",
+        host=DEFAULT_LISTEN_ADDRESS,
+        port=DEFAULT_ABCI_PORT,
+    )
+    connection = ABCIServerConnection(
+        identity=MagicMock(), configuration=configuration_mock, data_dir=""
+    )
+
+    # simulate connection, but without channel connection
+    connection.state = ConnectionStates.connected
+    with pytest.raises(ConnectionError, match="The channel is stopped."):
+        connection._ensure_connected()
 
 
 def test_encode_varint_method() -> None:
