@@ -4,7 +4,7 @@ Within a deployment, each individual agent in the service manages:
 - a Tendermint Node
 - an ABCI application
 
-Each of the agent - containing the ABCI app - and the Tendermint node, are implemented as a Docker image which are deployed in a 1-2-1 relationship.
+Each of the agents - containing the ABCI app - and the Tendermint node, are implemented as a Docker image which are deployed in a 1-2-1 relationship.
 
 The Tendermint process is managed by a separate process, via a Flask server. The image containing the Flask server and Tendermint node are built on top of the ```valory/tendermint``` image.
 
