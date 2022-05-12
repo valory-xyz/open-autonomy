@@ -39,6 +39,7 @@ from tests.helpers.docker.gnosis_safe_net import (
     DEFAULT_HARDHAT_PORT,
     GnosisSafeNetDockerImage,
 )
+from tests.helpers.docker.tendermint import FlaskTendermintDockerImage
 
 
 logger = logging.getLogger(__name__)
@@ -68,6 +69,51 @@ class UseTendermint:
     def node_address(self) -> str:
         """Get the node address."""
         return f"http://{LOCALHOST}:{self.tendermint_port}"
+
+
+@pytest.mark.integration
+class UseFlaskTendermintNode:
+    """Inherit from this class to use flask server with Tendermint."""
+
+    @pytest.fixture(autouse=True)
+    def _start_tendermint(
+        self, flask_tendermint: FlaskTendermintDockerImage, tendermint_port: Any
+    ) -> None:
+        """Start a Tendermint image."""
+        self._tendermint_image = flask_tendermint
+        self.tendermint_port = tendermint_port
+
+    @property
+    def port(self) -> int:
+        """Get the Tendermint node's port."""
+        return self._tendermint_image.port
+
+    @property
+    def com_port(self) -> int:
+        """Get the Tendermint node's com port."""
+        return self._tendermint_image.com_port
+
+    @property
+    def abci_port(self) -> int:
+        """Get the abci port."""
+        return self._tendermint_image.abci_port
+
+    @property
+    def p2p_seeds(self) -> List[str]:
+        """Get the p2p seeds."""
+        return self._tendermint_image.p2p_seeds
+
+    def get_node_name(self, i: int) -> str:
+        """Get the node's name."""
+        return self._tendermint_image.get_node_name(i)
+
+    def get_laddr(self, i: int, p2p: bool = False) -> str:
+        """Get the ith rpc port."""
+        return self._tendermint_image.get_addr("tcp://", i, p2p)
+
+    def health_check(self, **kwargs: Any) -> None:
+        """Perform a health check."""
+        self._tendermint_image.health_check(**kwargs)
 
 
 @pytest.mark.integration
