@@ -46,7 +46,7 @@ from web3 import Web3
 from tests.helpers.constants import KEY_PAIRS
 from tests.helpers.constants import ROOT_DIR as _ROOT_DIR
 from tests.helpers.contracts import get_register_contract
-from tests.helpers.docker.base import launch_image
+from tests.helpers.docker.base import launch_image, launch_many_containers
 from tests.helpers.docker.ganache import (
     DEFAULT_GANACHE_ADDR,
     DEFAULT_GANACHE_CHAIN_ID,
@@ -62,6 +62,7 @@ from tests.helpers.docker.tendermint import (
     DEFAULT_ABCI_HOST,
     DEFAULT_ABCI_PORT,
     DEFAULT_TENDERMINT_PORT,
+    FlaskTendermintDockerImage,
     TendermintDockerImage,
 )
 
@@ -127,6 +128,25 @@ def tendermint(
     logging.info(f"Launching Tendermint at port {tendermint_port}")
     image = TendermintDockerImage(client, abci_host, abci_port, tendermint_port)
     yield from launch_image(image, timeout=timeout, max_attempts=max_attempts)
+
+
+@pytest.fixture(scope="function")
+def flask_tendermint(
+    tendermint_port: Any,
+    # nb_nodes: int,
+    abci_host: str = DEFAULT_ABCI_HOST,
+    abci_port: int = DEFAULT_ABCI_PORT,
+    timeout: float = 2.0,
+    max_attempts: int = 10,
+) -> Generator[FlaskTendermintDockerImage, None, None]:
+    """Launch the Flask server with Tendermint container."""
+    client = docker.from_env()
+    logging.info(f"Launching Tendermint at port {tendermint_port}")
+    image = FlaskTendermintDockerImage(client, abci_host, abci_port, tendermint_port)
+    yield from cast(
+        Generator[FlaskTendermintDockerImage, None, None],
+        launch_many_containers(image, 1, timeout, max_attempts),
+    )
 
 
 @pytest.fixture()
