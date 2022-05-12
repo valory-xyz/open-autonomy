@@ -108,7 +108,7 @@ ETHEREUM_DEFAULT_LEDGER_CONFIG = {
 ANY_ADDRESS = "0.0.0.0"  # nosec
 
 
-@pytest.fixture()
+@pytest.fixture(scope="session")
 def tendermint_port() -> int:
     """Get the Tendermint port"""
     return DEFAULT_TENDERMINT_PORT
