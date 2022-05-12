@@ -195,7 +195,7 @@ class TestFetchAndBatchBehaviours(APYEstimationFSMBehaviourBaseCase):
             FetchBehaviour, self.behaviour.current_state
         )._handle_response(None, "test_context", ("", 0), specs)
         next(handling_generator)
-        time.sleep(SLEEP_TIME_TWEAK + 0.01)
+        time.sleep(SLEEP_TIME_TWEAK + 0.05)
         try:
             next(handling_generator)
         except StopIteration as res:
