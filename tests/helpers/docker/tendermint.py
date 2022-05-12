@@ -29,7 +29,14 @@ from docker.models.containers import Container
 from deployments.constants import TENDERMINT_VERSION
 from tests.helpers.docker.base import DockerImage
 
+
+_TCP = "tcp://"
+_HTTP = "http://"
+_LOCAL_ADDRESS = "0.0.0.0"
+
 DEFAULT_TENDERMINT_PORT = 26657
+DEFAULT_P2P_PORT = 26656
+DEFAULT_TENDERMINT_COM_PORT = 8080
 DEFAULT_ABCI_PORT = 26658
 # we need this because we want to connect from the Tendermint
 # Docker container to the ABCI server that lives in the host
