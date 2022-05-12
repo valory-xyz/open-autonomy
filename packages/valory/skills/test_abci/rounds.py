@@ -62,7 +62,22 @@ class DummyRound(
 
 
 class TestAbciApp(AbciApp[Event]):
-    """Test ABCI application."""
+    """TestAbciApp
+
+    Initial round: DummyRound
+
+    Initial states: {DummyRound}
+
+    Transition states:
+        0. DummyRound
+            - done: 0.
+
+    Final states: {}
+
+    Timeouts:
+        round timeout: 30.0
+        reset timeout: 30.0
+    """
 
     initial_round_cls: Type[AbstractRound] = DummyRound
     transition_function: AbciAppTransitionFunction = {
