@@ -94,6 +94,7 @@ class DockerImage(ABC):
     def create(self) -> Container:
         """Instantiate the image in a container."""
 
+    @abstractmethod
     def create_many(self, nb_containers: int) -> List[Container]:
         """Instantiate the image in many containers, parametrized."""
 

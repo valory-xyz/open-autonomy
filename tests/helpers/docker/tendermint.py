@@ -84,6 +84,10 @@ class TendermintDockerImage(DockerImage):
         )
         return container
 
+    def create_many(self, nb_containers: int) -> List[Container]:
+        """Instantiate the image in many containers, parametrized."""
+        raise NotImplementedError()
+
     def wait(self, max_attempts: int = 15, sleep_rate: float = 1.0) -> bool:
         """
         Wait until the image is running.
