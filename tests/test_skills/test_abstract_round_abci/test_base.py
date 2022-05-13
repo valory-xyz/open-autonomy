@@ -1111,24 +1111,44 @@ class TestPeriod:
         """Test 'latest_result' property getter."""
         assert self.period.latest_state
 
-    @pytest.mark.parametrize("timestamp", (None, MagicMock()))
-    def test_last_round_transition_timestamp(
-        self, timestamp: Optional[MagicMock]
-    ) -> None:
+    @pytest.mark.parametrize("committed", (True, False))
+    def test_last_round_transition_timestamp(self, committed: bool) -> None:
         """Test 'last_round_transition_timestamp' method."""
-        if timestamp is None:
+        if committed:
+            self.period.begin_block(MagicMock(height=1))
+            self.period.end_block()
+            self.period.commit()
+            assert (
+                self.period.last_round_transition_timestamp
+                == self.period._blockchain.last_block.timestamp
+            )
+        else:
             assert self.period._blockchain.height == 0
             with pytest.raises(
                 ValueError,
-                match="Trying to access `last_round_transition_timestamp` while blockchain has no blocks yet.",
+                match="Trying to access `last_round_transition_timestamp` while no transition has been completed yet.",
             ):
                 _ = self.period.last_round_transition_timestamp
 
-        else:
-            self.period._blockchain.add_block(
-                Block(MagicMock(height=1, timestamp=timestamp), [])
+    @pytest.mark.parametrize("committed", (True, False))
+    def test_last_round_transition_height(self, committed: bool) -> None:
+        """Test 'last_round_transition_height' method."""
+        if committed:
+            self.period.begin_block(MagicMock(height=1))
+            self.period.end_block()
+            self.period.commit()
+            assert (
+                self.period.last_round_transition_height
+                == self.period._blockchain.height
+                == 1
             )
-            assert self.period.last_round_transition_timestamp == timestamp
+        else:
+            assert self.period._blockchain.height == 0
+            with pytest.raises(
+                ValueError,
+                match="Trying to access `last_round_transition_height` while no transition has been completed yet.",
+            ):
+                _ = self.period.last_round_transition_height
 
     def test_begin_block_negative_is_finished(self) -> None:
         """Test 'begin_block' method, negative case (period is finished)."""
