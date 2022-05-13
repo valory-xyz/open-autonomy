@@ -155,7 +155,7 @@ def hard_reset() -> Tuple[Any, int]:
         tendermint_node.prune_blocks()
         tendermint_node.reset_genesis_file(
             request.args.get("genesis_time", get_default_genesis_time()),
-            request.args.get("initial_height", "0"),
+            request.args.get("initial_height", "1"),
         )
         tendermint_node.start()
         return jsonify({"message": "Reset successful.", "status": True}), 200
