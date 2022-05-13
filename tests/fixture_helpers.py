@@ -84,21 +84,6 @@ class UseFlaskTendermint1Node:
         self.tendermint_port = tendermint_port
 
     @property
-    def port(self) -> int:
-        """Get the Tendermint node's port."""
-        return self._tendermint_image.port
-
-    @property
-    def com_port(self) -> int:
-        """Get the Tendermint node's com port."""
-        return self._tendermint_image.com_port
-
-    @property
-    def abci_port(self) -> int:
-        """Get the abci port."""
-        return self._tendermint_image.abci_port
-
-    @property
     def p2p_seeds(self) -> List[str]:
         """Get the p2p seeds."""
         return self._tendermint_image.p2p_seeds
@@ -106,6 +91,18 @@ class UseFlaskTendermint1Node:
     def get_node_name(self, i: int) -> str:
         """Get the node's name."""
         return self._tendermint_image.get_node_name(i)
+
+    def get_abci_port(self, i: int) -> int:
+        """Get the ith rpc port."""
+        return self._tendermint_image.get_abci_port(i)
+
+    def get_port(self, i: int) -> int:
+        """Get the ith port."""
+        return self._tendermint_image.get_port(i)
+
+    def get_com_port(self, i: int) -> int:
+        """Get the ith com port."""
+        return self._tendermint_image.get_com_port(i)
 
     def get_laddr(self, i: int, p2p: bool = False) -> str:
         """Get the ith rpc port."""
