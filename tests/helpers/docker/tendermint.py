@@ -206,7 +206,7 @@ class FlaskTendermintDockerImage(TendermintDockerImage):
             mem_reservation="256M",
             environment={
                 "ID": i,
-                "PROXY_APP": f"tcp://abci{i}:{self.abci_port}",
+                "PROXY_APP": f"{_TCP}{self.abci_host}:{self.get_abci_port(i)}",
                 "TMHOME": f"/tendermint/{name}",
                 "CREATE_EMPTY_BLOCKS": "true",
                 "DEV_MODE": "1",
