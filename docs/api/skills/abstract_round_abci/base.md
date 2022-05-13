@@ -2127,6 +2127,17 @@ def last_round_transition_timestamp() -> datetime.datetime
 
 Returns the timestamp for last round transition.
 
+<a id="packages.valory.skills.abstract_round_abci.base.Period.last_round_transition_height"></a>
+
+#### last`_`round`_`transition`_`height
+
+```python
+@property
+def last_round_transition_height() -> int
+```
+
+Returns the height for last round transition.
+
 <a id="packages.valory.skills.abstract_round_abci.base.Period.latest_state"></a>
 
 #### latest`_`state

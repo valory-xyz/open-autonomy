@@ -1172,6 +1172,38 @@ class TestBaseState:
         self.behaviour._timeout = timeout
         assert self.behaviour._is_timeout_expired() == expiration_expected
 
+    @mock.patch.object(
+        BaseState, "_build_http_request_message", return_value=(None, None)
+    )
+    @pytest.mark.parametrize(
+        "response", ({"app_hash": "test"}, {"error": "test"}, None)
+    )
+    def test_get_app_hash(
+        self, _build_http_request_message: mock.Mock, response: Optional[Dict[str, str]]
+    ) -> None:
+        """Test the `_get_app_hash` method."""
+
+        def dummy_do_request(*_: Any) -> Generator[None, None, MagicMock]:
+            """Dummy `_do_request` method."""
+            yield
+            if response is None:
+                return mock.MagicMock(body=b"")
+            return mock.MagicMock(body=json.dumps(response).encode())
+
+        with mock.patch.object(
+            BaseState, "_do_request", new_callable=lambda *_: dummy_do_request
+        ):
+            app_hash_iter = self.behaviour._get_app_hash()
+            next(app_hash_iter)
+            # perform the last iteration which also returns the result
+            try:
+                next(app_hash_iter)
+            except StopIteration as e:
+                if response is None or response.get("app_hash") is None:
+                    assert e.value is None
+                else:
+                    assert e.value == response["app_hash"]
+
     @mock.patch.object(BaseState, "_start_reset")
     @mock.patch.object(BaseState, "_is_timeout_expired")
     def test_reset_tendermint_with_wait_timeout_expired(self, *_: mock.Mock) -> None:
@@ -1184,36 +1216,48 @@ class TestBaseState:
         BaseState, "_build_http_request_message", return_value=(None, None)
     )
     @pytest.mark.parametrize(
-        "reset_response, status_response, local_height, n_iter, expecting_success",
+        "reset_response, status_response, local_height, n_iter, expecting_success, app_hash",
         (
             (
                 {"message": "Tendermint reset was successful.", "status": True},
                 {"result": {"sync_info": {"latest_block_height": 1}}},
                 1,
-                3,
+                4,
                 True,
+                "test",
+            ),
+            (
+                {"message": "Tendermint reset was successful.", "status": True},
+                {"result": {"sync_info": {"latest_block_height": 1}}},
+                1,
+                2,
+                False,
+                None,
             ),
             (
                 {"message": "Tendermint reset was successful.", "status": True},
                 {"result": {"sync_info": {"latest_block_height": 1}}},
                 3,
-                3,
+                4,
                 False,
+                "test",
             ),
             (
                 {"message": "Error resetting tendermint.", "status": False},
                 {},
                 0,
-                2,
+                3,
                 False,
+                "test",
             ),
-            ("wrong_response", {}, 0, 2, False),
+            ("wrong_response", {}, 0, 3, False, "test"),
             (
                 {"message": "Reset Successful.", "status": True},
                 "not_accepting_txs_yet",
                 0,
-                3,
+                4,
                 False,
+                "test",
             ),
         ),
     )
@@ -1226,8 +1270,14 @@ class TestBaseState:
         local_height: int,
         n_iter: int,
         expecting_success: bool,
+        app_hash: str,
     ) -> None:
         """Test tendermint reset."""
+
+        def dummy_get_app_hash(*_: Any) -> Generator[None, None, str]:
+            """Dummy `_get_app_hash` method."""
+            yield
+            return app_hash
 
         def dummy_do_request(*_: Any) -> Generator[None, None, MagicMock]:
             """Dummy `_do_request` method."""
@@ -1250,6 +1300,8 @@ class TestBaseState:
             "wait_from_last_timestamp",
             new_callable=lambda *_: self.dummy_sleep,
         ), mock.patch.object(
+            BaseState, "_get_app_hash", new_callable=lambda *_: dummy_get_app_hash
+        ), mock.patch.object(
             BaseState, "_do_request", new_callable=lambda *_: dummy_do_request
         ), mock.patch.object(
             BaseState, "_get_status", new_callable=lambda *_: dummy_get_status
@@ -1261,9 +1313,10 @@ class TestBaseState:
             for _ in range(n_iter):
                 next(reset)
             # perform the last iteration which also returns the result
-            with pytest.raises(StopIteration) as e:
+            try:
                 next(reset)
-                assert e == expecting_success
+            except StopIteration as e:
+                assert e.value == expecting_success
 
     @pytest.mark.skip
     def test_fuzz_submit_tx(self) -> None:

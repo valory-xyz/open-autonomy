@@ -22,7 +22,22 @@ This exception is raised when an error occurs while decoding a varint.
 class TooLargeVarint(Exception)
 ```
 
-This exception is raised when a too large size of bytes is received.
+This exception is raised when a message with varint exceeding the max size is received.
+
+<a id="packages.valory.connections.abci.connection.TooLargeVarint.__init__"></a>
+
+#### `__`init`__`
+
+```python
+def __init__(received_size: int, max_size: int = MAX_READ_IN_BYTES)
+```
+
+Initialize the exception object.
+
+**Arguments**:
+
+- `received_size`: the received size.
+- `max_size`: the maximum amount the connection supports.
 
 <a id="packages.valory.connections.abci.connection.ShortBufferLengthError"></a>
 
