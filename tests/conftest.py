@@ -377,7 +377,7 @@ def gnosis_safe_contract(
 def ipfs_daemon() -> Iterator[bool]:
     """Starts an IPFS daemon for the tests."""
     print("Starting IPFS daemon...")
-    daemon = IPFSDaemon(offline=True)
+    daemon = IPFSDaemon()
     daemon.start()
     yield daemon.is_started()
     print("Tearing down IPFS daemon...")
