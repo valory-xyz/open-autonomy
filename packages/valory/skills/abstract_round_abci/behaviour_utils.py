@@ -38,6 +38,7 @@ from typing import (
     cast,
 )
 
+import pytz  # type: ignore  # pylint: disable=import-error
 from aea.exceptions import enforce
 from aea.protocols.base import Message
 from aea.protocols.dialogue.base import Dialogue
@@ -517,9 +518,11 @@ class BaseState(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
         :param seconds: the seconds
         :yield: None
         """
+        if seconds < 0:
+            raise ValueError("Can only wait for a positive amount of time")
         deadline = cast(
             SharedState, self.context.state
-        ).period.abci_app.last_timestamp + datetime.timedelta(0, seconds)
+        ).period.abci_app.last_timestamp + datetime.timedelta(seconds=seconds)
 
         def _wait_until() -> bool:
             return datetime.datetime.now() > deadline
@@ -1430,6 +1433,29 @@ class BaseState(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
             0, self._timeout
         )
 
+    def _get_app_hash(self) -> Generator[None, None, Optional[str]]:
+        """Get the app hash from Tendermint."""
+        try:
+            request_message, http_dialogue = self._build_http_request_message(
+                "GET",
+                self.params.tendermint_com_url + "/app_hash",
+                parameters=[
+                    ("height", self.context.state.period.last_round_transition_height)
+                ],
+            )
+            result = yield from self._do_request(request_message, http_dialogue)
+            json_res = json.loads(result.body.decode())
+            app_hash = json_res.get("app_hash", None)
+            error = json_res.get("error", None)
+            if error is not None:
+                self.context.logger.error(
+                    f"Error while trying to get the app hash: {error}"
+                )
+            return app_hash
+        except (json.JSONDecodeError, KeyError) as e:
+            self.context.logger.error(f"Error while trying to get the app hash: {e}")
+            return None
+
     def reset_tendermint_with_wait(
         self,
     ) -> Generator[None, None, bool]:
@@ -1443,9 +1469,25 @@ class BaseState(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
             self.context.logger.info(
                 f"Resetting tendermint node at end of period={self.period_state.period_count}."
             )
+
+            app_hash = yield from self._get_app_hash()
+            if app_hash is None:
+                yield from self.sleep(self.params.sleep_time)
+                return False
+
+            last_round_transition_timestamp = (
+                self.context.state.period.last_round_transition_timestamp
+            )
+            time_string = last_round_transition_timestamp.astimezone(pytz.UTC).strftime(
+                "%Y-%m-%dT%H:%M:%S.%fZ"
+            )
             request_message, http_dialogue = self._build_http_request_message(
                 "GET",
                 self.params.tendermint_com_url + "/hard_reset",
+                parameters=[
+                    ("app_hash", app_hash),
+                    ("genesis_time", time_string),
+                ],
             )
             result = yield from self._do_request(request_message, http_dialogue)
             try:

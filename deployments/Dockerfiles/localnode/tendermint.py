@@ -18,6 +18,7 @@
 # ------------------------------------------------------------------------------
 
 """Tendermint manager."""
+import json
 import logging
 import os
 import signal
@@ -25,6 +26,8 @@ import subprocess  # nosec:
 from logging import Logger
 from threading import Event, Thread
 from typing import Any, List, Optional
+from pathlib import Path
+from typing import List, Optional
 
 
 DEFAULT_LOG_FILE = "tendermint.log"
@@ -202,3 +205,12 @@ class TendermintNode:
             except Exception as e:
                 self.write_line(f"Error!: {str(e)}")
         self.write_line("Monitoring thread terminated\n")
+
+    def reset_genesis_file(self, genesis_time: str, app_hash: str) -> None:
+        """Reset genesis file."""
+
+        genesis_file = Path(str(self.params.home), "config", "genesis.json")
+        genesis_config = json.loads(genesis_file.read_text())
+        genesis_config["genesis_time"] = genesis_time
+        genesis_config["app_hash"] = app_hash
+        genesis_file.write_text(json.dumps(genesis_config, indent=2))
