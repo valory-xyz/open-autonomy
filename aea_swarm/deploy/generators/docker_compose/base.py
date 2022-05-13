@@ -78,6 +78,9 @@ def build_agent_config(  # pylint: disable=too-many-arguments
 
     if dev_mode:
         config += "      - ./persistent_data/benchmarks:/benchmarks:Z\n"
+        config += (
+            "      - ./persistent_data/venvs:/home/ubuntu/.local/share/virtualenvs:Z\n"
+        )
         config += f"      - {package_dir}:/home/ubuntu/packages:rw\n"
         config += f"      - {open_aea_dir}:/open-aea\n"
 
