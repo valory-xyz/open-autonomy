@@ -1,0 +1,85 @@
+name: hello_world_abci
+author: valory
+version: 0.1.0
+type: skill
+description: Hello World ABCI application.
+license: Apache-2.0
+aea_version: '>=1.0.0, <2.0.0'
+fingerprint:
+  README.md: QmVxvpqGSFfXbJ9GyWLqaAsVB2cYn92m7wybxb7wggi1Ri
+  __init__.py: QmR2xbdp5bQTP44mAQB1utN7Tp16HM2akMLA51RC2PYdUN
+  behaviours.py: QmUsV7YsEgbwMnDZHgXNzwF4bdFaH7YPAtKLaKCz5WYb9t
+  dialogues.py: QmbhsSNfPQBL4qeq3B2yDmr1TXGeg1TLjcW2YJNcFwUe8P
+  fsm_specification.yaml: QmNyPHYvkYJnJPSQB53owEt7Kjj2jnvfUR5ucNzVug1xLS
+  handlers.py: QmSeSEdJzN4YtM2Qy59SHsfERtS58HyyFMkpyu9JR7pqxu
+  models.py: QmWL6tQvUwLDWkGEtJNTy42zQ6TG6h1dV8VBYYQB82oiC3
+  payloads.py: QmWFfkHiAsbkgDDgwVRHHWgfLtog6RTm5JVsqMDXp5oGTv
+  rounds.py: QmZR2r1q8FjcqHqepQArQgrwvmDHXzNEiWYYbq6AvqykHx
+fingerprint_ignore_patterns: []
+connections:
+- valory/abci:0.1.0
+- valory/http_client:0.1.0
+contracts: []
+protocols:
+- open_aea/signing:1.0.0
+- valory/abci:0.1.0
+- valory/http:1.0.0
+skills:
+- valory/abstract_round_abci:0.1.0
+behaviours:
+  main:
+    args: {}
+    class_name: HelloWorldRoundBehaviour
+handlers:
+  abci:
+    args: {}
+    class_name: HelloWorldABCIHandler
+  http:
+    args: {}
+    class_name: HttpHandler
+  signing:
+    args: {}
+    class_name: SigningHandler
+models:
+  abci_dialogues:
+    args: {}
+    class_name: AbciDialogues
+  benchmark_tool:
+    args:
+      log_dir: /logs
+    class_name: BenchmarkTool
+  http_dialogues:
+    args: {}
+    class_name: HttpDialogues
+  params:
+    args:
+      cleanup_history_depth: 1
+      consensus:
+        max_participants: 1
+      drand_public_key: 868f005eb8e6e4ca0a47c8a77ceaa5309a47978a7c71bc5cce96366b5d7a569937c529eeda66c7293784a9402801af31
+      keeper_timeout: 30.0
+      max_healthcheck: 120
+      observation_interval: 10
+      period_setup: {}
+      reset_tendermint_after: 2
+      retry_attempts: 400
+      retry_timeout: 3
+      round_timeout_seconds: 30.0
+      service_id: hello_world_abci
+      sleep_time: 1
+      tendermint_check_sleep_delay: 3
+      tendermint_com_url: http://localhost:8080
+      tendermint_max_retries: 5
+      tendermint_url: http://localhost:26657
+    class_name: Params
+  requests:
+    args: {}
+    class_name: Requests
+  signing_dialogues:
+    args: {}
+    class_name: SigningDialogues
+  state:
+    args: {}
+    class_name: SharedState
+dependencies: {}
+is_abstract: false
