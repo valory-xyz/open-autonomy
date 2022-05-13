@@ -18,14 +18,16 @@
 # ------------------------------------------------------------------------------
 
 """HTTP server to control the tendermint execution environment."""
+import json
 import logging
 import os
 import shutil
 import stat
 from pathlib import Path
-from typing import Any, Callable, Optional, Tuple
+from typing import Any, Callable, Dict, Optional, Tuple
 
-from flask import Flask, Response, jsonify
+import requests
+from flask import Flask, Response, jsonify, request
 from tendermint import TendermintNode, TendermintParams
 from werkzeug.exceptions import InternalServerError, NotFound
 
@@ -39,10 +41,26 @@ CONFIG_OVERRIDE = [
 ]
 
 logging.basicConfig(
-    filename=os.environ.get("FLASK_LOG_FILE", DEFAULT_LOG_FILE),
+    filename=os.environ.get("LOG_FILE", DEFAULT_LOG_FILE),
     level=logging.DEBUG,
     format=f"%(asctime)s %(levelname)s %(name)s %(threadName)s : %(message)s",  # noqa : W1309
 )
+
+
+def load_genesis() -> Any:
+    """Load genesis file."""
+    return json.loads(
+        Path(str(os.environ["TMHOME"]), "config", "genesis.json").read_text()
+    )
+
+
+def get_defaults() -> Dict[str, str]:
+    """Get defaults from genesis file."""
+    genesis = load_genesis()
+    return dict(
+        genesis_time=genesis.get("genesis_time"),
+        app_hash=genesis.get("app_hash"),
+    )
 
 
 def override_config_toml() -> None:
@@ -71,11 +89,11 @@ class PeriodDumper:
 
         self.resets = 0
         self.logger = logger
-        self.dump_dir = Path("/logs/dump") if dump_dir is None else dump_dir
+        self.dump_dir = Path("/tm_state") if dump_dir is None else dump_dir
 
         if self.dump_dir.is_dir():
             shutil.rmtree(str(self.dump_dir), onerror=self.readonly_handler)
-        self.dump_dir.mkdir()
+        self.dump_dir.mkdir(exist_ok=True)
 
     @staticmethod
     def readonly_handler(func: Callable, path: str, execinfo: Any) -> None:
@@ -83,7 +101,7 @@ class PeriodDumper:
         try:
             os.chmod(path, stat.S_IWRITE)
             func(path)
-        except FileNotFoundError:
+        except (FileNotFoundError, OSError):
             return
 
     def dump_period(
@@ -128,8 +146,25 @@ def gentle_reset() -> Tuple[Any, int]:
     except Exception as e:  # pylint: disable=W0703
         return (
             jsonify(
-                {"message": f"Reset failed with error : f{str(e)}", "status": False}
+                {"message": f"Reset failed with error : {str(e)}", "status": False}
             ),
+            200,
+        )
+
+
+@app.route("/app_hash")
+def app_hash() -> Tuple[Any, int]:
+    """Get the app hash."""
+    try:
+        endpoint = f"{tendermint_params.rpc_laddr.replace('tcp', 'http')}/block"
+        height = request.args.get("height")
+        params = {"height": height} if height is not None else None
+        res = requests.get(endpoint, params)
+        app_hash_ = res.json()["result"]["block"]["header"]["app_hash"]
+        return jsonify({"app_hash": app_hash_}), res.status_code
+    except Exception as e:  # pylint: disable=W0703
+        return (
+            jsonify({"error": f"Could not get the app hash: {str(e)}"}),
             200,
         )
 
@@ -141,13 +176,19 @@ def hard_reset() -> Tuple[Any, int]:
         tendermint_node.stop()
         if IS_DEV_MODE:
             period_dumper.dump_period()
+
         tendermint_node.prune_blocks()
+        defaults = get_defaults()
+        tendermint_node.reset_genesis_file(
+            request.args.get("genesis_time", defaults["genesis_time"]),
+            request.args.get("app_hash", defaults["app_hash"]),
+        )
         tendermint_node.start()
         return jsonify({"message": "Reset successful.", "status": True}), 200
     except Exception as e:  # pylint: disable=W0703
         return (
             jsonify(
-                {"message": f"Reset failed with error : f{str(e)}", "status": False}
+                {"message": f"Reset failed with error : {str(e)}", "status": False}
             ),
             200,
         )

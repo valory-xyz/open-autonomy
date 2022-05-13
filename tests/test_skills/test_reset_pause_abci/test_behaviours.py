@@ -74,7 +74,7 @@ class TestResetAndPauseBehaviour(ResetPauseAbciFSMBehaviourBaseCase):
         if tendermint_reset_status is None:
             initial_period = 0
         else:
-            initial_period = 2
+            initial_period = 1
 
         self.fast_forward_to_state(
             behaviour=self.behaviour,
