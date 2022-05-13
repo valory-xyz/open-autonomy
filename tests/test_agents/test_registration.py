@@ -36,7 +36,7 @@ STRICT_CHECK_STRINGS = (
     "Completed collecting Tendermint responses",
     # "Local TendermintNode updated",
     # "Tendermint node restarted",
-    "RegistrationBaseBehaviour DONE",
+    # "RegistrationBaseBehaviour DONE",
 )
 
 

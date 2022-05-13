@@ -238,19 +238,19 @@ class RegistrationStartupBehaviour(RegistrationBaseBehaviour):
         dialogue = cast(TendermintDialogue, dialogue)
         context = EnvelopeContext(connection_id=PUBLIC_ID)
         self.context.outbox.put_message(message=message, context=context)
-        nonce = self._get_request_nonce_from_dialogue(dialogue)
-        requests = cast(Requests, self.context.requests)
-        requests.request_id_to_callback[nonce] = self.get_callback_request()
-        try:
-            self.context.logger.info("Waiting for tendermint_response message")
-            # timeout = TENDERMINT_CALLBACK_RESPONSE_TIMEOUT + 9
-            msg = yield from self.wait_for_message(timeout=1)  # TODO: error response not returned here
-            self.context.logger.info(f"Tendermint response msg: {msg}")
-            return True
-        except TimeoutException:
-            log_msg = "Timeout in request_tendermint_info waiting for"
-            self.context.logger.info(f"{log_msg}: {address}")
-            return False
+        # nonce = self._get_request_nonce_from_dialogue(dialogue)
+        # requests = cast(Requests, self.context.requests)
+        # requests.request_id_to_callback[nonce] = self.get_callback_request()
+        # try:
+        #     self.context.logger.info("Waiting for tendermint_response message")
+        #     timeout = TENDERMINT_CALLBACK_RESPONSE_TIMEOUT
+        #     msg = yield from self.wait_for_message(timeout=timeout)
+        #     self.context.logger.info(f"Tendermint response msg: {msg}")
+        #     return True
+        # except TimeoutException:
+        #     log_msg = "Timeout in request_tendermint_info waiting for"
+        #     self.context.logger.info(f"{log_msg}: {address}")
+        #     return False
 
     # def update_tendermint(self) -> Generator[None, None, bool]:
     #     """Make HTTP POST request to update agent's local Tendermint node"""
@@ -300,11 +300,14 @@ class RegistrationStartupBehaviour(RegistrationBaseBehaviour):
         #         return
 
         self.context.logger.info(f"My address: {self.context.agent_address}")
-        # incoming = self.context.outbox._multiplexer.in_queue.qsize()
-        # outgoing = self.context.outbox._multiplexer.out_queue.qsize()
-        # self.context.logger.info(f"Outbox: in = {incoming}, out = {outgoing}")
-        # message_in_queue = self.context.message_in_queue.qsize()
-        # self.context.logger.info(f"Messages in queue: {message_in_queue}")
+        incoming = self.context.outbox._multiplexer.in_queue.qsize()
+        outgoing = self.context.outbox._multiplexer.out_queue.qsize()
+        self.context.logger.info(f"Outbox: in = {incoming}, out = {outgoing}")
+        message_in_queue = self.context.message_in_queue.qsize()
+        self.context.logger.info(f"Messages in queue: {message_in_queue}")
+
+        connection = self.context.outbox._multiplexer._get_connection(PUBLIC_ID)
+        self.context.logger.info(f"Connection: {connection}")
 
         # make service registry contract call
         # if not self.registered_addresses:
@@ -326,27 +329,21 @@ class RegistrationStartupBehaviour(RegistrationBaseBehaviour):
             info[self.context.agent_address] = self.context.params.tendermint_url
             self.period_state.db.initial_data.update(dict(registered_addresses=info))
             self.context.logger.info(f"Registered addresses: {registered_addresses}")
-            i = registered_addresses.index(self.context.agent_address) + 1
-            yield from self.sleep(i)  # wait for other agents
+            # i = registered_addresses.index(self.context.agent_address) + 1
+            yield from self.sleep(self.params.sleep_time)  # wait for other agents
 
         self.context.logger.info(f"not yet collected: {self.not_yet_collected}")
         log_msg = f"Current collection behaviour: {self.registered_addresses}"
         self.context.logger.info(f"{log_msg}")
 
         # collect Tendermint config information
-        # for address in self.not_yet_collected:
-        while self.not_yet_collected:
-            address = next(iter(self.not_yet_collected))
-            yield from self.request_tendermint_info(address)
-        # for address in self.not_yet_collected:
-        #     self.context.logger.info(f"requesting from: {address}")
-        #     self.request_tendermint_info(address)
-
-        # yield from self.sleep(5)
-        # self.context.logger.info(f"slept a bit")
-        # if any(self.not_yet_collected):
-        #     msg = yield from self.wait_for_message(timeout=3)
-        #     self.context.logger.info(f"waited for msg: {msg}")
+        # self.__state = self.AsyncState.WAITING_MESSAGE
+        if self.not_yet_collected:
+            for address in self.not_yet_collected:
+                self.request_tendermint_info(address)
+            # yield from self.sleep(self.params.sleep_time)
+            # return
+        # self.__state = self.AsyncState.RUNNING
 
         if not any(self.not_yet_collected):
             log_msg = "Completed collecting Tendermint responses"

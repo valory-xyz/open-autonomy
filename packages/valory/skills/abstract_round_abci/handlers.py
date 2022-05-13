@@ -555,33 +555,39 @@ class TendermintHandler(Handler):
             self._reply_with_tendermint_error(message, dialogue, error_message)
             return
 
+        log_msg = f"Currently registered addresses"
+        self.context.logger.info(f"{log_msg}: {self.registered_addresses}")
         self.registered_addresses[message.sender] = parse_result.geturl()
         log_msg = f"Collected Tendermint config info"
         self.context.logger.info(f"{log_msg}: {message}")
+        state_info = self.context.behaviours.main.current_state
+        self.context.logger.info(f"state info: {state_info}, {dir(state_info)}")
         dialogues = cast(TendermintDialogues, self.dialogues)
         dialogues.dialogue_stats.add_dialogue_endstate(
             TendermintDialogue.EndState.CONFIG_SHARED, dialogue.is_self_initiated
         )
 
-        nonce = dialogue.dialogue_label.dialogue_reference[0]
-        ctx_requests = cast(Requests, self.context.requests)
-
-        try:
-            callback = cast(
-                Callable,
-                ctx_requests.request_id_to_callback.pop(nonce),
-            )
-        except KeyError as e:
-            raise ABCIAppInternalError(
-                f"No callback defined for request with nonce: {nonce}"
-            ) from e
-
-        current_state = cast(
-            AbstractRoundBehaviour, self.context.behaviours.main
-        ).current_state
-        callback(message, current_state)
-        log_msg = f"Callback made: {message}"
-        self.context.logger.info(f"{log_msg}")
+        # nonce = dialogue.dialogue_label.dialogue_reference[0]
+        # ctx_requests = cast(Requests, self.context.requests)
+        #
+        # try:
+        #     callback = cast(
+        #         Callable,
+        #         ctx_requests.request_id_to_callback.pop(nonce),
+        #     )
+        # except KeyError as e:
+        #     raise ABCIAppInternalError(
+        #         f"No callback defined for request with nonce: {nonce}"
+        #     ) from e
+        #
+        # current_state = cast(
+        #     AbstractRoundBehaviour, self.context.behaviours.main
+        # ).current_state
+        # # self.state == AsyncBehaviour.AsyncState.WAITING_MESSAGE
+        # callback(message, current_state)
+        # # self.state == AsyncBehaviour.AsyncState.RUNNING
+        # log_msg = f"Callback made: {message}"
+        # self.context.logger.info(f"{log_msg}")
 
     def _handle_error(
         self, message: TendermintMessage, dialogue: TendermintDialogue
