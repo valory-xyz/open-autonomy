@@ -19,7 +19,7 @@ Kubernetes Deployment Generator.
 #### `__`init`__`
 
 ```python
-def __init__(deployment_spec: BaseDeployment, build_dir: Path) -> None
+def __init__(deployment_spec: DeploymentSpec, build_dir: Path) -> None
 ```
 
 Initialise the deployment generator.
@@ -39,7 +39,7 @@ Build agent deployment.
 #### generate`_`config`_`tendermint
 
 ```python
-def generate_config_tendermint(valory_application: Type[BaseDeployment]) -> str
+def generate_config_tendermint() -> "KubernetesGenerator"
 ```
 
 Build configuration job.
@@ -49,7 +49,7 @@ Build configuration job.
 #### generate
 
 ```python
-def generate(valory_application: Type[BaseDeployment], dev_mode: bool = False) -> str
+def generate(dev_mode: bool = False) -> "KubernetesGenerator"
 ```
 
 Generate the deployment.
@@ -59,7 +59,7 @@ Generate the deployment.
 #### write`_`config
 
 ```python
-def write_config(configure_tendermint_resource: str = "") -> None
+def write_config() -> "KubernetesGenerator"
 ```
 
 Write output to build dir

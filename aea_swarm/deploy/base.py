@@ -23,7 +23,7 @@ import json
 from copy import copy
 from logging import getLogger
 from pathlib import Path
-from typing import Any, Dict, List, Tuple, Type
+from typing import Any, Dict, List, Optional, Tuple
 
 import jsonschema
 import yaml
@@ -247,7 +247,7 @@ class DeploymentConfigValidator(validation.ConfigValidator):
                     )
         return overrides
 
-    def try_to_process_nested_fields(
+    def try_to_process_nested_fields(  # pylint: disable=too-many-locals
         self,
         component_id: ComponentId,
         component_index: int,
@@ -275,7 +275,8 @@ class DeploymentConfigValidator(validation.ConfigValidator):
             if nums != set(range(0, self.deployment_spec["number_of_agents"])):
                 raise ValueError("Overrides incorrectly indexed")
 
-            for override in field_override[component_index]:
+            n_fields = len(field_override)
+            for override in field_override[component_index % n_fields]:
                 for nested_override, nested_value in override.items():
                     for (
                         nested_override_key,
@@ -303,7 +304,7 @@ class DeploymentConfigValidator(validation.ConfigValidator):
         return overrides
 
 
-class BaseDeployment:
+class DeploymentSpec:
     """Class to assist with generating deployments."""
 
     agent: str
@@ -317,35 +318,41 @@ class BaseDeployment:
         path_to_deployment_spec: str,
         private_keys_file_path: Path,
         package_dir: Path,
+        number_of_agents: Optional[int] = None,
     ) -> None:
         """Initialize the Base Deployment."""
         self.package_dir = package_dir
-        self.overrides: list = []
         self.validator = DeploymentConfigValidator(
             schema_filename=str(Files.deployment_schema)
         )
+
         with open(path_to_deployment_spec, "r", encoding="utf8") as file:
-            for ix, document in enumerate(yaml.load_all(file, Loader=yaml.SafeLoader)):
-                if ix == 0:
-                    self.deployment_spec = document
-                else:
-                    self.overrides.append(document)
+            self.deployment_spec, *self.overrides = yaml.load_all(
+                file, Loader=yaml.SafeLoader
+            )
 
         self.validator.validate_deployment(self.deployment_spec, self.overrides)
+
         self.__dict__.update(self.deployment_spec)
+        if number_of_agents is not None:
+            self.number_of_agents = number_of_agents
+
         self.agent_public_id = PublicId.from_str(self.agent)
         self.agent_spec = self.load_agent()
         self.read_keys(private_keys_file_path)
 
+        if self.number_of_agents > len(self.private_keys):
+            raise ValueError("Number of agents cannot be greater than available keys.")
+
     def read_keys(self, file_path: Path) -> None:
         """Read in keys from a file on disk."""
-        with open(str(file_path), "r", encoding="utf8") as f:
-            keys = json.loads(f.read())
+
+        keys = json.loads(file_path.read_text(encoding="utf-8"))
+        self.private_keys = []
         for key in keys:
             if "address" not in key.keys() and "private_key" not in key.keys():
                 raise ValueError("Key file incorrectly formatted.")
-
-        self.private_keys = [f["private_key"] for f in keys]
+            self.private_keys.append(key["private_key"])
 
     def _process_model_args_overrides(self, agent_n: int) -> Dict:
         """Generates env vars based on model overrides."""
@@ -405,36 +412,32 @@ class BaseDeployment:
 class BaseDeploymentGenerator:
     """Base Deployment Class."""
 
-    deployment: BaseDeployment
+    deployment: DeploymentSpec
     output_name: str
-    old_wd: str
     deployment_type: str
     build_dir: Path
+    output: str
+    tendermint_job_config: Optional[str]
 
-    def __init__(self, deployment_spec: BaseDeployment, build_dir: Path):
+    def __init__(self, deployment_spec: DeploymentSpec, build_dir: Path):
         """Initialise with only kwargs."""
         self.network_config = NETWORKS[self.deployment_type][deployment_spec.network]
         self.deployment_spec = deployment_spec
         self.build_dir = Path(build_dir)
-
-        self.output = ""
+        self.tendermint_job_config: Optional[str] = None
 
     @abc.abstractmethod
     def generate(
-        self, valory_application: Type[BaseDeployment], dev_mode: bool = False
-    ) -> str:
+        self,
+        dev_mode: bool = False,
+    ) -> "BaseDeploymentGenerator":
         """Generate the deployment configuration."""
 
     @abc.abstractmethod
     def generate_config_tendermint(
-        self, valory_application: Type[BaseDeployment]
-    ) -> str:
+        self,
+    ) -> "BaseDeploymentGenerator":
         """Generate the deployment configuration."""
-
-    def write_config(self) -> None:
-        """Write output to build dir"""
-        with open(self.build_dir / self.output_name, "w", encoding="utf8") as f:
-            f.write(self.output)
 
     def get_deployment_network_configuration(
         self, agent_vars: List[Dict[str, Any]]
@@ -443,3 +446,10 @@ class BaseDeploymentGenerator:
         for agent in agent_vars:
             agent.update(self.network_config)
         return agent_vars
+
+    def write_config(self) -> "BaseDeploymentGenerator":
+        """Write output to build dir"""
+
+        with open(self.build_dir / self.output_name, "w", encoding="utf8") as f:
+            f.write(self.output)
+        return self

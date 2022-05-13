@@ -34,22 +34,12 @@ class DockerComposeGenerator(BaseDeploymentGenerator)
 
 Class to automate the generation of Deployments.
 
-<a id="aea_swarm.deploy.generators.docker_compose.base.DockerComposeGenerator.__init__"></a>
-
-#### `__`init`__`
-
-```python
-def __init__(deployment_spec: BaseDeployment, build_dir: Path) -> None
-```
-
-Initialise the deployment generator.
-
 <a id="aea_swarm.deploy.generators.docker_compose.base.DockerComposeGenerator.generate_config_tendermint"></a>
 
 #### generate`_`config`_`tendermint
 
 ```python
-def generate_config_tendermint(valory_application: Type[BaseDeployment]) -> str
+def generate_config_tendermint() -> "DockerComposeGenerator"
 ```
 
 Generate the command to configure tendermint testnet.
@@ -59,7 +49,7 @@ Generate the command to configure tendermint testnet.
 #### generate
 
 ```python
-def generate(valory_application: Type[BaseDeployment], dev_mode: bool = False) -> str
+def generate(dev_mode: bool = False) -> "DockerComposeGenerator"
 ```
 
 Generate the new configuration.

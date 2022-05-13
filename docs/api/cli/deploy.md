@@ -45,6 +45,13 @@ Build tools
     help="Path to output dir.",
 )
 @click.option(
+    "--n",
+    "number_of_agents",
+    type=int,
+    default=None,
+    help="Number of agents.",
+)
+@click.option(
     "--docker",
     "deployment_type",
     flag_value=DockerComposeGenerator.deployment_type,
@@ -77,10 +84,10 @@ Build tools
     default=False,
     help="Remove existing build and overwrite with new one.",
 )
-def build_deployment(service_id: PublicId, keys_file: Path, deployment_type: str, output_dir: Path, package_dir: Path, dev_mode: bool, force_overwrite: bool) -> None
+def build_deployment(service_id: PublicId, keys_file: Path, deployment_type: str, output_dir: Path, package_dir: Path, dev_mode: bool, force_overwrite: bool, number_of_agents: Optional[int] = None) -> None
 ```
 
-Build deployment setup for 4 agents.
+Build deployment setup for n agents.
 
 <a id="aea_swarm.cli.deploy.build_images"></a>
 
