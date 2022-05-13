@@ -67,7 +67,7 @@ class TendermintDockerImage(DockerImage):
         self.port = port
         self.p2p_port = p2p_port
         self.com_port = com_port
-        self.proxy_app = f"tcp://{self.abci_host}:{self.abci_port}"
+        self.proxy_app = f"{_TCP}{self.abci_host}:{self.abci_port}"
 
     @property
     def tag(self) -> str:
@@ -83,7 +83,7 @@ class TendermintDockerImage(DockerImage):
         """Create the container."""
         cmd = self._build_command()
         ports = {
-            f"{DEFAULT_TENDERMINT_PORT}/tcp": ("0.0.0.0", self.port),  # nosec
+            f"{DEFAULT_TENDERMINT_PORT}/tcp": (_LOCAL_ADDRESS, self.port),  # nosec
         }
         if self.abci_host == DEFAULT_ABCI_HOST:
             extra_hosts_config = {self.abci_host: "host-gateway"}
@@ -165,7 +165,7 @@ class FlaskTendermintDockerImage(TendermintDockerImage):
 
     def _build_command(self) -> List[str]:
         """Build command."""
-        return ["run", "--no-reload", "--host=0.0.0.0", "--port=8080"]
+        return ["run", "--no-reload", f"--host={_LOCAL_ADDRESS}", "--port=8080"]
 
     def _create_one(self, i: int) -> Container:
         """Create a node container."""
