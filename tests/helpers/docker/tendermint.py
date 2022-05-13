@@ -146,6 +146,27 @@ class FlaskTendermintDockerImage(TendermintDockerImage):
         node_id = output.decode().strip()
         return node_id
 
+    @staticmethod
+    def __increment_port(port: int, i: int) -> int:
+        """Increment a port"""
+        return port + i * 10
+
+    def get_port(self, i: int) -> int:
+        """Get the ith port."""
+        return self.__increment_port(self.port, i)
+
+    def get_com_port(self, i: int) -> int:
+        """Get the ith com port."""
+        return self.__increment_port(self.com_port, i)
+
+    def get_p2p_port(self, i: int) -> int:
+        """Get the ith p2p port."""
+        return self.__increment_port(self.p2p_port, i)
+
+    def get_abci_port(self, i: int) -> int:
+        """Get the ith abci port."""
+        return self.__increment_port(self.abci_port, i)
+
     def get_addr(self, prefix: str, i: int, p2p: bool = False) -> str:
         """Get a node's address."""
         valid_prefixes = {_TCP, _HTTP}
