@@ -24,7 +24,6 @@ from pathlib import Path
 from typing import Dict, cast
 
 import click
-
 from aea.configurations.constants import (
     AGENT,
     CONNECTION,
