@@ -173,8 +173,13 @@ class FlaskTendermintDockerImage(TendermintDockerImage):
         if prefix not in valid_prefixes:
             raise ValueError(f"Invalid prefix! Should be one of: {valid_prefixes}")
 
-        port = self.p2p_port if p2p else self.port
-        return f"{prefix}{self._get_node_id(i)}@{_LOCAL_ADDRESS}:{port + i * 10}"
+        if p2p:
+            prefix += self._get_node_id(i) + "@"
+            port = self.get_p2p_port(i)
+        else:
+            port = self.get_port(i)
+
+        return f"{prefix}{_LOCAL_ADDRESS}:{port}"
 
     @property
     def p2p_seeds(self) -> List[str]:
