@@ -225,8 +225,9 @@ def _build_dirs(build_dir: Path) -> None:
     for dir_path in [
         ("persistent_data",),
         ("persistent_data", "logs"),
-        ("persistent_data", "dumps"),
+        ("persistent_data", "tm_state"),
         ("persistent_data", "benchmarks"),
+        ("persistent_data", "venvs"),
     ]:
         path = Path(build_dir, *dir_path)
         path.mkdir()
