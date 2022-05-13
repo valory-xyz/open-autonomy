@@ -106,7 +106,7 @@ class BaseTestEnd2End(AEATestCaseMany, BaseTendermintTestClass):
         )
         self.set_config(
             f"vendor.valory.skills.{PublicId.from_str(self.skill_package).name}.models.params.args.round_timeout_seconds",
-            self.ROUND_TIMEOUT_SECONDS,
+            self.ROUND_TIMEOUT_SECONDS + 20,
             type_="float",
         )
         self.set_config(

@@ -30,12 +30,13 @@ from tests.fixture_helpers import UseGnosisSafeHardHatNet
 
 # strict check log messages of the happy path
 STRICT_CHECK_STRINGS = (
-    "Local Tendermint configuration obtained",
-    "ServiceRegistryContract.getServiceInfo response",
-    "Registered addresses retrieved from service registry contract",
+    # "Local Tendermint configuration obtained",
+    # "ServiceRegistryContract.getServiceInfo response",
+    # "Registered addresses retrieved from service registry contract",
     "Completed collecting Tendermint responses",
-    "Local TendermintNode updated",
-    "Tendermint node restarted",
+    # "Local TendermintNode updated",
+    # "Tendermint node restarted",
+    "RegistrationBaseBehaviour DONE",
 )
 
 
@@ -44,7 +45,7 @@ class ACNClientConnectionEndToEndTestBase(BaseTestEnd2EndNormalExecution):
 
     skill_package = "valory/registration_abci:0.1.0"
     agent_package = "valory/registration_start_up:0.1.0"
-    wait_to_finish = 120
+    wait_to_finish = 60
 
     prefix = "vendor.valory.skills.registration_abci.models.params.args"
 

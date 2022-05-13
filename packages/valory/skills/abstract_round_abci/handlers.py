@@ -486,8 +486,27 @@ class TendermintHandler(Handler):
             error_data={"message": message.encode()},
         )
         self.context.outbox.put_message(response)
-        log_message = f"Error response sent\nreceived: {message}\nsent: {response}"
+        log_message = f"Sending error response. Received: {message}, replied: {response}"
         self.context.logger.info(log_message)
+
+        # TODO
+        # nonce = dialogue.dialogue_label.dialogue_reference[0]
+        # ctx_requests = cast(Requests, self.context.requests)
+        #
+        # try:
+        #     callback = cast(
+        #         Callable,
+        #         ctx_requests.request_id_to_callback.pop(nonce),
+        #     )
+        # except KeyError as e:
+        #     raise ABCIAppInternalError(
+        #         f"No callback defined for request with nonce: {nonce}"
+        #     ) from e
+        #
+        # current_state = cast(
+        #     AbstractRoundBehaviour, self.context.behaviours.main
+        # ).current_state
+        # callback(message, current_state)
 
     def _handle_request(
         self, message: TendermintMessage, dialogue: TendermintDialogue
@@ -537,7 +556,8 @@ class TendermintHandler(Handler):
             return
 
         self.registered_addresses[message.sender] = parse_result.geturl()
-        self.context.logger.info(f"Collected {message.sender}: {message.info}")
+        log_msg = f"Collected Tendermint config info"
+        self.context.logger.info(f"{log_msg}: {message}")
         dialogues = cast(TendermintDialogues, self.dialogues)
         dialogues.dialogue_stats.add_dialogue_endstate(
             TendermintDialogue.EndState.CONFIG_SHARED, dialogue.is_self_initiated
@@ -560,6 +580,8 @@ class TendermintHandler(Handler):
             AbstractRoundBehaviour, self.context.behaviours.main
         ).current_state
         callback(message, current_state)
+        log_msg = f"Callback made: {message}"
+        self.context.logger.info(f"{log_msg}")
 
     def _handle_error(
         self, message: TendermintMessage, dialogue: TendermintDialogue
@@ -573,7 +595,7 @@ class TendermintHandler(Handler):
             return
 
         self.context.logger.info(
-            f"Error response received\nsent: {target_message}\nreceived: {message}"
+            f"Received error response. Received: {message}, in reply to: {target_message}"
         )
         dialogues = cast(TendermintDialogues, self.dialogues)
         dialogues.dialogue_stats.add_dialogue_endstate(
