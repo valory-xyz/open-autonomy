@@ -175,7 +175,11 @@ class AsyncBehaviour(ABC):
     def wait_for_condition(
         cls, condition: Callable[[], bool], timeout: Optional[float] = None
     ) -> Generator[None, None, None]:
-        """Wait for a condition to happen."""
+        """Wait for a condition to happen.
+
+        This is a local method that does not depend on the global clock,
+        so the usage of datetime.now() is acceptable here.
+        """
         if timeout is not None:
             deadline = datetime.datetime.now() + datetime.timedelta(0, timeout)
         else:
@@ -191,6 +195,8 @@ class AsyncBehaviour(ABC):
         Delay execution for a given number of seconds.
 
         The argument may be a floating point number for subsecond precision.
+        This is a local method that does not depend on the global clock, so the
+        usage of datetime.now() is acceptable here.
 
         :param seconds: the seconds
         :yield: None
@@ -212,6 +218,8 @@ class AsyncBehaviour(ABC):
 
         Care must be taken. This method does not handle concurrent requests.
         Use directly after a request is being sent.
+        This is a local method that does not depend on the global clock,
+        so the usage of datetime.now() is acceptable here.
 
         :param condition: a callable
         :param timeout: max time to wait (in seconds)
@@ -514,6 +522,8 @@ class BaseState(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
         Delay execution for a given number of seconds from the last timestamp.
 
         The argument may be a floating point number for subsecond precision.
+        This is a local method that does not depend on the global clock,
+        so the usage of datetime.now() is acceptable here.
 
         :param seconds: the seconds
         :yield: None
@@ -1112,6 +1122,9 @@ class BaseState(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
             AbstractRoundAbci skill -> (HttpMessage | REQUEST) -> Http client connection
             Http client connection -> (HttpMessage | RESPONSE) -> AbstractRoundAbci skill
 
+        This is a local method that does not depend on the global clock,
+        so the usage of datetime.now() is acceptable here.
+
         :param tx_hash: the transaction hash to check.
         :param timeout: timeout
         :param: request_retry_delay: the delay to wait after failed requests
@@ -1406,7 +1419,11 @@ class BaseState(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
         return RPCResponseStatus.UNCLASSIFIED_ERROR
 
     def _start_reset(self) -> Generator:
-        """Start tendermint reset."""
+        """Start tendermint reset.
+
+        This is a local method that does not depend on the global clock,
+        so the usage of datetime.now() is acceptable here.
+        """
         if self._check_started is None and not self._is_healthy:
             # we do the reset in the middle of the pause as there are no immediate transactions on either side of the reset
             yield from self.wait_from_last_timestamp(
@@ -1420,13 +1437,21 @@ class BaseState(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
     def _end_reset(
         self,
     ) -> None:
-        """End tendermint reset."""
+        """End tendermint reset.
+
+        This is a local method that does not depend on the global clock,
+        so the usage of datetime.now() is acceptable here.
+        """
         self._check_started = None
         self._timeout = -1.0
         self._is_healthy = True
 
     def _is_timeout_expired(self) -> bool:
-        """Check if the timeout expired."""
+        """Check if the timeout expired.
+
+        This is a local method that does not depend on the global clock,
+        so the usage of datetime.now() is acceptable here.
+        """
         if self._check_started is None or self._is_healthy:
             return False
         return datetime.datetime.now() > self._check_started + datetime.timedelta(

@@ -40,6 +40,10 @@ def decode_value(message: HttpMessage) -> int:
 
 
 def curdatetime() -> str:
-    """Return current datetime in isoformat."""
+    """Return current datetime in isoformat.
+
+    This is a local method that does not depend on the global clock,
+    so the usage of datetime.now() is not a problem here.
+    """
     datetime.datetime.utcnow()
     return datetime.datetime.now().isoformat()
