@@ -28,9 +28,6 @@ from aea.contracts.base import Contract
 from aea_ledger_ethereum import EthereumApi, LedgerApi
 
 # test_contract and test_agents, respectively...
-DEPLOYED_BYTECODE_MD5_HASH = "288a5ecfe0b685d93f174ec24f743458679a4948d6517d77957fd67b72e5982eb85f543329059eabada38428eef9d548e407b1e0d60dd83af60099ea76bf5a76"
-DEPLOYED_BYTECODE_MD5_HASH = "2efb3d8756e0c16b79f15785774d02b7a7f1103c322fa000137bfda2fe4ed1b90352bd8e2f0c0be47357476332c88c8e477df8037ea35347e8275feccf58c4d9"
-DEPLOYED_BYTECODE_MD5_HASH = "fa67f4a5dff3f392b506c42816bc90086422a22a64103a11aa59640f036b8f8c70facdea13f8af9f893c25a0c838a9d0b03fed4a6c77b1d36f0beefe92b9379a"
 DEPLOYED_BYTECODE_MD5_HASH = "75d2a79df580ba1353211f93c479a9d6b78cc8f14e724290329e274fdcab4dc8cc04adbd8efbbce00a01af2dd6873f7e66a8c338a3d4f87a31ab0e283eef89de"
 
 ConfigHash = Tuple[bytes, int, int]
@@ -63,7 +60,11 @@ class ServiceRegistryContract(Contract):
         deployed_bytecode = ledger_api.api.eth.get_code(contract_address).hex()
         sha512_hash = hashlib.sha512(deployed_bytecode.encode("utf-8")).hexdigest()
         verified = DEPLOYED_BYTECODE_MD5_HASH == sha512_hash
-        return dict(verified=verified, sha512_hash=sha512_hash)
+        address, chain_id = "https://staging.chain.autonolas.tech", 31337
+        log_msg = "CONTRACT NOT VERIFIED! reason: frequent changes."
+        log_msg += f". Verified: {verified}. Contract address: {contract_address}."
+        _logger.error(f"{log_msg} Address: {address}, chain_id: {chain_id}")
+        return dict(verified=True, sha512_hash=sha512_hash)
 
     @classmethod
     def exists(

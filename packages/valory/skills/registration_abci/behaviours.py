@@ -26,16 +26,15 @@ from aea.mail.base import EnvelopeContext
 
 from packages.valory.contracts.service_registry.contract import ServiceRegistryContract
 from packages.valory.protocols.contract_api import ContractApiMessage
-from packages.valory.connections.p2p_libp2p_client.connection import PUBLIC_ID
+from packages.valory.connections.p2p_libp2p_client.connection import (
+    PUBLIC_ID as P2P_LIBP2P_CLIENT_PUBLIC_ID
+)
 from packages.valory.protocols.tendermint import TendermintMessage
-from packages.valory.skills.abstract_round_abci.behaviour_utils import TimeoutException
 from packages.valory.skills.abstract_round_abci.behaviours import (
     AbstractRoundBehaviour,
     BaseState,
 )
-from packages.valory.skills.abstract_round_abci.models import Requests
 from packages.valory.skills.registration_abci.dialogues import (
-    TendermintDialogue,
     TendermintDialogues,
 )
 from packages.valory.skills.registration_abci.payloads import RegistrationPayload
@@ -55,8 +54,6 @@ TendermintParams = Dict[
         Optional[str],  # home
     ],
 ]
-
-TENDERMINT_CALLBACK_RESPONSE_TIMEOUT = 1
 
 
 def consume(iterator: Iterable) -> None:
@@ -183,12 +180,13 @@ class RegistrationStartupBehaviour(RegistrationBaseBehaviour):
 
         # put service info in the shared state for p2p message handler
         registered_addresses = set(service_info["agent_instances"])
-        self.context.logger.info(f"on-chain addresses: {registered_addresses}")
+
         # TEMP: replace for test debugging
+        self.context.logger.info(f"on-chain addresses: {registered_addresses}")
         registered_addresses.remove("0x15d34AAf54267DB7D7c367839AAf71A00a2C6A65")
         registered_addresses.add("0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266")
-
         self.context.logger.info(f"addresses after replacement: {registered_addresses}")
+
         if not registered_addresses:
             log_msg = f"No agent instances registered: {service_info}"
             self.context.logger.info(log_msg)
@@ -209,88 +207,78 @@ class RegistrationStartupBehaviour(RegistrationBaseBehaviour):
         self.context.logger.info(f"{log_msg}:\n{info}")
         return True
 
-    # def get_tendermint_configuration(self) -> Generator[None, None, bool]:
-    #     """Make HTTP GET request to obtain agent's local Tendermint node parameters"""
-    #
-    #     url = self.tendermint_parameter_url
-    #     result = yield from self.get_http_response(method="GET", url=url)
-    #     try:
-    #         response = json.loads(result.body.decode())
-    #         self.local_tendermint_params = response['params']
-    #         self.context.logger.info(f"Local Tendermint configuration obtained: {response}")
-    #         return True
-    #     except json.JSONDecodeError:
-    #         self.context.logger.error(
-    #             "Error communicating with Tendermint server on get_tendermint_configuration"
-    #         )
-    #         return False
+    def get_tendermint_configuration(self) -> Generator[None, None, bool]:
+        """Make HTTP GET request to obtain agent's local Tendermint node parameters"""
 
-    def request_tendermint_info(self, address: str) -> Generator[None, None, bool]:
+        url = self.tendermint_parameter_url
+        result = yield from self.get_http_response(method="GET", url=url)
+        try:
+            response = json.loads(result.body.decode())
+            self.local_tendermint_params = response['params']
+            self.context.logger.info(f"Local Tendermint configuration obtained: {response}")
+            return True
+        except json.JSONDecodeError:
+            self.context.logger.error(
+                "Error communicating with Tendermint server on get_tendermint_configuration"
+            )
+            return False
+
+    def request_tendermint_info(self, address: str) -> None:
         """Request Tendermint info from other agents"""
-        self.context.logger.info(f"Trying to request_tendermint_info from {address}")
 
+        self.context.logger.info(f"Requesting Tendermint info from {address}")
         dialogues = cast(TendermintDialogues, self.context.tendermint_dialogues)
         performative = TendermintMessage.Performative.REQUEST
-        message, dialogue = dialogues.create(
+        message, _ = dialogues.create(
             counterparty=address, performative=performative
         )
         message = cast(TendermintMessage, message)
-        dialogue = cast(TendermintDialogue, dialogue)
-        context = EnvelopeContext(connection_id=PUBLIC_ID)
+        context = EnvelopeContext(connection_id=P2P_LIBP2P_CLIENT_PUBLIC_ID)
         self.context.outbox.put_message(message=message, context=context)
-        # nonce = self._get_request_nonce_from_dialogue(dialogue)
-        # requests = cast(Requests, self.context.requests)
-        # requests.request_id_to_callback[nonce] = self.get_callback_request()
-        # try:
-        #     self.context.logger.info("Waiting for tendermint_response message")
-        #     timeout = TENDERMINT_CALLBACK_RESPONSE_TIMEOUT
-        #     msg = yield from self.wait_for_message(timeout=timeout)
-        #     self.context.logger.info(f"Tendermint response msg: {msg}")
-        #     return True
-        # except TimeoutException:
-        #     log_msg = "Timeout in request_tendermint_info waiting for"
-        #     self.context.logger.info(f"{log_msg}: {address}")
-        #     return False
+        self.context.logger.info(f"Requested Tendermint info from {address}")
 
-    # def update_tendermint(self) -> Generator[None, None, bool]:
-    #     """Make HTTP POST request to update agent's local Tendermint node"""
-    #
-    #     url = self.tendermint_parameter_url
-    #     params = cast(TendermintParams, self.local_tendermint_params)
-    #     params["p2p_seeds"] = list(self.registered_addresses.values())
-    #     content = json.dumps(params).encode(self.ENCODING)
-    #     result = yield from self.get_http_response(
-    #         method="POST", url=url, content=content
-    #     )
-    #     try:
-    #         response = json.loads(result.body.decode())
-    #         self.context.logger.info(f"Local TendermintNode updated: {response}")
-    #         return True
-    #     except json.JSONDecodeError:
-    #         self.context.logger.info(
-    #             "Error communicating with Tendermint server on update_tendermint"
-    #         )
-    #         return False
-    #
-    # def start_tendermint(self) -> Generator[None, None, bool]:
-    #     """Start up local Tendermint node"""
-    #
-    #     url = self.tendermint_start_url
-    #     result = yield from self.get_http_response(method="GET", url=url)
-    #     try:
-    #         response = json.loads(result.body.decode())
-    #         self.context.logger.info(f"Tendermint node restarted: {response}")
-    #         return True
-    #     except json.JSONDecodeError:
-    #         self.context.logger.error(
-    #             "Error communicating with Tendermint server on start_tendermint"
-    #         )
-    #         return False
+    def update_tendermint(self) -> Generator[None, None, bool]:
+        """Make HTTP POST request to update agent's local Tendermint node"""
+
+        url = self.tendermint_parameter_url
+        params = cast(TendermintParams, self.local_tendermint_params)
+        params["p2p_seeds"] = list(self.registered_addresses.values())
+        content = json.dumps(params).encode(self.ENCODING)
+        result = yield from self.get_http_response(
+            method="POST", url=url, content=content
+        )
+        try:
+            response = json.loads(result.body.decode())
+            self.context.logger.info(f"Local TendermintNode updated: {response}")
+            return True
+        except json.JSONDecodeError:
+            self.context.logger.info(
+                "Error communicating with Tendermint server on update_tendermint"
+            )
+            return False
+
+    def start_tendermint(self) -> Generator[None, None, bool]:
+        """Start up local Tendermint node"""
+
+        url = self.tendermint_start_url
+        result = yield from self.get_http_response(method="GET", url=url)
+        try:
+            response = json.loads(result.body.decode())
+            self.context.logger.info(f"Tendermint node restarted: {response}")
+            return True
+        except json.JSONDecodeError:
+            self.context.logger.error(
+                "Error communicating with Tendermint server on start_tendermint"
+            )
+            return False
 
     def async_act(self) -> Generator:
         """Act asynchronously"""
+        # In case of failure:
+        # - Ensure message passing is async, otherwise deadlock
+        # - Ensure all agents connect to the same ACN client node
 
-        self.context.logger.info("Time to async_act")
+        self.context.logger.info(f"My address: {self.context.agent_address}")
 
         # # collect personal Tendermint configuration
         # if not self.local_tendermint_params:
@@ -299,60 +287,21 @@ class RegistrationStartupBehaviour(RegistrationBaseBehaviour):
         #         yield from self.sleep(self.params.sleep_time)
         #         return
 
-        self.context.logger.info(f"My address: {self.context.agent_address}")
-        incoming = self.context.outbox._multiplexer.in_queue.qsize()
-        outgoing = self.context.outbox._multiplexer.out_queue.qsize()
-        self.context.logger.info(f"Outbox: in = {incoming}, out = {outgoing}")
-        message_in_queue = self.context.message_in_queue.qsize()
-        self.context.logger.info(f"Messages in queue: {message_in_queue}")
-
-        connection = self.context.outbox._multiplexer._get_connection(PUBLIC_ID)
-        self.context.logger.info(f"Connection: {connection}")
-
         # make service registry contract call
-        # if not self.registered_addresses:
-        #     successful = yield from self.get_addresses()
-        #     yield from self.sleep(3)  # wait for other agents
-        #     if not successful:
-        #         yield from self.sleep(self.params.sleep_time)
-        #         return
-
-        # TEMP: because `requests.exceptions.HTTPError: 503 Server Error: Service Temporarily Unavailable for url: https://staging.chain.autonolas.tech/`
         if not self.registered_addresses:
-            registered_addresses = [
-                "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
-                "0x90F79bf6EB2c4f870365E785982E1f101E93b906",
-                "0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC",
-                "0x70997970C51812dc3A010C7d01b50e0d17dc79C8",
-            ]
-            info: Dict[str, str] = dict.fromkeys(registered_addresses)
-            info[self.context.agent_address] = self.context.params.tendermint_url
-            self.period_state.db.initial_data.update(dict(registered_addresses=info))
-            self.context.logger.info(f"Registered addresses: {registered_addresses}")
-            # i = registered_addresses.index(self.context.agent_address) + 1
-            yield from self.sleep(self.params.sleep_time)  # wait for other agents
+            successful = yield from self.get_addresses()
+            if not successful:
+                yield from self.sleep(self.params.sleep_time)
+                return
 
-        self.context.logger.info(f"not yet collected: {self.not_yet_collected}")
-        log_msg = f"Current collection behaviour: {self.registered_addresses}"
-        self.context.logger.info(f"{log_msg}")
-
-        # collect Tendermint config information
-        # self.__state = self.AsyncState.WAITING_MESSAGE
-        if self.not_yet_collected:
-            for address in self.not_yet_collected:
-                self.request_tendermint_info(address)
-            # yield from self.sleep(self.params.sleep_time)
-            # return
-        # self.__state = self.AsyncState.RUNNING
-
-        if not any(self.not_yet_collected):
-            log_msg = "Completed collecting Tendermint responses"
-            self.context.logger.info(f"{log_msg}: {self.registered_addresses}")
-        else:
-            missing = sorted(self.not_yet_collected)
-            self.context.logger.info(f"Still missing info on: {missing}")
+        # collect Tendermint config information from other agents
+        if any(self.not_yet_collected):
+            consume(map(self.request_tendermint_info, self.not_yet_collected))
             yield from self.sleep(self.params.sleep_time)
             return
+
+        log_msg = "Completed collecting Tendermint responses"
+        self.context.logger.info(f"{log_msg}: {self.registered_addresses}")
 
         # # update Tendermint configuration
         # successful = yield from self.update_tendermint()
@@ -366,7 +315,7 @@ class RegistrationStartupBehaviour(RegistrationBaseBehaviour):
         #     yield from self.sleep(self.params.sleep_time)
         #     return
 
-        self.context.logger.info(f"{self.__class__.__name__}.async_act executed")
+        self.context.logger.info("RegistrationStartupBehaviour executed")
         yield from super().async_act()
 
 

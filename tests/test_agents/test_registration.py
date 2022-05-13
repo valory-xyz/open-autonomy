@@ -24,7 +24,7 @@ import pytest
 
 from tests.fixture_helpers import UseACNNode
 
-from tests.test_agents.base import BaseTestEnd2EndNormalExecution
+from tests.test_agents.base import BaseTestEnd2EndNormalExecution, BaseTestEnd2EndAgentCatchup
 from tests.fixture_helpers import UseGnosisSafeHardHatNet
 
 
@@ -32,32 +32,26 @@ from tests.fixture_helpers import UseGnosisSafeHardHatNet
 STRICT_CHECK_STRINGS = (
     # "Local Tendermint configuration obtained",
     # "ServiceRegistryContract.getServiceInfo response",
-    # "Registered addresses retrieved from service registry contract",
+    "Registered addresses retrieved from service registry contract",
     "Completed collecting Tendermint responses",
     # "Local TendermintNode updated",
     # "Tendermint node restarted",
-    # "RegistrationBaseBehaviour DONE",
+    "RegistrationStartupBehaviour executed",
 )
 
 
-class ACNClientConnectionEndToEndTestBase(BaseTestEnd2EndNormalExecution):
+class RegistrationStartUpTestConfig(UseGnosisSafeHardHatNet, UseACNNode):
     """Base class for e2e tests using the ACN client connection"""
 
     skill_package = "valory/registration_abci:0.1.0"
     agent_package = "valory/registration_start_up:0.1.0"
-    wait_to_finish = 60
+    wait_to_finish = 90
 
     prefix = "vendor.valory.skills.registration_abci.models.params.args"
 
     extra_configs = [
-        # {
-        #     "dotted_path": f"{prefix}.tendermint_com_url",
-        #     "value": "",
-        # },
         {
             "dotted_path": f"{prefix}.service_registry_address",
-            # "value": "0xa51c1fc2f0d1a1b8494ed1fe312d7c3a78ed91c0",
-            # "value": "0xA51c1fc2f0D1a1b8494Ed1FE312d7C3a78Ed91C0",
             "value": "0x0DCd1Bf9A1b36cE34237eEaFef220932846BCD82",
         },
         {
@@ -88,8 +82,19 @@ class ACNClientConnectionEndToEndTestBase(BaseTestEnd2EndNormalExecution):
 
 @pytest.mark.e2e
 @pytest.mark.integration
-class TestRegistrationStartUpFourAgents(ACNClientConnectionEndToEndTestBase, UseGnosisSafeHardHatNet, UseACNNode):
-    """Test registration start-up skill with two agents."""
+class TestRegistrationStartUpFourAgents(RegistrationStartUpTestConfig, BaseTestEnd2EndNormalExecution):
+    """Test registration start-up skill with four agents."""
 
     NB_AGENTS = 4
     strict_check_strings = STRICT_CHECK_STRINGS
+
+
+# @pytest.mark.e2e
+# @pytest.mark.integration  # NOTE: looks like other agents crash a little while after first one!
+# class TestRegistrationStartUpFourAgentsCatchUp(RegistrationStartUpTestConfig, BaseTestEnd2EndAgentCatchup):
+#     """Test registration start-up skill with four agents and catch up."""
+#
+#     NB_AGENTS = 4
+#     strict_check_strings = STRICT_CHECK_STRINGS
+#     stop_string = "My address: "
+#     # restart_after = 10

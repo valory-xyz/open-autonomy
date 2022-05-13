@@ -107,7 +107,7 @@ class UseGanache:
 
 @pytest.mark.integration
 class UseACNNode:
-    """Inherit from this class to use ACN local net with deployed."""
+    """Inherit from this class to use an ACNNode for a client connection"""
 
     configuration: Dict = DEFAULT_ACN_CONFIG
     _acn_node_image: ACNNodeDockerImage

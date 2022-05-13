@@ -8,7 +8,7 @@ aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
   __init__.py: QmV83c5PgQKBuu1dyfbmXGzyEh6jmnUxYYEDUjZM15EaaB
   build/ServiceRegistry.json: QmXmvjTLC9XNkg1kpvTWPiXadtPLTfwbBts2ChBEonSvPV
-  contract.py: QmQm1BvmjUcdngmr9urDbKrJgiBMMULEh34gmqSCDfrQT4
+  contract.py: QmUQju9eAbssXh4dN2SyZvSoS2S7FscCXkThcSgUrBU94b
 fingerprint_ignore_patterns: []
 contracts: []
 class_name: ServiceRegistryContract
