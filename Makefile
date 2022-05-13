@@ -72,7 +72,7 @@ security:
 # update copyright headers
 .PHONY: generators
 generators:
-	python scripts/generate_ipfs_hashes.py --vendor valory
+	python -m aea.cli hash all
 	python scripts/generate_api_documentation.py
 	python scripts/check_copyright.py
 
@@ -123,12 +123,12 @@ static:
 
 .PHONY: package_checks
 package_checks:
-	python scripts/generate_ipfs_hashes.py --check --vendor valory
+	python -m aea.cli hash all --check
 	python scripts/check_packages.py --vendor valory
 
 .PHONY: hashes
 hashes:
-	python scripts/generate_ipfs_hashes.py --vendor valory
+	python -m aea.cli hash all
 
 .PHONY: api-docs
 api-docs:
