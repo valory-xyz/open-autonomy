@@ -220,9 +220,17 @@ class FlaskTendermintDockerImage(TendermintDockerImage):
             ],
             ports={
                 f"{DEFAULT_TENDERMINT_PORT}/tcp": (
-                    "0.0.0.0",  # nosec,
-                    self.port + i * 10,
-                )
+                    _LOCAL_ADDRESS,  # nosec,
+                    self.get_port(i),
+                ),
+                f"{DEFAULT_TENDERMINT_COM_PORT}/tcp": (
+                    _LOCAL_ADDRESS,  # nosec,
+                    self.get_com_port(i),
+                ),
+                f"{DEFAULT_P2P_PORT}/tcp": (
+                    _LOCAL_ADDRESS,  # nosec,
+                    self.get_p2p_port(i),
+                ),
             },
             extra_hosts={self.abci_host: "host-gateway"}
             if self.abci_host == DEFAULT_ABCI_HOST
