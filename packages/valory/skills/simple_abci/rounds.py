@@ -22,7 +22,7 @@ import struct
 from abc import ABC
 from enum import Enum
 from types import MappingProxyType
-from typing import Dict, List, Mapping, Optional, Sequence, Tuple, Type, cast
+from typing import Dict, List, Mapping, Optional, Tuple, Type, cast
 
 from packages.valory.skills.abstract_round_abci.base import (
     AbciApp,
@@ -68,42 +68,12 @@ class PeriodState(BasePeriodState):  # pylint: disable=too-many-instance-attribu
     """
 
     @property
-    def keeper_randomness(self) -> float:
-        """Get the keeper's random number [0-1]."""
-        res = int(self.most_voted_randomness, base=16) // 10 ** 0 % 10
-        return cast(float, res / 10)
-
-    @property
-    def sorted_participants(self) -> Sequence[str]:
-        """
-        Get the sorted participants' addresses.
-
-        The addresses are sorted according to their hexadecimal value;
-        this is the reason we use key=str.lower as comparator.
-
-        This property is useful when interacting with the Safe contract.
-
-        :return: the sorted participants' addresses
-        """
-        return sorted(self.participants, key=str.lower)
-
-    @property
     def participant_to_randomness(self) -> Mapping[str, RandomnessPayload]:
         """Get the participant_to_randomness."""
         return cast(
             Mapping[str, RandomnessPayload],
             self.db.get_strict("participant_to_randomness"),
         )
-
-    @property
-    def most_voted_randomness(self) -> str:
-        """Get the most_voted_randomness."""
-        return cast(str, self.db.get_strict("most_voted_randomness"))
-
-    @property
-    def most_voted_keeper_address(self) -> str:
-        """Get the most_voted_keeper_address."""
-        return cast(str, self.db.get_strict("most_voted_keeper_address"))
 
     @property
     def participant_to_selection(self) -> Mapping[str, SelectKeeperPayload]:

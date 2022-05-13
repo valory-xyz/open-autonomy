@@ -78,7 +78,11 @@ generators:
 
 .PHONY: abci-docstrings
 abci-docstrings:
-	python scripts/generate_abci_docstrings.py
+	cp scripts/generate_abci_docstrings.py generate_abci_docstrings.py
+	python generate_abci_docstrings.py
+	rm generate_abci_docstrings.py
+	echo "Successfully validated abcis!"
+
 
 .PHONY: common-checks-1
 common-checks-1:
@@ -99,20 +103,20 @@ check-copyright:
 
 .PHONY: lint
 lint:
-	black aea_consensus_algorithms packages/valory scripts tests deployments
-	isort aea_consensus_algorithms packages/valory scripts tests deployments
-	flake8 aea_consensus_algorithms packages/valory scripts tests deployments
-	vulture aea_consensus_algorithms scripts/whitelist.py
-	darglint aea_consensus_algorithms scripts packages/valory/* tests deployments
+	black aea_swarm packages/valory scripts tests deployments
+	isort aea_swarm packages/valory scripts tests deployments
+	flake8 aea_swarm packages/valory scripts tests deployments
+	vulture aea_swarm scripts/whitelist.py
+	darglint aea_swarm scripts packages/valory/* tests deployments
 
 .PHONY: pylint
 pylint:
-	pylint -j4 aea_consensus_algorithms packages/valory scripts deployments
+	pylint -j4 aea_swarm packages/valory scripts deployments
 
 
 .PHONY: static
 static:
-	mypy aea_consensus_algorithms packages/valory scripts deployments --disallow-untyped-defs
+	mypy aea_swarm packages/valory scripts deployments --disallow-untyped-defs
 	mypy tests --disallow-untyped-defs
 
 .PHONY: package_checks
@@ -137,7 +141,7 @@ common_checks: security misc_checks lint static docs
 
 .PHONY: test
 test:
-	pytest -rfE --doctest-modules aea_consensus_algorithms tests/ --cov=aea_consensus_algorithms --cov-report=html --cov=packages/valory --cov-report=xml --cov-report=term --cov-report=term-missing --cov-config=.coveragerc
+	pytest -rfE --doctest-modules aea_swarm tests/ --cov=aea_swarm --cov-report=html --cov=packages/valory --cov-report=xml --cov-report=term --cov-report=term-missing --cov-config=.coveragerc
 	find . -name ".coverage*" -not -name ".coveragerc" -exec rm -fr "{}" \;
 
 
@@ -246,14 +250,32 @@ build-images:
 		echo "Ensure you have exported a version to build!";\
 		exit 1
 	fi
-	rsync -avu packages/ deployments/Dockerfiles/open_aea/packages
+	python deployments/click_create.py build-images --deployment-file-path ${DEPLOYMENT_SPEC} --profile dependencies || (echo failed && exit 1)
 	if [ "${VERSION}" = "dev" ];\
 	then\
 		echo "building dev images!";\
-		skaffold build --build-concurrency=0 --push=false -p dev && exit 0
+	 	python deployments/click_create.py build-images --deployment-file-path ${DEPLOYMENT_SPEC} --profile dev && exit 0
 		exit 1
 	fi
-	skaffold build --build-concurrency=0 --push=false -p prod && exit 0
+	python deployments/click_create.py build-images --deployment-file-path ${DEPLOYMENT_SPEC} --profile prod && exit 0
+	exit 1
+
+.ONESHELL: push-images
+push-images:
+	sudo make clean
+	if [ "${VERSION}" = "" ];\
+	then\
+		echo "Ensure you have exported a version to build!";\
+		exit 1
+	fi
+	python deployments/click_create.py build-images --deployment-file-path ${DEPLOYMENT_SPEC} --profile dependencies --push || (echo failed && exit 1)
+	if [ "${VERSION}" = "dev" ];\
+	then\
+		echo "building dev images!";\
+	 	python deployments/click_create.py build-images --deployment-file-path ${DEPLOYMENT_SPEC} --profile dev --push && exit 0
+		exit 1
+	fi
+	python deployments/click_create.py build-images --deployment-file-path ${DEPLOYMENT_SPEC} --profile prod --push && exit 0
 	exit 1
 
 .PHONY: run-hardhat
@@ -313,6 +335,9 @@ run-deployment:
 	if [ "${DEPLOYMENT_TYPE}" = "kubernetes" ];\
 	then\
 		kubectl create ns ${VERSION}
+		kubectl create secret generic regcred \
+          --from-file=.dockerconfigjson=/home/$(shell whoami)/.docker/config.json \
+          --type=kubernetes.io/dockerconfigjson -n ${VERSION}
 		cd deployments/build/ && \
 		kubectl apply -f build.yaml -n ${VERSION} && exit 0
 	fi
@@ -364,4 +389,33 @@ teardown-docker-compose:
 		docker-compose down && \
 		echo "Deployment torndown!" && \
 		exit 0
-	echo "Failed to teardown deployment!" exit 1
+	echo "Failed to teardown deployment!"
+	exit 1
+
+teardown-kubernetes:
+	if [ "${VERSION}" = "" ];\
+	then\
+		echo "Ensure you have exported a version to build!";\
+		exit 1
+	fi
+	kubectl delete ns ${VERSION} && exit 0
+	exit 1
+
+.PHONY: check_abci_specs
+check_abci_specs:
+	cp scripts/generate_abciapp_spec.py generate_abciapp_spec.py
+	python generate_abciapp_spec.py -c packages.valory.skills.apy_estimation_abci.rounds.APYEstimationAbciApp > packages/valory/skills/apy_estimation_abci/fsm_specification.yaml || (echo "Failed to check apy_estimation_abci consistency" && exit 1)
+	python generate_abciapp_spec.py -c packages.valory.skills.apy_estimation_chained_abci.composition.APYEstimationAbciAppChained > packages/valory/skills/apy_estimation_chained_abci/fsm_specification.yaml || (echo "Failed to check apy_estimation_chained_abci consistency" && exit 1)
+	python generate_abciapp_spec.py -c packages.valory.skills.liquidity_provision_abci.composition.LiquidityProvisionAbciApp > packages/valory/skills/liquidity_provision_abci/fsm_specification.yaml || (echo "Failed to check liquidity_provision_abci consistency" && exit 1)
+	python generate_abciapp_spec.py -c packages.valory.skills.liquidity_rebalancing_abci.rounds.LiquidityRebalancingAbciApp > packages/valory/skills/liquidity_rebalancing_abci/fsm_specification.yaml || (echo "Failed to check liquidity_rebalancing_abci consistency" && exit 1)
+	python generate_abciapp_spec.py -c packages.valory.skills.oracle_abci.composition.OracleAbciApp > packages/valory/skills/oracle_abci/fsm_specification.yaml || (echo "Failed to check oracle_abci consistency" && exit 1)
+	python generate_abciapp_spec.py -c packages.valory.skills.oracle_deployment_abci.rounds.OracleDeploymentAbciApp > packages/valory/skills/oracle_deployment_abci/fsm_specification.yaml || (echo "Failed to check oracle_deployment_abci consistency" && exit 1)
+	python generate_abciapp_spec.py -c packages.valory.skills.price_estimation_abci.rounds.PriceAggregationAbciApp > packages/valory/skills/price_estimation_abci/fsm_specification.yaml || (echo "Failed to check price_estimation_abci consistency" && exit 1)
+	python generate_abciapp_spec.py -c packages.valory.skills.registration_abci.rounds.AgentRegistrationAbciApp > packages/valory/skills/registration_abci/fsm_specification.yaml || (echo "Failed to check registration_abci consistency" && exit 1)
+	python generate_abciapp_spec.py -c packages.valory.skills.reset_pause_abci.rounds.ResetPauseABCIApp > packages/valory/skills/reset_pause_abci/fsm_specification.yaml || (echo "Failed to check reset_pause_abci consistency" && exit 1)
+	python generate_abciapp_spec.py -c packages.valory.skills.safe_deployment_abci.rounds.SafeDeploymentAbciApp > packages/valory/skills/safe_deployment_abci/fsm_specification.yaml || (echo "Failed to check safe_deployment_abci consistency" && exit 1)
+	python generate_abciapp_spec.py -c packages.valory.skills.simple_abci.rounds.SimpleAbciApp > packages/valory/skills/simple_abci/fsm_specification.yaml || (echo "Failed to check simple_abci consistency" && exit 1)
+	python generate_abciapp_spec.py -c packages.valory.skills.transaction_settlement_abci.rounds.TransactionSubmissionAbciApp > packages/valory/skills/transaction_settlement_abci/fsm_specification.yaml || (echo "Failed to check transaction_settlement_abci consistency" && exit 1)
+	rm generate_abciapp_spec.py
+	echo "Successfully validated abcis!"
+

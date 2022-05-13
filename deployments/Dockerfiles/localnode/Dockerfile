@@ -18,7 +18,7 @@ RUN curl -L https://github.com/tendermint/tendermint/releases/download/v${TENDER
     mv tendermint /usr/bin &&\
     rm -fr tendermint.tar.gz
 
-RUN mkdir -p /app
+RUN mkdir -p /app /tm_state
 COPY app.py /app/
 COPY requirements.txt /app/
 COPY tendermint.py /app/
@@ -26,6 +26,7 @@ WORKDIR /app
 RUN pip3 install -r requirements.txt
 
 VOLUME /tendermint
+VOLUME /tm_state
 EXPOSE 26656 26657
 ENV FLASK_APP=/app/app.py
 ENV FLASK_ENV=production
@@ -38,9 +39,10 @@ COPY config-template.toml /etc/tendermint/config-template.toml
 
 RUN chmod 777 -R /app
 RUN chmod 777 -R /tendermint
+RUN chmod 777 -R /tm_state
 
 
 ENTRYPOINT ["/usr/bin/flask"]
 CMD ["run", "--no-reload", "--host=0.0.0.0", "--port=8080"]
 
-HEALTHCHECK --interval=3s --timeout=600s --retries=600 CMD netstat -ltn | grep -c 26658 > /dev/null; if [ 0 != $? ]; then exit 1; fi;
+HEALTHCHECK --interval=3s --timeout=600s --retries=600 CMD netstat -ltn | grep -c 26657 > /dev/null; if [ 0 != $? ]; then exit 1; fi;

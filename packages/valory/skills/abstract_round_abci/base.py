@@ -22,6 +22,7 @@ import datetime
 import heapq
 import itertools
 import logging
+import textwrap
 import uuid
 from abc import ABC, ABCMeta, abstractmethod
 from collections import Counter
@@ -64,6 +65,8 @@ ERROR_CODE = 1
 LEDGER_API_ADDRESS = str(LEDGER_CONNECTION_PUBLIC_ID)
 ROUND_COUNT_DEFAULT = -1
 MIN_HISTORY_DEPTH = 1
+ADDRESS_LENGTH = 42
+MAX_INT_256 = 2 ** 256 - 1
 
 EventType = TypeVar("EventType")
 TransactionType = TypeVar("TransactionType")
@@ -645,8 +648,9 @@ class BasePeriodState:
     @property
     def keeper_randomness(self) -> float:
         """Get the keeper's random number [0-1]."""
-        res = int(self.most_voted_randomness, base=16) // 10 ** 0 % 10
-        return cast(float, res / 10)
+        return (
+            int(self.most_voted_randomness, base=16) / MAX_INT_256
+        )  # DRAND uses sha256 values
 
     @property
     def most_voted_randomness(self) -> str:
@@ -662,6 +666,12 @@ class BasePeriodState:
     def is_keeper_set(self) -> bool:
         """Check whether keeper is set."""
         return self.db.get("most_voted_keeper_address", None) is not None
+
+    @property
+    def blacklisted_keepers(self) -> Set[str]:
+        """Get the current cycle's blacklisted keepers who cannot submit a transaction."""
+        raw = cast(str, self.db.get("blacklisted_keepers", ""))
+        return set(textwrap.wrap(raw, ADDRESS_LENGTH))
 
     @property
     def participant_to_selection(self) -> Mapping:
@@ -2094,7 +2104,7 @@ class Period:
 
     def reset_blockchain(self, is_replay: bool = False) -> None:
         """Reset blockchain after tendermint reset."""
-        if is_replay:  # pragma: nocover
+        if is_replay:
             self._block_construction_phase = (
                 Period._BlockConstructionState.WAITING_FOR_BEGIN_BLOCK
             )

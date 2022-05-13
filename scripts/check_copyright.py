@@ -309,6 +309,7 @@ def main() -> None:
     python_files = filter(
         lambda x: x not in exclude_files,
         itertools.chain(
+            Path("aea_swarm").glob("**/*.py"),
             Path("aea_consensus_algorithm").glob("**/*.py"),
             Path("benchmark").glob("**/*.py"),
             Path("examples").glob("**/*.py"),
@@ -328,12 +329,16 @@ def main() -> None:
         file_str = str(file)
 
         # protocols are generated using generate_all_protocols.py
-        return not file_str.endswith("_pb2.py") and (
-            (
-                "protocols" not in file.parts
-                and "t_protocol" not in file.parts
-                and "t_protocol_no_ct" not in file.parts
-                and "build" not in file.parts
+        return (
+            not file_str.endswith("_pb2.py")
+            and not file_str.endswith("_pb2_grpc.py")
+            and (
+                (
+                    "protocols" not in file.parts
+                    and "t_protocol" not in file.parts
+                    and "t_protocol_no_ct" not in file.parts
+                    and "build" not in file.parts
+                )
             )
         )
 

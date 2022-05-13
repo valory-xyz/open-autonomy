@@ -36,6 +36,17 @@ def params() -> TransactionParams
 
 Return the params.
 
+<a id="packages.valory.skills.transaction_settlement_abci.behaviours.TransactionSettlementBaseState.serialized_keepers"></a>
+
+#### serialized`_`keepers
+
+```python
+@staticmethod
+def serialized_keepers(keepers: Deque[str], keeper_retries: int) -> str
+```
+
+Get the keepers serialized.
+
 <a id="packages.valory.skills.transaction_settlement_abci.behaviours.RandomnessTransactionSubmissionBehaviour"></a>
 
 ## RandomnessTransactionSubmissionBehaviour Objects
@@ -57,27 +68,6 @@ class SelectKeeperTransactionSubmissionBehaviourA(  # pylint: disable=too-many-a
 
 Select the keeper agent.
 
-<a id="packages.valory.skills.transaction_settlement_abci.behaviours.SelectKeeperTransactionSubmissionBehaviourA.__init__"></a>
-
-#### `__`init`__`
-
-```python
-def __init__(**kwargs: Any) -> None
-```
-
-Initialize behaviour.
-
-<a id="packages.valory.skills.transaction_settlement_abci.behaviours.SelectKeeperTransactionSubmissionBehaviourA.serialized_keepers"></a>
-
-#### serialized`_`keepers
-
-```python
-@property
-def serialized_keepers() -> str
-```
-
-Get the keepers serialized.
-
 <a id="packages.valory.skills.transaction_settlement_abci.behaviours.SelectKeeperTransactionSubmissionBehaviourA.async_act"></a>
 
 #### async`_`act
@@ -98,16 +88,6 @@ class SelectKeeperTransactionSubmissionBehaviourB(  # pylint: disable=too-many-a
 ```
 
 Select the keeper b agent.
-
-<a id="packages.valory.skills.transaction_settlement_abci.behaviours.SelectKeeperTransactionSubmissionBehaviourB.setup"></a>
-
-#### setup
-
-```python
-def setup() -> None
-```
-
-Setup behaviour.
 
 <a id="packages.valory.skills.transaction_settlement_abci.behaviours.SelectKeeperTransactionSubmissionBehaviourB.async_act"></a>
 
@@ -242,15 +222,18 @@ def async_act() -> Generator
 
 Do the action.
 
-<a id="packages.valory.skills.transaction_settlement_abci.behaviours.SynchronizeLateMessagesBehaviour.set_done"></a>
+<a id="packages.valory.skills.transaction_settlement_abci.behaviours.SynchronizeLateMessagesBehaviour.clean_up"></a>
 
-#### set`_`done
+#### clean`_`up
 
 ```python
-def set_done() -> None
+def clean_up() -> None
 ```
 
-Set the behaviour to done and clean the local late message parameter.
+Clean up the behaviour.
+
+Clean the local `tx_hash` and `late_messages` parameters if we were able to complete the round,
+and have therefore been synced.
 
 <a id="packages.valory.skills.transaction_settlement_abci.behaviours.SignatureBehaviour"></a>
 
@@ -302,6 +285,16 @@ Steps:
 - If the agent is the keeper, then prepare the transaction and send it.
 - Otherwise, wait until the next round.
 - If a timeout is hit, set exit A event, otherwise set done event.
+
+<a id="packages.valory.skills.transaction_settlement_abci.behaviours.FinalizeBehaviour.clean_up"></a>
+
+#### clean`_`up
+
+```python
+def clean_up() -> None
+```
+
+Clean the local tx hash parameter if we were able to complete the round, and have therefore been synced.
 
 <a id="packages.valory.skills.transaction_settlement_abci.behaviours.FinalizeBehaviour.handle_late_messages"></a>
 

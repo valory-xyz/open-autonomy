@@ -22,7 +22,7 @@
 import logging  # noqa: F401
 from typing import Dict, FrozenSet, Optional
 
-from packages.valory.skills.abstract_round_abci.base import StateDB
+from packages.valory.skills.abstract_round_abci.base import MAX_INT_256, StateDB
 from packages.valory.skills.oracle_deployment_abci.payloads import (
     RandomnessPayload,
     SelectKeeperPayload,
@@ -145,9 +145,7 @@ def test_period_states() -> None:
     most_voted_keeper_address = get_most_voted_keeper_address()
     safe_contract_address = get_safe_contract_address()
     participant_to_votes = get_participant_to_votes(participants)
-    actual_keeper_randomness = float(
-        (int(most_voted_randomness, base=16) // 10 ** 0 % 10) / 10
-    )
+    actual_keeper_randomness = int(most_voted_randomness, base=16) / MAX_INT_256
 
     period_state_ = SafeDeploymentPeriodState(
         StateDB(
@@ -163,7 +161,9 @@ def test_period_states() -> None:
             ),
         )
     )
-    assert period_state_.keeper_randomness == actual_keeper_randomness
+    assert (
+        abs(period_state_.keeper_randomness - actual_keeper_randomness) < 1e-10
+    )  # avoid equality comparisons between floats
     assert period_state_.most_voted_randomness == most_voted_randomness
     assert period_state_.most_voted_keeper_address == most_voted_keeper_address
     assert period_state_.safe_contract_address == safe_contract_address

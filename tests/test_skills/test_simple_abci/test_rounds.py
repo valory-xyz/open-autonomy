@@ -17,7 +17,7 @@
 #
 # ------------------------------------------------------------------------------
 
-"""Test the base.py module of the skill."""
+"""Test the rounds of the skill."""
 import logging  # noqa: F401
 from types import MappingProxyType
 from typing import Dict, FrozenSet, cast
@@ -26,6 +26,7 @@ from unittest import mock
 from packages.valory.skills.abstract_round_abci.base import (
     AbstractRound,
     ConsensusParams,
+    MAX_INT_256,
     StateDB,
 )
 from packages.valory.skills.simple_abci.payloads import (
@@ -337,6 +338,7 @@ def test_period_state() -> None:  # pylint:too-many-locals
     assert period_state.participant_to_selection == participant_to_selection
     assert period_state.most_voted_keeper_address == most_voted_keeper_address
     assert period_state.sorted_participants == sorted(participants)
-    assert period_state.keeper_randomness == cast(
-        float, (int(most_voted_randomness, base=16) // 10 ** 0 % 10) / 10
-    )
+    actual_keeper_randomness = int(most_voted_randomness, base=16) / MAX_INT_256
+    assert (
+        abs(period_state.keeper_randomness - actual_keeper_randomness) < 1e-10
+    )  # avoid equality comparisons between floats

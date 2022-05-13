@@ -30,6 +30,7 @@ from packages.valory.skills.abstract_round_abci.base import (
 from packages.valory.skills.abstract_round_abci.base import (
     BaseTxPayload,
     CollectSameUntilThresholdRound,
+    MAX_INT_256,
     StateDB,
     VotingRound,
 )
@@ -200,7 +201,7 @@ class BaseValidateRoundTest(BaseVotingRoundTest):
     ) -> None:
         """Test ValidateRound."""
 
-        self.period_state.update(tx_hashes_history=["test"])
+        self.period_state.update(tx_hashes_history="t" * 66)
 
         test_round = self.test_class(
             state=self.period_state, consensus_params=self.consensus_params
@@ -351,9 +352,7 @@ def test_period_states() -> None:
     safe_contract_address = get_safe_contract_address()
     oracle_contract_address = get_safe_contract_address()
     participant_to_votes = get_participant_to_votes(participants)
-    actual_keeper_randomness = float(
-        (int(most_voted_randomness, base=16) // 10 ** 0 % 10) / 10
-    )
+    actual_keeper_randomness = int(most_voted_randomness, base=16) / MAX_INT_256
 
     period_state__ = OracleDeploymentPeriodState(
         StateDB(
@@ -370,7 +369,9 @@ def test_period_states() -> None:
             ),
         )
     )
-    assert period_state__.keeper_randomness == actual_keeper_randomness
+    assert (
+        abs(period_state__.keeper_randomness - actual_keeper_randomness) < 1e-10
+    )  # avoid equality comparisons between floats
     assert period_state__.most_voted_randomness == most_voted_randomness
     assert period_state__.most_voted_keeper_address == most_voted_keeper_address
     assert period_state__.safe_contract_address == safe_contract_address

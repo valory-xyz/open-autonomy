@@ -7,11 +7,11 @@ license: Apache-2.0
 aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
   Makefile: QmeCnSPf5rmJBp5Dj6D7wFiEUb2aWHn9ndve6zx1VVh4Au
-  __init__.py: QmWustVbKTkibXp3YHaeM9VyuLHSJKQCEURpbz28MEjNNu
-  check_dependencies.py: QmQAvjc4NYDg5e6RfAFs7R7UoACuVqRwCV5bX4Tfmw9reA
-  connection.py: QmQ1BKANUa4iF5AFymh6kR5Ur9jgmgaDtEYfAb4jPX38jQ
-  dialogues.py: QmW9qr1Ln6QkAUX5H3H4Cb26nTDEw1mSFwQDcZ5a9ZQLBH
-  gogoproto/__init__.py: QmTS3DpP33BaeUMZRHRPbpTXq3TxC8aHERY1EDwEoYukT9
+  __init__.py: QmeFFi4ppQzSMxGGzQYAjKYD8icWxFUbfs1DTzxi3MV6Pg
+  check_dependencies.py: QmaTR9NaqGPkTEvTHbXqN5aD52W6cxu1J2CH3YyuPZRDM4
+  connection.py: QmPgnj5bLWysXBqAbMKndwryZ1iUhK3qLN5xZPdUsrEAMZ
+  dialogues.py: QmSAg9Cv9aU8ZhRtuEVJhgf9KZp5rL7NYruFSTsj6HpYju
+  gogoproto/__init__.py: QmT25qNFyqBirw8rhCvwjm3wxNaN5RwFuaswEcnzCkFkGM
   gogoproto/gogo_pb2.py: QmfCBcS9xWyLvRF74DyqCKa5VXZd7Ada9jcy6jutsK6gbJ
   protos/gogoproto/gogo.proto: QmXRc8ByFcjGBvdA2ApDTQ2sTMMsmt7ad9LxR5WWrmMj2L
   protos/tendermint/abci/types.proto: QmbpqQwWkERBVfZcvuFiXB7n3MreCzb4KX2vhpEBT9u8ei
@@ -22,7 +22,7 @@ fingerprint:
   protos/tendermint/types/validator.proto: QmdhmvmFwshWooyNJdPqTPvUKCh8qTAy8Hj1HJgaB1yWeN
   protos/tendermint/version/types.proto: QmVvixZ8bXGrTGdVBbmyZruc8azvcZb6J9hno6UmbpR2uH
   readme.md: QmY84Kw2PQX4pmohsCbPRwL4kryQxCHk5awWSKrTMhtdxr
-  scripts/genproto.py: QmSXcBiVGzjokqQrsvpBXkvSrtWDJNT15Y31cPWxHJbU4w
+  scripts/genproto.py: QmSzpEGwxavAFpi2baaFX3UhxgVkfe2AuAWghtWwj5cfKa
   tendermint/__init__.py: Qmdb8Dfjbme2z6SBpDmnZw5kNt9aFZD2yVyCN6M6hX5PHC
   tendermint/abci/types_pb2.py: Qmb1YoGv34WhNM38M6nzHLajAra5NK18Pg4JQy42inQ4Ne
   tendermint/crypto/keys_pb2.py: Qma7KXYmK66s5PZso9d7NosNv4Mm6yikrg3hzcWNYGs513
@@ -32,7 +32,7 @@ fingerprint:
   tendermint/types/validator_pb2.py: QmdXSKTxGBVEwpvdDPkQMvFwkNy5SBbuEDzySSRSFyGYSn
   tendermint/version/types_pb2.py: QmXHigkbDKNvT5ThMs1LtusqE7eZSk2skShjVdfmeotyfj
   tendermint_decoder.py: QmPrHyEbaK6uqHXpHZGotaTkHHcr2ap1X6jPh88ugB4Jsm
-  tendermint_encoder.py: QmbH1hSdAqmjon72m4kKXiHEdJQVrYiSg8XwrdMCe3rKzU
+  tendermint_encoder.py: QmSnee7AmrxCJWQ21hNGF71JkNsutBx5kyxpDMVQZ4S9F3
   version.txt: QmUMea8qXm2mXS5n4T1uXDkULE5cuWjM2mjQnkUegzdAFK
 fingerprint_ignore_patterns: []
 build_entrypoint: check_dependencies.py

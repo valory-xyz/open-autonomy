@@ -60,7 +60,7 @@ logging_config:
       propagate: false
 dependencies:
   open-aea-ledger-ethereum: {}
-skill_exception_policy: just_log
+skill_exception_policy: stop_and_exit
 connection_exception_policy: just_log
 default_connection: null
 ---
@@ -75,6 +75,9 @@ config:
 public_id: valory/oracle_abci:0.1.0
 type: skill
 models:
+  benchmark_tool:
+    args:
+      log_dir: ${SKILL_ORACLE_ABCI_MODELS_BENCHMARK_TOOL_ARGS_LOG_DIR:str:/benchmarks}
   price_api:
     args:
       url: ${SKILL_ORACLE_ABCI_MODELS_PRICE_API_ARGS_URL:str}

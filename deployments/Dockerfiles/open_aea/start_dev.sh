@@ -1,7 +1,11 @@
+sudo chown -R ubuntu:ubuntu /open-aea
+sudo chown -R ubuntu:ubuntu /benchmarks
 sudo chown -R ubuntu:ubuntu /persistent_data
+sudo chown -R ubuntu:ubuntu /home/ubuntu
 sudo chown -R ubuntu:ubuntu /home/ubuntu/logs
 sudo chown -R ubuntu:ubuntu /home/ubuntu/packages
-sudo chown -R ubuntu:ubuntu /open-aea
+
+echo "Starting Dev image and installing Valory app dependencies."
 
 if [[ "$(ls -l /home/ubuntu/.local/share/virtualenvs | grep ubuntu | wc -l)" -eq "1" ]]
 then
@@ -31,4 +35,5 @@ fi
 
 echo "Using venv @ $(pipenv --venv)"
 
+INSTALL=1 pipenv run bash start.sh
 pipenv run python /home/ubuntu/watcher.py
