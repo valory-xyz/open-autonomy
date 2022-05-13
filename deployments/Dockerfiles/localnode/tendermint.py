@@ -24,10 +24,9 @@ import os
 import signal
 import subprocess  # nosec:
 from logging import Logger
+from pathlib import Path
 from threading import Event, Thread
 from typing import Any, List, Optional
-from pathlib import Path
-from typing import List, Optional
 
 
 DEFAULT_LOG_FILE = "tendermint.log"
