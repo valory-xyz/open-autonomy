@@ -115,9 +115,9 @@ spec:
           - mountPath: /tendermint
             name: nodes
       volumes:
-        - name: build
+        - name: nodes
           persistentVolumeClaim:
-            claimName: 'build-vol-pvc'
+            claimName: 'nodes'
       restartPolicy: Never
   backoffLimit: 3
 ---
@@ -160,7 +160,7 @@ spec:
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: build-vol-pvc
+  name: nodes
 spec:
   storageClassName: nfs
   accessModes:
@@ -267,7 +267,7 @@ spec:
           - mountPath: /benchmark
             name: persistent-data-benchmark
           - mountPath: /build
-            name: build
+            name: nodes
       volumes:
         - name: persistent-data
           persistentVolumeClaim:
@@ -278,9 +278,9 @@ spec:
         - name: persistent-data-tm
           persistentVolumeClaim:
             claimName: 'tendermint-pvc'
-        - name: build
+        - name: nodes
           persistentVolumeClaim:
-            claimName: 'build-vol-pvc'
+            claimName: 'nodes'
 """ % (
     TENDERMINT_VERSION,
     IMAGE_VERSION,
