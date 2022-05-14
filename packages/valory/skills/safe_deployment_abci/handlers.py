@@ -19,6 +19,7 @@
 
 """This module contains the handler for the 'safe_deployment_abci' skill."""
 
+from packages.valory.skills.abstract_round_abci.handlers import ABCIRoundHandler
 from packages.valory.skills.abstract_round_abci.handlers import (
     ContractApiHandler as AbstractRoundContractApiHandler,
 )
@@ -33,6 +34,7 @@ from packages.valory.skills.abstract_round_abci.handlers import (
 )
 
 
+ABCIHandler = ABCIRoundHandler
 HttpHandler = AbstractRoundHttpHandler
 SigningHandler = AbstractRoundSigningHandler
 LedgerApiHandler = AbstractRoundLedgerApiHandler

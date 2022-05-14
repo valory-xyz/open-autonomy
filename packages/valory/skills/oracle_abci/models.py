@@ -87,26 +87,21 @@ class SharedState(BaseSharedState):
         OracleAbciApp.event_to_timeout[TSEvent.RESET_TIMEOUT] = (
             self.context.params.round_timeout_seconds * MULTIPLIER
         )
-        OracleAbciApp.event_to_timeout[SafeEvent.VALIDATE_TIMEOUT] = (
-            self.context.params.retry_timeout * self.context.params.retry_attempts
-            + MARGIN
-        )
-        OracleAbciApp.event_to_timeout[OracleEvent.VALIDATE_TIMEOUT] = (
-            self.context.params.retry_timeout * self.context.params.retry_attempts
-            + MARGIN
-        )
-        OracleAbciApp.event_to_timeout[TSEvent.VALIDATE_TIMEOUT] = (
-            self.context.params.retry_timeout * self.context.params.retry_attempts
-            + MARGIN
-        )
-        OracleAbciApp.event_to_timeout[TSEvent.FINALIZE_TIMEOUT] = (
-            self.context.params.round_timeout_seconds
-            * 2  # TOFIX (expose on config layer)
-        )
-        OracleAbciApp.event_to_timeout[TSEvent.CHECK_TIMEOUT] = (
-            self.context.params.retry_timeout * self.context.params.retry_attempts
-            + MARGIN
-        )
+        OracleAbciApp.event_to_timeout[
+            SafeEvent.VALIDATE_TIMEOUT
+        ] = self.context.params.validate_timeout
+        OracleAbciApp.event_to_timeout[
+            OracleEvent.VALIDATE_TIMEOUT
+        ] = self.context.params.validate_timeout
+        OracleAbciApp.event_to_timeout[
+            TSEvent.VALIDATE_TIMEOUT
+        ] = self.context.params.validate_timeout
+        OracleAbciApp.event_to_timeout[
+            TSEvent.FINALIZE_TIMEOUT
+        ] = self.context.params.finalize_timeout
+        OracleAbciApp.event_to_timeout[
+            TSEvent.CHECK_TIMEOUT
+        ] = self.context.params.history_check_timeout
         OracleAbciApp.event_to_timeout[OracleEvent.DEPLOY_TIMEOUT] = (
             self.context.params.keeper_timeout + MARGIN
         )

@@ -468,18 +468,15 @@ class TestFinalizeBehaviour(TransactionSettlementFSMBehaviourBaseCase):
                 )
             ),
         )
-        assert (
-            cast(
-                BaseState,
-                cast(BaseState, self.behaviour.current_state),
-            ).state_id
-            == self.behaviour_class.state_id
-        )
+        assert self.behaviour.current_state is not None
+        assert self.behaviour.current_state.state_id == self.behaviour_class.state_id
+        cast(FinalizeBehaviour, self.behaviour.current_state).params.tx_hash = "test"
         self.behaviour.act_wrapper()
         self._test_done_flag_set()
         self.end_round(TransactionSettlementEvent.DONE)
-        state = cast(BaseState, self.behaviour.current_state)
+        state = cast(ValidateTransactionBehaviour, self.behaviour.current_state)
         assert state.state_id == ValidateTransactionBehaviour.state_id
+        assert state.params.tx_hash == "test"
 
     @pytest.mark.parametrize(
         "resubmitting, response_kwargs",
@@ -597,8 +594,9 @@ class TestFinalizeBehaviour(TransactionSettlementFSMBehaviourBaseCase):
             ),
         )
 
-        state = cast(BaseState, self.behaviour.current_state)
-        assert state.state_id == self.behaviour_class.state_id
+        assert self.behaviour.current_state is not None
+        assert self.behaviour.current_state.state_id == self.behaviour_class.state_id
+        cast(FinalizeBehaviour, self.behaviour.current_state).params.tx_hash = "test"
         self.behaviour.act_wrapper()
 
         self.mock_contract_api_request(
@@ -637,8 +635,16 @@ class TestFinalizeBehaviour(TransactionSettlementFSMBehaviourBaseCase):
         self.mock_a2a_transaction()
         self._test_done_flag_set()
         self.end_round(TransactionSettlementEvent.DONE)
-        state = cast(BaseState, self.behaviour.current_state)
-        assert state.state_id == ValidateTransactionBehaviour.state_id
+        assert (
+            self.behaviour.current_state.state_id
+            == ValidateTransactionBehaviour.state_id
+        )
+        assert (
+            cast(
+                ValidateTransactionBehaviour, self.behaviour.current_state
+            ).params.tx_hash
+            == ""
+        )
 
     def test_handle_late_messages(self) -> None:
         """Test `handle_late_messages.`"""
@@ -677,18 +683,6 @@ class TestFinalizeBehaviour(TransactionSettlementFSMBehaviourBaseCase):
             mock_info.assert_called_with(
                 f"No callback defined for request with nonce: {message.dialogue_reference[0]}"
             )
-
-    def test_clean_up(self) -> None:
-        """Ensure that the clean-up method resets the `tx_hash` param properly."""
-        self.fast_forward_to_state(
-            self.behaviour, self.behaviour_class.state_id, MagicMock()
-        )
-        assert self.behaviour.current_state is not None
-        assert self.behaviour.current_state.state_id == self.behaviour_class.state_id
-
-        self.behaviour.current_state.params.tx_hash = "test"
-        self.behaviour.current_state.clean_up()
-        assert self.behaviour.current_state.params.tx_hash == ""
 
 
 class TestValidateTransactionBehaviour(TransactionSettlementFSMBehaviourBaseCase):
@@ -943,20 +937,6 @@ class TestSynchronizeLateMessagesBehaviour(TransactionSettlementFSMBehaviourBase
             )._get_tx_data = _dummy_get_tx_data  # type: ignore
             for _ in range(len(late_messages)):
                 self.behaviour.act_wrapper()
-
-    def test_clean_up(self) -> None:
-        """Ensure that the clean-up method resets the params properly."""
-        self.fast_forward_to_state(
-            self.behaviour, SynchronizeLateMessagesBehaviour.state_id, MagicMock()
-        )
-        assert self.behaviour.current_state is not None
-        self._check_state_id(SynchronizeLateMessagesBehaviour)
-
-        self.behaviour.current_state.params.tx_hash = "test"
-        self.behaviour.current_state.params.late_messages = [MagicMock()]
-        self.behaviour.current_state.clean_up()
-        assert self.behaviour.current_state.params.tx_hash == ""
-        assert self.behaviour.current_state.params.late_messages == []
 
 
 class TestResetBehaviour(TransactionSettlementFSMBehaviourBaseCase):

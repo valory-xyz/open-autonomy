@@ -73,6 +73,9 @@ class TransactionParams(BaseParams):
         self.keeper_allowed_retries: int = self._ensure(
             "keeper_allowed_retries", kwargs
         )
+        self.validate_timeout = self._ensure("validate_timeout", kwargs)
+        self.finalize_timeout = self._ensure("finalize_timeout", kwargs)
+        self.history_check_timeout = self._ensure("history_check_timeout", kwargs)
         super().__init__(*args, **kwargs)
 
 
