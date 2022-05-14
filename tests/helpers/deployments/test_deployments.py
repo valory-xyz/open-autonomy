@@ -24,20 +24,24 @@ import tempfile
 from abc import ABC
 from glob import glob
 from pathlib import Path
-from typing import Any, List, Tuple
+from typing import Any, List, Tuple, cast
 
 import yaml
 
-from deployments.base_deployments import BaseDeployment, BaseDeploymentGenerator
-from deployments.constants import DEPLOYMENT_SPEC_DIR, ROOT_DIR
-from deployments.generators.docker_compose.docker_compose import DockerComposeGenerator
-from deployments.generators.kubernetes.kubernetes import KubernetesGenerator
+from aea_swarm.deploy.base import BaseDeploymentGenerator, DeploymentSpec
+from aea_swarm.deploy.generators.docker_compose.base import DockerComposeGenerator
+from aea_swarm.deploy.generators.kubernetes.base import KubernetesGenerator
 
 
 deployment_generators: List[Any] = [
     DockerComposeGenerator,
     KubernetesGenerator,
 ]
+
+ROOT_DIR = Path(__file__).parent.parent.parent.parent
+DEPLOYMENT_SPEC_DIR = ROOT_DIR / "deployments" / "deployment_specifications"
+DEFAULT_KEY_PATH = ROOT_DIR / "deployments" / "keys" / "hardhat_keys.json"
+PACKAGES_DIR = ROOT_DIR / "packages"
 
 os.chdir(ROOT_DIR)
 
@@ -141,14 +145,17 @@ class BaseDeploymentTests(ABC, CleanDirectoryClass):
     """Base pytest class for setting up Docker images."""
 
     deployment_spec_path: str
+    temp_dir: tempfile.TemporaryDirectory
 
     @classmethod
     def setup_class(cls) -> None:
         """Setup up the test class."""
+        cls.temp_dir = tempfile.TemporaryDirectory()
 
     @classmethod
     def teardown_class(cls) -> None:
         """Setup up the test class."""
+        cls.temp_dir.cleanup()
 
     def write_deployment(
         self,
@@ -161,13 +168,16 @@ class BaseDeploymentTests(ABC, CleanDirectoryClass):
             f.write(app)
         return str(self.working_dir / TEST_DEPLOYMENT_PATH)
 
-    @staticmethod
     def load_deployer_and_app(
-        app: str, deployer: BaseDeploymentGenerator
-    ) -> Tuple[BaseDeploymentGenerator, BaseDeployment]:
+        self, app: str, deployer: BaseDeploymentGenerator
+    ) -> Tuple[BaseDeploymentGenerator, DeploymentSpec]:
         """Handles loading the 2 required instances"""
-        app_instance = BaseDeployment(path_to_deployment_spec=app)
-        instance = deployer(deployment_spec=app_instance)  # type: ignore
+        app_instance = DeploymentSpec(
+            path_to_deployment_spec=app,
+            private_keys_file_path=DEFAULT_KEY_PATH,
+            package_dir=PACKAGES_DIR,
+        )
+        instance = deployer(deployment_spec=app_instance, build_dir=self.temp_dir.name)  # type: ignore
         return instance, app_instance
 
 
@@ -254,8 +264,10 @@ class TestTendermintDeploymentGenerators(BaseDeploymentTests):
                 deployer_instance, app_instance = self.load_deployer_and_app(
                     spec_path, deployment_generator
                 )
-                res = deployer_instance.generate_config_tendermint(app_instance)  # type: ignore
-                assert len(res) >= 1, "Failed to generate Tendermint Config"
+                res = deployer_instance.generate_config_tendermint()  # type: ignore
+                assert (
+                    len(cast(str, res.tendermint_job_config)) >= 1
+                ), "Failed to generate Tendermint Config"
 
 
 class TestDeploymentLoadsAgent(BaseDeploymentTests):
