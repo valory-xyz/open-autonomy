@@ -1528,6 +1528,11 @@ class BaseState(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
                     self.context.state.period.abci_app.cleanup(
                         self.params.cleanup_history_depth
                     )
+
+                    for handler_name in self.context.handlers.__dict__.keys():
+                        dialogues = getattr(self.context, f"{handler_name}_dialogues")
+                        dialogues.cleanup()
+
                     self._end_reset()
                 else:
                     msg = response.get("message")
