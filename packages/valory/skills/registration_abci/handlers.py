@@ -20,7 +20,7 @@
 """This module contains the handler for the 'registration_abci' skill."""
 
 from packages.valory.skills.abstract_round_abci.handlers import (
-    ABCIRoundHandler as BaseABCIRoundHandler
+    ABCIRoundHandler as BaseABCIRoundHandler,
 )
 from packages.valory.skills.abstract_round_abci.handlers import (
     ContractApiHandler as BaseContractApiHandler,

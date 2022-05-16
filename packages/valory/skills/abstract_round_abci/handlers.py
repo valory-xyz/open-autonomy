@@ -486,7 +486,9 @@ class TendermintHandler(Handler):
             error_data={"message": message.encode()},
         )
         self.context.outbox.put_message(response)
-        log_message = f"Sending error response. Received: {message}, replied: {response}"
+        log_message = (
+            f"Sending error response. Received: {message}, replied: {response}"
+        )
         self.context.logger.info(log_message)
 
     def _handle_request(
@@ -537,7 +539,7 @@ class TendermintHandler(Handler):
             return
 
         self.registered_addresses[message.sender] = parse_result.geturl()
-        log_msg = f"Collected Tendermint config info"
+        log_msg = "Collected Tendermint config info"
         self.context.logger.info(f"{log_msg}: {message}")
         dialogues = cast(TendermintDialogues, self.dialogues)
         dialogues.dialogue_stats.add_dialogue_endstate(

@@ -20,16 +20,19 @@
 """Integration tests for the valory/registration skill."""
 import logging
 import time
+
 import pytest
 
-from tests.fixture_helpers import UseACNNode
-
-from tests.test_agents.base import BaseTestEnd2EndNormalExecution, BaseTestEnd2EndAgentCatchup
-from tests.fixture_helpers import UseGnosisSafeHardHatNet
+from tests.fixture_helpers import UseACNNode, UseGnosisSafeHardHatNet
+from tests.test_agents.base import (
+    BaseTestEnd2EndAgentCatchup,
+    BaseTestEnd2EndNormalExecution,
+)
 
 
 @pytest.fixture(autouse=True)
-def slow_down_tests():
+def slow_down_tests() -> None:
+    """Sleep in between tests"""
     logging.info("SLOWING DOWN TESTS")
     yield
     time.sleep(1)
@@ -70,7 +73,9 @@ class RegistrationStartUpTestConfig(UseGnosisSafeHardHatNet, UseACNNode):
 
 @pytest.mark.e2e
 @pytest.mark.integration
-class TestRegistrationStartUpFourAgents(RegistrationStartUpTestConfig, BaseTestEnd2EndNormalExecution):
+class TestRegistrationStartUpFourAgents(
+    RegistrationStartUpTestConfig, BaseTestEnd2EndNormalExecution
+):
     """Test registration start-up skill with four agents."""
 
     NB_AGENTS = 4
@@ -79,7 +84,9 @@ class TestRegistrationStartUpFourAgents(RegistrationStartUpTestConfig, BaseTestE
 
 @pytest.mark.e2e
 @pytest.mark.integration  # NOTE: looks like other agents crash a little while after first one!
-class TestRegistrationStartUpFourAgentsCatchUp(RegistrationStartUpTestConfig, BaseTestEnd2EndAgentCatchup):
+class TestRegistrationStartUpFourAgentsCatchUp(
+    RegistrationStartUpTestConfig, BaseTestEnd2EndAgentCatchup
+):
     """Test registration start-up skill with four agents and catch up."""
 
     NB_AGENTS = 4

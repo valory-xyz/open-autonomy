@@ -21,11 +21,12 @@
 
 import hashlib
 import logging
-from typing import Any, Dict, Tuple, cast
+from typing import Any, Dict, Tuple, Union, cast
 
 from aea.configurations.base import PublicId
 from aea.contracts.base import Contract
 from aea_ledger_ethereum import EthereumApi, LedgerApi
+
 
 # test_contract and test_agents, respectively...
 DEPLOYED_BYTECODE_MD5_HASH = "75d2a79df580ba1353211f93c479a9d6b78cc8f14e724290329e274fdcab4dc8cc04adbd8efbbce00a01af2dd6873f7e66a8c338a3d4f87a31ab0e283eef89de"
@@ -48,7 +49,7 @@ class ServiceRegistryContract(Contract):
     @classmethod
     def verify_contract(
         cls, ledger_api: LedgerApi, contract_address: str
-    ) -> Dict[str, bool]:
+    ) -> Dict[str, Union[bool, str]]:
         """
         Verify the contract's bytecode
 

@@ -164,12 +164,11 @@ class BaseTestEnd2End(AEATestCaseMany, BaseTendermintTestClass):
         self.processes.append(process)
 
     def terminate_processes(self) -> None:
-
-        for i, process in enumerate(self.processes):
+        """Terminate processes"""
+        for process in self.processes:
             self.terminate_agents(process)
             outs, errs = process.communicate()
             logging.info(f"subprocess logs {process}: {outs} --- {errs}")
-
             if not self.is_successfully_terminated(process):
                 warnings.warn(
                     UserWarning(
@@ -255,9 +254,6 @@ class BaseTestEnd2End(AEATestCaseMany, BaseTendermintTestClass):
                     check_strings_to_n_appearances.items(),
                 )
             ]
-
-        # if is_terminating and not missing_round_strings:
-        #     cls.terminate_agents(kwargs["process"])
 
         return missing_strict_strings, missing_round_strings
 

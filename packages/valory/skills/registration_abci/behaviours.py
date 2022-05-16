@@ -24,19 +24,17 @@ from typing import Dict, Generator, Iterable, List, Optional, Set, Type, Union, 
 
 from aea.mail.base import EnvelopeContext
 
+from packages.valory.connections.p2p_libp2p_client.connection import (
+    PUBLIC_ID as P2P_LIBP2P_CLIENT_PUBLIC_ID,
+)
 from packages.valory.contracts.service_registry.contract import ServiceRegistryContract
 from packages.valory.protocols.contract_api import ContractApiMessage
-from packages.valory.connections.p2p_libp2p_client.connection import (
-    PUBLIC_ID as P2P_LIBP2P_CLIENT_PUBLIC_ID
-)
 from packages.valory.protocols.tendermint import TendermintMessage
 from packages.valory.skills.abstract_round_abci.behaviours import (
     AbstractRoundBehaviour,
     BaseState,
 )
-from packages.valory.skills.registration_abci.dialogues import (
-    TendermintDialogues,
-)
+from packages.valory.skills.registration_abci.dialogues import TendermintDialogues
 from packages.valory.skills.registration_abci.payloads import RegistrationPayload
 from packages.valory.skills.registration_abci.rounds import (
     AgentRegistrationAbciApp,
@@ -133,7 +131,10 @@ class RegistrationStartupBehaviour(RegistrationBaseBehaviour):
             contract_callable="verify_contract",
         )
         self.context.logger.info(f"verify_contract response: {contract_api_response}")
-        if contract_api_response.performative is not ContractApiMessage.Performative.STATE:
+        if (
+            contract_api_response.performative
+            is not ContractApiMessage.Performative.STATE
+        ):
             self.context.logger.info("verify_contract call unsuccessful!")
             return False
         self.context.logger.info(f"VALID response: {contract_api_response}")
@@ -156,7 +157,7 @@ class RegistrationStartupBehaviour(RegistrationBaseBehaviour):
             log_msg = "get_service_info unsuccessful with"
             self.context.logger.info(f"{log_msg}: {kwargs}\n{contract_api_response}")
             return {}
-        log_msg = f"ServiceRegistryContract.getServiceInfo response"
+        log_msg = "ServiceRegistryContract.getServiceInfo response"
         self.context.logger.info(f"{log_msg}: {contract_api_response}")
         return cast(dict, contract_api_response.state.body)
 
@@ -232,9 +233,7 @@ class RegistrationStartupBehaviour(RegistrationBaseBehaviour):
         self.context.logger.info(f"Requesting Tendermint info from {address}")
         dialogues = cast(TendermintDialogues, self.context.tendermint_dialogues)
         performative = TendermintMessage.Performative.REQUEST
-        message, _ = dialogues.create(
-            counterparty=address, performative=performative
-        )
+        message, _ = dialogues.create(counterparty=address, performative=performative)
         message = cast(TendermintMessage, message)
         context = EnvelopeContext(connection_id=P2P_LIBP2P_CLIENT_PUBLIC_ID)
         self.context.outbox.put_message(message=message, context=context)
@@ -290,7 +289,7 @@ class RegistrationStartupBehaviour(RegistrationBaseBehaviour):
         #     successful = yield from self.get_tendermint_configuration()
         #     if not successful:
         #         yield from self.sleep(self.params.sleep_time)
-        #         return
+        #         return  # noqa: E800
 
         # make service registry contract call
         if not self.registered_addresses:
@@ -312,13 +311,13 @@ class RegistrationStartupBehaviour(RegistrationBaseBehaviour):
         # successful = yield from self.update_tendermint()
         # if not successful:
         #     yield from self.sleep(self.params.sleep_time)
-        #     return
+        #     return  # noqa: E800
         #
         # # restart Tendermint with updated configuration
         # successful = yield from self.start_tendermint()
         # if not successful:
         #     yield from self.sleep(self.params.sleep_time)
-        #     return
+        #     return  # noqa: E800
 
         self.context.logger.info("RegistrationStartupBehaviour executed")
         yield from super().async_act()

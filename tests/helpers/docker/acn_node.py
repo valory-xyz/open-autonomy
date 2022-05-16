@@ -19,10 +19,10 @@
 
 """ACN Docker Image."""
 import logging
+import socket
 import time
 from typing import Dict, List, Optional
 
-import socket
 from aea.exceptions import enforce
 from docker import DockerClient
 from docker.models.containers import Container
@@ -82,7 +82,11 @@ class ACNNodeDockerImage(DockerImage):
     def create(self) -> Container:
         """Create the container."""
         container = self._client.containers.run(
-            self.tag, '--config-from-env', detach=True, ports=self._make_ports(), environment=self._config
+            self.tag,
+            "--config-from-env",
+            detach=True,
+            ports=self._make_ports(),
+            environment=self._config,
         )
         return container
 
@@ -103,7 +107,9 @@ class ACNNodeDockerImage(DockerImage):
                     logging.info(f"URI ready: {uri}")
                     break
                 except Exception:
-                    logging.error(f"Attempt {i} failed on {uri}. Retrying in {sleep_rate} seconds...")
+                    logging.error(
+                        f"Attempt {i} failed on {uri}. Retrying in {sleep_rate} seconds..."
+                    )
                     time.sleep(sleep_rate)
 
         return not to_be_connected
