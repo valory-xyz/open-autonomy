@@ -66,7 +66,6 @@ class TestABCIPriceEstimationSingleAgent(
 ):
     """Test the ABCI oracle skill with only one agent."""
 
-    NB_AGENTS = 1
     agent_package = "valory/oracle:0.1.0"
     skill_package = "valory/oracle_abci:0.1.0"
     wait_to_finish = 180
@@ -81,7 +80,6 @@ class TestABCIPriceEstimationTwoAgents(
 ):
     """Test the ABCI oracle skill with two agents."""
 
-    NB_AGENTS = 2
     agent_package = "valory/oracle:0.1.0"
     skill_package = "valory/oracle_abci:0.1.0"
     wait_to_finish = 180
@@ -96,7 +94,6 @@ class TestABCIPriceEstimationFourAgents(
 ):
     """Test the ABCI oracle skill with four agents."""
 
-    NB_AGENTS = 4
     agent_package = "valory/oracle:0.1.0"
     skill_package = "valory/oracle_abci:0.1.0"
     wait_to_finish = 180
@@ -108,7 +105,6 @@ class TestABCIPriceEstimationFourAgents(
 class TestAgentCatchup(BaseTestEnd2EndAgentCatchup, UseGnosisSafeHardHatNet):
     """Test that an agent that is launched later can synchronize with the rest of the network"""
 
-    NB_AGENTS = 4
     agent_package = "valory/oracle:0.1.0"
     skill_package = "valory/oracle_abci:0.1.0"
     KEEPER_TIMEOUT = 30

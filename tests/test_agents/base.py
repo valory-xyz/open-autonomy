@@ -46,10 +46,9 @@ class BaseTestEnd2End(AEATestCaseMany, UseFlaskTendermintNode):
     agents with the configured (agent_package) agent, and a Tendermint network
     of 'n' nodes, one for each agent.
 
-    Test subclasses must set NB_AGENTS, agent_package, wait_to_finish and check_strings.
+    Test subclasses must set `agent_package`, `wait_to_finish` and `check_strings`.
     """
 
-    NB_AGENTS: int
     IS_LOCAL = True
     capture_log = True
     ROUND_TIMEOUT_SECONDS = 10.0
@@ -103,7 +102,7 @@ class BaseTestEnd2End(AEATestCaseMany, UseFlaskTendermintNode):
         )
         self.set_config(
             f"vendor.valory.skills.{PublicId.from_str(self.skill_package).name}.models.params.args.consensus.max_participants",
-            self.NB_AGENTS,
+            self.nb_agents,
         )
         self.set_config(
             f"vendor.valory.skills.{PublicId.from_str(self.skill_package).name}.models.params.args.reset_tendermint_after",
@@ -161,11 +160,12 @@ class BaseTestEnd2End(AEATestCaseMany, UseFlaskTendermintNode):
             path.mkdir()
             os.chmod(path, 755)
 
-    def prepare(self) -> None:
+    def prepare(self, nb_nodes: int) -> None:
         """Set up the test."""
         self.processes = []
+        self.nb_agents = nb_nodes
 
-        for agent_id in range(self.NB_AGENTS):
+        for agent_id in range(self.nb_agents):
             agent_name = self.__get_agent_name(agent_id)
             logging.debug(f"Processing agent {agent_name}...")
             self.fetch_agent(self.agent_package, agent_name, is_local=self.IS_LOCAL)
@@ -313,10 +313,10 @@ class BaseTestEnd2End(AEATestCaseMany, UseFlaskTendermintNode):
 class BaseTestEnd2EndNormalExecution(BaseTestEnd2End):
     """Test that the ABCI simple skill works together with Tendermint under normal circumstances."""
 
-    def test_run(self) -> None:
+    def test_run(self, nb_nodes: int) -> None:
         """Run the ABCI skill."""
-        self.prepare()
-        for agent_id in range(self.NB_AGENTS):
+        self.prepare(nb_nodes)
+        for agent_id in range(self.nb_agents):
             self._launch_agent_i(agent_id)
 
         logging.info("Waiting Tendermint nodes to be up")
@@ -358,10 +358,10 @@ class BaseTestEnd2EndAgentCatchup(BaseTestEnd2End):
         if not hasattr(self, "stop_string"):
             pytest.fail("'stop_string' is a mandatory argument.")
 
-    def test_run(self) -> None:
+    def test_run(self, nb_nodes: int) -> None:
         """Run the test."""
-
-        for agent_id in range(self.NB_AGENTS):
+        self.prepare(nb_nodes)
+        for agent_id in range(self.nb_agents):
             self._launch_agent_i(agent_id)
 
         logging.info("Waiting Tendermint nodes to be up")

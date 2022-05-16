@@ -72,8 +72,6 @@ class TestABCIAPYEstimationSingleAgent(
 ):
     """Test the ABCI apy_estimation_abci skill with only one agent."""
 
-    NB_AGENTS = 1
-
 
 @pytest.mark.skip
 @pytest.mark.parametrize('nb_nodes', (2,))
@@ -92,5 +90,4 @@ class TestABCIAPYEstimationFourAgents(
 ):
     """Test the ABCI apy_estimation_abci skill with four agents."""
 
-    NB_AGENTS = 4
     wait_to_finish = 300

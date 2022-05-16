@@ -41,7 +41,6 @@ class TestSimpleABCISingleAgent(
 ):
     """Test the ABCI simple_abci skill with only one agent."""
 
-    NB_AGENTS = 1
     agent_package = "valory/simple_abci:0.1.0"
     skill_package = "valory/simple_abci:0.1.0"
     wait_to_finish = 80
@@ -56,7 +55,6 @@ class TestSimpleABCITwoAgents(
 ):
     """Test the ABCI simple_abci skill with two agents."""
 
-    NB_AGENTS = 2
     agent_package = "valory/simple_abci:0.1.0"
     skill_package = "valory/simple_abci:0.1.0"
     wait_to_finish = 120
@@ -70,7 +68,6 @@ class TestSimpleABCIFourAgents(
 ):
     """Test the ABCI simple_abci skill with four agents."""
 
-    NB_AGENTS = 4
     agent_package = "valory/simple_abci:0.1.0"
     skill_package = "valory/simple_abci:0.1.0"
     wait_to_finish = 120
