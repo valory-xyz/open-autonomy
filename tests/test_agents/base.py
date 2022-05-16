@@ -159,7 +159,7 @@ class BaseTestEnd2End(AEATestCaseMany, UseFlaskTendermintNode):
         ]:
             path = Path(cls.t, dir_path)
             path.mkdir()
-            os.chown(path, 1000, 1000)
+            os.chmod(path, 755)
 
     def prepare(self) -> None:
         """Set up the test."""
