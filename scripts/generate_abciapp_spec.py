@@ -77,38 +77,47 @@ class DFA:
         transition_func_states.update(transition_func.values())  # type: ignore
 
         orphan_states = states - (start_states | set(transition_func.values()))
+
+        error_strings = []
         if orphan_states:
-            raise DFASpecificationError(
-                f"DFA spec. contains orphan states: {orphan_states}."
+            error_strings.append(
+                f" - DFA spec. contains orphan states: {orphan_states}."
             )
         if not transition_func_states.issubset(states):
-            raise DFASpecificationError(
-                f"DFA spec. transition function contains unexpected states: {transition_func_states-states}."  # type: ignore
+            error_strings.append(
+                f" - Transition function contains unexpected states: {transition_func_states-states}."  # type: ignore
             )
         if not transition_func_alphabet_in.issubset(alphabet_in):
-            raise DFASpecificationError(
-                f"DFA spec. transition function contains unexpected input symbols: {transition_func_alphabet_in-alphabet_in}."  # type: ignore
+            error_strings.append(
+                f" - Transition function contains unexpected input symbols: {transition_func_alphabet_in-alphabet_in}."  # type: ignore
+            )
+        if not alphabet_in.issubset(transition_func_alphabet_in):
+            error_strings.append(
+                f" - Unused input symbols: {alphabet_in-transition_func_alphabet_in}."  # type: ignore
             )
         if default_start_state not in start_states:
-            raise DFASpecificationError(
-                "DFA spec. default start state is not in start states set."
+            error_strings.append(
+                " - Default start state is not in start states set."
             )
         if not start_states.issubset(states):
-            raise DFASpecificationError(
-                f"DFA spec. start state set contains unexpected states: {start_states-states}"
+            error_strings.append(
+                f" - Start state set contains unexpected states: {start_states-states}."
             )
         if not final_states.issubset(states):
-            raise DFASpecificationError(
-                f"DFA spec. final state set contains unexpected states: {final_states-states}"
+            error_strings.append(
+                f" - Final state set contains unexpected states: {final_states-states}."
             )
         if start_states & final_states:
-            raise DFASpecificationError(
-                f"DFA spec. final state set contains start states: {start_states & final_states}"
+            error_strings.append(
+                f" - Final state set contains start states: {start_states & final_states}."
             )
         if transition_func_in_states & final_states:
-            raise DFASpecificationError(
-                f"DFA spec. has transitions out from final states: {transition_func_in_states & final_states}"
+            error_strings.append(
+                f" - Transitions out from final states: {transition_func_in_states & final_states}."
             )
+
+        if len(error_strings) > 0:
+            raise DFASpecificationError("DFA spec. has the following issues:\n" + "\n".join(error_strings))
 
         self.label = label
         self.states = states

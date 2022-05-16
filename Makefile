@@ -72,7 +72,7 @@ security:
 # update copyright headers
 .PHONY: generators
 generators:
-	python scripts/generate_ipfs_hashes.py --vendor valory
+	python -m aea.cli hash all
 	python scripts/generate_api_documentation.py
 	python scripts/check_copyright.py
 
@@ -92,6 +92,8 @@ common-checks-1:
 common-checks-2:
 	tox -e check-api-docs
 	tox -e check-abci-docstrings
+	tox -e check-abciapp-specs
+	tox -e check-handlers
 
 .PHONY: copyright
 copyright:
@@ -121,12 +123,12 @@ static:
 
 .PHONY: package_checks
 package_checks:
-	python scripts/generate_ipfs_hashes.py --check --vendor valory
+	python -m aea.cli hash all --check
 	python scripts/check_packages.py --vendor valory
 
 .PHONY: hashes
 hashes:
-	python scripts/generate_ipfs_hashes.py --vendor valory
+	python -m aea.cli hash all
 
 .PHONY: api-docs
 api-docs:
@@ -144,19 +146,15 @@ test:
 	pytest -rfE --doctest-modules aea_swarm tests/ --cov=aea_swarm --cov-report=html --cov=packages/valory --cov-report=xml --cov-report=term --cov-report=term-missing --cov-config=.coveragerc
 	find . -name ".coverage*" -not -name ".coveragerc" -exec rm -fr "{}" \;
 
-
-.PHONY: checks
-checks:
+.PHONY: all-checks
+all-checks:
 	make clean \
-	&& python scripts/generate_abci_docstrings.py \
-	&& make static \
-	&& make lint \
-	&& make pylint \
-	&& make copyright \
-	&& make docs \
-	&& tox -e check-api-docs \
-	&& make hashes \
+	&& make formatters \
+	&& make code-checks \
 	&& make security \
+	&& make generators \
+	&& make common-checks-1 \
+	&& make common-checks-2
 
 .PHONY: test-skill
 test-skill:
@@ -322,7 +320,9 @@ run-deployment:
 	if [ "${PLATFORM_STR}" = "Linux" ];\
 	then\
 		mkdir -p deployments/persistent_data/logs
+		mkdir -p deployments/persistent_data/venvs
 		sudo chown -R 1000:1000 -R deployments/persistent_data/logs
+		sudo chown -R 1000:1000 -R deployments/persistent_data/venvs
 	fi
 	if [ "${DEPLOYMENT_TYPE}" = "docker-compose" ];\
 	then\

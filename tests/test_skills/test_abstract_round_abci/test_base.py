@@ -286,7 +286,7 @@ def test_dict_serializer_is_deterministic(obj: Any) -> None:
     obj_bytes = DictProtobufStructSerializer.encode(obj)
     for _ in range(100):
         assert obj_bytes == DictProtobufStructSerializer.encode(obj)
-    assert obj == DictProtobufStructSerializer.decode(obj_bytes)
+        assert obj == DictProtobufStructSerializer.decode(obj_bytes)
 
 
 class TestMetaPayloadUtilityMethods:
@@ -1110,6 +1110,45 @@ class TestPeriod:
     def test_latest_result(self) -> None:
         """Test 'latest_result' property getter."""
         assert self.period.latest_state
+
+    @pytest.mark.parametrize("committed", (True, False))
+    def test_last_round_transition_timestamp(self, committed: bool) -> None:
+        """Test 'last_round_transition_timestamp' method."""
+        if committed:
+            self.period.begin_block(MagicMock(height=1))
+            self.period.end_block()
+            self.period.commit()
+            assert (
+                self.period.last_round_transition_timestamp
+                == self.period._blockchain.last_block.timestamp
+            )
+        else:
+            assert self.period._blockchain.height == 0
+            with pytest.raises(
+                ValueError,
+                match="Trying to access `last_round_transition_timestamp` while no transition has been completed yet.",
+            ):
+                _ = self.period.last_round_transition_timestamp
+
+    @pytest.mark.parametrize("committed", (True, False))
+    def test_last_round_transition_height(self, committed: bool) -> None:
+        """Test 'last_round_transition_height' method."""
+        if committed:
+            self.period.begin_block(MagicMock(height=1))
+            self.period.end_block()
+            self.period.commit()
+            assert (
+                self.period.last_round_transition_height
+                == self.period._blockchain.height
+                == 1
+            )
+        else:
+            assert self.period._blockchain.height == 0
+            with pytest.raises(
+                ValueError,
+                match="Trying to access `last_round_transition_height` while no transition has been completed yet.",
+            ):
+                _ = self.period.last_round_transition_height
 
     def test_begin_block_negative_is_finished(self) -> None:
         """Test 'begin_block' method, negative case (period is finished)."""

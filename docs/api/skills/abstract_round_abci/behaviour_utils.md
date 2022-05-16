@@ -133,6 +133,9 @@ def wait_for_condition(cls, condition: Callable[[], bool], timeout: Optional[flo
 
 Wait for a condition to happen.
 
+This is a local method that does not depend on the global clock,
+so the usage of datetime.now() is acceptable here.
+
 <a id="packages.valory.skills.abstract_round_abci.behaviour_utils.AsyncBehaviour.sleep"></a>
 
 #### sleep
@@ -144,6 +147,8 @@ def sleep(seconds: float) -> Any
 Delay execution for a given number of seconds.
 
 The argument may be a floating point number for subsecond precision.
+This is a local method that does not depend on the global clock, so the
+usage of datetime.now() is acceptable here.
 
 **Arguments**:
 
@@ -162,6 +167,8 @@ Wait for message.
 
 Care must be taken. This method does not handle concurrent requests.
 Use directly after a request is being sent.
+This is a local method that does not depend on the global clock,
+so the usage of datetime.now() is acceptable here.
 
 **Arguments**:
 
@@ -441,6 +448,8 @@ def wait_from_last_timestamp(seconds: float) -> Any
 Delay execution for a given number of seconds from the last timestamp.
 
 The argument may be a floating point number for subsecond precision.
+This is a local method that does not depend on the global clock,
+so the usage of datetime.now() is acceptable here.
 
 **Arguments**:
 

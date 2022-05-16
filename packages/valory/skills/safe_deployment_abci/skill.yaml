@@ -11,8 +11,8 @@ fingerprint:
   behaviours.py: QmdZDqteDnkcfoEVL9raJugwNpE5bEfu7yEsQYg4xiTfMD
   dialogues.py: QmfDThV4WCRzK88XDpW2hKDYCuEH4RxoHCoAkWpkBRGRPv
   fsm_specification.yaml: QmZR2tTuXqSCQX9xa1RwycwFWQMqSyekt2p8wFnpaufmmo
-  handlers.py: QmQ8RkfBjsGoxEyNyUBrRAQet3Etj6GcJAbcEcTLPZPUK9
-  models.py: QmeNMN5CE91cdGPnbpBMsCiueQedzFsr65SDYdZatKgcpu
+  handlers.py: QmfGthYGUnXMNXwSMvHeZp4EUmxRcDTbzAwsq7jr8tyQS4
+  models.py: QmTk2kmTcXYeYwLiGnmm1Tfte2qWoCuo7wAPFxVycvv4KK
   payloads.py: QmNxFKPXvTpGc6ZbmboLB7J8nJGdFzEnFiaSy5bkccqG7d
   rounds.py: QmYSp4H8UGCNDt5vzps5YPBccgPjys72JQZew7BJjk9Tgk
 fingerprint_ignore_patterns: []
@@ -29,6 +29,9 @@ behaviours:
     args: {}
     class_name: SafeDeploymentRoundBehaviour
 handlers:
+  abci:
+    args: {}
+    class_name: ABCIHandler
   contract_api:
     args: {}
     class_name: ContractApiHandler
@@ -82,6 +85,7 @@ models:
       tendermint_com_url: http://localhost:8080
       tendermint_max_retries: 5
       tendermint_url: http://localhost:26657
+      validate_timeout: 1205
     class_name: Params
   randomness_api:
     args:

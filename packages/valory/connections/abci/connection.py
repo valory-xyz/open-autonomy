@@ -28,6 +28,7 @@ from typing import Any, Dict, List, Optional, Tuple, cast
 
 from aea.configurations.base import PublicId
 from aea.connections.base import Connection, ConnectionStates
+from aea.exceptions import enforce
 from aea.mail.base import Envelope
 from aea.protocols.dialogue.base import DialogueLabel
 from google.protobuf.message import DecodeError
@@ -56,7 +57,7 @@ DEFAULT_RPC_PORT = 26657
 DEFAULT_LISTEN_ADDRESS = "0.0.0.0"  # nosec
 DEFAULT_P2P_LISTEN_ADDRESS = f"tcp://{DEFAULT_LISTEN_ADDRESS}:{DEFAULT_P2P_PORT}"
 DEFAULT_RPC_LISTEN_ADDRESS = f"tcp://{LOCALHOST}:{DEFAULT_RPC_PORT}"
-MAX_READ_IN_BYTES = 2 ** 16  # Max we'll consume on a read stream (64 KiB)
+MAX_READ_IN_BYTES = 2 ** 20  # Max we'll consume on a read stream (1 MiB)
 MAX_VARINT_BYTES = 10  # Max size of varint we support
 
 
@@ -65,7 +66,20 @@ class DecodeVarintError(Exception):
 
 
 class TooLargeVarint(Exception):
-    """This exception is raised when a too large size of bytes is received."""
+    """This exception is raised when a message with varint exceeding the max size is received."""
+
+    def __init__(self, received_size: int, max_size: int = MAX_READ_IN_BYTES):
+        """
+        Initialize the exception object.
+
+        :param received_size: the received size.
+        :param max_size: the maximum amount the connection supports.
+        """
+        super().__init__(
+            f"The max message size is {max_size}, received message with varint {received_size}."
+        )
+        self.received_size = received_size
+        self.max_size = max_size
 
 
 class ShortBufferLengthError(Exception):
@@ -116,21 +130,25 @@ class _TendermintABCISerializer:
         :return: the decoded int.
 
         :raise: DecodeVarintError if the varint could not be decoded.
+        :raise: EOFError if EOF byte is read and the process of decoding a varint has not started.
         """
+        enforce(max_length >= 1, "max bytes must be at least one")
         nb_read_bytes = 0
         shift = 0
         result = 0
         success = False
         byte = await cls._read_one(buffer)
-        nb_read_bytes += 1
         while byte is not None and nb_read_bytes <= max_length:
+            nb_read_bytes += 1
             result |= (byte & 0x7F) << shift
             shift += 7
             if not byte & 0x80:
                 success = True
                 break
             byte = await cls._read_one(buffer)
-            nb_read_bytes += 1
+        # byte is None when EOF is reached
+        if byte is None and nb_read_bytes == 0:
+            raise EOFError()
         if not success:
             raise DecodeVarintError("could not decode varint")
         return result >> 1
@@ -170,7 +188,7 @@ class VarintMessageReader:  # pylint: disable=too-few-public-methods
         """Read next message."""
         varint = await _TendermintABCISerializer.decode_varint(self._reader)
         if varint > MAX_READ_IN_BYTES:
-            raise TooLargeVarint()
+            raise TooLargeVarint(received_size=varint, max_size=MAX_READ_IN_BYTES)
         message_bytes = await self.read_until(varint)
         if len(message_bytes) < varint:
             raise ShortBufferLengthError(varint, message_bytes)
@@ -292,7 +310,6 @@ class TcpServerChannel:  # pylint: disable=too-many-instance-attributes
                 message.ParseFromString(message_bytes)
             except (
                 DecodeVarintError,
-                TooLargeVarint,
                 DecodeError,
             ) as e:  # pragma: nocover
                 self.logger.error(
@@ -304,6 +321,17 @@ class TcpServerChannel:  # pylint: disable=too-many-instance-attributes
                     self.logger.info("connection at EOF, stop receiving loop.")
                     return
                 continue
+            except TooLargeVarint as e:  # pragma: nocover
+                self.logger.error(
+                    f"A message exceeding the configured max size was received. "
+                    f"{type(e).__name__}: {e} "
+                    f"Closing the connection to the node."
+                )
+                await self.disconnect()
+                return
+            except EOFError:
+                self.logger.info("connection at EOF, stop receiving loop.")
+                return
             except CancelledError:  # pragma: nocover
                 self.logger.debug(f"Read task for peer {peer_name} cancelled.")
                 return
@@ -539,6 +567,13 @@ class ABCIServerConnection(Connection):  # pylint: disable=too-many-instance-att
         )
         self.logger.debug(f"Tendermint parameters: {self.params}")
         self.node = TendermintNode(self.params, self.logger)
+
+    def _ensure_connected(self) -> None:
+        """Ensure that the connection and the channel are ready."""
+        super()._ensure_connected()
+
+        if self.channel.is_stopped:
+            raise ConnectionError("The channel is stopped.")
 
     async def connect(self) -> None:
         """
