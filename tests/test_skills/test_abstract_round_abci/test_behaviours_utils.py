@@ -34,6 +34,7 @@ import atheris  # type: ignore
 import pytest
 
 from packages.open_aea.protocols.signing import SigningMessage
+from packages.valory.connections.http_client.connection import HttpDialogues
 from packages.valory.protocols.http import HttpMessage
 from packages.valory.protocols.ledger_api.message import LedgerApiMessage
 from packages.valory.skills.abstract_round_abci.base import (
@@ -390,6 +391,8 @@ class TestBaseState:
         self.context_mock.state.period_state = self.context_state_period_state_mock
         self.context_mock.state.period.current_round_id = "round_a"
         self.context_mock.state.period.syncing_up = False
+        self.context_mock.http_dialogues = HttpDialogues()
+        self.context_mock.handlers.__dict__ = {"http": MagicMock()}
         self.behaviour = StateATest(name="", skill_context=self.context_mock)
 
     def test_params_property(self) -> None:

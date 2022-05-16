@@ -32,8 +32,8 @@ from pathlib import Path
 import yaml
 
 
-# Special skills that only define one handler
-BASIC_SKILLS = ("abstract_abci", "counter", "counter_client")
+# Skills excluded from defining all the handlers in COMMON_HANDLERS
+BASIC_SKILLS = ("abstract_abci", "counter", "counter_client", "hello_world_abci")
 
 # Handlers that every non-basic skill must declare
 COMMON_HANDLERS = ("abci", "http", "contract_api", "ledger_api", "signing")
