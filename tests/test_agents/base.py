@@ -31,15 +31,14 @@ from aea.configurations.base import PublicId
 from aea.test_tools.test_cases import AEATestCaseMany
 
 from tests.conftest import ANY_ADDRESS
-from tests.fixture_helpers import UseFlaskTendermint1Node
-
+from tests.fixture_helpers import UseFlaskTendermintNode
 
 _HTTP = "http://"
 
 
 @pytest.mark.e2e
 @pytest.mark.integration
-class BaseTestEnd2End(AEATestCaseMany, UseFlaskTendermint1Node):
+class BaseTestEnd2End(AEATestCaseMany, UseFlaskTendermintNode):
     """
     Base class for end-to-end tests of agents with a skill extending the abstract_abci_round skill.
 

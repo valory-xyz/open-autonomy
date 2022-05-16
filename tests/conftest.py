@@ -130,10 +130,16 @@ def tendermint(
     yield from launch_image(image, timeout=timeout, max_attempts=max_attempts)
 
 
-@pytest.fixture(scope="function")
+@pytest.fixture
+def nb_nodes(request) -> int:
+    """Get a parametrized number of nodes."""
+    return request.param
+
+
+@pytest.fixture
 def flask_tendermint(
     tendermint_port: Any,
-    # nb_nodes: int,
+    nb_nodes: int,
     abci_host: str = DEFAULT_ABCI_HOST,
     abci_port: int = DEFAULT_ABCI_PORT,
     timeout: float = 2.0,
@@ -141,11 +147,11 @@ def flask_tendermint(
 ) -> Generator[FlaskTendermintDockerImage, None, None]:
     """Launch the Flask server with Tendermint container."""
     client = docker.from_env()
-    logging.info(f"Launching Tendermint at port {tendermint_port}")
+    logging.info(f"Launching Tendermint nodes at ports {[tendermint_port + i * 10 for i in range(nb_nodes)]}")
     image = FlaskTendermintDockerImage(client, abci_host, abci_port, tendermint_port)
     yield from cast(
         Generator[FlaskTendermintDockerImage, None, None],
-        launch_many_containers(image, 1, timeout, max_attempts),
+        launch_many_containers(image, nb_nodes, timeout, max_attempts),
     )
 
 

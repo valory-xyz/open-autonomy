@@ -72,7 +72,7 @@ class UseTendermint:
 
 
 @pytest.mark.integration
-class UseFlaskTendermint1Node:
+class UseFlaskTendermintNode:
     """Inherit from this class to use flask server with Tendermint."""
 
     @pytest.fixture(autouse=True)
