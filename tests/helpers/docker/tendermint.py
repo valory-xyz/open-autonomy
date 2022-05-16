@@ -214,9 +214,9 @@ class FlaskTendermintDockerImage(TendermintDockerImage):
             },
             working_dir="/tendermint",
             volumes=[
-                f"{os.getcwd()}/deployments/build/build:/tendermint:Z",
-                f"{os.path.dirname(os.getcwd())}/deployments/persistent_data/logs:/logs:Z",
-                f"{os.path.dirname(os.getcwd())}/deployments/persistent_data/tm_state:/tm_state:Z",
+                f"{os.getcwd()}/nodes:/tendermint:Z",
+                f"{os.getcwd()}/logs:/logs:Z",
+                f"{os.getcwd()}/tm_state:/tm_state:Z",
             ],
             ports={
                 f"{DEFAULT_TENDERMINT_PORT}/tcp": (
@@ -247,7 +247,7 @@ class FlaskTendermintDockerImage(TendermintDockerImage):
             "run",
             "--rm",
             "-v",
-            f"{os.getcwd()}/deployments/build/build:/tendermint:Z",
+            f"{os.getcwd()}/nodes:/tendermint:Z",
             "--entrypoint=/usr/bin/tendermint",
             self.tag,
             "testnet",
@@ -256,12 +256,12 @@ class FlaskTendermintDockerImage(TendermintDockerImage):
             "--v",
             f"{nb_nodes}",
             "--o",
-            ".",
+            "/tendermint/",
         ]
         for i in range(nb_nodes):
             cmd.append(f"--hostname=node{i}")
 
-        subprocess.call(cmd)  # nosec
+        subprocess.run(cmd)  # nosec
 
     def create_many(self, nb_containers: int) -> List[Container]:
         """Create a list of node containers."""

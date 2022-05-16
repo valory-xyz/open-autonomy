@@ -20,6 +20,7 @@
 """End2end tests base class."""
 import json
 import logging
+import os
 import time
 import warnings
 from pathlib import Path
@@ -139,6 +140,23 @@ class BaseTestEnd2End(AEATestCaseMany, UseFlaskTendermint1Node):
     def __get_agent_name(i: int) -> str:
         """Get the ith agent's name."""
         return f"agent_{i:05d}"
+
+    @classmethod
+    def setup_class(
+        cls,
+    ) -> None:
+        """Setup class."""
+        super().setup_class()
+
+        for dir_path in [
+            "logs",
+            "nodes",
+            "tm_state",
+            "benchmarks",
+        ]:
+            path = Path(cls.t, dir_path)
+            path.mkdir()
+            os.chown(path, 1000, 1000)
 
     def prepare(self) -> None:
         """Set up the test."""
