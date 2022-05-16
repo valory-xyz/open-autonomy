@@ -54,38 +54,38 @@ The first time we run the application, we must also build and tag the dependency
 These images are used for tendermint and for the local hardhat image.
 
 ```bash
-make clean
-python deployments/click_create.py build-images \
-  --valory-app oracle_hardhat \
-  --profile dependencies 
-...  
-Generating tags...
- - valory/consensus-algorithms-tendermint -> valory/consensus-algorithms-tendermint:0.1.0
- - valory/consensus-algorithms-hardhat -> valory/consensus-algorithms-hardhat:0.1.0
-Checking cache...
- - valory/consensus-algorithms-tendermint: Found Locally
- - valory/consensus-algorithms-hardhat: Found Locally
+$ make clean
+$ swarm deploy build image valory/oracle_hardhat --dependencies
+Building image with:
+        Profile: dependencies
+        ServiceId: valory/oracle_hardhat:latest
+
+[Skaffold] Generating tags...
+[Skaffold] - valory/consensus-algorithms-tendermint -> valory/consensus-algorithms-tendermint:0.1.0
+[Skaffold] - valory/consensus-algorithms-hardhat -> valory/consensus-algorithms-hardhat:0.1.0
+[Skaffold] Checking cache...
+[Skaffold] - valory/consensus-algorithms-tendermint: Found Locally
+[Skaffold] - valory/consensus-algorithms-hardhat: Found Locally
 ```
 
 Now we have our base dependencies, we can build the application specific dependencies.
 
 ```bash
-make clean
-export VERSION=0.1.0
-python deployments/click_create.py build-images \
-    --valory-app  oracle_hardhat \
-    --profile $VERSION
+$ make clean
+$ aea deploy build image valory/oracle_hardhat
 ```
 
 From this command, we receive the below output showing custom images being built and tagged for the specified Valory app and version.
 
 ```bash
-...
-... 
-Generating tags...
- - valory/consensus-algorithms-open-aea -> valory/consensus-algorithms-open-aea:oracle_deployableV0.1.0
-Checking cache...
- - valory/consensus-algorithms-open-aea: Found. Tagging
+Building image with:
+        Profile: prod
+        ServiceId: valory/oracle_hardhat:latest
+
+[Skaffold] Generating tags...
+[Skaffold] - valory/consensus-algorithms-open-aea -> valory/consensus-algorithms-open-aea:oracle_deployable-0.1.0
+[Skaffold] Checking cache...
+[Skaffold] - valory/consensus-algorithms-open-aea: Found Locally
 ```
 
 # Step 2
@@ -100,55 +100,37 @@ python deployments/click_create.py build-deployment --deployment-type docker-com
 We can additionally specify a file path as so;
 
 ```bash
-pipenv shell
-python deployments/click_create.py build-deployment \
-  --deployment-type docker-compose  \
-  --keys-file-path deployments/keys/ropsten_keys.txt \
-  --deployment-file-path deployments/deployment_specifications/oracle_ropsten.yaml 
+$ pipenv shell
+$ swarm deploy build deployment valory/oracle_hardhat deployments/keys/hardhat_keys.json 
 ```
 
 
 ```output
-To configure tendermint for deployment please run: 
-
-docker run --rm -v $(pwd)/deployments/build/build:/tendermint:Z --entrypoint=/usr/bin/tendermint valory/consensus-algorithms-tendermint:0.1.0 testnet --config /etc/tendermint/config-template.toml --v 4 --o . --hostname=node0 --hostname=node1 --hostname=node2 --hostname=node3
+[Tendermint] I[2022-05-16|10:25:44.897] Generated private validator                  module=main keyFile=node0/config/priv_validator_key.json stateFile=node0/data/priv_validator_state.json
+[Tendermint] I[2022-05-16|10:25:44.897] Generated node key                           module=main path=node0/config/node_key.json
+[Tendermint] I[2022-05-16|10:25:44.897] Generated genesis file                       module=main path=node0/config/genesis.json
+[Tendermint] I[2022-05-16|10:25:44.900] Generated private validator                  module=main keyFile=node1/config/priv_validator_key.json stateFile=node1/data/priv_validator_state.json
+[Tendermint] I[2022-05-16|10:25:44.900] Generated node key                           module=main path=node1/config/node_key.json
+[Tendermint] I[2022-05-16|10:25:44.900] Generated genesis file                       module=main path=node1/config/genesis.json
+[Tendermint] I[2022-05-16|10:25:44.903] Generated private validator                  module=main keyFile=node2/config/priv_validator_key.json stateFile=node2/data/priv_validator_state.json
+[Tendermint] I[2022-05-16|10:25:44.903] Generated node key                           module=main path=node2/config/node_key.json
+[Tendermint] I[2022-05-16|10:25:44.904] Generated genesis file                       module=main path=node2/config/genesis.json
+[Tendermint] I[2022-05-16|10:25:44.907] Generated private validator                  module=main keyFile=node3/config/priv_validator_key.json stateFile=node3/data/priv_validator_state.json
+[Tendermint] I[2022-05-16|10:25:44.907] Generated node key                           module=main path=node3/config/node_key.json
+[Tendermint] I[2022-05-16|10:25:44.907] Generated genesis file                       module=main path=node3/config/genesis.json
+[Tendermint] Successfully initialized 4 node directories
+[Tendermint] 
 
 Generated Deployment!
 
 
-Application:          oracle_ropsten
 Type:                 docker-compose
 Agents:               4
-Network:              ropsten
-Build Length          9887
+Network:              hardhat
+Build Length          9167
 ```
 
-# Step 3
-
-We have build our deployment docker-compose file.
-Next we need to go ahead and configure tendermint to setup the validators.
-We use the docker command generated in the previous step to do this; 
-
-```bash
-docker run --rm -v $(pwd)/deployments/build/build:/tendermint:Z --entrypoint=/usr/bin/tendermint valory/consensus-algorithms-tendermint:0.1.0 testnet --config /etc/tendermint/config-template.toml --v 4 --o . --hostname=node0 --hostname=node1 --hostname=node2 --hostname=node3
-```
-
-```output
-I[2022-03-20|20:53:10.377] Generated private validator                  module=main keyFile=node0/config/priv_validator_key.json stateFile=node0/data/priv_validator_state.json
-I[2022-03-20|20:53:10.384] Generated node key                           module=main path=node0/config/node_key.json
-I[2022-03-20|20:53:10.391] Generated genesis file                       module=main path=node0/config/genesis.json
-I[2022-03-20|20:53:10.456] Generated private validator                  module=main keyFile=node1/config/priv_validator_key.json stateFile=node1/data/priv_validator_state.json
-I[2022-03-20|20:53:10.464] Generated node key                           module=main path=node1/config/node_key.json
-I[2022-03-20|20:53:10.472] Generated genesis file                       module=main path=node1/config/genesis.json
-I[2022-03-20|20:53:10.559] Generated private validator                  module=main keyFile=node2/config/priv_validator_key.json stateFile=node2/data/priv_validator_state.json
-I[2022-03-20|20:53:10.571] Generated node key                           module=main path=node2/config/node_key.json
-I[2022-03-20|20:53:10.580] Generated genesis file                       module=main path=node2/config/genesis.json
-I[2022-03-20|20:53:10.649] Generated private validator                  module=main keyFile=node3/config/priv_validator_key.json stateFile=node3/data/priv_validator_state.json
-I[2022-03-20|20:53:10.665] Generated node key                           module=main path=node3/config/node_key.json
-I[2022-03-20|20:53:10.678] Generated genesis file                       module=main path=node3/config/genesis.json
-Successfully initialized 4 node directories
-```
-# Step 4 (only required for deployments with hardhat network)
+# Step 3 (only required for deployments with hardhat network)
 
 We now need to spin up a local hardhat node so that we have a chain to interact with.
 
@@ -158,12 +140,12 @@ docker run -p 8545:8545 -it valory/consensus-algorithms-hardhat:0.1.0
 ```
 
 
-# Step 5
+# Step 4
 
 Now that we have our deployment built, we can actually run it.
 
 ```bash
-cd deployments/build
+cd abci_build/
 docker-compose up --force-recreate
 ```
 
@@ -188,14 +170,14 @@ for i in {0..3}; do scp root@178.62.4.138:node${i}.txt node${i}.txt; done
 or
 
 ```bash
-for i in {0..3}; do scp root@178.62.4.138:consensus-algorithms/deployments/persistent_data/logs/aea_${i}.txt abci${i}.txt; done
-for i in {0..3}; do scp root@178.62.4.138:consensus-algorithms/deployments/persistent_data/logs/node_${i}.txt node${i}.txt; done
+for i in {0..3}; do scp root@178.62.4.138:consensus-algorithms/abci_build/persistent_data/logs/aea_${i}.txt abci${i}.txt; done
+for i in {0..3}; do scp root@178.62.4.138:consensus-algorithms/abci_build/persistent_data/logs/node_${i}.txt node${i}.txt; done
 ```
 
 and run script for checking path
 
 ```bash
-./scripts/parse_logs.py -i abci${i}.txt
+swarm analyse abci logs abci${i}.txt
 ```
 
 # Step 7
@@ -237,26 +219,17 @@ The 2nd method is more manual and demonstrates the exact steps required to clean
 ### Manual Mode
 
 ```bash
-export VERSION=dev
-make build-images
+swarm deploy build image --dev PUBLIC_ID_OR_HASH
 ```
 Images are built and tagged on an application by application basis. This is so that Valory images are pre-installed with the necessary dependencies to allow fast start up in production.
 
 This will build and tag the development Dockerfile in deployments/Dockerfiles.
 
-### Push Images To Registry (Optional)
-
-```bash
-make push-images
-```
-
-This will push the images which have been built to the default docker registry, which allows the images to be pulled into kubernetes deployments.
-
 To then build a deployment for developer mode, nothing extra other than the environment variable is needed.
 
 i.e. We build the deployment;
 ```bash
- python deployments/click_create.py build-deployment --valory-app oracle_hardhat --deployment-type docker-compose --configure-tendermint
+swarm deploy build deployment --dev PUBLIC_ID_OR_HASH KEYS_FILE
 ```
 To run the development deployment
 ```bash
@@ -267,36 +240,32 @@ docker-compose up --force-recreate
 
 ## Persistent in docker-compose
 
-By default, the logs from AEA's and their nodes are stored within;
+By default, the logs from AEA's and their nodes are stored within; When running the application in Development mode, the application will store additional data within the persistent data directory:
 
 ```bash
-ls deployments/persistent_data
-logs
-```
-
-When running the application in Development mode, the application will store additional data within the persistent data directory:
-```bash
-ls deployments/persistent_data
-benchmarking  logs  tm_state
+$ ls abci_build/persistent_data/
+benchmarks  logs  tm_state  venvs
 ```
 
 - benchmarking - This directory contains benchmarking data from the running agents.
 - tm_state - This directory contains the tendermint message state from the running agents, allowing replay of the application.
-- 
+- venvs - This directory contains shared virtual environments.
+
+
 # Background info:
 
-File tree (from level `deployments/build/`):
+File tree (from level `abci_build/nodes`):
 
 ``` bash
-build/
-  node0/
-    config/
-      config.toml  # general validator config
-      genesis.json  # the genesis file with all the validators in it
-      node_key.json  # the key file of the node
-      priv_validator_key.json  # the key file of the validator
-    data/
-      priv_validator_state.json  # contains the configuration of the state at startup
+abci_build/nodes/
+└── node0
+    ├── config
+    │   ├── config.toml # general validator config
+    │   ├── genesis.json # the genesis file with all the validators in it      node_key.json  
+    │   ├── node_key.json # the key file of the node
+    │   └── priv_validator_key.json # the key file of the validator
+    └── data 
+        └── priv_validator_state.json # contains the configuration of the state at startup
 ```
 
 The network configuration is passed directly to the node.
