@@ -19,30 +19,4 @@
 
 """Consensus algorithms implemented with the AEA framework."""
 
-import click
-from aea.cli.core import cli as aea_cli
-
-from aea_swarm.__version__ import (
-    __author__,
-    __copyright__,
-    __description__,
-    __license__,
-    __title__,
-    __url__,
-    __version__,
-)
-from aea_swarm.analyse.cli import cmd1
-
-
-@click.group(name="swarm")  # type: ignore
-@click.pass_context
-def swarm_cli(click_context: click.Context) -> None:  # pylint: disable=unused-argument
-    """Command-line tool for setting up an swarms of AEAs."""
-
-
-swarm_cli.add_command(cmd1)
-
-cli = click.CommandCollection(sources=[aea_cli, swarm_cli])
-
-if __name__ == "__main__":
-    cli(prog_name="swarm")  # pragma: no cover
+from .__version__ import __version__
