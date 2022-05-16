@@ -18,9 +18,9 @@
 # ------------------------------------------------------------------------------
 
 """Docker-compose Deployment Generator."""
-import subprocess
+import subprocess  # nosec
 from pathlib import Path
-from typing import IO, Dict, cast
+from typing import Dict, IO, cast
 
 from aea_swarm.constants import (
     DEFAULT_IMAGE_VERSION,
@@ -121,7 +121,7 @@ class DockerComposeGenerator(BaseDeploymentGenerator):
             ]
         )
 
-        process = subprocess.Popen(  # pylint: disable=consider-using-with
+        process = subprocess.Popen(  # pylint: disable=consider-using-with  # nosec
             self.tendermint_job_config.split(),
             stdout=subprocess.PIPE,
             universal_newlines=True,
