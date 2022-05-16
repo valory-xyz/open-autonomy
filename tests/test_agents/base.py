@@ -33,6 +33,7 @@ from aea.test_tools.test_cases import AEATestCaseMany
 from tests.conftest import ANY_ADDRESS
 from tests.fixture_helpers import UseFlaskTendermintNode
 
+
 _HTTP = "http://"
 
 
@@ -139,7 +140,9 @@ class BaseTestEnd2End(AEATestCaseMany, UseFlaskTendermintNode):
         if i < 0:
             i = self.nb_agents + i
         if i < 0:
-            raise ValueError(f"Incorrect negative indexing. {i} was given, but {self.nb_agents} agents are available!")
+            raise ValueError(
+                f"Incorrect negative indexing. {i} was given, but {self.nb_agents} agents are available!"
+            )
         agent_name = f"agent_{i:05d}_{self.nb_agents}agents_run"
         return agent_name
 
@@ -158,7 +161,7 @@ class BaseTestEnd2End(AEATestCaseMany, UseFlaskTendermintNode):
         ]:
             path = Path(cls.t, dir_path)
             path.mkdir()
-            os.chmod(path, 755)
+            os.chmod(path, 755)  # nosec
 
     def prepare(self, nb_nodes: int) -> None:
         """Set up the test."""

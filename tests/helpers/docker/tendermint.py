@@ -30,7 +30,7 @@ import pytest
 from docker.errors import ImageNotFound
 from docker.models.containers import Container
 
-from deployments.constants import TENDERMINT_VERSION
+from aea_swarm.deploy.constants import TENDERMINT_VERSION
 
 from tests.helpers.base import tendermint_health_check
 from tests.helpers.docker.base import DockerImage
@@ -135,7 +135,7 @@ class FlaskTendermintDockerImage(TendermintDockerImage):
         super().__init__(client, abci_host, abci_port, port, p2p_port, com_port)
         self.__create_flask_tendermint_image()
 
-    def __create_flask_tendermint_image(self):
+    def __create_flask_tendermint_image(self) -> None:
         """Create an image of the Flask server with Tendermint."""
         try:
             self._client.images.get(self.tag)

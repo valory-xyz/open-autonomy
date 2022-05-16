@@ -59,7 +59,7 @@ STRICT_CHECK_STRINGS = (
 )
 
 
-@pytest.mark.parametrize('nb_nodes', (1,))
+@pytest.mark.parametrize("nb_nodes", (1,))
 class TestABCIPriceEstimationSingleAgent(
     BaseTestEnd2EndNormalExecution,
     UseGnosisSafeHardHatNet,
@@ -73,7 +73,7 @@ class TestABCIPriceEstimationSingleAgent(
     round_check_strings_to_n_periods = EXPECTED_ROUND_LOG_COUNT
 
 
-@pytest.mark.parametrize('nb_nodes', (2,))
+@pytest.mark.parametrize("nb_nodes", (2,))
 class TestABCIPriceEstimationTwoAgents(
     BaseTestEnd2EndNormalExecution,
     UseGnosisSafeHardHatNet,
@@ -87,7 +87,7 @@ class TestABCIPriceEstimationTwoAgents(
     round_check_strings_to_n_periods = EXPECTED_ROUND_LOG_COUNT
 
 
-@pytest.mark.parametrize('nb_nodes', (4,))
+@pytest.mark.parametrize("nb_nodes", (4,))
 class TestABCIPriceEstimationFourAgents(
     BaseTestEnd2EndNormalExecution,
     UseGnosisSafeHardHatNet,
@@ -101,7 +101,7 @@ class TestABCIPriceEstimationFourAgents(
     round_check_strings_to_n_periods = EXPECTED_ROUND_LOG_COUNT
 
 
-@pytest.mark.parametrize('nb_nodes', (4,))
+@pytest.mark.parametrize("nb_nodes", (4,))
 class TestAgentCatchup(BaseTestEnd2EndAgentCatchup, UseGnosisSafeHardHatNet):
     """Test that an agent that is launched later can synchronize with the rest of the network"""
 

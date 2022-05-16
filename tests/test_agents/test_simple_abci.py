@@ -35,7 +35,7 @@ EXPECTED_ROUND_LOG_COUNT = {
 STRICT_CHECK_STRINGS = ("Period end",)
 
 
-@pytest.mark.parametrize('nb_nodes', (1,))
+@pytest.mark.parametrize("nb_nodes", (1,))
 class TestSimpleABCISingleAgent(
     BaseTestEnd2EndNormalExecution,
 ):
@@ -49,7 +49,7 @@ class TestSimpleABCISingleAgent(
     use_benchmarks = True
 
 
-@pytest.mark.parametrize('nb_nodes', (2,))
+@pytest.mark.parametrize("nb_nodes", (2,))
 class TestSimpleABCITwoAgents(
     BaseTestEnd2EndNormalExecution,
 ):
@@ -62,7 +62,7 @@ class TestSimpleABCITwoAgents(
     strict_check_strings = STRICT_CHECK_STRINGS
 
 
-@pytest.mark.parametrize('nb_nodes', (4,))
+@pytest.mark.parametrize("nb_nodes", (4,))
 class TestSimpleABCIFourAgents(
     BaseTestEnd2EndNormalExecution,
 ):
