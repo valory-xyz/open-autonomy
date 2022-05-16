@@ -19,9 +19,11 @@
 
 """Tendermint Docker image."""
 import os
+import re
 import subprocess  # nosec
 import time
-from typing import Any, List
+from pathlib import Path
+from typing import Any, Dict, List
 
 import docker
 import pytest
@@ -117,6 +119,8 @@ class TendermintDockerImage(DockerImage):
 class FlaskTendermintDockerImage(TendermintDockerImage):
     """Flask app with Tendermint Docker image."""
 
+    _extra_hosts: Dict[str, str]
+
     @property
     def tag(self) -> str:
         """Get the tag."""
@@ -196,6 +200,13 @@ class FlaskTendermintDockerImage(TendermintDockerImage):
     def _create_one(self, i: int) -> Container:
         """Create a node container."""
         name = self.get_node_name(i)
+        extra_hosts = (
+            {self.abci_host: "host-gateway"}
+            if self.abci_host == DEFAULT_ABCI_HOST
+            else {}
+        )
+        extra_hosts.update(self._extra_hosts)
+
         run_kwargs = dict(
             image=self.tag,
             command=self._build_command(),
@@ -232,9 +243,7 @@ class FlaskTendermintDockerImage(TendermintDockerImage):
                     self.get_p2p_port(i),
                 ),
             },
-            extra_hosts={self.abci_host: "host-gateway"}
-            if self.abci_host == DEFAULT_ABCI_HOST
-            else {},
+            extra_hosts=extra_hosts,
         )
         container = self._client.containers.run(**run_kwargs)
         return container
@@ -262,6 +271,33 @@ class FlaskTendermintDockerImage(TendermintDockerImage):
             cmd.append(f"--hostname=node{i}")
 
         subprocess.run(cmd)  # nosec
+        for config_file in Path().cwd().glob("nodes/**/*.toml"):
+            config_text = config_file.read_text(encoding="utf-8")
+            peers = re.findall(r"[a-z0-9]+@node\d:\d+", config_text)
+
+            updated_peers = []
+            for peer in peers:
+                peer_id, address = peer.split("@")
+                peer_name, port_string = address.split(":")
+                *_, peer_number_string = peer_name
+
+                port = int(port_string)
+                peer_number = int(peer_number_string)
+                new_port = port + (peer_number * 10)
+                updated_peers.append(f"{peer_id}@{peer_name}:{new_port}")
+
+            persistent_peers_string = (
+                'persistent_peers = "' + ",".join(updated_peers) + '"\n'
+            )
+            updated_config = re.sub(
+                'persistent_peers = ".*\n', persistent_peers_string, config_text
+            )
+
+            config_file.write_text(updated_config, encoding="utf-8")
+
+        self._extra_hosts = {
+            self.get_node_name(i): "host-gateway" for i in range(nb_nodes)
+        }
 
     def create_many(self, nb_containers: int) -> List[Container]:
         """Create a list of node containers."""
