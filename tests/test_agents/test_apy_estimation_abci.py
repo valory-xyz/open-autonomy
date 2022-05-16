@@ -79,9 +79,7 @@ class TestABCIAPYEstimationTwoAgents(
     BaseTestABCIAPYEstimationSkillNormalExecution,
     UseGnosisSafeHardHatNet,
 ):
-    """Test that the ABCI apy_estimation_abci skill with two agents."""
-
-    NB_AGENTS = 2
+    """Test the ABCI apy_estimation_abci skill with two agents."""
 
 
 @pytest.mark.skip
@@ -89,7 +87,7 @@ class TestABCIAPYEstimationFourAgents(
     BaseTestABCIAPYEstimationSkillNormalExecution,
     UseGnosisSafeHardHatNet,
 ):
-    """Test that the ABCI apy_estimation_abci skill with four agents."""
+    """Test the ABCI apy_estimation_abci skill with four agents."""
 
     NB_AGENTS = 4
     wait_to_finish = 300

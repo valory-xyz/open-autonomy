@@ -37,7 +37,7 @@ STRICT_CHECK_STRINGS = ("Period end",)
 class TestSimpleABCISingleAgent(
     BaseTestEnd2EndNormalExecution,
 ):
-    """Test that the ABCI simple_abci skill with only one agent."""
+    """Test the ABCI simple_abci skill with only one agent."""
 
     NB_AGENTS = 1
     agent_package = "valory/simple_abci:0.1.0"
@@ -51,7 +51,7 @@ class TestSimpleABCISingleAgent(
 class TestSimpleABCITwoAgents(
     BaseTestEnd2EndNormalExecution,
 ):
-    """Test that the ABCI simple_abci skill with two agents."""
+    """Test the ABCI simple_abci skill with two agents."""
 
     NB_AGENTS = 2
     agent_package = "valory/simple_abci:0.1.0"
@@ -64,7 +64,7 @@ class TestSimpleABCITwoAgents(
 class TestSimpleABCIFourAgents(
     BaseTestEnd2EndNormalExecution,
 ):
-    """Test that the ABCI simple_abci skill with four agents."""
+    """Test the ABCI simple_abci skill with four agents."""
 
     NB_AGENTS = 4
     agent_package = "valory/simple_abci:0.1.0"

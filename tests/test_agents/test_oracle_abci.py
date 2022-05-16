@@ -61,7 +61,7 @@ class TestABCIPriceEstimationSingleAgent(
     BaseTestEnd2EndNormalExecution,
     UseGnosisSafeHardHatNet,
 ):
-    """Test that the ABCI oracle skill with only one agent."""
+    """Test the ABCI oracle skill with only one agent."""
 
     NB_AGENTS = 1
     agent_package = "valory/oracle:0.1.0"
@@ -75,7 +75,7 @@ class TestABCIPriceEstimationTwoAgents(
     BaseTestEnd2EndNormalExecution,
     UseGnosisSafeHardHatNet,
 ):
-    """Test that the ABCI oracle skill with two agents."""
+    """Test the ABCI oracle skill with two agents."""
 
     NB_AGENTS = 2
     agent_package = "valory/oracle:0.1.0"
@@ -89,7 +89,7 @@ class TestABCIPriceEstimationFourAgents(
     BaseTestEnd2EndNormalExecution,
     UseGnosisSafeHardHatNet,
 ):
-    """Test that the ABCI oracle skill with four agents."""
+    """Test the ABCI oracle skill with four agents."""
 
     NB_AGENTS = 4
     agent_package = "valory/oracle:0.1.0"
