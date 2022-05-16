@@ -143,3 +143,4 @@ class TestDummyBehaviour(AbciFSMBehaviourBaseCase):
             == DummyBehaviour.state_id
         )
         self.test_abci_behaviour.act_wrapper()
+        assert self.test_abci_behaviour.current_state is None
