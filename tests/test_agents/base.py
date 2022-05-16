@@ -135,10 +135,14 @@ class BaseTestEnd2End(AEATestCaseMany, UseFlaskTendermintNode):
 
         self.__set_extra_configs()
 
-    @staticmethod
-    def __get_agent_name(i: int) -> str:
+    def __get_agent_name(self, i: int) -> str:
         """Get the ith agent's name."""
-        return f"agent_{i:05d}"
+        if i < 0:
+            i = self.nb_agents + i
+        if i < 0:
+            raise ValueError(f"Incorrect negative indexing. {i} was given, but {self.nb_agents} agents are available!")
+        agent_name = f"agent_{i:05d}_{self.nb_agents}agents_run"
+        return agent_name
 
     @classmethod
     def setup_class(
