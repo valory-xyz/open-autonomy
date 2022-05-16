@@ -357,7 +357,6 @@ class BaseTestEnd2EndAgentCatchup(BaseTestEnd2End):
         """Set up the test."""
         if not hasattr(self, "stop_string"):
             pytest.fail("'stop_string' is a mandatory argument.")
-        super().setup()
 
     def test_run(self) -> None:
         """Run the test."""
