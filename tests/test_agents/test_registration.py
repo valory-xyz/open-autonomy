@@ -20,6 +20,7 @@
 """Integration tests for the valory/registration skill."""
 import logging
 import time
+from typing import Generator
 
 import pytest
 
@@ -31,7 +32,7 @@ from tests.test_agents.base import (
 
 
 @pytest.fixture(autouse=True)
-def slow_down_tests() -> None:
+def slow_down_tests() -> Generator:
     """Sleep in between tests"""
     logging.info("SLOWING DOWN TESTS")
     yield
