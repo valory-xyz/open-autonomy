@@ -65,6 +65,7 @@ class BaseTestABCIAPYEstimationSkillNormalExecution(BaseTestEnd2EndNormalExecuti
 
 
 @pytest.mark.skip
+@pytest.mark.parametrize('nb_nodes', (1,))
 class TestABCIAPYEstimationSingleAgent(
     BaseTestABCIAPYEstimationSkillNormalExecution,
     UseGnosisSafeHardHatNet,
@@ -75,6 +76,7 @@ class TestABCIAPYEstimationSingleAgent(
 
 
 @pytest.mark.skip
+@pytest.mark.parametrize('nb_nodes', (2,))
 class TestABCIAPYEstimationTwoAgents(
     BaseTestABCIAPYEstimationSkillNormalExecution,
     UseGnosisSafeHardHatNet,
@@ -83,6 +85,7 @@ class TestABCIAPYEstimationTwoAgents(
 
 
 @pytest.mark.skip
+@pytest.mark.parametrize('nb_nodes', (4,))
 class TestABCIAPYEstimationFourAgents(
     BaseTestABCIAPYEstimationSkillNormalExecution,
     UseGnosisSafeHardHatNet,
