@@ -182,6 +182,7 @@ class RegistrationStartupBehaviour(RegistrationBaseBehaviour):
         registered_addresses = set(service_info["agent_instances"])
 
         # TEMP: replace for test debugging
+        # on-chain protocol returns addresses one-off
         self.context.logger.info(f"on-chain addresses: {registered_addresses}")
         registered_addresses.remove("0x15d34AAf54267DB7D7c367839AAf71A00a2C6A65")
         registered_addresses.add("0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266")
@@ -316,8 +317,7 @@ class RegistrationStartupBehaviour(RegistrationBaseBehaviour):
         #     return
 
         self.context.logger.info("RegistrationStartupBehaviour executed")
-        yield from self.sleep(10)
-        # yield from super().async_act()
+        yield from super().async_act()
 
 
 class RegistrationBehaviour(RegistrationBaseBehaviour):

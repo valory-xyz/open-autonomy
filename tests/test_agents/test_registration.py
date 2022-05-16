@@ -45,7 +45,7 @@ class RegistrationStartUpTestConfig(UseGnosisSafeHardHatNet, UseACNNode):
 
     skill_package = "valory/registration_abci:0.1.0"
     agent_package = "valory/registration_start_up:0.1.0"
-    wait_to_finish = 90
+    wait_to_finish = 60
 
     prefix = "vendor.valory.skills.registration_abci.models.params.args"
 
@@ -61,32 +61,13 @@ class RegistrationStartUpTestConfig(UseGnosisSafeHardHatNet, UseACNNode):
     ]
 
 
-# @pytest.mark.e2e
-# @pytest.mark.integration
-# class TestRegistrationStartUpSingleAgent(ACNClientConnectionEndToEndTestBase, UseGnosisSafeHardHatNet, UseACNNode):
-#     """Test registration start-up skill with a single agent."""
-#
-#     # NOTE: is a single agents, it cannot obtain other information, fails at the moment
-#     NB_AGENTS = 1
-#     strict_check_strings = STRICT_CHECK_STRINGS
-#
-#
-# @pytest.mark.e2e
-# @pytest.mark.integration
-# class TestRegistrationStartUpTwoAgents(ACNClientConnectionEndToEndTestBase, UseGnosisSafeHardHatNet, UseACNNode):
-#     """Test registration start-up skill with two agents."""
-#
-#     NB_AGENTS = 2
-#     strict_check_strings = STRICT_CHECK_STRINGS
+@pytest.mark.e2e
+@pytest.mark.integration
+class TestRegistrationStartUpFourAgents(RegistrationStartUpTestConfig, BaseTestEnd2EndNormalExecution):
+    """Test registration start-up skill with four agents."""
 
-
-# @pytest.mark.e2e
-# @pytest.mark.integration
-# class TestRegistrationStartUpFourAgents(RegistrationStartUpTestConfig, BaseTestEnd2EndNormalExecution):
-#     """Test registration start-up skill with four agents."""
-#
-#     NB_AGENTS = 4
-#     strict_check_strings = STRICT_CHECK_STRINGS
+    NB_AGENTS = 4
+    strict_check_strings = STRICT_CHECK_STRINGS
 
 
 @pytest.mark.e2e

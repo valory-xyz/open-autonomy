@@ -163,6 +163,20 @@ class BaseTestEnd2End(AEATestCaseMany, BaseTendermintTestClass):
         process = self.run_agent()
         self.processes.append(process)
 
+    def terminate_processes(self) -> None:
+
+        for i, process in enumerate(self.processes):
+            self.terminate_agents(process)
+            outs, errs = process.communicate()
+            logging.info(f"subprocess logs {process}: {outs} --- {errs}")
+
+            if not self.is_successfully_terminated(process):
+                warnings.warn(
+                    UserWarning(
+                        f"ABCI agent with process {process} wasn't successfully terminated."
+                    )
+                )
+
     @staticmethod
     def __generate_full_strings_from_rounds(
         round_check_strings_to_n_periods: Dict[str, int]
@@ -207,6 +221,7 @@ class BaseTestEnd2End(AEATestCaseMany, BaseTendermintTestClass):
         # Perform checks for the round strings.
         missing_round_strings = []
         if round_check_strings_to_n_periods is not None:
+            logging.info("Perform checks for the round strings.")
             check_strings_to_n_periods = cls.__generate_full_strings_from_rounds(
                 round_check_strings_to_n_periods
             )
@@ -241,8 +256,8 @@ class BaseTestEnd2End(AEATestCaseMany, BaseTendermintTestClass):
                 )
             ]
 
-        if is_terminating:
-            cls.terminate_agents(kwargs["process"])
+        # if is_terminating and not missing_round_strings:
+        #     cls.terminate_agents(kwargs["process"])
 
         return missing_strict_strings, missing_round_strings
 
@@ -274,13 +289,6 @@ class BaseTestEnd2End(AEATestCaseMany, BaseTendermintTestClass):
                 missing_strict_strings, missing_round_strings, i
             )
 
-            if not self.is_successfully_terminated(process):
-                warnings.warn(
-                    UserWarning(
-                        f"ABCI agent with process {process} wasn't successfully terminated."
-                    )
-                )
-
 
 class BaseTestEnd2EndNormalExecution(BaseTestEnd2End):
     """Test that the ABCI simple skill works together with Tendermint under normal circumstances."""
@@ -297,6 +305,7 @@ class BaseTestEnd2EndNormalExecution(BaseTestEnd2End):
             sleep_interval=self.HEALTH_CHECK_SLEEP_INTERVAL,
         )
         self._check_aea_messages()
+        self.terminate_processes()
 
 
 class BaseTestEnd2EndAgentCatchup(BaseTestEnd2End):
@@ -345,17 +354,18 @@ class BaseTestEnd2EndAgentCatchup(BaseTestEnd2End):
         )
 
         # stop the last agent as soon as the "stop string" is found in the output
-        process_to_stop = self.processes[-1]
         logging.debug(f"Waiting for string {self.stop_string} in last agent output")
         missing_strict_strings, _ = self.missing_from_output(
-            process=process_to_stop,
+            process=self.processes[-1],
             strict_check_strings=(self.stop_string,),
             timeout=self.wait_before_stop,
         )
         if missing_strict_strings:
             raise RuntimeError("cannot stop agent correctly")
         logging.debug("Last agent stopped")
-        self.processes.pop(-1)
+
+        # immediately terminate the agent
+        self.terminate_agents(self.processes.pop(-1), timeout=0)
 
         # wait for some time before restarting
         logging.debug(
@@ -367,3 +377,4 @@ class BaseTestEnd2EndAgentCatchup(BaseTestEnd2End):
         logging.debug("Restart the agent")
         self._launch_agent_i(-1)
         self._check_aea_messages()
+        self.terminate_processes()
