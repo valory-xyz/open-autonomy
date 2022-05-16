@@ -18,6 +18,7 @@
 # ------------------------------------------------------------------------------
 
 """End2end tests for the valory/hello_world skill."""
+import pytest
 
 from tests.test_agents.base import BaseTestEnd2EndNormalExecution
 
@@ -34,12 +35,12 @@ EXPECTED_ROUND_LOG_COUNT = {
 STRICT_CHECK_STRINGS = ("Period end",)
 
 
+@pytest.mark.parametrize("nb_nodes", (4,))
 class TestHelloWorldABCIFourAgents(
     BaseTestEnd2EndNormalExecution,
 ):
     """Test that the ABCI simple_abci skill with four agents."""
 
-    NB_AGENTS = 4
     agent_package = "valory/hello_world:0.1.0"
     skill_package = "valory/hello_world_abci:0.1.0"
     wait_to_finish = 120
