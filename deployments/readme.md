@@ -149,7 +149,7 @@ cd abci_build/
 docker-compose up --force-recreate
 ```
 
-# Step 6
+# Step 5
 
 Retrieve logs
 
@@ -180,7 +180,7 @@ and run script for checking path
 swarm analyse abci logs abci${i}.txt
 ```
 
-# Step 7
+# Step 6
 
 Stop
 
