@@ -215,8 +215,10 @@ class RegistrationStartupBehaviour(RegistrationBaseBehaviour):
         result = yield from self.get_http_response(method="GET", url=url)
         try:
             response = json.loads(result.body.decode())
-            self.local_tendermint_params = response['params']
-            self.context.logger.info(f"Local Tendermint configuration obtained: {response}")
+            self.local_tendermint_params = response["params"]
+            self.context.logger.info(
+                f"Local Tendermint configuration obtained: {response}"
+            )
             return True
         except json.JSONDecodeError:
             self.context.logger.error(
@@ -280,6 +282,8 @@ class RegistrationStartupBehaviour(RegistrationBaseBehaviour):
         # - Ensure all agents connect to the same ACN client node
 
         self.context.logger.info(f"My address: {self.context.agent_address}")
+        # sleep to ensure it crashes here, otherwise possible it completes entire registration
+        yield from self.sleep(2)
 
         # # collect personal Tendermint configuration
         # if not self.local_tendermint_params:

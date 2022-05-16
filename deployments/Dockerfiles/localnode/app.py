@@ -112,9 +112,7 @@ class PeriodDumper:
         store_dir = self.dump_dir / f"period_{self.resets}"
         store_dir.mkdir(exist_ok=True)
         try:
-            shutil.copytree(
-                str(TMHOME), str(store_dir / ("node" + os.environ["ID"]))
-            )
+            shutil.copytree(str(TMHOME), str(store_dir / ("node" + os.environ["ID"])))
             self.logger.info(f"Dumped data for period {self.resets}")
         except OSError:
             self.logger.info(
@@ -164,7 +162,7 @@ def update_params() -> Dict:
     """Update validator params."""
 
     try:
-        data = request.get_json()
+        data: Any = request.get_json()
         genesis_file = TMHOME / "config" / "genesis.json"
         genesis_data = {}
         genesis_data["genesis_time"] = data["genesis_config"]["genesis_time"]

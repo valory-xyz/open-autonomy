@@ -128,13 +128,14 @@ class TestRegistrationStartupBehaviour(RegistrationAbciBaseCase):
     @property
     def tendermint_mock_params(self) -> Dict[str, Any]:
         """Tendermint mock params"""
-        return dict(
-            address='3877157BFE637FCD7B9FC4B1CEC231F4CA99FDCA',
+        info = dict(
+            address="3877157BFE637FCD7B9FC4B1CEC231F4CA99FDCA",
             pub_key=dict(
-                type='tendermint/PubKeyEd25519',
-                value='7y7ycBMMABj5Onf74ITYtUS3uZ6SsCQKZML87mIX+r4=',
-            )
+                type="tendermint/PubKeyEd25519",
+                value="7y7ycBMMABj5Onf74ITYtUS3uZ6SsCQKZML87mIX+r4=",
+            ),
         )
+        return dict(params=info, status=True, error=None)
 
     # mock patches
     @property

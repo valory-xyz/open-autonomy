@@ -365,7 +365,9 @@ class BaseTestEnd2EndAgentCatchup(BaseTestEnd2End):
         logging.debug("Last agent stopped")
 
         # immediately terminate the agent
-        self.terminate_agents(self.processes.pop(-1), timeout=0)
+        self.terminate_agents(self.processes[-1], timeout=0)
+        # don't pop before termination, seems to lead to failure!
+        self.processes.pop()
 
         # wait for some time before restarting
         logging.debug(

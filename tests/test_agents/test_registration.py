@@ -18,14 +18,21 @@
 # ------------------------------------------------------------------------------
 
 """Integration tests for the valory/registration skill."""
-
-from typing import Any
+import logging
+import time
 import pytest
 
 from tests.fixture_helpers import UseACNNode
 
 from tests.test_agents.base import BaseTestEnd2EndNormalExecution, BaseTestEnd2EndAgentCatchup
 from tests.fixture_helpers import UseGnosisSafeHardHatNet
+
+
+@pytest.fixture(autouse=True)
+def slow_down_tests():
+    logging.info("SLOWING DOWN TESTS")
+    yield
+    time.sleep(1)
 
 
 # strict check log messages of the happy path
