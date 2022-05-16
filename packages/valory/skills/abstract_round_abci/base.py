@@ -343,7 +343,9 @@ class Blockchain:
     The consistency of the data in the blocks is guaranteed by Tendermint.
     """
 
-    def __init__(self) -> None:
+    def __init__(
+        self,
+    ) -> None:
         """Initialize the blockchain."""
         self._blocks: List[Block] = []
 
@@ -378,6 +380,13 @@ class Blockchain:
     def blocks(self) -> Tuple[Block, ...]:
         """Get the blocks."""
         return tuple(self._blocks)
+
+    @property
+    def last_block(
+        self,
+    ) -> Block:
+        """Returns the last stored block."""
+        return self._blocks[-1]
 
 
 class BlockBuilder:
@@ -1934,6 +1943,8 @@ class Period:
         self._block_builder = BlockBuilder()
         self._abci_app_cls = abci_app_cls
         self._abci_app: Optional[AbciApp] = None
+        self._last_round_transition_timestamp: Optional[datetime.datetime] = None
+        self._last_round_transition_height = 0
 
     def setup(self, *args: Any, **kwargs: Any) -> None:
         """
@@ -2024,6 +2035,30 @@ class Period:
         return last_timestamp
 
     @property
+    def last_round_transition_timestamp(
+        self,
+    ) -> datetime.datetime:
+        """Returns the timestamp for last round transition."""
+        if self._last_round_transition_timestamp is None:
+            raise ValueError(
+                "Trying to access `last_round_transition_timestamp` while no transition has been completed yet."
+            )
+
+        return self._last_round_transition_timestamp
+
+    @property
+    def last_round_transition_height(
+        self,
+    ) -> int:
+        """Returns the height for last round transition."""
+        if self._last_round_transition_height == 0:
+            raise ValueError(
+                "Trying to access `last_round_transition_height` while no transition has been completed yet."
+            )
+
+        return self._last_round_transition_height
+
+    @property
     def latest_state(self) -> BasePeriodState:
         """Get the latest state."""
         return self.abci_app.state
@@ -2095,6 +2130,10 @@ class Period:
         try:
             self._blockchain.add_block(block)
             self._update_round()
+            self._last_round_transition_timestamp = (
+                self._blockchain.last_block.timestamp
+            )
+            self._last_round_transition_height = self.height
             # The ABCI app now waits again for the next block
             self._block_construction_phase = (
                 Period._BlockConstructionState.WAITING_FOR_BEGIN_BLOCK

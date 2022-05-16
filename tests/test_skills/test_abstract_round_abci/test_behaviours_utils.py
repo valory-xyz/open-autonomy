@@ -20,6 +20,7 @@
 """Test the behaviours_utils.py module of the skill."""
 import json
 import logging
+import sys
 import time
 from abc import ABC
 from collections import OrderedDict
@@ -29,9 +30,11 @@ from typing import Any, Dict, Generator, Optional, Tuple, Type, Union
 from unittest import mock
 from unittest.mock import MagicMock
 
+import atheris  # type: ignore
 import pytest
 
 from packages.open_aea.protocols.signing import SigningMessage
+from packages.valory.connections.http_client.connection import HttpDialogues
 from packages.valory.protocols.http import HttpMessage
 from packages.valory.protocols.ledger_api.message import LedgerApiMessage
 from packages.valory.skills.abstract_round_abci.base import (
@@ -388,6 +391,8 @@ class TestBaseState:
         self.context_mock.state.period_state = self.context_state_period_state_mock
         self.context_mock.state.period.current_round_id = "round_a"
         self.context_mock.state.period.syncing_up = False
+        self.context_mock.http_dialogues = HttpDialogues()
+        self.context_mock.handlers.__dict__ = {"http": MagicMock()}
         self.behaviour = StateATest(name="", skill_context=self.context_mock)
 
     def test_params_property(self) -> None:
@@ -470,6 +475,16 @@ class TestBaseState:
         # because its execution terminates
         with pytest.raises(StopIteration):
             gen.send(MagicMock())
+
+    def test_wait_from_last_timestamp_negative(self) -> None:
+        """Test 'wait_from_last_timestamp'."""
+        timeout = -1.0
+        last_timestamp = datetime.now()
+        self.behaviour.context.state.period.abci_app.last_timestamp = last_timestamp
+        with pytest.raises(ValueError):
+            gen = self.behaviour.wait_from_last_timestamp(timeout)
+            # trigger first execution
+            try_send(gen)
 
     def test_set_done(self) -> None:
         """Test 'set_done' method."""
@@ -784,6 +799,42 @@ class TestBaseState:
             return_value=(MagicMock(), MagicMock()),
         ):
             self.behaviour._send_signing_request(b"")
+
+    @pytest.mark.skip
+    def test_fuzz_send_signing_request(self) -> None:
+        """Test '_send_signing_request'.
+
+        Do not run this test through pytest. Add the following lines at the bottom
+        of the file and run it as a script:
+        t = TestBaseState()
+        t.setup()
+        t.test_fuzz_send_signing_request()
+        """
+
+        @atheris.instrument_func
+        def fuzz_send_signing_request(input_bytes: bytes) -> None:
+            """Fuzz '_send_signing_request'.
+
+            Mock context manager decorators don't work here.
+
+            :param input_bytes: fuzz input
+            """
+            with mock.patch.object(
+                self.behaviour.context.signing_dialogues,
+                "create",
+                return_value=(MagicMock(), MagicMock()),
+            ):
+                with mock.patch(
+                    "packages.valory.skills.abstract_round_abci.behaviour_utils.RawMessage"
+                ):
+                    with mock.patch(
+                        "packages.valory.skills.abstract_round_abci.behaviour_utils.Terms"
+                    ):
+                        self.behaviour._send_signing_request(input_bytes)
+
+        atheris.instrument_all()
+        atheris.Setup(sys.argv, fuzz_send_signing_request)
+        atheris.Fuzz()
 
     @mock.patch.object(BaseState, "_get_request_nonce_from_dialogue")
     @mock.patch("packages.valory.skills.abstract_round_abci.behaviour_utils.RawMessage")
@@ -1124,6 +1175,38 @@ class TestBaseState:
         self.behaviour._timeout = timeout
         assert self.behaviour._is_timeout_expired() == expiration_expected
 
+    @mock.patch.object(
+        BaseState, "_build_http_request_message", return_value=(None, None)
+    )
+    @pytest.mark.parametrize(
+        "response", ({"app_hash": "test"}, {"error": "test"}, None)
+    )
+    def test_get_app_hash(
+        self, _build_http_request_message: mock.Mock, response: Optional[Dict[str, str]]
+    ) -> None:
+        """Test the `_get_app_hash` method."""
+
+        def dummy_do_request(*_: Any) -> Generator[None, None, MagicMock]:
+            """Dummy `_do_request` method."""
+            yield
+            if response is None:
+                return mock.MagicMock(body=b"")
+            return mock.MagicMock(body=json.dumps(response).encode())
+
+        with mock.patch.object(
+            BaseState, "_do_request", new_callable=lambda *_: dummy_do_request
+        ):
+            app_hash_iter = self.behaviour._get_app_hash()
+            next(app_hash_iter)
+            # perform the last iteration which also returns the result
+            try:
+                next(app_hash_iter)
+            except StopIteration as e:
+                if response is None or response.get("app_hash") is None:
+                    assert e.value is None
+                else:
+                    assert e.value == response["app_hash"]
+
     @mock.patch.object(BaseState, "_start_reset")
     @mock.patch.object(BaseState, "_is_timeout_expired")
     def test_reset_tendermint_with_wait_timeout_expired(self, *_: mock.Mock) -> None:
@@ -1136,36 +1219,48 @@ class TestBaseState:
         BaseState, "_build_http_request_message", return_value=(None, None)
     )
     @pytest.mark.parametrize(
-        "reset_response, status_response, local_height, n_iter, expecting_success",
+        "reset_response, status_response, local_height, n_iter, expecting_success, app_hash",
         (
             (
                 {"message": "Tendermint reset was successful.", "status": True},
                 {"result": {"sync_info": {"latest_block_height": 1}}},
                 1,
-                3,
+                4,
                 True,
+                "test",
+            ),
+            (
+                {"message": "Tendermint reset was successful.", "status": True},
+                {"result": {"sync_info": {"latest_block_height": 1}}},
+                1,
+                2,
+                False,
+                None,
             ),
             (
                 {"message": "Tendermint reset was successful.", "status": True},
                 {"result": {"sync_info": {"latest_block_height": 1}}},
                 3,
-                3,
+                4,
                 False,
+                "test",
             ),
             (
                 {"message": "Error resetting tendermint.", "status": False},
                 {},
                 0,
-                2,
+                3,
                 False,
+                "test",
             ),
-            ("wrong_response", {}, 0, 2, False),
+            ("wrong_response", {}, 0, 3, False, "test"),
             (
                 {"message": "Reset Successful.", "status": True},
                 "not_accepting_txs_yet",
                 0,
-                3,
+                4,
                 False,
+                "test",
             ),
         ),
     )
@@ -1178,8 +1273,14 @@ class TestBaseState:
         local_height: int,
         n_iter: int,
         expecting_success: bool,
+        app_hash: str,
     ) -> None:
         """Test tendermint reset."""
+
+        def dummy_get_app_hash(*_: Any) -> Generator[None, None, str]:
+            """Dummy `_get_app_hash` method."""
+            yield
+            return app_hash
 
         def dummy_do_request(*_: Any) -> Generator[None, None, MagicMock]:
             """Dummy `_do_request` method."""
@@ -1202,6 +1303,8 @@ class TestBaseState:
             "wait_from_last_timestamp",
             new_callable=lambda *_: self.dummy_sleep,
         ), mock.patch.object(
+            BaseState, "_get_app_hash", new_callable=lambda *_: dummy_get_app_hash
+        ), mock.patch.object(
             BaseState, "_do_request", new_callable=lambda *_: dummy_do_request
         ), mock.patch.object(
             BaseState, "_get_status", new_callable=lambda *_: dummy_get_status
@@ -1213,9 +1316,35 @@ class TestBaseState:
             for _ in range(n_iter):
                 next(reset)
             # perform the last iteration which also returns the result
-            with pytest.raises(StopIteration) as e:
+            try:
                 next(reset)
-                assert e == expecting_success
+            except StopIteration as e:
+                assert e.value == expecting_success
+
+    @pytest.mark.skip
+    def test_fuzz_submit_tx(self) -> None:
+        """Test '_submit_tx'.
+
+        Do not run this test through pytest. Add the following lines at the bottom
+        of the file and run it as a script:
+        t = TestBaseState()
+        t.setup()
+        t.test_fuzz_submit_tx()
+        """
+
+        @atheris.instrument_func
+        def fuzz_submit_tx(input_bytes: bytes) -> None:
+            """Fuzz '_submit_tx'.
+
+            Mock context manager decorators don't work here.
+
+            :param input_bytes: fuzz input
+            """
+            self.behaviour._submit_tx(input_bytes)
+
+        atheris.instrument_all()
+        atheris.Setup(sys.argv, fuzz_submit_tx)
+        atheris.Fuzz()
 
 
 def test_degenerate_state_async_act() -> None:

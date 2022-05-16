@@ -11,12 +11,12 @@ fingerprint:
   base.py: QmSZmMgoUhmEqPcmfr3SXDN1G1y1Jbno5xuppdpfwZ2aA5
   connection.py: QmexsdsiGGTEWbUCRqss9p7bKR8gHJaqCwm9JeQ2ENCtno
   contract_dispatcher.py: QmPUvYht942zuYDahbP1fr6bfwuYKCtqY5nXHZj7ckgGwB
-  ledger_dispatcher.py: QmTmYYRQZatmx2jxXjeRRJ1vFyDHxNtr15ESuve7qSeb8c
+  ledger_dispatcher.py: QmdMQbNmGMmqKzo3LjD3nsiy62P2iMBqxyzQU1TV3f1kEN
 fingerprint_ignore_patterns: []
 connections: []
 protocols:
-- valory/contract_api:1.0.0
-- valory/ledger_api:1.0.0
+- valory/contract_api:1.0.0:QmTZgtH8LbnFxqpGf2zuwSEdG4awPgvsag6jTYgX9GXDgy
+- valory/ledger_api:1.0.0:QmWQSUkGAbzU8tqs7K8BguabbKHUZkbxuMk1M4LBFAwdun
 class_name: LedgerConnection
 config:
   ledger_apis:

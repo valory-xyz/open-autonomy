@@ -47,7 +47,7 @@ def get_all_extras() -> Dict:
 all_extras = get_all_extras()
 
 base_deps = [
-    "open-aea>=1.7.0,<2.0.0",
+    "open-aea>=1.8.0,<2.0.0",
 ]
 
 here = os.path.abspath(os.path.dirname(__file__))
@@ -61,7 +61,9 @@ def parse_readme():
         readme = f.read()
 
     # replace relative links of images
-    raw_url_root = "https://raw.githubusercontent.com/valory-xyz/consensus-algorithms/main/"
+    raw_url_root = (
+        "https://raw.githubusercontent.com/valory-xyz/consensus-algorithms/main/"
+    )
     replacement = raw_url_root + r"\g<0>"
     readme = re.sub(r"(?<=<img src=\")(/.*)(?=\")", replacement, readme, re.DOTALL)
 
@@ -102,7 +104,7 @@ if __name__ == "__main__":
         install_requires=base_deps,
         tests_require=["tox"],
         extras_require=all_extras,
-        entry_points={"console_scripts": ["swarm=aea_swarm:cli"]},
+        entry_points={"console_scripts": ["swarm=aea_swarm.cli:cli"]},
         zip_safe=False,
         include_package_data=True,
         license=about["__license__"],

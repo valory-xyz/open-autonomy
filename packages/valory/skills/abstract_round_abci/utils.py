@@ -26,6 +26,9 @@ from eth_typing.bls import BLSPubkey, BLSSignature
 from py_ecc.bls import G2Basic as bls  # type: ignore
 
 
+MAX_UINT64 = 2 ** 64 - 1
+
+
 class VerifyDrand:  # pylint: disable=too-few-public-methods
     """
     Tool to verify Randomness retrieved from various external APIs.
@@ -39,6 +42,10 @@ class VerifyDrand:  # pylint: disable=too-few-public-methods
     @classmethod
     def _int_to_bytes_big(cls, value: int) -> bytes:
         """Convert int to bytes."""
+        if value < 0 or value > MAX_UINT64:
+            raise ValueError(
+                "VerifyDrand can only handle positive numbers representable with 8 bytes"
+            )
         return int.to_bytes(value, 8, byteorder="big", signed=False)
 
     @classmethod

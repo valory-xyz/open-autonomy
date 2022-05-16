@@ -35,8 +35,11 @@ Optionally, clean up images & build cache to ensure no artefacts (check with `do
 docker rm -vf $(docker ps -aq)
 docker rmi -f $(docker images -aq)
 docker builder prune --all
-rm -rf deployments/persistent_data/logs
+rm -rf deployments/persistent_data/logs/aea_*.txt
+rm -rf deployments/persistent_data/logs/node_*.txt
 ```
+
+Ensure, there exists a folder `deployments/persistent_data/logs` with full permissions: `chmod 777 deployments/persistent_data/logs`.
 
 # Step 1
 
@@ -180,6 +183,13 @@ for i in {0..3}; do ssh root@178.62.4.138 "docker logs abci${i} > abci${i}.txt";
 for i in {0..3}; do ssh root@178.62.4.138 "docker logs node${i} > node${i}.txt"; done
 for i in {0..3}; do scp root@178.62.4.138:abci${i}.txt abci${i}.txt; done
 for i in {0..3}; do scp root@178.62.4.138:node${i}.txt node${i}.txt; done
+```
+
+or
+
+```bash
+for i in {0..3}; do scp root@178.62.4.138:consensus-algorithms/deployments/persistent_data/logs/aea_${i}.txt abci${i}.txt; done
+for i in {0..3}; do scp root@178.62.4.138:consensus-algorithms/deployments/persistent_data/logs/node_${i}.txt node${i}.txt; done
 ```
 
 and run script for checking path
