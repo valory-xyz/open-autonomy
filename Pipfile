@@ -9,6 +9,7 @@ open-aea-ledger-ethereum = "<2.0.0,>=1.8.0"
 open-aea-cli-ipfs = "<2.0.0,>=1.8.0"
 
 [dev-packages]
+asn1crypto = "==1.4.0"
 atheris = "==2.0.10"
 bandit = "==1.7.0"
 black = "==21.6b0"
