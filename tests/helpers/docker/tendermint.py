@@ -144,15 +144,13 @@ class FlaskTendermintDockerImage(TendermintDockerImage):
             current_file_folder = os.path.dirname(os.path.realpath(__file__))
             root = current_file_folder.split(os.path.sep)[:-3]
             os.chdir(os.path.join(os.path.sep, *root))
-            create_script_rel_path = os.path.join("deployments", "click_create.py")
             cmd = [
-                "python",
-                create_script_rel_path,
-                "build-images",
-                "--valory-app",
-                "oracle_hardhat",
-                "--profile",
-                "dependencies",
+                "swarm",
+                "deploy",
+                "build",
+                "image",
+                "valory/oracle_hardhat",
+                "--dependencies",
             ]
             os.putenv("VERSION", "dev")
             subprocess.run(cmd)  # nosec
