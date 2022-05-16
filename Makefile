@@ -248,14 +248,14 @@ build-images:
 		echo "Ensure you have exported a version to build!";\
 		exit 1
 	fi
-	python deployments/click_create.py build-images --deployment-file-path ${DEPLOYMENT_SPEC} --profile dependencies || (echo failed && exit 1)
+	swarm deploy build image ${SERVICE_ID} --dependencies || (echo failed && exit 1)
 	if [ "${VERSION}" = "dev" ];\
 	then\
 		echo "building dev images!";\
-	 	python deployments/click_create.py build-images --deployment-file-path ${DEPLOYMENT_SPEC} --profile dev && exit 0
+	 	swarm deploy build image ${SERVICE_ID} --dev && exit 0
 		exit 1
 	fi
-	python deployments/click_create.py build-images --deployment-file-path ${DEPLOYMENT_SPEC} --profile prod && exit 0
+	swarm deploy build image ${SERVICE_ID} && exit 0
 	exit 1
 
 .ONESHELL: push-images
@@ -297,21 +297,23 @@ run-oracle-dev:
 		echo "Please remove ${OPEN_AEA_REPO_DIR}/build manually."
 		exit 1
 	fi
-	export VERSION=dev
-	make build-images && \
-     	python deployments/click_create.py build-deployment --valory-app oracle_hardhat --deployment-type docker-compose --configure-tendermint && \
-     	make run-deploy
+
+	swarm deploy build image valory/oracle_hardhat --dependencies && \
+		swarm deploy build image valory/oracle_hardhat --dev && \
+		swarm deploy build deployment valory/oracle_hardhat deployments/keys/hardhat_keys.json --force --dev && \
+		make run-deploy
 
 .PHONY: run-oracle
 run-oracle:
 	export VERSION=0.1.0
-	make build-images && \
-	    python deployments/click_create.py build-deployment --valory-app oracle_hardhat --deployment-type docker-compose --configure-tendermint && \
-    	make run-deploy
+	swarm deploy build image valory/oracle_hardhat --dependencies && \
+		swarm deploy build image valory/oracle_hardhat && \
+		swarm deploy build deployment valory/oracle_hardhat deployments/keys/hardhat_keys.json --force && \
+		make run-deploy
 
 .PHONY: run-deploy
 run-deploy:
-	cd deployments/build/ && \
+	cd deployments/build/
 	docker-compose up --force-recreate -t 600
 
 
@@ -350,9 +352,9 @@ build-deploy:
 		echo "Please ensure you have set the environment variable 'DEPLOYMENT_TYPE'"
 		exit 1
 	fi
-	if [ "${DEPLOYMENT_SPEC}" = "" ];\
+	if [ "${SERVICE_ID}" = "" ];\
 	then\
-		echo "Please ensure you have set the environment variable 'DEPLOYMENT_SPEC'"
+		echo "Please ensure you have set the environment variable 'SERVICE_ID'"
 		exit 1
 	fi
 	if [ "${DEPLOYMENT_KEYS}" = "" ];\
@@ -360,13 +362,16 @@ build-deploy:
 		echo "Please ensure you have set the environment variable 'DEPLOYMENT_KEYS'"
 		exit 1
 	fi
-	echo "Building deployment for ${DEPLOYMENT_TYPE} ${DEPLOYMENT_KEYS} ${DEPLOYMENT_SPEC}"
-	python deployments/click_create.py build-deployment \
-	  --deployment-type ${DEPLOYMENT_TYPE} \
-	  --keys-file-path ${DEPLOYMENT_KEYS} \
-	  --deployment-file-path ${DEPLOYMENT_SPEC} \
-	  --configure-tendermint
+	echo "Building deployment for ${DEPLOYMENT_TYPE} ${DEPLOYMENT_KEYS} ${SERVICE_ID}"
+	
+	if [ "${DEPLOYMENT_TYPE}" = "docker-compose" ];\
+	then\
+		swarm deploy build deployment ${SERVICE_ID} ${DEPLOYMENT_KEYS} --kubernetes --force
+		exit 0
+	fi
 
+	swarm deploy build deployment ${SERVICE_ID} ${DEPLOYMENT_KEYS} --force
+	
 protolint_install:
 	GO111MODULE=on GOPATH=~/go go get -u -v github.com/yoheimuta/protolint/cmd/protolint@v0.27.0
 
