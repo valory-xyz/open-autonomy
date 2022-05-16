@@ -316,7 +316,8 @@ class RegistrationStartupBehaviour(RegistrationBaseBehaviour):
         #     return
 
         self.context.logger.info("RegistrationStartupBehaviour executed")
-        yield from super().async_act()
+        yield from self.sleep(10)
+        # yield from super().async_act()
 
 
 class RegistrationBehaviour(RegistrationBaseBehaviour):
