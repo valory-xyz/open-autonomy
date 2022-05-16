@@ -27,6 +27,7 @@ from typing import Any, Dict, List
 
 import docker
 import pytest
+from docker.errors import ImageNotFound
 from docker.models.containers import Container
 
 from deployments.constants import TENDERMINT_VERSION
@@ -120,6 +121,42 @@ class FlaskTendermintDockerImage(TendermintDockerImage):
     """Flask app with Tendermint Docker image."""
 
     _extra_hosts: Dict[str, str]
+
+    def __init__(
+        self,
+        client: docker.DockerClient,
+        abci_host: str = DEFAULT_ABCI_HOST,
+        abci_port: int = DEFAULT_ABCI_PORT,
+        port: int = DEFAULT_TENDERMINT_PORT,
+        p2p_port: int = DEFAULT_P2P_PORT,
+        com_port: int = DEFAULT_TENDERMINT_COM_PORT,
+    ):
+        """Initialize."""
+        super().__init__(client, abci_host, abci_port, port, p2p_port, com_port)
+        self.__create_flask_tendermint_image()
+
+    def __create_flask_tendermint_image(self):
+        """Create an image of the Flask server with Tendermint."""
+        try:
+            self._client.images.get(self.tag)
+        except ImageNotFound:
+            cwd = os.getcwd()
+            current_file_folder = os.path.dirname(os.path.realpath(__file__))
+            root = current_file_folder.split(os.path.sep)[:-3]
+            os.chdir(os.path.join(os.path.sep, *root))
+            create_script_rel_path = os.path.join("deployments", "click_create.py")
+            cmd = [
+                "python",
+                create_script_rel_path,
+                "build-images",
+                "--valory-app",
+                "oracle_hardhat",
+                "--profile",
+                "dependencies",
+            ]
+            os.putenv("VERSION", "dev")
+            subprocess.run(cmd)  # nosec
+            os.chdir(cwd)
 
     @property
     def tag(self) -> str:
