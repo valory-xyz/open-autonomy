@@ -19,7 +19,6 @@
 
 """Integration tests for the valory/oracle_abci skill."""
 import pytest
-
 from aea.configurations.data_types import PublicId
 
 from tests.fixture_helpers import UseGnosisSafeHardHatNet
