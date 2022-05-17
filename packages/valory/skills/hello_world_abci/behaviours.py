@@ -134,7 +134,7 @@ class PrintMessageBehaviour(HelloWorldABCIBaseState, ABC):
         - Go to the next behaviour state (set done event).
         """
 
-        printed_message = f"Agent {self.context.agent_address} in period {self.period_state.period_count} says: "
+        printed_message = f"Agent {self.context.agent_name} (address {self.context.agent_address}) in period {self.period_state.period_count} says: "
         if self.context.agent_address == self.period_state.most_voted_keeper_address:
             printed_message += "HELLO WORLD!"
         else:
