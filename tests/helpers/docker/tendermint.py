@@ -27,7 +27,6 @@ from typing import Any, Dict, List
 
 import docker
 import pytest
-from docker.errors import ImageNotFound
 from docker.models.containers import Container
 
 from aea_swarm.deploy.constants import TENDERMINT_VERSION
@@ -137,23 +136,7 @@ class FlaskTendermintDockerImage(TendermintDockerImage):
 
     def __create_flask_tendermint_image(self) -> None:
         """Create an image of the Flask server with Tendermint."""
-        try:
-            self._client.images.get(self.tag)
-        except ImageNotFound:
-            cwd = os.getcwd()
-            current_file_folder = os.path.dirname(os.path.realpath(__file__))
-            root = current_file_folder.split(os.path.sep)[:-3]
-            os.chdir(os.path.join(os.path.sep, *root))
-            cmd = [
-                "swarm",
-                "deploy",
-                "build",
-                "image",
-                "valory/oracle_hardhat",
-                "--dependencies",
-            ]
-            subprocess.run(cmd)  # nosec
-            os.chdir(cwd)
+        self._client.images.get(self.tag)
 
     @property
     def tag(self) -> str:
