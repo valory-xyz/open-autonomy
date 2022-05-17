@@ -77,17 +77,26 @@ def generat_abci_app_pecs(app_class: str, output_file: Path, spec_format: str) -
 
 
 @abci_group.command(name="check-app-specs")
-@click.option("--check-all", type=bool, is_flag=True)
+@click.option(
+    "--check-all", type=bool, is_flag=True, help="Check all available definitions."
+)
+@click.option(
+    "--packages-dir",
+    type=click.Path(),
+    default=Path.cwd() / "packages",
+    help="Path to packages directory; Use with `--check-all` flag",
+)
 @abci_spec_format_flag()
-@click.option("--app_class", type=str)
-@click.option("--infile", type=click.Path())
+@click.option("--app_class", type=str, help="Dotted path to app definition class.")
+@click.option("--infile", type=click.Path(), help="Path to input file.")
 def check_abci_app_specs(
-    check_all: bool, spec_format: str, app_class: str, infile: Path
+    check_all: bool, packages_dir: Path, spec_format: str, app_class: str, infile: Path
 ) -> None:
     """Check abci app specs."""
 
     if check_all:
-        SpecCheck.check_all()
+        packages_dir = Path(packages_dir).absolute()
+        SpecCheck.check_all(packages_dir)
     else:
         if app_class is None:
             print("Please provide class name for ABCI app.")

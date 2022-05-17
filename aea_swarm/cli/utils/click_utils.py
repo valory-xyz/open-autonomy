@@ -58,7 +58,7 @@ def abci_spec_format_flag(
                 f"--{of}",
                 "spec_format",
                 flag_value=of,
-                help=f"To output {of} file.",
+                help=f"{of.title()} file.",
                 default=(of == default) and mark_default,
             )(f)
 

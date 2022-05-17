@@ -334,16 +334,14 @@ class SpecCheck:
         return dfa1 == dfa2
 
     @classmethod
-    def check_all(
-        cls,
-    ) -> None:
+    def check_all(cls, packages_dir: Path) -> None:
         """Check all the available definitions."""
 
         did_not_match = []
         fsm_specifications = sorted(
             [
-                *Path("packages/").glob("**/fsm_specification.yaml"),
-                *Path("packages/").glob("**/fsm_specification_composition.yaml"),
+                *packages_dir.glob("**/fsm_specification.yaml"),
+                *packages_dir.glob("**/fsm_specification_composition.yaml"),
             ]
         )
         for spec_file in fsm_specifications:
