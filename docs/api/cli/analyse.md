@@ -46,11 +46,19 @@ Generate abci app specs.
 
 ```python
 @abci_group.command(name="check-app-specs")
-@click.option("--check-all", type=bool, is_flag=True)
+@click.option(
+    "--check-all", type=bool, is_flag=True, help="Check all available definitions."
+)
+@click.option(
+    "--packages-dir",
+    type=click.Path(),
+    default=Path.cwd() / "packages",
+    help="Path to packages directory; Use with `--check-all` flag",
+)
 @abci_spec_format_flag()
-@click.option("--app_class", type=str)
-@click.option("--infile", type=click.Path())
-def check_abci_app_specs(check_all: bool, spec_format: str, app_class: str, infile: Path) -> None
+@click.option("--app_class", type=str, help="Dotted path to app definition class.")
+@click.option("--infile", type=click.Path(), help="Path to input file.")
+def check_abci_app_specs(check_all: bool, packages_dir: Path, spec_format: str, app_class: str, infile: Path) -> None
 ```
 
 Check abci app specs.

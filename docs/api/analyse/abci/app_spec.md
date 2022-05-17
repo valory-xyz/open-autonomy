@@ -142,7 +142,7 @@ Check for one.
 
 ```python
 @classmethod
-def check_all(cls) -> None
+def check_all(cls, packages_dir: Path) -> None
 ```
 
 Check all the available definitions.
