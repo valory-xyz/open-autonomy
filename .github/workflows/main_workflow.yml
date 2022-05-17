@@ -264,7 +264,14 @@ jobs:
           wget -O tendermint.tar.gz https://github.com/tendermint/tendermint/releases/download/v0.34.11/tendermint_0.34.11_linux_amd64.tar.gz
           tar -xf tendermint.tar.gz
           sudo mv tendermint /usr/local/bin/tendermint
-
+          
+          
+          # ensure yarn is installed
+          curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | sudo apt-key add -
+          echo "deb https://dl.yarnpkg.com/debian/ stable main" | sudo tee /etc/apt/sources.list.d/yarn.list
+          sudo apt update
+          sudo apt install yarn -y
+ 
           # pull node image needed for the integration tests
           docker pull node:16.7.0
           docker pull trufflesuite/ganache:beta
@@ -283,5 +290,5 @@ jobs:
 
       - name: Unit tests
         run: |
-          cd deployments/Dockerfiles/localnode/ && docker build -t valory/consensus-algorithms-tendermint:0.1.0 && \
+          VERSION=0.1.0 skaffold build -p dependencies --push=false
           tox -e py${{ matrix.python-version }} -- -m 'e2e'
