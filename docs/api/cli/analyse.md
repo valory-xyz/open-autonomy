@@ -26,6 +26,35 @@ def abci_group() -> None
 
 Analyse ABCI apps.
 
+<a id="aea_swarm.cli.analyse.generat_abci_app_pecs"></a>
+
+#### generat`_`abci`_`app`_`pecs
+
+```python
+@abci_group.command(name="generate-app-specs")
+@click.argument("app_class", type=str)
+@click.argument("output_file", type=click.Path())
+@abci_spec_format_flag()
+def generat_abci_app_pecs(app_class: str, output_file: Path, spec_format: str) -> None
+```
+
+Generate abci app specs.
+
+<a id="aea_swarm.cli.analyse.check_abci_app_specs"></a>
+
+#### check`_`abci`_`app`_`specs
+
+```python
+@abci_group.command(name="check-app-specs")
+@click.option("--check-all", type=bool, is_flag=True)
+@abci_spec_format_flag()
+@click.option("--app_class", type=str)
+@click.option("--infile", type=click.Path())
+def check_abci_app_specs(check_all: bool, spec_format: str, app_class: str, infile: Path) -> None
+```
+
+Check abci app specs.
+
 <a id="aea_swarm.cli.analyse.docstrings"></a>
 
 #### docstrings

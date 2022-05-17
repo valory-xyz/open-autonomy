@@ -14,3 +14,13 @@ def image_profile_flag(default: str = ImageProfiles.PRODUCTION, mark_default: bo
 
 Choice of one flag between: '--local/--remote'.
 
+<a id="aea_swarm.cli.utils.click_utils.abci_spec_format_flag"></a>
+
+#### abci`_`spec`_`format`_`flag
+
+```python
+def abci_spec_format_flag(default: str = DFA.OutputFormats.YAML, mark_default: bool = True) -> Callable
+```
+
+Flags for abci spec outputs formats.
+
