@@ -75,12 +75,13 @@ class RegistrationStartUpTestConfig(UseGnosisSafeHardHatNet, UseACNNode):
 
 @pytest.mark.e2e
 @pytest.mark.integration
+@pytest.mark.parametrize("nb_nodes", (4,))
 class TestRegistrationStartUpFourAgents(
     RegistrationStartUpTestConfig, BaseTestEnd2EndNormalExecution
 ):
     """Test registration start-up skill with four agents."""
 
-    NB_AGENTS = 4
+    # NB_AGENTS = 4
     strict_check_strings = STRICT_CHECK_STRINGS
 
 

@@ -152,6 +152,7 @@ def flask_tendermint(
         f"Launching Tendermint nodes at ports {[tendermint_port + i * 10 for i in range(nb_nodes)]}"
     )
     image = FlaskTendermintDockerImage(client, abci_host, abci_port, tendermint_port)
+
     yield from cast(
         Generator[FlaskTendermintDockerImage, None, None],
         launch_many_containers(image, nb_nodes, timeout, max_attempts),
