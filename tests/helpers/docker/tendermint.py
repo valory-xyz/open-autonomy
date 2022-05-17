@@ -20,10 +20,11 @@
 """Tendermint Docker image."""
 import os
 import re
+import signal
 import subprocess  # nosec
 import time
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any, Dict, IO, List, cast
 
 import docker
 import pytest
@@ -143,7 +144,7 @@ class FlaskTendermintDockerImage(TendermintDockerImage):
             cwd = os.getcwd()
             current_file_folder = os.path.dirname(os.path.realpath(__file__))
             root = current_file_folder.split(os.path.sep)[:-3]
-            os.chdir(os.path.join(os.path.sep, *root))
+            root_path = Path(os.path.join(os.path.sep, *root))
             cmd = [
                 "skaffold",
                 "build",
@@ -152,13 +153,32 @@ class FlaskTendermintDockerImage(TendermintDockerImage):
                 "--push",
                 "false",
             ]
-            subprocess.run(  # nosec
-                cmd,
-                env={
-                    "VERSION": TENDERMINT_VERSION,
-                },
-            )
-            os.chdir(cwd)
+            env = {"VERSION": TENDERMINT_VERSION}
+            try:
+                process = subprocess.Popen(  # nosec # pylint: disable=consider-using-with,W1509
+                    cmd,
+                    preexec_fn=os.setsid,
+                    env=env,
+                    stdout=subprocess.PIPE,
+                    cwd=str(root_path),
+                )
+
+                for line in iter(cast(IO[bytes], process.stdout).readline, ""):
+                    if line == b"":
+                        break
+                    print(f"[Skaffold] {line.decode().strip()}")
+
+            except KeyboardInterrupt:
+                cast(IO[bytes], process.stdout).close()
+                process.send_signal(signal.SIGTERM)
+            process.wait(timeout=30)
+            poll = process.poll()
+            if poll is None:
+                process.terminate()
+                process.wait(2)
+
+            if process.returncode != 0:
+                print("Image build failed.")
 
     @property
     def tag(self) -> str:
