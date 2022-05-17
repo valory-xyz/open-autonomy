@@ -42,7 +42,8 @@ def slow_down_tests() -> Generator:
 # strict check log messages of the happy path
 STRICT_CHECK_STRINGS = (
     # "Local Tendermint configuration obtained",
-    # "ServiceRegistryContract.getServiceInfo response",
+    "ServiceRegistryContract.is_correct_contract response",
+    "ServiceRegistryContract.get_service_info response",
     "Registered addresses retrieved from service registry contract",
     "Completed collecting Tendermint responses",
     # "Local TendermintNode updated",
@@ -84,7 +85,7 @@ class TestRegistrationStartUpFourAgents(
 
 
 @pytest.mark.e2e
-@pytest.mark.integration  # NOTE: looks like other agents crash a little while after first one!
+@pytest.mark.integration
 class TestRegistrationStartUpFourAgentsCatchUp(
     RegistrationStartUpTestConfig, BaseTestEnd2EndAgentCatchup
 ):

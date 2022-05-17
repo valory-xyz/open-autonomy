@@ -130,14 +130,14 @@ class RegistrationStartupBehaviour(RegistrationBaseBehaviour):
             contract_id=str(ServiceRegistryContract.contract_id),
             contract_callable="verify_contract",
         )
-        self.context.logger.info(f"verify_contract response: {contract_api_response}")
         if (
             contract_api_response.performative
             is not ContractApiMessage.Performative.STATE
         ):
             self.context.logger.info("verify_contract call unsuccessful!")
             return False
-        self.context.logger.info(f"VALID response: {contract_api_response}")
+        log_msg = "ServiceRegistryContract.is_correct_contract response"
+        self.context.logger.info(f"{log_msg}: {contract_api_response}")
         return cast(bool, contract_api_response.state.body["verified"])
 
     def get_service_info(self) -> Generator[None, None, dict]:
@@ -157,7 +157,7 @@ class RegistrationStartupBehaviour(RegistrationBaseBehaviour):
             log_msg = "get_service_info unsuccessful with"
             self.context.logger.info(f"{log_msg}: {kwargs}\n{contract_api_response}")
             return {}
-        log_msg = "ServiceRegistryContract.getServiceInfo response"
+        log_msg = "ServiceRegistryContract.get_service_info response"
         self.context.logger.info(f"{log_msg}: {contract_api_response}")
         return cast(dict, contract_api_response.state.body)
 
@@ -179,16 +179,7 @@ class RegistrationStartupBehaviour(RegistrationBaseBehaviour):
             self.context.logger.info("Service info could not be retrieved")
             return False
 
-        # put service info in the shared state for p2p message handler
         registered_addresses = set(service_info["agent_instances"])
-
-        # TEMP: replace for test debugging
-        # on-chain protocol returns addresses one-off
-        self.context.logger.info(f"on-chain addresses: {registered_addresses}")
-        registered_addresses.remove("0x15d34AAf54267DB7D7c367839AAf71A00a2C6A65")
-        registered_addresses.add("0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266")
-        self.context.logger.info(f"addresses after replacement: {registered_addresses}")
-
         if not registered_addresses:
             log_msg = f"No agent instances registered: {service_info}"
             self.context.logger.info(log_msg)
@@ -200,10 +191,9 @@ class RegistrationStartupBehaviour(RegistrationBaseBehaviour):
             self.context.logger.info(f"{log_msg}:\n{registered_addresses}")
             return False
 
-        # setup storage for collected tendermint configuration info
+        # put service info in the shared state for p2p message handler
         info: Dict[str, str] = dict.fromkeys(registered_addresses)
         info[self.context.agent_address] = self.context.params.tendermint_url
-
         self.period_state.db.initial_data.update(dict(registered_addresses=info))
         log_msg = "Registered addresses retrieved from service registry contract"
         self.context.logger.info(f"{log_msg}:\n{info}")
@@ -276,9 +266,6 @@ class RegistrationStartupBehaviour(RegistrationBaseBehaviour):
 
     def async_act(self) -> Generator:
         """Act asynchronously"""
-        # In case of failure:
-        # - Ensure message passing is async, otherwise deadlock
-        # - Ensure all agents connect to the same ACN client node
 
         self.context.logger.info(f"My address: {self.context.agent_address}")
         # sleep to ensure it crashes here, otherwise possible it completes entire registration
