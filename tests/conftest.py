@@ -47,7 +47,7 @@ from tests.helpers.constants import KEY_PAIRS
 from tests.helpers.constants import ROOT_DIR as _ROOT_DIR
 from tests.helpers.contracts import get_register_contract
 from tests.helpers.docker.acn_node import ACNNodeDockerImage, DEFAULT_ACN_CONFIG
-from tests.helpers.docker.base import launch_image
+from tests.helpers.docker.base import launch_image, launch_many_containers
 from tests.helpers.docker.ganache import (
     DEFAULT_GANACHE_ADDR,
     DEFAULT_GANACHE_CHAIN_ID,
@@ -63,6 +63,7 @@ from tests.helpers.docker.tendermint import (
     DEFAULT_ABCI_HOST,
     DEFAULT_ABCI_PORT,
     DEFAULT_TENDERMINT_PORT,
+    FlaskTendermintDockerImage,
     TendermintDockerImage,
 )
 
@@ -109,7 +110,7 @@ ETHEREUM_DEFAULT_LEDGER_CONFIG = {
 ANY_ADDRESS = "0.0.0.0"  # nosec
 
 
-@pytest.fixture()
+@pytest.fixture(scope="session")
 def tendermint_port() -> int:
     """Get the Tendermint port"""
     return DEFAULT_TENDERMINT_PORT
@@ -128,6 +129,33 @@ def tendermint(
     logging.info(f"Launching Tendermint at port {tendermint_port}")
     image = TendermintDockerImage(client, abci_host, abci_port, tendermint_port)
     yield from launch_image(image, timeout=timeout, max_attempts=max_attempts)
+
+
+@pytest.fixture
+def nb_nodes(request: Any) -> int:
+    """Get a parametrized number of nodes."""
+    return request.param
+
+
+@pytest.fixture
+def flask_tendermint(
+    tendermint_port: Any,
+    nb_nodes: int,
+    abci_host: str = DEFAULT_ABCI_HOST,
+    abci_port: int = DEFAULT_ABCI_PORT,
+    timeout: float = 2.0,
+    max_attempts: int = 10,
+) -> Generator[FlaskTendermintDockerImage, None, None]:
+    """Launch the Flask server with Tendermint container."""
+    client = docker.from_env()
+    logging.info(
+        f"Launching Tendermint nodes at ports {[tendermint_port + i * 10 for i in range(nb_nodes)]}"
+    )
+    image = FlaskTendermintDockerImage(client, abci_host, abci_port, tendermint_port)
+    yield from cast(
+        Generator[FlaskTendermintDockerImage, None, None],
+        launch_many_containers(image, nb_nodes, timeout, max_attempts),
+    )
 
 
 @pytest.fixture()

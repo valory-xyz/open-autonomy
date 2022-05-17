@@ -106,8 +106,10 @@ class ImageBuilder:
                 )
             )
 
-            for output in cast(IO[bytes], process.stdout).readlines():
-                print(f"[Skaffold] {output.decode().strip()}")
+            for line in iter(cast(IO[bytes], process.stdout).readline, ""):
+                if line == b"":
+                    break
+                print(f"[Skaffold] {line.decode().strip()}")
 
         except KeyboardInterrupt:
             cast(IO[bytes], process.stdout).close()
