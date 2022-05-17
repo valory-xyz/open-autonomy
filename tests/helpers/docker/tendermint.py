@@ -23,11 +23,10 @@ import re
 import subprocess  # nosec
 import time
 from pathlib import Path
-from typing import Any, Dict, IO, List, cast
+from typing import Any, Dict, List
 
 import docker
 import pytest
-from docker.errors import ImageNotFound
 from docker.models.containers import Container
 
 from aea_swarm.deploy.constants import TENDERMINT_VERSION
@@ -137,38 +136,7 @@ class FlaskTendermintDockerImage(TendermintDockerImage):
 
     def __create_flask_tendermint_image(self) -> None:
         """Create an image of the Flask server with Tendermint."""
-        try:
-            self._client.images.get(self.tag)
-        except ImageNotFound:
-            current_file_folder = os.path.dirname(os.path.realpath(__file__))
-            root = current_file_folder.split(os.path.sep)[:-3]
-            root_path = Path(os.path.join(os.path.sep, *root))
-            cmd = [
-                "skaffold",
-                "build",
-                "-p",
-                "dependencies",
-                "--push",
-                "false",
-            ]
-            env = {"VERSION": TENDERMINT_VERSION}
-            process = (
-                subprocess.Popen(  # nosec # pylint: disable=consider-using-with,W1509
-                    cmd,
-                    preexec_fn=os.setsid,
-                    env=env,
-                    stdout=subprocess.PIPE,
-                    cwd=str(root_path),
-                )
-            )
-
-            for line in iter(cast(IO[bytes], process.stdout).readline, ""):
-                if line == b"":
-                    break
-                print(f"[Skaffold] {line.decode().strip()}")
-            process.wait()
-            if process.returncode != 0:
-                print("Image build failed.")
+        self._client.images.get(self.tag)
 
     @property
     def tag(self) -> str:
