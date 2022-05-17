@@ -20,6 +20,8 @@
 """Integration tests for the valory/oracle_abci skill."""
 import pytest
 
+from aea.configurations.data_types import PublicId
+
 from tests.fixture_helpers import UseGnosisSafeHardHatNet
 from tests.test_agents.base import (
     BaseTestEnd2EndAgentCatchup,
@@ -112,3 +114,35 @@ class TestAgentCatchup(BaseTestEnd2EndAgentCatchup, UseGnosisSafeHardHatNet):
     restart_after = 45
     round_check_strings_to_n_periods = EXPECTED_ROUND_LOG_COUNT
     stop_string = "'registration_startup' round is done with event: Event.DONE"
+
+
+class TestTendermintReset(TestABCIPriceEstimationTwoAgents):
+    """Test the ABCI oracle skill with two agents when resetting Tendermint."""
+
+    skill_package = "valory/oracle_abci:0.1.0"
+    wait_to_finish = 360
+    # run for 8 periods instead of 2
+    round_check_strings_to_n_periods = {
+        round: 8
+        for round in EXPECTED_ROUND_LOG_COUNT.keys()
+        if round
+        in (
+            "estimate_consensus"
+            "tx_hash"
+            "randomness_transaction_submission"
+            "select_keeper_transaction_submission_a"
+            "collect_signature"
+            "finalization"
+            "validate_transaction"
+            "reset_and_pause"
+            "collect_observation"
+        )
+    }
+    __args_prefix = f"vendor.valory.skills.{PublicId.from_str(skill_package).name}.models.params.args"
+    # reset every two rounds
+    extra_configs = [
+        {
+            "dotted_path": f"{__args_prefix}.reset_tendermint_after",
+            "value": 2,
+        },
+    ]
