@@ -152,7 +152,6 @@ class FlaskTendermintDockerImage(TendermintDockerImage):
                 "valory/oracle_hardhat",
                 "--dependencies",
             ]
-            os.putenv("VERSION", "dev")
             subprocess.run(cmd)  # nosec
             os.chdir(cwd)
 
