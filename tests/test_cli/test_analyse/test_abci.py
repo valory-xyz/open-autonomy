@@ -138,7 +138,4 @@ class TestLogParser(BaseAbciTest):
 
         result = self.run_cli(("logs", str(self.log_file)))
         output = re.sub(r"\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])", "", result.stdout)
-
-        (Path("/root/temp.l").write_text(output))
-
         assert output == EXPECTED_OUTPUT
