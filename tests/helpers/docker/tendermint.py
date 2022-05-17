@@ -145,7 +145,6 @@ class FlaskTendermintDockerImage(TendermintDockerImage):
             root = current_file_folder.split(os.path.sep)[:-3]
             os.chdir(os.path.join(os.path.sep, *root))
             cmd = [
-                f"VERSION={TENDERMINT_VERSION}",
                 "skaffold",
                 "build",
                 "-p",
@@ -153,7 +152,12 @@ class FlaskTendermintDockerImage(TendermintDockerImage):
                 "--push",
                 "false",
             ]
-            subprocess.run(cmd)  # nosec
+            subprocess.run(  # nosec
+                cmd,
+                env={
+                    "VERSION": TENDERMINT_VERSION,
+                },
+            )
             os.chdir(cwd)
 
     @property
