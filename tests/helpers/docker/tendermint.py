@@ -145,12 +145,13 @@ class FlaskTendermintDockerImage(TendermintDockerImage):
             root = current_file_folder.split(os.path.sep)[:-3]
             os.chdir(os.path.join(os.path.sep, *root))
             cmd = [
-                "swarm",
-                "deploy",
+                f"VERSION={TENDERMINT_VERSION}",
+                "skaffold",
                 "build",
-                "image",
-                "valory/oracle_hardhat",
-                "--dependencies",
+                "-p",
+                "dependencies",
+                "--push",
+                "false",
             ]
             subprocess.run(cmd)  # nosec
             os.chdir(cwd)
