@@ -18,7 +18,6 @@
 # ------------------------------------------------------------------------------
 
 """HTTP server to control the tendermint execution environment."""
-
 import json
 import logging
 import os
@@ -28,7 +27,6 @@ import traceback
 from pathlib import Path
 from typing import Any, Callable, Dict, Optional, Tuple
 
-from flask import Flask, Response, jsonify, request
 import requests
 from flask import Flask, Response, jsonify, request
 from tendermint import TendermintNode, TendermintParams

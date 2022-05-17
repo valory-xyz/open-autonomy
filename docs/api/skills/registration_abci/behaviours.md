@@ -134,15 +134,15 @@ def get_tendermint_configuration() -> Generator[None, None, bool]
 
 Make HTTP GET request to obtain agent's local Tendermint node parameters
 
-<a id="packages.valory.skills.registration_abci.behaviours.RegistrationStartupBehaviour.get_tendermint_response"></a>
+<a id="packages.valory.skills.registration_abci.behaviours.RegistrationStartupBehaviour.request_tendermint_info"></a>
 
-#### get`_`tendermint`_`response
+#### request`_`tendermint`_`info
 
 ```python
-def get_tendermint_response(address: str) -> Generator[None, None, bool]
+def request_tendermint_info(address: str) -> None
 ```
 
-Get Tendermint response
+Request Tendermint info from other agents
 
 <a id="packages.valory.skills.registration_abci.behaviours.RegistrationStartupBehaviour.update_tendermint"></a>
 

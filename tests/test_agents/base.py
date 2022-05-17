@@ -118,13 +118,11 @@ class BaseTestEnd2End(AEATestCaseMany, BaseTendermintTestClass):
             self.KEEPER_TIMEOUT,
             type_="float",
         )
-
         self.set_config(
             f"vendor.valory.skills.{PublicId.from_str(self.skill_package).name}.models.benchmark_tool.args.log_dir",
             str(self.t),
             type_="str",
         )
-
         self.__set_extra_configs()
 
     def setup(self) -> None:
@@ -149,6 +147,8 @@ class BaseTestEnd2End(AEATestCaseMany, BaseTendermintTestClass):
             self.add_private_key("ethereum", "ethereum_private_key.txt")
             self.__set_configs(node)
             # issue certificates for libp2p proof of representation
+            self.generate_private_key("cosmos", "cosmos_private_key.txt")
+            self.add_private_key("cosmos", "cosmos_private_key.txt")
             self.run_cli_command("issue-certificates", cwd=self._get_cwd())
 
         # run 'aea install' in only one AEA project, to save time
@@ -162,6 +162,19 @@ class BaseTestEnd2End(AEATestCaseMany, BaseTendermintTestClass):
         self.set_agent_context(agent_name)
         process = self.run_agent()
         self.processes.append(process)
+
+    def terminate_processes(self) -> None:
+        """Terminate processes"""
+        for process in self.processes:
+            self.terminate_agents(process)
+            outs, errs = process.communicate()
+            logging.info(f"subprocess logs {process}: {outs} --- {errs}")
+            if not self.is_successfully_terminated(process):
+                warnings.warn(
+                    UserWarning(
+                        f"ABCI agent with process {process} wasn't successfully terminated."
+                    )
+                )
 
     @staticmethod
     def __generate_full_strings_from_rounds(
@@ -207,6 +220,7 @@ class BaseTestEnd2End(AEATestCaseMany, BaseTendermintTestClass):
         # Perform checks for the round strings.
         missing_round_strings = []
         if round_check_strings_to_n_periods is not None:
+            logging.info("Perform checks for the round strings.")
             check_strings_to_n_periods = cls.__generate_full_strings_from_rounds(
                 round_check_strings_to_n_periods
             )
@@ -241,9 +255,6 @@ class BaseTestEnd2End(AEATestCaseMany, BaseTendermintTestClass):
                 )
             ]
 
-        if is_terminating:
-            cls.terminate_agents(kwargs["process"])
-
         return missing_strict_strings, missing_round_strings
 
     @staticmethod
@@ -274,13 +285,6 @@ class BaseTestEnd2End(AEATestCaseMany, BaseTendermintTestClass):
                 missing_strict_strings, missing_round_strings, i
             )
 
-            if not self.is_successfully_terminated(process):
-                warnings.warn(
-                    UserWarning(
-                        f"ABCI agent with process {process} wasn't successfully terminated."
-                    )
-                )
-
 
 class BaseTestEnd2EndNormalExecution(BaseTestEnd2End):
     """Test that the ABCI simple skill works together with Tendermint under normal circumstances."""
@@ -297,6 +301,7 @@ class BaseTestEnd2EndNormalExecution(BaseTestEnd2End):
             sleep_interval=self.HEALTH_CHECK_SLEEP_INTERVAL,
         )
         self._check_aea_messages()
+        self.terminate_processes()
 
 
 class BaseTestEnd2EndAgentCatchup(BaseTestEnd2End):
@@ -345,17 +350,20 @@ class BaseTestEnd2EndAgentCatchup(BaseTestEnd2End):
         )
 
         # stop the last agent as soon as the "stop string" is found in the output
-        process_to_stop = self.processes[-1]
         logging.debug(f"Waiting for string {self.stop_string} in last agent output")
         missing_strict_strings, _ = self.missing_from_output(
-            process=process_to_stop,
+            process=self.processes[-1],
             strict_check_strings=(self.stop_string,),
             timeout=self.wait_before_stop,
         )
         if missing_strict_strings:
             raise RuntimeError("cannot stop agent correctly")
         logging.debug("Last agent stopped")
-        self.processes.pop(-1)
+
+        # immediately terminate the agent
+        self.terminate_agents(self.processes[-1], timeout=0)
+        # don't pop before termination, seems to lead to failure!
+        self.processes.pop()
 
         # wait for some time before restarting
         logging.debug(
@@ -367,3 +375,4 @@ class BaseTestEnd2EndAgentCatchup(BaseTestEnd2End):
         logging.debug("Restart the agent")
         self._launch_agent_i(-1)
         self._check_aea_messages()
+        self.terminate_processes()
