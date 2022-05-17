@@ -24,7 +24,7 @@ import shutil
 import subprocess  # nosec
 import time
 from abc import ABC, abstractmethod
-from typing import Any, Dict, Generator
+from typing import Any, Dict, Generator, List
 
 import docker
 import pytest
@@ -96,6 +96,10 @@ class DockerImage(ABC):
         """Instantiate the image in a container."""
 
     @abstractmethod
+    def create_many(self, nb_containers: int) -> List[Container]:
+        """Instantiate the image in many containers, parametrized."""
+
+    @abstractmethod
     def wait(self, max_attempts: int = 15, sleep_rate: float = 1.0) -> bool:
         """
         Wait until the image is running.
@@ -106,20 +110,23 @@ class DockerImage(ABC):
         """
 
 
-def launch_image(
-    image: DockerImage, timeout: float = 2.0, max_attempts: int = 10
-) -> Generator:
-    """
-    Launch image.
-
-    :param image: an instance of Docker image.
-    :param timeout: timeout to launch
-    :param max_attempts: max launch attempts
-    :yield: image
-    """
+def _pre_launch(image: DockerImage) -> None:
+    """Run pre-launch checks."""
     image.check_skip()
     image.stop_if_already_running()
-    container = image.create()
+
+
+def _start_container(
+    image: DockerImage, container: Container, timeout: float, max_attempts: int
+) -> None:
+    """
+    Start a container.
+
+    :param image: an instance of Docker image.
+    :param container: the container to start, created from the image.
+    :param timeout: timeout to launch
+    :param max_attempts: max launch attempts
+    """
     container.start()
     logger.info(f"Setting up image {image.tag}...")
     success = image.wait(max_attempts, timeout)
@@ -131,11 +138,53 @@ def launch_image(
     else:
         logger.info("Done!")
         time.sleep(timeout)
-        yield image
-        logger.info(f"Stopping the image {image.tag}...")
-        container.stop()
-        logger.info("Logs from container:\n%s", container.logs().decode())
-        container.remove()
+
+
+def _stop_container(container: Container, tag: str) -> None:
+    """Stop a container."""
+    logger.info(f"Stopping container from image {tag}...")
+    container.stop()
+    logger.info("Logs from container:\n%s", container.logs().decode())
+    container.remove()
+
+
+def launch_image(
+    image: DockerImage, timeout: float = 2.0, max_attempts: int = 10
+) -> Generator[DockerImage, None, None]:
+    """
+    Launch a single container.
+
+    :param image: an instance of Docker image.
+    :param timeout: timeout to launch
+    :param max_attempts: max launch attempts
+    :yield: image
+    """
+    _pre_launch(image)
+    container = image.create()
+    _start_container(image, container, timeout, max_attempts)
+    yield image
+    _stop_container(container, image.tag)
+
+
+def launch_many_containers(
+    image: DockerImage, nb_containers: int, timeout: float = 2.0, max_attempts: int = 10
+) -> Generator[DockerImage, None, None]:
+    """
+    Launch many containers from an image.
+
+    :param image: an instance of Docker image.
+    :param nb_containers: the number of containers to launch from the image.
+    :param timeout: timeout to launch
+    :param max_attempts: max launch attempts
+    :yield: image
+    """
+    _pre_launch(image)
+    containers = image.create_many(nb_containers)
+    for container in containers:
+        _start_container(image, container, timeout, max_attempts)
+    yield image
+    for container in containers:
+        _stop_container(container, image.tag)
 
 
 class DockerBaseTest(ABC):
