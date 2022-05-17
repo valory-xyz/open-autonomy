@@ -24,4 +24,3 @@ transition_func:
     (SelectKeeperAtStartupRound, DONE): ResetAndPauseRound
     (SelectKeeperAtStartupRound, NO_MAJORITY): RegistrationRound
     (SelectKeeperAtStartupRound, ROUND_TIMEOUT): RegistrationRound
-
