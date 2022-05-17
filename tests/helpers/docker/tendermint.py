@@ -20,7 +20,6 @@
 """Tendermint Docker image."""
 import os
 import re
-import signal
 import subprocess  # nosec
 import time
 from pathlib import Path
@@ -153,29 +152,21 @@ class FlaskTendermintDockerImage(TendermintDockerImage):
                 "false",
             ]
             env = {"VERSION": TENDERMINT_VERSION}
-            try:
-                process = subprocess.Popen(  # nosec # pylint: disable=consider-using-with,W1509
+            process = (
+                subprocess.Popen(  # nosec # pylint: disable=consider-using-with,W1509
                     cmd,
                     preexec_fn=os.setsid,
                     env=env,
                     stdout=subprocess.PIPE,
                     cwd=str(root_path),
                 )
+            )
 
-                for line in iter(cast(IO[bytes], process.stdout).readline, ""):
-                    if line == b"":
-                        break
-                    print(f"[Skaffold] {line.decode().strip()}")
-
-            except KeyboardInterrupt:
-                cast(IO[bytes], process.stdout).close()
-                process.send_signal(signal.SIGTERM)
-            process.wait(timeout=30)
-            poll = process.poll()
-            if poll is None:
-                process.terminate()
-                process.wait(2)
-
+            for line in iter(cast(IO[bytes], process.stdout).readline, ""):
+                if line == b"":
+                    break
+                print(f"[Skaffold] {line.decode().strip()}")
+            process.wait()
             if process.returncode != 0:
                 print("Image build failed.")
 
