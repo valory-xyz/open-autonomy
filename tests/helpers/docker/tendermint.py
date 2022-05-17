@@ -141,7 +141,6 @@ class FlaskTendermintDockerImage(TendermintDockerImage):
         try:
             self._client.images.get(self.tag)
         except ImageNotFound:
-            cwd = os.getcwd()
             current_file_folder = os.path.dirname(os.path.realpath(__file__))
             root = current_file_folder.split(os.path.sep)[:-3]
             root_path = Path(os.path.join(os.path.sep, *root))
