@@ -45,7 +45,7 @@ STRICT_CHECK_STRINGS = (
 class TestHelloWorldABCIFourAgents(
     BaseTestEnd2EndNormalExecution,
 ):
-    """Test that the ABCI simple_abci skill with four agents."""
+    """Test the ABCI hello_world skill with four agents."""
 
     agent_package = "valory/hello_world:0.1.0"
     skill_package = "valory/hello_world_abci:0.1.0"
