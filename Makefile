@@ -1,6 +1,6 @@
 OPEN_AEA_REPO_PATH := "${OPEN_AEA_REPO_PATH}"
 DEPLOYMENT_TYPE := "${DEPLOYMENT_TYPE}"
-DEPLOYMENT_SPEC := "${DEPLOYMENT_SPEC}"
+SERVICE_ID := "${SERVICE_ID}"
 PLATFORM_STR := $(shell uname)
 
 .PHONY: clean
@@ -11,7 +11,6 @@ clean-build:
 	rm -fr build/
 	rm -fr dist/
 	rm -fr .eggs/
-	rm -fr deployments/build/build
 	rm -fr deployments/Dockerfiles/open_aea/packages
 	rm -fr pip-wheel-metadata
 	find . -name '*.egg-info' -exec rm -fr {} +
@@ -313,7 +312,7 @@ run-oracle:
 
 .PHONY: run-deploy
 run-deploy:
-	cd deployments/build/
+	cd abci_build/
 	docker-compose up --force-recreate -t 600
 
 
@@ -321,10 +320,10 @@ run-deploy:
 run-deployment:
 	if [ "${PLATFORM_STR}" = "Linux" ];\
 	then\
-		mkdir -p deployments/persistent_data/logs
-		mkdir -p deployments/persistent_data/venvs
-		sudo chown -R 1000:1000 -R deployments/persistent_data/logs
-		sudo chown -R 1000:1000 -R deployments/persistent_data/venvs
+		mkdir -p abci_build/persistent_data/logs
+		mkdir -p abci_build/persistent_data/venvs
+		sudo chown -R 1000:1000 -R abci_build/persistent_data/logs
+		sudo chown -R 1000:1000 -R abci_build/persistent_data/venvs
 	fi
 	if [ "${DEPLOYMENT_TYPE}" = "docker-compose" ];\
 	then\
@@ -364,7 +363,7 @@ build-deploy:
 	fi
 	echo "Building deployment for ${DEPLOYMENT_TYPE} ${DEPLOYMENT_KEYS} ${SERVICE_ID}"
 	
-	if [ "${DEPLOYMENT_TYPE}" = "docker-compose" ];\
+	if [ "${DEPLOYMENT_TYPE}" = "kubernetes" ];\
 	then\
 		swarm deploy build deployment ${SERVICE_ID} ${DEPLOYMENT_KEYS} --kubernetes --force
 		exit 0
