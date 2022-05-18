@@ -150,10 +150,9 @@ def _stop_container(container: Container, tag: str) -> None:
             f"Logs from container {container.name}:\n{container.logs().decode()}"
         )
         if str(container.name).startswith("node"):
-            with open("logs.tar", "wb") as f:
-                bits, _ = container.get_archive(f"/logs/{container.name}.txt")
-                for chunk in bits:
-                    logger.info(chunk.decode())
+            bits, _ = container.get_archive(f"/logs/{container.name}.txt")
+            for chunk in bits:
+                logger.info(chunk.decode())
     except (ImageNotFound, NotFound) as e:
         logger.error(e)
     finally:
