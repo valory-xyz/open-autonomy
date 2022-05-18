@@ -114,14 +114,14 @@ class TestAgentCatchup(BaseTestEnd2EndAgentCatchup, UseGnosisSafeHardHatNet):
     stop_string = "'registration_startup' round is done with event: Event.DONE"
 
 
-class TestTendermintReset(TestABCIPriceEstimationTwoAgents):
-    """Test the ABCI oracle skill with two agents when resetting Tendermint."""
+class TestTendermintReset(TestABCIPriceEstimationFourAgents):
+    """Test the ABCI oracle skill with four agents when resetting Tendermint."""
 
     skill_package = "valory/oracle_abci:0.1.0"
     wait_to_finish = 360
-    # run for 8 periods instead of 2
+    # run for 4 periods instead of 2
     round_check_strings_to_n_periods = {
-        round: 8
+        round: 4
         for round in EXPECTED_ROUND_LOG_COUNT.keys()
         if round
         in (
