@@ -64,7 +64,7 @@ DEPLOYMENT_TYPE=kubernetes
 DEPLOYMENT_KEYS=deployments/keys/hardhat_keys.json
 SERVICE_ID=valory/oracle_hardhat
 
- make push-images build-deploy run-deploy
+make push-images build-deploy run-deploy
 ```
 
-This will deploy a hardhat network to the cluster, along with the associated tendermint node.
+This will deploy a hardhat node to the cluster, along with the associated tendermint node.
