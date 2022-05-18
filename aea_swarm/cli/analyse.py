@@ -28,6 +28,7 @@ import click
 
 from aea_swarm.analyse.abci.app_spec import DFA, SpecCheck
 from aea_swarm.analyse.abci.docstrings import process_module
+from aea_swarm.analyse.abci.handlers import check_handlers
 from aea_swarm.analyse.abci.logs import parse_file
 from aea_swarm.analyse.benchmark.aggregate import BlockTypes, aggregate
 from aea_swarm.cli.utils.click_utils import abci_spec_format_flag
@@ -152,6 +153,32 @@ def parse_logs(file: Path) -> None:
 
     try:
         parse_file(str(file))
+    except Exception as e:  # pylint: disable=broad-except
+        raise click.ClickException(str(e)) from e
+
+
+@abci_group.command(name="check-handlers")
+@click.argument(
+    "packages_dir",
+    type=click.Path(dir_okay=True, exists=True),
+    default=Path.cwd() / "packages",
+)
+@click.option(
+    "--handler-config",
+    type=click.Path(),
+    default=Path.cwd() / "scripts" / "handler_config.py",
+)
+def run_handler_check(packages_dir: Path, handler_config: Path) -> None:
+    """Check handler definitions."""
+    handler_config_file = Path(handler_config).relative_to(Path.cwd())
+    module_name = str(handler_config_file).replace(".py", "").replace("/", ".")
+    handler_config_module = importlib.import_module(module_name)
+
+    packages_dir = Path(packages_dir).absolute()
+    try:
+        for yaml_file in packages_dir.glob("**/skill.yaml"):
+            click.echo(f"Checking {yaml_file.parent}")
+            check_handlers(yaml_file, handler_config_module)
     except Exception as e:  # pylint: disable=broad-except
         raise click.ClickException(str(e)) from e
 
