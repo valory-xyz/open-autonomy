@@ -31,4 +31,4 @@ is_transition_func_total  # unused method (aea_swarm/analyse/abci/app_spec.py:11
 get_transitions  # unused method (aea_swarm/analyse/abci/app_spec.py:134)
 generat_abci_app_pecs  # unused function (aea_swarm/cli/analyse.py:52)
 check_abci_app_specs  # unused function (aea_swarm/cli/analyse.py:79)
-run_handler_check # unused function (aea_swarm/cli/analyse.py:159)
+run_handler_check  # unused function (aea_swarm/cli/analyse.py:159)
