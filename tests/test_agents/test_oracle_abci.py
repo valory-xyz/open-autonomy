@@ -18,6 +18,8 @@
 # ------------------------------------------------------------------------------
 
 """Integration tests for the valory/oracle_abci skill."""
+import pytest
+
 from tests.fixture_helpers import UseGnosisSafeHardHatNet
 from tests.test_agents.base import (
     BaseTestEnd2EndAgentCatchup,
@@ -57,13 +59,13 @@ STRICT_CHECK_STRINGS = (
 )
 
 
+@pytest.mark.parametrize("nb_nodes", (1,))
 class TestABCIPriceEstimationSingleAgent(
     BaseTestEnd2EndNormalExecution,
     UseGnosisSafeHardHatNet,
 ):
-    """Test that the ABCI oracle skill with only one agent."""
+    """Test the ABCI oracle skill with only one agent."""
 
-    NB_AGENTS = 1
     agent_package = "valory/oracle:0.1.0"
     skill_package = "valory/oracle_abci:0.1.0"
     wait_to_finish = 180
@@ -71,13 +73,13 @@ class TestABCIPriceEstimationSingleAgent(
     round_check_strings_to_n_periods = EXPECTED_ROUND_LOG_COUNT
 
 
+@pytest.mark.parametrize("nb_nodes", (2,))
 class TestABCIPriceEstimationTwoAgents(
     BaseTestEnd2EndNormalExecution,
     UseGnosisSafeHardHatNet,
 ):
-    """Test that the ABCI oracle skill with two agents."""
+    """Test the ABCI oracle skill with two agents."""
 
-    NB_AGENTS = 2
     agent_package = "valory/oracle:0.1.0"
     skill_package = "valory/oracle_abci:0.1.0"
     wait_to_finish = 180
@@ -85,13 +87,13 @@ class TestABCIPriceEstimationTwoAgents(
     round_check_strings_to_n_periods = EXPECTED_ROUND_LOG_COUNT
 
 
+@pytest.mark.parametrize("nb_nodes", (4,))
 class TestABCIPriceEstimationFourAgents(
     BaseTestEnd2EndNormalExecution,
     UseGnosisSafeHardHatNet,
 ):
-    """Test that the ABCI oracle skill with four agents."""
+    """Test the ABCI oracle skill with four agents."""
 
-    NB_AGENTS = 4
     agent_package = "valory/oracle:0.1.0"
     skill_package = "valory/oracle_abci:0.1.0"
     wait_to_finish = 180
@@ -99,14 +101,14 @@ class TestABCIPriceEstimationFourAgents(
     round_check_strings_to_n_periods = EXPECTED_ROUND_LOG_COUNT
 
 
+@pytest.mark.parametrize("nb_nodes", (4,))
 class TestAgentCatchup(BaseTestEnd2EndAgentCatchup, UseGnosisSafeHardHatNet):
     """Test that an agent that is launched later can synchronize with the rest of the network"""
 
-    NB_AGENTS = 4
     agent_package = "valory/oracle:0.1.0"
     skill_package = "valory/oracle_abci:0.1.0"
     KEEPER_TIMEOUT = 30
-    wait_to_finish = 180
+    wait_to_finish = 200
     restart_after = 45
     round_check_strings_to_n_periods = EXPECTED_ROUND_LOG_COUNT
     stop_string = "'registration_startup' round is done with event: Event.DONE"

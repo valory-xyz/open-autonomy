@@ -11,7 +11,7 @@ fingerprint:
   __init__.py: QmexF3zcMh8ZETYFKv4od3HFXqMT3CYGfpMm8HXXa7oWa6
   behaviours.py: QmZpUAL6x4FM6FA4mpdRWDtp1jUyMScc2oy6izRtVJaFQF
   dialogues.py: QmdBmUMWoPbS2faqn8LicQVJfN6a2WjtdZDWFbiYoy7hfY
-  fsm_specification.yaml: QmQud8eWv16JEarcwBGsgDUFKVxaL3y5dLYpQ8qCMr7UHn
+  fsm_specification.yaml: QmPpKTMjxvKz6zzpyRLhgfmGzohGvMa67JzV7XPtKGayLw
   handlers.py: QmSLoyFCRkCW5iXpHzwfoUduANi9JU9BoRUghwBhbUnRcP
   models.py: QmYeU8MtzqcsdabUDqQRcfKsnAGjpvBxJZ2dfRHdPQnudM
   payloads.py: QmR99Myja4scfiZpNrUkFfSHAZ3VthG3Ppx7wnk7M7UiWi
@@ -25,7 +25,7 @@ contracts:
 protocols:
 - valory/contract_api:1.0.0:QmTZgtH8LbnFxqpGf2zuwSEdG4awPgvsag6jTYgX9GXDgy
 skills:
-- valory/abstract_round_abci:0.1.0:QmYJgbvJ6PStEMej1H5tK9rrg7byJi8gcZE3CQNX7EUfjR
+- valory/abstract_round_abci:0.1.0:QmSFgNf4sZs77UhitbQgQVeQCJHxe7xPq7uhh7Joe2e2Wc
 behaviours:
   main:
     args: {}

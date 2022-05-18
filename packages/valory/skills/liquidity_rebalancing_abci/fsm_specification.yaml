@@ -41,4 +41,3 @@ transition_func:
     (SwapBackTransactionHashRound, DONE): FinishedSwapBackTransactionHashRound
     (SwapBackTransactionHashRound, NO_MAJORITY): StrategyEvaluationRound
     (SwapBackTransactionHashRound, ROUND_TIMEOUT): StrategyEvaluationRound
-

@@ -18,6 +18,8 @@
 # ------------------------------------------------------------------------------
 
 """Analyse CLI module."""
+import importlib
+import sys
 from pathlib import Path
 from typing import Optional
 from warnings import filterwarnings
@@ -27,6 +29,7 @@ import click
 from aea_swarm.analyse.abci.docstrings import process_module
 from aea_swarm.analyse.abci.logs import parse_file
 from aea_swarm.analyse.benchmark.aggregate import BlockTypes, aggregate
+from aea_swarm.cli.utils.click_utils import abci_spec_format_flag
 
 
 filterwarnings("ignore")
@@ -40,6 +43,75 @@ def analyse_group() -> None:
 @analyse_group.group(name="abci")
 def abci_group() -> None:
     """Analyse ABCI apps."""
+
+
+@abci_group.command(name="generate-app-specs")
+@click.argument("app_class", type=str)
+@click.argument("output_file", type=click.Path())
+@abci_spec_format_flag()
+def generat_abci_app_pecs(app_class: str, output_file: Path, spec_format: str) -> None:
+    """Generate abci app specs."""
+
+    module_name, class_name = app_class.rsplit(".", 1)
+
+    try:
+        module = importlib.import_module(module_name)
+    except Exception as e:
+        raise Exception(
+            f'Failed to load "{module_name}". Please, verify that '
+            "AbciApps and classes are correctly defined within the module. "
+        ) from e
+
+    if not hasattr(module, class_name):
+        raise Exception(f'Class "{class_name}" is not in "{module_name}".')
+
+    abci_app_cls = getattr(module, class_name)
+    output_file = Path(output_file).absolute()
+    dfa = DFA.abci_to_dfa(abci_app_cls, app_class)
+    dfa.dump(output_file, spec_format)
+    click.echo("Done")
+
+
+@abci_group.command(name="check-app-specs")
+@click.option(
+    "--check-all", type=bool, is_flag=True, help="Check all available definitions."
+)
+@click.option(
+    "--packages-dir",
+    type=click.Path(),
+    default=Path.cwd() / "packages",
+    help="Path to packages directory; Use with `--check-all` flag",
+)
+@abci_spec_format_flag()
+@click.option("--app_class", type=str, help="Dotted path to app definition class.")
+@click.option("--infile", type=click.Path(), help="Path to input file.")
+def check_abci_app_specs(
+    check_all: bool, packages_dir: Path, spec_format: str, app_class: str, infile: Path
+) -> None:
+    """Check abci app specs."""
+
+    if check_all:
+        packages_dir = Path(packages_dir).absolute()
+        SpecCheck.check_all(packages_dir)
+    else:
+        if app_class is None:
+            print("Please provide class name for ABCI app.")
+            sys.exit(1)
+
+        if infile is None:
+            print("Please provide path to specification file.")
+            sys.exit(1)
+
+        if SpecCheck.check_one(
+            informat=spec_format,
+            infile=str(infile),
+            classfqn=app_class,
+        ):
+            print("Check successful")
+            sys.exit(0)
+
+        print("Check failed.")
+        sys.exit(1)
 
 
 @abci_group.command(name="docstrings")

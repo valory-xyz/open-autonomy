@@ -10,7 +10,7 @@ fingerprint:
   __init__.py: Qme3M7NKyV7CstshfUBthu38q2UTFDctBc3Ar1aK3LRBDr
   behaviours.py: QmXyZ94RSXGKwZ9tjkMf3VAaCS2zF3tbd1rcLiMPi4LX2C
   dialogues.py: QmfDThV4WCRzK88XDpW2hKDYCuEH4RxoHCoAkWpkBRGRPv
-  fsm_specification.yaml: QmWMofiURpyQ4ggFmiYCdmVB4imVX7U6ACo371EAB9L14h
+  fsm_specification.yaml: QmTVVBdh15143sgSTA9DgXYrrPQzVgog1BC87fN1ym9U4o
   handlers.py: QmZXDriJtB3cN8NBWrYLVpFekWMZdjm8veF97oLrGFRot3
   models.py: QmaS5Qvg6DtqkTixSyQpHFJQaLfx1hgmodVKD2zbtjzW6i
   payloads.py: QmVUVKakCZrUQxqU3fmkzLjk6fjbKtr7zxe9pRMBvjEPW5
@@ -28,7 +28,7 @@ protocols:
 - valory/http:1.0.0:QmbjfzjKMuRmwbQysyaciASxvY67vGJYj7zjGYADgNux5h
 - valory/ledger_api:1.0.0:QmWQSUkGAbzU8tqs7K8BguabbKHUZkbxuMk1M4LBFAwdun
 skills:
-- valory/abstract_round_abci:0.1.0:QmYJgbvJ6PStEMej1H5tK9rrg7byJi8gcZE3CQNX7EUfjR
+- valory/abstract_round_abci:0.1.0:QmSFgNf4sZs77UhitbQgQVeQCJHxe7xPq7uhh7Joe2e2Wc
 behaviours:
   main:
     args: {}
