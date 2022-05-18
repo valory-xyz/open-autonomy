@@ -26,6 +26,7 @@ from warnings import filterwarnings
 
 import click
 
+from aea_swarm.analyse.abci.app_spec import DFA, SpecCheck
 from aea_swarm.analyse.abci.docstrings import process_module
 from aea_swarm.analyse.abci.logs import parse_file
 from aea_swarm.analyse.benchmark.aggregate import BlockTypes, aggregate
