@@ -14,11 +14,11 @@ In the remaining of this section, we will consider [Tendermint](https://tendermi
 
     ABCI applications are only reactive and specify how
     a transaction updates the application state.
-    On the other hand, {{valory_app}}s rely on the low-level ABCI application layer to replicate the state consistently among different instances,
+    On the other hand, {{agent_service}}s rely on the low-level ABCI application layer to replicate the state consistently among different instances,
     but they also exhibit _proactive behaviour_. For example, periodically
     execute some routines, monitor the value of the crypto assets of the final customer, etc.
 
-    In other words, {{valory_app}}s rely on the underlying ABCI, but a {{valory_app}} **is not** an ABCI application.
+    In other words, {{agent_service}}s rely on the underlying ABCI, but an {{agent_service}} **is not** an ABCI application.
 
 
 ## Brief Overview of Tendermint

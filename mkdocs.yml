@@ -19,8 +19,10 @@ nav:
     - Autonomous Economic Agents: 'aea.md'
     - Finite State Machines: 'fsm.md'
     - Application BlockChain Interface: 'abci.md'
-  - ABCI Applications:
-    - Introduction: 'abci_app_intro.md'
+  - FSM Apps:
+    - Introduction to FSM Apps: 'fsm_app_introduction.md'
+    - Composition of FSM Apps: 'fsm_app_composition.md'
+    - Components of an FSM App: 'fsm_app_components.md'
     - ABCIApp: 'abci_app_class.md'
     - AbstractRoundBehaviour: 'abci_app_abstract_round_behaviour.md'
     - AsyncBehaviour: 'abci_app_async_behaviour.md'
@@ -125,12 +127,12 @@ markdown_extensions:
   - md_in_html
 
 extra:
-    valory_stack: '[Valory stack](https://davidminarsch.github.io/temp-docs-valory/)'
-    valory_stack_api: '[Valory stack API](https://davidminarsch.github.io/temp-docs-valory/)'
+    valory_stack: '[Valory Stack](https://davidminarsch.github.io/temp-docs-valory/)'
+    valory_stack_api: '[Valory Stack API](https://davidminarsch.github.io/temp-docs-valory/)'
     open_aea: '[Open AEA](https://github.com/valory-xyz/open-aea)'
     open_aea_doc: '[Open AEA documentation](https://valory-xyz.github.io/open-aea)'
     open_aea_api: '[Open AEA API](https://valory-xyz.github.io/open-aea/api/)'
-    abci_app: 'ABCI App'
+    fsm_app: 'FSM App'
     agent_service: 'Agent Service'
 
 

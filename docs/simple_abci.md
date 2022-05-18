@@ -4,7 +4,7 @@
     For clarity, the snippets of code presented here are a simplified version of the actual
     implementation. We refer the reader to the {{valory_stack_api}} for the complete details.
 
-The Simple {{abci_app}} is a _Hello World_ application that demonstrates how to use the {{valory_stack}}. The goal is to provide the minimum background so that users can start developing their own {{valory_app}}s, and to showcase how AEAs interact with local Tendermint nodes. Indeed, we recommend that new users use the Simple {{abci_app}} as the starting point for developing their own {{valory_app}}s.
+The Simple {{abci_app}} is a _Hello World_ application that demonstrates how to use the {{valory_stack}}. The goal is to provide the minimum background so that users can start developing their own {{agent_service}}s, and to showcase how AEAs interact with local Tendermint nodes. Indeed, we recommend that new users use the Simple {{abci_app}} as the starting point for developing their own {{agent_service}}s.
 
 Roughly speaking, on a successful execution of a period of the application (i.e., no timeouts, no error conditions, etc.), the following actions would occur in order:
 

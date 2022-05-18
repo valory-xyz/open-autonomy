@@ -2,7 +2,7 @@
 
 _Consensus algorithms_ implements the {{valory_stack}}, which provides a framework for the creation of _{{agent_service}}s_: off-chain services which run as a multi-agent-system (MAS), and are crypto-economically secured on a local, temporary consensus gadget (blockchain), and which are operated in a robust, transparent and decentralized way.
 
-The framework implemented by the {{valory_stack}} allows to define such services by means of _{{abci_app}}s_. These dynamic, decentralized apps constitute the actual code of the agents implementing the {{agent_service}}, and their internal state is replicated across agents automatically thanks to the consensus gadget. The {{valory_stack}} is realized on top of the {{open_aea}} framework.
+The framework implemented by the {{valory_stack}} allows to define such services by means of _{{fsm_app}}s_. These dynamic, decentralized apps constitute the actual code of the agents implementing the {{agent_service}}, and their internal state is replicated across agents automatically through the consensus gadget. The {{valory_stack}} is realized on top of the {{open_aea}} framework.
 
 <figure markdown>
 ![](./images/agent_service_architecture.svg)
@@ -19,24 +19,26 @@ Decentralized ledger technologies, such as blockchains, face several challenges,
 * [cross chain compatibility](https://101blockchains.com/blockchain-interoperability/), ...
 * ... and the sheer complexity of the user experience!
 
-With the increasing growth of on-chain applications (particularly in DeFi) the off-chain design space has seen a lack of innovation. A lot of the technology is centralized, lacks fault tolerance and offers little composability.
+In contrast with the increasing growth of on-chain applications (particularly in DeFi), the off-chain design space has seen a lack of innovation. A lot of the technology is centralized, lacks fault tolerance and offers little composability.
 
-{{agent_service}}s, on the other hand, go beyond simple, purely
-reactive applications (like traditional smart contracts) and can show complex, proactive behaviours that contain off-chain logic without giving up on decentralization.
 
 However, a standardised approach for off-chain application development in the context of DLTs is missing. This is where the {{valory_stack}} comes in, as an open-source framework for developers to implement their own off-chain applications which are secured on-chain.
 
 
 <figure markdown>
 ![](./images/centralized_decentralized_world.svg)
-<figcaption>The Valory Stack allows to develop decentralized, off-chain services that are crypto-economically secure</figcaption>
+<figcaption>The Valory Stack allows to develop decentralized, off-chain services that are crypto-economically secured</figcaption>
 </figure>
 
 
-## How it Works?
+{{agent_service}}s go beyond simple, purely
+reactive applications (like traditional smart contracts) and can show complex, proactive behaviours that contain off-chain logic without giving up on decentralization.
+
+
+## How It Works
 
 {{open_aea}} is a MAS framework for building
-arbitrary agent-based apps. The {{valory_stack}} extends this framework to a service architecture, where applications are implemented as sets of agents. The {{abci_app}} defines a series of steps that each agent in the {{agent_service}} must agree upon. At the end of every step, the agents must reach consensus on its outputs. This ensures that the execution flow, its
+arbitrary agent-based apps. The {{valory_stack}} extends this framework to a service architecture, where applications are implemented as sets of agents. The {{fsm_app}} defines a series of steps that each agent in the {{agent_service}} must agree upon. At the end of every step, the agents must reach consensus on its outputs. This ensures that the execution flow, its
 inputs and its outputs are replicated across all agents, creating a distributed and
 decentralized application with shared state that is fault tolerant.
 
@@ -44,14 +46,14 @@ If at some point the application must execute an action involving an external se
 settling a transaction on a blockchain, one of the agents is randomly nominated to perform that action. The nominated agent is known as a _keeper_. The nomination process is also agreed by consensus, and multi-signature protocols are used to avoid that a single, malicious agent executes an external action on its own.
 For this reason, there is the requirement that a minimum number of agents approve and sign every action before it takes place, and it also must be verified once it has been processed. The threshold on the minimum number of agents is typically set at 2/3 of the total of agents.
 
-## Where to Start?
+## Where to Start
 
-We recommend that new users of the {{valory_stack}} start reading the the [_Get Started_](./get_started.md) section, which should give a general overview about how a simple {{agent_service}} is implemented with the stack.
+We recommend that new users start by reading the the [_Get Started_](./get_started.md) section, which should give a general overview about how a simple {{agent_service}} is implemented with the stack.
 
 Following that introduction, the reader can proceed to explore the core concepts that make {{agent_service}}s possible, presented in the _Preliminaries_ section:
 
-- _Autonomous economic agent (AEA)_ and _multi-agent system (MAS)_,
-- _Finite-state machine (FSM)_,
-- _Application BlockChain Interface (ABCI)_.
+- _Autonomous economic agents (AEAs)_ and _multi-agent systems (MAS)_,
+- _Finite-state machines (FSMs)_,
+- the _Application BlockChain Interface (ABCI)_.
 
 These concepts constitute the starting point before exploring more advanced parts of the documentation.
