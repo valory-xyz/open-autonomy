@@ -92,6 +92,27 @@ def parse_logs(file: Path) -> None
 
 Parse logs.
 
+<a id="aea_swarm.cli.analyse.run_handler_check"></a>
+
+#### run`_`handler`_`check
+
+```python
+@abci_group.command(name="check-handlers")
+@click.argument(
+    "packages_dir",
+    type=click.Path(dir_okay=True, exists=True),
+    default=Path.cwd() / "packages",
+)
+@click.option(
+    "--handler-config",
+    type=click.Path(),
+    default=Path.cwd() / "scripts" / "handler_config.py",
+)
+def run_handler_check(packages_dir: Path, handler_config: Path) -> None
+```
+
+Check handler definitions.
+
 <a id="aea_swarm.cli.analyse.benchmark"></a>
 
 #### benchmark

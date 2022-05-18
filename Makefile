@@ -241,7 +241,6 @@ install-hooks:
 
 .ONESHELL: build-images
 build-images:
-	sudo make clean
 	if [ "${VERSION}" = "" ];\
 	then\
 		echo "Ensure you have exported a version to build!";\
@@ -251,10 +250,11 @@ build-images:
 	if [ "${VERSION}" = "dev" ];\
 	then\
 		echo "building dev images!";\
-	 	swarm deploy build image ${SERVICE_ID} --dev && exit 0
+	 	swarm deploy build image ${SERVICE_ID} \
+			--dev && exit 0
 		exit 1
 	fi
-	swarm deploy build image ${SERVICE_ID} && exit 0
+	swarm deploy build image ${SERVICE_ID} --version ${VERSION} && exit 0
 	exit 1
 
 .ONESHELL: push-images
@@ -310,14 +310,9 @@ run-oracle:
 		swarm deploy build deployment valory/oracle_hardhat deployments/keys/hardhat_keys.json --force && \
 		make run-deploy
 
+
 .PHONY: run-deploy
 run-deploy:
-	cd abci_build/
-	docker-compose up --force-recreate -t 600
-
-
-.PHONY: run-deployment
-run-deployment:
 	if [ "${PLATFORM_STR}" = "Linux" ];\
 	then\
 		mkdir -p abci_build/persistent_data/logs
@@ -327,7 +322,7 @@ run-deployment:
 	fi
 	if [ "${DEPLOYMENT_TYPE}" = "docker-compose" ];\
 	then\
-		cd deployments/build/ &&  \
+		cd abci_build/ &&  \
 		docker-compose up --force-recreate -t 600
 		exit 0
 	fi
@@ -337,7 +332,7 @@ run-deployment:
 		kubectl create secret generic regcred \
           --from-file=.dockerconfigjson=/home/$(shell whoami)/.docker/config.json \
           --type=kubernetes.io/dockerconfigjson -n ${VERSION}
-		cd deployments/build/ && \
+		cd abci_build/ && \
 		kubectl apply -f build.yaml -n ${VERSION} && exit 0
 	fi
 	echo "Please ensure you have set the environment variable 'DEPLOYMENT_TYPE'"
@@ -362,15 +357,20 @@ build-deploy:
 		exit 1
 	fi
 	echo "Building deployment for ${DEPLOYMENT_TYPE} ${DEPLOYMENT_KEYS} ${SERVICE_ID}"
-	
+
 	if [ "${DEPLOYMENT_TYPE}" = "kubernetes" ];\
 	then\
 		swarm deploy build deployment ${SERVICE_ID} ${DEPLOYMENT_KEYS} --kubernetes --force
 		exit 0
 	fi
+	if [ "${VERSION}" = "dev" ];\
+	then\
+		swarm deploy build deployment ${SERVICE_ID} ${DEPLOYMENT_KEYS} --docker --dev --force
+		exit 0
+	fi
+	swarm deploy build deployment ${SERVICE_ID} ${DEPLOYMENT_KEYS} --docker
 
-	swarm deploy build deployment ${SERVICE_ID} ${DEPLOYMENT_KEYS} --force
-	
+
 protolint_install:
 	GO111MODULE=on GOPATH=~/go go get -u -v github.com/yoheimuta/protolint/cmd/protolint@v0.27.0
 
