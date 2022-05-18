@@ -264,7 +264,7 @@ push-images:
 		echo "Ensure you have exported a version to build!";\
 		exit 1
 	fi
-	swarm deploy build image ${SERVICE_ID} --dev --dependencies --push || (echo failed && exit 1)
+	swarm deploy build image ${SERVICE_ID} --dependencies --push || (echo failed && exit 1)
 	if [ "${VERSION}" = "dev" ];\
 	then\
 		echo "building dev images!";\
@@ -272,7 +272,6 @@ push-images:
 		exit 0
 	fi
 	swarm deploy build image ${SERVICE_ID} --version ${VERSION} --prod --push || (echo failed && exit 1)
-#	python deployments/click_create.py build-images --deployment-file-path ${DEPLOYMENT_SPEC} --profile prod --push && exit 0
 	exit 0
 
 .PHONY: run-hardhat
@@ -359,6 +358,11 @@ build-deploy:
 
 	if [ "${DEPLOYMENT_TYPE}" = "kubernetes" ];\
 	then\
+		if [ "${VERSION}" = "cluster-dev" ];\
+		then\
+			swarm deploy build deployment ${SERVICE_ID} ${DEPLOYMENT_KEYS} --kubernetes --force --dev
+			exit 0
+		fi
 		swarm deploy build deployment ${SERVICE_ID} ${DEPLOYMENT_KEYS} --kubernetes --force
 		exit 0
 	fi
