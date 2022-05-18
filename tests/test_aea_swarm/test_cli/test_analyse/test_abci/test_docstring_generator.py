@@ -85,6 +85,7 @@ class TestDocstrings(BaseCliTest):
         """Test after check"""
 
         packages_dir = self.t.relative_to(Path.cwd()) / "packages"
+        self.run_cli((str(packages_dir),))
         result = self.run_cli((str(packages_dir), "--check"))
 
         expcted_output = self._get_expected_output()
@@ -98,6 +99,8 @@ class TestDocstrings(BaseCliTest):
         """Test after check"""
 
         packages_dir = self.t.relative_to(Path.cwd()) / "packages"
+        self.run_cli((str(packages_dir),))
+
         self._corrupt_round_file()
         result = self.run_cli((str(packages_dir), "--check"))
         self._fix_round_file()
@@ -117,6 +120,8 @@ class TestDocstrings(BaseCliTest):
         """Test after check"""
 
         packages_dir = self.t.relative_to(Path.cwd()) / "packages"
+        self.run_cli((str(packages_dir),))
+
         self._corrupt_round_file()
         result = self.run_cli((str(packages_dir),))
 
