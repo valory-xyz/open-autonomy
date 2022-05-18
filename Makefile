@@ -241,7 +241,6 @@ install-hooks:
 
 .ONESHELL: build-images
 build-images:
-	sudo make clean
 	if [ "${VERSION}" = "" ];\
 	then\
 		echo "Ensure you have exported a version to build!";\
@@ -251,10 +250,13 @@ build-images:
 	if [ "${VERSION}" = "dev" ];\
 	then\
 		echo "building dev images!";\
-	 	swarm deploy build image ${SERVICE_ID} --dev && exit 0
+	 	swarm deploy build image ${SERVICE_ID} \
+			--dev \
+			--version ${VERSION} \
+			&& exit 0
 		exit 1
 	fi
-	swarm deploy build image ${SERVICE_ID} && exit 0
+	swarm deploy build image ${SERVICE_ID} --version ${VERSION} && exit 0
 	exit 1
 
 .ONESHELL: push-images
