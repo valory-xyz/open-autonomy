@@ -228,7 +228,7 @@ jobs:
         os: [ ubuntu-latest ]
         python-version: [ 3.7 ]
 
-    timeout-minutes: 40
+    timeout-minutes: 50
 
     steps:
       - uses: actions/checkout@master
