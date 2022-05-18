@@ -83,7 +83,7 @@ type: skill
 models:
   benchmark_tool:
     args:
-      log_dir: ${SKILL_ORACLE_ABCI_MODELS_BENCHMARK_TOOL_ARGS_LOG_DIR:str:/benchmarking}
+      log_dir: ${SKILL_ORACLE_ABCI_MODELS_BENCHMARK_TOOL_ARGS_LOG_DIR:str:/benchmarks}
   price_api:
     args:
       url: ${SKILL_ORACLE_ABCI_MODELS_PRICE_API_ARGS_URL:str}

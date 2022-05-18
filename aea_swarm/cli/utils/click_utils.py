@@ -23,6 +23,7 @@ from typing import Callable
 
 import click
 
+from aea_swarm.analyse.abci.app_spec import DFA
 from aea_swarm.deploy.image import ImageProfiles
 
 
@@ -39,6 +40,26 @@ def image_profile_flag(
                 flag_value=profile,
                 help=f"To use the {profile} profile.",
                 default=(profile == default) and mark_default,
+            )(f)
+
+        return f
+
+    return wrapper
+
+
+def abci_spec_format_flag(
+    default: str = DFA.OutputFormats.YAML, mark_default: bool = True
+) -> Callable:
+    """Flags for abci spec outputs formats."""
+
+    def wrapper(f: Callable) -> Callable:
+        for of in DFA.OutputFormats.ALL:
+            f = click.option(
+                f"--{of}",
+                "spec_format",
+                flag_value=of,
+                help=f"{of.title()} file.",
+                default=(of == default) and mark_default,
             )(f)
 
         return f

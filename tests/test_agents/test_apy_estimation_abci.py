@@ -65,31 +65,29 @@ class BaseTestABCIAPYEstimationSkillNormalExecution(BaseTestEnd2EndNormalExecuti
 
 
 @pytest.mark.skip
+@pytest.mark.parametrize("nb_nodes", (1,))
 class TestABCIAPYEstimationSingleAgent(
     BaseTestABCIAPYEstimationSkillNormalExecution,
     UseGnosisSafeHardHatNet,
 ):
     """Test the ABCI apy_estimation_abci skill with only one agent."""
 
-    NB_AGENTS = 1
-
 
 @pytest.mark.skip
+@pytest.mark.parametrize("nb_nodes", (2,))
 class TestABCIAPYEstimationTwoAgents(
     BaseTestABCIAPYEstimationSkillNormalExecution,
     UseGnosisSafeHardHatNet,
 ):
-    """Test that the ABCI apy_estimation_abci skill with two agents."""
-
-    NB_AGENTS = 2
+    """Test the ABCI apy_estimation_abci skill with two agents."""
 
 
 @pytest.mark.skip
+@pytest.mark.parametrize("nb_nodes", (4,))
 class TestABCIAPYEstimationFourAgents(
     BaseTestABCIAPYEstimationSkillNormalExecution,
     UseGnosisSafeHardHatNet,
 ):
-    """Test that the ABCI apy_estimation_abci skill with four agents."""
+    """Test the ABCI apy_estimation_abci skill with four agents."""
 
-    NB_AGENTS = 4
     wait_to_finish = 300

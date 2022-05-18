@@ -18,6 +18,7 @@
 # ------------------------------------------------------------------------------
 
 """End2end tests for the valory/simple_abci skill."""
+import pytest
 
 from tests.test_agents.base import BaseTestEnd2EndNormalExecution
 
@@ -34,12 +35,12 @@ EXPECTED_ROUND_LOG_COUNT = {
 STRICT_CHECK_STRINGS = ("Period end",)
 
 
+@pytest.mark.parametrize("nb_nodes", (1,))
 class TestSimpleABCISingleAgent(
     BaseTestEnd2EndNormalExecution,
 ):
-    """Test that the ABCI simple_abci skill with only one agent."""
+    """Test the ABCI simple_abci skill with only one agent."""
 
-    NB_AGENTS = 1
     agent_package = "valory/simple_abci:0.1.0"
     skill_package = "valory/simple_abci:0.1.0"
     wait_to_finish = 80
@@ -48,12 +49,12 @@ class TestSimpleABCISingleAgent(
     use_benchmarks = True
 
 
+@pytest.mark.parametrize("nb_nodes", (2,))
 class TestSimpleABCITwoAgents(
     BaseTestEnd2EndNormalExecution,
 ):
-    """Test that the ABCI simple_abci skill with two agents."""
+    """Test the ABCI simple_abci skill with two agents."""
 
-    NB_AGENTS = 2
     agent_package = "valory/simple_abci:0.1.0"
     skill_package = "valory/simple_abci:0.1.0"
     wait_to_finish = 120
@@ -61,12 +62,12 @@ class TestSimpleABCITwoAgents(
     strict_check_strings = STRICT_CHECK_STRINGS
 
 
+@pytest.mark.parametrize("nb_nodes", (4,))
 class TestSimpleABCIFourAgents(
     BaseTestEnd2EndNormalExecution,
 ):
-    """Test that the ABCI simple_abci skill with four agents."""
+    """Test the ABCI simple_abci skill with four agents."""
 
-    NB_AGENTS = 4
     agent_package = "valory/simple_abci:0.1.0"
     skill_package = "valory/simple_abci:0.1.0"
     wait_to_finish = 120

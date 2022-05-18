@@ -18,9 +18,9 @@
 # ------------------------------------------------------------------------------
 
 """Docker-compose Deployment Generator."""
-import os
+import subprocess  # nosec
 from pathlib import Path
-from typing import Dict
+from typing import Dict, IO, cast
 
 from aea_swarm.constants import (
     DEFAULT_IMAGE_VERSION,
@@ -120,8 +120,16 @@ class DockerComposeGenerator(BaseDeploymentGenerator):
                 if f != ""
             ]
         )
-        for line in os.popen(self.tendermint_job_config).read().split("\n"):  # nosec
-            print(f"[Tendermint] {line}")
+
+        process = subprocess.Popen(  # pylint: disable=consider-using-with  # nosec
+            self.tendermint_job_config.split(),
+            stdout=subprocess.PIPE,
+            universal_newlines=True,
+        )
+        for line in iter(cast(IO[str], process.stdout).readline, ""):
+            if line == "":
+                break
+            print(f"[Tendermint] {line.strip()}")
 
         return self
 

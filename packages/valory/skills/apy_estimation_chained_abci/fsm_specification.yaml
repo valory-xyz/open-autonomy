@@ -87,4 +87,3 @@ transition_func:
     (UpdateForecasterRound, FILE_ERROR): RegistrationRound
     (UpdateForecasterRound, NO_MAJORITY): UpdateForecasterRound
     (UpdateForecasterRound, ROUND_TIMEOUT): UpdateForecasterRound
-

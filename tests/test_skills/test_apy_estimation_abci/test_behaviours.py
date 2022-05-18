@@ -191,19 +191,21 @@ class TestFetchAndBatchBehaviours(APYEstimationFSMBehaviourBaseCase):
             skill_context=self.behaviour.context,
         )
 
-        handling_generator = cast(
-            FetchBehaviour, self.behaviour.current_state
-        )._handle_response(None, "test_context", ("", 0), specs)
-        next(handling_generator)
-        time.sleep(SLEEP_TIME_TWEAK + 0.01)
-        try:
-            next(handling_generator)
-        except StopIteration as res:
-            assert res.value is None
         with caplog.at_level(
             logging.ERROR,
             logger="aea.test_agent_name.packages.valory.skills.apy_estimation_abci",
         ):
+            handling_generator = cast(
+                FetchBehaviour, self.behaviour.current_state
+            )._handle_response(None, "test_context", ("", 0), specs)
+            next(handling_generator)
+            time.sleep(SLEEP_TIME_TWEAK + 0.01)
+
+            try:
+                next(handling_generator)
+            except StopIteration as res:
+                assert res.value is None
+
             assert (
                 "[test_agent_name] Could not get test_context from test" in caplog.text
             )

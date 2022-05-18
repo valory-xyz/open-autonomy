@@ -29,15 +29,16 @@ import pytest
 from aea.configurations.base import PublicId
 from aea.test_tools.test_cases import AEATestCaseMany
 
-from tests.helpers.tendermint_utils import (
-    BaseTendermintTestClass,
-    TendermintLocalNetworkBuilder,
-    TendermintNodeInfo,
-)
+from tests.conftest import ANY_ADDRESS
+from tests.fixture_helpers import UseFlaskTendermintNode
+
+
+_HTTP = "http://"
 
 
 @pytest.mark.e2e
-class BaseTestEnd2End(AEATestCaseMany, BaseTendermintTestClass):
+@pytest.mark.integration
+class BaseTestEnd2End(AEATestCaseMany, UseFlaskTendermintNode):
     """
     Base class for end-to-end tests of agents with a skill extending the abstract_abci_round skill.
 
@@ -45,10 +46,9 @@ class BaseTestEnd2End(AEATestCaseMany, BaseTendermintTestClass):
     agents with the configured (agent_package) agent, and a Tendermint network
     of 'n' nodes, one for each agent.
 
-    Test subclasses must set NB_AGENTS, agent_package, wait_to_finish and check_strings.
+    Test subclasses must set `agent_package`, `wait_to_finish` and `check_strings`.
     """
 
-    NB_AGENTS: int
     IS_LOCAL = True
     capture_log = True
     ROUND_TIMEOUT_SECONDS = 10.0
@@ -72,33 +72,37 @@ class BaseTestEnd2End(AEATestCaseMany, BaseTendermintTestClass):
         for config in self.extra_configs:
             self.set_config(**config)
 
-    def __set_configs(self, node: TendermintNodeInfo) -> None:
+    def __set_configs(self, i: int) -> None:
         """Set the current agent's config overrides."""
         # each agent has its Tendermint node instance
         self.set_config(
+            "vendor.valory.connections.abci.config.host",
+            ANY_ADDRESS,
+        )
+        self.set_config(
             "vendor.valory.connections.abci.config.port",
-            node.abci_port,
+            self.get_abci_port(i),
+        )
+        self.set_config(
+            "vendor.valory.connections.abci.config.use_tendermint",
+            False,
         )
         self.set_config(
             "vendor.valory.connections.abci.config.tendermint_config.rpc_laddr",
-            node.rpc_laddr,
+            self.get_laddr(i),
         )
         self.set_config(
             "vendor.valory.connections.abci.config.tendermint_config.p2p_laddr",
-            node.p2p_laddr,
-        )
-        self.set_config(
-            "vendor.valory.connections.abci.config.tendermint_config.home",
-            str(node.home),
+            self.get_laddr(i, p2p=True),
         )
         self.set_config(
             "vendor.valory.connections.abci.config.tendermint_config.p2p_seeds",
-            json.dumps(self.tendermint_net_builder.get_p2p_seeds()),
+            json.dumps(self.p2p_seeds),
             "list",
         )
         self.set_config(
             f"vendor.valory.skills.{PublicId.from_str(self.skill_package).name}.models.params.args.consensus.max_participants",
-            self.NB_AGENTS,
+            self.nb_agents,
         )
         self.set_config(
             f"vendor.valory.skills.{PublicId.from_str(self.skill_package).name}.models.params.args.reset_tendermint_after",
@@ -111,7 +115,11 @@ class BaseTestEnd2End(AEATestCaseMany, BaseTendermintTestClass):
         )
         self.set_config(
             f"vendor.valory.skills.{PublicId.from_str(self.skill_package).name}.models.params.args.tendermint_url",
-            node.get_http_addr("localhost"),
+            f"{_HTTP}{ANY_ADDRESS}:{self.get_port(i)}",
+        )
+        self.set_config(
+            f"vendor.valory.skills.{PublicId.from_str(self.skill_package).name}.models.params.args.tendermint_com_url",
+            f"{_HTTP}{ANY_ADDRESS}:{self.get_com_port(i)}",
         )
         self.set_config(
             f"vendor.valory.skills.{PublicId.from_str(self.skill_package).name}.models.params.args.keeper_timeout",
@@ -123,19 +131,45 @@ class BaseTestEnd2End(AEATestCaseMany, BaseTendermintTestClass):
             str(self.t),
             type_="str",
         )
+
         self.__set_extra_configs()
 
-    def setup(self) -> None:
-        """Set up the test."""
-        self.agent_names = [f"agent_{i:05d}" for i in range(self.NB_AGENTS)]
-        self.processes = []
-        self.tendermint_net_builder = TendermintLocalNetworkBuilder(
-            self.NB_AGENTS, Path(self.t)
-        )
+    def __get_agent_name(self, i: int) -> str:
+        """Get the ith agent's name."""
+        if i < 0:
+            i = self.nb_agents + i
+        if i < 0:
+            raise ValueError(
+                f"Incorrect negative indexing. {i} was given, but {self.nb_agents} agents are available!"
+            )
+        agent_name = f"agent_{i:05d}_{self.nb_agents}agents_run"
+        return agent_name
 
-        for agent_id, agent_name in enumerate(self.agent_names):
+    @classmethod
+    def setup_class(
+        cls,
+    ) -> None:
+        """Setup class."""
+        super().setup_class()
+
+        for dir_path in [
+            "logs",
+            "nodes",
+            "tm_state",
+            "benchmarks",
+        ]:
+            path = Path(cls.t, dir_path)
+            path.mkdir()
+            os.chmod(path, 755)  # nosec
+
+    def prepare(self, nb_nodes: int) -> None:
+        """Set up the test."""
+        self.processes = []
+        self.nb_agents = nb_nodes
+
+        for agent_id in range(self.nb_agents):
+            agent_name = self.__get_agent_name(agent_id)
             logging.debug(f"Processing agent {agent_name}...")
-            node = self.tendermint_net_builder.nodes[agent_id]
             self.fetch_agent(self.agent_package, agent_name, is_local=self.IS_LOCAL)
             self.set_agent_context(agent_name)
             if hasattr(self, "key_pairs"):
@@ -145,19 +179,19 @@ class BaseTestEnd2End(AEATestCaseMany, BaseTendermintTestClass):
             else:
                 self.generate_private_key("ethereum", "ethereum_private_key.txt")
             self.add_private_key("ethereum", "ethereum_private_key.txt")
-            self.__set_configs(node)
+            self.__set_configs(agent_id)
             # issue certificates for libp2p proof of representation
             self.generate_private_key("cosmos", "cosmos_private_key.txt")
             self.add_private_key("cosmos", "cosmos_private_key.txt")
             self.run_cli_command("issue-certificates", cwd=self._get_cwd())
 
         # run 'aea install' in only one AEA project, to save time
-        self.set_agent_context(self.agent_names[0])
+        self.set_agent_context(self.__get_agent_name(0))
         self.run_install()
 
     def _launch_agent_i(self, i: int) -> None:
         """Launch the i-th agent."""
-        agent_name = self.agent_names[i]
+        agent_name = self.__get_agent_name(i)
         logging.debug(f"Launching agent {agent_name}...")
         self.set_agent_context(agent_name)
         process = self.run_agent()
@@ -220,7 +254,7 @@ class BaseTestEnd2End(AEATestCaseMany, BaseTendermintTestClass):
         # Perform checks for the round strings.
         missing_round_strings = []
         if round_check_strings_to_n_periods is not None:
-            logging.info("Perform checks for the round strings.")
+            logging.info("Performing checks for the round strings.")
             check_strings_to_n_periods = cls.__generate_full_strings_from_rounds(
                 round_check_strings_to_n_periods
             )
@@ -289,14 +323,14 @@ class BaseTestEnd2End(AEATestCaseMany, BaseTendermintTestClass):
 class BaseTestEnd2EndNormalExecution(BaseTestEnd2End):
     """Test that the ABCI simple skill works together with Tendermint under normal circumstances."""
 
-    def test_run(self) -> None:
+    def test_run(self, nb_nodes: int) -> None:
         """Run the ABCI skill."""
-        for agent_id in range(self.NB_AGENTS):
+        self.prepare(nb_nodes)
+        for agent_id in range(self.nb_agents):
             self._launch_agent_i(agent_id)
 
         logging.info("Waiting Tendermint nodes to be up")
         self.health_check(
-            self.tendermint_net_builder,
             max_retries=self.HEALTH_CHECK_MAX_RETRIES,
             sleep_interval=self.HEALTH_CHECK_SLEEP_INTERVAL,
         )
@@ -334,17 +368,15 @@ class BaseTestEnd2EndAgentCatchup(BaseTestEnd2End):
         """Set up the test."""
         if not hasattr(self, "stop_string"):
             pytest.fail("'stop_string' is a mandatory argument.")
-        super().setup()
 
-    def test_run(self) -> None:
+    def test_run(self, nb_nodes: int) -> None:
         """Run the test."""
-
-        for agent_id in range(self.NB_AGENTS):
+        self.prepare(nb_nodes)
+        for agent_id in range(self.nb_agents):
             self._launch_agent_i(agent_id)
 
         logging.info("Waiting Tendermint nodes to be up")
         self.health_check(
-            self.tendermint_net_builder,
             max_retries=self.HEALTH_CHECK_MAX_RETRIES,
             sleep_interval=self.HEALTH_CHECK_SLEEP_INTERVAL,
         )

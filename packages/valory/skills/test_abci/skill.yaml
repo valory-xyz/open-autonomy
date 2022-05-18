@@ -1,0 +1,106 @@
+name: test_abci
+author: valory
+version: 0.1.0
+type: skill
+description: ABCI application for testing the ABCI connection.
+license: Apache-2.0
+aea_version: '>=1.0.0, <2.0.0'
+fingerprint:
+  README.md: QmXpdkXUoLn7t8hjdtHmsYNFn4cAJboQLLogQd2Lcm5gzZ
+  __init__.py: QmZ2k9kr2CxmQyFHKnGH9rTThZcvqt2zZbsfY6mdjeMYrM
+  behaviours.py: QmYTUmnQukPiQG4Xm1GM6xU4kNXaQ1t8zPtQd9T8xBaXgm
+  dialogues.py: QmfDThV4WCRzK88XDpW2hKDYCuEH4RxoHCoAkWpkBRGRPv
+  handlers.py: QmXcEVxKYCmTRgz9Nzkck7BP9NRKAEYwMozib9DPDBsQT4
+  models.py: QmVYcGngs9aohsEJQ9MBTswftBs3FA5BnxfESUZHhwjPA1
+  payloads.py: QmRZcMJdv1tvkQAtDsoQYxdhswjrRQ9Cdi2TFnyEvfrQPr
+  rounds.py: QmbJC28WHqm8LVJhrnwfnHzQydbcgKhN7f7QNMdTgn53xp
+fingerprint_ignore_patterns: []
+connections:
+- valory/abci:0.1.0:QmaPFp3Jwf6uv9VSAoMJfJHFS9ESPeX8hCB7HLi41c8WzS
+- valory/http_client:0.1.0:QmakgWmx4CGuQuafUELiceH53N8HfgdfkQJpem7iYy9MVN
+contracts: []
+protocols:
+- valory/abci:0.1.0:QmaPFp3Jwf6uv9VSAoMJfJHFS9ESPeX8hCB7HLi41c8WzS
+- valory/http:1.0.0:QmbjfzjKMuRmwbQysyaciASxvY67vGJYj7zjGYADgNux5h
+skills:
+- valory/abstract_round_abci:0.1.0:QmSFgNf4sZs77UhitbQgQVeQCJHxe7xPq7uhh7Joe2e2Wc
+behaviours:
+  main:
+    args: {}
+    class_name: TestAbciConsensusBehaviour
+handlers:
+  abci:
+    args: {}
+    class_name: TestABCIHandler
+  contract_api:
+    args: {}
+    class_name: ContractApiHandler
+  http:
+    args: {}
+    class_name: HttpHandler
+  ledger_api:
+    args: {}
+    class_name: LedgerApiHandler
+  signing:
+    args: {}
+    class_name: SigningHandler
+models:
+  abci_dialogues:
+    args: {}
+    class_name: AbciDialogues
+  benchmark_tool:
+    args:
+      log_dir: /logs
+    class_name: BenchmarkTool
+  contract_api_dialogues:
+    args: {}
+    class_name: ContractApiDialogues
+  http_dialogues:
+    args: {}
+    class_name: HttpDialogues
+  ledger_api_dialogues:
+    args: {}
+    class_name: LedgerApiDialogues
+  params:
+    args:
+      cleanup_history_depth: 1
+      consensus:
+        max_participants: 1
+      drand_public_key: 868f005eb8e6e4ca0a47c8a77ceaa5309a47978a7c71bc5cce96366b5d7a569937c529eeda66c7293784a9402801af31
+      keeper_timeout: 30.0
+      max_healthcheck: 120
+      observation_interval: 10
+      period_setup: {}
+      reset_tendermint_after: 2
+      retry_attempts: 400
+      retry_timeout: 3
+      round_timeout_seconds: 30
+      service_id: test_abci
+      sleep_time: 1
+      tendermint_check_sleep_delay: 10
+      tendermint_com_url: http://localhost:8080
+      tendermint_max_retries: 5
+      tendermint_url: http://localhost:26657
+    class_name: Params
+  randomness_api:
+    args:
+      api_id: cloudflare
+      headers: []
+      method: GET
+      parameters: []
+      response_key: null
+      response_type: dict
+      retries: 5
+      url: https://drand.cloudflare.com/public/latest
+    class_name: RandomnessApi
+  requests:
+    args: {}
+    class_name: Requests
+  signing_dialogues:
+    args: {}
+    class_name: SigningDialogues
+  state:
+    args: {}
+    class_name: SharedState
+dependencies: {}
+is_abstract: false
