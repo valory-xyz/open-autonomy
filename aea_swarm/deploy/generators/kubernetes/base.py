@@ -30,6 +30,7 @@ from aea_swarm.deploy.constants import TENDERMINT_CONFIGURATION_OVERRIDES
 from aea_swarm.deploy.generators.kubernetes.templates import (
     AGENT_NODE_TEMPLATE,
     CLUSTER_CONFIGURATION_TEMPLATE,
+    HARDHAT_TEMPLATE,
 )
 
 
@@ -116,6 +117,8 @@ class KubernetesGenerator(BaseDeploymentGenerator):
     ) -> "KubernetesGenerator":
         """Generate the deployment."""
 
+        if dev_mode:
+            self.resources.append(HARDHAT_TEMPLATE)
         agent_vars = self.deployment_spec.generate_agents()  # type:ignore
         agent_vars = self._apply_cluster_specific_tendermint_params(agent_vars)
         agent_vars = self.get_deployment_network_configuration(agent_vars)

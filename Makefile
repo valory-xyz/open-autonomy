@@ -269,7 +269,7 @@ push-images:
 	then\
 		echo "building dev images!";\
 		swarm deploy build image ${SERVICE_ID} --dev --push || (echo failed && exit 1)
-		exit 1
+		exit 0
 	fi
 	swarm deploy build image ${SERVICE_ID} --version ${VERSION} --prod --push || (echo failed && exit 1)
 #	python deployments/click_create.py build-images --deployment-file-path ${DEPLOYMENT_SPEC} --profile prod --push && exit 0
@@ -396,11 +396,11 @@ teardown-docker-compose:
 teardown-kubernetes:
 	if [ "${VERSION}" = "" ];\
 	then\
-		echo "Ensure you have exported a version to build!";\
+		echo "Ensure you have exported a version to teardown!";\
 		exit 1
 	fi
-	kubectl delete ns ${VERSION} && exit 0
-	exit 1
+	kubectl delete ns ${VERSION}
+	echo "Done!"
 
 .PHONY: check_abci_specs
 check_abci_specs:
