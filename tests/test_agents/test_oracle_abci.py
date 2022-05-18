@@ -144,3 +144,29 @@ class TestTendermintReset(TestABCIPriceEstimationFourAgents):
             "value": 2,
         },
     ]
+
+
+class TestTendermintResetInterrupt(TestAgentCatchup):
+    """Test the ABCI oracle skill with four agents when an agent gets temporarily interrupted on Tendermint reset."""
+
+    skill_package = "valory/oracle_abci:0.1.0"
+    cli_log_options = ["-v", "INFO"]
+    wait_before_stop = 100
+    restart_after = .01
+    __n_resets_to_perform = 2
+    __reset_tendermint_every = 2
+
+    # stop for restart_after seconds when resetting Tendermint for the first time (using -1 because count starts from 0)
+    stop_string = f"Resetting tendermint node at end of period={__reset_tendermint_every - 1}"
+    # check if we manage to reset with Tendermint `__n_resets_to_perform` times
+    round_check_strings_to_n_periods = {
+        "reset_and_pause": __n_resets_to_perform * __reset_tendermint_every
+    }
+    __args_prefix = f"vendor.valory.skills.{PublicId.from_str(skill_package).name}.models.params.args"
+    # reset every `__reset_tendermint_every` rounds
+    extra_configs = [
+        {
+            "dotted_path": f"{__args_prefix}.reset_tendermint_after",
+            "value": __reset_tendermint_every,
+        },
+    ]
