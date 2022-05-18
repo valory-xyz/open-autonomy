@@ -365,12 +365,11 @@ build-deploy:
 	fi
 	if [ "${VERSION}" = "dev" ];\
 	then\
-		swarm deploy build deployment ${SERVICE_ID} ${DEPLOYMENT_KEYS} --docker-compose --dev --force
+		swarm deploy build deployment ${SERVICE_ID} ${DEPLOYMENT_KEYS} --docker --dev --force
 		exit 0
 	fi
-	swarm deploy build deployment ${SERVICE_ID} ${DEPLOYMENT_KEYS} --docker-compose
+	swarm deploy build deployment ${SERVICE_ID} ${DEPLOYMENT_KEYS} --docker
 
-	swarm deploy build deployment ${SERVICE_ID} ${DEPLOYMENT_KEYS} --force
 
 protolint_install:
 	GO111MODULE=on GOPATH=~/go go get -u -v github.com/yoheimuta/protolint/cmd/protolint@v0.27.0
