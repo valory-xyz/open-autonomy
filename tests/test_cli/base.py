@@ -47,6 +47,7 @@ class BaseCliTest:
         cls.cli_runner = CliRunner()
         cls.cwd = Path.cwd().absolute()
         cls.t = Path(tempfile.mkdtemp())
+        cls.t.mkdir(exist_ok=True)
 
     def run_cli(self, commands: Tuple[str, ...]) -> Result:
         """Run CLI."""
