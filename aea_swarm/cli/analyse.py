@@ -125,6 +125,7 @@ def check_abci_app_specs(
 def docstrings(packages_dir: Path, check: bool) -> None:
     """Analyse ABCI docstring definitions."""
 
+    packages_dir = Path(packages_dir)
     needs_update = set()
     abci_compositions = packages_dir.glob("*/skills/*/rounds.py")
 

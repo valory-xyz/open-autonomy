@@ -17,8 +17,7 @@
 #
 # ------------------------------------------------------------------------------
 
-"""Tests for abci sub command."""
-
+"""Test log parser."""
 
 import re
 import tempfile
@@ -97,7 +96,3 @@ class TestLogParser(BaseCliTest):
         self._check_output(
             TEST_LOGS_WITH_MISSING_EVENTS, EXPECTED_OUTPUT_WITH_MISSING_EVENTS
         )
-
-
-class TestDocstrings(BaseCliTest):
-    """Test `swarm analyse abci docstrings`."""
