@@ -55,7 +55,7 @@ make run-oracle-dev
 
 ## Debugging in the cluster
 
-When debugging deployments, it can be useful to have the option to spin up a hardhat node to enable debugging and testing of the issue.
+When debugging deployments, it can be useful to have the option to spin up a hardhat node to enable debugging and testing of the issue within the cluster.
 
 
 ```bash
