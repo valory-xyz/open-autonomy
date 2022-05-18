@@ -67,4 +67,4 @@ SERVICE_ID=valory/oracle_hardhat
 make push-images build-deploy run-deploy
 ```
 
-This will deploy a hardhat node to the cluster, along with the associated tendermint node.
+This will deploy a private hardhat container to the cluster, along with the associated agent service, configured to use the hardhat container.
