@@ -257,23 +257,23 @@ build-images:
 	swarm deploy build image ${SERVICE_ID} --version ${VERSION} && exit 0
 	exit 1
 
-.ONESHELL: push-images
+.ONESHELL: build-images push-images
 push-images:
-	sudo make clean
 	if [ "${VERSION}" = "" ];\
 	then\
 		echo "Ensure you have exported a version to build!";\
 		exit 1
 	fi
-	python deployments/click_create.py build-images --deployment-file-path ${DEPLOYMENT_SPEC} --profile dependencies --push || (echo failed && exit 1)
+	swarm deploy build image ${SERVICE_ID} --dev --dependencies --push || (echo failed && exit 1)
 	if [ "${VERSION}" = "dev" ];\
 	then\
 		echo "building dev images!";\
-	 	python deployments/click_create.py build-images --deployment-file-path ${DEPLOYMENT_SPEC} --profile dev --push && exit 0
+		swarm deploy build image ${SERVICE_ID} --dev --push || (echo failed && exit 1)
 		exit 1
 	fi
-	python deployments/click_create.py build-images --deployment-file-path ${DEPLOYMENT_SPEC} --profile prod --push && exit 0
-	exit 1
+	swarm deploy build image ${SERVICE_ID} --version ${VERSION} --prod --push || (echo failed && exit 1)
+#	python deployments/click_create.py build-images --deployment-file-path ${DEPLOYMENT_SPEC} --profile prod --push && exit 0
+	exit 0
 
 .PHONY: run-hardhat
 run-hardhat:
@@ -328,12 +328,11 @@ run-deploy:
 	fi
 	if [ "${DEPLOYMENT_TYPE}" = "kubernetes" ];\
 	then\
-		kubectl create ns ${VERSION}
+		kubectl create ns ${VERSION}|| (echo "failed to deploy to namespace already existing!" && exit 0)
 		kubectl create secret generic regcred \
           --from-file=.dockerconfigjson=/home/$(shell whoami)/.docker/config.json \
-          --type=kubernetes.io/dockerconfigjson -n ${VERSION}
-		cd abci_build/ && \
-		kubectl apply -f build.yaml -n ${VERSION} && exit 0
+          --type=kubernetes.io/dockerconfigjson -n ${VERSION} || (echo failed to create secret && exit 1)
+		cd abci_build/ && kubectl apply -f build.yaml -n ${VERSION} && exit 0
 	fi
 	echo "Please ensure you have set the environment variable 'DEPLOYMENT_TYPE'"
 	exit 1
