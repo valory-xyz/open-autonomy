@@ -24,10 +24,7 @@ from warnings import filterwarnings
 
 import click
 
-from aea_swarm.analyse.abci.docstrings import (
-    check_working_tree_is_dirty,
-    process_module,
-)
+from aea_swarm.analyse.abci.docstrings import process_module
 from aea_swarm.analyse.abci.logs import parse_file
 from aea_swarm.analyse.benchmark.aggregate import BlockTypes, aggregate
 
@@ -55,20 +52,23 @@ def abci_group() -> None:
 def docstrings(packages_dir: Path, check: bool) -> None:
     """Analyse ABCI docstring definitions."""
 
-    no_update = set()
+    needs_update = set()
     abci_compositions = packages_dir.glob("*/skills/*/rounds.py")
+
     for path in sorted(abci_compositions):
         click.echo(f"Processing: {path}")
-        file = process_module(path)
-        if file is not None:
-            no_update.add(file)
+        if process_module(path, check=check):
+            needs_update.add(str(path))
 
-    if check:
-        check_working_tree_is_dirty()
+    if len(needs_update) > 0:
+        file_string = "\n".join(sorted(needs_update))
+        if check:
+            raise click.ClickException(
+                f"Following files needs updating.\n\n{file_string}"
+            )
+        click.echo(f"\nUpdated following files.\n\n{file_string}")
     else:
-        if len(no_update) > 0:
-            click.echo("\nFollowing files doesn't need to be updated.\n")
-            click.echo("\n".join(sorted(no_update)))
+        click.echo("No update needed.")
 
 
 @abci_group.command(name="logs")
