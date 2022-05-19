@@ -377,7 +377,7 @@ class FetchBehaviour(
             # Finish behaviour.
             with self.context.benchmark_tool.measure(self.state_id).consensus():
                 yield from self.send_a2a_transaction(payload)
-                yield from self.wait_until_period_end()
+                yield from self.wait_until_round_end()
 
             self.set_done()
 
@@ -481,7 +481,7 @@ class TransformBehaviour(APYEstimationBaseState):
         # Finish behaviour.
         with self.context.benchmark_tool.measure(self.state_id).consensus():
             yield from self.send_a2a_transaction(payload)
-            yield from self.wait_until_period_end()
+            yield from self.wait_until_round_end()
 
         self.set_done()
 
@@ -560,7 +560,7 @@ class PreprocessBehaviour(APYEstimationBaseState):
         # Finish behaviour.
         with self.context.benchmark_tool.measure(self.state_id).consensus():
             yield from self.send_a2a_transaction(payload)
-            yield from self.wait_until_period_end()
+            yield from self.wait_until_round_end()
 
         self.set_done()
 
@@ -643,7 +643,7 @@ class PrepareBatchBehaviour(APYEstimationBaseState):
         # Finish behaviour.
         with self.context.benchmark_tool.measure(self.state_id).consensus():
             yield from self.send_a2a_transaction(payload)
-            yield from self.wait_until_period_end()
+            yield from self.wait_until_round_end()
 
         self.set_done()
 
@@ -659,7 +659,7 @@ class RandomnessBehaviour(APYEstimationBaseState):
         if self.context.randomness_api.is_retries_exceeded():
             # now we need to wait and see if the other agents progress the round
             with self.context.benchmark_tool.measure(self.state_id).consensus():
-                yield from self.wait_until_period_end()
+                yield from self.wait_until_round_end()
             self.set_done()
             return
 
@@ -698,7 +698,7 @@ class RandomnessBehaviour(APYEstimationBaseState):
         )
         with self.context.benchmark_tool.measure(self.state_id).consensus():
             yield from self.send_a2a_transaction(payload)
-            yield from self.wait_until_period_end()
+            yield from self.wait_until_round_end()
 
         self.set_done()
 
@@ -803,7 +803,7 @@ class OptimizeBehaviour(APYEstimationBaseState):
         # Finish behaviour.
         with self.context.benchmark_tool.measure(self.state_id).consensus():
             yield from self.send_a2a_transaction(payload)
-            yield from self.wait_until_period_end()
+            yield from self.wait_until_round_end()
 
         self.set_done()
 
@@ -899,7 +899,7 @@ class TrainBehaviour(APYEstimationBaseState):
         # Finish behaviour.
         with self.context.benchmark_tool.measure(self.state_id).consensus():
             yield from self.send_a2a_transaction(payload)
-            yield from self.wait_until_period_end()
+            yield from self.wait_until_round_end()
 
         self.set_done()
 
@@ -997,7 +997,7 @@ class TestBehaviour(APYEstimationBaseState):
         # Finish behaviour.
         with self.context.benchmark_tool.measure(self.state_id).consensus():
             yield from self.send_a2a_transaction(payload)
-            yield from self.wait_until_period_end()
+            yield from self.wait_until_round_end()
 
         self.set_done()
 
@@ -1070,7 +1070,7 @@ class UpdateForecasterBehaviour(APYEstimationBaseState):
         # Finish behaviour.
         with self.context.benchmark_tool.measure(self.state_id).consensus():
             yield from self.send_a2a_transaction(payload)
-            yield from self.wait_until_period_end()
+            yield from self.wait_until_round_end()
 
         self.set_done()
 
@@ -1142,7 +1142,7 @@ class EstimateBehaviour(APYEstimationBaseState):
         # Finish behaviour.
         with self.context.benchmark_tool.measure(self.state_id).consensus():
             yield from self.send_a2a_transaction(payload)
-            yield from self.wait_until_period_end()
+            yield from self.wait_until_round_end()
 
         self.set_done()
 
@@ -1203,7 +1203,7 @@ class BaseResetBehaviour(APYEstimationBaseState):
             self.context.agent_address, self.synchronized_data.period_count + 1
         )
         yield from self.send_a2a_transaction(payload)
-        yield from self.wait_until_period_end()
+        yield from self.wait_until_round_end()
         self.set_done()
 
 
