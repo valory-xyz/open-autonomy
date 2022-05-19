@@ -160,7 +160,8 @@ class TestTendermintResetInterrupt(TestAgentCatchup):
     stop_string = (
         f"Resetting tendermint node at end of period={__reset_tendermint_every - 1}"
     )
-    # check if we manage to reset with Tendermint `__n_resets_to_perform` times
+    # check if we manage to reset with Tendermint `__n_resets_to_perform` times with the rest of the agents
+    exclude_from_checks = [3]
     round_check_strings_to_n_periods = {
         "reset_and_pause": __n_resets_to_perform * __reset_tendermint_every
     }
