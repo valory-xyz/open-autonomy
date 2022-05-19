@@ -1,0 +1,15 @@
+{
+    "skip_skills": [
+        "abstract_abci",
+        "counter",
+        "counter_client",
+        "hello_world_abci"
+    ],
+    "common_handlers": [
+        "abci",
+        "http",
+        "contract_api",
+        "ledger_api",
+        "signing"
+    ]
+}

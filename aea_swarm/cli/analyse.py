@@ -19,6 +19,7 @@
 
 """Analyse CLI module."""
 import importlib
+import json
 import sys
 from pathlib import Path
 from typing import Optional
@@ -166,19 +167,21 @@ def parse_logs(file: Path) -> None:
 @click.option(
     "--handler-config",
     type=click.Path(),
-    default=Path.cwd() / "scripts" / "handler_config.py",
+    default=Path.cwd() / "scripts" / "handler_config.json",
 )
 def run_handler_check(packages_dir: Path, handler_config: Path) -> None:
     """Check handler definitions."""
-    handler_config_file = Path(handler_config).relative_to(Path.cwd())
-    module_name = str(handler_config_file).replace(".py", "").replace("/", ".")
-    handler_config_module = importlib.import_module(module_name)
+    handler_config = Path(handler_config).absolute()
+    handler_config_data = json.loads(handler_config.read_text(encoding="utf-8"))
 
-    packages_dir = Path(packages_dir).absolute()
+    skip_skills = handler_config_data["skip_skills"]
+    common_handlers = handler_config_data["common_handlers"]
+    packages_dir = Path(packages_dir)
+
     try:
-        for yaml_file in packages_dir.glob("**/skill.yaml"):
+        for yaml_file in sorted(packages_dir.glob("**/skill.yaml")):
             click.echo(f"Checking {yaml_file.parent}")
-            check_handlers(yaml_file, handler_config_module)
+            check_handlers(yaml_file, common_handlers, skip_skills)
     except Exception as e:  # pylint: disable=broad-except
         raise click.ClickException(str(e)) from e
 
