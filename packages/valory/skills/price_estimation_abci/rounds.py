@@ -63,6 +63,11 @@ class SynchronizedData(BaseSynchronizedData):
         "mode": statistics.mode,
     }
 
+    @property
+    def period_count(self) -> int:
+        """Get the period count."""
+        return cast(int, self.db.get("period_count", 0))
+
     def set_aggregator_method(self, aggregator_method: str) -> None:
         """Set aggregator method."""
         self._aggregator_method = self._aggregator_methods.get(  # type: ignore
