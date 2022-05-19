@@ -290,5 +290,4 @@ jobs:
 
       - name: Unit tests
         run: |
-          VERSION=0.1.0 skaffold build -p dependencies --push=false
           tox -e py${{ matrix.python-version }} -- -m 'e2e'
