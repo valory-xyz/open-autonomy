@@ -106,7 +106,7 @@ Parse logs.
 @click.option(
     "--handler-config",
     type=click.Path(),
-    default=Path.cwd() / "scripts" / "handler_config.py",
+    default=Path.cwd() / "scripts" / "handler_config.json",
 )
 def run_handler_check(packages_dir: Path, handler_config: Path) -> None
 ```
