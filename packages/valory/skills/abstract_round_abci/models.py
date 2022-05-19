@@ -32,7 +32,7 @@ from packages.valory.skills.abstract_round_abci.base import (
     AbciApp,
     BasePeriodState,
     ConsensusParams,
-    Period,
+    RoundSequence,
     StateDB,
 )
 
@@ -95,15 +95,15 @@ class SharedState(Model):
     def __init__(self, *args: Any, abci_app_cls: Type[AbciApp], **kwargs: Any) -> None:
         """Initialize the state."""
         self.abci_app_cls = self._process_abci_app_cls(abci_app_cls)
-        self._period: Optional[Period] = None
+        self._round_sequence: Optional[RoundSequence] = None
         super().__init__(*args, **kwargs)
 
     def setup(self) -> None:
         """Set up the model."""
-        self._period = Period(self.abci_app_cls)
+        self._round_sequence = RoundSequence(self.abci_app_cls)
         consensus_params = cast(BaseParams, self.context.params).consensus_params
         period_setup_params = cast(BaseParams, self.context.params).period_setup_params
-        self.period.setup(
+        self.round_sequence.setup(
             BasePeriodState(
                 StateDB(
                     initial_period=0,
@@ -116,16 +116,16 @@ class SharedState(Model):
         )
 
     @property
-    def period(self) -> Period:
-        """Get the period."""
-        if self._period is None:
-            raise ValueError("period not available")
-        return self._period
+    def round_sequence(self) -> RoundSequence:
+        """Get the round_sequence."""
+        if self._round_sequence is None:
+            raise ValueError("round sequence not available")
+        return self._round_sequence
 
     @property
     def period_state(self) -> BasePeriodState:
         """Get the period state if available."""
-        return self.period.latest_state
+        return self.round_sequence.latest_state
 
     @classmethod
     def _process_abci_app_cls(cls, abci_app_cls: Type[AbciApp]) -> Type[AbciApp]:

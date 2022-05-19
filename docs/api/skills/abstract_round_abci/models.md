@@ -54,16 +54,16 @@ def setup() -> None
 
 Set up the model.
 
-<a id="packages.valory.skills.abstract_round_abci.models.SharedState.period"></a>
+<a id="packages.valory.skills.abstract_round_abci.models.SharedState.round_sequence"></a>
 
-#### period
+#### round`_`sequence
 
 ```python
 @property
-def period() -> Period
+def round_sequence() -> RoundSequence
 ```
 
-Get the period.
+Get the round_sequence.
 
 <a id="packages.valory.skills.abstract_round_abci.models.SharedState.period_state"></a>
 

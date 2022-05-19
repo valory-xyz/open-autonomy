@@ -226,7 +226,7 @@ class TestSharedState:
             abci_app_cls=AbciAppTest, name="", skill_context=MagicMock()
         )
         with mock.patch.object(shared_state.context, "params"):
-            with pytest.raises(ValueError, match="period not available"):
+            with pytest.raises(ValueError, match="round sequence not available"):
                 shared_state.period_state
 
     @mock.patch.object(SharedState, "_process_abci_app_cls")
@@ -237,7 +237,7 @@ class TestSharedState:
         )
         with mock.patch.object(shared_state.context, "params"):
             shared_state.setup()
-            shared_state.period.abci_app._round_results = [MagicMock()]
+            shared_state.round_sequence.abci_app._round_results = [MagicMock()]
             shared_state.period_state
 
     def test_process_abci_app_cls_negative_not_a_class(self) -> None:

@@ -1899,9 +1899,9 @@ class AbciApp(
         self.state.db.cleanup(cleanup_history_depth)
 
 
-class Period:
+class RoundSequence:
     """
-    This class represents a period (i.e. a sequence of rounds)
+    This class represents a sequence of rounds
 
     It is a generic class that keeps track of the current round
     of the consensus period. It receives 'deliver_tx' requests
@@ -1937,7 +1937,7 @@ class Period:
         self._syncing_up = True
 
         self._block_construction_phase = (
-            Period._BlockConstructionState.WAITING_FOR_BEGIN_BLOCK
+            RoundSequence._BlockConstructionState.WAITING_FOR_BEGIN_BLOCK
         )
 
         self._block_builder = BlockBuilder()
@@ -1948,7 +1948,7 @@ class Period:
 
     def setup(self, *args: Any, **kwargs: Any) -> None:
         """
-        Set up the period.
+        Set up the round sequence.
 
         :param args: the arguments to pass to the round constructor.
         :param kwargs: the keyword-arguments to pass to the round constructor.
@@ -1994,13 +1994,15 @@ class Period:
 
     @property
     def is_finished(self) -> bool:
-        """Check if a period has finished."""
+        """Check if a round sequence has finished."""
         return self.abci_app.is_finished
 
     def check_is_finished(self) -> None:
-        """Check if a period has finished."""
+        """Check if a round sequence has finished."""
         if self.is_finished:
-            raise ValueError("period is finished, cannot accept new transactions")
+            raise ValueError(
+                "round sequence is finished, cannot accept new transactions"
+            )
 
     @property
     def current_round(self) -> AbstractRound:
@@ -2066,10 +2068,12 @@ class Period:
     def begin_block(self, header: Header) -> None:
         """Begin block."""
         if self.is_finished:
-            raise ABCIAppInternalError("period is finished, cannot accept new blocks")
+            raise ABCIAppInternalError(
+                "round sequence is finished, cannot accept new blocks"
+            )
         if (
             self._block_construction_phase
-            != Period._BlockConstructionState.WAITING_FOR_BEGIN_BLOCK
+            != RoundSequence._BlockConstructionState.WAITING_FOR_BEGIN_BLOCK
         ):
             raise ABCIAppInternalError(
                 f"cannot accept a 'begin_block' request. Current phase={self._block_construction_phase}"
@@ -2077,7 +2081,7 @@ class Period:
 
         # From now on, the ABCI app waits for 'deliver_tx' requests, until 'end_block' is received
         self._block_construction_phase = (
-            Period._BlockConstructionState.WAITING_FOR_DELIVER_TX
+            RoundSequence._BlockConstructionState.WAITING_FOR_DELIVER_TX
         )
         self._block_builder.reset()
         self._block_builder.header = header
@@ -2093,7 +2097,7 @@ class Period:
         """
         if (
             self._block_construction_phase
-            != Period._BlockConstructionState.WAITING_FOR_DELIVER_TX
+            != RoundSequence._BlockConstructionState.WAITING_FOR_DELIVER_TX
         ):
             raise ABCIAppInternalError(
                 f"cannot accept a 'deliver_tx' request. Current phase={self._block_construction_phase}"
@@ -2107,21 +2111,21 @@ class Period:
         """Process the 'end_block' request."""
         if (
             self._block_construction_phase
-            != Period._BlockConstructionState.WAITING_FOR_DELIVER_TX
+            != RoundSequence._BlockConstructionState.WAITING_FOR_DELIVER_TX
         ):
             raise ABCIAppInternalError(
                 f"cannot accept a 'end_block' request. Current phase={self._block_construction_phase}"
             )
         # The ABCI app waits for the commit
         self._block_construction_phase = (
-            Period._BlockConstructionState.WAITING_FOR_COMMIT
+            RoundSequence._BlockConstructionState.WAITING_FOR_COMMIT
         )
 
     def commit(self) -> None:
         """Process the 'commit' request."""
         if (
             self._block_construction_phase
-            != Period._BlockConstructionState.WAITING_FOR_COMMIT
+            != RoundSequence._BlockConstructionState.WAITING_FOR_COMMIT
         ):
             raise ABCIAppInternalError(
                 f"cannot accept a 'commit' request. Current phase={self._block_construction_phase}"
@@ -2136,7 +2140,7 @@ class Period:
             self._last_round_transition_height = self.height
             # The ABCI app now waits again for the next block
             self._block_construction_phase = (
-                Period._BlockConstructionState.WAITING_FOR_BEGIN_BLOCK
+                RoundSequence._BlockConstructionState.WAITING_FOR_BEGIN_BLOCK
             )
         except AddBlockError as exception:
             raise exception
@@ -2145,7 +2149,7 @@ class Period:
         """Reset blockchain after tendermint reset."""
         if is_replay:
             self._block_construction_phase = (
-                Period._BlockConstructionState.WAITING_FOR_BEGIN_BLOCK
+                RoundSequence._BlockConstructionState.WAITING_FOR_BEGIN_BLOCK
             )
         self._blockchain = Blockchain()
 

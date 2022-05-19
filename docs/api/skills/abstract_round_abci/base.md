@@ -1943,15 +1943,15 @@ def cleanup(cleanup_history_depth: int) -> None
 
 Clear data.
 
-<a id="packages.valory.skills.abstract_round_abci.base.Period"></a>
+<a id="packages.valory.skills.abstract_round_abci.base.RoundSequence"></a>
 
-## Period Objects
+## RoundSequence Objects
 
 ```python
-class Period()
+class RoundSequence()
 ```
 
-This class represents a period (i.e. a sequence of rounds)
+This class represents a sequence of rounds
 
 It is a generic class that keeps track of the current round
 of the consensus period. It receives 'deliver_tx' requests
@@ -1959,7 +1959,7 @@ from the ABCI handlers and forwards them to the current
 active round instance, which implements the ABCI app logic.
 It also schedules the next round (if any) whenever a round terminates.
 
-<a id="packages.valory.skills.abstract_round_abci.base.Period.__init__"></a>
+<a id="packages.valory.skills.abstract_round_abci.base.RoundSequence.__init__"></a>
 
 #### `__`init`__`
 
@@ -1969,7 +1969,7 @@ def __init__(abci_app_cls: Type[AbciApp])
 
 Initialize the round.
 
-<a id="packages.valory.skills.abstract_round_abci.base.Period.setup"></a>
+<a id="packages.valory.skills.abstract_round_abci.base.RoundSequence.setup"></a>
 
 #### setup
 
@@ -1977,14 +1977,14 @@ Initialize the round.
 def setup(*args: Any, **kwargs: Any) -> None
 ```
 
-Set up the period.
+Set up the round sequence.
 
 **Arguments**:
 
 - `args`: the arguments to pass to the round constructor.
 - `kwargs`: the keyword-arguments to pass to the round constructor.
 
-<a id="packages.valory.skills.abstract_round_abci.base.Period.start_sync"></a>
+<a id="packages.valory.skills.abstract_round_abci.base.RoundSequence.start_sync"></a>
 
 #### start`_`sync
 
@@ -1997,7 +1997,7 @@ Set `_syncing_up` flag to true.
 if the _syncing_up flag is set to true, the `async_act` method won't be executed. For more details refer to
 https://github.com/valory-xyz/consensus-algorithms/issues/247#issuecomment-1012268656
 
-<a id="packages.valory.skills.abstract_round_abci.base.Period.end_sync"></a>
+<a id="packages.valory.skills.abstract_round_abci.base.RoundSequence.end_sync"></a>
 
 #### end`_`sync
 
@@ -2007,7 +2007,7 @@ def end_sync() -> None
 
 Set `_syncing_up` flag to false.
 
-<a id="packages.valory.skills.abstract_round_abci.base.Period.syncing_up"></a>
+<a id="packages.valory.skills.abstract_round_abci.base.RoundSequence.syncing_up"></a>
 
 #### syncing`_`up
 
@@ -2018,7 +2018,7 @@ def syncing_up() -> bool
 
 Return if the app is in sync mode.
 
-<a id="packages.valory.skills.abstract_round_abci.base.Period.abci_app"></a>
+<a id="packages.valory.skills.abstract_round_abci.base.RoundSequence.abci_app"></a>
 
 #### abci`_`app
 
@@ -2029,7 +2029,7 @@ def abci_app() -> AbciApp
 
 Get the AbciApp.
 
-<a id="packages.valory.skills.abstract_round_abci.base.Period.height"></a>
+<a id="packages.valory.skills.abstract_round_abci.base.RoundSequence.height"></a>
 
 #### height
 
@@ -2040,7 +2040,7 @@ def height() -> int
 
 Get the height.
 
-<a id="packages.valory.skills.abstract_round_abci.base.Period.is_finished"></a>
+<a id="packages.valory.skills.abstract_round_abci.base.RoundSequence.is_finished"></a>
 
 #### is`_`finished
 
@@ -2049,9 +2049,9 @@ Get the height.
 def is_finished() -> bool
 ```
 
-Check if a period has finished.
+Check if a round sequence has finished.
 
-<a id="packages.valory.skills.abstract_round_abci.base.Period.check_is_finished"></a>
+<a id="packages.valory.skills.abstract_round_abci.base.RoundSequence.check_is_finished"></a>
 
 #### check`_`is`_`finished
 
@@ -2059,9 +2059,9 @@ Check if a period has finished.
 def check_is_finished() -> None
 ```
 
-Check if a period has finished.
+Check if a round sequence has finished.
 
-<a id="packages.valory.skills.abstract_round_abci.base.Period.current_round"></a>
+<a id="packages.valory.skills.abstract_round_abci.base.RoundSequence.current_round"></a>
 
 #### current`_`round
 
@@ -2072,7 +2072,7 @@ def current_round() -> AbstractRound
 
 Get current round.
 
-<a id="packages.valory.skills.abstract_round_abci.base.Period.current_round_id"></a>
+<a id="packages.valory.skills.abstract_round_abci.base.RoundSequence.current_round_id"></a>
 
 #### current`_`round`_`id
 
@@ -2083,7 +2083,7 @@ def current_round_id() -> Optional[str]
 
 Get the current round id.
 
-<a id="packages.valory.skills.abstract_round_abci.base.Period.current_round_height"></a>
+<a id="packages.valory.skills.abstract_round_abci.base.RoundSequence.current_round_height"></a>
 
 #### current`_`round`_`height
 
@@ -2094,7 +2094,7 @@ def current_round_height() -> int
 
 Get the current round height.
 
-<a id="packages.valory.skills.abstract_round_abci.base.Period.last_round_id"></a>
+<a id="packages.valory.skills.abstract_round_abci.base.RoundSequence.last_round_id"></a>
 
 #### last`_`round`_`id
 
@@ -2105,7 +2105,7 @@ def last_round_id() -> Optional[str]
 
 Get the last round id.
 
-<a id="packages.valory.skills.abstract_round_abci.base.Period.last_timestamp"></a>
+<a id="packages.valory.skills.abstract_round_abci.base.RoundSequence.last_timestamp"></a>
 
 #### last`_`timestamp
 
@@ -2116,7 +2116,7 @@ def last_timestamp() -> datetime.datetime
 
 Get the last timestamp.
 
-<a id="packages.valory.skills.abstract_round_abci.base.Period.last_round_transition_timestamp"></a>
+<a id="packages.valory.skills.abstract_round_abci.base.RoundSequence.last_round_transition_timestamp"></a>
 
 #### last`_`round`_`transition`_`timestamp
 
@@ -2127,7 +2127,7 @@ def last_round_transition_timestamp() -> datetime.datetime
 
 Returns the timestamp for last round transition.
 
-<a id="packages.valory.skills.abstract_round_abci.base.Period.last_round_transition_height"></a>
+<a id="packages.valory.skills.abstract_round_abci.base.RoundSequence.last_round_transition_height"></a>
 
 #### last`_`round`_`transition`_`height
 
@@ -2138,7 +2138,7 @@ def last_round_transition_height() -> int
 
 Returns the height for last round transition.
 
-<a id="packages.valory.skills.abstract_round_abci.base.Period.latest_state"></a>
+<a id="packages.valory.skills.abstract_round_abci.base.RoundSequence.latest_state"></a>
 
 #### latest`_`state
 
@@ -2149,7 +2149,7 @@ def latest_state() -> BasePeriodState
 
 Get the latest state.
 
-<a id="packages.valory.skills.abstract_round_abci.base.Period.begin_block"></a>
+<a id="packages.valory.skills.abstract_round_abci.base.RoundSequence.begin_block"></a>
 
 #### begin`_`block
 
@@ -2159,7 +2159,7 @@ def begin_block(header: Header) -> None
 
 Begin block.
 
-<a id="packages.valory.skills.abstract_round_abci.base.Period.deliver_tx"></a>
+<a id="packages.valory.skills.abstract_round_abci.base.RoundSequence.deliver_tx"></a>
 
 #### deliver`_`tx
 
@@ -2176,7 +2176,7 @@ Appends the transaction to build the block on 'end_block' later.
 :raises:  an Error otherwise.
 - `transaction`: the transaction.
 
-<a id="packages.valory.skills.abstract_round_abci.base.Period.end_block"></a>
+<a id="packages.valory.skills.abstract_round_abci.base.RoundSequence.end_block"></a>
 
 #### end`_`block
 
@@ -2186,7 +2186,7 @@ def end_block() -> None
 
 Process the 'end_block' request.
 
-<a id="packages.valory.skills.abstract_round_abci.base.Period.commit"></a>
+<a id="packages.valory.skills.abstract_round_abci.base.RoundSequence.commit"></a>
 
 #### commit
 
@@ -2196,7 +2196,7 @@ def commit() -> None
 
 Process the 'commit' request.
 
-<a id="packages.valory.skills.abstract_round_abci.base.Period.reset_blockchain"></a>
+<a id="packages.valory.skills.abstract_round_abci.base.RoundSequence.reset_blockchain"></a>
 
 #### reset`_`blockchain
 

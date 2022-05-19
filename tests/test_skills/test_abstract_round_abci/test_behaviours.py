@@ -33,7 +33,7 @@ from packages.valory.skills.abstract_round_abci.base import (
     BaseTxPayload,
     DegenerateRound,
     EventType,
-    Period,
+    RoundSequence,
 )
 from packages.valory.skills.abstract_round_abci.behaviour_utils import (
     BaseState,
@@ -453,11 +453,11 @@ def test_self_loops_in_abci_app_reinstantiate_behaviour_state() -> None:
         behaviour_states = {StateA}  # type: ignore
         initial_state_cls = StateA
 
-    period = Period(AbciAppTest)
-    period.end_sync()
-    period.setup(MagicMock(), MagicMock(), MagicMock())
+    round_sequence = RoundSequence(AbciAppTest)
+    round_sequence.end_sync()
+    round_sequence.setup(MagicMock(), MagicMock(), MagicMock())
     context_mock = MagicMock()
-    context_mock.state.period = period
+    context_mock.state.period = round_sequence
     context_mock.params.ipfs_domain_name = None
     behaviour = RoundBehaviour(name="", skill_context=context_mock)
     behaviour.setup()
@@ -465,7 +465,7 @@ def test_self_loops_in_abci_app_reinstantiate_behaviour_state() -> None:
     state_1 = behaviour.current_state
     assert isinstance(state_1, StateA)
 
-    period.abci_app.process_event(event)
+    round_sequence.abci_app.process_event(event)
 
     behaviour.act()
     state_2 = behaviour.current_state
