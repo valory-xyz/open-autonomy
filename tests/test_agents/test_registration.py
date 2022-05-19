@@ -74,23 +74,23 @@ class RegistrationStartUpTestConfig(UseGnosisSafeHardHatNet, UseACNNode):
 
 @pytest.mark.e2e
 @pytest.mark.integration
+@pytest.mark.parametrize("nb_nodes", (4,))
 class TestRegistrationStartUpFourAgents(
     RegistrationStartUpTestConfig, BaseTestEnd2EndNormalExecution
 ):
     """Test registration start-up skill with four agents."""
 
-    NB_AGENTS = 4
     strict_check_strings = STRICT_CHECK_STRINGS
 
 
 @pytest.mark.e2e
-@pytest.mark.integration  # NOTE: looks like other agents crash a little while after first one!
+@pytest.mark.integration
+@pytest.mark.parametrize("nb_nodes", (4,))
 class TestRegistrationStartUpFourAgentsCatchUp(
     RegistrationStartUpTestConfig, BaseTestEnd2EndAgentCatchup
 ):
     """Test registration start-up skill with four agents and catch up."""
 
-    NB_AGENTS = 4
     strict_check_strings = STRICT_CHECK_STRINGS
     stop_string = "My address: "
     restart_after = 10
