@@ -70,19 +70,19 @@ class ResetAndPauseBehaviour(ResetAndPauseBaseState):
         - Wait until ABCI application transitions to the next round.
         - Go to the next behaviour state (set done event).
         """
-        # + 1 because `period_count` starts from 0
-        n_periods_done = self.synchronized_data.period_count + 1
-        if n_periods_done % self.params.reset_tendermint_after == 0:
+        # + 1 because `round_count` starts from 0
+        n_rounds_done = self.synchronized_data.round_count + 1
+        if n_rounds_done % self.params.reset_tendermint_after == 0:
             tendermint_reset = yield from self.reset_tendermint_with_wait()
             if not tendermint_reset:
                 return
         else:
             yield from self.wait_from_last_timestamp(self.params.observation_interval)
-        self.context.logger.info("Period end.")
-        self.context.benchmark_tool.save(self.synchronized_data.period_count)
+        self.context.logger.info("The app has been reset.")
+        self.context.benchmark_tool.save(self.synchronized_data.round_count)
 
         payload = ResetPausePayload(
-            self.context.agent_address, self.synchronized_data.period_count + 1
+            self.context.agent_address, self.synchronized_data.round_count + 1
         )
         yield from self.send_a2a_transaction(payload)
         yield from self.wait_until_round_end()

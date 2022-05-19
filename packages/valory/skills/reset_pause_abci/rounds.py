@@ -50,7 +50,7 @@ class ResetAndPauseRound(CollectSameUntilThresholdRound):
 
     round_id = "reset_and_pause"
     allowed_tx_type = ResetPausePayload.transaction_type
-    payload_attribute = "period_count"
+    payload_attribute = "round_count"
 
     def process_payload(self, payload: BaseTxPayload) -> None:  # pragma: nocover
         """Process payload."""
@@ -91,7 +91,7 @@ class ResetAndPauseRound(CollectSameUntilThresholdRound):
             for key in self.synchronized_data.db.cross_reset_persisted_keys:
                 extra_kwargs[key] = self.synchronized_data.db.get_strict(key)
             state = self.synchronized_data.update(
-                period_count=self.most_voted_payload,
+                round_count=self.most_voted_payload,
                 participants=self.synchronized_data.participants,
                 all_participants=self.synchronized_data.all_participants,
                 **extra_kwargs,
