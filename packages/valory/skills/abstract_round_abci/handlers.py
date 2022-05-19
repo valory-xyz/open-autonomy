@@ -66,7 +66,7 @@ class ABCIRoundHandler(ABCIHandler):
         info_data = ""
         version = ""
         app_version = 0
-        last_block_height = self.context.state.period.height
+        last_block_height = self.context.state.round_sequence.height
         last_block_app_hash = b""
         reply = dialogue.reply(
             performative=AbciMessage.Performative.RESPONSE_INFO,
@@ -83,7 +83,7 @@ class ABCIRoundHandler(ABCIHandler):
         self, message: AbciMessage, dialogue: AbciDialogue
     ) -> AbciMessage:
         """Handle the 'begin_block' request."""
-        cast(SharedState, self.context.state).period.begin_block(message.header)
+        cast(SharedState, self.context.state).round_sequence.begin_block(message.header)
         return super().begin_block(message, dialogue)
 
     def check_tx(  # pylint: disable=no-self-use
@@ -95,7 +95,7 @@ class ABCIRoundHandler(ABCIHandler):
         try:
             transaction = Transaction.decode(transaction_bytes)
             transaction.verify(self.context.default_ledger_id)
-            cast(SharedState, self.context.state).period.check_is_finished()
+            cast(SharedState, self.context.state).round_sequence.check_is_finished()
         except (
             SignatureNotValidError,
             TransactionNotValidError,
@@ -171,7 +171,7 @@ class ABCIRoundHandler(ABCIHandler):
         self, message: AbciMessage, dialogue: AbciDialogue
     ) -> AbciMessage:
         """Handle the 'end_block' request."""
-        cast(SharedState, self.context.state).period.end_block()
+        cast(SharedState, self.context.state).round_sequence.end_block()
         return super().end_block(message, dialogue)
 
     def commit(  # pylint: disable=no-self-use
@@ -179,7 +179,7 @@ class ABCIRoundHandler(ABCIHandler):
     ) -> AbciMessage:
         """Handle the 'commit' request."""
         try:
-            cast(SharedState, self.context.state).period.commit()
+            cast(SharedState, self.context.state).round_sequence.commit()
         except AddBlockError as exception:
             self._log_exception(exception)
             raise exception

@@ -98,7 +98,7 @@ class HelloWorldAbciFSMBehaviourBaseCase(BaseSkillTestCase):
 
         cls.hello_world_abci_behaviour.setup()
         cls._skill.skill_context.state.setup()
-        cls._skill.skill_context.state.period.end_sync()
+        cls._skill.skill_context.state.round_sequence.end_sync()
 
         cls.benchmark_dir = TemporaryDirectory()
         cls._skill.skill_context.benchmark_tool.log_dir = Path(cls.benchmark_dir.name)
@@ -129,14 +129,14 @@ class HelloWorldAbciFSMBehaviourBaseCase(BaseSkillTestCase):
         behaviour.current_state = next_state(
             name=next_state.state_id, skill_context=behaviour.context
         )
-        self.skill.skill_context.state.period.abci_app._round_results.append(
+        self.skill.skill_context.state.round_sequence.abci_app._round_results.append(
             period_state
         )
-        self.skill.skill_context.state.period.abci_app._extend_previous_rounds_with_current_round()
+        self.skill.skill_context.state.round_sequence.abci_app._extend_previous_rounds_with_current_round()
         self.skill.skill_context.behaviours.main._last_round_height = (
-            self.skill.skill_context.state.period.abci_app.current_round_height
+            self.skill.skill_context.state.round_sequence.abci_app.current_round_height
         )
-        self.skill.skill_context.state.period.abci_app._current_round = (
+        self.skill.skill_context.state.round_sequence.abci_app._current_round = (
             next_state.matching_round(
                 period_state, self.skill.skill_context.params.consensus_params
             )
@@ -262,7 +262,7 @@ class HelloWorldAbciFSMBehaviourBaseCase(BaseSkillTestCase):
         if current_state is None:
             return
         current_state = cast(BaseState, current_state)
-        abci_app = current_state.context.state.period.abci_app
+        abci_app = current_state.context.state.round_sequence.abci_app
         old_round = abci_app._current_round
         abci_app._last_round = old_round
         abci_app._current_round = abci_app.transition_function[
