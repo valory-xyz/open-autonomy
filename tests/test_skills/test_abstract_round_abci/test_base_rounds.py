@@ -40,6 +40,7 @@ import pytest
 
 from packages.valory.skills.abstract_round_abci.base import (
     ABCIAppInternalError,
+    AbciAppDB,
     AbstractRound,
     BasePeriodState,
     BaseTxPayload,
@@ -51,7 +52,6 @@ from packages.valory.skills.abstract_round_abci.base import (
     ConsensusParams,
     OnlyKeeperSendsRound,
     ROUND_COUNT_DEFAULT,
-    StateDB,
     TransactionNotValidError,
     VotingRound,
 )
@@ -188,7 +188,7 @@ class BaseRoundTestClass:
 
         cls.participants = get_participants()
         cls.period_state = cls._period_state_class(
-            db=StateDB(
+            db=AbciAppDB(
                 initial_period=0,
                 initial_data=dict(
                     participants=cls.participants, all_participants=cls.participants

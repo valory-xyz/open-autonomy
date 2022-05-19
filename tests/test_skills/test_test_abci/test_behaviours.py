@@ -23,9 +23,9 @@ from tempfile import TemporaryDirectory
 from typing import Dict, Type, cast
 
 from packages.valory.skills.abstract_round_abci.base import (
+    AbciAppDB,
     BasePeriodState,
     BaseTxPayload,
-    StateDB,
 )
 from packages.valory.skills.abstract_round_abci.behaviour_utils import BaseState
 from packages.valory.skills.test_abci.behaviours import (
@@ -63,7 +63,9 @@ class TestDummyBehaviour(AbciFSMBehaviourBaseCase):
 
     def test_run(self) -> None:
         """Test registration."""
-        self.period_state = BasePeriodState(StateDB(initial_period=0, initial_data={}))
+        self.period_state = BasePeriodState(
+            AbciAppDB(initial_period=0, initial_data={})
+        )
 
         self.fast_forward_to_state(
             self.behaviour,

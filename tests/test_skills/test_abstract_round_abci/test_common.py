@@ -32,7 +32,7 @@ from aea.skills.base import SkillContext
 
 from packages.valory.protocols.contract_api.custom_types import State
 from packages.valory.protocols.ledger_api.message import LedgerApiMessage
-from packages.valory.skills.abstract_round_abci.base import BasePeriodState, StateDB
+from packages.valory.skills.abstract_round_abci.base import AbciAppDB, BasePeriodState
 from packages.valory.skills.abstract_round_abci.behaviour_utils import BaseState
 from packages.valory.skills.transaction_settlement_abci.payload_tools import (
     VerificationStatus,
@@ -81,7 +81,7 @@ class BaseRandomnessBehaviourTest(CommonBaseCase):
         self.fast_forward_to_state(
             self.behaviour,
             self.randomness_behaviour_class.state_id,
-            BasePeriodState(StateDB(initial_period=0, initial_data={})),
+            BasePeriodState(AbciAppDB(initial_period=0, initial_data={})),
         )
         assert (
             cast(
@@ -123,7 +123,7 @@ class BaseRandomnessBehaviourTest(CommonBaseCase):
         self.fast_forward_to_state(
             self.behaviour,
             self.randomness_behaviour_class.state_id,
-            BasePeriodState(StateDB(initial_period=0, initial_data={})),
+            BasePeriodState(AbciAppDB(initial_period=0, initial_data={})),
         )
         assert (
             cast(
@@ -160,7 +160,7 @@ class BaseRandomnessBehaviourTest(CommonBaseCase):
         self.fast_forward_to_state(
             self.behaviour,
             self.randomness_behaviour_class.state_id,
-            BasePeriodState(StateDB(initial_period=0, initial_data={})),
+            BasePeriodState(AbciAppDB(initial_period=0, initial_data={})),
         )
         assert (
             cast(
@@ -194,7 +194,7 @@ class BaseRandomnessBehaviourTest(CommonBaseCase):
         self.fast_forward_to_state(
             self.behaviour,
             self.randomness_behaviour_class.state_id,
-            BasePeriodState(StateDB(initial_period=0, initial_data={})),
+            BasePeriodState(AbciAppDB(initial_period=0, initial_data={})),
         )
         assert (
             cast(
@@ -234,7 +234,7 @@ class BaseRandomnessBehaviourTest(CommonBaseCase):
         self.fast_forward_to_state(
             self.behaviour,
             self.randomness_behaviour_class.state_id,
-            BasePeriodState(StateDB(initial_period=0, initial_data={})),
+            BasePeriodState(AbciAppDB(initial_period=0, initial_data={})),
         )
         assert (
             cast(
@@ -268,7 +268,7 @@ class BaseRandomnessBehaviourTest(CommonBaseCase):
         self.fast_forward_to_state(
             self.behaviour,
             self.randomness_behaviour_class.state_id,
-            BasePeriodState(StateDB(initial_period=0, initial_data={})),
+            BasePeriodState(AbciAppDB(initial_period=0, initial_data={})),
         )
         assert (
             cast(
@@ -302,7 +302,7 @@ class BaseRandomnessBehaviourTest(CommonBaseCase):
         self.fast_forward_to_state(
             self.behaviour,
             self.randomness_behaviour_class.state_id,
-            BasePeriodState(StateDB(initial_period=0, initial_data={})),
+            BasePeriodState(AbciAppDB(initial_period=0, initial_data={})),
         )
         assert (
             cast(
@@ -347,7 +347,7 @@ class BaseSelectKeeperBehaviourTest(CommonBaseCase):
             behaviour=self.behaviour,
             state_id=self.select_keeper_behaviour_class.state_id,
             period_state=self._period_state(
-                StateDB(
+                AbciAppDB(
                     initial_period=0,
                     initial_data=dict(
                         participants=participants,
@@ -393,7 +393,7 @@ class BaseSelectKeeperBehaviourTest(CommonBaseCase):
             behaviour=self.behaviour,
             state_id=self.select_keeper_behaviour_class.state_id,
             period_state=self._period_state(
-                StateDB(
+                AbciAppDB(
                     initial_period=0,
                     initial_data=dict(
                         participants=participants,

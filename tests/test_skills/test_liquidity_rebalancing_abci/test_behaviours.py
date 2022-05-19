@@ -37,7 +37,7 @@ from packages.valory.contracts.uniswap_v2_router_02.contract import (
 )
 from packages.valory.protocols.contract_api.custom_types import Kwargs
 from packages.valory.protocols.contract_api.message import ContractApiMessage
-from packages.valory.skills.abstract_round_abci.base import StateDB
+from packages.valory.skills.abstract_round_abci.base import AbciAppDB
 from packages.valory.skills.abstract_round_abci.behaviour_utils import BaseState
 from packages.valory.skills.liquidity_rebalancing_abci.behaviours import (
     EnterPoolTransactionHashBehaviour,
@@ -149,7 +149,7 @@ class TestStrategyEvaluationBehaviour(LiquidityRebalancingBehaviourBaseCase):
             is_base_native=False, is_a_native=True, is_b_native=False
         )
         period_state = LiquidityRebalancingPeriodState(
-            StateDB(
+            AbciAppDB(
                 initial_period=0,
                 initial_data=dict(
                     most_voted_tx_hash="0x",
@@ -188,7 +188,7 @@ class TestStrategyEvaluationBehaviour(LiquidityRebalancingBehaviourBaseCase):
         )
         strategy["action"] = StrategyType.EXIT.value
         period_state = LiquidityRebalancingPeriodState(
-            StateDB(
+            AbciAppDB(
                 initial_period=0,
                 initial_data=dict(
                     most_voted_tx_hash="0x",
@@ -223,7 +223,7 @@ class TestStrategyEvaluationBehaviour(LiquidityRebalancingBehaviourBaseCase):
         """Run tests."""
 
         period_state = LiquidityRebalancingPeriodState(
-            StateDB(
+            AbciAppDB(
                 initial_period=0,
                 initial_data=dict(
                     most_voted_tx_hash="0x",
@@ -265,7 +265,7 @@ class TestStrategyEvaluationBehaviour(LiquidityRebalancingBehaviourBaseCase):
         )
         strategy["action"] = StrategyType.SWAP_BACK.value
         period_state = LiquidityRebalancingPeriodState(
-            StateDB(
+            AbciAppDB(
                 initial_period=0,
                 initial_data=dict(
                     most_voted_tx_hash="0x",
@@ -307,7 +307,7 @@ class TestEnterPoolTransactionHashBehaviour(LiquidityRebalancingBehaviourBaseCas
             is_base_native=False, is_a_native=True, is_b_native=False
         )
         period_state = LiquidityRebalancingPeriodState(
-            StateDB(
+            AbciAppDB(
                 initial_period=0,
                 initial_data=dict(
                     most_voted_tx_hash="0x",
@@ -553,7 +553,7 @@ class TestEnterPoolTransactionHashBehaviour(LiquidityRebalancingBehaviourBaseCas
             is_base_native=False, is_a_native=False, is_b_native=False
         )
         period_state = LiquidityRebalancingPeriodState(
-            StateDB(
+            AbciAppDB(
                 initial_period=0,
                 initial_data=dict(
                     most_voted_tx_hash="0x",
@@ -826,7 +826,7 @@ class TestEnterPoolTransactionHashBehaviour(LiquidityRebalancingBehaviourBaseCas
             is_base_native=True, is_a_native=True, is_b_native=False
         )
         period_state = LiquidityRebalancingPeriodState(
-            StateDB(
+            AbciAppDB(
                 initial_period=0,
                 initial_data=dict(
                     most_voted_tx_hash="0x",
@@ -892,7 +892,7 @@ class TestExitPoolTransactionHashBehaviour(LiquidityRebalancingBehaviourBaseCase
             is_base_native=False, is_a_native=True, is_b_native=False
         )
         period_state = LiquidityRebalancingPeriodState(
-            StateDB(
+            AbciAppDB(
                 initial_period=0,
                 initial_data=dict(
                     most_voted_tx_hash="0x",
@@ -1078,7 +1078,7 @@ class TestExitPoolTransactionHashBehaviour(LiquidityRebalancingBehaviourBaseCase
             is_base_native=False, is_a_native=False, is_b_native=False
         )
         period_state = LiquidityRebalancingPeriodState(
-            StateDB(
+            AbciAppDB(
                 initial_period=0,
                 initial_data=dict(
                     most_voted_tx_hash="0x",
@@ -1266,7 +1266,7 @@ class TestExitPoolTransactionHashBehaviour(LiquidityRebalancingBehaviourBaseCase
             is_base_native=False, is_a_native=True, is_b_native=False
         )
         period_state = LiquidityRebalancingPeriodState(
-            StateDB(
+            AbciAppDB(
                 initial_period=0,
                 initial_data=dict(
                     most_voted_tx_hash="0x",
@@ -1338,7 +1338,7 @@ class TestSwapBackTransactionHashBehaviour(LiquidityRebalancingBehaviourBaseCase
             is_base_native=False, is_a_native=True, is_b_native=False
         )
         period_state = LiquidityRebalancingPeriodState(
-            StateDB(
+            AbciAppDB(
                 initial_period=0,
                 initial_data=dict(
                     most_voted_tx_hash="0x",
@@ -1561,7 +1561,7 @@ class TestSwapBackTransactionHashBehaviour(LiquidityRebalancingBehaviourBaseCase
             is_base_native=False, is_a_native=False, is_b_native=False
         )
         period_state = LiquidityRebalancingPeriodState(
-            StateDB(
+            AbciAppDB(
                 initial_period=0,
                 initial_data=dict(
                     most_voted_tx_hash="0x",
@@ -1842,7 +1842,7 @@ class TestSleepBehaviour(LiquidityRebalancingBehaviourBaseCase):
         """Run tests."""
 
         period_state = LiquidityRebalancingPeriodState(
-            StateDB(
+            AbciAppDB(
                 initial_period=0,
                 initial_data=dict(
                     most_voted_tx_hash="0x",

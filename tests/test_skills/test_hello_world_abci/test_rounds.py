@@ -24,10 +24,10 @@ from typing import Dict, FrozenSet, cast
 from unittest import mock
 
 from packages.valory.skills.abstract_round_abci.base import (
+    AbciAppDB,
     AbstractRound,
     ConsensusParams,
     MAX_INT_256,
-    StateDB,
 )
 from packages.valory.skills.hello_world_abci.payloads import (
     PrintMessagePayload,
@@ -88,7 +88,7 @@ class BaseRoundTestClass:
 
         cls.participants = get_participants()
         cls.period_state = PeriodState(
-            StateDB(
+            AbciAppDB(
                 initial_period=0,
                 initial_data=dict(
                     participants=cls.participants, all_participants=cls.participants
@@ -130,7 +130,7 @@ class TestRegistrationRound(BaseRoundTestClass):
             test_round.process_payload(payload)
 
         actual_next_state = PeriodState(
-            StateDB(
+            AbciAppDB(
                 initial_period=0, initial_data=dict(participants=test_round.collection)
             )
         )
@@ -213,7 +213,7 @@ class TestPrintMessageRound(BaseRoundTestClass):
             test_round.process_payload(payload)
 
         actual_next_state = PeriodState(
-            StateDB(
+            AbciAppDB(
                 initial_period=0, initial_data=dict(participants=test_round.collection)
             )
         )
@@ -285,7 +285,7 @@ def test_period_state() -> None:  # pylint:too-many-locals
     most_voted_keeper_address = "keeper"
 
     period_state = PeriodState(
-        StateDB(
+        AbciAppDB(
             initial_period=period_count,
             initial_data=dict(
                 participants=participants,

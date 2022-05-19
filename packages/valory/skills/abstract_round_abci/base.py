@@ -473,8 +473,8 @@ class ConsensusParams:
         return self.max_participants == other.max_participants
 
 
-class StateDB:
-    """Class to represent all state replicated across periods."""
+class AbciAppDB:
+    """Class to represent all data replicated across periods."""
 
     def __init__(
         self,
@@ -561,7 +561,7 @@ class StateDB:
 
     def __repr__(self) -> str:
         """Return a string representation of the state."""
-        return f"StateDB({self._data})"
+        return f"AbciAppDB({self._data})"
 
     def cleanup(self, cleanup_history_depth: int) -> None:
         """Reset the db."""
@@ -581,13 +581,13 @@ class BasePeriodState:
 
     def __init__(
         self,
-        db: StateDB,
+        db: AbciAppDB,
     ) -> None:
         """Initialize a period state."""
         self._db = db
 
     @property
-    def db(self) -> StateDB:
+    def db(self) -> AbciAppDB:
         """Get DB."""
         return self._db
 

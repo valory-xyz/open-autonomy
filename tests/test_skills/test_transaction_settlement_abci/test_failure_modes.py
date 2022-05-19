@@ -41,7 +41,7 @@ from packages.valory.protocols.ledger_api.custom_types import (
     TransactionDigest,
     TransactionReceipt,
 )
-from packages.valory.skills.abstract_round_abci.base import StateDB
+from packages.valory.skills.abstract_round_abci.base import AbciAppDB
 from packages.valory.skills.oracle_abci.behaviours import (
     OracleAbciAppConsensusBehaviour,
 )
@@ -109,7 +109,7 @@ class TransactionSettlementIntegrationBaseCase(
 
         keeper_initial_retries = 1
         cls.tx_settlement_period_state = TxSettlementPeriodState(
-            StateDB(
+            AbciAppDB(
                 initial_period=0,
                 initial_data=dict(
                     safe_contract_address=cls.safe_contract_address,
@@ -121,7 +121,7 @@ class TransactionSettlementIntegrationBaseCase(
         )
 
         cls.price_estimation_period_state = PriceEstimationPeriodState(
-            StateDB(
+            AbciAppDB(
                 initial_period=0,
                 initial_data=dict(
                     safe_contract_address=cls.safe_contract_address,
@@ -324,7 +324,7 @@ class TestKeepers(OracleBehaviourBaseCase, IntegrationBaseCase):
 
         # init period state
         cls.tx_settlement_period_state = TxSettlementPeriodState(
-            StateDB(
+            AbciAppDB(
                 initial_period=0,
                 initial_data=dict(
                     participants=frozenset(list(cls.agents.keys())),

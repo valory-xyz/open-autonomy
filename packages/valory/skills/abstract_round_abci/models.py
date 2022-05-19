@@ -30,10 +30,10 @@ from aea.skills.base import Model
 from packages.valory.protocols.http.message import HttpMessage
 from packages.valory.skills.abstract_round_abci.base import (
     AbciApp,
+    AbciAppDB,
     BasePeriodState,
     ConsensusParams,
     RoundSequence,
-    StateDB,
 )
 
 
@@ -105,7 +105,7 @@ class SharedState(Model):
         period_setup_params = cast(BaseParams, self.context.params).period_setup_params
         self.round_sequence.setup(
             BasePeriodState(
-                StateDB(
+                AbciAppDB(
                     initial_period=0,
                     initial_data=period_setup_params,
                     cross_period_persisted_keys=self.abci_app_cls.cross_period_persisted_keys,

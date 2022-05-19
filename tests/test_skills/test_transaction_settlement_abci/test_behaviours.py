@@ -56,7 +56,7 @@ from packages.valory.contracts.gnosis_safe.contract import (
 from packages.valory.protocols.abci import AbciMessage  # noqa: F401
 from packages.valory.protocols.contract_api.message import ContractApiMessage
 from packages.valory.protocols.ledger_api.message import LedgerApiMessage
-from packages.valory.skills.abstract_round_abci.base import StateDB
+from packages.valory.skills.abstract_round_abci.base import AbciAppDB
 from packages.valory.skills.abstract_round_abci.behaviour_utils import (
     BaseState,
     RPCResponseStatus,
@@ -275,7 +275,7 @@ class TestTransactionSettlementBaseState(PriceEstimationFSMBehaviourBaseCase):
             behaviour=self.behaviour,
             state_id=SignatureBehaviour.state_id,
             period_state=TransactionSettlementPeriodState(
-                StateDB(
+                AbciAppDB(
                     initial_period=0,
                     initial_data=dict(
                         most_voted_tx_hash="b0e6add595e00477cf347d09797b156719dc5233283ac76e4efce2a674fe72d900000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000002625a000x77E9b2EF921253A171Fa0CB9ba80558648Ff7215b0e6add595e00477cf347d09797b156719dc5233283ac76e4efce2a674fe72d9b0e6add595e00477cf347d09797b156719dc5233283ac76e4efce2a674fe72d9",
@@ -406,7 +406,7 @@ class TestSignatureBehaviour(TransactionSettlementFSMBehaviourBaseCase):
             behaviour=self.behaviour,
             state_id=SignatureBehaviour.state_id,
             period_state=TransactionSettlementPeriodState(
-                StateDB(
+                AbciAppDB(
                     initial_period=0,
                     initial_data=dict(
                         most_voted_tx_hash="b0e6add595e00477cf347d09797b156719dc5233283ac76e4efce2a674fe72d900000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000002625a000x77E9b2EF921253A171Fa0CB9ba80558648Ff7215b0e6add595e00477cf347d09797b156719dc5233283ac76e4efce2a674fe72d9b0e6add595e00477cf347d09797b156719dc5233283ac76e4efce2a674fe72d9"
@@ -455,7 +455,7 @@ class TestFinalizeBehaviour(TransactionSettlementFSMBehaviourBaseCase):
             behaviour=self.behaviour,
             state_id=self.behaviour_class.state_id,
             period_state=TransactionSettlementPeriodState(
-                StateDB(
+                AbciAppDB(
                     initial_period=0,
                     initial_data=dict(
                         most_voted_keeper_address="most_voted_keeper_address",
@@ -572,7 +572,7 @@ class TestFinalizeBehaviour(TransactionSettlementFSMBehaviourBaseCase):
             behaviour=self.behaviour,
             state_id=self.behaviour_class.state_id,
             period_state=TransactionSettlementPeriodState(
-                StateDB(
+                AbciAppDB(
                     initial_period=0,
                     initial_data=dict(
                         safe_contract_address="safe_contract_address",
@@ -653,7 +653,7 @@ class TestFinalizeBehaviour(TransactionSettlementFSMBehaviourBaseCase):
             behaviour=self.behaviour,
             state_id=self.behaviour_class.state_id,
             period_state=TransactionSettlementPeriodState(
-                StateDB(
+                AbciAppDB(
                     initial_period=0,
                     initial_data=dict(
                         most_voted_keeper_address="most_voted_keeper_address",
@@ -696,7 +696,7 @@ class TestValidateTransactionBehaviour(TransactionSettlementFSMBehaviourBaseCase
             behaviour=self.behaviour,
             state_id=ValidateTransactionBehaviour.state_id,
             period_state=TransactionSettlementPeriodState(
-                StateDB(
+                AbciAppDB(
                     initial_period=0,
                     initial_data=dict(
                         safe_contract_address="safe_contract_address",
@@ -796,7 +796,7 @@ class TestCheckTransactionHistoryBehaviour(TransactionSettlementFSMBehaviourBase
             behaviour=self.behaviour,
             state_id=CheckTransactionHistoryBehaviour.state_id,
             period_state=TransactionSettlementPeriodState(
-                StateDB(
+                AbciAppDB(
                     initial_period=0,
                     initial_data=dict(
                         safe_contract_address="safe_contract_address",
@@ -902,7 +902,7 @@ class TestSynchronizeLateMessagesBehaviour(TransactionSettlementFSMBehaviourBase
             behaviour=self.behaviour,
             state_id=SynchronizeLateMessagesBehaviour.state_id,
             period_state=TransactionSettlementPeriodState(
-                StateDB(
+                AbciAppDB(
                     initial_period=0,
                     initial_data=dict(
                         participants=participants,
@@ -953,7 +953,7 @@ class TestResetBehaviour(TransactionSettlementFSMBehaviourBaseCase):
             behaviour=self.behaviour,
             state_id=self.behaviour_class.state_id,
             period_state=TransactionSettlementPeriodState(
-                StateDB(initial_period=0, initial_data=dict(estimate=1.0)),
+                AbciAppDB(initial_period=0, initial_data=dict(estimate=1.0)),
             ),
         )
         assert (

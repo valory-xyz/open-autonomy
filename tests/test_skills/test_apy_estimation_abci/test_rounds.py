@@ -24,9 +24,9 @@ from unittest import mock
 import pytest
 
 from packages.valory.skills.abstract_round_abci.base import (
+    AbciAppDB,
     AbstractRound,
     ConsensusParams,
-    StateDB,
 )
 from packages.valory.skills.apy_estimation_abci.payloads import (
     EstimatePayload,
@@ -206,7 +206,7 @@ class BaseRoundTestClass:
 
         cls.participants = get_participants()
         cls.period_state = PeriodState(
-            db=StateDB(
+            db=AbciAppDB(
                 initial_period=0,
                 initial_data=dict(
                     participants=cls.participants, all_participants=cls.participants
@@ -616,7 +616,7 @@ def test_period() -> None:
     n_estimations = 1
 
     period_state = PeriodState(
-        db=StateDB(
+        db=AbciAppDB(
             initial_period=period_count,
             initial_data=dict(
                 participants=participants,

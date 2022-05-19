@@ -25,10 +25,10 @@ from unittest.mock import MagicMock
 
 import pytest
 
+from packages.valory.skills.abstract_round_abci.base import AbciAppDB
 from packages.valory.skills.abstract_round_abci.base import (
     BasePeriodState as ResetPeriodState,
 )
-from packages.valory.skills.abstract_round_abci.base import StateDB
 from packages.valory.skills.abstract_round_abci.behaviour_utils import (
     make_degenerate_state,
 )
@@ -80,7 +80,7 @@ class TestResetAndPauseBehaviour(ResetPauseAbciFSMBehaviourBaseCase):
             behaviour=self.behaviour,
             state_id=self.behaviour_class.state_id,
             period_state=ResetPeriodState(
-                StateDB(
+                AbciAppDB(
                     initial_period=initial_period,
                     initial_data=dict(
                         most_voted_estimate=0.1,

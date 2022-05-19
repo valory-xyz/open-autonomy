@@ -22,7 +22,7 @@
 import logging  # noqa: F401
 from typing import Dict, FrozenSet, Optional
 
-from packages.valory.skills.abstract_round_abci.base import MAX_INT_256, StateDB
+from packages.valory.skills.abstract_round_abci.base import AbciAppDB, MAX_INT_256
 from packages.valory.skills.oracle_deployment_abci.payloads import (
     RandomnessPayload,
     SelectKeeperPayload,
@@ -148,7 +148,7 @@ def test_period_states() -> None:
     actual_keeper_randomness = int(most_voted_randomness, base=16) / MAX_INT_256
 
     period_state_ = SafeDeploymentPeriodState(
-        StateDB(
+        AbciAppDB(
             initial_period=0,
             initial_data=dict(
                 participants=participants,

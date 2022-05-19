@@ -37,6 +37,7 @@ from packages.valory.skills.abstract_round_abci.base import (
     ABCIAppException,
     ABCIAppInternalError,
     AbciApp,
+    AbciAppDB,
     AbciAppTransitionFunction,
     AbstractRound,
     AddBlockError,
@@ -51,7 +52,6 @@ from packages.valory.skills.abstract_round_abci.base import (
     LateArrivingTransaction,
     RoundSequence,
     SignatureNotValidError,
-    StateDB,
     Timeouts,
     Transaction,
     TransactionTypeNotRecognizedError,
@@ -482,7 +482,7 @@ class TestBasePeriodState:
         """Set up the tests."""
         self.participants = {"a", "b"}
         self.base_period_state = BasePeriodState(
-            db=StateDB(
+            db=AbciAppDB(
                 initial_period=0, initial_data=dict(participants=self.participants)
             )
         )
@@ -498,7 +498,7 @@ class TestBasePeriodState:
     def test_participants_getter_negative(self) -> None:
         """Test 'participants' property getter, negative case."""
         base_period_state = BasePeriodState(
-            db=StateDB(initial_period=0, initial_data={})
+            db=AbciAppDB(initial_period=0, initial_data={})
         )
         with pytest.raises(ValueError, match="Value of key=participants is None"):
             base_period_state.participants
@@ -507,7 +507,7 @@ class TestBasePeriodState:
         """Test the 'update' method."""
         participants = {"a"}
         expected = BasePeriodState(
-            db=StateDB(initial_period=0, initial_data=dict(participants=participants))
+            db=AbciAppDB(initial_period=0, initial_data=dict(participants=participants))
         )
         actual = self.base_period_state.update(participants=participants)
         assert expected.participants == actual.participants
@@ -515,7 +515,7 @@ class TestBasePeriodState:
     def test_repr(self) -> None:
         """Test the '__repr__' magic method."""
         actual_repr = repr(self.base_period_state)
-        expected_repr_regex = r"BasePeriodState\(db=StateDB\({(.*)}\)\)"
+        expected_repr_regex = r"BasePeriodState\(db=AbciAppDB\({(.*)}\)\)"
         assert re.match(expected_repr_regex, actual_repr) is not None
 
     def test_participants_list_is_empty(
@@ -523,7 +523,7 @@ class TestBasePeriodState:
     ) -> None:
         """Tets when participants list is set to zero."""
         base_period_state = BasePeriodState(
-            db=StateDB(initial_period=0, initial_data=dict(participants={}))
+            db=AbciAppDB(initial_period=0, initial_data=dict(participants={}))
         )
         with pytest.raises(ValueError, match="List participants cannot be empty."):
             _ = base_period_state.participants
@@ -533,7 +533,7 @@ class TestBasePeriodState:
     ) -> None:
         """Tets when participants list is set to zero."""
         base_period_state = BasePeriodState(
-            db=StateDB(initial_period=0, initial_data=dict(all_participants={}))
+            db=AbciAppDB(initial_period=0, initial_data=dict(all_participants={}))
         )
         with pytest.raises(ValueError, match="List participants cannot be empty."):
             _ = base_period_state.all_participants
@@ -547,7 +547,7 @@ class TestAbstractRound:
         self.known_payload_type = ConcreteRoundA.allowed_tx_type
         self.participants = {"a", "b"}
         self.base_period_state = BasePeriodState(
-            db=StateDB(
+            db=AbciAppDB(
                 initial_period=0, initial_data=dict(participants=self.participants)
             )
         )
@@ -1004,7 +1004,7 @@ class TestAbciApp:
         start_history_depth = 5
         max_participants = 4
         dummy_state = BasePeriodState(
-            db=StateDB(
+            db=AbciAppDB(
                 initial_period=0, initial_data=dict(participants=max_participants)
             )
         )

@@ -40,11 +40,11 @@ from packages.valory.protocols.contract_api.message import ContractApiMessage
 from packages.valory.protocols.http import HttpMessage
 from packages.valory.protocols.ledger_api.message import LedgerApiMessage
 from packages.valory.skills.abstract_round_abci.base import (
+    AbciAppDB,
     AbstractRound,
     BasePeriodState,
     BaseTxPayload,
     OK_CODE,
-    StateDB,
     _MetaPayload,
 )
 from packages.valory.skills.abstract_round_abci.behaviour_utils import BaseState
@@ -134,7 +134,7 @@ class SimpleAbciFSMBehaviourBaseCase(BaseSkillTestCase):
             cast(BaseState, cls.simple_abci_behaviour.current_state).state_id
             == cls.simple_abci_behaviour.initial_state_cls.state_id
         )
-        cls.period_state = PeriodState(StateDB(initial_period=0, initial_data={}))
+        cls.period_state = PeriodState(AbciAppDB(initial_period=0, initial_data={}))
 
     def fast_forward_to_state(
         self,
@@ -545,7 +545,7 @@ class BaseSelectKeeperBehaviourTest(SimpleAbciFSMBehaviourBaseCase):
             behaviour=self.simple_abci_behaviour,
             state_id=self.select_keeper_behaviour_class.state_id,
             period_state=PeriodState(
-                StateDB(
+                AbciAppDB(
                     initial_period=0,
                     initial_data=dict(
                         participants=participants,

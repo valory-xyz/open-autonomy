@@ -29,9 +29,9 @@ import pytest
 
 from packages.valory.skills.abstract_round_abci.base import (
     ABCIAppInternalError,
+    AbciAppDB,
     BaseTxPayload,
     MAX_INT_256,
-    StateDB,
 )
 from packages.valory.skills.oracle_deployment_abci.payloads import RandomnessPayload
 from packages.valory.skills.transaction_settlement_abci.payload_tools import (
@@ -665,13 +665,13 @@ def test_period_states() -> None:
 
     # test `keeper_retries` property when no `keepers` are set.
     period_state_____ = TransactionSettlementPeriodState(
-        StateDB(initial_period=0, initial_data=dict())
+        AbciAppDB(initial_period=0, initial_data=dict())
     )
     assert period_state_____.keepers == deque()
     assert period_state_____.keeper_retries == 0
 
     period_state_____ = TransactionSettlementPeriodState(
-        StateDB(
+        AbciAppDB(
             initial_period=0,
             initial_data=dict(
                 participants=participants,

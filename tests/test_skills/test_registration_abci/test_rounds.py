@@ -22,10 +22,10 @@
 import json
 from typing import Optional, cast
 
+from packages.valory.skills.abstract_round_abci.base import AbciAppDB
 from packages.valory.skills.abstract_round_abci.base import (
     BasePeriodState as PeriodState,
 )
-from packages.valory.skills.abstract_round_abci.base import StateDB
 from packages.valory.skills.registration_abci.payloads import RegistrationPayload
 from packages.valory.skills.registration_abci.rounds import Event as RegistrationEvent
 from packages.valory.skills.registration_abci.rounds import (
@@ -104,7 +104,7 @@ class TestRegistrationStartupRound(BaseCollectDifferentUntilAllRoundTest):
                 for participant in self.participants
             ],
             state_update_fn=lambda *x: PeriodState(
-                StateDB(
+                AbciAppDB(
                     initial_period=0,
                     initial_data=dict(participants=frozenset(test_round.collection)),
                 )
@@ -181,7 +181,7 @@ class TestRegistrationRound(BaseCollectDifferentUntilThresholdRoundTest):
             ),
             state_update_fn=(
                 lambda *x: PeriodState(
-                    StateDB(
+                    AbciAppDB(
                         initial_period=0,
                         initial_data=dict(participants=self.participants),
                     )

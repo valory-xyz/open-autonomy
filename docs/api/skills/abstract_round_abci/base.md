@@ -617,17 +617,17 @@ def __eq__(other: Any) -> bool
 
 Check equality.
 
-<a id="packages.valory.skills.abstract_round_abci.base.StateDB"></a>
+<a id="packages.valory.skills.abstract_round_abci.base.AbciAppDB"></a>
 
-## StateDB Objects
+## AbciAppDB Objects
 
 ```python
-class StateDB()
+class AbciAppDB()
 ```
 
-Class to represent all state replicated across periods.
+Class to represent all data replicated across periods.
 
-<a id="packages.valory.skills.abstract_round_abci.base.StateDB.__init__"></a>
+<a id="packages.valory.skills.abstract_round_abci.base.AbciAppDB.__init__"></a>
 
 #### `__`init`__`
 
@@ -637,7 +637,7 @@ def __init__(initial_period: int, initial_data: Dict[str, Any], cross_period_per
 
 Initialize a period state.
 
-<a id="packages.valory.skills.abstract_round_abci.base.StateDB.initial_data"></a>
+<a id="packages.valory.skills.abstract_round_abci.base.AbciAppDB.initial_data"></a>
 
 #### initial`_`data
 
@@ -652,7 +652,7 @@ Get the initial_data.
 
 the initial_data
 
-<a id="packages.valory.skills.abstract_round_abci.base.StateDB.current_period_count"></a>
+<a id="packages.valory.skills.abstract_round_abci.base.AbciAppDB.current_period_count"></a>
 
 #### current`_`period`_`count
 
@@ -663,7 +663,7 @@ def current_period_count() -> int
 
 Get the current period count.
 
-<a id="packages.valory.skills.abstract_round_abci.base.StateDB.round_count"></a>
+<a id="packages.valory.skills.abstract_round_abci.base.AbciAppDB.round_count"></a>
 
 #### round`_`count
 
@@ -674,7 +674,7 @@ def round_count() -> int
 
 Get the round count.
 
-<a id="packages.valory.skills.abstract_round_abci.base.StateDB.cross_period_persisted_keys"></a>
+<a id="packages.valory.skills.abstract_round_abci.base.AbciAppDB.cross_period_persisted_keys"></a>
 
 #### cross`_`period`_`persisted`_`keys
 
@@ -685,7 +685,7 @@ def cross_period_persisted_keys() -> List[str]
 
 Keys in the period state which are persistet across periods.
 
-<a id="packages.valory.skills.abstract_round_abci.base.StateDB.get"></a>
+<a id="packages.valory.skills.abstract_round_abci.base.AbciAppDB.get"></a>
 
 #### get
 
@@ -695,7 +695,7 @@ def get(key: str, default: Any = "NOT_PROVIDED") -> Optional[Any]
 
 Get a value from the data dictionary.
 
-<a id="packages.valory.skills.abstract_round_abci.base.StateDB.get_strict"></a>
+<a id="packages.valory.skills.abstract_round_abci.base.AbciAppDB.get_strict"></a>
 
 #### get`_`strict
 
@@ -705,7 +705,7 @@ def get_strict(key: str) -> Any
 
 Get a value from the data dictionary and raise if it is None.
 
-<a id="packages.valory.skills.abstract_round_abci.base.StateDB.update_current_period"></a>
+<a id="packages.valory.skills.abstract_round_abci.base.AbciAppDB.update_current_period"></a>
 
 #### update`_`current`_`period
 
@@ -715,7 +715,7 @@ def update_current_period(**kwargs: Any) -> None
 
 Update the current period's state.
 
-<a id="packages.valory.skills.abstract_round_abci.base.StateDB.add_new_period"></a>
+<a id="packages.valory.skills.abstract_round_abci.base.AbciAppDB.add_new_period"></a>
 
 #### add`_`new`_`period
 
@@ -725,7 +725,7 @@ def add_new_period(new_period: int, **kwargs: Any) -> None
 
 Update the current period's state.
 
-<a id="packages.valory.skills.abstract_round_abci.base.StateDB.get_all"></a>
+<a id="packages.valory.skills.abstract_round_abci.base.AbciAppDB.get_all"></a>
 
 #### get`_`all
 
@@ -735,7 +735,7 @@ def get_all() -> Dict[str, Any]
 
 Get all key-value pairs from the data dictionary for the current period.
 
-<a id="packages.valory.skills.abstract_round_abci.base.StateDB.increment_round_count"></a>
+<a id="packages.valory.skills.abstract_round_abci.base.AbciAppDB.increment_round_count"></a>
 
 #### increment`_`round`_`count
 
@@ -745,7 +745,7 @@ def increment_round_count() -> None
 
 Increment the round count.
 
-<a id="packages.valory.skills.abstract_round_abci.base.StateDB.__repr__"></a>
+<a id="packages.valory.skills.abstract_round_abci.base.AbciAppDB.__repr__"></a>
 
 #### `__`repr`__`
 
@@ -755,7 +755,7 @@ def __repr__() -> str
 
 Return a string representation of the state.
 
-<a id="packages.valory.skills.abstract_round_abci.base.StateDB.cleanup"></a>
+<a id="packages.valory.skills.abstract_round_abci.base.AbciAppDB.cleanup"></a>
 
 #### cleanup
 
@@ -782,7 +782,7 @@ This is the relevant state constructed and replicated by the agents in a period.
 #### `__`init`__`
 
 ```python
-def __init__(db: StateDB) -> None
+def __init__(db: AbciAppDB) -> None
 ```
 
 Initialize a period state.
@@ -793,7 +793,7 @@ Initialize a period state.
 
 ```python
 @property
-def db() -> StateDB
+def db() -> AbciAppDB
 ```
 
 Get DB.

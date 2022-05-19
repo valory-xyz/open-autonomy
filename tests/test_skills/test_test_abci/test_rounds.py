@@ -22,9 +22,9 @@ import logging  # noqa: F401
 from typing import FrozenSet, cast
 
 from packages.valory.skills.abstract_round_abci.base import (
+    AbciAppDB,
     BasePeriodState,
     ConsensusParams,
-    StateDB,
 )
 from packages.valory.skills.test_abci.payloads import DummyPayload
 from packages.valory.skills.test_abci.rounds import DummyRound, Event
@@ -53,7 +53,7 @@ class BaseRoundTestClass:
 
         cls.participants = get_participants()
         cls.period_state = BasePeriodState(
-            StateDB(
+            AbciAppDB(
                 initial_period=0,
                 initial_data=dict(
                     participants=cls.participants, all_participants=cls.participants
@@ -87,7 +87,7 @@ class TestDummyRound(BaseRoundTestClass):
             test_round.process_payload(payload)
 
         actual_next_state = BasePeriodState(
-            StateDB(
+            AbciAppDB(
                 initial_period=0,
                 initial_data=dict(participants=frozenset(test_round.collection.keys())),
             )

@@ -23,7 +23,7 @@ import logging  # noqa: F401
 from types import MappingProxyType
 from typing import Any, Dict, FrozenSet, Mapping, Optional, Type, cast
 
-from packages.valory.skills.abstract_round_abci.base import AbstractRound
+from packages.valory.skills.abstract_round_abci.base import AbciAppDB, AbstractRound
 from packages.valory.skills.abstract_round_abci.base import (
     BasePeriodState as PeriodState,
 )
@@ -31,7 +31,6 @@ from packages.valory.skills.abstract_round_abci.base import (
     BaseTxPayload,
     CollectSameUntilThresholdRound,
     MAX_INT_256,
-    StateDB,
     VotingRound,
 )
 from packages.valory.skills.oracle_deployment_abci.payloads import (
@@ -355,7 +354,7 @@ def test_period_states() -> None:
     actual_keeper_randomness = int(most_voted_randomness, base=16) / MAX_INT_256
 
     period_state__ = OracleDeploymentPeriodState(
-        StateDB(
+        AbciAppDB(
             initial_period=0,
             initial_data=dict(
                 participants=participants,

@@ -39,7 +39,7 @@ from packages.valory.contracts.offchain_aggregator.contract import (
     PUBLIC_ID as ORACLE_CONTRACT_ID,
 )
 from packages.valory.protocols.contract_api.message import ContractApiMessage
-from packages.valory.skills.abstract_round_abci.base import StateDB
+from packages.valory.skills.abstract_round_abci.base import AbciAppDB
 from packages.valory.skills.abstract_round_abci.behaviour_utils import (
     BaseState,
     make_degenerate_state,
@@ -108,7 +108,7 @@ class TestObserveBehaviour(PriceEstimationFSMBehaviourBaseCase):
             self.behaviour,
             ObserveBehaviour.state_id,
             PriceEstimationPeriodState(
-                StateDB(initial_period=0, initial_data=dict(estimate=1.0)),
+                AbciAppDB(initial_period=0, initial_data=dict(estimate=1.0)),
             ),
         )
         assert (
@@ -149,7 +149,7 @@ class TestObserveBehaviour(PriceEstimationFSMBehaviourBaseCase):
             self.behaviour,
             ObserveBehaviour.state_id,
             PriceEstimationPeriodState(
-                StateDB(initial_period=0, initial_data=dict(estimate=1.0)),
+                AbciAppDB(initial_period=0, initial_data=dict(estimate=1.0)),
             ),
         )
         assert (
@@ -177,7 +177,7 @@ class TestObserveBehaviour(PriceEstimationFSMBehaviourBaseCase):
             self.behaviour,
             ObserveBehaviour.state_id,
             PriceEstimationPeriodState(
-                StateDB(initial_period=0, initial_data=dict()),
+                AbciAppDB(initial_period=0, initial_data=dict()),
             ),
         )
         assert (
@@ -215,7 +215,7 @@ class TestObserveBehaviour(PriceEstimationFSMBehaviourBaseCase):
             self.behaviour,
             ObserveBehaviour.state_id,
             PriceEstimationPeriodState(
-                StateDB(initial_period=0, initial_data=dict()),
+                AbciAppDB(initial_period=0, initial_data=dict()),
             ),
         )
         assert (
@@ -243,7 +243,7 @@ class TestEstimateBehaviour(PriceEstimationFSMBehaviourBaseCase):
             behaviour=self.behaviour,
             state_id=EstimateBehaviour.state_id,
             period_state=PriceEstimationPeriodState(
-                StateDB(
+                AbciAppDB(
                     initial_period=0,
                     initial_data=dict(
                         participant_to_observations={
@@ -375,7 +375,7 @@ class TestTransactionHashBehaviour(PriceEstimationFSMBehaviourBaseCase):
             behaviour=self.behaviour,
             state_id=TransactionHashBehaviour.state_id,
             period_state=PriceEstimationPeriodState(
-                StateDB(
+                AbciAppDB(
                     initial_period=0,
                     initial_data=dict(
                         most_voted_estimate=1.0,

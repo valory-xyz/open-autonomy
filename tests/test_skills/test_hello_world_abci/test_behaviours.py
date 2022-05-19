@@ -36,11 +36,11 @@ from packages.valory.connections.http_client.connection import (
 )
 from packages.valory.protocols.http import HttpMessage
 from packages.valory.skills.abstract_round_abci.base import (
+    AbciAppDB,
     AbstractRound,
     BasePeriodState,
     BaseTxPayload,
     OK_CODE,
-    StateDB,
     _MetaPayload,
 )
 from packages.valory.skills.abstract_round_abci.behaviour_utils import BaseState
@@ -108,7 +108,7 @@ class HelloWorldAbciFSMBehaviourBaseCase(BaseSkillTestCase):
             == cls.hello_world_abci_behaviour.initial_state_cls.state_id
         )
         cls.period_state = PeriodState(
-            StateDB(
+            AbciAppDB(
                 initial_period=0,
                 initial_data=dict(
                     most_voted_keeper_address="most_voted_keeper_address",
@@ -307,7 +307,7 @@ class BaseSelectKeeperBehaviourTest(HelloWorldAbciFSMBehaviourBaseCase):
             behaviour=self.hello_world_abci_behaviour,
             state_id=self.select_keeper_behaviour_class.state_id,
             period_state=PeriodState(
-                StateDB(
+                AbciAppDB(
                     initial_period=0,
                     initial_data=dict(
                         participants=participants,

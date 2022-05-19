@@ -22,7 +22,7 @@
 from pathlib import Path
 from typing import cast
 
-from packages.valory.skills.abstract_round_abci.base import StateDB
+from packages.valory.skills.abstract_round_abci.base import AbciAppDB
 from packages.valory.skills.abstract_round_abci.behaviour_utils import (
     BaseState,
     make_degenerate_state,
@@ -62,7 +62,7 @@ class BaseRegistrationTestBehaviour(RegistrationAbciBaseCase):
         self.fast_forward_to_state(
             self.behaviour,
             self.behaviour_class.state_id,
-            RegistrationPeriodState(StateDB(initial_period=0, initial_data={})),
+            RegistrationPeriodState(AbciAppDB(initial_period=0, initial_data={})),
         )
         assert (
             cast(

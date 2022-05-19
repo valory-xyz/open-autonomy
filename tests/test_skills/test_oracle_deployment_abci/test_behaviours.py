@@ -36,7 +36,7 @@ from packages.valory.contracts.offchain_aggregator.contract import (
 )
 from packages.valory.protocols.contract_api.message import ContractApiMessage
 from packages.valory.protocols.ledger_api.message import LedgerApiMessage
-from packages.valory.skills.abstract_round_abci.base import StateDB
+from packages.valory.skills.abstract_round_abci.base import AbciAppDB
 from packages.valory.skills.abstract_round_abci.behaviour_utils import (
     BaseState,
     make_degenerate_state,
@@ -116,7 +116,7 @@ class BaseDeployBehaviourTest(FSMBehaviourBaseCase):
             self.behaviour,
             self.behaviour_class.state_id,
             OracleDeploymentPeriodState(
-                StateDB(
+                AbciAppDB(
                     initial_period=0,
                     initial_data=dict(
                         participants=participants,
@@ -205,7 +205,7 @@ class BaseDeployBehaviourTest(FSMBehaviourBaseCase):
             self.behaviour,
             self.behaviour_class.state_id,
             OracleDeploymentPeriodState(
-                StateDB(
+                AbciAppDB(
                     initial_period=0,
                     initial_data=dict(
                         participants=participants,
@@ -259,7 +259,7 @@ class BaseValidateBehaviourTest(FSMBehaviourBaseCase):
             self.behaviour,
             self.behaviour_class.state_id,
             OracleDeploymentPeriodState(
-                StateDB(initial_period=0, initial_data=self.period_state_kwargs),
+                AbciAppDB(initial_period=0, initial_data=self.period_state_kwargs),
             ),
         )
         assert (

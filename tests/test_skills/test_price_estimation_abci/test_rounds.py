@@ -22,10 +22,11 @@ import logging  # noqa: F401
 from types import MappingProxyType
 from typing import Dict, FrozenSet, Optional
 
+from packages.valory.skills.abstract_round_abci.base import AbciAppDB
 from packages.valory.skills.abstract_round_abci.base import (
     BasePeriodState as PeriodState,
 )
-from packages.valory.skills.abstract_round_abci.base import MAX_INT_256, StateDB
+from packages.valory.skills.abstract_round_abci.base import MAX_INT_256
 from packages.valory.skills.oracle_deployment_abci.payloads import (
     RandomnessPayload,
     SelectKeeperPayload,
@@ -356,7 +357,7 @@ def test_period_states() -> None:
     most_voted_estimate = get_most_voted_estimate()
 
     period_state = PeriodState(
-        StateDB(
+        AbciAppDB(
             initial_period=0,
             initial_data=dict(
                 participants=participants,
@@ -376,7 +377,7 @@ def test_period_states() -> None:
     assert period_state.participant_to_votes == participant_to_votes
 
     period_state____ = RegistrationPeriodState(
-        StateDB(
+        AbciAppDB(
             initial_period=0,
             initial_data=dict(
                 participants=participants,
@@ -395,7 +396,7 @@ def test_period_states() -> None:
     assert period_state____.most_voted_keeper_address == most_voted_keeper_address
 
     period_state______ = PriceEstimationPeriodState(
-        StateDB(
+        AbciAppDB(
             initial_period=0,
             initial_data=dict(
                 participants=participants,

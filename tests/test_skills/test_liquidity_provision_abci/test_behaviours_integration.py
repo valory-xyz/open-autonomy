@@ -30,7 +30,7 @@ from web3 import Web3
 
 from packages.valory.contracts.gnosis_safe.contract import SafeOperation
 from packages.valory.protocols.contract_api import ContractApiMessage
-from packages.valory.skills.abstract_round_abci.base import StateDB
+from packages.valory.skills.abstract_round_abci.base import AbciAppDB
 from packages.valory.skills.liquidity_rebalancing_abci.behaviours import (
     EnterPoolTransactionHashBehaviour,
     ExitPoolTransactionHashBehaviour,
@@ -134,7 +134,7 @@ class LiquidityProvisionIntegrationBaseCase(
         cls.strategy["deadline"] = 1672527599
 
         cls.default_period_state_hash = LiquidityRebalancingPeriodState(
-            StateDB(
+            AbciAppDB(
                 initial_period=0,
                 initial_data=dict(
                     safe_contract_address=cls.safe_contract_address,
@@ -150,7 +150,7 @@ class LiquidityProvisionIntegrationBaseCase(
         keeper_retries = 1
         keepers = next(iter(cls.agents.keys()))
         cls.tx_settlement_period_state = TransactionSettlementPeriodState(
-            StateDB(
+            AbciAppDB(
                 initial_period=0,
                 initial_data=dict(
                     safe_contract_address=cls.safe_contract_address,

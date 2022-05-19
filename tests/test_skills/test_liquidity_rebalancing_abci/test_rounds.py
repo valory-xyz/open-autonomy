@@ -24,7 +24,7 @@ from types import MappingProxyType
 from typing import Dict, FrozenSet, Mapping, Optional  # noqa : F401
 from unittest import mock
 
-from packages.valory.skills.abstract_round_abci.base import StateDB
+from packages.valory.skills.abstract_round_abci.base import AbciAppDB
 from packages.valory.skills.liquidity_rebalancing_abci.payloads import (
     SleepPayload,
     StrategyEvaluationPayload,
@@ -309,7 +309,7 @@ def test_period_state() -> None:
     participant_to_strategy = get_participant_to_strategy(participants)
 
     period_state = PeriodState(
-        StateDB(
+        AbciAppDB(
             initial_period=period_count,
             initial_data=dict(
                 participants=participants,
