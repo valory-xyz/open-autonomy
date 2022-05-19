@@ -42,7 +42,7 @@ def slow_down_tests() -> Generator:
 # strict check log messages of the happy path
 STRICT_CHECK_STRINGS = (
     # "Local Tendermint configuration obtained",
-    # "ServiceRegistryContract.getServiceInfo response",
+    "ServiceRegistryContract.getServiceInfo response",
     "Registered addresses retrieved from service registry contract",
     "Completed collecting Tendermint responses",
     # "Local TendermintNode updated",
@@ -57,19 +57,6 @@ class RegistrationStartUpTestConfig(UseGnosisSafeHardHatNet, UseACNNode):
     skill_package = "valory/registration_abci:0.1.0"
     agent_package = "valory/registration_start_up:0.1.0"
     wait_to_finish = 60
-
-    prefix = "vendor.valory.skills.registration_abci.models.params.args"
-
-    extra_configs = [
-        {
-            "dotted_path": f"{prefix}.service_registry_address",
-            "value": "0x0DCd1Bf9A1b36cE34237eEaFef220932846BCD82",
-        },
-        {
-            "dotted_path": f"{prefix}.on_chain_service_id",
-            "value": "1",
-        },
-    ]
 
 
 @pytest.mark.e2e
