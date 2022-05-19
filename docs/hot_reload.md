@@ -52,3 +52,19 @@ We have a single make target for the oracle app, just run the following command 
 ```bash
 make run-oracle-dev
 ```
+
+## Debugging in the cluster
+
+When debugging deployments, it can be useful to have the option to spin up a hardhat node to enable debugging and testing of the issue within the cluster.
+
+
+```bash
+VERSION=cluster-dev
+DEPLOYMENT_TYPE=kubernetes
+DEPLOYMENT_KEYS=deployments/keys/hardhat_keys.json
+SERVICE_ID=valory/oracle_hardhat
+
+make push-images build-deploy run-deploy
+```
+
+This will deploy a private hardhat container to the cluster, along with the associated agent service, configured to use the hardhat container.
