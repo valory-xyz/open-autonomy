@@ -540,7 +540,7 @@ class BaseState(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
             raise ValueError("Can only wait for a positive amount of time")
         deadline = cast(
             SharedState, self.context.state
-        ).period.abci_app.last_timestamp + datetime.timedelta(seconds=seconds)
+        ).round_sequence.abci_app.last_timestamp + datetime.timedelta(seconds=seconds)
 
         def _wait_until() -> bool:
             return datetime.datetime.now() > deadline

@@ -169,7 +169,7 @@ class FetchBehaviour(
         """Set the behaviour up."""
         last_timestamp = cast(
             SharedState, self.context.state
-        ).period.abci_app.last_timestamp
+        ).round_sequence.abci_app.last_timestamp
         self._last_timestamp_unix = int(calendar.timegm(last_timestamp.timetuple()))
         filename = "historical_data"
 

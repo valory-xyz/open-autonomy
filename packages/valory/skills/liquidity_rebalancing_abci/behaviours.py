@@ -367,7 +367,7 @@ class StrategyEvaluationBehaviour(LiquidityRebalancingBaseBehaviour):
         """Get a dummy strategy."""
         last_timestamp = cast(
             SharedState, self.context.state
-        ).period.abci_app.last_timestamp.timestamp()
+        ).round_sequence.abci_app.last_timestamp.timestamp()
 
         strategy = {
             "action": StrategyType.ENTER.value,
