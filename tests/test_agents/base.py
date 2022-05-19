@@ -26,7 +26,6 @@ import warnings
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
-import aea_ledger_cosmos
 import pytest
 from aea.configurations.base import PublicId
 from aea.test_tools.test_cases import AEATestCaseMany
@@ -176,6 +175,9 @@ class BaseTestEnd2End(AEATestCaseMany, UseFlaskTendermintNode):
 
     def prepare(self, nb_nodes: int) -> None:
         """Set up the test."""
+        logging.debug(f"Setting-up test for agent package: {self.agent_package}")
+        logging.debug(f"Setting-up test for skill package: {self.skill_package}")
+
         self.processes = []
         self.nb_agents = nb_nodes
 

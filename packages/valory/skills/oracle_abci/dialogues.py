@@ -79,4 +79,3 @@ ContractApiDialogues = BaseContractApiDialogues
 
 TendermintDialogue = BaseTendermintDialogue
 TendermintDialogues = BaseTendermintDialogues
-

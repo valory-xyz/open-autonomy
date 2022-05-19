@@ -161,7 +161,7 @@ class RegistrationStartupBehaviour(RegistrationBaseBehaviour):
         self.context.logger.info(f"{log_msg}: {contract_api_response}")
         return cast(dict, contract_api_response.state.body)
 
-    def get_addresses(self) -> Generator[None, None, bool]:
+    def get_addresses(self) -> Generator:
         """Get addresses of agents registered for the service"""
 
         if self.params.service_registry_address is None:
@@ -171,25 +171,25 @@ class RegistrationStartupBehaviour(RegistrationBaseBehaviour):
         if not correctly_deployed:
             log_message = "Service registry contract not correctly deployed"
             self.context.logger.info(log_message)
-            return False
+            return
 
         # checks if service exists
         service_info = yield from self.get_service_info()
         if not service_info:
             self.context.logger.info("Service info could not be retrieved")
-            return False
+            return
 
         registered_addresses = set(service_info["agent_instances"])
         if not registered_addresses:
             log_msg = f"No agent instances registered: {service_info}"
             self.context.logger.info(log_msg)
-            return False
+            return
 
         my_address = self.context.agent_address
         if my_address not in registered_addresses:
             log_msg = f"You are not registered, your address: {my_address}"
             self.context.logger.info(f"{log_msg}:\n{registered_addresses}")
-            return False
+            return
 
         # put service info in the shared state for p2p message handler
         info: Dict[str, str] = dict.fromkeys(registered_addresses)
@@ -198,7 +198,6 @@ class RegistrationStartupBehaviour(RegistrationBaseBehaviour):
         self.period_state.db.initial_data.update(dict(registered_addresses=info))
         log_msg = "Registered addresses retrieved from service registry contract"
         self.context.logger.info(f"{log_msg}:\n{info}")
-        return True
 
     def get_tendermint_configuration(self) -> Generator[None, None, bool]:
         """Make HTTP GET request to obtain agent's local Tendermint node parameters"""
@@ -280,17 +279,14 @@ class RegistrationStartupBehaviour(RegistrationBaseBehaviour):
         #         return  # noqa: E800
 
         # make service registry contract call
-        if not self.registered_addresses:
-            successful = yield from self.get_addresses()
-            if not successful:
-                yield from self.sleep(self.params.sleep_time)
-                return
+        while not self.registered_addresses:
+            yield from self.get_addresses()
+            yield from self.sleep(self.params.sleep_time)
 
         # collect Tendermint config information from other agents
-        if any(self.not_yet_collected):
+        while any(self.not_yet_collected):
             consume(map(self.request_tendermint_info, self.not_yet_collected))
             yield from self.sleep(self.params.sleep_time)
-            return
 
         log_msg = "Completed collecting Tendermint responses"
         self.context.logger.info(f"{log_msg}: {self.registered_addresses}")
