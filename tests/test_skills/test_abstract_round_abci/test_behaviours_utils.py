@@ -386,9 +386,11 @@ class TestBaseState:
             tx_timeout=_DEFAULT_TX_TIMEOUT,
             max_attempts=_DEFAULT_TX_MAX_ATTEMPTS,
         )
-        self.context_state_period_state_mock = MagicMock()
+        self.context_state_synchronized_data_mock = MagicMock()
         self.context_mock.params = self.context_params_mock
-        self.context_mock.state.period_state = self.context_state_period_state_mock
+        self.context_mock.state.synchronized_data = (
+            self.context_state_synchronized_data_mock
+        )
         self.context_mock.state.round_sequence.current_round_id = "round_a"
         self.context_mock.state.round_sequence.syncing_up = False
         self.context_mock.http_dialogues = HttpDialogues()
@@ -399,9 +401,12 @@ class TestBaseState:
         """Test the 'params' property."""
         assert self.behaviour.params == self.context_params_mock
 
-    def test_period_state_property(self) -> None:
-        """Test the 'period_state' property."""
-        assert self.behaviour.period_state == self.context_state_period_state_mock
+    def test_synchronized_data_property(self) -> None:
+        """Test the 'synchronized_data' property."""
+        assert (
+            self.behaviour.synchronized_data
+            == self.context_state_synchronized_data_mock
+        )
 
     def test_check_in_round(self) -> None:
         """Test 'BaseState' initialization."""

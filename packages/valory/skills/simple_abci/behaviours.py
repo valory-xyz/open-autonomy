@@ -35,12 +35,12 @@ from packages.valory.skills.simple_abci.payloads import (
     SelectKeeperPayload,
 )
 from packages.valory.skills.simple_abci.rounds import (
-    SynchronizedData,
     RandomnessStartupRound,
     RegistrationRound,
     ResetAndPauseRound,
     SelectKeeperAtStartupRound,
     SimpleAbciApp,
+    SynchronizedData,
 )
 
 
@@ -60,9 +60,11 @@ class SimpleABCIBaseState(BaseState, ABC):
     """Base state behaviour for the simple abci skill."""
 
     @property
-    def period_state(self) -> SynchronizedData:
+    def synchronized_data(self) -> SynchronizedData:
         """Return the period state."""
-        return cast(SynchronizedData, cast(SharedState, self.context.state).period_state)
+        return cast(
+            SynchronizedData, cast(SharedState, self.context.state).synchronized_data
+        )
 
     @property
     def params(self) -> Params:
@@ -178,8 +180,8 @@ class SelectKeeperBehaviour(SimpleABCIBaseState, ABC):
 
         with self.context.benchmark_tool.measure(self.state_id).local():
             keeper_address = random_selection(
-                sorted(self.period_state.participants),
-                self.period_state.keeper_randomness,
+                sorted(self.synchronized_data.participants),
+                self.synchronized_data.keeper_randomness,
             )
 
             self.context.logger.info(f"Selected a new keeper: {keeper_address}.")
@@ -224,11 +226,11 @@ class BaseResetBehaviour(SimpleABCIBaseState):
             yield from self.sleep(self.params.observation_interval)
         else:
             self.context.logger.info(
-                f"Period {self.period_state.period_count} was not finished. Resetting!"
+                f"Period {self.synchronized_data.period_count} was not finished. Resetting!"
             )
 
         payload = ResetPayload(
-            self.context.agent_address, self.period_state.period_count + 1
+            self.context.agent_address, self.synchronized_data.period_count + 1
         )
 
         yield from self.send_a2a_transaction(payload)

@@ -171,7 +171,8 @@ class SelectKeeperBehaviour(BaseState):
         """
         # Get all the participants who have not been blacklisted as keepers
         non_blacklisted = (
-            self.period_state.participants - self.period_state.blacklisted_keepers
+            self.synchronized_data.participants
+            - self.synchronized_data.blacklisted_keepers
         )
         if not non_blacklisted:
             raise RuntimeError(
@@ -182,16 +183,19 @@ class SelectKeeperBehaviour(BaseState):
         relevant_set = sorted(list(non_blacklisted))
 
         # Random seeding and shuffling of the set
-        random.seed(self.period_state.keeper_randomness)
+        random.seed(self.synchronized_data.keeper_randomness)
         random.shuffle(relevant_set)
 
         # If the keeper is not set yet, pick the first address
         keeper_address = relevant_set[0]
 
         # If the keeper has been already set, select the next.
-        if self.period_state.is_keeper_set and len(self.period_state.participants) > 1:
+        if (
+            self.synchronized_data.is_keeper_set
+            and len(self.synchronized_data.participants) > 1
+        ):
             old_keeper_index = relevant_set.index(
-                self.period_state.most_voted_keeper_address
+                self.synchronized_data.most_voted_keeper_address
             )
             keeper_address = relevant_set[(old_keeper_index + 1) % len(relevant_set)]
 

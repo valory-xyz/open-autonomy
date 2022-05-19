@@ -49,7 +49,9 @@ class Event(Enum):
     RESET_TIMEOUT = "reset_timeout"
 
 
-class SynchronizedData(BaseSynchronizedData):  # pylint: disable=too-many-instance-attributes
+class SynchronizedData(
+    BaseSynchronizedData
+):  # pylint: disable=too-many-instance-attributes
     """
     Class to represent the synchronized data.
 
@@ -69,7 +71,7 @@ class HelloWorldABCIAbstractRound(AbstractRound[Event, TransactionType], ABC):
     """Abstract round for the Hello World ABCI skill."""
 
     @property
-    def period_state(self) -> SynchronizedData:
+    def synchronized_data(self) -> SynchronizedData:
         """Return the period state."""
         return cast(SynchronizedData, self._state)
 
@@ -79,7 +81,7 @@ class HelloWorldABCIAbstractRound(AbstractRound[Event, TransactionType], ABC):
 
         :return: a new period state and a NO_MAJORITY event
         """
-        return self.period_state, Event.NO_MAJORITY
+        return self.synchronized_data, Event.NO_MAJORITY
 
 
 class RegistrationRound(CollectDifferentUntilAllRound, HelloWorldABCIAbstractRound):
@@ -93,10 +95,10 @@ class RegistrationRound(CollectDifferentUntilAllRound, HelloWorldABCIAbstractRou
         """Process the end of the block."""
 
         if self.collection_threshold_reached:
-            state = self.period_state.update(
+            state = self.synchronized_data.update(
                 participants=self.collection,
                 all_participants=self.collection,
-                period_state_class=SynchronizedData,
+                synchronized_data_class=SynchronizedData,
             )
             return state, Event.DONE
         return None
@@ -112,13 +114,13 @@ class SelectKeeperRound(CollectSameUntilThresholdRound, HelloWorldABCIAbstractRo
     def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Event]]:
         """Process the end of the block."""
         if self.threshold_reached:
-            state = self.period_state.update(
+            state = self.synchronized_data.update(
                 participant_to_selection=MappingProxyType(self.collection),
                 most_voted_keeper_address=self.most_voted_payload,
             )
             return state, Event.DONE
         if not self.is_majority_possible(
-            self.collection, self.period_state.nb_participants
+            self.collection, self.synchronized_data.nb_participants
         ):
             return self._return_no_majority_event()
         return None
@@ -134,10 +136,10 @@ class PrintMessageRound(CollectDifferentUntilAllRound, HelloWorldABCIAbstractRou
     def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Event]]:
         """Process the end of the block."""
         if self.collection_threshold_reached:
-            state = self.period_state.update(
+            state = self.synchronized_data.update(
                 participants=self.collection,
                 all_participants=self.collection,
-                period_state_class=SynchronizedData,
+                synchronized_data_class=SynchronizedData,
             )
             return state, Event.DONE
         return None
@@ -153,14 +155,14 @@ class ResetAndPauseRound(CollectSameUntilThresholdRound, HelloWorldABCIAbstractR
     def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Event]]:
         """Process the end of the block."""
         if self.threshold_reached:
-            state = self.period_state.update(
+            state = self.synchronized_data.update(
                 period_count=self.most_voted_payload,
-                participants=self.period_state.participants,
-                all_participants=self.period_state.all_participants,
+                participants=self.synchronized_data.participants,
+                all_participants=self.synchronized_data.all_participants,
             )
             return state, Event.DONE
         if not self.is_majority_possible(
-            self.collection, self.period_state.nb_participants
+            self.collection, self.synchronized_data.nb_participants
         ):
             return self._return_no_majority_event()
         return None

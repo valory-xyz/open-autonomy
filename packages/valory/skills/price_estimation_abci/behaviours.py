@@ -43,8 +43,8 @@ from packages.valory.skills.price_estimation_abci.payloads import (
 from packages.valory.skills.price_estimation_abci.rounds import (
     CollectObservationRound,
     EstimateConsensusRound,
-    SynchronizedData,
     PriceAggregationAbciApp,
+    SynchronizedData,
     TxHashRound,
 )
 from packages.valory.skills.transaction_settlement_abci.payload_tools import (
@@ -77,9 +77,9 @@ class PriceEstimationBaseState(BaseState, ABC):
     """Base state behaviour for the common apps' skill."""
 
     @property
-    def period_state(self) -> SynchronizedData:
+    def synchronized_data(self) -> SynchronizedData:
         """Return the period state."""
-        return cast(SynchronizedData, super().period_state)
+        return cast(SynchronizedData, super().synchronized_data)
 
     @property
     def params(self) -> Params:
@@ -168,18 +168,18 @@ class EstimateBehaviour(PriceEstimationBaseState):
 
         with self.context.benchmark_tool.measure(self.state_id).local():
 
-            self.period_state.set_aggregator_method(
+            self.synchronized_data.set_aggregator_method(
                 self.params.observation_aggregator_function
             )
             self.context.logger.info(
                 "Got estimate of %s price in %s: %s, Using aggregator method: %s",
                 self.context.price_api.currency_id,
                 self.context.price_api.convert_id,
-                self.period_state.estimate,
+                self.synchronized_data.estimate,
                 self.params.observation_aggregator_function,
             )
             payload = EstimatePayload(
-                self.context.agent_address, self.period_state.estimate
+                self.context.agent_address, self.synchronized_data.estimate
             )
 
         with self.context.benchmark_tool.measure(self.state_id).consensus():
@@ -264,7 +264,7 @@ class TransactionHashBehaviour(PriceEstimationBaseState):
         :yield: the http response
         """
 
-        period_count = self.period_state.period_count
+        period_count = self.synchronized_data.period_count
 
         self.context.logger.info("Attempting broadcast")
 
@@ -273,7 +273,7 @@ class TransactionHashBehaviour(PriceEstimationBaseState):
             # grab tx_hash from previous cycle
             prev_period_count = period_count - 1
             previous_data = (
-                self.period_state.db._data[  # pylint: disable=protected-access
+                self.synchronized_data.db._data[  # pylint: disable=protected-access
                     prev_period_count
                 ]
             )
@@ -281,9 +281,9 @@ class TransactionHashBehaviour(PriceEstimationBaseState):
             prev_tx_hash = previous_data.get("final_tx_hash", "")
 
         # select relevant data
-        agents = self.period_state.db.get_strict("participants")
-        payloads = self.period_state.db.get_strict("participant_to_observations")
-        estimate = self.period_state.db.get_strict("most_voted_estimate")
+        agents = self.synchronized_data.db.get_strict("participants")
+        payloads = self.synchronized_data.db.get_strict("participant_to_observations")
+        estimate = self.synchronized_data.db.get_strict("most_voted_estimate")
 
         observations = {
             agent: getattr(payloads.get(agent), "observation", NO_OBSERVATION)
@@ -305,7 +305,7 @@ class TransactionHashBehaviour(PriceEstimationBaseState):
         }
 
         # pack data
-        participants = self.period_state.sorted_participants
+        participants = self.synchronized_data.sorted_participants
         decimals = self.params.oracle_params["decimals"]
         package = pack_for_server(participants, decimals, **data_for_server)
         data_for_server["package"] = package.hex()
@@ -330,7 +330,7 @@ class TransactionHashBehaviour(PriceEstimationBaseState):
         """Get the transaction hash of the Safe tx."""
         contract_api_msg = yield from self.get_contract_api_response(
             performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
-            contract_address=self.period_state.oracle_contract_address,
+            contract_address=self.synchronized_data.oracle_contract_address,
             contract_id=str(OffchainAggregatorContract.contract_id),
             contract_callable="get_latest_transmission_details",
         )
@@ -343,11 +343,11 @@ class TransactionHashBehaviour(PriceEstimationBaseState):
         epoch_ = cast(int, contract_api_msg.raw_transaction.body["epoch_"]) + 1
         round_ = cast(int, contract_api_msg.raw_transaction.body["round_"])
         decimals = self.params.oracle_params["decimals"]
-        amount = self.period_state.most_voted_estimate
+        amount = self.synchronized_data.most_voted_estimate
         amount_ = to_int(amount, decimals)
         contract_api_msg = yield from self.get_contract_api_response(
             performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
-            contract_address=self.period_state.oracle_contract_address,
+            contract_address=self.synchronized_data.oracle_contract_address,
             contract_id=str(OffchainAggregatorContract.contract_id),
             contract_callable="get_transmit_data",
             epoch_=epoch_,
@@ -361,12 +361,12 @@ class TransactionHashBehaviour(PriceEstimationBaseState):
             self.context.logger.warning("get_transmit_data unsuccessful!")
             return None
         data = cast(bytes, contract_api_msg.raw_transaction.body["data"])
-        to_address = self.period_state.oracle_contract_address
+        to_address = self.synchronized_data.oracle_contract_address
         ether_value = ETHER_VALUE
         safe_tx_gas = SAFE_TX_GAS
         contract_api_msg = yield from self.get_contract_api_response(
             performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
-            contract_address=self.period_state.safe_contract_address,
+            contract_address=self.synchronized_data.safe_contract_address,
             contract_id=str(GnosisSafeContract.contract_id),
             contract_callable="get_raw_safe_transaction_hash",
             to_address=to_address,

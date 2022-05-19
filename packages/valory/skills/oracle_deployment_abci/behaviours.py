@@ -43,9 +43,9 @@ from packages.valory.skills.oracle_deployment_abci.payloads import (
 from packages.valory.skills.oracle_deployment_abci.rounds import (
     DeployOracleRound,
     OracleDeploymentAbciApp,
-    SynchronizedData,
     RandomnessOracleRound,
     SelectKeeperOracleRound,
+    SynchronizedData,
     ValidateOracleRound,
 )
 
@@ -54,9 +54,9 @@ class OracleDeploymentBaseState(BaseState):
     """Base state behaviour for the common apps' skill."""
 
     @property
-    def period_state(self) -> SynchronizedData:
+    def synchronized_data(self) -> SynchronizedData:
         """Return the period state."""
-        return cast(SynchronizedData, super().period_state)
+        return cast(SynchronizedData, super().synchronized_data)
 
     @property
     def params(self) -> Params:
@@ -96,7 +96,10 @@ class DeployOracleBehaviour(OracleDeploymentBaseState):
         - Otherwise, wait until the next round.
         - If a timeout is hit, set exit A event, otherwise set done event.
         """
-        if self.context.agent_address != self.period_state.most_voted_keeper_address:
+        if (
+            self.context.agent_address
+            != self.synchronized_data.most_voted_keeper_address
+        ):
             yield from self._not_deployer_act()
         else:
             yield from self._deployer_act()
@@ -145,7 +148,7 @@ class DeployOracleBehaviour(OracleDeploymentBaseState):
             _maxAnswer=max_answer,
             _decimals=decimals,
             _description=description,
-            _transmitters=[self.period_state.safe_contract_address],
+            _transmitters=[self.synchronized_data.safe_contract_address],
         )
         if (
             contract_api_response.performative
@@ -201,7 +204,7 @@ class ValidateOracleBehaviour(OracleDeploymentBaseState):
         """Contract deployment verification."""
         contract_api_response = yield from self.get_contract_api_response(
             performative=ContractApiMessage.Performative.GET_STATE,  # type: ignore
-            contract_address=self.period_state.oracle_contract_address,
+            contract_address=self.synchronized_data.oracle_contract_address,
             contract_id=str(OffchainAggregatorContract.contract_id),
             contract_callable="verify_contract",
         )

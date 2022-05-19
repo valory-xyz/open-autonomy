@@ -58,7 +58,7 @@ class DummyRound(
 
     def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Event]]:
         """Process the end of the block."""
-        return self.period_state, Event.DONE
+        return self.synchronized_data, Event.DONE
 
 
 class TestAbciApp(AbciApp[Event]):

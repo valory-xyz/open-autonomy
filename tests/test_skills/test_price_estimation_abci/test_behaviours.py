@@ -56,7 +56,7 @@ from packages.valory.skills.price_estimation_abci.rounds import (
     FinishedPriceAggregationRound,
 )
 from packages.valory.skills.price_estimation_abci.rounds import (
-    SynchronizedData as PriceEstimationPeriodState,
+    SynchronizedData as PriceEstimationSynchronizedSata,
 )
 
 from tests.conftest import ROOT_DIR
@@ -107,7 +107,7 @@ class TestObserveBehaviour(PriceEstimationFSMBehaviourBaseCase):
         self.fast_forward_to_state(
             self.behaviour,
             ObserveBehaviour.state_id,
-            PriceEstimationPeriodState(
+            PriceEstimationSynchronizedSata(
                 AbciAppDB(initial_period=0, initial_data=dict(estimate=1.0)),
             ),
         )
@@ -148,7 +148,7 @@ class TestObserveBehaviour(PriceEstimationFSMBehaviourBaseCase):
         self.fast_forward_to_state(
             self.behaviour,
             ObserveBehaviour.state_id,
-            PriceEstimationPeriodState(
+            PriceEstimationSynchronizedSata(
                 AbciAppDB(initial_period=0, initial_data=dict(estimate=1.0)),
             ),
         )
@@ -176,7 +176,7 @@ class TestObserveBehaviour(PriceEstimationFSMBehaviourBaseCase):
         self.fast_forward_to_state(
             self.behaviour,
             ObserveBehaviour.state_id,
-            PriceEstimationPeriodState(
+            PriceEstimationSynchronizedSata(
                 AbciAppDB(initial_period=0, initial_data=dict()),
             ),
         )
@@ -214,7 +214,7 @@ class TestObserveBehaviour(PriceEstimationFSMBehaviourBaseCase):
         self.fast_forward_to_state(
             self.behaviour,
             ObserveBehaviour.state_id,
-            PriceEstimationPeriodState(
+            PriceEstimationSynchronizedSata(
                 AbciAppDB(initial_period=0, initial_data=dict()),
             ),
         )
@@ -242,7 +242,7 @@ class TestEstimateBehaviour(PriceEstimationFSMBehaviourBaseCase):
         self.fast_forward_to_state(
             behaviour=self.behaviour,
             state_id=EstimateBehaviour.state_id,
-            period_state=PriceEstimationPeriodState(
+            synchronized_data=PriceEstimationSynchronizedSata(
                 AbciAppDB(
                     initial_period=0,
                     initial_data=dict(
@@ -287,7 +287,7 @@ def mock_to_server_message_flow(
         "unit": "BTC:USD",
     }
     state = self.behaviour.current_state  # type: ignore
-    participants = state.period_state.sorted_participants  # type: ignore
+    participants = state.synchronized_data.sorted_participants  # type: ignore
     decimals = state.params.oracle_params["decimals"]  # type: ignore
     data["package"] = pack_for_server(participants, decimals, **data).hex()  # type: ignore
     data["signature"] = "stub_signature"
@@ -374,7 +374,7 @@ class TestTransactionHashBehaviour(PriceEstimationFSMBehaviourBaseCase):
         self.fast_forward_to_state(
             behaviour=self.behaviour,
             state_id=TransactionHashBehaviour.state_id,
-            period_state=PriceEstimationPeriodState(
+            synchronized_data=PriceEstimationSynchronizedSata(
                 AbciAppDB(
                     initial_period=0,
                     initial_data=dict(
@@ -421,8 +421,8 @@ class TestTransactionHashBehaviour(PriceEstimationFSMBehaviourBaseCase):
         )
 
         tx_hashes = ["", "0x_prev_cycle_tx_hash"]
-        period_state = self.behaviour.current_state.period_state  # type: ignore
-        period_data = period_state.db.get_all()
+        synchronized_data = self.behaviour.current_state.synchronized_data  # type: ignore
+        period_data = synchronized_data.db.get_all()
         period_data.update(
             {
                 "participants": {"agent1"},
@@ -433,10 +433,10 @@ class TestTransactionHashBehaviour(PriceEstimationFSMBehaviourBaseCase):
         )
 
         # add new cycle, and dummy period data
-        period_state.db._current_period_count = this_period_count  # type: ignore
+        synchronized_data.db._current_period_count = this_period_count  # type: ignore
         next_period_data = copy.deepcopy(period_data)
         next_period_data["final_tx_hash"] = tx_hashes[0]
-        period_state.db.add_new_period(
+        synchronized_data.db.add_new_period(
             this_period_count,
             **period_data,
         )

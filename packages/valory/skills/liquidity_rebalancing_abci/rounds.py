@@ -131,7 +131,7 @@ class LiquidityRebalancingAbstractRound(AbstractRound[Event, TransactionType], A
     """Abstract round for the liquidity rebalancing skill."""
 
     @property
-    def period_state(self) -> SynchronizedData:
+    def synchronized_data(self) -> SynchronizedData:
         """Return the period state."""
         return cast(SynchronizedData, self._state)
 
@@ -141,7 +141,7 @@ class LiquidityRebalancingAbstractRound(AbstractRound[Event, TransactionType], A
 
         :return: a new period state and a NO_MAJORITY event
         """
-        return self.period_state, Event.NO_MAJORITY
+        return self.synchronized_data, Event.NO_MAJORITY
 
 
 class TransactionHashBaseRound(
@@ -157,13 +157,13 @@ class TransactionHashBaseRound(
         """Process the end of the block."""
         if self.threshold_reached:
             dict_ = json.loads(self.most_voted_payload)
-            state = self.period_state.update(
+            state = self.synchronized_data.update(
                 participant_to_tx_hash=MappingProxyType(self.collection),
                 most_voted_tx_hash=dict_["tx_hash"],
             )
             return state, Event.DONE
         if not self.is_majority_possible(
-            self.collection, self.period_state.nb_participants
+            self.collection, self.synchronized_data.nb_participants
         ):
             return self._return_no_majority_event()
         return None
@@ -181,7 +181,7 @@ class StrategyEvaluationRound(
     def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Event]]:
         """Process the end of the block."""
         if self.threshold_reached:
-            state = self.period_state.update(
+            state = self.synchronized_data.update(
                 participant_to_strategy=MappingProxyType(self.collection),
                 most_voted_strategy=self.most_voted_payload,
             )
@@ -199,7 +199,7 @@ class StrategyEvaluationRound(
                 event = Event.DONE_SWAP_BACK
             return state, event
         if not self.is_majority_possible(
-            self.collection, self.period_state.nb_participants
+            self.collection, self.synchronized_data.nb_participants
         ):
             return self._return_no_majority_event()
         return None
@@ -215,9 +215,9 @@ class SleepRound(CollectSameUntilThresholdRound, LiquidityRebalancingAbstractRou
     def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Event]]:
         """Process the end of the block."""
         if self.threshold_reached:
-            return self.period_state, Event.DONE
+            return self.synchronized_data, Event.DONE
         if not self.is_majority_possible(
-            self.collection, self.period_state.nb_participants
+            self.collection, self.synchronized_data.nb_participants
         ):
             return self._return_no_majority_event()
         return None

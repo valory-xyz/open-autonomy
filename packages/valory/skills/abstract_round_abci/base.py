@@ -638,7 +638,7 @@ class BaseSynchronizedData:
 
     def update(
         self,
-        period_state_class: Optional[Type] = None,
+        synchronized_data_class: Optional[Type] = None,
         period_count: Optional[int] = None,
         **kwargs: Any,
     ) -> "BaseSynchronizedData":
@@ -647,7 +647,9 @@ class BaseSynchronizedData:
             self.db.update_current_period(**kwargs)
         else:
             self.db.add_new_period(new_period=period_count, **kwargs)
-        class_ = type(self) if period_state_class is None else period_state_class
+        class_ = (
+            type(self) if synchronized_data_class is None else synchronized_data_class
+        )
         return class_(db=self.db)
 
     def __repr__(self) -> str:
@@ -743,7 +745,7 @@ class AbstractRound(Generic[EventType, TransactionType], ABC):
             raise ABCIAppInternalError("'allowed_tx_type' field not set") from exc
 
     @property
-    def period_state(self) -> BaseSynchronizedData:
+    def synchronized_data(self) -> BaseSynchronizedData:
         """Get the period state."""
         return self._state
 
@@ -997,15 +999,15 @@ class CollectionRound(AbstractRound):
 
     def process_payload(self, payload: BaseTxPayload) -> None:
         """Process payload."""
-        if payload.round_count != self.period_state.round_count:
+        if payload.round_count != self.synchronized_data.round_count:
             raise ABCIAppInternalError(
-                f"Expected round count {self.period_state.round_count} and got {payload.round_count}."
+                f"Expected round count {self.synchronized_data.round_count} and got {payload.round_count}."
             )
 
         sender = payload.sender
-        if sender not in self.period_state.participants:
+        if sender not in self.synchronized_data.participants:
             raise ABCIAppInternalError(
-                f"{sender} not in list of participants: {sorted(self.period_state.participants)}"
+                f"{sender} not in list of participants: {sorted(self.synchronized_data.participants)}"
             )
 
         if sender in self.collection:
@@ -1017,15 +1019,17 @@ class CollectionRound(AbstractRound):
 
     def check_payload(self, payload: BaseTxPayload) -> None:
         """Check Payload"""
-        if payload.round_count != self.period_state.round_count:
+        if payload.round_count != self.synchronized_data.round_count:
             raise TransactionNotValidError(
-                f"Expected round count {self.period_state.round_count} and got {payload.round_count}."
+                f"Expected round count {self.synchronized_data.round_count} and got {payload.round_count}."
             )
 
-        sender_in_participant_set = payload.sender in self.period_state.participants
+        sender_in_participant_set = (
+            payload.sender in self.synchronized_data.participants
+        )
         if not sender_in_participant_set:
             raise TransactionNotValidError(
-                f"{payload.sender} not in list of participants: {sorted(self.period_state.participants)}"
+                f"{payload.sender} not in list of participants: {sorted(self.synchronized_data.participants)}"
             )
 
         if payload.sender in self.collection:
@@ -1046,9 +1050,9 @@ class CollectDifferentUntilAllRound(CollectionRound):
 
     def process_payload(self, payload: BaseTxPayload) -> None:
         """Process payload."""
-        if payload.round_count != self.period_state.round_count:
+        if payload.round_count != self.synchronized_data.round_count:
             raise ABCIAppInternalError(
-                f"Expected round count {self.period_state.round_count} and got {payload.round_count}."
+                f"Expected round count {self.synchronized_data.round_count} and got {payload.round_count}."
             )
 
         if payload.sender in self.collection:
@@ -1060,9 +1064,9 @@ class CollectDifferentUntilAllRound(CollectionRound):
 
     def check_payload(self, payload: BaseTxPayload) -> None:
         """Check Payload"""
-        if payload.round_count != self.period_state.round_count:
+        if payload.round_count != self.synchronized_data.round_count:
             raise TransactionNotValidError(
-                f"Expected round count {self.period_state.round_count} and got {payload.round_count}."
+                f"Expected round count {self.synchronized_data.round_count} and got {payload.round_count}."
             )
 
         if payload.sender in self.collection:
@@ -1101,7 +1105,7 @@ class CollectSameUntilThresholdRound(CollectionRound):
     none_event: Any
     collection_key: str
     selection_key: str
-    period_state_class = BaseSynchronizedData
+    synchronized_data_class = BaseSynchronizedData
 
     @property
     def threshold_reached(
@@ -1124,8 +1128,8 @@ class CollectSameUntilThresholdRound(CollectionRound):
     def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Enum]]:
         """Process the end of the block."""
         if self.threshold_reached and self.most_voted_payload is not None:
-            state = self.period_state.update(
-                period_state_class=self.period_state_class,
+            state = self.synchronized_data.update(
+                synchronized_data_class=self.synchronized_data_class,
                 **{
                     self.collection_key: self.collection,
                     self.selection_key: self.most_voted_payload,
@@ -1133,11 +1137,11 @@ class CollectSameUntilThresholdRound(CollectionRound):
             )
             return state, self.done_event
         if self.threshold_reached and self.most_voted_payload is None:
-            return self.period_state, self.none_event
+            return self.synchronized_data, self.none_event
         if not self.is_majority_possible(
-            self.collection, self.period_state.nb_participants
+            self.collection, self.synchronized_data.nb_participants
         ):
-            return self.period_state, self.no_majority_event
+            return self.synchronized_data, self.no_majority_event
         return None
 
 
@@ -1153,7 +1157,7 @@ class OnlyKeeperSendsRound(AbstractRound):
     done_event: Any
     fail_event: Any
     payload_key: str
-    period_state_class = BaseSynchronizedData
+    synchronized_data_class = BaseSynchronizedData
 
     def __init__(self, *args: Any, **kwargs: Any):
         """Initialize the 'collect-observation' round."""
@@ -1163,19 +1167,19 @@ class OnlyKeeperSendsRound(AbstractRound):
 
     def process_payload(self, payload: BaseTxPayload) -> None:  # type: ignore
         """Handle a deploy safe payload."""
-        if payload.round_count != self.period_state.round_count:
+        if payload.round_count != self.synchronized_data.round_count:
             raise ABCIAppInternalError(
-                f"Expected round count {self.period_state.round_count} and got {payload.round_count}."
+                f"Expected round count {self.synchronized_data.round_count} and got {payload.round_count}."
             )
 
         sender = payload.sender
 
-        if sender not in self.period_state.participants:
+        if sender not in self.synchronized_data.participants:
             raise ABCIAppInternalError(
-                f"{sender} not in list of participants: {sorted(self.period_state.participants)}"
+                f"{sender} not in list of participants: {sorted(self.synchronized_data.participants)}"
             )
 
-        if sender != self.period_state.most_voted_keeper_address:  # type: ignore
+        if sender != self.synchronized_data.most_voted_keeper_address:  # type: ignore
             raise ABCIAppInternalError(f"{sender} not elected as keeper.")
 
         if self.keeper_sent_payload:
@@ -1186,19 +1190,19 @@ class OnlyKeeperSendsRound(AbstractRound):
 
     def check_payload(self, payload: BaseTxPayload) -> None:  # type: ignore
         """Check a deploy safe payload can be applied to the current state."""
-        if payload.round_count != self.period_state.round_count:
+        if payload.round_count != self.synchronized_data.round_count:
             raise TransactionNotValidError(
-                f"Expected round count {self.period_state.round_count} and got {payload.round_count}."
+                f"Expected round count {self.synchronized_data.round_count} and got {payload.round_count}."
             )
 
         sender = payload.sender
-        sender_in_participant_set = sender in self.period_state.participants
+        sender_in_participant_set = sender in self.synchronized_data.participants
         if not sender_in_participant_set:
             raise TransactionNotValidError(
-                f"{sender} not in list of participants: {sorted(self.period_state.participants)}"
+                f"{sender} not in list of participants: {sorted(self.synchronized_data.participants)}"
             )
 
-        sender_is_elected_sender = sender == self.period_state.most_voted_keeper_address  # type: ignore
+        sender_is_elected_sender = sender == self.synchronized_data.most_voted_keeper_address  # type: ignore
         if not sender_is_elected_sender:
             raise TransactionNotValidError(f"{sender} not elected as keeper.")
 
@@ -1217,13 +1221,13 @@ class OnlyKeeperSendsRound(AbstractRound):
         """Process the end of the block."""
         # if reached participant threshold, set the result
         if self.has_keeper_sent_payload and self.keeper_payload is not None:
-            state = self.period_state.update(
-                period_state_class=self.period_state_class,
+            state = self.synchronized_data.update(
+                synchronized_data_class=self.synchronized_data_class,
                 **{self.payload_key: self.keeper_payload},
             )
             return state, self.done_event
         if self.has_keeper_sent_payload and self.keeper_payload is None:
-            return self.period_state, self.fail_event
+            return self.synchronized_data, self.fail_event
         return None
 
 
@@ -1240,7 +1244,7 @@ class VotingRound(CollectionRound):
     none_event: Any
     no_majority_event: Any
     collection_key: str
-    period_state_class = BaseSynchronizedData
+    synchronized_data_class = BaseSynchronizedData
 
     @property
     def vote_count(self) -> Counter:
@@ -1266,19 +1270,19 @@ class VotingRound(CollectionRound):
         """Process the end of the block."""
         # if reached participant threshold, set the result
         if self.positive_vote_threshold_reached:
-            state = self.period_state.update(
-                period_state_class=self.period_state_class,
+            state = self.synchronized_data.update(
+                synchronized_data_class=self.synchronized_data_class,
                 **{self.collection_key: self.collection},  # type: ignore
             )
             return state, self.done_event
         if self.negative_vote_threshold_reached:
-            return self.period_state, self.negative_event
+            return self.synchronized_data, self.negative_event
         if self.none_vote_threshold_reached:
-            return self.period_state, self.none_event
+            return self.synchronized_data, self.none_event
         if not self.is_majority_possible(
-            self.collection, self.period_state.nb_participants
+            self.collection, self.synchronized_data.nb_participants
         ):
-            return self.period_state, self.no_majority_event
+            return self.synchronized_data, self.no_majority_event
         return None
 
 
@@ -1295,7 +1299,7 @@ class CollectDifferentUntilThresholdRound(CollectionRound):
     selection_key: str
     collection_key: str
     required_block_confirmations: int = 0
-    period_state_class = BaseSynchronizedData
+    synchronized_data_class = BaseSynchronizedData
 
     @property
     def collection_threshold_reached(
@@ -1313,8 +1317,8 @@ class CollectDifferentUntilThresholdRound(CollectionRound):
             and self.block_confirmations > self.required_block_confirmations
             # we also wait here as it gives more (available) agents time to join
         ):
-            state = self.period_state.update(
-                period_state_class=self.period_state_class,
+            state = self.synchronized_data.update(
+                synchronized_data_class=self.synchronized_data_class,
                 period_count=None,
                 **{
                     self.selection_key: frozenset(list(self.collection.keys())),
@@ -1323,9 +1327,9 @@ class CollectDifferentUntilThresholdRound(CollectionRound):
             )
             return state, self.done_event
         if not self.is_majority_possible(
-            self.collection, self.period_state.nb_participants
+            self.collection, self.synchronized_data.nb_participants
         ):
-            return self.period_state, self.no_majority_event
+            return self.synchronized_data, self.no_majority_event
         return None
 
 
@@ -1362,8 +1366,8 @@ class CollectNonEmptyUntilThresholdRound(CollectDifferentUntilThresholdRound):
         ):
             non_empty_values = self._get_non_empty_values()
 
-            state = self.period_state.update(
-                period_state_class=self.period_state_class,
+            state = self.synchronized_data.update(
+                synchronized_data_class=self.synchronized_data_class,
                 period_count=None,
                 **{
                     self.selection_key: frozenset(list(self.collection.keys())),
@@ -1376,9 +1380,9 @@ class CollectNonEmptyUntilThresholdRound(CollectDifferentUntilThresholdRound):
             return state, self.done_event
 
         if not self.is_majority_possible(
-            self.collection, self.period_state.nb_participants
+            self.collection, self.synchronized_data.nb_participants
         ):
-            return self.period_state, self.no_majority_event
+            return self.synchronized_data, self.no_majority_event
         return None
 
 
@@ -1823,7 +1827,7 @@ class AbciApp(
             self._round_results.append(result)
         else:
             # we duplicate the state since the round was preemptively ended
-            self._round_results.append(self.current_round.period_state)
+            self._round_results.append(self.current_round.synchronized_data)
 
         self._log_end(event)
         if next_round_cls is not None:
@@ -2160,7 +2164,9 @@ class RoundSequence:
         Check whether the round has finished. If so, get the
         new round and set it as the current round.
         """
-        result: Optional[Tuple[BaseSynchronizedData, Any]] = self.current_round.end_block()
+        result: Optional[
+            Tuple[BaseSynchronizedData, Any]
+        ] = self.current_round.end_block()
         if result is None:
             return
         round_result, event = result

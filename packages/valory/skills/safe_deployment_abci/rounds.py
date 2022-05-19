@@ -73,7 +73,7 @@ class RandomnessSafeRound(CollectSameUntilThresholdRound):
     round_id = "randomness_safe"
     allowed_tx_type = RandomnessPayload.transaction_type
     payload_attribute = "randomness"
-    period_state_class = SynchronizedData
+    synchronized_data_class = SynchronizedData
     done_event = Event.DONE
     no_majority_event = Event.NO_MAJORITY
     collection_key = "participant_to_randomness"
@@ -86,7 +86,7 @@ class SelectKeeperSafeRound(CollectSameUntilThresholdRound):
     round_id = "select_keeper_safe"
     allowed_tx_type = SelectKeeperPayload.transaction_type
     payload_attribute = "keeper"
-    period_state_class = SynchronizedData
+    synchronized_data_class = SynchronizedData
     done_event = Event.DONE
     no_majority_event = Event.NO_MAJORITY
     collection_key = "participant_to_selection"
@@ -99,7 +99,7 @@ class DeploySafeRound(OnlyKeeperSendsRound):
     round_id = "deploy_safe"
     allowed_tx_type = DeploySafePayload.transaction_type
     payload_attribute = "safe_contract_address"
-    period_state_class = SynchronizedData
+    synchronized_data_class = SynchronizedData
     done_event = Event.DONE
     fail_event = Event.FAILED
     payload_key = "safe_contract_address"

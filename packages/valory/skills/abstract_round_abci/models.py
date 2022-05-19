@@ -123,7 +123,7 @@ class SharedState(Model):
         return self._round_sequence
 
     @property
-    def period_state(self) -> BaseSynchronizedData:
+    def synchronized_data(self) -> BaseSynchronizedData:
         """Get the period state if available."""
         return self.round_sequence.latest_state
 

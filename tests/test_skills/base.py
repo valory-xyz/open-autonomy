@@ -121,7 +121,7 @@ class FSMBehaviourBaseCase(BaseSkillTestCase):
         self,
         behaviour: AbstractRoundBehaviour,
         state_id: str,
-        period_state: BaseSynchronizedData,
+        synchronized_data: BaseSynchronizedData,
     ) -> None:
         """Fast forward the FSM to a state."""
         next_state = {s.state_id: s for s in behaviour.behaviour_states}[state_id]
@@ -131,7 +131,7 @@ class FSMBehaviourBaseCase(BaseSkillTestCase):
             name=next_state.state_id, skill_context=behaviour.context
         )
         self.skill.skill_context.state.round_sequence.abci_app._round_results.append(
-            period_state
+            synchronized_data
         )
         self.skill.skill_context.state.round_sequence.abci_app._extend_previous_rounds_with_current_round()
         self.skill.skill_context.behaviours.main._last_round_height = (
@@ -139,7 +139,7 @@ class FSMBehaviourBaseCase(BaseSkillTestCase):
         )
         self.skill.skill_context.state.round_sequence.abci_app._current_round = (
             next_state.matching_round(
-                period_state, self.skill.skill_context.params.consensus_params
+                synchronized_data, self.skill.skill_context.params.consensus_params
             )
         )
 

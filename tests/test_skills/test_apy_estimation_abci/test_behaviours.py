@@ -130,7 +130,7 @@ class APYEstimationFSMBehaviourBaseCase(FSMBehaviourBaseCase):
     behaviour: EstimatorRoundBehaviour
     behaviour_class: Type[APYEstimationBaseState]
     next_behaviour_class: Type[APYEstimationBaseState]
-    period_state: SynchronizedData
+    synchronized_data: SynchronizedData
 
     @classmethod
     def setup(cls, **kwargs: Any) -> None:
@@ -138,7 +138,7 @@ class APYEstimationFSMBehaviourBaseCase(FSMBehaviourBaseCase):
         super().setup(
             param_overrides={"ipfs_domain_name": "/dns/localhost/tcp/5001/http"}
         )
-        cls.period_state = SynchronizedData(
+        cls.synchronized_data = SynchronizedData(
             AbciAppDB(
                 initial_period=0,
                 initial_data={"full_training": False},
@@ -166,7 +166,7 @@ class TestFetchAndBatchBehaviours(APYEstimationFSMBehaviourBaseCase):
         self.fast_forward_to_state(
             self.behaviour,
             self.behaviour_class.state_id,
-            self.period_state,
+            self.synchronized_data,
         )
         cast(FetchBehaviour, self.behaviour.current_state).batch = batch_flag
 
@@ -178,7 +178,7 @@ class TestFetchAndBatchBehaviours(APYEstimationFSMBehaviourBaseCase):
         self.fast_forward_to_state(
             self.behaviour,
             self.behaviour_class.state_id,
-            self.period_state,
+            self.synchronized_data,
         )
         cast(
             FetchBehaviour, self.behaviour.current_state
@@ -244,7 +244,7 @@ class TestFetchAndBatchBehaviours(APYEstimationFSMBehaviourBaseCase):
         )
 
         self.fast_forward_to_state(
-            self.behaviour, FetchBehaviour.state_id, self.period_state
+            self.behaviour, FetchBehaviour.state_id, self.synchronized_data
         )
         cast(FetchBehaviour, self.behaviour.current_state).params.pair_ids = [
             "0xec454eda10accdd66209c57af8c12924556f3abd"
@@ -312,7 +312,7 @@ class TestFetchAndBatchBehaviours(APYEstimationFSMBehaviourBaseCase):
         )
 
         self.fast_forward_to_state(
-            self.behaviour, FetchBehaviour.state_id, self.period_state
+            self.behaviour, FetchBehaviour.state_id, self.synchronized_data
         )
 
         subgraphs_sorted_by_utilization_moment: Tuple[Any, ...] = (
@@ -351,7 +351,7 @@ class TestFetchAndBatchBehaviours(APYEstimationFSMBehaviourBaseCase):
             datetime.utcfromtimestamp(1618735147 + history_duration * 30 * 24 * 60 * 60)
         )
         self.fast_forward_to_state(
-            self.behaviour, FetchBehaviour.state_id, self.period_state
+            self.behaviour, FetchBehaviour.state_id, self.synchronized_data
         )
         cast(FetchBehaviour, self.behaviour.current_state).params.pair_ids = [
             "0xec454eda10accdd66209c57af8c12924556f3abd"
@@ -487,7 +487,7 @@ class TestFetchAndBatchBehaviours(APYEstimationFSMBehaviourBaseCase):
 
         # fast-forward to fetch behaviour.
         self.fast_forward_to_state(
-            self.behaviour, FetchBehaviour.state_id, self.period_state
+            self.behaviour, FetchBehaviour.state_id, self.synchronized_data
         )
         # set history duration to a negative value in order to raise a `StopIteration`.
         cast(FetchBehaviour, self.behaviour.current_state).params.history_duration = -1
@@ -505,7 +505,7 @@ class TestFetchAndBatchBehaviours(APYEstimationFSMBehaviourBaseCase):
 
         # fast-forward to fetch behaviour.
         self.fast_forward_to_state(
-            self.behaviour, FetchBehaviour.state_id, self.period_state
+            self.behaviour, FetchBehaviour.state_id, self.synchronized_data
         )
 
         # test with retrieved history and valid save path.
@@ -522,7 +522,7 @@ class TestFetchAndBatchBehaviours(APYEstimationFSMBehaviourBaseCase):
 
         # fast-forward to fetch behaviour.
         self.fast_forward_to_state(
-            self.behaviour, FetchBehaviour.state_id, self.period_state
+            self.behaviour, FetchBehaviour.state_id, self.synchronized_data
         )
 
     def test_clean_up(
@@ -530,7 +530,7 @@ class TestFetchAndBatchBehaviours(APYEstimationFSMBehaviourBaseCase):
     ) -> None:
         """Test clean-up."""
         self.fast_forward_to_state(
-            self.behaviour, FetchBehaviour.state_id, self.period_state
+            self.behaviour, FetchBehaviour.state_id, self.synchronized_data
         )
 
         self.behaviour.context.spooky_subgraph._retries_attempted = 1
@@ -557,7 +557,7 @@ class TestTransformBehaviour(APYEstimationFSMBehaviourBaseCase):
             hash_ = cast(BaseState, self.behaviour.current_state).send_to_ipfs(
                 os.path.join(
                     tmp_path,
-                    f"historical_data_period_{self.period_state.period_count}.json",
+                    f"historical_data_period_{self.synchronized_data.period_count}.json",
                 ),
                 {"test": "test"},
                 filetype=SupportedFiletype.JSON,
@@ -796,7 +796,7 @@ class TestPrepareBatchBehaviour(APYEstimationFSMBehaviourBaseCase):
             "hist": {
                 "filepath": os.path.join(
                     tmp_path,
-                    f"latest_observations_period_{self.period_state.period_count - 1}.csv",
+                    f"latest_observations_period_{self.synchronized_data.period_count - 1}.csv",
                 ),
                 "obj": transformed_historical_data.iloc[[0, 2]].reset_index(drop=True),
                 "filetype": SupportedFiletype.CSV,
@@ -804,7 +804,7 @@ class TestPrepareBatchBehaviour(APYEstimationFSMBehaviourBaseCase):
             "batch": {
                 "filepath": os.path.join(
                     tmp_path,
-                    f"historical_data_batch_0_period_{self.period_state.period_count}.json",
+                    f"historical_data_batch_0_period_{self.synchronized_data.period_count}.json",
                 ),
                 "obj": batch,
                 "filetype": SupportedFiletype.JSON,
@@ -965,7 +965,7 @@ class TestRandomnessBehaviour(APYEstimationFSMBehaviourBaseCase):
         self.fast_forward_to_state(
             self.behaviour,
             self.randomness_behaviour_class.state_id,
-            self.period_state,
+            self.synchronized_data,
         )
         assert (
             cast(
@@ -1007,7 +1007,7 @@ class TestRandomnessBehaviour(APYEstimationFSMBehaviourBaseCase):
         self.fast_forward_to_state(
             self.behaviour,
             self.randomness_behaviour_class.state_id,
-            self.period_state,
+            self.synchronized_data,
         )
         assert (
             cast(
@@ -1044,7 +1044,7 @@ class TestRandomnessBehaviour(APYEstimationFSMBehaviourBaseCase):
         self.fast_forward_to_state(
             self.behaviour,
             self.randomness_behaviour_class.state_id,
-            self.period_state,
+            self.synchronized_data,
         )
         assert (
             cast(
@@ -1082,7 +1082,7 @@ class TestRandomnessBehaviour(APYEstimationFSMBehaviourBaseCase):
         self.fast_forward_to_state(
             self.behaviour,
             self.randomness_behaviour_class.state_id,
-            self.period_state,
+            self.synchronized_data,
         )
         assert (
             cast(
@@ -1108,7 +1108,7 @@ class TestRandomnessBehaviour(APYEstimationFSMBehaviourBaseCase):
         self.fast_forward_to_state(
             self.behaviour,
             self.randomness_behaviour_class.state_id,
-            self.period_state,
+            self.synchronized_data,
         )
         assert (
             cast(
@@ -1143,7 +1143,9 @@ class TestOptimizeBehaviour(APYEstimationFSMBehaviourBaseCase):
         for split in ("train", "test"):
             data_to_send[split] = {
                 "filepath": os.path.join(
-                    tmp_path, f"y_{split}", f"period_{self.period_state.period_count}"
+                    tmp_path,
+                    f"y_{split}",
+                    f"period_{self.synchronized_data.period_count}",
                 ),
                 "obj": {
                     f"{split}_{i}": pd.DataFrame([i for i in range(5)])
@@ -1294,7 +1296,9 @@ class TestTrainBehaviour(APYEstimationFSMBehaviourBaseCase):
         data_to_send = {
             "params": {
                 "filepath": os.path.join(
-                    tmp_path, "best_params", f"period_{self.period_state.period_count}"
+                    tmp_path,
+                    "best_params",
+                    f"period_{self.synchronized_data.period_count}",
                 ),
                 "obj": {
                     "pool1.json": {"p": 1, "q": 1, "d": 1, "m": 1},
@@ -1307,7 +1311,9 @@ class TestTrainBehaviour(APYEstimationFSMBehaviourBaseCase):
         for split in ("train", "test"):
             data_to_send[split] = {
                 "filepath": os.path.join(
-                    tmp_path, f"y_{split}", f"period_{self.period_state.period_count}"
+                    tmp_path,
+                    f"y_{split}",
+                    f"period_{self.synchronized_data.period_count}",
                 ),
                 "obj": {
                     f"pool{i}.csv": pd.DataFrame([i for i in range(5)])
@@ -1446,7 +1452,9 @@ class TestTestBehaviour(APYEstimationFSMBehaviourBaseCase):
         data_to_send = {
             "model": {
                 "filepath": os.path.join(
-                    tmp_path, "forecasters", f"period_{self.period_state.period_count}"
+                    tmp_path,
+                    "forecasters",
+                    f"period_{self.synchronized_data.period_count}",
                 ),
                 "obj": {f"pool{i}.joblib": DummyPipeline() for i in range(3)},
                 "multiple": True,
@@ -1456,7 +1464,9 @@ class TestTestBehaviour(APYEstimationFSMBehaviourBaseCase):
         for split in ("train", "test"):
             data_to_send[split] = {
                 "filepath": os.path.join(
-                    tmp_path, f"y_{split}", f"period_{self.period_state.period_count}"
+                    tmp_path,
+                    f"y_{split}",
+                    f"period_{self.synchronized_data.period_count}",
                 ),
                 "obj": {
                     f"pool{i}.csv": pd.DataFrame([i for i in range(5)])
@@ -1597,7 +1607,7 @@ class TestUpdateForecasterBehaviour(APYEstimationFSMBehaviourBaseCase):
                 "filepath": os.path.join(
                     tmp_path,
                     "fully_trained_forecasters",
-                    f"period_{self.period_state.period_count - 1}",
+                    f"period_{self.synchronized_data.period_count - 1}",
                 ),
                 "obj": {f"pool{i}.joblib": DummyPipeline() for i in range(3)},
                 "multiple": True,
@@ -1606,7 +1616,7 @@ class TestUpdateForecasterBehaviour(APYEstimationFSMBehaviourBaseCase):
             "observation": {
                 "filepath": os.path.join(
                     tmp_path,
-                    f"latest_observations_period_{self.period_state.period_count}.csv",
+                    f"latest_observations_period_{self.synchronized_data.period_count}.csv",
                 ),
                 "obj": prepare_batch_task_result,
                 "filetype": SupportedFiletype.CSV,
@@ -1740,7 +1750,7 @@ class TestEstimateBehaviour(APYEstimationFSMBehaviourBaseCase):
                 os.path.join(
                     tmp_path,
                     "fully_trained_forecasters",
-                    f"period_{self.period_state.period_count}",
+                    f"period_{self.synchronized_data.period_count}",
                 ),
                 {f"pool{i}.joblib": DummyPipeline() for i in range(3)},
                 multiple=True,
@@ -1866,7 +1876,8 @@ class TestCycleResetBehaviour(APYEstimationFSMBehaviourBaseCase):
         if ipfs_succeed:
             hash_ = cast(BaseState, self.behaviour.current_state).send_to_ipfs(
                 os.path.join(
-                    tmp_path, f"estimations_period_{self.period_state.period_count}.csv"
+                    tmp_path,
+                    f"estimations_period_{self.synchronized_data.period_count}.csv",
                 ),
                 pd.DataFrame({"pool1": [1.435, 4.234], "pool2": [3.45, 23.64]}),
                 filetype=SupportedFiletype.CSV,
@@ -1877,7 +1888,7 @@ class TestCycleResetBehaviour(APYEstimationFSMBehaviourBaseCase):
         self.fast_forward_to_state(
             behaviour=self.behaviour,
             state_id=self.behaviour_class.state_id,
-            period_state=SynchronizedData(
+            synchronized_data=SynchronizedData(
                 AbciAppDB(
                     initial_period=0, initial_data=dict(most_voted_estimate=hash_)
                 )
@@ -1917,7 +1928,7 @@ class TestCycleResetBehaviour(APYEstimationFSMBehaviourBaseCase):
         self.fast_forward_to_state(
             behaviour=self.behaviour,
             state_id=self.behaviour_class.state_id,
-            period_state=SynchronizedData(
+            synchronized_data=SynchronizedData(
                 AbciAppDB(initial_period=0, initial_data=dict(most_voted_estimate=None))
             ),
         )
@@ -1968,7 +1979,9 @@ class TestFreshModelResetBehaviour(APYEstimationFSMBehaviourBaseCase):
         self.fast_forward_to_state(
             behaviour=self.behaviour,
             state_id=self.behaviour_class.state_id,
-            period_state=SynchronizedData(AbciAppDB(initial_period=0, initial_data={})),
+            synchronized_data=SynchronizedData(
+                AbciAppDB(initial_period=0, initial_data={})
+            ),
         )
         state = cast(BaseState, self.behaviour.current_state)
         assert state.state_id == self.behaviour_class.state_id

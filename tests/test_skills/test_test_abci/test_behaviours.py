@@ -54,7 +54,7 @@ class AbciFSMBehaviourBaseCase(FSMBehaviourBaseCase):
     contract_handler: ContractApiHandler
     signing_handler: SigningHandler
     old_tx_type_to_payload_cls: Dict[str, Type[BaseTxPayload]]
-    period_state: BaseSynchronizedData
+    synchronized_data: BaseSynchronizedData
     benchmark_dir: TemporaryDirectory
 
 
@@ -63,14 +63,14 @@ class TestDummyBehaviour(AbciFSMBehaviourBaseCase):
 
     def test_run(self) -> None:
         """Test registration."""
-        self.period_state = BaseSynchronizedData(
+        self.synchronized_data = BaseSynchronizedData(
             AbciAppDB(initial_period=0, initial_data={})
         )
 
         self.fast_forward_to_state(
             self.behaviour,
             DummyBehaviour.state_id,
-            self.period_state,
+            self.synchronized_data,
         )
         assert (
             cast(

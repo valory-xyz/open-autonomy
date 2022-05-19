@@ -35,11 +35,11 @@ from packages.valory.skills.hello_world_abci.payloads import (
 )
 from packages.valory.skills.hello_world_abci.rounds import (
     HelloWorldAbciApp,
-    SynchronizedData,
     PrintMessageRound,
     RegistrationRound,
     ResetAndPauseRound,
     SelectKeeperRound,
+    SynchronizedData,
 )
 
 
@@ -47,9 +47,11 @@ class HelloWorldABCIBaseState(BaseState, ABC):
     """Base state behaviour for the Hello World abci skill."""
 
     @property
-    def period_state(self) -> SynchronizedData:
+    def synchronized_data(self) -> SynchronizedData:
         """Return the period state."""
-        return cast(SynchronizedData, cast(SharedState, self.context.state).period_state)
+        return cast(
+            SynchronizedData, cast(SharedState, self.context.state).synchronized_data
+        )
 
     @property
     def params(self) -> Params:
@@ -102,8 +104,9 @@ class SelectKeeperBehaviour(HelloWorldABCIBaseState, ABC):
         """
 
         with self.context.benchmark_tool.measure(self.state_id).local():
-            keeper_address = sorted(self.period_state.participants)[
-                self.period_state.period_count % self.period_state.nb_participants
+            keeper_address = sorted(self.synchronized_data.participants)[
+                self.synchronized_data.period_count
+                % self.synchronized_data.nb_participants
             ]
 
             self.context.logger.info(f"Selected a new keeper: {keeper_address}.")
@@ -134,8 +137,11 @@ class PrintMessageBehaviour(HelloWorldABCIBaseState, ABC):
         - Go to the next behaviour state (set done event).
         """
 
-        printed_message = f"Agent {self.context.agent_name} (address {self.context.agent_address}) in period {self.period_state.period_count} says: "
-        if self.context.agent_address == self.period_state.most_voted_keeper_address:
+        printed_message = f"Agent {self.context.agent_name} (address {self.context.agent_address}) in period {self.synchronized_data.period_count} says: "
+        if (
+            self.context.agent_address
+            == self.synchronized_data.most_voted_keeper_address
+        ):
             printed_message += "HELLO WORLD!"
         else:
             printed_message += ":|"
@@ -179,11 +185,11 @@ class ResetAndPauseBehaviour(HelloWorldABCIBaseState):
             yield from self.sleep(self.params.observation_interval)
         else:
             self.context.logger.info(
-                f"Period {self.period_state.period_count} was not finished. Resetting!"
+                f"Period {self.synchronized_data.period_count} was not finished. Resetting!"
             )
 
         payload = ResetPayload(
-            self.context.agent_address, self.period_state.period_count + 1
+            self.context.agent_address, self.synchronized_data.period_count + 1
         )
 
         yield from self.send_a2a_transaction(payload)

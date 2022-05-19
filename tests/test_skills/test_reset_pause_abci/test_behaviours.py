@@ -27,7 +27,7 @@ import pytest
 
 from packages.valory.skills.abstract_round_abci.base import AbciAppDB
 from packages.valory.skills.abstract_round_abci.base import (
-    BaseSynchronizedData as ResetPeriodState,
+    BaseSynchronizedData as ResetSynchronizedSata,
 )
 from packages.valory.skills.abstract_round_abci.behaviour_utils import (
     make_degenerate_state,
@@ -79,7 +79,7 @@ class TestResetAndPauseBehaviour(ResetPauseAbciFSMBehaviourBaseCase):
         self.fast_forward_to_state(
             behaviour=self.behaviour,
             state_id=self.behaviour_class.state_id,
-            period_state=ResetPeriodState(
+            synchronized_data=ResetSynchronizedSata(
                 AbciAppDB(
                     initial_period=initial_period,
                     initial_data=dict(

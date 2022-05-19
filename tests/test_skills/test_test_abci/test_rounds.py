@@ -41,7 +41,7 @@ def get_participants() -> FrozenSet[str]:
 class BaseRoundTestClass:
     """Base test class for Rounds."""
 
-    period_state: BaseSynchronizedData
+    synchronized_data: BaseSynchronizedData
     consensus_params: ConsensusParams
     participants: FrozenSet[str]
 
@@ -52,7 +52,7 @@ class BaseRoundTestClass:
         """Setup the test class."""
 
         cls.participants = get_participants()
-        cls.period_state = BaseSynchronizedData(
+        cls.synchronized_data = BaseSynchronizedData(
             AbciAppDB(
                 initial_period=0,
                 initial_data=dict(
@@ -72,7 +72,7 @@ class TestDummyRound(BaseRoundTestClass):
         """Run tests."""
 
         test_round = DummyRound(
-            state=self.period_state, consensus_params=self.consensus_params
+            state=self.synchronized_data, consensus_params=self.consensus_params
         )
 
         first_payload, *payloads = [
@@ -81,7 +81,7 @@ class TestDummyRound(BaseRoundTestClass):
 
         test_round.process_payload(first_payload)
         assert test_round.collection == {first_payload.sender: first_payload}
-        assert test_round.end_block() == (self.period_state, Event.DONE)
+        assert test_round.end_block() == (self.synchronized_data, Event.DONE)
 
         for payload in payloads:
             test_round.process_payload(payload)

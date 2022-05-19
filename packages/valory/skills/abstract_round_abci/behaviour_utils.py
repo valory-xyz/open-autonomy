@@ -463,9 +463,12 @@ class BaseState(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
         return cast(BaseParams, self.context.params)
 
     @property
-    def period_state(self) -> BaseSynchronizedData:
+    def synchronized_data(self) -> BaseSynchronizedData:
         """Return the period state."""
-        return cast(BaseSynchronizedData, cast(SharedState, self.context.state).period_state)
+        return cast(
+            BaseSynchronizedData,
+            cast(SharedState, self.context.state).synchronized_data,
+        )
 
     def check_in_round(self, round_id: str) -> bool:
         """Check that we entered a specific round."""
@@ -565,7 +568,7 @@ class BaseState(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
         stop_condition = self.is_round_ended(self.matching_round.round_id)
         payload.round_count = cast(
             SharedState, self.context.state
-        ).period_state.round_count
+        ).synchronized_data.round_count
         yield from self._send_transaction(
             payload,
             stop_condition=stop_condition,
@@ -1503,7 +1506,7 @@ class BaseState(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
 
         if not self._is_healthy:
             self.context.logger.info(
-                f"Resetting tendermint node at end of period={self.period_state.period_count}."
+                f"Resetting tendermint node at end of period={self.synchronized_data.period_count}."
             )
 
             app_hash = yield from self._get_app_hash()

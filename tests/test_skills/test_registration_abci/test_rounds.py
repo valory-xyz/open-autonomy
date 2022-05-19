@@ -42,7 +42,7 @@ from tests.test_skills.test_abstract_round_abci.test_base_rounds import (
 class TestRegistrationStartupRound(BaseCollectDifferentUntilAllRoundTest):
     """Test RegistrationStartupRound."""
 
-    _period_state_class = SynchronizedData
+    _synchronized_data_class = SynchronizedData
     _event_class = RegistrationEvent
 
     def test_run_fastforward(
@@ -50,16 +50,16 @@ class TestRegistrationStartupRound(BaseCollectDifferentUntilAllRoundTest):
     ) -> None:
         """Run test."""
 
-        self.period_state = cast(
+        self.synchronized_data = cast(
             SynchronizedData,
-            self.period_state.update(
+            self.synchronized_data.update(
                 safe_contract_address="stub_safe_contract_address",
                 oracle_contract_address="stub_oracle_contract_address",
             ),
         )
 
         test_round = RegistrationStartupRound(
-            state=self.period_state, consensus_params=self.consensus_params
+            state=self.synchronized_data, consensus_params=self.consensus_params
         )
         self._run_with_round(
             test_round,
@@ -74,7 +74,7 @@ class TestRegistrationStartupRound(BaseCollectDifferentUntilAllRoundTest):
         """Run test."""
 
         test_round = RegistrationStartupRound(
-            state=self.period_state, consensus_params=self.consensus_params
+            state=self.synchronized_data, consensus_params=self.consensus_params
         )
         self._run_with_round(test_round, RegistrationEvent.DONE, 1)
 
@@ -84,7 +84,7 @@ class TestRegistrationStartupRound(BaseCollectDifferentUntilAllRoundTest):
         """Run test."""
 
         test_round = RegistrationStartupRound(
-            state=self.period_state, consensus_params=self.consensus_params
+            state=self.synchronized_data, consensus_params=self.consensus_params
         )
         self._run_with_round(test_round)
 
@@ -127,22 +127,22 @@ class TestRegistrationStartupRound(BaseCollectDifferentUntilAllRoundTest):
 class TestRegistrationRound(BaseCollectDifferentUntilThresholdRoundTest):
     """Test RegistrationRound."""
 
-    _period_state_class = SynchronizedData
+    _synchronized_data_class = SynchronizedData
     _event_class = RegistrationEvent
 
     def test_run_default(
         self,
     ) -> None:
         """Run test."""
-        self.period_state = cast(
+        self.synchronized_data = cast(
             SynchronizedData,
-            self.period_state.update(
+            self.synchronized_data.update(
                 safe_contract_address="stub_safe_contract_address",
                 oracle_contract_address="stub_oracle_contract_address",
             ),
         )
         test_round = RegistrationRound(
-            state=self.period_state, consensus_params=self.consensus_params
+            state=self.synchronized_data, consensus_params=self.consensus_params
         )
         self._run_with_round(test_round, RegistrationEvent.DONE, 10)
 
@@ -150,15 +150,15 @@ class TestRegistrationRound(BaseCollectDifferentUntilThresholdRoundTest):
         self,
     ) -> None:
         """Run test."""
-        self.period_state = cast(
+        self.synchronized_data = cast(
             SynchronizedData,
-            self.period_state.update(
+            self.synchronized_data.update(
                 safe_contract_address="stub_safe_contract_address",
                 oracle_contract_address="stub_oracle_contract_address",
             ),
         )
         test_round = RegistrationRound(
-            state=self.period_state, consensus_params=self.consensus_params
+            state=self.synchronized_data, consensus_params=self.consensus_params
         )
         self._run_with_round(test_round, finished=False)
 
