@@ -234,7 +234,7 @@ class AbstractRoundBehaviour(
 
     def _process_current_round(self) -> None:
         """Process current ABCIApp round."""
-        current_round_height = self.context.state.period.current_round_height
+        current_round_height = self.context.state.round_sequence.current_round_height
         if (
             self.current_state is not None
             and self._last_round_height == current_round_height
@@ -242,7 +242,7 @@ class AbstractRoundBehaviour(
             # round has not changed - do nothing
             return
         self._last_round_height = current_round_height
-        current_round_cls = type(self.context.state.period.current_round)
+        current_round_cls = type(self.context.state.round_sequence.current_round)
 
         # each round has a state behaviour associated to it
         next_state_cls = self._round_to_state[current_round_cls]

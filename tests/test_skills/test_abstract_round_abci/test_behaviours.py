@@ -139,7 +139,7 @@ class TestAbstractRoundBehaviour:
         self.period_mock = MagicMock()
         context_mock = MagicMock()
         context_mock.state.period = self.period_mock
-        context_mock.state.period.syncing_up = False
+        context_mock.state.round_sequence.syncing_up = False
         context_mock.params.ipfs_domain_name = None
         self.behaviour = ConcreteRoundBehaviour(name="", skill_context=context_mock)
 
