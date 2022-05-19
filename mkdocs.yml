@@ -18,15 +18,14 @@ nav:
   - Preliminaries:
     - Autonomous Economic Agents: 'aea.md'
     - Finite State Machines: 'fsm.md'
-    - Application BlockChain Interface: 'abci.md'
+    - The Application BlockChain Interface: 'abci.md'
   - FSM Apps:
     - Introduction to FSM Apps: 'fsm_app_introduction.md'
-    - Composition of FSM Apps: 'fsm_app_composition.md'
     - Components of an FSM App: 'fsm_app_components.md'
-    - ABCIApp: 'abci_app_class.md'
-    - AbstractRoundBehaviour: 'abci_app_abstract_round_behaviour.md'
-    - AsyncBehaviour: 'abci_app_async_behaviour.md'
-    - AbstractRound: 'abci_app_abstract_round.md'
+    - The AbciApp Class: 'abci_app_class.md'
+    - The AbstractRoundBehaviour Class: 'abci_app_abstract_round_behaviour.md'
+    - The AsyncBehaviour Class: 'abci_app_async_behaviour.md'
+    - The AbstractRound Class: 'abci_app_abstract_round.md'
     - Interactions between Components: 'abci_app_interactions.md'
   - Using the Stack:
     - Requirements and Set-Up: 'using_stack_requirements.md'

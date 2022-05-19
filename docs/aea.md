@@ -57,7 +57,7 @@ That is, "by not trusting any single authority, this system creates trust by def
 
 ## Main Components of an AEA
 
-Every AEA is composed of a number of components that work together to achieve the pre-defined goals of the agent. We review the most relevant ones below.
+Every AEA is composed of a number of components that work together to achieve the pre-defined goals of the agent. The image below offers a high-level view of such internal components.
 
 
 <figure markdown>
@@ -65,94 +65,78 @@ Every AEA is composed of a number of components that work together to achieve th
 <figcaption>Main components of an AEA</figcaption>
 </figure>
 
+As you can see, there are quite a few elements that make up an AEA. We bfiefly review the most relevant ones that play a role in the creation of an {{agent_service}}:
 
-- The [`DecisionMaker`](https://valory-xyz.github.io/open-aea/decision-maker/)
+
+### DecisionMaker
+The [`DecisionMaker`](https://valory-xyz.github.io/open-aea/decision-maker/)
 is the "economic brain" of the AEA, where the developers' or users' goals, preferences, message handling and wallet
-control reside. It is composed of a number of components:
-    - The [`Wallet`](https://valory-xyz.github.io/open-aea/api/crypto/wallet/),
-    containing access to crypto addresses, public and private keys.
-    [`Crypto`](https://valory-xyz.github.io/open-aea/api/crypto/base/) objects
-    are used to load and encrypt private keys stored in an agents' environment.
-    - A [`Resources`](https://valory-xyz.github.io/open-aea/api/registries/resources/) object,
-    giving access to various
-    [`Registries`](https://valory-xyz.github.io/open-aea/api/registries/base/)
-    and allowing for the remote registration of various components such as
-    [`Protocols`](https://valory-xyz.github.io/open-aea/api/protocols/base/#protocol-objects),
-    [`Skills`](https://valory-xyz.github.io/open-aea/api/skills/base/),
-    [`Contracts`](https://valory-xyz.github.io/open-aea/api/contracts/base/) and
-    [`Connections`](https://valory-xyz.github.io/open-aea/api/connections/base/).
-    - The [`AgentContext`](https://valory-xyz.github.io/open-aea/api/context/base/), which
-    allows access to various objects that are relevant to the agents'
-    [`Skills`](https://valory-xyz.github.io/open-aea/api/skills/base/).
-    - A [`Preferences`](https://valory-xyz.github.io/open-aea/api/decision_maker/base/#preferences-objects) object,
-    used to check whether a proposed [`Transaction`](https://valory-xyz.github.io/open-aea/api/helpers/transaction/base/)
-    satisfies the AEA's goals. This is done through the computation of a marginal
-    utility score based on the
-    [`Terms`](https://valory-xyz.github.io/open-aea/api/helpers/transaction/base/#terms-objects)
-    of the transaction and the AEA's current
-    [`OwnershipState`](https://valory-xyz.github.io/open-aea/api/decision_maker/base/#ownershipstate-objects).
+control reside. It comprises:
+
+- The [`Wallet`](https://valory-xyz.github.io/open-aea/api/crypto/wallet/),
+containing access to crypto addresses, public and private keys.
+[`Crypto`](https://valory-xyz.github.io/open-aea/api/crypto/base/) objects
+are used to load and encrypt private keys stored in an agents' environment.
+- A [`Resources`](https://valory-xyz.github.io/open-aea/api/registries/resources/) object,
+giving access to various
+[`Registries`](https://valory-xyz.github.io/open-aea/api/registries/base/)
+and allowing for the remote registration of various components such as
+[`Protocols`](https://valory-xyz.github.io/open-aea/api/protocols/base/#protocol-objects),
+[`Skills`](https://valory-xyz.github.io/open-aea/api/skills/base/),
+[`Contracts`](https://valory-xyz.github.io/open-aea/api/contracts/base/) and
+[`Connections`](https://valory-xyz.github.io/open-aea/api/connections/base/).
+- The [`AgentContext`](https://valory-xyz.github.io/open-aea/api/context/base/), which
+allows access to various objects that are relevant to the agents'
+[`Skills`](https://valory-xyz.github.io/open-aea/api/skills/base/).
+- A [`Preferences`](https://valory-xyz.github.io/open-aea/api/decision_maker/base/#preferences-objects) object,
+used to check whether a proposed [`Transaction`](https://valory-xyz.github.io/open-aea/api/helpers/transaction/base/)
+satisfies the AEA's goals. This is done through the computation of a marginal
+utility score based on the
+[`Terms`](https://valory-xyz.github.io/open-aea/api/helpers/transaction/base/#terms-objects)
+of the transaction and the AEA's current
+[`OwnershipState`](https://valory-xyz.github.io/open-aea/api/decision_maker/base/#ownershipstate-objects).
 
 
 
+### Skills
+[`Skills`](https://valory-xyz.github.io/open-aea/skill/) are the core focus of the {{open_aea}} framework's extensibility, as they implement business logic to deliver economic value for the AEA.  They represent the AEAs knowledge, that is, self-contained capabilities that AEAs can dynamically take on board, in order to expand their effectiveness in different situations. Skills exhibit both reactive and proactive actions as follows:
 
+- [`Handlers`](https://valory-xyz.github.io/open-aea/api/skills/base/#handler-objects) implement AEAs' reactive behaviour. Each [`Skill`](https://valory-xyz.github.io/open-aea/skill/) has zero, one or more handler objects. There is a one-to-one correspondence between [`Handlers`](https://valory-xyz.github.io/open-aea/api/skills/base/#handler-objects) and [`Protocols`](https://valory-xyz.github.io/open-aea/api/protocols/base/#protocol-objects) in an AEA (also known as registered protocols). If an AEA understands a [`Protocol`](https://valory-xyz.github.io/open-aea/api/protocols/base/#protocol-objects) referenced in a received [`Envelope`](https://valory-xyz.github.io/open-aea/api/mail/base/#envelope-objects) (i.e., the protocol is registered in this AEA), this envelope is sent to the corresponding [`Handler`](https://valory-xyz.github.io/open-aea/api/skills/base/#handler-objects) which executes the AEA's reaction to this [`Message`](https://valory-xyz.github.io/open-aea/api/protocols/base/).
 
-- [`Skills`](https://valory-xyz.github.io/open-aea/skill/), which represent the AEAs knowledge. Every [`Skill`](https://valory-xyz.github.io/open-aea/skill/) has access to its
-[`SkillContext`](https://valory-xyz.github.io/open-aea/api/skills/base/). Skills exhibit both reactive and proactive actions through the folowing components:
-
-    - [`Handlers`](https://valory-xyz.github.io/open-aea/api/skills/base/#handler-objects) implement AEAs' reactive behaviour. Each [`Skill`](https://valory-xyz.github.io/open-aea/skill/) has zero, one or more handler objects. There is a one-to-one correspondence between [`Handlers`](https://valory-xyz.github.io/open-aea/api/skills/base/#handler-objects) and [`Protocols`](https://valory-xyz.github.io/open-aea/api/protocols/base/#protocol-objects) in an AEA (also known as registered protocols). If an AEA understands a [`Protocol`](https://valory-xyz.github.io/open-aea/api/protocols/base/#protocol-objects) referenced in a received [`Envelope`](https://valory-xyz.github.io/open-aea/api/mail/base/#envelope-objects) (i.e., the protocol is registered in this AEA), this envelope is sent to the corresponding [`Handler`](https://valory-xyz.github.io/open-aea/api/skills/base/#handler-objects) which executes the AEA's reaction to this [`Message`](https://valory-xyz.github.io/open-aea/api/protocols/base/).
-
-    - [`Behaviours`](https://valory-xyz.github.io/open-aea/api/skills/base/#behaviour-objects) encapsulate actions which further the AEAs goal and are initiated by internals of the AEA rather than external events. [`Behaviours`](https://valory-xyz.github.io/open-aea/api/skills/base/#behaviour-objects) implement AEAs' proactiveness. The {{open_aea}} framework provides a number of abstract base classes implementing different types of simple and composite [`Behaviours`](https://valory-xyz.github.io/open-aea/api/skills/base/#behaviour-objects) (e.g., cyclic, one-shot, finite-state-machine, etc), and these define how often and in what order a behaviour and its sub-behaviours must be executed. [`Behaviours`](https://valory-xyz.github.io/open-aea/api/skills/base/#behaviour-objects) act as a user in a traditional blockchain.
+- [`Behaviours`](https://valory-xyz.github.io/open-aea/api/skills/base/#behaviour-objects) encapsulate actions which further the AEAs goal and are initiated by internals of the AEA rather than external events. [`Behaviours`](https://valory-xyz.github.io/open-aea/api/skills/base/#behaviour-objects) implement AEAs' proactiveness. The {{open_aea}} framework provides a number of abstract base classes implementing different types of simple and composite [`Behaviours`](https://valory-xyz.github.io/open-aea/api/skills/base/#behaviour-objects) (e.g., cyclic, one-shot, finite-state-machine, etc), and these define how often and in what order a behaviour and its sub-behaviours must be executed. [`Behaviours`](https://valory-xyz.github.io/open-aea/api/skills/base/#behaviour-objects) act as a user in a traditional blockchain.
 
 
 - Since there might exist a need to share a certain context which is relevant both
 to behaviours and handlers, this can be achieved via a
 [`Model`](https://valory-xyz.github.io/open-aea/api/skills/base/#model-objects).
 
+Every [`Skill`](https://valory-xyz.github.io/open-aea/skill/) has a
+[`SkillContext`](https://valory-xyz.github.io/open-aea/api/skills/base/).
+This object is shared by all [`Handler`](https://valory-xyz.github.io/open-aea/api/skills/base/#handler-objects), [`Behaviour`](https://valory-xyz.github.io/open-aea/api/skills/base/#behaviour-objects), and [`Model`](https://valory-xyz.github.io/open-aea/api/skills/base/#model-objects) objects. The [`SkillContext`](https://valory-xyz.github.io/open-aea/api/skills/base/) also has a link to the [`AgentContext`](https://valory-xyz.github.io/open-aea/api/context/base/), which provides read access to AEA specific information like the public key and address of the AEA, its preferences and ownership state.
 
-
-
-We remark that [`SkillContext`](https://valory-xyz.github.io/open-aea/api/skills/base/)
-and
-[`AgentContext`](https://valory-xyz.github.io/open-aea/api/context/base/), besides
-allowing [`Skills`](https://valory-xyz.github.io/open-aea/skill/) and AEAs, respectively, have their own [`Context`](https://valory-xyz.github.io/open-aea/api/context/base/) attributes, they also
-provide access to a shared state.
-This shared state is what AEAs can alter through the usage of [`Skills`](https://valory-xyz.github.io/open-aea/skill/).
-
+<figure markdown>
 ![Skill components](./images/skill-components.jpg)
+<figcaption>Skill components have access to the SkillContext</figcaption>
+</figure>
 
-## AEA Communication
+!!! note "Example"
+    In the `ErrorHandler(Handler)` class, the code often grabs a reference to its context and by doing so can access initialised and running framework objects such as an `OutBox` for putting messages into:
 
-AEAs interact with other agents, either within the same {{agent_service}}, and/or with agents in the outside world, via
-[interaction protocols](https://valory-xyz.github.io/open-aea/interaction-protocol/).
-In order to locate other agents, they connect to the
-[Agent Communication Network (ACN)](https://valory-xyz.github.io/open-aea/acn/).
+    ```python
+    self.context.outbox.put_message(message=reply)
+    ```
 
-More specifically, AEAs communicate asynchronously with other agents by exchanging
-[`Envelopes`](https://valory-xyz.github.io/open-aea/api/mail/base/#envelope-objects), each one
-containing a [`Message`](https://valory-xyz.github.io/open-aea/api/protocols/base/).
-These messages adhere to specific messaging
-[`Protocols`](https://valory-xyz.github.io/open-aea/protocol/).
-In order to make the communication possible, each AEA needs to
-set up a [`Connection`](https://valory-xyz.github.io/open-aea/connection/), which
-is managed by the
-[`Mutliplexer`](https://valory-xyz.github.io/open-aea/api/multiplexer/).
-A [`Connection`](https://valory-xyz.github.io/open-aea/connection/) wraps an SDK or API and provides an interface to networks, ledgers or other services, in addition to make possible the communication between AEAs through the ACN.
-For example, The logic related to the execution of a smart
-[`Contract`](https://valory-xyz.github.io/open-aea/contract/)
-requires a connection to provide the agent with the
-necessary blockchain network access.
-Connection is responsible for translating between the framework-specific [`Envelope`](https://valory-xyz.github.io/open-aea/api/mail/base/#envelope-objects) with its [`Message`](https://valory-xyz.github.io/open-aea/api/protocols/base/) and the external service or third-party protocol (e.g. HTTP).
+    Moreover, the programmer can read/write to the agent context namespace by accessing the attribute SkillContext.namespace.
 
-The AEAs [`Identity`](https://valory-xyz.github.io/open-aea/api/identity/base/)
-provides access to any associated addresses and public keys.
-A list with [`Connections`](https://valory-xyz.github.io/open-aea/api/connections/base/)
-allows agent-to-agent communication.
+    Importantly, however, a [`Skill`](https://valory-xyz.github.io/open-aea/skill/) does not have access to the context of another skill or protected AEA components like the [`DecisionMaker`](https://valory-xyz.github.io/open-aea/decision-maker/).
 
 
 
-## Implementation Overview of AEA Skills
+## Overview of AEA Skills Implementation
 
-To conclude this section, we provide a general context on how an AEA [`Skill`](https://valory-xyz.github.io/open-aea/skill/) is implemented in the {{open_aea}} framework. See the {{open_aea_doc}} for the complete details.
+Note that [`Skills`](https://valory-xyz.github.io/open-aea/skill/) are one of the parts where the developer will need to invest more time, as it is where the concrete business logic is developed. This will be also the case when developing {{agent_service}}s, because a special kind of [`Skill`](https://valory-xyz.github.io/open-aea/skill/) is what will define the {{agent_service}} business logic.
+
+Therefore, we briefly provide a general overview on how an AEA [`Skill`](https://valory-xyz.github.io/open-aea/skill/) is implemented in the {{open_aea}} framework. See also the {{open_aea_doc}} for the complete details.
 
 
 The [`AbstractAgent`](https://valory-xyz.github.io/open-aea/api/abstract_agent/) class
@@ -232,7 +216,33 @@ one which we will return to in the next section, looks as follows:
 
 
 
+## AEA Communication
 
+AEAs interact with other agents, either within the same {{agent_service}}, and/or with agents in the outside world, via
+[interaction protocols](https://valory-xyz.github.io/open-aea/interaction-protocol/).
+In order to locate other agents, they connect to the
+[Agent Communication Network (ACN)](https://valory-xyz.github.io/open-aea/acn/).
+
+More specifically, AEAs communicate asynchronously with other agents by exchanging
+[`Envelopes`](https://valory-xyz.github.io/open-aea/api/mail/base/#envelope-objects), each one
+containing a [`Message`](https://valory-xyz.github.io/open-aea/api/protocols/base/).
+These messages adhere to specific messaging
+[`Protocols`](https://valory-xyz.github.io/open-aea/protocol/).
+In order to make the communication possible, each AEA needs to
+set up a [`Connection`](https://valory-xyz.github.io/open-aea/connection/), which
+is managed by the
+[`Mutliplexer`](https://valory-xyz.github.io/open-aea/api/multiplexer/).
+A [`Connection`](https://valory-xyz.github.io/open-aea/connection/) wraps an SDK or API and provides an interface to networks, ledgers or other services, in addition to make possible the communication between AEAs through the ACN.
+For example, The logic related to the execution of a smart
+[`Contract`](https://valory-xyz.github.io/open-aea/contract/)
+requires a connection to provide the agent with the
+necessary blockchain network access.
+Connection is responsible for translating between the framework-specific [`Envelope`](https://valory-xyz.github.io/open-aea/api/mail/base/#envelope-objects) with its [`Message`](https://valory-xyz.github.io/open-aea/api/protocols/base/) and the external service or third-party protocol (e.g. HTTP).
+
+The AEAs [`Identity`](https://valory-xyz.github.io/open-aea/api/identity/base/)
+provides access to any associated addresses and public keys.
+A list with [`Connections`](https://valory-xyz.github.io/open-aea/api/connections/base/)
+allows agent-to-agent communication.
 
 
 <!--

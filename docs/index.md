@@ -38,7 +38,9 @@ reactive applications (like traditional smart contracts) and can show complex, p
 ## How It Works
 
 {{open_aea}} is a MAS framework for building
-arbitrary agent-based apps. The {{valory_stack}} extends this framework to a service architecture, where applications are implemented as sets of agents. The {{fsm_app}} defines a series of steps that each agent in the {{agent_service}} must agree upon. At the end of every step, the agents must reach consensus on its outputs. This ensures that the execution flow, its
+arbitrary agent-based apps. The {{valory_stack}} extends this framework to a service architecture, where applications are implemented as sets of agents.
+
+The {{fsm_app}} defines a series of steps that each agent in the {{agent_service}} must agree upon. At the end of every step, the agents must reach consensus on its outputs. This ensures that the execution flow, its
 inputs and its outputs are replicated across all agents, creating a distributed and
 decentralized application with shared state that is fault tolerant.
 

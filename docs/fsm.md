@@ -1,45 +1,43 @@
 # Finite State Machines (FSMs)
 
-In this section we review the concept of _finite state machine_ and discuss its role in the definition
-of {{fsm_app}}s, and in the operation of AEAs.
+In this section we present the concept of _finite state machine_, which will be a central part to define the {{fsm_app}} in an {{agent_service}} later.
 
 A [finite state machine](https://en.wikipedia.org/wiki/Finite-state_machine) (FSM) is a mathematical model of computation that can be
 used to represent a sequential logic of state transitions.
-We use FSMs to describe systems that have multiple states and can transition from one state to another due to some event or signal. In every state, we will need to perform one or more actions to trigger an event. This event will make the application to transit to a new state.
+We use FSMs to describe systems that have a finite number of _states_ and can transition from one state to another due to some _event_. At any given time the FSM can be in exactly one particular state, and the reception of this event will make the application to transit to a new state.
+
+The rules to transition from one state to another are governed by the so-called _transition function_. The transition function takes as input the current state and the received event and outputs the next state where the FSM will transit. A compact way of visualizing an FSM and its transition function is through a
+graph with a finite number of nodes, depicting the possible states of the system, and a finite number of labelled arcs, representing the transitions from one state to another.
+
+!!! note "Example"
+    Consider an FSM describing a simplified vending machine with three different states:
+
+    - _Idle_: the machine is waiting for a customer to insert a coin.
+    - _Ready_: a coin has been inserted, and the machine is waiting for the customer to select a product, or request a refund.
+    - _Release_: the machine releases the selected product.
+
+    Therefore, the four self-explanatory events of this FSM are:
+
+    - COIN_INSERTED
+    - PRODUCT_SELECTED
+    - REFUND_REQUEST
+    - PRODUCT_RELEASED
 
 
-Therefore, FSMs let us define all the steps that an application of a service must follow, or in other words, the application logic.
-At any given time
-the FSM can be in exactly one particular state from which it can transition to
-other states based on the reception of certain _events_ that it is given. The rules to transition from one state to another are governed by the so-called _transition function_. The transition function takes as input the current state and the received event and outputs the next state where the FSM will transit. A compact way of visualizing an FSM and its transition function is through a
-graph with a finite number of nodes, depicting the possible states of the
-system, and a finite number of labelled arcs, representing the transitions from one state to another.
+    We can represent the FSM as a graph as follows:
 
-As an example, consider an FSM describing a simplified vending machine with three different states:
-
-- _Idle_: the machine is waiting for a customer to insert a coin.
-- _Ready_: a coin has been inserted, and the machine is waiting for the customer to select a product, or request a refund.
-- _Release_: the machine releases the selected product.
-
-Therefore, the four self-explanatory events of this FSM are:
-
-- COIN_INSERTED
-- PRODUCT_SELECTED
-- REFUND_REQUEST
-- PRODUCT_RELEASED
+    <figure markdown>
+    <div class="mermaid">
+    stateDiagram-v2
+    direction LR
+      [*] --> Idle
+      Idle --> Ready: COIN_INSERTED
+      Ready --> Idle: REFUND_REQUEST
+      Ready --> Release: PRODUCT_SELECTED
+      Release --> Idle: PRODUCT_RELEASED
+    </div>
+    <figcaption>Diagram of a simplified vending machine FSM</figcaption>
+    </figure>
 
 
-We can represent the FSM as a graph as follows:
-
-<figure markdown>
-<div class="mermaid">
-stateDiagram-v2
-direction LR
-  [*] --> Idle
-  Idle --> Ready: COIN_INSERTED
-  Ready --> Idle: REFUND_REQUEST
-  Ready --> Release: PRODUCT_SELECTED
-  Release --> Idle: PRODUCT_RELEASED
-</div>
-<figcaption>Diagram of a simplified vending machine FSM</figcaption>
-</figure>
+FSMs let us define all the steps that an application of a service must follow, or in other words, the application logic. Roughly speaking, the {{fsm_app}} defining an {{agent_service}} is essentially an FSM replicated across the number of AEAs that compose the service, including additional proactive functionalities. Although it is not stritly necessary to understand how {{fsm_app}}s work, you can read more about FSM replication [here](https://en.wikipedia.org/wiki/State_machine_replication).
