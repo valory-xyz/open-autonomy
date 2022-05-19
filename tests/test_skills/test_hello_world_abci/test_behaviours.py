@@ -277,9 +277,9 @@ class HelloWorldAbciFSMBehaviourBaseCase(BaseSkillTestCase):
         current_state = cast(BaseState, self.hello_world_abci_behaviour.current_state)
         assert not current_state.is_done()
         with mock.patch.object(
-            self.hello_world_abci_behaviour.context.state, "_period"
-        ) as mock_period:
-            mock_period.last_round_id = cast(
+            self.hello_world_abci_behaviour.context.state, "_round_sequence"
+        ) as mock_round_sequence:
+            mock_round_sequence.last_round_id = cast(
                 AbstractRound, current_state.matching_round
             ).round_id
             current_state.act_wrapper()
