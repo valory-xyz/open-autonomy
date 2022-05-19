@@ -25,11 +25,9 @@ import re
 import sys
 from itertools import product
 from pathlib import Path
-from typing import Any, Dict, List, OrderedDict, Set, TextIO, Tuple, Type
+from typing import Any, Dict, List, OrderedDict, Set, TextIO, Tuple
 
 import yaml
-
-from packages.valory.skills.abstract_round_abci.base import AbciApp
 
 
 class DFASpecificationError(Exception):
@@ -153,19 +151,20 @@ class DFA:
 
     def dump(self, file: Path, output_format: str = "yaml") -> None:
         """Dumps this DFA spec. to a file in YAML/JSON/Mermaid format."""
-        dfa_export = self._get_exportable_repr()
 
+        dumper = getattr(self, f"dump_{output_format}")
         with open(file, "w+", encoding="utf-8") as fp:
-            if output_format == self.OutputFormats.JSON:
-                json.dump(dfa_export, fp, indent=4)
-            elif output_format == self.OutputFormats.YAML:
-                yaml.safe_dump(dfa_export, fp, indent=4)
-            elif output_format == self.OutputFormats.MERMAID:
-                self._mermaid_dump(fp)
-            else:
-                raise ValueError(f"Unrecognized output format {output_format}.")
+            dumper(fp)
 
-    def _mermaid_dump(self, fp: TextIO) -> None:
+    def dump_json(self, fp: TextIO) -> None:
+        """Dump to a json file."""
+        json.dump(self.generate(), fp, indent=4)
+
+    def dump_yaml(self, fp: TextIO) -> None:
+        """Dump to a yaml file."""
+        yaml.safe_dump(self.generate(), fp, indent=4)
+
+    def dump_mermaid(self, fp: TextIO) -> None:
         """Dumps this DFA spec. to a file in Mermaid format."""
         print("stateDiagram-v2", file=fp)
 
@@ -190,7 +189,7 @@ class DFA:
                     file=fp,
                 )
 
-    def _get_exportable_repr(self) -> Dict[str, Any]:
+    def generate(self) -> Dict[str, Any]:
         """Retrieves an exportable respresentation for YAML/JSON dump of this DFA."""
         dfa_export: Dict[str, Any] = {}
         for k, v in self.__dict__.items():
@@ -270,7 +269,7 @@ class DFA:
         )
 
     @classmethod
-    def abci_to_dfa(cls, abci_app_cls: Type[AbciApp], label: str = "") -> "DFA":
+    def abci_to_dfa(cls, abci_app_cls: Any, label: str = "") -> "DFA":
         """Translates an AbciApp class into a DFA."""
 
         trf = abci_app_cls.transition_function
