@@ -174,3 +174,16 @@ class TestTendermintResetInterrupt(TestAgentCatchup):
             "value": __reset_tendermint_every,
         },
     ]
+
+
+class TestTendermintResetInterruptNoRejoin(TestTendermintResetInterrupt):
+    """
+    Test a Tendermint reset case for the ABCI oracle skill.
+
+    Test the ABCI oracle skill with four agents when an agent gets temporarily interrupted
+    on Tendermint reset and never rejoins.
+    """
+
+    wait_to_finish = 300
+    # set the restart to a value so that the agent never rejoins, in order to test the impact to the rest of the agents
+    restart_after = wait_to_finish
