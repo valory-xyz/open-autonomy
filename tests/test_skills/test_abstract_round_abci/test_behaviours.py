@@ -136,9 +136,9 @@ class TestAbstractRoundBehaviour:
 
     def setup(self) -> None:
         """Set up the tests."""
-        self.period_mock = MagicMock()
+        self.round_sequence_mock = MagicMock()
         context_mock = MagicMock()
-        context_mock.state.period = self.period_mock
+        context_mock.state.round_sequence = self.round_sequence_mock
         context_mock.state.round_sequence.syncing_up = False
         context_mock.params.ipfs_domain_name = None
         self.behaviour = ConcreteRoundBehaviour(name="", skill_context=context_mock)
@@ -327,8 +327,8 @@ class TestAbstractRoundBehaviour:
 
     def test_act_no_round_change(self) -> None:
         """Test the 'act' method of the behaviour, with no round change."""
-        self.period_mock.current_round = RoundA(MagicMock(), MagicMock())
-        self.period_mock.current_round_height = 0
+        self.round_sequence_mock.current_round = RoundA(MagicMock(), MagicMock())
+        self.round_sequence_mock.current_round_height = 0
 
         # check that after setup(), current state is initial state
         self.behaviour.setup()
@@ -346,8 +346,8 @@ class TestAbstractRoundBehaviour:
 
     def test_act_behaviour_setup(self) -> None:
         """Test the 'act' method of the FSM behaviour triggers setup() of the state behaviour."""
-        self.period_mock.current_round = RoundA(MagicMock(), MagicMock())
-        self.period_mock.current_round_height = 0
+        self.round_sequence_mock.current_round = RoundA(MagicMock(), MagicMock())
+        self.round_sequence_mock.current_round_height = 0
 
         # check that after setup(), current state is initial state
         self.behaviour.setup()
@@ -366,8 +366,8 @@ class TestAbstractRoundBehaviour:
 
     def test_act_with_round_change(self) -> None:
         """Test the 'act' method of the behaviour, with round change."""
-        self.period_mock.current_round = RoundA(MagicMock(), MagicMock())
-        self.period_mock.current_round_height = 0
+        self.round_sequence_mock.current_round = RoundA(MagicMock(), MagicMock())
+        self.round_sequence_mock.current_round_height = 0
 
         # check that after setup(), current state is initial state
         self.behaviour.setup()
@@ -378,9 +378,9 @@ class TestAbstractRoundBehaviour:
         assert isinstance(self.behaviour.current_state, StateA)
 
         # change the round
-        self.period_mock.current_round = RoundB(MagicMock(), MagicMock())
-        self.period_mock.current_round_height = (
-            self.period_mock.current_round_height + 1
+        self.round_sequence_mock.current_round = RoundB(MagicMock(), MagicMock())
+        self.round_sequence_mock.current_round_height = (
+            self.round_sequence_mock.current_round_height + 1
         )
 
         # check that if the round is changed, the behaviour transition is taken
@@ -389,8 +389,8 @@ class TestAbstractRoundBehaviour:
 
     def test_act_with_round_change_after_current_state_is_none(self) -> None:
         """Test the 'act' method of the behaviour, with round change, after cur state is none."""
-        self.period_mock.current_round = RoundA(MagicMock(), MagicMock())
-        self.period_mock.current_round_height = 0
+        self.round_sequence_mock.current_round = RoundA(MagicMock(), MagicMock())
+        self.round_sequence_mock.current_round_height = 0
 
         # instantiate state
         self.behaviour.current_state = self.behaviour.instantiate_state_cls(StateA)  # type: ignore
@@ -405,9 +405,9 @@ class TestAbstractRoundBehaviour:
         assert self.behaviour.current_state is None
 
         # change the round
-        self.period_mock.current_round = RoundB(MagicMock(), MagicMock())
-        self.period_mock.current_round_height = (
-            self.period_mock.current_round_height + 1
+        self.round_sequence_mock.current_round = RoundB(MagicMock(), MagicMock())
+        self.round_sequence_mock.current_round_height = (
+            self.round_sequence_mock.current_round_height + 1
         )
 
         # check that if the round is changed, the behaviour transition is taken
@@ -457,7 +457,7 @@ def test_self_loops_in_abci_app_reinstantiate_behaviour_state() -> None:
     round_sequence.end_sync()
     round_sequence.setup(MagicMock(), MagicMock(), MagicMock())
     context_mock = MagicMock()
-    context_mock.state.period = round_sequence
+    context_mock.state.round_sequence = round_sequence
     context_mock.params.ipfs_domain_name = None
     behaviour = RoundBehaviour(name="", skill_context=context_mock)
     behaviour.setup()
