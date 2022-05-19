@@ -24,13 +24,13 @@ class PriceEstimationBaseState(BaseState,  ABC)
 
 Base state behaviour for the common apps' skill.
 
-<a id="packages.valory.skills.price_estimation_abci.behaviours.PriceEstimationBaseState.period_state"></a>
+<a id="packages.valory.skills.price_estimation_abci.behaviours.PriceEstimationBaseState.synchronized_data"></a>
 
-#### period`_`state
+#### synchronized`_`data
 
 ```python
 @property
-def period_state() -> PeriodState
+def synchronized_data() -> SynchronizedData
 ```
 
 Return the period state.

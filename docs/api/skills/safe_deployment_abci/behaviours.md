@@ -14,13 +14,13 @@ class SafeDeploymentBaseState(BaseState)
 
 Base state behaviour for the common apps' skill.
 
-<a id="packages.valory.skills.safe_deployment_abci.behaviours.SafeDeploymentBaseState.period_state"></a>
+<a id="packages.valory.skills.safe_deployment_abci.behaviours.SafeDeploymentBaseState.synchronized_data"></a>
 
-#### period`_`state
+#### synchronized`_`data
 
 ```python
 @property
-def period_state() -> PeriodState
+def synchronized_data() -> SynchronizedData
 ```
 
 Return the period state.

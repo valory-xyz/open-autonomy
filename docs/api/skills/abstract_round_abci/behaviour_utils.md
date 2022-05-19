@@ -341,13 +341,13 @@ def params() -> BaseParams
 
 Return the params.
 
-<a id="packages.valory.skills.abstract_round_abci.behaviour_utils.BaseState.period_state"></a>
+<a id="packages.valory.skills.abstract_round_abci.behaviour_utils.BaseState.synchronized_data"></a>
 
-#### period`_`state
+#### synchronized`_`data
 
 ```python
 @property
-def period_state() -> BasePeriodState
+def synchronized_data() -> BaseSynchronizedData
 ```
 
 Return the period state.

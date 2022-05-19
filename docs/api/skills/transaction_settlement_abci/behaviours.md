@@ -14,13 +14,13 @@ class TransactionSettlementBaseState(BaseState,  ABC)
 
 Base state behaviour for the common apps' skill.
 
-<a id="packages.valory.skills.transaction_settlement_abci.behaviours.TransactionSettlementBaseState.period_state"></a>
+<a id="packages.valory.skills.transaction_settlement_abci.behaviours.TransactionSettlementBaseState.synchronized_data"></a>
 
-#### period`_`state
+#### synchronized`_`data
 
 ```python
 @property
-def period_state() -> PeriodState
+def synchronized_data() -> SynchronizedData
 ```
 
 Return the period state.

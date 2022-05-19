@@ -765,19 +765,19 @@ def cleanup(cleanup_history_depth: int) -> None
 
 Reset the db.
 
-<a id="packages.valory.skills.abstract_round_abci.base.BasePeriodState"></a>
+<a id="packages.valory.skills.abstract_round_abci.base.BaseSynchronizedData"></a>
 
-## BasePeriodState Objects
+## BaseSynchronizedData Objects
 
 ```python
-class BasePeriodState()
+class BaseSynchronizedData()
 ```
 
-Class to represent a period state.
+Class to represent the synchronized data.
 
 This is the relevant state constructed and replicated by the agents in a period.
 
-<a id="packages.valory.skills.abstract_round_abci.base.BasePeriodState.__init__"></a>
+<a id="packages.valory.skills.abstract_round_abci.base.BaseSynchronizedData.__init__"></a>
 
 #### `__`init`__`
 
@@ -785,9 +785,9 @@ This is the relevant state constructed and replicated by the agents in a period.
 def __init__(db: AbciAppDB) -> None
 ```
 
-Initialize a period state.
+Initialize the synchronized data.
 
-<a id="packages.valory.skills.abstract_round_abci.base.BasePeriodState.db"></a>
+<a id="packages.valory.skills.abstract_round_abci.base.BaseSynchronizedData.db"></a>
 
 #### db
 
@@ -798,7 +798,7 @@ def db() -> AbciAppDB
 
 Get DB.
 
-<a id="packages.valory.skills.abstract_round_abci.base.BasePeriodState.round_count"></a>
+<a id="packages.valory.skills.abstract_round_abci.base.BaseSynchronizedData.round_count"></a>
 
 #### round`_`count
 
@@ -809,7 +809,7 @@ def round_count() -> int
 
 Get the round count.
 
-<a id="packages.valory.skills.abstract_round_abci.base.BasePeriodState.period_count"></a>
+<a id="packages.valory.skills.abstract_round_abci.base.BaseSynchronizedData.period_count"></a>
 
 #### period`_`count
 
@@ -820,7 +820,7 @@ def period_count() -> int
 
 Get the period count.
 
-<a id="packages.valory.skills.abstract_round_abci.base.BasePeriodState.participants"></a>
+<a id="packages.valory.skills.abstract_round_abci.base.BaseSynchronizedData.participants"></a>
 
 #### participants
 
@@ -831,7 +831,7 @@ def participants() -> FrozenSet[str]
 
 Get the participants.
 
-<a id="packages.valory.skills.abstract_round_abci.base.BasePeriodState.all_participants"></a>
+<a id="packages.valory.skills.abstract_round_abci.base.BaseSynchronizedData.all_participants"></a>
 
 #### all`_`participants
 
@@ -842,7 +842,7 @@ def all_participants() -> FrozenSet[str]
 
 Get all the participants.
 
-<a id="packages.valory.skills.abstract_round_abci.base.BasePeriodState.sorted_participants"></a>
+<a id="packages.valory.skills.abstract_round_abci.base.BaseSynchronizedData.sorted_participants"></a>
 
 #### sorted`_`participants
 
@@ -862,7 +862,7 @@ This property is useful when interacting with the Safe contract.
 
 the sorted participants' addresses
 
-<a id="packages.valory.skills.abstract_round_abci.base.BasePeriodState.nb_participants"></a>
+<a id="packages.valory.skills.abstract_round_abci.base.BaseSynchronizedData.nb_participants"></a>
 
 #### nb`_`participants
 
@@ -873,17 +873,17 @@ def nb_participants() -> int
 
 Get the number of participants.
 
-<a id="packages.valory.skills.abstract_round_abci.base.BasePeriodState.update"></a>
+<a id="packages.valory.skills.abstract_round_abci.base.BaseSynchronizedData.update"></a>
 
 #### update
 
 ```python
-def update(period_state_class: Optional[Type] = None, period_count: Optional[int] = None, **kwargs: Any, ,) -> "BasePeriodState"
+def update(synchronized_data_class: Optional[Type] = None, period_count: Optional[int] = None, **kwargs: Any, ,) -> "BaseSynchronizedData"
 ```
 
 Copy and update the state.
 
-<a id="packages.valory.skills.abstract_round_abci.base.BasePeriodState.__repr__"></a>
+<a id="packages.valory.skills.abstract_round_abci.base.BaseSynchronizedData.__repr__"></a>
 
 #### `__`repr`__`
 
@@ -893,7 +893,7 @@ def __repr__() -> str
 
 Return a string representation of the state.
 
-<a id="packages.valory.skills.abstract_round_abci.base.BasePeriodState.keeper_randomness"></a>
+<a id="packages.valory.skills.abstract_round_abci.base.BaseSynchronizedData.keeper_randomness"></a>
 
 #### keeper`_`randomness
 
@@ -904,7 +904,7 @@ def keeper_randomness() -> float
 
 Get the keeper's random number [0-1].
 
-<a id="packages.valory.skills.abstract_round_abci.base.BasePeriodState.most_voted_randomness"></a>
+<a id="packages.valory.skills.abstract_round_abci.base.BaseSynchronizedData.most_voted_randomness"></a>
 
 #### most`_`voted`_`randomness
 
@@ -915,7 +915,7 @@ def most_voted_randomness() -> str
 
 Get the most_voted_randomness.
 
-<a id="packages.valory.skills.abstract_round_abci.base.BasePeriodState.most_voted_keeper_address"></a>
+<a id="packages.valory.skills.abstract_round_abci.base.BaseSynchronizedData.most_voted_keeper_address"></a>
 
 #### most`_`voted`_`keeper`_`address
 
@@ -926,7 +926,7 @@ def most_voted_keeper_address() -> str
 
 Get the most_voted_keeper_address.
 
-<a id="packages.valory.skills.abstract_round_abci.base.BasePeriodState.is_keeper_set"></a>
+<a id="packages.valory.skills.abstract_round_abci.base.BaseSynchronizedData.is_keeper_set"></a>
 
 #### is`_`keeper`_`set
 
@@ -937,7 +937,7 @@ def is_keeper_set() -> bool
 
 Check whether keeper is set.
 
-<a id="packages.valory.skills.abstract_round_abci.base.BasePeriodState.blacklisted_keepers"></a>
+<a id="packages.valory.skills.abstract_round_abci.base.BaseSynchronizedData.blacklisted_keepers"></a>
 
 #### blacklisted`_`keepers
 
@@ -948,7 +948,7 @@ def blacklisted_keepers() -> Set[str]
 
 Get the current cycle's blacklisted keepers who cannot submit a transaction.
 
-<a id="packages.valory.skills.abstract_round_abci.base.BasePeriodState.participant_to_selection"></a>
+<a id="packages.valory.skills.abstract_round_abci.base.BaseSynchronizedData.participant_to_selection"></a>
 
 #### participant`_`to`_`selection
 
@@ -959,7 +959,7 @@ def participant_to_selection() -> Mapping
 
 Check whether keeper is set.
 
-<a id="packages.valory.skills.abstract_round_abci.base.BasePeriodState.participant_to_randomness"></a>
+<a id="packages.valory.skills.abstract_round_abci.base.BaseSynchronizedData.participant_to_randomness"></a>
 
 #### participant`_`to`_`randomness
 
@@ -970,7 +970,7 @@ def participant_to_randomness() -> Mapping
 
 Check whether keeper is set.
 
-<a id="packages.valory.skills.abstract_round_abci.base.BasePeriodState.participant_to_votes"></a>
+<a id="packages.valory.skills.abstract_round_abci.base.BaseSynchronizedData.participant_to_votes"></a>
 
 #### participant`_`to`_`votes
 
@@ -1004,18 +1004,18 @@ Concrete classes must set:
 #### `__`init`__`
 
 ```python
-def __init__(state: BasePeriodState, consensus_params: ConsensusParams, previous_round_tx_type: Optional[TransactionType] = None) -> None
+def __init__(state: BaseSynchronizedData, consensus_params: ConsensusParams, previous_round_tx_type: Optional[TransactionType] = None) -> None
 ```
 
 Initialize the round.
 
-<a id="packages.valory.skills.abstract_round_abci.base.AbstractRound.period_state"></a>
+<a id="packages.valory.skills.abstract_round_abci.base.AbstractRound.synchronized_data"></a>
 
-#### period`_`state
+#### synchronized`_`data
 
 ```python
 @property
-def period_state() -> BasePeriodState
+def synchronized_data() -> BaseSynchronizedData
 ```
 
 Get the period state.
@@ -1057,7 +1057,7 @@ of the class that is named '{payload_name}'.
 
 ```python
 @abstractmethod
-def end_block() -> Optional[Tuple[BasePeriodState, Enum]]
+def end_block() -> Optional[Tuple[BaseSynchronizedData, Enum]]
 ```
 
 Process the end of the block.
@@ -1243,7 +1243,7 @@ Process payload.
 #### end`_`block
 
 ```python
-def end_block() -> Optional[Tuple[BasePeriodState, Enum]]
+def end_block() -> Optional[Tuple[BaseSynchronizedData, Enum]]
 ```
 
 End block.
@@ -1411,7 +1411,7 @@ Get the most voted payload.
 #### end`_`block
 
 ```python
-def end_block() -> Optional[Tuple[BasePeriodState, Enum]]
+def end_block() -> Optional[Tuple[BaseSynchronizedData, Enum]]
 ```
 
 Process the end of the block.
@@ -1475,7 +1475,7 @@ Check if keeper has sent the payload.
 #### end`_`block
 
 ```python
-def end_block() -> Optional[Tuple[BasePeriodState, Enum]]
+def end_block() -> Optional[Tuple[BaseSynchronizedData, Enum]]
 ```
 
 Process the end of the block.
@@ -1542,7 +1542,7 @@ Check that the vote threshold has been reached.
 #### end`_`block
 
 ```python
-def end_block() -> Optional[Tuple[BasePeriodState, Enum]]
+def end_block() -> Optional[Tuple[BaseSynchronizedData, Enum]]
 ```
 
 Process the end of the block.
@@ -1576,7 +1576,7 @@ Check if the threshold has been reached.
 #### end`_`block
 
 ```python
-def end_block() -> Optional[Tuple[BasePeriodState, Enum]]
+def end_block() -> Optional[Tuple[BaseSynchronizedData, Enum]]
 ```
 
 Process the end of the block.
@@ -1601,7 +1601,7 @@ This round may be used for cases that we want to collect all the agent's data, s
 #### end`_`block
 
 ```python
-def end_block() -> Optional[Tuple[BasePeriodState, Enum]]
+def end_block() -> Optional[Tuple[BaseSynchronizedData, Enum]]
 ```
 
 Process the end of the block.
@@ -1741,7 +1741,7 @@ Concrete classes of this class implement the ABCI App.
 #### `__`init`__`
 
 ```python
-def __init__(state: BasePeriodState, consensus_params: ConsensusParams, logger: logging.Logger)
+def __init__(state: BaseSynchronizedData, consensus_params: ConsensusParams, logger: logging.Logger)
 ```
 
 Initialize the AbciApp.
@@ -1752,7 +1752,7 @@ Initialize the AbciApp.
 
 ```python
 @property
-def state() -> BasePeriodState
+def state() -> BaseSynchronizedData
 ```
 
 Return the current state.
@@ -1872,7 +1872,7 @@ Check whether the AbciApp execution has finished.
 
 ```python
 @property
-def latest_result() -> Optional[BasePeriodState]
+def latest_result() -> Optional[BaseSynchronizedData]
 ```
 
 Get the latest result of the round.
@@ -1914,7 +1914,7 @@ Forward the call to the current round object.
 #### process`_`event
 
 ```python
-def process_event(event: EventType, result: Optional[BasePeriodState] = None) -> None
+def process_event(event: EventType, result: Optional[BaseSynchronizedData] = None) -> None
 ```
 
 Process a round event.
@@ -2144,7 +2144,7 @@ Returns the height for last round transition.
 
 ```python
 @property
-def latest_state() -> BasePeriodState
+def latest_state() -> BaseSynchronizedData
 ```
 
 Get the latest state.
