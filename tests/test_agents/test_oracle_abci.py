@@ -152,8 +152,9 @@ class TestTendermintResetInterrupt(TestAgentCatchup):
     skill_package = "valory/oracle_abci:0.1.0"
     cli_log_options = ["-v", "INFO"]
     wait_before_stop = 100
-    restart_after = 0.01
-    __n_resets_to_perform = 2
+    wait_to_finish = 300
+    restart_after = 3
+    __n_resets_to_perform = 3
     __reset_tendermint_every = 2
 
     # stop for restart_after seconds when resetting Tendermint for the first time (using -1 because count starts from 0)
