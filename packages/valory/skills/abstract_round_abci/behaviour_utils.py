@@ -469,11 +469,17 @@ class BaseState(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
 
     def check_in_round(self, round_id: str) -> bool:
         """Check that we entered a specific round."""
-        return cast(SharedState, self.context.state).period.current_round_id == round_id
+        return (
+            cast(SharedState, self.context.state).round_sequence.current_round_id
+            == round_id
+        )
 
     def check_in_last_round(self, round_id: str) -> bool:
         """Check that we entered a specific round."""
-        return cast(SharedState, self.context.state).period.last_round_id == round_id
+        return (
+            cast(SharedState, self.context.state).round_sequence.last_round_id
+            == round_id
+        )
 
     def check_not_in_round(self, round_id: str) -> bool:
         """Check that we are not in a specific round."""
@@ -490,7 +496,7 @@ class BaseState(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
     def check_round_height_has_changed(self, round_height: int) -> bool:
         """Check that the round height has changed."""
         return (
-            cast(SharedState, self.context.state).period.current_round_height
+            cast(SharedState, self.context.state).round_sequence.current_round_height
             != round_height
         )
 
@@ -508,10 +514,12 @@ class BaseState(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
         :yield: None
         """
         round_id = self.matching_round.round_id
-        round_height = cast(SharedState, self.context.state).period.current_round_height
+        round_height = cast(
+            SharedState, self.context.state
+        ).round_sequence.current_round_height
         if self.check_not_in_round(round_id) and self.check_not_in_last_round(round_id):
             raise ValueError(
-                f"Should be in matching round ({round_id}) or last round ({self.context.state.period.last_round_id}), actual round {self.context.state.period.current_round_id}!"
+                f"Should be in matching round ({round_id}) or last round ({self.context.state.round_sequence.last_round_id}), actual round {self.context.state.round_sequence.current_round_id}!"
             )
         yield from self.wait_for_condition(
             partial(self.check_round_height_has_changed, round_height), timeout=timeout
@@ -570,7 +578,7 @@ class BaseState(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
             self._is_started = True
 
         try:
-            if self.context.state.period.syncing_up:
+            if self.context.state.round_sequence.syncing_up:
                 yield from self._check_sync()
             else:
                 yield from self.async_act()
@@ -596,11 +604,11 @@ class BaseState(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
                 remote_height = int(
                     json_body["result"]["sync_info"]["latest_block_height"]
                 )
-                local_height = int(self.context.state.period.height)
+                local_height = int(self.context.state.round_sequence.height)
                 _is_sync_complete = local_height == remote_height
                 if _is_sync_complete:
                     self.context.logger.info("local height == remote; Sync complete...")
-                    self.context.state.period.end_sync()
+                    self.context.state.round_sequence.end_sync()
                     return
                 yield from self.sleep(self.context.params.tendermint_check_sleep_delay)
             except (json.JSONDecodeError, KeyError):  # pragma: nocover
@@ -1465,7 +1473,10 @@ class BaseState(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
                 "GET",
                 self.params.tendermint_com_url + "/app_hash",
                 parameters=[
-                    ("height", self.context.state.period.last_round_transition_height)
+                    (
+                        "height",
+                        self.context.state.round_sequence.last_round_transition_height,
+                    )
                 ],
             )
             result = yield from self._do_request(request_message, http_dialogue)
@@ -1501,7 +1512,7 @@ class BaseState(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
                 return False
 
             last_round_transition_timestamp = (
-                self.context.state.period.last_round_transition_timestamp
+                self.context.state.round_sequence.last_round_transition_timestamp
             )
             time_string = last_round_transition_timestamp.astimezone(pytz.UTC).strftime(
                 "%Y-%m-%dT%H:%M:%S.%fZ"
@@ -1522,10 +1533,10 @@ class BaseState(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
                     self.context.logger.info(
                         "Resetting tendermint node successful! Resetting local blockchain."
                     )
-                    self.context.state.period.reset_blockchain(
+                    self.context.state.round_sequence.reset_blockchain(
                         response.get("is_replay", False)
                     )
-                    self.context.state.period.abci_app.cleanup(
+                    self.context.state.round_sequence.abci_app.cleanup(
                         self.params.cleanup_history_depth
                     )
 
@@ -1557,7 +1568,7 @@ class BaseState(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
             return False
 
         remote_height = int(json_body["result"]["sync_info"]["latest_block_height"])
-        local_height = self.context.state.period.height
+        local_height = self.context.state.round_sequence.height
         self.context.logger.info(
             "local-height = %s, remote-height=%s", local_height, remote_height
         )

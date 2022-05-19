@@ -159,7 +159,9 @@ class TestFetchAndBatchBehaviours(APYEstimationFSMBehaviourBaseCase):
     @pytest.mark.parametrize("batch_flag", (True, False))
     def test_setup(self, monkeypatch: MonkeyPatch, batch_flag: bool) -> None:
         """Test behaviour setup."""
-        self.skill.skill_context.state.period.abci_app._last_timestamp = datetime.now()
+        self.skill.skill_context.state.round_sequence.abci_app._last_timestamp = (
+            datetime.now()
+        )
 
         self.fast_forward_to_state(
             self.behaviour,
@@ -237,7 +239,7 @@ class TestFetchAndBatchBehaviours(APYEstimationFSMBehaviourBaseCase):
         history_duration = cast(
             FetchBehaviour, self.behaviour.current_state
         ).params.history_duration
-        self.skill.skill_context.state.period.abci_app._last_timestamp = (
+        self.skill.skill_context.state.round_sequence.abci_app._last_timestamp = (
             datetime.utcfromtimestamp(1618735147 + history_duration * 30 * 24 * 60 * 60)
         )
 
@@ -305,7 +307,9 @@ class TestFetchAndBatchBehaviours(APYEstimationFSMBehaviourBaseCase):
         self, monkeypatch: MonkeyPatch, caplog: LogCaptureFixture
     ) -> None:
         """Run tests for exceeded retries."""
-        self.skill.skill_context.state.period.abci_app._last_timestamp = datetime.now()
+        self.skill.skill_context.state.round_sequence.abci_app._last_timestamp = (
+            datetime.now()
+        )
 
         self.fast_forward_to_state(
             self.behaviour, FetchBehaviour.state_id, self.period_state
@@ -343,7 +347,7 @@ class TestFetchAndBatchBehaviours(APYEstimationFSMBehaviourBaseCase):
         history_duration = cast(
             FetchBehaviour, self.behaviour.current_state
         ).params.history_duration
-        self.skill.skill_context.state.period.abci_app._last_timestamp = (
+        self.skill.skill_context.state.round_sequence.abci_app._last_timestamp = (
             datetime.utcfromtimestamp(1618735147 + history_duration * 30 * 24 * 60 * 60)
         )
         self.fast_forward_to_state(
@@ -477,7 +481,9 @@ class TestFetchAndBatchBehaviours(APYEstimationFSMBehaviourBaseCase):
         total_days: int,
     ) -> None:
         """Test `FetchBehaviour`'s `async_act` after all the timestamps have been generated."""
-        self.skill.skill_context.state.period.abci_app._last_timestamp = datetime.now()
+        self.skill.skill_context.state.round_sequence.abci_app._last_timestamp = (
+            datetime.now()
+        )
 
         # fast-forward to fetch behaviour.
         self.fast_forward_to_state(
