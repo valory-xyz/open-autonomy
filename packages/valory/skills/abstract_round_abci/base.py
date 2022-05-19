@@ -572,9 +572,9 @@ class AbciAppDB:
         }
 
 
-class BasePeriodState:
+class BaseSynchronizedData:
     """
-    Class to represent a period state.
+    Class to represent the synchronized data.
 
     This is the relevant state constructed and replicated by the agents in a period.
     """
@@ -583,7 +583,7 @@ class BasePeriodState:
         self,
         db: AbciAppDB,
     ) -> None:
-        """Initialize a period state."""
+        """Initialize the synchronized data."""
         self._db = db
 
     @property
@@ -641,7 +641,7 @@ class BasePeriodState:
         period_state_class: Optional[Type] = None,
         period_count: Optional[int] = None,
         **kwargs: Any,
-    ) -> "BasePeriodState":
+    ) -> "BaseSynchronizedData":
         """Copy and update the state."""
         if period_count is None:
             self.db.update_current_period(**kwargs)
@@ -719,7 +719,7 @@ class AbstractRound(Generic[EventType, TransactionType], ABC):
 
     def __init__(
         self,
-        state: BasePeriodState,
+        state: BaseSynchronizedData,
         consensus_params: ConsensusParams,
         previous_round_tx_type: Optional[TransactionType] = None,
     ) -> None:
@@ -743,7 +743,7 @@ class AbstractRound(Generic[EventType, TransactionType], ABC):
             raise ABCIAppInternalError("'allowed_tx_type' field not set") from exc
 
     @property
-    def period_state(self) -> BasePeriodState:
+    def period_state(self) -> BaseSynchronizedData:
         """Get the period state."""
         return self._state
 
@@ -769,7 +769,7 @@ class AbstractRound(Generic[EventType, TransactionType], ABC):
         self.process_payload(transaction.payload)
 
     @abstractmethod
-    def end_block(self) -> Optional[Tuple[BasePeriodState, Enum]]:
+    def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Enum]]:
         """
         Process the end of the block.
 
@@ -964,7 +964,7 @@ class DegenerateRound(AbstractRound):
             "DegenerateRound should not be used in operation."
         )
 
-    def end_block(self) -> Optional[Tuple[BasePeriodState, Enum]]:
+    def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Enum]]:
         """End block."""
         raise NotImplementedError(  # pragma: nocover
             "DegenerateRound should not be used in operation."
@@ -1101,7 +1101,7 @@ class CollectSameUntilThresholdRound(CollectionRound):
     none_event: Any
     collection_key: str
     selection_key: str
-    period_state_class = BasePeriodState
+    period_state_class = BaseSynchronizedData
 
     @property
     def threshold_reached(
@@ -1121,7 +1121,7 @@ class CollectSameUntilThresholdRound(CollectionRound):
             raise ABCIAppInternalError("not enough votes")
         return most_voted_payload
 
-    def end_block(self) -> Optional[Tuple[BasePeriodState, Enum]]:
+    def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Enum]]:
         """Process the end of the block."""
         if self.threshold_reached and self.most_voted_payload is not None:
             state = self.period_state.update(
@@ -1153,7 +1153,7 @@ class OnlyKeeperSendsRound(AbstractRound):
     done_event: Any
     fail_event: Any
     payload_key: str
-    period_state_class = BasePeriodState
+    period_state_class = BaseSynchronizedData
 
     def __init__(self, *args: Any, **kwargs: Any):
         """Initialize the 'collect-observation' round."""
@@ -1213,7 +1213,7 @@ class OnlyKeeperSendsRound(AbstractRound):
 
         return self.keeper_sent_payload
 
-    def end_block(self) -> Optional[Tuple[BasePeriodState, Enum]]:
+    def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Enum]]:
         """Process the end of the block."""
         # if reached participant threshold, set the result
         if self.has_keeper_sent_payload and self.keeper_payload is not None:
@@ -1240,7 +1240,7 @@ class VotingRound(CollectionRound):
     none_event: Any
     no_majority_event: Any
     collection_key: str
-    period_state_class = BasePeriodState
+    period_state_class = BaseSynchronizedData
 
     @property
     def vote_count(self) -> Counter:
@@ -1262,7 +1262,7 @@ class VotingRound(CollectionRound):
         """Check that the vote threshold has been reached."""
         return self.vote_count[None] >= self.consensus_threshold
 
-    def end_block(self) -> Optional[Tuple[BasePeriodState, Enum]]:
+    def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Enum]]:
         """Process the end of the block."""
         # if reached participant threshold, set the result
         if self.positive_vote_threshold_reached:
@@ -1295,7 +1295,7 @@ class CollectDifferentUntilThresholdRound(CollectionRound):
     selection_key: str
     collection_key: str
     required_block_confirmations: int = 0
-    period_state_class = BasePeriodState
+    period_state_class = BaseSynchronizedData
 
     @property
     def collection_threshold_reached(
@@ -1304,7 +1304,7 @@ class CollectDifferentUntilThresholdRound(CollectionRound):
         """Check if the threshold has been reached."""
         return len(self.collection) >= self.consensus_threshold
 
-    def end_block(self) -> Optional[Tuple[BasePeriodState, Enum]]:
+    def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Enum]]:
         """Process the end of the block."""
         if self.collection_threshold_reached:
             self.block_confirmations += 1
@@ -1352,7 +1352,7 @@ class CollectNonEmptyUntilThresholdRound(CollectDifferentUntilThresholdRound):
 
         return non_empty_values
 
-    def end_block(self) -> Optional[Tuple[BasePeriodState, Enum]]:
+    def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Enum]]:
         """Process the end of the block."""
         if self.collection_threshold_reached:
             self.block_confirmations += 1
@@ -1617,7 +1617,7 @@ class AbciApp(
 
     def __init__(
         self,
-        state: BasePeriodState,
+        state: BaseSynchronizedData,
         consensus_params: ConsensusParams,
         logger: logging.Logger,
     ):
@@ -1631,13 +1631,13 @@ class AbciApp(
         self._last_round: Optional[AbstractRound] = None
         self._previous_rounds: List[AbstractRound] = []
         self._current_round_height: int = 0
-        self._round_results: List[BasePeriodState] = []
+        self._round_results: List[BaseSynchronizedData] = []
         self._last_timestamp: Optional[datetime.datetime] = None
         self._current_timeout_entries: List[int] = []
         self._timeouts = Timeouts[EventType]()
 
     @property
-    def state(self) -> BasePeriodState:
+    def state(self) -> BaseSynchronizedData:
         """Return the current state."""
         latest_result = self.latest_result
         return latest_result if latest_result is not None else self._initial_state
@@ -1781,7 +1781,7 @@ class AbciApp(
         return self._current_round is None
 
     @property
-    def latest_result(self) -> Optional[BasePeriodState]:
+    def latest_result(self) -> Optional[BaseSynchronizedData]:
         """Get the latest result of the round."""
         return None if len(self._round_results) == 0 else self._round_results[-1]
 
@@ -1806,7 +1806,7 @@ class AbciApp(
         self.current_round.process_transaction(transaction)
 
     def process_event(
-        self, event: EventType, result: Optional[BasePeriodState] = None
+        self, event: EventType, result: Optional[BaseSynchronizedData] = None
     ) -> None:
         """Process a round event."""
         if self._current_round_cls is None:
@@ -2061,7 +2061,7 @@ class RoundSequence:
         return self._last_round_transition_height
 
     @property
-    def latest_state(self) -> BasePeriodState:
+    def latest_state(self) -> BaseSynchronizedData:
         """Get the latest state."""
         return self.abci_app.state
 
@@ -2160,7 +2160,7 @@ class RoundSequence:
         Check whether the round has finished. If so, get the
         new round and set it as the current round.
         """
-        result: Optional[Tuple[BasePeriodState, Any]] = self.current_round.end_block()
+        result: Optional[Tuple[BaseSynchronizedData, Any]] = self.current_round.end_block()
         if result is None:
             return
         round_result, event = result

@@ -31,7 +31,7 @@ from packages.valory.skills.liquidity_rebalancing_abci.payloads import (
 )
 from packages.valory.skills.liquidity_rebalancing_abci.rounds import (  # noqa: F401
     Event,
-    PeriodState,
+    SynchronizedData,
     SleepRound,
     StrategyEvaluationRound,
     TransactionHashBaseRound,
@@ -105,7 +105,7 @@ def get_participant_to_sleep(
 class TestTransactionHashBaseRound(BaseCollectSameUntilThresholdRoundTest):
     """Test TransactionHashBaseRound"""
 
-    _period_state_class = PeriodState
+    _period_state_class = SynchronizedData
     _event_class = Event
 
     def test_run(
@@ -137,7 +137,7 @@ class TestTransactionHashBaseRound(BaseCollectSameUntilThresholdRoundTest):
 class TestStrategyEvaluationRound(BaseCollectSameUntilThresholdRoundTest):
     """Test StrategyEvaluationRound"""
 
-    _period_state_class = PeriodState
+    _period_state_class = SynchronizedData
     _event_class = Event
 
     def test_run_wait(
@@ -270,7 +270,7 @@ class TestStrategyEvaluationRound(BaseCollectSameUntilThresholdRoundTest):
 class TestSleepRound(BaseCollectSameUntilThresholdRoundTest):
     """Test StrategyEvaluationRound"""
 
-    _period_state_class = PeriodState
+    _period_state_class = SynchronizedData
     _event_class = Event
 
     def test_run(
@@ -292,7 +292,7 @@ class TestSleepRound(BaseCollectSameUntilThresholdRoundTest):
 
 
 def test_period_state() -> None:
-    """Test PeriodState."""
+    """Test SynchronizedData."""
 
     participants = get_participants()
     period_count = 0
@@ -308,7 +308,7 @@ def test_period_state() -> None:
     participant_to_signature = get_participant_to_signature(participants)
     participant_to_strategy = get_participant_to_strategy(participants)
 
-    period_state = PeriodState(
+    period_state = SynchronizedData(
         AbciAppDB(
             initial_period=period_count,
             initial_data=dict(

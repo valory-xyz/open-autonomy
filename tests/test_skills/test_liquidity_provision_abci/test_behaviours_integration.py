@@ -48,13 +48,13 @@ from packages.valory.skills.liquidity_rebalancing_abci.handlers import (
     SigningHandler,
 )
 from packages.valory.skills.liquidity_rebalancing_abci.rounds import (
-    PeriodState as LiquidityRebalancingPeriodState,
+    SynchronizedData as LiquidityRebalancingPeriodState,
 )
 from packages.valory.skills.transaction_settlement_abci.payload_tools import (
     hash_payload_to_hex,
 )
 from packages.valory.skills.transaction_settlement_abci.rounds import (
-    PeriodState as TransactionSettlementPeriodState,
+    SynchronizedData as TransactionSettlementPeriodState,
 )
 
 from tests.conftest import ROOT_DIR

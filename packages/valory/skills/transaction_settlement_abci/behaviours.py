@@ -72,7 +72,7 @@ from packages.valory.skills.transaction_settlement_abci.rounds import (
     CheckTransactionHistoryRound,
     CollectSignatureRound,
     FinalizationRound,
-    PeriodState,
+    SynchronizedData,
     RandomnessTransactionSubmissionRound,
     ResetRound,
     SelectKeeperTransactionSubmissionRoundA,
@@ -94,9 +94,9 @@ class TransactionSettlementBaseState(BaseState, ABC):
     """Base state behaviour for the common apps' skill."""
 
     @property
-    def period_state(self) -> PeriodState:
+    def period_state(self) -> SynchronizedData:
         """Return the period state."""
-        return cast(PeriodState, super().period_state)
+        return cast(SynchronizedData, super().period_state)
 
     @property
     def params(self) -> TransactionParams:

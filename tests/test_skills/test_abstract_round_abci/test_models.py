@@ -34,7 +34,7 @@ from aea.skills.base import SkillContext
 from packages.valory.skills.abstract_round_abci.base import (
     AbciApp,
     AbstractRound,
-    BasePeriodState,
+    BaseSynchronizedData,
 )
 from packages.valory.skills.abstract_round_abci.models import (
     ApiSpecs,
@@ -198,7 +198,7 @@ class TestApiSpecsModel:
 class ConcreteRound(AbstractRound):
     """A ConcreteRoundA for testing purposes."""
 
-    def end_block(self) -> Optional[Tuple[BasePeriodState, Enum]]:
+    def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Enum]]:
         """Handle the end of the block."""
 
 

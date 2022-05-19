@@ -23,7 +23,7 @@ from typing import FrozenSet, cast
 
 from packages.valory.skills.abstract_round_abci.base import (
     AbciAppDB,
-    BasePeriodState,
+    BaseSynchronizedData,
     ConsensusParams,
 )
 from packages.valory.skills.test_abci.payloads import DummyPayload
@@ -41,7 +41,7 @@ def get_participants() -> FrozenSet[str]:
 class BaseRoundTestClass:
     """Base test class for Rounds."""
 
-    period_state: BasePeriodState
+    period_state: BaseSynchronizedData
     consensus_params: ConsensusParams
     participants: FrozenSet[str]
 
@@ -52,7 +52,7 @@ class BaseRoundTestClass:
         """Setup the test class."""
 
         cls.participants = get_participants()
-        cls.period_state = BasePeriodState(
+        cls.period_state = BaseSynchronizedData(
             AbciAppDB(
                 initial_period=0,
                 initial_data=dict(
@@ -86,7 +86,7 @@ class TestDummyRound(BaseRoundTestClass):
         for payload in payloads:
             test_round.process_payload(payload)
 
-        actual_next_state = BasePeriodState(
+        actual_next_state = BaseSynchronizedData(
             AbciAppDB(
                 initial_period=0,
                 initial_data=dict(participants=frozenset(test_round.collection.keys())),
@@ -97,7 +97,7 @@ class TestDummyRound(BaseRoundTestClass):
         assert res is not None
         state, event = res
         assert (
-            cast(BasePeriodState, state).participants
-            == cast(BasePeriodState, actual_next_state).participants
+            cast(BaseSynchronizedData, state).participants
+            == cast(BaseSynchronizedData, actual_next_state).participants
         )
         assert event == Event.DONE

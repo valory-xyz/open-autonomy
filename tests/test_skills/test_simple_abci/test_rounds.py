@@ -41,7 +41,7 @@ from packages.valory.skills.simple_abci.payloads import (
 )
 from packages.valory.skills.simple_abci.rounds import (
     Event,
-    PeriodState,
+    SynchronizedData,
     RandomnessStartupRound,
     RegistrationRound,
     ResetAndPauseRound,
@@ -96,7 +96,7 @@ def get_participant_to_period_count(
 class BaseRoundTestClass:
     """Base test class for Rounds."""
 
-    period_state: PeriodState
+    period_state: SynchronizedData
     consensus_params: ConsensusParams
     participants: FrozenSet[str]
 
@@ -107,7 +107,7 @@ class BaseRoundTestClass:
         """Setup the test class."""
 
         cls.participants = get_participants()
-        cls.period_state = PeriodState(
+        cls.period_state = SynchronizedData(
             AbciAppDB(
                 initial_period=0,
                 initial_data=dict(
@@ -149,7 +149,7 @@ class TestRegistrationRound(BaseRoundTestClass):
         for payload in payloads:
             test_round.process_payload(payload)
 
-        actual_next_state = PeriodState(
+        actual_next_state = SynchronizedData(
             AbciAppDB(
                 initial_period=0, initial_data=dict(participants=test_round.collection)
             )
@@ -159,8 +159,8 @@ class TestRegistrationRound(BaseRoundTestClass):
         assert res is not None
         state, event = res
         assert (
-            cast(PeriodState, state).participants
-            == cast(PeriodState, actual_next_state).participants
+            cast(SynchronizedData, state).participants
+            == cast(SynchronizedData, actual_next_state).participants
         )
         assert event == Event.DONE
 
@@ -200,9 +200,9 @@ class TestRandomnessStartupRound(BaseRoundTestClass):
         state, event = res
         assert all(
             [
-                key in cast(PeriodState, state).participant_to_randomness
+                key in cast(SynchronizedData, state).participant_to_randomness
                 for key in cast(
-                    PeriodState, actual_next_state
+                    SynchronizedData, actual_next_state
                 ).participant_to_randomness
             ]
         )
@@ -245,8 +245,8 @@ class TestSelectKeeperAtStartupRound(BaseRoundTestClass):
         state, event = res
         assert all(
             [
-                key in cast(PeriodState, state).participant_to_selection
-                for key in cast(PeriodState, actual_next_state).participant_to_selection
+                key in cast(SynchronizedData, state).participant_to_selection
+                for key in cast(SynchronizedData, actual_next_state).participant_to_selection
             ]
         )
         assert event == Event.DONE
@@ -288,8 +288,8 @@ class TestResetAndPauseRound(BaseRoundTestClass):
         state, event = res
 
         assert (
-            cast(PeriodState, state).period_count
-            == cast(PeriodState, actual_next_state).period_count
+            cast(SynchronizedData, state).period_count
+            == cast(SynchronizedData, actual_next_state).period_count
         )
 
         assert event == Event.DONE
@@ -320,7 +320,7 @@ def test_fuzz_rotate_list() -> None:
 
 
 def test_period_state() -> None:  # pylint:too-many-locals
-    """Test PeriodState."""
+    """Test SynchronizedData."""
 
     participants = get_participants()
     period_count = 10
@@ -338,7 +338,7 @@ def test_period_state() -> None:  # pylint:too-many-locals
     }
     most_voted_keeper_address = "keeper"
 
-    period_state = PeriodState(
+    period_state = SynchronizedData(
         AbciAppDB(
             initial_period=period_count,
             initial_data=dict(

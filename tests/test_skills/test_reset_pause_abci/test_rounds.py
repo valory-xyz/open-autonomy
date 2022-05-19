@@ -22,7 +22,7 @@ import logging  # noqa: F401
 from typing import Dict, FrozenSet
 
 from packages.valory.skills.abstract_round_abci.base import (
-    BasePeriodState as ResetPeriodState,
+    BaseSynchronizedData as ResetPeriodState,
 )
 from packages.valory.skills.reset_pause_abci.payloads import ResetPausePayload
 from packages.valory.skills.reset_pause_abci.rounds import Event as ResetEvent

@@ -42,7 +42,7 @@ from packages.valory.skills.abstract_round_abci.base import (
     ABCIAppInternalError,
     AbciAppDB,
     AbstractRound,
-    BasePeriodState,
+    BaseSynchronizedData,
     BaseTxPayload,
     CollectDifferentUntilAllRound,
     CollectDifferentUntilThresholdRound,
@@ -97,7 +97,7 @@ class DummyTxPayload(BaseTxPayload):
         return self._vote
 
 
-class DummyPeriodState(BasePeriodState):
+class DummyPeriodState(BaseSynchronizedData):
     """Dummy Period state for tests."""
 
     @property
@@ -132,7 +132,7 @@ class DummyRound(AbstractRound):
     allowed_tx_type = DummyTxPayload.transaction_type
     payload_attribute = "value"
 
-    def end_block(self) -> Optional[Tuple[BasePeriodState, Enum]]:
+    def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Enum]]:
         """end_block method."""
 
 
@@ -173,11 +173,11 @@ class DummyCollectNonEmptyUntilThresholdRound(
 class BaseRoundTestClass:
     """Base test class."""
 
-    period_state: BasePeriodState
+    period_state: BaseSynchronizedData
     participants: FrozenSet[str]
     consensus_params: ConsensusParams
 
-    _period_state_class: Type[BasePeriodState]
+    _period_state_class: Type[BaseSynchronizedData]
     _event_class: Any
 
     @classmethod
@@ -512,7 +512,7 @@ class BaseCollectNonEmptyUntilThresholdRound(
 class _BaseRoundTestClass(BaseRoundTestClass):
     """Base test class."""
 
-    period_state: BasePeriodState
+    period_state: BaseSynchronizedData
     participants: FrozenSet[str]
     consensus_params: ConsensusParams
     tx_payloads: List[DummyTxPayload]
@@ -877,7 +877,7 @@ class TestDummyCollectNonEmptyUntilThresholdRound(_BaseRoundTestClass):
         test_round.is_majority_possible = lambda *_: is_majority_possible  # type: ignore
         test_round.no_majority_event = "no_majority"
 
-        res = cast(Tuple[BasePeriodState, Enum], test_round.end_block())
+        res = cast(Tuple[BaseSynchronizedData, Enum], test_round.end_block())
 
         if not is_majority_possible:
             assert res[0].db == self.period_state.db
@@ -904,6 +904,6 @@ class TestDummyCollectNonEmptyUntilThresholdRound(_BaseRoundTestClass):
         test_round.done_event = "done"
         test_round.none_event = "none"
 
-        res = cast(Tuple[BasePeriodState, Enum], test_round.end_block())
+        res = cast(Tuple[BaseSynchronizedData, Enum], test_round.end_block())
         assert res[0].db == self.period_state.db
         assert res[1] == expected_event

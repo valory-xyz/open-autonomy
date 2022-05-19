@@ -33,7 +33,7 @@ from packages.valory.skills.registration_abci.behaviours import (
     RegistrationStartupBehaviour,
 )
 from packages.valory.skills.registration_abci.rounds import (
-    BasePeriodState as RegistrationPeriodState,
+    BaseSynchronizedData as RegistrationPeriodState,
 )
 from packages.valory.skills.registration_abci.rounds import (
     Event,

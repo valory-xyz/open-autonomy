@@ -38,7 +38,7 @@ from packages.valory.protocols.http import HttpMessage
 from packages.valory.skills.abstract_round_abci.base import (
     AbciAppDB,
     AbstractRound,
-    BasePeriodState,
+    BaseSynchronizedData,
     BaseTxPayload,
     OK_CODE,
     _MetaPayload,
@@ -53,7 +53,7 @@ from packages.valory.skills.hello_world_abci.behaviours import (
     SelectKeeperBehaviour,
 )
 from packages.valory.skills.hello_world_abci.handlers import HttpHandler, SigningHandler
-from packages.valory.skills.hello_world_abci.rounds import Event, PeriodState
+from packages.valory.skills.hello_world_abci.rounds import Event, SynchronizedData
 
 from tests.conftest import ROOT_DIR
 
@@ -67,7 +67,7 @@ class HelloWorldAbciFSMBehaviourBaseCase(BaseSkillTestCase):
     http_handler: HttpHandler
     signing_handler: SigningHandler
     old_tx_type_to_payload_cls: Dict[str, Type[BaseTxPayload]]
-    period_state: PeriodState
+    period_state: SynchronizedData
     benchmark_dir: TemporaryDirectory
 
     @classmethod
@@ -107,7 +107,7 @@ class HelloWorldAbciFSMBehaviourBaseCase(BaseSkillTestCase):
             cast(BaseState, cls.hello_world_abci_behaviour.current_state).state_id
             == cls.hello_world_abci_behaviour.initial_state_cls.state_id
         )
-        cls.period_state = PeriodState(
+        cls.period_state = SynchronizedData(
             AbciAppDB(
                 initial_period=0,
                 initial_data=dict(
@@ -120,7 +120,7 @@ class HelloWorldAbciFSMBehaviourBaseCase(BaseSkillTestCase):
         self,
         behaviour: AbstractRoundBehaviour,
         state_id: str,
-        period_state: BasePeriodState,
+        period_state: BaseSynchronizedData,
     ) -> None:
         """Fast forward the FSM to a state."""
         next_state = {s.state_id: s for s in behaviour.behaviour_states}[state_id]
@@ -306,7 +306,7 @@ class BaseSelectKeeperBehaviourTest(HelloWorldAbciFSMBehaviourBaseCase):
         self.fast_forward_to_state(
             behaviour=self.hello_world_abci_behaviour,
             state_id=self.select_keeper_behaviour_class.state_id,
-            period_state=PeriodState(
+            period_state=SynchronizedData(
                 AbciAppDB(
                     initial_period=0,
                     initial_data=dict(

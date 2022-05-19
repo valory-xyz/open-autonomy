@@ -56,7 +56,7 @@ from packages.valory.skills.price_estimation_abci.rounds import (
     FinishedPriceAggregationRound,
 )
 from packages.valory.skills.price_estimation_abci.rounds import (
-    PeriodState as PriceEstimationPeriodState,
+    SynchronizedData as PriceEstimationPeriodState,
 )
 
 from tests.conftest import ROOT_DIR

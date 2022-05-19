@@ -25,7 +25,7 @@ from typing import Any, Dict, FrozenSet, Mapping, Optional, Type, cast
 
 from packages.valory.skills.abstract_round_abci.base import AbciAppDB, AbstractRound
 from packages.valory.skills.abstract_round_abci.base import (
-    BasePeriodState as PeriodState,
+    BaseSynchronizedData as SynchronizedData,
 )
 from packages.valory.skills.abstract_round_abci.base import (
     BaseTxPayload,
@@ -43,7 +43,7 @@ from packages.valory.skills.oracle_deployment_abci.rounds import (
     Event as OracleDeploymentEvent,
 )
 from packages.valory.skills.oracle_deployment_abci.rounds import (
-    PeriodState as OracleDeploymentPeriodState,
+    SynchronizedData as OracleDeploymentPeriodState,
 )
 from packages.valory.skills.oracle_deployment_abci.rounds import (
     SelectKeeperOracleRound,
@@ -158,7 +158,7 @@ class BaseDeployTestClass(BaseOnlyKeeperSendsRoundTest):
 
         keeper = sorted(list(self.participants))[0]
         self.period_state = cast(
-            PeriodState,
+            SynchronizedData,
             self.period_state.update(most_voted_keeper_address=keeper),
         )
 
@@ -282,7 +282,7 @@ class BaseSelectKeeperRoundTest(BaseCollectSameUntilThresholdRoundTest):
     test_class: Type[CollectSameUntilThresholdRound]
     test_payload: Type[BaseTxPayload]
 
-    _period_state_class = PeriodState
+    _period_state_class = SynchronizedData
 
     @staticmethod
     def _participant_to_selection(
@@ -341,7 +341,7 @@ class TestSelectKeeperOracleRound(BaseSelectKeeperRoundTest):
 
 
 def test_period_states() -> None:
-    """Test PeriodState."""
+    """Test SynchronizedData."""
 
     participants = get_participants()
     participant_to_randomness = get_participant_to_randomness(participants, 1)

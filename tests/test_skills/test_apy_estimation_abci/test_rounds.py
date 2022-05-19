@@ -50,7 +50,7 @@ from packages.valory.skills.apy_estimation_abci.rounds import (
     Event,
     FreshModelResetRound,
     OptimizeRound,
-    PeriodState,
+    SynchronizedData,
     PreprocessRound,
     RandomnessRound,
 )
@@ -194,7 +194,7 @@ def get_participant_to_reset_payload(
 class BaseRoundTestClass:
     """Base test class for Rounds."""
 
-    period_state: PeriodState
+    period_state: SynchronizedData
     consensus_params: ConsensusParams
     participants: FrozenSet[str]
 
@@ -205,7 +205,7 @@ class BaseRoundTestClass:
         """Setup the test class."""
 
         cls.participants = get_participants()
-        cls.period_state = PeriodState(
+        cls.period_state = SynchronizedData(
             db=AbciAppDB(
                 initial_period=0,
                 initial_data=dict(
@@ -228,7 +228,7 @@ class BaseRoundTestClass:
 class TestCollectHistoryRound(BaseCollectSameUntilThresholdRoundTest):
     """Test `CollectHistoryRound`."""
 
-    _period_state_class = PeriodState
+    _period_state_class = SynchronizedData
     _event_class = Event
 
     @pytest.mark.parametrize(
@@ -264,7 +264,7 @@ class TestCollectHistoryRound(BaseCollectSameUntilThresholdRoundTest):
 class TestTransformRound(BaseCollectSameUntilThresholdRoundTest):
     """Test `TransformRound`."""
 
-    _period_state_class = PeriodState
+    _period_state_class = SynchronizedData
     _event_class = Event
 
     @pytest.mark.parametrize(
@@ -301,7 +301,7 @@ class TestTransformRound(BaseCollectSameUntilThresholdRoundTest):
 class TestPreprocessRound(BaseCollectSameUntilThresholdRoundTest):
     """Test `PreprocessRound`."""
 
-    _period_state_class = PeriodState
+    _period_state_class = SynchronizedData
     _event_class = Event
 
     @pytest.mark.parametrize(
@@ -340,7 +340,7 @@ class TestPreprocessRound(BaseCollectSameUntilThresholdRoundTest):
 class TestRandomnessRound(BaseCollectSameUntilThresholdRoundTest):
     """Test RandomnessRound."""
 
-    _period_state_class = PeriodState
+    _period_state_class = SynchronizedData
     _event_class = Event
 
     def test_run(
@@ -385,7 +385,7 @@ class TestRandomnessRound(BaseCollectSameUntilThresholdRoundTest):
 class TestOptimizeRound(BaseCollectSameUntilThresholdRoundTest):
     """Test `OptimizeRound`."""
 
-    _period_state_class = PeriodState
+    _period_state_class = SynchronizedData
     _event_class = Event
 
     def test_run(self) -> None:
@@ -412,7 +412,7 @@ class TestOptimizeRound(BaseCollectSameUntilThresholdRoundTest):
 class TestTrainRound(BaseCollectSameUntilThresholdRoundTest):
     """Test `TrainRound`."""
 
-    _period_state_class = PeriodState
+    _period_state_class = SynchronizedData
     _event_class = Event
 
     @pytest.mark.parametrize(
@@ -456,7 +456,7 @@ class TestTrainRound(BaseCollectSameUntilThresholdRoundTest):
 class TestTestRound(BaseCollectSameUntilThresholdRoundTest):
     """Test `TestRound`."""
 
-    _period_state_class = PeriodState
+    _period_state_class = SynchronizedData
     _event_class = Event
 
     def test_run(self) -> None:
@@ -487,7 +487,7 @@ class TestTestRound(BaseCollectSameUntilThresholdRoundTest):
 class TestEstimateRound(BaseCollectSameUntilThresholdRoundTest):
     """Test `EstimateRound`."""
 
-    _period_state_class = PeriodState
+    _period_state_class = SynchronizedData
     _event_class = Event
 
     @pytest.mark.parametrize(
@@ -533,7 +533,7 @@ class TestEstimateRound(BaseCollectSameUntilThresholdRoundTest):
 class TestCycleResetRound(BaseCollectSameUntilThresholdRoundTest):
     """Test `CycleResetRound`."""
 
-    _period_state_class = PeriodState
+    _period_state_class = SynchronizedData
     _event_class = Event
 
     def test_run(
@@ -571,7 +571,7 @@ class TestCycleResetRound(BaseCollectSameUntilThresholdRoundTest):
 class TestFreshModelResetRound(BaseCollectSameUntilThresholdRoundTest):
     """Test `FreshModelResetRound`."""
 
-    _period_state_class = PeriodState
+    _period_state_class = SynchronizedData
     _event_class = Event
 
     def test_run(
@@ -605,7 +605,7 @@ class TestFreshModelResetRound(BaseCollectSameUntilThresholdRoundTest):
 
 
 def test_period() -> None:
-    """Test PeriodState."""
+    """Test SynchronizedData."""
 
     participants = get_participants()
     period_count = 1
@@ -615,7 +615,7 @@ def test_period() -> None:
     full_training = False
     n_estimations = 1
 
-    period_state = PeriodState(
+    period_state = SynchronizedData(
         db=AbciAppDB(
             initial_period=period_count,
             initial_data=dict(

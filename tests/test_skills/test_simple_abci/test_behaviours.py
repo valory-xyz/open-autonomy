@@ -42,7 +42,7 @@ from packages.valory.protocols.ledger_api.message import LedgerApiMessage
 from packages.valory.skills.abstract_round_abci.base import (
     AbciAppDB,
     AbstractRound,
-    BasePeriodState,
+    BaseSynchronizedData,
     BaseTxPayload,
     OK_CODE,
     _MetaPayload,
@@ -62,7 +62,7 @@ from packages.valory.skills.simple_abci.handlers import (
     LedgerApiHandler,
     SigningHandler,
 )
-from packages.valory.skills.simple_abci.rounds import Event, PeriodState
+from packages.valory.skills.simple_abci.rounds import Event, SynchronizedData
 
 from tests.conftest import ROOT_DIR
 
@@ -88,7 +88,7 @@ class SimpleAbciFSMBehaviourBaseCase(BaseSkillTestCase):
     contract_handler: ContractApiHandler
     signing_handler: SigningHandler
     old_tx_type_to_payload_cls: Dict[str, Type[BaseTxPayload]]
-    period_state: PeriodState
+    period_state: SynchronizedData
     benchmark_dir: TemporaryDirectory
 
     @classmethod
@@ -134,13 +134,13 @@ class SimpleAbciFSMBehaviourBaseCase(BaseSkillTestCase):
             cast(BaseState, cls.simple_abci_behaviour.current_state).state_id
             == cls.simple_abci_behaviour.initial_state_cls.state_id
         )
-        cls.period_state = PeriodState(AbciAppDB(initial_period=0, initial_data={}))
+        cls.period_state = SynchronizedData(AbciAppDB(initial_period=0, initial_data={}))
 
     def fast_forward_to_state(
         self,
         behaviour: AbstractRoundBehaviour,
         state_id: str,
-        period_state: BasePeriodState,
+        period_state: BaseSynchronizedData,
     ) -> None:
         """Fast forward the FSM to a state."""
         next_state = {s.state_id: s for s in behaviour.behaviour_states}[state_id]
@@ -544,7 +544,7 @@ class BaseSelectKeeperBehaviourTest(SimpleAbciFSMBehaviourBaseCase):
         self.fast_forward_to_state(
             behaviour=self.simple_abci_behaviour,
             state_id=self.select_keeper_behaviour_class.state_id,
-            period_state=PeriodState(
+            period_state=SynchronizedData(
                 AbciAppDB(
                     initial_period=0,
                     initial_data=dict(

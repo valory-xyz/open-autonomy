@@ -52,7 +52,7 @@ from packages.valory.skills.liquidity_rebalancing_abci.rounds import (
     EnterPoolTransactionHashRound,
     ExitPoolTransactionHashRound,
     LiquidityRebalancingAbciApp,
-    PeriodState,
+    SynchronizedData,
     SleepRound,
     StrategyEvaluationRound,
     SwapBackTransactionHashRound,
@@ -102,9 +102,9 @@ class LiquidityRebalancingBaseBehaviour(BaseState, ABC):
     """Base state behaviour for the liquidity rebalancing skill."""
 
     @property
-    def period_state(self) -> PeriodState:
+    def period_state(self) -> SynchronizedData:
         """Return the period state."""
-        return cast(PeriodState, super().period_state)
+        return cast(SynchronizedData, super().period_state)
 
     @property
     def params(self) -> Params:

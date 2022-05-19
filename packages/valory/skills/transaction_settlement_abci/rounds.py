@@ -30,7 +30,7 @@ from packages.valory.skills.abstract_round_abci.base import (
     AbciAppTransitionFunction,
     AbstractRound,
     AppState,
-    BasePeriodState,
+    BaseSynchronizedData,
     CollectDifferentUntilThresholdRound,
     CollectNonEmptyUntilThresholdRound,
     CollectSameUntilThresholdRound,
@@ -79,9 +79,9 @@ class Event(Enum):
     INCORRECT_SERIALIZATION = "incorrect_serialization"
 
 
-class PeriodState(BasePeriodState):  # pylint: disable=too-many-instance-attributes
+class SynchronizedData(BaseSynchronizedData):  # pylint: disable=too-many-instance-attributes
     """
-    Class to represent a period state.
+    Class to represent the synchronized data.
 
     This state is replicated by the tendermint application.
     """
@@ -222,7 +222,7 @@ class CollectSignatureRound(CollectDifferentUntilThresholdRound):
     round_id = "collect_signature"
     allowed_tx_type = SignaturePayload.transaction_type
     payload_attribute = "signature"
-    period_state_class = PeriodState
+    period_state_class = SynchronizedData
     done_event = Event.DONE
     no_majority_event = Event.NO_MAJORITY
     selection_key = "participant"
@@ -239,7 +239,7 @@ class FinalizationRound(OnlyKeeperSendsRound):
     def end_block(
         self,
     ) -> Optional[
-        Tuple[BasePeriodState, Enum]
+        Tuple[BaseSynchronizedData, Enum]
     ]:  # pylint: disable=too-many-return-statements
         """Process the end of the block."""
         if not self.has_keeper_sent_payload:
@@ -250,9 +250,9 @@ class FinalizationRound(OnlyKeeperSendsRound):
 
         verification_status = VerificationStatus(self.keeper_payload["status_value"])
         state = cast(
-            PeriodState,
+            SynchronizedData,
             self.period_state.update(
-                period_state_class=PeriodState,
+                period_state_class=SynchronizedData,
                 tx_hashes_history=self.keeper_payload["tx_hashes_history"],
                 final_verification_status=verification_status,
                 keepers=self.keeper_payload["serialized_keepers"],
@@ -293,7 +293,7 @@ class RandomnessTransactionSubmissionRound(CollectSameUntilThresholdRound):
     round_id = "randomness_transaction_submission"
     allowed_tx_type = RandomnessPayload.transaction_type
     payload_attribute = "randomness"
-    period_state_class = PeriodState
+    period_state_class = SynchronizedData
     done_event = Event.DONE
     no_majority_event = Event.NO_MAJORITY
     collection_key = "participant_to_randomness"
@@ -306,13 +306,13 @@ class SelectKeeperTransactionSubmissionRoundA(CollectSameUntilThresholdRound):
     round_id = "select_keeper_transaction_submission_a"
     allowed_tx_type = SelectKeeperPayload.transaction_type
     payload_attribute = "keepers"
-    period_state_class = PeriodState
+    period_state_class = SynchronizedData
     done_event = Event.DONE
     no_majority_event = Event.NO_MAJORITY
     collection_key = "participant_to_selection"
     selection_key = "keepers"
 
-    def end_block(self) -> Optional[Tuple[BasePeriodState, Enum]]:
+    def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Enum]]:
         """Process the end of the block."""
 
         if self.threshold_reached and self.most_voted_payload is not None:
@@ -339,13 +339,13 @@ class SelectKeeperTransactionSubmissionRoundBAfterTimeout(
 
     round_id = "select_keeper_transaction_submission_b_after_timeout"
 
-    def end_block(self) -> Optional[Tuple[BasePeriodState, Enum]]:
+    def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Enum]]:
         """Process the end of the block."""
         if self.threshold_reached:
             state = cast(
-                PeriodState,
+                SynchronizedData,
                 self.period_state.update(
-                    missed_messages=cast(PeriodState, self.period_state).missed_messages
+                    missed_messages=cast(SynchronizedData, self.period_state).missed_messages
                     + 1
                 ),
             )
@@ -364,14 +364,14 @@ class ValidateTransactionRound(VotingRound):
     round_id = "validate_transaction"
     allowed_tx_type = ValidatePayload.transaction_type
     payload_attribute = "vote"
-    period_state_class = PeriodState
+    period_state_class = SynchronizedData
     done_event = Event.DONE
     negative_event = Event.NEGATIVE
     none_event = Event.NONE
     no_majority_event = Event.NO_MAJORITY
     collection_key = "participant_to_votes"
 
-    def end_block(self) -> Optional[Tuple[BasePeriodState, Enum]]:
+    def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Enum]]:
         """Process the end of the block."""
         # if reached participant threshold, set the result
         if self.positive_vote_threshold_reached:
@@ -383,7 +383,7 @@ class ValidateTransactionRound(VotingRound):
                 participant_to_votes=self.collection,
                 final_verification_status=VerificationStatus.VERIFIED,
                 final_tx_hash=cast(
-                    PeriodState, self.period_state
+                    SynchronizedData, self.period_state
                 ).to_be_validated_tx_hash,
             )  # type: ignore
             return state, self.done_event
@@ -404,10 +404,10 @@ class CheckTransactionHistoryRound(CollectSameUntilThresholdRound):
     round_id = "check_transaction_history"
     allowed_tx_type = CheckTransactionHistoryPayload.transaction_type
     payload_attribute = "verified_res"
-    period_state_class = PeriodState
+    period_state_class = SynchronizedData
     selection_key = "most_voted_check_result"
 
-    def end_block(self) -> Optional[Tuple[BasePeriodState, Enum]]:
+    def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Enum]]:
         """Process the end of the block."""
         if self.threshold_reached:
             return_status, return_tx_hash = tx_hist_hex_to_payload(
@@ -432,7 +432,7 @@ class CheckTransactionHistoryRound(CollectSameUntilThresholdRound):
                 return state, Event.DONE
             if (
                 return_status == VerificationStatus.NOT_VERIFIED
-                and cast(PeriodState, self.period_state).should_check_late_messages
+                and cast(SynchronizedData, self.period_state).should_check_late_messages
             ):
                 return state, Event.CHECK_LATE_ARRIVING_MESSAGE
             if return_status == VerificationStatus.NOT_VERIFIED:
@@ -459,22 +459,22 @@ class SynchronizeLateMessagesRound(CollectNonEmptyUntilThresholdRound):
     round_id = "synchronize_late_messages"
     allowed_tx_type = SynchronizeLateMessagesPayload.transaction_type
     payload_attribute = "tx_hashes"
-    period_state_class = PeriodState
+    period_state_class = SynchronizedData
     done_event = Event.DONE
     no_majority_event = Event.NO_MAJORITY
     none_event = Event.NONE
     selection_key = "participant"
     collection_key = "late_arriving_tx_hashes"
 
-    def end_block(self) -> Optional[Tuple[BasePeriodState, Event]]:
+    def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Event]]:
         """Process the end of the block."""
         state_event = super().end_block()
         if state_event is None:
             return None
 
-        state, event = cast(Tuple[BasePeriodState, Event], state_event)
+        state, event = cast(Tuple[BaseSynchronizedData, Event], state_event)
 
-        period_state = cast(PeriodState, self.period_state)
+        period_state = cast(SynchronizedData, self.period_state)
         n_late_arriving_tx_hashes = len(period_state.late_arriving_tx_hashes)
         if n_late_arriving_tx_hashes > period_state.missed_messages:
             return state, Event.MISSED_AND_LATE_MESSAGES_MISMATCH
@@ -498,7 +498,7 @@ class ResetRound(CollectSameUntilThresholdRound):
     allowed_tx_type = ResetPayload.transaction_type
     payload_attribute = "period_count"
 
-    def end_block(self) -> Optional[Tuple[BasePeriodState, Event]]:
+    def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Event]]:
         """Process the end of the block."""
         if self.threshold_reached:
             state_data = self.period_state.db.get_all()

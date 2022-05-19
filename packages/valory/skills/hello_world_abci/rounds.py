@@ -27,7 +27,7 @@ from packages.valory.skills.abstract_round_abci.base import (
     AbciApp,
     AbciAppTransitionFunction,
     AbstractRound,
-    BasePeriodState,
+    BaseSynchronizedData,
     CollectDifferentUntilAllRound,
     CollectSameUntilThresholdRound,
 )
@@ -49,9 +49,9 @@ class Event(Enum):
     RESET_TIMEOUT = "reset_timeout"
 
 
-class PeriodState(BasePeriodState):  # pylint: disable=too-many-instance-attributes
+class SynchronizedData(BaseSynchronizedData):  # pylint: disable=too-many-instance-attributes
     """
-    Class to represent a period state.
+    Class to represent the synchronized data.
 
     This state is replicated by the tendermint application.
     """
@@ -69,11 +69,11 @@ class HelloWorldABCIAbstractRound(AbstractRound[Event, TransactionType], ABC):
     """Abstract round for the Hello World ABCI skill."""
 
     @property
-    def period_state(self) -> PeriodState:
+    def period_state(self) -> SynchronizedData:
         """Return the period state."""
-        return cast(PeriodState, self._state)
+        return cast(SynchronizedData, self._state)
 
-    def _return_no_majority_event(self) -> Tuple[PeriodState, Event]:
+    def _return_no_majority_event(self) -> Tuple[SynchronizedData, Event]:
         """
         Trigger the NO_MAJORITY event.
 
@@ -89,14 +89,14 @@ class RegistrationRound(CollectDifferentUntilAllRound, HelloWorldABCIAbstractRou
     allowed_tx_type = RegistrationPayload.transaction_type
     payload_attribute = "sender"
 
-    def end_block(self) -> Optional[Tuple[BasePeriodState, Event]]:
+    def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Event]]:
         """Process the end of the block."""
 
         if self.collection_threshold_reached:
             state = self.period_state.update(
                 participants=self.collection,
                 all_participants=self.collection,
-                period_state_class=PeriodState,
+                period_state_class=SynchronizedData,
             )
             return state, Event.DONE
         return None
@@ -109,7 +109,7 @@ class SelectKeeperRound(CollectSameUntilThresholdRound, HelloWorldABCIAbstractRo
     allowed_tx_type = SelectKeeperPayload.transaction_type
     payload_attribute = "keeper"
 
-    def end_block(self) -> Optional[Tuple[BasePeriodState, Event]]:
+    def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Event]]:
         """Process the end of the block."""
         if self.threshold_reached:
             state = self.period_state.update(
@@ -131,13 +131,13 @@ class PrintMessageRound(CollectDifferentUntilAllRound, HelloWorldABCIAbstractRou
     allowed_tx_type = PrintMessagePayload.transaction_type
     payload_attribute = "message"
 
-    def end_block(self) -> Optional[Tuple[BasePeriodState, Event]]:
+    def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Event]]:
         """Process the end of the block."""
         if self.collection_threshold_reached:
             state = self.period_state.update(
                 participants=self.collection,
                 all_participants=self.collection,
-                period_state_class=PeriodState,
+                period_state_class=SynchronizedData,
             )
             return state, Event.DONE
         return None
@@ -150,7 +150,7 @@ class ResetAndPauseRound(CollectSameUntilThresholdRound, HelloWorldABCIAbstractR
     allowed_tx_type = ResetPayload.transaction_type
     payload_attribute = "period_count"
 
-    def end_block(self) -> Optional[Tuple[BasePeriodState, Event]]:
+    def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Event]]:
         """Process the end of the block."""
         if self.threshold_reached:
             state = self.period_state.update(

@@ -24,7 +24,7 @@ from typing import Dict, FrozenSet, Optional
 
 from packages.valory.skills.abstract_round_abci.base import AbciAppDB
 from packages.valory.skills.abstract_round_abci.base import (
-    BasePeriodState as PeriodState,
+    BaseSynchronizedData as SynchronizedData,
 )
 from packages.valory.skills.abstract_round_abci.base import MAX_INT_256
 from packages.valory.skills.oracle_deployment_abci.payloads import (
@@ -44,18 +44,18 @@ from packages.valory.skills.price_estimation_abci.rounds import (
     Event as PriceEstimationEvent,
 )
 from packages.valory.skills.price_estimation_abci.rounds import (
-    PeriodState as PriceEstimationPeriodState,
+    SynchronizedData as PriceEstimationPeriodState,
 )
 from packages.valory.skills.price_estimation_abci.rounds import TxHashRound
 from packages.valory.skills.registration_abci.rounds import (
-    BasePeriodState as RegistrationPeriodState,
+    BaseSynchronizedData as RegistrationPeriodState,
 )
 from packages.valory.skills.transaction_settlement_abci.payloads import ValidatePayload
 from packages.valory.skills.transaction_settlement_abci.rounds import (
     Event as TransactionSettlementEvent,
 )
 from packages.valory.skills.transaction_settlement_abci.rounds import (
-    PeriodState as TransactionSettlementPeriodState,
+    SynchronizedData as TransactionSettlementPeriodState,
 )
 from packages.valory.skills.transaction_settlement_abci.rounds import (
     RandomnessTransactionSubmissionRound,
@@ -341,7 +341,7 @@ class TestTxHashRound(BaseCollectSameUntilThresholdRoundTest):
 
 
 def test_period_states() -> None:
-    """Test PeriodState."""
+    """Test SynchronizedData."""
 
     participants = get_participants()
     participant_to_randomness = get_participant_to_randomness(participants, 1)
@@ -356,7 +356,7 @@ def test_period_states() -> None:
     estimate = get_estimate()
     most_voted_estimate = get_most_voted_estimate()
 
-    period_state = PeriodState(
+    period_state = SynchronizedData(
         AbciAppDB(
             initial_period=0,
             initial_data=dict(

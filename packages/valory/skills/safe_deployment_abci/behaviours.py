@@ -39,7 +39,7 @@ from packages.valory.skills.safe_deployment_abci.payloads import (
 )
 from packages.valory.skills.safe_deployment_abci.rounds import (
     DeploySafeRound,
-    PeriodState,
+    SynchronizedData,
     RandomnessSafeRound,
     SafeDeploymentAbciApp,
     SelectKeeperSafeRound,
@@ -51,9 +51,9 @@ class SafeDeploymentBaseState(BaseState):
     """Base state behaviour for the common apps' skill."""
 
     @property
-    def period_state(self) -> PeriodState:
+    def period_state(self) -> SynchronizedData:
         """Return the period state."""
-        return cast(PeriodState, super().period_state)
+        return cast(SynchronizedData, super().period_state)
 
 
 class RandomnessSafeBehaviour(RandomnessBehaviour):

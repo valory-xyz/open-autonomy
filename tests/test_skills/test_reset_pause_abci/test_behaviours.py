@@ -27,7 +27,7 @@ import pytest
 
 from packages.valory.skills.abstract_round_abci.base import AbciAppDB
 from packages.valory.skills.abstract_round_abci.base import (
-    BasePeriodState as ResetPeriodState,
+    BaseSynchronizedData as ResetPeriodState,
 )
 from packages.valory.skills.abstract_round_abci.behaviour_utils import (
     make_degenerate_state,

@@ -79,7 +79,7 @@ from packages.valory.skills.apy_estimation_abci.ml.optimization import (
 from packages.valory.skills.apy_estimation_abci.ml.preprocessing import (
     prepare_pair_data,
 )
-from packages.valory.skills.apy_estimation_abci.rounds import Event, PeriodState
+from packages.valory.skills.apy_estimation_abci.rounds import Event, SynchronizedData
 from packages.valory.skills.apy_estimation_abci.tools.etl import ResponseItemType
 
 from tests.conftest import ROOT_DIR
@@ -130,7 +130,7 @@ class APYEstimationFSMBehaviourBaseCase(FSMBehaviourBaseCase):
     behaviour: EstimatorRoundBehaviour
     behaviour_class: Type[APYEstimationBaseState]
     next_behaviour_class: Type[APYEstimationBaseState]
-    period_state: PeriodState
+    period_state: SynchronizedData
 
     @classmethod
     def setup(cls, **kwargs: Any) -> None:
@@ -138,7 +138,7 @@ class APYEstimationFSMBehaviourBaseCase(FSMBehaviourBaseCase):
         super().setup(
             param_overrides={"ipfs_domain_name": "/dns/localhost/tcp/5001/http"}
         )
-        cls.period_state = PeriodState(
+        cls.period_state = SynchronizedData(
             AbciAppDB(
                 initial_period=0,
                 initial_data={"full_training": False},
@@ -562,7 +562,7 @@ class TestTransformBehaviour(APYEstimationFSMBehaviourBaseCase):
         self.fast_forward_to_state(
             self.behaviour,
             self.behaviour_class.state_id,
-            PeriodState(
+            SynchronizedData(
                 AbciAppDB(
                     initial_period=0,
                     initial_data=dict(
@@ -696,7 +696,7 @@ class TestPreprocessBehaviour(APYEstimationFSMBehaviourBaseCase):
         self.fast_forward_to_state(
             self.behaviour,
             self.behaviour_class.state_id,
-            PeriodState(
+            SynchronizedData(
                 AbciAppDB(
                     initial_period=0, initial_data=dict(most_voted_transform="test")
                 )
@@ -819,7 +819,7 @@ class TestPrepareBatchBehaviour(APYEstimationFSMBehaviourBaseCase):
         self.fast_forward_to_state(
             self.behaviour,
             self.behaviour_class.state_id,
-            PeriodState(
+            SynchronizedData(
                 AbciAppDB(
                     initial_period=0,
                     initial_data=dict(
@@ -1161,7 +1161,7 @@ class TestOptimizeBehaviour(APYEstimationFSMBehaviourBaseCase):
         self.fast_forward_to_state(
             self.behaviour,
             self.behaviour_class.state_id,
-            PeriodState(
+            SynchronizedData(
                 AbciAppDB(
                     initial_period=0,
                     initial_data=dict(
@@ -1325,7 +1325,7 @@ class TestTrainBehaviour(APYEstimationFSMBehaviourBaseCase):
         self.fast_forward_to_state(
             self.behaviour,
             self.behaviour_class.state_id,
-            PeriodState(
+            SynchronizedData(
                 AbciAppDB(
                     initial_period=0,
                     initial_data=dict(
@@ -1474,7 +1474,7 @@ class TestTestBehaviour(APYEstimationFSMBehaviourBaseCase):
         self.fast_forward_to_state(
             self.behaviour,
             self.behaviour_class.state_id,
-            PeriodState(
+            SynchronizedData(
                 AbciAppDB(
                     initial_period=0,
                     initial_data=dict(
@@ -1623,7 +1623,7 @@ class TestUpdateForecasterBehaviour(APYEstimationFSMBehaviourBaseCase):
         self.fast_forward_to_state(
             self.behaviour,
             self.behaviour_class.state_id,
-            PeriodState(
+            SynchronizedData(
                 AbciAppDB(
                     initial_period=0,
                     initial_data=dict(
@@ -1746,7 +1746,7 @@ class TestEstimateBehaviour(APYEstimationFSMBehaviourBaseCase):
         self.fast_forward_to_state(
             self.behaviour,
             self.behaviour_class.state_id,
-            PeriodState(
+            SynchronizedData(
                 AbciAppDB(
                     initial_period=0,
                     initial_data=dict(most_voted_models=hash_),
@@ -1871,7 +1871,7 @@ class TestCycleResetBehaviour(APYEstimationFSMBehaviourBaseCase):
         self.fast_forward_to_state(
             behaviour=self.behaviour,
             state_id=self.behaviour_class.state_id,
-            period_state=PeriodState(
+            period_state=SynchronizedData(
                 AbciAppDB(
                     initial_period=0, initial_data=dict(most_voted_estimate=hash_)
                 )
@@ -1911,7 +1911,7 @@ class TestCycleResetBehaviour(APYEstimationFSMBehaviourBaseCase):
         self.fast_forward_to_state(
             behaviour=self.behaviour,
             state_id=self.behaviour_class.state_id,
-            period_state=PeriodState(
+            period_state=SynchronizedData(
                 AbciAppDB(initial_period=0, initial_data=dict(most_voted_estimate=None))
             ),
         )
@@ -1962,7 +1962,7 @@ class TestFreshModelResetBehaviour(APYEstimationFSMBehaviourBaseCase):
         self.fast_forward_to_state(
             behaviour=self.behaviour,
             state_id=self.behaviour_class.state_id,
-            period_state=PeriodState(AbciAppDB(initial_period=0, initial_data={})),
+            period_state=SynchronizedData(AbciAppDB(initial_period=0, initial_data={})),
         )
         state = cast(BaseState, self.behaviour.current_state)
         assert state.state_id == self.behaviour_class.state_id

@@ -22,7 +22,7 @@
 from abc import ABC
 from typing import Generator, Set, Type, cast
 
-from packages.valory.skills.abstract_round_abci.base import BasePeriodState
+from packages.valory.skills.abstract_round_abci.base import BaseSynchronizedData
 from packages.valory.skills.abstract_round_abci.behaviours import (
     AbstractRoundBehaviour,
     BaseState,
@@ -39,9 +39,9 @@ class ResetAndPauseBaseState(BaseState, ABC):
     """Reset state."""
 
     @property
-    def period_state(self) -> BasePeriodState:
+    def period_state(self) -> BaseSynchronizedData:
         """Return the period state."""
-        return cast(BasePeriodState, cast(SharedState, self.context.state).period_state)
+        return cast(BaseSynchronizedData, cast(SharedState, self.context.state).period_state)
 
     @property
     def params(self) -> Params:

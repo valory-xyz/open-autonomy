@@ -24,7 +24,7 @@ from typing import Optional, cast
 
 from packages.valory.skills.abstract_round_abci.base import AbciAppDB
 from packages.valory.skills.abstract_round_abci.base import (
-    BasePeriodState as PeriodState,
+    BaseSynchronizedData as SynchronizedData,
 )
 from packages.valory.skills.registration_abci.payloads import RegistrationPayload
 from packages.valory.skills.registration_abci.rounds import Event as RegistrationEvent
@@ -42,7 +42,7 @@ from tests.test_skills.test_abstract_round_abci.test_base_rounds import (
 class TestRegistrationStartupRound(BaseCollectDifferentUntilAllRoundTest):
     """Test RegistrationStartupRound."""
 
-    _period_state_class = PeriodState
+    _period_state_class = SynchronizedData
     _event_class = RegistrationEvent
 
     def test_run_fastforward(
@@ -51,7 +51,7 @@ class TestRegistrationStartupRound(BaseCollectDifferentUntilAllRoundTest):
         """Run test."""
 
         self.period_state = cast(
-            PeriodState,
+            SynchronizedData,
             self.period_state.update(
                 safe_contract_address="stub_safe_contract_address",
                 oracle_contract_address="stub_oracle_contract_address",
@@ -103,7 +103,7 @@ class TestRegistrationStartupRound(BaseCollectDifferentUntilAllRoundTest):
                 RegistrationPayload(sender=participant, initialisation=initialisation)
                 for participant in self.participants
             ],
-            state_update_fn=lambda *x: PeriodState(
+            state_update_fn=lambda *x: SynchronizedData(
                 AbciAppDB(
                     initial_period=0,
                     initial_data=dict(participants=frozenset(test_round.collection)),
@@ -127,7 +127,7 @@ class TestRegistrationStartupRound(BaseCollectDifferentUntilAllRoundTest):
 class TestRegistrationRound(BaseCollectDifferentUntilThresholdRoundTest):
     """Test RegistrationRound."""
 
-    _period_state_class = PeriodState
+    _period_state_class = SynchronizedData
     _event_class = RegistrationEvent
 
     def test_run_default(
@@ -135,7 +135,7 @@ class TestRegistrationRound(BaseCollectDifferentUntilThresholdRoundTest):
     ) -> None:
         """Run test."""
         self.period_state = cast(
-            PeriodState,
+            SynchronizedData,
             self.period_state.update(
                 safe_contract_address="stub_safe_contract_address",
                 oracle_contract_address="stub_oracle_contract_address",
@@ -151,7 +151,7 @@ class TestRegistrationRound(BaseCollectDifferentUntilThresholdRoundTest):
     ) -> None:
         """Run test."""
         self.period_state = cast(
-            PeriodState,
+            SynchronizedData,
             self.period_state.update(
                 safe_contract_address="stub_safe_contract_address",
                 oracle_contract_address="stub_oracle_contract_address",
@@ -180,7 +180,7 @@ class TestRegistrationRound(BaseCollectDifferentUntilThresholdRoundTest):
                 ]
             ),
             state_update_fn=(
-                lambda *x: PeriodState(
+                lambda *x: SynchronizedData(
                     AbciAppDB(
                         initial_period=0,
                         initial_data=dict(participants=self.participants),

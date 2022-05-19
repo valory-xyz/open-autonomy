@@ -42,7 +42,7 @@ from packages.valory.skills.abstract_round_abci.base import (
     AbstractRound,
     AddBlockError,
     AppState,
-    BasePeriodState,
+    BaseSynchronizedData,
     BaseTxPayload,
     Block,
     BlockBuilder,
@@ -476,12 +476,12 @@ class TestConsensusParams:
 
 
 class TestBasePeriodState:
-    """Test 'BasePeriodState' class."""
+    """Test 'BaseSynchronizedData' class."""
 
     def setup(self) -> None:
         """Set up the tests."""
         self.participants = {"a", "b"}
-        self.base_period_state = BasePeriodState(
+        self.base_period_state = BaseSynchronizedData(
             db=AbciAppDB(
                 initial_period=0, initial_data=dict(participants=self.participants)
             )
@@ -497,7 +497,7 @@ class TestBasePeriodState:
 
     def test_participants_getter_negative(self) -> None:
         """Test 'participants' property getter, negative case."""
-        base_period_state = BasePeriodState(
+        base_period_state = BaseSynchronizedData(
             db=AbciAppDB(initial_period=0, initial_data={})
         )
         with pytest.raises(ValueError, match="Value of key=participants is None"):
@@ -506,7 +506,7 @@ class TestBasePeriodState:
     def test_update(self) -> None:
         """Test the 'update' method."""
         participants = {"a"}
-        expected = BasePeriodState(
+        expected = BaseSynchronizedData(
             db=AbciAppDB(initial_period=0, initial_data=dict(participants=participants))
         )
         actual = self.base_period_state.update(participants=participants)
@@ -515,14 +515,14 @@ class TestBasePeriodState:
     def test_repr(self) -> None:
         """Test the '__repr__' magic method."""
         actual_repr = repr(self.base_period_state)
-        expected_repr_regex = r"BasePeriodState\(db=AbciAppDB\({(.*)}\)\)"
+        expected_repr_regex = r"BaseSynchronizedData\(db=AbciAppDB\({(.*)}\)\)"
         assert re.match(expected_repr_regex, actual_repr) is not None
 
     def test_participants_list_is_empty(
         self,
     ) -> None:
         """Tets when participants list is set to zero."""
-        base_period_state = BasePeriodState(
+        base_period_state = BaseSynchronizedData(
             db=AbciAppDB(initial_period=0, initial_data=dict(participants={}))
         )
         with pytest.raises(ValueError, match="List participants cannot be empty."):
@@ -532,7 +532,7 @@ class TestBasePeriodState:
         self,
     ) -> None:
         """Tets when participants list is set to zero."""
-        base_period_state = BasePeriodState(
+        base_period_state = BaseSynchronizedData(
             db=AbciAppDB(initial_period=0, initial_data=dict(all_participants={}))
         )
         with pytest.raises(ValueError, match="List participants cannot be empty."):
@@ -546,7 +546,7 @@ class TestAbstractRound:
         """Set up the tests."""
         self.known_payload_type = ConcreteRoundA.allowed_tx_type
         self.participants = {"a", "b"}
-        self.base_period_state = BasePeriodState(
+        self.base_period_state = BaseSynchronizedData(
             db=AbciAppDB(
                 initial_period=0, initial_data=dict(participants=self.participants)
             )
@@ -564,7 +564,7 @@ class TestAbstractRound:
             # ...
             allowed_tx_type = MagicMock()
 
-            def end_block(self) -> Optional[Tuple[BasePeriodState, EventType]]:
+            def end_block(self) -> Optional[Tuple[BaseSynchronizedData, EventType]]:
                 pass
 
             def check_payload(self, payload: BaseTxPayload) -> None:
@@ -584,7 +584,7 @@ class TestAbstractRound:
             # here allowed_tx_type is missing
             # ...
 
-            def end_block(self) -> Optional[Tuple[BasePeriodState, EventType]]:
+            def end_block(self) -> Optional[Tuple[BaseSynchronizedData, EventType]]:
                 pass
 
             def check_payload(self, payload: BaseTxPayload) -> None:
@@ -605,7 +605,7 @@ class TestAbstractRound:
             round_id = ""
             allowed_tx_type = "allowed_tx_type"
 
-            def end_block(self) -> Optional[Tuple[BasePeriodState, EventType]]:
+            def end_block(self) -> Optional[Tuple[BaseSynchronizedData, EventType]]:
                 pass
 
             def check_payload(self, payload: BaseTxPayload) -> None:
@@ -631,7 +631,7 @@ class TestAbstractRound:
             round_id = ""
             allowed_tx_type = None
 
-            def end_block(self) -> Optional[Tuple[BasePeriodState, EventType]]:
+            def end_block(self) -> Optional[Tuple[BaseSynchronizedData, EventType]]:
                 pass
 
             def check_payload(self, payload: BaseTxPayload) -> None:
@@ -1003,7 +1003,7 @@ class TestAbciApp:
         cleanup_history_depth = 1
         start_history_depth = 5
         max_participants = 4
-        dummy_state = BasePeriodState(
+        dummy_state = BaseSynchronizedData(
             db=AbciAppDB(
                 initial_period=0, initial_data=dict(participants=max_participants)
             )
@@ -1276,7 +1276,7 @@ def test_meta_abci_app_when_final_round_not_subclass_of_degenerate_round() -> No
     class FinalRound(AbstractRound):
         """A round class for testing."""
 
-        def end_block(self) -> Optional[Tuple[BasePeriodState, Enum]]:
+        def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Enum]]:
             pass
 
         def check_payload(self, payload: BaseTxPayload) -> None:

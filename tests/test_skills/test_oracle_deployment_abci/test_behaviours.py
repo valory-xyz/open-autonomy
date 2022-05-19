@@ -45,7 +45,7 @@ from packages.valory.skills.oracle_deployment_abci.behaviours import (
     DeployOracleBehaviour,
 )
 from packages.valory.skills.oracle_deployment_abci.behaviours import (
-    PeriodState as OracleDeploymentPeriodState,
+    SynchronizedData as OracleDeploymentPeriodState,
 )
 from packages.valory.skills.oracle_deployment_abci.behaviours import (
     RandomnessOracleBehaviour,

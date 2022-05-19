@@ -35,7 +35,7 @@ from packages.valory.skills.hello_world_abci.payloads import (
 )
 from packages.valory.skills.hello_world_abci.rounds import (
     HelloWorldAbciApp,
-    PeriodState,
+    SynchronizedData,
     PrintMessageRound,
     RegistrationRound,
     ResetAndPauseRound,
@@ -47,9 +47,9 @@ class HelloWorldABCIBaseState(BaseState, ABC):
     """Base state behaviour for the Hello World abci skill."""
 
     @property
-    def period_state(self) -> PeriodState:
+    def period_state(self) -> SynchronizedData:
         """Return the period state."""
-        return cast(PeriodState, cast(SharedState, self.context.state).period_state)
+        return cast(SynchronizedData, cast(SharedState, self.context.state).period_state)
 
     @property
     def params(self) -> Params:

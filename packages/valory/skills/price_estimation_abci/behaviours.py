@@ -43,7 +43,7 @@ from packages.valory.skills.price_estimation_abci.payloads import (
 from packages.valory.skills.price_estimation_abci.rounds import (
     CollectObservationRound,
     EstimateConsensusRound,
-    PeriodState,
+    SynchronizedData,
     PriceAggregationAbciApp,
     TxHashRound,
 )
@@ -77,9 +77,9 @@ class PriceEstimationBaseState(BaseState, ABC):
     """Base state behaviour for the common apps' skill."""
 
     @property
-    def period_state(self) -> PeriodState:
+    def period_state(self) -> SynchronizedData:
         """Return the period state."""
-        return cast(PeriodState, super().period_state)
+        return cast(SynchronizedData, super().period_state)
 
     @property
     def params(self) -> Params:

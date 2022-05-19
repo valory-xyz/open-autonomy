@@ -29,7 +29,7 @@ from packages.valory.skills.abstract_round_abci.base import (
     ABCIAppInternalError,
     AbciApp,
     AbstractRound,
-    BasePeriodState,
+    BaseSynchronizedData,
     BaseTxPayload,
     DegenerateRound,
     EventType,
@@ -58,7 +58,7 @@ class RoundA(AbstractRound):
     round_id = ROUND_A_ID
     allowed_tx_type = "payload_a"
 
-    def end_block(self) -> Optional[Tuple[BasePeriodState, EventType]]:
+    def end_block(self) -> Optional[Tuple[BaseSynchronizedData, EventType]]:
         """End block."""
 
     def check_payload(self, payload: BaseTxPayload) -> None:
@@ -74,7 +74,7 @@ class RoundB(AbstractRound):
     round_id = ROUND_B_ID
     allowed_tx_type = "payload_b"
 
-    def end_block(self) -> Optional[Tuple[BasePeriodState, EventType]]:
+    def end_block(self) -> Optional[Tuple[BaseSynchronizedData, EventType]]:
         """End block."""
 
     def check_payload(self, payload: BaseTxPayload) -> None:
@@ -249,7 +249,7 @@ class TestAbstractRoundBehaviour:
             def process_payload(self, payload: BaseTxPayload) -> None:
                 pass
 
-            def end_block(self) -> Optional[Tuple[BasePeriodState, Enum]]:
+            def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Enum]]:
                 pass
 
         state_id_1 = "state_id_1"

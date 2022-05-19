@@ -31,7 +31,7 @@ from packages.valory.protocols.http.message import HttpMessage
 from packages.valory.skills.abstract_round_abci.base import (
     AbciApp,
     AbciAppDB,
-    BasePeriodState,
+    BaseSynchronizedData,
     ConsensusParams,
     RoundSequence,
 )
@@ -104,7 +104,7 @@ class SharedState(Model):
         consensus_params = cast(BaseParams, self.context.params).consensus_params
         period_setup_params = cast(BaseParams, self.context.params).period_setup_params
         self.round_sequence.setup(
-            BasePeriodState(
+            BaseSynchronizedData(
                 AbciAppDB(
                     initial_period=0,
                     initial_data=period_setup_params,
@@ -123,7 +123,7 @@ class SharedState(Model):
         return self._round_sequence
 
     @property
-    def period_state(self) -> BasePeriodState:
+    def period_state(self) -> BaseSynchronizedData:
         """Get the period state if available."""
         return self.round_sequence.latest_state
 

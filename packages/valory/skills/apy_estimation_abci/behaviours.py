@@ -80,7 +80,7 @@ from packages.valory.skills.apy_estimation_abci.rounds import (
     EstimateRound,
     FreshModelResetRound,
     OptimizeRound,
-    PeriodState,
+    SynchronizedData,
     PrepareBatchRound,
     PreprocessRound,
     RandomnessRound,
@@ -114,9 +114,9 @@ class APYEstimationBaseState(BaseState, ABC):
     """Base state behaviour for the APY estimation skill."""
 
     @property
-    def period_state(self) -> PeriodState:
+    def period_state(self) -> SynchronizedData:
         """Return the period state."""
-        return cast(PeriodState, super().period_state)
+        return cast(SynchronizedData, super().period_state)
 
     @property
     def params(self) -> APYParams:

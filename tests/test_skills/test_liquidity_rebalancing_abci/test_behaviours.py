@@ -54,7 +54,7 @@ from packages.valory.skills.liquidity_rebalancing_abci.behaviours import (
 from packages.valory.skills.liquidity_rebalancing_abci.payloads import StrategyType
 from packages.valory.skills.liquidity_rebalancing_abci.rounds import Event
 from packages.valory.skills.liquidity_rebalancing_abci.rounds import (
-    PeriodState as LiquidityRebalancingPeriodState,
+    SynchronizedData as LiquidityRebalancingPeriodState,
 )
 
 from tests.conftest import ROOT_DIR

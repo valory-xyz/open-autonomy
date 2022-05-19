@@ -27,7 +27,7 @@ from packages.valory.skills.abstract_round_abci.base import (
     AbciAppTransitionFunction,
     AbstractRound,
     AppState,
-    BasePeriodState,
+    BaseSynchronizedData,
     CollectDifferentUntilAllRound,
     CollectDifferentUntilThresholdRound,
     DegenerateRound,
@@ -64,7 +64,7 @@ class RegistrationStartupRound(CollectDifferentUntilAllRound):
     payload_attribute = "initialisation"
     required_block_confirmations = 1
 
-    def end_block(self) -> Optional[Tuple[BasePeriodState, Event]]:
+    def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Event]]:
         """Process the end of the block."""
         if self.collection_threshold_reached:
             self.block_confirmations += 1
@@ -77,7 +77,7 @@ class RegistrationStartupRound(CollectDifferentUntilAllRound):
             state = self.period_state.update(
                 participants=frozenset(self.collection),
                 all_participants=frozenset(self.collection),
-                period_state_class=BasePeriodState,
+                period_state_class=BaseSynchronizedData,
                 **initialisation,
             )
             return state, Event.FAST_FORWARD
@@ -88,7 +88,7 @@ class RegistrationStartupRound(CollectDifferentUntilAllRound):
             state = self.period_state.update(
                 participants=frozenset(self.collection),
                 all_participants=frozenset(self.collection),
-                period_state_class=BasePeriodState,
+                period_state_class=BaseSynchronizedData,
             )
             return state, Event.DONE
         return None
@@ -103,7 +103,7 @@ class RegistrationRound(CollectDifferentUntilThresholdRound):
     required_block_confirmations = 10
     done_event = Event.DONE
 
-    def end_block(self) -> Optional[Tuple[BasePeriodState, Event]]:
+    def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Event]]:
         """Process the end of the block."""
         if self.collection_threshold_reached:
             self.block_confirmations += 1
@@ -114,7 +114,7 @@ class RegistrationRound(CollectDifferentUntilThresholdRound):
         ):
             state = self.period_state.update(
                 participants=frozenset(self.collection),
-                period_state_class=BasePeriodState,
+                period_state_class=BaseSynchronizedData,
             )
             return state, Event.DONE
         return None

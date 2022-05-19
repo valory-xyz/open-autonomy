@@ -33,7 +33,7 @@ from packages.valory.skills.safe_deployment_abci.rounds import (
     Event as SafeDeploymentEvent,
 )
 from packages.valory.skills.safe_deployment_abci.rounds import (
-    PeriodState as SafeDeploymentPeriodState,
+    SynchronizedData as SafeDeploymentPeriodState,
 )
 from packages.valory.skills.safe_deployment_abci.rounds import (
     SelectKeeperSafeRound,
@@ -136,7 +136,7 @@ class TestSelectKeeperSafeRound(BaseSelectKeeperRoundTest):
 
 
 def test_period_states() -> None:
-    """Test PeriodState."""
+    """Test SynchronizedData."""
 
     participants = get_participants()
     participant_to_randomness = get_participant_to_randomness(participants, 1)

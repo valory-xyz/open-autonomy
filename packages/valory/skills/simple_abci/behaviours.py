@@ -35,7 +35,7 @@ from packages.valory.skills.simple_abci.payloads import (
     SelectKeeperPayload,
 )
 from packages.valory.skills.simple_abci.rounds import (
-    PeriodState,
+    SynchronizedData,
     RandomnessStartupRound,
     RegistrationRound,
     ResetAndPauseRound,
@@ -60,9 +60,9 @@ class SimpleABCIBaseState(BaseState, ABC):
     """Base state behaviour for the simple abci skill."""
 
     @property
-    def period_state(self) -> PeriodState:
+    def period_state(self) -> SynchronizedData:
         """Return the period state."""
-        return cast(PeriodState, cast(SharedState, self.context.state).period_state)
+        return cast(SynchronizedData, cast(SharedState, self.context.state).period_state)
 
     @property
     def params(self) -> Params:

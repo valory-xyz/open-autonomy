@@ -58,7 +58,7 @@ from packages.valory.protocols.http import HttpMessage
 from packages.valory.protocols.ledger_api import LedgerApiMessage
 from packages.valory.skills.abstract_round_abci.base import (
     AbstractRound,
-    BasePeriodState,
+    BaseSynchronizedData,
     BaseTxPayload,
     LEDGER_API_ADDRESS,
     OK_CODE,
@@ -463,9 +463,9 @@ class BaseState(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
         return cast(BaseParams, self.context.params)
 
     @property
-    def period_state(self) -> BasePeriodState:
+    def period_state(self) -> BaseSynchronizedData:
         """Return the period state."""
-        return cast(BasePeriodState, cast(SharedState, self.context.state).period_state)
+        return cast(BaseSynchronizedData, cast(SharedState, self.context.state).period_state)
 
     def check_in_round(self, round_id: str) -> bool:
         """Check that we entered a specific round."""

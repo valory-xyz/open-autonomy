@@ -27,7 +27,7 @@ from packages.valory.skills.abstract_round_abci.base import (
     AbciAppTransitionFunction,
     AbstractRound,
     AppState,
-    BasePeriodState,
+    BaseSynchronizedData,
     BaseTxPayload,
     CollectSameUntilThresholdRound,
     DegenerateRound,
@@ -82,7 +82,7 @@ class ResetAndPauseRound(CollectSameUntilThresholdRound):
                 f"sender {payload.sender} has already sent value for round: {self.round_id}"
             )
 
-    def end_block(self) -> Optional[Tuple[BasePeriodState, Event]]:
+    def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Event]]:
         """Process the end of the block."""
         if self.threshold_reached:
             extra_kwargs = {}
