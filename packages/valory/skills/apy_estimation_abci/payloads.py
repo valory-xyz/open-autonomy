@@ -409,7 +409,7 @@ class ResetPayload(BaseAPYPayload):
         """Initialize an 'reset' transaction payload.
 
         :param sender: the sender (Ethereum) address
-        :param period_count: the round count id
+        :param period_count: the period count id
         :param kwargs: the keyword arguments
         """
         super().__init__(sender, **kwargs)
