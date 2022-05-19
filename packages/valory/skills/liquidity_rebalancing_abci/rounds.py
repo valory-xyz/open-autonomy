@@ -68,6 +68,11 @@ class SynchronizedData(
     """
 
     @property
+    def period_count(self) -> int:
+        """Get the period count."""
+        return cast(int, self.db.get("period_count", 0))
+
+    @property
     def most_voted_strategy(self) -> str:
         """Get the most_voted_strategy."""
         return cast(str, self.db.get_strict("most_voted_strategy"))

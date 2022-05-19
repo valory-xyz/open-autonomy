@@ -597,11 +597,6 @@ class BaseSynchronizedData:
         return self.db.round_count
 
     @property
-    def period_count(self) -> int:
-        """Get the period count."""
-        return self.db.current_period_count
-
-    @property
     def participants(self) -> FrozenSet[str]:
         """Get the participants."""
         participants = self.db.get_strict("participants")
@@ -1682,8 +1677,8 @@ class AbciApp(
     def _log_start(self) -> None:
         """Log the entering in the round."""
         self.logger.info(
-            f"Entered in the '{self.current_round.round_id}' round for period "
-            f"{self.state.period_count}"
+            f"Entered in the '{self.current_round.round_id}' round for round "
+            f"{self.state.round_count}"
         )
 
     def _log_end(self, event: EventType) -> None:

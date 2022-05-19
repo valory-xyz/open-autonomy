@@ -211,6 +211,11 @@ class SynchronizedData(
 
         return late_arriving_tx_hashes_parsed
 
+    @property
+    def period_count(self) -> int:
+        """Get the period count."""
+        return cast(int, self.db.get("period_count", 0))
+
 
 class FailedRound(DegenerateRound, ABC):
     """A round that represents that the period failed"""
