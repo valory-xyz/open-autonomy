@@ -20,11 +20,13 @@
 """End2end tests base class."""
 import json
 import logging
+import os
 import time
 import warnings
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
+import aea_ledger_cosmos
 import pytest
 from aea.configurations.base import PublicId
 from aea.test_tools.test_cases import AEATestCaseMany
