@@ -22,17 +22,20 @@
 
 import importlib
 from pathlib import Path
-from typing import Any
+from typing import List
 
 import yaml
 
 
-def check_handlers(config_file: Path, handler_config: Any) -> None:
+def check_handlers(
+    config_file: Path, common_handlers: List[str], skip_skills: List[str]
+) -> None:
     """Check handlers"""
 
     handler_file_path = (config_file.parent / "handlers.py").relative_to(Path.cwd())
     module_name = str(handler_file_path).replace(".py", "").replace("/", ".")
-    skill_name = module_name.split(".")[-2]
+    if config_file.parent.name in skip_skills:
+        return
 
     try:
         module = importlib.import_module(module_name)
@@ -42,12 +45,11 @@ def check_handlers(config_file: Path, handler_config: Any) -> None:
 
     with open(str(config_file), mode="r", encoding="utf-8") as fp:
         config = yaml.safe_load(fp)
-        if skill_name not in handler_config.SKIP_SKILLS:
-            for common_handler in handler_config.COMMON_HANDLERS:
-                if common_handler not in config["handlers"]:
-                    raise ValueError(
-                        f"Common handler '{common_handler}' is not defined in {config_file}"
-                    )
+        for common_handler in common_handlers:
+            if common_handler not in config["handlers"]:
+                raise ValueError(
+                    f"Common handler '{common_handler}' is not defined in {config_file}"
+                )
 
         for handler_info in config["handlers"].values():
             if handler_info["class_name"] not in module_attributes:

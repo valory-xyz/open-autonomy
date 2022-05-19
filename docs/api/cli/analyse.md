@@ -56,7 +56,7 @@ Generate abci app specs.
     help="Path to packages directory; Use with `--check-all` flag",
 )
 @abci_spec_format_flag()
-@click.option("--app_class", type=str, help="Dotted path to app definition class.")
+@click.option("--app-class", type=str, help="Dotted path to app definition class.")
 @click.option("--infile", type=click.Path(), help="Path to input file.")
 def check_abci_app_specs(check_all: bool, packages_dir: Path, spec_format: str, app_class: str, infile: Path) -> None
 ```
@@ -106,7 +106,7 @@ Parse logs.
 @click.option(
     "--handler-config",
     type=click.Path(),
-    default=Path.cwd() / "scripts" / "handler_config.py",
+    default=Path.cwd() / "scripts" / "handler_config.json",
 )
 def run_handler_check(packages_dir: Path, handler_config: Path) -> None
 ```

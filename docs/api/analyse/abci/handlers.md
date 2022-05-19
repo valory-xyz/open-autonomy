@@ -9,7 +9,7 @@ Analyse handlers.
 #### check`_`handlers
 
 ```python
-def check_handlers(config_file: Path, handler_config: Any) -> None
+def check_handlers(config_file: Path, common_handlers: List[str], skip_skills: List[str]) -> None
 ```
 
 Check handlers
