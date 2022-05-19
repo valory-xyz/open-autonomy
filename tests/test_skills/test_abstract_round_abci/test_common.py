@@ -32,7 +32,10 @@ from aea.skills.base import SkillContext
 
 from packages.valory.protocols.contract_api.custom_types import State
 from packages.valory.protocols.ledger_api.message import LedgerApiMessage
-from packages.valory.skills.abstract_round_abci.base import BasePeriodState, StateDB
+from packages.valory.skills.abstract_round_abci.base import (
+    AbciAppDB,
+    BaseSynchronizedData,
+)
 from packages.valory.skills.abstract_round_abci.behaviour_utils import BaseState
 from packages.valory.skills.transaction_settlement_abci.payload_tools import (
     VerificationStatus,
@@ -81,7 +84,7 @@ class BaseRandomnessBehaviourTest(CommonBaseCase):
         self.fast_forward_to_state(
             self.behaviour,
             self.randomness_behaviour_class.state_id,
-            BasePeriodState(StateDB(initial_period=0, initial_data={})),
+            BaseSynchronizedData(AbciAppDB(initial_period=0, initial_data={})),
         )
         assert (
             cast(
@@ -123,7 +126,7 @@ class BaseRandomnessBehaviourTest(CommonBaseCase):
         self.fast_forward_to_state(
             self.behaviour,
             self.randomness_behaviour_class.state_id,
-            BasePeriodState(StateDB(initial_period=0, initial_data={})),
+            BaseSynchronizedData(AbciAppDB(initial_period=0, initial_data={})),
         )
         assert (
             cast(
@@ -160,7 +163,7 @@ class BaseRandomnessBehaviourTest(CommonBaseCase):
         self.fast_forward_to_state(
             self.behaviour,
             self.randomness_behaviour_class.state_id,
-            BasePeriodState(StateDB(initial_period=0, initial_data={})),
+            BaseSynchronizedData(AbciAppDB(initial_period=0, initial_data={})),
         )
         assert (
             cast(
@@ -194,7 +197,7 @@ class BaseRandomnessBehaviourTest(CommonBaseCase):
         self.fast_forward_to_state(
             self.behaviour,
             self.randomness_behaviour_class.state_id,
-            BasePeriodState(StateDB(initial_period=0, initial_data={})),
+            BaseSynchronizedData(AbciAppDB(initial_period=0, initial_data={})),
         )
         assert (
             cast(
@@ -234,7 +237,7 @@ class BaseRandomnessBehaviourTest(CommonBaseCase):
         self.fast_forward_to_state(
             self.behaviour,
             self.randomness_behaviour_class.state_id,
-            BasePeriodState(StateDB(initial_period=0, initial_data={})),
+            BaseSynchronizedData(AbciAppDB(initial_period=0, initial_data={})),
         )
         assert (
             cast(
@@ -268,7 +271,7 @@ class BaseRandomnessBehaviourTest(CommonBaseCase):
         self.fast_forward_to_state(
             self.behaviour,
             self.randomness_behaviour_class.state_id,
-            BasePeriodState(StateDB(initial_period=0, initial_data={})),
+            BaseSynchronizedData(AbciAppDB(initial_period=0, initial_data={})),
         )
         assert (
             cast(
@@ -302,7 +305,7 @@ class BaseRandomnessBehaviourTest(CommonBaseCase):
         self.fast_forward_to_state(
             self.behaviour,
             self.randomness_behaviour_class.state_id,
-            BasePeriodState(StateDB(initial_period=0, initial_data={})),
+            BaseSynchronizedData(AbciAppDB(initial_period=0, initial_data={})),
         )
         assert (
             cast(
@@ -323,7 +326,7 @@ class BaseSelectKeeperBehaviourTest(CommonBaseCase):
     select_keeper_behaviour_class: Type[BaseState]
     next_behaviour_class: Type[BaseState]
     done_event: Any
-    _period_state: Type[BasePeriodState] = BasePeriodState
+    _synchronized_data: Type[BaseSynchronizedData] = BaseSynchronizedData
 
     @mock.patch.object(SkillContext, "agent_address", new_callable=mock.PropertyMock)
     @pytest.mark.parametrize(
@@ -346,8 +349,8 @@ class BaseSelectKeeperBehaviourTest(CommonBaseCase):
         self.fast_forward_to_state(
             behaviour=self.behaviour,
             state_id=self.select_keeper_behaviour_class.state_id,
-            period_state=self._period_state(
-                StateDB(
+            synchronized_data=self._synchronized_data(
+                AbciAppDB(
                     initial_period=0,
                     initial_data=dict(
                         participants=participants,
@@ -365,8 +368,8 @@ class BaseSelectKeeperBehaviourTest(CommonBaseCase):
         )
 
         if (
-            self.behaviour.current_state.period_state.participants
-            - self.behaviour.current_state.period_state.blacklisted_keepers
+            self.behaviour.current_state.synchronized_data.participants
+            - self.behaviour.current_state.synchronized_data.blacklisted_keepers
         ):
             self.behaviour.act_wrapper()
             self.mock_a2a_transaction()
@@ -392,8 +395,8 @@ class BaseSelectKeeperBehaviourTest(CommonBaseCase):
         self.fast_forward_to_state(
             behaviour=self.behaviour,
             state_id=self.select_keeper_behaviour_class.state_id,
-            period_state=self._period_state(
-                StateDB(
+            synchronized_data=self._synchronized_data(
+                AbciAppDB(
                     initial_period=0,
                     initial_data=dict(
                         participants=participants,

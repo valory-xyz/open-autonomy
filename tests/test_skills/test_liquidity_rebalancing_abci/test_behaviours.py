@@ -37,7 +37,7 @@ from packages.valory.contracts.uniswap_v2_router_02.contract import (
 )
 from packages.valory.protocols.contract_api.custom_types import Kwargs
 from packages.valory.protocols.contract_api.message import ContractApiMessage
-from packages.valory.skills.abstract_round_abci.base import StateDB
+from packages.valory.skills.abstract_round_abci.base import AbciAppDB
 from packages.valory.skills.abstract_round_abci.behaviour_utils import BaseState
 from packages.valory.skills.liquidity_rebalancing_abci.behaviours import (
     EnterPoolTransactionHashBehaviour,
@@ -54,7 +54,7 @@ from packages.valory.skills.liquidity_rebalancing_abci.behaviours import (
 from packages.valory.skills.liquidity_rebalancing_abci.payloads import StrategyType
 from packages.valory.skills.liquidity_rebalancing_abci.rounds import Event
 from packages.valory.skills.liquidity_rebalancing_abci.rounds import (
-    PeriodState as LiquidityRebalancingPeriodState,
+    SynchronizedData as LiquidityRebalancingSynchronizedData,
 )
 
 from tests.conftest import ROOT_DIR
@@ -148,8 +148,8 @@ class TestStrategyEvaluationBehaviour(LiquidityRebalancingBehaviourBaseCase):
         strategy = get_default_strategy(
             is_base_native=False, is_a_native=True, is_b_native=False
         )
-        period_state = LiquidityRebalancingPeriodState(
-            StateDB(
+        synchronized_data = LiquidityRebalancingSynchronizedData(
+            AbciAppDB(
                 initial_period=0,
                 initial_data=dict(
                     most_voted_tx_hash="0x",
@@ -164,7 +164,7 @@ class TestStrategyEvaluationBehaviour(LiquidityRebalancingBehaviourBaseCase):
         self.fast_forward_to_state(
             behaviour=self.behaviour,
             state_id=StrategyEvaluationBehaviour.state_id,
-            period_state=period_state,
+            synchronized_data=synchronized_data,
         )
         assert (
             cast(
@@ -187,8 +187,8 @@ class TestStrategyEvaluationBehaviour(LiquidityRebalancingBehaviourBaseCase):
             is_base_native=False, is_a_native=True, is_b_native=False
         )
         strategy["action"] = StrategyType.EXIT.value
-        period_state = LiquidityRebalancingPeriodState(
-            StateDB(
+        synchronized_data = LiquidityRebalancingSynchronizedData(
+            AbciAppDB(
                 initial_period=0,
                 initial_data=dict(
                     most_voted_tx_hash="0x",
@@ -203,7 +203,7 @@ class TestStrategyEvaluationBehaviour(LiquidityRebalancingBehaviourBaseCase):
         self.fast_forward_to_state(
             behaviour=self.behaviour,
             state_id=StrategyEvaluationBehaviour.state_id,
-            period_state=period_state,
+            synchronized_data=synchronized_data,
         )
         assert (
             cast(
@@ -222,8 +222,8 @@ class TestStrategyEvaluationBehaviour(LiquidityRebalancingBehaviourBaseCase):
     ) -> None:
         """Run tests."""
 
-        period_state = LiquidityRebalancingPeriodState(
-            StateDB(
+        synchronized_data = LiquidityRebalancingSynchronizedData(
+            AbciAppDB(
                 initial_period=0,
                 initial_data=dict(
                     most_voted_tx_hash="0x",
@@ -237,7 +237,7 @@ class TestStrategyEvaluationBehaviour(LiquidityRebalancingBehaviourBaseCase):
         self.fast_forward_to_state(
             behaviour=self.behaviour,
             state_id=StrategyEvaluationBehaviour.state_id,
-            period_state=period_state,
+            synchronized_data=synchronized_data,
         )
         assert (
             cast(
@@ -264,8 +264,8 @@ class TestStrategyEvaluationBehaviour(LiquidityRebalancingBehaviourBaseCase):
             is_base_native=False, is_a_native=True, is_b_native=False
         )
         strategy["action"] = StrategyType.SWAP_BACK.value
-        period_state = LiquidityRebalancingPeriodState(
-            StateDB(
+        synchronized_data = LiquidityRebalancingSynchronizedData(
+            AbciAppDB(
                 initial_period=0,
                 initial_data=dict(
                     most_voted_tx_hash="0x",
@@ -280,7 +280,7 @@ class TestStrategyEvaluationBehaviour(LiquidityRebalancingBehaviourBaseCase):
         self.fast_forward_to_state(
             behaviour=self.behaviour,
             state_id=StrategyEvaluationBehaviour.state_id,
-            period_state=period_state,
+            synchronized_data=synchronized_data,
         )
         assert (
             cast(
@@ -306,8 +306,8 @@ class TestEnterPoolTransactionHashBehaviour(LiquidityRebalancingBehaviourBaseCas
         strategy = get_default_strategy(
             is_base_native=False, is_a_native=True, is_b_native=False
         )
-        period_state = LiquidityRebalancingPeriodState(
-            StateDB(
+        synchronized_data = LiquidityRebalancingSynchronizedData(
+            AbciAppDB(
                 initial_period=0,
                 initial_data=dict(
                     most_voted_tx_hash="0x",
@@ -322,7 +322,7 @@ class TestEnterPoolTransactionHashBehaviour(LiquidityRebalancingBehaviourBaseCas
         self.fast_forward_to_state(
             behaviour=self.behaviour,
             state_id=EnterPoolTransactionHashBehaviour.state_id,
-            period_state=period_state,
+            synchronized_data=synchronized_data,
         )
         assert (
             cast(
@@ -342,10 +342,10 @@ class TestEnterPoolTransactionHashBehaviour(LiquidityRebalancingBehaviourBaseCas
                 kwargs=Kwargs(
                     dict(
                         method_name="approve",
-                        # sender=period_state.safe_contract_address,  # noqa: E800
+                        # sender=synchronized_data.safe_contract_address,  # noqa: E800
                         # gas=TEMP_GAS,  # noqa: E800
                         # gas_price=TEMP_GAS_PRICE,  # noqa: E800
-                        spender=period_state.router_contract_address,
+                        spender=synchronized_data.router_contract_address,
                         value=MAX_ALLOWANCE,
                     )
                 ),
@@ -371,11 +371,11 @@ class TestEnterPoolTransactionHashBehaviour(LiquidityRebalancingBehaviourBaseCas
             contract_id=str(UniswapV2Router02Contract.contract_id),
             request_kwargs=dict(
                 performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
-                contract_address=period_state.router_contract_address,
+                contract_address=synchronized_data.router_contract_address,
                 kwargs=Kwargs(
                     dict(
                         method_name=method_name,
-                        # sender=period_state.safe_contract_address,  # noqa: E800
+                        # sender=synchronized_data.safe_contract_address,  # noqa: E800
                         # gas=TEMP_GAS,  # noqa: E800
                         # gas_price=TEMP_GAS_PRICE,  # noqa: E800
                         amount_out=int(strategy["token_a"]["amount_after_swap"]),
@@ -384,7 +384,7 @@ class TestEnterPoolTransactionHashBehaviour(LiquidityRebalancingBehaviourBaseCas
                             strategy["token_base"]["address"],
                             strategy["token_a"]["address"],
                         ],
-                        to=period_state.safe_contract_address,
+                        to=synchronized_data.safe_contract_address,
                         deadline=DEADLINE,
                     )
                 ),
@@ -404,11 +404,11 @@ class TestEnterPoolTransactionHashBehaviour(LiquidityRebalancingBehaviourBaseCas
             contract_id=str(UniswapV2Router02Contract.contract_id),
             request_kwargs=dict(
                 performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
-                contract_address=period_state.router_contract_address,
+                contract_address=synchronized_data.router_contract_address,
                 kwargs=Kwargs(
                     dict(
                         method_name="swap_tokens_for_exact_tokens",
-                        # sender=period_state.safe_contract_address,  # noqa: E800
+                        # sender=synchronized_data.safe_contract_address,  # noqa: E800
                         # gas=TEMP_GAS,  # noqa: E800
                         # gas_price=TEMP_GAS_PRICE,  # noqa: E800
                         amount_out=int(strategy["token_b"]["amount_after_swap"]),
@@ -417,7 +417,7 @@ class TestEnterPoolTransactionHashBehaviour(LiquidityRebalancingBehaviourBaseCas
                             strategy["token_base"]["address"],
                             strategy["token_b"]["address"],
                         ],
-                        to=period_state.safe_contract_address,
+                        to=synchronized_data.safe_contract_address,
                         deadline=DEADLINE,
                     )
                 ),
@@ -441,10 +441,10 @@ class TestEnterPoolTransactionHashBehaviour(LiquidityRebalancingBehaviourBaseCas
                 kwargs=Kwargs(
                     dict(
                         method_name="approve",
-                        # sender=period_state.safe_contract_address,  # noqa: E800
+                        # sender=synchronized_data.safe_contract_address,  # noqa: E800
                         # gas=TEMP_GAS,  # noqa: E800
                         # gas_price=TEMP_GAS_PRICE,  # noqa: E800
-                        spender=period_state.router_contract_address,
+                        spender=synchronized_data.router_contract_address,
                         value=MAX_ALLOWANCE,
                     )
                 ),
@@ -464,11 +464,11 @@ class TestEnterPoolTransactionHashBehaviour(LiquidityRebalancingBehaviourBaseCas
             contract_id=str(UniswapV2Router02Contract.contract_id),
             request_kwargs=dict(
                 performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
-                contract_address=period_state.router_contract_address,
+                contract_address=synchronized_data.router_contract_address,
                 kwargs=Kwargs(
                     dict(
                         method_name="add_liquidity_ETH",
-                        # sender=period_state.safe_contract_address,  # noqa: E800
+                        # sender=synchronized_data.safe_contract_address,  # noqa: E800
                         # gas=TEMP_GAS,  # noqa: E800
                         # gas_price=TEMP_GAS_PRICE,  # noqa: E800
                         token=strategy["token_b"]["address"],
@@ -481,7 +481,7 @@ class TestEnterPoolTransactionHashBehaviour(LiquidityRebalancingBehaviourBaseCas
                         amount_ETH_min=int(
                             strategy["token_a"]["amount_min_after_add_liq"]
                         ),
-                        to=period_state.safe_contract_address,
+                        to=synchronized_data.safe_contract_address,
                         deadline=DEADLINE,
                     )
                 ),
@@ -501,7 +501,7 @@ class TestEnterPoolTransactionHashBehaviour(LiquidityRebalancingBehaviourBaseCas
             contract_id=str(MultiSendContract.contract_id),
             request_kwargs=dict(
                 performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
-                contract_address=period_state.safe_contract_address,
+                contract_address=synchronized_data.safe_contract_address,
             ),
             response_kwargs=dict(
                 performative=ContractApiMessage.Performative.RAW_TRANSACTION,
@@ -518,10 +518,10 @@ class TestEnterPoolTransactionHashBehaviour(LiquidityRebalancingBehaviourBaseCas
             contract_id=str(GnosisSafeContract.contract_id),
             request_kwargs=dict(
                 performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
-                contract_address=period_state.safe_contract_address,
+                contract_address=synchronized_data.safe_contract_address,
                 kwargs=Kwargs(
                     dict(
-                        to_address=period_state.multisend_contract_address,
+                        to_address=synchronized_data.multisend_contract_address,
                         value=0,
                         data=b"ummy_tx",  # type: ignore
                         operation=SafeOperation.DELEGATE_CALL.value,
@@ -552,8 +552,8 @@ class TestEnterPoolTransactionHashBehaviour(LiquidityRebalancingBehaviourBaseCas
         strategy = get_default_strategy(
             is_base_native=False, is_a_native=False, is_b_native=False
         )
-        period_state = LiquidityRebalancingPeriodState(
-            StateDB(
+        synchronized_data = LiquidityRebalancingSynchronizedData(
+            AbciAppDB(
                 initial_period=0,
                 initial_data=dict(
                     most_voted_tx_hash="0x",
@@ -568,7 +568,7 @@ class TestEnterPoolTransactionHashBehaviour(LiquidityRebalancingBehaviourBaseCas
         self.fast_forward_to_state(
             behaviour=self.behaviour,
             state_id=EnterPoolTransactionHashBehaviour.state_id,
-            period_state=period_state,
+            synchronized_data=synchronized_data,
         )
         assert (
             cast(
@@ -594,10 +594,10 @@ class TestEnterPoolTransactionHashBehaviour(LiquidityRebalancingBehaviourBaseCas
                 kwargs=Kwargs(
                     dict(
                         method_name="approve",
-                        # sender=period_state.safe_contract_address,  # noqa: E800
+                        # sender=synchronized_data.safe_contract_address,  # noqa: E800
                         # gas=TEMP_GAS,  # noqa: E800
                         # gas_price=TEMP_GAS_PRICE,  # noqa: E800
-                        spender=period_state.router_contract_address,
+                        spender=synchronized_data.router_contract_address,
                         value=MAX_ALLOWANCE,
                     )
                 ),
@@ -617,11 +617,11 @@ class TestEnterPoolTransactionHashBehaviour(LiquidityRebalancingBehaviourBaseCas
             contract_id=str(UniswapV2Router02Contract.contract_id),
             request_kwargs=dict(
                 performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
-                contract_address=period_state.router_contract_address,
+                contract_address=synchronized_data.router_contract_address,
                 kwargs=Kwargs(
                     dict(
                         method_name=method_name,
-                        # sender=period_state.safe_contract_address,  # noqa: E800
+                        # sender=synchronized_data.safe_contract_address,  # noqa: E800
                         # gas=TEMP_GAS,  # noqa: E800
                         # gas_price=TEMP_GAS_PRICE,  # noqa: E800
                         amount_out=int(strategy["token_a"]["amount_after_swap"]),
@@ -630,7 +630,7 @@ class TestEnterPoolTransactionHashBehaviour(LiquidityRebalancingBehaviourBaseCas
                             strategy["token_base"]["address"],
                             strategy["token_a"]["address"],
                         ],
-                        to=period_state.safe_contract_address,
+                        to=synchronized_data.safe_contract_address,
                         deadline=DEADLINE,
                     )
                 ),
@@ -650,11 +650,11 @@ class TestEnterPoolTransactionHashBehaviour(LiquidityRebalancingBehaviourBaseCas
             contract_id=str(UniswapV2Router02Contract.contract_id),
             request_kwargs=dict(
                 performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
-                contract_address=period_state.router_contract_address,
+                contract_address=synchronized_data.router_contract_address,
                 kwargs=Kwargs(
                     dict(
                         method_name="swap_tokens_for_exact_tokens",
-                        # sender=period_state.safe_contract_address,  # noqa: E800
+                        # sender=synchronized_data.safe_contract_address,  # noqa: E800
                         # gas=TEMP_GAS,  # noqa: E800
                         # gas_price=TEMP_GAS_PRICE,  # noqa: E800
                         amount_out=int(strategy["token_b"]["amount_after_swap"]),
@@ -663,7 +663,7 @@ class TestEnterPoolTransactionHashBehaviour(LiquidityRebalancingBehaviourBaseCas
                             strategy["token_base"]["address"],
                             strategy["token_b"]["address"],
                         ],
-                        to=period_state.safe_contract_address,
+                        to=synchronized_data.safe_contract_address,
                         deadline=DEADLINE,
                     )
                 ),
@@ -687,10 +687,10 @@ class TestEnterPoolTransactionHashBehaviour(LiquidityRebalancingBehaviourBaseCas
                 kwargs=Kwargs(
                     dict(
                         method_name="approve",
-                        # sender=period_state.safe_contract_address,  # noqa: E800
+                        # sender=synchronized_data.safe_contract_address,  # noqa: E800
                         # gas=TEMP_GAS,  # noqa: E800
                         # gas_price=TEMP_GAS_PRICE,  # noqa: E800
-                        spender=period_state.router_contract_address,
+                        spender=synchronized_data.router_contract_address,
                         value=MAX_ALLOWANCE,
                     )
                 ),
@@ -714,10 +714,10 @@ class TestEnterPoolTransactionHashBehaviour(LiquidityRebalancingBehaviourBaseCas
                 kwargs=Kwargs(
                     dict(
                         method_name="approve",
-                        # sender=period_state.safe_contract_address,  # noqa: E800
+                        # sender=synchronized_data.safe_contract_address,  # noqa: E800
                         # gas=TEMP_GAS,  # noqa: E800
                         # gas_price=TEMP_GAS_PRICE,  # noqa: E800
-                        spender=period_state.router_contract_address,
+                        spender=synchronized_data.router_contract_address,
                         value=MAX_ALLOWANCE,
                     )
                 ),
@@ -737,11 +737,11 @@ class TestEnterPoolTransactionHashBehaviour(LiquidityRebalancingBehaviourBaseCas
             contract_id=str(UniswapV2Router02Contract.contract_id),
             request_kwargs=dict(
                 performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
-                contract_address=period_state.router_contract_address,
+                contract_address=synchronized_data.router_contract_address,
                 kwargs=Kwargs(
                     dict(
                         method_name="add_liquidity",
-                        # sender=period_state.safe_contract_address,  # noqa: E800
+                        # sender=synchronized_data.safe_contract_address,  # noqa: E800
                         # gas=TEMP_GAS,  # noqa: E800
                         # gas_price=TEMP_GAS_PRICE,  # noqa: E800
                         token_a=strategy["token_a"]["address"],
@@ -754,7 +754,7 @@ class TestEnterPoolTransactionHashBehaviour(LiquidityRebalancingBehaviourBaseCas
                         amount_b_min=int(
                             strategy["token_b"]["amount_min_after_add_liq"]
                         ),
-                        to=period_state.safe_contract_address,
+                        to=synchronized_data.safe_contract_address,
                         deadline=DEADLINE,
                     )
                 ),
@@ -774,7 +774,7 @@ class TestEnterPoolTransactionHashBehaviour(LiquidityRebalancingBehaviourBaseCas
             contract_id=str(MultiSendContract.contract_id),
             request_kwargs=dict(
                 performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
-                contract_address=period_state.safe_contract_address,
+                contract_address=synchronized_data.safe_contract_address,
             ),
             response_kwargs=dict(
                 performative=ContractApiMessage.Performative.RAW_TRANSACTION,
@@ -791,10 +791,10 @@ class TestEnterPoolTransactionHashBehaviour(LiquidityRebalancingBehaviourBaseCas
             contract_id=str(GnosisSafeContract.contract_id),
             request_kwargs=dict(
                 performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
-                contract_address=period_state.safe_contract_address,
+                contract_address=synchronized_data.safe_contract_address,
                 kwargs=Kwargs(
                     dict(
-                        to_address=period_state.multisend_contract_address,
+                        to_address=synchronized_data.multisend_contract_address,
                         value=0,
                         data=b"ummy_tx",  # type: ignore
                         operation=SafeOperation.DELEGATE_CALL.value,
@@ -825,8 +825,8 @@ class TestEnterPoolTransactionHashBehaviour(LiquidityRebalancingBehaviourBaseCas
         strategy = get_default_strategy(
             is_base_native=True, is_a_native=True, is_b_native=False
         )
-        period_state = LiquidityRebalancingPeriodState(
-            StateDB(
+        synchronized_data = LiquidityRebalancingSynchronizedData(
+            AbciAppDB(
                 initial_period=0,
                 initial_data=dict(
                     most_voted_tx_hash="0x",
@@ -841,7 +841,7 @@ class TestEnterPoolTransactionHashBehaviour(LiquidityRebalancingBehaviourBaseCas
         self.fast_forward_to_state(
             behaviour=self.behaviour,
             state_id=EnterPoolTransactionHashBehaviour.state_id,
-            period_state=period_state,
+            synchronized_data=synchronized_data,
         )
         assert (
             cast(
@@ -864,7 +864,7 @@ class TestEnterPoolTransactionHashBehaviour(LiquidityRebalancingBehaviourBaseCas
                     kwargs=Kwargs(
                         dict(
                             method_name="approve",
-                            spender=period_state.router_contract_address,
+                            spender=synchronized_data.router_contract_address,
                             value=MAX_ALLOWANCE,
                         )
                     ),
@@ -891,8 +891,8 @@ class TestExitPoolTransactionHashBehaviour(LiquidityRebalancingBehaviourBaseCase
         strategy = get_default_strategy(
             is_base_native=False, is_a_native=True, is_b_native=False
         )
-        period_state = LiquidityRebalancingPeriodState(
-            StateDB(
+        synchronized_data = LiquidityRebalancingSynchronizedData(
+            AbciAppDB(
                 initial_period=0,
                 initial_data=dict(
                     most_voted_tx_hash="0x",
@@ -913,7 +913,7 @@ class TestExitPoolTransactionHashBehaviour(LiquidityRebalancingBehaviourBaseCase
         self.fast_forward_to_state(
             behaviour=self.behaviour,
             state_id=ExitPoolTransactionHashBehaviour.state_id,
-            period_state=period_state,
+            synchronized_data=synchronized_data,
         )
         assert (
             cast(
@@ -932,8 +932,8 @@ class TestExitPoolTransactionHashBehaviour(LiquidityRebalancingBehaviourBaseCase
                 contract_address=strategy["token_LP"]["address"],
                 kwargs=Kwargs(
                     dict(
-                        tx_hash=period_state.final_tx_hash,
-                        target_address=period_state.safe_contract_address,
+                        tx_hash=synchronized_data.final_tx_hash,
+                        target_address=synchronized_data.safe_contract_address,
                     )
                 ),
             ),
@@ -956,10 +956,10 @@ class TestExitPoolTransactionHashBehaviour(LiquidityRebalancingBehaviourBaseCase
                 kwargs=Kwargs(
                     dict(
                         method_name="approve",
-                        # sender=period_state.safe_contract_address,  # noqa: E800
+                        # sender=synchronized_data.safe_contract_address,  # noqa: E800
                         # gas=TEMP_GAS,  # noqa: E800
                         # gas_price=TEMP_GAS_PRICE,  # noqa: E800
-                        spender=period_state.router_contract_address,
+                        spender=synchronized_data.router_contract_address,
                         value=strategy["token_LP"]["set_allowance"],
                     )
                 ),
@@ -979,18 +979,18 @@ class TestExitPoolTransactionHashBehaviour(LiquidityRebalancingBehaviourBaseCase
             contract_id=str(UniswapV2Router02Contract.contract_id),
             request_kwargs=dict(
                 performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
-                contract_address=period_state.router_contract_address,
+                contract_address=synchronized_data.router_contract_address,
                 kwargs=Kwargs(
                     dict(
                         method_name="remove_liquidity_ETH",
-                        # sender=period_state.safe_contract_address,  # noqa: E800
+                        # sender=synchronized_data.safe_contract_address,  # noqa: E800
                         # gas=TEMP_GAS,  # noqa: E800
                         # gas_price=TEMP_GAS_PRICE,  # noqa: E800
                         token=strategy["token_b"]["address"],
                         liquidity=amount_liquidity_received,
                         amount_token_min=int(amount_b_sent),
                         amount_ETH_min=int(amount_base_sent),
-                        to=period_state.safe_contract_address,
+                        to=synchronized_data.safe_contract_address,
                         deadline=DEADLINE,
                     )
                 ),
@@ -1014,10 +1014,10 @@ class TestExitPoolTransactionHashBehaviour(LiquidityRebalancingBehaviourBaseCase
                 kwargs=Kwargs(
                     dict(
                         method_name="approve",
-                        # sender=period_state.safe_contract_address,  # noqa: E800
+                        # sender=synchronized_data.safe_contract_address,  # noqa: E800
                         # gas=TEMP_GAS,  # noqa: E800
                         # gas_price=TEMP_GAS_PRICE,  # noqa: E800
-                        spender=period_state.router_contract_address,
+                        spender=synchronized_data.router_contract_address,
                         value=strategy["token_LP"]["remove_allowance"],
                     )
                 ),
@@ -1037,7 +1037,7 @@ class TestExitPoolTransactionHashBehaviour(LiquidityRebalancingBehaviourBaseCase
             contract_id=str(MultiSendContract.contract_id),
             request_kwargs=dict(
                 performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
-                contract_address=period_state.safe_contract_address,
+                contract_address=synchronized_data.safe_contract_address,
             ),
             response_kwargs=dict(
                 performative=ContractApiMessage.Performative.RAW_TRANSACTION,
@@ -1054,7 +1054,7 @@ class TestExitPoolTransactionHashBehaviour(LiquidityRebalancingBehaviourBaseCase
             contract_id=str(GnosisSafeContract.contract_id),
             request_kwargs=dict(
                 performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
-                contract_address=period_state.safe_contract_address,
+                contract_address=synchronized_data.safe_contract_address,
             ),
             response_kwargs=dict(
                 performative=ContractApiMessage.Performative.RAW_TRANSACTION,
@@ -1077,8 +1077,8 @@ class TestExitPoolTransactionHashBehaviour(LiquidityRebalancingBehaviourBaseCase
         strategy = get_default_strategy(
             is_base_native=False, is_a_native=False, is_b_native=False
         )
-        period_state = LiquidityRebalancingPeriodState(
-            StateDB(
+        synchronized_data = LiquidityRebalancingSynchronizedData(
+            AbciAppDB(
                 initial_period=0,
                 initial_data=dict(
                     most_voted_tx_hash="0x",
@@ -1099,7 +1099,7 @@ class TestExitPoolTransactionHashBehaviour(LiquidityRebalancingBehaviourBaseCase
         self.fast_forward_to_state(
             behaviour=self.behaviour,
             state_id=ExitPoolTransactionHashBehaviour.state_id,
-            period_state=period_state,
+            synchronized_data=synchronized_data,
         )
         assert (
             cast(
@@ -1118,8 +1118,8 @@ class TestExitPoolTransactionHashBehaviour(LiquidityRebalancingBehaviourBaseCase
                 contract_address=strategy["token_LP"]["address"],
                 kwargs=Kwargs(
                     dict(
-                        tx_hash=period_state.final_tx_hash,
-                        target_address=period_state.safe_contract_address,
+                        tx_hash=synchronized_data.final_tx_hash,
+                        target_address=synchronized_data.safe_contract_address,
                     )
                 ),
             ),
@@ -1142,10 +1142,10 @@ class TestExitPoolTransactionHashBehaviour(LiquidityRebalancingBehaviourBaseCase
                 kwargs=Kwargs(
                     dict(
                         method_name="approve",
-                        # sender=period_state.safe_contract_address,  # noqa: E800
+                        # sender=synchronized_data.safe_contract_address,  # noqa: E800
                         # gas=TEMP_GAS,  # noqa: E800
                         # gas_price=TEMP_GAS_PRICE,  # noqa: E800
-                        spender=period_state.router_contract_address,
+                        spender=synchronized_data.router_contract_address,
                         value=MAX_ALLOWANCE,
                     )
                 ),
@@ -1165,11 +1165,11 @@ class TestExitPoolTransactionHashBehaviour(LiquidityRebalancingBehaviourBaseCase
             contract_id=str(UniswapV2Router02Contract.contract_id),
             request_kwargs=dict(
                 performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
-                contract_address=period_state.router_contract_address,
+                contract_address=synchronized_data.router_contract_address,
                 kwargs=Kwargs(
                     dict(
                         method_name="remove_liquidity",
-                        # sender=period_state.safe_contract_address,  # noqa: E800
+                        # sender=synchronized_data.safe_contract_address,  # noqa: E800
                         # gas=TEMP_GAS,  # noqa: E800
                         # gas_price=TEMP_GAS_PRICE,  # noqa: E800
                         token_a=strategy["token_a"]["address"],
@@ -1177,7 +1177,7 @@ class TestExitPoolTransactionHashBehaviour(LiquidityRebalancingBehaviourBaseCase
                         liquidity=amount_liquidity_received,
                         amount_a_min=int(amount_a_sent),
                         amount_b_min=int(amount_b_sent),
-                        to=period_state.safe_contract_address,
+                        to=synchronized_data.safe_contract_address,
                         deadline=DEADLINE,
                     )
                 ),
@@ -1201,10 +1201,10 @@ class TestExitPoolTransactionHashBehaviour(LiquidityRebalancingBehaviourBaseCase
                 kwargs=Kwargs(
                     dict(
                         method_name="approve",
-                        # sender=period_state.safe_contract_address,  # noqa: E800
+                        # sender=synchronized_data.safe_contract_address,  # noqa: E800
                         # gas=TEMP_GAS,  # noqa: E800
                         # gas_price=TEMP_GAS_PRICE,  # noqa: E800
-                        spender=period_state.router_contract_address,
+                        spender=synchronized_data.router_contract_address,
                         value=strategy["token_LP"]["remove_allowance"],
                     )
                 ),
@@ -1224,7 +1224,7 @@ class TestExitPoolTransactionHashBehaviour(LiquidityRebalancingBehaviourBaseCase
             contract_id=str(MultiSendContract.contract_id),
             request_kwargs=dict(
                 performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
-                contract_address=period_state.safe_contract_address,
+                contract_address=synchronized_data.safe_contract_address,
             ),
             response_kwargs=dict(
                 performative=ContractApiMessage.Performative.RAW_TRANSACTION,
@@ -1241,7 +1241,7 @@ class TestExitPoolTransactionHashBehaviour(LiquidityRebalancingBehaviourBaseCase
             contract_id=str(GnosisSafeContract.contract_id),
             request_kwargs=dict(
                 performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
-                contract_address=period_state.safe_contract_address,
+                contract_address=synchronized_data.safe_contract_address,
             ),
             response_kwargs=dict(
                 performative=ContractApiMessage.Performative.RAW_TRANSACTION,
@@ -1265,8 +1265,8 @@ class TestExitPoolTransactionHashBehaviour(LiquidityRebalancingBehaviourBaseCase
         strategy = get_default_strategy(
             is_base_native=False, is_a_native=True, is_b_native=False
         )
-        period_state = LiquidityRebalancingPeriodState(
-            StateDB(
+        synchronized_data = LiquidityRebalancingSynchronizedData(
+            AbciAppDB(
                 initial_period=0,
                 initial_data=dict(
                     most_voted_tx_hash="0x",
@@ -1283,7 +1283,7 @@ class TestExitPoolTransactionHashBehaviour(LiquidityRebalancingBehaviourBaseCase
         self.fast_forward_to_state(
             behaviour=self.behaviour,
             state_id=ExitPoolTransactionHashBehaviour.state_id,
-            period_state=period_state,
+            synchronized_data=synchronized_data,
         )
         assert (
             cast(
@@ -1302,8 +1302,8 @@ class TestExitPoolTransactionHashBehaviour(LiquidityRebalancingBehaviourBaseCase
                 contract_address=strategy["token_LP"]["address"],
                 kwargs=Kwargs(
                     dict(
-                        tx_hash=period_state.final_tx_hash,
-                        target_address=period_state.safe_contract_address,
+                        tx_hash=synchronized_data.final_tx_hash,
+                        target_address=synchronized_data.safe_contract_address,
                     )
                 ),
             ),
@@ -1337,8 +1337,8 @@ class TestSwapBackTransactionHashBehaviour(LiquidityRebalancingBehaviourBaseCase
         strategy = get_default_strategy(
             is_base_native=False, is_a_native=True, is_b_native=False
         )
-        period_state = LiquidityRebalancingPeriodState(
-            StateDB(
+        synchronized_data = LiquidityRebalancingSynchronizedData(
+            AbciAppDB(
                 initial_period=0,
                 initial_data=dict(
                     most_voted_tx_hash="0x",
@@ -1354,7 +1354,7 @@ class TestSwapBackTransactionHashBehaviour(LiquidityRebalancingBehaviourBaseCase
         self.fast_forward_to_state(
             behaviour=self.behaviour,
             state_id=SwapBackTransactionHashBehaviour.state_id,
-            period_state=period_state,
+            synchronized_data=synchronized_data,
         )
         assert (
             cast(
@@ -1373,8 +1373,8 @@ class TestSwapBackTransactionHashBehaviour(LiquidityRebalancingBehaviourBaseCase
                 contract_address=strategy["token_LP"]["address"],
                 kwargs=Kwargs(
                     dict(
-                        tx_hash=period_state.final_tx_hash,
-                        target_address=period_state.safe_contract_address,
+                        tx_hash=synchronized_data.final_tx_hash,
+                        target_address=synchronized_data.safe_contract_address,
                     )
                 ),
             ),
@@ -1393,11 +1393,11 @@ class TestSwapBackTransactionHashBehaviour(LiquidityRebalancingBehaviourBaseCase
             contract_id=str(UniswapV2Router02Contract.contract_id),
             request_kwargs=dict(
                 performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
-                contract_address=period_state.router_contract_address,
+                contract_address=synchronized_data.router_contract_address,
                 kwargs=Kwargs(
                     dict(
                         method_name="swap_exact_ETH_for_tokens",
-                        # sender=period_state.safe_contract_address,  # noqa: E800
+                        # sender=synchronized_data.safe_contract_address,  # noqa: E800
                         # gas=TEMP_GAS,  # noqa: E800
                         # gas_price=TEMP_GAS_PRICE,  # noqa: E800
                         amount_out_min=int(
@@ -1407,7 +1407,7 @@ class TestSwapBackTransactionHashBehaviour(LiquidityRebalancingBehaviourBaseCase
                             strategy["token_a"]["address"],
                             strategy["token_base"]["address"],
                         ],
-                        to=period_state.safe_contract_address,
+                        to=synchronized_data.safe_contract_address,
                         deadline=DEADLINE,
                     )
                 ),
@@ -1428,11 +1428,11 @@ class TestSwapBackTransactionHashBehaviour(LiquidityRebalancingBehaviourBaseCase
             contract_id=str(UniswapV2Router02Contract.contract_id),
             request_kwargs=dict(
                 performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
-                contract_address=period_state.router_contract_address,
+                contract_address=synchronized_data.router_contract_address,
                 kwargs=Kwargs(
                     dict(
                         method_name="swap_exact_tokens_for_tokens",
-                        # sender=period_state.safe_contract_address,  # noqa: E800
+                        # sender=synchronized_data.safe_contract_address,  # noqa: E800
                         # gas=TEMP_GAS,  # noqa: E800
                         # gas_price=TEMP_GAS_PRICE,  # noqa: E800
                         amount_in=int(
@@ -1445,7 +1445,7 @@ class TestSwapBackTransactionHashBehaviour(LiquidityRebalancingBehaviourBaseCase
                             strategy["token_b"]["address"],
                             strategy["token_base"]["address"],
                         ],
-                        to=period_state.safe_contract_address,
+                        to=synchronized_data.safe_contract_address,
                         deadline=DEADLINE,
                     )
                 ),
@@ -1469,10 +1469,10 @@ class TestSwapBackTransactionHashBehaviour(LiquidityRebalancingBehaviourBaseCase
                 kwargs=Kwargs(
                     dict(
                         method_name="approve",
-                        # sender=period_state.safe_contract_address,  # noqa: E800
+                        # sender=synchronized_data.safe_contract_address,  # noqa: E800
                         # gas=TEMP_GAS,  # noqa: E800
                         # gas_price=TEMP_GAS_PRICE,  # noqa: E800
-                        spender=period_state.router_contract_address,
+                        spender=synchronized_data.router_contract_address,
                         value=0,
                     )
                 ),
@@ -1496,10 +1496,10 @@ class TestSwapBackTransactionHashBehaviour(LiquidityRebalancingBehaviourBaseCase
                 kwargs=Kwargs(
                     dict(
                         method_name="approve",
-                        # sender=period_state.safe_contract_address,  # noqa: E800
+                        # sender=synchronized_data.safe_contract_address,  # noqa: E800
                         # gas=TEMP_GAS,  # noqa: E800
                         # gas_price=TEMP_GAS_PRICE,  # noqa: E800
-                        spender=period_state.router_contract_address,
+                        spender=synchronized_data.router_contract_address,
                         value=0,
                     )
                 ),
@@ -1519,7 +1519,7 @@ class TestSwapBackTransactionHashBehaviour(LiquidityRebalancingBehaviourBaseCase
             contract_id=str(MultiSendContract.contract_id),
             request_kwargs=dict(
                 performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
-                contract_address=period_state.safe_contract_address,
+                contract_address=synchronized_data.safe_contract_address,
             ),
             response_kwargs=dict(
                 performative=ContractApiMessage.Performative.RAW_TRANSACTION,
@@ -1536,7 +1536,7 @@ class TestSwapBackTransactionHashBehaviour(LiquidityRebalancingBehaviourBaseCase
             contract_id=str(GnosisSafeContract.contract_id),
             request_kwargs=dict(
                 performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
-                contract_address=period_state.safe_contract_address,
+                contract_address=synchronized_data.safe_contract_address,
             ),
             response_kwargs=dict(
                 performative=ContractApiMessage.Performative.RAW_TRANSACTION,
@@ -1560,8 +1560,8 @@ class TestSwapBackTransactionHashBehaviour(LiquidityRebalancingBehaviourBaseCase
         strategy = get_default_strategy(
             is_base_native=False, is_a_native=False, is_b_native=False
         )
-        period_state = LiquidityRebalancingPeriodState(
-            StateDB(
+        synchronized_data = LiquidityRebalancingSynchronizedData(
+            AbciAppDB(
                 initial_period=0,
                 initial_data=dict(
                     most_voted_tx_hash="0x",
@@ -1577,7 +1577,7 @@ class TestSwapBackTransactionHashBehaviour(LiquidityRebalancingBehaviourBaseCase
         self.fast_forward_to_state(
             behaviour=self.behaviour,
             state_id=SwapBackTransactionHashBehaviour.state_id,
-            period_state=period_state,
+            synchronized_data=synchronized_data,
         )
         assert (
             cast(
@@ -1596,8 +1596,8 @@ class TestSwapBackTransactionHashBehaviour(LiquidityRebalancingBehaviourBaseCase
                 contract_address=strategy["token_LP"]["address"],
                 kwargs=Kwargs(
                     dict(
-                        tx_hash=period_state.final_tx_hash,
-                        target_address=period_state.safe_contract_address,
+                        tx_hash=synchronized_data.final_tx_hash,
+                        target_address=synchronized_data.safe_contract_address,
                     )
                 ),
             ),
@@ -1617,11 +1617,11 @@ class TestSwapBackTransactionHashBehaviour(LiquidityRebalancingBehaviourBaseCase
             contract_id=str(UniswapV2Router02Contract.contract_id),
             request_kwargs=dict(
                 performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
-                contract_address=period_state.router_contract_address,
+                contract_address=synchronized_data.router_contract_address,
                 kwargs=Kwargs(
                     dict(
                         method_name="swap_exact_tokens_for_tokens",
-                        # sender=period_state.safe_contract_address,  # noqa: E800
+                        # sender=synchronized_data.safe_contract_address,  # noqa: E800
                         # gas=TEMP_GAS,  # noqa: E800
                         # gas_price=TEMP_GAS_PRICE,  # noqa: E800
                         amount_in=int(amount_a_received),
@@ -1632,7 +1632,7 @@ class TestSwapBackTransactionHashBehaviour(LiquidityRebalancingBehaviourBaseCase
                             strategy["token_a"]["address"],
                             strategy["token_base"]["address"],
                         ],
-                        to=period_state.safe_contract_address,
+                        to=synchronized_data.safe_contract_address,
                         deadline=DEADLINE,
                     )
                 ),
@@ -1653,11 +1653,11 @@ class TestSwapBackTransactionHashBehaviour(LiquidityRebalancingBehaviourBaseCase
             contract_id=str(UniswapV2Router02Contract.contract_id),
             request_kwargs=dict(
                 performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
-                contract_address=period_state.router_contract_address,
+                contract_address=synchronized_data.router_contract_address,
                 kwargs=Kwargs(
                     dict(
                         method_name="swap_exact_tokens_for_tokens",
-                        # sender=period_state.safe_contract_address,  # noqa: E800
+                        # sender=synchronized_data.safe_contract_address,  # noqa: E800
                         # gas=TEMP_GAS,  # noqa: E800
                         # gas_price=TEMP_GAS_PRICE,  # noqa: E800
                         amount_in=int(amount_b_received),
@@ -1668,7 +1668,7 @@ class TestSwapBackTransactionHashBehaviour(LiquidityRebalancingBehaviourBaseCase
                             strategy["token_b"]["address"],
                             strategy["token_base"]["address"],
                         ],
-                        to=period_state.safe_contract_address,
+                        to=synchronized_data.safe_contract_address,
                         deadline=DEADLINE,
                     )
                 ),
@@ -1692,10 +1692,10 @@ class TestSwapBackTransactionHashBehaviour(LiquidityRebalancingBehaviourBaseCase
                 kwargs=Kwargs(
                     dict(
                         method_name="approve",
-                        # sender=period_state.safe_contract_address,  # noqa: E800
+                        # sender=synchronized_data.safe_contract_address,  # noqa: E800
                         # gas=TEMP_GAS,  # noqa: E800
                         # gas_price=TEMP_GAS_PRICE,  # noqa: E800
-                        spender=period_state.router_contract_address,
+                        spender=synchronized_data.router_contract_address,
                         value=0,
                     )
                 ),
@@ -1719,10 +1719,10 @@ class TestSwapBackTransactionHashBehaviour(LiquidityRebalancingBehaviourBaseCase
                 kwargs=Kwargs(
                     dict(
                         method_name="approve",
-                        # sender=period_state.safe_contract_address,  # noqa: E800
+                        # sender=synchronized_data.safe_contract_address,  # noqa: E800
                         # gas=TEMP_GAS,  # noqa: E800
                         # gas_price=TEMP_GAS_PRICE,  # noqa: E800
-                        spender=period_state.router_contract_address,
+                        spender=synchronized_data.router_contract_address,
                         value=0,
                     )
                 ),
@@ -1746,10 +1746,10 @@ class TestSwapBackTransactionHashBehaviour(LiquidityRebalancingBehaviourBaseCase
                 kwargs=Kwargs(
                     dict(
                         method_name="approve",
-                        # sender=period_state.safe_contract_address,  # noqa: E800
+                        # sender=synchronized_data.safe_contract_address,  # noqa: E800
                         # gas=TEMP_GAS,  # noqa: E800
                         # gas_price=TEMP_GAS_PRICE,  # noqa: E800
-                        spender=period_state.router_contract_address,
+                        spender=synchronized_data.router_contract_address,
                         value=0,
                     )
                 ),
@@ -1769,7 +1769,7 @@ class TestSwapBackTransactionHashBehaviour(LiquidityRebalancingBehaviourBaseCase
             contract_id=str(MultiSendContract.contract_id),
             request_kwargs=dict(
                 performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
-                contract_address=period_state.safe_contract_address,
+                contract_address=synchronized_data.safe_contract_address,
             ),
             response_kwargs=dict(
                 performative=ContractApiMessage.Performative.RAW_TRANSACTION,
@@ -1786,7 +1786,7 @@ class TestSwapBackTransactionHashBehaviour(LiquidityRebalancingBehaviourBaseCase
             contract_id=str(GnosisSafeContract.contract_id),
             request_kwargs=dict(
                 performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
-                contract_address=period_state.safe_contract_address,
+                contract_address=synchronized_data.safe_contract_address,
             ),
             response_kwargs=dict(
                 performative=ContractApiMessage.Performative.RAW_TRANSACTION,
@@ -1841,8 +1841,8 @@ class TestSleepBehaviour(LiquidityRebalancingBehaviourBaseCase):
     ) -> None:
         """Run tests."""
 
-        period_state = LiquidityRebalancingPeriodState(
-            StateDB(
+        synchronized_data = LiquidityRebalancingSynchronizedData(
+            AbciAppDB(
                 initial_period=0,
                 initial_data=dict(
                     most_voted_tx_hash="0x",
@@ -1856,7 +1856,7 @@ class TestSleepBehaviour(LiquidityRebalancingBehaviourBaseCase):
         self.fast_forward_to_state(
             behaviour=self.behaviour,
             state_id=SleepBehaviour.state_id,
-            period_state=period_state,
+            synchronized_data=synchronized_data,
         )
         assert (
             cast(

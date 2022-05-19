@@ -72,13 +72,13 @@ from packages.valory.skills.transaction_settlement_abci.rounds import (
     CheckTransactionHistoryRound,
     CollectSignatureRound,
     FinalizationRound,
-    PeriodState,
     RandomnessTransactionSubmissionRound,
     ResetRound,
     SelectKeeperTransactionSubmissionRoundA,
     SelectKeeperTransactionSubmissionRoundB,
     SelectKeeperTransactionSubmissionRoundBAfterTimeout,
     SynchronizeLateMessagesRound,
+    SynchronizedData,
     TransactionSubmissionAbciApp,
     ValidateTransactionRound,
 )
@@ -94,9 +94,9 @@ class TransactionSettlementBaseState(BaseState, ABC):
     """Base state behaviour for the common apps' skill."""
 
     @property
-    def period_state(self) -> PeriodState:
-        """Return the period state."""
-        return cast(PeriodState, super().period_state)
+    def synchronized_data(self) -> SynchronizedData:
+        """Return the synchronized data."""
+        return cast(SynchronizedData, super().synchronized_data)
 
     @property
     def params(self) -> TransactionParams:
@@ -120,9 +120,9 @@ class TransactionSettlementBaseState(BaseState, ABC):
         """Get the transaction data from a `ContractApiMessage`."""
         tx_data: TxDataType = {
             "status": VerificationStatus.PENDING,
-            "keepers": self.period_state.keepers,
-            "keeper_retries": self.period_state.keeper_retries,
-            "blacklisted_keepers": self.period_state.blacklisted_keepers,
+            "keepers": self.synchronized_data.keepers,
+            "keeper_retries": self.synchronized_data.keeper_retries,
+            "blacklisted_keepers": self.synchronized_data.blacklisted_keepers,
             "tx_digest": "",
         }
 
@@ -203,22 +203,24 @@ class TransactionSettlementBaseState(BaseState, ABC):
 
     def _verify_tx(self, tx_hash: str) -> Generator[None, None, ContractApiMessage]:
         """Verify a transaction."""
-        tx_params = skill_input_hex_to_payload(self.period_state.most_voted_tx_hash)
+        tx_params = skill_input_hex_to_payload(
+            self.synchronized_data.most_voted_tx_hash
+        )
 
         contract_api_msg = yield from self.get_contract_api_response(
             performative=ContractApiMessage.Performative.GET_STATE,  # type: ignore
-            contract_address=self.period_state.safe_contract_address,
+            contract_address=self.synchronized_data.safe_contract_address,
             contract_id=str(GnosisSafeContract.contract_id),
             contract_callable="verify_tx",
             tx_hash=tx_hash,
-            owners=tuple(self.period_state.participants),
+            owners=tuple(self.synchronized_data.participants),
             to_address=tx_params["to_address"],
             value=tx_params["ether_value"],
             data=tx_params["data"],
             safe_tx_gas=tx_params["safe_tx_gas"],
             signatures_by_owner={
                 key: payload.signature
-                for key, payload in self.period_state.participant_to_signature.items()
+                for key, payload in self.synchronized_data.participant_to_signature.items()
             },
             operation=tx_params["operation"],
         )
@@ -291,20 +293,21 @@ class SelectKeeperTransactionSubmissionBehaviourB(  # pylint: disable=too-many-a
         """
 
         with self.context.benchmark_tool.measure(self.state_id).local():
-            keepers = self.period_state.keepers
+            keepers = self.synchronized_data.keepers
             keeper_retries = 1
 
             if (
-                self.period_state.keepers_threshold_exceeded
+                self.synchronized_data.keepers_threshold_exceeded
             ):  # TODO: I think this should be second prio
                 keepers.rotate(-1)
                 self.context.logger.info(f"Rotated keepers to: {keepers}.")
             elif (
-                self.period_state.keeper_retries != self.params.keeper_allowed_retries
-                and self.period_state.final_verification_status
+                self.synchronized_data.keeper_retries
+                != self.params.keeper_allowed_retries
+                and self.synchronized_data.final_verification_status
                 == VerificationStatus.PENDING
             ):
-                keeper_retries += self.period_state.keeper_retries
+                keeper_retries += self.synchronized_data.keeper_retries
                 self.context.logger.info(
                     f"Kept keepers and incremented retries: {keepers}."
                 )
@@ -355,7 +358,7 @@ class ValidateTransactionBehaviour(TransactionSettlementBaseState):
             is_correct = yield from self.has_transaction_been_sent()
             if is_correct:
                 self.context.logger.info(
-                    f"Finalized with transaction hash: {self.period_state.to_be_validated_tx_hash}"
+                    f"Finalized with transaction hash: {self.synchronized_data.to_be_validated_tx_hash}"
                 )
             payload = ValidatePayload(self.context.agent_address, is_correct)
 
@@ -368,18 +371,18 @@ class ValidateTransactionBehaviour(TransactionSettlementBaseState):
     def has_transaction_been_sent(self) -> Generator[None, None, Optional[bool]]:
         """Transaction verification."""
         response = yield from self.get_transaction_receipt(
-            self.period_state.to_be_validated_tx_hash,
+            self.synchronized_data.to_be_validated_tx_hash,
             self.params.retry_timeout,
             self.params.retry_attempts,
         )
         if response is None:  # pragma: nocover
             self.context.logger.error(
-                f"tx {self.period_state.to_be_validated_tx_hash} receipt check timed out!"
+                f"tx {self.synchronized_data.to_be_validated_tx_hash} receipt check timed out!"
             )
             return None
 
         contract_api_msg = yield from self._verify_tx(
-            self.period_state.to_be_validated_tx_hash
+            self.synchronized_data.to_be_validated_tx_hash
         )
         if (
             contract_api_msg.performative != ContractApiMessage.Performative.STATE
@@ -416,15 +419,15 @@ class CheckTransactionHistoryBehaviour(TransactionSettlementBaseState):
             if verification_status == VerificationStatus.VERIFIED:
                 msg = f"A previous transaction {tx_hash} has already been verified "
                 msg += (
-                    f"for {self.period_state.to_be_validated_tx_hash}."
-                    if self.period_state.tx_hashes_history
+                    f"for {self.synchronized_data.to_be_validated_tx_hash}."
+                    if self.synchronized_data.tx_hashes_history
                     else "and was synced after the finalization round timed out."
                 )
                 self.context.logger.info(msg)
             elif verification_status == VerificationStatus.NOT_VERIFIED:
                 self.context.logger.info(
                     f"No previous transaction has been verified for "
-                    f"{self.period_state.to_be_validated_tx_hash}."
+                    f"{self.synchronized_data.to_be_validated_tx_hash}."
                 )
 
             verified_res = tx_hist_payload_to_hex(verification_status, tx_hash)
@@ -443,9 +446,9 @@ class CheckTransactionHistoryBehaviour(TransactionSettlementBaseState):
     ) -> Generator[None, None, Tuple[VerificationStatus, Optional[str]]]:
         """Check the transaction history."""
         history = (
-            self.period_state.tx_hashes_history
+            self.synchronized_data.tx_hashes_history
             if self.state_id == CHECK_TX_HISTORY
-            else self.period_state.late_arriving_tx_hashes
+            else self.synchronized_data.late_arriving_tx_hashes
         )
 
         if not history:
@@ -510,7 +513,7 @@ class CheckTransactionHistoryBehaviour(TransactionSettlementBaseState):
         """Get the revert reason of the given transaction."""
         contract_api_msg = yield from self.get_contract_api_response(
             performative=ContractApiMessage.Performative.GET_STATE,  # type: ignore
-            contract_address=self.period_state.safe_contract_address,
+            contract_address=self.synchronized_data.safe_contract_address,
             contract_id=str(GnosisSafeContract.contract_id),
             contract_callable="revert_reason",
             tx=tx,
@@ -596,7 +599,7 @@ class SignatureBehaviour(TransactionSettlementBaseState):
 
         with self.context.benchmark_tool.measure(self.state_id).local():
             self.context.logger.info(
-                f"Consensus reached on tx hash: {self.period_state.most_voted_tx_hash}"
+                f"Consensus reached on tx hash: {self.synchronized_data.most_voted_tx_hash}"
             )
             signature_hex = yield from self._get_safe_tx_signature()
             payload = SignaturePayload(self.context.agent_address, signature_hex)
@@ -609,7 +612,9 @@ class SignatureBehaviour(TransactionSettlementBaseState):
 
     def _get_safe_tx_signature(self) -> Generator[None, None, str]:
         """Get signature of safe transaction hash."""
-        tx_params = skill_input_hex_to_payload(self.period_state.most_voted_tx_hash)
+        tx_params = skill_input_hex_to_payload(
+            self.synchronized_data.most_voted_tx_hash
+        )
         # is_deprecated_mode=True because we want to call Account.signHash,
         # which is the same used by gnosis-py
         safe_tx_hash_bytes = binascii.unhexlify(tx_params["safe_tx_hash"])
@@ -630,7 +635,10 @@ class FinalizeBehaviour(TransactionSettlementBaseState):
 
     def _i_am_not_sending(self) -> bool:
         """Indicates if the current agent is the sender or not."""
-        return self.context.agent_address != self.period_state.most_voted_keeper_address
+        return (
+            self.context.agent_address
+            != self.synchronized_data.most_voted_keeper_address
+        )
 
     def async_act(self) -> Generator[None, None, None]:
         """
@@ -650,7 +658,7 @@ class FinalizeBehaviour(TransactionSettlementBaseState):
         """Do the non-sender action."""
         with self.context.benchmark_tool.measure(self.state_id).consensus():
             self.context.logger.info(
-                f"Waiting for the keeper to do its keeping: {self.period_state.most_voted_keeper_address}"
+                f"Waiting for the keeper to do its keeping: {self.synchronized_data.most_voted_keeper_address}"
             )
             yield from self.wait_until_round_end()
         self.set_done()
@@ -679,10 +687,10 @@ class FinalizeBehaviour(TransactionSettlementBaseState):
                     f"Finalization tx digest: {cast(str, tx_data['tx_digest'])}"
                 )
                 self.context.logger.debug(
-                    f"Signatures: {pprint.pformat(self.period_state.participant_to_signature)}"
+                    f"Signatures: {pprint.pformat(self.synchronized_data.participant_to_signature)}"
                 )
 
-            tx_hashes_history = self.period_state.tx_hashes_history
+            tx_hashes_history = self.synchronized_data.tx_hashes_history
             if tx_data["tx_digest"] != "":
                 tx_hashes_history.append(cast(str, tx_data["tx_digest"]))
 
@@ -716,22 +724,24 @@ class FinalizeBehaviour(TransactionSettlementBaseState):
         self,
     ) -> Generator[None, None, TxDataType]:
         """Send a Safe transaction using the participants' signatures."""
-        tx_params = skill_input_hex_to_payload(self.period_state.most_voted_tx_hash)
+        tx_params = skill_input_hex_to_payload(
+            self.synchronized_data.most_voted_tx_hash
+        )
 
         contract_api_msg = yield from self.get_contract_api_response(
             performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
-            contract_address=self.period_state.safe_contract_address,
+            contract_address=self.synchronized_data.safe_contract_address,
             contract_id=str(GnosisSafeContract.contract_id),
             contract_callable="get_raw_safe_transaction",
             sender_address=self.context.agent_address,
-            owners=tuple(self.period_state.participants),
+            owners=tuple(self.synchronized_data.participants),
             to_address=tx_params["to_address"],
             value=tx_params["ether_value"],
             data=tx_params["data"],
             safe_tx_gas=tx_params["safe_tx_gas"],
             signatures_by_owner={
                 key: payload.signature
-                for key, payload in self.period_state.participant_to_signature.items()
+                for key, payload in self.synchronized_data.participant_to_signature.items()
             },
             nonce=self.params.nonce,
             old_price=self.params.gas_price,
@@ -761,10 +771,10 @@ class ResetBehaviour(TransactionSettlementBaseState):
     def async_act(self) -> Generator:
         """Do the action."""
         self.context.logger.info(
-            f"Period {self.period_state.period_count} was not finished. Resetting!"
+            f"Period {self.synchronized_data.period_count} was not finished. Resetting!"
         )
         payload = ResetPayload(
-            self.context.agent_address, self.period_state.period_count + 1
+            self.context.agent_address, self.synchronized_data.period_count + 1
         )
         yield from self.send_a2a_transaction(payload)
         yield from self.wait_until_round_end()

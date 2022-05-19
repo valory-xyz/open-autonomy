@@ -29,7 +29,7 @@ from packages.valory.skills.abstract_round_abci.base import (
     AbciAppTransitionFunction,
     AbstractRound,
     AppState,
-    BasePeriodState,
+    BaseSynchronizedData,
     CollectSameUntilThresholdRound,
     DegenerateRound,
 )
@@ -58,11 +58,11 @@ class Event(Enum):
     RESET_TIMEOUT = "reset_timeout"
 
 
-class PeriodState(
-    BasePeriodState
+class SynchronizedData(
+    BaseSynchronizedData
 ):  # pylint: disable=too-many-instance-attributes,too-many-statements,too-many-public-methods
     """
-    Class to represent a period state.
+    Class to represent a synchronized data.
 
     This state is replicated by the tendermint application.
     """
@@ -131,17 +131,17 @@ class LiquidityRebalancingAbstractRound(AbstractRound[Event, TransactionType], A
     """Abstract round for the liquidity rebalancing skill."""
 
     @property
-    def period_state(self) -> PeriodState:
-        """Return the period state."""
-        return cast(PeriodState, self._state)
+    def synchronized_data(self) -> SynchronizedData:
+        """Return the synchronized data."""
+        return cast(SynchronizedData, self._state)
 
-    def _return_no_majority_event(self) -> Tuple[PeriodState, Event]:
+    def _return_no_majority_event(self) -> Tuple[SynchronizedData, Event]:
         """
         Trigger the NO_MAJORITY event.
 
-        :return: a new period state and a NO_MAJORITY event
+        :return: a new synchronized data and a NO_MAJORITY event
         """
-        return self.period_state, Event.NO_MAJORITY
+        return self.synchronized_data, Event.NO_MAJORITY
 
 
 class TransactionHashBaseRound(
@@ -153,17 +153,17 @@ class TransactionHashBaseRound(
     allowed_tx_type = TransactionHashPayload.transaction_type
     payload_attribute = "tx_hash"
 
-    def end_block(self) -> Optional[Tuple[BasePeriodState, Event]]:
+    def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Event]]:
         """Process the end of the block."""
         if self.threshold_reached:
             dict_ = json.loads(self.most_voted_payload)
-            state = self.period_state.update(
+            state = self.synchronized_data.update(
                 participant_to_tx_hash=MappingProxyType(self.collection),
                 most_voted_tx_hash=dict_["tx_hash"],
             )
             return state, Event.DONE
         if not self.is_majority_possible(
-            self.collection, self.period_state.nb_participants
+            self.collection, self.synchronized_data.nb_participants
         ):
             return self._return_no_majority_event()
         return None
@@ -178,10 +178,10 @@ class StrategyEvaluationRound(
     allowed_tx_type = StrategyEvaluationPayload.transaction_type
     payload_attribute = "strategy"
 
-    def end_block(self) -> Optional[Tuple[BasePeriodState, Event]]:
+    def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Event]]:
         """Process the end of the block."""
         if self.threshold_reached:
-            state = self.period_state.update(
+            state = self.synchronized_data.update(
                 participant_to_strategy=MappingProxyType(self.collection),
                 most_voted_strategy=self.most_voted_payload,
             )
@@ -199,7 +199,7 @@ class StrategyEvaluationRound(
                 event = Event.DONE_SWAP_BACK
             return state, event
         if not self.is_majority_possible(
-            self.collection, self.period_state.nb_participants
+            self.collection, self.synchronized_data.nb_participants
         ):
             return self._return_no_majority_event()
         return None
@@ -212,12 +212,12 @@ class SleepRound(CollectSameUntilThresholdRound, LiquidityRebalancingAbstractRou
     allowed_tx_type = SleepPayload.transaction_type
     payload_attribute = "sleep"
 
-    def end_block(self) -> Optional[Tuple[BasePeriodState, Event]]:
+    def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Event]]:
         """Process the end of the block."""
         if self.threshold_reached:
-            return self.period_state, Event.DONE
+            return self.synchronized_data, Event.DONE
         if not self.is_majority_possible(
-            self.collection, self.period_state.nb_participants
+            self.collection, self.synchronized_data.nb_participants
         ):
             return self._return_no_majority_event()
         return None

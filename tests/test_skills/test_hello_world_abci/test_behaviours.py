@@ -36,11 +36,11 @@ from packages.valory.connections.http_client.connection import (
 )
 from packages.valory.protocols.http import HttpMessage
 from packages.valory.skills.abstract_round_abci.base import (
+    AbciAppDB,
     AbstractRound,
-    BasePeriodState,
+    BaseSynchronizedData,
     BaseTxPayload,
     OK_CODE,
-    StateDB,
     _MetaPayload,
 )
 from packages.valory.skills.abstract_round_abci.behaviour_utils import BaseState
@@ -53,7 +53,7 @@ from packages.valory.skills.hello_world_abci.behaviours import (
     SelectKeeperBehaviour,
 )
 from packages.valory.skills.hello_world_abci.handlers import HttpHandler, SigningHandler
-from packages.valory.skills.hello_world_abci.rounds import Event, PeriodState
+from packages.valory.skills.hello_world_abci.rounds import Event, SynchronizedData
 
 from tests.conftest import ROOT_DIR
 
@@ -67,7 +67,7 @@ class HelloWorldAbciFSMBehaviourBaseCase(BaseSkillTestCase):
     http_handler: HttpHandler
     signing_handler: SigningHandler
     old_tx_type_to_payload_cls: Dict[str, Type[BaseTxPayload]]
-    period_state: PeriodState
+    synchronized_data: SynchronizedData
     benchmark_dir: TemporaryDirectory
 
     @classmethod
@@ -98,7 +98,7 @@ class HelloWorldAbciFSMBehaviourBaseCase(BaseSkillTestCase):
 
         cls.hello_world_abci_behaviour.setup()
         cls._skill.skill_context.state.setup()
-        cls._skill.skill_context.state.period.end_sync()
+        cls._skill.skill_context.state.round_sequence.end_sync()
 
         cls.benchmark_dir = TemporaryDirectory()
         cls._skill.skill_context.benchmark_tool.log_dir = Path(cls.benchmark_dir.name)
@@ -107,8 +107,8 @@ class HelloWorldAbciFSMBehaviourBaseCase(BaseSkillTestCase):
             cast(BaseState, cls.hello_world_abci_behaviour.current_state).state_id
             == cls.hello_world_abci_behaviour.initial_state_cls.state_id
         )
-        cls.period_state = PeriodState(
-            StateDB(
+        cls.synchronized_data = SynchronizedData(
+            AbciAppDB(
                 initial_period=0,
                 initial_data=dict(
                     most_voted_keeper_address="most_voted_keeper_address",
@@ -120,7 +120,7 @@ class HelloWorldAbciFSMBehaviourBaseCase(BaseSkillTestCase):
         self,
         behaviour: AbstractRoundBehaviour,
         state_id: str,
-        period_state: BasePeriodState,
+        synchronized_data: BaseSynchronizedData,
     ) -> None:
         """Fast forward the FSM to a state."""
         next_state = {s.state_id: s for s in behaviour.behaviour_states}[state_id]
@@ -129,16 +129,16 @@ class HelloWorldAbciFSMBehaviourBaseCase(BaseSkillTestCase):
         behaviour.current_state = next_state(
             name=next_state.state_id, skill_context=behaviour.context
         )
-        self.skill.skill_context.state.period.abci_app._round_results.append(
-            period_state
+        self.skill.skill_context.state.round_sequence.abci_app._round_results.append(
+            synchronized_data
         )
-        self.skill.skill_context.state.period.abci_app._extend_previous_rounds_with_current_round()
+        self.skill.skill_context.state.round_sequence.abci_app._extend_previous_rounds_with_current_round()
         self.skill.skill_context.behaviours.main._last_round_height = (
-            self.skill.skill_context.state.period.abci_app.current_round_height
+            self.skill.skill_context.state.round_sequence.abci_app.current_round_height
         )
-        self.skill.skill_context.state.period.abci_app._current_round = (
+        self.skill.skill_context.state.round_sequence.abci_app._current_round = (
             next_state.matching_round(
-                period_state, self.skill.skill_context.params.consensus_params
+                synchronized_data, self.skill.skill_context.params.consensus_params
             )
         )
 
@@ -262,7 +262,7 @@ class HelloWorldAbciFSMBehaviourBaseCase(BaseSkillTestCase):
         if current_state is None:
             return
         current_state = cast(BaseState, current_state)
-        abci_app = current_state.context.state.period.abci_app
+        abci_app = current_state.context.state.round_sequence.abci_app
         old_round = abci_app._current_round
         abci_app._last_round = old_round
         abci_app._current_round = abci_app.transition_function[
@@ -306,8 +306,8 @@ class BaseSelectKeeperBehaviourTest(HelloWorldAbciFSMBehaviourBaseCase):
         self.fast_forward_to_state(
             behaviour=self.hello_world_abci_behaviour,
             state_id=self.select_keeper_behaviour_class.state_id,
-            period_state=PeriodState(
-                StateDB(
+            synchronized_data=SynchronizedData(
+                AbciAppDB(
                     initial_period=0,
                     initial_data=dict(
                         participants=participants,
@@ -339,7 +339,7 @@ class TestRegistrationBehaviour(HelloWorldAbciFSMBehaviourBaseCase):
         self.fast_forward_to_state(
             self.hello_world_abci_behaviour,
             RegistrationBehaviour.state_id,
-            self.period_state,
+            self.synchronized_data,
         )
         assert (
             cast(
@@ -372,7 +372,7 @@ class TestPrintMessageBehaviour(HelloWorldAbciFSMBehaviourBaseCase):
         self.fast_forward_to_state(
             self.hello_world_abci_behaviour,
             PrintMessageBehaviour.state_id,
-            self.period_state,
+            self.synchronized_data,
         )
         assert (
             cast(
@@ -399,7 +399,7 @@ class TestPrintMessageBehaviour(HelloWorldAbciFSMBehaviourBaseCase):
         self.fast_forward_to_state(
             self.hello_world_abci_behaviour,
             PrintMessageBehaviour.state_id,
-            self.period_state,
+            self.synchronized_data,
         )
         assert (
             cast(
@@ -430,7 +430,7 @@ class TestResetAndPauseBehaviour(HelloWorldAbciFSMBehaviourBaseCase):
         self.fast_forward_to_state(
             behaviour=self.hello_world_abci_behaviour,
             state_id=self.behaviour_class.state_id,
-            period_state=self.period_state,
+            synchronized_data=self.synchronized_data,
         )
         assert (
             cast(
@@ -456,7 +456,7 @@ class TestResetAndPauseBehaviour(HelloWorldAbciFSMBehaviourBaseCase):
         self.fast_forward_to_state(
             behaviour=self.hello_world_abci_behaviour,
             state_id=self.behaviour_class.state_id,
-            period_state=self.period_state,
+            synchronized_data=self.synchronized_data,
         )
         self.hello_world_abci_behaviour.current_state.pause = False  # type: ignore
         assert (

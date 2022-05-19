@@ -22,7 +22,7 @@ import logging  # noqa: F401
 from typing import Dict, FrozenSet
 
 from packages.valory.skills.abstract_round_abci.base import (
-    BasePeriodState as ResetPeriodState,
+    BaseSynchronizedData as ResetSynchronizedData,
 )
 from packages.valory.skills.reset_pause_abci.payloads import ResetPausePayload
 from packages.valory.skills.reset_pause_abci.rounds import Event as ResetEvent
@@ -50,7 +50,7 @@ def get_participant_to_period_count(
 class TestResetAndPauseRound(BaseCollectSameUntilThresholdRoundTest):
     """Test ResetRound."""
 
-    _period_state_class = ResetPeriodState
+    _synchronized_data_class = ResetSynchronizedData
     _event_class = ResetEvent
 
     def test_runs(
@@ -58,12 +58,12 @@ class TestResetAndPauseRound(BaseCollectSameUntilThresholdRoundTest):
     ) -> None:
         """Runs tests."""
 
-        period_state = self.period_state.update(
+        synchronized_data = self.synchronized_data.update(
             keeper_randomness=DUMMY_RANDOMNESS,
         )
-        period_state._db._cross_period_persisted_keys = ["keeper_randomness"]
+        synchronized_data._db._cross_reset_persisted_keys = ["keeper_randomness"]
         test_round = ResetAndPauseRound(
-            state=period_state, consensus_params=self.consensus_params
+            state=synchronized_data, consensus_params=self.consensus_params
         )
         next_period_count = 1
         self._complete_run(
@@ -72,7 +72,7 @@ class TestResetAndPauseRound(BaseCollectSameUntilThresholdRoundTest):
                 round_payloads=get_participant_to_period_count(
                     self.participants, next_period_count
                 ),
-                state_update_fn=lambda _period_state, _: _period_state.update(
+                state_update_fn=lambda _synchronized_data, _: _synchronized_data.update(
                     period_count=next_period_count,
                     participants=self.participants,
                     all_participants=self.participants,

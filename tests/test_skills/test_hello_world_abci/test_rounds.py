@@ -24,10 +24,10 @@ from typing import Dict, FrozenSet, cast
 from unittest import mock
 
 from packages.valory.skills.abstract_round_abci.base import (
+    AbciAppDB,
     AbstractRound,
     ConsensusParams,
     MAX_INT_256,
-    StateDB,
 )
 from packages.valory.skills.hello_world_abci.payloads import (
     PrintMessagePayload,
@@ -37,11 +37,11 @@ from packages.valory.skills.hello_world_abci.payloads import (
 )
 from packages.valory.skills.hello_world_abci.rounds import (
     Event,
-    PeriodState,
     PrintMessageRound,
     RegistrationRound,
     ResetAndPauseRound,
     SelectKeeperRound,
+    SynchronizedData,
 )
 
 
@@ -76,7 +76,7 @@ def get_participant_to_period_count(
 class BaseRoundTestClass:
     """Base test class for Rounds."""
 
-    period_state: PeriodState
+    synchronized_data: SynchronizedData
     consensus_params: ConsensusParams
     participants: FrozenSet[str]
 
@@ -87,8 +87,8 @@ class BaseRoundTestClass:
         """Setup the test class."""
 
         cls.participants = get_participants()
-        cls.period_state = PeriodState(
-            StateDB(
+        cls.synchronized_data = SynchronizedData(
+            AbciAppDB(
                 initial_period=0,
                 initial_data=dict(
                     participants=cls.participants, all_participants=cls.participants
@@ -115,7 +115,7 @@ class TestRegistrationRound(BaseRoundTestClass):
         """Run tests."""
 
         test_round = RegistrationRound(
-            state=self.period_state, consensus_params=self.consensus_params
+            state=self.synchronized_data, consensus_params=self.consensus_params
         )
 
         first_payload, *payloads = [
@@ -129,8 +129,8 @@ class TestRegistrationRound(BaseRoundTestClass):
         for payload in payloads:
             test_round.process_payload(payload)
 
-        actual_next_state = PeriodState(
-            StateDB(
+        actual_next_state = SynchronizedData(
+            AbciAppDB(
                 initial_period=0, initial_data=dict(participants=test_round.collection)
             )
         )
@@ -139,8 +139,8 @@ class TestRegistrationRound(BaseRoundTestClass):
         assert res is not None
         state, event = res
         assert (
-            cast(PeriodState, state).participants
-            == cast(PeriodState, actual_next_state).participants
+            cast(SynchronizedData, state).participants
+            == cast(SynchronizedData, actual_next_state).participants
         )
         assert event == Event.DONE
 
@@ -154,7 +154,7 @@ class TestSelectKeeperRound(BaseRoundTestClass):
         """Run tests."""
 
         test_round = SelectKeeperRound(
-            state=self.period_state, consensus_params=self.consensus_params
+            state=self.synchronized_data, consensus_params=self.consensus_params
         )
 
         first_payload, *payloads = [
@@ -171,7 +171,7 @@ class TestSelectKeeperRound(BaseRoundTestClass):
         for payload in payloads:
             test_round.process_payload(payload)
 
-        actual_next_state = self.period_state.update(
+        actual_next_state = self.synchronized_data.update(
             participant_to_selection=MappingProxyType(test_round.collection),
             most_voted_keeper_address=test_round.most_voted_payload,
         )
@@ -181,8 +181,10 @@ class TestSelectKeeperRound(BaseRoundTestClass):
         state, event = res
         assert all(
             [
-                key in cast(PeriodState, state).participant_to_selection
-                for key in cast(PeriodState, actual_next_state).participant_to_selection
+                key in cast(SynchronizedData, state).participant_to_selection
+                for key in cast(
+                    SynchronizedData, actual_next_state
+                ).participant_to_selection
             ]
         )
         assert event == Event.DONE
@@ -197,7 +199,7 @@ class TestPrintMessageRound(BaseRoundTestClass):
         """Run tests."""
 
         test_round = PrintMessageRound(
-            state=self.period_state, consensus_params=self.consensus_params
+            state=self.synchronized_data, consensus_params=self.consensus_params
         )
 
         first_payload, *payloads = [
@@ -212,8 +214,8 @@ class TestPrintMessageRound(BaseRoundTestClass):
         for payload in payloads:
             test_round.process_payload(payload)
 
-        actual_next_state = PeriodState(
-            StateDB(
+        actual_next_state = SynchronizedData(
+            AbciAppDB(
                 initial_period=0, initial_data=dict(participants=test_round.collection)
             )
         )
@@ -222,8 +224,8 @@ class TestPrintMessageRound(BaseRoundTestClass):
         assert res is not None
         state, event = res
         assert (
-            cast(PeriodState, state).participants
-            == cast(PeriodState, actual_next_state).participants
+            cast(SynchronizedData, state).participants
+            == cast(SynchronizedData, actual_next_state).participants
         )
         assert event == Event.DONE
 
@@ -236,7 +238,7 @@ class TestResetAndPauseRound(BaseRoundTestClass):
     ) -> None:
         """Run tests."""
         test_round = ResetAndPauseRound(
-            state=self.period_state, consensus_params=self.consensus_params
+            state=self.synchronized_data, consensus_params=self.consensus_params
         )
 
         first_payload, *payloads = [
@@ -253,10 +255,10 @@ class TestResetAndPauseRound(BaseRoundTestClass):
         for payload in payloads:
             test_round.process_payload(payload)
 
-        actual_next_state = self.period_state.update(
+        actual_next_state = self.synchronized_data.update(
             period_count=test_round.most_voted_payload,
-            participants=self.period_state.participants,
-            all_participants=self.period_state.all_participants,
+            participants=self.synchronized_data.participants,
+            all_participants=self.synchronized_data.all_participants,
         )
 
         res = test_round.end_block()
@@ -264,19 +266,19 @@ class TestResetAndPauseRound(BaseRoundTestClass):
         state, event = res
 
         assert (
-            cast(PeriodState, state).period_count
-            == cast(PeriodState, actual_next_state).period_count
+            cast(SynchronizedData, state).period_count
+            == cast(SynchronizedData, actual_next_state).period_count
         )
 
         assert event == Event.DONE
 
 
-def test_period_state() -> None:  # pylint:too-many-locals
-    """Test PeriodState."""
+def test_synchronized_data() -> None:  # pylint:too-many-locals
+    """Test SynchronizedData."""
 
     participants = get_participants()
     period_count = 10
-    period_setup_params = {}  # type: ignore
+    round_sequence_setup_params = {}  # type: ignore
     most_voted_randomness = "0xabcd"
     participant_to_selection = {
         participant: SelectKeeperPayload(sender=participant, keeper="keeper")
@@ -284,12 +286,12 @@ def test_period_state() -> None:  # pylint:too-many-locals
     }
     most_voted_keeper_address = "keeper"
 
-    period_state = PeriodState(
-        StateDB(
+    synchronized_data = SynchronizedData(
+        AbciAppDB(
             initial_period=period_count,
             initial_data=dict(
                 participants=participants,
-                period_setup_params=period_setup_params,
+                round_sequence_setup_params=round_sequence_setup_params,
                 most_voted_randomness=most_voted_randomness,
                 participant_to_selection=participant_to_selection,
                 most_voted_keeper_address=most_voted_keeper_address,
@@ -297,13 +299,13 @@ def test_period_state() -> None:  # pylint:too-many-locals
         )
     )
 
-    assert period_state.participants == participants
-    assert period_state.period_count == period_count
-    assert period_state.most_voted_randomness == most_voted_randomness
-    assert period_state.participant_to_selection == participant_to_selection
-    assert period_state.most_voted_keeper_address == most_voted_keeper_address
-    assert period_state.sorted_participants == sorted(participants)
+    assert synchronized_data.participants == participants
+    assert synchronized_data.period_count == period_count
+    assert synchronized_data.most_voted_randomness == most_voted_randomness
+    assert synchronized_data.participant_to_selection == participant_to_selection
+    assert synchronized_data.most_voted_keeper_address == most_voted_keeper_address
+    assert synchronized_data.sorted_participants == sorted(participants)
     actual_keeper_randomness = int(most_voted_randomness, base=16) / MAX_INT_256
     assert (
-        abs(period_state.keeper_randomness - actual_keeper_randomness) < 1e-10
+        abs(synchronized_data.keeper_randomness - actual_keeper_randomness) < 1e-10
     )  # avoid equality comparisons between floats

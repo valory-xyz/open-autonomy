@@ -30,10 +30,10 @@ from aea.skills.base import Model
 from packages.valory.protocols.http.message import HttpMessage
 from packages.valory.skills.abstract_round_abci.base import (
     AbciApp,
-    BasePeriodState,
+    AbciAppDB,
+    BaseSynchronizedData,
     ConsensusParams,
-    Period,
-    StateDB,
+    RoundSequence,
 )
 
 
@@ -73,12 +73,14 @@ class BaseParams(Model):  # pylint: disable=too-many-instance-attributes
         )
         self.tx_timeout = kwargs.pop("tx_timeout", _DEFAULT_TX_TIMEOUT)
         self.max_attempts = kwargs.pop("max_attempts", _DEFAULT_TX_MAX_ATTEMPTS)
-        period_setup_params = kwargs.pop("period_setup", {})
+        round_sequence_setup_params = kwargs.pop("round_sequence_setup", {})
         # we sanitize for null values as these are just kept for schema definitions
-        period_setup_params = {
-            key: val for key, val in period_setup_params.items() if val is not None
+        round_sequence_setup_params = {
+            key: val
+            for key, val in round_sequence_setup_params.items()
+            if val is not None
         }
-        self.period_setup_params = period_setup_params
+        self.round_sequence_setup_params = round_sequence_setup_params
         super().__init__(*args, **kwargs)
 
     @classmethod
@@ -95,20 +97,22 @@ class SharedState(Model):
     def __init__(self, *args: Any, abci_app_cls: Type[AbciApp], **kwargs: Any) -> None:
         """Initialize the state."""
         self.abci_app_cls = self._process_abci_app_cls(abci_app_cls)
-        self._period: Optional[Period] = None
+        self._round_sequence: Optional[RoundSequence] = None
         super().__init__(*args, **kwargs)
 
     def setup(self) -> None:
         """Set up the model."""
-        self._period = Period(self.abci_app_cls)
+        self._round_sequence = RoundSequence(self.abci_app_cls)
         consensus_params = cast(BaseParams, self.context.params).consensus_params
-        period_setup_params = cast(BaseParams, self.context.params).period_setup_params
-        self.period.setup(
-            BasePeriodState(
-                StateDB(
-                    initial_period=0,
-                    initial_data=period_setup_params,
-                    cross_period_persisted_keys=self.abci_app_cls.cross_period_persisted_keys,
+        round_sequence_setup_params = cast(
+            BaseParams, self.context.params
+        ).round_sequence_setup_params
+        self.round_sequence.setup(
+            BaseSynchronizedData(
+                AbciAppDB(
+                    initial_round=0,
+                    initial_data=round_sequence_setup_params,
+                    cross_reset_persisted_keys=self.abci_app_cls.cross_reset_persisted_keys,
                 )
             ),
             consensus_params,
@@ -116,16 +120,16 @@ class SharedState(Model):
         )
 
     @property
-    def period(self) -> Period:
-        """Get the period."""
-        if self._period is None:
-            raise ValueError("period not available")
-        return self._period
+    def round_sequence(self) -> RoundSequence:
+        """Get the round sequence."""
+        if self._round_sequence is None:
+            raise ValueError("round sequence not available")
+        return self._round_sequence
 
     @property
-    def period_state(self) -> BasePeriodState:
-        """Get the period state if available."""
-        return self.period.latest_state
+    def synchronized_data(self) -> BaseSynchronizedData:
+        """Get the synchronized data if available."""
+        return self.round_sequence.latest_state
 
     @classmethod
     def _process_abci_app_cls(cls, abci_app_cls: Type[AbciApp]) -> Type[AbciApp]:
@@ -354,18 +358,18 @@ class BenchmarkTool(Model):
 
         return behavioural_data
 
-    def save(self, period: int = 0, reset: bool = True) -> None:
+    def save(self, round: int = 0, reset: bool = True) -> None:
         """Save logs to a file."""
 
         try:
             self.log_dir.mkdir(exist_ok=True)
             agent_dir = self.log_dir / self.context.agent_address
             agent_dir.mkdir(exist_ok=True)
-            filepath = agent_dir / f"{period}.json"
+            filepath = agent_dir / f"{round}.json"
 
             with open(str(filepath), "w+", encoding="utf-8") as outfile:
                 json.dump(self.data, outfile)
-            self.context.logger.info(f"Saving benchmarking data for period: {period}")
+            self.context.logger.info(f"Saving benchmarking data for round: {round}")
 
         except PermissionError as e:  # pragma: nocover
             self.context.logger.info(f"Error saving benchmark data:\n{e}")

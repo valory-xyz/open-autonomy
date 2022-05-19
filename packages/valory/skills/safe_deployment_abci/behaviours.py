@@ -39,10 +39,10 @@ from packages.valory.skills.safe_deployment_abci.payloads import (
 )
 from packages.valory.skills.safe_deployment_abci.rounds import (
     DeploySafeRound,
-    PeriodState,
     RandomnessSafeRound,
     SafeDeploymentAbciApp,
     SelectKeeperSafeRound,
+    SynchronizedData,
     ValidateSafeRound,
 )
 
@@ -51,9 +51,9 @@ class SafeDeploymentBaseState(BaseState):
     """Base state behaviour for the common apps' skill."""
 
     @property
-    def period_state(self) -> PeriodState:
-        """Return the period state."""
-        return cast(PeriodState, super().period_state)
+    def synchronized_data(self) -> SynchronizedData:
+        """Return the synchronized data."""
+        return cast(SynchronizedData, super().synchronized_data)
 
 
 class RandomnessSafeBehaviour(RandomnessBehaviour):
@@ -88,7 +88,10 @@ class DeploySafeBehaviour(SafeDeploymentBaseState):
         - Otherwise, wait until the next round.
         - If a timeout is hit, set exit A event, otherwise set done event.
         """
-        if self.context.agent_address != self.period_state.most_voted_keeper_address:
+        if (
+            self.context.agent_address
+            != self.synchronized_data.most_voted_keeper_address
+        ):
             yield from self._not_deployer_act()
         else:
             yield from self._deployer_act()
@@ -123,7 +126,7 @@ class DeploySafeBehaviour(SafeDeploymentBaseState):
         self.set_done()
 
     def _send_deploy_transaction(self) -> Generator[None, None, Optional[str]]:
-        owners = self.period_state.sorted_participants
+        owners = self.synchronized_data.sorted_participants
         threshold = self.params.consensus_params.consensus_threshold
         contract_api_response = yield from self.get_contract_api_response(
             performative=ContractApiMessage.Performative.GET_DEPLOY_TRANSACTION,  # type: ignore
@@ -197,7 +200,7 @@ class ValidateSafeBehaviour(SafeDeploymentBaseState):
         """Contract deployment verification."""
         contract_api_response = yield from self.get_contract_api_response(
             performative=ContractApiMessage.Performative.GET_STATE,  # type: ignore
-            contract_address=self.period_state.safe_contract_address,
+            contract_address=self.synchronized_data.safe_contract_address,
             contract_id=str(GnosisSafeContract.contract_id),
             contract_callable="verify_contract",
         )

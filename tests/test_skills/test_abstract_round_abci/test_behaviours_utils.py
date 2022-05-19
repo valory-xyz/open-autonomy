@@ -39,7 +39,7 @@ from packages.valory.protocols.http import HttpMessage
 from packages.valory.protocols.ledger_api.message import LedgerApiMessage
 from packages.valory.skills.abstract_round_abci.base import (
     AbstractRound,
-    BasePeriodState,
+    BaseSynchronizedData,
     BaseTxPayload,
     Transaction,
 )
@@ -322,7 +322,7 @@ class RoundA(AbstractRound):
 
     round_id = "round_a"
 
-    def end_block(self) -> Optional[Tuple[BasePeriodState, Enum]]:
+    def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Enum]]:
         """Handle end block."""
         return None
 
@@ -386,11 +386,13 @@ class TestBaseState:
             tx_timeout=_DEFAULT_TX_TIMEOUT,
             max_attempts=_DEFAULT_TX_MAX_ATTEMPTS,
         )
-        self.context_state_period_state_mock = MagicMock()
+        self.context_state_synchronized_data_mock = MagicMock()
         self.context_mock.params = self.context_params_mock
-        self.context_mock.state.period_state = self.context_state_period_state_mock
-        self.context_mock.state.period.current_round_id = "round_a"
-        self.context_mock.state.period.syncing_up = False
+        self.context_mock.state.synchronized_data = (
+            self.context_state_synchronized_data_mock
+        )
+        self.context_mock.state.round_sequence.current_round_id = "round_a"
+        self.context_mock.state.round_sequence.syncing_up = False
         self.context_mock.http_dialogues = HttpDialogues()
         self.context_mock.handlers.__dict__ = {"http": MagicMock()}
         self.behaviour = StateATest(name="", skill_context=self.context_mock)
@@ -399,14 +401,17 @@ class TestBaseState:
         """Test the 'params' property."""
         assert self.behaviour.params == self.context_params_mock
 
-    def test_period_state_property(self) -> None:
-        """Test the 'period_state' property."""
-        assert self.behaviour.period_state == self.context_state_period_state_mock
+    def test_synchronized_data_property(self) -> None:
+        """Test the 'synchronized_data' property."""
+        assert (
+            self.behaviour.synchronized_data
+            == self.context_state_synchronized_data_mock
+        )
 
     def test_check_in_round(self) -> None:
         """Test 'BaseState' initialization."""
         expected_round_id = "round"
-        self.context_mock.state.period.current_round_id = expected_round_id
+        self.context_mock.state.round_sequence.current_round_id = expected_round_id
         assert self.behaviour.check_in_round(expected_round_id)
         assert not self.behaviour.check_in_round("wrong round")
 
@@ -419,7 +424,7 @@ class TestBaseState:
     def test_check_in_last_round(self) -> None:
         """Test 'BaseState' initialization."""
         expected_round_id = "round"
-        self.context_mock.state.period.last_round_id = expected_round_id
+        self.context_mock.state.round_sequence.last_round_id = expected_round_id
         assert self.behaviour.check_in_last_round(expected_round_id)
         assert not self.behaviour.check_in_last_round("wrong round")
 
@@ -431,17 +436,19 @@ class TestBaseState:
     def test_check_round_height_has_changed(self) -> None:
         """Test 'check_round_height_has_changed'."""
         current_height = 0
-        self.context_mock.state.period.current_round_height = current_height
+        self.context_mock.state.round_sequence.current_round_height = current_height
         assert not self.behaviour.check_round_height_has_changed(current_height)
         new_height = current_height + 1
-        self.context_mock.state.period.current_round_height = new_height
+        self.context_mock.state.round_sequence.current_round_height = new_height
         assert self.behaviour.check_round_height_has_changed(current_height)
         assert not self.behaviour.check_round_height_has_changed(new_height)
 
     def test_wait_until_round_end_negative_last_round_or_matching_round(self) -> None:
         """Test 'wait_until_round_end' method, negative case (not in matching nor last round)."""
-        self.behaviour.context.state.period.current_round_id = "current_round_id"
-        self.behaviour.context.state.period.last_round_id = "last_round_id"
+        self.behaviour.context.state.round_sequence.current_round_id = (
+            "current_round_id"
+        )
+        self.behaviour.context.state.round_sequence.last_round_id = "last_round_id"
         self.behaviour.matching_round.round_id = "matching_round"
         generator = self.behaviour.wait_until_round_end()
         with pytest.raises(
@@ -462,7 +469,9 @@ class TestBaseState:
         """Test 'wait_from_last_timestamp'."""
         timeout = 1.0
         last_timestamp = datetime.now()
-        self.behaviour.context.state.period.abci_app.last_timestamp = last_timestamp
+        self.behaviour.context.state.round_sequence.abci_app.last_timestamp = (
+            last_timestamp
+        )
         gen = self.behaviour.wait_from_last_timestamp(timeout)
         # trigger first execution
         try_send(gen)
@@ -480,7 +489,9 @@ class TestBaseState:
         """Test 'wait_from_last_timestamp'."""
         timeout = -1.0
         last_timestamp = datetime.now()
-        self.behaviour.context.state.period.abci_app.last_timestamp = last_timestamp
+        self.behaviour.context.state.round_sequence.abci_app.last_timestamp = (
+            last_timestamp
+        )
         with pytest.raises(ValueError):
             gen = self.behaviour.wait_from_last_timestamp(timeout)
             # trigger first execution
@@ -508,8 +519,8 @@ class TestBaseState:
     @mock.patch.object(BaseState, "_get_status", _get_status_patch)
     def test_async_act_wrapper_agent_sync_mode(self) -> None:
         """Test 'async_act_wrapper' in sync mode."""
-        self.behaviour.context.state.period.syncing_up = True
-        self.behaviour.context.state.period.height = 0
+        self.behaviour.context.state.round_sequence.syncing_up = True
+        self.behaviour.context.state.round_sequence.height = 0
         self.behaviour.matching_round = MagicMock()
         self.behaviour.context.logger.info = lambda msg: logging.info(msg)  # type: ignore
 
@@ -521,8 +532,8 @@ class TestBaseState:
     @mock.patch.object(BaseState, "_get_status", _get_status_wrong_patch)
     def test_async_act_wrapper_agent_sync_mode_where_height_dont_match(self) -> None:
         """Test 'async_act_wrapper' in sync mode."""
-        self.behaviour.context.state.period.syncing_up = True
-        self.behaviour.context.state.period.height = 0
+        self.behaviour.context.state.round_sequence.syncing_up = True
+        self.behaviour.context.state.round_sequence.height = 0
         self.behaviour.context.params.tendermint_check_sleep_delay = 3
         self.behaviour.matching_round = MagicMock()
         self.behaviour.context.logger.info = lambda msg: logging.info(msg)  # type: ignore
@@ -1311,7 +1322,7 @@ class TestBaseState:
         ), mock.patch.object(
             BaseState, "sleep", new_callable=lambda *_: self.dummy_sleep
         ):
-            self.behaviour.context.state.period.height = local_height
+            self.behaviour.context.state.round_sequence.height = local_height
             reset = self.behaviour.reset_tendermint_with_wait()
             for _ in range(n_iter):
                 next(reset)
@@ -1359,7 +1370,7 @@ def test_degenerate_state_async_act() -> None:
     context = MagicMock()
     context.params.ipfs_domain_name = None
     # this is needed to trigger execution of async_act
-    context.state.period.syncing_up = False
+    context.state.round_sequence.syncing_up = False
 
     state = ConcreteDegenerateState(
         name=ConcreteDegenerateState.state_id, skill_context=context

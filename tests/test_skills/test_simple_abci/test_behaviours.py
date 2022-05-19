@@ -40,11 +40,11 @@ from packages.valory.protocols.contract_api.message import ContractApiMessage
 from packages.valory.protocols.http import HttpMessage
 from packages.valory.protocols.ledger_api.message import LedgerApiMessage
 from packages.valory.skills.abstract_round_abci.base import (
+    AbciAppDB,
     AbstractRound,
-    BasePeriodState,
+    BaseSynchronizedData,
     BaseTxPayload,
     OK_CODE,
-    StateDB,
     _MetaPayload,
 )
 from packages.valory.skills.abstract_round_abci.behaviour_utils import BaseState
@@ -62,7 +62,7 @@ from packages.valory.skills.simple_abci.handlers import (
     LedgerApiHandler,
     SigningHandler,
 )
-from packages.valory.skills.simple_abci.rounds import Event, PeriodState
+from packages.valory.skills.simple_abci.rounds import Event, SynchronizedData
 
 from tests.conftest import ROOT_DIR
 
@@ -88,7 +88,7 @@ class SimpleAbciFSMBehaviourBaseCase(BaseSkillTestCase):
     contract_handler: ContractApiHandler
     signing_handler: SigningHandler
     old_tx_type_to_payload_cls: Dict[str, Type[BaseTxPayload]]
-    period_state: PeriodState
+    synchronized_data: SynchronizedData
     benchmark_dir: TemporaryDirectory
 
     @classmethod
@@ -125,7 +125,7 @@ class SimpleAbciFSMBehaviourBaseCase(BaseSkillTestCase):
 
         cls.simple_abci_behaviour.setup()
         cls._skill.skill_context.state.setup()
-        cls._skill.skill_context.state.period.end_sync()
+        cls._skill.skill_context.state.round_sequence.end_sync()
 
         cls.benchmark_dir = TemporaryDirectory()
         cls._skill.skill_context.benchmark_tool.log_dir = Path(cls.benchmark_dir.name)
@@ -134,13 +134,15 @@ class SimpleAbciFSMBehaviourBaseCase(BaseSkillTestCase):
             cast(BaseState, cls.simple_abci_behaviour.current_state).state_id
             == cls.simple_abci_behaviour.initial_state_cls.state_id
         )
-        cls.period_state = PeriodState(StateDB(initial_period=0, initial_data={}))
+        cls.synchronized_data = SynchronizedData(
+            AbciAppDB(initial_period=0, initial_data={})
+        )
 
     def fast_forward_to_state(
         self,
         behaviour: AbstractRoundBehaviour,
         state_id: str,
-        period_state: BasePeriodState,
+        synchronized_data: BaseSynchronizedData,
     ) -> None:
         """Fast forward the FSM to a state."""
         next_state = {s.state_id: s for s in behaviour.behaviour_states}[state_id]
@@ -149,16 +151,16 @@ class SimpleAbciFSMBehaviourBaseCase(BaseSkillTestCase):
         behaviour.current_state = next_state(
             name=next_state.state_id, skill_context=behaviour.context
         )
-        self.skill.skill_context.state.period.abci_app._round_results.append(
-            period_state
+        self.skill.skill_context.state.round_sequence.abci_app._round_results.append(
+            synchronized_data
         )
-        self.skill.skill_context.state.period.abci_app._extend_previous_rounds_with_current_round()
+        self.skill.skill_context.state.round_sequence.abci_app._extend_previous_rounds_with_current_round()
         self.skill.skill_context.behaviours.main._last_round_height = (
-            self.skill.skill_context.state.period.abci_app.current_round_height
+            self.skill.skill_context.state.round_sequence.abci_app.current_round_height
         )
-        self.skill.skill_context.state.period.abci_app._current_round = (
+        self.skill.skill_context.state.round_sequence.abci_app._current_round = (
             next_state.matching_round(
-                period_state, self.skill.skill_context.params.consensus_params
+                synchronized_data, self.skill.skill_context.params.consensus_params
             )
         )
 
@@ -364,7 +366,7 @@ class SimpleAbciFSMBehaviourBaseCase(BaseSkillTestCase):
         if current_state is None:
             return
         current_state = cast(BaseState, current_state)
-        abci_app = current_state.context.state.period.abci_app
+        abci_app = current_state.context.state.round_sequence.abci_app
         old_round = abci_app._current_round
         abci_app._last_round = old_round
         abci_app._current_round = abci_app.transition_function[
@@ -408,7 +410,7 @@ class BaseRandomnessBehaviourTest(SimpleAbciFSMBehaviourBaseCase):
         self.fast_forward_to_state(
             self.simple_abci_behaviour,
             self.randomness_behaviour_class.state_id,
-            self.period_state,
+            self.synchronized_data,
         )
         assert (
             cast(
@@ -455,7 +457,7 @@ class BaseRandomnessBehaviourTest(SimpleAbciFSMBehaviourBaseCase):
         self.fast_forward_to_state(
             self.simple_abci_behaviour,
             self.randomness_behaviour_class.state_id,
-            self.period_state,
+            self.synchronized_data,
         )
         assert (
             cast(
@@ -489,7 +491,7 @@ class BaseRandomnessBehaviourTest(SimpleAbciFSMBehaviourBaseCase):
         self.fast_forward_to_state(
             self.simple_abci_behaviour,
             self.randomness_behaviour_class.state_id,
-            self.period_state,
+            self.synchronized_data,
         )
         assert (
             cast(
@@ -515,7 +517,7 @@ class BaseRandomnessBehaviourTest(SimpleAbciFSMBehaviourBaseCase):
         self.fast_forward_to_state(
             self.simple_abci_behaviour,
             self.randomness_behaviour_class.state_id,
-            self.period_state,
+            self.synchronized_data,
         )
         assert (
             cast(
@@ -544,8 +546,8 @@ class BaseSelectKeeperBehaviourTest(SimpleAbciFSMBehaviourBaseCase):
         self.fast_forward_to_state(
             behaviour=self.simple_abci_behaviour,
             state_id=self.select_keeper_behaviour_class.state_id,
-            period_state=PeriodState(
-                StateDB(
+            synchronized_data=SynchronizedData(
+                AbciAppDB(
                     initial_period=0,
                     initial_data=dict(
                         participants=participants,
@@ -577,7 +579,7 @@ class TestRegistrationBehaviour(SimpleAbciFSMBehaviourBaseCase):
         self.fast_forward_to_state(
             self.simple_abci_behaviour,
             RegistrationBehaviour.state_id,
-            self.period_state,
+            self.synchronized_data,
         )
         assert (
             cast(
@@ -622,7 +624,7 @@ class TestResetAndPauseBehaviour(SimpleAbciFSMBehaviourBaseCase):
         self.fast_forward_to_state(
             behaviour=self.simple_abci_behaviour,
             state_id=self.behaviour_class.state_id,
-            period_state=self.period_state,
+            synchronized_data=self.synchronized_data,
         )
         assert (
             cast(
@@ -648,7 +650,7 @@ class TestResetAndPauseBehaviour(SimpleAbciFSMBehaviourBaseCase):
         self.fast_forward_to_state(
             behaviour=self.simple_abci_behaviour,
             state_id=self.behaviour_class.state_id,
-            period_state=self.period_state,
+            synchronized_data=self.synchronized_data,
         )
         self.simple_abci_behaviour.current_state.pause = False  # type: ignore
         assert (

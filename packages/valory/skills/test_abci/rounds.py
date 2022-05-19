@@ -26,7 +26,7 @@ from packages.valory.skills.abstract_round_abci.base import (
     AbciApp,
     AbciAppTransitionFunction,
     AbstractRound,
-    BasePeriodState,
+    BaseSynchronizedData,
     CollectDifferentUntilAllRound,
 )
 from packages.valory.skills.test_abci.payloads import DummyPayload, TransactionType
@@ -47,7 +47,7 @@ class DummyRound(
     This class represents the registration round.
 
     Input: None
-    Output: a period state with the set of participants.
+    Output: a synchronized data with the set of participants.
 
     It schedules the SelectKeeperARound.
     """
@@ -56,9 +56,9 @@ class DummyRound(
     allowed_tx_type = DummyPayload.transaction_type
     payload_attribute = "sender"
 
-    def end_block(self) -> Optional[Tuple[BasePeriodState, Event]]:
+    def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Event]]:
         """Process the end of the block."""
-        return self.period_state, Event.DONE
+        return self.synchronized_data, Event.DONE
 
 
 class TestAbciApp(AbciApp[Event]):

@@ -36,20 +36,20 @@ from packages.valory.contracts.offchain_aggregator.contract import (
 )
 from packages.valory.protocols.contract_api.message import ContractApiMessage
 from packages.valory.protocols.ledger_api.message import LedgerApiMessage
-from packages.valory.skills.abstract_round_abci.base import StateDB
+from packages.valory.skills.abstract_round_abci.base import AbciAppDB
 from packages.valory.skills.abstract_round_abci.behaviour_utils import (
     BaseState,
     make_degenerate_state,
 )
 from packages.valory.skills.oracle_deployment_abci.behaviours import (
     DeployOracleBehaviour,
-)
-from packages.valory.skills.oracle_deployment_abci.behaviours import (
-    PeriodState as OracleDeploymentPeriodState,
-)
-from packages.valory.skills.oracle_deployment_abci.behaviours import (
     RandomnessOracleBehaviour,
     SelectKeeperOracleBehaviour,
+)
+from packages.valory.skills.oracle_deployment_abci.behaviours import (
+    SynchronizedData as OracleDeploymentSynchronizedData,
+)
+from packages.valory.skills.oracle_deployment_abci.behaviours import (
     ValidateOracleBehaviour,
 )
 from packages.valory.skills.oracle_deployment_abci.rounds import (
@@ -102,7 +102,7 @@ class BaseDeployBehaviourTest(FSMBehaviourBaseCase):
 
     behaviour_class: Type[BaseState]
     next_behaviour_class: Type[BaseState]
-    period_state_kwargs: Dict
+    synchronized_data_kwargs: Dict
     contract_id: str
     done_event: Any
 
@@ -115,13 +115,13 @@ class BaseDeployBehaviourTest(FSMBehaviourBaseCase):
         self.fast_forward_to_state(
             self.behaviour,
             self.behaviour_class.state_id,
-            OracleDeploymentPeriodState(
-                StateDB(
+            OracleDeploymentSynchronizedData(
+                AbciAppDB(
                     initial_period=0,
                     initial_data=dict(
                         participants=participants,
                         most_voted_keeper_address=most_voted_keeper_address,
-                        **self.period_state_kwargs,
+                        **self.synchronized_data_kwargs,
                     ),
                 )
             ),
@@ -204,13 +204,13 @@ class BaseDeployBehaviourTest(FSMBehaviourBaseCase):
         self.fast_forward_to_state(
             self.behaviour,
             self.behaviour_class.state_id,
-            OracleDeploymentPeriodState(
-                StateDB(
+            OracleDeploymentSynchronizedData(
+                AbciAppDB(
                     initial_period=0,
                     initial_data=dict(
                         participants=participants,
                         most_voted_keeper_address=most_voted_keeper_address,
-                        **self.period_state_kwargs,
+                        **self.synchronized_data_kwargs,
                     ),
                 )
             ),
@@ -236,7 +236,7 @@ class TestDeployOracleBehaviour(BaseDeployBehaviourTest, OracleDeploymentAbciBas
 
     behaviour_class = DeployOracleBehaviour
     next_behaviour_class = ValidateOracleBehaviour
-    period_state_kwargs = dict(
+    synchronized_data_kwargs = dict(
         safe_contract_address="safe_contract_address",
         oracle_contract_address="oracle_contract_address",
     )
@@ -249,7 +249,7 @@ class BaseValidateBehaviourTest(FSMBehaviourBaseCase):
 
     behaviour_class: Type[BaseState]
     next_behaviour_class: Type[BaseState]
-    period_state_kwargs: Dict
+    synchronized_data_kwargs: Dict
     contract_id: str
     done_event: Any
 
@@ -258,8 +258,8 @@ class BaseValidateBehaviourTest(FSMBehaviourBaseCase):
         self.fast_forward_to_state(
             self.behaviour,
             self.behaviour_class.state_id,
-            OracleDeploymentPeriodState(
-                StateDB(initial_period=0, initial_data=self.period_state_kwargs),
+            OracleDeploymentSynchronizedData(
+                AbciAppDB(initial_period=0, initial_data=self.synchronized_data_kwargs),
             ),
         )
         assert (
@@ -298,7 +298,7 @@ class TestValidateOracleBehaviour(
 
     behaviour_class = ValidateOracleBehaviour
     next_behaviour_class = make_degenerate_state(FinishedOracleRound.round_id)
-    period_state_kwargs = dict(
+    synchronized_data_kwargs = dict(
         safe_contract_address="safe_contract_address",
         oracle_contract_address="oracle_contract_address",
     )

@@ -22,10 +22,11 @@ import logging  # noqa: F401
 from types import MappingProxyType
 from typing import Dict, FrozenSet, Optional
 
+from packages.valory.skills.abstract_round_abci.base import AbciAppDB
 from packages.valory.skills.abstract_round_abci.base import (
-    BasePeriodState as PeriodState,
+    BaseSynchronizedData as SynchronizedData,
 )
-from packages.valory.skills.abstract_round_abci.base import MAX_INT_256, StateDB
+from packages.valory.skills.abstract_round_abci.base import MAX_INT_256
 from packages.valory.skills.oracle_deployment_abci.payloads import (
     RandomnessPayload,
     SelectKeeperPayload,
@@ -43,21 +44,21 @@ from packages.valory.skills.price_estimation_abci.rounds import (
     Event as PriceEstimationEvent,
 )
 from packages.valory.skills.price_estimation_abci.rounds import (
-    PeriodState as PriceEstimationPeriodState,
+    SynchronizedData as PriceEstimationSynchronizedData,
 )
 from packages.valory.skills.price_estimation_abci.rounds import TxHashRound
 from packages.valory.skills.registration_abci.rounds import (
-    BasePeriodState as RegistrationPeriodState,
+    BaseSynchronizedData as RegistrationSynchronizedData,
 )
 from packages.valory.skills.transaction_settlement_abci.payloads import ValidatePayload
 from packages.valory.skills.transaction_settlement_abci.rounds import (
     Event as TransactionSettlementEvent,
 )
 from packages.valory.skills.transaction_settlement_abci.rounds import (
-    PeriodState as TransactionSettlementPeriodState,
+    RandomnessTransactionSubmissionRound,
 )
 from packages.valory.skills.transaction_settlement_abci.rounds import (
-    RandomnessTransactionSubmissionRound,
+    SynchronizedData as TransactionSettlementSynchronizedData,
 )
 
 from tests.test_skills.test_abstract_round_abci.test_base_rounds import (
@@ -172,7 +173,7 @@ def get_most_voted_tx_hash() -> str:
 class TestRandomnessTransactionSubmissionRound(BaseCollectSameUntilThresholdRoundTest):
     """Test RandomnessTransactionSubmissionRound."""
 
-    _period_state_class = TransactionSettlementPeriodState
+    _synchronized_data_class = TransactionSettlementSynchronizedData
     _event_class = TransactionSettlementEvent
 
     def test_run(
@@ -181,13 +182,13 @@ class TestRandomnessTransactionSubmissionRound(BaseCollectSameUntilThresholdRoun
         """Run tests."""
 
         test_round = RandomnessTransactionSubmissionRound(
-            self.period_state, self.consensus_params
+            self.synchronized_data, self.consensus_params
         )
         self._complete_run(
             self._test_round(
                 test_round=test_round,
                 round_payloads=get_participant_to_randomness(self.participants, 1),
-                state_update_fn=lambda _period_state, _test_round: _period_state.update(
+                state_update_fn=lambda _synchronized_data, _test_round: _synchronized_data.update(
                     participant_to_randomness=MappingProxyType(
                         dict(get_participant_to_randomness(self.participants, 1))
                     )
@@ -204,7 +205,7 @@ class TestRandomnessTransactionSubmissionRound(BaseCollectSameUntilThresholdRoun
 class TestCollectObservationRound(BaseCollectDifferentUntilThresholdRoundTest):
     """Test CollectObservationRound."""
 
-    _period_state_class = PriceEstimationPeriodState
+    _synchronized_data_class = PriceEstimationSynchronizedData
     _event_class = PriceEstimationEvent
 
     def test_run_a(
@@ -213,13 +214,13 @@ class TestCollectObservationRound(BaseCollectDifferentUntilThresholdRoundTest):
         """Runs tests."""
 
         test_round = CollectObservationRound(
-            state=self.period_state, consensus_params=self.consensus_params
+            state=self.synchronized_data, consensus_params=self.consensus_params
         )
         self._complete_run(
             self._test_round(
                 test_round=test_round,
                 round_payloads=get_participant_to_observations(self.participants),
-                state_update_fn=lambda _period_state, _: _period_state.update(
+                state_update_fn=lambda _synchronized_data, _: _synchronized_data.update(
                     participant_to_observations=get_participant_to_observations(
                         self.participants
                     )
@@ -237,7 +238,7 @@ class TestCollectObservationRound(BaseCollectDifferentUntilThresholdRoundTest):
         """Runs tests with one less observation."""
 
         test_round = CollectObservationRound(
-            state=self.period_state, consensus_params=self.consensus_params
+            state=self.synchronized_data, consensus_params=self.consensus_params
         )
 
         self._complete_run(
@@ -246,7 +247,7 @@ class TestCollectObservationRound(BaseCollectDifferentUntilThresholdRoundTest):
                 round_payloads=get_participant_to_observations(
                     frozenset(list(self.participants)[:-1])
                 ),
-                state_update_fn=lambda _period_state, _: _period_state.update(
+                state_update_fn=lambda _synchronized_data, _: _synchronized_data.update(
                     participant_to_observations=get_participant_to_observations(
                         frozenset(list(self.participants)[:-1])
                     )
@@ -262,7 +263,7 @@ class TestCollectObservationRound(BaseCollectDifferentUntilThresholdRoundTest):
 class TestEstimateConsensusRound(BaseCollectSameUntilThresholdRoundTest):
     """Test EstimateConsensusRound."""
 
-    _period_state_class = PriceEstimationPeriodState
+    _synchronized_data_class = PriceEstimationSynchronizedData
     _event_class = PriceEstimationEvent
 
     def test_run(
@@ -271,13 +272,13 @@ class TestEstimateConsensusRound(BaseCollectSameUntilThresholdRoundTest):
         """Runs test."""
 
         test_round = EstimateConsensusRound(
-            state=self.period_state, consensus_params=self.consensus_params
+            state=self.synchronized_data, consensus_params=self.consensus_params
         )
         self._complete_run(
             self._test_round(
                 test_round=test_round,
                 round_payloads=get_participant_to_estimate(self.participants),
-                state_update_fn=lambda _period_state, _test_round: _period_state.update(
+                state_update_fn=lambda _synchronized_data, _test_round: _synchronized_data.update(
                     participant_to_estimate=dict(
                         get_participant_to_estimate(self.participants)
                     ),
@@ -293,7 +294,7 @@ class TestEstimateConsensusRound(BaseCollectSameUntilThresholdRoundTest):
 class TestTxHashRound(BaseCollectSameUntilThresholdRoundTest):
     """Test TxHashRound."""
 
-    _period_state_class = PriceEstimationPeriodState
+    _synchronized_data_class = PriceEstimationSynchronizedData
     _event_class = PriceEstimationEvent
 
     def test_run(
@@ -302,7 +303,7 @@ class TestTxHashRound(BaseCollectSameUntilThresholdRoundTest):
         """Runs test."""
 
         test_round = TxHashRound(
-            state=self.period_state, consensus_params=self.consensus_params
+            state=self.synchronized_data, consensus_params=self.consensus_params
         )
 
         hash_ = "tx_hash"
@@ -310,7 +311,7 @@ class TestTxHashRound(BaseCollectSameUntilThresholdRoundTest):
             self._test_round(
                 test_round=test_round,
                 round_payloads=get_participant_to_tx_hash(self.participants, hash_),
-                state_update_fn=lambda _period_state, _test_round: _period_state,
+                state_update_fn=lambda _synchronized_data, _test_round: _synchronized_data,
                 state_attr_checks=[],
                 most_voted_payload=hash_,
                 exit_event=self._event_class.DONE,
@@ -323,7 +324,7 @@ class TestTxHashRound(BaseCollectSameUntilThresholdRoundTest):
         """Runs test."""
 
         test_round = TxHashRound(
-            state=self.period_state, consensus_params=self.consensus_params
+            state=self.synchronized_data, consensus_params=self.consensus_params
         )
 
         hash_ = None
@@ -331,7 +332,7 @@ class TestTxHashRound(BaseCollectSameUntilThresholdRoundTest):
             self._test_round(
                 test_round=test_round,
                 round_payloads=get_participant_to_tx_hash(self.participants, hash_),
-                state_update_fn=lambda _period_state, _test_round: _period_state,
+                state_update_fn=lambda _synchronized_data, _test_round: _synchronized_data,
                 state_attr_checks=[],
                 most_voted_payload=hash_,
                 exit_event=self._event_class.NONE,
@@ -339,8 +340,8 @@ class TestTxHashRound(BaseCollectSameUntilThresholdRoundTest):
         )
 
 
-def test_period_states() -> None:
-    """Test PeriodState."""
+def test_synchronized_datas() -> None:
+    """Test SynchronizedData."""
 
     participants = get_participants()
     participant_to_randomness = get_participant_to_randomness(participants, 1)
@@ -355,8 +356,8 @@ def test_period_states() -> None:
     estimate = get_estimate()
     most_voted_estimate = get_most_voted_estimate()
 
-    period_state = PeriodState(
-        StateDB(
+    synchronized_data = SynchronizedData(
+        AbciAppDB(
             initial_period=0,
             initial_data=dict(
                 participants=participants,
@@ -370,13 +371,13 @@ def test_period_states() -> None:
     )
 
     actual_keeper_randomness = int(most_voted_randomness, base=16) / MAX_INT_256
-    assert period_state.keeper_randomness == actual_keeper_randomness
-    assert period_state.most_voted_randomness == most_voted_randomness
-    assert period_state.most_voted_keeper_address == most_voted_keeper_address
-    assert period_state.participant_to_votes == participant_to_votes
+    assert synchronized_data.keeper_randomness == actual_keeper_randomness
+    assert synchronized_data.most_voted_randomness == most_voted_randomness
+    assert synchronized_data.most_voted_keeper_address == most_voted_keeper_address
+    assert synchronized_data.participant_to_votes == participant_to_votes
 
-    period_state____ = RegistrationPeriodState(
-        StateDB(
+    synchronized_data____ = RegistrationSynchronizedData(
+        AbciAppDB(
             initial_period=0,
             initial_data=dict(
                 participants=participants,
@@ -389,13 +390,13 @@ def test_period_states() -> None:
     )
 
     assert (
-        abs(period_state____.keeper_randomness - actual_keeper_randomness) < 1e-10
+        abs(synchronized_data____.keeper_randomness - actual_keeper_randomness) < 1e-10
     )  # avoid equality comparisons between floats
-    assert period_state____.most_voted_randomness == most_voted_randomness
-    assert period_state____.most_voted_keeper_address == most_voted_keeper_address
+    assert synchronized_data____.most_voted_randomness == most_voted_randomness
+    assert synchronized_data____.most_voted_keeper_address == most_voted_keeper_address
 
-    period_state______ = PriceEstimationPeriodState(
-        StateDB(
+    synchronized_data______ = PriceEstimationSynchronizedData(
+        AbciAppDB(
             initial_period=0,
             initial_data=dict(
                 participants=participants,
@@ -412,14 +413,19 @@ def test_period_states() -> None:
         )
     )
 
-    period_state______.set_aggregator_method("median")
+    synchronized_data______.set_aggregator_method("median")
 
-    assert period_state______.keeper_randomness == actual_keeper_randomness
-    assert period_state______.most_voted_randomness == most_voted_randomness
-    assert period_state______.most_voted_keeper_address == most_voted_keeper_address
-    assert period_state______.safe_contract_address == safe_contract_address
-    assert period_state______.oracle_contract_address == oracle_contract_address
-    assert period_state______.most_voted_tx_hash == most_voted_tx_hash
-    assert period_state______.most_voted_estimate == most_voted_estimate
-    assert period_state______.participant_to_observations == participant_to_observations
-    assert period_state______.estimate == estimate
+    assert synchronized_data______.keeper_randomness == actual_keeper_randomness
+    assert synchronized_data______.most_voted_randomness == most_voted_randomness
+    assert (
+        synchronized_data______.most_voted_keeper_address == most_voted_keeper_address
+    )
+    assert synchronized_data______.safe_contract_address == safe_contract_address
+    assert synchronized_data______.oracle_contract_address == oracle_contract_address
+    assert synchronized_data______.most_voted_tx_hash == most_voted_tx_hash
+    assert synchronized_data______.most_voted_estimate == most_voted_estimate
+    assert (
+        synchronized_data______.participant_to_observations
+        == participant_to_observations
+    )
+    assert synchronized_data______.estimate == estimate

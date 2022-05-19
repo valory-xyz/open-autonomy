@@ -29,7 +29,7 @@ from packages.valory.skills.abstract_round_abci.base import (
     ABCIAppInternalError,
     AbciApp,
     AbstractRound,
-    BasePeriodState,
+    BaseSynchronizedData,
     BaseTxPayload,
     DegenerateRound,
     EventType,
@@ -58,7 +58,7 @@ class RoundA(AbstractRound):
     round_id = ROUND_A_ID
     allowed_tx_type = "payload_a"
 
-    def end_block(self) -> Optional[Tuple[BasePeriodState, EventType]]:
+    def end_block(self) -> Optional[Tuple[BaseSynchronizedData, EventType]]:
         """End block."""
 
     def check_payload(self, payload: BaseTxPayload) -> None:
@@ -74,7 +74,7 @@ class RoundB(AbstractRound):
     round_id = ROUND_B_ID
     allowed_tx_type = "payload_b"
 
-    def end_block(self) -> Optional[Tuple[BasePeriodState, EventType]]:
+    def end_block(self) -> Optional[Tuple[BaseSynchronizedData, EventType]]:
         """End block."""
 
     def check_payload(self, payload: BaseTxPayload) -> None:
@@ -138,8 +138,8 @@ class TestAbstractRoundBehaviour:
         """Set up the tests."""
         self.period_mock = MagicMock()
         context_mock = MagicMock()
-        context_mock.state.period = self.period_mock
-        context_mock.state.period.syncing_up = False
+        context_mock.state.round_sequence = self.period_mock
+        context_mock.state.round_sequence.syncing_up = False
         context_mock.params.ipfs_domain_name = None
         self.behaviour = ConcreteRoundBehaviour(name="", skill_context=context_mock)
 
@@ -249,7 +249,7 @@ class TestAbstractRoundBehaviour:
             def process_payload(self, payload: BaseTxPayload) -> None:
                 pass
 
-            def end_block(self) -> Optional[Tuple[BasePeriodState, Enum]]:
+            def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Enum]]:
                 pass
 
         state_id_1 = "state_id_1"
@@ -457,7 +457,7 @@ def test_self_loops_in_abci_app_reinstantiate_behaviour_state() -> None:
     period.end_sync()
     period.setup(MagicMock(), MagicMock(), MagicMock())
     context_mock = MagicMock()
-    context_mock.state.period = period
+    context_mock.state.round_sequence = period
     context_mock.params.ipfs_domain_name = None
     behaviour = RoundBehaviour(name="", skill_context=context_mock)
     behaviour.setup()

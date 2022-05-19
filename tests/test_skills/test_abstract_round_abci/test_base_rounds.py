@@ -40,8 +40,9 @@ import pytest
 
 from packages.valory.skills.abstract_round_abci.base import (
     ABCIAppInternalError,
+    AbciAppDB,
     AbstractRound,
-    BasePeriodState,
+    BaseSynchronizedData,
     BaseTxPayload,
     CollectDifferentUntilAllRound,
     CollectDifferentUntilThresholdRound,
@@ -51,7 +52,6 @@ from packages.valory.skills.abstract_round_abci.base import (
     ConsensusParams,
     OnlyKeeperSendsRound,
     ROUND_COUNT_DEFAULT,
-    StateDB,
     TransactionNotValidError,
     VotingRound,
 )
@@ -97,8 +97,8 @@ class DummyTxPayload(BaseTxPayload):
         return self._vote
 
 
-class DummyPeriodState(BasePeriodState):
-    """Dummy Period state for tests."""
+class DummySynchronizedData(BaseSynchronizedData):
+    """Dummy synchronized data for tests."""
 
     @property
     def most_voted_keeper_address(
@@ -132,7 +132,7 @@ class DummyRound(AbstractRound):
     allowed_tx_type = DummyTxPayload.transaction_type
     payload_attribute = "value"
 
-    def end_block(self) -> Optional[Tuple[BasePeriodState, Enum]]:
+    def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Enum]]:
         """end_block method."""
 
 
@@ -173,11 +173,11 @@ class DummyCollectNonEmptyUntilThresholdRound(
 class BaseRoundTestClass:
     """Base test class."""
 
-    period_state: BasePeriodState
+    synchronized_data: BaseSynchronizedData
     participants: FrozenSet[str]
     consensus_params: ConsensusParams
 
-    _period_state_class: Type[BasePeriodState]
+    _synchronized_data_class: Type[BaseSynchronizedData]
     _event_class: Any
 
     @classmethod
@@ -187,8 +187,8 @@ class BaseRoundTestClass:
         """Setup test class."""
 
         cls.participants = get_participants()
-        cls.period_state = cls._period_state_class(
-            db=StateDB(
+        cls.synchronized_data = cls._synchronized_data_class(
+            db=AbciAppDB(
                 initial_period=0,
                 initial_data=dict(
                     participants=cls.participants, all_participants=cls.participants
@@ -257,8 +257,8 @@ class BaseCollectDifferentUntilAllRoundTest(BaseRoundTestClass):
         assert test_round.collection_threshold_reached
 
         actual_next_state = cast(
-            self._period_state_class,  # type: ignore
-            state_update_fn(deepcopy(self.period_state), test_round),  # type: ignore
+            self._synchronized_data_class,  # type: ignore
+            state_update_fn(deepcopy(self.synchronized_data), test_round),  # type: ignore
         )
 
         res = test_round.end_block()
@@ -268,7 +268,7 @@ class BaseCollectDifferentUntilAllRoundTest(BaseRoundTestClass):
         else:
             assert res is not None
             state, event = res
-            state = cast(self._period_state_class, state)  # type: ignore
+            state = cast(self._synchronized_data_class, state)  # type: ignore
             for state_attr_getter in state_attr_checks:
                 assert state_attr_getter(state) == state_attr_getter(actual_next_state)
             assert event == exit_event
@@ -308,15 +308,15 @@ class BaseCollectSameUntilThresholdRoundTest(BaseRoundTestClass):
         assert test_round.most_voted_payload == most_voted_payload
 
         actual_next_state = cast(
-            self._period_state_class,  # type: ignore
-            state_update_fn(deepcopy(self.period_state), test_round),  # type: ignore
+            self._synchronized_data_class,  # type: ignore
+            state_update_fn(deepcopy(self.synchronized_data), test_round),  # type: ignore
         )
         res = test_round.end_block()
         yield res
         assert res is not None
 
         state, event = res
-        state = cast(self._period_state_class, state)  # type: ignore
+        state = cast(self._synchronized_data_class, state)  # type: ignore
 
         for state_attr_getter in state_attr_checks:
             assert state_attr_getter(state) == state_attr_getter(actual_next_state)
@@ -346,15 +346,15 @@ class BaseOnlyKeeperSendsRoundTest(BaseRoundTestClass):
 
         yield test_round
         actual_next_state = cast(
-            self._period_state_class,  # type: ignore
-            state_update_fn(deepcopy(self.period_state), test_round),  # type: ignore
+            self._synchronized_data_class,  # type: ignore
+            state_update_fn(deepcopy(self.synchronized_data), test_round),  # type: ignore
         )
         res = test_round.end_block()
         yield res
         assert res is not None
 
         state, event = res
-        state = cast(self._period_state_class, state)  # type: ignore
+        state = cast(self._synchronized_data_class, state)  # type: ignore
         for state_attr_getter in state_attr_checks:
             assert state_attr_getter(state) == state_attr_getter(actual_next_state)
         assert event == exit_event
@@ -389,15 +389,15 @@ class BaseVotingRoundTest(BaseRoundTestClass):
         assert threshold_check(test_round)
 
         actual_next_state = cast(
-            self._period_state_class,  # type: ignore
-            state_update_fn(deepcopy(self.period_state), test_round),  # type: ignore
+            self._synchronized_data_class,  # type: ignore
+            state_update_fn(deepcopy(self.synchronized_data), test_round),  # type: ignore
         )
         res = test_round.end_block()
         yield res
         assert res is not None
 
         state, event = res
-        state = cast(self._period_state_class, state)  # type: ignore
+        state = cast(self._synchronized_data_class, state)  # type: ignore
         for state_attr_getter in state_attr_checks:
             assert state_attr_getter(state) == state_attr_getter(actual_next_state)
         assert event == exit_event
@@ -487,15 +487,15 @@ class BaseCollectDifferentUntilThresholdRoundTest(BaseRoundTestClass):
         assert test_round.collection_threshold_reached
 
         actual_next_state = cast(
-            self._period_state_class,  # type: ignore
-            state_update_fn(deepcopy(self.period_state), test_round),  # type: ignore
+            self._synchronized_data_class,  # type: ignore
+            state_update_fn(deepcopy(self.synchronized_data), test_round),  # type: ignore
         )
         res = test_round.end_block()
         yield res
         assert res is not None
 
         state, event = res
-        state = cast(self._period_state_class, state)  # type: ignore
+        state = cast(self._synchronized_data_class, state)  # type: ignore
 
         for state_attr_getter in state_attr_checks:
             assert state_attr_getter(state) == state_attr_getter(actual_next_state)
@@ -512,12 +512,12 @@ class BaseCollectNonEmptyUntilThresholdRound(
 class _BaseRoundTestClass(BaseRoundTestClass):
     """Base test class."""
 
-    period_state: BasePeriodState
+    synchronized_data: BaseSynchronizedData
     participants: FrozenSet[str]
     consensus_params: ConsensusParams
     tx_payloads: List[DummyTxPayload]
 
-    _period_state_class = DummyPeriodState
+    _synchronized_data_class = DummySynchronizedData
 
     @classmethod
     def setup(
@@ -553,7 +553,7 @@ class TestCollectionRound(_BaseRoundTestClass):
         """Run tests."""
 
         test_round = DummyCollectionRound(
-            state=self.period_state, consensus_params=self.consensus_params
+            state=self.synchronized_data, consensus_params=self.consensus_params
         )
 
         first_payload, *_ = self.tx_payloads
@@ -600,7 +600,7 @@ class TestCollectDifferentUntilAllRound(_BaseRoundTestClass):
         """Run Tests."""
 
         test_round = DummyCollectDifferentUntilAllRound(
-            state=self.period_state, consensus_params=self.consensus_params
+            state=self.synchronized_data, consensus_params=self.consensus_params
         )
 
         first_payload, *payloads = self.tx_payloads
@@ -634,7 +634,7 @@ class TestCollectSameUntilThresholdRound(_BaseRoundTestClass):
         """Run tests."""
 
         test_round = DummyCollectSameUntilThresholdRound(
-            state=self.period_state, consensus_params=self.consensus_params
+            state=self.synchronized_data, consensus_params=self.consensus_params
         )
 
         first_payload, *payloads = get_dummy_tx_payloads(
@@ -660,7 +660,7 @@ class TestCollectSameUntilThresholdRound(_BaseRoundTestClass):
         """Run tests."""
 
         test_round = DummyCollectSameUntilThresholdRound(
-            state=self.period_state, consensus_params=self.consensus_params
+            state=self.synchronized_data, consensus_params=self.consensus_params
         )
 
         first_payload, *payloads = get_dummy_tx_payloads(
@@ -690,7 +690,7 @@ class TestOnlyKeeperSendsRound(_BaseRoundTestClass, BaseOnlyKeeperSendsRoundTest
         """Run tests."""
 
         test_round = DummyOnlyKeeperSendsRound(
-            state=self.period_state.update(most_voted_keeper_address="agent_0"),
+            state=self.synchronized_data.update(most_voted_keeper_address="agent_0"),
             consensus_params=self.consensus_params,
         )
 
@@ -746,13 +746,13 @@ class TestOnlyKeeperSendsRound(_BaseRoundTestClass, BaseOnlyKeeperSendsRoundTest
         self._complete_run(
             self._test_round(
                 test_round=DummyOnlyKeeperSendsRound(
-                    state=self.period_state.update(
+                    state=self.synchronized_data.update(
                         most_voted_keeper_address=keeper,
                     ),
                     consensus_params=self.consensus_params,
                 ),
                 keeper_payloads=DummyTxPayload(keeper, None),
-                state_update_fn=lambda _period_state, _test_round: _period_state,
+                state_update_fn=lambda _synchronized_data, _test_round: _synchronized_data,
                 state_attr_checks=[],
                 exit_event="FAIL_EVENT",
             )
@@ -765,7 +765,7 @@ class TestVotingRound(_BaseRoundTestClass):
     def setup_test_voting_round(self) -> DummyVotingRound:
         """Setup test voting round"""
         return DummyVotingRound(
-            state=self.period_state, consensus_params=self.consensus_params
+            state=self.synchronized_data, consensus_params=self.consensus_params
         )
 
     def test_vote_count(self) -> None:
@@ -819,7 +819,7 @@ class TestCollectDifferentUntilThresholdRound(_BaseRoundTestClass):
         """Run tests."""
 
         test_round = DummyCollectDifferentUntilThresholdRound(
-            state=self.period_state, consensus_params=self.consensus_params
+            state=self.synchronized_data, consensus_params=self.consensus_params
         )
 
         first_payload, *payloads = get_dummy_tx_payloads(self.participants, vote=False)
@@ -840,7 +840,7 @@ class TestDummyCollectNonEmptyUntilThresholdRound(_BaseRoundTestClass):
     def test_get_non_empty_values(self) -> None:
         """Test `_get_non_empty_values`."""
         test_round = DummyCollectNonEmptyUntilThresholdRound(
-            state=self.period_state, consensus_params=self.consensus_params
+            state=self.synchronized_data, consensus_params=self.consensus_params
         )
         payloads = get_dummy_tx_payloads(self.participants)
         payloads[3]._value = None
@@ -855,7 +855,7 @@ class TestDummyCollectNonEmptyUntilThresholdRound(_BaseRoundTestClass):
     def test_process_payload(self) -> None:
         """Test `process_payload`."""
         test_round = DummyCollectNonEmptyUntilThresholdRound(
-            state=self.period_state, consensus_params=self.consensus_params
+            state=self.synchronized_data, consensus_params=self.consensus_params
         )
 
         first_payload, *payloads = get_dummy_tx_payloads(self.participants)
@@ -871,16 +871,16 @@ class TestDummyCollectNonEmptyUntilThresholdRound(_BaseRoundTestClass):
     def test_end_block_no_threshold_reached(self, is_majority_possible: bool) -> None:
         """Test `end_block` when no collection threshold is reached."""
         test_round = DummyCollectNonEmptyUntilThresholdRound(
-            state=self.period_state, consensus_params=self.consensus_params
+            state=self.synchronized_data, consensus_params=self.consensus_params
         )
 
         test_round.is_majority_possible = lambda *_: is_majority_possible  # type: ignore
         test_round.no_majority_event = "no_majority"
 
-        res = cast(Tuple[BasePeriodState, Enum], test_round.end_block())
+        res = cast(Tuple[BaseSynchronizedData, Enum], test_round.end_block())
 
         if not is_majority_possible:
-            assert res[0].db == self.period_state.db
+            assert res[0].db == self.synchronized_data.db
             assert res[1] == test_round.no_majority_event
         else:
             assert res is None
@@ -891,7 +891,7 @@ class TestDummyCollectNonEmptyUntilThresholdRound(_BaseRoundTestClass):
     def test_end_block(self, is_value_none: bool, expected_event: str) -> None:
         """Test `end_block` when collection threshold is reached."""
         test_round = DummyCollectNonEmptyUntilThresholdRound(
-            state=self.period_state, consensus_params=self.consensus_params
+            state=self.synchronized_data, consensus_params=self.consensus_params
         )
 
         payloads = get_dummy_tx_payloads(self.participants, is_value_none=is_value_none)
@@ -904,6 +904,6 @@ class TestDummyCollectNonEmptyUntilThresholdRound(_BaseRoundTestClass):
         test_round.done_event = "done"
         test_round.none_event = "none"
 
-        res = cast(Tuple[BasePeriodState, Enum], test_round.end_block())
-        assert res[0].db == self.period_state.db
+        res = cast(Tuple[BaseSynchronizedData, Enum], test_round.end_block())
+        assert res[0].db == self.synchronized_data.db
         assert res[1] == expected_event

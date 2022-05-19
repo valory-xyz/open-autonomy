@@ -56,7 +56,7 @@ from packages.valory.contracts.gnosis_safe.contract import (
 from packages.valory.protocols.abci import AbciMessage  # noqa: F401
 from packages.valory.protocols.contract_api.message import ContractApiMessage
 from packages.valory.protocols.ledger_api.message import LedgerApiMessage
-from packages.valory.skills.abstract_round_abci.base import StateDB
+from packages.valory.skills.abstract_round_abci.base import AbciAppDB
 from packages.valory.skills.abstract_round_abci.behaviour_utils import (
     BaseState,
     RPCResponseStatus,
@@ -87,7 +87,7 @@ from packages.valory.skills.transaction_settlement_abci.rounds import (
     FinishedTransactionSubmissionRound,
 )
 from packages.valory.skills.transaction_settlement_abci.rounds import (
-    PeriodState as TransactionSettlementPeriodState,
+    SynchronizedData as TransactionSettlementSynchronizedData,
 )
 
 from tests.conftest import ROOT_DIR
@@ -274,8 +274,8 @@ class TestTransactionSettlementBaseState(PriceEstimationFSMBehaviourBaseCase):
         self.fast_forward_to_state(
             behaviour=self.behaviour,
             state_id=SignatureBehaviour.state_id,
-            period_state=TransactionSettlementPeriodState(
-                StateDB(
+            synchronized_data=TransactionSettlementSynchronizedData(
+                AbciAppDB(
                     initial_period=0,
                     initial_data=dict(
                         most_voted_tx_hash="b0e6add595e00477cf347d09797b156719dc5233283ac76e4efce2a674fe72d900000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000002625a000x77E9b2EF921253A171Fa0CB9ba80558648Ff7215b0e6add595e00477cf347d09797b156719dc5233283ac76e4efce2a674fe72d9b0e6add595e00477cf347d09797b156719dc5233283ac76e4efce2a674fe72d9",
@@ -347,7 +347,7 @@ class TestSelectKeeperTransactionSubmissionBehaviourA(BaseSelectKeeperBehaviourT
     select_keeper_behaviour_class = SelectKeeperTransactionSubmissionBehaviourA
     next_behaviour_class = SignatureBehaviour
     done_event = TransactionSettlementEvent.DONE
-    _period_state = TransactionSettlementPeriodState
+    _synchronized_data = TransactionSettlementSynchronizedData
 
 
 class TestSelectKeeperTransactionSubmissionBehaviourB(
@@ -359,12 +359,12 @@ class TestSelectKeeperTransactionSubmissionBehaviourB(
     next_behaviour_class = FinalizeBehaviour
 
     @mock.patch.object(
-        TransactionSettlementPeriodState,
+        TransactionSettlementSynchronizedData,
         "keepers",
         new_callable=mock.PropertyMock,
     )
     @mock.patch.object(
-        TransactionSettlementPeriodState,
+        TransactionSettlementSynchronizedData,
         "keeper_retries",
         new_callable=mock.PropertyMock,
     )
@@ -405,8 +405,8 @@ class TestSignatureBehaviour(TransactionSettlementFSMBehaviourBaseCase):
         self.fast_forward_to_state(
             behaviour=self.behaviour,
             state_id=SignatureBehaviour.state_id,
-            period_state=TransactionSettlementPeriodState(
-                StateDB(
+            synchronized_data=TransactionSettlementSynchronizedData(
+                AbciAppDB(
                     initial_period=0,
                     initial_data=dict(
                         most_voted_tx_hash="b0e6add595e00477cf347d09797b156719dc5233283ac76e4efce2a674fe72d900000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000002625a000x77E9b2EF921253A171Fa0CB9ba80558648Ff7215b0e6add595e00477cf347d09797b156719dc5233283ac76e4efce2a674fe72d9b0e6add595e00477cf347d09797b156719dc5233283ac76e4efce2a674fe72d9"
@@ -454,8 +454,8 @@ class TestFinalizeBehaviour(TransactionSettlementFSMBehaviourBaseCase):
         self.fast_forward_to_state(
             behaviour=self.behaviour,
             state_id=self.behaviour_class.state_id,
-            period_state=TransactionSettlementPeriodState(
-                StateDB(
+            synchronized_data=TransactionSettlementSynchronizedData(
+                AbciAppDB(
                     initial_period=0,
                     initial_data=dict(
                         most_voted_keeper_address="most_voted_keeper_address",
@@ -571,8 +571,8 @@ class TestFinalizeBehaviour(TransactionSettlementFSMBehaviourBaseCase):
         self.fast_forward_to_state(
             behaviour=self.behaviour,
             state_id=self.behaviour_class.state_id,
-            period_state=TransactionSettlementPeriodState(
-                StateDB(
+            synchronized_data=TransactionSettlementSynchronizedData(
+                AbciAppDB(
                     initial_period=0,
                     initial_data=dict(
                         safe_contract_address="safe_contract_address",
@@ -652,8 +652,8 @@ class TestFinalizeBehaviour(TransactionSettlementFSMBehaviourBaseCase):
         self.fast_forward_to_state(
             behaviour=self.behaviour,
             state_id=self.behaviour_class.state_id,
-            period_state=TransactionSettlementPeriodState(
-                StateDB(
+            synchronized_data=TransactionSettlementSynchronizedData(
+                AbciAppDB(
                     initial_period=0,
                     initial_data=dict(
                         most_voted_keeper_address="most_voted_keeper_address",
@@ -695,8 +695,8 @@ class TestValidateTransactionBehaviour(TransactionSettlementFSMBehaviourBaseCase
         self.fast_forward_to_state(
             behaviour=self.behaviour,
             state_id=ValidateTransactionBehaviour.state_id,
-            period_state=TransactionSettlementPeriodState(
-                StateDB(
+            synchronized_data=TransactionSettlementSynchronizedData(
+                AbciAppDB(
                     initial_period=0,
                     initial_data=dict(
                         safe_contract_address="safe_contract_address",
@@ -783,7 +783,7 @@ class TestValidateTransactionBehaviour(TransactionSettlementFSMBehaviourBaseCase
                 TransactionSettlementBaseState,
                 self.behaviour.current_state,
             )
-            latest_tx_hash = state.period_state.tx_hashes_history[-1]
+            latest_tx_hash = state.synchronized_data.tx_hashes_history[-1]
             mock_logger.assert_any_call(f"tx {latest_tx_hash} receipt check timed out!")
 
 
@@ -795,8 +795,8 @@ class TestCheckTransactionHistoryBehaviour(TransactionSettlementFSMBehaviourBase
         self.fast_forward_to_state(
             behaviour=self.behaviour,
             state_id=CheckTransactionHistoryBehaviour.state_id,
-            period_state=TransactionSettlementPeriodState(
-                StateDB(
+            synchronized_data=TransactionSettlementSynchronizedData(
+                AbciAppDB(
                     initial_period=0,
                     initial_data=dict(
                         safe_contract_address="safe_contract_address",
@@ -901,8 +901,8 @@ class TestSynchronizeLateMessagesBehaviour(TransactionSettlementFSMBehaviourBase
         self.fast_forward_to_state(
             behaviour=self.behaviour,
             state_id=SynchronizeLateMessagesBehaviour.state_id,
-            period_state=TransactionSettlementPeriodState(
-                StateDB(
+            synchronized_data=TransactionSettlementSynchronizedData(
+                AbciAppDB(
                     initial_period=0,
                     initial_data=dict(
                         participants=participants,
@@ -952,8 +952,8 @@ class TestResetBehaviour(TransactionSettlementFSMBehaviourBaseCase):
         self.fast_forward_to_state(
             behaviour=self.behaviour,
             state_id=self.behaviour_class.state_id,
-            period_state=TransactionSettlementPeriodState(
-                StateDB(initial_period=0, initial_data=dict(estimate=1.0)),
+            synchronized_data=TransactionSettlementSynchronizedData(
+                AbciAppDB(initial_period=0, initial_data=dict(estimate=1.0)),
             ),
         )
         assert (
