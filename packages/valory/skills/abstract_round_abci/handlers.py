@@ -135,8 +135,8 @@ class ABCIRoundHandler(ABCIHandler):
         try:
             transaction = Transaction.decode(transaction_bytes)
             transaction.verify(self.context.default_ledger_id)
-            shared_state.period.check_is_finished()
-            shared_state.period.deliver_tx(transaction)
+            shared_state.round_sequence.check_is_finished()
+            shared_state.round_sequence.deliver_tx(transaction)
         except (
             SignatureNotValidError,
             TransactionNotValidError,
