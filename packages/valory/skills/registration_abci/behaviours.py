@@ -295,8 +295,6 @@ class RegistrationStartupBehaviour(RegistrationBaseBehaviour):
             yield from self.sleep(self.params.sleep_time)
 
         # collect Tendermint config information from other agents
-        x0 = self.period_state.db.initial_data
-        self.context.logger.info(f"initial_data async_act: {id(x0)} - {x0}")
         while any(self.not_yet_collected):
             consume(map(self.request_tendermint_info, self.not_yet_collected))
             yield from self.sleep(self.params.sleep_time)
