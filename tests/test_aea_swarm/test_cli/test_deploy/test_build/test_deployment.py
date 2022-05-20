@@ -71,7 +71,7 @@ class TestBuildDeployment(BaseCliTest):
 
         build_dir = self.t / "abci_build"
 
-        assert result.exit_code == 0
+        assert result.exit_code == 0, f"{result.stdout}\n{result.stderr}"
         assert build_dir.exists()
 
         build_tree = list(map(lambda x: x.name, build_dir.iterdir()))
@@ -119,7 +119,7 @@ class TestBuildDeployment(BaseCliTest):
 
         build_dir = self.t / "abci_build"
 
-        assert result.exit_code == 0
+        assert result.exit_code == 0, f"{result.stdout}\n{result.stderr}"
         assert build_dir.exists()
 
         build_tree = list(map(lambda x: x.name, build_dir.iterdir()))
