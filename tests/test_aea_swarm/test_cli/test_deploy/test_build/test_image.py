@@ -60,7 +60,7 @@ class TestBuildImage(BaseCliTest):
         version = self.generate_random_tag()
         result = self.run_cli((self.service_id, "--version", version))
 
-        assert result.exit_code == 0
+        assert result.exit_code == 0, f"{result.stdout_bytes}\n{result.stderr_bytes}"
         assert (
             len(
                 self.docker_api.images(
@@ -77,7 +77,7 @@ class TestBuildImage(BaseCliTest):
 
         result = self.run_cli((self.service_id, "--dev"))
 
-        assert result.exit_code == 0
+        assert result.exit_code == 0, f"{result.stdout_bytes}\n{result.stderr_bytes}"
         assert (
             len(
                 self.docker_api.images(
@@ -95,7 +95,7 @@ class TestBuildImage(BaseCliTest):
         version = self.generate_random_tag()
         result = self.run_cli((self.service_id, "--dependencies", "--version", version))
 
-        assert result.exit_code == 0
+        assert result.exit_code == 0, f"{result.stdout_bytes}\n{result.stderr_bytes}"
         assert (
             len(
                 self.docker_api.images(
