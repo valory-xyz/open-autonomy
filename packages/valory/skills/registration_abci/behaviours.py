@@ -97,6 +97,7 @@ class RegistrationStartupBehaviour(RegistrationBaseBehaviour):
     state_id = "registration_startup"
     matching_round = RegistrationStartupRound
     local_tendermint_params: Optional[TendermintParams] = None
+    cooldown = 10  # testing purposes only
 
     @property
     def registered_addresses(self) -> Dict[str, str]:
@@ -237,6 +238,7 @@ class RegistrationStartupBehaviour(RegistrationBaseBehaviour):
         context = EnvelopeContext(connection_id=P2P_LIBP2P_CLIENT_PUBLIC_ID)
         self.context.outbox.put_message(message=message, context=context)
         self.context.logger.info(f"Requested Tendermint info from {address}")
+        self.context.logger.debug(f"current collection: {self.registered_addresses}")
 
     def update_tendermint(self) -> Generator[None, None, bool]:
         """Make HTTP POST request to update agent's local Tendermint node"""
@@ -317,6 +319,11 @@ class RegistrationStartupBehaviour(RegistrationBaseBehaviour):
         # if not successful:
         #     yield from self.sleep(self.params.sleep_time)
         #     return  # noqa: E800
+
+        # TEST: artificial delay to allow catch up of other agents
+        while self.cooldown:
+            self.cooldown -= 1
+            yield from self.sleep(self.params.sleep_time)
 
         self.context.logger.info("RegistrationStartupBehaviour executed")
         yield from super().async_act()

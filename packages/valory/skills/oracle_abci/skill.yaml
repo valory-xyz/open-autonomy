@@ -85,7 +85,7 @@ models:
       max_healthcheck: 120
       observation_aggregator_function: median
       observation_interval: 10
-      on_chain_service_id: null
+      on_chain_service_id: 1
       oracle:
         min_answer: 1000000000000000000
         max_answer: 1000000000000000000000000
@@ -99,7 +99,7 @@ models:
       retry_timeout: 3
       round_timeout_seconds: 30.0
       service_id: price_estimation
-      service_registry_address: null
+      service_registry_address: '0x0DCd1Bf9A1b36cE34237eEaFef220932846BCD82'
       sleep_time: 1
       tendermint_check_sleep_delay: 3
       tendermint_com_url: http://localhost:8080
