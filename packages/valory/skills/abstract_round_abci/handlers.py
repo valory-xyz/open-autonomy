@@ -456,6 +456,9 @@ class TendermintHandler(Handler):
     def handle(self, message: TendermintMessage) -> None:
         """Handle incoming Tendermint messages"""
 
+        x0 = self.period_state.db.initial_data
+        self.context.logger.info(f"initial_data handle: {id(x0)} - {x0}")
+
         dialogues = cast(TendermintDialogues, self.dialogues)
         dialogue = cast(TendermintDialogue, dialogues.update(message))
         if dialogue is None:

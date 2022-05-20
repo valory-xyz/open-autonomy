@@ -93,10 +93,10 @@ class RegistrationBaseBehaviour(BaseState):
 class RegistrationStartupBehaviour(RegistrationBaseBehaviour):
     """Register to the next periods."""
 
+    ENCODING: str = "utf-8"
     state_id = "registration_startup"
     matching_round = RegistrationStartupRound
     local_tendermint_params: Optional[TendermintParams] = None
-    ENCODING: str = "utf-8"
 
     @property
     def registered_addresses(self) -> Dict[str, str]:
@@ -109,6 +109,14 @@ class RegistrationStartupBehaviour(RegistrationBaseBehaviour):
         if "registered_addresses" not in self.period_state.db.initial_data:
             raise RuntimeError("Must collect addresses from service registry first")
         return [k for k, v in self.registered_addresses.items() if not v]
+
+    @property
+    def missing_response_confirmations(self) -> Set[str]:
+        """Agent addresses for which no Tendermint information has been retrieved"""
+        if "response_confirmations" not in self.period_state.db.initial_data:
+            raise RuntimeError("Must collect addresses from service registry first")
+        confirmations = self.period_state.db.initial_data.get("response_confirmations")
+        return set(self.registered_addresses).difference(confirmations)
 
     @property
     def tendermint_parameter_url(self) -> str:
@@ -164,7 +172,7 @@ class RegistrationStartupBehaviour(RegistrationBaseBehaviour):
     def get_addresses(self) -> Generator:
         """Get addresses of agents registered for the service"""
 
-        if self.params.service_registry_address is None:
+        if self.context.params.service_registry_address is None:
             raise RuntimeError("Service registry contract address not provided")
 
         correctly_deployed = yield from self.is_correct_contract()
@@ -196,8 +204,9 @@ class RegistrationStartupBehaviour(RegistrationBaseBehaviour):
         info[self.context.agent_address] = self.context.params.tendermint_url
 
         self.period_state.db.initial_data.update(dict(registered_addresses=info))
+        # self.period_state.db.initial_data.update(dict(response_confirmations=set()))
         log_msg = "Registered addresses retrieved from service registry contract"
-        self.context.logger.info(f"{log_msg}:\n{info}")
+        self.context.logger.info(f"{log_msg}: {info}")
 
     def get_tendermint_configuration(self) -> Generator[None, None, bool]:
         """Make HTTP GET request to obtain agent's local Tendermint node parameters"""
@@ -284,12 +293,18 @@ class RegistrationStartupBehaviour(RegistrationBaseBehaviour):
             yield from self.sleep(self.params.sleep_time)
 
         # collect Tendermint config information from other agents
+        x0 = self.period_state.db.initial_data
+        self.context.logger.info(f"initial_data async_act: {id(x0)} - {x0}")
         while any(self.not_yet_collected):
             consume(map(self.request_tendermint_info, self.not_yet_collected))
             yield from self.sleep(self.params.sleep_time)
 
         log_msg = "Completed collecting Tendermint responses"
         self.context.logger.info(f"{log_msg}: {self.registered_addresses}")
+
+        # while any(self.missing_response_confirmations):
+        #     yield from self.sleep(self.params.sleep_time)
+        # self.context._get_agent_context()
 
         # # update Tendermint configuration
         # successful = yield from self.update_tendermint()

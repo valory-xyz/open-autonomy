@@ -132,16 +132,20 @@ class BaseTestEnd2End(AEATestCaseMany, UseFlaskTendermintNode):
             str(self.t),
             type_="str",
         )
-        self.set_config(
-            f"vendor.valory.skills.{PublicId.from_str(self.skill_package).name}.models.params.args.service_registry_address",
-            "0x0DCd1Bf9A1b36cE34237eEaFef220932846BCD82",  # address on staging chain
-            type_="str",
-        )
-        self.set_config(  # dummy service
-            f"vendor.valory.skills.{PublicId.from_str(self.skill_package).name}.models.params.args.on_chain_service_id",
-            "1",
-            type_="str",
-        )
+
+        registration_abci = "registration_abci"
+        skill_abci = PublicId.from_str(self.skill_package).name
+        for skill_name in registration_abci, skill_abci:
+            self.set_config(
+                f"vendor.valory.skills.{skill_name}.models.params.args.service_registry_address",
+                "0x0DCd1Bf9A1b36cE34237eEaFef220932846BCD82",  # address on staging chain
+                type_="str",
+            )
+            self.set_config(  # dummy service
+                f"vendor.valory.skills.{skill_name}.models.params.args.on_chain_service_id",
+                "1",
+                type_="str",
+            )
 
         self.__set_extra_configs()
 
