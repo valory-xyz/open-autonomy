@@ -105,7 +105,6 @@ class TestRegistrationStartupRound(BaseCollectDifferentUntilAllRoundTest):
             ],
             state_update_fn=lambda *x: SynchronizedData(
                 AbciAppDB(
-                    initial_round=0,
                     initial_data=dict(participants=frozenset(test_round.collection)),
                 )
             ),
@@ -182,7 +181,6 @@ class TestRegistrationRound(BaseCollectDifferentUntilThresholdRoundTest):
             state_update_fn=(
                 lambda *x: SynchronizedData(
                     AbciAppDB(
-                        initial_round=0,
                         initial_data=dict(participants=self.participants),
                     )
                 )

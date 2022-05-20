@@ -147,7 +147,6 @@ def test_synchronized_datas() -> None:
 
     synchronized_data_ = SafeDeploymentSynchronizedData(
         AbciAppDB(
-            initial_round=0,
             initial_data=dict(
                 participants=participants,
                 participant_to_randomness=participant_to_randomness,

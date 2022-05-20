@@ -320,7 +320,6 @@ def test_synchronized_data() -> None:
 
     synchronized_data = SynchronizedData(
         AbciAppDB(
-            initial_round=period_count,
             initial_data=dict(
                 participants=participants,
                 period_setup_params=period_setup_params,

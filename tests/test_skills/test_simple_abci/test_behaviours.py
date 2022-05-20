@@ -134,9 +134,7 @@ class SimpleAbciFSMBehaviourBaseCase(BaseSkillTestCase):
             cast(BaseState, cls.simple_abci_behaviour.current_state).state_id
             == cls.simple_abci_behaviour.initial_state_cls.state_id
         )
-        cls.synchronized_data = SynchronizedData(
-            AbciAppDB(initial_round=0, initial_data={})
-        )
+        cls.synchronized_data = SynchronizedData(AbciAppDB(initial_data={}))
 
     def fast_forward_to_state(
         self,
@@ -548,7 +546,6 @@ class BaseSelectKeeperBehaviourTest(SimpleAbciFSMBehaviourBaseCase):
             state_id=self.select_keeper_behaviour_class.state_id,
             synchronized_data=SynchronizedData(
                 AbciAppDB(
-                    initial_round=0,
                     initial_data=dict(
                         participants=participants,
                         most_voted_randomness="56cbde9e9bbcbdcaf92f183c678eaa5288581f06b1c9c7f884ce911776727688",

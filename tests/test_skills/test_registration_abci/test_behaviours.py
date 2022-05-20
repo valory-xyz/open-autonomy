@@ -62,7 +62,7 @@ class BaseRegistrationTestBehaviour(RegistrationAbciBaseCase):
         self.fast_forward_to_state(
             self.behaviour,
             self.behaviour_class.state_id,
-            RegistrationSynchronizedData(AbciAppDB(initial_round=0, initial_data={})),
+            RegistrationSynchronizedData(AbciAppDB(initial_data={})),
         )
         assert (
             cast(

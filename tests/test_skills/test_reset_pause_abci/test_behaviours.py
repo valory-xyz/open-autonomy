@@ -81,7 +81,6 @@ class TestResetAndPauseBehaviour(ResetPauseAbciFSMBehaviourBaseCase):
             state_id=self.behaviour_class.state_id,
             synchronized_data=ResetSynchronizedData(
                 AbciAppDB(
-                    initial_round=initial_round,
                     initial_data=dict(
                         period_count=initial_round,
                         most_voted_estimate=0.1,

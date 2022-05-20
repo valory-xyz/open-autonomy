@@ -632,7 +632,7 @@ Class to represent all data replicated across periods.
 #### `__`init`__`
 
 ```python
-def __init__(initial_round: int, initial_data: Dict[str, Any], cross_reset_persisted_keys: Optional[List[str]] = None) -> None
+def __init__(initial_data: Dict[str, Any], cross_reset_persisted_keys: Optional[List[str]] = None) -> None
 ```
 
 Initialize a period state.

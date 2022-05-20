@@ -478,7 +478,6 @@ class AbciAppDB:
 
     def __init__(
         self,
-        initial_round: int,
         initial_data: Dict[str, Any],
         cross_reset_persisted_keys: Optional[List[str]] = None,
     ) -> None:

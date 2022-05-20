@@ -108,7 +108,7 @@ class TestObserveBehaviour(PriceEstimationFSMBehaviourBaseCase):
             self.behaviour,
             ObserveBehaviour.state_id,
             PriceEstimationSynchronizedData(
-                AbciAppDB(initial_round=0, initial_data=dict(estimate=1.0)),
+                AbciAppDB(initial_data=dict(estimate=1.0)),
             ),
         )
         assert (
@@ -149,7 +149,7 @@ class TestObserveBehaviour(PriceEstimationFSMBehaviourBaseCase):
             self.behaviour,
             ObserveBehaviour.state_id,
             PriceEstimationSynchronizedData(
-                AbciAppDB(initial_round=0, initial_data=dict(estimate=1.0)),
+                AbciAppDB(initial_data=dict(estimate=1.0)),
             ),
         )
         assert (
@@ -177,7 +177,7 @@ class TestObserveBehaviour(PriceEstimationFSMBehaviourBaseCase):
             self.behaviour,
             ObserveBehaviour.state_id,
             PriceEstimationSynchronizedData(
-                AbciAppDB(initial_round=0, initial_data=dict()),
+                AbciAppDB(initial_data=dict()),
             ),
         )
         assert (
@@ -215,7 +215,7 @@ class TestObserveBehaviour(PriceEstimationFSMBehaviourBaseCase):
             self.behaviour,
             ObserveBehaviour.state_id,
             PriceEstimationSynchronizedData(
-                AbciAppDB(initial_round=0, initial_data=dict()),
+                AbciAppDB(initial_data=dict()),
             ),
         )
         assert (
@@ -244,7 +244,6 @@ class TestEstimateBehaviour(PriceEstimationFSMBehaviourBaseCase):
             state_id=EstimateBehaviour.state_id,
             synchronized_data=PriceEstimationSynchronizedData(
                 AbciAppDB(
-                    initial_round=0,
                     initial_data=dict(
                         participant_to_observations={
                             "a": ObservationPayload(sender="a", observation=1.0)
@@ -376,7 +375,6 @@ class TestTransactionHashBehaviour(PriceEstimationFSMBehaviourBaseCase):
             state_id=TransactionHashBehaviour.state_id,
             synchronized_data=PriceEstimationSynchronizedData(
                 AbciAppDB(
-                    initial_round=0,
                     initial_data=dict(
                         period_count=this_round_count,
                         most_voted_estimate=1.0,
