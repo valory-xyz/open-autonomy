@@ -1,21 +1,18 @@
-# Introduction to ABCI Applications
+# Components of an {{fsm_app}}
 
+There are a number of important concepts that will be introduced in this section so that the developer understands how {{fsm_app}}s work. Namely:
 
-An _{{abci_app}}_ is an FSM-based replicated application which uses
-an underlying consensus engine implementing the [ABCI](./abci.md). {{abci_app}}s constitute a core part in the {{valory_stack}} to implement multi-agent based services.
-There are a number of important concepts that will be introduced in the next section so that the developer understands how {{abci_app}}s work.
+Core classes that instrument the {{fsm_app}}:
 
-Core classes that instrument the {{abci_app}}:
-
-- `ABCIApp` class: The base class for {{abci_app}}s.
-- `AbstractRoundBehaviour` class: The base class defining the overall {{abci_app}}s behaviour.
+- `AbciApp` class: The base class that defines the FSM transitions in an {{fsm_app}}.
+- `AbstractRoundBehaviour` class: The base class defining the overall {{fsm_app}}s behaviour.
 
 Classes that define the operations per state of the FSM:
 
-- `AbstractRound` class: The base class to define FSM state rounds of the {{abci_app}}.
-- `AsyncBehaviour` class: The base class to define FSM state behaviours to be executed during each round in the {{abci_app}}.
+- `AbstractRound` class: The base class to define the FSM state rounds of the {{fsm_app}}.
+- `AsyncBehaviour` class: The base class to define FSM state behaviours to be executed during each round in the {{fsm_app}}.
 
-Other classes related to the {{abci_app}} FSM global state:
+Other classes related to the {{fsm_app}} FSM global state:
 
 - `Period` class: The class containing a sequence of
 concrete implementations of the `AbstractRound`.
@@ -24,14 +21,12 @@ access to the shared state throughout a `Period`.
 
 
 
-## How {{abci_app}}s work
+## How {{fsm_app}}s work
 
-
-
-The `ABCIApp` class defines the constituent FSM of the ABCI Application. That is, it defines the set of start and final states (rounds), the transition function, etc. that can occur within a  `Period`.
+The `AbciApp` class defines the constituent FSM of the {{fsm_app}}. That is, it defines the set of start and final states (rounds) and the transition function.
 <!-- We call _round_ a state in an ABCIApp, and _period_ an execution of the `ABCIApp`. -->
 
-The state of the `ABCIApp` is updated through
+The state of the {{fsm_app}} is updated through
 transactions committed to the temporary blockchain.
 This ledger is local with respect to the `Period`, i.e., its
 existence is controlled by, and only relevant in context of, the `Period`. It is
@@ -72,7 +67,7 @@ take the transition to the next state, as defined by the transition function in 
 
 !!! warning "Important"
 
-    We remark that the {{abci_app}}, which resides inside the AEA, is updated by
+    We remark that the {{fsm_app}}, which resides inside the AEA, is updated by
     the consensus engine through the [ABCI](./abci.md) requests handled by the `ABCIHandler`, and
     **NOT** by the AEA behaviours. The AEA behaviours can only send updates through
     the process of sending transactions to the consensus engine.
