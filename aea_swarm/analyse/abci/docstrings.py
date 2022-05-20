@@ -95,6 +95,7 @@ def docstring_abci_app(abci_app: Any) -> str:  # pylint: disable-msg=too-many-lo
 
     return DOCSTRING_TEMPLATE.format(
         abci_app_name=abci_app.__name__,  # type: ignore
+        initial_round=initial_round,
         initial_states=COMMA.join(sorted(initial_states)),
         transition_states=(NEWLINE + INDENT).join(transition_states),
         final_states=COMMA.join(sorted(final_states)),
