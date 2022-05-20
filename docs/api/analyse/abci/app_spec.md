@@ -93,6 +93,46 @@ def dump(file: Path, output_format: str = "yaml") -> None
 
 Dumps this DFA spec. to a file in YAML/JSON/Mermaid format.
 
+<a id="aea_swarm.analyse.abci.app_spec.DFA.dump_json"></a>
+
+#### dump`_`json
+
+```python
+def dump_json(fp: TextIO) -> None
+```
+
+Dump to a json file.
+
+<a id="aea_swarm.analyse.abci.app_spec.DFA.dump_yaml"></a>
+
+#### dump`_`yaml
+
+```python
+def dump_yaml(fp: TextIO) -> None
+```
+
+Dump to a yaml file.
+
+<a id="aea_swarm.analyse.abci.app_spec.DFA.dump_mermaid"></a>
+
+#### dump`_`mermaid
+
+```python
+def dump_mermaid(fp: TextIO) -> None
+```
+
+Dumps this DFA spec. to a file in Mermaid format.
+
+<a id="aea_swarm.analyse.abci.app_spec.DFA.generate"></a>
+
+#### generate
+
+```python
+def generate() -> Dict[str, Any]
+```
+
+Retrieves an exportable respresentation for YAML/JSON dump of this DFA.
+
 <a id="aea_swarm.analyse.abci.app_spec.DFA.load"></a>
 
 #### load
@@ -110,7 +150,7 @@ Loads a DFA JSON specification from file.
 
 ```python
 @classmethod
-def abci_to_dfa(cls, abci_app_cls: Type[AbciApp], label: str = "") -> "DFA"
+def abci_to_dfa(cls, abci_app_cls: Any, label: str = "") -> "DFA"
 ```
 
 Translates an AbciApp class into a DFA.

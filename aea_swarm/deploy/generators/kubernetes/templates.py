@@ -245,7 +245,7 @@ spec:
             name: nodes
 
       - name: aea
-        image: valory/consensus-algorithms-open-aea:{valory_app}V%s
+        image: valory/consensus-algorithms-open-aea:{valory_app}-%s
         imagePullPolicy: Always
         resources:
           limits:
