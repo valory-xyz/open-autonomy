@@ -72,6 +72,17 @@ def not_yet_collected() -> List[str]
 
 Agent addresses for which no Tendermint information has been retrieved
 
+<a id="packages.valory.skills.registration_abci.behaviours.RegistrationStartupBehaviour.missing_response_confirmations"></a>
+
+#### missing`_`response`_`confirmations
+
+```python
+@property
+def missing_response_confirmations() -> Set[str]
+```
+
+Agent addresses for which no Tendermint information has been retrieved
+
 <a id="packages.valory.skills.registration_abci.behaviours.RegistrationStartupBehaviour.tendermint_parameter_url"></a>
 
 #### tendermint`_`parameter`_`url
