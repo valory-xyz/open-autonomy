@@ -19,6 +19,7 @@
 
 """Analyse CLI module."""
 import importlib
+import json
 import sys
 from pathlib import Path
 from typing import Optional
@@ -27,10 +28,7 @@ from warnings import filterwarnings
 import click
 
 from aea_swarm.analyse.abci.app_spec import DFA, SpecCheck
-from aea_swarm.analyse.abci.docstrings import (
-    check_working_tree_is_dirty,
-    process_module,
-)
+from aea_swarm.analyse.abci.docstrings import process_module
 from aea_swarm.analyse.abci.handlers import check_handlers
 from aea_swarm.analyse.abci.logs import parse_file
 from aea_swarm.analyse.benchmark.aggregate import BlockTypes, aggregate
@@ -88,7 +86,7 @@ def generat_abci_app_pecs(app_class: str, output_file: Path, spec_format: str) -
     help="Path to packages directory; Use with `--check-all` flag",
 )
 @abci_spec_format_flag()
-@click.option("--app_class", type=str, help="Dotted path to app definition class.")
+@click.option("--app-class", type=str, help="Dotted path to app definition class.")
 @click.option("--infile", type=click.Path(), help="Path to input file.")
 def check_abci_app_specs(
     check_all: bool, packages_dir: Path, spec_format: str, app_class: str, infile: Path
@@ -129,20 +127,24 @@ def check_abci_app_specs(
 def docstrings(packages_dir: Path, check: bool) -> None:
     """Analyse ABCI docstring definitions."""
 
-    no_update = set()
+    packages_dir = Path(packages_dir)
+    needs_update = set()
     abci_compositions = packages_dir.glob("*/skills/*/rounds.py")
+
     for path in sorted(abci_compositions):
         click.echo(f"Processing: {path}")
-        file = process_module(path)
-        if file is not None:
-            no_update.add(file)
+        if process_module(path, check=check):
+            needs_update.add(str(path))
 
-    if check:
-        check_working_tree_is_dirty()
+    if len(needs_update) > 0:
+        file_string = "\n".join(sorted(needs_update))
+        if check:
+            raise click.ClickException(
+                f"Following files needs updating.\n\n{file_string}"
+            )
+        click.echo(f"\nUpdated following files.\n\n{file_string}")
     else:
-        if len(no_update) > 0:
-            click.echo("\nFollowing files doesn't need to be updated.\n")
-            click.echo("\n".join(sorted(no_update)))
+        click.echo("No update needed.")
 
 
 @abci_group.command(name="logs")
@@ -165,19 +167,21 @@ def parse_logs(file: Path) -> None:
 @click.option(
     "--handler-config",
     type=click.Path(),
-    default=Path.cwd() / "scripts" / "handler_config.py",
+    default=Path.cwd() / "scripts" / "handler_config.json",
 )
 def run_handler_check(packages_dir: Path, handler_config: Path) -> None:
     """Check handler definitions."""
-    handler_config_file = Path(handler_config).relative_to(Path.cwd())
-    module_name = str(handler_config_file).replace(".py", "").replace("/", ".")
-    handler_config_module = importlib.import_module(module_name)
+    handler_config = Path(handler_config).absolute()
+    handler_config_data = json.loads(handler_config.read_text(encoding="utf-8"))
 
-    packages_dir = Path(packages_dir).absolute()
+    skip_skills = handler_config_data["skip_skills"]
+    common_handlers = handler_config_data["common_handlers"]
+    packages_dir = Path(packages_dir)
+
     try:
-        for yaml_file in packages_dir.glob("**/skill.yaml"):
+        for yaml_file in sorted(packages_dir.glob("**/skill.yaml")):
             click.echo(f"Checking {yaml_file.parent}")
-            check_handlers(yaml_file, handler_config_module)
+            check_handlers(yaml_file, common_handlers, skip_skills)
     except Exception as e:  # pylint: disable=broad-except
         raise click.ClickException(str(e)) from e
 
