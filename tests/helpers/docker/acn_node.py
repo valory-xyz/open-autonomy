@@ -37,7 +37,7 @@ DEFAULT_ACN_CONFIG: Dict[str, str] = dict(
     AEA_P2P_URI_PUBLIC=f"{_LOCAL_ADDRESS}:5000",
     AEA_P2P_URI=f"{_LOCAL_ADDRESS}:5000",
     AEA_P2P_DELEGATE_URI=f"{_LOCAL_ADDRESS}:11000",
-    AEA_P2P_URI_MONITORING=f"{_LOCAL_ADDRESS}:8080",
+    AEA_P2P_URI_MONITORING=f"{_LOCAL_ADDRESS}:8081",
     ACN_LOG_FILE="/acn/libp2p_node.log",
 )
 
@@ -89,6 +89,10 @@ class ACNNodeDockerImage(DockerImage):
             environment=self._config,
         )
         return container
+
+    def create_many(self, nb_containers: int) -> List[Container]:
+        """Instantiate the image in many containers, parametrized."""
+        raise NotImplementedError()
 
     def wait(self, max_attempts: int = 15, sleep_rate: float = 1.0) -> bool:
         """Wait until the image is up."""

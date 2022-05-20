@@ -20,6 +20,7 @@
 """End2end tests base class."""
 import json
 import logging
+import os
 import time
 import warnings
 from pathlib import Path
@@ -131,6 +132,16 @@ class BaseTestEnd2End(AEATestCaseMany, UseFlaskTendermintNode):
             str(self.t),
             type_="str",
         )
+        self.set_config(
+            f"vendor.valory.skills.{PublicId.from_str(self.skill_package).name}.models.params.args.service_registry_address",
+            "0x0DCd1Bf9A1b36cE34237eEaFef220932846BCD82",  # address on staging chain
+            type_="str",
+        )
+        self.set_config(  # dummy service
+            f"vendor.valory.skills.{PublicId.from_str(self.skill_package).name}.models.params.args.on_chain_service_id",
+            "1",
+            type_="str",
+        )
 
         self.__set_extra_configs()
 
@@ -164,6 +175,9 @@ class BaseTestEnd2End(AEATestCaseMany, UseFlaskTendermintNode):
 
     def prepare(self, nb_nodes: int) -> None:
         """Set up the test."""
+        logging.debug(f"Setting-up test for agent package: {self.agent_package}")
+        logging.debug(f"Setting-up test for skill package: {self.skill_package}")
+
         self.processes = []
         self.nb_agents = nb_nodes
 

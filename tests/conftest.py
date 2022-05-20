@@ -46,9 +46,8 @@ from web3 import Web3
 from tests.helpers.constants import KEY_PAIRS
 from tests.helpers.constants import ROOT_DIR as _ROOT_DIR
 from tests.helpers.contracts import get_register_contract
-from tests.helpers.docker.base import launch_image, launch_many_containers
 from tests.helpers.docker.acn_node import ACNNodeDockerImage, DEFAULT_ACN_CONFIG
-from tests.helpers.docker.base import launch_image
+from tests.helpers.docker.base import launch_image, launch_many_containers
 from tests.helpers.docker.ganache import (
     DEFAULT_GANACHE_ADDR,
     DEFAULT_GANACHE_CHAIN_ID,

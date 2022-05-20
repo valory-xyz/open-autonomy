@@ -157,10 +157,10 @@ class UseACNNode:
 
     @classmethod
     @pytest.fixture(autouse=True)
-    def _start_acn(self, acn_node: Any, acn_config: Any = None) -> None:
+    def _start_acn(cls, acn_node: Any, acn_config: Any = None) -> None:
         """Start an HardHat instance."""
-        self._acn_node_image = acn_node
-        self.configuration = acn_config or self.configuration
+        cls._acn_node_image = acn_node
+        cls.configuration = acn_config or cls.configuration
 
 
 class ACNNodeBaseTest(DockerBaseTest):

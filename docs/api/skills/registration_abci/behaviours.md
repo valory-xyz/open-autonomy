@@ -119,7 +119,7 @@ Get service info available on-chain
 #### get`_`addresses
 
 ```python
-def get_addresses() -> Generator[None, None, bool]
+def get_addresses() -> Generator
 ```
 
 Get addresses of agents registered for the service

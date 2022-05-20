@@ -483,7 +483,7 @@ class TendermintHandler(Handler):
             target_message=message,
             error_code=TendermintMessage.ErrorCode.INVALID_REQUEST,
             error_msg=error_message,
-            error_data={"message": message.encode()},
+            error_data={},
         )
         self.context.outbox.put_message(response)
         log_message = (
