@@ -1749,8 +1749,8 @@ class AbciApp(
                 else None
             ),
         )
+        self.state.db.increment_round_count()  # ROUND_COUNT_DEFAULT is -1
         self._log_start()
-        self.state.db.increment_round_count()
 
     @property
     def current_round(self) -> AbstractRound:
