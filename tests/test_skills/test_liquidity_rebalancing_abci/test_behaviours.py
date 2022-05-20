@@ -54,7 +54,7 @@ from packages.valory.skills.liquidity_rebalancing_abci.behaviours import (
 from packages.valory.skills.liquidity_rebalancing_abci.payloads import StrategyType
 from packages.valory.skills.liquidity_rebalancing_abci.rounds import Event
 from packages.valory.skills.liquidity_rebalancing_abci.rounds import (
-    SynchronizedData as LiquidityRebalancingSynchronizedSata,
+    SynchronizedData as LiquidityRebalancingSynchronizedData,
 )
 
 from tests.conftest import ROOT_DIR
@@ -148,7 +148,7 @@ class TestStrategyEvaluationBehaviour(LiquidityRebalancingBehaviourBaseCase):
         strategy = get_default_strategy(
             is_base_native=False, is_a_native=True, is_b_native=False
         )
-        synchronized_data = LiquidityRebalancingSynchronizedSata(
+        synchronized_data = LiquidityRebalancingSynchronizedData(
             AbciAppDB(
                 initial_round=0,
                 initial_data=dict(
@@ -187,7 +187,7 @@ class TestStrategyEvaluationBehaviour(LiquidityRebalancingBehaviourBaseCase):
             is_base_native=False, is_a_native=True, is_b_native=False
         )
         strategy["action"] = StrategyType.EXIT.value
-        synchronized_data = LiquidityRebalancingSynchronizedSata(
+        synchronized_data = LiquidityRebalancingSynchronizedData(
             AbciAppDB(
                 initial_round=0,
                 initial_data=dict(
@@ -222,7 +222,7 @@ class TestStrategyEvaluationBehaviour(LiquidityRebalancingBehaviourBaseCase):
     ) -> None:
         """Run tests."""
 
-        synchronized_data = LiquidityRebalancingSynchronizedSata(
+        synchronized_data = LiquidityRebalancingSynchronizedData(
             AbciAppDB(
                 initial_round=0,
                 initial_data=dict(
@@ -264,7 +264,7 @@ class TestStrategyEvaluationBehaviour(LiquidityRebalancingBehaviourBaseCase):
             is_base_native=False, is_a_native=True, is_b_native=False
         )
         strategy["action"] = StrategyType.SWAP_BACK.value
-        synchronized_data = LiquidityRebalancingSynchronizedSata(
+        synchronized_data = LiquidityRebalancingSynchronizedData(
             AbciAppDB(
                 initial_round=0,
                 initial_data=dict(
@@ -306,7 +306,7 @@ class TestEnterPoolTransactionHashBehaviour(LiquidityRebalancingBehaviourBaseCas
         strategy = get_default_strategy(
             is_base_native=False, is_a_native=True, is_b_native=False
         )
-        synchronized_data = LiquidityRebalancingSynchronizedSata(
+        synchronized_data = LiquidityRebalancingSynchronizedData(
             AbciAppDB(
                 initial_round=0,
                 initial_data=dict(
@@ -552,7 +552,7 @@ class TestEnterPoolTransactionHashBehaviour(LiquidityRebalancingBehaviourBaseCas
         strategy = get_default_strategy(
             is_base_native=False, is_a_native=False, is_b_native=False
         )
-        synchronized_data = LiquidityRebalancingSynchronizedSata(
+        synchronized_data = LiquidityRebalancingSynchronizedData(
             AbciAppDB(
                 initial_round=0,
                 initial_data=dict(
@@ -825,7 +825,7 @@ class TestEnterPoolTransactionHashBehaviour(LiquidityRebalancingBehaviourBaseCas
         strategy = get_default_strategy(
             is_base_native=True, is_a_native=True, is_b_native=False
         )
-        synchronized_data = LiquidityRebalancingSynchronizedSata(
+        synchronized_data = LiquidityRebalancingSynchronizedData(
             AbciAppDB(
                 initial_round=0,
                 initial_data=dict(
@@ -891,7 +891,7 @@ class TestExitPoolTransactionHashBehaviour(LiquidityRebalancingBehaviourBaseCase
         strategy = get_default_strategy(
             is_base_native=False, is_a_native=True, is_b_native=False
         )
-        synchronized_data = LiquidityRebalancingSynchronizedSata(
+        synchronized_data = LiquidityRebalancingSynchronizedData(
             AbciAppDB(
                 initial_round=0,
                 initial_data=dict(
@@ -1077,7 +1077,7 @@ class TestExitPoolTransactionHashBehaviour(LiquidityRebalancingBehaviourBaseCase
         strategy = get_default_strategy(
             is_base_native=False, is_a_native=False, is_b_native=False
         )
-        synchronized_data = LiquidityRebalancingSynchronizedSata(
+        synchronized_data = LiquidityRebalancingSynchronizedData(
             AbciAppDB(
                 initial_round=0,
                 initial_data=dict(
@@ -1265,7 +1265,7 @@ class TestExitPoolTransactionHashBehaviour(LiquidityRebalancingBehaviourBaseCase
         strategy = get_default_strategy(
             is_base_native=False, is_a_native=True, is_b_native=False
         )
-        synchronized_data = LiquidityRebalancingSynchronizedSata(
+        synchronized_data = LiquidityRebalancingSynchronizedData(
             AbciAppDB(
                 initial_round=0,
                 initial_data=dict(
@@ -1337,7 +1337,7 @@ class TestSwapBackTransactionHashBehaviour(LiquidityRebalancingBehaviourBaseCase
         strategy = get_default_strategy(
             is_base_native=False, is_a_native=True, is_b_native=False
         )
-        synchronized_data = LiquidityRebalancingSynchronizedSata(
+        synchronized_data = LiquidityRebalancingSynchronizedData(
             AbciAppDB(
                 initial_round=0,
                 initial_data=dict(
@@ -1560,7 +1560,7 @@ class TestSwapBackTransactionHashBehaviour(LiquidityRebalancingBehaviourBaseCase
         strategy = get_default_strategy(
             is_base_native=False, is_a_native=False, is_b_native=False
         )
-        synchronized_data = LiquidityRebalancingSynchronizedSata(
+        synchronized_data = LiquidityRebalancingSynchronizedData(
             AbciAppDB(
                 initial_round=0,
                 initial_data=dict(
@@ -1841,7 +1841,7 @@ class TestSleepBehaviour(LiquidityRebalancingBehaviourBaseCase):
     ) -> None:
         """Run tests."""
 
-        synchronized_data = LiquidityRebalancingSynchronizedSata(
+        synchronized_data = LiquidityRebalancingSynchronizedData(
             AbciAppDB(
                 initial_round=0,
                 initial_data=dict(

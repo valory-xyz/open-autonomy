@@ -97,7 +97,7 @@ class DummyTxPayload(BaseTxPayload):
         return self._vote
 
 
-class DummySynchronizedSata(BaseSynchronizedData):
+class DummySynchronizedData(BaseSynchronizedData):
     """Dummy Period state for tests."""
 
     @property
@@ -517,7 +517,7 @@ class _BaseRoundTestClass(BaseRoundTestClass):
     consensus_params: ConsensusParams
     tx_payloads: List[DummyTxPayload]
 
-    _synchronized_data_class = DummySynchronizedSata
+    _synchronized_data_class = DummySynchronizedData
 
     @classmethod
     def setup(

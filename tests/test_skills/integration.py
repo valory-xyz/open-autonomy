@@ -55,10 +55,10 @@ from packages.valory.protocols.ledger_api.custom_types import (
 )
 from packages.valory.skills.abstract_round_abci.behaviour_utils import BaseState
 from packages.valory.skills.liquidity_rebalancing_abci.rounds import (
-    SynchronizedData as LiquidityRebalancingSynchronizedSata,
+    SynchronizedData as LiquidityRebalancingSynchronizedData,
 )
 from packages.valory.skills.price_estimation_abci.rounds import (
-    SynchronizedData as PriceEstimationSynchronizedSata,
+    SynchronizedData as PriceEstimationSynchronizedData,
 )
 from packages.valory.skills.transaction_settlement_abci.behaviours import (
     FinalizeBehaviour,
@@ -71,7 +71,7 @@ from packages.valory.skills.transaction_settlement_abci.payload_tools import (
 )
 from packages.valory.skills.transaction_settlement_abci.payloads import SignaturePayload
 from packages.valory.skills.transaction_settlement_abci.rounds import (
-    SynchronizedData as TxSettlementSynchronizedSata,
+    SynchronizedData as TxSettlementSynchronizedData,
 )
 
 from tests.conftest import ROOT_DIR, make_ledger_api_connection
@@ -255,9 +255,9 @@ class IntegrationBaseCase(FSMBehaviourBaseCase):
         self,
         ncycles: int,
         synchronized_data: Union[
-            TxSettlementSynchronizedSata,
-            PriceEstimationSynchronizedSata,
-            LiquidityRebalancingSynchronizedSata,
+            TxSettlementSynchronizedData,
+            PriceEstimationSynchronizedData,
+            LiquidityRebalancingSynchronizedData,
             None,
         ] = None,
         state_id: Optional[str] = None,
@@ -361,7 +361,7 @@ class _GnosisHelperIntegration(_SafeConfiguredHelperIntegration):
 class _TxHelperIntegration(_GnosisHelperIntegration):
     """Class that assists tx settlement related operations."""
 
-    tx_settlement_synchronized_data: TxSettlementSynchronizedSata
+    tx_settlement_synchronized_data: TxSettlementSynchronizedData
 
     def sign_tx(self) -> None:
         """Sign a transaction"""

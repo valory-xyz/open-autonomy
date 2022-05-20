@@ -34,7 +34,7 @@ from packages.valory.skills.safe_deployment_abci.rounds import (
 )
 from packages.valory.skills.safe_deployment_abci.rounds import SelectKeeperSafeRound
 from packages.valory.skills.safe_deployment_abci.rounds import (
-    SynchronizedData as SafeDeploymentSynchronizedSata,
+    SynchronizedData as SafeDeploymentSynchronizedData,
 )
 from packages.valory.skills.safe_deployment_abci.rounds import ValidateSafeRound
 from packages.valory.skills.transaction_settlement_abci.payloads import ValidatePayload
@@ -113,7 +113,7 @@ class TestDeploySafeRound(BaseDeployTestClass):
     payload_class = DeploySafePayload
     update_keyword = "safe_contract_address"
     _event_class = SafeDeploymentEvent
-    _synchronized_data_class = SafeDeploymentSynchronizedSata
+    _synchronized_data_class = SafeDeploymentSynchronizedData
 
 
 class TestValidateSafeRound(BaseValidateRoundTest):
@@ -122,7 +122,7 @@ class TestValidateSafeRound(BaseValidateRoundTest):
     test_class = ValidateSafeRound
     test_payload = ValidatePayload
     _event_class = SafeDeploymentEvent
-    _synchronized_data_class = SafeDeploymentSynchronizedSata
+    _synchronized_data_class = SafeDeploymentSynchronizedData
 
 
 class TestSelectKeeperSafeRound(BaseSelectKeeperRoundTest):
@@ -145,7 +145,7 @@ def test_synchronized_datas() -> None:
     participant_to_votes = get_participant_to_votes(participants)
     actual_keeper_randomness = int(most_voted_randomness, base=16) / MAX_INT_256
 
-    synchronized_data_ = SafeDeploymentSynchronizedSata(
+    synchronized_data_ = SafeDeploymentSynchronizedData(
         AbciAppDB(
             initial_round=0,
             initial_data=dict(

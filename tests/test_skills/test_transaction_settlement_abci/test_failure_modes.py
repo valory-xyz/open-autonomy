@@ -52,7 +52,7 @@ from packages.valory.skills.price_estimation_abci.behaviours import (
     TransactionHashBehaviour,
 )
 from packages.valory.skills.price_estimation_abci.rounds import (
-    SynchronizedData as PriceEstimationSynchronizedSata,
+    SynchronizedData as PriceEstimationSynchronizedData,
 )
 from packages.valory.skills.transaction_settlement_abci.behaviours import (
     CheckLateTxHashesBehaviour,
@@ -67,7 +67,7 @@ from packages.valory.skills.transaction_settlement_abci.payload_tools import (
     hash_payload_to_hex,
 )
 from packages.valory.skills.transaction_settlement_abci.rounds import (
-    SynchronizedData as TxSettlementSynchronizedSata,
+    SynchronizedData as TxSettlementSynchronizedData,
 )
 
 from tests.conftest import ROOT_DIR
@@ -100,7 +100,7 @@ class TransactionSettlementIntegrationBaseCase(
 ):
     """Base case for integration testing TransactionSettlement FSM Behaviour."""
 
-    price_estimation_synchronized_data: PriceEstimationSynchronizedSata
+    price_estimation_synchronized_data: PriceEstimationSynchronizedData
 
     @classmethod
     def setup(cls, **kwargs: Any) -> None:
@@ -108,7 +108,7 @@ class TransactionSettlementIntegrationBaseCase(
         super().setup()
 
         keeper_initial_retries = 1
-        cls.tx_settlement_synchronized_data = TxSettlementSynchronizedSata(
+        cls.tx_settlement_synchronized_data = TxSettlementSynchronizedData(
             AbciAppDB(
                 initial_round=0,
                 initial_data=dict(
@@ -120,7 +120,7 @@ class TransactionSettlementIntegrationBaseCase(
             )
         )
 
-        cls.price_estimation_synchronized_data = PriceEstimationSynchronizedSata(
+        cls.price_estimation_synchronized_data = PriceEstimationSynchronizedData(
             AbciAppDB(
                 initial_round=0,
                 initial_data=dict(
@@ -323,7 +323,7 @@ class TestKeepers(OracleBehaviourBaseCase, IntegrationBaseCase):
         super().setup()
 
         # init period state
-        cls.tx_settlement_synchronized_data = TxSettlementSynchronizedSata(
+        cls.tx_settlement_synchronized_data = TxSettlementSynchronizedData(
             AbciAppDB(
                 initial_round=0,
                 initial_data=dict(

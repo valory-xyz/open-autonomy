@@ -22,7 +22,7 @@ import logging  # noqa: F401
 from typing import Dict, FrozenSet
 
 from packages.valory.skills.abstract_round_abci.base import (
-    BaseSynchronizedData as ResetSynchronizedSata,
+    BaseSynchronizedData as ResetSynchronizedData,
 )
 from packages.valory.skills.reset_pause_abci.payloads import ResetPausePayload
 from packages.valory.skills.reset_pause_abci.rounds import Event as ResetEvent
@@ -50,7 +50,7 @@ def get_participant_to_period_count(
 class TestResetAndPauseRound(BaseCollectSameUntilThresholdRoundTest):
     """Test ResetRound."""
 
-    _synchronized_data_class = ResetSynchronizedSata
+    _synchronized_data_class = ResetSynchronizedData
     _event_class = ResetEvent
 
     def test_runs(

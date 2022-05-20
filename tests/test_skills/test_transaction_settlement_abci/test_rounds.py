@@ -62,7 +62,7 @@ from packages.valory.skills.transaction_settlement_abci.rounds import (
     SynchronizeLateMessagesRound,
 )
 from packages.valory.skills.transaction_settlement_abci.rounds import (
-    SynchronizedData as TransactionSettlementSynchronizedSata,
+    SynchronizedData as TransactionSettlementSynchronizedData,
 )
 from packages.valory.skills.transaction_settlement_abci.rounds import (
     TX_HASH_LENGTH,
@@ -215,7 +215,7 @@ class TestSelectKeeperTransactionSubmissionRoundA(BaseSelectKeeperRoundTest):
 
     test_class = SelectKeeperTransactionSubmissionRoundA
     test_payload = SelectKeeperPayload
-    _synchronized_data_class = TransactionSettlementSynchronizedSata
+    _synchronized_data_class = TransactionSettlementSynchronizedData
     _event_class = TransactionSettlementEvent
 
     @staticmethod
@@ -293,7 +293,7 @@ class TestSelectKeeperTransactionSubmissionRoundBAfterTimeout(
     test_class = SelectKeeperTransactionSubmissionRoundBAfterTimeout
 
     @mock.patch.object(
-        TransactionSettlementSynchronizedSata,
+        TransactionSettlementSynchronizedData,
         "keepers_threshold_exceeded",
         new_callable=mock.PropertyMock,
     )
@@ -340,7 +340,7 @@ class TestSelectKeeperTransactionSubmissionRoundBAfterTimeout(
         super().test_run(most_voted_payload, keeper, exit_event)
         assert (
             cast(
-                TransactionSettlementSynchronizedSata, self.synchronized_data
+                TransactionSettlementSynchronizedData, self.synchronized_data
             ).missed_messages
             == cast(int, attrs["missed_messages"]) + 1
         )
@@ -349,7 +349,7 @@ class TestSelectKeeperTransactionSubmissionRoundBAfterTimeout(
 class TestFinalizationRound(BaseOnlyKeeperSendsRoundTest):
     """Test FinalizationRound."""
 
-    _synchronized_data_class = TransactionSettlementSynchronizedSata
+    _synchronized_data_class = TransactionSettlementSynchronizedData
     _event_class = TransactionSettlementEvent
     _round_class = FinalizationRound
 
@@ -428,7 +428,7 @@ class TestFinalizationRound(BaseOnlyKeeperSendsRoundTest):
         self.participants = frozenset([f"agent_{i}" + "-" * 35 for i in range(4)])
         keepers = deque(("agent_1" + "-" * 35, "agent_3" + "-" * 35))
         self.synchronized_data = cast(
-            TransactionSettlementSynchronizedSata,
+            TransactionSettlementSynchronizedData,
             self.synchronized_data.update(
                 participants=frozenset([f"agent_{i}" + "-" * 35 for i in range(4)]),
                 missed_messages=missed_messages,
@@ -489,7 +489,7 @@ class TestFinalizationRound(BaseOnlyKeeperSendsRoundTest):
 class TestCollectSignatureRound(BaseCollectDifferentUntilThresholdRoundTest):
     """Test CollectSignatureRound."""
 
-    _synchronized_data_class = TransactionSettlementSynchronizedSata
+    _synchronized_data_class = TransactionSettlementSynchronizedData
     _event_class = TransactionSettlementEvent
 
     def test_run(
@@ -524,14 +524,14 @@ class TestValidateTransactionRound(BaseValidateRoundTest):
 
     test_class = ValidateTransactionRound
     _event_class = TransactionSettlementEvent
-    _synchronized_data_class = TransactionSettlementSynchronizedSata
+    _synchronized_data_class = TransactionSettlementSynchronizedData
 
 
 class TestCheckTransactionHistoryRound(BaseCollectSameUntilThresholdRoundTest):
     """Test CheckTransactionHistoryRound"""
 
     _event_class = TransactionSettlementEvent
-    _synchronized_data_class = TransactionSettlementSynchronizedSata
+    _synchronized_data_class = TransactionSettlementSynchronizedData
 
     @pytest.mark.parametrize(
         "expected_status, expected_tx_hash, missed_messages, expected_event",
@@ -620,7 +620,7 @@ class TestSynchronizeLateMessagesRound(BaseCollectNonEmptyUntilThresholdRound):
     """Test `SynchronizeLateMessagesRound`."""
 
     _event_class = TransactionSettlementEvent
-    _synchronized_data_class = TransactionSettlementSynchronizedSata
+    _synchronized_data_class = TransactionSettlementSynchronizedData
 
     @pytest.mark.parametrize(
         "missed_messages, expected_event",
@@ -670,13 +670,13 @@ def test_synchronized_datas() -> None:
     expected_keepers = deque(["agent_1" + "-" * 35, "agent_3" + "-" * 35])
 
     # test `keeper_retries` property when no `keepers` are set.
-    synchronized_data_____ = TransactionSettlementSynchronizedSata(
+    synchronized_data_____ = TransactionSettlementSynchronizedData(
         AbciAppDB(initial_round=0, initial_data=dict())
     )
     assert synchronized_data_____.keepers == deque()
     assert synchronized_data_____.keeper_retries == 0
 
-    synchronized_data_____ = TransactionSettlementSynchronizedSata(
+    synchronized_data_____ = TransactionSettlementSynchronizedData(
         AbciAppDB(
             initial_round=0,
             initial_data=dict(
@@ -725,7 +725,7 @@ def test_synchronized_datas() -> None:
 class TestResetRound(BaseCollectSameUntilThresholdRoundTest):
     """Test ResetRound."""
 
-    _synchronized_data_class = TransactionSettlementSynchronizedSata
+    _synchronized_data_class = TransactionSettlementSynchronizedData
     _event_class = TransactionSettlementEvent
 
     def test_runs(

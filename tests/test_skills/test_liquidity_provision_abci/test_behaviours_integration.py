@@ -48,13 +48,13 @@ from packages.valory.skills.liquidity_rebalancing_abci.handlers import (
     SigningHandler,
 )
 from packages.valory.skills.liquidity_rebalancing_abci.rounds import (
-    SynchronizedData as LiquidityRebalancingSynchronizedSata,
+    SynchronizedData as LiquidityRebalancingSynchronizedData,
 )
 from packages.valory.skills.transaction_settlement_abci.payload_tools import (
     hash_payload_to_hex,
 )
 from packages.valory.skills.transaction_settlement_abci.rounds import (
-    SynchronizedData as TransactionSettlementSynchronizedSata,
+    SynchronizedData as TransactionSettlementSynchronizedData,
 )
 
 from tests.conftest import ROOT_DIR
@@ -101,7 +101,7 @@ class LiquidityProvisionIntegrationBaseCase(
     enter_nonce: int
     exit_nonce: int
     swap_back_nonce: int
-    default_synchronized_data_hash: LiquidityRebalancingSynchronizedSata
+    default_synchronized_data_hash: LiquidityRebalancingSynchronizedData
 
     @classmethod
     def setup(cls, **kwargs: Any) -> None:
@@ -133,7 +133,7 @@ class LiquidityProvisionIntegrationBaseCase(
         # corresponds to datetime.datetime(2022, 12, 31, 23, 59, 59) using datetime.datetime.fromtimestamp(.)
         cls.strategy["deadline"] = 1672527599
 
-        cls.default_synchronized_data_hash = LiquidityRebalancingSynchronizedSata(
+        cls.default_synchronized_data_hash = LiquidityRebalancingSynchronizedData(
             AbciAppDB(
                 initial_round=0,
                 initial_data=dict(
@@ -149,7 +149,7 @@ class LiquidityProvisionIntegrationBaseCase(
 
         keeper_retries = 1
         keepers = next(iter(cls.agents.keys()))
-        cls.tx_settlement_synchronized_data = TransactionSettlementSynchronizedSata(
+        cls.tx_settlement_synchronized_data = TransactionSettlementSynchronizedData(
             AbciAppDB(
                 initial_round=0,
                 initial_data=dict(
@@ -228,7 +228,7 @@ class TestLiquidityRebalancingHardhat(LiquidityProvisionIntegrationBaseCase):
         strategy["safe_nonce"] = 0
 
         synchronized_data_enter_hash = cast(
-            LiquidityRebalancingSynchronizedSata,
+            LiquidityRebalancingSynchronizedData,
             self.default_synchronized_data_hash.update(),
         )
 
@@ -282,7 +282,7 @@ class TestLiquidityRebalancingHardhat(LiquidityProvisionIntegrationBaseCase):
         strategy["safe_nonce"] = 1
 
         synchronized_data_exit_hash = cast(
-            LiquidityRebalancingSynchronizedSata,
+            LiquidityRebalancingSynchronizedData,
             self.default_synchronized_data_hash.update(
                 most_voted_strategy=json.dumps(strategy),
                 final_tx_hash=self.tx_settlement_synchronized_data.final_tx_hash,
@@ -429,7 +429,7 @@ class TestLiquidityRebalancingHardhat(LiquidityProvisionIntegrationBaseCase):
         strategy["safe_nonce"] = 2
 
         synchronized_data_swap_back_hash = cast(
-            LiquidityRebalancingSynchronizedSata,
+            LiquidityRebalancingSynchronizedData,
             self.default_synchronized_data_hash.update(
                 most_voted_strategy=json.dumps(strategy),
                 final_tx_hash=self.tx_settlement_synchronized_data.final_tx_hash,

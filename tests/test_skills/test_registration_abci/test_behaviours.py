@@ -33,7 +33,7 @@ from packages.valory.skills.registration_abci.behaviours import (
     RegistrationStartupBehaviour,
 )
 from packages.valory.skills.registration_abci.rounds import (
-    BaseSynchronizedData as RegistrationSynchronizedSata,
+    BaseSynchronizedData as RegistrationSynchronizedData,
 )
 from packages.valory.skills.registration_abci.rounds import (
     Event,
@@ -62,7 +62,7 @@ class BaseRegistrationTestBehaviour(RegistrationAbciBaseCase):
         self.fast_forward_to_state(
             self.behaviour,
             self.behaviour_class.state_id,
-            RegistrationSynchronizedSata(AbciAppDB(initial_round=0, initial_data={})),
+            RegistrationSynchronizedData(AbciAppDB(initial_round=0, initial_data={})),
         )
         assert (
             cast(

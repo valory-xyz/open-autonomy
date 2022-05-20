@@ -47,7 +47,7 @@ from packages.valory.skills.oracle_deployment_abci.behaviours import (
     SelectKeeperOracleBehaviour,
 )
 from packages.valory.skills.oracle_deployment_abci.behaviours import (
-    SynchronizedData as OracleDeploymentSynchronizedSata,
+    SynchronizedData as OracleDeploymentSynchronizedData,
 )
 from packages.valory.skills.oracle_deployment_abci.behaviours import (
     ValidateOracleBehaviour,
@@ -115,7 +115,7 @@ class BaseDeployBehaviourTest(FSMBehaviourBaseCase):
         self.fast_forward_to_state(
             self.behaviour,
             self.behaviour_class.state_id,
-            OracleDeploymentSynchronizedSata(
+            OracleDeploymentSynchronizedData(
                 AbciAppDB(
                     initial_round=0,
                     initial_data=dict(
@@ -204,7 +204,7 @@ class BaseDeployBehaviourTest(FSMBehaviourBaseCase):
         self.fast_forward_to_state(
             self.behaviour,
             self.behaviour_class.state_id,
-            OracleDeploymentSynchronizedSata(
+            OracleDeploymentSynchronizedData(
                 AbciAppDB(
                     initial_round=0,
                     initial_data=dict(
@@ -258,7 +258,7 @@ class BaseValidateBehaviourTest(FSMBehaviourBaseCase):
         self.fast_forward_to_state(
             self.behaviour,
             self.behaviour_class.state_id,
-            OracleDeploymentSynchronizedSata(
+            OracleDeploymentSynchronizedData(
                 AbciAppDB(initial_round=0, initial_data=self.synchronized_data_kwargs),
             ),
         )

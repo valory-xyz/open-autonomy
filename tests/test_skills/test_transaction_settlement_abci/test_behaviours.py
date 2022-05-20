@@ -87,7 +87,7 @@ from packages.valory.skills.transaction_settlement_abci.rounds import (
     FinishedTransactionSubmissionRound,
 )
 from packages.valory.skills.transaction_settlement_abci.rounds import (
-    SynchronizedData as TransactionSettlementSynchronizedSata,
+    SynchronizedData as TransactionSettlementSynchronizedData,
 )
 
 from tests.conftest import ROOT_DIR
@@ -274,7 +274,7 @@ class TestTransactionSettlementBaseState(PriceEstimationFSMBehaviourBaseCase):
         self.fast_forward_to_state(
             behaviour=self.behaviour,
             state_id=SignatureBehaviour.state_id,
-            synchronized_data=TransactionSettlementSynchronizedSata(
+            synchronized_data=TransactionSettlementSynchronizedData(
                 AbciAppDB(
                     initial_round=0,
                     initial_data=dict(
@@ -347,7 +347,7 @@ class TestSelectKeeperTransactionSubmissionBehaviourA(BaseSelectKeeperBehaviourT
     select_keeper_behaviour_class = SelectKeeperTransactionSubmissionBehaviourA
     next_behaviour_class = SignatureBehaviour
     done_event = TransactionSettlementEvent.DONE
-    _synchronized_data = TransactionSettlementSynchronizedSata
+    _synchronized_data = TransactionSettlementSynchronizedData
 
 
 class TestSelectKeeperTransactionSubmissionBehaviourB(
@@ -359,12 +359,12 @@ class TestSelectKeeperTransactionSubmissionBehaviourB(
     next_behaviour_class = FinalizeBehaviour
 
     @mock.patch.object(
-        TransactionSettlementSynchronizedSata,
+        TransactionSettlementSynchronizedData,
         "keepers",
         new_callable=mock.PropertyMock,
     )
     @mock.patch.object(
-        TransactionSettlementSynchronizedSata,
+        TransactionSettlementSynchronizedData,
         "keeper_retries",
         new_callable=mock.PropertyMock,
     )
@@ -405,7 +405,7 @@ class TestSignatureBehaviour(TransactionSettlementFSMBehaviourBaseCase):
         self.fast_forward_to_state(
             behaviour=self.behaviour,
             state_id=SignatureBehaviour.state_id,
-            synchronized_data=TransactionSettlementSynchronizedSata(
+            synchronized_data=TransactionSettlementSynchronizedData(
                 AbciAppDB(
                     initial_round=0,
                     initial_data=dict(
@@ -454,7 +454,7 @@ class TestFinalizeBehaviour(TransactionSettlementFSMBehaviourBaseCase):
         self.fast_forward_to_state(
             behaviour=self.behaviour,
             state_id=self.behaviour_class.state_id,
-            synchronized_data=TransactionSettlementSynchronizedSata(
+            synchronized_data=TransactionSettlementSynchronizedData(
                 AbciAppDB(
                     initial_round=0,
                     initial_data=dict(
@@ -571,7 +571,7 @@ class TestFinalizeBehaviour(TransactionSettlementFSMBehaviourBaseCase):
         self.fast_forward_to_state(
             behaviour=self.behaviour,
             state_id=self.behaviour_class.state_id,
-            synchronized_data=TransactionSettlementSynchronizedSata(
+            synchronized_data=TransactionSettlementSynchronizedData(
                 AbciAppDB(
                     initial_round=0,
                     initial_data=dict(
@@ -652,7 +652,7 @@ class TestFinalizeBehaviour(TransactionSettlementFSMBehaviourBaseCase):
         self.fast_forward_to_state(
             behaviour=self.behaviour,
             state_id=self.behaviour_class.state_id,
-            synchronized_data=TransactionSettlementSynchronizedSata(
+            synchronized_data=TransactionSettlementSynchronizedData(
                 AbciAppDB(
                     initial_round=0,
                     initial_data=dict(
@@ -695,7 +695,7 @@ class TestValidateTransactionBehaviour(TransactionSettlementFSMBehaviourBaseCase
         self.fast_forward_to_state(
             behaviour=self.behaviour,
             state_id=ValidateTransactionBehaviour.state_id,
-            synchronized_data=TransactionSettlementSynchronizedSata(
+            synchronized_data=TransactionSettlementSynchronizedData(
                 AbciAppDB(
                     initial_round=0,
                     initial_data=dict(
@@ -795,7 +795,7 @@ class TestCheckTransactionHistoryBehaviour(TransactionSettlementFSMBehaviourBase
         self.fast_forward_to_state(
             behaviour=self.behaviour,
             state_id=CheckTransactionHistoryBehaviour.state_id,
-            synchronized_data=TransactionSettlementSynchronizedSata(
+            synchronized_data=TransactionSettlementSynchronizedData(
                 AbciAppDB(
                     initial_round=0,
                     initial_data=dict(
@@ -901,7 +901,7 @@ class TestSynchronizeLateMessagesBehaviour(TransactionSettlementFSMBehaviourBase
         self.fast_forward_to_state(
             behaviour=self.behaviour,
             state_id=SynchronizeLateMessagesBehaviour.state_id,
-            synchronized_data=TransactionSettlementSynchronizedSata(
+            synchronized_data=TransactionSettlementSynchronizedData(
                 AbciAppDB(
                     initial_round=0,
                     initial_data=dict(
@@ -952,7 +952,7 @@ class TestResetBehaviour(TransactionSettlementFSMBehaviourBaseCase):
         self.fast_forward_to_state(
             behaviour=self.behaviour,
             state_id=self.behaviour_class.state_id,
-            synchronized_data=TransactionSettlementSynchronizedSata(
+            synchronized_data=TransactionSettlementSynchronizedData(
                 AbciAppDB(initial_round=0, initial_data=dict(estimate=1.0)),
             ),
         )

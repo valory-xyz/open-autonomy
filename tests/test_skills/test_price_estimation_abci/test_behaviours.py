@@ -56,7 +56,7 @@ from packages.valory.skills.price_estimation_abci.rounds import (
     FinishedPriceAggregationRound,
 )
 from packages.valory.skills.price_estimation_abci.rounds import (
-    SynchronizedData as PriceEstimationSynchronizedSata,
+    SynchronizedData as PriceEstimationSynchronizedData,
 )
 
 from tests.conftest import ROOT_DIR
@@ -107,7 +107,7 @@ class TestObserveBehaviour(PriceEstimationFSMBehaviourBaseCase):
         self.fast_forward_to_state(
             self.behaviour,
             ObserveBehaviour.state_id,
-            PriceEstimationSynchronizedSata(
+            PriceEstimationSynchronizedData(
                 AbciAppDB(initial_round=0, initial_data=dict(estimate=1.0)),
             ),
         )
@@ -148,7 +148,7 @@ class TestObserveBehaviour(PriceEstimationFSMBehaviourBaseCase):
         self.fast_forward_to_state(
             self.behaviour,
             ObserveBehaviour.state_id,
-            PriceEstimationSynchronizedSata(
+            PriceEstimationSynchronizedData(
                 AbciAppDB(initial_round=0, initial_data=dict(estimate=1.0)),
             ),
         )
@@ -176,7 +176,7 @@ class TestObserveBehaviour(PriceEstimationFSMBehaviourBaseCase):
         self.fast_forward_to_state(
             self.behaviour,
             ObserveBehaviour.state_id,
-            PriceEstimationSynchronizedSata(
+            PriceEstimationSynchronizedData(
                 AbciAppDB(initial_round=0, initial_data=dict()),
             ),
         )
@@ -214,7 +214,7 @@ class TestObserveBehaviour(PriceEstimationFSMBehaviourBaseCase):
         self.fast_forward_to_state(
             self.behaviour,
             ObserveBehaviour.state_id,
-            PriceEstimationSynchronizedSata(
+            PriceEstimationSynchronizedData(
                 AbciAppDB(initial_round=0, initial_data=dict()),
             ),
         )
@@ -242,7 +242,7 @@ class TestEstimateBehaviour(PriceEstimationFSMBehaviourBaseCase):
         self.fast_forward_to_state(
             behaviour=self.behaviour,
             state_id=EstimateBehaviour.state_id,
-            synchronized_data=PriceEstimationSynchronizedSata(
+            synchronized_data=PriceEstimationSynchronizedData(
                 AbciAppDB(
                     initial_round=0,
                     initial_data=dict(
@@ -374,7 +374,7 @@ class TestTransactionHashBehaviour(PriceEstimationFSMBehaviourBaseCase):
         self.fast_forward_to_state(
             behaviour=self.behaviour,
             state_id=TransactionHashBehaviour.state_id,
-            synchronized_data=PriceEstimationSynchronizedSata(
+            synchronized_data=PriceEstimationSynchronizedData(
                 AbciAppDB(
                     initial_round=0,
                     initial_data=dict(

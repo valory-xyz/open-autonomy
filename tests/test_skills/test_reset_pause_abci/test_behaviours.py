@@ -33,7 +33,7 @@ from packages.valory.skills.reset_pause_abci.behaviours import ResetAndPauseBeha
 from packages.valory.skills.reset_pause_abci.rounds import Event as ResetEvent
 from packages.valory.skills.reset_pause_abci.rounds import FinishedResetAndPauseRound
 from packages.valory.skills.reset_pause_abci.rounds import (
-    SynchronizedData as ResetSynchronizedSata,
+    SynchronizedData as ResetSynchronizedData,
 )
 
 from tests.conftest import ROOT_DIR
@@ -79,7 +79,7 @@ class TestResetAndPauseBehaviour(ResetPauseAbciFSMBehaviourBaseCase):
         self.fast_forward_to_state(
             behaviour=self.behaviour,
             state_id=self.behaviour_class.state_id,
-            synchronized_data=ResetSynchronizedSata(
+            synchronized_data=ResetSynchronizedData(
                 AbciAppDB(
                     initial_round=initial_round,
                     initial_data=dict(

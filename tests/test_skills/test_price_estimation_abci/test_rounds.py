@@ -44,11 +44,11 @@ from packages.valory.skills.price_estimation_abci.rounds import (
     Event as PriceEstimationEvent,
 )
 from packages.valory.skills.price_estimation_abci.rounds import (
-    SynchronizedData as PriceEstimationSynchronizedSata,
+    SynchronizedData as PriceEstimationSynchronizedData,
 )
 from packages.valory.skills.price_estimation_abci.rounds import TxHashRound
 from packages.valory.skills.registration_abci.rounds import (
-    BaseSynchronizedData as RegistrationSynchronizedSata,
+    BaseSynchronizedData as RegistrationSynchronizedData,
 )
 from packages.valory.skills.transaction_settlement_abci.payloads import ValidatePayload
 from packages.valory.skills.transaction_settlement_abci.rounds import (
@@ -58,7 +58,7 @@ from packages.valory.skills.transaction_settlement_abci.rounds import (
     RandomnessTransactionSubmissionRound,
 )
 from packages.valory.skills.transaction_settlement_abci.rounds import (
-    SynchronizedData as TransactionSettlementSynchronizedSata,
+    SynchronizedData as TransactionSettlementSynchronizedData,
 )
 
 from tests.test_skills.test_abstract_round_abci.test_base_rounds import (
@@ -173,7 +173,7 @@ def get_most_voted_tx_hash() -> str:
 class TestRandomnessTransactionSubmissionRound(BaseCollectSameUntilThresholdRoundTest):
     """Test RandomnessTransactionSubmissionRound."""
 
-    _synchronized_data_class = TransactionSettlementSynchronizedSata
+    _synchronized_data_class = TransactionSettlementSynchronizedData
     _event_class = TransactionSettlementEvent
 
     def test_run(
@@ -205,7 +205,7 @@ class TestRandomnessTransactionSubmissionRound(BaseCollectSameUntilThresholdRoun
 class TestCollectObservationRound(BaseCollectDifferentUntilThresholdRoundTest):
     """Test CollectObservationRound."""
 
-    _synchronized_data_class = PriceEstimationSynchronizedSata
+    _synchronized_data_class = PriceEstimationSynchronizedData
     _event_class = PriceEstimationEvent
 
     def test_run_a(
@@ -263,7 +263,7 @@ class TestCollectObservationRound(BaseCollectDifferentUntilThresholdRoundTest):
 class TestEstimateConsensusRound(BaseCollectSameUntilThresholdRoundTest):
     """Test EstimateConsensusRound."""
 
-    _synchronized_data_class = PriceEstimationSynchronizedSata
+    _synchronized_data_class = PriceEstimationSynchronizedData
     _event_class = PriceEstimationEvent
 
     def test_run(
@@ -294,7 +294,7 @@ class TestEstimateConsensusRound(BaseCollectSameUntilThresholdRoundTest):
 class TestTxHashRound(BaseCollectSameUntilThresholdRoundTest):
     """Test TxHashRound."""
 
-    _synchronized_data_class = PriceEstimationSynchronizedSata
+    _synchronized_data_class = PriceEstimationSynchronizedData
     _event_class = PriceEstimationEvent
 
     def test_run(
@@ -376,7 +376,7 @@ def test_synchronized_datas() -> None:
     assert synchronized_data.most_voted_keeper_address == most_voted_keeper_address
     assert synchronized_data.participant_to_votes == participant_to_votes
 
-    synchronized_data____ = RegistrationSynchronizedSata(
+    synchronized_data____ = RegistrationSynchronizedData(
         AbciAppDB(
             initial_round=0,
             initial_data=dict(
@@ -395,7 +395,7 @@ def test_synchronized_datas() -> None:
     assert synchronized_data____.most_voted_randomness == most_voted_randomness
     assert synchronized_data____.most_voted_keeper_address == most_voted_keeper_address
 
-    synchronized_data______ = PriceEstimationSynchronizedSata(
+    synchronized_data______ = PriceEstimationSynchronizedData(
         AbciAppDB(
             initial_round=0,
             initial_data=dict(

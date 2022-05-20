@@ -44,7 +44,7 @@ from packages.valory.skills.oracle_deployment_abci.rounds import (
 )
 from packages.valory.skills.oracle_deployment_abci.rounds import SelectKeeperOracleRound
 from packages.valory.skills.oracle_deployment_abci.rounds import (
-    SynchronizedData as OracleDeploymentSynchronizedSata,
+    SynchronizedData as OracleDeploymentSynchronizedData,
 )
 from packages.valory.skills.oracle_deployment_abci.rounds import ValidateOracleRound
 from packages.valory.skills.price_estimation_abci.payloads import (
@@ -184,7 +184,7 @@ class TestDeployOracleRound(BaseDeployTestClass):
     payload_class = DeployOraclePayload
     update_keyword = "oracle_contract_address"
     _event_class = OracleDeploymentEvent
-    _synchronized_data_class = OracleDeploymentSynchronizedSata
+    _synchronized_data_class = OracleDeploymentSynchronizedData
 
 
 class BaseValidateRoundTest(BaseVotingRoundTest):
@@ -271,7 +271,7 @@ class TestValidateOracleRound(BaseValidateRoundTest):
     test_class = ValidateOracleRound
     test_payload = ValidatePayload
     _event_class = OracleDeploymentEvent
-    _synchronized_data_class = OracleDeploymentSynchronizedSata
+    _synchronized_data_class = OracleDeploymentSynchronizedData
 
 
 class BaseSelectKeeperRoundTest(BaseCollectSameUntilThresholdRoundTest):
@@ -351,7 +351,7 @@ def test_synchronized_datas() -> None:
     participant_to_votes = get_participant_to_votes(participants)
     actual_keeper_randomness = int(most_voted_randomness, base=16) / MAX_INT_256
 
-    synchronized_data__ = OracleDeploymentSynchronizedSata(
+    synchronized_data__ = OracleDeploymentSynchronizedData(
         AbciAppDB(
             initial_round=0,
             initial_data=dict(
