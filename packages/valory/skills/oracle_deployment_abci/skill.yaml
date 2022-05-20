@@ -70,6 +70,7 @@ models:
       keeper_timeout: 30.0
       max_healthcheck: 120
       observation_interval: 10
+      on_chain_service_id: null
       oracle:
         min_answer: 1000000000000000000
         max_answer: 1000000000000000000000000
@@ -80,6 +81,7 @@ models:
       retry_timeout: 3
       round_timeout_seconds: 30.0
       service_id: registration
+      service_registry_address: null
       sleep_time: 1
       tendermint_check_sleep_delay: 3
       tendermint_com_url: http://localhost:8080
