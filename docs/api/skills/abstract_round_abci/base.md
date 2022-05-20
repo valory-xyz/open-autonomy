@@ -632,7 +632,7 @@ Class to represent all data replicated across periods.
 #### `__`init`__`
 
 ```python
-def __init__(initial_period: int, initial_data: Dict[str, Any], cross_period_persisted_keys: Optional[List[str]] = None) -> None
+def __init__(initial_round: int, initial_data: Dict[str, Any], cross_reset_persisted_keys: Optional[List[str]] = None) -> None
 ```
 
 Initialize a period state.
@@ -652,17 +652,6 @@ Get the initial_data.
 
 the initial_data
 
-<a id="packages.valory.skills.abstract_round_abci.base.AbciAppDB.current_period_count"></a>
-
-#### current`_`period`_`count
-
-```python
-@property
-def current_period_count() -> int
-```
-
-Get the current period count.
-
 <a id="packages.valory.skills.abstract_round_abci.base.AbciAppDB.round_count"></a>
 
 #### round`_`count
@@ -674,13 +663,13 @@ def round_count() -> int
 
 Get the round count.
 
-<a id="packages.valory.skills.abstract_round_abci.base.AbciAppDB.cross_period_persisted_keys"></a>
+<a id="packages.valory.skills.abstract_round_abci.base.AbciAppDB.cross_reset_persisted_keys"></a>
 
-#### cross`_`period`_`persisted`_`keys
+#### cross`_`reset`_`persisted`_`keys
 
 ```python
 @property
-def cross_period_persisted_keys() -> List[str]
+def cross_reset_persisted_keys() -> List[str]
 ```
 
 Keys in the period state which are persistet across periods.
@@ -705,22 +694,22 @@ def get_strict(key: str) -> Any
 
 Get a value from the data dictionary and raise if it is None.
 
-<a id="packages.valory.skills.abstract_round_abci.base.AbciAppDB.update_current_period"></a>
+<a id="packages.valory.skills.abstract_round_abci.base.AbciAppDB.update_current_round"></a>
 
-#### update`_`current`_`period
+#### update`_`current`_`round
 
 ```python
-def update_current_period(**kwargs: Any) -> None
+def update_current_round(**kwargs: Any) -> None
 ```
 
 Update the current period's state.
 
-<a id="packages.valory.skills.abstract_round_abci.base.AbciAppDB.add_new_period"></a>
+<a id="packages.valory.skills.abstract_round_abci.base.AbciAppDB.add_new_round"></a>
 
-#### add`_`new`_`period
+#### add`_`new`_`round
 
 ```python
-def add_new_period(new_period: int, **kwargs: Any) -> None
+def add_new_round(new_round: int, **kwargs: Any) -> None
 ```
 
 Update the current period's state.
@@ -733,7 +722,7 @@ Update the current period's state.
 def get_all() -> Dict[str, Any]
 ```
 
-Get all key-value pairs from the data dictionary for the current period.
+Get all key-value pairs from the data dictionary for the current round.
 
 <a id="packages.valory.skills.abstract_round_abci.base.AbciAppDB.increment_round_count"></a>
 
@@ -867,7 +856,7 @@ Get the number of participants.
 #### update
 
 ```python
-def update(synchronized_data_class: Optional[Type] = None, period_count: Optional[int] = None, **kwargs: Any, ,) -> "BaseSynchronizedData"
+def update(synchronized_data_class: Optional[Type] = None, round_count: Optional[int] = None, **kwargs: Any, ,) -> "BaseSynchronizedData"
 ```
 
 Copy and update the state.

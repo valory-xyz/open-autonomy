@@ -483,7 +483,7 @@ class TestBaseSynchronizedData:
         self.participants = {"a", "b"}
         self.base_synchronized_data = BaseSynchronizedData(
             db=AbciAppDB(
-                initial_period=0, initial_data=dict(participants=self.participants)
+                initial_round=0, initial_data=dict(participants=self.participants)
             )
         )
 
@@ -498,7 +498,7 @@ class TestBaseSynchronizedData:
     def test_participants_getter_negative(self) -> None:
         """Test 'participants' property getter, negative case."""
         base_synchronized_data = BaseSynchronizedData(
-            db=AbciAppDB(initial_period=0, initial_data={})
+            db=AbciAppDB(initial_round=0, initial_data={})
         )
         with pytest.raises(ValueError, match="Value of key=participants is None"):
             base_synchronized_data.participants
@@ -507,7 +507,7 @@ class TestBaseSynchronizedData:
         """Test the 'update' method."""
         participants = {"a"}
         expected = BaseSynchronizedData(
-            db=AbciAppDB(initial_period=0, initial_data=dict(participants=participants))
+            db=AbciAppDB(initial_round=0, initial_data=dict(participants=participants))
         )
         actual = self.base_synchronized_data.update(participants=participants)
         assert expected.participants == actual.participants
@@ -523,7 +523,7 @@ class TestBaseSynchronizedData:
     ) -> None:
         """Tets when participants list is set to zero."""
         base_synchronized_data = BaseSynchronizedData(
-            db=AbciAppDB(initial_period=0, initial_data=dict(participants={}))
+            db=AbciAppDB(initial_round=0, initial_data=dict(participants={}))
         )
         with pytest.raises(ValueError, match="List participants cannot be empty."):
             _ = base_synchronized_data.participants
@@ -533,7 +533,7 @@ class TestBaseSynchronizedData:
     ) -> None:
         """Tets when participants list is set to zero."""
         base_synchronized_data = BaseSynchronizedData(
-            db=AbciAppDB(initial_period=0, initial_data=dict(all_participants={}))
+            db=AbciAppDB(initial_round=0, initial_data=dict(all_participants={}))
         )
         with pytest.raises(ValueError, match="List participants cannot be empty."):
             _ = base_synchronized_data.all_participants
@@ -548,7 +548,7 @@ class TestAbstractRound:
         self.participants = {"a", "b"}
         self.base_synchronized_data = BaseSynchronizedData(
             db=AbciAppDB(
-                initial_period=0, initial_data=dict(participants=self.participants)
+                initial_round=0, initial_data=dict(participants=self.participants)
             )
         )
         self.params = ConsensusParams(
@@ -1005,7 +1005,7 @@ class TestAbciApp:
         max_participants = 4
         dummy_state = BaseSynchronizedData(
             db=AbciAppDB(
-                initial_period=0, initial_data=dict(participants=max_participants)
+                initial_round=0, initial_data=dict(participants=max_participants)
             )
         )
         dummy_consensus_params = ConsensusParams(max_participants)

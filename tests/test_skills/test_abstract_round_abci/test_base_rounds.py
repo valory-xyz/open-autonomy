@@ -189,7 +189,7 @@ class BaseRoundTestClass:
         cls.participants = get_participants()
         cls.synchronized_data = cls._synchronized_data_class(
             db=AbciAppDB(
-                initial_period=0,
+                initial_round=0,
                 initial_data=dict(
                     participants=cls.participants, all_participants=cls.participants
                 ),

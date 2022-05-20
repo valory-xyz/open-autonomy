@@ -150,7 +150,7 @@ class TestStrategyEvaluationBehaviour(LiquidityRebalancingBehaviourBaseCase):
         )
         synchronized_data = LiquidityRebalancingSynchronizedSata(
             AbciAppDB(
-                initial_period=0,
+                initial_round=0,
                 initial_data=dict(
                     most_voted_tx_hash="0x",
                     safe_contract_address="safe_contract_address",
@@ -189,7 +189,7 @@ class TestStrategyEvaluationBehaviour(LiquidityRebalancingBehaviourBaseCase):
         strategy["action"] = StrategyType.EXIT.value
         synchronized_data = LiquidityRebalancingSynchronizedSata(
             AbciAppDB(
-                initial_period=0,
+                initial_round=0,
                 initial_data=dict(
                     most_voted_tx_hash="0x",
                     safe_contract_address="safe_contract_address",
@@ -224,7 +224,7 @@ class TestStrategyEvaluationBehaviour(LiquidityRebalancingBehaviourBaseCase):
 
         synchronized_data = LiquidityRebalancingSynchronizedSata(
             AbciAppDB(
-                initial_period=0,
+                initial_round=0,
                 initial_data=dict(
                     most_voted_tx_hash="0x",
                     safe_contract_address="safe_contract_address",
@@ -266,7 +266,7 @@ class TestStrategyEvaluationBehaviour(LiquidityRebalancingBehaviourBaseCase):
         strategy["action"] = StrategyType.SWAP_BACK.value
         synchronized_data = LiquidityRebalancingSynchronizedSata(
             AbciAppDB(
-                initial_period=0,
+                initial_round=0,
                 initial_data=dict(
                     most_voted_tx_hash="0x",
                     safe_contract_address="safe_contract_address",
@@ -308,7 +308,7 @@ class TestEnterPoolTransactionHashBehaviour(LiquidityRebalancingBehaviourBaseCas
         )
         synchronized_data = LiquidityRebalancingSynchronizedSata(
             AbciAppDB(
-                initial_period=0,
+                initial_round=0,
                 initial_data=dict(
                     most_voted_tx_hash="0x",
                     safe_contract_address="safe_contract_address",
@@ -554,7 +554,7 @@ class TestEnterPoolTransactionHashBehaviour(LiquidityRebalancingBehaviourBaseCas
         )
         synchronized_data = LiquidityRebalancingSynchronizedSata(
             AbciAppDB(
-                initial_period=0,
+                initial_round=0,
                 initial_data=dict(
                     most_voted_tx_hash="0x",
                     safe_contract_address="safe_contract_address",
@@ -827,7 +827,7 @@ class TestEnterPoolTransactionHashBehaviour(LiquidityRebalancingBehaviourBaseCas
         )
         synchronized_data = LiquidityRebalancingSynchronizedSata(
             AbciAppDB(
-                initial_period=0,
+                initial_round=0,
                 initial_data=dict(
                     most_voted_tx_hash="0x",
                     safe_contract_address="safe_contract_address",
@@ -893,7 +893,7 @@ class TestExitPoolTransactionHashBehaviour(LiquidityRebalancingBehaviourBaseCase
         )
         synchronized_data = LiquidityRebalancingSynchronizedSata(
             AbciAppDB(
-                initial_period=0,
+                initial_round=0,
                 initial_data=dict(
                     most_voted_tx_hash="0x",
                     safe_contract_address="safe_contract_address",
@@ -1079,7 +1079,7 @@ class TestExitPoolTransactionHashBehaviour(LiquidityRebalancingBehaviourBaseCase
         )
         synchronized_data = LiquidityRebalancingSynchronizedSata(
             AbciAppDB(
-                initial_period=0,
+                initial_round=0,
                 initial_data=dict(
                     most_voted_tx_hash="0x",
                     safe_contract_address="safe_contract_address",
@@ -1267,7 +1267,7 @@ class TestExitPoolTransactionHashBehaviour(LiquidityRebalancingBehaviourBaseCase
         )
         synchronized_data = LiquidityRebalancingSynchronizedSata(
             AbciAppDB(
-                initial_period=0,
+                initial_round=0,
                 initial_data=dict(
                     most_voted_tx_hash="0x",
                     safe_contract_address="safe_contract_address",
@@ -1339,7 +1339,7 @@ class TestSwapBackTransactionHashBehaviour(LiquidityRebalancingBehaviourBaseCase
         )
         synchronized_data = LiquidityRebalancingSynchronizedSata(
             AbciAppDB(
-                initial_period=0,
+                initial_round=0,
                 initial_data=dict(
                     most_voted_tx_hash="0x",
                     safe_contract_address="safe_contract_address",
@@ -1562,7 +1562,7 @@ class TestSwapBackTransactionHashBehaviour(LiquidityRebalancingBehaviourBaseCase
         )
         synchronized_data = LiquidityRebalancingSynchronizedSata(
             AbciAppDB(
-                initial_period=0,
+                initial_round=0,
                 initial_data=dict(
                     most_voted_tx_hash="0x",
                     safe_contract_address="safe_contract_address",
@@ -1843,7 +1843,7 @@ class TestSleepBehaviour(LiquidityRebalancingBehaviourBaseCase):
 
         synchronized_data = LiquidityRebalancingSynchronizedSata(
             AbciAppDB(
-                initial_period=0,
+                initial_round=0,
                 initial_data=dict(
                     most_voted_tx_hash="0x",
                     safe_contract_address="safe_contract_address",

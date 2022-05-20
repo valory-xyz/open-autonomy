@@ -108,7 +108,7 @@ class TestObserveBehaviour(PriceEstimationFSMBehaviourBaseCase):
             self.behaviour,
             ObserveBehaviour.state_id,
             PriceEstimationSynchronizedSata(
-                AbciAppDB(initial_period=0, initial_data=dict(estimate=1.0)),
+                AbciAppDB(initial_round=0, initial_data=dict(estimate=1.0)),
             ),
         )
         assert (
@@ -149,7 +149,7 @@ class TestObserveBehaviour(PriceEstimationFSMBehaviourBaseCase):
             self.behaviour,
             ObserveBehaviour.state_id,
             PriceEstimationSynchronizedSata(
-                AbciAppDB(initial_period=0, initial_data=dict(estimate=1.0)),
+                AbciAppDB(initial_round=0, initial_data=dict(estimate=1.0)),
             ),
         )
         assert (
@@ -177,7 +177,7 @@ class TestObserveBehaviour(PriceEstimationFSMBehaviourBaseCase):
             self.behaviour,
             ObserveBehaviour.state_id,
             PriceEstimationSynchronizedSata(
-                AbciAppDB(initial_period=0, initial_data=dict()),
+                AbciAppDB(initial_round=0, initial_data=dict()),
             ),
         )
         assert (
@@ -215,7 +215,7 @@ class TestObserveBehaviour(PriceEstimationFSMBehaviourBaseCase):
             self.behaviour,
             ObserveBehaviour.state_id,
             PriceEstimationSynchronizedSata(
-                AbciAppDB(initial_period=0, initial_data=dict()),
+                AbciAppDB(initial_round=0, initial_data=dict()),
             ),
         )
         assert (
@@ -244,7 +244,7 @@ class TestEstimateBehaviour(PriceEstimationFSMBehaviourBaseCase):
             state_id=EstimateBehaviour.state_id,
             synchronized_data=PriceEstimationSynchronizedSata(
                 AbciAppDB(
-                    initial_period=0,
+                    initial_round=0,
                     initial_data=dict(
                         participant_to_observations={
                             "a": ObservationPayload(sender="a", observation=1.0)
@@ -270,7 +270,7 @@ class TestEstimateBehaviour(PriceEstimationFSMBehaviourBaseCase):
 
 def mock_to_server_message_flow(
     self: "TestTransactionHashBehaviour",
-    this_period_count: int,
+    this_round_count: int,
     prev_tx_hash: str,
 ) -> None:
     """Mock to server message flow"""
@@ -278,7 +278,7 @@ def mock_to_server_message_flow(
     self.behaviour.context.logger.info("Mocking to server message flow")
     # note that although this is a dict, order matters for the test
     data = {
-        "period_count": this_period_count,
+        "period_count": this_round_count,
         "agent_address": "test_agent_address",
         "estimate": 1.0,
         "prev_tx_hash": prev_tx_hash,
@@ -355,7 +355,7 @@ def get_valid_server_data() -> Dict[str, Any]:
 
 
 @pytest.mark.parametrize(
-    "broadcast_to_server, this_period_count", ((True, 0), (False, 0), (True, 1))
+    "broadcast_to_server, this_round_count", ((True, 0), (False, 0), (True, 1))
 )
 class TestTransactionHashBehaviour(PriceEstimationFSMBehaviourBaseCase):
     """Test TransactionHashBehaviour."""
@@ -363,7 +363,7 @@ class TestTransactionHashBehaviour(PriceEstimationFSMBehaviourBaseCase):
     def test_estimate(
         self,
         broadcast_to_server: bool,
-        this_period_count: int,
+        this_round_count: int,
     ) -> None:
         """Test estimate behaviour."""
 
@@ -376,9 +376,9 @@ class TestTransactionHashBehaviour(PriceEstimationFSMBehaviourBaseCase):
             state_id=TransactionHashBehaviour.state_id,
             synchronized_data=PriceEstimationSynchronizedSata(
                 AbciAppDB(
-                    initial_period=0,
+                    initial_round=0,
                     initial_data=dict(
-                        period_count=this_period_count,
+                        period_count=this_round_count,
                         most_voted_estimate=1.0,
                         safe_contract_address="safe_contract_address",
                         oracle_contract_address="0x77E9b2EF921253A171Fa0CB9ba80558648Ff7215",
@@ -434,11 +434,11 @@ class TestTransactionHashBehaviour(PriceEstimationFSMBehaviourBaseCase):
         )
 
         # add new cycle, and dummy period data
-        synchronized_data.db._current_period_count = this_period_count  # type: ignore
+        synchronized_data.db._current_period_count = this_round_count  # type: ignore
         next_period_data = copy.deepcopy(period_data)
         next_period_data["final_tx_hash"] = tx_hashes[0]
-        synchronized_data.db.add_new_period(
-            this_period_count,
+        synchronized_data.db.add_new_round(
+            this_round_count,
             **period_data,
         )
 
@@ -460,8 +460,8 @@ class TestTransactionHashBehaviour(PriceEstimationFSMBehaviourBaseCase):
         )
 
         if broadcast_to_server:
-            tx_hash = tx_hashes[this_period_count]
-            mock_to_server_message_flow(self, this_period_count, tx_hash)
+            tx_hash = tx_hashes[this_round_count]
+            mock_to_server_message_flow(self, this_round_count, tx_hash)
 
         self.mock_a2a_transaction()
         self._test_done_flag_set()

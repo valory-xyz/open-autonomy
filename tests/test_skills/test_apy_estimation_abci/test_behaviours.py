@@ -140,7 +140,7 @@ class APYEstimationFSMBehaviourBaseCase(FSMBehaviourBaseCase):
         )
         cls.synchronized_data = SynchronizedData(
             AbciAppDB(
-                initial_period=0,
+                initial_round=0,
                 initial_data={"full_training": False},
             )
         )
@@ -570,7 +570,7 @@ class TestTransformBehaviour(APYEstimationFSMBehaviourBaseCase):
             self.behaviour_class.state_id,
             SynchronizedData(
                 AbciAppDB(
-                    initial_period=0,
+                    initial_round=0,
                     initial_data=dict(
                         most_voted_randomness=0, most_voted_history=hash_
                     ),
@@ -704,7 +704,7 @@ class TestPreprocessBehaviour(APYEstimationFSMBehaviourBaseCase):
             self.behaviour_class.state_id,
             SynchronizedData(
                 AbciAppDB(
-                    initial_period=0, initial_data=dict(most_voted_transform="test")
+                    initial_round=0, initial_data=dict(most_voted_transform="test")
                 )
             ),
         )
@@ -827,7 +827,7 @@ class TestPrepareBatchBehaviour(APYEstimationFSMBehaviourBaseCase):
             self.behaviour_class.state_id,
             SynchronizedData(
                 AbciAppDB(
-                    initial_period=0,
+                    initial_round=0,
                     initial_data=dict(
                         latest_observation_hist_hash=hashes["hist"],
                         most_voted_batch=hashes["batch"],
@@ -1171,7 +1171,7 @@ class TestOptimizeBehaviour(APYEstimationFSMBehaviourBaseCase):
             self.behaviour_class.state_id,
             SynchronizedData(
                 AbciAppDB(
-                    initial_period=0,
+                    initial_round=0,
                     initial_data=dict(
                         most_voted_randomness=0,
                         most_voted_split=hashes["train"] + hashes["test"],
@@ -1339,7 +1339,7 @@ class TestTrainBehaviour(APYEstimationFSMBehaviourBaseCase):
             self.behaviour_class.state_id,
             SynchronizedData(
                 AbciAppDB(
-                    initial_period=0,
+                    initial_round=0,
                     initial_data=dict(
                         full_training=full_training,
                         most_voted_params=hashes["params"],
@@ -1492,7 +1492,7 @@ class TestTestBehaviour(APYEstimationFSMBehaviourBaseCase):
             self.behaviour_class.state_id,
             SynchronizedData(
                 AbciAppDB(
-                    initial_period=0,
+                    initial_round=0,
                     initial_data=dict(
                         most_voted_models=hashes["model"],
                         most_voted_split=hashes["train"] + hashes["test"],
@@ -1641,7 +1641,7 @@ class TestUpdateForecasterBehaviour(APYEstimationFSMBehaviourBaseCase):
             self.behaviour_class.state_id,
             SynchronizedData(
                 AbciAppDB(
-                    initial_period=0,
+                    initial_round=0,
                     initial_data=dict(
                         most_voted_models=hashes["model"],
                         latest_observation_hist_hash=hashes["observation"],
@@ -1764,7 +1764,7 @@ class TestEstimateBehaviour(APYEstimationFSMBehaviourBaseCase):
             self.behaviour_class.state_id,
             SynchronizedData(
                 AbciAppDB(
-                    initial_period=0,
+                    initial_round=0,
                     initial_data=dict(most_voted_models=hash_),
                 )
             ),
@@ -1889,9 +1889,7 @@ class TestCycleResetBehaviour(APYEstimationFSMBehaviourBaseCase):
             behaviour=self.behaviour,
             state_id=self.behaviour_class.state_id,
             synchronized_data=SynchronizedData(
-                AbciAppDB(
-                    initial_period=0, initial_data=dict(most_voted_estimate=hash_)
-                )
+                AbciAppDB(initial_round=0, initial_data=dict(most_voted_estimate=hash_))
             ),
         )
         state = cast(BaseState, self.behaviour.current_state)
@@ -1929,7 +1927,7 @@ class TestCycleResetBehaviour(APYEstimationFSMBehaviourBaseCase):
             behaviour=self.behaviour,
             state_id=self.behaviour_class.state_id,
             synchronized_data=SynchronizedData(
-                AbciAppDB(initial_period=0, initial_data=dict(most_voted_estimate=None))
+                AbciAppDB(initial_round=0, initial_data=dict(most_voted_estimate=None))
             ),
         )
         state = cast(BaseState, self.behaviour.current_state)
@@ -1980,7 +1978,7 @@ class TestFreshModelResetBehaviour(APYEstimationFSMBehaviourBaseCase):
             behaviour=self.behaviour,
             state_id=self.behaviour_class.state_id,
             synchronized_data=SynchronizedData(
-                AbciAppDB(initial_period=0, initial_data={})
+                AbciAppDB(initial_round=0, initial_data={})
             ),
         )
         state = cast(BaseState, self.behaviour.current_state)

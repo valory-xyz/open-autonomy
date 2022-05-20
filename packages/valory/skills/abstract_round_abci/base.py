@@ -478,18 +478,17 @@ class AbciAppDB:
 
     def __init__(
         self,
-        initial_period: int,
+        initial_round: int,
         initial_data: Dict[str, Any],
-        cross_period_persisted_keys: Optional[List[str]] = None,
+        cross_reset_persisted_keys: Optional[List[str]] = None,
     ) -> None:
         """Initialize a period state."""
-        self._current_period_count = initial_period
         self._initial_data = initial_data
-        self._cross_period_persisted_keys = (
-            [] if cross_period_persisted_keys is None else cross_period_persisted_keys
+        self._cross_reset_persisted_keys = (
+            [] if cross_reset_persisted_keys is None else cross_reset_persisted_keys
         )
         self._data: Dict[int, Dict[str, Any]] = {
-            self._current_period_count: deepcopy(self._initial_data)
+            ROUND_COUNT_DEFAULT: deepcopy(self._initial_data)
         }
         self._round_count = ROUND_COUNT_DEFAULT  # ensures first round is indexed at 0!
 
@@ -503,26 +502,21 @@ class AbciAppDB:
         return self._initial_data
 
     @property
-    def current_period_count(self) -> int:
-        """Get the current period count."""
-        return self._current_period_count
-
-    @property
     def round_count(self) -> int:
         """Get the round count."""
         return self._round_count
 
     @property
-    def cross_period_persisted_keys(self) -> List[str]:
+    def cross_reset_persisted_keys(self) -> List[str]:
         """Keys in the period state which are persistet across periods."""
-        return self._cross_period_persisted_keys
+        return self._cross_reset_persisted_keys
 
     def get(self, key: str, default: Any = "NOT_PROVIDED") -> Optional[Any]:
         """Get a value from the data dictionary."""
         if default != "NOT_PROVIDED":
-            return self._data.get(self._current_period_count, {}).get(key, default)
+            return self._data.get(self._round_count, {}).get(key, default)
         try:
-            return self._data.get(self._current_period_count, {}).get(key)
+            return self._data.get(self._round_count, {}).get(key)
         except KeyError as exception:  # pragma: no cover
             raise ValueError(
                 f"'{key}' field is not set for period state."
@@ -533,27 +527,26 @@ class AbciAppDB:
         value = self.get(key)
         if value is None:
             raise ValueError(
-                f"Value of key={key} is None for "
-                f"current_period_count={self.current_period_count} "
+                f"Value of key={key} is None for " f"round_count={self._round_count} "
             )
         return value
 
-    def update_current_period(self, **kwargs: Any) -> None:
+    def update_current_round(self, **kwargs: Any) -> None:
         """Update the current period's state."""
-        self._data[self._current_period_count].update(kwargs)
+        self._data[self._round_count].update(kwargs)
 
-    def add_new_period(self, new_period: int, **kwargs: Any) -> None:
+    def add_new_round(self, new_round: int, **kwargs: Any) -> None:
         """Update the current period's state."""
         # if new_period in self._data:
         #     raise ValueError(
         #         "Incorrect period count incrementation, period already exists"
         #     )  # pragma: no cover
-        self._current_period_count = new_period
-        self._data[self._current_period_count] = kwargs
+        self._round_count = new_round
+        self._data[self._round_count] = kwargs
 
     def get_all(self) -> Dict[str, Any]:
-        """Get all key-value pairs from the data dictionary for the current period."""
-        return self._data[self._current_period_count]
+        """Get all key-value pairs from the data dictionary for the current round."""
+        return self._data[self._round_count]
 
     def increment_round_count(self) -> None:
         """Increment the round count."""
@@ -634,14 +627,14 @@ class BaseSynchronizedData:
     def update(
         self,
         synchronized_data_class: Optional[Type] = None,
-        period_count: Optional[int] = None,
+        round_count: Optional[int] = None,
         **kwargs: Any,
     ) -> "BaseSynchronizedData":
         """Copy and update the state."""
-        if period_count is None:
-            self.db.update_current_period(**kwargs)
+        if round_count is None:
+            self.db.update_current_round(**kwargs)
         else:
-            self.db.add_new_period(new_period=period_count, **kwargs)
+            self.db.add_new_round(new_round=round_count, **kwargs)
         class_ = (
             type(self) if synchronized_data_class is None else synchronized_data_class
         )
@@ -1314,7 +1307,7 @@ class CollectDifferentUntilThresholdRound(CollectionRound):
         ):
             state = self.synchronized_data.update(
                 synchronized_data_class=self.synchronized_data_class,
-                period_count=None,
+                round_count=None,
                 **{
                     self.selection_key: frozenset(list(self.collection.keys())),
                     self.collection_key: self.collection,
@@ -1363,7 +1356,7 @@ class CollectNonEmptyUntilThresholdRound(CollectDifferentUntilThresholdRound):
 
             state = self.synchronized_data.update(
                 synchronized_data_class=self.synchronized_data_class,
-                period_count=None,
+                round_count=None,
                 **{
                     self.selection_key: frozenset(list(self.collection.keys())),
                     self.collection_key: non_empty_values,
@@ -1612,7 +1605,7 @@ class AbciApp(
     transition_function: AbciAppTransitionFunction
     final_states: Set[AppState] = set()
     event_to_timeout: EventToTimeout = {}
-    cross_period_persisted_keys: List[str] = []
+    cross_reset_persisted_keys: List[str] = []
 
     def __init__(
         self,
@@ -1749,8 +1742,8 @@ class AbciApp(
                 else None
             ),
         )
-        self.state.db.increment_round_count()  # ROUND_COUNT_DEFAULT is -1
         self._log_start()
+        self.state.db.increment_round_count()
 
     @property
     def current_round(self) -> AbstractRound:

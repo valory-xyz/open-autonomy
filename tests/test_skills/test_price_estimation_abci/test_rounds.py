@@ -358,7 +358,7 @@ def test_synchronized_datas() -> None:
 
     synchronized_data = SynchronizedData(
         AbciAppDB(
-            initial_period=0,
+            initial_round=0,
             initial_data=dict(
                 participants=participants,
                 participant_to_randomness=participant_to_randomness,
@@ -378,7 +378,7 @@ def test_synchronized_datas() -> None:
 
     synchronized_data____ = RegistrationSynchronizedSata(
         AbciAppDB(
-            initial_period=0,
+            initial_round=0,
             initial_data=dict(
                 participants=participants,
                 participant_to_randomness=participant_to_randomness,
@@ -397,7 +397,7 @@ def test_synchronized_datas() -> None:
 
     synchronized_data______ = PriceEstimationSynchronizedSata(
         AbciAppDB(
-            initial_period=0,
+            initial_round=0,
             initial_data=dict(
                 participants=participants,
                 participant_to_randomness=participant_to_randomness,

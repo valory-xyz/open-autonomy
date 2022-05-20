@@ -84,7 +84,7 @@ class BaseRandomnessBehaviourTest(CommonBaseCase):
         self.fast_forward_to_state(
             self.behaviour,
             self.randomness_behaviour_class.state_id,
-            BaseSynchronizedData(AbciAppDB(initial_period=0, initial_data={})),
+            BaseSynchronizedData(AbciAppDB(initial_round=0, initial_data={})),
         )
         assert (
             cast(
@@ -126,7 +126,7 @@ class BaseRandomnessBehaviourTest(CommonBaseCase):
         self.fast_forward_to_state(
             self.behaviour,
             self.randomness_behaviour_class.state_id,
-            BaseSynchronizedData(AbciAppDB(initial_period=0, initial_data={})),
+            BaseSynchronizedData(AbciAppDB(initial_round=0, initial_data={})),
         )
         assert (
             cast(
@@ -163,7 +163,7 @@ class BaseRandomnessBehaviourTest(CommonBaseCase):
         self.fast_forward_to_state(
             self.behaviour,
             self.randomness_behaviour_class.state_id,
-            BaseSynchronizedData(AbciAppDB(initial_period=0, initial_data={})),
+            BaseSynchronizedData(AbciAppDB(initial_round=0, initial_data={})),
         )
         assert (
             cast(
@@ -197,7 +197,7 @@ class BaseRandomnessBehaviourTest(CommonBaseCase):
         self.fast_forward_to_state(
             self.behaviour,
             self.randomness_behaviour_class.state_id,
-            BaseSynchronizedData(AbciAppDB(initial_period=0, initial_data={})),
+            BaseSynchronizedData(AbciAppDB(initial_round=0, initial_data={})),
         )
         assert (
             cast(
@@ -237,7 +237,7 @@ class BaseRandomnessBehaviourTest(CommonBaseCase):
         self.fast_forward_to_state(
             self.behaviour,
             self.randomness_behaviour_class.state_id,
-            BaseSynchronizedData(AbciAppDB(initial_period=0, initial_data={})),
+            BaseSynchronizedData(AbciAppDB(initial_round=0, initial_data={})),
         )
         assert (
             cast(
@@ -271,7 +271,7 @@ class BaseRandomnessBehaviourTest(CommonBaseCase):
         self.fast_forward_to_state(
             self.behaviour,
             self.randomness_behaviour_class.state_id,
-            BaseSynchronizedData(AbciAppDB(initial_period=0, initial_data={})),
+            BaseSynchronizedData(AbciAppDB(initial_round=0, initial_data={})),
         )
         assert (
             cast(
@@ -305,7 +305,7 @@ class BaseRandomnessBehaviourTest(CommonBaseCase):
         self.fast_forward_to_state(
             self.behaviour,
             self.randomness_behaviour_class.state_id,
-            BaseSynchronizedData(AbciAppDB(initial_period=0, initial_data={})),
+            BaseSynchronizedData(AbciAppDB(initial_round=0, initial_data={})),
         )
         assert (
             cast(
@@ -351,7 +351,7 @@ class BaseSelectKeeperBehaviourTest(CommonBaseCase):
             state_id=self.select_keeper_behaviour_class.state_id,
             synchronized_data=self._synchronized_data(
                 AbciAppDB(
-                    initial_period=0,
+                    initial_round=0,
                     initial_data=dict(
                         participants=participants,
                         most_voted_randomness="56cbde9e9bbcbdcaf92f183c678eaa5288581f06b1c9c7f884ce911776727688",
@@ -397,7 +397,7 @@ class BaseSelectKeeperBehaviourTest(CommonBaseCase):
             state_id=self.select_keeper_behaviour_class.state_id,
             synchronized_data=self._synchronized_data(
                 AbciAppDB(
-                    initial_period=0,
+                    initial_round=0,
                     initial_data=dict(
                         participants=participants,
                         most_voted_randomness="56cbde9e9bbcbdcaf92f183c678eaa5288581f06b1c9c7f884ce911776727688",

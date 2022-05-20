@@ -89,7 +89,7 @@ class BaseRoundTestClass:
         cls.participants = get_participants()
         cls.synchronized_data = SynchronizedData(
             AbciAppDB(
-                initial_period=0,
+                initial_round=0,
                 initial_data=dict(
                     participants=cls.participants, all_participants=cls.participants
                 ),
@@ -131,7 +131,7 @@ class TestRegistrationRound(BaseRoundTestClass):
 
         actual_next_state = SynchronizedData(
             AbciAppDB(
-                initial_period=0, initial_data=dict(participants=test_round.collection)
+                initial_round=0, initial_data=dict(participants=test_round.collection)
             )
         )
 
@@ -216,7 +216,7 @@ class TestPrintMessageRound(BaseRoundTestClass):
 
         actual_next_state = SynchronizedData(
             AbciAppDB(
-                initial_period=0, initial_data=dict(participants=test_round.collection)
+                initial_round=0, initial_data=dict(participants=test_round.collection)
             )
         )
 
@@ -288,7 +288,7 @@ def test_synchronized_data() -> None:  # pylint:too-many-locals
 
     synchronized_data = SynchronizedData(
         AbciAppDB(
-            initial_period=period_count,
+            initial_round=period_count,
             initial_data=dict(
                 period_count=period_count,
                 participants=participants,

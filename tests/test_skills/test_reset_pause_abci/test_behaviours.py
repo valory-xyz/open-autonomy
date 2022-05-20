@@ -72,18 +72,18 @@ class TestResetAndPauseBehaviour(ResetPauseAbciFSMBehaviourBaseCase):
     ) -> None:
         """Test reset behaviour."""
         if tendermint_reset_status is None:
-            initial_period = 0
+            initial_round = 0
         else:
-            initial_period = 1
+            initial_round = 1
 
         self.fast_forward_to_state(
             behaviour=self.behaviour,
             state_id=self.behaviour_class.state_id,
             synchronized_data=ResetSynchronizedSata(
                 AbciAppDB(
-                    initial_period=initial_period,
+                    initial_round=initial_round,
                     initial_data=dict(
-                        period_count=initial_period,
+                        period_count=initial_round,
                         most_voted_estimate=0.1,
                         tx_hashes_history=["68656c6c6f776f726c64"],
                     ),

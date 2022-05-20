@@ -671,14 +671,14 @@ def test_synchronized_datas() -> None:
 
     # test `keeper_retries` property when no `keepers` are set.
     synchronized_data_____ = TransactionSettlementSynchronizedSata(
-        AbciAppDB(initial_period=0, initial_data=dict())
+        AbciAppDB(initial_round=0, initial_data=dict())
     )
     assert synchronized_data_____.keepers == deque()
     assert synchronized_data_____.keeper_retries == 0
 
     synchronized_data_____ = TransactionSettlementSynchronizedSata(
         AbciAppDB(
-            initial_period=0,
+            initial_round=0,
             initial_data=dict(
                 participants=participants,
                 participant_to_randomness=participant_to_randomness,
@@ -736,7 +736,7 @@ class TestResetRound(BaseCollectSameUntilThresholdRoundTest):
         synchronized_data = self.synchronized_data.update(
             keeper_randomness=DUMMY_RANDOMNESS,
         )
-        synchronized_data._db._cross_period_persisted_keys = ["keeper_randomness"]
+        synchronized_data._db._cross_reset_persisted_keys = ["keeper_randomness"]
         test_round = ResetRound(
             state=synchronized_data, consensus_params=self.consensus_params
         )

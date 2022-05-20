@@ -64,7 +64,7 @@ class TestDummyBehaviour(AbciFSMBehaviourBaseCase):
     def test_run(self) -> None:
         """Test registration."""
         self.synchronized_data = BaseSynchronizedData(
-            AbciAppDB(initial_period=0, initial_data={})
+            AbciAppDB(initial_round=0, initial_data={})
         )
 
         self.fast_forward_to_state(
