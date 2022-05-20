@@ -22,7 +22,7 @@ profiles:
     build:
       tagPolicy:
         envTemplate:
-          template: "0.1.0"
+          template: "{{.VERSION}}"
       artifacts:
       - image: valory/consensus-algorithms-tendermint
         context: deployments/Dockerfiles/localnode/
