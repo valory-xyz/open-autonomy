@@ -181,7 +181,11 @@ jobs:
           tar -xf tendermint.tar.gz
           sudo mv tendermint /usr/local/bin/tendermint
           curl -Lo skaffold https://storage.googleapis.com/skaffold/releases/v1.33.0/skaffold-linux-amd64 && \
+          sudo chmod +x skaffold
           sudo install skaffold /usr/local/bin/
+
+          skaffold --help
+          
 
           # pull node image needed for the integration tests
           docker pull node:16.7.0
