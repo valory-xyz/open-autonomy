@@ -710,7 +710,7 @@ def test_synchronized_datas() -> None:
     )
     assert synchronized_data_____.keepers_threshold_exceeded
     assert synchronized_data_____.blacklisted_keepers == {"t" * 42}
-    updated_state = synchronized_data_____.update(period_count=1)
+    updated_state = synchronized_data_____.update(round_count=1)
     assert updated_state.blacklisted_keepers == set()
 
     # test wrong tx hashes serialization
