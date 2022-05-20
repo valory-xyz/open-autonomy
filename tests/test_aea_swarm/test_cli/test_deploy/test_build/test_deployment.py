@@ -66,6 +66,7 @@ class TestBuildDeployment(BaseCliTest):
                 str(self.t / "packages"),
                 "--o",
                 str(self.t),
+                "--force",
             )
         )
 
@@ -114,6 +115,7 @@ class TestBuildDeployment(BaseCliTest):
                 "--o",
                 str(self.t),
                 "--kubernetes",
+                "--force",
             )
         )
 

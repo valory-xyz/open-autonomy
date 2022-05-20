@@ -163,6 +163,7 @@ jobs:
           sudo apt-get autoclean
           pip install tox
           pip install --user --upgrade setuptools
+          pip install .
 
           # install Protobuf compiler
           wget https://github.com/protocolbuffers/protobuf/releases/download/v3.19.4/protoc-3.19.4-linux-x86_64.zip
@@ -185,7 +186,7 @@ jobs:
           sudo install skaffold /usr/local/bin/
 
           skaffold --help
-          
+          swarm deploy build image valory/oracle_hardhat --dependencies
 
           # pull node image needed for the integration tests
           docker pull node:16.7.0
