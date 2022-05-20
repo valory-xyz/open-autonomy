@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2022 Valory AG
+#   Copyright 2021-2022 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -16,7 +16,5 @@
 #   limitations under the License.
 #
 # ------------------------------------------------------------------------------
-"""Config for handler consistency check."""
 
-SKIP_SKILLS = ("abstract_abci", "counter", "counter_client", "hello_world_abci")
-COMMON_HANDLERS = ("abci", "http", "contract_api", "ledger_api", "signing")
+"""The tests module contains the unit tests for abci command group."""
