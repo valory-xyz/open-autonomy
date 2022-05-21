@@ -136,15 +136,18 @@ class GnosisSafeProxyFactoryContract(Contract):
         ):
             tx_parameters.update(ledger_api.try_get_gas_pricing())
 
+        configured_gas = Wei(0)
         if gas is not None:
-            tx_parameters["gas"] = Wei(gas)
+            configured_gas = Wei(gas)
 
         if nonce is not None:
             tx_parameters["nonce"] = Nonce(nonce)
 
+        # note, the next line makes an eth_estimateGas call only if `tx_parameters` has no `gas` key!
         transaction_dict = create_proxy_fn.buildTransaction(tx_parameters)
-        # Auto estimation of gas does not work. We use a little more gas just in case
-        transaction_dict["gas"] = Wei(transaction_dict["gas"] + 50000)
+        transaction_dict["gas"] = Wei(
+            max(transaction_dict["gas"] + 75000, configured_gas)
+        )
         return transaction_dict, contract_address
 
     @classmethod

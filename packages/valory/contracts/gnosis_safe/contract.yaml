@@ -9,7 +9,7 @@ fingerprint:
   README.md: Qmd5NcJnij2d19rhtNJgsTSBU7ErTdYVH2c621j6TKN7Qz
   __init__.py: QmVGGRitrfXCapowAPnn565KSg4QWCMfumtbpuoz8z57yC
   build/GnosisSafe_V1_3_0.json: QmafMmPcVqiTLykozgjGwNL2S8b1g5bmgMP3z6EdecgMYh
-  contract.py: QmayeuGg57yJENxca7rtC4wqgYdv6HyEyAqHXVxyQq1fhh
+  contract.py: QmfGtz4QgiDEMrosaozEBuXe45uKGeiyT7niVkzywLvPWV
 fingerprint_ignore_patterns: []
 contracts:
 - valory/gnosis_safe_proxy_factory:0.1.0:QmVkZtrgZ2ievXAonq9z33qbrxHi8piVGptuCGaGJYS1iM

@@ -430,7 +430,6 @@ class GnosisSafeContract(Contract):
         configured_gas = base_gas + safe_tx_gas + 75000
         tx_parameters: Dict[str, Union[str, int]] = {
             "from": sender_address,
-            "gas": configured_gas,
         }
         actual_nonce = ledger_api.api.eth.get_transaction_count(
             ledger_api.api.toChecksumAddress(sender_address)
@@ -450,7 +449,7 @@ class GnosisSafeContract(Contract):
             and max_priority_fee_per_gas is None
         ):
             tx_parameters.update(ledger_api.try_get_gas_pricing(old_price=old_price))
-        # note, the next line makes an eth_estimateGas call!
+        # note, the next line makes an eth_estimateGas call only if `tx_parameters` has no `gas` key!
         transaction_dict = w3_tx.buildTransaction(tx_parameters)
         transaction_dict["gas"] = Wei(
             max(transaction_dict["gas"] + 75000, configured_gas)
