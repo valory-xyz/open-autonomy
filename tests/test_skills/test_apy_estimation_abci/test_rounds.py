@@ -621,7 +621,6 @@ def test_period() -> None:
         db=AbciAppDB(
             initial_period=period_count,
             initial_data=dict(
-                period_count=period_count,
                 participants=participants,
                 period_setup_params=period_setup_params,
                 most_voted_randomness=most_voted_randomness,

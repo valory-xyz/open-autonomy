@@ -378,7 +378,6 @@ class TestTransactionHashBehaviour(PriceEstimationFSMBehaviourBaseCase):
                 AbciAppDB(
                     initial_period=0,
                     initial_data=dict(
-                        period_count=this_period_count,
                         most_voted_estimate=1.0,
                         safe_contract_address="safe_contract_address",
                         oracle_contract_address="0x77E9b2EF921253A171Fa0CB9ba80558648Ff7215",

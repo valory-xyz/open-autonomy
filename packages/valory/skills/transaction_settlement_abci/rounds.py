@@ -509,7 +509,6 @@ class ResetRound(CollectSameUntilThresholdRound):
         """Process the end of the block."""
         if self.threshold_reached:
             state_data = self.synchronized_data.db.get_all()
-            state_data.pop("period_count", None)
             state = self.synchronized_data.update(
                 period_count=self.most_voted_payload,
                 **state_data,

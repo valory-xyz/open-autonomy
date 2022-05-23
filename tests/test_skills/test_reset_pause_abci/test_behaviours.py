@@ -83,7 +83,6 @@ class TestResetAndPauseBehaviour(ResetPauseAbciFSMBehaviourBaseCase):
                 AbciAppDB(
                     initial_period=initial_period,
                     initial_data=dict(
-                        period_count=initial_period,
                         most_voted_estimate=0.1,
                         tx_hashes_history=["68656c6c6f776f726c64"],
                     ),

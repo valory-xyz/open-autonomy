@@ -592,14 +592,14 @@ class BaseSynchronizedData:
         return self._db
 
     @property
-    def period_count(self) -> int:
-        """Get the period count."""
-        return self.db.current_period_count
-
-    @property
     def round_count(self) -> int:
         """Get the round count."""
         return self.db.round_count
+
+    @property
+    def period_count(self) -> int:
+        """Get the period count."""
+        return self.db.current_period_count
 
     @property
     def participants(self) -> FrozenSet[str]:
