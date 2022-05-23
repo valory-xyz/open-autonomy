@@ -23,8 +23,11 @@ import os
 import shutil
 from pathlib import Path
 from typing import Tuple
+from unittest import mock
 
 import yaml
+
+from aea_swarm.cli import cli
 
 from tests.conftest import ROOT_DIR
 from tests.test_aea_swarm.test_cli.base import BaseCliTest
@@ -52,22 +55,27 @@ class TestBuildDeployment(BaseCliTest):
         )
 
         os.chdir(cls.t)
+        cls.cli_runner.invoke(
+            cli, ("deploy", "build", "image", "valory/oracle_hardhat", "--dependencies")
+        )
 
     def test_docker_compose_build(
         self,
     ) -> None:
         """Run tests."""
 
-        result = self.run_cli(
-            (
-                self.service_id,
-                str(self.keys_file),
-                "--package-dir",
-                str(self.t / "packages"),
-                "--o",
-                str(self.t),
+        with mock.patch("os.chown"):
+            result = self.run_cli(
+                (
+                    self.service_id,
+                    str(self.keys_file),
+                    "--package-dir",
+                    str(self.t / "packages"),
+                    "--o",
+                    str(self.t),
+                    "--force",
+                )
             )
-        )
 
         build_dir = self.t / "abci_build"
 
@@ -105,17 +113,19 @@ class TestBuildDeployment(BaseCliTest):
     ) -> None:
         """Run tests."""
 
-        result = self.run_cli(
-            (
-                self.service_id,
-                str(self.keys_file),
-                "--package-dir",
-                str(self.t / "packages"),
-                "--o",
-                str(self.t),
-                "--kubernetes",
+        with mock.patch("os.chown"):
+            result = self.run_cli(
+                (
+                    self.service_id,
+                    str(self.keys_file),
+                    "--package-dir",
+                    str(self.t / "packages"),
+                    "--o",
+                    str(self.t),
+                    "--kubernetes",
+                    "--force",
+                )
             )
-        )
 
         build_dir = self.t / "abci_build"
 
