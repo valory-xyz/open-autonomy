@@ -189,7 +189,6 @@ class BaseRoundTestClass:
         cls.participants = get_participants()
         cls.synchronized_data = cls._synchronized_data_class(
             db=AbciAppDB(
-                initial_period=0,
                 initial_data=dict(
                     participants=cls.participants, all_participants=cls.participants
                 ),
@@ -690,7 +689,9 @@ class TestOnlyKeeperSendsRound(_BaseRoundTestClass, BaseOnlyKeeperSendsRoundTest
         """Run tests."""
 
         test_round = DummyOnlyKeeperSendsRound(
-            state=self.synchronized_data.update(most_voted_keeper_address="agent_0"),
+            state=self.synchronized_data.update_current_data(
+                most_voted_keeper_address="agent_0"
+            ),
             consensus_params=self.consensus_params,
         )
 
@@ -746,7 +747,7 @@ class TestOnlyKeeperSendsRound(_BaseRoundTestClass, BaseOnlyKeeperSendsRoundTest
         self._complete_run(
             self._test_round(
                 test_round=DummyOnlyKeeperSendsRound(
-                    state=self.synchronized_data.update(
+                    state=self.synchronized_data.update_current_data(
                         most_voted_keeper_address=keeper,
                     ),
                     consensus_params=self.consensus_params,

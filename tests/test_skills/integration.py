@@ -381,7 +381,7 @@ class _TxHelperIntegration(_GnosisHelperIntegration):
                 signature=signature_hex,
             )
 
-        self.tx_settlement_synchronized_data.update(
+        self.tx_settlement_synchronized_data.update_current_data(
             participant_to_signature=participant_to_signature,
         )
 
@@ -500,7 +500,9 @@ class _TxHelperIntegration(_GnosisHelperIntegration):
                 + 1,
             )
 
-        self.tx_settlement_synchronized_data.update(None, None, **update_params)
+        self.tx_settlement_synchronized_data.update_current_data(
+            synchronized_data_class=None, **update_params
+        )
 
     def validate_tx(self) -> None:
         """Validate the sent transaction."""
@@ -534,7 +536,7 @@ class _TxHelperIntegration(_GnosisHelperIntegration):
             "verified"
         ], f"Message not verified: {verif_msg.state.body}"
 
-        self.tx_settlement_synchronized_data.update(
+        self.tx_settlement_synchronized_data.update_current_data(
             final_verification_status=VerificationStatus.VERIFIED,
             final_tx_hash=self.tx_settlement_synchronized_data.to_be_validated_tx_hash,
         )

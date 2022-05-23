@@ -58,10 +58,10 @@ class TestResetAndPauseRound(BaseCollectSameUntilThresholdRoundTest):
     ) -> None:
         """Runs tests."""
 
-        synchronized_data = self.synchronized_data.update(
+        synchronized_data = self.synchronized_data.update_current_data(
             keeper_randomness=DUMMY_RANDOMNESS,
         )
-        synchronized_data._db._cross_period_persisted_keys = ["keeper_randomness"]
+        synchronized_data._db._cross_reset_persisted_keys = ["keeper_randomness"]
         test_round = ResetAndPauseRound(
             state=synchronized_data, consensus_params=self.consensus_params
         )
@@ -72,8 +72,7 @@ class TestResetAndPauseRound(BaseCollectSameUntilThresholdRoundTest):
                 round_payloads=get_participant_to_period_count(
                     self.participants, next_period_count
                 ),
-                state_update_fn=lambda _synchronized_data, _: _synchronized_data.update(
-                    period_count=next_period_count,
+                state_update_fn=lambda _synchronized_data, _: _synchronized_data.add_new_data(
                     participants=self.participants,
                     all_participants=self.participants,
                     keeper_randomness=DUMMY_RANDOMNESS,

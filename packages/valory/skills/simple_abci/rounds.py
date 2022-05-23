@@ -113,7 +113,7 @@ class RegistrationRound(CollectDifferentUntilAllRound, SimpleABCIAbstractRound):
     def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Event]]:
         """Process the end of the block."""
         if self.collection_threshold_reached:
-            state = self.synchronized_data.update(
+            state = self.synchronized_data.update_current_data(
                 participants=self.collection,
                 all_participants=self.collection,
                 synchronized_data_class=SynchronizedData,
@@ -131,7 +131,7 @@ class BaseRandomnessRound(CollectSameUntilThresholdRound, SimpleABCIAbstractRoun
     def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Event]]:
         """Process the end of the block."""
         if self.threshold_reached:
-            state = self.synchronized_data.update(
+            state = self.synchronized_data.update_current_data(
                 participant_to_randomness=MappingProxyType(self.collection),
                 most_voted_randomness=self.most_voted_payload,
             )
@@ -152,7 +152,7 @@ class SelectKeeperRound(CollectSameUntilThresholdRound, SimpleABCIAbstractRound)
     def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Event]]:
         """Process the end of the block."""
         if self.threshold_reached:
-            state = self.synchronized_data.update(
+            state = self.synchronized_data.update_current_data(
                 participant_to_selection=MappingProxyType(self.collection),
                 most_voted_keeper_address=self.most_voted_payload,
             )
@@ -185,8 +185,7 @@ class BaseResetRound(CollectSameUntilThresholdRound, SimpleABCIAbstractRound):
     def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Event]]:
         """Process the end of the block."""
         if self.threshold_reached:
-            state = self.synchronized_data.update(
-                period_count=self.most_voted_payload,
+            state = self.synchronized_data.add_new_data(
                 participants=self.synchronized_data.participants,
                 all_participants=self.synchronized_data.all_participants,
             )

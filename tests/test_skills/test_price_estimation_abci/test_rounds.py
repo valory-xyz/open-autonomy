@@ -188,7 +188,7 @@ class TestRandomnessTransactionSubmissionRound(BaseCollectSameUntilThresholdRoun
             self._test_round(
                 test_round=test_round,
                 round_payloads=get_participant_to_randomness(self.participants, 1),
-                state_update_fn=lambda _synchronized_data, _test_round: _synchronized_data.update(
+                state_update_fn=lambda _synchronized_data, _test_round: _synchronized_data.update_current_data(
                     participant_to_randomness=MappingProxyType(
                         dict(get_participant_to_randomness(self.participants, 1))
                     )
@@ -220,7 +220,7 @@ class TestCollectObservationRound(BaseCollectDifferentUntilThresholdRoundTest):
             self._test_round(
                 test_round=test_round,
                 round_payloads=get_participant_to_observations(self.participants),
-                state_update_fn=lambda _synchronized_data, _: _synchronized_data.update(
+                state_update_fn=lambda _synchronized_data, _: _synchronized_data.update_current_data(
                     participant_to_observations=get_participant_to_observations(
                         self.participants
                     )
@@ -247,7 +247,7 @@ class TestCollectObservationRound(BaseCollectDifferentUntilThresholdRoundTest):
                 round_payloads=get_participant_to_observations(
                     frozenset(list(self.participants)[:-1])
                 ),
-                state_update_fn=lambda _synchronized_data, _: _synchronized_data.update(
+                state_update_fn=lambda _synchronized_data, _: _synchronized_data.update_current_data(
                     participant_to_observations=get_participant_to_observations(
                         frozenset(list(self.participants)[:-1])
                     )
@@ -278,7 +278,7 @@ class TestEstimateConsensusRound(BaseCollectSameUntilThresholdRoundTest):
             self._test_round(
                 test_round=test_round,
                 round_payloads=get_participant_to_estimate(self.participants),
-                state_update_fn=lambda _synchronized_data, _test_round: _synchronized_data.update(
+                state_update_fn=lambda _synchronized_data, _test_round: _synchronized_data.update_current_data(
                     participant_to_estimate=dict(
                         get_participant_to_estimate(self.participants)
                     ),
@@ -358,7 +358,6 @@ def test_synchronized_datas() -> None:
 
     synchronized_data = SynchronizedData(
         AbciAppDB(
-            initial_period=0,
             initial_data=dict(
                 participants=participants,
                 participant_to_randomness=participant_to_randomness,
@@ -378,7 +377,6 @@ def test_synchronized_datas() -> None:
 
     synchronized_data____ = RegistrationSynchronizedSata(
         AbciAppDB(
-            initial_period=0,
             initial_data=dict(
                 participants=participants,
                 participant_to_randomness=participant_to_randomness,
@@ -397,7 +395,6 @@ def test_synchronized_datas() -> None:
 
     synchronized_data______ = PriceEstimationSynchronizedSata(
         AbciAppDB(
-            initial_period=0,
             initial_data=dict(
                 participants=participants,
                 participant_to_randomness=participant_to_randomness,

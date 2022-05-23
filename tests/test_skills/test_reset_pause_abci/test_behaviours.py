@@ -71,17 +71,12 @@ class TestResetAndPauseBehaviour(ResetPauseAbciFSMBehaviourBaseCase):
         tendermint_reset_status: Optional[bool],
     ) -> None:
         """Test reset behaviour."""
-        if tendermint_reset_status is None:
-            initial_period = 0
-        else:
-            initial_period = 1
 
         self.fast_forward_to_state(
             behaviour=self.behaviour,
             state_id=self.behaviour_class.state_id,
             synchronized_data=ResetSynchronizedSata(
                 AbciAppDB(
-                    initial_period=initial_period,
                     initial_data=dict(
                         most_voted_estimate=0.1,
                         tx_hashes_history=["68656c6c6f776f726c64"],
@@ -89,6 +84,7 @@ class TestResetAndPauseBehaviour(ResetPauseAbciFSMBehaviourBaseCase):
                 )
             ),
         )
+
         assert self.behaviour.current_state is not None
         assert self.behaviour.current_state.state_id == self.behaviour_class.state_id
 
@@ -107,6 +103,10 @@ class TestResetAndPauseBehaviour(ResetPauseAbciFSMBehaviourBaseCase):
             "wait_from_last_timestamp",
             side_effect=lambda _: (yield),
         ):
+            if tendermint_reset_status is not None:
+                # Increase the period_count to force the call to reset_tendermint_with_wait()
+                self.behaviour.current_state.synchronized_data.add_new_data()
+
             self.behaviour.act_wrapper()
             self.behaviour.act_wrapper()
 

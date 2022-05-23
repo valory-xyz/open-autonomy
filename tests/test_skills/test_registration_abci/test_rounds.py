@@ -52,7 +52,7 @@ class TestRegistrationStartupRound(BaseCollectDifferentUntilAllRoundTest):
 
         self.synchronized_data = cast(
             SynchronizedData,
-            self.synchronized_data.update(
+            self.synchronized_data.update_current_data(
                 safe_contract_address="stub_safe_contract_address",
                 oracle_contract_address="stub_oracle_contract_address",
             ),
@@ -105,7 +105,6 @@ class TestRegistrationStartupRound(BaseCollectDifferentUntilAllRoundTest):
             ],
             state_update_fn=lambda *x: SynchronizedData(
                 AbciAppDB(
-                    initial_period=0,
                     initial_data=dict(participants=frozenset(test_round.collection)),
                 )
             ),
@@ -136,7 +135,7 @@ class TestRegistrationRound(BaseCollectDifferentUntilThresholdRoundTest):
         """Run test."""
         self.synchronized_data = cast(
             SynchronizedData,
-            self.synchronized_data.update(
+            self.synchronized_data.update_current_data(
                 safe_contract_address="stub_safe_contract_address",
                 oracle_contract_address="stub_oracle_contract_address",
             ),
@@ -152,7 +151,7 @@ class TestRegistrationRound(BaseCollectDifferentUntilThresholdRoundTest):
         """Run test."""
         self.synchronized_data = cast(
             SynchronizedData,
-            self.synchronized_data.update(
+            self.synchronized_data.update_current_data(
                 safe_contract_address="stub_safe_contract_address",
                 oracle_contract_address="stub_oracle_contract_address",
             ),
@@ -182,7 +181,6 @@ class TestRegistrationRound(BaseCollectDifferentUntilThresholdRoundTest):
             state_update_fn=(
                 lambda *x: SynchronizedData(
                     AbciAppDB(
-                        initial_period=0,
                         initial_data=dict(participants=self.participants),
                     )
                 )

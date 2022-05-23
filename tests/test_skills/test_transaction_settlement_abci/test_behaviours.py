@@ -276,7 +276,6 @@ class TestTransactionSettlementBaseState(PriceEstimationFSMBehaviourBaseCase):
             state_id=SignatureBehaviour.state_id,
             synchronized_data=TransactionSettlementSynchronizedSata(
                 AbciAppDB(
-                    initial_period=0,
                     initial_data=dict(
                         most_voted_tx_hash="b0e6add595e00477cf347d09797b156719dc5233283ac76e4efce2a674fe72d900000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000002625a000x77E9b2EF921253A171Fa0CB9ba80558648Ff7215b0e6add595e00477cf347d09797b156719dc5233283ac76e4efce2a674fe72d9b0e6add595e00477cf347d09797b156719dc5233283ac76e4efce2a674fe72d9",
                         keepers=int(2).to_bytes(32, "big").hex()
@@ -407,7 +406,6 @@ class TestSignatureBehaviour(TransactionSettlementFSMBehaviourBaseCase):
             state_id=SignatureBehaviour.state_id,
             synchronized_data=TransactionSettlementSynchronizedSata(
                 AbciAppDB(
-                    initial_period=0,
                     initial_data=dict(
                         most_voted_tx_hash="b0e6add595e00477cf347d09797b156719dc5233283ac76e4efce2a674fe72d900000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000002625a000x77E9b2EF921253A171Fa0CB9ba80558648Ff7215b0e6add595e00477cf347d09797b156719dc5233283ac76e4efce2a674fe72d9b0e6add595e00477cf347d09797b156719dc5233283ac76e4efce2a674fe72d9"
                     ),
@@ -456,7 +454,6 @@ class TestFinalizeBehaviour(TransactionSettlementFSMBehaviourBaseCase):
             state_id=self.behaviour_class.state_id,
             synchronized_data=TransactionSettlementSynchronizedSata(
                 AbciAppDB(
-                    initial_period=0,
                     initial_data=dict(
                         most_voted_keeper_address="most_voted_keeper_address",
                         participants=participants,
@@ -573,7 +570,6 @@ class TestFinalizeBehaviour(TransactionSettlementFSMBehaviourBaseCase):
             state_id=self.behaviour_class.state_id,
             synchronized_data=TransactionSettlementSynchronizedSata(
                 AbciAppDB(
-                    initial_period=0,
                     initial_data=dict(
                         safe_contract_address="safe_contract_address",
                         participants=participants,
@@ -654,7 +650,6 @@ class TestFinalizeBehaviour(TransactionSettlementFSMBehaviourBaseCase):
             state_id=self.behaviour_class.state_id,
             synchronized_data=TransactionSettlementSynchronizedSata(
                 AbciAppDB(
-                    initial_period=0,
                     initial_data=dict(
                         most_voted_keeper_address="most_voted_keeper_address",
                         participants=participants,
@@ -697,7 +692,6 @@ class TestValidateTransactionBehaviour(TransactionSettlementFSMBehaviourBaseCase
             state_id=ValidateTransactionBehaviour.state_id,
             synchronized_data=TransactionSettlementSynchronizedSata(
                 AbciAppDB(
-                    initial_period=0,
                     initial_data=dict(
                         safe_contract_address="safe_contract_address",
                         tx_hashes_history="t" * 66,
@@ -797,7 +791,6 @@ class TestCheckTransactionHistoryBehaviour(TransactionSettlementFSMBehaviourBase
             state_id=CheckTransactionHistoryBehaviour.state_id,
             synchronized_data=TransactionSettlementSynchronizedSata(
                 AbciAppDB(
-                    initial_period=0,
                     initial_data=dict(
                         safe_contract_address="safe_contract_address",
                         participants=frozenset(
@@ -903,7 +896,6 @@ class TestSynchronizeLateMessagesBehaviour(TransactionSettlementFSMBehaviourBase
             state_id=SynchronizeLateMessagesBehaviour.state_id,
             synchronized_data=TransactionSettlementSynchronizedSata(
                 AbciAppDB(
-                    initial_period=0,
                     initial_data=dict(
                         participants=participants,
                         participant_to_signature={},
@@ -953,7 +945,7 @@ class TestResetBehaviour(TransactionSettlementFSMBehaviourBaseCase):
             behaviour=self.behaviour,
             state_id=self.behaviour_class.state_id,
             synchronized_data=TransactionSettlementSynchronizedSata(
-                AbciAppDB(initial_period=0, initial_data=dict(estimate=1.0)),
+                AbciAppDB(initial_data=dict(estimate=1.0)),
             ),
         )
         assert (

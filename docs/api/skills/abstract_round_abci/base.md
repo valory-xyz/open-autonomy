@@ -632,7 +632,7 @@ Class to represent all data replicated across periods.
 #### `__`init`__`
 
 ```python
-def __init__(initial_data: Dict[str, Any], initial_period: int = 0, cross_period_persisted_keys: Optional[List[str]] = None) -> None
+def __init__(initial_data: Dict[str, Any], cross_reset_persisted_keys: Optional[List[str]] = None) -> None
 ```
 
 Initialize a period state.
@@ -652,16 +652,16 @@ Get the initial_data.
 
 the initial_data
 
-<a id="packages.valory.skills.abstract_round_abci.base.AbciAppDB.current_period_count"></a>
+<a id="packages.valory.skills.abstract_round_abci.base.AbciAppDB.reset_index"></a>
 
-#### current`_`period`_`count
+#### reset`_`index
 
 ```python
 @property
-def current_period_count() -> int
+def reset_index() -> int
 ```
 
-Get the current period count.
+Get the current reset index.
 
 <a id="packages.valory.skills.abstract_round_abci.base.AbciAppDB.round_count"></a>
 
@@ -674,13 +674,13 @@ def round_count() -> int
 
 Get the round count.
 
-<a id="packages.valory.skills.abstract_round_abci.base.AbciAppDB.cross_period_persisted_keys"></a>
+<a id="packages.valory.skills.abstract_round_abci.base.AbciAppDB.cross_reset_persisted_keys"></a>
 
-#### cross`_`period`_`persisted`_`keys
+#### cross`_`reset`_`persisted`_`keys
 
 ```python
 @property
-def cross_period_persisted_keys() -> List[str]
+def cross_reset_persisted_keys() -> List[str]
 ```
 
 Keys in the period state which are persistet across periods.
@@ -705,25 +705,35 @@ def get_strict(key: str) -> Any
 
 Get a value from the data dictionary and raise if it is None.
 
-<a id="packages.valory.skills.abstract_round_abci.base.AbciAppDB.update_current_period"></a>
+<a id="packages.valory.skills.abstract_round_abci.base.AbciAppDB.update_current_data"></a>
 
-#### update`_`current`_`period
-
-```python
-def update_current_period(**kwargs: Any) -> None
-```
-
-Update the current period's state.
-
-<a id="packages.valory.skills.abstract_round_abci.base.AbciAppDB.add_new_period"></a>
-
-#### add`_`new`_`period
+#### update`_`current`_`data
 
 ```python
-def add_new_period(new_period: int, **kwargs: Any) -> None
+def update_current_data(**kwargs: Any) -> None
 ```
 
-Update the current period's state.
+Update the current data.
+
+<a id="packages.valory.skills.abstract_round_abci.base.AbciAppDB.add_new_data"></a>
+
+#### add`_`new`_`data
+
+```python
+def add_new_data(**kwargs: Any) -> None
+```
+
+Add a new entry to the data.
+
+<a id="packages.valory.skills.abstract_round_abci.base.AbciAppDB.get_all_from_reset_index"></a>
+
+#### get`_`all`_`from`_`reset`_`index
+
+```python
+def get_all_from_reset_index(reset_index: int) -> Dict[str, Any]
+```
+
+Get all key-value pairs from the data dictionary for the specified period.
 
 <a id="packages.valory.skills.abstract_round_abci.base.AbciAppDB.get_all"></a>
 
@@ -873,15 +883,25 @@ def nb_participants() -> int
 
 Get the number of participants.
 
-<a id="packages.valory.skills.abstract_round_abci.base.BaseSynchronizedData.update"></a>
+<a id="packages.valory.skills.abstract_round_abci.base.BaseSynchronizedData.update_current_data"></a>
 
-#### update
+#### update`_`current`_`data
 
 ```python
-def update(synchronized_data_class: Optional[Type] = None, period_count: Optional[int] = None, **kwargs: Any, ,) -> "BaseSynchronizedData"
+def update_current_data(synchronized_data_class: Optional[Type] = None, **kwargs: Any, ,) -> "BaseSynchronizedData"
 ```
 
-Copy and update the state.
+Copy and update the current data.
+
+<a id="packages.valory.skills.abstract_round_abci.base.BaseSynchronizedData.add_new_data"></a>
+
+#### add`_`new`_`data
+
+```python
+def add_new_data(synchronized_data_class: Optional[Type] = None, **kwargs: Any, ,) -> "BaseSynchronizedData"
+```
+
+Copy and update with new data.
 
 <a id="packages.valory.skills.abstract_round_abci.base.BaseSynchronizedData.__repr__"></a>
 

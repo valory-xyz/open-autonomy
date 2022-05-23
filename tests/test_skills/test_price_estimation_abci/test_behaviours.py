@@ -108,7 +108,7 @@ class TestObserveBehaviour(PriceEstimationFSMBehaviourBaseCase):
             self.behaviour,
             ObserveBehaviour.state_id,
             PriceEstimationSynchronizedSata(
-                AbciAppDB(initial_period=0, initial_data=dict(estimate=1.0)),
+                AbciAppDB(initial_data=dict(estimate=1.0)),
             ),
         )
         assert (
@@ -149,7 +149,7 @@ class TestObserveBehaviour(PriceEstimationFSMBehaviourBaseCase):
             self.behaviour,
             ObserveBehaviour.state_id,
             PriceEstimationSynchronizedSata(
-                AbciAppDB(initial_period=0, initial_data=dict(estimate=1.0)),
+                AbciAppDB(initial_data=dict(estimate=1.0)),
             ),
         )
         assert (
@@ -177,7 +177,7 @@ class TestObserveBehaviour(PriceEstimationFSMBehaviourBaseCase):
             self.behaviour,
             ObserveBehaviour.state_id,
             PriceEstimationSynchronizedSata(
-                AbciAppDB(initial_period=0, initial_data=dict()),
+                AbciAppDB(initial_data=dict()),
             ),
         )
         assert (
@@ -215,7 +215,7 @@ class TestObserveBehaviour(PriceEstimationFSMBehaviourBaseCase):
             self.behaviour,
             ObserveBehaviour.state_id,
             PriceEstimationSynchronizedSata(
-                AbciAppDB(initial_period=0, initial_data=dict()),
+                AbciAppDB(initial_data=dict()),
             ),
         )
         assert (
@@ -244,7 +244,6 @@ class TestEstimateBehaviour(PriceEstimationFSMBehaviourBaseCase):
             state_id=EstimateBehaviour.state_id,
             synchronized_data=PriceEstimationSynchronizedSata(
                 AbciAppDB(
-                    initial_period=0,
                     initial_data=dict(
                         participant_to_observations={
                             "a": ObservationPayload(sender="a", observation=1.0)
@@ -376,7 +375,6 @@ class TestTransactionHashBehaviour(PriceEstimationFSMBehaviourBaseCase):
             state_id=TransactionHashBehaviour.state_id,
             synchronized_data=PriceEstimationSynchronizedSata(
                 AbciAppDB(
-                    initial_period=0,
                     initial_data=dict(
                         most_voted_estimate=1.0,
                         safe_contract_address="safe_contract_address",
@@ -435,10 +433,15 @@ class TestTransactionHashBehaviour(PriceEstimationFSMBehaviourBaseCase):
         # add new cycle, and dummy period data
         next_period_data = copy.deepcopy(period_data)
         next_period_data["final_tx_hash"] = tx_hashes[0]
-        synchronized_data.db.add_new_period(
-            this_period_count,
+
+        synchronized_data.db.update_current_data(
             **period_data,
         )
+
+        if this_period_count != 0:
+            synchronized_data.db.add_new_data(
+                **next_period_data,
+            )
 
         self.mock_contract_api_request(
             request_kwargs=dict(

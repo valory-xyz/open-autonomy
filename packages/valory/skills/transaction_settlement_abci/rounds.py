@@ -253,7 +253,7 @@ class FinalizationRound(OnlyKeeperSendsRound):
         verification_status = VerificationStatus(self.keeper_payload["status_value"])
         state = cast(
             SynchronizedData,
-            self.synchronized_data.update(
+            self.synchronized_data.update_current_data(
                 synchronized_data_class=SynchronizedData,
                 tx_hashes_history=self.keeper_payload["tx_hashes_history"],
                 final_verification_status=verification_status,
@@ -346,7 +346,7 @@ class SelectKeeperTransactionSubmissionRoundBAfterTimeout(
         if self.threshold_reached:
             state = cast(
                 SynchronizedData,
-                self.synchronized_data.update(
+                self.synchronized_data.update_current_data(
                     missed_messages=cast(
                         SynchronizedData, self.synchronized_data
                     ).missed_messages
@@ -382,7 +382,7 @@ class ValidateTransactionRound(VotingRound):
             # We only set the final tx hash if we are about to exit from the transaction settlement skill.
             # Then, the skills which use the transaction settlement can check the tx hash
             # and if it is None, then it means that the transaction has failed.
-            state = self.synchronized_data.update(
+            state = self.synchronized_data.update_current_data(
                 synchronized_data_class=self.synchronized_data_class,
                 participant_to_votes=self.collection,
                 final_verification_status=VerificationStatus.VERIFIED,
@@ -425,7 +425,7 @@ class CheckTransactionHistoryRound(CollectSameUntilThresholdRound):
                 # We only set the final tx hash if we are about to exit from the transaction settlement skill.
                 # Then, the skills which use the transaction settlement can check the tx hash
                 # and if it is None, then it means that the transaction has failed.
-                state = self.synchronized_data.update(
+                state = self.synchronized_data.update_current_data(
                     synchronized_data_class=self.synchronized_data_class,
                     participant_to_check=self.collection,
                     final_verification_status=return_status,
@@ -485,7 +485,7 @@ class SynchronizeLateMessagesRound(CollectNonEmptyUntilThresholdRound):
         if n_late_arriving_tx_hashes > synchronized_data.missed_messages:
             return state, Event.MISSED_AND_LATE_MESSAGES_MISMATCH
 
-        state = state.update(
+        state = state.update_current_data(
             missed_messages=synchronized_data.missed_messages
             - n_late_arriving_tx_hashes
         )
@@ -509,8 +509,7 @@ class ResetRound(CollectSameUntilThresholdRound):
         """Process the end of the block."""
         if self.threshold_reached:
             state_data = self.synchronized_data.db.get_all()
-            state = self.synchronized_data.update(
-                period_count=self.most_voted_payload,
+            state = self.synchronized_data.add_new_data(
                 **state_data,
             )
             return state, Event.DONE

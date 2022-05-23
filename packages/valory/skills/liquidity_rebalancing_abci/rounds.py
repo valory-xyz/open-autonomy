@@ -157,7 +157,7 @@ class TransactionHashBaseRound(
         """Process the end of the block."""
         if self.threshold_reached:
             dict_ = json.loads(self.most_voted_payload)
-            state = self.synchronized_data.update(
+            state = self.synchronized_data.update_current_data(
                 participant_to_tx_hash=MappingProxyType(self.collection),
                 most_voted_tx_hash=dict_["tx_hash"],
             )
@@ -181,7 +181,7 @@ class StrategyEvaluationRound(
     def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Event]]:
         """Process the end of the block."""
         if self.threshold_reached:
-            state = self.synchronized_data.update(
+            state = self.synchronized_data.update_current_data(
                 participant_to_strategy=MappingProxyType(self.collection),
                 most_voted_strategy=self.most_voted_payload,
             )

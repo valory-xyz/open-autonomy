@@ -8,8 +8,8 @@ aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
   README.md: QmYNXPppPSnW61ipqKNH8pyMh8qzTERwQaducYYq1dnBJb
   __init__.py: QmPuJK7gMKruSTcaYk9otrFncfD9h6vBZVoAtkwhTBgcxa
-  abci_app_chain.py: QmeCPxwjec4pxtedv8NeG2Gmj58GY2GycXvgwfyjEyqPGm
-  base.py: QmfL6MJySL1MQ8NDPdHVcde4RybdQWrKMVoL7MMxCXPVU2
+  abci_app_chain.py: QmaYsSjTnRmLWkLEhhPvGtWNJYki6KyboT22SgrEwzXUDr
+  base.py: QmSMpPRrpL15XU73CBphc5t1sfgSHs6hqTuMH5sfkSPr7B
   behaviour_utils.py: QmaZPrWU4v8MfZif9eJDuWNgYG3SgLVYYpLibr12aTPFWV
   behaviours.py: QmSZFcDz9jrgyjbBHSDSmgBKYPDNdpQtQZwUHprGCaNitC
   common.py: QmT1Gj7Rva3RfSZWUEvtUtQABRq5JNRsJCFHPFaxK4WKLA
@@ -20,7 +20,7 @@ fingerprint:
   io/load.py: QmSa3vgVvQiMJabBvSnPjTMtYiDgrrHPugDGCvSf4kAfS3
   io/paths.py: QmT1e6Ygak8Fe4NxSrd2mb6EB1Rr6dsYZPL8dWh3aNMb12
   io/store.py: QmXHnLF1Jg2hmhUwYj4E4QoMmx6EoLhUtzEGqztLKtKFej
-  models.py: QmSm4o3ix4z3UCbkAAJS4Asqz1ZQh2KK8YxWvesrZ2wwBm
+  models.py: QmQBBVMVUTHNEZvJ8w6AqmM5qYyDCyGbWqTdUcgyShkrs5
   serializer.py: QmYf1ZaQEwAaUFvFHwafuetnm29PmWQUAEFSbbHDdrHvyp
   utils.py: Qmed3ijomF91pePveuFrPVd4BaXRLrsoCaszkiuyF2ZbBE
 fingerprint_ignore_patterns: []

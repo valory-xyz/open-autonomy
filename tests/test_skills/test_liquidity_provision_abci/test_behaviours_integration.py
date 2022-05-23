@@ -135,7 +135,6 @@ class LiquidityProvisionIntegrationBaseCase(
 
         cls.default_synchronized_data_hash = LiquidityRebalancingSynchronizedSata(
             AbciAppDB(
-                initial_period=0,
                 initial_data=dict(
                     safe_contract_address=cls.safe_contract_address,
                     most_voted_keeper_address=cls.keeper_address,
@@ -151,7 +150,6 @@ class LiquidityProvisionIntegrationBaseCase(
         keepers = next(iter(cls.agents.keys()))
         cls.tx_settlement_synchronized_data = TransactionSettlementSynchronizedSata(
             AbciAppDB(
-                initial_period=0,
                 initial_data=dict(
                     safe_contract_address=cls.safe_contract_address,
                     most_voted_keeper_address=cls.keeper_address,
@@ -229,7 +227,7 @@ class TestLiquidityRebalancingHardhat(LiquidityProvisionIntegrationBaseCase):
 
         synchronized_data_enter_hash = cast(
             LiquidityRebalancingSynchronizedSata,
-            self.default_synchronized_data_hash.update(),
+            self.default_synchronized_data_hash.update_current_data(),
         )
 
         cycles_enter = 8
@@ -269,7 +267,7 @@ class TestLiquidityRebalancingHardhat(LiquidityProvisionIntegrationBaseCase):
         )
 
         # update period state with safe's tx hash
-        self.tx_settlement_synchronized_data.update(
+        self.tx_settlement_synchronized_data.update_current_data(
             most_voted_tx_hash=payload,
         )
 
@@ -283,7 +281,7 @@ class TestLiquidityRebalancingHardhat(LiquidityProvisionIntegrationBaseCase):
 
         synchronized_data_exit_hash = cast(
             LiquidityRebalancingSynchronizedSata,
-            self.default_synchronized_data_hash.update(
+            self.default_synchronized_data_hash.update_current_data(
                 most_voted_strategy=json.dumps(strategy),
                 final_tx_hash=self.tx_settlement_synchronized_data.final_tx_hash,
             ),
@@ -416,7 +414,7 @@ class TestLiquidityRebalancingHardhat(LiquidityProvisionIntegrationBaseCase):
         )
 
         # update period state with safe's tx hash
-        self.tx_settlement_synchronized_data.update(
+        self.tx_settlement_synchronized_data.update_current_data(
             most_voted_tx_hash=payload,
         )
 
@@ -430,7 +428,7 @@ class TestLiquidityRebalancingHardhat(LiquidityProvisionIntegrationBaseCase):
 
         synchronized_data_swap_back_hash = cast(
             LiquidityRebalancingSynchronizedSata,
-            self.default_synchronized_data_hash.update(
+            self.default_synchronized_data_hash.update_current_data(
                 most_voted_strategy=json.dumps(strategy),
                 final_tx_hash=self.tx_settlement_synchronized_data.final_tx_hash,
             ),
@@ -531,7 +529,7 @@ class TestLiquidityRebalancingHardhat(LiquidityProvisionIntegrationBaseCase):
         )
 
         # update period state with safe's tx hash
-        self.tx_settlement_synchronized_data.update(
+        self.tx_settlement_synchronized_data.update_current_data(
             most_voted_tx_hash=payload,
         )
 

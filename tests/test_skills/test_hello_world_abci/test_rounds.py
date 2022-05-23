@@ -89,7 +89,6 @@ class BaseRoundTestClass:
         cls.participants = get_participants()
         cls.synchronized_data = SynchronizedData(
             AbciAppDB(
-                initial_period=0,
                 initial_data=dict(
                     participants=cls.participants, all_participants=cls.participants
                 ),
@@ -130,9 +129,7 @@ class TestRegistrationRound(BaseRoundTestClass):
             test_round.process_payload(payload)
 
         actual_next_state = SynchronizedData(
-            AbciAppDB(
-                initial_period=0, initial_data=dict(participants=test_round.collection)
-            )
+            AbciAppDB(initial_data=dict(participants=test_round.collection))
         )
 
         res = test_round.end_block()
@@ -171,7 +168,7 @@ class TestSelectKeeperRound(BaseRoundTestClass):
         for payload in payloads:
             test_round.process_payload(payload)
 
-        actual_next_state = self.synchronized_data.update(
+        actual_next_state = self.synchronized_data.update_current_data(
             participant_to_selection=MappingProxyType(test_round.collection),
             most_voted_keeper_address=test_round.most_voted_payload,
         )
@@ -215,9 +212,7 @@ class TestPrintMessageRound(BaseRoundTestClass):
             test_round.process_payload(payload)
 
         actual_next_state = SynchronizedData(
-            AbciAppDB(
-                initial_period=0, initial_data=dict(participants=test_round.collection)
-            )
+            AbciAppDB(initial_data=dict(participants=test_round.collection))
         )
 
         res = test_round.end_block()
@@ -255,8 +250,7 @@ class TestResetAndPauseRound(BaseRoundTestClass):
         for payload in payloads:
             test_round.process_payload(payload)
 
-        actual_next_state = self.synchronized_data.update(
-            period_count=test_round.most_voted_payload,
+        actual_next_state = self.synchronized_data.add_new_data(
             participants=self.synchronized_data.participants,
             all_participants=self.synchronized_data.all_participants,
         )
@@ -277,7 +271,6 @@ def test_synchronized_data() -> None:  # pylint:too-many-locals
     """Test SynchronizedData."""
 
     participants = get_participants()
-    period_count = 10
     period_setup_params = {}  # type: ignore
     most_voted_randomness = "0xabcd"
     participant_to_selection = {
@@ -288,7 +281,6 @@ def test_synchronized_data() -> None:  # pylint:too-many-locals
 
     synchronized_data = SynchronizedData(
         AbciAppDB(
-            initial_period=period_count,
             initial_data=dict(
                 participants=participants,
                 period_setup_params=period_setup_params,
@@ -300,7 +292,7 @@ def test_synchronized_data() -> None:  # pylint:too-many-locals
     )
 
     assert synchronized_data.participants == participants
-    assert synchronized_data.period_count == period_count
+    assert synchronized_data.period_count == 0
     assert synchronized_data.most_voted_randomness == most_voted_randomness
     assert synchronized_data.participant_to_selection == participant_to_selection
     assert synchronized_data.most_voted_keeper_address == most_voted_keeper_address

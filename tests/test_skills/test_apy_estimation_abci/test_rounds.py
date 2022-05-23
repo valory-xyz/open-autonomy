@@ -207,7 +207,6 @@ class BaseRoundTestClass:
         cls.participants = get_participants()
         cls.synchronized_data = SynchronizedData(
             db=AbciAppDB(
-                initial_period=0,
                 initial_data=dict(
                     participants=cls.participants, all_participants=cls.participants
                 ),
@@ -432,7 +431,7 @@ class TestTrainRound(BaseCollectSameUntilThresholdRoundTest):
         """Runs test."""
 
         test_round = TrainRound(
-            self.synchronized_data.update(full_training=full_training),
+            self.synchronized_data.update_current_data(full_training=full_training),
             self.consensus_params,
         )
         self._complete_run(
@@ -464,13 +463,14 @@ class TestTestRound(BaseCollectSameUntilThresholdRoundTest):
         """Runs test."""
 
         test_round = _TestRound(
-            self.synchronized_data.update(full_training=False), self.consensus_params
+            self.synchronized_data.update_current_data(full_training=False),
+            self.consensus_params,
         )
         self._complete_run(
             self._test_round(
                 test_round=test_round,
                 round_payloads=get_participant_to_test_payload(self.participants),
-                state_update_fn=lambda _synchronized_data, _: _synchronized_data.update(
+                state_update_fn=lambda _synchronized_data, _: _synchronized_data.update_current_data(
                     full_training=True
                 ),
                 state_attr_checks=[lambda state: bool(state.full_training)],
@@ -508,7 +508,7 @@ class TestEstimateRound(BaseCollectSameUntilThresholdRoundTest):
         """Runs test."""
 
         test_round = EstimateRound(
-            self.synchronized_data.update(n_estimations=n_estimations),
+            self.synchronized_data.update_current_data(n_estimations=n_estimations),
             self.consensus_params,
         )
         self._complete_run(
@@ -517,7 +517,7 @@ class TestEstimateRound(BaseCollectSameUntilThresholdRoundTest):
                 round_payloads=get_participant_to_estimate_payload(
                     self.participants, most_voted_payload
                 ),
-                state_update_fn=lambda _synchronized_data, _: _synchronized_data.update(
+                state_update_fn=lambda _synchronized_data, _: _synchronized_data.update_current_data(
                     n_estimations=n_estimations,
                 ),
                 state_attr_checks=[lambda _: n_estimations + 1],
@@ -544,7 +544,7 @@ class TestCycleResetRound(BaseCollectSameUntilThresholdRoundTest):
         """Run tests"""
 
         test_round = CycleResetRound(
-            self.synchronized_data.update(
+            self.synchronized_data.update_current_data(
                 latest_observation_hist_hash="x0",
                 most_voted_models="",
                 full_training=True,
@@ -555,7 +555,7 @@ class TestCycleResetRound(BaseCollectSameUntilThresholdRoundTest):
             self._test_round(
                 test_round=test_round,
                 round_payloads=get_participant_to_reset_payload(self.participants),
-                state_update_fn=lambda _synchronized_data, _test_round: _synchronized_data.update(
+                state_update_fn=lambda _synchronized_data, _test_round: _synchronized_data.update_current_data(
                     full_training=False,
                 ),
                 state_attr_checks=[lambda state: state.full_training],
@@ -582,7 +582,7 @@ class TestFreshModelResetRound(BaseCollectSameUntilThresholdRoundTest):
         """Run tests"""
 
         test_round = FreshModelResetRound(
-            self.synchronized_data.update(
+            self.synchronized_data.update_current_data(
                 n_estimations=1, full_training=True, most_voted_models=""
             ),
             self.consensus_params,
@@ -591,7 +591,7 @@ class TestFreshModelResetRound(BaseCollectSameUntilThresholdRoundTest):
             self._test_round(
                 test_round=test_round,
                 round_payloads=get_participant_to_reset_payload(self.participants),
-                state_update_fn=lambda _synchronized_data, _test_round: _synchronized_data.update(
+                state_update_fn=lambda _synchronized_data, _test_round: _synchronized_data.update_current_data(
                     full_training=False,
                 ),
                 state_attr_checks=[lambda state: state.full_training],
@@ -610,7 +610,6 @@ def test_period() -> None:
     """Test SynchronizedData."""
 
     participants = get_participants()
-    period_count = 1
     period_setup_params: Dict = {}
     most_voted_randomness = 1
     estimates_hash = "test_hash"
@@ -619,7 +618,6 @@ def test_period() -> None:
 
     synchronized_data = SynchronizedData(
         db=AbciAppDB(
-            initial_period=period_count,
             initial_data=dict(
                 participants=participants,
                 period_setup_params=period_setup_params,
@@ -632,7 +630,7 @@ def test_period() -> None:
     )
 
     assert synchronized_data.participants == participants
-    assert synchronized_data.period_count == period_count
+    assert synchronized_data.period_count == 0
     assert synchronized_data.most_voted_randomness == most_voted_randomness
     assert synchronized_data.estimates_hash == estimates_hash
     assert synchronized_data.full_training == full_training
