@@ -162,13 +162,13 @@ def update_params() -> Dict:
     """Update validator params."""
 
     try:
-        data: Any = request.get_json()
+        data: Any = json.loads(request.get_data().decode(ENCODING))
         genesis_file = TMHOME / "config" / "genesis.json"
         genesis_data = {}
         genesis_data["genesis_time"] = data["genesis_config"]["genesis_time"]
         genesis_data["chain_id"] = data["genesis_config"]["chain_id"]
-        genesis_data["consensus_params"] = data["genesis_config"]["consensus_params"]
         genesis_data["initial_height"] = "0"
+        genesis_data["consensus_params"] = data["genesis_config"]["consensus_params"]
         genesis_data["validators"] = [
             {
                 "address": validator["address"],
