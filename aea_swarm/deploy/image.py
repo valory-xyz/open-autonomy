@@ -135,7 +135,7 @@ class ImageBuilder:
         if build_package_dir.exists():
             shutil.rmtree(build_package_dir)
         shutil.copytree(  # type: ignore # pylint: disable=E1123
-            src=Path(package_dir), dst=Path(build_dir) / "packages", dirs_exist_ok=True
+            src=Path(package_dir), dst=Path(build_dir) / "packages"
         )
 
     @staticmethod
