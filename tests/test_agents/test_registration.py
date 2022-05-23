@@ -41,12 +41,13 @@ def slow_down_tests() -> Generator:
 
 # strict check log messages of the happy path
 STRICT_CHECK_STRINGS = (
-    # "Local Tendermint configuration obtained",
+    "Local Tendermint configuration obtained",
     "ServiceRegistryContract.getServiceInfo response",
     "Registered addresses retrieved from service registry contract",
     "Completed collecting Tendermint responses",
-    # "Local TendermintNode updated",
-    # "Tendermint node restarted",
+    "Local TendermintNode updated",
+    "Restarting tendermint",
+    "Tendermint node restarted",
     "RegistrationStartupBehaviour executed",
 )
 
