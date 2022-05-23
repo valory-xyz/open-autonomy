@@ -219,7 +219,7 @@ jobs:
           file: ./coverage.xml
           flags: unittests
           name: codecov-umbrella
-          fail_ci_if_error: true
+          fail_ci_if_error: false
 
   e2e:
     continue-on-error: True
@@ -296,5 +296,4 @@ jobs:
 
       - name: Unit tests
         run: |
-          VERSION=0.1.0 skaffold build -p dependencies --push=false
           tox -e py${{ matrix.python-version }} -- -m 'e2e'
