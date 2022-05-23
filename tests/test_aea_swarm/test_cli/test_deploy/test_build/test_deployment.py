@@ -23,6 +23,7 @@ import os
 import shutil
 from pathlib import Path
 from typing import Tuple
+from unittest import mock
 
 import yaml
 
@@ -63,17 +64,18 @@ class TestBuildDeployment(BaseCliTest):
     ) -> None:
         """Run tests."""
 
-        result = self.run_cli(
-            (
-                self.service_id,
-                str(self.keys_file),
-                "--package-dir",
-                str(self.t / "packages"),
-                "--o",
-                str(self.t),
-                "--force",
+        with mock.patch("os.chown"):
+            result = self.run_cli(
+                (
+                    self.service_id,
+                    str(self.keys_file),
+                    "--package-dir",
+                    str(self.t / "packages"),
+                    "--o",
+                    str(self.t),
+                    "--force",
+                )
             )
-        )
 
         build_dir = self.t / "abci_build"
 
@@ -111,18 +113,19 @@ class TestBuildDeployment(BaseCliTest):
     ) -> None:
         """Run tests."""
 
-        result = self.run_cli(
-            (
-                self.service_id,
-                str(self.keys_file),
-                "--package-dir",
-                str(self.t / "packages"),
-                "--o",
-                str(self.t),
-                "--kubernetes",
-                "--force",
+        with mock.patch("os.chown"):
+            result = self.run_cli(
+                (
+                    self.service_id,
+                    str(self.keys_file),
+                    "--package-dir",
+                    str(self.t / "packages"),
+                    "--o",
+                    str(self.t),
+                    "--kubernetes",
+                    "--force",
+                )
             )
-        )
 
         build_dir = self.t / "abci_build"
 
