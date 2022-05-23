@@ -57,7 +57,7 @@ def generate_deployment(  # pylint: disable=too-many-arguments
         BaseDeploymentGenerator,
         DeploymentGenerator(deployment_spec=deployment_spec, build_dir=build_dir),
     )
-    
+
     deployment.generate(dev_mode).generate_config_tendermint().write_config()
 
     return DEPLOYMENT_REPORT.substitute(

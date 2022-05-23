@@ -19,9 +19,9 @@
 
 """Test base."""
 
-from contextlib import suppress
 import shutil
 import tempfile
+from contextlib import suppress
 from pathlib import Path
 from typing import Tuple
 
