@@ -26,7 +26,7 @@ from typing import Any, Tuple
 from unittest import mock
 
 from aea_swarm.cli import cli
-from aea_swarm.replay.agent import AgentRunner
+from aea_swarm.replay.tendermint import TendermintNetwork
 
 from tests.conftest import ROOT_DIR
 from tests.test_aea_swarm.test_cli.base import BaseCliTest
@@ -41,7 +41,7 @@ def ctrl_c(*args: Any) -> None:
 class TestAgentRunner(BaseCliTest):
     """Test agent runner tool."""
 
-    cli_options: Tuple[str, ...] = ("replay", "agent")
+    cli_options: Tuple[str, ...] = ("replay", "tendermint")
     packages_dir: Path = ROOT_DIR / "packages"
     output_dir: Path = ROOT_DIR
     keys_path: Path = ROOT_DIR / "deployments" / "keys" / "hardhat_keys.json"
@@ -70,10 +70,9 @@ class TestAgentRunner(BaseCliTest):
             ),
         )
 
-        with mock.patch.object(AgentRunner, "start", new=ctrl_c), mock.patch.object(
-            AgentRunner, "stop"
-        ) as stop_mock:
-            result = self.run_cli(("0",))
-
+        with mock.patch.object(TendermintNetwork, "init"), mock.patch.object(
+            TendermintNetwork, "start", new=ctrl_c
+        ), mock.patch.object(TendermintNetwork, "stop") as stop_mock:
+            result = self.run_cli(())
             assert result.exit_code == 0
             stop_mock.assert_any_call()
