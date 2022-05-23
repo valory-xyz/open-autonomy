@@ -32,6 +32,43 @@ from tests.conftest import ROOT_DIR
 from tests.test_aea_swarm.test_cli.base import BaseCliTest
 
 
+DOCKER_COMPOSE_DATA = {
+    "version": "2.4",
+    "services": {
+        "abci0": {
+            "mem_limit": "1024m",
+            "mem_reservation": "256M",
+            "cpus": 1,
+            "container_name": "abci0",
+            "image": "valory/consensus-algorithms-open-aea:oracle_deployable-0.1.0",
+            "environment": [
+                "LOG_FILE=DUMMY",
+                "AEA_KEY=DUMMY",
+                "VALORY_APPLICATION=DUMMY",
+                "ABCI_HOST=DUMMY",
+                "MAX_PARTICIPANTS=DUMMY",
+                "TENDERMINT_URL=DUMMY",
+                "TENDERMINT_COM_URL=DUMMY",
+                "ID=DUMMY",
+                "SKILL_ORACLE_ABCI_MODELS_PRICE_API_ARGS_URL=DUMMY",
+                "SKILL_ORACLE_ABCI_MODELS_PRICE_API_ARGS_API_ID=DUMMY",
+                "SKILL_ORACLE_ABCI_MODELS_PRICE_API_ARGS_PARAMETERS=DUMMY",
+                "SKILL_ORACLE_ABCI_MODELS_PRICE_API_ARGS_RESPONSE_KEY=DUMMY",
+                "SKILL_ORACLE_ABCI_MODELS_PRICE_API_ARGS_HEADERS=DUMMY",
+                "SKILL_ORACLE_ABCI_MODELS_RANDOMNESS_API_ARGS_URL=DUMMY",
+                "SKILL_ORACLE_ABCI_MODELS_RANDOMNESS_API_ARGS_API_ID=DUMMY",
+                "SKILL_ORACLE_ABCI_MODELS_PARAMS_ARGS_OBSERVATION_INTERVAL=DUMMY",
+                "SKILL_ORACLE_ABCI_MODELS_PARAMS_ARGS_BROADCAST_TO_SERVER=DUMMY",
+                "SKILL_ORACLE_ABCI_MODELS_SERVER_API_ARGS_URL=DUMMY",
+                "SKILL_ORACLE_ABCI_MODELS_BENCHMARK_TOOL_ARGS_LOG_DIR=DUMMY",
+                "LEDGER_ADDRESS=DUMMY",
+                "LEDGER_CHAIN_ID=DUMMY",
+            ],
+        }
+    },
+}
+
+
 def ctrl_c(*args: Any) -> None:
     """Send control C."""
 
@@ -56,7 +93,6 @@ class TestAgentRunner(BaseCliTest):
     def test_run(self) -> None:
         """Test run."""
 
-        output_dir = ROOT_DIR
         self.cli_runner.invoke(
             cli,
             (
@@ -68,16 +104,15 @@ class TestAgentRunner(BaseCliTest):
                 "--package-dir",
                 str(self.packages_dir),
                 "--force",
-                "--o",
-                str(output_dir),
             ),
         )
 
-        build_dir = output_dir / "abci_build"
+        build_dir = ROOT_DIR / "abci_build"
         with mock.patch.object(AgentRunner, "start", new=ctrl_c), mock.patch.object(
             AgentRunner, "stop"
-        ) as stop_mock:
+        ) as stop_mock, mock.patch(
+            "aea_swarm.cli.replay.load_docker_config", new=lambda x: DOCKER_COMPOSE_DATA
+        ):
             result = self.run_cli(("0", "--build", str(build_dir)))
-
             assert result.exit_code == 0, result.output
             stop_mock.assert_any_call()
