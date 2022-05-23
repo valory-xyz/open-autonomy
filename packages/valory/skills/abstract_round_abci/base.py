@@ -478,8 +478,8 @@ class AbciAppDB:
 
     def __init__(
         self,
-        initial_period: int,
         initial_data: Dict[str, Any],
+        initial_period: int = 0,
         cross_period_persisted_keys: Optional[List[str]] = None,
     ) -> None:
         """Initialize a period state."""
