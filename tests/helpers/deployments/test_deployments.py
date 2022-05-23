@@ -18,11 +18,11 @@
 # ------------------------------------------------------------------------------
 
 """Tests package for the 'deployments' functionality."""
-from contextlib import suppress
 import os
 import shutil
 import tempfile
 from abc import ABC
+from contextlib import suppress
 from glob import glob
 from pathlib import Path
 from typing import Any, List, Tuple, cast
