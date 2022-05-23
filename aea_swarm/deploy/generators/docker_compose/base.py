@@ -18,7 +18,6 @@
 # ------------------------------------------------------------------------------
 
 """Docker-compose Deployment Generator."""
-import logging
 import subprocess  # nosec
 from pathlib import Path
 from typing import Dict, IO, cast
