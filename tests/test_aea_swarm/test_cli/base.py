@@ -19,6 +19,7 @@
 
 """Test base."""
 
+from contextlib import suppress
 import shutil
 import tempfile
 from pathlib import Path
@@ -58,4 +59,5 @@ class BaseCliTest:
         cls,
     ) -> None:
         """Teardown method."""
-        shutil.rmtree(str(cls.t))
+        with suppress(OSError, FileExistsError, PermissionError):
+            shutil.rmtree(str(cls.t))
