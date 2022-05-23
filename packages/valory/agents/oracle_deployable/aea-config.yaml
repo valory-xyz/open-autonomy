@@ -120,5 +120,20 @@ type: connection
 config:
   ledger_apis:
     ethereum:
-      address: ${LEDGER_ADDRESS:str:http://hardhat:8545}
+      address: ${LEDGER_ADDRESS:str:https://staging.chain.autonolas.tech}
       chain_id: ${LEDGER_CHAIN_ID:int:31337}
+---
+public_id: valory/p2p_libp2p_client:0.1.0
+type: connection
+config:
+  nodes:
+  - uri: staging.acn.autonolas.tech:9006
+    public_key: 02fc5fe35c21a1f8ba2de52fd38ef95379be19d5390f1275b825c343167590d3b7
+cert_requests:
+- identifier: acn
+  ledger_id: ethereum
+  message_format: '{public_key}'
+  not_after: '2022-01-01'
+  not_before: '2021-01-01'
+  public_key: 02fc5fe35c21a1f8ba2de52fd38ef95379be19d5390f1275b825c343167590d3b7
+  save_path: .certs/acn_cosmos_9006.txt

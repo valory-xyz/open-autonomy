@@ -20,7 +20,7 @@
 """This module contains the behaviours for the 'abci' skill."""
 import collections
 import json
-from typing import Dict, Generator, Iterable, List, Optional, Set, Type, Union, cast
+from typing import Any, Dict, Generator, Iterable, List, Set, Type, cast
 
 from aea.mail.base import EnvelopeContext
 
@@ -43,34 +43,18 @@ from packages.valory.skills.registration_abci.rounds import (
 )
 
 
-TendermintParams = Dict[
-    str,
-    Union[
-        str,  # proxy_app, p2p_laddr, rpc_laddr
-        List[str],  # p2p_seeds
-        bool,  # consensus_create_empty_blocks
-        Optional[str],  # home
-    ],
-]
-
-consensus_params = {
-    "block": {
-        "max_bytes": "22020096",
-        "max_gas": "-1",
-        "time_iota_ms": "1000"
+consensus_params = (
+    {
+        "block": {"max_bytes": "22020096", "max_gas": "-1", "time_iota_ms": "1000"},
+        "evidence": {
+            "max_age_num_blocks": "100000",
+            "max_age_duration": "172800000000000",
+            "max_bytes": "1048576",
+        },
+        "validator": {"pub_key_types": ["ed25519"]},
+        "version": {},
     },
-    "evidence": {
-        "max_age_num_blocks": "100000",
-        "max_age_duration": "172800000000000",
-        "max_bytes": "1048576"
-    },
-    "validator": {
-        "pub_key_types": [
-            "ed25519"
-        ]
-    },
-    "version": {}
-},
+)
 
 
 def consume(iterator: Iterable) -> None:
@@ -115,10 +99,10 @@ class RegistrationStartupBehaviour(RegistrationBaseBehaviour):
     ENCODING: str = "utf-8"
     state_id = "registration_startup"
     matching_round = RegistrationStartupRound
-    local_tendermint_params: Optional[TendermintParams] = None
+    local_tendermint_params: Dict[str, Any] = {}
 
     @property
-    def registered_addresses(self) -> Dict[str, str]:
+    def registered_addresses(self) -> Dict[str, Dict[str, Any]]:
         """Agent addresses registered on-chain for the service"""
         return self.period_state.db.initial_data.get("registered_addresses", {})
 
@@ -233,7 +217,7 @@ class RegistrationStartupBehaviour(RegistrationBaseBehaviour):
         result = yield from self.get_http_response(method="GET", url=url)
         try:
             response = json.loads(result.body.decode())
-            self.local_tendermint_params = response['params']
+            self.local_tendermint_params = response["params"]
             self.context.logger.info(
                 f"Local Tendermint configuration obtained: {response}"
             )
@@ -280,7 +264,7 @@ class RegistrationStartupBehaviour(RegistrationBaseBehaviour):
 
         data = {}
         data["validators"] = validators
-        data["genesis_config"] = dict(
+        data["genesis_config"] = dict(  # type: ignore
             genesis_time="2022-05-20T16:00:21.735122717Z",
             chain_id="chain-c4daS1",
             consensus_params=consensus_params,

@@ -19,11 +19,10 @@
 
 """This module contains the handler for the 'abstract_round_abci' skill."""
 import ipaddress
-import logging
+import json
 from abc import ABC
 from typing import Callable, Dict, FrozenSet, Optional, cast
 from urllib.parse import urlparse
-import json
 
 from aea.configurations.data_types import PublicId
 from aea.protocols.base import Message
@@ -499,7 +498,7 @@ class TendermintHandler(Handler):
         """Handler Tendermint request message"""
 
         if not self.registered_addresses:
-            error_message = f"No registered addresses retrieved yet"
+            error_message = "No registered addresses retrieved yet"
             self.context.logger.info(f"Invalid request, {error_message}: {message}")
             self._reply_with_tendermint_error(message, dialogue, error_message)
             return
