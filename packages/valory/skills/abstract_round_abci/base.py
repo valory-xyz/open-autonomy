@@ -483,8 +483,6 @@ class AbciAppDB:
         cross_period_persisted_keys: Optional[List[str]] = None,
     ) -> None:
         """Initialize a period state."""
-        if "period_count" not in initial_data:
-            initial_data["period_count"] = initial_period
         self._initial_data = initial_data
         self._cross_period_persisted_keys = (
             [] if cross_period_persisted_keys is None else cross_period_persisted_keys
@@ -506,7 +504,7 @@ class AbciAppDB:
     @property
     def current_period_count(self) -> int:
         """Get the current period count."""
-        return self.get_strict("period_count")
+        return list(self._data.keys())[-1]
 
     @property
     def round_count(self) -> int:
@@ -520,11 +518,10 @@ class AbciAppDB:
 
     def get(self, key: str, default: Any = "NOT_PROVIDED") -> Optional[Any]:
         """Get a value from the data dictionary."""
-        last_data_key = list(self._data.keys())[-1]
         if default != "NOT_PROVIDED":
-            return self._data.get(last_data_key, {}).get(key, default)
+            return self._data.get(self.current_period_count, {}).get(key, default)
         try:
-            return self._data.get(last_data_key, {}).get(key)
+            return self._data.get(self.current_period_count, {}).get(key)
         except KeyError as exception:  # pragma: no cover
             raise ValueError(
                 f"'{key}' field is not set for period state."
@@ -542,8 +539,7 @@ class AbciAppDB:
 
     def update_current_period(self, **kwargs: Any) -> None:
         """Update the current period's state."""
-        last_data_key = list(self._data.keys())[-1]
-        self._data[last_data_key].update(kwargs)
+        self._data[self.current_period_count].update(kwargs)
 
     def add_new_period(self, new_period: int, **kwargs: Any) -> None:
         """Update the current period's state."""
@@ -557,8 +553,7 @@ class AbciAppDB:
 
     def get_all(self) -> Dict[str, Any]:
         """Get all key-value pairs from the data dictionary for the current period."""
-        last_data_key = list(self._data.keys())[-1]
-        return self._data[last_data_key]
+        return self._data[self.current_period_count]
 
     def increment_round_count(self) -> None:
         """Increment the round count."""
@@ -599,7 +594,7 @@ class BaseSynchronizedData:
     @property
     def period_count(self) -> int:
         """Get the period count."""
-        return self.db.get_strict("period_count")
+        return self.db.current_period_count
 
     @property
     def round_count(self) -> int:
