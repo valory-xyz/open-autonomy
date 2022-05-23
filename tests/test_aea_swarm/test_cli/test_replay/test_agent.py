@@ -56,6 +56,7 @@ class TestAgentRunner(BaseCliTest):
     def test_run(self) -> None:
         """Test run."""
 
+        output_dir = ROOT_DIR
         self.cli_runner.invoke(
             cli,
             (
@@ -67,13 +68,16 @@ class TestAgentRunner(BaseCliTest):
                 "--package-dir",
                 str(self.packages_dir),
                 "--force",
+                "--o",
+                str(output_dir),
             ),
         )
 
+        build_dir = output_dir / "abci_build"
         with mock.patch.object(AgentRunner, "start", new=ctrl_c), mock.patch.object(
             AgentRunner, "stop"
         ) as stop_mock:
-            result = self.run_cli(("0",))
+            result = self.run_cli(("0", "--build", str(build_dir)))
 
             assert result.exit_code == 0, result.output
             stop_mock.assert_any_call()

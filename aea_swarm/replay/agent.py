@@ -60,7 +60,6 @@ class AgentRunner:
         self.agent_env["TENDERMINT_COM_URL"] = f"http://localhost:8080/{self.agent_id}"
         logging.info("2")
 
-
     def start(
         self,
     ) -> None:
