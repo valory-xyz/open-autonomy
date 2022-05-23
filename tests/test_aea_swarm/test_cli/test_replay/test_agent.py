@@ -75,5 +75,5 @@ class TestAgentRunner(BaseCliTest):
         ) as stop_mock:
             result = self.run_cli(("0",))
 
-            assert result.exit_code == 0
+            assert result.exit_code == 0, result.output
             stop_mock.assert_any_call()
