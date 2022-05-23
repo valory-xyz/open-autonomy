@@ -434,7 +434,6 @@ class TestTransactionHashBehaviour(PriceEstimationFSMBehaviourBaseCase):
         )
 
         # add new cycle, and dummy period data
-        synchronized_data.db._current_period_count = this_period_count  # type: ignore
         next_period_data = copy.deepcopy(period_data)
         next_period_data["final_tx_hash"] = tx_hashes[0]
         synchronized_data.db.add_new_period(

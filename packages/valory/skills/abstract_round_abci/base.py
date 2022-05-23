@@ -483,15 +483,14 @@ class AbciAppDB:
         cross_period_persisted_keys: Optional[List[str]] = None,
     ) -> None:
         """Initialize a period state."""
-        self._current_period_count = initial_period
         if "period_count" not in initial_data:
-            initial_data["period_count"] = 0
+            initial_data["period_count"] = initial_period
         self._initial_data = initial_data
         self._cross_period_persisted_keys = (
             [] if cross_period_persisted_keys is None else cross_period_persisted_keys
         )
         self._data: Dict[int, Dict[str, Any]] = {
-            self._current_period_count: deepcopy(self._initial_data)
+            initial_period: deepcopy(self._initial_data)
         }
         self._round_count = ROUND_COUNT_DEFAULT  # ensures first round is indexed at 0!
 
@@ -507,7 +506,7 @@ class AbciAppDB:
     @property
     def current_period_count(self) -> int:
         """Get the current period count."""
-        return self._current_period_count
+        return self.get_strict("period_count")
 
     @property
     def round_count(self) -> int:
@@ -521,10 +520,11 @@ class AbciAppDB:
 
     def get(self, key: str, default: Any = "NOT_PROVIDED") -> Optional[Any]:
         """Get a value from the data dictionary."""
+        last_data_key = list(self._data.keys())[-1]
         if default != "NOT_PROVIDED":
-            return self._data.get(self._current_period_count, {}).get(key, default)
+            return self._data.get(last_data_key, {}).get(key, default)
         try:
-            return self._data.get(self._current_period_count, {}).get(key)
+            return self._data.get(last_data_key, {}).get(key)
         except KeyError as exception:  # pragma: no cover
             raise ValueError(
                 f"'{key}' field is not set for period state."
@@ -542,7 +542,8 @@ class AbciAppDB:
 
     def update_current_period(self, **kwargs: Any) -> None:
         """Update the current period's state."""
-        self._data[self._current_period_count].update(kwargs)
+        last_data_key = list(self._data.keys())[-1]
+        self._data[last_data_key].update(kwargs)
 
     def add_new_period(self, new_period: int, **kwargs: Any) -> None:
         """Update the current period's state."""
@@ -550,16 +551,14 @@ class AbciAppDB:
         #     raise ValueError(
         #         "Incorrect period count incrementation, period already exists"
         #     )  # pragma: no cover
-        self._current_period_count = new_period
-        self._data[self._current_period_count] = kwargs
-        if "period_count" not in self._data[self._current_period_count]:
-            self._data[self._current_period_count][
-                "period_count"
-            ] = self._current_period_count
+        self._data[new_period] = kwargs
+        if "period_count" not in self._data[new_period]:
+            self._data[new_period]["period_count"] = new_period
 
     def get_all(self) -> Dict[str, Any]:
         """Get all key-value pairs from the data dictionary for the current period."""
-        return self._data[self._current_period_count]
+        last_data_key = list(self._data.keys())[-1]
+        return self._data[last_data_key]
 
     def increment_round_count(self) -> None:
         """Increment the round count."""
