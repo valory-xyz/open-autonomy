@@ -20,6 +20,7 @@
 
 """Tools to build and run agents from existing deployments."""
 
+import logging
 import os
 import signal
 import subprocess  # nosec
@@ -57,6 +58,8 @@ class AgentRunner:
         self.agent_env["ABCI_PORT"] = f"2665{self.agent_id}"
         self.agent_env["TENDERMINT_URL"] = f"http://localhost:8080/{self.agent_id}"
         self.agent_env["TENDERMINT_COM_URL"] = f"http://localhost:8080/{self.agent_id}"
+        logging.info("2")
+
 
     def start(
         self,
@@ -99,9 +102,11 @@ class AgentRunner:
         self,
     ) -> None:
         """Stop the process."""
+        logging.info("4")
         self.agent_dir.cleanup()
         os.chdir(str(self.cwd))
         if self.process is None:
             return
 
+        logging.info("4")
         os.kill(os.getpgid(self.process.pid), signal.SIGTERM)

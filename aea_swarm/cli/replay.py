@@ -19,6 +19,7 @@
 
 """Develop CLI module."""
 
+import logging
 import time
 from pathlib import Path
 
@@ -34,6 +35,10 @@ from aea_swarm.replay.utils import fix_address_books, fix_config_files
 
 REGISTRY_PATH = Path("packages/").absolute()
 BUILD_DIR = Path(DEFAULT_BUILD_FOLDER).absolute()
+
+logging.basicConfig(
+    format="[%(asctime)s][%(levelname)s] %(message)s", level=logging.INFO
+)
 
 
 @click.group(name="replay")
@@ -61,17 +66,21 @@ def run_agent(agent: int, build_path: Path, registry_path: Path) -> None:
     """Agent runner."""
     build_path = Path(build_path).absolute()
     registry_path = Path(registry_path).absolute()
+    logging.info("0")
 
     docker_compose_file = build_path / "docker-compose.yaml"
     with open(str(docker_compose_file), "r", encoding="utf-8") as fp:
         docker_compose_config = yaml.safe_load(fp)
     agent_data = docker_compose_config["services"][f"abci{agent}"]
+    logging.info("1")
     runner = AgentRunner(agent, agent_data, registry_path)
+    logging.info("3")
     try:
         runner.start()
         while True:
             time.sleep(1)
     except KeyboardInterrupt:
+        logging.info("EXIT")
         runner.stop()
 
 
