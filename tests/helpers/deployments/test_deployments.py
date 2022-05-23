@@ -18,6 +18,7 @@
 # ------------------------------------------------------------------------------
 
 """Tests package for the 'deployments' functionality."""
+from contextlib import suppress
 import os
 import shutil
 import tempfile
@@ -155,7 +156,8 @@ class BaseDeploymentTests(ABC, CleanDirectoryClass):
     @classmethod
     def teardown_class(cls) -> None:
         """Setup up the test class."""
-        cls.temp_dir.cleanup()
+        with suppress(FileNotFoundError, OSError, PermissionError):
+            cls.temp_dir.cleanup()
 
     def write_deployment(
         self,
