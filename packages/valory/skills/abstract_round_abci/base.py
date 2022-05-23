@@ -548,8 +548,6 @@ class AbciAppDB:
         #         "Incorrect period count incrementation, period already exists"
         #     )  # pragma: no cover
         self._data[new_period] = kwargs
-        if "period_count" not in self._data[new_period]:
-            self._data[new_period]["period_count"] = new_period
 
     def get_all(self) -> Dict[str, Any]:
         """Get all key-value pairs from the data dictionary for the current period."""
