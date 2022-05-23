@@ -19,6 +19,7 @@
 
 """Deploy CLI module."""
 
+import logging
 import os
 import shutil
 from pathlib import Path
@@ -35,6 +36,10 @@ from aea_swarm.deploy.build import generate_deployment
 from aea_swarm.deploy.generators.docker_compose.base import DockerComposeGenerator
 from aea_swarm.deploy.generators.kubernetes.base import KubernetesGenerator
 from aea_swarm.deploy.image import ImageBuilder
+
+logging.basicConfig(
+    format="[%(asctime)s][%(levelname)s] %(message)s", level=logging.INFO
+)
 
 
 @click.group(name="deploy")
@@ -112,24 +117,30 @@ def build_deployment(  # pylint: disable=too-many-arguments
 ) -> None:
     """Build deployment setup for n agents."""
 
+    logging.info("0")
     package_dir = Path(package_dir)
     build_dir = Path(output_dir, "abci_build")
+    logging.info("1")
 
     if not package_dir.is_dir():
         raise click.ClickException(
             f"Packages directory does not exists @ {package_dir}"
         )
 
+    logging.info("2")
     if build_dir.is_dir():
         if not force_overwrite:
             raise click.ClickException(f"Build already exists @ {output_dir}")
         shutil.rmtree(build_dir)
 
+    logging.info("3")
     build_dir.mkdir()
     _build_dirs(build_dir)
 
+    logging.info("4")
     deployment_file_path = _find_path_to_service_file(service_id, package_dir)
     try:
+        logging.info("4")
         report = generate_deployment(
             deployment_file_path=deployment_file_path,
             type_of_deployment=deployment_type,
@@ -139,6 +150,7 @@ def build_deployment(  # pylint: disable=too-many-arguments
             build_dir=build_dir,
             dev_mode=dev_mode,
         )
+        logging.info(report)
         click.echo(report)
     except ValueError as e:
         raise click.ClickException(str(e)) from e
