@@ -99,12 +99,9 @@ class DockerComposeGenerator(BaseDeploymentGenerator):
     ) -> "DockerComposeGenerator":
         """Generate the command to configure tendermint testnet."""
 
-        logging.info("9")
-
         if self.tendermint_job_config is not None:
             return self
 
-        logging.info("10")
         run_cmd = TENDERMINT_CONFIG_TEMPLATE.format(
             hosts=" \\\n".join(
                 [
@@ -117,7 +114,6 @@ class DockerComposeGenerator(BaseDeploymentGenerator):
             tendermint_image_name=TENDERMINT_IMAGE_NAME,
             tendermint_image_version=DEFAULT_IMAGE_VERSION,
         )
-        logging.info("11")
         self.tendermint_job_config = " ".join(
             [
                 f
@@ -126,7 +122,6 @@ class DockerComposeGenerator(BaseDeploymentGenerator):
             ]
         )
 
-        logging.info("12")
         process = subprocess.Popen(  # pylint: disable=consider-using-with  # nosec
             self.tendermint_job_config.split(),
             stdout=subprocess.PIPE,
@@ -135,10 +130,8 @@ class DockerComposeGenerator(BaseDeploymentGenerator):
         for line in iter(cast(IO[str], process.stdout).readline, ""):
             if line == "":
                 break
-            logging.info(f"[Tendermint] {line.strip()}")
+            print(f"[Tendermint] {line.strip()}")
 
-        logging.info(f"Process Exited with {process.stdout}")
-        logging.info("12")
         return self
 
     def generate(
@@ -147,18 +140,15 @@ class DockerComposeGenerator(BaseDeploymentGenerator):
     ) -> "DockerComposeGenerator":
         """Generate the new configuration."""
 
-        logging.info("5")
         agent_vars = self.deployment_spec.generate_agents()
         agent_vars = self.get_deployment_network_configuration(agent_vars)
         image_name = self.deployment_spec.agent_public_id.name
-        logging.info("6")
 
         if dev_mode:
             version = "dev"
         else:
             version = DEFAULT_IMAGE_VERSION
 
-        logging.info("7")
         agents = "".join(
             [
                 build_agent_config(
@@ -172,14 +162,12 @@ class DockerComposeGenerator(BaseDeploymentGenerator):
                 for i in range(self.deployment_spec.number_of_agents)
             ]
         )
-        logging.info("8")
         tendermint_nodes = "".join(
             [
                 build_tendermint_node_config(i, dev_mode)
                 for i in range(self.deployment_spec.number_of_agents)
             ]
         )
-        logging.info("9")
         self.output = DOCKER_COMPOSE_TEMPLATE.format(
             abci_nodes=agents,
             tendermint_nodes=tendermint_nodes,
