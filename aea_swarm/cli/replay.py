@@ -69,8 +69,12 @@ def run_agent(agent: int, build_path: Path, registry_path: Path) -> None:
     logging.info("0")
 
     docker_compose_file = build_path / "docker-compose.yaml"
+    logging.info("01")
     with open(str(docker_compose_file), "r", encoding="utf-8") as fp:
+        logging.info("02")
         docker_compose_config = yaml.safe_load(fp)
+        logging.info("03")
+        
     agent_data = docker_compose_config["services"][f"abci{agent}"]
     logging.info("1")
     runner = AgentRunner(agent, agent_data, registry_path)
