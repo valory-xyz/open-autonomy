@@ -211,11 +211,6 @@ class SynchronizedData(
 
         return late_arriving_tx_hashes_parsed
 
-    @property
-    def period_count(self) -> int:
-        """Get the period count."""
-        return cast(int, self.db.get("period_count", 0))
-
 
 class FailedRound(DegenerateRound, ABC):
     """A round that represents that the period failed"""
@@ -514,6 +509,7 @@ class ResetRound(CollectSameUntilThresholdRound):
         """Process the end of the block."""
         if self.threshold_reached:
             state_data = self.synchronized_data.db.get_all()
+            state_data.pop("period_count", None)
             state = self.synchronized_data.update(
                 period_count=self.most_voted_payload,
                 **state_data,

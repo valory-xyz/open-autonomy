@@ -66,11 +66,6 @@ class SynchronizedData(
             self.db.get_strict("participant_to_selection"),
         )
 
-    @property
-    def period_count(self) -> int:
-        """Get the period count."""
-        return cast(int, self.db.get("period_count", 0))
-
 
 class HelloWorldABCIAbstractRound(AbstractRound[Event, TransactionType], ABC):
     """Abstract round for the Hello World ABCI skill."""

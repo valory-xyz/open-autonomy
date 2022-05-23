@@ -26,15 +26,15 @@ from unittest.mock import MagicMock
 import pytest
 
 from packages.valory.skills.abstract_round_abci.base import AbciAppDB
+from packages.valory.skills.abstract_round_abci.base import (
+    BaseSynchronizedData as ResetSynchronizedSata,
+)
 from packages.valory.skills.abstract_round_abci.behaviour_utils import (
     make_degenerate_state,
 )
 from packages.valory.skills.reset_pause_abci.behaviours import ResetAndPauseBehaviour
 from packages.valory.skills.reset_pause_abci.rounds import Event as ResetEvent
 from packages.valory.skills.reset_pause_abci.rounds import FinishedResetAndPauseRound
-from packages.valory.skills.reset_pause_abci.rounds import (
-    SynchronizedData as ResetSynchronizedSata,
-)
 
 from tests.conftest import ROOT_DIR
 from tests.test_skills.base import FSMBehaviourBaseCase

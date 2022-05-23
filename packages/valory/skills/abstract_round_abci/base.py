@@ -484,6 +484,8 @@ class AbciAppDB:
     ) -> None:
         """Initialize a period state."""
         self._current_period_count = initial_period
+        if "period_count" not in initial_data:
+            initial_data["period_count"] = 0
         self._initial_data = initial_data
         self._cross_period_persisted_keys = (
             [] if cross_period_persisted_keys is None else cross_period_persisted_keys
@@ -550,6 +552,10 @@ class AbciAppDB:
         #     )  # pragma: no cover
         self._current_period_count = new_period
         self._data[self._current_period_count] = kwargs
+        if "period_count" not in self._data[self._current_period_count]:
+            self._data[self._current_period_count][
+                "period_count"
+            ] = self._current_period_count
 
     def get_all(self) -> Dict[str, Any]:
         """Get all key-value pairs from the data dictionary for the current period."""
@@ -590,6 +596,11 @@ class BaseSynchronizedData:
     def db(self) -> AbciAppDB:
         """Get DB."""
         return self._db
+
+    @property
+    def period_count(self) -> int:
+        """Get the period count."""
+        return self.db.get_strict("period_count")
 
     @property
     def round_count(self) -> int:
@@ -1677,8 +1688,8 @@ class AbciApp(
     def _log_start(self) -> None:
         """Log the entering in the round."""
         self.logger.info(
-            f"Entered in the '{self.current_round.round_id}' round for round "
-            f"{self.state.round_count}"
+            f"Entered in the '{self.current_round.round_id}' round for period "
+            f"{self.state.period_count}"
         )
 
     def _log_end(self, event: EventType) -> None:
@@ -1749,8 +1760,8 @@ class AbciApp(
                 else None
             ),
         )
-        self.state.db.increment_round_count()  # ROUND_COUNT_DEFAULT is -1
         self._log_start()
+        self.state.db.increment_round_count()  # ROUND_COUNT_DEFAULT is -1
 
     @property
     def current_round(self) -> AbstractRound:

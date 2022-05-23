@@ -798,6 +798,17 @@ def db() -> AbciAppDB
 
 Get DB.
 
+<a id="packages.valory.skills.abstract_round_abci.base.BaseSynchronizedData.period_count"></a>
+
+#### period`_`count
+
+```python
+@property
+def period_count() -> int
+```
+
+Get the period count.
+
 <a id="packages.valory.skills.abstract_round_abci.base.BaseSynchronizedData.round_count"></a>
 
 #### round`_`count

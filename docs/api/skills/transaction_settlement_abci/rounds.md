@@ -202,17 +202,6 @@ def late_arriving_tx_hashes() -> List[str]
 
 Get the late_arriving_tx_hashes.
 
-<a id="packages.valory.skills.transaction_settlement_abci.rounds.SynchronizedData.period_count"></a>
-
-#### period`_`count
-
-```python
-@property
-def period_count() -> int
-```
-
-Get the period count.
-
 <a id="packages.valory.skills.transaction_settlement_abci.rounds.FailedRound"></a>
 
 ## FailedRound Objects

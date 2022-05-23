@@ -1506,7 +1506,7 @@ class BaseState(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
 
         if not self._is_healthy:
             self.context.logger.info(
-                f"Resetting tendermint node at end of round={self.synchronized_data.round_count}."
+                f"Resetting tendermint node at end of period={self.synchronized_data.period_count}."
             )
 
             app_hash = yield from self._get_app_hash()

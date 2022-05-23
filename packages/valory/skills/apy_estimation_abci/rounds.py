@@ -76,11 +76,6 @@ class SynchronizedData(BaseSynchronizedData):
     """
 
     @property
-    def period_count(self) -> int:
-        """Get the period count."""
-        return cast(int, self.db.get("period_count", 0))
-
-    @property
     def history_hash(self) -> str:
         """Get the most voted history hash."""
         return cast(str, self.db.get_strict("most_voted_history"))

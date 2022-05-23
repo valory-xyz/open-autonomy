@@ -36,17 +36,6 @@ def set_aggregator_method(aggregator_method: str) -> None
 
 Set aggregator method.
 
-<a id="packages.valory.skills.price_estimation_abci.rounds.SynchronizedData.period_count"></a>
-
-#### period`_`count
-
-```python
-@property
-def period_count() -> int
-```
-
-Get the period count.
-
 <a id="packages.valory.skills.price_estimation_abci.rounds.SynchronizedData.safe_contract_address"></a>
 
 #### safe`_`contract`_`address

@@ -19,7 +19,7 @@
 
 """This module contains the data classes for the reset_pause_abci application."""
 from enum import Enum
-from typing import Dict, Optional, Set, Tuple, Type, cast
+from typing import Dict, Optional, Set, Tuple, Type
 
 from packages.valory.skills.abstract_round_abci.base import (
     ABCIAppInternalError,
@@ -43,18 +43,6 @@ class Event(Enum):
     ROUND_TIMEOUT = "round_timeout"
     NO_MAJORITY = "no_majority"
     RESET_AND_PAUSE_TIMEOUT = "reset_and_pause_timeout"
-
-
-class SynchronizedData(BaseSynchronizedData):
-    """Class to represent the synchronized data.
-
-    This state is replicated by the tendermint application.
-    """
-
-    @property
-    def period_count(self) -> int:
-        """Get the period count."""
-        return cast(int, self.db.get("period_count", 0))
 
 
 class ResetAndPauseRound(CollectSameUntilThresholdRound):

@@ -70,11 +70,6 @@ class SynchronizedData(BaseSynchronizedData):
         )
 
     @property
-    def period_count(self) -> int:
-        """Get the period count."""
-        return cast(int, self.db.get("period_count", 0))
-
-    @property
     def safe_contract_address(self) -> str:
         """Get the safe contract address."""
         return cast(str, self.db.get_strict("safe_contract_address"))
