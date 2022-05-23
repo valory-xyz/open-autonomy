@@ -78,7 +78,11 @@ class ImageBuilder:
         agent_id = PublicId.from_str(aea_agent)
         env = os.environ.copy()
         env["AEA_AGENT"] = aea_agent
-        env["VERSION"] = f"{agent_id.name}-{version}"
+
+        if profile == ImageProfiles.DEPENDENCIES:
+            env["VERSION"] = version
+        else:
+            env["VERSION"] = f"{agent_id.name}-{version}"
 
         if profile == ImageProfiles.CLUSTER:
             if env.get("KUBECONFIG") is None:
@@ -134,8 +138,9 @@ class ImageBuilder:
 
         if build_package_dir.exists():
             shutil.rmtree(build_package_dir)
+
         shutil.copytree(  # type: ignore # pylint: disable=E1123
-            src=Path(package_dir), dst=Path(build_dir) / "packages"
+            src=Path(package_dir), dst=build_package_dir
         )
 
     @staticmethod
