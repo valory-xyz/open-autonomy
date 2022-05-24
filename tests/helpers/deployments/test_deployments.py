@@ -389,7 +389,7 @@ class TestOverrideTypes(BaseDeploymentTests):
             _, app_instance = self.load_deployer_and_app(
                 spec_path, deployment_generator
             )
-            self.validator.check_overrides_are_valid(
+            app_instance.service.check_overrides_are_valid(
                 app_instance.service.json, app_instance.overrides
             )
 
@@ -404,7 +404,7 @@ class TestOverrideTypes(BaseDeploymentTests):
             _, app_instance = self.load_deployer_and_app(
                 spec_path, deployment_generator
             )
-            self.validator.check_overrides_are_valid(
+            app_instance.service.check_overrides_are_valid(
                 app_instance.service.json, app_instance.overrides
             )
 
@@ -419,7 +419,7 @@ class TestOverrideTypes(BaseDeploymentTests):
             deployment_instance, app_instance = self.load_deployer_and_app(
                 spec_path, deployment_generator
             )
-            self.validator.check_overrides_are_valid(
+            app_instance.service.check_overrides_are_valid(
                 app_instance.service.json, app_instance.overrides
             )
             app_instance.generate_agents()
@@ -436,7 +436,7 @@ class TestOverrideTypes(BaseDeploymentTests):
             deployment_instance, app_instance = self.load_deployer_and_app(
                 spec_path, deployment_generator
             )
-            self.validator.check_overrides_are_valid(
+            app_instance.service.check_overrides_are_valid(
                 app_instance.service.json, app_instance.overrides
             )
             app_instance.generate_agents()
