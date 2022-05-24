@@ -22,13 +22,14 @@
 from collections import OrderedDict
 from typing import Dict, FrozenSet, Optional, cast
 
+from aea.configurations.base import PackageConfiguration
 from aea.configurations.data_types import PublicId
 from aea.helpers.base import SimpleIdOrStr
 
 from aea_swarm.configurations.constants import DEFAULT_SERVICE_FILE, SERVICE
 
 
-class Service:  # pylint: disable=too-many-instance-attributes
+class Service(PackageConfiguration):  # pylint: disable=too-many-instance-attributes
     """Service package configuration."""
 
     default_configuration_filename = DEFAULT_SERVICE_FILE
@@ -36,16 +37,21 @@ class Service:  # pylint: disable=too-many-instance-attributes
     schema = "service_schema.json"
 
     FIELDS_ALLOWED_TO_UPDATE: FrozenSet[str] = frozenset()
+
     __slots__ = (
-        "name",
-        "author",
+        "_name",
+        "_author",
         "version",
-        "description",
-        "aea_version",
         "license",
+        "fingerprint",
+        "fingerprint_ignore_patterns",
+        "build_entrypoint",
         "agent",
         "network",
         "number_of_agents",
+        "_aea_version",
+        "_aea_version_specifiers",
+        "_directory",
     )
 
     def __init__(  # pylint: disable=too-many-arguments
@@ -59,15 +65,20 @@ class Service:  # pylint: disable=too-many-instance-attributes
         description: str = "",
         number_of_agents: int = 4,
         network: Optional[str] = None,
+        build_entrypoint: Optional[str] = None,
     ) -> None:
         """Initialise object."""
 
-        self.name = name
-        self.author = author
+        super().__init__(
+            name=name,
+            author=author,
+            version=version,
+            license_=license_,
+            aea_version=aea_version,
+            build_entrypoint=build_entrypoint,
+        )
+
         self.agent = PublicId.from_str(str(agent))
-        self.version = version
-        self.license = license_
-        self.aea_version = aea_version
         self.description = description
         self.number_of_agents = number_of_agents
         self.network = network
