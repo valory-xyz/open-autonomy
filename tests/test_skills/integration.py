@@ -501,7 +501,7 @@ class _TxHelperIntegration(_GnosisHelperIntegration):
             )
 
         self.tx_settlement_synchronized_data.update(
-            synchronized_data_class=None, **update_params
+            synchronized_data_class=None, **update_params  # type: ignore
         )
 
     def validate_tx(self) -> None:
