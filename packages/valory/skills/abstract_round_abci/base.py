@@ -1348,7 +1348,6 @@ class CollectDifferentUntilThresholdRound(CollectionRound):
         ):
             state = self.synchronized_data.update(
                 synchronized_data_class=self.synchronized_data_class,
-                period_count=None,
                 **{
                     self.selection_key: frozenset(list(self.collection.keys())),
                     self.collection_key: self.collection,
@@ -1397,7 +1396,6 @@ class CollectNonEmptyUntilThresholdRound(CollectDifferentUntilThresholdRound):
 
             state = self.synchronized_data.update(
                 synchronized_data_class=self.synchronized_data_class,
-                period_count=None,
                 **{
                     self.selection_key: frozenset(list(self.collection.keys())),
                     self.collection_key: non_empty_values,
