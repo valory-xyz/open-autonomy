@@ -3,6 +3,7 @@
         "abstract_abci",
         "counter",
         "counter_client",
+        "register_reset_abci",
         "hello_world_abci"
     ],
     "common_handlers": [
