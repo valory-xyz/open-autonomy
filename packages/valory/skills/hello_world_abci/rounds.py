@@ -95,7 +95,7 @@ class RegistrationRound(CollectDifferentUntilAllRound, HelloWorldABCIAbstractRou
         """Process the end of the block."""
 
         if self.collection_threshold_reached:
-            state = self.synchronized_data.update_current_data(
+            state = self.synchronized_data.update(
                 participants=self.collection,
                 all_participants=self.collection,
                 synchronized_data_class=SynchronizedData,
@@ -114,7 +114,7 @@ class SelectKeeperRound(CollectSameUntilThresholdRound, HelloWorldABCIAbstractRo
     def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Event]]:
         """Process the end of the block."""
         if self.threshold_reached:
-            state = self.synchronized_data.update_current_data(
+            state = self.synchronized_data.update(
                 participant_to_selection=MappingProxyType(self.collection),
                 most_voted_keeper_address=self.most_voted_payload,
             )
@@ -136,7 +136,7 @@ class PrintMessageRound(CollectDifferentUntilAllRound, HelloWorldABCIAbstractRou
     def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Event]]:
         """Process the end of the block."""
         if self.collection_threshold_reached:
-            state = self.synchronized_data.update_current_data(
+            state = self.synchronized_data.update(
                 participants=self.collection,
                 all_participants=self.collection,
                 synchronized_data_class=SynchronizedData,

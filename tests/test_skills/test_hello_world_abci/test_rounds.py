@@ -168,7 +168,7 @@ class TestSelectKeeperRound(BaseRoundTestClass):
         for payload in payloads:
             test_round.process_payload(payload)
 
-        actual_next_state = self.synchronized_data.update_current_data(
+        actual_next_state = self.synchronized_data.update(
             participant_to_selection=MappingProxyType(test_round.collection),
             most_voted_keeper_address=test_round.most_voted_payload,
         )

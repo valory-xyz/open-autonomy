@@ -157,7 +157,7 @@ class BaseDeployTestClass(BaseOnlyKeeperSendsRoundTest):
         keeper = sorted(list(self.participants))[0]
         self.synchronized_data = cast(
             SynchronizedData,
-            self.synchronized_data.update_current_data(
+            self.synchronized_data.update(
                 most_voted_keeper_address=keeper
             ),
         )
@@ -170,7 +170,7 @@ class BaseDeployTestClass(BaseOnlyKeeperSendsRoundTest):
             self._test_round(
                 test_round=test_round,  # type: ignore
                 keeper_payloads=self.payload_class(keeper, get_safe_contract_address()),
-                state_update_fn=lambda _synchronized_data, _: _synchronized_data.update_current_data(
+                state_update_fn=lambda _synchronized_data, _: _synchronized_data.update(
                     **{self.update_keyword: get_safe_contract_address()}
                 ),
                 state_attr_checks=[lambda state: getattr(state, self.update_keyword)],
@@ -200,7 +200,7 @@ class BaseValidateRoundTest(BaseVotingRoundTest):
     ) -> None:
         """Test ValidateRound."""
 
-        self.synchronized_data.update_current_data(tx_hashes_history="t" * 66)
+        self.synchronized_data.update(tx_hashes_history="t" * 66)
 
         test_round = self.test_class(
             state=self.synchronized_data, consensus_params=self.consensus_params
@@ -210,7 +210,7 @@ class BaseValidateRoundTest(BaseVotingRoundTest):
             self._test_voting_round_positive(
                 test_round=test_round,
                 round_payloads=get_participant_to_votes(self.participants),
-                state_update_fn=lambda _synchronized_data, _: _synchronized_data.update_current_data(
+                state_update_fn=lambda _synchronized_data, _: _synchronized_data.update(
                     participant_to_votes=MappingProxyType(
                         dict(get_participant_to_votes(self.participants))
                     )
@@ -233,7 +233,7 @@ class BaseValidateRoundTest(BaseVotingRoundTest):
             self._test_voting_round_negative(
                 test_round=test_round,
                 round_payloads=get_participant_to_votes(self.participants, vote=False),
-                state_update_fn=lambda _synchronized_data, _: _synchronized_data.update_current_data(
+                state_update_fn=lambda _synchronized_data, _: _synchronized_data.update(
                     participant_to_votes=MappingProxyType(
                         dict(get_participant_to_votes(self.participants, vote=False))
                     )
@@ -256,7 +256,7 @@ class BaseValidateRoundTest(BaseVotingRoundTest):
             self._test_voting_round_none(
                 test_round=test_round,
                 round_payloads=get_participant_to_votes(self.participants, vote=None),
-                state_update_fn=lambda _synchronized_data, _: _synchronized_data.update_current_data(
+                state_update_fn=lambda _synchronized_data, _: _synchronized_data.update(
                     participant_to_votes=MappingProxyType(
                         dict(get_participant_to_votes(self.participants, vote=None))
                     )
@@ -299,7 +299,7 @@ class BaseSelectKeeperRoundTest(BaseCollectSameUntilThresholdRoundTest):
     ) -> None:
         """Run tests."""
         test_round = self.test_class(
-            state=self.synchronized_data.update_current_data(
+            state=self.synchronized_data.update(
                 keepers=keepers,
                 final_verification_status=VerificationStatus.PENDING,
             ),
@@ -312,7 +312,7 @@ class BaseSelectKeeperRoundTest(BaseCollectSameUntilThresholdRoundTest):
                 round_payloads=self._participant_to_selection(
                     self.participants, most_voted_payload
                 ),
-                state_update_fn=lambda _synchronized_data, _test_round: _synchronized_data.update_current_data(
+                state_update_fn=lambda _synchronized_data, _test_round: _synchronized_data.update(
                     participant_to_selection=MappingProxyType(
                         dict(
                             self._participant_to_selection(

@@ -333,7 +333,7 @@ class TestSelectKeeperTransactionSubmissionRoundBAfterTimeout(
         exit_event: TransactionSettlementEvent,
     ) -> None:
         """Test `SelectKeeperTransactionSubmissionRoundBAfterTimeout`."""
-        self.synchronized_data.update_current_data(participant_to_selection=dict.fromkeys(self.participants), **attrs)  # type: ignore
+        self.synchronized_data.update(participant_to_selection=dict.fromkeys(self.participants), **attrs)  # type: ignore
         threshold_exceeded_mock.return_value = threshold_exceeded
         most_voted_payload = int(1).to_bytes(32, "big").hex() + "new_keeper" + "-" * 32
         keeper = ""
@@ -429,7 +429,7 @@ class TestFinalizationRound(BaseOnlyKeeperSendsRoundTest):
         keepers = deque(("agent_1" + "-" * 35, "agent_3" + "-" * 35))
         self.synchronized_data = cast(
             TransactionSettlementSynchronizedSata,
-            self.synchronized_data.update_current_data(
+            self.synchronized_data.update(
                 participants=frozenset([f"agent_{i}" + "-" * 35 for i in range(4)]),
                 missed_messages=missed_messages,
                 tx_hashes_history=tx_hashes_history,
@@ -467,7 +467,7 @@ class TestFinalizationRound(BaseOnlyKeeperSendsRoundTest):
                         "received_hash": bool(tx_digest),
                     },
                 ),
-                state_update_fn=lambda _synchronized_data, _: _synchronized_data.update_current_data(
+                state_update_fn=lambda _synchronized_data, _: _synchronized_data.update(
                     tx_hashes_history=tx_hashes_history,
                     blacklisted_keepers=blacklisted_keepers,
                     keepers=get_keepers(keepers, keeper_retries),
@@ -571,7 +571,7 @@ class TestCheckTransactionHistoryRound(BaseCollectSameUntilThresholdRoundTest):
     ) -> None:
         """Run tests."""
         keepers = get_keepers(deque(("agent_1" + "-" * 35, "agent_3" + "-" * 35)))
-        self.synchronized_data.update_current_data(
+        self.synchronized_data.update(
             missed_messages=missed_messages, keepers=keepers
         )
 
@@ -585,7 +585,7 @@ class TestCheckTransactionHistoryRound(BaseCollectSameUntilThresholdRoundTest):
                 round_payloads=get_participant_to_check(
                     self.participants, expected_status, expected_tx_hash
                 ),
-                state_update_fn=lambda synchronized_data, _: synchronized_data.update_current_data(
+                state_update_fn=lambda synchronized_data, _: synchronized_data.update(
                     participant_to_check=MappingProxyType(
                         dict(
                             get_participant_to_check(
@@ -635,7 +635,7 @@ class TestSynchronizeLateMessagesRound(BaseCollectNonEmptyUntilThresholdRound):
         self, missed_messages: int, expected_event: TransactionSettlementEvent
     ) -> None:
         """Runs tests."""
-        self.synchronized_data.update_current_data(missed_messages=missed_messages)
+        self.synchronized_data.update(missed_messages=missed_messages)
         test_round = SynchronizeLateMessagesRound(
             state=self.synchronized_data, consensus_params=self.consensus_params
         )
@@ -645,7 +645,7 @@ class TestSynchronizeLateMessagesRound(BaseCollectNonEmptyUntilThresholdRound):
                 round_payloads=get_participant_to_late_arriving_tx_hashes(
                     self.participants
                 ),
-                state_update_fn=lambda _synchronized_data, _: _synchronized_data.update_current_data(
+                state_update_fn=lambda _synchronized_data, _: _synchronized_data.update(
                     late_arriving_tx_hashes=["1" * TX_HASH_LENGTH, "2" * TX_HASH_LENGTH]
                     * len(self.participants)
                 ),
@@ -715,7 +715,7 @@ def test_synchronized_datas() -> None:
     assert updated_state.blacklisted_keepers == set()
 
     # test wrong tx hashes serialization
-    synchronized_data_____.update_current_data(late_arriving_tx_hashes=["test"])
+    synchronized_data_____.update(late_arriving_tx_hashes=["test"])
     with pytest.raises(
         ABCIAppInternalError,
         match="internal error: Cannot parse late arriving hashes: test!",
@@ -734,7 +734,7 @@ class TestResetRound(BaseCollectSameUntilThresholdRoundTest):
     ) -> None:
         """Runs tests."""
 
-        synchronized_data = self.synchronized_data.update_current_data(
+        synchronized_data = self.synchronized_data.update(
             keeper_randomness=DUMMY_RANDOMNESS,
         )
         synchronized_data._db._cross_reset_persisted_keys = ["keeper_randomness"]

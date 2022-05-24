@@ -536,7 +536,7 @@ class AbciAppDB:
             )
         return value
 
-    def update_current_data(self, **kwargs: Any) -> None:
+    def update(self, **kwargs: Any) -> None:
         """Update the current data."""
         for key, value in kwargs.items():
             if key in self._data[self.reset_index]:
@@ -641,13 +641,13 @@ class BaseSynchronizedData:
         """Get the number of participants."""
         return len(self.participants)
 
-    def update_current_data(
+    def update(
         self,
         synchronized_data_class: Optional[Type] = None,
         **kwargs: Any,
     ) -> "BaseSynchronizedData":
         """Copy and update the current data."""
-        self.db.update_current_data(**kwargs)
+        self.db.update(**kwargs)
 
         class_ = (
             type(self) if synchronized_data_class is None else synchronized_data_class
@@ -1142,7 +1142,7 @@ class CollectSameUntilThresholdRound(CollectionRound):
     def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Enum]]:
         """Process the end of the block."""
         if self.threshold_reached and self.most_voted_payload is not None:
-            state = self.synchronized_data.update_current_data(
+            state = self.synchronized_data.update(
                 synchronized_data_class=self.synchronized_data_class,
                 **{
                     self.collection_key: self.collection,
@@ -1235,7 +1235,7 @@ class OnlyKeeperSendsRound(AbstractRound):
         """Process the end of the block."""
         # if reached participant threshold, set the result
         if self.has_keeper_sent_payload and self.keeper_payload is not None:
-            state = self.synchronized_data.update_current_data(
+            state = self.synchronized_data.update(
                 synchronized_data_class=self.synchronized_data_class,
                 **{self.payload_key: self.keeper_payload},
             )
@@ -1284,7 +1284,7 @@ class VotingRound(CollectionRound):
         """Process the end of the block."""
         # if reached participant threshold, set the result
         if self.positive_vote_threshold_reached:
-            state = self.synchronized_data.update_current_data(
+            state = self.synchronized_data.update(
                 synchronized_data_class=self.synchronized_data_class,
                 **{self.collection_key: self.collection},  # type: ignore
             )
@@ -1331,7 +1331,7 @@ class CollectDifferentUntilThresholdRound(CollectionRound):
             and self.block_confirmations > self.required_block_confirmations
             # we also wait here as it gives more (available) agents time to join
         ):
-            state = self.synchronized_data.update_current_data(
+            state = self.synchronized_data.update(
                 synchronized_data_class=self.synchronized_data_class,
                 period_count=None,
                 **{
@@ -1380,7 +1380,7 @@ class CollectNonEmptyUntilThresholdRound(CollectDifferentUntilThresholdRound):
         ):
             non_empty_values = self._get_non_empty_values()
 
-            state = self.synchronized_data.update_current_data(
+            state = self.synchronized_data.update(
                 synchronized_data_class=self.synchronized_data_class,
                 period_count=None,
                 **{

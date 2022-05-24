@@ -431,7 +431,7 @@ class TestTrainRound(BaseCollectSameUntilThresholdRoundTest):
         """Runs test."""
 
         test_round = TrainRound(
-            self.synchronized_data.update_current_data(full_training=full_training),
+            self.synchronized_data.update(full_training=full_training),
             self.consensus_params,
         )
         self._complete_run(
@@ -463,14 +463,14 @@ class TestTestRound(BaseCollectSameUntilThresholdRoundTest):
         """Runs test."""
 
         test_round = _TestRound(
-            self.synchronized_data.update_current_data(full_training=False),
+            self.synchronized_data.update(full_training=False),
             self.consensus_params,
         )
         self._complete_run(
             self._test_round(
                 test_round=test_round,
                 round_payloads=get_participant_to_test_payload(self.participants),
-                state_update_fn=lambda _synchronized_data, _: _synchronized_data.update_current_data(
+                state_update_fn=lambda _synchronized_data, _: _synchronized_data.update(
                     full_training=True
                 ),
                 state_attr_checks=[lambda state: bool(state.full_training)],
@@ -508,7 +508,7 @@ class TestEstimateRound(BaseCollectSameUntilThresholdRoundTest):
         """Runs test."""
 
         test_round = EstimateRound(
-            self.synchronized_data.update_current_data(n_estimations=n_estimations),
+            self.synchronized_data.update(n_estimations=n_estimations),
             self.consensus_params,
         )
         self._complete_run(
@@ -517,7 +517,7 @@ class TestEstimateRound(BaseCollectSameUntilThresholdRoundTest):
                 round_payloads=get_participant_to_estimate_payload(
                     self.participants, most_voted_payload
                 ),
-                state_update_fn=lambda _synchronized_data, _: _synchronized_data.update_current_data(
+                state_update_fn=lambda _synchronized_data, _: _synchronized_data.update(
                     n_estimations=n_estimations,
                 ),
                 state_attr_checks=[lambda _: n_estimations + 1],
@@ -544,7 +544,7 @@ class TestCycleResetRound(BaseCollectSameUntilThresholdRoundTest):
         """Run tests"""
 
         test_round = CycleResetRound(
-            self.synchronized_data.update_current_data(
+            self.synchronized_data.update(
                 latest_observation_hist_hash="x0",
                 most_voted_models="",
                 full_training=True,
@@ -555,7 +555,7 @@ class TestCycleResetRound(BaseCollectSameUntilThresholdRoundTest):
             self._test_round(
                 test_round=test_round,
                 round_payloads=get_participant_to_reset_payload(self.participants),
-                state_update_fn=lambda _synchronized_data, _test_round: _synchronized_data.update_current_data(
+                state_update_fn=lambda _synchronized_data, _test_round: _synchronized_data.update(
                     full_training=False,
                 ),
                 state_attr_checks=[lambda state: state.full_training],
@@ -582,7 +582,7 @@ class TestFreshModelResetRound(BaseCollectSameUntilThresholdRoundTest):
         """Run tests"""
 
         test_round = FreshModelResetRound(
-            self.synchronized_data.update_current_data(
+            self.synchronized_data.update(
                 n_estimations=1, full_training=True, most_voted_models=""
             ),
             self.consensus_params,
@@ -591,7 +591,7 @@ class TestFreshModelResetRound(BaseCollectSameUntilThresholdRoundTest):
             self._test_round(
                 test_round=test_round,
                 round_payloads=get_participant_to_reset_payload(self.participants),
-                state_update_fn=lambda _synchronized_data, _test_round: _synchronized_data.update_current_data(
+                state_update_fn=lambda _synchronized_data, _test_round: _synchronized_data.update(
                     full_training=False,
                 ),
                 state_attr_checks=[lambda state: state.full_training],

@@ -381,7 +381,7 @@ class _TxHelperIntegration(_GnosisHelperIntegration):
                 signature=signature_hex,
             )
 
-        self.tx_settlement_synchronized_data.update_current_data(
+        self.tx_settlement_synchronized_data.update(
             participant_to_signature=participant_to_signature,
         )
 
@@ -500,7 +500,7 @@ class _TxHelperIntegration(_GnosisHelperIntegration):
                 + 1,
             )
 
-        self.tx_settlement_synchronized_data.update_current_data(
+        self.tx_settlement_synchronized_data.update(
             synchronized_data_class=None, **update_params
         )
 
@@ -536,7 +536,7 @@ class _TxHelperIntegration(_GnosisHelperIntegration):
             "verified"
         ], f"Message not verified: {verif_msg.state.body}"
 
-        self.tx_settlement_synchronized_data.update_current_data(
+        self.tx_settlement_synchronized_data.update(
             final_verification_status=VerificationStatus.VERIFIED,
             final_tx_hash=self.tx_settlement_synchronized_data.to_be_validated_tx_hash,
         )

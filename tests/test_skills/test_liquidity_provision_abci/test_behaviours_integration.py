@@ -227,7 +227,7 @@ class TestLiquidityRebalancingHardhat(LiquidityProvisionIntegrationBaseCase):
 
         synchronized_data_enter_hash = cast(
             LiquidityRebalancingSynchronizedSata,
-            self.default_synchronized_data_hash.update_current_data(),
+            self.default_synchronized_data_hash.update(),
         )
 
         cycles_enter = 8
@@ -267,7 +267,7 @@ class TestLiquidityRebalancingHardhat(LiquidityProvisionIntegrationBaseCase):
         )
 
         # update period state with safe's tx hash
-        self.tx_settlement_synchronized_data.update_current_data(
+        self.tx_settlement_synchronized_data.update(
             most_voted_tx_hash=payload,
         )
 
@@ -281,7 +281,7 @@ class TestLiquidityRebalancingHardhat(LiquidityProvisionIntegrationBaseCase):
 
         synchronized_data_exit_hash = cast(
             LiquidityRebalancingSynchronizedSata,
-            self.default_synchronized_data_hash.update_current_data(
+            self.default_synchronized_data_hash.update(
                 most_voted_strategy=json.dumps(strategy),
                 final_tx_hash=self.tx_settlement_synchronized_data.final_tx_hash,
             ),
@@ -414,7 +414,7 @@ class TestLiquidityRebalancingHardhat(LiquidityProvisionIntegrationBaseCase):
         )
 
         # update period state with safe's tx hash
-        self.tx_settlement_synchronized_data.update_current_data(
+        self.tx_settlement_synchronized_data.update(
             most_voted_tx_hash=payload,
         )
 
@@ -428,7 +428,7 @@ class TestLiquidityRebalancingHardhat(LiquidityProvisionIntegrationBaseCase):
 
         synchronized_data_swap_back_hash = cast(
             LiquidityRebalancingSynchronizedSata,
-            self.default_synchronized_data_hash.update_current_data(
+            self.default_synchronized_data_hash.update(
                 most_voted_strategy=json.dumps(strategy),
                 final_tx_hash=self.tx_settlement_synchronized_data.final_tx_hash,
             ),
@@ -529,7 +529,7 @@ class TestLiquidityRebalancingHardhat(LiquidityProvisionIntegrationBaseCase):
         )
 
         # update period state with safe's tx hash
-        self.tx_settlement_synchronized_data.update_current_data(
+        self.tx_settlement_synchronized_data.update(
             most_voted_tx_hash=payload,
         )
 

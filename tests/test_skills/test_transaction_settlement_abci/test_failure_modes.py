@@ -181,7 +181,7 @@ class TransactionSettlementIntegrationBaseCase(
         )
 
         # update period state with oracle contract address
-        self.price_estimation_synchronized_data.update_current_data(
+        self.price_estimation_synchronized_data.update(
             oracle_contract_address=oracle_contract_address,
         )
 
@@ -220,7 +220,7 @@ class TransactionSettlementIntegrationBaseCase(
         )
 
         # update period state with safe's tx hash
-        self.tx_settlement_synchronized_data.update_current_data(
+        self.tx_settlement_synchronized_data.update(
             most_voted_tx_hash=payload,
         )
 
@@ -363,7 +363,7 @@ class TestKeepers(OracleBehaviourBaseCase, IntegrationBaseCase):
         serialized_keepers_mock.assert_called_with(expected_keepers, expected_retries)
 
         # update keepers.
-        self.tx_settlement_synchronized_data.update_current_data(
+        self.tx_settlement_synchronized_data.update(
             # we cast to A class, because it is the top level one between A & B, and we need `serialized_keepers`
             keepers=cast(
                 SelectKeeperTransactionSubmissionBehaviourA,
@@ -374,7 +374,7 @@ class TestKeepers(OracleBehaviourBaseCase, IntegrationBaseCase):
     def test_keepers_alternating(self) -> None:
         """Test that we are alternating the keepers when we fail or timeout more than `keeper_allowed_retries` times."""
         # set verification status
-        self.tx_settlement_synchronized_data.update_current_data(
+        self.tx_settlement_synchronized_data.update(
             final_verification_status=VerificationStatus.PENDING,
         )
 
@@ -419,7 +419,7 @@ class TestKeepers(OracleBehaviourBaseCase, IntegrationBaseCase):
         )
         keeper_retries = 1
 
-        self.tx_settlement_synchronized_data.update_current_data(
+        self.tx_settlement_synchronized_data.update(
             keepers=int(keeper_retries).to_bytes(32, "big").hex() + "".join(keepers),
         )
 
@@ -441,7 +441,7 @@ class TestSyncing(TransactionSettlementIntegrationBaseCase):
         super().setup()
 
         # update period state
-        cls.tx_settlement_synchronized_data.update_current_data(missed_messages=0)
+        cls.tx_settlement_synchronized_data.update(missed_messages=0)
 
     def sync_late_messages(self) -> None:
         """Synchronize late messages."""
@@ -500,10 +500,10 @@ class TestSyncing(TransactionSettlementIntegrationBaseCase):
             expected_sync_result += tx_digest
 
         assert self.behaviour.current_state._tx_hashes == expected_sync_result
-        self.tx_settlement_synchronized_data.update_current_data(
+        self.tx_settlement_synchronized_data.update(
             late_arriving_tx_hashes=[expected_sync_result],
         )
-        self.tx_settlement_synchronized_data.update_current_data(
+        self.tx_settlement_synchronized_data.update(
             missed_messages=self.behaviour.current_state.synchronized_data.missed_messages
             - len(
                 self.behaviour.current_state.synchronized_data.late_arriving_tx_hashes
@@ -549,7 +549,7 @@ class TestSyncing(TransactionSettlementIntegrationBaseCase):
         assert verified_idx != -1, f"No message has been verified: {msgs}"
         assert verified_count == 1, "More than 1 messages have been verified!"
 
-        self.tx_settlement_synchronized_data.update_current_data(
+        self.tx_settlement_synchronized_data.update(
             final_verification_status=VerificationStatus.VERIFIED,
             final_tx_hash=self.tx_settlement_synchronized_data.late_arriving_tx_hashes[
                 -verified_idx

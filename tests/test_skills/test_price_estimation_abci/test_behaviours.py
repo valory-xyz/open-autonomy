@@ -434,7 +434,7 @@ class TestTransactionHashBehaviour(PriceEstimationFSMBehaviourBaseCase):
         next_period_data = copy.deepcopy(period_data)
         next_period_data["final_tx_hash"] = tx_hashes[0]
 
-        synchronized_data.db.update_current_data(
+        synchronized_data.db.update(
             **period_data,
         )
 

@@ -52,7 +52,7 @@ class TestRegistrationStartupRound(BaseCollectDifferentUntilAllRoundTest):
 
         self.synchronized_data = cast(
             SynchronizedData,
-            self.synchronized_data.update_current_data(
+            self.synchronized_data.update(
                 safe_contract_address="stub_safe_contract_address",
                 oracle_contract_address="stub_oracle_contract_address",
             ),
@@ -135,7 +135,7 @@ class TestRegistrationRound(BaseCollectDifferentUntilThresholdRoundTest):
         """Run test."""
         self.synchronized_data = cast(
             SynchronizedData,
-            self.synchronized_data.update_current_data(
+            self.synchronized_data.update(
                 safe_contract_address="stub_safe_contract_address",
                 oracle_contract_address="stub_oracle_contract_address",
             ),
@@ -151,7 +151,7 @@ class TestRegistrationRound(BaseCollectDifferentUntilThresholdRoundTest):
         """Run test."""
         self.synchronized_data = cast(
             SynchronizedData,
-            self.synchronized_data.update_current_data(
+            self.synchronized_data.update(
                 safe_contract_address="stub_safe_contract_address",
                 oracle_contract_address="stub_oracle_contract_address",
             ),
