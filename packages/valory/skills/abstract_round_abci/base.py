@@ -483,9 +483,17 @@ class AbciAppDB:
         cross_reset_persisted_keys: Optional[List[str]] = None,
         format_initial_data: bool = True,
     ) -> None:
-        """Initialize a period state."""
+        """Initialize the AbciApp database.
+
+        initial_data can be passed either as Dict[str, Any] of Dict[str, List[Any]] (the database internal format). Use the format_initial_data to decide if
+        initial_data should be automatically converted.
+
+        :param initial_data: the initial data
+        :param cross_reset_persisted_keys: data keys that will be kept after a reset
+        :param format_initial_data: flag to indicate whether initial_data should be converted from Dict[str, Any] to Dict[str, List[Any]]
+        """
         self._initial_data = (
-            {key: [value] for key, value in initial_data.items()}
+            AbciAppDB.data_to_list(initial_data)
             if format_initial_data
             else initial_data
         )
@@ -507,6 +515,11 @@ class AbciAppDB:
         :return: the initial_data
         """
         return self._initial_data
+
+    @classmethod
+    def data_to_list(cls, data: Dict[str, Any]) -> Dict[str, List[Any]]:
+        """Convert Dict[str, Any] to Dict[str, List[Any]]."""
+        return {key: [value] for key, value in data.items()}
 
     @property
     def reset_index(self) -> int:
@@ -551,19 +564,19 @@ class AbciAppDB:
             )
         return value
 
-    def update(self, **kwargs: Any) -> None:
+    def update(self, format_initial_data: bool = True, **kwargs: Any) -> None:
         """Update the current data."""
-        for key, value in kwargs.items():
+        new_data = AbciAppDB.data_to_list(kwargs) if format_initial_data else kwargs
+        for key, value in new_data.items():
             if key in self._data[self.reset_index]:
                 self._data[self.reset_index][key].append(value)
             else:
                 self._data[self.reset_index][key] = [value]
 
-    def create(self, **kwargs: Any) -> None:
+    def create(self, format_initial_data: bool = True, **kwargs: Any) -> None:
         """Add a new entry to the data."""
-        self._data[self.reset_index + 1] = {
-            key: [value] for key, value in kwargs.items()
-        }
+        new_data = AbciAppDB.data_to_list(kwargs) if format_initial_data else kwargs
+        self._data[self.reset_index + 1] = new_data
 
     def get_latest_from_reset_index(self, reset_index: int) -> Dict[str, Any]:
         """Get the latest key-value pairs from the data dictionary for the specified period."""
@@ -618,7 +631,13 @@ class BaseSynchronizedData:
 
     @property
     def period_count(self) -> int:
-        """Get the period count."""
+        """Get the period count.
+
+        Periods are executions between calls to AbciAppDB.create(), so as soon as it is called,
+        a new period begins. It is useful to have a logical subdivision of the FSM execution.
+        For example, if AbciAppDB.create() is called during reset, then a period will be the
+        execution between resets.
+        """
         return self.db.reset_index
 
     @property
