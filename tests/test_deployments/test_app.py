@@ -11,6 +11,7 @@ from deployments.Dockerfiles.localnode.app import (
     get_defaults,
     override_config_toml,
     CONFIG_OVERRIDE,
+    create_app,
 )
 
 
@@ -20,6 +21,12 @@ def readonly_handler(func, path, execinfo) -> None:
 
     os.chmod(path, stat.S_IWRITE)
     func(path)
+
+
+@pytest.fixture(scope="class")
+def server_app():
+    """We keep server app around for all integration tests."""
+    yield create_app()
 
 
 # unit tests
@@ -70,3 +77,16 @@ class TestTendermintServerUtilityFunctions(BaseTendermintTest):
         override_config_toml()
         content = path.read_text("utf-8")
         assert not any(old in content and new not in content for old, new in CONFIG_OVERRIDE)
+
+
+class TestTendermintServerApp(BaseTendermintTest):
+    """Test Tendermint server app"""
+
+    @classmethod
+    def setup_class(cls) -> None:
+        super().setup_class()
+        cls.proxy_app = os.environ["PROXY_APP"] = tempfile.mkdtemp()
+
+    def test_app(self, server_app):
+        assert server_app == 1
+
