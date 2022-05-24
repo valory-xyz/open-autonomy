@@ -137,3 +137,4 @@ cert_requests:
   not_before: '2021-01-01'
   public_key: 02fc5fe35c21a1f8ba2de52fd38ef95379be19d5390f1275b825c343167590d3b7
   save_path: .certs/acn_cosmos_9006.txt
+is_abstract: false
