@@ -63,11 +63,11 @@ def test_randomness_payload() -> None:
 def test_reset_payload() -> None:
     """Test `ResetPayload`"""
 
-    payload = ResetPayload(sender="sender", period_count=1, id_="id")
+    payload = ResetPayload(sender="sender", id_="id")
 
-    assert payload.period_count == 1
+    assert payload.reset == True
     assert payload.id_ == "id"
-    assert payload.data == {"period_count": 1}
+    assert payload.data == {"reset": True}
     assert hash(payload) == hash(tuple(sorted(payload.data.items())))
 
     assert str(payload.transaction_type) == str(TransactionType.RESET)
