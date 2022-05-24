@@ -59,3 +59,13 @@ def run_tendermint(build_dir: Path) -> None
 
 Tendermint runner.
 
+<a id="aea_swarm.cli.replay.load_docker_config"></a>
+
+#### load`_`docker`_`config
+
+```python
+def load_docker_config(file_path: Path) -> Dict[str, Any]
+```
+
+Load docker config.
+

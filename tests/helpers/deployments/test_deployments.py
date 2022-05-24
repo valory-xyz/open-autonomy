@@ -22,6 +22,7 @@ import os
 import shutil
 import tempfile
 from abc import ABC
+from contextlib import suppress
 from glob import glob
 from pathlib import Path
 from typing import Any, List, Tuple, cast
@@ -162,7 +163,8 @@ class BaseDeploymentTests(ABC, CleanDirectoryClass):
     @classmethod
     def teardown_class(cls) -> None:
         """Setup up the test class."""
-        cls.temp_dir.cleanup()
+        with suppress(FileNotFoundError, OSError, PermissionError):
+            cls.temp_dir.cleanup()
 
     def write_deployment(
         self,
