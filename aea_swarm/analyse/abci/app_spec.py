@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
@@ -17,26 +16,8 @@
 #   limitations under the License.
 #
 # ------------------------------------------------------------------------------
-"""
-Generates the specification for a given ABCI app in YAML/JSON/Mermaid format.
+"""Generates the specification for a given ABCI app in YAML/JSON/Mermaid format."""
 
-Generates the specification for a given ABCI app in YAML/JSON format using a simplified syntax for deterministic finite automata (DFA). Alternatively, it can also
-produce a Mermaid diagram source code. Example of usage: ./generate_abciapp_spec.py -c packages.valory.skills.registration_abci.rounds.AgentRegistrationAbciApp -o
-output.yaml
-
-optional arguments:
-  -h, --help            show this help message and exit
-  -o OUTFILE, --outfile OUTFILE
-                        Output file name.
-  -f {json,yaml,mermaid}, --outformat {json,yaml,mermaid}
-                        Output format.
-
-required arguments:
-  -c CLASSFQN, --classfqn CLASSFQN
-                        ABCI App class fully qualified name.
-"""
-
-import argparse
 import importlib
 import json
 import logging
@@ -44,11 +25,9 @@ import re
 import sys
 from itertools import product
 from pathlib import Path
-from typing import Any, Dict, List, OrderedDict, Set, TextIO, Tuple, Type
+from typing import Any, Dict, List, OrderedDict, Set, TextIO, Tuple
 
 import yaml
-
-from packages.valory.skills.abstract_round_abci.base import AbciApp
 
 
 class DFASpecificationError(Exception):
@@ -57,6 +36,14 @@ class DFASpecificationError(Exception):
 
 class DFA:
     """Simple specification of a deterministic finite automaton (DFA)."""
+
+    class OutputFormats:  # pylint: disable=too-few-public-methods
+        """Output formats."""
+
+        JSON = "json"
+        YAML = "yaml"
+        MERMAID = "mermaid"
+        ALL = (JSON, YAML, MERMAID)
 
     def __init__(
         self,
@@ -96,9 +83,7 @@ class DFA:
                 f" - Unused input symbols: {alphabet_in-transition_func_alphabet_in}."  # type: ignore
             )
         if default_start_state not in start_states:
-            error_strings.append(
-                " - Default start state is not in start states set."
-            )
+            error_strings.append(" - Default start state is not in start states set.")
         if not start_states.issubset(states):
             error_strings.append(
                 f" - Start state set contains unexpected states: {start_states-states}."
@@ -117,7 +102,9 @@ class DFA:
             )
 
         if len(error_strings) > 0:
-            raise DFASpecificationError("DFA spec. has the following issues:\n" + "\n".join(error_strings))
+            raise DFASpecificationError(
+                "DFA spec. has the following issues:\n" + "\n".join(error_strings)
+            )
 
         self.label = label
         self.states = states
@@ -162,20 +149,22 @@ class DFA:
             return NotImplemented  # Try reflected operation
         return self.__dict__ == other.__dict__
 
-    def dump(self, fp: TextIO, output_format: str = "yaml") -> None:
+    def dump(self, file: Path, output_format: str = "yaml") -> None:
         """Dumps this DFA spec. to a file in YAML/JSON/Mermaid format."""
-        dfa_export = self._get_exportable_repr()
 
-        if output_format == "json":
-            json.dump(dfa_export, fp, indent=4)
-        elif output_format == "yaml":
-            yaml.safe_dump(dfa_export, fp, indent=4)
-        elif output_format == "mermaid":
-            self._mermaid_dump(fp)
-        else:
-            raise ValueError(f"Unrecognized output format {output_format}.")
+        dumper = getattr(self, f"dump_{output_format}")
+        with open(file, "w+", encoding="utf-8") as fp:
+            dumper(fp)
 
-    def _mermaid_dump(self, fp: TextIO) -> None:
+    def dump_json(self, fp: TextIO) -> None:
+        """Dump to a json file."""
+        json.dump(self.generate(), fp, indent=4)
+
+    def dump_yaml(self, fp: TextIO) -> None:
+        """Dump to a yaml file."""
+        yaml.safe_dump(self.generate(), fp, indent=4)
+
+    def dump_mermaid(self, fp: TextIO) -> None:
         """Dumps this DFA spec. to a file in Mermaid format."""
         print("stateDiagram-v2", file=fp)
 
@@ -200,7 +189,7 @@ class DFA:
                     file=fp,
                 )
 
-    def _get_exportable_repr(self) -> Dict[str, Any]:
+    def generate(self) -> Dict[str, Any]:
         """Retrieves an exportable respresentation for YAML/JSON dump of this DFA."""
         dfa_export: Dict[str, Any] = {}
         for k, v in self.__dict__.items():
@@ -280,7 +269,7 @@ class DFA:
         )
 
     @classmethod
-    def abci_to_dfa(cls, abci_app_cls: Type[AbciApp], label: str = "") -> "DFA":
+    def abci_to_dfa(cls, abci_app_cls: Any, label: str = "") -> "DFA":
         """Translates an AbciApp class into a DFA."""
 
         trf = abci_app_cls.transition_function
@@ -322,64 +311,49 @@ class DFA:
         )
 
 
-def parse_arguments() -> argparse.Namespace:
-    """Parse the script arguments."""
-    script_name = Path(__file__).name
-    parser = argparse.ArgumentParser(
-        script_name,
-        description=f"Generates the specification for a given ABCI app in YAML/JSON format using a simplified syntax for "
-        "deterministic finite automata (DFA). Alternatively, it can also produce a Mermaid diagram source code. Example of usage: "
-        f"./{script_name} -c packages.valory.skills.registration_abci.rounds.AgentRegistrationAbciApp -o output.yaml",
-    )
-    required = parser.add_argument_group("required arguments")
-    required.add_argument(
-        "-c",
-        "--classfqn",
-        type=str,
-        required=True,
-        help="ABCI App class fully qualified name.",
-    )
-    parser.add_argument(
-        "-o",
-        "--outfile",
-        type=argparse.FileType("w"),
-        required=False,
-        default=sys.stdout,
-        help="Output file name.",
-    )
-    parser.add_argument(
-        "-f",
-        "--outformat",
-        type=str,
-        choices=["json", "yaml", "mermaid"],
-        default="yaml",
-        help="Output format.",
-    )
-    return parser.parse_args()
+class SpecCheck:
+    """Class to represent abci spec checks."""
 
+    @staticmethod
+    def check_one(informat: str, infile: str, classfqn: str) -> bool:
+        """Check for one."""
 
-def main() -> None:
-    """Execute the script."""
-    logging.basicConfig(format="%(levelname)s: %(message)s", level=logging.INFO)
-    arguments = parse_arguments()
-    module_name, class_name = arguments.classfqn.rsplit(".", 1)
-
-    try:
+        print(f"Checking : {classfqn}")
+        module_name, class_name = classfqn.rsplit(".", 1)
         module = importlib.import_module(module_name)
-    except Exception as e:
-        raise Exception(f'Failed to load "{module_name}". Please, verify that '
-                        'AbciApps and classes are correctly defined within the module. ') from e
+        if not hasattr(module, class_name):
+            raise Exception(f'Class "{class_name}" is not in "{module_name}".')
 
-    if not hasattr(module, class_name):
-        raise Exception(f'Class "{class_name}" is not in "{module_name}".')
+        abci_app_cls = getattr(module, class_name)
+        dfa1 = DFA.abci_to_dfa(abci_app_cls, classfqn)
 
-    abci_app_cls = getattr(module, class_name)
-    dfa = DFA.abci_to_dfa(abci_app_cls, arguments.classfqn)
-    dfa.dump(arguments.outfile, arguments.outformat)
+        with open(infile, "r", encoding="utf-8") as fp:
+            dfa2 = DFA.load(fp, informat)
 
-    print()
-    logging.info("Done.")
+        return dfa1 == dfa2
 
+    @classmethod
+    def check_all(cls, packages_dir: Path) -> None:
+        """Check all the available definitions."""
 
-if __name__ == "__main__":
-    main()
+        did_not_match = []
+        fsm_specifications = sorted(
+            [
+                *packages_dir.glob("**/fsm_specification.yaml"),
+                *packages_dir.glob("**/fsm_specification_composition.yaml"),
+            ]
+        )
+        for spec_file in fsm_specifications:
+            with open(str(spec_file), mode="r", encoding="utf-8") as fp:
+                specs = yaml.safe_load(fp)
+                if not cls.check_one(
+                    informat="yaml", infile=str(spec_file), classfqn=specs.get("label")
+                ):
+                    did_not_match.append(f"{specs.get('label')} - {str(spec_file)}")
+
+        if len(did_not_match) > 0:
+            print("\nSpecifications did not match for following definitions.\n")
+            print("\n".join(did_not_match))
+            sys.exit(1)
+
+        print("Check successful.")

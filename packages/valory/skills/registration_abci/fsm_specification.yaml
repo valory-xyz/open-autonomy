@@ -18,4 +18,3 @@ transition_func:
     (RegistrationRound, DONE): FinishedRegistrationFFWRound
     (RegistrationStartupRound, DONE): FinishedRegistrationRound
     (RegistrationStartupRound, FAST_FORWARD): FinishedRegistrationFFWRound
-

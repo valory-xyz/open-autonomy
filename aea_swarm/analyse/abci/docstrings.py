@@ -21,10 +21,8 @@
 
 import importlib
 import re
-import subprocess  # nosec
-import sys
 from pathlib import Path
-from typing import Any, Optional, cast
+from typing import Any, cast
 
 
 INDENT = " " * 4
@@ -41,29 +39,6 @@ Final states: {{{final_states}}}\n
 Timeouts:
 {timeouts}
 \"\"\""""
-
-
-def check_working_tree_is_dirty() -> None:
-    """Check if the current Git working tree is dirty."""
-    print("Checking if there are files with updated docstrings.")
-    result = subprocess.check_output(["git", "status"])  # nosec
-    if len(result) > 0:
-        files = [
-            file.replace("modified:", "").strip()
-            for file in result.decode("utf-8").split("\n")
-            if "modified:" in file
-        ]
-        filterd_md_files = [
-            file
-            for file in files
-            if file.endswith("rounds.py") and file.startswith("packages")
-        ]
-        if len(filterd_md_files) > 0:
-            print("\nFiles with newly updated docstrings:\n")
-            print("\n".join(filterd_md_files))
-            sys.exit(1)
-
-    print("All good!")
 
 
 def docstring_abci_app(abci_app: Any) -> str:  # pylint: disable-msg=too-many-locals
@@ -104,8 +79,8 @@ def docstring_abci_app(abci_app: Any) -> str:  # pylint: disable-msg=too-many-lo
 
 
 def update_docstrings(
-    module_path: Path, docstring: str, abci_app_name: str
-) -> Optional[str]:
+    module_path: Path, docstring: str, abci_app_name: str, check: bool = False
+) -> bool:
     """Update docstrings."""
 
     content = module_path.read_text()
@@ -120,21 +95,22 @@ def update_docstrings(
 
     updated_class = f"class {abci_app_name}(AbciApp[Event]):{markers}{docstring}"
     updated_content = re.sub(regex, updated_class, content, re.MULTILINE)
-    module_path.write_text(updated_content)
+    needs_update = updated_content != content
 
-    if updated_content == content:
-        return str(module_path)
+    if check:
+        return needs_update
 
-    return None
+    module_path.write_text(updated_content, encoding="utf-8")
+    return needs_update
 
 
-def process_module(module_path: Path) -> Optional[str]:
+def process_module(module_path: Path, check: bool = False) -> bool:
     """Process module."""
     module = importlib.import_module(".".join(module_path.parts).replace(".py", ""))
     for obj in dir(module):
         if obj.endswith(ABCIAPP) and obj != ABCIAPP:
             App = getattr(module, obj)
             docstring = docstring_abci_app(App)
-            return update_docstrings(module_path, docstring, obj)
+            return update_docstrings(module_path, docstring, obj, check)
 
-    return None
+    return False

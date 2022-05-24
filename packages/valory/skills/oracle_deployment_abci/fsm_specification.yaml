@@ -34,4 +34,3 @@ transition_func:
     (ValidateOracleRound, NONE): RandomnessOracleRound
     (ValidateOracleRound, NO_MAJORITY): RandomnessOracleRound
     (ValidateOracleRound, VALIDATE_TIMEOUT): RandomnessOracleRound
-

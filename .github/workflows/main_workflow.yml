@@ -180,6 +180,12 @@ jobs:
           wget -O tendermint.tar.gz https://github.com/tendermint/tendermint/releases/download/v0.34.11/tendermint_0.34.11_linux_amd64.tar.gz
           tar -xf tendermint.tar.gz
           sudo mv tendermint /usr/local/bin/tendermint
+          curl -Lo skaffold https://storage.googleapis.com/skaffold/releases/v1.33.0/skaffold-linux-amd64 && \
+          sudo chmod +x skaffold
+          sudo install skaffold /usr/local/bin/
+
+          skaffold --help
+          
 
           # pull node image needed for the integration tests
           docker pull node:16.7.0
@@ -213,7 +219,7 @@ jobs:
           file: ./coverage.xml
           flags: unittests
           name: codecov-umbrella
-          fail_ci_if_error: true
+          fail_ci_if_error: false
 
   e2e:
     continue-on-error: True
@@ -290,5 +296,4 @@ jobs:
 
       - name: Unit tests
         run: |
-          VERSION=0.1.0 skaffold build -p dependencies --push=false
-          tox -e py${{ matrix.python-version }} -- -m 'e2e'
+          tox --develop -e py${{ matrix.python-version }} -- -m 'e2e'

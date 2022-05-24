@@ -241,7 +241,6 @@ install-hooks:
 
 .ONESHELL: build-images
 build-images:
-	sudo make clean
 	if [ "${VERSION}" = "" ];\
 	then\
 		echo "Ensure you have exported a version to build!";\
@@ -251,29 +250,29 @@ build-images:
 	if [ "${VERSION}" = "dev" ];\
 	then\
 		echo "building dev images!";\
-	 	swarm deploy build image ${SERVICE_ID} --dev && exit 0
+	 	swarm deploy build image ${SERVICE_ID} \
+			--dev && exit 0
 		exit 1
 	fi
-	swarm deploy build image ${SERVICE_ID} && exit 0
+	swarm deploy build image ${SERVICE_ID} --version ${VERSION} && exit 0
 	exit 1
 
-.ONESHELL: push-images
+.ONESHELL: build-images push-images
 push-images:
-	sudo make clean
 	if [ "${VERSION}" = "" ];\
 	then\
 		echo "Ensure you have exported a version to build!";\
 		exit 1
 	fi
-	python deployments/click_create.py build-images --deployment-file-path ${DEPLOYMENT_SPEC} --profile dependencies --push || (echo failed && exit 1)
+	swarm deploy build image ${SERVICE_ID} --dependencies --push || (echo failed && exit 1)
 	if [ "${VERSION}" = "dev" ];\
 	then\
 		echo "building dev images!";\
-	 	python deployments/click_create.py build-images --deployment-file-path ${DEPLOYMENT_SPEC} --profile dev --push && exit 0
-		exit 1
+		swarm deploy build image ${SERVICE_ID} --dev --push || (echo failed && exit 1)
+		exit 0
 	fi
-	python deployments/click_create.py build-images --deployment-file-path ${DEPLOYMENT_SPEC} --profile prod --push && exit 0
-	exit 1
+	swarm deploy build image ${SERVICE_ID} --version ${VERSION} --prod --push || (echo failed && exit 1)
+	exit 0
 
 .PHONY: run-hardhat
 run-hardhat:
@@ -310,14 +309,9 @@ run-oracle:
 		swarm deploy build deployment valory/oracle_hardhat deployments/keys/hardhat_keys.json --force && \
 		make run-deploy
 
+
 .PHONY: run-deploy
 run-deploy:
-	cd abci_build/
-	docker-compose up --force-recreate -t 600
-
-
-.PHONY: run-deployment
-run-deployment:
 	if [ "${PLATFORM_STR}" = "Linux" ];\
 	then\
 		mkdir -p abci_build/persistent_data/logs
@@ -327,18 +321,17 @@ run-deployment:
 	fi
 	if [ "${DEPLOYMENT_TYPE}" = "docker-compose" ];\
 	then\
-		cd deployments/build/ &&  \
+		cd abci_build/ &&  \
 		docker-compose up --force-recreate -t 600
 		exit 0
 	fi
 	if [ "${DEPLOYMENT_TYPE}" = "kubernetes" ];\
 	then\
-		kubectl create ns ${VERSION}
+		kubectl create ns ${VERSION}|| (echo "failed to deploy to namespace already existing!" && exit 0)
 		kubectl create secret generic regcred \
           --from-file=.dockerconfigjson=/home/$(shell whoami)/.docker/config.json \
-          --type=kubernetes.io/dockerconfigjson -n ${VERSION}
-		cd deployments/build/ && \
-		kubectl apply -f build.yaml -n ${VERSION} && exit 0
+          --type=kubernetes.io/dockerconfigjson -n ${VERSION} || (echo "failed to create secret" && exit 1)
+		cd abci_build/ && kubectl apply -f build.yaml -n ${VERSION} && exit 0
 	fi
 	echo "Please ensure you have set the environment variable 'DEPLOYMENT_TYPE'"
 	exit 1
@@ -362,15 +355,25 @@ build-deploy:
 		exit 1
 	fi
 	echo "Building deployment for ${DEPLOYMENT_TYPE} ${DEPLOYMENT_KEYS} ${SERVICE_ID}"
-	
+
 	if [ "${DEPLOYMENT_TYPE}" = "kubernetes" ];\
 	then\
+		if [ "${VERSION}" = "cluster-dev" ];\
+		then\
+			swarm deploy build deployment ${SERVICE_ID} ${DEPLOYMENT_KEYS} --kubernetes --force --dev
+			exit 0
+		fi
 		swarm deploy build deployment ${SERVICE_ID} ${DEPLOYMENT_KEYS} --kubernetes --force
 		exit 0
 	fi
+	if [ "${VERSION}" = "dev" ];\
+	then\
+		swarm deploy build deployment ${SERVICE_ID} ${DEPLOYMENT_KEYS} --docker --dev --force
+		exit 0
+	fi
+	swarm deploy build deployment ${SERVICE_ID} ${DEPLOYMENT_KEYS} --docker
 
-	swarm deploy build deployment ${SERVICE_ID} ${DEPLOYMENT_KEYS} --force
-	
+
 protolint_install:
 	GO111MODULE=on GOPATH=~/go go get -u -v github.com/yoheimuta/protolint/cmd/protolint@v0.27.0
 
@@ -397,27 +400,25 @@ teardown-docker-compose:
 teardown-kubernetes:
 	if [ "${VERSION}" = "" ];\
 	then\
-		echo "Ensure you have exported a version to build!";\
+		echo "Ensure you have exported a version to teardown!";\
 		exit 1
 	fi
-	kubectl delete ns ${VERSION} && exit 0
-	exit 1
+	kubectl delete ns ${VERSION}
+	echo "Done!"
 
 .PHONY: check_abci_specs
 check_abci_specs:
-	cp scripts/generate_abciapp_spec.py generate_abciapp_spec.py
-	python generate_abciapp_spec.py -c packages.valory.skills.apy_estimation_abci.rounds.APYEstimationAbciApp > packages/valory/skills/apy_estimation_abci/fsm_specification.yaml || (echo "Failed to check apy_estimation_abci consistency" && exit 1)
-	python generate_abciapp_spec.py -c packages.valory.skills.apy_estimation_chained_abci.composition.APYEstimationAbciAppChained > packages/valory/skills/apy_estimation_chained_abci/fsm_specification.yaml || (echo "Failed to check apy_estimation_chained_abci consistency" && exit 1)
-	python generate_abciapp_spec.py -c packages.valory.skills.liquidity_provision_abci.composition.LiquidityProvisionAbciApp > packages/valory/skills/liquidity_provision_abci/fsm_specification.yaml || (echo "Failed to check liquidity_provision_abci consistency" && exit 1)
-	python generate_abciapp_spec.py -c packages.valory.skills.liquidity_rebalancing_abci.rounds.LiquidityRebalancingAbciApp > packages/valory/skills/liquidity_rebalancing_abci/fsm_specification.yaml || (echo "Failed to check liquidity_rebalancing_abci consistency" && exit 1)
-	python generate_abciapp_spec.py -c packages.valory.skills.oracle_abci.composition.OracleAbciApp > packages/valory/skills/oracle_abci/fsm_specification.yaml || (echo "Failed to check oracle_abci consistency" && exit 1)
-	python generate_abciapp_spec.py -c packages.valory.skills.oracle_deployment_abci.rounds.OracleDeploymentAbciApp > packages/valory/skills/oracle_deployment_abci/fsm_specification.yaml || (echo "Failed to check oracle_deployment_abci consistency" && exit 1)
-	python generate_abciapp_spec.py -c packages.valory.skills.price_estimation_abci.rounds.PriceAggregationAbciApp > packages/valory/skills/price_estimation_abci/fsm_specification.yaml || (echo "Failed to check price_estimation_abci consistency" && exit 1)
-	python generate_abciapp_spec.py -c packages.valory.skills.registration_abci.rounds.AgentRegistrationAbciApp > packages/valory/skills/registration_abci/fsm_specification.yaml || (echo "Failed to check registration_abci consistency" && exit 1)
-	python generate_abciapp_spec.py -c packages.valory.skills.reset_pause_abci.rounds.ResetPauseABCIApp > packages/valory/skills/reset_pause_abci/fsm_specification.yaml || (echo "Failed to check reset_pause_abci consistency" && exit 1)
-	python generate_abciapp_spec.py -c packages.valory.skills.safe_deployment_abci.rounds.SafeDeploymentAbciApp > packages/valory/skills/safe_deployment_abci/fsm_specification.yaml || (echo "Failed to check safe_deployment_abci consistency" && exit 1)
-	python generate_abciapp_spec.py -c packages.valory.skills.simple_abci.rounds.SimpleAbciApp > packages/valory/skills/simple_abci/fsm_specification.yaml || (echo "Failed to check simple_abci consistency" && exit 1)
-	python generate_abciapp_spec.py -c packages.valory.skills.transaction_settlement_abci.rounds.TransactionSubmissionAbciApp > packages/valory/skills/transaction_settlement_abci/fsm_specification.yaml || (echo "Failed to check transaction_settlement_abci consistency" && exit 1)
-	rm generate_abciapp_spec.py
+	python -m aea_swarm.cli analyse abci generate-app-specs packages.valory.skills.apy_estimation_abci.rounds.APYEstimationAbciApp packages/valory/skills/apy_estimation_abci/fsm_specification.yaml || (echo "Failed to check apy_estimation_abci consistency" && exit 1)
+	python -m aea_swarm.cli analyse abci generate-app-specs packages.valory.skills.apy_estimation_chained_abci.composition.APYEstimationAbciAppChained packages/valory/skills/apy_estimation_chained_abci/fsm_specification.yaml || (echo "Failed to check apy_estimation_chained_abci consistency" && exit 1)
+	python -m aea_swarm.cli analyse abci generate-app-specs packages.valory.skills.liquidity_provision_abci.composition.LiquidityProvisionAbciApp packages/valory/skills/liquidity_provision_abci/fsm_specification.yaml || (echo "Failed to check liquidity_provision_abci consistency" && exit 1)
+	python -m aea_swarm.cli analyse abci generate-app-specs packages.valory.skills.liquidity_rebalancing_abci.rounds.LiquidityRebalancingAbciApp packages/valory/skills/liquidity_rebalancing_abci/fsm_specification.yaml || (echo "Failed to check liquidity_rebalancing_abci consistency" && exit 1)
+	python -m aea_swarm.cli analyse abci generate-app-specs packages.valory.skills.oracle_abci.composition.OracleAbciApp packages/valory/skills/oracle_abci/fsm_specification.yaml || (echo "Failed to check oracle_abci consistency" && exit 1)
+	python -m aea_swarm.cli analyse abci generate-app-specs packages.valory.skills.oracle_deployment_abci.rounds.OracleDeploymentAbciApp packages/valory/skills/oracle_deployment_abci/fsm_specification.yaml || (echo "Failed to check oracle_deployment_abci consistency" && exit 1)
+	python -m aea_swarm.cli analyse abci generate-app-specs packages.valory.skills.price_estimation_abci.rounds.PriceAggregationAbciApp packages/valory/skills/price_estimation_abci/fsm_specification.yaml || (echo "Failed to check price_estimation_abci consistency" && exit 1)
+	python -m aea_swarm.cli analyse abci generate-app-specs packages.valory.skills.registration_abci.rounds.AgentRegistrationAbciApp packages/valory/skills/registration_abci/fsm_specification.yaml || (echo "Failed to check registration_abci consistency" && exit 1)
+	python -m aea_swarm.cli analyse abci generate-app-specs packages.valory.skills.reset_pause_abci.rounds.ResetPauseABCIApp packages/valory/skills/reset_pause_abci/fsm_specification.yaml || (echo "Failed to check reset_pause_abci consistency" && exit 1)
+	python -m aea_swarm.cli analyse abci generate-app-specs packages.valory.skills.safe_deployment_abci.rounds.SafeDeploymentAbciApp packages/valory/skills/safe_deployment_abci/fsm_specification.yaml || (echo "Failed to check safe_deployment_abci consistency" && exit 1)
+	python -m aea_swarm.cli analyse abci generate-app-specs packages.valory.skills.simple_abci.rounds.SimpleAbciApp packages/valory/skills/simple_abci/fsm_specification.yaml || (echo "Failed to check simple_abci consistency" && exit 1)
+	python -m aea_swarm.cli analyse abci generate-app-specs packages.valory.skills.transaction_settlement_abci.rounds.TransactionSubmissionAbciApp packages/valory/skills/transaction_settlement_abci/fsm_specification.yaml || (echo "Failed to check transaction_settlement_abci consistency" && exit 1)
 	echo "Successfully validated abcis!"
 

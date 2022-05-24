@@ -280,7 +280,7 @@ Recall that the skill needs to define the `AbciApp`; the `Rounds`, `Behaviours` 
         +end_block()
       }
   </div>
-  <figcaption>Hierarchy of the `PrintMessageRound` class (some methods and fields are omitted)</figcaption>
+  <figcaption>Hierarchy of the PrintMessageRound class (some methods and fields are omitted)</figcaption>
   </figure>
 
   Note that the `HelloWorldABCIAbstractRound` is merely a convenience class defined in the same file. The class `CollectDifferentUntilAllRound` is a helper class for rounds that expect that each agent sends a different message. In this case, the message to be sent is the agent printed by each agent, which will be obviously different for each agent (one of them will be the celebrated 'Hello World' message, and the others will be 'empty' messages). Other helper classes exist within the stack to account for rounds that expect agents to agree on a common value.
@@ -347,7 +347,7 @@ Recall that the skill needs to define the `AbciApp`; the `Rounds`, `Behaviours` 
           +async_act()
       }
   </div>
-  <figcaption>Hierarchy of the `PrintMessageBehaviour` class (some methods and fields are omitted)</figcaption>
+  <figcaption>Hierarchy of the PrintMessageBehaviour class (some methods and fields are omitted)</figcaption>
   </figure>
 
 Again, the `HelloWorldABCIBaseState` is a convenience class, and the upper class in the hierarchy are abstract classes from the stack that facilitate reusability of code when implementing the `Behaviour`. An excerpt of its code is:

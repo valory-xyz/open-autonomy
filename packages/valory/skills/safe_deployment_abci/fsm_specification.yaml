@@ -34,4 +34,3 @@ transition_func:
     (ValidateSafeRound, NONE): RandomnessSafeRound
     (ValidateSafeRound, NO_MAJORITY): RandomnessSafeRound
     (ValidateSafeRound, VALIDATE_TIMEOUT): RandomnessSafeRound
-
