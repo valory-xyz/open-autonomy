@@ -105,7 +105,7 @@ class TestResetAndPauseBehaviour(ResetPauseAbciFSMBehaviourBaseCase):
         ):
             if tendermint_reset_status is not None:
                 # Increase the period_count to force the call to reset_tendermint_with_wait()
-                self.behaviour.current_state.synchronized_data.add_new_data()
+                self.behaviour.current_state.synchronized_data.create()
 
             self.behaviour.act_wrapper()
             self.behaviour.act_wrapper()

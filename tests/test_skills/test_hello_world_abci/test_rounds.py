@@ -250,7 +250,7 @@ class TestResetAndPauseRound(BaseRoundTestClass):
         for payload in payloads:
             test_round.process_payload(payload)
 
-        actual_next_state = self.synchronized_data.add_new_data(
+        actual_next_state = self.synchronized_data.create(
             participants=self.synchronized_data.participants,
             all_participants=self.synchronized_data.all_participants,
         )

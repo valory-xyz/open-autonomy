@@ -185,7 +185,7 @@ class BaseResetRound(CollectSameUntilThresholdRound, SimpleABCIAbstractRound):
     def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Event]]:
         """Process the end of the block."""
         if self.threshold_reached:
-            state = self.synchronized_data.add_new_data(
+            state = self.synchronized_data.create(
                 participants=self.synchronized_data.participants,
                 all_participants=self.synchronized_data.all_participants,
             )

@@ -509,7 +509,7 @@ class ResetRound(CollectSameUntilThresholdRound):
         """Process the end of the block."""
         if self.threshold_reached:
             state_data = self.synchronized_data.db.get_latest()
-            state = self.synchronized_data.add_new_data(
+            state = self.synchronized_data.create(
                 **state_data,
             )
             return state, Event.DONE

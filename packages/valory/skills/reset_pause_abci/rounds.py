@@ -90,7 +90,7 @@ class ResetAndPauseRound(CollectSameUntilThresholdRound):
             extra_kwargs = {}
             for key in self.synchronized_data.db.cross_reset_persisted_keys:
                 extra_kwargs[key] = self.synchronized_data.db.get_strict(key)
-            state = self.synchronized_data.add_new_data(
+            state = self.synchronized_data.create(
                 participants=self.synchronized_data.participants,
                 all_participants=self.synchronized_data.all_participants,
                 **extra_kwargs,

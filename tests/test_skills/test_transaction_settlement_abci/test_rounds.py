@@ -711,7 +711,7 @@ def test_synchronized_datas() -> None:
     )
     assert synchronized_data_____.keepers_threshold_exceeded
     assert synchronized_data_____.blacklisted_keepers == {"t" * 42}
-    updated_state = synchronized_data_____.add_new_data()
+    updated_state = synchronized_data_____.create()
     assert updated_state.blacklisted_keepers == set()
 
     # test wrong tx hashes serialization
@@ -748,7 +748,7 @@ class TestResetRound(BaseCollectSameUntilThresholdRoundTest):
                 round_payloads=get_participant_to_period_count(
                     self.participants, next_period_count
                 ),
-                state_update_fn=lambda _synchronized_data, _: _synchronized_data.add_new_data(
+                state_update_fn=lambda _synchronized_data, _: _synchronized_data.create(
                     participants=self.participants,
                     all_participants=self.participants,
                     keeper_randomness=DUMMY_RANDOMNESS,

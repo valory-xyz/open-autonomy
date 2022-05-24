@@ -439,7 +439,7 @@ class TestTransactionHashBehaviour(PriceEstimationFSMBehaviourBaseCase):
         )
 
         if this_period_count != 0:
-            synchronized_data.db.add_new_data(
+            synchronized_data.db.create(
                 **next_period_data,
             )
 

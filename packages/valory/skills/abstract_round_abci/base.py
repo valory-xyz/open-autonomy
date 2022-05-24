@@ -544,7 +544,7 @@ class AbciAppDB:
             else:
                 self._data[self.reset_index][key] = [value]
 
-    def add_new_data(self, **kwargs: Any) -> None:
+    def create(self, **kwargs: Any) -> None:
         """Add a new entry to the data."""
         self._data[self.reset_index + 1] = {
             key: [value] for key, value in kwargs.items()
@@ -654,13 +654,13 @@ class BaseSynchronizedData:
         )
         return class_(db=self.db)
 
-    def add_new_data(
+    def create(
         self,
         synchronized_data_class: Optional[Type] = None,
         **kwargs: Any,
     ) -> "BaseSynchronizedData":
         """Copy and update with new data."""
-        self.db.add_new_data(**kwargs)
+        self.db.create(**kwargs)
         class_ = (
             type(self) if synchronized_data_class is None else synchronized_data_class
         )
