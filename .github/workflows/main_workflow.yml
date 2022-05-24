@@ -36,106 +36,106 @@ jobs:
         pipenv run pip install -e .[all]
         pipenv lock
 
-  # copyright_and_doc_check:
-  #   continue-on-error: False
-  #   runs-on: ${{ matrix.os }}
+  copyright_and_doc_check:
+    continue-on-error: False
+    runs-on: ${{ matrix.os }}
 
-  #   strategy:
-  #     matrix:
-  #       os: [ubuntu-latest]
-  #       python-version: [3.7]
+    strategy:
+      matrix:
+        os: [ubuntu-latest]
+        python-version: [3.7]
 
-  #   timeout-minutes: 30
+    timeout-minutes: 30
 
-  #   steps:
-  #   - uses: actions/checkout@v2
-  #     with:
-  #       fetch-depth: 0
-  #   - uses: actions/setup-python@master
-  #     with:
-  #       python-version: ${{ matrix.python-version }}
-  #   - name: Install dependencies
-  #     run:  |
-  #       sudo apt-get update --fix-missing
-  #       sudo apt-get autoremove
-  #       sudo apt-get autoclean
-  #       pip install tox
-  #       pip install --user --upgrade setuptools
-  #   - name: Check copyright
-  #     run: tox -e check-copyright
-  #   - name: Check docs
-  #     run: tox -e check-api-docs
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        fetch-depth: 0
+    - uses: actions/setup-python@master
+      with:
+        python-version: ${{ matrix.python-version }}
+    - name: Install dependencies
+      run:  |
+        sudo apt-get update --fix-missing
+        sudo apt-get autoremove
+        sudo apt-get autoclean
+        pip install tox
+        pip install --user --upgrade setuptools
+    - name: Check copyright
+      run: tox -e check-copyright
+    - name: Check docs
+      run: tox -e check-api-docs
 
-  # linter_checks:
-  #   continue-on-error: False
-  #   runs-on: ${{ matrix.os }}
+  linter_checks:
+    continue-on-error: False
+    runs-on: ${{ matrix.os }}
 
-  #   strategy:
-  #     matrix:
-  #       os: [ubuntu-latest]
-  #       python-version: [3.7]
+    strategy:
+      matrix:
+        os: [ubuntu-latest]
+        python-version: [3.7]
 
-  #   timeout-minutes: 30
+    timeout-minutes: 30
 
-  #   steps:
-  #   - uses: actions/checkout@master
-  #   - uses: actions/setup-python@master
-  #     with:
-  #       python-version: ${{ matrix.python-version }}
-  #   - name: Install dependencies
-  #     run:  |
-  #       sudo apt-get update --fix-missing
-  #       sudo apt-get autoremove
-  #       sudo apt-get autoclean
-  #       pip install tox
-  #       pip install --user --upgrade setuptools
-  #       # install Protobuf compiler
-  #       wget https://github.com/protocolbuffers/protobuf/releases/download/v3.19.4/protoc-3.19.4-linux-x86_64.zip
-  #       unzip protoc-3.19.4-linux-x86_64.zip -d protoc
-  #       sudo mv protoc/bin/protoc /usr/local/bin/protoc
-  #       # install IPFS
-  #       sudo apt-get install -y wget
-  #       sudo npm install -g markdown-spellcheck
-  #       wget -O ./go-ipfs.tar.gz https://dist.ipfs.io/go-ipfs/v0.6.0/go-ipfs_v0.6.0_linux-amd64.tar.gz
-  #       tar xvfz go-ipfs.tar.gz
-  #       sudo mv go-ipfs/ipfs /usr/local/bin/ipfs
-  #       ipfs init
-  #       make protolint_install
-  #   - name: Check generate protocols
-  #     run: tox -e check-generate-all-protocols
-  #   - name: Security checks
-  #     run: |
-  #       tox -e bandit
-  #       tox -e safety
-  #   - name: Check packages
-  #     run: tox -e check-packages
-  #   - name: Check hash
-  #     run: tox -e check-hash
-  #   - name: Code style check
-  #     run: |
-  #       tox -e black-check
-  #       tox -e isort-check
-  #       tox -e flake8
-  #       tox -e vulture
-  #       tox -e darglint
-  #   - name: Static type check
-  #     run: tox -e mypy
-  #   - name: Pylint
-  #     run: tox -e pylint
-  #   - name: Check spelling
-  #     run: tox -e spell-check
-  #   - name: AbciApp consistency checks
-  #     run: |
-  #       tox -e check-abci-docstrings
-  #       tox -e check-abciapp-specs
-  #       tox -e check-handlers
+    steps:
+    - uses: actions/checkout@master
+    - uses: actions/setup-python@master
+      with:
+        python-version: ${{ matrix.python-version }}
+    - name: Install dependencies
+      run:  |
+        sudo apt-get update --fix-missing
+        sudo apt-get autoremove
+        sudo apt-get autoclean
+        pip install tox
+        pip install --user --upgrade setuptools
+        # install Protobuf compiler
+        wget https://github.com/protocolbuffers/protobuf/releases/download/v3.19.4/protoc-3.19.4-linux-x86_64.zip
+        unzip protoc-3.19.4-linux-x86_64.zip -d protoc
+        sudo mv protoc/bin/protoc /usr/local/bin/protoc
+        # install IPFS
+        sudo apt-get install -y wget
+        sudo npm install -g markdown-spellcheck
+        wget -O ./go-ipfs.tar.gz https://dist.ipfs.io/go-ipfs/v0.6.0/go-ipfs_v0.6.0_linux-amd64.tar.gz
+        tar xvfz go-ipfs.tar.gz
+        sudo mv go-ipfs/ipfs /usr/local/bin/ipfs
+        ipfs init
+        make protolint_install
+    - name: Check generate protocols
+      run: tox -e check-generate-all-protocols
+    - name: Security checks
+      run: |
+        tox -e bandit
+        tox -e safety
+    - name: Check packages
+      run: tox -e check-packages
+    - name: Check hash
+      run: tox -e check-hash
+    - name: Code style check
+      run: |
+        tox -e black-check
+        tox -e isort-check
+        tox -e flake8
+        tox -e vulture
+        tox -e darglint
+    - name: Static type check
+      run: tox -e mypy
+    - name: Pylint
+      run: tox -e pylint
+    - name: Check spelling
+      run: tox -e spell-check
+    - name: AbciApp consistency checks
+      run: |
+        tox -e check-abci-docstrings
+        tox -e check-abciapp-specs
+        tox -e check-handlers
 
   test:
     continue-on-error: True
-    # needs:
-    #   - lock_check
-    #   - copyright_and_doc_check
-    #   - linter_checks
+    needs:
+      - lock_check
+      - copyright_and_doc_check
+      - linter_checks
     runs-on: ${{ matrix.os }}
 
     strategy:
@@ -221,79 +221,79 @@ jobs:
           name: codecov-umbrella
           fail_ci_if_error: false
 
-  # e2e:
-  #   continue-on-error: True
-  #   needs:
-  #     - lock_check
-  #     - copyright_and_doc_check
-  #     - linter_checks
-  #   runs-on: ${{ matrix.os }}
+  e2e:
+    continue-on-error: True
+    needs:
+      - lock_check
+      - copyright_and_doc_check
+      - linter_checks
+    runs-on: ${{ matrix.os }}
 
-  #   strategy:
-  #     matrix:
-  #       os: [ ubuntu-latest ]
-  #       python-version: [ 3.7 ]
+    strategy:
+      matrix:
+        os: [ ubuntu-latest ]
+        python-version: [ 3.7 ]
 
-  #   timeout-minutes: 40
+    timeout-minutes: 40
 
-  #   steps:
-  #     - uses: actions/checkout@master
-  #     - name: Checkout submodules
-  #       uses: srt32/git-actions@v0.0.3
-  #       with:
-  #         args: git config --global --add safe.directory /github/workspace && git config --global --add safe.directory /github/workspace/third_party/contracts-amm && git config --global --add safe.directory /github/workspace/third_party/safe-contracts && git submodule update --init --recursive
-  #     - uses: actions/setup-python@master
-  #       with:
-  #         submodules: recursive
-  #         python-version: ${{ matrix.python-version }}
-  #     - name: Install dependencies
-  #       run: |
-  #         sudo apt-get update --fix-missing
-  #         sudo apt-get autoremove
-  #         sudo apt-get autoclean
-  #         pip install tox
-  #         pip install --user --upgrade setuptools
+    steps:
+      - uses: actions/checkout@master
+      - name: Checkout submodules
+        uses: srt32/git-actions@v0.0.3
+        with:
+          args: git config --global --add safe.directory /github/workspace && git config --global --add safe.directory /github/workspace/third_party/contracts-amm && git config --global --add safe.directory /github/workspace/third_party/safe-contracts && git submodule update --init --recursive
+      - uses: actions/setup-python@master
+        with:
+          submodules: recursive
+          python-version: ${{ matrix.python-version }}
+      - name: Install dependencies
+        run: |
+          sudo apt-get update --fix-missing
+          sudo apt-get autoremove
+          sudo apt-get autoclean
+          pip install tox
+          pip install --user --upgrade setuptools
 
-  #         # install Protobuf compiler
-  #         wget https://github.com/protocolbuffers/protobuf/releases/download/v3.19.4/protoc-3.19.4-linux-x86_64.zip
-  #         unzip protoc-3.19.4-linux-x86_64.zip -d protoc
-  #         sudo mv protoc/bin/protoc /usr/local/bin/protoc
+          # install Protobuf compiler
+          wget https://github.com/protocolbuffers/protobuf/releases/download/v3.19.4/protoc-3.19.4-linux-x86_64.zip
+          unzip protoc-3.19.4-linux-x86_64.zip -d protoc
+          sudo mv protoc/bin/protoc /usr/local/bin/protoc
 
-  #         # install IPFS
-  #         sudo apt-get install -y wget
-  #         wget -O ./go-ipfs.tar.gz https://dist.ipfs.io/go-ipfs/v0.6.0/go-ipfs_v0.6.0_linux-amd64.tar.gz
-  #         tar xvfz go-ipfs.tar.gz
-  #         sudo mv go-ipfs/ipfs /usr/local/bin/ipfs
-  #         ipfs init
+          # install IPFS
+          sudo apt-get install -y wget
+          wget -O ./go-ipfs.tar.gz https://dist.ipfs.io/go-ipfs/v0.6.0/go-ipfs_v0.6.0_linux-amd64.tar.gz
+          tar xvfz go-ipfs.tar.gz
+          sudo mv go-ipfs/ipfs /usr/local/bin/ipfs
+          ipfs init
 
-  #         # install Tendermint
-  #         wget -O tendermint.tar.gz https://github.com/tendermint/tendermint/releases/download/v0.34.11/tendermint_0.34.11_linux_amd64.tar.gz
-  #         tar -xf tendermint.tar.gz
-  #         sudo mv tendermint /usr/local/bin/tendermint
+          # install Tendermint
+          wget -O tendermint.tar.gz https://github.com/tendermint/tendermint/releases/download/v0.34.11/tendermint_0.34.11_linux_amd64.tar.gz
+          tar -xf tendermint.tar.gz
+          sudo mv tendermint /usr/local/bin/tendermint
           
           
-  #         # ensure yarn is installed
-  #         curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | sudo apt-key add -
-  #         echo "deb https://dl.yarnpkg.com/debian/ stable main" | sudo tee /etc/apt/sources.list.d/yarn.list
-  #         sudo apt update
-  #         sudo apt install yarn -y
+          # ensure yarn is installed
+          curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | sudo apt-key add -
+          echo "deb https://dl.yarnpkg.com/debian/ stable main" | sudo tee /etc/apt/sources.list.d/yarn.list
+          sudo apt update
+          sudo apt install yarn -y
  
-  #         # pull node image needed for the integration tests
-  #         docker pull node:16.7.0
-  #         docker pull trufflesuite/ganache:beta
-  #         # build hardhat node in third_party/safe-contracts
-  #         cd third_party/safe-contracts &&\
-  #           sudo chown -R $(whoami) .husky &&\
-  #           yarn
-  #         # build hardhat node in third_party/contracts-amm
-  #         cd ../..
-  #         cd third_party/contracts-amm &&\
-  #           yarn
+          # pull node image needed for the integration tests
+          docker pull node:16.7.0
+          docker pull trufflesuite/ganache:beta
+          # build hardhat node in third_party/safe-contracts
+          cd third_party/safe-contracts &&\
+            sudo chown -R $(whoami) .husky &&\
+            yarn
+          # build hardhat node in third_party/contracts-amm
+          cd ../..
+          cd third_party/contracts-amm &&\
+            yarn
 
-  #         # install Skaffold needed in order to build the Flask with Tendermint image
-  #         curl -Lo skaffold https://storage.googleapis.com/skaffold/releases/v1.33.0/skaffold-linux-amd64 &&\
-  #           sudo install skaffold /usr/local/bin/
+          # install Skaffold needed in order to build the Flask with Tendermint image
+          curl -Lo skaffold https://storage.googleapis.com/skaffold/releases/v1.33.0/skaffold-linux-amd64 &&\
+            sudo install skaffold /usr/local/bin/
 
-  #     - name: Unit tests
-  #       run: |
-  #         tox --develop -e py${{ matrix.python-version }} -- -m 'e2e'
+      - name: Unit tests
+        run: |
+          tox --develop -e py${{ matrix.python-version }} -- -m 'e2e'
