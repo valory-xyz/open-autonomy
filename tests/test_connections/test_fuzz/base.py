@@ -65,10 +65,6 @@ class BaseFuzzyTests(AEATestCaseMany):
         cls.set_agent_context(cls.agent_name)
         cls.generate_private_key("ethereum", "ethereum_private_key.txt")
         cls.add_private_key("ethereum", "ethereum_private_key.txt")
-        # issue certificates for libp2p proof of representation
-        cls.generate_private_key("cosmos", "cosmos_private_key.txt")
-        cls.add_private_key("cosmos", "cosmos_private_key.txt")
-        cls.run_cli_command("issue-certificates", cwd=cls._get_cwd())
 
         # we are mocking a tendermint node
         cls.set_config("vendor.valory.connections.abci.config.use_tendermint", False)
