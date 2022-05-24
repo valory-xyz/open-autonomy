@@ -451,7 +451,6 @@ class BaseResetRound(CollectSameUntilThresholdRound, APYEstimationAbstractRound)
         """Process the end of the block."""
         if self.threshold_reached:
             kwargs = dict(
-                synchronized_data_class=SynchronizedData,
                 participants=self.synchronized_data.participants,
                 all_participants=self.synchronized_data.all_participants,
                 full_training=False,
@@ -464,7 +463,7 @@ class BaseResetRound(CollectSameUntilThresholdRound, APYEstimationAbstractRound)
                 ] = self.synchronized_data.latest_observation_hist_hash
 
             updated_state = self.synchronized_data.create(
-                synchronized_data_class=None, **kwargs
+                synchronized_data_class=SynchronizedData, **kwargs
             )
             return updated_state, Event.DONE
 
