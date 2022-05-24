@@ -186,7 +186,7 @@ def get_participant_to_reset_payload(
 ) -> Dict[str, ResetPayload]:
     """Get reset payload."""
     return {
-        participant: ResetPayload(participant, period_count=1)
+        participant: ResetPayload(participant)
         for participant in participants
     }
 

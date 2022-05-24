@@ -405,22 +405,22 @@ class ResetPayload(BaseAPYPayload):
 
     transaction_type = TransactionType.RESET
 
-    def __init__(self, sender: str, period_count: int, **kwargs: Any) -> None:
+    def __init__(self, sender: str, reset: bool = True, **kwargs: Any) -> None:
         """Initialize an 'reset' transaction payload.
 
         :param sender: the sender (Ethereum) address
-        :param period_count: the period count id
+        :param reset: the reset flag
         :param kwargs: the keyword arguments
         """
         super().__init__(sender, **kwargs)
-        self._period_count = period_count
+        self._reset = reset
 
     @property
-    def period_count(self) -> int:
-        """Get the period_count."""
-        return self._period_count
+    def reset(self) -> int:
+        """Get the reset attribute."""
+        return self._reset
 
     @property
     def data(self) -> Dict:
         """Get the data."""
-        return dict(period_count=self.period_count)
+        return dict(reset=self.reset)

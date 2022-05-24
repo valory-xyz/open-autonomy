@@ -445,14 +445,13 @@ class BaseResetRound(CollectSameUntilThresholdRound, APYEstimationAbstractRound)
     """A round that represents the reset of a period"""
 
     allowed_tx_type = ResetPayload.transaction_type
-    payload_attribute = "period_count"
+    payload_attribute = "reset"
 
     def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Event]]:
         """Process the end of the block."""
         if self.threshold_reached:
             kwargs = dict(
                 synchronized_data_class=SynchronizedData,
-                period_count=self.most_voted_payload,
                 participants=self.synchronized_data.participants,
                 all_participants=self.synchronized_data.all_participants,
                 full_training=False,
@@ -464,7 +463,7 @@ class BaseResetRound(CollectSameUntilThresholdRound, APYEstimationAbstractRound)
                     "latest_observation_hist_hash"
                 ] = self.synchronized_data.latest_observation_hist_hash
 
-            updated_state = self.synchronized_data.update(**kwargs)
+            updated_state = self.synchronized_data.create(**kwargs)
             return updated_state, Event.DONE
 
         if not self.is_majority_possible(

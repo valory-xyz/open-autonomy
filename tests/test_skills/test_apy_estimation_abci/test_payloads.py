@@ -187,9 +187,9 @@ class TestPayloads:
     @staticmethod
     def test_reset_payload() -> None:
         """Test `ResetPayload`"""
-        payload = ResetPayload(sender="sender", period_count=0, id_="id")
+        payload = ResetPayload(sender="sender", id_="id")
 
         assert payload.transaction_type == TransactionType.RESET
-        assert payload.period_count == 0
+        assert payload.reset == True
         assert payload.id_ == "id"
-        assert payload.data == {"period_count": 0}
+        assert payload.data == {"reset": True}
