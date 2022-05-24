@@ -50,7 +50,7 @@ class ResetAndPauseRound(CollectSameUntilThresholdRound):
 
     round_id = "reset_and_pause"
     allowed_tx_type = ResetPausePayload.transaction_type
-    payload_attribute = "period_count"
+    payload_attribute = "reset"
 
     def process_payload(self, payload: BaseTxPayload) -> None:  # pragma: nocover
         """Process payload."""

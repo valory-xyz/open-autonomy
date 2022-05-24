@@ -28,9 +28,9 @@ from packages.valory.skills.reset_pause_abci.payloads import (
 def test_reset_pause_payload() -> None:
     """Test `ResetPausePayload`."""
 
-    payload = ResetPausePayload(sender="sender", period_count=1)
+    payload = ResetPausePayload(sender="sender")
 
-    assert payload.period_count == 1
-    assert payload.data == {"period_count": 1}
+    assert payload.reset == True
+    assert payload.data == {"reset": True}
     assert payload.transaction_type == TransactionType.RESETPAUSE
     assert ResetPausePayload.from_json(payload.json) == payload

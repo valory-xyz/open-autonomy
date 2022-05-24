@@ -37,12 +37,12 @@ MAX_PARTICIPANTS: int = 4
 DUMMY_RANDOMNESS = 0.1  # for coverage purposes
 
 
-def get_participant_to_period_count(
-    participants: FrozenSet[str], period_count: int
+def get_participant_to_reset(
+    participants: FrozenSet[str]
 ) -> Dict[str, ResetPausePayload]:
     """participant_to_selection"""
     return {
-        participant: ResetPausePayload(sender=participant, period_count=period_count)
+        participant: ResetPausePayload(sender=participant)
         for participant in participants
     }
 
@@ -65,12 +65,11 @@ class TestResetAndPauseRound(BaseCollectSameUntilThresholdRoundTest):
         test_round = ResetAndPauseRound(
             state=synchronized_data, consensus_params=self.consensus_params
         )
-        next_period_count = 1
         self._complete_run(
             self._test_round(
                 test_round=test_round,
-                round_payloads=get_participant_to_period_count(
-                    self.participants, next_period_count
+                round_payloads=get_participant_to_reset(
+                    self.participants
                 ),
                 state_update_fn=lambda _synchronized_data, _: _synchronized_data.create(
                     participants=self.participants,
@@ -78,7 +77,7 @@ class TestResetAndPauseRound(BaseCollectSameUntilThresholdRoundTest):
                     keeper_randomness=DUMMY_RANDOMNESS,
                 ),
                 state_attr_checks=[],  # [lambda state: state.participants],
-                most_voted_payload=next_period_count,
+                most_voted_payload=True,
                 exit_event=self._event_class.DONE,
             )
         )
