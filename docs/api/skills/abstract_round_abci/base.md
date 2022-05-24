@@ -635,7 +635,16 @@ Class to represent all data replicated across periods.
 def __init__(initial_data: Dict[str, Any], cross_reset_persisted_keys: Optional[List[str]] = None, format_initial_data: bool = True) -> None
 ```
 
-Initialize a period state.
+Initialize the AbciApp database.
+
+initial_data can be passed either as Dict[str, Any] of Dict[str, List[Any]] (the database internal format). Use the format_initial_data to decide if
+initial_data should be automatically converted.
+
+**Arguments**:
+
+- `initial_data`: the initial data
+- `cross_reset_persisted_keys`: data keys that will be kept after a reset
+- `format_initial_data`: flag to indicate whether initial_data should be converted from Dict[str, Any] to Dict[str, List[Any]]
 
 <a id="packages.valory.skills.abstract_round_abci.base.AbciAppDB.initial_data"></a>
 
@@ -651,6 +660,17 @@ Get the initial_data.
 **Returns**:
 
 the initial_data
+
+<a id="packages.valory.skills.abstract_round_abci.base.AbciAppDB.data_to_list"></a>
+
+#### data`_`to`_`list
+
+```python
+@classmethod
+def data_to_list(cls, data: Dict[str, Any]) -> Dict[str, List[Any]]
+```
+
+Convert Dict[str, Any] to Dict[str, List[Any]].
 
 <a id="packages.valory.skills.abstract_round_abci.base.AbciAppDB.reset_index"></a>
 
@@ -710,7 +730,7 @@ Get a value from the data dictionary and raise if it is None.
 #### update
 
 ```python
-def update(**kwargs: Any) -> None
+def update(overwrite_history: bool = False, **kwargs: Any) -> None
 ```
 
 Update the current data.
@@ -720,7 +740,7 @@ Update the current data.
 #### create
 
 ```python
-def create(**kwargs: Any) -> None
+def create(format_data: bool = True, **kwargs: Any) -> None
 ```
 
 Add a new entry to the data.
@@ -830,6 +850,11 @@ def period_count() -> int
 
 Get the period count.
 
+Periods are executions between calls to AbciAppDB.create(), so as soon as it is called,
+a new period begins. It is useful to have a logical subdivision of the FSM execution.
+For example, if AbciAppDB.create() is called during reset, then a period will be the
+execution between resets.
+
 <a id="packages.valory.skills.abstract_round_abci.base.BaseSynchronizedData.participants"></a>
 
 #### participants
@@ -888,7 +913,7 @@ Get the number of participants.
 #### update
 
 ```python
-def update(synchronized_data_class: Optional[Type] = None, **kwargs: Any, ,) -> "BaseSynchronizedData"
+def update(synchronized_data_class: Optional[Type] = None, overwrite_history: bool = False, **kwargs: Any, ,) -> "BaseSynchronizedData"
 ```
 
 Copy and update the current data.
@@ -898,7 +923,7 @@ Copy and update the current data.
 #### create
 
 ```python
-def create(synchronized_data_class: Optional[Type] = None, **kwargs: Any, ,) -> "BaseSynchronizedData"
+def create(synchronized_data_class: Optional[Type] = None, format_data: bool = True, **kwargs: Any, ,) -> "BaseSynchronizedData"
 ```
 
 Copy and update with new data.
