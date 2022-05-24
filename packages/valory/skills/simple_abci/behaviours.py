@@ -230,7 +230,7 @@ class BaseResetBehaviour(SimpleABCIBaseState):
             )
 
         payload = ResetPayload(
-            self.context.agent_address, self.synchronized_data.period_count + 1
+            self.context.agent_address, self.synchronized_data.period_count
         )
 
         yield from self.send_a2a_transaction(payload)

@@ -229,6 +229,7 @@ class TransformRound(CollectSameUntilThresholdRound, APYEstimationAbstractRound)
         if self.threshold_reached:
             updated_state = self.synchronized_data.update(
                 synchronized_data_class=SynchronizedData,
+                overwrite_history=False,
                 participant_to_transform=self.collection,
                 most_voted_transform=self.most_voted_payload,
                 latest_observation_hist_hash=cast(
@@ -260,6 +261,7 @@ class PreprocessRound(CollectSameUntilThresholdRound, APYEstimationAbstractRound
 
             updated_state = self.synchronized_data.update(
                 synchronized_data_class=SynchronizedData,
+                overwrite_history=False,
                 participant_to_preprocessing=self.collection,
                 most_voted_split=self.most_voted_payload,
             )
@@ -309,6 +311,7 @@ class RandomnessRound(CollectSameUntilThresholdRound, APYEstimationAbstractRound
 
             updated_state = self.synchronized_data.update(
                 synchronized_data_class=SynchronizedData,
+                overwrite_history=False,
                 participants_to_randomness=self.collection,
                 most_voted_randomness=filtered_randomness,
             )
@@ -451,8 +454,6 @@ class BaseResetRound(CollectSameUntilThresholdRound, APYEstimationAbstractRound)
         """Process the end of the block."""
         if self.threshold_reached:
             kwargs = dict(
-                synchronized_data_class=SynchronizedData,
-                period_count=self.most_voted_payload,
                 participants=self.synchronized_data.participants,
                 all_participants=self.synchronized_data.all_participants,
                 full_training=False,
@@ -464,8 +465,10 @@ class BaseResetRound(CollectSameUntilThresholdRound, APYEstimationAbstractRound)
                     "latest_observation_hist_hash"
                 ] = self.synchronized_data.latest_observation_hist_hash
 
-            updated_state = self.synchronized_data.update(**kwargs)
-            return updated_state, Event.DONE
+            new_state = self.synchronized_data.create(
+                synchronized_data_class=SynchronizedData, format_data=True, **kwargs
+            )
+            return new_state, Event.DONE
 
         if not self.is_majority_possible(
             self.collection, self.synchronized_data.nb_participants

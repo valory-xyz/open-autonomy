@@ -1328,7 +1328,8 @@ class VotingRound(CollectionRound):
         if self.positive_vote_threshold_reached:
             state = self.synchronized_data.update(
                 synchronized_data_class=self.synchronized_data_class,
-                **{self.collection_key: self.collection},  # type: ignore
+                overwrite_history=False,
+                **{self.collection_key: self.collection},
             )
             return state, self.done_event
         if self.negative_vote_threshold_reached:
@@ -1375,7 +1376,8 @@ class CollectDifferentUntilThresholdRound(CollectionRound):
         ):
             state = self.synchronized_data.update(
                 synchronized_data_class=self.synchronized_data_class,
-                **{  # type: ignore
+                overwrite_history=False,
+                **{
                     self.selection_key: frozenset(list(self.collection.keys())),
                     self.collection_key: self.collection,
                 },
@@ -1423,7 +1425,8 @@ class CollectNonEmptyUntilThresholdRound(CollectDifferentUntilThresholdRound):
 
             state = self.synchronized_data.update(
                 synchronized_data_class=self.synchronized_data_class,
-                **{  # type: ignore
+                overwrite_history=False,
+                **{
                     self.selection_key: frozenset(list(self.collection.keys())),
                     self.collection_key: non_empty_values,
                 },
