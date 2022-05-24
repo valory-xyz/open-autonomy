@@ -26,6 +26,7 @@ from tests.test_agents.base import (
     BaseTestEnd2EndNormalExecution,
 )
 
+
 # round check log messages of the happy path
 EXPECTED_ROUND_LOG_COUNT = {
     "registration_startup": 1,

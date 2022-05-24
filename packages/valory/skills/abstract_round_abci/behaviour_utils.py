@@ -741,9 +741,7 @@ class BaseState(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
                 break
             # otherwise, repeat until done, or until stop condition is true
             if isinstance(res, HttpMessage) and self._tx_not_found(tx_hash, res):
-                self.context.logger.info(
-                    f"Tx {tx_hash} not found! Response = {res}"
-                )
+                self.context.logger.info(f"Tx {tx_hash} not found! Response = {res}")
             else:
                 self.context.logger.info(f"Tx sent but not delivered. Response = {res}")
             payload = payload.with_new_id()
