@@ -189,7 +189,7 @@ class ResetAndPauseBehaviour(HelloWorldABCIBaseState):
             )
 
         payload = ResetPayload(
-            self.context.agent_address, self.synchronized_data.period_count + 1
+            self.context.agent_address
         )
 
         yield from self.send_a2a_transaction(payload)

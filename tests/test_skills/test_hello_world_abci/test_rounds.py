@@ -64,11 +64,11 @@ def get_participant_to_selection(
 
 
 def get_participant_to_period_count(
-    participants: FrozenSet[str], period_count: int
+    participants: FrozenSet[str]
 ) -> Dict[str, ResetPayload]:
     """participant_to_selection"""
     return {
-        participant: ResetPayload(sender=participant, period_count=period_count)
+        participant: ResetPayload(sender=participant)
         for participant in participants
     }
 
@@ -237,7 +237,7 @@ class TestResetAndPauseRound(BaseRoundTestClass):
         )
 
         first_payload, *payloads = [
-            ResetPayload(sender=participant, period_count=1)
+            ResetPayload(sender=participant)
             for participant in self.participants
         ]
 

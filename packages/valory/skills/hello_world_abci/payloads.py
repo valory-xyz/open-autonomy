@@ -109,22 +109,12 @@ class ResetPayload(BaseHelloWorldAbciPayload):
 
     transaction_type = TransactionType.RESET
 
-    def __init__(self, sender: str, period_count: int, **kwargs: Any) -> None:
-        """Initialize an 'rest' transaction payload.
-
-        :param sender: the sender (Ethereum) address
-        :param period_count: the period count id
-        :param kwargs: the keyword arguments
-        """
-        super().__init__(sender, **kwargs)
-        self._period_count = period_count
-
     @property
-    def period_count(self) -> int:
-        """Get the period_count."""
-        return self._period_count
+    def reset(self) -> bool:
+        """Get the reset attribute."""
+        return True
 
     @property
     def data(self) -> Dict:
         """Get the data."""
-        return dict(period_count=self.period_count)
+        return dict(reset=self.reset)

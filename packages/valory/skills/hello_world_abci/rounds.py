@@ -150,7 +150,7 @@ class ResetAndPauseRound(CollectSameUntilThresholdRound, HelloWorldABCIAbstractR
 
     round_id = "reset_and_pause"
     allowed_tx_type = ResetPayload.transaction_type
-    payload_attribute = "period_count"
+    payload_attribute = "reset"
 
     def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Event]]:
         """Process the end of the block."""
