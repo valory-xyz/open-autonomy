@@ -30,7 +30,7 @@ from typing import Any, List, Tuple, cast
 import yaml
 
 from aea_swarm.configurations.base import Service
-from aea_swarm.configurations.loader import ServiceConfigValidator
+from aea_swarm.configurations.validation import ConfigValidator
 from aea_swarm.deploy.base import BaseDeploymentGenerator, ServiceSpecification
 from aea_swarm.deploy.generators.docker_compose.base import DockerComposeGenerator
 from aea_swarm.deploy.generators.kubernetes.base import KubernetesGenerator
@@ -152,13 +152,13 @@ class BaseDeploymentTests(ABC, CleanDirectoryClass):
 
     deployment_spec_path: str
     temp_dir: tempfile.TemporaryDirectory
-    validator: ServiceConfigValidator
+    validator: ConfigValidator
 
     @classmethod
     def setup_class(cls) -> None:
         """Setup up the test class."""
         cls.temp_dir = tempfile.TemporaryDirectory()
-        cls.validator = ServiceConfigValidator(Service.schema)
+        cls.validator = ConfigValidator(Service.schema)
 
     @classmethod
     def teardown_class(cls) -> None:
