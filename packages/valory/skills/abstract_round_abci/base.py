@@ -67,6 +67,7 @@ ROUND_COUNT_DEFAULT = -1
 MIN_HISTORY_DEPTH = 1
 ADDRESS_LENGTH = 42
 MAX_INT_256 = 2 ** 256 - 1
+RESET_COUNT_START = 0
 
 EventType = TypeVar("EventType")
 TransactionType = TypeVar("TransactionType")
@@ -487,7 +488,7 @@ class AbciAppDB:
             [] if cross_reset_persisted_keys is None else cross_reset_persisted_keys
         )
         self._data: Dict[int, Dict[str, List[Any]]] = {
-            0: deepcopy(self._initial_data)  # the key represents the reset index
+            RESET_COUNT_START: deepcopy(self._initial_data)  # the key represents the reset index
         }
         self._round_count = ROUND_COUNT_DEFAULT  # ensures first round is indexed at 0!
 
