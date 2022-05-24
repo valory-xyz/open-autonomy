@@ -305,8 +305,6 @@ class RegistrationStartupBehaviour(RegistrationBaseBehaviour):
         """Act asynchronously"""
 
         self.context.logger.info(f"My address: {self.context.agent_address}")
-        # sleep to ensure it crashes here, otherwise possible it completes entire registration
-        yield from self.sleep(2)
 
         # collect personal Tendermint configuration
         if not self.local_tendermint_params:
@@ -323,7 +321,7 @@ class RegistrationStartupBehaviour(RegistrationBaseBehaviour):
         # collect Tendermint config information from other agents
         while any(self._not_yet_collected):
             consume(map(self.request_tendermint_info, self._not_yet_collected))
-            yield from self.sleep(self.params.sleep_time + 2)
+            yield from self.sleep(self.params.sleep_time)
 
         log_msg = "Completed collecting Tendermint responses"
         self.context.logger.info(f"{log_msg}: {self.registered_addresses}")
