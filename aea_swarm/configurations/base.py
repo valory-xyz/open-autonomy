@@ -19,15 +19,95 @@
 
 """Base configurations."""
 
-from pathlib import Path
+from collections import OrderedDict
+from typing import Dict, FrozenSet, Optional, cast
+
+from aea.configurations.data_types import PublicId
+from aea.helpers.base import SimpleIdOrStr
+
+from aea_swarm.configurations.constants import DEFAULT_SERVICE_FILE, SERVICE
 
 
-CONFIG_PATH = Path(__file__).absolute().parent
-SCHEMAS_DIR = CONFIG_PATH / "schemas"
+class Service:  # pylint: disable=too-many-instance-attributes
+    """Service package configuration."""
 
+    default_configuration_filename = DEFAULT_SERVICE_FILE
+    package_type = SERVICE
+    schema = "service_schema.json"
 
-class Files:  # pylint: disable=too-few-public-methods
-    """This is a namespace used for various file paths."""
+    FIELDS_ALLOWED_TO_UPDATE: FrozenSet[str] = frozenset()
+    __slots__ = (
+        "name",
+        "author",
+        "version",
+        "description",
+        "aea_version",
+        "license",
+        "agent",
+        "network",
+        "number_of_agents",
+    )
 
-    schema_dir = SCHEMAS_DIR
-    deployment_schema = SCHEMAS_DIR / "deployment_schema.json"
+    def __init__(  # pylint: disable=too-many-arguments
+        self,
+        name: SimpleIdOrStr,
+        author: SimpleIdOrStr,
+        agent: PublicId,
+        version: str = "",
+        license_: str = "",
+        aea_version: str = "",
+        description: str = "",
+        number_of_agents: int = 4,
+        network: Optional[str] = None,
+    ) -> None:
+        """Initialise object."""
+
+        self.name = name
+        self.author = author
+        self.agent = PublicId.from_str(str(agent))
+        self.version = version
+        self.license = license_
+        self.aea_version = aea_version
+        self.description = description
+        self.number_of_agents = number_of_agents
+        self.network = network
+
+    @property
+    def json(
+        self,
+    ) -> Dict:
+        """Returns an ordered Dict for service config."""
+
+        config = OrderedDict(
+            {
+                "name": self.name,
+                "author": self.author,
+                "agent": self.agent,
+                "version": self.version,
+                "license": self.license,
+                "aea_version": self.aea_version,
+                "description": self.description,
+                "number_of_agents": self.number_of_agents,
+                "network": self.network,
+            }
+        )
+
+        return config
+
+    @classmethod
+    def from_json(cls, obj: Dict) -> "Service":
+        """Initialize object from json."""
+
+        params = dict(
+            name=cast(str, obj.get("name")),
+            author=cast(str, obj.get("author")),
+            agent=cast(str, obj.get("agent")),
+            version=cast(str, obj.get("version")),
+            license_=cast(str, obj.get("license")),
+            aea_version=cast(str, obj.get("aea_version")),
+            description=cast(str, obj.get("description")),
+            number_of_agents=cast(int, obj.get("number_of_agents")),
+            network=cast(str, obj.get("network")),
+        )
+
+        return cls(**params)  # type: ignore

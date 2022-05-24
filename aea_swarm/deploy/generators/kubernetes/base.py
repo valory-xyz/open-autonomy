@@ -25,7 +25,7 @@ from typing import Any, Dict, List, cast
 
 import yaml
 
-from aea_swarm.deploy.base import BaseDeploymentGenerator, DeploymentSpec
+from aea_swarm.deploy.base import BaseDeploymentGenerator, ServiceSpecification
 from aea_swarm.deploy.constants import TENDERMINT_CONFIGURATION_OVERRIDES
 from aea_swarm.deploy.generators.kubernetes.templates import (
     AGENT_NODE_TEMPLATE,
@@ -41,9 +41,9 @@ class KubernetesGenerator(BaseDeploymentGenerator):
     output_name: str = "build.yaml"
     deployment_type: str = "kubernetes"
 
-    def __init__(self, deployment_spec: DeploymentSpec, build_dir: Path) -> None:
+    def __init__(self, service_spec: ServiceSpecification, build_dir: Path) -> None:
         """Initialise the deployment generator."""
-        super().__init__(deployment_spec, build_dir)
+        super().__init__(service_spec, build_dir)
         self.resources: List[str] = []
 
     def build_agent_deployment(
@@ -62,7 +62,7 @@ class KubernetesGenerator(BaseDeploymentGenerator):
         agent_deployment = AGENT_NODE_TEMPLATE.format(
             valory_app=image_name,
             validator_ix=agent_ix,
-            aea_key=self.deployment_spec.private_keys[agent_ix],
+            aea_key=self.service_spec.private_keys[agent_ix],
             number_of_validators=number_of_agents,
             host_names=host_names,
         )
@@ -91,13 +91,13 @@ class KubernetesGenerator(BaseDeploymentGenerator):
         host_names = ", ".join(
             [
                 f'"--hostname=abci{i}"'
-                for i in range(self.deployment_spec.number_of_agents)
+                for i in range(self.service_spec.service.number_of_agents)
             ]
         )
 
         self.tendermint_job_config = CLUSTER_CONFIGURATION_TEMPLATE.format(
-            valory_app=self.deployment_spec.agent_public_id.name,
-            number_of_validators=self.deployment_spec.number_of_agents,
+            valory_app=self.service_spec.service.agent.name,
+            number_of_validators=self.service_spec.service.number_of_agents,
             host_names=host_names,
         )
 
@@ -119,20 +119,20 @@ class KubernetesGenerator(BaseDeploymentGenerator):
 
         if dev_mode:
             self.resources.append(HARDHAT_TEMPLATE)
-        agent_vars = self.deployment_spec.generate_agents()  # type:ignore
+        agent_vars = self.service_spec.generate_agents()  # type:ignore
         agent_vars = self._apply_cluster_specific_tendermint_params(agent_vars)
         agent_vars = self.get_deployment_network_configuration(agent_vars)
-        self.image_name = self.deployment_spec.agent_public_id.name
+        self.image_name = self.service_spec.service.agent.name
 
         agents = "\n---\n".join(
             [
                 self.build_agent_deployment(
                     self.image_name,
                     i,
-                    self.deployment_spec.number_of_agents,
+                    self.service_spec.service.number_of_agents,
                     agent_vars[i],
                 )
-                for i in range(self.deployment_spec.number_of_agents)
+                for i in range(self.service_spec.service.number_of_agents)
             ]
         )
         self.resources.append(agents)
