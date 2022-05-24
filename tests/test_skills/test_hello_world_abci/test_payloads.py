@@ -69,3 +69,4 @@ def test_reset_payload() -> None:
 
     assert str(payload.transaction_type) == str(TransactionType.RESET)
     assert payload.transaction_type == TransactionType.RESET
+    assert ResetPayload.from_json(payload.json) == payload

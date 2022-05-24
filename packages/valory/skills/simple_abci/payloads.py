@@ -118,10 +118,20 @@ class ResetPayload(BaseSimpleAbciPayload):
 
     transaction_type = TransactionType.RESET
 
+    def __init__(self, sender: str, reset: bool = True, **kwargs: Any) -> None:
+        """Initialize an 'reset' transaction payload.
+
+        :param sender: the sender (Ethereum) address
+        :param reset: the reset flag
+        :param kwargs: the keyword arguments
+        """
+        super().__init__(sender, **kwargs)
+        self._reset = reset
+
     @property
     def reset(self) -> bool:
         """Get the reset attribute."""
-        return True
+        return self._reset
 
     @property
     def data(self) -> Dict:
