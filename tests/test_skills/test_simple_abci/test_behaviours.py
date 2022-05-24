@@ -47,7 +47,7 @@ from packages.valory.skills.abstract_round_abci.base import (
     OK_CODE,
     _MetaPayload,
 )
-from packages.valory.skills.abstract_round_abci.behaviour_utils import BaseState
+from packages.valory.skills.abstract_round_abci.behaviour_utils import BaseBehaviour
 from packages.valory.skills.abstract_round_abci.behaviours import AbstractRoundBehaviour
 from packages.valory.skills.simple_abci.behaviours import (
     RandomnessAtStartupBehaviour,
@@ -131,23 +131,25 @@ class SimpleAbciFSMBehaviourBaseCase(BaseSkillTestCase):
         cls._skill.skill_context.benchmark_tool.log_dir = Path(cls.benchmark_dir.name)
 
         assert (
-            cast(BaseState, cls.simple_abci_behaviour.current_state).state_id
-            == cls.simple_abci_behaviour.initial_state_cls.state_id
+            cast(BaseBehaviour, cls.simple_abci_behaviour.current_state).behaviour_id
+            == cls.simple_abci_behaviour.initial_behaviour_cls.behaviour_id
         )
         cls.synchronized_data = SynchronizedData(AbciAppDB(initial_data={}))
 
     def fast_forward_to_state(
         self,
         behaviour: AbstractRoundBehaviour,
-        state_id: str,
+        behaviour_id: str,
         synchronized_data: BaseSynchronizedData,
     ) -> None:
         """Fast forward the FSM to a state."""
-        next_state = {s.state_id: s for s in behaviour.behaviour_states}[state_id]
-        assert next_state is not None, f"State {state_id} not found"
-        next_state = cast(Type[BaseState], next_state)
+        next_state = {s.behaviour_id: s for s in behaviour.behaviour_states}[
+            behaviour_id
+        ]
+        assert next_state is not None, f"State {behaviour_id} not found"
+        next_state = cast(Type[BaseBehaviour], next_state)
         behaviour.current_state = next_state(
-            name=next_state.state_id, skill_context=behaviour.context
+            name=next_state.behaviour_id, skill_context=behaviour.context
         )
         self.skill.skill_context.state.round_sequence.abci_app._round_results.append(
             synchronized_data
@@ -360,23 +362,23 @@ class SimpleAbciFSMBehaviourBaseCase(BaseSkillTestCase):
         self,
     ) -> None:
         """Ends round early to cover `wait_for_end` generator."""
-        current_state = cast(BaseState, self.simple_abci_behaviour.current_state)
+        current_state = cast(BaseBehaviour, self.simple_abci_behaviour.current_state)
         if current_state is None:
             return
-        current_state = cast(BaseState, current_state)
+        current_state = cast(BaseBehaviour, current_state)
         abci_app = current_state.context.state.round_sequence.abci_app
         old_round = abci_app._current_round
         abci_app._last_round = old_round
         abci_app._current_round = abci_app.transition_function[
             current_state.matching_round
-        ][Event.DONE](abci_app.state, abci_app.consensus_params)
+        ][Event.DONE](abci_app.synchronized_data, abci_app.consensus_params)
         abci_app._previous_rounds.append(old_round)
         abci_app._current_round_height += 1
         self.simple_abci_behaviour._process_current_round()
 
     def _test_done_flag_set(self) -> None:
         """Test that, when round ends, the 'done' flag is set."""
-        current_state = cast(BaseState, self.simple_abci_behaviour.current_state)
+        current_state = cast(BaseBehaviour, self.simple_abci_behaviour.current_state)
         assert not current_state.is_done()
         with mock.patch.object(
             self.simple_abci_behaviour.context.state, "_round_sequence"
@@ -397,8 +399,8 @@ class SimpleAbciFSMBehaviourBaseCase(BaseSkillTestCase):
 class BaseRandomnessBehaviourTest(SimpleAbciFSMBehaviourBaseCase):
     """Test RandomnessBehaviour."""
 
-    randomness_behaviour_class: Type[BaseState]
-    next_behaviour_class: Type[BaseState]
+    randomness_behaviour_class: Type[BaseBehaviour]
+    next_behaviour_class: Type[BaseBehaviour]
 
     def test_randomness_behaviour(
         self,
@@ -407,15 +409,15 @@ class BaseRandomnessBehaviourTest(SimpleAbciFSMBehaviourBaseCase):
 
         self.fast_forward_to_state(
             self.simple_abci_behaviour,
-            self.randomness_behaviour_class.state_id,
+            self.randomness_behaviour_class.behaviour_id,
             self.synchronized_data,
         )
         assert (
             cast(
-                BaseState,
-                cast(BaseState, self.simple_abci_behaviour.current_state),
-            ).state_id
-            == self.randomness_behaviour_class.state_id
+                BaseBehaviour,
+                cast(BaseBehaviour, self.simple_abci_behaviour.current_state),
+            ).behaviour_id
+            == self.randomness_behaviour_class.behaviour_id
         )
         self.simple_abci_behaviour.act_wrapper()
         self.mock_http_request(
@@ -445,8 +447,8 @@ class BaseRandomnessBehaviourTest(SimpleAbciFSMBehaviourBaseCase):
         self._test_done_flag_set()
         self.end_round()
 
-        state = cast(BaseState, self.simple_abci_behaviour.current_state)
-        assert state.state_id == self.next_behaviour_class.state_id
+        state = cast(BaseBehaviour, self.simple_abci_behaviour.current_state)
+        assert state.behaviour_id == self.next_behaviour_class.behaviour_id
 
     def test_invalid_response(
         self,
@@ -454,15 +456,15 @@ class BaseRandomnessBehaviourTest(SimpleAbciFSMBehaviourBaseCase):
         """Test invalid json response."""
         self.fast_forward_to_state(
             self.simple_abci_behaviour,
-            self.randomness_behaviour_class.state_id,
+            self.randomness_behaviour_class.behaviour_id,
             self.synchronized_data,
         )
         assert (
             cast(
-                BaseState,
-                cast(BaseState, self.simple_abci_behaviour.current_state),
-            ).state_id
-            == self.randomness_behaviour_class.state_id
+                BaseBehaviour,
+                cast(BaseBehaviour, self.simple_abci_behaviour.current_state),
+            ).behaviour_id
+            == self.randomness_behaviour_class.behaviour_id
         )
         self.simple_abci_behaviour.act_wrapper()
 
@@ -488,15 +490,15 @@ class BaseRandomnessBehaviourTest(SimpleAbciFSMBehaviourBaseCase):
         """Test with max retries reached."""
         self.fast_forward_to_state(
             self.simple_abci_behaviour,
-            self.randomness_behaviour_class.state_id,
+            self.randomness_behaviour_class.behaviour_id,
             self.synchronized_data,
         )
         assert (
             cast(
-                BaseState,
-                cast(BaseState, self.simple_abci_behaviour.current_state),
-            ).state_id
-            == self.randomness_behaviour_class.state_id
+                BaseBehaviour,
+                cast(BaseBehaviour, self.simple_abci_behaviour.current_state),
+            ).behaviour_id
+            == self.randomness_behaviour_class.behaviour_id
         )
         with mock.patch.object(
             self.simple_abci_behaviour.context.randomness_api,
@@ -504,8 +506,8 @@ class BaseRandomnessBehaviourTest(SimpleAbciFSMBehaviourBaseCase):
             return_value=True,
         ):
             self.simple_abci_behaviour.act_wrapper()
-            state = cast(BaseState, self.simple_abci_behaviour.current_state)
-            assert state.state_id == self.randomness_behaviour_class.state_id
+            state = cast(BaseBehaviour, self.simple_abci_behaviour.current_state)
+            assert state.behaviour_id == self.randomness_behaviour_class.behaviour_id
             self._test_done_flag_set()
 
     def test_clean_up(
@@ -514,15 +516,15 @@ class BaseRandomnessBehaviourTest(SimpleAbciFSMBehaviourBaseCase):
         """Test when `observed` value is none."""
         self.fast_forward_to_state(
             self.simple_abci_behaviour,
-            self.randomness_behaviour_class.state_id,
+            self.randomness_behaviour_class.behaviour_id,
             self.synchronized_data,
         )
         assert (
             cast(
-                BaseState,
-                cast(BaseState, self.simple_abci_behaviour.current_state),
-            ).state_id
-            == self.randomness_behaviour_class.state_id
+                BaseBehaviour,
+                cast(BaseBehaviour, self.simple_abci_behaviour.current_state),
+            ).behaviour_id
+            == self.randomness_behaviour_class.behaviour_id
         )
         self.simple_abci_behaviour.context.randomness_api._retries_attempted = 1
         assert self.simple_abci_behaviour.current_state is not None
@@ -533,8 +535,8 @@ class BaseRandomnessBehaviourTest(SimpleAbciFSMBehaviourBaseCase):
 class BaseSelectKeeperBehaviourTest(SimpleAbciFSMBehaviourBaseCase):
     """Test SelectKeeperBehaviour."""
 
-    select_keeper_behaviour_class: Type[BaseState]
-    next_behaviour_class: Type[BaseState]
+    select_keeper_behaviour_class: Type[BaseBehaviour]
+    next_behaviour_class: Type[BaseBehaviour]
 
     def test_select_keeper(
         self,
@@ -543,7 +545,7 @@ class BaseSelectKeeperBehaviourTest(SimpleAbciFSMBehaviourBaseCase):
         participants = frozenset({self.skill.skill_context.agent_address, "a_1", "a_2"})
         self.fast_forward_to_state(
             behaviour=self.simple_abci_behaviour,
-            state_id=self.select_keeper_behaviour_class.state_id,
+            behaviour_id=self.select_keeper_behaviour_class.behaviour_id,
             synchronized_data=SynchronizedData(
                 AbciAppDB(
                     initial_data=dict(
@@ -555,17 +557,17 @@ class BaseSelectKeeperBehaviourTest(SimpleAbciFSMBehaviourBaseCase):
         )
         assert (
             cast(
-                BaseState,
-                cast(BaseState, self.simple_abci_behaviour.current_state),
-            ).state_id
-            == self.select_keeper_behaviour_class.state_id
+                BaseBehaviour,
+                cast(BaseBehaviour, self.simple_abci_behaviour.current_state),
+            ).behaviour_id
+            == self.select_keeper_behaviour_class.behaviour_id
         )
         self.simple_abci_behaviour.act_wrapper()
         self.mock_a2a_transaction()
         self._test_done_flag_set()
         self.end_round()
-        state = cast(BaseState, self.simple_abci_behaviour.current_state)
-        assert state.state_id == self.next_behaviour_class.state_id
+        state = cast(BaseBehaviour, self.simple_abci_behaviour.current_state)
+        assert state.behaviour_id == self.next_behaviour_class.behaviour_id
 
 
 class TestRegistrationBehaviour(SimpleAbciFSMBehaviourBaseCase):
@@ -575,23 +577,23 @@ class TestRegistrationBehaviour(SimpleAbciFSMBehaviourBaseCase):
         """Test registration."""
         self.fast_forward_to_state(
             self.simple_abci_behaviour,
-            RegistrationBehaviour.state_id,
+            RegistrationBehaviour.behaviour_id,
             self.synchronized_data,
         )
         assert (
             cast(
-                BaseState,
-                cast(BaseState, self.simple_abci_behaviour.current_state),
-            ).state_id
-            == RegistrationBehaviour.state_id
+                BaseBehaviour,
+                cast(BaseBehaviour, self.simple_abci_behaviour.current_state),
+            ).behaviour_id
+            == RegistrationBehaviour.behaviour_id
         )
         self.simple_abci_behaviour.act_wrapper()
         self.mock_a2a_transaction()
         self._test_done_flag_set()
 
         self.end_round()
-        state = cast(BaseState, self.simple_abci_behaviour.current_state)
-        assert state.state_id == RandomnessAtStartupBehaviour.state_id
+        state = cast(BaseBehaviour, self.simple_abci_behaviour.current_state)
+        assert state.behaviour_id == RandomnessAtStartupBehaviour.behaviour_id
 
 
 class TestRandomnessAtStartup(BaseRandomnessBehaviourTest):
@@ -620,15 +622,15 @@ class TestResetAndPauseBehaviour(SimpleAbciFSMBehaviourBaseCase):
         """Test pause and reset behaviour."""
         self.fast_forward_to_state(
             behaviour=self.simple_abci_behaviour,
-            state_id=self.behaviour_class.state_id,
+            behaviour_id=self.behaviour_class.behaviour_id,
             synchronized_data=self.synchronized_data,
         )
         assert (
             cast(
-                BaseState,
-                cast(BaseState, self.simple_abci_behaviour.current_state),
-            ).state_id
-            == self.behaviour_class.state_id
+                BaseBehaviour,
+                cast(BaseBehaviour, self.simple_abci_behaviour.current_state),
+            ).behaviour_id
+            == self.behaviour_class.behaviour_id
         )
         self.simple_abci_behaviour.context.params.observation_interval = 0.1
         self.simple_abci_behaviour.act_wrapper()
@@ -637,8 +639,8 @@ class TestResetAndPauseBehaviour(SimpleAbciFSMBehaviourBaseCase):
         self.mock_a2a_transaction()
         self._test_done_flag_set()
         self.end_round()
-        state = cast(BaseState, self.simple_abci_behaviour.current_state)
-        assert state.state_id == self.next_behaviour_class.state_id
+        state = cast(BaseBehaviour, self.simple_abci_behaviour.current_state)
+        assert state.behaviour_id == self.next_behaviour_class.behaviour_id
 
     def test_reset_behaviour(
         self,
@@ -646,20 +648,20 @@ class TestResetAndPauseBehaviour(SimpleAbciFSMBehaviourBaseCase):
         """Test reset behaviour."""
         self.fast_forward_to_state(
             behaviour=self.simple_abci_behaviour,
-            state_id=self.behaviour_class.state_id,
+            behaviour_id=self.behaviour_class.behaviour_id,
             synchronized_data=self.synchronized_data,
         )
         self.simple_abci_behaviour.current_state.pause = False  # type: ignore
         assert (
             cast(
-                BaseState,
-                cast(BaseState, self.simple_abci_behaviour.current_state),
-            ).state_id
-            == self.behaviour_class.state_id
+                BaseBehaviour,
+                cast(BaseBehaviour, self.simple_abci_behaviour.current_state),
+            ).behaviour_id
+            == self.behaviour_class.behaviour_id
         )
         self.simple_abci_behaviour.act_wrapper()
         self.mock_a2a_transaction()
         self._test_done_flag_set()
         self.end_round()
-        state = cast(BaseState, self.simple_abci_behaviour.current_state)
-        assert state.state_id == self.next_behaviour_class.state_id
+        state = cast(BaseBehaviour, self.simple_abci_behaviour.current_state)
+        assert state.behaviour_id == self.next_behaviour_class.behaviour_id

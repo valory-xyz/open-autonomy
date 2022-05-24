@@ -53,7 +53,7 @@ from packages.valory.protocols.ledger_api.custom_types import (
     TransactionDigest,
     TransactionReceipt,
 )
-from packages.valory.skills.abstract_round_abci.behaviour_utils import BaseState
+from packages.valory.skills.abstract_round_abci.behaviour_utils import BaseBehaviour
 from packages.valory.skills.liquidity_rebalancing_abci.rounds import (
     SynchronizedData as LiquidityRebalancingSynchronizedSata,
 )
@@ -260,7 +260,7 @@ class IntegrationBaseCase(FSMBehaviourBaseCase):
             LiquidityRebalancingSynchronizedSata,
             None,
         ] = None,
-        state_id: Optional[str] = None,
+        behaviour_id: Optional[str] = None,
         handlers: Optional[HandlersType] = None,
         expected_content: Optional[ExpectedContentType] = None,
         expected_types: Optional[ExpectedTypesType] = None,
@@ -269,7 +269,7 @@ class IntegrationBaseCase(FSMBehaviourBaseCase):
         """
         Process n message cycles.
 
-        :param state_id: the behaviour to fast forward to
+        :param behaviour_id: the behaviour to fast forward to
         :param ncycles: the number of message cycles to process
         :param synchronized_data: a synchronized_data
         :param handlers: a list of handlers
@@ -290,13 +290,16 @@ class IntegrationBaseCase(FSMBehaviourBaseCase):
             and len(expected_content) == ncycles
         ), "Number of cycles, handlers, contents and types does not match"
 
-        if state_id is not None and synchronized_data is not None:
+        if behaviour_id is not None and synchronized_data is not None:
             self.fast_forward_to_state(
                 behaviour=self.behaviour,
-                state_id=state_id,
+                behaviour_id=behaviour_id,
                 synchronized_data=synchronized_data,
             )
-            assert cast(BaseState, self.behaviour.current_state).state_id == state_id
+            assert (
+                cast(BaseBehaviour, self.behaviour.current_state).behaviour_id
+                == behaviour_id
+            )
 
         incoming_messages = []
         for i in range(ncycles):
@@ -400,11 +403,11 @@ class _TxHelperIntegration(_GnosisHelperIntegration):
 
         self.fast_forward_to_state(
             behaviour=self.behaviour,
-            state_id=FinalizeBehaviour.state_id,
+            behaviour_id=FinalizeBehaviour.behaviour_id,
             synchronized_data=self.tx_settlement_synchronized_data,
         )
         behaviour = cast(FinalizeBehaviour, self.behaviour.current_state)
-        assert behaviour.state_id == FinalizeBehaviour.state_id
+        assert behaviour.behaviour_id == FinalizeBehaviour.behaviour_id
         stored_nonce = behaviour.params.nonce
         stored_gas_price = behaviour.params.gas_price
 
@@ -526,7 +529,7 @@ class _TxHelperIntegration(_GnosisHelperIntegration):
         _, verif_msg = self.process_n_messages(
             2,
             self.tx_settlement_synchronized_data,
-            ValidateTransactionBehaviour.state_id,
+            ValidateTransactionBehaviour.behaviour_id,
             handlers,
             expected_content,
             expected_types,

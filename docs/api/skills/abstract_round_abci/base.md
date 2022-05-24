@@ -703,7 +703,7 @@ Get the round count.
 def cross_reset_persisted_keys() -> List[str]
 ```
 
-Keys in the period state which are persistet across periods.
+Keys in the database which are persistet across periods.
 
 <a id="packages.valory.skills.abstract_round_abci.base.AbciAppDB.get"></a>
 
@@ -1786,21 +1786,21 @@ Concrete classes of this class implement the ABCI App.
 #### `__`init`__`
 
 ```python
-def __init__(state: BaseSynchronizedData, consensus_params: ConsensusParams, logger: logging.Logger)
+def __init__(synchronized_data: BaseSynchronizedData, consensus_params: ConsensusParams, logger: logging.Logger)
 ```
 
 Initialize the AbciApp.
 
-<a id="packages.valory.skills.abstract_round_abci.base.AbciApp.state"></a>
+<a id="packages.valory.skills.abstract_round_abci.base.AbciApp.synchronized_data"></a>
 
-#### state
+#### synchronized`_`data
 
 ```python
 @property
-def state() -> BaseSynchronizedData
+def synchronized_data() -> BaseSynchronizedData
 ```
 
-Return the current state.
+Return the current synchronized data.
 
 <a id="packages.valory.skills.abstract_round_abci.base.AbciApp.get_all_rounds"></a>
 

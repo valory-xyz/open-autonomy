@@ -24,15 +24,15 @@ from typing import Generator, Set, Type
 
 from packages.valory.skills.abstract_round_abci.behaviours import (
     AbstractRoundBehaviour,
-    BaseState,
+    BaseBehaviour,
 )
 from packages.valory.skills.test_abci.rounds import DummyRound, TestAbciApp
 
 
-class DummyBehaviour(BaseState, ABC):
+class DummyBehaviour(BaseBehaviour, ABC):
     """Check whether Tendermint nodes are running."""
 
-    state_id = "dummy"
+    behaviour_id = "dummy"
     matching_round = DummyRound
 
     def async_act(self) -> Generator:
@@ -44,7 +44,7 @@ class DummyBehaviour(BaseState, ABC):
 class TestAbciConsensusBehaviour(AbstractRoundBehaviour):
     """This behaviour manages the consensus stages for the simple abci app."""
 
-    initial_state_cls = DummyBehaviour
+    initial_behaviour_cls = DummyBehaviour
     abci_app_cls = TestAbciApp  # type: ignore
     behaviour_states: Set[Type[DummyBehaviour]] = {  # type: ignore
         DummyBehaviour,  # type: ignore

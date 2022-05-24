@@ -27,7 +27,7 @@ from packages.valory.contracts.offchain_aggregator.contract import (
     OffchainAggregatorContract,
 )
 from packages.valory.protocols.contract_api import ContractApiMessage
-from packages.valory.skills.abstract_round_abci.behaviour_utils import BaseState
+from packages.valory.skills.abstract_round_abci.behaviour_utils import BaseBehaviour
 from packages.valory.skills.abstract_round_abci.behaviours import AbstractRoundBehaviour
 from packages.valory.skills.abstract_round_abci.common import (
     RandomnessBehaviour,
@@ -50,7 +50,7 @@ from packages.valory.skills.oracle_deployment_abci.rounds import (
 )
 
 
-class OracleDeploymentBaseState(BaseState):
+class OracleDeploymentBaseState(BaseBehaviour):
     """Base state behaviour for the common apps' skill."""
 
     @property
@@ -67,7 +67,7 @@ class OracleDeploymentBaseState(BaseState):
 class RandomnessOracleBehaviour(RandomnessBehaviour):
     """Retrieve randomness for oracle deployment."""
 
-    state_id = "retrieve_randomness_oracle"
+    behaviour_id = "retrieve_randomness_oracle"
     matching_round = RandomnessOracleRound
     payload_class = RandomnessPayload
 
@@ -75,7 +75,7 @@ class RandomnessOracleBehaviour(RandomnessBehaviour):
 class SelectKeeperOracleBehaviour(SelectKeeperBehaviour):
     """Select the keeper agent."""
 
-    state_id = "select_keeper_oracle"
+    behaviour_id = "select_keeper_oracle"
     matching_round = SelectKeeperOracleRound
     payload_class = SelectKeeperPayload
 
@@ -83,7 +83,7 @@ class SelectKeeperOracleBehaviour(SelectKeeperBehaviour):
 class DeployOracleBehaviour(OracleDeploymentBaseState):
     """Deploy oracle."""
 
-    state_id = "deploy_oracle"
+    behaviour_id = "deploy_oracle"
     matching_round = DeployOracleRound
 
     def async_act(self) -> Generator:
@@ -106,14 +106,14 @@ class DeployOracleBehaviour(OracleDeploymentBaseState):
 
     def _not_deployer_act(self) -> Generator:
         """Do the non-deployer action."""
-        with self.context.benchmark_tool.measure(self.state_id).consensus():
+        with self.context.benchmark_tool.measure(self.behaviour_id).consensus():
             yield from self.wait_until_round_end()
             self.set_done()
 
     def _deployer_act(self) -> Generator:
         """Do the deployer action."""
 
-        with self.context.benchmark_tool.measure(self.state_id).local():
+        with self.context.benchmark_tool.measure(self.behaviour_id).local():
             self.context.logger.info(
                 "I am the designated sender, deploying the oracle contract..."
             )
@@ -126,7 +126,7 @@ class DeployOracleBehaviour(OracleDeploymentBaseState):
                 raise RuntimeError("Oracle deployment failed!")  # pragma: nocover
             payload = DeployOraclePayload(self.context.agent_address, contract_address)
 
-        with self.context.benchmark_tool.measure(self.state_id).consensus():
+        with self.context.benchmark_tool.measure(self.behaviour_id).consensus():
             self.context.logger.info(f"Oracle contract address: {contract_address}")
             yield from self.send_a2a_transaction(payload)
             yield from self.wait_until_round_end()
@@ -174,7 +174,7 @@ class DeployOracleBehaviour(OracleDeploymentBaseState):
 class ValidateOracleBehaviour(OracleDeploymentBaseState):
     """Validate oracle."""
 
-    state_id = "validate_oracle"
+    behaviour_id = "validate_oracle"
     matching_round = ValidateOracleRound
 
     def async_act(self) -> Generator:
@@ -190,11 +190,11 @@ class ValidateOracleBehaviour(OracleDeploymentBaseState):
         - Go to the next behaviour state (set done event).
         """
 
-        with self.context.benchmark_tool.measure(self.state_id).local():
+        with self.context.benchmark_tool.measure(self.behaviour_id).local():
             is_correct = yield from self.has_correct_contract_been_deployed()
             payload = ValidateOraclePayload(self.context.agent_address, is_correct)
 
-        with self.context.benchmark_tool.measure(self.state_id).consensus():
+        with self.context.benchmark_tool.measure(self.behaviour_id).consensus():
             yield from self.send_a2a_transaction(payload)
             yield from self.wait_until_round_end()
 
@@ -220,9 +220,9 @@ class ValidateOracleBehaviour(OracleDeploymentBaseState):
 class OracleDeploymentRoundBehaviour(AbstractRoundBehaviour):
     """This behaviour manages the consensus stages for the oracle deployment."""
 
-    initial_state_cls = RandomnessOracleBehaviour
+    initial_behaviour_cls = RandomnessOracleBehaviour
     abci_app_cls = OracleDeploymentAbciApp
-    behaviour_states: Set[Type[BaseState]] = {  # type: ignore
+    behaviour_states: Set[Type[BaseBehaviour]] = {  # type: ignore
         RandomnessOracleBehaviour,  # type: ignore
         SelectKeeperOracleBehaviour,  # type: ignore
         DeployOracleBehaviour,  # type: ignore

@@ -30,7 +30,7 @@ from packages.valory.skills.abstract_round_abci.base import (
     BaseSynchronizedData as ResetSynchronizedSata,
 )
 from packages.valory.skills.abstract_round_abci.behaviour_utils import (
-    make_degenerate_state,
+    make_degenerate_behaviour,
 )
 from packages.valory.skills.reset_pause_abci.behaviours import ResetAndPauseBehaviour
 from packages.valory.skills.reset_pause_abci.rounds import Event as ResetEvent
@@ -63,7 +63,9 @@ class TestResetAndPauseBehaviour(ResetPauseAbciFSMBehaviourBaseCase):
     """Test ResetBehaviour."""
 
     behaviour_class = ResetAndPauseBehaviour
-    next_behaviour_class = make_degenerate_state(FinishedResetAndPauseRound.round_id)
+    next_behaviour_class = make_degenerate_behaviour(
+        FinishedResetAndPauseRound.round_id
+    )
 
     @pytest.mark.parametrize("tendermint_reset_status", (None, True, False))
     def test_reset_behaviour(
@@ -74,7 +76,7 @@ class TestResetAndPauseBehaviour(ResetPauseAbciFSMBehaviourBaseCase):
 
         self.fast_forward_to_state(
             behaviour=self.behaviour,
-            state_id=self.behaviour_class.state_id,
+            behaviour_id=self.behaviour_class.behaviour_id,
             synchronized_data=ResetSynchronizedSata(
                 AbciAppDB(
                     initial_data=dict(
@@ -86,7 +88,10 @@ class TestResetAndPauseBehaviour(ResetPauseAbciFSMBehaviourBaseCase):
         )
 
         assert self.behaviour.current_state is not None
-        assert self.behaviour.current_state.state_id == self.behaviour_class.state_id
+        assert (
+            self.behaviour.current_state.behaviour_id
+            == self.behaviour_class.behaviour_id
+        )
 
         with mock.patch.object(
             self.behaviour.current_state,
@@ -127,5 +132,6 @@ class TestResetAndPauseBehaviour(ResetPauseAbciFSMBehaviourBaseCase):
         self._test_done_flag_set()
         self.end_round(ResetEvent.DONE)
         assert (
-            self.behaviour.current_state.state_id == self.next_behaviour_class.state_id
+            self.behaviour.current_state.behaviour_id
+            == self.next_behaviour_class.behaviour_id
         )

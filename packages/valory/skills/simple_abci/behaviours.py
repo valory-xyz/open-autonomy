@@ -25,7 +25,7 @@ from typing import Generator, List, Set, Type, cast
 
 from packages.valory.skills.abstract_round_abci.behaviours import (
     AbstractRoundBehaviour,
-    BaseState,
+    BaseBehaviour,
 )
 from packages.valory.skills.simple_abci.models import Params, SharedState
 from packages.valory.skills.simple_abci.payloads import (
@@ -56,7 +56,7 @@ def random_selection(elements: List[str], randomness: float) -> str:
     return elements[random_position]
 
 
-class SimpleABCIBaseState(BaseState, ABC):
+class SimpleABCIBaseState(BaseBehaviour, ABC):
     """Base state behaviour for the simple abci skill."""
 
     @property
@@ -75,7 +75,7 @@ class SimpleABCIBaseState(BaseState, ABC):
 class RegistrationBehaviour(SimpleABCIBaseState):
     """Register to the next round."""
 
-    state_id = "register"
+    behaviour_id = "register"
     matching_round = RegistrationRound
 
     def async_act(self) -> Generator:
@@ -89,10 +89,10 @@ class RegistrationBehaviour(SimpleABCIBaseState):
         - Go to the next behaviour state (set done event).
         """
 
-        with self.context.benchmark_tool.measure(self.state_id).local():
+        with self.context.benchmark_tool.measure(self.behaviour_id).local():
             payload = RegistrationPayload(self.context.agent_address)
 
-        with self.context.benchmark_tool.measure(self.state_id).consensus():
+        with self.context.benchmark_tool.measure(self.behaviour_id).consensus():
             yield from self.send_a2a_transaction(payload)
             yield from self.wait_until_round_end()
 
@@ -113,12 +113,12 @@ class RandomnessBehaviour(SimpleABCIBaseState):
         """
         if self.context.randomness_api.is_retries_exceeded():
             # now we need to wait and see if the other agents progress the round
-            with self.context.benchmark_tool.measure(self.state_id).consensus():
+            with self.context.benchmark_tool.measure(self.behaviour_id).consensus():
                 yield from self.wait_until_round_end()
             self.set_done()
             return
 
-        with self.context.benchmark_tool.measure(self.state_id).local():
+        with self.context.benchmark_tool.measure(self.behaviour_id).local():
             api_specs = self.context.randomness_api.get_spec()
             http_message, http_dialogue = self._build_http_request_message(
                 method=api_specs["method"],
@@ -134,7 +134,7 @@ class RandomnessBehaviour(SimpleABCIBaseState):
                 observation["round"],
                 observation["randomness"],
             )
-            with self.context.benchmark_tool.measure(self.state_id).consensus():
+            with self.context.benchmark_tool.measure(self.behaviour_id).consensus():
                 yield from self.send_a2a_transaction(payload)
                 yield from self.wait_until_round_end()
 
@@ -160,7 +160,7 @@ class RandomnessAtStartupBehaviour(  # pylint: disable=too-many-ancestors
 ):
     """Retrieve randomness at startup."""
 
-    state_id = "retrieve_randomness_at_startup"
+    behaviour_id = "retrieve_randomness_at_startup"
     matching_round = RandomnessStartupRound
 
 
@@ -178,7 +178,7 @@ class SelectKeeperBehaviour(SimpleABCIBaseState, ABC):
         - Go to the next behaviour state (set done event).
         """
 
-        with self.context.benchmark_tool.measure(self.state_id).local():
+        with self.context.benchmark_tool.measure(self.behaviour_id).local():
             keeper_address = random_selection(
                 sorted(self.synchronized_data.participants),
                 self.synchronized_data.keeper_randomness,
@@ -187,7 +187,7 @@ class SelectKeeperBehaviour(SimpleABCIBaseState, ABC):
             self.context.logger.info(f"Selected a new keeper: {keeper_address}.")
             payload = SelectKeeperPayload(self.context.agent_address, keeper_address)
 
-        with self.context.benchmark_tool.measure(self.state_id).consensus():
+        with self.context.benchmark_tool.measure(self.behaviour_id).consensus():
             yield from self.send_a2a_transaction(payload)
             yield from self.wait_until_round_end()
 
@@ -199,7 +199,7 @@ class SelectKeeperAtStartupBehaviour(  # pylint: disable=too-many-ancestors
 ):
     """Select the keeper agent at startup."""
 
-    state_id = "select_keeper_at_startup"
+    behaviour_id = "select_keeper_at_startup"
     matching_round = SelectKeeperAtStartupRound
 
 
@@ -242,14 +242,14 @@ class ResetAndPauseBehaviour(BaseResetBehaviour):  # pylint: disable=too-many-an
     """Reset state."""
 
     matching_round = ResetAndPauseRound
-    state_id = "reset_and_pause"
+    behaviour_id = "reset_and_pause"
     pause = True
 
 
 class SimpleAbciConsensusBehaviour(AbstractRoundBehaviour):
     """This behaviour manages the consensus stages for the simple abci app."""
 
-    initial_state_cls = RegistrationBehaviour
+    initial_behaviour_cls = RegistrationBehaviour
     abci_app_cls = SimpleAbciApp  # type: ignore
     behaviour_states: Set[Type[SimpleABCIBaseState]] = {  # type: ignore
         RegistrationBehaviour,  # type: ignore

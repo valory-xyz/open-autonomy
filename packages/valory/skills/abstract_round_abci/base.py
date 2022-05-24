@@ -533,7 +533,7 @@ class AbciAppDB:
 
     @property
     def cross_reset_persisted_keys(self) -> List[str]:
-        """Keys in the period state which are persistet across periods."""
+        """Keys in the database which are persistet across periods."""
         return self._cross_reset_persisted_keys
 
     def get(self, key: str, default: Any = "NOT_PROVIDED") -> Optional[Any]:
@@ -1678,12 +1678,12 @@ class AbciApp(
 
     def __init__(
         self,
-        state: BaseSynchronizedData,
+        synchronized_data: BaseSynchronizedData,
         consensus_params: ConsensusParams,
         logger: logging.Logger,
     ):
         """Initialize the AbciApp."""
-        self._initial_state = state
+        self._initial_synchronized_data = synchronized_data
         self.consensus_params = consensus_params
         self.logger = logger
 
@@ -1698,10 +1698,14 @@ class AbciApp(
         self._timeouts = Timeouts[EventType]()
 
     @property
-    def state(self) -> BaseSynchronizedData:
-        """Return the current state."""
+    def synchronized_data(self) -> BaseSynchronizedData:
+        """Return the current synchronized data."""
         latest_result = self.latest_result
-        return latest_result if latest_result is not None else self._initial_state
+        return (
+            latest_result
+            if latest_result is not None
+            else self._initial_synchronized_data
+        )
 
     @classmethod
     def get_all_rounds(cls) -> Set[AppState]:
@@ -1740,7 +1744,7 @@ class AbciApp(
         """Log the entering in the round."""
         self.logger.info(
             f"Entered in the '{self.current_round.round_id}' round for period "
-            f"{self.state.period_count}"
+            f"{self.synchronized_data.period_count}"
         )
 
     def _log_end(self, event: EventType) -> None:
@@ -1795,7 +1799,7 @@ class AbciApp(
         last_result = (
             self._round_results[-1]
             if len(self._round_results) > 0
-            else self._initial_state
+            else self._initial_synchronized_data
         )
         self._last_round = self._current_round
         self._current_round_cls = round_cls
@@ -1812,7 +1816,7 @@ class AbciApp(
             ),
         )
         self._log_start()
-        self.state.db.increment_round_count()  # ROUND_COUNT_DEFAULT is -1
+        self.synchronized_data.db.increment_round_count()  # ROUND_COUNT_DEFAULT is -1
 
     @property
     def current_round(self) -> AbstractRound:
@@ -1957,7 +1961,7 @@ class AbciApp(
         cleanup_history_depth = max(cleanup_history_depth, MIN_HISTORY_DEPTH)
         self._previous_rounds = self._previous_rounds[-cleanup_history_depth:]
         self._round_results = self._round_results[-cleanup_history_depth:]
-        self.state.db.cleanup(cleanup_history_depth)
+        self.synchronized_data.db.cleanup(cleanup_history_depth)
 
 
 class RoundSequence:
@@ -2124,7 +2128,7 @@ class RoundSequence:
     @property
     def latest_state(self) -> BaseSynchronizedData:
         """Get the latest state."""
-        return self.abci_app.state
+        return self.abci_app.synchronized_data
 
     def begin_block(self, header: Header) -> None:
         """Begin block."""

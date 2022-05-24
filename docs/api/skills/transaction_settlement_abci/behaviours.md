@@ -9,7 +9,7 @@ This module contains the behaviours for the 'abci' skill.
 ## TransactionSettlementBaseState Objects
 
 ```python
-class TransactionSettlementBaseState(BaseState,  ABC)
+class TransactionSettlementBaseState(BaseBehaviour,  ABC)
 ```
 
 Base state behaviour for the common apps' skill.

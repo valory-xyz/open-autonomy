@@ -437,16 +437,16 @@ class RPCResponseStatus(Enum):
     UNCLASSIFIED_ERROR = 5
 
 
-class BaseState(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
-    """Base class for FSM states."""
+class BaseBehaviour(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
+    """Base class for FSM behaviours."""
 
     is_programmatically_defined = True
-    state_id = ""
+    behaviour_id = ""
     matching_round: Type[AbstractRound]
     is_degenerate: bool = False
 
     def __init__(self, **kwargs: Any):  # pylint: disable=super-init-not-called
-        """Initialize a base state behaviour."""
+        """Initialize a base behaviour."""
         AsyncBehaviour.__init__(self)
         IPFSBehaviour.__init__(self, **kwargs)
         CleanUpBehaviour.__init__(self, **kwargs)
@@ -455,7 +455,7 @@ class BaseState(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
         self._check_started: Optional[datetime.datetime] = None
         self._timeout: float = 0
         self._is_healthy: bool = False
-        enforce(self.state_id != "", "State id not set.")
+        enforce(self.behaviour_id != "", "State id not set.")
 
     @property
     def params(self) -> BaseParams:
@@ -977,13 +977,13 @@ class BaseState(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
         result = yield from self._do_request(request_message, http_dialogue)
         return result
 
-    def get_callback_request(self) -> Callable[[Message, "BaseState"], None]:
+    def get_callback_request(self) -> Callable[[Message, "BaseBehaviour"], None]:
         """Wrapper for callback request which depends on whether the message has not been handled on time.
 
         :return: the request callback.
         """
 
-        def callback_request(message: Message, current_state: BaseState) -> None:
+        def callback_request(message: Message, current_state: BaseBehaviour) -> None:
             """The callback request."""
             if self.is_stopped:
                 self.context.logger.debug(
@@ -1587,7 +1587,7 @@ class BaseState(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
         return True
 
 
-class DegenerateState(BaseState, ABC):
+class DegenerateBehaviour(BaseBehaviour, ABC):
     """An abstract matching behaviour for final and degenerate rounds."""
 
     matching_round: Type[AbstractRound]
@@ -1603,14 +1603,14 @@ class DegenerateState(BaseState, ABC):
         )
 
 
-def make_degenerate_state(round_id: str) -> Type[DegenerateState]:
-    """Make a degenerate state class."""
+def make_degenerate_behaviour(round_id: str) -> Type[DegenerateBehaviour]:
+    """Make a degenerate behaviour class."""
 
-    class NewDegenerateState(DegenerateState):
-        """A newly defined degenerate state class."""
+    class NewDegenerateBehaviour(DegenerateBehaviour):
+        """A newly defined degenerate behaviour class."""
 
-        state_id = f"degenerate_{round_id}"
+        behaviour_id = f"degenerate_{round_id}"
 
-    new_state_cls = NewDegenerateState
-    new_state_cls.__name__ = f"DegenerateState_{round_id}"  # type: ignore # pylint: disable=attribute-defined-outside-init
-    return new_state_cls  # type: ignore
+    new_behaviour_cls = NewDegenerateBehaviour
+    new_behaviour_cls.__name__ = f"DegenerateBehaviour_{round_id}"  # type: ignore # pylint: disable=attribute-defined-outside-init
+    return new_behaviour_cls  # type: ignore

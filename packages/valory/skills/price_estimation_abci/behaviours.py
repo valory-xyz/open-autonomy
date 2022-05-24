@@ -32,7 +32,7 @@ from packages.valory.contracts.offchain_aggregator.contract import (
 from packages.valory.protocols.contract_api import ContractApiMessage
 from packages.valory.skills.abstract_round_abci.behaviours import (
     AbstractRoundBehaviour,
-    BaseState,
+    BaseBehaviour,
 )
 from packages.valory.skills.price_estimation_abci.models import Params
 from packages.valory.skills.price_estimation_abci.payloads import (
@@ -73,7 +73,7 @@ def to_int(most_voted_estimate: float, decimals: int) -> int:
     return int_value
 
 
-class PriceEstimationBaseState(BaseState, ABC):
+class PriceEstimationBaseState(BaseBehaviour, ABC):
     """Base state behaviour for the common apps' skill."""
 
     @property
@@ -90,7 +90,7 @@ class PriceEstimationBaseState(BaseState, ABC):
 class ObserveBehaviour(PriceEstimationBaseState):
     """Observe price estimate."""
 
-    state_id = "collect_observation"
+    behaviour_id = "collect_observation"
     matching_round = CollectObservationRound
 
     def async_act(self) -> Generator:
@@ -107,12 +107,12 @@ class ObserveBehaviour(PriceEstimationBaseState):
 
         if self.context.price_api.is_retries_exceeded():
             # now we need to wait and see if the other agents progress the round, otherwise we should restart?
-            with self.context.benchmark_tool.measure(self.state_id).consensus():
+            with self.context.benchmark_tool.measure(self.behaviour_id).consensus():
                 yield from self.wait_until_round_end()
             self.set_done()
             return
 
-        with self.context.benchmark_tool.measure(self.state_id).local():
+        with self.context.benchmark_tool.measure(self.behaviour_id).local():
             api_specs = self.context.price_api.get_spec()
             response = yield from self.get_http_response(
                 method=api_specs["method"],
@@ -129,7 +129,7 @@ class ObserveBehaviour(PriceEstimationBaseState):
                 + f"{observation}"
             )
             payload = ObservationPayload(self.context.agent_address, observation)
-            with self.context.benchmark_tool.measure(self.state_id).consensus():
+            with self.context.benchmark_tool.measure(self.behaviour_id).consensus():
                 yield from self.send_a2a_transaction(payload)
                 yield from self.wait_until_round_end()
             self.set_done()
@@ -152,7 +152,7 @@ class ObserveBehaviour(PriceEstimationBaseState):
 class EstimateBehaviour(PriceEstimationBaseState):
     """Estimate price."""
 
-    state_id = "estimate"
+    behaviour_id = "estimate"
     matching_round = EstimateConsensusRound
 
     def async_act(self) -> Generator:
@@ -166,7 +166,7 @@ class EstimateBehaviour(PriceEstimationBaseState):
         - Go to the next behaviour state (set done event).
         """
 
-        with self.context.benchmark_tool.measure(self.state_id).local():
+        with self.context.benchmark_tool.measure(self.behaviour_id).local():
 
             self.synchronized_data.set_aggregator_method(
                 self.params.observation_aggregator_function
@@ -182,7 +182,7 @@ class EstimateBehaviour(PriceEstimationBaseState):
                 self.context.agent_address, self.synchronized_data.estimate
             )
 
-        with self.context.benchmark_tool.measure(self.state_id).consensus():
+        with self.context.benchmark_tool.measure(self.behaviour_id).consensus():
             yield from self.send_a2a_transaction(payload)
             yield from self.wait_until_round_end()
 
@@ -224,7 +224,7 @@ def pack_for_server(  # pylint: disable-msg=too-many-arguments
 class TransactionHashBehaviour(PriceEstimationBaseState):
     """Share the transaction hash for the signature round."""
 
-    state_id = "tx_hash"
+    behaviour_id = "tx_hash"
     matching_round = TxHashRound
 
     def async_act(self) -> Generator:
@@ -239,11 +239,11 @@ class TransactionHashBehaviour(PriceEstimationBaseState):
         - Go to the next behaviour state (set done event).
         """
 
-        with self.context.benchmark_tool.measure(self.state_id).local():
+        with self.context.benchmark_tool.measure(self.behaviour_id).local():
             payload_string = yield from self._get_safe_tx_hash()
             payload = TransactionHashPayload(self.context.agent_address, payload_string)
 
-        with self.context.benchmark_tool.measure(self.state_id).consensus():
+        with self.context.benchmark_tool.measure(self.behaviour_id).consensus():
             if self.params.is_broadcasting_to_server:
                 yield from self.send_to_server()
             yield from self.send_a2a_transaction(payload)
@@ -391,9 +391,9 @@ class TransactionHashBehaviour(PriceEstimationBaseState):
 class ObserverRoundBehaviour(AbstractRoundBehaviour):
     """This behaviour manages the consensus stages for the observer behaviour."""
 
-    initial_state_cls = ObserveBehaviour
+    initial_behaviour_cls = ObserveBehaviour
     abci_app_cls = PriceAggregationAbciApp  # type: ignore
-    behaviour_states: Set[Type[BaseState]] = {  # type: ignore
+    behaviour_states: Set[Type[BaseBehaviour]] = {  # type: ignore
         ObserveBehaviour,  # type: ignore
         EstimateBehaviour,  # type: ignore
         TransactionHashBehaviour,  # type: ignore

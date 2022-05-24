@@ -23,7 +23,7 @@ from typing import Set, Type
 
 from packages.valory.skills.abstract_round_abci.behaviours import (
     AbstractRoundBehaviour,
-    BaseState,
+    BaseBehaviour,
 )
 from packages.valory.skills.oracle_abci.composition import OracleAbciApp
 from packages.valory.skills.oracle_deployment_abci.behaviours import (
@@ -50,9 +50,9 @@ from packages.valory.skills.transaction_settlement_abci.behaviours import (
 class OracleAbciAppConsensusBehaviour(AbstractRoundBehaviour):
     """This behaviour manages the consensus stages for the price estimation."""
 
-    initial_state_cls = RegistrationStartupBehaviour
+    initial_behaviour_cls = RegistrationStartupBehaviour
     abci_app_cls = OracleAbciApp  # type: ignore
-    behaviour_states: Set[Type[BaseState]] = {
+    behaviour_states: Set[Type[BaseBehaviour]] = {
         *OracleDeploymentRoundBehaviour.behaviour_states,
         *AgentRegistrationRoundBehaviour.behaviour_states,
         *SafeDeploymentRoundBehaviour.behaviour_states,

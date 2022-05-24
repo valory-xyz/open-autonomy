@@ -9,7 +9,7 @@ This module contains the data classes for the safe deployment ABCI application.
 ## SafeDeploymentBaseState Objects
 
 ```python
-class SafeDeploymentBaseState(BaseState)
+class SafeDeploymentBaseState(BaseBehaviour)
 ```
 
 Base state behaviour for the common apps' skill.

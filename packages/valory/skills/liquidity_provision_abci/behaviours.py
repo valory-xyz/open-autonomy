@@ -22,7 +22,7 @@ from typing import Set, Type
 
 from packages.valory.skills.abstract_round_abci.behaviours import (
     AbstractRoundBehaviour,
-    BaseState,
+    BaseBehaviour,
 )
 from packages.valory.skills.liquidity_provision_abci.composition import (
     LiquidityProvisionAbciApp,
@@ -48,9 +48,9 @@ from packages.valory.skills.transaction_settlement_abci.behaviours import (
 class LiquidityProvisionConsensusBehaviour(AbstractRoundBehaviour):
     """This behaviour manages the consensus stages for the liquidity rebalancing."""
 
-    initial_state_cls = RegistrationStartupBehaviour
+    initial_behaviour_cls = RegistrationStartupBehaviour
     abci_app_cls = LiquidityProvisionAbciApp  # type: ignore
-    behaviour_states: Set[Type[BaseState]] = {
+    behaviour_states: Set[Type[BaseBehaviour]] = {
         *AgentRegistrationRoundBehaviour.behaviour_states,
         *SafeDeploymentRoundBehaviour.behaviour_states,
         *TransactionSettlementRoundBehaviour.behaviour_states,

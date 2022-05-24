@@ -9,7 +9,7 @@ This module contains the data classes for the oracle deployment ABCI application
 ## OracleDeploymentBaseState Objects
 
 ```python
-class OracleDeploymentBaseState(BaseState)
+class OracleDeploymentBaseState(BaseBehaviour)
 ```
 
 Base state behaviour for the common apps' skill.

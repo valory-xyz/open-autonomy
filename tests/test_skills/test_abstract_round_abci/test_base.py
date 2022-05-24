@@ -1078,7 +1078,7 @@ class TestAbciApp:
         # Add dummy data
         self.abci_app._previous_rounds = [dummy_round] * start_history_depth
         self.abci_app._round_results = [dummy_state] * start_history_depth
-        self.abci_app.state.db._data = {
+        self.abci_app.synchronized_data.db._data = {
             i: {"dummy_key": ["dummy_value"]} for i in range(start_history_depth)
         }
 
@@ -1086,13 +1086,13 @@ class TestAbciApp:
         # Verify that cleanup reduces the data amount
         assert len(self.abci_app._previous_rounds) == start_history_depth
         assert len(self.abci_app._round_results) == start_history_depth
-        assert len(self.abci_app.state.db._data) == start_history_depth
+        assert len(self.abci_app.synchronized_data.db._data) == start_history_depth
 
         self.abci_app.cleanup(cleanup_history_depth)
 
         assert len(self.abci_app._previous_rounds) == cleanup_history_depth
         assert len(self.abci_app._round_results) == cleanup_history_depth
-        assert len(self.abci_app.state.db._data) == cleanup_history_depth
+        assert len(self.abci_app.synchronized_data.db._data) == cleanup_history_depth
 
         # Verify round height stays unaffected
         assert self.abci_app.current_round_height == round_height

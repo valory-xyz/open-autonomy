@@ -9,7 +9,7 @@ This module contains the behaviours for the 'abci' skill.
 ## RegistrationBaseBehaviour Objects
 
 ```python
-class RegistrationBaseBehaviour(BaseState)
+class RegistrationBaseBehaviour(BaseBehaviour)
 ```
 
 Register to the next periods.

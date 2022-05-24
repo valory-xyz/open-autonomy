@@ -45,11 +45,11 @@ from packages.valory.skills.abstract_round_abci.base import (
 )
 from packages.valory.skills.abstract_round_abci.behaviour_utils import (
     AsyncBehaviour,
-    BaseState,
-    DegenerateState,
+    BaseBehaviour,
+    DegenerateBehaviour,
     SendException,
     TimeoutException,
-    make_degenerate_state,
+    make_degenerate_behaviour,
 )
 from packages.valory.skills.abstract_round_abci.models import (
     _DEFAULT_REQUEST_RETRY_DELAY,
@@ -333,10 +333,10 @@ class RoundA(AbstractRound):
         """Process payload."""
 
 
-class StateATest(BaseState):
-    """Concrete BaseState class."""
+class StateATest(BaseBehaviour):
+    """Concrete BaseBehaviour class."""
 
-    state_id = "state_a"
+    behaviour_id = "state_a"
     matching_round: Type[RoundA] = RoundA
 
     def async_act(self) -> Generator:
@@ -374,7 +374,7 @@ def _wait_until_transaction_delivered_patch(
 
 
 class TestBaseState:
-    """Tests for the 'BaseState' class."""
+    """Tests for the 'BaseBehaviour' class."""
 
     def setup(self) -> None:
         """Set up the tests."""
@@ -409,7 +409,7 @@ class TestBaseState:
         )
 
     def test_check_in_round(self) -> None:
-        """Test 'BaseState' initialization."""
+        """Test 'BaseBehaviour' initialization."""
         expected_round_id = "round"
         self.context_mock.state.round_sequence.current_round_id = expected_round_id
         assert self.behaviour.check_in_round(expected_round_id)
@@ -422,7 +422,7 @@ class TestBaseState:
         assert not func()
 
     def test_check_in_last_round(self) -> None:
-        """Test 'BaseState' initialization."""
+        """Test 'BaseBehaviour' initialization."""
         expected_round_id = "round"
         self.context_mock.state.round_sequence.last_round_id = expected_round_id
         assert self.behaviour.check_in_last_round(expected_round_id)
@@ -457,9 +457,9 @@ class TestBaseState:
         ):
             generator.send(None)
 
-    @mock.patch.object(BaseState, "wait_for_condition")
-    @mock.patch.object(BaseState, "check_not_in_round", return_value=False)
-    @mock.patch.object(BaseState, "check_not_in_last_round", return_value=False)
+    @mock.patch.object(BaseBehaviour, "wait_for_condition")
+    @mock.patch.object(BaseBehaviour, "check_not_in_round", return_value=False)
+    @mock.patch.object(BaseBehaviour, "check_not_in_last_round", return_value=False)
     def test_wait_until_round_end_positive(self, *_: Any) -> None:
         """Test 'wait_until_round_end' method, positive case."""
         gen = self.behaviour.wait_until_round_end()
@@ -503,7 +503,7 @@ class TestBaseState:
         self.behaviour.set_done()
         assert self.behaviour.is_done()
 
-    @mock.patch.object(BaseState, "_send_transaction")
+    @mock.patch.object(BaseBehaviour, "_send_transaction")
     def test_send_a2a_transaction_positive(self, *_: Any) -> None:
         """Test 'send_a2a_transaction' method, positive case."""
         gen = self.behaviour.send_a2a_transaction(MagicMock())
@@ -516,7 +516,7 @@ class TestBaseState:
         self.behaviour.set_done()
         try_send(gen)
 
-    @mock.patch.object(BaseState, "_get_status", _get_status_patch)
+    @mock.patch.object(BaseBehaviour, "_get_status", _get_status_patch)
     def test_async_act_wrapper_agent_sync_mode(self) -> None:
         """Test 'async_act_wrapper' in sync mode."""
         self.behaviour.context.state.round_sequence.syncing_up = True
@@ -529,7 +529,7 @@ class TestBaseState:
             try_send(gen)
             log_mock.assert_called_with("local height == remote; Sync complete...")
 
-    @mock.patch.object(BaseState, "_get_status", _get_status_wrong_patch)
+    @mock.patch.object(BaseBehaviour, "_get_status", _get_status_wrong_patch)
     def test_async_act_wrapper_agent_sync_mode_where_height_dont_match(self) -> None:
         """Test 'async_act_wrapper' in sync mode."""
         self.behaviour.context.state.round_sequence.syncing_up = True
@@ -555,7 +555,7 @@ class TestBaseState:
         dialogue_mock = MagicMock()
         expected_value = "dialogue_reference"
         dialogue_mock.dialogue_label.dialogue_reference = (expected_value, None)
-        result = BaseState._get_request_nonce_from_dialogue(dialogue_mock)
+        result = BaseBehaviour._get_request_nonce_from_dialogue(dialogue_mock)
         assert result == expected_value
 
     def test_send_transaction_positive_false_condition(self) -> None:
@@ -564,14 +564,14 @@ class TestBaseState:
             self.behaviour._send_transaction(MagicMock(), stop_condition=lambda: True)
         )
 
-    @mock.patch.object(BaseState, "_send_signing_request")
+    @mock.patch.object(BaseBehaviour, "_send_signing_request")
     @mock.patch.object(Transaction, "encode", return_value=MagicMock())
     @mock.patch.object(
-        BaseState,
+        BaseBehaviour,
         "_build_http_request_message",
         return_value=(MagicMock(), MagicMock()),
     )
-    @mock.patch.object(BaseState, "_check_http_return_code_200", return_value=True)
+    @mock.patch.object(BaseBehaviour, "_check_http_return_code_200", return_value=True)
     def test_send_transaction_positive(self, *_: Any) -> None:
         """Test '_send_transaction', positive case."""
         m = MagicMock(status_code=200)
@@ -588,16 +588,16 @@ class TestBaseState:
         )
         try_send(gen, obj=success_response)
 
-    @mock.patch.object(BaseState, "_send_signing_request")
+    @mock.patch.object(BaseBehaviour, "_send_signing_request")
     @mock.patch.object(Transaction, "encode", return_value=MagicMock())
     @mock.patch.object(
-        BaseState,
+        BaseBehaviour,
         "_build_http_request_message",
         return_value=(MagicMock(), MagicMock()),
     )
-    @mock.patch.object(BaseState, "_check_http_return_code_200", return_value=True)
+    @mock.patch.object(BaseBehaviour, "_check_http_return_code_200", return_value=True)
     @mock.patch.object(
-        BaseState,
+        BaseBehaviour,
         "_wait_until_transaction_delivered",
         new=_wait_until_transaction_delivered_patch,
     )
@@ -613,7 +613,7 @@ class TestBaseState:
         )
         try_send(gen, obj=success_response)
 
-    @mock.patch.object(BaseState, "_send_signing_request")
+    @mock.patch.object(BaseBehaviour, "_send_signing_request")
     def test_send_transaction_signing_error(self, *_: Any) -> None:
         """Test '_send_transaction', signing error."""
         m = MagicMock(performative=SigningMessage.Performative.ERROR)
@@ -623,10 +623,10 @@ class TestBaseState:
         with pytest.raises(RuntimeError):
             try_send(gen, obj=m)
 
-    @mock.patch.object(BaseState, "_send_signing_request")
+    @mock.patch.object(BaseBehaviour, "_send_signing_request")
     @mock.patch.object(Transaction, "encode", return_value=MagicMock())
     @mock.patch.object(
-        BaseState,
+        BaseBehaviour,
         "_build_http_request_message",
         return_value=(MagicMock(), MagicMock()),
     )
@@ -650,14 +650,14 @@ class TestBaseState:
             )
             try_send(gen, obj=None)
 
-    @mock.patch.object(BaseState, "_send_signing_request")
+    @mock.patch.object(BaseBehaviour, "_send_signing_request")
     @mock.patch.object(Transaction, "encode", return_value=MagicMock())
     @mock.patch.object(
-        BaseState,
+        BaseBehaviour,
         "_build_http_request_message",
         return_value=(MagicMock(), MagicMock()),
     )
-    @mock.patch.object(BaseState, "_check_http_return_code_200", return_value=True)
+    @mock.patch.object(BaseBehaviour, "_check_http_return_code_200", return_value=True)
     def test_send_transaction_timeout_exception_wait_until_transaction_delivered(
         self, *_: Any
     ) -> None:
@@ -683,14 +683,14 @@ class TestBaseState:
                 f"Timeout expired for wait until transaction delivered. Retrying in {delay} seconds..."
             )
 
-    @mock.patch.object(BaseState, "_send_signing_request")
+    @mock.patch.object(BaseBehaviour, "_send_signing_request")
     @mock.patch.object(Transaction, "encode", return_value=MagicMock())
     @mock.patch.object(
-        BaseState,
+        BaseBehaviour,
         "_build_http_request_message",
         return_value=(MagicMock(), MagicMock()),
     )
-    @mock.patch.object(BaseState, "_check_http_return_code_200", return_value=True)
+    @mock.patch.object(BaseBehaviour, "_check_http_return_code_200", return_value=True)
     def test_send_transaction_transaction_not_delivered(self, *_: Any) -> None:
         """Test '_send_transaction', timeout exception."""
         timeout = 0.05
@@ -712,14 +712,14 @@ class TestBaseState:
 
             mock_info.assert_called_with("Tx sent but not delivered. Response = None")
 
-    @mock.patch.object(BaseState, "_send_signing_request")
+    @mock.patch.object(BaseBehaviour, "_send_signing_request")
     @mock.patch.object(Transaction, "encode", return_value=MagicMock())
     @mock.patch.object(
-        BaseState,
+        BaseBehaviour,
         "_build_http_request_message",
         return_value=(MagicMock(), MagicMock()),
     )
-    @mock.patch.object(BaseState, "_check_http_return_code_200", return_value=True)
+    @mock.patch.object(BaseBehaviour, "_check_http_return_code_200", return_value=True)
     def test_send_transaction_wrong_ok_code(self, *_: Any) -> None:
         """Test '_send_transaction', positive case."""
         m = MagicMock(status_code=200)
@@ -743,15 +743,15 @@ class TestBaseState:
             )
 
     @pytest.mark.skip
-    @mock.patch.object(BaseState, "_send_signing_request")
+    @mock.patch.object(BaseBehaviour, "_send_signing_request")
     @mock.patch.object(Transaction, "encode", return_value=MagicMock())
     @mock.patch.object(
-        BaseState,
+        BaseBehaviour,
         "_build_http_request_message",
         return_value=(MagicMock(), MagicMock()),
     )
     @mock.patch.object(
-        BaseState,
+        BaseBehaviour,
         "_check_http_return_code_200",
         return_value=True,
     )
@@ -780,10 +780,10 @@ class TestBaseState:
             time.sleep(delay)
             try_send(gen, obj=m)
 
-    @mock.patch.object(BaseState, "_send_signing_request")
+    @mock.patch.object(BaseBehaviour, "_send_signing_request")
     @mock.patch.object(Transaction, "encode", return_value=MagicMock())
     @mock.patch.object(
-        BaseState,
+        BaseBehaviour,
         "_build_http_request_message",
         return_value=(MagicMock(), MagicMock()),
     )
@@ -799,7 +799,7 @@ class TestBaseState:
         time.sleep(_DEFAULT_REQUEST_RETRY_DELAY)
         try_send(gen, obj=None)
 
-    @mock.patch.object(BaseState, "_get_request_nonce_from_dialogue")
+    @mock.patch.object(BaseBehaviour, "_get_request_nonce_from_dialogue")
     @mock.patch("packages.valory.skills.abstract_round_abci.behaviour_utils.RawMessage")
     @mock.patch("packages.valory.skills.abstract_round_abci.behaviour_utils.Terms")
     def test_send_signing_request(self, *_: Any) -> None:
@@ -847,7 +847,7 @@ class TestBaseState:
         atheris.Setup(sys.argv, fuzz_send_signing_request)
         atheris.Fuzz()
 
-    @mock.patch.object(BaseState, "_get_request_nonce_from_dialogue")
+    @mock.patch.object(BaseBehaviour, "_get_request_nonce_from_dialogue")
     @mock.patch("packages.valory.skills.abstract_round_abci.behaviour_utils.RawMessage")
     @mock.patch("packages.valory.skills.abstract_round_abci.behaviour_utils.Terms")
     def test_send_transaction_signing_request(self, *_: Any) -> None:
@@ -894,12 +894,12 @@ class TestBaseState:
 
     @mock.patch.object(Transaction, "encode", return_value=MagicMock())
     @mock.patch.object(
-        BaseState,
+        BaseBehaviour,
         "_build_http_request_message",
         return_value=(MagicMock(), MagicMock()),
     )
-    @mock.patch.object(BaseState, "_check_http_return_code_200", return_value=True)
-    @mock.patch.object(BaseState, "sleep")
+    @mock.patch.object(BaseBehaviour, "_check_http_return_code_200", return_value=True)
+    @mock.patch.object(BaseBehaviour, "sleep")
     @mock.patch("json.loads")
     def test_wait_until_transaction_delivered(self, *_: Any) -> None:
         """Test '_wait_until_transaction_delivered' method."""
@@ -919,12 +919,12 @@ class TestBaseState:
 
     @mock.patch.object(Transaction, "encode", return_value=MagicMock())
     @mock.patch.object(
-        BaseState,
+        BaseBehaviour,
         "_build_http_request_message",
         return_value=(MagicMock(), MagicMock()),
     )
-    @mock.patch.object(BaseState, "_check_http_return_code_200", return_value=True)
-    @mock.patch.object(BaseState, "sleep")
+    @mock.patch.object(BaseBehaviour, "_check_http_return_code_200", return_value=True)
+    @mock.patch.object(BaseBehaviour, "sleep")
     @mock.patch("json.loads")
     def test_wait_until_transaction_delivered_failed(self, *_: Any) -> None:
         """Test '_wait_until_transaction_delivered' method."""
@@ -956,9 +956,9 @@ class TestBaseState:
         """Test '_get_default_terms'."""
         self.behaviour._get_default_terms()
 
-    @mock.patch.object(BaseState, "_send_transaction_signing_request")
-    @mock.patch.object(BaseState, "_send_transaction_request")
-    @mock.patch.object(BaseState, "_send_transaction_receipt_request")
+    @mock.patch.object(BaseBehaviour, "_send_transaction_signing_request")
+    @mock.patch.object(BaseBehaviour, "_send_transaction_request")
+    @mock.patch.object(BaseBehaviour, "_send_transaction_receipt_request")
     @mock.patch("packages.valory.skills.abstract_round_abci.behaviour_utils.Terms")
     def test_send_raw_transaction(self, *_: Any) -> None:
         """Test 'send_raw_transaction'."""
@@ -978,9 +978,9 @@ class TestBaseState:
         )
         try_send(gen, obj=m)
 
-    @mock.patch.object(BaseState, "_send_transaction_signing_request")
-    @mock.patch.object(BaseState, "_send_transaction_request")
-    @mock.patch.object(BaseState, "_send_transaction_receipt_request")
+    @mock.patch.object(BaseBehaviour, "_send_transaction_signing_request")
+    @mock.patch.object(BaseBehaviour, "_send_transaction_request")
+    @mock.patch.object(BaseBehaviour, "_send_transaction_receipt_request")
     @mock.patch("packages.valory.skills.abstract_round_abci.behaviour_utils.Terms")
     def test_send_raw_transaction_with_wrong_signing_performative(
         self, *_: Any
@@ -997,9 +997,9 @@ class TestBaseState:
         try_send(gen, obj=m)
         try_send(gen, obj=m)
 
-    @mock.patch.object(BaseState, "_send_transaction_signing_request")
-    @mock.patch.object(BaseState, "_send_transaction_request")
-    @mock.patch.object(BaseState, "_send_transaction_receipt_request")
+    @mock.patch.object(BaseBehaviour, "_send_transaction_signing_request")
+    @mock.patch.object(BaseBehaviour, "_send_transaction_request")
+    @mock.patch.object(BaseBehaviour, "_send_transaction_receipt_request")
     @mock.patch("packages.valory.skills.abstract_round_abci.behaviour_utils.Terms")
     def test_send_raw_transaction_transaction_digest_error(self, *_: Any) -> None:
         """Test 'send_raw_transaction'."""
@@ -1021,9 +1021,9 @@ class TestBaseState:
         "message",
         ("replacement transaction underpriced", "nonce too low", "insufficient funds"),
     )
-    @mock.patch.object(BaseState, "_send_transaction_signing_request")
-    @mock.patch.object(BaseState, "_send_transaction_request")
-    @mock.patch.object(BaseState, "_send_transaction_receipt_request")
+    @mock.patch.object(BaseBehaviour, "_send_transaction_signing_request")
+    @mock.patch.object(BaseBehaviour, "_send_transaction_request")
+    @mock.patch.object(BaseBehaviour, "_send_transaction_receipt_request")
     @mock.patch("packages.valory.skills.abstract_round_abci.behaviour_utils.Terms")
     def test_send_raw_transaction_errors(
         self, _: Any, __: Any, ___: Any, ____: Any, message: str
@@ -1056,9 +1056,9 @@ class TestBaseState:
         ), mock.patch(
             "packages.valory.skills.abstract_round_abci.behaviour_utils.Terms"
         ), mock.patch.object(
-            BaseState, "_send_transaction_signing_request"
+            BaseBehaviour, "_send_transaction_signing_request"
         ), mock.patch.object(
-            BaseState, "_send_transaction_request"
+            BaseBehaviour, "_send_transaction_request"
         ):
             gen = self.behaviour.get_contract_api_response(
                 MagicMock(), contract_address, "contract_id", "contract_callable"
@@ -1069,7 +1069,7 @@ class TestBaseState:
             try_send(gen, obj=MagicMock())
 
     @mock.patch.object(
-        BaseState, "_build_http_request_message", return_value=(None, None)
+        BaseBehaviour, "_build_http_request_message", return_value=(None, None)
     )
     def test_get_status(self, _: mock.Mock) -> None:
         """Test '_get_status'."""
@@ -1080,7 +1080,9 @@ class TestBaseState:
             yield
             return mock.MagicMock(body=expected_result)
 
-        with mock.patch.object(BaseState, "_do_request", side_effect=dummy_do_request):
+        with mock.patch.object(
+            BaseBehaviour, "_do_request", side_effect=dummy_do_request
+        ):
             get_status_generator = self.behaviour._get_status()
             next(get_status_generator)
             with pytest.raises(StopIteration) as e:
@@ -1144,7 +1146,7 @@ class TestBaseState:
     def test_start_reset(self) -> None:
         """Test the `_start_reset` method."""
         with mock.patch.object(
-            BaseState,
+            BaseBehaviour,
             "wait_from_last_timestamp",
             new_callable=lambda *_: self.dummy_sleep,
         ):
@@ -1187,7 +1189,7 @@ class TestBaseState:
         assert self.behaviour._is_timeout_expired() == expiration_expected
 
     @mock.patch.object(
-        BaseState, "_build_http_request_message", return_value=(None, None)
+        BaseBehaviour, "_build_http_request_message", return_value=(None, None)
     )
     @pytest.mark.parametrize(
         "response", ({"app_hash": "test"}, {"error": "test"}, None)
@@ -1205,7 +1207,7 @@ class TestBaseState:
             return mock.MagicMock(body=json.dumps(response).encode())
 
         with mock.patch.object(
-            BaseState, "_do_request", new_callable=lambda *_: dummy_do_request
+            BaseBehaviour, "_do_request", new_callable=lambda *_: dummy_do_request
         ):
             app_hash_iter = self.behaviour._get_app_hash()
             next(app_hash_iter)
@@ -1218,16 +1220,16 @@ class TestBaseState:
                 else:
                     assert e.value == response["app_hash"]
 
-    @mock.patch.object(BaseState, "_start_reset")
-    @mock.patch.object(BaseState, "_is_timeout_expired")
+    @mock.patch.object(BaseBehaviour, "_start_reset")
+    @mock.patch.object(BaseBehaviour, "_is_timeout_expired")
     def test_reset_tendermint_with_wait_timeout_expired(self, *_: mock.Mock) -> None:
         """Test tendermint reset."""
         with pytest.raises(RuntimeError, match="Error resetting tendermint node."):
             next(self.behaviour.reset_tendermint_with_wait())
 
-    @mock.patch.object(BaseState, "_start_reset")
+    @mock.patch.object(BaseBehaviour, "_start_reset")
     @mock.patch.object(
-        BaseState, "_build_http_request_message", return_value=(None, None)
+        BaseBehaviour, "_build_http_request_message", return_value=(None, None)
     )
     @pytest.mark.parametrize(
         "reset_response, status_response, local_height, n_iter, expecting_success, app_hash",
@@ -1308,19 +1310,19 @@ class TestBaseState:
             return mock.MagicMock(body=json.dumps(status_response).encode())
 
         with mock.patch.object(
-            BaseState, "_is_timeout_expired", return_value=False
+            BaseBehaviour, "_is_timeout_expired", return_value=False
         ), mock.patch.object(
-            BaseState,
+            BaseBehaviour,
             "wait_from_last_timestamp",
             new_callable=lambda *_: self.dummy_sleep,
         ), mock.patch.object(
-            BaseState, "_get_app_hash", new_callable=lambda *_: dummy_get_app_hash
+            BaseBehaviour, "_get_app_hash", new_callable=lambda *_: dummy_get_app_hash
         ), mock.patch.object(
-            BaseState, "_do_request", new_callable=lambda *_: dummy_do_request
+            BaseBehaviour, "_do_request", new_callable=lambda *_: dummy_do_request
         ), mock.patch.object(
-            BaseState, "_get_status", new_callable=lambda *_: dummy_get_status
+            BaseBehaviour, "_get_status", new_callable=lambda *_: dummy_get_status
         ), mock.patch.object(
-            BaseState, "sleep", new_callable=lambda *_: self.dummy_sleep
+            BaseBehaviour, "sleep", new_callable=lambda *_: self.dummy_sleep
         ):
             self.behaviour.context.state.round_sequence.height = local_height
             reset = self.behaviour.reset_tendermint_with_wait()
@@ -1359,12 +1361,12 @@ class TestBaseState:
 
 
 def test_degenerate_state_async_act() -> None:
-    """Test DegenerateState.async_act."""
+    """Test DegenerateBehaviour.async_act."""
 
-    class ConcreteDegenerateState(DegenerateState):
-        """Concrete DegenerateState class."""
+    class ConcreteDegenerateState(DegenerateBehaviour):
+        """Concrete DegenerateBehaviour class."""
 
-        state_id = "concrete_degenerate_state"
+        behaviour_id = "concrete_degenerate_state"
         matching_round = MagicMock()
 
     context = MagicMock()
@@ -1373,7 +1375,7 @@ def test_degenerate_state_async_act() -> None:
     context.state.round_sequence.syncing_up = False
 
     state = ConcreteDegenerateState(
-        name=ConcreteDegenerateState.state_id, skill_context=context
+        name=ConcreteDegenerateState.behaviour_id, skill_context=context
     )
     with pytest.raises(
         RuntimeError,
@@ -1382,12 +1384,12 @@ def test_degenerate_state_async_act() -> None:
         state.act()
 
 
-def test_make_degenerate_state() -> None:
-    """Test 'make_degenerate_state'."""
+def test_make_degenerate_behaviour() -> None:
+    """Test 'make_degenerate_behaviour'."""
     round_id = "round_id"
-    new_cls = make_degenerate_state(round_id)
+    new_cls = make_degenerate_behaviour(round_id)
 
     assert isinstance(new_cls, type)
-    assert issubclass(new_cls, DegenerateState)
+    assert issubclass(new_cls, DegenerateBehaviour)
 
-    assert new_cls.state_id == f"degenerate_{round_id}"
+    assert new_cls.behaviour_id == f"degenerate_{round_id}"
