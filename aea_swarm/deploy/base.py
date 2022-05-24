@@ -20,7 +20,6 @@
 """Base deployments module."""
 import abc
 import json
-from logging import getLogger
 from pathlib import Path
 from typing import Any, Dict, List, Optional, cast
 
@@ -35,7 +34,7 @@ from aea.configurations.base import (
 from aea.configurations.constants import AGENTS, DEFAULT_AEA_CONFIG_FILE
 
 from aea_swarm.configurations.base import Service
-from aea_swarm.configurations.loader import ServiceConfigValidator, load_service_config
+from aea_swarm.configurations.loader import load_service_config
 from aea_swarm.deploy.constants import NETWORKS
 
 
@@ -51,7 +50,6 @@ COMPONENT_CONFIGS: Dict = {
         ConnectionConfig,
     ]
 }
-logger = getLogger(__name__)
 
 
 class ServiceSpecification:
@@ -94,7 +92,7 @@ class ServiceSpecification:
         """Generates env vars based on model overrides."""
         final_overrides = {}
         for component_configuration_json in self.overrides:
-            _, overrides = ServiceConfigValidator.process_component_section(
+            _, overrides = Service.process_component_section(
                 agent_n, component_configuration_json, self.service.json
             )
             final_overrides.update(overrides)
