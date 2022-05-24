@@ -1,0 +1,86 @@
+name: register_reset_abci
+author: valory
+version: 0.1.0
+type: skill
+description: ABCI application for dummy skill that registers and resets
+license: Apache-2.0
+aea_version: '>=1.0.0, <2.0.0'
+fingerprint:
+  README.md: QmT7TN1DvhK4LtLzv2gSQphVJCsy49b11hRU8ixiiYtHrf
+  __init__.py: QmSMjibxQMuERB6uqnESRS8CvQ3eXSmgT5Fphw3UTUKSsc
+  behaviours.py: QmU1QVLAW2FJpQGcZSf9pMMHSSkvgzjc77Q5zLGv32KzSk
+  composition.py: QmTcQBRHCewD1sminS7mMYrjmRojr1ZyPeWApQkXtMcvFv
+  dialogues.py: QmfDThV4WCRzK88XDpW2hKDYCuEH4RxoHCoAkWpkBRGRPv
+  fsm_specification.yaml: QmNtBq1LME67pGvjuWDczzJud5EK4pv2ZNRHp8xPJseZTU
+  handlers.py: QmWFvbxEUsxQ52C5eruuFrQivZ4FYjuRfSd3WeYePJNTDu
+  models.py: QmXcR7nM9nJyj6UtqTpmFfoULjd3QsCKWmHDacHDi6hbsi
+fingerprint_ignore_patterns: []
+connections:
+- valory/abci:0.1.0
+- valory/http_client:0.1.0
+contracts: []
+protocols:
+- open_aea/signing:1.0.0
+- valory/abci:0.1.0
+- valory/http:1.0.0
+skills:
+- valory/abstract_round_abci:0.1.0:QmYJgbvJ6PStEMej1H5tK9rrg7byJi8gcZE3CQNX7EUfjR
+- valory/registration_abci:0.1.0:QmWZ9QofLpRR2KxetwFZPt7uR1p46tAn1TWfGWn4x1vCg8
+- valory/reset_pause_abci:0.1.0:QmatRkHjv3TGwPQgF4B51WsWjteUkqc4szT3DnmXsXe4qX
+behaviours:
+  main:
+    args: {}
+    class_name: RegisterResetAbciAppConsensusBehaviour
+handlers:
+  abci:
+    args: {}
+    class_name: ABCIRegisterResetHandler
+  http:
+    args: {}
+    class_name: HttpHandler
+  signing:
+    args: {}
+    class_name: SigningHandler
+models:
+  abci_dialogues:
+    args: {}
+    class_name: AbciDialogues
+  benchmark_tool:
+    args:
+      log_dir: /logs
+    class_name: BenchmarkTool
+  http_dialogues:
+    args: {}
+    class_name: HttpDialogues
+  params:
+    args:
+      cleanup_history_depth: 1
+      consensus:
+        max_participants: 1
+      drand_public_key: 868f005eb8e6e4ca0a47c8a77ceaa5309a47978a7c71bc5cce96366b5d7a569937c529eeda66c7293784a9402801af31
+      keeper_timeout: 30.0
+      max_healthcheck: 120
+      observation_interval: 2
+      period_setup: {}
+      reset_tendermint_after: 1
+      retry_attempts: 400
+      retry_timeout: 3
+      round_timeout_seconds: 30.0
+      service_id: register_reset_abci
+      sleep_time: 1
+      tendermint_check_sleep_delay: 3
+      tendermint_com_url: http://localhost:8080
+      tendermint_max_retries: 5
+      tendermint_url: http://localhost:26657
+    class_name: Params
+  requests:
+    args: {}
+    class_name: Requests
+  signing_dialogues:
+    args: {}
+    class_name: SigningDialogues
+  state:
+    args: {}
+    class_name: SharedState
+dependencies: {}
+is_abstract: false

@@ -1,0 +1,52 @@
+agent_name: register_reset
+author: valory
+version: 0.1.0
+license: Apache-2.0
+description: Register reset to replicate Tendermint issue.
+aea_version: '>=1.0.0, <2.0.0'
+fingerprint: {}
+fingerprint_ignore_patterns: []
+connections:
+- valory/abci:0.1.0
+- valory/http_client:0.1.0
+contracts: []
+protocols:
+- open_aea/signing:1.0.0
+- valory/abci:0.1.0
+- valory/http:1.0.0
+skills:
+- valory/abstract_abci:0.1.0
+- valory/abstract_round_abci:0.1.0
+- valory/register_reset_abci:0.1.0
+- valory/registration_abci:0.1.0
+- valory/reset_pause_abci:0.1.0
+default_ledger: ethereum
+required_ledgers:
+- ethereum
+default_routing: {}
+connection_private_key_paths: {}
+private_key_paths: {}
+logging_config:
+  version: 1
+  disable_existing_loggers: false
+  formatters:
+    standard:
+      format: '[%(asctime)s] [%(levelname)s] %(message)s'
+  handlers:
+    console:
+      class: logging.StreamHandler
+      formatter: standard
+      stream: ext://sys.stdout
+  loggers:
+    aea:
+      handlers:
+      - console
+      propagate: false
+dependencies:
+  open-aea-ledger-ethereum: {}
+default_connection: null
+---
+public_id: valory/abci:0.1.0
+type: connection
+config:
+  target_skill_id: valory/register_reset_abci:0.1.0
