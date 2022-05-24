@@ -124,9 +124,9 @@ def test_finalization_tx_payload() -> None:
 def test_reset_payload() -> None:
     """Test `ResetPayload`."""
 
-    payload = ResetPayload(sender="sender", period_count=1)
+    payload = ResetPayload(sender="sender")
 
-    assert payload.period_count == 1
-    assert payload.data == {"period_count": 1}
+    assert payload.reset == True
+    assert payload.data == {"reset": True}
     assert payload.transaction_type == TransactionType.RESET
     assert ResetPayload.from_json(payload.json) == payload

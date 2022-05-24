@@ -121,12 +121,12 @@ def get_participant_to_selection(
     }
 
 
-def get_participant_to_period_count(
-    participants: FrozenSet[str], period_count: int
+def get_participant_to_reset(
+    participants: FrozenSet[str]
 ) -> Dict[str, ResetPayload]:
     """participant_to_selection"""
     return {
-        participant: ResetPayload(sender=participant, period_count=period_count)
+        participant: ResetPayload(sender=participant)
         for participant in participants
     }
 
@@ -134,16 +134,6 @@ def get_participant_to_period_count(
 def get_safe_contract_address() -> str:
     """safe_contract_address"""
     return "0x6f6ab56aca12"
-
-
-def get_participant_to_votes(
-    participants: FrozenSet[str], vote: Optional[bool] = True
-) -> Dict[str, ValidatePayload]:
-    """participant_to_votes"""
-    return {
-        participant: ValidatePayload(sender=participant, vote=vote)
-        for participant in participants
-    }
 
 
 def get_most_voted_tx_hash() -> str:
@@ -739,12 +729,11 @@ class TestResetRound(BaseCollectSameUntilThresholdRoundTest):
         test_round = ResetRound(
             state=synchronized_data, consensus_params=self.consensus_params
         )
-        next_period_count = 1
         self._complete_run(
             self._test_round(
                 test_round=test_round,
-                round_payloads=get_participant_to_period_count(
-                    self.participants, next_period_count
+                round_payloads=get_participant_to_reset(
+                    self.participants
                 ),
                 state_update_fn=lambda _synchronized_data, _: _synchronized_data.create(
                     participants=self.participants,
@@ -752,7 +741,7 @@ class TestResetRound(BaseCollectSameUntilThresholdRoundTest):
                     keeper_randomness=DUMMY_RANDOMNESS,
                 ),
                 state_attr_checks=[],  # [lambda state: state.participants],
-                most_voted_payload=next_period_count,
+                most_voted_payload=True,
                 exit_event=self._event_class.DONE,
             )
         )
