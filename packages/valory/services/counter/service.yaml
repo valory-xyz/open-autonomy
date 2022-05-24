@@ -1,6 +1,9 @@
-agent: "valory/counter:0.1.0"
-network: hardhat
-number_of_agents: 1
+name: counter
 author: "valory"
 version: 0.1.0
-name: counter
+description: Description
+aea_version: ">=1.0.0, <2.0.0"
+license: Apache-2.0
+number_of_agents: 1
+agent: "valory/counter:0.1.0"
+network: hardhat
