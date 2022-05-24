@@ -564,18 +564,24 @@ class AbciAppDB:
             )
         return value
 
-    def update(self, format_initial_data: bool = True, **kwargs: Any) -> None:
+    def update(self, overwrite_history: bool = False, **kwargs: Any) -> None:
         """Update the current data."""
-        new_data = AbciAppDB.data_to_list(kwargs) if format_initial_data else kwargs
-        for key, value in new_data.items():
+        if overwrite_history:
+            # Overwrite all key history for this period
+            for key, value in kwargs.items():
+                self._data[self.reset_index][key] = [value]
+            return
+
+        # Append new data to the key history
+        for key, value in kwargs.items():
             if key in self._data[self.reset_index]:
                 self._data[self.reset_index][key].append(value)
             else:
                 self._data[self.reset_index][key] = [value]
 
-    def create(self, format_initial_data: bool = True, **kwargs: Any) -> None:
+    def create(self, format_data: bool = True, **kwargs: Any) -> None:
         """Add a new entry to the data."""
-        new_data = AbciAppDB.data_to_list(kwargs) if format_initial_data else kwargs
+        new_data = AbciAppDB.data_to_list(kwargs) if format_data else kwargs
         self._data[self.reset_index + 1] = new_data
 
     def get_latest_from_reset_index(self, reset_index: int) -> Dict[str, Any]:
@@ -678,10 +684,11 @@ class BaseSynchronizedData:
     def update(
         self,
         synchronized_data_class: Optional[Type] = None,
+        overwrite_history: bool = False,
         **kwargs: Any,
     ) -> "BaseSynchronizedData":
         """Copy and update the current data."""
-        self.db.update(**kwargs)
+        self.db.update(overwrite_history=overwrite_history, **kwargs)
 
         class_ = (
             type(self) if synchronized_data_class is None else synchronized_data_class
@@ -691,10 +698,11 @@ class BaseSynchronizedData:
     def create(
         self,
         synchronized_data_class: Optional[Type] = None,
+        format_data: bool = True,
         **kwargs: Any,
     ) -> "BaseSynchronizedData":
         """Copy and update with new data."""
-        self.db.create(**kwargs)
+        self.db.create(format_data=format_data, **kwargs)
         class_ = (
             type(self) if synchronized_data_class is None else synchronized_data_class
         )

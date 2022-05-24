@@ -475,6 +475,19 @@ class TestConsensusParams:
         assert expected == actual
 
 
+@pytest.mark.parametrize(
+    "participants, format_initial_data", [({"a", "b"}, True), ([{"a", "b"}], False)]
+)
+def test_AbciAppDB(participants, format_initial_data):
+    db = AbciAppDB(
+        initial_data=dict(participants=participants),
+        format_initial_data=format_initial_data,
+    )
+    assert db._data == {0: {"participants": [{"a", "b"}]}}
+    assert db.initial_data == {"participants": [{"a", "b"}]}
+    assert db.cross_reset_persisted_keys == []
+
+
 class TestBaseSynchronizedData:
     """Test 'BaseSynchronizedData' class."""
 
@@ -507,6 +520,32 @@ class TestBaseSynchronizedData:
         )
         actual = self.base_synchronized_data.update(participants=participants)
         assert expected.participants == actual.participants
+        assert actual.db._data == {0: {"participants": [{"a", "b"}, {"a"}]}}
+
+    def test_update_overwrite(self) -> None:
+        """Test the 'update' method."""
+        participants = {"a"}
+        expected = BaseSynchronizedData(
+            db=AbciAppDB(initial_data=dict(participants=participants))
+        )
+        actual = self.base_synchronized_data.update(
+            overwrite_history=True, participants=participants
+        )
+        assert expected.participants == actual.participants
+        assert actual.db._data == {0: {"participants": [{"a"}]}}
+
+    @pytest.mark.parametrize(
+        "participants, format_data", [({"a"}, True), ([{"a"}], False)]
+    )
+    def test_create(self, participants, format_data) -> None:
+        """Test the 'create' method."""
+        actual = self.base_synchronized_data.create(
+            format_data=format_data, participants=participants
+        )
+        assert actual.db._data == {
+            0: {"participants": [{"a", "b"}]},
+            1: {"participants": [{"a"}]},
+        }
 
     def test_repr(self) -> None:
         """Test the '__repr__' magic method."""
