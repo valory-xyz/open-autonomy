@@ -550,15 +550,15 @@ class AbciAppDB:
             key: [value] for key, value in kwargs.items()
         }
 
-    def get_all_from_reset_index(self, reset_index: int) -> Dict[str, Any]:
-        """Get all key-value pairs from the data dictionary for the specified period."""
+    def get_latest_from_reset_index(self, reset_index: int) -> Dict[str, Any]:
+        """Get the latest key-value pairs from the data dictionary for the specified period."""
         return {
             key: values[-1] for key, values in self._data.get(reset_index, {}).items()
         }
 
-    def get_all(self) -> Dict[str, Any]:
-        """Get all key-value pairs from the data dictionary for the current period."""
-        return self.get_all_from_reset_index(self.reset_index)
+    def get_latest(self) -> Dict[str, Any]:
+        """Get the latest key-value pairs from the data dictionary for the current period."""
+        return self.get_latest_from_reset_index(self.reset_index)
 
     def increment_round_count(self) -> None:
         """Increment the round count."""

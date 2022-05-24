@@ -272,7 +272,7 @@ class TransactionHashBehaviour(PriceEstimationBaseState):
         if period_count != 0:
             # grab tx_hash from previous cycle
             prev_period_count = period_count - 1
-            previous_data = self.synchronized_data.db.get_all_from_reset_index(
+            previous_data = self.synchronized_data.db.get_latest_from_reset_index(
                 prev_period_count
             )
 

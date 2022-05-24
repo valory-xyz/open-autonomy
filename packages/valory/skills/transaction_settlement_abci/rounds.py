@@ -508,7 +508,7 @@ class ResetRound(CollectSameUntilThresholdRound):
     def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Event]]:
         """Process the end of the block."""
         if self.threshold_reached:
-            state_data = self.synchronized_data.db.get_all()
+            state_data = self.synchronized_data.db.get_latest()
             state = self.synchronized_data.add_new_data(
                 **state_data,
             )

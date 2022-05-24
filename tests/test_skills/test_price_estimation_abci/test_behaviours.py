@@ -420,7 +420,7 @@ class TestTransactionHashBehaviour(PriceEstimationFSMBehaviourBaseCase):
 
         tx_hashes = ["", "0x_prev_cycle_tx_hash"]
         synchronized_data = self.behaviour.current_state.synchronized_data  # type: ignore
-        period_data = synchronized_data.db.get_all()
+        period_data = synchronized_data.db.get_latest()
         period_data.update(
             {
                 "participants": {"agent1"},
