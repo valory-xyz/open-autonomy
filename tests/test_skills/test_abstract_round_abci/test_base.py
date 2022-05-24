@@ -23,7 +23,7 @@ import re
 from abc import ABC
 from copy import copy
 from enum import Enum
-from typing import Any, Dict, Optional, Set, Tuple, Type
+from typing import Any, Dict, List, Optional, Set, Tuple, Type, Union
 from unittest import mock
 from unittest.mock import MagicMock
 
@@ -475,17 +475,44 @@ class TestConsensusParams:
         assert expected == actual
 
 
-@pytest.mark.parametrize(
-    "participants, format_initial_data", [({"a", "b"}, True), ([{"a", "b"}], False)]
-)
-def test_AbciAppDB(participants, format_initial_data):
-    db = AbciAppDB(
-        initial_data=dict(participants=participants),
-        format_initial_data=format_initial_data,
+class TestAbciAppDB:
+    """Test 'AbciAppDB' class."""
+
+    def setup(self) -> None:
+        """Set up the tests."""
+        self.participants = {"a", "b"}
+        self.db = AbciAppDB(
+            initial_data=dict(participants=self.participants),
+        )
+
+    @pytest.mark.parametrize(
+        "participants, format_initial_data", [({"a", "b"}, True), ([{"a", "b"}], False)]
     )
-    assert db._data == {0: {"participants": [{"a", "b"}]}}
-    assert db.initial_data == {"participants": [{"a", "b"}]}
-    assert db.cross_reset_persisted_keys == []
+    def test_init(
+        self, participants: Union[List[Set[str]], Set[str]], format_initial_data: bool
+    ) -> None:
+        """Test constructor."""
+        db = AbciAppDB(
+            initial_data=dict(participants=participants),
+            format_initial_data=format_initial_data,
+        )
+        assert db._data == {0: {"participants": [self.participants]}}
+        assert db.initial_data == {"participants": [self.participants]}
+        assert db.cross_reset_persisted_keys == []
+
+    def test_get(self) -> None:
+        """Test getters."""
+        assert self.db.get("participants", default="default") == self.participants
+        assert self.db.get_latest_from_reset_index(0) == {
+            "participants": self.participants
+        }
+        assert self.db.get_latest() == {"participants": self.participants}
+
+    def test_increment_round_count(self) -> None:
+        """Test increment_round_count."""
+        assert self.db.round_count == -1
+        self.db.increment_round_count()
+        assert self.db.round_count == 0
 
 
 class TestBaseSynchronizedData:
@@ -537,7 +564,9 @@ class TestBaseSynchronizedData:
     @pytest.mark.parametrize(
         "participants, format_data", [({"a"}, True), ([{"a"}], False)]
     )
-    def test_create(self, participants, format_data) -> None:
+    def test_create(
+        self, participants: Union[List[Set[str]], Set[str]], format_data: bool
+    ) -> None:
         """Test the 'create' method."""
         actual = self.base_synchronized_data.create(
             format_data=format_data, participants=participants
@@ -572,6 +601,10 @@ class TestBaseSynchronizedData:
         )
         with pytest.raises(ValueError, match="List participants cannot be empty."):
             _ = base_synchronized_data.all_participants
+
+    def test_period_count(self) -> None:
+        """Test period_count"""
+        assert self.base_synchronized_data.period_count == 0
 
 
 class TestAbstractRound:
