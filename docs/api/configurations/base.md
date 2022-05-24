@@ -9,7 +9,7 @@ Base configurations.
 ## Service Objects
 
 ```python
-class Service()
+class Service(PackageConfiguration)
 ```
 
 Service package configuration.
@@ -19,7 +19,7 @@ Service package configuration.
 #### `__`init`__`
 
 ```python
-def __init__(name: SimpleIdOrStr, author: SimpleIdOrStr, agent: PublicId, version: str = "", license_: str = "", aea_version: str = "", description: str = "", number_of_agents: int = 4, network: Optional[str] = None) -> None
+def __init__(name: SimpleIdOrStr, author: SimpleIdOrStr, agent: PublicId, version: str = "", license_: str = "", aea_version: str = "", description: str = "", number_of_agents: int = 4, network: Optional[str] = None, build_entrypoint: Optional[str] = None) -> None
 ```
 
 Initialise object.
