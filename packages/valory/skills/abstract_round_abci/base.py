@@ -526,9 +526,11 @@ class AbciAppDB:
     def get(self, key: str, default: Any = "NOT_PROVIDED") -> Optional[Any]:
         """Get a value from the data dictionary."""
         if default != "NOT_PROVIDED":
-            return self._data.get(self.reset_index, {}).get(key, default)[-1]
+            key_history = self._data.get(self.reset_index, {}).get(key, default)
+            return key_history[-1]
         try:
-            return self._data.get(self.reset_index, {}).get(key)
+            key_history = self._data.get(self.reset_index, {}).get(key)
+            return key_history[-1] if key_history else None
         except KeyError as exception:  # pragma: no cover
             raise ValueError(
                 f"'{key}' field is not set for period state."
