@@ -358,7 +358,7 @@ class BaseTestEnd2EndAgentCatchup(BaseTestEnd2End):
     # mandatory argument
     stop_string: str
 
-    restart_after: float = 60
+    restart_after: int = 60
     wait_before_stop: int = 15
 
     def setup(self) -> None:
