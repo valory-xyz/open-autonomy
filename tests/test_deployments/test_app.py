@@ -1,11 +1,11 @@
-import logging
+
 import os
 import stat
 import shutil
 import tempfile
 import subprocess
 from pathlib import Path
-import pytest
+import time
 from deployments.Dockerfiles.localnode.app import (
     load_genesis,
     get_defaults,
@@ -21,12 +21,6 @@ def readonly_handler(func, path, execinfo) -> None:
 
     os.chmod(path, stat.S_IWRITE)
     func(path)
-
-
-@pytest.fixture(scope="class")
-def server_app():
-    """We keep server app around for all integration tests."""
-    yield create_app()
 
 
 # unit tests
@@ -84,9 +78,25 @@ class TestTendermintServerApp(BaseTendermintTest):
 
     @classmethod
     def setup_class(cls) -> None:
+        """Setup the test."""
         super().setup_class()
-        cls.proxy_app = os.environ["PROXY_APP"] = tempfile.mkdtemp()
+        cls.proxy_app = os.environ["PROXY_APP"] = "tcp://abci0:26658"
+        cls.create_empty_blocks = os.environ["CREATE_EMPTY_BLOCKS"] = "true"
+        os.environ["LOG_FILE"] = str(Path(cls.dir) / "tendermint.log")
+        cls.app, cls.tendermint_node = create_app(Path(cls.dir))
+        cls.app.config["TESTING"] = True
+        cls.app_context = cls.app.app_context()
+        cls.app_context.push()
 
-    def test_app(self, server_app):
-        assert server_app == 1
+    def test_get_app_hash(self):
+        """Test get app hash"""
+        with self.app.test_client() as client:
+            response = client.get("/app_hash")
+            assert response.status_code == 200
 
+    @classmethod
+    def teardown_class(cls) -> None:
+        """Teardown the test."""
+        cls.app_context.pop()
+        cls.tendermint_node.stop()
+        super().teardown_class()

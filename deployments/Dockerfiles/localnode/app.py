@@ -122,7 +122,7 @@ class PeriodDumper:
         self.resets += 1
 
 
-def create_app():
+def create_app(dump_dir: Optional[Path] = None):
     """Create the Tendermint server app"""
 
     override_config_toml()
@@ -133,7 +133,7 @@ def create_app():
     )
 
     app = Flask(__name__)
-    period_dumper = PeriodDumper(logger=app.logger)
+    period_dumper = PeriodDumper(logger=app.logger, dump_dir=dump_dir)
 
     tendermint_node = TendermintNode(tendermint_params, logger=app.logger)
     tendermint_node.start()
@@ -205,9 +205,9 @@ def create_app():
         app.logger.info(e)  # pylint: disable=E
         return Response("Error Closing Node", status=500, mimetype="application/json")
 
-    return app
+    return app, tendermint_node
 
 
 if __name__ == "__main__":
-    tendermint_app = create_app()
+    tendermint_app, _ = create_app()
     tendermint_app.run()
