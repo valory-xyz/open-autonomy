@@ -740,7 +740,12 @@ class BaseState(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
                 )
                 break
             # otherwise, repeat until done, or until stop condition is true
-            self.context.logger.info(f"Tx sent but not delivered. Response = {res}")
+            if isinstance(res, HttpMessage) and self._tx_not_found(tx_hash, res):
+                self.context.logger.info(
+                    f"Tx {tx_hash} not found! Response = {res}"
+                )
+            else:
+                self.context.logger.info(f"Tx sent but not delivered. Response = {res}")
             payload = payload.with_new_id()
         self.context.logger.info(
             "Stop condition is true, no more attempts to send the transaction."
@@ -754,6 +759,25 @@ class BaseState(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
             body_ = json.loads(res.body)
             return any(
                 [error_code in body_["tx_result"]["info"] for error_code in error_codes]
+            )
+        except Exception:  # pylint: disable=broad-except  # pragma: nocover
+            return False
+
+    @staticmethod
+    def _tx_not_found(tx_hash: str, res: HttpMessage) -> bool:
+        """Check if the transaction could not be found."""
+        try:
+            error = json.loads(res.body)["error"]
+            not_found_field_to_text = {
+                "code": -32603,
+                "message": "Internal error",
+                "data": f"tx ({tx_hash}) not found",
+            }
+            return all(
+                [
+                    text == error[field]
+                    for field, text in not_found_field_to_text.items()
+                ]
             )
         except Exception:  # pylint: disable=broad-except  # pragma: nocover
             return False
