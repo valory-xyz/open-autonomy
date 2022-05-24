@@ -62,7 +62,7 @@ def test_reset_payload() -> None:
 
     payload = ResetPayload(sender="sender", id_="id")
 
-    assert payload.reset == True
+    assert payload.reset
     assert payload.id_ == "id"
     assert payload.data == {"reset": True}
     assert hash(payload) == hash(tuple(sorted(payload.data.items())))

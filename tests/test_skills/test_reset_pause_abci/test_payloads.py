@@ -30,7 +30,7 @@ def test_reset_pause_payload() -> None:
 
     payload = ResetPausePayload(sender="sender")
 
-    assert payload.reset == True
+    assert payload.reset
     assert payload.data == {"reset": True}
     assert payload.transaction_type == TransactionType.RESETPAUSE
     assert ResetPausePayload.from_json(payload.json) == payload

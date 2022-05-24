@@ -22,7 +22,7 @@
 import logging  # noqa: F401
 from collections import deque
 from types import MappingProxyType
-from typing import Deque, Dict, FrozenSet, List, Mapping, Optional, Union, cast
+from typing import Deque, Dict, FrozenSet, List, Mapping, Union, cast
 from unittest import mock
 
 import pytest
@@ -44,7 +44,6 @@ from packages.valory.skills.transaction_settlement_abci.payloads import (
     SelectKeeperPayload,
     SignaturePayload,
     SynchronizeLateMessagesPayload,
-    ValidatePayload,
 )
 from packages.valory.skills.transaction_settlement_abci.rounds import (
     CheckTransactionHistoryRound,
@@ -121,13 +120,10 @@ def get_participant_to_selection(
     }
 
 
-def get_participant_to_reset(
-    participants: FrozenSet[str]
-) -> Dict[str, ResetPayload]:
+def get_participant_to_reset(participants: FrozenSet[str]) -> Dict[str, ResetPayload]:
     """participant_to_selection"""
     return {
-        participant: ResetPayload(sender=participant)
-        for participant in participants
+        participant: ResetPayload(sender=participant) for participant in participants
     }
 
 
@@ -732,9 +728,7 @@ class TestResetRound(BaseCollectSameUntilThresholdRoundTest):
         self._complete_run(
             self._test_round(
                 test_round=test_round,
-                round_payloads=get_participant_to_reset(
-                    self.participants
-                ),
+                round_payloads=get_participant_to_reset(self.participants),
                 state_update_fn=lambda _synchronized_data, _: _synchronized_data.create(
                     participants=self.participants,
                     all_participants=self.participants,

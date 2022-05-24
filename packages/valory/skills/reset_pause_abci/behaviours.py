@@ -81,9 +81,7 @@ class ResetAndPauseBehaviour(ResetAndPauseBaseState):
         self.context.logger.info("Period end.")
         self.context.benchmark_tool.save(self.synchronized_data.period_count)
 
-        payload = ResetPausePayload(
-            self.context.agent_address
-        )
+        payload = ResetPausePayload(self.context.agent_address)
         yield from self.send_a2a_transaction(payload)
         yield from self.wait_until_round_end()
         self.set_done()

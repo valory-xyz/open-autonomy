@@ -387,7 +387,7 @@ Represent a transaction payload of type 'reset'.
 #### `__`init`__`
 
 ```python
-def __init__(sender: str, period_count: int, **kwargs: Any) -> None
+def __init__(sender: str, reset: bool = True, **kwargs: Any) -> None
 ```
 
 Initialize an 'reset' transaction payload.
@@ -395,19 +395,19 @@ Initialize an 'reset' transaction payload.
 **Arguments**:
 
 - `sender`: the sender (Ethereum) address
-- `period_count`: the period count id
+- `reset`: the reset flag
 - `kwargs`: the keyword arguments
 
-<a id="packages.valory.skills.transaction_settlement_abci.payloads.ResetPayload.period_count"></a>
+<a id="packages.valory.skills.transaction_settlement_abci.payloads.ResetPayload.reset"></a>
 
-#### period`_`count
+#### reset
 
 ```python
 @property
-def period_count() -> int
+def reset() -> int
 ```
 
-Get the period_count.
+Get the reset attribute.
 
 <a id="packages.valory.skills.transaction_settlement_abci.payloads.ResetPayload.data"></a>
 

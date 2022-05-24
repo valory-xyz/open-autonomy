@@ -38,7 +38,7 @@ DUMMY_RANDOMNESS = 0.1  # for coverage purposes
 
 
 def get_participant_to_reset(
-    participants: FrozenSet[str]
+    participants: FrozenSet[str],
 ) -> Dict[str, ResetPausePayload]:
     """participant_to_selection"""
     return {
@@ -68,9 +68,7 @@ class TestResetAndPauseRound(BaseCollectSameUntilThresholdRoundTest):
         self._complete_run(
             self._test_round(
                 test_round=test_round,
-                round_payloads=get_participant_to_reset(
-                    self.participants
-                ),
+                round_payloads=get_participant_to_reset(self.participants),
                 state_update_fn=lambda _synchronized_data, _: _synchronized_data.create(
                     participants=self.participants,
                     all_participants=self.participants,

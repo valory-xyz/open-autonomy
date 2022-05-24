@@ -463,7 +463,9 @@ class BaseResetRound(CollectSameUntilThresholdRound, APYEstimationAbstractRound)
                     "latest_observation_hist_hash"
                 ] = self.synchronized_data.latest_observation_hist_hash
 
-            updated_state = self.synchronized_data.create(**kwargs)
+            updated_state = self.synchronized_data.create(
+                synchronized_data_class=None, **kwargs
+            )
             return updated_state, Event.DONE
 
         if not self.is_majority_possible(

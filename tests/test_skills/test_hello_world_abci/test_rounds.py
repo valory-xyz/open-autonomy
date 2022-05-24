@@ -20,7 +20,7 @@
 """Test the rounds of the skill."""
 import logging  # noqa: F401
 from types import MappingProxyType
-from typing import Dict, FrozenSet, cast
+from typing import FrozenSet, cast
 from unittest import mock
 
 from packages.valory.skills.abstract_round_abci.base import (
@@ -217,8 +217,7 @@ class TestResetAndPauseRound(BaseRoundTestClass):
         )
 
         first_payload, *payloads = [
-            ResetPayload(sender=participant)
-            for participant in self.participants
+            ResetPayload(sender=participant) for participant in self.participants
         ]
 
         test_round.process_payload(first_payload)

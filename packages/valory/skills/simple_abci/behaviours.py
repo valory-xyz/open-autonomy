@@ -229,9 +229,7 @@ class BaseResetBehaviour(SimpleABCIBaseState):
                 f"Period {self.synchronized_data.period_count} was not finished. Resetting!"
             )
 
-        payload = ResetPayload(
-            self.context.agent_address
-        )
+        payload = ResetPayload(self.context.agent_address)
 
         yield from self.send_a2a_transaction(payload)
         yield from self.wait_until_round_end()

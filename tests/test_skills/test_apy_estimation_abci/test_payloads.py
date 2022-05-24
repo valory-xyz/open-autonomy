@@ -190,6 +190,6 @@ class TestPayloads:
         payload = ResetPayload(sender="sender", id_="id")
 
         assert payload.transaction_type == TransactionType.RESET
-        assert payload.reset == True
+        assert payload.reset
         assert payload.id_ == "id"
         assert payload.data == {"reset": True}

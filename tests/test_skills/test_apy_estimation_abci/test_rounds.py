@@ -185,10 +185,7 @@ def get_participant_to_reset_payload(
     participants: FrozenSet[str],
 ) -> Dict[str, ResetPayload]:
     """Get reset payload."""
-    return {
-        participant: ResetPayload(participant)
-        for participant in participants
-    }
+    return {participant: ResetPayload(participant) for participant in participants}
 
 
 class BaseRoundTestClass:

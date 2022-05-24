@@ -1199,9 +1199,7 @@ class BaseResetBehaviour(APYEstimationBaseState):
                 f"Allowed state ids are `cycle_reset` and `fresh_model_reset`."
             )
 
-        payload = ResetPayload(
-            self.context.agent_address
-        )
+        payload = ResetPayload(self.context.agent_address)
         yield from self.send_a2a_transaction(payload)
         yield from self.wait_until_round_end()
         self.set_done()
