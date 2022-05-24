@@ -114,6 +114,7 @@ class TestAgentCatchup(BaseTestEnd2EndAgentCatchup, UseGnosisSafeHardHatNet):
     stop_string = "'registration_startup' round is done with event: Event.DONE"
 
 
+@pytest.mark.skip
 class TestTendermintReset(TestABCIPriceEstimationFourAgents):
     """Test the ABCI oracle skill with four agents when resetting Tendermint."""
 
@@ -146,6 +147,7 @@ class TestTendermintReset(TestABCIPriceEstimationFourAgents):
     ]
 
 
+@pytest.mark.skip
 class TestTendermintResetInterrupt(TestAgentCatchup):
     """Test the ABCI oracle skill with four agents when an agent gets temporarily interrupted on Tendermint reset."""
 
@@ -174,6 +176,7 @@ class TestTendermintResetInterrupt(TestAgentCatchup):
     ]
 
 
+@pytest.mark.skip
 class TestTendermintResetInterruptNoRejoin(TestTendermintResetInterrupt):
     """
     Test a Tendermint reset case for the ABCI oracle skill.
