@@ -1145,6 +1145,7 @@ class BaseState(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
             self.params.max_attempts if max_attempts is None else max_attempts
         )
 
+        response = None
         for _ in range(max_attempts):
             request_timeout = (
                 (deadline - datetime.datetime.now()).total_seconds()
@@ -1168,7 +1169,7 @@ class BaseState(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
             tx_result = json_body["result"]["tx_result"]
             return tx_result["code"] == OK_CODE, response
 
-        return False, None
+        return False, response
 
     @classmethod
     def _check_http_return_code_200(cls, response: HttpMessage) -> bool:
