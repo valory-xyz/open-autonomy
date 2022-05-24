@@ -571,9 +571,7 @@ class TestCheckTransactionHistoryRound(BaseCollectSameUntilThresholdRoundTest):
     ) -> None:
         """Run tests."""
         keepers = get_keepers(deque(("agent_1" + "-" * 35, "agent_3" + "-" * 35)))
-        self.synchronized_data.update(
-            missed_messages=missed_messages, keepers=keepers
-        )
+        self.synchronized_data.update(missed_messages=missed_messages, keepers=keepers)
 
         test_round = CheckTransactionHistoryRound(
             state=self.synchronized_data, consensus_params=self.consensus_params

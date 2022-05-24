@@ -157,9 +157,7 @@ class BaseDeployTestClass(BaseOnlyKeeperSendsRoundTest):
         keeper = sorted(list(self.participants))[0]
         self.synchronized_data = cast(
             SynchronizedData,
-            self.synchronized_data.update(
-                most_voted_keeper_address=keeper
-            ),
+            self.synchronized_data.update(most_voted_keeper_address=keeper),
         )
 
         test_round = self.round_class(

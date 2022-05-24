@@ -632,7 +632,7 @@ Class to represent all data replicated across periods.
 #### `__`init`__`
 
 ```python
-def __init__(initial_data: Dict[str, Any], cross_reset_persisted_keys: Optional[List[str]] = None) -> None
+def __init__(initial_data: Dict[str, Any], cross_reset_persisted_keys: Optional[List[str]] = None, format_initial_data: bool = True) -> None
 ```
 
 Initialize a period state.
@@ -705,45 +705,45 @@ def get_strict(key: str) -> Any
 
 Get a value from the data dictionary and raise if it is None.
 
-<a id="packages.valory.skills.abstract_round_abci.base.AbciAppDB.update_current_data"></a>
+<a id="packages.valory.skills.abstract_round_abci.base.AbciAppDB.update"></a>
 
-#### update`_`current`_`data
+#### update
 
 ```python
-def update_current_data(**kwargs: Any) -> None
+def update(**kwargs: Any) -> None
 ```
 
 Update the current data.
 
-<a id="packages.valory.skills.abstract_round_abci.base.AbciAppDB.add_new_data"></a>
+<a id="packages.valory.skills.abstract_round_abci.base.AbciAppDB.create"></a>
 
-#### add`_`new`_`data
+#### create
 
 ```python
-def add_new_data(**kwargs: Any) -> None
+def create(**kwargs: Any) -> None
 ```
 
 Add a new entry to the data.
 
-<a id="packages.valory.skills.abstract_round_abci.base.AbciAppDB.get_all_from_reset_index"></a>
+<a id="packages.valory.skills.abstract_round_abci.base.AbciAppDB.get_latest_from_reset_index"></a>
 
-#### get`_`all`_`from`_`reset`_`index
-
-```python
-def get_all_from_reset_index(reset_index: int) -> Dict[str, Any]
-```
-
-Get all key-value pairs from the data dictionary for the specified period.
-
-<a id="packages.valory.skills.abstract_round_abci.base.AbciAppDB.get_all"></a>
-
-#### get`_`all
+#### get`_`latest`_`from`_`reset`_`index
 
 ```python
-def get_all() -> Dict[str, Any]
+def get_latest_from_reset_index(reset_index: int) -> Dict[str, Any]
 ```
 
-Get all key-value pairs from the data dictionary for the current period.
+Get the latest key-value pairs from the data dictionary for the specified period.
+
+<a id="packages.valory.skills.abstract_round_abci.base.AbciAppDB.get_latest"></a>
+
+#### get`_`latest
+
+```python
+def get_latest() -> Dict[str, Any]
+```
+
+Get the latest key-value pairs from the data dictionary for the current period.
 
 <a id="packages.valory.skills.abstract_round_abci.base.AbciAppDB.increment_round_count"></a>
 
@@ -883,22 +883,22 @@ def nb_participants() -> int
 
 Get the number of participants.
 
-<a id="packages.valory.skills.abstract_round_abci.base.BaseSynchronizedData.update_current_data"></a>
+<a id="packages.valory.skills.abstract_round_abci.base.BaseSynchronizedData.update"></a>
 
-#### update`_`current`_`data
+#### update
 
 ```python
-def update_current_data(synchronized_data_class: Optional[Type] = None, **kwargs: Any, ,) -> "BaseSynchronizedData"
+def update(synchronized_data_class: Optional[Type] = None, **kwargs: Any, ,) -> "BaseSynchronizedData"
 ```
 
 Copy and update the current data.
 
-<a id="packages.valory.skills.abstract_round_abci.base.BaseSynchronizedData.add_new_data"></a>
+<a id="packages.valory.skills.abstract_round_abci.base.BaseSynchronizedData.create"></a>
 
-#### add`_`new`_`data
+#### create
 
 ```python
-def add_new_data(synchronized_data_class: Optional[Type] = None, **kwargs: Any, ,) -> "BaseSynchronizedData"
+def create(synchronized_data_class: Optional[Type] = None, **kwargs: Any, ,) -> "BaseSynchronizedData"
 ```
 
 Copy and update with new data.

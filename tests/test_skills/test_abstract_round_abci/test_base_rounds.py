@@ -689,9 +689,7 @@ class TestOnlyKeeperSendsRound(_BaseRoundTestClass, BaseOnlyKeeperSendsRoundTest
         """Run tests."""
 
         test_round = DummyOnlyKeeperSendsRound(
-            state=self.synchronized_data.update(
-                most_voted_keeper_address="agent_0"
-            ),
+            state=self.synchronized_data.update(most_voted_keeper_address="agent_0"),
             consensus_params=self.consensus_params,
         )
 

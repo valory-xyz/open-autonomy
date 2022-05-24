@@ -505,9 +505,7 @@ class TestBaseSynchronizedData:
         expected = BaseSynchronizedData(
             db=AbciAppDB(initial_data=dict(participants=participants))
         )
-        actual = self.base_synchronized_data.update(
-            participants=participants
-        )
+        actual = self.base_synchronized_data.update(participants=participants)
         assert expected.participants == actual.participants
 
     def test_repr(self) -> None:

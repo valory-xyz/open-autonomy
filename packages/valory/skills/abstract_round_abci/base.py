@@ -484,12 +484,18 @@ class AbciAppDB:
         format_initial_data: bool = True,
     ) -> None:
         """Initialize a period state."""
-        self._initial_data = {key: [value] for key, value in initial_data.items()} if format_initial_data else initial_data
+        self._initial_data = (
+            {key: [value] for key, value in initial_data.items()}
+            if format_initial_data
+            else initial_data
+        )
         self._cross_reset_persisted_keys = (
             [] if cross_reset_persisted_keys is None else cross_reset_persisted_keys
         )
         self._data: Dict[int, Dict[str, List[Any]]] = {
-            RESET_COUNT_START: deepcopy(self._initial_data)  # the key represents the reset index
+            RESET_COUNT_START: deepcopy(
+                self._initial_data
+            )  # the key represents the reset index
         }
         self._round_count = ROUND_COUNT_DEFAULT  # ensures first round is indexed at 0!
 
