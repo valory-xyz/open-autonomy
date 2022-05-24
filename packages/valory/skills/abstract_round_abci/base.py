@@ -526,8 +526,14 @@ class AbciAppDB:
     def get(self, key: str, default: Any = "NOT_PROVIDED") -> Optional[Any]:
         """Get a value from the data dictionary."""
         if default != "NOT_PROVIDED":
-            key_history = self._data.get(self.reset_index, {}).get(key, "DEFAULT_VALUE")
-            return default if key_history == "DEFAULT_VALUE" else key_history[-1]
+            key_history_or_default = self._data.get(self.reset_index, {}).get(
+                key, "DEFAULT_VALUE"
+            )
+            return (
+                default
+                if key_history_or_default == "DEFAULT_VALUE"
+                else key_history_or_default[-1]
+            )
         try:
             key_history = self._data.get(self.reset_index, {}).get(key)
             return key_history[-1] if key_history else None
