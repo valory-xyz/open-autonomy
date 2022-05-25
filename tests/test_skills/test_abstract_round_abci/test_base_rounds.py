@@ -552,7 +552,8 @@ class TestCollectionRound(_BaseRoundTestClass):
         """Run tests."""
 
         test_round = DummyCollectionRound(
-            state=self.synchronized_data, consensus_params=self.consensus_params
+            synchronized_data=self.synchronized_data,
+            consensus_params=self.consensus_params,
         )
 
         first_payload, *_ = self.tx_payloads
@@ -599,7 +600,8 @@ class TestCollectDifferentUntilAllRound(_BaseRoundTestClass):
         """Run Tests."""
 
         test_round = DummyCollectDifferentUntilAllRound(
-            state=self.synchronized_data, consensus_params=self.consensus_params
+            synchronized_data=self.synchronized_data,
+            consensus_params=self.consensus_params,
         )
 
         first_payload, *payloads = self.tx_payloads
@@ -633,7 +635,8 @@ class TestCollectSameUntilThresholdRound(_BaseRoundTestClass):
         """Run tests."""
 
         test_round = DummyCollectSameUntilThresholdRound(
-            state=self.synchronized_data, consensus_params=self.consensus_params
+            synchronized_data=self.synchronized_data,
+            consensus_params=self.consensus_params,
         )
 
         first_payload, *payloads = get_dummy_tx_payloads(
@@ -659,7 +662,8 @@ class TestCollectSameUntilThresholdRound(_BaseRoundTestClass):
         """Run tests."""
 
         test_round = DummyCollectSameUntilThresholdRound(
-            state=self.synchronized_data, consensus_params=self.consensus_params
+            synchronized_data=self.synchronized_data,
+            consensus_params=self.consensus_params,
         )
 
         first_payload, *payloads = get_dummy_tx_payloads(
@@ -689,7 +693,9 @@ class TestOnlyKeeperSendsRound(_BaseRoundTestClass, BaseOnlyKeeperSendsRoundTest
         """Run tests."""
 
         test_round = DummyOnlyKeeperSendsRound(
-            state=self.synchronized_data.update(most_voted_keeper_address="agent_0"),
+            synchronized_data=self.synchronized_data.update(
+                most_voted_keeper_address="agent_0"
+            ),
             consensus_params=self.consensus_params,
         )
 
@@ -745,7 +751,7 @@ class TestOnlyKeeperSendsRound(_BaseRoundTestClass, BaseOnlyKeeperSendsRoundTest
         self._complete_run(
             self._test_round(
                 test_round=DummyOnlyKeeperSendsRound(
-                    state=self.synchronized_data.update(
+                    synchronized_data=self.synchronized_data.update(
                         most_voted_keeper_address=keeper,
                     ),
                     consensus_params=self.consensus_params,
@@ -764,7 +770,8 @@ class TestVotingRound(_BaseRoundTestClass):
     def setup_test_voting_round(self) -> DummyVotingRound:
         """Setup test voting round"""
         return DummyVotingRound(
-            state=self.synchronized_data, consensus_params=self.consensus_params
+            synchronized_data=self.synchronized_data,
+            consensus_params=self.consensus_params,
         )
 
     def test_vote_count(self) -> None:
@@ -818,7 +825,8 @@ class TestCollectDifferentUntilThresholdRound(_BaseRoundTestClass):
         """Run tests."""
 
         test_round = DummyCollectDifferentUntilThresholdRound(
-            state=self.synchronized_data, consensus_params=self.consensus_params
+            synchronized_data=self.synchronized_data,
+            consensus_params=self.consensus_params,
         )
 
         first_payload, *payloads = get_dummy_tx_payloads(self.participants, vote=False)
@@ -839,7 +847,8 @@ class TestDummyCollectNonEmptyUntilThresholdRound(_BaseRoundTestClass):
     def test_get_non_empty_values(self) -> None:
         """Test `_get_non_empty_values`."""
         test_round = DummyCollectNonEmptyUntilThresholdRound(
-            state=self.synchronized_data, consensus_params=self.consensus_params
+            synchronized_data=self.synchronized_data,
+            consensus_params=self.consensus_params,
         )
         payloads = get_dummy_tx_payloads(self.participants)
         payloads[3]._value = None
@@ -854,7 +863,8 @@ class TestDummyCollectNonEmptyUntilThresholdRound(_BaseRoundTestClass):
     def test_process_payload(self) -> None:
         """Test `process_payload`."""
         test_round = DummyCollectNonEmptyUntilThresholdRound(
-            state=self.synchronized_data, consensus_params=self.consensus_params
+            synchronized_data=self.synchronized_data,
+            consensus_params=self.consensus_params,
         )
 
         first_payload, *payloads = get_dummy_tx_payloads(self.participants)
@@ -870,7 +880,8 @@ class TestDummyCollectNonEmptyUntilThresholdRound(_BaseRoundTestClass):
     def test_end_block_no_threshold_reached(self, is_majority_possible: bool) -> None:
         """Test `end_block` when no collection threshold is reached."""
         test_round = DummyCollectNonEmptyUntilThresholdRound(
-            state=self.synchronized_data, consensus_params=self.consensus_params
+            synchronized_data=self.synchronized_data,
+            consensus_params=self.consensus_params,
         )
 
         test_round.is_majority_possible = lambda *_: is_majority_possible  # type: ignore
@@ -890,7 +901,8 @@ class TestDummyCollectNonEmptyUntilThresholdRound(_BaseRoundTestClass):
     def test_end_block(self, is_value_none: bool, expected_event: str) -> None:
         """Test `end_block` when collection threshold is reached."""
         test_round = DummyCollectNonEmptyUntilThresholdRound(
-            state=self.synchronized_data, consensus_params=self.consensus_params
+            synchronized_data=self.synchronized_data,
+            consensus_params=self.consensus_params,
         )
 
         payloads = get_dummy_tx_payloads(self.participants, is_value_none=is_value_none)

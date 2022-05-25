@@ -382,7 +382,7 @@ class ValidateTransactionRound(VotingRound):
             # We only set the final tx hash if we are about to exit from the transaction settlement skill.
             # Then, the skills which use the transaction settlement can check the tx hash
             # and if it is None, then it means that the transaction has failed.
-            state = self.synchronized_data.update(
+            synchronized_data = self.synchronized_data.update(
                 synchronized_data_class=self.synchronized_data_class,
                 participant_to_votes=self.collection,
                 final_verification_status=VerificationStatus.VERIFIED,
@@ -390,7 +390,7 @@ class ValidateTransactionRound(VotingRound):
                     SynchronizedData, self.synchronized_data
                 ).to_be_validated_tx_hash,
             )  # type: ignore
-            return state, self.done_event
+            return synchronized_data, self.done_event
         if self.negative_vote_threshold_reached:
             return self.synchronized_data, self.negative_event
         if self.none_vote_threshold_reached:
@@ -420,12 +420,12 @@ class CheckTransactionHistoryRound(CollectSameUntilThresholdRound):
 
             if return_status == VerificationStatus.NOT_VERIFIED:
                 # We don't update the state as we need to repeat all checks again later
-                state = self.synchronized_data
+                synchronized_data = self.synchronized_data
             else:
                 # We only set the final tx hash if we are about to exit from the transaction settlement skill.
                 # Then, the skills which use the transaction settlement can check the tx hash
                 # and if it is None, then it means that the transaction has failed.
-                state = self.synchronized_data.update(
+                synchronized_data = self.synchronized_data.update(
                     synchronized_data_class=self.synchronized_data_class,
                     participant_to_check=self.collection,
                     final_verification_status=return_status,
@@ -433,18 +433,18 @@ class CheckTransactionHistoryRound(CollectSameUntilThresholdRound):
                 )
 
             if return_status == VerificationStatus.VERIFIED:
-                return state, Event.DONE
+                return synchronized_data, Event.DONE
             if (
                 return_status == VerificationStatus.NOT_VERIFIED
                 and cast(
                     SynchronizedData, self.synchronized_data
                 ).should_check_late_messages
             ):
-                return state, Event.CHECK_LATE_ARRIVING_MESSAGE
+                return synchronized_data, Event.CHECK_LATE_ARRIVING_MESSAGE
             if return_status == VerificationStatus.NOT_VERIFIED:
-                return state, Event.NEGATIVE
+                return synchronized_data, Event.NEGATIVE
 
-            return state, Event.NONE
+            return synchronized_data, Event.NONE
 
         if not self.is_majority_possible(
             self.collection, self.synchronized_data.nb_participants
@@ -509,10 +509,10 @@ class ResetRound(CollectSameUntilThresholdRound):
         """Process the end of the block."""
         if self.threshold_reached:
             state_data = self.synchronized_data.db.get_latest()
-            state = self.synchronized_data.create(
+            synchronized_data = self.synchronized_data.create(
                 **state_data,
             )
-            return state, Event.DONE
+            return synchronized_data, Event.DONE
         if not self.is_majority_possible(
             self.collection, self.synchronized_data.nb_participants
         ):

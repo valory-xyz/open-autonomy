@@ -161,7 +161,8 @@ class BaseDeployTestClass(BaseOnlyKeeperSendsRoundTest):
         )
 
         test_round = self.round_class(
-            state=self.synchronized_data, consensus_params=self.consensus_params
+            synchronized_data=self.synchronized_data,
+            consensus_params=self.consensus_params,
         )
 
         self._complete_run(
@@ -201,7 +202,8 @@ class BaseValidateRoundTest(BaseVotingRoundTest):
         self.synchronized_data.update(tx_hashes_history="t" * 66)
 
         test_round = self.test_class(
-            state=self.synchronized_data, consensus_params=self.consensus_params
+            synchronized_data=self.synchronized_data,
+            consensus_params=self.consensus_params,
         )
 
         self._complete_run(
@@ -224,7 +226,8 @@ class BaseValidateRoundTest(BaseVotingRoundTest):
         """Test ValidateRound."""
 
         test_round = self.test_class(
-            state=self.synchronized_data, consensus_params=self.consensus_params
+            synchronized_data=self.synchronized_data,
+            consensus_params=self.consensus_params,
         )
 
         self._complete_run(
@@ -247,7 +250,8 @@ class BaseValidateRoundTest(BaseVotingRoundTest):
         """Test ValidateRound."""
 
         test_round = self.test_class(
-            state=self.synchronized_data, consensus_params=self.consensus_params
+            synchronized_data=self.synchronized_data,
+            consensus_params=self.consensus_params,
         )
 
         self._complete_run(
@@ -297,7 +301,7 @@ class BaseSelectKeeperRoundTest(BaseCollectSameUntilThresholdRoundTest):
     ) -> None:
         """Run tests."""
         test_round = self.test_class(
-            state=self.synchronized_data.update(
+            synchronized_data=self.synchronized_data.update(
                 keepers=keepers,
                 final_verification_status=VerificationStatus.PENDING,
             ),

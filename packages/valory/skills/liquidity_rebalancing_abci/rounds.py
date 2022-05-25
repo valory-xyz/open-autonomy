@@ -133,7 +133,7 @@ class LiquidityRebalancingAbstractRound(AbstractRound[Event, TransactionType], A
     @property
     def synchronized_data(self) -> SynchronizedData:
         """Return the period state."""
-        return cast(SynchronizedData, self._state)
+        return cast(SynchronizedData, self._synchronized_data)
 
     def _return_no_majority_event(self) -> Tuple[SynchronizedData, Event]:
         """
@@ -157,11 +157,11 @@ class TransactionHashBaseRound(
         """Process the end of the block."""
         if self.threshold_reached:
             dict_ = json.loads(self.most_voted_payload)
-            state = self.synchronized_data.update(
+            synchronized_data = self.synchronized_data.update(
                 participant_to_tx_hash=MappingProxyType(self.collection),
                 most_voted_tx_hash=dict_["tx_hash"],
             )
-            return state, Event.DONE
+            return synchronized_data, Event.DONE
         if not self.is_majority_possible(
             self.collection, self.synchronized_data.nb_participants
         ):
@@ -181,7 +181,7 @@ class StrategyEvaluationRound(
     def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Event]]:
         """Process the end of the block."""
         if self.threshold_reached:
-            state = self.synchronized_data.update(
+            synchronized_data = self.synchronized_data.update(
                 participant_to_strategy=MappingProxyType(self.collection),
                 most_voted_strategy=self.most_voted_payload,
             )
@@ -197,7 +197,7 @@ class StrategyEvaluationRound(
                 event = Event.DONE_EXIT
             elif strategy["action"] == StrategyType.SWAP_BACK.value:
                 event = Event.DONE_SWAP_BACK
-            return state, event
+            return synchronized_data, event
         if not self.is_majority_possible(
             self.collection, self.synchronized_data.nb_participants
         ):

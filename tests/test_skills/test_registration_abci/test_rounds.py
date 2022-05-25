@@ -59,7 +59,8 @@ class TestRegistrationStartupRound(BaseCollectDifferentUntilAllRoundTest):
         )
 
         test_round = RegistrationStartupRound(
-            state=self.synchronized_data, consensus_params=self.consensus_params
+            synchronized_data=self.synchronized_data,
+            consensus_params=self.consensus_params,
         )
         self._run_with_round(
             test_round,
@@ -74,7 +75,8 @@ class TestRegistrationStartupRound(BaseCollectDifferentUntilAllRoundTest):
         """Run test."""
 
         test_round = RegistrationStartupRound(
-            state=self.synchronized_data, consensus_params=self.consensus_params
+            synchronized_data=self.synchronized_data,
+            consensus_params=self.consensus_params,
         )
         self._run_with_round(test_round, RegistrationEvent.DONE, 1)
 
@@ -84,7 +86,8 @@ class TestRegistrationStartupRound(BaseCollectDifferentUntilAllRoundTest):
         """Run test."""
 
         test_round = RegistrationStartupRound(
-            state=self.synchronized_data, consensus_params=self.consensus_params
+            synchronized_data=self.synchronized_data,
+            consensus_params=self.consensus_params,
         )
         self._run_with_round(test_round)
 
@@ -141,7 +144,8 @@ class TestRegistrationRound(BaseCollectDifferentUntilThresholdRoundTest):
             ),
         )
         test_round = RegistrationRound(
-            state=self.synchronized_data, consensus_params=self.consensus_params
+            synchronized_data=self.synchronized_data,
+            consensus_params=self.consensus_params,
         )
         self._run_with_round(test_round, RegistrationEvent.DONE, 10)
 
@@ -157,7 +161,8 @@ class TestRegistrationRound(BaseCollectDifferentUntilThresholdRoundTest):
             ),
         )
         test_round = RegistrationRound(
-            state=self.synchronized_data, consensus_params=self.consensus_params
+            synchronized_data=self.synchronized_data,
+            consensus_params=self.consensus_params,
         )
         self._run_with_round(test_round, finished=False)
 

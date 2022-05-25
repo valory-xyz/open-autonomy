@@ -92,7 +92,7 @@ class SimpleABCIAbstractRound(AbstractRound[Event, TransactionType], ABC):
     @property
     def synchronized_data(self) -> SynchronizedData:
         """Return the period state."""
-        return cast(SynchronizedData, self._state)
+        return cast(SynchronizedData, self._synchronized_data)
 
     def _return_no_majority_event(self) -> Tuple[SynchronizedData, Event]:
         """
@@ -113,12 +113,12 @@ class RegistrationRound(CollectDifferentUntilAllRound, SimpleABCIAbstractRound):
     def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Event]]:
         """Process the end of the block."""
         if self.collection_threshold_reached:
-            state = self.synchronized_data.update(
+            synchronized_data = self.synchronized_data.update(
                 participants=self.collection,
                 all_participants=self.collection,
                 synchronized_data_class=SynchronizedData,
             )
-            return state, Event.DONE
+            return synchronized_data, Event.DONE
         return None
 
 
@@ -131,11 +131,11 @@ class BaseRandomnessRound(CollectSameUntilThresholdRound, SimpleABCIAbstractRoun
     def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Event]]:
         """Process the end of the block."""
         if self.threshold_reached:
-            state = self.synchronized_data.update(
+            synchronized_data = self.synchronized_data.update(
                 participant_to_randomness=MappingProxyType(self.collection),
                 most_voted_randomness=self.most_voted_payload,
             )
-            return state, Event.DONE
+            return synchronized_data, Event.DONE
         if not self.is_majority_possible(
             self.collection, self.synchronized_data.nb_participants
         ):
@@ -152,11 +152,11 @@ class SelectKeeperRound(CollectSameUntilThresholdRound, SimpleABCIAbstractRound)
     def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Event]]:
         """Process the end of the block."""
         if self.threshold_reached:
-            state = self.synchronized_data.update(
+            synchronized_data = self.synchronized_data.update(
                 participant_to_selection=MappingProxyType(self.collection),
                 most_voted_keeper_address=self.most_voted_payload,
             )
-            return state, Event.DONE
+            return synchronized_data, Event.DONE
         if not self.is_majority_possible(
             self.collection, self.synchronized_data.nb_participants
         ):
@@ -185,11 +185,11 @@ class BaseResetRound(CollectSameUntilThresholdRound, SimpleABCIAbstractRound):
     def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Event]]:
         """Process the end of the block."""
         if self.threshold_reached:
-            state = self.synchronized_data.create(
+            synchronized_data = self.synchronized_data.create(
                 participants=self.synchronized_data.participants,
                 all_participants=self.synchronized_data.all_participants,
             )
-            return state, Event.DONE
+            return synchronized_data, Event.DONE
         if not self.is_majority_possible(
             self.collection, self.synchronized_data.nb_participants
         ):

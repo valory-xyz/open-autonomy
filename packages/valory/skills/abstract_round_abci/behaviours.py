@@ -82,7 +82,7 @@ class _MetaRoundBehaviour(ABCMeta):
     def _check_behaviour_id_uniqueness(
         mcs, behaviour_cls: "AbstractRoundBehaviour"
     ) -> None:
-        """Check that state behaviour ids are unique across behaviour states."""
+        """Check that behaviour ids are unique across behaviour."""
         state_id_to_state = defaultdict(lambda: [])
         for state_class in behaviour_cls.behaviours:
             state_id_to_state[state_class.behaviour_id].append(state_class)

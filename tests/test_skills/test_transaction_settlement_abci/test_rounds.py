@@ -450,7 +450,7 @@ class TestFinalizationRound(BaseOnlyKeeperSendsRoundTest):
             keeper_retries = 1
 
         test_round = self._round_class(
-            state=self.synchronized_data,
+            synchronized_data=self.synchronized_data,
             consensus_params=self.consensus_params,
         )
 
@@ -498,7 +498,8 @@ class TestCollectSignatureRound(BaseCollectDifferentUntilThresholdRoundTest):
         """Runs tests."""
 
         test_round = CollectSignatureRound(
-            state=self.synchronized_data, consensus_params=self.consensus_params
+            synchronized_data=self.synchronized_data,
+            consensus_params=self.consensus_params,
         )
 
         self._complete_run(
@@ -574,7 +575,8 @@ class TestCheckTransactionHistoryRound(BaseCollectSameUntilThresholdRoundTest):
         self.synchronized_data.update(missed_messages=missed_messages, keepers=keepers)
 
         test_round = CheckTransactionHistoryRound(
-            state=self.synchronized_data, consensus_params=self.consensus_params
+            synchronized_data=self.synchronized_data,
+            consensus_params=self.consensus_params,
         )
 
         self._complete_run(
@@ -635,7 +637,8 @@ class TestSynchronizeLateMessagesRound(BaseCollectNonEmptyUntilThresholdRound):
         """Runs tests."""
         self.synchronized_data.update(missed_messages=missed_messages)
         test_round = SynchronizeLateMessagesRound(
-            state=self.synchronized_data, consensus_params=self.consensus_params
+            synchronized_data=self.synchronized_data,
+            consensus_params=self.consensus_params,
         )
         self._complete_run(
             self._test_round(
@@ -737,7 +740,7 @@ class TestResetRound(BaseCollectSameUntilThresholdRoundTest):
         )
         synchronized_data._db._cross_reset_persisted_keys = ["keeper_randomness"]
         test_round = ResetRound(
-            state=synchronized_data, consensus_params=self.consensus_params
+            synchronized_data=synchronized_data, consensus_params=self.consensus_params
         )
         next_period_count = 1
         self._complete_run(

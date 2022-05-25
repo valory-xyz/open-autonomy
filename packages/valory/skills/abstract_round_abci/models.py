@@ -123,8 +123,8 @@ class SharedState(Model):
 
     @property
     def synchronized_data(self) -> BaseSynchronizedData:
-        """Get the period state if available."""
-        return self.round_sequence.latest_state
+        """Get the latest synchronized_data if available."""
+        return self.round_sequence.latest_synchronized_data
 
     @classmethod
     def _process_abci_app_cls(cls, abci_app_cls: Type[AbciApp]) -> Type[AbciApp]:

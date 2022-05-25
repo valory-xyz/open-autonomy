@@ -402,7 +402,7 @@ class CleanUpBehaviour(SimpleBehaviour, ABC):
     """Class for clean-up related functionality of behaviours."""
 
     def __init__(self, **kwargs: Any):  # pylint: disable=super-init-not-called
-        """Initialize a base state behaviour."""
+        """Initialize a base behaviour."""
         SimpleBehaviour.__init__(self, **kwargs)
 
     def clean_up(self) -> None:
@@ -464,7 +464,7 @@ class BaseBehaviour(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
 
     @property
     def synchronized_data(self) -> BaseSynchronizedData:
-        """Return the period state."""
+        """Return the period data."""
         return cast(
             BaseSynchronizedData,
             cast(SharedState, self.context.state).synchronized_data,
@@ -551,7 +551,7 @@ class BaseBehaviour(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
         yield from self.wait_for_condition(_wait_until)
 
     def is_done(self) -> bool:
-        """Check whether the state is done."""
+        """Check whether the behaviour is done."""
         return self._is_done
 
     def set_done(self) -> None:
@@ -618,12 +618,12 @@ class BaseBehaviour(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
                 yield from self.sleep(self.context.params.tendermint_check_sleep_delay)
 
     def _log_start(self) -> None:
-        """Log the entering in the behaviour state."""
-        self.context.logger.info(f"Entered in the '{self.name}' behaviour state")
+        """Log the entering in the behaviour."""
+        self.context.logger.info(f"Entered in the '{self.name}' behaviour")
 
     def _log_end(self) -> None:
-        """Log the exiting from the behaviour state."""
-        self.context.logger.info(f"'{self.name}' behaviour state is done")
+        """Log the exiting from the behaviour."""
+        self.context.logger.info(f"'{self.name}' behaviour is done")
 
     @classmethod
     def _get_request_nonce_from_dialogue(cls, dialogue: Dialogue) -> str:
@@ -1596,7 +1596,7 @@ class DegenerateBehaviour(BaseBehaviour, ABC):
     def async_act(self) -> Generator:
         """Raise a RuntimeError."""
         raise RuntimeError(
-            "The execution reached a degenerate behaviour state. "
+            "The execution reached a degenerate behaviour. "
             "This means a degenerate round has been reached during "
             "the execution of the ABCI application. Please check the "
             "functioning of the ABCI app."

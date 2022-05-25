@@ -214,7 +214,8 @@ class TestCollectObservationRound(BaseCollectDifferentUntilThresholdRoundTest):
         """Runs tests."""
 
         test_round = CollectObservationRound(
-            state=self.synchronized_data, consensus_params=self.consensus_params
+            synchronized_data=self.synchronized_data,
+            consensus_params=self.consensus_params,
         )
         self._complete_run(
             self._test_round(
@@ -238,7 +239,8 @@ class TestCollectObservationRound(BaseCollectDifferentUntilThresholdRoundTest):
         """Runs tests with one less observation."""
 
         test_round = CollectObservationRound(
-            state=self.synchronized_data, consensus_params=self.consensus_params
+            synchronized_data=self.synchronized_data,
+            consensus_params=self.consensus_params,
         )
 
         self._complete_run(
@@ -272,7 +274,8 @@ class TestEstimateConsensusRound(BaseCollectSameUntilThresholdRoundTest):
         """Runs test."""
 
         test_round = EstimateConsensusRound(
-            state=self.synchronized_data, consensus_params=self.consensus_params
+            synchronized_data=self.synchronized_data,
+            consensus_params=self.consensus_params,
         )
         self._complete_run(
             self._test_round(
@@ -303,7 +306,8 @@ class TestTxHashRound(BaseCollectSameUntilThresholdRoundTest):
         """Runs test."""
 
         test_round = TxHashRound(
-            state=self.synchronized_data, consensus_params=self.consensus_params
+            synchronized_data=self.synchronized_data,
+            consensus_params=self.consensus_params,
         )
 
         hash_ = "tx_hash"
@@ -324,7 +328,8 @@ class TestTxHashRound(BaseCollectSameUntilThresholdRoundTest):
         """Runs test."""
 
         test_round = TxHashRound(
-            state=self.synchronized_data, consensus_params=self.consensus_params
+            synchronized_data=self.synchronized_data,
+            consensus_params=self.consensus_params,
         )
 
         hash_ = None

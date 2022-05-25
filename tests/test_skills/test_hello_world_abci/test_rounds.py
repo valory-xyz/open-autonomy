@@ -114,7 +114,8 @@ class TestRegistrationRound(BaseRoundTestClass):
         """Run tests."""
 
         test_round = RegistrationRound(
-            state=self.synchronized_data, consensus_params=self.consensus_params
+            synchronized_data=self.synchronized_data,
+            consensus_params=self.consensus_params,
         )
 
         first_payload, *payloads = [
@@ -151,7 +152,8 @@ class TestSelectKeeperRound(BaseRoundTestClass):
         """Run tests."""
 
         test_round = SelectKeeperRound(
-            state=self.synchronized_data, consensus_params=self.consensus_params
+            synchronized_data=self.synchronized_data,
+            consensus_params=self.consensus_params,
         )
 
         first_payload, *payloads = [
@@ -196,7 +198,8 @@ class TestPrintMessageRound(BaseRoundTestClass):
         """Run tests."""
 
         test_round = PrintMessageRound(
-            state=self.synchronized_data, consensus_params=self.consensus_params
+            synchronized_data=self.synchronized_data,
+            consensus_params=self.consensus_params,
         )
 
         first_payload, *payloads = [
@@ -233,7 +236,8 @@ class TestResetAndPauseRound(BaseRoundTestClass):
     ) -> None:
         """Run tests."""
         test_round = ResetAndPauseRound(
-            state=self.synchronized_data, consensus_params=self.consensus_params
+            synchronized_data=self.synchronized_data,
+            consensus_params=self.consensus_params,
         )
 
         first_payload, *payloads = [

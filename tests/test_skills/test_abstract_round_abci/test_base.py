@@ -1174,7 +1174,7 @@ class TestRoundSequence:
 
     def test_latest_result(self) -> None:
         """Test 'latest_result' property getter."""
-        assert self.round_sequence.latest_state
+        assert self.round_sequence.latest_synchronized_data
 
     @pytest.mark.parametrize("committed", (True, False))
     def test_last_round_transition_timestamp(self, committed: bool) -> None:
@@ -1308,7 +1308,7 @@ class TestRoundSequence:
         assert not isinstance(
             self.round_sequence.abci_app._current_round, ConcreteRoundA
         )
-        assert self.round_sequence.latest_state == round_result
+        assert self.round_sequence.latest_synchronized_data == round_result
 
     @pytest.mark.parametrize("is_replay", (True, False))
     def test_reset_blockchain(self, is_replay: bool) -> None:

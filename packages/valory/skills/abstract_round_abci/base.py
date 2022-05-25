@@ -552,7 +552,7 @@ class AbciAppDB:
             return key_history[-1] if key_history else None
         except KeyError as exception:  # pragma: no cover
             raise ValueError(
-                f"'{key}' field is not set for period state."
+                f"'{key}' field is not set for this period."
             ) from exception
 
     def get_strict(self, key: str) -> Any:
@@ -597,7 +597,7 @@ class AbciAppDB:
         self._round_count += 1
 
     def __repr__(self) -> str:
-        """Return a string representation of the state."""
+        """Return a string representation of the data."""
         return f"AbciAppDB({self._data})"
 
     def cleanup(self, cleanup_history_depth: int) -> None:
@@ -613,7 +613,7 @@ class BaseSynchronizedData:
     """
     Class to represent the synchronized data.
 
-    This is the relevant state constructed and replicated by the agents in a period.
+    This is the relevant data constructed and replicated by the agents in a period.
     """
 
     def __init__(
@@ -707,7 +707,7 @@ class BaseSynchronizedData:
         return class_(db=self.db)
 
     def __repr__(self) -> str:
-        """Return a string representation of the state."""
+        """Return a string representation of the data."""
         return f"{self.__class__.__name__}(db={self._db})"
 
     @property
@@ -775,13 +775,13 @@ class AbstractRound(Generic[EventType, TransactionType], ABC):
 
     def __init__(
         self,
-        state: BaseSynchronizedData,
+        synchronized_data: BaseSynchronizedData,
         consensus_params: ConsensusParams,
         previous_round_tx_type: Optional[TransactionType] = None,
     ) -> None:
         """Initialize the round."""
         self._consensus_params = consensus_params
-        self._state = state
+        self._synchronized_data = synchronized_data
         self.block_confirmations = 0
         self._previous_round_tx_type = previous_round_tx_type
 
@@ -800,8 +800,8 @@ class AbstractRound(Generic[EventType, TransactionType], ABC):
 
     @property
     def synchronized_data(self) -> BaseSynchronizedData:
-        """Get the period state."""
-        return self._state
+        """Get the period data."""
+        return self._synchronized_data
 
     def check_transaction(self, transaction: Transaction) -> None:
         """
@@ -1182,14 +1182,14 @@ class CollectSameUntilThresholdRound(CollectionRound):
     def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Enum]]:
         """Process the end of the block."""
         if self.threshold_reached and self.most_voted_payload is not None:
-            state = self.synchronized_data.update(
+            synchronized_data = self.synchronized_data.update(
                 synchronized_data_class=self.synchronized_data_class,
                 **{
                     self.collection_key: self.collection,
                     self.selection_key: self.most_voted_payload,
                 },
             )
-            return state, self.done_event
+            return synchronized_data, self.done_event
         if self.threshold_reached and self.most_voted_payload is None:
             return self.synchronized_data, self.none_event
         if not self.is_majority_possible(
@@ -1275,11 +1275,11 @@ class OnlyKeeperSendsRound(AbstractRound):
         """Process the end of the block."""
         # if reached participant threshold, set the result
         if self.has_keeper_sent_payload and self.keeper_payload is not None:
-            state = self.synchronized_data.update(
+            synchronized_data = self.synchronized_data.update(
                 synchronized_data_class=self.synchronized_data_class,
                 **{self.payload_key: self.keeper_payload},
             )
-            return state, self.done_event
+            return synchronized_data, self.done_event
         if self.has_keeper_sent_payload and self.keeper_payload is None:
             return self.synchronized_data, self.fail_event
         return None
@@ -1324,12 +1324,12 @@ class VotingRound(CollectionRound):
         """Process the end of the block."""
         # if reached participant threshold, set the result
         if self.positive_vote_threshold_reached:
-            state = self.synchronized_data.update(
+            synchronized_data = self.synchronized_data.update(
                 synchronized_data_class=self.synchronized_data_class,
                 overwrite_history=False,
                 **{self.collection_key: self.collection},
             )
-            return state, self.done_event
+            return synchronized_data, self.done_event
         if self.negative_vote_threshold_reached:
             return self.synchronized_data, self.negative_event
         if self.none_vote_threshold_reached:
@@ -1372,7 +1372,7 @@ class CollectDifferentUntilThresholdRound(CollectionRound):
             and self.block_confirmations > self.required_block_confirmations
             # we also wait here as it gives more (available) agents time to join
         ):
-            state = self.synchronized_data.update(
+            synchronized_data = self.synchronized_data.update(
                 synchronized_data_class=self.synchronized_data_class,
                 overwrite_history=False,
                 **{
@@ -1380,7 +1380,7 @@ class CollectDifferentUntilThresholdRound(CollectionRound):
                     self.collection_key: self.collection,
                 },
             )
-            return state, self.done_event
+            return synchronized_data, self.done_event
         if not self.is_majority_possible(
             self.collection, self.synchronized_data.nb_participants
         ):
@@ -1421,7 +1421,7 @@ class CollectNonEmptyUntilThresholdRound(CollectDifferentUntilThresholdRound):
         ):
             non_empty_values = self._get_non_empty_values()
 
-            state = self.synchronized_data.update(
+            synchronized_data = self.synchronized_data.update(
                 synchronized_data_class=self.synchronized_data_class,
                 overwrite_history=False,
                 **{
@@ -1431,8 +1431,8 @@ class CollectNonEmptyUntilThresholdRound(CollectDifferentUntilThresholdRound):
             )
 
             if len(non_empty_values) == 0:
-                return state, self.none_event
-            return state, self.done_event
+                return synchronized_data, self.none_event
+            return synchronized_data, self.done_event
 
         if not self.is_majority_possible(
             self.collection, self.synchronized_data.nb_participants
@@ -2124,8 +2124,8 @@ class RoundSequence:
         return self._last_round_transition_height
 
     @property
-    def latest_state(self) -> BaseSynchronizedData:
-        """Get the latest state."""
+    def latest_synchronized_data(self) -> BaseSynchronizedData:
+        """Get the latest synchronized_data."""
         return self.abci_app.synchronized_data
 
     def begin_block(self, header: Header) -> None:
