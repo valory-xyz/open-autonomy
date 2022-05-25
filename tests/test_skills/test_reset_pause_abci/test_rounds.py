@@ -72,12 +72,12 @@ class TestResetAndPauseRound(BaseCollectSameUntilThresholdRoundTest):
                 round_payloads=get_participant_to_period_count(
                     self.participants, next_period_count
                 ),
-                state_update_fn=lambda _synchronized_data, _: _synchronized_data.create(
+                synchronized_data_update_fn=lambda _synchronized_data, _: _synchronized_data.create(
                     participants=self.participants,
                     all_participants=self.participants,
                     keeper_randomness=DUMMY_RANDOMNESS,
                 ),
-                state_attr_checks=[],  # [lambda state: state.participants],
+                synchronized_data_attr_checks=[],  # [lambda _synchronized_data: _synchronized_data.participants],
                 most_voted_payload=next_period_count,
                 exit_event=self._event_class.DONE,
             )

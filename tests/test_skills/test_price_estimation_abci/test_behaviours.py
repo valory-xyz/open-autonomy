@@ -138,8 +138,8 @@ class TestObserveBehaviour(PriceEstimationFSMBehaviourBaseCase):
         self.mock_a2a_transaction()
         self._test_done_flag_set()
         self.end_round(Event.DONE)
-        state = cast(BaseBehaviour, self.behaviour.current_behaviour)
-        assert state.behaviour_id == EstimateBehaviour.behaviour_id
+        behaviour = cast(BaseBehaviour, self.behaviour.current_behaviour)
+        assert behaviour.behaviour_id == EstimateBehaviour.behaviour_id
 
     def test_observer_behaviour_retries_exceeded(
         self,
@@ -165,8 +165,8 @@ class TestObserveBehaviour(PriceEstimationFSMBehaviourBaseCase):
             return_value=True,
         ):
             self.behaviour.act_wrapper()
-            state = cast(BaseBehaviour, self.behaviour.current_behaviour)
-            assert state.behaviour_id == ObserveBehaviour.behaviour_id
+            behaviour = cast(BaseBehaviour, self.behaviour.current_behaviour)
+            assert behaviour.behaviour_id == ObserveBehaviour.behaviour_id
             self._test_done_flag_set()
 
     def test_observed_value_none(
@@ -263,8 +263,8 @@ class TestEstimateBehaviour(PriceEstimationFSMBehaviourBaseCase):
         self.mock_a2a_transaction()
         self._test_done_flag_set()
         self.end_round(Event.DONE)
-        state = cast(BaseBehaviour, self.behaviour.current_behaviour)
-        assert state.behaviour_id == TransactionHashBehaviour.behaviour_id
+        behaviour = cast(BaseBehaviour, self.behaviour.current_behaviour)
+        assert behaviour.behaviour_id == TransactionHashBehaviour.behaviour_id
 
 
 def mock_to_server_message_flow(
@@ -285,9 +285,9 @@ def mock_to_server_message_flow(
         "data_source": "coinbase",
         "unit": "BTC:USD",
     }
-    state = self.behaviour.current_behaviour  # type: ignore
-    participants = state.synchronized_data.sorted_participants  # type: ignore
-    decimals = state.params.oracle_params["decimals"]  # type: ignore
+    behaviour = self.behaviour.current_behaviour  # type: ignore
+    participants = behaviour.synchronized_data.sorted_participants  # type: ignore
+    decimals = behaviour.params.oracle_params["decimals"]  # type: ignore
     data["package"] = pack_for_server(participants, decimals, **data).hex()  # type: ignore
     data["signature"] = "stub_signature"
 
@@ -367,8 +367,8 @@ class TestTransactionHashBehaviour(PriceEstimationFSMBehaviourBaseCase):
         """Test estimate behaviour."""
 
         # change setting, mock message flow with and without broadcast to server
-        state_params = self.behaviour.current_behaviour.params  # type: ignore
-        state_params.is_broadcasting_to_server = broadcast_to_server  # type: ignore
+        behaviour_params = self.behaviour.current_behaviour.params  # type: ignore
+        behaviour_params.is_broadcasting_to_server = broadcast_to_server  # type: ignore
 
         self.fast_forward_to_behaviour(
             behaviour=self.behaviour,
@@ -467,9 +467,9 @@ class TestTransactionHashBehaviour(PriceEstimationFSMBehaviourBaseCase):
         self.mock_a2a_transaction()
         self._test_done_flag_set()
         self.end_round(Event.DONE)
-        state = cast(BaseBehaviour, self.behaviour.current_behaviour)
+        behaviour = cast(BaseBehaviour, self.behaviour.current_behaviour)
         assert (
-            state.behaviour_id
+            behaviour.behaviour_id
             == make_degenerate_behaviour(
                 FinishedPriceAggregationRound.round_id
             ).behaviour_id

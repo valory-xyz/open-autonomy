@@ -106,12 +106,14 @@ class TestRegistrationStartupRound(BaseCollectDifferentUntilAllRoundTest):
                 RegistrationPayload(sender=participant, initialisation=initialisation)
                 for participant in self.participants
             ],
-            state_update_fn=lambda *x: SynchronizedData(
+            synchronized_data_update_fn=lambda *x: SynchronizedData(
                 AbciAppDB(
                     initial_data=dict(participants=frozenset(test_round.collection)),
                 )
             ),
-            state_attr_checks=[lambda state: state.participants],
+            synchronized_data_attr_checks=[
+                lambda _synchronized_data: _synchronized_data.participants
+            ],
             exit_event=expected_event,
         )
 
@@ -183,14 +185,16 @@ class TestRegistrationRound(BaseCollectDifferentUntilThresholdRoundTest):
                     for participant in self.participants
                 ]
             ),
-            state_update_fn=(
+            synchronized_data_update_fn=(
                 lambda *x: SynchronizedData(
                     AbciAppDB(
                         initial_data=dict(participants=self.participants),
                     )
                 )
             ),
-            state_attr_checks=[lambda state: state.participants],
+            synchronized_data_attr_checks=[
+                lambda _synchronized_data: _synchronized_data.participants
+            ],
             exit_event=expected_event,
         )
 

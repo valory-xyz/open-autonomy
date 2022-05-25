@@ -220,7 +220,7 @@ class BaseRoundTestClass:
         with mock.patch.object(round_obj, "is_majority_possible", return_value=False):
             result = round_obj.end_block()
             assert result is not None
-            state, event = result
+            synchronized_data, event = result
             assert event == Event.NO_MAJORITY
 
 
@@ -247,8 +247,8 @@ class TestCollectHistoryRound(BaseCollectSameUntilThresholdRoundTest):
                 round_payloads=get_participant_to_fetching(
                     self.participants, most_voted_payload
                 ),
-                state_update_fn=lambda _synchronized_data, _: _synchronized_data,
-                state_attr_checks=[],
+                synchronized_data_update_fn=lambda _synchronized_data, _: _synchronized_data,
+                synchronized_data_attr_checks=[],
                 most_voted_payload=most_voted_payload,
                 exit_event=expected_event,
             )
@@ -284,8 +284,8 @@ class TestTransformRound(BaseCollectSameUntilThresholdRoundTest):
                 round_payloads=get_transformation_payload(
                     self.participants, most_voted_payload
                 ),
-                state_update_fn=lambda _synchronized_data, _: _synchronized_data,
-                state_attr_checks=[],
+                synchronized_data_update_fn=lambda _synchronized_data, _: _synchronized_data,
+                synchronized_data_attr_checks=[],
                 most_voted_payload=most_voted_payload,
                 exit_event=expected_event,
             )
@@ -321,8 +321,8 @@ class TestPreprocessRound(BaseCollectSameUntilThresholdRoundTest):
                 round_payloads=get_participant_to_preprocess_payload(  # type: ignore
                     self.participants, *most_voted_payloads
                 ),
-                state_update_fn=lambda _synchronized_data, _: _synchronized_data,
-                state_attr_checks=[],
+                synchronized_data_update_fn=lambda _synchronized_data, _: _synchronized_data,
+                synchronized_data_attr_checks=[],
                 most_voted_payload="train_hashtest_hash"
                 if not any(payload is None for payload in most_voted_payloads)
                 else None,
@@ -352,8 +352,8 @@ class TestRandomnessRound(BaseCollectSameUntilThresholdRoundTest):
             self._test_round(
                 test_round=test_round,
                 round_payloads=get_participant_to_randomness(self.participants, 1),
-                state_update_fn=lambda synchronized_data, _: synchronized_data,
-                state_attr_checks=[],
+                synchronized_data_update_fn=lambda synchronized_data, _: synchronized_data,
+                synchronized_data_attr_checks=[],
                 most_voted_payload=RANDOMNESS,
                 exit_event=Event.DONE,
             )
@@ -368,8 +368,8 @@ class TestRandomnessRound(BaseCollectSameUntilThresholdRoundTest):
                 round_payloads=get_participant_to_invalid_randomness(
                     self.participants, 1
                 ),
-                state_update_fn=lambda synchronized_data, _: synchronized_data,
-                state_attr_checks=[],
+                synchronized_data_update_fn=lambda synchronized_data, _: synchronized_data,
+                synchronized_data_attr_checks=[],
                 most_voted_payload=INVALID_RANDOMNESS,
                 exit_event=Event.RANDOMNESS_INVALID,
             )
@@ -395,8 +395,8 @@ class TestOptimizeRound(BaseCollectSameUntilThresholdRoundTest):
             self._test_round(
                 test_round=test_round,
                 round_payloads=get_participant_to_optimize_payload(self.participants),
-                state_update_fn=lambda _synchronized_data, _: _synchronized_data,
-                state_attr_checks=[],
+                synchronized_data_update_fn=lambda _synchronized_data, _: _synchronized_data,
+                synchronized_data_attr_checks=[],
                 most_voted_payload="best_params_hash",
                 exit_event=Event.DONE,
             )
@@ -440,8 +440,8 @@ class TestTrainRound(BaseCollectSameUntilThresholdRoundTest):
                 round_payloads=get_participant_to_train_payload(
                     self.participants, most_voted_payload
                 ),
-                state_update_fn=lambda _synchronized_data, _: _synchronized_data,
-                state_attr_checks=[],
+                synchronized_data_update_fn=lambda _synchronized_data, _: _synchronized_data,
+                synchronized_data_attr_checks=[],
                 most_voted_payload=most_voted_payload,
                 exit_event=expected_event,
             )
@@ -470,10 +470,12 @@ class TestTestRound(BaseCollectSameUntilThresholdRoundTest):
             self._test_round(
                 test_round=test_round,
                 round_payloads=get_participant_to_test_payload(self.participants),
-                state_update_fn=lambda _synchronized_data, _: _synchronized_data.update(
+                synchronized_data_update_fn=lambda _synchronized_data, _: _synchronized_data.update(
                     full_training=True
                 ),
-                state_attr_checks=[lambda state: bool(state.full_training)],
+                synchronized_data_attr_checks=[
+                    lambda _synchronized_data: bool(_synchronized_data.full_training)
+                ],
                 most_voted_payload="report_hash",
                 exit_event=Event.DONE,
             )
@@ -517,10 +519,10 @@ class TestEstimateRound(BaseCollectSameUntilThresholdRoundTest):
                 round_payloads=get_participant_to_estimate_payload(
                     self.participants, most_voted_payload
                 ),
-                state_update_fn=lambda _synchronized_data, _: _synchronized_data.update(
+                synchronized_data_update_fn=lambda _synchronized_data, _: _synchronized_data.update(
                     n_estimations=n_estimations,
                 ),
-                state_attr_checks=[lambda _: n_estimations + 1],
+                synchronized_data_attr_checks=[lambda _: n_estimations + 1],
                 most_voted_payload=most_voted_payload,
                 exit_event=expected_event,
             )
@@ -555,10 +557,12 @@ class TestCycleResetRound(BaseCollectSameUntilThresholdRoundTest):
             self._test_round(
                 test_round=test_round,
                 round_payloads=get_participant_to_reset_payload(self.participants),
-                state_update_fn=lambda _synchronized_data, _test_round: _synchronized_data.update(
+                synchronized_data_update_fn=lambda _synchronized_data, _test_round: _synchronized_data.update(
                     full_training=False,
                 ),
-                state_attr_checks=[lambda state: state.full_training],
+                synchronized_data_attr_checks=[
+                    lambda _synchronized_data: _synchronized_data.full_training
+                ],
                 most_voted_payload=1,
                 exit_event=Event.DONE,
             )
@@ -591,10 +595,12 @@ class TestFreshModelResetRound(BaseCollectSameUntilThresholdRoundTest):
             self._test_round(
                 test_round=test_round,
                 round_payloads=get_participant_to_reset_payload(self.participants),
-                state_update_fn=lambda _synchronized_data, _test_round: _synchronized_data.update(
+                synchronized_data_update_fn=lambda _synchronized_data, _test_round: _synchronized_data.update(
                     full_training=False,
                 ),
-                state_attr_checks=[lambda state: state.full_training],
+                synchronized_data_attr_checks=[
+                    lambda _synchronized_data: _synchronized_data.full_training
+                ],
                 most_voted_payload=1,
                 exit_event=Event.DONE,
             )

@@ -124,11 +124,11 @@ class HelloWorldAbciFSMBehaviourBaseCase(BaseSkillTestCase):
         synchronized_data: BaseSynchronizedData,
     ) -> None:
         """Fast forward the FSM to a behaviour."""
-        next_state = {s.behaviour_id: s for s in behaviour.behaviours}[behaviour_id]
-        assert next_state is not None, f"State {behaviour_id} not found"
-        next_state = cast(Type[BaseBehaviour], next_state)
-        behaviour.current_behaviour = next_state(
-            name=next_state.behaviour_id, skill_context=behaviour.context
+        next_behaviour = {s.behaviour_id: s for s in behaviour.behaviours}[behaviour_id]
+        assert next_behaviour is not None, f"Behaviour {behaviour_id} not found"
+        next_behaviour = cast(Type[BaseBehaviour], next_behaviour)
+        behaviour.current_behaviour = next_behaviour(
+            name=next_behaviour.behaviour_id, skill_context=behaviour.context
         )
         self.skill.skill_context.state.round_sequence.abci_app._round_results.append(
             synchronized_data
@@ -138,7 +138,7 @@ class HelloWorldAbciFSMBehaviourBaseCase(BaseSkillTestCase):
             self.skill.skill_context.state.round_sequence.abci_app.current_round_height
         )
         self.skill.skill_context.state.round_sequence.abci_app._current_round = (
-            next_state.matching_round(
+            next_behaviour.matching_round(
                 synchronized_data, self.skill.skill_context.params.consensus_params
             )
         )
@@ -331,8 +331,10 @@ class BaseSelectKeeperBehaviourTest(HelloWorldAbciFSMBehaviourBaseCase):
         self.mock_a2a_transaction()
         self._test_done_flag_set()
         self.end_round()
-        state = cast(BaseBehaviour, self.hello_world_abci_behaviour.current_behaviour)
-        assert state.behaviour_id == self.next_behaviour_class.behaviour_id
+        behaviour = cast(
+            BaseBehaviour, self.hello_world_abci_behaviour.current_behaviour
+        )
+        assert behaviour.behaviour_id == self.next_behaviour_class.behaviour_id
 
 
 class TestRegistrationBehaviour(HelloWorldAbciFSMBehaviourBaseCase):
@@ -357,8 +359,10 @@ class TestRegistrationBehaviour(HelloWorldAbciFSMBehaviourBaseCase):
         self._test_done_flag_set()
 
         self.end_round()
-        state = cast(BaseBehaviour, self.hello_world_abci_behaviour.current_behaviour)
-        assert state.behaviour_id == SelectKeeperBehaviour.behaviour_id
+        behaviour = cast(
+            BaseBehaviour, self.hello_world_abci_behaviour.current_behaviour
+        )
+        assert behaviour.behaviour_id == SelectKeeperBehaviour.behaviour_id
 
 
 class TestSelectKeeperBehaviour(BaseSelectKeeperBehaviourTest):
@@ -390,8 +394,10 @@ class TestPrintMessageBehaviour(HelloWorldAbciFSMBehaviourBaseCase):
         self._test_done_flag_set()
 
         self.end_round()
-        state = cast(BaseBehaviour, self.hello_world_abci_behaviour.current_behaviour)
-        assert state.behaviour_id == ResetAndPauseBehaviour.behaviour_id
+        behaviour = cast(
+            BaseBehaviour, self.hello_world_abci_behaviour.current_behaviour
+        )
+        assert behaviour.behaviour_id == ResetAndPauseBehaviour.behaviour_id
 
     @mock.patch.object(SkillContext, "agent_address", new_callable=mock.PropertyMock)
     def test_print_message_keeper(
@@ -417,8 +423,10 @@ class TestPrintMessageBehaviour(HelloWorldAbciFSMBehaviourBaseCase):
         self._test_done_flag_set()
 
         self.end_round()
-        state = cast(BaseBehaviour, self.hello_world_abci_behaviour.current_behaviour)
-        assert state.behaviour_id == ResetAndPauseBehaviour.behaviour_id
+        behaviour = cast(
+            BaseBehaviour, self.hello_world_abci_behaviour.current_behaviour
+        )
+        assert behaviour.behaviour_id == ResetAndPauseBehaviour.behaviour_id
 
 
 class TestResetAndPauseBehaviour(HelloWorldAbciFSMBehaviourBaseCase):
@@ -450,8 +458,10 @@ class TestResetAndPauseBehaviour(HelloWorldAbciFSMBehaviourBaseCase):
         self.mock_a2a_transaction()
         self._test_done_flag_set()
         self.end_round()
-        state = cast(BaseBehaviour, self.hello_world_abci_behaviour.current_behaviour)
-        assert state.behaviour_id == self.next_behaviour_class.behaviour_id
+        behaviour = cast(
+            BaseBehaviour, self.hello_world_abci_behaviour.current_behaviour
+        )
+        assert behaviour.behaviour_id == self.next_behaviour_class.behaviour_id
 
     def test_reset_behaviour(
         self,
@@ -474,5 +484,7 @@ class TestResetAndPauseBehaviour(HelloWorldAbciFSMBehaviourBaseCase):
         self.mock_a2a_transaction()
         self._test_done_flag_set()
         self.end_round()
-        state = cast(BaseBehaviour, self.hello_world_abci_behaviour.current_behaviour)
-        assert state.behaviour_id == self.next_behaviour_class.behaviour_id
+        behaviour = cast(
+            BaseBehaviour, self.hello_world_abci_behaviour.current_behaviour
+        )
+        assert behaviour.behaviour_id == self.next_behaviour_class.behaviour_id

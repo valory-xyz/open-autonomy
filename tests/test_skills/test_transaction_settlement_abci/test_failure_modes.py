@@ -180,7 +180,7 @@ class TransactionSettlementIntegrationBaseCase(
             msg4.transaction_receipt.receipt
         )
 
-        # update period state with oracle contract address
+        # update synchronized data with oracle contract address
         self.price_estimation_synchronized_data.update(
             oracle_contract_address=oracle_contract_address,
         )
@@ -219,7 +219,7 @@ class TransactionSettlementIntegrationBaseCase(
             tx_data,
         )
 
-        # update period state with safe's tx hash
+        # update synchronized data with safe's tx hash
         self.tx_settlement_synchronized_data.update(
             most_voted_tx_hash=payload,
         )
@@ -320,7 +320,7 @@ class TestKeepers(OracleBehaviourBaseCase, IntegrationBaseCase):
         """Set up the test class."""
         super().setup()
 
-        # init period state
+        # init synchronized data
         cls.tx_settlement_synchronized_data = TxSettlementSynchronizedSata(
             AbciAppDB(
                 initial_data=dict(
@@ -443,7 +443,7 @@ class TestSyncing(TransactionSettlementIntegrationBaseCase):
         """Set up the test class."""
         super().setup()
 
-        # update period state
+        # update synchronized data
         cls.tx_settlement_synchronized_data.update(missed_messages=0)
 
     def sync_late_messages(self) -> None:

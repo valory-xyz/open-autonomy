@@ -22,10 +22,6 @@
 from packages.valory.skills.liquidity_rebalancing_abci.models import Params, SharedState
 
 
-DEPLOY_SAFE_STATE = "deploy_safe"
-FINALIZE_STATE = "finalize"
-
-
 class DummyContext:
     """Dummy Context class for shared state."""
 

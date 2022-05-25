@@ -86,7 +86,7 @@ class TestDummyRound(BaseRoundTestClass):
         for payload in payloads:
             test_round.process_payload(payload)
 
-        actual_next_state = BaseSynchronizedData(
+        actual_next_behaviour = BaseSynchronizedData(
             AbciAppDB(
                 initial_data=dict(participants=frozenset(test_round.collection.keys())),
             )
@@ -94,9 +94,9 @@ class TestDummyRound(BaseRoundTestClass):
 
         res = test_round.end_block()
         assert res is not None
-        state, event = res
+        synchronized_data, event = res
         assert (
-            cast(BaseSynchronizedData, state).participants
-            == cast(BaseSynchronizedData, actual_next_state).participants
+            cast(BaseSynchronizedData, synchronized_data).participants
+            == cast(BaseSynchronizedData, actual_next_behaviour).participants
         )
         assert event == Event.DONE

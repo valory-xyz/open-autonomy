@@ -299,8 +299,8 @@ class TestFetchAndBatchBehaviours(APYEstimationFSMBehaviourBaseCase):
         self.mock_http_request(request_kwargs, response_kwargs)
 
         self.end_round()
-        state = cast(BaseBehaviour, self.behaviour.current_behaviour)
-        assert state.behaviour_id == TransformBehaviour.behaviour_id
+        behaviour = cast(BaseBehaviour, self.behaviour.current_behaviour)
+        assert behaviour.behaviour_id == TransformBehaviour.behaviour_id
 
     def test_fetch_behaviour_retries_exceeded(
         self, monkeypatch: MonkeyPatch, caplog: LogCaptureFixture
@@ -518,8 +518,8 @@ class TestFetchAndBatchBehaviours(APYEstimationFSMBehaviourBaseCase):
         self.mock_a2a_transaction()
         self._test_done_flag_set()
         self.end_round()
-        state = cast(BaseBehaviour, self.behaviour.current_behaviour)
-        assert state.behaviour_id == TransformBehaviour.behaviour_id
+        behaviour = cast(BaseBehaviour, self.behaviour.current_behaviour)
+        assert behaviour.behaviour_id == TransformBehaviour.behaviour_id
 
         # fast-forward to fetch behaviour.
         self.fast_forward_to_behaviour(
@@ -666,8 +666,8 @@ class TestTransformBehaviour(APYEstimationFSMBehaviourBaseCase):
         self._test_done_flag_set()
         self.end_round()
 
-        state = cast(BaseBehaviour, self.behaviour.current_behaviour)
-        assert state.behaviour_id == self.next_behaviour_class.behaviour_id
+        behaviour = cast(BaseBehaviour, self.behaviour.current_behaviour)
+        assert behaviour.behaviour_id == self.next_behaviour_class.behaviour_id
 
 
 class TestPreprocessBehaviour(APYEstimationFSMBehaviourBaseCase):
@@ -683,7 +683,7 @@ class TestPreprocessBehaviour(APYEstimationFSMBehaviourBaseCase):
         monkeypatch: MonkeyPatch,
         tmp_path: PosixPath,
     ) -> pd.DataFrame:
-        """Fast-forward to state."""
+        """Fast-forward to behaviour."""
         self.behaviour.context._agent_context._data_dir = tmp_path  # type: ignore
         if data_found:
             monkeypatch.setattr(
@@ -703,10 +703,10 @@ class TestPreprocessBehaviour(APYEstimationFSMBehaviourBaseCase):
             self.behaviour_class.behaviour_id,
             SynchronizedData(AbciAppDB(initial_data=dict(most_voted_transform="test"))),
         )
-        state = cast(PreprocessBehaviour, self.behaviour.current_behaviour)
-        assert state.behaviour_id == self.behaviour_class.behaviour_id
+        behaviour = cast(PreprocessBehaviour, self.behaviour.current_behaviour)
+        assert behaviour.behaviour_id == self.behaviour_class.behaviour_id
 
-        state.params.sleep_time = SLEEP_TIME_TWEAK
+        behaviour.params.sleep_time = SLEEP_TIME_TWEAK
 
         return transformed_historical_data
 
@@ -758,15 +758,15 @@ class TestPreprocessBehaviour(APYEstimationFSMBehaviourBaseCase):
             self.mock_a2a_transaction()
             self._test_done_flag_set()
             self.end_round()
-            state = cast(PreprocessBehaviour, self.behaviour.current_behaviour)
-            assert state.behaviour_id == self.next_behaviour_class.behaviour_id
+            behaviour = cast(PreprocessBehaviour, self.behaviour.current_behaviour)
+            assert behaviour.behaviour_id == self.next_behaviour_class.behaviour_id
 
         else:
             self.behaviour.act_wrapper()
             time.sleep(SLEEP_TIME_TWEAK + 0.01)
             self.behaviour.act_wrapper()
-            state = cast(PreprocessBehaviour, self.behaviour.current_behaviour)
-            assert state.behaviour_id == self.behaviour_class.behaviour_id
+            behaviour = cast(PreprocessBehaviour, self.behaviour.current_behaviour)
+            assert behaviour.behaviour_id == self.behaviour_class.behaviour_id
 
 
 class TestPrepareBatchBehaviour(APYEstimationFSMBehaviourBaseCase):
@@ -816,7 +816,7 @@ class TestPrepareBatchBehaviour(APYEstimationFSMBehaviourBaseCase):
         else:
             hashes = {item_name: "test" for item_name, _ in data_to_send.items()}
 
-        # fast-forward to the `PrepareBatchBehaviour` state.
+        # fast-forward to the `PrepareBatchBehaviour` behaviour.
         self.fast_forward_to_behaviour(
             self.behaviour,
             self.behaviour_class.behaviour_id,
@@ -925,15 +925,15 @@ class TestPrepareBatchBehaviour(APYEstimationFSMBehaviourBaseCase):
             lambda *_: DummyAsyncResult(prepare_batch_task_result),
         )
 
-        state = cast(BaseBehaviour, self.behaviour.current_behaviour)
-        assert state.behaviour_id == self.behaviour_class.behaviour_id
+        behaviour = cast(BaseBehaviour, self.behaviour.current_behaviour)
+        assert behaviour.behaviour_id == self.behaviour_class.behaviour_id
 
         self.behaviour.act_wrapper()
         self.mock_a2a_transaction()
         self._test_done_flag_set()
         self.end_round()
-        state = cast(BaseBehaviour, self.behaviour.current_behaviour)
-        assert state.behaviour_id == self.next_behaviour_class.behaviour_id
+        behaviour = cast(BaseBehaviour, self.behaviour.current_behaviour)
+        assert behaviour.behaviour_id == self.next_behaviour_class.behaviour_id
 
 
 class TestRandomnessBehaviour(APYEstimationFSMBehaviourBaseCase):
@@ -997,8 +997,8 @@ class TestRandomnessBehaviour(APYEstimationFSMBehaviourBaseCase):
         self._test_done_flag_set()
         self.end_round()
 
-        state = cast(BaseBehaviour, self.behaviour.current_behaviour)
-        assert state.behaviour_id == self.next_behaviour_class.behaviour_id
+        behaviour = cast(BaseBehaviour, self.behaviour.current_behaviour)
+        assert behaviour.behaviour_id == self.next_behaviour_class.behaviour_id
 
     def test_invalid_drand_value(
         self,
@@ -1097,8 +1097,10 @@ class TestRandomnessBehaviour(APYEstimationFSMBehaviourBaseCase):
             return_value=True,
         ):
             self.behaviour.act_wrapper()
-            state = cast(BaseBehaviour, self.behaviour.current_behaviour)
-            assert state.behaviour_id == self.randomness_behaviour_class.behaviour_id
+            behaviour = cast(BaseBehaviour, self.behaviour.current_behaviour)
+            assert (
+                behaviour.behaviour_id == self.randomness_behaviour_class.behaviour_id
+            )
             self._test_done_flag_set()
 
     def test_clean_up(
@@ -1165,7 +1167,7 @@ class TestOptimizeBehaviour(APYEstimationFSMBehaviourBaseCase):
         else:
             hashes = {item_name: "non_existing" for item_name in data_to_send.keys()}
 
-        # fast-forward to the `OptimizeBehaviour` state.
+        # fast-forward to the `OptimizeBehaviour` behaviour.
         self.fast_forward_to_behaviour(
             self.behaviour,
             self.behaviour_class.behaviour_id,
@@ -1273,8 +1275,8 @@ class TestOptimizeBehaviour(APYEstimationFSMBehaviourBaseCase):
         self._test_done_flag_set()
         self.end_round()
 
-        state = cast(BaseBehaviour, self.behaviour.current_behaviour)
-        assert state.behaviour_id == self.next_behaviour_class.behaviour_id
+        behaviour = cast(BaseBehaviour, self.behaviour.current_behaviour)
+        assert behaviour.behaviour_id == self.next_behaviour_class.behaviour_id
 
 
 class TestTrainBehaviour(APYEstimationFSMBehaviourBaseCase):
@@ -1334,7 +1336,7 @@ class TestTrainBehaviour(APYEstimationFSMBehaviourBaseCase):
         else:
             hashes = {item_name: "non_existing" for item_name in data_to_send.keys()}
 
-        # fast-forward to the `TrainBehaviour` state.
+        # fast-forward to the `TrainBehaviour` behaviour.
         self.fast_forward_to_behaviour(
             self.behaviour,
             self.behaviour_class.behaviour_id,
@@ -1435,8 +1437,8 @@ class TestTrainBehaviour(APYEstimationFSMBehaviourBaseCase):
         self._test_done_flag_set()
         self.end_round()
 
-        state = cast(BaseBehaviour, self.behaviour.current_behaviour)
-        assert state.behaviour_id == self.next_behaviour_class.behaviour_id
+        behaviour = cast(BaseBehaviour, self.behaviour.current_behaviour)
+        assert behaviour.behaviour_id == self.next_behaviour_class.behaviour_id
 
 
 class TestTestBehaviour(APYEstimationFSMBehaviourBaseCase):
@@ -1492,7 +1494,7 @@ class TestTestBehaviour(APYEstimationFSMBehaviourBaseCase):
         else:
             hashes = {item_name: "non_existing" for item_name in data_to_send.keys()}
 
-        # fast-forward to the `TestBehaviour` state.
+        # fast-forward to the `TestBehaviour` behaviour.
         self.fast_forward_to_behaviour(
             self.behaviour,
             self.behaviour_class.behaviour_id,
@@ -1590,8 +1592,8 @@ class TestTestBehaviour(APYEstimationFSMBehaviourBaseCase):
         self._test_done_flag_set()
         self.end_round()
 
-        state = cast(BaseBehaviour, self.behaviour.current_behaviour)
-        assert state.behaviour_id == self.next_behaviour_class.behaviour_id
+        behaviour = cast(BaseBehaviour, self.behaviour.current_behaviour)
+        assert behaviour.behaviour_id == self.next_behaviour_class.behaviour_id
 
 
 class TestUpdateForecasterBehaviour(APYEstimationFSMBehaviourBaseCase):
@@ -1644,7 +1646,7 @@ class TestUpdateForecasterBehaviour(APYEstimationFSMBehaviourBaseCase):
                 item_name: "non_existing" for item_name, _ in data_to_send.items()
             }
 
-        # fast-forward to the `TestBehaviour` state.
+        # fast-forward to the `TestBehaviour` behaviour.
         self.fast_forward_to_behaviour(
             self.behaviour,
             self.behaviour_class.behaviour_id,
@@ -1744,8 +1746,8 @@ class TestUpdateForecasterBehaviour(APYEstimationFSMBehaviourBaseCase):
         self.mock_a2a_transaction()
         self._test_done_flag_set()
         self.end_round()
-        state = cast(UpdateForecasterBehaviour, self.behaviour.current_behaviour)
-        assert state.behaviour_id == self.next_behaviour_class.behaviour_id
+        behaviour = cast(UpdateForecasterBehaviour, self.behaviour.current_behaviour)
+        assert behaviour.behaviour_id == self.next_behaviour_class.behaviour_id
 
 
 class TestEstimateBehaviour(APYEstimationFSMBehaviourBaseCase):
@@ -1857,8 +1859,8 @@ class TestEstimateBehaviour(APYEstimationFSMBehaviourBaseCase):
         self.mock_a2a_transaction()
         self._test_done_flag_set()
         self.end_round()
-        state = cast(BaseBehaviour, self.behaviour.current_behaviour)
-        assert state.behaviour_id == self.next_behaviour_class.behaviour_id
+        behaviour = cast(BaseBehaviour, self.behaviour.current_behaviour)
+        assert behaviour.behaviour_id == self.next_behaviour_class.behaviour_id
 
 
 class TestCycleResetBehaviour(APYEstimationFSMBehaviourBaseCase):
@@ -1912,8 +1914,8 @@ class TestCycleResetBehaviour(APYEstimationFSMBehaviourBaseCase):
                 AbciAppDB(initial_data=dict(most_voted_estimate=hash_))
             ),
         )
-        state = cast(BaseBehaviour, self.behaviour.current_behaviour)
-        assert state.behaviour_id == self.behaviour_class.behaviour_id
+        behaviour = cast(BaseBehaviour, self.behaviour.current_behaviour)
+        assert behaviour.behaviour_id == self.behaviour_class.behaviour_id
 
         monkeypatch.setattr(BenchmarkTool, "save", lambda _: no_action)
         monkeypatch.setattr(AbciApp, "last_timestamp", datetime.now())
@@ -1933,8 +1935,8 @@ class TestCycleResetBehaviour(APYEstimationFSMBehaviourBaseCase):
         self._test_done_flag_set()
         self.end_round()
 
-        state = cast(BaseBehaviour, self.behaviour.current_behaviour)
-        assert state.behaviour_id == self.next_behaviour_class.behaviour_id
+        behaviour = cast(BaseBehaviour, self.behaviour.current_behaviour)
+        assert behaviour.behaviour_id == self.next_behaviour_class.behaviour_id
 
     def test_reset_behaviour_without_most_voted_estimate(
         self,
@@ -1950,8 +1952,8 @@ class TestCycleResetBehaviour(APYEstimationFSMBehaviourBaseCase):
                 AbciAppDB(initial_data=dict(most_voted_estimate=None))
             ),
         )
-        state = cast(BaseBehaviour, self.behaviour.current_behaviour)
-        assert state.behaviour_id == self.behaviour_class.behaviour_id
+        behaviour = cast(BaseBehaviour, self.behaviour.current_behaviour)
+        assert behaviour.behaviour_id == self.behaviour_class.behaviour_id
 
         monkeypatch.setattr(BenchmarkTool, "save", lambda _: no_action)
         monkeypatch.setattr(AbciApp, "last_timestamp", datetime.now())
@@ -1979,8 +1981,8 @@ class TestCycleResetBehaviour(APYEstimationFSMBehaviourBaseCase):
         self._test_done_flag_set()
         self.end_round()
 
-        state = cast(BaseBehaviour, self.behaviour.current_behaviour)
-        assert state.behaviour_id == self.next_behaviour_class.behaviour_id
+        behaviour = cast(BaseBehaviour, self.behaviour.current_behaviour)
+        assert behaviour.behaviour_id == self.next_behaviour_class.behaviour_id
 
 
 class TestFreshModelResetBehaviour(APYEstimationFSMBehaviourBaseCase):
@@ -1996,8 +1998,8 @@ class TestFreshModelResetBehaviour(APYEstimationFSMBehaviourBaseCase):
             behaviour_id=self.behaviour_class.behaviour_id,
             synchronized_data=SynchronizedData(AbciAppDB(initial_data={})),
         )
-        state = cast(BaseBehaviour, self.behaviour.current_behaviour)
-        assert state.behaviour_id == self.behaviour_class.behaviour_id
+        behaviour = cast(BaseBehaviour, self.behaviour.current_behaviour)
+        assert behaviour.behaviour_id == self.behaviour_class.behaviour_id
 
         with caplog.at_level(
             logging.INFO,
@@ -2018,5 +2020,5 @@ class TestFreshModelResetBehaviour(APYEstimationFSMBehaviourBaseCase):
         self._test_done_flag_set()
         self.end_round()
 
-        state = cast(BaseBehaviour, self.behaviour.current_behaviour)
-        assert state.behaviour_id == self.next_behaviour_class.behaviour_id
+        behaviour = cast(BaseBehaviour, self.behaviour.current_behaviour)
+        assert behaviour.behaviour_id == self.next_behaviour_class.behaviour_id

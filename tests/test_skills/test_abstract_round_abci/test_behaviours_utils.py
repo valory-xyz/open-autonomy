@@ -333,10 +333,10 @@ class RoundA(AbstractRound):
         """Process payload."""
 
 
-class StateATest(BaseBehaviour):
+class BehaviourATest(BaseBehaviour):
     """Concrete BaseBehaviour class."""
 
-    behaviour_id = "state_a"
+    behaviour_id = "behaviour_a"
     matching_round: Type[RoundA] = RoundA
 
     def async_act(self) -> Generator:
@@ -373,7 +373,7 @@ def _wait_until_transaction_delivered_patch(
     yield
 
 
-class TestBaseState:
+class TestBaseBehaviour:
     """Tests for the 'BaseBehaviour' class."""
 
     def setup(self) -> None:
@@ -395,7 +395,7 @@ class TestBaseState:
         self.context_mock.state.round_sequence.syncing_up = False
         self.context_mock.http_dialogues = HttpDialogues()
         self.context_mock.handlers.__dict__ = {"http": MagicMock()}
-        self.behaviour = StateATest(name="", skill_context=self.context_mock)
+        self.behaviour = BehaviourATest(name="", skill_context=self.context_mock)
 
     def test_params_property(self) -> None:
         """Test the 'params' property."""
@@ -817,7 +817,7 @@ class TestBaseState:
 
         Do not run this test through pytest. Add the following lines at the bottom
         of the file and run it as a script:
-        t = TestBaseState()
+        t = TestBaseBehaviour()
         t.setup()
         t.test_fuzz_send_signing_request()
         """
@@ -1340,7 +1340,7 @@ class TestBaseState:
 
         Do not run this test through pytest. Add the following lines at the bottom
         of the file and run it as a script:
-        t = TestBaseState()
+        t = TestBaseBehaviour()
         t.setup()
         t.test_fuzz_submit_tx()
         """
@@ -1360,13 +1360,13 @@ class TestBaseState:
         atheris.Fuzz()
 
 
-def test_degenerate_state_async_act() -> None:
+def test_degenerate_behaviour_async_act() -> None:
     """Test DegenerateBehaviour.async_act."""
 
-    class ConcreteDegenerateState(DegenerateBehaviour):
+    class ConcreteDegenerateBehaviour(DegenerateBehaviour):
         """Concrete DegenerateBehaviour class."""
 
-        behaviour_id = "concrete_degenerate_state"
+        behaviour_id = "concrete_degenerate_behaviour"
         matching_round = MagicMock()
 
     context = MagicMock()
@@ -1374,14 +1374,14 @@ def test_degenerate_state_async_act() -> None:
     # this is needed to trigger execution of async_act
     context.state.round_sequence.syncing_up = False
 
-    state = ConcreteDegenerateState(
-        name=ConcreteDegenerateState.behaviour_id, skill_context=context
+    behaviour = ConcreteDegenerateBehaviour(
+        name=ConcreteDegenerateBehaviour.behaviour_id, skill_context=context
     )
     with pytest.raises(
         RuntimeError,
         match="The execution reached a degenerate behaviour. This means a degenerate round has been reached during the execution of the ABCI application. Please check the functioning of the ABCI app.",
     ):
-        state.act()
+        behaviour.act()
 
 
 def test_make_degenerate_behaviour() -> None:

@@ -116,8 +116,8 @@ class BaseRandomnessBehaviourTest(CommonBaseCase):
         self._test_done_flag_set()
         self.end_round(self.done_event)
 
-        state = cast(BaseBehaviour, self.behaviour.current_behaviour)
-        assert state.behaviour_id == self.next_behaviour_class.behaviour_id
+        behaviour = cast(BaseBehaviour, self.behaviour.current_behaviour)
+        assert behaviour.behaviour_id == self.next_behaviour_class.behaviour_id
 
     def test_invalid_drand_value(
         self,
@@ -227,8 +227,8 @@ class BaseRandomnessBehaviourTest(CommonBaseCase):
             self._test_done_flag_set()
             self.end_round(self.done_event)
 
-            state = cast(BaseBehaviour, self.behaviour.current_behaviour)
-            assert state.behaviour_id == self.next_behaviour_class.behaviour_id
+            behaviour = cast(BaseBehaviour, self.behaviour.current_behaviour)
+            assert behaviour.behaviour_id == self.next_behaviour_class.behaviour_id
 
     def test_max_retries_reached_fallback_fail(
         self,
@@ -415,5 +415,5 @@ class BaseSelectKeeperBehaviourTest(CommonBaseCase):
         self.mock_a2a_transaction()
         self._test_done_flag_set()
         self.end_round(self.done_event)
-        state = cast(BaseBehaviour, self.behaviour.current_behaviour)
-        assert state.behaviour_id == self.next_behaviour_class.behaviour_id
+        behaviour = cast(BaseBehaviour, self.behaviour.current_behaviour)
+        assert behaviour.behaviour_id == self.next_behaviour_class.behaviour_id

@@ -1065,19 +1065,19 @@ class TestAbciApp:
         """Test the cleanup method."""
         self.abci_app.setup()
 
-        # Dummy parameters, state and round
+        # Dummy parameters, synchronized data and round
         cleanup_history_depth = 1
         start_history_depth = 5
         max_participants = 4
-        dummy_state = BaseSynchronizedData(
+        dummy_synchronized_data = BaseSynchronizedData(
             db=AbciAppDB(initial_data=dict(participants=max_participants))
         )
         dummy_consensus_params = ConsensusParams(max_participants)
-        dummy_round = ConcreteRoundA(dummy_state, dummy_consensus_params)
+        dummy_round = ConcreteRoundA(dummy_synchronized_data, dummy_consensus_params)
 
         # Add dummy data
         self.abci_app._previous_rounds = [dummy_round] * start_history_depth
-        self.abci_app._round_results = [dummy_state] * start_history_depth
+        self.abci_app._round_results = [dummy_synchronized_data] * start_history_depth
         self.abci_app.synchronized_data.db._data = {
             i: {"dummy_key": ["dummy_value"]} for i in range(start_history_depth)
         }

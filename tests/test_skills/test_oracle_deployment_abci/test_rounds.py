@@ -169,10 +169,14 @@ class BaseDeployTestClass(BaseOnlyKeeperSendsRoundTest):
             self._test_round(
                 test_round=test_round,  # type: ignore
                 keeper_payloads=self.payload_class(keeper, get_safe_contract_address()),
-                state_update_fn=lambda _synchronized_data, _: _synchronized_data.update(
+                synchronized_data_update_fn=lambda _synchronized_data, _: _synchronized_data.update(
                     **{self.update_keyword: get_safe_contract_address()}
                 ),
-                state_attr_checks=[lambda state: getattr(state, self.update_keyword)],
+                synchronized_data_attr_checks=[
+                    lambda _synchronized_data: getattr(
+                        _synchronized_data, self.update_keyword
+                    )
+                ],
                 exit_event=self._event_class.DONE,
             )
         )
@@ -210,12 +214,14 @@ class BaseValidateRoundTest(BaseVotingRoundTest):
             self._test_voting_round_positive(
                 test_round=test_round,
                 round_payloads=get_participant_to_votes(self.participants),
-                state_update_fn=lambda _synchronized_data, _: _synchronized_data.update(
+                synchronized_data_update_fn=lambda _synchronized_data, _: _synchronized_data.update(
                     participant_to_votes=MappingProxyType(
                         dict(get_participant_to_votes(self.participants))
                     )
                 ),
-                state_attr_checks=[lambda state: state.participant_to_votes.keys()],
+                synchronized_data_attr_checks=[
+                    lambda _synchronized_data: _synchronized_data.participant_to_votes.keys()
+                ],
                 exit_event=self._event_class.DONE,
             )
         )
@@ -234,12 +240,12 @@ class BaseValidateRoundTest(BaseVotingRoundTest):
             self._test_voting_round_negative(
                 test_round=test_round,
                 round_payloads=get_participant_to_votes(self.participants, vote=False),
-                state_update_fn=lambda _synchronized_data, _: _synchronized_data.update(
+                synchronized_data_update_fn=lambda _synchronized_data, _: _synchronized_data.update(
                     participant_to_votes=MappingProxyType(
                         dict(get_participant_to_votes(self.participants, vote=False))
                     )
                 ),
-                state_attr_checks=[],
+                synchronized_data_attr_checks=[],
                 exit_event=self._event_class.NEGATIVE,
             )
         )
@@ -258,12 +264,12 @@ class BaseValidateRoundTest(BaseVotingRoundTest):
             self._test_voting_round_none(
                 test_round=test_round,
                 round_payloads=get_participant_to_votes(self.participants, vote=None),
-                state_update_fn=lambda _synchronized_data, _: _synchronized_data.update(
+                synchronized_data_update_fn=lambda _synchronized_data, _: _synchronized_data.update(
                     participant_to_votes=MappingProxyType(
                         dict(get_participant_to_votes(self.participants, vote=None))
                     )
                 ),
-                state_attr_checks=[],
+                synchronized_data_attr_checks=[],
                 exit_event=self._event_class.NONE,
             )
         )
@@ -314,7 +320,7 @@ class BaseSelectKeeperRoundTest(BaseCollectSameUntilThresholdRoundTest):
                 round_payloads=self._participant_to_selection(
                     self.participants, most_voted_payload
                 ),
-                state_update_fn=lambda _synchronized_data, _test_round: _synchronized_data.update(
+                synchronized_data_update_fn=lambda _synchronized_data, _test_round: _synchronized_data.update(
                     participant_to_selection=MappingProxyType(
                         dict(
                             self._participant_to_selection(
@@ -323,8 +329,8 @@ class BaseSelectKeeperRoundTest(BaseCollectSameUntilThresholdRoundTest):
                         )
                     )
                 ),
-                state_attr_checks=[
-                    lambda state: state.participant_to_selection.keys()
+                synchronized_data_attr_checks=[
+                    lambda _synchronized_data: _synchronized_data.participant_to_selection.keys()
                     if exit_event is None
                     else None
                 ],
