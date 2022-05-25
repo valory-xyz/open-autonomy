@@ -73,7 +73,7 @@ class _MetaRoundBehaviour(ABCMeta):
         """Check that all the required class attributes are set."""
         try:
             behaviour_cls.abci_app_cls  # pylint: disable=pointless-statement
-            behaviour_cls.behaviour_states  # pylint: disable=pointless-statement
+            behaviour_cls.behaviours  # pylint: disable=pointless-statement
             behaviour_cls.initial_behaviour_cls  # pylint: disable=pointless-statement
         except AttributeError as e:
             raise ABCIAppInternalError(*e.args) from None
@@ -84,7 +84,7 @@ class _MetaRoundBehaviour(ABCMeta):
     ) -> None:
         """Check that state behaviour ids are unique across behaviour states."""
         state_id_to_state = defaultdict(lambda: [])
-        for state_class in behaviour_cls.behaviour_states:
+        for state_class in behaviour_cls.behaviours:
             state_id_to_state[state_class.behaviour_id].append(state_class)
             if len(state_id_to_state[state_class.behaviour_id]) > 1:
                 state_classes_names = [
@@ -106,7 +106,7 @@ class _MetaRoundBehaviour(ABCMeta):
         }
 
         # check uniqueness
-        for b in behaviour_cls.behaviour_states:
+        for b in behaviour_cls.behaviours:
             round_to_state[b.matching_round].append(b)
             if len(round_to_state[b.matching_round]) > 1:
                 state_class_ids = [
@@ -135,7 +135,7 @@ class _MetaRoundBehaviour(ABCMeta):
         mcs, behaviour_cls: "AbstractRoundBehaviour"
     ) -> None:
         """Check the initial state is in the set of states."""
-        if behaviour_cls.initial_behaviour_cls not in behaviour_cls.behaviour_states:
+        if behaviour_cls.initial_behaviour_cls not in behaviour_cls.behaviours:
             raise ABCIAppInternalError(
                 f"initial state {behaviour_cls.initial_behaviour_cls.behaviour_id} is not in the set of states"
             )
@@ -147,7 +147,7 @@ class AbstractRoundBehaviour(
     """This behaviour implements an abstract round behaviour."""
 
     abci_app_cls: Type[AbciApp[EventType]]
-    behaviour_states: AbstractSet[BehaviourType]
+    behaviours: AbstractSet[BehaviourType]
     initial_behaviour_cls: BehaviourType
 
     def __init__(self, **kwargs: Any) -> None:
@@ -155,10 +155,10 @@ class AbstractRoundBehaviour(
         super().__init__(**kwargs)
         self._state_id_to_states: Dict[
             str, BehaviourType
-        ] = self._get_state_id_to_state_mapping(self.behaviour_states)
+        ] = self._get_state_id_to_state_mapping(self.behaviours)
         self._round_to_state: Dict[
             Type[AbstractRound], BehaviourType
-        ] = self._get_round_to_state_mapping(self.behaviour_states)
+        ] = self._get_round_to_state_mapping(self.behaviours)
 
         self.current_state: Optional[BaseBehaviour] = None
 
@@ -172,11 +172,11 @@ class AbstractRoundBehaviour(
 
     @classmethod
     def _get_state_id_to_state_mapping(
-        cls, behaviour_states: AbstractSet[BehaviourType]
+        cls, behaviours: AbstractSet[BehaviourType]
     ) -> Dict[str, BehaviourType]:
         """Get state id to state mapping."""
         result: Dict[str, BehaviourType] = {}
-        for state_behaviour_cls in behaviour_states:
+        for state_behaviour_cls in behaviours:
             behaviour_id = state_behaviour_cls.behaviour_id
             if behaviour_id in result:
                 raise ValueError(
@@ -187,11 +187,11 @@ class AbstractRoundBehaviour(
 
     @classmethod
     def _get_round_to_state_mapping(
-        cls, behaviour_states: AbstractSet[BehaviourType]
+        cls, behaviours: AbstractSet[BehaviourType]
     ) -> Dict[Type[AbstractRound], BehaviourType]:
         """Get round-to-state mapping."""
         result: Dict[Type[AbstractRound], BehaviourType] = {}
-        for state_behaviour_cls in behaviour_states:
+        for state_behaviour_cls in behaviours:
             round_cls = state_behaviour_cls.matching_round
             if round_cls in result:
                 raise ValueError(

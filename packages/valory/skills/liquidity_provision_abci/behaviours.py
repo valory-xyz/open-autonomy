@@ -50,10 +50,10 @@ class LiquidityProvisionConsensusBehaviour(AbstractRoundBehaviour):
 
     initial_behaviour_cls = RegistrationStartupBehaviour
     abci_app_cls = LiquidityProvisionAbciApp  # type: ignore
-    behaviour_states: Set[Type[BaseBehaviour]] = {
-        *AgentRegistrationRoundBehaviour.behaviour_states,
-        *SafeDeploymentRoundBehaviour.behaviour_states,
-        *TransactionSettlementRoundBehaviour.behaviour_states,
-        *ResetPauseABCIConsensusBehaviour.behaviour_states,
-        *LiquidityRebalancingConsensusBehaviour.behaviour_states,
+    behaviours: Set[Type[BaseBehaviour]] = {
+        *AgentRegistrationRoundBehaviour.behaviours,
+        *SafeDeploymentRoundBehaviour.behaviours,
+        *TransactionSettlementRoundBehaviour.behaviours,
+        *ResetPauseABCIConsensusBehaviour.behaviours,
+        *LiquidityRebalancingConsensusBehaviour.behaviours,
     }

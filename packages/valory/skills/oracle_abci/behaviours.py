@@ -52,11 +52,11 @@ class OracleAbciAppConsensusBehaviour(AbstractRoundBehaviour):
 
     initial_behaviour_cls = RegistrationStartupBehaviour
     abci_app_cls = OracleAbciApp  # type: ignore
-    behaviour_states: Set[Type[BaseBehaviour]] = {
-        *OracleDeploymentRoundBehaviour.behaviour_states,
-        *AgentRegistrationRoundBehaviour.behaviour_states,
-        *SafeDeploymentRoundBehaviour.behaviour_states,
-        *TransactionSettlementRoundBehaviour.behaviour_states,
-        *ResetPauseABCIConsensusBehaviour.behaviour_states,
-        *ObserverRoundBehaviour.behaviour_states,
+    behaviours: Set[Type[BaseBehaviour]] = {
+        *OracleDeploymentRoundBehaviour.behaviours,
+        *AgentRegistrationRoundBehaviour.behaviours,
+        *SafeDeploymentRoundBehaviour.behaviours,
+        *TransactionSettlementRoundBehaviour.behaviours,
+        *ResetPauseABCIConsensusBehaviour.behaviours,
+        *ObserverRoundBehaviour.behaviours,
     }

@@ -251,7 +251,7 @@ class SimpleAbciConsensusBehaviour(AbstractRoundBehaviour):
 
     initial_behaviour_cls = RegistrationBehaviour
     abci_app_cls = SimpleAbciApp  # type: ignore
-    behaviour_states: Set[Type[SimpleABCIBaseState]] = {  # type: ignore
+    behaviours: Set[Type[SimpleABCIBaseState]] = {  # type: ignore
         RegistrationBehaviour,  # type: ignore
         RandomnessAtStartupBehaviour,  # type: ignore
         SelectKeeperAtStartupBehaviour,  # type: ignore

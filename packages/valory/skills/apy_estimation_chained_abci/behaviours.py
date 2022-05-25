@@ -42,7 +42,7 @@ class APYEstimationConsensusBehaviour(AbstractRoundBehaviour):
     initial_behaviour_cls = RegistrationStartupBehaviour
     abci_app_cls = APYEstimationAbciAppChained
 
-    behaviour_states: Set[Type[BaseBehaviour]] = {
-        *AgentRegistrationRoundBehaviour.behaviour_states,
-        *EstimatorRoundBehaviour.behaviour_states,
+    behaviours: Set[Type[BaseBehaviour]] = {
+        *AgentRegistrationRoundBehaviour.behaviours,
+        *EstimatorRoundBehaviour.behaviours,
     }

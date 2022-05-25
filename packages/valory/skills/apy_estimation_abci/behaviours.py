@@ -1228,7 +1228,7 @@ class EstimatorRoundBehaviour(AbstractRoundBehaviour):
 
     initial_behaviour_cls = FetchBehaviour
     abci_app_cls = APYEstimationAbciApp
-    behaviour_states: Set[Type[BaseBehaviour]] = {
+    behaviours: Set[Type[BaseBehaviour]] = {
         FetchBehaviour,
         FetchBatchBehaviour,
         TransformBehaviour,

@@ -83,7 +83,7 @@ class AgentRegistrationRoundBehaviour(AbstractRoundBehaviour):
 
     initial_behaviour_cls = RegistrationStartupBehaviour
     abci_app_cls = AgentRegistrationAbciApp  # type: ignore
-    behaviour_states: Set[Type[BaseBehaviour]] = {  # type: ignore
+    behaviours: Set[Type[BaseBehaviour]] = {  # type: ignore
         RegistrationBehaviour,  # type: ignore
         RegistrationStartupBehaviour,  # type: ignore
     }

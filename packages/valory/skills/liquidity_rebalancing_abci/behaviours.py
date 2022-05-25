@@ -959,7 +959,7 @@ class LiquidityRebalancingConsensusBehaviour(AbstractRoundBehaviour):
 
     initial_behaviour_cls = StrategyEvaluationBehaviour
     abci_app_cls = LiquidityRebalancingAbciApp  # type: ignore
-    behaviour_states: Set[Type[BaseBehaviour]] = {  # type: ignore
+    behaviours: Set[Type[BaseBehaviour]] = {  # type: ignore
         StrategyEvaluationBehaviour,  # type: ignore
         SleepBehaviour,  # type: ignore
         EnterPoolTransactionHashBehaviour,  # type: ignore

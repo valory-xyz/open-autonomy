@@ -202,7 +202,7 @@ class HelloWorldRoundBehaviour(AbstractRoundBehaviour):
 
     initial_behaviour_cls = RegistrationBehaviour
     abci_app_cls = HelloWorldAbciApp  # type: ignore
-    behaviour_states: Set[Type[HelloWorldABCIBaseState]] = {  # type: ignore
+    behaviours: Set[Type[HelloWorldABCIBaseState]] = {  # type: ignore
         RegistrationBehaviour,  # type: ignore
         SelectKeeperBehaviour,  # type: ignore
         PrintMessageBehaviour,  # type: ignore

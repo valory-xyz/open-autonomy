@@ -124,9 +124,7 @@ class HelloWorldAbciFSMBehaviourBaseCase(BaseSkillTestCase):
         synchronized_data: BaseSynchronizedData,
     ) -> None:
         """Fast forward the FSM to a state."""
-        next_state = {s.behaviour_id: s for s in behaviour.behaviour_states}[
-            behaviour_id
-        ]
+        next_state = {s.behaviour_id: s for s in behaviour.behaviours}[behaviour_id]
         assert next_state is not None, f"State {behaviour_id} not found"
         next_state = cast(Type[BaseBehaviour], next_state)
         behaviour.current_state = next_state(

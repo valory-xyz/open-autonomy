@@ -393,7 +393,7 @@ class ObserverRoundBehaviour(AbstractRoundBehaviour):
 
     initial_behaviour_cls = ObserveBehaviour
     abci_app_cls = PriceAggregationAbciApp  # type: ignore
-    behaviour_states: Set[Type[BaseBehaviour]] = {  # type: ignore
+    behaviours: Set[Type[BaseBehaviour]] = {  # type: ignore
         ObserveBehaviour,  # type: ignore
         EstimateBehaviour,  # type: ignore
         TransactionHashBehaviour,  # type: ignore

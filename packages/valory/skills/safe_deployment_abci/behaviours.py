@@ -218,7 +218,7 @@ class SafeDeploymentRoundBehaviour(AbstractRoundBehaviour):
 
     initial_behaviour_cls = RandomnessSafeBehaviour
     abci_app_cls = SafeDeploymentAbciApp  # type: ignore
-    behaviour_states: Set[Type[BaseBehaviour]] = {  # type: ignore
+    behaviours: Set[Type[BaseBehaviour]] = {  # type: ignore
         RandomnessSafeBehaviour,  # type: ignore
         SelectKeeperSafeBehaviour,  # type: ignore
         DeploySafeBehaviour,  # type: ignore

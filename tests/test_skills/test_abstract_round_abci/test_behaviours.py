@@ -127,7 +127,7 @@ class ConcreteRoundBehaviour(AbstractRoundBehaviour):
     """Concrete round behaviour."""
 
     abci_app_cls = ConcreteAbciApp
-    behaviour_states = {StateA, StateB}  # type: ignore
+    behaviours = {StateA, StateB}  # type: ignore
     initial_behaviour_cls = StateA
 
 
@@ -187,7 +187,7 @@ class TestAbstractRoundBehaviour:
                         rounds[0],
                     },
                 )
-                behaviour_states = states  # type: ignore
+                behaviours = states  # type: ignore
                 initial_behaviour_cls = MagicMock()
 
             MyRoundBehaviour(name=MagicMock(), skill_context=MagicMock())
@@ -208,7 +208,7 @@ class TestAbstractRoundBehaviour:
 
                 class MyRoundBehaviour(AbstractRoundBehaviour):
                     abci_app_cls = MagicMock
-                    behaviour_states = [state_1, state_2]  # type: ignore
+                    behaviours = [state_1, state_2]  # type: ignore
                     initial_behaviour_cls = MagicMock()
 
                 MyRoundBehaviour(name=MagicMock(), skill_context=MagicMock())
@@ -232,7 +232,7 @@ class TestAbstractRoundBehaviour:
 
                 class MyRoundBehaviour(AbstractRoundBehaviour):
                     abci_app_cls = ConcreteAbciApp
-                    behaviour_states = [state_1, state_2]  # type: ignore
+                    behaviours = [state_1, state_2]  # type: ignore
                     initial_behaviour_cls = state_1
 
                 MyRoundBehaviour(name=MagicMock(), skill_context=MagicMock())
@@ -265,7 +265,7 @@ class TestAbstractRoundBehaviour:
 
         class MyRoundBehaviour(AbstractRoundBehaviour):
             abci_app_cls = AbciAppTest
-            behaviour_states = [state_1]  # type: ignore
+            behaviours = [state_1]  # type: ignore
             initial_behaviour_cls = state_1
 
         behaviour = MyRoundBehaviour(name=MagicMock(), skill_context=MagicMock())
@@ -288,7 +288,7 @@ class TestAbstractRoundBehaviour:
 
             class MyRoundBehaviour(AbstractRoundBehaviour):
                 abci_app_cls = MagicMock
-                behaviour_states = [state_1, state_2]  # type: ignore
+                behaviours = [state_1, state_2]  # type: ignore
                 initial_behaviour_cls = MagicMock()
 
     def test_check_consistency_two_states_same_round(self) -> None:
@@ -307,7 +307,7 @@ class TestAbstractRoundBehaviour:
 
             class MyRoundBehaviour(AbstractRoundBehaviour):
                 abci_app_cls = ConcreteAbciApp
-                behaviour_states = [state_1, state_2]  # type: ignore
+                behaviours = [state_1, state_2]  # type: ignore
                 initial_behaviour_cls = state_1
 
     def test_check_initial_behaviour_in_set_of_behaviours_negative_case(self) -> None:
@@ -322,7 +322,7 @@ class TestAbstractRoundBehaviour:
 
             class MyRoundBehaviour(AbstractRoundBehaviour):
                 abci_app_cls = ConcreteAbciApp
-                behaviour_states = [state_1]  # type: ignore
+                behaviours = [state_1]  # type: ignore
                 initial_behaviour_cls = state_2
 
     def test_act_no_round_change(self) -> None:
@@ -436,7 +436,7 @@ def test_abstract_round_behaviour_matching_rounds_not_covered() -> None:
 
         class MyRoundBehaviour(AbstractRoundBehaviour):
             abci_app_cls = ConcreteAbciApp
-            behaviour_states = {StateA}  # type: ignore
+            behaviours = {StateA}  # type: ignore
             initial_behaviour_cls = StateA
 
 
@@ -450,7 +450,7 @@ def test_self_loops_in_abci_app_reinstantiate_behaviour_state() -> None:
 
     class RoundBehaviour(AbstractRoundBehaviour):
         abci_app_cls = AbciAppTest
-        behaviour_states = {StateA}  # type: ignore
+        behaviours = {StateA}  # type: ignore
         initial_behaviour_cls = StateA
 
     round_sequence = RoundSequence(AbciAppTest)

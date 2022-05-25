@@ -222,7 +222,7 @@ class OracleDeploymentRoundBehaviour(AbstractRoundBehaviour):
 
     initial_behaviour_cls = RandomnessOracleBehaviour
     abci_app_cls = OracleDeploymentAbciApp
-    behaviour_states: Set[Type[BaseBehaviour]] = {  # type: ignore
+    behaviours: Set[Type[BaseBehaviour]] = {  # type: ignore
         RandomnessOracleBehaviour,  # type: ignore
         SelectKeeperOracleBehaviour,  # type: ignore
         DeployOracleBehaviour,  # type: ignore

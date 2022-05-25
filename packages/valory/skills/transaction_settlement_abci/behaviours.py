@@ -786,7 +786,7 @@ class TransactionSettlementRoundBehaviour(AbstractRoundBehaviour):
 
     initial_behaviour_cls = RandomnessTransactionSubmissionBehaviour
     abci_app_cls = TransactionSubmissionAbciApp  # type: ignore
-    behaviour_states: Set[Type[BaseBehaviour]] = {
+    behaviours: Set[Type[BaseBehaviour]] = {
         RandomnessTransactionSubmissionBehaviour,  # type: ignore
         SelectKeeperTransactionSubmissionBehaviourA,  # type: ignore
         SelectKeeperTransactionSubmissionBehaviourB,  # type: ignore
