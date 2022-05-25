@@ -151,13 +151,13 @@ class TestAbstractRoundBehaviour:
         """Test 'teardown' method."""
         self.behaviour.teardown()
 
-    def test_current_state_return_none(self) -> None:
-        """Test 'current_state' property return None."""
-        assert self.behaviour.current_state is None
+    def test_current_behaviour_return_none(self) -> None:
+        """Test 'current_behaviour' property return None."""
+        assert self.behaviour.current_behaviour is None
 
-    def test_act_current_state_name_is_none(self) -> None:
+    def test_act_current_behaviour_name_is_none(self) -> None:
         """Test 'act' with current state None."""
-        self.behaviour.current_state = None
+        self.behaviour.current_behaviour = None
         with mock.patch.object(self.behaviour, "_process_current_round"):
             self.behaviour.act()
 
@@ -332,17 +332,17 @@ class TestAbstractRoundBehaviour:
 
         # check that after setup(), current state is initial state
         self.behaviour.setup()
-        assert isinstance(self.behaviour.current_state, StateA)
+        assert isinstance(self.behaviour.current_behaviour, StateA)
 
         # check that after act(), current state is initial state
         self.behaviour.act()
-        assert isinstance(self.behaviour.current_state, StateA)
+        assert isinstance(self.behaviour.current_behaviour, StateA)
 
         # check that once the flag done is set, tries to schedule
         # the next state behaviour, but without success
-        self.behaviour.current_state.set_done()
+        self.behaviour.current_behaviour.set_done()
         self.behaviour.act()
-        assert self.behaviour.current_state is None
+        assert self.behaviour.current_behaviour is None
 
     def test_act_behaviour_setup(self) -> None:
         """Test the 'act' method of the FSM behaviour triggers setup() of the state behaviour."""
@@ -351,18 +351,18 @@ class TestAbstractRoundBehaviour:
 
         # check that after setup(), current state is initial state
         self.behaviour.setup()
-        assert isinstance(self.behaviour.current_state, StateA)
+        assert isinstance(self.behaviour.current_behaviour, StateA)
 
-        assert self.behaviour.current_state.count == 0
+        assert self.behaviour.current_behaviour.count == 0
 
         # check that after act() first time, a call to setup has been made
         self.behaviour.act()
-        assert isinstance(self.behaviour.current_state, StateA)
-        assert self.behaviour.current_state.count == 1
+        assert isinstance(self.behaviour.current_behaviour, StateA)
+        assert self.behaviour.current_behaviour.count == 1
 
         # check that after act() second time, no further call to setup
         self.behaviour.act()
-        assert self.behaviour.current_state.count == 1
+        assert self.behaviour.current_behaviour.count == 1
 
     def test_act_with_round_change(self) -> None:
         """Test the 'act' method of the behaviour, with round change."""
@@ -371,11 +371,11 @@ class TestAbstractRoundBehaviour:
 
         # check that after setup(), current state is initial state
         self.behaviour.setup()
-        assert isinstance(self.behaviour.current_state, StateA)
+        assert isinstance(self.behaviour.current_behaviour, StateA)
 
         # check that after act(), current state is initial state
         self.behaviour.act()
-        assert isinstance(self.behaviour.current_state, StateA)
+        assert isinstance(self.behaviour.current_behaviour, StateA)
 
         # change the round
         self.round_sequence_mock.current_round = RoundB(MagicMock(), MagicMock())
@@ -385,24 +385,24 @@ class TestAbstractRoundBehaviour:
 
         # check that if the round is changed, the behaviour transition is taken
         self.behaviour.act()
-        assert isinstance(self.behaviour.current_state, StateB)
+        assert isinstance(self.behaviour.current_behaviour, StateB)
 
-    def test_act_with_round_change_after_current_state_is_none(self) -> None:
+    def test_act_with_round_change_after_current_behaviour_is_none(self) -> None:
         """Test the 'act' method of the behaviour, with round change, after cur state is none."""
         self.round_sequence_mock.current_round = RoundA(MagicMock(), MagicMock())
         self.round_sequence_mock.current_round_height = 0
 
         # instantiate state
-        self.behaviour.current_state = self.behaviour.instantiate_behaviour_cls(StateA)  # type: ignore
+        self.behaviour.current_behaviour = self.behaviour.instantiate_behaviour_cls(StateA)  # type: ignore
 
         # check that after act(), current state is same state
         self.behaviour.act()
-        assert isinstance(self.behaviour.current_state, StateA)
+        assert isinstance(self.behaviour.current_behaviour, StateA)
 
         # check that after the state is done, current state is None
-        self.behaviour.current_state.set_done()
+        self.behaviour.current_behaviour.set_done()
         self.behaviour.act()
-        assert self.behaviour.current_state is None
+        assert self.behaviour.current_behaviour is None
 
         # change the round
         self.round_sequence_mock.current_round = RoundB(MagicMock(), MagicMock())
@@ -412,7 +412,7 @@ class TestAbstractRoundBehaviour:
 
         # check that if the round is changed, the behaviour transition is taken
         self.behaviour.act()
-        assert isinstance(self.behaviour.current_state, StateB)
+        assert isinstance(self.behaviour.current_behaviour, StateB)
 
 
 def test_meta_round_behaviour_when_instance_not_subclass_of_abstract_round() -> None:
@@ -462,13 +462,13 @@ def test_self_loops_in_abci_app_reinstantiate_behaviour_state() -> None:
     behaviour = RoundBehaviour(name="", skill_context=context_mock)
     behaviour.setup()
 
-    state_1 = behaviour.current_state
+    state_1 = behaviour.current_behaviour
     assert isinstance(state_1, StateA)
 
     round_sequence.abci_app.process_event(event)
 
     behaviour.act()
-    state_2 = behaviour.current_state
+    state_2 = behaviour.current_behaviour
     assert isinstance(state_2, StateA)
     assert id(state_1) != id(state_2)
     assert state_1 != state_2

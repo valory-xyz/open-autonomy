@@ -356,8 +356,8 @@ class TestKeepers(OracleBehaviourBaseCase, IntegrationBaseCase):
             behaviour_id,
             self.tx_settlement_synchronized_data,
         )
-        assert self.behaviour.current_state is not None
-        assert self.behaviour.current_state.behaviour_id == behaviour_id
+        assert self.behaviour.current_behaviour is not None
+        assert self.behaviour.current_behaviour.behaviour_id == behaviour_id
 
         self.behaviour.act_wrapper()
         serialized_keepers_mock.assert_called_with(expected_keepers, expected_retries)
@@ -367,7 +367,7 @@ class TestKeepers(OracleBehaviourBaseCase, IntegrationBaseCase):
             # we cast to A class, because it is the top level one between A & B, and we need `serialized_keepers`
             keepers=cast(
                 SelectKeeperTransactionSubmissionBehaviourA,
-                self.behaviour.current_state,
+                self.behaviour.current_behaviour,
             ).serialized_keepers(expected_keepers, expected_retries)
         )
 
@@ -385,10 +385,13 @@ class TestKeepers(OracleBehaviourBaseCase, IntegrationBaseCase):
             first_time=True,
         )
         assert isinstance(
-            self.behaviour.current_state, SelectKeeperTransactionSubmissionBehaviourA
+            self.behaviour.current_behaviour,
+            SelectKeeperTransactionSubmissionBehaviourA,
         )
 
-        for i in range(self.behaviour.current_state.params.keeper_allowed_retries - 1):
+        for i in range(
+            self.behaviour.current_behaviour.params.keeper_allowed_retries - 1
+        ):
             # select keeper b
             # ensure that we select the same keeper until the `keeper_allowed_retries` is reached.
             # +2 because we selected once for keeperA and also index starts from 0.
@@ -446,7 +449,7 @@ class TestSyncing(TransactionSettlementIntegrationBaseCase):
     def sync_late_messages(self) -> None:
         """Synchronize late messages."""
         params = cast(
-            TransactionSettlementBaseState, self.behaviour.current_state
+            TransactionSettlementBaseState, self.behaviour.current_behaviour
         ).params
         late_messages_len = len(params.late_messages)
         expected_sync_result = params.tx_hash
@@ -477,14 +480,14 @@ class TestSyncing(TransactionSettlementIntegrationBaseCase):
         )
 
         assert isinstance(
-            self.behaviour.current_state, SynchronizeLateMessagesBehaviour
+            self.behaviour.current_behaviour, SynchronizeLateMessagesBehaviour
         )
         assert (
-            self.behaviour.current_state.behaviour_id
+            self.behaviour.current_behaviour.behaviour_id
             == SynchronizeLateMessagesBehaviour.behaviour_id
         )
-        assert self.behaviour.current_state.params.tx_hash == ""
-        assert self.behaviour.current_state.params.late_messages == []
+        assert self.behaviour.current_behaviour.params.tx_hash == ""
+        assert self.behaviour.current_behaviour.params.late_messages == []
 
         tx_digest_msgs = msgs[0::2]
         for i in range(len(tx_digest_msgs)):
@@ -499,14 +502,14 @@ class TestSyncing(TransactionSettlementIntegrationBaseCase):
             ), f"No tx digest retrieved for message {i}: {current_message}!"
             expected_sync_result += tx_digest
 
-        assert self.behaviour.current_state._tx_hashes == expected_sync_result
+        assert self.behaviour.current_behaviour._tx_hashes == expected_sync_result
         self.tx_settlement_synchronized_data.update(
             late_arriving_tx_hashes=[expected_sync_result],
         )
         self.tx_settlement_synchronized_data.update(
-            missed_messages=self.behaviour.current_state.synchronized_data.missed_messages
+            missed_messages=self.behaviour.current_behaviour.synchronized_data.missed_messages
             - len(
-                self.behaviour.current_state.synchronized_data.late_arriving_tx_hashes
+                self.behaviour.current_behaviour.synchronized_data.late_arriving_tx_hashes
             ),
         )
 
@@ -531,9 +534,9 @@ class TestSyncing(TransactionSettlementIntegrationBaseCase):
             expected_content,
             expected_types,
         )
-        assert isinstance(self.behaviour.current_state, CheckLateTxHashesBehaviour)
+        assert isinstance(self.behaviour.current_behaviour, CheckLateTxHashesBehaviour)
         assert (
-            self.behaviour.current_state.behaviour_id
+            self.behaviour.current_behaviour.behaviour_id
             == CheckLateTxHashesBehaviour.behaviour_id
         )
 
@@ -575,8 +578,8 @@ class TestSyncing(TransactionSettlementIntegrationBaseCase):
         # check that we have increased the number of missed messages.
         assert self.tx_settlement_synchronized_data.missed_messages == 1
         # store the tx hash that we have missed.
-        assert isinstance(self.behaviour.current_state, FinalizeBehaviour)
-        missed_hash = self.behaviour.current_state.params.tx_hash
+        assert isinstance(self.behaviour.current_behaviour, FinalizeBehaviour)
+        missed_hash = self.behaviour.current_behaviour.params.tx_hash
         # sync the tx hash that we missed before
         self.sync_late_messages()
         # check that we have decreased the number of missed messages.

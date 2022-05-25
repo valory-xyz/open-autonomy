@@ -87,30 +87,30 @@ class TestResetAndPauseBehaviour(ResetPauseAbciFSMBehaviourBaseCase):
             ),
         )
 
-        assert self.behaviour.current_state is not None
+        assert self.behaviour.current_behaviour is not None
         assert (
-            self.behaviour.current_state.behaviour_id
+            self.behaviour.current_behaviour.behaviour_id
             == self.behaviour_class.behaviour_id
         )
 
         with mock.patch.object(
-            self.behaviour.current_state,
+            self.behaviour.current_behaviour,
             "send_a2a_transaction",
-            side_effect=self.behaviour.current_state.send_a2a_transaction,
+            side_effect=self.behaviour.current_behaviour.send_a2a_transaction,
         ), mock.patch.object(
-            self.behaviour.current_state,
+            self.behaviour.current_behaviour,
             "reset_tendermint_with_wait",
             side_effect=dummy_reset_tendermint_with_wait_wrapper(
                 tendermint_reset_status
             ),
         ) as mock_reset_tendermint_with_wait, mock.patch.object(
-            self.behaviour.current_state,
+            self.behaviour.current_behaviour,
             "wait_from_last_timestamp",
             side_effect=lambda _: (yield),
         ):
             if tendermint_reset_status is not None:
                 # Increase the period_count to force the call to reset_tendermint_with_wait()
-                self.behaviour.current_state.synchronized_data.create()
+                self.behaviour.current_behaviour.synchronized_data.create()
 
             self.behaviour.act_wrapper()
             self.behaviour.act_wrapper()
@@ -123,15 +123,15 @@ class TestResetAndPauseBehaviour(ResetPauseAbciFSMBehaviourBaseCase):
                 self.behaviour.act_wrapper()
                 # make sure that the behaviour does not send any txs to other agents when Tendermint reset fails
                 assert isinstance(
-                    self.behaviour.current_state.send_a2a_transaction, MagicMock
+                    self.behaviour.current_behaviour.send_a2a_transaction, MagicMock
                 )
-                self.behaviour.current_state.send_a2a_transaction.assert_not_called()
+                self.behaviour.current_behaviour.send_a2a_transaction.assert_not_called()
                 self.behaviour.act_wrapper()
 
         self.mock_a2a_transaction()
         self._test_done_flag_set()
         self.end_round(ResetEvent.DONE)
         assert (
-            self.behaviour.current_state.behaviour_id
+            self.behaviour.current_behaviour.behaviour_id
             == self.next_behaviour_class.behaviour_id
         )

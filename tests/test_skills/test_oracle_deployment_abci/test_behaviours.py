@@ -128,7 +128,7 @@ class BaseDeployBehaviourTest(FSMBehaviourBaseCase):
         assert (
             cast(
                 BaseBehaviour,
-                cast(BaseBehaviour, self.behaviour.current_state),
+                cast(BaseBehaviour, self.behaviour.current_behaviour),
             ).behaviour_id
             == self.behaviour_class.behaviour_id
         )
@@ -191,7 +191,7 @@ class BaseDeployBehaviourTest(FSMBehaviourBaseCase):
         self.mock_a2a_transaction()
         self._test_done_flag_set()
         self.end_round(self.done_event)
-        state = cast(BaseBehaviour, self.behaviour.current_state)
+        state = cast(BaseBehaviour, self.behaviour.current_behaviour)
         assert state.behaviour_id == self.next_behaviour_class.behaviour_id
 
     def test_not_deployer_act(
@@ -216,7 +216,7 @@ class BaseDeployBehaviourTest(FSMBehaviourBaseCase):
         assert (
             cast(
                 BaseBehaviour,
-                cast(BaseBehaviour, self.behaviour.current_state),
+                cast(BaseBehaviour, self.behaviour.current_behaviour),
             ).behaviour_id
             == self.behaviour_class.behaviour_id
         )
@@ -225,7 +225,7 @@ class BaseDeployBehaviourTest(FSMBehaviourBaseCase):
         self.end_round(self.done_event)
         time.sleep(1)
         self.behaviour.act_wrapper()
-        state = cast(BaseBehaviour, self.behaviour.current_state)
+        state = cast(BaseBehaviour, self.behaviour.current_behaviour)
         assert state.behaviour_id == self.next_behaviour_class.behaviour_id
 
 
@@ -263,7 +263,7 @@ class BaseValidateBehaviourTest(FSMBehaviourBaseCase):
         assert (
             cast(
                 BaseBehaviour,
-                cast(BaseBehaviour, self.behaviour.current_state),
+                cast(BaseBehaviour, self.behaviour.current_behaviour),
             ).behaviour_id
             == self.behaviour_class.behaviour_id
         )
@@ -285,7 +285,7 @@ class BaseValidateBehaviourTest(FSMBehaviourBaseCase):
         self.mock_a2a_transaction()
         self._test_done_flag_set()
         self.end_round(self.done_event)
-        state = cast(BaseBehaviour, self.behaviour.current_state)
+        state = cast(BaseBehaviour, self.behaviour.current_behaviour)
         assert state.behaviour_id == self.next_behaviour_class.behaviour_id
 
 

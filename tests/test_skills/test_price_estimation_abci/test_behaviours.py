@@ -114,7 +114,7 @@ class TestObserveBehaviour(PriceEstimationFSMBehaviourBaseCase):
         assert (
             cast(
                 BaseBehaviour,
-                cast(BaseBehaviour, self.behaviour.current_state),
+                cast(BaseBehaviour, self.behaviour.current_behaviour),
             ).behaviour_id
             == ObserveBehaviour.behaviour_id
         )
@@ -138,7 +138,7 @@ class TestObserveBehaviour(PriceEstimationFSMBehaviourBaseCase):
         self.mock_a2a_transaction()
         self._test_done_flag_set()
         self.end_round(Event.DONE)
-        state = cast(BaseBehaviour, self.behaviour.current_state)
+        state = cast(BaseBehaviour, self.behaviour.current_behaviour)
         assert state.behaviour_id == EstimateBehaviour.behaviour_id
 
     def test_observer_behaviour_retries_exceeded(
@@ -155,7 +155,7 @@ class TestObserveBehaviour(PriceEstimationFSMBehaviourBaseCase):
         assert (
             cast(
                 BaseBehaviour,
-                cast(BaseBehaviour, self.behaviour.current_state),
+                cast(BaseBehaviour, self.behaviour.current_behaviour),
             ).behaviour_id
             == ObserveBehaviour.behaviour_id
         )
@@ -165,7 +165,7 @@ class TestObserveBehaviour(PriceEstimationFSMBehaviourBaseCase):
             return_value=True,
         ):
             self.behaviour.act_wrapper()
-            state = cast(BaseBehaviour, self.behaviour.current_state)
+            state = cast(BaseBehaviour, self.behaviour.current_behaviour)
             assert state.behaviour_id == ObserveBehaviour.behaviour_id
             self._test_done_flag_set()
 
@@ -183,7 +183,7 @@ class TestObserveBehaviour(PriceEstimationFSMBehaviourBaseCase):
         assert (
             cast(
                 BaseBehaviour,
-                cast(BaseBehaviour, self.behaviour.current_state),
+                cast(BaseBehaviour, self.behaviour.current_behaviour),
             ).behaviour_id
             == ObserveBehaviour.behaviour_id
         )
@@ -221,13 +221,13 @@ class TestObserveBehaviour(PriceEstimationFSMBehaviourBaseCase):
         assert (
             cast(
                 BaseBehaviour,
-                cast(BaseBehaviour, self.behaviour.current_state),
+                cast(BaseBehaviour, self.behaviour.current_behaviour),
             ).behaviour_id
             == ObserveBehaviour.behaviour_id
         )
         self.behaviour.context.price_api._retries_attempted = 1
-        assert self.behaviour.current_state is not None
-        self.behaviour.current_state.clean_up()
+        assert self.behaviour.current_behaviour is not None
+        self.behaviour.current_behaviour.clean_up()
         assert self.behaviour.context.price_api._retries_attempted == 0
 
 
@@ -255,7 +255,7 @@ class TestEstimateBehaviour(PriceEstimationFSMBehaviourBaseCase):
         assert (
             cast(
                 BaseBehaviour,
-                cast(BaseBehaviour, self.behaviour.current_state),
+                cast(BaseBehaviour, self.behaviour.current_behaviour),
             ).behaviour_id
             == EstimateBehaviour.behaviour_id
         )
@@ -263,7 +263,7 @@ class TestEstimateBehaviour(PriceEstimationFSMBehaviourBaseCase):
         self.mock_a2a_transaction()
         self._test_done_flag_set()
         self.end_round(Event.DONE)
-        state = cast(BaseBehaviour, self.behaviour.current_state)
+        state = cast(BaseBehaviour, self.behaviour.current_behaviour)
         assert state.behaviour_id == TransactionHashBehaviour.behaviour_id
 
 
@@ -285,7 +285,7 @@ def mock_to_server_message_flow(
         "data_source": "coinbase",
         "unit": "BTC:USD",
     }
-    state = self.behaviour.current_state  # type: ignore
+    state = self.behaviour.current_behaviour  # type: ignore
     participants = state.synchronized_data.sorted_participants  # type: ignore
     decimals = state.params.oracle_params["decimals"]  # type: ignore
     data["package"] = pack_for_server(participants, decimals, **data).hex()  # type: ignore
@@ -367,7 +367,7 @@ class TestTransactionHashBehaviour(PriceEstimationFSMBehaviourBaseCase):
         """Test estimate behaviour."""
 
         # change setting, mock message flow with and without broadcast to server
-        state_params = self.behaviour.current_state.params  # type: ignore
+        state_params = self.behaviour.current_behaviour.params  # type: ignore
         state_params.is_broadcasting_to_server = broadcast_to_server  # type: ignore
 
         self.fast_forward_to_state(
@@ -386,7 +386,7 @@ class TestTransactionHashBehaviour(PriceEstimationFSMBehaviourBaseCase):
         assert (
             cast(
                 BaseBehaviour,
-                cast(BaseBehaviour, self.behaviour.current_state),
+                cast(BaseBehaviour, self.behaviour.current_behaviour),
             ).behaviour_id
             == TransactionHashBehaviour.behaviour_id
         )
@@ -419,7 +419,7 @@ class TestTransactionHashBehaviour(PriceEstimationFSMBehaviourBaseCase):
         )
 
         tx_hashes = ["", "0x_prev_cycle_tx_hash"]
-        synchronized_data = self.behaviour.current_state.synchronized_data  # type: ignore
+        synchronized_data = self.behaviour.current_behaviour.synchronized_data  # type: ignore
         period_data = synchronized_data.db.get_latest()
         period_data.update(
             {
@@ -467,7 +467,7 @@ class TestTransactionHashBehaviour(PriceEstimationFSMBehaviourBaseCase):
         self.mock_a2a_transaction()
         self._test_done_flag_set()
         self.end_round(Event.DONE)
-        state = cast(BaseBehaviour, self.behaviour.current_state)
+        state = cast(BaseBehaviour, self.behaviour.current_behaviour)
         assert (
             state.behaviour_id
             == make_degenerate_behaviour(
@@ -501,7 +501,7 @@ class TestPackForServer(PriceEstimationFSMBehaviourBaseCase):
     ) -> None:
         """Test packaging valid and invalid data"""
 
-        decimals = self.behaviour.current_state.params.oracle_params["decimals"]  # type: ignore
+        decimals = self.behaviour.current_behaviour.params.oracle_params["decimals"]  # type: ignore
         kwargs = get_valid_server_data()
         kwargs.update({"decimals": decimals})
         kwargs.update(mutation)

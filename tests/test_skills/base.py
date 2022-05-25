@@ -113,7 +113,7 @@ class FSMBehaviourBaseCase(BaseSkillTestCase):
         cls.benchmark_dir = TemporaryDirectory()
         cls._skill.skill_context.benchmark_tool.log_dir = Path(cls.benchmark_dir.name)
         assert (
-            cast(BaseBehaviour, cls.behaviour.current_state).behaviour_id
+            cast(BaseBehaviour, cls.behaviour.current_behaviour).behaviour_id
             == cls.behaviour.initial_behaviour_cls.behaviour_id
         )
 
@@ -127,7 +127,7 @@ class FSMBehaviourBaseCase(BaseSkillTestCase):
         next_state = {s.behaviour_id: s for s in behaviour.behaviours}[behaviour_id]
         assert next_state is not None, f"State {behaviour_id} not found"
         next_state = cast(Type[BaseBehaviour], next_state)
-        behaviour.current_state = next_state(
+        behaviour.current_behaviour = next_state(
             name=next_state.behaviour_id, skill_context=behaviour.context
         )
         self.skill.skill_context.state.round_sequence.abci_app._round_results.append(
@@ -339,15 +339,15 @@ class FSMBehaviourBaseCase(BaseSkillTestCase):
 
     def end_round(self, done_event: Enum) -> None:
         """Ends round early to cover `wait_for_end` generator."""
-        current_state = cast(BaseBehaviour, self.behaviour.current_state)
-        if current_state is None:
+        current_behaviour = cast(BaseBehaviour, self.behaviour.current_behaviour)
+        if current_behaviour is None:
             return
-        current_state = cast(BaseBehaviour, current_state)
-        abci_app = current_state.context.state.round_sequence.abci_app
+        current_behaviour = cast(BaseBehaviour, current_behaviour)
+        abci_app = current_behaviour.context.state.round_sequence.abci_app
         old_round = abci_app._current_round
         abci_app._last_round = old_round
         abci_app._current_round = abci_app.transition_function[
-            current_state.matching_round
+            current_behaviour.matching_round
         ][done_event](abci_app.synchronized_data, abci_app.consensus_params)
         abci_app._previous_rounds.append(old_round)
         abci_app._current_round_height += 1
@@ -355,16 +355,16 @@ class FSMBehaviourBaseCase(BaseSkillTestCase):
 
     def _test_done_flag_set(self) -> None:
         """Test that, when round ends, the 'done' flag is set."""
-        current_state = cast(BaseBehaviour, self.behaviour.current_state)
-        assert not current_state.is_done()
+        current_behaviour = cast(BaseBehaviour, self.behaviour.current_behaviour)
+        assert not current_behaviour.is_done()
         with mock.patch.object(
             self.behaviour.context.state, "_round_sequence"
         ) as mock_round_sequence:
             mock_round_sequence.last_round_id = cast(
-                AbstractRound, current_state.matching_round
+                AbstractRound, current_behaviour.matching_round
             ).round_id
-            current_state.act_wrapper()
-            assert current_state.is_done()
+            current_behaviour.act_wrapper()
+            assert current_behaviour.is_done()
 
     @classmethod
     def teardown(cls) -> None:

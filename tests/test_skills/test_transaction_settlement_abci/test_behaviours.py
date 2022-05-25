@@ -284,7 +284,7 @@ class TestTransactionSettlementBaseState(PriceEstimationFSMBehaviourBaseCase):
                 )
             ),
         )
-        state = cast(SignatureBehaviour, self.behaviour.current_state)
+        state = cast(SignatureBehaviour, self.behaviour.current_behaviour)
         assert state.behaviour_id == SignatureBehaviour.behaviour_id
         # Set `nonce` to the same value as the returned, so that we test the tx replacement logging.
         if replacement:
@@ -303,7 +303,7 @@ class TestTransactionSettlementBaseState(PriceEstimationFSMBehaviourBaseCase):
         )
         # call `_get_tx_data`
         tx_data_iterator = cast(
-            TransactionSettlementBaseState, self.behaviour.current_state
+            TransactionSettlementBaseState, self.behaviour.current_behaviour
         )._get_tx_data(message)
 
         if message.performative == ContractApiMessage.Performative.RAW_TRANSACTION:
@@ -315,7 +315,7 @@ class TestTransactionSettlementBaseState(PriceEstimationFSMBehaviourBaseCase):
             assert res.value == expected_data
 
         """Test the serialized_keepers method."""
-        state_ = self.behaviour.current_state
+        state_ = self.behaviour.current_behaviour
         assert state_ is not None
         assert state_.serialized_keepers(deque([]), 1) == ""
         assert (
@@ -415,7 +415,7 @@ class TestSignatureBehaviour(TransactionSettlementFSMBehaviourBaseCase):
         assert (
             cast(
                 BaseBehaviour,
-                cast(BaseBehaviour, self.behaviour.current_state),
+                cast(BaseBehaviour, self.behaviour.current_behaviour),
             ).behaviour_id
             == SignatureBehaviour.behaviour_id
         )
@@ -434,7 +434,7 @@ class TestSignatureBehaviour(TransactionSettlementFSMBehaviourBaseCase):
         self.mock_a2a_transaction()
         self._test_done_flag_set()
         self.end_round(TransactionSettlementEvent.DONE)
-        state = cast(BaseBehaviour, self.behaviour.current_state)
+        state = cast(BaseBehaviour, self.behaviour.current_behaviour)
         assert state.behaviour_id == FinalizeBehaviour.behaviour_id
 
 
@@ -465,16 +465,18 @@ class TestFinalizeBehaviour(TransactionSettlementFSMBehaviourBaseCase):
                 )
             ),
         )
-        assert self.behaviour.current_state is not None
+        assert self.behaviour.current_behaviour is not None
         assert (
-            self.behaviour.current_state.behaviour_id
+            self.behaviour.current_behaviour.behaviour_id
             == self.behaviour_class.behaviour_id
         )
-        cast(FinalizeBehaviour, self.behaviour.current_state).params.tx_hash = "test"
+        cast(
+            FinalizeBehaviour, self.behaviour.current_behaviour
+        ).params.tx_hash = "test"
         self.behaviour.act_wrapper()
         self._test_done_flag_set()
         self.end_round(TransactionSettlementEvent.DONE)
-        state = cast(ValidateTransactionBehaviour, self.behaviour.current_state)
+        state = cast(ValidateTransactionBehaviour, self.behaviour.current_behaviour)
         assert state.behaviour_id == ValidateTransactionBehaviour.behaviour_id
         assert state.params.tx_hash == "test"
 
@@ -593,12 +595,14 @@ class TestFinalizeBehaviour(TransactionSettlementFSMBehaviourBaseCase):
             ),
         )
 
-        assert self.behaviour.current_state is not None
+        assert self.behaviour.current_behaviour is not None
         assert (
-            self.behaviour.current_state.behaviour_id
+            self.behaviour.current_behaviour.behaviour_id
             == self.behaviour_class.behaviour_id
         )
-        cast(FinalizeBehaviour, self.behaviour.current_state).params.tx_hash = "test"
+        cast(
+            FinalizeBehaviour, self.behaviour.current_behaviour
+        ).params.tx_hash = "test"
         self.behaviour.act_wrapper()
 
         self.mock_contract_api_request(
@@ -638,12 +642,12 @@ class TestFinalizeBehaviour(TransactionSettlementFSMBehaviourBaseCase):
         self._test_done_flag_set()
         self.end_round(TransactionSettlementEvent.DONE)
         assert (
-            self.behaviour.current_state.behaviour_id
+            self.behaviour.current_behaviour.behaviour_id
             == ValidateTransactionBehaviour.behaviour_id
         )
         assert (
             cast(
-                ValidateTransactionBehaviour, self.behaviour.current_state
+                ValidateTransactionBehaviour, self.behaviour.current_behaviour
             ).params.tx_hash
             == ""
         )
@@ -667,20 +671,22 @@ class TestFinalizeBehaviour(TransactionSettlementFSMBehaviourBaseCase):
         assert (
             cast(
                 BaseBehaviour,
-                cast(BaseBehaviour, self.behaviour.current_state),
+                cast(BaseBehaviour, self.behaviour.current_behaviour),
             ).behaviour_id
             == self.behaviour_class.behaviour_id
         )
 
         message = ContractApiMessage(ContractApiMessage.Performative.RAW_MESSAGE)  # type: ignore
-        cast(BaseBehaviour, self.behaviour.current_state).handle_late_messages(message)
+        cast(BaseBehaviour, self.behaviour.current_behaviour).handle_late_messages(
+            message
+        )
         assert cast(
-            TransactionSettlementBaseState, self.behaviour.current_state
+            TransactionSettlementBaseState, self.behaviour.current_behaviour
         ).params.late_messages == [message]
 
         message = MagicMock()
         with mock.patch.object(self.behaviour.context.logger, "warning") as mock_info:
-            cast(BaseBehaviour, self.behaviour.current_state).handle_late_messages(
+            cast(BaseBehaviour, self.behaviour.current_behaviour).handle_late_messages(
                 message
             )
             mock_info.assert_called_with(
@@ -722,7 +728,7 @@ class TestValidateTransactionBehaviour(TransactionSettlementFSMBehaviourBaseCase
         assert (
             cast(
                 BaseBehaviour,
-                cast(BaseBehaviour, self.behaviour.current_state),
+                cast(BaseBehaviour, self.behaviour.current_behaviour),
             ).behaviour_id
             == ValidateTransactionBehaviour.behaviour_id
         )
@@ -756,7 +762,7 @@ class TestValidateTransactionBehaviour(TransactionSettlementFSMBehaviourBaseCase
         self.mock_a2a_transaction()
         self._test_done_flag_set()
         self.end_round(TransactionSettlementEvent.DONE)
-        state = cast(BaseBehaviour, self.behaviour.current_state)
+        state = cast(BaseBehaviour, self.behaviour.current_behaviour)
         assert (
             state.behaviour_id
             == make_degenerate_behaviour(
@@ -783,7 +789,7 @@ class TestValidateTransactionBehaviour(TransactionSettlementFSMBehaviourBaseCase
             )
             state = cast(
                 TransactionSettlementBaseState,
-                self.behaviour.current_state,
+                self.behaviour.current_behaviour,
             )
             latest_tx_hash = state.synchronized_data.tx_hashes_history[-1]
             mock_logger.assert_any_call(f"tx {latest_tx_hash} receipt check timed out!")
@@ -812,7 +818,7 @@ class TestCheckTransactionHistoryBehaviour(TransactionSettlementFSMBehaviourBase
             ),
         )
         assert (
-            cast(BaseBehaviour, self.behaviour.current_state).behaviour_id
+            cast(BaseBehaviour, self.behaviour.current_behaviour).behaviour_id
             == CheckTransactionHistoryBehaviour.behaviour_id
         )
 
@@ -875,7 +881,7 @@ class TestCheckTransactionHistoryBehaviour(TransactionSettlementFSMBehaviourBase
         self.mock_a2a_transaction()
         self._test_done_flag_set()
         self.end_round(TransactionSettlementEvent.DONE)
-        state = cast(BaseBehaviour, self.behaviour.current_state)
+        state = cast(BaseBehaviour, self.behaviour.current_behaviour)
         assert (
             state.behaviour_id
             == make_degenerate_behaviour(
@@ -888,14 +894,14 @@ class TestSynchronizeLateMessagesBehaviour(TransactionSettlementFSMBehaviourBase
     """Test `SynchronizeLateMessagesBehaviour`"""
 
     def _check_state_id(self, expected: Type[TransactionSettlementBaseState]) -> None:
-        state = cast(BaseBehaviour, self.behaviour.current_state)
+        state = cast(BaseBehaviour, self.behaviour.current_behaviour)
         assert state.behaviour_id == expected.behaviour_id
 
     @pytest.mark.parametrize("late_messages", ([], [MagicMock, MagicMock]))
     def test_async_act(self, late_messages: List[MagicMock]) -> None:
         """Test `async_act`"""
         cast(
-            TransactionSettlementBaseState, self.behaviour.current_state
+            TransactionSettlementBaseState, self.behaviour.current_behaviour
         ).params.late_messages = late_messages
 
         participants = frozenset({self.skill.skill_context.agent_address, "a_1", "a_2"})
@@ -933,7 +939,7 @@ class TestSynchronizeLateMessagesBehaviour(TransactionSettlementFSMBehaviourBase
                 }
 
             cast(  # type: ignore
-                TransactionSettlementBaseState, self.behaviour.current_state
+                TransactionSettlementBaseState, self.behaviour.current_behaviour
             )._get_tx_data = _dummy_get_tx_data  # type: ignore
             for _ in range(len(late_messages)):
                 self.behaviour.act_wrapper()
@@ -959,7 +965,7 @@ class TestResetBehaviour(TransactionSettlementFSMBehaviourBaseCase):
         assert (
             cast(
                 BaseBehaviour,
-                cast(BaseBehaviour, self.behaviour.current_state),
+                cast(BaseBehaviour, self.behaviour.current_behaviour),
             ).behaviour_id
             == self.behaviour_class.behaviour_id
         )
@@ -970,5 +976,5 @@ class TestResetBehaviour(TransactionSettlementFSMBehaviourBaseCase):
         self.mock_a2a_transaction()
         self._test_done_flag_set()
         self.end_round(TransactionSettlementEvent.DONE)
-        state = cast(BaseBehaviour, self.behaviour.current_state)
+        state = cast(BaseBehaviour, self.behaviour.current_behaviour)
         assert state.behaviour_id == self.next_behaviour_class.behaviour_id

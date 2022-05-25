@@ -164,7 +164,7 @@ class AbstractRoundBehaviour(
             Type[AbstractRound], BehaviourType
         ] = self._get_round_to_behaviour_mapping(self.behaviours)
 
-        self.current_state: Optional[BaseBehaviour] = None
+        self.current_behaviour: Optional[BaseBehaviour] = None
 
         # keep track of last round height so to detect changes
         self._last_round_height = 0
@@ -222,7 +222,9 @@ class AbstractRoundBehaviour(
 
     def setup(self) -> None:
         """Set up the behaviour."""
-        self.current_state = self.instantiate_behaviour_cls(self.initial_behaviour_cls)
+        self.current_behaviour = self.instantiate_behaviour_cls(
+            self.initial_behaviour_cls
+        )
 
     def teardown(self) -> None:
         """Tear down the behaviour"""
@@ -231,20 +233,20 @@ class AbstractRoundBehaviour(
         """Implement the behaviour."""
         self._process_current_round()
 
-        if self.current_state is None:
+        if self.current_behaviour is None:
             return
 
-        self.current_state.act_wrapper()
+        self.current_behaviour.act_wrapper()
 
-        if self.current_state.is_done():
-            self.current_state.clean_up()
-            self.current_state = None
+        if self.current_behaviour.is_done():
+            self.current_behaviour.clean_up()
+            self.current_behaviour = None
 
     def _process_current_round(self) -> None:
         """Process current ABCIApp round."""
         current_round_height = self.context.state.round_sequence.current_round_height
         if (
-            self.current_state is not None
+            self.current_behaviour is not None
             and self._last_round_height == current_round_height
         ):
             # round has not changed - do nothing
@@ -256,13 +258,13 @@ class AbstractRoundBehaviour(
         next_behaviour_cls = self._round_to_behaviour[current_round_cls]
 
         #  Stop the current state and replace it with the new state behaviour
-        if self.current_state is not None:
-            current_state = cast(BaseBehaviour, self.current_state)
-            current_state.stop()
+        if self.current_behaviour is not None:
+            current_behaviour = cast(BaseBehaviour, self.current_behaviour)
+            current_behaviour.stop()
             self.context.logger.debug(
                 "overriding transition: current state: '%s', next state: '%s'",
-                self.current_state.behaviour_id if self.current_state else None,
+                self.current_behaviour.behaviour_id if self.current_behaviour else None,
                 next_behaviour_cls.behaviour_id,
             )
 
-        self.current_state = self.instantiate_behaviour_cls(next_behaviour_cls)
+        self.current_behaviour = self.instantiate_behaviour_cls(next_behaviour_cls)

@@ -983,13 +983,15 @@ class BaseBehaviour(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
         :return: the request callback.
         """
 
-        def callback_request(message: Message, current_state: BaseBehaviour) -> None:
+        def callback_request(
+            message: Message, current_behaviour: BaseBehaviour
+        ) -> None:
             """The callback request."""
             if self.is_stopped:
                 self.context.logger.debug(
                     "dropping message as behaviour has stopped: %s", message
                 )
-            elif self != current_state:
+            elif self != current_behaviour:
                 self.handle_late_messages(message)
             elif self.state == AsyncBehaviour.AsyncState.WAITING_MESSAGE:
                 self.try_send(message)

@@ -297,7 +297,7 @@ class IntegrationBaseCase(FSMBehaviourBaseCase):
                 synchronized_data=synchronized_data,
             )
             assert (
-                cast(BaseBehaviour, self.behaviour.current_state).behaviour_id
+                cast(BaseBehaviour, self.behaviour.current_behaviour).behaviour_id
                 == behaviour_id
             )
 
@@ -406,7 +406,7 @@ class _TxHelperIntegration(_GnosisHelperIntegration):
             behaviour_id=FinalizeBehaviour.behaviour_id,
             synchronized_data=self.tx_settlement_synchronized_data,
         )
-        behaviour = cast(FinalizeBehaviour, self.behaviour.current_state)
+        behaviour = cast(FinalizeBehaviour, self.behaviour.current_behaviour)
         assert behaviour.behaviour_id == FinalizeBehaviour.behaviour_id
         stored_nonce = behaviour.params.nonce
         stored_gas_price = behaviour.params.gas_price
@@ -461,7 +461,7 @@ class _TxHelperIntegration(_GnosisHelperIntegration):
             "tx_digest": cast(str, tx_digest),
         }
 
-        behaviour = cast(FinalizeBehaviour, self.behaviour.current_state)
+        behaviour = cast(FinalizeBehaviour, self.behaviour.current_behaviour)
         assert behaviour.params.gas_price == gas_price_used
         assert behaviour.params.nonce == nonce_used
         if simulate_timeout:
@@ -495,9 +495,9 @@ class _TxHelperIntegration(_GnosisHelperIntegration):
             )
         else:
             # store the tx hash that we have missed and update missed messages.
-            assert isinstance(self.behaviour.current_state, FinalizeBehaviour)
+            assert isinstance(self.behaviour.current_behaviour, FinalizeBehaviour)
             self.mock_a2a_transaction()
-            self.behaviour.current_state.params.tx_hash = tx_digest
+            self.behaviour.current_behaviour.params.tx_hash = tx_digest
             update_params = dict(
                 missed_messages=self.tx_settlement_synchronized_data.missed_messages
                 + 1,

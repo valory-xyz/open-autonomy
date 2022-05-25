@@ -73,9 +73,9 @@ class TestDummyBehaviour(AbciFSMBehaviourBaseCase):
         assert (
             cast(
                 BaseBehaviour,
-                cast(BaseBehaviour, self.behaviour.current_state),
+                cast(BaseBehaviour, self.behaviour.current_behaviour),
             ).behaviour_id
             == DummyBehaviour.behaviour_id
         )
         self.behaviour.act_wrapper()
-        assert self.behaviour.current_state is None
+        assert self.behaviour.current_behaviour is None

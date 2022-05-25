@@ -67,7 +67,7 @@ class BaseRegistrationTestBehaviour(RegistrationAbciBaseCase):
         assert (
             cast(
                 BaseBehaviour,
-                cast(BaseBehaviour, self.behaviour.current_state),
+                cast(BaseBehaviour, self.behaviour.current_behaviour),
             ).behaviour_id
             == self.behaviour_class.behaviour_id
         )
@@ -76,7 +76,7 @@ class BaseRegistrationTestBehaviour(RegistrationAbciBaseCase):
         self._test_done_flag_set()
 
         self.end_round(Event.DONE)
-        state = cast(BaseBehaviour, self.behaviour.current_state)
+        state = cast(BaseBehaviour, self.behaviour.current_behaviour)
         assert state.behaviour_id == self.next_behaviour_class.behaviour_id
 
 

@@ -89,7 +89,7 @@ class BaseRandomnessBehaviourTest(CommonBaseCase):
         assert (
             cast(
                 BaseBehaviour,
-                cast(BaseBehaviour, self.behaviour.current_state),
+                cast(BaseBehaviour, self.behaviour.current_behaviour),
             ).behaviour_id
             == self.randomness_behaviour_class.behaviour_id
         )
@@ -116,7 +116,7 @@ class BaseRandomnessBehaviourTest(CommonBaseCase):
         self._test_done_flag_set()
         self.end_round(self.done_event)
 
-        state = cast(BaseBehaviour, self.behaviour.current_state)
+        state = cast(BaseBehaviour, self.behaviour.current_behaviour)
         assert state.behaviour_id == self.next_behaviour_class.behaviour_id
 
     def test_invalid_drand_value(
@@ -131,7 +131,7 @@ class BaseRandomnessBehaviourTest(CommonBaseCase):
         assert (
             cast(
                 BaseBehaviour,
-                cast(BaseBehaviour, self.behaviour.current_state),
+                cast(BaseBehaviour, self.behaviour.current_behaviour),
             ).behaviour_id
             == self.randomness_behaviour_class.behaviour_id
         )
@@ -168,7 +168,7 @@ class BaseRandomnessBehaviourTest(CommonBaseCase):
         assert (
             cast(
                 BaseBehaviour,
-                cast(BaseBehaviour, self.behaviour.current_state),
+                cast(BaseBehaviour, self.behaviour.current_behaviour),
             ).behaviour_id
             == self.randomness_behaviour_class.behaviour_id
         )
@@ -202,7 +202,7 @@ class BaseRandomnessBehaviourTest(CommonBaseCase):
         assert (
             cast(
                 BaseBehaviour,
-                cast(BaseBehaviour, self.behaviour.current_state),
+                cast(BaseBehaviour, self.behaviour.current_behaviour),
             ).behaviour_id
             == self.randomness_behaviour_class.behaviour_id
         )
@@ -227,7 +227,7 @@ class BaseRandomnessBehaviourTest(CommonBaseCase):
             self._test_done_flag_set()
             self.end_round(self.done_event)
 
-            state = cast(BaseBehaviour, self.behaviour.current_state)
+            state = cast(BaseBehaviour, self.behaviour.current_behaviour)
             assert state.behaviour_id == self.next_behaviour_class.behaviour_id
 
     def test_max_retries_reached_fallback_fail(
@@ -242,7 +242,7 @@ class BaseRandomnessBehaviourTest(CommonBaseCase):
         assert (
             cast(
                 BaseBehaviour,
-                cast(BaseBehaviour, self.behaviour.current_state),
+                cast(BaseBehaviour, self.behaviour.current_behaviour),
             ).behaviour_id
             == self.randomness_behaviour_class.behaviour_id
         )
@@ -276,7 +276,7 @@ class BaseRandomnessBehaviourTest(CommonBaseCase):
         assert (
             cast(
                 BaseBehaviour,
-                cast(BaseBehaviour, self.behaviour.current_state),
+                cast(BaseBehaviour, self.behaviour.current_behaviour),
             ).behaviour_id
             == self.randomness_behaviour_class.behaviour_id
         )
@@ -310,13 +310,13 @@ class BaseRandomnessBehaviourTest(CommonBaseCase):
         assert (
             cast(
                 BaseBehaviour,
-                cast(BaseBehaviour, self.behaviour.current_state),
+                cast(BaseBehaviour, self.behaviour.current_behaviour),
             ).behaviour_id
             == self.randomness_behaviour_class.behaviour_id
         )
         self.behaviour.context.randomness_api._retries_attempted = 1
-        assert self.behaviour.current_state is not None
-        self.behaviour.current_state.clean_up()
+        assert self.behaviour.current_behaviour is not None
+        self.behaviour.current_behaviour.clean_up()
         assert self.behaviour.context.randomness_api._retries_attempted == 0
 
 
@@ -360,22 +360,22 @@ class BaseSelectKeeperBehaviourTest(CommonBaseCase):
                 )
             ),
         )
-        assert self.behaviour.current_state is not None
+        assert self.behaviour.current_behaviour is not None
         assert (
-            self.behaviour.current_state.behaviour_id
+            self.behaviour.current_behaviour.behaviour_id
             == self.select_keeper_behaviour_class.behaviour_id
         )
 
         if (
-            self.behaviour.current_state.synchronized_data.participants
-            - self.behaviour.current_state.synchronized_data.blacklisted_keepers
+            self.behaviour.current_behaviour.synchronized_data.participants
+            - self.behaviour.current_behaviour.synchronized_data.blacklisted_keepers
         ):
             self.behaviour.act_wrapper()
             self.mock_a2a_transaction()
             self._test_done_flag_set()
             self.end_round(self.done_event)
             assert (
-                self.behaviour.current_state.behaviour_id
+                self.behaviour.current_behaviour.behaviour_id
                 == self.next_behaviour_class.behaviour_id
             )
         else:
@@ -407,7 +407,7 @@ class BaseSelectKeeperBehaviourTest(CommonBaseCase):
         assert (
             cast(
                 BaseBehaviour,
-                cast(BaseBehaviour, self.behaviour.current_state),
+                cast(BaseBehaviour, self.behaviour.current_behaviour),
             ).behaviour_id
             == self.select_keeper_behaviour_class.behaviour_id
         )
@@ -415,5 +415,5 @@ class BaseSelectKeeperBehaviourTest(CommonBaseCase):
         self.mock_a2a_transaction()
         self._test_done_flag_set()
         self.end_round(self.done_event)
-        state = cast(BaseBehaviour, self.behaviour.current_state)
+        state = cast(BaseBehaviour, self.behaviour.current_behaviour)
         assert state.behaviour_id == self.next_behaviour_class.behaviour_id
