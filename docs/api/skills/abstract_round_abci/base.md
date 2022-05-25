@@ -710,7 +710,7 @@ Keys in the database which are persistet across periods.
 #### get
 
 ```python
-def get(key: str, default: Any = "NOT_PROVIDED") -> Optional[Any]
+def get(key: str, default: Any = VALUE_NOT_PROVIDED) -> Optional[Any]
 ```
 
 Get a value from the data dictionary.
