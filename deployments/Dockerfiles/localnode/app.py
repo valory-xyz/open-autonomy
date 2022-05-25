@@ -28,7 +28,7 @@ from typing import Any, Callable, Dict, Optional, Tuple
 
 import requests
 from flask import Flask, Response, jsonify, request
-from deployments.Dockerfiles.localnode.tendermint import TendermintNode, TendermintParams
+from .tendermint import TendermintNode, TendermintParams
 from werkzeug.exceptions import InternalServerError, NotFound
 
 
@@ -158,7 +158,9 @@ def create_app(dump_dir: Optional[Path] = None):
         """Get the app hash."""
         try:
             endpoint = f"{tendermint_params.rpc_laddr.replace('tcp', 'http')}/block"
+            logging.debug(f"endpoint {endpoint}")
             height = request.args.get("height")
+            logging.debug(f"height {height}")
             params = {"height": height} if height is not None else None
             res = requests.get(endpoint, params)
             app_hash_ = res.json()["result"]["block"]["header"]["app_hash"]
