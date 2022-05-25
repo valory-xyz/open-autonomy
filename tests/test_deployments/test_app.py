@@ -10,7 +10,6 @@ import subprocess
 from pathlib import Path
 import requests
 import time
-import pytest
 from deployments.Dockerfiles.localnode.app import (
     load_genesis,
     get_defaults,
@@ -41,9 +40,9 @@ def readonly_handler(func, path, execinfo) -> None:
 def port_is_open(ip: str, port: int) -> bool:
     """Assess whether a port is open"""
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    result = sock.connect_ex((ip, port))
+    is_open = sock.connect_ex((ip, port)) == 0
     sock.close()
-    return result == 0
+    return is_open
 
 
 def wait_for_node_to_run(func):
@@ -55,18 +54,13 @@ def wait_for_node_to_run(func):
             i += time.sleep(1) or 1
         response = requests.get(f"{HTTP}{IP}:{PORT}/status")
         success = response.status_code == 200
+        logging.debug(response.json())
         assert success, "Tendermint node not running"
         func(*args, **kwargs)
     return wrapper
 
 
-# unit tests
-def test_tendermint_executable_found():
-    assert shutil.which("tendermint"), "No `tendermint` executable found"
-    output = subprocess.check_output(["tendermint", "version"])
-    assert output.decode(ENCODING).strip() == VERSION
-
-
+# base classes
 class BaseTendermintTest:
     """BaseTendermintTest"""
 
@@ -89,8 +83,38 @@ class BaseTendermintTest:
     def teardown_class(cls) -> None:
         """Teardown the test."""
         os.chdir(cls.original_dir)
-        shutil.rmtree(cls.dir, onerror=readonly_handler)
-        assert not os.path.exists(cls.dir)
+        shutil.rmtree(cls.dir, ignore_errors=True, onerror=readonly_handler)
+
+
+class BaseTendermintServerTest(BaseTendermintTest):
+    """Test Tendermint server app"""
+
+    @classmethod
+    def setup_class(cls) -> None:
+        """Setup the test."""
+        super().setup_class()
+        cls.proxy_app = os.environ["PROXY_APP"] = "kvstore"
+        cls.create_empty_blocks = os.environ["CREATE_EMPTY_BLOCKS"] = "true"
+        os.environ["LOG_FILE"] = str(cls.path / "tendermint.log")
+        logging.info(f"logfile: {os.environ['LOG_FILE']}")
+        cls.app, cls.tendermint_node = create_app(Path(cls.dir) / "tm_state")
+        cls.app.config["TESTING"] = True
+        cls.app_context = cls.app.app_context()
+        cls.app_context.push()
+
+    @classmethod
+    def teardown_class(cls) -> None:
+        """Teardown the test."""
+        cls.app_context.pop()
+        cls.tendermint_node.stop()
+        super().teardown_class()
+
+
+# unit tests
+def test_tendermint_executable_found():
+    assert shutil.which("tendermint"), "No `tendermint` executable found"
+    output = subprocess.check_output(["tendermint", "version"])
+    assert output.decode(ENCODING).strip() == VERSION
 
 
 class TestTendermintServerUtilityFunctions(BaseTendermintTest):
@@ -116,22 +140,10 @@ class TestTendermintServerUtilityFunctions(BaseTendermintTest):
         assert not any(old in content or new not in content for old, new in CONFIG_OVERRIDE)
 
 
-class TestTendermintServerApp(BaseTendermintTest):
+class TestTendermintServerApp(BaseTendermintServerTest):
     """Test Tendermint server app"""
 
-    @classmethod
-    def setup_class(cls) -> None:
-        """Setup the test."""
-        super().setup_class()
-        cls.proxy_app = os.environ["PROXY_APP"] = "kvstore"
-        cls.create_empty_blocks = os.environ["CREATE_EMPTY_BLOCKS"] = "true"
-        os.environ["LOG_FILE"] = str(cls.path / "tendermint.log")
-        logging.info(f"logfile: {os.environ['LOG_FILE']}")
-        cls.app, cls.tendermint_node = create_app(Path(cls.dir) / "tm_state")
-        cls.app.config["TESTING"] = True
-        cls.app_context = cls.app.app_context()
-        cls.app_context.push()
-
+    @wait_for_node_to_run
     def test_files_exist(self):
         """Test that the necessary files are present"""
 
@@ -161,6 +173,7 @@ class TestTendermintServerApp(BaseTendermintTest):
         data = response.json()
         assert data["result"]["node_info"]["version"] == VERSION
 
+    @wait_for_node_to_run
     def test_handle_notfound(self):
         """Test handle not found"""
         with self.app.test_client() as client:
@@ -170,12 +183,17 @@ class TestTendermintServerApp(BaseTendermintTest):
     @wait_for_node_to_run
     def test_get_app_hash(self):
         """Test get app hash"""
+        time.sleep(3)  # requires some extra time!
         with self.app.test_client() as client:
             response = client.get("/app_hash")
             data = response.get_json()
             assert response.status_code == 200
             assert "error" not in data
             assert "app_hash" in data
+
+
+class TestTendermintGentleResetServer(BaseTendermintServerTest):
+    """Test Tendermint gentle reset"""
 
     @wait_for_node_to_run
     def test_gentle_reset(self):
@@ -186,6 +204,10 @@ class TestTendermintServerApp(BaseTendermintTest):
             assert response.status_code == 200
             assert data["status"] is True
 
+
+class TestTendermintHardResetServer(BaseTendermintServerTest):
+    """Test Tendermint hard reset"""
+
     @wait_for_node_to_run
     def test_hard_reset(self):
         """Test hard reset"""
@@ -194,6 +216,10 @@ class TestTendermintServerApp(BaseTendermintTest):
             data = response.get_json()
             assert response.status_code == 200
             assert data["status"] is True
+
+
+class TestTendermintLogMessages(BaseTendermintServerTest):
+    """Test Tendermint message logging"""
 
     @wait_for_node_to_run
     def test_logs_after_stopping(self):
@@ -226,10 +252,3 @@ class TestTendermintServerApp(BaseTendermintTest):
         assert not get_missing(before_stopping)
         self.tendermint_node.stop()
         assert not get_missing(after_stopping)
-
-    @classmethod
-    def teardown_class(cls) -> None:
-        """Teardown the test."""
-        cls.app_context.pop()
-        cls.tendermint_node.stop()
-        super().teardown_class()
