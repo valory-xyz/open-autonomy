@@ -68,6 +68,8 @@ MIN_HISTORY_DEPTH = 1
 ADDRESS_LENGTH = 42
 MAX_INT_256 = 2 ** 256 - 1
 RESET_COUNT_START = 0
+VALUE_NOT_PROVIDED = "VALUE_NOT_PROVIDED"
+DEFAULT_VALUE_FLAG = "DEFAULT_VALUE_FLAG"
 
 EventType = TypeVar("EventType")
 TransactionType = TypeVar("TransactionType")
@@ -497,9 +499,7 @@ class AbciAppDB:
             if format_initial_data
             else initial_data
         )
-        self._cross_reset_persisted_keys = (
-            [] if cross_reset_persisted_keys is None else cross_reset_persisted_keys
-        )
+        self._cross_reset_persisted_keys = cross_reset_persisted_keys or []
         self._data: Dict[int, Dict[str, List[Any]]] = {
             RESET_COUNT_START: deepcopy(
                 self._initial_data
@@ -536,15 +536,15 @@ class AbciAppDB:
         """Keys in the period state which are persistet across periods."""
         return self._cross_reset_persisted_keys
 
-    def get(self, key: str, default: Any = "NOT_PROVIDED") -> Optional[Any]:
+    def get(self, key: str, default: Any = VALUE_NOT_PROVIDED) -> Optional[Any]:
         """Get a value from the data dictionary."""
-        if default != "NOT_PROVIDED":
+        if default != VALUE_NOT_PROVIDED:
             key_history_or_default = self._data.get(self.reset_index, {}).get(
-                key, "DEFAULT_VALUE"
+                key, DEFAULT_VALUE_FLAG
             )
             return (
                 default
-                if key_history_or_default == "DEFAULT_VALUE"
+                if key_history_or_default == DEFAULT_VALUE_FLAG
                 else key_history_or_default[-1]
             )
         try:
@@ -573,11 +573,9 @@ class AbciAppDB:
             return
 
         # Append new data to the key history
+        data = self._data[self.reset_index]
         for key, value in kwargs.items():
-            if key in self._data[self.reset_index]:
-                self._data[self.reset_index][key].append(value)
-            else:
-                self._data[self.reset_index][key] = [value]
+            data.setdefault(key, []).append(value)
 
     def create(self, format_data: bool = True, **kwargs: Any) -> None:
         """Add a new entry to the data."""
