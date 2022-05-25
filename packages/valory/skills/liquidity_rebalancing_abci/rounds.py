@@ -64,7 +64,7 @@ class SynchronizedData(
     """
     Class to represent the synchronized data.
 
-    This state is replicated by the tendermint application.
+    This data is replicated by the tendermint application.
     """
 
     @property
@@ -132,14 +132,14 @@ class LiquidityRebalancingAbstractRound(AbstractRound[Event, TransactionType], A
 
     @property
     def synchronized_data(self) -> SynchronizedData:
-        """Return the period state."""
+        """Return the synchronized data."""
         return cast(SynchronizedData, self._synchronized_data)
 
     def _return_no_majority_event(self) -> Tuple[SynchronizedData, Event]:
         """
         Trigger the NO_MAJORITY event.
 
-        :return: a new period state and a NO_MAJORITY event
+        :return: a new period and a NO_MAJORITY event
         """
         return self.synchronized_data, Event.NO_MAJORITY
 

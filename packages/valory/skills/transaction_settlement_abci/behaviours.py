@@ -90,12 +90,12 @@ TxDataType = Dict[str, Union[VerificationStatus, Deque[str], int, Set[str], str]
 drand_check = VerifyDrand()
 
 
-class TransactionSettlementBaseState(BaseBehaviour, ABC):
-    """Base state behaviour for the common apps' skill."""
+class TransactionSettlementBaseBehaviour(BaseBehaviour, ABC):
+    """Base behaviour for the common apps' skill."""
 
     @property
     def synchronized_data(self) -> SynchronizedData:
-        """Return the period state."""
+        """Return the synchronized data."""
         return cast(SynchronizedData, super().synchronized_data)
 
     @property
@@ -242,7 +242,7 @@ class RandomnessTransactionSubmissionBehaviour(RandomnessBehaviour):
 
 
 class SelectKeeperTransactionSubmissionBehaviourA(  # pylint: disable=too-many-ancestors
-    SelectKeeperBehaviour, TransactionSettlementBaseState
+    SelectKeeperBehaviour, TransactionSettlementBaseBehaviour
 ):
     """Select the keeper agent."""
 
@@ -289,7 +289,7 @@ class SelectKeeperTransactionSubmissionBehaviourB(  # pylint: disable=too-many-a
                 Moreover, if the current keeper has reached the allowed number of retries, then we cycle anyway.
             - Send the transaction with the keepers and wait for it to be mined.
             - Wait until ABCI application transitions to the next round.
-            - Go to the next behaviour state (set done event).
+            - Go to the next behaviour (set done event).
         """
 
         with self.context.benchmark_tool.measure(self.behaviour_id).local():
@@ -335,7 +335,7 @@ class SelectKeeperTransactionSubmissionBehaviourBAfterTimeout(  # pylint: disabl
     matching_round = SelectKeeperTransactionSubmissionRoundBAfterTimeout
 
 
-class ValidateTransactionBehaviour(TransactionSettlementBaseState):
+class ValidateTransactionBehaviour(TransactionSettlementBaseBehaviour):
     """Validate a transaction."""
 
     behaviour_id = "validate_transaction"
@@ -351,7 +351,7 @@ class ValidateTransactionBehaviour(TransactionSettlementBaseState):
         - Send the transaction with the validation result and wait for it to be
           mined.
         - Wait until ABCI application transitions to the next round.
-        - Go to the next behaviour state (set done event).
+        - Go to the next behaviour (set done event).
         """
 
         with self.context.benchmark_tool.measure(self.behaviour_id).local():
@@ -404,7 +404,7 @@ class ValidateTransactionBehaviour(TransactionSettlementBaseState):
 CHECK_TX_HISTORY = "check_transaction_history"
 
 
-class CheckTransactionHistoryBehaviour(TransactionSettlementBaseState):
+class CheckTransactionHistoryBehaviour(TransactionSettlementBaseBehaviour):
     """Check the transaction history."""
 
     behaviour_id = CHECK_TX_HISTORY
@@ -453,8 +453,8 @@ class CheckTransactionHistoryBehaviour(TransactionSettlementBaseState):
 
         if not history:
             self.context.logger.error(
-                "An unexpected error occurred! The state's history does not contain any transaction hashes, "
-                f"but entered the `{self.behaviour_id}` state."
+                "An unexpected error occurred! The data history does not contain any transaction hashes, "
+                f"but entered the `{self.behaviour_id}` behaviour."
             )
             return VerificationStatus.ERROR, None
 
@@ -539,8 +539,8 @@ class CheckLateTxHashesBehaviour(  # pylint: disable=too-many-ancestors
     matching_round = CheckLateTxHashesRound
 
 
-class SynchronizeLateMessagesBehaviour(TransactionSettlementBaseState):
-    """Synchronize late-arriving messages state."""
+class SynchronizeLateMessagesBehaviour(TransactionSettlementBaseBehaviour):
+    """Synchronize late-arriving messages behaviour."""
 
     behaviour_id = "sync_late_messages"
     matching_round = SynchronizeLateMessagesRound
@@ -580,8 +580,8 @@ class SynchronizeLateMessagesBehaviour(TransactionSettlementBaseState):
         self.set_done()
 
 
-class SignatureBehaviour(TransactionSettlementBaseState):
-    """Signature state."""
+class SignatureBehaviour(TransactionSettlementBaseBehaviour):
+    """Signature behaviour."""
 
     behaviour_id = "sign"
     matching_round = CollectSignatureRound
@@ -594,7 +594,7 @@ class SignatureBehaviour(TransactionSettlementBaseState):
         - Request the signature of the transaction hash.
         - Send the signature as a transaction and wait for it to be mined.
         - Wait until ABCI application transitions to the next round.
-        - Go to the next behaviour state (set done event).
+        - Go to the next behaviour (set done event).
         """
 
         with self.context.benchmark_tool.measure(self.behaviour_id).local():
@@ -627,8 +627,8 @@ class SignatureBehaviour(TransactionSettlementBaseState):
         return signature_hex
 
 
-class FinalizeBehaviour(TransactionSettlementBaseState):
-    """Finalize state."""
+class FinalizeBehaviour(TransactionSettlementBaseBehaviour):
+    """Finalize behaviour."""
 
     behaviour_id = "finalize"
     matching_round = FinalizationRound
@@ -762,8 +762,8 @@ class FinalizeBehaviour(TransactionSettlementBaseState):
             super().handle_late_messages(message)
 
 
-class ResetBehaviour(TransactionSettlementBaseState):
-    """Reset state."""
+class ResetBehaviour(TransactionSettlementBaseBehaviour):
+    """Reset behaviour."""
 
     matching_round = ResetRound
     behaviour_id = "reset"

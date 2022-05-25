@@ -28,7 +28,7 @@ Steps:
 - Build a registration transaction.
 - Send the transaction and wait for it to be mined.
 - Wait until ABCI application transitions to the next round.
-- Go to the next behaviour state (set done event).
+- Go to the next behaviour (set done event).
 
 <a id="packages.valory.skills.registration_abci.behaviours.RegistrationStartupBehaviour"></a>
 

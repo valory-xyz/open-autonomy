@@ -4,17 +4,17 @@
 
 This module contains the behaviours for the 'abci' skill.
 
-<a id="packages.valory.skills.transaction_settlement_abci.behaviours.TransactionSettlementBaseState"></a>
+<a id="packages.valory.skills.transaction_settlement_abci.behaviours.TransactionSettlementBaseBehaviour"></a>
 
-## TransactionSettlementBaseState Objects
+## TransactionSettlementBaseBehaviour Objects
 
 ```python
-class TransactionSettlementBaseState(BaseBehaviour,  ABC)
+class TransactionSettlementBaseBehaviour(BaseBehaviour,  ABC)
 ```
 
-Base state behaviour for the common apps' skill.
+Base behaviour for the common apps' skill.
 
-<a id="packages.valory.skills.transaction_settlement_abci.behaviours.TransactionSettlementBaseState.synchronized_data"></a>
+<a id="packages.valory.skills.transaction_settlement_abci.behaviours.TransactionSettlementBaseBehaviour.synchronized_data"></a>
 
 #### synchronized`_`data
 
@@ -23,9 +23,9 @@ Base state behaviour for the common apps' skill.
 def synchronized_data() -> SynchronizedData
 ```
 
-Return the period state.
+Return the synchronized data.
 
-<a id="packages.valory.skills.transaction_settlement_abci.behaviours.TransactionSettlementBaseState.params"></a>
+<a id="packages.valory.skills.transaction_settlement_abci.behaviours.TransactionSettlementBaseBehaviour.params"></a>
 
 #### params
 
@@ -36,7 +36,7 @@ def params() -> TransactionParams
 
 Return the params.
 
-<a id="packages.valory.skills.transaction_settlement_abci.behaviours.TransactionSettlementBaseState.serialized_keepers"></a>
+<a id="packages.valory.skills.transaction_settlement_abci.behaviours.TransactionSettlementBaseBehaviour.serialized_keepers"></a>
 
 #### serialized`_`keepers
 
@@ -63,7 +63,7 @@ Retrieve randomness.
 
 ```python
 class SelectKeeperTransactionSubmissionBehaviourA(  # pylint: disable=too-many-ancestors
-    SelectKeeperBehaviour,  TransactionSettlementBaseState)
+    SelectKeeperBehaviour,  TransactionSettlementBaseBehaviour)
 ```
 
 Select the keeper agent.
@@ -110,7 +110,7 @@ Steps:
         Moreover, if the current keeper has reached the allowed number of retries, then we cycle anyway.
     - Send the transaction with the keepers and wait for it to be mined.
     - Wait until ABCI application transitions to the next round.
-    - Go to the next behaviour state (set done event).
+    - Go to the next behaviour (set done event).
 
 <a id="packages.valory.skills.transaction_settlement_abci.behaviours.SelectKeeperTransactionSubmissionBehaviourBAfterTimeout"></a>
 
@@ -128,7 +128,7 @@ Select the keeper b agent after a timeout.
 ## ValidateTransactionBehaviour Objects
 
 ```python
-class ValidateTransactionBehaviour(TransactionSettlementBaseState)
+class ValidateTransactionBehaviour(TransactionSettlementBaseBehaviour)
 ```
 
 Validate a transaction.
@@ -149,7 +149,7 @@ Steps:
 - Send the transaction with the validation result and wait for it to be
   mined.
 - Wait until ABCI application transitions to the next round.
-- Go to the next behaviour state (set done event).
+- Go to the next behaviour (set done event).
 
 <a id="packages.valory.skills.transaction_settlement_abci.behaviours.ValidateTransactionBehaviour.has_transaction_been_sent"></a>
 
@@ -166,7 +166,7 @@ Transaction verification.
 ## CheckTransactionHistoryBehaviour Objects
 
 ```python
-class CheckTransactionHistoryBehaviour(TransactionSettlementBaseState)
+class CheckTransactionHistoryBehaviour(TransactionSettlementBaseBehaviour)
 ```
 
 Check the transaction history.
@@ -197,10 +197,10 @@ Check the late-arriving transaction hashes.
 ## SynchronizeLateMessagesBehaviour Objects
 
 ```python
-class SynchronizeLateMessagesBehaviour(TransactionSettlementBaseState)
+class SynchronizeLateMessagesBehaviour(TransactionSettlementBaseBehaviour)
 ```
 
-Synchronize late-arriving messages state.
+Synchronize late-arriving messages behaviour.
 
 <a id="packages.valory.skills.transaction_settlement_abci.behaviours.SynchronizeLateMessagesBehaviour.__init__"></a>
 
@@ -227,10 +227,10 @@ Do the action.
 ## SignatureBehaviour Objects
 
 ```python
-class SignatureBehaviour(TransactionSettlementBaseState)
+class SignatureBehaviour(TransactionSettlementBaseBehaviour)
 ```
 
-Signature state.
+Signature behaviour.
 
 <a id="packages.valory.skills.transaction_settlement_abci.behaviours.SignatureBehaviour.async_act"></a>
 
@@ -246,17 +246,17 @@ Steps:
 - Request the signature of the transaction hash.
 - Send the signature as a transaction and wait for it to be mined.
 - Wait until ABCI application transitions to the next round.
-- Go to the next behaviour state (set done event).
+- Go to the next behaviour (set done event).
 
 <a id="packages.valory.skills.transaction_settlement_abci.behaviours.FinalizeBehaviour"></a>
 
 ## FinalizeBehaviour Objects
 
 ```python
-class FinalizeBehaviour(TransactionSettlementBaseState)
+class FinalizeBehaviour(TransactionSettlementBaseBehaviour)
 ```
 
-Finalize state.
+Finalize behaviour.
 
 <a id="packages.valory.skills.transaction_settlement_abci.behaviours.FinalizeBehaviour.async_act"></a>
 
@@ -292,10 +292,10 @@ Store a potentially late-arriving message locally.
 ## ResetBehaviour Objects
 
 ```python
-class ResetBehaviour(TransactionSettlementBaseState)
+class ResetBehaviour(TransactionSettlementBaseBehaviour)
 ```
 
-Reset state.
+Reset behaviour.
 
 <a id="packages.valory.skills.transaction_settlement_abci.behaviours.ResetBehaviour.async_act"></a>
 

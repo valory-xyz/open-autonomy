@@ -200,7 +200,7 @@ class TestAbstractRoundBehaviour:
 
         with pytest.raises(
             ValueError,
-            match=f"cannot have two states with the same id; got {state_2} and {state_1} both with id '{behaviour_id}'",
+            match=f"cannot have two behaviours with the same id; got {state_2} and {state_1} both with id '{behaviour_id}'",
         ):
             with mock.patch(
                 "packages.valory.skills.abstract_round_abci.behaviours._MetaRoundBehaviour._check_consistency"
@@ -224,7 +224,7 @@ class TestAbstractRoundBehaviour:
 
         with pytest.raises(
             ValueError,
-            match=f"the states '{state_id_2}' and '{state_id_1}' point to the same matching round '{round_id}'",
+            match=f"the behaviours '{state_id_2}' and '{state_id_1}' point to the same matching round '{round_id}'",
         ):
             with mock.patch(
                 "packages.valory.skills.abstract_round_abci.behaviours._MetaRoundBehaviour._check_consistency"

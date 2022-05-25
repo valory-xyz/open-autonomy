@@ -60,7 +60,7 @@ from packages.valory.skills.transaction_settlement_abci.behaviours import (
     SelectKeeperTransactionSubmissionBehaviourA,
     SelectKeeperTransactionSubmissionBehaviourB,
     SynchronizeLateMessagesBehaviour,
-    TransactionSettlementBaseState,
+    TransactionSettlementBaseBehaviour,
 )
 from packages.valory.skills.transaction_settlement_abci.payload_tools import (
     VerificationStatus,
@@ -331,7 +331,7 @@ class TestKeepers(OracleBehaviourBaseCase, IntegrationBaseCase):
         )
 
     @mock.patch.object(
-        TransactionSettlementBaseState,
+        TransactionSettlementBaseBehaviour,
         "serialized_keepers",
         side_effect=lambda keepers, retries: retries.to_bytes(32, "big").hex()
         + "".join(keepers),
@@ -351,7 +351,7 @@ class TestKeepers(OracleBehaviourBaseCase, IntegrationBaseCase):
             behaviour_id = SelectKeeperTransactionSubmissionBehaviourB.behaviour_id
 
         # select keeper
-        self.fast_forward_to_state(
+        self.fast_forward_to_behaviour(
             self.behaviour,
             behaviour_id,
             self.tx_settlement_synchronized_data,
@@ -449,7 +449,7 @@ class TestSyncing(TransactionSettlementIntegrationBaseCase):
     def sync_late_messages(self) -> None:
         """Synchronize late messages."""
         params = cast(
-            TransactionSettlementBaseState, self.behaviour.current_behaviour
+            TransactionSettlementBaseBehaviour, self.behaviour.current_behaviour
         ).params
         late_messages_len = len(params.late_messages)
         expected_sync_result = params.tx_hash

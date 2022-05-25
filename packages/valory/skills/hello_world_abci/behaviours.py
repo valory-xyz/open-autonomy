@@ -43,12 +43,12 @@ from packages.valory.skills.hello_world_abci.rounds import (
 )
 
 
-class HelloWorldABCIBaseState(BaseBehaviour, ABC):
-    """Base state behaviour for the Hello World abci skill."""
+class HelloWorldABCIBaseBehaviour(BaseBehaviour, ABC):
+    """Base behaviour behaviour for the Hello World abci skill."""
 
     @property
     def synchronized_data(self) -> SynchronizedData:
-        """Return the period state."""
+        """Return the period synchronized data."""
         return cast(
             SynchronizedData, cast(SharedState, self.context.state).synchronized_data
         )
@@ -59,7 +59,7 @@ class HelloWorldABCIBaseState(BaseBehaviour, ABC):
         return cast(Params, self.context.params)
 
 
-class RegistrationBehaviour(HelloWorldABCIBaseState):
+class RegistrationBehaviour(HelloWorldABCIBaseBehaviour):
     """Register to the next round."""
 
     behaviour_id = "register"
@@ -73,7 +73,7 @@ class RegistrationBehaviour(HelloWorldABCIBaseState):
         - Build a registration transaction.
         - Send the transaction and wait for it to be mined.
         - Wait until ABCI application transitions to the next round.
-        - Go to the next behaviour state (set done event).
+        - Go to the next behaviour (set done event).
         """
 
         with self.context.benchmark_tool.measure(self.behaviour_id).local():
@@ -86,7 +86,7 @@ class RegistrationBehaviour(HelloWorldABCIBaseState):
         self.set_done()
 
 
-class SelectKeeperBehaviour(HelloWorldABCIBaseState, ABC):
+class SelectKeeperBehaviour(HelloWorldABCIBaseBehaviour, ABC):
     """Select the keeper agent."""
 
     behaviour_id = "select_keeper"
@@ -100,7 +100,7 @@ class SelectKeeperBehaviour(HelloWorldABCIBaseState, ABC):
         - Select a keeper randomly.
         - Send the transaction with the keeper and wait for it to be mined.
         - Wait until ABCI application transitions to the next round.
-        - Go to the next behaviour state (set done event).
+        - Go to the next behaviour (set done event).
         """
 
         with self.context.benchmark_tool.measure(self.behaviour_id).local():
@@ -119,7 +119,7 @@ class SelectKeeperBehaviour(HelloWorldABCIBaseState, ABC):
         self.set_done()
 
 
-class PrintMessageBehaviour(HelloWorldABCIBaseState, ABC):
+class PrintMessageBehaviour(HelloWorldABCIBaseBehaviour, ABC):
     """Prints the celebrated 'HELLO WORLD!' message."""
 
     behaviour_id = "print_message"
@@ -134,7 +134,7 @@ class PrintMessageBehaviour(HelloWorldABCIBaseState, ABC):
         - Print the appropriate to the local console.
         - Send the transaction with the printed message and wait for it to be mined.
         - Wait until ABCI application transitions to the next round.
-        - Go to the next behaviour state (set done event).
+        - Go to the next behaviour (set done event).
         """
 
         printed_message = f"Agent {self.context.agent_name} (address {self.context.agent_address}) in period {self.synchronized_data.period_count} says: "
@@ -158,8 +158,8 @@ class PrintMessageBehaviour(HelloWorldABCIBaseState, ABC):
         self.set_done()
 
 
-class ResetAndPauseBehaviour(HelloWorldABCIBaseState):
-    """Reset state."""
+class ResetAndPauseBehaviour(HelloWorldABCIBaseBehaviour):
+    """Reset behaviour."""
 
     matching_round = ResetAndPauseRound
     behaviour_id = "reset_and_pause"
@@ -172,12 +172,12 @@ class ResetAndPauseBehaviour(HelloWorldABCIBaseState):
         Do the action.
 
         Steps:
-        - Trivially log the state.
+        - Trivially log the behaviour.
         - Sleep for configured interval.
         - Build a registration transaction.
         - Send the transaction and wait for it to be mined.
         - Wait until ABCI application transitions to the next round.
-        - Go to the next behaviour state (set done event).
+        - Go to the next behaviour (set done event).
         """
         if self.pause:
             self.context.logger.info("Period end.")
@@ -202,7 +202,7 @@ class HelloWorldRoundBehaviour(AbstractRoundBehaviour):
 
     initial_behaviour_cls = RegistrationBehaviour
     abci_app_cls = HelloWorldAbciApp  # type: ignore
-    behaviours: Set[Type[HelloWorldABCIBaseState]] = {  # type: ignore
+    behaviours: Set[Type[HelloWorldABCIBaseBehaviour]] = {  # type: ignore
         RegistrationBehaviour,  # type: ignore
         SelectKeeperBehaviour,  # type: ignore
         PrintMessageBehaviour,  # type: ignore

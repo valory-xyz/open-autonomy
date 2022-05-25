@@ -50,17 +50,17 @@ from packages.valory.skills.oracle_deployment_abci.rounds import (
 )
 
 
-class OracleDeploymentBaseState(BaseBehaviour):
-    """Base state behaviour for the common apps' skill."""
+class OracleDeploymentBaseBehaviour(BaseBehaviour):
+    """Base behaviour for the common apps' skill."""
 
     @property
     def synchronized_data(self) -> SynchronizedData:
-        """Return the period state."""
+        """Return the synchronized data."""
         return cast(SynchronizedData, super().synchronized_data)
 
     @property
     def params(self) -> Params:
-        """Return the period state."""
+        """Return the synchronized data."""
         return cast(Params, super().params)
 
 
@@ -80,7 +80,7 @@ class SelectKeeperOracleBehaviour(SelectKeeperBehaviour):
     payload_class = SelectKeeperPayload
 
 
-class DeployOracleBehaviour(OracleDeploymentBaseState):
+class DeployOracleBehaviour(OracleDeploymentBaseBehaviour):
     """Deploy oracle."""
 
     behaviour_id = "deploy_oracle"
@@ -171,7 +171,7 @@ class DeployOracleBehaviour(OracleDeploymentBaseState):
         return contract_address
 
 
-class ValidateOracleBehaviour(OracleDeploymentBaseState):
+class ValidateOracleBehaviour(OracleDeploymentBaseBehaviour):
     """Validate oracle."""
 
     behaviour_id = "validate_oracle"
@@ -187,7 +187,7 @@ class ValidateOracleBehaviour(OracleDeploymentBaseState):
         - Send the transaction with the validation result and wait for it to be
           mined.
         - Wait until ABCI application transitions to the next round.
-        - Go to the next behaviour state (set done event).
+        - Go to the next behaviour (set done event).
         """
 
         with self.context.benchmark_tool.measure(self.behaviour_id).local():

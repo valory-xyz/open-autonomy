@@ -72,14 +72,14 @@ class HelloWorldABCIAbstractRound(AbstractRound[Event, TransactionType], ABC):
 
     @property
     def synchronized_data(self) -> SynchronizedData:
-        """Return the period state."""
+        """Return the period synchronized data."""
         return cast(SynchronizedData, self._synchronized_data)
 
     def _return_no_majority_event(self) -> Tuple[SynchronizedData, Event]:
         """
         Trigger the NO_MAJORITY event.
 
-        :return: a new period state and a NO_MAJORITY event
+        :return: a new synchronized data and a NO_MAJORITY event
         """
         return self.synchronized_data, Event.NO_MAJORITY
 

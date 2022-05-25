@@ -47,12 +47,12 @@ from packages.valory.skills.safe_deployment_abci.rounds import (
 )
 
 
-class SafeDeploymentBaseState(BaseBehaviour):
-    """Base state behaviour for the common apps' skill."""
+class SafeDeploymentBaseBehaviour(BaseBehaviour):
+    """Base behaviour for the common apps' skill."""
 
     @property
     def synchronized_data(self) -> SynchronizedData:
-        """Return the period state."""
+        """Return the synchronized data."""
         return cast(SynchronizedData, super().synchronized_data)
 
 
@@ -72,7 +72,7 @@ class SelectKeeperSafeBehaviour(SelectKeeperBehaviour):
     payload_class = SelectKeeperPayload
 
 
-class DeploySafeBehaviour(SafeDeploymentBaseState):
+class DeploySafeBehaviour(SafeDeploymentBaseBehaviour):
     """Deploy Safe."""
 
     behaviour_id = "deploy_safe"
@@ -167,7 +167,7 @@ class DeploySafeBehaviour(SafeDeploymentBaseState):
         return contract_address
 
 
-class ValidateSafeBehaviour(SafeDeploymentBaseState):
+class ValidateSafeBehaviour(SafeDeploymentBaseBehaviour):
     """Validate Safe."""
 
     behaviour_id = "validate_safe"
@@ -183,7 +183,7 @@ class ValidateSafeBehaviour(SafeDeploymentBaseState):
         - Send the transaction with the validation result and wait for it to be
           mined.
         - Wait until ABCI application transitions to the next round.
-        - Go to the next behaviour state (set done event).
+        - Go to the next behaviour (set done event).
         """
 
         with self.context.benchmark_tool.measure(self.behaviour_id).local():

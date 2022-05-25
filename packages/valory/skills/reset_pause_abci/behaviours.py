@@ -35,12 +35,12 @@ from packages.valory.skills.reset_pause_abci.rounds import (
 )
 
 
-class ResetAndPauseBaseState(BaseBehaviour, ABC):
-    """Reset state."""
+class ResetAndPauseBaseBehaviour(BaseBehaviour, ABC):
+    """Reset behaviour."""
 
     @property
     def synchronized_data(self) -> BaseSynchronizedData:
-        """Return the period state."""
+        """Return the synchronized data."""
         return cast(
             BaseSynchronizedData,
             cast(SharedState, self.context.state).synchronized_data,
@@ -52,8 +52,8 @@ class ResetAndPauseBaseState(BaseBehaviour, ABC):
         return cast(Params, self.context.params)
 
 
-class ResetAndPauseBehaviour(ResetAndPauseBaseState):
-    """Reset and pause state."""
+class ResetAndPauseBehaviour(ResetAndPauseBaseBehaviour):
+    """Reset and pause behaviour."""
 
     matching_round = ResetAndPauseRound
     behaviour_id = "reset_and_pause"
@@ -63,12 +63,12 @@ class ResetAndPauseBehaviour(ResetAndPauseBaseState):
         Do the action.
 
         Steps:
-        - Trivially log the state.
+        - Trivially log the behaviour.
         - Sleep for configured interval.
         - Build a registration transaction.
         - Send the transaction and wait for it to be mined.
         - Wait until ABCI application transitions to the next round.
-        - Go to the next behaviour state (set done event).
+        - Go to the next behaviour (set done event).
         """
         # + 1 because `period_count` starts from 0
         n_periods_done = self.synchronized_data.period_count + 1

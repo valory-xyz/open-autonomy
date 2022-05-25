@@ -24,7 +24,7 @@ class SynchronizedData(BaseSynchronizedData)
 
 Class to represent the synchronized data.
 
-This state is replicated by the tendermint application.
+This data is replicated by the tendermint application.
 
 <a id="packages.valory.skills.price_estimation_abci.rounds.SynchronizedData.set_aggregator_method"></a>
 

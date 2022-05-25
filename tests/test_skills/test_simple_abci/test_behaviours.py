@@ -138,13 +138,13 @@ class SimpleAbciFSMBehaviourBaseCase(BaseSkillTestCase):
         )
         cls.synchronized_data = SynchronizedData(AbciAppDB(initial_data={}))
 
-    def fast_forward_to_state(
+    def fast_forward_to_behaviour(
         self,
         behaviour: AbstractRoundBehaviour,
         behaviour_id: str,
         synchronized_data: BaseSynchronizedData,
     ) -> None:
-        """Fast forward the FSM to a state."""
+        """Fast forward the FSM to a behaviour."""
         next_state = {s.behaviour_id: s for s in behaviour.behaviours}[behaviour_id]
         assert next_state is not None, f"State {behaviour_id} not found"
         next_state = cast(Type[BaseBehaviour], next_state)
@@ -411,7 +411,7 @@ class BaseRandomnessBehaviourTest(SimpleAbciFSMBehaviourBaseCase):
     ) -> None:
         """Test RandomnessBehaviour."""
 
-        self.fast_forward_to_state(
+        self.fast_forward_to_behaviour(
             self.simple_abci_behaviour,
             self.randomness_behaviour_class.behaviour_id,
             self.synchronized_data,
@@ -458,7 +458,7 @@ class BaseRandomnessBehaviourTest(SimpleAbciFSMBehaviourBaseCase):
         self,
     ) -> None:
         """Test invalid json response."""
-        self.fast_forward_to_state(
+        self.fast_forward_to_behaviour(
             self.simple_abci_behaviour,
             self.randomness_behaviour_class.behaviour_id,
             self.synchronized_data,
@@ -492,7 +492,7 @@ class BaseRandomnessBehaviourTest(SimpleAbciFSMBehaviourBaseCase):
         self,
     ) -> None:
         """Test with max retries reached."""
-        self.fast_forward_to_state(
+        self.fast_forward_to_behaviour(
             self.simple_abci_behaviour,
             self.randomness_behaviour_class.behaviour_id,
             self.synchronized_data,
@@ -518,7 +518,7 @@ class BaseRandomnessBehaviourTest(SimpleAbciFSMBehaviourBaseCase):
         self,
     ) -> None:
         """Test when `observed` value is none."""
-        self.fast_forward_to_state(
+        self.fast_forward_to_behaviour(
             self.simple_abci_behaviour,
             self.randomness_behaviour_class.behaviour_id,
             self.synchronized_data,
@@ -547,7 +547,7 @@ class BaseSelectKeeperBehaviourTest(SimpleAbciFSMBehaviourBaseCase):
     ) -> None:
         """Test select keeper agent."""
         participants = frozenset({self.skill.skill_context.agent_address, "a_1", "a_2"})
-        self.fast_forward_to_state(
+        self.fast_forward_to_behaviour(
             behaviour=self.simple_abci_behaviour,
             behaviour_id=self.select_keeper_behaviour_class.behaviour_id,
             synchronized_data=SynchronizedData(
@@ -579,7 +579,7 @@ class TestRegistrationBehaviour(SimpleAbciFSMBehaviourBaseCase):
 
     def test_registration(self) -> None:
         """Test registration."""
-        self.fast_forward_to_state(
+        self.fast_forward_to_behaviour(
             self.simple_abci_behaviour,
             RegistrationBehaviour.behaviour_id,
             self.synchronized_data,
@@ -624,7 +624,7 @@ class TestResetAndPauseBehaviour(SimpleAbciFSMBehaviourBaseCase):
         self,
     ) -> None:
         """Test pause and reset behaviour."""
-        self.fast_forward_to_state(
+        self.fast_forward_to_behaviour(
             behaviour=self.simple_abci_behaviour,
             behaviour_id=self.behaviour_class.behaviour_id,
             synchronized_data=self.synchronized_data,
@@ -650,7 +650,7 @@ class TestResetAndPauseBehaviour(SimpleAbciFSMBehaviourBaseCase):
         self,
     ) -> None:
         """Test reset behaviour."""
-        self.fast_forward_to_state(
+        self.fast_forward_to_behaviour(
             behaviour=self.simple_abci_behaviour,
             behaviour_id=self.behaviour_class.behaviour_id,
             synchronized_data=self.synchronized_data,

@@ -110,12 +110,12 @@ from packages.valory.skills.apy_estimation_abci.tools.queries import (
 )
 
 
-class APYEstimationBaseState(BaseBehaviour, ABC):
-    """Base state behaviour for the APY estimation skill."""
+class APYEstimationBaseBehaviour(BaseBehaviour, ABC):
+    """Base behaviour for the APY estimation skill."""
 
     @property
     def synchronized_data(self) -> SynchronizedData:
-        """Return the period state."""
+        """Return the period synchronized data."""
         return cast(SynchronizedData, super().synchronized_data)
 
     @property
@@ -139,7 +139,7 @@ class APYEstimationBaseState(BaseBehaviour, ABC):
 
 
 class FetchBehaviour(
-    APYEstimationBaseState
+    APYEstimationBaseBehaviour
 ):  # pylint: disable=too-many-instance-attributes
     """Observe historical data."""
 
@@ -338,7 +338,7 @@ class FetchBehaviour(
         - If the request fails, retry until max retries are exceeded.
         - Send an observation transaction and wait for it to be mined.
         - Wait until ABCI application transitions to the next round.
-        - Go to the next behaviour state (set done event).
+        - Go to the next behaviour (set done event).
         """
         self._set_current_timestamp()
 
@@ -399,7 +399,7 @@ class FetchBatchBehaviour(FetchBehaviour):  # pylint: disable=too-many-ancestors
     batch = True
 
 
-class TransformBehaviour(APYEstimationBaseState):
+class TransformBehaviour(APYEstimationBaseBehaviour):
     """Transform historical data, i.e., convert them to a dataframe and calculate useful metrics, such as the APY."""
 
     behaviour_id = "transform"
@@ -486,7 +486,7 @@ class TransformBehaviour(APYEstimationBaseState):
         self.set_done()
 
 
-class PreprocessBehaviour(APYEstimationBaseState):
+class PreprocessBehaviour(APYEstimationBaseBehaviour):
     """Preprocess historical data (train-test split)."""
 
     behaviour_id = "preprocess"
@@ -565,7 +565,7 @@ class PreprocessBehaviour(APYEstimationBaseState):
         self.set_done()
 
 
-class PrepareBatchBehaviour(APYEstimationBaseState):
+class PrepareBatchBehaviour(APYEstimationBaseBehaviour):
     """Transform and preprocess batch data."""
 
     behaviour_id = "prepare_batch"
@@ -648,7 +648,7 @@ class PrepareBatchBehaviour(APYEstimationBaseState):
         self.set_done()
 
 
-class RandomnessBehaviour(APYEstimationBaseState):
+class RandomnessBehaviour(APYEstimationBaseBehaviour):
     """Get randomness value from `drnand`."""
 
     behaviour_id = "randomness"
@@ -711,7 +711,7 @@ class RandomnessBehaviour(APYEstimationBaseState):
         self.context.randomness_api.reset_retries()
 
 
-class OptimizeBehaviour(APYEstimationBaseState):
+class OptimizeBehaviour(APYEstimationBaseBehaviour):
     """Run an optimization study based on the training data."""
 
     behaviour_id = "optimize"
@@ -808,7 +808,7 @@ class OptimizeBehaviour(APYEstimationBaseState):
         self.set_done()
 
 
-class TrainBehaviour(APYEstimationBaseState):
+class TrainBehaviour(APYEstimationBaseBehaviour):
     """Train an estimator."""
 
     behaviour_id = "train"
@@ -904,7 +904,7 @@ class TrainBehaviour(APYEstimationBaseState):
         self.set_done()
 
 
-class TestBehaviour(APYEstimationBaseState):
+class TestBehaviour(APYEstimationBaseBehaviour):
     """Test an estimator."""
 
     behaviour_id = "test"
@@ -1002,7 +1002,7 @@ class TestBehaviour(APYEstimationBaseState):
         self.set_done()
 
 
-class UpdateForecasterBehaviour(APYEstimationBaseState):
+class UpdateForecasterBehaviour(APYEstimationBaseBehaviour):
     """Update an estimator."""
 
     behaviour_id = "update"
@@ -1075,7 +1075,7 @@ class UpdateForecasterBehaviour(APYEstimationBaseState):
         self.set_done()
 
 
-class EstimateBehaviour(APYEstimationBaseState):
+class EstimateBehaviour(APYEstimationBaseBehaviour):
     """Estimate APY."""
 
     behaviour_id = "estimate"
@@ -1147,20 +1147,20 @@ class EstimateBehaviour(APYEstimationBaseState):
         self.set_done()
 
 
-class BaseResetBehaviour(APYEstimationBaseState):
-    """Reset state."""
+class BaseResetBehaviour(APYEstimationBaseBehaviour):
+    """Reset behaviour."""
 
     def async_act(self) -> Generator:
         """
         Do the action.
 
         Steps:
-        - Trivially log the state.
+        - Trivially log the behaviour.
         - Sleep for configured interval.
         - Build a registration transaction.
         - Send the transaction and wait for it to be mined.
         - Wait until ABCI application transitions to the next round.
-        - Go to the next behaviour state (set done event).
+        - Go to the next behaviour (set done event).
         """
         if (
             self.behaviour_id == "cycle_reset"
@@ -1196,7 +1196,7 @@ class BaseResetBehaviour(APYEstimationBaseState):
         else:  # pragma: nocover
             raise RuntimeError(
                 f"BaseResetBehaviour not used correctly. Got {self.behaviour_id}. "
-                f"Allowed state ids are `cycle_reset` and `fresh_model_reset`."
+                f"Allowed behaviour ids are `cycle_reset` and `fresh_model_reset`."
             )
 
         payload = ResetPayload(
@@ -1210,14 +1210,14 @@ class BaseResetBehaviour(APYEstimationBaseState):
 class FreshModelResetBehaviour(  # pylint: disable=too-many-ancestors
     BaseResetBehaviour
 ):
-    """Reset state to start with a fresh model."""
+    """Reset behaviour to start with a fresh model."""
 
     matching_round = FreshModelResetRound
     behaviour_id = "fresh_model_reset"
 
 
 class CycleResetBehaviour(BaseResetBehaviour):  # pylint: disable=too-many-ancestors
-    """Cycle reset state."""
+    """Cycle reset behaviour."""
 
     matching_round = CycleResetRound
     behaviour_id = "cycle_reset"

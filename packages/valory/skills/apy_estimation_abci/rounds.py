@@ -72,7 +72,7 @@ class Event(Enum):
 class SynchronizedData(BaseSynchronizedData):
     """Class to represent the synchronized data.
 
-    This state is replicated by the tendermint application.
+    This data is replicated by the tendermint application.
     """
 
     @property
@@ -148,14 +148,14 @@ class APYEstimationAbstractRound(AbstractRound[Event, TransactionType], ABC):
 
     @property
     def synchronized_data(self) -> SynchronizedData:
-        """Return the period state."""
+        """Return the period data."""
         return cast(SynchronizedData, super().synchronized_data)
 
     def _return_no_majority_event(self) -> Tuple[SynchronizedData, Event]:
         """
         Trigger the NO_MAJORITY event.
 
-        :return: a new period state and a NO_MAJORITY event
+        :return: a new synchronized data and a NO_MAJORITY event
         """
         return self.synchronized_data, Event.NO_MAJORITY
 
@@ -163,7 +163,7 @@ class APYEstimationAbstractRound(AbstractRound[Event, TransactionType], ABC):
         """
         Trigger the FILE_ERROR event.
 
-        :return: a new period state and a FILE_ERROR event
+        :return: a new synchronized data and a FILE_ERROR event
         """
         return self.synchronized_data, Event.FILE_ERROR
 

@@ -291,7 +291,7 @@ class IntegrationBaseCase(FSMBehaviourBaseCase):
         ), "Number of cycles, handlers, contents and types does not match"
 
         if behaviour_id is not None and synchronized_data is not None:
-            self.fast_forward_to_state(
+            self.fast_forward_to_behaviour(
                 behaviour=self.behaviour,
                 behaviour_id=behaviour_id,
                 synchronized_data=synchronized_data,
@@ -401,7 +401,7 @@ class _TxHelperIntegration(_GnosisHelperIntegration):
     def send_tx(self, simulate_timeout: bool = False) -> None:
         """Send a transaction"""
 
-        self.fast_forward_to_state(
+        self.fast_forward_to_behaviour(
             behaviour=self.behaviour,
             behaviour_id=FinalizeBehaviour.behaviour_id,
             synchronized_data=self.tx_settlement_synchronized_data,

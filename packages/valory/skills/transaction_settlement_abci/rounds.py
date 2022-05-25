@@ -85,7 +85,7 @@ class SynchronizedData(
     """
     Class to represent the synchronized data.
 
-    This state is replicated by the tendermint application.
+    This data is replicated by the tendermint application.
     """
 
     @property
@@ -251,7 +251,7 @@ class FinalizationRound(OnlyKeeperSendsRound):
             return self.synchronized_data, Event.FINALIZATION_FAILED
 
         verification_status = VerificationStatus(self.keeper_payload["status_value"])
-        state = cast(
+        synchronized_data = cast(
             SynchronizedData,
             self.synchronized_data.update(
                 synchronized_data_class=SynchronizedData,
@@ -268,25 +268,25 @@ class FinalizationRound(OnlyKeeperSendsRound):
         # 2. Requesting transaction signature.
         # 3. Requesting transaction digest.
         if self.keeper_payload["received_hash"]:
-            return state, Event.DONE
+            return synchronized_data, Event.DONE
         # If keeper has been blacklisted, return an `INSUFFICIENT_FUNDS` event.
         if verification_status == VerificationStatus.INSUFFICIENT_FUNDS:
-            return state, Event.INSUFFICIENT_FUNDS
+            return synchronized_data, Event.INSUFFICIENT_FUNDS
         # This means that getting raw safe transaction succeeded,
         # but either requesting tx signature or requesting tx digest failed.
         if verification_status not in (
             VerificationStatus.ERROR,
             VerificationStatus.VERIFIED,
         ):
-            return state, Event.FINALIZATION_FAILED
+            return synchronized_data, Event.FINALIZATION_FAILED
         # if there is a tx hash history, then check it for validated txs.
-        if state.tx_hashes_history:
-            return state, Event.CHECK_HISTORY
+        if synchronized_data.tx_hashes_history:
+            return synchronized_data, Event.CHECK_HISTORY
         # if there could be any late messages, check if any has arrived.
-        if state.should_check_late_messages:
-            return state, Event.CHECK_LATE_ARRIVING_MESSAGE
+        if synchronized_data.should_check_late_messages:
+            return synchronized_data, Event.CHECK_LATE_ARRIVING_MESSAGE
         # otherwise fail.
-        return state, Event.FINALIZATION_FAILED
+        return synchronized_data, Event.FINALIZATION_FAILED
 
 
 class RandomnessTransactionSubmissionRound(CollectSameUntilThresholdRound):
@@ -344,7 +344,7 @@ class SelectKeeperTransactionSubmissionRoundBAfterTimeout(
     def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Enum]]:
         """Process the end of the block."""
         if self.threshold_reached:
-            state = cast(
+            synchronized_data = cast(
                 SynchronizedData,
                 self.synchronized_data.update(
                     missed_messages=cast(
@@ -353,12 +353,12 @@ class SelectKeeperTransactionSubmissionRoundBAfterTimeout(
                     + 1
                 ),
             )
-            if state.keepers_threshold_exceeded:
+            if synchronized_data.keepers_threshold_exceeded:
                 # we only stop re-selection if there are any previous transaction hashes or any missed messages.
-                if len(state.tx_hashes_history) > 0:
-                    return state, Event.CHECK_HISTORY
-                if state.should_check_late_messages:
-                    return state, Event.CHECK_LATE_ARRIVING_MESSAGE
+                if len(synchronized_data.tx_hashes_history) > 0:
+                    return synchronized_data, Event.CHECK_HISTORY
+                if synchronized_data.should_check_late_messages:
+                    return synchronized_data, Event.CHECK_LATE_ARRIVING_MESSAGE
         return super().end_block()
 
 
@@ -419,7 +419,7 @@ class CheckTransactionHistoryRound(CollectSameUntilThresholdRound):
             )
 
             if return_status == VerificationStatus.NOT_VERIFIED:
-                # We don't update the state as we need to repeat all checks again later
+                # We don't update the synchronized_data as we need to repeat all checks again later
                 synchronized_data = self.synchronized_data
             else:
                 # We only set the final tx hash if we are about to exit from the transaction settlement skill.
@@ -474,22 +474,22 @@ class SynchronizeLateMessagesRound(CollectNonEmptyUntilThresholdRound):
 
     def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Event]]:
         """Process the end of the block."""
-        state_event = super().end_block()
-        if state_event is None:
+        result = super().end_block()
+        if result is None:
             return None
 
-        state, event = cast(Tuple[BaseSynchronizedData, Event], state_event)
+        synchronized_data, event = cast(Tuple[BaseSynchronizedData, Event], result)
 
         synchronized_data = cast(SynchronizedData, self.synchronized_data)
         n_late_arriving_tx_hashes = len(synchronized_data.late_arriving_tx_hashes)
         if n_late_arriving_tx_hashes > synchronized_data.missed_messages:
-            return state, Event.MISSED_AND_LATE_MESSAGES_MISMATCH
+            return synchronized_data, Event.MISSED_AND_LATE_MESSAGES_MISMATCH
 
-        state = state.update(
+        synchronized_data = synchronized_data.update(
             missed_messages=synchronized_data.missed_messages
             - n_late_arriving_tx_hashes
         )
-        return state, event
+        return synchronized_data, event
 
 
 class FinishedTransactionSubmissionRound(DegenerateRound, ABC):
@@ -508,9 +508,9 @@ class ResetRound(CollectSameUntilThresholdRound):
     def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Event]]:
         """Process the end of the block."""
         if self.threshold_reached:
-            state_data = self.synchronized_data.db.get_latest()
+            latest_data = self.synchronized_data.db.get_latest()
             synchronized_data = self.synchronized_data.create(
-                **state_data,
+                **latest_data,
             )
             return synchronized_data, Event.DONE
         if not self.is_majority_possible(

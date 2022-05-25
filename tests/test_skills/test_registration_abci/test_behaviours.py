@@ -59,7 +59,7 @@ class BaseRegistrationTestBehaviour(RegistrationAbciBaseCase):
 
     def test_registration(self) -> None:
         """Test registration."""
-        self.fast_forward_to_state(
+        self.fast_forward_to_behaviour(
             self.behaviour,
             self.behaviour_class.behaviour_id,
             RegistrationSynchronizedSata(AbciAppDB(initial_data={})),

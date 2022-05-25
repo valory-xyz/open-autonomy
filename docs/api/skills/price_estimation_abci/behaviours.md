@@ -14,17 +14,17 @@ def to_int(most_voted_estimate: float, decimals: int) -> int
 
 Convert to int.
 
-<a id="packages.valory.skills.price_estimation_abci.behaviours.PriceEstimationBaseState"></a>
+<a id="packages.valory.skills.price_estimation_abci.behaviours.PriceEstimationBaseBehaviour"></a>
 
-## PriceEstimationBaseState Objects
+## PriceEstimationBaseBehaviour Objects
 
 ```python
-class PriceEstimationBaseState(BaseBehaviour,  ABC)
+class PriceEstimationBaseBehaviour(BaseBehaviour,  ABC)
 ```
 
-Base state behaviour for the common apps' skill.
+Base behaviour for the common apps' skill.
 
-<a id="packages.valory.skills.price_estimation_abci.behaviours.PriceEstimationBaseState.synchronized_data"></a>
+<a id="packages.valory.skills.price_estimation_abci.behaviours.PriceEstimationBaseBehaviour.synchronized_data"></a>
 
 #### synchronized`_`data
 
@@ -33,9 +33,9 @@ Base state behaviour for the common apps' skill.
 def synchronized_data() -> SynchronizedData
 ```
 
-Return the period state.
+Return the synchronized data.
 
-<a id="packages.valory.skills.price_estimation_abci.behaviours.PriceEstimationBaseState.params"></a>
+<a id="packages.valory.skills.price_estimation_abci.behaviours.PriceEstimationBaseBehaviour.params"></a>
 
 #### params
 
@@ -51,7 +51,7 @@ Return the params.
 ## ObserveBehaviour Objects
 
 ```python
-class ObserveBehaviour(PriceEstimationBaseState)
+class ObserveBehaviour(PriceEstimationBaseBehaviour)
 ```
 
 Observe price estimate.
@@ -71,7 +71,7 @@ Steps:
 - If the request fails, retry until max retries are exceeded.
 - Send an observation transaction and wait for it to be mined.
 - Wait until ABCI application transitions to the next round.
-- Go to the next behaviour state (set done event).
+- Go to the next behaviour (set done event).
 
 <a id="packages.valory.skills.price_estimation_abci.behaviours.ObserveBehaviour.clean_up"></a>
 
@@ -90,7 +90,7 @@ It can be optionally implemented by the concrete classes.
 ## EstimateBehaviour Objects
 
 ```python
-class EstimateBehaviour(PriceEstimationBaseState)
+class EstimateBehaviour(PriceEstimationBaseBehaviour)
 ```
 
 Estimate price.
@@ -109,7 +109,7 @@ Steps:
 - Run the script to compute the estimate starting from the shared observations.
 - Build an estimate transaction and send the transaction and wait for it to be mined.
 - Wait until ABCI application transitions to the next round.
-- Go to the next behaviour state (set done event).
+- Go to the next behaviour (set done event).
 
 <a id="packages.valory.skills.price_estimation_abci.behaviours.pack_for_server"></a>
 
@@ -126,7 +126,7 @@ Package server data for signing
 ## TransactionHashBehaviour Objects
 
 ```python
-class TransactionHashBehaviour(PriceEstimationBaseState)
+class TransactionHashBehaviour(PriceEstimationBaseBehaviour)
 ```
 
 Share the transaction hash for the signature round.
@@ -146,7 +146,7 @@ Steps:
   hash that needs to be signed by a threshold of agents.
 - Send the transaction hash as a transaction and wait for it to be mined.
 - Wait until ABCI application transitions to the next round.
-- Go to the next behaviour state (set done event).
+- Go to the next behaviour (set done event).
 
 <a id="packages.valory.skills.price_estimation_abci.behaviours.TransactionHashBehaviour.send_to_server"></a>
 
@@ -158,7 +158,7 @@ def send_to_server() -> Generator
 
 Send data to server.
 
-We send current period state data of the agents and the previous
+We send current period data of the agents and the previous
 cycle's on-chain settlement tx hash. The current cycle's tx hash
 is not available at this stage yet, and the first iteration will
 contain no tx hash since there has not been on-chain transaction

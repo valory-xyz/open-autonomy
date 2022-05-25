@@ -160,7 +160,7 @@ class TestStrategyEvaluationBehaviour(LiquidityRebalancingBehaviourBaseCase):
                 ),
             )
         )
-        self.fast_forward_to_state(
+        self.fast_forward_to_behaviour(
             behaviour=self.behaviour,
             behaviour_id=StrategyEvaluationBehaviour.behaviour_id,
             synchronized_data=synchronized_data,
@@ -198,7 +198,7 @@ class TestStrategyEvaluationBehaviour(LiquidityRebalancingBehaviourBaseCase):
                 ),
             )
         )
-        self.fast_forward_to_state(
+        self.fast_forward_to_behaviour(
             behaviour=self.behaviour,
             behaviour_id=StrategyEvaluationBehaviour.behaviour_id,
             synchronized_data=synchronized_data,
@@ -231,7 +231,7 @@ class TestStrategyEvaluationBehaviour(LiquidityRebalancingBehaviourBaseCase):
                 ),
             )
         )
-        self.fast_forward_to_state(
+        self.fast_forward_to_behaviour(
             behaviour=self.behaviour,
             behaviour_id=StrategyEvaluationBehaviour.behaviour_id,
             synchronized_data=synchronized_data,
@@ -273,7 +273,7 @@ class TestStrategyEvaluationBehaviour(LiquidityRebalancingBehaviourBaseCase):
                 ),
             )
         )
-        self.fast_forward_to_state(
+        self.fast_forward_to_behaviour(
             behaviour=self.behaviour,
             behaviour_id=StrategyEvaluationBehaviour.behaviour_id,
             synchronized_data=synchronized_data,
@@ -314,7 +314,7 @@ class TestEnterPoolTransactionHashBehaviour(LiquidityRebalancingBehaviourBaseCas
                 ),
             )
         )
-        self.fast_forward_to_state(
+        self.fast_forward_to_behaviour(
             behaviour=self.behaviour,
             behaviour_id=EnterPoolTransactionHashBehaviour.behaviour_id,
             synchronized_data=synchronized_data,
@@ -559,7 +559,7 @@ class TestEnterPoolTransactionHashBehaviour(LiquidityRebalancingBehaviourBaseCas
                 ),
             )
         )
-        self.fast_forward_to_state(
+        self.fast_forward_to_behaviour(
             behaviour=self.behaviour,
             behaviour_id=EnterPoolTransactionHashBehaviour.behaviour_id,
             synchronized_data=synchronized_data,
@@ -831,7 +831,7 @@ class TestEnterPoolTransactionHashBehaviour(LiquidityRebalancingBehaviourBaseCas
                 ),
             )
         )
-        self.fast_forward_to_state(
+        self.fast_forward_to_behaviour(
             behaviour=self.behaviour,
             behaviour_id=EnterPoolTransactionHashBehaviour.behaviour_id,
             synchronized_data=synchronized_data,
@@ -902,7 +902,7 @@ class TestExitPoolTransactionHashBehaviour(LiquidityRebalancingBehaviourBaseCase
         amount_b_sent = 0
         amount_liquidity_received = 0
 
-        self.fast_forward_to_state(
+        self.fast_forward_to_behaviour(
             behaviour=self.behaviour,
             behaviour_id=ExitPoolTransactionHashBehaviour.behaviour_id,
             synchronized_data=synchronized_data,
@@ -1087,7 +1087,7 @@ class TestExitPoolTransactionHashBehaviour(LiquidityRebalancingBehaviourBaseCase
         amount_b_sent = 0
         amount_liquidity_received = 0
 
-        self.fast_forward_to_state(
+        self.fast_forward_to_behaviour(
             behaviour=self.behaviour,
             behaviour_id=ExitPoolTransactionHashBehaviour.behaviour_id,
             synchronized_data=synchronized_data,
@@ -1270,7 +1270,7 @@ class TestExitPoolTransactionHashBehaviour(LiquidityRebalancingBehaviourBaseCase
             )
         )
 
-        self.fast_forward_to_state(
+        self.fast_forward_to_behaviour(
             behaviour=self.behaviour,
             behaviour_id=ExitPoolTransactionHashBehaviour.behaviour_id,
             synchronized_data=synchronized_data,
@@ -1340,7 +1340,7 @@ class TestSwapBackTransactionHashBehaviour(LiquidityRebalancingBehaviourBaseCase
                 ),
             )
         )
-        self.fast_forward_to_state(
+        self.fast_forward_to_behaviour(
             behaviour=self.behaviour,
             behaviour_id=SwapBackTransactionHashBehaviour.behaviour_id,
             synchronized_data=synchronized_data,
@@ -1562,7 +1562,7 @@ class TestSwapBackTransactionHashBehaviour(LiquidityRebalancingBehaviourBaseCase
                 ),
             )
         )
-        self.fast_forward_to_state(
+        self.fast_forward_to_behaviour(
             behaviour=self.behaviour,
             behaviour_id=SwapBackTransactionHashBehaviour.behaviour_id,
             synchronized_data=synchronized_data,
@@ -1840,7 +1840,7 @@ class TestSleepBehaviour(LiquidityRebalancingBehaviourBaseCase):
                 ),
             )
         )
-        self.fast_forward_to_state(
+        self.fast_forward_to_behaviour(
             behaviour=self.behaviour,
             behaviour_id=SleepBehaviour.behaviour_id,
             synchronized_data=synchronized_data,

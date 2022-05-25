@@ -117,13 +117,13 @@ class HelloWorldAbciFSMBehaviourBaseCase(BaseSkillTestCase):
             )
         )
 
-    def fast_forward_to_state(
+    def fast_forward_to_behaviour(
         self,
         behaviour: AbstractRoundBehaviour,
         behaviour_id: str,
         synchronized_data: BaseSynchronizedData,
     ) -> None:
-        """Fast forward the FSM to a state."""
+        """Fast forward the FSM to a behaviour."""
         next_state = {s.behaviour_id: s for s in behaviour.behaviours}[behaviour_id]
         assert next_state is not None, f"State {behaviour_id} not found"
         next_state = cast(Type[BaseBehaviour], next_state)
@@ -308,7 +308,7 @@ class BaseSelectKeeperBehaviourTest(HelloWorldAbciFSMBehaviourBaseCase):
     ) -> None:
         """Test select keeper agent."""
         participants = frozenset({self.skill.skill_context.agent_address, "a_1", "a_2"})
-        self.fast_forward_to_state(
+        self.fast_forward_to_behaviour(
             behaviour=self.hello_world_abci_behaviour,
             behaviour_id=self.select_keeper_behaviour_class.behaviour_id,
             synchronized_data=SynchronizedData(
@@ -340,7 +340,7 @@ class TestRegistrationBehaviour(HelloWorldAbciFSMBehaviourBaseCase):
 
     def test_registration(self) -> None:
         """Test registration."""
-        self.fast_forward_to_state(
+        self.fast_forward_to_behaviour(
             self.hello_world_abci_behaviour,
             RegistrationBehaviour.behaviour_id,
             self.synchronized_data,
@@ -373,7 +373,7 @@ class TestPrintMessageBehaviour(HelloWorldAbciFSMBehaviourBaseCase):
 
     def test_print_message_non_keeper(self) -> None:
         """Test print_message."""
-        self.fast_forward_to_state(
+        self.fast_forward_to_behaviour(
             self.hello_world_abci_behaviour,
             PrintMessageBehaviour.behaviour_id,
             self.synchronized_data,
@@ -400,7 +400,7 @@ class TestPrintMessageBehaviour(HelloWorldAbciFSMBehaviourBaseCase):
     ) -> None:
         """Test print_message."""
         agent_address_mock.return_value = "most_voted_keeper_address"
-        self.fast_forward_to_state(
+        self.fast_forward_to_behaviour(
             self.hello_world_abci_behaviour,
             PrintMessageBehaviour.behaviour_id,
             self.synchronized_data,
@@ -431,7 +431,7 @@ class TestResetAndPauseBehaviour(HelloWorldAbciFSMBehaviourBaseCase):
         self,
     ) -> None:
         """Test pause and reset behaviour."""
-        self.fast_forward_to_state(
+        self.fast_forward_to_behaviour(
             behaviour=self.hello_world_abci_behaviour,
             behaviour_id=self.behaviour_class.behaviour_id,
             synchronized_data=self.synchronized_data,
@@ -457,7 +457,7 @@ class TestResetAndPauseBehaviour(HelloWorldAbciFSMBehaviourBaseCase):
         self,
     ) -> None:
         """Test reset behaviour."""
-        self.fast_forward_to_state(
+        self.fast_forward_to_behaviour(
             behaviour=self.hello_world_abci_behaviour,
             behaviour_id=self.behaviour_class.behaviour_id,
             synchronized_data=self.synchronized_data,

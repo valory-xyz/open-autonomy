@@ -99,11 +99,11 @@ def parse_tx_token_balance(
 
 
 class LiquidityRebalancingBaseBehaviour(BaseBehaviour, ABC):
-    """Base state behaviour for the liquidity rebalancing skill."""
+    """Base behaviour for the liquidity rebalancing skill."""
 
     @property
     def synchronized_data(self) -> SynchronizedData:
-        """Return the period state."""
+        """Return the period synchronized data."""
         return cast(SynchronizedData, super().synchronized_data)
 
     @property
@@ -466,7 +466,7 @@ class EnterPoolTransactionHashBehaviour(LiquidityRebalancingBaseBehaviour):
           hash that needs to be signed by a threshold of agents.
         - Send the transaction hash as a transaction and wait for it to be mined.
         - Wait until ABCI application transitions to the next round.
-        - Go to the next behaviour state (set done event).
+        - Go to the next behaviour (set done event).
         """
 
         with self.context.benchmark_tool.measure(self.behaviour_id).local():
@@ -658,7 +658,7 @@ class ExitPoolTransactionHashBehaviour(LiquidityRebalancingBaseBehaviour):
           hash that needs to be signed by a threshold of agents.
         - Send the transaction hash as a transaction and wait for it to be mined.
         - Wait until ABCI application transitions to the next round.
-        - Go to the next behaviour state (set done event).
+        - Go to the next behaviour (set done event).
         """
 
         with self.context.benchmark_tool.measure(self.behaviour_id).local():
@@ -828,7 +828,7 @@ class SwapBackTransactionHashBehaviour(LiquidityRebalancingBaseBehaviour):
           hash that needs to be signed by a threshold of agents.
         - Send the transaction hash as a transaction and wait for it to be mined.
         - Wait until ABCI application transitions to the next round.
-        - Go to the next behaviour state (set done event).
+        - Go to the next behaviour (set done event).
         """
 
         with self.context.benchmark_tool.measure(self.behaviour_id).local():

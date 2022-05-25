@@ -74,7 +74,7 @@ class TestResetAndPauseBehaviour(ResetPauseAbciFSMBehaviourBaseCase):
     ) -> None:
         """Test reset behaviour."""
 
-        self.fast_forward_to_state(
+        self.fast_forward_to_behaviour(
             behaviour=self.behaviour,
             behaviour_id=self.behaviour_class.behaviour_id,
             synchronized_data=ResetSynchronizedSata(

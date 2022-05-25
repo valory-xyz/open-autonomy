@@ -72,7 +72,7 @@ from packages.valory.skills.transaction_settlement_abci.behaviours import (
     SelectKeeperTransactionSubmissionBehaviourB,
     SignatureBehaviour,
     SynchronizeLateMessagesBehaviour,
-    TransactionSettlementBaseState,
+    TransactionSettlementBaseBehaviour,
     TxDataType,
     ValidateTransactionBehaviour,
 )
@@ -109,8 +109,8 @@ class TransactionSettlementFSMBehaviourBaseCase(FSMBehaviourBaseCase):
     )
 
 
-class TestTransactionSettlementBaseState(PriceEstimationFSMBehaviourBaseCase):
-    """Test `TransactionSettlementBaseState`."""
+class TestTransactionSettlementBaseBehaviour(PriceEstimationFSMBehaviourBaseCase):
+    """Test `TransactionSettlementBaseBehaviour`."""
 
     path_to_skill = Path(
         ROOT_DIR, "packages", "valory", "skills", "transaction_settlement_abci"
@@ -271,7 +271,7 @@ class TestTransactionSettlementBaseState(PriceEstimationFSMBehaviourBaseCase):
     ) -> None:
         """Test `_get_tx_data`."""
         # fast-forward to any state of the tx settlement skill
-        self.fast_forward_to_state(
+        self.fast_forward_to_behaviour(
             behaviour=self.behaviour,
             behaviour_id=SignatureBehaviour.behaviour_id,
             synchronized_data=TransactionSettlementSynchronizedSata(
@@ -303,7 +303,7 @@ class TestTransactionSettlementBaseState(PriceEstimationFSMBehaviourBaseCase):
         )
         # call `_get_tx_data`
         tx_data_iterator = cast(
-            TransactionSettlementBaseState, self.behaviour.current_behaviour
+            TransactionSettlementBaseBehaviour, self.behaviour.current_behaviour
         )._get_tx_data(message)
 
         if message.performative == ContractApiMessage.Performative.RAW_TRANSACTION:
@@ -401,7 +401,7 @@ class TestSignatureBehaviour(TransactionSettlementFSMBehaviourBaseCase):
     ) -> None:
         """Test signature behaviour."""
 
-        self.fast_forward_to_state(
+        self.fast_forward_to_behaviour(
             behaviour=self.behaviour,
             behaviour_id=SignatureBehaviour.behaviour_id,
             synchronized_data=TransactionSettlementSynchronizedSata(
@@ -449,7 +449,7 @@ class TestFinalizeBehaviour(TransactionSettlementFSMBehaviourBaseCase):
         """Test finalize behaviour."""
         participants = frozenset({self.skill.skill_context.agent_address, "a_1", "a_2"})
         retries = 1
-        self.fast_forward_to_state(
+        self.fast_forward_to_behaviour(
             behaviour=self.behaviour,
             behaviour_id=self.behaviour_class.behaviour_id,
             synchronized_data=TransactionSettlementSynchronizedSata(
@@ -570,7 +570,7 @@ class TestFinalizeBehaviour(TransactionSettlementFSMBehaviourBaseCase):
         participants = frozenset(
             {self.skill.skill_context.agent_address, "a_1" + "-" * 39, "a_2" + "-" * 39}
         )
-        self.fast_forward_to_state(
+        self.fast_forward_to_behaviour(
             behaviour=self.behaviour,
             behaviour_id=self.behaviour_class.behaviour_id,
             synchronized_data=TransactionSettlementSynchronizedSata(
@@ -655,7 +655,7 @@ class TestFinalizeBehaviour(TransactionSettlementFSMBehaviourBaseCase):
     def test_handle_late_messages(self) -> None:
         """Test `handle_late_messages.`"""
         participants = frozenset({self.skill.skill_context.agent_address, "a_1", "a_2"})
-        self.fast_forward_to_state(
+        self.fast_forward_to_behaviour(
             behaviour=self.behaviour,
             behaviour_id=self.behaviour_class.behaviour_id,
             synchronized_data=TransactionSettlementSynchronizedSata(
@@ -681,7 +681,7 @@ class TestFinalizeBehaviour(TransactionSettlementFSMBehaviourBaseCase):
             message
         )
         assert cast(
-            TransactionSettlementBaseState, self.behaviour.current_behaviour
+            TransactionSettlementBaseBehaviour, self.behaviour.current_behaviour
         ).params.late_messages == [message]
 
         message = MagicMock()
@@ -701,7 +701,7 @@ class TestValidateTransactionBehaviour(TransactionSettlementFSMBehaviourBaseCase
         """Fast-forward to relevant state."""
         participants = frozenset({self.skill.skill_context.agent_address, "a_1", "a_2"})
         most_voted_keeper_address = self.skill.skill_context.agent_address
-        self.fast_forward_to_state(
+        self.fast_forward_to_behaviour(
             behaviour=self.behaviour,
             behaviour_id=ValidateTransactionBehaviour.behaviour_id,
             synchronized_data=TransactionSettlementSynchronizedSata(
@@ -788,7 +788,7 @@ class TestValidateTransactionBehaviour(TransactionSettlementFSMBehaviourBaseCase
                 ),
             )
             state = cast(
-                TransactionSettlementBaseState,
+                TransactionSettlementBaseBehaviour,
                 self.behaviour.current_behaviour,
             )
             latest_tx_hash = state.synchronized_data.tx_hashes_history[-1]
@@ -800,7 +800,7 @@ class TestCheckTransactionHistoryBehaviour(TransactionSettlementFSMBehaviourBase
 
     def _fast_forward(self, hashes_history: str) -> None:
         """Fast-forward to relevant state."""
-        self.fast_forward_to_state(
+        self.fast_forward_to_behaviour(
             behaviour=self.behaviour,
             behaviour_id=CheckTransactionHistoryBehaviour.behaviour_id,
             synchronized_data=TransactionSettlementSynchronizedSata(
@@ -893,7 +893,9 @@ class TestCheckTransactionHistoryBehaviour(TransactionSettlementFSMBehaviourBase
 class TestSynchronizeLateMessagesBehaviour(TransactionSettlementFSMBehaviourBaseCase):
     """Test `SynchronizeLateMessagesBehaviour`"""
 
-    def _check_state_id(self, expected: Type[TransactionSettlementBaseState]) -> None:
+    def _check_state_id(
+        self, expected: Type[TransactionSettlementBaseBehaviour]
+    ) -> None:
         state = cast(BaseBehaviour, self.behaviour.current_behaviour)
         assert state.behaviour_id == expected.behaviour_id
 
@@ -901,11 +903,11 @@ class TestSynchronizeLateMessagesBehaviour(TransactionSettlementFSMBehaviourBase
     def test_async_act(self, late_messages: List[MagicMock]) -> None:
         """Test `async_act`"""
         cast(
-            TransactionSettlementBaseState, self.behaviour.current_behaviour
+            TransactionSettlementBaseBehaviour, self.behaviour.current_behaviour
         ).params.late_messages = late_messages
 
         participants = frozenset({self.skill.skill_context.agent_address, "a_1", "a_2"})
-        self.fast_forward_to_state(
+        self.fast_forward_to_behaviour(
             behaviour=self.behaviour,
             behaviour_id=SynchronizeLateMessagesBehaviour.behaviour_id,
             synchronized_data=TransactionSettlementSynchronizedSata(
@@ -939,7 +941,7 @@ class TestSynchronizeLateMessagesBehaviour(TransactionSettlementFSMBehaviourBase
                 }
 
             cast(  # type: ignore
-                TransactionSettlementBaseState, self.behaviour.current_behaviour
+                TransactionSettlementBaseBehaviour, self.behaviour.current_behaviour
             )._get_tx_data = _dummy_get_tx_data  # type: ignore
             for _ in range(len(late_messages)):
                 self.behaviour.act_wrapper()
@@ -955,7 +957,7 @@ class TestResetBehaviour(TransactionSettlementFSMBehaviourBaseCase):
         self,
     ) -> None:
         """Test reset behaviour."""
-        self.fast_forward_to_state(
+        self.fast_forward_to_behaviour(
             behaviour=self.behaviour,
             behaviour_id=self.behaviour_class.behaviour_id,
             synchronized_data=TransactionSettlementSynchronizedSata(

@@ -47,7 +47,7 @@ class DummyRound(
     This class represents the registration round.
 
     Input: None
-    Output: a period state with the set of participants.
+    Output: a synchronized data with the set of participants.
 
     It schedules the SelectKeeperARound.
     """

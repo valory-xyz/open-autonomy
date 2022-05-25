@@ -73,12 +73,12 @@ def to_int(most_voted_estimate: float, decimals: int) -> int:
     return int_value
 
 
-class PriceEstimationBaseState(BaseBehaviour, ABC):
-    """Base state behaviour for the common apps' skill."""
+class PriceEstimationBaseBehaviour(BaseBehaviour, ABC):
+    """Base behaviour for the common apps' skill."""
 
     @property
     def synchronized_data(self) -> SynchronizedData:
-        """Return the period state."""
+        """Return the synchronized data."""
         return cast(SynchronizedData, super().synchronized_data)
 
     @property
@@ -87,7 +87,7 @@ class PriceEstimationBaseState(BaseBehaviour, ABC):
         return cast(Params, super().params)
 
 
-class ObserveBehaviour(PriceEstimationBaseState):
+class ObserveBehaviour(PriceEstimationBaseBehaviour):
     """Observe price estimate."""
 
     behaviour_id = "collect_observation"
@@ -102,7 +102,7 @@ class ObserveBehaviour(PriceEstimationBaseState):
         - If the request fails, retry until max retries are exceeded.
         - Send an observation transaction and wait for it to be mined.
         - Wait until ABCI application transitions to the next round.
-        - Go to the next behaviour state (set done event).
+        - Go to the next behaviour (set done event).
         """
 
         if self.context.price_api.is_retries_exceeded():
@@ -149,7 +149,7 @@ class ObserveBehaviour(PriceEstimationBaseState):
         self.context.price_api.reset_retries()
 
 
-class EstimateBehaviour(PriceEstimationBaseState):
+class EstimateBehaviour(PriceEstimationBaseBehaviour):
     """Estimate price."""
 
     behaviour_id = "estimate"
@@ -163,7 +163,7 @@ class EstimateBehaviour(PriceEstimationBaseState):
         - Run the script to compute the estimate starting from the shared observations.
         - Build an estimate transaction and send the transaction and wait for it to be mined.
         - Wait until ABCI application transitions to the next round.
-        - Go to the next behaviour state (set done event).
+        - Go to the next behaviour (set done event).
         """
 
         with self.context.benchmark_tool.measure(self.behaviour_id).local():
@@ -221,7 +221,7 @@ def pack_for_server(  # pylint: disable-msg=too-many-arguments
     )
 
 
-class TransactionHashBehaviour(PriceEstimationBaseState):
+class TransactionHashBehaviour(PriceEstimationBaseBehaviour):
     """Share the transaction hash for the signature round."""
 
     behaviour_id = "tx_hash"
@@ -236,7 +236,7 @@ class TransactionHashBehaviour(PriceEstimationBaseState):
           hash that needs to be signed by a threshold of agents.
         - Send the transaction hash as a transaction and wait for it to be mined.
         - Wait until ABCI application transitions to the next round.
-        - Go to the next behaviour state (set done event).
+        - Go to the next behaviour (set done event).
         """
 
         with self.context.benchmark_tool.measure(self.behaviour_id).local():
@@ -255,7 +255,7 @@ class TransactionHashBehaviour(PriceEstimationBaseState):
         """
         Send data to server.
 
-        We send current period state data of the agents and the previous
+        We send current period data of the agents and the previous
         cycle's on-chain settlement tx hash. The current cycle's tx hash
         is not available at this stage yet, and the first iteration will
         contain no tx hash since there has not been on-chain transaction

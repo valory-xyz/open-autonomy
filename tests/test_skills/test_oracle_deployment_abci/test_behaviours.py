@@ -112,7 +112,7 @@ class BaseDeployBehaviourTest(FSMBehaviourBaseCase):
         """Run tests."""
         participants = frozenset({self.skill.skill_context.agent_address, "a_1", "a_2"})
         most_voted_keeper_address = self.skill.skill_context.agent_address
-        self.fast_forward_to_state(
+        self.fast_forward_to_behaviour(
             self.behaviour,
             self.behaviour_class.behaviour_id,
             OracleDeploymentSynchronizedSata(
@@ -200,7 +200,7 @@ class BaseDeployBehaviourTest(FSMBehaviourBaseCase):
         """Run tests."""
         participants = frozenset({self.skill.skill_context.agent_address, "a_1", "a_2"})
         most_voted_keeper_address = "a_1"
-        self.fast_forward_to_state(
+        self.fast_forward_to_behaviour(
             self.behaviour,
             self.behaviour_class.behaviour_id,
             OracleDeploymentSynchronizedSata(
@@ -253,7 +253,7 @@ class BaseValidateBehaviourTest(FSMBehaviourBaseCase):
 
     def test_validate_behaviour(self) -> None:
         """Run test."""
-        self.fast_forward_to_state(
+        self.fast_forward_to_behaviour(
             self.behaviour,
             self.behaviour_class.behaviour_id,
             OracleDeploymentSynchronizedSata(

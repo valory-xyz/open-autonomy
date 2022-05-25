@@ -104,7 +104,7 @@ class TestObserveBehaviour(PriceEstimationFSMBehaviourBaseCase):
         self,
     ) -> None:
         """Run tests."""
-        self.fast_forward_to_state(
+        self.fast_forward_to_behaviour(
             self.behaviour,
             ObserveBehaviour.behaviour_id,
             PriceEstimationSynchronizedSata(
@@ -145,7 +145,7 @@ class TestObserveBehaviour(PriceEstimationFSMBehaviourBaseCase):
         self,
     ) -> None:
         """Run tests."""
-        self.fast_forward_to_state(
+        self.fast_forward_to_behaviour(
             self.behaviour,
             ObserveBehaviour.behaviour_id,
             PriceEstimationSynchronizedSata(
@@ -173,7 +173,7 @@ class TestObserveBehaviour(PriceEstimationFSMBehaviourBaseCase):
         self,
     ) -> None:
         """Test when `observed` value is none."""
-        self.fast_forward_to_state(
+        self.fast_forward_to_behaviour(
             self.behaviour,
             ObserveBehaviour.behaviour_id,
             PriceEstimationSynchronizedSata(
@@ -211,7 +211,7 @@ class TestObserveBehaviour(PriceEstimationFSMBehaviourBaseCase):
         self,
     ) -> None:
         """Test when `observed` value is none."""
-        self.fast_forward_to_state(
+        self.fast_forward_to_behaviour(
             self.behaviour,
             ObserveBehaviour.behaviour_id,
             PriceEstimationSynchronizedSata(
@@ -239,7 +239,7 @@ class TestEstimateBehaviour(PriceEstimationFSMBehaviourBaseCase):
     ) -> None:
         """Test estimate behaviour."""
 
-        self.fast_forward_to_state(
+        self.fast_forward_to_behaviour(
             behaviour=self.behaviour,
             behaviour_id=EstimateBehaviour.behaviour_id,
             synchronized_data=PriceEstimationSynchronizedSata(
@@ -370,7 +370,7 @@ class TestTransactionHashBehaviour(PriceEstimationFSMBehaviourBaseCase):
         state_params = self.behaviour.current_behaviour.params  # type: ignore
         state_params.is_broadcasting_to_server = broadcast_to_server  # type: ignore
 
-        self.fast_forward_to_state(
+        self.fast_forward_to_behaviour(
             behaviour=self.behaviour,
             behaviour_id=TransactionHashBehaviour.behaviour_id,
             synchronized_data=PriceEstimationSynchronizedSata(

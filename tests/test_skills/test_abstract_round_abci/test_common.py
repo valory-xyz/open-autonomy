@@ -81,7 +81,7 @@ class BaseRandomnessBehaviourTest(CommonBaseCase):
     ) -> None:
         """Test RandomnessBehaviour."""
 
-        self.fast_forward_to_state(
+        self.fast_forward_to_behaviour(
             self.behaviour,
             self.randomness_behaviour_class.behaviour_id,
             BaseSynchronizedData(AbciAppDB(initial_data={})),
@@ -123,7 +123,7 @@ class BaseRandomnessBehaviourTest(CommonBaseCase):
         self,
     ) -> None:
         """Test invalid drand values."""
-        self.fast_forward_to_state(
+        self.fast_forward_to_behaviour(
             self.behaviour,
             self.randomness_behaviour_class.behaviour_id,
             BaseSynchronizedData(AbciAppDB(initial_data={})),
@@ -160,7 +160,7 @@ class BaseRandomnessBehaviourTest(CommonBaseCase):
         self,
     ) -> None:
         """Test invalid json response."""
-        self.fast_forward_to_state(
+        self.fast_forward_to_behaviour(
             self.behaviour,
             self.randomness_behaviour_class.behaviour_id,
             BaseSynchronizedData(AbciAppDB(initial_data={})),
@@ -194,7 +194,7 @@ class BaseRandomnessBehaviourTest(CommonBaseCase):
         self,
     ) -> None:
         """Test with max retries reached."""
-        self.fast_forward_to_state(
+        self.fast_forward_to_behaviour(
             self.behaviour,
             self.randomness_behaviour_class.behaviour_id,
             BaseSynchronizedData(AbciAppDB(initial_data={})),
@@ -234,7 +234,7 @@ class BaseRandomnessBehaviourTest(CommonBaseCase):
         self,
     ) -> None:
         """Test with max retries reached."""
-        self.fast_forward_to_state(
+        self.fast_forward_to_behaviour(
             self.behaviour,
             self.randomness_behaviour_class.behaviour_id,
             BaseSynchronizedData(AbciAppDB(initial_data={})),
@@ -268,7 +268,7 @@ class BaseRandomnessBehaviourTest(CommonBaseCase):
         self,
     ) -> None:
         """Test with max retries reached."""
-        self.fast_forward_to_state(
+        self.fast_forward_to_behaviour(
             self.behaviour,
             self.randomness_behaviour_class.behaviour_id,
             BaseSynchronizedData(AbciAppDB(initial_data={})),
@@ -302,7 +302,7 @@ class BaseRandomnessBehaviourTest(CommonBaseCase):
         self,
     ) -> None:
         """Test when `observed` value is none."""
-        self.fast_forward_to_state(
+        self.fast_forward_to_behaviour(
             self.behaviour,
             self.randomness_behaviour_class.behaviour_id,
             BaseSynchronizedData(AbciAppDB(initial_data={})),
@@ -346,7 +346,7 @@ class BaseSelectKeeperBehaviourTest(CommonBaseCase):
         participants = frozenset(
             {self.skill.skill_context.agent_address, "a_1" + "t" * 39, "a_2" + "t" * 39}
         )
-        self.fast_forward_to_state(
+        self.fast_forward_to_behaviour(
             behaviour=self.behaviour,
             behaviour_id=self.select_keeper_behaviour_class.behaviour_id,
             synchronized_data=self._synchronized_data(
@@ -391,7 +391,7 @@ class BaseSelectKeeperBehaviourTest(CommonBaseCase):
         """Test select keeper agent."""
         participants = frozenset({self.skill.skill_context.agent_address, "a_1", "a_2"})
         preexisting_keeper = next(iter(participants))
-        self.fast_forward_to_state(
+        self.fast_forward_to_behaviour(
             behaviour=self.behaviour,
             behaviour_id=self.select_keeper_behaviour_class.behaviour_id,
             synchronized_data=self._synchronized_data(

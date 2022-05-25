@@ -65,7 +65,7 @@ class TestDummyBehaviour(AbciFSMBehaviourBaseCase):
         """Test registration."""
         self.synchronized_data = BaseSynchronizedData(AbciAppDB(initial_data={}))
 
-        self.fast_forward_to_state(
+        self.fast_forward_to_behaviour(
             self.behaviour,
             DummyBehaviour.behaviour_id,
             self.synchronized_data,

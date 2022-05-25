@@ -56,12 +56,12 @@ def random_selection(elements: List[str], randomness: float) -> str:
     return elements[random_position]
 
 
-class SimpleABCIBaseState(BaseBehaviour, ABC):
-    """Base state behaviour for the simple abci skill."""
+class SimpleABCIBaseBehaviour(BaseBehaviour, ABC):
+    """Base behaviour for the simple abci skill."""
 
     @property
     def synchronized_data(self) -> SynchronizedData:
-        """Return the period state."""
+        """Return the synchronized data."""
         return cast(
             SynchronizedData, cast(SharedState, self.context.state).synchronized_data
         )
@@ -72,7 +72,7 @@ class SimpleABCIBaseState(BaseBehaviour, ABC):
         return cast(Params, self.context.params)
 
 
-class RegistrationBehaviour(SimpleABCIBaseState):
+class RegistrationBehaviour(SimpleABCIBaseBehaviour):
     """Register to the next round."""
 
     behaviour_id = "register"
@@ -86,7 +86,7 @@ class RegistrationBehaviour(SimpleABCIBaseState):
         - Build a registration transaction.
         - Send the transaction and wait for it to be mined.
         - Wait until ABCI application transitions to the next round.
-        - Go to the next behaviour state (set done event).
+        - Go to the next behaviour (set done event).
         """
 
         with self.context.benchmark_tool.measure(self.behaviour_id).local():
@@ -99,7 +99,7 @@ class RegistrationBehaviour(SimpleABCIBaseState):
         self.set_done()
 
 
-class RandomnessBehaviour(SimpleABCIBaseState):
+class RandomnessBehaviour(SimpleABCIBaseBehaviour):
     """Check whether Tendermint nodes are running."""
 
     def async_act(self) -> Generator:
@@ -164,7 +164,7 @@ class RandomnessAtStartupBehaviour(  # pylint: disable=too-many-ancestors
     matching_round = RandomnessStartupRound
 
 
-class SelectKeeperBehaviour(SimpleABCIBaseState, ABC):
+class SelectKeeperBehaviour(SimpleABCIBaseBehaviour, ABC):
     """Select the keeper agent."""
 
     def async_act(self) -> Generator:
@@ -175,7 +175,7 @@ class SelectKeeperBehaviour(SimpleABCIBaseState, ABC):
         - Select a keeper randomly.
         - Send the transaction with the keeper and wait for it to be mined.
         - Wait until ABCI application transitions to the next round.
-        - Go to the next behaviour state (set done event).
+        - Go to the next behaviour (set done event).
         """
 
         with self.context.benchmark_tool.measure(self.behaviour_id).local():
@@ -203,8 +203,8 @@ class SelectKeeperAtStartupBehaviour(  # pylint: disable=too-many-ancestors
     matching_round = SelectKeeperAtStartupRound
 
 
-class BaseResetBehaviour(SimpleABCIBaseState):
-    """Reset state."""
+class BaseResetBehaviour(SimpleABCIBaseBehaviour):
+    """Reset behaviour."""
 
     pause = True
 
@@ -213,12 +213,12 @@ class BaseResetBehaviour(SimpleABCIBaseState):
         Do the action.
 
         Steps:
-        - Trivially log the state.
+        - Trivially log the behaviour.
         - Sleep for configured interval.
         - Build a registration transaction.
         - Send the transaction and wait for it to be mined.
         - Wait until ABCI application transitions to the next round.
-        - Go to the next behaviour state (set done event).
+        - Go to the next behaviour (set done event).
         """
         if self.pause:
             self.context.logger.info("Period end.")
@@ -239,7 +239,7 @@ class BaseResetBehaviour(SimpleABCIBaseState):
 
 
 class ResetAndPauseBehaviour(BaseResetBehaviour):  # pylint: disable=too-many-ancestors
-    """Reset state."""
+    """Reset behaviour."""
 
     matching_round = ResetAndPauseRound
     behaviour_id = "reset_and_pause"
@@ -251,7 +251,7 @@ class SimpleAbciConsensusBehaviour(AbstractRoundBehaviour):
 
     initial_behaviour_cls = RegistrationBehaviour
     abci_app_cls = SimpleAbciApp  # type: ignore
-    behaviours: Set[Type[SimpleABCIBaseState]] = {  # type: ignore
+    behaviours: Set[Type[SimpleABCIBaseBehaviour]] = {  # type: ignore
         RegistrationBehaviour,  # type: ignore
         RandomnessAtStartupBehaviour,  # type: ignore
         SelectKeeperAtStartupBehaviour,  # type: ignore

@@ -170,7 +170,7 @@ class AbstractRoundBehaviour(
         self._last_round_height = 0
 
         # this variable remembers the actual next transition
-        # when we cannot preemptively interrupt the current state
+        # when we cannot preemptively interrupt the current behaviour
         # because it has not a matching round.
         self._next_behaviour_cls: Optional[BehaviourType] = None
 
@@ -178,30 +178,30 @@ class AbstractRoundBehaviour(
     def _get_behaviour_id_to_behaviour_mapping(
         cls, behaviours: AbstractSet[BehaviourType]
     ) -> Dict[str, BehaviourType]:
-        """Get state id to state mapping."""
+        """Get behaviour id to behaviour mapping."""
         result: Dict[str, BehaviourType] = {}
-        for state_behaviour_cls in behaviours:
-            behaviour_id = state_behaviour_cls.behaviour_id
+        for behaviour_cls in behaviours:
+            behaviour_id = behaviour_cls.behaviour_id
             if behaviour_id in result:
                 raise ValueError(
-                    f"cannot have two states with the same id; got {state_behaviour_cls} and {result[behaviour_id]} both with id '{behaviour_id}'"
+                    f"cannot have two behaviours with the same id; got {behaviour_cls} and {result[behaviour_id]} both with id '{behaviour_id}'"
                 )
-            result[behaviour_id] = state_behaviour_cls
+            result[behaviour_id] = behaviour_cls
         return result
 
     @classmethod
     def _get_round_to_behaviour_mapping(
         cls, behaviours: AbstractSet[BehaviourType]
     ) -> Dict[Type[AbstractRound], BehaviourType]:
-        """Get round-to-state mapping."""
+        """Get round-to-behaviour mapping."""
         result: Dict[Type[AbstractRound], BehaviourType] = {}
-        for state_behaviour_cls in behaviours:
-            round_cls = state_behaviour_cls.matching_round
+        for behaviour_cls in behaviours:
+            round_cls = behaviour_cls.matching_round
             if round_cls in result:
                 raise ValueError(
-                    f"the states '{state_behaviour_cls.behaviour_id}' and '{result[round_cls].behaviour_id}' point to the same matching round '{round_cls.round_id}'"
+                    f"the behaviours '{behaviour_cls.behaviour_id}' and '{result[round_cls].behaviour_id}' point to the same matching round '{round_cls.round_id}'"
                 )
-            result[round_cls] = state_behaviour_cls
+            result[round_cls] = behaviour_cls
 
         # iterate over rounds and map final (i.e. degenerate) rounds
         #  to the degenerate behaviour class
@@ -215,7 +215,7 @@ class AbstractRoundBehaviour(
         return result
 
     def instantiate_behaviour_cls(self, behaviour_cls: BehaviourType) -> BaseBehaviour:
-        """Instantiate the state class."""
+        """Instantiate the behaviours class."""
         return behaviour_cls(
             name=behaviour_cls.behaviour_id, skill_context=self.context
         )
@@ -254,15 +254,15 @@ class AbstractRoundBehaviour(
         self._last_round_height = current_round_height
         current_round_cls = type(self.context.state.round_sequence.current_round)
 
-        # each round has a state behaviour associated to it
+        # each round has a behaviour associated to it
         next_behaviour_cls = self._round_to_behaviour[current_round_cls]
 
-        #  Stop the current state and replace it with the new state behaviour
+        #  Stop the current behaviours and replace it with the new behaviour
         if self.current_behaviour is not None:
             current_behaviour = cast(BaseBehaviour, self.current_behaviour)
             current_behaviour.stop()
             self.context.logger.debug(
-                "overriding transition: current state: '%s', next state: '%s'",
+                "overriding transition: current behaviours: '%s', next behaviours: '%s'",
                 self.current_behaviour.behaviour_id if self.current_behaviour else None,
                 next_behaviour_cls.behaviour_id,
             )

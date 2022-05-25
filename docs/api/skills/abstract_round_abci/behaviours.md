@@ -53,7 +53,7 @@ Initialize the behaviour.
 def instantiate_behaviour_cls(behaviour_cls: BehaviourType) -> BaseBehaviour
 ```
 
-Instantiate the state class.
+Instantiate the behaviours class.
 
 <a id="packages.valory.skills.abstract_round_abci.behaviours.AbstractRoundBehaviour.setup"></a>
 
