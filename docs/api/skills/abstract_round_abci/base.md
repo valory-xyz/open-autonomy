@@ -798,6 +798,17 @@ def db() -> StateDB
 
 Get DB.
 
+<a id="packages.valory.skills.abstract_round_abci.base.BasePeriodState.app_hash"></a>
+
+#### app`_`hash
+
+```python
+@property
+def app_hash() -> bytes
+```
+
+Get the app hash, generated from the state db.
+
 <a id="packages.valory.skills.abstract_round_abci.base.BasePeriodState.round_count"></a>
 
 #### round`_`count

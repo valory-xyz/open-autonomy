@@ -19,6 +19,7 @@
 
 """This module contains the base classes for the models classes of the skill."""
 import datetime
+import hashlib
 import heapq
 import itertools
 import logging
@@ -590,6 +591,12 @@ class BasePeriodState:
     def db(self) -> StateDB:
         """Get DB."""
         return self._db
+
+    @property
+    def app_hash(self) -> bytes:
+        """Get the app hash, generated from the state db."""
+        # using `sha256` in order to get a fixed size hash
+        return hashlib.sha256(str(self.db).encode("utf-8")).hexdigest().encode("utf-8")
 
     @property
     def round_count(self) -> int:
