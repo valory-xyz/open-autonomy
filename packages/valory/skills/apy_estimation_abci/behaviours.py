@@ -115,7 +115,7 @@ class APYEstimationBaseBehaviour(BaseBehaviour, ABC):
 
     @property
     def synchronized_data(self) -> SynchronizedData:
-        """Return the period synchronized data."""
+        """Return the synchronized data."""
         return cast(SynchronizedData, super().synchronized_data)
 
     @property

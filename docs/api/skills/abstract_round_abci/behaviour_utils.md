@@ -350,7 +350,7 @@ Return the params.
 def synchronized_data() -> BaseSynchronizedData
 ```
 
-Return the period data.
+Return the synchronized data.
 
 <a id="packages.valory.skills.abstract_round_abci.behaviour_utils.BaseBehaviour.check_in_round"></a>
 

@@ -122,9 +122,9 @@ def chain(  # pylint: disable=too-many-locals
     }
 
     # Collect keys to persist across periods from all abcis
-    new_cross_reset_persisted_keys = []
+    new_cross_period_persisted_keys = []
     for app in abci_apps:
-        new_cross_reset_persisted_keys.extend(app.cross_reset_persisted_keys)
+        new_cross_period_persisted_keys.extend(app.cross_period_persisted_keys)
 
     # Return the composed result
     class ComposedAbciApp(AbciApp[EventType]):
@@ -134,6 +134,6 @@ def chain(  # pylint: disable=too-many-locals
         transition_function: AbciAppTransitionFunction = new_transition_function
         final_states: Set[AppState] = new_final_states
         event_to_timeout: EventToTimeout = new_events_to_timeout
-        cross_reset_persisted_keys: List[str] = new_cross_reset_persisted_keys
+        cross_period_persisted_keys: List[str] = new_cross_period_persisted_keys
 
     return ComposedAbciApp

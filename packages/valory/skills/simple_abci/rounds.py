@@ -98,7 +98,7 @@ class SimpleABCIAbstractRound(AbstractRound[Event, TransactionType], ABC):
         """
         Trigger the NO_MAJORITY event.
 
-        :return: a new period synchronized data and a NO_MAJORITY event
+        :return: a new synchronized data synchronized data and a NO_MAJORITY event
         """
         return self.synchronized_data, Event.NO_MAJORITY
 

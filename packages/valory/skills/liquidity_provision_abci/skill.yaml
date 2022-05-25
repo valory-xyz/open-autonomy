@@ -87,7 +87,6 @@ models:
       keeper_timeout: 30.0
       max_healthcheck: 120
       observation_interval: 10
-      period_setup: {}
       rebalancing:
         chain: Ethereum
         token_base_address: '0xDc64a140Aa3E981100a9becA4E685f962f0cF6C9'
@@ -107,6 +106,7 @@ models:
       retry_timeout: 3
       round_timeout_seconds: 30.0
       service_id: liquidity_rebalancing
+      setup: {}
       sleep_time: 1
       tendermint_check_sleep_delay: 3
       tendermint_com_url: http://localhost:8080

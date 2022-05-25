@@ -5,9 +5,9 @@ agent: valory/oracle_deployable:0.1.0
 network: ropsten
 number_of_agents: 4
 ---
-period_setup_args: &period_setup_args
+setup_args: &setup_args
   args:
-    period_setup:
+    setup:
       safe_contract_address: "0x4826E4ddEeE65bc27034602a6050486fBE920707"
       oracle_contract_address: "0x3f9F36ECb03ded97328FC7747292D6D03dFE3D46"
     max_healthcheck: 43200
@@ -34,7 +34,7 @@ models:
           url: "https://drand.cloudflare.com/public/latest"
           api_id: "cloudflare"
     - params:
-        <<: *period_setup_args
+        <<: *setup_args
     - server_api:
        <<: *monitoring_backend
   1:
@@ -50,7 +50,7 @@ models:
           url: "https://api.drand.sh/public/latest"
           api_id: "protocollabs1"
     - params:
-        <<: *period_setup_args
+        <<: *setup_args
     - server_api:
        <<: *monitoring_backend
   2:
@@ -66,7 +66,7 @@ models:
           url: "https://api2.drand.sh/public/latest"
           api_id: "protocollabs2"
     - params:
-        <<: *period_setup_args
+        <<: *setup_args
     - server_api:
        <<: *monitoring_backend
   3:
@@ -82,6 +82,6 @@ models:
           url: "https://api3.drand.sh/public/latest"
           api_id: "protocollabs2"
     - params:
-        <<: *period_setup_args
+        <<: *setup_args
     - server_api:
        <<: *monitoring_backend

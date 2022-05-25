@@ -12,7 +12,7 @@ This module contains the behaviours for the 'abci' skill.
 class RegistrationBaseBehaviour(BaseBehaviour)
 ```
 
-Register to the next periods.
+Agent registration to the FSM App.
 
 <a id="packages.valory.skills.registration_abci.behaviours.RegistrationBaseBehaviour.async_act"></a>
 
@@ -38,7 +38,7 @@ Steps:
 class RegistrationStartupBehaviour(RegistrationBaseBehaviour)
 ```
 
-Register to the next periods.
+Agent registration to the FSM App.
 
 <a id="packages.valory.skills.registration_abci.behaviours.RegistrationBehaviour"></a>
 
@@ -48,7 +48,7 @@ Register to the next periods.
 class RegistrationBehaviour(RegistrationBaseBehaviour)
 ```
 
-Register to the next periods.
+Agent registration to the FSM App.
 
 <a id="packages.valory.skills.registration_abci.behaviours.AgentRegistrationRoundBehaviour"></a>
 

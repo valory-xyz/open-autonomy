@@ -9,13 +9,13 @@ aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
   README.md: Qmdnhn6pApDV6UYJGgJGsLQbVQZjcimbPTNdsTXyNHJKFi
   __init__.py: QmNuC15NDuuzyfhdpYLpoVajvPGXN3EKR9GdBHDdM1mzgM
-  behaviours.py: QmY4U8tPU8nDgcmQXcxxsx3DncFBHbzowxQnYpf9o2ZeAz
+  behaviours.py: QmajsDhKHVozP7Hyj5XfihKXrabAxPRKfsuDd21qFVcKF9
   dialogues.py: QmfDThV4WCRzK88XDpW2hKDYCuEH4RxoHCoAkWpkBRGRPv
   fsm_specification.yaml: QmX3XcnEMJ8JLTkftDnFoanehLEJbqLgYM6cR9Y4DfPSYT
   handlers.py: QmRbhnYTWnUPsWHYg9CbLhWQTFfw9faRZwjbTD6BGv7YtD
   models.py: QmRALTaiv4Ny6PVjYbQQcBKaHjKSbpVABaxociC2Bkhgrh
   payloads.py: QmciRtUWZHMaGV2givznHWNQ4Ky44MciprcwadLYjxcu4s
-  rounds.py: QmbwuaQsqmemQfvHrP6d7y6w93bjr1yxG6fLz6sqiPQaea
+  rounds.py: QmazMHBCMY6YK1NrZAi6ubm377uF1CTCkMhvnZjaJpC7zd
 fingerprint_ignore_patterns: []
 connections:
 - valory/abci:0.1.0:QmaPFp3Jwf6uv9VSAoMJfJHFS9ESPeX8hCB7HLi41c8WzS
@@ -83,7 +83,6 @@ models:
       keeper_timeout: 30.0
       max_healthcheck: 120
       observation_interval: 10
-      period_setup: {}
       rebalancing:
         chain: Ethereum
         token_base_address: '0xDc64a140Aa3E981100a9becA4E685f962f0cF6C9'
@@ -103,6 +102,7 @@ models:
       retry_timeout: 3
       round_timeout_seconds: 30.0
       service_id: liquidity_rebalancing
+      setup: {}
       sleep_time: 1
       tendermint_check_sleep_delay: 3
       tendermint_com_url: http://localhost:8080

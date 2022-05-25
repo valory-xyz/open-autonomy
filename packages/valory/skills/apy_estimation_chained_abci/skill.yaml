@@ -102,12 +102,12 @@ models:
         window_size: null
       pair_ids:
       - '0x2b4c76d0dc16be1c31d4c1dc53bf9b45987fc75c'
-      period_setup: {}
       reset_tendermint_after: 2
       retry_attempts: 400
       retry_timeout: 3
       round_timeout_seconds: 120.0
       service_id: apy_estimation
+      setup: {}
       sleep_time: 5
       tendermint_check_sleep_delay: 3
       tendermint_com_url: http://localhost:8080

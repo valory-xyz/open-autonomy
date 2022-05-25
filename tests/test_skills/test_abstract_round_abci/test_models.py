@@ -317,7 +317,7 @@ def test_base_params_model_initialization() -> None:
     BaseParams(
         name="",
         skill_context=MagicMock(),
-        period_setup={},
+        setup={},
         consensus=dict(max_participants=1),
         tendermint_url="",
         max_healthcheck=1,

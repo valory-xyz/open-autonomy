@@ -616,7 +616,7 @@ def test_period() -> None:
     """Test SynchronizedData."""
 
     participants = get_participants()
-    period_setup_params: Dict = {}
+    setup_params: Dict = {}
     most_voted_randomness = 1
     estimates_hash = "test_hash"
     full_training = False
@@ -626,7 +626,7 @@ def test_period() -> None:
         db=AbciAppDB(
             initial_data=dict(
                 participants=participants,
-                period_setup_params=period_setup_params,
+                setup_params=setup_params,
                 most_voted_randomness=most_voted_randomness,
                 most_voted_estimate=estimates_hash,
                 full_training=full_training,

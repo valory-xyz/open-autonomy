@@ -276,7 +276,7 @@ def test_synchronized_data() -> None:  # pylint:too-many-locals
     """Test SynchronizedData."""
 
     participants = get_participants()
-    period_setup_params = {}  # type: ignore
+    setup_params = {}  # type: ignore
     most_voted_randomness = "0xabcd"
     participant_to_selection = {
         participant: SelectKeeperPayload(sender=participant, keeper="keeper")
@@ -288,7 +288,7 @@ def test_synchronized_data() -> None:  # pylint:too-many-locals
         AbciAppDB(
             initial_data=dict(
                 participants=participants,
-                period_setup_params=period_setup_params,
+                setup_params=setup_params,
                 most_voted_randomness=most_voted_randomness,
                 participant_to_selection=participant_to_selection,
                 most_voted_keeper_address=most_voted_keeper_address,

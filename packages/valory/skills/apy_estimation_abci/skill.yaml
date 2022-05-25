@@ -8,7 +8,7 @@ aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
   README.md: QmSvXr6k7f5GFZVCgqM8d4ywibiSAYbdaGjmPh4CmFfQn9
   __init__.py: Qmb163B19kEpc6PfbLnmQxPbeEWA2ubTghVwG2YUeNYusu
-  behaviours.py: QmNRmjgTdDBCeHbrnVWHvDx3J78DaCuzB8pPeyekyg9nUF
+  behaviours.py: QmSsWNXTTJ6mromuo3cpmVEmRB27raGNmUgYTyDpeP6abk
   dialogues.py: QmdBmUMWoPbS2faqn8LicQVJfN6a2WjtdZDWFbiYoy7hfY
   fsm_specification.yaml: QmWpHTiaY91oUmAoYiAZjcg5i3UsqktRHCcZZkEDpqEqcf
   handlers.py: QmdxbcVLL3JU6onvxLrDmJX1r2vQPbzp1co1eaHGJkAwfD
@@ -18,7 +18,7 @@ fingerprint:
   ml/preprocessing.py: QmXRkajyrcZbXy8k26dCocmCCrqYwEHcjy7iFG64DohZKq
   models.py: QmS15SjCs3NXCqz3gRL3soC7RRPFGofDGEttef5DVWo8EZ
   payloads.py: QmbBH6kpC98iMgoVbHNwwMBMLs8LC6c87tj81r7UBaHesv
-  rounds.py: QmSSxBEcudBzhGSvAXxM9ppqMVdC6YBdUyDK9twksuTzkC
+  rounds.py: QmeMAdWMP3H1z5qRz9x3xeCD1YZDLo8k4M2uyC1TUjEkF2
   tasks.py: QmemYwBwU6RpWsca3bkXWuUemgZ6YwFVMxS5vkt7J7BjHh
   tools/__init__.py: QmWr6iVwNzqYVqmxBwYC1myurM8AjxuzxwjM1brXSmnDTi
   tools/etl.py: Qmb7e77Fh6R4TTSbgUNSo2LaQpKWtRsfmfeqCiPF75mSNf
@@ -113,12 +113,12 @@ models:
       pair_ids:
       - '0x2a651563c9d3af67ae0388a5c8f89b867038089e'
       - '0x2b4c76d0dc16be1c31d4c1dc53bf9b45987fc75c'
-      period_setup: {}
       reset_tendermint_after: 2
       retry_attempts: 400
       retry_timeout: 3
       round_timeout_seconds: 120.0
       service_id: apy_estimation
+      setup: {}
       sleep_time: 5
       tendermint_check_sleep_delay: 3
       tendermint_com_url: http://localhost:8080

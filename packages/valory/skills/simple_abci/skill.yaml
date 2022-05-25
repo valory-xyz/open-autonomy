@@ -14,7 +14,7 @@ fingerprint:
   handlers.py: QmZXDriJtB3cN8NBWrYLVpFekWMZdjm8veF97oLrGFRot3
   models.py: QmaS5Qvg6DtqkTixSyQpHFJQaLfx1hgmodVKD2zbtjzW6i
   payloads.py: QmVUVKakCZrUQxqU3fmkzLjk6fjbKtr7zxe9pRMBvjEPW5
-  rounds.py: QmT9QsHYj9vinmiYamBBi43dXgGmKyHFxnTgg6Sq43gztt
+  rounds.py: QmQ9od69mhxPKt6EAGvV6KxKdVtNJhgy8C2bHqyhFcThjT
 fingerprint_ignore_patterns: []
 connections:
 - valory/abci:0.1.0:QmaPFp3Jwf6uv9VSAoMJfJHFS9ESPeX8hCB7HLi41c8WzS
@@ -75,12 +75,12 @@ models:
       keeper_timeout: 30.0
       max_healthcheck: 120
       observation_interval: 10
-      period_setup: {}
       reset_tendermint_after: 2
       retry_attempts: 400
       retry_timeout: 3
       round_timeout_seconds: 30.0
       service_id: simple_abci
+      setup: {}
       sleep_time: 1
       tendermint_check_sleep_delay: 3
       tendermint_com_url: http://localhost:8080

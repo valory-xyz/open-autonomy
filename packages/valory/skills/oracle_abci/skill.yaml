@@ -87,14 +87,14 @@ models:
         max_answer: 1000000000000000000000000
         decimals: 18
         description: BTC
-      period_setup:
-        oracle_contract_address: null
-        safe_contract_address: null
       reset_tendermint_after: 2
       retry_attempts: 400
       retry_timeout: 3
       round_timeout_seconds: 30.0
       service_id: price_estimation
+      setup:
+        oracle_contract_address: null
+        safe_contract_address: null
       sleep_time: 1
       tendermint_check_sleep_delay: 3
       tendermint_com_url: http://localhost:8080

@@ -464,7 +464,7 @@ class BaseBehaviour(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
 
     @property
     def synchronized_data(self) -> BaseSynchronizedData:
-        """Return the period data."""
+        """Return the synchronized data."""
         return cast(
             BaseSynchronizedData,
             cast(SharedState, self.context.state).synchronized_data,

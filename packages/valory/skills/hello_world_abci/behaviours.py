@@ -48,7 +48,7 @@ class HelloWorldABCIBaseBehaviour(BaseBehaviour, ABC):
 
     @property
     def synchronized_data(self) -> SynchronizedData:
-        """Return the period synchronized data."""
+        """Return the synchronized data."""
         return cast(
             SynchronizedData, cast(SharedState, self.context.state).synchronized_data
         )
@@ -130,7 +130,7 @@ class PrintMessageBehaviour(HelloWorldABCIBaseBehaviour, ABC):
         Do the action.
 
         Steps:
-        - Determine if this agent is the keeper agent for this period.
+        - Determine if this agent is the current keeper agent.
         - Print the appropriate to the local console.
         - Send the transaction with the printed message and wait for it to be mined.
         - Wait until ABCI application transitions to the next round.

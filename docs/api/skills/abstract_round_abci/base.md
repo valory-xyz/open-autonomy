@@ -625,14 +625,14 @@ Check equality.
 class AbciAppDB()
 ```
 
-Class to represent all data replicated across periods.
+Class to represent all data replicated across agents.
 
 <a id="packages.valory.skills.abstract_round_abci.base.AbciAppDB.__init__"></a>
 
 #### `__`init`__`
 
 ```python
-def __init__(initial_data: Dict[str, Any], cross_reset_persisted_keys: Optional[List[str]] = None, format_initial_data: bool = True) -> None
+def __init__(initial_data: Dict[str, Any], cross_period_persisted_keys: Optional[List[str]] = None, format_initial_data: bool = True) -> None
 ```
 
 Initialize the AbciApp database.
@@ -643,7 +643,7 @@ initial_data should be automatically converted.
 **Arguments**:
 
 - `initial_data`: the initial data
-- `cross_reset_persisted_keys`: data keys that will be kept after a reset
+- `cross_period_persisted_keys`: data keys that will be kept after a new period starts
 - `format_initial_data`: flag to indicate whether initial_data should be converted from Dict[str, Any] to Dict[str, List[Any]]
 
 <a id="packages.valory.skills.abstract_round_abci.base.AbciAppDB.initial_data"></a>
@@ -694,13 +694,13 @@ def round_count() -> int
 
 Get the round count.
 
-<a id="packages.valory.skills.abstract_round_abci.base.AbciAppDB.cross_reset_persisted_keys"></a>
+<a id="packages.valory.skills.abstract_round_abci.base.AbciAppDB.cross_period_persisted_keys"></a>
 
-#### cross`_`reset`_`persisted`_`keys
+#### cross`_`period`_`persisted`_`keys
 
 ```python
 @property
-def cross_reset_persisted_keys() -> List[str]
+def cross_period_persisted_keys() -> List[str]
 ```
 
 Keys in the database which are persistet across periods.
@@ -805,7 +805,7 @@ class BaseSynchronizedData()
 
 Class to represent the synchronized data.
 
-This is the relevant data constructed and replicated by the agents in a period.
+This is the relevant data constructed and replicated by the agents.
 
 <a id="packages.valory.skills.abstract_round_abci.base.BaseSynchronizedData.__init__"></a>
 
@@ -1036,8 +1036,8 @@ class AbstractRound(Generic[EventType, TransactionType],  ABC)
 
 This class represents an abstract round.
 
-A round is a state of a period. It usually involves
-interactions between participants in the period,
+A round is a state of the FSM App execution. It usually involves
+interactions between participants in the FSM App,
 although this is not enforced at this level of abstraction.
 
 Concrete classes must set:
@@ -1063,7 +1063,7 @@ Initialize the round.
 def synchronized_data() -> BaseSynchronizedData
 ```
 
-Get the period data.
+Get the synchronized data.
 
 <a id="packages.valory.skills.abstract_round_abci.base.AbstractRound.check_transaction"></a>
 

@@ -477,12 +477,12 @@ class ConsensusParams:
 
 
 class AbciAppDB:
-    """Class to represent all data replicated across periods."""
+    """Class to represent all data replicated across agents."""
 
     def __init__(
         self,
         initial_data: Dict[str, Any],
-        cross_reset_persisted_keys: Optional[List[str]] = None,
+        cross_period_persisted_keys: Optional[List[str]] = None,
         format_initial_data: bool = True,
     ) -> None:
         """Initialize the AbciApp database.
@@ -491,7 +491,7 @@ class AbciAppDB:
         initial_data should be automatically converted.
 
         :param initial_data: the initial data
-        :param cross_reset_persisted_keys: data keys that will be kept after a reset
+        :param cross_period_persisted_keys: data keys that will be kept after a new period starts
         :param format_initial_data: flag to indicate whether initial_data should be converted from Dict[str, Any] to Dict[str, List[Any]]
         """
         self._initial_data = (
@@ -499,7 +499,7 @@ class AbciAppDB:
             if format_initial_data
             else initial_data
         )
-        self._cross_reset_persisted_keys = cross_reset_persisted_keys or []
+        self._cross_period_persisted_keys = cross_period_persisted_keys or []
         self._data: Dict[int, Dict[str, List[Any]]] = {
             RESET_COUNT_START: deepcopy(
                 self._initial_data
@@ -532,9 +532,9 @@ class AbciAppDB:
         return self._round_count
 
     @property
-    def cross_reset_persisted_keys(self) -> List[str]:
+    def cross_period_persisted_keys(self) -> List[str]:
         """Keys in the database which are persistet across periods."""
-        return self._cross_reset_persisted_keys
+        return self._cross_period_persisted_keys
 
     def get(self, key: str, default: Any = VALUE_NOT_PROVIDED) -> Optional[Any]:
         """Get a value from the data dictionary."""
@@ -613,7 +613,7 @@ class BaseSynchronizedData:
     """
     Class to represent the synchronized data.
 
-    This is the relevant data constructed and replicated by the agents in a period.
+    This is the relevant data constructed and replicated by the agents.
     """
 
     def __init__(
@@ -758,8 +758,8 @@ class AbstractRound(Generic[EventType, TransactionType], ABC):
     """
     This class represents an abstract round.
 
-    A round is a state of a period. It usually involves
-    interactions between participants in the period,
+    A round is a state of the FSM App execution. It usually involves
+    interactions between participants in the FSM App,
     although this is not enforced at this level of abstraction.
 
     Concrete classes must set:
@@ -800,7 +800,7 @@ class AbstractRound(Generic[EventType, TransactionType], ABC):
 
     @property
     def synchronized_data(self) -> BaseSynchronizedData:
-        """Get the period data."""
+        """Get the synchronized data."""
         return self._synchronized_data
 
     def check_transaction(self, transaction: Transaction) -> None:
@@ -1672,7 +1672,7 @@ class AbciApp(
     transition_function: AbciAppTransitionFunction
     final_states: Set[AppState] = set()
     event_to_timeout: EventToTimeout = {}
-    cross_reset_persisted_keys: List[str] = []
+    cross_period_persisted_keys: List[str] = []
 
     def __init__(
         self,

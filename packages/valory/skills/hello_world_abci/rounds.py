@@ -72,7 +72,7 @@ class HelloWorldABCIAbstractRound(AbstractRound[Event, TransactionType], ABC):
 
     @property
     def synchronized_data(self) -> SynchronizedData:
-        """Return the period synchronized data."""
+        """Return the synchronized data."""
         return cast(SynchronizedData, self._synchronized_data)
 
     def _return_no_majority_event(self) -> Tuple[SynchronizedData, Event]:

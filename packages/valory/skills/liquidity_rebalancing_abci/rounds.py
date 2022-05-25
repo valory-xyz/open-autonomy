@@ -139,7 +139,7 @@ class LiquidityRebalancingAbstractRound(AbstractRound[Event, TransactionType], A
         """
         Trigger the NO_MAJORITY event.
 
-        :return: a new period and a NO_MAJORITY event
+        :return: a new synchronized data and a NO_MAJORITY event
         """
         return self.synchronized_data, Event.NO_MAJORITY
 

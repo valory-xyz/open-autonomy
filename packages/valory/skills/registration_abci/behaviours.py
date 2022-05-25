@@ -34,7 +34,7 @@ from packages.valory.skills.registration_abci.rounds import (
 
 
 class RegistrationBaseBehaviour(BaseBehaviour):
-    """Register to the next periods."""
+    """Agent registration to the FSM App."""
 
     def async_act(self) -> Generator:
         """
@@ -65,14 +65,14 @@ class RegistrationBaseBehaviour(BaseBehaviour):
 
 
 class RegistrationStartupBehaviour(RegistrationBaseBehaviour):
-    """Register to the next periods."""
+    """Agent registration to the FSM App."""
 
     behaviour_id = "registration_startup"
     matching_round = RegistrationStartupRound
 
 
 class RegistrationBehaviour(RegistrationBaseBehaviour):
-    """Register to the next periods."""
+    """Agent registration to the FSM App."""
 
     behaviour_id = "registration"
     matching_round = RegistrationRound

@@ -498,7 +498,7 @@ class TestAbciAppDB:
         )
         assert db._data == {0: {"participants": [self.participants]}}
         assert db.initial_data == {"participants": [self.participants]}
-        assert db.cross_reset_persisted_keys == []
+        assert db.cross_period_persisted_keys == []
 
     def test_get(self) -> None:
         """Test getters."""

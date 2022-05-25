@@ -306,7 +306,7 @@ def test_synchronized_data() -> None:
 
     participants = get_participants()
     period_count = 0
-    period_setup_params: Dict = {}
+    setup_params: Dict = {}
     most_voted_strategy: Dict = {}
     most_voted_keeper_address = "0x_keeper"
     safe_contract_address = "0x_contract"
@@ -322,7 +322,7 @@ def test_synchronized_data() -> None:
         AbciAppDB(
             initial_data=dict(
                 participants=participants,
-                period_setup_params=period_setup_params,
+                setup_params=setup_params,
                 most_voted_strategy=most_voted_strategy,
                 most_voted_keeper_address=most_voted_keeper_address,
                 safe_contract_address=safe_contract_address,
