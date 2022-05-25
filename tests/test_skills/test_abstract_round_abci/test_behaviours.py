@@ -162,7 +162,7 @@ class TestAbstractRoundBehaviour:
             self.behaviour.act()
 
     def test_check_matching_round_consistency(self) -> None:
-        """Test classmethod '_get_state_id_to_state_mapping', negative case."""
+        """Test classmethod '_get_behaviour_id_to_behaviour_mapping', negative case."""
         rounds = [MagicMock(round_id=f"round_{i}") for i in range(3)]
         states = [
             MagicMock(matching_round=round, behaviour_id=f"state_{i}")
@@ -192,8 +192,8 @@ class TestAbstractRoundBehaviour:
 
             MyRoundBehaviour(name=MagicMock(), skill_context=MagicMock())
 
-    def test_get_state_id_to_state_mapping_negative(self) -> None:
-        """Test classmethod '_get_state_id_to_state_mapping', negative case."""
+    def test_get_behaviour_id_to_behaviour_mapping_negative(self) -> None:
+        """Test classmethod '_get_behaviour_id_to_behaviour_mapping', negative case."""
         behaviour_id = "behaviour_id"
         state_1 = MagicMock(behaviour_id=behaviour_id)
         state_2 = MagicMock(behaviour_id=behaviour_id)
@@ -213,8 +213,8 @@ class TestAbstractRoundBehaviour:
 
                 MyRoundBehaviour(name=MagicMock(), skill_context=MagicMock())
 
-    def test_get_round_to_state_mapping_two_states_same_round(self) -> None:
-        """Test classmethod '_get_round_to_state_mapping' when two different states point to the same round."""
+    def test_get_round_to_behaviour_mapping_two_states_same_round(self) -> None:
+        """Test classmethod '_get_round_to_behaviour_mapping' when two different states point to the same round."""
         state_id_1 = "state_id_1"
         state_id_2 = "state_id_2"
         round_cls = RoundA
@@ -237,8 +237,8 @@ class TestAbstractRoundBehaviour:
 
                 MyRoundBehaviour(name=MagicMock(), skill_context=MagicMock())
 
-    def test_get_round_to_state_mapping_with_final_rounds(self) -> None:
-        """Test classmethod '_get_round_to_state_mapping' with final rounds."""
+    def test_get_round_to_behaviour_mapping_with_final_rounds(self) -> None:
+        """Test classmethod '_get_round_to_behaviour_mapping' with final rounds."""
 
         class FinalRound(DegenerateRound):
             """A final round for testing."""
@@ -269,7 +269,7 @@ class TestAbstractRoundBehaviour:
             initial_behaviour_cls = state_1
 
         behaviour = MyRoundBehaviour(name=MagicMock(), skill_context=MagicMock())
-        final_state = behaviour._round_to_state[FinalRound]
+        final_state = behaviour._round_to_behaviour[FinalRound]
         assert issubclass(final_state, DegenerateBehaviour)
         assert final_state.behaviour_id == f"degenerate_{FinalRound.round_id}"
 
@@ -283,7 +283,7 @@ class TestAbstractRoundBehaviour:
 
         with pytest.raises(
             ABCIAppInternalError,
-            match=fr"states \['{state_1_cls_name}', '{state_2_cls_name}'\] have the same state id '{behaviour_id}'",
+            match=fr"behaviours \['{state_1_cls_name}', '{state_2_cls_name}'\] have the same behaviour id '{behaviour_id}'",
         ):
 
             class MyRoundBehaviour(AbstractRoundBehaviour):
@@ -292,7 +292,7 @@ class TestAbstractRoundBehaviour:
                 initial_behaviour_cls = MagicMock()
 
     def test_check_consistency_two_states_same_round(self) -> None:
-        """Test metaclass method '_check_consistency' when two different states point to the same round."""
+        """Test metaclass method '_check_consistency' when two different behaviours point to the same round."""
         state_id_1 = "state_id_1"
         state_id_2 = "state_id_2"
         round_cls = RoundA
@@ -302,7 +302,7 @@ class TestAbstractRoundBehaviour:
 
         with pytest.raises(
             ABCIAppInternalError,
-            match=rf"internal error: states \['{state_id_1}', '{state_id_2}'\] have the same matching round '{round_id}'",
+            match=rf"internal error: behaviours \['{state_id_1}', '{state_id_2}'\] have the same matching round '{round_id}'",
         ):
 
             class MyRoundBehaviour(AbstractRoundBehaviour):
@@ -311,13 +311,13 @@ class TestAbstractRoundBehaviour:
                 initial_behaviour_cls = state_1
 
     def test_check_initial_behaviour_in_set_of_behaviours_negative_case(self) -> None:
-        """Test classmethod '_check_initial_behaviour_in_set_of_behaviours' when initial state is NOT in the set."""
+        """Test classmethod '_check_initial_behaviour_in_set_of_behaviours' when initial behaviour is NOT in the set."""
         state_1 = MagicMock(behaviour_id="state_id_1", matching_round=MagicMock())
         state_2 = MagicMock(behaviour_id="state_id_2", matching_round=MagicMock())
 
         with pytest.raises(
             ABCIAppInternalError,
-            match="initial state state_id_2 is not in the set of states",
+            match="initial behaviour state_id_2 is not in the set of behaviours",
         ):
 
             class MyRoundBehaviour(AbstractRoundBehaviour):

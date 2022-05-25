@@ -1379,7 +1379,7 @@ def test_degenerate_state_async_act() -> None:
     )
     with pytest.raises(
         RuntimeError,
-        match="The execution reached a degenerate behaviour state. This means a degenerate round has been reached during the execution of the ABCI application. Please check the functioning of the ABCI app.",
+        match="The execution reached a degenerate behaviour. This means a degenerate round has been reached during the execution of the ABCI application. Please check the functioning of the ABCI app.",
     ):
         state.act()
 

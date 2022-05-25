@@ -783,7 +783,7 @@ Increment the round count.
 def __repr__() -> str
 ```
 
-Return a string representation of the state.
+Return a string representation of the data.
 
 <a id="packages.valory.skills.abstract_round_abci.base.AbciAppDB.cleanup"></a>
 
@@ -805,7 +805,7 @@ class BaseSynchronizedData()
 
 Class to represent the synchronized data.
 
-This is the relevant state constructed and replicated by the agents in a period.
+This is the relevant data constructed and replicated by the agents in a period.
 
 <a id="packages.valory.skills.abstract_round_abci.base.BaseSynchronizedData.__init__"></a>
 
@@ -936,7 +936,7 @@ Copy and update with new data.
 def __repr__() -> str
 ```
 
-Return a string representation of the state.
+Return a string representation of the data.
 
 <a id="packages.valory.skills.abstract_round_abci.base.BaseSynchronizedData.keeper_randomness"></a>
 
@@ -1049,7 +1049,7 @@ Concrete classes must set:
 #### `__`init`__`
 
 ```python
-def __init__(state: BaseSynchronizedData, consensus_params: ConsensusParams, previous_round_tx_type: Optional[TransactionType] = None) -> None
+def __init__(synchronized_data: BaseSynchronizedData, consensus_params: ConsensusParams, previous_round_tx_type: Optional[TransactionType] = None) -> None
 ```
 
 Initialize the round.
@@ -1063,7 +1063,7 @@ Initialize the round.
 def synchronized_data() -> BaseSynchronizedData
 ```
 
-Get the period state.
+Get the period data.
 
 <a id="packages.valory.skills.abstract_round_abci.base.AbstractRound.check_transaction"></a>
 
@@ -2183,16 +2183,16 @@ def last_round_transition_height() -> int
 
 Returns the height for last round transition.
 
-<a id="packages.valory.skills.abstract_round_abci.base.RoundSequence.latest_state"></a>
+<a id="packages.valory.skills.abstract_round_abci.base.RoundSequence.latest_synchronized_data"></a>
 
-#### latest`_`state
+#### latest`_`synchronized`_`data
 
 ```python
 @property
-def latest_state() -> BaseSynchronizedData
+def latest_synchronized_data() -> BaseSynchronizedData
 ```
 
-Get the latest state.
+Get the latest synchronized_data.
 
 <a id="packages.valory.skills.abstract_round_abci.base.RoundSequence.begin_block"></a>
 

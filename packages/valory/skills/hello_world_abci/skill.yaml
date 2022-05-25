@@ -14,7 +14,7 @@ fingerprint:
   handlers.py: QmSeSEdJzN4YtM2Qy59SHsfERtS58HyyFMkpyu9JR7pqxu
   models.py: QmWL6tQvUwLDWkGEtJNTy42zQ6TG6h1dV8VBYYQB82oiC3
   payloads.py: QmWFfkHiAsbkgDDgwVRHHWgfLtog6RTm5JVsqMDXp5oGTv
-  rounds.py: QmSgVe9Gec1XjeH8v1wpTJELkGCdGGPZZHCSMcW9F8GCdT
+  rounds.py: QmVYQTWrTybQieSqh5uDg7qUKvRWrSfo8vcc3uXrU7WxUQ
 fingerprint_ignore_patterns: []
 connections:
 - valory/abci:0.1.0:QmaPFp3Jwf6uv9VSAoMJfJHFS9ESPeX8hCB7HLi41c8WzS

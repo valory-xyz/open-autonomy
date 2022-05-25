@@ -269,7 +269,7 @@ Class for clean-up related functionality of behaviours.
 def __init__(**kwargs: Any)
 ```
 
-Initialize a base state behaviour.
+Initialize a base behaviour.
 
 <a id="packages.valory.skills.abstract_round_abci.behaviour_utils.CleanUpBehaviour.clean_up"></a>
 
@@ -350,7 +350,7 @@ Return the params.
 def synchronized_data() -> BaseSynchronizedData
 ```
 
-Return the period state.
+Return the period data.
 
 <a id="packages.valory.skills.abstract_round_abci.behaviour_utils.BaseBehaviour.check_in_round"></a>
 
@@ -464,7 +464,7 @@ so the usage of datetime.now() is acceptable here.
 def is_done() -> bool
 ```
 
-Check whether the state is done.
+Check whether the behaviour is done.
 
 <a id="packages.valory.skills.abstract_round_abci.behaviour_utils.BaseBehaviour.set_done"></a>
 

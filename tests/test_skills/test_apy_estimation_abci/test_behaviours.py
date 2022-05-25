@@ -621,10 +621,7 @@ class TestTransformBehaviour(APYEstimationFSMBehaviourBaseCase):
             # Continue the `async_act` after the sleep of the Behaviour.
             self.behaviour.act_wrapper()
 
-        assert (
-            "[test_agent_name] Entered in the 'transform' behaviour state"
-            in caplog.text
-        )
+        assert "[test_agent_name] Entered in the 'transform' behaviour" in caplog.text
 
         assert (
             "[test_agent_name] The transform task is not finished yet." in caplog.text
@@ -1937,10 +1934,7 @@ class TestCycleResetBehaviour(APYEstimationFSMBehaviourBaseCase):
             time.sleep(SLEEP_TIME_TWEAK + 0.01)
             self.behaviour.act_wrapper()
 
-        assert (
-            "[test_agent_name] Entered in the 'cycle_reset' behaviour state"
-            in caplog.text
-        )
+        assert "[test_agent_name] Entered in the 'cycle_reset' behaviour" in caplog.text
         assert (
             "[test_agent_name] Finalized estimate not available. Resetting!"
             in caplog.text
@@ -1977,7 +1971,7 @@ class TestFreshModelResetBehaviour(APYEstimationFSMBehaviourBaseCase):
             self.behaviour.act_wrapper()
 
         assert (
-            "[test_agent_name] Entered in the 'fresh_model_reset' behaviour state"
+            "[test_agent_name] Entered in the 'fresh_model_reset' behaviour"
             in caplog.text
         )
         assert (
