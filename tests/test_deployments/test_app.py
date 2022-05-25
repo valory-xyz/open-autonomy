@@ -3,11 +3,14 @@ import logging
 import os
 import stat
 import shutil
+import urllib
 import socket
 import tempfile
 import subprocess
 from pathlib import Path
+import requests
 import time
+import pytest
 from deployments.Dockerfiles.localnode.app import (
     load_genesis,
     get_defaults,
@@ -20,54 +23,74 @@ from deployments.Dockerfiles.localnode.tendermint import (
 )
 
 
+ENCODING = "utf-8"
+VERSION = "0.34.11"
+HTTP = "http://"
+
+parse_result = urllib.parse.urlparse(DEFAULT_RPC_LADDR)
+IP, PORT = parse_result.hostname, parse_result.port
+
+
 # utility functions
 def readonly_handler(func, path, execinfo) -> None:
     """If permission is readonly, we change and retry."""
-
     os.chmod(path, stat.S_IWRITE)
     func(path)
 
 
 def port_is_open(ip: str, port: int) -> bool:
+    """Assess whether a port is open"""
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     result = sock.connect_ex((ip, port))
     sock.close()
     return result == 0
 
 
+def wait_for_node_to_run(func):
+    """Wait for Tendermint node to run"""
+    def wrapper(*args, **kwargs):
+        i, max_retries = 0, 5
+        while not port_is_open(IP, PORT) and i < max_retries:
+            logging.debug(f"waiting for node... t={i}")
+            i += time.sleep(1) or 1
+        response = requests.get(f"{HTTP}{IP}:{PORT}/status")
+        success = response.status_code == 200
+        assert success, "Tendermint node not running"
+        func(*args, **kwargs)
+    return wrapper
+
+
 # unit tests
 def test_tendermint_executable_found():
     assert shutil.which("tendermint"), "No `tendermint` executable found"
+    output = subprocess.check_output(["tendermint", "version"])
+    assert output.decode(ENCODING).strip() == VERSION
 
 
 class BaseTendermintTest:
+    """BaseTendermintTest"""
 
     @classmethod
     def setup_class(cls) -> None:
         """Setup the test."""
         cls.tendermint = shutil.which("tendermint")
         cls.original_dir = os.getcwd()
+        cls.dir = os.environ["TMHOME"] = tempfile.mkdtemp()
+        cls.path = Path(cls.dir)
+        assert not os.listdir(str(cls.path))
 
-        cls.path = path = Path("/tmp/tmp_test/")
-        if path.is_dir():
-            shutil.rmtree(str(path), onerror=readonly_handler)
-        path.mkdir()
-        assert not os.listdir(str(path))
-
-        cls.dir = os.environ["TMHOME"] = str(path).strip()  # tempfile.mkdtemp()
         os.chdir(cls.dir)
         command = [cls.tendermint, 'init', 'validator', '--home',  f'{cls.dir}']
         process = subprocess.Popen(command, stderr=subprocess.PIPE)
         _, stderr = process.communicate()
-        logging.debug(f"{' '.join(command)}, stdout {_}")
         assert not stderr, stderr
 
     @classmethod
     def teardown_class(cls) -> None:
         """Teardown the test."""
         os.chdir(cls.original_dir)
-        # shutil.rmtree(cls.dir, onerror=readonly_handler)
-        # assert not os.path.exists(cls.dir)
+        shutil.rmtree(cls.dir, onerror=readonly_handler)
+        assert not os.path.exists(cls.dir)
 
 
 class TestTendermintServerUtilityFunctions(BaseTendermintTest):
@@ -100,9 +123,10 @@ class TestTendermintServerApp(BaseTendermintTest):
     def setup_class(cls) -> None:
         """Setup the test."""
         super().setup_class()
-        cls.proxy_app = os.environ["PROXY_APP"] = "tcp://0.0.0.0:26667"  # "tcp://0.0.0.0:8080"
+        cls.proxy_app = os.environ["PROXY_APP"] = "kvstore"
         cls.create_empty_blocks = os.environ["CREATE_EMPTY_BLOCKS"] = "true"
         os.environ["LOG_FILE"] = str(cls.path / "tendermint.log")
+        logging.info(f"logfile: {os.environ['LOG_FILE']}")
         cls.app, cls.tendermint_node = create_app(Path(cls.dir) / "tm_state")
         cls.app.config["TESTING"] = True
         cls.app_context = cls.app.app_context()
@@ -111,7 +135,8 @@ class TestTendermintServerApp(BaseTendermintTest):
     def test_files_exist(self):
         """Test that the necessary files are present"""
 
-        def remove_prefix(text, prefix):  # str.removeprefix only in python3.9
+        def remove_prefix(text: str, prefix: str):
+            """str.removeprefix only from python3.9 onward"""
             return text[text.startswith(prefix) and len(prefix):]
 
         expected_file_names = [
@@ -129,36 +154,78 @@ class TestTendermintServerApp(BaseTendermintTest):
         missing_files = set(expected_file_names).difference(file_names)
         assert not missing_files
 
+    @wait_for_node_to_run
+    def test_get_request_status(self):
+        """Check local node is running"""
+        response = requests.get(f"{HTTP}{IP}:{PORT}/status")
+        data = response.json()
+        assert data["result"]["node_info"]["version"] == VERSION
+
     def test_handle_notfound(self):
+        """Test handle not found"""
         with self.app.test_client() as client:
             response = client.get("/non_existing_endpoint")
             assert response.status_code == 404
 
-    def test_status(self):
-        # http://localhost:26657/status
-        success = False
-        with self.app.test_client() as client:
-            for _ in range(3):
-                response = client.get("/status")
-                if response.status_code == 200:
-                    success = True
-                    break
-                time.sleep(1)
-        assert success
-
+    @wait_for_node_to_run
     def test_get_app_hash(self):
         """Test get app hash"""
         with self.app.test_client() as client:
             response = client.get("/app_hash")
-            logging.error(response.get_json())
+            data = response.get_json()
             assert response.status_code == 200
-            assert not response.get_json().get("error")
+            assert "error" not in data
+            assert "app_hash" in data
 
-    # def test_get_gentle_reset(self):
-    #     """Test get app hash"""
-    #     with self.app.test_client() as client:
-    #         response = client.get("/gentle_reset")
-    #         assert response.status_code == 200
+    @wait_for_node_to_run
+    def test_gentle_reset(self):
+        """Test gentle reset"""
+        with self.app.test_client() as client:
+            response = client.get("/gentle_reset")
+            data = response.get_json()
+            assert response.status_code == 200
+            assert data["status"] is True
+
+    @wait_for_node_to_run
+    def test_hard_reset(self):
+        """Test hard reset"""
+        with self.app.test_client() as client:
+            response = client.get("/hard_reset")
+            data = response.get_json()
+            assert response.status_code == 200
+            assert data["status"] is True
+
+    @wait_for_node_to_run
+    def test_logs_after_stopping(self):
+
+        def get_logs():
+            with open(os.environ["LOG_FILE"], 'r') as f:
+                lines = "".join(f.readlines())
+            return lines
+
+        def get_missing(messages):
+            i, max_retries = 0, 5
+            while messages and i < max_retries:
+                i += time.sleep(1) or 1
+                messages = [line for line in messages if line not in get_logs()]
+            return messages
+
+        before_stopping = [
+            "Tendermint process started",
+            "Monitoring thread started",
+            "Starting multiAppConn service",
+            "Starting localClient service",
+            "This node is a validator",
+        ]
+
+        after_stopping = [
+            "Monitoring thread terminated",
+            "Tendermint process stopped",
+        ]
+
+        assert not get_missing(before_stopping)
+        self.tendermint_node.stop()
+        assert not get_missing(after_stopping)
 
     @classmethod
     def teardown_class(cls) -> None:
