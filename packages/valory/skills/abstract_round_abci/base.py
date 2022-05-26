@@ -600,6 +600,11 @@ class BasePeriodState:
         # using `sha256` in order to get a fixed size hash
         return self._app_hash
 
+    @app_hash.setter
+    def app_hash(self, app_hash: bytes) -> None:
+        """Set the app hash."""
+        self._app_hash = app_hash
+
     @property
     def round_count(self) -> int:
         """Get the round count."""
