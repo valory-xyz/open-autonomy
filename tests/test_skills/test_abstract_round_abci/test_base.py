@@ -498,7 +498,7 @@ class TestAbciAppDB:
         )
         assert db._data == {0: {"participants": [self.participants]}}
         assert db.initial_data == {"participants": [self.participants]}
-        assert db.cross_reset_persisted_keys == []
+        assert db.cross_period_persisted_keys == []
 
     def test_get(self) -> None:
         """Test getters."""
@@ -1065,20 +1065,20 @@ class TestAbciApp:
         """Test the cleanup method."""
         self.abci_app.setup()
 
-        # Dummy parameters, state and round
+        # Dummy parameters, synchronized data and round
         cleanup_history_depth = 1
         start_history_depth = 5
         max_participants = 4
-        dummy_state = BaseSynchronizedData(
+        dummy_synchronized_data = BaseSynchronizedData(
             db=AbciAppDB(initial_data=dict(participants=max_participants))
         )
         dummy_consensus_params = ConsensusParams(max_participants)
-        dummy_round = ConcreteRoundA(dummy_state, dummy_consensus_params)
+        dummy_round = ConcreteRoundA(dummy_synchronized_data, dummy_consensus_params)
 
         # Add dummy data
         self.abci_app._previous_rounds = [dummy_round] * start_history_depth
-        self.abci_app._round_results = [dummy_state] * start_history_depth
-        self.abci_app.state.db._data = {
+        self.abci_app._round_results = [dummy_synchronized_data] * start_history_depth
+        self.abci_app.synchronized_data.db._data = {
             i: {"dummy_key": ["dummy_value"]} for i in range(start_history_depth)
         }
 
@@ -1086,13 +1086,13 @@ class TestAbciApp:
         # Verify that cleanup reduces the data amount
         assert len(self.abci_app._previous_rounds) == start_history_depth
         assert len(self.abci_app._round_results) == start_history_depth
-        assert len(self.abci_app.state.db._data) == start_history_depth
+        assert len(self.abci_app.synchronized_data.db._data) == start_history_depth
 
         self.abci_app.cleanup(cleanup_history_depth)
 
         assert len(self.abci_app._previous_rounds) == cleanup_history_depth
         assert len(self.abci_app._round_results) == cleanup_history_depth
-        assert len(self.abci_app.state.db._data) == cleanup_history_depth
+        assert len(self.abci_app.synchronized_data.db._data) == cleanup_history_depth
 
         # Verify round height stays unaffected
         assert self.abci_app.current_round_height == round_height
@@ -1174,7 +1174,7 @@ class TestRoundSequence:
 
     def test_latest_result(self) -> None:
         """Test 'latest_result' property getter."""
-        assert self.round_sequence.latest_state
+        assert self.round_sequence.latest_synchronized_data
 
     @pytest.mark.parametrize("committed", (True, False))
     def test_last_round_transition_timestamp(self, committed: bool) -> None:
@@ -1308,7 +1308,7 @@ class TestRoundSequence:
         assert not isinstance(
             self.round_sequence.abci_app._current_round, ConcreteRoundA
         )
-        assert self.round_sequence.latest_state == round_result
+        assert self.round_sequence.latest_synchronized_data == round_result
 
     @pytest.mark.parametrize("is_replay", (True, False))
     def test_reset_blockchain(self, is_replay: bool) -> None:

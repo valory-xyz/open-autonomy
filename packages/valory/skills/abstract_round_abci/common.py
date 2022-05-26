@@ -26,7 +26,7 @@ from typing import Dict, Generator, List, Optional, Type, Union, cast
 
 from packages.valory.protocols.ledger_api.message import LedgerApiMessage
 from packages.valory.skills.abstract_round_abci.base import BaseTxPayload
-from packages.valory.skills.abstract_round_abci.behaviour_utils import BaseState
+from packages.valory.skills.abstract_round_abci.behaviour_utils import BaseBehaviour
 from packages.valory.skills.abstract_round_abci.utils import VerifyDrand
 
 
@@ -50,7 +50,7 @@ def random_selection(elements: List[str], randomness: float) -> str:
     return elements[random_position]
 
 
-class RandomnessBehaviour(BaseState):
+class RandomnessBehaviour(BaseBehaviour):
     """Check whether Tendermint nodes are running."""
 
     payload_class: Type[BaseTxPayload]
@@ -111,7 +111,7 @@ class RandomnessBehaviour(BaseState):
         - Retry until reciving valid values for randomness or retries exceed.
         - If retrieved values are valid continue else generate randomness from chain.
         """
-        with self.context.benchmark_tool.measure(self.state_id).local():
+        with self.context.benchmark_tool.measure(self.behaviour_id).local():
             if self.context.randomness_api.is_retries_exceeded():
                 self.context.logger.info("Cannot retrieve randomness from api.")
                 self.context.logger.info("Generating randomness from chain.")
@@ -132,7 +132,7 @@ class RandomnessBehaviour(BaseState):
                 round_id=observation["round"],
                 randomness=observation["randomness"],
             )
-            with self.context.benchmark_tool.measure(self.state_id).consensus():
+            with self.context.benchmark_tool.measure(self.behaviour_id).consensus():
                 yield from self.send_a2a_transaction(payload)
                 yield from self.wait_until_round_end()
 
@@ -153,7 +153,7 @@ class RandomnessBehaviour(BaseState):
         self.context.randomness_api.reset_retries()
 
 
-class SelectKeeperBehaviour(BaseState):
+class SelectKeeperBehaviour(BaseBehaviour):
     """Select the keeper agent."""
 
     payload_class: Type[BaseTxPayload]
@@ -214,12 +214,12 @@ class SelectKeeperBehaviour(BaseState):
         - Go to the next behaviour state (set done event).
         """
 
-        with self.context.benchmark_tool.measure(self.state_id).local():
+        with self.context.benchmark_tool.measure(self.behaviour_id).local():
             payload = self.payload_class(
                 self.context.agent_address, self._select_keeper()
             )
 
-        with self.context.benchmark_tool.measure(self.state_id).consensus():
+        with self.context.benchmark_tool.measure(self.behaviour_id).consensus():
             yield from self.send_a2a_transaction(payload)
             yield from self.wait_until_round_end()
 

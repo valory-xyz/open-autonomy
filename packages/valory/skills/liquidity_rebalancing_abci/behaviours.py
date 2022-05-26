@@ -39,7 +39,7 @@ from packages.valory.contracts.uniswap_v2_router_02.contract import (
 from packages.valory.protocols.contract_api import ContractApiMessage
 from packages.valory.skills.abstract_round_abci.behaviours import (
     AbstractRoundBehaviour,
-    BaseState,
+    BaseBehaviour,
 )
 from packages.valory.skills.liquidity_rebalancing_abci.models import Params, SharedState
 from packages.valory.skills.liquidity_rebalancing_abci.payloads import (
@@ -98,12 +98,12 @@ def parse_tx_token_balance(
     return sum(event["value"] for event in token_events)
 
 
-class LiquidityRebalancingBaseBehaviour(BaseState, ABC):
-    """Base state behaviour for the liquidity rebalancing skill."""
+class LiquidityRebalancingBaseBehaviour(BaseBehaviour, ABC):
+    """Base behaviour for the liquidity rebalancing skill."""
 
     @property
     def synchronized_data(self) -> SynchronizedData:
-        """Return the period state."""
+        """Return the synchronized data."""
         return cast(SynchronizedData, super().synchronized_data)
 
     @property
@@ -304,13 +304,13 @@ class LiquidityRebalancingBaseBehaviour(BaseState, ABC):
 class StrategyEvaluationBehaviour(LiquidityRebalancingBaseBehaviour):
     """Evaluate the financial strategy."""
 
-    state_id = "strategy_evaluation"
+    behaviour_id = "strategy_evaluation"
     matching_round = StrategyEvaluationRound
 
     def async_act(self) -> Generator:
         """Do the action."""
 
-        with self.context.benchmark_tool.measure(self.state_id).local():
+        with self.context.benchmark_tool.measure(self.behaviour_id).local():
 
             # Get the previous strategy or use the dummy one
             # For now, the app will loop between enter-exit-swap_back,
@@ -357,7 +357,7 @@ class StrategyEvaluationBehaviour(LiquidityRebalancingBaseBehaviour):
                 self.context.agent_address, json.dumps(strategy, sort_keys=True)
             )
 
-        with self.context.benchmark_tool.measure(self.state_id).consensus():
+        with self.context.benchmark_tool.measure(self.behaviour_id).consensus():
             yield from self.send_a2a_transaction(payload)
             yield from self.wait_until_round_end()
 
@@ -423,18 +423,18 @@ class StrategyEvaluationBehaviour(LiquidityRebalancingBaseBehaviour):
 class SleepBehaviour(LiquidityRebalancingBaseBehaviour):
     """Wait for a predefined amount of time."""
 
-    state_id = "sleep"
+    behaviour_id = "sleep"
     matching_round = SleepRound
 
     def async_act(self) -> Generator:
         """Do the action."""
 
-        with self.context.benchmark_tool.measure(self.state_id).local():
+        with self.context.benchmark_tool.measure(self.behaviour_id).local():
 
             yield from self.sleep(self.params.rebalancing_params["sleep_seconds"])
             payload = SleepPayload(self.context.agent_address)
 
-        with self.context.benchmark_tool.measure(self.state_id).consensus():
+        with self.context.benchmark_tool.measure(self.behaviour_id).consensus():
             yield from self.send_a2a_transaction(payload)
             yield from self.wait_until_round_end()
 
@@ -454,7 +454,7 @@ class EnterPoolTransactionHashBehaviour(LiquidityRebalancingBaseBehaviour):
     A-B-pool Minter       ->  Safe        : AB_LP tokens
     """
 
-    state_id = "enter_pool_tx_hash"
+    behaviour_id = "enter_pool_tx_hash"
     matching_round = EnterPoolTransactionHashRound
 
     def async_act(self) -> Generator:
@@ -466,10 +466,10 @@ class EnterPoolTransactionHashBehaviour(LiquidityRebalancingBaseBehaviour):
           hash that needs to be signed by a threshold of agents.
         - Send the transaction hash as a transaction and wait for it to be mined.
         - Wait until ABCI application transitions to the next round.
-        - Go to the next behaviour state (set done event).
+        - Go to the next behaviour (set done event).
         """
 
-        with self.context.benchmark_tool.measure(self.state_id).local():
+        with self.context.benchmark_tool.measure(self.behaviour_id).local():
 
             strategy = json.loads(self.synchronized_data.most_voted_strategy)
 
@@ -630,7 +630,7 @@ class EnterPoolTransactionHashBehaviour(LiquidityRebalancingBaseBehaviour):
                 sender=self.context.agent_address, tx_hash=payload_string
             )
 
-        with self.context.benchmark_tool.measure(self.state_id).consensus():
+        with self.context.benchmark_tool.measure(self.behaviour_id).consensus():
             yield from self.send_a2a_transaction(payload)
             yield from self.wait_until_round_end()
 
@@ -646,7 +646,7 @@ class ExitPoolTransactionHashBehaviour(LiquidityRebalancingBaseBehaviour):
     AB_LP        ->  Safe        : B tokens
     """
 
-    state_id = "exit_pool_tx_hash"
+    behaviour_id = "exit_pool_tx_hash"
     matching_round = ExitPoolTransactionHashRound
 
     def async_act(self) -> Generator:  # pylint: disable=too-many-statements
@@ -658,10 +658,10 @@ class ExitPoolTransactionHashBehaviour(LiquidityRebalancingBaseBehaviour):
           hash that needs to be signed by a threshold of agents.
         - Send the transaction hash as a transaction and wait for it to be mined.
         - Wait until ABCI application transitions to the next round.
-        - Go to the next behaviour state (set done event).
+        - Go to the next behaviour (set done event).
         """
 
-        with self.context.benchmark_tool.measure(self.state_id).local():
+        with self.context.benchmark_tool.measure(self.behaviour_id).local():
 
             strategy = json.loads(self.synchronized_data.most_voted_strategy)
 
@@ -799,7 +799,7 @@ class ExitPoolTransactionHashBehaviour(LiquidityRebalancingBaseBehaviour):
                 sender=self.context.agent_address, tx_hash=payload_string
             )
 
-        with self.context.benchmark_tool.measure(self.state_id).consensus():
+        with self.context.benchmark_tool.measure(self.behaviour_id).consensus():
             yield from self.send_a2a_transaction(payload)
             yield from self.wait_until_round_end()
 
@@ -816,7 +816,7 @@ class SwapBackTransactionHashBehaviour(LiquidityRebalancingBaseBehaviour):
     B-Base-pool  ->  Safe           : Base tokens
     """
 
-    state_id = "swap_back_tx_hash"
+    behaviour_id = "swap_back_tx_hash"
     matching_round = SwapBackTransactionHashRound
 
     def async_act(self) -> Generator:  # pylint: disable=too-many-statements
@@ -828,10 +828,10 @@ class SwapBackTransactionHashBehaviour(LiquidityRebalancingBaseBehaviour):
           hash that needs to be signed by a threshold of agents.
         - Send the transaction hash as a transaction and wait for it to be mined.
         - Wait until ABCI application transitions to the next round.
-        - Go to the next behaviour state (set done event).
+        - Go to the next behaviour (set done event).
         """
 
-        with self.context.benchmark_tool.measure(self.state_id).local():
+        with self.context.benchmark_tool.measure(self.behaviour_id).local():
 
             strategy = json.loads(self.synchronized_data.most_voted_strategy)
 
@@ -947,7 +947,7 @@ class SwapBackTransactionHashBehaviour(LiquidityRebalancingBaseBehaviour):
                 sender=self.context.agent_address, tx_hash=payload_string
             )
 
-        with self.context.benchmark_tool.measure(self.state_id).consensus():
+        with self.context.benchmark_tool.measure(self.behaviour_id).consensus():
             yield from self.send_a2a_transaction(payload)
             yield from self.wait_until_round_end()
 
@@ -957,9 +957,9 @@ class SwapBackTransactionHashBehaviour(LiquidityRebalancingBaseBehaviour):
 class LiquidityRebalancingConsensusBehaviour(AbstractRoundBehaviour):
     """This behaviour manages the consensus stages for the rebalancing behaviour."""
 
-    initial_state_cls = StrategyEvaluationBehaviour
+    initial_behaviour_cls = StrategyEvaluationBehaviour
     abci_app_cls = LiquidityRebalancingAbciApp  # type: ignore
-    behaviour_states: Set[Type[BaseState]] = {  # type: ignore
+    behaviours: Set[Type[BaseBehaviour]] = {  # type: ignore
         StrategyEvaluationBehaviour,  # type: ignore
         SleepBehaviour,  # type: ignore
         EnterPoolTransactionHashBehaviour,  # type: ignore

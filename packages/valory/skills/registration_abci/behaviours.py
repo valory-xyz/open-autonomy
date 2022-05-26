@@ -23,7 +23,7 @@ from typing import Generator, Set, Type
 
 from packages.valory.skills.abstract_round_abci.behaviours import (
     AbstractRoundBehaviour,
-    BaseState,
+    BaseBehaviour,
 )
 from packages.valory.skills.registration_abci.payloads import RegistrationPayload
 from packages.valory.skills.registration_abci.rounds import (
@@ -33,8 +33,8 @@ from packages.valory.skills.registration_abci.rounds import (
 )
 
 
-class RegistrationBaseBehaviour(BaseState):
-    """Register to the next periods."""
+class RegistrationBaseBehaviour(BaseBehaviour):
+    """Agent registration to the FSM App."""
 
     def async_act(self) -> Generator:
         """
@@ -44,10 +44,10 @@ class RegistrationBaseBehaviour(BaseState):
         - Build a registration transaction.
         - Send the transaction and wait for it to be mined.
         - Wait until ABCI application transitions to the next round.
-        - Go to the next behaviour state (set done event).
+        - Go to the next behaviour (set done event).
         """
 
-        with self.context.benchmark_tool.measure(self.state_id).local():
+        with self.context.benchmark_tool.measure(self.behaviour_id).local():
             initialisation = (
                 json.dumps(self.synchronized_data.db.initial_data, sort_keys=True)
                 if self.synchronized_data.db.initial_data != {}
@@ -57,7 +57,7 @@ class RegistrationBaseBehaviour(BaseState):
                 self.context.agent_address, initialisation=initialisation
             )
 
-        with self.context.benchmark_tool.measure(self.state_id).consensus():
+        with self.context.benchmark_tool.measure(self.behaviour_id).consensus():
             yield from self.send_a2a_transaction(payload)
             yield from self.wait_until_round_end()
 
@@ -65,25 +65,25 @@ class RegistrationBaseBehaviour(BaseState):
 
 
 class RegistrationStartupBehaviour(RegistrationBaseBehaviour):
-    """Register to the next periods."""
+    """Agent registration to the FSM App."""
 
-    state_id = "registration_startup"
+    behaviour_id = "registration_startup"
     matching_round = RegistrationStartupRound
 
 
 class RegistrationBehaviour(RegistrationBaseBehaviour):
-    """Register to the next periods."""
+    """Agent registration to the FSM App."""
 
-    state_id = "registration"
+    behaviour_id = "registration"
     matching_round = RegistrationRound
 
 
 class AgentRegistrationRoundBehaviour(AbstractRoundBehaviour):
     """This behaviour manages the consensus stages for the registration."""
 
-    initial_state_cls = RegistrationStartupBehaviour
+    initial_behaviour_cls = RegistrationStartupBehaviour
     abci_app_cls = AgentRegistrationAbciApp  # type: ignore
-    behaviour_states: Set[Type[BaseState]] = {  # type: ignore
+    behaviours: Set[Type[BaseBehaviour]] = {  # type: ignore
         RegistrationBehaviour,  # type: ignore
         RegistrationStartupBehaviour,  # type: ignore
     }

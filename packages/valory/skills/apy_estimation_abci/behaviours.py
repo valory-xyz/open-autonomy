@@ -41,7 +41,7 @@ import pandas as pd
 
 from packages.valory.skills.abstract_round_abci.behaviours import (
     AbstractRoundBehaviour,
-    BaseState,
+    BaseBehaviour,
 )
 from packages.valory.skills.abstract_round_abci.io.load import SupportedFiletype
 from packages.valory.skills.abstract_round_abci.models import ApiSpecs
@@ -110,12 +110,12 @@ from packages.valory.skills.apy_estimation_abci.tools.queries import (
 )
 
 
-class APYEstimationBaseState(BaseState, ABC):
-    """Base state behaviour for the APY estimation skill."""
+class APYEstimationBaseBehaviour(BaseBehaviour, ABC):
+    """Base behaviour for the APY estimation skill."""
 
     @property
     def synchronized_data(self) -> SynchronizedData:
-        """Return the period state."""
+        """Return the synchronized data."""
         return cast(SynchronizedData, super().synchronized_data)
 
     @property
@@ -139,11 +139,11 @@ class APYEstimationBaseState(BaseState, ABC):
 
 
 class FetchBehaviour(
-    APYEstimationBaseState
+    APYEstimationBaseBehaviour
 ):  # pylint: disable=too-many-instance-attributes
     """Observe historical data."""
 
-    state_id = "fetch"
+    behaviour_id = "fetch"
     matching_round = CollectHistoryRound
     batch = False
 
@@ -338,11 +338,11 @@ class FetchBehaviour(
         - If the request fails, retry until max retries are exceeded.
         - Send an observation transaction and wait for it to be mined.
         - Wait until ABCI application transitions to the next round.
-        - Go to the next behaviour state (set done event).
+        - Go to the next behaviour (set done event).
         """
         self._set_current_timestamp()
 
-        with self.context.benchmark_tool.measure(self.state_id).local():
+        with self.context.benchmark_tool.measure(self.behaviour_id).local():
             if self._current_timestamp is not None:
                 yield from self._fetch_batch()
                 return
@@ -375,7 +375,7 @@ class FetchBehaviour(
             )
 
             # Finish behaviour.
-            with self.context.benchmark_tool.measure(self.state_id).consensus():
+            with self.context.benchmark_tool.measure(self.behaviour_id).consensus():
                 yield from self.send_a2a_transaction(payload)
                 yield from self.wait_until_round_end()
 
@@ -394,15 +394,15 @@ class FetchBehaviour(
 class FetchBatchBehaviour(FetchBehaviour):  # pylint: disable=too-many-ancestors
     """Observe the latest batch of historical data."""
 
-    state_id = "fetch_batch"
+    behaviour_id = "fetch_batch"
     matching_round = CollectLatestHistoryBatchRound
     batch = True
 
 
-class TransformBehaviour(APYEstimationBaseState):
+class TransformBehaviour(APYEstimationBaseBehaviour):
     """Transform historical data, i.e., convert them to a dataframe and calculate useful metrics, such as the APY."""
 
-    state_id = "transform"
+    behaviour_id = "transform"
     matching_round = TransformRound
 
     def __init__(self, **kwargs: Any) -> None:
@@ -479,17 +479,17 @@ class TransformBehaviour(APYEstimationBaseState):
         )
 
         # Finish behaviour.
-        with self.context.benchmark_tool.measure(self.state_id).consensus():
+        with self.context.benchmark_tool.measure(self.behaviour_id).consensus():
             yield from self.send_a2a_transaction(payload)
             yield from self.wait_until_round_end()
 
         self.set_done()
 
 
-class PreprocessBehaviour(APYEstimationBaseState):
+class PreprocessBehaviour(APYEstimationBaseBehaviour):
     """Preprocess historical data (train-test split)."""
 
-    state_id = "preprocess"
+    behaviour_id = "preprocess"
     matching_round = PreprocessRound
 
     def __init__(self, **kwargs: Any) -> None:
@@ -558,17 +558,17 @@ class PreprocessBehaviour(APYEstimationBaseState):
         )
 
         # Finish behaviour.
-        with self.context.benchmark_tool.measure(self.state_id).consensus():
+        with self.context.benchmark_tool.measure(self.behaviour_id).consensus():
             yield from self.send_a2a_transaction(payload)
             yield from self.wait_until_round_end()
 
         self.set_done()
 
 
-class PrepareBatchBehaviour(APYEstimationBaseState):
+class PrepareBatchBehaviour(APYEstimationBaseBehaviour):
     """Transform and preprocess batch data."""
 
-    state_id = "prepare_batch"
+    behaviour_id = "prepare_batch"
     matching_round = PrepareBatchRound
 
     def __init__(self, **kwargs: Any) -> None:
@@ -641,29 +641,29 @@ class PrepareBatchBehaviour(APYEstimationBaseState):
         )
 
         # Finish behaviour.
-        with self.context.benchmark_tool.measure(self.state_id).consensus():
+        with self.context.benchmark_tool.measure(self.behaviour_id).consensus():
             yield from self.send_a2a_transaction(payload)
             yield from self.wait_until_round_end()
 
         self.set_done()
 
 
-class RandomnessBehaviour(APYEstimationBaseState):
+class RandomnessBehaviour(APYEstimationBaseBehaviour):
     """Get randomness value from `drnand`."""
 
-    state_id = "randomness"
+    behaviour_id = "randomness"
     matching_round = RandomnessRound
 
     def async_act(self) -> Generator:
         """Get randomness value from `drnand`."""
         if self.context.randomness_api.is_retries_exceeded():
             # now we need to wait and see if the other agents progress the round
-            with self.context.benchmark_tool.measure(self.state_id).consensus():
+            with self.context.benchmark_tool.measure(self.behaviour_id).consensus():
                 yield from self.wait_until_round_end()
             self.set_done()
             return
 
-        with self.context.benchmark_tool.measure(self.state_id).local():
+        with self.context.benchmark_tool.measure(self.behaviour_id).local():
             api_specs = self.context.randomness_api.get_spec()
             response = yield from self.get_http_response(
                 method=api_specs["method"],
@@ -696,7 +696,7 @@ class RandomnessBehaviour(APYEstimationBaseState):
             observation["round"],
             observation["randomness"],
         )
-        with self.context.benchmark_tool.measure(self.state_id).consensus():
+        with self.context.benchmark_tool.measure(self.behaviour_id).consensus():
             yield from self.send_a2a_transaction(payload)
             yield from self.wait_until_round_end()
 
@@ -711,10 +711,10 @@ class RandomnessBehaviour(APYEstimationBaseState):
         self.context.randomness_api.reset_retries()
 
 
-class OptimizeBehaviour(APYEstimationBaseState):
+class OptimizeBehaviour(APYEstimationBaseBehaviour):
     """Run an optimization study based on the training data."""
 
-    state_id = "optimize"
+    behaviour_id = "optimize"
     matching_round = OptimizeRound
 
     def __init__(self, **kwargs: Any) -> None:
@@ -801,17 +801,17 @@ class OptimizeBehaviour(APYEstimationBaseState):
         )
 
         # Finish behaviour.
-        with self.context.benchmark_tool.measure(self.state_id).consensus():
+        with self.context.benchmark_tool.measure(self.behaviour_id).consensus():
             yield from self.send_a2a_transaction(payload)
             yield from self.wait_until_round_end()
 
         self.set_done()
 
 
-class TrainBehaviour(APYEstimationBaseState):
+class TrainBehaviour(APYEstimationBaseBehaviour):
     """Train an estimator."""
 
-    state_id = "train"
+    behaviour_id = "train"
     matching_round = TrainRound
 
     def __init__(self, **kwargs: Any) -> None:
@@ -897,17 +897,17 @@ class TrainBehaviour(APYEstimationBaseState):
         payload = TrainingPayload(self.context.agent_address, self._models_hash)
 
         # Finish behaviour.
-        with self.context.benchmark_tool.measure(self.state_id).consensus():
+        with self.context.benchmark_tool.measure(self.behaviour_id).consensus():
             yield from self.send_a2a_transaction(payload)
             yield from self.wait_until_round_end()
 
         self.set_done()
 
 
-class TestBehaviour(APYEstimationBaseState):
+class TestBehaviour(APYEstimationBaseBehaviour):
     """Test an estimator."""
 
-    state_id = "test"
+    behaviour_id = "test"
     matching_round = TestRound
 
     def __init__(self, **kwargs: Any) -> None:
@@ -995,17 +995,17 @@ class TestBehaviour(APYEstimationBaseState):
         payload = TestingPayload(self.context.agent_address, self._report_hash)
 
         # Finish behaviour.
-        with self.context.benchmark_tool.measure(self.state_id).consensus():
+        with self.context.benchmark_tool.measure(self.behaviour_id).consensus():
             yield from self.send_a2a_transaction(payload)
             yield from self.wait_until_round_end()
 
         self.set_done()
 
 
-class UpdateForecasterBehaviour(APYEstimationBaseState):
+class UpdateForecasterBehaviour(APYEstimationBaseBehaviour):
     """Update an estimator."""
 
-    state_id = "update"
+    behaviour_id = "update"
     matching_round = UpdateForecasterRound
 
     def __init__(self, **kwargs: Any) -> None:
@@ -1068,17 +1068,17 @@ class UpdateForecasterBehaviour(APYEstimationBaseState):
         payload = UpdatePayload(self.context.agent_address, self._models_hash)
 
         # Finish behaviour.
-        with self.context.benchmark_tool.measure(self.state_id).consensus():
+        with self.context.benchmark_tool.measure(self.behaviour_id).consensus():
             yield from self.send_a2a_transaction(payload)
             yield from self.wait_until_round_end()
 
         self.set_done()
 
 
-class EstimateBehaviour(APYEstimationBaseState):
+class EstimateBehaviour(APYEstimationBaseBehaviour):
     """Estimate APY."""
 
-    state_id = "estimate"
+    behaviour_id = "estimate"
     matching_round = EstimateRound
 
     def __init__(self, **kwargs: Any) -> None:
@@ -1140,30 +1140,30 @@ class EstimateBehaviour(APYEstimationBaseState):
         payload = EstimatePayload(self.context.agent_address, self._estimations_hash)
 
         # Finish behaviour.
-        with self.context.benchmark_tool.measure(self.state_id).consensus():
+        with self.context.benchmark_tool.measure(self.behaviour_id).consensus():
             yield from self.send_a2a_transaction(payload)
             yield from self.wait_until_round_end()
 
         self.set_done()
 
 
-class BaseResetBehaviour(APYEstimationBaseState):
-    """Reset state."""
+class BaseResetBehaviour(APYEstimationBaseBehaviour):
+    """Reset behaviour."""
 
     def async_act(self) -> Generator:
         """
         Do the action.
 
         Steps:
-        - Trivially log the state.
+        - Trivially log the behaviour.
         - Sleep for configured interval.
         - Build a registration transaction.
         - Send the transaction and wait for it to be mined.
         - Wait until ABCI application transitions to the next round.
-        - Go to the next behaviour state (set done event).
+        - Go to the next behaviour (set done event).
         """
         if (
-            self.state_id == "cycle_reset"
+            self.behaviour_id == "cycle_reset"
             and self.synchronized_data.is_most_voted_estimate_set
         ):
             # Load estimations.
@@ -1187,20 +1187,20 @@ class BaseResetBehaviour(APYEstimationBaseState):
             yield from self.sleep(self.params.observation_interval)
             self.context.benchmark_tool.save()
         elif (
-            self.state_id == "cycle_reset"
+            self.behaviour_id == "cycle_reset"
             and not self.synchronized_data.is_most_voted_estimate_set
         ):
             self.context.logger.info("Finalized estimate not available. Resetting!")
-        elif self.state_id == "fresh_model_reset":
+        elif self.behaviour_id == "fresh_model_reset":
             self.context.logger.info("Resetting to create a fresh forecasting model!")
         else:  # pragma: nocover
             raise RuntimeError(
-                f"BaseResetBehaviour not used correctly. Got {self.state_id}. "
-                f"Allowed state ids are `cycle_reset` and `fresh_model_reset`."
+                f"BaseResetBehaviour not used correctly. Got {self.behaviour_id}. "
+                f"Allowed behaviour ids are `cycle_reset` and `fresh_model_reset`."
             )
 
         payload = ResetPayload(
-            self.context.agent_address, self.synchronized_data.period_count + 1
+            self.context.agent_address, self.synchronized_data.period_count
         )
         yield from self.send_a2a_transaction(payload)
         yield from self.wait_until_round_end()
@@ -1210,25 +1210,25 @@ class BaseResetBehaviour(APYEstimationBaseState):
 class FreshModelResetBehaviour(  # pylint: disable=too-many-ancestors
     BaseResetBehaviour
 ):
-    """Reset state to start with a fresh model."""
+    """Reset behaviour to start with a fresh model."""
 
     matching_round = FreshModelResetRound
-    state_id = "fresh_model_reset"
+    behaviour_id = "fresh_model_reset"
 
 
 class CycleResetBehaviour(BaseResetBehaviour):  # pylint: disable=too-many-ancestors
-    """Cycle reset state."""
+    """Cycle reset behaviour."""
 
     matching_round = CycleResetRound
-    state_id = "cycle_reset"
+    behaviour_id = "cycle_reset"
 
 
 class EstimatorRoundBehaviour(AbstractRoundBehaviour):
     """This behaviour manages the consensus stages for the APY estimation behaviour."""
 
-    initial_state_cls = FetchBehaviour
+    initial_behaviour_cls = FetchBehaviour
     abci_app_cls = APYEstimationAbciApp
-    behaviour_states: Set[Type[BaseState]] = {
+    behaviours: Set[Type[BaseBehaviour]] = {
         FetchBehaviour,
         FetchBatchBehaviour,
         TransformBehaviour,

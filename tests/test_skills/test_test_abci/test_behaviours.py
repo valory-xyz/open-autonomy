@@ -27,7 +27,7 @@ from packages.valory.skills.abstract_round_abci.base import (
     BaseSynchronizedData,
     BaseTxPayload,
 )
-from packages.valory.skills.abstract_round_abci.behaviour_utils import BaseState
+from packages.valory.skills.abstract_round_abci.behaviour_utils import BaseBehaviour
 from packages.valory.skills.test_abci.behaviours import (
     DummyBehaviour,
     TestAbciConsensusBehaviour,
@@ -65,17 +65,17 @@ class TestDummyBehaviour(AbciFSMBehaviourBaseCase):
         """Test registration."""
         self.synchronized_data = BaseSynchronizedData(AbciAppDB(initial_data={}))
 
-        self.fast_forward_to_state(
+        self.fast_forward_to_behaviour(
             self.behaviour,
-            DummyBehaviour.state_id,
+            DummyBehaviour.behaviour_id,
             self.synchronized_data,
         )
         assert (
             cast(
-                BaseState,
-                cast(BaseState, self.behaviour.current_state),
-            ).state_id
-            == DummyBehaviour.state_id
+                BaseBehaviour,
+                cast(BaseBehaviour, self.behaviour.current_behaviour),
+            ).behaviour_id
+            == DummyBehaviour.behaviour_id
         )
         self.behaviour.act_wrapper()
-        assert self.behaviour.current_state is None
+        assert self.behaviour.current_behaviour is None

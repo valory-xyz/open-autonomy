@@ -38,7 +38,7 @@ from packages.valory.contracts.uniswap_v2_router_02.contract import (
 from packages.valory.protocols.contract_api.custom_types import Kwargs
 from packages.valory.protocols.contract_api.message import ContractApiMessage
 from packages.valory.skills.abstract_round_abci.base import AbciAppDB
-from packages.valory.skills.abstract_round_abci.behaviour_utils import BaseState
+from packages.valory.skills.abstract_round_abci.behaviour_utils import BaseBehaviour
 from packages.valory.skills.liquidity_rebalancing_abci.behaviours import (
     EnterPoolTransactionHashBehaviour,
     ExitPoolTransactionHashBehaviour,
@@ -160,17 +160,17 @@ class TestStrategyEvaluationBehaviour(LiquidityRebalancingBehaviourBaseCase):
                 ),
             )
         )
-        self.fast_forward_to_state(
+        self.fast_forward_to_behaviour(
             behaviour=self.behaviour,
-            state_id=StrategyEvaluationBehaviour.state_id,
+            behaviour_id=StrategyEvaluationBehaviour.behaviour_id,
             synchronized_data=synchronized_data,
         )
         assert (
             cast(
-                BaseState,
-                cast(BaseState, self.behaviour.current_state),
-            ).state_id
-            == StrategyEvaluationBehaviour.state_id
+                BaseBehaviour,
+                cast(BaseBehaviour, self.behaviour.current_behaviour),
+            ).behaviour_id
+            == StrategyEvaluationBehaviour.behaviour_id
         )
         self.behaviour.act_wrapper()
 
@@ -198,17 +198,17 @@ class TestStrategyEvaluationBehaviour(LiquidityRebalancingBehaviourBaseCase):
                 ),
             )
         )
-        self.fast_forward_to_state(
+        self.fast_forward_to_behaviour(
             behaviour=self.behaviour,
-            state_id=StrategyEvaluationBehaviour.state_id,
+            behaviour_id=StrategyEvaluationBehaviour.behaviour_id,
             synchronized_data=synchronized_data,
         )
         assert (
             cast(
-                BaseState,
-                cast(BaseState, self.behaviour.current_state),
-            ).state_id
-            == StrategyEvaluationBehaviour.state_id
+                BaseBehaviour,
+                cast(BaseBehaviour, self.behaviour.current_behaviour),
+            ).behaviour_id
+            == StrategyEvaluationBehaviour.behaviour_id
         )
         self.behaviour.act_wrapper()
 
@@ -231,17 +231,17 @@ class TestStrategyEvaluationBehaviour(LiquidityRebalancingBehaviourBaseCase):
                 ),
             )
         )
-        self.fast_forward_to_state(
+        self.fast_forward_to_behaviour(
             behaviour=self.behaviour,
-            state_id=StrategyEvaluationBehaviour.state_id,
+            behaviour_id=StrategyEvaluationBehaviour.behaviour_id,
             synchronized_data=synchronized_data,
         )
         assert (
             cast(
-                BaseState,
-                cast(BaseState, self.behaviour.current_state),
-            ).state_id
-            == StrategyEvaluationBehaviour.state_id
+                BaseBehaviour,
+                cast(BaseBehaviour, self.behaviour.current_behaviour),
+            ).behaviour_id
+            == StrategyEvaluationBehaviour.behaviour_id
         )
         with mock.patch(
             "packages.valory.skills.abstract_round_abci.base.AbciApp.last_timestamp",
@@ -273,17 +273,17 @@ class TestStrategyEvaluationBehaviour(LiquidityRebalancingBehaviourBaseCase):
                 ),
             )
         )
-        self.fast_forward_to_state(
+        self.fast_forward_to_behaviour(
             behaviour=self.behaviour,
-            state_id=StrategyEvaluationBehaviour.state_id,
+            behaviour_id=StrategyEvaluationBehaviour.behaviour_id,
             synchronized_data=synchronized_data,
         )
         assert (
             cast(
-                BaseState,
-                cast(BaseState, self.behaviour.current_state),
-            ).state_id
-            == StrategyEvaluationBehaviour.state_id
+                BaseBehaviour,
+                cast(BaseBehaviour, self.behaviour.current_behaviour),
+            ).behaviour_id
+            == StrategyEvaluationBehaviour.behaviour_id
         )
         self.behaviour.act_wrapper()
 
@@ -314,17 +314,17 @@ class TestEnterPoolTransactionHashBehaviour(LiquidityRebalancingBehaviourBaseCas
                 ),
             )
         )
-        self.fast_forward_to_state(
+        self.fast_forward_to_behaviour(
             behaviour=self.behaviour,
-            state_id=EnterPoolTransactionHashBehaviour.state_id,
+            behaviour_id=EnterPoolTransactionHashBehaviour.behaviour_id,
             synchronized_data=synchronized_data,
         )
         assert (
             cast(
-                BaseState,
-                cast(BaseState, self.behaviour.current_state),
-            ).state_id
-            == EnterPoolTransactionHashBehaviour.state_id
+                BaseBehaviour,
+                cast(BaseBehaviour, self.behaviour.current_behaviour),
+            ).behaviour_id
+            == EnterPoolTransactionHashBehaviour.behaviour_id
         )
         self.behaviour.act_wrapper()
 
@@ -559,17 +559,17 @@ class TestEnterPoolTransactionHashBehaviour(LiquidityRebalancingBehaviourBaseCas
                 ),
             )
         )
-        self.fast_forward_to_state(
+        self.fast_forward_to_behaviour(
             behaviour=self.behaviour,
-            state_id=EnterPoolTransactionHashBehaviour.state_id,
+            behaviour_id=EnterPoolTransactionHashBehaviour.behaviour_id,
             synchronized_data=synchronized_data,
         )
         assert (
             cast(
-                BaseState,
-                cast(BaseState, self.behaviour.current_state),
-            ).state_id
-            == EnterPoolTransactionHashBehaviour.state_id
+                BaseBehaviour,
+                cast(BaseBehaviour, self.behaviour.current_behaviour),
+            ).behaviour_id
+            == EnterPoolTransactionHashBehaviour.behaviour_id
         )
         self.behaviour.act_wrapper()
 
@@ -831,17 +831,17 @@ class TestEnterPoolTransactionHashBehaviour(LiquidityRebalancingBehaviourBaseCas
                 ),
             )
         )
-        self.fast_forward_to_state(
+        self.fast_forward_to_behaviour(
             behaviour=self.behaviour,
-            state_id=EnterPoolTransactionHashBehaviour.state_id,
+            behaviour_id=EnterPoolTransactionHashBehaviour.behaviour_id,
             synchronized_data=synchronized_data,
         )
         assert (
             cast(
-                BaseState,
-                cast(BaseState, self.behaviour.current_state),
-            ).state_id
-            == EnterPoolTransactionHashBehaviour.state_id
+                BaseBehaviour,
+                cast(BaseBehaviour, self.behaviour.current_behaviour),
+            ).behaviour_id
+            == EnterPoolTransactionHashBehaviour.behaviour_id
         )
 
         with pytest.raises(AEAActException):
@@ -902,17 +902,17 @@ class TestExitPoolTransactionHashBehaviour(LiquidityRebalancingBehaviourBaseCase
         amount_b_sent = 0
         amount_liquidity_received = 0
 
-        self.fast_forward_to_state(
+        self.fast_forward_to_behaviour(
             behaviour=self.behaviour,
-            state_id=ExitPoolTransactionHashBehaviour.state_id,
+            behaviour_id=ExitPoolTransactionHashBehaviour.behaviour_id,
             synchronized_data=synchronized_data,
         )
         assert (
             cast(
-                BaseState,
-                cast(BaseState, self.behaviour.current_state),
-            ).state_id
-            == ExitPoolTransactionHashBehaviour.state_id
+                BaseBehaviour,
+                cast(BaseBehaviour, self.behaviour.current_behaviour),
+            ).behaviour_id
+            == ExitPoolTransactionHashBehaviour.behaviour_id
         )
         self.behaviour.act_wrapper()
 
@@ -1087,17 +1087,17 @@ class TestExitPoolTransactionHashBehaviour(LiquidityRebalancingBehaviourBaseCase
         amount_b_sent = 0
         amount_liquidity_received = 0
 
-        self.fast_forward_to_state(
+        self.fast_forward_to_behaviour(
             behaviour=self.behaviour,
-            state_id=ExitPoolTransactionHashBehaviour.state_id,
+            behaviour_id=ExitPoolTransactionHashBehaviour.behaviour_id,
             synchronized_data=synchronized_data,
         )
         assert (
             cast(
-                BaseState,
-                cast(BaseState, self.behaviour.current_state),
-            ).state_id
-            == ExitPoolTransactionHashBehaviour.state_id
+                BaseBehaviour,
+                cast(BaseBehaviour, self.behaviour.current_behaviour),
+            ).behaviour_id
+            == ExitPoolTransactionHashBehaviour.behaviour_id
         )
         self.behaviour.act_wrapper()
 
@@ -1270,17 +1270,17 @@ class TestExitPoolTransactionHashBehaviour(LiquidityRebalancingBehaviourBaseCase
             )
         )
 
-        self.fast_forward_to_state(
+        self.fast_forward_to_behaviour(
             behaviour=self.behaviour,
-            state_id=ExitPoolTransactionHashBehaviour.state_id,
+            behaviour_id=ExitPoolTransactionHashBehaviour.behaviour_id,
             synchronized_data=synchronized_data,
         )
         assert (
             cast(
-                BaseState,
-                cast(BaseState, self.behaviour.current_state),
-            ).state_id
-            == ExitPoolTransactionHashBehaviour.state_id
+                BaseBehaviour,
+                cast(BaseBehaviour, self.behaviour.current_behaviour),
+            ).behaviour_id
+            == ExitPoolTransactionHashBehaviour.behaviour_id
         )
         self.behaviour.act_wrapper()
 
@@ -1309,10 +1309,10 @@ class TestExitPoolTransactionHashBehaviour(LiquidityRebalancingBehaviourBaseCase
 
         assert (
             cast(
-                BaseState,
-                cast(BaseState, self.behaviour.current_state),
-            ).state_id
-            == ExitPoolTransactionHashBehaviour.state_id
+                BaseBehaviour,
+                cast(BaseBehaviour, self.behaviour.current_behaviour),
+            ).behaviour_id
+            == ExitPoolTransactionHashBehaviour.behaviour_id
         )
 
 
@@ -1340,17 +1340,17 @@ class TestSwapBackTransactionHashBehaviour(LiquidityRebalancingBehaviourBaseCase
                 ),
             )
         )
-        self.fast_forward_to_state(
+        self.fast_forward_to_behaviour(
             behaviour=self.behaviour,
-            state_id=SwapBackTransactionHashBehaviour.state_id,
+            behaviour_id=SwapBackTransactionHashBehaviour.behaviour_id,
             synchronized_data=synchronized_data,
         )
         assert (
             cast(
-                BaseState,
-                cast(BaseState, self.behaviour.current_state),
-            ).state_id
-            == SwapBackTransactionHashBehaviour.state_id
+                BaseBehaviour,
+                cast(BaseBehaviour, self.behaviour.current_behaviour),
+            ).behaviour_id
+            == SwapBackTransactionHashBehaviour.behaviour_id
         )
         self.behaviour.act_wrapper()
 
@@ -1562,17 +1562,17 @@ class TestSwapBackTransactionHashBehaviour(LiquidityRebalancingBehaviourBaseCase
                 ),
             )
         )
-        self.fast_forward_to_state(
+        self.fast_forward_to_behaviour(
             behaviour=self.behaviour,
-            state_id=SwapBackTransactionHashBehaviour.state_id,
+            behaviour_id=SwapBackTransactionHashBehaviour.behaviour_id,
             synchronized_data=synchronized_data,
         )
         assert (
             cast(
-                BaseState,
-                cast(BaseState, self.behaviour.current_state),
-            ).state_id
-            == SwapBackTransactionHashBehaviour.state_id
+                BaseBehaviour,
+                cast(BaseBehaviour, self.behaviour.current_behaviour),
+            ).behaviour_id
+            == SwapBackTransactionHashBehaviour.behaviour_id
         )
         self.behaviour.act_wrapper()
 
@@ -1840,17 +1840,17 @@ class TestSleepBehaviour(LiquidityRebalancingBehaviourBaseCase):
                 ),
             )
         )
-        self.fast_forward_to_state(
+        self.fast_forward_to_behaviour(
             behaviour=self.behaviour,
-            state_id=SleepBehaviour.state_id,
+            behaviour_id=SleepBehaviour.behaviour_id,
             synchronized_data=synchronized_data,
         )
         assert (
             cast(
-                BaseState,
-                cast(BaseState, self.behaviour.current_state),
-            ).state_id
-            == SleepBehaviour.state_id
+                BaseBehaviour,
+                cast(BaseBehaviour, self.behaviour.current_behaviour),
+            ).behaviour_id
+            == SleepBehaviour.behaviour_id
         )
         self.behaviour.act_wrapper()
         time.sleep(SLEEP_SECONDS)

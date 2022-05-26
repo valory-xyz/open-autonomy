@@ -53,7 +53,7 @@ from packages.valory.protocols.ledger_api.custom_types import (
     TransactionDigest,
     TransactionReceipt,
 )
-from packages.valory.skills.abstract_round_abci.behaviour_utils import BaseState
+from packages.valory.skills.abstract_round_abci.behaviour_utils import BaseBehaviour
 from packages.valory.skills.liquidity_rebalancing_abci.rounds import (
     SynchronizedData as LiquidityRebalancingSynchronizedSata,
 )
@@ -260,7 +260,7 @@ class IntegrationBaseCase(FSMBehaviourBaseCase):
             LiquidityRebalancingSynchronizedSata,
             None,
         ] = None,
-        state_id: Optional[str] = None,
+        behaviour_id: Optional[str] = None,
         handlers: Optional[HandlersType] = None,
         expected_content: Optional[ExpectedContentType] = None,
         expected_types: Optional[ExpectedTypesType] = None,
@@ -269,7 +269,7 @@ class IntegrationBaseCase(FSMBehaviourBaseCase):
         """
         Process n message cycles.
 
-        :param state_id: the behaviour to fast forward to
+        :param behaviour_id: the behaviour to fast forward to
         :param ncycles: the number of message cycles to process
         :param synchronized_data: a synchronized_data
         :param handlers: a list of handlers
@@ -290,13 +290,16 @@ class IntegrationBaseCase(FSMBehaviourBaseCase):
             and len(expected_content) == ncycles
         ), "Number of cycles, handlers, contents and types does not match"
 
-        if state_id is not None and synchronized_data is not None:
-            self.fast_forward_to_state(
+        if behaviour_id is not None and synchronized_data is not None:
+            self.fast_forward_to_behaviour(
                 behaviour=self.behaviour,
-                state_id=state_id,
+                behaviour_id=behaviour_id,
                 synchronized_data=synchronized_data,
             )
-            assert cast(BaseState, self.behaviour.current_state).state_id == state_id
+            assert (
+                cast(BaseBehaviour, self.behaviour.current_behaviour).behaviour_id
+                == behaviour_id
+            )
 
         incoming_messages = []
         for i in range(ncycles):
@@ -398,13 +401,13 @@ class _TxHelperIntegration(_GnosisHelperIntegration):
     def send_tx(self, simulate_timeout: bool = False) -> None:
         """Send a transaction"""
 
-        self.fast_forward_to_state(
+        self.fast_forward_to_behaviour(
             behaviour=self.behaviour,
-            state_id=FinalizeBehaviour.state_id,
+            behaviour_id=FinalizeBehaviour.behaviour_id,
             synchronized_data=self.tx_settlement_synchronized_data,
         )
-        behaviour = cast(FinalizeBehaviour, self.behaviour.current_state)
-        assert behaviour.state_id == FinalizeBehaviour.state_id
+        behaviour = cast(FinalizeBehaviour, self.behaviour.current_behaviour)
+        assert behaviour.behaviour_id == FinalizeBehaviour.behaviour_id
         stored_nonce = behaviour.params.nonce
         stored_gas_price = behaviour.params.gas_price
 
@@ -458,7 +461,7 @@ class _TxHelperIntegration(_GnosisHelperIntegration):
             "tx_digest": cast(str, tx_digest),
         }
 
-        behaviour = cast(FinalizeBehaviour, self.behaviour.current_state)
+        behaviour = cast(FinalizeBehaviour, self.behaviour.current_behaviour)
         assert behaviour.params.gas_price == gas_price_used
         assert behaviour.params.nonce == nonce_used
         if simulate_timeout:
@@ -492,9 +495,9 @@ class _TxHelperIntegration(_GnosisHelperIntegration):
             )
         else:
             # store the tx hash that we have missed and update missed messages.
-            assert isinstance(self.behaviour.current_state, FinalizeBehaviour)
+            assert isinstance(self.behaviour.current_behaviour, FinalizeBehaviour)
             self.mock_a2a_transaction()
-            self.behaviour.current_state.params.tx_hash = tx_digest
+            self.behaviour.current_behaviour.params.tx_hash = tx_digest
             update_params = dict(
                 missed_messages=self.tx_settlement_synchronized_data.missed_messages
                 + 1,
@@ -526,7 +529,7 @@ class _TxHelperIntegration(_GnosisHelperIntegration):
         _, verif_msg = self.process_n_messages(
             2,
             self.tx_settlement_synchronized_data,
-            ValidateTransactionBehaviour.state_id,
+            ValidateTransactionBehaviour.behaviour_id,
             handlers,
             expected_content,
             expected_types,
