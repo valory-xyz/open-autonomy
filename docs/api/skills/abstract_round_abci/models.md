@@ -65,16 +65,16 @@ def round_sequence() -> RoundSequence
 
 Get the round_sequence.
 
-<a id="packages.valory.skills.abstract_round_abci.models.SharedState.period_state"></a>
+<a id="packages.valory.skills.abstract_round_abci.models.SharedState.synchronized_data"></a>
 
-#### period`_`state
+#### synchronized`_`data
 
 ```python
 @property
-def period_state() -> BasePeriodState
+def synchronized_data() -> BaseSynchronizedData
 ```
 
-Get the period state if available.
+Get the latest synchronized_data if available.
 
 <a id="packages.valory.skills.abstract_round_abci.models.Requests"></a>
 

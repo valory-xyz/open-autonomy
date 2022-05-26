@@ -301,10 +301,10 @@ class AbstractResponseHandler(Handler, ABC):
             ) from e
 
         self._log_message_handling(message)
-        current_state = cast(
+        current_behaviour = cast(
             AbstractRoundBehaviour, self.context.behaviours.main
-        ).current_state
-        callback(message, current_state)
+        ).current_behaviour
+        callback(message, current_behaviour)
 
     def _get_dialogues_attribute_name(self) -> str:
         """

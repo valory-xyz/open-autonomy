@@ -31,14 +31,14 @@ from packages.valory.skills.abstract_round_abci.base import (
     EventType,
 )
 from packages.valory.skills.abstract_round_abci.behaviour_utils import (
-    BaseState,
-    make_degenerate_state,
+    BaseBehaviour,
+    make_degenerate_behaviour,
 )
 
 
-StateType = Type[BaseState]
+BehaviourType = Type[BaseBehaviour]
 Action = Optional[str]
-TransitionFunction = Dict[StateType, Dict[Action, StateType]]
+TransitionFunction = Dict[BehaviourType, Dict[Action, BehaviourType]]
 
 
 class _MetaRoundBehaviour(ABCMeta):
@@ -62,8 +62,8 @@ class _MetaRoundBehaviour(ABCMeta):
     def _check_consistency(mcs, behaviour_cls: "AbstractRoundBehaviour") -> None:
         """Check consistency of class attributes."""
         mcs._check_all_required_classattributes_are_set(behaviour_cls)
-        mcs._check_state_id_uniqueness(behaviour_cls)
-        mcs._check_initial_state_in_set_of_states(behaviour_cls)
+        mcs._check_behaviour_id_uniqueness(behaviour_cls)
+        mcs._check_initial_behaviour_in_set_of_behaviours(behaviour_cls)
         mcs._check_matching_round_consistency(behaviour_cls)
 
     @classmethod
@@ -73,71 +73,75 @@ class _MetaRoundBehaviour(ABCMeta):
         """Check that all the required class attributes are set."""
         try:
             behaviour_cls.abci_app_cls  # pylint: disable=pointless-statement
-            behaviour_cls.behaviour_states  # pylint: disable=pointless-statement
-            behaviour_cls.initial_state_cls  # pylint: disable=pointless-statement
+            behaviour_cls.behaviours  # pylint: disable=pointless-statement
+            behaviour_cls.initial_behaviour_cls  # pylint: disable=pointless-statement
         except AttributeError as e:
             raise ABCIAppInternalError(*e.args) from None
 
     @classmethod
-    def _check_state_id_uniqueness(
+    def _check_behaviour_id_uniqueness(
         mcs, behaviour_cls: "AbstractRoundBehaviour"
     ) -> None:
-        """Check that state behaviour ids are unique across behaviour states."""
-        state_id_to_state = defaultdict(lambda: [])
-        for state_class in behaviour_cls.behaviour_states:
-            state_id_to_state[state_class.state_id].append(state_class)
-            if len(state_id_to_state[state_class.state_id]) > 1:
-                state_classes_names = [
-                    _state_cls.__name__
-                    for _state_cls in state_id_to_state[state_class.state_id]
+        """Check that behaviour ids are unique across behaviours."""
+        behaviour_id_to_behaviour = defaultdict(lambda: [])
+        for behaviour_class in behaviour_cls.behaviours:
+            behaviour_id_to_behaviour[behaviour_class.behaviour_id].append(
+                behaviour_class
+            )
+            if len(behaviour_id_to_behaviour[behaviour_class.behaviour_id]) > 1:
+                behaviour_classes_names = [
+                    _behaviour_cls.__name__
+                    for _behaviour_cls in behaviour_id_to_behaviour[
+                        behaviour_class.behaviour_id
+                    ]
                 ]
                 raise ABCIAppInternalError(
-                    f"states {state_classes_names} have the same state id '{state_class.state_id}'"
+                    f"behaviours {behaviour_classes_names} have the same behaviour id '{behaviour_class.behaviour_id}'"
                 )
 
     @classmethod
     def _check_matching_round_consistency(
         mcs, behaviour_cls: "AbstractRoundBehaviour"
     ) -> None:
-        """Check that matching rounds are: (1) unique across behaviour states, and (2) covering."""
-        round_to_state: Dict[Type[AbstractRound], List[StateType]] = {
+        """Check that matching rounds are: (1) unique across behaviour, and (2) covering."""
+        round_to_behaviour: Dict[Type[AbstractRound], List[BehaviourType]] = {
             round_cls: []
             for round_cls in behaviour_cls.abci_app_cls.get_all_round_classes()
         }
 
         # check uniqueness
-        for b in behaviour_cls.behaviour_states:
-            round_to_state[b.matching_round].append(b)
-            if len(round_to_state[b.matching_round]) > 1:
-                state_class_ids = [
-                    _state_cls.state_id
-                    for _state_cls in round_to_state[b.matching_round]
+        for b in behaviour_cls.behaviours:
+            round_to_behaviour[b.matching_round].append(b)
+            if len(round_to_behaviour[b.matching_round]) > 1:
+                behaviour_class_ids = [
+                    _behaviour_cls.behaviour_id
+                    for _behaviour_cls in round_to_behaviour[b.matching_round]
                 ]
                 raise ABCIAppInternalError(
-                    f"states {state_class_ids} have the same matching round '{b.matching_round.round_id}'"
+                    f"behaviours {behaviour_class_ids} have the same matching round '{b.matching_round.round_id}'"
                 )
 
         # check covering
-        for round_cls, states in round_to_state.items():
+        for round_cls, behaviours in round_to_behaviour.items():
             if round_cls in behaviour_cls.abci_app_cls.final_states:
-                if len(states) != 0:
+                if len(behaviours) != 0:
                     raise ABCIAppInternalError(
                         f"round {round_cls.round_id} is a final round it shouldn't have any matching behaviours."
                     )
                 continue  # pragma: nocover
-            if len(states) == 0:
+            if len(behaviours) == 0:
                 raise ABCIAppInternalError(
-                    f"round {round_cls.round_id} is not a matching round of any state behaviour"
+                    f"round {round_cls.round_id} is not a matching round of any behaviour"
                 )
 
     @classmethod
-    def _check_initial_state_in_set_of_states(
+    def _check_initial_behaviour_in_set_of_behaviours(
         mcs, behaviour_cls: "AbstractRoundBehaviour"
     ) -> None:
-        """Check the initial state is in the set of states."""
-        if behaviour_cls.initial_state_cls not in behaviour_cls.behaviour_states:
+        """Check the initial behaviour is in the set of behaviours."""
+        if behaviour_cls.initial_behaviour_cls not in behaviour_cls.behaviours:
             raise ABCIAppInternalError(
-                f"initial state {behaviour_cls.initial_state_cls.state_id} is not in the set of states"
+                f"initial behaviour {behaviour_cls.initial_behaviour_cls.behaviour_id} is not in the set of behaviours"
             )
 
 
@@ -147,74 +151,80 @@ class AbstractRoundBehaviour(
     """This behaviour implements an abstract round behaviour."""
 
     abci_app_cls: Type[AbciApp[EventType]]
-    behaviour_states: AbstractSet[StateType]
-    initial_state_cls: StateType
+    behaviours: AbstractSet[BehaviourType]
+    initial_behaviour_cls: BehaviourType
 
     def __init__(self, **kwargs: Any) -> None:
         """Initialize the behaviour."""
         super().__init__(**kwargs)
-        self._state_id_to_states: Dict[
-            str, StateType
-        ] = self._get_state_id_to_state_mapping(self.behaviour_states)
-        self._round_to_state: Dict[
-            Type[AbstractRound], StateType
-        ] = self._get_round_to_state_mapping(self.behaviour_states)
+        self._behaviour_id_to_behaviours: Dict[
+            str, BehaviourType
+        ] = self._get_behaviour_id_to_behaviour_mapping(self.behaviours)
+        self._round_to_behaviour: Dict[
+            Type[AbstractRound], BehaviourType
+        ] = self._get_round_to_behaviour_mapping(self.behaviours)
 
-        self.current_state: Optional[BaseState] = None
+        self.current_behaviour: Optional[BaseBehaviour] = None
 
         # keep track of last round height so to detect changes
         self._last_round_height = 0
 
         # this variable remembers the actual next transition
-        # when we cannot preemptively interrupt the current state
+        # when we cannot preemptively interrupt the current behaviour
         # because it has not a matching round.
-        self._next_state_cls: Optional[StateType] = None
+        self._next_behaviour_cls: Optional[BehaviourType] = None
 
     @classmethod
-    def _get_state_id_to_state_mapping(
-        cls, behaviour_states: AbstractSet[StateType]
-    ) -> Dict[str, StateType]:
-        """Get state id to state mapping."""
-        result: Dict[str, StateType] = {}
-        for state_behaviour_cls in behaviour_states:
-            state_id = state_behaviour_cls.state_id
-            if state_id in result:
+    def _get_behaviour_id_to_behaviour_mapping(
+        cls, behaviours: AbstractSet[BehaviourType]
+    ) -> Dict[str, BehaviourType]:
+        """Get behaviour id to behaviour mapping."""
+        result: Dict[str, BehaviourType] = {}
+        for behaviour_cls in behaviours:
+            behaviour_id = behaviour_cls.behaviour_id
+            if behaviour_id in result:
                 raise ValueError(
-                    f"cannot have two states with the same id; got {state_behaviour_cls} and {result[state_id]} both with id '{state_id}'"
+                    f"cannot have two behaviours with the same id; got {behaviour_cls} and {result[behaviour_id]} both with id '{behaviour_id}'"
                 )
-            result[state_id] = state_behaviour_cls
+            result[behaviour_id] = behaviour_cls
         return result
 
     @classmethod
-    def _get_round_to_state_mapping(
-        cls, behaviour_states: AbstractSet[StateType]
-    ) -> Dict[Type[AbstractRound], StateType]:
-        """Get round-to-state mapping."""
-        result: Dict[Type[AbstractRound], StateType] = {}
-        for state_behaviour_cls in behaviour_states:
-            round_cls = state_behaviour_cls.matching_round
+    def _get_round_to_behaviour_mapping(
+        cls, behaviours: AbstractSet[BehaviourType]
+    ) -> Dict[Type[AbstractRound], BehaviourType]:
+        """Get round-to-behaviour mapping."""
+        result: Dict[Type[AbstractRound], BehaviourType] = {}
+        for behaviour_cls in behaviours:
+            round_cls = behaviour_cls.matching_round
             if round_cls in result:
                 raise ValueError(
-                    f"the states '{state_behaviour_cls.state_id}' and '{result[round_cls].state_id}' point to the same matching round '{round_cls.round_id}'"
+                    f"the behaviours '{behaviour_cls.behaviour_id}' and '{result[round_cls].behaviour_id}' point to the same matching round '{round_cls.round_id}'"
                 )
-            result[round_cls] = state_behaviour_cls
+            result[round_cls] = behaviour_cls
 
         # iterate over rounds and map final (i.e. degenerate) rounds
         #  to the degenerate behaviour class
         for final_round_cls in cls.abci_app_cls.final_states:
-            new_degenerate_state = make_degenerate_state(final_round_cls.round_id)
-            new_degenerate_state.matching_round = final_round_cls  # type: ignore
-            result[final_round_cls] = new_degenerate_state  # type: ignore
+            new_degenerate_behaviour = make_degenerate_behaviour(
+                final_round_cls.round_id
+            )
+            new_degenerate_behaviour.matching_round = final_round_cls  # type: ignore
+            result[final_round_cls] = new_degenerate_behaviour  # type: ignore
 
         return result
 
-    def instantiate_state_cls(self, state_cls: StateType) -> BaseState:
-        """Instantiate the state class."""
-        return state_cls(name=state_cls.state_id, skill_context=self.context)
+    def instantiate_behaviour_cls(self, behaviour_cls: BehaviourType) -> BaseBehaviour:
+        """Instantiate the behaviours class."""
+        return behaviour_cls(
+            name=behaviour_cls.behaviour_id, skill_context=self.context
+        )
 
     def setup(self) -> None:
         """Set up the behaviour."""
-        self.current_state = self.instantiate_state_cls(self.initial_state_cls)
+        self.current_behaviour = self.instantiate_behaviour_cls(
+            self.initial_behaviour_cls
+        )
 
     def teardown(self) -> None:
         """Tear down the behaviour"""
@@ -223,20 +233,20 @@ class AbstractRoundBehaviour(
         """Implement the behaviour."""
         self._process_current_round()
 
-        if self.current_state is None:
+        if self.current_behaviour is None:
             return
 
-        self.current_state.act_wrapper()
+        self.current_behaviour.act_wrapper()
 
-        if self.current_state.is_done():
-            self.current_state.clean_up()
-            self.current_state = None
+        if self.current_behaviour.is_done():
+            self.current_behaviour.clean_up()
+            self.current_behaviour = None
 
     def _process_current_round(self) -> None:
         """Process current ABCIApp round."""
         current_round_height = self.context.state.round_sequence.current_round_height
         if (
-            self.current_state is not None
+            self.current_behaviour is not None
             and self._last_round_height == current_round_height
         ):
             # round has not changed - do nothing
@@ -244,17 +254,17 @@ class AbstractRoundBehaviour(
         self._last_round_height = current_round_height
         current_round_cls = type(self.context.state.round_sequence.current_round)
 
-        # each round has a state behaviour associated to it
-        next_state_cls = self._round_to_state[current_round_cls]
+        # each round has a behaviour associated to it
+        next_behaviour_cls = self._round_to_behaviour[current_round_cls]
 
-        #  Stop the current state and replace it with the new state behaviour
-        if self.current_state is not None:
-            current_state = cast(BaseState, self.current_state)
-            current_state.stop()
+        #  Stop the current behaviours and replace it with the new behaviour
+        if self.current_behaviour is not None:
+            current_behaviour = cast(BaseBehaviour, self.current_behaviour)
+            current_behaviour.stop()
             self.context.logger.debug(
-                "overriding transition: current state: '%s', next state: '%s'",
-                self.current_state.state_id if self.current_state else None,
-                next_state_cls.state_id,
+                "overriding transition: current behaviours: '%s', next behaviours: '%s'",
+                self.current_behaviour.behaviour_id if self.current_behaviour else None,
+                next_behaviour_cls.behaviour_id,
             )
 
-        self.current_state = self.instantiate_state_cls(next_state_cls)
+        self.current_behaviour = self.instantiate_behaviour_cls(next_behaviour_cls)
