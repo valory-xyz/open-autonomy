@@ -2061,6 +2061,11 @@ class Period:
         self,
     ) -> int:
         """Returns the height for last round transition."""
+        if self._last_round_transition_height == 0:
+            raise ValueError(
+                "Trying to access `last_round_transition_height` while no transition has been completed yet."
+            )
+
         return self._last_round_transition_height
 
     @property
