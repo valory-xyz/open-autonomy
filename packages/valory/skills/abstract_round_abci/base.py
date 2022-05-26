@@ -586,6 +586,7 @@ class BasePeriodState:
     ) -> None:
         """Initialize a period state."""
         self._db = db
+        self._app_hash = hashlib.sha256(str(self.db).encode("utf-8")).hexdigest().encode("utf-8")
 
     @property
     def db(self) -> StateDB:
@@ -596,7 +597,7 @@ class BasePeriodState:
     def app_hash(self) -> bytes:
         """Get the app hash, generated from the state db."""
         # using `sha256` in order to get a fixed size hash
-        return hashlib.sha256(str(self.db).encode("utf-8")).hexdigest().encode("utf-8")
+        return self._app_hash
 
     @property
     def round_count(self) -> int:

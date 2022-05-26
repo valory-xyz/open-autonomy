@@ -1523,6 +1523,12 @@ class BaseState(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
                 yield from self.sleep(self.params.sleep_time)
                 return False
 
+            self.context.logger.info(
+                f"Previous App Hash: {self.context.state.period_state.app_hash.decode('utf-8')}"
+            )
+            self.context.state.period_state._app_hash = app_hash
+            self.context.logger.info(f"Current App Hash: {app_hash}")
+
             last_round_transition_timestamp = (
                 self.context.state.period.last_round_transition_timestamp
             )
