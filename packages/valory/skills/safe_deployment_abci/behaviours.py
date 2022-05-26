@@ -25,7 +25,7 @@ from aea_ledger_ethereum import EthereumApi
 
 from packages.valory.contracts.gnosis_safe.contract import GnosisSafeContract
 from packages.valory.protocols.contract_api import ContractApiMessage
-from packages.valory.skills.abstract_round_abci.behaviour_utils import BaseState
+from packages.valory.skills.abstract_round_abci.behaviour_utils import BaseBehaviour
 from packages.valory.skills.abstract_round_abci.behaviours import AbstractRoundBehaviour
 from packages.valory.skills.abstract_round_abci.common import (
     RandomnessBehaviour,
@@ -39,27 +39,27 @@ from packages.valory.skills.safe_deployment_abci.payloads import (
 )
 from packages.valory.skills.safe_deployment_abci.rounds import (
     DeploySafeRound,
-    PeriodState,
     RandomnessSafeRound,
     SafeDeploymentAbciApp,
     SelectKeeperSafeRound,
+    SynchronizedData,
     ValidateSafeRound,
 )
 
 
-class SafeDeploymentBaseState(BaseState):
-    """Base state behaviour for the common apps' skill."""
+class SafeDeploymentBaseBehaviour(BaseBehaviour):
+    """Base behaviour for the common apps' skill."""
 
     @property
-    def period_state(self) -> PeriodState:
-        """Return the period state."""
-        return cast(PeriodState, super().period_state)
+    def synchronized_data(self) -> SynchronizedData:
+        """Return the synchronized data."""
+        return cast(SynchronizedData, super().synchronized_data)
 
 
 class RandomnessSafeBehaviour(RandomnessBehaviour):
     """Retrieve randomness for oracle deployment."""
 
-    state_id = "randomness_safe"
+    behaviour_id = "randomness_safe"
     matching_round = RandomnessSafeRound
     payload_class = RandomnessPayload
 
@@ -67,15 +67,15 @@ class RandomnessSafeBehaviour(RandomnessBehaviour):
 class SelectKeeperSafeBehaviour(SelectKeeperBehaviour):
     """Select the keeper agent."""
 
-    state_id = "select_keeper_safe"
+    behaviour_id = "select_keeper_safe"
     matching_round = SelectKeeperSafeRound
     payload_class = SelectKeeperPayload
 
 
-class DeploySafeBehaviour(SafeDeploymentBaseState):
+class DeploySafeBehaviour(SafeDeploymentBaseBehaviour):
     """Deploy Safe."""
 
-    state_id = "deploy_safe"
+    behaviour_id = "deploy_safe"
     matching_round = DeploySafeRound
 
     def async_act(self) -> Generator:
@@ -88,21 +88,24 @@ class DeploySafeBehaviour(SafeDeploymentBaseState):
         - Otherwise, wait until the next round.
         - If a timeout is hit, set exit A event, otherwise set done event.
         """
-        if self.context.agent_address != self.period_state.most_voted_keeper_address:
+        if (
+            self.context.agent_address
+            != self.synchronized_data.most_voted_keeper_address
+        ):
             yield from self._not_deployer_act()
         else:
             yield from self._deployer_act()
 
     def _not_deployer_act(self) -> Generator:
         """Do the non-deployer action."""
-        with self.context.benchmark_tool.measure(self.state_id).consensus():
+        with self.context.benchmark_tool.measure(self.behaviour_id).consensus():
             yield from self.wait_until_round_end()
             self.set_done()
 
     def _deployer_act(self) -> Generator:
         """Do the deployer action."""
 
-        with self.context.benchmark_tool.measure(self.state_id).local():
+        with self.context.benchmark_tool.measure(self.behaviour_id).local():
             self.context.logger.info(
                 "I am the designated sender, deploying the safe contract..."
             )
@@ -115,7 +118,7 @@ class DeploySafeBehaviour(SafeDeploymentBaseState):
                 raise RuntimeError("Safe deployment failed!")  # pragma: nocover
             payload = DeploySafePayload(self.context.agent_address, contract_address)
 
-        with self.context.benchmark_tool.measure(self.state_id).consensus():
+        with self.context.benchmark_tool.measure(self.behaviour_id).consensus():
             self.context.logger.info(f"Safe contract address: {contract_address}")
             yield from self.send_a2a_transaction(payload)
             yield from self.wait_until_round_end()
@@ -123,7 +126,7 @@ class DeploySafeBehaviour(SafeDeploymentBaseState):
         self.set_done()
 
     def _send_deploy_transaction(self) -> Generator[None, None, Optional[str]]:
-        owners = self.period_state.sorted_participants
+        owners = self.synchronized_data.sorted_participants
         threshold = self.params.consensus_params.consensus_threshold
         contract_api_response = yield from self.get_contract_api_response(
             performative=ContractApiMessage.Performative.GET_DEPLOY_TRANSACTION,  # type: ignore
@@ -164,10 +167,10 @@ class DeploySafeBehaviour(SafeDeploymentBaseState):
         return contract_address
 
 
-class ValidateSafeBehaviour(SafeDeploymentBaseState):
+class ValidateSafeBehaviour(SafeDeploymentBaseBehaviour):
     """Validate Safe."""
 
-    state_id = "validate_safe"
+    behaviour_id = "validate_safe"
     matching_round = ValidateSafeRound
 
     def async_act(self) -> Generator:
@@ -180,14 +183,14 @@ class ValidateSafeBehaviour(SafeDeploymentBaseState):
         - Send the transaction with the validation result and wait for it to be
           mined.
         - Wait until ABCI application transitions to the next round.
-        - Go to the next behaviour state (set done event).
+        - Go to the next behaviour (set done event).
         """
 
-        with self.context.benchmark_tool.measure(self.state_id).local():
+        with self.context.benchmark_tool.measure(self.behaviour_id).local():
             is_correct = yield from self.has_correct_contract_been_deployed()
             payload = ValidatePayload(self.context.agent_address, is_correct)
 
-        with self.context.benchmark_tool.measure(self.state_id).consensus():
+        with self.context.benchmark_tool.measure(self.behaviour_id).consensus():
             yield from self.send_a2a_transaction(payload)
             yield from self.wait_until_round_end()
 
@@ -197,7 +200,7 @@ class ValidateSafeBehaviour(SafeDeploymentBaseState):
         """Contract deployment verification."""
         contract_api_response = yield from self.get_contract_api_response(
             performative=ContractApiMessage.Performative.GET_STATE,  # type: ignore
-            contract_address=self.period_state.safe_contract_address,
+            contract_address=self.synchronized_data.safe_contract_address,
             contract_id=str(GnosisSafeContract.contract_id),
             contract_callable="verify_contract",
         )
@@ -213,9 +216,9 @@ class ValidateSafeBehaviour(SafeDeploymentBaseState):
 class SafeDeploymentRoundBehaviour(AbstractRoundBehaviour):
     """This behaviour manages the consensus stages for the safe deployment."""
 
-    initial_state_cls = RandomnessSafeBehaviour
+    initial_behaviour_cls = RandomnessSafeBehaviour
     abci_app_cls = SafeDeploymentAbciApp  # type: ignore
-    behaviour_states: Set[Type[BaseState]] = {  # type: ignore
+    behaviours: Set[Type[BaseBehaviour]] = {  # type: ignore
         RandomnessSafeBehaviour,  # type: ignore
         SelectKeeperSafeBehaviour,  # type: ignore
         DeploySafeBehaviour,  # type: ignore
