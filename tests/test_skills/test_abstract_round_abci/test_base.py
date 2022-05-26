@@ -199,6 +199,9 @@ def test_base_tx_payload() -> None:
 
     assert payload.sender == new_payload.sender
     assert payload.id_ != new_payload.id_
+    payload.round_count = 1
+    assert payload.round_count == 1
+    assert type(hash(payload)) == int
 
 
 class TestTransactions:
@@ -602,9 +605,52 @@ class TestBaseSynchronizedData:
         with pytest.raises(ValueError, match="List participants cannot be empty."):
             _ = base_synchronized_data.all_participants
 
-    def test_period_count(self) -> None:
-        """Test period_count"""
+    def test_properties(self) -> None:
+        """Test several properties"""
+        participants = {"b", "a"}
+        randomness_str = (
+            "3439d92d58e47d342131d446a3abe264396dd264717897af30525c98408c834f"
+        )
+        randomness_value = 0.20400769574270503
+        most_voted_keeper_address = "most_voted_keeper_address"
+        blacklisted_keepers = "blacklisted_keepers"
+        participant_to_selection = "participant_to_selection"
+        participant_to_randomness = "participant_to_randomness"
+        participant_to_votes = "participant_to_votes"
+
+        base_synchronized_data = BaseSynchronizedData(
+            db=AbciAppDB(
+                initial_data=dict(
+                    participants=participants,
+                    all_participants=participants,
+                    most_voted_randomness=randomness_str,
+                    most_voted_keeper_address=most_voted_keeper_address,
+                    blacklisted_keepers=blacklisted_keepers,
+                    participant_to_selection=participant_to_selection,
+                    participant_to_randomness=participant_to_randomness,
+                    participant_to_votes=participant_to_votes,
+                )
+            )
+        )
         assert self.base_synchronized_data.period_count == 0
+        assert base_synchronized_data.all_participants == participants
+        assert base_synchronized_data.sorted_participants == ["a", "b"]
+        assert abs(base_synchronized_data.keeper_randomness - randomness_value) < 1e-10
+        assert base_synchronized_data.most_voted_randomness == randomness_str
+        assert (
+            base_synchronized_data.most_voted_keeper_address
+            == most_voted_keeper_address
+        )
+        assert base_synchronized_data.is_keeper_set
+        assert base_synchronized_data.blacklisted_keepers == {blacklisted_keepers}
+        assert (
+            base_synchronized_data.participant_to_selection == participant_to_selection
+        )
+        assert (
+            base_synchronized_data.participant_to_randomness
+            == participant_to_randomness
+        )
+        assert base_synchronized_data.participant_to_votes == participant_to_votes
 
 
 class TestAbstractRound:
