@@ -1,7 +1,3 @@
-.md-sidebar {
-  min-width: 300px;
-}
-
 @font-face {
   font-family: 'triakis__font_lightregular';
   src: url('../fonts/Webfont/triakisfont-regular-webfont.woff2') format('woff2'),
@@ -54,6 +50,10 @@
   --md-text-font-medium: "triakis__font_medium";
   --md-text-font-bold: "triakis__font_bold";
   --md-text-font-heavy: "triakis__font_heavy";
+}
+
+.md-sidebar {
+  min-width: 300px;
 }
 
 /* font changes */
