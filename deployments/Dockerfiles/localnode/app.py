@@ -117,7 +117,7 @@ class PeriodDumper:
             self.logger.info(f"Dumped data for period {self.resets}")
         except OSError:
             self.logger.info(
-                f"Error occured while dumping data for period {self.resets}"
+                f"Error occurred while dumping data for period {self.resets}"
             )
         self.resets += 1
 
@@ -146,12 +146,7 @@ def create_app(dump_dir: Optional[Path] = None):
             tendermint_node.start()
             return jsonify({"message": "Reset successful.", "status": True}), 200
         except Exception as e:  # pylint: disable=W0703
-            return (
-                jsonify(
-                    {"message": f"Reset failed with error : {str(e)}", "status": False}
-                ),
-                200,
-            )
+            return jsonify({"message": f"Reset failed: {e}", "status": False}), 200
 
     @app.route("/app_hash")
     def app_hash() -> Tuple[Any, int]:
@@ -186,12 +181,7 @@ def create_app(dump_dir: Optional[Path] = None):
             tendermint_node.start()
             return jsonify({"message": "Reset successful.", "status": True}), 200
         except Exception as e:  # pylint: disable=W0703
-            return (
-                jsonify(
-                    {"message": f"Reset failed with error : {str(e)}", "status": False}
-                ),
-                200,
-            )
+            return jsonify({"message": f"Reset failed: {e}", "status": False}), 200
 
     @app.errorhandler(404)  # type: ignore
     def handle_notfound(e: NotFound) -> Response:

@@ -92,21 +92,18 @@ class BaseTendermintTest:
     """BaseTendermintTest"""
 
     tendermint: str
-    original_dir: str
-    tmp_dir: str
+    tm_home: str
     path: Path
 
     @classmethod
     def setup_class(cls) -> None:
         """Setup the test."""
         cls.tendermint = shutil.which("tendermint")  # type: ignore
-        cls.original_dir = os.getcwd()
-        cls.tmp_dir = os.environ["TMHOME"] = tempfile.mkdtemp()
-        cls.path = Path(cls.tmp_dir)
-        assert not os.listdir(str(cls.path))
+        cls.tm_home = os.environ["TMHOME"] = tempfile.mkdtemp()
+        cls.path = Path(cls.tm_home)
+        assert not os.listdir(cls.tm_home)
 
-        os.chdir(cls.tmp_dir)
-        command = [cls.tendermint, "init", "validator", "--home", f"{cls.tmp_dir}"]
+        command = [cls.tendermint, "init", "validator", "--home", cls.tm_home]
         process = subprocess.Popen(command, stderr=subprocess.PIPE)  # nosec
         _, stderr = process.communicate()
         assert not stderr, stderr
@@ -114,8 +111,7 @@ class BaseTendermintTest:
     @classmethod
     def teardown_class(cls) -> None:
         """Teardown the test."""
-        os.chdir(cls.original_dir)
-        shutil.rmtree(cls.tmp_dir, ignore_errors=True, onerror=readonly_handler)
+        shutil.rmtree(cls.tm_home, ignore_errors=True, onerror=readonly_handler)
 
 
 class BaseTendermintServerTest(BaseTendermintTest):
@@ -132,8 +128,7 @@ class BaseTendermintServerTest(BaseTendermintTest):
         os.environ["PROXY_APP"] = "kvstore"
         os.environ["CREATE_EMPTY_BLOCKS"] = "true"
         os.environ["LOG_FILE"] = str(cls.path / "tendermint.log")
-        logging.info(f"logfile: {os.environ['LOG_FILE']}")
-        cls.app, cls.tendermint_node = create_app(Path(cls.tmp_dir) / "tm_state")
+        cls.app, cls.tendermint_node = create_app(cls.path / "tm_state")
         cls.app.config["TESTING"] = True
         cls.app_context = cls.app.app_context()
         cls.app_context.push()
@@ -178,7 +173,7 @@ class TestTendermintServerUtilityFunctions(BaseTendermintTest):
 
     def test_override_config_toml(self) -> None:
         """Test override_config_toml function"""
-        path = Path(os.environ["TMHOME"]) / "config" / "config.toml"
+        path = self.path / "config" / "config.toml"
         assert path.is_file(), f"not a file: {path}"
         txt = path.read_text("utf-8")
         assert all(old in txt and new not in txt for old, new in CONFIG_OVERRIDE)
@@ -200,8 +195,6 @@ class TestTendermintServerApp(BaseTendermintServerTest):
             return text[text.startswith(prefix) and len(prefix) :]
 
         expected_file_names = [
-            "/config",
-            "/data",
             "/config/config.toml",
             "/config/priv_validator_key.json",
             "/config/genesis.json",
@@ -209,7 +202,7 @@ class TestTendermintServerApp(BaseTendermintServerTest):
             "/data/priv_validator_state.json",
         ]
 
-        file_names = [remove_prefix(str(p), self.tmp_dir) for p in self.path.rglob("*")]
+        file_names = [remove_prefix(str(p), self.tm_home) for p in self.path.rglob("*")]
         # we may create extra files, just want to check these exist
         missing_files = set(expected_file_names).difference(file_names)
         assert not missing_files
