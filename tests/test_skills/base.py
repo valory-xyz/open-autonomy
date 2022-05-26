@@ -41,14 +41,14 @@ from packages.valory.protocols.http import HttpMessage
 from packages.valory.protocols.ledger_api.message import LedgerApiMessage
 from packages.valory.skills.abstract_round_abci.base import (
     AbstractRound,
-    BasePeriodState,
+    BaseSynchronizedData,
     BaseTxPayload,
     OK_CODE,
     _MetaPayload,
 )
 from packages.valory.skills.abstract_round_abci.behaviours import (
     AbstractRoundBehaviour,
-    BaseState,
+    BaseBehaviour,
 )
 from packages.valory.skills.price_estimation_abci.handlers import (
     ContractApiHandler,
@@ -113,33 +113,33 @@ class FSMBehaviourBaseCase(BaseSkillTestCase):
         cls.benchmark_dir = TemporaryDirectory()
         cls._skill.skill_context.benchmark_tool.log_dir = Path(cls.benchmark_dir.name)
         assert (
-            cast(BaseState, cls.behaviour.current_state).state_id
-            == cls.behaviour.initial_state_cls.state_id
+            cast(BaseBehaviour, cls.behaviour.current_behaviour).behaviour_id
+            == cls.behaviour.initial_behaviour_cls.behaviour_id
         )
 
-    def fast_forward_to_state(
+    def fast_forward_to_behaviour(
         self,
         behaviour: AbstractRoundBehaviour,
-        state_id: str,
-        period_state: BasePeriodState,
+        behaviour_id: str,
+        synchronized_data: BaseSynchronizedData,
     ) -> None:
-        """Fast forward the FSM to a state."""
-        next_state = {s.state_id: s for s in behaviour.behaviour_states}[state_id]
-        assert next_state is not None, f"State {state_id} not found"
-        next_state = cast(Type[BaseState], next_state)
-        behaviour.current_state = next_state(
-            name=next_state.state_id, skill_context=behaviour.context
+        """Fast forward the FSM to a behaviour."""
+        next_behaviour = {s.behaviour_id: s for s in behaviour.behaviours}[behaviour_id]
+        assert next_behaviour is not None, f"Behaviour {behaviour_id} not found"
+        next_behaviour = cast(Type[BaseBehaviour], next_behaviour)
+        behaviour.current_behaviour = next_behaviour(
+            name=next_behaviour.behaviour_id, skill_context=behaviour.context
         )
         self.skill.skill_context.state.round_sequence.abci_app._round_results.append(
-            period_state
+            synchronized_data
         )
         self.skill.skill_context.state.round_sequence.abci_app._extend_previous_rounds_with_current_round()
         self.skill.skill_context.behaviours.main._last_round_height = (
             self.skill.skill_context.state.round_sequence.abci_app.current_round_height
         )
         self.skill.skill_context.state.round_sequence.abci_app._current_round = (
-            next_state.matching_round(
-                period_state, self.skill.skill_context.params.consensus_params
+            next_behaviour.matching_round(
+                synchronized_data, self.skill.skill_context.params.consensus_params
             )
         )
 
@@ -339,32 +339,32 @@ class FSMBehaviourBaseCase(BaseSkillTestCase):
 
     def end_round(self, done_event: Enum) -> None:
         """Ends round early to cover `wait_for_end` generator."""
-        current_state = cast(BaseState, self.behaviour.current_state)
-        if current_state is None:
+        current_behaviour = cast(BaseBehaviour, self.behaviour.current_behaviour)
+        if current_behaviour is None:
             return
-        current_state = cast(BaseState, current_state)
-        abci_app = current_state.context.state.round_sequence.abci_app
+        current_behaviour = cast(BaseBehaviour, current_behaviour)
+        abci_app = current_behaviour.context.state.round_sequence.abci_app
         old_round = abci_app._current_round
         abci_app._last_round = old_round
         abci_app._current_round = abci_app.transition_function[
-            current_state.matching_round
-        ][done_event](abci_app.state, abci_app.consensus_params)
+            current_behaviour.matching_round
+        ][done_event](abci_app.synchronized_data, abci_app.consensus_params)
         abci_app._previous_rounds.append(old_round)
         abci_app._current_round_height += 1
         self.behaviour._process_current_round()
 
     def _test_done_flag_set(self) -> None:
         """Test that, when round ends, the 'done' flag is set."""
-        current_state = cast(BaseState, self.behaviour.current_state)
-        assert not current_state.is_done()
+        current_behaviour = cast(BaseBehaviour, self.behaviour.current_behaviour)
+        assert not current_behaviour.is_done()
         with mock.patch.object(
             self.behaviour.context.state, "_round_sequence"
         ) as mock_round_sequence:
             mock_round_sequence.last_round_id = cast(
-                AbstractRound, current_state.matching_round
+                AbstractRound, current_behaviour.matching_round
             ).round_id
-            current_state.act_wrapper()
-            assert current_state.is_done()
+            current_behaviour.act_wrapper()
+            assert current_behaviour.is_done()
 
     @classmethod
     def teardown(cls) -> None:

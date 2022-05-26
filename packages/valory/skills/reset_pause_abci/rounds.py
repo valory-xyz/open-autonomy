@@ -27,7 +27,7 @@ from packages.valory.skills.abstract_round_abci.base import (
     AbciAppTransitionFunction,
     AbstractRound,
     AppState,
-    BasePeriodState,
+    BaseSynchronizedData,
     BaseTxPayload,
     CollectSameUntilThresholdRound,
     DegenerateRound,
@@ -56,9 +56,9 @@ class ResetAndPauseRound(CollectSameUntilThresholdRound):
         """Process payload."""
 
         sender = payload.sender
-        if sender not in self.period_state.all_participants:
+        if sender not in self.synchronized_data.all_participants:
             raise ABCIAppInternalError(
-                f"{sender} not in list of participants: {sorted(self.period_state.all_participants)}"
+                f"{sender} not in list of participants: {sorted(self.synchronized_data.all_participants)}"
             )
 
         if sender in self.collection:
@@ -71,10 +71,12 @@ class ResetAndPauseRound(CollectSameUntilThresholdRound):
     def check_payload(self, payload: BaseTxPayload) -> None:  # pragma: nocover
         """Check Payload"""
 
-        sender_in_participant_set = payload.sender in self.period_state.all_participants
+        sender_in_participant_set = (
+            payload.sender in self.synchronized_data.all_participants
+        )
         if not sender_in_participant_set:
             raise TransactionNotValidError(
-                f"{payload.sender} not in list of participants: {sorted(self.period_state.all_participants)}"
+                f"{payload.sender} not in list of participants: {sorted(self.synchronized_data.all_participants)}"
             )
 
         if payload.sender in self.collection:
@@ -82,23 +84,22 @@ class ResetAndPauseRound(CollectSameUntilThresholdRound):
                 f"sender {payload.sender} has already sent value for round: {self.round_id}"
             )
 
-    def end_block(self) -> Optional[Tuple[BasePeriodState, Event]]:
+    def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Event]]:
         """Process the end of the block."""
         if self.threshold_reached:
             extra_kwargs = {}
-            for key in self.period_state.db.cross_period_persisted_keys:
-                extra_kwargs[key] = self.period_state.db.get_strict(key)
-            state = self.period_state.update(
-                period_count=self.most_voted_payload,
-                participants=self.period_state.participants,
-                all_participants=self.period_state.all_participants,
+            for key in self.synchronized_data.db.cross_period_persisted_keys:
+                extra_kwargs[key] = self.synchronized_data.db.get_strict(key)
+            synchronized_data = self.synchronized_data.create(
+                participants=self.synchronized_data.participants,
+                all_participants=self.synchronized_data.all_participants,
                 **extra_kwargs,
             )
-            return state, Event.DONE
+            return synchronized_data, Event.DONE
         if not self.is_majority_possible(
-            self.collection, self.period_state.nb_participants
+            self.collection, self.synchronized_data.nb_participants
         ):
-            return self.period_state, Event.NO_MAJORITY
+            return self.synchronized_data, Event.NO_MAJORITY
         return None
 
 

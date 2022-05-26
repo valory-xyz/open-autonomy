@@ -41,7 +41,7 @@ import pandas as pd
 
 from packages.valory.skills.abstract_round_abci.behaviours import (
     AbstractRoundBehaviour,
-    BaseState,
+    BaseBehaviour,
 )
 from packages.valory.skills.abstract_round_abci.io.load import SupportedFiletype
 from packages.valory.skills.abstract_round_abci.models import ApiSpecs
@@ -80,10 +80,10 @@ from packages.valory.skills.apy_estimation_abci.rounds import (
     EstimateRound,
     FreshModelResetRound,
     OptimizeRound,
-    PeriodState,
     PrepareBatchRound,
     PreprocessRound,
     RandomnessRound,
+    SynchronizedData,
     TestRound,
     TrainRound,
     TransformRound,
@@ -110,13 +110,13 @@ from packages.valory.skills.apy_estimation_abci.tools.queries import (
 )
 
 
-class APYEstimationBaseState(BaseState, ABC):
-    """Base state behaviour for the APY estimation skill."""
+class APYEstimationBaseBehaviour(BaseBehaviour, ABC):
+    """Base behaviour for the APY estimation skill."""
 
     @property
-    def period_state(self) -> PeriodState:
-        """Return the period state."""
-        return cast(PeriodState, super().period_state)
+    def synchronized_data(self) -> SynchronizedData:
+        """Return the synchronized data."""
+        return cast(SynchronizedData, super().synchronized_data)
 
     @property
     def params(self) -> APYParams:
@@ -128,10 +128,10 @@ class APYEstimationBaseState(BaseState, ABC):
         split_path = os.path.join(
             self.context.data_dir,
             f"y_{split}",
-            f"period_{self.period_state.period_count}",
+            f"period_{self.synchronized_data.period_count}",
         )
         return self.get_from_ipfs(
-            getattr(self.period_state, f"{split}_hash"),
+            getattr(self.synchronized_data, f"{split}_hash"),
             split_path,
             multiple=True,
             filetype=SupportedFiletype.CSV,
@@ -139,11 +139,11 @@ class APYEstimationBaseState(BaseState, ABC):
 
 
 class FetchBehaviour(
-    APYEstimationBaseState
+    APYEstimationBaseBehaviour
 ):  # pylint: disable=too-many-instance-attributes
     """Observe historical data."""
 
-    state_id = "fetch"
+    behaviour_id = "fetch"
     matching_round = CollectHistoryRound
     batch = False
 
@@ -183,7 +183,7 @@ class FetchBehaviour(
 
         self._save_path = os.path.join(
             self.context.data_dir,
-            f"{filename}_period_{self.period_state.period_count}.json",
+            f"{filename}_period_{self.synchronized_data.period_count}.json",
         )
 
         self._spooky_api_specs = self.context.spooky_subgraph.get_spec()
@@ -338,11 +338,11 @@ class FetchBehaviour(
         - If the request fails, retry until max retries are exceeded.
         - Send an observation transaction and wait for it to be mined.
         - Wait until ABCI application transitions to the next round.
-        - Go to the next behaviour state (set done event).
+        - Go to the next behaviour (set done event).
         """
         self._set_current_timestamp()
 
-        with self.context.benchmark_tool.measure(self.state_id).local():
+        with self.context.benchmark_tool.measure(self.behaviour_id).local():
             if self._current_timestamp is not None:
                 yield from self._fetch_batch()
                 return
@@ -375,7 +375,7 @@ class FetchBehaviour(
             )
 
             # Finish behaviour.
-            with self.context.benchmark_tool.measure(self.state_id).consensus():
+            with self.context.benchmark_tool.measure(self.behaviour_id).consensus():
                 yield from self.send_a2a_transaction(payload)
                 yield from self.wait_until_round_end()
 
@@ -394,15 +394,15 @@ class FetchBehaviour(
 class FetchBatchBehaviour(FetchBehaviour):  # pylint: disable=too-many-ancestors
     """Observe the latest batch of historical data."""
 
-    state_id = "fetch_batch"
+    behaviour_id = "fetch_batch"
     matching_round = CollectLatestHistoryBatchRound
     batch = True
 
 
-class TransformBehaviour(APYEstimationBaseState):
+class TransformBehaviour(APYEstimationBaseBehaviour):
     """Transform historical data, i.e., convert them to a dataframe and calculate useful metrics, such as the APY."""
 
-    state_id = "transform"
+    behaviour_id = "transform"
     matching_round = TransformRound
 
     def __init__(self, **kwargs: Any) -> None:
@@ -417,15 +417,15 @@ class TransformBehaviour(APYEstimationBaseState):
     def setup(self) -> None:
         """Setup behaviour."""
         self._pairs_hist = self.get_from_ipfs(
-            self.period_state.history_hash,
+            self.synchronized_data.history_hash,
             self.context.data_dir,
-            filename=f"historical_data_period_{self.period_state.period_count}.json",
+            filename=f"historical_data_period_{self.synchronized_data.period_count}.json",
             filetype=SupportedFiletype.JSON,
         )
 
         self._transformed_history_save_path = os.path.join(
             self.context.data_dir,
-            f"transformed_historical_data_period_{self.period_state.period_count}.csv",
+            f"transformed_historical_data_period_{self.synchronized_data.period_count}.csv",
         )
 
         if self._pairs_hist is not None:
@@ -463,7 +463,7 @@ class TransformBehaviour(APYEstimationBaseState):
             # Send the latest observations to IPFS and get the hash.
             latest_observations_save_path = os.path.join(
                 self.context.data_dir,
-                f"latest_observations_period_{self.period_state.period_count}.csv",
+                f"latest_observations_period_{self.synchronized_data.period_count}.csv",
             )
             self._latest_observations_hist_hash = self.send_to_ipfs(
                 latest_observations_save_path,
@@ -479,17 +479,17 @@ class TransformBehaviour(APYEstimationBaseState):
         )
 
         # Finish behaviour.
-        with self.context.benchmark_tool.measure(self.state_id).consensus():
+        with self.context.benchmark_tool.measure(self.behaviour_id).consensus():
             yield from self.send_a2a_transaction(payload)
             yield from self.wait_until_round_end()
 
         self.set_done()
 
 
-class PreprocessBehaviour(APYEstimationBaseState):
+class PreprocessBehaviour(APYEstimationBaseBehaviour):
     """Preprocess historical data (train-test split)."""
 
-    state_id = "preprocess"
+    behaviour_id = "preprocess"
     matching_round = PreprocessRound
 
     def __init__(self, **kwargs: Any) -> None:
@@ -507,9 +507,9 @@ class PreprocessBehaviour(APYEstimationBaseState):
         """Setup behaviour."""
         # get the transformed historical data.
         self._pairs_hist = self.get_from_ipfs(
-            self.period_state.transformed_history_hash,
+            self.synchronized_data.transformed_history_hash,
             self.context.data_dir,
-            filename=f"transformed_historical_data_period_{self.period_state.period_count}.csv",
+            filename=f"transformed_historical_data_period_{self.synchronized_data.period_count}.csv",
             custom_loader=load_hist,
         )
 
@@ -544,7 +544,7 @@ class PreprocessBehaviour(APYEstimationBaseState):
                 save_path = os.path.join(
                     self.context.data_dir,
                     f"y_{split_name}",
-                    f"period_{self.period_state.period_count}",
+                    f"period_{self.synchronized_data.period_count}",
                 )
 
                 split_hash = self.send_to_ipfs(
@@ -558,17 +558,17 @@ class PreprocessBehaviour(APYEstimationBaseState):
         )
 
         # Finish behaviour.
-        with self.context.benchmark_tool.measure(self.state_id).consensus():
+        with self.context.benchmark_tool.measure(self.behaviour_id).consensus():
             yield from self.send_a2a_transaction(payload)
             yield from self.wait_until_round_end()
 
         self.set_done()
 
 
-class PrepareBatchBehaviour(APYEstimationBaseState):
+class PrepareBatchBehaviour(APYEstimationBaseBehaviour):
     """Transform and preprocess batch data."""
 
-    state_id = "prepare_batch"
+    behaviour_id = "prepare_batch"
     matching_round = PrepareBatchRound
 
     def __init__(self, **kwargs: Any) -> None:
@@ -587,15 +587,15 @@ class PrepareBatchBehaviour(APYEstimationBaseState):
         # These are the previous and the currently fetched batches. They are required for the task.
         self._batches = (
             self.get_from_ipfs(
-                self.period_state.latest_observation_hist_hash,
+                self.synchronized_data.latest_observation_hist_hash,
                 self.context.data_dir,
-                filename=f"latest_observations_period_{self.period_state.period_count - 1}.csv",
+                filename=f"latest_observations_period_{self.synchronized_data.period_count - 1}.csv",
                 custom_loader=load_hist,
             ),
             self.get_from_ipfs(
-                self.period_state.batch_hash,
+                self.synchronized_data.batch_hash,
                 self.context.data_dir,
-                filename=f"historical_data_batch_{self.period_state.latest_observation_timestamp}_period_{self.period_state.period_count}.json",
+                filename=f"historical_data_batch_{self.synchronized_data.latest_observation_timestamp}_period_{self.synchronized_data.period_count}.json",
                 filetype=SupportedFiletype.JSON,
             ),
         )
@@ -609,7 +609,7 @@ class PrepareBatchBehaviour(APYEstimationBaseState):
 
         self._prepared_batches_save_path = os.path.join(
             self.context.data_dir,
-            f"latest_observations_period_{self.period_state.period_count}.csv",
+            f"latest_observations_period_{self.synchronized_data.period_count}.csv",
         )
 
     def async_act(self) -> Generator:
@@ -641,29 +641,29 @@ class PrepareBatchBehaviour(APYEstimationBaseState):
         )
 
         # Finish behaviour.
-        with self.context.benchmark_tool.measure(self.state_id).consensus():
+        with self.context.benchmark_tool.measure(self.behaviour_id).consensus():
             yield from self.send_a2a_transaction(payload)
             yield from self.wait_until_round_end()
 
         self.set_done()
 
 
-class RandomnessBehaviour(APYEstimationBaseState):
+class RandomnessBehaviour(APYEstimationBaseBehaviour):
     """Get randomness value from `drnand`."""
 
-    state_id = "randomness"
+    behaviour_id = "randomness"
     matching_round = RandomnessRound
 
     def async_act(self) -> Generator:
         """Get randomness value from `drnand`."""
         if self.context.randomness_api.is_retries_exceeded():
             # now we need to wait and see if the other agents progress the round
-            with self.context.benchmark_tool.measure(self.state_id).consensus():
+            with self.context.benchmark_tool.measure(self.behaviour_id).consensus():
                 yield from self.wait_until_round_end()
             self.set_done()
             return
 
-        with self.context.benchmark_tool.measure(self.state_id).local():
+        with self.context.benchmark_tool.measure(self.behaviour_id).local():
             api_specs = self.context.randomness_api.get_spec()
             response = yield from self.get_http_response(
                 method=api_specs["method"],
@@ -696,7 +696,7 @@ class RandomnessBehaviour(APYEstimationBaseState):
             observation["round"],
             observation["randomness"],
         )
-        with self.context.benchmark_tool.measure(self.state_id).consensus():
+        with self.context.benchmark_tool.measure(self.behaviour_id).consensus():
             yield from self.send_a2a_transaction(payload)
             yield from self.wait_until_round_end()
 
@@ -711,10 +711,10 @@ class RandomnessBehaviour(APYEstimationBaseState):
         self.context.randomness_api.reset_retries()
 
 
-class OptimizeBehaviour(APYEstimationBaseState):
+class OptimizeBehaviour(APYEstimationBaseBehaviour):
     """Run an optimization study based on the training data."""
 
-    state_id = "optimize"
+    behaviour_id = "optimize"
     matching_round = OptimizeRound
 
     def __init__(self, **kwargs: Any) -> None:
@@ -739,7 +739,7 @@ class OptimizeBehaviour(APYEstimationBaseState):
                 optimize_task,
                 args=(
                     self._y,
-                    self.period_state.most_voted_randomness,
+                    self.synchronized_data.most_voted_randomness,
                 ),
                 kwargs=self.params.optimizer_params,
             )
@@ -786,7 +786,7 @@ class OptimizeBehaviour(APYEstimationBaseState):
             best_params_save_path = os.path.join(
                 self.context.data_dir,
                 "best_params",
-                f"period_{self.period_state.period_count}",
+                f"period_{self.synchronized_data.period_count}",
             )
             self._best_params_hash = self.send_to_ipfs(
                 best_params_save_path,
@@ -801,17 +801,17 @@ class OptimizeBehaviour(APYEstimationBaseState):
         )
 
         # Finish behaviour.
-        with self.context.benchmark_tool.measure(self.state_id).consensus():
+        with self.context.benchmark_tool.measure(self.behaviour_id).consensus():
             yield from self.send_a2a_transaction(payload)
             yield from self.wait_until_round_end()
 
         self.set_done()
 
 
-class TrainBehaviour(APYEstimationBaseState):
+class TrainBehaviour(APYEstimationBaseBehaviour):
     """Train an estimator."""
 
-    state_id = "train"
+    behaviour_id = "train"
     matching_round = TrainRound
 
     def __init__(self, **kwargs: Any) -> None:
@@ -828,10 +828,10 @@ class TrainBehaviour(APYEstimationBaseState):
         best_params_path = os.path.join(
             self.context.data_dir,
             "best_params",
-            f"period_{self.period_state.period_count}",
+            f"period_{self.synchronized_data.period_count}",
         )
         self._best_params = self.get_from_ipfs(
-            self.period_state.params_hash,
+            self.synchronized_data.params_hash,
             best_params_path,
             multiple=True,
             filetype=SupportedFiletype.JSON,
@@ -844,7 +844,7 @@ class TrainBehaviour(APYEstimationBaseState):
                 for pool_id, pool_splits in pool_to_train_data.items()
             }
 
-        if self.period_state.full_training and self._y is not None:
+        if self.synchronized_data.full_training and self._y is not None:
             pool_to_test_data = self.load_split("test")
             if pool_to_test_data is None:  # pragma: nocover
                 self._y = None
@@ -879,11 +879,11 @@ class TrainBehaviour(APYEstimationBaseState):
             forecasters = self._async_result.get()
             self.context.logger.info("Training has finished.")
 
-            prefix = "fully_trained_" if self.period_state.full_training else ""
+            prefix = "fully_trained_" if self.synchronized_data.full_training else ""
             forecaster_save_path = os.path.join(
                 self.context.data_dir,
                 f"{prefix}forecasters",
-                f"period_{self.period_state.period_count}",
+                f"period_{self.synchronized_data.period_count}",
             )
 
             # Send the file to IPFS and get its hash.
@@ -897,17 +897,17 @@ class TrainBehaviour(APYEstimationBaseState):
         payload = TrainingPayload(self.context.agent_address, self._models_hash)
 
         # Finish behaviour.
-        with self.context.benchmark_tool.measure(self.state_id).consensus():
+        with self.context.benchmark_tool.measure(self.behaviour_id).consensus():
             yield from self.send_a2a_transaction(payload)
             yield from self.wait_until_round_end()
 
         self.set_done()
 
 
-class TestBehaviour(APYEstimationBaseState):
+class TestBehaviour(APYEstimationBaseBehaviour):
     """Test an estimator."""
 
-    state_id = "test"
+    behaviour_id = "test"
     matching_round = TestRound
 
     def __init__(self, **kwargs: Any) -> None:
@@ -937,11 +937,11 @@ class TestBehaviour(APYEstimationBaseState):
         models_path = os.path.join(
             self.context.data_dir,
             "forecasters",
-            f"period_{self.period_state.period_count}",
+            f"period_{self.synchronized_data.period_count}",
         )
 
         self._forecasters = self.get_from_ipfs(
-            self.period_state.models_hash,
+            self.synchronized_data.models_hash,
             models_path,
             multiple=True,
             filetype=SupportedFiletype.PM_PIPELINE,
@@ -984,7 +984,7 @@ class TestBehaviour(APYEstimationBaseState):
             report_save_path = os.path.join(
                 self.context.data_dir,
                 "reports",
-                f"period_{self.period_state.period_count}",
+                f"period_{self.synchronized_data.period_count}",
             )
             # Send the file to IPFS and get its hash.
             self._report_hash = self.send_to_ipfs(
@@ -995,17 +995,17 @@ class TestBehaviour(APYEstimationBaseState):
         payload = TestingPayload(self.context.agent_address, self._report_hash)
 
         # Finish behaviour.
-        with self.context.benchmark_tool.measure(self.state_id).consensus():
+        with self.context.benchmark_tool.measure(self.behaviour_id).consensus():
             yield from self.send_a2a_transaction(payload)
             yield from self.wait_until_round_end()
 
         self.set_done()
 
 
-class UpdateForecasterBehaviour(APYEstimationBaseState):
+class UpdateForecasterBehaviour(APYEstimationBaseBehaviour):
     """Update an estimator."""
 
-    state_id = "update"
+    behaviour_id = "update"
     matching_round = UpdateForecasterRound
 
     def __init__(self, **kwargs: Any) -> None:
@@ -1025,16 +1025,16 @@ class UpdateForecasterBehaviour(APYEstimationBaseState):
         """Setup behaviour."""
         # Load data batch.
         self._y = self.get_from_ipfs(
-            self.period_state.latest_observation_hist_hash,
+            self.synchronized_data.latest_observation_hist_hash,
             self.context.data_dir,
-            filename=f"latest_observations_period_{self.period_state.period_count}.csv",
+            filename=f"latest_observations_period_{self.synchronized_data.period_count}.csv",
             filetype=SupportedFiletype.CSV,
         )
 
         # Load forecasters.
         self._forecasters = self.get_from_ipfs(
-            self.period_state.models_hash,
-            self._forecasters_folder + str(self.period_state.period_count - 1),
+            self.synchronized_data.models_hash,
+            self._forecasters_folder + str(self.synchronized_data.period_count - 1),
             multiple=True,
             filetype=SupportedFiletype.PM_PIPELINE,
         )
@@ -1059,7 +1059,7 @@ class UpdateForecasterBehaviour(APYEstimationBaseState):
 
             # Send the file to IPFS and get its hash.
             self._models_hash = self.send_to_ipfs(
-                self._forecasters_folder + str(self.period_state.period_count),
+                self._forecasters_folder + str(self.synchronized_data.period_count),
                 self._forecasters,
                 multiple=True,
                 filetype=SupportedFiletype.PM_PIPELINE,
@@ -1068,17 +1068,17 @@ class UpdateForecasterBehaviour(APYEstimationBaseState):
         payload = UpdatePayload(self.context.agent_address, self._models_hash)
 
         # Finish behaviour.
-        with self.context.benchmark_tool.measure(self.state_id).consensus():
+        with self.context.benchmark_tool.measure(self.behaviour_id).consensus():
             yield from self.send_a2a_transaction(payload)
             yield from self.wait_until_round_end()
 
         self.set_done()
 
 
-class EstimateBehaviour(APYEstimationBaseState):
+class EstimateBehaviour(APYEstimationBaseBehaviour):
     """Estimate APY."""
 
-    state_id = "estimate"
+    behaviour_id = "estimate"
     matching_round = EstimateRound
 
     def __init__(self, **kwargs: Any) -> None:
@@ -1094,10 +1094,10 @@ class EstimateBehaviour(APYEstimationBaseState):
         forecasters_folder: str = os.path.join(
             self.context.data_dir,
             "fully_trained_forecasters",
-            f"period_{self.period_state.period_count}",
+            f"period_{self.synchronized_data.period_count}",
         )
         self._forecasters = self.get_from_ipfs(
-            self.period_state.models_hash,
+            self.synchronized_data.models_hash,
             forecasters_folder,
             multiple=True,
             filetype=SupportedFiletype.PM_PIPELINE,
@@ -1129,7 +1129,7 @@ class EstimateBehaviour(APYEstimationBaseState):
             # Send the file to IPFS and get its hash.
             estimations_path = os.path.join(
                 self.context.data_dir,
-                f"estimations_period_{self.period_state.period_count}.csv",
+                f"estimations_period_{self.synchronized_data.period_count}.csv",
             )
             self._estimations_hash = self.send_to_ipfs(
                 estimations_path,
@@ -1140,37 +1140,37 @@ class EstimateBehaviour(APYEstimationBaseState):
         payload = EstimatePayload(self.context.agent_address, self._estimations_hash)
 
         # Finish behaviour.
-        with self.context.benchmark_tool.measure(self.state_id).consensus():
+        with self.context.benchmark_tool.measure(self.behaviour_id).consensus():
             yield from self.send_a2a_transaction(payload)
             yield from self.wait_until_round_end()
 
         self.set_done()
 
 
-class BaseResetBehaviour(APYEstimationBaseState):
-    """Reset state."""
+class BaseResetBehaviour(APYEstimationBaseBehaviour):
+    """Reset behaviour."""
 
     def async_act(self) -> Generator:
         """
         Do the action.
 
         Steps:
-        - Trivially log the state.
+        - Trivially log the behaviour.
         - Sleep for configured interval.
         - Build a registration transaction.
         - Send the transaction and wait for it to be mined.
         - Wait until ABCI application transitions to the next round.
-        - Go to the next behaviour state (set done event).
+        - Go to the next behaviour (set done event).
         """
         if (
-            self.state_id == "cycle_reset"
-            and self.period_state.is_most_voted_estimate_set
+            self.behaviour_id == "cycle_reset"
+            and self.synchronized_data.is_most_voted_estimate_set
         ):
             # Load estimations.
             estimations = self.get_from_ipfs(
-                self.period_state.estimates_hash,
+                self.synchronized_data.estimates_hash,
                 self.context.data_dir,
-                filename=f"estimations_period_{self.period_state.period_count}.csv",
+                filename=f"estimations_period_{self.synchronized_data.period_count}.csv",
                 filetype=SupportedFiletype.CSV,
             )
             if estimations is not None:
@@ -1187,20 +1187,20 @@ class BaseResetBehaviour(APYEstimationBaseState):
             yield from self.sleep(self.params.observation_interval)
             self.context.benchmark_tool.save()
         elif (
-            self.state_id == "cycle_reset"
-            and not self.period_state.is_most_voted_estimate_set
+            self.behaviour_id == "cycle_reset"
+            and not self.synchronized_data.is_most_voted_estimate_set
         ):
             self.context.logger.info("Finalized estimate not available. Resetting!")
-        elif self.state_id == "fresh_model_reset":
+        elif self.behaviour_id == "fresh_model_reset":
             self.context.logger.info("Resetting to create a fresh forecasting model!")
         else:  # pragma: nocover
             raise RuntimeError(
-                f"BaseResetBehaviour not used correctly. Got {self.state_id}. "
-                f"Allowed state ids are `cycle_reset` and `fresh_model_reset`."
+                f"BaseResetBehaviour not used correctly. Got {self.behaviour_id}. "
+                f"Allowed behaviour ids are `cycle_reset` and `fresh_model_reset`."
             )
 
         payload = ResetPayload(
-            self.context.agent_address, self.period_state.period_count + 1
+            self.context.agent_address, self.synchronized_data.period_count
         )
         yield from self.send_a2a_transaction(payload)
         yield from self.wait_until_round_end()
@@ -1210,25 +1210,25 @@ class BaseResetBehaviour(APYEstimationBaseState):
 class FreshModelResetBehaviour(  # pylint: disable=too-many-ancestors
     BaseResetBehaviour
 ):
-    """Reset state to start with a fresh model."""
+    """Reset behaviour to start with a fresh model."""
 
     matching_round = FreshModelResetRound
-    state_id = "fresh_model_reset"
+    behaviour_id = "fresh_model_reset"
 
 
 class CycleResetBehaviour(BaseResetBehaviour):  # pylint: disable=too-many-ancestors
-    """Cycle reset state."""
+    """Cycle reset behaviour."""
 
     matching_round = CycleResetRound
-    state_id = "cycle_reset"
+    behaviour_id = "cycle_reset"
 
 
 class EstimatorRoundBehaviour(AbstractRoundBehaviour):
     """This behaviour manages the consensus stages for the APY estimation behaviour."""
 
-    initial_state_cls = FetchBehaviour
+    initial_behaviour_cls = FetchBehaviour
     abci_app_cls = APYEstimationAbciApp
-    behaviour_states: Set[Type[BaseState]] = {
+    behaviours: Set[Type[BaseBehaviour]] = {
         FetchBehaviour,
         FetchBatchBehaviour,
         TransformBehaviour,

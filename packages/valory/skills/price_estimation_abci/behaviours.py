@@ -32,7 +32,7 @@ from packages.valory.contracts.offchain_aggregator.contract import (
 from packages.valory.protocols.contract_api import ContractApiMessage
 from packages.valory.skills.abstract_round_abci.behaviours import (
     AbstractRoundBehaviour,
-    BaseState,
+    BaseBehaviour,
 )
 from packages.valory.skills.price_estimation_abci.models import Params
 from packages.valory.skills.price_estimation_abci.payloads import (
@@ -43,8 +43,8 @@ from packages.valory.skills.price_estimation_abci.payloads import (
 from packages.valory.skills.price_estimation_abci.rounds import (
     CollectObservationRound,
     EstimateConsensusRound,
-    PeriodState,
     PriceAggregationAbciApp,
+    SynchronizedData,
     TxHashRound,
 )
 from packages.valory.skills.transaction_settlement_abci.payload_tools import (
@@ -73,13 +73,13 @@ def to_int(most_voted_estimate: float, decimals: int) -> int:
     return int_value
 
 
-class PriceEstimationBaseState(BaseState, ABC):
-    """Base state behaviour for the common apps' skill."""
+class PriceEstimationBaseBehaviour(BaseBehaviour, ABC):
+    """Base behaviour for the common apps' skill."""
 
     @property
-    def period_state(self) -> PeriodState:
-        """Return the period state."""
-        return cast(PeriodState, super().period_state)
+    def synchronized_data(self) -> SynchronizedData:
+        """Return the synchronized data."""
+        return cast(SynchronizedData, super().synchronized_data)
 
     @property
     def params(self) -> Params:
@@ -87,10 +87,10 @@ class PriceEstimationBaseState(BaseState, ABC):
         return cast(Params, super().params)
 
 
-class ObserveBehaviour(PriceEstimationBaseState):
+class ObserveBehaviour(PriceEstimationBaseBehaviour):
     """Observe price estimate."""
 
-    state_id = "collect_observation"
+    behaviour_id = "collect_observation"
     matching_round = CollectObservationRound
 
     def async_act(self) -> Generator:
@@ -102,17 +102,17 @@ class ObserveBehaviour(PriceEstimationBaseState):
         - If the request fails, retry until max retries are exceeded.
         - Send an observation transaction and wait for it to be mined.
         - Wait until ABCI application transitions to the next round.
-        - Go to the next behaviour state (set done event).
+        - Go to the next behaviour (set done event).
         """
 
         if self.context.price_api.is_retries_exceeded():
             # now we need to wait and see if the other agents progress the round, otherwise we should restart?
-            with self.context.benchmark_tool.measure(self.state_id).consensus():
+            with self.context.benchmark_tool.measure(self.behaviour_id).consensus():
                 yield from self.wait_until_round_end()
             self.set_done()
             return
 
-        with self.context.benchmark_tool.measure(self.state_id).local():
+        with self.context.benchmark_tool.measure(self.behaviour_id).local():
             api_specs = self.context.price_api.get_spec()
             response = yield from self.get_http_response(
                 method=api_specs["method"],
@@ -129,7 +129,7 @@ class ObserveBehaviour(PriceEstimationBaseState):
                 + f"{observation}"
             )
             payload = ObservationPayload(self.context.agent_address, observation)
-            with self.context.benchmark_tool.measure(self.state_id).consensus():
+            with self.context.benchmark_tool.measure(self.behaviour_id).consensus():
                 yield from self.send_a2a_transaction(payload)
                 yield from self.wait_until_round_end()
             self.set_done()
@@ -149,10 +149,10 @@ class ObserveBehaviour(PriceEstimationBaseState):
         self.context.price_api.reset_retries()
 
 
-class EstimateBehaviour(PriceEstimationBaseState):
+class EstimateBehaviour(PriceEstimationBaseBehaviour):
     """Estimate price."""
 
-    state_id = "estimate"
+    behaviour_id = "estimate"
     matching_round = EstimateConsensusRound
 
     def async_act(self) -> Generator:
@@ -163,26 +163,26 @@ class EstimateBehaviour(PriceEstimationBaseState):
         - Run the script to compute the estimate starting from the shared observations.
         - Build an estimate transaction and send the transaction and wait for it to be mined.
         - Wait until ABCI application transitions to the next round.
-        - Go to the next behaviour state (set done event).
+        - Go to the next behaviour (set done event).
         """
 
-        with self.context.benchmark_tool.measure(self.state_id).local():
+        with self.context.benchmark_tool.measure(self.behaviour_id).local():
 
-            self.period_state.set_aggregator_method(
+            self.synchronized_data.set_aggregator_method(
                 self.params.observation_aggregator_function
             )
             self.context.logger.info(
                 "Got estimate of %s price in %s: %s, Using aggregator method: %s",
                 self.context.price_api.currency_id,
                 self.context.price_api.convert_id,
-                self.period_state.estimate,
+                self.synchronized_data.estimate,
                 self.params.observation_aggregator_function,
             )
             payload = EstimatePayload(
-                self.context.agent_address, self.period_state.estimate
+                self.context.agent_address, self.synchronized_data.estimate
             )
 
-        with self.context.benchmark_tool.measure(self.state_id).consensus():
+        with self.context.benchmark_tool.measure(self.behaviour_id).consensus():
             yield from self.send_a2a_transaction(payload)
             yield from self.wait_until_round_end()
 
@@ -221,10 +221,10 @@ def pack_for_server(  # pylint: disable-msg=too-many-arguments
     )
 
 
-class TransactionHashBehaviour(PriceEstimationBaseState):
+class TransactionHashBehaviour(PriceEstimationBaseBehaviour):
     """Share the transaction hash for the signature round."""
 
-    state_id = "tx_hash"
+    behaviour_id = "tx_hash"
     matching_round = TxHashRound
 
     def async_act(self) -> Generator:
@@ -236,14 +236,14 @@ class TransactionHashBehaviour(PriceEstimationBaseState):
           hash that needs to be signed by a threshold of agents.
         - Send the transaction hash as a transaction and wait for it to be mined.
         - Wait until ABCI application transitions to the next round.
-        - Go to the next behaviour state (set done event).
+        - Go to the next behaviour (set done event).
         """
 
-        with self.context.benchmark_tool.measure(self.state_id).local():
+        with self.context.benchmark_tool.measure(self.behaviour_id).local():
             payload_string = yield from self._get_safe_tx_hash()
             payload = TransactionHashPayload(self.context.agent_address, payload_string)
 
-        with self.context.benchmark_tool.measure(self.state_id).consensus():
+        with self.context.benchmark_tool.measure(self.behaviour_id).consensus():
             if self.params.is_broadcasting_to_server:
                 yield from self.send_to_server()
             yield from self.send_a2a_transaction(payload)
@@ -255,7 +255,7 @@ class TransactionHashBehaviour(PriceEstimationBaseState):
         """
         Send data to server.
 
-        We send current period state data of the agents and the previous
+        We send current period data of the agents and the previous
         cycle's on-chain settlement tx hash. The current cycle's tx hash
         is not available at this stage yet, and the first iteration will
         contain no tx hash since there has not been on-chain transaction
@@ -264,7 +264,7 @@ class TransactionHashBehaviour(PriceEstimationBaseState):
         :yield: the http response
         """
 
-        period_count = self.period_state.period_count
+        period_count = self.synchronized_data.period_count
 
         self.context.logger.info("Attempting broadcast")
 
@@ -272,18 +272,16 @@ class TransactionHashBehaviour(PriceEstimationBaseState):
         if period_count != 0:
             # grab tx_hash from previous cycle
             prev_period_count = period_count - 1
-            previous_data = (
-                self.period_state.db._data[  # pylint: disable=protected-access
-                    prev_period_count
-                ]
+            previous_data = self.synchronized_data.db.get_latest_from_reset_index(
+                prev_period_count
             )
 
             prev_tx_hash = previous_data.get("final_tx_hash", "")
 
         # select relevant data
-        agents = self.period_state.db.get_strict("participants")
-        payloads = self.period_state.db.get_strict("participant_to_observations")
-        estimate = self.period_state.db.get_strict("most_voted_estimate")
+        agents = self.synchronized_data.db.get_strict("participants")
+        payloads = self.synchronized_data.db.get_strict("participant_to_observations")
+        estimate = self.synchronized_data.db.get_strict("most_voted_estimate")
 
         observations = {
             agent: getattr(payloads.get(agent), "observation", NO_OBSERVATION)
@@ -305,7 +303,7 @@ class TransactionHashBehaviour(PriceEstimationBaseState):
         }
 
         # pack data
-        participants = self.period_state.sorted_participants
+        participants = self.synchronized_data.sorted_participants
         decimals = self.params.oracle_params["decimals"]
         package = pack_for_server(participants, decimals, **data_for_server)
         data_for_server["package"] = package.hex()
@@ -330,7 +328,7 @@ class TransactionHashBehaviour(PriceEstimationBaseState):
         """Get the transaction hash of the Safe tx."""
         contract_api_msg = yield from self.get_contract_api_response(
             performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
-            contract_address=self.period_state.oracle_contract_address,
+            contract_address=self.synchronized_data.oracle_contract_address,
             contract_id=str(OffchainAggregatorContract.contract_id),
             contract_callable="get_latest_transmission_details",
         )
@@ -343,11 +341,11 @@ class TransactionHashBehaviour(PriceEstimationBaseState):
         epoch_ = cast(int, contract_api_msg.raw_transaction.body["epoch_"]) + 1
         round_ = cast(int, contract_api_msg.raw_transaction.body["round_"])
         decimals = self.params.oracle_params["decimals"]
-        amount = self.period_state.most_voted_estimate
+        amount = self.synchronized_data.most_voted_estimate
         amount_ = to_int(amount, decimals)
         contract_api_msg = yield from self.get_contract_api_response(
             performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
-            contract_address=self.period_state.oracle_contract_address,
+            contract_address=self.synchronized_data.oracle_contract_address,
             contract_id=str(OffchainAggregatorContract.contract_id),
             contract_callable="get_transmit_data",
             epoch_=epoch_,
@@ -361,12 +359,12 @@ class TransactionHashBehaviour(PriceEstimationBaseState):
             self.context.logger.warning("get_transmit_data unsuccessful!")
             return None
         data = cast(bytes, contract_api_msg.raw_transaction.body["data"])
-        to_address = self.period_state.oracle_contract_address
+        to_address = self.synchronized_data.oracle_contract_address
         ether_value = ETHER_VALUE
         safe_tx_gas = SAFE_TX_GAS
         contract_api_msg = yield from self.get_contract_api_response(
             performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
-            contract_address=self.period_state.safe_contract_address,
+            contract_address=self.synchronized_data.safe_contract_address,
             contract_id=str(GnosisSafeContract.contract_id),
             contract_callable="get_raw_safe_transaction_hash",
             to_address=to_address,
@@ -393,9 +391,9 @@ class TransactionHashBehaviour(PriceEstimationBaseState):
 class ObserverRoundBehaviour(AbstractRoundBehaviour):
     """This behaviour manages the consensus stages for the observer behaviour."""
 
-    initial_state_cls = ObserveBehaviour
+    initial_behaviour_cls = ObserveBehaviour
     abci_app_cls = PriceAggregationAbciApp  # type: ignore
-    behaviour_states: Set[Type[BaseState]] = {  # type: ignore
+    behaviours: Set[Type[BaseBehaviour]] = {  # type: ignore
         ObserveBehaviour,  # type: ignore
         EstimateBehaviour,  # type: ignore
         TransactionHashBehaviour,  # type: ignore

@@ -30,10 +30,10 @@ from aea.skills.base import Model
 from packages.valory.protocols.http.message import HttpMessage
 from packages.valory.skills.abstract_round_abci.base import (
     AbciApp,
-    BasePeriodState,
+    AbciAppDB,
+    BaseSynchronizedData,
     ConsensusParams,
     RoundSequence,
-    StateDB,
 )
 
 
@@ -73,12 +73,12 @@ class BaseParams(Model):  # pylint: disable=too-many-instance-attributes
         )
         self.tx_timeout = kwargs.pop("tx_timeout", _DEFAULT_TX_TIMEOUT)
         self.max_attempts = kwargs.pop("max_attempts", _DEFAULT_TX_MAX_ATTEMPTS)
-        period_setup_params = kwargs.pop("period_setup", {})
+        setup_params = kwargs.pop("setup", {})
         # we sanitize for null values as these are just kept for schema definitions
-        period_setup_params = {
-            key: val for key, val in period_setup_params.items() if val is not None
+        setup_params = {
+            key: val for key, val in setup_params.items() if val is not None
         }
-        self.period_setup_params = period_setup_params
+        self.setup_params = setup_params
         super().__init__(*args, **kwargs)
 
     @classmethod
@@ -102,12 +102,11 @@ class SharedState(Model):
         """Set up the model."""
         self._round_sequence = RoundSequence(self.abci_app_cls)
         consensus_params = cast(BaseParams, self.context.params).consensus_params
-        period_setup_params = cast(BaseParams, self.context.params).period_setup_params
+        setup_params = cast(BaseParams, self.context.params).setup_params
         self.round_sequence.setup(
-            BasePeriodState(
-                StateDB(
-                    initial_period=0,
-                    initial_data=period_setup_params,
+            BaseSynchronizedData(
+                AbciAppDB(
+                    initial_data=setup_params,
                     cross_period_persisted_keys=self.abci_app_cls.cross_period_persisted_keys,
                 )
             ),
@@ -123,9 +122,9 @@ class SharedState(Model):
         return self._round_sequence
 
     @property
-    def period_state(self) -> BasePeriodState:
-        """Get the period state if available."""
-        return self.round_sequence.latest_state
+    def synchronized_data(self) -> BaseSynchronizedData:
+        """Get the latest synchronized_data if available."""
+        return self.round_sequence.latest_synchronized_data
 
     @classmethod
     def _process_abci_app_cls(cls, abci_app_cls: Type[AbciApp]) -> Type[AbciApp]:

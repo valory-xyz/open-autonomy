@@ -14,19 +14,19 @@ class Event(Enum)
 
 Event enumeration for the price estimation demo.
 
-<a id="packages.valory.skills.oracle_deployment_abci.rounds.PeriodState"></a>
+<a id="packages.valory.skills.oracle_deployment_abci.rounds.SynchronizedData"></a>
 
-## PeriodState Objects
+## SynchronizedData Objects
 
 ```python
-class PeriodState(BasePeriodState)
+class SynchronizedData(BaseSynchronizedData)
 ```
 
-Class to represent a period state.
+Class to represent the synchronized data.
 
-This state is replicated by the tendermint application.
+This data is replicated by the tendermint application.
 
-<a id="packages.valory.skills.oracle_deployment_abci.rounds.PeriodState.safe_contract_address"></a>
+<a id="packages.valory.skills.oracle_deployment_abci.rounds.SynchronizedData.safe_contract_address"></a>
 
 #### safe`_`contract`_`address
 
@@ -37,7 +37,7 @@ def safe_contract_address() -> str
 
 Get the safe contract address.
 
-<a id="packages.valory.skills.oracle_deployment_abci.rounds.PeriodState.oracle_contract_address"></a>
+<a id="packages.valory.skills.oracle_deployment_abci.rounds.SynchronizedData.oracle_contract_address"></a>
 
 #### oracle`_`contract`_`address
 

@@ -9,10 +9,10 @@ This module contains the behaviours for the 'abci' skill.
 ## RegistrationBaseBehaviour Objects
 
 ```python
-class RegistrationBaseBehaviour(BaseState)
+class RegistrationBaseBehaviour(BaseBehaviour)
 ```
 
-Register to the next periods.
+Agent registration to the FSM App.
 
 <a id="packages.valory.skills.registration_abci.behaviours.RegistrationBaseBehaviour.async_act"></a>
 
@@ -28,7 +28,7 @@ Steps:
 - Build a registration transaction.
 - Send the transaction and wait for it to be mined.
 - Wait until ABCI application transitions to the next round.
-- Go to the next behaviour state (set done event).
+- Go to the next behaviour (set done event).
 
 <a id="packages.valory.skills.registration_abci.behaviours.RegistrationStartupBehaviour"></a>
 
@@ -38,7 +38,7 @@ Steps:
 class RegistrationStartupBehaviour(RegistrationBaseBehaviour)
 ```
 
-Register to the next periods.
+Agent registration to the FSM App.
 
 <a id="packages.valory.skills.registration_abci.behaviours.RegistrationBehaviour"></a>
 
@@ -48,7 +48,7 @@ Register to the next periods.
 class RegistrationBehaviour(RegistrationBaseBehaviour)
 ```
 
-Register to the next periods.
+Agent registration to the FSM App.
 
 <a id="packages.valory.skills.registration_abci.behaviours.AgentRegistrationRoundBehaviour"></a>
 
