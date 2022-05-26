@@ -2077,6 +2077,10 @@ class Period:
         """Get the latest state."""
         return self.abci_app.state
 
+    def init_chain(self, init_height: int) -> None:
+        """Init chain."""
+        self._blockchain = Blockchain(init_height - 1)
+
     def begin_block(self, header: Header) -> None:
         """Begin block."""
         if self.is_finished:

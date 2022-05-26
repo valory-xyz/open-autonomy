@@ -19,7 +19,7 @@
 
 """This module contains the handler for the 'abstract_round_abci' skill."""
 from abc import ABC
-from typing import Callable, FrozenSet, Optional, cast
+from typing import Callable, FrozenSet, Optional, cast, List
 
 from aea.configurations.data_types import PublicId
 from aea.protocols.base import Message
@@ -28,7 +28,7 @@ from aea.skills.base import Handler
 
 from packages.open_aea.protocols.signing import SigningMessage
 from packages.valory.protocols.abci import AbciMessage
-from packages.valory.protocols.abci.custom_types import Events
+from packages.valory.protocols.abci.custom_types import Events, ValidatorUpdates
 from packages.valory.protocols.contract_api import ContractApiMessage
 from packages.valory.protocols.http import HttpMessage
 from packages.valory.protocols.ledger_api import LedgerApiMessage
@@ -76,6 +76,27 @@ class ABCIRoundHandler(ABCIHandler):
             app_version=app_version,
             last_block_height=last_block_height,
             last_block_app_hash=last_block_app_hash,
+        )
+        return cast(AbciMessage, reply)
+
+    def init_chain(  # pylint: disable=no-self-use
+        self, message: AbciMessage, dialogue: AbciDialogue
+    ) -> AbciMessage:
+        """
+        Handle a message of REQUEST_INIT_CHAIN performative.
+
+        :param message: the ABCI request.
+        :param dialogue: the ABCI dialogue.
+        :return: the response.
+        """
+        self.context.state.period.init_chain(message.initial_height)
+        validators: List = []
+        app_hash = b""
+        reply = dialogue.reply(
+            performative=AbciMessage.Performative.RESPONSE_INIT_CHAIN,
+            target_message=message,
+            validators=ValidatorUpdates(validators),
+            app_hash=app_hash,
         )
         return cast(AbciMessage, reply)
 
