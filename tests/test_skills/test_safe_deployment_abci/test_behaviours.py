@@ -25,7 +25,7 @@ from packages.valory.contracts.gnosis_safe.contract import (
     PUBLIC_ID as GNOSIS_SAFE_CONTRACT_ID,
 )
 from packages.valory.skills.abstract_round_abci.behaviour_utils import (
-    make_degenerate_state,
+    make_degenerate_behaviour,
 )
 from packages.valory.skills.safe_deployment_abci.behaviours import (
     DeploySafeBehaviour,
@@ -87,7 +87,7 @@ class TestDeploySafeBehaviour(BaseDeployBehaviourTest, SafeDeploymentAbciBaseCas
 
     behaviour_class = DeploySafeBehaviour
     next_behaviour_class = ValidateSafeBehaviour
-    period_state_kwargs = dict(safe_contract_address="safe_contract_address")
+    synchronized_data_kwargs = dict(safe_contract_address="safe_contract_address")
     contract_id = str(GNOSIS_SAFE_CONTRACT_ID)
     done_event = SafeDeploymentEvent.DONE
 
@@ -96,7 +96,7 @@ class TestValidateSafeBehaviour(BaseValidateBehaviourTest, SafeDeploymentAbciBas
     """Test ValidateSafeBehaviour."""
 
     behaviour_class = ValidateSafeBehaviour
-    next_behaviour_class = make_degenerate_state(FinishedSafeRound.round_id)
-    period_state_kwargs = dict(safe_contract_address="safe_contract_address")
+    next_behaviour_class = make_degenerate_behaviour(FinishedSafeRound.round_id)
+    synchronized_data_kwargs = dict(safe_contract_address="safe_contract_address")
     contract_id = str(GNOSIS_SAFE_CONTRACT_ID)
     done_event = SafeDeploymentEvent.DONE

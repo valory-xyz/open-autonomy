@@ -26,7 +26,7 @@ from typing import Dict, Generator, List, Optional, Type, Union, cast
 
 from packages.valory.protocols.ledger_api.message import LedgerApiMessage
 from packages.valory.skills.abstract_round_abci.base import BaseTxPayload
-from packages.valory.skills.abstract_round_abci.behaviour_utils import BaseState
+from packages.valory.skills.abstract_round_abci.behaviour_utils import BaseBehaviour
 from packages.valory.skills.abstract_round_abci.utils import VerifyDrand
 
 
@@ -50,7 +50,7 @@ def random_selection(elements: List[str], randomness: float) -> str:
     return elements[random_position]
 
 
-class RandomnessBehaviour(BaseState):
+class RandomnessBehaviour(BaseBehaviour):
     """Check whether Tendermint nodes are running."""
 
     payload_class: Type[BaseTxPayload]
@@ -111,7 +111,7 @@ class RandomnessBehaviour(BaseState):
         - Retry until reciving valid values for randomness or retries exceed.
         - If retrieved values are valid continue else generate randomness from chain.
         """
-        with self.context.benchmark_tool.measure(self.state_id).local():
+        with self.context.benchmark_tool.measure(self.behaviour_id).local():
             if self.context.randomness_api.is_retries_exceeded():
                 self.context.logger.info("Cannot retrieve randomness from api.")
                 self.context.logger.info("Generating randomness from chain.")
@@ -132,7 +132,7 @@ class RandomnessBehaviour(BaseState):
                 round_id=observation["round"],
                 randomness=observation["randomness"],
             )
-            with self.context.benchmark_tool.measure(self.state_id).consensus():
+            with self.context.benchmark_tool.measure(self.behaviour_id).consensus():
                 yield from self.send_a2a_transaction(payload)
                 yield from self.wait_until_round_end()
 
@@ -153,7 +153,7 @@ class RandomnessBehaviour(BaseState):
         self.context.randomness_api.reset_retries()
 
 
-class SelectKeeperBehaviour(BaseState):
+class SelectKeeperBehaviour(BaseBehaviour):
     """Select the keeper agent."""
 
     payload_class: Type[BaseTxPayload]
@@ -171,7 +171,8 @@ class SelectKeeperBehaviour(BaseState):
         """
         # Get all the participants who have not been blacklisted as keepers
         non_blacklisted = (
-            self.period_state.participants - self.period_state.blacklisted_keepers
+            self.synchronized_data.participants
+            - self.synchronized_data.blacklisted_keepers
         )
         if not non_blacklisted:
             raise RuntimeError(
@@ -182,16 +183,19 @@ class SelectKeeperBehaviour(BaseState):
         relevant_set = sorted(list(non_blacklisted))
 
         # Random seeding and shuffling of the set
-        random.seed(self.period_state.keeper_randomness)
+        random.seed(self.synchronized_data.keeper_randomness)
         random.shuffle(relevant_set)
 
         # If the keeper is not set yet, pick the first address
         keeper_address = relevant_set[0]
 
         # If the keeper has been already set, select the next.
-        if self.period_state.is_keeper_set and len(self.period_state.participants) > 1:
+        if (
+            self.synchronized_data.is_keeper_set
+            and len(self.synchronized_data.participants) > 1
+        ):
             old_keeper_index = relevant_set.index(
-                self.period_state.most_voted_keeper_address
+                self.synchronized_data.most_voted_keeper_address
             )
             keeper_address = relevant_set[(old_keeper_index + 1) % len(relevant_set)]
 
@@ -210,12 +214,12 @@ class SelectKeeperBehaviour(BaseState):
         - Go to the next behaviour state (set done event).
         """
 
-        with self.context.benchmark_tool.measure(self.state_id).local():
+        with self.context.benchmark_tool.measure(self.behaviour_id).local():
             payload = self.payload_class(
                 self.context.agent_address, self._select_keeper()
             )
 
-        with self.context.benchmark_tool.measure(self.state_id).consensus():
+        with self.context.benchmark_tool.measure(self.behaviour_id).consensus():
             yield from self.send_a2a_transaction(payload)
             yield from self.wait_until_round_end()
 

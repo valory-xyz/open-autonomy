@@ -22,7 +22,7 @@ from typing import Set, Type
 
 from packages.valory.skills.abstract_round_abci.behaviours import (
     AbstractRoundBehaviour,
-    BaseState,
+    BaseBehaviour,
 )
 from packages.valory.skills.apy_estimation_abci.behaviours import (
     EstimatorRoundBehaviour,
@@ -39,10 +39,10 @@ from packages.valory.skills.registration_abci.behaviours import (
 class APYEstimationConsensusBehaviour(AbstractRoundBehaviour):
     """This behaviour manages the consensus stages for the APY estimation."""
 
-    initial_state_cls = RegistrationStartupBehaviour
+    initial_behaviour_cls = RegistrationStartupBehaviour
     abci_app_cls = APYEstimationAbciAppChained
 
-    behaviour_states: Set[Type[BaseState]] = {
-        *AgentRegistrationRoundBehaviour.behaviour_states,
-        *EstimatorRoundBehaviour.behaviour_states,
+    behaviours: Set[Type[BaseBehaviour]] = {
+        *AgentRegistrationRoundBehaviour.behaviours,
+        *EstimatorRoundBehaviour.behaviours,
     }

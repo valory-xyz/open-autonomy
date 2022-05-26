@@ -14,19 +14,20 @@ class Event(Enum)
 
 Event enumeration for the price estimation demo.
 
-<a id="packages.valory.skills.transaction_settlement_abci.rounds.PeriodState"></a>
+<a id="packages.valory.skills.transaction_settlement_abci.rounds.SynchronizedData"></a>
 
-## PeriodState Objects
+## SynchronizedData Objects
 
 ```python
-class PeriodState(BasePeriodState)
+class SynchronizedData(
+    BaseSynchronizedData)
 ```
 
-Class to represent a period state.
+Class to represent the synchronized data.
 
-This state is replicated by the tendermint application.
+This data is replicated by the tendermint application.
 
-<a id="packages.valory.skills.transaction_settlement_abci.rounds.PeriodState.safe_contract_address"></a>
+<a id="packages.valory.skills.transaction_settlement_abci.rounds.SynchronizedData.safe_contract_address"></a>
 
 #### safe`_`contract`_`address
 
@@ -37,7 +38,7 @@ def safe_contract_address() -> str
 
 Get the safe contract address.
 
-<a id="packages.valory.skills.transaction_settlement_abci.rounds.PeriodState.participant_to_signature"></a>
+<a id="packages.valory.skills.transaction_settlement_abci.rounds.SynchronizedData.participant_to_signature"></a>
 
 #### participant`_`to`_`signature
 
@@ -48,7 +49,7 @@ def participant_to_signature() -> Mapping[str, SignaturePayload]
 
 Get the participant_to_signature.
 
-<a id="packages.valory.skills.transaction_settlement_abci.rounds.PeriodState.tx_hashes_history"></a>
+<a id="packages.valory.skills.transaction_settlement_abci.rounds.SynchronizedData.tx_hashes_history"></a>
 
 #### tx`_`hashes`_`history
 
@@ -59,7 +60,7 @@ def tx_hashes_history() -> List[str]
 
 Get the current cycle's tx hashes history, which has not yet been verified.
 
-<a id="packages.valory.skills.transaction_settlement_abci.rounds.PeriodState.keepers"></a>
+<a id="packages.valory.skills.transaction_settlement_abci.rounds.SynchronizedData.keepers"></a>
 
 #### keepers
 
@@ -70,7 +71,7 @@ def keepers() -> Deque[str]
 
 Get the current cycle's keepers who have tried to submit a transaction.
 
-<a id="packages.valory.skills.transaction_settlement_abci.rounds.PeriodState.keepers_threshold_exceeded"></a>
+<a id="packages.valory.skills.transaction_settlement_abci.rounds.SynchronizedData.keepers_threshold_exceeded"></a>
 
 #### keepers`_`threshold`_`exceeded
 
@@ -81,7 +82,7 @@ def keepers_threshold_exceeded() -> bool
 
 Check if the number of selected keepers has exceeded the allowed limit.
 
-<a id="packages.valory.skills.transaction_settlement_abci.rounds.PeriodState.most_voted_keeper_address"></a>
+<a id="packages.valory.skills.transaction_settlement_abci.rounds.SynchronizedData.most_voted_keeper_address"></a>
 
 #### most`_`voted`_`keeper`_`address
 
@@ -92,7 +93,7 @@ def most_voted_keeper_address() -> str
 
 Get the first in priority keeper to try to re-submit a transaction.
 
-<a id="packages.valory.skills.transaction_settlement_abci.rounds.PeriodState.is_keeper_set"></a>
+<a id="packages.valory.skills.transaction_settlement_abci.rounds.SynchronizedData.is_keeper_set"></a>
 
 #### is`_`keeper`_`set
 
@@ -103,7 +104,7 @@ def is_keeper_set() -> bool
 
 Check whether keeper is set.
 
-<a id="packages.valory.skills.transaction_settlement_abci.rounds.PeriodState.keeper_retries"></a>
+<a id="packages.valory.skills.transaction_settlement_abci.rounds.SynchronizedData.keeper_retries"></a>
 
 #### keeper`_`retries
 
@@ -114,7 +115,7 @@ def keeper_retries() -> int
 
 Get the number of times the current keeper has retried.
 
-<a id="packages.valory.skills.transaction_settlement_abci.rounds.PeriodState.to_be_validated_tx_hash"></a>
+<a id="packages.valory.skills.transaction_settlement_abci.rounds.SynchronizedData.to_be_validated_tx_hash"></a>
 
 #### to`_`be`_`validated`_`tx`_`hash
 
@@ -135,7 +136,7 @@ then it is incorrectly used and raises an internal error.
 
 the tx hash which is ready for validation.
 
-<a id="packages.valory.skills.transaction_settlement_abci.rounds.PeriodState.final_tx_hash"></a>
+<a id="packages.valory.skills.transaction_settlement_abci.rounds.SynchronizedData.final_tx_hash"></a>
 
 #### final`_`tx`_`hash
 
@@ -146,7 +147,7 @@ def final_tx_hash() -> str
 
 Get the verified tx hash.
 
-<a id="packages.valory.skills.transaction_settlement_abci.rounds.PeriodState.final_verification_status"></a>
+<a id="packages.valory.skills.transaction_settlement_abci.rounds.SynchronizedData.final_verification_status"></a>
 
 #### final`_`verification`_`status
 
@@ -157,7 +158,7 @@ def final_verification_status() -> VerificationStatus
 
 Get the final verification status.
 
-<a id="packages.valory.skills.transaction_settlement_abci.rounds.PeriodState.most_voted_tx_hash"></a>
+<a id="packages.valory.skills.transaction_settlement_abci.rounds.SynchronizedData.most_voted_tx_hash"></a>
 
 #### most`_`voted`_`tx`_`hash
 
@@ -168,7 +169,7 @@ def most_voted_tx_hash() -> str
 
 Get the most_voted_tx_hash.
 
-<a id="packages.valory.skills.transaction_settlement_abci.rounds.PeriodState.missed_messages"></a>
+<a id="packages.valory.skills.transaction_settlement_abci.rounds.SynchronizedData.missed_messages"></a>
 
 #### missed`_`messages
 
@@ -179,7 +180,7 @@ def missed_messages() -> int
 
 Check the number of missed messages.
 
-<a id="packages.valory.skills.transaction_settlement_abci.rounds.PeriodState.should_check_late_messages"></a>
+<a id="packages.valory.skills.transaction_settlement_abci.rounds.SynchronizedData.should_check_late_messages"></a>
 
 #### should`_`check`_`late`_`messages
 
@@ -190,7 +191,7 @@ def should_check_late_messages() -> bool
 
 Check if we should check for late-arriving messages.
 
-<a id="packages.valory.skills.transaction_settlement_abci.rounds.PeriodState.late_arriving_tx_hashes"></a>
+<a id="packages.valory.skills.transaction_settlement_abci.rounds.SynchronizedData.late_arriving_tx_hashes"></a>
 
 #### late`_`arriving`_`tx`_`hashes
 
@@ -237,7 +238,7 @@ A round that represents transaction signing has finished
 
 ```python
 def end_block() -> Optional[
-        Tuple[BasePeriodState, Enum]
+        Tuple[BaseSynchronizedData, Enum]
     ]
 ```
 
@@ -268,7 +269,7 @@ A round in which a keeper is selected for transaction submission
 #### end`_`block
 
 ```python
-def end_block() -> Optional[Tuple[BasePeriodState, Enum]]
+def end_block() -> Optional[Tuple[BaseSynchronizedData, Enum]]
 ```
 
 Process the end of the block.
@@ -299,7 +300,7 @@ A round in which a new keeper is selected for tx submission after a round timeou
 #### end`_`block
 
 ```python
-def end_block() -> Optional[Tuple[BasePeriodState, Enum]]
+def end_block() -> Optional[Tuple[BaseSynchronizedData, Enum]]
 ```
 
 Process the end of the block.
@@ -319,7 +320,7 @@ A round in which agents validate the transaction
 #### end`_`block
 
 ```python
-def end_block() -> Optional[Tuple[BasePeriodState, Enum]]
+def end_block() -> Optional[Tuple[BaseSynchronizedData, Enum]]
 ```
 
 Process the end of the block.
@@ -339,7 +340,7 @@ A round in which agents check the transaction history to see if any previous tx 
 #### end`_`block
 
 ```python
-def end_block() -> Optional[Tuple[BasePeriodState, Enum]]
+def end_block() -> Optional[Tuple[BaseSynchronizedData, Enum]]
 ```
 
 Process the end of the block.
@@ -369,7 +370,7 @@ A round in which agents synchronize potentially late arriving messages
 #### end`_`block
 
 ```python
-def end_block() -> Optional[Tuple[BasePeriodState, Event]]
+def end_block() -> Optional[Tuple[BaseSynchronizedData, Event]]
 ```
 
 Process the end of the block.
@@ -399,7 +400,7 @@ A round that represents the reset of a period
 #### end`_`block
 
 ```python
-def end_block() -> Optional[Tuple[BasePeriodState, Event]]
+def end_block() -> Optional[Tuple[BaseSynchronizedData, Event]]
 ```
 
 Process the end of the block.

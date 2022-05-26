@@ -9,7 +9,7 @@ aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
   README.md: QmR5sLQeLggNn5gZ1kDWrqpkz5NzMdUZuWNkaQDpaMC85C
   __init__.py: QmNuC15NDuuzyfhdpYLpoVajvPGXN3EKR9GdBHDdM1mzgM
-  behaviours.py: QmZQeqJJ8j38y2LPvAfLnTwL3oSdjSeAYCjt4jH7JF315Z
+  behaviours.py: QmX3UPYYFNB2UTT8zFiMchAA6Ejjpzp7xjEVeLaMNXSbzH
   composition.py: QmXdsJZJJPba243WZ2jcoiJz4vFuw5ujFUXuEjoTkxY81H
   dialogues.py: QmfDThV4WCRzK88XDpW2hKDYCuEH4RxoHCoAkWpkBRGRPv
   fsm_specification.yaml: QmeeK9oq8NhEhypSPCv4z5r4BBKZqibQx9kXP1VK7AbUuQ
@@ -87,7 +87,6 @@ models:
       keeper_timeout: 30.0
       max_healthcheck: 120
       observation_interval: 10
-      period_setup: {}
       rebalancing:
         chain: Ethereum
         token_base_address: '0xDc64a140Aa3E981100a9becA4E685f962f0cF6C9'
@@ -107,6 +106,7 @@ models:
       retry_timeout: 3
       round_timeout_seconds: 30.0
       service_id: liquidity_rebalancing
+      setup: {}
       sleep_time: 1
       tendermint_check_sleep_delay: 3
       tendermint_com_url: http://localhost:8080
