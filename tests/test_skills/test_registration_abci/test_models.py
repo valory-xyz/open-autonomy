@@ -18,14 +18,8 @@
 # ------------------------------------------------------------------------------
 
 """Test the models.py module of the skill."""
-from enum import Enum
-from typing import Optional, Tuple
 
-from packages.valory.skills.abstract_round_abci.base import (
-    AbstractRound,
-    BaseSynchronizedData,
-)
-from packages.valory.skills.price_estimation_abci.models import SharedState
+from packages.valory.skills.registration_abci.models import SharedState
 
 
 class DummyContext:
@@ -35,13 +29,6 @@ class DummyContext:
         """Dummy param variable."""
 
         round_timeout_seconds: float = 1.0
-
-
-class ConcreteRound(AbstractRound):
-    """A ConcreteRoundA for testing purposes."""
-
-    def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Enum]]:
-        """Handle the end of the block."""
 
 
 class TestSharedState:
