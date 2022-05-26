@@ -61,8 +61,8 @@ class TestTendermintResetInterrupt(BaseTestEnd2EndAgentCatchup):
     agent_package = "valory/register_reset:0.1.0"
     skill_package = "valory/register_reset_abci:0.1.0"
     cli_log_options = ["-v", "INFO"]
-    wait_before_stop = 40
-    wait_to_finish = 120
+    wait_before_stop = 60
+    wait_to_finish = 180
     restart_after = 1
     __reset_tendermint_every = 1
     stop_string = f"Entered in the 'reset_and_pause' round for period {__reset_tendermint_every - 1}"
