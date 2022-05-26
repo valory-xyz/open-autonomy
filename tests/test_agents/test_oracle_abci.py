@@ -19,6 +19,7 @@
 
 """Integration tests for the valory/oracle_abci skill."""
 import pytest
+from aea.configurations.data_types import PublicId
 
 from tests.fixture_helpers import UseGnosisSafeHardHatNet
 from tests.test_agents.base import (
@@ -107,8 +108,83 @@ class TestAgentCatchup(BaseTestEnd2EndAgentCatchup, UseGnosisSafeHardHatNet):
 
     agent_package = "valory/oracle:0.1.0"
     skill_package = "valory/oracle_abci:0.1.0"
-    KEEPER_TIMEOUT = 30
     wait_to_finish = 200
     restart_after = 45
     round_check_strings_to_n_periods = EXPECTED_ROUND_LOG_COUNT
     stop_string = "'registration_startup' round is done with event: Event.DONE"
+
+
+@pytest.mark.skip
+class TestTendermintReset(TestABCIPriceEstimationFourAgents):
+    """Test the ABCI oracle skill with four agents when resetting Tendermint."""
+
+    skill_package = "valory/oracle_abci:0.1.0"
+    wait_to_finish = 360
+    # run for 4 periods instead of 2
+    round_check_strings_to_n_periods = {
+        round: 4
+        for round in EXPECTED_ROUND_LOG_COUNT.keys()
+        if round
+        in (
+            "estimate_consensus"
+            "tx_hash"
+            "randomness_transaction_submission"
+            "select_keeper_transaction_submission_a"
+            "collect_signature"
+            "finalization"
+            "validate_transaction"
+            "reset_and_pause"
+            "collect_observation"
+        )
+    }
+    __args_prefix = f"vendor.valory.skills.{PublicId.from_str(skill_package).name}.models.params.args"
+    # reset every two rounds
+    extra_configs = [
+        {
+            "dotted_path": f"{__args_prefix}.reset_tendermint_after",
+            "value": 2,
+        },
+    ]
+
+
+@pytest.mark.skip
+class TestTendermintResetInterrupt(TestAgentCatchup):
+    """Test the ABCI oracle skill with four agents when an agent gets temporarily interrupted on Tendermint reset."""
+
+    skill_package = "valory/oracle_abci:0.1.0"
+    cli_log_options = ["-v", "INFO"]
+    wait_before_stop = 100
+    wait_to_finish = 300
+    restart_after = 1
+    __n_resets_to_perform = 3
+    __reset_tendermint_every = 2
+
+    # stop for restart_after seconds when resetting Tendermint for the first time (using -1 because count starts from 0)
+    stop_string = f"Entered in the 'reset_and_pause' round for period {__reset_tendermint_every - 1}"
+    # check if we manage to reset with Tendermint `__n_resets_to_perform` times with the rest of the agents
+    exclude_from_checks = [3]
+    round_check_strings_to_n_periods = {
+        "reset_and_pause": __n_resets_to_perform * __reset_tendermint_every
+    }
+    __args_prefix = f"vendor.valory.skills.{PublicId.from_str(skill_package).name}.models.params.args"
+    # reset every `__reset_tendermint_every` rounds
+    extra_configs = [
+        {
+            "dotted_path": f"{__args_prefix}.reset_tendermint_after",
+            "value": __reset_tendermint_every,
+        },
+    ]
+
+
+@pytest.mark.skip
+class TestTendermintResetInterruptNoRejoin(TestTendermintResetInterrupt):
+    """
+    Test a Tendermint reset case for the ABCI oracle skill.
+
+    Test the ABCI oracle skill with four agents when an agent gets temporarily interrupted
+    on Tendermint reset and never rejoins.
+    """
+
+    wait_to_finish = 300
+    # set the restart to a value so that the agent never rejoins, in order to test the impact to the rest of the agents
+    restart_after = wait_to_finish

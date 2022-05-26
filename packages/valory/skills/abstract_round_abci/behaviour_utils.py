@@ -179,6 +179,10 @@ class AsyncBehaviour(ABC):
 
         This is a local method that does not depend on the global clock,
         so the usage of datetime.now() is acceptable here.
+
+        :param condition: the condition to wait for
+        :param timeout: the maximum amount of time to wait
+        :yield: None
         """
         if timeout is not None:
             deadline = datetime.datetime.now() + datetime.timedelta(0, timeout)
@@ -751,7 +755,10 @@ class BaseBehaviour(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
                 )
                 break
             # otherwise, repeat until done, or until stop condition is true
-            self.context.logger.info(f"Tx sent but not delivered. Response = {res}")
+            if isinstance(res, HttpMessage) and self._tx_not_found(tx_hash, res):
+                self.context.logger.info(f"Tx {tx_hash} not found! Response = {res}")
+            else:
+                self.context.logger.info(f"Tx sent but not delivered. Response = {res}")
             payload = payload.with_new_id()
         self.context.logger.info(
             "Stop condition is true, no more attempts to send the transaction."
@@ -765,6 +772,25 @@ class BaseBehaviour(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
             body_ = json.loads(res.body)
             return any(
                 [error_code in body_["tx_result"]["info"] for error_code in error_codes]
+            )
+        except Exception:  # pylint: disable=broad-except  # pragma: nocover
+            return False
+
+    @staticmethod
+    def _tx_not_found(tx_hash: str, res: HttpMessage) -> bool:
+        """Check if the transaction could not be found."""
+        try:
+            error = json.loads(res.body)["error"]
+            not_found_field_to_text = {
+                "code": -32603,
+                "message": "Internal error",
+                "data": f"tx ({tx_hash}) not found",
+            }
+            return all(
+                [
+                    text == error[field]
+                    for field, text in not_found_field_to_text.items()
+                ]
             )
         except Exception:  # pylint: disable=broad-except  # pragma: nocover
             return False
@@ -1158,6 +1184,7 @@ class BaseBehaviour(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
             self.params.max_attempts if max_attempts is None else max_attempts
         )
 
+        response = None
         for _ in range(max_attempts):
             request_timeout = (
                 (deadline - datetime.datetime.now()).total_seconds()
@@ -1181,7 +1208,7 @@ class BaseBehaviour(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
             tx_result = json_body["result"]["tx_result"]
             return tx_result["code"] == OK_CODE, response
 
-        return False, None
+        return False, response
 
     @classmethod
     def _check_http_return_code_200(cls, response: HttpMessage) -> bool:
@@ -1436,6 +1463,8 @@ class BaseBehaviour(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
 
         This is a local method that does not depend on the global clock,
         so the usage of datetime.now() is acceptable here.
+
+        :yield: None
         """
         if self._check_started is None and not self._is_healthy:
             # we do the reset in the middle of the pause as there are no immediate transactions on either side of the reset
@@ -1464,6 +1493,8 @@ class BaseBehaviour(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
 
         This is a local method that does not depend on the global clock,
         so the usage of datetime.now() is acceptable here.
+
+        :return: bool
         """
         if self._check_started is None or self._is_healthy:
             return False

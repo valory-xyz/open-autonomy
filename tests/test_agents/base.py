@@ -66,6 +66,7 @@ class BaseTestEnd2End(AEATestCaseMany, UseFlaskTendermintNode):
     round_check_strings_to_n_periods: Optional[Dict[str, int]] = None
     # tuple of strings expected to appear in output as is.
     strict_check_strings: Tuple[str, ...] = ()
+    exclude_from_checks: List[int] = []
     extra_configs: List[Dict[str, Any]] = []
 
     def __set_extra_configs(self) -> None:
@@ -294,16 +295,20 @@ class BaseTestEnd2End(AEATestCaseMany, UseFlaskTendermintNode):
     def _check_aea_messages(self) -> None:
         """Check that *each* AEA prints these messages."""
         for i, process in enumerate(self.processes):
-            missing_strict_strings, missing_round_strings = self.missing_from_output(
-                process=process,
-                round_check_strings_to_n_periods=self.round_check_strings_to_n_periods,
-                strict_check_strings=self.strict_check_strings,
-                timeout=self.wait_to_finish,
-            )
+            if i not in self.exclude_from_checks:
+                (
+                    missing_strict_strings,
+                    missing_round_strings,
+                ) = self.missing_from_output(
+                    process=process,
+                    round_check_strings_to_n_periods=self.round_check_strings_to_n_periods,
+                    strict_check_strings=self.strict_check_strings,
+                    timeout=self.wait_to_finish,
+                )
 
-            self.__check_missing_strings(
-                missing_strict_strings, missing_round_strings, i
-            )
+                self.__check_missing_strings(
+                    missing_strict_strings, missing_round_strings, i
+                )
 
             if not self.is_successfully_terminated(process):
                 warnings.warn(

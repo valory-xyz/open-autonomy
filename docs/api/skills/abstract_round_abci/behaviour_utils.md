@@ -136,6 +136,12 @@ Wait for a condition to happen.
 This is a local method that does not depend on the global clock,
 so the usage of datetime.now() is acceptable here.
 
+**Arguments**:
+
+:yield: None
+- `condition`: the condition to wait for
+- `timeout`: the maximum amount of time to wait
+
 <a id="packages.valory.skills.abstract_round_abci.behaviour_utils.AsyncBehaviour.sleep"></a>
 
 #### sleep

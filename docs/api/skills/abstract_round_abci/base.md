@@ -887,6 +887,10 @@ a new period begins. It is useful to have a logical subdivision of the FSM execu
 For example, if AbciAppDB.create() is called during reset, then a period will be the
 execution between resets.
 
+**Returns**:
+
+the period count
+
 <a id="packages.valory.skills.abstract_round_abci.base.BaseSynchronizedData.participants"></a>
 
 #### participants

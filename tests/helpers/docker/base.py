@@ -28,6 +28,7 @@ from typing import Any, Dict, Generator, List
 
 import docker
 import pytest
+from docker.errors import ImageNotFound, NotFound
 from docker.models.containers import Container
 
 
@@ -142,10 +143,20 @@ def _start_container(
 
 def _stop_container(container: Container, tag: str) -> None:
     """Stop a container."""
-    logger.info(f"Stopping container from image {tag}...")
+    logger.info(f"Stopping container {container.name} from image {tag}...")
     container.stop()
-    logger.info("Logs from container:\n%s", container.logs().decode())
-    container.remove()
+    try:
+        logger.info(
+            f"Logs from container {container.name}:\n{container.logs().decode()}"
+        )
+        if str(container.name).startswith("node"):
+            bits, _ = container.get_archive(f"/logs/{container.name}.txt")
+            for chunk in bits:
+                logger.info(chunk.decode())
+    except (ImageNotFound, NotFound) as e:
+        logger.error(e)
+    finally:
+        container.remove()
 
 
 def launch_image(
