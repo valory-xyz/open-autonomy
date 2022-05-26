@@ -321,7 +321,7 @@ class ABCIHandler(Handler):
         reply = dialogue.reply(
             performative=AbciMessage.Performative.RESPONSE_COMMIT,
             target_message=message,
-            data=b"",  # self.context.state.period_state.app_hash,
+            data=b"",
             retain_height=0,
         )
         return cast(AbciMessage, reply)

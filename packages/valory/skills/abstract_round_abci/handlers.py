@@ -184,7 +184,13 @@ class ABCIRoundHandler(ABCIHandler):
             self._log_exception(exception)
             raise exception
         # return commit success
-        return super().commit(message, dialogue)
+        reply = dialogue.reply(
+            performative=AbciMessage.Performative.RESPONSE_COMMIT,
+            target_message=message,
+            data=b"",  # self.context.state.period_state.app_hash,
+            retain_height=0,
+        )
+        return cast(AbciMessage, reply)
 
     @classmethod
     def _check_tx_failed(
