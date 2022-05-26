@@ -52,10 +52,6 @@
   --md-text-font-heavy: "triakis__font_heavy";
 }
 
-.md-sidebar {
-  min-width: 300px;
-}
-
 /* font changes */
 .md-content__inner h1,
 .md-content__inner h2,
