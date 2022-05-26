@@ -2166,7 +2166,6 @@ class Period:
             self._block_construction_phase = (
                 Period._BlockConstructionState.WAITING_FOR_BEGIN_BLOCK
             )
-        self._blockchain = Blockchain(self.height + 1)
 
     def _update_round(self) -> None:
         """
