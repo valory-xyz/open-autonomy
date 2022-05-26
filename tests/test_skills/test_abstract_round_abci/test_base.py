@@ -1250,7 +1250,7 @@ class TestPeriod:
                 self.period._block_construction_phase
                 == Period._BlockConstructionState.WAITING_FOR_BEGIN_BLOCK
             )
-        assert self.period._blockchain.height == 0
+        assert self.period._blockchain.height == 1
 
 
 def test_meta_abci_app_when_instance_not_subclass_of_abstract_round() -> None:

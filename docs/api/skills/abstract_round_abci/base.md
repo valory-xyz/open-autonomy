@@ -401,7 +401,7 @@ The consistency of the data in the blocks is guaranteed by Tendermint.
 #### `__`init`__`
 
 ```python
-def __init__() -> None
+def __init__(height_offset: int = 0) -> None
 ```
 
 Initialize the blockchain.

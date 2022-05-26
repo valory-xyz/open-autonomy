@@ -1541,6 +1541,10 @@ class BaseState(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
                 parameters=[
                     ("app_hash", app_hash),
                     ("genesis_time", time_string),
+                    (
+                        "initial_height",
+                        str(self.context.state.period.height + 1),
+                    ),
                 ],
             )
             result = yield from self._do_request(request_message, http_dialogue)
