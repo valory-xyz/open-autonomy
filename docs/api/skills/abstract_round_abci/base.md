@@ -2171,6 +2171,16 @@ def latest_state() -> BasePeriodState
 
 Get the latest state.
 
+<a id="packages.valory.skills.abstract_round_abci.base.Period.init_chain"></a>
+
+#### init`_`chain
+
+```python
+def init_chain(init_height: int) -> None
+```
+
+Init chain.
+
 <a id="packages.valory.skills.abstract_round_abci.base.Period.begin_block"></a>
 
 #### begin`_`block

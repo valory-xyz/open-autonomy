@@ -19,7 +19,7 @@
 
 """This module contains the handler for the 'abstract_round_abci' skill."""
 from abc import ABC
-from typing import Callable, FrozenSet, Optional, cast, List
+from typing import Callable, FrozenSet, List, Optional, cast
 
 from aea.configurations.data_types import PublicId
 from aea.protocols.base import Message
