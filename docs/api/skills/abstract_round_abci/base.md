@@ -627,6 +627,38 @@ class AbciAppDB()
 
 Class to represent all data replicated across agents.
 
+This class stores all the data in self._data. Every entry on this dict represents an optional "period" within your app execution.
+The concept of period is user-defined, so it might be something like a sequence of rounds that together conform a logical cycle of
+its execution, or it might have no sense at all (thus its optionality) and therefore only period 0 will be used.
+
+Every "period" entry stores a dict where every key is a saved parameter and its corresponding value a list containing the history
+of the parameter values. For instance, for period 0:
+
+0: {"parameter_name": [parameter_history]}
+
+A complete database could look like this:
+
+data = {
+    0: {
+        "participants":
+            [
+                {"participant_a", "participant_b"},
+                {"participant_b"},
+                {"participant_a", "participant_b"},
+            ]
+        },
+        "other_parameter": [0, 1, 2]
+    },
+    1: {
+        "participants": [{"participant_a", "participant_b"}, {"participant_b"}, {"participant_a", "participant_b"}],
+        "other_parameter": [3, 4, 5]
+    },
+    2: ...
+}
+
+To update the current period entry, just call update() on the class. The new values will be appended to the current list for each updated parameter.
+To create a new period entry, call create() on the class. The new values will be stored in a new list for each updated parameter.
+
 <a id="packages.valory.skills.abstract_round_abci.base.AbciAppDB.__init__"></a>
 
 #### `__`init`__`
