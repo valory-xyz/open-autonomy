@@ -31,7 +31,6 @@ from tests.conftest import ROOT_DIR
 from tests.test_aea_swarm.test_cli.base import BaseCliTest
 
 
-@pytest.mark.skip
 class TestDocstrings(BaseCliTest):
     """Test `swarm analyse abci docstrings`."""
 
