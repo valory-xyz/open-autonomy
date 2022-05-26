@@ -625,17 +625,26 @@ Check equality.
 class AbciAppDB()
 ```
 
-Class to represent all data replicated across periods.
+Class to represent all data replicated across agents.
 
 <a id="packages.valory.skills.abstract_round_abci.base.AbciAppDB.__init__"></a>
 
 #### `__`init`__`
 
 ```python
-def __init__(initial_period: int, initial_data: Dict[str, Any], cross_period_persisted_keys: Optional[List[str]] = None) -> None
+def __init__(initial_data: Dict[str, Any], cross_period_persisted_keys: Optional[List[str]] = None, format_initial_data: bool = True) -> None
 ```
 
-Initialize a period state.
+Initialize the AbciApp database.
+
+initial_data can be passed either as Dict[str, Any] of Dict[str, List[Any]] (the database internal format). Use the format_initial_data to decide if
+initial_data should be automatically converted.
+
+**Arguments**:
+
+- `initial_data`: the initial data
+- `cross_period_persisted_keys`: data keys that will be kept after a new period starts
+- `format_initial_data`: flag to indicate whether initial_data should be converted from Dict[str, Any] to Dict[str, List[Any]]
 
 <a id="packages.valory.skills.abstract_round_abci.base.AbciAppDB.initial_data"></a>
 
@@ -652,16 +661,27 @@ Get the initial_data.
 
 the initial_data
 
-<a id="packages.valory.skills.abstract_round_abci.base.AbciAppDB.current_period_count"></a>
+<a id="packages.valory.skills.abstract_round_abci.base.AbciAppDB.data_to_list"></a>
 
-#### current`_`period`_`count
+#### data`_`to`_`list
+
+```python
+@classmethod
+def data_to_list(cls, data: Dict[str, Any]) -> Dict[str, List[Any]]
+```
+
+Convert Dict[str, Any] to Dict[str, List[Any]].
+
+<a id="packages.valory.skills.abstract_round_abci.base.AbciAppDB.reset_index"></a>
+
+#### reset`_`index
 
 ```python
 @property
-def current_period_count() -> int
+def reset_index() -> int
 ```
 
-Get the current period count.
+Get the current reset index.
 
 <a id="packages.valory.skills.abstract_round_abci.base.AbciAppDB.round_count"></a>
 
@@ -683,14 +703,14 @@ Get the round count.
 def cross_period_persisted_keys() -> List[str]
 ```
 
-Keys in the period state which are persistet across periods.
+Keys in the database which are persistet across periods.
 
 <a id="packages.valory.skills.abstract_round_abci.base.AbciAppDB.get"></a>
 
 #### get
 
 ```python
-def get(key: str, default: Any = "NOT_PROVIDED") -> Optional[Any]
+def get(key: str, default: Any = VALUE_NOT_PROVIDED) -> Optional[Any]
 ```
 
 Get a value from the data dictionary.
@@ -705,35 +725,45 @@ def get_strict(key: str) -> Any
 
 Get a value from the data dictionary and raise if it is None.
 
-<a id="packages.valory.skills.abstract_round_abci.base.AbciAppDB.update_current_period"></a>
+<a id="packages.valory.skills.abstract_round_abci.base.AbciAppDB.update"></a>
 
-#### update`_`current`_`period
-
-```python
-def update_current_period(**kwargs: Any) -> None
-```
-
-Update the current period's state.
-
-<a id="packages.valory.skills.abstract_round_abci.base.AbciAppDB.add_new_period"></a>
-
-#### add`_`new`_`period
+#### update
 
 ```python
-def add_new_period(new_period: int, **kwargs: Any) -> None
+def update(overwrite_history: bool = False, **kwargs: Any) -> None
 ```
 
-Update the current period's state.
+Update the current data.
 
-<a id="packages.valory.skills.abstract_round_abci.base.AbciAppDB.get_all"></a>
+<a id="packages.valory.skills.abstract_round_abci.base.AbciAppDB.create"></a>
 
-#### get`_`all
+#### create
 
 ```python
-def get_all() -> Dict[str, Any]
+def create(format_data: bool = True, **kwargs: Any) -> None
 ```
 
-Get all key-value pairs from the data dictionary for the current period.
+Add a new entry to the data.
+
+<a id="packages.valory.skills.abstract_round_abci.base.AbciAppDB.get_latest_from_reset_index"></a>
+
+#### get`_`latest`_`from`_`reset`_`index
+
+```python
+def get_latest_from_reset_index(reset_index: int) -> Dict[str, Any]
+```
+
+Get the latest key-value pairs from the data dictionary for the specified period.
+
+<a id="packages.valory.skills.abstract_round_abci.base.AbciAppDB.get_latest"></a>
+
+#### get`_`latest
+
+```python
+def get_latest() -> Dict[str, Any]
+```
+
+Get the latest key-value pairs from the data dictionary for the current period.
 
 <a id="packages.valory.skills.abstract_round_abci.base.AbciAppDB.increment_round_count"></a>
 
@@ -753,7 +783,7 @@ Increment the round count.
 def __repr__() -> str
 ```
 
-Return a string representation of the state.
+Return a string representation of the data.
 
 <a id="packages.valory.skills.abstract_round_abci.base.AbciAppDB.cleanup"></a>
 
@@ -775,7 +805,7 @@ class BaseSynchronizedData()
 
 Class to represent the synchronized data.
 
-This is the relevant state constructed and replicated by the agents in a period.
+This is the relevant data constructed and replicated by the agents.
 
 <a id="packages.valory.skills.abstract_round_abci.base.BaseSynchronizedData.__init__"></a>
 
@@ -819,6 +849,11 @@ def period_count() -> int
 ```
 
 Get the period count.
+
+Periods are executions between calls to AbciAppDB.create(), so as soon as it is called,
+a new period begins. It is useful to have a logical subdivision of the FSM execution.
+For example, if AbciAppDB.create() is called during reset, then a period will be the
+execution between resets.
 
 <a id="packages.valory.skills.abstract_round_abci.base.BaseSynchronizedData.participants"></a>
 
@@ -878,10 +913,20 @@ Get the number of participants.
 #### update
 
 ```python
-def update(synchronized_data_class: Optional[Type] = None, period_count: Optional[int] = None, **kwargs: Any, ,) -> "BaseSynchronizedData"
+def update(synchronized_data_class: Optional[Type] = None, overwrite_history: bool = False, **kwargs: Any, ,) -> "BaseSynchronizedData"
 ```
 
-Copy and update the state.
+Copy and update the current data.
+
+<a id="packages.valory.skills.abstract_round_abci.base.BaseSynchronizedData.create"></a>
+
+#### create
+
+```python
+def create(synchronized_data_class: Optional[Type] = None, format_data: bool = True, **kwargs: Any, ,) -> "BaseSynchronizedData"
+```
+
+Copy and update with new data.
 
 <a id="packages.valory.skills.abstract_round_abci.base.BaseSynchronizedData.__repr__"></a>
 
@@ -891,7 +936,7 @@ Copy and update the state.
 def __repr__() -> str
 ```
 
-Return a string representation of the state.
+Return a string representation of the data.
 
 <a id="packages.valory.skills.abstract_round_abci.base.BaseSynchronizedData.keeper_randomness"></a>
 
@@ -991,8 +1036,8 @@ class AbstractRound(Generic[EventType, TransactionType],  ABC)
 
 This class represents an abstract round.
 
-A round is a state of a period. It usually involves
-interactions between participants in the period,
+A round is a state of the FSM App execution. It usually involves
+interactions between participants in the FSM App,
 although this is not enforced at this level of abstraction.
 
 Concrete classes must set:
@@ -1004,7 +1049,7 @@ Concrete classes must set:
 #### `__`init`__`
 
 ```python
-def __init__(state: BaseSynchronizedData, consensus_params: ConsensusParams, previous_round_tx_type: Optional[TransactionType] = None) -> None
+def __init__(synchronized_data: BaseSynchronizedData, consensus_params: ConsensusParams, previous_round_tx_type: Optional[TransactionType] = None) -> None
 ```
 
 Initialize the round.
@@ -1018,7 +1063,7 @@ Initialize the round.
 def synchronized_data() -> BaseSynchronizedData
 ```
 
-Get the period state.
+Get the synchronized data.
 
 <a id="packages.valory.skills.abstract_round_abci.base.AbstractRound.check_transaction"></a>
 
@@ -1741,21 +1786,21 @@ Concrete classes of this class implement the ABCI App.
 #### `__`init`__`
 
 ```python
-def __init__(state: BaseSynchronizedData, consensus_params: ConsensusParams, logger: logging.Logger)
+def __init__(synchronized_data: BaseSynchronizedData, consensus_params: ConsensusParams, logger: logging.Logger)
 ```
 
 Initialize the AbciApp.
 
-<a id="packages.valory.skills.abstract_round_abci.base.AbciApp.state"></a>
+<a id="packages.valory.skills.abstract_round_abci.base.AbciApp.synchronized_data"></a>
 
-#### state
+#### synchronized`_`data
 
 ```python
 @property
-def state() -> BaseSynchronizedData
+def synchronized_data() -> BaseSynchronizedData
 ```
 
-Return the current state.
+Return the current synchronized data.
 
 <a id="packages.valory.skills.abstract_round_abci.base.AbciApp.get_all_rounds"></a>
 
@@ -2138,16 +2183,16 @@ def last_round_transition_height() -> int
 
 Returns the height for last round transition.
 
-<a id="packages.valory.skills.abstract_round_abci.base.RoundSequence.latest_state"></a>
+<a id="packages.valory.skills.abstract_round_abci.base.RoundSequence.latest_synchronized_data"></a>
 
-#### latest`_`state
+#### latest`_`synchronized`_`data
 
 ```python
 @property
-def latest_state() -> BaseSynchronizedData
+def latest_synchronized_data() -> BaseSynchronizedData
 ```
 
-Get the latest state.
+Get the latest synchronized_data.
 
 <a id="packages.valory.skills.abstract_round_abci.base.RoundSequence.begin_block"></a>
 

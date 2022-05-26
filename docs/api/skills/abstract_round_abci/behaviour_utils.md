@@ -269,7 +269,7 @@ Class for clean-up related functionality of behaviours.
 def __init__(**kwargs: Any)
 ```
 
-Initialize a base state behaviour.
+Initialize a base behaviour.
 
 <a id="packages.valory.skills.abstract_round_abci.behaviour_utils.CleanUpBehaviour.clean_up"></a>
 
@@ -310,17 +310,17 @@ class RPCResponseStatus(Enum)
 
 A custom status of an RPC response.
 
-<a id="packages.valory.skills.abstract_round_abci.behaviour_utils.BaseState"></a>
+<a id="packages.valory.skills.abstract_round_abci.behaviour_utils.BaseBehaviour"></a>
 
-## BaseState Objects
+## BaseBehaviour Objects
 
 ```python
-class BaseState(AsyncBehaviour,  IPFSBehaviour,  CleanUpBehaviour,  ABC)
+class BaseBehaviour(AsyncBehaviour,  IPFSBehaviour,  CleanUpBehaviour,  ABC)
 ```
 
-Base class for FSM states.
+Base class for FSM behaviours.
 
-<a id="packages.valory.skills.abstract_round_abci.behaviour_utils.BaseState.__init__"></a>
+<a id="packages.valory.skills.abstract_round_abci.behaviour_utils.BaseBehaviour.__init__"></a>
 
 #### `__`init`__`
 
@@ -328,9 +328,9 @@ Base class for FSM states.
 def __init__(**kwargs: Any)
 ```
 
-Initialize a base state behaviour.
+Initialize a base behaviour.
 
-<a id="packages.valory.skills.abstract_round_abci.behaviour_utils.BaseState.params"></a>
+<a id="packages.valory.skills.abstract_round_abci.behaviour_utils.BaseBehaviour.params"></a>
 
 #### params
 
@@ -341,7 +341,7 @@ def params() -> BaseParams
 
 Return the params.
 
-<a id="packages.valory.skills.abstract_round_abci.behaviour_utils.BaseState.synchronized_data"></a>
+<a id="packages.valory.skills.abstract_round_abci.behaviour_utils.BaseBehaviour.synchronized_data"></a>
 
 #### synchronized`_`data
 
@@ -350,9 +350,9 @@ Return the params.
 def synchronized_data() -> BaseSynchronizedData
 ```
 
-Return the period state.
+Return the synchronized data.
 
-<a id="packages.valory.skills.abstract_round_abci.behaviour_utils.BaseState.check_in_round"></a>
+<a id="packages.valory.skills.abstract_round_abci.behaviour_utils.BaseBehaviour.check_in_round"></a>
 
 #### check`_`in`_`round
 
@@ -362,7 +362,7 @@ def check_in_round(round_id: str) -> bool
 
 Check that we entered a specific round.
 
-<a id="packages.valory.skills.abstract_round_abci.behaviour_utils.BaseState.check_in_last_round"></a>
+<a id="packages.valory.skills.abstract_round_abci.behaviour_utils.BaseBehaviour.check_in_last_round"></a>
 
 #### check`_`in`_`last`_`round
 
@@ -372,7 +372,7 @@ def check_in_last_round(round_id: str) -> bool
 
 Check that we entered a specific round.
 
-<a id="packages.valory.skills.abstract_round_abci.behaviour_utils.BaseState.check_not_in_round"></a>
+<a id="packages.valory.skills.abstract_round_abci.behaviour_utils.BaseBehaviour.check_not_in_round"></a>
 
 #### check`_`not`_`in`_`round
 
@@ -382,7 +382,7 @@ def check_not_in_round(round_id: str) -> bool
 
 Check that we are not in a specific round.
 
-<a id="packages.valory.skills.abstract_round_abci.behaviour_utils.BaseState.check_not_in_last_round"></a>
+<a id="packages.valory.skills.abstract_round_abci.behaviour_utils.BaseBehaviour.check_not_in_last_round"></a>
 
 #### check`_`not`_`in`_`last`_`round
 
@@ -392,7 +392,7 @@ def check_not_in_last_round(round_id: str) -> bool
 
 Check that we are not in a specific round.
 
-<a id="packages.valory.skills.abstract_round_abci.behaviour_utils.BaseState.check_round_has_finished"></a>
+<a id="packages.valory.skills.abstract_round_abci.behaviour_utils.BaseBehaviour.check_round_has_finished"></a>
 
 #### check`_`round`_`has`_`finished
 
@@ -402,7 +402,7 @@ def check_round_has_finished(round_id: str) -> bool
 
 Check that the round has finished.
 
-<a id="packages.valory.skills.abstract_round_abci.behaviour_utils.BaseState.check_round_height_has_changed"></a>
+<a id="packages.valory.skills.abstract_round_abci.behaviour_utils.BaseBehaviour.check_round_height_has_changed"></a>
 
 #### check`_`round`_`height`_`has`_`changed
 
@@ -412,7 +412,7 @@ def check_round_height_has_changed(round_height: int) -> bool
 
 Check that the round height has changed.
 
-<a id="packages.valory.skills.abstract_round_abci.behaviour_utils.BaseState.is_round_ended"></a>
+<a id="packages.valory.skills.abstract_round_abci.behaviour_utils.BaseBehaviour.is_round_ended"></a>
 
 #### is`_`round`_`ended
 
@@ -422,7 +422,7 @@ def is_round_ended(round_id: str) -> Callable[[], bool]
 
 Get a callable to check whether the current round has ended.
 
-<a id="packages.valory.skills.abstract_round_abci.behaviour_utils.BaseState.wait_until_round_end"></a>
+<a id="packages.valory.skills.abstract_round_abci.behaviour_utils.BaseBehaviour.wait_until_round_end"></a>
 
 #### wait`_`until`_`round`_`end
 
@@ -437,7 +437,7 @@ Wait until the ABCI application exits from a round.
 :yield: None
 - `timeout`: the timeout for the wait
 
-<a id="packages.valory.skills.abstract_round_abci.behaviour_utils.BaseState.wait_from_last_timestamp"></a>
+<a id="packages.valory.skills.abstract_round_abci.behaviour_utils.BaseBehaviour.wait_from_last_timestamp"></a>
 
 #### wait`_`from`_`last`_`timestamp
 
@@ -456,7 +456,7 @@ so the usage of datetime.now() is acceptable here.
 :yield: None
 - `seconds`: the seconds
 
-<a id="packages.valory.skills.abstract_round_abci.behaviour_utils.BaseState.is_done"></a>
+<a id="packages.valory.skills.abstract_round_abci.behaviour_utils.BaseBehaviour.is_done"></a>
 
 #### is`_`done
 
@@ -464,9 +464,9 @@ so the usage of datetime.now() is acceptable here.
 def is_done() -> bool
 ```
 
-Check whether the state is done.
+Check whether the behaviour is done.
 
-<a id="packages.valory.skills.abstract_round_abci.behaviour_utils.BaseState.set_done"></a>
+<a id="packages.valory.skills.abstract_round_abci.behaviour_utils.BaseBehaviour.set_done"></a>
 
 #### set`_`done
 
@@ -476,7 +476,7 @@ def set_done() -> None
 
 Set the behaviour to done.
 
-<a id="packages.valory.skills.abstract_round_abci.behaviour_utils.BaseState.send_a2a_transaction"></a>
+<a id="packages.valory.skills.abstract_round_abci.behaviour_utils.BaseBehaviour.send_a2a_transaction"></a>
 
 #### send`_`a2a`_`transaction
 
@@ -489,7 +489,7 @@ Send transaction and wait for the response, and repeat until not successful.
 :param: payload: the payload to send
 :yield: the responses
 
-<a id="packages.valory.skills.abstract_round_abci.behaviour_utils.BaseState.async_act_wrapper"></a>
+<a id="packages.valory.skills.abstract_round_abci.behaviour_utils.BaseBehaviour.async_act_wrapper"></a>
 
 #### async`_`act`_`wrapper
 
@@ -499,12 +499,12 @@ def async_act_wrapper() -> Generator
 
 Do the act, supporting asynchronous execution.
 
-<a id="packages.valory.skills.abstract_round_abci.behaviour_utils.BaseState.get_callback_request"></a>
+<a id="packages.valory.skills.abstract_round_abci.behaviour_utils.BaseBehaviour.get_callback_request"></a>
 
 #### get`_`callback`_`request
 
 ```python
-def get_callback_request() -> Callable[[Message, "BaseState"], None]
+def get_callback_request() -> Callable[[Message, "BaseBehaviour"], None]
 ```
 
 Wrapper for callback request which depends on whether the message has not been handled on time.
@@ -513,7 +513,7 @@ Wrapper for callback request which depends on whether the message has not been h
 
 the request callback.
 
-<a id="packages.valory.skills.abstract_round_abci.behaviour_utils.BaseState.get_http_response"></a>
+<a id="packages.valory.skills.abstract_round_abci.behaviour_utils.BaseBehaviour.get_http_response"></a>
 
 #### get`_`http`_`response
 
@@ -545,7 +545,7 @@ _do_request:
 
 the http message and the http dialogue
 
-<a id="packages.valory.skills.abstract_round_abci.behaviour_utils.BaseState.get_signature"></a>
+<a id="packages.valory.skills.abstract_round_abci.behaviour_utils.BaseBehaviour.get_signature"></a>
 
 #### get`_`signature
 
@@ -571,7 +571,7 @@ _send_signing_request:
 
 message signature
 
-<a id="packages.valory.skills.abstract_round_abci.behaviour_utils.BaseState.send_raw_transaction"></a>
+<a id="packages.valory.skills.abstract_round_abci.behaviour_utils.BaseBehaviour.send_raw_transaction"></a>
 
 #### send`_`raw`_`transaction
 
@@ -600,7 +600,7 @@ _send_transaction_request:
 
 transaction hash
 
-<a id="packages.valory.skills.abstract_round_abci.behaviour_utils.BaseState.get_transaction_receipt"></a>
+<a id="packages.valory.skills.abstract_round_abci.behaviour_utils.BaseBehaviour.get_transaction_receipt"></a>
 
 #### get`_`transaction`_`receipt
 
@@ -627,7 +627,7 @@ _send_transaction_receipt_request:
 
 transaction receipt data
 
-<a id="packages.valory.skills.abstract_round_abci.behaviour_utils.BaseState.get_ledger_api_response"></a>
+<a id="packages.valory.skills.abstract_round_abci.behaviour_utils.BaseBehaviour.get_ledger_api_response"></a>
 
 #### get`_`ledger`_`api`_`response
 
@@ -652,7 +652,7 @@ Ledger connection -> (LedgerApiMessage | LedgerApiMessage.Performative) -> Abstr
 
 the contract api response
 
-<a id="packages.valory.skills.abstract_round_abci.behaviour_utils.BaseState.get_contract_api_response"></a>
+<a id="packages.valory.skills.abstract_round_abci.behaviour_utils.BaseBehaviour.get_contract_api_response"></a>
 
 #### get`_`contract`_`api`_`response
 
@@ -679,7 +679,7 @@ Ledger connection (contract dispatcher) -> (ContractApiMessage | ContractApiMess
 
 the contract api response
 
-<a id="packages.valory.skills.abstract_round_abci.behaviour_utils.BaseState.reset_tendermint_with_wait"></a>
+<a id="packages.valory.skills.abstract_round_abci.behaviour_utils.BaseBehaviour.reset_tendermint_with_wait"></a>
 
 #### reset`_`tendermint`_`with`_`wait
 
@@ -689,17 +689,17 @@ def reset_tendermint_with_wait() -> Generator[None, None, bool]
 
 Resets the tendermint node.
 
-<a id="packages.valory.skills.abstract_round_abci.behaviour_utils.DegenerateState"></a>
+<a id="packages.valory.skills.abstract_round_abci.behaviour_utils.DegenerateBehaviour"></a>
 
-## DegenerateState Objects
+## DegenerateBehaviour Objects
 
 ```python
-class DegenerateState(BaseState,  ABC)
+class DegenerateBehaviour(BaseBehaviour,  ABC)
 ```
 
 An abstract matching behaviour for final and degenerate rounds.
 
-<a id="packages.valory.skills.abstract_round_abci.behaviour_utils.DegenerateState.async_act"></a>
+<a id="packages.valory.skills.abstract_round_abci.behaviour_utils.DegenerateBehaviour.async_act"></a>
 
 #### async`_`act
 
@@ -709,13 +709,13 @@ def async_act() -> Generator
 
 Raise a RuntimeError.
 
-<a id="packages.valory.skills.abstract_round_abci.behaviour_utils.make_degenerate_state"></a>
+<a id="packages.valory.skills.abstract_round_abci.behaviour_utils.make_degenerate_behaviour"></a>
 
-#### make`_`degenerate`_`state
+#### make`_`degenerate`_`behaviour
 
 ```python
-def make_degenerate_state(round_id: str) -> Type[DegenerateState]
+def make_degenerate_behaviour(round_id: str) -> Type[DegenerateBehaviour]
 ```
 
-Make a degenerate state class.
+Make a degenerate behaviour class.
 

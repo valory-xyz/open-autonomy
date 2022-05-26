@@ -207,7 +207,6 @@ class BaseRoundTestClass:
         cls.participants = get_participants()
         cls.synchronized_data = SynchronizedData(
             db=AbciAppDB(
-                initial_period=0,
                 initial_data=dict(
                     participants=cls.participants, all_participants=cls.participants
                 ),
@@ -221,7 +220,7 @@ class BaseRoundTestClass:
         with mock.patch.object(round_obj, "is_majority_possible", return_value=False):
             result = round_obj.end_block()
             assert result is not None
-            state, event = result
+            synchronized_data, event = result
             assert event == Event.NO_MAJORITY
 
 
@@ -248,8 +247,8 @@ class TestCollectHistoryRound(BaseCollectSameUntilThresholdRoundTest):
                 round_payloads=get_participant_to_fetching(
                     self.participants, most_voted_payload
                 ),
-                state_update_fn=lambda _synchronized_data, _: _synchronized_data,
-                state_attr_checks=[],
+                synchronized_data_update_fn=lambda _synchronized_data, _: _synchronized_data,
+                synchronized_data_attr_checks=[],
                 most_voted_payload=most_voted_payload,
                 exit_event=expected_event,
             )
@@ -285,8 +284,8 @@ class TestTransformRound(BaseCollectSameUntilThresholdRoundTest):
                 round_payloads=get_transformation_payload(
                     self.participants, most_voted_payload
                 ),
-                state_update_fn=lambda _synchronized_data, _: _synchronized_data,
-                state_attr_checks=[],
+                synchronized_data_update_fn=lambda _synchronized_data, _: _synchronized_data,
+                synchronized_data_attr_checks=[],
                 most_voted_payload=most_voted_payload,
                 exit_event=expected_event,
             )
@@ -322,8 +321,8 @@ class TestPreprocessRound(BaseCollectSameUntilThresholdRoundTest):
                 round_payloads=get_participant_to_preprocess_payload(  # type: ignore
                     self.participants, *most_voted_payloads
                 ),
-                state_update_fn=lambda _synchronized_data, _: _synchronized_data,
-                state_attr_checks=[],
+                synchronized_data_update_fn=lambda _synchronized_data, _: _synchronized_data,
+                synchronized_data_attr_checks=[],
                 most_voted_payload="train_hashtest_hash"
                 if not any(payload is None for payload in most_voted_payloads)
                 else None,
@@ -353,8 +352,8 @@ class TestRandomnessRound(BaseCollectSameUntilThresholdRoundTest):
             self._test_round(
                 test_round=test_round,
                 round_payloads=get_participant_to_randomness(self.participants, 1),
-                state_update_fn=lambda synchronized_data, _: synchronized_data,
-                state_attr_checks=[],
+                synchronized_data_update_fn=lambda synchronized_data, _: synchronized_data,
+                synchronized_data_attr_checks=[],
                 most_voted_payload=RANDOMNESS,
                 exit_event=Event.DONE,
             )
@@ -369,8 +368,8 @@ class TestRandomnessRound(BaseCollectSameUntilThresholdRoundTest):
                 round_payloads=get_participant_to_invalid_randomness(
                     self.participants, 1
                 ),
-                state_update_fn=lambda synchronized_data, _: synchronized_data,
-                state_attr_checks=[],
+                synchronized_data_update_fn=lambda synchronized_data, _: synchronized_data,
+                synchronized_data_attr_checks=[],
                 most_voted_payload=INVALID_RANDOMNESS,
                 exit_event=Event.RANDOMNESS_INVALID,
             )
@@ -396,8 +395,8 @@ class TestOptimizeRound(BaseCollectSameUntilThresholdRoundTest):
             self._test_round(
                 test_round=test_round,
                 round_payloads=get_participant_to_optimize_payload(self.participants),
-                state_update_fn=lambda _synchronized_data, _: _synchronized_data,
-                state_attr_checks=[],
+                synchronized_data_update_fn=lambda _synchronized_data, _: _synchronized_data,
+                synchronized_data_attr_checks=[],
                 most_voted_payload="best_params_hash",
                 exit_event=Event.DONE,
             )
@@ -441,8 +440,8 @@ class TestTrainRound(BaseCollectSameUntilThresholdRoundTest):
                 round_payloads=get_participant_to_train_payload(
                     self.participants, most_voted_payload
                 ),
-                state_update_fn=lambda _synchronized_data, _: _synchronized_data,
-                state_attr_checks=[],
+                synchronized_data_update_fn=lambda _synchronized_data, _: _synchronized_data,
+                synchronized_data_attr_checks=[],
                 most_voted_payload=most_voted_payload,
                 exit_event=expected_event,
             )
@@ -464,16 +463,19 @@ class TestTestRound(BaseCollectSameUntilThresholdRoundTest):
         """Runs test."""
 
         test_round = _TestRound(
-            self.synchronized_data.update(full_training=False), self.consensus_params
+            self.synchronized_data.update(full_training=False),
+            self.consensus_params,
         )
         self._complete_run(
             self._test_round(
                 test_round=test_round,
                 round_payloads=get_participant_to_test_payload(self.participants),
-                state_update_fn=lambda _synchronized_data, _: _synchronized_data.update(
+                synchronized_data_update_fn=lambda _synchronized_data, _: _synchronized_data.update(
                     full_training=True
                 ),
-                state_attr_checks=[lambda state: bool(state.full_training)],
+                synchronized_data_attr_checks=[
+                    lambda _synchronized_data: bool(_synchronized_data.full_training)
+                ],
                 most_voted_payload="report_hash",
                 exit_event=Event.DONE,
             )
@@ -517,10 +519,10 @@ class TestEstimateRound(BaseCollectSameUntilThresholdRoundTest):
                 round_payloads=get_participant_to_estimate_payload(
                     self.participants, most_voted_payload
                 ),
-                state_update_fn=lambda _synchronized_data, _: _synchronized_data.update(
+                synchronized_data_update_fn=lambda _synchronized_data, _: _synchronized_data.update(
                     n_estimations=n_estimations,
                 ),
-                state_attr_checks=[lambda _: n_estimations + 1],
+                synchronized_data_attr_checks=[lambda _: n_estimations + 1],
                 most_voted_payload=most_voted_payload,
                 exit_event=expected_event,
             )
@@ -555,10 +557,12 @@ class TestCycleResetRound(BaseCollectSameUntilThresholdRoundTest):
             self._test_round(
                 test_round=test_round,
                 round_payloads=get_participant_to_reset_payload(self.participants),
-                state_update_fn=lambda _synchronized_data, _test_round: _synchronized_data.update(
+                synchronized_data_update_fn=lambda _synchronized_data, _test_round: _synchronized_data.update(
                     full_training=False,
                 ),
-                state_attr_checks=[lambda state: state.full_training],
+                synchronized_data_attr_checks=[
+                    lambda _synchronized_data: _synchronized_data.full_training
+                ],
                 most_voted_payload=1,
                 exit_event=Event.DONE,
             )
@@ -591,10 +595,12 @@ class TestFreshModelResetRound(BaseCollectSameUntilThresholdRoundTest):
             self._test_round(
                 test_round=test_round,
                 round_payloads=get_participant_to_reset_payload(self.participants),
-                state_update_fn=lambda _synchronized_data, _test_round: _synchronized_data.update(
+                synchronized_data_update_fn=lambda _synchronized_data, _test_round: _synchronized_data.update(
                     full_training=False,
                 ),
-                state_attr_checks=[lambda state: state.full_training],
+                synchronized_data_attr_checks=[
+                    lambda _synchronized_data: _synchronized_data.full_training
+                ],
                 most_voted_payload=1,
                 exit_event=Event.DONE,
             )
@@ -610,8 +616,7 @@ def test_period() -> None:
     """Test SynchronizedData."""
 
     participants = get_participants()
-    period_count = 1
-    period_setup_params: Dict = {}
+    setup_params: Dict = {}
     most_voted_randomness = 1
     estimates_hash = "test_hash"
     full_training = False
@@ -619,10 +624,9 @@ def test_period() -> None:
 
     synchronized_data = SynchronizedData(
         db=AbciAppDB(
-            initial_period=period_count,
             initial_data=dict(
                 participants=participants,
-                period_setup_params=period_setup_params,
+                setup_params=setup_params,
                 most_voted_randomness=most_voted_randomness,
                 most_voted_estimate=estimates_hash,
                 full_training=full_training,
@@ -632,7 +636,7 @@ def test_period() -> None:
     )
 
     assert synchronized_data.participants == participants
-    assert synchronized_data.period_count == period_count
+    assert synchronized_data.period_count == 0
     assert synchronized_data.most_voted_randomness == most_voted_randomness
     assert synchronized_data.estimates_hash == estimates_hash
     assert synchronized_data.full_training == full_training

@@ -67,6 +67,9 @@ ROUND_COUNT_DEFAULT = -1
 MIN_HISTORY_DEPTH = 1
 ADDRESS_LENGTH = 42
 MAX_INT_256 = 2 ** 256 - 1
+RESET_COUNT_START = 0
+VALUE_NOT_PROVIDED = "VALUE_NOT_PROVIDED"
+DEFAULT_VALUE_FLAG = "DEFAULT_VALUE_FLAG"
 
 EventType = TypeVar("EventType")
 TransactionType = TypeVar("TransactionType")
@@ -474,22 +477,33 @@ class ConsensusParams:
 
 
 class AbciAppDB:
-    """Class to represent all data replicated across periods."""
+    """Class to represent all data replicated across agents."""
 
     def __init__(
         self,
-        initial_period: int,
         initial_data: Dict[str, Any],
         cross_period_persisted_keys: Optional[List[str]] = None,
+        format_initial_data: bool = True,
     ) -> None:
-        """Initialize a period state."""
-        self._current_period_count = initial_period
-        self._initial_data = initial_data
-        self._cross_period_persisted_keys = (
-            [] if cross_period_persisted_keys is None else cross_period_persisted_keys
+        """Initialize the AbciApp database.
+
+        initial_data can be passed either as Dict[str, Any] of Dict[str, List[Any]] (the database internal format). Use the format_initial_data to decide if
+        initial_data should be automatically converted.
+
+        :param initial_data: the initial data
+        :param cross_period_persisted_keys: data keys that will be kept after a new period starts
+        :param format_initial_data: flag to indicate whether initial_data should be converted from Dict[str, Any] to Dict[str, List[Any]]
+        """
+        self._initial_data = (
+            AbciAppDB.data_to_list(initial_data)
+            if format_initial_data
+            else initial_data
         )
-        self._data: Dict[int, Dict[str, Any]] = {
-            self._current_period_count: deepcopy(self._initial_data)
+        self._cross_period_persisted_keys = cross_period_persisted_keys or []
+        self._data: Dict[int, Dict[str, List[Any]]] = {
+            RESET_COUNT_START: deepcopy(
+                self._initial_data
+            )  # the key represents the reset index
         }
         self._round_count = ROUND_COUNT_DEFAULT  # ensures first round is indexed at 0!
 
@@ -502,10 +516,15 @@ class AbciAppDB:
         """
         return self._initial_data
 
+    @classmethod
+    def data_to_list(cls, data: Dict[str, Any]) -> Dict[str, List[Any]]:
+        """Convert Dict[str, Any] to Dict[str, List[Any]]."""
+        return {key: [value] for key, value in data.items()}
+
     @property
-    def current_period_count(self) -> int:
-        """Get the current period count."""
-        return self._current_period_count
+    def reset_index(self) -> int:
+        """Get the current reset index."""
+        return len(self._data) - 1
 
     @property
     def round_count(self) -> int:
@@ -514,18 +533,26 @@ class AbciAppDB:
 
     @property
     def cross_period_persisted_keys(self) -> List[str]:
-        """Keys in the period state which are persistet across periods."""
+        """Keys in the database which are persistet across periods."""
         return self._cross_period_persisted_keys
 
-    def get(self, key: str, default: Any = "NOT_PROVIDED") -> Optional[Any]:
+    def get(self, key: str, default: Any = VALUE_NOT_PROVIDED) -> Optional[Any]:
         """Get a value from the data dictionary."""
-        if default != "NOT_PROVIDED":
-            return self._data.get(self._current_period_count, {}).get(key, default)
+        if default != VALUE_NOT_PROVIDED:
+            key_history_or_default = self._data.get(self.reset_index, {}).get(
+                key, DEFAULT_VALUE_FLAG
+            )
+            return (
+                default
+                if key_history_or_default == DEFAULT_VALUE_FLAG
+                else key_history_or_default[-1]
+            )
         try:
-            return self._data.get(self._current_period_count, {}).get(key)
+            key_history = self._data.get(self.reset_index, {}).get(key)
+            return key_history[-1] if key_history else None
         except KeyError as exception:  # pragma: no cover
             raise ValueError(
-                f"'{key}' field is not set for period state."
+                f"'{key}' field is not set for this period."
             ) from exception
 
     def get_strict(self, key: str) -> Any:
@@ -533,34 +560,44 @@ class AbciAppDB:
         value = self.get(key)
         if value is None:
             raise ValueError(
-                f"Value of key={key} is None for "
-                f"current_period_count={self.current_period_count} "
+                f"Value of key={key} is None for " f"reset_index={self.reset_index} "
             )
         return value
 
-    def update_current_period(self, **kwargs: Any) -> None:
-        """Update the current period's state."""
-        self._data[self._current_period_count].update(kwargs)
+    def update(self, overwrite_history: bool = False, **kwargs: Any) -> None:
+        """Update the current data."""
+        if overwrite_history:
+            # Overwrite all key history for this period
+            for key, value in kwargs.items():
+                self._data[self.reset_index][key] = [value]
+            return
 
-    def add_new_period(self, new_period: int, **kwargs: Any) -> None:
-        """Update the current period's state."""
-        # if new_period in self._data:
-        #     raise ValueError(
-        #         "Incorrect period count incrementation, period already exists"
-        #     )  # pragma: no cover
-        self._current_period_count = new_period
-        self._data[self._current_period_count] = kwargs
+        # Append new data to the key history
+        data = self._data[self.reset_index]
+        for key, value in kwargs.items():
+            data.setdefault(key, []).append(value)
 
-    def get_all(self) -> Dict[str, Any]:
-        """Get all key-value pairs from the data dictionary for the current period."""
-        return self._data[self._current_period_count]
+    def create(self, format_data: bool = True, **kwargs: Any) -> None:
+        """Add a new entry to the data."""
+        new_data = AbciAppDB.data_to_list(kwargs) if format_data else kwargs
+        self._data[self.reset_index + 1] = new_data
+
+    def get_latest_from_reset_index(self, reset_index: int) -> Dict[str, Any]:
+        """Get the latest key-value pairs from the data dictionary for the specified period."""
+        return {
+            key: values[-1] for key, values in self._data.get(reset_index, {}).items()
+        }
+
+    def get_latest(self) -> Dict[str, Any]:
+        """Get the latest key-value pairs from the data dictionary for the current period."""
+        return self.get_latest_from_reset_index(self.reset_index)
 
     def increment_round_count(self) -> None:
         """Increment the round count."""
         self._round_count += 1
 
     def __repr__(self) -> str:
-        """Return a string representation of the state."""
+        """Return a string representation of the data."""
         return f"AbciAppDB({self._data})"
 
     def cleanup(self, cleanup_history_depth: int) -> None:
@@ -576,7 +613,7 @@ class BaseSynchronizedData:
     """
     Class to represent the synchronized data.
 
-    This is the relevant state constructed and replicated by the agents in a period.
+    This is the relevant data constructed and replicated by the agents.
     """
 
     def __init__(
@@ -598,8 +635,14 @@ class BaseSynchronizedData:
 
     @property
     def period_count(self) -> int:
-        """Get the period count."""
-        return self.db.current_period_count
+        """Get the period count.
+
+        Periods are executions between calls to AbciAppDB.create(), so as soon as it is called,
+        a new period begins. It is useful to have a logical subdivision of the FSM execution.
+        For example, if AbciAppDB.create() is called during reset, then a period will be the
+        execution between resets.
+        """
+        return self.db.reset_index
 
     @property
     def participants(self) -> FrozenSet[str]:
@@ -639,21 +682,32 @@ class BaseSynchronizedData:
     def update(
         self,
         synchronized_data_class: Optional[Type] = None,
-        period_count: Optional[int] = None,
+        overwrite_history: bool = False,
         **kwargs: Any,
     ) -> "BaseSynchronizedData":
-        """Copy and update the state."""
-        if period_count is None:
-            self.db.update_current_period(**kwargs)
-        else:
-            self.db.add_new_period(new_period=period_count, **kwargs)
+        """Copy and update the current data."""
+        self.db.update(overwrite_history=overwrite_history, **kwargs)
+
+        class_ = (
+            type(self) if synchronized_data_class is None else synchronized_data_class
+        )
+        return class_(db=self.db)
+
+    def create(
+        self,
+        synchronized_data_class: Optional[Type] = None,
+        format_data: bool = True,
+        **kwargs: Any,
+    ) -> "BaseSynchronizedData":
+        """Copy and update with new data."""
+        self.db.create(format_data=format_data, **kwargs)
         class_ = (
             type(self) if synchronized_data_class is None else synchronized_data_class
         )
         return class_(db=self.db)
 
     def __repr__(self) -> str:
-        """Return a string representation of the state."""
+        """Return a string representation of the data."""
         return f"{self.__class__.__name__}(db={self._db})"
 
     @property
@@ -704,8 +758,8 @@ class AbstractRound(Generic[EventType, TransactionType], ABC):
     """
     This class represents an abstract round.
 
-    A round is a state of a period. It usually involves
-    interactions between participants in the period,
+    A round is a state of the FSM App execution. It usually involves
+    interactions between participants in the FSM App,
     although this is not enforced at this level of abstraction.
 
     Concrete classes must set:
@@ -721,13 +775,13 @@ class AbstractRound(Generic[EventType, TransactionType], ABC):
 
     def __init__(
         self,
-        state: BaseSynchronizedData,
+        synchronized_data: BaseSynchronizedData,
         consensus_params: ConsensusParams,
         previous_round_tx_type: Optional[TransactionType] = None,
     ) -> None:
         """Initialize the round."""
         self._consensus_params = consensus_params
-        self._state = state
+        self._synchronized_data = synchronized_data
         self.block_confirmations = 0
         self._previous_round_tx_type = previous_round_tx_type
 
@@ -746,8 +800,8 @@ class AbstractRound(Generic[EventType, TransactionType], ABC):
 
     @property
     def synchronized_data(self) -> BaseSynchronizedData:
-        """Get the period state."""
-        return self._state
+        """Get the synchronized data."""
+        return self._synchronized_data
 
     def check_transaction(self, transaction: Transaction) -> None:
         """
@@ -1128,14 +1182,14 @@ class CollectSameUntilThresholdRound(CollectionRound):
     def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Enum]]:
         """Process the end of the block."""
         if self.threshold_reached and self.most_voted_payload is not None:
-            state = self.synchronized_data.update(
+            synchronized_data = self.synchronized_data.update(
                 synchronized_data_class=self.synchronized_data_class,
                 **{
                     self.collection_key: self.collection,
                     self.selection_key: self.most_voted_payload,
                 },
             )
-            return state, self.done_event
+            return synchronized_data, self.done_event
         if self.threshold_reached and self.most_voted_payload is None:
             return self.synchronized_data, self.none_event
         if not self.is_majority_possible(
@@ -1221,11 +1275,11 @@ class OnlyKeeperSendsRound(AbstractRound):
         """Process the end of the block."""
         # if reached participant threshold, set the result
         if self.has_keeper_sent_payload and self.keeper_payload is not None:
-            state = self.synchronized_data.update(
+            synchronized_data = self.synchronized_data.update(
                 synchronized_data_class=self.synchronized_data_class,
                 **{self.payload_key: self.keeper_payload},
             )
-            return state, self.done_event
+            return synchronized_data, self.done_event
         if self.has_keeper_sent_payload and self.keeper_payload is None:
             return self.synchronized_data, self.fail_event
         return None
@@ -1270,11 +1324,12 @@ class VotingRound(CollectionRound):
         """Process the end of the block."""
         # if reached participant threshold, set the result
         if self.positive_vote_threshold_reached:
-            state = self.synchronized_data.update(
+            synchronized_data = self.synchronized_data.update(
                 synchronized_data_class=self.synchronized_data_class,
-                **{self.collection_key: self.collection},  # type: ignore
+                overwrite_history=False,
+                **{self.collection_key: self.collection},
             )
-            return state, self.done_event
+            return synchronized_data, self.done_event
         if self.negative_vote_threshold_reached:
             return self.synchronized_data, self.negative_event
         if self.none_vote_threshold_reached:
@@ -1317,15 +1372,15 @@ class CollectDifferentUntilThresholdRound(CollectionRound):
             and self.block_confirmations > self.required_block_confirmations
             # we also wait here as it gives more (available) agents time to join
         ):
-            state = self.synchronized_data.update(
+            synchronized_data = self.synchronized_data.update(
                 synchronized_data_class=self.synchronized_data_class,
-                period_count=None,
+                overwrite_history=False,
                 **{
                     self.selection_key: frozenset(list(self.collection.keys())),
                     self.collection_key: self.collection,
                 },
             )
-            return state, self.done_event
+            return synchronized_data, self.done_event
         if not self.is_majority_possible(
             self.collection, self.synchronized_data.nb_participants
         ):
@@ -1366,9 +1421,9 @@ class CollectNonEmptyUntilThresholdRound(CollectDifferentUntilThresholdRound):
         ):
             non_empty_values = self._get_non_empty_values()
 
-            state = self.synchronized_data.update(
+            synchronized_data = self.synchronized_data.update(
                 synchronized_data_class=self.synchronized_data_class,
-                period_count=None,
+                overwrite_history=False,
                 **{
                     self.selection_key: frozenset(list(self.collection.keys())),
                     self.collection_key: non_empty_values,
@@ -1376,8 +1431,8 @@ class CollectNonEmptyUntilThresholdRound(CollectDifferentUntilThresholdRound):
             )
 
             if len(non_empty_values) == 0:
-                return state, self.none_event
-            return state, self.done_event
+                return synchronized_data, self.none_event
+            return synchronized_data, self.done_event
 
         if not self.is_majority_possible(
             self.collection, self.synchronized_data.nb_participants
@@ -1621,12 +1676,12 @@ class AbciApp(
 
     def __init__(
         self,
-        state: BaseSynchronizedData,
+        synchronized_data: BaseSynchronizedData,
         consensus_params: ConsensusParams,
         logger: logging.Logger,
     ):
         """Initialize the AbciApp."""
-        self._initial_state = state
+        self._initial_synchronized_data = synchronized_data
         self.consensus_params = consensus_params
         self.logger = logger
 
@@ -1641,10 +1696,14 @@ class AbciApp(
         self._timeouts = Timeouts[EventType]()
 
     @property
-    def state(self) -> BaseSynchronizedData:
-        """Return the current state."""
+    def synchronized_data(self) -> BaseSynchronizedData:
+        """Return the current synchronized data."""
         latest_result = self.latest_result
-        return latest_result if latest_result is not None else self._initial_state
+        return (
+            latest_result
+            if latest_result is not None
+            else self._initial_synchronized_data
+        )
 
     @classmethod
     def get_all_rounds(cls) -> Set[AppState]:
@@ -1683,7 +1742,7 @@ class AbciApp(
         """Log the entering in the round."""
         self.logger.info(
             f"Entered in the '{self.current_round.round_id}' round for period "
-            f"{self.state.period_count}"
+            f"{self.synchronized_data.period_count}"
         )
 
     def _log_end(self, event: EventType) -> None:
@@ -1738,7 +1797,7 @@ class AbciApp(
         last_result = (
             self._round_results[-1]
             if len(self._round_results) > 0
-            else self._initial_state
+            else self._initial_synchronized_data
         )
         self._last_round = self._current_round
         self._current_round_cls = round_cls
@@ -1755,7 +1814,7 @@ class AbciApp(
             ),
         )
         self._log_start()
-        self.state.db.increment_round_count()
+        self.synchronized_data.db.increment_round_count()  # ROUND_COUNT_DEFAULT is -1
 
     @property
     def current_round(self) -> AbstractRound:
@@ -1900,7 +1959,7 @@ class AbciApp(
         cleanup_history_depth = max(cleanup_history_depth, MIN_HISTORY_DEPTH)
         self._previous_rounds = self._previous_rounds[-cleanup_history_depth:]
         self._round_results = self._round_results[-cleanup_history_depth:]
-        self.state.db.cleanup(cleanup_history_depth)
+        self.synchronized_data.db.cleanup(cleanup_history_depth)
 
 
 class RoundSequence:
@@ -2065,9 +2124,9 @@ class RoundSequence:
         return self._last_round_transition_height
 
     @property
-    def latest_state(self) -> BaseSynchronizedData:
-        """Get the latest state."""
-        return self.abci_app.state
+    def latest_synchronized_data(self) -> BaseSynchronizedData:
+        """Get the latest synchronized_data."""
+        return self.abci_app.synchronized_data
 
     def begin_block(self, header: Header) -> None:
         """Begin block."""

@@ -4,17 +4,17 @@
 
 This module contains the data classes for the oracle deployment ABCI application.
 
-<a id="packages.valory.skills.oracle_deployment_abci.behaviours.OracleDeploymentBaseState"></a>
+<a id="packages.valory.skills.oracle_deployment_abci.behaviours.OracleDeploymentBaseBehaviour"></a>
 
-## OracleDeploymentBaseState Objects
+## OracleDeploymentBaseBehaviour Objects
 
 ```python
-class OracleDeploymentBaseState(BaseState)
+class OracleDeploymentBaseBehaviour(BaseBehaviour)
 ```
 
-Base state behaviour for the common apps' skill.
+Base behaviour for the common apps' skill.
 
-<a id="packages.valory.skills.oracle_deployment_abci.behaviours.OracleDeploymentBaseState.synchronized_data"></a>
+<a id="packages.valory.skills.oracle_deployment_abci.behaviours.OracleDeploymentBaseBehaviour.synchronized_data"></a>
 
 #### synchronized`_`data
 
@@ -23,9 +23,9 @@ Base state behaviour for the common apps' skill.
 def synchronized_data() -> SynchronizedData
 ```
 
-Return the period state.
+Return the synchronized data.
 
-<a id="packages.valory.skills.oracle_deployment_abci.behaviours.OracleDeploymentBaseState.params"></a>
+<a id="packages.valory.skills.oracle_deployment_abci.behaviours.OracleDeploymentBaseBehaviour.params"></a>
 
 #### params
 
@@ -34,7 +34,7 @@ Return the period state.
 def params() -> Params
 ```
 
-Return the period state.
+Return the synchronized data.
 
 <a id="packages.valory.skills.oracle_deployment_abci.behaviours.RandomnessOracleBehaviour"></a>
 
@@ -61,7 +61,7 @@ Select the keeper agent.
 ## DeployOracleBehaviour Objects
 
 ```python
-class DeployOracleBehaviour(OracleDeploymentBaseState)
+class DeployOracleBehaviour(OracleDeploymentBaseBehaviour)
 ```
 
 Deploy oracle.
@@ -87,7 +87,7 @@ Steps:
 ## ValidateOracleBehaviour Objects
 
 ```python
-class ValidateOracleBehaviour(OracleDeploymentBaseState)
+class ValidateOracleBehaviour(OracleDeploymentBaseBehaviour)
 ```
 
 Validate oracle.
@@ -108,7 +108,7 @@ Steps:
 - Send the transaction with the validation result and wait for it to be
   mined.
 - Wait until ABCI application transitions to the next round.
-- Go to the next behaviour state (set done event).
+- Go to the next behaviour (set done event).
 
 <a id="packages.valory.skills.oracle_deployment_abci.behaviours.ValidateOracleBehaviour.has_correct_contract_been_deployed"></a>
 

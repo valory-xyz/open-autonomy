@@ -60,7 +60,7 @@ from packages.valory.skills.transaction_settlement_abci.behaviours import (
     SelectKeeperTransactionSubmissionBehaviourA,
     SelectKeeperTransactionSubmissionBehaviourB,
     SynchronizeLateMessagesBehaviour,
-    TransactionSettlementBaseState,
+    TransactionSettlementBaseBehaviour,
 )
 from packages.valory.skills.transaction_settlement_abci.payload_tools import (
     VerificationStatus,
@@ -110,7 +110,6 @@ class TransactionSettlementIntegrationBaseCase(
         keeper_initial_retries = 1
         cls.tx_settlement_synchronized_data = TxSettlementSynchronizedSata(
             AbciAppDB(
-                initial_period=0,
                 initial_data=dict(
                     safe_contract_address=cls.safe_contract_address,
                     participants=frozenset(list(cls.safe_owners.keys())),
@@ -122,7 +121,6 @@ class TransactionSettlementIntegrationBaseCase(
 
         cls.price_estimation_synchronized_data = PriceEstimationSynchronizedSata(
             AbciAppDB(
-                initial_period=0,
                 initial_data=dict(
                     safe_contract_address=cls.safe_contract_address,
                     participants=frozenset(list(cls.safe_owners.keys())),
@@ -172,7 +170,7 @@ class TransactionSettlementIntegrationBaseCase(
         _, _, _, msg4 = self.process_n_messages(
             cycles_enter,
             self.price_estimation_synchronized_data,
-            DeployOracleBehaviour.state_id,
+            DeployOracleBehaviour.behaviour_id,
             handlers_enter,
             expected_content_enter,
             expected_types_enter,
@@ -182,7 +180,7 @@ class TransactionSettlementIntegrationBaseCase(
             msg4.transaction_receipt.receipt
         )
 
-        # update period state with oracle contract address
+        # update synchronized data with oracle contract address
         self.price_estimation_synchronized_data.update(
             oracle_contract_address=oracle_contract_address,
         )
@@ -202,7 +200,7 @@ class TransactionSettlementIntegrationBaseCase(
         _, msg_a, msg_b = self.process_n_messages(
             cycles_enter,
             self.price_estimation_synchronized_data,
-            TransactionHashBehaviour.state_id,
+            TransactionHashBehaviour.behaviour_id,
             handlers_enter,
             expected_content_enter,
             expected_types_enter,
@@ -221,7 +219,7 @@ class TransactionSettlementIntegrationBaseCase(
             tx_data,
         )
 
-        # update period state with safe's tx hash
+        # update synchronized data with safe's tx hash
         self.tx_settlement_synchronized_data.update(
             most_voted_tx_hash=payload,
         )
@@ -322,10 +320,9 @@ class TestKeepers(OracleBehaviourBaseCase, IntegrationBaseCase):
         """Set up the test class."""
         super().setup()
 
-        # init period state
+        # init synchronized data
         cls.tx_settlement_synchronized_data = TxSettlementSynchronizedSata(
             AbciAppDB(
-                initial_period=0,
                 initial_data=dict(
                     participants=frozenset(list(cls.agents.keys())),
                     most_voted_randomness="0xabcd",
@@ -334,7 +331,7 @@ class TestKeepers(OracleBehaviourBaseCase, IntegrationBaseCase):
         )
 
     @mock.patch.object(
-        TransactionSettlementBaseState,
+        TransactionSettlementBaseBehaviour,
         "serialized_keepers",
         side_effect=lambda keepers, retries: retries.to_bytes(32, "big").hex()
         + "".join(keepers),
@@ -349,18 +346,18 @@ class TestKeepers(OracleBehaviourBaseCase, IntegrationBaseCase):
         """Select a keeper."""
 
         if first_time:
-            state_id = SelectKeeperTransactionSubmissionBehaviourA.state_id
+            behaviour_id = SelectKeeperTransactionSubmissionBehaviourA.behaviour_id
         else:
-            state_id = SelectKeeperTransactionSubmissionBehaviourB.state_id
+            behaviour_id = SelectKeeperTransactionSubmissionBehaviourB.behaviour_id
 
         # select keeper
-        self.fast_forward_to_state(
+        self.fast_forward_to_behaviour(
             self.behaviour,
-            state_id,
+            behaviour_id,
             self.tx_settlement_synchronized_data,
         )
-        assert self.behaviour.current_state is not None
-        assert self.behaviour.current_state.state_id == state_id
+        assert self.behaviour.current_behaviour is not None
+        assert self.behaviour.current_behaviour.behaviour_id == behaviour_id
 
         self.behaviour.act_wrapper()
         serialized_keepers_mock.assert_called_with(expected_keepers, expected_retries)
@@ -370,7 +367,7 @@ class TestKeepers(OracleBehaviourBaseCase, IntegrationBaseCase):
             # we cast to A class, because it is the top level one between A & B, and we need `serialized_keepers`
             keepers=cast(
                 SelectKeeperTransactionSubmissionBehaviourA,
-                self.behaviour.current_state,
+                self.behaviour.current_behaviour,
             ).serialized_keepers(expected_keepers, expected_retries)
         )
 
@@ -388,10 +385,13 @@ class TestKeepers(OracleBehaviourBaseCase, IntegrationBaseCase):
             first_time=True,
         )
         assert isinstance(
-            self.behaviour.current_state, SelectKeeperTransactionSubmissionBehaviourA
+            self.behaviour.current_behaviour,
+            SelectKeeperTransactionSubmissionBehaviourA,
         )
 
-        for i in range(self.behaviour.current_state.params.keeper_allowed_retries - 1):
+        for i in range(
+            self.behaviour.current_behaviour.params.keeper_allowed_retries - 1
+        ):
             # select keeper b
             # ensure that we select the same keeper until the `keeper_allowed_retries` is reached.
             # +2 because we selected once for keeperA and also index starts from 0.
@@ -443,13 +443,13 @@ class TestSyncing(TransactionSettlementIntegrationBaseCase):
         """Set up the test class."""
         super().setup()
 
-        # update period state
+        # update synchronized data
         cls.tx_settlement_synchronized_data.update(missed_messages=0)
 
     def sync_late_messages(self) -> None:
         """Synchronize late messages."""
         params = cast(
-            TransactionSettlementBaseState, self.behaviour.current_state
+            TransactionSettlementBaseBehaviour, self.behaviour.current_behaviour
         ).params
         late_messages_len = len(params.late_messages)
         expected_sync_result = params.tx_hash
@@ -473,21 +473,21 @@ class TestSyncing(TransactionSettlementIntegrationBaseCase):
         msgs = self.process_n_messages(
             len(handlers),
             self.tx_settlement_synchronized_data,
-            SynchronizeLateMessagesBehaviour.state_id,
+            SynchronizeLateMessagesBehaviour.behaviour_id,
             handlers,
             expected_content,
             expected_types,
         )
 
         assert isinstance(
-            self.behaviour.current_state, SynchronizeLateMessagesBehaviour
+            self.behaviour.current_behaviour, SynchronizeLateMessagesBehaviour
         )
         assert (
-            self.behaviour.current_state.state_id
-            == SynchronizeLateMessagesBehaviour.state_id
+            self.behaviour.current_behaviour.behaviour_id
+            == SynchronizeLateMessagesBehaviour.behaviour_id
         )
-        assert self.behaviour.current_state.params.tx_hash == ""
-        assert self.behaviour.current_state.params.late_messages == []
+        assert self.behaviour.current_behaviour.params.tx_hash == ""
+        assert self.behaviour.current_behaviour.params.late_messages == []
 
         tx_digest_msgs = msgs[0::2]
         for i in range(len(tx_digest_msgs)):
@@ -502,14 +502,14 @@ class TestSyncing(TransactionSettlementIntegrationBaseCase):
             ), f"No tx digest retrieved for message {i}: {current_message}!"
             expected_sync_result += tx_digest
 
-        assert self.behaviour.current_state._tx_hashes == expected_sync_result
+        assert self.behaviour.current_behaviour._tx_hashes == expected_sync_result
         self.tx_settlement_synchronized_data.update(
             late_arriving_tx_hashes=[expected_sync_result],
         )
         self.tx_settlement_synchronized_data.update(
-            missed_messages=self.behaviour.current_state.synchronized_data.missed_messages
+            missed_messages=self.behaviour.current_behaviour.synchronized_data.missed_messages
             - len(
-                self.behaviour.current_state.synchronized_data.late_arriving_tx_hashes
+                self.behaviour.current_behaviour.synchronized_data.late_arriving_tx_hashes
             ),
         )
 
@@ -529,14 +529,15 @@ class TestSyncing(TransactionSettlementIntegrationBaseCase):
         msgs = self.process_n_messages(
             len(self.tx_settlement_synchronized_data.late_arriving_tx_hashes),
             self.tx_settlement_synchronized_data,
-            CheckLateTxHashesBehaviour.state_id,
+            CheckLateTxHashesBehaviour.behaviour_id,
             handlers,
             expected_content,
             expected_types,
         )
-        assert isinstance(self.behaviour.current_state, CheckLateTxHashesBehaviour)
+        assert isinstance(self.behaviour.current_behaviour, CheckLateTxHashesBehaviour)
         assert (
-            self.behaviour.current_state.state_id == CheckLateTxHashesBehaviour.state_id
+            self.behaviour.current_behaviour.behaviour_id
+            == CheckLateTxHashesBehaviour.behaviour_id
         )
 
         verified_idx = -1
@@ -577,8 +578,8 @@ class TestSyncing(TransactionSettlementIntegrationBaseCase):
         # check that we have increased the number of missed messages.
         assert self.tx_settlement_synchronized_data.missed_messages == 1
         # store the tx hash that we have missed.
-        assert isinstance(self.behaviour.current_state, FinalizeBehaviour)
-        missed_hash = self.behaviour.current_state.params.tx_hash
+        assert isinstance(self.behaviour.current_behaviour, FinalizeBehaviour)
+        missed_hash = self.behaviour.current_behaviour.params.tx_hash
         # sync the tx hash that we missed before
         self.sync_late_messages()
         # check that we have decreased the number of missed messages.

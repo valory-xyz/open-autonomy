@@ -8,13 +8,13 @@ aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
   README.md: QmVwFKStDzJFm4dbFKGSnLQGGjpH5zjhcPRwYirPCDYAJU
   __init__.py: Qme3M7NKyV7CstshfUBthu38q2UTFDctBc3Ar1aK3LRBDr
-  behaviours.py: QmejafujLp9qLBymmpTQ4pL6Zn5GoEqPGaJUeCybcjqY2L
+  behaviours.py: QmYzXSZTzTfb1voEPFrY8aXjnJMY5vYvF7LxvrSAvXYbGM
   dialogues.py: QmfDThV4WCRzK88XDpW2hKDYCuEH4RxoHCoAkWpkBRGRPv
   fsm_specification.yaml: QmTVVBdh15143sgSTA9DgXYrrPQzVgog1BC87fN1ym9U4o
   handlers.py: QmZXDriJtB3cN8NBWrYLVpFekWMZdjm8veF97oLrGFRot3
   models.py: QmaS5Qvg6DtqkTixSyQpHFJQaLfx1hgmodVKD2zbtjzW6i
   payloads.py: QmVUVKakCZrUQxqU3fmkzLjk6fjbKtr7zxe9pRMBvjEPW5
-  rounds.py: QmbP7YDh7wx2eDMaxKRqkYC8fkdBmgx8vQi5RybAi4vJaE
+  rounds.py: QmQ9od69mhxPKt6EAGvV6KxKdVtNJhgy8C2bHqyhFcThjT
 fingerprint_ignore_patterns: []
 connections:
 - valory/abci:0.1.0:QmaPFp3Jwf6uv9VSAoMJfJHFS9ESPeX8hCB7HLi41c8WzS
@@ -75,12 +75,12 @@ models:
       keeper_timeout: 30.0
       max_healthcheck: 120
       observation_interval: 10
-      period_setup: {}
       reset_tendermint_after: 2
       retry_attempts: 400
       retry_timeout: 3
       round_timeout_seconds: 30.0
       service_id: simple_abci
+      setup: {}
       sleep_time: 1
       tendermint_check_sleep_delay: 3
       tendermint_com_url: http://localhost:8080

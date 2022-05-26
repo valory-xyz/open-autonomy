@@ -98,7 +98,7 @@ class DummyTxPayload(BaseTxPayload):
 
 
 class DummySynchronizedSata(BaseSynchronizedData):
-    """Dummy Period state for tests."""
+    """Dummy synchronized data for tests."""
 
     @property
     def most_voted_keeper_address(
@@ -189,7 +189,6 @@ class BaseRoundTestClass:
         cls.participants = get_participants()
         cls.synchronized_data = cls._synchronized_data_class(
             db=AbciAppDB(
-                initial_period=0,
                 initial_data=dict(
                     participants=cls.participants, all_participants=cls.participants
                 ),
@@ -216,8 +215,8 @@ class BaseRoundTestClass:
         3. test collection, end_block and thresholds
         4. process rest of the payloads
         5. yield test_round
-        6. yield state, event ( returned from end_block )
-        7. test state and event
+        6. yield synchronized_data, event ( returned from end_block )
+        7. test synchronized_data and event
 
         :param test_runner: test runner
         :param iter_count: iter_count
@@ -234,8 +233,8 @@ class BaseCollectDifferentUntilAllRoundTest(BaseRoundTestClass):
         self,
         test_round: CollectDifferentUntilAllRound,
         round_payloads: List[BaseTxPayload],
-        state_update_fn: Callable,
-        state_attr_checks: List[Callable],
+        synchronized_data_update_fn: Callable,
+        synchronized_data_attr_checks: List[Callable],
         exit_event: Any,
     ) -> Generator:
         """Test round."""
@@ -256,9 +255,9 @@ class BaseCollectDifferentUntilAllRoundTest(BaseRoundTestClass):
         yield test_round
         assert test_round.collection_threshold_reached
 
-        actual_next_state = cast(
+        actual_next_synchronized_data = cast(
             self._synchronized_data_class,  # type: ignore
-            state_update_fn(deepcopy(self.synchronized_data), test_round),  # type: ignore
+            synchronized_data_update_fn(deepcopy(self.synchronized_data), test_round),  # type: ignore
         )
 
         res = test_round.end_block()
@@ -267,10 +266,12 @@ class BaseCollectDifferentUntilAllRoundTest(BaseRoundTestClass):
             assert res is exit_event
         else:
             assert res is not None
-            state, event = res
-            state = cast(self._synchronized_data_class, state)  # type: ignore
-            for state_attr_getter in state_attr_checks:
-                assert state_attr_getter(state) == state_attr_getter(actual_next_state)
+            synchronized_data, event = res
+            synchronized_data = cast(self._synchronized_data_class, synchronized_data)  # type: ignore
+            for behaviour_attr_getter in synchronized_data_attr_checks:
+                assert behaviour_attr_getter(
+                    synchronized_data
+                ) == behaviour_attr_getter(actual_next_synchronized_data)
             assert event == exit_event
         yield
 
@@ -282,8 +283,8 @@ class BaseCollectSameUntilThresholdRoundTest(BaseRoundTestClass):
         self,
         test_round: CollectSameUntilThresholdRound,
         round_payloads: Mapping[str, BaseTxPayload],
-        state_update_fn: Callable,
-        state_attr_checks: List[Callable],
+        synchronized_data_update_fn: Callable,
+        synchronized_data_attr_checks: List[Callable],
         most_voted_payload: Any,
         exit_event: Any,
     ) -> Generator:
@@ -307,19 +308,21 @@ class BaseCollectSameUntilThresholdRoundTest(BaseRoundTestClass):
         assert test_round.threshold_reached
         assert test_round.most_voted_payload == most_voted_payload
 
-        actual_next_state = cast(
+        actual_next_synchronized_data = cast(
             self._synchronized_data_class,  # type: ignore
-            state_update_fn(deepcopy(self.synchronized_data), test_round),  # type: ignore
+            synchronized_data_update_fn(deepcopy(self.synchronized_data), test_round),  # type: ignore
         )
         res = test_round.end_block()
         yield res
         assert res is not None
 
-        state, event = res
-        state = cast(self._synchronized_data_class, state)  # type: ignore
+        synchronized_data, event = res
+        synchronized_data = cast(self._synchronized_data_class, synchronized_data)  # type: ignore
 
-        for state_attr_getter in state_attr_checks:
-            assert state_attr_getter(state) == state_attr_getter(actual_next_state)
+        for behaviour_attr_getter in synchronized_data_attr_checks:
+            assert behaviour_attr_getter(synchronized_data) == behaviour_attr_getter(
+                actual_next_synchronized_data
+            )
         assert event == exit_event
         yield
 
@@ -331,8 +334,8 @@ class BaseOnlyKeeperSendsRoundTest(BaseRoundTestClass):
         self,
         test_round: OnlyKeeperSendsRound,
         keeper_payloads: BaseTxPayload,
-        state_update_fn: Callable,
-        state_attr_checks: List[Callable],
+        synchronized_data_update_fn: Callable,
+        synchronized_data_attr_checks: List[Callable],
         exit_event: Any,
     ) -> Generator:
         """Test for rounds derived from OnlyKeeperSendsRound."""
@@ -345,18 +348,20 @@ class BaseOnlyKeeperSendsRoundTest(BaseRoundTestClass):
         assert test_round.has_keeper_sent_payload
 
         yield test_round
-        actual_next_state = cast(
+        actual_next_synchronized_data = cast(
             self._synchronized_data_class,  # type: ignore
-            state_update_fn(deepcopy(self.synchronized_data), test_round),  # type: ignore
+            synchronized_data_update_fn(deepcopy(self.synchronized_data), test_round),  # type: ignore
         )
         res = test_round.end_block()
         yield res
         assert res is not None
 
-        state, event = res
-        state = cast(self._synchronized_data_class, state)  # type: ignore
-        for state_attr_getter in state_attr_checks:
-            assert state_attr_getter(state) == state_attr_getter(actual_next_state)
+        synchronized_data, event = res
+        synchronized_data = cast(self._synchronized_data_class, synchronized_data)  # type: ignore
+        for behaviour_attr_getter in synchronized_data_attr_checks:
+            assert behaviour_attr_getter(synchronized_data) == behaviour_attr_getter(
+                actual_next_synchronized_data
+            )
         assert event == exit_event
         yield
 
@@ -368,8 +373,8 @@ class BaseVotingRoundTest(BaseRoundTestClass):
         self,
         test_round: VotingRound,
         round_payloads: Mapping[str, BaseTxPayload],
-        state_update_fn: Callable,
-        state_attr_checks: List[Callable],
+        synchronized_data_update_fn: Callable,
+        synchronized_data_attr_checks: List[Callable],
         exit_event: Any,
         threshold_check: Callable,
     ) -> Generator:
@@ -388,18 +393,20 @@ class BaseVotingRoundTest(BaseRoundTestClass):
         yield test_round
         assert threshold_check(test_round)
 
-        actual_next_state = cast(
+        actual_next_synchronized_data = cast(
             self._synchronized_data_class,  # type: ignore
-            state_update_fn(deepcopy(self.synchronized_data), test_round),  # type: ignore
+            synchronized_data_update_fn(deepcopy(self.synchronized_data), test_round),  # type: ignore
         )
         res = test_round.end_block()
         yield res
         assert res is not None
 
-        state, event = res
-        state = cast(self._synchronized_data_class, state)  # type: ignore
-        for state_attr_getter in state_attr_checks:
-            assert state_attr_getter(state) == state_attr_getter(actual_next_state)
+        synchronized_data, event = res
+        synchronized_data = cast(self._synchronized_data_class, synchronized_data)  # type: ignore
+        for behaviour_attr_getter in synchronized_data_attr_checks:
+            assert behaviour_attr_getter(synchronized_data) == behaviour_attr_getter(
+                actual_next_synchronized_data
+            )
         assert event == exit_event
         yield
 
@@ -407,8 +414,8 @@ class BaseVotingRoundTest(BaseRoundTestClass):
         self,
         test_round: VotingRound,
         round_payloads: Mapping[str, BaseTxPayload],
-        state_update_fn: Callable,
-        state_attr_checks: List[Callable],
+        synchronized_data_update_fn: Callable,
+        synchronized_data_attr_checks: List[Callable],
         exit_event: Any,
     ) -> Generator:
         """Test for rounds derived from VotingRound."""
@@ -416,8 +423,8 @@ class BaseVotingRoundTest(BaseRoundTestClass):
         return self._test_round(
             test_round,
             round_payloads,
-            state_update_fn,
-            state_attr_checks,
+            synchronized_data_update_fn,
+            synchronized_data_attr_checks,
             exit_event,
             threshold_check=lambda x: x.positive_vote_threshold_reached,
         )
@@ -426,8 +433,8 @@ class BaseVotingRoundTest(BaseRoundTestClass):
         self,
         test_round: VotingRound,
         round_payloads: Mapping[str, BaseTxPayload],
-        state_update_fn: Callable,
-        state_attr_checks: List[Callable],
+        synchronized_data_update_fn: Callable,
+        synchronized_data_attr_checks: List[Callable],
         exit_event: Any,
     ) -> Generator:
         """Test for rounds derived from VotingRound."""
@@ -435,8 +442,8 @@ class BaseVotingRoundTest(BaseRoundTestClass):
         return self._test_round(
             test_round,
             round_payloads,
-            state_update_fn,
-            state_attr_checks,
+            synchronized_data_update_fn,
+            synchronized_data_attr_checks,
             exit_event,
             threshold_check=lambda x: x.negative_vote_threshold_reached,
         )
@@ -445,8 +452,8 @@ class BaseVotingRoundTest(BaseRoundTestClass):
         self,
         test_round: VotingRound,
         round_payloads: Mapping[str, BaseTxPayload],
-        state_update_fn: Callable,
-        state_attr_checks: List[Callable],
+        synchronized_data_update_fn: Callable,
+        synchronized_data_attr_checks: List[Callable],
         exit_event: Any,
     ) -> Generator:
         """Test for rounds derived from VotingRound."""
@@ -454,8 +461,8 @@ class BaseVotingRoundTest(BaseRoundTestClass):
         return self._test_round(
             test_round,
             round_payloads,
-            state_update_fn,
-            state_attr_checks,
+            synchronized_data_update_fn,
+            synchronized_data_attr_checks,
             exit_event,
             threshold_check=lambda x: x.none_vote_threshold_reached,
         )
@@ -468,8 +475,8 @@ class BaseCollectDifferentUntilThresholdRoundTest(BaseRoundTestClass):
         self,
         test_round: CollectDifferentUntilThresholdRound,
         round_payloads: Mapping[str, BaseTxPayload],
-        state_update_fn: Callable,
-        state_attr_checks: List[Callable],
+        synchronized_data_update_fn: Callable,
+        synchronized_data_attr_checks: List[Callable],
         exit_event: Any,
     ) -> Generator:
         """Test for rounds derived from CollectDifferentUntilThresholdRound."""
@@ -486,19 +493,21 @@ class BaseCollectDifferentUntilThresholdRoundTest(BaseRoundTestClass):
         yield test_round
         assert test_round.collection_threshold_reached
 
-        actual_next_state = cast(
+        actual_next_synchronized_data = cast(
             self._synchronized_data_class,  # type: ignore
-            state_update_fn(deepcopy(self.synchronized_data), test_round),  # type: ignore
+            synchronized_data_update_fn(deepcopy(self.synchronized_data), test_round),  # type: ignore
         )
         res = test_round.end_block()
         yield res
         assert res is not None
 
-        state, event = res
-        state = cast(self._synchronized_data_class, state)  # type: ignore
+        synchronized_data, event = res
+        synchronized_data = cast(self._synchronized_data_class, synchronized_data)  # type: ignore
 
-        for state_attr_getter in state_attr_checks:
-            assert state_attr_getter(state) == state_attr_getter(actual_next_state)
+        for behaviour_attr_getter in synchronized_data_attr_checks:
+            assert behaviour_attr_getter(synchronized_data) == behaviour_attr_getter(
+                actual_next_synchronized_data
+            )
         assert event == exit_event
         yield
 
@@ -553,7 +562,8 @@ class TestCollectionRound(_BaseRoundTestClass):
         """Run tests."""
 
         test_round = DummyCollectionRound(
-            state=self.synchronized_data, consensus_params=self.consensus_params
+            synchronized_data=self.synchronized_data,
+            consensus_params=self.consensus_params,
         )
 
         first_payload, *_ = self.tx_payloads
@@ -600,7 +610,8 @@ class TestCollectDifferentUntilAllRound(_BaseRoundTestClass):
         """Run Tests."""
 
         test_round = DummyCollectDifferentUntilAllRound(
-            state=self.synchronized_data, consensus_params=self.consensus_params
+            synchronized_data=self.synchronized_data,
+            consensus_params=self.consensus_params,
         )
 
         first_payload, *payloads = self.tx_payloads
@@ -634,7 +645,8 @@ class TestCollectSameUntilThresholdRound(_BaseRoundTestClass):
         """Run tests."""
 
         test_round = DummyCollectSameUntilThresholdRound(
-            state=self.synchronized_data, consensus_params=self.consensus_params
+            synchronized_data=self.synchronized_data,
+            consensus_params=self.consensus_params,
         )
 
         first_payload, *payloads = get_dummy_tx_payloads(
@@ -660,7 +672,8 @@ class TestCollectSameUntilThresholdRound(_BaseRoundTestClass):
         """Run tests."""
 
         test_round = DummyCollectSameUntilThresholdRound(
-            state=self.synchronized_data, consensus_params=self.consensus_params
+            synchronized_data=self.synchronized_data,
+            consensus_params=self.consensus_params,
         )
 
         first_payload, *payloads = get_dummy_tx_payloads(
@@ -690,7 +703,9 @@ class TestOnlyKeeperSendsRound(_BaseRoundTestClass, BaseOnlyKeeperSendsRoundTest
         """Run tests."""
 
         test_round = DummyOnlyKeeperSendsRound(
-            state=self.synchronized_data.update(most_voted_keeper_address="agent_0"),
+            synchronized_data=self.synchronized_data.update(
+                most_voted_keeper_address="agent_0"
+            ),
             consensus_params=self.consensus_params,
         )
 
@@ -746,14 +761,14 @@ class TestOnlyKeeperSendsRound(_BaseRoundTestClass, BaseOnlyKeeperSendsRoundTest
         self._complete_run(
             self._test_round(
                 test_round=DummyOnlyKeeperSendsRound(
-                    state=self.synchronized_data.update(
+                    synchronized_data=self.synchronized_data.update(
                         most_voted_keeper_address=keeper,
                     ),
                     consensus_params=self.consensus_params,
                 ),
                 keeper_payloads=DummyTxPayload(keeper, None),
-                state_update_fn=lambda _synchronized_data, _test_round: _synchronized_data,
-                state_attr_checks=[],
+                synchronized_data_update_fn=lambda _synchronized_data, _test_round: _synchronized_data,
+                synchronized_data_attr_checks=[],
                 exit_event="FAIL_EVENT",
             )
         )
@@ -765,7 +780,8 @@ class TestVotingRound(_BaseRoundTestClass):
     def setup_test_voting_round(self) -> DummyVotingRound:
         """Setup test voting round"""
         return DummyVotingRound(
-            state=self.synchronized_data, consensus_params=self.consensus_params
+            synchronized_data=self.synchronized_data,
+            consensus_params=self.consensus_params,
         )
 
     def test_vote_count(self) -> None:
@@ -819,7 +835,8 @@ class TestCollectDifferentUntilThresholdRound(_BaseRoundTestClass):
         """Run tests."""
 
         test_round = DummyCollectDifferentUntilThresholdRound(
-            state=self.synchronized_data, consensus_params=self.consensus_params
+            synchronized_data=self.synchronized_data,
+            consensus_params=self.consensus_params,
         )
 
         first_payload, *payloads = get_dummy_tx_payloads(self.participants, vote=False)
@@ -840,7 +857,8 @@ class TestDummyCollectNonEmptyUntilThresholdRound(_BaseRoundTestClass):
     def test_get_non_empty_values(self) -> None:
         """Test `_get_non_empty_values`."""
         test_round = DummyCollectNonEmptyUntilThresholdRound(
-            state=self.synchronized_data, consensus_params=self.consensus_params
+            synchronized_data=self.synchronized_data,
+            consensus_params=self.consensus_params,
         )
         payloads = get_dummy_tx_payloads(self.participants)
         payloads[3]._value = None
@@ -855,7 +873,8 @@ class TestDummyCollectNonEmptyUntilThresholdRound(_BaseRoundTestClass):
     def test_process_payload(self) -> None:
         """Test `process_payload`."""
         test_round = DummyCollectNonEmptyUntilThresholdRound(
-            state=self.synchronized_data, consensus_params=self.consensus_params
+            synchronized_data=self.synchronized_data,
+            consensus_params=self.consensus_params,
         )
 
         first_payload, *payloads = get_dummy_tx_payloads(self.participants)
@@ -871,7 +890,8 @@ class TestDummyCollectNonEmptyUntilThresholdRound(_BaseRoundTestClass):
     def test_end_block_no_threshold_reached(self, is_majority_possible: bool) -> None:
         """Test `end_block` when no collection threshold is reached."""
         test_round = DummyCollectNonEmptyUntilThresholdRound(
-            state=self.synchronized_data, consensus_params=self.consensus_params
+            synchronized_data=self.synchronized_data,
+            consensus_params=self.consensus_params,
         )
 
         test_round.is_majority_possible = lambda *_: is_majority_possible  # type: ignore
@@ -891,7 +911,8 @@ class TestDummyCollectNonEmptyUntilThresholdRound(_BaseRoundTestClass):
     def test_end_block(self, is_value_none: bool, expected_event: str) -> None:
         """Test `end_block` when collection threshold is reached."""
         test_round = DummyCollectNonEmptyUntilThresholdRound(
-            state=self.synchronized_data, consensus_params=self.consensus_params
+            synchronized_data=self.synchronized_data,
+            consensus_params=self.consensus_params,
         )
 
         payloads = get_dummy_tx_payloads(self.participants, is_value_none=is_value_none)
