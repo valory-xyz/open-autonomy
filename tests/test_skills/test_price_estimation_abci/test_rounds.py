@@ -188,13 +188,13 @@ class TestRandomnessTransactionSubmissionRound(BaseCollectSameUntilThresholdRoun
             self._test_round(
                 test_round=test_round,
                 round_payloads=get_participant_to_randomness(self.participants, 1),
-                state_update_fn=lambda _synchronized_data, _test_round: _synchronized_data.update(
+                synchronized_data_update_fn=lambda _synchronized_data, _test_round: _synchronized_data.update(
                     participant_to_randomness=MappingProxyType(
                         dict(get_participant_to_randomness(self.participants, 1))
                     )
                 ),
-                state_attr_checks=[
-                    lambda state: state.participant_to_randomness.keys()
+                synchronized_data_attr_checks=[
+                    lambda _synchronized_data: _synchronized_data.participant_to_randomness.keys()
                 ],
                 most_voted_payload=RANDOMNESS,
                 exit_event=TransactionSettlementEvent.DONE,
@@ -214,19 +214,20 @@ class TestCollectObservationRound(BaseCollectDifferentUntilThresholdRoundTest):
         """Runs tests."""
 
         test_round = CollectObservationRound(
-            state=self.synchronized_data, consensus_params=self.consensus_params
+            synchronized_data=self.synchronized_data,
+            consensus_params=self.consensus_params,
         )
         self._complete_run(
             self._test_round(
                 test_round=test_round,
                 round_payloads=get_participant_to_observations(self.participants),
-                state_update_fn=lambda _synchronized_data, _: _synchronized_data.update(
+                synchronized_data_update_fn=lambda _synchronized_data, _: _synchronized_data.update(
                     participant_to_observations=get_participant_to_observations(
                         self.participants
                     )
                 ),
-                state_attr_checks=[
-                    lambda state: state.participant_to_observations.keys()
+                synchronized_data_attr_checks=[
+                    lambda _synchronized_data: _synchronized_data.participant_to_observations.keys()
                 ],
                 exit_event=self._event_class.DONE,
             )
@@ -238,7 +239,8 @@ class TestCollectObservationRound(BaseCollectDifferentUntilThresholdRoundTest):
         """Runs tests with one less observation."""
 
         test_round = CollectObservationRound(
-            state=self.synchronized_data, consensus_params=self.consensus_params
+            synchronized_data=self.synchronized_data,
+            consensus_params=self.consensus_params,
         )
 
         self._complete_run(
@@ -247,13 +249,13 @@ class TestCollectObservationRound(BaseCollectDifferentUntilThresholdRoundTest):
                 round_payloads=get_participant_to_observations(
                     frozenset(list(self.participants)[:-1])
                 ),
-                state_update_fn=lambda _synchronized_data, _: _synchronized_data.update(
+                synchronized_data_update_fn=lambda _synchronized_data, _: _synchronized_data.update(
                     participant_to_observations=get_participant_to_observations(
                         frozenset(list(self.participants)[:-1])
                     )
                 ),
-                state_attr_checks=[
-                    lambda state: state.participant_to_observations.keys()
+                synchronized_data_attr_checks=[
+                    lambda _synchronized_data: _synchronized_data.participant_to_observations.keys()
                 ],
                 exit_event=self._event_class.DONE,
             )
@@ -272,19 +274,22 @@ class TestEstimateConsensusRound(BaseCollectSameUntilThresholdRoundTest):
         """Runs test."""
 
         test_round = EstimateConsensusRound(
-            state=self.synchronized_data, consensus_params=self.consensus_params
+            synchronized_data=self.synchronized_data,
+            consensus_params=self.consensus_params,
         )
         self._complete_run(
             self._test_round(
                 test_round=test_round,
                 round_payloads=get_participant_to_estimate(self.participants),
-                state_update_fn=lambda _synchronized_data, _test_round: _synchronized_data.update(
+                synchronized_data_update_fn=lambda _synchronized_data, _test_round: _synchronized_data.update(
                     participant_to_estimate=dict(
                         get_participant_to_estimate(self.participants)
                     ),
                     most_voted_estimate=_test_round.most_voted_payload,
                 ),
-                state_attr_checks=[lambda state: state.participant_to_estimate.keys()],
+                synchronized_data_attr_checks=[
+                    lambda _synchronized_data: _synchronized_data.participant_to_estimate.keys()
+                ],
                 most_voted_payload=1.0,
                 exit_event=self._event_class.DONE,
             )
@@ -303,7 +308,8 @@ class TestTxHashRound(BaseCollectSameUntilThresholdRoundTest):
         """Runs test."""
 
         test_round = TxHashRound(
-            state=self.synchronized_data, consensus_params=self.consensus_params
+            synchronized_data=self.synchronized_data,
+            consensus_params=self.consensus_params,
         )
 
         hash_ = "tx_hash"
@@ -311,8 +317,8 @@ class TestTxHashRound(BaseCollectSameUntilThresholdRoundTest):
             self._test_round(
                 test_round=test_round,
                 round_payloads=get_participant_to_tx_hash(self.participants, hash_),
-                state_update_fn=lambda _synchronized_data, _test_round: _synchronized_data,
-                state_attr_checks=[],
+                synchronized_data_update_fn=lambda _synchronized_data, _test_round: _synchronized_data,
+                synchronized_data_attr_checks=[],
                 most_voted_payload=hash_,
                 exit_event=self._event_class.DONE,
             )
@@ -324,7 +330,8 @@ class TestTxHashRound(BaseCollectSameUntilThresholdRoundTest):
         """Runs test."""
 
         test_round = TxHashRound(
-            state=self.synchronized_data, consensus_params=self.consensus_params
+            synchronized_data=self.synchronized_data,
+            consensus_params=self.consensus_params,
         )
 
         hash_ = None
@@ -332,8 +339,8 @@ class TestTxHashRound(BaseCollectSameUntilThresholdRoundTest):
             self._test_round(
                 test_round=test_round,
                 round_payloads=get_participant_to_tx_hash(self.participants, hash_),
-                state_update_fn=lambda _synchronized_data, _test_round: _synchronized_data,
-                state_attr_checks=[],
+                synchronized_data_update_fn=lambda _synchronized_data, _test_round: _synchronized_data,
+                synchronized_data_attr_checks=[],
                 most_voted_payload=hash_,
                 exit_event=self._event_class.NONE,
             )
@@ -358,7 +365,6 @@ def test_synchronized_datas() -> None:
 
     synchronized_data = SynchronizedData(
         AbciAppDB(
-            initial_period=0,
             initial_data=dict(
                 participants=participants,
                 participant_to_randomness=participant_to_randomness,
@@ -378,7 +384,6 @@ def test_synchronized_datas() -> None:
 
     synchronized_data____ = RegistrationSynchronizedSata(
         AbciAppDB(
-            initial_period=0,
             initial_data=dict(
                 participants=participants,
                 participant_to_randomness=participant_to_randomness,
@@ -397,7 +402,6 @@ def test_synchronized_datas() -> None:
 
     synchronized_data______ = PriceEstimationSynchronizedSata(
         AbciAppDB(
-            initial_period=0,
             initial_data=dict(
                 participants=participants,
                 participant_to_randomness=participant_to_randomness,

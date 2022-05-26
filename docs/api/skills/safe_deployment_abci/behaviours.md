@@ -4,17 +4,17 @@
 
 This module contains the data classes for the safe deployment ABCI application.
 
-<a id="packages.valory.skills.safe_deployment_abci.behaviours.SafeDeploymentBaseState"></a>
+<a id="packages.valory.skills.safe_deployment_abci.behaviours.SafeDeploymentBaseBehaviour"></a>
 
-## SafeDeploymentBaseState Objects
+## SafeDeploymentBaseBehaviour Objects
 
 ```python
-class SafeDeploymentBaseState(BaseState)
+class SafeDeploymentBaseBehaviour(BaseBehaviour)
 ```
 
-Base state behaviour for the common apps' skill.
+Base behaviour for the common apps' skill.
 
-<a id="packages.valory.skills.safe_deployment_abci.behaviours.SafeDeploymentBaseState.synchronized_data"></a>
+<a id="packages.valory.skills.safe_deployment_abci.behaviours.SafeDeploymentBaseBehaviour.synchronized_data"></a>
 
 #### synchronized`_`data
 
@@ -23,7 +23,7 @@ Base state behaviour for the common apps' skill.
 def synchronized_data() -> SynchronizedData
 ```
 
-Return the period state.
+Return the synchronized data.
 
 <a id="packages.valory.skills.safe_deployment_abci.behaviours.RandomnessSafeBehaviour"></a>
 
@@ -50,7 +50,7 @@ Select the keeper agent.
 ## DeploySafeBehaviour Objects
 
 ```python
-class DeploySafeBehaviour(SafeDeploymentBaseState)
+class DeploySafeBehaviour(SafeDeploymentBaseBehaviour)
 ```
 
 Deploy Safe.
@@ -76,7 +76,7 @@ Steps:
 ## ValidateSafeBehaviour Objects
 
 ```python
-class ValidateSafeBehaviour(SafeDeploymentBaseState)
+class ValidateSafeBehaviour(SafeDeploymentBaseBehaviour)
 ```
 
 Validate Safe.
@@ -97,7 +97,7 @@ Steps:
 - Send the transaction with the validation result and wait for it to be
   mined.
 - Wait until ABCI application transitions to the next round.
-- Go to the next behaviour state (set done event).
+- Go to the next behaviour (set done event).
 
 <a id="packages.valory.skills.safe_deployment_abci.behaviours.ValidateSafeBehaviour.has_correct_contract_been_deployed"></a>
 

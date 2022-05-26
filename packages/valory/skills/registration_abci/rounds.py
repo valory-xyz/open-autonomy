@@ -74,23 +74,23 @@ class RegistrationStartupRound(CollectDifferentUntilAllRound):
             and self.most_voted_payload is not None
         ):
             initialisation = json.loads(self.most_voted_payload)
-            state = self.synchronized_data.update(
+            synchronized_data = self.synchronized_data.update(
                 participants=frozenset(self.collection),
                 all_participants=frozenset(self.collection),
                 synchronized_data_class=BaseSynchronizedData,
                 **initialisation,
             )
-            return state, Event.FAST_FORWARD
+            return synchronized_data, Event.FAST_FORWARD
         if (
             self.collection_threshold_reached
             and self.block_confirmations > self.required_block_confirmations
         ):
-            state = self.synchronized_data.update(
+            synchronized_data = self.synchronized_data.update(
                 participants=frozenset(self.collection),
                 all_participants=frozenset(self.collection),
                 synchronized_data_class=BaseSynchronizedData,
             )
-            return state, Event.DONE
+            return synchronized_data, Event.DONE
         return None
 
 
@@ -112,11 +112,11 @@ class RegistrationRound(CollectDifferentUntilThresholdRound):
             and self.block_confirmations
             > self.required_block_confirmations  # we also wait here as it gives more (available) agents time to join
         ):
-            state = self.synchronized_data.update(
+            synchronized_data = self.synchronized_data.update(
                 participants=frozenset(self.collection),
                 synchronized_data_class=BaseSynchronizedData,
             )
-            return state, Event.DONE
+            return synchronized_data, Event.DONE
         return None
 
 

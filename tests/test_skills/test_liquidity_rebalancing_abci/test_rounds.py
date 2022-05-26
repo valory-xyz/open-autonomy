@@ -121,14 +121,14 @@ class TestTransactionHashBaseRound(BaseCollectSameUntilThresholdRoundTest):
             self._test_round(
                 test_round=test_round,
                 round_payloads=payloads,
-                state_update_fn=lambda _synchronized_data, _test_round: _synchronized_data.update(
+                synchronized_data_update_fn=lambda _synchronized_data, _test_round: _synchronized_data.update(
                     participant_to_tx_hash=MappingProxyType(payloads),
                     most_voted_tx_hash=json.loads(_test_round.most_voted_payload)[
                         "tx_hash"
                     ],
                 ),
-                state_attr_checks=[
-                    lambda state: state.participant_to_tx_hash.keys(),
+                synchronized_data_attr_checks=[
+                    lambda _synchronized_data: _synchronized_data.participant_to_tx_hash.keys(),
                 ],
                 most_voted_payload=payloads["agent_1"].tx_hash,
                 exit_event=Event.DONE,
@@ -161,14 +161,14 @@ class TestStrategyEvaluationRound(BaseCollectSameUntilThresholdRoundTest):
                 self._test_round(
                     test_round=test_round,
                     round_payloads=get_participant_to_strategy(self.participants),
-                    state_update_fn=lambda _synchronized_data, _test_round: _synchronized_data.update(
+                    synchronized_data_update_fn=lambda _synchronized_data, _test_round: _synchronized_data.update(
                         participant_to_strategy=get_participant_to_strategy(
                             self.participants
                         ),
                         most_voted_strategy=test_round.most_voted_payload,
                     ),
-                    state_attr_checks=[
-                        lambda state: state.participant_to_strategy.keys(),
+                    synchronized_data_attr_checks=[
+                        lambda _synchronized_data: _synchronized_data.participant_to_strategy.keys(),
                     ],
                     most_voted_payload=StrategyEvaluationPayload.strategy,
                     exit_event=Event.DONE,
@@ -194,14 +194,14 @@ class TestStrategyEvaluationRound(BaseCollectSameUntilThresholdRoundTest):
                 self._test_round(
                     test_round=test_round,
                     round_payloads=get_participant_to_strategy(self.participants),
-                    state_update_fn=lambda _synchronized_data, _test_round: _synchronized_data.update(
+                    synchronized_data_update_fn=lambda _synchronized_data, _test_round: _synchronized_data.update(
                         participant_to_strategy=get_participant_to_strategy(
                             self.participants
                         ),
                         most_voted_strategy=test_round.most_voted_payload,
                     ),
-                    state_attr_checks=[
-                        lambda state: state.participant_to_strategy.keys(),
+                    synchronized_data_attr_checks=[
+                        lambda _synchronized_data: _synchronized_data.participant_to_strategy.keys(),
                     ],
                     most_voted_payload=StrategyEvaluationPayload.strategy,
                     exit_event=Event.DONE_ENTER,
@@ -227,14 +227,14 @@ class TestStrategyEvaluationRound(BaseCollectSameUntilThresholdRoundTest):
                 self._test_round(
                     test_round=test_round,
                     round_payloads=get_participant_to_strategy(self.participants),
-                    state_update_fn=lambda _synchronized_data, _test_round: _synchronized_data.update(
+                    synchronized_data_update_fn=lambda _synchronized_data, _test_round: _synchronized_data.update(
                         participant_to_strategy=get_participant_to_strategy(
                             self.participants
                         ),
                         most_voted_strategy=test_round.most_voted_payload,
                     ),
-                    state_attr_checks=[
-                        lambda state: state.participant_to_strategy.keys(),
+                    synchronized_data_attr_checks=[
+                        lambda _synchronized_data: _synchronized_data.participant_to_strategy.keys(),
                     ],
                     most_voted_payload=StrategyEvaluationPayload.strategy,
                     exit_event=Event.DONE_EXIT,
@@ -262,14 +262,14 @@ class TestStrategyEvaluationRound(BaseCollectSameUntilThresholdRoundTest):
                 self._test_round(
                     test_round=test_round,
                     round_payloads=get_participant_to_strategy(self.participants),
-                    state_update_fn=lambda _synchronized_data, _test_round: _synchronized_data.update(
+                    synchronized_data_update_fn=lambda _synchronized_data, _test_round: _synchronized_data.update(
                         participant_to_strategy=get_participant_to_strategy(
                             self.participants
                         ),
                         most_voted_strategy=test_round.most_voted_payload,
                     ),
-                    state_attr_checks=[
-                        lambda state: state.participant_to_strategy.keys(),
+                    synchronized_data_attr_checks=[
+                        lambda _synchronized_data: _synchronized_data.participant_to_strategy.keys(),
                     ],
                     most_voted_payload=StrategyEvaluationPayload.strategy,
                     exit_event=Event.DONE_SWAP_BACK,
@@ -293,8 +293,8 @@ class TestSleepRound(BaseCollectSameUntilThresholdRoundTest):
                 self._test_round(
                     test_round=test_round,
                     round_payloads=get_participant_to_sleep(self.participants),
-                    state_update_fn=lambda _synchronized_data, _test_round: _synchronized_data.update(),
-                    state_attr_checks=[],
+                    synchronized_data_update_fn=lambda _synchronized_data, _test_round: _synchronized_data.update(),
+                    synchronized_data_attr_checks=[],
                     most_voted_payload=SleepPayload.sleep,
                     exit_event=Event.DONE,
                 )
@@ -306,7 +306,7 @@ def test_synchronized_data() -> None:
 
     participants = get_participants()
     period_count = 0
-    period_setup_params: Dict = {}
+    setup_params: Dict = {}
     most_voted_strategy: Dict = {}
     most_voted_keeper_address = "0x_keeper"
     safe_contract_address = "0x_contract"
@@ -320,10 +320,9 @@ def test_synchronized_data() -> None:
 
     synchronized_data = SynchronizedData(
         AbciAppDB(
-            initial_period=period_count,
             initial_data=dict(
                 participants=participants,
-                period_setup_params=period_setup_params,
+                setup_params=setup_params,
                 most_voted_strategy=most_voted_strategy,
                 most_voted_keeper_address=most_voted_keeper_address,
                 safe_contract_address=safe_contract_address,

@@ -25,7 +25,7 @@ class SynchronizedData(
 
 Class to represent the synchronized data.
 
-This state is replicated by the tendermint application.
+This data is replicated by the tendermint application.
 
 <a id="packages.valory.skills.transaction_settlement_abci.rounds.SynchronizedData.safe_contract_address"></a>
 

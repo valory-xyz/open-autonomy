@@ -72,7 +72,7 @@ class Event(Enum):
 class SynchronizedData(BaseSynchronizedData):
     """Class to represent the synchronized data.
 
-    This state is replicated by the tendermint application.
+    This data is replicated by the tendermint application.
     """
 
     @property
@@ -148,14 +148,14 @@ class APYEstimationAbstractRound(AbstractRound[Event, TransactionType], ABC):
 
     @property
     def synchronized_data(self) -> SynchronizedData:
-        """Return the period state."""
+        """Return the synchronized data data."""
         return cast(SynchronizedData, super().synchronized_data)
 
     def _return_no_majority_event(self) -> Tuple[SynchronizedData, Event]:
         """
         Trigger the NO_MAJORITY event.
 
-        :return: a new period state and a NO_MAJORITY event
+        :return: a new synchronized data and a NO_MAJORITY event
         """
         return self.synchronized_data, Event.NO_MAJORITY
 
@@ -163,7 +163,7 @@ class APYEstimationAbstractRound(AbstractRound[Event, TransactionType], ABC):
         """
         Trigger the FILE_ERROR event.
 
-        :return: a new period state and a FILE_ERROR event
+        :return: a new synchronized data and a FILE_ERROR event
         """
         return self.synchronized_data, Event.FILE_ERROR
 
@@ -195,8 +195,8 @@ class CollectHistoryRound(CollectSameUntilThresholdRound, APYEstimationAbstractR
                 ).latest_observation_timestamp,
             }
 
-            updated_state = self.synchronized_data.update(**update_kwargs)
-            return updated_state, Event.DONE
+            synchronized_data = self.synchronized_data.update(**update_kwargs)
+            return synchronized_data, Event.DONE
 
         if not self.is_majority_possible(
             self.collection, self.synchronized_data.nb_participants
@@ -227,15 +227,16 @@ class TransformRound(CollectSameUntilThresholdRound, APYEstimationAbstractRound)
             return self._return_file_error()
 
         if self.threshold_reached:
-            updated_state = self.synchronized_data.update(
+            synchronized_data = self.synchronized_data.update(
                 synchronized_data_class=SynchronizedData,
+                overwrite_history=False,
                 participant_to_transform=self.collection,
                 most_voted_transform=self.most_voted_payload,
                 latest_observation_hist_hash=cast(
                     TransformationPayload, list(self.collection.values())[0]
                 ).latest_observation_hist_hash,
             )
-            return updated_state, Event.DONE
+            return synchronized_data, Event.DONE
 
         if not self.is_majority_possible(
             self.collection, self.synchronized_data.nb_participants
@@ -258,12 +259,13 @@ class PreprocessRound(CollectSameUntilThresholdRound, APYEstimationAbstractRound
             if self.most_voted_payload is None:
                 return self._return_file_error()
 
-            updated_state = self.synchronized_data.update(
+            synchronized_data = self.synchronized_data.update(
                 synchronized_data_class=SynchronizedData,
+                overwrite_history=False,
                 participant_to_preprocessing=self.collection,
                 most_voted_split=self.most_voted_payload,
             )
-            return updated_state, Event.DONE
+            return synchronized_data, Event.DONE
 
         if not self.is_majority_possible(
             self.collection, self.synchronized_data.nb_participants
@@ -307,12 +309,13 @@ class RandomnessRound(CollectSameUntilThresholdRound, APYEstimationAbstractRound
             if filtered_randomness is None:
                 return self.synchronized_data, Event.RANDOMNESS_INVALID
 
-            updated_state = self.synchronized_data.update(
+            synchronized_data = self.synchronized_data.update(
                 synchronized_data_class=SynchronizedData,
+                overwrite_history=False,
                 participants_to_randomness=self.collection,
                 most_voted_randomness=filtered_randomness,
             )
-            return updated_state, Event.DONE
+            return synchronized_data, Event.DONE
 
         if not self.is_majority_possible(
             self.collection, self.synchronized_data.nb_participants
@@ -356,14 +359,14 @@ class TrainRound(CollectSameUntilThresholdRound, APYEstimationAbstractRound):
             )
 
             if self.synchronized_data.full_training:
-                updated_state = self.synchronized_data.update(
+                synchronized_data = self.synchronized_data.update(
                     full_training=True,
                     **update_params,
                 )
-                return updated_state, Event.FULLY_TRAINED
+                return synchronized_data, Event.FULLY_TRAINED
 
-            updated_state = self.synchronized_data.update(**update_params)
-            return updated_state, Event.DONE
+            synchronized_data = self.synchronized_data.update(**update_params)
+            return synchronized_data, Event.DONE
 
         if not self.is_majority_possible(
             self.collection, self.synchronized_data.nb_participants
@@ -414,7 +417,7 @@ class EstimateRound(CollectSameUntilThresholdRound, APYEstimationAbstractRound):
             if self.most_voted_payload is None:
                 return self._return_file_error()
 
-            updated_state = self.synchronized_data.update(
+            synchronized_data = self.synchronized_data.update(
                 synchronized_data_class=SynchronizedData,
                 participants_to_estimate=self.collection,
                 n_estimations=cast(
@@ -425,13 +428,13 @@ class EstimateRound(CollectSameUntilThresholdRound, APYEstimationAbstractRound):
             )
 
             if (
-                cast(SynchronizedData, updated_state).n_estimations
+                cast(SynchronizedData, synchronized_data).n_estimations
                 % N_ESTIMATIONS_BEFORE_RETRAIN
                 == 0
             ):
-                return updated_state, Event.DONE
+                return synchronized_data, Event.DONE
 
-            return updated_state, Event.ESTIMATION_CYCLE
+            return synchronized_data, Event.ESTIMATION_CYCLE
 
         if not self.is_majority_possible(
             self.collection, self.synchronized_data.nb_participants
@@ -451,8 +454,6 @@ class BaseResetRound(CollectSameUntilThresholdRound, APYEstimationAbstractRound)
         """Process the end of the block."""
         if self.threshold_reached:
             kwargs = dict(
-                synchronized_data_class=SynchronizedData,
-                period_count=self.most_voted_payload,
                 participants=self.synchronized_data.participants,
                 all_participants=self.synchronized_data.all_participants,
                 full_training=False,
@@ -464,8 +465,10 @@ class BaseResetRound(CollectSameUntilThresholdRound, APYEstimationAbstractRound)
                     "latest_observation_hist_hash"
                 ] = self.synchronized_data.latest_observation_hist_hash
 
-            updated_state = self.synchronized_data.update(**kwargs)
-            return updated_state, Event.DONE
+            synchronized_data = self.synchronized_data.create(
+                synchronized_data_class=SynchronizedData, format_data=True, **kwargs
+            )
+            return synchronized_data, Event.DONE
 
         if not self.is_majority_possible(
             self.collection, self.synchronized_data.nb_participants

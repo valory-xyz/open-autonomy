@@ -41,8 +41,8 @@ from packages.valory.contracts.offchain_aggregator.contract import (
 from packages.valory.protocols.contract_api.message import ContractApiMessage
 from packages.valory.skills.abstract_round_abci.base import AbciAppDB
 from packages.valory.skills.abstract_round_abci.behaviour_utils import (
-    BaseState,
-    make_degenerate_state,
+    BaseBehaviour,
+    make_degenerate_behaviour,
 )
 from packages.valory.skills.price_estimation_abci.behaviours import (
     EstimateBehaviour,
@@ -104,19 +104,19 @@ class TestObserveBehaviour(PriceEstimationFSMBehaviourBaseCase):
         self,
     ) -> None:
         """Run tests."""
-        self.fast_forward_to_state(
+        self.fast_forward_to_behaviour(
             self.behaviour,
-            ObserveBehaviour.state_id,
+            ObserveBehaviour.behaviour_id,
             PriceEstimationSynchronizedSata(
-                AbciAppDB(initial_period=0, initial_data=dict(estimate=1.0)),
+                AbciAppDB(initial_data=dict(estimate=1.0)),
             ),
         )
         assert (
             cast(
-                BaseState,
-                cast(BaseState, self.behaviour.current_state),
-            ).state_id
-            == ObserveBehaviour.state_id
+                BaseBehaviour,
+                cast(BaseBehaviour, self.behaviour.current_behaviour),
+            ).behaviour_id
+            == ObserveBehaviour.behaviour_id
         )
         self.behaviour.act_wrapper()
         self.mock_http_request(
@@ -138,26 +138,26 @@ class TestObserveBehaviour(PriceEstimationFSMBehaviourBaseCase):
         self.mock_a2a_transaction()
         self._test_done_flag_set()
         self.end_round(Event.DONE)
-        state = cast(BaseState, self.behaviour.current_state)
-        assert state.state_id == EstimateBehaviour.state_id
+        behaviour = cast(BaseBehaviour, self.behaviour.current_behaviour)
+        assert behaviour.behaviour_id == EstimateBehaviour.behaviour_id
 
     def test_observer_behaviour_retries_exceeded(
         self,
     ) -> None:
         """Run tests."""
-        self.fast_forward_to_state(
+        self.fast_forward_to_behaviour(
             self.behaviour,
-            ObserveBehaviour.state_id,
+            ObserveBehaviour.behaviour_id,
             PriceEstimationSynchronizedSata(
-                AbciAppDB(initial_period=0, initial_data=dict(estimate=1.0)),
+                AbciAppDB(initial_data=dict(estimate=1.0)),
             ),
         )
         assert (
             cast(
-                BaseState,
-                cast(BaseState, self.behaviour.current_state),
-            ).state_id
-            == ObserveBehaviour.state_id
+                BaseBehaviour,
+                cast(BaseBehaviour, self.behaviour.current_behaviour),
+            ).behaviour_id
+            == ObserveBehaviour.behaviour_id
         )
         with mock.patch.object(
             self.behaviour.context.price_api,
@@ -165,27 +165,27 @@ class TestObserveBehaviour(PriceEstimationFSMBehaviourBaseCase):
             return_value=True,
         ):
             self.behaviour.act_wrapper()
-            state = cast(BaseState, self.behaviour.current_state)
-            assert state.state_id == ObserveBehaviour.state_id
+            behaviour = cast(BaseBehaviour, self.behaviour.current_behaviour)
+            assert behaviour.behaviour_id == ObserveBehaviour.behaviour_id
             self._test_done_flag_set()
 
     def test_observed_value_none(
         self,
     ) -> None:
         """Test when `observed` value is none."""
-        self.fast_forward_to_state(
+        self.fast_forward_to_behaviour(
             self.behaviour,
-            ObserveBehaviour.state_id,
+            ObserveBehaviour.behaviour_id,
             PriceEstimationSynchronizedSata(
-                AbciAppDB(initial_period=0, initial_data=dict()),
+                AbciAppDB(initial_data=dict()),
             ),
         )
         assert (
             cast(
-                BaseState,
-                cast(BaseState, self.behaviour.current_state),
-            ).state_id
-            == ObserveBehaviour.state_id
+                BaseBehaviour,
+                cast(BaseBehaviour, self.behaviour.current_behaviour),
+            ).behaviour_id
+            == ObserveBehaviour.behaviour_id
         )
         self.behaviour.act_wrapper()
         self.mock_http_request(
@@ -211,23 +211,23 @@ class TestObserveBehaviour(PriceEstimationFSMBehaviourBaseCase):
         self,
     ) -> None:
         """Test when `observed` value is none."""
-        self.fast_forward_to_state(
+        self.fast_forward_to_behaviour(
             self.behaviour,
-            ObserveBehaviour.state_id,
+            ObserveBehaviour.behaviour_id,
             PriceEstimationSynchronizedSata(
-                AbciAppDB(initial_period=0, initial_data=dict()),
+                AbciAppDB(initial_data=dict()),
             ),
         )
         assert (
             cast(
-                BaseState,
-                cast(BaseState, self.behaviour.current_state),
-            ).state_id
-            == ObserveBehaviour.state_id
+                BaseBehaviour,
+                cast(BaseBehaviour, self.behaviour.current_behaviour),
+            ).behaviour_id
+            == ObserveBehaviour.behaviour_id
         )
         self.behaviour.context.price_api._retries_attempted = 1
-        assert self.behaviour.current_state is not None
-        self.behaviour.current_state.clean_up()
+        assert self.behaviour.current_behaviour is not None
+        self.behaviour.current_behaviour.clean_up()
         assert self.behaviour.context.price_api._retries_attempted == 0
 
 
@@ -239,12 +239,11 @@ class TestEstimateBehaviour(PriceEstimationFSMBehaviourBaseCase):
     ) -> None:
         """Test estimate behaviour."""
 
-        self.fast_forward_to_state(
+        self.fast_forward_to_behaviour(
             behaviour=self.behaviour,
-            state_id=EstimateBehaviour.state_id,
+            behaviour_id=EstimateBehaviour.behaviour_id,
             synchronized_data=PriceEstimationSynchronizedSata(
                 AbciAppDB(
-                    initial_period=0,
                     initial_data=dict(
                         participant_to_observations={
                             "a": ObservationPayload(sender="a", observation=1.0)
@@ -255,17 +254,17 @@ class TestEstimateBehaviour(PriceEstimationFSMBehaviourBaseCase):
         )
         assert (
             cast(
-                BaseState,
-                cast(BaseState, self.behaviour.current_state),
-            ).state_id
-            == EstimateBehaviour.state_id
+                BaseBehaviour,
+                cast(BaseBehaviour, self.behaviour.current_behaviour),
+            ).behaviour_id
+            == EstimateBehaviour.behaviour_id
         )
         self.behaviour.act_wrapper()
         self.mock_a2a_transaction()
         self._test_done_flag_set()
         self.end_round(Event.DONE)
-        state = cast(BaseState, self.behaviour.current_state)
-        assert state.state_id == TransactionHashBehaviour.state_id
+        behaviour = cast(BaseBehaviour, self.behaviour.current_behaviour)
+        assert behaviour.behaviour_id == TransactionHashBehaviour.behaviour_id
 
 
 def mock_to_server_message_flow(
@@ -286,9 +285,9 @@ def mock_to_server_message_flow(
         "data_source": "coinbase",
         "unit": "BTC:USD",
     }
-    state = self.behaviour.current_state  # type: ignore
-    participants = state.synchronized_data.sorted_participants  # type: ignore
-    decimals = state.params.oracle_params["decimals"]  # type: ignore
+    behaviour = self.behaviour.current_behaviour  # type: ignore
+    participants = behaviour.synchronized_data.sorted_participants  # type: ignore
+    decimals = behaviour.params.oracle_params["decimals"]  # type: ignore
     data["package"] = pack_for_server(participants, decimals, **data).hex()  # type: ignore
     data["signature"] = "stub_signature"
 
@@ -368,15 +367,14 @@ class TestTransactionHashBehaviour(PriceEstimationFSMBehaviourBaseCase):
         """Test estimate behaviour."""
 
         # change setting, mock message flow with and without broadcast to server
-        state_params = self.behaviour.current_state.params  # type: ignore
-        state_params.is_broadcasting_to_server = broadcast_to_server  # type: ignore
+        behaviour_params = self.behaviour.current_behaviour.params  # type: ignore
+        behaviour_params.is_broadcasting_to_server = broadcast_to_server  # type: ignore
 
-        self.fast_forward_to_state(
+        self.fast_forward_to_behaviour(
             behaviour=self.behaviour,
-            state_id=TransactionHashBehaviour.state_id,
+            behaviour_id=TransactionHashBehaviour.behaviour_id,
             synchronized_data=PriceEstimationSynchronizedSata(
                 AbciAppDB(
-                    initial_period=0,
                     initial_data=dict(
                         most_voted_estimate=1.0,
                         safe_contract_address="safe_contract_address",
@@ -387,10 +385,10 @@ class TestTransactionHashBehaviour(PriceEstimationFSMBehaviourBaseCase):
         )
         assert (
             cast(
-                BaseState,
-                cast(BaseState, self.behaviour.current_state),
-            ).state_id
-            == TransactionHashBehaviour.state_id
+                BaseBehaviour,
+                cast(BaseBehaviour, self.behaviour.current_behaviour),
+            ).behaviour_id
+            == TransactionHashBehaviour.behaviour_id
         )
         self.behaviour.act_wrapper()
         self.mock_contract_api_request(
@@ -421,8 +419,8 @@ class TestTransactionHashBehaviour(PriceEstimationFSMBehaviourBaseCase):
         )
 
         tx_hashes = ["", "0x_prev_cycle_tx_hash"]
-        synchronized_data = self.behaviour.current_state.synchronized_data  # type: ignore
-        period_data = synchronized_data.db.get_all()
+        synchronized_data = self.behaviour.current_behaviour.synchronized_data  # type: ignore
+        period_data = synchronized_data.db.get_latest()
         period_data.update(
             {
                 "participants": {"agent1"},
@@ -435,10 +433,15 @@ class TestTransactionHashBehaviour(PriceEstimationFSMBehaviourBaseCase):
         # add new cycle, and dummy period data
         next_period_data = copy.deepcopy(period_data)
         next_period_data["final_tx_hash"] = tx_hashes[0]
-        synchronized_data.db.add_new_period(
-            this_period_count,
+
+        synchronized_data.db.update(
             **period_data,
         )
+
+        if this_period_count != 0:
+            synchronized_data.db.create(
+                **next_period_data,
+            )
 
         self.mock_contract_api_request(
             request_kwargs=dict(
@@ -464,10 +467,12 @@ class TestTransactionHashBehaviour(PriceEstimationFSMBehaviourBaseCase):
         self.mock_a2a_transaction()
         self._test_done_flag_set()
         self.end_round(Event.DONE)
-        state = cast(BaseState, self.behaviour.current_state)
+        behaviour = cast(BaseBehaviour, self.behaviour.current_behaviour)
         assert (
-            state.state_id
-            == make_degenerate_state(FinishedPriceAggregationRound.round_id).state_id
+            behaviour.behaviour_id
+            == make_degenerate_behaviour(
+                FinishedPriceAggregationRound.round_id
+            ).behaviour_id
         )
 
 
@@ -496,7 +501,7 @@ class TestPackForServer(PriceEstimationFSMBehaviourBaseCase):
     ) -> None:
         """Test packaging valid and invalid data"""
 
-        decimals = self.behaviour.current_state.params.oracle_params["decimals"]  # type: ignore
+        decimals = self.behaviour.current_behaviour.params.oracle_params["decimals"]  # type: ignore
         kwargs = get_valid_server_data()
         kwargs.update({"decimals": decimals})
         kwargs.update(mutation)
