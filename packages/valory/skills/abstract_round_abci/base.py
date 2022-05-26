@@ -2079,6 +2079,7 @@ class Period:
 
     def init_chain(self, init_height: int) -> None:
         """Init chain."""
+        # reduce `init_height` by 1 to get block count offset as per Tendermint protocol
         self._blockchain = Blockchain(init_height - 1)
 
     def begin_block(self, header: Header) -> None:
