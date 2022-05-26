@@ -4,9 +4,9 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
-open-aea = {version = "<2.0.0,>=1.8.0", extras = ["all"]}
-open-aea-ledger-ethereum = "<2.0.0,>=1.8.0"
-open-aea-cli-ipfs = "<2.0.0,>=1.8.0"
+open-aea = {version = "==1.8.0", extras = ["all"]}
+open-aea-ledger-ethereum = "==1.8.0"
+open-aea-cli-ipfs = "==1.8.0"
 
 [dev-packages]
 atheris = "==2.0.10"
