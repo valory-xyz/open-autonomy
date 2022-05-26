@@ -12,7 +12,7 @@ fingerprint:
   composition.py: QmTcQBRHCewD1sminS7mMYrjmRojr1ZyPeWApQkXtMcvFv
   dialogues.py: QmfDThV4WCRzK88XDpW2hKDYCuEH4RxoHCoAkWpkBRGRPv
   fsm_specification.yaml: QmNtBq1LME67pGvjuWDczzJud5EK4pv2ZNRHp8xPJseZTU
-  handlers.py: QmWFvbxEUsxQ52C5eruuFrQivZ4FYjuRfSd3WeYePJNTDu
+  handlers.py: QmcoDzDjuti6EXjGtwYVzKnbkMnX1vfrofvnyuM8by6iPx
   models.py: QmXcR7nM9nJyj6UtqTpmFfoULjd3QsCKWmHDacHDi6hbsi
 fingerprint_ignore_patterns: []
 connections:
@@ -35,9 +35,15 @@ handlers:
   abci:
     args: {}
     class_name: ABCIRegisterResetHandler
+  contract_api:
+    args: {}
+    class_name: ContractApiHandler
   http:
     args: {}
     class_name: HttpHandler
+  ledger_api:
+    args: {}
+    class_name: LedgerApiHandler
   signing:
     args: {}
     class_name: SigningHandler
@@ -49,9 +55,15 @@ models:
     args:
       log_dir: /logs
     class_name: BenchmarkTool
+  contract_api_dialogues:
+    args: {}
+    class_name: ContractApiDialogues
   http_dialogues:
     args: {}
     class_name: HttpDialogues
+  ledger_api_dialogues:
+    args: {}
+    class_name: LedgerApiDialogues
   params:
     args:
       cleanup_history_depth: 1
