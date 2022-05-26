@@ -20,7 +20,7 @@
 """IO operations for the APY skill."""
 
 import pandas as pd
-from pandas._libs.tslibs.np_datetime import OutOfBoundsDatetime  # pylint: disable=E0611
+from pandas._libs.tslibs.np_datetime import OutOfBoundsDatetime  # type: ignore # pylint: disable=E0611
 
 from packages.valory.skills.apy_estimation_abci.tools.etl import TRANSFORMED_HIST_DTYPES
 

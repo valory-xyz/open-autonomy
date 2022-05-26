@@ -179,6 +179,10 @@ class AsyncBehaviour(ABC):
 
         This is a local method that does not depend on the global clock,
         so the usage of datetime.now() is acceptable here.
+
+        :param condition: the condition to wait for
+        :param timeout: the maximum amount of time to wait
+        :yield: None
         """
         if timeout is not None:
             deadline = datetime.datetime.now() + datetime.timedelta(0, timeout)
@@ -1459,6 +1463,8 @@ class BaseBehaviour(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
 
         This is a local method that does not depend on the global clock,
         so the usage of datetime.now() is acceptable here.
+
+        :yield: None
         """
         if self._check_started is None and not self._is_healthy:
             # we do the reset in the middle of the pause as there are no immediate transactions on either side of the reset
@@ -1487,6 +1493,8 @@ class BaseBehaviour(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
 
         This is a local method that does not depend on the global clock,
         so the usage of datetime.now() is acceptable here.
+
+        :return: bool
         """
         if self._check_started is None or self._is_healthy:
             return False

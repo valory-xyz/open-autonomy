@@ -23,7 +23,7 @@ from typing import Set, Type
 
 from packages.valory.skills.abstract_round_abci.behaviours import (
     AbstractRoundBehaviour,
-    BaseState,
+    BaseBehaviour,
 )
 from packages.valory.skills.register_reset_abci.composition import RegisterResetAbciApp
 from packages.valory.skills.registration_abci.behaviours import (
@@ -38,9 +38,9 @@ from packages.valory.skills.reset_pause_abci.behaviours import (
 class RegisterResetAbciAppConsensusBehaviour(AbstractRoundBehaviour):
     """This behaviour manages the consensus stages for the register-reset."""
 
-    initial_state_cls = RegistrationStartupBehaviour
+    initial_behaviour_cls = RegistrationStartupBehaviour
     abci_app_cls = RegisterResetAbciApp  # type: ignore
-    behaviour_states: Set[Type[BaseState]] = {
-        *AgentRegistrationRoundBehaviour.behaviour_states,
-        *ResetPauseABCIConsensusBehaviour.behaviour_states,
+    behaviours: Set[Type[BaseBehaviour]] = {
+        *AgentRegistrationRoundBehaviour.behaviours,
+        *ResetPauseABCIConsensusBehaviour.behaviours,
     }

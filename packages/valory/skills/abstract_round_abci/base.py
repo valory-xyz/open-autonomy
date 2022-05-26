@@ -674,6 +674,8 @@ class BaseSynchronizedData:
         a new period begins. It is useful to have a logical subdivision of the FSM execution.
         For example, if AbciAppDB.create() is called during reset, then a period will be the
         execution between resets.
+
+        :return: the period count
         """
         return self.db.reset_index
 
