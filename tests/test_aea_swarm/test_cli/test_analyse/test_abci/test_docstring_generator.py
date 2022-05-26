@@ -25,8 +25,6 @@ import shutil
 from pathlib import Path
 from typing import Tuple
 
-import pytest
-
 from tests.conftest import ROOT_DIR
 from tests.test_aea_swarm.test_cli.base import BaseCliTest
 
