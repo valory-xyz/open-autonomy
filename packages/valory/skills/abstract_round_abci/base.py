@@ -369,12 +369,12 @@ class Blockchain:
 
         :return: the height.
         """
-        return self.length
+        return self.length + self._height_offset
 
     @property
     def length(self) -> int:
         """Get the blockchain length."""
-        return len(self._blocks) + self._height_offset
+        return len(self._blocks)
 
     @property
     def blocks(self) -> Tuple[Block, ...]:
