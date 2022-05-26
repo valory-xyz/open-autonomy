@@ -53,7 +53,7 @@ class SynchronizedData(BaseSynchronizedData):
     """
     Class to represent the synchronized data.
 
-    This state is replicated by the tendermint application.
+    This data is replicated by the tendermint application.
     """
 
     _aggregator_method: Callable

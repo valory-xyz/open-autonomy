@@ -45,15 +45,15 @@ def __init__(**kwargs: Any) -> None
 
 Initialize the behaviour.
 
-<a id="packages.valory.skills.abstract_round_abci.behaviours.AbstractRoundBehaviour.instantiate_state_cls"></a>
+<a id="packages.valory.skills.abstract_round_abci.behaviours.AbstractRoundBehaviour.instantiate_behaviour_cls"></a>
 
-#### instantiate`_`state`_`cls
+#### instantiate`_`behaviour`_`cls
 
 ```python
-def instantiate_state_cls(state_cls: StateType) -> BaseState
+def instantiate_behaviour_cls(behaviour_cls: BehaviourType) -> BaseBehaviour
 ```
 
-Instantiate the state class.
+Instantiate the behaviours class.
 
 <a id="packages.valory.skills.abstract_round_abci.behaviours.AbstractRoundBehaviour.setup"></a>
 

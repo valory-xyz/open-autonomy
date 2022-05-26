@@ -402,7 +402,7 @@ class CleanUpBehaviour(SimpleBehaviour, ABC):
     """Class for clean-up related functionality of behaviours."""
 
     def __init__(self, **kwargs: Any):  # pylint: disable=super-init-not-called
-        """Initialize a base state behaviour."""
+        """Initialize a base behaviour."""
         SimpleBehaviour.__init__(self, **kwargs)
 
     def clean_up(self) -> None:
@@ -437,16 +437,16 @@ class RPCResponseStatus(Enum):
     UNCLASSIFIED_ERROR = 5
 
 
-class BaseState(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
-    """Base class for FSM states."""
+class BaseBehaviour(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
+    """Base class for FSM behaviours."""
 
     is_programmatically_defined = True
-    state_id = ""
+    behaviour_id = ""
     matching_round: Type[AbstractRound]
     is_degenerate: bool = False
 
     def __init__(self, **kwargs: Any):  # pylint: disable=super-init-not-called
-        """Initialize a base state behaviour."""
+        """Initialize a base behaviour."""
         AsyncBehaviour.__init__(self)
         IPFSBehaviour.__init__(self, **kwargs)
         CleanUpBehaviour.__init__(self, **kwargs)
@@ -455,7 +455,7 @@ class BaseState(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
         self._check_started: Optional[datetime.datetime] = None
         self._timeout: float = 0
         self._is_healthy: bool = False
-        enforce(self.state_id != "", "State id not set.")
+        enforce(self.behaviour_id != "", "State id not set.")
 
     @property
     def params(self) -> BaseParams:
@@ -464,7 +464,7 @@ class BaseState(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
 
     @property
     def synchronized_data(self) -> BaseSynchronizedData:
-        """Return the period state."""
+        """Return the synchronized data."""
         return cast(
             BaseSynchronizedData,
             cast(SharedState, self.context.state).synchronized_data,
@@ -551,7 +551,7 @@ class BaseState(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
         yield from self.wait_for_condition(_wait_until)
 
     def is_done(self) -> bool:
-        """Check whether the state is done."""
+        """Check whether the behaviour is done."""
         return self._is_done
 
     def set_done(self) -> None:
@@ -618,12 +618,12 @@ class BaseState(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
                 yield from self.sleep(self.context.params.tendermint_check_sleep_delay)
 
     def _log_start(self) -> None:
-        """Log the entering in the behaviour state."""
-        self.context.logger.info(f"Entered in the '{self.name}' behaviour state")
+        """Log the entering in the behaviour."""
+        self.context.logger.info(f"Entered in the '{self.name}' behaviour")
 
     def _log_end(self) -> None:
-        """Log the exiting from the behaviour state."""
-        self.context.logger.info(f"'{self.name}' behaviour state is done")
+        """Log the exiting from the behaviour."""
+        self.context.logger.info(f"'{self.name}' behaviour is done")
 
     @classmethod
     def _get_request_nonce_from_dialogue(cls, dialogue: Dialogue) -> str:
@@ -977,19 +977,21 @@ class BaseState(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
         result = yield from self._do_request(request_message, http_dialogue)
         return result
 
-    def get_callback_request(self) -> Callable[[Message, "BaseState"], None]:
+    def get_callback_request(self) -> Callable[[Message, "BaseBehaviour"], None]:
         """Wrapper for callback request which depends on whether the message has not been handled on time.
 
         :return: the request callback.
         """
 
-        def callback_request(message: Message, current_state: BaseState) -> None:
+        def callback_request(
+            message: Message, current_behaviour: BaseBehaviour
+        ) -> None:
             """The callback request."""
             if self.is_stopped:
                 self.context.logger.debug(
                     "dropping message as behaviour has stopped: %s", message
                 )
-            elif self != current_state:
+            elif self != current_behaviour:
                 self.handle_late_messages(message)
             elif self.state == AsyncBehaviour.AsyncState.WAITING_MESSAGE:
                 self.try_send(message)
@@ -1587,7 +1589,7 @@ class BaseState(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
         return True
 
 
-class DegenerateState(BaseState, ABC):
+class DegenerateBehaviour(BaseBehaviour, ABC):
     """An abstract matching behaviour for final and degenerate rounds."""
 
     matching_round: Type[AbstractRound]
@@ -1596,21 +1598,21 @@ class DegenerateState(BaseState, ABC):
     def async_act(self) -> Generator:
         """Raise a RuntimeError."""
         raise RuntimeError(
-            "The execution reached a degenerate behaviour state. "
+            "The execution reached a degenerate behaviour. "
             "This means a degenerate round has been reached during "
             "the execution of the ABCI application. Please check the "
             "functioning of the ABCI app."
         )
 
 
-def make_degenerate_state(round_id: str) -> Type[DegenerateState]:
-    """Make a degenerate state class."""
+def make_degenerate_behaviour(round_id: str) -> Type[DegenerateBehaviour]:
+    """Make a degenerate behaviour class."""
 
-    class NewDegenerateState(DegenerateState):
-        """A newly defined degenerate state class."""
+    class NewDegenerateBehaviour(DegenerateBehaviour):
+        """A newly defined degenerate behaviour class."""
 
-        state_id = f"degenerate_{round_id}"
+        behaviour_id = f"degenerate_{round_id}"
 
-    new_state_cls = NewDegenerateState
-    new_state_cls.__name__ = f"DegenerateState_{round_id}"  # type: ignore # pylint: disable=attribute-defined-outside-init
-    return new_state_cls  # type: ignore
+    new_behaviour_cls = NewDegenerateBehaviour
+    new_behaviour_cls.__name__ = f"DegenerateBehaviour_{round_id}"  # type: ignore # pylint: disable=attribute-defined-outside-init
+    return new_behaviour_cls  # type: ignore

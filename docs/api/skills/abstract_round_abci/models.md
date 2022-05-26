@@ -74,7 +74,7 @@ Get the round_sequence.
 def synchronized_data() -> BaseSynchronizedData
 ```
 
-Get the period state if available.
+Get the latest synchronized_data if available.
 
 <a id="packages.valory.skills.abstract_round_abci.models.Requests"></a>
 

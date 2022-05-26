@@ -121,7 +121,7 @@ class BaseRoundTestClass:
         with mock.patch.object(round_obj, "is_majority_possible", return_value=False):
             result = round_obj.end_block()
             assert result is not None
-            state, event = result
+            synchronized_data, event = result
             assert event == Event.NO_MAJORITY
 
 
@@ -134,7 +134,8 @@ class TestRegistrationRound(BaseRoundTestClass):
         """Run tests."""
 
         test_round = RegistrationRound(
-            state=self.synchronized_data, consensus_params=self.consensus_params
+            synchronized_data=self.synchronized_data,
+            consensus_params=self.consensus_params,
         )
 
         first_payload, *payloads = [
@@ -148,16 +149,16 @@ class TestRegistrationRound(BaseRoundTestClass):
         for payload in payloads:
             test_round.process_payload(payload)
 
-        actual_next_state = SynchronizedData(
+        actual_next_behaviour = SynchronizedData(
             AbciAppDB(initial_data=dict(participants=test_round.collection))
         )
 
         res = test_round.end_block()
         assert res is not None
-        state, event = res
+        synchronized_data, event = res
         assert (
-            cast(SynchronizedData, state).participants
-            == cast(SynchronizedData, actual_next_state).participants
+            cast(SynchronizedData, synchronized_data).participants
+            == cast(SynchronizedData, actual_next_behaviour).participants
         )
         assert event == Event.DONE
 
@@ -171,7 +172,8 @@ class TestRandomnessStartupRound(BaseRoundTestClass):
         """Run tests."""
 
         test_round = RandomnessStartupRound(
-            state=self.synchronized_data, consensus_params=self.consensus_params
+            synchronized_data=self.synchronized_data,
+            consensus_params=self.consensus_params,
         )
         first_payload, *payloads = [
             RandomnessPayload(sender=participant, randomness=RANDOMNESS, round_id=0)
@@ -187,19 +189,20 @@ class TestRandomnessStartupRound(BaseRoundTestClass):
         for payload in payloads:
             test_round.process_payload(payload)
 
-        actual_next_state = self.synchronized_data.update(
+        actual_next_behaviour = self.synchronized_data.update(
             participant_to_randomness=MappingProxyType(test_round.collection),
             most_voted_randomness=test_round.most_voted_payload,
         )
 
         res = test_round.end_block()
         assert res is not None
-        state, event = res
+        synchronized_data, event = res
         assert all(
             [
-                key in cast(SynchronizedData, state).participant_to_randomness
+                key
+                in cast(SynchronizedData, synchronized_data).participant_to_randomness
                 for key in cast(
-                    SynchronizedData, actual_next_state
+                    SynchronizedData, actual_next_behaviour
                 ).participant_to_randomness
             ]
         )
@@ -215,7 +218,8 @@ class TestSelectKeeperAtStartupRound(BaseRoundTestClass):
         """Run tests."""
 
         test_round = SelectKeeperAtStartupRound(
-            state=self.synchronized_data, consensus_params=self.consensus_params
+            synchronized_data=self.synchronized_data,
+            consensus_params=self.consensus_params,
         )
 
         first_payload, *payloads = [
@@ -232,19 +236,20 @@ class TestSelectKeeperAtStartupRound(BaseRoundTestClass):
         for payload in payloads:
             test_round.process_payload(payload)
 
-        actual_next_state = self.synchronized_data.update(
+        actual_next_behaviour = self.synchronized_data.update(
             participant_to_selection=MappingProxyType(test_round.collection),
             most_voted_keeper_address=test_round.most_voted_payload,
         )
 
         res = test_round.end_block()
         assert res is not None
-        state, event = res
+        synchronized_data, event = res
         assert all(
             [
-                key in cast(SynchronizedData, state).participant_to_selection
+                key
+                in cast(SynchronizedData, synchronized_data).participant_to_selection
                 for key in cast(
-                    SynchronizedData, actual_next_state
+                    SynchronizedData, actual_next_behaviour
                 ).participant_to_selection
             ]
         )
@@ -259,7 +264,8 @@ class TestResetAndPauseRound(BaseRoundTestClass):
     ) -> None:
         """Run tests."""
         test_round = ResetAndPauseRound(
-            state=self.synchronized_data, consensus_params=self.consensus_params
+            synchronized_data=self.synchronized_data,
+            consensus_params=self.consensus_params,
         )
 
         first_payload, *payloads = [
@@ -276,18 +282,18 @@ class TestResetAndPauseRound(BaseRoundTestClass):
         for payload in payloads:
             test_round.process_payload(payload)
 
-        actual_next_state = self.synchronized_data.create(
+        actual_next_behaviour = self.synchronized_data.create(
             participants=self.synchronized_data.participants,
             all_participants=self.synchronized_data.all_participants,
         )
 
         res = test_round.end_block()
         assert res is not None
-        state, event = res
+        synchronized_data, event = res
 
         assert (
-            cast(SynchronizedData, state).period_count
-            == cast(SynchronizedData, actual_next_state).period_count
+            cast(SynchronizedData, synchronized_data).period_count
+            == cast(SynchronizedData, actual_next_behaviour).period_count
         )
 
         assert event == Event.DONE
@@ -321,7 +327,7 @@ def test_synchronized_data() -> None:  # pylint:too-many-locals
     """Test SynchronizedData."""
 
     participants = get_participants()
-    period_setup_params = {}  # type: ignore
+    setup_params = {}  # type: ignore
     participant_to_randomness = {
         participant: RandomnessPayload(
             sender=participant, randomness=RANDOMNESS, round_id=0
@@ -339,7 +345,7 @@ def test_synchronized_data() -> None:  # pylint:too-many-locals
         AbciAppDB(
             initial_data=dict(
                 participants=participants,
-                period_setup_params=period_setup_params,
+                setup_params=setup_params,
                 participant_to_randomness=participant_to_randomness,
                 most_voted_randomness=most_voted_randomness,
                 participant_to_selection=participant_to_selection,

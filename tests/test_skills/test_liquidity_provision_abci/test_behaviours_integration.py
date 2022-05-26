@@ -245,7 +245,7 @@ class TestLiquidityRebalancingHardhat(LiquidityProvisionIntegrationBaseCase):
         _, _, _, _, _, _, msg_a, msg_b = self.process_n_messages(
             cycles_enter,
             synchronized_data_enter_hash,
-            EnterPoolTransactionHashBehaviour.state_id,
+            EnterPoolTransactionHashBehaviour.behaviour_id,
             handlers_enter,
             expected_content_enter,
             expected_types_enter,
@@ -318,7 +318,7 @@ class TestLiquidityRebalancingHardhat(LiquidityProvisionIntegrationBaseCase):
         transfers_msg_enter, _, _, _, msg_a, msg_b = self.process_n_messages(
             cycles_exit,
             synchronized_data_exit_hash,
-            ExitPoolTransactionHashBehaviour.state_id,
+            ExitPoolTransactionHashBehaviour.behaviour_id,
             handlers_exit,
             expected_content_exit,
             expected_types_exit,
@@ -475,7 +475,7 @@ class TestLiquidityRebalancingHardhat(LiquidityProvisionIntegrationBaseCase):
         transfers_msg_exit, _, _, _, _, _, msg_a, msg_b = self.process_n_messages(
             cycles_swap_back,
             synchronized_data_swap_back_hash,
-            SwapBackTransactionHashBehaviour.state_id,
+            SwapBackTransactionHashBehaviour.behaviour_id,
             handlers_swap_back,
             expected_content_swap_back,
             expected_types_swap_back,

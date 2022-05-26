@@ -58,7 +58,7 @@ class SynchronizedData(BaseSynchronizedData):
     """
     Class to represent the synchronized data.
 
-    This state is replicated by the tendermint application.
+    This data is replicated by the tendermint application.
     """
 
     @property
@@ -196,4 +196,4 @@ class SafeDeploymentAbciApp(AbciApp[Event]):
         Event.VALIDATE_TIMEOUT: 30.0,
         Event.DEPLOY_TIMEOUT: 30.0,
     }
-    cross_reset_persisted_keys = ["safe_contract_address"]
+    cross_period_persisted_keys = ["safe_contract_address"]

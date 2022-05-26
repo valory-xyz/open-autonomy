@@ -25,7 +25,7 @@ from typing import Generator, Set, Type, cast
 from packages.valory.skills.abstract_round_abci.base import BaseSynchronizedData
 from packages.valory.skills.abstract_round_abci.behaviours import (
     AbstractRoundBehaviour,
-    BaseState,
+    BaseBehaviour,
 )
 from packages.valory.skills.reset_pause_abci.models import Params, SharedState
 from packages.valory.skills.reset_pause_abci.payloads import ResetPausePayload
@@ -35,12 +35,12 @@ from packages.valory.skills.reset_pause_abci.rounds import (
 )
 
 
-class ResetAndPauseBaseState(BaseState, ABC):
-    """Reset state."""
+class ResetAndPauseBaseBehaviour(BaseBehaviour, ABC):
+    """Reset behaviour."""
 
     @property
     def synchronized_data(self) -> BaseSynchronizedData:
-        """Return the period state."""
+        """Return the synchronized data."""
         return cast(
             BaseSynchronizedData,
             cast(SharedState, self.context.state).synchronized_data,
@@ -52,23 +52,23 @@ class ResetAndPauseBaseState(BaseState, ABC):
         return cast(Params, self.context.params)
 
 
-class ResetAndPauseBehaviour(ResetAndPauseBaseState):
-    """Reset and pause state."""
+class ResetAndPauseBehaviour(ResetAndPauseBaseBehaviour):
+    """Reset and pause behaviour."""
 
     matching_round = ResetAndPauseRound
-    state_id = "reset_and_pause"
+    behaviour_id = "reset_and_pause"
 
     def async_act(self) -> Generator:
         """
         Do the action.
 
         Steps:
-        - Trivially log the state.
+        - Trivially log the behaviour.
         - Sleep for configured interval.
         - Build a registration transaction.
         - Send the transaction and wait for it to be mined.
         - Wait until ABCI application transitions to the next round.
-        - Go to the next behaviour state (set done event).
+        - Go to the next behaviour (set done event).
         """
         # + 1 because `period_count` starts from 0
         n_periods_done = self.synchronized_data.period_count + 1
@@ -92,8 +92,8 @@ class ResetAndPauseBehaviour(ResetAndPauseBaseState):
 class ResetPauseABCIConsensusBehaviour(AbstractRoundBehaviour):
     """This behaviour manages the consensus stages for the reset_pause_abci app."""
 
-    initial_state_cls = ResetAndPauseBehaviour
+    initial_behaviour_cls = ResetAndPauseBehaviour
     abci_app_cls = ResetPauseABCIApp  # type: ignore
-    behaviour_states: Set[Type[ResetAndPauseBehaviour]] = {  # type: ignore
+    behaviours: Set[Type[ResetAndPauseBehaviour]] = {  # type: ignore
         ResetAndPauseBehaviour,  # type: ignore
     }

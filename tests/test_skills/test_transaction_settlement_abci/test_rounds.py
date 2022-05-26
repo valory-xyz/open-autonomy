@@ -450,7 +450,7 @@ class TestFinalizationRound(BaseOnlyKeeperSendsRoundTest):
             keeper_retries = 1
 
         test_round = self._round_class(
-            state=self.synchronized_data,
+            synchronized_data=self.synchronized_data,
             consensus_params=self.consensus_params,
         )
 
@@ -467,19 +467,19 @@ class TestFinalizationRound(BaseOnlyKeeperSendsRoundTest):
                         "received_hash": bool(tx_digest),
                     },
                 ),
-                state_update_fn=lambda _synchronized_data, _: _synchronized_data.update(
+                synchronized_data_update_fn=lambda _synchronized_data, _: _synchronized_data.update(
                     tx_hashes_history=tx_hashes_history,
                     blacklisted_keepers=blacklisted_keepers,
                     keepers=get_keepers(keepers, keeper_retries),
                     keeper_retries=keeper_retries,
                     final_verification_status=VerificationStatus(status),
                 ),
-                state_attr_checks=[
-                    lambda state: state.tx_hashes_history,
-                    lambda state: state.blacklisted_keepers,
-                    lambda state: state.keepers,
-                    lambda state: state.keeper_retries,
-                    lambda state: state.final_verification_status,
+                synchronized_data_attr_checks=[
+                    lambda _synchronized_data: _synchronized_data.tx_hashes_history,
+                    lambda _synchronized_data: _synchronized_data.blacklisted_keepers,
+                    lambda _synchronized_data: _synchronized_data.keepers,
+                    lambda _synchronized_data: _synchronized_data.keeper_retries,
+                    lambda _synchronized_data: _synchronized_data.final_verification_status,
                 ],
                 exit_event=exit_event,
             )
@@ -498,15 +498,16 @@ class TestCollectSignatureRound(BaseCollectDifferentUntilThresholdRoundTest):
         """Runs tests."""
 
         test_round = CollectSignatureRound(
-            state=self.synchronized_data, consensus_params=self.consensus_params
+            synchronized_data=self.synchronized_data,
+            consensus_params=self.consensus_params,
         )
 
         self._complete_run(
             self._test_round(
                 test_round=test_round,
                 round_payloads=get_participant_to_signature(self.participants),
-                state_update_fn=lambda _synchronized_data, _: _synchronized_data,
-                state_attr_checks=[],
+                synchronized_data_update_fn=lambda _synchronized_data, _: _synchronized_data,
+                synchronized_data_attr_checks=[],
                 exit_event=self._event_class.DONE,
             )
         )
@@ -574,7 +575,8 @@ class TestCheckTransactionHistoryRound(BaseCollectSameUntilThresholdRoundTest):
         self.synchronized_data.update(missed_messages=missed_messages, keepers=keepers)
 
         test_round = CheckTransactionHistoryRound(
-            state=self.synchronized_data, consensus_params=self.consensus_params
+            synchronized_data=self.synchronized_data,
+            consensus_params=self.consensus_params,
         )
 
         self._complete_run(
@@ -583,7 +585,7 @@ class TestCheckTransactionHistoryRound(BaseCollectSameUntilThresholdRoundTest):
                 round_payloads=get_participant_to_check(
                     self.participants, expected_status, expected_tx_hash
                 ),
-                state_update_fn=lambda synchronized_data, _: synchronized_data.update(
+                synchronized_data_update_fn=lambda synchronized_data, _: synchronized_data.update(
                     participant_to_check=MappingProxyType(
                         dict(
                             get_participant_to_check(
@@ -596,10 +598,10 @@ class TestCheckTransactionHistoryRound(BaseCollectSameUntilThresholdRoundTest):
                     keepers=keepers,
                     final_tx_hash="0xb0e6add595e00477cf347d09797b156719dc5233283ac76e4efce2a674fe72d9",
                 ),
-                state_attr_checks=[
-                    lambda state: state.final_verification_status,
-                    lambda state: state.final_tx_hash,
-                    lambda state: state.keepers,
+                synchronized_data_attr_checks=[
+                    lambda _synchronized_data: _synchronized_data.final_verification_status,
+                    lambda _synchronized_data: _synchronized_data.final_tx_hash,
+                    lambda _synchronized_data: _synchronized_data.keepers,
                 ]
                 if expected_event
                 not in {
@@ -607,8 +609,8 @@ class TestCheckTransactionHistoryRound(BaseCollectSameUntilThresholdRoundTest):
                     TransactionSettlementEvent.CHECK_LATE_ARRIVING_MESSAGE,
                 }
                 else [
-                    lambda state: state.final_verification_status,
-                    lambda state: state.keepers,
+                    lambda _synchronized_data: _synchronized_data.final_verification_status,
+                    lambda _synchronized_data: _synchronized_data.keepers,
                 ],
                 most_voted_payload=expected_status + expected_tx_hash,
                 exit_event=expected_event,
@@ -635,7 +637,8 @@ class TestSynchronizeLateMessagesRound(BaseCollectNonEmptyUntilThresholdRound):
         """Runs tests."""
         self.synchronized_data.update(missed_messages=missed_messages)
         test_round = SynchronizeLateMessagesRound(
-            state=self.synchronized_data, consensus_params=self.consensus_params
+            synchronized_data=self.synchronized_data,
+            consensus_params=self.consensus_params,
         )
         self._complete_run(
             self._test_round(
@@ -643,11 +646,13 @@ class TestSynchronizeLateMessagesRound(BaseCollectNonEmptyUntilThresholdRound):
                 round_payloads=get_participant_to_late_arriving_tx_hashes(
                     self.participants
                 ),
-                state_update_fn=lambda _synchronized_data, _: _synchronized_data.update(
+                synchronized_data_update_fn=lambda _synchronized_data, _: _synchronized_data.update(
                     late_arriving_tx_hashes=["1" * TX_HASH_LENGTH, "2" * TX_HASH_LENGTH]
                     * len(self.participants)
                 ),
-                state_attr_checks=[lambda state: state.late_arriving_tx_hashes],
+                synchronized_data_attr_checks=[
+                    lambda _synchronized_data: _synchronized_data.late_arriving_tx_hashes
+                ],
                 exit_event=expected_event,
             )
         )
@@ -709,8 +714,8 @@ def test_synchronized_datas() -> None:
     )
     assert synchronized_data_____.keepers_threshold_exceeded
     assert synchronized_data_____.blacklisted_keepers == {"t" * 42}
-    updated_state = synchronized_data_____.create()
-    assert updated_state.blacklisted_keepers == set()
+    updated_synchronized_data = synchronized_data_____.create()
+    assert updated_synchronized_data.blacklisted_keepers == set()
 
     # test wrong tx hashes serialization
     synchronized_data_____.update(late_arriving_tx_hashes=["test"])
@@ -735,9 +740,9 @@ class TestResetRound(BaseCollectSameUntilThresholdRoundTest):
         synchronized_data = self.synchronized_data.update(
             keeper_randomness=DUMMY_RANDOMNESS,
         )
-        synchronized_data._db._cross_reset_persisted_keys = ["keeper_randomness"]
+        synchronized_data._db._cross_period_persisted_keys = ["keeper_randomness"]
         test_round = ResetRound(
-            state=synchronized_data, consensus_params=self.consensus_params
+            synchronized_data=synchronized_data, consensus_params=self.consensus_params
         )
         next_period_count = 1
         self._complete_run(
@@ -746,12 +751,12 @@ class TestResetRound(BaseCollectSameUntilThresholdRoundTest):
                 round_payloads=get_participant_to_period_count(
                     self.participants, next_period_count
                 ),
-                state_update_fn=lambda _synchronized_data, _: _synchronized_data.create(
+                synchronized_data_update_fn=lambda _synchronized_data, _: _synchronized_data.create(
                     participants=self.participants,
                     all_participants=self.participants,
                     keeper_randomness=DUMMY_RANDOMNESS,
                 ),
-                state_attr_checks=[],  # [lambda state: state.participants],
+                synchronized_data_attr_checks=[],  # [lambda _synchronized_data: _synchronized_data.participants],
                 most_voted_payload=next_period_count,
                 exit_event=self._event_class.DONE,
             )
