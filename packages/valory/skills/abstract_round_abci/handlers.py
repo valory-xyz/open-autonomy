@@ -66,7 +66,7 @@ class ABCIRoundHandler(ABCIHandler):
         info_data = ""
         version = ""
         app_version = 0
-        last_block_height = self.context.state.period.last_round_transition_height
+        last_block_height = self.context.state.period.height
         last_block_app_hash = self.context.state.period_state.app_hash
         reply = dialogue.reply(
             performative=AbciMessage.Performative.RESPONSE_INFO,
