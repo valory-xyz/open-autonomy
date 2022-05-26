@@ -1526,7 +1526,7 @@ class BaseState(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
             self.context.logger.info(
                 f"Previous App Hash: {self.context.state.period_state.app_hash.decode('utf-8')}"
             )
-            self.context.state.period_state._app_hash = app_hash
+            self.context.state.period_state._app_hash = app_hash.encode("utf-8")
             self.context.logger.info(f"Current App Hash: {app_hash}")
 
             last_round_transition_timestamp = (
