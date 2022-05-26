@@ -1543,7 +1543,8 @@ class BaseState(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
                     ("genesis_time", time_string),
                     (
                         "initial_height",
-                        str(self.context.state.period.height + 1),
+                        # last_round_transition_height used instead of height to ensure deterministic initial heights
+                        str(self.context.state.period.last_round_transition_height + 1),
                     ),
                 ],
             )
