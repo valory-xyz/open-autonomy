@@ -586,7 +586,9 @@ class BasePeriodState:
     ) -> None:
         """Initialize a period state."""
         self._db = db
-        self._app_hash = hashlib.sha256(str(self.db).encode("utf-8")).hexdigest().encode("utf-8")
+        self._app_hash = (
+            hashlib.sha256(str(self.db).encode("utf-8")).hexdigest().encode("utf-8")
+        )
 
     @property
     def db(self) -> StateDB:
