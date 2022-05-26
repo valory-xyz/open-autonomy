@@ -26,13 +26,14 @@ In particular:
 It is assumed the script is run from the repository root.
 """
 import re
+import sys
 from pathlib import Path
 
 
 UNPINNED_PACKAGE_REGEX = r'(?P<package_name>.*)\s?=\s?"\*"'
 
 
-def check_pipfile(pipfile_path: Path):
+def check_pipfile(pipfile_path: Path) -> bool:
     """Check a Pipfile"""
 
     print(f"Checking {pipfile_path.joinpath()}... ", end="")
@@ -44,14 +45,16 @@ def check_pipfile(pipfile_path: Path):
             if m:
                 unpinned.append(m.groupdict()["package_name"])
         if unpinned:
-            print()  # Newline
-            raise ValueError(
-                f"The packages {unpinned} have not been pinned in {pipfile_path.joinpath()}"
+            print(
+                f"\nThe packages {unpinned} have not been pinned in {pipfile_path.joinpath()}"
             )
+            return False
     print("OK")
+    return True
 
 
 if __name__ == "__main__":
     root_path = Path(".")
     for file_path in root_path.rglob("*Pipfile*"):
-        check_pipfile(pipfile_path=file_path)
+        if not check_pipfile(pipfile_path=file_path):
+            sys.exit(1)
