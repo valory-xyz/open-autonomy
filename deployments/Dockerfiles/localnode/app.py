@@ -28,8 +28,12 @@ from typing import Any, Callable, Dict, Optional, Tuple
 
 import requests
 from flask import Flask, Response, jsonify, request
-from .tendermint import TendermintNode, TendermintParams
 from werkzeug.exceptions import InternalServerError, NotFound
+
+try:  # crying face
+    from .tendermint import TendermintNode, TendermintParams
+except:
+    from tendermint import TendermintNode, TendermintParams
 
 
 DEFAULT_LOG_FILE = "log.log"
@@ -198,6 +202,12 @@ def create_app(dump_dir: Optional[Path] = None):
     return app, tendermint_node
 
 
+def make_tendermint_server():
+    """Create the flask application."""
+    app, _ = create_app()
+    return app
+
+
 if __name__ == "__main__":
-    tendermint_app, _ = create_app()
+    tendermint_app = make_tendermint_server()
     tendermint_app.run()
