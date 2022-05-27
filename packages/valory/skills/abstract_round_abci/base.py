@@ -539,6 +539,7 @@ class AbciAppDB:
             )  # the key represents the reset index
         }
         self._round_count = ROUND_COUNT_DEFAULT  # ensures first round is indexed at 0!
+        self._reset_offset = 1
 
     @property
     def initial_data(self) -> Dict[str, Any]:
@@ -557,7 +558,7 @@ class AbciAppDB:
     @property
     def reset_index(self) -> int:
         """Get the current reset index."""
-        return len(self._data) - 1
+        return len(self._data) - self._reset_offset
 
     @property
     def round_count(self) -> int:
@@ -613,7 +614,7 @@ class AbciAppDB:
     def create(self, format_data: bool = True, **kwargs: Any) -> None:
         """Add a new entry to the data."""
         new_data = AbciAppDB.data_to_list(kwargs) if format_data else kwargs
-        self._data[self.reset_index + 1] = new_data
+        self._data[len(self._data)] = new_data
 
     def get_latest_from_reset_index(self, reset_index: int) -> Dict[str, Any]:
         """Get the latest key-value pairs from the data dictionary for the specified period."""
@@ -636,10 +637,12 @@ class AbciAppDB:
     def cleanup(self, cleanup_history_depth: int) -> None:
         """Reset the db."""
         cleanup_history_depth = max(cleanup_history_depth, MIN_HISTORY_DEPTH)
-        self._data = {
-            key: self._data[key]
-            for key in sorted(self._data.keys())[-cleanup_history_depth:]
-        }
+        if cleanup_history_depth > len(self._data):
+            self._data = {
+                key: self._data[key]
+                for key in sorted(self._data.keys())[-cleanup_history_depth:]
+            }
+            self._reset_offset += 1
 
 
 class BaseSynchronizedData:
