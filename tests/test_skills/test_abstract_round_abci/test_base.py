@@ -1133,12 +1133,21 @@ class TestAbciApp:
         assert len(self.abci_app._previous_rounds) == start_history_depth
         assert len(self.abci_app._round_results) == start_history_depth
         assert len(self.abci_app.synchronized_data.db._data) == start_history_depth
+        assert list(self.abci_app.synchronized_data.db._data.keys()) == list(
+            range(start_history_depth)
+        )
+        previous_reset_index = self.abci_app.synchronized_data.db.reset_index
 
         self.abci_app.cleanup(cleanup_history_depth)
 
         assert len(self.abci_app._previous_rounds) == cleanup_history_depth
         assert len(self.abci_app._round_results) == cleanup_history_depth
         assert len(self.abci_app.synchronized_data.db._data) == cleanup_history_depth
+        assert list(self.abci_app.synchronized_data.db._data.keys()) == list(
+            range(start_history_depth - cleanup_history_depth, start_history_depth)
+        )
+        # reset_index must not change after a cleanup
+        assert self.abci_app.synchronized_data.db.reset_index == previous_reset_index
 
         # Verify round height stays unaffected
         assert self.abci_app.current_round_height == round_height
