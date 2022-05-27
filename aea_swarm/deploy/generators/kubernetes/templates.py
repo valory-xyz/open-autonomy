@@ -126,7 +126,7 @@ kind: PersistentVolumeClaim
 metadata:
   name: logs-pvc
 spec:
-  storageClassName: nfs
+  storageClassName: nfs-client
   accessModes:
     - ReadWriteOnce
   resources:
@@ -138,7 +138,7 @@ kind: PersistentVolumeClaim
 metadata:
   name: tendermint-pvc
 spec:
-  storageClassName: nfs
+  storageClassName: nfs-client
   accessModes:
     - ReadWriteOnce
   resources:
@@ -150,7 +150,7 @@ kind: PersistentVolumeClaim
 metadata:
   name: benchmark-pvc
 spec:
-  storageClassName: nfs
+  storageClassName: nfs-client
   accessModes:
     - ReadWriteOnce
   resources:
@@ -162,7 +162,7 @@ kind: PersistentVolumeClaim
 metadata:
   name: nodes
 spec:
-  storageClassName: nfs
+  storageClassName: nfs-client
   accessModes:
     - ReadWriteOnce
   resources:
