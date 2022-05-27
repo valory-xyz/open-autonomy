@@ -704,6 +704,17 @@ def data_to_list(cls, data: Dict[str, Any]) -> Dict[str, List[Any]]
 
 Convert Dict[str, Any] to Dict[str, List[Any]].
 
+<a id="packages.valory.skills.abstract_round_abci.base.AbciAppDB.db_size"></a>
+
+#### db`_`size
+
+```python
+@property
+def db_size() -> int
+```
+
+Get the number of indexed items in the db.
+
 <a id="packages.valory.skills.abstract_round_abci.base.AbciAppDB.reset_index"></a>
 
 #### reset`_`index
