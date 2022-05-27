@@ -21,9 +21,9 @@ contracts:
 - valory/gnosis_safe:0.1.0:QmRNdXGRRQBMFXh5ZvtJeYvHt7559kV5r5EYU5JNUdRBKJ
 - valory/gnosis_safe_proxy_factory:0.1.0:QmVkZtrgZ2ievXAonq9z33qbrxHi8piVGptuCGaGJYS1iM
 protocols:
-- valory/contract_api:1.0.0:QmTZgtH8LbnFxqpGf2zuwSEdG4awPgvsag6jTYgX9GXDgy
+- valory/contract_api:1.0.0:QmacfSvm3862TE2RtUpd7WESeNyJV7dqUDsoNfaCye7nmJ
 skills:
-- valory/abstract_round_abci:0.1.0:QmSFgNf4sZs77UhitbQgQVeQCJHxe7xPq7uhh7Joe2e2Wc
+- valory/abstract_round_abci:0.1.0:QmeeCFDDHfdJT74npE8w6uJZgWW6PD469ZvaUtLMwube5r
 behaviours:
   main:
     args: {}

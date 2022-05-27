@@ -7,19 +7,19 @@ aea_version: '>=1.0.0, <2.0.0'
 fingerprint: {}
 fingerprint_ignore_patterns: []
 connections:
-- valory/abci:0.1.0
-- valory/http_client:0.1.0
+- valory/abci:0.1.0:QmUq4z19VS9G1TfnZdKy818F7maQopAor4NGe9t4DgzwyJ
+- valory/http_client:0.1.0:QmXJgaR1S5woMq8P8Sd8uSajhjqKMYo1w6jE1LKdYFeAbu
 contracts: []
 protocols:
-- open_aea/signing:1.0.0
-- valory/abci:0.1.0
-- valory/http:1.0.0
+- open_aea/signing:1.0.0:QmZyuwdLLViZaX4n2YfkeR7h1rfw2QLCWy8sZc7y3Q4MH5
+- valory/abci:0.1.0:QmRon9y7n2g81KYfFo3CmdsXrRmRyGogi5TqG6RU5Ff5W7
+- valory/http:1.0.0:QmPSbeSkrSidjZ1VgdAN8bfq7NEhvxPAnvkgrFYPhkiNq2
 skills:
-- valory/abstract_abci:0.1.0
-- valory/abstract_round_abci:0.1.0
-- valory/register_reset_abci:0.1.0
-- valory/registration_abci:0.1.0
-- valory/reset_pause_abci:0.1.0
+- valory/abstract_abci:0.1.0:QmSSyWsvJSDPetPidys1HmAus4uDoKg5gRof1td7pF6TxT
+- valory/abstract_round_abci:0.1.0:QmeeCFDDHfdJT74npE8w6uJZgWW6PD469ZvaUtLMwube5r
+- valory/register_reset_abci:0.1.0:QmQFmLFKyqLj9c4Njhz64zCTBk5tQnnWxN46uSTDSu1mVi
+- valory/registration_abci:0.1.0:Qmb25mGrahYKUDjh49ffor6RSWQy3NQWYpuyusQRN2CRVs
+- valory/reset_pause_abci:0.1.0:QmTyU7RZF3EhqPFykzQiCKJCfX9anrxXpycmHEGQeotECV
 default_ledger: ethereum
 required_ledgers:
 - ethereum
