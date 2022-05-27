@@ -614,6 +614,40 @@ class TestBaseBehaviour:
         try_send(gen, obj=success_response)
 
     @mock.patch.object(BaseBehaviour, "_send_signing_request")
+    @mock.patch.object(BaseBehaviour, "_is_invalid_transaction", return_value=False)
+    @mock.patch.object(BaseBehaviour, "_tx_not_found", return_value=True)
+    @mock.patch.object(Transaction, "encode", return_value=MagicMock())
+    @mock.patch.object(
+        BaseBehaviour,
+        "_build_http_request_message",
+        return_value=(MagicMock(), MagicMock()),
+    )
+    @mock.patch.object(BaseBehaviour, "_check_http_return_code_200", return_value=True)
+    @mock.patch.object(
+        BaseBehaviour,
+        "_wait_until_transaction_delivered",
+        new=_wait_until_transaction_delivered_patch,
+    )
+    def test_send_transaction_valid_transaction(self, *_: Any) -> None:
+        """Test '_send_transaction', positive case."""
+        m = MagicMock(status_code=200)
+        gen = self.behaviour._send_transaction(m)
+        try_send(gen, obj=None)
+        try_send(gen, obj=m)
+        try_send(gen, obj=MagicMock(body='{"result": {"hash": "", "code": 0}}'))
+        success_response = MagicMock(
+            status_code=200, body='{"result": {"tx_result": {"code": 0}}}'
+        )
+        try_send(gen, obj=success_response)
+
+    def test_tx_not_found(self, *_: Any) -> None:
+        """Test _tx_not_found"""
+        res = MagicMock(
+            body='{"error": {"code": "dummy_code", "message": "dummy_message", "data": "dummy_data"}}'
+        )
+        self.behaviour._tx_not_found(tx_hash="tx_hash", res=res)
+
+    @mock.patch.object(BaseBehaviour, "_send_signing_request")
     def test_send_transaction_signing_error(self, *_: Any) -> None:
         """Test '_send_transaction', signing error."""
         m = MagicMock(performative=SigningMessage.Performative.ERROR)
