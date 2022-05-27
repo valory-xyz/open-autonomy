@@ -35,7 +35,6 @@ EXPECTED_ROUND_LOG_COUNT = {
 }
 
 
-@pytest.mark.skip
 @pytest.mark.parametrize("nb_nodes", (4,))
 class TestTendermintReset(BaseTestEnd2EndNormalExecution):
     """Test the ABCI register-reset skill with 4 agents when resetting Tendermint."""
