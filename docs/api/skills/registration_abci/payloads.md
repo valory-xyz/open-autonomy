@@ -39,7 +39,7 @@ Represent a transaction payload of type 'registration'.
 #### `__`init`__`
 
 ```python
-def __init__(sender: str, initialisation: Optional[str] = None, **kwargs: Any) -> None
+def __init__(sender: str, initialisation: str = "{}", **kwargs: Any) -> None
 ```
 
 Initialize an 'select_keeper' transaction payload.
@@ -56,7 +56,7 @@ Initialize an 'select_keeper' transaction payload.
 
 ```python
 @property
-def initialisation() -> Optional[str]
+def initialisation() -> str
 ```
 
 Get the initialisation.

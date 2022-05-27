@@ -620,6 +620,13 @@ class AbciAppDB:
                 self._data[self.reset_index][key] = [value]
             return
 
+        # Empty database case
+        if not self.data:
+            self._data[RESET_COUNT_START] = {
+                key: [value] for key, value in kwargs.items()
+            }
+            return
+
         # Append new data to the key history
         data = self._data[self.reset_index]
         for key, value in kwargs.items():

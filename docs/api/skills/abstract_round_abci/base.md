@@ -693,6 +693,32 @@ Get the initial_data.
 
 the initial_data
 
+<a id="packages.valory.skills.abstract_round_abci.base.AbciAppDB.data"></a>
+
+#### data
+
+```python
+@property
+def data() -> Dict[int, Dict[str, List[Any]]]
+```
+
+Get the data.
+
+**Returns**:
+
+the data
+
+<a id="packages.valory.skills.abstract_round_abci.base.AbciAppDB.data"></a>
+
+#### data
+
+```python
+@data.setter
+def data(value: Optional[Dict[int, Dict[str, List[Any]]]] = None) -> None
+```
+
+Set all the data.
+
 <a id="packages.valory.skills.abstract_round_abci.base.AbciAppDB.data_to_list"></a>
 
 #### data`_`to`_`list
@@ -963,6 +989,16 @@ def create(synchronized_data_class: Optional[Type] = None, format_data: bool = T
 ```
 
 Copy and update with new data.
+
+<a id="packages.valory.skills.abstract_round_abci.base.BaseSynchronizedData.new_db"></a>
+
+#### new`_`db
+
+```python
+def new_db(synchronized_data_class: Optional[Type] = None, data_db: Optional[Dict[int, Dict[str, List[Any]]]] = None) -> "BaseSynchronizedData"
+```
+
+Copy and update the current data.
 
 <a id="packages.valory.skills.abstract_round_abci.base.BaseSynchronizedData.__repr__"></a>
 
@@ -1661,6 +1697,17 @@ def end_block() -> Optional[Tuple[BaseSynchronizedData, Enum]]
 ```
 
 Process the end of the block.
+
+<a id="packages.valory.skills.abstract_round_abci.base.CollectDifferentUntilThresholdRound.most_voted_payload"></a>
+
+#### most`_`voted`_`payload
+
+```python
+@property
+def most_voted_payload() -> Any
+```
+
+Get the most voted payload.
 
 <a id="packages.valory.skills.abstract_round_abci.base.CollectNonEmptyUntilThresholdRound"></a>
 
