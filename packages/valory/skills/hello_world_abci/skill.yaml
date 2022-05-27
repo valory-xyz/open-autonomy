@@ -25,7 +25,7 @@ protocols:
 - valory/abci:0.1.0:QmaPFp3Jwf6uv9VSAoMJfJHFS9ESPeX8hCB7HLi41c8WzS
 - valory/http:1.0.0:QmbjfzjKMuRmwbQysyaciASxvY67vGJYj7zjGYADgNux5h
 skills:
-- valory/abstract_round_abci:0.1.0:QmPwLYCszmWJStc6nKaBDqNugsHeJrugyfUoH981WWkk8T
+- valory/abstract_round_abci:0.1.0:QmVzE4iATGY4vqAZdqoF5U1JiWNjSuUeADacbWw2a1r16p
 behaviours:
   main:
     args: {}

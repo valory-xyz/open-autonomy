@@ -9,7 +9,7 @@ fingerprint:
   README.md: QmYNXPppPSnW61ipqKNH8pyMh8qzTERwQaducYYq1dnBJb
   __init__.py: QmPuJK7gMKruSTcaYk9otrFncfD9h6vBZVoAtkwhTBgcxa
   abci_app_chain.py: QmeCPxwjec4pxtedv8NeG2Gmj58GY2GycXvgwfyjEyqPGm
-  base.py: QmXg1xKfCtcLWqnCsormUNrEVNyd4NRmMQLnayGusDs7Su
+  base.py: QmRwZzSKzoijEFN8qcRtdHECrTuYBFiK1w6hQkfE2BFsSW
   behaviour_utils.py: QmURonvcTxhHwHudXZXNFgbnPGN7y4XdfSKG9TAHNT1oDw
   behaviours.py: QmawtbXREBz8C7Grjn4a93gaAQFMWzZicxRfjyHcckYHmz
   common.py: QmVBfMMrVVj3MmzEQme8R5WB6FVY67uhXepvm8wvXcJFLe
@@ -35,7 +35,7 @@ protocols:
 - valory/http:1.0.0:QmbjfzjKMuRmwbQysyaciASxvY67vGJYj7zjGYADgNux5h
 - valory/ledger_api:1.0.0:QmWQSUkGAbzU8tqs7K8BguabbKHUZkbxuMk1M4LBFAwdun
 skills:
-- valory/abstract_abci:0.1.0:QmVfwEGhpc4EZ5gW5tP4okvJ4kAaAjUBoBnd8seUBUgJAc
+- valory/abstract_abci:0.1.0:QmZQnQ2tTwT5Wn2xBDEXi5suerLCi7pEnj6VS4TmDJBhUD
 behaviours:
   main:
     args: {}
