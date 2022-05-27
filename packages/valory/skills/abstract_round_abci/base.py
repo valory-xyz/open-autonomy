@@ -392,13 +392,6 @@ class Blockchain:
         """Returns the last stored block."""
         return self._blocks[-1]
 
-    @property
-    def current_hash(self) -> bytes:
-        """Get the current hash."""
-        # TODO: replace with some hash summarising the blockchain
-        # eventually a merkle root, something simple to start for testing.
-        return b""
-
 
 class BlockBuilder:
     """Helper class to build a block."""

@@ -467,17 +467,6 @@ def last_block() -> Block
 
 Returns the last stored block.
 
-<a id="packages.valory.skills.abstract_round_abci.base.Blockchain.current_hash"></a>
-
-#### current`_`hash
-
-```python
-@property
-def current_hash() -> bytes
-```
-
-Get the current hash.
-
 <a id="packages.valory.skills.abstract_round_abci.base.BlockBuilder"></a>
 
 ## BlockBuilder Objects
