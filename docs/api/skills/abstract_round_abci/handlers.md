@@ -34,6 +34,22 @@ def info(message: AbciMessage, dialogue: AbciDialogue) -> AbciMessage
 
 Handle the 'info' request.
 
+As per Tendermint spec (https://github.com/tendermint/spec/blob/038f3e025a19fed9dc96e718b9834ab1b545f136/spec/abci/abci.md#info):
+
+- Return information about the application state.
+- Used to sync Tendermint with the application during a handshake that happens on startup.
+- The returned app_version will be included in the Header of every block.
+- Tendermint expects last_block_app_hash and last_block_height to be updated during Commit, ensuring that Commit is never called twice for the same block height.
+
+**Arguments**:
+
+- `message`: the ABCI request.
+- `dialogue`: the ABCI dialogue.
+
+**Returns**:
+
+the response.
+
 <a id="packages.valory.skills.abstract_round_abci.handlers.ABCIRoundHandler.init_chain"></a>
 
 #### init`_`chain
@@ -43,6 +59,13 @@ def init_chain(message: AbciMessage, dialogue: AbciDialogue) -> AbciMessage
 ```
 
 Handle a message of REQUEST_INIT_CHAIN performative.
+
+As per Tendermint spec (https://github.com/tendermint/spec/blob/038f3e025a19fed9dc96e718b9834ab1b545f136/spec/abci/abci.md#initchain):
+
+- Called once upon genesis.
+- If ResponseInitChain.Validators is empty, the initial validator set will be the RequestInitChain.Validators.
+- If ResponseInitChain.Validators is not empty, it will be the initial validator set (regardless of what is in RequestInitChain.Validators).
+- This allows the app to decide if it wants to accept the initial validator set proposed by tendermint (ie. in the genesis file), or if it wants to use a different one (perhaps computed based on some application specific information in the genesis file).
 
 **Arguments**:
 
@@ -102,6 +125,23 @@ def commit(message: AbciMessage, dialogue: AbciDialogue) -> AbciMessage
 ```
 
 Handle the 'commit' request.
+
+As per Tendermint spec (https://github.com/tendermint/spec/blob/038f3e025a19fed9dc96e718b9834ab1b545f136/spec/abci/abci.md#commit):
+
+Empty request meant to signal to the app it can write state transitions to state.
+
+- Persist the application state.
+- Return a Merkle root hash of the application state.
+- It's critical that all application instances return the same hash. If not, they will not be able to agree on the next block, because the hash is included in the next block!
+
+**Arguments**:
+
+- `message`: the ABCI request.
+- `dialogue`: the ABCI dialogue.
+
+**Returns**:
+
+the response.
 
 <a id="packages.valory.skills.abstract_round_abci.handlers.AbstractResponseHandler"></a>
 
