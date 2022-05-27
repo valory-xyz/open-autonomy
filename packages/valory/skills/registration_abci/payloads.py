@@ -40,7 +40,7 @@ class RegistrationPayload(BaseTxPayload):
     transaction_type = TransactionType.REGISTRATION
 
     def __init__(
-        self, sender: str, initialisation: Optional[str] = None, **kwargs: Any
+        self, sender: str, initialisation: str = "{}", **kwargs: Any
     ) -> None:
         """Initialize an 'select_keeper' transaction payload.
 
@@ -52,7 +52,7 @@ class RegistrationPayload(BaseTxPayload):
         self._initialisation = initialisation
 
     @property
-    def initialisation(self) -> Optional[str]:
+    def initialisation(self) -> str:
         """Get the initialisation."""
         return self._initialisation
 
@@ -61,6 +61,4 @@ class RegistrationPayload(BaseTxPayload):
         """Get the data."""
         return (
             dict(initialisation=self.initialisation)
-            if self.initialisation is not None
-            else {}
         )
