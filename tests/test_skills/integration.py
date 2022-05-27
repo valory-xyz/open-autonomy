@@ -53,12 +53,12 @@ from packages.valory.protocols.ledger_api.custom_types import (
     TransactionDigest,
     TransactionReceipt,
 )
-from packages.valory.skills.abstract_round_abci.behaviour_utils import BaseState
+from packages.valory.skills.abstract_round_abci.behaviour_utils import BaseBehaviour
 from packages.valory.skills.liquidity_rebalancing_abci.rounds import (
-    PeriodState as LiquidityRebalancingPeriodState,
+    SynchronizedData as LiquidityRebalancingSynchronizedSata,
 )
 from packages.valory.skills.price_estimation_abci.rounds import (
-    PeriodState as PriceEstimationPeriodState,
+    SynchronizedData as PriceEstimationSynchronizedSata,
 )
 from packages.valory.skills.transaction_settlement_abci.behaviours import (
     FinalizeBehaviour,
@@ -71,7 +71,7 @@ from packages.valory.skills.transaction_settlement_abci.payload_tools import (
 )
 from packages.valory.skills.transaction_settlement_abci.payloads import SignaturePayload
 from packages.valory.skills.transaction_settlement_abci.rounds import (
-    PeriodState as TxSettlementPeriodState,
+    SynchronizedData as TxSettlementSynchronizedSata,
 )
 
 from tests.conftest import ROOT_DIR, make_ledger_api_connection
@@ -254,13 +254,13 @@ class IntegrationBaseCase(FSMBehaviourBaseCase):
     def process_n_messages(
         self,
         ncycles: int,
-        period_state: Union[
-            TxSettlementPeriodState,
-            PriceEstimationPeriodState,
-            LiquidityRebalancingPeriodState,
+        synchronized_data: Union[
+            TxSettlementSynchronizedSata,
+            PriceEstimationSynchronizedSata,
+            LiquidityRebalancingSynchronizedSata,
             None,
         ] = None,
-        state_id: Optional[str] = None,
+        behaviour_id: Optional[str] = None,
         handlers: Optional[HandlersType] = None,
         expected_content: Optional[ExpectedContentType] = None,
         expected_types: Optional[ExpectedTypesType] = None,
@@ -269,9 +269,9 @@ class IntegrationBaseCase(FSMBehaviourBaseCase):
         """
         Process n message cycles.
 
-        :param state_id: the behaviour to fast forward to
+        :param behaviour_id: the behaviour to fast forward to
         :param ncycles: the number of message cycles to process
-        :param period_state: a period_state
+        :param synchronized_data: a synchronized_data
         :param handlers: a list of handlers
         :param expected_content: the expected_content
         :param expected_types: the expected type
@@ -290,13 +290,16 @@ class IntegrationBaseCase(FSMBehaviourBaseCase):
             and len(expected_content) == ncycles
         ), "Number of cycles, handlers, contents and types does not match"
 
-        if state_id is not None and period_state is not None:
-            self.fast_forward_to_state(
+        if behaviour_id is not None and synchronized_data is not None:
+            self.fast_forward_to_behaviour(
                 behaviour=self.behaviour,
-                state_id=state_id,
-                period_state=period_state,
+                behaviour_id=behaviour_id,
+                synchronized_data=synchronized_data,
             )
-            assert cast(BaseState, self.behaviour.current_state).state_id == state_id
+            assert (
+                cast(BaseBehaviour, self.behaviour.current_behaviour).behaviour_id
+                == behaviour_id
+            )
 
         incoming_messages = []
         for i in range(ncycles):
@@ -361,12 +364,12 @@ class _GnosisHelperIntegration(_SafeConfiguredHelperIntegration):
 class _TxHelperIntegration(_GnosisHelperIntegration):
     """Class that assists tx settlement related operations."""
 
-    tx_settlement_period_state: TxSettlementPeriodState
+    tx_settlement_synchronized_data: TxSettlementSynchronizedSata
 
     def sign_tx(self) -> None:
         """Sign a transaction"""
         tx_params = skill_input_hex_to_payload(
-            self.tx_settlement_period_state.most_voted_tx_hash
+            self.tx_settlement_synchronized_data.most_voted_tx_hash
         )
         safe_tx_hash_bytes = binascii.unhexlify(tx_params["safe_tx_hash"])
         participant_to_signature = {}
@@ -381,13 +384,13 @@ class _TxHelperIntegration(_GnosisHelperIntegration):
                 signature=signature_hex,
             )
 
-        self.tx_settlement_period_state.update(
+        self.tx_settlement_synchronized_data.update(
             participant_to_signature=participant_to_signature,
         )
 
         actual_safe_owners = self.gnosis_instance.functions.getOwners().call()
         expected_safe_owners = (
-            self.tx_settlement_period_state.participant_to_signature.keys()
+            self.tx_settlement_synchronized_data.participant_to_signature.keys()
         )
         assert len(actual_safe_owners) == len(expected_safe_owners)
         assert all(
@@ -398,13 +401,13 @@ class _TxHelperIntegration(_GnosisHelperIntegration):
     def send_tx(self, simulate_timeout: bool = False) -> None:
         """Send a transaction"""
 
-        self.fast_forward_to_state(
+        self.fast_forward_to_behaviour(
             behaviour=self.behaviour,
-            state_id=FinalizeBehaviour.state_id,
-            period_state=self.tx_settlement_period_state,
+            behaviour_id=FinalizeBehaviour.behaviour_id,
+            synchronized_data=self.tx_settlement_synchronized_data,
         )
-        behaviour = cast(FinalizeBehaviour, self.behaviour.current_state)
-        assert behaviour.state_id == FinalizeBehaviour.state_id
+        behaviour = cast(FinalizeBehaviour, self.behaviour.current_behaviour)
+        assert behaviour.behaviour_id == FinalizeBehaviour.behaviour_id
         stored_nonce = behaviour.params.nonce
         stored_gas_price = behaviour.params.gas_price
 
@@ -431,7 +434,7 @@ class _TxHelperIntegration(_GnosisHelperIntegration):
         ]
         msg1, _, msg3 = self.process_n_messages(
             3,
-            self.tx_settlement_period_state,
+            self.tx_settlement_synchronized_data,
             None,
             handlers,
             expected_content,
@@ -458,7 +461,7 @@ class _TxHelperIntegration(_GnosisHelperIntegration):
             "tx_digest": cast(str, tx_digest),
         }
 
-        behaviour = cast(FinalizeBehaviour, self.behaviour.current_state)
+        behaviour = cast(FinalizeBehaviour, self.behaviour.current_behaviour)
         assert behaviour.params.gas_price == gas_price_used
         assert behaviour.params.nonce == nonce_used
         if simulate_timeout:
@@ -484,7 +487,7 @@ class _TxHelperIntegration(_GnosisHelperIntegration):
             }, "The used parameters do not match the ones returned from the gas pricing method!"
 
         if not simulate_timeout:
-            hashes = self.tx_settlement_period_state.tx_hashes_history
+            hashes = self.tx_settlement_synchronized_data.tx_hashes_history
             hashes.append(tx_digest)
             update_params = dict(
                 tx_hashes_history="".join(hashes),
@@ -492,14 +495,17 @@ class _TxHelperIntegration(_GnosisHelperIntegration):
             )
         else:
             # store the tx hash that we have missed and update missed messages.
-            assert isinstance(self.behaviour.current_state, FinalizeBehaviour)
+            assert isinstance(self.behaviour.current_behaviour, FinalizeBehaviour)
             self.mock_a2a_transaction()
-            self.behaviour.current_state.params.tx_hash = tx_digest
+            self.behaviour.current_behaviour.params.tx_hash = tx_digest
             update_params = dict(
-                missed_messages=self.tx_settlement_period_state.missed_messages + 1,
+                missed_messages=self.tx_settlement_synchronized_data.missed_messages
+                + 1,
             )
 
-        self.tx_settlement_period_state.update(None, None, **update_params)
+        self.tx_settlement_synchronized_data.update(
+            synchronized_data_class=None, **update_params  # type: ignore
+        )
 
     def validate_tx(self) -> None:
         """Validate the sent transaction."""
@@ -522,8 +528,8 @@ class _TxHelperIntegration(_GnosisHelperIntegration):
         ]
         _, verif_msg = self.process_n_messages(
             2,
-            self.tx_settlement_period_state,
-            ValidateTransactionBehaviour.state_id,
+            self.tx_settlement_synchronized_data,
+            ValidateTransactionBehaviour.behaviour_id,
             handlers,
             expected_content,
             expected_types,
@@ -533,9 +539,9 @@ class _TxHelperIntegration(_GnosisHelperIntegration):
             "verified"
         ], f"Message not verified: {verif_msg.state.body}"
 
-        self.tx_settlement_period_state.update(
+        self.tx_settlement_synchronized_data.update(
             final_verification_status=VerificationStatus.VERIFIED,
-            final_tx_hash=self.tx_settlement_period_state.to_be_validated_tx_hash,
+            final_tx_hash=self.tx_settlement_synchronized_data.to_be_validated_tx_hash,
         )
 
 

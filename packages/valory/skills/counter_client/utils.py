@@ -44,6 +44,8 @@ def curdatetime() -> str:
 
     This is a local method that does not depend on the global clock,
     so the usage of datetime.now() is not a problem here.
+
+    :return: the current time in isoformat.
     """
     datetime.datetime.utcnow()
     return datetime.datetime.now().isoformat()

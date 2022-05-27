@@ -39,7 +39,7 @@ from packages.valory.contracts.uniswap_v2_router_02.contract import (
 from packages.valory.protocols.contract_api import ContractApiMessage
 from packages.valory.skills.abstract_round_abci.behaviours import (
     AbstractRoundBehaviour,
-    BaseState,
+    BaseBehaviour,
 )
 from packages.valory.skills.liquidity_rebalancing_abci.models import Params, SharedState
 from packages.valory.skills.liquidity_rebalancing_abci.payloads import (
@@ -52,10 +52,10 @@ from packages.valory.skills.liquidity_rebalancing_abci.rounds import (
     EnterPoolTransactionHashRound,
     ExitPoolTransactionHashRound,
     LiquidityRebalancingAbciApp,
-    PeriodState,
     SleepRound,
     StrategyEvaluationRound,
     SwapBackTransactionHashRound,
+    SynchronizedData,
 )
 from packages.valory.skills.transaction_settlement_abci.payload_tools import (
     hash_payload_to_hex,
@@ -98,13 +98,13 @@ def parse_tx_token_balance(
     return sum(event["value"] for event in token_events)
 
 
-class LiquidityRebalancingBaseBehaviour(BaseState, ABC):
-    """Base state behaviour for the liquidity rebalancing skill."""
+class LiquidityRebalancingBaseBehaviour(BaseBehaviour, ABC):
+    """Base behaviour for the liquidity rebalancing skill."""
 
     @property
-    def period_state(self) -> PeriodState:
-        """Return the period state."""
-        return cast(PeriodState, super().period_state)
+    def synchronized_data(self) -> SynchronizedData:
+        """Return the synchronized data."""
+        return cast(SynchronizedData, super().synchronized_data)
 
     @property
     def params(self) -> Params:
@@ -160,7 +160,7 @@ class LiquidityRebalancingBaseBehaviour(BaseState, ABC):
         contract_api_kwargs: Dict[str, Any] = dict(
             method_name=method_name,
             path=path,
-            to=self.period_state.safe_contract_address,
+            to=self.synchronized_data.safe_contract_address,
             deadline=deadline,
         )
 
@@ -180,7 +180,7 @@ class LiquidityRebalancingBaseBehaviour(BaseState, ABC):
 
         contract_api_msg = yield from self.get_contract_api_response(
             performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
-            contract_address=self.period_state.router_contract_address,
+            contract_address=self.synchronized_data.router_contract_address,
             contract_id=str(UniswapV2Router02Contract.contract_id),
             contract_callable="get_method_data",
             **contract_api_kwargs,
@@ -189,7 +189,7 @@ class LiquidityRebalancingBaseBehaviour(BaseState, ABC):
 
         return {
             "operation": MultiSendOperation.CALL,
-            "to": self.period_state.router_contract_address,
+            "to": self.synchronized_data.router_contract_address,
             "value": eth_value
             if is_input_native
             else 0,  # Input amount for native tokens
@@ -246,24 +246,24 @@ class LiquidityRebalancingBaseBehaviour(BaseState, ABC):
 
     def get_tx_result(self) -> Generator[None, None, list]:
         """Transaction transfer result."""
-        strategy = json.loads(self.period_state.most_voted_strategy)
+        strategy = json.loads(self.synchronized_data.most_voted_strategy)
         contract_api_msg = yield from self.get_contract_api_response(
             performative=ContractApiMessage.Performative.GET_STATE,  # type: ignore
             contract_address=strategy["token_LP"]["address"],
             contract_id=str(UniswapV2ERC20Contract.contract_id),
             contract_callable="get_transaction_transfer_logs",
-            tx_hash=self.period_state.final_tx_hash,
-            target_address=self.period_state.safe_contract_address,
+            tx_hash=self.synchronized_data.final_tx_hash,
+            target_address=self.synchronized_data.safe_contract_address,
         )
         if contract_api_msg.performative != ContractApiMessage.Performative.STATE:
             self.context.logger.info(
-                f"Error retrieving the transaction logs for hash: {self.period_state.final_tx_hash}"
+                f"Error retrieving the transaction logs for hash: {self.synchronized_data.final_tx_hash}"
             )
             return []  # pragma: nocover
         transfers = cast(list, contract_api_msg.state.body["logs"])
 
         transfer_log_message = (
-            f"The tx with hash {self.period_state.final_tx_hash} ended with the following transfers.\n"
+            f"The tx with hash {self.synchronized_data.final_tx_hash} ended with the following transfers.\n"
             f"Transfers: {str(transfers)}\n"
         )
         self.context.logger.info(transfer_log_message)
@@ -287,7 +287,7 @@ class LiquidityRebalancingBaseBehaviour(BaseState, ABC):
             contract_id=str(UniswapV2ERC20Contract.contract_id),
             contract_callable="get_method_data",
             method_name="approve",
-            spender=self.period_state.router_contract_address,
+            spender=self.synchronized_data.router_contract_address,
             value=value,
         )
 
@@ -304,20 +304,20 @@ class LiquidityRebalancingBaseBehaviour(BaseState, ABC):
 class StrategyEvaluationBehaviour(LiquidityRebalancingBaseBehaviour):
     """Evaluate the financial strategy."""
 
-    state_id = "strategy_evaluation"
+    behaviour_id = "strategy_evaluation"
     matching_round = StrategyEvaluationRound
 
     def async_act(self) -> Generator:
         """Do the action."""
 
-        with self.context.benchmark_tool.measure(self.state_id).local():
+        with self.context.benchmark_tool.measure(self.behaviour_id).local():
 
             # Get the previous strategy or use the dummy one
             # For now, the app will loop between enter-exit-swap_back,
             # unless we start with WAIT. Then it will keep waiting.
             strategy: dict = {}
             try:
-                strategy = json.loads(self.period_state.most_voted_strategy)
+                strategy = json.loads(self.synchronized_data.most_voted_strategy)
 
                 if strategy["action"] == StrategyType.ENTER.value:
                     strategy["action"] = StrategyType.EXIT.value
@@ -339,13 +339,13 @@ class StrategyEvaluationBehaviour(LiquidityRebalancingBaseBehaviour):
             if strategy["action"] == StrategyType.ENTER.value:
                 self.context.logger.info(
                     "Performing strategy update: moving into "
-                    + f"{strategy['token_a']['ticker']}-{strategy['token_b']['ticker']} (pool {self.period_state.router_contract_address})"
+                    + f"{strategy['token_a']['ticker']}-{strategy['token_b']['ticker']} (pool {self.synchronized_data.router_contract_address})"
                 )
 
             if strategy["action"] == StrategyType.EXIT.value:  # pragma: nocover
                 self.context.logger.info(
                     "Performing strategy update: moving out of "
-                    + f"{strategy['token_a']['ticker']}-{strategy['token_b']['ticker']} (pool {self.period_state.router_contract_address})"
+                    + f"{strategy['token_a']['ticker']}-{strategy['token_b']['ticker']} (pool {self.synchronized_data.router_contract_address})"
                 )
 
             if strategy["action"] == StrategyType.SWAP_BACK.value:  # pragma: nocover
@@ -357,7 +357,7 @@ class StrategyEvaluationBehaviour(LiquidityRebalancingBaseBehaviour):
                 self.context.agent_address, json.dumps(strategy, sort_keys=True)
             )
 
-        with self.context.benchmark_tool.measure(self.state_id).consensus():
+        with self.context.benchmark_tool.measure(self.behaviour_id).consensus():
             yield from self.send_a2a_transaction(payload)
             yield from self.wait_until_round_end()
 
@@ -367,7 +367,7 @@ class StrategyEvaluationBehaviour(LiquidityRebalancingBaseBehaviour):
         """Get a dummy strategy."""
         last_timestamp = cast(
             SharedState, self.context.state
-        ).period.abci_app.last_timestamp.timestamp()
+        ).round_sequence.abci_app.last_timestamp.timestamp()
 
         strategy = {
             "action": StrategyType.ENTER.value,
@@ -423,18 +423,18 @@ class StrategyEvaluationBehaviour(LiquidityRebalancingBaseBehaviour):
 class SleepBehaviour(LiquidityRebalancingBaseBehaviour):
     """Wait for a predefined amount of time."""
 
-    state_id = "sleep"
+    behaviour_id = "sleep"
     matching_round = SleepRound
 
     def async_act(self) -> Generator:
         """Do the action."""
 
-        with self.context.benchmark_tool.measure(self.state_id).local():
+        with self.context.benchmark_tool.measure(self.behaviour_id).local():
 
             yield from self.sleep(self.params.rebalancing_params["sleep_seconds"])
             payload = SleepPayload(self.context.agent_address)
 
-        with self.context.benchmark_tool.measure(self.state_id).consensus():
+        with self.context.benchmark_tool.measure(self.behaviour_id).consensus():
             yield from self.send_a2a_transaction(payload)
             yield from self.wait_until_round_end()
 
@@ -454,7 +454,7 @@ class EnterPoolTransactionHashBehaviour(LiquidityRebalancingBaseBehaviour):
     A-B-pool Minter       ->  Safe        : AB_LP tokens
     """
 
-    state_id = "enter_pool_tx_hash"
+    behaviour_id = "enter_pool_tx_hash"
     matching_round = EnterPoolTransactionHashRound
 
     def async_act(self) -> Generator:
@@ -466,12 +466,12 @@ class EnterPoolTransactionHashBehaviour(LiquidityRebalancingBaseBehaviour):
           hash that needs to be signed by a threshold of agents.
         - Send the transaction hash as a transaction and wait for it to be mined.
         - Wait until ABCI application transitions to the next round.
-        - Go to the next behaviour state (set done event).
+        - Go to the next behaviour (set done event).
         """
 
-        with self.context.benchmark_tool.measure(self.state_id).local():
+        with self.context.benchmark_tool.measure(self.behaviour_id).local():
 
-            strategy = json.loads(self.period_state.most_voted_strategy)
+            strategy = json.loads(self.synchronized_data.most_voted_strategy)
 
             # Prepare a uniswap tx list. We should check what token balances we have at this point.
             # It is possible that we don't need to swap. For now let's assume we have just USDT
@@ -536,7 +536,7 @@ class EnterPoolTransactionHashBehaviour(LiquidityRebalancingBaseBehaviour):
             if strategy["token_a"]["is_native"]:
                 contract_api_msg = yield from self.get_contract_api_response(
                     performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
-                    contract_address=self.period_state.router_contract_address,
+                    contract_address=self.synchronized_data.router_contract_address,
                     contract_id=str(UniswapV2Router02Contract.contract_id),
                     contract_callable="get_method_data",
                     method_name="add_liquidity_ETH",
@@ -546,7 +546,7 @@ class EnterPoolTransactionHashBehaviour(LiquidityRebalancingBaseBehaviour):
                         strategy["token_b"]["amount_min_after_add_liq"]
                     ),
                     amount_ETH_min=int(strategy["token_a"]["amount_min_after_add_liq"]),
-                    to=self.period_state.safe_contract_address,
+                    to=self.synchronized_data.safe_contract_address,
                     deadline=strategy["deadline"],
                 )
                 liquidity_data = cast(
@@ -555,7 +555,7 @@ class EnterPoolTransactionHashBehaviour(LiquidityRebalancingBaseBehaviour):
                 multi_send_txs.append(
                     {
                         "operation": MultiSendOperation.CALL,
-                        "to": self.period_state.router_contract_address,
+                        "to": self.synchronized_data.router_contract_address,
                         "value": int(strategy["token_a"]["amount_min_after_add_liq"]),
                         "data": HexBytes(liquidity_data.hex()),
                     }
@@ -564,7 +564,7 @@ class EnterPoolTransactionHashBehaviour(LiquidityRebalancingBaseBehaviour):
             else:
                 contract_api_msg = yield from self.get_contract_api_response(
                     performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
-                    contract_address=self.period_state.router_contract_address,
+                    contract_address=self.synchronized_data.router_contract_address,
                     contract_id=str(UniswapV2Router02Contract.contract_id),
                     contract_callable="get_method_data",
                     method_name="add_liquidity",
@@ -574,7 +574,7 @@ class EnterPoolTransactionHashBehaviour(LiquidityRebalancingBaseBehaviour):
                     amount_b_desired=int(strategy["token_b"]["amount_after_swap"]),
                     amount_a_min=int(strategy["token_a"]["amount_min_after_add_liq"]),
                     amount_b_min=int(strategy["token_b"]["amount_min_after_add_liq"]),
-                    to=self.period_state.safe_contract_address,
+                    to=self.synchronized_data.safe_contract_address,
                     deadline=strategy["deadline"],  # 5 min into the future
                 )
                 liquidity_data = cast(
@@ -583,7 +583,7 @@ class EnterPoolTransactionHashBehaviour(LiquidityRebalancingBaseBehaviour):
                 multi_send_txs.append(
                     {
                         "operation": MultiSendOperation.CALL,
-                        "to": self.period_state.router_contract_address,
+                        "to": self.synchronized_data.router_contract_address,
                         "value": 0,
                         "data": HexBytes(liquidity_data.hex()),
                     }
@@ -592,7 +592,7 @@ class EnterPoolTransactionHashBehaviour(LiquidityRebalancingBaseBehaviour):
             # Get the tx list data from multisend contract
             contract_api_msg = yield from self.get_contract_api_response(
                 performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
-                contract_address=self.period_state.safe_contract_address,
+                contract_address=self.synchronized_data.safe_contract_address,
                 contract_id=str(MultiSendContract.contract_id),
                 contract_callable="get_tx_data",
                 multi_send_txs=multi_send_txs,
@@ -603,10 +603,10 @@ class EnterPoolTransactionHashBehaviour(LiquidityRebalancingBaseBehaviour):
             # Get the tx hash from Gnosis Safe contract
             contract_api_msg = yield from self.get_contract_api_response(
                 performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
-                contract_address=self.period_state.safe_contract_address,
+                contract_address=self.synchronized_data.safe_contract_address,
                 contract_id=str(GnosisSafeContract.contract_id),
                 contract_callable="get_raw_safe_transaction_hash",
-                to_address=self.period_state.multisend_contract_address,
+                to_address=self.synchronized_data.multisend_contract_address,
                 value=0,
                 data=bytes.fromhex(multisend_data),
                 operation=SafeOperation.DELEGATE_CALL.value,
@@ -621,7 +621,7 @@ class EnterPoolTransactionHashBehaviour(LiquidityRebalancingBaseBehaviour):
                 safe_tx_hash=safe_tx_hash,
                 ether_value=0,
                 safe_tx_gas=strategy["safe_tx_gas"]["enter"],
-                to_address=self.period_state.multisend_contract_address,
+                to_address=self.synchronized_data.multisend_contract_address,
                 data=bytes.fromhex(multisend_data),
                 operation=SafeOperation.DELEGATE_CALL.value,
             )
@@ -630,7 +630,7 @@ class EnterPoolTransactionHashBehaviour(LiquidityRebalancingBaseBehaviour):
                 sender=self.context.agent_address, tx_hash=payload_string
             )
 
-        with self.context.benchmark_tool.measure(self.state_id).consensus():
+        with self.context.benchmark_tool.measure(self.behaviour_id).consensus():
             yield from self.send_a2a_transaction(payload)
             yield from self.wait_until_round_end()
 
@@ -646,7 +646,7 @@ class ExitPoolTransactionHashBehaviour(LiquidityRebalancingBaseBehaviour):
     AB_LP        ->  Safe        : B tokens
     """
 
-    state_id = "exit_pool_tx_hash"
+    behaviour_id = "exit_pool_tx_hash"
     matching_round = ExitPoolTransactionHashRound
 
     def async_act(self) -> Generator:  # pylint: disable=too-many-statements
@@ -658,12 +658,12 @@ class ExitPoolTransactionHashBehaviour(LiquidityRebalancingBaseBehaviour):
           hash that needs to be signed by a threshold of agents.
         - Send the transaction hash as a transaction and wait for it to be mined.
         - Wait until ABCI application transitions to the next round.
-        - Go to the next behaviour state (set done event).
+        - Go to the next behaviour (set done event).
         """
 
-        with self.context.benchmark_tool.measure(self.state_id).local():
+        with self.context.benchmark_tool.measure(self.behaviour_id).local():
 
-            strategy = json.loads(self.period_state.most_voted_strategy)
+            strategy = json.loads(self.synchronized_data.most_voted_strategy)
 
             # Get previous transaction's results
             transfers = yield from self.get_tx_result()
@@ -671,20 +671,20 @@ class ExitPoolTransactionHashBehaviour(LiquidityRebalancingBaseBehaviour):
             amount_a_sent: int = parse_tx_token_balance(
                 transfer_logs=transfers,
                 token_address=strategy["token_a"]["address"],
-                source_address=self.period_state.safe_contract_address,
-                destination_address=self.period_state.router_contract_address,
+                source_address=self.synchronized_data.safe_contract_address,
+                destination_address=self.synchronized_data.router_contract_address,
             )
             amount_b_sent: int = parse_tx_token_balance(
                 transfer_logs=transfers,
                 token_address=strategy["token_b"]["address"],
-                source_address=self.period_state.safe_contract_address,
-                destination_address=self.period_state.router_contract_address,
+                source_address=self.synchronized_data.safe_contract_address,
+                destination_address=self.synchronized_data.router_contract_address,
             )
             amount_liquidity_received: int = parse_tx_token_balance(
                 transfer_logs=transfers,
                 token_address=strategy["token_LP"]["address"],
                 source_address=self.params.rebalancing_params["default_minter"],
-                destination_address=self.period_state.safe_contract_address,
+                destination_address=self.synchronized_data.safe_contract_address,
             )
 
             # Prepare a uniswap tx list. We should check what token balances we have at this point.
@@ -705,7 +705,7 @@ class ExitPoolTransactionHashBehaviour(LiquidityRebalancingBaseBehaviour):
 
                 contract_api_msg = yield from self.get_contract_api_response(
                     performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
-                    contract_address=self.period_state.router_contract_address,
+                    contract_address=self.synchronized_data.router_contract_address,
                     contract_id=str(UniswapV2Router02Contract.contract_id),
                     contract_callable="get_method_data",
                     method_name="remove_liquidity_ETH",
@@ -713,7 +713,7 @@ class ExitPoolTransactionHashBehaviour(LiquidityRebalancingBaseBehaviour):
                     liquidity=amount_liquidity_received,
                     amount_token_min=int(amount_b_sent),
                     amount_ETH_min=int(amount_a_sent),
-                    to=self.period_state.safe_contract_address,
+                    to=self.synchronized_data.safe_contract_address,
                     deadline=strategy["deadline"],
                 )
                 liquidity_data = cast(
@@ -724,7 +724,7 @@ class ExitPoolTransactionHashBehaviour(LiquidityRebalancingBaseBehaviour):
 
                 contract_api_msg = yield from self.get_contract_api_response(
                     performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
-                    contract_address=self.period_state.router_contract_address,
+                    contract_address=self.synchronized_data.router_contract_address,
                     contract_id=str(UniswapV2Router02Contract.contract_id),
                     contract_callable="get_method_data",
                     method_name="remove_liquidity",
@@ -733,7 +733,7 @@ class ExitPoolTransactionHashBehaviour(LiquidityRebalancingBaseBehaviour):
                     liquidity=amount_liquidity_received,
                     amount_a_min=int(amount_a_sent),
                     amount_b_min=int(amount_b_sent),
-                    to=self.period_state.safe_contract_address,
+                    to=self.synchronized_data.safe_contract_address,
                     deadline=strategy["deadline"],
                 )
                 liquidity_data = cast(
@@ -743,7 +743,7 @@ class ExitPoolTransactionHashBehaviour(LiquidityRebalancingBaseBehaviour):
             multi_send_txs.append(
                 {
                     "operation": MultiSendOperation.CALL,
-                    "to": self.period_state.router_contract_address,
+                    "to": self.synchronized_data.router_contract_address,
                     "value": 0,
                     "data": HexBytes(liquidity_data.hex()),
                 }
@@ -761,7 +761,7 @@ class ExitPoolTransactionHashBehaviour(LiquidityRebalancingBaseBehaviour):
             # Get the tx list data from multisend contract
             contract_api_msg = yield from self.get_contract_api_response(
                 performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
-                contract_address=self.period_state.safe_contract_address,
+                contract_address=self.synchronized_data.safe_contract_address,
                 contract_id=str(MultiSendContract.contract_id),
                 contract_callable="get_tx_data",
                 multi_send_txs=multi_send_txs,
@@ -772,10 +772,10 @@ class ExitPoolTransactionHashBehaviour(LiquidityRebalancingBaseBehaviour):
             # Get the tx hash from Gnosis Safe contract
             contract_api_msg = yield from self.get_contract_api_response(
                 performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
-                contract_address=self.period_state.safe_contract_address,
+                contract_address=self.synchronized_data.safe_contract_address,
                 contract_id=str(GnosisSafeContract.contract_id),
                 contract_callable="get_raw_safe_transaction_hash",
-                to_address=self.period_state.multisend_contract_address,
+                to_address=self.synchronized_data.multisend_contract_address,
                 value=0,
                 data=bytes.fromhex(multisend_data),
                 operation=SafeOperation.DELEGATE_CALL.value,
@@ -790,7 +790,7 @@ class ExitPoolTransactionHashBehaviour(LiquidityRebalancingBaseBehaviour):
                 safe_tx_hash=safe_tx_hash,
                 ether_value=0,
                 safe_tx_gas=strategy["safe_tx_gas"]["enter"],
-                to_address=self.period_state.multisend_contract_address,
+                to_address=self.synchronized_data.multisend_contract_address,
                 data=bytes.fromhex(multisend_data),
                 operation=SafeOperation.DELEGATE_CALL.value,
             )
@@ -799,7 +799,7 @@ class ExitPoolTransactionHashBehaviour(LiquidityRebalancingBaseBehaviour):
                 sender=self.context.agent_address, tx_hash=payload_string
             )
 
-        with self.context.benchmark_tool.measure(self.state_id).consensus():
+        with self.context.benchmark_tool.measure(self.behaviour_id).consensus():
             yield from self.send_a2a_transaction(payload)
             yield from self.wait_until_round_end()
 
@@ -816,7 +816,7 @@ class SwapBackTransactionHashBehaviour(LiquidityRebalancingBaseBehaviour):
     B-Base-pool  ->  Safe           : Base tokens
     """
 
-    state_id = "swap_back_tx_hash"
+    behaviour_id = "swap_back_tx_hash"
     matching_round = SwapBackTransactionHashRound
 
     def async_act(self) -> Generator:  # pylint: disable=too-many-statements
@@ -828,12 +828,12 @@ class SwapBackTransactionHashBehaviour(LiquidityRebalancingBaseBehaviour):
           hash that needs to be signed by a threshold of agents.
         - Send the transaction hash as a transaction and wait for it to be mined.
         - Wait until ABCI application transitions to the next round.
-        - Go to the next behaviour state (set done event).
+        - Go to the next behaviour (set done event).
         """
 
-        with self.context.benchmark_tool.measure(self.state_id).local():
+        with self.context.benchmark_tool.measure(self.behaviour_id).local():
 
-            strategy = json.loads(self.period_state.most_voted_strategy)
+            strategy = json.loads(self.synchronized_data.most_voted_strategy)
 
             transfers = yield from self.get_tx_result()
             transfers = transfers if transfers else []
@@ -842,13 +842,13 @@ class SwapBackTransactionHashBehaviour(LiquidityRebalancingBaseBehaviour):
                 transfer_logs=transfers,
                 token_address=strategy["token_a"]["address"],
                 source_address=strategy["token_LP"]["address"],
-                destination_address=self.period_state.safe_contract_address,
+                destination_address=self.synchronized_data.safe_contract_address,
             )
             strategy["token_b"]["amount_received"] = parse_tx_token_balance(
                 transfer_logs=transfers,
                 token_address=strategy["token_b"]["address"],
                 source_address=strategy["token_LP"]["address"],
-                destination_address=self.period_state.safe_contract_address,
+                destination_address=self.synchronized_data.safe_contract_address,
             )
 
             # Prepare a uniswap tx list. We should check what token balances we have at this point.
@@ -909,7 +909,7 @@ class SwapBackTransactionHashBehaviour(LiquidityRebalancingBaseBehaviour):
             # Get the tx list data from multisend contract
             contract_api_msg = yield from self.get_contract_api_response(
                 performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
-                contract_address=self.period_state.safe_contract_address,
+                contract_address=self.synchronized_data.safe_contract_address,
                 contract_id=str(MultiSendContract.contract_id),
                 contract_callable="get_tx_data",
                 multi_send_txs=multi_send_txs,
@@ -920,10 +920,10 @@ class SwapBackTransactionHashBehaviour(LiquidityRebalancingBaseBehaviour):
             # Get the tx hash from Gnosis Safe contract
             contract_api_msg = yield from self.get_contract_api_response(
                 performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
-                contract_address=self.period_state.safe_contract_address,
+                contract_address=self.synchronized_data.safe_contract_address,
                 contract_id=str(GnosisSafeContract.contract_id),
                 contract_callable="get_raw_safe_transaction_hash",
-                to_address=self.period_state.multisend_contract_address,
+                to_address=self.synchronized_data.multisend_contract_address,
                 value=0,
                 data=bytes.fromhex(multisend_data),
                 operation=SafeOperation.DELEGATE_CALL.value,
@@ -938,7 +938,7 @@ class SwapBackTransactionHashBehaviour(LiquidityRebalancingBaseBehaviour):
                 safe_tx_hash=safe_tx_hash,
                 ether_value=0,
                 safe_tx_gas=strategy["safe_tx_gas"]["enter"],
-                to_address=self.period_state.multisend_contract_address,
+                to_address=self.synchronized_data.multisend_contract_address,
                 data=bytes.fromhex(multisend_data),
                 operation=SafeOperation.DELEGATE_CALL.value,
             )
@@ -947,7 +947,7 @@ class SwapBackTransactionHashBehaviour(LiquidityRebalancingBaseBehaviour):
                 sender=self.context.agent_address, tx_hash=payload_string
             )
 
-        with self.context.benchmark_tool.measure(self.state_id).consensus():
+        with self.context.benchmark_tool.measure(self.behaviour_id).consensus():
             yield from self.send_a2a_transaction(payload)
             yield from self.wait_until_round_end()
 
@@ -957,9 +957,9 @@ class SwapBackTransactionHashBehaviour(LiquidityRebalancingBaseBehaviour):
 class LiquidityRebalancingConsensusBehaviour(AbstractRoundBehaviour):
     """This behaviour manages the consensus stages for the rebalancing behaviour."""
 
-    initial_state_cls = StrategyEvaluationBehaviour
+    initial_behaviour_cls = StrategyEvaluationBehaviour
     abci_app_cls = LiquidityRebalancingAbciApp  # type: ignore
-    behaviour_states: Set[Type[BaseState]] = {  # type: ignore
+    behaviours: Set[Type[BaseBehaviour]] = {  # type: ignore
         StrategyEvaluationBehaviour,  # type: ignore
         SleepBehaviour,  # type: ignore
         EnterPoolTransactionHashBehaviour,  # type: ignore
