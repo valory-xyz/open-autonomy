@@ -571,7 +571,8 @@ class AbciAppDB:
     @property
     def reset_index(self) -> int:
         """Get the current reset index."""
-        return len(self._data) - 1
+        # should return the last key or 0 if we have no data
+        return list(self._data)[-1] if self._data else 0
 
     @property
     def round_count(self) -> int:
