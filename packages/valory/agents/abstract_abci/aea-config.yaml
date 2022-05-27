@@ -13,7 +13,7 @@ protocols:
 - open_aea/signing:1.0.0:QmQJpw5ZBDravLLZzU6WDdgxvxoT89AtahHPshrqfgoLTg
 - valory/abci:0.1.0:QmaPFp3Jwf6uv9VSAoMJfJHFS9ESPeX8hCB7HLi41c8WzS
 skills:
-- valory/abstract_abci:0.1.0:QmZQnQ2tTwT5Wn2xBDEXi5suerLCi7pEnj6VS4TmDJBhUD
+- valory/abstract_abci:0.1.0:QmVfwEGhpc4EZ5gW5tP4okvJ4kAaAjUBoBnd8seUBUgJAc
 default_ledger: ethereum
 required_ledgers:
 - ethereum

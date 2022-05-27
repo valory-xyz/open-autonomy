@@ -15,11 +15,11 @@ protocols:
 - valory/abci:0.1.0:QmaPFp3Jwf6uv9VSAoMJfJHFS9ESPeX8hCB7HLi41c8WzS
 - valory/http:1.0.0:QmbjfzjKMuRmwbQysyaciASxvY67vGJYj7zjGYADgNux5h
 skills:
-- valory/abstract_abci:0.1.0:QmZQnQ2tTwT5Wn2xBDEXi5suerLCi7pEnj6VS4TmDJBhUD
-- valory/abstract_round_abci:0.1.0:QmVzE4iATGY4vqAZdqoF5U1JiWNjSuUeADacbWw2a1r16p
-- valory/register_reset_abci:0.1.0:QmQYLf5FeE4Cy1KsDtcNAgs5hERJNwaeNuiZurPuogD1UF
-- valory/registration_abci:0.1.0:QmPrJLN3sMN3ytdKfPpxhSVHKrGxV9LkjW6f3XZMsW5HdD
-- valory/reset_pause_abci:0.1.0:QmZLPNDZJPhu1sMQhrsQXrah942ViVEBZxeZwip91cMJnQ
+- valory/abstract_abci:0.1.0:QmVfwEGhpc4EZ5gW5tP4okvJ4kAaAjUBoBnd8seUBUgJAc
+- valory/abstract_round_abci:0.1.0:QmRiLTwYwpw9iTjdYSAWGpd98Uh8LVeqCi6q4fKu1adW8j
+- valory/register_reset_abci:0.1.0:QmV83iWQ6exCjfXi64tE8rtDVCcNYjhFvBLvqje2ouCaaa
+- valory/registration_abci:0.1.0:Qmbm8HHe4JRbrMJoVDNfT3oxAac3dUdYq8VW1NmByCgxFY
+- valory/reset_pause_abci:0.1.0:QmYvnuzqwBeVBDt3B2WtdLcUrU8xo4hbhUp29hhTU9mXaU
 default_ledger: ethereum
 required_ledgers:
 - ethereum

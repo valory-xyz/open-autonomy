@@ -34,6 +34,25 @@ def info(message: AbciMessage, dialogue: AbciDialogue) -> AbciMessage
 
 Handle the 'info' request.
 
+<a id="packages.valory.skills.abstract_round_abci.handlers.ABCIRoundHandler.init_chain"></a>
+
+#### init`_`chain
+
+```python
+def init_chain(message: AbciMessage, dialogue: AbciDialogue) -> AbciMessage
+```
+
+Handle a message of REQUEST_INIT_CHAIN performative.
+
+**Arguments**:
+
+- `message`: the ABCI request.
+- `dialogue`: the ABCI dialogue.
+
+**Returns**:
+
+the response.
+
 <a id="packages.valory.skills.abstract_round_abci.handlers.ABCIRoundHandler.begin_block"></a>
 
 #### begin`_`block

@@ -79,6 +79,24 @@ class ABCIRoundHandler(ABCIHandler):
         )
         return cast(AbciMessage, reply)
 
+    def init_chain(self, message: AbciMessage, dialogue: AbciDialogue) -> AbciMessage:
+        """
+        Handle a message of REQUEST_INIT_CHAIN performative.
+
+        :param message: the ABCI request.
+        :param dialogue: the ABCI dialogue.
+        :return: the response.
+        """
+        validators = message.validators
+        app_hash = self.context.state.round_sequence.root_hash
+        reply = dialogue.reply(
+            performative=AbciMessage.Performative.RESPONSE_INIT_CHAIN,
+            target_message=message,
+            validators=validators,
+            app_hash=app_hash,
+        )
+        return cast(AbciMessage, reply)
+
     def begin_block(  # pylint: disable=no-self-use
         self, message: AbciMessage, dialogue: AbciDialogue
     ) -> AbciMessage:

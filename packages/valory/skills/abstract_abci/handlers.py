@@ -191,7 +191,7 @@ class ABCIHandler(Handler):
         :return: the response.
         """
         validators: List = []
-        app_hash = self.context.state.round_sequence.root_hash
+        app_hash = b""
         reply = dialogue.reply(
             performative=AbciMessage.Performative.RESPONSE_INIT_CHAIN,
             target_message=message,
