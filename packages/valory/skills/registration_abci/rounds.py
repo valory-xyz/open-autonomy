@@ -71,7 +71,7 @@ class RegistrationStartupRound(CollectDifferentUntilAllRound):
         if (  # fast forward at setup
             self.collection_threshold_reached
             and self.block_confirmations > self.required_block_confirmations
-            and self.most_voted_payload is not None
+            and self.most_voted_payload != "{}"
         ):
             initialisation = json.loads(self.most_voted_payload)
             synchronized_data = self.synchronized_data.update(
