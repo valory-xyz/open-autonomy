@@ -99,7 +99,7 @@ class RegistrationRound(CollectDifferentUntilThresholdRound):
 
     round_id = "registration"
     allowed_tx_type = RegistrationPayload.transaction_type
-    payload_attribute = "sender"
+    payload_attribute = "initialization"
     required_block_confirmations = 10
     done_event = Event.DONE
 
@@ -112,9 +112,10 @@ class RegistrationRound(CollectDifferentUntilThresholdRound):
             and self.block_confirmations
             > self.required_block_confirmations  # we also wait here as it gives more (available) agents time to join
         ):
-            synchronized_data = self.synchronized_data.update(
-                participants=frozenset(self.collection),
+            initialization = json.loads(self.most_voted_payload)
+            synchronized_data = self.synchronized_data.new_db(
                 synchronized_data_class=BaseSynchronizedData,
+                data_db=initialization,
             )
             return synchronized_data, Event.DONE
         return None

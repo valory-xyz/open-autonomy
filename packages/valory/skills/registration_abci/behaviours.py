@@ -49,8 +49,8 @@ class RegistrationBaseBehaviour(BaseBehaviour):
 
         with self.context.benchmark_tool.measure(self.behaviour_id).local():
             initialisation = (
-                json.dumps(self.synchronized_data.db.initial_data, sort_keys=True)
-                if self.synchronized_data.db.initial_data != {}
+                json.dumps(self.synchronized_data.db.data, sort_keys=True)
+                if self.synchronized_data.db.data != {}
                 else None
             )
             payload = RegistrationPayload(
