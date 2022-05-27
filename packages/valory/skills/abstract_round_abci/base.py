@@ -2186,6 +2186,11 @@ class RoundSequence:
         """Get the latest synchronized_data."""
         return self.abci_app.synchronized_data
 
+    @property
+    def root_hash(self) -> bytes:
+        """Get the Merkle root hash of the application state."""
+        return b""
+
     def begin_block(self, header: Header) -> None:
         """Begin block."""
         if self.is_finished:

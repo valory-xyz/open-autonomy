@@ -187,7 +187,7 @@ class ABCIRoundHandler(ABCIHandler):
         reply = dialogue.reply(
             performative=AbciMessage.Performative.RESPONSE_COMMIT,
             target_message=message,
-            data=self.context.state.round_sequence._blockchain.current_hash,
+            data=self.context.state.round_sequence.root_hash,
             retain_height=0,
         )
         return cast(AbciMessage, reply)
