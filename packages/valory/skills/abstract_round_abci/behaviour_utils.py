@@ -1548,9 +1548,9 @@ class BaseBehaviour(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
                 return False
 
             self.context.logger.info(
-                f"Previous App Hash: {self.context.state.period_state.app_hash.decode('utf-8')}"
+                f"Previous App Hash: {self.context.state.synchronized_data.app_hash.decode('utf-8')}"
             )
-            self.context.state.period_state.app_hash = app_hash.encode("utf-8")
+            self.context.state.synchronized_data.app_hash = app_hash.encode("utf-8")
             self.context.logger.info(f"Current App Hash: {app_hash}")
 
             last_round_transition_timestamp = (
