@@ -381,10 +381,10 @@ class TendermintParams:  # pylint: disable=too-few-public-methods
     def __init__(  # pylint: disable=too-many-arguments
         self,
         proxy_app: str,
-        rpc_laddr: str,
-        p2p_laddr: str,
-        p2p_seeds: List[str],
-        consensus_create_empty_blocks: bool,
+        rpc_laddr: str = DEFAULT_RPC_LISTEN_ADDRESS,
+        p2p_laddr: str = DEFAULT_P2P_LISTEN_ADDRESS,
+        p2p_seeds: List[str] = None,
+        consensus_create_empty_blocks: bool = True,
         home: Optional[str] = None,
     ):
         """

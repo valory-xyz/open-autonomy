@@ -30,8 +30,8 @@ from typing import Any, List, Optional
 
 
 DEFAULT_LOG_FILE = "tendermint.log"
-DEFAULT_P2P_LADDR = "tcp://0.0.0.0:26656"
-DEFAULT_RPC_LADDR = "tcp://0.0.0.0:26657"
+DEFAULT_P2P_LISTEN_ADDRESS = "tcp://0.0.0.0:26656"
+DEFAULT_RPC_LISTEN_ADDRESS = "tcp://0.0.0.0:26657"
 
 
 class StoppableThread(Thread):
@@ -57,9 +57,10 @@ class TendermintParams:  # pylint: disable=too-few-public-methods
     def __init__(  # pylint: disable=too-many-arguments
         self,
         proxy_app: str,
-        consensus_create_empty_blocks: bool,
-        p2p_laddr: str = DEFAULT_P2P_LADDR,
-        rpc_laddr: str = DEFAULT_RPC_LADDR,
+        rpc_laddr: str = DEFAULT_RPC_LISTEN_ADDRESS,
+        p2p_laddr: str = DEFAULT_P2P_LISTEN_ADDRESS,
+        p2p_seeds: List[str] = None,
+        consensus_create_empty_blocks: bool = True,
         home: Optional[str] = None,
     ):
         """
@@ -68,14 +69,29 @@ class TendermintParams:  # pylint: disable=too-few-public-methods
         :param proxy_app: ABCI address.
         :param rpc_laddr: RPC address.
         :param p2p_laddr: P2P address.
+        :param p2p_seeds: P2P seeds.
         :param consensus_create_empty_blocks: if true, Tendermint node creates empty blocks.
         :param home: Tendermint's home directory.
         """
         self.proxy_app = proxy_app
-        self.p2p_laddr = p2p_laddr
         self.rpc_laddr = rpc_laddr
+        self.p2p_laddr = p2p_laddr
+        self.p2p_seeds = p2p_seeds
         self.consensus_create_empty_blocks = consensus_create_empty_blocks
         self.home = home
+
+    def __str__(self) -> str:
+        """Get the string representation."""
+        return (
+            f"{self.__class__.__name__}("
+            f"    proxy_app={self.proxy_app},\n"
+            f"    rpc_laddr={self.rpc_laddr},\n"
+            f"    p2p_laddr={self.p2p_laddr},\n"
+            f"    p2p_seeds={self.p2p_seeds},\n"
+            f"    consensus_create_empty_blocks={self.consensus_create_empty_blocks},\n"
+            f"    home={self.home},\n"
+            ")"
+        )
 
 
 class TendermintNode:
@@ -113,6 +129,7 @@ class TendermintNode:
             f"--proxy_app={self.params.proxy_app}",
             f"--rpc.laddr={self.params.rpc_laddr}",
             f"--p2p.laddr={self.params.p2p_laddr}",
+            f"--p2p.seeds={','.join(self.params.p2p_seeds)}",
             f"--consensus.create_empty_blocks={str(self.params.consensus_create_empty_blocks).lower()}",
         ]
         if self.params.home is not None:  # pragma: nocover
