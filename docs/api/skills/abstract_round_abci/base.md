@@ -467,6 +467,17 @@ def last_block() -> Block
 
 Returns the last stored block.
 
+<a id="packages.valory.skills.abstract_round_abci.base.Blockchain.current_hash"></a>
+
+#### current`_`hash
+
+```python
+@property
+def current_hash() -> bytes
+```
+
+Get the current hash.
+
 <a id="packages.valory.skills.abstract_round_abci.base.BlockBuilder"></a>
 
 ## BlockBuilder Objects
@@ -2251,6 +2262,17 @@ def latest_synchronized_data() -> BaseSynchronizedData
 ```
 
 Get the latest synchronized_data.
+
+<a id="packages.valory.skills.abstract_round_abci.base.RoundSequence.root_hash"></a>
+
+#### root`_`hash
+
+```python
+@property
+def root_hash() -> bytes
+```
+
+Get the Merkle root hash of the application state.
 
 <a id="packages.valory.skills.abstract_round_abci.base.RoundSequence.begin_block"></a>
 
