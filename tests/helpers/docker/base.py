@@ -32,7 +32,7 @@ from docker.errors import ImageNotFound, NotFound
 from docker.models.containers import Container
 
 
-SEPARATOR = ("\n" + "*" * 40 ) * 3 + "\n"
+SEPARATOR = ("\n" + "*" * 40) * 3 + "\n"
 logger = logging.getLogger(__name__)
 
 
@@ -134,7 +134,9 @@ def _start_container(
     success = image.wait(max_attempts, timeout)
     if not success:
         container.stop()
-        logger.error(f"{SEPARATOR}Logs from container {container.name}:\n{container.logs().decode()}")
+        logger.error(
+            f"{SEPARATOR}Logs from container {container.name}:\n{container.logs().decode()}"
+        )
         container.remove()
         pytest.fail(f"{image.tag} doesn't work. Exiting...")
     else:
@@ -151,9 +153,7 @@ def _stop_container(container: Container, tag: str) -> None:
             f"{SEPARATOR}Logs from container {container.name}:\n{container.logs().decode()}"
         )
         if str(container.name).startswith("node"):
-            logger.info(
-                f"{SEPARATOR}Logs from container log file {container.name}:\n"
-            )
+            logger.info(f"{SEPARATOR}Logs from container log file {container.name}:\n")
             bits, _ = container.get_archive(f"/logs/{container.name}.txt")
             for chunk in bits:
                 logger.info(chunk.decode())
@@ -221,7 +221,7 @@ class DockerBaseTest(ABC):
         cls._image.stop_if_already_running()
         cls._container = cls._image.create()
         cls._container.start()
-        logger.debug(f"Setting up image {cls._image.tag}...")
+        logger.info(f"Setting up image {cls._image.tag}...")
         success = cls._image.wait(cls.max_attempts, cls.timeout)
         if not success:
             cls._container.stop()
@@ -240,7 +240,9 @@ class DockerBaseTest(ABC):
         """Tear down the test."""
         logger.info(f"Stopping the image {cls._image.tag}...")
         cls._container.stop()
-        logger.info(f"{SEPARATOR}Logs from container {cls._container.name}:\n{cls._container.logs().decode()}")
+        logger.info(
+            f"{SEPARATOR}Logs from container {cls._container.name}:\n{cls._container.logs().decode()}"
+        )
         cls._container.remove()
 
     @classmethod
