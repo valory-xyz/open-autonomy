@@ -399,10 +399,10 @@ class BaseTestEnd2EndAgentCatchup(BaseTestEnd2End):
             max_retries=self.HEALTH_CHECK_MAX_RETRIES,
             sleep_interval=self.HEALTH_CHECK_SLEEP_INTERVAL,
         )
-        self._stop_and_restart_last_agent()
+        self._stop_and_restart_last_agent(nb_nodes)
         self.check_aea_messages()
 
-    def _stop_and_restart_last_agent(self) -> None:
+    def _stop_and_restart_last_agent(self, nb_agents: int) -> None:
         """Stops and restarts the last agents when stop string is found."""
         # stop the last agent as soon as the "stop string" is found in the output
         process_to_stop = self.processes[-1]
@@ -425,4 +425,4 @@ class BaseTestEnd2EndAgentCatchup(BaseTestEnd2End):
 
         # restart agent
         logging.info("Restart the agent")
-        self._launch_agent_i(-1)
+        self._launch_agent_i(-1, nb_agents)
