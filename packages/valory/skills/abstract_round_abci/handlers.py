@@ -28,7 +28,7 @@ from aea.skills.base import Handler
 
 from packages.open_aea.protocols.signing import SigningMessage
 from packages.valory.protocols.abci import AbciMessage
-from packages.valory.protocols.abci.custom_types import Events
+from packages.valory.protocols.abci.custom_types import Events, ValidatorUpdates
 from packages.valory.protocols.contract_api import ContractApiMessage
 from packages.valory.protocols.http import HttpMessage
 from packages.valory.protocols.ledger_api import LedgerApiMessage
@@ -119,7 +119,7 @@ class ABCIRoundHandler(ABCIHandler):
         reply = dialogue.reply(
             performative=AbciMessage.Performative.RESPONSE_INIT_CHAIN,
             target_message=message,
-            validators=validators,
+            validators=ValidatorUpdates(validators),
             app_hash=app_hash,
         )
         return cast(AbciMessage, reply)
