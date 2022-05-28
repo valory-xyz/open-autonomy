@@ -30,7 +30,6 @@ VOLUME /tm_state
 EXPOSE 26656 26657
 ENV FLASK_APP=/app/app.py
 ENV FLASK_ENV=production
-#ENV FLASK_APP="app.app:make_tendermint_server()"
 
 STOPSIGNAL SIGTERM
 WORKDIR /tendermint

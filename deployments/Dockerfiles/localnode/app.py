@@ -30,7 +30,7 @@ import requests
 from flask import Flask, Response, jsonify, request
 from werkzeug.exceptions import InternalServerError, NotFound
 
-try:  # crying face
+try:
     from .tendermint import TendermintNode, TendermintParams
 except:
     from tendermint import TendermintNode, TendermintParams
@@ -202,12 +202,6 @@ def create_app(dump_dir: Optional[Path] = None):
     return app, tendermint_node
 
 
-def make_tendermint_server():
-    """Create the flask application."""
-    app, _ = create_app()
-    return app
-
-
 if __name__ == "__main__":
-    tendermint_app = make_tendermint_server()
+    tendermint_app, _ = create_app()
     tendermint_app.run()
