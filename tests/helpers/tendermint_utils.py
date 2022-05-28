@@ -18,6 +18,7 @@
 # ------------------------------------------------------------------------------
 
 """Helpers for Tendermint."""
+import logging
 import subprocess  # nosec
 from pathlib import Path
 from typing import Any, List
@@ -149,6 +150,7 @@ class BaseTendermintTestClass:
         tendermint_net: TendermintLocalNetworkBuilder, **kwargs: Any
     ) -> None:
         """Do a health-check of the Tendermint network."""
+        logging.info("Waiting for Tendermint nodes to be up")
         for rpc_addr in tendermint_net.http_rpc_laddrs:
             if not tendermint_health_check(rpc_addr, **kwargs):
                 pytest.fail(f"Tendermint node {rpc_addr} did not pass health-check")

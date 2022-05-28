@@ -36,14 +36,28 @@ EXPECTED_ROUND_LOG_COUNT = {
 
 
 @pytest.mark.parametrize("nb_nodes", (4,))
+class TestTendermintStartup(BaseTestEnd2EndNormalExecution):
+    """Test the ABCI register-reset skill with 4 agents starting up."""
+
+    agent_package = "valory/register_reset:0.1.0"
+    skill_package = "valory/register_reset_abci:0.1.0"
+    round_check_strings_to_n_periods = {
+        "registration_startup": 1,
+        "reset_and_pause": 1,
+    }
+    wait_to_finish = 20
+
+
+@pytest.mark.parametrize("nb_nodes", (4,))
 class TestTendermintReset(BaseTestEnd2EndNormalExecution):
     """Test the ABCI register-reset skill with 4 agents when resetting Tendermint."""
 
     agent_package = "valory/register_reset:0.1.0"
     skill_package = "valory/register_reset_abci:0.1.0"
+    cli_log_options = ["-v", "INFO"]
     round_check_strings_to_n_periods = EXPECTED_ROUND_LOG_COUNT
-    wait_to_finish = 120
-    __reset_tendermint_every = 1
+    wait_to_finish = 200
+    __reset_tendermint_every = 2
     __args_prefix = f"vendor.valory.skills.{PublicId.from_str(skill_package).name}.models.params.args"
     # reset every `__reset_tendermint_every` rounds
     extra_configs = [
