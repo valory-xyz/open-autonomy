@@ -231,4 +231,5 @@ def _build_dirs(build_dir: Path) -> None:
     ]:
         path = Path(build_dir, *dir_path)
         path.mkdir()
+        # TOFIX for macOS
         os.chown(path, 1000, 1000)

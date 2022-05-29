@@ -9,6 +9,7 @@ Valory application deployments can be built on the fly.
 To learn about generating the deployment configuration, run the following command:
 
 ```bash
+TOFIX
 python deployments/click_create.py build-deployment --help
 ```
 
@@ -36,6 +37,7 @@ make build-images
 
 Next, run the command to generate the relevant build configuration:
 ```bash
+TOFIX
 python deployments/click_create.py build-deployment \
     --valory-app oracle_hardhat \
     --deployment-type docker-compose \
