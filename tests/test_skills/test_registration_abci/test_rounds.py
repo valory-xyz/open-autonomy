@@ -20,7 +20,7 @@
 """Test the rounds.py module of the skill."""
 
 import json
-from typing import Optional, cast
+from typing import Dict, Optional, cast
 
 from packages.valory.skills.abstract_round_abci.base import AbciAppDB
 from packages.valory.skills.abstract_round_abci.base import (
@@ -149,7 +149,11 @@ class TestRegistrationRound(BaseCollectDifferentUntilThresholdRoundTest):
             synchronized_data=self.synchronized_data,
             consensus_params=self.consensus_params,
         )
-        self._run_with_round(test_round, RegistrationEvent.DONE, 10)
+        self._run_with_round(
+            test_round=test_round,
+            expected_event=RegistrationEvent.DONE,
+            confirmations=10,
+        )
 
     def test_run_default_not_finished(
         self,
@@ -171,20 +175,23 @@ class TestRegistrationRound(BaseCollectDifferentUntilThresholdRoundTest):
     def _run_with_round(
         self,
         test_round: RegistrationRound,
+        round_payloads: Optional[Dict] = None,
         expected_event: Optional[RegistrationEvent] = None,
         confirmations: Optional[int] = None,
         finished: bool = True,
     ) -> None:
         """Run with given round."""
 
+        round_payloads = round_payloads or dict(
+            [
+                (participant, RegistrationPayload(sender=participant))
+                for participant in self.participants
+            ]
+        )
+
         test_runner = self._test_round(
             test_round=test_round,
-            round_payloads=dict(
-                [
-                    (participant, RegistrationPayload(sender=participant))
-                    for participant in self.participants
-                ]
-            ),
+            round_payloads=round_payloads,
             synchronized_data_update_fn=(
                 lambda *x: SynchronizedData(
                     AbciAppDB(
@@ -208,3 +215,48 @@ class TestRegistrationRound(BaseCollectDifferentUntilThresholdRoundTest):
         assert test_round.block_confirmations == prior_confirmations + 1
         if finished:
             next(test_runner)
+
+    def test_run_tie(
+        self,
+    ) -> None:
+        """Run test."""
+        self.synchronized_data = cast(
+            SynchronizedData,
+            self.synchronized_data.update(
+                safe_contract_address="stub_safe_contract_address",
+                oracle_contract_address="stub_oracle_contract_address",
+            ),
+        )
+        test_round = RegistrationRound(
+            synchronized_data=self.synchronized_data,
+            consensus_params=self.consensus_params,
+        )
+
+        initialisations = [
+            {"dummy_key_1": "dummy_value_1"},
+            {"dummy_key_1": "dummy_value_1"},
+            {"dummy_key_1": "dummy_value_2"},
+            {"dummy_key_1": "dummy_value_2"},
+        ]
+
+        round_payloads = dict(
+            [
+                (
+                    participant,
+                    RegistrationPayload(
+                        sender=participant,
+                        initialisation=json.dumps(initialisation, sort_keys=True),
+                    ),
+                )
+                for participant, initialisation in zip(
+                    self.participants, initialisations
+                )
+            ]
+        )
+
+        self._run_with_round(
+            test_round=test_round,
+            round_payloads=round_payloads,
+            expected_event=RegistrationEvent.NO_MAJORITY,
+            confirmations=10,
+        )
