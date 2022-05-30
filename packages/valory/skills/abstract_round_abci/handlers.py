@@ -19,7 +19,7 @@
 
 """This module contains the handler for the 'abstract_round_abci' skill."""
 from abc import ABC
-from typing import Callable, FrozenSet, Optional, cast
+from typing import Callable, FrozenSet, List, Optional, cast
 
 from aea.configurations.data_types import PublicId
 from aea.protocols.base import Message
@@ -28,7 +28,7 @@ from aea.skills.base import Handler
 
 from packages.open_aea.protocols.signing import SigningMessage
 from packages.valory.protocols.abci import AbciMessage
-from packages.valory.protocols.abci.custom_types import Events
+from packages.valory.protocols.abci.custom_types import Events, ValidatorUpdates
 from packages.valory.protocols.contract_api import ContractApiMessage
 from packages.valory.protocols.http import HttpMessage
 from packages.valory.protocols.ledger_api import LedgerApiMessage
@@ -62,12 +62,30 @@ class ABCIRoundHandler(ABCIHandler):
     def info(  # pylint: disable=no-self-use,useless-super-delegation
         self, message: AbciMessage, dialogue: AbciDialogue
     ) -> AbciMessage:
-        """Handle the 'info' request."""
+        """
+        Handle the 'info' request.
+
+        As per Tendermint spec (https://github.com/tendermint/spec/blob/038f3e025a19fed9dc96e718b9834ab1b545f136/spec/abci/abci.md#info):
+
+        - Return information about the application state.
+        - Used to sync Tendermint with the application during a handshake that happens on startup.
+        - The returned app_version will be included in the Header of every block.
+        - Tendermint expects last_block_app_hash and last_block_height to be updated during Commit, ensuring that Commit is never called twice for the same block height.
+
+        :param message: the ABCI request.
+        :param dialogue: the ABCI dialogue.
+        :return: the response.
+        """
+        # some arbitrary information
         info_data = ""
+        # the application software semantic version
         version = ""
+        # the application protocol version
         app_version = 0
+        # latest block for which the app has called Commit
         last_block_height = self.context.state.round_sequence.height
-        last_block_app_hash = self.context.state.synchronized_data.app_hash
+        # latest result of Commit
+        last_block_app_hash = self.context.state.round_sequence.root_hash
         reply = dialogue.reply(
             performative=AbciMessage.Performative.RESPONSE_INFO,
             target_message=message,
@@ -83,16 +101,25 @@ class ABCIRoundHandler(ABCIHandler):
         """
         Handle a message of REQUEST_INIT_CHAIN performative.
 
+        As per Tendermint spec (https://github.com/tendermint/spec/blob/038f3e025a19fed9dc96e718b9834ab1b545f136/spec/abci/abci.md#initchain):
+
+        - Called once upon genesis.
+        - If ResponseInitChain.Validators is empty, the initial validator set will be the RequestInitChain.Validators.
+        - If ResponseInitChain.Validators is not empty, it will be the initial validator set (regardless of what is in RequestInitChain.Validators).
+        - This allows the app to decide if it wants to accept the initial validator set proposed by tendermint (ie. in the genesis file), or if it wants to use a different one (perhaps computed based on some application specific information in the genesis file).
+
         :param message: the ABCI request.
         :param dialogue: the ABCI dialogue.
         :return: the response.
         """
-        validators = message.validators
-        app_hash = self.context.state.round_sequence.root_hash
+        # Initial validator set (optional).
+        validators: List = []
+        # Initial application hash.
+        app_hash = self.context.state.synchronized_data.app_hash
         reply = dialogue.reply(
             performative=AbciMessage.Performative.RESPONSE_INIT_CHAIN,
             target_message=message,
-            validators=validators,
+            validators=ValidatorUpdates(validators),
             app_hash=app_hash,
         )
         return cast(AbciMessage, reply)
@@ -195,18 +222,36 @@ class ABCIRoundHandler(ABCIHandler):
     def commit(  # pylint: disable=no-self-use
         self, message: AbciMessage, dialogue: AbciDialogue
     ) -> AbciMessage:
-        """Handle the 'commit' request."""
+        """
+        Handle the 'commit' request.
+
+        As per Tendermint spec (https://github.com/tendermint/spec/blob/038f3e025a19fed9dc96e718b9834ab1b545f136/spec/abci/abci.md#commit):
+
+        Empty request meant to signal to the app it can write state transitions to state.
+
+        - Persist the application state.
+        - Return a Merkle root hash of the application state.
+        - It's critical that all application instances return the same hash. If not, they will not be able to agree on the next block, because the hash is included in the next block!
+
+        :param message: the ABCI request.
+        :param dialogue: the ABCI dialogue.
+        :return: the response.
+        """
         try:
             cast(SharedState, self.context.state).round_sequence.commit()
         except AddBlockError as exception:
             self._log_exception(exception)
             raise exception
+        # The Merkle root hash of the application state.
+        data = self.context.state.round_sequence.root_hash
+        # Blocks below this height may be removed. Defaults to 0 (retain all).
+        retain_height = 0
         # return commit success
         reply = dialogue.reply(
             performative=AbciMessage.Performative.RESPONSE_COMMIT,
             target_message=message,
-            data=self.context.state.round_sequence.root_hash,
-            retain_height=0,
+            data=data,
+            retain_height=retain_height,
         )
         return cast(AbciMessage, reply)
 

@@ -19,7 +19,6 @@
 
 """This module contains the base classes for the models classes of the skill."""
 import datetime
-import hashlib
 import heapq
 import itertools
 import logging
@@ -657,9 +656,8 @@ class BaseSynchronizedData:
     ) -> None:
         """Initialize the synchronized data."""
         self._db = db
-        self._app_hash = (
-            hashlib.sha256(str(self.db).encode("utf-8")).hexdigest().encode("utf-8")
-        )
+        # we initialise the app hash to empty bytes to match default Tendermint genesis
+        self._app_hash = b""
 
     @property
     def db(self) -> AbciAppDB:
@@ -668,8 +666,7 @@ class BaseSynchronizedData:
 
     @property
     def app_hash(self) -> bytes:
-        """Get the app hash, generated from the state db."""
-        # using `sha256` in order to get a fixed size hash
+        """Get the app hash."""
         return self._app_hash
 
     @app_hash.setter

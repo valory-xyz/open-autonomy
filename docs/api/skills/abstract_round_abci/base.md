@@ -869,7 +869,7 @@ Get DB.
 def app_hash() -> bytes
 ```
 
-Get the app hash, generated from the state db.
+Get the app hash.
 
 <a id="packages.valory.skills.abstract_round_abci.base.BaseSynchronizedData.app_hash"></a>
 
