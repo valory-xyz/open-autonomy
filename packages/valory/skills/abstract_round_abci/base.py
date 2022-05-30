@@ -757,7 +757,7 @@ class BaseSynchronizedData:
 
     def __repr__(self) -> str:
         """Return a string representation of the data."""
-        return f"{self.__class__.__name__}(db={self._db})"
+        return f"{self.__class__.__name__}(db={self._db})(app_hash={self.app_hash.decode('utf-8')})"
 
     @property
     def keeper_randomness(self) -> float:
