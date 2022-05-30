@@ -7,7 +7,7 @@ aea_version: '>=1.0.0, <2.0.0'
 fingerprint: {}
 fingerprint_ignore_patterns: []
 connections:
-- valory/abci:0.1.0:QmUq4z19VS9G1TfnZdKy818F7maQopAor4NGe9t4DgzwyJ
+- valory/abci:0.1.0:QmNWi4YmMgcvdq7yKkfbC2QgJkK1C7G7CnqHa2q5Pi6rsB
 - valory/http_client:0.1.0:QmakgWmx4CGuQuafUELiceH53N8HfgdfkQJpem7iYy9MVN
 contracts: []
 protocols:
@@ -15,9 +15,9 @@ protocols:
 - valory/abci:0.1.0:QmaPFp3Jwf6uv9VSAoMJfJHFS9ESPeX8hCB7HLi41c8WzS
 - valory/http:1.0.0:QmbjfzjKMuRmwbQysyaciASxvY67vGJYj7zjGYADgNux5h
 skills:
-- valory/abstract_abci:0.1.0:QmVfwEGhpc4EZ5gW5tP4okvJ4kAaAjUBoBnd8seUBUgJAc
-- valory/abstract_round_abci:0.1.0:QmVa6jjPsZcFC7fCLSR2ypt5ssC5L5BrS1QF8pacGJV83t
-- valory/hello_world_abci:0.1.0:QmcQACT3CWpUgSb2tbbJBJ85itWR2iUJCfNw4CtLBcN5DF
+- valory/abstract_abci:0.1.0:QmarurmbSFZ74wcogyxRSwkYJ246cYf3W39Hcb3XULoLMD
+- valory/abstract_round_abci:0.1.0:QmPfAR1RcwVqb4YFvFy7hDKbSgpWdhbzirHfL4CESdGRKz
+- valory/hello_world_abci:0.1.0:QmakcXUJR9KMeQ1LBkEPRoM4r6UVcRAyWq9S7eP7zDW1wZ
 default_ledger: ethereum
 required_ledgers:
 - ethereum

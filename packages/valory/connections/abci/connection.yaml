@@ -49,7 +49,7 @@ config:
     rpc_laddr: tcp://127.0.0.1:26657
     home: null
     consensus_create_empty_blocks: true
-  use_tendermint: true
+  use_tendermint: false
 excluded_protocols: []
 restricted_to_protocols: []
 dependencies: {}

@@ -7,7 +7,7 @@ aea_version: '>=1.0.0, <2.0.0'
 fingerprint: {}
 fingerprint_ignore_patterns: []
 connections:
-- valory/abci:0.1.0:QmUq4z19VS9G1TfnZdKy818F7maQopAor4NGe9t4DgzwyJ
+- valory/abci:0.1.0:QmNWi4YmMgcvdq7yKkfbC2QgJkK1C7G7CnqHa2q5Pi6rsB
 - valory/http_client:0.1.0:QmakgWmx4CGuQuafUELiceH53N8HfgdfkQJpem7iYy9MVN
 contracts: []
 protocols:
@@ -15,11 +15,11 @@ protocols:
 - valory/abci:0.1.0:QmaPFp3Jwf6uv9VSAoMJfJHFS9ESPeX8hCB7HLi41c8WzS
 - valory/http:1.0.0:QmbjfzjKMuRmwbQysyaciASxvY67vGJYj7zjGYADgNux5h
 skills:
-- valory/abstract_abci:0.1.0:QmVfwEGhpc4EZ5gW5tP4okvJ4kAaAjUBoBnd8seUBUgJAc
-- valory/abstract_round_abci:0.1.0:QmVa6jjPsZcFC7fCLSR2ypt5ssC5L5BrS1QF8pacGJV83t
-- valory/register_reset_abci:0.1.0:QmW72fVakFudeg9no4UuR5j7k1TD4uEpJBwYyDTdyYsstY
-- valory/registration_abci:0.1.0:Qmey7ERJUUSnNRsDiaJBZ42hfwswpXtYS3zjyxu4MbGoei
-- valory/reset_pause_abci:0.1.0:QmboQfdjogsfsu13jUMRnbNAuk7XV1pj3JqCxh7RvdMUa6
+- valory/abstract_abci:0.1.0:QmarurmbSFZ74wcogyxRSwkYJ246cYf3W39Hcb3XULoLMD
+- valory/abstract_round_abci:0.1.0:QmPfAR1RcwVqb4YFvFy7hDKbSgpWdhbzirHfL4CESdGRKz
+- valory/register_reset_abci:0.1.0:QmUKKmXRZgCE7dMGRZvcgiq6G8BqUJNCPJwkpWnK2myPBR
+- valory/registration_abci:0.1.0:QmYTQ5XjuM4kVSK1xnwmqDQw8fqduSmPRRFVXFeAx3mEq6
+- valory/reset_pause_abci:0.1.0:QmY4CAB6MysVzUzX56kpXeKnxjRyPsvoM532M5ywo7td3n
 default_ledger: ethereum
 required_ledgers:
 - ethereum
@@ -50,3 +50,23 @@ public_id: valory/abci:0.1.0
 type: connection
 config:
   target_skill_id: valory/register_reset_abci:0.1.0
+  host: ${ABCI_HOST:str}
+  port: ${ABCI_PORT:int:26658}
+  use_tendermint: ${ABCI_USE_TENDERMINT:bool:false}
+---
+public_id: valory/register_reset_abci:0.1.0
+type: skill
+models:
+  benchmark_tool:
+    args:
+      log_dir: ${SKILL_ORACLE_ABCI_MODELS_BENCHMARK_TOOL_ARGS_LOG_DIR:str:/benchmarks}
+  params:
+    args:
+      consensus:
+        max_participants: ${MAX_PARTICIPANTS:int}
+      round_timeout_seconds: ${ORACLE_PARAMS_ROUND_TIMEOUT_SECONDS:float:7.0}
+      tendermint_url: ${TENDERMINT_URL:str}
+      tendermint_com_url: ${TENDERMINT_COM_URL:str}
+      reset_tendermint_after: ${SKILL_ORACLE_ABCI_MODELS_PARAMS_ARGS_RESET_TENDERMINT_AFTER:int:10}
+      observation_interval: ${SKILL_ORACLE_ABCI_MODELS_PARAMS_ARGS_OBSERVATION_INTERVAL:int:300}
+      max_healthcheck: ${SKILL_ORACLE_ABCI_MODELS_PARAMS_ARGS_MAX_HEALTHCHECK:int:1200}
