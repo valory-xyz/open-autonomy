@@ -167,7 +167,7 @@ class TestTendermintServerUtilityFunctions(BaseTendermintTest):
 
     def test_get_defaults(self) -> None:
         """Test get_defaults function"""
-        expected_keys = {"genesis_time", "app_hash"}
+        expected_keys = {"genesis_time"}
         defaults = get_defaults()
         assert set(defaults.keys()) == expected_keys
 

@@ -305,7 +305,7 @@ Tendermint node parameters.
 #### `__`init`__`
 
 ```python
-def __init__(proxy_app: str, rpc_laddr: str = DEFAULT_RPC_LISTEN_ADDRESS, p2p_laddr: str = DEFAULT_P2P_LISTEN_ADDRESS, p2p_seeds: List[str] = None, consensus_create_empty_blocks: bool = True, home: Optional[str] = None)
+def __init__(proxy_app: str, rpc_laddr: str = DEFAULT_RPC_LISTEN_ADDRESS, p2p_laddr: str = DEFAULT_P2P_LISTEN_ADDRESS, p2p_seeds: Optional[List[str]] = None, consensus_create_empty_blocks: bool = True, home: Optional[str] = None)
 ```
 
 Initialize the parameters to the Tendermint node.
@@ -369,7 +369,7 @@ Initialize Tendermint node.
 #### start
 
 ```python
-def start() -> None
+def start(start_monitoring: bool = False) -> None
 ```
 
 Start a Tendermint node process.
@@ -419,7 +419,7 @@ Check server status.
 #### reset`_`genesis`_`file
 
 ```python
-def reset_genesis_file(genesis_time: str, app_hash: str) -> None
+def reset_genesis_file(genesis_time: str) -> None
 ```
 
 Reset genesis file.

@@ -142,7 +142,7 @@ class TendermintNode:
         cmd = self._build_init_command()
         subprocess.call(cmd)  # nosec
 
-    def start(self, start_monitoring=False) -> None:
+    def start(self, start_monitoring: bool = False) -> None:
         """Start a Tendermint node process."""
         self._start_tm_process()
         if start_monitoring:
@@ -226,11 +226,10 @@ class TendermintNode:
                 self.write_line(f"Error!: {str(e)}")
         self.write_line("Monitoring thread terminated\n")
 
-    def reset_genesis_file(self, genesis_time: str, app_hash: str) -> None:
+    def reset_genesis_file(self, genesis_time: str) -> None:
         """Reset genesis file."""
 
         genesis_file = Path(str(self.params.home), "config", "genesis.json")
         genesis_config = json.loads(genesis_file.read_text(encoding=ENCODING))
         genesis_config["genesis_time"] = genesis_time
-        genesis_config["app_hash"] = app_hash
         genesis_file.write_text(json.dumps(genesis_config, indent=2), encoding=ENCODING)
