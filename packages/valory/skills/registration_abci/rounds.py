@@ -32,6 +32,7 @@ from packages.valory.skills.abstract_round_abci.base import (
     CollectDifferentUntilThresholdRound,
     DegenerateRound,
 )
+from packages.valory.skills.abstract_round_abci.common import most_common_element
 from packages.valory.skills.registration_abci.payloads import RegistrationPayload
 
 
@@ -99,7 +100,7 @@ class RegistrationRound(CollectDifferentUntilThresholdRound):
 
     round_id = "registration"
     allowed_tx_type = RegistrationPayload.transaction_type
-    payload_attribute = "initialisation"
+    payload_attribute = "sender"
     required_block_confirmations = 10
     done_event = Event.DONE
 
@@ -112,16 +113,22 @@ class RegistrationRound(CollectDifferentUntilThresholdRound):
             and self.block_confirmations
             > self.required_block_confirmations  # we also wait here as it gives more (available) agents time to join
         ):
-            # Create a new db with the initialization data
-            initialization = json.loads(self.most_voted_payload)
-            synchronized_data = self.synchronized_data.new_db(
-                synchronized_data_class=BaseSynchronizedData,
-                data_db=initialization,
+            # Get the most common not None, not empty initialisations
+            most_common_initialisation = most_common_element(
+                elements={
+                    sender: payload.data["initialisation"]
+                    for sender, payload in self.collection.items()
+                    if "initialisation" in payload.data
+                }
             )
-            # Update participants
-            synchronized_data = synchronized_data.update(
+            # Draw/tie case
+            if most_common_initialisation is None:
+                return self.synchronized_data, Event.NO_MAJORITY
+
+            synchronized_data = self.synchronized_data.update(
                 participants=frozenset(self.collection),
                 synchronized_data_class=BaseSynchronizedData,
+                **most_common_initialisation,
             )
 
             return synchronized_data, Event.DONE

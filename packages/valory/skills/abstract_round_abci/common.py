@@ -20,6 +20,7 @@
 """This module contains the behaviours, round and payloads for the 'abstract_round_abci' skill."""
 
 import hashlib
+import json
 import random
 from math import floor
 from typing import Dict, Generator, List, Optional, Type, Union, cast
@@ -48,6 +49,36 @@ def random_selection(elements: List[str], randomness: float) -> str:
         raise ValueError("Randomness should lie in the [0,1] interval")
     random_position = floor(randomness * len(elements))
     return elements[random_position]
+
+
+def most_common_element(elements: Dict[str, Optional[Dict]]) -> Optional[Dict]:
+    """
+    Get the most common (non None) dictionary element
+
+    :param elements: the elements in the format {tag: element,}
+    :return: the most common payload value or None if there is a draw
+    """
+    if not elements:
+        return {}
+
+    # Count the non-None elements
+    count: Dict[str, int] = {}
+    for value in elements.values():
+        if not value:
+            continue
+        element_string = json.dumps(value, sort_keys=True)
+        count[element_string] = count.get(element_string, 0) + 1
+
+    # Sorted list in the format [(element, count),]
+    sorted_count = list(
+        dict(sorted(count.items(), key=lambda item: item[1], reverse=True)).items()
+    )
+
+    # Tie/draw check: the most common payload count must be greater than the second most common one
+    if len(sorted_count) > 1 and sorted_count[0][1] == sorted_count[1][1]:
+        return None
+
+    return json.loads(sorted_count[0][0])
 
 
 class RandomnessBehaviour(BaseBehaviour):
