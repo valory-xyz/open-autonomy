@@ -604,7 +604,9 @@ class BaseBehaviour(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
         """Check if agent has completed sync."""
         self.context.logger.info("Checking sync...")
         for _ in range(self.context.params.tendermint_max_retries):
-            self.context.logger.info("Checking status")
+            self.context.logger.info(
+                "Checking status @ " + self.context.params.tendermint_url + "/status",
+            )
             status = yield from self._get_status()
             try:
                 json_body = json.loads(status.body.decode())
