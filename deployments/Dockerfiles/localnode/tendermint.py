@@ -29,9 +29,9 @@ from threading import Event, Thread
 from typing import Any, List, Optional
 
 
-DEFAULT_LOG_FILE = "tendermint.log"
 DEFAULT_P2P_LISTEN_ADDRESS = "tcp://0.0.0.0:26656"
 DEFAULT_RPC_LISTEN_ADDRESS = "tcp://0.0.0.0:26657"
+DEFAULT_TENDERMINT_LOG_FILE = "tendermint.log"
 
 
 class StoppableThread(Thread):
@@ -104,12 +104,11 @@ class TendermintNode:
         :param params: the parameters.
         :param logger: the logger.
         """
-        self.log_file = os.environ.get("LOG_FILE", DEFAULT_LOG_FILE)
         self.params = params
-        self.logger = logger or logging.getLogger()
-
         self._process: Optional[subprocess.Popen] = None
         self._monitoring: Optional[StoppableThread] = None
+        self.logger = logger or logging.getLogger()
+        self.log_file = os.environ.get("LOG_FILE", DEFAULT_TENDERMINT_LOG_FILE)
 
     def _build_init_command(self) -> List[str]:
         """Build the 'init' command."""
@@ -129,7 +128,7 @@ class TendermintNode:
             f"--proxy_app={self.params.proxy_app}",
             f"--rpc.laddr={self.params.rpc_laddr}",
             f"--p2p.laddr={self.params.p2p_laddr}",
-            f"--p2p.seeds={','.join(self.params.p2p_seeds)}",
+            f"--p2p.seeds={','.join(self.params.p2p_seeds)}" if self.params.p2p_seeds else "",
             f"--consensus.create_empty_blocks={str(self.params.consensus_create_empty_blocks).lower()}",
         ]
         if self.params.home is not None:  # pragma: nocover
@@ -140,6 +139,11 @@ class TendermintNode:
         """Initialize Tendermint node."""
         cmd = self._build_init_command()
         subprocess.call(cmd)  # nosec
+
+    def start(self) -> None:
+        """Start a Tendermint node process."""
+        self._start_tm_process()
+        self._start_monitoring_thread()
 
     def _start_tm_process(self) -> None:
         """Start a Tendermint node process."""
@@ -163,11 +167,6 @@ class TendermintNode:
         """Start a monitoring thread."""
         self._monitoring = StoppableThread(target=self.check_server_status)
         self._monitoring.start()
-
-    def start(self) -> None:
-        """Start a Tendermint node process."""
-        self._start_tm_process()
-        self._start_monitoring_thread()
 
     def _stop_tm_process(self) -> None:
         """Stop a Tendermint node process."""
