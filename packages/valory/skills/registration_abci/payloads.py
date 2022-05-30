@@ -18,10 +18,14 @@
 # ------------------------------------------------------------------------------
 
 """This module contains the transaction payloads for common apps."""
+import sys
 from enum import Enum
 from typing import Any, Dict, Optional
 
 from packages.valory.skills.abstract_round_abci.base import BaseTxPayload
+
+
+MAX_INITIALISATION_SIZE_BYTES = 1024
 
 
 class TransactionType(Enum):
@@ -48,6 +52,9 @@ class RegistrationPayload(BaseTxPayload):
         :param initialisation: the initialisation data
         :param kwargs: the keyword arguments
         """
+        assert (
+            sys.getsizeof(initialisation) <= MAX_INITIALISATION_SIZE_BYTES
+        ), f"Initialisation data must be smaller than {MAX_INITIALISATION_SIZE_BYTES} bytes"
         super().__init__(sender, **kwargs)
         self._initialisation = initialisation
 
