@@ -19,7 +19,7 @@
 
 """This module contains the transaction payloads for common apps."""
 from enum import Enum
-from typing import Any, Dict
+from typing import Any, Dict, Optional
 
 from packages.valory.skills.abstract_round_abci.base import BaseTxPayload
 
@@ -39,7 +39,9 @@ class RegistrationPayload(BaseTxPayload):
 
     transaction_type = TransactionType.REGISTRATION
 
-    def __init__(self, sender: str, initialisation: str = "{}", **kwargs: Any) -> None:
+    def __init__(
+        self, sender: str, initialisation: Optional[str] = None, **kwargs: Any
+    ) -> None:
         """Initialize an 'select_keeper' transaction payload.
 
         :param sender: the sender (Ethereum) address
@@ -50,11 +52,15 @@ class RegistrationPayload(BaseTxPayload):
         self._initialisation = initialisation
 
     @property
-    def initialisation(self) -> str:
+    def initialisation(self) -> Optional[str]:
         """Get the initialisation."""
         return self._initialisation
 
     @property
     def data(self) -> Dict:
         """Get the data."""
-        return dict(initialisation=self.initialisation)
+        return (
+            dict(initialisation=self.initialisation)
+            if self.initialisation is not None
+            else {}
+        )

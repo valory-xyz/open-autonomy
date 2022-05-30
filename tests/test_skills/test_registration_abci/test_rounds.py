@@ -96,7 +96,7 @@ class TestRegistrationStartupRound(BaseCollectDifferentUntilAllRoundTest):
         test_round: RegistrationStartupRound,
         expected_event: Optional[RegistrationEvent] = None,
         confirmations: Optional[int] = None,
-        initialisation: str = "{}",
+        initialisation: Optional[str] = None,
     ) -> None:
         """Run with given round."""
 
