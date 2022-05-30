@@ -70,8 +70,6 @@ MAX_INT_256 = 2 ** 256 - 1
 RESET_COUNT_START = 0
 VALUE_NOT_PROVIDED = "VALUE_NOT_PROVIDED"
 DEFAULT_VALUE_FLAG = "DEFAULT_VALUE_FLAG"
-# we initialise the app hash to empty bytes to match default Tendermint genesis
-DEFAULT_APP_HASH = b""
 
 EventType = TypeVar("EventType")
 TransactionType = TypeVar("TransactionType")
