@@ -564,6 +564,13 @@ class TestBaseSynchronizedData:
         assert expected.participants == actual.participants
         assert actual.db._data == {0: {"participants": [{"a"}]}}
 
+    def test_update_empty(self) -> None:
+        """Test the 'update' method."""
+        synchronized_data = BaseSynchronizedData(db=AbciAppDB(initial_data=dict()))
+
+        actual = synchronized_data.update(dummy_key="dummy_value")
+        assert actual.db._data == {0: {"dummy_key": ["dummy_value"]}}
+
     @pytest.mark.parametrize(
         "participants, format_data", [({"a"}, True), ([{"a"}], False)]
     )
