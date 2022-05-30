@@ -2180,7 +2180,17 @@ class RoundSequence:
 
     @property
     def root_hash(self) -> bytes:
-        """Get the Merkle root hash of the application state."""
+        """
+        Get the Merkle root hash of the application state.
+
+        Create an app hash that always increases in order to avoid conflicts between resets.
+        Eventually, we do not necessarily need to have a value that increases, but we have to generate a hash that
+        is always different among the resets, since our abci's state is different even thought we have reset the chain!
+        For example, if we are in height 11, reset and then reach height 11 again, if we end up using the same hash
+        at height 11 between the resets, then this is problematic.
+
+        :return: the root hash to be included as the Header.AppHash in the next block.
+        """
         return str(self.abci_app.synchronized_data.db.round_count).encode("utf-8")
 
     def begin_block(self, header: Header) -> None:
