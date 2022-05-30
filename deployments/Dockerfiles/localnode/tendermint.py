@@ -30,6 +30,8 @@ from typing import Any, List, Optional
 
 
 DEFAULT_LOG_FILE = "tendermint.log"
+DEFAULT_P2P_LADDR = "tcp://0.0.0.0:26656"
+DEFAULT_RPC_LADDR = "tcp://0.0.0.0:26657"
 
 
 class StoppableThread(Thread):
@@ -56,8 +58,8 @@ class TendermintParams:  # pylint: disable=too-few-public-methods
         self,
         proxy_app: str,
         consensus_create_empty_blocks: bool,
-        p2p_laddr: str = "tcp://0.0.0.0:26656",
-        rpc_laddr: str = "tcp://0.0.0.0:26657",
+        p2p_laddr: str = DEFAULT_P2P_LADDR,
+        rpc_laddr: str = DEFAULT_RPC_LADDR,
         home: Optional[str] = None,
     ):
         """
