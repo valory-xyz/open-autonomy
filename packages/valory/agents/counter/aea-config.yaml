@@ -32,3 +32,6 @@ public_id: valory/abci:0.1.0
 type: connection
 config:
   target_skill_id: valory/counter:0.1.0
+  host: ${ABCI_HOST:str}
+  port: ${ABCI_PORT:int:26658}
+  use_tendermint: ${ABCI_USE_TENDERMINT:bool:false}

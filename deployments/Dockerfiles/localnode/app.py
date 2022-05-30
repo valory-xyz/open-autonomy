@@ -36,7 +36,6 @@ try:
 except:
     from tendermint import TendermintNode, TendermintParams
 
-
 DEFAULT_LOG_FILE = "log.log"
 IS_DEV_MODE = os.environ.get("DEV_MODE", "0") == "1"
 CONFIG_OVERRIDE = [
@@ -201,6 +200,7 @@ def create_app(dump_dir: Optional[Path] = None):
     return app, tendermint_node
 
 
-if __name__ == "__main__":
-    tendermint_app, _ = create_app()
-    tendermint_app.run()
+def create_server() -> Any:
+    """Function to retrieve just the app to be used by flask entry point."""
+    flask_app, _ = create_app()
+    return flask_app
