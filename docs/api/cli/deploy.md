@@ -125,7 +125,7 @@ Build deployment setup for n agents.
 )
 @click.option("--push", is_flag=True, default=False, help="Push image after build.")
 @image_profile_flag()
-def build_images(service_id: str, profile: str, packages_dir: Path, build_dir: Path, skaffold_dir: Path, version: str, push: bool) -> None
+def build_images(service_id: PublicId, profile: str, packages_dir: Path, build_dir: Path, skaffold_dir: Path, version: str, push: bool) -> None
 ```
 
 Build image using skaffold.

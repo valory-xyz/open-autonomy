@@ -9,7 +9,7 @@ Service component base.
 #### load`_`service`_`config
 
 ```python
-def load_service_config(service_path: Path) -> Tuple[Service, List]
+def load_service_config(service_path: Path) -> Service
 ```
 
 Load service config from the path.

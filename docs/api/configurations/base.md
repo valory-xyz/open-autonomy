@@ -29,10 +29,32 @@ Service package configuration.
 #### `__`init`__`
 
 ```python
-def __init__(name: SimpleIdOrStr, author: SimpleIdOrStr, agent: PublicId, version: str = "", license_: str = "", aea_version: str = "", description: str = "", number_of_agents: int = 4, network: Optional[str] = None, build_entrypoint: Optional[str] = None) -> None
+def __init__(name: SimpleIdOrStr, author: SimpleIdOrStr, agent: PublicId, version: str = "", license_: str = "", aea_version: str = "", description: str = "", number_of_agents: int = 4, network: Optional[str] = None, build_entrypoint: Optional[str] = None, overrides: Optional[List] = None) -> None
 ```
 
 Initialise object.
+
+<a id="aea_swarm.configurations.base.Service.overrides"></a>
+
+#### overrides
+
+```python
+@property
+def overrides() -> List
+```
+
+Returns component overrides.
+
+<a id="aea_swarm.configurations.base.Service.overrides"></a>
+
+#### overrides
+
+```python
+@overrides.setter
+def overrides(obj: List) -> None
+```
+
+Set overrides.
 
 <a id="aea_swarm.configurations.base.Service.json"></a>
 
@@ -44,17 +66,6 @@ def json() -> Dict
 ```
 
 Returns an ordered Dict for service config.
-
-<a id="aea_swarm.configurations.base.Service.from_json"></a>
-
-#### from`_`json
-
-```python
-@classmethod
-def from_json(cls, obj: Dict) -> "Service"
-```
-
-Initialize object from json.
 
 <a id="aea_swarm.configurations.base.Service.validate_config_data"></a>
 
@@ -72,8 +83,7 @@ Validate config data.
 #### check`_`overrides`_`match`_`spec
 
 ```python
-@staticmethod
-def check_overrides_match_spec(service_config: Dict, overrides: List) -> bool
+def check_overrides_match_spec(overrides: List) -> bool
 ```
 
 Check that overrides are valid.
@@ -84,20 +94,18 @@ Check that overrides are valid.
 
 **Arguments**:
 
-- `service_config`: Service config
 - `overrides`: List of overrides
 
 **Returns**:
 
 True if overrides are valid
 
-<a id="aea_swarm.configurations.base.Service.check_overrides_are_valid"></a>
+<a id="aea_swarm.configurations.base.Service.check_overrides_valid"></a>
 
-#### check`_`overrides`_`are`_`valid
+#### check`_`overrides`_`valid
 
 ```python
-@classmethod
-def check_overrides_are_valid(cls, service_config: Dict, overrides: List) -> Dict[ComponentId, Dict[Any, Any]]
+def check_overrides_valid(overrides: List) -> Dict[ComponentId, Dict[Any, Any]]
 ```
 
 Uses the aea helper libraries to check individual overrides.
@@ -107,8 +115,7 @@ Uses the aea helper libraries to check individual overrides.
 #### process`_`component`_`section
 
 ```python
-@classmethod
-def process_component_section(cls, component_index: int, component_configuration_json: Dict, service_config: Dict) -> Tuple[ComponentId, Dict]
+def process_component_section(component_index: int, component_configuration_json: Dict) -> Tuple[ComponentId, Dict]
 ```
 
 Process a component configuration in an agent configuration file.
@@ -133,7 +140,6 @@ the processed component configuration.
 #### try`_`to`_`process`_`singular`_`override
 
 ```python
-@staticmethod
 def try_to_process_singular_override(component_id: ComponentId, config_class: ComponentConfiguration, component_configuration_json: Dict) -> Dict
 ```
 
@@ -144,8 +150,7 @@ Try to process component with a singular component overrides.
 #### try`_`to`_`process`_`nested`_`fields
 
 ```python
-@staticmethod
-def try_to_process_nested_fields(component_id: ComponentId, component_index: int, config_class: ComponentConfiguration, component_configuration_json: Dict, service_config: Dict) -> Dict
+def try_to_process_nested_fields(component_id: ComponentId, component_index: int, config_class: ComponentConfiguration, component_configuration_json: Dict) -> Dict
 ```
 
 Try to process component with nested overrides.
