@@ -9,12 +9,12 @@ fingerprint:
   README.md: QmYNXPppPSnW61ipqKNH8pyMh8qzTERwQaducYYq1dnBJb
   __init__.py: QmPuJK7gMKruSTcaYk9otrFncfD9h6vBZVoAtkwhTBgcxa
   abci_app_chain.py: QmeCPxwjec4pxtedv8NeG2Gmj58GY2GycXvgwfyjEyqPGm
-  base.py: QmRFyFt3LojsD6Yy3jyCEQsENf7Jih1hM293dtt6go3kEq
-  behaviour_utils.py: QmURonvcTxhHwHudXZXNFgbnPGN7y4XdfSKG9TAHNT1oDw
+  base.py: QmboPsSzPiY16P6qgtN11UFQRbeChWA9SKrTPv5LXXHD7i
+  behaviour_utils.py: QmbzZqMyt8iXm7fsccP2KGfPPF5wHHsQzcX2NwTNHw6r5Q
   behaviours.py: QmawtbXREBz8C7Grjn4a93gaAQFMWzZicxRfjyHcckYHmz
   common.py: QmVBfMMrVVj3MmzEQme8R5WB6FVY67uhXepvm8wvXcJFLe
   dialogues.py: QmemiTJxfwp2PFxFQyAUHTx8FsthhWL3mYgonBhC3cTjWH
-  handlers.py: QmR2eaVK25oqSAKMxR6UCyFZsxaScLCL4fLR4Bhe7K3fL6
+  handlers.py: QmZRrWXxGV2qEptfFAjWCKSQ3MtRYRdBpK3BdiFjtixHGW
   io/__init__.py: QmPfA2syTybFaGmmMMt5gevZHEXPyjVf7wR1UE22NzpZZ3
   io/ipfs.py: Qmc7BLSKb2kESC1wdCc7FxaLiSHcmPcfiBuXBuLXevUdE7
   io/load.py: QmSa3vgVvQiMJabBvSnPjTMtYiDgrrHPugDGCvSf4kAfS3

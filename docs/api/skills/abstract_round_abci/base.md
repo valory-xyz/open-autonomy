@@ -860,28 +860,6 @@ def db() -> AbciAppDB
 
 Get DB.
 
-<a id="packages.valory.skills.abstract_round_abci.base.BaseSynchronizedData.app_hash"></a>
-
-#### app`_`hash
-
-```python
-@property
-def app_hash() -> bytes
-```
-
-Get the app hash.
-
-<a id="packages.valory.skills.abstract_round_abci.base.BaseSynchronizedData.app_hash"></a>
-
-#### app`_`hash
-
-```python
-@app_hash.setter
-def app_hash(app_hash: bytes) -> None
-```
-
-Set the app hash.
-
 <a id="packages.valory.skills.abstract_round_abci.base.BaseSynchronizedData.round_count"></a>
 
 #### round`_`count
@@ -2262,6 +2240,16 @@ def root_hash() -> bytes
 ```
 
 Get the Merkle root hash of the application state.
+
+Create an app hash that always increases in order to avoid conflicts between resets.
+Eventually, we do not necessarily need to have a value that increases, but we have to generate a hash that
+is always different among the resets, since our abci's state is different even thought we have reset the chain!
+For example, if we are in height 11, reset and then reach height 11 again, if we end up using the same hash
+at height 11 between the resets, then this is problematic.
+
+**Returns**:
+
+the root hash to be included as the Header.AppHash in the next block.
 
 <a id="packages.valory.skills.abstract_round_abci.base.RoundSequence.begin_block"></a>
 
