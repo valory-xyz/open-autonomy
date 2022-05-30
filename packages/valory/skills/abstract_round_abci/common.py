@@ -56,7 +56,7 @@ def most_common_element(elements: Dict[str, Optional[Dict]]) -> Optional[Dict]:
     Get the most common (non None) dictionary element
 
     :param elements: the elements in the format {tag: element,}
-    :return: the most common payload value or None if there is a draw
+    :return: the most common value or None if there is a draw
     """
     if not elements:
         return {}
