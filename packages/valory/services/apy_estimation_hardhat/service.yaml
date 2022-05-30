@@ -1,10 +1,10 @@
 name: apy_estimation_hardhat
-author: "valory"
+author: valory
 version: 0.1.0
 description: A set of agent reaching APY estimates
-aea_version: ">=1.0.0, <2.0.0"
+aea_version: '>=1.0.0, <2.0.0'
 license: Apache-2.0
-agent: "valory/apy_estimation_deployable:0.1.0"
+agent: valory/apy_estimation_deployable:0.1.0
 network: hardhat
 number_of_agents: 4
 ---
@@ -32,4 +32,3 @@ models:
       pair_ids: '["0x2b4c76d0dc16be1c31d4c1dc53bf9b45987fc75c"]'
       sleep_time: 10
       ipfs_domain_name: /dns/staging.registry.autonolas.tech/tcp/443/https
-
