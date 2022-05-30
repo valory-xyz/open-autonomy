@@ -1,4 +1,4 @@
-agent_name: counter
+agent_name: counter_deployable
 author: valory
 version: 0.1.0
 description: The ABCI Counter example as an AEA
