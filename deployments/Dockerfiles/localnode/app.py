@@ -108,7 +108,7 @@ class PeriodDumper:
             return
 
     def dump_period(
-            self,
+        self,
     ) -> None:
         """Dump tendermint run data for replay"""
         store_dir = self.dump_dir / f"period_{self.resets}"
@@ -201,12 +201,7 @@ def create_app(dump_dir: Optional[Path] = None):
     return app, tendermint_node
 
 
-def create_server():
+def create_server() -> Any:
     """Function to retrieve just the app to be used by flask entry point."""
-    flask_app, tendermint_node = create_app()
+    flask_app, _ = create_app()
     return flask_app
-
-
-if __name__ == "__main__":
-    tendermint_app, _ = create_app()
-    tendermint_app.run()
