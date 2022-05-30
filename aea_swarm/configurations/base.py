@@ -36,10 +36,10 @@ from aea.configurations.base import (
     SkillConfig,
 )
 from aea.configurations.constants import CONNECTION, CONTRACT, PROTOCOL, SKILL
-from aea.configurations.data_types import PublicId
+from aea.configurations.data_types import PackageType, PublicId
 from aea.helpers.base import SimpleIdOrStr, cd
 
-from aea_swarm.configurations.constants import DEFAULT_SERVICE_FILE, SERVICE
+from aea_swarm.configurations.constants import DEFAULT_SERVICE_FILE, SCHEMAS_DIR
 from aea_swarm.configurations.validation import ConfigValidator
 
 
@@ -79,8 +79,8 @@ class Service(PackageConfiguration):  # pylint: disable=too-many-instance-attrib
     """Service package configuration."""
 
     default_configuration_filename = DEFAULT_SERVICE_FILE
-    package_type = SERVICE
-    schema = "service_schema.json"
+    package_type = PackageType.SERVICE
+    schema = str(SCHEMAS_DIR.absolute() / "service_schema.json")
 
     FIELDS_ALLOWED_TO_UPDATE: FrozenSet[str] = frozenset()
 
@@ -98,6 +98,7 @@ class Service(PackageConfiguration):  # pylint: disable=too-many-instance-attrib
         "_aea_version",
         "_aea_version_specifiers",
         "_directory",
+        "_overrides",
     )
 
     def __init__(  # pylint: disable=too-many-arguments
@@ -112,6 +113,7 @@ class Service(PackageConfiguration):  # pylint: disable=too-many-instance-attrib
         number_of_agents: int = 4,
         network: Optional[str] = None,
         build_entrypoint: Optional[str] = None,
+        overrides: Optional[List] = None,
     ) -> None:
         """Initialise object."""
 
@@ -129,6 +131,24 @@ class Service(PackageConfiguration):  # pylint: disable=too-many-instance-attrib
         self.number_of_agents = number_of_agents
         self.network = network
 
+        self._overrides = [] if overrides is None else overrides
+
+    @property
+    def overrides(
+        self,
+    ) -> List:
+        """Returns component overrides."""
+
+        return self._overrides
+
+    @overrides.setter
+    def overrides(self, obj: List) -> None:
+        """Set overrides."""
+
+        self.check_overrides_valid(obj)
+        self.check_overrides_match_spec(obj)
+        self._overrides = obj
+
     @property
     def json(
         self,
@@ -139,22 +159,24 @@ class Service(PackageConfiguration):  # pylint: disable=too-many-instance-attrib
             {
                 "name": self.name,
                 "author": self.author,
-                "agent": self.agent,
+                "agent": str(self.agent),
                 "version": self.version,
                 "license": self.license,
                 "aea_version": self.aea_version,
                 "description": self.description,
                 "number_of_agents": self.number_of_agents,
                 "network": self.network,
+                "overrides": self.overrides,
             }
         )
 
         return config
 
     @classmethod
-    def from_json(cls, obj: Dict) -> "Service":
-        """Initialize object from json."""
+    def _create_or_update_from_json(cls, obj: Dict, instance: Any = None) -> "Service":
+        """Create or update from json data."""
 
+        obj = {**(instance.json if instance else {}), **copy(obj)}
         params = dict(
             name=cast(str, obj.get("name")),
             author=cast(str, obj.get("author")),
@@ -165,6 +187,7 @@ class Service(PackageConfiguration):  # pylint: disable=too-many-instance-attrib
             description=cast(str, obj.get("description")),
             number_of_agents=cast(int, obj.get("number_of_agents")),
             network=cast(str, obj.get("network")),
+            overrides=cast(List, obj.get("overrides", [])),
         )
 
         return cls(**params)  # type: ignore
@@ -178,15 +201,13 @@ class Service(PackageConfiguration):  # pylint: disable=too-many-instance-attrib
             json_data
         )
 
-    @staticmethod
-    def check_overrides_match_spec(service_config: Dict, overrides: List) -> bool:
+    def check_overrides_match_spec(self, overrides: List) -> bool:
         """Check that overrides are valid.
 
         - number of overrides is 1
         - number of overrides == number of agents in spec
         - number of overrides is 0
 
-        :param service_config: Service config
         :param overrides: List of overrides
         :return: True if overrides are valid
         """
@@ -204,7 +225,7 @@ class Service(PackageConfiguration):  # pylint: disable=too-many-instance-attrib
             remaining = [f for f in remaining if f not in component_overrides]
             if any(
                 [
-                    service_config["number_of_agents"] == len(component_overrides),
+                    self.number_of_agents == len(component_overrides),
                     len(component_overrides) == 0,
                     len(component_overrides) == 1,
                 ]
@@ -217,13 +238,10 @@ class Service(PackageConfiguration):  # pylint: disable=too-many-instance-attrib
         if sum(valid) == 4:
             return True
 
-        raise ValueError(
-            f"Incorrect number of overrides for count of agents.\n {service_config}"
-        )
+        raise ValueError("Incorrect number of overrides for count of agents.")
 
-    @classmethod
-    def check_overrides_are_valid(
-        cls, service_config: Dict, overrides: List
+    def check_overrides_valid(
+        self, overrides: List
     ) -> Dict[ComponentId, Dict[Any, Any]]:
         """Uses the aea helper libraries to check individual overrides."""
 
@@ -231,8 +249,8 @@ class Service(PackageConfiguration):  # pylint: disable=too-many-instance-attrib
         # load the other components.
 
         for idx, component_configuration_json in enumerate(overrides):
-            component_id, _ = cls.process_component_section(
-                idx, component_configuration_json, service_config
+            component_id, _ = self.process_component_section(
+                idx, component_configuration_json
             )
             if component_id in component_configurations:
                 raise ValueError(
@@ -242,12 +260,10 @@ class Service(PackageConfiguration):  # pylint: disable=too-many-instance-attrib
 
         return component_configurations
 
-    @classmethod
     def process_component_section(
-        cls,
+        self,
         component_index: int,
         component_configuration_json: Dict,
-        service_config: Dict,
     ) -> Tuple[ComponentId, Dict]:
         """
         Process a component configuration in an agent configuration file.
@@ -274,7 +290,7 @@ class Service(PackageConfiguration):  # pylint: disable=too-many-instance-attrib
             cv = validation.ConfigValidator("definitions.json")
             try:
                 cv.validate_component_configuration(component_id, configuration)
-                overrides = cls.try_to_process_singular_override(
+                overrides = self.try_to_process_singular_override(
                     component_id, config_class, configuration
                 )
             except ValueError as e:
@@ -282,17 +298,16 @@ class Service(PackageConfiguration):  # pylint: disable=too-many-instance-attrib
                     f"Failed to parse as a singular input with {e}\nAttempting with nested fields."
                 )
 
-                overrides = cls.try_to_process_nested_fields(
+                overrides = self.try_to_process_nested_fields(
                     component_id,
                     component_index,
                     config_class,
                     configuration,
-                    service_config,
                 )
         return component_id, overrides
 
-    @staticmethod
     def try_to_process_singular_override(
+        self,
         component_id: ComponentId,
         config_class: ComponentConfiguration,
         component_configuration_json: Dict,
@@ -320,13 +335,12 @@ class Service(PackageConfiguration):  # pylint: disable=too-many-instance-attrib
                     )
         return overrides
 
-    @staticmethod
     def try_to_process_nested_fields(  # pylint: disable=too-many-locals
+        self,
         component_id: ComponentId,
         component_index: int,
         config_class: ComponentConfiguration,
         component_configuration_json: Dict,
-        service_config: Dict,
     ) -> Dict:
         """Try to process component with nested overrides."""
         overrides = {}
@@ -343,10 +357,10 @@ class Service(PackageConfiguration):  # pylint: disable=too-many-instance-attrib
             if len(nums) != len(field_override.keys()):
                 raise ValueError("Non-unique item in override")
 
-            if len(nums) != service_config["number_of_agents"]:
+            if len(nums) != self.number_of_agents:
                 raise ValueError("Not enough items in override")
 
-            if nums != set(range(0, service_config["number_of_agents"])):
+            if nums != set(range(0, self.number_of_agents)):
                 raise ValueError("Overrides incorrectly indexed")
 
             n_fields = len(field_override)

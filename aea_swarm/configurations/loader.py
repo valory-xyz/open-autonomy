@@ -20,7 +20,7 @@
 """Service component base."""
 
 from pathlib import Path
-from typing import Dict, List, Tuple
+from typing import Dict
 
 import yaml
 from aea.configurations.base import (
@@ -44,7 +44,7 @@ COMPONENT_CONFIGS: Dict = {
 }
 
 
-def load_service_config(service_path: Path) -> Tuple[Service, List]:
+def load_service_config(service_path: Path) -> Service:
     """Load service config from the path."""
 
     with open(
@@ -53,8 +53,9 @@ def load_service_config(service_path: Path) -> Tuple[Service, List]:
         service_config, *overrides = yaml.load_all(fp, Loader=yaml.SafeLoader)
 
     Service.validate_config_data(service_config)
-    Service.check_overrides_match_spec(service_config, overrides)
-    Service.check_overrides_are_valid(service_config, overrides)
-
     service_config["license_"] = service_config.pop("license")
-    return Service(**service_config), overrides
+
+    service = Service(**service_config)
+    service.overrides = overrides
+
+    return service

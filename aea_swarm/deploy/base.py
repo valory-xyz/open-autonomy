@@ -68,7 +68,7 @@ class ServiceSpecification:
     ) -> None:
         """Initialize the Base Deployment."""
         self.packages_dir = packages_dir
-        self.service, self.overrides = load_service_config(service_path)
+        self.service = load_service_config(service_path)
         if number_of_agents is not None:
             self.service.number_of_agents = number_of_agents
 
@@ -91,9 +91,9 @@ class ServiceSpecification:
     def process_model_args_overrides(self, agent_n: int) -> Dict:
         """Generates env vars based on model overrides."""
         final_overrides = {}
-        for component_configuration_json in self.overrides:
-            _, overrides = Service.process_component_section(
-                agent_n, component_configuration_json, self.service.json
+        for component_configuration_json in self.service.overrides:
+            _, overrides = self.service.process_component_section(
+                agent_n, component_configuration_json
             )
             final_overrides.update(overrides)
         return final_overrides
@@ -117,7 +117,7 @@ class ServiceSpecification:
     def generate_agent(self, agent_n: int) -> Dict[Any, Any]:
         """Generate next agent."""
         agent_vars = self.generate_common_vars(agent_n)
-        if len(self.overrides) == 0:
+        if len(self.service.overrides) == 0:
             return agent_vars
         overrides = self.process_model_args_overrides(agent_n)
         agent_vars.update(overrides)
