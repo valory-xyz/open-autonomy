@@ -27,6 +27,7 @@ Install the virtual environment:
 
 ```bash
 make new_env
+pipenv shell
 ```
 
 Optionally, clean up images & build cache to ensure no artefacts (check with `docker system df` for disc space usage):
@@ -54,8 +55,10 @@ The first time we run the application, we must also build and tag the dependency
 These images are used for tendermint and for the local hardhat image.
 
 ```bash
-$ make clean
-$ swarm deploy build image valory/oracle_hardhat --dependencies
+swarm deploy build image valory/oracle_hardhat --dependencies
+```
+
+```output
 Building image with:
         Profile: dependencies
         ServiceId: valory/oracle_hardhat:latest
@@ -66,18 +69,18 @@ Building image with:
 [Skaffold] Checking cache...
 [Skaffold] - valory/consensus-algorithms-tendermint: Found Locally
 [Skaffold] - valory/consensus-algorithms-hardhat: Found Locally
+....
 ```
 
 Now we have our base dependencies, we can build the application specific dependencies.
 
 ```bash
-$ make clean
-$ aea deploy build image valory/oracle_hardhat
+swarm deploy build image valory/oracle_hardhat
 ```
 
 From this command, we receive the below output showing custom images being built and tagged for the specified Valory app and version.
 
-```bash
+```output
 Building image with:
         Profile: prod
         ServiceId: valory/oracle_hardhat:latest
@@ -86,22 +89,15 @@ Building image with:
 [Skaffold] - valory/consensus-algorithms-open-aea -> valory/consensus-algorithms-open-aea:oracle_deployable-0.1.0
 [Skaffold] Checking cache...
 [Skaffold] - valory/consensus-algorithms-open-aea: Found Locally
+...
 ```
 
 # Step 2
 
 Now we have our images, we need to build the deployment to use them.
 
-
 ```bash
-pipenv shell
-python deployments/click_create.py build-deployment --deployment-type docker-compose  --valory-app oracle_ropsten --keys-file-path deployments/keys/ropsten_keys.txt
-```
-We can additionally specify a file path as so;
-
-```bash
-$ pipenv shell
-$ swarm deploy build deployment valory/oracle_hardhat deployments/keys/hardhat_keys.json 
+swarm deploy build deployment valory/oracle_hardhat deployments/keys/hardhat_keys.json 
 ```
 
 
@@ -185,7 +181,7 @@ swarm analyse abci logs abci${i}.txt
 Stop
 
 ```bash
-cd deployments/build
+cd abci_build/
 docker-compose kill
 ```
 
@@ -243,7 +239,9 @@ docker-compose up --force-recreate
 By default, the logs from AEA's and their nodes are stored within; When running the application in Development mode, the application will store additional data within the persistent data directory:
 
 ```bash
-$ ls abci_build/persistent_data/
+ls abci_build/persistent_data/
+```
+```output
 benchmarks  logs  tm_state  venvs
 ```
 
