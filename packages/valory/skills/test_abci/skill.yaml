@@ -23,7 +23,7 @@ protocols:
 - valory/abci:0.1.0:QmaPFp3Jwf6uv9VSAoMJfJHFS9ESPeX8hCB7HLi41c8WzS
 - valory/http:1.0.0:QmbjfzjKMuRmwbQysyaciASxvY67vGJYj7zjGYADgNux5h
 skills:
-- valory/abstract_round_abci:0.1.0:QmbeYHCnsbLraX4tC2i74PGyXRSMRUAHfej1khFvcWS2EC
+- valory/abstract_round_abci:0.1.0:QmYYwrj22pWBYZ5rRCWBsHA7zQByx5XsXRnrHYhWMpStj7
 behaviours:
   main:
     args: {}
