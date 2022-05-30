@@ -21,6 +21,7 @@ skills:
 - valory/abstract_abci:0.1.0:QmeCwvECCGRQdKoPfBTe2mDbLgq1rdm5tGddLEXRknUaCK
 - valory/abstract_round_abci:0.1.0:QmTnDsYEtm4fR3hx3cZeZhWn49EyNfazjYhrZGm4UgTvhm
 - valory/apy_estimation_abci:0.1.0:QmWgSVc4Q4FZppKEREHcLgeYozRT2u4wvK4UFySUHYKttZ
+- valory/apy_estimation_chained_abci:0.1.0:QmRiVVMWAZRefXRnmiWg6TThjcUgL34VwTfch9D9oTVYYG
 - valory/registration_abci:0.1.0:QmVmowbER8xkiqi9zpFmT8iEhchq9YaYxm22fQ5L9U69kV
 default_ledger: ethereum
 required_ledgers:
