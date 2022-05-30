@@ -2180,7 +2180,7 @@ class RoundSequence:
     @property
     def root_hash(self) -> bytes:
         """Get the Merkle root hash of the application state."""
-        return str(self.current_round.block_confirmations).encode("utf-8")
+        return str(self.abci_app.synchronized_data.db.round_count).encode("utf-8")
 
     def begin_block(self, header: Header) -> None:
         """Begin block."""
