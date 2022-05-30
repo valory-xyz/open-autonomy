@@ -29,6 +29,7 @@ from threading import Event, Thread
 from typing import Any, List, Optional
 
 
+ENCODING = "utf-8"
 DEFAULT_P2P_LISTEN_ADDRESS = "tcp://0.0.0.0:26656"
 DEFAULT_RPC_LISTEN_ADDRESS = "tcp://0.0.0.0:26657"
 DEFAULT_TENDERMINT_LOG_FILE = "tendermint.log"
@@ -39,7 +40,7 @@ class StoppableThread(Thread):
 
     def __init__(self, *args: Any, **kwargs: Any) -> None:
         """Initialise the thread."""
-        super(StoppableThread, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         self._stop_event = Event()
 
     def stop(self) -> None:
@@ -122,13 +123,14 @@ class TendermintNode:
 
     def _build_node_command(self) -> List[str]:
         """Build the 'node' command."""
+        p2p_seeds = ",".join(self.params.p2p_seeds) if self.params.p2p_seeds else ""
         cmd = [
             "tendermint",
             "node",
             f"--proxy_app={self.params.proxy_app}",
             f"--rpc.laddr={self.params.rpc_laddr}",
             f"--p2p.laddr={self.params.p2p_laddr}",
-            f"--p2p.seeds={','.join(self.params.p2p_seeds)}" if self.params.p2p_seeds else "",
+            f"--p2p.seeds={p2p_seeds}",
             f"--consensus.create_empty_blocks={str(self.params.consensus_create_empty_blocks).lower()}",
         ]
         if self.params.home is not None:  # pragma: nocover
@@ -195,7 +197,7 @@ class TendermintNode:
 
     def write_line(self, line: str) -> None:
         """Open and write a line to the log file."""
-        with open(self.log_file, "a") as file:
+        with open(self.log_file, "a", encoding=ENCODING) as file:
             file.write(line)
 
     def check_server_status(
@@ -219,7 +221,7 @@ class TendermintNode:
                         self.write_line(
                             f"Restarted the HTTP RPC server, as a connection was dropped with message:\n\t\t {line}\n"
                         )
-            except Exception as e:
+            except Exception as e:  # pylint: disable=broad-except
                 self.write_line(f"Error!: {str(e)}")
         self.write_line("Monitoring thread terminated\n")
 
@@ -227,7 +229,7 @@ class TendermintNode:
         """Reset genesis file."""
 
         genesis_file = Path(str(self.params.home), "config", "genesis.json")
-        genesis_config = json.loads(genesis_file.read_text())
+        genesis_config = json.loads(genesis_file.read_text(encoding=ENCODING))
         genesis_config["genesis_time"] = genesis_time
         genesis_config["app_hash"] = app_hash
-        genesis_file.write_text(json.dumps(genesis_config, indent=2))
+        genesis_file.write_text(json.dumps(genesis_config, indent=2), encoding=ENCODING)
