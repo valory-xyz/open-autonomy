@@ -52,9 +52,10 @@ class RegistrationPayload(BaseTxPayload):
         :param initialisation: the initialisation data
         :param kwargs: the keyword arguments
         """
-        assert (
-            sys.getsizeof(initialisation) <= MAX_INITIALISATION_SIZE_BYTES
-        ), f"Initialisation data must be smaller than {MAX_INITIALISATION_SIZE_BYTES} bytes"
+        if sys.getsizeof(initialisation) > MAX_INITIALISATION_SIZE_BYTES:
+            raise ValueError(
+                f"Initialisation data must be smaller than {MAX_INITIALISATION_SIZE_BYTES} bytes"
+            )
         super().__init__(sender, **kwargs)
         self._initialisation = initialisation
 
