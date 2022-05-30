@@ -35,7 +35,19 @@ EXPECTED_ROUND_LOG_COUNT = {
 }
 
 
-@pytest.mark.skip
+@pytest.mark.parametrize("nb_nodes", (4,))
+class TestTendermintStartup(BaseTestEnd2EndNormalExecution):
+    """Test the ABCI register-reset skill with 4 agents starting up."""
+
+    agent_package = "valory/register_reset:0.1.0"
+    skill_package = "valory/register_reset_abci:0.1.0"
+    round_check_strings_to_n_periods = {
+        "registration_startup": 1,
+        "reset_and_pause": 1,
+    }
+    wait_to_finish = 20
+
+
 @pytest.mark.parametrize("nb_nodes", (4,))
 class TestTendermintReset(BaseTestEnd2EndNormalExecution):
     """Test the ABCI register-reset skill with 4 agents when resetting Tendermint."""

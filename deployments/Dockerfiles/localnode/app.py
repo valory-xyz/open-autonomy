@@ -28,8 +28,12 @@ from typing import Any, Callable, Dict, Optional, Tuple
 
 import requests
 from flask import Flask, Response, jsonify, request
-from .tendermint import TendermintNode, TendermintParams
 from werkzeug.exceptions import InternalServerError, NotFound
+
+try:
+    from .tendermint import TendermintNode, TendermintParams
+except:
+    from tendermint import TendermintNode, TendermintParams
 
 
 DEFAULT_LOG_FILE = "log.log"
