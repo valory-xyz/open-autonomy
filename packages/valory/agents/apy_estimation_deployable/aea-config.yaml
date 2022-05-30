@@ -21,6 +21,7 @@ skills:
 - valory/abstract_abci:0.1.0:QmVfwEGhpc4EZ5gW5tP4okvJ4kAaAjUBoBnd8seUBUgJAc
 - valory/abstract_round_abci:0.1.0:QmVTqPVMGyG2y4JgxSpuwYoBmBSVEQMrf3981X3hyF8YQx
 - valory/apy_estimation_abci:0.1.0:QmNUiRrmrciQK2SCnGkj4hY3o8MthR4n9vJRBDt7Hst6xQ
+- valory/apy_estimation_chained_abci:0.1.0:QmNS9n8QTgxR46v87PLNao6yWJzUaTVWwuyPh3WNK9Zh8p
 - valory/registration_abci:0.1.0:QmPmNdHqfhHJYT1yaNoWD1Yiv5pgMpPjmEkRjWs89eEzjW
 default_ledger: ethereum
 required_ledgers:
@@ -35,6 +36,11 @@ logging_config:
     standard:
       format: '[%(asctime)s] [%(levelname)s] %(message)s'
   handlers:
+    logfile:
+      class: logging.FileHandler
+      formatter: standard
+      filename: ${LOG_FILE:str:/logs/logs.log}
+      level: INFO
     console:
       class: logging.StreamHandler
       formatter: standard
@@ -42,6 +48,7 @@ logging_config:
   loggers:
     aea:
       handlers:
+      - logfile
       - console
       propagate: false
 dependencies:
@@ -53,12 +60,12 @@ default_connection: null
 public_id: valory/abci:0.1.0
 type: connection
 config:
-  target_skill_id: valory/apy_estimation_abci:0.1.0
+  target_skill_id: valory/apy_estimation_chained_abci:0.1.0
   host: ${ABCI_HOST:str}
   port: ${ABCI_PORT:int:26658}
   use_tendermint: ${ABCI_USE_TENDERMINT:bool:false}
 ---
-public_id: valory/apy_estimation_abci:0.1.0
+public_id: valory/apy_estimation_chained_abci:0.1.0
 type: skill
 models:
   params:
