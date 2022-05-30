@@ -115,7 +115,7 @@ class ABCIRoundHandler(ABCIHandler):
         # Initial validator set (optional).
         validators: List = []
         # Initial application hash.
-        app_hash = self.context.state.synchronized_data.app_hash
+        app_hash = self.context.state.round_sequence.root_hash
         reply = dialogue.reply(
             performative=AbciMessage.Performative.RESPONSE_INIT_CHAIN,
             target_message=message,

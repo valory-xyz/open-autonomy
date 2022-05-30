@@ -70,6 +70,7 @@ MAX_INT_256 = 2 ** 256 - 1
 RESET_COUNT_START = 0
 VALUE_NOT_PROVIDED = "VALUE_NOT_PROVIDED"
 DEFAULT_VALUE_FLAG = "DEFAULT_VALUE_FLAG"
+# we initialise the app hash to empty bytes to match default Tendermint genesis
 DEFAULT_APP_HASH = b""
 
 EventType = TypeVar("EventType")
@@ -654,27 +655,14 @@ class BaseSynchronizedData:
     def __init__(
         self,
         db: AbciAppDB,
-        app_hash: bytes = DEFAULT_APP_HASH,
     ) -> None:
         """Initialize the synchronized data."""
         self._db = db
-        # we initialise the app hash to empty bytes to match default Tendermint genesis
-        self._app_hash = app_hash
 
     @property
     def db(self) -> AbciAppDB:
         """Get DB."""
         return self._db
-
-    @property
-    def app_hash(self) -> bytes:
-        """Get the app hash."""
-        return self._app_hash
-
-    @app_hash.setter
-    def app_hash(self, app_hash: bytes) -> None:
-        """Set the app hash."""
-        self._app_hash = app_hash
 
     @property
     def round_count(self) -> int:
@@ -741,7 +729,7 @@ class BaseSynchronizedData:
         class_ = (
             type(self) if synchronized_data_class is None else synchronized_data_class
         )
-        return class_(db=self.db, app_hash=self.app_hash)
+        return class_(db=self.db)
 
     def create(
         self,
@@ -754,11 +742,11 @@ class BaseSynchronizedData:
         class_ = (
             type(self) if synchronized_data_class is None else synchronized_data_class
         )
-        return class_(db=self.db, app_hash=self.app_hash)
+        return class_(db=self.db)
 
     def __repr__(self) -> str:
         """Return a string representation of the data."""
-        return f"{self.__class__.__name__}(db={self._db})(app_hash={self.app_hash.decode('utf-8')})"
+        return f"{self.__class__.__name__}(db={self._db})"
 
     @property
     def keeper_randomness(self) -> float:
