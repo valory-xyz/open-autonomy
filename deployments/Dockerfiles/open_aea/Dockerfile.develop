@@ -14,12 +14,6 @@ RUN sudo apt remove --purge python3-virtualenv
 RUN python -m pip install --upgrade pip
 RUN python -m pip install --force-reinstall pipenv virtualenv --user
 
-RUN sudo apt-get install -y wget
-RUN wget -O ./go-ipfs.tar.gz https://dist.ipfs.io/go-ipfs/v0.6.0/go-ipfs_v0.6.0_linux-amd64.tar.gz
-RUN tar xvfz go-ipfs.tar.gz
-RUN sudo mv go-ipfs/ipfs /usr/local/bin/ipfs
-RUN ipfs init
-
 WORKDIR /home/ubuntu
 COPY Pipfile.dev /home/ubuntu/Pipfile
 
