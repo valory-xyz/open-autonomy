@@ -14,19 +14,19 @@ class Event(Enum)
 
 Event enumeration for the price estimation demo.
 
-<a id="packages.valory.skills.price_estimation_abci.rounds.PeriodState"></a>
+<a id="packages.valory.skills.price_estimation_abci.rounds.SynchronizedData"></a>
 
-## PeriodState Objects
+## SynchronizedData Objects
 
 ```python
-class PeriodState(BasePeriodState)
+class SynchronizedData(BaseSynchronizedData)
 ```
 
-Class to represent a period state.
+Class to represent the synchronized data.
 
-This state is replicated by the tendermint application.
+This data is replicated by the tendermint application.
 
-<a id="packages.valory.skills.price_estimation_abci.rounds.PeriodState.set_aggregator_method"></a>
+<a id="packages.valory.skills.price_estimation_abci.rounds.SynchronizedData.set_aggregator_method"></a>
 
 #### set`_`aggregator`_`method
 
@@ -36,7 +36,7 @@ def set_aggregator_method(aggregator_method: str) -> None
 
 Set aggregator method.
 
-<a id="packages.valory.skills.price_estimation_abci.rounds.PeriodState.safe_contract_address"></a>
+<a id="packages.valory.skills.price_estimation_abci.rounds.SynchronizedData.safe_contract_address"></a>
 
 #### safe`_`contract`_`address
 
@@ -47,7 +47,7 @@ def safe_contract_address() -> str
 
 Get the safe contract address.
 
-<a id="packages.valory.skills.price_estimation_abci.rounds.PeriodState.oracle_contract_address"></a>
+<a id="packages.valory.skills.price_estimation_abci.rounds.SynchronizedData.oracle_contract_address"></a>
 
 #### oracle`_`contract`_`address
 
@@ -58,7 +58,7 @@ def oracle_contract_address() -> str
 
 Get the oracle contract address.
 
-<a id="packages.valory.skills.price_estimation_abci.rounds.PeriodState.estimate"></a>
+<a id="packages.valory.skills.price_estimation_abci.rounds.SynchronizedData.estimate"></a>
 
 #### estimate
 
@@ -69,7 +69,7 @@ def estimate() -> float
 
 Get the estimate.
 
-<a id="packages.valory.skills.price_estimation_abci.rounds.PeriodState.most_voted_estimate"></a>
+<a id="packages.valory.skills.price_estimation_abci.rounds.SynchronizedData.most_voted_estimate"></a>
 
 #### most`_`voted`_`estimate
 
@@ -80,7 +80,7 @@ def most_voted_estimate() -> float
 
 Get the most_voted_estimate.
 
-<a id="packages.valory.skills.price_estimation_abci.rounds.PeriodState.most_voted_tx_hash"></a>
+<a id="packages.valory.skills.price_estimation_abci.rounds.SynchronizedData.most_voted_tx_hash"></a>
 
 #### most`_`voted`_`tx`_`hash
 
@@ -91,7 +91,7 @@ def most_voted_tx_hash() -> float
 
 Get the most_voted_tx_hash.
 
-<a id="packages.valory.skills.price_estimation_abci.rounds.PeriodState.participant_to_observations"></a>
+<a id="packages.valory.skills.price_estimation_abci.rounds.SynchronizedData.participant_to_observations"></a>
 
 #### participant`_`to`_`observations
 
@@ -102,7 +102,7 @@ def participant_to_observations() -> Dict
 
 Get the participant_to_observations.
 
-<a id="packages.valory.skills.price_estimation_abci.rounds.PeriodState.participant_to_estimate"></a>
+<a id="packages.valory.skills.price_estimation_abci.rounds.SynchronizedData.participant_to_estimate"></a>
 
 #### participant`_`to`_`estimate
 

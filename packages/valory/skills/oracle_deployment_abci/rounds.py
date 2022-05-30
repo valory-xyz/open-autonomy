@@ -27,7 +27,7 @@ from packages.valory.skills.abstract_round_abci.base import (
     AbciAppTransitionFunction,
     AbstractRound,
     AppState,
-    BasePeriodState,
+    BaseSynchronizedData,
     CollectSameUntilThresholdRound,
     DegenerateRound,
     OnlyKeeperSendsRound,
@@ -54,11 +54,11 @@ class Event(Enum):
     VALIDATE_TIMEOUT = "validate_timeout"
 
 
-class PeriodState(BasePeriodState):
+class SynchronizedData(BaseSynchronizedData):
     """
-    Class to represent a period state.
+    Class to represent the synchronized data.
 
-    This state is replicated by the tendermint application.
+    This data is replicated by the tendermint application.
     """
 
     @property
@@ -78,7 +78,7 @@ class RandomnessOracleRound(CollectSameUntilThresholdRound):
     round_id = "randomness_oracle"
     allowed_tx_type = RandomnessPayload.transaction_type
     payload_attribute = "randomness"
-    period_state_class = PeriodState
+    synchronized_data_class = SynchronizedData
     done_event = Event.DONE
     no_majority_event = Event.NO_MAJORITY
     collection_key = "participant_to_randomness"
@@ -91,7 +91,7 @@ class SelectKeeperOracleRound(CollectSameUntilThresholdRound):
     round_id = "select_keeper_oracle"
     allowed_tx_type = SelectKeeperPayload.transaction_type
     payload_attribute = "keeper"
-    period_state_class = PeriodState
+    synchronized_data_class = SynchronizedData
     done_event = Event.DONE
     no_majority_event = Event.NO_MAJORITY
     collection_key = "participant_to_selection"
@@ -104,7 +104,7 @@ class DeployOracleRound(OnlyKeeperSendsRound):
     round_id = "deploy_oracle"
     allowed_tx_type = DeployOraclePayload.transaction_type
     payload_attribute = "oracle_contract_address"
-    period_state_class = PeriodState
+    synchronized_data_class = SynchronizedData
     done_event = Event.DONE
     fail_event = Event.FAILED
     payload_key = "oracle_contract_address"
@@ -116,7 +116,7 @@ class ValidateOracleRound(VotingRound):
     round_id = "validate_oracle"
     allowed_tx_type = ValidateOraclePayload.transaction_type
     payload_attribute = "vote"
-    period_state_class = PeriodState
+    synchronized_data_class = SynchronizedData
     done_event = Event.DONE
     negative_event = Event.NEGATIVE
     none_event = Event.NONE
