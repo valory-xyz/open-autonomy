@@ -23,7 +23,7 @@ import re
 from abc import ABC
 from copy import copy
 from enum import Enum
-from typing import Any, Dict, Optional, Set, Tuple, Type
+from typing import Any, Dict, List, Optional, Set, Tuple, Type, Union
 from unittest import mock
 from unittest.mock import MagicMock
 
@@ -37,11 +37,12 @@ from packages.valory.skills.abstract_round_abci.base import (
     ABCIAppException,
     ABCIAppInternalError,
     AbciApp,
+    AbciAppDB,
     AbciAppTransitionFunction,
     AbstractRound,
     AddBlockError,
     AppState,
-    BasePeriodState,
+    BaseSynchronizedData,
     BaseTxPayload,
     Block,
     BlockBuilder,
@@ -49,9 +50,8 @@ from packages.valory.skills.abstract_round_abci.base import (
     ConsensusParams,
     EventType,
     LateArrivingTransaction,
-    Period,
+    RoundSequence,
     SignatureNotValidError,
-    StateDB,
     Timeouts,
     Transaction,
     TransactionTypeNotRecognizedError,
@@ -199,6 +199,9 @@ def test_base_tx_payload() -> None:
 
     assert payload.sender == new_payload.sender
     assert payload.id_ != new_payload.id_
+    payload.round_count = 1
+    assert payload.round_count == 1
+    assert type(hash(payload)) == int
 
 
 class TestTransactions:
@@ -475,68 +478,179 @@ class TestConsensusParams:
         assert expected == actual
 
 
-class TestBasePeriodState:
-    """Test 'BasePeriodState' class."""
+class TestAbciAppDB:
+    """Test 'AbciAppDB' class."""
 
     def setup(self) -> None:
         """Set up the tests."""
         self.participants = {"a", "b"}
-        self.base_period_state = BasePeriodState(
-            db=StateDB(
-                initial_period=0, initial_data=dict(participants=self.participants)
-            )
+        self.db = AbciAppDB(
+            initial_data=dict(participants=self.participants),
+        )
+
+    @pytest.mark.parametrize(
+        "participants, format_initial_data", [({"a", "b"}, True), ([{"a", "b"}], False)]
+    )
+    def test_init(
+        self, participants: Union[List[Set[str]], Set[str]], format_initial_data: bool
+    ) -> None:
+        """Test constructor."""
+        db = AbciAppDB(
+            initial_data=dict(participants=participants),
+            format_initial_data=format_initial_data,
+        )
+        assert db._data == {0: {"participants": [self.participants]}}
+        assert db.initial_data == {"participants": [self.participants]}
+        assert db.cross_period_persisted_keys == []
+
+    def test_get(self) -> None:
+        """Test getters."""
+        assert self.db.get("participants", default="default") == self.participants
+        assert self.db.get_latest_from_reset_index(0) == {
+            "participants": self.participants
+        }
+        assert self.db.get_latest() == {"participants": self.participants}
+
+    def test_increment_round_count(self) -> None:
+        """Test increment_round_count."""
+        assert self.db.round_count == -1
+        self.db.increment_round_count()
+        assert self.db.round_count == 0
+
+
+class TestBaseSynchronizedData:
+    """Test 'BaseSynchronizedData' class."""
+
+    def setup(self) -> None:
+        """Set up the tests."""
+        self.participants = {"a", "b"}
+        self.base_synchronized_data = BaseSynchronizedData(
+            db=AbciAppDB(initial_data=dict(participants=self.participants))
         )
 
     def test_participants_getter_positive(self) -> None:
         """Test 'participants' property getter."""
-        assert self.participants == self.base_period_state.participants
+        assert self.participants == self.base_synchronized_data.participants
 
     def test_nb_participants_getter(self) -> None:
         """Test 'participants' property getter."""
-        assert len(self.participants) == self.base_period_state.nb_participants
+        assert len(self.participants) == self.base_synchronized_data.nb_participants
 
     def test_participants_getter_negative(self) -> None:
         """Test 'participants' property getter, negative case."""
-        base_period_state = BasePeriodState(
-            db=StateDB(initial_period=0, initial_data={})
-        )
+        base_synchronized_data = BaseSynchronizedData(db=AbciAppDB(initial_data={}))
         with pytest.raises(ValueError, match="Value of key=participants is None"):
-            base_period_state.participants
+            base_synchronized_data.participants
 
     def test_update(self) -> None:
         """Test the 'update' method."""
         participants = {"a"}
-        expected = BasePeriodState(
-            db=StateDB(initial_period=0, initial_data=dict(participants=participants))
+        expected = BaseSynchronizedData(
+            db=AbciAppDB(initial_data=dict(participants=participants))
         )
-        actual = self.base_period_state.update(participants=participants)
+        actual = self.base_synchronized_data.update(participants=participants)
         assert expected.participants == actual.participants
+        assert actual.db._data == {0: {"participants": [{"a", "b"}, {"a"}]}}
+
+    def test_update_overwrite(self) -> None:
+        """Test the 'update' method."""
+        participants = {"a"}
+        expected = BaseSynchronizedData(
+            db=AbciAppDB(initial_data=dict(participants=participants))
+        )
+        actual = self.base_synchronized_data.update(
+            overwrite_history=True, participants=participants
+        )
+        assert expected.participants == actual.participants
+        assert actual.db._data == {0: {"participants": [{"a"}]}}
+
+    @pytest.mark.parametrize(
+        "participants, format_data", [({"a"}, True), ([{"a"}], False)]
+    )
+    def test_create(
+        self, participants: Union[List[Set[str]], Set[str]], format_data: bool
+    ) -> None:
+        """Test the 'create' method."""
+        actual = self.base_synchronized_data.create(
+            format_data=format_data, participants=participants
+        )
+        assert actual.db._data == {
+            0: {"participants": [{"a", "b"}]},
+            1: {"participants": [{"a"}]},
+        }
 
     def test_repr(self) -> None:
         """Test the '__repr__' magic method."""
-        actual_repr = repr(self.base_period_state)
-        expected_repr_regex = r"BasePeriodState\(db=StateDB\({(.*)}\)\)"
+        actual_repr = repr(self.base_synchronized_data)
+        expected_repr_regex = r"BaseSynchronizedData\(db=AbciAppDB\({(.*)}\)\)"
         assert re.match(expected_repr_regex, actual_repr) is not None
 
     def test_participants_list_is_empty(
         self,
     ) -> None:
         """Tets when participants list is set to zero."""
-        base_period_state = BasePeriodState(
-            db=StateDB(initial_period=0, initial_data=dict(participants={}))
+        base_synchronized_data = BaseSynchronizedData(
+            db=AbciAppDB(initial_data=dict(participants={}))
         )
         with pytest.raises(ValueError, match="List participants cannot be empty."):
-            _ = base_period_state.participants
+            _ = base_synchronized_data.participants
 
     def test_all_participants_list_is_empty(
         self,
     ) -> None:
         """Tets when participants list is set to zero."""
-        base_period_state = BasePeriodState(
-            db=StateDB(initial_period=0, initial_data=dict(all_participants={}))
+        base_synchronized_data = BaseSynchronizedData(
+            db=AbciAppDB(initial_data=dict(all_participants={}))
         )
         with pytest.raises(ValueError, match="List participants cannot be empty."):
-            _ = base_period_state.all_participants
+            _ = base_synchronized_data.all_participants
+
+    def test_properties(self) -> None:
+        """Test several properties"""
+        participants = {"b", "a"}
+        randomness_str = (
+            "3439d92d58e47d342131d446a3abe264396dd264717897af30525c98408c834f"
+        )
+        randomness_value = 0.20400769574270503
+        most_voted_keeper_address = "most_voted_keeper_address"
+        blacklisted_keepers = "blacklisted_keepers"
+        participant_to_selection = "participant_to_selection"
+        participant_to_randomness = "participant_to_randomness"
+        participant_to_votes = "participant_to_votes"
+
+        base_synchronized_data = BaseSynchronizedData(
+            db=AbciAppDB(
+                initial_data=dict(
+                    participants=participants,
+                    all_participants=participants,
+                    most_voted_randomness=randomness_str,
+                    most_voted_keeper_address=most_voted_keeper_address,
+                    blacklisted_keepers=blacklisted_keepers,
+                    participant_to_selection=participant_to_selection,
+                    participant_to_randomness=participant_to_randomness,
+                    participant_to_votes=participant_to_votes,
+                )
+            )
+        )
+        assert self.base_synchronized_data.period_count == 0
+        assert base_synchronized_data.all_participants == participants
+        assert base_synchronized_data.sorted_participants == ["a", "b"]
+        assert abs(base_synchronized_data.keeper_randomness - randomness_value) < 1e-10
+        assert base_synchronized_data.most_voted_randomness == randomness_str
+        assert (
+            base_synchronized_data.most_voted_keeper_address
+            == most_voted_keeper_address
+        )
+        assert base_synchronized_data.is_keeper_set
+        assert base_synchronized_data.blacklisted_keepers == {blacklisted_keepers}
+        assert (
+            base_synchronized_data.participant_to_selection == participant_to_selection
+        )
+        assert (
+            base_synchronized_data.participant_to_randomness
+            == participant_to_randomness
+        )
+        assert base_synchronized_data.participant_to_votes == participant_to_votes
 
 
 class TestAbstractRound:
@@ -546,15 +660,13 @@ class TestAbstractRound:
         """Set up the tests."""
         self.known_payload_type = ConcreteRoundA.allowed_tx_type
         self.participants = {"a", "b"}
-        self.base_period_state = BasePeriodState(
-            db=StateDB(
-                initial_period=0, initial_data=dict(participants=self.participants)
-            )
+        self.base_synchronized_data = BaseSynchronizedData(
+            db=AbciAppDB(initial_data=dict(participants=self.participants))
         )
         self.params = ConsensusParams(
             max_participants=len(self.participants),
         )
-        self.round = ConcreteRoundA(self.base_period_state, self.params)
+        self.round = ConcreteRoundA(self.base_synchronized_data, self.params)
 
     def test_must_set_round_id(self) -> None:
         """Test that the 'round_id' must be set in concrete classes."""
@@ -564,7 +676,7 @@ class TestAbstractRound:
             # ...
             allowed_tx_type = MagicMock()
 
-            def end_block(self) -> Optional[Tuple[BasePeriodState, EventType]]:
+            def end_block(self) -> Optional[Tuple[BaseSynchronizedData, EventType]]:
                 pass
 
             def check_payload(self, payload: BaseTxPayload) -> None:
@@ -584,7 +696,7 @@ class TestAbstractRound:
             # here allowed_tx_type is missing
             # ...
 
-            def end_block(self) -> Optional[Tuple[BasePeriodState, EventType]]:
+            def end_block(self) -> Optional[Tuple[BaseSynchronizedData, EventType]]:
                 pass
 
             def check_payload(self, payload: BaseTxPayload) -> None:
@@ -605,7 +717,7 @@ class TestAbstractRound:
             round_id = ""
             allowed_tx_type = "allowed_tx_type"
 
-            def end_block(self) -> Optional[Tuple[BasePeriodState, EventType]]:
+            def end_block(self) -> Optional[Tuple[BaseSynchronizedData, EventType]]:
                 pass
 
             def check_payload(self, payload: BaseTxPayload) -> None:
@@ -631,7 +743,7 @@ class TestAbstractRound:
             round_id = ""
             allowed_tx_type = None
 
-            def end_block(self) -> Optional[Tuple[BasePeriodState, EventType]]:
+            def end_block(self) -> Optional[Tuple[BaseSynchronizedData, EventType]]:
                 pass
 
             def check_payload(self, payload: BaseTxPayload) -> None:
@@ -646,9 +758,9 @@ class TestAbstractRound:
         ):
             MyConcreteRound(MagicMock(), MagicMock()).check_allowed_tx_type(MagicMock())
 
-    def test_period_state_getter(self) -> None:
-        """Test 'period_state' property getter."""
-        state = self.round.period_state
+    def test_synchronized_data_getter(self) -> None:
+        """Test 'synchronized_data' property getter."""
+        state = self.round.synchronized_data
         assert state.participants == self.participants
 
     def test_check_transaction_unknown_payload(self) -> None:
@@ -999,64 +1111,71 @@ class TestAbciApp:
         """Test the cleanup method."""
         self.abci_app.setup()
 
-        # Dummy parameters, state and round
+        # Dummy parameters, synchronized data and round
         cleanup_history_depth = 1
         start_history_depth = 5
         max_participants = 4
-        dummy_state = BasePeriodState(
-            db=StateDB(
-                initial_period=0, initial_data=dict(participants=max_participants)
-            )
+        dummy_synchronized_data = BaseSynchronizedData(
+            db=AbciAppDB(initial_data=dict(participants=max_participants))
         )
         dummy_consensus_params = ConsensusParams(max_participants)
-        dummy_round = ConcreteRoundA(dummy_state, dummy_consensus_params)
+        dummy_round = ConcreteRoundA(dummy_synchronized_data, dummy_consensus_params)
 
         # Add dummy data
         self.abci_app._previous_rounds = [dummy_round] * start_history_depth
-        self.abci_app._round_results = [dummy_state] * start_history_depth
-        self.abci_app.state.db._data = {
-            i: {"dummy_key": "dummy_value"} for i in range(start_history_depth)
+        self.abci_app._round_results = [dummy_synchronized_data] * start_history_depth
+        self.abci_app.synchronized_data.db._data = {
+            i: {"dummy_key": ["dummy_value"]} for i in range(start_history_depth)
         }
 
         round_height = self.abci_app.current_round_height
         # Verify that cleanup reduces the data amount
         assert len(self.abci_app._previous_rounds) == start_history_depth
         assert len(self.abci_app._round_results) == start_history_depth
-        assert len(self.abci_app.state.db._data) == start_history_depth
+        assert len(self.abci_app.synchronized_data.db._data) == start_history_depth
+        assert list(self.abci_app.synchronized_data.db._data.keys()) == list(
+            range(start_history_depth)
+        )
+        previous_reset_index = self.abci_app.synchronized_data.db.reset_index
 
         self.abci_app.cleanup(cleanup_history_depth)
 
         assert len(self.abci_app._previous_rounds) == cleanup_history_depth
         assert len(self.abci_app._round_results) == cleanup_history_depth
-        assert len(self.abci_app.state.db._data) == cleanup_history_depth
+        assert len(self.abci_app.synchronized_data.db._data) == cleanup_history_depth
+        assert list(self.abci_app.synchronized_data.db._data.keys()) == list(
+            range(start_history_depth - cleanup_history_depth, start_history_depth)
+        )
+        # reset_index must not change after a cleanup
+        assert self.abci_app.synchronized_data.db.reset_index == previous_reset_index
 
         # Verify round height stays unaffected
         assert self.abci_app.current_round_height == round_height
 
 
-class TestPeriod:
-    """Test the Period class."""
+class TestRoundSequence:
+    """Test the RoundSequence class."""
 
     def setup(self) -> None:
         """Set up the test."""
-        self.period = Period(abci_app_cls=AbciAppTest)
-        self.period.setup(MagicMock(), MagicMock(), MagicMock())
+        self.round_sequence = RoundSequence(abci_app_cls=AbciAppTest)
+        self.round_sequence.setup(MagicMock(), MagicMock(), MagicMock())
 
     @pytest.mark.parametrize("n_blocks", (0, 1, 10))
     def test_height(self, n_blocks: int) -> None:
         """Test 'height' property."""
-        self.period._blockchain._blocks = [MagicMock() for _ in range(n_blocks)]
-        assert self.period.height == n_blocks
+        self.round_sequence._blockchain._blocks = [MagicMock() for _ in range(n_blocks)]
+        assert self.round_sequence.height == n_blocks
 
     def test_is_finished(self) -> None:
         """Test 'is_finished' property."""
-        assert not self.period.is_finished
-        self.period.abci_app._current_round = None
-        assert self.period.is_finished
+        assert not self.round_sequence.is_finished
+        self.round_sequence.abci_app._current_round = None
+        assert self.round_sequence.is_finished
 
     def test_last_round(self) -> None:
         """Test 'last_round' property."""
-        assert self.period.last_round_id is None
+        assert self.round_sequence.last_round_id is None
 
     def test_last_timestamp_none(self) -> None:
         """
@@ -1065,7 +1184,7 @@ class TestPeriod:
         The property is None because there are no blocks.
         """
         with pytest.raises(ABCIAppInternalError, match="last timestamp is None"):
-            self.period.last_timestamp
+            self.round_sequence.last_timestamp
 
     def test_last_timestamp(self) -> None:
         """Test 'last_timestamp' property, positive case."""
@@ -1074,103 +1193,104 @@ class TestPeriod:
         expected_timestamp = datetime.datetime.fromtimestamp(
             seconds + nanoseconds / 10 ** 9
         )
-        self.period._blockchain.add_block(
+        self.round_sequence._blockchain.add_block(
             Block(MagicMock(height=1, timestamp=expected_timestamp), [])
         )
-        assert self.period.last_timestamp == expected_timestamp
+        assert self.round_sequence.last_timestamp == expected_timestamp
 
     def test_abci_app_negative(self) -> None:
         """Test 'abci_app' property, negative case."""
-        self.period._abci_app = None
+        self.round_sequence._abci_app = None
         with pytest.raises(ABCIAppInternalError, match="AbciApp not set"):
-            self.period.abci_app
+            self.round_sequence.abci_app
 
     def test_check_is_finished_negative(self) -> None:
         """Test 'check_is_finished', negative case."""
-        self.period.abci_app._current_round = None
+        self.round_sequence.abci_app._current_round = None
         with pytest.raises(
-            ValueError, match="period is finished, cannot accept new transactions"
+            ValueError,
+            match="round sequence is finished, cannot accept new transactions",
         ):
-            self.period.check_is_finished()
+            self.round_sequence.check_is_finished()
 
     def test_current_round_positive(self) -> None:
         """Test 'current_round' property getter, positive case."""
-        assert isinstance(self.period.current_round, ConcreteRoundA)
+        assert isinstance(self.round_sequence.current_round, ConcreteRoundA)
 
     def test_current_round_negative_current_round_not_set(self) -> None:
         """Test 'current_round' property getter, negative case (current round not set)."""
-        self.period.abci_app._current_round = None
+        self.round_sequence.abci_app._current_round = None
         with pytest.raises(ValueError, match="current_round not set!"):
-            self.period.current_round
+            self.round_sequence.current_round
 
     def test_current_round_id(self) -> None:
         """Test 'current_round_id' property getter"""
-        assert self.period.current_round_id == ConcreteRoundA.round_id
+        assert self.round_sequence.current_round_id == ConcreteRoundA.round_id
 
     def test_latest_result(self) -> None:
         """Test 'latest_result' property getter."""
-        assert self.period.latest_state
+        assert self.round_sequence.latest_synchronized_data
 
     @pytest.mark.parametrize("committed", (True, False))
     def test_last_round_transition_timestamp(self, committed: bool) -> None:
         """Test 'last_round_transition_timestamp' method."""
         if committed:
-            self.period.begin_block(MagicMock(height=1))
-            self.period.end_block()
-            self.period.commit()
+            self.round_sequence.begin_block(MagicMock(height=1))
+            self.round_sequence.end_block()
+            self.round_sequence.commit()
             assert (
-                self.period.last_round_transition_timestamp
-                == self.period._blockchain.last_block.timestamp
+                self.round_sequence.last_round_transition_timestamp
+                == self.round_sequence._blockchain.last_block.timestamp
             )
         else:
-            assert self.period._blockchain.height == 0
+            assert self.round_sequence._blockchain.height == 0
             with pytest.raises(
                 ValueError,
                 match="Trying to access `last_round_transition_timestamp` while no transition has been completed yet.",
             ):
-                _ = self.period.last_round_transition_timestamp
+                _ = self.round_sequence.last_round_transition_timestamp
 
     @pytest.mark.parametrize("committed", (True, False))
     def test_last_round_transition_height(self, committed: bool) -> None:
         """Test 'last_round_transition_height' method."""
         if committed:
-            self.period.begin_block(MagicMock(height=1))
-            self.period.end_block()
-            self.period.commit()
+            self.round_sequence.begin_block(MagicMock(height=1))
+            self.round_sequence.end_block()
+            self.round_sequence.commit()
             assert (
-                self.period.last_round_transition_height
-                == self.period._blockchain.height
+                self.round_sequence.last_round_transition_height
+                == self.round_sequence._blockchain.height
                 == 1
             )
         else:
-            assert self.period._blockchain.height == 0
+            assert self.round_sequence._blockchain.height == 0
             with pytest.raises(
                 ValueError,
                 match="Trying to access `last_round_transition_height` while no transition has been completed yet.",
             ):
-                _ = self.period.last_round_transition_height
+                _ = self.round_sequence.last_round_transition_height
 
     def test_begin_block_negative_is_finished(self) -> None:
-        """Test 'begin_block' method, negative case (period is finished)."""
-        self.period.abci_app._current_round = None
+        """Test 'begin_block' method, negative case (round sequence is finished)."""
+        self.round_sequence.abci_app._current_round = None
         with pytest.raises(
             ABCIAppInternalError,
-            match="internal error: period is finished, cannot accept new blocks",
+            match="internal error: round sequence is finished, cannot accept new blocks",
         ):
-            self.period.begin_block(MagicMock())
+            self.round_sequence.begin_block(MagicMock())
 
     def test_begin_block_negative_wrong_phase(self) -> None:
         """Test 'begin_block' method, negative case (wrong phase)."""
-        self.period._block_construction_phase = MagicMock()
+        self.round_sequence._block_construction_phase = MagicMock()
         with pytest.raises(
             ABCIAppInternalError,
             match="internal error: cannot accept a 'begin_block' request.",
         ):
-            self.period.begin_block(MagicMock())
+            self.round_sequence.begin_block(MagicMock())
 
     def test_begin_block_positive(self) -> None:
         """Test 'begin_block' method, positive case."""
-        self.period.begin_block(MagicMock())
+        self.round_sequence.begin_block(MagicMock())
 
     def test_deliver_tx_negative_wrong_phase(self) -> None:
         """Test 'begin_block' method, negative (wrong phase)."""
@@ -1178,16 +1298,18 @@ class TestPeriod:
             ABCIAppInternalError,
             match="internal error: cannot accept a 'deliver_tx' request",
         ):
-            self.period.deliver_tx(MagicMock())
+            self.round_sequence.deliver_tx(MagicMock())
 
     def test_deliver_tx_positive_not_valid(self) -> None:
         """Test 'begin_block' method, positive (not valid)."""
-        self.period.begin_block(MagicMock())
+        self.round_sequence.begin_block(MagicMock())
         with mock.patch.object(
-            self.period.current_round, "check_transaction", return_value=True
+            self.round_sequence.current_round, "check_transaction", return_value=True
         ):
-            with mock.patch.object(self.period.current_round, "process_transaction"):
-                self.period.deliver_tx(MagicMock())
+            with mock.patch.object(
+                self.round_sequence.current_round, "process_transaction"
+            ):
+                self.round_sequence.deliver_tx(MagicMock())
 
     def test_end_block_negative_wrong_phase(self) -> None:
         """Test 'end_block' method, negative case (wrong phase)."""
@@ -1195,12 +1317,12 @@ class TestPeriod:
             ABCIAppInternalError,
             match="internal error: cannot accept a 'end_block' request.",
         ):
-            self.period.end_block()
+            self.round_sequence.end_block()
 
     def test_end_block_positive(self) -> None:
         """Test 'end_block' method, positive case."""
-        self.period.begin_block(MagicMock())
-        self.period.end_block()
+        self.round_sequence.begin_block(MagicMock())
+        self.round_sequence.end_block()
 
     def test_commit_negative_wrong_phase(self) -> None:
         """Test 'end_block' method, negative case (wrong phase)."""
@@ -1208,49 +1330,51 @@ class TestPeriod:
             ABCIAppInternalError,
             match="internal error: cannot accept a 'commit' request.",
         ):
-            self.period.commit()
+            self.round_sequence.commit()
 
     def test_commit_negative_exception(self) -> None:
         """Test 'end_block' method, negative case (raise exception)."""
-        self.period.begin_block(MagicMock(height=1))
-        self.period.end_block()
+        self.round_sequence.begin_block(MagicMock(height=1))
+        self.round_sequence.end_block()
         with mock.patch.object(
-            self.period._blockchain, "add_block", side_effect=AddBlockError
+            self.round_sequence._blockchain, "add_block", side_effect=AddBlockError
         ):
             with pytest.raises(AddBlockError):
-                self.period.commit()
+                self.round_sequence.commit()
 
     def test_commit_positive_no_change_round(self) -> None:
         """Test 'end_block' method, positive (no change round)."""
-        self.period.begin_block(MagicMock(height=1))
-        self.period.end_block()
-        self.period.commit()
-        assert isinstance(self.period.current_round, ConcreteRoundA)
+        self.round_sequence.begin_block(MagicMock(height=1))
+        self.round_sequence.end_block()
+        self.round_sequence.commit()
+        assert isinstance(self.round_sequence.current_round, ConcreteRoundA)
 
     def test_commit_positive_with_change_round(self) -> None:
         """Test 'end_block' method, positive (with change round)."""
-        self.period.begin_block(MagicMock(height=1))
-        self.period.end_block()
+        self.round_sequence.begin_block(MagicMock(height=1))
+        self.round_sequence.end_block()
         round_result, next_round = MagicMock(), MagicMock()
         with mock.patch.object(
-            self.period.current_round,
+            self.round_sequence.current_round,
             "end_block",
             return_value=(round_result, next_round),
         ):
-            self.period.commit()
-        assert not isinstance(self.period.abci_app._current_round, ConcreteRoundA)
-        assert self.period.latest_state == round_result
+            self.round_sequence.commit()
+        assert not isinstance(
+            self.round_sequence.abci_app._current_round, ConcreteRoundA
+        )
+        assert self.round_sequence.latest_synchronized_data == round_result
 
     @pytest.mark.parametrize("is_replay", (True, False))
     def test_reset_blockchain(self, is_replay: bool) -> None:
         """Test `reset_blockchain` method."""
-        self.period.reset_blockchain(is_replay)
+        self.round_sequence.reset_blockchain(is_replay)
         if is_replay:
             assert (
-                self.period._block_construction_phase
-                == Period._BlockConstructionState.WAITING_FOR_BEGIN_BLOCK
+                self.round_sequence._block_construction_phase
+                == RoundSequence._BlockConstructionState.WAITING_FOR_BEGIN_BLOCK
             )
-        assert self.period._blockchain.height == 0
+        assert self.round_sequence._blockchain.height == 0
 
 
 def test_meta_abci_app_when_instance_not_subclass_of_abstract_round() -> None:
@@ -1271,7 +1395,7 @@ def test_meta_abci_app_when_final_round_not_subclass_of_degenerate_round() -> No
     class FinalRound(AbstractRound):
         """A round class for testing."""
 
-        def end_block(self) -> Optional[Tuple[BasePeriodState, Enum]]:
+        def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Enum]]:
             pass
 
         def check_payload(self, payload: BaseTxPayload) -> None:

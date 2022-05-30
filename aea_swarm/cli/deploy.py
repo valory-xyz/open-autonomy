@@ -177,7 +177,7 @@ def build_deployment(  # pylint: disable=too-many-arguments
 @click.option("--push", is_flag=True, default=False, help="Push image after build.")
 @image_profile_flag()
 def build_images(  # pylint: disable=too-many-arguments
-    service_id: str,
+    service_id: PublicId,
     profile: str,
     packages_dir: Path,
     build_dir: Path,
