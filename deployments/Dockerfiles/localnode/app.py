@@ -59,7 +59,6 @@ def get_defaults() -> Dict[str, str]:
     genesis = load_genesis()
     return dict(
         genesis_time=genesis.get("genesis_time"),
-        app_hash=genesis.get("app_hash"),
     )
 
 
@@ -181,7 +180,6 @@ def hard_reset() -> Tuple[Any, int]:
         defaults = get_defaults()
         tendermint_node.reset_genesis_file(
             request.args.get("genesis_time", defaults["genesis_time"]),
-            request.args.get("app_hash", defaults["app_hash"]),
         )
         tendermint_node.start()
         return jsonify({"message": "Reset successful.", "status": True}), 200
