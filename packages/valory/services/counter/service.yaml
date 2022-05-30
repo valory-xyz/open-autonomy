@@ -1,4 +1,4 @@
-agent: "valory/counter:0.1.0"
+agent: "valory/counter_deployable:0.1.0"
 network: hardhat
 number_of_agents: 1
 author: "valory"
