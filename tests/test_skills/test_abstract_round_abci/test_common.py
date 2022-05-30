@@ -37,6 +37,10 @@ from packages.valory.skills.abstract_round_abci.base import (
     BaseSynchronizedData,
 )
 from packages.valory.skills.abstract_round_abci.behaviour_utils import BaseBehaviour
+from packages.valory.skills.abstract_round_abci.common import (
+    most_common_element,
+    random_selection,
+)
 from packages.valory.skills.transaction_settlement_abci.payload_tools import (
     VerificationStatus,
 )
@@ -417,3 +421,52 @@ class BaseSelectKeeperBehaviourTest(CommonBaseCase):
         self.end_round(self.done_event)
         behaviour = cast(BaseBehaviour, self.behaviour.current_behaviour)
         assert behaviour.behaviour_id == self.next_behaviour_class.behaviour_id
+
+
+def test_most_common_element() -> None:
+    """Test 'most_common_element'"""
+    # Non tie/draw
+    elements = {
+        key: value
+        for key, value in zip(
+            ["a", "b", "c", "d", "e", "f", "g"],
+            [
+                {"key1": "dummy"},
+                {"key1": "dummy"},
+                {"key1": "dummy2"},
+                None,
+                None,
+                None,
+            ],
+        )
+    }
+    assert most_common_element(elements) == {"key1": "dummy"}
+
+    # All empty
+    assert most_common_element({}) == {}
+
+    # Tie/draw
+    elements = {
+        key: value
+        for key, value in zip(
+            ["a", "b", "c", "d"],
+            [
+                {"key1": "dummy"},
+                {"key1": "dummy"},
+                {"key1": "dummy2"},
+                {"key1": "dummy2"},
+            ],
+        )
+    }
+    assert most_common_element(elements) is None
+
+
+def test_random_selection() -> None:
+    """Test 'random_selection'"""
+    assert random_selection(elements=[0, 1, 2], randomness=0.25) == 0
+    assert random_selection(elements=[0, 1, 2], randomness=0.5) == 1
+    assert random_selection(elements=[0, 1, 2], randomness=0.75) == 2
+    with pytest.raises(ValueError):
+        random_selection(elements=[0, 1], randomness=-1)
+    with pytest.raises(ValueError):
+        random_selection(elements=[0, 1], randomness=2)

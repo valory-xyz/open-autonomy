@@ -517,6 +517,14 @@ class TestAbciAppDB:
         self.db.increment_round_count()
         assert self.db.round_count == 0
 
+    def test_update_empty(self) -> None:
+        """Test update on empty db."""
+        db = AbciAppDB(
+            initial_data=dict(),
+        )
+        db.update(dummy_key="dummy_value")
+        assert db._data == {0: {"dummy_key": ["dummy_value"]}}
+
 
 class TestBaseSynchronizedData:
     """Test 'BaseSynchronizedData' class."""

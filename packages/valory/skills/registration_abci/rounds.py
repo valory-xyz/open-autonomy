@@ -121,6 +121,7 @@ class RegistrationRound(CollectDifferentUntilThresholdRound):
                     if "initialisation" in payload.data
                 }
             )
+            print(f">>>>> most_common_initialisation: {most_common_initialisation}")
             # Draw/tie case
             if most_common_initialisation is None:
                 return self.synchronized_data, Event.NO_MAJORITY

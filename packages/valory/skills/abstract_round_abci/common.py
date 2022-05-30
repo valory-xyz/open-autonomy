@@ -23,7 +23,7 @@ import hashlib
 import json
 import random
 from math import floor
-from typing import Dict, Generator, List, Optional, Type, Union, cast
+from typing import Any, Dict, Generator, List, Optional, Type, Union, cast
 
 from packages.valory.protocols.ledger_api.message import LedgerApiMessage
 from packages.valory.skills.abstract_round_abci.base import BaseTxPayload
@@ -37,7 +37,7 @@ RandomnessObservation = Optional[Dict[str, Union[str, int]]]
 drand_check = VerifyDrand()
 
 
-def random_selection(elements: List[str], randomness: float) -> str:
+def random_selection(elements: List[Any], randomness: float) -> str:
     """
     Select a random element from a list.
 
