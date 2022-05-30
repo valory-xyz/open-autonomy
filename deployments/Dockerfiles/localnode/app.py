@@ -35,6 +35,7 @@ try:
 except:
     from tendermint import TendermintNode, TendermintParams
 
+
 DEFAULT_LOG_FILE = "log.log"
 IS_DEV_MODE = os.environ.get("DEV_MODE", "0") == "1"
 CONFIG_OVERRIDE = [
@@ -108,7 +109,7 @@ class PeriodDumper:
             return
 
     def dump_period(
-            self,
+        self,
     ) -> None:
         """Dump tendermint run data for replay"""
         store_dir = self.dump_dir / f"period_{self.resets}"
@@ -199,12 +200,6 @@ def create_app(dump_dir: Optional[Path] = None):
         return Response("Error Closing Node", status=500, mimetype="application/json")
 
     return app, tendermint_node
-
-
-def create_server():
-    """Function to retrieve just the app to be used by flask entry point."""
-    flask_app, tendermint_node = create_app()
-    return flask_app
 
 
 if __name__ == "__main__":

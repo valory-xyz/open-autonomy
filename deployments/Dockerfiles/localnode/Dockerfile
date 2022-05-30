@@ -28,7 +28,7 @@ RUN pip3 install -r requirements.txt
 VOLUME /tendermint
 VOLUME /tm_state
 EXPOSE 26656 26657
-ENV FLASK_APP=/app/app.py:create_server
+ENV FLASK_APP=/app/app.py
 ENV FLASK_ENV=production
 
 STOPSIGNAL SIGTERM
