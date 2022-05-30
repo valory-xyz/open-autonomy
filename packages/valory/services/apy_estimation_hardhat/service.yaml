@@ -1,4 +1,4 @@
-name: apy_estimation
+name: apy_estimation_hardhat
 author: "valory"
 version: 0.1.0
 description: A set of agent reaching APY estimates
