@@ -844,7 +844,7 @@ This is the relevant data constructed and replicated by the agents.
 #### `__`init`__`
 
 ```python
-def __init__(db: AbciAppDB) -> None
+def __init__(db: AbciAppDB, app_hash: bytes = DEFAULT_APP_HASH) -> None
 ```
 
 Initialize the synchronized data.
