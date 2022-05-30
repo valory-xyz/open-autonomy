@@ -653,11 +653,12 @@ class BaseSynchronizedData:
     def __init__(
         self,
         db: AbciAppDB,
+        app_hash: bytes = b"",
     ) -> None:
         """Initialize the synchronized data."""
         self._db = db
         # we initialise the app hash to empty bytes to match default Tendermint genesis
-        self._app_hash = b""
+        self._app_hash = app_hash
 
     @property
     def db(self) -> AbciAppDB:
@@ -739,7 +740,7 @@ class BaseSynchronizedData:
         class_ = (
             type(self) if synchronized_data_class is None else synchronized_data_class
         )
-        return class_(db=self.db)
+        return class_(db=self.db, app_hash=self.app_hash)
 
     def create(
         self,
@@ -752,7 +753,7 @@ class BaseSynchronizedData:
         class_ = (
             type(self) if synchronized_data_class is None else synchronized_data_class
         )
-        return class_(db=self.db)
+        return class_(db=self.db, app_hash=self.app_hash)
 
     def __repr__(self) -> str:
         """Return a string representation of the data."""
