@@ -549,20 +549,6 @@ class AbciAppDB:
         """
         return self._initial_data
 
-    @property
-    def data(self) -> Dict[int, Dict[str, List[Any]]]:
-        """
-        Get the data.
-
-        :return: the data
-        """
-        return self._data
-
-    @data.setter
-    def data(self, value: Optional[Dict[int, Dict[str, List[Any]]]] = None) -> None:
-        """Set all the data."""
-        self._data = value or {}
-
     @classmethod
     def data_to_list(cls, data: Dict[str, Any]) -> Dict[str, List[Any]]:
         """Convert Dict[str, Any] to Dict[str, List[Any]]."""
@@ -621,7 +607,7 @@ class AbciAppDB:
             return
 
         # Empty database case
-        if not self.data:
+        if not self._data:
             self._data[RESET_COUNT_START] = {
                 key: [value] for key, value in kwargs.items()
             }
@@ -758,19 +744,6 @@ class BaseSynchronizedData:
     ) -> "BaseSynchronizedData":
         """Copy and update with new data."""
         self.db.create(format_data=format_data, **kwargs)
-        class_ = (
-            type(self) if synchronized_data_class is None else synchronized_data_class
-        )
-        return class_(db=self.db)
-
-    def new_db(
-        self,
-        synchronized_data_class: Optional[Type] = None,
-        data_db: Optional[Dict[int, Dict[str, List[Any]]]] = None,
-    ) -> "BaseSynchronizedData":
-        """Copy and update the current data."""
-        self.db.data = data_db  # type: ignore
-
         class_ = (
             type(self) if synchronized_data_class is None else synchronized_data_class
         )
@@ -1456,16 +1429,6 @@ class CollectDifferentUntilThresholdRound(CollectionRound):
         ):
             return self.synchronized_data, self.no_majority_event
         return None
-
-    @property
-    def most_voted_payload(
-        self,
-    ) -> Any:
-        """Get the most voted payload."""
-        most_voted_payload, max_votes = self.payloads_count.most_common()[0]
-        if max_votes < self._consensus_params.max_participants:
-            raise ABCIAppInternalError("not enough votes")
-        return most_voted_payload
 
 
 class CollectNonEmptyUntilThresholdRound(CollectDifferentUntilThresholdRound):
