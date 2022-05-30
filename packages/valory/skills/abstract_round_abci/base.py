@@ -70,6 +70,7 @@ MAX_INT_256 = 2 ** 256 - 1
 RESET_COUNT_START = 0
 VALUE_NOT_PROVIDED = "VALUE_NOT_PROVIDED"
 DEFAULT_VALUE_FLAG = "DEFAULT_VALUE_FLAG"
+DEFAULT_APP_HASH = b""
 
 EventType = TypeVar("EventType")
 TransactionType = TypeVar("TransactionType")
@@ -653,7 +654,7 @@ class BaseSynchronizedData:
     def __init__(
         self,
         db: AbciAppDB,
-        app_hash: bytes = b"",
+        app_hash: bytes = DEFAULT_APP_HASH,
     ) -> None:
         """Initialize the synchronized data."""
         self._db = db
