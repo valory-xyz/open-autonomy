@@ -406,7 +406,7 @@ class TendermintParams:  # pylint: disable=too-few-public-methods
         proxy_app: str,
         rpc_laddr: str = DEFAULT_RPC_LISTEN_ADDRESS,
         p2p_laddr: str = DEFAULT_P2P_LISTEN_ADDRESS,
-        p2p_seeds: List[str] = None,
+        p2p_seeds: Optional[List[str]] = None,
         consensus_create_empty_blocks: bool = True,
         home: Optional[str] = None,
     ):
@@ -488,10 +488,11 @@ class TendermintNode:
         cmd = self._build_init_command()
         subprocess.call(cmd)  # nosec
 
-    def start(self) -> None:
+    def start(self, start_monitoring=False) -> None:
         """Start a Tendermint node process."""
         self._start_tm_process()
-        self._start_monitoring_thread()
+        if start_monitoring:
+            self._start_monitoring_thread()
 
     def _start_tm_process(self) -> None:
         """Start a Tendermint node process."""
