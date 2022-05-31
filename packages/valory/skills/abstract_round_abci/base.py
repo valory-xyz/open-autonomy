@@ -2195,7 +2195,9 @@ class RoundSequence:
 
         :return: the root hash to be included as the Header.AppHash in the next block.
         """
-        return f"root:{self.abci_app.synchronized_data.db.round_count}reset:{self.abci_app.reset_index}".encode("utf-8")
+        return f"root:{self.abci_app.synchronized_data.db.round_count}reset:{self.abci_app.reset_index}".encode(
+            "utf-8"
+        )
 
     def begin_block(self, header: Header) -> None:
         """Begin block."""
@@ -2293,9 +2295,7 @@ class RoundSequence:
         ] = self.current_round.end_block()
         if result is None:
             return
-        self._last_round_transition_timestamp = (
-            self._blockchain.last_block.timestamp
-        )
+        self._last_round_transition_timestamp = self._blockchain.last_block.timestamp
         self._last_round_transition_height = self.height
         self._last_root_hash = self.root_hash
         round_result, event = result
