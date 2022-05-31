@@ -9,10 +9,10 @@ fingerprint:
   README.md: QmYNXPppPSnW61ipqKNH8pyMh8qzTERwQaducYYq1dnBJb
   __init__.py: QmPuJK7gMKruSTcaYk9otrFncfD9h6vBZVoAtkwhTBgcxa
   abci_app_chain.py: QmeCPxwjec4pxtedv8NeG2Gmj58GY2GycXvgwfyjEyqPGm
-  base.py: QmboPsSzPiY16P6qgtN11UFQRbeChWA9SKrTPv5LXXHD7i
+  base.py: QmefkiNEM6Pej7WDynYfpt6D3xugqESurWVa4VPb5b5HxU
   behaviour_utils.py: QmYiP4jR2YNYiihaYh4eS78W5bxLambbeVK2WDSAiKe311
   behaviours.py: QmawtbXREBz8C7Grjn4a93gaAQFMWzZicxRfjyHcckYHmz
-  common.py: QmShfzJqxFuN4sS9gjpC5TbCXZCBFqKjdQHmqJ4Hwzshp1
+  common.py: QmPc8iBfjUbTmT1gV8VHsm3mFErj6cV8Hck4kys3xq1xvZ
   dialogues.py: QmemiTJxfwp2PFxFQyAUHTx8FsthhWL3mYgonBhC3cTjWH
   handlers.py: QmZRrWXxGV2qEptfFAjWCKSQ3MtRYRdBpK3BdiFjtixHGW
   io/__init__.py: QmPfA2syTybFaGmmMMt5gevZHEXPyjVf7wR1UE22NzpZZ3

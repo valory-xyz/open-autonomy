@@ -22,6 +22,7 @@
 import hashlib
 import json
 import random
+from collections import Counter
 from math import floor
 from typing import Any, Dict, Generator, List, Optional, Type, Union, cast
 
@@ -62,23 +63,13 @@ def most_common_element(elements: Dict[str, Optional[Dict]]) -> Optional[Dict]:
         return {}
 
     # Count the non-None elements
-    count: Dict[str, int] = {}
-    for value in elements.values():
-        if not value:
-            continue
-        element_string = json.dumps(value, sort_keys=True)
-        count[element_string] = count.get(element_string, 0) + 1
-
-    # Sorted list in the format [(element, count),]
-    sorted_count = list(
-        dict(sorted(count.items(), key=lambda item: item[1], reverse=True)).items()
-    )
+    counts = Counter(json.dumps(v, sort_keys=True) for v in elements.values() if v)
 
     # Tie/draw check: the most common payload count must be greater than the second most common one
-    if len(sorted_count) > 1 and sorted_count[0][1] == sorted_count[1][1]:
-        return None
+    top_two = [n[-1] for n in counts.most_common(2)]
+    has_winner = len(top_two) == 1 or len(set(top_two)) > 1
 
-    return json.loads(sorted_count[0][0])
+    return None if not has_winner else json.loads(counts.most_common(1)[0][0])
 
 
 class RandomnessBehaviour(BaseBehaviour):

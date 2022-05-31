@@ -276,6 +276,16 @@ def __hash__() -> int
 
 Hash the payload.
 
+<a id="packages.valory.skills.abstract_round_abci.base.BaseTxPayload.size_check"></a>
+
+#### size`_`check
+
+```python
+def size_check() -> None
+```
+
+Check that the payload does not exceed the max size.
+
 <a id="packages.valory.skills.abstract_round_abci.base.Transaction"></a>
 
 ## Transaction Objects
