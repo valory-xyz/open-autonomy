@@ -86,11 +86,26 @@ class RegistrationStartupRound(CollectDifferentUntilAllRound):
             self.collection_threshold_reached
             and self.block_confirmations > self.required_block_confirmations
         ):
+            # Get the most common not None, not empty initialisations
+            most_common_initialisation = most_common_element(
+                elements={
+                    sender: payload.data["initialisation"]
+                    for sender, payload in self.collection.items()
+                    if "initialisation" in payload.data
+                }
+            )
+
+            # Draw/tie case
+            if most_common_initialisation is None:
+                return self.synchronized_data, Event.NO_MAJORITY
+
             synchronized_data = self.synchronized_data.update(
                 participants=frozenset(self.collection),
                 all_participants=frozenset(self.collection),
                 synchronized_data_class=BaseSynchronizedData,
+                **most_common_initialisation,
             )
+
             return synchronized_data, Event.DONE
         return None
 
