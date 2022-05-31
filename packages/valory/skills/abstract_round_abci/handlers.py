@@ -19,7 +19,7 @@
 
 """This module contains the handler for the 'abstract_round_abci' skill."""
 from abc import ABC
-from typing import Callable, FrozenSet, List, Optional, cast
+from typing import Callable, FrozenSet, Optional, cast
 
 from aea.configurations.data_types import PublicId
 from aea.protocols.base import Message
@@ -113,7 +113,8 @@ class ABCIRoundHandler(ABCIHandler):
         :return: the response.
         """
         # Initial validator set (optional).
-        validators: List = []
+        validator_updates = message.validators.validator_updates
+        validator_updates = validator_updates[1:] + [validator_updates[0]]
         # Get the root hash of the last round transition as the initial application hash.
         # If no round transitions have occurred yet, `last_root_hash` returns the hash of the initial abci app's state.
         # `init_chain` will be called between resets when restarting again.
@@ -121,7 +122,7 @@ class ABCIRoundHandler(ABCIHandler):
         reply = dialogue.reply(
             performative=AbciMessage.Performative.RESPONSE_INIT_CHAIN,
             target_message=message,
-            validators=ValidatorUpdates(validators),
+            validators=ValidatorUpdates(validator_updates),
             app_hash=app_hash,
         )
         return cast(AbciMessage, reply)
