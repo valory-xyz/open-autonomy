@@ -114,8 +114,10 @@ class ABCIRoundHandler(ABCIHandler):
         """
         # Initial validator set (optional).
         validators: List = []
-        # Initial application hash.
-        app_hash = self.context.state.round_sequence.root_hash
+        # Get the root hash of the last round transition as the initial application hash.
+        # If no round transitions have occurred yet, `last_root_hash` returns the hash of the initial abci app's state.
+        # `init_chain` will be called between resets when restarting again.
+        app_hash = self.context.state.round_sequence.last_root_hash
         reply = dialogue.reply(
             performative=AbciMessage.Performative.RESPONSE_INIT_CHAIN,
             target_message=message,
