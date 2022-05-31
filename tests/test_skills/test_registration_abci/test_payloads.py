@@ -40,4 +40,4 @@ def test_registration_abci_payload() -> None:
 def test_registration_abci_payload_raises() -> None:
     """Test `RegistrationPayload`."""
     with pytest.raises(ValueError):
-        RegistrationPayload(sender="sender", initialisation="0" * 10 ** 7)
+        RegistrationPayload(sender="sender", initialisation="0" * 10**7)

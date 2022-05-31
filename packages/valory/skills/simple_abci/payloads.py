@@ -67,9 +67,9 @@ class RandomnessPayload(BaseSimpleAbciPayload):
         :param randomness: the randomness
         :param kwargs: the keyword arguments
         """
+        super().__init__(sender, **kwargs)
         self._round_id = round_id
         self._randomness = randomness
-        super().__init__(sender, **kwargs)
 
     @property
     def round_id(self) -> int:
@@ -99,8 +99,8 @@ class SelectKeeperPayload(BaseSimpleAbciPayload):
         :param keeper: the keeper selection
         :param kwargs: the keyword arguments
         """
-        self._keeper = keeper
         super().__init__(sender, **kwargs)
+        self._keeper = keeper
 
     @property
     def keeper(self) -> str:
@@ -125,8 +125,8 @@ class ResetPayload(BaseSimpleAbciPayload):
         :param period_count: the period count id
         :param kwargs: the keyword arguments
         """
-        self._period_count = period_count
         super().__init__(sender, **kwargs)
+        self._period_count = period_count
 
     @property
     def period_count(self) -> int:

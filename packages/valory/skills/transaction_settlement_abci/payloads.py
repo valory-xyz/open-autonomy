@@ -56,9 +56,9 @@ class RandomnessPayload(BaseTxPayload):
         :param randomness: the randomness
         :param kwargs: the keyword arguments
         """
+        super().__init__(sender, **kwargs)
         self._round_id = round_id
         self._randomness = randomness
-        super().__init__(sender, **kwargs)
 
     @property
     def round_id(self) -> int:
@@ -88,8 +88,8 @@ class SelectKeeperPayload(BaseTxPayload):
         :param keepers: the updated keepers
         :param kwargs: the keyword arguments
         """
-        self._keepers = keepers
         super().__init__(sender, **kwargs)
+        self._keepers = keepers
 
     @property
     def keepers(self) -> str:
@@ -114,8 +114,8 @@ class ValidatePayload(BaseTxPayload):
         :param vote: the vote
         :param kwargs: the keyword arguments
         """
-        self._vote = vote
         super().__init__(sender, **kwargs)
+        self._vote = vote
 
     @property
     def vote(self) -> Optional[bool]:
@@ -140,8 +140,8 @@ class CheckTransactionHistoryPayload(BaseTxPayload):
         :param verified_res: the verification result
         :param kwargs: the keyword arguments
         """
-        self._verified_res = verified_res
         super().__init__(sender, **kwargs)
+        self._verified_res = verified_res
 
     @property
     def verified_res(self) -> str:
@@ -166,8 +166,8 @@ class SynchronizeLateMessagesPayload(BaseTxPayload):
         :param tx_hashes: the late-arriving tx hashes concatenated
         :param kwargs: the keyword arguments
         """
-        self._tx_hashes = tx_hashes
         super().__init__(sender, **kwargs)
+        self._tx_hashes = tx_hashes
 
     @property
     def tx_hashes(self) -> Optional[str]:
@@ -192,8 +192,8 @@ class SignaturePayload(BaseTxPayload):
         :param signature: the signature
         :param kwargs: the keyword arguments
         """
-        self._signature = signature
         super().__init__(sender, **kwargs)
+        self._signature = signature
 
     @property
     def signature(self) -> str:
@@ -223,8 +223,8 @@ class FinalizationTxPayload(BaseTxPayload):
         :param tx_data: the transaction data
         :param kwargs: the keyword arguments
         """
-        self._tx_data = tx_data
         super().__init__(sender, **kwargs)
+        self._tx_data = tx_data
 
     @property
     def tx_data(self) -> Optional[Dict[str, Union[str, int, bool]]]:
@@ -249,8 +249,8 @@ class ResetPayload(BaseTxPayload):
         :param period_count: the period count id
         :param kwargs: the keyword arguments
         """
-        self._period_count = period_count
         super().__init__(sender, **kwargs)
+        self._period_count = period_count
 
     @property
     def period_count(self) -> int:

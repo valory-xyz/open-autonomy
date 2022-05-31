@@ -50,8 +50,8 @@ class TransactionHashPayload(BaseTxPayload):
         :param tx_hash: the tx_hash
         :param kwargs: the keyword arguments
         """
-        self._tx_hash = tx_hash
         super().__init__(sender, **kwargs)
+        self._tx_hash = tx_hash
 
     @property
     def tx_hash(self) -> Optional[str]:
@@ -76,8 +76,8 @@ class ObservationPayload(BaseTxPayload):
         :param observation: the observation
         :param kwargs: the keyword arguments
         """
-        self._observation = observation
         super().__init__(sender, **kwargs)
+        self._observation = observation
 
     @property
     def observation(self) -> float:
@@ -102,8 +102,8 @@ class EstimatePayload(BaseTxPayload):
         :param estimate: the estimate
         :param kwargs: the keyword arguments
         """
-        self._estimate = estimate
         super().__init__(sender, **kwargs)
+        self._estimate = estimate
 
     @property
     def estimate(self) -> float:

@@ -74,8 +74,8 @@ class StrategyEvaluationPayload(BaseLiquidityRebalancingPayload):
         :param strategy: the new strategy to follow
         :param kwargs: the keyword arguments
         """
-        self._strategy = strategy
         super().__init__(sender, **kwargs)
+        self._strategy = strategy
 
     @property
     def strategy(self) -> str:
@@ -102,8 +102,8 @@ class TransactionHashPayload(BaseTxPayload):
         :param tx_hash: the tx_hash
         :param kwargs: the keyword arguments
         """
-        self._tx_hash = tx_hash
         super().__init__(sender, **kwargs)
+        self._tx_hash = tx_hash
 
     @property
     def tx_hash(self) -> Optional[str]:

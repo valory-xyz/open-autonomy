@@ -53,9 +53,9 @@ class RandomnessPayload(BaseTxPayload):
         :param randomness: the randomness
         :param kwargs: the keyword arguments
         """
+        super().__init__(sender, **kwargs)
         self._round_id = round_id
         self._randomness = randomness
-        super().__init__(sender, **kwargs)
 
     @property
     def round_id(self) -> int:
@@ -85,8 +85,8 @@ class SelectKeeperPayload(BaseTxPayload):
         :param keeper: the keeper selection
         :param kwargs: the keyword arguments
         """
-        self._keeper = keeper
         super().__init__(sender, **kwargs)
+        self._keeper = keeper
 
     @property
     def keeper(self) -> str:
@@ -111,8 +111,8 @@ class ValidateOraclePayload(BaseTxPayload):
         :param vote: the vote
         :param kwargs: the keyword arguments
         """
-        self._vote = vote
         super().__init__(sender, **kwargs)
+        self._vote = vote
 
     @property
     def vote(self) -> Optional[bool]:
@@ -139,8 +139,8 @@ class DeployOraclePayload(BaseTxPayload):
         :param oracle_contract_address: the Safe contract address
         :param kwargs: the keyword arguments
         """
-        self._oracle_contract_address = oracle_contract_address
         super().__init__(sender, **kwargs)
+        self._oracle_contract_address = oracle_contract_address
 
     @property
     def oracle_contract_address(self) -> str:

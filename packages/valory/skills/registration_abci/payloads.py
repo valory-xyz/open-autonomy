@@ -48,8 +48,8 @@ class RegistrationPayload(BaseTxPayload):
         :param initialisation: the initialisation data
         :param kwargs: the keyword arguments
         """
-        self._initialisation = initialisation
         super().__init__(sender, **kwargs)
+        self._initialisation = initialisation
 
     @property
     def initialisation(self) -> Optional[str]:

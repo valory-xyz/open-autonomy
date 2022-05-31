@@ -64,8 +64,8 @@ class PrintMessagePayload(BaseHelloWorldAbciPayload):
         :param message: the message printed by the agent
         :param kwargs: the keyword arguments
         """
-        self._message = message
         super().__init__(sender, **kwargs)
+        self._message = message
 
     @property
     def message(self) -> str:
@@ -90,8 +90,8 @@ class SelectKeeperPayload(BaseHelloWorldAbciPayload):
         :param keeper: the keeper selection
         :param kwargs: the keyword arguments
         """
-        self._keeper = keeper
         super().__init__(sender, **kwargs)
+        self._keeper = keeper
 
     @property
     def keeper(self) -> str:
@@ -116,8 +116,8 @@ class ResetPayload(BaseHelloWorldAbciPayload):
         :param period_count: the period count id
         :param kwargs: the keyword arguments
         """
-        self._period_count = period_count
         super().__init__(sender, **kwargs)
+        self._period_count = period_count
 
     @property
     def period_count(self) -> int:

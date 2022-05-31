@@ -70,9 +70,9 @@ class RandomnessPayload(BaseAPYPayload):
         :param randomness: the randomness
         :param kwargs: the keyword arguments
         """
+        super().__init__(sender, **kwargs)
         self._round_id = round_id
         self._randomness = randomness
-        super().__init__(sender, **kwargs)
 
     @property
     def round_id(self) -> int:
@@ -109,9 +109,9 @@ class FetchingPayload(BaseAPYPayload):
         :param latest_observation_timestamp: the latest observation's timestamp.
         :param kwargs: the keyword arguments
         """
+        super().__init__(sender, **kwargs)
         self._history = history
         self._latest_observation_timestamp = latest_observation_timestamp
-        super().__init__(sender, **kwargs)
 
     @property
     def history(self) -> Optional[str]:
@@ -151,9 +151,9 @@ class TransformationPayload(BaseAPYPayload):
         :param latest_observation_hist_hash: the latest observation's history hash.
         :param kwargs: the keyword arguments
         """
+        super().__init__(sender, **kwargs)
         self._transformed_history_hash = transformed_history_hash
         self._latest_observation_hist_hash = latest_observation_hist_hash
-        super().__init__(sender, **kwargs)
 
     @property
     def transformed_history_hash(self) -> Optional[str]:
@@ -199,14 +199,13 @@ class PreprocessPayload(BaseAPYPayload):
         :param train_test: the train-test concatenated hash.
         :param kwargs: the keyword arguments
         """
+        super().__init__(sender, **kwargs)
         self._train_hash = train_hash
         self._test_hash = test_hash
         self._train_test = train_test
 
         if self._train_test is not None:
             self._train_hash = self._test_hash = None
-
-        super().__init__(sender, **kwargs)
 
     @property
     def train_test_hash(self) -> Optional[str]:
@@ -241,8 +240,8 @@ class BatchPreparationPayload(BaseAPYPayload):
         :param prepared_batch: the transformation's hash.
         :param kwargs: the keyword arguments
         """
-        self._prepared_batch = prepared_batch
         super().__init__(sender, **kwargs)
+        self._prepared_batch = prepared_batch
 
     @property
     def prepared_batch(self) -> Optional[str]:
@@ -271,8 +270,8 @@ class OptimizationPayload(BaseAPYPayload):
         :param best_params: the best params of the study.
         :param kwargs: the keyword arguments
         """
-        self._best_params = best_params
         super().__init__(sender, **kwargs)
+        self._best_params = best_params
 
     @property
     def best_params(self) -> Optional[str]:
@@ -297,8 +296,8 @@ class TrainingPayload(BaseAPYPayload):
         :param models_hash: the model's hash.
         :param kwargs: the keyword arguments
         """
-        self._models_hash = models_hash
         super().__init__(sender, **kwargs)
+        self._models_hash = models_hash
 
     @property
     def models_hash(self) -> Optional[str]:
@@ -323,8 +322,8 @@ class TestingPayload(BaseAPYPayload):
         :param report_hash: the test's report hash.
         :param kwargs: the keyword arguments
         """
-        self._report_hash = report_hash
         super().__init__(sender, **kwargs)
+        self._report_hash = report_hash
 
     @property
     def report_hash(self) -> Optional[str]:
@@ -351,8 +350,8 @@ class UpdatePayload(BaseAPYPayload):
         :param updated_models_hash: the updated model's hash.
         :param kwargs: the keyword arguments
         """
-        self._updated_model_hash = updated_models_hash
         super().__init__(sender, **kwargs)
+        self._updated_model_hash = updated_models_hash
 
     @property
     def updated_models_hash(self) -> Optional[str]:
@@ -383,8 +382,8 @@ class EstimatePayload(BaseAPYPayload):
         :param estimations_hash: the hash of the estimations.
         :param kwargs: the keyword arguments
         """
-        self._estimations_hash = estimations_hash
         super().__init__(sender, **kwargs)
+        self._estimations_hash = estimations_hash
 
     @property
     def estimations_hash(self) -> Optional[str]:
@@ -413,8 +412,8 @@ class ResetPayload(BaseAPYPayload):
         :param period_count: the period count id
         :param kwargs: the keyword arguments
         """
-        self._period_count = period_count
         super().__init__(sender, **kwargs)
+        self._period_count = period_count
 
     @property
     def period_count(self) -> int:
