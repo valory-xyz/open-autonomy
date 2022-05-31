@@ -139,7 +139,7 @@ def create_app(dump_dir: Optional[Path] = None):
     period_dumper = PeriodDumper(logger=app.logger, dump_dir=dump_dir)
 
     tendermint_node = TendermintNode(tendermint_params, logger=app.logger)
-    tendermint_node.start()
+    tendermint_node.start(start_monitoring=True)
 
     @app.route("/gentle_reset")
     def gentle_reset() -> Tuple[Any, int]:

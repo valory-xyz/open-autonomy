@@ -12,7 +12,7 @@ fingerprint:
   base.py: QmboPsSzPiY16P6qgtN11UFQRbeChWA9SKrTPv5LXXHD7i
   behaviour_utils.py: QmYiP4jR2YNYiihaYh4eS78W5bxLambbeVK2WDSAiKe311
   behaviours.py: QmawtbXREBz8C7Grjn4a93gaAQFMWzZicxRfjyHcckYHmz
-  common.py: QmXJc5zLFki61gpbzYbxbfKB55zZu9hDrfYBU5S7qJ692D
+  common.py: QmShfzJqxFuN4sS9gjpC5TbCXZCBFqKjdQHmqJ4Hwzshp1
   dialogues.py: QmemiTJxfwp2PFxFQyAUHTx8FsthhWL3mYgonBhC3cTjWH
   handlers.py: QmZRrWXxGV2qEptfFAjWCKSQ3MtRYRdBpK3BdiFjtixHGW
   io/__init__.py: QmPfA2syTybFaGmmMMt5gevZHEXPyjVf7wR1UE22NzpZZ3
@@ -25,7 +25,7 @@ fingerprint:
   utils.py: Qmed3ijomF91pePveuFrPVd4BaXRLrsoCaszkiuyF2ZbBE
 fingerprint_ignore_patterns: []
 connections:
-- valory/abci:0.1.0:QmUq4z19VS9G1TfnZdKy818F7maQopAor4NGe9t4DgzwyJ
+- valory/abci:0.1.0:QmcSFCqBgsz1MZYheyGJz53TDm8iLGeeqRRnupaazDDBmC
 - valory/http_client:0.1.0:QmakgWmx4CGuQuafUELiceH53N8HfgdfkQJpem7iYy9MVN
 - valory/ledger:0.1.0:QmYg9pxvDADc7Vha61yLFPUkXqYsrt8Cfff16Vaq1hXM7W
 contracts: []
@@ -35,7 +35,7 @@ protocols:
 - valory/http:1.0.0:QmbjfzjKMuRmwbQysyaciASxvY67vGJYj7zjGYADgNux5h
 - valory/ledger_api:1.0.0:QmWQSUkGAbzU8tqs7K8BguabbKHUZkbxuMk1M4LBFAwdun
 skills:
-- valory/abstract_abci:0.1.0:QmVfwEGhpc4EZ5gW5tP4okvJ4kAaAjUBoBnd8seUBUgJAc
+- valory/abstract_abci:0.1.0:QmY1fEsCPP1PYKkadKX4GR7DXTsns4F4zE1er14Wu5U5DH
 behaviours:
   main:
     args: {}
