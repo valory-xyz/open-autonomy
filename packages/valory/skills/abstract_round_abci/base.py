@@ -22,6 +22,7 @@ import datetime
 import heapq
 import itertools
 import logging
+import sys
 import textwrap
 import uuid
 from abc import ABC, ABCMeta, abstractmethod
@@ -49,6 +50,7 @@ from typing import (
 from aea.crypto.ledger_apis import LedgerApis
 from aea.exceptions import enforce
 
+from packages.valory.connections.abci.connection import MAX_READ_IN_BYTES
 from packages.valory.connections.ledger.base import (
     CONNECTION_ID as LEDGER_CONNECTION_PUBLIC_ID,
 )
@@ -196,6 +198,7 @@ class BaseTxPayload(ABC, metaclass=_MetaPayload):
         self.id_ = uuid.uuid4().hex if id_ is None else id_
         self._round_count = round_count
         self.sender = sender
+        self.size_check()
 
     @property
     def round_count(self) -> int:
@@ -271,6 +274,13 @@ class BaseTxPayload(ABC, metaclass=_MetaPayload):
     def __hash__(self) -> int:
         """Hash the payload."""
         return hash(tuple(sorted(self.data.items())))
+
+    def size_check(self) -> None:
+        """Check that the payload does not exceed the max size."""
+        encoded = DictProtobufStructSerializer.encode(dict(payload=self.json))
+
+        if sys.getsizeof(encoded) > MAX_READ_IN_BYTES:
+            raise ValueError(f"Payload must be smaller than {MAX_READ_IN_BYTES} bytes")
 
 
 class Transaction(ABC):
