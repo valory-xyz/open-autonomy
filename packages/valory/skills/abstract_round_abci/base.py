@@ -494,15 +494,20 @@ class AbciAppDB:
         0: {
             "participants":
                 [
-                    {"participant_a", "participant_b"},
-                    {"participant_b"},
-                    {"participant_a", "participant_b"},
+                    {"participant_a", "participant_b", "participant_c", "participant_d"},
+                    {"participant_a", "participant_b", "participant_c"},
+                    {"participant_a", "participant_b", "participant_c", "participant_d"},
                 ]
             },
             "other_parameter": [0, 1, 2]
         },
         1: {
-            "participants": [{"participant_a", "participant_b"}, {"participant_b"}, {"participant_a", "participant_b"}],
+            "participants":
+                [
+                    {"participant_a", "participant_c", "participant_d"},
+                    {"participant_a", "participant_b", "participant_c", "participant_d"},
+                    {"participant_a", "participant_b", "participant_c", "participant_d"},
+                ],
             "other_parameter": [3, 4, 5]
         },
         2: ...
@@ -520,7 +525,7 @@ class AbciAppDB:
     ) -> None:
         """Initialize the AbciApp database.
 
-        initial_data can be passed either as Dict[str, Any] of Dict[str, List[Any]] (the database internal format). Use the format_initial_data to decide if
+        initial_data can be passed either as Dict[str, Any] or Dict[str, List[Any]] (the database internal format). Use the format_initial_data to decide if
         initial_data should be automatically converted.
 
         :param initial_data: the initial data
@@ -567,7 +572,7 @@ class AbciAppDB:
 
     @property
     def cross_period_persisted_keys(self) -> List[str]:
-        """Keys in the database which are persistet across periods."""
+        """Keys in the database which are persistent across periods."""
         return self._cross_period_persisted_keys
 
     def get(self, key: str, default: Any = VALUE_NOT_PROVIDED) -> Optional[Any]:
