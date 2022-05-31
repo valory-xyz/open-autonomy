@@ -2051,7 +2051,7 @@ class RoundSequence:  # pylint: disable=too-many-instance-attributes
         self._abci_app: Optional[AbciApp] = None
         self._last_round_transition_timestamp: Optional[datetime.datetime] = None
         self._last_round_transition_height = 0
-        self._last_root_hash = b""
+        self._last_round_transition_root_hash = b""
 
     def setup(self, *args: Any, **kwargs: Any) -> None:
         """
@@ -2168,14 +2168,14 @@ class RoundSequence:  # pylint: disable=too-many-instance-attributes
         return self._last_round_transition_height
 
     @property
-    def last_root_hash(
+    def last_round_transition_root_hash(
         self,
     ) -> bytes:
         """Returns the root hash for last round transition."""
-        if self._last_root_hash == b"":
+        if self._last_round_transition_root_hash == b"":
             # if called for the first chain initialization, return the hash resulting from the initial abci app's state
             return self.root_hash
-        return self._last_root_hash
+        return self._last_round_transition_root_hash
 
     @property
     def latest_synchronized_data(self) -> BaseSynchronizedData:
@@ -2297,7 +2297,7 @@ class RoundSequence:  # pylint: disable=too-many-instance-attributes
             return
         self._last_round_transition_timestamp = self._blockchain.last_block.timestamp
         self._last_round_transition_height = self.height
-        self._last_root_hash = self.root_hash
+        self._last_round_transition_root_hash = self.root_hash
         round_result, event = result
         _logger.debug(
             f"updating round, current_round {self.current_round.round_id}, event: {event}, round result {round_result}"
