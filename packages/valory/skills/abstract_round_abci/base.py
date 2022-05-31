@@ -2005,7 +2005,7 @@ class AbciApp(
         self._reset_index += 1
 
 
-class RoundSequence:
+class RoundSequence:  # pylint: disable=too-many-instance-attributes
     """
     This class represents a sequence of rounds
 
