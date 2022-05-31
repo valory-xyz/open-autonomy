@@ -598,14 +598,8 @@ class AbciAppDB:
             )
         return value
 
-    def update(self, overwrite_history: bool = False, **kwargs: Any) -> None:
+    def update(self, **kwargs: Any) -> None:
         """Update the current data."""
-        if overwrite_history:
-            # Overwrite all key history for this period
-            for key, value in kwargs.items():
-                self._data[self.reset_index][key] = [value]
-            return
-
         # Append new data to the key history
         data = self._data[self.reset_index]
         for key, value in kwargs.items():
@@ -718,11 +712,10 @@ class BaseSynchronizedData:
     def update(
         self,
         synchronized_data_class: Optional[Type] = None,
-        overwrite_history: bool = False,
         **kwargs: Any,
     ) -> "BaseSynchronizedData":
         """Copy and update the current data."""
-        self.db.update(overwrite_history=overwrite_history, **kwargs)
+        self.db.update(**kwargs)
 
         class_ = (
             type(self) if synchronized_data_class is None else synchronized_data_class
@@ -1362,7 +1355,6 @@ class VotingRound(CollectionRound):
         if self.positive_vote_threshold_reached:
             synchronized_data = self.synchronized_data.update(
                 synchronized_data_class=self.synchronized_data_class,
-                overwrite_history=False,
                 **{self.collection_key: self.collection},
             )
             return synchronized_data, self.done_event
@@ -1410,7 +1402,6 @@ class CollectDifferentUntilThresholdRound(CollectionRound):
         ):
             synchronized_data = self.synchronized_data.update(
                 synchronized_data_class=self.synchronized_data_class,
-                overwrite_history=False,
                 **{
                     self.selection_key: frozenset(list(self.collection.keys())),
                     self.collection_key: self.collection,
@@ -1459,7 +1450,6 @@ class CollectNonEmptyUntilThresholdRound(CollectDifferentUntilThresholdRound):
 
             synchronized_data = self.synchronized_data.update(
                 synchronized_data_class=self.synchronized_data_class,
-                overwrite_history=False,
                 **{
                     self.selection_key: frozenset(list(self.collection.keys())),
                     self.collection_key: non_empty_values,

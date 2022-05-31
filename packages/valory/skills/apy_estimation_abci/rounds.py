@@ -229,7 +229,6 @@ class TransformRound(CollectSameUntilThresholdRound, APYEstimationAbstractRound)
         if self.threshold_reached:
             synchronized_data = self.synchronized_data.update(
                 synchronized_data_class=SynchronizedData,
-                overwrite_history=False,
                 participant_to_transform=self.collection,
                 most_voted_transform=self.most_voted_payload,
                 latest_observation_hist_hash=cast(
@@ -261,7 +260,6 @@ class PreprocessRound(CollectSameUntilThresholdRound, APYEstimationAbstractRound
 
             synchronized_data = self.synchronized_data.update(
                 synchronized_data_class=SynchronizedData,
-                overwrite_history=False,
                 participant_to_preprocessing=self.collection,
                 most_voted_split=self.most_voted_payload,
             )
@@ -311,7 +309,6 @@ class RandomnessRound(CollectSameUntilThresholdRound, APYEstimationAbstractRound
 
             synchronized_data = self.synchronized_data.update(
                 synchronized_data_class=SynchronizedData,
-                overwrite_history=False,
                 participants_to_randomness=self.collection,
                 most_voted_randomness=filtered_randomness,
             )
