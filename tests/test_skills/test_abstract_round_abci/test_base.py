@@ -539,7 +539,13 @@ class TestBaseSynchronizedData:
     def test_participants_getter_negative(self) -> None:
         """Test 'participants' property getter, negative case."""
         base_synchronized_data = BaseSynchronizedData(db=AbciAppDB(initial_data={}))
-        with pytest.raises(ValueError, match="Value of key=participants is None"):
+        # with pytest.raises(ValueError, match="Value of key=participants is None"):
+        with pytest.raises(
+            ValueError,
+            match=re.escape(
+                "'participants' field is not set for this period [0] and no default value was provided."
+            ),
+        ):
             base_synchronized_data.participants
 
     def test_update(self) -> None:

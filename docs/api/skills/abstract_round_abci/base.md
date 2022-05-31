@@ -642,15 +642,20 @@ data = {
     0: {
         "participants":
             [
-                {"participant_a", "participant_b"},
-                {"participant_b"},
-                {"participant_a", "participant_b"},
+                {"participant_a", "participant_b", "participant_c", "participant_d"},
+                {"participant_a", "participant_b", "participant_c"},
+                {"participant_a", "participant_b", "participant_c", "participant_d"},
             ]
         },
         "other_parameter": [0, 1, 2]
     },
     1: {
-        "participants": [{"participant_a", "participant_b"}, {"participant_b"}, {"participant_a", "participant_b"}],
+        "participants":
+            [
+                {"participant_a", "participant_c", "participant_d"},
+                {"participant_a", "participant_b", "participant_c", "participant_d"},
+                {"participant_a", "participant_b", "participant_c", "participant_d"},
+            ],
         "other_parameter": [3, 4, 5]
     },
     2: ...
@@ -669,7 +674,7 @@ def __init__(initial_data: Dict[str, Any], cross_period_persisted_keys: Optional
 
 Initialize the AbciApp database.
 
-initial_data can be passed either as Dict[str, Any] of Dict[str, List[Any]] (the database internal format). Use the format_initial_data to decide if
+initial_data can be passed either as Dict[str, Any] or Dict[str, List[Any]] (the database internal format). Use the format_initial_data to decide if
 initial_data should be automatically converted.
 
 **Arguments**:
@@ -735,7 +740,7 @@ Get the round count.
 def cross_period_persisted_keys() -> List[str]
 ```
 
-Keys in the database which are persistet across periods.
+Keys in the database which are persistent across periods.
 
 <a id="packages.valory.skills.abstract_round_abci.base.AbciAppDB.get"></a>
 
@@ -745,7 +750,7 @@ Keys in the database which are persistet across periods.
 def get(key: str, default: Any = VALUE_NOT_PROVIDED) -> Optional[Any]
 ```
 
-Get a value from the data dictionary.
+Given a key, get its last for the current reset index.
 
 <a id="packages.valory.skills.abstract_round_abci.base.AbciAppDB.get_strict"></a>
 
@@ -762,7 +767,7 @@ Get a value from the data dictionary and raise if it is None.
 #### update
 
 ```python
-def update(overwrite_history: bool = False, **kwargs: Any) -> None
+def update(**kwargs: Any) -> None
 ```
 
 Update the current data.
@@ -949,7 +954,7 @@ Get the number of participants.
 #### update
 
 ```python
-def update(synchronized_data_class: Optional[Type] = None, overwrite_history: bool = False, **kwargs: Any, ,) -> "BaseSynchronizedData"
+def update(synchronized_data_class: Optional[Type] = None, **kwargs: Any, ,) -> "BaseSynchronizedData"
 ```
 
 Copy and update the current data.

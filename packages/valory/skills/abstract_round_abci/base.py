@@ -69,7 +69,6 @@ ADDRESS_LENGTH = 42
 MAX_INT_256 = 2 ** 256 - 1
 RESET_COUNT_START = 0
 VALUE_NOT_PROVIDED = object()
-DEFAULT_VALUE_FLAG = object()
 
 EventType = TypeVar("EventType")
 TransactionType = TypeVar("TransactionType")
@@ -576,23 +575,14 @@ class AbciAppDB:
         return self._cross_period_persisted_keys
 
     def get(self, key: str, default: Any = VALUE_NOT_PROVIDED) -> Optional[Any]:
-        """Get a value from the data dictionary."""
-        if default != VALUE_NOT_PROVIDED:
-            key_history_or_default = self._data.get(self.reset_index, {}).get(
-                key, DEFAULT_VALUE_FLAG
-            )
-            return (
-                default
-                if key_history_or_default == DEFAULT_VALUE_FLAG
-                else key_history_or_default[-1]
-            )
-        try:
-            key_history = self._data.get(self.reset_index, {}).get(key)
-            return key_history[-1] if key_history else None
-        except KeyError as exception:  # pragma: no cover
-            raise ValueError(
-                f"'{key}' field is not set for this period."
-            ) from exception
+        """Given a key, get its last for the current reset index."""
+        if key not in self._data[self.reset_index]:
+            if default == VALUE_NOT_PROVIDED:
+                raise ValueError(
+                    f"'{key}' field is not set for this period [{self.reset_index}] and no default value was provided."
+                )
+            return default
+        return self._data[self.reset_index][key][-1]
 
     def get_strict(self, key: str) -> Any:
         """Get a value from the data dictionary and raise if it is None."""
