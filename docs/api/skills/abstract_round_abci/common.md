@@ -37,7 +37,7 @@ Get the most common (non None) dictionary element
 
 **Returns**:
 
-the most common payload value or None if there is a draw
+the most common value or None if there is a draw
 
 <a id="packages.valory.skills.abstract_round_abci.common.RandomnessBehaviour"></a>
 
