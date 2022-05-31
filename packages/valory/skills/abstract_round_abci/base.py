@@ -2255,10 +2255,6 @@ class RoundSequence:
         try:
             self._blockchain.add_block(block)
             self._update_round()
-            self._last_round_transition_timestamp = (
-                self._blockchain.last_block.timestamp
-            )
-            self._last_round_transition_height = self.height
             # The ABCI app now waits again for the next block
             self._block_construction_phase = (
                 RoundSequence._BlockConstructionState.WAITING_FOR_BEGIN_BLOCK
@@ -2286,6 +2282,10 @@ class RoundSequence:
         ] = self.current_round.end_block()
         if result is None:
             return
+        self._last_round_transition_timestamp = (
+            self._blockchain.last_block.timestamp
+        )
+        self._last_round_transition_height = self.height
         round_result, event = result
         _logger.debug(
             f"updating round, current_round {self.current_round.round_id}, event: {event}, round result {round_result}"
