@@ -1730,6 +1730,7 @@ class AbciApp(
         self._last_timestamp: Optional[datetime.datetime] = None
         self._current_timeout_entries: List[int] = []
         self._timeouts = Timeouts[EventType]()
+        self._reset_index = 0
 
     @property
     def synchronized_data(self) -> BaseSynchronizedData:
@@ -1740,6 +1741,11 @@ class AbciApp(
             if latest_result is not None
             else self._initial_synchronized_data
         )
+
+    @property
+    def reset_index(self) -> int:
+        """Return the reset index."""
+        return self._reset_index
 
     @classmethod
     def get_all_rounds(cls) -> Set[AppState]:
@@ -1996,6 +2002,7 @@ class AbciApp(
         self._previous_rounds = self._previous_rounds[-cleanup_history_depth:]
         self._round_results = self._round_results[-cleanup_history_depth:]
         self.synchronized_data.db.cleanup(cleanup_history_depth)
+        self._reset_index += 1
 
 
 class RoundSequence:
@@ -2177,7 +2184,7 @@ class RoundSequence:
 
         :return: the root hash to be included as the Header.AppHash in the next block.
         """
-        return str(self.abci_app.synchronized_data.db.round_count).encode("utf-8")
+        return f"root:{self.abci_app.synchronized_data.db.round_count}reset:{self.abci_app.reset_index}".encode("utf-8")
 
     def begin_block(self, header: Header) -> None:
         """Begin block."""
