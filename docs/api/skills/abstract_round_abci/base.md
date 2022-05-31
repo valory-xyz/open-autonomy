@@ -2230,13 +2230,13 @@ def last_round_transition_height() -> int
 
 Returns the height for last round transition.
 
-<a id="packages.valory.skills.abstract_round_abci.base.RoundSequence.last_root_hash"></a>
+<a id="packages.valory.skills.abstract_round_abci.base.RoundSequence.last_round_transition_root_hash"></a>
 
-#### last`_`root`_`hash
+#### last`_`round`_`transition`_`root`_`hash
 
 ```python
 @property
-def last_root_hash() -> bytes
+def last_round_transition_root_hash() -> bytes
 ```
 
 Returns the root hash for last round transition.
