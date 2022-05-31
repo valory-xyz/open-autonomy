@@ -604,7 +604,9 @@ class BaseBehaviour(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
         """Check if agent has completed sync."""
         self.context.logger.info("Checking sync...")
         for _ in range(self.context.params.tendermint_max_retries):
-            self.context.logger.info("Checking status")
+            self.context.logger.info(
+                "Checking status @ " + self.context.params.tendermint_url + "/status",
+            )
             status = yield from self._get_status()
             try:
                 json_body = json.loads(status.body.decode())
@@ -1502,32 +1504,6 @@ class BaseBehaviour(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
             0, self._timeout
         )
 
-    def _get_app_hash(self) -> Generator[None, None, Optional[str]]:
-        """Get the app hash from Tendermint."""
-        try:
-            request_message, http_dialogue = self._build_http_request_message(
-                "GET",
-                self.params.tendermint_com_url + "/app_hash",
-                parameters=[
-                    (
-                        "height",
-                        self.context.state.round_sequence.last_round_transition_height,
-                    )
-                ],
-            )
-            result = yield from self._do_request(request_message, http_dialogue)
-            json_res = json.loads(result.body.decode())
-            app_hash = json_res.get("app_hash", None)
-            error = json_res.get("error", None)
-            if error is not None:
-                self.context.logger.error(
-                    f"Error while trying to get the app hash: {error}"
-                )
-            return app_hash
-        except (json.JSONDecodeError, KeyError) as e:
-            self.context.logger.error(f"Error while trying to get the app hash: {e}")
-            return None
-
     def reset_tendermint_with_wait(
         self,
     ) -> Generator[None, None, bool]:
@@ -1542,11 +1518,6 @@ class BaseBehaviour(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
                 f"Resetting tendermint node at end of period={self.synchronized_data.period_count}."
             )
 
-            app_hash = yield from self._get_app_hash()
-            if app_hash is None:
-                yield from self.sleep(self.params.sleep_time)
-                return False
-
             last_round_transition_timestamp = (
                 self.context.state.round_sequence.last_round_transition_timestamp
             )
@@ -1557,7 +1528,6 @@ class BaseBehaviour(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
                 "GET",
                 self.params.tendermint_com_url + "/hard_reset",
                 parameters=[
-                    ("app_hash", app_hash),
                     ("genesis_time", time_string),
                 ],
             )

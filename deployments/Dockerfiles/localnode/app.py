@@ -30,11 +30,11 @@ import requests
 from flask import Flask, Response, jsonify, request
 from werkzeug.exceptions import InternalServerError, NotFound
 
+
 try:
     from .tendermint import TendermintNode, TendermintParams
 except:
     from tendermint import TendermintNode, TendermintParams
-
 
 DEFAULT_LOG_FILE = "log.log"
 IS_DEV_MODE = os.environ.get("DEV_MODE", "0") == "1"
@@ -63,7 +63,6 @@ def get_defaults() -> Dict[str, str]:
     genesis = load_genesis()
     return dict(
         genesis_time=genesis.get("genesis_time"),
-        app_hash=genesis.get("app_hash"),
     )
 
 
@@ -140,7 +139,7 @@ def create_app(dump_dir: Optional[Path] = None):
     period_dumper = PeriodDumper(logger=app.logger, dump_dir=dump_dir)
 
     tendermint_node = TendermintNode(tendermint_params, logger=app.logger)
-    tendermint_node.start()
+    tendermint_node.start(start_monitoring=True)
 
     @app.route("/gentle_reset")
     def gentle_reset() -> Tuple[Any, int]:
@@ -180,7 +179,6 @@ def create_app(dump_dir: Optional[Path] = None):
             defaults = get_defaults()
             tendermint_node.reset_genesis_file(
                 request.args.get("genesis_time", defaults["genesis_time"]),
-                request.args.get("app_hash", defaults["app_hash"]),
             )
             tendermint_node.start()
             return jsonify({"message": "Reset successful.", "status": True}), 200
@@ -202,6 +200,7 @@ def create_app(dump_dir: Optional[Path] = None):
     return app, tendermint_node
 
 
-if __name__ == "__main__":
-    tendermint_app, _ = create_app()
-    tendermint_app.run()
+def create_server() -> Any:
+    """Function to retrieve just the app to be used by flask entry point."""
+    flask_app, _ = create_app()
+    return flask_app
