@@ -17,7 +17,7 @@ fingerprint:
   ml/optimization.py: QmQms7wAvSAVL4Agjpbuz3LtFwNE6HyrbzcQkESoeGfM4o
   ml/preprocessing.py: QmXRkajyrcZbXy8k26dCocmCCrqYwEHcjy7iFG64DohZKq
   models.py: QmS15SjCs3NXCqz3gRL3soC7RRPFGofDGEttef5DVWo8EZ
-  payloads.py: QmbBH6kpC98iMgoVbHNwwMBMLs8LC6c87tj81r7UBaHesv
+  payloads.py: QmW3V9wyU8rjNJ1PYuk69ZUKxxbM2cgnGLoD6Vz2UTh4WS
   rounds.py: QmeMAdWMP3H1z5qRz9x3xeCD1YZDLo8k4M2uyC1TUjEkF2
   tasks.py: QmemYwBwU6RpWsca3bkXWuUemgZ6YwFVMxS5vkt7J7BjHh
   tools/__init__.py: QmWr6iVwNzqYVqmxBwYC1myurM8AjxuzxwjM1brXSmnDTi
@@ -39,7 +39,7 @@ protocols:
 - valory/ledger_api:1.0.0:QmWQSUkGAbzU8tqs7K8BguabbKHUZkbxuMk1M4LBFAwdun
 skills:
 - valory/abstract_round_abci:0.1.0:QmYJJ2K8Qkd4AaDtTfctE7XaB1UZyHcwDgWjzneqAyiWGM
-- valory/registration_abci:0.1.0:QmUCt6YUjPdDqDNN5rMt5bkXUxmWC4D92kFwakkjZygTRi
+- valory/registration_abci:0.1.0:QmTjbbfYdw6dS9WGrSaw2PZNMsReoc5CzCX3yXLp9zzUfR
 behaviours:
   main:
     args: {}
