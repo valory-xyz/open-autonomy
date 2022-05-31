@@ -70,6 +70,7 @@ class PayloadEnum(Enum):
     A = "A"
     B = "B"
     C = "C"
+    Base = "Base"
 
     def __str__(self) -> str:
         """Get the string representation."""
@@ -88,6 +89,8 @@ class PayloadEnumB(Enum):
 
 class BasePayload(BaseTxPayload, ABC):
     """Base payload class for testing."""
+
+    transaction_type = PayloadEnum.Base
 
 
 class PayloadA(BasePayload):
@@ -111,7 +114,7 @@ class PayloadC(BasePayload):
 class PayloadD(BasePayload):
     """Payload class for payload type 'C'."""
 
-    transaction_type = PayloadEnumB.A
+    transaction_type = PayloadEnumB.A  # type: ignore
 
 
 class ConcreteRoundA(AbstractRound):

@@ -288,17 +288,16 @@ class TestSleepRound(BaseCollectSameUntilThresholdRoundTest):
     ) -> None:
         """Run tests."""
         test_round = SleepRound(self.synchronized_data, self.consensus_params)
-        with mock.patch.object(SleepPayload, "sleep", return_value="sleep"):
-            self._complete_run(
-                self._test_round(
-                    test_round=test_round,
-                    round_payloads=get_participant_to_sleep(self.participants),
-                    synchronized_data_update_fn=lambda _synchronized_data, _test_round: _synchronized_data.update(),
-                    synchronized_data_attr_checks=[],
-                    most_voted_payload=SleepPayload.sleep,
-                    exit_event=Event.DONE,
-                )
+        self._complete_run(
+            self._test_round(
+                test_round=test_round,
+                round_payloads=get_participant_to_sleep(self.participants),
+                synchronized_data_update_fn=lambda _synchronized_data, _test_round: _synchronized_data.update(),
+                synchronized_data_attr_checks=[],
+                most_voted_payload="sleep",
+                exit_event=Event.DONE,
             )
+        )
 
 
 def test_synchronized_data() -> None:

@@ -46,8 +46,8 @@ class ResetPausePayload(BaseTxPayload):
         :param period_count: the period count id
         :param kwargs: the keyword arguments
         """
-        super().__init__(sender, **kwargs)
         self._period_count = period_count
+        super().__init__(sender, **kwargs)
 
     @property
     def period_count(self) -> int:
