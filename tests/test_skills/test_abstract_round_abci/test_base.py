@@ -501,6 +501,7 @@ class TestAbciAppDB:
     def test_get(self) -> None:
         """Test getters."""
         assert self.db.get("participants", default="default") == self.participants
+        assert self.db.get("inexistent", default="default") == "default"
         assert self.db.get_latest_from_reset_index(0) == {
             "participants": self.participants
         }
@@ -511,6 +512,11 @@ class TestAbciAppDB:
         assert self.db.round_count == -1
         self.db.increment_round_count()
         assert self.db.round_count == 0
+
+    def test_check_data(self) -> None:
+        """Test _check_data"""
+        with pytest.raises(ValueError):
+            AbciAppDB._check_data({"a": 1})
 
 
 def test_AbciAppDB_data_to_lists() -> None:

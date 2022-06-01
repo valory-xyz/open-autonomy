@@ -549,7 +549,8 @@ class AbciAppDB:
         """
         return self._initial_data
 
-    def _check_data(self, data: Dict) -> None:  # pylint: disable=no-self-use
+    @classmethod
+    def _check_data(cls, data: Dict) -> None:  # pylint: disable=no-self-use
         """Check that all fields in initial data were passed as a list"""
         if not all([isinstance(v, list) for v in data.values()]):
             raise ValueError("AbciAppDB data must be Dict[str, List[Any]]")
@@ -582,12 +583,7 @@ class AbciAppDB:
 
     def get_strict(self, key: str) -> Any:
         """Get a value from the data dictionary and raise if it is None."""
-        value = self.get(key)
-        if value is None:
-            raise ValueError(
-                f"Value of key={key} is None for " f"reset_index={self.reset_index} "
-            )
-        return value
+        return self.get(key)
 
     def update(self, **kwargs: Any) -> None:
         """Update the current data."""
