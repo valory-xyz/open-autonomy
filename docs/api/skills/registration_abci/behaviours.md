@@ -4,6 +4,16 @@
 
 This module contains the behaviours for the 'abci' skill.
 
+<a id="packages.valory.skills.registration_abci.behaviours.format_genesis_data"></a>
+
+#### format`_`genesis`_`data
+
+```python
+def format_genesis_data(collected_agent_info: Dict[str, Any]) -> Dict[str, Any]
+```
+
+Format collected agent info for genesis update
+
 <a id="packages.valory.skills.registration_abci.behaviours.consume"></a>
 
 #### consume
