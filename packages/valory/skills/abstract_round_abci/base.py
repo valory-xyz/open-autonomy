@@ -576,13 +576,13 @@ class AbciAppDB:
 
     def get(self, key: str, default: Any = VALUE_NOT_PROVIDED) -> Optional[Any]:
         """Given a key, get its last for the current reset index."""
-        if key not in self._data[self.reset_index]:
-            if default == VALUE_NOT_PROVIDED:
-                raise ValueError(
-                    f"'{key}' field is not set for this period [{self.reset_index}] and no default value was provided."
-                )
+        if key in self._data[self.reset_index]:
+            return self._data[self.reset_index][key][-1]
+        if default != VALUE_NOT_PROVIDED:
             return default
-        return self._data[self.reset_index][key][-1]
+        raise ValueError(
+            f"'{key}' field is not set for this period [{self.reset_index}] and no default value was provided."
+        )
 
     def get_strict(self, key: str) -> Any:
         """Get a value from the data dictionary and raise if it is None."""
