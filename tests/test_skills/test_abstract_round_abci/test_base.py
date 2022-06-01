@@ -33,6 +33,7 @@ from aea_ledger_ethereum import EthereumCrypto
 from hypothesis import given
 from hypothesis.strategies import booleans, dictionaries, floats, one_of, text
 
+from packages.valory.connections.abci.connection import MAX_READ_IN_BYTES
 from packages.valory.skills.abstract_round_abci.base import (
     ABCIAppException,
     ABCIAppInternalError,
@@ -257,7 +258,10 @@ class TestTransactions:
         signature = "signature"
         payload = TooBigPayload(sender)
         tx = Transaction(payload, signature)
-        with pytest.raises(ValueError):
+        with pytest.raises(
+            ValueError,
+            match=f"Transaction must be smaller than {MAX_READ_IN_BYTES} bytes",
+        ):
             tx.encode()
 
     def test_sign_verify_transaction(self) -> None:
