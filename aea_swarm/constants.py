@@ -23,3 +23,8 @@ DEFAULT_IMAGE_VERSION = "0.1.0"
 OPEN_AEA_IMAGE_NAME = "valory/consensus-algorithms-open-aea"
 TENDERMINT_IMAGE_NAME = "valory/consensus-algorithms-tendermint"
 HARDHAT_IMAGE_NAME = "valory/consensus-algorithms-hardhat"
+
+DEPLOYMENT_KEY_DIRECTORY = "agent_keys"
+DEPLOYMENT_AGENT_KEY_DIRECTORY_SCHEMA = "agents_{agent_n}"
+
+DEFAULT_ENCODING = "utf-8"
