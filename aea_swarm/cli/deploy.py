@@ -129,7 +129,7 @@ def build_deployment(  # pylint: disable=too-many-arguments
     build_dir.mkdir()
     _build_dirs(build_dir)
 
-    service_path = _find_path_to_service_file(service_id, packages_dir).parent
+    service_path = _find_path_to_service(service_id, packages_dir)
     try:
         report = generate_deployment(
             service_path=service_path,
@@ -218,6 +218,15 @@ def _find_path_to_service_file(public_id: PublicId, packages_dir: Path) -> Path:
         raise click.ClickException(f"Cannot find service file for {public_id}")
 
     return service_file
+
+
+def _find_path_to_service(public_id: PublicId, packages_dir: Path) -> Path:
+    """Find path to service file using package dir."""
+    service_path = packages_dir / public_id.author / "services" / public_id.name
+    if not service_path.is_dir():
+        raise click.ClickException(f"Cannot find service file for {public_id}")
+
+    return service_path
 
 
 def _build_dirs(build_dir: Path) -> None:

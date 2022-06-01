@@ -354,9 +354,6 @@ class Service(PackageConfiguration):  # pylint: disable=too-many-instance-attrib
                 )
             nums = set(field_override.keys())
 
-            if len(nums) != len(field_override.keys()):
-                raise ValueError("Non-unique item in override")
-
             if len(nums) != self.number_of_agents:
                 raise ValueError("Not enough items in override")
 
