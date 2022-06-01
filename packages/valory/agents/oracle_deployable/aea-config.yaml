@@ -7,7 +7,7 @@ aea_version: '>=1.0.0, <2.0.0'
 fingerprint: {}
 fingerprint_ignore_patterns: []
 connections:
-- valory/abci:0.1.0:QmcSFCqBgsz1MZYheyGJz53TDm8iLGeeqRRnupaazDDBmC
+- valory/abci:0.1.0:QmVV5qAZxB75SsVGfQw5KuMRnuFP3RXYD6WwaYs6iMWiVU
 - valory/http_client:0.1.0:QmakgWmx4CGuQuafUELiceH53N8HfgdfkQJpem7iYy9MVN
 - valory/ledger:0.1.0:QmYg9pxvDADc7Vha61yLFPUkXqYsrt8Cfff16Vaq1hXM7W
 contracts:
@@ -21,15 +21,15 @@ protocols:
 - valory/http:1.0.0:QmbjfzjKMuRmwbQysyaciASxvY67vGJYj7zjGYADgNux5h
 - valory/ledger_api:1.0.0:QmWQSUkGAbzU8tqs7K8BguabbKHUZkbxuMk1M4LBFAwdun
 skills:
-- valory/abstract_abci:0.1.0:QmY1fEsCPP1PYKkadKX4GR7DXTsns4F4zE1er14Wu5U5DH
-- valory/abstract_round_abci:0.1.0:QmRPYKVyREQGbgNFXJPMjLQQohPYQF3G7VMNs4yTRPP9Ey
-- valory/oracle_abci:0.1.0:QmcNW8sBME1oestkuHDP46dupWg6vKvkeL19T13kp2SS5i
-- valory/oracle_deployment_abci:0.1.0:QmUExobtzqxsph7Z7SEHZKSsqotZz9Hbc2g1FAUMQ2Bwrb
-- valory/price_estimation_abci:0.1.0:QmeBpNiLmCHmQiYs8EYikj8QncdMTFUKaSzawPR8qxDpa4
-- valory/registration_abci:0.1.0:QmXrXReLZ2jooYaX2gxaWG2eFaX2n6onhLtoeVf4R5BUyq
-- valory/reset_pause_abci:0.1.0:QmU6Qk9qrjAp4JergHz6YTjwRWfRHnaZq8qefwvz6jup1E
-- valory/safe_deployment_abci:0.1.0:QmP84pr5TzmL55FLYzuk4snSrSbNWqnYDLDXivNhGFamYw
-- valory/transaction_settlement_abci:0.1.0:QmNupEPJPn7fzTbyDyUdM3SooxLSftpsmoBpguEjoRodXo
+- valory/abstract_abci:0.1.0:QmfBLZpyAE6ZXkaGix4vL5ihSpNCY8hiFyXxdSLATDfWog
+- valory/abstract_round_abci:0.1.0:QmRZEAb6DsrSn6N6RviCB9SwJgXFh9pxNZmNUrxEVokwKJ
+- valory/oracle_abci:0.1.0:QmNTxVdMTxaF6Gk6CjVZpAEz8nE9p8KWTXsmVjdHgGRg8c
+- valory/oracle_deployment_abci:0.1.0:QmNvmUvNK3JHkhQUJekuSKWPTzP2R8UtGxWr8SdtvbGUdP
+- valory/price_estimation_abci:0.1.0:Qmbk3z5U1PwuxsXn4hAssy6oQFS9Ae3GnZPH3n13VuGqhb
+- valory/registration_abci:0.1.0:QmcVFqX1vJryM8gSetZbEqsJAhECWMe4fNkjxkvmd45fjx
+- valory/reset_pause_abci:0.1.0:QmR5uRBqKLpQ6mvXZMCwA6Xs33GCHfPWLzdvqH8Q8643e9
+- valory/safe_deployment_abci:0.1.0:QmVihmMVLs2MvrMzJ43sqV8HaCpCLua7ng47mCkLewJEt9
+- valory/transaction_settlement_abci:0.1.0:QmPTnKGi885fbhnzJy4iqfjGEFmbT27tUghfe4c29Pu5hC
 default_ledger: ethereum
 required_ledgers:
 - ethereum
