@@ -43,7 +43,7 @@ from packages.valory.skills.registration_abci.rounds import (
 )
 
 
-consensus_params = (
+CONSENSUS_PARAMS = (
     {
         "block": {"max_bytes": "22020096", "max_gas": "-1", "time_iota_ms": "1000"},
         "evidence": {
@@ -55,6 +55,38 @@ consensus_params = (
         "version": {},
     },
 )
+
+
+def format_genesis_data(
+    collected_agent_info: Dict[str, Any],
+) -> Dict[str, Any]:
+    """Format collected agent info for genesis update"""
+
+    registered_addresses = [  # temp hack
+        "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
+        "0x70997970C51812dc3A010C7d01b50e0d17dc79C8",
+        "0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC",
+        "0x90F79bf6EB2c4f870365E785982E1f101E93b906",
+    ]
+    validators = []
+    for agent_address, validator_config in collected_agent_info.items():
+        i = registered_addresses.index(agent_address)
+        validator = dict(
+            address=validator_config["address"],
+            pub_key=validator_config["pub_key"],
+            power="1",
+            name=f"node{i}",
+        )
+        validators.append(validator)
+
+    data = {}
+    data["validators"] = validators
+    data["genesis_config"] = dict(  # type: ignore
+        genesis_time="2022-05-20T16:00:21.735122717Z",
+        chain_id="chain-c4daS1",
+        consensus_params=CONSENSUS_PARAMS,
+    )
+    return data
 
 
 def consume(iterator: Iterable) -> None:
@@ -244,31 +276,7 @@ class RegistrationStartupBehaviour(RegistrationBaseBehaviour):
         """Make HTTP POST request to update agent's local Tendermint node"""
 
         url = self.tendermint_parameter_url
-
-        registered_addresses = [
-            "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
-            "0x70997970C51812dc3A010C7d01b50e0d17dc79C8",
-            "0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC",
-            "0x90F79bf6EB2c4f870365E785982E1f101E93b906",
-        ]
-        validators = []
-        for agent_address, validator_config in self.registered_addresses.items():
-            i = registered_addresses.index(agent_address)
-            validator = dict(
-                address=validator_config["address"],
-                pub_key=validator_config["pub_key"],
-                power="1",
-                name=f"node{i}",
-            )
-            validators.append(validator)
-
-        data = {}
-        data["validators"] = validators
-        data["genesis_config"] = dict(  # type: ignore
-            genesis_time="2022-05-20T16:00:21.735122717Z",
-            chain_id="chain-c4daS1",
-            consensus_params=consensus_params,
-        )
+        data = format_genesis_data(self.registered_addresses)
         self.context.logger.info(f"POST request local config at {url}: {data}")
 
         content = json.dumps(data).encode(self.ENCODING)
