@@ -389,7 +389,7 @@ replay-tendermint:
 	python replay_scripts/tendermint_runner.py $(NODE_ID)
 
 teardown-docker-compose:
-	cd deployments/build/ && \
+	cd abci_build/ && \
 		docker-compose kill && \
 		docker-compose down && \
 		echo "Deployment torndown!" && \

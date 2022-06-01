@@ -14,21 +14,28 @@ fi
 echo "Loading $VALORY_APPLICATION"
 aea fetch $VALORY_APPLICATION --local --alias agent
 cd agent
-if [ "$AEA_KEY" == "" ];
-then
+
+export FILE=/agent_key/ethereum_private_key.txt
+if [ -f "$FILE" ]; then
+    echo "AEA key provided. Copying to agent."
+    cp $FILE .
+else
     echo "No AEA key provided. Creating fresh."
     aea generate-key ethereum
-else
-    echo "AEA key provided."
-    echo -n $AEA_KEY > ethereum_private_key.txt
-
 fi
 if [ "$INSTALL" == "1" ];
 then
     echo "Installing the necessary dependencies!"
     aea install && cd .. && aea delete agent
 else
-    echo "Running the AEA!"
-    aea add-key ethereum
-    aea run --aev
+    if [ "$AEA_PASSWORD" != "" ];
+    then
+        echo "Running the aea with a password!"
+        aea add-key ethereum --password $AEA_PASSWORD
+        aea run --aev --password $AEA_PASSWORD
+    else
+        echo "Running the aea without a password!"
+        aea add-key ethereum
+        aea run --aev
+    fi
 fi

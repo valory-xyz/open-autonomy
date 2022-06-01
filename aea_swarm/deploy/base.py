@@ -306,13 +306,14 @@ class DeploymentConfigValidator(validation.ConfigValidator):
         return overrides
 
 
-class DeploymentSpec:
+class DeploymentSpec:  # pylint: disable=R0902
     """Class to assist with generating deployments."""
 
     agent: str
     network: str
     number_of_agents: int
     private_keys: list
+    private_keys_password: Optional[str]
     package_dir: Path
 
     def __init__(
@@ -320,9 +321,11 @@ class DeploymentSpec:
         path_to_deployment_spec: str,
         private_keys_file_path: Path,
         package_dir: Path,
+        private_keys_password: Optional[str] = None,
         number_of_agents: Optional[int] = None,
     ) -> None:
         """Initialize the Base Deployment."""
+        self.private_keys_password = private_keys_password
         self.package_dir = package_dir
         self.validator = DeploymentConfigValidator(
             schema_filename=str(Files.deployment_schema)
@@ -343,6 +346,7 @@ class DeploymentSpec:
 
         self.agent_public_id = PublicId.from_str(self.agent)
         self.agent_spec = self.load_agent()
+
         self.read_keys(private_keys_file_path)
 
         if self.number_of_agents > len(self.private_keys):
@@ -353,10 +357,17 @@ class DeploymentSpec:
 
         keys = json.loads(file_path.read_text(encoding="utf-8"))
         self.private_keys = []
-        for key in keys:
-            if "address" not in key.keys() and "private_key" not in key.keys():
-                raise ValueError("Key file incorrectly formatted.")
-            self.private_keys.append(key["private_key"])
+
+        if self.private_keys_password is None:
+            for key in keys:
+                if "address" not in key.keys() and "private_key" not in key.keys():
+                    raise ValueError("Key file incorrectly formatted.")
+                self.private_keys.append(key["private_key"])
+        else:
+            for key in keys:
+                if "address" not in key.keys() and "encrypted_key" not in key.keys():
+                    raise ValueError("Encrypted key file incorrectly formatted.")
+                self.private_keys.append(key)
 
     def _process_model_args_overrides(self, agent_n: int) -> Dict:
         """Generates env vars based on model overrides."""
@@ -374,8 +385,7 @@ class DeploymentSpec:
 
     def generate_common_vars(self, agent_n: int) -> Dict:
         """Retrieve vars common for valory apps."""
-        return {
-            "AEA_KEY": self.private_keys[agent_n],
+        agent_vars = {
             "VALORY_APPLICATION": self.agent,
             "ABCI_HOST": f"abci{agent_n}",
             "MAX_PARTICIPANTS": self.number_of_agents,  # I believe that this is correct
@@ -383,6 +393,10 @@ class DeploymentSpec:
             "TENDERMINT_COM_URL": f"http://node{agent_n}:8080",
             "ID": agent_n,
         }
+
+        if self.private_keys_password is not None:
+            agent_vars["AEA_PASSWORD"] = self.private_keys_password
+        return agent_vars
 
     def generate_agent(self, agent_n: int) -> Dict[Any, Any]:
         """Generate next agent."""
@@ -442,6 +456,12 @@ class BaseDeploymentGenerator:
         self,
     ) -> "BaseDeploymentGenerator":
         """Generate the deployment configuration."""
+
+    @abc.abstractmethod
+    def populate_private_keys(
+        self,
+    ) -> "BaseDeploymentGenerator":
+        """Populate the private keys to the deployment."""
 
     def get_deployment_network_configuration(
         self, agent_vars: List[Dict[str, Any]]

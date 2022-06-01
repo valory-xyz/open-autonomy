@@ -151,3 +151,6 @@ class KubernetesGenerator(BaseDeploymentGenerator):
             f.write(output)
 
         return self
+
+    def populate_private_keys(self) -> "BaseDeploymentGenerator":
+        """Populates private keys into a config map for the kubernetes deployment."""

@@ -39,6 +39,7 @@ def generate_deployment(  # pylint: disable=too-many-arguments
     package_dir: Path,
     build_dir: Path,
     number_of_agents: Optional[int] = None,
+    private_keys_password: Optional[str] = None,
     dev_mode: bool = False,
 ) -> str:
     """Generate the deployment build for the valory app."""
@@ -47,6 +48,7 @@ def generate_deployment(  # pylint: disable=too-many-arguments
         path_to_deployment_spec=str(deployment_file_path),
         private_keys_file_path=Path(private_keys_file_path),
         package_dir=package_dir,
+        private_keys_password=private_keys_password,
         number_of_agents=number_of_agents,
     )
 
@@ -58,7 +60,9 @@ def generate_deployment(  # pylint: disable=too-many-arguments
         DeploymentGenerator(deployment_spec=deployment_spec, build_dir=build_dir),
     )
 
-    deployment.generate(dev_mode).generate_config_tendermint().write_config()
+    deployment.generate(
+        dev_mode
+    ).generate_config_tendermint().write_config().populate_private_keys()
 
     return DEPLOYMENT_REPORT.substitute(
         **{

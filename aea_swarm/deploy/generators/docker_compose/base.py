@@ -18,6 +18,7 @@
 # ------------------------------------------------------------------------------
 
 """Docker-compose Deployment Generator."""
+import json
 import subprocess  # nosec
 from pathlib import Path
 from typing import Dict, IO, cast
@@ -172,4 +173,17 @@ class DockerComposeGenerator(BaseDeploymentGenerator):
             tendermint_nodes=tendermint_nodes,
         )
 
+        return self
+
+    def populate_private_keys(
+        self,
+    ) -> "DockerComposeGenerator":
+        """Populate the private keys to the build directory for docker-compose mapping."""
+        for x in range(self.deployment_spec.number_of_agents):
+            path = self.build_dir / "agent_keys" / f"agent_{x}"
+            path.mkdir()
+            with open(path / "ethereum_private_key.txt", "w", encoding="utf8") as f:
+                f.write(
+                    json.dumps(self.deployment_spec.private_keys[x]["encrypted_key"])
+                )
         return self
