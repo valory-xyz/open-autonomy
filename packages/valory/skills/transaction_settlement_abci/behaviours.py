@@ -44,7 +44,7 @@ from packages.valory.protocols.contract_api.message import ContractApiMessage
 from packages.valory.skills.abstract_round_abci.behaviour_utils import RPCResponseStatus
 from packages.valory.skills.abstract_round_abci.behaviours import (
     AbstractRoundBehaviour,
-    BaseState,
+    BaseBehaviour,
 )
 from packages.valory.skills.abstract_round_abci.common import (
     RandomnessBehaviour,
@@ -72,13 +72,13 @@ from packages.valory.skills.transaction_settlement_abci.rounds import (
     CheckTransactionHistoryRound,
     CollectSignatureRound,
     FinalizationRound,
-    PeriodState,
     RandomnessTransactionSubmissionRound,
     ResetRound,
     SelectKeeperTransactionSubmissionRoundA,
     SelectKeeperTransactionSubmissionRoundB,
     SelectKeeperTransactionSubmissionRoundBAfterTimeout,
     SynchronizeLateMessagesRound,
+    SynchronizedData,
     TransactionSubmissionAbciApp,
     ValidateTransactionRound,
 )
@@ -90,13 +90,13 @@ TxDataType = Dict[str, Union[VerificationStatus, Deque[str], int, Set[str], str]
 drand_check = VerifyDrand()
 
 
-class TransactionSettlementBaseState(BaseState, ABC):
-    """Base state behaviour for the common apps' skill."""
+class TransactionSettlementBaseBehaviour(BaseBehaviour, ABC):
+    """Base behaviour for the common apps' skill."""
 
     @property
-    def period_state(self) -> PeriodState:
-        """Return the period state."""
-        return cast(PeriodState, super().period_state)
+    def synchronized_data(self) -> SynchronizedData:
+        """Return the synchronized data."""
+        return cast(SynchronizedData, super().synchronized_data)
 
     @property
     def params(self) -> TransactionParams:
@@ -120,9 +120,9 @@ class TransactionSettlementBaseState(BaseState, ABC):
         """Get the transaction data from a `ContractApiMessage`."""
         tx_data: TxDataType = {
             "status": VerificationStatus.PENDING,
-            "keepers": self.period_state.keepers,
-            "keeper_retries": self.period_state.keeper_retries,
-            "blacklisted_keepers": self.period_state.blacklisted_keepers,
+            "keepers": self.synchronized_data.keepers,
+            "keeper_retries": self.synchronized_data.keeper_retries,
+            "blacklisted_keepers": self.synchronized_data.blacklisted_keepers,
             "tx_digest": "",
         }
 
@@ -203,22 +203,24 @@ class TransactionSettlementBaseState(BaseState, ABC):
 
     def _verify_tx(self, tx_hash: str) -> Generator[None, None, ContractApiMessage]:
         """Verify a transaction."""
-        tx_params = skill_input_hex_to_payload(self.period_state.most_voted_tx_hash)
+        tx_params = skill_input_hex_to_payload(
+            self.synchronized_data.most_voted_tx_hash
+        )
 
         contract_api_msg = yield from self.get_contract_api_response(
             performative=ContractApiMessage.Performative.GET_STATE,  # type: ignore
-            contract_address=self.period_state.safe_contract_address,
+            contract_address=self.synchronized_data.safe_contract_address,
             contract_id=str(GnosisSafeContract.contract_id),
             contract_callable="verify_tx",
             tx_hash=tx_hash,
-            owners=tuple(self.period_state.participants),
+            owners=tuple(self.synchronized_data.participants),
             to_address=tx_params["to_address"],
             value=tx_params["ether_value"],
             data=tx_params["data"],
             safe_tx_gas=tx_params["safe_tx_gas"],
             signatures_by_owner={
                 key: payload.signature
-                for key, payload in self.period_state.participant_to_signature.items()
+                for key, payload in self.synchronized_data.participant_to_signature.items()
             },
             operation=tx_params["operation"],
         )
@@ -234,30 +236,30 @@ class TransactionSettlementBaseState(BaseState, ABC):
 class RandomnessTransactionSubmissionBehaviour(RandomnessBehaviour):
     """Retrieve randomness."""
 
-    state_id = "randomness_transaction_submission"
+    behaviour_id = "randomness_transaction_submission"
     matching_round = RandomnessTransactionSubmissionRound
     payload_class = RandomnessPayload
 
 
 class SelectKeeperTransactionSubmissionBehaviourA(  # pylint: disable=too-many-ancestors
-    SelectKeeperBehaviour, TransactionSettlementBaseState
+    SelectKeeperBehaviour, TransactionSettlementBaseBehaviour
 ):
     """Select the keeper agent."""
 
-    state_id = "select_keeper_transaction_submission_a"
+    behaviour_id = "select_keeper_transaction_submission_a"
     matching_round = SelectKeeperTransactionSubmissionRoundA
     payload_class = SelectKeeperPayload
 
     def async_act(self) -> Generator:
         """Do the action."""
 
-        with self.context.benchmark_tool.measure(self.state_id).local():
+        with self.context.benchmark_tool.measure(self.behaviour_id).local():
             keepers = deque((self._select_keeper(),))
             payload = self.payload_class(
                 self.context.agent_address, self.serialized_keepers(keepers, 1)
             )
 
-        with self.context.benchmark_tool.measure(self.state_id).consensus():
+        with self.context.benchmark_tool.measure(self.behaviour_id).consensus():
             yield from self.send_a2a_transaction(payload)
             yield from self.wait_until_round_end()
 
@@ -269,7 +271,7 @@ class SelectKeeperTransactionSubmissionBehaviourB(  # pylint: disable=too-many-a
 ):
     """Select the keeper b agent."""
 
-    state_id = "select_keeper_transaction_submission_b"
+    behaviour_id = "select_keeper_transaction_submission_b"
     matching_round = SelectKeeperTransactionSubmissionRoundB
 
     def async_act(self) -> Generator:
@@ -287,24 +289,25 @@ class SelectKeeperTransactionSubmissionBehaviourB(  # pylint: disable=too-many-a
                 Moreover, if the current keeper has reached the allowed number of retries, then we cycle anyway.
             - Send the transaction with the keepers and wait for it to be mined.
             - Wait until ABCI application transitions to the next round.
-            - Go to the next behaviour state (set done event).
+            - Go to the next behaviour (set done event).
         """
 
-        with self.context.benchmark_tool.measure(self.state_id).local():
-            keepers = self.period_state.keepers
+        with self.context.benchmark_tool.measure(self.behaviour_id).local():
+            keepers = self.synchronized_data.keepers
             keeper_retries = 1
 
             if (
-                self.period_state.keepers_threshold_exceeded
+                self.synchronized_data.keepers_threshold_exceeded
             ):  # TODO: I think this should be second prio
                 keepers.rotate(-1)
                 self.context.logger.info(f"Rotated keepers to: {keepers}.")
             elif (
-                self.period_state.keeper_retries != self.params.keeper_allowed_retries
-                and self.period_state.final_verification_status
+                self.synchronized_data.keeper_retries
+                != self.params.keeper_allowed_retries
+                and self.synchronized_data.final_verification_status
                 == VerificationStatus.PENDING
             ):
-                keeper_retries += self.period_state.keeper_retries
+                keeper_retries += self.synchronized_data.keeper_retries
                 self.context.logger.info(
                     f"Kept keepers and incremented retries: {keepers}."
                 )
@@ -316,7 +319,7 @@ class SelectKeeperTransactionSubmissionBehaviourB(  # pylint: disable=too-many-a
                 self.serialized_keepers(keepers, keeper_retries),
             )
 
-        with self.context.benchmark_tool.measure(self.state_id).consensus():
+        with self.context.benchmark_tool.measure(self.behaviour_id).consensus():
             yield from self.send_a2a_transaction(payload)
             yield from self.wait_until_round_end()
 
@@ -328,14 +331,14 @@ class SelectKeeperTransactionSubmissionBehaviourBAfterTimeout(  # pylint: disabl
 ):
     """Select the keeper b agent after a timeout."""
 
-    state_id = "select_keeper_transaction_submission_b_after_timeout"
+    behaviour_id = "select_keeper_transaction_submission_b_after_timeout"
     matching_round = SelectKeeperTransactionSubmissionRoundBAfterTimeout
 
 
-class ValidateTransactionBehaviour(TransactionSettlementBaseState):
+class ValidateTransactionBehaviour(TransactionSettlementBaseBehaviour):
     """Validate a transaction."""
 
-    state_id = "validate_transaction"
+    behaviour_id = "validate_transaction"
     matching_round = ValidateTransactionRound
 
     def async_act(self) -> Generator:
@@ -348,18 +351,18 @@ class ValidateTransactionBehaviour(TransactionSettlementBaseState):
         - Send the transaction with the validation result and wait for it to be
           mined.
         - Wait until ABCI application transitions to the next round.
-        - Go to the next behaviour state (set done event).
+        - Go to the next behaviour (set done event).
         """
 
-        with self.context.benchmark_tool.measure(self.state_id).local():
+        with self.context.benchmark_tool.measure(self.behaviour_id).local():
             is_correct = yield from self.has_transaction_been_sent()
             if is_correct:
                 self.context.logger.info(
-                    f"Finalized with transaction hash: {self.period_state.to_be_validated_tx_hash}"
+                    f"Finalized with transaction hash: {self.synchronized_data.to_be_validated_tx_hash}"
                 )
             payload = ValidatePayload(self.context.agent_address, is_correct)
 
-        with self.context.benchmark_tool.measure(self.state_id).consensus():
+        with self.context.benchmark_tool.measure(self.behaviour_id).consensus():
             yield from self.send_a2a_transaction(payload)
             yield from self.wait_until_round_end()
 
@@ -368,18 +371,18 @@ class ValidateTransactionBehaviour(TransactionSettlementBaseState):
     def has_transaction_been_sent(self) -> Generator[None, None, Optional[bool]]:
         """Transaction verification."""
         response = yield from self.get_transaction_receipt(
-            self.period_state.to_be_validated_tx_hash,
+            self.synchronized_data.to_be_validated_tx_hash,
             self.params.retry_timeout,
             self.params.retry_attempts,
         )
         if response is None:  # pragma: nocover
             self.context.logger.error(
-                f"tx {self.period_state.to_be_validated_tx_hash} receipt check timed out!"
+                f"tx {self.synchronized_data.to_be_validated_tx_hash} receipt check timed out!"
             )
             return None
 
         contract_api_msg = yield from self._verify_tx(
-            self.period_state.to_be_validated_tx_hash
+            self.synchronized_data.to_be_validated_tx_hash
         )
         if (
             contract_api_msg.performative != ContractApiMessage.Performative.STATE
@@ -401,30 +404,30 @@ class ValidateTransactionBehaviour(TransactionSettlementBaseState):
 CHECK_TX_HISTORY = "check_transaction_history"
 
 
-class CheckTransactionHistoryBehaviour(TransactionSettlementBaseState):
+class CheckTransactionHistoryBehaviour(TransactionSettlementBaseBehaviour):
     """Check the transaction history."""
 
-    state_id = CHECK_TX_HISTORY
+    behaviour_id = CHECK_TX_HISTORY
     matching_round = CheckTransactionHistoryRound
 
     def async_act(self) -> Generator:
         """Do the action."""
 
-        with self.context.benchmark_tool.measure(self.state_id).local():
+        with self.context.benchmark_tool.measure(self.behaviour_id).local():
             verification_status, tx_hash = yield from self._check_tx_history()
 
             if verification_status == VerificationStatus.VERIFIED:
                 msg = f"A previous transaction {tx_hash} has already been verified "
                 msg += (
-                    f"for {self.period_state.to_be_validated_tx_hash}."
-                    if self.period_state.tx_hashes_history
+                    f"for {self.synchronized_data.to_be_validated_tx_hash}."
+                    if self.synchronized_data.tx_hashes_history
                     else "and was synced after the finalization round timed out."
                 )
                 self.context.logger.info(msg)
             elif verification_status == VerificationStatus.NOT_VERIFIED:
                 self.context.logger.info(
                     f"No previous transaction has been verified for "
-                    f"{self.period_state.to_be_validated_tx_hash}."
+                    f"{self.synchronized_data.to_be_validated_tx_hash}."
                 )
 
             verified_res = tx_hist_payload_to_hex(verification_status, tx_hash)
@@ -432,7 +435,7 @@ class CheckTransactionHistoryBehaviour(TransactionSettlementBaseState):
                 self.context.agent_address, verified_res
             )
 
-        with self.context.benchmark_tool.measure(self.state_id).consensus():
+        with self.context.benchmark_tool.measure(self.behaviour_id).consensus():
             yield from self.send_a2a_transaction(payload)
             yield from self.wait_until_round_end()
 
@@ -443,15 +446,15 @@ class CheckTransactionHistoryBehaviour(TransactionSettlementBaseState):
     ) -> Generator[None, None, Tuple[VerificationStatus, Optional[str]]]:
         """Check the transaction history."""
         history = (
-            self.period_state.tx_hashes_history
-            if self.state_id == CHECK_TX_HISTORY
-            else self.period_state.late_arriving_tx_hashes
+            self.synchronized_data.tx_hashes_history
+            if self.behaviour_id == CHECK_TX_HISTORY
+            else self.synchronized_data.late_arriving_tx_hashes
         )
 
         if not history:
             self.context.logger.error(
-                "An unexpected error occurred! The state's history does not contain any transaction hashes, "
-                f"but entered the `{self.state_id}` state."
+                "An unexpected error occurred! The data history does not contain any transaction hashes, "
+                f"but entered the `{self.behaviour_id}` behaviour."
             )
             return VerificationStatus.ERROR, None
 
@@ -489,7 +492,7 @@ class CheckTransactionHistoryBehaviour(TransactionSettlementBaseState):
                 if self._safe_nonce_reused(revert_reason):
                     check_expected_to_be_verified = (
                         "The next tx check"
-                        if self.state_id == CHECK_TX_HISTORY
+                        if self.behaviour_id == CHECK_TX_HISTORY
                         else "One of the next tx checks"
                     )
                     self.context.logger.info(
@@ -510,7 +513,7 @@ class CheckTransactionHistoryBehaviour(TransactionSettlementBaseState):
         """Get the revert reason of the given transaction."""
         contract_api_msg = yield from self.get_contract_api_response(
             performative=ContractApiMessage.Performative.GET_STATE,  # type: ignore
-            contract_address=self.period_state.safe_contract_address,
+            contract_address=self.synchronized_data.safe_contract_address,
             contract_id=str(GnosisSafeContract.contract_id),
             contract_callable="revert_reason",
             tx=tx,
@@ -532,14 +535,14 @@ class CheckLateTxHashesBehaviour(  # pylint: disable=too-many-ancestors
 ):
     """Check the late-arriving transaction hashes."""
 
-    state_id = "check_late_tx_hashes"
+    behaviour_id = "check_late_tx_hashes"
     matching_round = CheckLateTxHashesRound
 
 
-class SynchronizeLateMessagesBehaviour(TransactionSettlementBaseState):
-    """Synchronize late-arriving messages state."""
+class SynchronizeLateMessagesBehaviour(TransactionSettlementBaseBehaviour):
+    """Synchronize late-arriving messages behaviour."""
 
-    state_id = "sync_late_messages"
+    behaviour_id = "sync_late_messages"
     matching_round = SynchronizeLateMessagesRound
 
     def __init__(self, **kwargs: Any):
@@ -555,7 +558,7 @@ class SynchronizeLateMessagesBehaviour(TransactionSettlementBaseState):
     def async_act(self) -> Generator:
         """Do the action."""
 
-        with self.context.benchmark_tool.measure(self.state_id).local():
+        with self.context.benchmark_tool.measure(self.behaviour_id).local():
             current_message = next(self._messages_iterator, None)
             if current_message is not None:
                 tx_data = yield from self._get_tx_data(current_message)
@@ -567,7 +570,7 @@ class SynchronizeLateMessagesBehaviour(TransactionSettlementBaseState):
                 self.context.agent_address, self._tx_hashes
             )
 
-        with self.context.benchmark_tool.measure(self.state_id).consensus():
+        with self.context.benchmark_tool.measure(self.behaviour_id).consensus():
             yield from self.send_a2a_transaction(payload)
             # reset the local parameters if we were able to send them.
             self.params.tx_hash = ""
@@ -577,10 +580,10 @@ class SynchronizeLateMessagesBehaviour(TransactionSettlementBaseState):
         self.set_done()
 
 
-class SignatureBehaviour(TransactionSettlementBaseState):
-    """Signature state."""
+class SignatureBehaviour(TransactionSettlementBaseBehaviour):
+    """Signature behaviour."""
 
-    state_id = "sign"
+    behaviour_id = "sign"
     matching_round = CollectSignatureRound
 
     def async_act(self) -> Generator:
@@ -591,17 +594,17 @@ class SignatureBehaviour(TransactionSettlementBaseState):
         - Request the signature of the transaction hash.
         - Send the signature as a transaction and wait for it to be mined.
         - Wait until ABCI application transitions to the next round.
-        - Go to the next behaviour state (set done event).
+        - Go to the next behaviour (set done event).
         """
 
-        with self.context.benchmark_tool.measure(self.state_id).local():
+        with self.context.benchmark_tool.measure(self.behaviour_id).local():
             self.context.logger.info(
-                f"Consensus reached on tx hash: {self.period_state.most_voted_tx_hash}"
+                f"Consensus reached on tx hash: {self.synchronized_data.most_voted_tx_hash}"
             )
             signature_hex = yield from self._get_safe_tx_signature()
             payload = SignaturePayload(self.context.agent_address, signature_hex)
 
-        with self.context.benchmark_tool.measure(self.state_id).consensus():
+        with self.context.benchmark_tool.measure(self.behaviour_id).consensus():
             yield from self.send_a2a_transaction(payload)
             yield from self.wait_until_round_end()
 
@@ -609,7 +612,9 @@ class SignatureBehaviour(TransactionSettlementBaseState):
 
     def _get_safe_tx_signature(self) -> Generator[None, None, str]:
         """Get signature of safe transaction hash."""
-        tx_params = skill_input_hex_to_payload(self.period_state.most_voted_tx_hash)
+        tx_params = skill_input_hex_to_payload(
+            self.synchronized_data.most_voted_tx_hash
+        )
         # is_deprecated_mode=True because we want to call Account.signHash,
         # which is the same used by gnosis-py
         safe_tx_hash_bytes = binascii.unhexlify(tx_params["safe_tx_hash"])
@@ -622,15 +627,18 @@ class SignatureBehaviour(TransactionSettlementBaseState):
         return signature_hex
 
 
-class FinalizeBehaviour(TransactionSettlementBaseState):
-    """Finalize state."""
+class FinalizeBehaviour(TransactionSettlementBaseBehaviour):
+    """Finalize behaviour."""
 
-    state_id = "finalize"
+    behaviour_id = "finalize"
     matching_round = FinalizationRound
 
     def _i_am_not_sending(self) -> bool:
         """Indicates if the current agent is the sender or not."""
-        return self.context.agent_address != self.period_state.most_voted_keeper_address
+        return (
+            self.context.agent_address
+            != self.synchronized_data.most_voted_keeper_address
+        )
 
     def async_act(self) -> Generator[None, None, None]:
         """
@@ -648,9 +656,9 @@ class FinalizeBehaviour(TransactionSettlementBaseState):
 
     def _not_sender_act(self) -> Generator:
         """Do the non-sender action."""
-        with self.context.benchmark_tool.measure(self.state_id).consensus():
+        with self.context.benchmark_tool.measure(self.behaviour_id).consensus():
             self.context.logger.info(
-                f"Waiting for the keeper to do its keeping: {self.period_state.most_voted_keeper_address}"
+                f"Waiting for the keeper to do its keeping: {self.synchronized_data.most_voted_keeper_address}"
             )
             yield from self.wait_until_round_end()
         self.set_done()
@@ -658,7 +666,7 @@ class FinalizeBehaviour(TransactionSettlementBaseState):
     def _sender_act(self) -> Generator[None, None, None]:
         """Do the sender action."""
 
-        with self.context.benchmark_tool.measure(self.state_id).local():
+        with self.context.benchmark_tool.measure(self.behaviour_id).local():
             self.context.logger.info(
                 "I am the designated sender, attempting to send the safe transaction..."
             )
@@ -679,10 +687,10 @@ class FinalizeBehaviour(TransactionSettlementBaseState):
                     f"Finalization tx digest: {cast(str, tx_data['tx_digest'])}"
                 )
                 self.context.logger.debug(
-                    f"Signatures: {pprint.pformat(self.period_state.participant_to_signature)}"
+                    f"Signatures: {pprint.pformat(self.synchronized_data.participant_to_signature)}"
                 )
 
-            tx_hashes_history = self.period_state.tx_hashes_history
+            tx_hashes_history = self.synchronized_data.tx_hashes_history
             if tx_data["tx_digest"] != "":
                 tx_hashes_history.append(cast(str, tx_data["tx_digest"]))
 
@@ -704,7 +712,7 @@ class FinalizeBehaviour(TransactionSettlementBaseState):
                 cast(Dict[str, Union[str, int, bool]], tx_data_serialized),
             )
 
-        with self.context.benchmark_tool.measure(self.state_id).consensus():
+        with self.context.benchmark_tool.measure(self.behaviour_id).consensus():
             yield from self.send_a2a_transaction(payload)
             # reset the local tx hash parameter if we were able to send it
             self.params.tx_hash = ""
@@ -716,22 +724,24 @@ class FinalizeBehaviour(TransactionSettlementBaseState):
         self,
     ) -> Generator[None, None, TxDataType]:
         """Send a Safe transaction using the participants' signatures."""
-        tx_params = skill_input_hex_to_payload(self.period_state.most_voted_tx_hash)
+        tx_params = skill_input_hex_to_payload(
+            self.synchronized_data.most_voted_tx_hash
+        )
 
         contract_api_msg = yield from self.get_contract_api_response(
             performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
-            contract_address=self.period_state.safe_contract_address,
+            contract_address=self.synchronized_data.safe_contract_address,
             contract_id=str(GnosisSafeContract.contract_id),
             contract_callable="get_raw_safe_transaction",
             sender_address=self.context.agent_address,
-            owners=tuple(self.period_state.participants),
+            owners=tuple(self.synchronized_data.participants),
             to_address=tx_params["to_address"],
             value=tx_params["ether_value"],
             data=tx_params["data"],
             safe_tx_gas=tx_params["safe_tx_gas"],
             signatures_by_owner={
                 key: payload.signature
-                for key, payload in self.period_state.participant_to_signature.items()
+                for key, payload in self.synchronized_data.participant_to_signature.items()
             },
             nonce=self.params.nonce,
             old_price=self.params.gas_price,
@@ -752,19 +762,19 @@ class FinalizeBehaviour(TransactionSettlementBaseState):
             super().handle_late_messages(message)
 
 
-class ResetBehaviour(TransactionSettlementBaseState):
-    """Reset state."""
+class ResetBehaviour(TransactionSettlementBaseBehaviour):
+    """Reset behaviour."""
 
     matching_round = ResetRound
-    state_id = "reset"
+    behaviour_id = "reset"
 
     def async_act(self) -> Generator:
         """Do the action."""
         self.context.logger.info(
-            f"Period {self.period_state.period_count} was not finished. Resetting!"
+            f"Period {self.synchronized_data.period_count} was not finished. Resetting!"
         )
         payload = ResetPayload(
-            self.context.agent_address, self.period_state.period_count + 1
+            self.context.agent_address, self.synchronized_data.period_count
         )
         yield from self.send_a2a_transaction(payload)
         yield from self.wait_until_round_end()
@@ -774,9 +784,9 @@ class ResetBehaviour(TransactionSettlementBaseState):
 class TransactionSettlementRoundBehaviour(AbstractRoundBehaviour):
     """This behaviour manages the consensus stages for the basic transaction settlement."""
 
-    initial_state_cls = RandomnessTransactionSubmissionBehaviour
+    initial_behaviour_cls = RandomnessTransactionSubmissionBehaviour
     abci_app_cls = TransactionSubmissionAbciApp  # type: ignore
-    behaviour_states: Set[Type[BaseState]] = {
+    behaviours: Set[Type[BaseBehaviour]] = {
         RandomnessTransactionSubmissionBehaviour,  # type: ignore
         SelectKeeperTransactionSubmissionBehaviourA,  # type: ignore
         SelectKeeperTransactionSubmissionBehaviourB,  # type: ignore

@@ -20,7 +20,7 @@
 """This module contains the handler for the 'abstract_round_abci' skill."""
 import ipaddress
 from abc import ABC
-from typing import Callable, Dict, FrozenSet, Optional, cast
+from typing import Callable, Dict, List, FrozenSet, Optional, cast
 from urllib.parse import urlparse
 
 from aea.configurations.data_types import PublicId
@@ -30,7 +30,7 @@ from aea.skills.base import Handler
 
 from packages.open_aea.protocols.signing import SigningMessage
 from packages.valory.protocols.abci import AbciMessage
-from packages.valory.protocols.abci.custom_types import Events
+from packages.valory.protocols.abci.custom_types import Events, ValidatorUpdates
 from packages.valory.protocols.contract_api import ContractApiMessage
 from packages.valory.protocols.http import HttpMessage
 from packages.valory.protocols.ledger_api import LedgerApiMessage
@@ -43,7 +43,7 @@ from packages.valory.skills.abstract_abci.handlers import ABCIHandler
 from packages.valory.skills.abstract_round_abci.base import (
     ABCIAppInternalError,
     AddBlockError,
-    BasePeriodState,
+    BaseSynchronizedData,
     ERROR_CODE,
     LateArrivingTransaction,
     OK_CODE,
@@ -70,12 +70,30 @@ class ABCIRoundHandler(ABCIHandler):
     def info(  # pylint: disable=no-self-use,useless-super-delegation
         self, message: AbciMessage, dialogue: AbciDialogue
     ) -> AbciMessage:
-        """Handle the 'info' request."""
+        """
+        Handle the 'info' request.
+
+        As per Tendermint spec (https://github.com/tendermint/spec/blob/038f3e025a19fed9dc96e718b9834ab1b545f136/spec/abci/abci.md#info):
+
+        - Return information about the application state.
+        - Used to sync Tendermint with the application during a handshake that happens on startup.
+        - The returned app_version will be included in the Header of every block.
+        - Tendermint expects last_block_app_hash and last_block_height to be updated during Commit, ensuring that Commit is never called twice for the same block height.
+
+        :param message: the ABCI request.
+        :param dialogue: the ABCI dialogue.
+        :return: the response.
+        """
+        # some arbitrary information
         info_data = ""
+        # the application software semantic version
         version = ""
+        # the application protocol version
         app_version = 0
-        last_block_height = self.context.state.period.height
-        last_block_app_hash = b""
+        # latest block for which the app has called Commit
+        last_block_height = self.context.state.round_sequence.height
+        # latest result of Commit
+        last_block_app_hash = self.context.state.round_sequence.root_hash
         reply = dialogue.reply(
             performative=AbciMessage.Performative.RESPONSE_INFO,
             target_message=message,
@@ -87,11 +105,38 @@ class ABCIRoundHandler(ABCIHandler):
         )
         return cast(AbciMessage, reply)
 
+    def init_chain(self, message: AbciMessage, dialogue: AbciDialogue) -> AbciMessage:
+        """
+        Handle a message of REQUEST_INIT_CHAIN performative.
+
+        As per Tendermint spec (https://github.com/tendermint/spec/blob/038f3e025a19fed9dc96e718b9834ab1b545f136/spec/abci/abci.md#initchain):
+
+        - Called once upon genesis.
+        - If ResponseInitChain.Validators is empty, the initial validator set will be the RequestInitChain.Validators.
+        - If ResponseInitChain.Validators is not empty, it will be the initial validator set (regardless of what is in RequestInitChain.Validators).
+        - This allows the app to decide if it wants to accept the initial validator set proposed by tendermint (ie. in the genesis file), or if it wants to use a different one (perhaps computed based on some application specific information in the genesis file).
+
+        :param message: the ABCI request.
+        :param dialogue: the ABCI dialogue.
+        :return: the response.
+        """
+        # Initial validator set (optional).
+        validators: List = []
+        # Initial application hash.
+        app_hash = self.context.state.round_sequence.root_hash
+        reply = dialogue.reply(
+            performative=AbciMessage.Performative.RESPONSE_INIT_CHAIN,
+            target_message=message,
+            validators=ValidatorUpdates(validators),
+            app_hash=app_hash,
+        )
+        return cast(AbciMessage, reply)
+
     def begin_block(  # pylint: disable=no-self-use
         self, message: AbciMessage, dialogue: AbciDialogue
     ) -> AbciMessage:
         """Handle the 'begin_block' request."""
-        cast(SharedState, self.context.state).period.begin_block(message.header)
+        cast(SharedState, self.context.state).round_sequence.begin_block(message.header)
         return super().begin_block(message, dialogue)
 
     def check_tx(  # pylint: disable=no-self-use
@@ -103,7 +148,7 @@ class ABCIRoundHandler(ABCIHandler):
         try:
             transaction = Transaction.decode(transaction_bytes)
             transaction.verify(self.context.default_ledger_id)
-            cast(SharedState, self.context.state).period.check_is_finished()
+            cast(SharedState, self.context.state).round_sequence.check_is_finished()
         except (
             SignatureNotValidError,
             TransactionNotValidError,
@@ -143,8 +188,8 @@ class ABCIRoundHandler(ABCIHandler):
         try:
             transaction = Transaction.decode(transaction_bytes)
             transaction.verify(self.context.default_ledger_id)
-            shared_state.period.check_is_finished()
-            shared_state.period.deliver_tx(transaction)
+            shared_state.round_sequence.check_is_finished()
+            shared_state.round_sequence.deliver_tx(transaction)
         except (
             SignatureNotValidError,
             TransactionNotValidError,
@@ -179,20 +224,44 @@ class ABCIRoundHandler(ABCIHandler):
         self, message: AbciMessage, dialogue: AbciDialogue
     ) -> AbciMessage:
         """Handle the 'end_block' request."""
-        cast(SharedState, self.context.state).period.end_block()
+        cast(SharedState, self.context.state).round_sequence.end_block()
         return super().end_block(message, dialogue)
 
     def commit(  # pylint: disable=no-self-use
         self, message: AbciMessage, dialogue: AbciDialogue
     ) -> AbciMessage:
-        """Handle the 'commit' request."""
+        """
+        Handle the 'commit' request.
+
+        As per Tendermint spec (https://github.com/tendermint/spec/blob/038f3e025a19fed9dc96e718b9834ab1b545f136/spec/abci/abci.md#commit):
+
+        Empty request meant to signal to the app it can write state transitions to state.
+
+        - Persist the application state.
+        - Return a Merkle root hash of the application state.
+        - It's critical that all application instances return the same hash. If not, they will not be able to agree on the next block, because the hash is included in the next block!
+
+        :param message: the ABCI request.
+        :param dialogue: the ABCI dialogue.
+        :return: the response.
+        """
         try:
-            cast(SharedState, self.context.state).period.commit()
+            cast(SharedState, self.context.state).round_sequence.commit()
         except AddBlockError as exception:
             self._log_exception(exception)
             raise exception
+        # The Merkle root hash of the application state.
+        data = self.context.state.round_sequence.root_hash
+        # Blocks below this height may be removed. Defaults to 0 (retain all).
+        retain_height = 0
         # return commit success
-        return super().commit(message, dialogue)
+        reply = dialogue.reply(
+            performative=AbciMessage.Performative.RESPONSE_COMMIT,
+            target_message=message,
+            data=data,
+            retain_height=retain_height,
+        )
+        return cast(AbciMessage, reply)
 
     @classmethod
     def _check_tx_failed(
@@ -309,10 +378,10 @@ class AbstractResponseHandler(Handler, ABC):
             ) from e
 
         self._log_message_handling(message)
-        current_state = cast(
+        current_behaviour = cast(
             AbstractRoundBehaviour, self.context.behaviours.main
-        ).current_state
-        callback(message, current_state)
+        ).current_behaviour
+        callback(message, current_behaviour)
 
     def _get_dialogues_attribute_name(self) -> str:
         """
@@ -437,14 +506,14 @@ class TendermintHandler(Handler):
         """Tear down the handler."""
 
     @property
-    def period_state(self) -> BasePeriodState:
+    def synchronized_data(self) -> BaseSynchronizedData:
         """Period State"""
-        return cast(BasePeriodState, cast(SharedState, self.context.state).period_state)
+        return cast(BaseSynchronizedData, cast(SharedState, self.context.state).period_state)
 
     @property
     def registered_addresses(self) -> Dict[str, str]:
         """Registered addresses retrieved on-chain from service registry contract"""
-        return self.period_state.db.initial_data.get("registered_addresses", {})
+        return self.synchronized_data.db.initial_data.get("registered_addresses", {})
 
     @property
     def dialogues(self) -> Optional[TendermintDialogues]:

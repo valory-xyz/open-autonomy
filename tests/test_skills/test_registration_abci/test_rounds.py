@@ -22,10 +22,10 @@
 import json
 from typing import Optional, cast
 
+from packages.valory.skills.abstract_round_abci.base import AbciAppDB
 from packages.valory.skills.abstract_round_abci.base import (
-    BasePeriodState as PeriodState,
+    BaseSynchronizedData as SynchronizedData,
 )
-from packages.valory.skills.abstract_round_abci.base import StateDB
 from packages.valory.skills.registration_abci.payloads import RegistrationPayload
 from packages.valory.skills.registration_abci.rounds import Event as RegistrationEvent
 from packages.valory.skills.registration_abci.rounds import (
@@ -42,7 +42,7 @@ from tests.test_skills.test_abstract_round_abci.test_base_rounds import (
 class TestRegistrationStartupRound(BaseCollectDifferentUntilAllRoundTest):
     """Test RegistrationStartupRound."""
 
-    _period_state_class = PeriodState
+    _synchronized_data_class = SynchronizedData
     _event_class = RegistrationEvent
 
     def test_run_fastforward(
@@ -50,16 +50,17 @@ class TestRegistrationStartupRound(BaseCollectDifferentUntilAllRoundTest):
     ) -> None:
         """Run test."""
 
-        self.period_state = cast(
-            PeriodState,
-            self.period_state.update(
+        self.synchronized_data = cast(
+            SynchronizedData,
+            self.synchronized_data.update(
                 safe_contract_address="stub_safe_contract_address",
                 oracle_contract_address="stub_oracle_contract_address",
             ),
         )
 
         test_round = RegistrationStartupRound(
-            state=self.period_state, consensus_params=self.consensus_params
+            synchronized_data=self.synchronized_data,
+            consensus_params=self.consensus_params,
         )
         self._run_with_round(
             test_round,
@@ -74,7 +75,8 @@ class TestRegistrationStartupRound(BaseCollectDifferentUntilAllRoundTest):
         """Run test."""
 
         test_round = RegistrationStartupRound(
-            state=self.period_state, consensus_params=self.consensus_params
+            synchronized_data=self.synchronized_data,
+            consensus_params=self.consensus_params,
         )
         self._run_with_round(test_round, RegistrationEvent.DONE, 1)
 
@@ -84,7 +86,8 @@ class TestRegistrationStartupRound(BaseCollectDifferentUntilAllRoundTest):
         """Run test."""
 
         test_round = RegistrationStartupRound(
-            state=self.period_state, consensus_params=self.consensus_params
+            synchronized_data=self.synchronized_data,
+            consensus_params=self.consensus_params,
         )
         self._run_with_round(test_round)
 
@@ -103,13 +106,14 @@ class TestRegistrationStartupRound(BaseCollectDifferentUntilAllRoundTest):
                 RegistrationPayload(sender=participant, initialisation=initialisation)
                 for participant in self.participants
             ],
-            state_update_fn=lambda *x: PeriodState(
-                StateDB(
-                    initial_period=0,
+            synchronized_data_update_fn=lambda *x: SynchronizedData(
+                AbciAppDB(
                     initial_data=dict(participants=frozenset(test_round.collection)),
                 )
             ),
-            state_attr_checks=[lambda state: state.participants],
+            synchronized_data_attr_checks=[
+                lambda _synchronized_data: _synchronized_data.participants
+            ],
             exit_event=expected_event,
         )
 
@@ -127,22 +131,23 @@ class TestRegistrationStartupRound(BaseCollectDifferentUntilAllRoundTest):
 class TestRegistrationRound(BaseCollectDifferentUntilThresholdRoundTest):
     """Test RegistrationRound."""
 
-    _period_state_class = PeriodState
+    _synchronized_data_class = SynchronizedData
     _event_class = RegistrationEvent
 
     def test_run_default(
         self,
     ) -> None:
         """Run test."""
-        self.period_state = cast(
-            PeriodState,
-            self.period_state.update(
+        self.synchronized_data = cast(
+            SynchronizedData,
+            self.synchronized_data.update(
                 safe_contract_address="stub_safe_contract_address",
                 oracle_contract_address="stub_oracle_contract_address",
             ),
         )
         test_round = RegistrationRound(
-            state=self.period_state, consensus_params=self.consensus_params
+            synchronized_data=self.synchronized_data,
+            consensus_params=self.consensus_params,
         )
         self._run_with_round(test_round, RegistrationEvent.DONE, 10)
 
@@ -150,15 +155,16 @@ class TestRegistrationRound(BaseCollectDifferentUntilThresholdRoundTest):
         self,
     ) -> None:
         """Run test."""
-        self.period_state = cast(
-            PeriodState,
-            self.period_state.update(
+        self.synchronized_data = cast(
+            SynchronizedData,
+            self.synchronized_data.update(
                 safe_contract_address="stub_safe_contract_address",
                 oracle_contract_address="stub_oracle_contract_address",
             ),
         )
         test_round = RegistrationRound(
-            state=self.period_state, consensus_params=self.consensus_params
+            synchronized_data=self.synchronized_data,
+            consensus_params=self.consensus_params,
         )
         self._run_with_round(test_round, finished=False)
 
@@ -179,15 +185,16 @@ class TestRegistrationRound(BaseCollectDifferentUntilThresholdRoundTest):
                     for participant in self.participants
                 ]
             ),
-            state_update_fn=(
-                lambda *x: PeriodState(
-                    StateDB(
-                        initial_period=0,
+            synchronized_data_update_fn=(
+                lambda *x: SynchronizedData(
+                    AbciAppDB(
                         initial_data=dict(participants=self.participants),
                     )
                 )
             ),
-            state_attr_checks=[lambda state: state.participants],
+            synchronized_data_attr_checks=[
+                lambda _synchronized_data: _synchronized_data.participants
+            ],
             exit_event=expected_event,
         )
 

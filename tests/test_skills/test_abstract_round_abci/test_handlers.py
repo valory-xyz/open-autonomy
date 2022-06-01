@@ -189,7 +189,7 @@ class TestABCIRoundHandler:
 
     def test_commit_negative(self) -> None:
         """Test the 'commit' handler method, negative case."""
-        self.context.state.period.commit.side_effect = AddBlockError()
+        self.context.state.round_sequence.commit.side_effect = AddBlockError()
         message, dialogue = self.dialogues.create(
             counterparty="",
             performative=AbciMessage.Performative.REQUEST_COMMIT,

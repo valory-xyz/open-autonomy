@@ -8,22 +8,22 @@ aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
   README.md: QmXpdkXUoLn7t8hjdtHmsYNFn4cAJboQLLogQd2Lcm5gzZ
   __init__.py: QmZ2k9kr2CxmQyFHKnGH9rTThZcvqt2zZbsfY6mdjeMYrM
-  behaviours.py: QmYTUmnQukPiQG4Xm1GM6xU4kNXaQ1t8zPtQd9T8xBaXgm
+  behaviours.py: Qmd4jdZcieMukgNupJ8migR7xzdq2CzXMKwF48sUkxXtex
   dialogues.py: QmfDThV4WCRzK88XDpW2hKDYCuEH4RxoHCoAkWpkBRGRPv
   handlers.py: QmXE1951U15h5E5mjUmM5NQeW2FT57eAAyvbmaG7SszKw9
   models.py: QmVYcGngs9aohsEJQ9MBTswftBs3FA5BnxfESUZHhwjPA1
   payloads.py: QmRZcMJdv1tvkQAtDsoQYxdhswjrRQ9Cdi2TFnyEvfrQPr
-  rounds.py: QmbJC28WHqm8LVJhrnwfnHzQydbcgKhN7f7QNMdTgn53xp
+  rounds.py: QmTY9jKDo4yZ4TyjMB9tHc3cACgFTkmhHZaxS5vSW7B85m
 fingerprint_ignore_patterns: []
 connections:
-- valory/abci:0.1.0:QmaPFp3Jwf6uv9VSAoMJfJHFS9ESPeX8hCB7HLi41c8WzS
+- valory/abci:0.1.0:QmcSFCqBgsz1MZYheyGJz53TDm8iLGeeqRRnupaazDDBmC
 - valory/http_client:0.1.0:QmakgWmx4CGuQuafUELiceH53N8HfgdfkQJpem7iYy9MVN
 contracts: []
 protocols:
 - valory/abci:0.1.0:QmaPFp3Jwf6uv9VSAoMJfJHFS9ESPeX8hCB7HLi41c8WzS
 - valory/http:1.0.0:QmbjfzjKMuRmwbQysyaciASxvY67vGJYj7zjGYADgNux5h
 skills:
-- valory/abstract_round_abci:0.1.0:QmSFgNf4sZs77UhitbQgQVeQCJHxe7xPq7uhh7Joe2e2Wc
+- valory/abstract_round_abci:0.1.0:QmY7CtHnVg9Mt6RGwqUiMeGBtztdGUWV4fp2djuijkmsxD
 behaviours:
   main:
     args: {}
@@ -73,12 +73,12 @@ models:
       keeper_timeout: 30.0
       max_healthcheck: 120
       observation_interval: 10
-      period_setup: {}
       reset_tendermint_after: 2
       retry_attempts: 400
       retry_timeout: 3
       round_timeout_seconds: 30
       service_id: test_abci
+      setup: {}
       sleep_time: 1
       tendermint_check_sleep_delay: 10
       tendermint_com_url: http://localhost:8080

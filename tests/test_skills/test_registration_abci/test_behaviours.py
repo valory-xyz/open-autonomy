@@ -32,10 +32,10 @@ from aea.exceptions import AEAActException
 from packages.valory.contracts.service_registry.contract import ServiceRegistryContract
 from packages.valory.protocols.contract_api.message import ContractApiMessage
 from packages.valory.protocols.tendermint.message import TendermintMessage
-from packages.valory.skills.abstract_round_abci.base import StateDB
+from packages.valory.skills.abstract_round_abci.base import AbciAppDB
 from packages.valory.skills.abstract_round_abci.behaviour_utils import (
-    BaseState,
-    make_degenerate_state,
+    BaseBehaviour,
+    make_degenerate_behaviour,
 )
 from packages.valory.skills.registration_abci.behaviours import (
     RegistrationBaseBehaviour,
@@ -44,7 +44,7 @@ from packages.valory.skills.registration_abci.behaviours import (
     consume,
 )
 from packages.valory.skills.registration_abci.rounds import (
-    BasePeriodState as RegistrationPeriodState,
+    BaseSynchronizedData as RegistrationSynchronizedSata,
 )
 from packages.valory.skills.registration_abci.rounds import (
     Event,
@@ -80,33 +80,36 @@ class BaseRegistrationTestBehaviour(RegistrationAbciBaseCase):
     """Base test case to test RegistrationBehaviour."""
 
     behaviour_class = RegistrationBaseBehaviour
-    next_behaviour_class = BaseState
+    next_behaviour_class = BaseBehaviour
 
     def test_registration(self) -> None:
         """Test registration."""
-        self.fast_forward_to_state(
+        self.fast_forward_to_behaviour(
             self.behaviour,
-            self.behaviour_class.state_id,
-            RegistrationPeriodState(StateDB(initial_period=0, initial_data={})),
+            self.behaviour_class.behaviour_id,
+            RegistrationSynchronizedSata(AbciAppDB(initial_data={})),
         )
         assert (
-            cast(BaseState, self.behaviour.current_state).state_id
-            == self.behaviour_class.state_id
+            cast(
+                BaseBehaviour,
+                cast(BaseBehaviour, self.behaviour.current_behaviour),
+            ).behaviour_id
+            == self.behaviour_class.behaviour_id
         )
         self.behaviour.act_wrapper()
         self.mock_a2a_transaction()
         self._test_done_flag_set()
 
         self.end_round(Event.DONE)
-        state = cast(BaseState, self.behaviour.current_state)
-        assert state.state_id == self.next_behaviour_class.state_id
+        behaviour = cast(BaseBehaviour, self.behaviour.current_behaviour)
+        assert behaviour.behaviour_id == self.next_behaviour_class.behaviour_id
 
 
 class TestRegistrationStartupBehaviour(RegistrationAbciBaseCase):
     """Test case to test RegistrationStartupBehaviour."""
 
     behaviour_class = RegistrationStartupBehaviour
-    next_behaviour_class = make_degenerate_state(FinishedRegistrationRound.round_id)
+    next_behaviour_class = make_degenerate_behaviour(FinishedRegistrationRound.round_id)
 
     other_agents: List[str] = ["0xAlice", "0xBob", "0xCharlie"]
 
@@ -504,4 +507,6 @@ class TestRegistrationBehaviour(BaseRegistrationTestBehaviour):
     """Test case to test RegistrationBehaviour."""
 
     behaviour_class = RegistrationBehaviour
-    next_behaviour_class = make_degenerate_state(FinishedRegistrationFFWRound.round_id)
+    next_behaviour_class = make_degenerate_behaviour(
+        FinishedRegistrationFFWRound.round_id
+    )

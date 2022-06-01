@@ -34,7 +34,7 @@ from aea.skills.base import SkillContext
 from packages.valory.skills.abstract_round_abci.base import (
     AbciApp,
     AbstractRound,
-    BasePeriodState,
+    BaseSynchronizedData,
 )
 from packages.valory.skills.abstract_round_abci.models import (
     ApiSpecs,
@@ -198,7 +198,7 @@ class TestApiSpecsModel:
 class ConcreteRound(AbstractRound):
     """A ConcreteRoundA for testing purposes."""
 
-    def end_block(self) -> Optional[Tuple[BasePeriodState, Enum]]:
+    def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Enum]]:
         """Handle the end of the block."""
 
 
@@ -220,25 +220,25 @@ class TestSharedState:
             shared_state.setup()
 
     @mock.patch.object(SharedState, "_process_abci_app_cls")
-    def test_period_state_negative_not_available(self, *_: Any) -> None:
-        """Test 'period_state' property getter, negative case (not available)."""
+    def test_synchronized_data_negative_not_available(self, *_: Any) -> None:
+        """Test 'synchronized_data' property getter, negative case (not available)."""
         shared_state = SharedState(
             abci_app_cls=AbciAppTest, name="", skill_context=MagicMock()
         )
         with mock.patch.object(shared_state.context, "params"):
-            with pytest.raises(ValueError, match="period not available"):
-                shared_state.period_state
+            with pytest.raises(ValueError, match="round sequence not available"):
+                shared_state.synchronized_data
 
     @mock.patch.object(SharedState, "_process_abci_app_cls")
-    def test_period_state_positive(self, *_: Any) -> None:
-        """Test 'period_state' property getter, negative case (not available)."""
+    def test_synchronized_data_positive(self, *_: Any) -> None:
+        """Test 'synchronized_data' property getter, negative case (not available)."""
         shared_state = SharedState(
             abci_app_cls=AbciAppTest, name="", skill_context=MagicMock()
         )
         with mock.patch.object(shared_state.context, "params"):
             shared_state.setup()
-            shared_state.period.abci_app._round_results = [MagicMock()]
-            shared_state.period_state
+            shared_state.round_sequence.abci_app._round_results = [MagicMock()]
+            shared_state.synchronized_data
 
     def test_process_abci_app_cls_negative_not_a_class(self) -> None:
         """Test '_process_abci_app_cls', negative case (not a class)."""
@@ -317,7 +317,7 @@ def test_base_params_model_initialization() -> None:
     BaseParams(
         name="",
         skill_context=MagicMock(),
-        period_setup={},
+        setup={},
         consensus=dict(max_participants=1),
         tendermint_url="",
         max_healthcheck=1,

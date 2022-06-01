@@ -32,7 +32,7 @@ from packages.valory.protocols.contract_api import ContractApiMessage
 from packages.valory.protocols.tendermint import TendermintMessage
 from packages.valory.skills.abstract_round_abci.behaviours import (
     AbstractRoundBehaviour,
-    BaseState,
+    BaseBehaviour,
 )
 from packages.valory.skills.registration_abci.dialogues import TendermintDialogues
 from packages.valory.skills.registration_abci.payloads import RegistrationPayload
@@ -41,6 +41,7 @@ from packages.valory.skills.registration_abci.rounds import (
     RegistrationRound,
     RegistrationStartupRound,
 )
+
 
 
 TendermintParams = Dict[
@@ -59,8 +60,8 @@ def consume(iterator: Iterable) -> None:
     collections.deque(iterator, maxlen=0)
 
 
-class RegistrationBaseBehaviour(BaseState):
-    """Register to the next periods."""
+class RegistrationBaseBehaviour(BaseBehaviour):
+    """Agent registration to the FSM App."""
 
     def async_act(self) -> Generator:
         """
@@ -70,20 +71,20 @@ class RegistrationBaseBehaviour(BaseState):
         - Build a registration transaction.
         - Send the transaction and wait for it to be mined.
         - Wait until ABCI application transitions to the next round.
-        - Go to the next behaviour state (set done event).
+        - Go to the next behaviour (set done event).
         """
 
-        with self.context.benchmark_tool.measure(self.state_id).local():
+        with self.context.benchmark_tool.measure(self.behaviour_id).local():
             initialisation = (
-                json.dumps(self.period_state.db.initial_data, sort_keys=True)
-                if self.period_state.db.initial_data != {}
+                json.dumps(self.synchronized_data.db.initial_data, sort_keys=True)
+                if self.synchronized_data.db.initial_data != {}
                 else None
             )
             payload = RegistrationPayload(
                 self.context.agent_address, initialisation=initialisation
             )
 
-        with self.context.benchmark_tool.measure(self.state_id).consensus():
+        with self.context.benchmark_tool.measure(self.behaviour_id).consensus():
             yield from self.send_a2a_transaction(payload)
             yield from self.wait_until_round_end()
 
@@ -91,9 +92,9 @@ class RegistrationBaseBehaviour(BaseState):
 
 
 class RegistrationStartupBehaviour(RegistrationBaseBehaviour):
-    """Register to the next periods."""
+    """Agent registration to the FSM App."""
 
-    state_id = "registration_startup"
+    behaviour_id = "registration_startup"
     matching_round = RegistrationStartupRound
     local_tendermint_params: Optional[TendermintParams] = None
     ENCODING: str = "utf-8"
@@ -101,12 +102,12 @@ class RegistrationStartupBehaviour(RegistrationBaseBehaviour):
     @property
     def registered_addresses(self) -> Dict[str, str]:
         """Agent addresses registered on-chain for the service"""
-        return self.period_state.db.initial_data.get("registered_addresses", {})
+        return self.synchronized_data.db.initial_data.get("registered_addresses", {})
 
     @property
     def not_yet_collected(self) -> List[str]:
         """Agent addresses for which no Tendermint information has been retrieved"""
-        if "registered_addresses" not in self.period_state.db.initial_data:
+        if "registered_addresses" not in self.synchronized_data.db.initial_data:
             raise RuntimeError("Must collect addresses from service registry first")
         return [k for k, v in self.registered_addresses.items() if not v]
 
@@ -195,7 +196,7 @@ class RegistrationStartupBehaviour(RegistrationBaseBehaviour):
         info: Dict[str, str] = dict.fromkeys(registered_addresses)
         info[self.context.agent_address] = self.context.params.tendermint_url
 
-        self.period_state.db.initial_data.update(dict(registered_addresses=info))
+        self.synchronized_data.db.initial_data.update(dict(registered_addresses=info))
         log_msg = "Registered addresses retrieved from service registry contract"
         self.context.logger.info(f"{log_msg}:\n{info}")
 
@@ -308,18 +309,18 @@ class RegistrationStartupBehaviour(RegistrationBaseBehaviour):
 
 
 class RegistrationBehaviour(RegistrationBaseBehaviour):
-    """Register to the next periods."""
+    """Agent registration to the FSM App."""
 
-    state_id = "registration"
+    behaviour_id = "registration"
     matching_round = RegistrationRound
 
 
 class AgentRegistrationRoundBehaviour(AbstractRoundBehaviour):
     """This behaviour manages the consensus stages for the registration."""
 
-    initial_state_cls = RegistrationStartupBehaviour
+    initial_behaviour_cls = RegistrationStartupBehaviour
     abci_app_cls = AgentRegistrationAbciApp  # type: ignore
-    behaviour_states: Set[Type[BaseState]] = {  # type: ignore
+    behaviours: Set[Type[BaseBehaviour]] = {  # type: ignore
         RegistrationBehaviour,  # type: ignore
         RegistrationStartupBehaviour,  # type: ignore
     }

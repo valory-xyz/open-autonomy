@@ -176,7 +176,7 @@ def build_deployment(  # pylint: disable=too-many-arguments
 @click.option("--push", is_flag=True, default=False, help="Push image after build.")
 @image_profile_flag()
 def build_images(  # pylint: disable=too-many-arguments
-    service_id: str,
+    service_id: PublicId,
     profile: str,
     package_dir: Path,
     build_dir: Path,
@@ -231,4 +231,10 @@ def _build_dirs(build_dir: Path) -> None:
     ]:
         path = Path(build_dir, *dir_path)
         path.mkdir()
-        os.chown(path, 1000, 1000)
+        # TOFIX for macOS
+        try:
+            os.chown(path, 1000, 1000)
+        except PermissionError:
+            click.echo(
+                f"Updating permissions failed for {path}, please do it manually."
+            )

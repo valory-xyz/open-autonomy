@@ -121,6 +121,8 @@ class DeploymentConfigValidator(validation.ConfigValidator):
         self.validate(deployment_spec)
         self.deployment_spec = deployment_spec
         self.overrides = overrides
+        if self.overrides == []:
+            return True
         self.check_overrides_match_spec()
         self.check_overrides_are_valid()
         return True  # add in call to check to see if overrides are valid
@@ -330,6 +332,8 @@ class DeploymentSpec:
             self.deployment_spec, *self.overrides = yaml.load_all(
                 file, Loader=yaml.SafeLoader
             )
+        if self.overrides == [None]:
+            self.overrides = []
 
         self.validator.validate_deployment(self.deployment_spec, self.overrides)
 

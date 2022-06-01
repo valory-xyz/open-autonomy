@@ -49,7 +49,7 @@ A round in which the agents get registered
 #### end`_`block
 
 ```python
-def end_block() -> Optional[Tuple[BasePeriodState, Event]]
+def end_block() -> Optional[Tuple[BaseSynchronizedData, Event]]
 ```
 
 Process the end of the block.
@@ -69,7 +69,7 @@ A round in which the agents get registered
 #### end`_`block
 
 ```python
-def end_block() -> Optional[Tuple[BasePeriodState, Event]]
+def end_block() -> Optional[Tuple[BaseSynchronizedData, Event]]
 ```
 
 Process the end of the block.
