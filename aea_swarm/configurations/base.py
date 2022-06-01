@@ -275,7 +275,6 @@ class Service(PackageConfiguration):  # pylint: disable=too-many-instance-attrib
 
         :param component_index: the index of the component in the file.
         :param component_configuration_json: the JSON object.
-        :param service_config: Service config
         :return: the processed component configuration.
         """
         configuration = copy(component_configuration_json)
