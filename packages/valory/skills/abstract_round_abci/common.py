@@ -44,8 +44,10 @@ def random_selection(elements: List[Any], randomness: float) -> str:
     :param: randomness: a random number in the [0,1) interval
     :return: a randomly chosen element
     """
-    if randomness < 0 or randomness > 1:
-        raise ValueError("Randomness should lie in the [0,1] interval")
+    if not elements:
+        raise ValueError("No elements to randomly select among")
+    if randomness < 0 or randomness >= 1:
+        raise ValueError("Randomness should lie in the [0,1) interval")
     random_position = floor(randomness * len(elements))
     return elements[random_position]
 
