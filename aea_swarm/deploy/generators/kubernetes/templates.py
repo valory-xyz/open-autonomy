@@ -268,7 +268,15 @@ spec:
             name: persistent-data-benchmark
           - mountPath: /build
             name: nodes
+          - mountPath: /agent_key
+            name: agent-key
       volumes:
+        - name: agent-key
+          secret:
+            secretName: agent-validator-{validator_ix}-key
+            items:
+            - key: private_key
+              path: ethereum_private_key.txt
         - name: persistent-data
           persistentVolumeClaim:
             claimName: 'logs-pvc'
@@ -285,3 +293,14 @@ spec:
     TENDERMINT_VERSION,
     IMAGE_VERSION,
 )
+
+AGENT_SECRET_TEMPLATE: str = """
+apiVersion: v1
+stringData:
+    private_key: '{private_key}'
+kind: Secret
+metadata:
+  annotations:
+  name: agent-validator-{validator_ix}-key
+type: Opaque
+"""
