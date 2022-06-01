@@ -24,7 +24,7 @@ Options:
   --dev               Create development environment.
   --force             Remove existing build and overwrite with new one.
   --help              Show this message and exit.
-  --keys_password     Optional password for encrypted keys.
+  --password     Optional password for encrypted keys.
 ```
 
 ```bash
