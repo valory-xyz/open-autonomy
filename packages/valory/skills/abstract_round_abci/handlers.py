@@ -218,6 +218,7 @@ class ABCIRoundHandler(ABCIHandler):
         self, message: AbciMessage, dialogue: AbciDialogue
     ) -> AbciMessage:
         """Handle the 'end_block' request."""
+        self.context.state.round_sequence.tm_height = message.height
         cast(SharedState, self.context.state).round_sequence.end_block()
         return super().end_block(message, dialogue)
 
