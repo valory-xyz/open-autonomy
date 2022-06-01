@@ -18,7 +18,6 @@
 # ------------------------------------------------------------------------------
 
 """Docker-compose Deployment Generator."""
-import json
 import subprocess  # nosec
 from pathlib import Path
 from typing import Dict, IO, cast
@@ -183,7 +182,5 @@ class DockerComposeGenerator(BaseDeploymentGenerator):
             path = self.build_dir / "agent_keys" / f"agent_{x}"
             path.mkdir()
             with open(path / "ethereum_private_key.txt", "w", encoding="utf8") as f:
-                f.write(
-                    json.dumps(self.deployment_spec.private_keys[x]["encrypted_key"])
-                )
+                f.write(self.deployment_spec.private_keys[x])
         return self

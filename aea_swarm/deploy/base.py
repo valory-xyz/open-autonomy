@@ -367,7 +367,7 @@ class DeploymentSpec:  # pylint: disable=R0902
             for key in keys:
                 if "address" not in key.keys() and "encrypted_key" not in key.keys():
                     raise ValueError("Encrypted key file incorrectly formatted.")
-                self.private_keys.append(key)
+                self.private_keys.append(json.dumps(key['encrypted_key']))
 
     def _process_model_args_overrides(self, agent_n: int) -> Dict:
         """Generates env vars based on model overrides."""
