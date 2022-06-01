@@ -826,8 +826,8 @@ Reset the db.
 #### data`_`to`_`lists
 
 ```python
-@classmethod
-def data_to_lists(cls, data: Dict[str, Any]) -> Dict[str, List[Any]]
+@staticmethod
+def data_to_lists(data: Dict[str, Any]) -> Dict[str, List[Any]]
 ```
 
 Convert Dict[str, Any] to Dict[str, List[Any]].

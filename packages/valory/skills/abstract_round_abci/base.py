@@ -530,7 +530,7 @@ class AbciAppDB:
         :param cross_period_persisted_keys: data keys that will be kept after a new period starts
         :param format_initial_data: flag to indicate whether initial_data should be converted from Dict[str, Any] to Dict[str, List[Any]]
         """
-        self._check_data(initial_data)
+        AbciAppDB._check_data(initial_data)
         self._initial_data = initial_data
         self._cross_period_persisted_keys = cross_period_persisted_keys or []
         self._data: Dict[int, Dict[str, List[Any]]] = {
@@ -549,8 +549,8 @@ class AbciAppDB:
         """
         return self._initial_data
 
-    @classmethod
-    def _check_data(cls, data: Dict) -> None:  # pylint: disable=no-self-use
+    @staticmethod
+    def _check_data(data: Dict) -> None:
         """Check that all fields in initial data were passed as a list"""
         if not all([isinstance(v, list) for v in data.values()]):
             raise ValueError("AbciAppDB data must be Dict[str, List[Any]]")
@@ -594,7 +594,7 @@ class AbciAppDB:
 
     def create(self, **kwargs: List[Any]) -> None:
         """Add a new entry to the data."""
-        self._check_data(kwargs)
+        AbciAppDB._check_data(kwargs)
         self._data[self.reset_index + 1] = kwargs
 
     def get_latest_from_reset_index(self, reset_index: int) -> Dict[str, Any]:
@@ -623,8 +623,8 @@ class AbciAppDB:
             for key in sorted(self._data.keys())[-cleanup_history_depth:]
         }
 
-    @classmethod
-    def data_to_lists(cls, data: Dict[str, Any]) -> Dict[str, List[Any]]:
+    @staticmethod
+    def data_to_lists(data: Dict[str, Any]) -> Dict[str, List[Any]]:
         """Convert Dict[str, Any] to Dict[str, List[Any]]."""
         return {k: [v] for k, v in data.items()}
 
