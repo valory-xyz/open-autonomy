@@ -683,18 +683,20 @@ def test_synchronized_datas() -> None:
 
     synchronized_data_____ = TransactionSettlementSynchronizedSata(
         AbciAppDB(
-            initial_data=dict(
-                participants=participants,
-                participant_to_randomness=participant_to_randomness,
-                most_voted_randomness=most_voted_randomness,
-                participant_to_selection=participant_to_selection,
-                safe_contract_address=safe_contract_address,
-                most_voted_tx_hash=most_voted_tx_hash,
-                participant_to_signature=participant_to_signature,
-                final_tx_hash=final_tx_hash,
-                late_arriving_tx_hashes=late_arriving_tx_hashes,
-                keepers=keepers,
-                blacklisted_keepers="t" * 42,
+            initial_data=AbciAppDB.data_to_lists(
+                dict(
+                    participants=participants,
+                    participant_to_randomness=participant_to_randomness,
+                    most_voted_randomness=most_voted_randomness,
+                    participant_to_selection=participant_to_selection,
+                    safe_contract_address=safe_contract_address,
+                    most_voted_tx_hash=most_voted_tx_hash,
+                    participant_to_signature=participant_to_signature,
+                    final_tx_hash=final_tx_hash,
+                    late_arriving_tx_hashes=late_arriving_tx_hashes,
+                    keepers=keepers,
+                    blacklisted_keepers="t" * 42,
+                )
             ),
         )
     )

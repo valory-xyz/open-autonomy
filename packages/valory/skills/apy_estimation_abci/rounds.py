@@ -463,7 +463,7 @@ class BaseResetRound(CollectSameUntilThresholdRound, APYEstimationAbstractRound)
                 ] = self.synchronized_data.latest_observation_hist_hash
 
             synchronized_data = self.synchronized_data.create(
-                synchronized_data_class=SynchronizedData, format_data=True, **kwargs
+                synchronized_data_class=SynchronizedData, **kwargs
             )
             return synchronized_data, Event.DONE
 

@@ -351,11 +351,13 @@ class BaseSelectKeeperBehaviourTest(CommonBaseCase):
             behaviour_id=self.select_keeper_behaviour_class.behaviour_id,
             synchronized_data=self._synchronized_data(
                 AbciAppDB(
-                    initial_data=dict(
-                        participants=participants,
-                        most_voted_randomness="56cbde9e9bbcbdcaf92f183c678eaa5288581f06b1c9c7f884ce911776727688",
-                        final_verification_status=VerificationStatus.PENDING,
-                        blacklisted_keepers="".join(blacklisted_keepers),
+                    initial_data=AbciAppDB.data_to_lists(
+                        dict(
+                            participants=participants,
+                            most_voted_randomness="56cbde9e9bbcbdcaf92f183c678eaa5288581f06b1c9c7f884ce911776727688",
+                            final_verification_status=VerificationStatus.PENDING,
+                            blacklisted_keepers="".join(blacklisted_keepers),
+                        )
                     ),
                 )
             ),
@@ -397,9 +399,11 @@ class BaseSelectKeeperBehaviourTest(CommonBaseCase):
             synchronized_data=self._synchronized_data(
                 AbciAppDB(
                     initial_data=dict(
-                        participants=participants,
-                        most_voted_randomness="56cbde9e9bbcbdcaf92f183c678eaa5288581f06b1c9c7f884ce911776727688",
-                        most_voted_keeper_address=preexisting_keeper,
+                        participants=[participants],
+                        most_voted_randomness=[
+                            "56cbde9e9bbcbdcaf92f183c678eaa5288581f06b1c9c7f884ce911776727688"
+                        ],
+                        most_voted_keeper_address=[preexisting_keeper],
                     ),
                 )
             ),
