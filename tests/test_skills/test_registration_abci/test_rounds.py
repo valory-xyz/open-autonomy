@@ -20,13 +20,15 @@
 """Test the rounds.py module of the skill."""
 
 import json
-from typing import Dict, Optional, cast, Any
+from typing import Any, Dict, Optional, cast
+from unittest import mock
 
 from packages.valory.skills.abstract_round_abci.base import AbciAppDB
 from packages.valory.skills.abstract_round_abci.base import (
     BaseSynchronizedData as SynchronizedData,
 )
 from packages.valory.skills.registration_abci.payloads import RegistrationPayload
+from packages.valory.skills.registration_abci.rounds import Event
 from packages.valory.skills.registration_abci.rounds import Event as RegistrationEvent
 from packages.valory.skills.registration_abci.rounds import (
     RegistrationRound,
@@ -152,7 +154,13 @@ class TestRegistrationRound(BaseCollectSameUntilThresholdRoundTest):
 
         round_payloads = dict(
             [
-                (participant, RegistrationPayload(sender=participant, initialisation='{"dummy_key": "dummy_value"}'))
+                (
+                    participant,
+                    RegistrationPayload(
+                        sender=participant,
+                        initialisation='{"dummy_key": "dummy_value"}',
+                    ),
+                )
                 for participant in self.participants
             ]
         )
@@ -195,12 +203,9 @@ class TestRegistrationRound(BaseCollectSameUntilThresholdRoundTest):
     ) -> None:
         """Run with given round."""
 
-        round_payloads = round_payloads or dict(
-            [
-                (participant, RegistrationPayload(sender=participant))
-                for participant in self.participants
-            ]
-        )
+        round_payloads = round_payloads or {
+            p: RegistrationPayload(sender=p) for p in self.participants
+        }
 
         test_runner = self._test_round(
             test_round=test_round,
@@ -229,3 +234,16 @@ class TestRegistrationRound(BaseCollectSameUntilThresholdRoundTest):
         assert test_round.block_confirmations == prior_confirmations + 1
         if finished:
             next(test_runner)
+
+    def test_no_majority(self) -> None:
+        """Test the NO_MAJORITY event."""
+        test_round = RegistrationRound(
+            synchronized_data=self.synchronized_data,
+            consensus_params=self.consensus_params,
+        )
+
+        with mock.patch.object(test_round, "is_majority_possible", return_value=False):
+            result = test_round.end_block()
+            assert result is not None
+            _, event = result
+            assert event == Event.NO_MAJORITY
