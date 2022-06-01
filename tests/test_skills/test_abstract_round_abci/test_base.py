@@ -1347,8 +1347,12 @@ class TestRoundSequence:
         """Test 'end_block' method, positive (no change round)."""
         self.round_sequence.begin_block(MagicMock(height=1))
         self.round_sequence.end_block()
-        self.round_sequence.commit()
-        assert isinstance(self.round_sequence.current_round, ConcreteRoundA)
+        with mock.patch.object(
+            self.round_sequence.current_round,
+            "end_block",
+            return_value=None,
+        ):
+            assert isinstance(self.round_sequence.current_round, ConcreteRoundA)
 
     def test_commit_positive_with_change_round(self) -> None:
         """Test 'end_block' method, positive (with change round)."""
