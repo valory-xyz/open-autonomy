@@ -241,7 +241,7 @@ class Service(PackageConfiguration):  # pylint: disable=too-many-instance-attrib
         raise ValueError("Incorrect number of overrides for count of agents.")
 
     def check_overrides_valid(
-        self, overrides: List
+        self, overrides: List, env_vars_friendly: bool = False
     ) -> Dict[ComponentId, Dict[Any, Any]]:
         """Uses the aea helper libraries to check individual overrides."""
 
@@ -305,8 +305,8 @@ class Service(PackageConfiguration):  # pylint: disable=too-many-instance-attrib
                 )
         return component_id, overrides
 
+    @staticmethod
     def try_to_process_singular_override(
-        self,
         component_id: ComponentId,
         config_class: ComponentConfiguration,
         component_configuration_json: Dict,
