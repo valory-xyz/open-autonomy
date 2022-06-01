@@ -389,9 +389,7 @@ class TestOverrideTypes(BaseDeploymentTests):
             _, app_instance = self.load_deployer_and_app(
                 spec_path, deployment_generator
             )
-            app_instance.service.check_overrides_are_valid(
-                app_instance.service.json, app_instance.overrides
-            )
+            app_instance.service.check_overrides_valid(app_instance.service.overrides)
 
     def test_validates_with_list_override(self) -> None:
         """Test functionality of deploy safe contract."""
@@ -404,9 +402,7 @@ class TestOverrideTypes(BaseDeploymentTests):
             _, app_instance = self.load_deployer_and_app(
                 spec_path, deployment_generator
             )
-            app_instance.service.check_overrides_are_valid(
-                app_instance.service.json, app_instance.overrides
-            )
+            app_instance.service.check_overrides_valid(app_instance.service.overrides)
 
     def test_validates_with_10_agents(self) -> None:
         """Test functionality of deploy safe contract."""
@@ -419,9 +415,7 @@ class TestOverrideTypes(BaseDeploymentTests):
             deployment_instance, app_instance = self.load_deployer_and_app(
                 spec_path, deployment_generator
             )
-            app_instance.service.check_overrides_are_valid(
-                app_instance.service.json, app_instance.overrides
-            )
+            app_instance.service.check_overrides_valid(app_instance.service.overrides)
             app_instance.generate_agents()
             deployment_instance.generate(app_instance)  # type: ignore
 
@@ -436,8 +430,6 @@ class TestOverrideTypes(BaseDeploymentTests):
             deployment_instance, app_instance = self.load_deployer_and_app(
                 spec_path, deployment_generator
             )
-            app_instance.service.check_overrides_are_valid(
-                app_instance.service.json, app_instance.overrides
-            )
+            app_instance.service.check_overrides_valid(app_instance.service.overrides)
             app_instance.generate_agents()
             deployment_instance.generate(app_instance)  # type: ignore
