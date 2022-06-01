@@ -1529,6 +1529,7 @@ class BaseBehaviour(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
                 self.params.tendermint_com_url + "/hard_reset",
                 parameters=[
                     ("genesis_time", time_string),
+                    ("initial_height", self.context.state.round_sequence.tm_height),
                 ],
             )
             result = yield from self._do_request(request_message, http_dialogue)
