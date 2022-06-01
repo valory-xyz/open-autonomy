@@ -256,8 +256,8 @@ class TestResetAndPauseRound(BaseRoundTestClass):
             test_round.process_payload(payload)
 
         actual_next_behaviour = self.synchronized_data.create(
-            participants=self.synchronized_data.participants,
-            all_participants=self.synchronized_data.all_participants,
+            participants=[self.synchronized_data.participants],
+            all_participants=[self.synchronized_data.all_participants],
         )
 
         res = test_round.end_block()

@@ -24,6 +24,7 @@ from typing import Dict, Optional, Set, Tuple, Type, cast
 
 from packages.valory.skills.abstract_round_abci.base import (
     AbciApp,
+    AbciAppDB,
     AbciAppTransitionFunction,
     AbstractRound,
     AppState,
@@ -463,7 +464,8 @@ class BaseResetRound(CollectSameUntilThresholdRound, APYEstimationAbstractRound)
                 ] = self.synchronized_data.latest_observation_hist_hash
 
             synchronized_data = self.synchronized_data.create(
-                synchronized_data_class=SynchronizedData, **kwargs
+                synchronized_data_class=SynchronizedData,
+                **AbciAppDB.data_to_lists(kwargs),
             )
             return synchronized_data, Event.DONE
 

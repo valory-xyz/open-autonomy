@@ -442,7 +442,7 @@ class TestTransactionHashBehaviour(PriceEstimationFSMBehaviourBaseCase):
 
         if this_period_count != 0:
             synchronized_data.db.create(
-                **next_period_data,
+                **AbciAppDB.data_to_lists(next_period_data),
             )
 
         self.mock_contract_api_request(

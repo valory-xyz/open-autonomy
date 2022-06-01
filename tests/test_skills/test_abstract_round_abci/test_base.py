@@ -565,7 +565,7 @@ class TestBaseSynchronizedData:
     def test_create(self) -> None:
         """Test the 'create' method."""
         participants = {"a"}
-        actual = self.base_synchronized_data.create(participants=participants)
+        actual = self.base_synchronized_data.create(participants=[participants])
         assert actual.db._data == {
             0: {"participants": [{"a", "b"}]},
             1: {"participants": [{"a"}]},
