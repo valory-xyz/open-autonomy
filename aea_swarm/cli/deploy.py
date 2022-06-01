@@ -241,4 +241,10 @@ def _build_dirs(build_dir: Path) -> None:
     ]:
         path = Path(build_dir, *dir_path)
         path.mkdir()
-        os.chown(path, 1000, 1000)
+        # TOFIX for macOS
+        try:
+            os.chown(path, 1000, 1000)
+        except PermissionError:
+            click.echo(
+                f"Updating permissions failed for {path}, please do it manually."
+            )

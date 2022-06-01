@@ -42,7 +42,7 @@ from deployments.Dockerfiles.localnode.app import (  # type: ignore
     override_config_toml,
 )
 from deployments.Dockerfiles.localnode.tendermint import (  # type: ignore
-    DEFAULT_RPC_LADDR,
+    DEFAULT_RPC_LISTEN_ADDRESS,
     TendermintNode,
 )
 
@@ -51,7 +51,7 @@ ENCODING = "utf-8"
 VERSION = "0.34.11"
 HTTP = "http://"
 
-parse_result = urllib.parse.urlparse(DEFAULT_RPC_LADDR)  # type: ignore
+parse_result = urllib.parse.urlparse(DEFAULT_RPC_LISTEN_ADDRESS)  # type: ignore
 IP, PORT = parse_result.hostname, parse_result.port
 
 
@@ -167,7 +167,7 @@ class TestTendermintServerUtilityFunctions(BaseTendermintTest):
 
     def test_get_defaults(self) -> None:
         """Test get_defaults function"""
-        expected_keys = {"genesis_time", "app_hash"}
+        expected_keys = {"genesis_time"}
         defaults = get_defaults()
         assert set(defaults.keys()) == expected_keys
 

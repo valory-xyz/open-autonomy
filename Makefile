@@ -322,7 +322,7 @@ run-deploy:
 	if [ "${DEPLOYMENT_TYPE}" = "docker-compose" ];\
 	then\
 		cd abci_build/ &&  \
-		docker-compose up --force-recreate -t 600
+		docker-compose up --force-recreate -t 600 --remove-orphans
 		exit 0
 	fi
 	if [ "${DEPLOYMENT_TYPE}" = "kubernetes" ];\
