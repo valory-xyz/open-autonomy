@@ -175,6 +175,8 @@ def create_app(dump_dir: Optional[Path] = None, perform_monitoring: bool = True)
             defaults = get_defaults()
             tendermint_node.reset_genesis_file(
                 request.args.get("genesis_time", defaults["genesis_time"]),
+                # default should be 1: https://github.com/tendermint/tendermint/pull/5191/files
+                request.args.get("initial_height", "1"),
             )
             tendermint_node.start(start_monitoring=perform_monitoring)
             return jsonify({"message": "Reset successful.", "status": True}), 200
