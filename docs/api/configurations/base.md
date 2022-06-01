@@ -105,7 +105,7 @@ True if overrides are valid
 #### check`_`overrides`_`valid
 
 ```python
-def check_overrides_valid(overrides: List) -> Dict[ComponentId, Dict[Any, Any]]
+def check_overrides_valid(overrides: List, env_vars_friendly: bool = False) -> Dict[ComponentId, Dict[Any, Any]]
 ```
 
 Uses the aea helper libraries to check individual overrides.
@@ -129,7 +129,6 @@ It breaks down in:
 
 - `component_index`: the index of the component in the file.
 - `component_configuration_json`: the JSON object.
-- `service_config`: Service config
 
 **Returns**:
 
@@ -140,6 +139,7 @@ the processed component configuration.
 #### try`_`to`_`process`_`singular`_`override
 
 ```python
+@staticmethod
 def try_to_process_singular_override(component_id: ComponentId, config_class: ComponentConfiguration, component_configuration_json: Dict) -> Dict
 ```
 
