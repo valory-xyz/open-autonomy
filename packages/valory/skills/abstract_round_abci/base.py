@@ -530,8 +530,8 @@ class AbciAppDB:
         :param cross_period_persisted_keys: data keys that will be kept after a new period starts
         :param format_initial_data: flag to indicate whether initial_data should be converted from Dict[str, Any] to Dict[str, List[Any]]
         """
+        self._check_data(initial_data)
         self._initial_data = initial_data
-        self._check_initial_data()
         self._cross_period_persisted_keys = cross_period_persisted_keys or []
         self._data: Dict[int, Dict[str, List[Any]]] = {
             RESET_COUNT_START: deepcopy(
@@ -549,10 +549,10 @@ class AbciAppDB:
         """
         return self._initial_data
 
-    def _check_initial_data(self) -> None:
+    def _check_data(self, data: Dict) -> None:  # pylint: disable=no-self-use
         """Check that all fields in initial data were passed as a list"""
-        if not all([isinstance(v, list) for v in self._initial_data.values()]):
-            raise ValueError("AbciAppDB initial data must be Dict[str, List[Any]]")
+        if not all([isinstance(v, list) for v in data.values()]):
+            raise ValueError("AbciAppDB data must be Dict[str, List[Any]]")
 
     @property
     def reset_index(self) -> int:
@@ -596,9 +596,10 @@ class AbciAppDB:
         for key, value in kwargs.items():
             data.setdefault(key, []).append(value)
 
-    def create(self, **kwargs: Any) -> None:
+    def create(self, **kwargs: List[Any]) -> None:
         """Add a new entry to the data."""
-        self._data[self.reset_index + 1] = {k: [v] for k, v in kwargs.items()}
+        self._check_data(kwargs)
+        self._data[self.reset_index + 1] = kwargs
 
     def get_latest_from_reset_index(self, reset_index: int) -> Dict[str, Any]:
         """Get the latest key-value pairs from the data dictionary for the specified period."""
