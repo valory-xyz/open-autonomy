@@ -29,7 +29,7 @@ from packages.valory.skills.abstract_round_abci.base import (
     AppState,
     BaseSynchronizedData,
     CollectDifferentUntilAllRound,
-    CollectDifferentUntilThresholdRound,
+    CollectSameUntilThresholdRound,
     DegenerateRound,
 )
 from packages.valory.skills.registration_abci.payloads import RegistrationPayload
@@ -94,7 +94,7 @@ class RegistrationStartupRound(CollectDifferentUntilAllRound):
         return None
 
 
-class RegistrationRound(CollectDifferentUntilThresholdRound):
+class RegistrationRound(CollectSameUntilThresholdRound):
     """A round in which the agents get registered"""
 
     round_id = "registration"
@@ -105,16 +105,14 @@ class RegistrationRound(CollectDifferentUntilThresholdRound):
 
     def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Event]]:
         """Process the end of the block."""
-        if self.collection_threshold_reached:
+        if self.threshold_reached:
             self.block_confirmations += 1
         if (  # contracts are set from previous rounds
-            self.collection_threshold_reached
+            self.threshold_reached
             and self.block_confirmations
             > self.required_block_confirmations  # we also wait here as it gives more (available) agents time to join
         ):
-            most_voted_payload, max_votes = self.payloads_count.most_common()[0]
-            if max_votes < self._consensus_params.max_participants:
-                return self.synchronized_data, Event.NO_MAJORITY
+            most_voted_payload = self.most_voted_payload
 
             initialisation = (
                 json.loads(most_voted_payload) if most_voted_payload else {}
@@ -125,6 +123,10 @@ class RegistrationRound(CollectDifferentUntilThresholdRound):
                 **initialisation,
             )
             return synchronized_data, Event.DONE
+        if not self.is_majority_possible(
+            self.collection, self.synchronized_data.nb_participants
+        ):
+            return self.synchronized_data, Event.NO_MAJORITY
         return None
 
 

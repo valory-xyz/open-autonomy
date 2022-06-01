@@ -20,7 +20,7 @@
 """Test the rounds.py module of the skill."""
 
 import json
-from typing import Dict, Optional, cast
+from typing import Dict, Optional, cast, Any
 
 from packages.valory.skills.abstract_round_abci.base import AbciAppDB
 from packages.valory.skills.abstract_round_abci.base import (
@@ -35,7 +35,7 @@ from packages.valory.skills.registration_abci.rounds import (
 
 from tests.test_skills.test_abstract_round_abci.test_base_rounds import (
     BaseCollectDifferentUntilAllRoundTest,
-    BaseCollectDifferentUntilThresholdRoundTest,
+    BaseCollectSameUntilThresholdRoundTest,
 )
 
 
@@ -128,7 +128,7 @@ class TestRegistrationStartupRound(BaseCollectDifferentUntilAllRoundTest):
         next(test_runner)
 
 
-class TestRegistrationRound(BaseCollectDifferentUntilThresholdRoundTest):
+class TestRegistrationRound(BaseCollectSameUntilThresholdRoundTest):
     """Test RegistrationRound."""
 
     _synchronized_data_class = SynchronizedData
@@ -149,11 +149,23 @@ class TestRegistrationRound(BaseCollectDifferentUntilThresholdRoundTest):
             synchronized_data=self.synchronized_data,
             consensus_params=self.consensus_params,
         )
+
+        round_payloads = dict(
+            [
+                (participant, RegistrationPayload(sender=participant, initialisation='{"dummy_key": "dummy_value"}'))
+                for participant in self.participants
+            ]
+        )
+
         self._run_with_round(
             test_round=test_round,
             expected_event=RegistrationEvent.DONE,
             confirmations=10,
+            most_voted_payload='{"dummy_key": "dummy_value"}',
+            round_payloads=round_payloads,
         )
+
+        assert self.synchronized_data.db._data[0]["dummy_key"] == ["dummy_value"]
 
     def test_run_default_not_finished(
         self,
@@ -175,7 +187,8 @@ class TestRegistrationRound(BaseCollectDifferentUntilThresholdRoundTest):
     def _run_with_round(
         self,
         test_round: RegistrationRound,
-        round_payloads: Optional[Dict] = None,
+        round_payloads: Optional[Dict[str, RegistrationPayload]] = None,
+        most_voted_payload: Optional[Any] = None,
         expected_event: Optional[RegistrationEvent] = None,
         confirmations: Optional[int] = None,
         finished: bool = True,
@@ -202,6 +215,7 @@ class TestRegistrationRound(BaseCollectDifferentUntilThresholdRoundTest):
             synchronized_data_attr_checks=[
                 lambda _synchronized_data: _synchronized_data.participants
             ],
+            most_voted_payload=most_voted_payload,
             exit_event=expected_event,
         )
 
@@ -215,48 +229,3 @@ class TestRegistrationRound(BaseCollectDifferentUntilThresholdRoundTest):
         assert test_round.block_confirmations == prior_confirmations + 1
         if finished:
             next(test_runner)
-
-    def test_run_tie(
-        self,
-    ) -> None:
-        """Run test."""
-        self.synchronized_data = cast(
-            SynchronizedData,
-            self.synchronized_data.update(
-                safe_contract_address="stub_safe_contract_address",
-                oracle_contract_address="stub_oracle_contract_address",
-            ),
-        )
-        test_round = RegistrationRound(
-            synchronized_data=self.synchronized_data,
-            consensus_params=self.consensus_params,
-        )
-
-        initialisations = [
-            {"dummy_key_1": "dummy_value_1"},
-            {"dummy_key_1": "dummy_value_1"},
-            {"dummy_key_1": "dummy_value_2"},
-            {"dummy_key_1": "dummy_value_2"},
-        ]
-
-        round_payloads = dict(
-            [
-                (
-                    participant,
-                    RegistrationPayload(
-                        sender=participant,
-                        initialisation=json.dumps(initialisation, sort_keys=True),
-                    ),
-                )
-                for participant, initialisation in zip(
-                    self.participants, initialisations
-                )
-            ]
-        )
-
-        self._run_with_round(
-            test_round=test_round,
-            round_payloads=round_payloads,
-            expected_event=RegistrationEvent.NO_MAJORITY,
-            confirmations=10,
-        )
