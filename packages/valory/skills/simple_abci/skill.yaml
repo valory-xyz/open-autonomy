@@ -28,7 +28,7 @@ protocols:
 - valory/http:1.0.0:QmbjfzjKMuRmwbQysyaciASxvY67vGJYj7zjGYADgNux5h
 - valory/ledger_api:1.0.0:QmWQSUkGAbzU8tqs7K8BguabbKHUZkbxuMk1M4LBFAwdun
 skills:
-- valory/abstract_round_abci:0.1.0:QmTxSPKBTG2eJaxPxxbYBCJ5MoMZm6t8WYkBtmbMyGbZhM
+- valory/abstract_round_abci:0.1.0:QmNaGBUpr9zjYZEJFj7meNeEnPss1tPtRu4UAkGKZmjoeH
 behaviours:
   main:
     args: {}
