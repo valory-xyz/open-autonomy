@@ -45,7 +45,7 @@ class TestTendermintStartup(BaseTestEnd2EndNormalExecution):
         "registration_startup": 1,
         "reset_and_pause": 1,
     }
-    wait_to_finish = 20
+    wait_to_finish = 60
 
 
 @pytest.mark.parametrize("nb_nodes", (4,))
