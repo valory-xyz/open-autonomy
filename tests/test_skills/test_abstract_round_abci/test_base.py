@@ -114,6 +114,17 @@ class PayloadD(BasePayload):
     transaction_type = PayloadEnumB.A
 
 
+class TooBigPayload(BaseTxPayload, ABC):
+    """Base payload class for testing."""
+
+    transaction_type = PayloadEnum.A
+
+    @property
+    def data(self) -> Dict:
+        """Get the data"""
+        return dict(dummy_field="0" * 10 ** 7)
+
+
 class ConcreteRoundA(AbstractRound):
     """Dummy instantiation of the AbstractRound class."""
 
@@ -239,6 +250,15 @@ class TestTransactions:
         expected = Transaction(payload, signature)
         actual = expected.decode(expected.encode())
         assert expected == actual
+
+    def test_encode_too_big_transaction(self) -> None:
+        """Test encode of a too big transaction."""
+        sender = "sender"
+        signature = "signature"
+        payload = TooBigPayload(sender)
+        tx = Transaction(payload, signature)
+        with pytest.raises(ValueError):
+            tx.encode()
 
     def test_sign_verify_transaction(self) -> None:
         """Test sign/verify transaction."""

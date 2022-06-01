@@ -198,7 +198,6 @@ class BaseTxPayload(ABC, metaclass=_MetaPayload):
         self.id_ = uuid.uuid4().hex if id_ is None else id_
         self._round_count = round_count
         self.sender = sender
-        self.size_check()
 
     @property
     def round_count(self) -> int:
@@ -275,13 +274,6 @@ class BaseTxPayload(ABC, metaclass=_MetaPayload):
         """Hash the payload."""
         return hash(tuple(sorted(self.data.items())))
 
-    def size_check(self) -> None:
-        """Check that the payload does not exceed the max size."""
-        encoded = DictProtobufStructSerializer.encode(dict(payload=self.json))
-
-        if sys.getsizeof(encoded) > MAX_READ_IN_BYTES:
-            raise ValueError(f"Payload must be smaller than {MAX_READ_IN_BYTES} bytes")
-
 
 class Transaction(ABC):
     """Class to represent a transaction for the ephemeral chain of a period."""
@@ -294,7 +286,12 @@ class Transaction(ABC):
     def encode(self) -> bytes:
         """Encode the transaction."""
         data = dict(payload=self.payload.json, signature=self.signature)
-        return DictProtobufStructSerializer.encode(data)
+        encoded_data = DictProtobufStructSerializer.encode(data)
+        if sys.getsizeof(encoded_data) > MAX_READ_IN_BYTES:
+            raise ValueError(
+                f"Transaction must be smaller than {MAX_READ_IN_BYTES} bytes"
+            )
+        return encoded_data
 
     @classmethod
     def decode(cls, obj: bytes) -> "Transaction":

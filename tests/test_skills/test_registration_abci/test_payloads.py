@@ -20,6 +20,7 @@
 """Test the payloads.py module of the skill."""
 import pytest
 
+from packages.valory.skills.abstract_round_abci.base import Transaction
 from packages.valory.skills.registration_abci.payloads import (
     RegistrationPayload,
     TransactionType,
@@ -39,5 +40,8 @@ def test_registration_abci_payload() -> None:
 
 def test_registration_abci_payload_raises() -> None:
     """Test `RegistrationPayload`."""
+    payload = RegistrationPayload(sender="sender", initialisation="0" * 10 ** 7)
+    signature = "signature"
+    tx = Transaction(payload, signature)
     with pytest.raises(ValueError):
-        RegistrationPayload(sender="sender", initialisation="0" * 10**7)
+        tx.encode()
