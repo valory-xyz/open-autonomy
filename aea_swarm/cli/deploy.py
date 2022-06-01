@@ -101,7 +101,7 @@ def build_group() -> None:
     help="Remove existing build and overwrite with new one.",
 )
 @click.option(
-    "--keys_password",
+    "--keys-password",
     "keys_password",
     default=None,
     help="Optional password for encrypted keys.",
