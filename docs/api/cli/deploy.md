@@ -78,13 +78,18 @@ Build tools
     help="Create development environment.",
 )
 @click.option(
+    "--version",
+    "version",
+    help="Specify deployment version.",
+)
+@click.option(
     "--force",
     "force_overwrite",
     is_flag=True,
     default=False,
     help="Remove existing build and overwrite with new one.",
 )
-def build_deployment(service_id: PublicId, keys_file: Path, deployment_type: str, output_dir: Path, package_dir: Path, dev_mode: bool, force_overwrite: bool, number_of_agents: Optional[int] = None) -> None
+def build_deployment(service_id: PublicId, keys_file: Path, deployment_type: str, output_dir: Path, package_dir: Path, dev_mode: bool, force_overwrite: bool, number_of_agents: Optional[int] = None, version: Optional[str] = None) -> None
 ```
 
 Build deployment setup for n agents.

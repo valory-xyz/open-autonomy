@@ -25,6 +25,12 @@ from typing import Any, Dict, List, cast
 
 import yaml
 
+from aea_swarm.constants import (
+    HARDHAT_IMAGE_NAME,
+    OPEN_AEA_IMAGE_NAME,
+    TENDERMINT_IMAGE_NAME,
+    TENDERMINT_IMAGE_VERSION,
+)
 from aea_swarm.deploy.base import BaseDeploymentGenerator, DeploymentSpec
 from aea_swarm.deploy.constants import TENDERMINT_CONFIGURATION_OVERRIDES
 from aea_swarm.deploy.generators.kubernetes.templates import (
@@ -52,6 +58,7 @@ class KubernetesGenerator(BaseDeploymentGenerator):
         agent_ix: int,
         number_of_agents: int,
         agent_vars: Dict[str, Any],
+        image_versions: Dict[str, str],
     ) -> str:
         """Build agent deployment."""
 
@@ -65,6 +72,10 @@ class KubernetesGenerator(BaseDeploymentGenerator):
             aea_key=self.deployment_spec.private_keys[agent_ix],
             number_of_validators=number_of_agents,
             host_names=host_names,
+            tendermint_image_name=TENDERMINT_IMAGE_NAME,
+            tendermint_image_version=image_versions["tendermint"],
+            open_aea_image_name=OPEN_AEA_IMAGE_NAME,
+            open_aea_image_version=image_versions["agent"],
         )
         agent_deployment_yaml = yaml.load_all(agent_deployment, Loader=yaml.FullLoader)  # type: ignore
         resources = []
@@ -81,7 +92,7 @@ class KubernetesGenerator(BaseDeploymentGenerator):
         return res
 
     def generate_config_tendermint(
-        self,
+        self, image_version: str = TENDERMINT_IMAGE_VERSION
     ) -> "KubernetesGenerator":
         """Build configuration job."""
 
@@ -99,6 +110,8 @@ class KubernetesGenerator(BaseDeploymentGenerator):
             valory_app=self.deployment_spec.agent_public_id.name,
             number_of_validators=self.deployment_spec.number_of_agents,
             host_names=host_names,
+            tendermint_image_name=TENDERMINT_IMAGE_NAME,
+            tendermint_image_version=image_version,
         )
 
         return self
@@ -113,12 +126,16 @@ class KubernetesGenerator(BaseDeploymentGenerator):
 
     def generate(  # pylint: disable=unused-argument
         self,
+        image_versions: Dict[str, str],
         dev_mode: bool = False,
     ) -> "KubernetesGenerator":
         """Generate the deployment."""
 
         if dev_mode:
-            self.resources.append(HARDHAT_TEMPLATE)
+            self.resources.append(
+                HARDHAT_TEMPLATE % (HARDHAT_IMAGE_NAME, image_versions["hardhat"])
+            )
+
         agent_vars = self.deployment_spec.generate_agents()  # type:ignore
         agent_vars = self._apply_cluster_specific_tendermint_params(agent_vars)
         agent_vars = self.get_deployment_network_configuration(agent_vars)
@@ -131,6 +148,7 @@ class KubernetesGenerator(BaseDeploymentGenerator):
                     i,
                     self.deployment_spec.number_of_agents,
                     agent_vars[i],
+                    image_versions,
                 )
                 for i in range(self.deployment_spec.number_of_agents)
             ]

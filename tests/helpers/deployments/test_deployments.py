@@ -29,6 +29,11 @@ from typing import Any, List, Tuple, cast
 
 import yaml
 
+from aea_swarm.constants import (
+    HARDHAT_IMAGE_VERSION,
+    IMAGE_VERSION,
+    TENDERMINT_IMAGE_VERSION,
+)
 from aea_swarm.deploy.base import BaseDeploymentGenerator, DeploymentSpec
 from aea_swarm.deploy.generators.docker_compose.base import DockerComposeGenerator
 from aea_swarm.deploy.generators.kubernetes.base import KubernetesGenerator
@@ -100,6 +105,11 @@ config:
 
 
 TEST_DEPLOYMENT_PATH: str = "example-deployment.yaml"
+IMAGE_VERSIONS = {
+    "agent": IMAGE_VERSION,
+    "hardhat": HARDHAT_IMAGE_VERSION,
+    "tendermint": TENDERMINT_IMAGE_VERSION,
+}
 
 
 def get_specified_deployments() -> List[str]:
@@ -409,7 +419,7 @@ class TestOverrideTypes(BaseDeploymentTests):
             )
             app_instance.validator.check_overrides_are_valid()
             app_instance.generate_agents()
-            deployment_instance.generate(app_instance)  # type: ignore
+            deployment_instance.generate(IMAGE_VERSIONS)
 
     def test_validates_with_20_agents(self) -> None:
         """Test functionality of deploy safe contract."""
@@ -424,4 +434,4 @@ class TestOverrideTypes(BaseDeploymentTests):
             )
             app_instance.validator.check_overrides_are_valid()
             app_instance.generate_agents()
-            deployment_instance.generate(app_instance)  # type: ignore
+            deployment_instance.generate(IMAGE_VERSIONS)
