@@ -346,11 +346,10 @@ class Blockchain:
     The consistency of the data in the blocks is guaranteed by Tendermint.
     """
 
-    def __init__(
-        self,
-    ) -> None:
+    def __init__(self, height_offset: int = 0) -> None:
         """Initialize the blockchain."""
         self._blocks: List[Block] = []
+        self._height_offset = height_offset
 
     def add_block(self, block: Block) -> None:
         """Add a block to the list."""
@@ -372,7 +371,7 @@ class Blockchain:
 
         :return: the height.
         """
-        return self.length
+        return self.length + self._height_offset
 
     @property
     def length(self) -> int:
@@ -2211,6 +2210,11 @@ class RoundSequence:  # pylint: disable=too-many-instance-attributes
     def tm_height(self, _tm_height: int) -> None:
         """Set Tendermint's current height."""
         self._tm_height = _tm_height
+
+    def init_chain(self, initial_height: int) -> None:
+        """Init chain."""
+        # reduce `initial_height` by 1 to get block count offset as per Tendermint protocol
+        self._blockchain = Blockchain(initial_height - 1)
 
     def begin_block(self, header: Header) -> None:
         """Begin block."""
