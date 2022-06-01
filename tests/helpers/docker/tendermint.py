@@ -30,7 +30,7 @@ import pytest
 from docker.errors import ImageNotFound
 from docker.models.containers import Container
 
-from aea_swarm.deploy.constants import TENDERMINT_VERSION
+from aea_swarm.constants import TENDERMINT_IMAGE_VERSION
 
 from tests.helpers.base import tendermint_health_check
 from tests.helpers.docker.base import DockerImage
@@ -158,7 +158,7 @@ class FlaskTendermintDockerImage(TendermintDockerImage):
     @property
     def tag(self) -> str:
         """Get the tag."""
-        return f"valory/consensus-algorithms-tendermint:{TENDERMINT_VERSION}"
+        return f"valory/consensus-algorithms-tendermint:{TENDERMINT_IMAGE_VERSION}"
 
     @staticmethod
     def get_node_name(i: int) -> str:
