@@ -59,7 +59,7 @@ Process the end of the block.
 ## RegistrationRound Objects
 
 ```python
-class RegistrationRound(CollectDifferentUntilThresholdRound)
+class RegistrationRound(CollectSameUntilThresholdRound)
 ```
 
 A round in which the agents get registered
