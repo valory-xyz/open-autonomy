@@ -137,7 +137,7 @@ Class to assist with generating deployments.
 #### `__`init`__`
 
 ```python
-def __init__(path_to_deployment_spec: str, private_keys_file_path: Path, package_dir: Path, number_of_agents: Optional[int] = None) -> None
+def __init__(path_to_deployment_spec: str, private_keys_file_path: Path, package_dir: Path, private_keys_password: Optional[str] = None, number_of_agents: Optional[int] = None) -> None
 ```
 
 Initialize the Base Deployment.
@@ -243,6 +243,17 @@ def generate_config_tendermint() -> "BaseDeploymentGenerator"
 ```
 
 Generate the deployment configuration.
+
+<a id="aea_swarm.deploy.base.BaseDeploymentGenerator.populate_private_keys"></a>
+
+#### populate`_`private`_`keys
+
+```python
+@abc.abstractmethod
+def populate_private_keys() -> "BaseDeploymentGenerator"
+```
+
+Populate the private keys to the deployment.
 
 <a id="aea_swarm.deploy.base.BaseDeploymentGenerator.get_deployment_network_configuration"></a>
 

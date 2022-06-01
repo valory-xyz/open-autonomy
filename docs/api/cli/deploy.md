@@ -84,7 +84,13 @@ Build tools
     default=False,
     help="Remove existing build and overwrite with new one.",
 )
-def build_deployment(service_id: PublicId, keys_file: Path, deployment_type: str, output_dir: Path, package_dir: Path, dev_mode: bool, force_overwrite: bool, number_of_agents: Optional[int] = None) -> None
+@click.option(
+    "--keys_password",
+    "keys_password",
+    default=None,
+    help="Optional password for encrypted keys.",
+)
+def build_deployment(service_id: PublicId, keys_file: Path, deployment_type: str, output_dir: Path, package_dir: Path, dev_mode: bool, force_overwrite: bool, number_of_agents: Optional[int] = None, keys_password: Optional[str] = None) -> None
 ```
 
 Build deployment setup for n agents.
