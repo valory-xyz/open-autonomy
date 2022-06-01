@@ -518,24 +518,20 @@ class AbciAppDB:
 
     def __init__(
         self,
-        initial_data: Dict[str, Any],
+        initial_data: Dict[str, List[Any]],
         cross_period_persisted_keys: Optional[List[str]] = None,
-        format_initial_data: bool = True,
     ) -> None:
         """Initialize the AbciApp database.
 
-        initial_data can be passed either as Dict[str, Any] or Dict[str, List[Any]] (the database internal format). Use the format_initial_data to decide if
-        initial_data should be automatically converted.
+        Initial_data must be passed either a Dict[str, List[Any]] (the database internal format). The class method 'data_to_lists'
+        can be used to convert from Dict[str, Any] to Dict[str, List[Any]] before instantiating this class.
 
         :param initial_data: the initial data
         :param cross_period_persisted_keys: data keys that will be kept after a new period starts
         :param format_initial_data: flag to indicate whether initial_data should be converted from Dict[str, Any] to Dict[str, List[Any]]
         """
-        self._initial_data = (
-            AbciAppDB.data_to_list(initial_data)
-            if format_initial_data
-            else initial_data
-        )
+        self._initial_data = initial_data
+        self._check_initial_data()
         self._cross_period_persisted_keys = cross_period_persisted_keys or []
         self._data: Dict[int, Dict[str, List[Any]]] = {
             RESET_COUNT_START: deepcopy(
@@ -553,10 +549,10 @@ class AbciAppDB:
         """
         return self._initial_data
 
-    @classmethod
-    def data_to_list(cls, data: Dict[str, Any]) -> Dict[str, List[Any]]:
-        """Convert Dict[str, Any] to Dict[str, List[Any]]."""
-        return {key: [value] for key, value in data.items()}
+    def _check_initial_data(self) -> None:
+        """Check that all fields in initial data were passed as a list"""
+        if not all([isinstance(v, list) for v in self._initial_data.values()]):
+            raise ValueError("AbciAppDB initial data must be Dict[str, List[Any]]")
 
     @property
     def reset_index(self) -> int:
@@ -600,10 +596,9 @@ class AbciAppDB:
         for key, value in kwargs.items():
             data.setdefault(key, []).append(value)
 
-    def create(self, format_data: bool = True, **kwargs: Any) -> None:
+    def create(self, **kwargs: Any) -> None:
         """Add a new entry to the data."""
-        new_data = AbciAppDB.data_to_list(kwargs) if format_data else kwargs
-        self._data[self.reset_index + 1] = new_data
+        self._data[self.reset_index + 1] = {k: [v] for k, v in kwargs.items()}
 
     def get_latest_from_reset_index(self, reset_index: int) -> Dict[str, Any]:
         """Get the latest key-value pairs from the data dictionary for the specified period."""
@@ -630,6 +625,11 @@ class AbciAppDB:
             key: self._data[key]
             for key in sorted(self._data.keys())[-cleanup_history_depth:]
         }
+
+    @classmethod
+    def data_to_lists(cls, data: Dict[str, Any]) -> Dict[str, List[Any]]:
+        """Convert Dict[str, Any] to Dict[str, List[Any]]."""
+        return {k: [v] for k, v in data.items()}
 
 
 class BaseSynchronizedData:
@@ -720,11 +720,10 @@ class BaseSynchronizedData:
     def create(
         self,
         synchronized_data_class: Optional[Type] = None,
-        format_data: bool = True,
         **kwargs: Any,
     ) -> "BaseSynchronizedData":
         """Copy and update with new data."""
-        self.db.create(format_data=format_data, **kwargs)
+        self.db.create(**kwargs)
         class_ = (
             type(self) if synchronized_data_class is None else synchronized_data_class
         )
