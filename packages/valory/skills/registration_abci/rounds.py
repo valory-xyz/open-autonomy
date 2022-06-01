@@ -32,7 +32,6 @@ from packages.valory.skills.abstract_round_abci.base import (
     CollectDifferentUntilThresholdRound,
     DegenerateRound,
 )
-from packages.valory.skills.abstract_round_abci.common import most_common_element
 from packages.valory.skills.registration_abci.payloads import RegistrationPayload
 
 
@@ -100,7 +99,7 @@ class RegistrationRound(CollectDifferentUntilThresholdRound):
 
     round_id = "registration"
     allowed_tx_type = RegistrationPayload.transaction_type
-    payload_attribute = "sender"
+    payload_attribute = "initialisation"
     required_block_confirmations = 10
     done_event = Event.DONE
 
@@ -113,25 +112,18 @@ class RegistrationRound(CollectDifferentUntilThresholdRound):
             and self.block_confirmations
             > self.required_block_confirmations  # we also wait here as it gives more (available) agents time to join
         ):
-            # Get the most common not None, not empty initialisations
-            most_common_initialisation = most_common_element(
-                elements={
-                    sender: payload.data["initialisation"]
-                    for sender, payload in self.collection.items()
-                    if "initialisation" in payload.data
-                }
-            )
-
-            # Draw/tie case
-            if most_common_initialisation is None:
+            most_voted_payload, max_votes = self.payloads_count.most_common()[0]
+            if max_votes < self._consensus_params.max_participants:
                 return self.synchronized_data, Event.NO_MAJORITY
 
+            initialisation = (
+                json.loads(most_voted_payload) if most_voted_payload else {}
+            )
             synchronized_data = self.synchronized_data.update(
                 participants=frozenset(self.collection),
                 synchronized_data_class=BaseSynchronizedData,
-                **most_common_initialisation,
+                **initialisation,
             )
-
             return synchronized_data, Event.DONE
         return None
 

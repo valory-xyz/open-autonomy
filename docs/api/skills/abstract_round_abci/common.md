@@ -21,24 +21,6 @@ Select a random element from a list.
 
 a randomly chosen element
 
-<a id="packages.valory.skills.abstract_round_abci.common.most_common_element"></a>
-
-#### most`_`common`_`element
-
-```python
-def most_common_element(elements: Dict[str, Optional[Dict]]) -> Optional[Dict]
-```
-
-Get the most common (non None) dictionary element
-
-**Arguments**:
-
-- `elements`: the elements in the format {tag: element,}
-
-**Returns**:
-
-the most common value or None if there is a draw
-
 <a id="packages.valory.skills.abstract_round_abci.common.RandomnessBehaviour"></a>
 
 ## RandomnessBehaviour Objects

@@ -22,14 +22,14 @@ protocols:
 - valory/ledger_api:1.0.0:QmWQSUkGAbzU8tqs7K8BguabbKHUZkbxuMk1M4LBFAwdun
 skills:
 - valory/abstract_abci:0.1.0:QmY1fEsCPP1PYKkadKX4GR7DXTsns4F4zE1er14Wu5U5DH
-- valory/abstract_round_abci:0.1.0:QmcvWJxCUV5pfqob55ecDK61wHXUccaKB18EQ3FXBYoFbd
-- valory/oracle_abci:0.1.0:QmawpAUwVssRUnbjCGfMRGaKVfPw6e89JfDBfeHKjcYxd9
-- valory/oracle_deployment_abci:0.1.0:QmXmQ86PrDxSiLc6TPZqvoVMr7kUzbS7TLGghRS3wXdUJB
-- valory/price_estimation_abci:0.1.0:QmWwDrKDzQHzzNpn2ZNFjukzgZRw6daJ3t3bfUyaS2z724
-- valory/registration_abci:0.1.0:QmcpuDu4XB4MnMkA44Hzbx5HjsTC7Xmxz8xnhziu3JJUJG
-- valory/reset_pause_abci:0.1.0:QmQdh1eLBRiLbdDbGcvugwA8PUSG1Wo8CNFrS2PqW54zhf
-- valory/safe_deployment_abci:0.1.0:QmXgD9Tb8prof4tWD6vWN3eg9CJ6YZ4ycSxRUTksbYSv85
-- valory/transaction_settlement_abci:0.1.0:QmUAuMfVKDhQi4zEGFHe9Loxah1Gya8FaGTE2mxnWWSa2M
+- valory/abstract_round_abci:0.1.0:QmVrMfKzhDBGiBQ47EaHUQmqZhFJUep3Bhm1vuuWJkK6ua
+- valory/oracle_abci:0.1.0:QmcEbdaDwC9EJMT3yyuTDUfjzpWUGUY2vDSNa3HCtpbjy8
+- valory/oracle_deployment_abci:0.1.0:QmS2KHKcXAm2b738KHJ7ragcQd1TX7TLv6kNaMZWHSasZ3
+- valory/price_estimation_abci:0.1.0:QmZK8oNgD79fsrUHj32hm1SZPg3d6kNiKfo8knEzKVPnq4
+- valory/registration_abci:0.1.0:Qmbm4ZERzaT1PcDojULR938vZ2eKVtPD8gghumjX8Hz4MZ
+- valory/reset_pause_abci:0.1.0:QmZ8MXT23JCk8ydkU26sRoj21Q8ZoP7TfecFvGqwmmAcdE
+- valory/safe_deployment_abci:0.1.0:QmSrGbx9tYKCxrvmT4yQeC9KcgxZqtJwyTaRXHkDjcWDk1
+- valory/transaction_settlement_abci:0.1.0:QmXHpua98mjNqD13Nc9b6K9vSE4Au7Hh1g98WhGxyy5yGk
 default_ledger: ethereum
 required_ledgers:
 - ethereum
