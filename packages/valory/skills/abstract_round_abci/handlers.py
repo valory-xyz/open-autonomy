@@ -118,7 +118,9 @@ class ABCIRoundHandler(ABCIHandler):
         # If no round transitions have occurred yet, `last_root_hash` returns the hash of the initial abci app's state.
         # `init_chain` will be called between resets when restarting again.
         app_hash = self.context.state.round_sequence.last_round_transition_root_hash
-        cast(SharedState, self.context.state).round_sequence.init_chain(message.initial_height)
+        cast(SharedState, self.context.state).round_sequence.init_chain(
+            message.initial_height
+        )
         reply = dialogue.reply(
             performative=AbciMessage.Performative.RESPONSE_INIT_CHAIN,
             target_message=message,

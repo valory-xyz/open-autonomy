@@ -2203,7 +2203,9 @@ class RoundSequence:  # pylint: disable=too-many-instance-attributes
     def tm_height(self) -> int:
         """Get Tendermint's current height."""
         if self._tm_height == -1:
-            raise ValueError("Trying to access Tendermint's current height before any `end_block` calls.")
+            raise ValueError(
+                "Trying to access Tendermint's current height before any `end_block` calls."
+            )
         return self._tm_height
 
     @tm_height.setter

@@ -53,9 +53,7 @@ logging.basicConfig(
 
 def load_genesis() -> Any:
     """Load genesis file."""
-    return json.loads(
-        Path(os.environ["TMHOME"], "config", "genesis.json").read_text()
-    )
+    return json.loads(Path(os.environ["TMHOME"], "config", "genesis.json").read_text())
 
 
 def get_defaults() -> Dict[str, str]:
