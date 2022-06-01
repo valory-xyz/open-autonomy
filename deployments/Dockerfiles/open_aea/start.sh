@@ -21,7 +21,14 @@ if [ -f "$FILE" ]; then
     cp $FILE .
 else
     echo "No AEA key provided. Creating fresh."
-    aea generate-key ethereum
+    if [ "$AEA_PASSWORD" != "" ];
+    then
+        echo "Generating the fresh key with a password!"
+        aea generate-key ethereum --password $AEA_PASSWORD
+    else
+        echo "Generating the fresh key without a password!"
+        aea generate-key ethereum
+    fi
 fi
 if [ "$INSTALL" == "1" ];
 then
