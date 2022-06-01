@@ -18,7 +18,7 @@ fingerprint:
   ml/preprocessing.py: QmXRkajyrcZbXy8k26dCocmCCrqYwEHcjy7iFG64DohZKq
   models.py: QmS15SjCs3NXCqz3gRL3soC7RRPFGofDGEttef5DVWo8EZ
   payloads.py: QmbBH6kpC98iMgoVbHNwwMBMLs8LC6c87tj81r7UBaHesv
-  rounds.py: QmYDSHnWAAf2iGRPw99wyZ2M8GZg7nZ3D55zut3AD2kmNu
+  rounds.py: QmP7E6YYeF464Kr2v853fjT9a5mxfGMQiWqnWeU1tjLw2x
   tasks.py: QmemYwBwU6RpWsca3bkXWuUemgZ6YwFVMxS5vkt7J7BjHh
   tools/__init__.py: QmWr6iVwNzqYVqmxBwYC1myurM8AjxuzxwjM1brXSmnDTi
   tools/etl.py: Qmb7e77Fh6R4TTSbgUNSo2LaQpKWtRsfmfeqCiPF75mSNf
@@ -38,8 +38,8 @@ protocols:
 - valory/http:1.0.0:QmbjfzjKMuRmwbQysyaciASxvY67vGJYj7zjGYADgNux5h
 - valory/ledger_api:1.0.0:QmWQSUkGAbzU8tqs7K8BguabbKHUZkbxuMk1M4LBFAwdun
 skills:
-- valory/abstract_round_abci:0.1.0:QmSRYHTkt4mCR5bjkRPqRupWFhSNwhoQak4Qft7T1DTXRf
-- valory/registration_abci:0.1.0:QmXvyodTbT3AbN4Nour4TzfC2EoVySNdyj1tW8LeRm1jQP
+- valory/abstract_round_abci:0.1.0:QmTUmNz36g6vnupxPN9VziaL8TNQoRFrtURgDyYavU6wNa
+- valory/registration_abci:0.1.0:QmPNgMKgGDEVynWWNhUwLsfTiMs9jcF5tLW79o96VMeVvg
 behaviours:
   main:
     args: {}

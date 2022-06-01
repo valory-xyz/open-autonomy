@@ -669,13 +669,13 @@ To create a new period entry, call create() on the class. The new values will be
 #### `__`init`__`
 
 ```python
-def __init__(initial_data: Dict[str, Any], cross_period_persisted_keys: Optional[List[str]] = None, format_initial_data: bool = True) -> None
+def __init__(initial_data: Dict[str, List[Any]], cross_period_persisted_keys: Optional[List[str]] = None) -> None
 ```
 
 Initialize the AbciApp database.
 
-initial_data can be passed either as Dict[str, Any] or Dict[str, List[Any]] (the database internal format). Use the format_initial_data to decide if
-initial_data should be automatically converted.
+Initial_data must be passed either a Dict[str, List[Any]] (the database internal format). The class method 'data_to_lists'
+can be used to convert from Dict[str, Any] to Dict[str, List[Any]] before instantiating this class.
 
 **Arguments**:
 
@@ -697,17 +697,6 @@ Get the initial_data.
 **Returns**:
 
 the initial_data
-
-<a id="packages.valory.skills.abstract_round_abci.base.AbciAppDB.data_to_list"></a>
-
-#### data`_`to`_`list
-
-```python
-@classmethod
-def data_to_list(cls, data: Dict[str, Any]) -> Dict[str, List[Any]]
-```
-
-Convert Dict[str, Any] to Dict[str, List[Any]].
 
 <a id="packages.valory.skills.abstract_round_abci.base.AbciAppDB.reset_index"></a>
 
@@ -777,7 +766,7 @@ Update the current data.
 #### create
 
 ```python
-def create(format_data: bool = True, **kwargs: Any) -> None
+def create(**kwargs: Any) -> None
 ```
 
 Add a new entry to the data.
@@ -831,6 +820,17 @@ def cleanup(cleanup_history_depth: int) -> None
 ```
 
 Reset the db.
+
+<a id="packages.valory.skills.abstract_round_abci.base.AbciAppDB.data_to_lists"></a>
+
+#### data`_`to`_`lists
+
+```python
+@classmethod
+def data_to_lists(cls, data: Dict[str, Any]) -> Dict[str, List[Any]]
+```
+
+Convert Dict[str, Any] to Dict[str, List[Any]].
 
 <a id="packages.valory.skills.abstract_round_abci.base.BaseSynchronizedData"></a>
 
@@ -964,7 +964,7 @@ Copy and update the current data.
 #### create
 
 ```python
-def create(synchronized_data_class: Optional[Type] = None, format_data: bool = True, **kwargs: Any, ,) -> "BaseSynchronizedData"
+def create(synchronized_data_class: Optional[Type] = None, **kwargs: Any, ,) -> "BaseSynchronizedData"
 ```
 
 Copy and update with new data.
