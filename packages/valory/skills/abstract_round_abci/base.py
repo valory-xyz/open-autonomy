@@ -2052,6 +2052,7 @@ class RoundSequence:  # pylint: disable=too-many-instance-attributes
         self._last_round_transition_timestamp: Optional[datetime.datetime] = None
         self._last_round_transition_height = 0
         self._last_round_transition_root_hash = b""
+        self._tm_height = -1
 
     def setup(self, *args: Any, **kwargs: Any) -> None:
         """
@@ -2198,6 +2199,18 @@ class RoundSequence:  # pylint: disable=too-many-instance-attributes
         return f"root:{self.abci_app.synchronized_data.db.round_count}reset:{self.abci_app.reset_index}".encode(
             "utf-8"
         )
+
+    @property
+    def tm_height(self) -> int:
+        """Get Tendermint's current height."""
+        if self._tm_height == -1:
+            raise ValueError("Trying to access Tendermint's current height before any `end_block` calls.")
+        return self._tm_height
+
+    @tm_height.setter
+    def tm_height(self, _tm_height: int) -> None:
+        """Set Tendermint's current height."""
+        self._tm_height = _tm_height
 
     def begin_block(self, header: Header) -> None:
         """Begin block."""
