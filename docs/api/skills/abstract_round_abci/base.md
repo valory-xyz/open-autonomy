@@ -766,7 +766,7 @@ Update the current data.
 #### create
 
 ```python
-def create(**kwargs: Any) -> None
+def create(**kwargs: List[Any]) -> None
 ```
 
 Add a new entry to the data.
