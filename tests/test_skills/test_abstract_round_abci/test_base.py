@@ -1161,6 +1161,7 @@ class TestRoundSequence:
         """Set up the test."""
         self.round_sequence = RoundSequence(abci_app_cls=AbciAppTest)
         self.round_sequence.setup(MagicMock(), MagicMock(), MagicMock())
+        self.round_sequence.tm_height = 1
 
     @pytest.mark.parametrize("n_blocks", (0, 1, 10))
     def test_height(self, n_blocks: int) -> None:
