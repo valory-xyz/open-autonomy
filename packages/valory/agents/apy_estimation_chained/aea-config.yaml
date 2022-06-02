@@ -19,10 +19,10 @@ protocols:
 - valory/ledger_api:1.0.0:QmWQSUkGAbzU8tqs7K8BguabbKHUZkbxuMk1M4LBFAwdun
 skills:
 - valory/abstract_abci:0.1.0:QmfBLZpyAE6ZXkaGix4vL5ihSpNCY8hiFyXxdSLATDfWog
-- valory/abstract_round_abci:0.1.0:QmRZEAb6DsrSn6N6RviCB9SwJgXFh9pxNZmNUrxEVokwKJ
-- valory/apy_estimation_abci:0.1.0:QmTuDpfgn8RpK4t3mDFKSjXCbjfQa5Zbatv9TvR7wdQMf4
-- valory/apy_estimation_chained_abci:0.1.0:QmZoHUixWGwCpw9Njc9oYchYWi61RiiyDVeTZx8GLoN6W8
-- valory/registration_abci:0.1.0:QmcVFqX1vJryM8gSetZbEqsJAhECWMe4fNkjxkvmd45fjx
+- valory/abstract_round_abci:0.1.0:QmS1Txhvpp2PbDELZ83BUSW3HVAKCzH3bkidCkD5RwsAHH
+- valory/apy_estimation_abci:0.1.0:QmVh8P9Pbd2UmZCVriMwZxqBYLR3YU6Ca5h81Ev8rL4mrk
+- valory/apy_estimation_chained_abci:0.1.0:QmNxex6Frpt583aiHPMZonv7zYDUbQiLJAA736DCabVtKZ
+- valory/registration_abci:0.1.0:QmPtYGqzPDfWwKLM4SaMT5LdL7kuc2pNmj2dhryNowEPLN
 default_ledger: ethereum
 required_ledgers:
 - ethereum
