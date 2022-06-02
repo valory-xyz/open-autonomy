@@ -32,6 +32,12 @@ import yaml
 from aea_swarm.configurations.base import Service
 from aea_swarm.configurations.validation import ConfigValidator
 from aea_swarm.deploy.base import BaseDeploymentGenerator, ServiceSpecification
+from aea_swarm.constants import (
+    HARDHAT_IMAGE_VERSION,
+    IMAGE_VERSION,
+    TENDERMINT_IMAGE_VERSION,
+)
+from aea_swarm.deploy.base import BaseDeploymentGenerator, DeploymentSpec
 from aea_swarm.deploy.generators.docker_compose.base import DockerComposeGenerator
 from aea_swarm.deploy.generators.kubernetes.base import KubernetesGenerator
 
@@ -105,6 +111,11 @@ config:
 
 
 TEST_DEPLOYMENT_PATH: str = "service.yaml"
+IMAGE_VERSIONS = {
+    "agent": IMAGE_VERSION,
+    "hardhat": HARDHAT_IMAGE_VERSION,
+    "tendermint": TENDERMINT_IMAGE_VERSION,
+}
 
 
 def get_specified_deployments() -> List[str]:
@@ -417,7 +428,7 @@ class TestOverrideTypes(BaseDeploymentTests):
             )
             app_instance.service.check_overrides_valid(app_instance.service.overrides)
             app_instance.generate_agents()
-            deployment_instance.generate(app_instance)  # type: ignore
+            deployment_instance.generate(IMAGE_VERSIONS)
 
     def test_validates_with_20_agents(self) -> None:
         """Test functionality of deploy safe contract."""
@@ -432,4 +443,4 @@ class TestOverrideTypes(BaseDeploymentTests):
             )
             app_instance.service.check_overrides_valid(app_instance.service.overrides)
             app_instance.generate_agents()
-            deployment_instance.generate(app_instance)  # type: ignore
+            deployment_instance.generate(IMAGE_VERSIONS)

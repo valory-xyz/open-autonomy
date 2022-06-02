@@ -35,6 +35,7 @@ from aea.configurations.constants import AGENTS, DEFAULT_AEA_CONFIG_FILE
 
 from aea_swarm.configurations.base import Service
 from aea_swarm.configurations.loader import load_service_config
+from aea_swarm.constants import TENDERMINT_IMAGE_VERSION
 from aea_swarm.deploy.constants import NETWORKS
 
 
@@ -166,13 +167,14 @@ class BaseDeploymentGenerator:
     @abc.abstractmethod
     def generate(
         self,
+        image_versions: Dict[str, str],
         dev_mode: bool = False,
     ) -> "BaseDeploymentGenerator":
         """Generate the deployment configuration."""
 
     @abc.abstractmethod
     def generate_config_tendermint(
-        self,
+        self, image_version: str = TENDERMINT_IMAGE_VERSION
     ) -> "BaseDeploymentGenerator":
         """Generate the deployment configuration."""
 

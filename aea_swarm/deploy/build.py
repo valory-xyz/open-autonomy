@@ -21,6 +21,12 @@ from pathlib import Path
 from typing import Optional, cast
 
 from aea_swarm.deploy.base import BaseDeploymentGenerator, ServiceSpecification
+from aea_swarm.constants import (
+    HARDHAT_IMAGE_VERSION,
+    IMAGE_VERSION,
+    TENDERMINT_IMAGE_VERSION,
+)
+from aea_swarm.deploy.base import BaseDeploymentGenerator, DeploymentSpec
 from aea_swarm.deploy.constants import DEPLOYMENT_REPORT
 from aea_swarm.deploy.generators.docker_compose.base import DockerComposeGenerator
 from aea_swarm.deploy.generators.kubernetes.base import KubernetesGenerator
@@ -40,8 +46,22 @@ def generate_deployment(  # pylint: disable=too-many-arguments
     build_dir: Path,
     number_of_agents: Optional[int] = None,
     dev_mode: bool = False,
+    version: Optional[str] = None,
 ) -> str:
     """Generate the deployment build for the valory app."""
+
+    if version is None:
+        image_versions = {
+            "agent": IMAGE_VERSION,
+            "hardhat": HARDHAT_IMAGE_VERSION,
+            "tendermint": TENDERMINT_IMAGE_VERSION,
+        }
+    else:
+        image_versions = {
+            "agent": version,
+            "hardhat": version,
+            "tendermint": version,
+        }
 
     service_spec = ServiceSpecification(
         service_path=service_path,
@@ -58,7 +78,9 @@ def generate_deployment(  # pylint: disable=too-many-arguments
         DeploymentGenerator(service_spec=service_spec, build_dir=build_dir),
     )
 
-    deployment.generate(dev_mode).generate_config_tendermint().write_config()
+    deployment.generate(image_versions, dev_mode).generate_config_tendermint(
+        image_versions["tendermint"]
+    ).write_config()
 
     return DEPLOYMENT_REPORT.substitute(
         **{

@@ -23,9 +23,10 @@ from pathlib import Path
 from typing import Dict, IO, cast
 
 from aea_swarm.constants import (
-    DEFAULT_IMAGE_VERSION,
+    IMAGE_VERSION,
     OPEN_AEA_IMAGE_NAME,
     TENDERMINT_IMAGE_NAME,
+    TENDERMINT_IMAGE_VERSION,
 )
 from aea_swarm.deploy.base import BaseDeploymentGenerator
 from aea_swarm.deploy.generators.docker_compose.templates import (
@@ -36,7 +37,9 @@ from aea_swarm.deploy.generators.docker_compose.templates import (
 )
 
 
-def build_tendermint_node_config(node_id: int, dev_mode: bool = False) -> str:
+def build_tendermint_node_config(
+    node_id: int, dev_mode: bool = False, image_version: str = TENDERMINT_IMAGE_VERSION
+) -> str:
     """Build tendermint node config for docker compose."""
 
     config = TENDERMINT_NODE_TEMPLATE.format(
@@ -44,7 +47,7 @@ def build_tendermint_node_config(node_id: int, dev_mode: bool = False) -> str:
         localnet_address_postfix=node_id + 3,
         localnet_port_range=node_id,
         tendermint_image_name=TENDERMINT_IMAGE_NAME,
-        tendermint_image_version=DEFAULT_IMAGE_VERSION,
+        tendermint_image_version=image_version,
     )
 
     if dev_mode:
@@ -63,7 +66,7 @@ def build_agent_config(  # pylint: disable=too-many-arguments
     package_dir: Path = Path.cwd().absolute() / "packages",
     open_aea_dir: Path = Path.cwd().absolute().parent / "open-aea",
     open_aea_image_name: str = OPEN_AEA_IMAGE_NAME,
-    open_aea_image_version: str = DEFAULT_IMAGE_VERSION,
+    open_aea_image_version: str = IMAGE_VERSION,
 ) -> str:
     """Build agent config."""
 
@@ -94,7 +97,7 @@ class DockerComposeGenerator(BaseDeploymentGenerator):
     deployment_type: str = "docker-compose"
 
     def generate_config_tendermint(
-        self,
+        self, image_version: str = TENDERMINT_IMAGE_NAME
     ) -> "DockerComposeGenerator":
         """Generate the command to configure tendermint testnet."""
 
@@ -111,7 +114,7 @@ class DockerComposeGenerator(BaseDeploymentGenerator):
             validators=self.service_spec.service.number_of_agents,
             build_dir=self.build_dir,
             tendermint_image_name=TENDERMINT_IMAGE_NAME,
-            tendermint_image_version=DEFAULT_IMAGE_VERSION,
+            tendermint_image_version=image_version,
         )
         self.tendermint_job_config = " ".join(
             [
@@ -124,17 +127,24 @@ class DockerComposeGenerator(BaseDeploymentGenerator):
         process = subprocess.Popen(  # pylint: disable=consider-using-with  # nosec
             self.tendermint_job_config.split(),
             stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
             universal_newlines=True,
         )
+
         for line in iter(cast(IO[str], process.stdout).readline, ""):
             if line == "":
                 break
             print(f"[Tendermint] {line.strip()}")
 
+        if "Unable to find image" in cast(IO[str], process.stderr).read():
+            raise RuntimeError(
+                f"Cannot find {TENDERMINT_IMAGE_NAME}:{image_version}, Please build images first."
+            )
         return self
 
     def generate(
         self,
+        image_versions: Dict[str, str],
         dev_mode: bool = False,
     ) -> "DockerComposeGenerator":
         """Generate the new configuration."""
@@ -144,9 +154,7 @@ class DockerComposeGenerator(BaseDeploymentGenerator):
         image_name = self.service_spec.service.agent.name
 
         if dev_mode:
-            version = "dev"
-        else:
-            version = DEFAULT_IMAGE_VERSION
+            image_versions["agent"] = "dev"
 
         agents = "".join(
             [
@@ -156,15 +164,15 @@ class DockerComposeGenerator(BaseDeploymentGenerator):
                     self.service_spec.service.number_of_agents,
                     agent_vars[i],
                     dev_mode,
-                    open_aea_image_version=version,
+                    open_aea_image_version=image_versions["agent"],
                 )
                 for i in range(self.service_spec.service.number_of_agents)
             ]
         )
         tendermint_nodes = "".join(
             [
-                build_tendermint_node_config(i, dev_mode)
-                for i in range(self.service_spec.service.number_of_agents)
+                build_tendermint_node_config(i, dev_mode, image_versions["tendermint"])
+                for i in range(self.deployment_spec.number_of_agents)
             ]
         )
         self.output = DOCKER_COMPOSE_TEMPLATE.format(
