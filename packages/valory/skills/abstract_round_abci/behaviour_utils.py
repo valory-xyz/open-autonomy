@@ -1521,14 +1521,14 @@ class BaseBehaviour(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
             last_round_transition_timestamp = (
                 self.context.state.round_sequence.last_round_transition_timestamp
             )
-            time_string = last_round_transition_timestamp.astimezone(pytz.UTC).strftime(
-                "%Y-%m-%dT%H:%M:%S.%fZ"
-            )
+            genesis_time = last_round_transition_timestamp.astimezone(
+                pytz.UTC
+            ).strftime("%Y-%m-%dT%H:%M:%S.%fZ")
             request_message, http_dialogue = self._build_http_request_message(
                 "GET",
                 self.params.tendermint_com_url + "/hard_reset",
                 parameters=[
-                    ("genesis_time", time_string),
+                    ("genesis_time", genesis_time),
                     ("initial_height", self.context.state.round_sequence.tm_height),
                 ],
             )
