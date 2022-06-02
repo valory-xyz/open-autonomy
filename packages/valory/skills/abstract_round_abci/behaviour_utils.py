@@ -91,6 +91,7 @@ from packages.valory.skills.abstract_round_abci.models import (
 
 
 HEIGHT_OFFSET = 10
+GENESIS_TIME_FMT = "%Y-%m-%dT%H:%M:%S.%fZ"
 
 
 class SendException(Exception):
@@ -1526,11 +1527,8 @@ class BaseBehaviour(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
             )
             genesis_time = last_round_transition_timestamp.astimezone(
                 pytz.UTC
-            ).strftime("%Y-%m-%dT%H:%M:%S.%fZ")
-            initial_height = (
-                self.context.state.round_sequence.last_round_transition_tm_height
-                + HEIGHT_OFFSET
-            )
+            ).strftime(GENESIS_TIME_FMT)
+            initial_height = self.context.state.round_sequence.height_after_reset
             request_message, http_dialogue = self._build_http_request_message(
                 "GET",
                 self.params.tendermint_com_url + "/hard_reset",
