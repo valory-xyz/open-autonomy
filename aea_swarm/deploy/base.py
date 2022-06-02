@@ -122,10 +122,10 @@ class ServiceSpecification:
         agent_vars = {
             "ID": agent_n,
             "VALORY_APPLICATION": self.service.agent,
-            "ABCI_HOST": f"abci{agent_n}",
+            "ABCI_HOST": ABCI_HOST.format(agent_n),
             "MAX_PARTICIPANTS": self.service.number_of_agents,  # I believe that this is correct
-            "TENDERMINT_URL": f"http://node{agent_n}:26657",
-            "TENDERMINT_COM_URL": f"http://node{agent_n}:8080",
+            "TENDERMINT_URL": TENDERMINT_NODE.format(agent_n),
+            "TENDERMINT_COM_URL": TENDERMINT_COM.format(agent_n),
         }
 
         if self.private_keys_password is not None:
