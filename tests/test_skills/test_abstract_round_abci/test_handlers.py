@@ -26,7 +26,11 @@ import pytest
 from aea.configurations.data_types import PublicId
 
 from packages.valory.protocols.abci import AbciMessage
-from packages.valory.protocols.abci.custom_types import CheckTxType, CheckTxTypeEnum
+from packages.valory.protocols.abci.custom_types import (
+    CheckTxType,
+    CheckTxTypeEnum,
+    ValidatorUpdates,
+)
 from packages.valory.protocols.http import HttpMessage
 from packages.valory.skills.abstract_round_abci.base import (
     ABCIAppInternalError,
@@ -76,6 +80,27 @@ class TestABCIRoundHandler:
             cast(AbciMessage, message), cast(AbciDialogue, dialogue)
         )
         assert response.performative == AbciMessage.Performative.RESPONSE_INFO
+
+    @pytest.mark.parametrize("app_hash", (b"", b"test"))
+    def test_init_chain(self, app_hash: bytes) -> None:
+        """Test the 'init_chain' handler method."""
+        message, dialogue = self.dialogues.create(
+            counterparty="",
+            performative=AbciMessage.Performative.REQUEST_INIT_CHAIN,
+            time=MagicMock,
+            chain_id="test_chain_id",
+            consensus_params=MagicMock(),
+            validators=MagicMock(),
+            app_state_bytes=b"",
+            initial_height=10,
+        )
+        self.context.state.round_sequence.last_round_transition_root_hash = app_hash
+        response = self.handler.init_chain(
+            cast(AbciMessage, message), cast(AbciDialogue, dialogue)
+        )
+        assert response.performative == AbciMessage.Performative.RESPONSE_INIT_CHAIN
+        assert response.validators == ValidatorUpdates([])
+        assert response.app_hash == app_hash
 
     def test_begin_block(self) -> None:
         """Test the 'begin_block' handler method."""
