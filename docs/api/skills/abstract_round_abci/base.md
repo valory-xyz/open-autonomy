@@ -647,16 +647,18 @@ data = {
                 {"participant_a", "participant_b", "participant_c", "participant_d"},
             ]
         },
-        "other_parameter": [0, 1, 2]
+        "other_parameter": [0, 2, 8]
     },
     1: {
         "participants":
             [
                 {"participant_a", "participant_c", "participant_d"},
                 {"participant_a", "participant_b", "participant_c", "participant_d"},
+                {"participant_a", "participant_b", "participant_c"},
+                {"participant_a", "participant_b", "participant_d"},
                 {"participant_a", "participant_b", "participant_c", "participant_d"},
             ],
-        "other_parameter": [3, 4, 5]
+        "other_parameter": [3, 19, 10, 32, 6]
     },
     2: ...
 }
