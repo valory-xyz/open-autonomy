@@ -30,7 +30,7 @@ Class to build images using skaffold.
 
 ```python
 @classmethod
-def build_images(cls, profile: str, deployment_file_path: Path, package_dir: Path, build_dir: Path, skaffold_dir: Path, version: str, push: bool = False) -> None
+def build_images(cls, profile: str, deployment_file_path: Path, packages_dir: Path, build_dir: Path, skaffold_dir: Path, version: str, push: bool = False) -> None
 ```
 
 Build images using the subprocess.

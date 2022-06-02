@@ -93,7 +93,7 @@ class TestBuildDeployment(BaseCliTest):
                 (
                     self.service_id,
                     str(self.keys_file),
-                    "--package-dir",
+                    "--packages-dir",
                     str(self.t / "packages"),
                     "--o",
                     str(self.t),
@@ -142,7 +142,7 @@ class TestBuildDeployment(BaseCliTest):
                 (
                     self.service_id,
                     str(self.keys_file),
-                    "--package-dir",
+                    "--packages-dir",
                     str(self.t / "packages"),
                     "--o",
                     str(self.t),
@@ -173,7 +173,7 @@ class TestBuildDeployment(BaseCliTest):
                 (
                     self.service_id,
                     str(self.keys_file),
-                    "--package-dir",
+                    "--packages-dir",
                     str(self.t / "packages"),
                     "--o",
                     str(self.t),
@@ -212,7 +212,7 @@ class TestBuildDeployment(BaseCliTest):
                 (
                     self.service_id,
                     str(self.keys_file),
-                    "--package-dir",
+                    "--packages-dir",
                     str(self.t / "packages"),
                     "--o",
                     str(self.t),

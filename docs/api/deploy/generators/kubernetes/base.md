@@ -19,7 +19,7 @@ Kubernetes Deployment Generator.
 #### `__`init`__`
 
 ```python
-def __init__(deployment_spec: DeploymentSpec, build_dir: Path) -> None
+def __init__(service_spec: ServiceSpecification, build_dir: Path) -> None
 ```
 
 Initialise the deployment generator.
