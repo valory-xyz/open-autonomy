@@ -4,7 +4,7 @@ then
     echo "Debugging..."
     while true; do echo "waiting" ; sleep 2; done
 fi
-echo ¨Running the aea with $(aea --version)
+echo Running the aea with $(aea --version)
 if [ "$VALORY_APPLICATION" == "" ];
 then
     echo "No Application specified!"
@@ -22,6 +22,8 @@ else
     echo "AEA key provided."
     echo -n $AEA_KEY > ethereum_private_key.txt
 
+aea generate-key cosmos
+
 fi
 if [ "$INSTALL" == "1" ];
 then
@@ -30,5 +32,6 @@ then
 else
     echo "Running the AEA!"
     aea add-key ethereum
+    (aea add-key cosmos --connection && aea issue-certificates --aev) || (echo "Failed to add cosmos key for connection" && exit 1)
     aea run --aev
 fi

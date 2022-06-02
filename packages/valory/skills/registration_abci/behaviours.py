@@ -20,7 +20,7 @@
 """This module contains the behaviours for the 'abci' skill."""
 import collections
 import json
-from typing import Dict, Generator, Iterable, List, Optional, Set, Type, Union, cast
+from typing import Any, Dict, Generator, Iterable, List, Set, Type, cast
 
 from aea.mail.base import EnvelopeContext
 
@@ -43,15 +43,50 @@ from packages.valory.skills.registration_abci.rounds import (
 )
 
 
-TendermintParams = Dict[
-    str,
-    Union[
-        str,  # proxy_app, p2p_laddr, rpc_laddr
-        List[str],  # p2p_seeds
-        bool,  # consensus_create_empty_blocks
-        Optional[str],  # home
-    ],
-]
+CONSENSUS_PARAMS = (
+    {
+        "block": {"max_bytes": "22020096", "max_gas": "-1", "time_iota_ms": "1000"},
+        "evidence": {
+            "max_age_num_blocks": "100000",
+            "max_age_duration": "172800000000000",
+            "max_bytes": "1048576",
+        },
+        "validator": {"pub_key_types": ["ed25519"]},
+        "version": {},
+    },
+)
+
+
+def format_genesis_data(
+    collected_agent_info: Dict[str, Any],
+) -> Dict[str, Any]:
+    """Format collected agent info for genesis update"""
+
+    registered_addresses = [  # temp hack
+        "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
+        "0x70997970C51812dc3A010C7d01b50e0d17dc79C8",
+        "0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC",
+        "0x90F79bf6EB2c4f870365E785982E1f101E93b906",
+    ]
+    validators = []
+    for agent_address, validator_config in collected_agent_info.items():
+        i = registered_addresses.index(agent_address)
+        validator = dict(
+            address=validator_config["address"],
+            pub_key=validator_config["pub_key"],
+            power="1",
+            name=f"node{i}",
+        )
+        validators.append(validator)
+
+    data = {}
+    data["validators"] = validators
+    data["genesis_config"] = dict(  # type: ignore
+        genesis_time="2022-05-20T16:00:21.735122717Z",
+        chain_id="chain-c4daS1",
+        consensus_params=CONSENSUS_PARAMS,
+    )
+    return data
 
 
 def consume(iterator: Iterable) -> None:
@@ -93,18 +128,18 @@ class RegistrationBaseBehaviour(BaseState):
 class RegistrationStartupBehaviour(RegistrationBaseBehaviour):
     """Register to the next periods."""
 
+    ENCODING: str = "utf-8"
     state_id = "registration_startup"
     matching_round = RegistrationStartupRound
-    local_tendermint_params: Optional[TendermintParams] = None
-    ENCODING: str = "utf-8"
+    local_tendermint_params: Dict[str, Any] = {}
 
     @property
-    def registered_addresses(self) -> Dict[str, str]:
+    def registered_addresses(self) -> Dict[str, Dict[str, Any]]:
         """Agent addresses registered on-chain for the service"""
         return self.period_state.db.initial_data.get("registered_addresses", {})
 
     @property
-    def not_yet_collected(self) -> List[str]:
+    def _not_yet_collected(self) -> List[str]:
         """Agent addresses for which no Tendermint information has been retrieved"""
         if "registered_addresses" not in self.period_state.db.initial_data:
             raise RuntimeError("Must collect addresses from service registry first")
@@ -116,9 +151,9 @@ class RegistrationStartupBehaviour(RegistrationBaseBehaviour):
         return f"{self.params.tendermint_com_url}/params"
 
     @property
-    def tendermint_start_url(self) -> str:
+    def tendermint_hard_reset_url(self) -> str:
         """Tendermint URL for obtaining and updating parameters"""
-        return f"{self.params.tendermint_com_url}/start"
+        return f"{self.params.tendermint_com_url}/hard_reset"
 
     def is_correct_contract(self) -> Generator[None, None, bool]:
         """Contract deployment verification."""
@@ -164,7 +199,7 @@ class RegistrationStartupBehaviour(RegistrationBaseBehaviour):
     def get_addresses(self) -> Generator:
         """Get addresses of agents registered for the service"""
 
-        if self.params.service_registry_address is None:
+        if self.context.params.service_registry_address is None:
             raise RuntimeError("Service registry contract address not provided")
 
         correctly_deployed = yield from self.is_correct_contract()
@@ -192,17 +227,25 @@ class RegistrationStartupBehaviour(RegistrationBaseBehaviour):
             return
 
         # put service info in the shared state for p2p message handler
-        info: Dict[str, str] = dict.fromkeys(registered_addresses)
-        info[self.context.agent_address] = self.context.params.tendermint_url
+        info: Dict[str, Dict[str, str]] = dict.fromkeys(registered_addresses)
+        validator_config = dict(
+            tendermint_url=self.context.params.tendermint_url,
+            address=self.local_tendermint_params["address"],
+            pub_key=self.local_tendermint_params["pub_key"],
+        )
+        info[self.context.agent_address] = validator_config
 
         self.period_state.db.initial_data.update(dict(registered_addresses=info))
         log_msg = "Registered addresses retrieved from service registry contract"
-        self.context.logger.info(f"{log_msg}:\n{info}")
+
+        self.context.logger.info(f"{log_msg}: {info}")
 
     def get_tendermint_configuration(self) -> Generator[None, None, bool]:
         """Make HTTP GET request to obtain agent's local Tendermint node parameters"""
 
         url = self.tendermint_parameter_url
+        self.context.logger.info(f"GET request local config at: {url}")
+
         result = yield from self.get_http_response(method="GET", url=url)
         try:
             response = json.loads(result.body.decode())
@@ -233,9 +276,10 @@ class RegistrationStartupBehaviour(RegistrationBaseBehaviour):
         """Make HTTP POST request to update agent's local Tendermint node"""
 
         url = self.tendermint_parameter_url
-        params = cast(TendermintParams, self.local_tendermint_params)
-        params["p2p_seeds"] = list(self.registered_addresses.values())
-        content = json.dumps(params).encode(self.ENCODING)
+        data = format_genesis_data(self.registered_addresses)
+        self.context.logger.info(f"POST request local config at {url}: {data}")
+
+        content = json.dumps(data).encode(self.ENCODING)
         result = yield from self.get_http_response(
             method="POST", url=url, content=content
         )
@@ -249,10 +293,11 @@ class RegistrationStartupBehaviour(RegistrationBaseBehaviour):
             )
             return False
 
-    def start_tendermint(self) -> Generator[None, None, bool]:
-        """Start up local Tendermint node"""
+    def restart_tendermint(self) -> Generator[None, None, bool]:
+        """Restart up local Tendermint node"""
 
-        url = self.tendermint_start_url
+        self.context.logger.info("Restarting tendermint")
+        url = self.tendermint_hard_reset_url
         result = yield from self.get_http_response(method="GET", url=url)
         try:
             response = json.loads(result.body.decode())
@@ -268,15 +313,13 @@ class RegistrationStartupBehaviour(RegistrationBaseBehaviour):
         """Act asynchronously"""
 
         self.context.logger.info(f"My address: {self.context.agent_address}")
-        # sleep to ensure it crashes here, otherwise possible it completes entire registration
-        yield from self.sleep(2)
 
-        # # collect personal Tendermint configuration
-        # if not self.local_tendermint_params:
-        #     successful = yield from self.get_tendermint_configuration()
-        #     if not successful:
-        #         yield from self.sleep(self.params.sleep_time)
-        #         return  # noqa: E800
+        # collect personal Tendermint configuration
+        if not self.local_tendermint_params:
+            successful = yield from self.get_tendermint_configuration()
+            if not successful:
+                yield from self.sleep(self.params.sleep_time)
+                return
 
         # make service registry contract call
         while not self.registered_addresses:
@@ -284,24 +327,24 @@ class RegistrationStartupBehaviour(RegistrationBaseBehaviour):
             yield from self.sleep(self.params.sleep_time)
 
         # collect Tendermint config information from other agents
-        while any(self.not_yet_collected):
-            consume(map(self.request_tendermint_info, self.not_yet_collected))
+        while any(self._not_yet_collected):
+            consume(map(self.request_tendermint_info, self._not_yet_collected))
             yield from self.sleep(self.params.sleep_time)
 
         log_msg = "Completed collecting Tendermint responses"
         self.context.logger.info(f"{log_msg}: {self.registered_addresses}")
 
-        # # update Tendermint configuration
-        # successful = yield from self.update_tendermint()
-        # if not successful:
-        #     yield from self.sleep(self.params.sleep_time)
-        #     return  # noqa: E800
-        #
-        # # restart Tendermint with updated configuration
-        # successful = yield from self.start_tendermint()
-        # if not successful:
-        #     yield from self.sleep(self.params.sleep_time)
-        #     return  # noqa: E800
+        # update Tendermint configuration
+        successful = yield from self.update_tendermint()
+        if not successful:
+            yield from self.sleep(self.params.sleep_time)
+            return
+
+        # restart Tendermint with updated configuration
+        successful = yield from self.restart_tendermint()
+        if not successful:
+            yield from self.sleep(self.params.sleep_time)
+            return
 
         self.context.logger.info("RegistrationStartupBehaviour executed")
         yield from super().async_act()
