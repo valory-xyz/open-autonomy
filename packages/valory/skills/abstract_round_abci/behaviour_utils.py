@@ -90,6 +90,9 @@ from packages.valory.skills.abstract_round_abci.models import (
 )
 
 
+HEIGHT_OFFSET = 10
+
+
 class SendException(Exception):
     """Exception raised if the 'try_send' to an AsyncBehaviour failed."""
 
@@ -1524,12 +1527,16 @@ class BaseBehaviour(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
             genesis_time = last_round_transition_timestamp.astimezone(
                 pytz.UTC
             ).strftime("%Y-%m-%dT%H:%M:%S.%fZ")
+            initial_height = (
+                self.context.state.round_sequence.last_round_transition_tm_height
+                + HEIGHT_OFFSET
+            )
             request_message, http_dialogue = self._build_http_request_message(
                 "GET",
                 self.params.tendermint_com_url + "/hard_reset",
                 parameters=[
                     ("genesis_time", genesis_time),
-                    ("initial_height", self.context.state.round_sequence.tm_height),
+                    ("initial_height", initial_height),
                 ],
             )
             result = yield from self._do_request(request_message, http_dialogue)
