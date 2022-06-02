@@ -20,9 +20,13 @@
 
 """This module contains the tests for the code-blocks in the get_started.md file."""
 
+from pathlib import Path
+
+from tests.conftest import ROOT_DIR
 from tests.test_docs.helper import (  # type: ignore
     NON_CODE_TOKENS,
     check_code_block,
+    contains_code_blocks,
     remove_ips_hashes,
     remove_tokens,
 )
@@ -37,7 +41,6 @@ def test_yaml_snippets() -> None:
     md_to_code = {
         "docs/get_started.md": {
             "code_files": ["packages/valory/agents/hello_world/aea-config.yaml"],
-            "skip_blocks": None,
         },
         "docs/price_oracle_fsms.md": {
             "code_files": [
@@ -49,9 +52,25 @@ def test_yaml_snippets() -> None:
                 "packages/valory/skills/reset_pause_abci/fsm_specification.yaml",
                 "packages/valory/skills/oracle_abci/fsm_specification.yaml",
             ],
-            "skip_blocks": None,
         },
+        "docs/simple_abci.md": {
+            "code_files": ["packages/valory/skills/simple_abci/fsm_specification.yaml"],
+        },
+        "docs/networks.md": {"skip_blocks": [0]},
     }
+
+    # Get all doc files that contain a yaml block
+    all_md_files = [
+        str(p.relative_to(ROOT_DIR)) for p in Path(ROOT_DIR, "docs").rglob("*.md")
+    ]
+    files_with_yaml_blocks = list(
+        filter(lambda f: contains_code_blocks(f, "yaml"), all_md_files)
+    )
+    not_checked_files = set(files_with_yaml_blocks).difference(set(md_to_code.keys()))
+
+    assert (
+        not not_checked_files
+    ), f"The following doc files contain yaml blocks but are not being checked: {not_checked_files}"
 
     # Check all files
     for md_file, code_info in md_to_code.items():

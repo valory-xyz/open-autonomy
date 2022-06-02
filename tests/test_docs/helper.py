@@ -97,6 +97,13 @@ def remove_ips_hashes(string: str) -> str:
     return re.sub(IPFS_HASH_REGEX, "<ipfs_hash>", string, count=0, flags=0)
 
 
+def contains_code_blocks(file_path: str, block_type: str) -> bool:
+    """Check if a doc file contains code blocks"""
+    doc_path = os.path.join(ROOT_DIR, file_path)
+    code_blocks = extract_code_blocks(filepath=doc_path, filter_=block_type)
+    return len(code_blocks) > 0
+
+
 def check_code_block(
     md_file: str,
     code_info: Dict,
@@ -104,8 +111,8 @@ def check_code_block(
     code_process_fn: Optional[Callable] = None,
 ) -> None:
     """Check code blocks from the documentation"""
-    code_files = code_info["code_files"]
-    skip_blocks = code_info["skip_blocks"]
+    code_files = code_info.get("code_files", None)
+    skip_blocks = code_info.get("skip_blocks", None)
 
     # Load the code blocks from the doc file
     doc_path = os.path.join(ROOT_DIR, md_file)
@@ -115,6 +122,9 @@ def check_code_block(
         code_blocks = [
             code_blocks[i] for i in range(len(code_blocks)) if i not in skip_blocks
         ]
+
+    if not code_blocks:
+        return
 
     # Process the code blocks
     code_blocks = (
