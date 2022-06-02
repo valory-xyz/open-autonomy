@@ -401,7 +401,7 @@ The consistency of the data in the blocks is guaranteed by Tendermint.
 #### `__`init`__`
 
 ```python
-def __init__() -> None
+def __init__(height_offset: int = 0) -> None
 ```
 
 Initialize the blockchain.
@@ -1838,6 +1838,17 @@ def synchronized_data() -> BaseSynchronizedData
 
 Return the current synchronized data.
 
+<a id="packages.valory.skills.abstract_round_abci.base.AbciApp.reset_index"></a>
+
+#### reset`_`index
+
+```python
+@property
+def reset_index() -> int
+```
+
+Return the reset index.
+
 <a id="packages.valory.skills.abstract_round_abci.base.AbciApp.get_all_rounds"></a>
 
 #### get`_`all`_`rounds
@@ -2219,6 +2230,17 @@ def last_round_transition_height() -> int
 
 Returns the height for last round transition.
 
+<a id="packages.valory.skills.abstract_round_abci.base.RoundSequence.last_round_transition_root_hash"></a>
+
+#### last`_`round`_`transition`_`root`_`hash
+
+```python
+@property
+def last_round_transition_root_hash() -> bytes
+```
+
+Returns the root hash for last round transition.
+
 <a id="packages.valory.skills.abstract_round_abci.base.RoundSequence.latest_synchronized_data"></a>
 
 #### latest`_`synchronized`_`data
@@ -2250,6 +2272,38 @@ at height 11 between the resets, then this is problematic.
 **Returns**:
 
 the root hash to be included as the Header.AppHash in the next block.
+
+<a id="packages.valory.skills.abstract_round_abci.base.RoundSequence.tm_height"></a>
+
+#### tm`_`height
+
+```python
+@property
+def tm_height() -> int
+```
+
+Get Tendermint's current height.
+
+<a id="packages.valory.skills.abstract_round_abci.base.RoundSequence.tm_height"></a>
+
+#### tm`_`height
+
+```python
+@tm_height.setter
+def tm_height(_tm_height: int) -> None
+```
+
+Set Tendermint's current height.
+
+<a id="packages.valory.skills.abstract_round_abci.base.RoundSequence.init_chain"></a>
+
+#### init`_`chain
+
+```python
+def init_chain(initial_height: int) -> None
+```
+
+Init chain.
 
 <a id="packages.valory.skills.abstract_round_abci.base.RoundSequence.begin_block"></a>
 

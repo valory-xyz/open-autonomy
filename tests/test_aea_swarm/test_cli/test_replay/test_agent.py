@@ -101,7 +101,7 @@ class TestAgentRunner(BaseCliTest):
                 "deployment",
                 "valory/oracle_hardhat",
                 str(self.keys_path),
-                "--package-dir",
+                "--packages-dir",
                 str(self.packages_dir),
                 "--force",
             ),
