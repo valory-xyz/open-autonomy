@@ -106,7 +106,7 @@ class SharedState(Model):
         self.round_sequence.setup(
             BaseSynchronizedData(
                 AbciAppDB(
-                    initial_data=AbciAppDB.data_to_lists(setup_params),
+                    initial_data=setup_params,
                     cross_period_persisted_keys=self.abci_app_cls.cross_period_persisted_keys,
                 )
             ),
