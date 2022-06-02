@@ -28,9 +28,13 @@ from typing import Any, Callable, Dict, Optional, Tuple
 
 import requests
 from flask import Flask, Response, jsonify, request
-from tendermint import TendermintNode, TendermintParams
 from werkzeug.exceptions import InternalServerError, NotFound
 
+
+try:
+    from .tendermint import TendermintNode, TendermintParams
+except:
+    from tendermint import TendermintNode, TendermintParams
 
 DEFAULT_LOG_FILE = "log.log"
 IS_DEV_MODE = os.environ.get("DEV_MODE", "0") == "1"
@@ -49,18 +53,13 @@ logging.basicConfig(
 
 def load_genesis() -> Any:
     """Load genesis file."""
-    return json.loads(
-        Path(str(os.environ["TMHOME"]), "config", "genesis.json").read_text()
-    )
+    return json.loads(Path(os.environ["TMHOME"], "config", "genesis.json").read_text())
 
 
 def get_defaults() -> Dict[str, str]:
     """Get defaults from genesis file."""
     genesis = load_genesis()
-    return dict(
-        genesis_time=genesis.get("genesis_time"),
-        app_hash=genesis.get("app_hash"),
-    )
+    return dict(genesis_time=genesis.get("genesis_time"))
 
 
 def override_config_toml() -> None:
@@ -104,9 +103,7 @@ class PeriodDumper:
         except (FileNotFoundError, OSError):
             return
 
-    def dump_period(
-        self,
-    ) -> None:
+    def dump_period(self) -> None:
         """Dump tendermint run data for replay"""
         store_dir = self.dump_dir / f"period_{self.resets}"
         store_dir.mkdir(exist_ok=True)
@@ -117,96 +114,89 @@ class PeriodDumper:
             self.logger.info(f"Dumped data for period {self.resets}")
         except OSError:
             self.logger.info(
-                f"Error occured while dumping data for period {self.resets}"
+                f"Error occurred while dumping data for period {self.resets}"
             )
         self.resets += 1
 
 
-override_config_toml()
-tendermint_params = TendermintParams(
-    proxy_app=os.environ["PROXY_APP"],
-    consensus_create_empty_blocks=os.environ["CREATE_EMPTY_BLOCKS"] == "true",
-    home=os.environ["TMHOME"],
-)
+def create_app(dump_dir: Optional[Path] = None, perform_monitoring: bool = True):
+    """Create the Tendermint server app"""
 
-app = Flask(__name__)
-period_dumper = PeriodDumper(logger=app.logger)
+    override_config_toml()
+    tendermint_params = TendermintParams(
+        proxy_app=os.environ["PROXY_APP"],
+        consensus_create_empty_blocks=os.environ["CREATE_EMPTY_BLOCKS"] == "true",
+        home=os.environ["TMHOME"],
+    )
 
-tendermint_node = TendermintNode(tendermint_params, logger=app.logger)
-tendermint_node.start()
+    app = Flask(__name__)
+    period_dumper = PeriodDumper(logger=app.logger, dump_dir=dump_dir)
 
+    tendermint_node = TendermintNode(tendermint_params, logger=app.logger)
+    tendermint_node.start(start_monitoring=perform_monitoring)
 
-@app.route("/gentle_reset")
-def gentle_reset() -> Tuple[Any, int]:
-    """Reset the tendermint node gently."""
-    try:
-        tendermint_node.stop()
-        tendermint_node.start()
-        return jsonify({"message": "Reset successful.", "status": True}), 200
-    except Exception as e:  # pylint: disable=W0703
-        return (
-            jsonify(
-                {"message": f"Reset failed with error : {str(e)}", "status": False}
-            ),
-            200,
-        )
+    @app.route("/gentle_reset")
+    def gentle_reset() -> Tuple[Any, int]:
+        """Reset the tendermint node gently."""
+        try:
+            tendermint_node.stop()
+            tendermint_node.start(start_monitoring=perform_monitoring)
+            return jsonify({"message": "Reset successful.", "status": True}), 200
+        except Exception as e:  # pylint: disable=W0703
+            return jsonify({"message": f"Reset failed: {e}", "status": False}), 200
 
+    @app.route("/app_hash")
+    def app_hash() -> Tuple[Any, int]:
+        """Get the app hash."""
+        try:
+            endpoint = f"{tendermint_params.rpc_laddr.replace('tcp', 'http')}/block"
+            height = request.args.get("height")
+            params = {"height": height} if height is not None else None
+            res = requests.get(endpoint, params)
+            app_hash_ = res.json()["result"]["block"]["header"]["app_hash"]
+            return jsonify({"app_hash": app_hash_}), res.status_code
+        except Exception as e:  # pylint: disable=W0703
+            return (
+                jsonify({"error": f"Could not get the app hash: {str(e)}"}),
+                200,
+            )
 
-@app.route("/app_hash")
-def app_hash() -> Tuple[Any, int]:
-    """Get the app hash."""
-    try:
-        endpoint = f"{tendermint_params.rpc_laddr.replace('tcp', 'http')}/block"
-        height = request.args.get("height")
-        params = {"height": height} if height is not None else None
-        res = requests.get(endpoint, params)
-        app_hash_ = res.json()["result"]["block"]["header"]["app_hash"]
-        return jsonify({"app_hash": app_hash_}), res.status_code
-    except Exception as e:  # pylint: disable=W0703
-        return (
-            jsonify({"error": f"Could not get the app hash: {str(e)}"}),
-            200,
-        )
+    @app.route("/hard_reset")
+    def hard_reset() -> Tuple[Any, int]:
+        """Reset the node forcefully, and prune the blocks"""
+        try:
+            tendermint_node.stop()
+            if IS_DEV_MODE:
+                period_dumper.dump_period()
 
+            tendermint_node.prune_blocks()
+            defaults = get_defaults()
+            tendermint_node.reset_genesis_file(
+                request.args.get("genesis_time", defaults["genesis_time"]),
+                # default should be 1: https://github.com/tendermint/tendermint/pull/5191/files
+                request.args.get("initial_height", "1"),
+            )
+            tendermint_node.start(start_monitoring=perform_monitoring)
+            return jsonify({"message": "Reset successful.", "status": True}), 200
+        except Exception as e:  # pylint: disable=W0703
+            return jsonify({"message": f"Reset failed: {e}", "status": False}), 200
 
-@app.route("/hard_reset")
-def hard_reset() -> Tuple[Any, int]:
-    """Reset the node forcefully, and prune the blocks"""
-    try:
-        tendermint_node.stop()
-        if IS_DEV_MODE:
-            period_dumper.dump_period()
+    @app.errorhandler(404)  # type: ignore
+    def handle_notfound(e: NotFound) -> Response:
+        """Handle server error."""
+        app.logger.info(e)
+        return Response("Not Found", status=404, mimetype="application/json")
 
-        tendermint_node.prune_blocks()
-        defaults = get_defaults()
-        tendermint_node.reset_genesis_file(
-            request.args.get("genesis_time", defaults["genesis_time"]),
-            request.args.get("app_hash", defaults["app_hash"]),
-        )
-        tendermint_node.start()
-        return jsonify({"message": "Reset successful.", "status": True}), 200
-    except Exception as e:  # pylint: disable=W0703
-        return (
-            jsonify(
-                {"message": f"Reset failed with error : {str(e)}", "status": False}
-            ),
-            200,
-        )
+    @app.errorhandler(500)  # type: ignore
+    def handle_server_error(e: InternalServerError) -> Response:
+        """Handle server error."""
+        app.logger.info(e)  # pylint: disable=E
+        return Response("Error Closing Node", status=500, mimetype="application/json")
 
-
-@app.errorhandler(404)  # type: ignore
-def handle_notfound(e: NotFound) -> Response:
-    """Handle server error."""
-    app.logger.info(e)
-    return Response("Not Found", status=404, mimetype="application/json")
+    return app, tendermint_node
 
 
-@app.errorhandler(500)  # type: ignore
-def handle_server_error(e: InternalServerError) -> Response:
-    """Handle server error."""
-    app.logger.info(e)  # pylint: disable=E
-    return Response("Error Closing Node", status=500, mimetype="application/json")
-
-
-if __name__ == "__main__":
-    app.run()
+def create_server() -> Any:
+    """Function to retrieve just the app to be used by flask entry point."""
+    flask_app, _ = create_app()
+    return flask_app

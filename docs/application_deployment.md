@@ -9,45 +9,61 @@ Valory application deployments can be built on the fly.
 To learn about generating the deployment configuration, run the following command:
 
 ```bash
-python deployments/click_create.py build-deployment --help
-```
+$ swarm deploy build deployment --help
 
-This yields the following output:
-```
-Usage: click_create.py build-deployment [OPTIONS]
+Usage: swarm deploy build deployment [OPTIONS] PUBLIC_ID_OR_HASH KEYS_FILE
 
-  Build the agent and its components.
+  Build deployment setup for n agents.
 
 Options:
-  --valory-app TEXT
-  --deployment-file-path TEXT
-  --keys-file-path TEXT
-  --deployment-type [docker-compose|kubernetes]
-                                  [required]
-  --configure-tendermint
-  --help                          Show this message and exit.
+  --o PATH            Path to output dir.
+  --n INTEGER         Number of agents.
+  --docker            Use docker as a backend.
+  --kubernetes        Use docker as a kubernetes.
+  --packages-dir PATH  Path to packages folder (For local usage).
+  --dev               Create development environment.
+  --force             Remove existing build and overwrite with new one.
+  --help              Show this message and exit.
 ```
 
-In order to build a deployment from scratch, first ensure you have a clean build environment and then build the images:
+```bash
+swarm deploy build image --help
+
+Usage: swarm deploy build image [OPTIONS] PUBLIC_ID_OR_HASH
+
+  Build image using skaffold.
+
+Options:
+  --packages-dir PATH   Path to packages folder (For local usage).
+  --build-dir PATH     Path to build directory.
+  --skaffold-dir PATH  Path to directory containing the skaffold config.
+  --version TEXT       Image version
+  --push               Push image after build.
+  --dependencies       To use the dependencies profile.
+  --prod               To use the prod profile.
+  --dev                To use the dev profile.
+  --cluster            To use the cluster profile.
+  --help               Show this message and exit.
+```
+
+For example, in order to build a deployment from scratch for oracle abci, first ensure you have a clean build environment and then build the images:
 ```bash
 make clean
-make build-images
+swarm deploy build image valory/oracle_hardhat --dependencies
+swarm deploy build image valory/oracle_hardhat
 ```
 
 Next, run the command to generate the relevant build configuration:
 ```bash
-python deployments/click_create.py build-deployment \
-    --valory-app oracle_hardhat \
-    --deployment-type docker-compose \
-    --configure-tendermint
+swarm deploy build deployment valory/oracle_hardhat deployments/keys/hardhat_keys.json
 ```
 
-A build configuration will be output to `./deployments/build/$BUILD.yaml`.
+A build configuration will be output to `./abci_build`.
 
 This can then be launched using the appropriate tool. For example, to launch a deployment using docker-compose.
 
 ```bash 
-cd deployments/build/
+cd abci_build/
 docker-compose up --force-recreate
 ```
 

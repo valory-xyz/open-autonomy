@@ -4,9 +4,9 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
-open-aea = {version = "==1.8.0", extras = ["all"]}
-open-aea-ledger-ethereum = "==1.8.0"
-open-aea-cli-ipfs = "==1.8.0"
+open-aea = {version = "==1.9.0.post1", extras = ["all"]}
+open-aea-ledger-ethereum = "==1.9.0.post1"
+open-aea-cli-ipfs = "==1.9.0.post1"
 
 [dev-packages]
 atheris = "==2.0.10"
@@ -63,6 +63,7 @@ numpy = "<1.22,>=1.21.4"
 optuna = "<2.11,>=2.10.0"
 joblib = "<1.2,>=1.1.0"
 Flask= "==2.0.2"
+Werkzeug= "==2.0.3"
 
 [requires]
 python_version = "3.8"

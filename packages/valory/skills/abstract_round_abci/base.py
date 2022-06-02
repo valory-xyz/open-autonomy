@@ -346,11 +346,10 @@ class Blockchain:
     The consistency of the data in the blocks is guaranteed by Tendermint.
     """
 
-    def __init__(
-        self,
-    ) -> None:
+    def __init__(self, height_offset: int = 0) -> None:
         """Initialize the blockchain."""
         self._blocks: List[Block] = []
+        self._height_offset = height_offset
 
     def add_block(self, block: Block) -> None:
         """Add a block to the list."""
@@ -372,7 +371,7 @@ class Blockchain:
 
         :return: the height.
         """
-        return self.length
+        return self.length + self._height_offset
 
     @property
     def length(self) -> int:
@@ -1730,6 +1729,7 @@ class AbciApp(
         self._last_timestamp: Optional[datetime.datetime] = None
         self._current_timeout_entries: List[int] = []
         self._timeouts = Timeouts[EventType]()
+        self._reset_index = 0
 
     @property
     def synchronized_data(self) -> BaseSynchronizedData:
@@ -1740,6 +1740,11 @@ class AbciApp(
             if latest_result is not None
             else self._initial_synchronized_data
         )
+
+    @property
+    def reset_index(self) -> int:
+        """Return the reset index."""
+        return self._reset_index
 
     @classmethod
     def get_all_rounds(cls) -> Set[AppState]:
@@ -1996,9 +2001,10 @@ class AbciApp(
         self._previous_rounds = self._previous_rounds[-cleanup_history_depth:]
         self._round_results = self._round_results[-cleanup_history_depth:]
         self.synchronized_data.db.cleanup(cleanup_history_depth)
+        self._reset_index += 1
 
 
-class RoundSequence:
+class RoundSequence:  # pylint: disable=too-many-instance-attributes
     """
     This class represents a sequence of rounds
 
@@ -2044,6 +2050,8 @@ class RoundSequence:
         self._abci_app: Optional[AbciApp] = None
         self._last_round_transition_timestamp: Optional[datetime.datetime] = None
         self._last_round_transition_height = 0
+        self._last_round_transition_root_hash = b""
+        self._tm_height = -1
 
     def setup(self, *args: Any, **kwargs: Any) -> None:
         """
@@ -2160,9 +2168,55 @@ class RoundSequence:
         return self._last_round_transition_height
 
     @property
+    def last_round_transition_root_hash(
+        self,
+    ) -> bytes:
+        """Returns the root hash for last round transition."""
+        if self._last_round_transition_root_hash == b"":
+            # if called for the first chain initialization, return the hash resulting from the initial abci app's state
+            return self.root_hash
+        return self._last_round_transition_root_hash
+
+    @property
     def latest_synchronized_data(self) -> BaseSynchronizedData:
         """Get the latest synchronized_data."""
         return self.abci_app.synchronized_data
+
+    @property
+    def root_hash(self) -> bytes:
+        """
+        Get the Merkle root hash of the application state.
+
+        Create an app hash that always increases in order to avoid conflicts between resets.
+        Eventually, we do not necessarily need to have a value that increases, but we have to generate a hash that
+        is always different among the resets, since our abci's state is different even thought we have reset the chain!
+        For example, if we are in height 11, reset and then reach height 11 again, if we end up using the same hash
+        at height 11 between the resets, then this is problematic.
+
+        :return: the root hash to be included as the Header.AppHash in the next block.
+        """
+        return f"root:{self.abci_app.synchronized_data.db.round_count}reset:{self.abci_app.reset_index}".encode(
+            "utf-8"
+        )
+
+    @property
+    def tm_height(self) -> int:
+        """Get Tendermint's current height."""
+        if self._tm_height == -1:
+            raise ValueError(
+                "Trying to access Tendermint's current height before any `end_block` calls."
+            )
+        return self._tm_height
+
+    @tm_height.setter
+    def tm_height(self, _tm_height: int) -> None:
+        """Set Tendermint's current height."""
+        self._tm_height = _tm_height
+
+    def init_chain(self, initial_height: int) -> None:
+        """Init chain."""
+        # reduce `initial_height` by 1 to get block count offset as per Tendermint protocol
+        self._blockchain = Blockchain(initial_height - 1)
 
     def begin_block(self, header: Header) -> None:
         """Begin block."""
@@ -2233,10 +2287,6 @@ class RoundSequence:
         try:
             self._blockchain.add_block(block)
             self._update_round()
-            self._last_round_transition_timestamp = (
-                self._blockchain.last_block.timestamp
-            )
-            self._last_round_transition_height = self.height
             # The ABCI app now waits again for the next block
             self._block_construction_phase = (
                 RoundSequence._BlockConstructionState.WAITING_FOR_BEGIN_BLOCK
@@ -2264,6 +2314,9 @@ class RoundSequence:
         ] = self.current_round.end_block()
         if result is None:
             return
+        self._last_round_transition_timestamp = self._blockchain.last_block.timestamp
+        self._last_round_transition_height = self.height
+        self._last_round_transition_root_hash = self.root_hash
         round_result, event = result
         _logger.debug(
             f"updating round, current_round {self.current_round.round_id}, event: {event}, round result {round_result}"

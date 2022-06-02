@@ -401,7 +401,7 @@ The consistency of the data in the blocks is guaranteed by Tendermint.
 #### `__`init`__`
 
 ```python
-def __init__() -> None
+def __init__(height_offset: int = 0) -> None
 ```
 
 Initialize the blockchain.
@@ -1838,6 +1838,17 @@ def synchronized_data() -> BaseSynchronizedData
 
 Return the current synchronized data.
 
+<a id="packages.valory.skills.abstract_round_abci.base.AbciApp.reset_index"></a>
+
+#### reset`_`index
+
+```python
+@property
+def reset_index() -> int
+```
+
+Return the reset index.
+
 <a id="packages.valory.skills.abstract_round_abci.base.AbciApp.get_all_rounds"></a>
 
 #### get`_`all`_`rounds
@@ -2219,6 +2230,17 @@ def last_round_transition_height() -> int
 
 Returns the height for last round transition.
 
+<a id="packages.valory.skills.abstract_round_abci.base.RoundSequence.last_round_transition_root_hash"></a>
+
+#### last`_`round`_`transition`_`root`_`hash
+
+```python
+@property
+def last_round_transition_root_hash() -> bytes
+```
+
+Returns the root hash for last round transition.
+
 <a id="packages.valory.skills.abstract_round_abci.base.RoundSequence.latest_synchronized_data"></a>
 
 #### latest`_`synchronized`_`data
@@ -2229,6 +2251,59 @@ def latest_synchronized_data() -> BaseSynchronizedData
 ```
 
 Get the latest synchronized_data.
+
+<a id="packages.valory.skills.abstract_round_abci.base.RoundSequence.root_hash"></a>
+
+#### root`_`hash
+
+```python
+@property
+def root_hash() -> bytes
+```
+
+Get the Merkle root hash of the application state.
+
+Create an app hash that always increases in order to avoid conflicts between resets.
+Eventually, we do not necessarily need to have a value that increases, but we have to generate a hash that
+is always different among the resets, since our abci's state is different even thought we have reset the chain!
+For example, if we are in height 11, reset and then reach height 11 again, if we end up using the same hash
+at height 11 between the resets, then this is problematic.
+
+**Returns**:
+
+the root hash to be included as the Header.AppHash in the next block.
+
+<a id="packages.valory.skills.abstract_round_abci.base.RoundSequence.tm_height"></a>
+
+#### tm`_`height
+
+```python
+@property
+def tm_height() -> int
+```
+
+Get Tendermint's current height.
+
+<a id="packages.valory.skills.abstract_round_abci.base.RoundSequence.tm_height"></a>
+
+#### tm`_`height
+
+```python
+@tm_height.setter
+def tm_height(_tm_height: int) -> None
+```
+
+Set Tendermint's current height.
+
+<a id="packages.valory.skills.abstract_round_abci.base.RoundSequence.init_chain"></a>
+
+#### init`_`chain
+
+```python
+def init_chain(initial_height: int) -> None
+```
+
+Init chain.
 
 <a id="packages.valory.skills.abstract_round_abci.base.RoundSequence.begin_block"></a>
 

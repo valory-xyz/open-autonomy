@@ -25,7 +25,13 @@ from typing import Any, Dict, List, cast
 
 import yaml
 
-from aea_swarm.deploy.base import BaseDeploymentGenerator, DeploymentSpec
+from aea_swarm.constants import (
+    HARDHAT_IMAGE_NAME,
+    OPEN_AEA_IMAGE_NAME,
+    TENDERMINT_IMAGE_NAME,
+    TENDERMINT_IMAGE_VERSION,
+)
+from aea_swarm.deploy.base import BaseDeploymentGenerator, ServiceSpecification
 from aea_swarm.deploy.constants import TENDERMINT_CONFIGURATION_OVERRIDES
 from aea_swarm.deploy.generators.kubernetes.templates import (
     AGENT_NODE_TEMPLATE,
@@ -41,9 +47,9 @@ class KubernetesGenerator(BaseDeploymentGenerator):
     output_name: str = "build.yaml"
     deployment_type: str = "kubernetes"
 
-    def __init__(self, deployment_spec: DeploymentSpec, build_dir: Path) -> None:
+    def __init__(self, service_spec: ServiceSpecification, build_dir: Path) -> None:
         """Initialise the deployment generator."""
-        super().__init__(deployment_spec, build_dir)
+        super().__init__(service_spec, build_dir)
         self.resources: List[str] = []
 
     def build_agent_deployment(
@@ -52,6 +58,7 @@ class KubernetesGenerator(BaseDeploymentGenerator):
         agent_ix: int,
         number_of_agents: int,
         agent_vars: Dict[str, Any],
+        image_versions: Dict[str, str],
     ) -> str:
         """Build agent deployment."""
 
@@ -62,9 +69,13 @@ class KubernetesGenerator(BaseDeploymentGenerator):
         agent_deployment = AGENT_NODE_TEMPLATE.format(
             valory_app=image_name,
             validator_ix=agent_ix,
-            aea_key=self.deployment_spec.private_keys[agent_ix],
+            aea_key=self.service_spec.private_keys[agent_ix],
             number_of_validators=number_of_agents,
             host_names=host_names,
+            tendermint_image_name=TENDERMINT_IMAGE_NAME,
+            tendermint_image_version=image_versions["tendermint"],
+            open_aea_image_name=OPEN_AEA_IMAGE_NAME,
+            open_aea_image_version=image_versions["agent"],
         )
         agent_deployment_yaml = yaml.load_all(agent_deployment, Loader=yaml.FullLoader)  # type: ignore
         resources = []
@@ -81,7 +92,7 @@ class KubernetesGenerator(BaseDeploymentGenerator):
         return res
 
     def generate_config_tendermint(
-        self,
+        self, image_version: str = TENDERMINT_IMAGE_VERSION
     ) -> "KubernetesGenerator":
         """Build configuration job."""
 
@@ -91,14 +102,16 @@ class KubernetesGenerator(BaseDeploymentGenerator):
         host_names = ", ".join(
             [
                 f'"--hostname=abci{i}"'
-                for i in range(self.deployment_spec.number_of_agents)
+                for i in range(self.service_spec.service.number_of_agents)
             ]
         )
 
         self.tendermint_job_config = CLUSTER_CONFIGURATION_TEMPLATE.format(
-            valory_app=self.deployment_spec.agent_public_id.name,
-            number_of_validators=self.deployment_spec.number_of_agents,
+            valory_app=self.service_spec.service.agent.name,
+            number_of_validators=self.service_spec.service.number_of_agents,
             host_names=host_names,
+            tendermint_image_name=TENDERMINT_IMAGE_NAME,
+            tendermint_image_version=image_version,
         )
 
         return self
@@ -113,26 +126,31 @@ class KubernetesGenerator(BaseDeploymentGenerator):
 
     def generate(  # pylint: disable=unused-argument
         self,
+        image_versions: Dict[str, str],
         dev_mode: bool = False,
     ) -> "KubernetesGenerator":
         """Generate the deployment."""
 
         if dev_mode:
-            self.resources.append(HARDHAT_TEMPLATE)
-        agent_vars = self.deployment_spec.generate_agents()  # type:ignore
+            self.resources.append(
+                HARDHAT_TEMPLATE % (HARDHAT_IMAGE_NAME, image_versions["hardhat"])
+            )
+
+        agent_vars = self.service_spec.generate_agents()  # type:ignore
         agent_vars = self._apply_cluster_specific_tendermint_params(agent_vars)
         agent_vars = self.get_deployment_network_configuration(agent_vars)
-        self.image_name = self.deployment_spec.agent_public_id.name
+        self.image_name = self.service_spec.service.agent.name
 
         agents = "\n---\n".join(
             [
                 self.build_agent_deployment(
                     self.image_name,
                     i,
-                    self.deployment_spec.number_of_agents,
+                    self.service_spec.service.number_of_agents,
                     agent_vars[i],
+                    image_versions,
                 )
-                for i in range(self.deployment_spec.number_of_agents)
+                for i in range(self.service_spec.service.number_of_agents)
             ]
         )
         self.resources.append(agents)

@@ -7,22 +7,22 @@ aea_version: '>=1.0.0, <2.0.0'
 fingerprint: {}
 fingerprint_ignore_patterns: []
 connections:
-- valory/abci:0.1.0:QmUq4z19VS9G1TfnZdKy818F7maQopAor4NGe9t4DgzwyJ
-- valory/http_client:0.1.0:QmakgWmx4CGuQuafUELiceH53N8HfgdfkQJpem7iYy9MVN
-- valory/ledger:0.1.0:QmYg9pxvDADc7Vha61yLFPUkXqYsrt8Cfff16Vaq1hXM7W
+- valory/abci:0.1.0:QmVV5qAZxB75SsVGfQw5KuMRnuFP3RXYD6WwaYs6iMWiVU
+- valory/http_client:0.1.0:QmWXhTfjybebxpE34WT3Uq9nyBjtbf2S4QBRNgDhGGzzsX
+- valory/ledger:0.1.0:QmXdscpRpJaQxcxaL6V34ExpKLMHK7uiKDtoJe3Siuk4Z6
 contracts: []
 protocols:
-- open_aea/signing:1.0.0:QmQJpw5ZBDravLLZzU6WDdgxvxoT89AtahHPshrqfgoLTg
-- valory/abci:0.1.0:QmaPFp3Jwf6uv9VSAoMJfJHFS9ESPeX8hCB7HLi41c8WzS
-- valory/contract_api:1.0.0:QmTZgtH8LbnFxqpGf2zuwSEdG4awPgvsag6jTYgX9GXDgy
-- valory/http:1.0.0:QmbjfzjKMuRmwbQysyaciASxvY67vGJYj7zjGYADgNux5h
-- valory/ledger_api:1.0.0:QmWQSUkGAbzU8tqs7K8BguabbKHUZkbxuMk1M4LBFAwdun
+- open_aea/signing:1.0.0:QmQJbzTMRVNTSaJDm4JSZHzoRgsZDUfzTqipJAJcicobXx
+- valory/abci:0.1.0:QmYg2GNatG8mzmiZrnZNL2LtS7rx4Mgi8g55Kfd5nj3QEp
+- valory/contract_api:1.0.0:QmQssrTfPsTJxkHQthn735vKQHmBuvoZE2eMFf3UzEFizf
+- valory/http:1.0.0:QmcFZahrD7WQRyK2bcdj2BmRNijK9EeKbTiGwkzxZ4nVti
+- valory/ledger_api:1.0.0:QmTMQKNr3oL8j68swCL4LjvUsHsyDp8FTM1UcPTfBvJYDn
 skills:
-- valory/abstract_abci:0.1.0:QmVfwEGhpc4EZ5gW5tP4okvJ4kAaAjUBoBnd8seUBUgJAc
-- valory/abstract_round_abci:0.1.0:QmVa6jjPsZcFC7fCLSR2ypt5ssC5L5BrS1QF8pacGJV83t
-- valory/apy_estimation_abci:0.1.0:QmTGqXN9SjWXZqdhTCtFKeyL9jzDyLKR1WXRUmiuCMX5aL
-- valory/apy_estimation_chained_abci:0.1.0:QmP3h11MRZ7fiBQCnJ7BBo2YPs5ttH86dEes8dmsEjwaWY
-- valory/registration_abci:0.1.0:Qmey7ERJUUSnNRsDiaJBZ42hfwswpXtYS3zjyxu4MbGoei
+- valory/abstract_abci:0.1.0:QmZg627HxCTt9BJkv464ySucREq7csgXq4PQa8LPwvECz5
+- valory/abstract_round_abci:0.1.0:QmXmsduVcYULumGzntbvt7yjVrbg1T49mA98VpAhQBBKpX
+- valory/apy_estimation_abci:0.1.0:QmXHLa3YjJPkkgVibzQgs9cZEU6J2iL6TNbPpSBebE7oQC
+- valory/apy_estimation_chained_abci:0.1.0:QmcywrsAzEGv35cNVKpJdk2kqzSdSUBgyqvWYkCBDskr1c
+- valory/registration_abci:0.1.0:QmRWPXYauNUdrykfyYJqoBQwxSnM7hqLvQ54UVDSfwCrK4
 default_ledger: ethereum
 required_ledgers:
 - ethereum
