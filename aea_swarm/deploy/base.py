@@ -33,17 +33,15 @@ from aea.configurations.base import (
 )
 from aea.configurations.constants import AGENTS, DEFAULT_AEA_CONFIG_FILE
 
-from aea_swarm.configurations.base import Files
+from aea_swarm.configurations.base import Service
+from aea_swarm.configurations.loader import load_service_config
 from aea_swarm.constants import (
     DEFAULT_ENCODING,
     KEY_SCHEMA_ADDRESS,
     KEY_SCHEMA_ENCRYPTED_KEY,
     KEY_SCHEMA_UNENCRYPTED_KEY,
-    TENDERMINT_IMAGE_VERSION
+    TENDERMINT_IMAGE_VERSION,
 )
-from aea_swarm.configurations.base import Service
-from aea_swarm.configurations.loader import load_service_config
-from aea_swarm.constants import TENDERMINT_IMAGE_VERSION
 from aea_swarm.deploy.constants import NETWORKS
 
 
@@ -67,6 +65,7 @@ class ServiceSpecification:
     service: Service
     overrides: List
     packages_dir: Path
+    private_keys: List
 
     def __init__(
         self,
@@ -74,8 +73,10 @@ class ServiceSpecification:
         keys: Path,
         packages_dir: Path,
         number_of_agents: Optional[int] = None,
+        private_keys_password: Optional[str] = None,
     ) -> None:
         """Initialize the Base Deployment."""
+        self.private_keys_password = private_keys_password
         self.packages_dir = packages_dir
         self.service = load_service_config(service_path)
         if number_of_agents is not None:
@@ -89,10 +90,7 @@ class ServiceSpecification:
 
     def read_keys(self, file_path: Path) -> None:
         """Read in keys from a file on disk."""
-        self.private_keys = []
-
         keys = json.loads(file_path.read_text(encoding=DEFAULT_ENCODING))
-        self.private_keys = []
 
         key_schema = (
             KEY_SCHEMA_UNENCRYPTED_KEY
@@ -122,19 +120,12 @@ class ServiceSpecification:
     def generate_common_vars(self, agent_n: int) -> Dict:
         """Retrieve vars common for valory apps."""
         agent_vars = {
-            "VALORY_APPLICATION": self.agent,
+            "ID": agent_n,
+            "VALORY_APPLICATION": self.service.agent,
             "ABCI_HOST": f"abci{agent_n}",
-            "MAX_PARTICIPANTS": self.number_of_agents,  # I believe that this is correct
+            "MAX_PARTICIPANTS": self.service.number_of_agents,  # I believe that this is correct
             "TENDERMINT_URL": f"http://node{agent_n}:26657",
             "TENDERMINT_COM_URL": f"http://node{agent_n}:8080",
-        return {
-            "ID": agent_n,
-            "AEA_KEY": self.private_keys[agent_n],
-            "VALORY_APPLICATION": self.service.agent,
-            "MAX_PARTICIPANTS": self.service.number_of_agents,
-            "ABCI_HOST": ABCI_HOST.format(agent_n),
-            "TENDERMINT_URL": TENDERMINT_NODE.format(agent_n),
-            "TENDERMINT_COM_URL": TENDERMINT_COM.format(agent_n),
         }
 
         if self.private_keys_password is not None:

@@ -26,7 +26,6 @@ from aea.configurations.constants import DEFAULT_PRIVATE_KEY_FILE
 
 from aea_swarm.constants import (
     DEFAULT_ENCODING,
-    DEFAULT_IMAGE_VERSION,
     DEPLOYMENT_AGENT_KEY_DIRECTORY_SCHEMA,
     DEPLOYMENT_KEY_DIRECTORY,
     IMAGE_VERSION,
@@ -192,7 +191,7 @@ class DockerComposeGenerator(BaseDeploymentGenerator):
         self,
     ) -> "DockerComposeGenerator":
         """Populate the private keys to the build directory for docker-compose mapping."""
-        for x in range(self.deployment_spec.number_of_agents):
+        for x in range(self.service_spec.service.number_of_agents):
             path = (
                 self.build_dir
                 / DEPLOYMENT_KEY_DIRECTORY
@@ -202,5 +201,5 @@ class DockerComposeGenerator(BaseDeploymentGenerator):
             with open(
                 path / DEFAULT_PRIVATE_KEY_FILE, "w", encoding=DEFAULT_ENCODING
             ) as f:
-                f.write(self.deployment_spec.private_keys[x])
+                f.write(self.service_spec.private_keys[x])
         return self
