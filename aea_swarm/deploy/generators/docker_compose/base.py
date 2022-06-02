@@ -172,7 +172,7 @@ class DockerComposeGenerator(BaseDeploymentGenerator):
         tendermint_nodes = "".join(
             [
                 build_tendermint_node_config(i, dev_mode, image_versions["tendermint"])
-                for i in range(self.deployment_spec.number_of_agents)
+                for i in range(self.service_spec.number_of_agents)
             ]
         )
         self.output = DOCKER_COMPOSE_TEMPLATE.format(

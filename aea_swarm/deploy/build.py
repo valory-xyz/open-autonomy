@@ -20,13 +20,12 @@
 from pathlib import Path
 from typing import Optional, cast
 
-from aea_swarm.deploy.base import BaseDeploymentGenerator, ServiceSpecification
 from aea_swarm.constants import (
     HARDHAT_IMAGE_VERSION,
     IMAGE_VERSION,
     TENDERMINT_IMAGE_VERSION,
 )
-from aea_swarm.deploy.base import BaseDeploymentGenerator
+from aea_swarm.deploy.base import BaseDeploymentGenerator, ServiceSpecification
 from aea_swarm.deploy.constants import DEPLOYMENT_REPORT
 from aea_swarm.deploy.generators.docker_compose.base import DockerComposeGenerator
 from aea_swarm.deploy.generators.kubernetes.base import KubernetesGenerator

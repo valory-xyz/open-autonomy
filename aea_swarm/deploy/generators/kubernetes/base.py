@@ -25,14 +25,13 @@ from typing import Any, Dict, List, cast
 
 import yaml
 
-from aea_swarm.deploy.base import BaseDeploymentGenerator, ServiceSpecification
 from aea_swarm.constants import (
     HARDHAT_IMAGE_NAME,
     OPEN_AEA_IMAGE_NAME,
     TENDERMINT_IMAGE_NAME,
     TENDERMINT_IMAGE_VERSION,
 )
-from aea_swarm.deploy.base import BaseDeploymentGenerator
+from aea_swarm.deploy.base import BaseDeploymentGenerator, ServiceSpecification
 from aea_swarm.deploy.constants import TENDERMINT_CONFIGURATION_OVERRIDES
 from aea_swarm.deploy.generators.kubernetes.templates import (
     AGENT_NODE_TEMPLATE,
@@ -137,7 +136,7 @@ class KubernetesGenerator(BaseDeploymentGenerator):
                 HARDHAT_TEMPLATE % (HARDHAT_IMAGE_NAME, image_versions["hardhat"])
             )
 
-        agent_vars = self.deployment_spec.generate_agents()  # type:ignore
+        agent_vars = self.service_spec.generate_agents()  # type:ignore
         agent_vars = self._apply_cluster_specific_tendermint_params(agent_vars)
         agent_vars = self.get_deployment_network_configuration(agent_vars)
         self.image_name = self.service_spec.service.agent.name
