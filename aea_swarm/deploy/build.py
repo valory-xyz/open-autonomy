@@ -25,7 +25,7 @@ from aea_swarm.constants import (
     IMAGE_VERSION,
     TENDERMINT_IMAGE_VERSION,
 )
-from aea_swarm.deploy.base import BaseDeploymentGenerator, DeploymentSpec
+from aea_swarm.deploy.base import BaseDeploymentGenerator, ServiceSpecification
 from aea_swarm.deploy.constants import DEPLOYMENT_REPORT
 from aea_swarm.deploy.generators.docker_compose.base import DockerComposeGenerator
 from aea_swarm.deploy.generators.kubernetes.base import KubernetesGenerator
@@ -40,8 +40,8 @@ DEPLOYMENT_OPTIONS = {
 def generate_deployment(  # pylint: disable=too-many-arguments
     type_of_deployment: str,
     private_keys_file_path: Path,
-    deployment_file_path: Path,
-    package_dir: Path,
+    service_path: Path,
+    packages_dir: Path,
     build_dir: Path,
     number_of_agents: Optional[int] = None,
     dev_mode: bool = False,
@@ -62,10 +62,10 @@ def generate_deployment(  # pylint: disable=too-many-arguments
             "tendermint": version,
         }
 
-    deployment_spec = DeploymentSpec(
-        path_to_deployment_spec=str(deployment_file_path),
-        private_keys_file_path=Path(private_keys_file_path),
-        package_dir=package_dir,
+    service_spec = ServiceSpecification(
+        service_path=service_path,
+        keys=private_keys_file_path,
+        packages_dir=packages_dir,
         number_of_agents=number_of_agents,
     )
 
@@ -74,7 +74,7 @@ def generate_deployment(  # pylint: disable=too-many-arguments
         raise ValueError(f"Cannot find deployment generator for {type_of_deployment}")
     deployment = cast(
         BaseDeploymentGenerator,
-        DeploymentGenerator(deployment_spec=deployment_spec, build_dir=build_dir),
+        DeploymentGenerator(service_spec=service_spec, build_dir=build_dir),
     )
 
     deployment.generate(image_versions, dev_mode).generate_config_tendermint(
@@ -84,12 +84,8 @@ def generate_deployment(  # pylint: disable=too-many-arguments
     return DEPLOYMENT_REPORT.substitute(
         **{
             "type": type_of_deployment,
-            "agents": (
-                deployment_spec.number_of_agents
-                if number_of_agents is None
-                else number_of_agents
-            ),
-            "network": deployment_spec.network,
+            "agents": service_spec.service.number_of_agents,
+            "network": service_spec.service.network,
             "size": len(deployment.output),
         }
     )
