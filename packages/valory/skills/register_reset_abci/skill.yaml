@@ -73,7 +73,7 @@ models:
       keeper_timeout: 30.0
       max_healthcheck: 120
       observation_interval: 15
-      period_setup: {}
+      setup: {}
       reset_tendermint_after: 1
       retry_attempts: 400
       retry_timeout: 3
