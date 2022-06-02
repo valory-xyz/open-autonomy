@@ -1163,11 +1163,14 @@ class TestRoundSequence:
         self.round_sequence.setup(MagicMock(), MagicMock(), MagicMock())
         self.round_sequence.tm_height = 1
 
+    @pytest.mark.parametrize("offset", tuple(range(5)))
     @pytest.mark.parametrize("n_blocks", (0, 1, 10))
-    def test_height(self, n_blocks: int) -> None:
+    def test_height(self, n_blocks: int, offset: int) -> None:
         """Test 'height' property."""
         self.round_sequence._blockchain._blocks = [MagicMock() for _ in range(n_blocks)]
-        assert self.round_sequence.height == n_blocks
+        self.round_sequence._blockchain._height_offset = offset
+        assert self.round_sequence._blockchain.length == n_blocks
+        assert self.round_sequence.height == n_blocks + offset
 
     def test_is_finished(self) -> None:
         """Test 'is_finished' property."""
