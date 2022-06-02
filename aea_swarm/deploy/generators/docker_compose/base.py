@@ -108,10 +108,10 @@ class DockerComposeGenerator(BaseDeploymentGenerator):
             hosts=" \\\n".join(
                 [
                     f"--hostname=node{k}"
-                    for k in range(self.deployment_spec.number_of_agents)
+                    for k in range(self.service_spec.service.number_of_agents)
                 ]
             ),
-            validators=self.deployment_spec.number_of_agents,
+            validators=self.service_spec.service.number_of_agents,
             build_dir=self.build_dir,
             tendermint_image_name=TENDERMINT_IMAGE_NAME,
             tendermint_image_version=image_version,
@@ -149,9 +149,9 @@ class DockerComposeGenerator(BaseDeploymentGenerator):
     ) -> "DockerComposeGenerator":
         """Generate the new configuration."""
 
-        agent_vars = self.deployment_spec.generate_agents()
+        agent_vars = self.service_spec.generate_agents()
         agent_vars = self.get_deployment_network_configuration(agent_vars)
-        image_name = self.deployment_spec.agent_public_id.name
+        image_name = self.service_spec.service.agent.name
 
         if dev_mode:
             image_versions["agent"] = "dev"
@@ -161,18 +161,18 @@ class DockerComposeGenerator(BaseDeploymentGenerator):
                 build_agent_config(
                     image_name,
                     i,
-                    self.deployment_spec.number_of_agents,
+                    self.service_spec.service.number_of_agents,
                     agent_vars[i],
                     dev_mode,
                     open_aea_image_version=image_versions["agent"],
                 )
-                for i in range(self.deployment_spec.number_of_agents)
+                for i in range(self.service_spec.service.number_of_agents)
             ]
         )
         tendermint_nodes = "".join(
             [
                 build_tendermint_node_config(i, dev_mode, image_versions["tendermint"])
-                for i in range(self.deployment_spec.number_of_agents)
+                for i in range(self.service_spec.service.number_of_agents)
             ]
         )
         self.output = DOCKER_COMPOSE_TEMPLATE.format(

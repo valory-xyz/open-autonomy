@@ -12,7 +12,7 @@ build:
     docker:
       dockerfile: Dockerfile
       buildArgs:
-        AEA_VERSION: "1.8.0"
+        AEA_VERSION: "1.9.0.post1"
         AEA_AGENT: "{{.AEA_AGENT}}"
 
 
@@ -36,7 +36,7 @@ profiles:
         path: /build/artifacts/0/kaniko
         value:
           buildArgs:
-            AEA_VERSION: "1.8.0"
+            AEA_VERSION: "1.9.0.post1"
             AEA_AGENT: "{{.AEA_AGENT}}"
       - op: add
         path: /build/cluster

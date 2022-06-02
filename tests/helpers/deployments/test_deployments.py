@@ -29,12 +29,14 @@ from typing import Any, List, Tuple, cast
 
 import yaml
 
+from aea_swarm.configurations.base import Service
+from aea_swarm.configurations.validation import ConfigValidator
 from aea_swarm.constants import (
     HARDHAT_IMAGE_VERSION,
     IMAGE_VERSION,
     TENDERMINT_IMAGE_VERSION,
 )
-from aea_swarm.deploy.base import BaseDeploymentGenerator, DeploymentSpec
+from aea_swarm.deploy.base import BaseDeploymentGenerator, ServiceSpecification
 from aea_swarm.deploy.generators.docker_compose.base import DockerComposeGenerator
 from aea_swarm.deploy.generators.kubernetes.base import KubernetesGenerator
 
@@ -54,6 +56,9 @@ os.chdir(ROOT_DIR)
 BASE_DEPLOYMENT: str = """name: "deployment_case"
 author: "valory"
 version: 0.1.0
+description: Description
+aea_version: ">=1.0.0, <2.0.0"
+license: Apache-2.0
 agent: "valory/oracle_deployable:0.1.0"
 network: hardhat
 number_of_agents: 1
@@ -104,7 +109,7 @@ config:
 """
 
 
-TEST_DEPLOYMENT_PATH: str = "example-deployment.yaml"
+TEST_DEPLOYMENT_PATH: str = "service.yaml"
 IMAGE_VERSIONS = {
     "agent": IMAGE_VERSION,
     "hardhat": HARDHAT_IMAGE_VERSION,
@@ -157,11 +162,13 @@ class BaseDeploymentTests(ABC, CleanDirectoryClass):
 
     deployment_spec_path: str
     temp_dir: tempfile.TemporaryDirectory
+    validator: ConfigValidator
 
     @classmethod
     def setup_class(cls) -> None:
         """Setup up the test class."""
         cls.temp_dir = tempfile.TemporaryDirectory()
+        cls.validator = ConfigValidator(Service.schema)
 
     @classmethod
     def teardown_class(cls) -> None:
@@ -178,18 +185,19 @@ class BaseDeploymentTests(ABC, CleanDirectoryClass):
             str(self.working_dir / TEST_DEPLOYMENT_PATH), "w", encoding="utf8"
         ) as f:
             f.write(app)
+
         return str(self.working_dir / TEST_DEPLOYMENT_PATH)
 
     def load_deployer_and_app(
         self, app: str, deployer: BaseDeploymentGenerator
-    ) -> Tuple[BaseDeploymentGenerator, DeploymentSpec]:
+    ) -> Tuple[BaseDeploymentGenerator, ServiceSpecification]:
         """Handles loading the 2 required instances"""
-        app_instance = DeploymentSpec(
-            path_to_deployment_spec=app,
-            private_keys_file_path=DEFAULT_KEY_PATH,
-            package_dir=PACKAGES_DIR,
+        app_instance = ServiceSpecification(
+            service_path=Path(app).parent,
+            keys=DEFAULT_KEY_PATH,
+            packages_dir=PACKAGES_DIR,
         )
-        instance = deployer(deployment_spec=app_instance, build_dir=self.temp_dir.name)  # type: ignore
+        instance = deployer(service_spec=app_instance, build_dir=self.temp_dir.name)  # type: ignore
         return instance, app_instance
 
 
@@ -318,7 +326,7 @@ class TestCliTool(BaseDeploymentTests):
                 _, app_instance = self.load_deployer_and_app(
                     spec_path, deployment_generator
                 )
-                if app_instance.network != "ropsten":
+                if app_instance.service.network != "ropsten":
                     continue
                 app_instance.generate_agent(0)
 
@@ -391,7 +399,7 @@ class TestOverrideTypes(BaseDeploymentTests):
             _, app_instance = self.load_deployer_and_app(
                 spec_path, deployment_generator
             )
-            app_instance.validator.check_overrides_are_valid()
+            app_instance.service.check_overrides_valid(app_instance.service.overrides)
 
     def test_validates_with_list_override(self) -> None:
         """Test functionality of deploy safe contract."""
@@ -404,7 +412,7 @@ class TestOverrideTypes(BaseDeploymentTests):
             _, app_instance = self.load_deployer_and_app(
                 spec_path, deployment_generator
             )
-            app_instance.validator.check_overrides_are_valid()
+            app_instance.service.check_overrides_valid(app_instance.service.overrides)
 
     def test_validates_with_10_agents(self) -> None:
         """Test functionality of deploy safe contract."""
@@ -417,7 +425,7 @@ class TestOverrideTypes(BaseDeploymentTests):
             deployment_instance, app_instance = self.load_deployer_and_app(
                 spec_path, deployment_generator
             )
-            app_instance.validator.check_overrides_are_valid()
+            app_instance.service.check_overrides_valid(app_instance.service.overrides)
             app_instance.generate_agents()
             deployment_instance.generate(IMAGE_VERSIONS)
 
@@ -432,6 +440,6 @@ class TestOverrideTypes(BaseDeploymentTests):
             deployment_instance, app_instance = self.load_deployer_and_app(
                 spec_path, deployment_generator
             )
-            app_instance.validator.check_overrides_are_valid()
+            app_instance.service.check_overrides_valid(app_instance.service.overrides)
             app_instance.generate_agents()
             deployment_instance.generate(IMAGE_VERSIONS)
