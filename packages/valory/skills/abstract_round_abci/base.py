@@ -2051,7 +2051,7 @@ class RoundSequence:  # pylint: disable=too-many-instance-attributes
         self._last_round_transition_timestamp: Optional[datetime.datetime] = None
         self._last_round_transition_height = 0
         self._last_round_transition_root_hash = b""
-        self._tm_height = -1
+        self._tm_height: Optional[int] = None
 
     def setup(self, *args: Any, **kwargs: Any) -> None:
         """
@@ -2202,7 +2202,7 @@ class RoundSequence:  # pylint: disable=too-many-instance-attributes
     @property
     def tm_height(self) -> int:
         """Get Tendermint's current height."""
-        if self._tm_height == -1:
+        if self._tm_height is None:
             raise ValueError(
                 "Trying to access Tendermint's current height before any `end_block` calls."
             )
