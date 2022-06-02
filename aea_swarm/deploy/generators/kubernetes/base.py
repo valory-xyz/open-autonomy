@@ -26,15 +26,17 @@ from typing import Any, Dict, List, cast
 import yaml
 
 from aea_swarm.constants import (
-    DEFAULT_ENCODING,
     HARDHAT_IMAGE_NAME,
-    KUBERNETES_AGENT_KEY_NAME,
     OPEN_AEA_IMAGE_NAME,
     TENDERMINT_IMAGE_NAME,
     TENDERMINT_IMAGE_VERSION,
 )
 from aea_swarm.deploy.base import BaseDeploymentGenerator, ServiceSpecification
-from aea_swarm.deploy.constants import TENDERMINT_CONFIGURATION_OVERRIDES
+from aea_swarm.deploy.constants import (
+    DEFAULT_ENCODING,
+    KUBERNETES_AGENT_KEY_NAME,
+    TENDERMINT_CONFIGURATION_OVERRIDES,
+)
 from aea_swarm.deploy.generators.kubernetes.templates import (
     AGENT_NODE_TEMPLATE,
     AGENT_SECRET_TEMPLATE,

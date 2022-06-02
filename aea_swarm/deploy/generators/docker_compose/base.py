@@ -25,15 +25,17 @@ from typing import Dict, IO, cast
 from aea.configurations.constants import DEFAULT_PRIVATE_KEY_FILE
 
 from aea_swarm.constants import (
-    DEFAULT_ENCODING,
-    DEPLOYMENT_AGENT_KEY_DIRECTORY_SCHEMA,
-    DEPLOYMENT_KEY_DIRECTORY,
     IMAGE_VERSION,
     OPEN_AEA_IMAGE_NAME,
     TENDERMINT_IMAGE_NAME,
     TENDERMINT_IMAGE_VERSION,
 )
 from aea_swarm.deploy.base import BaseDeploymentGenerator
+from aea_swarm.deploy.constants import (
+    DEFAULT_ENCODING,
+    DEPLOYMENT_AGENT_KEY_DIRECTORY_SCHEMA,
+    DEPLOYMENT_KEY_DIRECTORY,
+)
 from aea_swarm.deploy.generators.docker_compose.templates import (
     ABCI_NODE_TEMPLATE,
     DOCKER_COMPOSE_TEMPLATE,

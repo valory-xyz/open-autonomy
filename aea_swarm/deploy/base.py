@@ -35,14 +35,14 @@ from aea.configurations.constants import AGENTS, DEFAULT_AEA_CONFIG_FILE
 
 from aea_swarm.configurations.base import Service
 from aea_swarm.configurations.loader import load_service_config
-from aea_swarm.constants import (
+from aea_swarm.constants import TENDERMINT_IMAGE_VERSION
+from aea_swarm.deploy.constants import (
     DEFAULT_ENCODING,
     KEY_SCHEMA_ADDRESS,
     KEY_SCHEMA_ENCRYPTED_KEY,
     KEY_SCHEMA_UNENCRYPTED_KEY,
-    TENDERMINT_IMAGE_VERSION,
+    NETWORKS,
 )
-from aea_swarm.deploy.constants import NETWORKS
 
 
 ABCI_HOST = "abci{}"

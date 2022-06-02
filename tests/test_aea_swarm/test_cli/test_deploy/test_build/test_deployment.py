@@ -30,13 +30,14 @@ import yaml
 from aea_swarm.cli import cli
 from aea_swarm.constants import (
     DEFAULT_BUILD_FOLDER,
-    DEPLOYMENT_AGENT_KEY_DIRECTORY_SCHEMA,
-    DEPLOYMENT_KEY_DIRECTORY,
-    KUBERNETES_AGENT_KEY_NAME,
     OPEN_AEA_IMAGE_NAME,
     TENDERMINT_IMAGE_NAME,
 )
-
+from aea_swarm.deploy.constants import (
+    DEPLOYMENT_AGENT_KEY_DIRECTORY_SCHEMA,
+    DEPLOYMENT_KEY_DIRECTORY,
+    KUBERNETES_AGENT_KEY_NAME,
+)
 from tests.conftest import (
     ETHEREUM_ENCRYPTED_KEYS,
     ETHEREUM_ENCRYPTION_PASSWORD,
