@@ -522,7 +522,7 @@ class AbciAppDB:
     ) -> None:
         """Initialize the AbciApp database.
 
-        Initial_data must be passed either a Dict[str, List[Any]] (the database internal format). The class method 'data_to_lists'
+        Initial_data must be passed as a Dict[str, List[Any]] (the database internal format). The class method 'data_to_lists'
         can be used to convert from Dict[str, Any] to Dict[str, List[Any]] before instantiating this class.
 
         :param initial_data: the initial data
