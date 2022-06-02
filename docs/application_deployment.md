@@ -20,7 +20,7 @@ Options:
   --n INTEGER         Number of agents.
   --docker            Use docker as a backend.
   --kubernetes        Use docker as a kubernetes.
-  --package-dir PATH  Path to packages folder (For local usage).
+  --packages-dir PATH  Path to packages folder (For local usage).
   --dev               Create development environment.
   --force             Remove existing build and overwrite with new one.
   --help              Show this message and exit.
@@ -34,7 +34,7 @@ Usage: swarm deploy build image [OPTIONS] PUBLIC_ID_OR_HASH
   Build image using skaffold.
 
 Options:
-  --package-dir PATH   Path to packages folder (For local usage).
+  --packages-dir PATH   Path to packages folder (For local usage).
   --build-dir PATH     Path to build directory.
   --skaffold-dir PATH  Path to directory containing the skaffold config.
   --version TEXT       Image version
