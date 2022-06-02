@@ -25,7 +25,7 @@ from pathlib import Path
 from typing import Optional
 
 import click
-from aea.cli.utils.click_utils import PublicIdParameter
+from aea.cli.utils.click_utils import PublicIdParameter, password_option
 from aea.configurations.constants import PACKAGES
 from aea.configurations.data_types import PublicId
 
@@ -100,12 +100,7 @@ def build_group() -> None:
     default=False,
     help="Remove existing build and overwrite with new one.",
 )
-@click.option(
-    "--keys-password",
-    "keys_password",
-    default=None,
-    help="Optional password for encrypted keys.",
-)
+@password_option(confirmation_prompt=True)
 def build_deployment(  # pylint: disable=too-many-arguments
     service_id: PublicId,
     keys_file: Path,
@@ -115,7 +110,7 @@ def build_deployment(  # pylint: disable=too-many-arguments
     dev_mode: bool,
     force_overwrite: bool,
     number_of_agents: Optional[int] = None,
-    keys_password: Optional[str] = None,
+    password: Optional[str] = None,
 ) -> None:
     """Build deployment setup for n agents."""
 
@@ -141,7 +136,7 @@ def build_deployment(  # pylint: disable=too-many-arguments
             deployment_file_path=deployment_file_path,
             type_of_deployment=deployment_type,
             private_keys_file_path=keys_file,
-            private_keys_password=keys_password,
+            private_keys_password=password,
             number_of_agents=number_of_agents,
             package_dir=package_dir,
             build_dir=build_dir,

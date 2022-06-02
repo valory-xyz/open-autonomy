@@ -22,8 +22,13 @@ import subprocess  # nosec
 from pathlib import Path
 from typing import Dict, IO, cast
 
+from aea.configurations.constants import DEFAULT_PRIVATE_KEY_FILE
+
 from aea_swarm.constants import (
+    DEFAULT_ENCODING,
     DEFAULT_IMAGE_VERSION,
+    DEPLOYMENT_AGENT_KEY_DIRECTORY_SCHEMA,
+    DEPLOYMENT_KEY_DIRECTORY,
     OPEN_AEA_IMAGE_NAME,
     TENDERMINT_IMAGE_NAME,
 )
@@ -179,8 +184,14 @@ class DockerComposeGenerator(BaseDeploymentGenerator):
     ) -> "DockerComposeGenerator":
         """Populate the private keys to the build directory for docker-compose mapping."""
         for x in range(self.deployment_spec.number_of_agents):
-            path = self.build_dir / "agent_keys" / f"agent_{x}"
+            path = (
+                self.build_dir
+                / DEPLOYMENT_KEY_DIRECTORY
+                / DEPLOYMENT_AGENT_KEY_DIRECTORY_SCHEMA.format(agent_n=x)
+            )
             path.mkdir()
-            with open(path / "ethereum_private_key.txt", "w", encoding="utf8") as f:
+            with open(
+                path / DEFAULT_PRIVATE_KEY_FILE, "w", encoding=DEFAULT_ENCODING
+            ) as f:
                 f.write(self.deployment_spec.private_keys[x])
         return self

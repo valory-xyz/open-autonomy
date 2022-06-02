@@ -51,6 +51,12 @@ from aea.helpers.base import cd
 from aea.helpers.io import open_file
 
 from aea_swarm.configurations.base import Files
+from aea_swarm.constants import (
+    DEFAULT_ENCODING,
+    KEY_SCHEMA_ADDRESS,
+    KEY_SCHEMA_ENCRYPTED_KEY,
+    KEY_SCHEMA_UNENCRYPTED_KEY,
+)
 from aea_swarm.deploy.constants import NETWORKS
 
 
@@ -331,7 +337,7 @@ class DeploymentSpec:  # pylint: disable=R0902
             schema_filename=str(Files.deployment_schema)
         )
 
-        with open(path_to_deployment_spec, "r", encoding="utf8") as file:
+        with open(path_to_deployment_spec, "r", encoding=DEFAULT_ENCODING) as file:
             self.deployment_spec, *self.overrides = yaml.load_all(
                 file, Loader=yaml.SafeLoader
             )
@@ -355,19 +361,19 @@ class DeploymentSpec:  # pylint: disable=R0902
     def read_keys(self, file_path: Path) -> None:
         """Read in keys from a file on disk."""
 
-        keys = json.loads(file_path.read_text(encoding="utf-8"))
+        keys = json.loads(file_path.read_text(encoding=DEFAULT_ENCODING))
         self.private_keys = []
 
-        if self.private_keys_password is None:
-            for key in keys:
-                if "address" not in key.keys() and "private_key" not in key.keys():
+        key_schema = (
+            KEY_SCHEMA_UNENCRYPTED_KEY
+            if self.private_keys_password is None
+            else KEY_SCHEMA_ENCRYPTED_KEY
+        )
+        for key in keys:
+            for required_key in [KEY_SCHEMA_ADDRESS, key_schema]:
+                if required_key not in key.keys():
                     raise ValueError("Key file incorrectly formatted.")
-                self.private_keys.append(key["private_key"])
-        else:
-            for key in keys:
-                if "address" not in key.keys() and "encrypted_key" not in key.keys():
-                    raise ValueError("Encrypted key file incorrectly formatted.")
-                self.private_keys.append(json.dumps(key["encrypted_key"]))
+            self.private_keys.append(key[key_schema])
 
     def _process_model_args_overrides(self, agent_n: int) -> Dict:
         """Generates env vars based on model overrides."""
