@@ -91,7 +91,7 @@ Let us call `hello_world_abci`the skill that encapsulates the Hello World functi
 <figcaption>Zoom on an agent.</figcaption>
 </figure>
 
-Observe that Agent 2 has three additional skills. In fact, an agent can have one or multiple skills, in addition to several other components. Skills can implement a variety of functionalities, not only FSMs.  
+Observe that Agent 2 has three additional skills. In fact, an agent can have one or multiple skills, in addition to several other components. Skills can implement a variety of functionalities, not only FSMs.
 
 !!! warning "Important"
 
@@ -209,17 +209,17 @@ This is an excerpt of the `/agents/hello_world/aea-config.yaml` file:
 ```yaml
 # ...
 connections:
-- valory/abci:0.1.0
-- valory/http_client:0.1.0
+- valory/abci:0.1.0:<ipfs_hash>
+- valory/http_client:0.1.0:<ipfs_hash>
 contracts: []
 protocols:
-- open_aea/signing:1.0.0
-- valory/abci:0.1.0
-- valory/http:1.0.0
+- open_aea/signing:1.0.0:<ipfs_hash>
+- valory/abci:0.1.0:<ipfs_hash>
+- valory/http:1.0.0:<ipfs_hash>
 skills:
-- valory/abstract_abci:0.1.0
-- valory/abstract_round_abci:0.1.0
-- valory/hello_world_abci:0.1.0
+- valory/abstract_abci:0.1.0:<ipfs_hash>
+- valory/abstract_round_abci:0.1.0:<ipfs_hash>
+- valory/hello_world_abci:0.1.0:<ipfs_hash>
 # ...
 ```
 
@@ -276,7 +276,7 @@ Recall that the skill needs to define the `AbciApp`; the `Rounds`, `Behaviours` 
       class PrintMessageRound{
         +round_id = "print_message"
         +allowed_tx_type = PrintMessagePayload.transaction_type
-        +payload_attribute = "message"        
+        +payload_attribute = "message"
         +end_block()
       }
   </div>
@@ -314,7 +314,7 @@ Recall that the skill needs to define the `AbciApp`; the `Rounds`, `Behaviours` 
       Event.DONE: PrintMessageRound,
       Event.ROUND_TIMEOUT: RegistrationRound,
       Event.NO_MAJORITY: RegistrationRound,
-  },  
+  },
   ```
 
   denotes the three possible transitions from the `SelectKeeperRound` to the corresponding `Rounds`, according to the FSM depicted above.
@@ -343,7 +343,7 @@ Recall that the skill needs to define the `AbciApp`; the `Rounds`, `Behaviours` 
       }
       class PrintMessageBehaviour{
           +state_id = "print_message"
-          +matching_round = PrintMessageRound       
+          +matching_round = PrintMessageRound
           +async_act()
       }
   </div>
@@ -394,7 +394,7 @@ class HelloWorldRoundBehaviour(AbstractRoundBehaviour):
 
     initial_state_cls = RegistrationBehaviour
     abci_app_cls = HelloWorldAbciApp
-    behaviour_states: Set[Type[HelloWorldABCIBaseState]] = {  
+    behaviour_states: Set[Type[HelloWorldABCIBaseState]] = {
         RegistrationBehaviour,
         SelectKeeperBehaviour,
         PrintMessageBehaviour,
