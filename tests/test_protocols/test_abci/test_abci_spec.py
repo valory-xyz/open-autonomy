@@ -23,20 +23,21 @@ import functools
 import logging
 import re
 from pathlib import Path
-from typing import Any, Dict, Tuple, Union, Set, Iterable
+from typing import Any, Dict, Iterable, Set, Tuple, Union
 
 import requests
 import yaml
 from google.protobuf.descriptor import FieldDescriptor
 
-from packages.valory.connections.abci.protos.tendermint import abci as tendermint_abci
-from packages.valory.connections.abci.tendermint.abci.types_pb2 import DESCRIPTOR
+from packages.valory.connections.abci.protos.tendermint import abci  # type: ignore
+from packages.valory.connections.abci.tendermint.abci import types_pb2  # type: ignore
 from packages.valory.protocols import abci as abci_protocol
 
 
 ENCODING = "utf-8"
 VERSION = "v0.34.11"
-local_file = Path(tendermint_abci.__path__[0]) / "types.proto"
+local_file = Path(abci.__path__[0]) / "types.proto"
+URL = f"https://raw.githubusercontent.com/tendermint/tendermint/{VERSION}/proto/tendermint/abci/types.proto"
 
 # regex patterns for parsing protobuf types
 opening_pattern = re.compile(r"\s*(\w+)\s+(\w+) {.*")
@@ -45,7 +46,7 @@ element_pattern = re.compile(r"\s*(repeated)?\s*([a-zA-Z0-9_\.]+)?\s+(\w+)\s*= (
 abci_app_field_pattern = re.compile(r"\s*(\w+) ([a-zA-Z()]+) (\w+) ([a-zA-Z()]+);")
 
 type_mapping = {
-    v: k[5:].lower() for k, v in vars(FieldDescriptor).items() if k.startswith("TYPE")
+    v: k[5:].lower() for k, v in vars(FieldDescriptor).items() if k.startswith("TYPE_")
 }
 
 type_to_python = dict.fromkeys(type_mapping.values())
@@ -65,17 +66,17 @@ type_to_python.update(
 
 
 # utility functions
-def translate_type(data_type: str):
+def translate_type(data_type: str) -> str:
     """Translate type"""
     if data_type in type_to_python:
         if type_to_python[data_type] is None:
-            raise NotImplementedError()
+            raise NotImplementedError(f"type_to_python: {data_type}")
         return f"pt:{type_to_python[data_type].__name__}"
     return f"ct:{data_type}"
 
 
 def to_snake_case(name: str) -> str:
-    """CamelCase to snake_case"""
+    """Convert CamelCase to snake_case"""
     return re.sub(r"(?<!^)(?=[A-Z])", "_", name).lower()
 
 
@@ -83,16 +84,18 @@ def to_snake_case(name: str) -> str:
 def parse_raw(s: str) -> Dict[Union[str, Tuple[str, str]], Any]:
     """Parse custom types from protocol readme.md and abci/types.proto"""
 
-    open_bracket, closing_bracket, end_of_field = "{};"
-    container, stack, content = {}, [], ""
+    open_bracket, closing_bracket, end_of_field = "{", "}", ";"
+    container, stack, content = {}, [], ""  # type: ignore
     for line in re.sub("//.*", "", s).splitlines():
 
-        # dealing with nested structures: message or nested enum / oneof
+        # empty types: {}
         if open_bracket + closing_bracket in line:
-            dtype, name = opening_pattern.match(line).groups()
+            dtype, name = opening_pattern.match(line).groups()  # type: ignore
             container[(dtype, name)] = {}
+
+        # dealing with nested structures: message or nested enum / oneof
         elif open_bracket in line:
-            dtype, name = opening_pattern.match(line).groups()
+            dtype, name = opening_pattern.match(line).groups()  # type: ignore
             stack.append((dtype, name))
             data = container
             for key in stack:
@@ -100,7 +103,7 @@ def parse_raw(s: str) -> Dict[Union[str, Tuple[str, str]], Any]:
                 if key == (dtype, name):
                     break
             else:
-                data.setdefault((dtype, name), {})
+                data[(dtype, name)] = {}
         elif closing_bracket in line:
             stack.pop()
         else:
@@ -108,30 +111,32 @@ def parse_raw(s: str) -> Dict[Union[str, Tuple[str, str]], Any]:
 
         # regular field (not message or nested enum / oneof)
         if end_of_field in line:
+
             # special case
             if stack and stack[-1][-1] == "ABCIApplication":
-                fields = abci_app_field_pattern.match(line).groups()
+                fields = abci_app_field_pattern.match(line).groups()  # type: ignore
                 protocol, request, _, response = fields
                 container[stack[-1]][protocol, request] = response
                 continue
+
             # base cases
             match = element_pattern.match(content)
-            repeated, dtype, name, idx = match.groups()
+            repeated, dtype, name, idx = match.groups()  # type: ignore
             data = container
             for key in stack:
                 data = data[key]
             if not dtype and not repeated:  # == enum
                 data[name] = idx
             else:
-                key = name if not repeated else (repeated, name)
-                data[key] = (dtype, idx)
+                key = name if not repeated else (repeated, name)  # type: ignore
+                data[key] = (dtype, idx)  # type: ignore
             content = ""
 
     assert not stack  # sanity check
     return container
 
 
-def get_tendermint_abci_types():
+def get_tendermint_abci_types() -> Dict[Any, Any]:
     """Parse types from tendermint/abci/types.proto"""
 
     n_expected, structs = 47, []
@@ -150,8 +155,8 @@ def get_tendermint_abci_types():
 def get_tendermint_message_types() -> Dict[str, Any]:
     """Get Tendermint message type definitions"""
 
-    messages = dict()
-    for msg, msg_desc in DESCRIPTOR.message_types_by_name.items():
+    messages: Dict[str, Any] = dict()
+    for msg, msg_desc in types_pb2.DESCRIPTOR.message_types_by_name.items():
         messages.setdefault(msg, {})
 
         # Request & Response
@@ -180,11 +185,11 @@ def get_tendermint_message_types() -> Dict[str, Any]:
     return messages
 
 
-# @functools.lru_cache()
+@functools.lru_cache()
 def get_protocol_readme_spec() -> Tuple[Any, Any, Any]:
     """Test specification used to generate protocol matches ABCI spec"""
 
-    protocol_readme = Path(abci_protocol.__path__[0]) / "README.md"
+    protocol_readme = Path(abci_protocol.__path__[0]) / "README.md"  # type: ignore
     raw_chunks = open(protocol_readme).read().split("```")
     assert len(raw_chunks) == 3, "Expecting a single YAML code block"
 
@@ -201,16 +206,15 @@ def get_protocol_readme_spec() -> Tuple[Any, Any, Any]:
     return base, custom_types, dialogues
 
 
+# tests
 def test_local_file_matches_github() -> None:
     """Test local file containing ABCI spec matches Tendermint GitHub"""
 
-    url = f"https://raw.githubusercontent.com/tendermint/tendermint/{VERSION}/proto/tendermint/abci/types.proto"
-    response = requests.get(url)
+    response = requests.get(URL)
     if response.status_code != 200:
         log_msg = "Failed to retrieve Tendermint abci types from Github: "
-        raise requests.HTTPError(
-            f"{log_msg}: {response.status_code} ({response.reason})"
-        )
+        status_code, reason = response.status_code, response.reason
+        raise requests.HTTPError(f"{log_msg}: {status_code} ({reason})")
     github_data = response.text
     local_data = local_file.read_text(encoding=ENCODING)
     assert github_data == local_data
@@ -221,7 +225,7 @@ def test_speech_act_matches_abci_spec() -> None:
 
     def get_unique(a: Dict[str, str], b: Dict[str, str]) -> Tuple[Dict[str, str]]:
         set_a, set_b = set(a.items()), set(b.items())
-        return dict(set_a - set_b), dict(set_b - set_a)
+        return dict(set_a - set_b), dict(set_b - set_a)  # type: ignore
 
     differences = dict()
     base, *_ = get_protocol_readme_spec()
@@ -252,7 +256,7 @@ def test_defined_custom_types_match_abci_spec() -> None:
 
     _, custom_types, _ = get_protocol_readme_spec()
     struct = get_tendermint_abci_types()
-    defined_types = {k.split(':')[-1]: parse_raw(v) for k, v in custom_types.items()}
+    defined_types = {k.split(":")[-1]: parse_raw(v) for k, v in custom_types.items()}
     expected_types = {k[-1]: v for k, v in struct.items()}
 
     missing, different, extra = (dict() for _ in range(3))
@@ -278,7 +282,7 @@ def test_defined_custom_types_match_abci_spec() -> None:
         report.append(k)
         for sub_k, (e, d) in v.items():
             sub_k = sub_k if isinstance(sub_k, str) else " ".join(sub_k)
-            report.append('\t'+sub_k)
+            report.append("\t" + sub_k)
             report.append(f"\t\texpected: {e}\n\t\tdefined: {d}")
 
     if report:
