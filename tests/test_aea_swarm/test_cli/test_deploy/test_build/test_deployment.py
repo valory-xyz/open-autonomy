@@ -38,6 +38,7 @@ from aea_swarm.deploy.constants import (
     DEPLOYMENT_KEY_DIRECTORY,
     KUBERNETES_AGENT_KEY_NAME,
 )
+
 from tests.conftest import (
     ETHEREUM_ENCRYPTED_KEYS,
     ETHEREUM_ENCRYPTION_PASSWORD,
