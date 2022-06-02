@@ -2252,6 +2252,17 @@ def last_round_transition_tm_height() -> int
 
 Returns the Tendermint height for last round transition.
 
+<a id="packages.valory.skills.abstract_round_abci.base.RoundSequence.height_after_reset"></a>
+
+#### height`_`after`_`reset
+
+```python
+@property
+def height_after_reset() -> int
+```
+
+Returns the height to set in the genesis file after resetting.
+
 <a id="packages.valory.skills.abstract_round_abci.base.RoundSequence.latest_synchronized_data"></a>
 
 #### latest`_`synchronized`_`data
