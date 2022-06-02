@@ -33,6 +33,7 @@ from aea_ledger_ethereum import EthereumCrypto
 from hypothesis import given
 from hypothesis.strategies import booleans, dictionaries, floats, one_of, text
 
+from packages.valory.connections.abci.connection import MAX_READ_IN_BYTES
 from packages.valory.skills.abstract_round_abci.base import (
     ABCIAppException,
     ABCIAppInternalError,
@@ -112,6 +113,17 @@ class PayloadD(BasePayload):
     """Payload class for payload type 'C'."""
 
     transaction_type = PayloadEnumB.A
+
+
+class TooBigPayload(BaseTxPayload, ABC):
+    """Base payload class for testing."""
+
+    transaction_type = PayloadEnum.A
+
+    @property
+    def data(self) -> Dict:
+        """Get the data"""
+        return dict(dummy_field="0" * 10 ** 7)
 
 
 class ConcreteRoundA(AbstractRound):
@@ -240,6 +252,18 @@ class TestTransactions:
         expected = Transaction(payload, signature)
         actual = expected.decode(expected.encode())
         assert expected == actual
+
+    def test_encode_too_big_transaction(self) -> None:
+        """Test encode of a too big transaction."""
+        sender = "sender"
+        signature = "signature"
+        payload = TooBigPayload(sender)
+        tx = Transaction(payload, signature)
+        with pytest.raises(
+            ValueError,
+            match=f"Transaction must be smaller than {MAX_READ_IN_BYTES} bytes",
+        ):
+            tx.encode()
 
     def test_sign_verify_transaction(self) -> None:
         """Test sign/verify transaction."""
@@ -517,6 +541,14 @@ class TestAbciAppDB:
         assert self.db.round_count == -1
         self.db.increment_round_count()
         assert self.db.round_count == 0
+
+    def test_update_empty(self) -> None:
+        """Test update on empty db."""
+        db = AbciAppDB(
+            initial_data=dict(),
+        )
+        db.update(dummy_key="dummy_value")
+        assert db._data == {0: {"dummy_key": ["dummy_value"]}}
 
 
 class TestBaseSynchronizedData:
