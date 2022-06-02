@@ -32,7 +32,7 @@ from aea_swarm.constants import (
     TENDERMINT_IMAGE_NAME,
     TENDERMINT_IMAGE_VERSION,
 )
-from aea_swarm.deploy.base import BaseDeploymentGenerator, DeploymentSpec
+from aea_swarm.deploy.base import BaseDeploymentGenerator
 from aea_swarm.deploy.constants import TENDERMINT_CONFIGURATION_OVERRIDES
 from aea_swarm.deploy.generators.kubernetes.templates import (
     AGENT_NODE_TEMPLATE,
