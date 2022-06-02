@@ -161,6 +161,7 @@ class AgentRegistrationAbciApp(AbciApp[Event]):
         },
         RegistrationRound: {
             Event.DONE: FinishedRegistrationFFWRound,
+            Event.NO_MAJORITY: RegistrationRound,
         },
         FinishedRegistrationRound: {},
         FinishedRegistrationFFWRound: {},
