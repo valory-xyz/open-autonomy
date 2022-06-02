@@ -2,7 +2,6 @@
 # ------------------------------------------------------------------------------
 #
 #   Copyright 2022 Valory AG
-#   Copyright 2018-2021 Fetch.AI Limited
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -18,7 +17,7 @@
 #
 # ------------------------------------------------------------------------------
 
-"""This module contains the tests for the code-blocks in the get_started.md file."""
+"""This module contains the tests for the code-blocks in the documentation."""
 
 from pathlib import Path
 
