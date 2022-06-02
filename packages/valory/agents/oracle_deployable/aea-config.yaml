@@ -7,33 +7,33 @@ aea_version: '>=1.0.0, <2.0.0'
 fingerprint: {}
 fingerprint_ignore_patterns: []
 connections:
-- valory/abci:0.1.0
-- valory/http_client:0.1.0
-- valory/ledger:0.1.0
-- valory/p2p_libp2p_client:0.1.0
+- valory/abci:0.1.0:QmUq4z19VS9G1TfnZdKy818F7maQopAor4NGe9t4DgzwyJ
+- valory/http_client:0.1.0:QmXXtNRaMrZqEdmT9LVDhcxSy7PNgvJdCXaQ5L9ZxM5cGm
+- valory/ledger:0.1.0:QmbjPsymto6fKHZvFUTyMBnZeA7ZWoqfy3KXXJ7cVWkiE3
+- valory/p2p_libp2p_client:0.1.0:QmZWFVzuMLAcLeVVimaHTGfj16ELAM2pdSLWtZTxqkvDZ4
 contracts:
-- valory/gnosis_safe:0.1.0
-- valory/gnosis_safe_proxy_factory:0.1.0
-- valory/offchain_aggregator:0.1.0
-- valory/service_registry:0.1.0
+- valory/gnosis_safe:0.1.0:QmRNdXGRRQBMFXh5ZvtJeYvHt7559kV5r5EYU5JNUdRBKJ
+- valory/gnosis_safe_proxy_factory:0.1.0:QmVkZtrgZ2ievXAonq9z33qbrxHi8piVGptuCGaGJYS1iM
+- valory/offchain_aggregator:0.1.0:Qmaftfci6asBewVH3vKGtMJVcAdG71Vm6Qv493uRkT7b2h
+- valory/service_registry:0.1.0:Qmf8AdK3VPVECCx4biHMGdVoFHkscY3H9sv9b4wyE9vmED
 protocols:
-- open_aea/signing:1.0.0
-- valory/abci:0.1.0
-- valory/acn:1.1.0
-- valory/contract_api:1.0.0
-- valory/http:1.0.0
-- valory/ledger_api:1.0.0
-- valory/tendermint:0.1.0
+- open_aea/signing:1.0.0:QmaGYpYEQjgbM37pBMiR7RcpeSLpztZyzDt2RF7sTXoMyU
+- valory/abci:0.1.0:QmPh452wHDWf6xTnAENyXQED5UZNkU5dum98ZGfN9vZGhk
+- valory/acn:1.1.0:QmZyXSCZoqiHsKqB8WFcUi1WcbMofk2SUgv4uzAhjAenuw
+- valory/contract_api:1.0.0:QmX2mRDNNWUTwU6ivKD65R3bnfC9jkGuKCaWqzxoQdm7ni
+- valory/http:1.0.0:QmbTD9GZg9MKBiQR3Tef1hS5YnGufUNSzrKpW8Eqgd6FUQ
+- valory/ledger_api:1.0.0:QmcjydJiMqhEmSGJqnLKDjmGSXmV5KZhMvY6zGgHKUgFL4
+- valory/tendermint:0.1.0:QmTebra2gtfrwfcxJj2vpoRrAawi6gvHSBtRjqfHxZ6YJV
 skills:
-- valory/abstract_abci:0.1.0
-- valory/abstract_round_abci:0.1.0
-- valory/oracle_abci:0.1.0
-- valory/oracle_deployment_abci:0.1.0
-- valory/price_estimation_abci:0.1.0
-- valory/registration_abci:0.1.0
-- valory/reset_pause_abci:0.1.0
-- valory/safe_deployment_abci:0.1.0
-- valory/transaction_settlement_abci:0.1.0
+- valory/abstract_abci:0.1.0:QmWyTCyuxwgZu93QbMQ9HX4SuqhssyHYRKAQtRRnG2Q4Xo
+- valory/abstract_round_abci:0.1.0:Qmch4D7jbdLD9k7aan3SCHPNQx2Et1ydyKsHXkVkRSDLBM
+- valory/oracle_abci:0.1.0:QmXqih6k9nDRWzfAPHU7C59a9zZD5hp9v8xXwzxTQWbyhx
+- valory/oracle_deployment_abci:0.1.0:QmTuRzWiJvhwF99zughjEt4tAdZvcv1G4pn5MUtBME7hmX
+- valory/price_estimation_abci:0.1.0:QmVak6xBYToP6PP1zZxKGFnxxXxMLL3wCGVNuBzyeyx44K
+- valory/registration_abci:0.1.0:QmY47ui9NNPFPVKPKuo43tRxG47Qy4EaspJjH8bbwwgGY7
+- valory/reset_pause_abci:0.1.0:QmcrgQ5Tw4fcY7WFLyxWTyEb2WA3BqmqnR4egY1t5gajfk
+- valory/safe_deployment_abci:0.1.0:QmPn62BoKWaDuXSWgnDaDSGNK7kenjHUPALtuHNSN9NbnD
+- valory/transaction_settlement_abci:0.1.0:QmeTa549dMFL4BZ6YGn53ZMr56mMzt4cSxfc3Xy1Rz8nLB
 default_ledger: ethereum
 required_ledgers:
 - ethereum
@@ -109,6 +109,8 @@ models:
       observation_interval: ${SKILL_ORACLE_ABCI_MODELS_PARAMS_ARGS_OBSERVATION_INTERVAL:int:300}
       max_healthcheck: ${SKILL_ORACLE_ABCI_MODELS_PARAMS_ARGS_MAX_HEALTHCHECK:int:1200}
       broadcast_to_server: ${SKILL_ORACLE_ABCI_MODELS_PARAMS_ARGS_BROADCAST_TO_SERVER:bool:true}
+      service_registry_address: ${SKILL_ORACLE_ABCI_MODELS_PARAMS_ARGS_SERVICE_REGISTRY_ADDRESS:str:none}
+      on_chain_service_id: ${SKILL_ORACLE_ABCI_MODELS_PARAMS_ARGS_ON_CHAIN_SERVICE_ID:int:none}
   server_api:
     args:
       url: ${SKILL_ORACLE_ABCI_MODELS_SERVER_API_ARGS_URL:str}
@@ -118,5 +120,20 @@ type: connection
 config:
   ledger_apis:
     ethereum:
-      address: ${LEDGER_ADDRESS:str:http://hardhat:8545}
+      address: ${LEDGER_ADDRESS:str:https://staging.chain.autonolas.tech}
       chain_id: ${LEDGER_CHAIN_ID:int:31337}
+---
+public_id: valory/p2p_libp2p_client:0.1.0
+type: connection
+config:
+  nodes:
+  - uri: staging.acn.autonolas.tech:9006
+    public_key: 02fc5fe35c21a1f8ba2de52fd38ef95379be19d5390f1275b825c343167590d3b7
+cert_requests:
+- identifier: acn
+  ledger_id: ethereum
+  message_format: '{public_key}'
+  not_after: '2022-01-01'
+  not_before: '2021-01-01'
+  public_key: 02fc5fe35c21a1f8ba2de52fd38ef95379be19d5390f1275b825c343167590d3b7
+  save_path: .certs/acn_cosmos_9006.txt

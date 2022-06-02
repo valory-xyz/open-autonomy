@@ -175,7 +175,7 @@ class BaseTestEnd2End(AEATestCaseMany, UseFlaskTendermintNode):
         self.set_config(  # dummy service
             f"vendor.valory.skills.{PublicId.from_str(self.skill_package).name}.models.params.args.on_chain_service_id",
             "1",
-            type_="str",
+            type_="int",
         )
 
         self.__set_extra_configs()

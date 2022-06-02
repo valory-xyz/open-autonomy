@@ -4,6 +4,16 @@
 
 This module contains the behaviours for the 'abci' skill.
 
+<a id="packages.valory.skills.registration_abci.behaviours.format_genesis_data"></a>
+
+#### format`_`genesis`_`data
+
+```python
+def format_genesis_data(collected_agent_info: Dict[str, Any]) -> Dict[str, Any]
+```
+
+Format collected agent info for genesis update
+
 <a id="packages.valory.skills.registration_abci.behaviours.consume"></a>
 
 #### consume
@@ -56,21 +66,10 @@ Agent registration to the FSM App.
 
 ```python
 @property
-def registered_addresses() -> Dict[str, str]
+def registered_addresses() -> Dict[str, Dict[str, Any]]
 ```
 
 Agent addresses registered on-chain for the service
-
-<a id="packages.valory.skills.registration_abci.behaviours.RegistrationStartupBehaviour.not_yet_collected"></a>
-
-#### not`_`yet`_`collected
-
-```python
-@property
-def not_yet_collected() -> List[str]
-```
-
-Agent addresses for which no Tendermint information has been retrieved
 
 <a id="packages.valory.skills.registration_abci.behaviours.RegistrationStartupBehaviour.tendermint_parameter_url"></a>
 
@@ -83,13 +82,13 @@ def tendermint_parameter_url() -> str
 
 Tendermint URL for obtaining and updating parameters
 
-<a id="packages.valory.skills.registration_abci.behaviours.RegistrationStartupBehaviour.tendermint_start_url"></a>
+<a id="packages.valory.skills.registration_abci.behaviours.RegistrationStartupBehaviour.tendermint_hard_reset_url"></a>
 
-#### tendermint`_`start`_`url
+#### tendermint`_`hard`_`reset`_`url
 
 ```python
 @property
-def tendermint_start_url() -> str
+def tendermint_hard_reset_url() -> str
 ```
 
 Tendermint URL for obtaining and updating parameters
@@ -154,15 +153,15 @@ def update_tendermint() -> Generator[None, None, bool]
 
 Make HTTP POST request to update agent's local Tendermint node
 
-<a id="packages.valory.skills.registration_abci.behaviours.RegistrationStartupBehaviour.start_tendermint"></a>
+<a id="packages.valory.skills.registration_abci.behaviours.RegistrationStartupBehaviour.restart_tendermint"></a>
 
-#### start`_`tendermint
+#### restart`_`tendermint
 
 ```python
-def start_tendermint() -> Generator[None, None, bool]
+def restart_tendermint() -> Generator[None, None, bool]
 ```
 
-Start up local Tendermint node
+Restart up local Tendermint node
 
 <a id="packages.valory.skills.registration_abci.behaviours.RegistrationStartupBehaviour.async_act"></a>
 

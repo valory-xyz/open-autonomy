@@ -281,7 +281,7 @@ class TestRegistrationStartupBehaviour(RegistrationAbciBaseCase):
 
     def mock_tendermint_start(self, valid_response: bool = True) -> None:
         """Mock tendermint start"""
-        url = self.state.tendermint_start_url
+        url = self.state.tendermint_hard_reset_url
         request_kwargs = dict(method="GET", url=url)
         body = b"{}" if valid_response else b""
         response_kwargs = dict(status_code=200, body=body)
@@ -304,7 +304,7 @@ class TestRegistrationStartupBehaviour(RegistrationAbciBaseCase):
         """Test service registry contract address not provided"""
 
         with pytest.raises(RuntimeError):
-            any(self.state.not_yet_collected)
+            any(self.state._not_yet_collected)
 
     @pytest.mark.parametrize(
         "valid_response, log_message",
@@ -408,7 +408,7 @@ class TestRegistrationStartupBehaviour(RegistrationAbciBaseCase):
                 self.state.context.agent_address
             ]
             assert my_address == self.state.context.params.tendermint_url
-            assert set(self.state.not_yet_collected) == set(self.other_agents)
+            assert set(self.state._not_yet_collected) == set(self.other_agents)
             assert (
                 "Registered addresses retrieved from service registry contract"
                 in caplog.text
@@ -428,7 +428,7 @@ class TestRegistrationStartupBehaviour(RegistrationAbciBaseCase):
             self.mock_get_service_info(*self.agent_instances)
             self.mock_get_tendermint_info(*self.other_agents)
 
-            assert not any(self.state.not_yet_collected)
+            assert not any(self.state._not_yet_collected)
             assert "Completed collecting Tendermint responses" in caplog.text
 
     def test_tendermint_info_timeout(self, caplog: LogCaptureFixture) -> None:
@@ -446,7 +446,7 @@ class TestRegistrationStartupBehaviour(RegistrationAbciBaseCase):
             self.mock_get_service_info(*self.agent_instances)
             with self.mocked_timeout:
                 self.mock_get_tendermint_info(*self.other_agents[:2])
-            assert any(self.state.not_yet_collected)
+            assert any(self.state._not_yet_collected)
             assert "Still missing info on: " in caplog.text
 
     @pytest.mark.parametrize(

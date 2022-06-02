@@ -29,6 +29,7 @@ from typing import Any, Callable, Dict, Optional, Tuple
 
 import requests
 from flask import Flask, Response, jsonify, request
+from tendermint import TendermintNode, TendermintParams
 from werkzeug.exceptions import InternalServerError, NotFound
 
 
@@ -155,29 +156,29 @@ def create_app(dump_dir: Optional[Path] = None, perform_monitoring: bool = True)
     def update_params() -> Dict:
         """Update validator params."""
 
-        try:
-            data: Any = request.get_json()
-            genesis_file = TMHOME / "config" / "genesis.json"
-            genesis_data = {}
-            genesis_data["genesis_time"] = data["genesis_config"]["genesis_time"]
-            genesis_data["chain_id"] = data["genesis_config"]["chain_id"]
-            genesis_data["consensus_params"] = data["genesis_config"]["consensus_params"]
-            genesis_data["initial_height"] = "0"
-            genesis_data["validators"] = [
-                {
-                    "address": validator["address"],
-                    "pub_key": validator["pub_key"],
-                    "power": validator["power"],
-                    "name": validator["name"],
-                }
-                for validator in data["validators"]
-            ]
-            genesis_data["app_hash"] = ""
-            genesis_file.write_text(json.dumps(genesis_data, indent=2), encoding=ENCODING)
+    try:
+        data: Any = json.loads(request.get_data().decode(ENCODING))
+        genesis_file = TMHOME / "config" / "genesis.json"
+        genesis_data = {}
+        genesis_data["genesis_time"] = data["genesis_config"]["genesis_time"]
+        genesis_data["chain_id"] = data["genesis_config"]["chain_id"]
+        genesis_data["initial_height"] = "0"
+        genesis_data["consensus_params"] = data["genesis_config"]["consensus_params"]
+        genesis_data["validators"] = [
+            {
+                "address": validator["address"],
+                "pub_key": validator["pub_key"],
+                "power": validator["power"],
+                "name": validator["name"],
+            }
+            for validator in data["validators"]
+        ]
+        genesis_data["app_hash"] = ""
+        genesis_file.write_text(json.dumps(genesis_data, indent=2), encoding=ENCODING)
 
-            return {"status": True, "error": None}
-        except (FileNotFoundError, json.JSONDecodeError, PermissionError):
-            return {"status": False, "error": traceback.format_exc()}
+        return {"status": True, "error": None}
+    except (FileNotFoundError, json.JSONDecodeError, PermissionError):
+        return {"status": False, "error": traceback.format_exc()}
 
     @app.route("/gentle_reset")
     def gentle_reset() -> Tuple[Any, int]:

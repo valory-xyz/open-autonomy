@@ -19,6 +19,7 @@
 
 """This module contains the handler for the 'abstract_round_abci' skill."""
 import ipaddress
+import json
 from abc import ABC
 from typing import Callable, Dict, List, FrozenSet, Optional, cast
 from urllib.parse import urlparse
@@ -567,13 +568,13 @@ class TendermintHandler(Handler):
 
         if not self.registered_addresses:
             error_message = "No registered addresses retrieved yet"
-            self.context.logger.info(f"Invalid request: {error_message}\n{message}")
+            self.context.logger.info(f"Invalid request, {error_message}: {message}")
             self._reply_with_tendermint_error(message, dialogue, error_message)
             return
 
         if message.sender not in self.registered_addresses:
             error_message = "Sender not registered for on-chain service"
-            self.context.logger.info(f"Invalid request: {error_message}\n{message}")
+            self.context.logger.info(f"Invalid request, {error_message}: {message}")
             self._reply_with_tendermint_error(message, dialogue, error_message)
             return
 
@@ -581,7 +582,7 @@ class TendermintHandler(Handler):
         response = dialogue.reply(
             performative=TendermintMessage.Performative.RESPONSE,
             target_message=message,
-            info=info,
+            info=json.dumps(info),
         )
         self.context.outbox.put_message(message=response)
         self.context.logger.info(f"Sending Tendermint request response: {response}")
@@ -598,16 +599,17 @@ class TendermintHandler(Handler):
             return
 
         try:  # validate message contains a valid address
-            parse_result = urlparse(message.info)
+            validator_config = json.loads(message.info)
+            parse_result = urlparse(validator_config["tendermint_url"])
             if parse_result.hostname != "localhost":
                 ipaddress.ip_network(parse_result.hostname)
         except ValueError as e:
             error_message = f"Failed to parse Tendermint address: {e}"
-            self.context.logger.info(f"Invalid response: {error_message}\n{message}")
+            self.context.logger.info(f"Invalid response: {error_message} - {message}")
             self._reply_with_tendermint_error(message, dialogue, error_message)
             return
 
-        self.registered_addresses[message.sender] = parse_result.geturl()
+        self.registered_addresses[message.sender] = validator_config
         log_msg = "Collected Tendermint config info"
         self.context.logger.info(f"{log_msg}: {message}")
         dialogues = cast(TendermintDialogues, self.dialogues)
