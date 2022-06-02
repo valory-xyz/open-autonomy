@@ -22,6 +22,7 @@ import datetime
 import heapq
 import itertools
 import logging
+import sys
 import textwrap
 import uuid
 from abc import ABC, ABCMeta, abstractmethod
@@ -49,6 +50,7 @@ from typing import (
 from aea.crypto.ledger_apis import LedgerApis
 from aea.exceptions import enforce
 
+from packages.valory.connections.abci.connection import MAX_READ_IN_BYTES
 from packages.valory.connections.ledger.base import (
     CONNECTION_ID as LEDGER_CONNECTION_PUBLIC_ID,
 )
@@ -283,7 +285,12 @@ class Transaction(ABC):
     def encode(self) -> bytes:
         """Encode the transaction."""
         data = dict(payload=self.payload.json, signature=self.signature)
-        return DictProtobufStructSerializer.encode(data)
+        encoded_data = DictProtobufStructSerializer.encode(data)
+        if sys.getsizeof(encoded_data) > MAX_READ_IN_BYTES:
+            raise ValueError(
+                f"Transaction must be smaller than {MAX_READ_IN_BYTES} bytes"
+            )
+        return encoded_data
 
     @classmethod
     def decode(cls, obj: bytes) -> "Transaction":

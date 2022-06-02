@@ -59,7 +59,7 @@ Process the end of the block.
 ## RegistrationRound Objects
 
 ```python
-class RegistrationRound(CollectDifferentUntilThresholdRound)
+class RegistrationRound(CollectSameUntilThresholdRound)
 ```
 
 A round in which the agents get registered
@@ -94,6 +94,7 @@ Transition states:
         - fast forward: 3.
     1. RegistrationRound
         - done: 3.
+        - no majority: 1.
     2. FinishedRegistrationRound
     3. FinishedRegistrationFFWRound
 
