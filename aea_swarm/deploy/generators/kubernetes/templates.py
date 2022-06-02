@@ -277,10 +277,7 @@ spec:
         - name: nodes
           persistentVolumeClaim:
             claimName: 'nodes'
-""" % (
-    TENDERMINT_VERSION,
-    IMAGE_VERSION,
-)
+"""
 
 AGENT_SECRET_TEMPLATE: str = """
 apiVersion: v1
@@ -291,4 +288,4 @@ metadata:
   annotations:
   name: agent-validator-{validator_ix}-key
 type: Opaque
-=======
+"""

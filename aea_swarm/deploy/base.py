@@ -65,7 +65,6 @@ class ServiceSpecification:
     service: Service
     overrides: List
     packages_dir: Path
-    private_keys: List
 
     def __init__(
         self,
@@ -76,6 +75,7 @@ class ServiceSpecification:
         private_keys_password: Optional[str] = None,
     ) -> None:
         """Initialize the Base Deployment."""
+        self.private_keys: List = []
         self.private_keys_password = private_keys_password
         self.packages_dir = packages_dir
         self.service = load_service_config(service_path)
@@ -90,6 +90,7 @@ class ServiceSpecification:
 
     def read_keys(self, file_path: Path) -> None:
         """Read in keys from a file on disk."""
+
         keys = json.loads(file_path.read_text(encoding=DEFAULT_ENCODING))
 
         key_schema = (

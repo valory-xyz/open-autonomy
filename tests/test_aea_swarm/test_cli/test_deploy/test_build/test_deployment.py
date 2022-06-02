@@ -32,6 +32,7 @@ from aea_swarm.constants import (
     DEFAULT_BUILD_FOLDER,
     DEPLOYMENT_AGENT_KEY_DIRECTORY_SCHEMA,
     DEPLOYMENT_KEY_DIRECTORY,
+    KUBERNETES_AGENT_KEY_NAME,
     OPEN_AEA_IMAGE_NAME,
     TENDERMINT_IMAGE_NAME,
 )
@@ -406,7 +407,7 @@ class TestBuildDeployment(BaseCliTest):
                 (
                     build_dir
                     / DEPLOYMENT_KEY_DIRECTORY
-                    / DEPLOYMENT_AGENT_KEY_DIRECTORY_SCHEMA.format(agent_n=i)
+                    / KUBERNETES_AGENT_KEY_NAME.format(agent_n=i)
                 ).exists()
                 for i in range(4)
             ]
@@ -459,7 +460,7 @@ class TestBuildDeployment(BaseCliTest):
                 (
                     build_dir
                     / DEPLOYMENT_KEY_DIRECTORY
-                    / DEPLOYMENT_AGENT_KEY_DIRECTORY_SCHEMA.format(agent_n=i)
+                    / KUBERNETES_AGENT_KEY_NAME.format(agent_n=i)
                 ).exists()
                 for i in range(4)
             ]

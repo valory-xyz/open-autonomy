@@ -26,7 +26,9 @@ from typing import Any, Dict, List, cast
 import yaml
 
 from aea_swarm.constants import (
+    DEFAULT_ENCODING,
     HARDHAT_IMAGE_NAME,
+    KUBERNETES_AGENT_KEY_NAME,
     OPEN_AEA_IMAGE_NAME,
     TENDERMINT_IMAGE_NAME,
     TENDERMINT_IMAGE_VERSION,
@@ -166,7 +168,9 @@ class KubernetesGenerator(BaseDeploymentGenerator):
         output = "---\n".join([self.output, cast(str, self.tendermint_job_config)])
         if not self.build_dir.is_dir():
             self.build_dir.mkdir()
-        with open(self.build_dir / self.output_name, "w", encoding="utf8") as f:
+        with open(
+            self.build_dir / self.output_name, "w", encoding=DEFAULT_ENCODING
+        ) as f:
             f.write(output)
 
         return self
@@ -174,9 +178,11 @@ class KubernetesGenerator(BaseDeploymentGenerator):
     def populate_private_keys(self) -> "BaseDeploymentGenerator":
         """Populates private keys into a config map for the kubernetes deployment."""
         path = self.build_dir / "agent_keys"
-        for x in range(self.deployment_spec.number_of_agents):
-            key = self.deployment_spec.private_keys[x]
+        for x in range(self.service_spec.service.number_of_agents):
+            key = self.service_spec.private_keys[x]
             secret = AGENT_SECRET_TEMPLATE.format(private_key=key, validator_ix=x)
-            with open(path / f"agent_{x}_private_key.yaml", "w", encoding="utf8") as f:
+            with open(
+                path / KUBERNETES_AGENT_KEY_NAME.format(agent_n=x), "w", encoding="utf8"
+            ) as f:
                 f.write(secret)
         return self

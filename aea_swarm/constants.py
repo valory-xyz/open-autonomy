@@ -34,6 +34,7 @@ HARDHAT_IMAGE_NAME = "valory/consensus-algorithms-hardhat"
 
 DEPLOYMENT_KEY_DIRECTORY = "agent_keys"
 DEPLOYMENT_AGENT_KEY_DIRECTORY_SCHEMA = "agent_{agent_n}"
+KUBERNETES_AGENT_KEY_NAME = DEPLOYMENT_AGENT_KEY_DIRECTORY_SCHEMA + "_private_key.yaml"
 
 DEFAULT_ENCODING = "utf-8"
 
