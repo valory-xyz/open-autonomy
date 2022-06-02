@@ -16,7 +16,7 @@ fingerprint:
   models.py: QmXcR7nM9nJyj6UtqTpmFfoULjd3QsCKWmHDacHDi6hbsi
 fingerprint_ignore_patterns: []
 connections:
-- valory/abci:0.1.0:QmcSFCqBgsz1MZYheyGJz53TDm8iLGeeqRRnupaazDDBmC
+- valory/abci:0.1.0:QmVV5qAZxB75SsVGfQw5KuMRnuFP3RXYD6WwaYs6iMWiVU
 - valory/http_client:0.1.0:QmakgWmx4CGuQuafUELiceH53N8HfgdfkQJpem7iYy9MVN
 contracts: []
 protocols:
@@ -24,9 +24,9 @@ protocols:
 - valory/abci:0.1.0:QmaPFp3Jwf6uv9VSAoMJfJHFS9ESPeX8hCB7HLi41c8WzS
 - valory/http:1.0.0:QmbjfzjKMuRmwbQysyaciASxvY67vGJYj7zjGYADgNux5h
 skills:
-- valory/abstract_round_abci:0.1.0:QmbLVw1J11JTihFvD4x4fhFtfZuAmp5tUkSrDY4B5UJimT
-- valory/registration_abci:0.1.0:QmZ4iPiBkbnVtkJNkWLZS1pYEZfZ9P1fYB3cMSbMB4G9Wp
-- valory/reset_pause_abci:0.1.0:Qmaui1LrXcXmb99M97Pc3GkBSAiV5NBxwyuCEFjEtwMUCb
+- valory/abstract_round_abci:0.1.0:QmbQLkCL4CsoQcQgAW1rDPebu8AzZwSMMpbM3dnbQRiGBT
+- valory/registration_abci:0.1.0:Qmb7yzGw2gP5AdAD1QEj9xiDn5wvHgWTCvvx9WvKSwC5Yt
+- valory/reset_pause_abci:0.1.0:QmdVdHtBRezC4iKojHdboGVmKEPfe9pFtgrtZqq4HgotmV
 behaviours:
   main:
     args: {}
@@ -72,12 +72,12 @@ models:
       drand_public_key: 868f005eb8e6e4ca0a47c8a77ceaa5309a47978a7c71bc5cce96366b5d7a569937c529eeda66c7293784a9402801af31
       keeper_timeout: 30.0
       max_healthcheck: 120
-      observation_interval: 2
+      observation_interval: 15
       period_setup: {}
       reset_tendermint_after: 1
       retry_attempts: 400
       retry_timeout: 3
-      round_timeout_seconds: 30.0
+      round_timeout_seconds: 15.0
       service_id: register_reset_abci
       sleep_time: 1
       tendermint_check_sleep_delay: 3

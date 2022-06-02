@@ -18,7 +18,7 @@ fingerprint:
   rounds.py: QmazMHBCMY6YK1NrZAi6ubm377uF1CTCkMhvnZjaJpC7zd
 fingerprint_ignore_patterns: []
 connections:
-- valory/abci:0.1.0:QmcSFCqBgsz1MZYheyGJz53TDm8iLGeeqRRnupaazDDBmC
+- valory/abci:0.1.0:QmVV5qAZxB75SsVGfQw5KuMRnuFP3RXYD6WwaYs6iMWiVU
 - valory/http_client:0.1.0:QmakgWmx4CGuQuafUELiceH53N8HfgdfkQJpem7iYy9MVN
 - valory/ledger:0.1.0:QmYg9pxvDADc7Vha61yLFPUkXqYsrt8Cfff16Vaq1hXM7W
 contracts:
@@ -33,7 +33,7 @@ protocols:
 - valory/http:1.0.0:QmbjfzjKMuRmwbQysyaciASxvY67vGJYj7zjGYADgNux5h
 - valory/ledger_api:1.0.0:QmWQSUkGAbzU8tqs7K8BguabbKHUZkbxuMk1M4LBFAwdun
 skills:
-- valory/abstract_round_abci:0.1.0:QmbLVw1J11JTihFvD4x4fhFtfZuAmp5tUkSrDY4B5UJimT
+- valory/abstract_round_abci:0.1.0:QmbQLkCL4CsoQcQgAW1rDPebu8AzZwSMMpbM3dnbQRiGBT
 behaviours:
   main:
     args: {}

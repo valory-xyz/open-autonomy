@@ -9,12 +9,12 @@ fingerprint:
   README.md: QmYNXPppPSnW61ipqKNH8pyMh8qzTERwQaducYYq1dnBJb
   __init__.py: QmPuJK7gMKruSTcaYk9otrFncfD9h6vBZVoAtkwhTBgcxa
   abci_app_chain.py: QmeCPxwjec4pxtedv8NeG2Gmj58GY2GycXvgwfyjEyqPGm
-  base.py: QmW1BmRxQmYR4B3ZcHXUVKrjH7LGpAovisdjT4KwDZQFdn
-  behaviour_utils.py: QmYiP4jR2YNYiihaYh4eS78W5bxLambbeVK2WDSAiKe311
+  base.py: QmSevvh6Z7HobJnktHczdnuDY3AfxYm4yQC8SvMGVo6b4E
+  behaviour_utils.py: QmQbZhWf5XzMYBqSHfjbgbpKeJoZ9bQpoj4CsP8vA9RSP5
   behaviours.py: QmawtbXREBz8C7Grjn4a93gaAQFMWzZicxRfjyHcckYHmz
   common.py: QmUPsTf389ZeWhisMmoLCtJZTvCtxtdW7KrSnCt96AZHyq
   dialogues.py: QmemiTJxfwp2PFxFQyAUHTx8FsthhWL3mYgonBhC3cTjWH
-  handlers.py: QmZRrWXxGV2qEptfFAjWCKSQ3MtRYRdBpK3BdiFjtixHGW
+  handlers.py: QmRPCRimCvfjF9EZbJsev751Xzc3sAV38jjYKnbyaf8DxG
   io/__init__.py: QmPfA2syTybFaGmmMMt5gevZHEXPyjVf7wR1UE22NzpZZ3
   io/ipfs.py: Qmc7BLSKb2kESC1wdCc7FxaLiSHcmPcfiBuXBuLXevUdE7
   io/load.py: QmSa3vgVvQiMJabBvSnPjTMtYiDgrrHPugDGCvSf4kAfS3
@@ -25,7 +25,7 @@ fingerprint:
   utils.py: Qmed3ijomF91pePveuFrPVd4BaXRLrsoCaszkiuyF2ZbBE
 fingerprint_ignore_patterns: []
 connections:
-- valory/abci:0.1.0:QmcSFCqBgsz1MZYheyGJz53TDm8iLGeeqRRnupaazDDBmC
+- valory/abci:0.1.0:QmVV5qAZxB75SsVGfQw5KuMRnuFP3RXYD6WwaYs6iMWiVU
 - valory/http_client:0.1.0:QmakgWmx4CGuQuafUELiceH53N8HfgdfkQJpem7iYy9MVN
 - valory/ledger:0.1.0:QmYg9pxvDADc7Vha61yLFPUkXqYsrt8Cfff16Vaq1hXM7W
 contracts: []
@@ -35,7 +35,7 @@ protocols:
 - valory/http:1.0.0:QmbjfzjKMuRmwbQysyaciASxvY67vGJYj7zjGYADgNux5h
 - valory/ledger_api:1.0.0:QmWQSUkGAbzU8tqs7K8BguabbKHUZkbxuMk1M4LBFAwdun
 skills:
-- valory/abstract_abci:0.1.0:QmY1fEsCPP1PYKkadKX4GR7DXTsns4F4zE1er14Wu5U5DH
+- valory/abstract_abci:0.1.0:QmfBLZpyAE6ZXkaGix4vL5ihSpNCY8hiFyXxdSLATDfWog
 behaviours:
   main:
     args: {}
