@@ -45,7 +45,7 @@ class TestTendermintStartup(BaseTestEnd2EndNormalExecution):
         "registration_startup": 1,
         "reset_and_pause": 1,
     }
-    wait_to_finish = 20
+    wait_to_finish = 60
 
 
 @pytest.mark.parametrize("nb_nodes", (4,))
@@ -75,7 +75,7 @@ class TestTendermintResetInterrupt(BaseTestEnd2EndAgentCatchup):
     skill_package = "valory/register_reset_abci:0.1.0"
     cli_log_options = ["-v", "INFO"]
     wait_before_stop = 60
-    wait_to_finish = 180
+    wait_to_finish = 200
     restart_after = 1
     __reset_tendermint_every = 1
     stop_string = f"Entered in the 'reset_and_pause' round for period {__reset_tendermint_every - 1}"
@@ -101,6 +101,6 @@ class TestTendermintResetInterruptNoRejoin(TestTendermintResetInterrupt):
     on Tendermint reset and never rejoins.
     """
 
-    wait_to_finish = 100
+    wait_to_finish = 200
     # set the restart to a value so that the agent never rejoins, in order to test the impact to the rest of the agents
     restart_after = wait_to_finish
