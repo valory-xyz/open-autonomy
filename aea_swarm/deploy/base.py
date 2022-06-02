@@ -123,7 +123,7 @@ class ServiceSpecification:
             "ID": agent_n,
             "VALORY_APPLICATION": self.service.agent,
             "ABCI_HOST": ABCI_HOST.format(agent_n),
-            "MAX_PARTICIPANTS": self.service.number_of_agents,  # I believe that this is correct
+            "MAX_PARTICIPANTS": self.service.number_of_agents,
             "TENDERMINT_URL": TENDERMINT_NODE.format(agent_n),
             "TENDERMINT_COM_URL": TENDERMINT_COM.format(agent_n),
         }
