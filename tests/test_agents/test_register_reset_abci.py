@@ -80,8 +80,6 @@ class TestTendermintResetInterrupt(BaseTestEnd2EndAgentCatchup):
     __reset_tendermint_every = 1
     stop_string = f"Entered in the 'reset_and_pause' round for period {__reset_tendermint_every - 1}"
     round_check_strings_to_n_periods = EXPECTED_ROUND_LOG_COUNT
-    # check if we manage to reset with Tendermint with the rest of the agents.
-    exclude_from_checks = [3]
 
     __args_prefix = f"vendor.valory.skills.{PublicId.from_str(skill_package).name}.models.params.args"
     # reset every `__reset_tendermint_every` rounds
@@ -104,3 +102,5 @@ class TestTendermintResetInterruptNoRejoin(TestTendermintResetInterrupt):
     wait_to_finish = 200
     # set the restart to a value so that the agent never rejoins, in order to test the impact to the rest of the agents
     restart_after = wait_to_finish
+    # check if we manage to reset with Tendermint with the rest of the agents; 3rd agent will not rejoin in this test
+    exclude_from_checks = [3]
