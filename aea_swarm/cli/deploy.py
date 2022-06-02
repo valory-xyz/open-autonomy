@@ -94,6 +94,11 @@ def build_group() -> None:
     help="Create development environment.",
 )
 @click.option(
+    "--version",
+    "version",
+    help="Specify deployment version.",
+)
+@click.option(
     "--force",
     "force_overwrite",
     is_flag=True,
@@ -109,6 +114,7 @@ def build_deployment(  # pylint: disable=too-many-arguments
     dev_mode: bool,
     force_overwrite: bool,
     number_of_agents: Optional[int] = None,
+    version: Optional[str] = None,
 ) -> None:
     """Build deployment setup for n agents."""
 
@@ -138,9 +144,10 @@ def build_deployment(  # pylint: disable=too-many-arguments
             package_dir=package_dir,
             build_dir=build_dir,
             dev_mode=dev_mode,
+            version=version,
         )
         click.echo(report)
-    except ValueError as e:
+    except Exception as e:  # pylint: disable=broad-except
         raise click.ClickException(str(e)) from e
 
 
