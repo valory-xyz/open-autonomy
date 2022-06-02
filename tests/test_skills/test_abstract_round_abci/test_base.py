@@ -1275,6 +1275,46 @@ class TestRoundSequence:
             ):
                 _ = self.round_sequence.last_round_transition_height
 
+    @pytest.mark.parametrize("round_count, reset_index", ((0, 0), (4, 2), (8, 1)))
+    def test_last_round_transition_root_hash(
+        self, round_count: int, reset_index: int
+    ) -> None:
+        """Test 'last_round_transition_height' method."""
+        self.round_sequence.abci_app.synchronized_data.db.round_count = round_count  # type: ignore
+        self.round_sequence.abci_app._reset_index = reset_index
+        assert (
+            self.round_sequence.last_round_transition_root_hash
+            == f"root:{round_count}reset:{reset_index}".encode("utf-8")
+        )
+
+    @pytest.mark.parametrize("tm_height", (None, 1, 5))
+    def test_last_round_transition_tm_height(self, tm_height: Optional[int]) -> None:
+        """Test 'last_round_transition_height' method."""
+        if tm_height is None:
+            with pytest.raises(
+                ValueError,
+                match="Trying to access Tendermint's last round transition height before any `end_block` calls.",
+            ):
+                _ = self.round_sequence.last_round_transition_tm_height
+        else:
+            self.round_sequence.tm_height = tm_height
+            self.round_sequence.begin_block(MagicMock(height=1))
+            self.round_sequence.end_block()
+            self.round_sequence.commit()
+            assert self.round_sequence.last_round_transition_tm_height == tm_height
+
+    @pytest.mark.parametrize("begin_height", tuple(range(0, 50, 10)))
+    @pytest.mark.parametrize("initial_height", tuple(range(0, 11, 5)))
+    def test_init_chain(self, begin_height: int, initial_height: int) -> None:
+        """Test 'init_chain' method."""
+        for i in range(begin_height):
+            self.round_sequence._blockchain.add_block(
+                MagicMock(header=MagicMock(height=i + 1))
+            )
+        assert self.round_sequence._blockchain.height == begin_height
+        self.round_sequence.init_chain(initial_height)
+        assert self.round_sequence._blockchain.height == initial_height - 1
+
     def test_begin_block_negative_is_finished(self) -> None:
         """Test 'begin_block' method, negative case (round sequence is finished)."""
         self.round_sequence.abci_app._current_round = None
