@@ -23,7 +23,7 @@ import functools
 import logging
 import re
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any, Dict, Tuple, Union, Set, Iterable
 
 import requests
 import yaml
@@ -38,32 +38,38 @@ ENCODING = "utf-8"
 VERSION = "v0.34.11"
 local_file = Path(tendermint_abci.__path__[0]) / "types.proto"
 
-type_mapping = {v: k[5:].lower() for k, v in vars(FieldDescriptor).items() if k.startswith("TYPE")}
-type_to_python = dict(
-    double=float,
-    float=float,
-    int64=int,
-    uint64=int,
-    int32=int,
-    # fixed64=int,
-    # fixed32=int,
-    bool=bool,
-    string=str,
-    # group=,
-    # message=,
-    bytes=bytes,
-    uint32=int,
-    # enum=,
-    # sfixed32=,
-    # sfixed64=,
-    # sint32=,
-    # sint64=,
+# regex patterns for parsing protobuf types
+opening_pattern = re.compile(r"\s*(\w+)\s+(\w+) {.*")
+types_proto_pattern = re.compile(r"\n\w+ \w+ \{(?:.|\n)*?(?:(?:}\n)+)")
+element_pattern = re.compile(r"\s*(repeated)?\s*([a-zA-Z0-9_\.]+)?\s+(\w+)\s*= (\d+)")
+abci_app_field_pattern = re.compile(r"\s*(\w+) ([a-zA-Z()]+) (\w+) ([a-zA-Z()]+);")
+
+type_mapping = {
+    v: k[5:].lower() for k, v in vars(FieldDescriptor).items() if k.startswith("TYPE")
+}
+
+type_to_python = dict.fromkeys(type_mapping.values())
+type_to_python.update(
+    dict(
+        double=float,
+        float=float,
+        int64=int,
+        uint64=int,
+        int32=int,
+        bool=bool,
+        string=str,
+        bytes=bytes,
+        uint32=int,
+    )
 )
 
 
+# utility functions
 def translate_type(data_type: str):
     """Translate type"""
     if data_type in type_to_python:
+        if type_to_python[data_type] is None:
+            raise NotImplementedError()
         return f"pt:{type_to_python[data_type].__name__}"
     return f"ct:{data_type}"
 
@@ -73,6 +79,74 @@ def to_snake_case(name: str) -> str:
     return re.sub(r"(?<!^)(?=[A-Z])", "_", name).lower()
 
 
+@functools.lru_cache()
+def parse_raw(s: str) -> Dict[Union[str, Tuple[str, str]], Any]:
+    """Parse custom types from protocol readme.md and abci/types.proto"""
+
+    open_bracket, closing_bracket, end_of_field = "{};"
+    container, stack, content = {}, [], ""
+    for line in re.sub("//.*", "", s).splitlines():
+
+        # dealing with nested structures: message or nested enum / oneof
+        if open_bracket + closing_bracket in line:
+            dtype, name = opening_pattern.match(line).groups()
+            container[(dtype, name)] = {}
+        elif open_bracket in line:
+            dtype, name = opening_pattern.match(line).groups()
+            stack.append((dtype, name))
+            data = container
+            for key in stack:
+                data = data.setdefault(key, {})
+                if key == (dtype, name):
+                    break
+            else:
+                data.setdefault((dtype, name), {})
+        elif closing_bracket in line:
+            stack.pop()
+        else:
+            content += line
+
+        # regular field (not message or nested enum / oneof)
+        if end_of_field in line:
+            # special case
+            if stack and stack[-1][-1] == "ABCIApplication":
+                fields = abci_app_field_pattern.match(line).groups()
+                protocol, request, _, response = fields
+                container[stack[-1]][protocol, request] = response
+                continue
+            # base cases
+            match = element_pattern.match(content)
+            repeated, dtype, name, idx = match.groups()
+            data = container
+            for key in stack:
+                data = data[key]
+            if not dtype and not repeated:  # == enum
+                data[name] = idx
+            else:
+                key = name if not repeated else (repeated, name)
+                data[key] = (dtype, idx)
+            content = ""
+
+    assert not stack  # sanity check
+    return container
+
+
+def get_tendermint_abci_types():
+    """Parse types from tendermint/abci/types.proto"""
+
+    n_expected, structs = 47, []
+    file_content = local_file.read_text(encoding=ENCODING)
+    raw_structs = types_proto_pattern.findall(file_content)
+    assert len(raw_structs) == n_expected  # sanity check
+    for s in raw_structs:
+        structs.append(parse_raw(s))
+        assert len(structs[-1]) == 1  # sanity check
+    merged = {k: v for d in structs for k, v in d.items()}
+    assert len(merged) == n_expected  # sanity check
+    return merged
+
+
+@functools.lru_cache()
 def get_tendermint_message_types() -> Dict[str, Any]:
     """Get Tendermint message type definitions"""
 
@@ -85,12 +159,12 @@ def get_tendermint_message_types() -> Dict[str, Any]:
             for field in oneof.fields:
                 item = [field.message_type.name, field.name, field.number]
                 messages[msg].setdefault(oneof.name, []).append(item)
-            continue
+            messages[msg][oneof.name] = tuple(messages[msg][oneof.name])
 
         # ResponseOfferSnapshot & ResponseApplySnapshotChunk
         for enum_type in msg_desc.enum_types:
             enum = dict(zip(enum_type.values_by_name, enum_type.values_by_number))
-            messages[msg][enum_type.name] = enum
+            messages[msg][enum_type.name] = enum.items()
 
         # other fields
         for field in msg_desc.fields:
@@ -101,13 +175,13 @@ def get_tendermint_message_types() -> Dict[str, Any]:
                 item = [type_mapping[field.type], field.number]
             if field.default_value == []:
                 item.append("repeated")
-            messages[msg][field.name] = item
+            messages[msg][field.name] = tuple(item)
 
     return messages
 
 
-@functools.lru_cache()
-def get_protocol_readme_spec():
+# @functools.lru_cache()
+def get_protocol_readme_spec() -> Tuple[Any, Any, Any]:
     """Test specification used to generate protocol matches ABCI spec"""
 
     protocol_readme = Path(abci_protocol.__path__[0]) / "README.md"
@@ -127,21 +201,27 @@ def get_protocol_readme_spec():
     return base, custom_types, dialogues
 
 
-def test_local_file_matches_github():
+def test_local_file_matches_github() -> None:
     """Test local file containing ABCI spec matches Tendermint GitHub"""
 
     url = f"https://raw.githubusercontent.com/tendermint/tendermint/{VERSION}/proto/tendermint/abci/types.proto"
     response = requests.get(url)
     if response.status_code != 200:
         log_msg = "Failed to retrieve Tendermint abci types from Github: "
-        raise requests.HTTPError(f"{log_msg}: {response.status_code} ({response.reason})")
+        raise requests.HTTPError(
+            f"{log_msg}: {response.status_code} ({response.reason})"
+        )
     github_data = response.text
     local_data = local_file.read_text(encoding=ENCODING)
     assert github_data == local_data
 
 
-def test_speech_act_matches_abci_spec():
+def test_speech_act_matches_abci_spec() -> None:
     """Test speech act definitions"""
+
+    def get_unique(a: Dict[str, str], b: Dict[str, str]) -> Tuple[Dict[str, str]]:
+        set_a, set_b = set(a.items()), set(b.items())
+        return dict(set_a - set_b), dict(set_b - set_a)
 
     differences = dict()
     base, *_ = get_protocol_readme_spec()
@@ -153,58 +233,75 @@ def test_speech_act_matches_abci_spec():
         expected = {k: translate_type(v[0]) for k, v in data}
         defined = speech_acts[to_snake_case(key)]
         if expected != defined:
-            differences[key] = (expected, defined)
+            differences[key] = get_unique(expected, defined)
 
     if differences:
-        lines = (f"{k}\n{v[0]}\n{v[1]}" for k, v in differences.items())
         log_msg = "Defined speech act not matching"
+        template = "message: {k}\n\texpected:\t{v[0]}\n\tdefined:\t{v[1]}"
+        lines = (template.format(k=k, v=v) for k, v in differences.items())
         logging.error(f"{log_msg}\n" + "\n".join(lines))
     assert not bool(differences)
 
 
-def test_defined_custom_types_match_abci_spec():
+def test_defined_custom_types_match_abci_spec() -> None:
     """Test custom types abci spec"""
 
-    differences = dict()
+    def venn_keys(a: Iterable, b: Iterable) -> Tuple[Set[Any], Set[Any], Set[Any]]:
+        set_a, set_b = set(a), set(b)
+        return set_a - set_b, set_a & set_b, set_b - set_a
+
     _, custom_types, _ = get_protocol_readme_spec()
-    message_types = get_tendermint_message_types()
+    struct = get_tendermint_abci_types()
+    defined_types = {k.split(':')[-1]: parse_raw(v) for k, v in custom_types.items()}
+    expected_types = {k[-1]: v for k, v in struct.items()}
 
-    # these are not custom types
-    request_keys = {key for key, *_ in message_types["Request"]["value"]}
-    response_keys = {key for key, *_ in message_types["Response"]["value"]}
-    filtered_keys = {"Request", "Response", *request_keys, *response_keys}
-
-    for key, v in message_types.items():
-        if key in filtered_keys:
+    missing, different, extra = (dict() for _ in range(3))
+    for key, v_def in defined_types.items():
+        if key not in expected_types:
+            extra[key] = v_def
             continue
 
-        ckey = f"ct:{key}"
-        if ckey in custom_types:
-            message_types[key]
-            custom_types[ckey]
-        else:
-            print(key)
+        v_exp = expected_types.get(key, {})
+        miss, match, more = venn_keys(v_exp, v_def)
+        diff = {k: (v_exp[k], v_def[k]) for k in match if v_exp[k] != v_def[k]}
+        diff.update({k: (v_exp[k], "") for k in miss})
+        diff.update({k: ("", v_def[k]) for k in more})
+        if diff:
+            different[key] = diff
 
-    for key, v in custom_types.items():
-        print(key)
+    for key, v_exp in expected_types.items():
+        if key not in defined_types:
+            missing[key] = v_exp
+
+    report = []
+    for k, v in different.items():
+        report.append(k)
+        for sub_k, (e, d) in v.items():
+            sub_k = sub_k if isinstance(sub_k, str) else " ".join(sub_k)
+            report.append('\t'+sub_k)
+            report.append(f"\t\texpected: {e}\n\t\tdefined: {d}")
+
+    if report:
+        logging.error("\n".join(report))
+    assert not bool(report)
 
 
-def test_defined_dialogues_match_abci_spec():
+def test_defined_dialogues_match_abci_spec() -> None:
     """Test defined dialogues match abci spec"""
 
     *_, dialogues = get_protocol_readme_spec()
     message_types = get_tendermint_message_types()
 
     # expected
-    request_oneof = message_types['Request']["value"]
+    request_oneof = message_types["Request"]["value"]
     request_keys = {to_snake_case(key) for key, *_ in request_oneof}
-    response_oneof = message_types['Response']["value"]
+    response_oneof = message_types["Response"]["value"]
     response_keys = {to_snake_case(key) for key, *_ in response_oneof}
 
     # defined
-    initiation = dialogues['initiation']
-    reply = dialogues['reply']
-    termination = dialogues['termination']
+    initiation = dialogues["initiation"]
+    reply = dialogues["reply"]
+    termination = dialogues["termination"]
 
     # initiation
     assert not request_keys.difference(initiation)
@@ -221,4 +318,3 @@ def test_defined_dialogues_match_abci_spec():
     # termination
     assert not response_keys.difference(termination)
     assert set(termination).difference(response_keys) == {"dummy"}
-
