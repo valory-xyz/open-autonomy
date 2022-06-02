@@ -25,7 +25,7 @@ TENDERMINT_IMAGE_NAME = "valory/consensus-algorithms-tendermint"
 HARDHAT_IMAGE_NAME = "valory/consensus-algorithms-hardhat"
 
 DEPLOYMENT_KEY_DIRECTORY = "agent_keys"
-DEPLOYMENT_AGENT_KEY_DIRECTORY_SCHEMA = "agents_{agent_n}"
+DEPLOYMENT_AGENT_KEY_DIRECTORY_SCHEMA = "agent_{agent_n}"
 
 DEFAULT_ENCODING = "utf-8"
 

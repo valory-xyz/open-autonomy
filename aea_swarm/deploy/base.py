@@ -364,18 +364,12 @@ class DeploymentSpec:  # pylint: disable=R0902
         keys = json.loads(file_path.read_text(encoding=DEFAULT_ENCODING))
         self.private_keys = []
 
-        if self.private_keys_password is None:
-            for key in keys:
-                for required_key in [KEY_SCHEMA_ADDRESS, KEY_SCHEMA_UNENCRYPTED_KEY]:
-                    if required_key not in key.keys():
-                        raise ValueError("Key file incorrectly formatted.")
-                self.private_keys.append(key[KEY_SCHEMA_UNENCRYPTED_KEY])
-        else:
-            for key in keys:
-                for required_key in [KEY_SCHEMA_ADDRESS, KEY_SCHEMA_ENCRYPTED_KEY]:
-                    if required_key not in key.keys():
-                        raise ValueError("Key file incorrectly formatted.")
-                self.private_keys.append(json.dumps(key[KEY_SCHEMA_ENCRYPTED_KEY]))
+        key_schema = KEY_SCHEMA_UNENCRYPTED_KEY if self.private_keys_password is None else KEY_SCHEMA_ENCRYPTED_KEY
+        for key in keys:
+            for required_key in [KEY_SCHEMA_ADDRESS, key_schema]:
+                if required_key not in key.keys():
+                    raise ValueError("Key file incorrectly formatted.")
+            self.private_keys.append(key[key_schema])
 
     def _process_model_args_overrides(self, agent_n: int) -> Dict:
         """Generates env vars based on model overrides."""
