@@ -152,18 +152,13 @@ class TestRegistrationRound(BaseCollectSameUntilThresholdRoundTest):
             consensus_params=self.consensus_params,
         )
 
-        round_payloads = dict(
-            [
-                (
-                    participant,
-                    RegistrationPayload(
-                        sender=participant,
-                        initialisation='{"dummy_key": "dummy_value"}',
-                    ),
-                )
-                for participant in self.participants
-            ]
-        )
+        round_payloads = {
+            participant: RegistrationPayload(
+                sender=participant,
+                initialisation='{"dummy_key": "dummy_value"}',
+            )
+            for participant in self.participants
+        }
 
         self._run_with_round(
             test_round=test_round,
