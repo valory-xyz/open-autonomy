@@ -36,13 +36,13 @@ from packages.valory.protocols import abci as abci_protocol
 
 ENCODING = "utf-8"
 VERSION = "v0.34.11"
-local_file = Path(abci.__path__[0]) / "types.proto"
+LOCAL_TYPES_FILE = Path(abci.__path__[0]) / "types.proto"
 URL = f"https://raw.githubusercontent.com/tendermint/tendermint/{VERSION}/proto/tendermint/abci/types.proto"
 
 # regex patterns for parsing protobuf types
-opening_pattern = re.compile(r"\s*(\w+)\s+(\w+) {.*")
+start_of_struct_pattern = re.compile(r"\s*(\w+)\s+(\w+) {.*")
 types_proto_pattern = re.compile(r"\n\w+ \w+ \{(?:.|\n)*?(?:(?:}\n)+)")
-element_pattern = re.compile(r"\s*(repeated)?\s*([a-zA-Z0-9_\.]+)?\s+(\w+)\s*= (\d+)")
+field_pattern = re.compile(r"\s*(repeated)?\s*([a-zA-Z0-9_\.]+)?\s+(\w+)\s*= (\d+)")
 abci_app_field_pattern = re.compile(r"\s*(\w+) ([a-zA-Z()]+) (\w+) ([a-zA-Z()]+);")
 
 type_mapping = {
@@ -63,7 +63,7 @@ type_to_python.update(
         uint32=int,
     )
 )
-del type_to_python['enum']
+
 
 # utility functions
 def translate_type(data_type: str) -> str:
@@ -102,12 +102,12 @@ def parse_raw(s: str) -> Dict[Union[str, Tuple[str, str]], Any]:
 
         # empty types: {}
         if open_bracket + closing_bracket in line:
-            dtype, name = opening_pattern.match(line).groups()  # type: ignore
+            dtype, name = start_of_struct_pattern.match(line).groups()  # type: ignore
             container[(dtype, name)] = {}
 
         # dealing with nested structures: message or nested enum / oneof
         elif open_bracket in line:
-            dtype, name = opening_pattern.match(line).groups()  # type: ignore
+            dtype, name = start_of_struct_pattern.match(line).groups()  # type: ignore
             stack.append((dtype, name))
             data = container
             for key in stack:
@@ -132,7 +132,7 @@ def parse_raw(s: str) -> Dict[Union[str, Tuple[str, str]], Any]:
                 continue
 
             # base cases
-            match = element_pattern.match(content)
+            match = field_pattern.match(content)
             repeated, dtype, name, idx = match.groups()  # type: ignore
             data = container
             for key in stack:
@@ -152,7 +152,7 @@ def get_tendermint_abci_types() -> Dict[Any, Any]:
     """Parse types from tendermint/abci/types.proto"""
 
     n_expected, structs = 47, []
-    file_content = local_file.read_text(encoding=ENCODING)
+    file_content = LOCAL_TYPES_FILE.read_text(encoding=ENCODING)
     raw_structs = types_proto_pattern.findall(file_content)
     assert len(raw_structs) == n_expected  # sanity check
     for s in raw_structs:
@@ -219,7 +219,7 @@ def get_protocol_readme_spec() -> Tuple[Any, Any, Any]:
 
 
 # tests
-def test_local_file_matches_github() -> None:
+def test_local_types_file_matches_github() -> None:
     """Test local file containing ABCI spec matches Tendermint GitHub"""
 
     response = requests.get(URL)
@@ -228,7 +228,7 @@ def test_local_file_matches_github() -> None:
         status_code, reason = response.status_code, response.reason
         raise requests.HTTPError(f"{log_msg}: {status_code} ({reason})")
     github_data = response.text
-    local_data = local_file.read_text(encoding=ENCODING)
+    local_data = LOCAL_TYPES_FILE.read_text(encoding=ENCODING)
     assert github_data == local_data
 
 
