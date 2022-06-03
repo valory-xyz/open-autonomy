@@ -80,8 +80,9 @@ def to_snake_case(name: str) -> str:
     return re.sub(r"(?<!^)(?=[A-Z])", "_", name).lower()
 
 
-def nested_dict_to_text(dict_obj, indent: int = 0, report: str = "") -> str:
+def nested_dict_to_text(dict_obj: Dict[str, Any], indent: int = 0) -> str:
     """Pretty Print nested dictionary with given indent level"""
+    report: str = ""
     for key, value in dict_obj.items():
         if isinstance(value, dict):
             report += f"{' ' * indent}{key}: {{\n"
