@@ -21,6 +21,7 @@
 import datetime
 import inspect
 import json
+import math
 import pprint
 from abc import ABC, abstractmethod
 from enum import Enum
@@ -1528,8 +1529,15 @@ class BaseBehaviour(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
             genesis_time = last_round_transition_timestamp.astimezone(
                 pytz.UTC
             ).strftime(GENESIS_TIME_FMT)
+            # Initial height needs to cover the time between transition and reset. Since every second
+            # roughly one block is created we use: observation_interval / 2 + height_on_transition + offset.
+            # observation_interval / 2 is the time required from the moment the agent enters the reset round
+            # until the time it starts to reset. Offset is used in order to account for shifts among the agents'
+            # sync and for the small amount of time required in order to actually reset the tendermint node.
+            # The bigger the possibility of lag among the agents, the larger the offset should be.
             initial_height = (
                 self.context.state.round_sequence.last_round_transition_tm_height
+                + math.ceil(self.params.observation_interval / 2)
                 + HEIGHT_OFFSET
             )
             request_message, http_dialogue = self._build_http_request_message(

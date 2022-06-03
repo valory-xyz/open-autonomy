@@ -20,6 +20,7 @@
 """Test the behaviours_utils.py module of the skill."""
 import json
 import logging
+import math
 import sys
 import time
 from abc import ABC
@@ -1325,6 +1326,7 @@ class TestBaseBehaviour:
                 (
                     "initial_height",
                     self.behaviour.context.state.round_sequence.last_round_transition_tm_height
+                    + math.ceil(self.behaviour.params.observation_interval / 2)
                     + HEIGHT_OFFSET,
                 ),
             ]
