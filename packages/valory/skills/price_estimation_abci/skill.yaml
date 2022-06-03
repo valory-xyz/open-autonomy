@@ -88,10 +88,8 @@ models:
       round_timeout_seconds: 30.0
       service_id: price_estimation
       setup:
-        oracle_contract_address:
-        - null
-        safe_contract_address:
-        - null
+        oracle_contract_address: null
+        safe_contract_address: null
       sleep_time: 1
       tendermint_check_sleep_delay: 3
       tendermint_com_url: http://localhost:8080

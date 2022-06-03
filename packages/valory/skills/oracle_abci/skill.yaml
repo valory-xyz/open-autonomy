@@ -26,7 +26,7 @@ protocols:
 skills:
 - valory/abstract_round_abci:0.1.0:QmarvsfazQYo6KFQfNxuDDb9yUnjpWVz9v5fjV3835to3e
 - valory/oracle_deployment_abci:0.1.0:QmdTFj7dmARtoJrG37RtpxDVjvHezTBTnAtLtjh5qdA7uS
-- valory/price_estimation_abci:0.1.0:QmPUSYFAqBLMsRjyE1ATrRPagyfptVBNxCpXHv9pbRUsze
+- valory/price_estimation_abci:0.1.0:QmUhcv12JawdJrTU9FGC6rViCgMGasxwW49VZ7NAeU3gKY
 - valory/registration_abci:0.1.0:Qmcg8U7oqT5zkjCXznLr1nRimvqHnvS6vBjjWHEtr9vxoF
 - valory/reset_pause_abci:0.1.0:QmYZ7yRWBCrbvELsDF8h5Vhge82XgjFEegF8KZj4kjfzzP
 - valory/safe_deployment_abci:0.1.0:QmeLt1ZgVXGHGStL8bPhaDBKSVKbYrhGAamoF6DQQmaBPE
@@ -93,10 +93,8 @@ models:
       round_timeout_seconds: 30.0
       service_id: price_estimation
       setup:
-        oracle_contract_address:
-        - null
-        safe_contract_address:
-        - null
+        oracle_contract_address: null
+        safe_contract_address: null
       sleep_time: 1
       tendermint_check_sleep_delay: 3
       tendermint_com_url: http://localhost:8080
