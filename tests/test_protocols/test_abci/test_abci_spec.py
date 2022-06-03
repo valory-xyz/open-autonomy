@@ -63,7 +63,7 @@ type_to_python.update(
         uint32=int,
     )
 )
-
+del type_to_python['enum']
 
 # utility functions
 def translate_type(data_type: str) -> str:
@@ -78,6 +78,18 @@ def translate_type(data_type: str) -> str:
 def to_snake_case(name: str) -> str:
     """Convert CamelCase to snake_case"""
     return re.sub(r"(?<!^)(?=[A-Z])", "_", name).lower()
+
+
+def nested_dict_to_text(dict_obj, indent: int = 0, report: str = "") -> str:
+    """Pretty Print nested dictionary with given indent level"""
+    for key, value in dict_obj.items():
+        if isinstance(value, dict):
+            report += f"{' ' * indent}{key}: {{\n"
+            report += nested_dict_to_text(value, indent + 4)
+            report += f"{' ' * indent}}}\n"
+        else:
+            report += f"{' ' * indent}{key}: {value}\n"
+    return report
 
 
 @functools.lru_cache()
@@ -178,7 +190,7 @@ def get_tendermint_message_types() -> Dict[str, Any]:
                 item = [field.message_type.name, field.number]
             else:
                 item = [type_mapping[field.type], field.number]
-            if field.default_value == []:
+            if isinstance(field.default_value, list):
                 item.append("repeated")
             messages[msg][field.name] = tuple(item)
 
@@ -254,6 +266,7 @@ def test_defined_custom_types_match_abci_spec() -> None:
         set_a, set_b = set(a), set(b)
         return set_a - set_b, set_a & set_b, set_b - set_a
 
+    # expected is Tendermint ABCI spec, defined is what we specified
     _, custom_types, _ = get_protocol_readme_spec()
     struct = get_tendermint_abci_types()
     defined_types = {k.split(":")[-1]: parse_raw(v) for k, v in custom_types.items()}
@@ -277,17 +290,28 @@ def test_defined_custom_types_match_abci_spec() -> None:
         if key not in defined_types:
             missing[key] = v_exp
 
-    report = []
+    report, indent = "\n\n### Mismatch\n\n", " " * 4
     for k, v in different.items():
-        report.append(k)
+        report += f"{k}\n"
         for sub_k, (e, d) in v.items():
             sub_k = sub_k if isinstance(sub_k, str) else " ".join(sub_k)
-            report.append("\t" + sub_k)
-            report.append(f"\t\texpected: {e}\n\t\tdefined: {d}")
+            report += f"{indent}{sub_k}\n"
+            report += f"{indent * 2}expected: {e}\n"
+            report += f"{indent * 2}defined: {d}\n"
 
+    report += "\n\n### Missing\n\n"
+    report += nested_dict_to_text(missing)
+    report += "\n\n### Extra\n\n"
+    report += nested_dict_to_text(extra)
     if report:
-        logging.error("\n".join(report))
-    assert not bool(report)
+        log_msg = "Custom types not matching ABCI spec"
+        logging.error(f"{log_msg}\n{report}")
+
+    # current assumptions:
+    # - we MUST match what we implement
+    # - missing structures ALLOWED, as we might not need or use them
+    # - extra structures allowed (questionable)
+    assert not bool(different)
 
 
 def test_defined_dialogues_match_abci_spec() -> None:
