@@ -402,7 +402,7 @@ FSMs defined above using an FSM transition mapping that establishes the relation
 between the final states of a certain FSM with the start states of another FSM, that is,
 
 ```python
-OracleAbciApp = compose_dfa(
+OracleAbciApp = chain(
     (
         AgentRegistrationAbciApp,
         SafeDeploymentAbciApp,
@@ -411,21 +411,23 @@ OracleAbciApp = compose_dfa(
         TransactionSubmissionAbciApp,
         ResetPauseABCIApp,
     ),
-    OracleAbciAppAppTransitionMapping
+    abci_app_transition_mapping,
 )
 ```
 The transition mapping for this FSM is defined as
 
 ```python
-OracleAbciAppAppTransitionMapping = {
-    'FinishedRegistrationRound': 'RandomnessSafeRound',
-    'FinishedSafeRound': 'RandomnessOracleRound',
-    'FinishedOracleRound': 'CollectObservationRound',
-    'FinishedRegistrationFFWRound': 'CollectObservationRound',
-    'FinishedPriceAggregationRound': 'RandomnessTransactionSubmissionRound',
-    'FinishedTransactionSubmissionRound': 'CollectObservationRound',
-    'FailedRound': 'RegistrationRound',
-    }
+abci_app_transition_mapping: AbciAppTransitionMapping = {
+    FinishedRegistrationRound: RandomnessSafeRound,
+    FinishedSafeRound: RandomnessOracleRound,
+    FinishedOracleRound: CollectObservationRound,
+    FinishedRegistrationFFWRound: CollectObservationRound,
+    FinishedPriceAggregationRound: RandomnessTransactionSubmissionRound,
+    FailedRound: ResetAndPauseRound,
+    FinishedTransactionSubmissionRound: ResetAndPauseRound,
+    FinishedResetAndPauseRound: CollectObservationRound,
+    FinishedResetAndPauseErrorRound: RegistrationRound,
+}
 ```
 
 

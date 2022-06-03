@@ -166,14 +166,28 @@ class TestPythonSnippets(BaseTestDocCode):
                 "packages/valory/skills/hello_world_abci/behaviours.py",
                 "packages/valory/skills/hello_world_abci/payloads.py",
             ],
-            "skip_blocks": [],
+        },
+        "docs/price_oracle_intro.md": {
+            "code_files": [
+                "packages/valory/skills/oracle_abci/composition.py",
+                "packages/valory/skills/oracle_abci/behaviours.py",
+            ],
+        },
+        "docs/price_oracle_fsms.md": {
+            "code_files": [
+                "packages/valory/skills/oracle_abci/composition.py",
+                "packages/valory/skills/oracle_abci/composition.py",
+            ],
+        },
+        "docs/simple_abci.md": {
+            "code_files": [
+                "packages/valory/skills/simple_abci/behaviours.py",
+                "packages/valory/skills/simple_abci/rounds.py",
+            ],
         },
     }
 
     skipped_files = [
-        "docs/abci_app_async_behaviour.md",
-        "docs/price_oracle_intro.md",
-        "docs/price_oracle_fsms.md",
-        "docs/simple_abci.md",
-        "docs/networks.md",
+        "docs/abci_app_async_behaviour.md",  # just placeholder examples
+        "docs/networks.md",  # only irrelevant one-liners
     ]

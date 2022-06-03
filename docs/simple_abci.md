@@ -93,7 +93,7 @@ classDiagram
     class RegistrationRound{
       +round_id = "registration"
       +allowed_tx_type = TransactionType.REGISTRATION
-      +payload_attribute = "sender"        
+      +payload_attribute = "sender"
       +end_block()
     }
 </div>
@@ -133,7 +133,7 @@ classDiagram
     }
     class RegistrationBehaviour{
         +state_id = "register"
-        +matching_round = RegistrationRound       
+        +matching_round = RegistrationRound
         +async_act()
     }
 </div>
@@ -150,26 +150,31 @@ As it can be seen, the `RegistrationBehaviour` inherits from `BaseState`, which 
 An excerpt of the code corresponding to the `RegistrationBehaviour` is:
 
 ```python
-class RegistrationBaseBehaviour(BaseState):
-    """Register to the next periods."""
+class RegistrationBehaviour(SimpleABCIBaseBehaviour):
+    """Register to the next round."""
+
+    behaviour_id = "register"
+    matching_round = RegistrationRound
 
     def async_act(self) -> Generator:
-      # Build the registration transaction payload.
-      initialisation = (
-        json.dumps(self.period_state.db.initial_data, sort_keys=True)
-          if self.period_state.db.initial_data != {}
-          else None
-          )
-      payload = RegistrationPayload(
-        self.context.agent_address, initialisation=initialisation
-        )
+        """
+        Do the action.
 
-      # Send the transaction payload and wait for it to be mined.
-      yield from self.send_a2a_transaction(payload)
+        Steps:
+        - Build a registration transaction.
+        - Send the transaction and wait for it to be mined.
+        - Wait until ABCI application transitions to the next round.
+        - Go to the next behaviour (set done event).
+        """
 
-      # Wait until the ABCI Application transitions to the next round.
-      yield from self.wait_until_round_end()
-      self.set_done()
+        with self.context.benchmark_tool.measure(self.behaviour_id).local():
+            payload = RegistrationPayload(self.context.agent_address)
+
+        with self.context.benchmark_tool.measure(self.behaviour_id).consensus():
+            yield from self.send_a2a_transaction(payload)
+            yield from self.wait_until_round_end()
+
+        self.set_done()
 ```
 
 Finally, the hierarchy for the `RegistrationPayload` is as follows:
@@ -185,7 +190,7 @@ classDiagram
     +sender
     +id_
     +round_count
-    +_initialisation    
+    +_initialisation
     +round_count()
   }
 
@@ -236,6 +241,35 @@ The transition function, which is the main part of this class, is defined using 
 
 ```python
 class SimpleAbciApp(AbciApp[Event]):
+    """SimpleAbciApp
+
+    Initial round: RegistrationRound
+
+    Initial states: {RegistrationRound}
+
+    Transition states:
+        0. RegistrationRound
+            - done: 1.
+        1. RandomnessStartupRound
+            - done: 2.
+            - round timeout: 1.
+            - no majority: 1.
+        2. SelectKeeperAtStartupRound
+            - done: 3.
+            - round timeout: 0.
+            - no majority: 0.
+        3. ResetAndPauseRound
+            - done: 1.
+            - reset timeout: 0.
+            - no majority: 0.
+
+    Final states: {}
+
+    Timeouts:
+        round timeout: 30.0
+        reset timeout: 30.0
+    """
+
     initial_round_cls: Type[AbstractRound] = RegistrationRound
     transition_function: AbciAppTransitionFunction = {
         RegistrationRound: {
