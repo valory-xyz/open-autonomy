@@ -20,6 +20,7 @@
 """This module contains helper function to extract code from the .md files."""
 import os
 import re
+from enum import Enum
 from functools import partial
 from pathlib import Path
 from typing import Callable, Dict, List, Optional
@@ -32,6 +33,15 @@ from tests.conftest import ROOT_DIR
 MISTUNE_BLOCK_CODE_ID = "block_code"
 IPFS_HASH_REGEX = R"Qm[A-Za-z0-9]{44}"
 NON_CODE_TOKENS = ["# ...\n"]
+
+
+class CodeType(Enum):
+    """Types of code blocks in the docs"""
+
+    PYTHON = "python"
+    YAML = "yaml"
+    BASH = "bash"
+    NOCODE = "nocode"
 
 
 def block_code_filter(b: Dict) -> bool:
@@ -106,16 +116,18 @@ def contains_code_blocks(file_path: str, block_type: str) -> bool:
 def check_code_block(
     md_file: str,
     code_info: Dict,
+    code_type: CodeType,
     doc_process_fn: Optional[Callable] = None,
     code_process_fn: Optional[Callable] = None,
 ) -> None:
     """Check code blocks from the documentation"""
-    code_files = code_info.get("code_files", None)
-    skip_blocks = code_info.get("skip_blocks", None)
+    code_files: List = code_info.get("code_files", None)
+    skip_blocks: List = code_info.get("skip_blocks", None)
+    line_by_line: bool = code_info.get("line_by_line", None)
 
     # Load the code blocks from the doc file
     doc_path = os.path.join(ROOT_DIR, md_file)
-    code_blocks = extract_code_blocks(filepath=doc_path, filter_="yaml")
+    code_blocks = extract_code_blocks(filepath=doc_path, filter_=code_type.value)
 
     if skip_blocks:
         code_blocks = [
@@ -142,6 +154,12 @@ def check_code_block(
         code = code_process_fn(code) if code_process_fn else code
 
         # Perform the check
+        if line_by_line:
+            for line in code_blocks[i]:
+                assert (
+                    line in code
+                ), f"This line in {md_file} doesn't exist in the code file {code_file}:\n\n{line}"
+            continue
         assert (
             code_blocks[i] in code
         ), f"This code-block in {md_file} doesn't exist in the code file {code_file}:\n\n{code_blocks[i]}"
