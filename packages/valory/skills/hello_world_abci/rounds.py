@@ -98,6 +98,7 @@ class RegistrationRound(CollectDifferentUntilAllRound, HelloWorldABCIAbstractRou
             synchronized_data = self.synchronized_data.update(
                 participants=self.collection,
                 all_participants=self.collection,
+                printing_iteration=0,
                 synchronized_data_class=SynchronizedData,
             )
             return synchronized_data, Event.DONE
@@ -135,6 +136,9 @@ class PrintMessageRound(CollectDifferentUntilAllRound, HelloWorldABCIAbstractRou
 
     def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Event]]:
         """Process the end of the block."""
+        
+        #n = cast(int, self.synchronized_data.db.get_strict("printing_iteration"))
+        #print(f"!!!!!!!!!!!!!!!!!!! {n}")
         if self.collection_threshold_reached:
             synchronized_data = self.synchronized_data.update(
                 participants=self.collection,
