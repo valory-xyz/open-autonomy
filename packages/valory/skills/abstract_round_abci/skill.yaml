@@ -9,23 +9,23 @@ fingerprint:
   README.md: QmYNXPppPSnW61ipqKNH8pyMh8qzTERwQaducYYq1dnBJb
   __init__.py: QmPuJK7gMKruSTcaYk9otrFncfD9h6vBZVoAtkwhTBgcxa
   abci_app_chain.py: QmeCPxwjec4pxtedv8NeG2Gmj58GY2GycXvgwfyjEyqPGm
-  base.py: QmUDpjKp9dUTYjm3rZqXH96ezCRAQoyyeJWXjvuPxq9uX9
-  behaviour_utils.py: QmTF9xGLDG3Q1nw22s4YgVTKRKxo5xmxRhy4Q2PMJe5QU8
-  behaviours.py: QmeNvG7nPdXdAvKsrLNjJDEnnRUhf5hVetrJLm45EzCVq2
-  common.py: QmZTWK9oSq2ExjqD8mR4Sj8KSyCZAZPJWRXhKyowiDZHVE
+  base.py: QmboPsSzPiY16P6qgtN11UFQRbeChWA9SKrTPv5LXXHD7i
+  behaviour_utils.py: QmYiP4jR2YNYiihaYh4eS78W5bxLambbeVK2WDSAiKe311
+  behaviours.py: QmawtbXREBz8C7Grjn4a93gaAQFMWzZicxRfjyHcckYHmz
+  common.py: QmVBfMMrVVj3MmzEQme8R5WB6FVY67uhXepvm8wvXcJFLe
   dialogues.py: QmRwAxxs4Zt4N2suXzNKqpSuwQDLgjh9hR4nfALfcTshku
-  handlers.py: QmSnjy6M13vSwZTj5KKZLyud7XHAKHmietqFuKSouyXkUF
+  handlers.py: QmYGd5KM1JqRErLgARTKgtGadH8bJv5uZHUr99EwggYi5A
   io/__init__.py: QmPfA2syTybFaGmmMMt5gevZHEXPyjVf7wR1UE22NzpZZ3
   io/ipfs.py: Qmc7BLSKb2kESC1wdCc7FxaLiSHcmPcfiBuXBuLXevUdE7
   io/load.py: QmSa3vgVvQiMJabBvSnPjTMtYiDgrrHPugDGCvSf4kAfS3
   io/paths.py: QmT1e6Ygak8Fe4NxSrd2mb6EB1Rr6dsYZPL8dWh3aNMb12
   io/store.py: QmXHnLF1Jg2hmhUwYj4E4QoMmx6EoLhUtzEGqztLKtKFej
-  models.py: QmWojBUxvCtrd8P1FYVBkmYgomqVBJtWcuvxn4Vr2NeP6d
+  models.py: QmWikWe4HKYdPxe8BS9x2tBiKKc5Kp2aHmsa1Wr8BpehLY
   serializer.py: QmYf1ZaQEwAaUFvFHwafuetnm29PmWQUAEFSbbHDdrHvyp
   utils.py: Qmed3ijomF91pePveuFrPVd4BaXRLrsoCaszkiuyF2ZbBE
 fingerprint_ignore_patterns: []
 connections:
-- valory/abci:0.1.0:QmUq4z19VS9G1TfnZdKy818F7maQopAor4NGe9t4DgzwyJ
+- valory/abci:0.1.0:QmcSFCqBgsz1MZYheyGJz53TDm8iLGeeqRRnupaazDDBmC
 - valory/http_client:0.1.0:QmXXtNRaMrZqEdmT9LVDhcxSy7PNgvJdCXaQ5L9ZxM5cGm
 - valory/ledger:0.1.0:QmbjPsymto6fKHZvFUTyMBnZeA7ZWoqfy3KXXJ7cVWkiE3
 - valory/p2p_libp2p_client:0.1.0:QmZWFVzuMLAcLeVVimaHTGfj16ELAM2pdSLWtZTxqkvDZ4
@@ -39,7 +39,7 @@ protocols:
 - valory/ledger_api:1.0.0:QmcjydJiMqhEmSGJqnLKDjmGSXmV5KZhMvY6zGgHKUgFL4
 - valory/tendermint:0.1.0:QmTebra2gtfrwfcxJj2vpoRrAawi6gvHSBtRjqfHxZ6YJV
 skills:
-- valory/abstract_abci:0.1.0:QmWyTCyuxwgZu93QbMQ9HX4SuqhssyHYRKAQtRRnG2Q4Xo
+- valory/abstract_abci:0.1.0:QmdfVoBSbRjea8XEgVym7ssSTj22kHcEhguNwyT4p4NtNe
 behaviours:
   main:
     args: {}

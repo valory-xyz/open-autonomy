@@ -8,7 +8,7 @@ aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
   README.md: QmTT2DXnyGCpBRHJNEQHeVEVn9RA2mRUSefUSg8F5WWQbu
   __init__.py: QmUp13bBYfZ4wSNtFkNxNvSqknhKDmfppByUUJRkJPU5Qg
-  behaviours.py: QmS9ZUHqD2yyi5zxUSpqbbKZCLe54BJA8bnJk8HvjQeoCJ
+  behaviours.py: QmRemiKoxfVMheD3MHxWTux2qqGW1quz5Xk9ta6GNWftxH
   composition.py: QmR4YsEW8MHdxAvJ7V2e8NczXAeT4NCDYpze7eJ1ssnPcR
   dialogues.py: QmfDThV4WCRzK88XDpW2hKDYCuEH4RxoHCoAkWpkBRGRPv
   fsm_specification.yaml: QmZ6B9Eu7tUUH8bxi62EpwrdUKRBN9zQKy5QnQTvgz3YLa
@@ -16,7 +16,7 @@ fingerprint:
   models.py: QmS9Fkg46KXHAxdq4NV4ckFD2xv2uNQfLR1374xqucvvJh
 fingerprint_ignore_patterns: []
 connections:
-- valory/abci:0.1.0:QmUq4z19VS9G1TfnZdKy818F7maQopAor4NGe9t4DgzwyJ
+- valory/abci:0.1.0:QmcSFCqBgsz1MZYheyGJz53TDm8iLGeeqRRnupaazDDBmC
 - valory/http_client:0.1.0:QmXXtNRaMrZqEdmT9LVDhcxSy7PNgvJdCXaQ5L9ZxM5cGm
 - valory/ledger:0.1.0:QmbjPsymto6fKHZvFUTyMBnZeA7ZWoqfy3KXXJ7cVWkiE3
 contracts: []
@@ -27,9 +27,9 @@ protocols:
 - valory/http:1.0.0:QmbTD9GZg9MKBiQR3Tef1hS5YnGufUNSzrKpW8Eqgd6FUQ
 - valory/ledger_api:1.0.0:QmcjydJiMqhEmSGJqnLKDjmGSXmV5KZhMvY6zGgHKUgFL4
 skills:
-- valory/abstract_round_abci:0.1.0:Qmch4D7jbdLD9k7aan3SCHPNQx2Et1ydyKsHXkVkRSDLBM
-- valory/apy_estimation_abci:0.1.0:QmTG8T4haXgr3e32megpNNzAcSVdsjd3b9B3W6JeCe8Zse
-- valory/registration_abci:0.1.0:QmY47ui9NNPFPVKPKuo43tRxG47Qy4EaspJjH8bbwwgGY7
+- valory/abstract_round_abci:0.1.0:QmWaeZ1aWWTgeowTLyf2Hao7AsdHrxEgbMQm5AZeofy3NW
+- valory/apy_estimation_abci:0.1.0:QmTMtHqa6GhRUszqJeJF6DyAjKPvsW7wUc8qtgubD52VZw
+- valory/registration_abci:0.1.0:QmexrRMUxZrDs2Z4fE7xT2WF5Kwz11HyoG123u4R3QQ2jc
 behaviours:
   main:
     args: {}

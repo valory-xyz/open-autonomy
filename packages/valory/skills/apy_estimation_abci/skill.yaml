@@ -8,7 +8,7 @@ aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
   README.md: QmSvXr6k7f5GFZVCgqM8d4ywibiSAYbdaGjmPh4CmFfQn9
   __init__.py: Qmb163B19kEpc6PfbLnmQxPbeEWA2ubTghVwG2YUeNYusu
-  behaviours.py: QmRvaxN6zCN3gYcjTEcAkQShsm3BNrYGxEjFB17ZGtjVGC
+  behaviours.py: QmSsWNXTTJ6mromuo3cpmVEmRB27raGNmUgYTyDpeP6abk
   dialogues.py: QmdBmUMWoPbS2faqn8LicQVJfN6a2WjtdZDWFbiYoy7hfY
   fsm_specification.yaml: QmWpHTiaY91oUmAoYiAZjcg5i3UsqktRHCcZZkEDpqEqcf
   handlers.py: QmRMUufh4uDoqLjcQQ2f51fyE4M8Q7ECxSbLEbtTUMfVfu
@@ -18,16 +18,16 @@ fingerprint:
   ml/preprocessing.py: QmXRkajyrcZbXy8k26dCocmCCrqYwEHcjy7iFG64DohZKq
   models.py: QmS15SjCs3NXCqz3gRL3soC7RRPFGofDGEttef5DVWo8EZ
   payloads.py: QmbBH6kpC98iMgoVbHNwwMBMLs8LC6c87tj81r7UBaHesv
-  rounds.py: QmYTqU5iR5gr9pM5NjxDsXFPdubTarASVxXDYcpZnqBDSJ
+  rounds.py: QmeMAdWMP3H1z5qRz9x3xeCD1YZDLo8k4M2uyC1TUjEkF2
   tasks.py: QmemYwBwU6RpWsca3bkXWuUemgZ6YwFVMxS5vkt7J7BjHh
   tools/__init__.py: QmWr6iVwNzqYVqmxBwYC1myurM8AjxuzxwjM1brXSmnDTi
   tools/etl.py: Qmb7e77Fh6R4TTSbgUNSo2LaQpKWtRsfmfeqCiPF75mSNf
   tools/general.py: QmUtxPckv7Mjv6RXt9LmoSARd3D5xK4pyoVVL9wv9H2kvB
-  tools/io.py: QmQk9ZYtTLBeSDwvh6S5BfuaS7EYftM2fryym2RA4M8Wah
+  tools/io.py: QmQ1aPz1gg9hwgzkG1iLpiHbDVApwHyxLR2mGfQmDJqAQk
   tools/queries.py: QmXZxZ35Sd6YWpPWcMfhwvS5KMvQhb9AmLWp7drQs8KQCT
 fingerprint_ignore_patterns: []
 connections:
-- valory/abci:0.1.0:QmUq4z19VS9G1TfnZdKy818F7maQopAor4NGe9t4DgzwyJ
+- valory/abci:0.1.0:QmcSFCqBgsz1MZYheyGJz53TDm8iLGeeqRRnupaazDDBmC
 - valory/http_client:0.1.0:QmXXtNRaMrZqEdmT9LVDhcxSy7PNgvJdCXaQ5L9ZxM5cGm
 - valory/ledger:0.1.0:QmbjPsymto6fKHZvFUTyMBnZeA7ZWoqfy3KXXJ7cVWkiE3
 contracts: []
@@ -38,8 +38,8 @@ protocols:
 - valory/http:1.0.0:QmbTD9GZg9MKBiQR3Tef1hS5YnGufUNSzrKpW8Eqgd6FUQ
 - valory/ledger_api:1.0.0:QmcjydJiMqhEmSGJqnLKDjmGSXmV5KZhMvY6zGgHKUgFL4
 skills:
-- valory/abstract_round_abci:0.1.0:Qmch4D7jbdLD9k7aan3SCHPNQx2Et1ydyKsHXkVkRSDLBM
-- valory/registration_abci:0.1.0:QmY47ui9NNPFPVKPKuo43tRxG47Qy4EaspJjH8bbwwgGY7
+- valory/abstract_round_abci:0.1.0:QmWaeZ1aWWTgeowTLyf2Hao7AsdHrxEgbMQm5AZeofy3NW
+- valory/registration_abci:0.1.0:QmexrRMUxZrDs2Z4fE7xT2WF5Kwz11HyoG123u4R3QQ2jc
 behaviours:
   main:
     args: {}

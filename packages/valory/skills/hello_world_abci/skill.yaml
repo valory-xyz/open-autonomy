@@ -8,16 +8,16 @@ aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
   README.md: QmVxvpqGSFfXbJ9GyWLqaAsVB2cYn92m7wybxb7wggi1Ri
   __init__.py: QmR2xbdp5bQTP44mAQB1utN7Tp16HM2akMLA51RC2PYdUN
-  behaviours.py: QmSSXbMY5hrxyxKBjyPscFzo5csbGtvgVwRq9rGZP72gdR
+  behaviours.py: QmURg9LZ5NMdPntdcwwL4neYPzFw3w3fKMSbuYGRSTnzFz
   dialogues.py: QmbhsSNfPQBL4qeq3B2yDmr1TXGeg1TLjcW2YJNcFwUe8P
   fsm_specification.yaml: QmNyPHYvkYJnJPSQB53owEt7Kjj2jnvfUR5ucNzVug1xLS
   handlers.py: QmSeSEdJzN4YtM2Qy59SHsfERtS58HyyFMkpyu9JR7pqxu
   models.py: QmWL6tQvUwLDWkGEtJNTy42zQ6TG6h1dV8VBYYQB82oiC3
   payloads.py: QmWFfkHiAsbkgDDgwVRHHWgfLtog6RTm5JVsqMDXp5oGTv
-  rounds.py: QmZR2r1q8FjcqHqepQArQgrwvmDHXzNEiWYYbq6AvqykHx
+  rounds.py: QmYsy3AKoXTWqSdLTi1uqNqWPjsK1fQRPWfFTNwbTk6kEm
 fingerprint_ignore_patterns: []
 connections:
-- valory/abci:0.1.0:QmUq4z19VS9G1TfnZdKy818F7maQopAor4NGe9t4DgzwyJ
+- valory/abci:0.1.0:QmcSFCqBgsz1MZYheyGJz53TDm8iLGeeqRRnupaazDDBmC
 - valory/http_client:0.1.0:QmXXtNRaMrZqEdmT9LVDhcxSy7PNgvJdCXaQ5L9ZxM5cGm
 contracts: []
 protocols:
@@ -25,7 +25,7 @@ protocols:
 - valory/abci:0.1.0:QmPh452wHDWf6xTnAENyXQED5UZNkU5dum98ZGfN9vZGhk
 - valory/http:1.0.0:QmbTD9GZg9MKBiQR3Tef1hS5YnGufUNSzrKpW8Eqgd6FUQ
 skills:
-- valory/abstract_round_abci:0.1.0:Qmch4D7jbdLD9k7aan3SCHPNQx2Et1ydyKsHXkVkRSDLBM
+- valory/abstract_round_abci:0.1.0:QmWaeZ1aWWTgeowTLyf2Hao7AsdHrxEgbMQm5AZeofy3NW
 behaviours:
   main:
     args: {}

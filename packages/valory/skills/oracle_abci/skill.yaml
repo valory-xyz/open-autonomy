@@ -9,7 +9,7 @@ aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
   README.md: QmT7TN1DvhK4LtLzv2gSQphVJCsy49b11hRU8ixiiYtHrf
   __init__.py: QmeAk7emAs7VRTMu26MQ22s44gYYQaWjJxnaZ9xaRpLKwp
-  behaviours.py: QmbYxgSyhorfskyfEmrEVh4RvXy9JnmDr2B9CvKHakGU2a
+  behaviours.py: QmQqTFTYEEes3z2F6U7fnTzTcANuvMpd9CcdL9Di1EuCQe
   composition.py: QmTMTXbxA32JvoohYjHTDohMpc2cyWZdLDZyKtCUSvaAnK
   dialogues.py: QmSPy6VqdLur8B8K824MHrfr1fobGz3PUaFu82gKLpJz8P
   fsm_specification.yaml: QmNtBq1LME67pGvjuWDczzJud5EK4pv2ZNRHp8xPJseZTU
@@ -24,13 +24,13 @@ contracts:
 protocols:
 - valory/contract_api:1.0.0:QmX2mRDNNWUTwU6ivKD65R3bnfC9jkGuKCaWqzxoQdm7ni
 skills:
-- valory/abstract_round_abci:0.1.0:Qmch4D7jbdLD9k7aan3SCHPNQx2Et1ydyKsHXkVkRSDLBM
-- valory/oracle_deployment_abci:0.1.0:QmTuRzWiJvhwF99zughjEt4tAdZvcv1G4pn5MUtBME7hmX
-- valory/price_estimation_abci:0.1.0:QmVak6xBYToP6PP1zZxKGFnxxXxMLL3wCGVNuBzyeyx44K
-- valory/registration_abci:0.1.0:QmY47ui9NNPFPVKPKuo43tRxG47Qy4EaspJjH8bbwwgGY7
-- valory/reset_pause_abci:0.1.0:QmcrgQ5Tw4fcY7WFLyxWTyEb2WA3BqmqnR4egY1t5gajfk
-- valory/safe_deployment_abci:0.1.0:QmPn62BoKWaDuXSWgnDaDSGNK7kenjHUPALtuHNSN9NbnD
-- valory/transaction_settlement_abci:0.1.0:QmeTa549dMFL4BZ6YGn53ZMr56mMzt4cSxfc3Xy1Rz8nLB
+- valory/abstract_round_abci:0.1.0:QmWaeZ1aWWTgeowTLyf2Hao7AsdHrxEgbMQm5AZeofy3NW
+- valory/oracle_deployment_abci:0.1.0:QmNaBgJ2qmRTZZiCitVV5xx6PhT52kfHPdE1Si2jRiStyc
+- valory/price_estimation_abci:0.1.0:QmTSHPahmc2BkqVZyL9oKMNWet2BnwkFT7AqUrvZjGmBt9
+- valory/registration_abci:0.1.0:QmexrRMUxZrDs2Z4fE7xT2WF5Kwz11HyoG123u4R3QQ2jc
+- valory/reset_pause_abci:0.1.0:QmVBxmdJ9JF29n36uRKKDmuENMrpCXx73TSqd5H3C8ufYF
+- valory/safe_deployment_abci:0.1.0:QmPyvYH4ZKwRCXjiaoMtZZkjLMTjRrdoKvQ7UF16rQfyNh
+- valory/transaction_settlement_abci:0.1.0:QmQP69vA5sNTUyuAJrsVWH9D7SJfn2v8cE8YFFkWeePvtH
 behaviours:
   main:
     args: {}

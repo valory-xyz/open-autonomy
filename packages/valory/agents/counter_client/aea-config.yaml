@@ -7,13 +7,13 @@ aea_version: '>=1.0.0, <2.0.0'
 fingerprint: {}
 fingerprint_ignore_patterns: []
 connections:
-- valory/http_client:0.1.0:QmakgWmx4CGuQuafUELiceH53N8HfgdfkQJpem7iYy9MVN
+- valory/http_client:0.1.0:QmXXtNRaMrZqEdmT9LVDhcxSy7PNgvJdCXaQ5L9ZxM5cGm
 contracts: []
 protocols:
-- open_aea/signing:1.0.0:QmQJpw5ZBDravLLZzU6WDdgxvxoT89AtahHPshrqfgoLTg
-- valory/http:1.0.0:QmbjfzjKMuRmwbQysyaciASxvY67vGJYj7zjGYADgNux5h
+- open_aea/signing:1.0.0:QmaGYpYEQjgbM37pBMiR7RcpeSLpztZyzDt2RF7sTXoMyU
+- valory/http:1.0.0:QmbTD9GZg9MKBiQR3Tef1hS5YnGufUNSzrKpW8Eqgd6FUQ
 skills:
-- valory/counter_client:0.1.0:QmRftdjtWLhhB5iYdHzeFmm9JTJtCU7Fi5UbFysF83SopM
+- valory/counter_client:0.1.0:QmdpLgBTNHqbgsTd1UrGhLxgMxbZ8BSPhLfvASbdz2uJNW
 default_ledger: ethereum
 required_ledgers:
 - ethereum

@@ -509,7 +509,7 @@ class TendermintHandler(Handler):
     @property
     def synchronized_data(self) -> BaseSynchronizedData:
         """Period State"""
-        return cast(BaseSynchronizedData, cast(SharedState, self.context.state).period_state)
+        return cast(BaseSynchronizedData, cast(SharedState, self.context.state).synchronized_data)
 
     @property
     def registered_addresses(self) -> Dict[str, str]:
