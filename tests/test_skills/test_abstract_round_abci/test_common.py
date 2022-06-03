@@ -21,6 +21,7 @@
 
 import binascii
 import json
+import re
 import time
 from pathlib import Path
 from typing import Any, Set, Type, cast
@@ -37,6 +38,7 @@ from packages.valory.skills.abstract_round_abci.base import (
     BaseSynchronizedData,
 )
 from packages.valory.skills.abstract_round_abci.behaviour_utils import BaseBehaviour
+from packages.valory.skills.abstract_round_abci.common import random_selection
 from packages.valory.skills.transaction_settlement_abci.payload_tools import (
     VerificationStatus,
 )
@@ -417,3 +419,28 @@ class BaseSelectKeeperBehaviourTest(CommonBaseCase):
         self.end_round(self.done_event)
         behaviour = cast(BaseBehaviour, self.behaviour.current_behaviour)
         assert behaviour.behaviour_id == self.next_behaviour_class.behaviour_id
+
+
+def test_random_selection() -> None:
+    """Test 'random_selection'"""
+    assert random_selection(elements=[0, 1, 2], randomness=0.25) == 0
+    assert random_selection(elements=[0, 1, 2], randomness=0.5) == 1
+    assert random_selection(elements=[0, 1, 2], randomness=0.75) == 2
+
+    with pytest.raises(
+        ValueError, match=re.escape("Randomness should lie in the [0,1) interval")
+    ):
+        random_selection(elements=[0, 1], randomness=-1)
+
+    with pytest.raises(
+        ValueError, match=re.escape("Randomness should lie in the [0,1) interval")
+    ):
+        random_selection(elements=[0, 1], randomness=1)
+
+    with pytest.raises(
+        ValueError, match=re.escape("Randomness should lie in the [0,1) interval")
+    ):
+        random_selection(elements=[0, 1], randomness=2)
+
+    with pytest.raises(ValueError, match="No elements to randomly select among"):
+        random_selection(elements=[], randomness=0.5)
