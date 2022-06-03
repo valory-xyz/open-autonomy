@@ -31,8 +31,9 @@ from tests.conftest import ROOT_DIR
 
 
 MISTUNE_BLOCK_CODE_ID = "block_code"
-IPFS_HASH_REGEX = R"Qm[A-Za-z0-9]{44}"
-NON_CODE_TOKENS = ["# ...\n"]
+IPFS_HASH_REGEX = r"Qm[A-Za-z0-9]{44}"
+PYTHON_LINE_COMMENT_REGEX = r"^#.*\n"
+NON_CODE_TOKENS = ["# ...\n", "  (...)\n", "    ...\n"]
 
 
 class CodeType(Enum):
@@ -101,9 +102,14 @@ def remove_tokens(string: str, tokens: List[str]) -> str:
     return string
 
 
+def remove_line_comments(string: str) -> str:
+    """Removes tokens from a python string"""
+    return re.sub(PYTHON_LINE_COMMENT_REGEX, "", string)
+
+
 def remove_ips_hashes(string: str) -> str:
     """Replaces IPFS hashes with a placeholder"""
-    return re.sub(IPFS_HASH_REGEX, "<ipfs_hash>", string, count=0, flags=0)
+    return re.sub(IPFS_HASH_REGEX, "<ipfs_hash>", string)
 
 
 def contains_code_blocks(file_path: str, block_type: str) -> bool:
@@ -123,7 +129,6 @@ def check_code_block(
     """Check code blocks from the documentation"""
     code_files: List = code_info.get("code_files", None)
     skip_blocks: List = code_info.get("skip_blocks", None)
-    line_by_line: bool = code_info.get("line_by_line", None)
 
     # Load the code blocks from the doc file
     doc_path = os.path.join(ROOT_DIR, md_file)
@@ -148,6 +153,10 @@ def check_code_block(
     ), f"Doc checker found {len(code_blocks)} non-skipped code blocks in {md_file} but only {len(code_files)} are being checked"
 
     for i, code_file in enumerate(code_files):
+        # Check if the match must be performed line by line
+        line_by_line = code_file.startswith("by_line::")
+        code_file = code_file.replace("by_line::", "")
+
         # Load the code file and process it
         code_path = os.path.join(ROOT_DIR, code_file)
         code = read_file(code_path)
@@ -155,7 +164,7 @@ def check_code_block(
 
         # Perform the check
         if line_by_line:
-            for line in code_blocks[i]:
+            for line in code_blocks[i].split("\n"):
                 assert (
                     line in code
                 ), f"This line in {md_file} doesn't exist in the code file {code_file}:\n\n{line}"
