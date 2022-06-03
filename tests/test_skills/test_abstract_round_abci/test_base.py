@@ -23,7 +23,7 @@ import re
 from abc import ABC
 from copy import copy
 from enum import Enum
-from typing import Any, Dict, List, Optional, Set, Tuple, Type, Union
+from typing import Any, Dict, Optional, Set, Tuple, Type
 from unittest import mock
 from unittest.mock import MagicMock
 
@@ -33,6 +33,7 @@ from aea_ledger_ethereum import EthereumCrypto
 from hypothesis import given
 from hypothesis.strategies import booleans, dictionaries, floats, one_of, text
 
+from packages.valory.connections.abci.connection import MAX_READ_IN_BYTES
 from packages.valory.skills.abstract_round_abci.base import (
     ABCIAppException,
     ABCIAppInternalError,
@@ -112,6 +113,17 @@ class PayloadD(BasePayload):
     """Payload class for payload type 'C'."""
 
     transaction_type = PayloadEnumB.A
+
+
+class TooBigPayload(BaseTxPayload, ABC):
+    """Base payload class for testing."""
+
+    transaction_type = PayloadEnum.A
+
+    @property
+    def data(self) -> Dict:
+        """Get the data"""
+        return dict(dummy_field="0" * 10 ** 7)
 
 
 class ConcreteRoundA(AbstractRound):
@@ -240,6 +252,18 @@ class TestTransactions:
         expected = Transaction(payload, signature)
         actual = expected.decode(expected.encode())
         assert expected == actual
+
+    def test_encode_too_big_transaction(self) -> None:
+        """Test encode of a too big transaction."""
+        sender = "sender"
+        signature = "signature"
+        payload = TooBigPayload(sender)
+        tx = Transaction(payload, signature)
+        with pytest.raises(
+            ValueError,
+            match=f"Transaction must be smaller than {MAX_READ_IN_BYTES} bytes",
+        ):
+            tx.encode()
 
     def test_sign_verify_transaction(self) -> None:
         """Test sign/verify transaction."""
@@ -486,19 +510,14 @@ class TestAbciAppDB:
         """Set up the tests."""
         self.participants = {"a", "b"}
         self.db = AbciAppDB(
-            initial_data=dict(participants=self.participants),
+            initial_data=dict(participants=[self.participants]),
         )
 
-    @pytest.mark.parametrize(
-        "participants, format_initial_data", [({"a", "b"}, True), ([{"a", "b"}], False)]
-    )
-    def test_init(
-        self, participants: Union[List[Set[str]], Set[str]], format_initial_data: bool
-    ) -> None:
+    def test_init(self) -> None:
         """Test constructor."""
+        participants = {"a", "b"}
         db = AbciAppDB(
-            initial_data=dict(participants=participants),
-            format_initial_data=format_initial_data,
+            initial_data=dict(participants=[participants]),
         )
         assert db._data == {0: {"participants": [self.participants]}}
         assert db.initial_data == {"participants": [self.participants]}
@@ -507,6 +526,7 @@ class TestAbciAppDB:
     def test_get(self) -> None:
         """Test getters."""
         assert self.db.get("participants", default="default") == self.participants
+        assert self.db.get("inexistent", default="default") == "default"
         assert self.db.get_latest_from_reset_index(0) == {
             "participants": self.participants
         }
@@ -518,6 +538,14 @@ class TestAbciAppDB:
         self.db.increment_round_count()
         assert self.db.round_count == 0
 
+    def test_update_empty(self) -> None:
+        """Test update on empty db."""
+        db = AbciAppDB(
+            initial_data=dict(),
+        )
+        db.update(dummy_key="dummy_value")
+        assert db._data == {0: {"dummy_key": ["dummy_value"]}}
+
 
 class TestBaseSynchronizedData:
     """Test 'BaseSynchronizedData' class."""
@@ -526,7 +554,7 @@ class TestBaseSynchronizedData:
         """Set up the tests."""
         self.participants = {"a", "b"}
         self.base_synchronized_data = BaseSynchronizedData(
-            db=AbciAppDB(initial_data=dict(participants=self.participants))
+            db=AbciAppDB(initial_data=dict(participants=[self.participants]))
         )
 
     def test_participants_getter_positive(self) -> None:
@@ -540,41 +568,29 @@ class TestBaseSynchronizedData:
     def test_participants_getter_negative(self) -> None:
         """Test 'participants' property getter, negative case."""
         base_synchronized_data = BaseSynchronizedData(db=AbciAppDB(initial_data={}))
-        with pytest.raises(ValueError, match="Value of key=participants is None"):
+        # with pytest.raises(ValueError, match="Value of key=participants is None"):
+        with pytest.raises(
+            ValueError,
+            match=re.escape(
+                "'participants' field is not set for this period [0] and no default value was provided."
+            ),
+        ):
             base_synchronized_data.participants
 
     def test_update(self) -> None:
         """Test the 'update' method."""
         participants = {"a"}
         expected = BaseSynchronizedData(
-            db=AbciAppDB(initial_data=dict(participants=participants))
+            db=AbciAppDB(initial_data=dict(participants=[participants]))
         )
         actual = self.base_synchronized_data.update(participants=participants)
         assert expected.participants == actual.participants
         assert actual.db._data == {0: {"participants": [{"a", "b"}, {"a"}]}}
 
-    def test_update_overwrite(self) -> None:
-        """Test the 'update' method."""
-        participants = {"a"}
-        expected = BaseSynchronizedData(
-            db=AbciAppDB(initial_data=dict(participants=participants))
-        )
-        actual = self.base_synchronized_data.update(
-            overwrite_history=True, participants=participants
-        )
-        assert expected.participants == actual.participants
-        assert actual.db._data == {0: {"participants": [{"a"}]}}
-
-    @pytest.mark.parametrize(
-        "participants, format_data", [({"a"}, True), ([{"a"}], False)]
-    )
-    def test_create(
-        self, participants: Union[List[Set[str]], Set[str]], format_data: bool
-    ) -> None:
+    def test_create(self) -> None:
         """Test the 'create' method."""
-        actual = self.base_synchronized_data.create(
-            format_data=format_data, participants=participants
-        )
+        participants = {"a"}
+        actual = self.base_synchronized_data.create(participants=[participants])
         assert actual.db._data == {
             0: {"participants": [{"a", "b"}]},
             1: {"participants": [{"a"}]},
@@ -591,7 +607,7 @@ class TestBaseSynchronizedData:
     ) -> None:
         """Tets when participants list is set to zero."""
         base_synchronized_data = BaseSynchronizedData(
-            db=AbciAppDB(initial_data=dict(participants={}))
+            db=AbciAppDB(initial_data=dict(participants=[{}]))
         )
         with pytest.raises(ValueError, match="List participants cannot be empty."):
             _ = base_synchronized_data.participants
@@ -601,7 +617,7 @@ class TestBaseSynchronizedData:
     ) -> None:
         """Tets when participants list is set to zero."""
         base_synchronized_data = BaseSynchronizedData(
-            db=AbciAppDB(initial_data=dict(all_participants={}))
+            db=AbciAppDB(initial_data=dict(all_participants=[{}]))
         )
         with pytest.raises(ValueError, match="List participants cannot be empty."):
             _ = base_synchronized_data.all_participants
@@ -621,15 +637,17 @@ class TestBaseSynchronizedData:
 
         base_synchronized_data = BaseSynchronizedData(
             db=AbciAppDB(
-                initial_data=dict(
-                    participants=participants,
-                    all_participants=participants,
-                    most_voted_randomness=randomness_str,
-                    most_voted_keeper_address=most_voted_keeper_address,
-                    blacklisted_keepers=blacklisted_keepers,
-                    participant_to_selection=participant_to_selection,
-                    participant_to_randomness=participant_to_randomness,
-                    participant_to_votes=participant_to_votes,
+                initial_data=AbciAppDB.data_to_lists(
+                    dict(
+                        participants=participants,
+                        all_participants=participants,
+                        most_voted_randomness=randomness_str,
+                        most_voted_keeper_address=most_voted_keeper_address,
+                        blacklisted_keepers=blacklisted_keepers,
+                        participant_to_selection=participant_to_selection,
+                        participant_to_randomness=participant_to_randomness,
+                        participant_to_votes=participant_to_votes,
+                    )
                 )
             )
         )
@@ -662,7 +680,7 @@ class TestAbstractRound:
         self.known_payload_type = ConcreteRoundA.allowed_tx_type
         self.participants = {"a", "b"}
         self.base_synchronized_data = BaseSynchronizedData(
-            db=AbciAppDB(initial_data=dict(participants=self.participants))
+            db=AbciAppDB(initial_data=dict(participants=[self.participants]))
         )
         self.params = ConsensusParams(
             max_participants=len(self.participants),
@@ -1117,7 +1135,7 @@ class TestAbciApp:
         start_history_depth = 5
         max_participants = 4
         dummy_synchronized_data = BaseSynchronizedData(
-            db=AbciAppDB(initial_data=dict(participants=max_participants))
+            db=AbciAppDB(initial_data=dict(participants=[max_participants]))
         )
         dummy_consensus_params = ConsensusParams(max_participants)
         dummy_round = ConcreteRoundA(dummy_synchronized_data, dummy_consensus_params)
@@ -1161,12 +1179,16 @@ class TestRoundSequence:
         """Set up the test."""
         self.round_sequence = RoundSequence(abci_app_cls=AbciAppTest)
         self.round_sequence.setup(MagicMock(), MagicMock(), MagicMock())
+        self.round_sequence.tm_height = 1
 
+    @pytest.mark.parametrize("offset", tuple(range(5)))
     @pytest.mark.parametrize("n_blocks", (0, 1, 10))
-    def test_height(self, n_blocks: int) -> None:
+    def test_height(self, n_blocks: int, offset: int) -> None:
         """Test 'height' property."""
         self.round_sequence._blockchain._blocks = [MagicMock() for _ in range(n_blocks)]
-        assert self.round_sequence.height == n_blocks
+        self.round_sequence._blockchain._height_offset = offset
+        assert self.round_sequence._blockchain.length == n_blocks
+        assert self.round_sequence.height == n_blocks + offset
 
     def test_is_finished(self) -> None:
         """Test 'is_finished' property."""
@@ -1270,6 +1292,46 @@ class TestRoundSequence:
                 match="Trying to access `last_round_transition_height` while no transition has been completed yet.",
             ):
                 _ = self.round_sequence.last_round_transition_height
+
+    @pytest.mark.parametrize("round_count, reset_index", ((0, 0), (4, 2), (8, 1)))
+    def test_last_round_transition_root_hash(
+        self, round_count: int, reset_index: int
+    ) -> None:
+        """Test 'last_round_transition_height' method."""
+        self.round_sequence.abci_app.synchronized_data.db.round_count = round_count  # type: ignore
+        self.round_sequence.abci_app._reset_index = reset_index
+        assert (
+            self.round_sequence.last_round_transition_root_hash
+            == f"root:{round_count}reset:{reset_index}".encode("utf-8")
+        )
+
+    @pytest.mark.parametrize("tm_height", (None, 1, 5))
+    def test_last_round_transition_tm_height(self, tm_height: Optional[int]) -> None:
+        """Test 'last_round_transition_height' method."""
+        if tm_height is None:
+            with pytest.raises(
+                ValueError,
+                match="Trying to access Tendermint's last round transition height before any `end_block` calls.",
+            ):
+                _ = self.round_sequence.last_round_transition_tm_height
+        else:
+            self.round_sequence.tm_height = tm_height
+            self.round_sequence.begin_block(MagicMock(height=1))
+            self.round_sequence.end_block()
+            self.round_sequence.commit()
+            assert self.round_sequence.last_round_transition_tm_height == tm_height
+
+    @pytest.mark.parametrize("begin_height", tuple(range(0, 50, 10)))
+    @pytest.mark.parametrize("initial_height", tuple(range(0, 11, 5)))
+    def test_init_chain(self, begin_height: int, initial_height: int) -> None:
+        """Test 'init_chain' method."""
+        for i in range(begin_height):
+            self.round_sequence._blockchain.add_block(
+                MagicMock(header=MagicMock(height=i + 1))
+            )
+        assert self.round_sequence._blockchain.height == begin_height
+        self.round_sequence.init_chain(initial_height)
+        assert self.round_sequence._blockchain.height == initial_height - 1
 
     def test_begin_block_negative_is_finished(self) -> None:
         """Test 'begin_block' method, negative case (round sequence is finished)."""

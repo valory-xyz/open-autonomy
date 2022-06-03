@@ -32,6 +32,7 @@ from unittest.mock import MagicMock
 
 import atheris  # type: ignore
 import pytest
+import pytz  # type: ignore  # pylint: disable=import-error
 
 from packages.open_aea.protocols.signing import SigningMessage
 from packages.valory.connections.http_client.connection import HttpDialogues
@@ -47,6 +48,7 @@ from packages.valory.skills.abstract_round_abci.behaviour_utils import (
     AsyncBehaviour,
     BaseBehaviour,
     DegenerateBehaviour,
+    HEIGHT_OFFSET,
     SendException,
     TimeoutException,
     make_degenerate_behaviour,
@@ -1269,7 +1271,7 @@ class TestBaseBehaviour:
     )
     def test_reset_tendermint_with_wait(
         self,
-        _build_http_request_message: mock.Mock,
+        build_http_request_message_mock: mock.Mock,
         _start_reset: mock.Mock,
         reset_response: Union[Dict[str, Union[bool, str]], str],
         status_response: Union[Dict[str, Union[int, str]], str],
@@ -1310,6 +1312,27 @@ class TestBaseBehaviour:
             reset = self.behaviour.reset_tendermint_with_wait()
             for _ in range(n_iter):
                 next(reset)
+
+            expected_parameters = [
+                (
+                    "genesis_time",
+                    self.behaviour.context.state.round_sequence.last_round_transition_timestamp.astimezone(
+                        pytz.UTC
+                    ).strftime(
+                        "%Y-%m-%dT%H:%M:%S.%fZ"
+                    ),
+                ),
+                (
+                    "initial_height",
+                    self.behaviour.context.state.round_sequence.last_round_transition_tm_height
+                    + HEIGHT_OFFSET,
+                ),
+            ]
+            build_http_request_message_mock.assert_called_with(
+                "GET",
+                self.behaviour.context.params.tendermint_com_url + "/hard_reset",
+                parameters=expected_parameters,
+            )
             # perform the last iteration which also returns the result
             try:
                 next(reset)

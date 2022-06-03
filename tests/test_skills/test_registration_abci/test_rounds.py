@@ -20,13 +20,15 @@
 """Test the rounds.py module of the skill."""
 
 import json
-from typing import Optional, cast
+from typing import Any, Dict, Optional, cast
+from unittest import mock
 
 from packages.valory.skills.abstract_round_abci.base import AbciAppDB
 from packages.valory.skills.abstract_round_abci.base import (
     BaseSynchronizedData as SynchronizedData,
 )
 from packages.valory.skills.registration_abci.payloads import RegistrationPayload
+from packages.valory.skills.registration_abci.rounds import Event
 from packages.valory.skills.registration_abci.rounds import Event as RegistrationEvent
 from packages.valory.skills.registration_abci.rounds import (
     RegistrationRound,
@@ -35,7 +37,7 @@ from packages.valory.skills.registration_abci.rounds import (
 
 from tests.test_skills.test_abstract_round_abci.test_base_rounds import (
     BaseCollectDifferentUntilAllRoundTest,
-    BaseCollectDifferentUntilThresholdRoundTest,
+    BaseCollectSameUntilThresholdRoundTest,
 )
 
 
@@ -108,7 +110,7 @@ class TestRegistrationStartupRound(BaseCollectDifferentUntilAllRoundTest):
             ],
             synchronized_data_update_fn=lambda *x: SynchronizedData(
                 AbciAppDB(
-                    initial_data=dict(participants=frozenset(test_round.collection)),
+                    initial_data=dict(participants=[frozenset(test_round.collection)]),
                 )
             ),
             synchronized_data_attr_checks=[
@@ -128,7 +130,7 @@ class TestRegistrationStartupRound(BaseCollectDifferentUntilAllRoundTest):
         next(test_runner)
 
 
-class TestRegistrationRound(BaseCollectDifferentUntilThresholdRoundTest):
+class TestRegistrationRound(BaseCollectSameUntilThresholdRoundTest):
     """Test RegistrationRound."""
 
     _synchronized_data_class = SynchronizedData
@@ -149,7 +151,24 @@ class TestRegistrationRound(BaseCollectDifferentUntilThresholdRoundTest):
             synchronized_data=self.synchronized_data,
             consensus_params=self.consensus_params,
         )
-        self._run_with_round(test_round, RegistrationEvent.DONE, 10)
+
+        round_payloads = {
+            participant: RegistrationPayload(
+                sender=participant,
+                initialisation='{"dummy_key": "dummy_value"}',
+            )
+            for participant in self.participants
+        }
+
+        self._run_with_round(
+            test_round=test_round,
+            expected_event=RegistrationEvent.DONE,
+            confirmations=11,
+            most_voted_payload='{"dummy_key": "dummy_value"}',
+            round_payloads=round_payloads,
+        )
+
+        assert self.synchronized_data.db._data[0]["dummy_key"] == ["dummy_value"]
 
     def test_run_default_not_finished(
         self,
@@ -166,45 +185,67 @@ class TestRegistrationRound(BaseCollectDifferentUntilThresholdRoundTest):
             synchronized_data=self.synchronized_data,
             consensus_params=self.consensus_params,
         )
-        self._run_with_round(test_round, finished=False)
+        self._run_with_round(
+            test_round,
+            finished=False,
+            confirmations=11,
+        )
 
     def _run_with_round(
         self,
         test_round: RegistrationRound,
+        round_payloads: Optional[Dict[str, RegistrationPayload]] = None,
+        most_voted_payload: Optional[Any] = None,
         expected_event: Optional[RegistrationEvent] = None,
         confirmations: Optional[int] = None,
         finished: bool = True,
     ) -> None:
         """Run with given round."""
 
+        round_payloads = round_payloads or {
+            p: RegistrationPayload(sender=p) for p in self.participants
+        }
+
         test_runner = self._test_round(
             test_round=test_round,
-            round_payloads=dict(
-                [
-                    (participant, RegistrationPayload(sender=participant))
-                    for participant in self.participants
-                ]
-            ),
+            round_payloads=round_payloads,
             synchronized_data_update_fn=(
                 lambda *x: SynchronizedData(
                     AbciAppDB(
-                        initial_data=dict(participants=self.participants),
+                        initial_data=dict(participants=[self.participants]),
                     )
                 )
             ),
             synchronized_data_attr_checks=[
                 lambda _synchronized_data: _synchronized_data.participants
             ],
+            most_voted_payload=most_voted_payload,
             exit_event=expected_event,
         )
 
         next(test_runner)
-        test_round = next(test_runner)
         if confirmations is not None:
             test_round.block_confirmations = confirmations
+
+        test_round = next(test_runner)
+
         prior_confirmations = test_round.block_confirmations
 
         next(test_runner)
         assert test_round.block_confirmations == prior_confirmations + 1
         if finished:
             next(test_runner)
+
+    def test_no_majority(self) -> None:
+        """Test the NO_MAJORITY event."""
+        test_round = RegistrationRound(
+            synchronized_data=self.synchronized_data,
+            consensus_params=self.consensus_params,
+        )
+
+        with mock.patch.object(test_round, "is_majority_possible", return_value=False):
+            with mock.patch.object(test_round, "block_confirmations", 11):
+                result = test_round.end_block()
+                assert result is not None
+                _, event = result
+                assert event == Event.NO_MAJORITY
