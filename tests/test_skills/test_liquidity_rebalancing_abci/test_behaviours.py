@@ -150,13 +150,15 @@ class TestStrategyEvaluationBehaviour(LiquidityRebalancingBehaviourBaseCase):
         )
         synchronized_data = LiquidityRebalancingSynchronizedSata(
             AbciAppDB(
-                initial_data=dict(
-                    most_voted_tx_hash="0x",
-                    safe_contract_address="safe_contract_address",
-                    most_voted_keeper_address="most_voted_keeper_address",
-                    most_voted_strategy=json.dumps(strategy),
-                    multisend_contract_address="0xb0e6add595e00477cf347d09797b156719dc5233",
-                    router_contract_address="router_contract_address",
+                initial_data=AbciAppDB.data_to_lists(
+                    dict(
+                        most_voted_tx_hash="0x",
+                        safe_contract_address="safe_contract_address",
+                        most_voted_keeper_address="most_voted_keeper_address",
+                        most_voted_strategy=json.dumps(strategy),
+                        multisend_contract_address="0xb0e6add595e00477cf347d09797b156719dc5233",
+                        router_contract_address="router_contract_address",
+                    )
                 ),
             )
         )
@@ -188,13 +190,15 @@ class TestStrategyEvaluationBehaviour(LiquidityRebalancingBehaviourBaseCase):
         strategy["action"] = StrategyType.EXIT.value
         synchronized_data = LiquidityRebalancingSynchronizedSata(
             AbciAppDB(
-                initial_data=dict(
-                    most_voted_tx_hash="0x",
-                    safe_contract_address="safe_contract_address",
-                    most_voted_keeper_address="most_voted_keeper_address",
-                    most_voted_strategy=json.dumps(strategy),
-                    multisend_contract_address="0xb0e6add595e00477cf347d09797b156719dc5233",
-                    router_contract_address="router_contract_address",
+                initial_data=AbciAppDB.data_to_lists(
+                    dict(
+                        most_voted_tx_hash="0x",
+                        safe_contract_address="safe_contract_address",
+                        most_voted_keeper_address="most_voted_keeper_address",
+                        most_voted_strategy=json.dumps(strategy),
+                        multisend_contract_address="0xb0e6add595e00477cf347d09797b156719dc5233",
+                        router_contract_address="router_contract_address",
+                    )
                 ),
             )
         )
@@ -222,12 +226,14 @@ class TestStrategyEvaluationBehaviour(LiquidityRebalancingBehaviourBaseCase):
 
         synchronized_data = LiquidityRebalancingSynchronizedSata(
             AbciAppDB(
-                initial_data=dict(
-                    most_voted_tx_hash="0x",
-                    safe_contract_address="safe_contract_address",
-                    most_voted_keeper_address="most_voted_keeper_address",
-                    multisend_contract_address="0xb0e6add595e00477cf347d09797b156719dc5233",
-                    router_contract_address="router_contract_address",
+                initial_data=AbciAppDB.data_to_lists(
+                    dict(
+                        most_voted_tx_hash="0x",
+                        safe_contract_address="safe_contract_address",
+                        most_voted_keeper_address="most_voted_keeper_address",
+                        multisend_contract_address="0xb0e6add595e00477cf347d09797b156719dc5233",
+                        router_contract_address="router_contract_address",
+                    )
                 ),
             )
         )
@@ -263,13 +269,15 @@ class TestStrategyEvaluationBehaviour(LiquidityRebalancingBehaviourBaseCase):
         strategy["action"] = StrategyType.SWAP_BACK.value
         synchronized_data = LiquidityRebalancingSynchronizedSata(
             AbciAppDB(
-                initial_data=dict(
-                    most_voted_tx_hash="0x",
-                    safe_contract_address="safe_contract_address",
-                    most_voted_keeper_address="most_voted_keeper_address",
-                    most_voted_strategy=json.dumps(strategy),
-                    multisend_contract_address="0xb0e6add595e00477cf347d09797b156719dc5233",
-                    router_contract_address="router_contract_address",
+                initial_data=AbciAppDB.data_to_lists(
+                    dict(
+                        most_voted_tx_hash="0x",
+                        safe_contract_address="safe_contract_address",
+                        most_voted_keeper_address="most_voted_keeper_address",
+                        most_voted_strategy=json.dumps(strategy),
+                        multisend_contract_address="0xb0e6add595e00477cf347d09797b156719dc5233",
+                        router_contract_address="router_contract_address",
+                    )
                 ),
             )
         )
@@ -304,13 +312,15 @@ class TestEnterPoolTransactionHashBehaviour(LiquidityRebalancingBehaviourBaseCas
         )
         synchronized_data = LiquidityRebalancingSynchronizedSata(
             AbciAppDB(
-                initial_data=dict(
-                    most_voted_tx_hash="0x",
-                    safe_contract_address="safe_contract_address",
-                    most_voted_keeper_address="most_voted_keeper_address",
-                    most_voted_strategy=json.dumps(strategy),
-                    multisend_contract_address="0xb0e6add595e00477cf347d09797b156719dc5233",
-                    router_contract_address="router_contract_address",
+                initial_data=AbciAppDB.data_to_lists(
+                    dict(
+                        most_voted_tx_hash="0x",
+                        safe_contract_address="safe_contract_address",
+                        most_voted_keeper_address="most_voted_keeper_address",
+                        most_voted_strategy=json.dumps(strategy),
+                        multisend_contract_address="0xb0e6add595e00477cf347d09797b156719dc5233",
+                        router_contract_address="router_contract_address",
+                    )
                 ),
             )
         )
@@ -549,13 +559,15 @@ class TestEnterPoolTransactionHashBehaviour(LiquidityRebalancingBehaviourBaseCas
         )
         synchronized_data = LiquidityRebalancingSynchronizedSata(
             AbciAppDB(
-                initial_data=dict(
-                    most_voted_tx_hash="0x",
-                    safe_contract_address="safe_contract_address",
-                    most_voted_keeper_address="most_voted_keeper_address",
-                    most_voted_strategy=json.dumps(strategy),
-                    multisend_contract_address="0xb0e6add595e00477cf347d09797b156719dc5233",
-                    router_contract_address="router_contract_address",
+                initial_data=AbciAppDB.data_to_lists(
+                    dict(
+                        most_voted_tx_hash="0x",
+                        safe_contract_address="safe_contract_address",
+                        most_voted_keeper_address="most_voted_keeper_address",
+                        most_voted_strategy=json.dumps(strategy),
+                        multisend_contract_address="0xb0e6add595e00477cf347d09797b156719dc5233",
+                        router_contract_address="router_contract_address",
+                    )
                 ),
             )
         )
@@ -821,13 +833,15 @@ class TestEnterPoolTransactionHashBehaviour(LiquidityRebalancingBehaviourBaseCas
         )
         synchronized_data = LiquidityRebalancingSynchronizedSata(
             AbciAppDB(
-                initial_data=dict(
-                    most_voted_tx_hash="0x",
-                    safe_contract_address="safe_contract_address",
-                    most_voted_keeper_address="most_voted_keeper_address",
-                    most_voted_strategy=json.dumps(strategy),
-                    multisend_contract_address="0xb0e6add595e00477cf347d09797b156719dc5233",
-                    router_contract_address="router_contract_address",
+                initial_data=AbciAppDB.data_to_lists(
+                    dict(
+                        most_voted_tx_hash="0x",
+                        safe_contract_address="safe_contract_address",
+                        most_voted_keeper_address="most_voted_keeper_address",
+                        most_voted_strategy=json.dumps(strategy),
+                        multisend_contract_address="0xb0e6add595e00477cf347d09797b156719dc5233",
+                        router_contract_address="router_contract_address",
+                    )
                 ),
             )
         )
@@ -886,14 +900,16 @@ class TestExitPoolTransactionHashBehaviour(LiquidityRebalancingBehaviourBaseCase
         )
         synchronized_data = LiquidityRebalancingSynchronizedSata(
             AbciAppDB(
-                initial_data=dict(
-                    most_voted_tx_hash="0x",
-                    safe_contract_address="safe_contract_address",
-                    most_voted_keeper_address="most_voted_keeper_address",
-                    most_voted_strategy=json.dumps(strategy),
-                    multisend_contract_address="0xb0e6add595e00477cf347d09797b156719dc5233",
-                    router_contract_address="router_contract_address",
-                    final_tx_hash=binascii.hexlify(b"dummy_tx").decode(),
+                initial_data=AbciAppDB.data_to_lists(
+                    dict(
+                        most_voted_tx_hash="0x",
+                        safe_contract_address="safe_contract_address",
+                        most_voted_keeper_address="most_voted_keeper_address",
+                        most_voted_strategy=json.dumps(strategy),
+                        multisend_contract_address="0xb0e6add595e00477cf347d09797b156719dc5233",
+                        router_contract_address="router_contract_address",
+                        final_tx_hash=binascii.hexlify(b"dummy_tx").decode(),
+                    )
                 ),
             )
         )
@@ -1071,14 +1087,16 @@ class TestExitPoolTransactionHashBehaviour(LiquidityRebalancingBehaviourBaseCase
         )
         synchronized_data = LiquidityRebalancingSynchronizedSata(
             AbciAppDB(
-                initial_data=dict(
-                    most_voted_tx_hash="0x",
-                    safe_contract_address="safe_contract_address",
-                    most_voted_keeper_address="most_voted_keeper_address",
-                    most_voted_strategy=json.dumps(strategy),
-                    multisend_contract_address="0xb0e6add595e00477cf347d09797b156719dc5233",
-                    router_contract_address="router_contract_address",
-                    final_tx_hash=binascii.hexlify(b"dummy_tx").decode(),
+                initial_data=AbciAppDB.data_to_lists(
+                    dict(
+                        most_voted_tx_hash="0x",
+                        safe_contract_address="safe_contract_address",
+                        most_voted_keeper_address="most_voted_keeper_address",
+                        most_voted_strategy=json.dumps(strategy),
+                        multisend_contract_address="0xb0e6add595e00477cf347d09797b156719dc5233",
+                        router_contract_address="router_contract_address",
+                        final_tx_hash=binascii.hexlify(b"dummy_tx").decode(),
+                    )
                 ),
             )
         )
@@ -1258,14 +1276,16 @@ class TestExitPoolTransactionHashBehaviour(LiquidityRebalancingBehaviourBaseCase
         )
         synchronized_data = LiquidityRebalancingSynchronizedSata(
             AbciAppDB(
-                initial_data=dict(
-                    most_voted_tx_hash="0x",
-                    safe_contract_address="safe_contract_address",
-                    most_voted_keeper_address="most_voted_keeper_address",
-                    most_voted_strategy=json.dumps(strategy),
-                    multisend_contract_address="0xb0e6add595e00477cf347d09797b156719dc5233",
-                    router_contract_address="router_contract_address",
-                    final_tx_hash=binascii.hexlify(b"dummy_tx").decode(),
+                initial_data=AbciAppDB.data_to_lists(
+                    dict(
+                        most_voted_tx_hash="0x",
+                        safe_contract_address="safe_contract_address",
+                        most_voted_keeper_address="most_voted_keeper_address",
+                        most_voted_strategy=json.dumps(strategy),
+                        multisend_contract_address="0xb0e6add595e00477cf347d09797b156719dc5233",
+                        router_contract_address="router_contract_address",
+                        final_tx_hash=binascii.hexlify(b"dummy_tx").decode(),
+                    )
                 ),
             )
         )
@@ -1329,14 +1349,16 @@ class TestSwapBackTransactionHashBehaviour(LiquidityRebalancingBehaviourBaseCase
         )
         synchronized_data = LiquidityRebalancingSynchronizedSata(
             AbciAppDB(
-                initial_data=dict(
-                    most_voted_tx_hash="0x",
-                    safe_contract_address="safe_contract_address",
-                    most_voted_keeper_address="most_voted_keeper_address",
-                    most_voted_strategy=json.dumps(strategy),
-                    multisend_contract_address="0xb0e6add595e00477cf347d09797b156719dc5233",
-                    router_contract_address="router_contract_address",
-                    final_tx_hash=binascii.hexlify(b"dummy_tx").decode(),
+                initial_data=AbciAppDB.data_to_lists(
+                    dict(
+                        most_voted_tx_hash="0x",
+                        safe_contract_address="safe_contract_address",
+                        most_voted_keeper_address="most_voted_keeper_address",
+                        most_voted_strategy=json.dumps(strategy),
+                        multisend_contract_address="0xb0e6add595e00477cf347d09797b156719dc5233",
+                        router_contract_address="router_contract_address",
+                        final_tx_hash=binascii.hexlify(b"dummy_tx").decode(),
+                    )
                 ),
             )
         )
@@ -1551,14 +1573,16 @@ class TestSwapBackTransactionHashBehaviour(LiquidityRebalancingBehaviourBaseCase
         )
         synchronized_data = LiquidityRebalancingSynchronizedSata(
             AbciAppDB(
-                initial_data=dict(
-                    most_voted_tx_hash="0x",
-                    safe_contract_address="safe_contract_address",
-                    most_voted_keeper_address="most_voted_keeper_address",
-                    most_voted_strategy=json.dumps(strategy),
-                    multisend_contract_address="0xb0e6add595e00477cf347d09797b156719dc5233",
-                    router_contract_address="router_contract_address",
-                    final_tx_hash=binascii.hexlify(b"dummy_tx").decode(),
+                initial_data=AbciAppDB.data_to_lists(
+                    dict(
+                        most_voted_tx_hash="0x",
+                        safe_contract_address="safe_contract_address",
+                        most_voted_keeper_address="most_voted_keeper_address",
+                        most_voted_strategy=json.dumps(strategy),
+                        multisend_contract_address="0xb0e6add595e00477cf347d09797b156719dc5233",
+                        router_contract_address="router_contract_address",
+                        final_tx_hash=binascii.hexlify(b"dummy_tx").decode(),
+                    )
                 ),
             )
         )
@@ -1831,12 +1855,14 @@ class TestSleepBehaviour(LiquidityRebalancingBehaviourBaseCase):
 
         synchronized_data = LiquidityRebalancingSynchronizedSata(
             AbciAppDB(
-                initial_data=dict(
-                    most_voted_tx_hash="0x",
-                    safe_contract_address="safe_contract_address",
-                    most_voted_keeper_address="most_voted_keeper_address",
-                    multisend_contract_address="0xb0e6add595e00477cf347d09797b156719dc5233",
-                    router_contract_address="router_contract_address",
+                initial_data=AbciAppDB.data_to_lists(
+                    dict(
+                        most_voted_tx_hash="0x",
+                        safe_contract_address="safe_contract_address",
+                        most_voted_keeper_address="most_voted_keeper_address",
+                        multisend_contract_address="0xb0e6add595e00477cf347d09797b156719dc5233",
+                        router_contract_address="router_contract_address",
+                    )
                 ),
             )
         )

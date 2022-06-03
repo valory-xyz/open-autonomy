@@ -642,16 +642,23 @@ data = {
     0: {
         "participants":
             [
-                {"participant_a", "participant_b"},
-                {"participant_b"},
-                {"participant_a", "participant_b"},
+                {"participant_a", "participant_b", "participant_c", "participant_d"},
+                {"participant_a", "participant_b", "participant_c"},
+                {"participant_a", "participant_b", "participant_c", "participant_d"},
             ]
         },
-        "other_parameter": [0, 1, 2]
+        "other_parameter": [0, 2, 8]
     },
     1: {
-        "participants": [{"participant_a", "participant_b"}, {"participant_b"}, {"participant_a", "participant_b"}],
-        "other_parameter": [3, 4, 5]
+        "participants":
+            [
+                {"participant_a", "participant_c", "participant_d"},
+                {"participant_a", "participant_b", "participant_c", "participant_d"},
+                {"participant_a", "participant_b", "participant_c"},
+                {"participant_a", "participant_b", "participant_d"},
+                {"participant_a", "participant_b", "participant_c", "participant_d"},
+            ],
+        "other_parameter": [3, 19, 10, 32, 6]
     },
     2: ...
 }
@@ -664,13 +671,13 @@ To create a new period entry, call create() on the class. The new values will be
 #### `__`init`__`
 
 ```python
-def __init__(initial_data: Dict[str, Any], cross_period_persisted_keys: Optional[List[str]] = None, format_initial_data: bool = True) -> None
+def __init__(initial_data: Dict[str, List[Any]], cross_period_persisted_keys: Optional[List[str]] = None) -> None
 ```
 
 Initialize the AbciApp database.
 
-initial_data can be passed either as Dict[str, Any] of Dict[str, List[Any]] (the database internal format). Use the format_initial_data to decide if
-initial_data should be automatically converted.
+Initial_data must be passed as a Dict[str, List[Any]] (the database internal format). The class method 'data_to_lists'
+can be used to convert from Dict[str, Any] to Dict[str, List[Any]] before instantiating this class.
 
 **Arguments**:
 
@@ -692,17 +699,6 @@ Get the initial_data.
 **Returns**:
 
 the initial_data
-
-<a id="packages.valory.skills.abstract_round_abci.base.AbciAppDB.data_to_list"></a>
-
-#### data`_`to`_`list
-
-```python
-@classmethod
-def data_to_list(cls, data: Dict[str, Any]) -> Dict[str, List[Any]]
-```
-
-Convert Dict[str, Any] to Dict[str, List[Any]].
 
 <a id="packages.valory.skills.abstract_round_abci.base.AbciAppDB.reset_index"></a>
 
@@ -735,7 +731,7 @@ Get the round count.
 def cross_period_persisted_keys() -> List[str]
 ```
 
-Keys in the database which are persistet across periods.
+Keys in the database which are persistent across periods.
 
 <a id="packages.valory.skills.abstract_round_abci.base.AbciAppDB.get"></a>
 
@@ -745,7 +741,7 @@ Keys in the database which are persistet across periods.
 def get(key: str, default: Any = VALUE_NOT_PROVIDED) -> Optional[Any]
 ```
 
-Get a value from the data dictionary.
+Given a key, get its last for the current reset index.
 
 <a id="packages.valory.skills.abstract_round_abci.base.AbciAppDB.get_strict"></a>
 
@@ -762,7 +758,7 @@ Get a value from the data dictionary and raise if it is None.
 #### update
 
 ```python
-def update(overwrite_history: bool = False, **kwargs: Any) -> None
+def update(**kwargs: Any) -> None
 ```
 
 Update the current data.
@@ -772,7 +768,7 @@ Update the current data.
 #### create
 
 ```python
-def create(format_data: bool = True, **kwargs: Any) -> None
+def create(**kwargs: List[Any]) -> None
 ```
 
 Add a new entry to the data.
@@ -826,6 +822,17 @@ def cleanup(cleanup_history_depth: int) -> None
 ```
 
 Reset the db.
+
+<a id="packages.valory.skills.abstract_round_abci.base.AbciAppDB.data_to_lists"></a>
+
+#### data`_`to`_`lists
+
+```python
+@staticmethod
+def data_to_lists(data: Dict[str, Any]) -> Dict[str, List[Any]]
+```
+
+Convert Dict[str, Any] to Dict[str, List[Any]].
 
 <a id="packages.valory.skills.abstract_round_abci.base.BaseSynchronizedData"></a>
 
@@ -949,7 +956,7 @@ Get the number of participants.
 #### update
 
 ```python
-def update(synchronized_data_class: Optional[Type] = None, overwrite_history: bool = False, **kwargs: Any, ,) -> "BaseSynchronizedData"
+def update(synchronized_data_class: Optional[Type] = None, **kwargs: Any, ,) -> "BaseSynchronizedData"
 ```
 
 Copy and update the current data.
@@ -959,7 +966,7 @@ Copy and update the current data.
 #### create
 
 ```python
-def create(synchronized_data_class: Optional[Type] = None, format_data: bool = True, **kwargs: Any, ,) -> "BaseSynchronizedData"
+def create(synchronized_data_class: Optional[Type] = None, **kwargs: Any, ,) -> "BaseSynchronizedData"
 ```
 
 Copy and update with new data.

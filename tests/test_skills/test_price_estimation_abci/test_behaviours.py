@@ -108,7 +108,7 @@ class TestObserveBehaviour(PriceEstimationFSMBehaviourBaseCase):
             self.behaviour,
             ObserveBehaviour.behaviour_id,
             PriceEstimationSynchronizedSata(
-                AbciAppDB(initial_data=dict(estimate=1.0)),
+                AbciAppDB(initial_data=dict(estimate=[1.0])),
             ),
         )
         assert (
@@ -149,7 +149,7 @@ class TestObserveBehaviour(PriceEstimationFSMBehaviourBaseCase):
             self.behaviour,
             ObserveBehaviour.behaviour_id,
             PriceEstimationSynchronizedSata(
-                AbciAppDB(initial_data=dict(estimate=1.0)),
+                AbciAppDB(initial_data=dict(estimate=[1.0])),
             ),
         )
         assert (
@@ -245,9 +245,9 @@ class TestEstimateBehaviour(PriceEstimationFSMBehaviourBaseCase):
             synchronized_data=PriceEstimationSynchronizedSata(
                 AbciAppDB(
                     initial_data=dict(
-                        participant_to_observations={
-                            "a": ObservationPayload(sender="a", observation=1.0)
-                        }
+                        participant_to_observations=[
+                            {"a": ObservationPayload(sender="a", observation=1.0)}
+                        ]
                     ),
                 ),
             ),
@@ -376,9 +376,11 @@ class TestTransactionHashBehaviour(PriceEstimationFSMBehaviourBaseCase):
             synchronized_data=PriceEstimationSynchronizedSata(
                 AbciAppDB(
                     initial_data=dict(
-                        most_voted_estimate=1.0,
-                        safe_contract_address="safe_contract_address",
-                        oracle_contract_address="0x77E9b2EF921253A171Fa0CB9ba80558648Ff7215",
+                        most_voted_estimate=[1.0],
+                        safe_contract_address=["safe_contract_address"],
+                        oracle_contract_address=[
+                            "0x77E9b2EF921253A171Fa0CB9ba80558648Ff7215"
+                        ],
                     ),
                 )
             ),
@@ -440,7 +442,7 @@ class TestTransactionHashBehaviour(PriceEstimationFSMBehaviourBaseCase):
 
         if this_period_count != 0:
             synchronized_data.db.create(
-                **next_period_data,
+                **AbciAppDB.data_to_lists(next_period_data),
             )
 
         self.mock_contract_api_request(

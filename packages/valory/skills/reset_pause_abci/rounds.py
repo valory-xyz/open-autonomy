@@ -24,6 +24,7 @@ from typing import Dict, Optional, Set, Tuple, Type
 from packages.valory.skills.abstract_round_abci.base import (
     ABCIAppInternalError,
     AbciApp,
+    AbciAppDB,
     AbciAppTransitionFunction,
     AbstractRound,
     AppState,
@@ -91,9 +92,14 @@ class ResetAndPauseRound(CollectSameUntilThresholdRound):
             for key in self.synchronized_data.db.cross_period_persisted_keys:
                 extra_kwargs[key] = self.synchronized_data.db.get_strict(key)
             synchronized_data = self.synchronized_data.create(
-                participants=self.synchronized_data.participants,
-                all_participants=self.synchronized_data.all_participants,
-                **extra_kwargs,
+                synchronized_data_class=self.synchronized_data_class,
+                **AbciAppDB.data_to_lists(
+                    dict(
+                        participants=self.synchronized_data.participants,
+                        all_participants=self.synchronized_data.all_participants,
+                        **extra_kwargs,
+                    )
+                ),
             )
             return synchronized_data, Event.DONE
         if not self.is_majority_possible(

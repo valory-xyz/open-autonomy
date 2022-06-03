@@ -22,14 +22,14 @@ protocols:
 - valory/ledger_api:1.0.0:QmTMQKNr3oL8j68swCL4LjvUsHsyDp8FTM1UcPTfBvJYDn
 skills:
 - valory/abstract_abci:0.1.0:QmZg627HxCTt9BJkv464ySucREq7csgXq4PQa8LPwvECz5
-- valory/abstract_round_abci:0.1.0:QmNaxkf4ZJ318SpMscHq7SBxZGok7s3FQZ2cCsMHLhthMd
-- valory/oracle_abci:0.1.0:QmVqLwGCauyg3EzmLuYhYK5LnrWQCZrFkys1jeMoKnB6ye
-- valory/oracle_deployment_abci:0.1.0:QmfYqG7vf5SKXhk2JNYAYuLhhRr78qdivQddx1QayW7Kg8
-- valory/price_estimation_abci:0.1.0:QmVPBL6DJhaWEpgVNftZbtmrsbZ5jZHaBY3owzW5aYAZfd
-- valory/registration_abci:0.1.0:Qmei9aoMtdbhpoE7sj1bVh9FDfzMvq4ZVZvpv7hPqUtZf9
-- valory/reset_pause_abci:0.1.0:QmTqBucgpkG5bNkqNfMkm4VtMANc13dH5JJQowkMaQcZZj
-- valory/safe_deployment_abci:0.1.0:QmTTCcRz5aDzPrgF6Gwg4xfQKcqPBgeT2MNzgyDt19oRR4
-- valory/transaction_settlement_abci:0.1.0:QmNSSSL18jxCbHU9xvfUwm4Q4dSSuMJYVY2rTLX5mDZDQj
+- valory/abstract_round_abci:0.1.0:QmTiNeT2T4ptz6mBdgRfr9M64fYgxevFYM2oStXtVNcVB2
+- valory/oracle_abci:0.1.0:QmPA7myHYAuxKUX4z6HA5znrUK3RPYGRnW3a32q3U69tN5
+- valory/oracle_deployment_abci:0.1.0:QmfVCxfvBDWC9ZBHwgPgBYGfEB4kj4UUXK3zUaPDBNzirw
+- valory/price_estimation_abci:0.1.0:QmQoGgTHzmPofqy8iCtqJ2WZ4G9PUKrrmdZYptfQ3T8jVo
+- valory/registration_abci:0.1.0:QmQkN5n1GQVAKSqKAsoNVJ46uxQRRBc9W8CAoDSUGSN1ti
+- valory/reset_pause_abci:0.1.0:QmVg3oA9WtFKNoM13JLRYLhfX6VnoaeY5zonAbQ4E4LVxv
+- valory/safe_deployment_abci:0.1.0:QmWh5EivunvPnXFGnnho9VpnCEEKUWi58qPa8vGvvPvx54
+- valory/transaction_settlement_abci:0.1.0:QmeEdgyB3nRXubbNs7zsx5yDBabUpZB5vtfQAWvDwpPLNv
 default_ledger: ethereum
 required_ledgers:
 - ethereum
@@ -94,8 +94,10 @@ models:
       consensus:
         max_participants: ${MAX_PARTICIPANTS:int}
       setup:
-        safe_contract_address: ${SKILL_ORACLE_ABCI_MODELS_PARAMS_ARGS_PERIOD_SETUP_SAFE_CONTRACT_ADDRESS:str:none}
-        oracle_contract_address: ${SKILL_ORACLE_ABCI_MODELS_PARAMS_ARGS_PERIOD_SETUP_ORACLE_CONTRACT_ADDRESS:str:none}
+        safe_contract_address:
+        - ${SKILL_ORACLE_ABCI_MODELS_PARAMS_ARGS_SETUP_SAFE_CONTRACT_ADDRESS:str:none}
+        oracle_contract_address:
+        - ${SKILL_ORACLE_ABCI_MODELS_PARAMS_ARGS_SETUP_ORACLE_CONTRACT_ADDRESS:str:none}
       round_timeout_seconds: ${ORACLE_PARAMS_ROUND_TIMEOUT_SECONDS:float:7.0}
       tendermint_url: ${TENDERMINT_URL:str}
       tendermint_com_url: ${TENDERMINT_COM_URL:str}
