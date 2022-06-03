@@ -584,10 +584,14 @@ class TestSyncing(TransactionSettlementIntegrationBaseCase):
         # store the tx hash that we have missed.
         assert isinstance(self.behaviour.current_behaviour, FinalizeBehaviour)
         missed_hash = self.behaviour.current_behaviour.params.tx_hash
+        # try to validate tx, but simulate a timeout
+        self.validate_tx(simulate_timeout=True)
+        # check that we have noted that we missed a message.
+        assert self.tx_settlement_synchronized_data.missed_messages == 2
         # sync the tx hash that we missed before
         self.sync_late_messages()
         # check that we have decreased the number of missed messages.
-        assert self.tx_settlement_synchronized_data.missed_messages == 0
+        assert self.tx_settlement_synchronized_data.missed_messages == 1
         # check the tx hash that we missed before to see if it is verified
         self.check_late_tx_hashes()
         assert (
