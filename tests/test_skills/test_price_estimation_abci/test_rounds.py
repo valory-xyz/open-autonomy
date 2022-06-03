@@ -365,13 +365,15 @@ def test_synchronized_datas() -> None:
 
     synchronized_data = SynchronizedData(
         AbciAppDB(
-            initial_data=dict(
-                participants=participants,
-                participant_to_randomness=participant_to_randomness,
-                most_voted_randomness=most_voted_randomness,
-                participant_to_selection=participant_to_selection,
-                most_voted_keeper_address=most_voted_keeper_address,
-                participant_to_votes=participant_to_votes,
+            initial_data=AbciAppDB.data_to_lists(
+                dict(
+                    participants=participants,
+                    participant_to_randomness=participant_to_randomness,
+                    most_voted_randomness=most_voted_randomness,
+                    participant_to_selection=participant_to_selection,
+                    most_voted_keeper_address=most_voted_keeper_address,
+                    participant_to_votes=participant_to_votes,
+                )
             ),
         )
     )
@@ -384,12 +386,14 @@ def test_synchronized_datas() -> None:
 
     synchronized_data____ = RegistrationSynchronizedSata(
         AbciAppDB(
-            initial_data=dict(
-                participants=participants,
-                participant_to_randomness=participant_to_randomness,
-                most_voted_randomness=most_voted_randomness,
-                participant_to_selection=participant_to_selection,
-                most_voted_keeper_address=most_voted_keeper_address,
+            initial_data=AbciAppDB.data_to_lists(
+                dict(
+                    participants=participants,
+                    participant_to_randomness=participant_to_randomness,
+                    most_voted_randomness=most_voted_randomness,
+                    participant_to_selection=participant_to_selection,
+                    most_voted_keeper_address=most_voted_keeper_address,
+                )
             ),
         )
     )
@@ -402,17 +406,19 @@ def test_synchronized_datas() -> None:
 
     synchronized_data______ = PriceEstimationSynchronizedSata(
         AbciAppDB(
-            initial_data=dict(
-                participants=participants,
-                participant_to_randomness=participant_to_randomness,
-                most_voted_randomness=most_voted_randomness,
-                participant_to_selection=participant_to_selection,
-                most_voted_keeper_address=most_voted_keeper_address,
-                safe_contract_address=safe_contract_address,
-                oracle_contract_address=oracle_contract_address,
-                most_voted_tx_hash=most_voted_tx_hash,
-                most_voted_estimate=most_voted_estimate,
-                participant_to_observations=participant_to_observations,
+            initial_data=AbciAppDB.data_to_lists(
+                dict(
+                    participants=participants,
+                    participant_to_randomness=participant_to_randomness,
+                    most_voted_randomness=most_voted_randomness,
+                    participant_to_selection=participant_to_selection,
+                    most_voted_keeper_address=most_voted_keeper_address,
+                    safe_contract_address=safe_contract_address,
+                    oracle_contract_address=oracle_contract_address,
+                    most_voted_tx_hash=most_voted_tx_hash,
+                    most_voted_estimate=most_voted_estimate,
+                    participant_to_observations=participant_to_observations,
+                )
             ),
         )
     )

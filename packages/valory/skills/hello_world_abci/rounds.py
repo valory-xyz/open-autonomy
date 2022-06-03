@@ -156,8 +156,8 @@ class ResetAndPauseRound(CollectSameUntilThresholdRound, HelloWorldABCIAbstractR
         """Process the end of the block."""
         if self.threshold_reached:
             synchronized_data = self.synchronized_data.create(
-                participants=self.synchronized_data.participants,
-                all_participants=self.synchronized_data.all_participants,
+                participants=[self.synchronized_data.participants],
+                all_participants=[self.synchronized_data.all_participants],
             )
             return synchronized_data, Event.DONE
         if not self.is_majority_possible(

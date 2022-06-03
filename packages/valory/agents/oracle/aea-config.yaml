@@ -22,14 +22,14 @@ protocols:
 - valory/ledger_api:1.0.0:QmTMQKNr3oL8j68swCL4LjvUsHsyDp8FTM1UcPTfBvJYDn
 skills:
 - valory/abstract_abci:0.1.0:QmZg627HxCTt9BJkv464ySucREq7csgXq4PQa8LPwvECz5
-- valory/abstract_round_abci:0.1.0:QmXmsduVcYULumGzntbvt7yjVrbg1T49mA98VpAhQBBKpX
-- valory/oracle_abci:0.1.0:QmZzMR7CZH11Ht5quNN6CmGBV9kPu9zZdcpZGnhbgtciD7
-- valory/oracle_deployment_abci:0.1.0:QmedG8S7tpxvuRx7AEbRDjk6nrsiT9DBG32XBwNVif8mTK
-- valory/price_estimation_abci:0.1.0:QmWdcv6XmgSm9imxb3MZM1mtz8LupSt1mL54rMpWxdKsQT
-- valory/registration_abci:0.1.0:QmRWPXYauNUdrykfyYJqoBQwxSnM7hqLvQ54UVDSfwCrK4
-- valory/reset_pause_abci:0.1.0:QmY1jcrFy4pnSmGyoEbbkGYxqteTd13VNHZ1L1Lpcmg4CF
-- valory/safe_deployment_abci:0.1.0:QmQwcrm9T4FKQfNc9kw27CxQZwE4NLyz1RGWYyX7QtQpw3
-- valory/transaction_settlement_abci:0.1.0:QmSQ4AypWGhq4S7nX4NP51y4DQzPUKJzVeuzgNDAm72ooh
+- valory/abstract_round_abci:0.1.0:QmZQ5BPgMzCSLSDpc8dzyWngdwuavXHyapW6XoeQNSWsPr
+- valory/oracle_abci:0.1.0:QmXFP8dBo5oUJxX1JyAFJtv7SKeDdUjefgHAxYVsoGEisW
+- valory/oracle_deployment_abci:0.1.0:QmS3rX1nvtuyMUw5Bp1iHnB7Sn2k48JkaxnYbT9VYUha3y
+- valory/price_estimation_abci:0.1.0:QmfVDMMo2ZzFPEGkYcbJt3pYN829UK1f4y3S49jdZa6jeo
+- valory/registration_abci:0.1.0:QmNg7SWKuW4cfuvXhkyYXMYFEiBJaACeW7eapLFgnqwT6e
+- valory/reset_pause_abci:0.1.0:QmfNvZcgXVhFqgvhSmLesHXtU7f3H5FvAGjNbJc9Xdc1Qf
+- valory/safe_deployment_abci:0.1.0:QmWwGxZtBGVQTQuS1Cuwo9BAwbFFpUckcYVK3j6q55oNgU
+- valory/transaction_settlement_abci:0.1.0:Qmc3VZmMuLQ5dLwcsE6ZBsrh2wuHWGK75rg1aaXxv8r2qZ
 default_ledger: ethereum
 required_ledgers:
 - ethereum

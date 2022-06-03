@@ -21,6 +21,7 @@
 
 import binascii
 import json
+import re
 import time
 from pathlib import Path
 from typing import Any, Set, Type, cast
@@ -37,6 +38,7 @@ from packages.valory.skills.abstract_round_abci.base import (
     BaseSynchronizedData,
 )
 from packages.valory.skills.abstract_round_abci.behaviour_utils import BaseBehaviour
+from packages.valory.skills.abstract_round_abci.common import random_selection
 from packages.valory.skills.transaction_settlement_abci.payload_tools import (
     VerificationStatus,
 )
@@ -351,11 +353,13 @@ class BaseSelectKeeperBehaviourTest(CommonBaseCase):
             behaviour_id=self.select_keeper_behaviour_class.behaviour_id,
             synchronized_data=self._synchronized_data(
                 AbciAppDB(
-                    initial_data=dict(
-                        participants=participants,
-                        most_voted_randomness="56cbde9e9bbcbdcaf92f183c678eaa5288581f06b1c9c7f884ce911776727688",
-                        final_verification_status=VerificationStatus.PENDING,
-                        blacklisted_keepers="".join(blacklisted_keepers),
+                    initial_data=AbciAppDB.data_to_lists(
+                        dict(
+                            participants=participants,
+                            most_voted_randomness="56cbde9e9bbcbdcaf92f183c678eaa5288581f06b1c9c7f884ce911776727688",
+                            final_verification_status=VerificationStatus.PENDING,
+                            blacklisted_keepers="".join(blacklisted_keepers),
+                        )
                     ),
                 )
             ),
@@ -397,9 +401,11 @@ class BaseSelectKeeperBehaviourTest(CommonBaseCase):
             synchronized_data=self._synchronized_data(
                 AbciAppDB(
                     initial_data=dict(
-                        participants=participants,
-                        most_voted_randomness="56cbde9e9bbcbdcaf92f183c678eaa5288581f06b1c9c7f884ce911776727688",
-                        most_voted_keeper_address=preexisting_keeper,
+                        participants=[participants],
+                        most_voted_randomness=[
+                            "56cbde9e9bbcbdcaf92f183c678eaa5288581f06b1c9c7f884ce911776727688"
+                        ],
+                        most_voted_keeper_address=[preexisting_keeper],
                     ),
                 )
             ),
@@ -417,3 +423,28 @@ class BaseSelectKeeperBehaviourTest(CommonBaseCase):
         self.end_round(self.done_event)
         behaviour = cast(BaseBehaviour, self.behaviour.current_behaviour)
         assert behaviour.behaviour_id == self.next_behaviour_class.behaviour_id
+
+
+def test_random_selection() -> None:
+    """Test 'random_selection'"""
+    assert random_selection(elements=[0, 1, 2], randomness=0.25) == 0
+    assert random_selection(elements=[0, 1, 2], randomness=0.5) == 1
+    assert random_selection(elements=[0, 1, 2], randomness=0.75) == 2
+
+    with pytest.raises(
+        ValueError, match=re.escape("Randomness should lie in the [0,1) interval")
+    ):
+        random_selection(elements=[0, 1], randomness=-1)
+
+    with pytest.raises(
+        ValueError, match=re.escape("Randomness should lie in the [0,1) interval")
+    ):
+        random_selection(elements=[0, 1], randomness=1)
+
+    with pytest.raises(
+        ValueError, match=re.escape("Randomness should lie in the [0,1) interval")
+    ):
+        random_selection(elements=[0, 1], randomness=2)
+
+    with pytest.raises(ValueError, match="No elements to randomly select among"):
+        random_selection(elements=[], randomness=0.5)
