@@ -26,12 +26,11 @@ from typing import Dict, List, Optional
 from tests.conftest import ROOT_DIR
 from tests.test_docs.helper import (  # type: ignore
     CodeType,
-    NON_CODE_TOKENS,
     check_code_block,
     contains_code_blocks,
     remove_ips_hashes,
     remove_line_comments,
-    remove_tokens,
+    remove_doc_ellipsis,
 )
 
 
@@ -88,8 +87,8 @@ class BaseTestDocCode:
                 md_file=md_file,
                 code_info=code_info,
                 code_type=self.code_type,
-                doc_process_fn=lambda s: remove_line_comments(
-                    remove_tokens(s, NON_CODE_TOKENS)
+                doc_process_fn=lambda s: remove_doc_ellipsis(
+                    remove_line_comments(s)
                 ),
                 code_process_fn=lambda s: remove_ips_hashes(s),
             ),

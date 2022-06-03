@@ -33,7 +33,7 @@ from tests.conftest import ROOT_DIR
 MISTUNE_BLOCK_CODE_ID = "block_code"
 IPFS_HASH_REGEX = r"Qm[A-Za-z0-9]{44}"
 PYTHON_LINE_COMMENT_REGEX = r"^#.*\n"
-NON_CODE_TOKENS = ["# ...\n", "  (...)\n", "    ...\n"]
+DOC_ELLIPSIS_REGEX = r"\s*#\s...\n"
 
 
 class CodeType(Enum):
@@ -95,16 +95,13 @@ def read_file(filepath: str) -> str:
     return file_str
 
 
-def remove_tokens(string: str, tokens: List[str]) -> str:
-    """Removes tokens from a string"""
-    for token in tokens:
-        string = string.replace(token, "")
-    return string
-
-
 def remove_line_comments(string: str) -> str:
     """Removes tokens from a python string"""
     return re.sub(PYTHON_LINE_COMMENT_REGEX, "", string)
+
+def remove_doc_ellipsis(string: str) -> str:
+    """Removes # ... from a python string"""
+    return re.sub(DOC_ELLIPSIS_REGEX, "", string)
 
 
 def remove_ips_hashes(string: str) -> str:
@@ -167,7 +164,7 @@ def check_code_block(
             for line in code_blocks[i].split("\n"):
                 assert (
                     line in code
-                ), f"This line in {md_file} doesn't exist in the code file {code_file}:\n\n{line}"
+                ), f"This line in {md_file} doesn't exist in the code file {code_file}:\n\n'{line}'"
             continue
         assert (
             code_blocks[i] in code

@@ -290,7 +290,7 @@ Recall that the skill needs to define the `AbciApp`; the `Rounds`, `Behaviours` 
   ```python
   class PrintMessageRound(CollectDifferentUntilAllRound, HelloWorldABCIAbstractRound):
 
-    (...)
+  # ...
 
     def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Event]]:
         """Process the end of the block."""

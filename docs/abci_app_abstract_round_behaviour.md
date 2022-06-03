@@ -39,7 +39,7 @@ class AbstractRoundBehaviour(
     def act(self) -> None:
         """Implement the behaviour."""
         self._process_current_round()
-    ...
+    # ...
 ```
 
 A concrete implementation of `AbstractRoundBehaviour` requires that the developer provide the corresponding
@@ -66,5 +66,5 @@ class MyAbstractRoundBehaviour(AbstractRoundBehaviour):
       RoundB,
       FinalRound,
     }
-    ...
+    # ...
 ```

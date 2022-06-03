@@ -63,7 +63,7 @@ class AbciApp(
 
         :param timestamp: the latest block's timestamp.
         """
-    ...
+    # ...
 ```
 
 Some of its methods relate to concepts discussed in the [FSM section](./fsm.md):
@@ -103,7 +103,7 @@ class MyAbciApp(AbciApp):
     event_to_timeout: EventToTimeout = {
         Event.ROUND_TIMEOUT: 30.0,
     }
-    ...
+    # ...
 ```
 
 <figure markdown>
