@@ -65,9 +65,9 @@ to the ABCI App for different purposes. For example,
 check whether a transaction is valid and therefore if it can be added
 to the transaction pool, to notify the application that
 a block has been validated, or to get information from the
-application layer. The application must process and respond appropriately to such callbacks.
+application layer. The application must process and respond approppriately to such callbacks.
 
-- On the other hand, the application can exhibit a proactive behaviour, when it wishes to submit a transaction to the blockchain. For example, it can commit a certain observed value in an external server.
+- On the other hand, the application can exhibit a proactive behaviour, when it wishes to submit a transaction to the blockchain. For example, it can commit a certain observed value in an external server. This would be the "user role" when interacting with the blockchain.
 
 ### Reactive Callbacks from the Consensus Node
 
