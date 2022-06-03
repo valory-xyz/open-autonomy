@@ -363,6 +363,25 @@ class SelectKeeperTransactionSubmissionRoundBAfterTimeout(
         return super().end_block()
 
 
+class SelectKeeperTransactionSubmissionRoundBAfterValidationTimeout(
+    SelectKeeperTransactionSubmissionRoundB
+):
+    """A round in which a new keeper is selected for tx submission after a round timeout of the validation"""
+
+    round_id = "select_keeper_transaction_submission_b_after_validation_timeout"
+
+    def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Enum]]:
+        """Process the end of the block."""
+        if self.threshold_reached:
+            self.synchronized_data.update(
+                missed_messages=cast(
+                    SynchronizedData, self.synchronized_data
+                ).missed_messages
+                + 1
+            )
+        return super().end_block()
+
+
 class ValidateTransactionRound(VotingRound):
     """A round in which agents validate the transaction"""
 
@@ -537,63 +556,68 @@ class TransactionSubmissionAbciApp(AbciApp[Event]):
         1. SelectKeeperTransactionSubmissionRoundA
             - done: 2.
             - round timeout: 1.
-            - no majority: 10.
-            - incorrect serialization: 12.
+            - no majority: 11.
+            - incorrect serialization: 13.
         2. CollectSignatureRound
             - done: 3.
             - round timeout: 2.
-            - no majority: 10.
+            - no majority: 11.
         3. FinalizationRound
             - done: 4.
             - check history: 5.
-            - finalize timeout: 7.
+            - finalize timeout: 8.
             - finalization failed: 6.
-            - check late arriving message: 8.
+            - check late arriving message: 9.
             - insufficient funds: 6.
         4. ValidateTransactionRound
-            - done: 11.
+            - done: 12.
             - negative: 5.
             - none: 6.
-            - validate timeout: 6.
+            - validate timeout: 7.
             - no majority: 4.
         5. CheckTransactionHistoryRound
-            - done: 11.
+            - done: 12.
             - negative: 6.
-            - none: 12.
+            - none: 13.
             - check timeout: 5.
             - no majority: 5.
-            - check late arriving message: 8.
+            - check late arriving message: 9.
         6. SelectKeeperTransactionSubmissionRoundB
             - done: 3.
             - round timeout: 6.
-            - no majority: 10.
-            - incorrect serialization: 12.
-        7. SelectKeeperTransactionSubmissionRoundBAfterTimeout
+            - no majority: 11.
+            - incorrect serialization: 13.
+        7. SelectKeeperTransactionSubmissionRoundBAfterValidationTimeout
+            - done: 3.
+            - round timeout: 7.
+            - no majority: 11.
+            - incorrect serialization: 13.
+        8. SelectKeeperTransactionSubmissionRoundBAfterTimeout
             - done: 3.
             - check history: 5.
-            - check late arriving message: 8.
-            - round timeout: 7.
-            - no majority: 10.
-            - incorrect serialization: 12.
-        8. SynchronizeLateMessagesRound
-            - done: 9.
+            - check late arriving message: 9.
             - round timeout: 8.
-            - no majority: 8.
+            - no majority: 11.
+            - incorrect serialization: 13.
+        9. SynchronizeLateMessagesRound
+            - done: 10.
+            - round timeout: 9.
+            - no majority: 9.
             - none: 6.
-            - missed and late messages mismatch: 12.
-        9. CheckLateTxHashesRound
-            - done: 11.
-            - negative: 12.
-            - none: 12.
-            - check timeout: 9.
-            - no majority: 12.
-            - check late arriving message: 8.
-        10. ResetRound
+            - missed and late messages mismatch: 13.
+        10. CheckLateTxHashesRound
+            - done: 12.
+            - negative: 13.
+            - none: 13.
+            - check timeout: 10.
+            - no majority: 13.
+            - check late arriving message: 9.
+        11. ResetRound
             - done: 0.
-            - reset timeout: 12.
-            - no majority: 12.
-        11. FinishedTransactionSubmissionRound
-        12. FailedRound
+            - reset timeout: 13.
+            - no majority: 13.
+        12. FinishedTransactionSubmissionRound
+        13. FailedRound
 
     Final states: {FailedRound, FinishedTransactionSubmissionRound}
 
@@ -635,7 +659,7 @@ class TransactionSubmissionAbciApp(AbciApp[Event]):
             Event.DONE: FinishedTransactionSubmissionRound,
             Event.NEGATIVE: CheckTransactionHistoryRound,
             Event.NONE: SelectKeeperTransactionSubmissionRoundB,
-            Event.VALIDATE_TIMEOUT: SelectKeeperTransactionSubmissionRoundB,
+            Event.VALIDATE_TIMEOUT: SelectKeeperTransactionSubmissionRoundBAfterValidationTimeout,
             Event.NO_MAJORITY: ValidateTransactionRound,
         },
         CheckTransactionHistoryRound: {
@@ -649,6 +673,12 @@ class TransactionSubmissionAbciApp(AbciApp[Event]):
         SelectKeeperTransactionSubmissionRoundB: {
             Event.DONE: FinalizationRound,
             Event.ROUND_TIMEOUT: SelectKeeperTransactionSubmissionRoundB,
+            Event.NO_MAJORITY: ResetRound,
+            Event.INCORRECT_SERIALIZATION: FailedRound,
+        },
+        SelectKeeperTransactionSubmissionRoundBAfterValidationTimeout: {
+            Event.DONE: FinalizationRound,
+            Event.ROUND_TIMEOUT: SelectKeeperTransactionSubmissionRoundBAfterValidationTimeout,
             Event.NO_MAJORITY: ResetRound,
             Event.INCORRECT_SERIALIZATION: FailedRound,
         },
