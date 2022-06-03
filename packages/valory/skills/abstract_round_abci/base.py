@@ -70,7 +70,6 @@ MAX_INT_256 = 2 ** 256 - 1
 RESET_COUNT_START = 0
 VALUE_NOT_PROVIDED = "VALUE_NOT_PROVIDED"
 DEFAULT_VALUE_FLAG = "DEFAULT_VALUE_FLAG"
-RESET_HEIGHT_OFFSET = 10
 
 EventType = TypeVar("EventType")
 TransactionType = TypeVar("TransactionType")
@@ -2187,19 +2186,6 @@ class RoundSequence:  # pylint: disable=too-many-instance-attributes
                 "Trying to access Tendermint's last round transition height before any `end_block` calls."
             )
         return self._last_round_transition_tm_height
-
-    @property
-    def height_after_reset(self) -> int:
-        """Returns the height to set in the genesis file after resetting."""
-        if self._last_round_transition_tm_height is None or self._tm_height is None:
-            raise ValueError(
-                "Trying to access height_after_reset before any `end_block` calls."
-            )
-        # it needs to cover the time between transition and reset.
-        # Since every second roughly one block is created we use height_on_reset - height_on_transition + offset.
-        return (
-            self.tm_height - self.last_round_transition_tm_height + RESET_HEIGHT_OFFSET
-        )
 
     @property
     def latest_synchronized_data(self) -> BaseSynchronizedData:
