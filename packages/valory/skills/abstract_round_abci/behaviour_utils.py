@@ -1528,7 +1528,10 @@ class BaseBehaviour(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
             genesis_time = last_round_transition_timestamp.astimezone(
                 pytz.UTC
             ).strftime(GENESIS_TIME_FMT)
-            initial_height = self.context.state.round_sequence.height_after_reset
+            initial_height = (
+                self.context.state.round_sequence.last_round_transition_tm_height
+                + HEIGHT_OFFSET
+            )
             request_message, http_dialogue = self._build_http_request_message(
                 "GET",
                 self.params.tendermint_com_url + "/hard_reset",
