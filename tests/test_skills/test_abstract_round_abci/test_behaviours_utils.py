@@ -20,6 +20,7 @@
 """Test the behaviours_utils.py module of the skill."""
 import json
 import logging
+import math
 import sys
 import time
 from abc import ABC
@@ -48,7 +49,8 @@ from packages.valory.skills.abstract_round_abci.behaviour_utils import (
     AsyncBehaviour,
     BaseBehaviour,
     DegenerateBehaviour,
-    HEIGHT_OFFSET,
+    HEIGHT_OFFSET_MULTIPLIER,
+    MAX_HEIGHT_OFFSET,
     SendException,
     TimeoutException,
     make_degenerate_behaviour,
@@ -1295,6 +1297,7 @@ class TestBaseBehaviour:
                 return mock.MagicMock(body=b"")
             return mock.MagicMock(body=json.dumps(status_response).encode())
 
+        self.behaviour.params.observation_interval = 1
         with mock.patch.object(
             BaseBehaviour, "_is_timeout_expired", return_value=False
         ), mock.patch.object(
@@ -1312,21 +1315,24 @@ class TestBaseBehaviour:
             reset = self.behaviour.reset_tendermint_with_wait()
             for _ in range(n_iter):
                 next(reset)
+            offset = math.ceil(
+                self.behaviour.params.observation_interval * HEIGHT_OFFSET_MULTIPLIER
+            )
+            offset = min(MAX_HEIGHT_OFFSET, offset)
+            assert offset == 1
+            initial_height = (
+                self.behaviour.context.state.round_sequence.last_round_transition_tm_height
+                + offset
+            )
+            genesis_time = self.behaviour.context.state.round_sequence.last_round_transition_timestamp.astimezone(
+                pytz.UTC
+            ).strftime(
+                "%Y-%m-%dT%H:%M:%S.%fZ"
+            )
 
             expected_parameters = [
-                (
-                    "genesis_time",
-                    self.behaviour.context.state.round_sequence.last_round_transition_timestamp.astimezone(
-                        pytz.UTC
-                    ).strftime(
-                        "%Y-%m-%dT%H:%M:%S.%fZ"
-                    ),
-                ),
-                (
-                    "initial_height",
-                    self.behaviour.context.state.round_sequence.last_round_transition_tm_height
-                    + HEIGHT_OFFSET,
-                ),
+                ("genesis_time", genesis_time),
+                ("initial_height", initial_height),
             ]
             build_http_request_message_mock.assert_called_with(
                 "GET",

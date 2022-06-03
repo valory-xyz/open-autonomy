@@ -21,6 +21,7 @@
 import datetime
 import inspect
 import json
+import math
 import pprint
 from abc import ABC, abstractmethod
 from enum import Enum
@@ -90,7 +91,8 @@ from packages.valory.skills.abstract_round_abci.models import (
 )
 
 
-HEIGHT_OFFSET = 10
+MAX_HEIGHT_OFFSET = 10
+HEIGHT_OFFSET_MULTIPLIER = 0.01
 GENESIS_TIME_FMT = "%Y-%m-%dT%H:%M:%S.%fZ"
 
 
@@ -1528,9 +1530,19 @@ class BaseBehaviour(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
             genesis_time = last_round_transition_timestamp.astimezone(
                 pytz.UTC
             ).strftime(GENESIS_TIME_FMT)
+            # Initial height needs to account for the asynchrony among agents.
+            # For that reason, we are using an offset in the initial block's height.
+            # The bigger the observation interval, the larger the lag among the agents might be.
+            # Also, if the observation interval is too tiny, we do not need the offset to be proportionally big.
+            # Therefore, we choose between a maximum value and the interval multiplied by a constant (< 1 suggested).
             initial_height = (
                 self.context.state.round_sequence.last_round_transition_tm_height
-                + HEIGHT_OFFSET
+                + min(
+                    MAX_HEIGHT_OFFSET,
+                    math.ceil(
+                        self.params.observation_interval * HEIGHT_OFFSET_MULTIPLIER
+                    ),
+                )
             )
             request_message, http_dialogue = self._build_http_request_message(
                 "GET",

@@ -16,10 +16,10 @@ protocols:
 - valory/http:1.0.0:QmcFZahrD7WQRyK2bcdj2BmRNijK9EeKbTiGwkzxZ4nVti
 skills:
 - valory/abstract_abci:0.1.0:QmZg627HxCTt9BJkv464ySucREq7csgXq4PQa8LPwvECz5
-- valory/abstract_round_abci:0.1.0:QmZQ5BPgMzCSLSDpc8dzyWngdwuavXHyapW6XoeQNSWsPr
-- valory/register_reset_abci:0.1.0:QmTnzvZ78zjW5LdFSUejDHe6JgXGmv6cBfakrdVuHxv1RC
-- valory/registration_abci:0.1.0:QmNg7SWKuW4cfuvXhkyYXMYFEiBJaACeW7eapLFgnqwT6e
-- valory/reset_pause_abci:0.1.0:QmfNvZcgXVhFqgvhSmLesHXtU7f3H5FvAGjNbJc9Xdc1Qf
+- valory/abstract_round_abci:0.1.0:QmTbsC1t4xsx9cxDmkB4URC3qYtptRVoWqgD1gjWwidmL2
+- valory/register_reset_abci:0.1.0:QmW2ueswXBkP859PC9MFT19XkVthzkJDysDo6PLhnWRMZ8
+- valory/registration_abci:0.1.0:Qmb8obvTZcHv3NCxL5fDcaSXUtdUgE9ru7t8q1ExALCo6G
+- valory/reset_pause_abci:0.1.0:QmbPLGAQzDfPCWQzSFD3tJkMZV9v3yzHqo7Anpg2vJxYzX
 default_ledger: ethereum
 required_ledgers:
 - ethereum
