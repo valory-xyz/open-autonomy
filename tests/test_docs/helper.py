@@ -99,6 +99,7 @@ def remove_line_comments(string: str) -> str:
     """Removes tokens from a python string"""
     return re.sub(PYTHON_LINE_COMMENT_REGEX, "", string)
 
+
 def remove_doc_ellipsis(string: str) -> str:
     """Removes # ... from a python string"""
     return re.sub(DOC_ELLIPSIS_REGEX, "", string)
