@@ -376,8 +376,8 @@ class BaseTestEnd2EndNormalExecution(BaseTestEnd2End):
             max_retries=self.HEALTH_CHECK_MAX_RETRIES,
             sleep_interval=self.HEALTH_CHECK_SLEEP_INTERVAL,
         )
-        self.terminate_processes()
         self.check_aea_messages()
+        self.terminate_processes()
 
 
 class BaseTestEnd2EndAgentCatchup(BaseTestEnd2End):
