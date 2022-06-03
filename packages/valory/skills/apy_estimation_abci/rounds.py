@@ -24,6 +24,7 @@ from typing import Dict, Optional, Set, Tuple, Type, cast
 
 from packages.valory.skills.abstract_round_abci.base import (
     AbciApp,
+    AbciAppDB,
     AbciAppTransitionFunction,
     AbstractRound,
     AppState,
@@ -229,7 +230,6 @@ class TransformRound(CollectSameUntilThresholdRound, APYEstimationAbstractRound)
         if self.threshold_reached:
             synchronized_data = self.synchronized_data.update(
                 synchronized_data_class=SynchronizedData,
-                overwrite_history=False,
                 participant_to_transform=self.collection,
                 most_voted_transform=self.most_voted_payload,
                 latest_observation_hist_hash=cast(
@@ -261,7 +261,6 @@ class PreprocessRound(CollectSameUntilThresholdRound, APYEstimationAbstractRound
 
             synchronized_data = self.synchronized_data.update(
                 synchronized_data_class=SynchronizedData,
-                overwrite_history=False,
                 participant_to_preprocessing=self.collection,
                 most_voted_split=self.most_voted_payload,
             )
@@ -311,7 +310,6 @@ class RandomnessRound(CollectSameUntilThresholdRound, APYEstimationAbstractRound
 
             synchronized_data = self.synchronized_data.update(
                 synchronized_data_class=SynchronizedData,
-                overwrite_history=False,
                 participants_to_randomness=self.collection,
                 most_voted_randomness=filtered_randomness,
             )
@@ -466,7 +464,8 @@ class BaseResetRound(CollectSameUntilThresholdRound, APYEstimationAbstractRound)
                 ] = self.synchronized_data.latest_observation_hist_hash
 
             synchronized_data = self.synchronized_data.create(
-                synchronized_data_class=SynchronizedData, format_data=True, **kwargs
+                synchronized_data_class=SynchronizedData,
+                **AbciAppDB.data_to_lists(kwargs),
             )
             return synchronized_data, Event.DONE
 
