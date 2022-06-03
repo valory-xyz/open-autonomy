@@ -49,11 +49,11 @@ from packages.valory.skills.abstract_round_abci.behaviour_utils import (
     AsyncBehaviour,
     BaseBehaviour,
     DegenerateBehaviour,
+    HEIGHT_OFFSET_MULTIPLIER,
+    MAX_HEIGHT_OFFSET,
     SendException,
     TimeoutException,
     make_degenerate_behaviour,
-    MAX_HEIGHT_OFFSET,
-    HEIGHT_OFFSET_MULTIPLIER,
 )
 from packages.valory.skills.abstract_round_abci.models import (
     _DEFAULT_REQUEST_RETRY_DELAY,

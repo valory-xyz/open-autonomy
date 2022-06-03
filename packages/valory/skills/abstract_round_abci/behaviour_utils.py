@@ -92,7 +92,7 @@ from packages.valory.skills.abstract_round_abci.models import (
 
 
 MAX_HEIGHT_OFFSET = 10
-HEIGHT_OFFSET_MULTIPLIER = .01
+HEIGHT_OFFSET_MULTIPLIER = 0.01
 GENESIS_TIME_FMT = "%Y-%m-%dT%H:%M:%S.%fZ"
 
 
@@ -1535,9 +1535,14 @@ class BaseBehaviour(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
             # The bigger the observation interval, the larger the lag among the agents might be.
             # Also, if the observation interval is too tiny, we do not need the offset to be proportionally big.
             # Therefore, we choose between a maximum value and the interval multiplied by a constant (< 1 suggested).
-            offset = math.ceil(self.params.observation_interval * HEIGHT_OFFSET_MULTIPLIER)
+            offset = math.ceil(
+                self.params.observation_interval * HEIGHT_OFFSET_MULTIPLIER
+            )
             offset = min(MAX_HEIGHT_OFFSET, offset)
-            initial_height = self.context.state.round_sequence.last_round_transition_tm_height + offset
+            initial_height = (
+                self.context.state.round_sequence.last_round_transition_tm_height
+                + offset
+            )
             request_message, http_dialogue = self._build_http_request_message(
                 "GET",
                 self.params.tendermint_com_url + "/hard_reset",
