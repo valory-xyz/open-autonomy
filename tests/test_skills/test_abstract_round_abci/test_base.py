@@ -50,7 +50,6 @@ from packages.valory.skills.abstract_round_abci.base import (
     ConsensusParams,
     EventType,
     LateArrivingTransaction,
-    RESET_HEIGHT_OFFSET,
     RoundSequence,
     SignatureNotValidError,
     Timeouts,
@@ -1303,30 +1302,6 @@ class TestRoundSequence:
             self.round_sequence.end_block()
             self.round_sequence.commit()
             assert self.round_sequence.last_round_transition_tm_height == tm_height
-
-    @pytest.mark.parametrize(
-        "last_round_transition_tm_height, tm_height",
-        ((None, None), (None, 1000), (1, 2), (5, 5)),
-    )
-    def test_height_after_reset(
-        self, last_round_transition_tm_height: Optional[int], tm_height: Optional[int]
-    ) -> None:
-        """Test 'last_round_transition_height' method."""
-        if tm_height is None or last_round_transition_tm_height is None:
-            with pytest.raises(
-                ValueError,
-                match="Trying to access height_after_reset before any `end_block` calls.",
-            ):
-                _ = self.round_sequence.height_after_reset
-        else:
-            self.round_sequence.tm_height = tm_height
-            self.round_sequence._last_round_transition_tm_height = (
-                last_round_transition_tm_height
-            )
-            assert (
-                self.round_sequence.height_after_reset
-                == tm_height - last_round_transition_tm_height + RESET_HEIGHT_OFFSET
-            )
 
     @pytest.mark.parametrize("begin_height", tuple(range(0, 50, 10)))
     @pytest.mark.parametrize("initial_height", tuple(range(0, 11, 5)))
