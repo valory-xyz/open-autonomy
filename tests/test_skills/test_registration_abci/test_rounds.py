@@ -163,7 +163,7 @@ class TestRegistrationRound(BaseCollectSameUntilThresholdRoundTest):
         self._run_with_round(
             test_round=test_round,
             expected_event=RegistrationEvent.DONE,
-            confirmations=10,
+            confirmations=11,
             most_voted_payload='{"dummy_key": "dummy_value"}',
             round_payloads=round_payloads,
         )
@@ -185,7 +185,11 @@ class TestRegistrationRound(BaseCollectSameUntilThresholdRoundTest):
             synchronized_data=self.synchronized_data,
             consensus_params=self.consensus_params,
         )
-        self._run_with_round(test_round, finished=False)
+        self._run_with_round(
+            test_round,
+            finished=False,
+            confirmations=11,
+        )
 
     def _run_with_round(
         self,
@@ -220,9 +224,11 @@ class TestRegistrationRound(BaseCollectSameUntilThresholdRoundTest):
         )
 
         next(test_runner)
-        test_round = next(test_runner)
         if confirmations is not None:
             test_round.block_confirmations = confirmations
+
+        test_round = next(test_runner)
+
         prior_confirmations = test_round.block_confirmations
 
         next(test_runner)
@@ -238,7 +244,8 @@ class TestRegistrationRound(BaseCollectSameUntilThresholdRoundTest):
         )
 
         with mock.patch.object(test_round, "is_majority_possible", return_value=False):
-            result = test_round.end_block()
-            assert result is not None
-            _, event = result
-            assert event == Event.NO_MAJORITY
+            with mock.patch.object(test_round, "block_confirmations", 11):
+                result = test_round.end_block()
+                assert result is not None
+                _, event = result
+                assert event == Event.NO_MAJORITY
