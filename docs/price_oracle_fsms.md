@@ -44,6 +44,7 @@ The summary of the constituent FSMs is as follows:
 alphabet_in:
 - DONE
 - FAST_FORWARD
+- NO_MAJORITY
 default_start_state: RegistrationStartupRound
 final_states:
 - FinishedRegistrationFFWRound
@@ -59,6 +60,7 @@ states:
 - RegistrationStartupRound
 transition_func:
     (RegistrationRound, DONE): FinishedRegistrationFFWRound
+    (RegistrationRound, NO_MAJORITY): RegistrationRound
     (RegistrationStartupRound, DONE): FinishedRegistrationRound
     (RegistrationStartupRound, FAST_FORWARD): FinishedRegistrationFFWRound
 ```
@@ -530,6 +532,7 @@ transition_func:
     (RandomnessTransactionSubmissionRound, NO_MAJORITY): RandomnessTransactionSubmissionRound
     (RandomnessTransactionSubmissionRound, ROUND_TIMEOUT): RandomnessTransactionSubmissionRound
     (RegistrationRound, DONE): CollectObservationRound
+    (RegistrationRound, NO_MAJORITY): RegistrationRound
     (RegistrationStartupRound, DONE): RandomnessSafeRound
     (RegistrationStartupRound, FAST_FORWARD): CollectObservationRound
     (ResetAndPauseRound, DONE): CollectObservationRound
