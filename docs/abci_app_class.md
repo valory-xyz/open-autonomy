@@ -22,30 +22,48 @@ EventToTimeout = Dict[EventType, float]
 class AbciApp(
     Generic[EventType], ABC, metaclass=_MetaAbciApp
 ):
-    """Base class for ABCI apps."""
+    """
+    Base class for ABCI apps.
+
+    Concrete classes of this class implement the ABCI App.
+    """
 
     initial_round_cls: AppState
     initial_states: Set[AppState] = set()
     transition_function: AbciAppTransitionFunction
     final_states: Set[AppState] = set()
     event_to_timeout: EventToTimeout = {}
+    cross_period_persisted_keys: List[str] = []
 
     def __init__(
         self,
-        state: BasePeriodState,
+        synchronized_data: BaseSynchronizedData,
         consensus_params: ConsensusParams,
+        logger: logging.Logger,
     ):
         """Initialize the AbciApp."""
 
     def process_transaction(self, transaction: Transaction) -> None:
-        """Process a transaction."""
+        """
+        Process a transaction.
 
-    def process_event(self, event: EventType, result: Optional[Any] = None) -> None:
+        Forward the call to the current round object.
+
+        :param transaction: the transaction.
+        """
+
+    def process_event(
+        self, event: EventType, result: Optional[BaseSynchronizedData] = None
+    ) -> None:
         """Process a round event."""
 
     def update_time(self, timestamp: datetime.datetime) -> None:
-        """Observe timestamp from last block."""
-    ...
+        """
+        Observe timestamp from last block.
+
+        :param timestamp: the latest block's timestamp.
+        """
+    # ...
 ```
 
 Some of its methods relate to concepts discussed in the [FSM section](./fsm.md):
@@ -85,7 +103,7 @@ class MyAbciApp(AbciApp):
     event_to_timeout: EventToTimeout = {
         Event.ROUND_TIMEOUT: 30.0,
     }
-    ...
+    # ...
 ```
 
 <figure markdown>

@@ -20,6 +20,7 @@
 """This module contains helper function to extract code from the .md files."""
 import os
 import re
+from enum import Enum
 from functools import partial
 from pathlib import Path
 from typing import Callable, Dict, List, Optional
@@ -30,8 +31,18 @@ from tests.conftest import ROOT_DIR
 
 
 MISTUNE_BLOCK_CODE_ID = "block_code"
-IPFS_HASH_REGEX = R"Qm[A-Za-z0-9]{44}"
-NON_CODE_TOKENS = ["# ...\n"]
+IPFS_HASH_REGEX = r"Qm[A-Za-z0-9]{44}"
+PYTHON_LINE_COMMENT_REGEX = r"^#.*\n"
+DOC_ELLIPSIS_REGEX = r"\s*#\s...\n"
+
+
+class CodeType(Enum):
+    """Types of code blocks in the docs"""
+
+    PYTHON = "python"
+    YAML = "yaml"
+    BASH = "bash"
+    NOCODE = "nocode"
 
 
 def block_code_filter(b: Dict) -> bool:
@@ -84,16 +95,19 @@ def read_file(filepath: str) -> str:
     return file_str
 
 
-def remove_tokens(string: str, tokens: List[str]) -> str:
-    """Removes tokens from a string"""
-    for token in tokens:
-        string = string.replace(token, "")
-    return string
+def remove_line_comments(string: str) -> str:
+    """Removes tokens from a python string"""
+    return re.sub(PYTHON_LINE_COMMENT_REGEX, "", string)
+
+
+def remove_doc_ellipsis(string: str) -> str:
+    """Removes # ... from a python string"""
+    return re.sub(DOC_ELLIPSIS_REGEX, "", string)
 
 
 def remove_ips_hashes(string: str) -> str:
     """Replaces IPFS hashes with a placeholder"""
-    return re.sub(IPFS_HASH_REGEX, "<ipfs_hash>", string, count=0, flags=0)
+    return re.sub(IPFS_HASH_REGEX, "<ipfs_hash>", string)
 
 
 def contains_code_blocks(file_path: str, block_type: str) -> bool:
@@ -106,16 +120,17 @@ def contains_code_blocks(file_path: str, block_type: str) -> bool:
 def check_code_block(
     md_file: str,
     code_info: Dict,
+    code_type: CodeType,
     doc_process_fn: Optional[Callable] = None,
     code_process_fn: Optional[Callable] = None,
 ) -> None:
     """Check code blocks from the documentation"""
-    code_files = code_info.get("code_files", None)
-    skip_blocks = code_info.get("skip_blocks", None)
+    code_files: List = code_info.get("code_files", None)
+    skip_blocks: List = code_info.get("skip_blocks", None)
 
     # Load the code blocks from the doc file
     doc_path = os.path.join(ROOT_DIR, md_file)
-    code_blocks = extract_code_blocks(filepath=doc_path, filter_="yaml")
+    code_blocks = extract_code_blocks(filepath=doc_path, filter_=code_type.value)
 
     if skip_blocks:
         code_blocks = [
@@ -136,12 +151,22 @@ def check_code_block(
     ), f"Doc checker found {len(code_blocks)} non-skipped code blocks in {md_file} but only {len(code_files)} are being checked"
 
     for i, code_file in enumerate(code_files):
+        # Check if the match must be performed line by line
+        line_by_line = code_file.startswith("by_line::")
+        code_file = code_file.replace("by_line::", "")
+
         # Load the code file and process it
         code_path = os.path.join(ROOT_DIR, code_file)
         code = read_file(code_path)
         code = code_process_fn(code) if code_process_fn else code
 
         # Perform the check
+        if line_by_line:
+            for line in code_blocks[i].split("\n"):
+                assert (
+                    line in code
+                ), f"This line in {md_file} doesn't exist in the code file {code_file}:\n\n'{line}'"
+            continue
         assert (
             code_blocks[i] in code
         ), f"This code-block in {md_file} doesn't exist in the code file {code_file}:\n\n{code_blocks[i]}"

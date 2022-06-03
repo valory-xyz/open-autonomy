@@ -287,20 +287,21 @@ Recall that the skill needs to define the `AbciApp`; the `Rounds`, `Behaviours` 
 
   Since most of the logic is already implemented in the base classes, the programmer only needs to define a few parameters and methods within the `Round`. Most notably, the method `end_block`, which is triggered when the ABCI notifies the end of a block in the consensus gadget:
 
-  ``` Python
+  ```python
   class PrintMessageRound(CollectDifferentUntilAllRound, HelloWorldABCIAbstractRound):
 
-    (...)
+  # ...
 
-    def end_block(self) -> Optional[Tuple[BasePeriodState, Event]]:
-      if self.collection_threshold_reached:
-          state = self.period_state.update(
-              participants=self.collection,
-              all_participants=self.collection,
-              period_state_class=PeriodState,
-          )
-          return state, Event.DONE
-      return None
+    def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Event]]:
+        """Process the end of the block."""
+        if self.collection_threshold_reached:
+            synchronized_data = self.synchronized_data.update(
+                participants=self.collection,
+                all_participants=self.collection,
+                synchronized_data_class=SynchronizedData,
+            )
+            return synchronized_data, Event.DONE
+        return None
   ```
 
   The method updates a number of variables collected at that point, and returns the appropriate event (`DONE`) so that the `AbciApp` can process and transit to the next round.
@@ -309,7 +310,7 @@ Recall that the skill needs to define the `AbciApp`; the `Rounds`, `Behaviours` 
 
   After having defined the `Rounds`, the `HelloWorldAbciApp` does not have much mystery. It simply defines the transitions from one state to another in the FSM, arranged as Python dictionaries. For example,
 
-  ``` Python
+  ```python
   SelectKeeperRound: {
       Event.DONE: PrintMessageRound,
       Event.ROUND_TIMEOUT: RegistrationRound,
@@ -352,26 +353,42 @@ Recall that the skill needs to define the `AbciApp`; the `Rounds`, `Behaviours` 
 
 Again, the `HelloWorldABCIBaseState` is a convenience class, and the upper class in the hierarchy are abstract classes from the stack that facilitate reusability of code when implementing the `Behaviour`. An excerpt of its code is:
 
-``` python
-class PrintMessageBehaviour(HelloWorldABCIBaseState, ABC):
+```python
+class PrintMessageBehaviour(HelloWorldABCIBaseBehaviour, ABC):
+    """Prints the celebrated 'HELLO WORLD!' message."""
 
-    state_id = "print_message"
+    behaviour_id = "print_message"
     matching_round = PrintMessageRound
 
     def async_act(self) -> Generator:
+        """
+        Do the action.
 
-        printed_message = f"Agent {self.context.agent_address} in period {self.period_state.period_count} says: "
-        if self.context.agent_address == self.period_state.most_voted_keeper_address:
+        Steps:
+        - Determine if this agent is the current keeper agent.
+        - Print the appropriate to the local console.
+        - Send the transaction with the printed message and wait for it to be mined.
+        - Wait until ABCI application transitions to the next round.
+        - Go to the next behaviour (set done event).
+        """
+
+        printed_message = f"Agent {self.context.agent_name} (address {self.context.agent_address}) in period {self.synchronized_data.period_count} says: "
+        if (
+            self.context.agent_address
+            == self.synchronized_data.most_voted_keeper_address
+        ):
             printed_message += "HELLO WORLD!"
         else:
             printed_message += ":|"
 
         print(printed_message)
+        self.context.logger.info(f"printed_message={printed_message}")
 
         payload = PrintMessagePayload(self.context.agent_address, printed_message)
 
-        yield from self.send_a2a_transaction(payload)
-        yield from self.wait_until_round_end()
+        with self.context.benchmark_tool.measure(self.behaviour_id).consensus():
+            yield from self.send_a2a_transaction(payload)
+            yield from self.wait_until_round_end()
 
         self.set_done()
 ```
@@ -392,33 +409,42 @@ Once all the `Behaviours` are defined, it is time to define the `RoundBehaviour`
 class HelloWorldRoundBehaviour(AbstractRoundBehaviour):
     """This behaviour manages the consensus stages for the Hello World abci app."""
 
-    initial_state_cls = RegistrationBehaviour
-    abci_app_cls = HelloWorldAbciApp
-    behaviour_states: Set[Type[HelloWorldABCIBaseState]] = {
-        RegistrationBehaviour,
-        SelectKeeperBehaviour,
-        PrintMessageBehaviour,
-        ResetAndPauseBehaviour,
+    initial_behaviour_cls = RegistrationBehaviour
+    abci_app_cls = HelloWorldAbciApp  # type: ignore
+    behaviours: Set[Type[HelloWorldABCIBaseBehaviour]] = {  # type: ignore
+        RegistrationBehaviour,  # type: ignore
+        SelectKeeperBehaviour,  # type: ignore
+        PrintMessageBehaviour,  # type: ignore
+        ResetAndPauseBehaviour,  # type: ignore
     }
 ```
 
 **`payloads.py`**: This file defines the payloads associated to the consensus engine for each of the states. Payload classes are mostly used to encapsulate the data values, and carry almost no business logic. For illustration purposes, consider the payload associated to the `PrintMessageBehaviour`:
 
-``` python
+```python
 class PrintMessagePayload(BaseHelloWorldAbciPayload):
+    """Represent a transaction payload of type 'randomness'."""
 
     transaction_type = TransactionType.PRINT_MESSAGE
 
     def __init__(self, sender: str, message: str, **kwargs: Any) -> None:
+        """Initialize an 'select_keeper' transaction payload.
+
+        :param sender: the sender (Ethereum) address
+        :param message: the message printed by the agent
+        :param kwargs: the keyword arguments
+        """
         super().__init__(sender, **kwargs)
         self._message = message
 
     @property
     def message(self) -> str:
+        """Get the message"""
         return self._message
 
     @property
     def data(self) -> Dict:
+        """Get the data."""
         return dict(message=self._message)
 ```
 

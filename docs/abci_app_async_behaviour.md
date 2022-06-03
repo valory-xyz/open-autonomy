@@ -76,7 +76,7 @@ class SimpleBehaviour(Behaviour, ABC):
 
     def act(self) -> None:
         """Do the action."""
-    ...
+    # ...
 ```
 
 The `AsyncBehaviour` utility class allows to wrap the execution
@@ -104,7 +104,7 @@ class AsyncBehaviour(ABC):
     @abstractmethod
     def async_act_wrapper(self) -> Generator:
         """Do the act, supporting asynchronous execution."""
-    ...
+    # ...
 ```
 
 The abstract methods the developer should implement are called
