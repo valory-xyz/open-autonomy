@@ -8,11 +8,13 @@ agent: valory/oracle_deployable:0.1.0
 network: ropsten
 number_of_agents: 4
 ---
-period_setup_args:
+setup_args:
   args: &id001
-    period_setup:
-      safe_contract_address: '0x7AbCC2424811c342BC9A9B52B1621385d7406676'
-      oracle_contract_address: '0xB555E44648F6Ff759F64A5B451AB845B0450EA57'
+    setup:
+      safe_contract_address:
+      - '0x7AbCC2424811c342BC9A9B52B1621385d7406676'
+      oracle_contract_address:
+      - '0xB555E44648F6Ff759F64A5B451AB845B0450EA57'
     max_healthcheck: 43200
     broadcast_to_server: true
 valory_monitoring_backend:

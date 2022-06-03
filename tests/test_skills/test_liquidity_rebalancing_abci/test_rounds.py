@@ -320,19 +320,21 @@ def test_synchronized_data() -> None:
 
     synchronized_data = SynchronizedData(
         AbciAppDB(
-            initial_data=dict(
-                participants=participants,
-                setup_params=setup_params,
-                most_voted_strategy=most_voted_strategy,
-                most_voted_keeper_address=most_voted_keeper_address,
-                safe_contract_address=safe_contract_address,
-                multisend_contract_address=multisend_contract_address,
-                most_voted_tx_hash=most_voted_tx_hash,
-                final_tx_hash=final_tx_hash,
-                participant_to_lp_result=participant_to_lp_result,
-                participant_to_tx_hash=participant_to_tx_hash,
-                participant_to_signature=participant_to_signature,
-                participant_to_strategy=participant_to_strategy,
+            initial_data=AbciAppDB.data_to_lists(
+                dict(
+                    participants=participants,
+                    setup_params=setup_params,
+                    most_voted_strategy=most_voted_strategy,
+                    most_voted_keeper_address=most_voted_keeper_address,
+                    safe_contract_address=safe_contract_address,
+                    multisend_contract_address=multisend_contract_address,
+                    most_voted_tx_hash=most_voted_tx_hash,
+                    final_tx_hash=final_tx_hash,
+                    participant_to_lp_result=participant_to_lp_result,
+                    participant_to_tx_hash=participant_to_tx_hash,
+                    participant_to_signature=participant_to_signature,
+                    participant_to_strategy=participant_to_strategy,
+                )
             ),
         )
     )

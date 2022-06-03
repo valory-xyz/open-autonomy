@@ -24,9 +24,9 @@ protocols:
 - valory/abci:0.1.0:QmYg2GNatG8mzmiZrnZNL2LtS7rx4Mgi8g55Kfd5nj3QEp
 - valory/http:1.0.0:QmcFZahrD7WQRyK2bcdj2BmRNijK9EeKbTiGwkzxZ4nVti
 skills:
-- valory/abstract_round_abci:0.1.0:Qmc4RqwvarUvKCettMru1ZhmZ5wcd6tuhKqp8RYxibnTyV
-- valory/registration_abci:0.1.0:QmW76VvjcfDT4eQVzUWdvyDbNSvPxQUnsnnrQdpfRhrrTW
-- valory/reset_pause_abci:0.1.0:QmSQUoAMNFXBjLZZGAZY8onCUb9LqAobzJoi8BUo5HEU6A
+- valory/abstract_round_abci:0.1.0:QmarvsfazQYo6KFQfNxuDDb9yUnjpWVz9v5fjV3835to3e
+- valory/registration_abci:0.1.0:Qmcg8U7oqT5zkjCXznLr1nRimvqHnvS6vBjjWHEtr9vxoF
+- valory/reset_pause_abci:0.1.0:QmYZ7yRWBCrbvELsDF8h5Vhge82XgjFEegF8KZj4kjfzzP
 behaviours:
   main:
     args: {}
@@ -73,12 +73,12 @@ models:
       keeper_timeout: 30.0
       max_healthcheck: 120
       observation_interval: 15
-      period_setup: {}
       reset_tendermint_after: 1
       retry_attempts: 400
       retry_timeout: 3
       round_timeout_seconds: 15.0
       service_id: register_reset_abci
+      setup: {}
       sleep_time: 1
       tendermint_check_sleep_delay: 3
       tendermint_com_url: http://localhost:8080

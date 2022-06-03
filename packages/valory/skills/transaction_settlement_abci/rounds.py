@@ -27,6 +27,7 @@ from typing import Deque, Dict, List, Mapping, Optional, Set, Tuple, Type, cast
 from packages.valory.skills.abstract_round_abci.base import (
     ABCIAppInternalError,
     AbciApp,
+    AbciAppDB,
     AbciAppTransitionFunction,
     AbstractRound,
     AppState,
@@ -510,7 +511,8 @@ class ResetRound(CollectSameUntilThresholdRound):
         if self.threshold_reached:
             latest_data = self.synchronized_data.db.get_latest()
             synchronized_data = self.synchronized_data.create(
-                **latest_data,
+                synchronized_data_class=self.synchronized_data_class,
+                **AbciAppDB.data_to_lists(latest_data),
             )
             return synchronized_data, Event.DONE
         if not self.is_majority_possible(

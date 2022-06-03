@@ -32,12 +32,12 @@ protocols:
 - valory/http:1.0.0:QmcFZahrD7WQRyK2bcdj2BmRNijK9EeKbTiGwkzxZ4nVti
 - valory/ledger_api:1.0.0:QmTMQKNr3oL8j68swCL4LjvUsHsyDp8FTM1UcPTfBvJYDn
 skills:
-- valory/abstract_round_abci:0.1.0:Qmc4RqwvarUvKCettMru1ZhmZ5wcd6tuhKqp8RYxibnTyV
-- valory/liquidity_rebalancing_abci:0.1.0:QmbcebNaJeSUc5KUgFgBc5ufRopWQtbXcUEneDDsTcNFL1
-- valory/registration_abci:0.1.0:QmW76VvjcfDT4eQVzUWdvyDbNSvPxQUnsnnrQdpfRhrrTW
-- valory/reset_pause_abci:0.1.0:QmSQUoAMNFXBjLZZGAZY8onCUb9LqAobzJoi8BUo5HEU6A
-- valory/safe_deployment_abci:0.1.0:Qmch8Mq4F8DNSXurtXr3445HzHByoT39ppE9duk4y1SKWw
-- valory/transaction_settlement_abci:0.1.0:QmPnNTkFdU3vC9uxZPjZZwzCKprsBjyBJyinNWou1YU3LV
+- valory/abstract_round_abci:0.1.0:QmarvsfazQYo6KFQfNxuDDb9yUnjpWVz9v5fjV3835to3e
+- valory/liquidity_rebalancing_abci:0.1.0:QmZ5zB9DRPqMFJHnXxeoGG3HYRrXvWSzqr2Ug6Q6pwUnuf
+- valory/registration_abci:0.1.0:Qmcg8U7oqT5zkjCXznLr1nRimvqHnvS6vBjjWHEtr9vxoF
+- valory/reset_pause_abci:0.1.0:QmYZ7yRWBCrbvELsDF8h5Vhge82XgjFEegF8KZj4kjfzzP
+- valory/safe_deployment_abci:0.1.0:QmeLt1ZgVXGHGStL8bPhaDBKSVKbYrhGAamoF6DQQmaBPE
+- valory/transaction_settlement_abci:0.1.0:Qmcen5vXVJQ5cWCjnUUGBvHtr26gXJZ6s2woLeg5rCXvXf
 behaviours:
   main:
     args: {}
