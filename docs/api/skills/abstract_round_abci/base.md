@@ -2248,6 +2248,17 @@ def last_round_transition_root_hash() -> bytes
 
 Returns the root hash for last round transition.
 
+<a id="packages.valory.skills.abstract_round_abci.base.RoundSequence.last_round_transition_tm_height"></a>
+
+#### last`_`round`_`transition`_`tm`_`height
+
+```python
+@property
+def last_round_transition_tm_height() -> int
+```
+
+Returns the Tendermint height for last round transition.
+
 <a id="packages.valory.skills.abstract_round_abci.base.RoundSequence.latest_synchronized_data"></a>
 
 #### latest`_`synchronized`_`data

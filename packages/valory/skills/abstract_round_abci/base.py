@@ -2041,7 +2041,8 @@ class RoundSequence:  # pylint: disable=too-many-instance-attributes
         self._last_round_transition_timestamp: Optional[datetime.datetime] = None
         self._last_round_transition_height = 0
         self._last_round_transition_root_hash = b""
-        self._tm_height = -1
+        self._last_round_transition_tm_height: Optional[int] = None
+        self._tm_height: Optional[int] = None
 
     def setup(self, *args: Any, **kwargs: Any) -> None:
         """
@@ -2168,6 +2169,15 @@ class RoundSequence:  # pylint: disable=too-many-instance-attributes
         return self._last_round_transition_root_hash
 
     @property
+    def last_round_transition_tm_height(self) -> int:
+        """Returns the Tendermint height for last round transition."""
+        if self._last_round_transition_tm_height is None:
+            raise ValueError(
+                "Trying to access Tendermint's last round transition height before any `end_block` calls."
+            )
+        return self._last_round_transition_tm_height
+
+    @property
     def latest_synchronized_data(self) -> BaseSynchronizedData:
         """Get the latest synchronized_data."""
         return self.abci_app.synchronized_data
@@ -2192,7 +2202,7 @@ class RoundSequence:  # pylint: disable=too-many-instance-attributes
     @property
     def tm_height(self) -> int:
         """Get Tendermint's current height."""
-        if self._tm_height == -1:
+        if self._tm_height is None:
             raise ValueError(
                 "Trying to access Tendermint's current height before any `end_block` calls."
             )
@@ -2307,6 +2317,7 @@ class RoundSequence:  # pylint: disable=too-many-instance-attributes
         self._last_round_transition_timestamp = self._blockchain.last_block.timestamp
         self._last_round_transition_height = self.height
         self._last_round_transition_root_hash = self.root_hash
+        self._last_round_transition_tm_height = self.tm_height
         round_result, event = result
         _logger.debug(
             f"updating round, current_round {self.current_round.round_id}, event: {event}, round result {round_result}"
