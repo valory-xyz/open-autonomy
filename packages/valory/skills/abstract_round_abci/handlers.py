@@ -23,6 +23,7 @@ import json
 from abc import ABC
 from typing import Callable, Dict, List, FrozenSet, Optional, cast
 from urllib.parse import urlparse
+from enum import Enum
 
 from aea.configurations.data_types import PublicId
 from aea.protocols.base import Message
@@ -500,6 +501,18 @@ class TendermintHandler(Handler):
 
     SUPPORTED_PROTOCOL: Optional[PublicId] = TendermintMessage.protocol_id
 
+    class LogMessages(Enum):
+        unidentified_dialogue = "Unidentified Tendermint dialogue"
+        no_addresses_retrieved_yet = "No registered addresses retrieved yet"
+        not_in_registered_addresses = "Sender not registered for on-chain service"
+        sending_request_response = "Sending Tendermint request response"
+        failed_to_parse_address = "Failed to parse Tendermint network address"
+        collected_config_info = "Collected Tendermint config info"
+        received_error_without_target_message = "Received error message but could not retrieve target message"
+        received_error_response = "Received error response"
+        sending_error_response = "Sending error response"
+        performative_not_recognized = "Performative not recognized"
+
     def setup(self) -> None:
         """Set up the handler."""
 
@@ -508,7 +521,7 @@ class TendermintHandler(Handler):
 
     @property
     def synchronized_data(self) -> BaseSynchronizedData:
-        """Period State"""
+        """Historical stata data over which consensus has been achieved"""
         return cast(BaseSynchronizedData, cast(SharedState, self.context.state).synchronized_data)
 
     @property
@@ -523,13 +536,34 @@ class TendermintHandler(Handler):
         attribute = cast(PublicId, self.SUPPORTED_PROTOCOL).name + "_dialogues"
         return getattr(self.context, attribute, None)
 
+    def _preconditions_satisfied(self, message, dialogue) -> bool:
+
+        if dialogue is None:
+            log_message = self.LogMessages.unidentified_dialogue.value
+            self.context.logger.info(f"{log_message}: {message}")
+            return False
+
+        if not self.registered_addresses:
+            log_message = self.LogMessages.no_addresses_retrieved_yet.value
+            self.context.logger.info(f"{log_message}: {message}")
+            self._reply_with_tendermint_error(message, dialogue, log_message)
+            return False
+
+        if message.sender not in self.registered_addresses:
+            log_message = self.LogMessages.not_in_registered_addresses.value
+            self.context.logger.info(f"{log_message}: {message}")
+            self._reply_with_tendermint_error(message, dialogue, log_message)
+            return False
+
+        return True
+
     def handle(self, message: TendermintMessage) -> None:
         """Handle incoming Tendermint messages"""
 
         dialogues = cast(TendermintDialogues, self.dialogues)
         dialogue = cast(TendermintDialogue, dialogues.update(message))
-        if dialogue is None:
-            self.context.logger.info(f"Unidentified Tendermint dialogue: {message}")
+
+        if not self._preconditions_satisfied(message, dialogue):
             return
 
         if message.performative == TendermintMessage.Performative.REQUEST:
@@ -539,7 +573,8 @@ class TendermintHandler(Handler):
         elif message.performative == TendermintMessage.Performative.ERROR:
             self._handle_error(message, dialogue)
         else:
-            self.context.logger.info(f"Performative not recognized: {message}")
+            log_message = self.LogMessages.performative_not_recognized.value
+            self.context.logger.info(f"{log_message}: {message}")
 
     def _reply_with_tendermint_error(
         self,
@@ -556,27 +591,14 @@ class TendermintHandler(Handler):
             error_data={},
         )
         self.context.outbox.put_message(response)
-        log_message = (
-            f"Sending error response. Received: {message}, replied: {response}"
-        )
+        log_message = self.LogMessages.sending_error_response.value
+        log_message += f". Received: {message}, replied: {response}"
         self.context.logger.info(log_message)
 
     def _handle_request(
         self, message: TendermintMessage, dialogue: TendermintDialogue
     ) -> None:
         """Handler Tendermint request message"""
-
-        if not self.registered_addresses:
-            error_message = "No registered addresses retrieved yet"
-            self.context.logger.info(f"Invalid request, {error_message}: {message}")
-            self._reply_with_tendermint_error(message, dialogue, error_message)
-            return
-
-        if message.sender not in self.registered_addresses:
-            error_message = "Sender not registered for on-chain service"
-            self.context.logger.info(f"Invalid request, {error_message}: {message}")
-            self._reply_with_tendermint_error(message, dialogue, error_message)
-            return
 
         info = self.registered_addresses[self.context.agent_address]
         response = dialogue.reply(
@@ -585,18 +607,13 @@ class TendermintHandler(Handler):
             info=json.dumps(info),
         )
         self.context.outbox.put_message(message=response)
-        self.context.logger.info(f"Sending Tendermint request response: {response}")
+        log_message = self.LogMessages.sending_request_response.value
+        self.context.logger.info(f"{log_message}: {response}")
 
     def _handle_response(
         self, message: TendermintMessage, dialogue: TendermintDialogue
     ) -> None:
         """Process Tendermint response messages"""
-
-        if message.sender not in self.registered_addresses:
-            error_message = "Response from agent not registered on-chain"
-            self.context.logger.info(f"Invalid response: {error_message}\n{message}")
-            self._reply_with_tendermint_error(message, dialogue, error_message)
-            return
 
         try:  # validate message contains a valid address
             validator_config = json.loads(message.info)
@@ -604,14 +621,14 @@ class TendermintHandler(Handler):
             if parse_result.hostname != "localhost":
                 ipaddress.ip_network(parse_result.hostname)
         except ValueError as e:
-            error_message = f"Failed to parse Tendermint address: {e}"
-            self.context.logger.info(f"Invalid response: {error_message} - {message}")
-            self._reply_with_tendermint_error(message, dialogue, error_message)
+            log_message = self.LogMessages.failed_to_parse_address.value
+            self.context.logger.info(f"{log_message}: {e} {message}")
+            self._reply_with_tendermint_error(message, dialogue, log_message)
             return
 
         self.registered_addresses[message.sender] = validator_config
-        log_msg = "Collected Tendermint config info"
-        self.context.logger.info(f"{log_msg}: {message}")
+        log_message = self.LogMessages.collected_config_info
+        self.context.logger.info(f"{log_message}: {message}")
         dialogues = cast(TendermintDialogues, self.dialogues)
         dialogues.dialogue_stats.add_dialogue_endstate(
             TendermintDialogue.EndState.CONFIG_SHARED, dialogue.is_self_initiated
@@ -624,13 +641,13 @@ class TendermintHandler(Handler):
 
         target_message = dialogue.get_message_by_id(message.target)
         if not target_message:
-            log_message = "Received error message but could not retrieve target message"
+            log_message = self.LogMessages.received_error_without_target_message
             self.context.logger.info(log_message)
             return
 
-        self.context.logger.info(
-            f"Received error response. Received: {message}, in reply to: {target_message}"
-        )
+        log_message = self.LogMessages.received_error_response.value
+        log_message += f". Received: {message}, in reply to: {target_message}"
+        self.context.logger.info(log_message)
         dialogues = cast(TendermintDialogues, self.dialogues)
         dialogues.dialogue_stats.add_dialogue_endstate(
             TendermintDialogue.EndState.CONFIG_NOT_SHARED, dialogue.is_self_initiated
