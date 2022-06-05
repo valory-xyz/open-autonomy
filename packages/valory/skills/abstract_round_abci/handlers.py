@@ -550,6 +550,8 @@ class TendermintHandler(Handler):
             return False
 
         if message.sender not in self.registered_addresses:
+            self.context.logger.info(message.sender)
+            self.context.logger.info(str(self.registered_addresses))
             log_message = self.LogMessages.not_in_registered_addresses.value
             self.context.logger.info(f"{log_message}: {message}")
             self._reply_with_tendermint_error(message, dialogue, log_message)
@@ -617,6 +619,7 @@ class TendermintHandler(Handler):
 
         try:  # validate message contains a valid address
             validator_config = json.loads(message.info)
+            self.context.logger.error(validator_config)
             parse_result = urlparse(validator_config["tendermint_url"])
             if parse_result.hostname != "localhost":
                 ipaddress.ip_network(parse_result.hostname)
@@ -627,7 +630,7 @@ class TendermintHandler(Handler):
             return
 
         self.registered_addresses[message.sender] = validator_config
-        log_message = self.LogMessages.collected_config_info
+        log_message = self.LogMessages.collected_config_info.value
         self.context.logger.info(f"{log_message}: {message}")
         dialogues = cast(TendermintDialogues, self.dialogues)
         dialogues.dialogue_stats.add_dialogue_endstate(
@@ -641,7 +644,7 @@ class TendermintHandler(Handler):
 
         target_message = dialogue.get_message_by_id(message.target)
         if not target_message:
-            log_message = self.LogMessages.received_error_without_target_message
+            log_message = self.LogMessages.received_error_without_target_message.value
             self.context.logger.info(log_message)
             return
 
