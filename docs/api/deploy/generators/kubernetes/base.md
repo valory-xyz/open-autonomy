@@ -64,3 +64,13 @@ def write_config() -> "KubernetesGenerator"
 
 Write output to build dir
 
+<a id="aea_swarm.deploy.generators.kubernetes.base.KubernetesGenerator.populate_private_keys"></a>
+
+#### populate`_`private`_`keys
+
+```python
+def populate_private_keys() -> "BaseDeploymentGenerator"
+```
+
+Populates private keys into a config map for the kubernetes deployment.
+

@@ -44,6 +44,7 @@ def generate_deployment(  # pylint: disable=too-many-arguments
     packages_dir: Path,
     build_dir: Path,
     number_of_agents: Optional[int] = None,
+    private_keys_password: Optional[str] = None,
     dev_mode: bool = False,
     version: Optional[str] = None,
 ) -> str:
@@ -66,6 +67,7 @@ def generate_deployment(  # pylint: disable=too-many-arguments
         service_path=service_path,
         keys=private_keys_file_path,
         packages_dir=packages_dir,
+        private_keys_password=private_keys_password,
         number_of_agents=number_of_agents,
     )
 
@@ -79,7 +81,7 @@ def generate_deployment(  # pylint: disable=too-many-arguments
 
     deployment.generate(image_versions, dev_mode).generate_config_tendermint(
         image_versions["tendermint"]
-    ).write_config()
+    ).write_config().populate_private_keys()
 
     return DEPLOYMENT_REPORT.substitute(
         **{

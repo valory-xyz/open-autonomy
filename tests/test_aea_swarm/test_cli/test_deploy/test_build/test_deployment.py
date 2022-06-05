@@ -28,9 +28,22 @@ from unittest import mock
 import yaml
 
 from aea_swarm.cli import cli
-from aea_swarm.constants import OPEN_AEA_IMAGE_NAME, TENDERMINT_IMAGE_NAME
+from aea_swarm.constants import (
+    DEFAULT_BUILD_FOLDER,
+    OPEN_AEA_IMAGE_NAME,
+    TENDERMINT_IMAGE_NAME,
+)
+from aea_swarm.deploy.constants import (
+    DEPLOYMENT_AGENT_KEY_DIRECTORY_SCHEMA,
+    DEPLOYMENT_KEY_DIRECTORY,
+    KUBERNETES_AGENT_KEY_NAME,
+)
 
-from tests.conftest import ROOT_DIR
+from tests.conftest import (
+    ETHEREUM_ENCRYPTED_KEYS,
+    ETHEREUM_ENCRYPTION_PASSWORD,
+    ROOT_DIR,
+)
 from tests.test_aea_swarm.test_cli.base import BaseCliTest
 
 
@@ -246,6 +259,214 @@ class TestBuildDeployment(BaseCliTest):
                 resource["spec"]["template"]["spec"]["containers"][1]["image"]
                 == f"{OPEN_AEA_IMAGE_NAME}:oracle_deployable-{version}"
             )
+
+    def test_docker_compose_no_password(
+        self,
+    ) -> None:
+        """Run tests."""
+
+        with mock.patch("os.chown"):
+            result = self.run_cli(
+                (
+                    self.service_id,
+                    str(self.keys_file),
+                    "--o",
+                    str(self.t),
+                    "--force",
+                )
+            )
+
+        build_dir = self.t / DEFAULT_BUILD_FOLDER
+
+        assert result.exit_code == 0, f"{result.stdout_bytes}\n{result.stderr_bytes}"
+        assert build_dir.exists()
+
+        docker_compose_file = build_dir / "docker-compose.yaml"
+        with open(docker_compose_file, "r", encoding="utf-8") as fp:
+            docker_compose = yaml.safe_load(fp)
+
+        agents = int(len(docker_compose["services"]) / 2)
+        assert all(
+            [
+                (
+                    build_dir
+                    / DEPLOYMENT_KEY_DIRECTORY
+                    / DEPLOYMENT_AGENT_KEY_DIRECTORY_SCHEMA.format(agent_n=i)
+                ).exists()
+                for i in range(agents)
+            ]
+        )
+        for x in range(agents):
+            env = dict(
+                [
+                    f.split("=")
+                    for f in docker_compose["services"][f"abci{x}"]["environment"]
+                ]
+            )
+            assert "AEA_PASSWORD" not in env.keys()
+
+    def test_docker_compose_password(
+        self,
+    ) -> None:
+        """Run tests."""
+        keys_file = Path(ETHEREUM_ENCRYPTED_KEYS)
+
+        with mock.patch("os.chown"):
+            result = self.run_cli(
+                (
+                    self.service_id,
+                    str(keys_file),
+                    "--o",
+                    str(self.t),
+                    "--force",
+                    "--password",
+                    ETHEREUM_ENCRYPTION_PASSWORD,
+                )
+            )
+
+        build_dir = self.t / DEFAULT_BUILD_FOLDER
+
+        assert result.exit_code == 0, f"{result.stdout_bytes}\n{result.stderr_bytes}"
+        assert build_dir.exists()
+
+        build_dir = self.t / DEFAULT_BUILD_FOLDER
+
+        assert result.exit_code == 0, f"{result.stdout_bytes}\n{result.stderr_bytes}"
+        assert build_dir.exists()
+
+        docker_compose_file = build_dir / "docker-compose.yaml"
+        with open(docker_compose_file, "r", encoding="utf-8") as fp:
+            docker_compose = yaml.safe_load(fp)
+
+        agents = int(len(docker_compose["services"]) / 2)
+        assert all(
+            [
+                (
+                    build_dir
+                    / DEPLOYMENT_KEY_DIRECTORY
+                    / DEPLOYMENT_AGENT_KEY_DIRECTORY_SCHEMA.format(agent_n=i)
+                ).exists()
+                for i in range(agents)
+            ]
+        )
+        for x in range(agents):
+            env = dict(
+                [
+                    f.split("=")
+                    for f in docker_compose["services"][f"abci{x}"]["environment"]
+                ]
+            )
+            assert "AEA_PASSWORD" in env.keys()
+            assert env["AEA_PASSWORD"] == ETHEREUM_ENCRYPTION_PASSWORD
+
+    def test_kubernetes_build_password(
+        self,
+    ) -> None:
+        """Run tests."""
+        keys_file = Path(ETHEREUM_ENCRYPTED_KEYS)
+
+        with mock.patch("os.chown"):
+            result = self.run_cli(
+                (
+                    self.service_id,
+                    str(keys_file),
+                    "--o",
+                    str(self.t),
+                    "--force",
+                    "--kubernetes",
+                    "--password",
+                    ETHEREUM_ENCRYPTION_PASSWORD,
+                )
+            )
+
+        build_dir = self.t / DEFAULT_BUILD_FOLDER
+        assert result.exit_code == 0, f"{result.stdout_bytes}\n{result.stderr_bytes}"
+        assert build_dir.exists()
+
+        build_dir = self.t / DEFAULT_BUILD_FOLDER
+        kubernetes_config_file = build_dir / "build.yaml"
+
+        assert result.exit_code == 0, f"{result.stdout_bytes}\n{result.stderr_bytes}"
+        assert build_dir.exists()
+        with open(kubernetes_config_file, "r", encoding="utf-8") as fp:
+            kubernetes_config = list(yaml.safe_load_all(fp))
+
+        for resource in kubernetes_config:
+            try:
+                agent_vars = {
+                    f["name"]: f["value"]
+                    for f in resource["spec"]["template"]["spec"]["containers"][1][
+                        "env"
+                    ]
+                }
+            except (KeyError, IndexError):
+                continue
+
+            assert agent_vars["AEA_PASSWORD"] == ETHEREUM_ENCRYPTION_PASSWORD
+
+        assert all(
+            [
+                (
+                    build_dir
+                    / DEPLOYMENT_KEY_DIRECTORY
+                    / KUBERNETES_AGENT_KEY_NAME.format(agent_n=i)
+                ).exists()
+                for i in range(4)
+            ]
+        )
+
+    def test_kubernetes_build_no_password(
+        self,
+    ) -> None:
+        """Run tests."""
+
+        with mock.patch("os.chown"):
+            result = self.run_cli(
+                (
+                    self.service_id,
+                    str(self.keys_file),
+                    "--o",
+                    str(self.t),
+                    "--force",
+                    "--kubernetes",
+                )
+            )
+
+        build_dir = self.t / DEFAULT_BUILD_FOLDER
+        assert result.exit_code == 0, f"{result.stdout_bytes}\n{result.stderr_bytes}"
+        assert build_dir.exists()
+
+        build_dir = self.t / DEFAULT_BUILD_FOLDER
+        kubernetes_config_file = build_dir / "build.yaml"
+
+        assert result.exit_code == 0, f"{result.stdout_bytes}\n{result.stderr_bytes}"
+        assert build_dir.exists()
+        with open(kubernetes_config_file, "r", encoding="utf-8") as fp:
+            kubernetes_config = list(yaml.safe_load_all(fp))
+
+        for resource in kubernetes_config:
+            try:
+                agent_vars = {
+                    f["name"]: f["value"]
+                    for f in resource["spec"]["template"]["spec"]["containers"][1][
+                        "env"
+                    ]
+                }
+            except (KeyError, IndexError):
+                continue
+
+            assert "AEA_PASSWORD" not in agent_vars.keys()
+
+        assert all(
+            [
+                (
+                    build_dir
+                    / DEPLOYMENT_KEY_DIRECTORY
+                    / KUBERNETES_AGENT_KEY_NAME.format(agent_n=i)
+                ).exists()
+                for i in range(4)
+            ]
+        )
 
     @classmethod
     def teardown(cls) -> None:

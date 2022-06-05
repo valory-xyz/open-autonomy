@@ -36,7 +36,13 @@ from aea.configurations.constants import AGENTS, DEFAULT_AEA_CONFIG_FILE
 from aea_swarm.configurations.base import Service
 from aea_swarm.configurations.loader import load_service_config
 from aea_swarm.constants import TENDERMINT_IMAGE_VERSION
-from aea_swarm.deploy.constants import NETWORKS
+from aea_swarm.deploy.constants import (
+    DEFAULT_ENCODING,
+    KEY_SCHEMA_ADDRESS,
+    KEY_SCHEMA_ENCRYPTED_KEY,
+    KEY_SCHEMA_UNENCRYPTED_KEY,
+    NETWORKS,
+)
 
 
 ABCI_HOST = "abci{}"
@@ -66,8 +72,11 @@ class ServiceSpecification:
         keys: Path,
         packages_dir: Path,
         number_of_agents: Optional[int] = None,
+        private_keys_password: Optional[str] = None,
     ) -> None:
         """Initialize the Base Deployment."""
+        self.private_keys: List = []
+        self.private_keys_password = private_keys_password
         self.packages_dir = packages_dir
         self.service = load_service_config(service_path)
         if number_of_agents is not None:
@@ -81,13 +90,19 @@ class ServiceSpecification:
 
     def read_keys(self, file_path: Path) -> None:
         """Read in keys from a file on disk."""
-        self.private_keys = []
 
-        keys = json.loads(file_path.read_text(encoding="utf-8"))
+        keys = json.loads(file_path.read_text(encoding=DEFAULT_ENCODING))
+
+        key_schema = (
+            KEY_SCHEMA_UNENCRYPTED_KEY
+            if self.private_keys_password is None
+            else KEY_SCHEMA_ENCRYPTED_KEY
+        )
         for key in keys:
-            if "address" not in key.keys() and "private_key" not in key.keys():
-                raise ValueError("Key file incorrectly formatted.")
-            self.private_keys.append(key["private_key"])
+            for required_key in [KEY_SCHEMA_ADDRESS, key_schema]:
+                if required_key not in key.keys():
+                    raise ValueError("Key file incorrectly formatted.")
+            self.private_keys.append(key[key_schema])
 
     def process_model_args_overrides(self, agent_n: int) -> Dict:
         """Generates env vars based on model overrides."""
@@ -105,15 +120,18 @@ class ServiceSpecification:
 
     def generate_common_vars(self, agent_n: int) -> Dict:
         """Retrieve vars common for valory apps."""
-        return {
+        agent_vars = {
             "ID": agent_n,
-            "AEA_KEY": self.private_keys[agent_n],
             "VALORY_APPLICATION": self.service.agent,
-            "MAX_PARTICIPANTS": self.service.number_of_agents,
             "ABCI_HOST": ABCI_HOST.format(agent_n),
+            "MAX_PARTICIPANTS": self.service.number_of_agents,
             "TENDERMINT_URL": TENDERMINT_NODE.format(agent_n),
             "TENDERMINT_COM_URL": TENDERMINT_COM.format(agent_n),
         }
+
+        if self.private_keys_password is not None:
+            agent_vars["AEA_PASSWORD"] = self.private_keys_password
+        return agent_vars
 
     def generate_agent(self, agent_n: int) -> Dict[Any, Any]:
         """Generate next agent."""
@@ -177,6 +195,12 @@ class BaseDeploymentGenerator:
         self, image_version: str = TENDERMINT_IMAGE_VERSION
     ) -> "BaseDeploymentGenerator":
         """Generate the deployment configuration."""
+
+    @abc.abstractmethod
+    def populate_private_keys(
+        self,
+    ) -> "BaseDeploymentGenerator":
+        """Populate the private keys to the deployment."""
 
     def get_deployment_network_configuration(
         self, agent_vars: List[Dict[str, Any]]

@@ -22,6 +22,8 @@ import subprocess  # nosec
 from pathlib import Path
 from typing import Dict, IO, cast
 
+from aea.configurations.constants import DEFAULT_PRIVATE_KEY_FILE
+
 from aea_swarm.constants import (
     IMAGE_VERSION,
     OPEN_AEA_IMAGE_NAME,
@@ -29,6 +31,11 @@ from aea_swarm.constants import (
     TENDERMINT_IMAGE_VERSION,
 )
 from aea_swarm.deploy.base import BaseDeploymentGenerator
+from aea_swarm.deploy.constants import (
+    DEFAULT_ENCODING,
+    DEPLOYMENT_AGENT_KEY_DIRECTORY_SCHEMA,
+    DEPLOYMENT_KEY_DIRECTORY,
+)
 from aea_swarm.deploy.generators.docker_compose.templates import (
     ABCI_NODE_TEMPLATE,
     DOCKER_COMPOSE_TEMPLATE,
@@ -180,4 +187,21 @@ class DockerComposeGenerator(BaseDeploymentGenerator):
             tendermint_nodes=tendermint_nodes,
         )
 
+        return self
+
+    def populate_private_keys(
+        self,
+    ) -> "DockerComposeGenerator":
+        """Populate the private keys to the build directory for docker-compose mapping."""
+        for x in range(self.service_spec.service.number_of_agents):
+            path = (
+                self.build_dir
+                / DEPLOYMENT_KEY_DIRECTORY
+                / DEPLOYMENT_AGENT_KEY_DIRECTORY_SCHEMA.format(agent_n=x)
+            )
+            path.mkdir()
+            with open(
+                path / DEFAULT_PRIVATE_KEY_FILE, "w", encoding=DEFAULT_ENCODING
+            ) as f:
+                f.write(self.service_spec.private_keys[x])
         return self

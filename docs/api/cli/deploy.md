@@ -89,7 +89,8 @@ Build tools
     default=False,
     help="Remove existing build and overwrite with new one.",
 )
-def build_deployment(service_id: PublicId, keys_file: Path, deployment_type: str, output_dir: Path, packages_dir: Path, dev_mode: bool, force_overwrite: bool, number_of_agents: Optional[int] = None, version: Optional[str] = None) -> None
+@password_option(confirmation_prompt=True)
+def build_deployment(service_id: PublicId, keys_file: Path, deployment_type: str, output_dir: Path, packages_dir: Path, dev_mode: bool, force_overwrite: bool, number_of_agents: Optional[int] = None, password: Optional[str] = None, version: Optional[str] = None) -> None
 ```
 
 Build deployment setup for n agents.

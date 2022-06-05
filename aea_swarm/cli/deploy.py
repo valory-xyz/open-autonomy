@@ -25,7 +25,7 @@ from pathlib import Path
 from typing import Optional
 
 import click
-from aea.cli.utils.click_utils import PublicIdParameter
+from aea.cli.utils.click_utils import PublicIdParameter, password_option
 from aea.configurations.constants import PACKAGES
 from aea.configurations.data_types import PublicId
 
@@ -105,6 +105,7 @@ def build_group() -> None:
     default=False,
     help="Remove existing build and overwrite with new one.",
 )
+@password_option(confirmation_prompt=True)
 def build_deployment(  # pylint: disable=too-many-arguments
     service_id: PublicId,
     keys_file: Path,
@@ -114,6 +115,7 @@ def build_deployment(  # pylint: disable=too-many-arguments
     dev_mode: bool,
     force_overwrite: bool,
     number_of_agents: Optional[int] = None,
+    password: Optional[str] = None,
     version: Optional[str] = None,
 ) -> None:
     """Build deployment setup for n agents."""
@@ -141,6 +143,7 @@ def build_deployment(  # pylint: disable=too-many-arguments
             service_path=service_path,
             type_of_deployment=deployment_type,
             private_keys_file_path=keys_file,
+            private_keys_password=password,
             number_of_agents=number_of_agents,
             packages_dir=packages_dir,
             build_dir=build_dir,
@@ -245,6 +248,7 @@ def _build_dirs(build_dir: Path) -> None:
         ("persistent_data", "tm_state"),
         ("persistent_data", "benchmarks"),
         ("persistent_data", "venvs"),
+        ("agent_keys",),
     ]:
         path = Path(build_dir, *dir_path)
         path.mkdir()
