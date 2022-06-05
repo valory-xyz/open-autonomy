@@ -40,7 +40,6 @@ except Exception:
     from tendermint import TendermintNode, TendermintParams
 
 DEFAULT_LOG_FILE = "log.log"
-TMHOME = Path(os.environ.get("TMHOME", "~/.tendermint")).resolve()
 IS_DEV_MODE = os.environ.get("DEV_MODE", "0") == "1"
 CONFIG_OVERRIDE = [
     ("fast_sync = true", "fast_sync = false"),
@@ -69,7 +68,7 @@ def get_defaults() -> Dict[str, str]:
 def override_config_toml() -> None:
     """Update sync method."""
 
-    config_path = TMHOME / "config" / "config.toml"
+    config_path = str(Path(os.environ["TMHOME"]) / "config" / "config.toml")
     with open(config_path, "r", encoding=ENCODING) as fp:
         config = fp.read()
 
@@ -112,7 +111,9 @@ class PeriodDumper:
         store_dir = self.dump_dir / f"period_{self.resets}"
         store_dir.mkdir(exist_ok=True)
         try:
-            shutil.copytree(str(TMHOME), str(store_dir / ("node" + os.environ["ID"])))
+            shutil.copytree(
+                os.environ["TMHOME"], str(store_dir / ("node" + os.environ["ID"]))
+            )
             self.logger.info(f"Dumped data for period {self.resets}")
         except OSError:
             self.logger.info(
@@ -130,7 +131,7 @@ def create_app(
     tendermint_params = TendermintParams(
         proxy_app=os.environ["PROXY_APP"],
         consensus_create_empty_blocks=os.environ["CREATE_EMPTY_BLOCKS"] == "true",
-        home=str(TMHOME),
+        home=os.environ["TMHOME"],
     )
 
     app = Flask(__name__)
@@ -152,7 +153,9 @@ def create_app(
     def get_params() -> Dict:
         """Get tendermint params."""
         try:
-            priv_key_file = TMHOME / "config" / "priv_validator_key.json"
+            priv_key_file = (
+                Path(os.environ["TMHOME"]) / "config" / "priv_validator_key.json"
+            )
             priv_key_data = json.loads(priv_key_file.read_text(encoding=ENCODING))
             del priv_key_data["priv_key"]
             return {"params": priv_key_data, "status": True, "error": None}
@@ -165,7 +168,7 @@ def create_app(
 
         try:
             data: Any = json.loads(request.get_data().decode(ENCODING))
-            genesis_file = TMHOME / "config" / "genesis.json"
+            genesis_file = Path(os.environ["TMHOME"]) / "config" / "genesis.json"
             genesis_data = {}
             genesis_data["genesis_time"] = data["genesis_config"]["genesis_time"]
             genesis_data["chain_id"] = data["genesis_config"]["chain_id"]

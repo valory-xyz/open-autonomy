@@ -19,6 +19,7 @@
 
 """Test the handlers.py module of the skill."""
 
+import json
 import logging
 from typing import Any, cast
 from unittest import mock
@@ -320,7 +321,7 @@ class TestTendermintHandler:
         tendermint_address = "http://0.0.0.0:25567"
         registered_addresses = {message.sender: tendermint_address}
         initial_data = {"registered_addresses": registered_addresses}
-        self.handler.period_state.db.initial_data = initial_data  # type: ignore
+        self.handler.synchronized_data.db.initial_data = initial_data  # type: ignore
         self.context.agent_address = message.sender
         self.handler.handle(message)
         assert "Sending Tendermint request response: " in caplog.text
@@ -332,10 +333,10 @@ class TestTendermintHandler:
         performative = TendermintMessage.Performative.REQUEST
         message = TendermintMessage(performative)  # type: ignore
         message.sender = "Alice"
-        self.handler.period_state.db.initial_data = {}  # type: ignore
+        self.handler.synchronized_data.db.initial_data = {}  # type: ignore
         self.handler.handle(message)
-        assert "No registered addresses retrieved yet" in caplog.text
-        assert "Error response sent" in caplog.text
+        error_msg = "No registered addresses retrieved yet"
+        assert f"Invalid request, {error_msg}: {message}" in caplog.text
 
     def test_handle_request_sender_not_in_registered_addresses(
         self, caplog: LogCaptureFixture
@@ -345,8 +346,8 @@ class TestTendermintHandler:
         message = TendermintMessage(performative)  # type: ignore
         message.sender = "Alice"
         self.handler.handle(message)
-        assert "Sender not registered for on-chain service" in caplog.text
-        assert f"Error response sent\nreceived: {message}" in caplog.text
+        error_msg = "Sender not registered for on-chain service"
+        assert f"Invalid request, {error_msg}: {message}" in caplog.text
 
     def test_handle_response_sender_not_in_registered_addresses(
         self, caplog: LogCaptureFixture
@@ -355,21 +356,21 @@ class TestTendermintHandler:
         performative = TendermintMessage.Performative.RESPONSE
         message = TendermintMessage(performative, info="info")  # type: ignore
         message.sender = "Alice"
-        self.handler.period_state.db.initial_data = {}  # type: ignore
+        self.handler.synchronized_data.db.initial_data = {}  # type: ignore
         self.handler.handle(message)
-        assert "Response from agent not registered on-chain" in caplog.text
-        assert f"Error response sent\nreceived: {message}" in caplog.text
+        error_msg = "Response from agent not registered on-chain"
+        assert f"Invalid response: {error_msg}\n{message}" in caplog.text
 
     def test_handle_response_valid_addresses(self, caplog: LogCaptureFixture) -> None:
         """Test handle response valid address"""
         performative = TendermintMessage.Performative.RESPONSE
-        info = "http://0.0.0.0:25567"
+        info = json.dumps({"tendermint_url": "http://0.0.0.0:25567"})
         message = TendermintMessage(performative, info=info)  # type: ignore
         message.sender = "Alice"
         initial_data = {"registered_addresses": {message.sender: None}}
-        self.handler.period_state.db.initial_data = initial_data  # type: ignore
+        self.handler.synchronized_data.db.initial_data = initial_data  # type: ignore
         self.handler.handle(message)
-        assert f"Collected {message.sender}: {message.info}" in caplog.text
+        assert f"Collected Tendermint config info: {message}" in caplog.text
 
     def test_handle_response_invalid_addresses(self, caplog: LogCaptureFixture) -> None:
         """Test handle response invalid address"""
@@ -378,7 +379,7 @@ class TestTendermintHandler:
         message = TendermintMessage(performative, info=info)  # type: ignore
         message.sender = "Alice"
         initial_data = {"registered_addresses": {message.sender: None}}
-        self.handler.period_state.db.initial_data = initial_data  # type: ignore
+        self.handler.synchronized_data.db.initial_data = initial_data  # type: ignore
         self.handler.handle(message)
         assert "Failed to parse Tendermint address: " in caplog.text
 
@@ -400,7 +401,7 @@ class TestTendermintHandler:
         """Test handle error"""
         message = self.make_error_message()
         self.handler.handle(message)
-        assert "Error response received" in caplog.text
+        assert "Received error response." in caplog.text
 
     def test_handle_performative_not_recognized(
         self, caplog: LogCaptureFixture
@@ -427,18 +428,3 @@ class TestTendermintHandler:
             "Received error message but could not retrieve target message"
             in caplog.text
         )
-
-    def test_no_callback_defined_for_request_nonce(
-        self, caplog: LogCaptureFixture
-    ) -> None:
-        """Test no callback defined for request nonce"""
-        performative = TendermintMessage.Performative.RESPONSE
-        info = "http://0.0.0.0:25567"
-        message = TendermintMessage(performative, info=info)  # type: ignore
-        message.sender = "Alice"
-        initial_data = {"registered_addresses": {message.sender: None}}
-        self.handler.period_state.db.initial_data = initial_data  # type: ignore
-        self.context.requests.request_id_to_callback = {}
-        with pytest.raises(ABCIAppInternalError):
-            self.handler.handle(message)
-        assert "No callback defined for request with nonce:"
