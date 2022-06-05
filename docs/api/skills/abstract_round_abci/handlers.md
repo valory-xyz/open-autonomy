@@ -281,13 +281,13 @@ def teardown() -> None
 
 Tear down the handler.
 
-<a id="packages.valory.skills.abstract_round_abci.handlers.TendermintHandler.period_state"></a>
+<a id="packages.valory.skills.abstract_round_abci.handlers.TendermintHandler.synchronized_data"></a>
 
-#### period`_`state
+#### synchronized`_`data
 
 ```python
 @property
-def period_state() -> BasePeriodState
+def synchronized_data() -> BaseSynchronizedData
 ```
 
 Period State
@@ -319,7 +319,7 @@ Tendermint request / response protocol dialogues
 #### handle
 
 ```python
-def handle(message: TendermintMessage) -> None
+def handle(message: Message) -> None
 ```
 
 Handle incoming Tendermint messages
