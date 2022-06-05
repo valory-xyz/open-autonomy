@@ -9,10 +9,10 @@ aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
   README.md: QmT7TN1DvhK4LtLzv2gSQphVJCsy49b11hRU8ixiiYtHrf
   __init__.py: QmeAk7emAs7VRTMu26MQ22s44gYYQaWjJxnaZ9xaRpLKwp
-  behaviours.py: QmbYxgSyhorfskyfEmrEVh4RvXy9JnmDr2B9CvKHakGU2a
+  behaviours.py: QmQqTFTYEEes3z2F6U7fnTzTcANuvMpd9CcdL9Di1EuCQe
   composition.py: QmTMTXbxA32JvoohYjHTDohMpc2cyWZdLDZyKtCUSvaAnK
   dialogues.py: QmSPy6VqdLur8B8K824MHrfr1fobGz3PUaFu82gKLpJz8P
-  fsm_specification.yaml: QmNtBq1LME67pGvjuWDczzJud5EK4pv2ZNRHp8xPJseZTU
+  fsm_specification.yaml: QmT6SZwTGmgFAZzrN9R2Qa7pY1P9JR8Si7MWKeEgULR9VV
   handlers.py: QmP46JqQwFgamtKhjLd3dpWY2yKdXBnubMYZpSsNBC1eFH
   models.py: QmSwdFNXuDkGCP8QB565HNafwtxgnVauUAYfE4FQEoDCgC
 fingerprint_ignore_patterns: []
@@ -22,15 +22,15 @@ contracts:
 - valory/gnosis_safe_proxy_factory:0.1.0:QmVkZtrgZ2ievXAonq9z33qbrxHi8piVGptuCGaGJYS1iM
 - valory/offchain_aggregator:0.1.0:Qmaftfci6asBewVH3vKGtMJVcAdG71Vm6Qv493uRkT7b2h
 protocols:
-- valory/contract_api:1.0.0:QmX2mRDNNWUTwU6ivKD65R3bnfC9jkGuKCaWqzxoQdm7ni
+- valory/contract_api:1.0.0:QmQssrTfPsTJxkHQthn735vKQHmBuvoZE2eMFf3UzEFizf
 skills:
-- valory/abstract_round_abci:0.1.0:Qmch4D7jbdLD9k7aan3SCHPNQx2Et1ydyKsHXkVkRSDLBM
-- valory/oracle_deployment_abci:0.1.0:QmTuRzWiJvhwF99zughjEt4tAdZvcv1G4pn5MUtBME7hmX
-- valory/price_estimation_abci:0.1.0:QmVak6xBYToP6PP1zZxKGFnxxXxMLL3wCGVNuBzyeyx44K
-- valory/registration_abci:0.1.0:QmY47ui9NNPFPVKPKuo43tRxG47Qy4EaspJjH8bbwwgGY7
-- valory/reset_pause_abci:0.1.0:QmcrgQ5Tw4fcY7WFLyxWTyEb2WA3BqmqnR4egY1t5gajfk
-- valory/safe_deployment_abci:0.1.0:QmPn62BoKWaDuXSWgnDaDSGNK7kenjHUPALtuHNSN9NbnD
-- valory/transaction_settlement_abci:0.1.0:QmeTa549dMFL4BZ6YGn53ZMr56mMzt4cSxfc3Xy1Rz8nLB
+- valory/abstract_round_abci:0.1.0:QmfXirD6pcZDxJozQSSc6rq7ve3Q4pnqYAKLLTUfB13avB
+- valory/oracle_deployment_abci:0.1.0:QmX2cK2N75XLXxXGi5YiWawqBCFLZRJheNygJhFM5sFo2E
+- valory/price_estimation_abci:0.1.0:QmUUdMLSPnwPtU1w2QAjUX352mUSougYCw5FsPWXdVUcuq
+- valory/registration_abci:0.1.0:QmW19MahcehC52fcFEQfMvKhrhZrnFwTGzuCVc2Ea4VzXY
+- valory/reset_pause_abci:0.1.0:QmTFQnP5SwWUv2GHk6oUvQ77sJFCFXGBvP9Tdgc4QJS7VS
+- valory/safe_deployment_abci:0.1.0:QmeCTRznXeafQDKZQtpGSX5brbfCK6YYrSa9EwYnyu2qHN
+- valory/transaction_settlement_abci:0.1.0:QmYnCYbjJAicssWe8W3rkegVKxkAvXfd35LnRePyn7xsue
 behaviours:
   main:
     args: {}
@@ -91,15 +91,15 @@ models:
         max_answer: 1000000000000000000000000
         decimals: 18
         description: BTC
-      period_setup:
-        oracle_contract_address: null
-        safe_contract_address: null
       reset_tendermint_after: 2
       retry_attempts: 400
       retry_timeout: 3
       round_timeout_seconds: 30.0
       service_id: price_estimation
       service_registry_address: null
+      setup:
+        oracle_contract_address: null
+        safe_contract_address: null
       sleep_time: 1
       tendermint_check_sleep_delay: 3
       tendermint_com_url: http://localhost:8080

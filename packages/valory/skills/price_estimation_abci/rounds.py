@@ -28,7 +28,7 @@ from packages.valory.skills.abstract_round_abci.base import (
     AbciAppTransitionFunction,
     AbstractRound,
     AppState,
-    BasePeriodState,
+    BaseSynchronizedData,
     CollectDifferentUntilThresholdRound,
     CollectSameUntilThresholdRound,
     DegenerateRound,
@@ -49,11 +49,11 @@ class Event(Enum):
     NO_MAJORITY = "no_majority"
 
 
-class PeriodState(BasePeriodState):
+class SynchronizedData(BaseSynchronizedData):
     """
-    Class to represent a period state.
+    Class to represent the synchronized data.
 
-    This state is replicated by the tendermint application.
+    This data is replicated by the tendermint application.
     """
 
     _aggregator_method: Callable
@@ -114,7 +114,7 @@ class CollectObservationRound(CollectDifferentUntilThresholdRound):
     round_id = "collect_observation"
     allowed_tx_type = ObservationPayload.transaction_type
     payload_attribute = "observation"
-    period_state_class = PeriodState
+    synchronized_data_class = SynchronizedData
     done_event = Event.DONE
     no_majority_event = Event.NO_MAJORITY
     selection_key = "participant"
@@ -127,7 +127,7 @@ class EstimateConsensusRound(CollectSameUntilThresholdRound):
     round_id = "estimate_consensus"
     allowed_tx_type = EstimatePayload.transaction_type
     payload_attribute = "estimate"
-    period_state_class = PeriodState
+    synchronized_data_class = SynchronizedData
     done_event = Event.DONE
     none_event = Event.NONE
     no_majority_event = Event.NO_MAJORITY
@@ -141,7 +141,7 @@ class TxHashRound(CollectSameUntilThresholdRound):
     round_id = "tx_hash"
     allowed_tx_type = TransactionHashPayload.transaction_type
     payload_attribute = "tx_hash"
-    period_state_class = PeriodState
+    synchronized_data_class = SynchronizedData
     done_event = Event.DONE
     none_event = Event.NONE
     no_majority_event = Event.NO_MAJORITY

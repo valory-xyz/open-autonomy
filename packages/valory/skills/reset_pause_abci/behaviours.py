@@ -22,10 +22,10 @@
 from abc import ABC
 from typing import Generator, Set, Type, cast
 
-from packages.valory.skills.abstract_round_abci.base import BasePeriodState
+from packages.valory.skills.abstract_round_abci.base import BaseSynchronizedData
 from packages.valory.skills.abstract_round_abci.behaviours import (
     AbstractRoundBehaviour,
-    BaseState,
+    BaseBehaviour,
 )
 from packages.valory.skills.reset_pause_abci.models import Params, SharedState
 from packages.valory.skills.reset_pause_abci.payloads import ResetPausePayload
@@ -35,13 +35,16 @@ from packages.valory.skills.reset_pause_abci.rounds import (
 )
 
 
-class ResetAndPauseBaseState(BaseState, ABC):
-    """Reset state."""
+class ResetAndPauseBaseBehaviour(BaseBehaviour, ABC):
+    """Reset behaviour."""
 
     @property
-    def period_state(self) -> BasePeriodState:
-        """Return the period state."""
-        return cast(BasePeriodState, cast(SharedState, self.context.state).period_state)
+    def synchronized_data(self) -> BaseSynchronizedData:
+        """Return the synchronized data."""
+        return cast(
+            BaseSynchronizedData,
+            cast(SharedState, self.context.state).synchronized_data,
+        )
 
     @property
     def params(self) -> Params:
@@ -49,26 +52,26 @@ class ResetAndPauseBaseState(BaseState, ABC):
         return cast(Params, self.context.params)
 
 
-class ResetAndPauseBehaviour(ResetAndPauseBaseState):
-    """Reset and pause state."""
+class ResetAndPauseBehaviour(ResetAndPauseBaseBehaviour):
+    """Reset and pause behaviour."""
 
     matching_round = ResetAndPauseRound
-    state_id = "reset_and_pause"
+    behaviour_id = "reset_and_pause"
 
     def async_act(self) -> Generator:
         """
         Do the action.
 
         Steps:
-        - Trivially log the state.
+        - Trivially log the behaviour.
         - Sleep for configured interval.
         - Build a registration transaction.
         - Send the transaction and wait for it to be mined.
         - Wait until ABCI application transitions to the next round.
-        - Go to the next behaviour state (set done event).
+        - Go to the next behaviour (set done event).
         """
         # + 1 because `period_count` starts from 0
-        n_periods_done = self.period_state.period_count + 1
+        n_periods_done = self.synchronized_data.period_count + 1
         if n_periods_done % self.params.reset_tendermint_after == 0:
             tendermint_reset = yield from self.reset_tendermint_with_wait()
             if not tendermint_reset:
@@ -76,10 +79,10 @@ class ResetAndPauseBehaviour(ResetAndPauseBaseState):
         else:
             yield from self.wait_from_last_timestamp(self.params.observation_interval)
         self.context.logger.info("Period end.")
-        self.context.benchmark_tool.save(self.period_state.period_count)
+        self.context.benchmark_tool.save(self.synchronized_data.period_count)
 
         payload = ResetPausePayload(
-            self.context.agent_address, self.period_state.period_count + 1
+            self.context.agent_address, self.synchronized_data.period_count
         )
         yield from self.send_a2a_transaction(payload)
         yield from self.wait_until_round_end()
@@ -89,8 +92,8 @@ class ResetAndPauseBehaviour(ResetAndPauseBaseState):
 class ResetPauseABCIConsensusBehaviour(AbstractRoundBehaviour):
     """This behaviour manages the consensus stages for the reset_pause_abci app."""
 
-    initial_state_cls = ResetAndPauseBehaviour
+    initial_behaviour_cls = ResetAndPauseBehaviour
     abci_app_cls = ResetPauseABCIApp  # type: ignore
-    behaviour_states: Set[Type[ResetAndPauseBehaviour]] = {  # type: ignore
+    behaviours: Set[Type[ResetAndPauseBehaviour]] = {  # type: ignore
         ResetAndPauseBehaviour,  # type: ignore
     }

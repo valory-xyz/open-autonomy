@@ -50,30 +50,65 @@ class BaseTestEnd2End(AEATestCaseMany, UseFlaskTendermintNode):
     Test subclasses must set `agent_package`, `wait_to_finish` and `check_strings`.
     """
 
+    # where to fetch agent from
     IS_LOCAL = True
+    # whether to capture logs of subprocesses
     capture_log = True
+    # generic service configurations
     ROUND_TIMEOUT_SECONDS = 10.0
     KEEPER_TIMEOUT = 30.0
+    # generic node healthcheck configuration
     HEALTH_CHECK_MAX_RETRIES = 20
     HEALTH_CHECK_SLEEP_INTERVAL = 3.0
+    # log option for agent process
     cli_log_options = ["-v", "DEBUG"]
+    # reserved variable for subprocesses collection
     processes: List
+    # name of agent and skill (the one with composed abci apps) to be tested
     agent_package: str
     skill_package: str
+    # time to wait for testable log strings to appear
     wait_to_finish: int
     # dictionary with the round names expected to appear in output as keys
     # and the number of periods they are expected to appear for as values.
     round_check_strings_to_n_periods: Optional[Dict[str, int]] = None
     # tuple of strings expected to appear in output as is.
     strict_check_strings: Tuple[str, ...] = ()
+    # process to be excluded from checks
+    exclude_from_checks: List[int] = []
+    # dictionary of extra config overrides to be applied
     extra_configs: List[Dict[str, Any]] = []
+    # ledger used for testing
+    ledger_id: str = "ethereum"
+    key_file_name: str = "ethereum_private_key.txt"
+
+    @classmethod
+    def setup_class(
+        cls,
+    ) -> None:
+        """Setup class."""
+        super().setup_class()
+        cls.__grant_permissions()
+
+    @classmethod
+    def __grant_permissions(cls) -> None:
+        """Grant permissions."""
+        for dir_path in [
+            "logs",
+            "nodes",
+            "tm_state",
+            "benchmarks",
+        ]:
+            path = Path(cls.t, dir_path)
+            path.mkdir()
+            os.chmod(path, 755)  # nosec
 
     def __set_extra_configs(self) -> None:
         """Set the current agent's extra config overrides that are skill specific."""
         for config in self.extra_configs:
             self.set_config(**config)
 
-    def __set_configs(self, i: int) -> None:
+    def __set_configs(self, i: int, nb_agents: int) -> None:
         """Set the current agent's config overrides."""
         # each agent has its Tendermint node instance
         self.set_config(
@@ -103,7 +138,7 @@ class BaseTestEnd2End(AEATestCaseMany, UseFlaskTendermintNode):
         )
         self.set_config(
             f"vendor.valory.skills.{PublicId.from_str(self.skill_package).name}.models.params.args.consensus.max_participants",
-            self.nb_agents,
+            nb_agents,
         )
         self.set_config(
             f"vendor.valory.skills.{PublicId.from_str(self.skill_package).name}.models.params.args.reset_tendermint_after",
@@ -145,68 +180,57 @@ class BaseTestEnd2End(AEATestCaseMany, UseFlaskTendermintNode):
 
         self.__set_extra_configs()
 
-    def __get_agent_name(self, i: int) -> str:
+    @staticmethod
+    def __get_agent_name(i: int, nb_agents: int) -> str:
         """Get the ith agent's name."""
         if i < 0:
-            i = self.nb_agents + i
+            i = nb_agents + i
         if i < 0:
             raise ValueError(
-                f"Incorrect negative indexing. {i} was given, but {self.nb_agents} agents are available!"
+                f"Incorrect negative indexing. {i} was given, but {nb_agents} agents are available!"
             )
-        agent_name = f"agent_{i:05d}_{self.nb_agents}agents_run"
+        agent_name = f"agent_{i:05d}_{nb_agents}agents_run"
         return agent_name
 
-    @classmethod
-    def setup_class(
-        cls,
-    ) -> None:
-        """Setup class."""
-        super().setup_class()
-
-        for dir_path in [
-            "logs",
-            "nodes",
-            "tm_state",
-            "benchmarks",
-        ]:
-            path = Path(cls.t, dir_path)
-            path.mkdir()
-            os.chmod(path, 755)  # nosec
+    def __prepare_agent_i(self, i: int, nb_agents: int) -> None:
+        """Prepare the i-th agent."""
+        agent_name = self.__get_agent_name(i, nb_agents)
+        logging.info(f"Processing agent {agent_name}...")
+        self.fetch_agent(self.agent_package, agent_name, is_local=self.IS_LOCAL)
+        self.set_agent_context(agent_name)
+        if hasattr(self, "key_pairs"):
+            Path(self.current_agent_context, self.key_file_name).write_text(
+                self.key_pairs[i][1]  # type: ignore
+            )
+        else:
+            self.generate_private_key(self.ledger_id, self.key_file_name)
+        self.add_private_key(self.ledger_id, self.key_file_name)
+        self.__set_configs(i, nb_agents)
+        # issue certificates for libp2p proof of representation
+        self.generate_private_key("cosmos", "cosmos_private_key.txt")
+        self.add_private_key("cosmos", "cosmos_private_key.txt")
+        self.run_cli_command("issue-certificates", cwd=self._get_cwd())
 
     def prepare(self, nb_nodes: int) -> None:
-        """Set up the test."""
-        logging.debug(f"Setting-up test for agent package: {self.agent_package}")
-        logging.debug(f"Setting-up test for skill package: {self.skill_package}")
-
-        self.processes = []
-        self.nb_agents = nb_nodes
-
-        for agent_id in range(self.nb_agents):
-            agent_name = self.__get_agent_name(agent_id)
-            logging.debug(f"Processing agent {agent_name}...")
-            self.fetch_agent(self.agent_package, agent_name, is_local=self.IS_LOCAL)
-            self.set_agent_context(agent_name)
-            if hasattr(self, "key_pairs"):
-                Path(self.current_agent_context, "ethereum_private_key.txt").write_text(
-                    self.key_pairs[agent_id][1]  # type: ignore
-                )
-            else:
-                self.generate_private_key("ethereum", "ethereum_private_key.txt")
-            self.add_private_key("ethereum", "ethereum_private_key.txt")
-            self.__set_configs(agent_id)
-            # issue certificates for libp2p proof of representation
-            self.generate_private_key("cosmos", "cosmos_private_key.txt")
-            self.add_private_key("cosmos", "cosmos_private_key.txt")
-            self.run_cli_command("issue-certificates", cwd=self._get_cwd())
+        """Set up the agents."""
+        for agent_id in range(nb_nodes):
+            self.__prepare_agent_i(agent_id, nb_nodes)
 
         # run 'aea install' in only one AEA project, to save time
-        self.set_agent_context(self.__get_agent_name(0))
+        self.set_agent_context(self.__get_agent_name(0, nb_nodes))
         self.run_install()
 
-    def _launch_agent_i(self, i: int) -> None:
+    def prepare_and_launch(self, nb_nodes: int) -> None:
+        """Prepare and launch the agents."""
+        self.processes = []
+        self.prepare(nb_nodes)
+        for agent_id in range(nb_nodes):
+            self._launch_agent_i(agent_id, nb_nodes)
+
+    def _launch_agent_i(self, i: int, nb_agents: int) -> None:
         """Launch the i-th agent."""
-        agent_name = self.__get_agent_name(i)
-        logging.debug(f"Launching agent {agent_name}...")
+        agent_name = self.__get_agent_name(i, nb_agents)
+        logging.info(f"Launching agent {agent_name}...")
         self.set_agent_context(agent_name)
         process = self.run_agent()
         self.processes.append(process)
@@ -319,19 +343,27 @@ class BaseTestEnd2End(AEATestCaseMany, UseFlaskTendermintNode):
 
         assert missing_agent_logs == "", missing_agent_logs
 
-    def _check_aea_messages(self) -> None:
-        """Check that *each* AEA prints these messages."""
-        for i, process in enumerate(self.processes):
-            missing_strict_strings, missing_round_strings = self.missing_from_output(
-                process=process,
-                round_check_strings_to_n_periods=self.round_check_strings_to_n_periods,
-                strict_check_strings=self.strict_check_strings,
-                timeout=self.wait_to_finish,
-            )
+    def check_aea_messages(self) -> None:
+        """
+        Check that *each* AEA prints these messages.
 
-            self.__check_missing_strings(
-                missing_strict_strings, missing_round_strings, i
-            )
+        First failing check will cause assertion error and test tear down.
+        """
+        for i, process in enumerate(self.processes):
+            if i not in self.exclude_from_checks:
+                (
+                    missing_strict_strings,
+                    missing_round_strings,
+                ) = self.missing_from_output(
+                    process=process,
+                    round_check_strings_to_n_periods=self.round_check_strings_to_n_periods,
+                    strict_check_strings=self.strict_check_strings,
+                    timeout=self.wait_to_finish,
+                )
+
+                self.__check_missing_strings(
+                    missing_strict_strings, missing_round_strings, i
+                )
 
 
 class BaseTestEnd2EndNormalExecution(BaseTestEnd2End):
@@ -339,17 +371,12 @@ class BaseTestEnd2EndNormalExecution(BaseTestEnd2End):
 
     def test_run(self, nb_nodes: int) -> None:
         """Run the ABCI skill."""
-        self.prepare(nb_nodes)
-        for agent_id in range(self.nb_agents):
-            self._launch_agent_i(agent_id)
-
-        logging.info("Waiting Tendermint nodes to be up")
+        self.prepare_and_launch(nb_nodes)
         self.health_check(
             max_retries=self.HEALTH_CHECK_MAX_RETRIES,
             sleep_interval=self.HEALTH_CHECK_SLEEP_INTERVAL,
         )
-        self._check_aea_messages()
-        self.terminate_processes()
+        self.check_aea_messages()
 
 
 class BaseTestEnd2EndAgentCatchup(BaseTestEnd2End):
@@ -385,18 +412,18 @@ class BaseTestEnd2EndAgentCatchup(BaseTestEnd2End):
 
     def test_run(self, nb_nodes: int) -> None:
         """Run the test."""
-        self.prepare(nb_nodes)
-        for agent_id in range(self.nb_agents):
-            self._launch_agent_i(agent_id)
-
-        logging.info("Waiting Tendermint nodes to be up")
+        self.prepare_and_launch(nb_nodes)
         self.health_check(
             max_retries=self.HEALTH_CHECK_MAX_RETRIES,
             sleep_interval=self.HEALTH_CHECK_SLEEP_INTERVAL,
         )
+        self._stop_and_restart_last_agent(nb_nodes)
+        self.check_aea_messages()
 
+    def _stop_and_restart_last_agent(self, nb_agents: int) -> None:
+        """Stops and restarts the last agents when stop string is found."""
         # stop the last agent as soon as the "stop string" is found in the output
-        logging.debug(f"Waiting for string {self.stop_string} in last agent output")
+        logging.info(f"Waiting for string {self.stop_string} in last agent output")
         missing_strict_strings, _ = self.missing_from_output(
             process=self.processes[-1],
             strict_check_strings=(self.stop_string,),
@@ -404,21 +431,16 @@ class BaseTestEnd2EndAgentCatchup(BaseTestEnd2End):
         )
         if missing_strict_strings:
             raise RuntimeError("cannot stop agent correctly")
-        logging.debug("Last agent stopped")
 
-        # immediately terminate the agent
-        self.terminate_agents(self.processes[-1], timeout=0)
-        # don't pop before termination, seems to lead to failure!
-        self.processes.pop()
+        logging.info("Last agent stopped")
+        self.processes.pop(-1)
 
         # wait for some time before restarting
-        logging.debug(
+        logging.info(
             f"Waiting {self.restart_after} seconds before restarting the agent"
         )
         time.sleep(self.restart_after)
 
         # restart agent
-        logging.debug("Restart the agent")
-        self._launch_agent_i(-1)
-        self._check_aea_messages()
-        self.terminate_processes()
+        logging.info("Restart the agent")
+        self._launch_agent_i(-1, nb_agents)

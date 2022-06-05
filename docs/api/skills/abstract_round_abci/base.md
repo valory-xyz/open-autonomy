@@ -401,7 +401,7 @@ The consistency of the data in the blocks is guaranteed by Tendermint.
 #### `__`init`__`
 
 ```python
-def __init__() -> None
+def __init__(height_offset: int = 0) -> None
 ```
 
 Initialize the blockchain.
@@ -617,27 +617,75 @@ def __eq__(other: Any) -> bool
 
 Check equality.
 
-<a id="packages.valory.skills.abstract_round_abci.base.StateDB"></a>
+<a id="packages.valory.skills.abstract_round_abci.base.AbciAppDB"></a>
 
-## StateDB Objects
+## AbciAppDB Objects
 
 ```python
-class StateDB()
+class AbciAppDB()
 ```
 
-Class to represent all state replicated across periods.
+Class to represent all data replicated across agents.
 
-<a id="packages.valory.skills.abstract_round_abci.base.StateDB.__init__"></a>
+This class stores all the data in self._data. Every entry on this dict represents an optional "period" within your app execution.
+The concept of period is user-defined, so it might be something like a sequence of rounds that together conform a logical cycle of
+its execution, or it might have no sense at all (thus its optionality) and therefore only period 0 will be used.
+
+Every "period" entry stores a dict where every key is a saved parameter and its corresponding value a list containing the history
+of the parameter values. For instance, for period 0:
+
+0: {"parameter_name": [parameter_history]}
+
+A complete database could look like this:
+
+data = {
+    0: {
+        "participants":
+            [
+                {"participant_a", "participant_b", "participant_c", "participant_d"},
+                {"participant_a", "participant_b", "participant_c"},
+                {"participant_a", "participant_b", "participant_c", "participant_d"},
+            ]
+        },
+        "other_parameter": [0, 2, 8]
+    },
+    1: {
+        "participants":
+            [
+                {"participant_a", "participant_c", "participant_d"},
+                {"participant_a", "participant_b", "participant_c", "participant_d"},
+                {"participant_a", "participant_b", "participant_c"},
+                {"participant_a", "participant_b", "participant_d"},
+                {"participant_a", "participant_b", "participant_c", "participant_d"},
+            ],
+        "other_parameter": [3, 19, 10, 32, 6]
+    },
+    2: ...
+}
+
+To update the current period entry, just call update() on the class. The new values will be appended to the current list for each updated parameter.
+To create a new period entry, call create() on the class. The new values will be stored in a new list for each updated parameter.
+
+<a id="packages.valory.skills.abstract_round_abci.base.AbciAppDB.__init__"></a>
 
 #### `__`init`__`
 
 ```python
-def __init__(initial_period: int, initial_data: Dict[str, Any], cross_period_persisted_keys: Optional[List[str]] = None) -> None
+def __init__(initial_data: Dict[str, List[Any]], cross_period_persisted_keys: Optional[List[str]] = None) -> None
 ```
 
-Initialize a period state.
+Initialize the AbciApp database.
 
-<a id="packages.valory.skills.abstract_round_abci.base.StateDB.initial_data"></a>
+Initial_data must be passed as a Dict[str, List[Any]] (the database internal format). The class method 'data_to_lists'
+can be used to convert from Dict[str, Any] to Dict[str, List[Any]] before instantiating this class.
+
+**Arguments**:
+
+- `initial_data`: the initial data
+- `cross_period_persisted_keys`: data keys that will be kept after a new period starts
+- `format_initial_data`: flag to indicate whether initial_data should be converted from Dict[str, Any] to Dict[str, List[Any]]
+
+<a id="packages.valory.skills.abstract_round_abci.base.AbciAppDB.initial_data"></a>
 
 #### initial`_`data
 
@@ -652,18 +700,18 @@ Get the initial_data.
 
 the initial_data
 
-<a id="packages.valory.skills.abstract_round_abci.base.StateDB.current_period_count"></a>
+<a id="packages.valory.skills.abstract_round_abci.base.AbciAppDB.reset_index"></a>
 
-#### current`_`period`_`count
+#### reset`_`index
 
 ```python
 @property
-def current_period_count() -> int
+def reset_index() -> int
 ```
 
-Get the current period count.
+Get the current reset index.
 
-<a id="packages.valory.skills.abstract_round_abci.base.StateDB.round_count"></a>
+<a id="packages.valory.skills.abstract_round_abci.base.AbciAppDB.round_count"></a>
 
 #### round`_`count
 
@@ -674,7 +722,7 @@ def round_count() -> int
 
 Get the round count.
 
-<a id="packages.valory.skills.abstract_round_abci.base.StateDB.cross_period_persisted_keys"></a>
+<a id="packages.valory.skills.abstract_round_abci.base.AbciAppDB.cross_period_persisted_keys"></a>
 
 #### cross`_`period`_`persisted`_`keys
 
@@ -683,19 +731,19 @@ Get the round count.
 def cross_period_persisted_keys() -> List[str]
 ```
 
-Keys in the period state which are persistet across periods.
+Keys in the database which are persistent across periods.
 
-<a id="packages.valory.skills.abstract_round_abci.base.StateDB.get"></a>
+<a id="packages.valory.skills.abstract_round_abci.base.AbciAppDB.get"></a>
 
 #### get
 
 ```python
-def get(key: str, default: Any = "NOT_PROVIDED") -> Optional[Any]
+def get(key: str, default: Any = VALUE_NOT_PROVIDED) -> Optional[Any]
 ```
 
-Get a value from the data dictionary.
+Given a key, get its last for the current reset index.
 
-<a id="packages.valory.skills.abstract_round_abci.base.StateDB.get_strict"></a>
+<a id="packages.valory.skills.abstract_round_abci.base.AbciAppDB.get_strict"></a>
 
 #### get`_`strict
 
@@ -705,37 +753,47 @@ def get_strict(key: str) -> Any
 
 Get a value from the data dictionary and raise if it is None.
 
-<a id="packages.valory.skills.abstract_round_abci.base.StateDB.update_current_period"></a>
+<a id="packages.valory.skills.abstract_round_abci.base.AbciAppDB.update"></a>
 
-#### update`_`current`_`period
-
-```python
-def update_current_period(**kwargs: Any) -> None
-```
-
-Update the current period's state.
-
-<a id="packages.valory.skills.abstract_round_abci.base.StateDB.add_new_period"></a>
-
-#### add`_`new`_`period
+#### update
 
 ```python
-def add_new_period(new_period: int, **kwargs: Any) -> None
+def update(**kwargs: Any) -> None
 ```
 
-Update the current period's state.
+Update the current data.
 
-<a id="packages.valory.skills.abstract_round_abci.base.StateDB.get_all"></a>
+<a id="packages.valory.skills.abstract_round_abci.base.AbciAppDB.create"></a>
 
-#### get`_`all
+#### create
 
 ```python
-def get_all() -> Dict[str, Any]
+def create(**kwargs: List[Any]) -> None
 ```
 
-Get all key-value pairs from the data dictionary for the current period.
+Add a new entry to the data.
 
-<a id="packages.valory.skills.abstract_round_abci.base.StateDB.increment_round_count"></a>
+<a id="packages.valory.skills.abstract_round_abci.base.AbciAppDB.get_latest_from_reset_index"></a>
+
+#### get`_`latest`_`from`_`reset`_`index
+
+```python
+def get_latest_from_reset_index(reset_index: int) -> Dict[str, Any]
+```
+
+Get the latest key-value pairs from the data dictionary for the specified period.
+
+<a id="packages.valory.skills.abstract_round_abci.base.AbciAppDB.get_latest"></a>
+
+#### get`_`latest
+
+```python
+def get_latest() -> Dict[str, Any]
+```
+
+Get the latest key-value pairs from the data dictionary for the current period.
+
+<a id="packages.valory.skills.abstract_round_abci.base.AbciAppDB.increment_round_count"></a>
 
 #### increment`_`round`_`count
 
@@ -745,7 +803,7 @@ def increment_round_count() -> None
 
 Increment the round count.
 
-<a id="packages.valory.skills.abstract_round_abci.base.StateDB.__repr__"></a>
+<a id="packages.valory.skills.abstract_round_abci.base.AbciAppDB.__repr__"></a>
 
 #### `__`repr`__`
 
@@ -753,9 +811,9 @@ Increment the round count.
 def __repr__() -> str
 ```
 
-Return a string representation of the state.
+Return a string representation of the data.
 
-<a id="packages.valory.skills.abstract_round_abci.base.StateDB.cleanup"></a>
+<a id="packages.valory.skills.abstract_round_abci.base.AbciAppDB.cleanup"></a>
 
 #### cleanup
 
@@ -765,40 +823,51 @@ def cleanup(cleanup_history_depth: int) -> None
 
 Reset the db.
 
-<a id="packages.valory.skills.abstract_round_abci.base.BasePeriodState"></a>
+<a id="packages.valory.skills.abstract_round_abci.base.AbciAppDB.data_to_lists"></a>
 
-## BasePeriodState Objects
+#### data`_`to`_`lists
 
 ```python
-class BasePeriodState()
+@staticmethod
+def data_to_lists(data: Dict[str, Any]) -> Dict[str, List[Any]]
 ```
 
-Class to represent a period state.
+Convert Dict[str, Any] to Dict[str, List[Any]].
 
-This is the relevant state constructed and replicated by the agents in a period.
+<a id="packages.valory.skills.abstract_round_abci.base.BaseSynchronizedData"></a>
 
-<a id="packages.valory.skills.abstract_round_abci.base.BasePeriodState.__init__"></a>
+## BaseSynchronizedData Objects
+
+```python
+class BaseSynchronizedData()
+```
+
+Class to represent the synchronized data.
+
+This is the relevant data constructed and replicated by the agents.
+
+<a id="packages.valory.skills.abstract_round_abci.base.BaseSynchronizedData.__init__"></a>
 
 #### `__`init`__`
 
 ```python
-def __init__(db: StateDB) -> None
+def __init__(db: AbciAppDB) -> None
 ```
 
-Initialize a period state.
+Initialize the synchronized data.
 
-<a id="packages.valory.skills.abstract_round_abci.base.BasePeriodState.db"></a>
+<a id="packages.valory.skills.abstract_round_abci.base.BaseSynchronizedData.db"></a>
 
 #### db
 
 ```python
 @property
-def db() -> StateDB
+def db() -> AbciAppDB
 ```
 
 Get DB.
 
-<a id="packages.valory.skills.abstract_round_abci.base.BasePeriodState.round_count"></a>
+<a id="packages.valory.skills.abstract_round_abci.base.BaseSynchronizedData.round_count"></a>
 
 #### round`_`count
 
@@ -809,7 +878,7 @@ def round_count() -> int
 
 Get the round count.
 
-<a id="packages.valory.skills.abstract_round_abci.base.BasePeriodState.period_count"></a>
+<a id="packages.valory.skills.abstract_round_abci.base.BaseSynchronizedData.period_count"></a>
 
 #### period`_`count
 
@@ -820,7 +889,16 @@ def period_count() -> int
 
 Get the period count.
 
-<a id="packages.valory.skills.abstract_round_abci.base.BasePeriodState.participants"></a>
+Periods are executions between calls to AbciAppDB.create(), so as soon as it is called,
+a new period begins. It is useful to have a logical subdivision of the FSM execution.
+For example, if AbciAppDB.create() is called during reset, then a period will be the
+execution between resets.
+
+**Returns**:
+
+the period count
+
+<a id="packages.valory.skills.abstract_round_abci.base.BaseSynchronizedData.participants"></a>
 
 #### participants
 
@@ -831,7 +909,7 @@ def participants() -> FrozenSet[str]
 
 Get the participants.
 
-<a id="packages.valory.skills.abstract_round_abci.base.BasePeriodState.all_participants"></a>
+<a id="packages.valory.skills.abstract_round_abci.base.BaseSynchronizedData.all_participants"></a>
 
 #### all`_`participants
 
@@ -842,7 +920,7 @@ def all_participants() -> FrozenSet[str]
 
 Get all the participants.
 
-<a id="packages.valory.skills.abstract_round_abci.base.BasePeriodState.sorted_participants"></a>
+<a id="packages.valory.skills.abstract_round_abci.base.BaseSynchronizedData.sorted_participants"></a>
 
 #### sorted`_`participants
 
@@ -862,7 +940,7 @@ This property is useful when interacting with the Safe contract.
 
 the sorted participants' addresses
 
-<a id="packages.valory.skills.abstract_round_abci.base.BasePeriodState.nb_participants"></a>
+<a id="packages.valory.skills.abstract_round_abci.base.BaseSynchronizedData.nb_participants"></a>
 
 #### nb`_`participants
 
@@ -873,17 +951,27 @@ def nb_participants() -> int
 
 Get the number of participants.
 
-<a id="packages.valory.skills.abstract_round_abci.base.BasePeriodState.update"></a>
+<a id="packages.valory.skills.abstract_round_abci.base.BaseSynchronizedData.update"></a>
 
 #### update
 
 ```python
-def update(period_state_class: Optional[Type] = None, period_count: Optional[int] = None, **kwargs: Any, ,) -> "BasePeriodState"
+def update(synchronized_data_class: Optional[Type] = None, **kwargs: Any, ,) -> "BaseSynchronizedData"
 ```
 
-Copy and update the state.
+Copy and update the current data.
 
-<a id="packages.valory.skills.abstract_round_abci.base.BasePeriodState.__repr__"></a>
+<a id="packages.valory.skills.abstract_round_abci.base.BaseSynchronizedData.create"></a>
+
+#### create
+
+```python
+def create(synchronized_data_class: Optional[Type] = None, **kwargs: Any, ,) -> "BaseSynchronizedData"
+```
+
+Copy and update with new data.
+
+<a id="packages.valory.skills.abstract_round_abci.base.BaseSynchronizedData.__repr__"></a>
 
 #### `__`repr`__`
 
@@ -891,9 +979,9 @@ Copy and update the state.
 def __repr__() -> str
 ```
 
-Return a string representation of the state.
+Return a string representation of the data.
 
-<a id="packages.valory.skills.abstract_round_abci.base.BasePeriodState.keeper_randomness"></a>
+<a id="packages.valory.skills.abstract_round_abci.base.BaseSynchronizedData.keeper_randomness"></a>
 
 #### keeper`_`randomness
 
@@ -904,7 +992,7 @@ def keeper_randomness() -> float
 
 Get the keeper's random number [0-1].
 
-<a id="packages.valory.skills.abstract_round_abci.base.BasePeriodState.most_voted_randomness"></a>
+<a id="packages.valory.skills.abstract_round_abci.base.BaseSynchronizedData.most_voted_randomness"></a>
 
 #### most`_`voted`_`randomness
 
@@ -915,7 +1003,7 @@ def most_voted_randomness() -> str
 
 Get the most_voted_randomness.
 
-<a id="packages.valory.skills.abstract_round_abci.base.BasePeriodState.most_voted_keeper_address"></a>
+<a id="packages.valory.skills.abstract_round_abci.base.BaseSynchronizedData.most_voted_keeper_address"></a>
 
 #### most`_`voted`_`keeper`_`address
 
@@ -926,7 +1014,7 @@ def most_voted_keeper_address() -> str
 
 Get the most_voted_keeper_address.
 
-<a id="packages.valory.skills.abstract_round_abci.base.BasePeriodState.is_keeper_set"></a>
+<a id="packages.valory.skills.abstract_round_abci.base.BaseSynchronizedData.is_keeper_set"></a>
 
 #### is`_`keeper`_`set
 
@@ -937,7 +1025,7 @@ def is_keeper_set() -> bool
 
 Check whether keeper is set.
 
-<a id="packages.valory.skills.abstract_round_abci.base.BasePeriodState.blacklisted_keepers"></a>
+<a id="packages.valory.skills.abstract_round_abci.base.BaseSynchronizedData.blacklisted_keepers"></a>
 
 #### blacklisted`_`keepers
 
@@ -948,7 +1036,7 @@ def blacklisted_keepers() -> Set[str]
 
 Get the current cycle's blacklisted keepers who cannot submit a transaction.
 
-<a id="packages.valory.skills.abstract_round_abci.base.BasePeriodState.participant_to_selection"></a>
+<a id="packages.valory.skills.abstract_round_abci.base.BaseSynchronizedData.participant_to_selection"></a>
 
 #### participant`_`to`_`selection
 
@@ -959,7 +1047,7 @@ def participant_to_selection() -> Mapping
 
 Check whether keeper is set.
 
-<a id="packages.valory.skills.abstract_round_abci.base.BasePeriodState.participant_to_randomness"></a>
+<a id="packages.valory.skills.abstract_round_abci.base.BaseSynchronizedData.participant_to_randomness"></a>
 
 #### participant`_`to`_`randomness
 
@@ -970,7 +1058,7 @@ def participant_to_randomness() -> Mapping
 
 Check whether keeper is set.
 
-<a id="packages.valory.skills.abstract_round_abci.base.BasePeriodState.participant_to_votes"></a>
+<a id="packages.valory.skills.abstract_round_abci.base.BaseSynchronizedData.participant_to_votes"></a>
 
 #### participant`_`to`_`votes
 
@@ -991,8 +1079,8 @@ class AbstractRound(Generic[EventType, TransactionType],  ABC)
 
 This class represents an abstract round.
 
-A round is a state of a period. It usually involves
-interactions between participants in the period,
+A round is a state of the FSM App execution. It usually involves
+interactions between participants in the FSM App,
 although this is not enforced at this level of abstraction.
 
 Concrete classes must set:
@@ -1004,21 +1092,21 @@ Concrete classes must set:
 #### `__`init`__`
 
 ```python
-def __init__(state: BasePeriodState, consensus_params: ConsensusParams, previous_round_tx_type: Optional[TransactionType] = None) -> None
+def __init__(synchronized_data: BaseSynchronizedData, consensus_params: ConsensusParams, previous_round_tx_type: Optional[TransactionType] = None) -> None
 ```
 
 Initialize the round.
 
-<a id="packages.valory.skills.abstract_round_abci.base.AbstractRound.period_state"></a>
+<a id="packages.valory.skills.abstract_round_abci.base.AbstractRound.synchronized_data"></a>
 
-#### period`_`state
+#### synchronized`_`data
 
 ```python
 @property
-def period_state() -> BasePeriodState
+def synchronized_data() -> BaseSynchronizedData
 ```
 
-Get the period state.
+Get the synchronized data.
 
 <a id="packages.valory.skills.abstract_round_abci.base.AbstractRound.check_transaction"></a>
 
@@ -1057,7 +1145,7 @@ of the class that is named '{payload_name}'.
 
 ```python
 @abstractmethod
-def end_block() -> Optional[Tuple[BasePeriodState, Enum]]
+def end_block() -> Optional[Tuple[BaseSynchronizedData, Enum]]
 ```
 
 Process the end of the block.
@@ -1243,7 +1331,7 @@ Process payload.
 #### end`_`block
 
 ```python
-def end_block() -> Optional[Tuple[BasePeriodState, Enum]]
+def end_block() -> Optional[Tuple[BaseSynchronizedData, Enum]]
 ```
 
 End block.
@@ -1411,7 +1499,7 @@ Get the most voted payload.
 #### end`_`block
 
 ```python
-def end_block() -> Optional[Tuple[BasePeriodState, Enum]]
+def end_block() -> Optional[Tuple[BaseSynchronizedData, Enum]]
 ```
 
 Process the end of the block.
@@ -1475,7 +1563,7 @@ Check if keeper has sent the payload.
 #### end`_`block
 
 ```python
-def end_block() -> Optional[Tuple[BasePeriodState, Enum]]
+def end_block() -> Optional[Tuple[BaseSynchronizedData, Enum]]
 ```
 
 Process the end of the block.
@@ -1542,7 +1630,7 @@ Check that the vote threshold has been reached.
 #### end`_`block
 
 ```python
-def end_block() -> Optional[Tuple[BasePeriodState, Enum]]
+def end_block() -> Optional[Tuple[BaseSynchronizedData, Enum]]
 ```
 
 Process the end of the block.
@@ -1576,7 +1664,7 @@ Check if the threshold has been reached.
 #### end`_`block
 
 ```python
-def end_block() -> Optional[Tuple[BasePeriodState, Enum]]
+def end_block() -> Optional[Tuple[BaseSynchronizedData, Enum]]
 ```
 
 Process the end of the block.
@@ -1601,7 +1689,7 @@ This round may be used for cases that we want to collect all the agent's data, s
 #### end`_`block
 
 ```python
-def end_block() -> Optional[Tuple[BasePeriodState, Enum]]
+def end_block() -> Optional[Tuple[BaseSynchronizedData, Enum]]
 ```
 
 Process the end of the block.
@@ -1741,21 +1829,32 @@ Concrete classes of this class implement the ABCI App.
 #### `__`init`__`
 
 ```python
-def __init__(state: BasePeriodState, consensus_params: ConsensusParams, logger: logging.Logger)
+def __init__(synchronized_data: BaseSynchronizedData, consensus_params: ConsensusParams, logger: logging.Logger)
 ```
 
 Initialize the AbciApp.
 
-<a id="packages.valory.skills.abstract_round_abci.base.AbciApp.state"></a>
+<a id="packages.valory.skills.abstract_round_abci.base.AbciApp.synchronized_data"></a>
 
-#### state
+#### synchronized`_`data
 
 ```python
 @property
-def state() -> BasePeriodState
+def synchronized_data() -> BaseSynchronizedData
 ```
 
-Return the current state.
+Return the current synchronized data.
+
+<a id="packages.valory.skills.abstract_round_abci.base.AbciApp.reset_index"></a>
+
+#### reset`_`index
+
+```python
+@property
+def reset_index() -> int
+```
+
+Return the reset index.
 
 <a id="packages.valory.skills.abstract_round_abci.base.AbciApp.get_all_rounds"></a>
 
@@ -1872,7 +1971,7 @@ Check whether the AbciApp execution has finished.
 
 ```python
 @property
-def latest_result() -> Optional[BasePeriodState]
+def latest_result() -> Optional[BaseSynchronizedData]
 ```
 
 Get the latest result of the round.
@@ -1914,7 +2013,7 @@ Forward the call to the current round object.
 #### process`_`event
 
 ```python
-def process_event(event: EventType, result: Optional[BasePeriodState] = None) -> None
+def process_event(event: EventType, result: Optional[BaseSynchronizedData] = None) -> None
 ```
 
 Process a round event.
@@ -1943,15 +2042,15 @@ def cleanup(cleanup_history_depth: int) -> None
 
 Clear data.
 
-<a id="packages.valory.skills.abstract_round_abci.base.Period"></a>
+<a id="packages.valory.skills.abstract_round_abci.base.RoundSequence"></a>
 
-## Period Objects
+## RoundSequence Objects
 
 ```python
-class Period()
+class RoundSequence()
 ```
 
-This class represents a period (i.e. a sequence of rounds)
+This class represents a sequence of rounds
 
 It is a generic class that keeps track of the current round
 of the consensus period. It receives 'deliver_tx' requests
@@ -1959,7 +2058,7 @@ from the ABCI handlers and forwards them to the current
 active round instance, which implements the ABCI app logic.
 It also schedules the next round (if any) whenever a round terminates.
 
-<a id="packages.valory.skills.abstract_round_abci.base.Period.__init__"></a>
+<a id="packages.valory.skills.abstract_round_abci.base.RoundSequence.__init__"></a>
 
 #### `__`init`__`
 
@@ -1969,7 +2068,7 @@ def __init__(abci_app_cls: Type[AbciApp])
 
 Initialize the round.
 
-<a id="packages.valory.skills.abstract_round_abci.base.Period.setup"></a>
+<a id="packages.valory.skills.abstract_round_abci.base.RoundSequence.setup"></a>
 
 #### setup
 
@@ -1977,14 +2076,14 @@ Initialize the round.
 def setup(*args: Any, **kwargs: Any) -> None
 ```
 
-Set up the period.
+Set up the round sequence.
 
 **Arguments**:
 
 - `args`: the arguments to pass to the round constructor.
 - `kwargs`: the keyword-arguments to pass to the round constructor.
 
-<a id="packages.valory.skills.abstract_round_abci.base.Period.start_sync"></a>
+<a id="packages.valory.skills.abstract_round_abci.base.RoundSequence.start_sync"></a>
 
 #### start`_`sync
 
@@ -1997,7 +2096,7 @@ Set `_syncing_up` flag to true.
 if the _syncing_up flag is set to true, the `async_act` method won't be executed. For more details refer to
 https://github.com/valory-xyz/consensus-algorithms/issues/247#issuecomment-1012268656
 
-<a id="packages.valory.skills.abstract_round_abci.base.Period.end_sync"></a>
+<a id="packages.valory.skills.abstract_round_abci.base.RoundSequence.end_sync"></a>
 
 #### end`_`sync
 
@@ -2007,7 +2106,7 @@ def end_sync() -> None
 
 Set `_syncing_up` flag to false.
 
-<a id="packages.valory.skills.abstract_round_abci.base.Period.syncing_up"></a>
+<a id="packages.valory.skills.abstract_round_abci.base.RoundSequence.syncing_up"></a>
 
 #### syncing`_`up
 
@@ -2018,7 +2117,7 @@ def syncing_up() -> bool
 
 Return if the app is in sync mode.
 
-<a id="packages.valory.skills.abstract_round_abci.base.Period.abci_app"></a>
+<a id="packages.valory.skills.abstract_round_abci.base.RoundSequence.abci_app"></a>
 
 #### abci`_`app
 
@@ -2029,7 +2128,7 @@ def abci_app() -> AbciApp
 
 Get the AbciApp.
 
-<a id="packages.valory.skills.abstract_round_abci.base.Period.height"></a>
+<a id="packages.valory.skills.abstract_round_abci.base.RoundSequence.height"></a>
 
 #### height
 
@@ -2040,7 +2139,7 @@ def height() -> int
 
 Get the height.
 
-<a id="packages.valory.skills.abstract_round_abci.base.Period.is_finished"></a>
+<a id="packages.valory.skills.abstract_round_abci.base.RoundSequence.is_finished"></a>
 
 #### is`_`finished
 
@@ -2049,9 +2148,9 @@ Get the height.
 def is_finished() -> bool
 ```
 
-Check if a period has finished.
+Check if a round sequence has finished.
 
-<a id="packages.valory.skills.abstract_round_abci.base.Period.check_is_finished"></a>
+<a id="packages.valory.skills.abstract_round_abci.base.RoundSequence.check_is_finished"></a>
 
 #### check`_`is`_`finished
 
@@ -2059,9 +2158,9 @@ Check if a period has finished.
 def check_is_finished() -> None
 ```
 
-Check if a period has finished.
+Check if a round sequence has finished.
 
-<a id="packages.valory.skills.abstract_round_abci.base.Period.current_round"></a>
+<a id="packages.valory.skills.abstract_round_abci.base.RoundSequence.current_round"></a>
 
 #### current`_`round
 
@@ -2072,7 +2171,7 @@ def current_round() -> AbstractRound
 
 Get current round.
 
-<a id="packages.valory.skills.abstract_round_abci.base.Period.current_round_id"></a>
+<a id="packages.valory.skills.abstract_round_abci.base.RoundSequence.current_round_id"></a>
 
 #### current`_`round`_`id
 
@@ -2083,7 +2182,7 @@ def current_round_id() -> Optional[str]
 
 Get the current round id.
 
-<a id="packages.valory.skills.abstract_round_abci.base.Period.current_round_height"></a>
+<a id="packages.valory.skills.abstract_round_abci.base.RoundSequence.current_round_height"></a>
 
 #### current`_`round`_`height
 
@@ -2094,7 +2193,7 @@ def current_round_height() -> int
 
 Get the current round height.
 
-<a id="packages.valory.skills.abstract_round_abci.base.Period.last_round_id"></a>
+<a id="packages.valory.skills.abstract_round_abci.base.RoundSequence.last_round_id"></a>
 
 #### last`_`round`_`id
 
@@ -2105,7 +2204,7 @@ def last_round_id() -> Optional[str]
 
 Get the last round id.
 
-<a id="packages.valory.skills.abstract_round_abci.base.Period.last_timestamp"></a>
+<a id="packages.valory.skills.abstract_round_abci.base.RoundSequence.last_timestamp"></a>
 
 #### last`_`timestamp
 
@@ -2116,7 +2215,7 @@ def last_timestamp() -> datetime.datetime
 
 Get the last timestamp.
 
-<a id="packages.valory.skills.abstract_round_abci.base.Period.last_round_transition_timestamp"></a>
+<a id="packages.valory.skills.abstract_round_abci.base.RoundSequence.last_round_transition_timestamp"></a>
 
 #### last`_`round`_`transition`_`timestamp
 
@@ -2127,7 +2226,7 @@ def last_round_transition_timestamp() -> datetime.datetime
 
 Returns the timestamp for last round transition.
 
-<a id="packages.valory.skills.abstract_round_abci.base.Period.last_round_transition_height"></a>
+<a id="packages.valory.skills.abstract_round_abci.base.RoundSequence.last_round_transition_height"></a>
 
 #### last`_`round`_`transition`_`height
 
@@ -2138,18 +2237,93 @@ def last_round_transition_height() -> int
 
 Returns the height for last round transition.
 
-<a id="packages.valory.skills.abstract_round_abci.base.Period.latest_state"></a>
+<a id="packages.valory.skills.abstract_round_abci.base.RoundSequence.last_round_transition_root_hash"></a>
 
-#### latest`_`state
+#### last`_`round`_`transition`_`root`_`hash
 
 ```python
 @property
-def latest_state() -> BasePeriodState
+def last_round_transition_root_hash() -> bytes
 ```
 
-Get the latest state.
+Returns the root hash for last round transition.
 
-<a id="packages.valory.skills.abstract_round_abci.base.Period.begin_block"></a>
+<a id="packages.valory.skills.abstract_round_abci.base.RoundSequence.last_round_transition_tm_height"></a>
+
+#### last`_`round`_`transition`_`tm`_`height
+
+```python
+@property
+def last_round_transition_tm_height() -> int
+```
+
+Returns the Tendermint height for last round transition.
+
+<a id="packages.valory.skills.abstract_round_abci.base.RoundSequence.latest_synchronized_data"></a>
+
+#### latest`_`synchronized`_`data
+
+```python
+@property
+def latest_synchronized_data() -> BaseSynchronizedData
+```
+
+Get the latest synchronized_data.
+
+<a id="packages.valory.skills.abstract_round_abci.base.RoundSequence.root_hash"></a>
+
+#### root`_`hash
+
+```python
+@property
+def root_hash() -> bytes
+```
+
+Get the Merkle root hash of the application state.
+
+Create an app hash that always increases in order to avoid conflicts between resets.
+Eventually, we do not necessarily need to have a value that increases, but we have to generate a hash that
+is always different among the resets, since our abci's state is different even thought we have reset the chain!
+For example, if we are in height 11, reset and then reach height 11 again, if we end up using the same hash
+at height 11 between the resets, then this is problematic.
+
+**Returns**:
+
+the root hash to be included as the Header.AppHash in the next block.
+
+<a id="packages.valory.skills.abstract_round_abci.base.RoundSequence.tm_height"></a>
+
+#### tm`_`height
+
+```python
+@property
+def tm_height() -> int
+```
+
+Get Tendermint's current height.
+
+<a id="packages.valory.skills.abstract_round_abci.base.RoundSequence.tm_height"></a>
+
+#### tm`_`height
+
+```python
+@tm_height.setter
+def tm_height(_tm_height: int) -> None
+```
+
+Set Tendermint's current height.
+
+<a id="packages.valory.skills.abstract_round_abci.base.RoundSequence.init_chain"></a>
+
+#### init`_`chain
+
+```python
+def init_chain(initial_height: int) -> None
+```
+
+Init chain.
+
+<a id="packages.valory.skills.abstract_round_abci.base.RoundSequence.begin_block"></a>
 
 #### begin`_`block
 
@@ -2159,7 +2333,7 @@ def begin_block(header: Header) -> None
 
 Begin block.
 
-<a id="packages.valory.skills.abstract_round_abci.base.Period.deliver_tx"></a>
+<a id="packages.valory.skills.abstract_round_abci.base.RoundSequence.deliver_tx"></a>
 
 #### deliver`_`tx
 
@@ -2176,7 +2350,7 @@ Appends the transaction to build the block on 'end_block' later.
 :raises:  an Error otherwise.
 - `transaction`: the transaction.
 
-<a id="packages.valory.skills.abstract_round_abci.base.Period.end_block"></a>
+<a id="packages.valory.skills.abstract_round_abci.base.RoundSequence.end_block"></a>
 
 #### end`_`block
 
@@ -2186,7 +2360,7 @@ def end_block() -> None
 
 Process the 'end_block' request.
 
-<a id="packages.valory.skills.abstract_round_abci.base.Period.commit"></a>
+<a id="packages.valory.skills.abstract_round_abci.base.RoundSequence.commit"></a>
 
 #### commit
 
@@ -2196,7 +2370,7 @@ def commit() -> None
 
 Process the 'commit' request.
 
-<a id="packages.valory.skills.abstract_round_abci.base.Period.reset_blockchain"></a>
+<a id="packages.valory.skills.abstract_round_abci.base.RoundSequence.reset_blockchain"></a>
 
 #### reset`_`blockchain
 

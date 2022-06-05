@@ -30,7 +30,11 @@ from aea.configurations.data_types import PublicId
 from aea.protocols.base import Message
 
 from packages.valory.protocols.abci import AbciMessage
-from packages.valory.protocols.abci.custom_types import CheckTxType, CheckTxTypeEnum
+from packages.valory.protocols.abci.custom_types import (
+    CheckTxType,
+    CheckTxTypeEnum,
+    ValidatorUpdates,
+)
 from packages.valory.protocols.http import HttpMessage
 from packages.valory.protocols.tendermint import TendermintMessage
 from packages.valory.skills.abstract_round_abci.base import (
@@ -84,6 +88,27 @@ class TestABCIRoundHandler:
             cast(AbciMessage, message), cast(AbciDialogue, dialogue)
         )
         assert response.performative == AbciMessage.Performative.RESPONSE_INFO
+
+    @pytest.mark.parametrize("app_hash", (b"", b"test"))
+    def test_init_chain(self, app_hash: bytes) -> None:
+        """Test the 'init_chain' handler method."""
+        message, dialogue = self.dialogues.create(
+            counterparty="",
+            performative=AbciMessage.Performative.REQUEST_INIT_CHAIN,
+            time=MagicMock,
+            chain_id="test_chain_id",
+            consensus_params=MagicMock(),
+            validators=MagicMock(),
+            app_state_bytes=b"",
+            initial_height=10,
+        )
+        self.context.state.round_sequence.last_round_transition_root_hash = app_hash
+        response = self.handler.init_chain(
+            cast(AbciMessage, message), cast(AbciDialogue, dialogue)
+        )
+        assert response.performative == AbciMessage.Performative.RESPONSE_INIT_CHAIN
+        assert response.validators == ValidatorUpdates([])
+        assert response.app_hash == app_hash
 
     def test_begin_block(self) -> None:
         """Test the 'begin_block' handler method."""
@@ -164,17 +189,21 @@ class TestABCIRoundHandler:
         assert response.performative == AbciMessage.Performative.RESPONSE_DELIVER_TX
         assert response.code == ERROR_CODE
 
-    def test_end_block(self) -> None:
+    @pytest.mark.parametrize("request_height", tuple(range(3)))
+    def test_end_block(self, request_height: int) -> None:
         """Test the 'end_block' handler method."""
         message, dialogue = self.dialogues.create(
             counterparty="",
             performative=AbciMessage.Performative.REQUEST_END_BLOCK,
-            height=1,
+            height=request_height,
         )
-        response = self.handler.end_block(
-            cast(AbciMessage, message), cast(AbciDialogue, dialogue)
-        )
+        assert isinstance(message, AbciMessage)
+        assert isinstance(dialogue, AbciDialogue)
+        assert message.height == request_height
+        assert self.context.state.round_sequence.tm_height != request_height
+        response = self.handler.end_block(message, dialogue)
         assert response.performative == AbciMessage.Performative.RESPONSE_END_BLOCK
+        assert self.context.state.round_sequence.tm_height == request_height
 
     def test_commit(self) -> None:
         """Test the 'commit' handler method."""
@@ -189,7 +218,7 @@ class TestABCIRoundHandler:
 
     def test_commit_negative(self) -> None:
         """Test the 'commit' handler method, negative case."""
-        self.context.state.period.commit.side_effect = AddBlockError()
+        self.context.state.round_sequence.commit.side_effect = AddBlockError()
         message, dialogue = self.dialogues.create(
             counterparty="",
             performative=AbciMessage.Performative.REQUEST_COMMIT,

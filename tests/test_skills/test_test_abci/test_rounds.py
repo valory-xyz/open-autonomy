@@ -22,9 +22,9 @@ import logging  # noqa: F401
 from typing import FrozenSet, cast
 
 from packages.valory.skills.abstract_round_abci.base import (
-    BasePeriodState,
+    AbciAppDB,
+    BaseSynchronizedData,
     ConsensusParams,
-    StateDB,
 )
 from packages.valory.skills.test_abci.payloads import DummyPayload
 from packages.valory.skills.test_abci.rounds import DummyRound, Event
@@ -41,7 +41,7 @@ def get_participants() -> FrozenSet[str]:
 class BaseRoundTestClass:
     """Base test class for Rounds."""
 
-    period_state: BasePeriodState
+    synchronized_data: BaseSynchronizedData
     consensus_params: ConsensusParams
     participants: FrozenSet[str]
 
@@ -52,11 +52,10 @@ class BaseRoundTestClass:
         """Setup the test class."""
 
         cls.participants = get_participants()
-        cls.period_state = BasePeriodState(
-            StateDB(
-                initial_period=0,
+        cls.synchronized_data = BaseSynchronizedData(
+            AbciAppDB(
                 initial_data=dict(
-                    participants=cls.participants, all_participants=cls.participants
+                    participants=[cls.participants], all_participants=[cls.participants]
                 ),
             )
         )
@@ -72,7 +71,8 @@ class TestDummyRound(BaseRoundTestClass):
         """Run tests."""
 
         test_round = DummyRound(
-            state=self.period_state, consensus_params=self.consensus_params
+            synchronized_data=self.synchronized_data,
+            consensus_params=self.consensus_params,
         )
 
         first_payload, *payloads = [
@@ -81,23 +81,24 @@ class TestDummyRound(BaseRoundTestClass):
 
         test_round.process_payload(first_payload)
         assert test_round.collection == {first_payload.sender: first_payload}
-        assert test_round.end_block() == (self.period_state, Event.DONE)
+        assert test_round.end_block() == (self.synchronized_data, Event.DONE)
 
         for payload in payloads:
             test_round.process_payload(payload)
 
-        actual_next_state = BasePeriodState(
-            StateDB(
-                initial_period=0,
-                initial_data=dict(participants=frozenset(test_round.collection.keys())),
+        actual_next_behaviour = BaseSynchronizedData(
+            AbciAppDB(
+                initial_data=dict(
+                    participants=[frozenset(test_round.collection.keys())]
+                ),
             )
         )
 
         res = test_round.end_block()
         assert res is not None
-        state, event = res
+        synchronized_data, event = res
         assert (
-            cast(BasePeriodState, state).participants
-            == cast(BasePeriodState, actual_next_state).participants
+            cast(BaseSynchronizedData, synchronized_data).participants
+            == cast(BaseSynchronizedData, actual_next_behaviour).participants
         )
         assert event == Event.DONE

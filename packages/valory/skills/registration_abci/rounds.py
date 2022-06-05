@@ -27,9 +27,9 @@ from packages.valory.skills.abstract_round_abci.base import (
     AbciAppTransitionFunction,
     AbstractRound,
     AppState,
-    BasePeriodState,
+    BaseSynchronizedData,
     CollectDifferentUntilAllRound,
-    CollectDifferentUntilThresholdRound,
+    CollectSameUntilThresholdRound,
     DegenerateRound,
 )
 from packages.valory.skills.registration_abci.payloads import RegistrationPayload
@@ -64,7 +64,7 @@ class RegistrationStartupRound(CollectDifferentUntilAllRound):
     payload_attribute = "initialisation"
     required_block_confirmations = 1
 
-    def end_block(self) -> Optional[Tuple[BasePeriodState, Event]]:
+    def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Event]]:
         """Process the end of the block."""
         if self.collection_threshold_reached:
             self.block_confirmations += 1
@@ -74,49 +74,62 @@ class RegistrationStartupRound(CollectDifferentUntilAllRound):
             and self.most_voted_payload is not None
         ):
             initialisation = json.loads(self.most_voted_payload)
-            state = self.period_state.update(
+            synchronized_data = self.synchronized_data.update(
                 participants=frozenset(self.collection),
                 all_participants=frozenset(self.collection),
-                period_state_class=BasePeriodState,
+                synchronized_data_class=BaseSynchronizedData,
                 **initialisation,
             )
-            return state, Event.FAST_FORWARD
+            return synchronized_data, Event.FAST_FORWARD
         if (
             self.collection_threshold_reached
             and self.block_confirmations > self.required_block_confirmations
         ):
-            state = self.period_state.update(
+            synchronized_data = self.synchronized_data.update(
                 participants=frozenset(self.collection),
                 all_participants=frozenset(self.collection),
-                period_state_class=BasePeriodState,
+                synchronized_data_class=BaseSynchronizedData,
             )
-            return state, Event.DONE
+            return synchronized_data, Event.DONE
         return None
 
 
-class RegistrationRound(CollectDifferentUntilThresholdRound):
+class RegistrationRound(CollectSameUntilThresholdRound):
     """A round in which the agents get registered"""
 
     round_id = "registration"
     allowed_tx_type = RegistrationPayload.transaction_type
-    payload_attribute = "sender"
+    payload_attribute = "initialisation"
     required_block_confirmations = 10
     done_event = Event.DONE
 
-    def end_block(self) -> Optional[Tuple[BasePeriodState, Event]]:
+    def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Event]]:
         """Process the end of the block."""
-        if self.collection_threshold_reached:
+        if self.threshold_reached:
             self.block_confirmations += 1
         if (  # contracts are set from previous rounds
-            self.collection_threshold_reached
+            self.threshold_reached
             and self.block_confirmations
             > self.required_block_confirmations  # we also wait here as it gives more (available) agents time to join
         ):
-            state = self.period_state.update(
-                participants=frozenset(self.collection),
-                period_state_class=BasePeriodState,
+            most_voted_payload = self.most_voted_payload
+
+            initialisation = (
+                json.loads(most_voted_payload) if most_voted_payload else {}
             )
-            return state, Event.DONE
+            synchronized_data = self.synchronized_data.update(
+                participants=frozenset(self.collection),
+                synchronized_data_class=BaseSynchronizedData,
+                **initialisation,
+            )
+            return synchronized_data, Event.DONE
+        if (
+            not self.is_majority_possible(
+                self.collection, self.synchronized_data.nb_participants
+            )
+            and self.block_confirmations > self.required_block_confirmations
+        ):
+            return self.synchronized_data, Event.NO_MAJORITY
         return None
 
 
@@ -133,6 +146,7 @@ class AgentRegistrationAbciApp(AbciApp[Event]):
             - fast forward: 3.
         1. RegistrationRound
             - done: 3.
+            - no majority: 1.
         2. FinishedRegistrationRound
         3. FinishedRegistrationFFWRound
 
@@ -151,6 +165,7 @@ class AgentRegistrationAbciApp(AbciApp[Event]):
         },
         RegistrationRound: {
             Event.DONE: FinishedRegistrationFFWRound,
+            Event.NO_MAJORITY: RegistrationRound,
         },
         FinishedRegistrationRound: {},
         FinishedRegistrationFFWRound: {},

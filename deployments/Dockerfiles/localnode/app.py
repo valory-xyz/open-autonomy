@@ -29,11 +29,16 @@ from typing import Any, Callable, Dict, Optional, Tuple
 
 import requests
 from flask import Flask, Response, jsonify, request
-from tendermint import TendermintNode, TendermintParams
 from werkzeug.exceptions import InternalServerError, NotFound
 
 
 ENCODING = "utf-8"
+
+try:
+    from .tendermint import TendermintNode, TendermintParams  # type: ignore
+except Exception:
+    from tendermint import TendermintNode, TendermintParams
+
 DEFAULT_LOG_FILE = "log.log"
 TMHOME = Path(os.environ.get("TMHOME", "~/.tendermint")).resolve()
 IS_DEV_MODE = os.environ.get("DEV_MODE", "0") == "1"
@@ -52,18 +57,13 @@ logging.basicConfig(
 
 def load_genesis() -> Any:
     """Load genesis file."""
-    return json.loads(
-        Path(str(os.environ["TMHOME"]), "config", "genesis.json").read_text()
-    )
+    return json.loads(Path(os.environ["TMHOME"], "config", "genesis.json").read_text())
 
 
 def get_defaults() -> Dict[str, str]:
     """Get defaults from genesis file."""
     genesis = load_genesis()
-    return dict(
-        genesis_time=genesis.get("genesis_time"),
-        app_hash=genesis.get("app_hash"),
-    )
+    return dict(genesis_time=genesis.get("genesis_time"))
 
 
 def override_config_toml() -> None:
@@ -121,142 +121,138 @@ class PeriodDumper:
         self.resets += 1
 
 
-override_config_toml()
-tendermint_params = TendermintParams(
-    proxy_app=os.environ["PROXY_APP"],
-    consensus_create_empty_blocks=os.environ["CREATE_EMPTY_BLOCKS"] == "true",
-    home=str(TMHOME),
-)
+def create_app(
+    dump_dir: Optional[Path] = None, perform_monitoring: bool = True
+) -> Tuple[Flask, TendermintNode]:
+    """Create the Tendermint server app"""
 
-app = Flask(__name__)
-period_dumper = PeriodDumper(logger=app.logger)
+    override_config_toml()
+    tendermint_params = TendermintParams(
+        proxy_app=os.environ["PROXY_APP"],
+        consensus_create_empty_blocks=os.environ["CREATE_EMPTY_BLOCKS"] == "true",
+        home=str(TMHOME),
+    )
 
-tendermint_node = TendermintNode(tendermint_params, logger=app.logger)
-tendermint_node.start()  # tendermint sync check in async_act first call
+    app = Flask(__name__)
+    period_dumper = PeriodDumper(logger=app.logger, dump_dir=dump_dir)
 
+    tendermint_node = TendermintNode(tendermint_params, logger=app.logger)
+    tendermint_node.start(start_monitoring=perform_monitoring)
 
-@app.route("/start")
-def start() -> Response:
-    """Start Tendermint node"""
-    try:
-        tendermint_node.start()
-        return jsonify(response="Tendermint node started", status=200)
-    except Exception:  # pylint: disable=broad-except
-        return jsonify(response=traceback.format_exc(), status=400)
+    @app.route("/start")
+    def start() -> Response:
+        """Start Tendermint node"""
+        try:
+            tendermint_node.start()
+            return jsonify(response="Tendermint node started", status=200)
+        except Exception:  # pylint: disable=broad-except
+            return jsonify(response=traceback.format_exc(), status=400)
 
+    @app.get("/params")
+    def get_params() -> Dict:
+        """Get tendermint params."""
+        try:
+            priv_key_file = TMHOME / "config" / "priv_validator_key.json"
+            priv_key_data = json.loads(priv_key_file.read_text(encoding=ENCODING))
+            del priv_key_data["priv_key"]
+            return {"params": priv_key_data, "status": True, "error": None}
+        except (FileNotFoundError, json.JSONDecodeError):
+            return {"params": {}, "status": False, "error": traceback.format_exc()}
 
-@app.get("/params")
-def get_params() -> Dict:
-    """Get tendermint params."""
-    try:
-        priv_key_file = TMHOME / "config" / "priv_validator_key.json"
-        priv_key_data = json.loads(priv_key_file.read_text(encoding=ENCODING))
-        del priv_key_data["priv_key"]
-        return {"params": priv_key_data, "status": True, "error": None}
-    except (FileNotFoundError, json.JSONDecodeError):
-        return {"params": {}, "status": False, "error": traceback.format_exc()}
+    @app.post("/params")
+    def update_params() -> Dict:
+        """Update validator params."""
 
+        try:
+            data: Any = json.loads(request.get_data().decode(ENCODING))
+            genesis_file = TMHOME / "config" / "genesis.json"
+            genesis_data = {}
+            genesis_data["genesis_time"] = data["genesis_config"]["genesis_time"]
+            genesis_data["chain_id"] = data["genesis_config"]["chain_id"]
+            genesis_data["initial_height"] = "0"
+            genesis_data["consensus_params"] = data["genesis_config"][
+                "consensus_params"
+            ]
+            genesis_data["validators"] = [
+                {
+                    "address": validator["address"],
+                    "pub_key": validator["pub_key"],
+                    "power": validator["power"],
+                    "name": validator["name"],
+                }
+                for validator in data["validators"]
+            ]
+            genesis_data["app_hash"] = ""
+            genesis_file.write_text(
+                json.dumps(genesis_data, indent=2), encoding=ENCODING
+            )
 
-@app.post("/params")
-def update_params() -> Dict:
-    """Update validator params."""
+            return {"status": True, "error": None}
+        except (FileNotFoundError, json.JSONDecodeError, PermissionError):
+            return {"status": False, "error": traceback.format_exc()}
 
-    try:
-        data: Any = json.loads(request.get_data().decode(ENCODING))
-        genesis_file = TMHOME / "config" / "genesis.json"
-        genesis_data = {}
-        genesis_data["genesis_time"] = data["genesis_config"]["genesis_time"]
-        genesis_data["chain_id"] = data["genesis_config"]["chain_id"]
-        genesis_data["initial_height"] = "0"
-        genesis_data["consensus_params"] = data["genesis_config"]["consensus_params"]
-        genesis_data["validators"] = [
-            {
-                "address": validator["address"],
-                "pub_key": validator["pub_key"],
-                "power": validator["power"],
-                "name": validator["name"],
-            }
-            for validator in data["validators"]
-        ]
-        genesis_data["app_hash"] = ""
-        genesis_file.write_text(json.dumps(genesis_data, indent=2), encoding=ENCODING)
+    @app.route("/gentle_reset")
+    def gentle_reset() -> Tuple[Any, int]:
+        """Reset the tendermint node gently."""
+        try:
+            tendermint_node.stop()
+            tendermint_node.start(start_monitoring=perform_monitoring)
+            return jsonify({"message": "Reset successful.", "status": True}), 200
+        except Exception as e:  # pylint: disable=W0703
+            return jsonify({"message": f"Reset failed: {e}", "status": False}), 200
 
-        return {"status": True, "error": None}
-    except (FileNotFoundError, json.JSONDecodeError, PermissionError):
-        return {"status": False, "error": traceback.format_exc()}
+    @app.route("/app_hash")
+    def app_hash() -> Tuple[Any, int]:
+        """Get the app hash."""
+        try:
+            endpoint = f"{tendermint_params.rpc_laddr.replace('tcp', 'http')}/block"
+            height = request.args.get("height")
+            params = {"height": height} if height is not None else None
+            res = requests.get(endpoint, params)
+            app_hash_ = res.json()["result"]["block"]["header"]["app_hash"]
+            return jsonify({"app_hash": app_hash_}), res.status_code
+        except Exception as e:  # pylint: disable=W0703
+            return (
+                jsonify({"error": f"Could not get the app hash: {str(e)}"}),
+                200,
+            )
 
+    @app.route("/hard_reset")
+    def hard_reset() -> Tuple[Any, int]:
+        """Reset the node forcefully, and prune the blocks"""
+        try:
+            tendermint_node.stop()
+            if IS_DEV_MODE:
+                period_dumper.dump_period()
 
-@app.route("/gentle_reset")
-def gentle_reset() -> Tuple[Any, int]:
-    """Reset the tendermint node gently."""
-    try:
-        tendermint_node.stop()
-        tendermint_node.start()
-        return jsonify({"message": "Reset successful.", "status": True}), 200
-    except Exception as e:  # pylint: disable=W0703
-        return (
-            jsonify(
-                {"message": f"Reset failed with error : {str(e)}", "status": False}
-            ),
-            200,
-        )
+            tendermint_node.prune_blocks()
+            defaults = get_defaults()
+            tendermint_node.reset_genesis_file(
+                request.args.get("genesis_time", defaults["genesis_time"]),
+                # default should be 1: https://github.com/tendermint/tendermint/pull/5191/files
+                request.args.get("initial_height", "1"),
+            )
+            tendermint_node.start(start_monitoring=perform_monitoring)
+            return jsonify({"message": "Reset successful.", "status": True}), 200
+        except Exception as e:  # pylint: disable=W0703
+            return jsonify({"message": f"Reset failed: {e}", "status": False}), 200
 
+    @app.errorhandler(404)  # type: ignore
+    def handle_notfound(e: NotFound) -> Response:
+        """Handle server error."""
+        app.logger.info(e)
+        return Response("Not Found", status=404, mimetype="application/json")
 
-@app.route("/app_hash")
-def app_hash() -> Tuple[Any, int]:
-    """Get the app hash."""
-    try:
-        endpoint = f"{tendermint_params.rpc_laddr.replace('tcp', 'http')}/block"
-        height = request.args.get("height")
-        params = {"height": height} if height is not None else None
-        res = requests.get(endpoint, params)
-        app_hash_ = res.json()["result"]["block"]["header"]["app_hash"]
-        return jsonify({"app_hash": app_hash_}), res.status_code
-    except Exception as e:  # pylint: disable=W0703
-        return (
-            jsonify({"error": f"Could not get the app hash: {str(e)}"}),
-            200,
-        )
+    @app.errorhandler(500)  # type: ignore
+    def handle_server_error(e: InternalServerError) -> Response:
+        """Handle server error."""
+        app.logger.info(e)  # pylint: disable=E
+        return Response("Error Closing Node", status=500, mimetype="application/json")
 
-
-@app.route("/hard_reset")
-def hard_reset() -> Tuple[Any, int]:
-    """Reset the node forcefully, and prune the blocks"""
-    try:
-        tendermint_node.stop()
-        if IS_DEV_MODE:
-            period_dumper.dump_period()
-
-        tendermint_node.prune_blocks()
-        defaults = get_defaults()
-        tendermint_node.reset_genesis_file(
-            request.args.get("genesis_time", defaults["genesis_time"]),
-            request.args.get("app_hash", defaults["app_hash"]),
-        )
-        tendermint_node.start()
-        return jsonify({"message": "Reset successful.", "status": True}), 200
-    except Exception as e:  # pylint: disable=W0703
-        return (
-            jsonify(
-                {"message": f"Reset failed with error : {str(e)}", "status": False}
-            ),
-            200,
-        )
-
-
-@app.errorhandler(404)  # type: ignore
-def handle_notfound(e: NotFound) -> Response:
-    """Handle server error."""
-    app.logger.info(e)
-    return Response("Not Found", status=404, mimetype="application/json")
-
-
-@app.errorhandler(500)  # type: ignore
-def handle_server_error(e: InternalServerError) -> Response:
-    """Handle server error."""
-    app.logger.info(e)  # pylint: disable=E
-    return Response("Error Closing Node", status=500, mimetype="application/json")
+    return app, tendermint_node
 
 
-if __name__ == "__main__":
-    app.run()
+def create_server() -> Any:
+    """Function to retrieve just the app to be used by flask entry point."""
+    flask_app, _ = create_app()
+    return flask_app

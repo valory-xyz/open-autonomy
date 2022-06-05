@@ -9,7 +9,7 @@ This module contains the behaviours, round and payloads for the 'abstract_round_
 #### random`_`selection
 
 ```python
-def random_selection(elements: List[str], randomness: float) -> str
+def random_selection(elements: List[Any], randomness: float) -> str
 ```
 
 Select a random element from a list.
@@ -26,7 +26,7 @@ a randomly chosen element
 ## RandomnessBehaviour Objects
 
 ```python
-class RandomnessBehaviour(BaseState)
+class RandomnessBehaviour(BaseBehaviour)
 ```
 
 Check whether Tendermint nodes are running.
@@ -87,7 +87,7 @@ It can be optionally implemented by the concrete classes.
 ## SelectKeeperBehaviour Objects
 
 ```python
-class SelectKeeperBehaviour(BaseState)
+class SelectKeeperBehaviour(BaseBehaviour)
 ```
 
 Select the keeper agent.

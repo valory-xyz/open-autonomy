@@ -7,25 +7,26 @@ aea_version: '>=1.0.0, <2.0.0'
 fingerprint: {}
 fingerprint_ignore_patterns: []
 connections:
-- valory/abci:0.1.0:QmUq4z19VS9G1TfnZdKy818F7maQopAor4NGe9t4DgzwyJ
-- valory/http_client:0.1.0:QmXXtNRaMrZqEdmT9LVDhcxSy7PNgvJdCXaQ5L9ZxM5cGm
-- valory/ledger:0.1.0:QmbjPsymto6fKHZvFUTyMBnZeA7ZWoqfy3KXXJ7cVWkiE3
-- valory/p2p_libp2p_client:0.1.0:QmZWFVzuMLAcLeVVimaHTGfj16ELAM2pdSLWtZTxqkvDZ4
+- valory/abci:0.1.0:QmVV5qAZxB75SsVGfQw5KuMRnuFP3RXYD6WwaYs6iMWiVU
+- valory/http_client:0.1.0:QmWXhTfjybebxpE34WT3Uq9nyBjtbf2S4QBRNgDhGGzzsX
+- valory/ledger:0.1.0:QmXdscpRpJaQxcxaL6V34ExpKLMHK7uiKDtoJe3Siuk4Z6
+- valory/p2p_libp2p_client:0.1.0:QmYMPbscgkpJvu5V7T8NfdYE81acdvKYsF1MFKZ2eSeZCn
 contracts:
 - valory/service_registry:0.1.0:Qmf8AdK3VPVECCx4biHMGdVoFHkscY3H9sv9b4wyE9vmED
 protocols:
-- open_aea/signing:1.0.0:QmaGYpYEQjgbM37pBMiR7RcpeSLpztZyzDt2RF7sTXoMyU
-- valory/abci:0.1.0:QmPh452wHDWf6xTnAENyXQED5UZNkU5dum98ZGfN9vZGhk
-- valory/acn:1.1.0:QmZyXSCZoqiHsKqB8WFcUi1WcbMofk2SUgv4uzAhjAenuw
-- valory/contract_api:1.0.0:QmX2mRDNNWUTwU6ivKD65R3bnfC9jkGuKCaWqzxoQdm7ni
-- valory/http:1.0.0:QmbTD9GZg9MKBiQR3Tef1hS5YnGufUNSzrKpW8Eqgd6FUQ
-- valory/ledger_api:1.0.0:QmcjydJiMqhEmSGJqnLKDjmGSXmV5KZhMvY6zGgHKUgFL4
-- valory/tendermint:0.1.0:QmTebra2gtfrwfcxJj2vpoRrAawi6gvHSBtRjqfHxZ6YJV
+- open_aea/signing:1.0.0:QmQJbzTMRVNTSaJDm4JSZHzoRgsZDUfzTqipJAJcicobXx
+- valory/abci:0.1.0:QmYg2GNatG8mzmiZrnZNL2LtS7rx4Mgi8g55Kfd5nj3QEp
+- valory/acn:1.1.0:QmUxT9uby8X2QQZfdfjjE3MdtbfxMRh78K4pe3GF932eC8
+- valory/contract_api:1.0.0:QmQssrTfPsTJxkHQthn735vKQHmBuvoZE2eMFf3UzEFizf
+- valory/http:1.0.0:QmcFZahrD7WQRyK2bcdj2BmRNijK9EeKbTiGwkzxZ4nVti
+- valory/ledger_api:1.0.0:QmTMQKNr3oL8j68swCL4LjvUsHsyDp8FTM1UcPTfBvJYDn
+- valory/tendermint:0.1.0:QmNtbooVqorz8qxMBDmEfayBfsAFPCiUUvmziwLhZohG9n
 skills:
-- valory/abstract_abci:0.1.0:QmWyTCyuxwgZu93QbMQ9HX4SuqhssyHYRKAQtRRnG2Q4Xo
-- valory/abstract_round_abci:0.1.0:Qmch4D7jbdLD9k7aan3SCHPNQx2Et1ydyKsHXkVkRSDLBM
-- valory/apy_estimation_abci:0.1.0:QmTG8T4haXgr3e32megpNNzAcSVdsjd3b9B3W6JeCe8Zse
-- valory/registration_abci:0.1.0:QmY47ui9NNPFPVKPKuo43tRxG47Qy4EaspJjH8bbwwgGY7
+- valory/abstract_abci:0.1.0:QmZg627HxCTt9BJkv464ySucREq7csgXq4PQa8LPwvECz5
+- valory/abstract_round_abci:0.1.0:QmfXirD6pcZDxJozQSSc6rq7ve3Q4pnqYAKLLTUfB13avB
+- valory/apy_estimation_abci:0.1.0:QmcKiVyHDTuNEtMwEFBZYTQu33cTpQY3oyA3n2uX3Qcx42
+- valory/apy_estimation_chained_abci:0.1.0:QmVVaX9FPVNzVTMEjjZkp4ZXWvB8BXhi9zkowp6i2EZSfF
+- valory/registration_abci:0.1.0:QmW19MahcehC52fcFEQfMvKhrhZrnFwTGzuCVc2Ea4VzXY
 default_ledger: ethereum
 required_ledgers:
 - ethereum
@@ -40,6 +41,11 @@ logging_config:
     standard:
       format: '[%(asctime)s] [%(levelname)s] %(message)s'
   handlers:
+    logfile:
+      class: logging.FileHandler
+      formatter: standard
+      filename: ${LOG_FILE:str:/logs/logs.log}
+      level: INFO
     console:
       class: logging.StreamHandler
       formatter: standard
@@ -47,6 +53,7 @@ logging_config:
   loggers:
     aea:
       handlers:
+      - logfile
       - console
       propagate: false
 dependencies:
@@ -59,12 +66,12 @@ default_connection: null
 public_id: valory/abci:0.1.0
 type: connection
 config:
-  target_skill_id: valory/apy_estimation_abci:0.1.0
+  target_skill_id: valory/apy_estimation_chained_abci:0.1.0
   host: ${ABCI_HOST:str}
   port: ${ABCI_PORT:int:26658}
   use_tendermint: ${ABCI_USE_TENDERMINT:bool:false}
 ---
-public_id: valory/apy_estimation_abci:0.1.0
+public_id: valory/apy_estimation_chained_abci:0.1.0
 type: skill
 models:
   params:

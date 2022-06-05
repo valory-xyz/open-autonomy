@@ -23,15 +23,14 @@ import logging  # noqa: F401
 from types import MappingProxyType
 from typing import Any, Dict, FrozenSet, Mapping, Optional, Type, cast
 
-from packages.valory.skills.abstract_round_abci.base import AbstractRound
+from packages.valory.skills.abstract_round_abci.base import AbciAppDB, AbstractRound
 from packages.valory.skills.abstract_round_abci.base import (
-    BasePeriodState as PeriodState,
+    BaseSynchronizedData as SynchronizedData,
 )
 from packages.valory.skills.abstract_round_abci.base import (
     BaseTxPayload,
     CollectSameUntilThresholdRound,
     MAX_INT_256,
-    StateDB,
     VotingRound,
 )
 from packages.valory.skills.oracle_deployment_abci.payloads import (
@@ -43,13 +42,11 @@ from packages.valory.skills.oracle_deployment_abci.rounds import DeployOracleRou
 from packages.valory.skills.oracle_deployment_abci.rounds import (
     Event as OracleDeploymentEvent,
 )
+from packages.valory.skills.oracle_deployment_abci.rounds import SelectKeeperOracleRound
 from packages.valory.skills.oracle_deployment_abci.rounds import (
-    PeriodState as OracleDeploymentPeriodState,
+    SynchronizedData as OracleDeploymentSynchronizedSata,
 )
-from packages.valory.skills.oracle_deployment_abci.rounds import (
-    SelectKeeperOracleRound,
-    ValidateOracleRound,
-)
+from packages.valory.skills.oracle_deployment_abci.rounds import ValidateOracleRound
 from packages.valory.skills.price_estimation_abci.payloads import (
     EstimatePayload,
     TransactionHashPayload,
@@ -158,23 +155,28 @@ class BaseDeployTestClass(BaseOnlyKeeperSendsRoundTest):
         """Run tests."""
 
         keeper = sorted(list(self.participants))[0]
-        self.period_state = cast(
-            PeriodState,
-            self.period_state.update(most_voted_keeper_address=keeper),
+        self.synchronized_data = cast(
+            SynchronizedData,
+            self.synchronized_data.update(most_voted_keeper_address=keeper),
         )
 
         test_round = self.round_class(
-            state=self.period_state, consensus_params=self.consensus_params
+            synchronized_data=self.synchronized_data,
+            consensus_params=self.consensus_params,
         )
 
         self._complete_run(
             self._test_round(
                 test_round=test_round,  # type: ignore
                 keeper_payloads=self.payload_class(keeper, get_safe_contract_address()),
-                state_update_fn=lambda _period_state, _: _period_state.update(
+                synchronized_data_update_fn=lambda _synchronized_data, _: _synchronized_data.update(
                     **{self.update_keyword: get_safe_contract_address()}
                 ),
-                state_attr_checks=[lambda state: getattr(state, self.update_keyword)],
+                synchronized_data_attr_checks=[
+                    lambda _synchronized_data: getattr(
+                        _synchronized_data, self.update_keyword
+                    )
+                ],
                 exit_event=self._event_class.DONE,
             )
         )
@@ -187,7 +189,7 @@ class TestDeployOracleRound(BaseDeployTestClass):
     payload_class = DeployOraclePayload
     update_keyword = "oracle_contract_address"
     _event_class = OracleDeploymentEvent
-    _period_state_class = OracleDeploymentPeriodState
+    _synchronized_data_class = OracleDeploymentSynchronizedSata
 
 
 class BaseValidateRoundTest(BaseVotingRoundTest):
@@ -201,22 +203,25 @@ class BaseValidateRoundTest(BaseVotingRoundTest):
     ) -> None:
         """Test ValidateRound."""
 
-        self.period_state.update(tx_hashes_history="t" * 66)
+        self.synchronized_data.update(tx_hashes_history="t" * 66)
 
         test_round = self.test_class(
-            state=self.period_state, consensus_params=self.consensus_params
+            synchronized_data=self.synchronized_data,
+            consensus_params=self.consensus_params,
         )
 
         self._complete_run(
             self._test_voting_round_positive(
                 test_round=test_round,
                 round_payloads=get_participant_to_votes(self.participants),
-                state_update_fn=lambda _period_state, _: _period_state.update(
+                synchronized_data_update_fn=lambda _synchronized_data, _: _synchronized_data.update(
                     participant_to_votes=MappingProxyType(
                         dict(get_participant_to_votes(self.participants))
                     )
                 ),
-                state_attr_checks=[lambda state: state.participant_to_votes.keys()],
+                synchronized_data_attr_checks=[
+                    lambda _synchronized_data: _synchronized_data.participant_to_votes.keys()
+                ],
                 exit_event=self._event_class.DONE,
             )
         )
@@ -227,19 +232,20 @@ class BaseValidateRoundTest(BaseVotingRoundTest):
         """Test ValidateRound."""
 
         test_round = self.test_class(
-            state=self.period_state, consensus_params=self.consensus_params
+            synchronized_data=self.synchronized_data,
+            consensus_params=self.consensus_params,
         )
 
         self._complete_run(
             self._test_voting_round_negative(
                 test_round=test_round,
                 round_payloads=get_participant_to_votes(self.participants, vote=False),
-                state_update_fn=lambda _period_state, _: _period_state.update(
+                synchronized_data_update_fn=lambda _synchronized_data, _: _synchronized_data.update(
                     participant_to_votes=MappingProxyType(
                         dict(get_participant_to_votes(self.participants, vote=False))
                     )
                 ),
-                state_attr_checks=[],
+                synchronized_data_attr_checks=[],
                 exit_event=self._event_class.NEGATIVE,
             )
         )
@@ -250,19 +256,20 @@ class BaseValidateRoundTest(BaseVotingRoundTest):
         """Test ValidateRound."""
 
         test_round = self.test_class(
-            state=self.period_state, consensus_params=self.consensus_params
+            synchronized_data=self.synchronized_data,
+            consensus_params=self.consensus_params,
         )
 
         self._complete_run(
             self._test_voting_round_none(
                 test_round=test_round,
                 round_payloads=get_participant_to_votes(self.participants, vote=None),
-                state_update_fn=lambda _period_state, _: _period_state.update(
+                synchronized_data_update_fn=lambda _synchronized_data, _: _synchronized_data.update(
                     participant_to_votes=MappingProxyType(
                         dict(get_participant_to_votes(self.participants, vote=None))
                     )
                 ),
-                state_attr_checks=[],
+                synchronized_data_attr_checks=[],
                 exit_event=self._event_class.NONE,
             )
         )
@@ -274,7 +281,7 @@ class TestValidateOracleRound(BaseValidateRoundTest):
     test_class = ValidateOracleRound
     test_payload = ValidatePayload
     _event_class = OracleDeploymentEvent
-    _period_state_class = OracleDeploymentPeriodState
+    _synchronized_data_class = OracleDeploymentSynchronizedSata
 
 
 class BaseSelectKeeperRoundTest(BaseCollectSameUntilThresholdRoundTest):
@@ -283,7 +290,7 @@ class BaseSelectKeeperRoundTest(BaseCollectSameUntilThresholdRoundTest):
     test_class: Type[CollectSameUntilThresholdRound]
     test_payload: Type[BaseTxPayload]
 
-    _period_state_class = PeriodState
+    _synchronized_data_class = SynchronizedData
 
     @staticmethod
     def _participant_to_selection(
@@ -300,7 +307,7 @@ class BaseSelectKeeperRoundTest(BaseCollectSameUntilThresholdRoundTest):
     ) -> None:
         """Run tests."""
         test_round = self.test_class(
-            state=self.period_state.update(
+            synchronized_data=self.synchronized_data.update(
                 keepers=keepers,
                 final_verification_status=VerificationStatus.PENDING,
             ),
@@ -313,7 +320,7 @@ class BaseSelectKeeperRoundTest(BaseCollectSameUntilThresholdRoundTest):
                 round_payloads=self._participant_to_selection(
                     self.participants, most_voted_payload
                 ),
-                state_update_fn=lambda _period_state, _test_round: _period_state.update(
+                synchronized_data_update_fn=lambda _synchronized_data, _test_round: _synchronized_data.update(
                     participant_to_selection=MappingProxyType(
                         dict(
                             self._participant_to_selection(
@@ -322,8 +329,8 @@ class BaseSelectKeeperRoundTest(BaseCollectSameUntilThresholdRoundTest):
                         )
                     )
                 ),
-                state_attr_checks=[
-                    lambda state: state.participant_to_selection.keys()
+                synchronized_data_attr_checks=[
+                    lambda _synchronized_data: _synchronized_data.participant_to_selection.keys()
                     if exit_event is None
                     else None
                 ],
@@ -341,8 +348,8 @@ class TestSelectKeeperOracleRound(BaseSelectKeeperRoundTest):
     _event_class = OracleDeploymentEvent
 
 
-def test_period_states() -> None:
-    """Test PeriodState."""
+def test_synchronized_datas() -> None:
+    """Test SynchronizedData."""
 
     participants = get_participants()
     participant_to_randomness = get_participant_to_randomness(participants, 1)
@@ -354,25 +361,26 @@ def test_period_states() -> None:
     participant_to_votes = get_participant_to_votes(participants)
     actual_keeper_randomness = int(most_voted_randomness, base=16) / MAX_INT_256
 
-    period_state__ = OracleDeploymentPeriodState(
-        StateDB(
-            initial_period=0,
-            initial_data=dict(
-                participants=participants,
-                participant_to_randomness=participant_to_randomness,
-                most_voted_randomness=most_voted_randomness,
-                participant_to_selection=participant_to_selection,
-                participant_to_votes=participant_to_votes,
-                most_voted_keeper_address=most_voted_keeper_address,
-                safe_contract_address=safe_contract_address,
-                oracle_contract_address=oracle_contract_address,
+    synchronized_data__ = OracleDeploymentSynchronizedSata(
+        AbciAppDB(
+            initial_data=AbciAppDB.data_to_lists(
+                dict(
+                    participants=participants,
+                    participant_to_randomness=participant_to_randomness,
+                    most_voted_randomness=most_voted_randomness,
+                    participant_to_selection=participant_to_selection,
+                    participant_to_votes=participant_to_votes,
+                    most_voted_keeper_address=most_voted_keeper_address,
+                    safe_contract_address=safe_contract_address,
+                    oracle_contract_address=oracle_contract_address,
+                )
             ),
         )
     )
     assert (
-        abs(period_state__.keeper_randomness - actual_keeper_randomness) < 1e-10
+        abs(synchronized_data__.keeper_randomness - actual_keeper_randomness) < 1e-10
     )  # avoid equality comparisons between floats
-    assert period_state__.most_voted_randomness == most_voted_randomness
-    assert period_state__.most_voted_keeper_address == most_voted_keeper_address
-    assert period_state__.safe_contract_address == safe_contract_address
-    assert period_state__.oracle_contract_address == oracle_contract_address
+    assert synchronized_data__.most_voted_randomness == most_voted_randomness
+    assert synchronized_data__.most_voted_keeper_address == most_voted_keeper_address
+    assert synchronized_data__.safe_contract_address == safe_contract_address
+    assert synchronized_data__.oracle_contract_address == oracle_contract_address

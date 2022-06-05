@@ -8,22 +8,22 @@ aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
   README.md: Qmcvjeds5EyiUvea61GNy8YE4rYzvMDh79GJMhBz3NK7Q5
   __init__.py: QmUFuoq77B1FjZSeHGAyW8AgJnGNh9Z1amEGK7UTH8iP7J
-  behaviours.py: QmUbyz1vDMgCUrHygygwzjdQYorVMwxs8AUA1tAJj8JjVJ
+  behaviours.py: QmQ9SVvkt31XHiL8BSv4guAicjy7Bsye5DvwN5zNmFJpvU
   dialogues.py: Qmd54DnNEsybMJb78HTcW2HABVBZCL1FuQL8ELKq3xB6Jw
   fsm_specification.yaml: QmNqaU5EuBQfJ9MstwNoHP4BU1uW6jMMHf7XPYsxdEcaWZ
   handlers.py: QmeMA4MKs9ZPnrZczGDg59HhKxWGShj5fK6rS9UQV6BbCh
   models.py: QmPegRgrqVr6fMECoYCd3k7VDKdndBNMTuiPVrGTM9SW3o
   payloads.py: QmSds2L9BKR4157xqGgH22dG8ojq6hc1BG2JH9NgzhxgVp
-  rounds.py: QmfXwDXfqLQWS5THNPaz4N7rk515hJqyd3u4aV6W995FH1
+  rounds.py: QmaH6aihxSJpKcmF6gAPxzqmb4GL8VJZnJwkUDRnPR3xv7
 fingerprint_ignore_patterns: []
 connections:
-- valory/abci:0.1.0:QmUq4z19VS9G1TfnZdKy818F7maQopAor4NGe9t4DgzwyJ
+- valory/abci:0.1.0:QmVV5qAZxB75SsVGfQw5KuMRnuFP3RXYD6WwaYs6iMWiVU
 contracts: []
 protocols:
-- open_aea/signing:1.0.0:QmaGYpYEQjgbM37pBMiR7RcpeSLpztZyzDt2RF7sTXoMyU
-- valory/abci:0.1.0:QmPh452wHDWf6xTnAENyXQED5UZNkU5dum98ZGfN9vZGhk
+- open_aea/signing:1.0.0:QmQJbzTMRVNTSaJDm4JSZHzoRgsZDUfzTqipJAJcicobXx
+- valory/abci:0.1.0:QmYg2GNatG8mzmiZrnZNL2LtS7rx4Mgi8g55Kfd5nj3QEp
 skills:
-- valory/abstract_round_abci:0.1.0:Qmch4D7jbdLD9k7aan3SCHPNQx2Et1ydyKsHXkVkRSDLBM
+- valory/abstract_round_abci:0.1.0:QmfXirD6pcZDxJozQSSc6rq7ve3Q4pnqYAKLLTUfB13avB
 behaviours:
   main:
     args: {}
@@ -68,13 +68,13 @@ models:
       max_healthcheck: 120
       observation_interval: 10
       on_chain_service_id: null
-      period_setup: {}
       reset_tendermint_after: 2
       retry_attempts: 400
       retry_timeout: 3
       round_timeout_seconds: 30.0
       service_id: reset_pause_abci
       service_registry_address: null
+      setup: {}
       sleep_time: 1
       tendermint_check_sleep_delay: 3
       tendermint_com_url: http://localhost:8080

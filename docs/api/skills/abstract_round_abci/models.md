@@ -54,27 +54,27 @@ def setup() -> None
 
 Set up the model.
 
-<a id="packages.valory.skills.abstract_round_abci.models.SharedState.period"></a>
+<a id="packages.valory.skills.abstract_round_abci.models.SharedState.round_sequence"></a>
 
-#### period
-
-```python
-@property
-def period() -> Period
-```
-
-Get the period.
-
-<a id="packages.valory.skills.abstract_round_abci.models.SharedState.period_state"></a>
-
-#### period`_`state
+#### round`_`sequence
 
 ```python
 @property
-def period_state() -> BasePeriodState
+def round_sequence() -> RoundSequence
 ```
 
-Get the period state if available.
+Get the round_sequence.
+
+<a id="packages.valory.skills.abstract_round_abci.models.SharedState.synchronized_data"></a>
+
+#### synchronized`_`data
+
+```python
+@property
+def synchronized_data() -> BaseSynchronizedData
+```
+
+Get the latest synchronized_data if available.
 
 <a id="packages.valory.skills.abstract_round_abci.models.Requests"></a>
 

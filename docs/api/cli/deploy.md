@@ -65,7 +65,7 @@ Build tools
     help="Use docker as a kubernetes.",
 )
 @click.option(
-    "--package-dir",
+    "--packages-dir",
     type=click.Path(exists=True, dir_okay=True),
     default=Path.cwd() / PACKAGES,
     help="Path to packages folder (For local usage).",
@@ -78,13 +78,19 @@ Build tools
     help="Create development environment.",
 )
 @click.option(
+    "--version",
+    "version",
+    help="Specify deployment version.",
+)
+@click.option(
     "--force",
     "force_overwrite",
     is_flag=True,
     default=False,
     help="Remove existing build and overwrite with new one.",
 )
-def build_deployment(service_id: PublicId, keys_file: Path, deployment_type: str, output_dir: Path, package_dir: Path, dev_mode: bool, force_overwrite: bool, number_of_agents: Optional[int] = None) -> None
+@password_option(confirmation_prompt=True)
+def build_deployment(service_id: PublicId, keys_file: Path, deployment_type: str, output_dir: Path, packages_dir: Path, dev_mode: bool, force_overwrite: bool, number_of_agents: Optional[int] = None, password: Optional[str] = None, version: Optional[str] = None) -> None
 ```
 
 Build deployment setup for n agents.
@@ -100,7 +106,7 @@ Build deployment setup for n agents.
     type=PublicIdParameter(),
 )
 @click.option(
-    "--package-dir",
+    "--packages-dir",
     type=click.Path(exists=True, dir_okay=True),
     default=Path.cwd() / PACKAGES,
     help="Path to packages folder (For local usage).",
@@ -125,7 +131,7 @@ Build deployment setup for n agents.
 )
 @click.option("--push", is_flag=True, default=False, help="Push image after build.")
 @image_profile_flag()
-def build_images(service_id: str, profile: str, package_dir: Path, build_dir: Path, skaffold_dir: Path, version: str, push: bool) -> None
+def build_images(service_id: PublicId, profile: str, packages_dir: Path, build_dir: Path, skaffold_dir: Path, version: str, push: bool) -> None
 ```
 
 Build image using skaffold.

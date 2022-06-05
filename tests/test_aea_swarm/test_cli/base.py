@@ -21,6 +21,7 @@
 
 import shutil
 import tempfile
+from contextlib import suppress
 from pathlib import Path
 from typing import Tuple
 
@@ -58,4 +59,5 @@ class BaseCliTest:
         cls,
     ) -> None:
         """Teardown method."""
-        shutil.rmtree(str(cls.t))
+        with suppress(OSError, FileExistsError, PermissionError):
+            shutil.rmtree(str(cls.t))

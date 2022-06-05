@@ -20,7 +20,11 @@
 """
 This module contains the support resources for the tendermint protocol.
 
+<<<<<<< HEAD
 It was created with protocol buffer compiler version `libprotoc 3.19.4` and aea version `1.7.0`.
+=======
+It was created with protocol buffer compiler version `libprotoc 3.19.4` and aea version `1.9.0.post1`.
+>>>>>>> main
 """
 
 from packages.valory.protocols.tendermint.message import TendermintMessage

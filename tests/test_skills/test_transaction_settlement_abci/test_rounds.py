@@ -29,9 +29,9 @@ import pytest
 
 from packages.valory.skills.abstract_round_abci.base import (
     ABCIAppInternalError,
+    AbciAppDB,
     BaseTxPayload,
     MAX_INT_256,
-    StateDB,
 )
 from packages.valory.skills.oracle_deployment_abci.payloads import RandomnessPayload
 from packages.valory.skills.transaction_settlement_abci.payload_tools import (
@@ -53,16 +53,18 @@ from packages.valory.skills.transaction_settlement_abci.rounds import (
 from packages.valory.skills.transaction_settlement_abci.rounds import (
     Event as TransactionSettlementEvent,
 )
-from packages.valory.skills.transaction_settlement_abci.rounds import FinalizationRound
 from packages.valory.skills.transaction_settlement_abci.rounds import (
-    PeriodState as TransactionSettlementPeriodState,
-)
-from packages.valory.skills.transaction_settlement_abci.rounds import (
+    FinalizationRound,
     ResetRound,
     SelectKeeperTransactionSubmissionRoundA,
     SelectKeeperTransactionSubmissionRoundB,
     SelectKeeperTransactionSubmissionRoundBAfterTimeout,
     SynchronizeLateMessagesRound,
+)
+from packages.valory.skills.transaction_settlement_abci.rounds import (
+    SynchronizedData as TransactionSettlementSynchronizedSata,
+)
+from packages.valory.skills.transaction_settlement_abci.rounds import (
     TX_HASH_LENGTH,
     ValidateTransactionRound,
 )
@@ -213,7 +215,7 @@ class TestSelectKeeperTransactionSubmissionRoundA(BaseSelectKeeperRoundTest):
 
     test_class = SelectKeeperTransactionSubmissionRoundA
     test_payload = SelectKeeperPayload
-    _period_state_class = TransactionSettlementPeriodState
+    _synchronized_data_class = TransactionSettlementSynchronizedSata
     _event_class = TransactionSettlementEvent
 
     @staticmethod
@@ -291,7 +293,7 @@ class TestSelectKeeperTransactionSubmissionRoundBAfterTimeout(
     test_class = SelectKeeperTransactionSubmissionRoundBAfterTimeout
 
     @mock.patch.object(
-        TransactionSettlementPeriodState,
+        TransactionSettlementSynchronizedSata,
         "keepers_threshold_exceeded",
         new_callable=mock.PropertyMock,
     )
@@ -331,13 +333,15 @@ class TestSelectKeeperTransactionSubmissionRoundBAfterTimeout(
         exit_event: TransactionSettlementEvent,
     ) -> None:
         """Test `SelectKeeperTransactionSubmissionRoundBAfterTimeout`."""
-        self.period_state.update(participant_to_selection=dict.fromkeys(self.participants), **attrs)  # type: ignore
+        self.synchronized_data.update(participant_to_selection=dict.fromkeys(self.participants), **attrs)  # type: ignore
         threshold_exceeded_mock.return_value = threshold_exceeded
         most_voted_payload = int(1).to_bytes(32, "big").hex() + "new_keeper" + "-" * 32
         keeper = ""
         super().test_run(most_voted_payload, keeper, exit_event)
         assert (
-            cast(TransactionSettlementPeriodState, self.period_state).missed_messages
+            cast(
+                TransactionSettlementSynchronizedSata, self.synchronized_data
+            ).missed_messages
             == cast(int, attrs["missed_messages"]) + 1
         )
 
@@ -345,7 +349,7 @@ class TestSelectKeeperTransactionSubmissionRoundBAfterTimeout(
 class TestFinalizationRound(BaseOnlyKeeperSendsRoundTest):
     """Test FinalizationRound."""
 
-    _period_state_class = TransactionSettlementPeriodState
+    _synchronized_data_class = TransactionSettlementSynchronizedSata
     _event_class = TransactionSettlementEvent
     _round_class = FinalizationRound
 
@@ -423,9 +427,9 @@ class TestFinalizationRound(BaseOnlyKeeperSendsRoundTest):
         blacklisted_keepers = ""
         self.participants = frozenset([f"agent_{i}" + "-" * 35 for i in range(4)])
         keepers = deque(("agent_1" + "-" * 35, "agent_3" + "-" * 35))
-        self.period_state = cast(
-            TransactionSettlementPeriodState,
-            self.period_state.update(
+        self.synchronized_data = cast(
+            TransactionSettlementSynchronizedSata,
+            self.synchronized_data.update(
                 participants=frozenset([f"agent_{i}" + "-" * 35 for i in range(4)]),
                 missed_messages=missed_messages,
                 tx_hashes_history=tx_hashes_history,
@@ -446,7 +450,7 @@ class TestFinalizationRound(BaseOnlyKeeperSendsRoundTest):
             keeper_retries = 1
 
         test_round = self._round_class(
-            state=self.period_state,
+            synchronized_data=self.synchronized_data,
             consensus_params=self.consensus_params,
         )
 
@@ -463,19 +467,19 @@ class TestFinalizationRound(BaseOnlyKeeperSendsRoundTest):
                         "received_hash": bool(tx_digest),
                     },
                 ),
-                state_update_fn=lambda _period_state, _: _period_state.update(
+                synchronized_data_update_fn=lambda _synchronized_data, _: _synchronized_data.update(
                     tx_hashes_history=tx_hashes_history,
                     blacklisted_keepers=blacklisted_keepers,
                     keepers=get_keepers(keepers, keeper_retries),
                     keeper_retries=keeper_retries,
                     final_verification_status=VerificationStatus(status),
                 ),
-                state_attr_checks=[
-                    lambda state: state.tx_hashes_history,
-                    lambda state: state.blacklisted_keepers,
-                    lambda state: state.keepers,
-                    lambda state: state.keeper_retries,
-                    lambda state: state.final_verification_status,
+                synchronized_data_attr_checks=[
+                    lambda _synchronized_data: _synchronized_data.tx_hashes_history,
+                    lambda _synchronized_data: _synchronized_data.blacklisted_keepers,
+                    lambda _synchronized_data: _synchronized_data.keepers,
+                    lambda _synchronized_data: _synchronized_data.keeper_retries,
+                    lambda _synchronized_data: _synchronized_data.final_verification_status,
                 ],
                 exit_event=exit_event,
             )
@@ -485,7 +489,7 @@ class TestFinalizationRound(BaseOnlyKeeperSendsRoundTest):
 class TestCollectSignatureRound(BaseCollectDifferentUntilThresholdRoundTest):
     """Test CollectSignatureRound."""
 
-    _period_state_class = TransactionSettlementPeriodState
+    _synchronized_data_class = TransactionSettlementSynchronizedSata
     _event_class = TransactionSettlementEvent
 
     def test_run(
@@ -494,22 +498,25 @@ class TestCollectSignatureRound(BaseCollectDifferentUntilThresholdRoundTest):
         """Runs tests."""
 
         test_round = CollectSignatureRound(
-            state=self.period_state, consensus_params=self.consensus_params
+            synchronized_data=self.synchronized_data,
+            consensus_params=self.consensus_params,
         )
 
         self._complete_run(
             self._test_round(
                 test_round=test_round,
                 round_payloads=get_participant_to_signature(self.participants),
-                state_update_fn=lambda _period_state, _: _period_state,
-                state_attr_checks=[],
+                synchronized_data_update_fn=lambda _synchronized_data, _: _synchronized_data,
+                synchronized_data_attr_checks=[],
                 exit_event=self._event_class.DONE,
             )
         )
 
     def test_no_majority_event(self) -> None:
         """Test the no-majority event."""
-        test_round = CollectSignatureRound(self.period_state, self.consensus_params)
+        test_round = CollectSignatureRound(
+            self.synchronized_data, self.consensus_params
+        )
         self._test_no_majority_event(test_round)
 
 
@@ -518,14 +525,14 @@ class TestValidateTransactionRound(BaseValidateRoundTest):
 
     test_class = ValidateTransactionRound
     _event_class = TransactionSettlementEvent
-    _period_state_class = TransactionSettlementPeriodState
+    _synchronized_data_class = TransactionSettlementSynchronizedSata
 
 
 class TestCheckTransactionHistoryRound(BaseCollectSameUntilThresholdRoundTest):
     """Test CheckTransactionHistoryRound"""
 
     _event_class = TransactionSettlementEvent
-    _period_state_class = TransactionSettlementPeriodState
+    _synchronized_data_class = TransactionSettlementSynchronizedSata
 
     @pytest.mark.parametrize(
         "expected_status, expected_tx_hash, missed_messages, expected_event",
@@ -565,10 +572,11 @@ class TestCheckTransactionHistoryRound(BaseCollectSameUntilThresholdRoundTest):
     ) -> None:
         """Run tests."""
         keepers = get_keepers(deque(("agent_1" + "-" * 35, "agent_3" + "-" * 35)))
-        self.period_state.update(missed_messages=missed_messages, keepers=keepers)
+        self.synchronized_data.update(missed_messages=missed_messages, keepers=keepers)
 
         test_round = CheckTransactionHistoryRound(
-            state=self.period_state, consensus_params=self.consensus_params
+            synchronized_data=self.synchronized_data,
+            consensus_params=self.consensus_params,
         )
 
         self._complete_run(
@@ -577,7 +585,7 @@ class TestCheckTransactionHistoryRound(BaseCollectSameUntilThresholdRoundTest):
                 round_payloads=get_participant_to_check(
                     self.participants, expected_status, expected_tx_hash
                 ),
-                state_update_fn=lambda period_state, _: period_state.update(
+                synchronized_data_update_fn=lambda synchronized_data, _: synchronized_data.update(
                     participant_to_check=MappingProxyType(
                         dict(
                             get_participant_to_check(
@@ -590,10 +598,10 @@ class TestCheckTransactionHistoryRound(BaseCollectSameUntilThresholdRoundTest):
                     keepers=keepers,
                     final_tx_hash="0xb0e6add595e00477cf347d09797b156719dc5233283ac76e4efce2a674fe72d9",
                 ),
-                state_attr_checks=[
-                    lambda state: state.final_verification_status,
-                    lambda state: state.final_tx_hash,
-                    lambda state: state.keepers,
+                synchronized_data_attr_checks=[
+                    lambda _synchronized_data: _synchronized_data.final_verification_status,
+                    lambda _synchronized_data: _synchronized_data.final_tx_hash,
+                    lambda _synchronized_data: _synchronized_data.keepers,
                 ]
                 if expected_event
                 not in {
@@ -601,8 +609,8 @@ class TestCheckTransactionHistoryRound(BaseCollectSameUntilThresholdRoundTest):
                     TransactionSettlementEvent.CHECK_LATE_ARRIVING_MESSAGE,
                 }
                 else [
-                    lambda state: state.final_verification_status,
-                    lambda state: state.keepers,
+                    lambda _synchronized_data: _synchronized_data.final_verification_status,
+                    lambda _synchronized_data: _synchronized_data.keepers,
                 ],
                 most_voted_payload=expected_status + expected_tx_hash,
                 exit_event=expected_event,
@@ -614,7 +622,7 @@ class TestSynchronizeLateMessagesRound(BaseCollectNonEmptyUntilThresholdRound):
     """Test `SynchronizeLateMessagesRound`."""
 
     _event_class = TransactionSettlementEvent
-    _period_state_class = TransactionSettlementPeriodState
+    _synchronized_data_class = TransactionSettlementSynchronizedSata
 
     @pytest.mark.parametrize(
         "missed_messages, expected_event",
@@ -627,9 +635,10 @@ class TestSynchronizeLateMessagesRound(BaseCollectNonEmptyUntilThresholdRound):
         self, missed_messages: int, expected_event: TransactionSettlementEvent
     ) -> None:
         """Runs tests."""
-        self.period_state.update(missed_messages=missed_messages)
+        self.synchronized_data.update(missed_messages=missed_messages)
         test_round = SynchronizeLateMessagesRound(
-            state=self.period_state, consensus_params=self.consensus_params
+            synchronized_data=self.synchronized_data,
+            consensus_params=self.consensus_params,
         )
         self._complete_run(
             self._test_round(
@@ -637,18 +646,20 @@ class TestSynchronizeLateMessagesRound(BaseCollectNonEmptyUntilThresholdRound):
                 round_payloads=get_participant_to_late_arriving_tx_hashes(
                     self.participants
                 ),
-                state_update_fn=lambda _period_state, _: _period_state.update(
+                synchronized_data_update_fn=lambda _synchronized_data, _: _synchronized_data.update(
                     late_arriving_tx_hashes=["1" * TX_HASH_LENGTH, "2" * TX_HASH_LENGTH]
                     * len(self.participants)
                 ),
-                state_attr_checks=[lambda state: state.late_arriving_tx_hashes],
+                synchronized_data_attr_checks=[
+                    lambda _synchronized_data: _synchronized_data.late_arriving_tx_hashes
+                ],
                 exit_event=expected_event,
             )
         )
 
 
-def test_period_states() -> None:
-    """Test PeriodState."""
+def test_synchronized_datas() -> None:
+    """Test SynchronizedData."""
 
     participants = get_participants()
     participant_to_randomness = get_participant_to_randomness(participants, 1)
@@ -664,60 +675,63 @@ def test_period_states() -> None:
     expected_keepers = deque(["agent_1" + "-" * 35, "agent_3" + "-" * 35])
 
     # test `keeper_retries` property when no `keepers` are set.
-    period_state_____ = TransactionSettlementPeriodState(
-        StateDB(initial_period=0, initial_data=dict())
+    synchronized_data_____ = TransactionSettlementSynchronizedSata(
+        AbciAppDB(initial_data=dict())
     )
-    assert period_state_____.keepers == deque()
-    assert period_state_____.keeper_retries == 0
+    assert synchronized_data_____.keepers == deque()
+    assert synchronized_data_____.keeper_retries == 0
 
-    period_state_____ = TransactionSettlementPeriodState(
-        StateDB(
-            initial_period=0,
-            initial_data=dict(
-                participants=participants,
-                participant_to_randomness=participant_to_randomness,
-                most_voted_randomness=most_voted_randomness,
-                participant_to_selection=participant_to_selection,
-                safe_contract_address=safe_contract_address,
-                most_voted_tx_hash=most_voted_tx_hash,
-                participant_to_signature=participant_to_signature,
-                final_tx_hash=final_tx_hash,
-                late_arriving_tx_hashes=late_arriving_tx_hashes,
-                keepers=keepers,
-                blacklisted_keepers="t" * 42,
+    synchronized_data_____ = TransactionSettlementSynchronizedSata(
+        AbciAppDB(
+            initial_data=AbciAppDB.data_to_lists(
+                dict(
+                    participants=participants,
+                    participant_to_randomness=participant_to_randomness,
+                    most_voted_randomness=most_voted_randomness,
+                    participant_to_selection=participant_to_selection,
+                    safe_contract_address=safe_contract_address,
+                    most_voted_tx_hash=most_voted_tx_hash,
+                    participant_to_signature=participant_to_signature,
+                    final_tx_hash=final_tx_hash,
+                    late_arriving_tx_hashes=late_arriving_tx_hashes,
+                    keepers=keepers,
+                    blacklisted_keepers="t" * 42,
+                )
             ),
         )
     )
     assert (
-        abs(period_state_____.keeper_randomness - actual_keeper_randomness) < 1e-10
+        abs(synchronized_data_____.keeper_randomness - actual_keeper_randomness) < 1e-10
     )  # avoid equality comparisons between floats
-    assert period_state_____.most_voted_randomness == most_voted_randomness
-    assert period_state_____.safe_contract_address == safe_contract_address
-    assert period_state_____.most_voted_tx_hash == most_voted_tx_hash
-    assert period_state_____.participant_to_signature == participant_to_signature
-    assert period_state_____.final_tx_hash == final_tx_hash
-    assert period_state_____.late_arriving_tx_hashes == late_arriving_tx_hashes
-    assert period_state_____.keepers == expected_keepers
-    assert period_state_____.keeper_retries == 1
-    assert period_state_____.most_voted_keeper_address == expected_keepers.popleft()
-    assert period_state_____.keepers_threshold_exceeded
-    assert period_state_____.blacklisted_keepers == {"t" * 42}
-    updated_state = period_state_____.update(period_count=1)
-    assert updated_state.blacklisted_keepers == set()
+    assert synchronized_data_____.most_voted_randomness == most_voted_randomness
+    assert synchronized_data_____.safe_contract_address == safe_contract_address
+    assert synchronized_data_____.most_voted_tx_hash == most_voted_tx_hash
+    assert synchronized_data_____.participant_to_signature == participant_to_signature
+    assert synchronized_data_____.final_tx_hash == final_tx_hash
+    assert synchronized_data_____.late_arriving_tx_hashes == late_arriving_tx_hashes
+    assert synchronized_data_____.keepers == expected_keepers
+    assert synchronized_data_____.keeper_retries == 1
+    assert (
+        synchronized_data_____.most_voted_keeper_address == expected_keepers.popleft()
+    )
+    assert synchronized_data_____.keepers_threshold_exceeded
+    assert synchronized_data_____.blacklisted_keepers == {"t" * 42}
+    updated_synchronized_data = synchronized_data_____.create()
+    assert updated_synchronized_data.blacklisted_keepers == set()
 
     # test wrong tx hashes serialization
-    period_state_____.update(late_arriving_tx_hashes=["test"])
+    synchronized_data_____.update(late_arriving_tx_hashes=["test"])
     with pytest.raises(
         ABCIAppInternalError,
         match="internal error: Cannot parse late arriving hashes: test!",
     ):
-        _ = period_state_____.late_arriving_tx_hashes
+        _ = synchronized_data_____.late_arriving_tx_hashes
 
 
 class TestResetRound(BaseCollectSameUntilThresholdRoundTest):
     """Test ResetRound."""
 
-    _period_state_class = TransactionSettlementPeriodState
+    _synchronized_data_class = TransactionSettlementSynchronizedSata
     _event_class = TransactionSettlementEvent
 
     def test_runs(
@@ -725,12 +739,12 @@ class TestResetRound(BaseCollectSameUntilThresholdRoundTest):
     ) -> None:
         """Runs tests."""
 
-        period_state = self.period_state.update(
+        synchronized_data = self.synchronized_data.update(
             keeper_randomness=DUMMY_RANDOMNESS,
         )
-        period_state._db._cross_period_persisted_keys = ["keeper_randomness"]
+        synchronized_data._db._cross_period_persisted_keys = ["keeper_randomness"]
         test_round = ResetRound(
-            state=period_state, consensus_params=self.consensus_params
+            synchronized_data=synchronized_data, consensus_params=self.consensus_params
         )
         next_period_count = 1
         self._complete_run(
@@ -739,13 +753,12 @@ class TestResetRound(BaseCollectSameUntilThresholdRoundTest):
                 round_payloads=get_participant_to_period_count(
                     self.participants, next_period_count
                 ),
-                state_update_fn=lambda _period_state, _: _period_state.update(
-                    period_count=next_period_count,
-                    participants=self.participants,
-                    all_participants=self.participants,
-                    keeper_randomness=DUMMY_RANDOMNESS,
+                synchronized_data_update_fn=lambda _synchronized_data, _: _synchronized_data.create(
+                    participants=[self.participants],
+                    all_participants=[self.participants],
+                    keeper_randomness=[DUMMY_RANDOMNESS],
                 ),
-                state_attr_checks=[],  # [lambda state: state.participants],
+                synchronized_data_attr_checks=[],  # [lambda _synchronized_data: _synchronized_data.participants],
                 most_voted_payload=next_period_count,
                 exit_event=self._event_class.DONE,
             )

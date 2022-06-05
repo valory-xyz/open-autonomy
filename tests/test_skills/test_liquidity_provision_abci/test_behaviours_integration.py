@@ -30,7 +30,7 @@ from web3 import Web3
 
 from packages.valory.contracts.gnosis_safe.contract import SafeOperation
 from packages.valory.protocols.contract_api import ContractApiMessage
-from packages.valory.skills.abstract_round_abci.base import StateDB
+from packages.valory.skills.abstract_round_abci.base import AbciAppDB
 from packages.valory.skills.liquidity_rebalancing_abci.behaviours import (
     EnterPoolTransactionHashBehaviour,
     ExitPoolTransactionHashBehaviour,
@@ -48,13 +48,13 @@ from packages.valory.skills.liquidity_rebalancing_abci.handlers import (
     SigningHandler,
 )
 from packages.valory.skills.liquidity_rebalancing_abci.rounds import (
-    PeriodState as LiquidityRebalancingPeriodState,
+    SynchronizedData as LiquidityRebalancingSynchronizedSata,
 )
 from packages.valory.skills.transaction_settlement_abci.payload_tools import (
     hash_payload_to_hex,
 )
 from packages.valory.skills.transaction_settlement_abci.rounds import (
-    PeriodState as TransactionSettlementPeriodState,
+    SynchronizedData as TransactionSettlementSynchronizedSata,
 )
 
 from tests.conftest import ROOT_DIR
@@ -101,7 +101,7 @@ class LiquidityProvisionIntegrationBaseCase(
     enter_nonce: int
     exit_nonce: int
     swap_back_nonce: int
-    default_period_state_hash: LiquidityRebalancingPeriodState
+    default_synchronized_data_hash: LiquidityRebalancingSynchronizedSata
 
     @classmethod
     def setup(cls, **kwargs: Any) -> None:
@@ -133,30 +133,32 @@ class LiquidityProvisionIntegrationBaseCase(
         # corresponds to datetime.datetime(2022, 12, 31, 23, 59, 59) using datetime.datetime.fromtimestamp(.)
         cls.strategy["deadline"] = 1672527599
 
-        cls.default_period_state_hash = LiquidityRebalancingPeriodState(
-            StateDB(
-                initial_period=0,
-                initial_data=dict(
-                    safe_contract_address=cls.safe_contract_address,
-                    most_voted_keeper_address=cls.keeper_address,
-                    most_voted_strategy=json.dumps(cls.strategy),
-                    multisend_contract_address=cls.multisend_contract_address,
-                    router_contract_address=cls.router_contract_address,
-                    participants=frozenset(list(cls.safe_owners.keys())),
+        cls.default_synchronized_data_hash = LiquidityRebalancingSynchronizedSata(
+            AbciAppDB(
+                initial_data=AbciAppDB.data_to_lists(
+                    dict(
+                        safe_contract_address=cls.safe_contract_address,
+                        most_voted_keeper_address=cls.keeper_address,
+                        most_voted_strategy=json.dumps(cls.strategy),
+                        multisend_contract_address=cls.multisend_contract_address,
+                        router_contract_address=cls.router_contract_address,
+                        participants=frozenset(list(cls.safe_owners.keys())),
+                    )
                 ),
             )
         )
 
         keeper_retries = 1
         keepers = next(iter(cls.agents.keys()))
-        cls.tx_settlement_period_state = TransactionSettlementPeriodState(
-            StateDB(
-                initial_period=0,
-                initial_data=dict(
-                    safe_contract_address=cls.safe_contract_address,
-                    most_voted_keeper_address=cls.keeper_address,
-                    participants=frozenset(list(cls.safe_owners.keys())),
-                    keepers=keeper_retries.to_bytes(32, "big").hex() + keepers,
+        cls.tx_settlement_synchronized_data = TransactionSettlementSynchronizedSata(
+            AbciAppDB(
+                initial_data=AbciAppDB.data_to_lists(
+                    dict(
+                        safe_contract_address=cls.safe_contract_address,
+                        most_voted_keeper_address=cls.keeper_address,
+                        participants=frozenset(list(cls.safe_owners.keys())),
+                        keepers=keeper_retries.to_bytes(32, "big").hex() + keepers,
+                    )
                 ),
             )
         )
@@ -193,7 +195,7 @@ class LiquidityProvisionIntegrationBaseCase(
 
         # eventually replace with https://pypi.org/project/eth-event/
         receipt = self.ethereum_api.get_transaction_receipt(
-            self.tx_settlement_period_state.to_be_validated_tx_hash
+            self.tx_settlement_synchronized_data.to_be_validated_tx_hash
         )
         logs = self.get_decoded_logs(self.gnosis_instance, receipt)
 
@@ -227,9 +229,9 @@ class TestLiquidityRebalancingHardhat(LiquidityProvisionIntegrationBaseCase):
         # Prepare the transaction
         strategy["safe_nonce"] = 0
 
-        period_state_enter_hash = cast(
-            LiquidityRebalancingPeriodState,
-            self.default_period_state_hash.update(),
+        synchronized_data_enter_hash = cast(
+            LiquidityRebalancingSynchronizedSata,
+            self.default_synchronized_data_hash.update(),
         )
 
         cycles_enter = 8
@@ -246,8 +248,8 @@ class TestLiquidityRebalancingHardhat(LiquidityProvisionIntegrationBaseCase):
         ] * cycles_enter
         _, _, _, _, _, _, msg_a, msg_b = self.process_n_messages(
             cycles_enter,
-            period_state_enter_hash,
-            EnterPoolTransactionHashBehaviour.state_id,
+            synchronized_data_enter_hash,
+            EnterPoolTransactionHashBehaviour.behaviour_id,
             handlers_enter,
             expected_content_enter,
             expected_types_enter,
@@ -269,7 +271,7 @@ class TestLiquidityRebalancingHardhat(LiquidityProvisionIntegrationBaseCase):
         )
 
         # update period state with safe's tx hash
-        self.tx_settlement_period_state.update(
+        self.tx_settlement_synchronized_data.update(
             most_voted_tx_hash=payload,
         )
 
@@ -281,11 +283,11 @@ class TestLiquidityRebalancingHardhat(LiquidityProvisionIntegrationBaseCase):
         # Prepare the transaction
         strategy["safe_nonce"] = 1
 
-        period_state_exit_hash = cast(
-            LiquidityRebalancingPeriodState,
-            self.default_period_state_hash.update(
+        synchronized_data_exit_hash = cast(
+            LiquidityRebalancingSynchronizedSata,
+            self.default_synchronized_data_hash.update(
                 most_voted_strategy=json.dumps(strategy),
-                final_tx_hash=self.tx_settlement_period_state.final_tx_hash,
+                final_tx_hash=self.tx_settlement_synchronized_data.final_tx_hash,
             ),
         )
 
@@ -319,8 +321,8 @@ class TestLiquidityRebalancingHardhat(LiquidityProvisionIntegrationBaseCase):
         ]
         transfers_msg_enter, _, _, _, msg_a, msg_b = self.process_n_messages(
             cycles_exit,
-            period_state_exit_hash,
-            ExitPoolTransactionHashBehaviour.state_id,
+            synchronized_data_exit_hash,
+            ExitPoolTransactionHashBehaviour.behaviour_id,
             handlers_exit,
             expected_content_exit,
             expected_types_exit,
@@ -416,7 +418,7 @@ class TestLiquidityRebalancingHardhat(LiquidityProvisionIntegrationBaseCase):
         )
 
         # update period state with safe's tx hash
-        self.tx_settlement_period_state.update(
+        self.tx_settlement_synchronized_data.update(
             most_voted_tx_hash=payload,
         )
 
@@ -428,11 +430,11 @@ class TestLiquidityRebalancingHardhat(LiquidityProvisionIntegrationBaseCase):
         # Prepare the transaction
         strategy["safe_nonce"] = 2
 
-        period_state_swap_back_hash = cast(
-            LiquidityRebalancingPeriodState,
-            self.default_period_state_hash.update(
+        synchronized_data_swap_back_hash = cast(
+            LiquidityRebalancingSynchronizedSata,
+            self.default_synchronized_data_hash.update(
                 most_voted_strategy=json.dumps(strategy),
-                final_tx_hash=self.tx_settlement_period_state.final_tx_hash,
+                final_tx_hash=self.tx_settlement_synchronized_data.final_tx_hash,
             ),
         )
 
@@ -476,8 +478,8 @@ class TestLiquidityRebalancingHardhat(LiquidityProvisionIntegrationBaseCase):
         ]
         transfers_msg_exit, _, _, _, _, _, msg_a, msg_b = self.process_n_messages(
             cycles_swap_back,
-            period_state_swap_back_hash,
-            SwapBackTransactionHashBehaviour.state_id,
+            synchronized_data_swap_back_hash,
+            SwapBackTransactionHashBehaviour.behaviour_id,
             handlers_swap_back,
             expected_content_swap_back,
             expected_types_swap_back,
@@ -531,7 +533,7 @@ class TestLiquidityRebalancingHardhat(LiquidityProvisionIntegrationBaseCase):
         )
 
         # update period state with safe's tx hash
-        self.tx_settlement_period_state.update(
+        self.tx_settlement_synchronized_data.update(
             most_voted_tx_hash=payload,
         )
 

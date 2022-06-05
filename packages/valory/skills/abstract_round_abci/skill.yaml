@@ -9,37 +9,36 @@ fingerprint:
   README.md: QmYNXPppPSnW61ipqKNH8pyMh8qzTERwQaducYYq1dnBJb
   __init__.py: QmPuJK7gMKruSTcaYk9otrFncfD9h6vBZVoAtkwhTBgcxa
   abci_app_chain.py: QmeCPxwjec4pxtedv8NeG2Gmj58GY2GycXvgwfyjEyqPGm
-  base.py: QmUDpjKp9dUTYjm3rZqXH96ezCRAQoyyeJWXjvuPxq9uX9
-  behaviour_utils.py: QmTF9xGLDG3Q1nw22s4YgVTKRKxo5xmxRhy4Q2PMJe5QU8
-  behaviours.py: QmeNvG7nPdXdAvKsrLNjJDEnnRUhf5hVetrJLm45EzCVq2
-  common.py: QmZTWK9oSq2ExjqD8mR4Sj8KSyCZAZPJWRXhKyowiDZHVE
+  base.py: QmUnznoPRrojB73PFCoAKPXkoN1QzbsbTuBq1Xu2Vyx4DW
+  behaviour_utils.py: QmdLXjVpFxU7WCmXpDXdrHkvEVwmm6PKMXV4DM69xvjNAt
+  behaviours.py: QmawtbXREBz8C7Grjn4a93gaAQFMWzZicxRfjyHcckYHmz
+  common.py: QmUPsTf389ZeWhisMmoLCtJZTvCtxtdW7KrSnCt96AZHyq
   dialogues.py: QmRwAxxs4Zt4N2suXzNKqpSuwQDLgjh9hR4nfALfcTshku
-  handlers.py: QmSnjy6M13vSwZTj5KKZLyud7XHAKHmietqFuKSouyXkUF
+  handlers.py: QmefqhZU1Bsbg1VncrxgSy4MPdNQWjDZiBY15c5zX9zMQa
   io/__init__.py: QmPfA2syTybFaGmmMMt5gevZHEXPyjVf7wR1UE22NzpZZ3
   io/ipfs.py: Qmc7BLSKb2kESC1wdCc7FxaLiSHcmPcfiBuXBuLXevUdE7
   io/load.py: QmSa3vgVvQiMJabBvSnPjTMtYiDgrrHPugDGCvSf4kAfS3
   io/paths.py: QmT1e6Ygak8Fe4NxSrd2mb6EB1Rr6dsYZPL8dWh3aNMb12
   io/store.py: QmXHnLF1Jg2hmhUwYj4E4QoMmx6EoLhUtzEGqztLKtKFej
-  models.py: QmWojBUxvCtrd8P1FYVBkmYgomqVBJtWcuvxn4Vr2NeP6d
+  models.py: QmVhoumozdnbDjkY12JqMGZQbVLDTUGi53EHfVCfkBCDgk
   serializer.py: QmYf1ZaQEwAaUFvFHwafuetnm29PmWQUAEFSbbHDdrHvyp
   utils.py: Qmed3ijomF91pePveuFrPVd4BaXRLrsoCaszkiuyF2ZbBE
 fingerprint_ignore_patterns: []
 connections:
-- valory/abci:0.1.0:QmUq4z19VS9G1TfnZdKy818F7maQopAor4NGe9t4DgzwyJ
-- valory/http_client:0.1.0:QmXXtNRaMrZqEdmT9LVDhcxSy7PNgvJdCXaQ5L9ZxM5cGm
-- valory/ledger:0.1.0:QmbjPsymto6fKHZvFUTyMBnZeA7ZWoqfy3KXXJ7cVWkiE3
-- valory/p2p_libp2p_client:0.1.0:QmZWFVzuMLAcLeVVimaHTGfj16ELAM2pdSLWtZTxqkvDZ4
+- valory/abci:0.1.0:QmVV5qAZxB75SsVGfQw5KuMRnuFP3RXYD6WwaYs6iMWiVU
+- valory/http_client:0.1.0:QmWXhTfjybebxpE34WT3Uq9nyBjtbf2S4QBRNgDhGGzzsX
+- valory/ledger:0.1.0:QmXdscpRpJaQxcxaL6V34ExpKLMHK7uiKDtoJe3Siuk4Z6
 contracts:
 - valory/service_registry:0.1.0:Qmf8AdK3VPVECCx4biHMGdVoFHkscY3H9sv9b4wyE9vmED
 protocols:
-- valory/abci:0.1.0:QmPh452wHDWf6xTnAENyXQED5UZNkU5dum98ZGfN9vZGhk
-- valory/acn:1.1.0:QmZyXSCZoqiHsKqB8WFcUi1WcbMofk2SUgv4uzAhjAenuw
-- valory/contract_api:1.0.0:QmX2mRDNNWUTwU6ivKD65R3bnfC9jkGuKCaWqzxoQdm7ni
-- valory/http:1.0.0:QmbTD9GZg9MKBiQR3Tef1hS5YnGufUNSzrKpW8Eqgd6FUQ
-- valory/ledger_api:1.0.0:QmcjydJiMqhEmSGJqnLKDjmGSXmV5KZhMvY6zGgHKUgFL4
-- valory/tendermint:0.1.0:QmTebra2gtfrwfcxJj2vpoRrAawi6gvHSBtRjqfHxZ6YJV
+- valory/abci:0.1.0:QmYg2GNatG8mzmiZrnZNL2LtS7rx4Mgi8g55Kfd5nj3QEp
+- valory/acn:1.1.0:QmUxT9uby8X2QQZfdfjjE3MdtbfxMRh78K4pe3GF932eC8
+- valory/contract_api:1.0.0:QmQssrTfPsTJxkHQthn735vKQHmBuvoZE2eMFf3UzEFizf
+- valory/http:1.0.0:QmcFZahrD7WQRyK2bcdj2BmRNijK9EeKbTiGwkzxZ4nVti
+- valory/ledger_api:1.0.0:QmTMQKNr3oL8j68swCL4LjvUsHsyDp8FTM1UcPTfBvJYDn
+- valory/tendermint:0.1.0:QmNtbooVqorz8qxMBDmEfayBfsAFPCiUUvmziwLhZohG9n
 skills:
-- valory/abstract_abci:0.1.0:QmWyTCyuxwgZu93QbMQ9HX4SuqhssyHYRKAQtRRnG2Q4Xo
+- valory/abstract_abci:0.1.0:QmZg627HxCTt9BJkv464ySucREq7csgXq4PQa8LPwvECz5
 behaviours:
   main:
     args: {}
@@ -96,7 +95,7 @@ dependencies:
   joblib:
     version: <1.2,>=1.1.0
   open-aea-cli-ipfs:
-    version: <2.0.0,>=1.8.0
+    version: <2.0.0,>=1.9.0.post1
   pandas:
     version: <1.4,>=1.3.4
   pmdarima:

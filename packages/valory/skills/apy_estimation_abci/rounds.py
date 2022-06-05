@@ -24,10 +24,11 @@ from typing import Dict, Optional, Set, Tuple, Type, cast
 
 from packages.valory.skills.abstract_round_abci.base import (
     AbciApp,
+    AbciAppDB,
     AbciAppTransitionFunction,
     AbstractRound,
     AppState,
-    BasePeriodState,
+    BaseSynchronizedData,
     CollectSameUntilThresholdRound,
     DegenerateRound,
     TransactionType,
@@ -69,10 +70,10 @@ class Event(Enum):
     NETWORK_ERROR = "network_error"
 
 
-class PeriodState(BasePeriodState):
-    """Class to represent a period state.
+class SynchronizedData(BaseSynchronizedData):
+    """Class to represent the synchronized data.
 
-    This state is replicated by the tendermint application.
+    This data is replicated by the tendermint application.
     """
 
     @property
@@ -147,25 +148,25 @@ class APYEstimationAbstractRound(AbstractRound[Event, TransactionType], ABC):
     """Abstract round for the APY estimation skill."""
 
     @property
-    def period_state(self) -> PeriodState:
-        """Return the period state."""
-        return cast(PeriodState, super().period_state)
+    def synchronized_data(self) -> SynchronizedData:
+        """Return the synchronized data data."""
+        return cast(SynchronizedData, super().synchronized_data)
 
-    def _return_no_majority_event(self) -> Tuple[PeriodState, Event]:
+    def _return_no_majority_event(self) -> Tuple[SynchronizedData, Event]:
         """
         Trigger the NO_MAJORITY event.
 
-        :return: a new period state and a NO_MAJORITY event
+        :return: a new synchronized data and a NO_MAJORITY event
         """
-        return self.period_state, Event.NO_MAJORITY
+        return self.synchronized_data, Event.NO_MAJORITY
 
-    def _return_file_error(self) -> Tuple[PeriodState, Event]:
+    def _return_file_error(self) -> Tuple[SynchronizedData, Event]:
         """
         Trigger the FILE_ERROR event.
 
-        :return: a new period state and a FILE_ERROR event
+        :return: a new synchronized data and a FILE_ERROR event
         """
-        return self.period_state, Event.FILE_ERROR
+        return self.synchronized_data, Event.FILE_ERROR
 
 
 class CollectHistoryRound(CollectSameUntilThresholdRound, APYEstimationAbstractRound):
@@ -177,17 +178,17 @@ class CollectHistoryRound(CollectSameUntilThresholdRound, APYEstimationAbstractR
     collection_key = "participant_to_history"
     selection_key = "most_voted_history"
 
-    def end_block(self) -> Optional[Tuple[BasePeriodState, Event]]:
+    def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Event]]:
         """Process the end of the block."""
         if self.threshold_reached:
             if self.most_voted_payload is None:
                 return self._return_file_error()
 
             if self.most_voted_payload == "":
-                return self.period_state, Event.NETWORK_ERROR
+                return self.synchronized_data, Event.NETWORK_ERROR
 
             update_kwargs = {
-                "period_state_class": PeriodState,
+                "synchronized_data_class": SynchronizedData,
                 self.collection_key: self.collection,
                 self.selection_key: self.most_voted_payload,
                 "latest_observation_timestamp": cast(
@@ -195,11 +196,11 @@ class CollectHistoryRound(CollectSameUntilThresholdRound, APYEstimationAbstractR
                 ).latest_observation_timestamp,
             }
 
-            updated_state = self.period_state.update(**update_kwargs)
-            return updated_state, Event.DONE
+            synchronized_data = self.synchronized_data.update(**update_kwargs)
+            return synchronized_data, Event.DONE
 
         if not self.is_majority_possible(
-            self.collection, self.period_state.nb_participants
+            self.collection, self.synchronized_data.nb_participants
         ):
             return self._return_no_majority_event()
 
@@ -221,24 +222,24 @@ class TransformRound(CollectSameUntilThresholdRound, APYEstimationAbstractRound)
     allowed_tx_type = TransformationPayload.transaction_type
     payload_attribute = "transformed_history_hash"
 
-    def end_block(self) -> Optional[Tuple[BasePeriodState, Event]]:
+    def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Event]]:
         """Process the end of the block."""
         if self.threshold_reached and self.most_voted_payload is None:
             return self._return_file_error()
 
         if self.threshold_reached:
-            updated_state = self.period_state.update(
-                period_state_class=PeriodState,
+            synchronized_data = self.synchronized_data.update(
+                synchronized_data_class=SynchronizedData,
                 participant_to_transform=self.collection,
                 most_voted_transform=self.most_voted_payload,
                 latest_observation_hist_hash=cast(
                     TransformationPayload, list(self.collection.values())[0]
                 ).latest_observation_hist_hash,
             )
-            return updated_state, Event.DONE
+            return synchronized_data, Event.DONE
 
         if not self.is_majority_possible(
-            self.collection, self.period_state.nb_participants
+            self.collection, self.synchronized_data.nb_participants
         ):
             return self._return_no_majority_event()
 
@@ -252,21 +253,21 @@ class PreprocessRound(CollectSameUntilThresholdRound, APYEstimationAbstractRound
     allowed_tx_type = PreprocessPayload.transaction_type
     payload_attribute = "train_test_hash"
 
-    def end_block(self) -> Optional[Tuple[BasePeriodState, Event]]:
+    def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Event]]:
         """Process the end of the block."""
         if self.threshold_reached:
             if self.most_voted_payload is None:
                 return self._return_file_error()
 
-            updated_state = self.period_state.update(
-                period_state_class=PeriodState,
+            synchronized_data = self.synchronized_data.update(
+                synchronized_data_class=SynchronizedData,
                 participant_to_preprocessing=self.collection,
                 most_voted_split=self.most_voted_payload,
             )
-            return updated_state, Event.DONE
+            return synchronized_data, Event.DONE
 
         if not self.is_majority_possible(
-            self.collection, self.period_state.nb_participants
+            self.collection, self.synchronized_data.nb_participants
         ):
             return self._return_no_majority_event()
 
@@ -279,7 +280,7 @@ class PrepareBatchRound(CollectSameUntilThresholdRound):
     round_id = "prepare_batch"
     allowed_tx_type = BatchPreparationPayload.transaction_type
     payload_attribute = "prepared_batch"
-    period_state_class = PeriodState
+    synchronized_data_class = SynchronizedData
     done_event = Event.DONE
     no_majority_event = Event.NO_MAJORITY
     none_event = Event.FILE_ERROR
@@ -299,23 +300,23 @@ class RandomnessRound(CollectSameUntilThresholdRound, APYEstimationAbstractRound
     allowed_tx_type = RandomnessPayload.transaction_type
     payload_attribute = "randomness"
 
-    def end_block(self) -> Optional[Tuple[BasePeriodState, Event]]:
+    def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Event]]:
         """Process the end of the block."""
         if self.threshold_reached:
             filtered_randomness = filter_out_numbers(self.most_voted_payload)
 
             if filtered_randomness is None:
-                return self.period_state, Event.RANDOMNESS_INVALID
+                return self.synchronized_data, Event.RANDOMNESS_INVALID
 
-            updated_state = self.period_state.update(
-                period_state_class=PeriodState,
+            synchronized_data = self.synchronized_data.update(
+                synchronized_data_class=SynchronizedData,
                 participants_to_randomness=self.collection,
                 most_voted_randomness=filtered_randomness,
             )
-            return updated_state, Event.DONE
+            return synchronized_data, Event.DONE
 
         if not self.is_majority_possible(
-            self.collection, self.period_state.nb_participants
+            self.collection, self.synchronized_data.nb_participants
         ):
             return self._return_no_majority_event()
 
@@ -328,7 +329,7 @@ class OptimizeRound(CollectSameUntilThresholdRound):
     round_id = "optimize"
     allowed_tx_type = OptimizationPayload.transaction_type
     payload_attribute = "best_params"
-    period_state_class = PeriodState
+    synchronized_data_class = SynchronizedData
     done_event = Event.DONE
     no_majority_event = Event.NO_MAJORITY
     none_event = Event.FILE_ERROR
@@ -343,30 +344,30 @@ class TrainRound(CollectSameUntilThresholdRound, APYEstimationAbstractRound):
     allowed_tx_type = TrainingPayload.transaction_type
     payload_attribute = "models_hash"
 
-    def end_block(self) -> Optional[Tuple[BasePeriodState, Event]]:
+    def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Event]]:
         """Process the end of the block."""
         if self.threshold_reached:
             if self.most_voted_payload is None:
                 return self._return_file_error()
 
             update_params = dict(
-                period_state_class=PeriodState,
+                synchronized_data_class=SynchronizedData,
                 participants_to_training=self.collection,
                 most_voted_models=self.most_voted_payload,
             )
 
-            if self.period_state.full_training:
-                updated_state = self.period_state.update(
+            if self.synchronized_data.full_training:
+                synchronized_data = self.synchronized_data.update(
                     full_training=True,
                     **update_params,
                 )
-                return updated_state, Event.FULLY_TRAINED
+                return synchronized_data, Event.FULLY_TRAINED
 
-            updated_state = self.period_state.update(**update_params)
-            return updated_state, Event.DONE
+            synchronized_data = self.synchronized_data.update(**update_params)
+            return synchronized_data, Event.DONE
 
         if not self.is_majority_possible(
-            self.collection, self.period_state.nb_participants
+            self.collection, self.synchronized_data.nb_participants
         ):
             return self._return_no_majority_event()
 
@@ -379,7 +380,7 @@ class TestRound(CollectSameUntilThresholdRound):
     round_id = "test"
     allowed_tx_type = _TestingPayload.transaction_type
     payload_attribute = "report_hash"
-    period_state_class = PeriodState
+    synchronized_data_class = SynchronizedData
     done_event = Event.DONE
     no_majority_event = Event.NO_MAJORITY
     none_event = Event.FILE_ERROR
@@ -393,7 +394,7 @@ class UpdateForecasterRound(CollectSameUntilThresholdRound):
     round_id = "update_forecaster"
     allowed_tx_type = UpdatePayload.transaction_type
     payload_attribute = "updated_models_hash"
-    period_state_class = PeriodState
+    synchronized_data_class = SynchronizedData
     done_event = Event.DONE
     no_majority_event = Event.NO_MAJORITY
     none_event = Event.FILE_ERROR
@@ -408,30 +409,33 @@ class EstimateRound(CollectSameUntilThresholdRound, APYEstimationAbstractRound):
     allowed_tx_type = EstimatePayload.transaction_type
     payload_attribute = "estimations_hash"
 
-    def end_block(self) -> Optional[Tuple[BasePeriodState, Event]]:
+    def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Event]]:
         """Process the end of the block."""
         if self.threshold_reached:
             if self.most_voted_payload is None:
                 return self._return_file_error()
 
-            updated_state = self.period_state.update(
-                period_state_class=PeriodState,
+            synchronized_data = self.synchronized_data.update(
+                synchronized_data_class=SynchronizedData,
                 participants_to_estimate=self.collection,
-                n_estimations=cast(PeriodState, self.period_state).n_estimations + 1,
+                n_estimations=cast(
+                    SynchronizedData, self.synchronized_data
+                ).n_estimations
+                + 1,
                 most_voted_estimate=self.most_voted_payload,
             )
 
             if (
-                cast(PeriodState, updated_state).n_estimations
+                cast(SynchronizedData, synchronized_data).n_estimations
                 % N_ESTIMATIONS_BEFORE_RETRAIN
                 == 0
             ):
-                return updated_state, Event.DONE
+                return synchronized_data, Event.DONE
 
-            return updated_state, Event.ESTIMATION_CYCLE
+            return synchronized_data, Event.ESTIMATION_CYCLE
 
         if not self.is_majority_possible(
-            self.collection, self.period_state.nb_participants
+            self.collection, self.synchronized_data.nb_participants
         ):
             return self._return_no_majority_event()
 
@@ -444,28 +448,29 @@ class BaseResetRound(CollectSameUntilThresholdRound, APYEstimationAbstractRound)
     allowed_tx_type = ResetPayload.transaction_type
     payload_attribute = "period_count"
 
-    def end_block(self) -> Optional[Tuple[BasePeriodState, Event]]:
+    def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Event]]:
         """Process the end of the block."""
         if self.threshold_reached:
             kwargs = dict(
-                period_state_class=PeriodState,
-                period_count=self.most_voted_payload,
-                participants=self.period_state.participants,
-                all_participants=self.period_state.all_participants,
+                participants=self.synchronized_data.participants,
+                all_participants=self.synchronized_data.all_participants,
                 full_training=False,
-                n_estimations=self.period_state.n_estimations,
-                most_voted_models=self.period_state.models_hash,
+                n_estimations=self.synchronized_data.n_estimations,
+                most_voted_models=self.synchronized_data.models_hash,
             )
             if self.round_id == "cycle_reset":
                 kwargs[
                     "latest_observation_hist_hash"
-                ] = self.period_state.latest_observation_hist_hash
+                ] = self.synchronized_data.latest_observation_hist_hash
 
-            updated_state = self.period_state.update(**kwargs)
-            return updated_state, Event.DONE
+            synchronized_data = self.synchronized_data.create(
+                synchronized_data_class=SynchronizedData,
+                **AbciAppDB.data_to_lists(kwargs),
+            )
+            return synchronized_data, Event.DONE
 
         if not self.is_majority_possible(
-            self.collection, self.period_state.nb_participants
+            self.collection, self.synchronized_data.nb_participants
         ):
             return self._return_no_majority_event()
 

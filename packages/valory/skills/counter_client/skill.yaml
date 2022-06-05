@@ -12,13 +12,13 @@ fingerprint:
   dialogues.py: QmVWYsN4ZY18BE6gRdP7twHvrfe5juVvko2sbhK684hxpL
   handlers.py: QmXJaLCUb5G8TJpKHnpFYenRW1ci3P5ULo6Pv2NmTzWuYc
   models.py: QmbLMMqskEN1QpZDL9HjaZ2kMqJZJnK5FajqvU2U64esEf
-  utils.py: QmTgXokoD2DnzKuWEPpNxeFuZwrzwbNHQQzMhfodsWugnH
+  utils.py: QmV19kFkqozDxEGqQn4nDqWWXeAd5oNYhtKnjj6snedBu9
 fingerprint_ignore_patterns: []
 connections:
-- valory/http_client:0.1.0:QmXXtNRaMrZqEdmT9LVDhcxSy7PNgvJdCXaQ5L9ZxM5cGm
+- valory/http_client:0.1.0:QmWXhTfjybebxpE34WT3Uq9nyBjtbf2S4QBRNgDhGGzzsX
 contracts: []
 protocols:
-- valory/http:1.0.0:QmbTD9GZg9MKBiQR3Tef1hS5YnGufUNSzrKpW8Eqgd6FUQ
+- valory/http:1.0.0:QmcFZahrD7WQRyK2bcdj2BmRNijK9EeKbTiGwkzxZ4nVti
 skills: []
 behaviours:
   incrementer:

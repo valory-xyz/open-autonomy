@@ -22,7 +22,7 @@
 import logging  # noqa: F401
 from typing import Dict, FrozenSet, Optional
 
-from packages.valory.skills.abstract_round_abci.base import MAX_INT_256, StateDB
+from packages.valory.skills.abstract_round_abci.base import AbciAppDB, MAX_INT_256
 from packages.valory.skills.oracle_deployment_abci.payloads import (
     RandomnessPayload,
     SelectKeeperPayload,
@@ -32,13 +32,11 @@ from packages.valory.skills.safe_deployment_abci.rounds import DeploySafeRound
 from packages.valory.skills.safe_deployment_abci.rounds import (
     Event as SafeDeploymentEvent,
 )
+from packages.valory.skills.safe_deployment_abci.rounds import SelectKeeperSafeRound
 from packages.valory.skills.safe_deployment_abci.rounds import (
-    PeriodState as SafeDeploymentPeriodState,
+    SynchronizedData as SafeDeploymentSynchronizedSata,
 )
-from packages.valory.skills.safe_deployment_abci.rounds import (
-    SelectKeeperSafeRound,
-    ValidateSafeRound,
-)
+from packages.valory.skills.safe_deployment_abci.rounds import ValidateSafeRound
 from packages.valory.skills.transaction_settlement_abci.payloads import ValidatePayload
 
 from tests.test_skills.test_oracle_deployment_abci.test_rounds import (
@@ -115,7 +113,7 @@ class TestDeploySafeRound(BaseDeployTestClass):
     payload_class = DeploySafePayload
     update_keyword = "safe_contract_address"
     _event_class = SafeDeploymentEvent
-    _period_state_class = SafeDeploymentPeriodState
+    _synchronized_data_class = SafeDeploymentSynchronizedSata
 
 
 class TestValidateSafeRound(BaseValidateRoundTest):
@@ -124,7 +122,7 @@ class TestValidateSafeRound(BaseValidateRoundTest):
     test_class = ValidateSafeRound
     test_payload = ValidatePayload
     _event_class = SafeDeploymentEvent
-    _period_state_class = SafeDeploymentPeriodState
+    _synchronized_data_class = SafeDeploymentSynchronizedSata
 
 
 class TestSelectKeeperSafeRound(BaseSelectKeeperRoundTest):
@@ -135,8 +133,8 @@ class TestSelectKeeperSafeRound(BaseSelectKeeperRoundTest):
     _event_class = SafeDeploymentEvent
 
 
-def test_period_states() -> None:
-    """Test PeriodState."""
+def test_synchronized_datas() -> None:
+    """Test SynchronizedData."""
 
     participants = get_participants()
     participant_to_randomness = get_participant_to_randomness(participants, 1)
@@ -147,23 +145,24 @@ def test_period_states() -> None:
     participant_to_votes = get_participant_to_votes(participants)
     actual_keeper_randomness = int(most_voted_randomness, base=16) / MAX_INT_256
 
-    period_state_ = SafeDeploymentPeriodState(
-        StateDB(
-            initial_period=0,
-            initial_data=dict(
-                participants=participants,
-                participant_to_randomness=participant_to_randomness,
-                most_voted_randomness=most_voted_randomness,
-                participant_to_selection=participant_to_selection,
-                participant_to_votes=participant_to_votes,
-                most_voted_keeper_address=most_voted_keeper_address,
-                safe_contract_address=safe_contract_address,
+    synchronized_data_ = SafeDeploymentSynchronizedSata(
+        AbciAppDB(
+            initial_data=AbciAppDB.data_to_lists(
+                dict(
+                    participants=participants,
+                    participant_to_randomness=participant_to_randomness,
+                    most_voted_randomness=most_voted_randomness,
+                    participant_to_selection=participant_to_selection,
+                    participant_to_votes=participant_to_votes,
+                    most_voted_keeper_address=most_voted_keeper_address,
+                    safe_contract_address=safe_contract_address,
+                )
             ),
         )
     )
     assert (
-        abs(period_state_.keeper_randomness - actual_keeper_randomness) < 1e-10
+        abs(synchronized_data_.keeper_randomness - actual_keeper_randomness) < 1e-10
     )  # avoid equality comparisons between floats
-    assert period_state_.most_voted_randomness == most_voted_randomness
-    assert period_state_.most_voted_keeper_address == most_voted_keeper_address
-    assert period_state_.safe_contract_address == safe_contract_address
+    assert synchronized_data_.most_voted_randomness == most_voted_randomness
+    assert synchronized_data_.most_voted_keeper_address == most_voted_keeper_address
+    assert synchronized_data_.safe_contract_address == safe_contract_address
