@@ -29,7 +29,9 @@ from tests.test_agents.base import (
     BaseTestEnd2EndAgentCatchup,
     BaseTestEnd2EndNormalExecution,
 )
+from packages.valory.skills.registration_abci.behaviours import RegistrationStartupBehaviour
 
+log_messages = RegistrationStartupBehaviour.LogMessages
 
 @pytest.fixture(autouse=True)
 def slow_down_tests() -> Generator:
@@ -41,14 +43,16 @@ def slow_down_tests() -> Generator:
 
 # strict check log messages of the happy path
 STRICT_CHECK_STRINGS = (
-    "Local Tendermint configuration obtained",
-    "ServiceRegistryContract.getServiceInfo response",
-    "Registered addresses retrieved from service registry contract",
-    "Completed collecting Tendermint responses",
-    "Local TendermintNode updated",
-    "Restarting tendermint",
-    "Tendermint node restarted",
-    "RegistrationStartupBehaviour executed",
+    log_messages.request_personal.value,
+    log_messages.request_personal.value,
+    log_messages.request_verification.value,
+    log_messages.response_verification.value,
+    log_messages.request_others.value,
+    log_messages.collection_complete.value,
+    log_messages.request_update.value,
+    log_messages.response_update.value,
+    log_messages.request_restart.value,
+    log_messages.response_restart.value,
 )
 
 

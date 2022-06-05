@@ -17,8 +17,8 @@ protocols:
 skills:
 - valory/abstract_abci:0.1.0:QmdfVoBSbRjea8XEgVym7ssSTj22kHcEhguNwyT4p4NtNe
 - valory/abstract_round_abci:0.1.0:QmTGSxvHgFT9LHVGigsPhPC3fVnXv6dt9kAVUn11A3jNck
-- valory/register_reset_abci:0.1.0:QmNZcRJB2VHWwwjKp84x3W7dfjBWDKSFZ9f1Wuk524qZMf
-- valory/registration_abci:0.1.0:QmeMt2MEhFNTUGmCd31KF5bXzd69fXaZXbp2fMTZGQiFaP
+- valory/register_reset_abci:0.1.0:QmaptpEGDR7szFa1ySxRoH4Gw7UD17b63DWwM8pdTNjuq7
+- valory/registration_abci:0.1.0:QmcYpazLWZ7YDCFaWGUJHp3Mr8wVwtALJ4DZu7XgjDjqHf
 - valory/reset_pause_abci:0.1.0:Qmf14xmAgGWyTsLxYSHNoQTJmfP4Bf7qk4Qw8FY7QYUkP6
 default_ledger: ethereum
 required_ledgers:
