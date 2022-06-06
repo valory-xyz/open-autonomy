@@ -77,7 +77,6 @@ from packages.valory.skills.transaction_settlement_abci.rounds import (
     SelectKeeperTransactionSubmissionRoundA,
     SelectKeeperTransactionSubmissionRoundB,
     SelectKeeperTransactionSubmissionRoundBAfterTimeout,
-    SelectKeeperTransactionSubmissionRoundBAfterValidationTimeout,
     SynchronizeLateMessagesRound,
     SynchronizedData,
     TransactionSubmissionAbciApp,
@@ -330,19 +329,10 @@ class SelectKeeperTransactionSubmissionBehaviourB(  # pylint: disable=too-many-a
 class SelectKeeperTransactionSubmissionBehaviourBAfterTimeout(  # pylint: disable=too-many-ancestors
     SelectKeeperTransactionSubmissionBehaviourB
 ):
-    """Select the keeper b agent after a timeout of the finalization round."""
+    """Select the keeper b agent after a timeout."""
 
     behaviour_id = "select_keeper_transaction_submission_b_after_timeout"
     matching_round = SelectKeeperTransactionSubmissionRoundBAfterTimeout
-
-
-class SelectKeeperTransactionSubmissionBehaviourBAfterValidationTimeout(  # pylint: disable=too-many-ancestors
-    SelectKeeperTransactionSubmissionBehaviourB
-):
-    """Select the keeper b agent after a timeout of the validation round."""
-
-    behaviour_id = "select_keeper_transaction_submission_b_after_validation_timeout"
-    matching_round = SelectKeeperTransactionSubmissionRoundBAfterValidationTimeout
 
 
 class ValidateTransactionBehaviour(TransactionSettlementBaseBehaviour):
@@ -805,7 +795,6 @@ class TransactionSettlementRoundBehaviour(AbstractRoundBehaviour):
         SelectKeeperTransactionSubmissionBehaviourA,  # type: ignore
         SelectKeeperTransactionSubmissionBehaviourB,  # type: ignore
         SelectKeeperTransactionSubmissionBehaviourBAfterTimeout,  # type: ignore
-        SelectKeeperTransactionSubmissionBehaviourBAfterValidationTimeout,  # type: ignore
         ValidateTransactionBehaviour,  # type: ignore
         CheckTransactionHistoryBehaviour,  # type: ignore
         SignatureBehaviour,  # type: ignore
