@@ -93,6 +93,7 @@ from packages.valory.skills.abstract_round_abci.models import (
 
 MAX_HEIGHT_OFFSET = 10
 HEIGHT_OFFSET_MULTIPLIER = 0.01
+NON_200_RETURN_CODE_DURING_RESET_THRESHOLD = 3
 GENESIS_TIME_FMT = "%Y-%m-%dT%H:%M:%S.%fZ"
 
 
@@ -465,6 +466,7 @@ class BaseBehaviour(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
         self._check_started: Optional[datetime.datetime] = None
         self._timeout: float = 0
         self._is_healthy: bool = False
+        self._non_200_return_code_count: int = 0
         enforce(self.behaviour_id != "", "State id not set.")
 
     @property
@@ -646,7 +648,7 @@ class BaseBehaviour(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
         """Get the request nonce for the request, from the protocol's dialogue."""
         return dialogue.dialogue_label.dialogue_reference[0]
 
-    def _send_transaction(  # pylint: disable=too-many-arguments
+    def _send_transaction(  # pylint: disable=too-many-arguments,too-many-locals,too-many-statements
         self,
         payload: BaseTxPayload,
         resetting: bool = False,
@@ -723,10 +725,18 @@ class BaseBehaviour(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
                 yield from self.sleep(request_retry_delay)
                 continue
             response = cast(HttpMessage, response)
-            if not self._check_http_return_code_200(response):
+            if not self._check_http_return_code_200(response) and (
+                self._non_200_return_code_count
+                > NON_200_RETURN_CODE_DURING_RESET_THRESHOLD
+                or not resetting
+            ):
                 self.context.logger.info(
-                    f"Received return code != 200 with response {response} with body {str(response.body)}. Retrying in {request_retry_delay} seconds..."
+                    f"Received return code != 200 with response {response} with body {str(response.body)}. "
+                    f"Retrying in {request_retry_delay} seconds..."
                 )
+            elif not self._check_http_return_code_200(response) and resetting:
+                self._non_200_return_code_count += 1
+            if not self._check_http_return_code_200(response):
                 payload = payload.with_new_id()
                 yield from self.sleep(request_retry_delay)
                 continue
