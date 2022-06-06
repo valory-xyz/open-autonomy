@@ -23,7 +23,7 @@ protocols:
 skills:
 - valory/abstract_abci:0.1.0:QmZg627HxCTt9BJkv464ySucREq7csgXq4PQa8LPwvECz5
 - valory/abstract_round_abci:0.1.0:QmTbsC1t4xsx9cxDmkB4URC3qYtptRVoWqgD1gjWwidmL2
-- valory/oracle_abci:0.1.0:QmNPG66dTsb9wZKuvnMhG9d3paNH3nn5eGxqtBDVB5cSHH
+- valory/oracle_abci:0.1.0:QmeaL4TKhndb9XHQ89guKWyefehLf3eK5bqhU13Cya8htE
 - valory/oracle_deployment_abci:0.1.0:QmeP2nKvbcS9dNCikjgim9xVRgNZqX4E1AKm33JRoVWR9e
 - valory/price_estimation_abci:0.1.0:QmY3pR4cfeK2KXY8gLnn96FHUGkH6du11zuKtkaxYeF2Y2
 - valory/registration_abci:0.1.0:Qmb8obvTZcHv3NCxL5fDcaSXUtdUgE9ru7t8q1ExALCo6G
