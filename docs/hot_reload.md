@@ -29,11 +29,11 @@ Execute the following:
 ```bash
 make build-deploy
 ```
-This builds the latest docker images and launches docker compose. Wait for environment setup to be completed inside your docker containers, it may take some time. Also don't make any changes on either open-aea or consensus-algorithms repository while environment is being set up it may cause some unexpected errors. 
+This builds the latest docker images and launches docker compose. Wait for environment setup to be completed inside your docker containers, it may take some time. Also don't make any changes on either open-aea or consensus-algorithms repository while environment is being set up it may cause some unexpected errors.
 
 Then run:
 ```bash
-make run-deployment
+make run-deploy
 ```
 
 And - if you want to use local hardhat - in a separate terminal run:

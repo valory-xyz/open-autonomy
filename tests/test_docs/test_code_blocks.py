@@ -20,14 +20,18 @@
 """This module contains the tests for the code-blocks in the documentation."""
 
 
+import os
 from pathlib import Path
 from typing import Dict, List, Optional
 
 from tests.conftest import ROOT_DIR
 from tests.test_docs.helper import (  # type: ignore
     CodeType,
-    check_code_block,
+    check_bash_commands_exist,
+    check_code_blocks_exist,
     contains_code_blocks,
+    extract_make_commands,
+    extract_swarm_commands,
     remove_doc_ellipsis,
     remove_ips_hashes,
     remove_line_comments,
@@ -83,7 +87,7 @@ class BaseTestDocCode:
 
             # In doc files: remove tokens like "# ...\n" from the code
             # In code files: replace ipfs hashes with a placeholder
-            check_code_block(
+            check_code_blocks_exist(
                 md_file=md_file,
                 code_info=code_info,
                 code_type=self.code_type,
@@ -188,3 +192,37 @@ class TestPythonSnippets(BaseTestDocCode):
         "docs/abci_app_async_behaviour.md",  # just placeholder examples
         "docs/networks.md",  # only irrelevant one-liners
     ]
+
+
+class TestDocBashSnippets:
+    """Class for doc bash snippet testing"""
+
+    def test_run_check(self) -> None:
+        """Check the documentaion code"""
+
+        code_type = CodeType.BASH
+
+        skipped_files = [
+            "docs/using_stack_deployment.md",
+            "docs/application_deployment.md",
+        ]
+
+        # Get all doc files that contain a block
+        all_md_files = [
+            str(p.relative_to(ROOT_DIR)) for p in Path(ROOT_DIR, "docs").rglob("*.md")
+        ]
+        files_with_blocks = list(
+            filter(
+                lambda f: "/api/" not in f  # skip api folder
+                and contains_code_blocks(f, code_type.value),
+                all_md_files,
+            )
+        )
+        if skipped_files:
+            files_with_blocks = [f for f in files_with_blocks if f not in skipped_files]
+
+        make_commands = extract_make_commands(os.path.join(ROOT_DIR, "Makefile"))
+        swarm_commands = extract_swarm_commands()
+
+        for md_file in files_with_blocks:
+            check_bash_commands_exist(md_file, make_commands, swarm_commands)
