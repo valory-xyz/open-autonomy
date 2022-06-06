@@ -568,11 +568,14 @@ class BaseBehaviour(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
         """Set the behaviour to done."""
         self._is_done = True
 
-    def send_a2a_transaction(self, payload: BaseTxPayload) -> Generator:
+    def send_a2a_transaction(
+        self, payload: BaseTxPayload, resetting: bool = False
+    ) -> Generator:
         """
         Send transaction and wait for the response, and repeat until not successful.
 
         :param: payload: the payload to send
+        :param: resetting: flag indicating if we are resetting Tendermint nodes in this round.
         :yield: the responses
         """
         stop_condition = self.is_round_ended(self.matching_round.round_id)
@@ -581,6 +584,7 @@ class BaseBehaviour(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
         ).synchronized_data.round_count
         yield from self._send_transaction(
             payload,
+            resetting,
             stop_condition=stop_condition,
         )
 
@@ -645,6 +649,7 @@ class BaseBehaviour(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
     def _send_transaction(  # pylint: disable=too-many-arguments
         self,
         payload: BaseTxPayload,
+        resetting: bool = False,
         stop_condition: Callable[[], bool] = lambda: False,
         request_timeout: Optional[float] = None,
         request_retry_delay: Optional[float] = None,
@@ -674,6 +679,7 @@ class BaseBehaviour(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
             Http client connection -> (HttpMessage | RESPONSE) -> AbstractRoundAbci skill
 
         :param: payload: the payload to send
+        :param: resetting: flag indicating if we are resetting Tendermint nodes in this round.
         :param: stop_condition: the condition to be checked to interrupt the
                 waiting loop.
         :param: request_timeout: the timeout for the requests
