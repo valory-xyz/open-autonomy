@@ -553,41 +553,27 @@ class TendermintHandler(Handler):
         attribute = cast(PublicId, self.SUPPORTED_PROTOCOL).name + "_dialogues"
         return getattr(self.context, attribute, None)
 
-    def _preconditions_satisfied(
+    def send_error_response(
         self, message: TendermintMessage, dialogue: TendermintDialogue
-    ) -> bool:
-        """Precondition checks"""
+    ) -> None:
+        """Check if sender is among registered addresses"""
+        # do not respond to errors to avoid loops
+        log_message = self.LogMessages.not_in_registered_addresses.value
+        self.context.logger.info(f"{log_message}: {message}")
+        self._reply_with_tendermint_error(message, dialogue, log_message)
 
-        if dialogue is None:
-            log_message = self.LogMessages.unidentified_dialogue.value
-            self.context.logger.info(f"{log_message}: {message}")
-            return False
-
-        if not self.registered_addresses:
-            log_message = self.LogMessages.no_addresses_retrieved_yet.value
-            self.context.logger.info(f"{log_message}: {message}")
-            self._reply_with_tendermint_error(message, dialogue, log_message)
-            return False
-
-        if message.sender not in self.registered_addresses:
-            self.context.logger.info(message.sender)
-            self.context.logger.info(str(self.registered_addresses))
-            log_message = self.LogMessages.not_in_registered_addresses.value
-            self.context.logger.info(f"{log_message}: {message}")
-            self._reply_with_tendermint_error(message, dialogue, log_message)
-            return False
-
-        return True
-
-    def handle(self, message: TendermintMessage) -> None:
+    def handle(self, message: Message) -> None:
         """Handle incoming Tendermint messages"""
 
         dialogues = cast(TendermintDialogues, self.dialogues)
         dialogue = cast(TendermintDialogue, dialogues.update(message))
 
-        if not self._preconditions_satisfied(message, dialogue):
+        if dialogue is None:
+            log_message = self.LogMessages.unidentified_dialogue.value
+            self.context.logger.info(f"{log_message}: {message}")
             return
 
+        message = cast(TendermintMessage, message)
         if message.performative == TendermintMessage.Performative.REQUEST:
             self._handle_request(message, dialogue)
         elif message.performative == TendermintMessage.Performative.RESPONSE:
@@ -622,6 +608,16 @@ class TendermintHandler(Handler):
     ) -> None:
         """Handler Tendermint request message"""
 
+        if not self.registered_addresses:
+            log_message = self.LogMessages.no_addresses_retrieved_yet.value
+            self.context.logger.info(f"{log_message}: {message}")
+            self._reply_with_tendermint_error(message, dialogue, log_message)
+            return
+
+        if message.sender not in self.registered_addresses:
+            self.send_error_response(message, dialogue)
+            return
+
         info = self.registered_addresses[self.context.agent_address]
         response = dialogue.reply(
             performative=TendermintMessage.Performative.RESPONSE,
@@ -636,6 +632,10 @@ class TendermintHandler(Handler):
         self, message: TendermintMessage, dialogue: TendermintDialogue
     ) -> None:
         """Process Tendermint response messages"""
+
+        if message.sender not in self.registered_addresses:
+            self.send_error_response(message, dialogue)
+            return
 
         try:  # validate message contains a valid address
             validator_config = json.loads(message.info)

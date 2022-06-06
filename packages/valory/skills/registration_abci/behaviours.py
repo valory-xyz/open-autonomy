@@ -44,17 +44,23 @@ from packages.valory.skills.registration_abci.rounds import (
 )
 
 
-CONSENSUS_PARAMS = (
-    {
-        "block": {"max_bytes": "22020096", "max_gas": "-1", "time_iota_ms": "1000"},
-        "evidence": {
-            "max_age_num_blocks": "100000",
-            "max_age_duration": "172800000000000",
-            "max_bytes": "1048576",
-        },
-        "validator": {"pub_key_types": ["ed25519"]},
-        "version": {},
+#
+CONSENSUS_PARAMS = {
+    "block": {"max_bytes": "22020096", "max_gas": "-1", "time_iota_ms": "1000"},
+    "evidence": {
+        "max_age_num_blocks": "100000",
+        "max_age_duration": "172800000000000",
+        "max_bytes": "1048576",
     },
+    "validator": {"pub_key_types": ["ed25519"]},
+    "version": {},
+}
+
+
+GENESIS_CONFIG = dict(  # type: ignore
+    genesis_time="2022-05-20T16:00:21.735122717Z",
+    chain_id="chain-c4daS1",
+    consensus_params=CONSENSUS_PARAMS,
 )
 
 
@@ -73,14 +79,11 @@ def format_genesis_data(
         )
         validators.append(validator)
 
-    data = {}
-    data["validators"] = validators
-    data["genesis_config"] = dict(  # type: ignore
-        genesis_time="2022-05-20T16:00:21.735122717Z",
-        chain_id="chain-c4daS1",
-        consensus_params=CONSENSUS_PARAMS,
+    genesis_data = dict(
+        validators=validators,
+        genesis_config=GENESIS_CONFIG,
     )
-    return data
+    return genesis_data
 
 
 class RegistrationBaseBehaviour(BaseBehaviour):
@@ -133,15 +136,15 @@ class RegistrationStartupBehaviour(RegistrationBaseBehaviour):
         response_personal = "Response validator config from personal Tendermint node"
         failed_personal = "Failed validator config from personal Tendermint node"
         # verify deployment on-chain contract
-        request_verification = "Requesting service registry contract verification"
+        request_verification = "Request service registry contract verification"
         response_verification = "Response service registry contract verification"
         failed_verification = "Failed service registry contract verification"
         # request service info from on-chain contract
-        request_service_info = "Requesting on-chain service info"
+        request_service_info = "Request on-chain service info"
         response_service_info = "Response on-chain service info"
         failed_service_info = "Failed on-chain service info"
         # request tendermint configuration other agents
-        request_others = "Requesting Tendermint config info from other agents"
+        request_others = "Request Tendermint config info from other agents"
         collection_complete = "Completed collecting Tendermint configuration responses"
         # update personal tendermint node config
         request_update = "Request update Tendermint node configuration"
@@ -173,7 +176,7 @@ class RegistrationStartupBehaviour(RegistrationBaseBehaviour):
 
     @property
     def tendermint_hard_reset_url(self) -> str:
-        """Tendermint URL for obtaining and updating parameters"""
+        """Tendermint URL for hard reset of Tendermint"""
         return f"{self.params.tendermint_com_url}/hard_reset"
 
     def is_correct_contract(self) -> Generator[None, None, bool]:
@@ -202,7 +205,7 @@ class RegistrationStartupBehaviour(RegistrationBaseBehaviour):
     def get_service_info(self) -> Generator[None, None, Dict[str, Any]]:
         """Get service info available on-chain"""
         log_message = self.LogMessages.request_service_info
-        self.context.logger.info(f"{log_message}: {log_message}")
+        self.context.logger.info(f"{log_message}")
 
         performative = ContractApiMessage.Performative.GET_STATE
         service_id = int(self.params.on_chain_service_id)
@@ -217,7 +220,7 @@ class RegistrationStartupBehaviour(RegistrationBaseBehaviour):
         if contract_api_response.performative != ContractApiMessage.Performative.STATE:
             log_message = self.LogMessages.failed_service_info
             self.context.logger.info(
-                f"{log_message}: {kwargs}\n{contract_api_response}"
+                f"{log_message} ({kwargs}): {contract_api_response}"
             )
             return {}
         log_message = self.LogMessages.response_service_info
@@ -286,9 +289,11 @@ class RegistrationStartupBehaviour(RegistrationBaseBehaviour):
 
     def request_tendermint_info(self) -> Generator:
         """Request Tendermint info from other agents"""
+
         still_missing = {k for k, v in self.registered_addresses.items() if not v}
         log_message = self.LogMessages.request_others
         self.context.logger.info(f"{log_message}: {still_missing}")
+
         for address in still_missing:
             dialogues = cast(TendermintDialogues, self.context.tendermint_dialogues)
             performative = TendermintMessage.Performative.REQUEST
@@ -298,6 +303,7 @@ class RegistrationStartupBehaviour(RegistrationBaseBehaviour):
             message = cast(TendermintMessage, message)
             context = EnvelopeContext(connection_id=P2P_LIBP2P_CLIENT_PUBLIC_ID)
             self.context.outbox.put_message(message=message, context=context)
+
         if all(self.registered_addresses.values()):
             log_message = self.LogMessages.collection_complete
             self.context.logger.info(f"{log_message}: {self.registered_addresses}")
