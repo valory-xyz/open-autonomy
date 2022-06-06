@@ -754,16 +754,17 @@ class FinalizeBehaviour(TransactionSettlementBaseBehaviour):
         tx_data = yield from self._get_tx_data(contract_api_msg)
         return tx_data
 
-    def handle_late_messages(self, message: Message) -> None:
+    def handle_late_messages(self, behaviour_id: str, message: Message) -> None:
         """Store a potentially late-arriving message locally.
 
+        :param behaviour_id: the id of the behaviour in which the message belongs to.
         :param message: the late arriving message to handle.
         """
         if isinstance(message, ContractApiMessage):
             self.context.logger.info(f"Late message arrived: {message}")
             self.params.late_messages.append(message)
         else:
-            super().handle_late_messages(message)
+            super().handle_late_messages(behaviour_id, message)
 
 
 class ResetBehaviour(TransactionSettlementBaseBehaviour):
