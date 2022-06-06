@@ -77,7 +77,6 @@ from packages.valory.skills.transaction_settlement_abci.rounds import (
     SelectKeeperTransactionSubmissionRoundA,
     SelectKeeperTransactionSubmissionRoundB,
     SelectKeeperTransactionSubmissionRoundBAfterTimeout,
-    SelectKeeperTransactionSubmissionRoundBAfterValidationTimeout,
     SynchronizeLateMessagesRound,
     SynchronizedData,
     TransactionSubmissionAbciApp,
@@ -330,19 +329,10 @@ class SelectKeeperTransactionSubmissionBehaviourB(  # pylint: disable=too-many-a
 class SelectKeeperTransactionSubmissionBehaviourBAfterTimeout(  # pylint: disable=too-many-ancestors
     SelectKeeperTransactionSubmissionBehaviourB
 ):
-    """Select the keeper b agent after a timeout of the finalization round."""
+    """Select the keeper b agent after a timeout."""
 
     behaviour_id = "select_keeper_transaction_submission_b_after_timeout"
     matching_round = SelectKeeperTransactionSubmissionRoundBAfterTimeout
-
-
-class SelectKeeperTransactionSubmissionBehaviourBAfterValidationTimeout(  # pylint: disable=too-many-ancestors
-    SelectKeeperTransactionSubmissionBehaviourB
-):
-    """Select the keeper b agent after a timeout of the validation round."""
-
-    behaviour_id = "select_keeper_transaction_submission_b_after_validation_timeout"
-    matching_round = SelectKeeperTransactionSubmissionRoundBAfterValidationTimeout
 
 
 class ValidateTransactionBehaviour(TransactionSettlementBaseBehaviour):
@@ -764,16 +754,20 @@ class FinalizeBehaviour(TransactionSettlementBaseBehaviour):
         tx_data = yield from self._get_tx_data(contract_api_msg)
         return tx_data
 
-    def handle_late_messages(self, message: Message) -> None:
+    def handle_late_messages(self, behaviour_id: str, message: Message) -> None:
         """Store a potentially late-arriving message locally.
 
+        :param behaviour_id: the id of the behaviour in which the message belongs to.
         :param message: the late arriving message to handle.
         """
-        if isinstance(message, ContractApiMessage):
+        if (
+            isinstance(message, ContractApiMessage)
+            and behaviour_id == self.behaviour_id
+        ):
             self.context.logger.info(f"Late message arrived: {message}")
             self.params.late_messages.append(message)
         else:
-            super().handle_late_messages(message)
+            super().handle_late_messages(behaviour_id, message)
 
 
 class ResetBehaviour(TransactionSettlementBaseBehaviour):
@@ -805,7 +799,6 @@ class TransactionSettlementRoundBehaviour(AbstractRoundBehaviour):
         SelectKeeperTransactionSubmissionBehaviourA,  # type: ignore
         SelectKeeperTransactionSubmissionBehaviourB,  # type: ignore
         SelectKeeperTransactionSubmissionBehaviourBAfterTimeout,  # type: ignore
-        SelectKeeperTransactionSubmissionBehaviourBAfterValidationTimeout,  # type: ignore
         ValidateTransactionBehaviour,  # type: ignore
         CheckTransactionHistoryBehaviour,  # type: ignore
         SignatureBehaviour,  # type: ignore

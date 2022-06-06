@@ -59,7 +59,6 @@ from packages.valory.skills.transaction_settlement_abci.rounds import (
     SelectKeeperTransactionSubmissionRoundA,
     SelectKeeperTransactionSubmissionRoundB,
     SelectKeeperTransactionSubmissionRoundBAfterTimeout,
-    SelectKeeperTransactionSubmissionRoundBAfterValidationTimeout,
     SynchronizeLateMessagesRound,
 )
 from packages.valory.skills.transaction_settlement_abci.rounds import (
@@ -344,43 +343,6 @@ class TestSelectKeeperTransactionSubmissionRoundBAfterTimeout(
                 TransactionSettlementSynchronizedSata, self.synchronized_data
             ).missed_messages
             == cast(int, attrs["missed_messages"]) + 1
-        )
-
-
-class TestSelectKeeperTransactionSubmissionRoundBAfterValidationTimeout(
-    TestSelectKeeperTransactionSubmissionRoundB
-):
-    """Test SelectKeeperTransactionSubmissionRoundBAfterValidationTimeout."""
-
-    test_class = SelectKeeperTransactionSubmissionRoundBAfterValidationTimeout
-
-    @pytest.mark.parametrize(
-        "missed_messages, exit_event",
-        (
-            (
-                10,
-                TransactionSettlementEvent.DONE,
-            ),
-        ),
-    )
-    def test_run(  # type: ignore
-        self,
-        missed_messages: Dict[str, Union[str, int]],
-        exit_event: TransactionSettlementEvent,
-    ) -> None:
-        """Test `SelectKeeperTransactionSubmissionRoundBAfterTimeout`."""
-        self.synchronized_data.update(
-            participant_to_selection=dict.fromkeys(self.participants),
-            missed_messages=missed_messages,
-        )
-        most_voted_payload = int(1).to_bytes(32, "big").hex() + "new_keeper" + "-" * 32
-        keeper = ""
-        super().test_run(most_voted_payload, keeper, exit_event)
-        assert (
-            cast(
-                TransactionSettlementSynchronizedSata, self.synchronized_data
-            ).missed_messages
-            == cast(int, missed_messages) + 1
         )
 
 

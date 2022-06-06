@@ -305,27 +305,6 @@ def end_block() -> Optional[Tuple[BaseSynchronizedData, Enum]]
 
 Process the end of the block.
 
-<a id="packages.valory.skills.transaction_settlement_abci.rounds.SelectKeeperTransactionSubmissionRoundBAfterValidationTimeout"></a>
-
-## SelectKeeperTransactionSubmissionRoundBAfterValidationTimeout Objects
-
-```python
-class SelectKeeperTransactionSubmissionRoundBAfterValidationTimeout(
-    SelectKeeperTransactionSubmissionRoundB)
-```
-
-A round in which a new keeper is selected for tx submission after a round timeout of the validation
-
-<a id="packages.valory.skills.transaction_settlement_abci.rounds.SelectKeeperTransactionSubmissionRoundBAfterValidationTimeout.end_block"></a>
-
-#### end`_`block
-
-```python
-def end_block() -> Optional[Tuple[BaseSynchronizedData, Enum]]
-```
-
-Process the end of the block.
-
 <a id="packages.valory.skills.transaction_settlement_abci.rounds.ValidateTransactionRound"></a>
 
 ## ValidateTransactionRound Objects
@@ -448,68 +427,63 @@ Transition states:
     1. SelectKeeperTransactionSubmissionRoundA
         - done: 2.
         - round timeout: 1.
-        - no majority: 11.
-        - incorrect serialization: 13.
+        - no majority: 10.
+        - incorrect serialization: 12.
     2. CollectSignatureRound
         - done: 3.
         - round timeout: 2.
-        - no majority: 11.
+        - no majority: 10.
     3. FinalizationRound
         - done: 4.
         - check history: 5.
-        - finalize timeout: 8.
+        - finalize timeout: 7.
         - finalization failed: 6.
-        - check late arriving message: 9.
+        - check late arriving message: 8.
         - insufficient funds: 6.
     4. ValidateTransactionRound
-        - done: 12.
+        - done: 11.
         - negative: 5.
         - none: 6.
-        - validate timeout: 7.
+        - validate timeout: 6.
         - no majority: 4.
     5. CheckTransactionHistoryRound
-        - done: 12.
+        - done: 11.
         - negative: 6.
-        - none: 13.
+        - none: 12.
         - check timeout: 5.
         - no majority: 5.
-        - check late arriving message: 9.
+        - check late arriving message: 8.
     6. SelectKeeperTransactionSubmissionRoundB
         - done: 3.
         - round timeout: 6.
-        - no majority: 11.
-        - incorrect serialization: 13.
-    7. SelectKeeperTransactionSubmissionRoundBAfterValidationTimeout
-        - done: 3.
-        - round timeout: 7.
-        - no majority: 11.
-        - incorrect serialization: 13.
-    8. SelectKeeperTransactionSubmissionRoundBAfterTimeout
+        - no majority: 10.
+        - incorrect serialization: 12.
+    7. SelectKeeperTransactionSubmissionRoundBAfterTimeout
         - done: 3.
         - check history: 5.
-        - check late arriving message: 9.
+        - check late arriving message: 8.
+        - round timeout: 7.
+        - no majority: 10.
+        - incorrect serialization: 12.
+    8. SynchronizeLateMessagesRound
+        - done: 9.
         - round timeout: 8.
-        - no majority: 11.
-        - incorrect serialization: 13.
-    9. SynchronizeLateMessagesRound
-        - done: 10.
-        - round timeout: 9.
-        - no majority: 9.
+        - no majority: 8.
         - none: 6.
-        - missed and late messages mismatch: 13.
-    10. CheckLateTxHashesRound
-        - done: 12.
-        - negative: 13.
-        - none: 13.
-        - check timeout: 10.
-        - no majority: 13.
-        - check late arriving message: 9.
-    11. ResetRound
+        - missed and late messages mismatch: 12.
+    9. CheckLateTxHashesRound
+        - done: 11.
+        - negative: 12.
+        - none: 12.
+        - check timeout: 9.
+        - no majority: 12.
+        - check late arriving message: 8.
+    10. ResetRound
         - done: 0.
-        - reset timeout: 13.
-        - no majority: 13.
-    12. FinishedTransactionSubmissionRound
-    13. FailedRound
+        - reset timeout: 12.
+        - no majority: 12.
+    11. FinishedTransactionSubmissionRound
+    12. FailedRound
 
 Final states: {FailedRound, FinishedTransactionSubmissionRound}
 

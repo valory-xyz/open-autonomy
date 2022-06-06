@@ -44,7 +44,6 @@ states:
 - SelectKeeperTransactionSubmissionRoundA
 - SelectKeeperTransactionSubmissionRoundB
 - SelectKeeperTransactionSubmissionRoundBAfterTimeout
-- SelectKeeperTransactionSubmissionRoundBAfterValidationTimeout
 - SynchronizeLateMessagesRound
 - TxHashRound
 - ValidateOracleRound
@@ -123,10 +122,6 @@ transition_func:
     (SelectKeeperTransactionSubmissionRoundBAfterTimeout, INCORRECT_SERIALIZATION): ResetAndPauseRound
     (SelectKeeperTransactionSubmissionRoundBAfterTimeout, NO_MAJORITY): ResetRound
     (SelectKeeperTransactionSubmissionRoundBAfterTimeout, ROUND_TIMEOUT): SelectKeeperTransactionSubmissionRoundBAfterTimeout
-    (SelectKeeperTransactionSubmissionRoundBAfterValidationTimeout, DONE): FinalizationRound
-    (SelectKeeperTransactionSubmissionRoundBAfterValidationTimeout, INCORRECT_SERIALIZATION): ResetAndPauseRound
-    (SelectKeeperTransactionSubmissionRoundBAfterValidationTimeout, NO_MAJORITY): ResetRound
-    (SelectKeeperTransactionSubmissionRoundBAfterValidationTimeout, ROUND_TIMEOUT): SelectKeeperTransactionSubmissionRoundBAfterValidationTimeout
     (SynchronizeLateMessagesRound, DONE): CheckLateTxHashesRound
     (SynchronizeLateMessagesRound, MISSED_AND_LATE_MESSAGES_MISMATCH): ResetAndPauseRound
     (SynchronizeLateMessagesRound, NONE): SelectKeeperTransactionSubmissionRoundB
@@ -150,4 +145,4 @@ transition_func:
     (ValidateTransactionRound, NEGATIVE): CheckTransactionHistoryRound
     (ValidateTransactionRound, NONE): SelectKeeperTransactionSubmissionRoundB
     (ValidateTransactionRound, NO_MAJORITY): ValidateTransactionRound
-    (ValidateTransactionRound, VALIDATE_TIMEOUT): SelectKeeperTransactionSubmissionRoundBAfterValidationTimeout
+    (ValidateTransactionRound, VALIDATE_TIMEOUT): SelectKeeperTransactionSubmissionRoundB
