@@ -101,7 +101,7 @@ Tendermint URL for obtaining and updating parameters
 def tendermint_hard_reset_url() -> str
 ```
 
-Tendermint URL for obtaining and updating parameters
+Tendermint URL for hard reset of Tendermint
 
 <a id="packages.valory.skills.registration_abci.behaviours.RegistrationStartupBehaviour.is_correct_contract"></a>
 
@@ -148,17 +148,17 @@ Make HTTP GET request to obtain agent's local Tendermint node parameters
 #### request`_`tendermint`_`info
 
 ```python
-def request_tendermint_info() -> Generator
+def request_tendermint_info() -> Generator[None, None, bool]
 ```
 
 Request Tendermint info from other agents
 
-<a id="packages.valory.skills.registration_abci.behaviours.RegistrationStartupBehaviour.update_tendermint"></a>
+<a id="packages.valory.skills.registration_abci.behaviours.RegistrationStartupBehaviour.request_update"></a>
 
-#### update`_`tendermint
+#### request`_`update
 
 ```python
-def update_tendermint() -> Generator[None, None, bool]
+def request_update() -> Generator[None, None, bool]
 ```
 
 Make HTTP POST request to update agent's local Tendermint node

@@ -181,6 +181,7 @@ class RegistrationStartupBehaviour(RegistrationBaseBehaviour):
 
     def is_correct_contract(self) -> Generator[None, None, bool]:
         """Contract deployment verification."""
+
         log_message = self.LogMessages.request_verification
         self.context.logger.info(f"{log_message}")
 
@@ -204,6 +205,7 @@ class RegistrationStartupBehaviour(RegistrationBaseBehaviour):
 
     def get_service_info(self) -> Generator[None, None, Dict[str, Any]]:
         """Get service info available on-chain"""
+
         log_message = self.LogMessages.request_service_info
         self.context.logger.info(f"{log_message}")
 
@@ -222,7 +224,9 @@ class RegistrationStartupBehaviour(RegistrationBaseBehaviour):
             self.context.logger.info(
                 f"{log_message} ({kwargs}): {contract_api_response}"
             )
+            self.context.logger.info(log_message)
             return {}
+
         log_message = self.LogMessages.response_service_info
         self.context.logger.info(f"{log_message}: {contract_api_response}")
         return cast(dict, contract_api_response.state.body)
@@ -287,7 +291,7 @@ class RegistrationStartupBehaviour(RegistrationBaseBehaviour):
             self.context.logger.info(f"{log_message}: {error}")
             return False
 
-    def request_tendermint_info(self) -> Generator:
+    def request_tendermint_info(self) -> Generator[None, None, bool]:
         """Request Tendermint info from other agents"""
 
         still_missing = {k for k, v in self.registered_addresses.items() if not v}
@@ -303,17 +307,15 @@ class RegistrationStartupBehaviour(RegistrationBaseBehaviour):
             message = cast(TendermintMessage, message)
             context = EnvelopeContext(connection_id=P2P_LIBP2P_CLIENT_PUBLIC_ID)
             self.context.outbox.put_message(message=message, context=context)
+        yield from self.sleep(self.params.sleep_time)
 
         if all(self.registered_addresses.values()):
             log_message = self.LogMessages.collection_complete
             self.context.logger.info(f"{log_message}: {self.registered_addresses}")
             self.collection_complete = True
-        yield from self.sleep(self.params.sleep_time)
         return self.collection_complete
 
-    def update_tendermint(
-        self,
-    ) -> Generator[None, None, bool]:  # rename: request tendermint update
+    def request_update(self) -> Generator[None, None, bool]:
         """Make HTTP POST request to update agent's local Tendermint node"""
 
         url = self.tendermint_parameter_url
@@ -382,7 +384,7 @@ class RegistrationStartupBehaviour(RegistrationBaseBehaviour):
 
         # update Tendermint configuration
         if not self.updated_genesis_data:
-            successful = yield from self.update_tendermint()
+            successful = yield from self.request_update()
             if not successful:
                 yield from self.sleep(self.params.sleep_time)
                 return
