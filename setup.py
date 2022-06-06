@@ -47,7 +47,7 @@ def get_all_extras() -> Dict:
 all_extras = get_all_extras()
 
 base_deps = [
-    "open-aea>=1.8.0,<2.0.0",
+    "open-aea>=1.9.0.post1,<2.0.0",
 ]
 
 here = os.path.abspath(os.path.dirname(__file__))

@@ -33,8 +33,8 @@ from werkzeug.exceptions import InternalServerError, NotFound
 
 
 try:
-    from .tendermint import TendermintNode, TendermintParams
-except:
+    from .tendermint import TendermintNode, TendermintParams  # type: ignore
+except Exception:
     from tendermint import TendermintNode, TendermintParams
 
 ENCODING = "utf-8"
@@ -55,9 +55,7 @@ logging.basicConfig(
 
 def load_genesis() -> Any:
     """Load genesis file."""
-    return json.loads(
-        Path(os.environ["TMHOME"], "config", "genesis.json").read_text()
-    )
+    return json.loads(Path(os.environ["TMHOME"], "config", "genesis.json").read_text())
 
 
 def get_defaults() -> Dict[str, str]:
@@ -123,7 +121,9 @@ class PeriodDumper:
         self.resets += 1
 
 
-def create_app(dump_dir: Optional[Path] = None, perform_monitoring: bool = True):
+def create_app(
+    dump_dir: Optional[Path] = None, perform_monitoring: bool = True
+) -> Tuple[Flask, TendermintNode]:
     """Create the Tendermint server app"""
 
     override_config_toml()
@@ -139,18 +139,18 @@ def create_app(dump_dir: Optional[Path] = None, perform_monitoring: bool = True)
     tendermint_node = TendermintNode(tendermint_params, logger=app.logger)
     tendermint_node.start(start_monitoring=perform_monitoring)
 
-
     @app.get("/params")
     def get_params() -> Dict:
         """Get tendermint params."""
         try:
-            priv_key_file = TMHOME / "config" / "priv_validator_key.json"
+            priv_key_file = (
+                Path(os.environ["TMHOME"]) / "config" / "priv_validator_key.json"
+            )
             priv_key_data = json.loads(priv_key_file.read_text(encoding=ENCODING))
             del priv_key_data["priv_key"]
             return {"params": priv_key_data, "status": True, "error": None}
         except (FileNotFoundError, json.JSONDecodeError):
             return {"params": {}, "status": False, "error": traceback.format_exc()}
-
 
     @app.post("/params")
     def update_params() -> Dict:
@@ -158,7 +158,7 @@ def create_app(dump_dir: Optional[Path] = None, perform_monitoring: bool = True)
 
         try:
             data: Any = json.loads(request.get_data().decode(ENCODING))
-            genesis_file = TMHOME / "config" / "genesis.json"
+            genesis_file = Path(os.environ["TMHOME"]) / "config" / "genesis.json"
             genesis_data = {}
             genesis_data["genesis_time"] = data["genesis_config"]["genesis_time"]
             genesis_data["chain_id"] = data["genesis_config"]["chain_id"]
@@ -218,6 +218,8 @@ def create_app(dump_dir: Optional[Path] = None, perform_monitoring: bool = True)
             defaults = get_defaults()
             tendermint_node.reset_genesis_file(
                 request.args.get("genesis_time", defaults["genesis_time"]),
+                # default should be 1: https://github.com/tendermint/tendermint/pull/5191/files
+                request.args.get("initial_height", "1"),
             )
             tendermint_node.start(start_monitoring=perform_monitoring)
             return jsonify({"message": "Reset successful.", "status": True}), 200

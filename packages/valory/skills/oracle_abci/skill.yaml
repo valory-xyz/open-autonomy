@@ -12,7 +12,7 @@ fingerprint:
   behaviours.py: QmQqTFTYEEes3z2F6U7fnTzTcANuvMpd9CcdL9Di1EuCQe
   composition.py: QmTMTXbxA32JvoohYjHTDohMpc2cyWZdLDZyKtCUSvaAnK
   dialogues.py: QmSPy6VqdLur8B8K824MHrfr1fobGz3PUaFu82gKLpJz8P
-  fsm_specification.yaml: QmNtBq1LME67pGvjuWDczzJud5EK4pv2ZNRHp8xPJseZTU
+  fsm_specification.yaml: QmT6SZwTGmgFAZzrN9R2Qa7pY1P9JR8Si7MWKeEgULR9VV
   handlers.py: QmP46JqQwFgamtKhjLd3dpWY2yKdXBnubMYZpSsNBC1eFH
   models.py: QmSwdFNXuDkGCP8QB565HNafwtxgnVauUAYfE4FQEoDCgC
 fingerprint_ignore_patterns: []
@@ -22,15 +22,15 @@ contracts:
 - valory/gnosis_safe_proxy_factory:0.1.0:QmVkZtrgZ2ievXAonq9z33qbrxHi8piVGptuCGaGJYS1iM
 - valory/offchain_aggregator:0.1.0:Qmaftfci6asBewVH3vKGtMJVcAdG71Vm6Qv493uRkT7b2h
 protocols:
-- valory/contract_api:1.0.0:QmX2mRDNNWUTwU6ivKD65R3bnfC9jkGuKCaWqzxoQdm7ni
+- valory/contract_api:1.0.0:QmQssrTfPsTJxkHQthn735vKQHmBuvoZE2eMFf3UzEFizf
 skills:
-- valory/abstract_round_abci:0.1.0:QmdkjaAwcpUXYqiA8oTcynSCdGEXofmfypK6mXTGgVwh8H
-- valory/oracle_deployment_abci:0.1.0:QmeZYYqyDAwnTTSRN9divMvUAngSRx5AzxjGR4sHp1tDaF
-- valory/price_estimation_abci:0.1.0:QmWgevzV8XXf2wXceqQXhtFfu1tRDFaA1L7xNQ7ccUqBYy
-- valory/registration_abci:0.1.0:QmW9rDKVfWPE3wFFnUusxzkuRhhqUpD3nZLiadW1imofox
-- valory/reset_pause_abci:0.1.0:QmPhBJ3TGvSsqsJzwWJBLKdLVnWE7T8f93MCrVzkNr7wMQ
-- valory/safe_deployment_abci:0.1.0:QmcCV341ENpyzsdFm8nAhHCHoLAfpGs6yhhoSFRQ49yqhc
-- valory/transaction_settlement_abci:0.1.0:QmYVQXHqXmbRmRFEcdsdC4KVSatMJgbcWGdGhvPRu3hezX
+- valory/abstract_round_abci:0.1.0:QmWB1qbep6PbYGRCnVjMreG8aeLzmmchtcZV56Fxxbq9QX
+- valory/oracle_deployment_abci:0.1.0:Qmd7xVrzRnzr4atsTzTKmEeRgTcZdEKEdDtSkBsqZtwzMo
+- valory/price_estimation_abci:0.1.0:QmYpGNWSD7DtTAQfHkBsG2kwLAR3zsYnU6kH3XCLV6XhCy
+- valory/registration_abci:0.1.0:Qmdtd7Xbm6L7bRBjiet84yTVjT7JR4xyP49k3mHpiUDEPh
+- valory/reset_pause_abci:0.1.0:QmeNdzJCPHsLqBzaA7tyfcAiNY8CKSDJmNtDoanvPasrZh
+- valory/safe_deployment_abci:0.1.0:Qmbkgso3tKpXT6H1h9ncvtRke7LdRNngP4jeGgArbaHL81
+- valory/transaction_settlement_abci:0.1.0:QmdkFZaHvYnSn7nYtz1QMunFwjscuPF7voLDsdegzTXftV
 behaviours:
   main:
     args: {}
@@ -91,15 +91,15 @@ models:
         max_answer: 1000000000000000000000000
         decimals: 18
         description: BTC
-      period_setup:
-        oracle_contract_address: null
-        safe_contract_address: null
       reset_tendermint_after: 2
       retry_attempts: 400
       retry_timeout: 3
       round_timeout_seconds: 30.0
       service_id: price_estimation
       service_registry_address: null
+      setup:
+        oracle_contract_address: null
+        safe_contract_address: null
       sleep_time: 1
       tendermint_check_sleep_delay: 3
       tendermint_com_url: http://localhost:8080

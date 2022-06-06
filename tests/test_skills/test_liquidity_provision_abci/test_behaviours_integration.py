@@ -135,13 +135,15 @@ class LiquidityProvisionIntegrationBaseCase(
 
         cls.default_synchronized_data_hash = LiquidityRebalancingSynchronizedSata(
             AbciAppDB(
-                initial_data=dict(
-                    safe_contract_address=cls.safe_contract_address,
-                    most_voted_keeper_address=cls.keeper_address,
-                    most_voted_strategy=json.dumps(cls.strategy),
-                    multisend_contract_address=cls.multisend_contract_address,
-                    router_contract_address=cls.router_contract_address,
-                    participants=frozenset(list(cls.safe_owners.keys())),
+                initial_data=AbciAppDB.data_to_lists(
+                    dict(
+                        safe_contract_address=cls.safe_contract_address,
+                        most_voted_keeper_address=cls.keeper_address,
+                        most_voted_strategy=json.dumps(cls.strategy),
+                        multisend_contract_address=cls.multisend_contract_address,
+                        router_contract_address=cls.router_contract_address,
+                        participants=frozenset(list(cls.safe_owners.keys())),
+                    )
                 ),
             )
         )
@@ -150,11 +152,13 @@ class LiquidityProvisionIntegrationBaseCase(
         keepers = next(iter(cls.agents.keys()))
         cls.tx_settlement_synchronized_data = TransactionSettlementSynchronizedSata(
             AbciAppDB(
-                initial_data=dict(
-                    safe_contract_address=cls.safe_contract_address,
-                    most_voted_keeper_address=cls.keeper_address,
-                    participants=frozenset(list(cls.safe_owners.keys())),
-                    keepers=keeper_retries.to_bytes(32, "big").hex() + keepers,
+                initial_data=AbciAppDB.data_to_lists(
+                    dict(
+                        safe_contract_address=cls.safe_contract_address,
+                        most_voted_keeper_address=cls.keeper_address,
+                        participants=frozenset(list(cls.safe_owners.keys())),
+                        keepers=keeper_retries.to_bytes(32, "big").hex() + keepers,
+                    )
                 ),
             )
         )

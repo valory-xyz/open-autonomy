@@ -48,7 +48,7 @@ class ImageBuilder:
         cls,
         profile: str,
         deployment_file_path: Path,
-        package_dir: Path,
+        packages_dir: Path,
         build_dir: Path,
         skaffold_dir: Path,
         version: str,
@@ -60,7 +60,7 @@ class ImageBuilder:
             version = "dev"
 
         aea_agent = cls.get_aea_agent(deployment_file_path=deployment_file_path)
-        cls._copy_packages(package_dir=package_dir, build_dir=build_dir)
+        cls._copy_packages(packages_dir=packages_dir, build_dir=build_dir)
         cls._build(aea_agent, profile, skaffold_dir, version, push)
 
     @classmethod
@@ -130,17 +130,17 @@ class ImageBuilder:
 
     @staticmethod
     def _copy_packages(
-        package_dir: Path,
+        packages_dir: Path,
         build_dir: Path,
     ) -> None:
         """Copy packages for image building."""
-        build_package_dir = Path(build_dir) / "packages"
+        build_packages_dir = Path(build_dir) / "packages"
 
-        if build_package_dir.exists():
-            shutil.rmtree(build_package_dir)
+        if build_packages_dir.exists():
+            shutil.rmtree(build_packages_dir)
 
         shutil.copytree(  # type: ignore # pylint: disable=E1123
-            src=Path(package_dir), dst=build_package_dir
+            src=Path(packages_dir), dst=build_packages_dir
         )
 
     @staticmethod

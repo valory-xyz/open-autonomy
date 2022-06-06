@@ -110,22 +110,26 @@ class TransactionSettlementIntegrationBaseCase(
         keeper_initial_retries = 1
         cls.tx_settlement_synchronized_data = TxSettlementSynchronizedSata(
             AbciAppDB(
-                initial_data=dict(
-                    safe_contract_address=cls.safe_contract_address,
-                    participants=frozenset(list(cls.safe_owners.keys())),
-                    keepers=keeper_initial_retries.to_bytes(32, "big").hex()
-                    + cls.keeper_address,
+                initial_data=AbciAppDB.data_to_lists(
+                    dict(
+                        safe_contract_address=cls.safe_contract_address,
+                        participants=frozenset(list(cls.safe_owners.keys())),
+                        keepers=keeper_initial_retries.to_bytes(32, "big").hex()
+                        + cls.keeper_address,
+                    )
                 ),
             )
         )
 
         cls.price_estimation_synchronized_data = PriceEstimationSynchronizedSata(
             AbciAppDB(
-                initial_data=dict(
-                    safe_contract_address=cls.safe_contract_address,
-                    participants=frozenset(list(cls.safe_owners.keys())),
-                    most_voted_keeper_address=cls.keeper_address,
-                    most_voted_estimate=1,
+                initial_data=AbciAppDB.data_to_lists(
+                    dict(
+                        safe_contract_address=cls.safe_contract_address,
+                        participants=frozenset(list(cls.safe_owners.keys())),
+                        most_voted_keeper_address=cls.keeper_address,
+                        most_voted_estimate=1,
+                    )
                 ),
             )
         )
@@ -324,8 +328,8 @@ class TestKeepers(OracleBehaviourBaseCase, IntegrationBaseCase):
         cls.tx_settlement_synchronized_data = TxSettlementSynchronizedSata(
             AbciAppDB(
                 initial_data=dict(
-                    participants=frozenset(list(cls.agents.keys())),
-                    most_voted_randomness="0xabcd",
+                    participants=[frozenset(list(cls.agents.keys()))],
+                    most_voted_randomness=["0xabcd"],
                 ),
             )
         )

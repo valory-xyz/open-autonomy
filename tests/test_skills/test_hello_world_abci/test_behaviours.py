@@ -112,7 +112,7 @@ class HelloWorldAbciFSMBehaviourBaseCase(BaseSkillTestCase):
         cls.synchronized_data = SynchronizedData(
             AbciAppDB(
                 initial_data=dict(
-                    most_voted_keeper_address="most_voted_keeper_address",
+                    most_voted_keeper_address=["most_voted_keeper_address"],
                 ),
             )
         )
@@ -314,8 +314,8 @@ class BaseSelectKeeperBehaviourTest(HelloWorldAbciFSMBehaviourBaseCase):
             synchronized_data=SynchronizedData(
                 AbciAppDB(
                     initial_data=dict(
-                        participants=participants,
-                        most_voted_keeper_address="most_voted_keeper_address",
+                        participants=[participants],
+                        most_voted_keeper_address=["most_voted_keeper_address"],
                     ),
                 )
             ),

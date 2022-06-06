@@ -157,7 +157,7 @@ and subsequently stripped from unnecessary data structures and behaviours.
 
 This `AbciApp` implements off-chain aggregation of observations by the agents.
 Once the majority of agents has submitted their observation these are shared
-with all agents as they move to the price estimation round. In this next round  
+with all agents as they move to the price estimation round. In this next round
 each of the agents performs off-chain a computation on the data set, which could
 be a simple summary statistic or an estimate derived from a complex model -
 either way this is something that cannot be done on-chain. Once consensus is
@@ -181,7 +181,7 @@ on-chain in the next block that is mined.
 2. `TxHashRound` <br/>
    A designated sender composes the transaction and puts it on the temporary
    Tendermint-based chain. Signing of the transaction for the multisig smart
-   contract requires consensus among the agents on the transaction hash to use.  
+   contract requires consensus among the agents on the transaction hash to use.
 
 3. `FinishedPriceAggregationRound` <br/>
    A round that signals price aggregation was completed successfully.
@@ -217,7 +217,7 @@ on-chain in the next block that is mined.
 
 6. `SelectKeeperTransactionSubmissionRoundB` <br/>
    The agents select a keeper that will be in charge of sending the transaction,
-   in case that the first keeper has failed.    
+   in case that the first keeper has failed.
 
 7. `ResetRound` <br/>
    In case that a failure such as round timeout or no majority reached, the period
@@ -246,24 +246,26 @@ providing the necessary transition mapping. As per the code implemented in the
 [demo](./price_oracle_running.md), the implementation looks as follows:
 
 ```python
-
 abci_app_transition_mapping: AbciAppTransitionMapping = {
     FinishedRegistrationRound: RandomnessSafeRound,
     FinishedSafeRound: RandomnessOracleRound,
     FinishedOracleRound: CollectObservationRound,
     FinishedRegistrationFFWRound: CollectObservationRound,
     FinishedPriceAggregationRound: RandomnessTransactionSubmissionRound,
-    FinishedTransactionSubmissionRound: CollectObservationRound,
-    FailedRound: RegistrationRound,
+    FailedRound: ResetAndPauseRound,
+    FinishedTransactionSubmissionRound: ResetAndPauseRound,
+    FinishedResetAndPauseRound: CollectObservationRound,
+    FinishedResetAndPauseErrorRound: RegistrationRound,
 }
 
-PriceEstimationAbciApp = chain(
+OracleAbciApp = chain(
     (
         AgentRegistrationAbciApp,
         SafeDeploymentAbciApp,
         OracleDeploymentAbciApp,
         PriceAggregationAbciApp,
         TransactionSubmissionAbciApp,
+        ResetPauseABCIApp,
     ),
     abci_app_transition_mapping,
 )
@@ -276,36 +278,19 @@ PriceEstimationAbciApp = chain(
 
 
 ```python
-class PriceEstimationConsensusBehaviour(AbstractRoundBehaviour):
+class OracleAbciAppConsensusBehaviour(AbstractRoundBehaviour):
     """This behaviour manages the consensus stages for the price estimation."""
 
-    initial_state_cls = TendermintHealthcheckBehaviour
-    abci_app_cls = PriceEstimationAbciApp
-    behaviour_states: Set[Type[BaseState]] = {
-        TendermintHealthcheckBehaviour,
-        RegistrationBehaviour,
-        RegistrationStartupBehaviour,
-        RandomnessSafeBehaviour,
-        RandomnessOracleBehaviour,
-        SelectKeeperSafeBehaviour,
-        DeploySafeBehaviour,
-        ValidateSafeBehaviour,
-        SelectKeeperOracleBehaviour,
-        DeployOracleBehaviour,
-        ValidateOracleBehaviour,
-        RandomnessTransactionSubmissionBehaviour,
-        ObserveBehaviour,
-        EstimateBehaviour,
-        TransactionHashBehaviour,
-        SignatureBehaviour,
-        FinalizeBehaviour,
-        ValidateTransactionBehaviour,
-        SelectKeeperTransactionSubmissionBehaviourA,
-        SelectKeeperTransactionSubmissionBehaviourB,
-        ResetBehaviour,
-        ResetAndPauseBehaviour,
+    initial_behaviour_cls = RegistrationStartupBehaviour
+    abci_app_cls = OracleAbciApp  # type: ignore
+    behaviours: Set[Type[BaseBehaviour]] = {
+        *OracleDeploymentRoundBehaviour.behaviours,
+        *AgentRegistrationRoundBehaviour.behaviours,
+        *SafeDeploymentRoundBehaviour.behaviours,
+        *TransactionSettlementRoundBehaviour.behaviours,
+        *ResetPauseABCIConsensusBehaviour.behaviours,
+        *ObserverRoundBehaviour.behaviours,
     }
-
 ```
 
 Have a look at the [FSM diagram](./price_oracle_fsms.md) of the application in order
@@ -318,20 +303,20 @@ to see what the encoded state transitions in the final composite FSM look like.
     it is not fully up-to-date with the implementation discussed here.
 
 ### Known Limitations
-The `TransactionSettlementSkill` has a known limitation that concerns the revert reason lookup. 
-While checking the history in `CheckTransactionHistoryRound`, an exception may get raised: 
+The `TransactionSettlementSkill` has a known limitation that concerns the revert reason lookup.
+While checking the history in `CheckTransactionHistoryRound`, an exception may get raised:
 
 ```
 ValueError: The given transaction has not been reverted!
 ```
 
-This error arises because of the way that we check for the revert reason; We currently 
-[replay](https://github.com/valory-xyz/consensus-algorithms/blob/25c9eacae692551eb68aad3977017ca9c5fd337b/packages/valory/contracts/gnosis_safe/contract.py#L614-L619) 
-the tx locally. However, there is an important limitation with this method. The replayed transaction will be 
-executed in isolation. This means that transactions which occurred prior to the replayed transaction within 
-the same block will not be accounted for! Therefore, the replay will not raise a `SolidityError` in such case, 
+This error arises because of the way that we check for the revert reason; We currently
+[replay](https://github.com/valory-xyz/consensus-algorithms/blob/25c9eacae692551eb68aad3977017ca9c5fd337b/packages/valory/contracts/gnosis_safe/contract.py#L614-L619)
+the tx locally. However, there is an important limitation with this method. The replayed transaction will be
+executed in isolation. This means that transactions which occurred prior to the replayed transaction within
+the same block will not be accounted for! Therefore, the replay will not raise a `SolidityError` in such case,
 because both the txs happened in the same block.
 
-The exception is handled automatically and logged as an error, so it does not affect the execution. 
-However, as a side effect, we may end the round with a failure status even though the transaction has settled, 
+The exception is handled automatically and logged as an error, so it does not affect the execution.
+However, as a side effect, we may end the round with a failure status even though the transaction has settled,
 because we have not managed to detect it.

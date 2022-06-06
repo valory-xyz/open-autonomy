@@ -419,7 +419,7 @@ Check server status.
 #### reset`_`genesis`_`file
 
 ```python
-def reset_genesis_file(genesis_time: str) -> None
+def reset_genesis_file(genesis_time: str, initial_height: str) -> None
 ```
 
 Reset genesis file.

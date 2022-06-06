@@ -45,7 +45,7 @@ class TestTendermintStartup(BaseTestEnd2EndNormalExecution):
         "registration_startup": 1,
         "reset_and_pause": 1,
     }
-    wait_to_finish = 20
+    wait_to_finish = 60
 
 
 @pytest.mark.parametrize("nb_nodes", (4,))
@@ -55,7 +55,7 @@ class TestTendermintReset(BaseTestEnd2EndNormalExecution):
     agent_package = "valory/register_reset:0.1.0"
     skill_package = "valory/register_reset_abci:0.1.0"
     round_check_strings_to_n_periods = EXPECTED_ROUND_LOG_COUNT
-    wait_to_finish = 120
+    wait_to_finish = 200
     __reset_tendermint_every = 1
     __args_prefix = f"vendor.valory.skills.{PublicId.from_str(skill_package).name}.models.params.args"
     # reset every `__reset_tendermint_every` rounds
@@ -75,13 +75,11 @@ class TestTendermintResetInterrupt(BaseTestEnd2EndAgentCatchup):
     skill_package = "valory/register_reset_abci:0.1.0"
     cli_log_options = ["-v", "INFO"]
     wait_before_stop = 60
-    wait_to_finish = 180
+    wait_to_finish = 200
     restart_after = 1
     __reset_tendermint_every = 1
     stop_string = f"Entered in the 'reset_and_pause' round for period {__reset_tendermint_every - 1}"
     round_check_strings_to_n_periods = EXPECTED_ROUND_LOG_COUNT
-    # check if we manage to reset with Tendermint with the rest of the agents.
-    exclude_from_checks = [3]
 
     __args_prefix = f"vendor.valory.skills.{PublicId.from_str(skill_package).name}.models.params.args"
     # reset every `__reset_tendermint_every` rounds
@@ -101,6 +99,8 @@ class TestTendermintResetInterruptNoRejoin(TestTendermintResetInterrupt):
     on Tendermint reset and never rejoins.
     """
 
-    wait_to_finish = 100
+    wait_to_finish = 200
     # set the restart to a value so that the agent never rejoins, in order to test the impact to the rest of the agents
     restart_after = wait_to_finish
+    # check if we manage to reset with Tendermint with the rest of the agents; 3rd agent will not rejoin in this test
+    exclude_from_checks = [3]

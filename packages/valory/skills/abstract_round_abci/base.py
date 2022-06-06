@@ -22,6 +22,7 @@ import datetime
 import heapq
 import itertools
 import logging
+import sys
 import textwrap
 import uuid
 from abc import ABC, ABCMeta, abstractmethod
@@ -49,6 +50,7 @@ from typing import (
 from aea.crypto.ledger_apis import LedgerApis
 from aea.exceptions import enforce
 
+from packages.valory.connections.abci.connection import MAX_READ_IN_BYTES
 from packages.valory.connections.ledger.base import (
     CONNECTION_ID as LEDGER_CONNECTION_PUBLIC_ID,
 )
@@ -68,8 +70,7 @@ MIN_HISTORY_DEPTH = 1
 ADDRESS_LENGTH = 42
 MAX_INT_256 = 2 ** 256 - 1
 RESET_COUNT_START = 0
-VALUE_NOT_PROVIDED = "VALUE_NOT_PROVIDED"
-DEFAULT_VALUE_FLAG = "DEFAULT_VALUE_FLAG"
+VALUE_NOT_PROVIDED = object()
 
 EventType = TypeVar("EventType")
 TransactionType = TypeVar("TransactionType")
@@ -284,7 +285,12 @@ class Transaction(ABC):
     def encode(self) -> bytes:
         """Encode the transaction."""
         data = dict(payload=self.payload.json, signature=self.signature)
-        return DictProtobufStructSerializer.encode(data)
+        encoded_data = DictProtobufStructSerializer.encode(data)
+        if sys.getsizeof(encoded_data) > MAX_READ_IN_BYTES:
+            raise ValueError(
+                f"Transaction must be smaller than {MAX_READ_IN_BYTES} bytes"
+            )
+        return encoded_data
 
     @classmethod
     def decode(cls, obj: bytes) -> "Transaction":
@@ -346,11 +352,10 @@ class Blockchain:
     The consistency of the data in the blocks is guaranteed by Tendermint.
     """
 
-    def __init__(
-        self,
-    ) -> None:
+    def __init__(self, height_offset: int = 0) -> None:
         """Initialize the blockchain."""
         self._blocks: List[Block] = []
+        self._height_offset = height_offset
 
     def add_block(self, block: Block) -> None:
         """Add a block to the list."""
@@ -372,7 +377,7 @@ class Blockchain:
 
         :return: the height.
         """
-        return self.length
+        return self.length + self._height_offset
 
     @property
     def length(self) -> int:
@@ -494,16 +499,23 @@ class AbciAppDB:
         0: {
             "participants":
                 [
-                    {"participant_a", "participant_b"},
-                    {"participant_b"},
-                    {"participant_a", "participant_b"},
+                    {"participant_a", "participant_b", "participant_c", "participant_d"},
+                    {"participant_a", "participant_b", "participant_c"},
+                    {"participant_a", "participant_b", "participant_c", "participant_d"},
                 ]
             },
-            "other_parameter": [0, 1, 2]
+            "other_parameter": [0, 2, 8]
         },
         1: {
-            "participants": [{"participant_a", "participant_b"}, {"participant_b"}, {"participant_a", "participant_b"}],
-            "other_parameter": [3, 4, 5]
+            "participants":
+                [
+                    {"participant_a", "participant_c", "participant_d"},
+                    {"participant_a", "participant_b", "participant_c", "participant_d"},
+                    {"participant_a", "participant_b", "participant_c"},
+                    {"participant_a", "participant_b", "participant_d"},
+                    {"participant_a", "participant_b", "participant_c", "participant_d"},
+                ],
+            "other_parameter": [3, 19, 10, 32, 6]
         },
         2: ...
     }
@@ -514,24 +526,19 @@ class AbciAppDB:
 
     def __init__(
         self,
-        initial_data: Dict[str, Any],
+        initial_data: Dict[str, List[Any]],
         cross_period_persisted_keys: Optional[List[str]] = None,
-        format_initial_data: bool = True,
     ) -> None:
         """Initialize the AbciApp database.
 
-        initial_data can be passed either as Dict[str, Any] of Dict[str, List[Any]] (the database internal format). Use the format_initial_data to decide if
-        initial_data should be automatically converted.
+        Initial_data must be passed as a Dict[str, List[Any]] (the database internal format). The class method 'data_to_lists'
+        can be used to convert from Dict[str, Any] to Dict[str, List[Any]] before instantiating this class.
 
         :param initial_data: the initial data
         :param cross_period_persisted_keys: data keys that will be kept after a new period starts
-        :param format_initial_data: flag to indicate whether initial_data should be converted from Dict[str, Any] to Dict[str, List[Any]]
         """
-        self._initial_data = (
-            AbciAppDB.data_to_list(initial_data)
-            if format_initial_data
-            else initial_data
-        )
+        AbciAppDB._check_data(initial_data)
+        self._initial_data = initial_data
         self._cross_period_persisted_keys = cross_period_persisted_keys or []
         self._data: Dict[int, Dict[str, List[Any]]] = {
             RESET_COUNT_START: deepcopy(
@@ -549,10 +556,11 @@ class AbciAppDB:
         """
         return self._initial_data
 
-    @classmethod
-    def data_to_list(cls, data: Dict[str, Any]) -> Dict[str, List[Any]]:
-        """Convert Dict[str, Any] to Dict[str, List[Any]]."""
-        return {key: [value] for key, value in data.items()}
+    @staticmethod
+    def _check_data(data: Dict) -> None:
+        """Check that all fields in initial data were passed as a list"""
+        if not all([isinstance(v, list) for v in data.values()]):
+            raise ValueError("AbciAppDB data must be Dict[str, List[Any]]")
 
     @property
     def reset_index(self) -> int:
@@ -567,54 +575,34 @@ class AbciAppDB:
 
     @property
     def cross_period_persisted_keys(self) -> List[str]:
-        """Keys in the database which are persistet across periods."""
+        """Keys in the database which are persistent across periods."""
         return self._cross_period_persisted_keys
 
     def get(self, key: str, default: Any = VALUE_NOT_PROVIDED) -> Optional[Any]:
-        """Get a value from the data dictionary."""
+        """Given a key, get its last for the current reset index."""
+        if key in self._data[self.reset_index]:
+            return self._data[self.reset_index][key][-1]
         if default != VALUE_NOT_PROVIDED:
-            key_history_or_default = self._data.get(self.reset_index, {}).get(
-                key, DEFAULT_VALUE_FLAG
-            )
-            return (
-                default
-                if key_history_or_default == DEFAULT_VALUE_FLAG
-                else key_history_or_default[-1]
-            )
-        try:
-            key_history = self._data.get(self.reset_index, {}).get(key)
-            return key_history[-1] if key_history else None
-        except KeyError as exception:  # pragma: no cover
-            raise ValueError(
-                f"'{key}' field is not set for this period."
-            ) from exception
+            return default
+        raise ValueError(
+            f"'{key}' field is not set for this period [{self.reset_index}] and no default value was provided."
+        )
 
     def get_strict(self, key: str) -> Any:
         """Get a value from the data dictionary and raise if it is None."""
-        value = self.get(key)
-        if value is None:
-            raise ValueError(
-                f"Value of key={key} is None for " f"reset_index={self.reset_index} "
-            )
-        return value
+        return self.get(key)
 
-    def update(self, overwrite_history: bool = False, **kwargs: Any) -> None:
+    def update(self, **kwargs: Any) -> None:
         """Update the current data."""
-        if overwrite_history:
-            # Overwrite all key history for this period
-            for key, value in kwargs.items():
-                self._data[self.reset_index][key] = [value]
-            return
-
         # Append new data to the key history
         data = self._data[self.reset_index]
         for key, value in kwargs.items():
             data.setdefault(key, []).append(value)
 
-    def create(self, format_data: bool = True, **kwargs: Any) -> None:
+    def create(self, **kwargs: List[Any]) -> None:
         """Add a new entry to the data."""
-        new_data = AbciAppDB.data_to_list(kwargs) if format_data else kwargs
-        self._data[self.reset_index + 1] = new_data
+        AbciAppDB._check_data(kwargs)
+        self._data[self.reset_index + 1] = kwargs
 
     def get_latest_from_reset_index(self, reset_index: int) -> Dict[str, Any]:
         """Get the latest key-value pairs from the data dictionary for the specified period."""
@@ -641,6 +629,11 @@ class AbciAppDB:
             key: self._data[key]
             for key in sorted(self._data.keys())[-cleanup_history_depth:]
         }
+
+    @staticmethod
+    def data_to_lists(data: Dict[str, Any]) -> Dict[str, List[Any]]:
+        """Convert Dict[str, Any] to Dict[str, List[Any]]."""
+        return {k: [v] for k, v in data.items()}
 
 
 class BaseSynchronizedData:
@@ -718,11 +711,10 @@ class BaseSynchronizedData:
     def update(
         self,
         synchronized_data_class: Optional[Type] = None,
-        overwrite_history: bool = False,
         **kwargs: Any,
     ) -> "BaseSynchronizedData":
         """Copy and update the current data."""
-        self.db.update(overwrite_history=overwrite_history, **kwargs)
+        self.db.update(**kwargs)
 
         class_ = (
             type(self) if synchronized_data_class is None else synchronized_data_class
@@ -732,11 +724,10 @@ class BaseSynchronizedData:
     def create(
         self,
         synchronized_data_class: Optional[Type] = None,
-        format_data: bool = True,
         **kwargs: Any,
     ) -> "BaseSynchronizedData":
         """Copy and update with new data."""
-        self.db.create(format_data=format_data, **kwargs)
+        self.db.create(**kwargs)
         class_ = (
             type(self) if synchronized_data_class is None else synchronized_data_class
         )
@@ -1362,7 +1353,6 @@ class VotingRound(CollectionRound):
         if self.positive_vote_threshold_reached:
             synchronized_data = self.synchronized_data.update(
                 synchronized_data_class=self.synchronized_data_class,
-                overwrite_history=False,
                 **{self.collection_key: self.collection},
             )
             return synchronized_data, self.done_event
@@ -1410,7 +1400,6 @@ class CollectDifferentUntilThresholdRound(CollectionRound):
         ):
             synchronized_data = self.synchronized_data.update(
                 synchronized_data_class=self.synchronized_data_class,
-                overwrite_history=False,
                 **{
                     self.selection_key: frozenset(list(self.collection.keys())),
                     self.collection_key: self.collection,
@@ -1459,7 +1448,6 @@ class CollectNonEmptyUntilThresholdRound(CollectDifferentUntilThresholdRound):
 
             synchronized_data = self.synchronized_data.update(
                 synchronized_data_class=self.synchronized_data_class,
-                overwrite_history=False,
                 **{
                     self.selection_key: frozenset(list(self.collection.keys())),
                     self.collection_key: non_empty_values,
@@ -1730,6 +1718,7 @@ class AbciApp(
         self._last_timestamp: Optional[datetime.datetime] = None
         self._current_timeout_entries: List[int] = []
         self._timeouts = Timeouts[EventType]()
+        self._reset_index = 0
 
     @property
     def synchronized_data(self) -> BaseSynchronizedData:
@@ -1740,6 +1729,11 @@ class AbciApp(
             if latest_result is not None
             else self._initial_synchronized_data
         )
+
+    @property
+    def reset_index(self) -> int:
+        """Return the reset index."""
+        return self._reset_index
 
     @classmethod
     def get_all_rounds(cls) -> Set[AppState]:
@@ -1996,9 +1990,10 @@ class AbciApp(
         self._previous_rounds = self._previous_rounds[-cleanup_history_depth:]
         self._round_results = self._round_results[-cleanup_history_depth:]
         self.synchronized_data.db.cleanup(cleanup_history_depth)
+        self._reset_index += 1
 
 
-class RoundSequence:
+class RoundSequence:  # pylint: disable=too-many-instance-attributes
     """
     This class represents a sequence of rounds
 
@@ -2044,6 +2039,9 @@ class RoundSequence:
         self._abci_app: Optional[AbciApp] = None
         self._last_round_transition_timestamp: Optional[datetime.datetime] = None
         self._last_round_transition_height = 0
+        self._last_round_transition_root_hash = b""
+        self._last_round_transition_tm_height: Optional[int] = None
+        self._tm_height: Optional[int] = None
 
     def setup(self, *args: Any, **kwargs: Any) -> None:
         """
@@ -2160,6 +2158,25 @@ class RoundSequence:
         return self._last_round_transition_height
 
     @property
+    def last_round_transition_root_hash(
+        self,
+    ) -> bytes:
+        """Returns the root hash for last round transition."""
+        if self._last_round_transition_root_hash == b"":
+            # if called for the first chain initialization, return the hash resulting from the initial abci app's state
+            return self.root_hash
+        return self._last_round_transition_root_hash
+
+    @property
+    def last_round_transition_tm_height(self) -> int:
+        """Returns the Tendermint height for last round transition."""
+        if self._last_round_transition_tm_height is None:
+            raise ValueError(
+                "Trying to access Tendermint's last round transition height before any `end_block` calls."
+            )
+        return self._last_round_transition_tm_height
+
+    @property
     def latest_synchronized_data(self) -> BaseSynchronizedData:
         """Get the latest synchronized_data."""
         return self.abci_app.synchronized_data
@@ -2177,7 +2194,28 @@ class RoundSequence:
 
         :return: the root hash to be included as the Header.AppHash in the next block.
         """
-        return str(self.abci_app.synchronized_data.db.round_count).encode("utf-8")
+        return f"root:{self.abci_app.synchronized_data.db.round_count}reset:{self.abci_app.reset_index}".encode(
+            "utf-8"
+        )
+
+    @property
+    def tm_height(self) -> int:
+        """Get Tendermint's current height."""
+        if self._tm_height is None:
+            raise ValueError(
+                "Trying to access Tendermint's current height before any `end_block` calls."
+            )
+        return self._tm_height
+
+    @tm_height.setter
+    def tm_height(self, _tm_height: int) -> None:
+        """Set Tendermint's current height."""
+        self._tm_height = _tm_height
+
+    def init_chain(self, initial_height: int) -> None:
+        """Init chain."""
+        # reduce `initial_height` by 1 to get block count offset as per Tendermint protocol
+        self._blockchain = Blockchain(initial_height - 1)
 
     def begin_block(self, header: Header) -> None:
         """Begin block."""
@@ -2248,10 +2286,6 @@ class RoundSequence:
         try:
             self._blockchain.add_block(block)
             self._update_round()
-            self._last_round_transition_timestamp = (
-                self._blockchain.last_block.timestamp
-            )
-            self._last_round_transition_height = self.height
             # The ABCI app now waits again for the next block
             self._block_construction_phase = (
                 RoundSequence._BlockConstructionState.WAITING_FOR_BEGIN_BLOCK
@@ -2279,6 +2313,10 @@ class RoundSequence:
         ] = self.current_round.end_block()
         if result is None:
             return
+        self._last_round_transition_timestamp = self._blockchain.last_block.timestamp
+        self._last_round_transition_height = self.height
+        self._last_round_transition_root_hash = self.root_hash
+        self._last_round_transition_tm_height = self.tm_height
         round_result, event = result
         _logger.debug(
             f"updating round, current_round {self.current_round.round_id}, event: {event}, round result {round_result}"

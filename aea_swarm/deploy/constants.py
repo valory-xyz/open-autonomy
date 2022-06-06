@@ -18,7 +18,6 @@
 # ------------------------------------------------------------------------------
 
 """Constants for generating deployments environment."""
-import os
 import socket
 from string import Template
 from typing import Any, Dict
@@ -38,11 +37,6 @@ def get_ip() -> str:
         s.close()
     return IP
 
-
-DEFAULT_IMAGE_VERSION = "0.1.0"
-IMAGE_VERSION = os.environ.get("VERSION", DEFAULT_IMAGE_VERSION)
-TENDERMINT_VERSION = "0.1.0"
-HARDHAT_VERSION = "0.1.0"
 
 NETWORKS = {
     "docker-compose": {
@@ -84,3 +78,13 @@ Network:              $network
 Build Length          $size\n\n
 """
 )
+
+DEPLOYMENT_KEY_DIRECTORY = "agent_keys"
+DEPLOYMENT_AGENT_KEY_DIRECTORY_SCHEMA = "agent_{agent_n}"
+KUBERNETES_AGENT_KEY_NAME = DEPLOYMENT_AGENT_KEY_DIRECTORY_SCHEMA + "_private_key.yaml"
+
+DEFAULT_ENCODING = "utf-8"
+
+KEY_SCHEMA_ADDRESS = "address"
+KEY_SCHEMA_ENCRYPTED_KEY = "encrypted_key"
+KEY_SCHEMA_UNENCRYPTED_KEY = "private_key"

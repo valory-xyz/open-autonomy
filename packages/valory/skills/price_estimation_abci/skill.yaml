@@ -23,9 +23,9 @@ contracts:
 - valory/gnosis_safe_proxy_factory:0.1.0:QmVkZtrgZ2ievXAonq9z33qbrxHi8piVGptuCGaGJYS1iM
 - valory/offchain_aggregator:0.1.0:Qmaftfci6asBewVH3vKGtMJVcAdG71Vm6Qv493uRkT7b2h
 protocols:
-- valory/contract_api:1.0.0:QmX2mRDNNWUTwU6ivKD65R3bnfC9jkGuKCaWqzxoQdm7ni
+- valory/contract_api:1.0.0:QmQssrTfPsTJxkHQthn735vKQHmBuvoZE2eMFf3UzEFizf
 skills:
-- valory/abstract_round_abci:0.1.0:QmdkjaAwcpUXYqiA8oTcynSCdGEXofmfypK6mXTGgVwh8H
+- valory/abstract_round_abci:0.1.0:QmWB1qbep6PbYGRCnVjMreG8aeLzmmchtcZV56Fxxbq9QX
 behaviours:
   main:
     args: {}
@@ -86,15 +86,15 @@ models:
         max_answer: 1000000000000000000000000
         decimals: 18
         description: BTC
-      period_setup:
-        oracle_contract_address: null
-        safe_contract_address: null
       reset_tendermint_after: 2
       retry_attempts: 400
       retry_timeout: 3
       round_timeout_seconds: 30.0
       service_id: price_estimation
       service_registry_address: null
+      setup:
+        oracle_contract_address: null
+        safe_contract_address: null
       sleep_time: 1
       tendermint_check_sleep_delay: 3
       tendermint_com_url: http://localhost:8080

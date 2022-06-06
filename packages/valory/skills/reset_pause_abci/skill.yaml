@@ -14,16 +14,16 @@ fingerprint:
   handlers.py: QmeMA4MKs9ZPnrZczGDg59HhKxWGShj5fK6rS9UQV6BbCh
   models.py: QmPegRgrqVr6fMECoYCd3k7VDKdndBNMTuiPVrGTM9SW3o
   payloads.py: QmSds2L9BKR4157xqGgH22dG8ojq6hc1BG2JH9NgzhxgVp
-  rounds.py: QmSiVozeGjmazAzeZsbxdjmdoqM5wAzoL8qFHRd357HdLQ
+  rounds.py: QmaH6aihxSJpKcmF6gAPxzqmb4GL8VJZnJwkUDRnPR3xv7
 fingerprint_ignore_patterns: []
 connections:
-- valory/abci:0.1.0:QmcSFCqBgsz1MZYheyGJz53TDm8iLGeeqRRnupaazDDBmC
+- valory/abci:0.1.0:QmVV5qAZxB75SsVGfQw5KuMRnuFP3RXYD6WwaYs6iMWiVU
 contracts: []
 protocols:
-- open_aea/signing:1.0.0:QmaGYpYEQjgbM37pBMiR7RcpeSLpztZyzDt2RF7sTXoMyU
-- valory/abci:0.1.0:QmPh452wHDWf6xTnAENyXQED5UZNkU5dum98ZGfN9vZGhk
+- open_aea/signing:1.0.0:QmQJbzTMRVNTSaJDm4JSZHzoRgsZDUfzTqipJAJcicobXx
+- valory/abci:0.1.0:QmYg2GNatG8mzmiZrnZNL2LtS7rx4Mgi8g55Kfd5nj3QEp
 skills:
-- valory/abstract_round_abci:0.1.0:QmdkjaAwcpUXYqiA8oTcynSCdGEXofmfypK6mXTGgVwh8H
+- valory/abstract_round_abci:0.1.0:QmWB1qbep6PbYGRCnVjMreG8aeLzmmchtcZV56Fxxbq9QX
 behaviours:
   main:
     args: {}
@@ -68,13 +68,13 @@ models:
       max_healthcheck: 120
       observation_interval: 10
       on_chain_service_id: null
-      period_setup: {}
       reset_tendermint_after: 2
       retry_attempts: 400
       retry_timeout: 3
       round_timeout_seconds: 30.0
       service_id: reset_pause_abci
       service_registry_address: null
+      setup: {}
       sleep_time: 1
       tendermint_check_sleep_delay: 3
       tendermint_com_url: http://localhost:8080

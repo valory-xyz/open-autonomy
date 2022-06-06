@@ -15,16 +15,16 @@ fingerprint:
   models.py: QmTRz2RdzomkGpHYud3zKc31rLBzcFyUc2b2GwMoFShN8V
   payload_tools.py: QmZdccbHqYawRVZnFaY1FZWJZKHhsVmSxipPgghGNmhmh5
   payloads.py: QmRYqBh9fDEXP4GxwjbNtGwHqaYmDUx5zBsWZxW6fhWwQp
-  rounds.py: QmX6iTAP9iG7LbHkfPVLB7DLhUH2icirtW6mV1k3hYKXks
+  rounds.py: QmUwbP2kYdAM1Yy6iHYngf1Tg3AyoVD6gWLENTBG298ktk
 fingerprint_ignore_patterns: []
 connections: []
 contracts:
 - valory/gnosis_safe:0.1.0:QmRNdXGRRQBMFXh5ZvtJeYvHt7559kV5r5EYU5JNUdRBKJ
 - valory/gnosis_safe_proxy_factory:0.1.0:QmVkZtrgZ2ievXAonq9z33qbrxHi8piVGptuCGaGJYS1iM
 protocols:
-- valory/contract_api:1.0.0:QmX2mRDNNWUTwU6ivKD65R3bnfC9jkGuKCaWqzxoQdm7ni
+- valory/contract_api:1.0.0:QmQssrTfPsTJxkHQthn735vKQHmBuvoZE2eMFf3UzEFizf
 skills:
-- valory/abstract_round_abci:0.1.0:QmdkjaAwcpUXYqiA8oTcynSCdGEXofmfypK6mXTGgVwh8H
+- valory/abstract_round_abci:0.1.0:QmWB1qbep6PbYGRCnVjMreG8aeLzmmchtcZV56Fxxbq9QX
 behaviours:
   main:
     args: {}

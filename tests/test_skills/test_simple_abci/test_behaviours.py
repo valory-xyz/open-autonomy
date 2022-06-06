@@ -557,8 +557,10 @@ class BaseSelectKeeperBehaviourTest(SimpleAbciFSMBehaviourBaseCase):
             synchronized_data=SynchronizedData(
                 AbciAppDB(
                     initial_data=dict(
-                        participants=participants,
-                        most_voted_randomness="56cbde9e9bbcbdcaf92f183c678eaa5288581f06b1c9c7f884ce911776727688",
+                        participants=[participants],
+                        most_voted_randomness=[
+                            "56cbde9e9bbcbdcaf92f183c678eaa5288581f06b1c9c7f884ce911776727688"
+                        ],
                     ),
                 )
             ),

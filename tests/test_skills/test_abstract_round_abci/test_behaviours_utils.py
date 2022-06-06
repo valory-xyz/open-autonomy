@@ -20,6 +20,7 @@
 """Test the behaviours_utils.py module of the skill."""
 import json
 import logging
+import math
 import sys
 import time
 from abc import ABC
@@ -32,6 +33,7 @@ from unittest.mock import MagicMock
 
 import atheris  # type: ignore
 import pytest
+import pytz  # type: ignore  # pylint: disable=import-error
 
 from packages.open_aea.protocols.signing import SigningMessage
 from packages.valory.connections.http_client.connection import HttpDialogues
@@ -47,6 +49,8 @@ from packages.valory.skills.abstract_round_abci.behaviour_utils import (
     AsyncBehaviour,
     BaseBehaviour,
     DegenerateBehaviour,
+    HEIGHT_OFFSET_MULTIPLIER,
+    MAX_HEIGHT_OFFSET,
     SendException,
     TimeoutException,
     make_degenerate_behaviour,
@@ -1269,7 +1273,7 @@ class TestBaseBehaviour:
     )
     def test_reset_tendermint_with_wait(
         self,
-        _build_http_request_message: mock.Mock,
+        build_http_request_message_mock: mock.Mock,
         _start_reset: mock.Mock,
         reset_response: Union[Dict[str, Union[bool, str]], str],
         status_response: Union[Dict[str, Union[int, str]], str],
@@ -1293,6 +1297,7 @@ class TestBaseBehaviour:
                 return mock.MagicMock(body=b"")
             return mock.MagicMock(body=json.dumps(status_response).encode())
 
+        self.behaviour.params.observation_interval = 1
         with mock.patch.object(
             BaseBehaviour, "_is_timeout_expired", return_value=False
         ), mock.patch.object(
@@ -1310,6 +1315,30 @@ class TestBaseBehaviour:
             reset = self.behaviour.reset_tendermint_with_wait()
             for _ in range(n_iter):
                 next(reset)
+            offset = math.ceil(
+                self.behaviour.params.observation_interval * HEIGHT_OFFSET_MULTIPLIER
+            )
+            offset = min(MAX_HEIGHT_OFFSET, offset)
+            assert offset == 1
+            initial_height = (
+                self.behaviour.context.state.round_sequence.last_round_transition_tm_height
+                + offset
+            )
+            genesis_time = self.behaviour.context.state.round_sequence.last_round_transition_timestamp.astimezone(
+                pytz.UTC
+            ).strftime(
+                "%Y-%m-%dT%H:%M:%S.%fZ"
+            )
+
+            expected_parameters = [
+                ("genesis_time", genesis_time),
+                ("initial_height", initial_height),
+            ]
+            build_http_request_message_mock.assert_called_with(
+                "GET",
+                self.behaviour.context.params.tendermint_com_url + "/hard_reset",
+                parameters=expected_parameters,
+            )
             # perform the last iteration which also returns the result
             try:
                 next(reset)
