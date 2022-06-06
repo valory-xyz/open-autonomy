@@ -24,14 +24,19 @@ from typing import Generator
 
 import pytest
 
+from packages.valory.skills.registration_abci.behaviours import (
+    RegistrationStartupBehaviour,
+)
+
 from tests.fixture_helpers import UseACNNode, UseGnosisSafeHardHatNet
 from tests.test_agents.base import (
     BaseTestEnd2EndAgentCatchup,
     BaseTestEnd2EndNormalExecution,
 )
-from packages.valory.skills.registration_abci.behaviours import RegistrationStartupBehaviour
+
 
 log_messages = RegistrationStartupBehaviour.LogMessages
+
 
 @pytest.fixture(autouse=True)
 def slow_down_tests() -> Generator:
