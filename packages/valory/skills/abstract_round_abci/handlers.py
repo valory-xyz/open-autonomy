@@ -21,9 +21,9 @@
 import ipaddress
 import json
 from abc import ABC
-from typing import Callable, Dict, List, FrozenSet, Optional, cast
-from urllib.parse import urlparse
 from enum import Enum
+from typing import Callable, Dict, FrozenSet, List, Optional, cast
+from urllib.parse import urlparse
 
 from aea.configurations.data_types import PublicId
 from aea.protocols.base import Message
@@ -502,16 +502,24 @@ class TendermintHandler(Handler):
     SUPPORTED_PROTOCOL: Optional[PublicId] = TendermintMessage.protocol_id
 
     class LogMessages(Enum):
+        """Log messages used in the TendermintHandler"""
+
         unidentified_dialogue = "Unidentified Tendermint dialogue"
         no_addresses_retrieved_yet = "No registered addresses retrieved yet"
         not_in_registered_addresses = "Sender not registered for on-chain service"
         sending_request_response = "Sending Tendermint request response"
         failed_to_parse_address = "Failed to parse Tendermint network address"
         collected_config_info = "Collected Tendermint config info"
-        received_error_without_target_message = "Received error message but could not retrieve target message"
+        received_error_without_target_message = (
+            "Received error message but could not retrieve target message"
+        )
         received_error_response = "Received error response"
         sending_error_response = "Sending error response"
         performative_not_recognized = "Performative not recognized"
+
+        def __str__(self) -> str:
+            """For ease of use in formatted string literals"""
+            return self.value
 
     def setup(self) -> None:
         """Set up the handler."""
@@ -522,7 +530,10 @@ class TendermintHandler(Handler):
     @property
     def synchronized_data(self) -> BaseSynchronizedData:
         """Historical stata data over which consensus has been achieved"""
-        return cast(BaseSynchronizedData, cast(SharedState, self.context.state).synchronized_data)
+        return cast(
+            BaseSynchronizedData,
+            cast(SharedState, self.context.state).synchronized_data,
+        )
 
     @property
     def registered_addresses(self) -> Dict[str, str]:
@@ -536,7 +547,10 @@ class TendermintHandler(Handler):
         attribute = cast(PublicId, self.SUPPORTED_PROTOCOL).name + "_dialogues"
         return getattr(self.context, attribute, None)
 
-    def _preconditions_satisfied(self, message, dialogue) -> bool:
+    def _preconditions_satisfied(
+        self, message: TendermintMessage, dialogue: TendermintDialogue
+    ) -> bool:
+        """Precondition checks"""
 
         if dialogue is None:
             log_message = self.LogMessages.unidentified_dialogue.value
