@@ -40,7 +40,7 @@ DOC_ELLIPSIS_REGEX = r"\s*#\s...\n"
 PYTHON_COMMAND = r"^pyt(hon|est) (?P<file_name>.*\.py).*$"
 MAKE_COMMAND = r"^make (?P<cmd_name>.*)$"
 SWARM_COMMAND = r"^(?P<cmd_name>swarm .*)$"
-MAKE_PHONY = r"^\.(PHONY|ONESHELL): (?P<command>.*)$"
+MAKEFILE_COMMAND = r"^(?P<command>.*):$"
 
 
 class CodeType(Enum):
@@ -179,14 +179,15 @@ def check_code_blocks_exist(
         ), f"This code-block in {md_file} doesn't exist in the code file {code_file}:\n\n{code_blocks[i]}"
 
 
-def extract_make_commands(makefile_path: str) -> List[str]:
+def extract_make_commands(makefile_paths: List[str]) -> List[str]:
     """Extract make commands from a file"""
-    with open(makefile_path, "r", encoding="utf-8") as makefile:
-        commands = []
-        for line in makefile.readlines():
-            match = re.match(MAKE_PHONY, line)
-            if match:
-                commands += match.groupdict()["command"].split(" ")
+    commands = ["clean"]
+    for makefile_path in makefile_paths:
+        with open(makefile_path, "r", encoding="utf-8") as makefile:
+            for line in makefile.readlines():
+                match = re.match(MAKEFILE_COMMAND, line)
+                if match:
+                    commands += match.groupdict()["command"].split(" ")
     return commands
 
 

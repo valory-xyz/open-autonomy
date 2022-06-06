@@ -19,8 +19,6 @@
 
 """This module contains the tests for the code-blocks in the documentation."""
 
-
-import os
 from pathlib import Path
 from typing import Dict, List, Optional
 
@@ -202,10 +200,7 @@ class TestDocBashSnippets:
 
         code_type = CodeType.BASH
 
-        skipped_files = [
-            "docs/using_stack_deployment.md",
-            "docs/application_deployment.md",
-        ]
+        skipped_files: List[str] = []
 
         # Get all doc files that contain a block
         all_md_files = [
@@ -221,7 +216,19 @@ class TestDocBashSnippets:
         if skipped_files:
             files_with_blocks = [f for f in files_with_blocks if f not in skipped_files]
 
-        make_commands = extract_make_commands(os.path.join(ROOT_DIR, "Makefile"))
+        all_mk_files = [
+            str(p.relative_to(ROOT_DIR)) for p in Path(ROOT_DIR).rglob("*Makefile")
+        ]
+
+        all_mk_files = list(
+            filter(
+                lambda f: "third_party/" not in f
+                and ".tox" not in f,  # skip some folders
+                all_mk_files,
+            )
+        )
+
+        make_commands = extract_make_commands(all_mk_files)
         swarm_commands = extract_swarm_commands()
 
         for md_file in files_with_blocks:
