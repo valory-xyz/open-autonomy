@@ -189,9 +189,9 @@ class LiquidityProvisionIntegrationBaseCase(
                         decoded_logs.append({name: decoded_log})
         return decoded_logs
 
-    def validate_tx(self) -> None:
+    def validate_tx(self, simulate_timeout: bool = False) -> None:
         """Validate the sent transaction."""
-        super().validate_tx()
+        super().validate_tx(simulate_timeout)
 
         # eventually replace with https://pypi.org/project/eth-event/
         receipt = self.ethereum_api.get_transaction_receipt(

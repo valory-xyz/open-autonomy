@@ -422,18 +422,19 @@ class CleanUpBehaviour(SimpleBehaviour, ABC):
         It can be optionally implemented by the concrete classes.
         """
 
-    def handle_late_messages(self, message: Message) -> None:
+    def handle_late_messages(self, behaviour_id: str, message: Message) -> None:
         """
         Handle late arriving messages.
 
         Runs from another behaviour, even if the behaviour implementing the method has been exited.
         It can be optionally implemented by the concrete classes.
 
+        :param behaviour_id: the id of the behaviour in which the message belongs to.
         :param message: the late arriving message to handle.
         """
         request_nonce = message.dialogue_reference[0]
         self.context.logger.warning(
-            f"No callback defined for request with nonce: {request_nonce}"
+            f"No callback defined for request with nonce: {request_nonce}, arriving for behaviour: {behaviour_id}"
         )
 
 
@@ -1026,7 +1027,7 @@ class BaseBehaviour(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
                     "dropping message as behaviour has stopped: %s", message
                 )
             elif self != current_behaviour:
-                self.handle_late_messages(message)
+                self.handle_late_messages(self.behaviour_id, message)
             elif self.state == AsyncBehaviour.AsyncState.WAITING_MESSAGE:
                 self.try_send(message)
             else:

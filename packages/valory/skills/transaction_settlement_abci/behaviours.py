@@ -562,6 +562,9 @@ class SynchronizeLateMessagesBehaviour(TransactionSettlementBaseBehaviour):
             current_message = next(self._messages_iterator, None)
             if current_message is not None:
                 tx_data = yield from self._get_tx_data(current_message)
+                self.context.logger.info(
+                    f"Found a late arriving message {current_message}. Result data: {tx_data}"
+                )
                 # here, we concatenate the tx_hashes of all the late-arriving messages. Later, we will parse them.
                 self._tx_hashes += cast(str, tx_data["tx_digest"])
                 return
@@ -751,15 +754,20 @@ class FinalizeBehaviour(TransactionSettlementBaseBehaviour):
         tx_data = yield from self._get_tx_data(contract_api_msg)
         return tx_data
 
-    def handle_late_messages(self, message: Message) -> None:
+    def handle_late_messages(self, behaviour_id: str, message: Message) -> None:
         """Store a potentially late-arriving message locally.
 
+        :param behaviour_id: the id of the behaviour in which the message belongs to.
         :param message: the late arriving message to handle.
         """
-        if isinstance(message, ContractApiMessage):
+        if (
+            isinstance(message, ContractApiMessage)
+            and behaviour_id == self.behaviour_id
+        ):
+            self.context.logger.info(f"Late message arrived: {message}")
             self.params.late_messages.append(message)
         else:
-            super().handle_late_messages(message)
+            super().handle_late_messages(behaviour_id, message)
 
 
 class ResetBehaviour(TransactionSettlementBaseBehaviour):
