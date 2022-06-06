@@ -15,9 +15,6 @@ observation_params:
   args: &id001
     observation_interval: 30
     broadcast_to_server: false
-    setup:
-      safe_contract_address: '["0x7AbCC2424811c342BC9A9B52B1621385d7406676"]'
-      oracle_contract_address: '["0xB555E44648F6Ff759F64A5B451AB845B0450EA57"]'
 valory_monitoring_backend:
   args: &id002
     url: https://staging.oracle-server.autonolas.tech/deposit
