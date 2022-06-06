@@ -696,13 +696,21 @@ class TestFinalizeBehaviour(TransactionSettlementFSMBehaviourBaseCase):
             TransactionSettlementBaseBehaviour, self.behaviour.current_behaviour
         ).params.late_messages == [message]
 
-        message = MagicMock()
         with mock.patch.object(self.behaviour.context.logger, "warning") as mock_info:
-            cast(BaseBehaviour, self.behaviour.current_behaviour).handle_late_messages(
-                message
+            self.behaviour.current_behaviour.handle_late_messages(
+                "other_behaviour_id", message
             )
             mock_info.assert_called_with(
-                f"No callback defined for request with nonce: {message.dialogue_reference[0]}"
+                f"No callback defined for request with nonce: {message.dialogue_reference[0]}, "
+                "arriving from behaviour: other_behaviour_id"
+            )
+            message = MagicMock()
+            self.behaviour.current_behaviour.handle_late_messages(
+                self.behaviour.current_behaviour.behaviour_id, message
+            )
+            mock_info.assert_called_with(
+                f"No callback defined for request with nonce: {message.dialogue_reference[0]}, "
+                "arriving from behaviour: finalize"
             )
 
 
