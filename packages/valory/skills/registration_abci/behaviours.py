@@ -18,12 +18,11 @@
 # ------------------------------------------------------------------------------
 
 """This module contains the behaviours for the 'abci' skill."""
-import collections
+
 import json
-import logging
 from enum import Enum
-from typing import Any, Dict, Generator, Iterable, List, Set, Type, cast
-from dataclasses import dataclass
+from typing import Any, Dict, Generator, Set, Type, cast
+
 from aea.mail.base import EnvelopeContext
 
 from packages.valory.connections.p2p_libp2p_client.connection import (
@@ -45,13 +44,6 @@ from packages.valory.skills.registration_abci.rounds import (
 )
 
 
-@dataclass
-class ValidatorConfig:
-    tendermint_url: str
-    address: str
-    pub_key: str
-
-
 CONSENSUS_PARAMS = (
     {
         "block": {"max_bytes": "22020096", "max_gas": "-1", "time_iota_ms": "1000"},
@@ -71,19 +63,8 @@ def format_genesis_data(
 ) -> Dict[str, Any]:
     """Format collected agent info for genesis update"""
 
-    registered_addresses = [  # temp hack
-        "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
-        "0x70997970C51812dc3A010C7d01b50e0d17dc79C8",
-        "0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC",
-        "0x90F79bf6EB2c4f870365E785982E1f101E93b906",
-        "test_agent_address",
-        "0xAlice",
-        "0xBob",
-        "0xCharlie",
-    ]
     validators = []
-    for agent_address, validator_config in collected_agent_info.items():
-        i = registered_addresses.index(agent_address)
+    for i, validator_config in enumerate(collected_agent_info.values()):
         validator = dict(
             address=validator_config["address"],
             pub_key=validator_config["pub_key"],
@@ -100,11 +81,6 @@ def format_genesis_data(
         consensus_params=CONSENSUS_PARAMS,
     )
     return data
-
-
-def consume(iterator: Iterable) -> None:
-    """Consume the iterator"""
-    collections.deque(iterator, maxlen=0)
 
 
 class RegistrationBaseBehaviour(BaseBehaviour):
@@ -150,6 +126,8 @@ class RegistrationStartupBehaviour(RegistrationBaseBehaviour):
     collection_complete: bool = False
 
     class LogMessages(Enum):
+        """Log messages used in RegistrationStartupBehaviour"""
+
         # request personal tendermint configuration
         request_personal = "Request validator config from personal Tendermint node"
         response_personal = "Response validator config from personal Tendermint node"
@@ -179,7 +157,8 @@ class RegistrationStartupBehaviour(RegistrationBaseBehaviour):
         no_agents_registered = "No agents registered on-chain"
         self_not_registered = "This agent is not registered on-chain"
 
-        def __str__(self):
+        def __str__(self) -> str:
+            """For ease of use in formatted string literals"""
             return self.value
 
     @property
@@ -237,7 +216,9 @@ class RegistrationStartupBehaviour(RegistrationBaseBehaviour):
         contract_api_response = yield from self.get_contract_api_response(**kwargs)
         if contract_api_response.performative != ContractApiMessage.Performative.STATE:
             log_message = self.LogMessages.failed_service_info
-            self.context.logger.info(f"{log_message}: {kwargs}\n{contract_api_response}")
+            self.context.logger.info(
+                f"{log_message}: {kwargs}\n{contract_api_response}"
+            )
             return {}
         log_message = self.LogMessages.response_service_info
         self.context.logger.info(f"{log_message}: {contract_api_response}")
@@ -247,7 +228,7 @@ class RegistrationStartupBehaviour(RegistrationBaseBehaviour):
         """Get addresses of agents registered for the service"""
 
         if self.context.params.service_registry_address is None:
-            log_message = self.LogMessages.no_contract_address
+            log_message = self.LogMessages.no_contract_address.value
             self.context.logger.info(log_message)
             return False
 
@@ -261,7 +242,7 @@ class RegistrationStartupBehaviour(RegistrationBaseBehaviour):
 
         registered_addresses = set(service_info["agent_instances"])
         if not registered_addresses:
-            log_message = self.LogMessages.no_agents_registered
+            log_message = self.LogMessages.no_agents_registered.value
             self.context.logger.info(f"{log_message}: {service_info}")
             return False
 
@@ -280,7 +261,7 @@ class RegistrationStartupBehaviour(RegistrationBaseBehaviour):
         )
         info[self.context.agent_address] = validator_config
         self.synchronized_data.db.initial_data.update(dict(registered_addresses=info))
-        log_message = self.LogMessages.response_service_info
+        log_message = self.LogMessages.response_service_info.value
         self.context.logger.info(f"{log_message}: {info}")
         return True
 
@@ -311,7 +292,9 @@ class RegistrationStartupBehaviour(RegistrationBaseBehaviour):
         for address in still_missing:
             dialogues = cast(TendermintDialogues, self.context.tendermint_dialogues)
             performative = TendermintMessage.Performative.REQUEST
-            message, _ = dialogues.create(counterparty=address, performative=performative)
+            message, _ = dialogues.create(
+                counterparty=address, performative=performative
+            )
             message = cast(TendermintMessage, message)
             context = EnvelopeContext(connection_id=P2P_LIBP2P_CLIENT_PUBLIC_ID)
             self.context.outbox.put_message(message=message, context=context)
@@ -322,7 +305,9 @@ class RegistrationStartupBehaviour(RegistrationBaseBehaviour):
         yield from self.sleep(self.params.sleep_time)
         return self.collection_complete
 
-    def update_tendermint(self) -> Generator[None, None, bool]:  # rename: request tendermint update
+    def update_tendermint(
+        self,
+    ) -> Generator[None, None, bool]:  # rename: request tendermint update
         """Make HTTP POST request to update agent's local Tendermint node"""
 
         url = self.tendermint_parameter_url
@@ -366,6 +351,7 @@ class RegistrationStartupBehaviour(RegistrationBaseBehaviour):
         """Act asynchronously"""
 
         self.context.logger.info(f"My address: {self.context.agent_address}")
+        yield from self.sleep(self.params.sleep_time)
 
         # collect personal Tendermint configuration
         if not self.local_tendermint_params:

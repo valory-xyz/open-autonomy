@@ -14,16 +14,6 @@ def format_genesis_data(collected_agent_info: Dict[str, Any]) -> Dict[str, Any]
 
 Format collected agent info for genesis update
 
-<a id="packages.valory.skills.registration_abci.behaviours.consume"></a>
-
-#### consume
-
-```python
-def consume(iterator: Iterable) -> None
-```
-
-Consume the iterator
-
 <a id="packages.valory.skills.registration_abci.behaviours.RegistrationBaseBehaviour"></a>
 
 ## RegistrationBaseBehaviour Objects

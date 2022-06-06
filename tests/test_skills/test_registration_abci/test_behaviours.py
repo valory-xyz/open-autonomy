@@ -18,16 +18,17 @@
 # ------------------------------------------------------------------------------
 
 """Tests for valory/registration_abci skill's behaviours."""
+
+import collections
 import json
 import logging
 from contextlib import ExitStack, contextmanager
 from pathlib import Path
-from typing import Any, Dict, Generator, List, cast
+from typing import Any, Dict, Generator, Iterable, List, cast
 from unittest import mock
 
 import pytest
 from _pytest.logging import LogCaptureFixture
-from aea.exceptions import AEAActException
 
 from packages.valory.contracts.service_registry.contract import ServiceRegistryContract
 from packages.valory.protocols.contract_api.message import ContractApiMessage
@@ -41,7 +42,7 @@ from packages.valory.skills.registration_abci.behaviours import (
     RegistrationBaseBehaviour,
     RegistrationBehaviour,
     RegistrationStartupBehaviour,
-    consume,
+    format_genesis_data,
 )
 from packages.valory.skills.registration_abci.rounds import (
     BaseSynchronizedData as RegistrationSynchronizedSata,
@@ -60,6 +61,19 @@ SERVICE_REGISTRY_ADDRESS = "0xa51c1fc2f0d1a1b8494ed1fe312d7c3a78ed91c0"
 CONTRACT_ID = str(ServiceRegistryContract.contract_id)
 ON_CHAIN_SERVICE_ID = 42
 DUMMY_ADDRESS = "http://0.0.0.0:25567"
+DUMMY_VALIDATOR_CONFIG = {
+    "tendermint_url": DUMMY_ADDRESS,
+    "address": "address",
+    "pub_key": {
+        "type": "tendermint/PubKeyEd25519",
+        "value": "7y7ycBMMABj5Onf74ITYtUS3uZ6SsCQKZML87mIX",
+    },
+}
+
+
+def consume(iterator: Iterable) -> None:
+    """Consume the iterator"""
+    collections.deque(iterator, maxlen=0)
 
 
 @contextmanager
@@ -113,6 +127,11 @@ class TestRegistrationStartupBehaviour(RegistrationAbciBaseCase):
 
     other_agents: List[str] = ["0xAlice", "0xBob", "0xCharlie"]
 
+    def setup(self, **kwargs: Any) -> None:  # type: ignore
+        """Setup"""
+        super().setup()
+        self.state.params.sleep_time = 0
+
     @property
     def agent_instances(self) -> List[str]:
         """Agent instance addresses"""
@@ -127,18 +146,6 @@ class TestRegistrationStartupBehaviour(RegistrationAbciBaseCase):
     def logger(self) -> str:
         """Logger"""
         return "aea.test_agent_name.packages.valory.skills.registration_abci"
-
-    @property
-    def tendermint_mock_params(self) -> Dict[str, Any]:
-        """Tendermint mock params"""
-        info = dict(
-            address="3877157BFE637FCD7B9FC4B1CEC231F4CA99FDCA",
-            pub_key=dict(
-                type="tendermint/PubKeyEd25519",
-                value="7y7ycBMMABj5Onf74ITYtUS3uZ6SsCQKZML87mIX+r4=",
-            ),
-        )
-        return dict(params=info, status=True, error=None)
 
     # mock patches
     @property
@@ -158,34 +165,6 @@ class TestRegistrationStartupBehaviour(RegistrationAbciBaseCase):
             "on_chain_service_id",
             return_value=ON_CHAIN_SERVICE_ID,
         )
-
-    # @property
-    # def mocked_registered_addresses(self) -> mock._patch:
-    #     """Mocked on chain service id"""
-    #     return_value = {k: 1 for k in self.agent_instances}.values()
-    #
-    #     return mock.patch.dict(
-    #         RegistrationStartupBehaviour.registered_addresses,
-    #         return_value=return_value,
-    #     )
-    #
-    #     # return mock.patch.object(
-    #     #     RegistrationStartupBehaviour.registered_addresses,
-    #     #     "values",
-    #     #     # new_callable=mock.PropertyMock,
-    #     #     return_value=return_value,
-    #     # )
-    #
-    #     return mock.patch(
-    #         "packages.valory.skills.registration_abci.behaviours.RegistrationStartupBehaviour.registered_addresses.values",
-    #         new_callable=mock.PropertyMock,
-    #         return_value=return_value,
-    #     )
-
-    @property
-    def mocked_sleep(self) -> mock._patch:
-        """Mocked sleep"""
-        return mock.patch.object(self.state.params, "sleep_time", new=0)
 
     # mock contract calls
     def mock_is_correct_contract(self, error_response: bool = False) -> None:
@@ -263,13 +242,7 @@ class TestRegistrationStartupBehaviour(RegistrationAbciBaseCase):
         """Mock get Tendermint info"""
         for _ in addresses:
             request_kwargs: Dict = dict()
-            validator_config = {
-                "tendermint_url": "http://0.0.0.0:25567",
-                "address": "address",
-                "pub_key": "pub_key",
-                }
-
-            info = json.dumps(validator_config)
+            info = json.dumps(DUMMY_VALIDATOR_CONFIG)
             response_kwargs = dict(info=info)
             self.mock_tendermint_request(request_kwargs, response_kwargs)
         self.behaviour.act_wrapper()
@@ -281,7 +254,7 @@ class TestRegistrationStartupBehaviour(RegistrationAbciBaseCase):
         request_kwargs = dict(method="GET", url=url)
         body = b""
         if valid_response:
-            params = self.tendermint_mock_params  # TODO
+            params = dict(params=DUMMY_VALIDATOR_CONFIG, status=True, error=None)
             body = json.dumps(params).encode(self.state.ENCODING)
         response_kwargs = dict(status_code=200, body=body)
         self.mock_http_request(request_kwargs, response_kwargs)
@@ -289,7 +262,6 @@ class TestRegistrationStartupBehaviour(RegistrationAbciBaseCase):
     def mock_tendermint_update(self, valid_response: bool = True) -> None:
         """Mock Tendermint update"""
 
-        from packages.valory.skills.registration_abci.behaviours import format_genesis_data
         validator_configs = format_genesis_data(self.state.registered_addresses)
         body = json.dumps(validator_configs).encode(self.state.ENCODING)
         url = self.state.tendermint_parameter_url
@@ -312,9 +284,7 @@ class TestRegistrationStartupBehaviour(RegistrationAbciBaseCase):
         assert self.state.registered_addresses == {}
         assert self.state.local_tendermint_params == {}
 
-    def test_no_contract_address(
-        self, caplog: LogCaptureFixture
-    ) -> None:
+    def test_no_contract_address(self, caplog: LogCaptureFixture) -> None:
         """Test service registry contract address not provided"""
         self.behaviour.act_wrapper()
         self.mock_get_local_tendermint_params()
@@ -333,15 +303,12 @@ class TestRegistrationStartupBehaviour(RegistrationAbciBaseCase):
         with as_context(
             caplog.at_level(logging.INFO, logger=self.logger),
             self.mocked_service_registry_address,
-            self.mocked_sleep,
         ):
             self.behaviour.act_wrapper()
             self.mock_get_local_tendermint_params(valid_response=valid_response)
             assert log_message.value in caplog.text
 
-    def test_failed_verification(
-        self, caplog: LogCaptureFixture
-    ) -> None:
+    def test_failed_verification(self, caplog: LogCaptureFixture) -> None:
         """Test service registry contract not correctly deployed"""
 
         with as_context(
@@ -360,7 +327,7 @@ class TestRegistrationStartupBehaviour(RegistrationAbciBaseCase):
         with as_context(
             caplog.at_level(logging.INFO, logger=self.logger),
             self.mocked_service_registry_address,
-            self.mocked_on_chain_service_id
+            self.mocked_on_chain_service_id,
         ):
             self.behaviour.act_wrapper()
             self.mock_get_local_tendermint_params()
@@ -376,7 +343,6 @@ class TestRegistrationStartupBehaviour(RegistrationAbciBaseCase):
             caplog.at_level(logging.INFO, logger=self.logger),
             self.mocked_service_registry_address,
             self.mocked_on_chain_service_id,
-            self.mocked_sleep,
         ):
             self.behaviour.act_wrapper()
             self.mock_get_local_tendermint_params()
@@ -385,9 +351,7 @@ class TestRegistrationStartupBehaviour(RegistrationAbciBaseCase):
             log_message = self.state.LogMessages.no_agents_registered
             assert log_message.value in caplog.text
 
-    def test_self_not_registered(
-        self, caplog: LogCaptureFixture
-    ) -> None:
+    def test_self_not_registered(self, caplog: LogCaptureFixture) -> None:
         """Test node operator agent not registered"""
 
         with as_context(
@@ -422,32 +386,19 @@ class TestRegistrationStartupBehaviour(RegistrationAbciBaseCase):
             log_message = self.state.LogMessages.response_service_info
             assert log_message.value in caplog.text
 
-    # @pytest.mark.asyncio
     def test_collection_complete(self, caplog: LogCaptureFixture) -> None:
         """Test registered addresses retrieved"""
-
-        # async def flush_queue():
-        #     self.state.context.message_in_queue
-        #     await self.state.context.outbox._multiplexer.out_queue.join()
-        import asyncio
-
-        @pytest.mark.asyncio
-        async def test_sleep(event_loop):
-            result = await asyncio.sleep(1, result=3, loop=event_loop)
-            assert result == 3
 
         with as_context(
             caplog.at_level(logging.INFO, logger=self.logger),
             self.mocked_service_registry_address,
             self.mocked_on_chain_service_id,
-            self.mocked_sleep,
         ):
             self.behaviour.act_wrapper()
             self.mock_get_local_tendermint_params()
             self.mock_is_correct_contract()
             self.mock_get_service_info(*self.agent_instances)
             self.mock_get_tendermint_info(*self.other_agents)
-            logging.error(str(self.state.registered_addresses))
             assert all(map(self.state.registered_addresses.get, self.other_agents))
             log_message = self.state.LogMessages.collection_complete
             assert log_message.value in caplog.text
@@ -465,7 +416,6 @@ class TestRegistrationStartupBehaviour(RegistrationAbciBaseCase):
             caplog.at_level(logging.INFO, logger=self.logger),
             self.mocked_service_registry_address,
             self.mocked_on_chain_service_id,
-            self.mocked_sleep,
         ):
             self.behaviour.act_wrapper()
             self.mock_get_local_tendermint_params()
@@ -488,7 +438,6 @@ class TestRegistrationStartupBehaviour(RegistrationAbciBaseCase):
             caplog.at_level(logging.INFO, logger=self.logger),
             self.mocked_service_registry_address,
             self.mocked_on_chain_service_id,
-            self.mocked_sleep,
         ):
             self.behaviour.act_wrapper()
             self.mock_get_local_tendermint_params()
