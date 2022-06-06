@@ -487,12 +487,13 @@ Set the behaviour to done.
 #### send`_`a2a`_`transaction
 
 ```python
-def send_a2a_transaction(payload: BaseTxPayload) -> Generator
+def send_a2a_transaction(payload: BaseTxPayload, resetting: bool = False) -> Generator
 ```
 
 Send transaction and wait for the response, and repeat until not successful.
 
 :param: payload: the payload to send
+:param: resetting: flag indicating if we are resetting Tendermint nodes in this round.
 :yield: the responses
 
 <a id="packages.valory.skills.abstract_round_abci.behaviour_utils.BaseBehaviour.async_act_wrapper"></a>
