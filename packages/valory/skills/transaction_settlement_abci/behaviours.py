@@ -760,7 +760,10 @@ class FinalizeBehaviour(TransactionSettlementBaseBehaviour):
         :param behaviour_id: the id of the behaviour in which the message belongs to.
         :param message: the late arriving message to handle.
         """
-        if isinstance(message, ContractApiMessage):
+        if (
+            isinstance(message, ContractApiMessage)
+            and behaviour_id == self.behaviour_id
+        ):
             self.context.logger.info(f"Late message arrived: {message}")
             self.params.late_messages.append(message)
         else:
