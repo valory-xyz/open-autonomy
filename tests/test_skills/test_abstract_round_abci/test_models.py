@@ -240,6 +240,26 @@ class TestSharedState:
             shared_state.round_sequence.abci_app._round_results = [MagicMock()]
             shared_state.synchronized_data
 
+    def test_synchronized_data_db(self, *_: Any) -> None:
+        """Test 'synchronized_data' AbciAppDB."""
+        shared_state = SharedState(
+            abci_app_cls=AbciAppTest, name="", skill_context=MagicMock()
+        )
+        with mock.patch.object(shared_state.context, "params") as mock_params:
+            mock_params.setup_params = {
+                "safe_contract_address": ["0xsafe"],
+                "oracle_contract_address": ["0xoracle"],
+            }
+            shared_state.setup()
+            assert (
+                shared_state.synchronized_data.db.get_strict("safe_contract_address")
+                == "0xsafe"
+            )
+            assert (
+                shared_state.synchronized_data.db.get_strict("oracle_contract_address")
+                == "0xoracle"
+            )
+
     def test_process_abci_app_cls_negative_not_a_class(self) -> None:
         """Test '_process_abci_app_cls', negative case (not a class)."""
         mock_obj = MagicMock()
