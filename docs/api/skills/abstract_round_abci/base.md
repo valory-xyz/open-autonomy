@@ -683,7 +683,6 @@ can be used to convert from Dict[str, Any] to Dict[str, List[Any]] before instan
 
 - `initial_data`: the initial data
 - `cross_period_persisted_keys`: data keys that will be kept after a new period starts
-- `format_initial_data`: flag to indicate whether initial_data should be converted from Dict[str, Any] to Dict[str, List[Any]]
 
 <a id="packages.valory.skills.abstract_round_abci.base.AbciAppDB.initial_data"></a>
 
