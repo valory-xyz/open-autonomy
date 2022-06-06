@@ -17,28 +17,29 @@ Below we present a sketch of this class:
 ```python
 # skills.abstract_round_abci.behaviours.py
 
-StateType = Type[BaseState]
-
 class AbstractRoundBehaviour(
     Behaviour, ABC, Generic[EventType], metaclass=_MetaRoundBehaviour
 ):
     """This behaviour implements an abstract round behaviour."""
 
     abci_app_cls: Type[AbciApp[EventType]]
-    behaviour_states: AbstractSet[StateType]
-    initial_state_cls: StateType
+    behaviours: AbstractSet[BehaviourType]
+    initial_behaviour_cls: BehaviourType
 
-    def instantiate_state_cls(self, state_cls: StateType) -> BaseState:
-        return state_cls(name=state_cls.state_id, skill_context=self.context)
+    def instantiate_behaviour_cls(self, behaviour_cls: BehaviourType) -> BaseBehaviour:
+        return behaviour_cls(
+            name=behaviour_cls.behaviour_id, skill_context=self.context
+        )
 
     def setup(self) -> None:
-        self.current_state = self.instantiate_state_cls(self.initial_state_cls)
+        self.current_behaviour = self.instantiate_behaviour_cls(
+            self.initial_behaviour_cls
+        )
 
     def act(self) -> None:
         """Implement the behaviour."""
         self._process_current_round()
-        self.current_state = self.instantiate_state_cls(self._next_state_cls)
-    ...
+    # ...
 ```
 
 A concrete implementation of `AbstractRoundBehaviour` requires that the developer provide the corresponding
@@ -65,5 +66,5 @@ class MyAbstractRoundBehaviour(AbstractRoundBehaviour):
       RoundB,
       FinalRound,
     }
-    ...
+    # ...
 ```

@@ -99,4 +99,5 @@ ABCI_NODE_TEMPLATE: str = """
         ipv4_address: 192.167.11.{localnet_address_postfix}
     volumes:
       - ./persistent_data/logs:/logs:Z
+      - ./agent_keys/agent_{node_id}:/agent_key:Z
 """

@@ -54,3 +54,13 @@ def generate(image_versions: Dict[str, str], dev_mode: bool = False) -> "DockerC
 
 Generate the new configuration.
 
+<a id="aea_swarm.deploy.generators.docker_compose.base.DockerComposeGenerator.populate_private_keys"></a>
+
+#### populate`_`private`_`keys
+
+```python
+def populate_private_keys() -> "DockerComposeGenerator"
+```
+
+Populate the private keys to the build directory for docker-compose mapping.
+

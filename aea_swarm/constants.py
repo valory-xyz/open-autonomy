@@ -17,7 +17,6 @@
 #
 # ------------------------------------------------------------------------------
 """Constants"""
-
 import os
 
 
@@ -29,7 +28,6 @@ TENDERMINT_IMAGE_VERSION = os.environ.get(
     "TENDERMINT_IMAGE_VERSION", DEFAULT_IMAGE_VERSION
 )
 HARDHAT_IMAGE_VERSION = os.environ.get("HARDHAT_IMAGE_VERSION", DEFAULT_IMAGE_VERSION)
-
 OPEN_AEA_IMAGE_NAME = "valory/consensus-algorithms-open-aea"
 TENDERMINT_IMAGE_NAME = "valory/consensus-algorithms-tendermint"
 HARDHAT_IMAGE_NAME = "valory/consensus-algorithms-hardhat"
