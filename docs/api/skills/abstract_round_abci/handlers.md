@@ -261,6 +261,26 @@ class TendermintHandler(Handler)
 
 The Tendermint request / response handler.
 
+<a id="packages.valory.skills.abstract_round_abci.handlers.TendermintHandler.LogMessages"></a>
+
+## LogMessages Objects
+
+```python
+class LogMessages(Enum)
+```
+
+Log messages used in the TendermintHandler
+
+<a id="packages.valory.skills.abstract_round_abci.handlers.TendermintHandler.LogMessages.__str__"></a>
+
+#### `__`str`__`
+
+```python
+def __str__() -> str
+```
+
+For ease of use in formatted string literals
+
 <a id="packages.valory.skills.abstract_round_abci.handlers.TendermintHandler.setup"></a>
 
 #### setup
@@ -281,16 +301,16 @@ def teardown() -> None
 
 Tear down the handler.
 
-<a id="packages.valory.skills.abstract_round_abci.handlers.TendermintHandler.period_state"></a>
+<a id="packages.valory.skills.abstract_round_abci.handlers.TendermintHandler.synchronized_data"></a>
 
-#### period`_`state
+#### synchronized`_`data
 
 ```python
 @property
-def period_state() -> BasePeriodState
+def synchronized_data() -> BaseSynchronizedData
 ```
 
-Period State
+Historical stata data over which consensus has been achieved
 
 <a id="packages.valory.skills.abstract_round_abci.handlers.TendermintHandler.registered_addresses"></a>
 
