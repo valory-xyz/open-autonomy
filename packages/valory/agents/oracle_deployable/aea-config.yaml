@@ -23,10 +23,10 @@ protocols:
 skills:
 - valory/abstract_abci:0.1.0:QmZg627HxCTt9BJkv464ySucREq7csgXq4PQa8LPwvECz5
 - valory/abstract_round_abci:0.1.0:QmTbsC1t4xsx9cxDmkB4URC3qYtptRVoWqgD1gjWwidmL2
-- valory/oracle_abci:0.1.0:QmeaL4TKhndb9XHQ89guKWyefehLf3eK5bqhU13Cya8htE
+- valory/oracle_abci:0.1.0:QmVM5oGBNvNhi6M1759EAqtC73NEquJUvx65oC8vp6GKHb
 - valory/oracle_deployment_abci:0.1.0:QmeP2nKvbcS9dNCikjgim9xVRgNZqX4E1AKm33JRoVWR9e
-- valory/price_estimation_abci:0.1.0:QmY3pR4cfeK2KXY8gLnn96FHUGkH6du11zuKtkaxYeF2Y2
-- valory/registration_abci:0.1.0:Qmb8obvTZcHv3NCxL5fDcaSXUtdUgE9ru7t8q1ExALCo6G
+- valory/price_estimation_abci:0.1.0:QmPqy9ez4bXdmzfn2v472n2e3CntcJbBB8CtkvY4pS4Vft
+- valory/registration_abci:0.1.0:QmZfL4pno3bm4MXjiAQ96NDFy52v395fJFw1uYoW4EV7gi
 - valory/reset_pause_abci:0.1.0:QmbPLGAQzDfPCWQzSFD3tJkMZV9v3yzHqo7Anpg2vJxYzX
 - valory/safe_deployment_abci:0.1.0:Qmb5cVBcxHDXXVULPBEZadxoZS3Rzc3cRSGKDryWEur2yq
 - valory/transaction_settlement_abci:0.1.0:QmURe7xQAWGR9N4ACkRLgApvydwY9hg8untNYYssszNHKL
@@ -94,10 +94,8 @@ models:
       consensus:
         max_participants: ${MAX_PARTICIPANTS:int}
       setup:
-        safe_contract_address:
-        - ${SKILL_ORACLE_ABCI_MODELS_PARAMS_ARGS_SETUP_SAFE_CONTRACT_ADDRESS:list:none}
-        oracle_contract_address:
-        - ${SKILL_ORACLE_ABCI_MODELS_PARAMS_ARGS_SETUP_ORACLE_CONTRACT_ADDRESS:list:none}
+        safe_contract_address: ${SKILL_ORACLE_ABCI_MODELS_PARAMS_ARGS_SETUP_SAFE_CONTRACT_ADDRESS:list:none}
+        oracle_contract_address: ${SKILL_ORACLE_ABCI_MODELS_PARAMS_ARGS_SETUP_ORACLE_CONTRACT_ADDRESS:list:none}
       round_timeout_seconds: ${ORACLE_PARAMS_ROUND_TIMEOUT_SECONDS:float:7.0}
       tendermint_url: ${TENDERMINT_URL:str}
       tendermint_com_url: ${TENDERMINT_COM_URL:str}
