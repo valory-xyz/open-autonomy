@@ -1146,7 +1146,8 @@ class TestBaseBehaviour:
             self.behaviour.get_callback_request()(message, current_behaviour)
             info_mock.assert_called_with(
                 "No callback defined for request with nonce: "
-                f"{message.dialogue_reference.__getitem__()}"
+                f"{message.dialogue_reference.__getitem__()}, "
+                f"arriving from behaviour: behaviour_a"
             )
 
     def test_default_callback_request_waiting_message(self, *_: Any) -> None:
