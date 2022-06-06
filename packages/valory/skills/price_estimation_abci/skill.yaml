@@ -7,7 +7,6 @@ description: ABCI application for cryptocurrency price estimation aggregating ob
 license: Apache-2.0
 aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
-  .behaviours.py.swp: QmVQSdozDm92rGuNfqWSARTd6KHzVd1SNDWSjqsg1AZ11s
   README.md: QmSinQfQbyxtxgCx6dSRDG3iLzMspsotw7xJwzq4CbdLMs
   __init__.py: QmexF3zcMh8ZETYFKv4od3HFXqMT3CYGfpMm8HXXa7oWa6
   behaviours.py: QmV4JW2AGgkdRjAfmfNoofF7e1PU3gqDJCTeQESej6dtRY
