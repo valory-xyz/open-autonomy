@@ -725,7 +725,8 @@ class BaseBehaviour(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
                 yield from self.sleep(request_retry_delay)
                 continue
             response = cast(HttpMessage, response)
-            if not self._check_http_return_code_200(response) and (
+            non_200_code = not self._check_http_return_code_200(response)
+            if non_200_code and (
                 self._non_200_return_code_count
                 > NON_200_RETURN_CODE_DURING_RESET_THRESHOLD
                 or not resetting
@@ -734,9 +735,9 @@ class BaseBehaviour(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
                     f"Received return code != 200 with response {response} with body {str(response.body)}. "
                     f"Retrying in {request_retry_delay} seconds..."
                 )
-            elif not self._check_http_return_code_200(response) and resetting:
+            elif non_200_code and resetting:
                 self._non_200_return_code_count += 1
-            if not self._check_http_return_code_200(response):
+            if non_200_code:
                 payload = payload.with_new_id()
                 yield from self.sleep(request_retry_delay)
                 continue
