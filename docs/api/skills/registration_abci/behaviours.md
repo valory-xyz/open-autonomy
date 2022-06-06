@@ -50,6 +50,26 @@ class RegistrationStartupBehaviour(RegistrationBaseBehaviour)
 
 Agent registration to the FSM App.
 
+<a id="packages.valory.skills.registration_abci.behaviours.RegistrationStartupBehaviour.LogMessages"></a>
+
+## LogMessages Objects
+
+```python
+class LogMessages(Enum)
+```
+
+Log messages used in RegistrationStartupBehaviour
+
+<a id="packages.valory.skills.registration_abci.behaviours.RegistrationStartupBehaviour.LogMessages.__str__"></a>
+
+#### `__`str`__`
+
+```python
+def __str__() -> str
+```
+
+For ease of use in formatted string literals
+
 <a id="packages.valory.skills.registration_abci.behaviours.RegistrationStartupBehaviour.registered_addresses"></a>
 
 #### registered`_`addresses
@@ -98,7 +118,7 @@ Contract deployment verification.
 #### get`_`service`_`info
 
 ```python
-def get_service_info() -> Generator[None, None, dict]
+def get_service_info() -> Generator[None, None, Dict[str, Any]]
 ```
 
 Get service info available on-chain
@@ -128,7 +148,7 @@ Make HTTP GET request to obtain agent's local Tendermint node parameters
 #### request`_`tendermint`_`info
 
 ```python
-def request_tendermint_info(address: str) -> None
+def request_tendermint_info() -> Generator
 ```
 
 Request Tendermint info from other agents
