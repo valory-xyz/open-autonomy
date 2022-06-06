@@ -680,17 +680,17 @@ class TestFinalizeBehaviour(TransactionSettlementFSMBehaviourBaseCase):
                 )
             ),
         )
+        self.behaviour.current_behaviour = cast(
+            BaseBehaviour, self.behaviour.current_behaviour
+        )
         assert (
-            cast(
-                BaseBehaviour,
-                cast(BaseBehaviour, self.behaviour.current_behaviour),
-            ).behaviour_id
+            self.behaviour.current_behaviour.behaviour_id
             == self.behaviour_class.behaviour_id
         )
 
         message = ContractApiMessage(ContractApiMessage.Performative.RAW_MESSAGE)  # type: ignore
-        cast(BaseBehaviour, self.behaviour.current_behaviour).handle_late_messages(
-            message
+        self.behaviour.current_behaviour.handle_late_messages(
+            self.behaviour.current_behaviour.behaviour_id, message
         )
         assert cast(
             TransactionSettlementBaseBehaviour, self.behaviour.current_behaviour
