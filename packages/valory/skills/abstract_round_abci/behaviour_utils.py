@@ -432,7 +432,7 @@ class CleanUpBehaviour(SimpleBehaviour, ABC):
         """
         request_nonce = message.dialogue_reference[0]
         self.context.logger.warning(
-            f"No callback defined for request with nonce: {request_nonce}, arriving from behaviour: {behaviour_id}"
+            f"No callback defined for request with nonce: {request_nonce}, arriving for behaviour: {behaviour_id}"
         )
 
 
