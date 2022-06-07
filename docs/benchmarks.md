@@ -15,7 +15,7 @@ The benchmarking tools allow measuring the performance of an agent service reali
 Run benchmarks for `oracle/price_estimation`:
 
 ```bash
-make run-oracle 
+make run-oracle
 ```
 or
 ```bash
@@ -31,7 +31,7 @@ make run-hardhat
 By default this will create a `4` agent runtime where you can wait until all `4` agents are at the end of the first period (you can wait for more periods if you want) and then you can stop the runtime. The data will be stored in the `deployments/build/logs` folder. You can use the following script to aggregate this data:
 
 ```bash
-python script/aggregate_benchmark_results.py -p deployments/build/logs
+swarm analyse benchmarks
 ```
 
 By default the script will generate output for all periods but you can specify which period to generate output for. Similarly, block types aggregation is configurable as well.

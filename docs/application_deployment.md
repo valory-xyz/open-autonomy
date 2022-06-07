@@ -63,7 +63,7 @@ A build configuration will be output to `./abci_build`.
 
 This can then be launched using the appropriate tool. For example, to launch a deployment using docker-compose.
 
-```bash 
+```bash
 cd abci_build/
 docker-compose up --force-recreate
 ```
@@ -103,7 +103,6 @@ In addition to Docker-Compose-based deployments, we support cluster deployments 
 Run the following make targets for a quick deployment of the oracle:
 ```bash
 make localcluster-start
-make localcluster-deploy
 ```
 
 ### To Configure Local Cluster
