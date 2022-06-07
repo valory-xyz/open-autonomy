@@ -563,7 +563,7 @@ class AbciAppDB:
         if not isinstance(data, dict) or not all(
             [isinstance(v, list) for v in data.values()]
         ):
-            raise ValueError("AbciAppDB data must be Dict[str, List[Any]]")
+            raise ValueError(f"AbciAppDB data must be `Dict[str, List[Any]]`, found `{type(data)}` instead.")
 
     @property
     def reset_index(self) -> int:
