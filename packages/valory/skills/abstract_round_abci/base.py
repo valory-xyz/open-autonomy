@@ -559,8 +559,10 @@ class AbciAppDB:
     @staticmethod
     def _check_data(data: Dict) -> None:
         """Check that all fields in initial data were passed as a list"""
-        if not all([isinstance(v, list) for v in data.values()]):
-            raise ValueError("AbciAppDB data must be Dict[str, List[Any]]")
+        if isinstance(data, dict):
+            if all([isinstance(v, list) for v in data.values()]):
+                return
+        raise ValueError("AbciAppDB data must be Dict[str, List[Any]]")
 
     @property
     def reset_index(self) -> int:
