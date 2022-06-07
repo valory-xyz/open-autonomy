@@ -92,7 +92,7 @@ class BaseRegistrationTestBehaviour(RegistrationAbciBaseCase):
                 self.behaviour.current_behaviour.send_a2a_transaction, MagicMock
             )
             assert (
-                self.behaviour.current_behaviour.send_a2a_transaction.call_args.args[
+                self.behaviour.current_behaviour.send_a2a_transaction.call_args[0][
                     0
                 ].initialisation
                 == expected_initialisation
