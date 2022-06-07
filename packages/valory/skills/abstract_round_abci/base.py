@@ -558,7 +558,7 @@ class AbciAppDB:
         return {k: v for k, v in self._initial_data.items() if len(v)}
 
     @staticmethod
-    def _check_data(data: Dict) -> None:
+    def _check_data(data: Any) -> None:
         """Check that all fields in initial data were passed as a list"""
         if not isinstance(data, dict) or not all(
             [isinstance(v, list) for v in data.values()]
