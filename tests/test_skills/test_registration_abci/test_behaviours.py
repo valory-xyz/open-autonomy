@@ -18,9 +18,12 @@
 # ------------------------------------------------------------------------------
 
 """Tests for valory/registration_abci skill's behaviours."""
-
 from pathlib import Path
-from typing import cast
+from typing import Dict, Optional
+from unittest import mock
+from unittest.mock import MagicMock
+
+import pytest
 
 from packages.valory.skills.abstract_round_abci.base import AbciAppDB
 from packages.valory.skills.abstract_round_abci.behaviour_utils import (
@@ -33,7 +36,7 @@ from packages.valory.skills.registration_abci.behaviours import (
     RegistrationStartupBehaviour,
 )
 from packages.valory.skills.registration_abci.rounds import (
-    BaseSynchronizedData as RegistrationSynchronizedSata,
+    BaseSynchronizedData as RegistrationSynchronizedData,
 )
 from packages.valory.skills.registration_abci.rounds import (
     Event,
@@ -57,27 +60,51 @@ class BaseRegistrationTestBehaviour(RegistrationAbciBaseCase):
     behaviour_class = RegistrationBaseBehaviour
     next_behaviour_class = BaseBehaviour
 
-    def test_registration(self) -> None:
+    @pytest.mark.parametrize(
+        "initial_data, expected_initialisation",
+        (
+            ({}, None),
+            ({"test": []}, None),
+            ({"test": [], "valid": [1, 2]}, '{"valid": [1, 2]}'),
+        ),
+    )
+    def test_registration(
+        self, initial_data: Dict, expected_initialisation: Optional[str]
+    ) -> None:
         """Test registration."""
         self.fast_forward_to_behaviour(
             self.behaviour,
             self.behaviour_class.behaviour_id,
-            RegistrationSynchronizedSata(AbciAppDB(initial_data={})),
+            RegistrationSynchronizedData(AbciAppDB(initial_data=initial_data)),
         )
+        assert isinstance(self.behaviour.current_behaviour, BaseBehaviour)
         assert (
-            cast(
-                BaseBehaviour,
-                cast(BaseBehaviour, self.behaviour.current_behaviour),
-            ).behaviour_id
+            self.behaviour.current_behaviour.behaviour_id
             == self.behaviour_class.behaviour_id
         )
-        self.behaviour.act_wrapper()
-        self.mock_a2a_transaction()
-        self._test_done_flag_set()
+        with mock.patch.object(
+            self.behaviour.current_behaviour,
+            "send_a2a_transaction",
+            side_effect=self.behaviour.current_behaviour.send_a2a_transaction,
+        ):
+            self.behaviour.act_wrapper()
+            assert isinstance(
+                self.behaviour.current_behaviour.send_a2a_transaction, MagicMock
+            )
+            assert (
+                self.behaviour.current_behaviour.send_a2a_transaction.call_args.args[
+                    0
+                ].initialisation
+                == expected_initialisation
+            )
+            self.mock_a2a_transaction()
 
+        self._test_done_flag_set()
         self.end_round(Event.DONE)
-        behaviour = cast(BaseBehaviour, self.behaviour.current_behaviour)
-        assert behaviour.behaviour_id == self.next_behaviour_class.behaviour_id
+        assert (
+            self.behaviour.current_behaviour.behaviour_id
+            == self.next_behaviour_class.behaviour_id
+        )
 
 
 class TestRegistrationStartupBehaviour(BaseRegistrationTestBehaviour):
