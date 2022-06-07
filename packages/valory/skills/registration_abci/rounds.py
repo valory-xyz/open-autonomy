@@ -73,9 +73,7 @@ class RegistrationStartupRound(CollectDifferentUntilAllRound):
             and self.block_confirmations > self.required_block_confirmations
             and self.most_voted_payload is not None
         ):
-            initialisation = {
-                k: v[-1] for k, v in json.loads(self.most_voted_payload).items()
-            }
+            initialisation = json.loads(self.most_voted_payload)
             synchronized_data = self.synchronized_data.update(
                 participants=frozenset(self.collection),
                 all_participants=frozenset(self.collection),
