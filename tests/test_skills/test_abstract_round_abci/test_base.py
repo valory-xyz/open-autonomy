@@ -557,13 +557,44 @@ class TestAbciAppDB:
         self.db.increment_round_count()
         assert self.db.round_count == 0
 
-    def test_update_empty(self) -> None:
-        """Test update on empty db."""
-        db = AbciAppDB(
-            initial_data=dict(),
-        )
-        db.update(dummy_key="dummy_value")
-        assert db._data == {0: {"dummy_key": ["dummy_value"]}}
+    @pytest.mark.parametrize(
+        "initial_data, update_data, expected_data",
+        (
+            (dict(), {"dummy_key": "dummy_value"}, {0: {"dummy_key": ["dummy_value"]}}),
+            (
+                dict(),
+                {"dummy_key": ["dummy_value1", "dummy_value2"]},
+                {0: {"dummy_key": [["dummy_value1", "dummy_value2"]]}},
+            ),
+            (
+                {"test": ["test"]},
+                {"dummy_key": "dummy_value"},
+                {0: {"dummy_key": ["dummy_value"], "test": ["test"]}},
+            ),
+            (
+                {"test": ["test"]},
+                {"test": "dummy_value"},
+                {0: {"test": ["test", "dummy_value"]}},
+            ),
+            (
+                {"test": [["test"]]},
+                {"test": ["dummy_value1", "dummy_value2"]},
+                {0: {"test": [["test"], ["dummy_value1", "dummy_value2"]]}},
+            ),
+            (
+                {"test": ["test"]},
+                {"test": ["dummy_value1", "dummy_value2"]},
+                {0: {"test": ["test", ["dummy_value1", "dummy_value2"]]}},
+            ),
+        ),
+    )
+    def test_update(
+        self, initial_data: Dict, update_data: Dict, expected_data: Dict[int, Dict]
+    ) -> None:
+        """Test update db."""
+        db = AbciAppDB(initial_data)
+        db.update(**update_data)
+        assert db._data == expected_data
 
 
 class TestBaseSynchronizedData:
