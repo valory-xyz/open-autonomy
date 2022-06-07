@@ -21,6 +21,7 @@
 import datetime
 import inspect
 import json
+import math
 import pprint
 from abc import ABC, abstractmethod
 from enum import Enum
@@ -88,6 +89,12 @@ from packages.valory.skills.abstract_round_abci.models import (
     Requests,
     SharedState,
 )
+
+
+MAX_HEIGHT_OFFSET = 10
+HEIGHT_OFFSET_MULTIPLIER = 0.01
+NON_200_RETURN_CODE_DURING_RESET_THRESHOLD = 3
+GENESIS_TIME_FMT = "%Y-%m-%dT%H:%M:%S.%fZ"
 
 
 class SendException(Exception):
@@ -416,18 +423,19 @@ class CleanUpBehaviour(SimpleBehaviour, ABC):
         It can be optionally implemented by the concrete classes.
         """
 
-    def handle_late_messages(self, message: Message) -> None:
+    def handle_late_messages(self, behaviour_id: str, message: Message) -> None:
         """
         Handle late arriving messages.
 
         Runs from another behaviour, even if the behaviour implementing the method has been exited.
         It can be optionally implemented by the concrete classes.
 
+        :param behaviour_id: the id of the behaviour in which the message belongs to.
         :param message: the late arriving message to handle.
         """
         request_nonce = message.dialogue_reference[0]
         self.context.logger.warning(
-            f"No callback defined for request with nonce: {request_nonce}"
+            f"No callback defined for request with nonce: {request_nonce}, arriving for behaviour: {behaviour_id}"
         )
 
 
@@ -459,6 +467,7 @@ class BaseBehaviour(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
         self._check_started: Optional[datetime.datetime] = None
         self._timeout: float = 0
         self._is_healthy: bool = False
+        self._non_200_return_code_count: int = 0
         enforce(self.behaviour_id != "", "State id not set.")
 
     @property
@@ -562,11 +571,14 @@ class BaseBehaviour(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
         """Set the behaviour to done."""
         self._is_done = True
 
-    def send_a2a_transaction(self, payload: BaseTxPayload) -> Generator:
+    def send_a2a_transaction(
+        self, payload: BaseTxPayload, resetting: bool = False
+    ) -> Generator:
         """
         Send transaction and wait for the response, and repeat until not successful.
 
         :param: payload: the payload to send
+        :param: resetting: flag indicating if we are resetting Tendermint nodes in this round.
         :yield: the responses
         """
         stop_condition = self.is_round_ended(self.matching_round.round_id)
@@ -575,6 +587,7 @@ class BaseBehaviour(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
         ).synchronized_data.round_count
         yield from self._send_transaction(
             payload,
+            resetting,
             stop_condition=stop_condition,
         )
 
@@ -636,9 +649,10 @@ class BaseBehaviour(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
         """Get the request nonce for the request, from the protocol's dialogue."""
         return dialogue.dialogue_label.dialogue_reference[0]
 
-    def _send_transaction(  # pylint: disable=too-many-arguments
+    def _send_transaction(  # pylint: disable=too-many-arguments,too-many-locals,too-many-statements
         self,
         payload: BaseTxPayload,
+        resetting: bool = False,
         stop_condition: Callable[[], bool] = lambda: False,
         request_timeout: Optional[float] = None,
         request_retry_delay: Optional[float] = None,
@@ -668,6 +682,7 @@ class BaseBehaviour(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
             Http client connection -> (HttpMessage | RESPONSE) -> AbstractRoundAbci skill
 
         :param: payload: the payload to send
+        :param: resetting: flag indicating if we are resetting Tendermint nodes in this round.
         :param: stop_condition: the condition to be checked to interrupt the
                 waiting loop.
         :param: request_timeout: the timeout for the requests
@@ -711,10 +726,19 @@ class BaseBehaviour(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
                 yield from self.sleep(request_retry_delay)
                 continue
             response = cast(HttpMessage, response)
-            if not self._check_http_return_code_200(response):
+            non_200_code = not self._check_http_return_code_200(response)
+            if non_200_code and (
+                self._non_200_return_code_count
+                > NON_200_RETURN_CODE_DURING_RESET_THRESHOLD
+                or not resetting
+            ):
                 self.context.logger.info(
-                    f"Received return code != 200 with response {response} with body {str(response.body)}. Retrying in {request_retry_delay} seconds..."
+                    f"Received return code != 200 with response {response} with body {str(response.body)}. "
+                    f"Retrying in {request_retry_delay} seconds..."
                 )
+            elif non_200_code and resetting:
+                self._non_200_return_code_count += 1
+            if non_200_code:
                 payload = payload.with_new_id()
                 yield from self.sleep(request_retry_delay)
                 continue
@@ -1020,7 +1044,7 @@ class BaseBehaviour(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
                     "dropping message as behaviour has stopped: %s", message
                 )
             elif self != current_behaviour:
-                self.handle_late_messages(message)
+                self.handle_late_messages(self.behaviour_id, message)
             elif self.state == AsyncBehaviour.AsyncState.WAITING_MESSAGE:
                 self.try_send(message)
             else:
@@ -1521,14 +1545,29 @@ class BaseBehaviour(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
             last_round_transition_timestamp = (
                 self.context.state.round_sequence.last_round_transition_timestamp
             )
-            time_string = last_round_transition_timestamp.astimezone(pytz.UTC).strftime(
-                "%Y-%m-%dT%H:%M:%S.%fZ"
+            genesis_time = last_round_transition_timestamp.astimezone(
+                pytz.UTC
+            ).strftime(GENESIS_TIME_FMT)
+            # Initial height needs to account for the asynchrony among agents.
+            # For that reason, we are using an offset in the initial block's height.
+            # The bigger the observation interval, the larger the lag among the agents might be.
+            # Also, if the observation interval is too tiny, we do not need the offset to be proportionally big.
+            # Therefore, we choose between a maximum value and the interval multiplied by a constant (< 1 suggested).
+            initial_height = (
+                self.context.state.round_sequence.last_round_transition_tm_height
+                + min(
+                    MAX_HEIGHT_OFFSET,
+                    math.ceil(
+                        self.params.observation_interval * HEIGHT_OFFSET_MULTIPLIER
+                    ),
+                )
             )
             request_message, http_dialogue = self._build_http_request_message(
                 "GET",
                 self.params.tendermint_com_url + "/hard_reset",
                 parameters=[
-                    ("genesis_time", time_string),
+                    ("genesis_time", genesis_time),
+                    ("initial_height", initial_height),
                 ],
             )
             result = yield from self._do_request(request_message, http_dialogue)

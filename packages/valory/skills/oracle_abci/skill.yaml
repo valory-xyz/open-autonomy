@@ -12,7 +12,7 @@ fingerprint:
   behaviours.py: QmQqTFTYEEes3z2F6U7fnTzTcANuvMpd9CcdL9Di1EuCQe
   composition.py: QmTMTXbxA32JvoohYjHTDohMpc2cyWZdLDZyKtCUSvaAnK
   dialogues.py: QmfDThV4WCRzK88XDpW2hKDYCuEH4RxoHCoAkWpkBRGRPv
-  fsm_specification.yaml: QmNtBq1LME67pGvjuWDczzJud5EK4pv2ZNRHp8xPJseZTU
+  fsm_specification.yaml: QmT6SZwTGmgFAZzrN9R2Qa7pY1P9JR8Si7MWKeEgULR9VV
   handlers.py: QmWJtuiUZUphDnxgsxc4Ym2sZT9qSSk3K7BBiKSZMMUEat
   models.py: QmSwdFNXuDkGCP8QB565HNafwtxgnVauUAYfE4FQEoDCgC
 fingerprint_ignore_patterns: []
@@ -22,15 +22,15 @@ contracts:
 - valory/gnosis_safe_proxy_factory:0.1.0:QmVkZtrgZ2ievXAonq9z33qbrxHi8piVGptuCGaGJYS1iM
 - valory/offchain_aggregator:0.1.0:Qmaftfci6asBewVH3vKGtMJVcAdG71Vm6Qv493uRkT7b2h
 protocols:
-- valory/contract_api:1.0.0:QmTZgtH8LbnFxqpGf2zuwSEdG4awPgvsag6jTYgX9GXDgy
+- valory/contract_api:1.0.0:QmQssrTfPsTJxkHQthn735vKQHmBuvoZE2eMFf3UzEFizf
 skills:
-- valory/abstract_round_abci:0.1.0:QmY7CtHnVg9Mt6RGwqUiMeGBtztdGUWV4fp2djuijkmsxD
-- valory/oracle_deployment_abci:0.1.0:QmbKLofyva86aXaorEXwPdH8L5WhyaYnwX1jo2jfcrGz3p
-- valory/price_estimation_abci:0.1.0:Qmf842sw18B5gGK7WjejR7BR5DbHsanvi7e6R2ywa6X6Ar
-- valory/registration_abci:0.1.0:QmNUL3KM8EGv1iRn22XizYZQvp6z8z2RYEyCngTUhYfnqr
-- valory/reset_pause_abci:0.1.0:QmRSVZ5r5T4328C4f9LFwWMVM4Wm1pUbLcJn26eGE2e8DP
-- valory/safe_deployment_abci:0.1.0:QmXpCxJzHahaZLWj5iCaBZeFmfNY4G6JLbuRtdmRZoDBgS
-- valory/transaction_settlement_abci:0.1.0:QmVggJUKYnAuDyHB3vw8tzsjSWr6UEJxnuzA1BhM7GZSWy
+- valory/abstract_round_abci:0.1.0:QmW5Yx2q9qrocm3Vzsz3mMYLBaoivGx3RENzL4Wa2165ZW
+- valory/oracle_deployment_abci:0.1.0:QmbZuJnD2XhZQSdQUxZcFmgcJwZNUuCg2W9oZX8j3A9cYY
+- valory/price_estimation_abci:0.1.0:QmXZCQzrcYBDyaXZQrTh7P8mCa9jjkBTj1xFh7RSYrgLXp
+- valory/registration_abci:0.1.0:QmdVVirfsb1THDUBunhdKp9uBaq1YQy8eWKxq7eoXsaxjx
+- valory/reset_pause_abci:0.1.0:QmZYM23ysAa1z1qziKqugYR7YSbyDuNZAFkQLBnPqTz8TY
+- valory/safe_deployment_abci:0.1.0:Qmbng3W2RFM8eor3XM3Yw28xf5NPrLvxfz1Pg32cpXMM66
+- valory/transaction_settlement_abci:0.1.0:QmQ9XDx64zDYERDbiUMSjp5ojXdrDMMS3ivHBEXUDCT4Gz
 behaviours:
   main:
     args: {}

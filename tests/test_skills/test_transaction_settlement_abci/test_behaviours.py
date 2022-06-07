@@ -276,10 +276,14 @@ class TestTransactionSettlementBaseBehaviour(PriceEstimationFSMBehaviourBaseCase
             behaviour_id=SignatureBehaviour.behaviour_id,
             synchronized_data=TransactionSettlementSynchronizedSata(
                 AbciAppDB(
-                    initial_data=dict(
-                        most_voted_tx_hash="b0e6add595e00477cf347d09797b156719dc5233283ac76e4efce2a674fe72d900000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000002625a000x77E9b2EF921253A171Fa0CB9ba80558648Ff7215b0e6add595e00477cf347d09797b156719dc5233283ac76e4efce2a674fe72d9b0e6add595e00477cf347d09797b156719dc5233283ac76e4efce2a674fe72d9",
-                        keepers=int(2).to_bytes(32, "big").hex()
-                        + "".join(deque(("agent_1" + "-" * 35, "agent_3" + "-" * 35))),
+                    initial_data=AbciAppDB.data_to_lists(
+                        dict(
+                            most_voted_tx_hash="b0e6add595e00477cf347d09797b156719dc5233283ac76e4efce2a674fe72d900000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000002625a000x77E9b2EF921253A171Fa0CB9ba80558648Ff7215b0e6add595e00477cf347d09797b156719dc5233283ac76e4efce2a674fe72d9b0e6add595e00477cf347d09797b156719dc5233283ac76e4efce2a674fe72d9",
+                            keepers=int(2).to_bytes(32, "big").hex()
+                            + "".join(
+                                deque(("agent_1" + "-" * 35, "agent_3" + "-" * 35))
+                            ),
+                        )
                     ),
                 )
             ),
@@ -407,7 +411,9 @@ class TestSignatureBehaviour(TransactionSettlementFSMBehaviourBaseCase):
             synchronized_data=TransactionSettlementSynchronizedSata(
                 AbciAppDB(
                     initial_data=dict(
-                        most_voted_tx_hash="b0e6add595e00477cf347d09797b156719dc5233283ac76e4efce2a674fe72d900000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000002625a000x77E9b2EF921253A171Fa0CB9ba80558648Ff7215b0e6add595e00477cf347d09797b156719dc5233283ac76e4efce2a674fe72d9b0e6add595e00477cf347d09797b156719dc5233283ac76e4efce2a674fe72d9"
+                        most_voted_tx_hash=[
+                            "b0e6add595e00477cf347d09797b156719dc5233283ac76e4efce2a674fe72d900000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000002625a000x77E9b2EF921253A171Fa0CB9ba80558648Ff7215b0e6add595e00477cf347d09797b156719dc5233283ac76e4efce2a674fe72d9b0e6add595e00477cf347d09797b156719dc5233283ac76e4efce2a674fe72d9"
+                        ]
                     ),
                 )
             ),
@@ -454,13 +460,15 @@ class TestFinalizeBehaviour(TransactionSettlementFSMBehaviourBaseCase):
             behaviour_id=self.behaviour_class.behaviour_id,
             synchronized_data=TransactionSettlementSynchronizedSata(
                 AbciAppDB(
-                    initial_data=dict(
-                        most_voted_keeper_address="most_voted_keeper_address",
-                        participants=participants,
-                        # keeper needs to have length == 42 in order to be parsed
-                        keepers=retries.to_bytes(32, "big").hex()
-                        + "other_agent"
-                        + "-" * 31,
+                    initial_data=AbciAppDB.data_to_lists(
+                        dict(
+                            most_voted_keeper_address="most_voted_keeper_address",
+                            participants=participants,
+                            # keeper needs to have length == 42 in order to be parsed
+                            keepers=retries.to_bytes(32, "big").hex()
+                            + "other_agent"
+                            + "-" * 31,
+                        )
                     ),
                 )
             ),
@@ -575,21 +583,23 @@ class TestFinalizeBehaviour(TransactionSettlementFSMBehaviourBaseCase):
             behaviour_id=self.behaviour_class.behaviour_id,
             synchronized_data=TransactionSettlementSynchronizedSata(
                 AbciAppDB(
-                    initial_data=dict(
-                        safe_contract_address="safe_contract_address",
-                        participants=participants,
-                        participant_to_signature={},
-                        most_voted_tx_hash=hash_payload_to_hex(
-                            "b0e6add595e00477cf347d09797b156719dc5233283ac76e4efce2a674fe72d9",
-                            1,
-                            1,
-                            "0x77E9b2EF921253A171Fa0CB9ba80558648Ff7215",
-                            b"b0e6add595e00477cf347d09797b156719dc5233283ac76e4efce2a674fe72d9b0e6add595e00477cf347d09797b156719dc5233283ac76e4efce2a674fe72d9",
-                        ),
-                        nonce=nonce,
-                        max_priority_fee_per_gas=max_priority_fee_per_gas,
-                        keepers=retries.to_bytes(32, "big").hex()
-                        + self.skill.skill_context.agent_address,
+                    initial_data=AbciAppDB.data_to_lists(
+                        dict(
+                            safe_contract_address="safe_contract_address",
+                            participants=participants,
+                            participant_to_signature={},
+                            most_voted_tx_hash=hash_payload_to_hex(
+                                "b0e6add595e00477cf347d09797b156719dc5233283ac76e4efce2a674fe72d9",
+                                1,
+                                1,
+                                "0x77E9b2EF921253A171Fa0CB9ba80558648Ff7215",
+                                b"b0e6add595e00477cf347d09797b156719dc5233283ac76e4efce2a674fe72d9b0e6add595e00477cf347d09797b156719dc5233283ac76e4efce2a674fe72d9",
+                            ),
+                            nonce=nonce,
+                            max_priority_fee_per_gas=max_priority_fee_per_gas,
+                            keepers=retries.to_bytes(32, "big").hex()
+                            + self.skill.skill_context.agent_address,
+                        )
                     ),
                 )
             ),
@@ -660,37 +670,47 @@ class TestFinalizeBehaviour(TransactionSettlementFSMBehaviourBaseCase):
             behaviour_id=self.behaviour_class.behaviour_id,
             synchronized_data=TransactionSettlementSynchronizedSata(
                 AbciAppDB(
-                    initial_data=dict(
-                        most_voted_keeper_address="most_voted_keeper_address",
-                        participants=participants,
-                        keepers=deque([self.skill.skill_context.agent_address]),
+                    initial_data=AbciAppDB.data_to_lists(
+                        dict(
+                            most_voted_keeper_address="most_voted_keeper_address",
+                            participants=participants,
+                            keepers=deque([self.skill.skill_context.agent_address]),
+                        )
                     ),
                 )
             ),
         )
+        self.behaviour.current_behaviour = cast(
+            BaseBehaviour, self.behaviour.current_behaviour
+        )
         assert (
-            cast(
-                BaseBehaviour,
-                cast(BaseBehaviour, self.behaviour.current_behaviour),
-            ).behaviour_id
+            self.behaviour.current_behaviour.behaviour_id
             == self.behaviour_class.behaviour_id
         )
 
         message = ContractApiMessage(ContractApiMessage.Performative.RAW_MESSAGE)  # type: ignore
-        cast(BaseBehaviour, self.behaviour.current_behaviour).handle_late_messages(
-            message
+        self.behaviour.current_behaviour.handle_late_messages(
+            self.behaviour.current_behaviour.behaviour_id, message
         )
         assert cast(
             TransactionSettlementBaseBehaviour, self.behaviour.current_behaviour
         ).params.late_messages == [message]
 
-        message = MagicMock()
         with mock.patch.object(self.behaviour.context.logger, "warning") as mock_info:
-            cast(BaseBehaviour, self.behaviour.current_behaviour).handle_late_messages(
-                message
+            self.behaviour.current_behaviour.handle_late_messages(
+                "other_behaviour_id", message
             )
             mock_info.assert_called_with(
-                f"No callback defined for request with nonce: {message.dialogue_reference[0]}"
+                f"No callback defined for request with nonce: {message.dialogue_reference[0]}, "
+                "arriving for behaviour: other_behaviour_id"
+            )
+            message = MagicMock()
+            self.behaviour.current_behaviour.handle_late_messages(
+                self.behaviour.current_behaviour.behaviour_id, message
+            )
+            mock_info.assert_called_with(
+                f"No callback defined for request with nonce: {message.dialogue_reference[0]}, "
+                "arriving for behaviour: finalize"
             )
 
 
@@ -706,21 +726,23 @@ class TestValidateTransactionBehaviour(TransactionSettlementFSMBehaviourBaseCase
             behaviour_id=ValidateTransactionBehaviour.behaviour_id,
             synchronized_data=TransactionSettlementSynchronizedSata(
                 AbciAppDB(
-                    initial_data=dict(
-                        safe_contract_address="safe_contract_address",
-                        tx_hashes_history="t" * 66,
-                        final_tx_hash="dummy_hash",
-                        participants=participants,
-                        most_voted_keeper_address=most_voted_keeper_address,
-                        participant_to_signature={},
-                        most_voted_tx_hash=hash_payload_to_hex(
-                            "b0e6add595e00477cf347d09797b156719dc5233283ac76e4efce2a674fe72d9",
-                            1,
-                            1,
-                            "0x77E9b2EF921253A171Fa0CB9ba80558648Ff7215",
-                            b"b0e6add595e00477cf347d09797b156719dc5233283ac76e4efce2a674fe72d9b0e6add595e00477cf347d09797b156719dc5233283ac76e4efce2a674fe72d9",
-                        ),
-                        max_priority_fee_per_gas=int(10e10),
+                    initial_data=AbciAppDB.data_to_lists(
+                        dict(
+                            safe_contract_address="safe_contract_address",
+                            tx_hashes_history="t" * 66,
+                            final_tx_hash="dummy_hash",
+                            participants=participants,
+                            most_voted_keeper_address=most_voted_keeper_address,
+                            participant_to_signature={},
+                            most_voted_tx_hash=hash_payload_to_hex(
+                                "b0e6add595e00477cf347d09797b156719dc5233283ac76e4efce2a674fe72d9",
+                                1,
+                                1,
+                                "0x77E9b2EF921253A171Fa0CB9ba80558648Ff7215",
+                                b"b0e6add595e00477cf347d09797b156719dc5233283ac76e4efce2a674fe72d9b0e6add595e00477cf347d09797b156719dc5233283ac76e4efce2a674fe72d9",
+                            ),
+                            max_priority_fee_per_gas=int(10e10),
+                        )
                     ),
                 )
             ),
@@ -805,14 +827,16 @@ class TestCheckTransactionHistoryBehaviour(TransactionSettlementFSMBehaviourBase
             behaviour_id=CheckTransactionHistoryBehaviour.behaviour_id,
             synchronized_data=TransactionSettlementSynchronizedSata(
                 AbciAppDB(
-                    initial_data=dict(
-                        safe_contract_address="safe_contract_address",
-                        participants=frozenset(
-                            {self.skill.skill_context.agent_address, "a_1", "a_2"}
-                        ),
-                        participant_to_signature={},
-                        most_voted_tx_hash="b0e6add595e00477cf347d09797b156719dc5233283ac76e4efce2a674fe72d900000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000002625a000x77E9b2EF921253A171Fa0CB9ba80558648Ff7215b0e6add595e00477cf347d09797b156719dc5233283ac76e4efce2a674fe72d9b0e6add595e00477cf347d09797b156719dc5233283ac76e4efce2a674fe72d9",
-                        tx_hashes_history=hashes_history,
+                    initial_data=AbciAppDB.data_to_lists(
+                        dict(
+                            safe_contract_address="safe_contract_address",
+                            participants=frozenset(
+                                {self.skill.skill_context.agent_address, "a_1", "a_2"}
+                            ),
+                            participant_to_signature={},
+                            most_voted_tx_hash="b0e6add595e00477cf347d09797b156719dc5233283ac76e4efce2a674fe72d900000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000002625a000x77E9b2EF921253A171Fa0CB9ba80558648Ff7215b0e6add595e00477cf347d09797b156719dc5233283ac76e4efce2a674fe72d9b0e6add595e00477cf347d09797b156719dc5233283ac76e4efce2a674fe72d9",
+                            tx_hashes_history=hashes_history,
+                        )
                     ),
                 )
             ),
@@ -913,9 +937,9 @@ class TestSynchronizeLateMessagesBehaviour(TransactionSettlementFSMBehaviourBase
             synchronized_data=TransactionSettlementSynchronizedSata(
                 AbciAppDB(
                     initial_data=dict(
-                        participants=participants,
-                        participant_to_signature={},
-                        safe_contract_address="safe_contract_address",
+                        participants=[participants],
+                        participant_to_signature=[{}],
+                        safe_contract_address=["safe_contract_address"],
                     ),
                 )
             ),
@@ -961,7 +985,7 @@ class TestResetBehaviour(TransactionSettlementFSMBehaviourBaseCase):
             behaviour=self.behaviour,
             behaviour_id=self.behaviour_class.behaviour_id,
             synchronized_data=TransactionSettlementSynchronizedSata(
-                AbciAppDB(initial_data=dict(estimate=1.0)),
+                AbciAppDB(initial_data=dict(estimate=[1.0])),
             ),
         )
         assert (

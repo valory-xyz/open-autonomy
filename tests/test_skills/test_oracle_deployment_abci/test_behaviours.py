@@ -117,10 +117,12 @@ class BaseDeployBehaviourTest(FSMBehaviourBaseCase):
             self.behaviour_class.behaviour_id,
             OracleDeploymentSynchronizedSata(
                 AbciAppDB(
-                    initial_data=dict(
-                        participants=participants,
-                        most_voted_keeper_address=most_voted_keeper_address,
-                        **self.synchronized_data_kwargs,
+                    initial_data=AbciAppDB.data_to_lists(
+                        dict(
+                            participants=participants,
+                            most_voted_keeper_address=most_voted_keeper_address,
+                            **self.synchronized_data_kwargs,
+                        )
                     ),
                 )
             ),
@@ -205,10 +207,12 @@ class BaseDeployBehaviourTest(FSMBehaviourBaseCase):
             self.behaviour_class.behaviour_id,
             OracleDeploymentSynchronizedSata(
                 AbciAppDB(
-                    initial_data=dict(
-                        participants=participants,
-                        most_voted_keeper_address=most_voted_keeper_address,
-                        **self.synchronized_data_kwargs,
+                    initial_data=AbciAppDB.data_to_lists(
+                        dict(
+                            participants=participants,
+                            most_voted_keeper_address=most_voted_keeper_address,
+                            **self.synchronized_data_kwargs,
+                        )
                     ),
                 )
             ),
@@ -257,7 +261,9 @@ class BaseValidateBehaviourTest(FSMBehaviourBaseCase):
             self.behaviour,
             self.behaviour_class.behaviour_id,
             OracleDeploymentSynchronizedSata(
-                AbciAppDB(initial_data=self.synchronized_data_kwargs),
+                AbciAppDB(
+                    initial_data=AbciAppDB.data_to_lists(self.synchronized_data_kwargs)
+                ),
             ),
         )
         assert (

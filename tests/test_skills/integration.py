@@ -507,42 +507,47 @@ class _TxHelperIntegration(_GnosisHelperIntegration):
             synchronized_data_class=None, **update_params  # type: ignore
         )
 
-    def validate_tx(self) -> None:
+    def validate_tx(self, simulate_timeout: bool = False) -> None:
         """Validate the sent transaction."""
 
-        handlers: HandlersType = [
-            self.ledger_handler,
-            self.contract_handler,
-        ]
-        expected_content: ExpectedContentType = [
-            {"performative": LedgerApiMessage.Performative.TRANSACTION_RECEIPT},
-            {"performative": ContractApiMessage.Performative.STATE},
-        ]
-        expected_types: ExpectedTypesType = [
-            {
-                "transaction_receipt": TransactionReceipt,
-            },
-            {
-                "state": State,
-            },
-        ]
-        _, verif_msg = self.process_n_messages(
-            2,
-            self.tx_settlement_synchronized_data,
-            ValidateTransactionBehaviour.behaviour_id,
-            handlers,
-            expected_content,
-            expected_types,
-        )
-        assert verif_msg is not None and isinstance(verif_msg, ContractApiMessage)
-        assert verif_msg.state.body[
-            "verified"
-        ], f"Message not verified: {verif_msg.state.body}"
+        if simulate_timeout:
+            self.tx_settlement_synchronized_data.update(
+                missed_messages=self.tx_settlement_synchronized_data.missed_messages + 1
+            )
+        else:
+            handlers: HandlersType = [
+                self.ledger_handler,
+                self.contract_handler,
+            ]
+            expected_content: ExpectedContentType = [
+                {"performative": LedgerApiMessage.Performative.TRANSACTION_RECEIPT},
+                {"performative": ContractApiMessage.Performative.STATE},
+            ]
+            expected_types: ExpectedTypesType = [
+                {
+                    "transaction_receipt": TransactionReceipt,
+                },
+                {
+                    "state": State,
+                },
+            ]
+            _, verif_msg = self.process_n_messages(
+                2,
+                self.tx_settlement_synchronized_data,
+                ValidateTransactionBehaviour.behaviour_id,
+                handlers,
+                expected_content,
+                expected_types,
+            )
+            assert verif_msg is not None and isinstance(verif_msg, ContractApiMessage)
+            assert verif_msg.state.body[
+                "verified"
+            ], f"Message not verified: {verif_msg.state.body}"
 
-        self.tx_settlement_synchronized_data.update(
-            final_verification_status=VerificationStatus.VERIFIED,
-            final_tx_hash=self.tx_settlement_synchronized_data.to_be_validated_tx_hash,
-        )
+            self.tx_settlement_synchronized_data.update(
+                final_verification_status=VerificationStatus.VERIFIED,
+                final_tx_hash=self.tx_settlement_synchronized_data.to_be_validated_tx_hash,
+            )
 
 
 class _HarHatHelperIntegration(IntegrationBaseCase):

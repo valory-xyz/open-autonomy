@@ -88,6 +88,7 @@ transition_func:
     (RandomnessTransactionSubmissionRound, NO_MAJORITY): RandomnessTransactionSubmissionRound
     (RandomnessTransactionSubmissionRound, ROUND_TIMEOUT): RandomnessTransactionSubmissionRound
     (RegistrationRound, DONE): StrategyEvaluationRound
+    (RegistrationRound, NO_MAJORITY): RegistrationRound
     (RegistrationStartupRound, DONE): RandomnessSafeRound
     (RegistrationStartupRound, FAST_FORWARD): StrategyEvaluationRound
     (ResetAndPauseRound, DONE): StrategyEvaluationRound

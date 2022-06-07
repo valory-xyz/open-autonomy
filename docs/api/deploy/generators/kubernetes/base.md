@@ -19,7 +19,7 @@ Kubernetes Deployment Generator.
 #### `__`init`__`
 
 ```python
-def __init__(deployment_spec: DeploymentSpec, build_dir: Path) -> None
+def __init__(service_spec: ServiceSpecification, build_dir: Path) -> None
 ```
 
 Initialise the deployment generator.
@@ -29,7 +29,7 @@ Initialise the deployment generator.
 #### build`_`agent`_`deployment
 
 ```python
-def build_agent_deployment(image_name: str, agent_ix: int, number_of_agents: int, agent_vars: Dict[str, Any]) -> str
+def build_agent_deployment(image_name: str, agent_ix: int, number_of_agents: int, agent_vars: Dict[str, Any], image_versions: Dict[str, str]) -> str
 ```
 
 Build agent deployment.
@@ -39,7 +39,7 @@ Build agent deployment.
 #### generate`_`config`_`tendermint
 
 ```python
-def generate_config_tendermint() -> "KubernetesGenerator"
+def generate_config_tendermint(image_version: str = TENDERMINT_IMAGE_VERSION) -> "KubernetesGenerator"
 ```
 
 Build configuration job.
@@ -49,7 +49,7 @@ Build configuration job.
 #### generate
 
 ```python
-def generate(dev_mode: bool = False) -> "KubernetesGenerator"
+def generate(image_versions: Dict[str, str], dev_mode: bool = False) -> "KubernetesGenerator"
 ```
 
 Generate the deployment.
@@ -63,4 +63,14 @@ def write_config() -> "KubernetesGenerator"
 ```
 
 Write output to build dir
+
+<a id="aea_swarm.deploy.generators.kubernetes.base.KubernetesGenerator.populate_private_keys"></a>
+
+#### populate`_`private`_`keys
+
+```python
+def populate_private_keys() -> "BaseDeploymentGenerator"
+```
+
+Populates private keys into a config map for the kubernetes deployment.
 

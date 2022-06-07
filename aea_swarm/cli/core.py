@@ -25,6 +25,7 @@ from aea.cli.core import cli as aea_cli
 from aea_swarm.cli.analyse import analyse_group
 from aea_swarm.cli.deploy import deploy_group
 from aea_swarm.cli.develop import develop_group
+from aea_swarm.cli.hash import hash_group
 from aea_swarm.cli.replay import replay_group
 
 
@@ -38,5 +39,6 @@ swarm_cli.add_command(analyse_group)
 swarm_cli.add_command(deploy_group)
 swarm_cli.add_command(develop_group)
 swarm_cli.add_command(replay_group)
+aea_cli.add_command(hash_group)
 
 cli = click.CommandCollection(sources=[aea_cli, swarm_cli])

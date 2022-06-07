@@ -68,6 +68,7 @@ transition_func:
     (RandomnessRound, RANDOMNESS_INVALID): RandomnessRound
     (RandomnessRound, ROUND_TIMEOUT): RandomnessRound
     (RegistrationRound, DONE): CollectHistoryRound
+    (RegistrationRound, NO_MAJORITY): RegistrationRound
     (RegistrationStartupRound, DONE): CollectHistoryRound
     (RegistrationStartupRound, FAST_FORWARD): CollectHistoryRound
     (TestRound, DONE): TrainRound

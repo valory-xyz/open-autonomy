@@ -71,7 +71,7 @@ security:
 # update copyright headers
 .PHONY: generators
 generators:
-	python -m aea.cli hash all
+	python -m aea_swarm.cli hash all
 	python scripts/generate_api_documentation.py
 	python scripts/check_copyright.py
 
@@ -122,12 +122,12 @@ static:
 
 .PHONY: package_checks
 package_checks:
-	python -m aea.cli hash all --check
+	python -m aea_swarm.cli hash all --check
 	python scripts/check_packages.py --vendor valory
 
 .PHONY: hashes
 hashes:
-	python -m aea.cli hash all
+	python -m aea_swarm.cli hash all
 
 .PHONY: api-docs
 api-docs:
@@ -389,7 +389,7 @@ replay-tendermint:
 	python replay_scripts/tendermint_runner.py $(NODE_ID)
 
 teardown-docker-compose:
-	cd deployments/build/ && \
+	cd abci_build/ && \
 		docker-compose kill && \
 		docker-compose down && \
 		echo "Deployment torndown!" && \

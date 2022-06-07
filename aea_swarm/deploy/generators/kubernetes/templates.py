@@ -19,15 +19,8 @@
 
 """Kubernetes Templates module."""
 
-from aea_swarm.deploy.constants import (
-    HARDHAT_VERSION,
-    IMAGE_VERSION,
-    TENDERMINT_VERSION,
-)
 
-
-HARDHAT_TEMPLATE: str = (
-    """apiVersion: apps/v1
+HARDHAT_TEMPLATE: str = """apiVersion: apps/v1
 kind: Deployment
 metadata:
   labels:
@@ -58,7 +51,7 @@ spec:
             - "0.0.0.0"
           command:
             - /bin/bash
-          image: valory/consensus-algorithms-hardhat:%s
+          image: %s:%s
           name: hardhat
           ports:
             - name: http
@@ -87,12 +80,9 @@ spec:
 status:
   loadBalancer: {}
 """
-    % HARDHAT_VERSION
-)
 
 
-CLUSTER_CONFIGURATION_TEMPLATE: str = (
-    """apiVersion: batch/v1
+CLUSTER_CONFIGURATION_TEMPLATE: str = """apiVersion: batch/v1
 kind: Job
 metadata:
   name: config-nodes
@@ -103,7 +93,7 @@ spec:
       - name: regcred
       containers:
       - name: config-nodes
-        image: valory/consensus-algorithms-tendermint:%s
+        image: {tendermint_image_name}:{tendermint_image_version}
         command: ['/usr/bin/tendermint']
         args: ["testnet",
          "--config",
@@ -169,8 +159,6 @@ spec:
     requests:
       storage: 1000M
 """
-    % TENDERMINT_VERSION
-)
 
 
 AGENT_NODE_TEMPLATE: str = """apiVersion: v1
@@ -209,7 +197,7 @@ spec:
       restartPolicy: Always
       containers:
       - name: node{validator_ix}
-        image: valory/consensus-algorithms-tendermint:%s
+        image: {tendermint_image_name}:{tendermint_image_version}
         imagePullPolicy: Always
         resources:
           limits:
@@ -245,7 +233,7 @@ spec:
             name: nodes
 
       - name: aea
-        image: valory/consensus-algorithms-open-aea:{valory_app}-%s
+        image: {open_aea_image_name}:{valory_app}-{open_aea_image_version}
         imagePullPolicy: Always
         resources:
           limits:
@@ -268,7 +256,15 @@ spec:
             name: persistent-data-benchmark
           - mountPath: /build
             name: nodes
+          - mountPath: /agent_key
+            name: agent-key
       volumes:
+        - name: agent-key
+          secret:
+            secretName: agent-validator-{validator_ix}-key
+            items:
+            - key: private_key
+              path: ethereum_private_key.txt
         - name: persistent-data
           persistentVolumeClaim:
             claimName: 'logs-pvc'
@@ -281,7 +277,15 @@ spec:
         - name: nodes
           persistentVolumeClaim:
             claimName: 'nodes'
-""" % (
-    TENDERMINT_VERSION,
-    IMAGE_VERSION,
-)
+"""
+
+AGENT_SECRET_TEMPLATE: str = """
+apiVersion: v1
+stringData:
+    private_key: '{private_key}'
+kind: Secret
+metadata:
+  annotations:
+  name: agent-validator-{validator_ix}-key
+type: Opaque
+"""

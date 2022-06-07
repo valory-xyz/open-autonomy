@@ -25,7 +25,7 @@ from pathlib import Path
 from typing import Optional
 
 import click
-from aea.cli.utils.click_utils import PublicIdParameter
+from aea.cli.utils.click_utils import PublicIdParameter, password_option
 from aea.configurations.constants import PACKAGES
 from aea.configurations.data_types import PublicId
 
@@ -81,7 +81,7 @@ def build_group() -> None:
     help="Use docker as a kubernetes.",
 )
 @click.option(
-    "--package-dir",
+    "--packages-dir",
     type=click.Path(exists=True, dir_okay=True),
     default=Path.cwd() / PACKAGES,
     help="Path to packages folder (For local usage).",
@@ -94,30 +94,39 @@ def build_group() -> None:
     help="Create development environment.",
 )
 @click.option(
+    "--version",
+    "version",
+    help="Specify deployment version.",
+)
+@click.option(
     "--force",
     "force_overwrite",
     is_flag=True,
     default=False,
     help="Remove existing build and overwrite with new one.",
 )
+@password_option(confirmation_prompt=True)
 def build_deployment(  # pylint: disable=too-many-arguments
     service_id: PublicId,
     keys_file: Path,
     deployment_type: str,
     output_dir: Path,
-    package_dir: Path,
+    packages_dir: Path,
     dev_mode: bool,
     force_overwrite: bool,
     number_of_agents: Optional[int] = None,
+    password: Optional[str] = None,
+    version: Optional[str] = None,
 ) -> None:
     """Build deployment setup for n agents."""
 
-    package_dir = Path(package_dir)
+    packages_dir = Path(packages_dir)
+    keys_file = Path(keys_file)
     build_dir = Path(output_dir, "abci_build")
 
-    if not package_dir.is_dir():
+    if not packages_dir.is_dir():
         raise click.ClickException(
-            f"Packages directory does not exists @ {package_dir}"
+            f"Packages directory does not exists @ {packages_dir}"
         )
 
     if build_dir.is_dir():
@@ -128,19 +137,21 @@ def build_deployment(  # pylint: disable=too-many-arguments
     build_dir.mkdir()
     _build_dirs(build_dir)
 
-    deployment_file_path = _find_path_to_service_file(service_id, package_dir)
+    service_path = _find_path_to_service(service_id, packages_dir)
     try:
         report = generate_deployment(
-            deployment_file_path=deployment_file_path,
+            service_path=service_path,
             type_of_deployment=deployment_type,
             private_keys_file_path=keys_file,
+            private_keys_password=password,
             number_of_agents=number_of_agents,
-            package_dir=package_dir,
+            packages_dir=packages_dir,
             build_dir=build_dir,
             dev_mode=dev_mode,
+            version=version,
         )
         click.echo(report)
-    except ValueError as e:
+    except Exception as e:  # pylint: disable=broad-except
         raise click.ClickException(str(e)) from e
 
 
@@ -150,7 +161,7 @@ def build_deployment(  # pylint: disable=too-many-arguments
     type=PublicIdParameter(),
 )
 @click.option(
-    "--package-dir",
+    "--packages-dir",
     type=click.Path(exists=True, dir_okay=True),
     default=Path.cwd() / PACKAGES,
     help="Path to packages folder (For local usage).",
@@ -178,7 +189,7 @@ def build_deployment(  # pylint: disable=too-many-arguments
 def build_images(  # pylint: disable=too-many-arguments
     service_id: PublicId,
     profile: str,
-    package_dir: Path,
+    packages_dir: Path,
     build_dir: Path,
     skaffold_dir: Path,
     version: str,
@@ -186,7 +197,7 @@ def build_images(  # pylint: disable=too-many-arguments
 ) -> None:
     """Build image using skaffold."""
 
-    package_dir = Path(package_dir).absolute()
+    packages_dir = Path(packages_dir).absolute()
     build_dir = Path(build_dir).absolute()
     skaffold_dir = Path(skaffold_dir).absolute()
 
@@ -194,12 +205,12 @@ def build_images(  # pylint: disable=too-many-arguments
         click.echo(
             f"Building image with:\n\tProfile: {profile}\n\tServiceId: {service_id}\n"
         )
-        deployment_file_path = _find_path_to_service_file(service_id, package_dir)
+        deployment_file_path = _find_path_to_service_file(service_id, packages_dir)
         ImageBuilder.build_images(
             profile=profile,
             deployment_file_path=deployment_file_path,
             push=push,
-            package_dir=package_dir,
+            packages_dir=packages_dir,
             build_dir=build_dir,
             version=version,
             skaffold_dir=skaffold_dir,
@@ -208,15 +219,24 @@ def build_images(  # pylint: disable=too-many-arguments
         raise click.ClickException(str(e)) from e
 
 
-def _find_path_to_service_file(public_id: PublicId, package_dir: Path) -> Path:
+def _find_path_to_service_file(public_id: PublicId, packages_dir: Path) -> Path:
     """Find path to service file using package dir."""
     service_file = (
-        package_dir / public_id.author / "services" / public_id.name / "service.yaml"
+        packages_dir / public_id.author / "services" / public_id.name / "service.yaml"
     )
     if not service_file.is_file():
         raise click.ClickException(f"Cannot find service file for {public_id}")
 
     return service_file
+
+
+def _find_path_to_service(public_id: PublicId, packages_dir: Path) -> Path:
+    """Find path to service file using package dir."""
+    service_path = packages_dir / public_id.author / "services" / public_id.name
+    if not service_path.is_dir():
+        raise click.ClickException(f"Cannot find service file for {public_id}")
+
+    return service_path
 
 
 def _build_dirs(build_dir: Path) -> None:
@@ -228,6 +248,7 @@ def _build_dirs(build_dir: Path) -> None:
         ("persistent_data", "tm_state"),
         ("persistent_data", "benchmarks"),
         ("persistent_data", "venvs"),
+        ("agent_keys",),
     ]:
         path = Path(build_dir, *dir_path)
         path.mkdir()
