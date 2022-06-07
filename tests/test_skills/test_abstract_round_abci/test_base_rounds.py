@@ -829,8 +829,12 @@ class TestVotingRound(_BaseRoundTestClass):
 class TestCollectDifferentUntilThresholdRound(_BaseRoundTestClass):
     """Test CollectDifferentUntilThresholdRound."""
 
+    @pytest.mark.parametrize(
+        "required_confirmations", (MAX_PARTICIPANTS, MAX_PARTICIPANTS + 1)
+    )
     def test_run(
         self,
+        required_confirmations: int,
     ) -> None:
         """Run tests."""
 
@@ -838,6 +842,15 @@ class TestCollectDifferentUntilThresholdRound(_BaseRoundTestClass):
             synchronized_data=self.synchronized_data,
             consensus_params=self.consensus_params,
         )
+        test_round.block_confirmations = 0
+        test_round.required_block_confirmations = required_confirmations
+        test_round.selection_key = "selection_key"
+        test_round.collection_key = "collection_key"
+        test_round.done_event = 0
+        test_round.no_majority_event = 1
+        assert (
+            test_round.consensus_threshold <= required_confirmations
+        ), "Incorrect test parametrization: required confirmations cannot be set with a smalled value than the consensus threshold"
 
         first_payload, *payloads = get_dummy_tx_payloads(self.participants, vote=False)
         test_round.process_payload(first_payload)
@@ -845,13 +858,17 @@ class TestCollectDifferentUntilThresholdRound(_BaseRoundTestClass):
         assert not test_round.collection_threshold_reached
         for payload in payloads:
             test_round.process_payload(payload)
-
+            res = test_round.end_block()
+            if test_round.block_confirmations <= required_confirmations:
+                assert res is None
+            else:
+                assert res is not None
+                assert res[1] == test_round.done_event
         assert test_round.collection_threshold_reached
-
         self._test_payload_with_wrong_round_count(test_round)
 
 
-class TestDummyCollectNonEmptyUntilThresholdRound(_BaseRoundTestClass):
+class TestCollectNonEmptyUntilThresholdRound(_BaseRoundTestClass):
     """Test `CollectNonEmptyUntilThresholdRound`."""
 
     def test_get_non_empty_values(self) -> None:
@@ -899,7 +916,7 @@ class TestDummyCollectNonEmptyUntilThresholdRound(_BaseRoundTestClass):
 
         res = cast(Tuple[BaseSynchronizedData, Enum], test_round.end_block())
 
-        if not is_majority_possible:
+        if test_round.block_confirmations > test_round.required_block_confirmations:
             assert res[0].db == self.synchronized_data.db
             assert res[1] == test_round.no_majority_event
         else:
