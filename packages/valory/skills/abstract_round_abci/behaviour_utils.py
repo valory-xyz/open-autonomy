@@ -93,6 +93,7 @@ from packages.valory.skills.abstract_round_abci.models import (
 
 MAX_HEIGHT_OFFSET = 10
 HEIGHT_OFFSET_MULTIPLIER = 0.01
+NON_200_RETURN_CODE_DURING_RESET_THRESHOLD = 3
 GENESIS_TIME_FMT = "%Y-%m-%dT%H:%M:%S.%fZ"
 
 
@@ -466,6 +467,7 @@ class BaseBehaviour(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
         self._check_started: Optional[datetime.datetime] = None
         self._timeout: float = 0
         self._is_healthy: bool = False
+        self._non_200_return_code_count: int = 0
         enforce(self.behaviour_id != "", "State id not set.")
 
     @property
@@ -569,11 +571,14 @@ class BaseBehaviour(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
         """Set the behaviour to done."""
         self._is_done = True
 
-    def send_a2a_transaction(self, payload: BaseTxPayload) -> Generator:
+    def send_a2a_transaction(
+        self, payload: BaseTxPayload, resetting: bool = False
+    ) -> Generator:
         """
         Send transaction and wait for the response, and repeat until not successful.
 
         :param: payload: the payload to send
+        :param: resetting: flag indicating if we are resetting Tendermint nodes in this round.
         :yield: the responses
         """
         stop_condition = self.is_round_ended(self.matching_round.round_id)
@@ -582,6 +587,7 @@ class BaseBehaviour(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
         ).synchronized_data.round_count
         yield from self._send_transaction(
             payload,
+            resetting,
             stop_condition=stop_condition,
         )
 
@@ -643,9 +649,10 @@ class BaseBehaviour(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
         """Get the request nonce for the request, from the protocol's dialogue."""
         return dialogue.dialogue_label.dialogue_reference[0]
 
-    def _send_transaction(  # pylint: disable=too-many-arguments
+    def _send_transaction(  # pylint: disable=too-many-arguments,too-many-locals,too-many-statements
         self,
         payload: BaseTxPayload,
+        resetting: bool = False,
         stop_condition: Callable[[], bool] = lambda: False,
         request_timeout: Optional[float] = None,
         request_retry_delay: Optional[float] = None,
@@ -675,6 +682,7 @@ class BaseBehaviour(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
             Http client connection -> (HttpMessage | RESPONSE) -> AbstractRoundAbci skill
 
         :param: payload: the payload to send
+        :param: resetting: flag indicating if we are resetting Tendermint nodes in this round.
         :param: stop_condition: the condition to be checked to interrupt the
                 waiting loop.
         :param: request_timeout: the timeout for the requests
@@ -718,10 +726,19 @@ class BaseBehaviour(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
                 yield from self.sleep(request_retry_delay)
                 continue
             response = cast(HttpMessage, response)
-            if not self._check_http_return_code_200(response):
+            non_200_code = not self._check_http_return_code_200(response)
+            if non_200_code and (
+                self._non_200_return_code_count
+                > NON_200_RETURN_CODE_DURING_RESET_THRESHOLD
+                or not resetting
+            ):
                 self.context.logger.info(
-                    f"Received return code != 200 with response {response} with body {str(response.body)}. Retrying in {request_retry_delay} seconds..."
+                    f"Received return code != 200 with response {response} with body {str(response.body)}. "
+                    f"Retrying in {request_retry_delay} seconds..."
                 )
+            elif non_200_code and resetting:
+                self._non_200_return_code_count += 1
+            if non_200_code:
                 payload = payload.with_new_id()
                 yield from self.sleep(request_retry_delay)
                 continue
