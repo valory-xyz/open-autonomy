@@ -1406,8 +1406,11 @@ class CollectDifferentUntilThresholdRound(CollectionRound):
                 },
             )
             return synchronized_data, self.done_event
-        if not self.is_majority_possible(
-            self.collection, self.synchronized_data.nb_participants
+        if (
+            not self.is_majority_possible(
+                self.collection, self.synchronized_data.nb_participants
+            )
+            and self.block_confirmations > self.required_block_confirmations
         ):
             return self.synchronized_data, self.no_majority_event
         return None
@@ -1458,8 +1461,11 @@ class CollectNonEmptyUntilThresholdRound(CollectDifferentUntilThresholdRound):
                 return synchronized_data, self.none_event
             return synchronized_data, self.done_event
 
-        if not self.is_majority_possible(
-            self.collection, self.synchronized_data.nb_participants
+        if (
+            not self.is_majority_possible(
+                self.collection, self.synchronized_data.nb_participants
+            )
+            and self.block_confirmations > self.required_block_confirmations
         ):
             return self.synchronized_data, self.no_majority_event
         return None
