@@ -10,6 +10,8 @@
     "description",
     "aea_version",
     "license",
+    "fingerprint",
+    "fingerprint_ignore_patterns",
     "agent",
     "network",
     "number_of_agents"
@@ -32,6 +34,13 @@
     },
     "license": {
       "type": "string"
+    },
+    "fingerprint": {
+      "type": "object"
+    },
+    "fingerprint_ignore_patterns": {
+      "type": "array",
+      "uniqueItems": true
     },
     "agent": {
       "type": "string"
