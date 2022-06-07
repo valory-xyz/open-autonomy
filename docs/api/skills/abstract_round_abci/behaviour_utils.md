@@ -294,7 +294,7 @@ It can be optionally implemented by the concrete classes.
 #### handle`_`late`_`messages
 
 ```python
-def handle_late_messages(message: Message) -> None
+def handle_late_messages(behaviour_id: str, message: Message) -> None
 ```
 
 Handle late arriving messages.
@@ -304,6 +304,7 @@ It can be optionally implemented by the concrete classes.
 
 **Arguments**:
 
+- `behaviour_id`: the id of the behaviour in which the message belongs to.
 - `message`: the late arriving message to handle.
 
 <a id="packages.valory.skills.abstract_round_abci.behaviour_utils.RPCResponseStatus"></a>

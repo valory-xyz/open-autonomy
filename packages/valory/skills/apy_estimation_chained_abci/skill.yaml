@@ -27,9 +27,9 @@ protocols:
 - valory/http:1.0.0:QmcFZahrD7WQRyK2bcdj2BmRNijK9EeKbTiGwkzxZ4nVti
 - valory/ledger_api:1.0.0:QmTMQKNr3oL8j68swCL4LjvUsHsyDp8FTM1UcPTfBvJYDn
 skills:
-- valory/abstract_round_abci:0.1.0:QmPMu1sSK5DLJHh9f8YAd3Km8GqJ7yriH6qiBKMxmudCXw
-- valory/apy_estimation_abci:0.1.0:QmYMS8QWgsEhKHqEBd9UYJCuaaBVudR96HFQV9zW1F8nbw
-- valory/registration_abci:0.1.0:QmaAhot9NGKerMnozR98Y14MraXqDmPRqsBW8PmRbg8MKN
+- valory/abstract_round_abci:0.1.0:QmW5Yx2q9qrocm3Vzsz3mMYLBaoivGx3RENzL4Wa2165ZW
+- valory/apy_estimation_abci:0.1.0:QmW86vb9UsBPEZfeZyUxTxEPHMDeK6Fv8fxxSnLkobcaov
+- valory/registration_abci:0.1.0:QmdVVirfsb1THDUBunhdKp9uBaq1YQy8eWKxq7eoXsaxjx
 behaviours:
   main:
     args: {}

@@ -536,7 +536,6 @@ class AbciAppDB:
 
         :param initial_data: the initial data
         :param cross_period_persisted_keys: data keys that will be kept after a new period starts
-        :param format_initial_data: flag to indicate whether initial_data should be converted from Dict[str, Any] to Dict[str, List[Any]]
         """
         AbciAppDB._check_data(initial_data)
         self._initial_data = initial_data
