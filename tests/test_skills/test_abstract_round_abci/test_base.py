@@ -513,15 +513,34 @@ class TestAbciAppDB:
             initial_data=dict(participants=[self.participants]),
         )
 
-    def test_init(self) -> None:
+    @pytest.mark.parametrize(
+        "data, initial_data",
+        (
+            ({"participants": ["a", "b"]}, {"participants": ["a", "b"]}),
+            ({"participants": []}, {}),
+            ({"participants": None}, None),
+            ("participants", None),
+            (1, None),
+            (object(), None),
+            (["participants"], None),
+            ({"participants": [], "other": [1, 2]}, {"other": [1, 2]}),
+        ),
+    )
+    def test_init(self, data: Dict, initial_data: Optional[Dict]) -> None:
         """Test constructor."""
-        participants = {"a", "b"}
-        db = AbciAppDB(
-            initial_data=dict(participants=[participants]),
-        )
-        assert db._data == {0: {"participants": [self.participants]}}
-        assert db.initial_data == {"participants": [self.participants]}
-        assert db.cross_period_persisted_keys == []
+        if initial_data is None:
+            # the parametrization of `initial_data` set to `None` is in order to check if the exception is raised
+            # when we incorrectly set the data in the configuration file with a type that is not allowed
+            with pytest.raises(
+                ValueError,
+                match=re.escape("AbciAppDB data must be Dict[str, List[Any]]"),
+            ):
+                AbciAppDB(initial_data=data)
+        else:
+            db = AbciAppDB(initial_data=data)
+            assert db._data == {0: initial_data}
+            assert db.initial_data == initial_data
+            assert db.cross_period_persisted_keys == []
 
     def test_get(self) -> None:
         """Test getters."""
