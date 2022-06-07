@@ -261,6 +261,26 @@ class TendermintHandler(Handler)
 
 The Tendermint request / response handler.
 
+<a id="packages.valory.skills.abstract_round_abci.handlers.TendermintHandler.LogMessages"></a>
+
+## LogMessages Objects
+
+```python
+class LogMessages(Enum)
+```
+
+Log messages used in the TendermintHandler
+
+<a id="packages.valory.skills.abstract_round_abci.handlers.TendermintHandler.LogMessages.__str__"></a>
+
+#### `__`str`__`
+
+```python
+def __str__() -> str
+```
+
+For ease of use in formatted string literals
+
 <a id="packages.valory.skills.abstract_round_abci.handlers.TendermintHandler.setup"></a>
 
 #### setup
@@ -290,7 +310,7 @@ Tear down the handler.
 def synchronized_data() -> BaseSynchronizedData
 ```
 
-Period State
+Historical stata data over which consensus has been achieved
 
 <a id="packages.valory.skills.abstract_round_abci.handlers.TendermintHandler.registered_addresses"></a>
 
@@ -313,6 +333,16 @@ def dialogues() -> Optional[TendermintDialogues]
 ```
 
 Tendermint request / response protocol dialogues
+
+<a id="packages.valory.skills.abstract_round_abci.handlers.TendermintHandler.send_error_response"></a>
+
+#### send`_`error`_`response
+
+```python
+def send_error_response(message: TendermintMessage, dialogue: TendermintDialogue) -> None
+```
+
+Check if sender is among registered addresses
 
 <a id="packages.valory.skills.abstract_round_abci.handlers.TendermintHandler.handle"></a>
 

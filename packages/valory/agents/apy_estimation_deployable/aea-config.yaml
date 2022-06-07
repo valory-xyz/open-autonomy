@@ -23,10 +23,10 @@ protocols:
 - valory/tendermint:0.1.0:QmTebra2gtfrwfcxJj2vpoRrAawi6gvHSBtRjqfHxZ6YJV
 skills:
 - valory/abstract_abci:0.1.0:QmZg627HxCTt9BJkv464ySucREq7csgXq4PQa8LPwvECz5
-- valory/abstract_round_abci:0.1.0:QmasVj33TAi8Hn8VtJA9rQq17dKPWgzqR6JSW4JvxVEpfu
-- valory/apy_estimation_abci:0.1.0:QmYBFACpjDU5YZLCHMcbpXmKDVAT9QnSmPyCFRdWsYC1Jr
-- valory/apy_estimation_chained_abci:0.1.0:QmRUTnHDH3i1UqL4zECNTDcU4uxL76HqnnftfKw29Qodx3
-- valory/registration_abci:0.1.0:QmPkwKSM8XzAQaqy8bvFSrPe54PGXwSa7uh51JL1SYXth6
+- valory/abstract_round_abci:0.1.0:QmcNjt9U1sSaoVbryTWAaHJtvjSdRJ1GDnfZGQtNvavL5b
+- valory/apy_estimation_abci:0.1.0:QmPMCdSFPcnftZYiXE9jvDZU8sBJqUzJeYnpkGS5tM9TAJ
+- valory/apy_estimation_chained_abci:0.1.0:QmcZN29XBiwCGJCFHab9h7GtQd24LNwYpiVSX3iNJ9HCyh
+- valory/registration_abci:0.1.0:QmbknyvZYJpjvTGiVKDf1A9DqVGcws2J7pPNPNvabNmRrq
 default_ledger: ethereum
 required_ledgers:
 - ethereum

@@ -32,13 +32,12 @@ from flask import Flask, Response, jsonify, request
 from werkzeug.exceptions import InternalServerError, NotFound
 
 
-ENCODING = "utf-8"
-
 try:
     from .tendermint import TendermintNode, TendermintParams  # type: ignore
 except Exception:
     from tendermint import TendermintNode, TendermintParams
 
+ENCODING = "utf-8"
 DEFAULT_LOG_FILE = "log.log"
 IS_DEV_MODE = os.environ.get("DEV_MODE", "0") == "1"
 CONFIG_OVERRIDE = [
@@ -140,15 +139,6 @@ def create_app(
     tendermint_node = TendermintNode(tendermint_params, logger=app.logger)
     tendermint_node.start(start_monitoring=perform_monitoring)
 
-    @app.route("/start")
-    def start() -> Response:
-        """Start Tendermint node"""
-        try:
-            tendermint_node.start()
-            return jsonify(response="Tendermint node started", status=200)
-        except Exception:  # pylint: disable=broad-except
-            return jsonify(response=traceback.format_exc(), status=400)
-
     @app.get("/params")
     def get_params() -> Dict:
         """Get tendermint params."""
@@ -173,9 +163,7 @@ def create_app(
             genesis_data["genesis_time"] = data["genesis_config"]["genesis_time"]
             genesis_data["chain_id"] = data["genesis_config"]["chain_id"]
             genesis_data["initial_height"] = "0"
-            genesis_data["consensus_params"] = data["genesis_config"][
-                "consensus_params"
-            ]
+            genesis_data["consensus_params"] = data["genesis_config"]["consensus_params"]
             genesis_data["validators"] = [
                 {
                     "address": validator["address"],
@@ -186,9 +174,7 @@ def create_app(
                 for validator in data["validators"]
             ]
             genesis_data["app_hash"] = ""
-            genesis_file.write_text(
-                json.dumps(genesis_data, indent=2), encoding=ENCODING
-            )
+            genesis_file.write_text(json.dumps(genesis_data, indent=2), encoding=ENCODING)
 
             return {"status": True, "error": None}
         except (FileNotFoundError, json.JSONDecodeError, PermissionError):

@@ -377,6 +377,7 @@ class BaseTestEnd2EndNormalExecution(BaseTestEnd2End):
             sleep_interval=self.HEALTH_CHECK_SLEEP_INTERVAL,
         )
         self.check_aea_messages()
+        self.terminate_processes()
 
 
 class BaseTestEnd2EndAgentCatchup(BaseTestEnd2End):
@@ -431,9 +432,12 @@ class BaseTestEnd2EndAgentCatchup(BaseTestEnd2End):
         )
         if missing_strict_strings:
             raise RuntimeError("cannot stop agent correctly")
-
         logging.info("Last agent stopped")
-        self.processes.pop(-1)
+
+        # immediately terminate the agent
+        self.terminate_agents(self.processes[-1], timeout=0)
+        # don't pop before termination, seems to lead to failure!
+        self.processes.pop()
 
         # wait for some time before restarting
         logging.info(
@@ -444,3 +448,5 @@ class BaseTestEnd2EndAgentCatchup(BaseTestEnd2End):
         # restart agent
         logging.info("Restart the agent")
         self._launch_agent_i(-1, nb_agents)
+        self.check_aea_messages()
+        self.terminate_processes()

@@ -21,7 +21,7 @@
 
 import json
 import logging
-from typing import Any, cast
+from typing import Any, Dict, cast
 from unittest import mock
 from unittest.mock import MagicMock
 
@@ -299,89 +299,34 @@ class TestTendermintHandler:
 
     def setup(self) -> None:
         """Set up the tests."""
+        self.agent_name = "Alice"
         self.context = MagicMock(skill_id=PublicId.from_str("dummy/skill:0.1.0"))
         self.handler = TendermintHandler(name="dummy", skill_context=self.context)
         self.handler.context.logger = logging.getLogger()
         self.dialogues = TendermintDialogues(name="dummy", skill_context=self.context)
 
-    def test_handle_unidentified_tendermint_dialogue(
-        self, caplog: LogCaptureFixture
-    ) -> None:
-        """Test unidentified tendermint dialogue"""
-        message = Message()
-        with mock.patch.object(self.handler.dialogues, "update", return_value=None):
-            self.handler.handle(message)
-            assert "Unidentified Tendermint dialogue: " in caplog.text
+    # helper
+    def mocked_registered_addresses(
+        self, addresses: Dict[str, Dict[str, str]]
+    ) -> mock._patch:
+        """Mocked registered addresses"""
+        return mock.patch.object(
+            TendermintHandler,
+            "registered_addresses",
+            new_callable=mock.PropertyMock,
+            return_value=addresses,
+        )
 
-    def test_handle_request(self, caplog: LogCaptureFixture) -> None:
-        """Test handle request"""
-        performative = TendermintMessage.Performative.REQUEST
-        message = TendermintMessage(performative)  # type: ignore
-        message.sender = "Alice"
-        tendermint_address = "http://0.0.0.0:25567"
-        registered_addresses = {message.sender: tendermint_address}
-        initial_data = {"registered_addresses": registered_addresses}
-        self.handler.synchronized_data.db.initial_data = initial_data  # type: ignore
-        self.context.agent_address = message.sender
-        self.handler.handle(message)
-        assert "Sending Tendermint request response: " in caplog.text
-
-    def test_handle_request_no_registered_addresses(
-        self, caplog: LogCaptureFixture
-    ) -> None:
-        """Test handle request no registered addresses"""
-        performative = TendermintMessage.Performative.REQUEST
-        message = TendermintMessage(performative)  # type: ignore
-        message.sender = "Alice"
-        self.handler.synchronized_data.db.initial_data = {}  # type: ignore
-        self.handler.handle(message)
-        error_msg = "No registered addresses retrieved yet"
-        assert f"Invalid request, {error_msg}: {message}" in caplog.text
-
-    def test_handle_request_sender_not_in_registered_addresses(
-        self, caplog: LogCaptureFixture
-    ) -> None:
-        """Test handle request sender not in registered addresses"""
-        performative = TendermintMessage.Performative.REQUEST
-        message = TendermintMessage(performative)  # type: ignore
-        message.sender = "Alice"
-        self.handler.handle(message)
-        error_msg = "Sender not registered for on-chain service"
-        assert f"Invalid request, {error_msg}: {message}" in caplog.text
-
-    def test_handle_response_sender_not_in_registered_addresses(
-        self, caplog: LogCaptureFixture
-    ) -> None:
-        """Test handle response sender not in registered addresses"""
-        performative = TendermintMessage.Performative.RESPONSE
-        message = TendermintMessage(performative, info="info")  # type: ignore
-        message.sender = "Alice"
-        self.handler.synchronized_data.db.initial_data = {}  # type: ignore
-        self.handler.handle(message)
-        error_msg = "Response from agent not registered on-chain"
-        assert f"Invalid response: {error_msg}\n{message}" in caplog.text
-
-    def test_handle_response_valid_addresses(self, caplog: LogCaptureFixture) -> None:
-        """Test handle response valid address"""
-        performative = TendermintMessage.Performative.RESPONSE
-        info = json.dumps({"tendermint_url": "http://0.0.0.0:25567"})
-        message = TendermintMessage(performative, info=info)  # type: ignore
-        message.sender = "Alice"
-        initial_data = {"registered_addresses": {message.sender: None}}
-        self.handler.synchronized_data.db.initial_data = initial_data  # type: ignore
-        self.handler.handle(message)
-        assert f"Collected Tendermint config info: {message}" in caplog.text
-
-    def test_handle_response_invalid_addresses(self, caplog: LogCaptureFixture) -> None:
-        """Test handle response invalid address"""
-        performative = TendermintMessage.Performative.RESPONSE
-        info = "sudo rm -rf /"
-        message = TendermintMessage(performative, info=info)  # type: ignore
-        message.sender = "Alice"
-        initial_data = {"registered_addresses": {message.sender: None}}
-        self.handler.synchronized_data.db.initial_data = initial_data  # type: ignore
-        self.handler.handle(message)
-        assert "Failed to parse Tendermint address: " in caplog.text
+    @property
+    def dummy_validator_config(self) -> Dict[str, Dict[str, str]]:
+        """Dummy validator config"""
+        return {
+            self.agent_name: {
+                "tendermint_url": "http://0.0.0.0:25567",
+                "address": "address",
+                "pub_key": "pub_key",
+            }
+        }
 
     def make_error_message(self) -> TendermintMessage:
         """Make dummy error message"""
@@ -397,34 +342,110 @@ class TestTendermintHandler:
         message.sender = "Alice"
         return message
 
+    # pre-condition checks
+    def test_handle_unidentified_tendermint_dialogue(
+        self, caplog: LogCaptureFixture
+    ) -> None:
+        """Test unidentified tendermint dialogue"""
+        message = Message()
+        with mock.patch.object(self.handler.dialogues, "update", return_value=None):
+            self.handler.handle(message)
+            log_message = self.handler.LogMessages.unidentified_dialogue.value
+            assert log_message in caplog.text
+
+    def test_handle_no_addresses_retrieved_yet(self, caplog: LogCaptureFixture) -> None:
+        """Test handle request no registered addresses"""
+        performative = TendermintMessage.Performative.REQUEST
+        message = TendermintMessage(performative)  # type: ignore
+        message.sender = "Alice"
+        with self.mocked_registered_addresses({}):
+            self.handler.handle(message)
+            log_message = self.handler.LogMessages.no_addresses_retrieved_yet.value
+            assert log_message in caplog.text
+            log_message = self.handler.LogMessages.sending_error_response.value
+            assert log_message in caplog.text
+
+    def test_handle_not_in_registered_addresses(
+        self, caplog: LogCaptureFixture
+    ) -> None:
+        """Test handle response sender not in registered addresses"""
+        performative = TendermintMessage.Performative.RESPONSE
+        message = TendermintMessage(performative, info="info")  # type: ignore
+        message.sender = "Alice"
+        self.handler.handle(message)
+        log_message = self.handler.LogMessages.not_in_registered_addresses.value
+        assert log_message in caplog.text
+
+    # request
+    def test_handle_request(self, caplog: LogCaptureFixture) -> None:
+        """Test handle request"""
+        performative = TendermintMessage.Performative.REQUEST
+        message = TendermintMessage(performative)  # type: ignore
+        self.context.agent_address = message.sender = self.agent_name
+        with self.mocked_registered_addresses(self.dummy_validator_config):
+            self.handler.handle(message)
+            log_message = self.handler.LogMessages.sending_request_response.value
+            assert log_message in caplog.text
+
+    # response
+    def test_handle_response_invalid_addresses(self, caplog: LogCaptureFixture) -> None:
+        """Test handle response invalid address"""
+        validator_config = self.dummy_validator_config
+        validator_config[self.agent_name]["tendermint_url"] = "sudo rm -rf /"
+        performative = TendermintMessage.Performative.RESPONSE
+        info = json.dumps(validator_config[self.agent_name])
+        message = TendermintMessage(performative, info=info)  # type: ignore
+        self.context.agent_address = message.sender = self.agent_name
+        with self.mocked_registered_addresses(validator_config):
+            self.handler.handle(message)
+        log_message = self.handler.LogMessages.failed_to_parse_address.value
+        assert log_message in caplog.text
+
+    def test_handle_response_valid_addresses(self, caplog: LogCaptureFixture) -> None:
+        """Test handle response valid address"""
+        performative = TendermintMessage.Performative.RESPONSE
+        info = json.dumps(self.dummy_validator_config[self.agent_name])
+        message = TendermintMessage(performative, info=info)  # type: ignore
+        self.context.agent_address = message.sender = self.agent_name
+        with self.mocked_registered_addresses(self.dummy_validator_config):
+            self.handler.handle(message)
+        log_message = self.handler.LogMessages.collected_config_info.value
+        assert log_message in caplog.text
+
+    # error
     def test_handle_error(self, caplog: LogCaptureFixture) -> None:
         """Test handle error"""
         message = self.make_error_message()
-        self.handler.handle(message)
-        assert "Received error response." in caplog.text
+        with self.mocked_registered_addresses(self.dummy_validator_config):
+            self.handler.handle(message)
+        log_message = self.handler.LogMessages.received_error_response.value
+        assert log_message in caplog.text
 
+    def test_handle_error_no_target_message_retrieved(
+        self, caplog: LogCaptureFixture
+    ) -> None:
+        """Test handle error no target message retrieved"""
+        message, nonce = self.make_error_message(), "0"
+        dialogue = TendermintDialogue(mock.Mock(), "Bob", mock.Mock())
+        dialogue.dialogue_label.dialogue_reference = nonce, "stub"
+        self.handler.dialogues.update = lambda _: dialogue  # type: ignore
+        callback = lambda *args, **kwargs: None  # noqa: E731
+        self.context.requests.request_id_to_callback = {nonce: callback}
+        with self.mocked_registered_addresses(self.dummy_validator_config):
+            self.handler.handle(message)
+        log_message = (
+            self.handler.LogMessages.received_error_without_target_message.value
+        )
+        assert log_message in caplog.text
+
+    # performative
     def test_handle_performative_not_recognized(
         self, caplog: LogCaptureFixture
     ) -> None:
         """Test performative no recognized"""
         message = self.make_error_message()
         message._slots.performative = "wacky"
-        self.handler.handle(message)
-        assert f"Performative not recognized: {message}" in caplog.text
-
-    def test_handle_error_no_target_message_retrieved(
-        self, caplog: LogCaptureFixture
-    ) -> None:
-        """Test handle error no target message retrieved"""
-        message = self.make_error_message()
-        nonce = "0"
-        dialogue = TendermintDialogue(mock.Mock(), "Bob", mock.Mock())
-        dialogue.dialogue_label.dialogue_reference = nonce, "stub"
-        self.handler.dialogues.update = lambda _: dialogue  # type: ignore
-        callback = lambda *args, **kwargs: None  # noqa: E731
-        self.context.requests.request_id_to_callback = {nonce: callback}
-        self.handler.handle(message)
-        assert (
-            "Received error message but could not retrieve target message"
-            in caplog.text
-        )
+        with self.mocked_registered_addresses(self.dummy_validator_config):
+            self.handler.handle(message)
+        log_message = self.handler.LogMessages.performative_not_recognized.value
+        assert log_message in caplog.text

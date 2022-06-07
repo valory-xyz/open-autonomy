@@ -14,16 +14,6 @@ def format_genesis_data(collected_agent_info: Dict[str, Any]) -> Dict[str, Any]
 
 Format collected agent info for genesis update
 
-<a id="packages.valory.skills.registration_abci.behaviours.consume"></a>
-
-#### consume
-
-```python
-def consume(iterator: Iterable) -> None
-```
-
-Consume the iterator
-
 <a id="packages.valory.skills.registration_abci.behaviours.RegistrationBaseBehaviour"></a>
 
 ## RegistrationBaseBehaviour Objects
@@ -60,6 +50,26 @@ class RegistrationStartupBehaviour(RegistrationBaseBehaviour)
 
 Agent registration to the FSM App.
 
+<a id="packages.valory.skills.registration_abci.behaviours.RegistrationStartupBehaviour.LogMessages"></a>
+
+## LogMessages Objects
+
+```python
+class LogMessages(Enum)
+```
+
+Log messages used in RegistrationStartupBehaviour
+
+<a id="packages.valory.skills.registration_abci.behaviours.RegistrationStartupBehaviour.LogMessages.__str__"></a>
+
+#### `__`str`__`
+
+```python
+def __str__() -> str
+```
+
+For ease of use in formatted string literals
+
 <a id="packages.valory.skills.registration_abci.behaviours.RegistrationStartupBehaviour.registered_addresses"></a>
 
 #### registered`_`addresses
@@ -91,7 +101,7 @@ Tendermint URL for obtaining and updating parameters
 def tendermint_hard_reset_url() -> str
 ```
 
-Tendermint URL for obtaining and updating parameters
+Tendermint URL for hard reset of Tendermint
 
 <a id="packages.valory.skills.registration_abci.behaviours.RegistrationStartupBehaviour.is_correct_contract"></a>
 
@@ -108,7 +118,7 @@ Contract deployment verification.
 #### get`_`service`_`info
 
 ```python
-def get_service_info() -> Generator[None, None, dict]
+def get_service_info() -> Generator[None, None, Dict[str, Any]]
 ```
 
 Get service info available on-chain
@@ -138,17 +148,17 @@ Make HTTP GET request to obtain agent's local Tendermint node parameters
 #### request`_`tendermint`_`info
 
 ```python
-def request_tendermint_info(address: str) -> None
+def request_tendermint_info() -> Generator[None, None, bool]
 ```
 
 Request Tendermint info from other agents
 
-<a id="packages.valory.skills.registration_abci.behaviours.RegistrationStartupBehaviour.update_tendermint"></a>
+<a id="packages.valory.skills.registration_abci.behaviours.RegistrationStartupBehaviour.request_update"></a>
 
-#### update`_`tendermint
+#### request`_`update
 
 ```python
-def update_tendermint() -> Generator[None, None, bool]
+def request_update() -> Generator[None, None, bool]
 ```
 
 Make HTTP POST request to update agent's local Tendermint node
