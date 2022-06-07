@@ -868,7 +868,7 @@ class TestCollectDifferentUntilThresholdRound(_BaseRoundTestClass):
         self._test_payload_with_wrong_round_count(test_round)
 
 
-class TestDummyCollectNonEmptyUntilThresholdRound(_BaseRoundTestClass):
+class TestCollectNonEmptyUntilThresholdRound(_BaseRoundTestClass):
     """Test `CollectNonEmptyUntilThresholdRound`."""
 
     def test_get_non_empty_values(self) -> None:
