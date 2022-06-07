@@ -533,7 +533,9 @@ class TestAbciAppDB:
             # when we incorrectly set the data in the configuration file with a type that is not allowed
             with pytest.raises(
                 ValueError,
-                match=re.escape("AbciAppDB data must be Dict[str, List[Any]]"),
+                match=re.escape(
+                    f"AbciAppDB data must be `Dict[str, List[Any]]`, found `{type(data)}` instead"
+                ),
             ):
                 AbciAppDB(initial_data=data)
         else:
