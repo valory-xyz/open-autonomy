@@ -25,7 +25,10 @@ from functools import partial
 from pathlib import Path
 from typing import Callable, Dict, List, Optional
 
+import click
 import mistune  # type: ignore
+
+from aea_swarm.cli.core import swarm_cli
 
 from tests.conftest import ROOT_DIR
 
@@ -34,6 +37,10 @@ MISTUNE_BLOCK_CODE_ID = "block_code"
 IPFS_HASH_REGEX = r"Qm[A-Za-z0-9]{44}"
 PYTHON_LINE_COMMENT_REGEX = r"^#.*\n"
 DOC_ELLIPSIS_REGEX = r"\s*#\s...\n"
+PYTHON_COMMAND = r"^pyt(hon|est) (?P<file_name>.*\.py).*$"
+MAKE_COMMAND = r"^make (?P<cmd_name>.*)$"
+SWARM_COMMAND = r"^(?P<cmd_name>swarm .*)$"
+MAKEFILE_COMMAND = r"^(?P<command>.*):$"
 
 
 class CodeType(Enum):
@@ -117,7 +124,7 @@ def contains_code_blocks(file_path: str, block_type: str) -> bool:
     return len(code_blocks) > 0
 
 
-def check_code_block(
+def check_code_blocks_exist(
     md_file: str,
     code_info: Dict,
     code_type: CodeType,
@@ -170,3 +177,69 @@ def check_code_block(
         assert (
             code_blocks[i] in code
         ), f"This code-block in {md_file} doesn't exist in the code file {code_file}:\n\n{code_blocks[i]}"
+
+
+def extract_make_commands(makefile_paths: List[str]) -> List[str]:
+    """Extract make commands from a file"""
+    commands = ["clean"]
+    for makefile_path in makefile_paths:
+        with open(makefile_path, "r", encoding="utf-8") as makefile:
+            for line in makefile.readlines():
+                match = re.match(MAKEFILE_COMMAND, line)
+                if match:
+                    commands += match.groupdict()["command"].split(" ")
+    return commands
+
+
+def extract_swarm_commands() -> List[str]:
+    """Extract swarm commands from the swarm cli"""
+    cmd_list = []
+    for cmd_name in swarm_cli.list_commands(click.Context):
+        cmd = swarm_cli.get_command(click.Context, cmd_name)
+        cmd_list += [
+            f"swarm {cmd_name} {sub_cmd_name}"
+            for sub_cmd_name in cmd.list_commands(click.Context)
+        ]
+    return cmd_list
+
+
+def check_bash_commands_exist(
+    md_file: str, make_commands: List[str], swarm_commands: List[str]
+) -> None:
+    """Check whether a bash code block exists in the codebase"""
+    # Load the code file and process it
+    doc_path = os.path.join(ROOT_DIR, md_file)
+    code_blocks = extract_code_blocks(filepath=doc_path, filter_=CodeType.BASH.value)
+
+    for code_block in code_blocks:
+        for line in code_block.split("\n"):
+
+            # Python/pytest commands
+            match = re.match(PYTHON_COMMAND, line)
+            if match:
+                file_name = os.path.join(
+                    ROOT_DIR, ROOT_DIR, match.groupdict()["file_name"]
+                )
+                assert os.path.isfile(
+                    file_name
+                ), f"File {file_name} referenced in {md_file} does not exist"
+                continue
+
+            # Make commands
+            match = re.match(MAKE_COMMAND, line)
+            if match:
+                mk_cmds = match.groupdict()["cmd_name"]
+                for mk_cmd in mk_cmds.split(" "):
+                    assert (
+                        mk_cmd in make_commands
+                    ), f"Make command '{mk_cmd}' referenced in {md_file} is not present in the Makefile"
+                continue
+
+            # Swarm commands
+            match = re.match(SWARM_COMMAND, line)
+            if match:
+                swarm_cmd = match.groupdict()["cmd_name"]
+                assert any(
+                    swarm_cmd.startswith(cmd) for cmd in swarm_commands
+                ), f"Swarm command '{swarm_cmd}' referenced in {md_file} is not present in the swarm cli"
+                continue
