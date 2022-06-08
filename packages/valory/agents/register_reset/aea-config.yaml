@@ -4,7 +4,8 @@ version: 0.1.0
 license: Apache-2.0
 description: Register reset to replicate Tendermint issue.
 aea_version: '>=1.0.0, <2.0.0'
-fingerprint: {}
+fingerprint:
+  README.md: QmTbPRTdh8ziACzb3x1FoeEsZiDNP2S671zWnZ2bz3nDpE
 fingerprint_ignore_patterns: []
 connections:
 - valory/abci:0.1.0:QmVV5qAZxB75SsVGfQw5KuMRnuFP3RXYD6WwaYs6iMWiVU
@@ -50,3 +51,17 @@ public_id: valory/abci:0.1.0
 type: connection
 config:
   target_skill_id: valory/register_reset_abci:0.1.0
+  host: ${ABCI_HOST:str:localhost}
+  port: ${ABCI_PORT:int:26658}
+  use_tendermint: ${ABCI_USE_TENDERMINT:bool:false}
+---
+public_id: valory/register_reset_abci:0.1.0
+type: skill
+models:
+  benchmark_tool:
+    args:
+      log_dir: ${SKILL_ORACLE_ABCI_MODELS_BENCHMARK_TOOL_ARGS_LOG_DIR:str:/benchmarks}
+  params:
+    args:
+      tendermint_url: ${TENDERMINT_URL:str:http://localhost:26657}
+      tendermint_com_url: ${TENDERMINT_COM_URL:str:http://localhost:8080}

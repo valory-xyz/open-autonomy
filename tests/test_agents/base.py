@@ -28,7 +28,7 @@ from typing import Any, Dict, List, Optional, Tuple
 
 import pytest
 from aea.configurations.base import PublicId
-from aea.test_tools.test_cases import AEATestCaseMany
+from aea.test_tools.test_cases import AEATestCaseMany, Result
 
 from tests.conftest import ANY_ADDRESS
 from tests.fixture_helpers import UseFlaskTendermintNode
@@ -102,6 +102,16 @@ class BaseTestEnd2End(AEATestCaseMany, UseFlaskTendermintNode):
             path = Path(cls.t, dir_path)
             path.mkdir()
             os.chmod(path, 755)  # nosec
+
+    @classmethod
+    def set_config(
+        cls,
+        dotted_path: str,
+        value: Any,
+        type_: Optional[str] = None,
+    ) -> Result:
+        """Set config value."""
+        return super().set_config(dotted_path, value, type_, aev=True)
 
     def __set_extra_configs(self) -> None:
         """Set the current agent's extra config overrides that are skill specific."""

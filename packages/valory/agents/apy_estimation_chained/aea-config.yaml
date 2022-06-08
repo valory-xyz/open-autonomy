@@ -4,7 +4,8 @@ version: 0.1.0
 license: Apache-2.0
 description: APY estimation agent.
 aea_version: '>=1.0.0, <2.0.0'
-fingerprint: {}
+fingerprint:
+  README.md: QmexsrUrKdYEUjJzYwRNHeo4JjZ8SNcXbE6FZ2pnJTnTij
 fingerprint_ignore_patterns: []
 connections:
 - valory/abci:0.1.0:QmVV5qAZxB75SsVGfQw5KuMRnuFP3RXYD6WwaYs6iMWiVU

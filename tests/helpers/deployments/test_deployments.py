@@ -59,7 +59,7 @@ version: 0.1.0
 description: Description
 aea_version: ">=1.0.0, <2.0.0"
 license: Apache-2.0
-agent: "valory/oracle_deployable:0.1.0"
+agent: "valory/oracle:0.1.0"
 network: hardhat
 number_of_agents: 1
 fingerprint: {}

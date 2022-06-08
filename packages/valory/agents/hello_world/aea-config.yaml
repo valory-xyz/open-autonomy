@@ -4,7 +4,8 @@ version: 0.1.0
 license: Apache-2.0
 description: Hello World ABCI example.
 aea_version: '>=1.0.0, <2.0.0'
-fingerprint: {}
+fingerprint:
+  README.md: QmaoCKHmEGdUKt6UZXScV39MvU9yt34y2TAcJB9HiNMTq6
 fingerprint_ignore_patterns: []
 connections:
 - valory/abci:0.1.0:QmVV5qAZxB75SsVGfQw5KuMRnuFP3RXYD6WwaYs6iMWiVU

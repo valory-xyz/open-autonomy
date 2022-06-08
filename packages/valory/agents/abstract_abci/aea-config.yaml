@@ -4,7 +4,8 @@ version: 0.1.0
 description: The abstract ABCI AEA - for testing purposes only.
 license: Apache-2.0
 aea_version: '>=1.0.0, <2.0.0'
-fingerprint: {}
+fingerprint:
+  README.md: QmP7bxqWANEaNU4MF32Pbgdr7vidzgy7a4QJKb7hydoM1P
 fingerprint_ignore_patterns: []
 connections:
 - valory/abci:0.1.0:QmVV5qAZxB75SsVGfQw5KuMRnuFP3RXYD6WwaYs6iMWiVU

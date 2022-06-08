@@ -1,10 +1,11 @@
-agent_name: apy_estimation_deployable
+agent_name: apy_estimation
 author: valory
 version: 0.1.0
 license: Apache-2.0
 description: APY estimation agent.
 aea_version: '>=1.0.0, <2.0.0'
-fingerprint: {}
+fingerprint:
+  README.md: QmexsrUrKdYEUjJzYwRNHeo4JjZ8SNcXbE6FZ2pnJTnTij
 fingerprint_ignore_patterns: []
 connections:
 - valory/abci:0.1.0:QmVV5qAZxB75SsVGfQw5KuMRnuFP3RXYD6WwaYs6iMWiVU
@@ -61,7 +62,7 @@ public_id: valory/abci:0.1.0
 type: connection
 config:
   target_skill_id: valory/apy_estimation_chained_abci:0.1.0
-  host: ${ABCI_HOST:str}
+  host: ${ABCI_HOST:str:localhost}
   port: ${ABCI_PORT:int:26658}
   use_tendermint: ${ABCI_USE_TENDERMINT:bool:false}
 ---
@@ -71,9 +72,9 @@ models:
   params:
     args:
       consensus:
-        max_participants: ${MAX_PARTICIPANTS:int}
-      tendermint_url: ${TENDERMINT_URL:str}
-      tendermint_com_url: ${TENDERMINT_COM_URL:str}
+        max_participants: ${MAX_PARTICIPANTS:int:4}
+      tendermint_url: ${TENDERMINT_URL:str:http://localhost:26657}
+      tendermint_com_url: ${TENDERMINT_COM_URL:str:http://localhost:8080}
       round_timeout_seconds: ${SKILL_APY_ESTIMATION_ABCI_MODELS_PARAMS_ARGS_ROUND_TIMEOUT_SECONDS:float:1000.0}
       observation_interval: ${SKILL_APY_ESTIMATION_ABCI_MODELS_PARAMS_ARGS_OBSERVATION_INTERVAL:int:86400}
       max_healthcheck: ${SKILL_APY_ESTIMATION_ABCI_MODELS_PARAMS_ARGS_MAX_HEALTHCHECK:int:43200}
@@ -97,5 +98,5 @@ type: connection
 config:
   ledger_apis:
     ethereum:
-      address: ${LEDGER_ADDRESS:str}
+      address: ${LEDGER_ADDRESS:str:http://127.0.0.1:8545}
       chain_id: ${LEDGER_CHAIN_ID:int}

@@ -4,7 +4,8 @@ version: 0.1.0
 description: The ABCI Counter example as an AEA
 license: Apache-2.0
 aea_version: '>=1.0.0, <2.0.0'
-fingerprint: {}
+fingerprint:
+  README.md: QmSbdQDou9tgrq1uXdAGQ9o3LV6N3ZVNKXpzSRFkrq7HJY
 fingerprint_ignore_patterns: []
 connections:
 - valory/abci:0.1.0:QmVV5qAZxB75SsVGfQw5KuMRnuFP3RXYD6WwaYs6iMWiVU
@@ -32,3 +33,6 @@ public_id: valory/abci:0.1.0
 type: connection
 config:
   target_skill_id: valory/counter:0.1.0
+  host: ${ABCI_HOST:str:localhost}
+  port: ${ABCI_PORT:int:26658}
+  use_tendermint: ${ABCI_USE_TENDERMINT:bool:false}

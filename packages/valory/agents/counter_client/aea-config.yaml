@@ -4,7 +4,8 @@ version: 0.1.0
 description: The ABCI Counter example as an AEA
 license: Apache-2.0
 aea_version: '>=1.0.0, <2.0.0'
-fingerprint: {}
+fingerprint:
+  README.md: Qmd6kpFoSEus3Aw2ggLTELLybBrmfvUmja6dktrjypMViK
 fingerprint_ignore_patterns: []
 connections:
 - valory/http_client:0.1.0:QmWXhTfjybebxpE34WT3Uq9nyBjtbf2S4QBRNgDhGGzzsX

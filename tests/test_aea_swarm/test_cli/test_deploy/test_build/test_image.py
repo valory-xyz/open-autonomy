@@ -64,7 +64,7 @@ class TestBuildImage(BaseCliTest):
         assert (
             len(
                 self.docker_api.images(
-                    name=f"valory/consensus-algorithms-open-aea:oracle_deployable-{version}"
+                    name=f"valory/consensus-algorithms-open-aea:oracle-{version}"
                 )
             )
             == 1
@@ -81,7 +81,7 @@ class TestBuildImage(BaseCliTest):
         assert (
             len(
                 self.docker_api.images(
-                    name="valory/consensus-algorithms-open-aea:oracle_deployable-dev"
+                    name="valory/consensus-algorithms-open-aea:oracle-dev"
                 )
             )
             == 1
