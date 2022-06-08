@@ -22,7 +22,7 @@
 from collections import OrderedDict
 from copy import copy
 from pathlib import Path
-from typing import Any, Dict, FrozenSet, List, Optional, Tuple, cast
+from typing import Any, Dict, FrozenSet, List, Optional, Sequence, Tuple, cast
 
 from aea import AEA_DIR
 from aea.configurations import validation
@@ -109,6 +109,8 @@ class Service(PackageConfiguration):  # pylint: disable=too-many-instance-attrib
         version: str = "",
         license_: str = "",
         aea_version: str = "",
+        fingerprint: Optional[Dict[str, str]] = None,
+        fingerprint_ignore_patterns: Optional[Sequence[str]] = None,
         description: str = "",
         number_of_agents: int = 4,
         network: Optional[str] = None,
@@ -124,6 +126,8 @@ class Service(PackageConfiguration):  # pylint: disable=too-many-instance-attrib
             license_=license_,
             aea_version=aea_version,
             build_entrypoint=build_entrypoint,
+            fingerprint=fingerprint,
+            fingerprint_ignore_patterns=fingerprint_ignore_patterns,
         )
 
         self.agent = PublicId.from_str(str(agent))
@@ -167,6 +171,8 @@ class Service(PackageConfiguration):  # pylint: disable=too-many-instance-attrib
                 "number_of_agents": self.number_of_agents,
                 "network": self.network,
                 "overrides": self.overrides,
+                "fingerprint": self.fingerprint,
+                "fingerprint_ignore_patterns": self.fingerprint_ignore_patterns,
             }
         )
 
@@ -188,6 +194,10 @@ class Service(PackageConfiguration):  # pylint: disable=too-many-instance-attrib
             number_of_agents=cast(int, obj.get("number_of_agents")),
             network=cast(str, obj.get("network")),
             overrides=cast(List, obj.get("overrides", [])),
+            fingerprint=cast(Dict[str, str], obj.get("fingerprint", [])),
+            fingerprint_ignore_patterns=cast(
+                Sequence[str], obj.get("fingerprint_ignore_patterns", [])
+            ),
         )
 
         return cls(**params)  # type: ignore
