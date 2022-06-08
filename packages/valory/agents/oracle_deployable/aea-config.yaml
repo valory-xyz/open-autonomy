@@ -94,8 +94,8 @@ models:
       consensus:
         max_participants: ${MAX_PARTICIPANTS:int}
       setup:
-        safe_contract_address: ${SKILL_ORACLE_ABCI_MODELS_PARAMS_ARGS_SETUP_SAFE_CONTRACT_ADDRESS:list:none}
-        oracle_contract_address: ${SKILL_ORACLE_ABCI_MODELS_PARAMS_ARGS_SETUP_ORACLE_CONTRACT_ADDRESS:list:none}
+        safe_contract_address: ${SKILL_ORACLE_ABCI_MODELS_PARAMS_ARGS_SETUP_SAFE_CONTRACT_ADDRESS:list:[]}
+        oracle_contract_address: ${SKILL_ORACLE_ABCI_MODELS_PARAMS_ARGS_SETUP_ORACLE_CONTRACT_ADDRESS:list:[]}
       round_timeout_seconds: ${ORACLE_PARAMS_ROUND_TIMEOUT_SECONDS:float:7.0}
       tendermint_url: ${TENDERMINT_URL:str}
       tendermint_com_url: ${TENDERMINT_COM_URL:str}
