@@ -542,7 +542,7 @@ class AbciAppDB:
         self._cross_period_persisted_keys = cross_period_persisted_keys or []
         self._data: Dict[int, Dict[str, List[Any]]] = {
             RESET_COUNT_START: deepcopy(
-                self._initial_data
+                self.initial_data
             )  # the key represents the reset index
         }
         self._round_count = ROUND_COUNT_DEFAULT  # ensures first round is indexed at 0!
@@ -554,13 +554,18 @@ class AbciAppDB:
 
         :return: the initial_data
         """
-        return self._initial_data
+        # do not return data if no value has been set
+        return {k: v for k, v in self._initial_data.items() if len(v)}
 
     @staticmethod
-    def _check_data(data: Dict) -> None:
+    def _check_data(data: Any) -> None:
         """Check that all fields in initial data were passed as a list"""
-        if not all([isinstance(v, list) for v in data.values()]):
-            raise ValueError("AbciAppDB data must be Dict[str, List[Any]]")
+        if not isinstance(data, dict) or not all(
+            [isinstance(v, list) for v in data.values()]
+        ):
+            raise ValueError(
+                f"AbciAppDB data must be `Dict[str, List[Any]]`, found `{type(data)}` instead."
+            )
 
     @property
     def reset_index(self) -> int:
