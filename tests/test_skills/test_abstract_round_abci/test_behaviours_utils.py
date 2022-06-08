@@ -51,6 +51,7 @@ from packages.valory.skills.abstract_round_abci.behaviour_utils import (
     DegenerateBehaviour,
     HEIGHT_OFFSET_MULTIPLIER,
     MAX_HEIGHT_OFFSET,
+    NON_200_RETURN_CODE_DURING_RESET_THRESHOLD,
     SendException,
     TimeoutException,
     make_degenerate_behaviour,
@@ -818,6 +819,15 @@ class TestBaseBehaviour:
             time.sleep(delay)
             try_send(gen, obj=m)
 
+    @pytest.mark.parametrize("resetting", (True, False))
+    @pytest.mark.parametrize(
+        "non_200_count",
+        (
+            0,
+            NON_200_RETURN_CODE_DURING_RESET_THRESHOLD,
+            NON_200_RETURN_CODE_DURING_RESET_THRESHOLD + 1,
+        ),
+    )
     @mock.patch.object(BaseBehaviour, "_send_signing_request")
     @mock.patch.object(Transaction, "encode", return_value=MagicMock())
     @mock.patch.object(
@@ -826,16 +836,35 @@ class TestBaseBehaviour:
         return_value=(MagicMock(), MagicMock()),
     )
     @mock.patch("json.loads")
-    def test_send_transaction_error_status_code(self, *_: Any) -> None:
-        """Test '_send_transaction', erorr status code."""
+    def test_send_transaction_error_status_code(
+        self, _: Any, __: Any, ___: Any, ____: Any, resetting: bool, non_200_count: int
+    ) -> None:
+        """Test '_send_transaction', error status code."""
+        delay = 0.1
+        self.behaviour._non_200_return_code_count = non_200_count
         m = MagicMock()
-        gen = self.behaviour._send_transaction(m)
-        # trigger generator function
-        try_send(gen, obj=None)
-        try_send(gen, obj=m)
-        try_send(gen, obj=m)
-        time.sleep(_DEFAULT_REQUEST_RETRY_DELAY)
-        try_send(gen, obj=None)
+        with mock.patch.object(self.behaviour.context.logger, "info") as mock_info:
+            gen = self.behaviour._send_transaction(
+                m, resetting, request_retry_delay=delay
+            )
+            # trigger generator function
+            try_send(gen, obj=None)
+            try_send(gen, obj=m)
+            # send message to '_submit_tx'
+            res = MagicMock(body="{'test': 'test'}")
+            try_send(gen, obj=res)
+            if (
+                resetting
+                and non_200_count <= NON_200_RETURN_CODE_DURING_RESET_THRESHOLD
+            ):
+                mock_info.assert_not_called()
+            else:
+                mock_info.assert_called_with(
+                    f"Received return code != 200 with response {res} with body {str(res.body)}. "
+                    f"Retrying in {delay} seconds..."
+                )
+            time.sleep(delay)
+            try_send(gen, obj=None)
 
     @mock.patch.object(BaseBehaviour, "_get_request_nonce_from_dialogue")
     @mock.patch("packages.valory.skills.abstract_round_abci.behaviour_utils.RawMessage")
@@ -1148,7 +1177,8 @@ class TestBaseBehaviour:
             self.behaviour.get_callback_request()(message, current_behaviour)
             info_mock.assert_called_with(
                 "No callback defined for request with nonce: "
-                f"{message.dialogue_reference.__getitem__()}"
+                f"{message.dialogue_reference.__getitem__()}, "
+                f"arriving for behaviour: behaviour_a"
             )
 
     def test_default_callback_request_waiting_message(self, *_: Any) -> None:

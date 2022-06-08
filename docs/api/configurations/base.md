@@ -29,7 +29,7 @@ Service package configuration.
 #### `__`init`__`
 
 ```python
-def __init__(name: SimpleIdOrStr, author: SimpleIdOrStr, agent: PublicId, version: str = "", license_: str = "", aea_version: str = "", description: str = "", number_of_agents: int = 4, network: Optional[str] = None, build_entrypoint: Optional[str] = None, overrides: Optional[List] = None) -> None
+def __init__(name: SimpleIdOrStr, author: SimpleIdOrStr, agent: PublicId, version: str = "", license_: str = "", aea_version: str = "", fingerprint: Optional[Dict[str, str]] = None, fingerprint_ignore_patterns: Optional[Sequence[str]] = None, description: str = "", number_of_agents: int = 4, network: Optional[str] = None, build_entrypoint: Optional[str] = None, overrides: Optional[List] = None) -> None
 ```
 
 Initialise object.

@@ -68,7 +68,7 @@ class TestRegistrationStartupRound(BaseCollectDifferentUntilAllRoundTest):
             test_round,
             RegistrationEvent.FAST_FORWARD,
             1,
-            initialisation=json.dumps({"key": "value"}),
+            initialisation=json.dumps({"key": ["value1", "value2"]}),
         )
 
     def test_run_default(

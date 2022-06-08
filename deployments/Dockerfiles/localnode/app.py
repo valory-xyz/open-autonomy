@@ -163,7 +163,9 @@ def create_app(
             genesis_data["genesis_time"] = data["genesis_config"]["genesis_time"]
             genesis_data["chain_id"] = data["genesis_config"]["chain_id"]
             genesis_data["initial_height"] = "0"
-            genesis_data["consensus_params"] = data["genesis_config"]["consensus_params"]
+            genesis_data["consensus_params"] = data["genesis_config"][
+                "consensus_params"
+            ]
             genesis_data["validators"] = [
                 {
                     "address": validator["address"],
@@ -174,7 +176,9 @@ def create_app(
                 for validator in data["validators"]
             ]
             genesis_data["app_hash"] = ""
-            genesis_file.write_text(json.dumps(genesis_data, indent=2), encoding=ENCODING)
+            genesis_file.write_text(
+                json.dumps(genesis_data, indent=2), encoding=ENCODING
+            )
 
             return {"status": True, "error": None}
         except (FileNotFoundError, json.JSONDecodeError, PermissionError):

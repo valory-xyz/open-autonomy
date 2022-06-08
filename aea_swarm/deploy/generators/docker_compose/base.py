@@ -203,5 +203,5 @@ class DockerComposeGenerator(BaseDeploymentGenerator):
             with open(
                 path / DEFAULT_PRIVATE_KEY_FILE, "w", encoding=DEFAULT_ENCODING
             ) as f:
-                f.write(self.service_spec.private_keys[x])
+                f.write(str(self.service_spec.private_keys[x]))
         return self
