@@ -68,7 +68,7 @@ class _TendermintProtocolEncoder:
 
     @classmethod
     def process(cls, message: AbciMessage) -> Optional[Union[Request, Response]]:
-        """Encode an AbciMessage object into either Request or Respose protobuf objects."""
+        """Encode an AbciMessage object into either Request or Response protobuf objects."""
         # from "(request|response)_type", get 'type'
         handler: Callable[[AbciMessage], Union[Request, Response]] = getattr(
             cls, message.performative.value, cls.no_match
