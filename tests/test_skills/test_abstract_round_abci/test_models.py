@@ -216,8 +216,9 @@ class TestSharedState:
         shared_state = SharedState(
             abci_app_cls=MagicMock, name="", skill_context=MagicMock()
         )
-        with mock.patch.object(shared_state.context, "params"):
-            shared_state.setup()
+        shared_state.context.params.setup_params = {"test": []}
+        shared_state.context.params.consensus_params = MagicMock()
+        shared_state.setup()
 
     @mock.patch.object(SharedState, "_process_abci_app_cls")
     def test_synchronized_data_negative_not_available(self, *_: Any) -> None:
@@ -235,10 +236,11 @@ class TestSharedState:
         shared_state = SharedState(
             abci_app_cls=AbciAppTest, name="", skill_context=MagicMock()
         )
-        with mock.patch.object(shared_state.context, "params"):
-            shared_state.setup()
-            shared_state.round_sequence.abci_app._round_results = [MagicMock()]
-            shared_state.synchronized_data
+        shared_state.context.params.setup_params = {"test": []}
+        shared_state.context.params.consensus_params = MagicMock()
+        shared_state.setup()
+        shared_state.round_sequence.abci_app._round_results = [MagicMock()]
+        shared_state.synchronized_data
 
     def test_synchronized_data_db(self, *_: Any) -> None:
         """Test 'synchronized_data' AbciAppDB."""

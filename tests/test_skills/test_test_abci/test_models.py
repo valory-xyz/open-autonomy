@@ -19,6 +19,7 @@
 
 """Test the models.py module of the skill."""
 from unittest import mock
+from unittest.mock import MagicMock
 
 import pytest
 
@@ -55,6 +56,8 @@ class TestSharedState:
         shared_state: SharedState,
     ) -> None:
         """Test setup."""
+        shared_state.context.params.setup_params = {"test": []}
+        shared_state.context.params.consensus_params = MagicMock()
         shared_state.setup()
         assert (
             TestAbciApp.event_to_timeout[Event.ROUND_TIMEOUT]
