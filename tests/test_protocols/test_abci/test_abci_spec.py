@@ -18,6 +18,7 @@
 # ------------------------------------------------------------------------------
 
 """Tests to ensure implementation is on par with ABCI spec"""
+
 import builtins
 import functools
 import inspect
@@ -64,7 +65,6 @@ from packages.valory.protocols import abci as valory_abci_protocol
 
 
 # constants & utility functions
-
 ENCODING = "utf-8"
 VERSION = "v0.34.11"
 LOCAL_TYPES_FILE = Path(protos_abci.__path__[0]) / "types.proto"
@@ -73,21 +73,23 @@ CLASS_ATTRS = ("oneofs", "enum_types", "fields")
 DESCRIPTOR = tendermint.abci.types_pb2.DESCRIPTOR
 
 
-def is_enum(dtype: Any) -> bool:
-    return isinstance(dtype, type) and issubclass(dtype, Enum)
+def is_enum(d_type: Any) -> bool:
+    """Check if a type is an Enum."""
+    return isinstance(d_type, type) and issubclass(d_type, Enum)
 
 
 def my_repr(self) -> str:
-    """Custom __repr__ for Tendermint protobuf objects, which lack it"""
+    """Custom __repr__ for Tendermint protobuf objects, which lack it."""
     return f"<{self.__module__}.{type(self).__name__} object at {hex(id(self))}>"
 
 
 def is_repeated(d_type: typing.Any) -> bool:
+    """Check if field is repeated."""
     return d_type.__class__.__module__ == "typing" and d_type.__origin__ is list
 
 
-def get_aea_custom(module: ModuleType) -> Dict[str, Type]:
-    """Test coverage"""
+def get_aea_classes(module: ModuleType) -> Dict[str, Type]:
+    """Get AEA custom classes."""
 
     def is_locally_defined_class(item: Any) -> bool:
         return isinstance(item, type) and item.__module__ == module.__name__
@@ -137,7 +139,7 @@ def get_tendermint_message_types() -> Dict[str, Any]:
 
 
 PYTHON_PRIMITIVES = (int, float, bool, str, bytes)
-AEA_CUSTOM = get_aea_custom(protocols.abci.custom_types)
+AEA_CUSTOM = get_aea_classes(protocols.abci.custom_types)
 TENDERMINT_DEFS = get_tendermint_message_types()
 
 TENDERMINT_ABCI_TYPES = get_tendermint_classes(tendermint.abci.types_pb2)
@@ -180,25 +182,6 @@ def get_aea_type(data_type: str) -> str:
     return f"ct:{data_type}"
 
 
-def venn_keys(a: Iterable, b: Iterable) -> Tuple[Set[Any], Set[Any], Set[Any]]:
-    """split into: unique_to_a, common, unique_to_b"""
-    set_a, set_b = set(a), set(b)
-    return set_a - set_b, set_a & set_b, set_b - set_a
-
-
-def nested_dict_to_text(dict_obj: Dict[str, Any], indent: int = 0) -> str:
-    """Pretty Print nested dictionary with given indent level"""
-    report: str = ""
-    for key, value in dict_obj.items():
-        if isinstance(value, dict):
-            report += f"{' ' * indent}{key}: {{\n"
-            report += nested_dict_to_text(value, indent + 4)
-            report += f"{' ' * indent}}}\n"
-        else:
-            report += f"{' ' * indent}{key}: {value}\n"
-    return report
-
-
 @functools.lru_cache()
 def get_protocol_readme_spec() -> Tuple[Any, Any, Any]:
     """Test specification used to generate protocol matches ABCI spec"""
@@ -220,9 +203,9 @@ def get_protocol_readme_spec() -> Tuple[Any, Any, Any]:
     return protocol, custom, dialogues
 
 
-# 1. Create tree type for the AEA-native ABCI protocol
+# 1. Create type tree for the AEA-native ABCI protocol
 def _create_custom_type_tree(custom_type) -> Tuple[Type, Dict[str, Any]]:
-    """Create custom type branch for AEA-native ABCI spec"""
+    """Create custom type tree for AEA-native ABCI spec"""
 
     kwarg_types = {}
     parameters = inspect.signature(custom_type).parameters
@@ -245,7 +228,7 @@ def _create_custom_type_tree(custom_type) -> Tuple[Type, Dict[str, Any]]:
 
 
 def _create_type_tree(field: str) -> Any:
-    """Create type branch for AEA-native ABCI spec"""
+    """Create type tree for AEA-native ABCI spec"""
 
     if any(map(field.startswith, SPECIFICATION_COMPOSITIONAL_TYPES)):
         subfields = _get_sub_types_of_compositional_types(field)
@@ -375,34 +358,6 @@ def test_local_types_file_matches_github() -> None:
     github_data = response.text
     local_data = LOCAL_TYPES_FILE.read_text(encoding=ENCODING)
     assert github_data == local_data
-
-
-def test_speech_act_matches_abci_spec() -> None:
-    """Test speech act definitions"""
-
-    def get_unique(a: Dict[str, str], b: Dict[str, str]) -> Tuple[Dict[str, str]]:
-        set_a, set_b = set(a.items()), set(b.items())
-        return dict(set_a - set_b), dict(set_b - set_a)  # type: ignore
-
-    differences = dict()
-    aea_protocol, *_ = get_protocol_readme_spec()
-    message_types = get_tendermint_message_types()
-    speech_acts = aea_protocol["speech_acts"]
-
-    request_oneof = message_types["Request"]['oneofs']["value"]
-    for key, *_ in request_oneof:
-        data = message_types[key].items()
-        expected = {k: get_aea_type(v[0]) for k, v in data}
-        defined = speech_acts[camel_to_snake(key)]
-        if expected != defined:
-            differences[key] = get_unique(expected, defined)
-
-    if differences:
-        log_msg = "Defined speech act not matching"
-        template = "message: {k}\n\texpected:\t{v[0]}\n\tdefined:\t{v[1]}"
-        lines = (template.format(k=k, v=v) for k, v in differences.items())
-        logging.error(f"{log_msg}\n" + "\n".join(lines))
-    assert not bool(differences)
 
 
 def test_defined_dialogues_match_abci_spec() -> None:
