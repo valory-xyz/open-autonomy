@@ -23,6 +23,7 @@ import time
 from typing import Generator
 
 import pytest
+from aea.configurations.data_types import PublicId
 
 from packages.valory.skills.registration_abci.behaviours import (
     RegistrationStartupBehaviour,
@@ -67,6 +68,13 @@ class RegistrationStartUpTestConfig(UseGnosisSafeHardHatNet, UseACNNode):
     skill_package = "valory/registration_abci:0.1.0"
     agent_package = "valory/registration_start_up:0.1.0"
     wait_to_finish = 60
+    __args_prefix = f"vendor.valory.skills.{PublicId.from_str(skill_package).name}.models.params.args"
+    extra_configs = [
+        {
+            "dotted_path": f"{__args_prefix}.share_tm_config_on_startup",
+            "value": True,
+        }
+    ]
 
 
 @pytest.mark.e2e
