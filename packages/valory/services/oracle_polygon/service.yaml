@@ -13,8 +13,6 @@ number_of_agents: 4
 setup_args:
   args: &id001
     setup:
-      safe_contract_address:
-      - ''
       oracle_contract_address:
       - '0x5FbDB2315678afecb367f032d93F642f64180aa3'
     max_healthcheck: 43200
