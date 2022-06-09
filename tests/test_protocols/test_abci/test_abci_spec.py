@@ -127,10 +127,9 @@ def get_tendermint_message_types() -> Dict[str, Any]:
         # Request & Response
         for oneof in msg_desc.oneofs:
             oneofs = content.setdefault("oneofs", {})
-            fields = [
-                (field.message_type.name, field.name, field.number)
-                for field in oneof.fields
-            ]
+            fields = []
+            for field in oneof.fields:
+                fields.append((field.message_type.name, field.name, field.number))
             oneofs[oneof.name] = fields
 
         # ResponseOfferSnapshot & ResponseApplySnapshotChunk
@@ -142,11 +141,10 @@ def get_tendermint_message_types() -> Dict[str, Any]:
         # other fields
         for field in msg_desc.fields:
             fields = content.setdefault("fields", {})
-            name = (
-                field.message_type.name
-                if field.message_type
-                else type_mapping[field.type]
-            )
+            if field.message_type:
+                name = field.message_type.name
+            else:
+                name = type_mapping[field.type]
             item = [name, field.number]
             if isinstance(field.default_value, list):
                 item.append("repeated")
@@ -387,30 +385,30 @@ def _get_message_content(message: Any) -> Dict[str, Any]:
     enum_types = dict(message.DESCRIPTOR.enum_types_by_name)
     oneofs = dict(message.DESCRIPTOR.oneofs_by_name)
 
-    node: Dict[str, Any] = {}
+    kwargs: Dict[str, Any] = {}
     for name, descr in fields.items():
         attr = getattr(message, name)
         if descr.enum_type:
             enum_type = enum_types.pop(snake_to_camel(name))
-            node[name] = (enum_type.values[attr].name, attr)
+            kwargs[name] = (enum_type.values[attr].name, attr)
         elif isinstance(attr, PYTHON_PRIMITIVES):
-            node[name] = attr
+            kwargs[name] = attr
         elif descr.label == descr.LABEL_REPEATED:
             assert isinstance(descr.default_value, list)
             assert len(set(map(type, attr))) <= 1
             if not attr or isinstance(attr[0], PYTHON_PRIMITIVES):
-                node[name] = list(attr)
+                kwargs[name] = list(attr)
             else:  # TODO: don't get translated properly by our Encoder!
                 raise NotImplementedError(f"name: {name} {attr}")
         elif descr.message_type:
-            node[name] = _get_message_content(attr)
+            kwargs[name] = _get_message_content(attr)
         else:
             raise NotImplementedError(f"name: {name} {attr}")
 
     assert not oneofs
     assert not enum_types
 
-    return node
+    return kwargs
 
 
 def get_tendermint_content(envelope: Union[Request, Response]) -> Dict[str, Any]:
@@ -427,8 +425,8 @@ def get_tendermint_content(envelope: Union[Request, Response]) -> Dict[str, Any]
 
 
 # compare AEA- and Tendermint-native ABCI protocol input and output
-def compare_trees(init_node: Dict, tender_node: Dict) -> None:
-    """Compare init and tender tree"""
+def compare_trees(init_node: Dict[str, Any], tender_node: Dict[str, Any]) -> None:
+    """Compare initialization and Tendermint tree nodes"""
 
     if init_node == tender_node:
         return
@@ -539,7 +537,7 @@ def test_aea_to_tendermint() -> None:
     # 5. create tender tree
     tender_tree = {k: get_tendermint_content(v) for k, v in translated.items()}
 
-    # 6. translate expected differences in key naming
+    # 6. translate expected differences in attribute / field naming
     param_keys_trans = {k: f"{k}_params" for k in ["evidence", "validator", "version"]}
     tendermint_to_aea = dict(
         response_info={"data": "info_data"},

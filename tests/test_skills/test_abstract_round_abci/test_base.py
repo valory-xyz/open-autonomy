@@ -513,15 +513,36 @@ class TestAbciAppDB:
             initial_data=dict(participants=[self.participants]),
         )
 
-    def test_init(self) -> None:
+    @pytest.mark.parametrize(
+        "data, initial_data",
+        (
+            ({"participants": ["a", "b"]}, {"participants": ["a", "b"]}),
+            ({"participants": []}, {}),
+            ({"participants": None}, None),
+            ("participants", None),
+            (1, None),
+            (object(), None),
+            (["participants"], None),
+            ({"participants": [], "other": [1, 2]}, {"other": [1, 2]}),
+        ),
+    )
+    def test_init(self, data: Dict, initial_data: Optional[Dict]) -> None:
         """Test constructor."""
-        participants = {"a", "b"}
-        db = AbciAppDB(
-            initial_data=dict(participants=[participants]),
-        )
-        assert db._data == {0: {"participants": [self.participants]}}
-        assert db.initial_data == {"participants": [self.participants]}
-        assert db.cross_period_persisted_keys == []
+        if initial_data is None:
+            # the parametrization of `initial_data` set to `None` is in order to check if the exception is raised
+            # when we incorrectly set the data in the configuration file with a type that is not allowed
+            with pytest.raises(
+                ValueError,
+                match=re.escape(
+                    f"AbciAppDB data must be `Dict[str, List[Any]]`, found `{type(data)}` instead"
+                ),
+            ):
+                AbciAppDB(initial_data=data)
+        else:
+            db = AbciAppDB(initial_data=data)
+            assert db._data == {0: initial_data}
+            assert db.initial_data == initial_data
+            assert db.cross_period_persisted_keys == []
 
     def test_get(self) -> None:
         """Test getters."""
@@ -538,13 +559,44 @@ class TestAbciAppDB:
         self.db.increment_round_count()
         assert self.db.round_count == 0
 
-    def test_update_empty(self) -> None:
-        """Test update on empty db."""
-        db = AbciAppDB(
-            initial_data=dict(),
-        )
-        db.update(dummy_key="dummy_value")
-        assert db._data == {0: {"dummy_key": ["dummy_value"]}}
+    @pytest.mark.parametrize(
+        "initial_data, update_data, expected_data",
+        (
+            (dict(), {"dummy_key": "dummy_value"}, {0: {"dummy_key": ["dummy_value"]}}),
+            (
+                dict(),
+                {"dummy_key": ["dummy_value1", "dummy_value2"]},
+                {0: {"dummy_key": [["dummy_value1", "dummy_value2"]]}},
+            ),
+            (
+                {"test": ["test"]},
+                {"dummy_key": "dummy_value"},
+                {0: {"dummy_key": ["dummy_value"], "test": ["test"]}},
+            ),
+            (
+                {"test": ["test"]},
+                {"test": "dummy_value"},
+                {0: {"test": ["test", "dummy_value"]}},
+            ),
+            (
+                {"test": [["test"]]},
+                {"test": ["dummy_value1", "dummy_value2"]},
+                {0: {"test": [["test"], ["dummy_value1", "dummy_value2"]]}},
+            ),
+            (
+                {"test": ["test"]},
+                {"test": ["dummy_value1", "dummy_value2"]},
+                {0: {"test": ["test", ["dummy_value1", "dummy_value2"]]}},
+            ),
+        ),
+    )
+    def test_update(
+        self, initial_data: Dict, update_data: Dict, expected_data: Dict[int, Dict]
+    ) -> None:
+        """Test update db."""
+        db = AbciAppDB(initial_data)
+        db.update(**update_data)
+        assert db._data == expected_data
 
 
 class TestBaseSynchronizedData:
