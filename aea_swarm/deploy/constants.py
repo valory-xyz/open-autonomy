@@ -48,6 +48,10 @@ NETWORKS = {
             "LEDGER_ADDRESS": "https://ropsten.infura.io/v3/2980beeca3544c9fbace4f24218afcd4",
             "LEDGER_CHAIN_ID": 3,
         },
+        "polygon": {
+            "LEDGER_ADDRESS": "https://polygon-mainnet.infura.io/v3/2980beeca3544c9fbace4f24218afcd4",
+            "LEDGER_CHAIN_ID": 137,
+        },
     },
     "kubernetes": {
         "hardhat": {
@@ -57,6 +61,10 @@ NETWORKS = {
         "ropsten": {
             "LEDGER_ADDRESS": "https://ropsten.infura.io/v3/2980beeca3544c9fbace4f24218afcd4",
             "LEDGER_CHAIN_ID": 3,
+        },
+        "polygon": {
+            "LEDGER_ADDRESS": "https://polygon-mainnet.infura.io/v3/2980beeca3544c9fbace4f24218afcd4",
+            "LEDGER_CHAIN_ID": 137,
         },
     },
 }
