@@ -20,7 +20,7 @@
 """Integration tests for the valory/registration skill."""
 import logging
 import time
-from typing import Generator
+from typing import Generator, Tuple
 
 import pytest
 from aea.configurations.data_types import PublicId
@@ -68,6 +68,7 @@ class RegistrationStartUpTestConfig(UseGnosisSafeHardHatNet, UseACNNode):
     skill_package = "valory/registration_abci:0.1.0"
     agent_package = "valory/registration_start_up:0.1.0"
     wait_to_finish = 60
+    strict_check_strings: Tuple[str, ...] = STRICT_CHECK_STRINGS
     __args_prefix = f"vendor.valory.skills.{PublicId.from_str(skill_package).name}.models.params.args"
     extra_configs = [
         {
@@ -85,8 +86,6 @@ class TestRegistrationStartUpFourAgents(
 ):
     """Test registration start-up skill with four agents."""
 
-    strict_check_strings = STRICT_CHECK_STRINGS
-
 
 @pytest.mark.e2e
 @pytest.mark.integration
@@ -96,6 +95,5 @@ class TestRegistrationStartUpFourAgentsCatchUp(
 ):
     """Test registration start-up skill with four agents and catch up."""
 
-    strict_check_strings = STRICT_CHECK_STRINGS
     stop_string = "My address: "
     restart_after = 10
