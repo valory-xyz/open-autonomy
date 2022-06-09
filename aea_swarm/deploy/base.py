@@ -216,3 +216,11 @@ class BaseDeploymentGenerator:
         with open(self.build_dir / self.output_name, "w", encoding="utf8") as f:
             f.write(self.output)
         return self
+
+    @classmethod
+    def stringify_vars(cls, agent_vars: Dict[Any, Any]) -> Dict[Any, Any]:
+        """Environment variables are stored within deployments as strings ensure that lists generated can be parsed."""
+        for key, value in agent_vars.items():
+            if isinstance(value, list):
+                agent_vars[key] = str(value).replace("'", '"')
+        return agent_vars
