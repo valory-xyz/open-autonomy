@@ -167,7 +167,10 @@ class RegistrationStartupBehaviour(RegistrationBaseBehaviour):
     @property
     def registered_addresses(self) -> Dict[str, Dict[str, Any]]:
         """Agent addresses registered on-chain for the service"""
-        return self.synchronized_data.db.initial_data.get("registered_addresses", {})
+        return cast(
+            Dict[str, Dict[str, Any]],
+            self.synchronized_data.db.get("registered_addresses", {}),
+        )
 
     @property
     def tendermint_parameter_url(self) -> str:
@@ -267,7 +270,7 @@ class RegistrationStartupBehaviour(RegistrationBaseBehaviour):
             pub_key=self.local_tendermint_params["pub_key"],
         )
         info[self.context.agent_address] = validator_config
-        self.synchronized_data.db.initial_data.update(dict(registered_addresses=info))
+        self.synchronized_data.db.update(registered_addresses=info)
         log_message = self.LogMessages.response_service_info.value
         self.context.logger.info(f"{log_message}: {info}")
         return True

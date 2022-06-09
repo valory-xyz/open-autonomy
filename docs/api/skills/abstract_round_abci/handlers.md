@@ -318,7 +318,7 @@ Historical stata data over which consensus has been achieved
 
 ```python
 @property
-def registered_addresses() -> Dict[str, str]
+def registered_addresses() -> Dict[str, Dict[str, Any]]
 ```
 
 Registered addresses retrieved on-chain from service registry contract

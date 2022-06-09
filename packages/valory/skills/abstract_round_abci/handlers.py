@@ -22,7 +22,7 @@ import ipaddress
 import json
 from abc import ABC
 from enum import Enum
-from typing import Callable, Dict, FrozenSet, List, Optional, cast
+from typing import Any, Callable, Dict, FrozenSet, List, Optional, cast
 from urllib.parse import urlparse
 
 from aea.configurations.data_types import PublicId
@@ -542,9 +542,12 @@ class TendermintHandler(Handler):
         )
 
     @property
-    def registered_addresses(self) -> Dict[str, str]:
+    def registered_addresses(self) -> Dict[str, Dict[str, Any]]:
         """Registered addresses retrieved on-chain from service registry contract"""
-        return self.synchronized_data.db.initial_data.get("registered_addresses", {})
+        return cast(
+            Dict[str, Dict[str, Any]],
+            self.synchronized_data.db.get("registered_addresses", {}),
+        )
 
     @property
     def dialogues(self) -> Optional[TendermintDialogues]:
@@ -649,7 +652,9 @@ class TendermintHandler(Handler):
             self._reply_with_tendermint_error(message, dialogue, log_message)
             return
 
-        self.registered_addresses[message.sender] = validator_config
+        registered_addresses = self.registered_addresses
+        registered_addresses[message.sender] = validator_config
+        self.synchronized_data.db.update(registered_addresses=registered_addresses)
         log_message = self.LogMessages.collected_config_info.value
         self.context.logger.info(f"{log_message}: {message}")
         dialogues = cast(TendermintDialogues, self.dialogues)

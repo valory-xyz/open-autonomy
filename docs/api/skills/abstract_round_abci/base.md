@@ -693,7 +693,7 @@ can be used to convert from Dict[str, Any] to Dict[str, List[Any]] before instan
 def initial_data() -> Dict[str, Any]
 ```
 
-Get the initial_data.
+Get the initial_data without entries which have empty values.
 
 **Returns**:
 
