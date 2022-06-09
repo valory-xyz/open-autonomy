@@ -639,6 +639,18 @@ class TestBaseSynchronizedData:
         assert expected.participants == actual.participants
         assert actual.db._data == {0: {"participants": [{"a", "b"}, {"a"}]}}
 
+    def test_update_from_list(self) -> None:
+        """Test the 'update' method."""
+        participants = {"a"}
+        expected = BaseSynchronizedData(
+            db=AbciAppDB(initial_data=dict(participants=[participants]))
+        )
+        actual = self.base_synchronized_data.update_from_list(
+            participants=[participants]
+        )
+        assert expected.participants == actual.participants
+        assert actual.db._data == {0: {"participants": [{"a", "b"}, {"a"}]}}
+
     def test_create(self) -> None:
         """Test the 'create' method."""
         participants = {"a"}

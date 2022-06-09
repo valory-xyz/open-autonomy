@@ -222,5 +222,5 @@ class BaseDeploymentGenerator:
         """Environment variables are stored within deployments as strings ensure that lists generated can be parsed."""
         for key, value in agent_vars.items():
             if isinstance(value, list):
-                agent_vars[key] = str(value).replace("'", '"')
+                agent_vars[key] = json.dumps(value)
         return agent_vars
