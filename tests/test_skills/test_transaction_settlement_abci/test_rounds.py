@@ -517,6 +517,7 @@ class TestCollectSignatureRound(BaseCollectDifferentUntilThresholdRoundTest):
         test_round = CollectSignatureRound(
             self.synchronized_data, self.consensus_params
         )
+        test_round.block_confirmations = test_round.required_block_confirmations + 1
         self._test_no_majority_event(test_round)
 
 
