@@ -51,7 +51,8 @@
     "network": {
       "enum": [
         "hardhat",
-        "ropsten"
+        "ropsten",
+        "polygon"
       ]
     }
   }
