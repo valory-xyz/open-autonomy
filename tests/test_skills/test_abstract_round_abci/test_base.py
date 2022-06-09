@@ -640,7 +640,7 @@ class TestBaseSynchronizedData:
         assert actual.db._data == {0: {"participants": [{"a", "b"}, {"a"}]}}
 
     def test_update_from_list(self) -> None:
-        """Test the 'update' method."""
+        """Test the 'update_from_list' method."""
         participants = {"a"}
         expected = BaseSynchronizedData(
             db=AbciAppDB(initial_data=dict(participants=[participants]))
