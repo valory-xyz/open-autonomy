@@ -64,3 +64,18 @@ models:
     args:
       tendermint_url: ${TENDERMINT_URL:str}
       tendermint_com_url: ${TENDERMINT_COM_URL:str}
+---
+public_id: valory/p2p_libp2p_client:0.1.0
+type: connection
+config:
+  nodes:
+  - uri: staging.acn.autonolas.tech:9006
+    public_key: 02fc5fe35c21a1f8ba2de52fd38ef95379be19d5390f1275b825c343167590d3b7
+cert_requests:
+- identifier: acn
+  ledger_id: ethereum
+  message_format: '{public_key}'
+  not_after: '2022-01-01'
+  not_before: '2021-01-01'
+  public_key: 02fc5fe35c21a1f8ba2de52fd38ef95379be19d5390f1275b825c343167590d3b7
+  save_path: .certs/acn_cosmos_9006.txt

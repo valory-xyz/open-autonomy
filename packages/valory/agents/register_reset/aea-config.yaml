@@ -50,3 +50,18 @@ public_id: valory/abci:0.1.0
 type: connection
 config:
   target_skill_id: valory/register_reset_abci:0.1.0
+---
+public_id: valory/p2p_libp2p_client:0.1.0
+type: connection
+config:
+  nodes:
+  - uri: staging.acn.autonolas.tech:9005
+    public_key: 0250827315351f6f4d3777b77d4bfd67280156240313bf221750b36404344bb35d
+cert_requests:
+- identifier: acn
+  ledger_id: ethereum
+  message_format: '{public_key}'
+  not_after: '2022-01-01'
+  not_before: '2021-01-01'
+  public_key: 0250827315351f6f4d3777b77d4bfd67280156240313bf221750b36404344bb35d
+  save_path: .certs/acn_cosmos_9005.txt
