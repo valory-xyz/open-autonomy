@@ -156,6 +156,7 @@ class TestRegistrationStartupBehaviour(RegistrationAbciBaseCase):
         """Setup"""
         super().setup()
         self.state.params.sleep_time = 0
+        self.state.params.share_tm_config_on_startup = True
 
     @property
     def agent_instances(self) -> List[str]:
