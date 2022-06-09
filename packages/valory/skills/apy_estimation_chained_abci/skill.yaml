@@ -17,19 +17,19 @@ fingerprint:
 fingerprint_ignore_patterns: []
 connections:
 - valory/abci:0.1.0:Qme3D1sghE2i1cg3FS8bfjKRwG3jjdQsQZ3Sb6Mxxv8GfC
-- valory/http_client:0.1.0:QmWXhTfjybebxpE34WT3Uq9nyBjtbf2S4QBRNgDhGGzzsX
-- valory/ledger:0.1.0:QmXdscpRpJaQxcxaL6V34ExpKLMHK7uiKDtoJe3Siuk4Z6
+- valory/http_client:0.1.0:QmWLBDpdcz8idNdqobjBC6ykJCSEpHCjcC1mAoAdJPzmQh
+- valory/ledger:0.1.0:QmcX1dhL1sikxF5mEt144yRQiNgWswQcWfgUxJXfAF5DG9
 contracts: []
 protocols:
-- open_aea/signing:1.0.0:QmQJbzTMRVNTSaJDm4JSZHzoRgsZDUfzTqipJAJcicobXx
-- valory/abci:0.1.0:QmYg2GNatG8mzmiZrnZNL2LtS7rx4Mgi8g55Kfd5nj3QEp
-- valory/contract_api:1.0.0:QmQssrTfPsTJxkHQthn735vKQHmBuvoZE2eMFf3UzEFizf
-- valory/http:1.0.0:QmcFZahrD7WQRyK2bcdj2BmRNijK9EeKbTiGwkzxZ4nVti
-- valory/ledger_api:1.0.0:QmTMQKNr3oL8j68swCL4LjvUsHsyDp8FTM1UcPTfBvJYDn
+- open_aea/signing:1.0.0:QmemReviejNSLrwWqENKL76AtoK17eG8TBbWjpwUT7L3UA
+- valory/abci:0.1.0:QmRXBoBaTYNcpe98SqYJmKVXm6eFfYeS9yuKz7mzzYawNG
+- valory/contract_api:1.0.0:QmSobFjLc3baTW1Zf2zfS1X3KJabw7xE6cPJb2g2eAvxSx
+- valory/http:1.0.0:QmSAsTD3pidZcrEXk3HQfbZvUDiVTUMHgCrXpXcs744AZE
+- valory/ledger_api:1.0.0:QmdMBgcpjL2hvmrxWtFyujMSf6exkFPnUXZqTdnsvrk48r
 skills:
-- valory/abstract_round_abci:0.1.0:QmNdWqMFnXsmEiT9Ljn9AEJ3zmqQa4XkuuvSoShbUKo2Vx
-- valory/apy_estimation_abci:0.1.0:Qmbhd2CcDfuCp22ccyTpETdDwb9vz5U4zrrSVV7ifAXceJ
-- valory/registration_abci:0.1.0:QmZ1QuPPYPkQEadHFETorp4guh2Z3YEY8wdhediQ7vqjSg
+- valory/abstract_round_abci:0.1.0:QmSqySLafUH96fuT8CaCCdrSg66s3aQ9Pbdzyz9ciyqYyX
+- valory/apy_estimation_abci:0.1.0:QmXkuDUAYfKnRz7fp7iL6eNMhF7yrvQzRp6L9n72KHRPpj
+- valory/registration_abci:0.1.0:QmW8qiwAP3GDFRig4n97svnyf2K25HKGHmcKNJqYHH2tgp
 behaviours:
   main:
     args: {}
@@ -155,7 +155,7 @@ dependencies:
   numpy:
     version: <1.22,>=1.21.4
   open-aea-cli-ipfs:
-    version: <2.0.0,>=1.9.0.post1
+    version: <2.0.0,>=1.10.0
   optuna:
     version: <2.11,>=2.10.0
   pandas:

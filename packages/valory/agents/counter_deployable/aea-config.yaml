@@ -4,17 +4,18 @@ version: 0.1.0
 description: The ABCI Counter example as an AEA
 license: Apache-2.0
 aea_version: '>=1.0.0, <2.0.0'
-fingerprint: {}
+fingerprint:
+  README.md: QmSbdQDou9tgrq1uXdAGQ9o3LV6N3ZVNKXpzSRFkrq7HJY
 fingerprint_ignore_patterns: []
 connections:
 - valory/abci:0.1.0:Qme3D1sghE2i1cg3FS8bfjKRwG3jjdQsQZ3Sb6Mxxv8GfC
 contracts: []
 protocols:
-- open_aea/signing:1.0.0:QmQJbzTMRVNTSaJDm4JSZHzoRgsZDUfzTqipJAJcicobXx
-- valory/abci:0.1.0:QmYg2GNatG8mzmiZrnZNL2LtS7rx4Mgi8g55Kfd5nj3QEp
+- open_aea/signing:1.0.0:QmemReviejNSLrwWqENKL76AtoK17eG8TBbWjpwUT7L3UA
+- valory/abci:0.1.0:QmRXBoBaTYNcpe98SqYJmKVXm6eFfYeS9yuKz7mzzYawNG
 skills:
-- valory/abstract_abci:0.1.0:QmbS3y8mKTfLthr67iPD51USwZok7WX7VY646f1SKvt7r1
-- valory/counter:0.1.0:QmQacZPkyoZF6pK8y4As8Nu83xakqWN7wQyKNDnSyjRxxX
+- valory/abstract_abci:0.1.0:QmUWLsWW62YneNXeTASFhbyXeTXCEuxsfraxJYWwzTQmyp
+- valory/counter:0.1.0:QmYkBdqMKaKGNrwiVKjVso9Lyksxqgi3EG6E9R9PuEM8ny
 default_ledger: ethereum
 required_ledgers:
 - ethereum

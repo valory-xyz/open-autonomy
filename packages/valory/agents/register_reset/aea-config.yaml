@@ -4,22 +4,23 @@ version: 0.1.0
 license: Apache-2.0
 description: Register reset to replicate Tendermint issue.
 aea_version: '>=1.0.0, <2.0.0'
-fingerprint: {}
+fingerprint:
+  README.md: QmTbPRTdh8ziACzb3x1FoeEsZiDNP2S671zWnZ2bz3nDpE
 fingerprint_ignore_patterns: []
 connections:
 - valory/abci:0.1.0:Qme3D1sghE2i1cg3FS8bfjKRwG3jjdQsQZ3Sb6Mxxv8GfC
-- valory/http_client:0.1.0:QmWXhTfjybebxpE34WT3Uq9nyBjtbf2S4QBRNgDhGGzzsX
+- valory/http_client:0.1.0:QmWLBDpdcz8idNdqobjBC6ykJCSEpHCjcC1mAoAdJPzmQh
 contracts: []
 protocols:
-- open_aea/signing:1.0.0:QmQJbzTMRVNTSaJDm4JSZHzoRgsZDUfzTqipJAJcicobXx
-- valory/abci:0.1.0:QmYg2GNatG8mzmiZrnZNL2LtS7rx4Mgi8g55Kfd5nj3QEp
-- valory/http:1.0.0:QmcFZahrD7WQRyK2bcdj2BmRNijK9EeKbTiGwkzxZ4nVti
+- open_aea/signing:1.0.0:QmemReviejNSLrwWqENKL76AtoK17eG8TBbWjpwUT7L3UA
+- valory/abci:0.1.0:QmRXBoBaTYNcpe98SqYJmKVXm6eFfYeS9yuKz7mzzYawNG
+- valory/http:1.0.0:QmSAsTD3pidZcrEXk3HQfbZvUDiVTUMHgCrXpXcs744AZE
 skills:
-- valory/abstract_abci:0.1.0:QmbS3y8mKTfLthr67iPD51USwZok7WX7VY646f1SKvt7r1
-- valory/abstract_round_abci:0.1.0:QmNdWqMFnXsmEiT9Ljn9AEJ3zmqQa4XkuuvSoShbUKo2Vx
-- valory/register_reset_abci:0.1.0:QmbjiSz6FZsBXJCiHVZ39GpUab4Z6zCUK8D1hLc7v1zsf5
-- valory/registration_abci:0.1.0:QmZ1QuPPYPkQEadHFETorp4guh2Z3YEY8wdhediQ7vqjSg
-- valory/reset_pause_abci:0.1.0:QmR7y1LnFFUnqHRaZCNH23Dq6Q5z4Rj3ok2TRnMecrnaif
+- valory/abstract_abci:0.1.0:QmUWLsWW62YneNXeTASFhbyXeTXCEuxsfraxJYWwzTQmyp
+- valory/abstract_round_abci:0.1.0:QmSqySLafUH96fuT8CaCCdrSg66s3aQ9Pbdzyz9ciyqYyX
+- valory/register_reset_abci:0.1.0:QmYLnjR1HUr71bd9JdUjxnqHv8CpnjYzGEh9TnxVPrke5r
+- valory/registration_abci:0.1.0:QmW8qiwAP3GDFRig4n97svnyf2K25HKGHmcKNJqYHH2tgp
+- valory/reset_pause_abci:0.1.0:QmdcH9jDyLpHg5KfZ59NwyuvxZ4hDEPLKHDsJUQiD4q2Yf
 default_ledger: ethereum
 required_ledgers:
 - ethereum
