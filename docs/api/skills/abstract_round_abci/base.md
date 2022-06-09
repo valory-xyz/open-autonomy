@@ -752,6 +752,16 @@ def get_strict(key: str) -> Any
 
 Get a value from the data dictionary and raise if it is None.
 
+<a id="packages.valory.skills.abstract_round_abci.base.AbciAppDB.update_from_list"></a>
+
+#### update`_`from`_`list
+
+```python
+def update_from_list(**kwargs: Any) -> None
+```
+
+Update the current data.
+
 <a id="packages.valory.skills.abstract_round_abci.base.AbciAppDB.update"></a>
 
 #### update
@@ -956,6 +966,16 @@ Get the number of participants.
 
 ```python
 def update(synchronized_data_class: Optional[Type] = None, **kwargs: Any, ,) -> "BaseSynchronizedData"
+```
+
+Copy and update the current data.
+
+<a id="packages.valory.skills.abstract_round_abci.base.BaseSynchronizedData.update_from_list"></a>
+
+#### update`_`from`_`list
+
+```python
+def update_from_list(synchronized_data_class: Optional[Type] = None, **kwargs: Any, ,) -> "BaseSynchronizedData"
 ```
 
 Copy and update the current data.

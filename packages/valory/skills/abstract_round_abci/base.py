@@ -597,6 +597,13 @@ class AbciAppDB:
         """Get a value from the data dictionary and raise if it is None."""
         return self.get(key)
 
+    def update_from_list(self, **kwargs: Any) -> None:
+        """Update the current data."""
+        # Append new data to the key history
+        data = self._data[self.reset_index]
+        for key, value in kwargs.items():
+            data.setdefault(key, []).extend(value)
+
     def update(self, **kwargs: Any) -> None:
         """Update the current data."""
         # Append new data to the key history
@@ -720,6 +727,19 @@ class BaseSynchronizedData:
     ) -> "BaseSynchronizedData":
         """Copy and update the current data."""
         self.db.update(**kwargs)
+
+        class_ = (
+            type(self) if synchronized_data_class is None else synchronized_data_class
+        )
+        return class_(db=self.db)
+
+    def update_from_list(
+        self,
+        synchronized_data_class: Optional[Type] = None,
+        **kwargs: Any,
+    ) -> "BaseSynchronizedData":
+        """Copy and update the current data."""
+        self.db.update_from_list(**kwargs)
 
         class_ = (
             type(self) if synchronized_data_class is None else synchronized_data_class

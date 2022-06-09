@@ -74,10 +74,10 @@ class RegistrationStartupRound(CollectDifferentUntilAllRound):
             and self.most_voted_payload is not None
         ):
             initialisation = json.loads(self.most_voted_payload)
-            synchronized_data = self.synchronized_data.update(
-                participants=frozenset(self.collection),
-                all_participants=frozenset(self.collection),
+            synchronized_data = self.synchronized_data.update_from_list(
                 synchronized_data_class=BaseSynchronizedData,
+                participants=[frozenset(self.collection)],
+                all_participants=[frozenset(self.collection)],
                 **initialisation,
             )
             return synchronized_data, Event.FAST_FORWARD
