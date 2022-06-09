@@ -25,7 +25,7 @@ import inspect
 from enum import Enum
 from pathlib import Path
 from types import ModuleType
-from typing import Any, Dict, Tuple, Type, Union
+from typing import Any, Dict, Set, Tuple, Type, Union
 from unittest import mock
 
 import requests
@@ -465,6 +465,26 @@ def test_local_types_file_matches_github() -> None:
     local_data = LOCAL_TYPES_FILE.read_text(encoding=ENCODING)
 
     assert github_data == local_data
+
+
+def test_all_custom_types_used() -> None:
+    """Test if all custom types are used in speech acts"""
+    # in combination with aea-to-tendermint tests
+    # this covers their implementation and usage
+
+    aea_protocol, custom_types, _ = get_protocol_readme_spec()
+    speech_acts = aea_protocol["speech_acts"]
+    defined_types = {v for vals in speech_acts.values() for v in vals.values()}
+
+    custom_in_speech: Set[str] = set()
+    for d_type in defined_types:
+        if any(map(d_type.startswith, SPECIFICATION_COMPOSITIONAL_TYPES)):
+            subfields = _get_sub_types_of_compositional_types(d_type)
+            custom_in_speech.update(s[3:] for s in subfields if s.startswith("ct:"))
+        elif d_type.startswith("ct:"):
+            custom_in_speech.add(d_type[3:])
+
+    assert custom_in_speech == {s[3:] for s in custom_types}
 
 
 def test_defined_dialogues_match_abci_spec() -> None:
