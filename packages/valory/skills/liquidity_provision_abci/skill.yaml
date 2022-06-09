@@ -17,7 +17,7 @@ fingerprint:
   models.py: Qmdb5Dve5jFq5UvYLALfXeXSxrQa3tifYWeTjo6iSqttmJ
 fingerprint_ignore_patterns: []
 connections:
-- valory/abci:0.1.0:QmVV5qAZxB75SsVGfQw5KuMRnuFP3RXYD6WwaYs6iMWiVU
+- valory/abci:0.1.0:QmPPZyzTNTGyvFsyZmBXkJfkKjuZi1KJjCeMmZvdsGA6U7
 - valory/http_client:0.1.0:QmWXhTfjybebxpE34WT3Uq9nyBjtbf2S4QBRNgDhGGzzsX
 - valory/ledger:0.1.0:QmXdscpRpJaQxcxaL6V34ExpKLMHK7uiKDtoJe3Siuk4Z6
 contracts:
@@ -32,12 +32,12 @@ protocols:
 - valory/http:1.0.0:QmcFZahrD7WQRyK2bcdj2BmRNijK9EeKbTiGwkzxZ4nVti
 - valory/ledger_api:1.0.0:QmTMQKNr3oL8j68swCL4LjvUsHsyDp8FTM1UcPTfBvJYDn
 skills:
-- valory/abstract_round_abci:0.1.0:QmW5Yx2q9qrocm3Vzsz3mMYLBaoivGx3RENzL4Wa2165ZW
-- valory/liquidity_rebalancing_abci:0.1.0:QmZNCCNbKNnxvAaXLG6DfPhK9UjjsANs4ppM1tRH6chdVK
-- valory/registration_abci:0.1.0:QmdVVirfsb1THDUBunhdKp9uBaq1YQy8eWKxq7eoXsaxjx
-- valory/reset_pause_abci:0.1.0:QmZYM23ysAa1z1qziKqugYR7YSbyDuNZAFkQLBnPqTz8TY
-- valory/safe_deployment_abci:0.1.0:Qmbng3W2RFM8eor3XM3Yw28xf5NPrLvxfz1Pg32cpXMM66
-- valory/transaction_settlement_abci:0.1.0:QmQ9XDx64zDYERDbiUMSjp5ojXdrDMMS3ivHBEXUDCT4Gz
+- valory/abstract_round_abci:0.1.0:QmXPi55gL53vtxGSHejrRxRsoZ8EyLaUSwsUxe2ZLQPs1m
+- valory/liquidity_rebalancing_abci:0.1.0:QmXdiVJirJjiiwT8ThX9RecAM4fSwvSYfCgUqCzJFWXfkw
+- valory/registration_abci:0.1.0:QmVRdpPsiuB845gbfxwC7AEAxJ5MQgaJ4wBrPfNtnsry6h
+- valory/reset_pause_abci:0.1.0:QmQyhmXeTvsULJ6fCMSwmt717atVw1iK1wXMaTMNTyAt5z
+- valory/safe_deployment_abci:0.1.0:QmeZCqBV4GGzMevngejfDJuFNyt1CsyHsMQDZukdG9AMJV
+- valory/transaction_settlement_abci:0.1.0:Qma9RE7jqgidDAdiYvBCVLMHXxnv9ns6gun8iqkLartFWE
 behaviours:
   main:
     args: {}
