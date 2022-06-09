@@ -38,8 +38,8 @@ protocols:
 - valory/http:1.0.0:QmcFZahrD7WQRyK2bcdj2BmRNijK9EeKbTiGwkzxZ4nVti
 - valory/ledger_api:1.0.0:QmTMQKNr3oL8j68swCL4LjvUsHsyDp8FTM1UcPTfBvJYDn
 skills:
-- valory/abstract_round_abci:0.1.0:QmcNMJ8qMRQWUfqVvex8qhWC95taoEJuQB32VHdYhnc8DG
-- valory/registration_abci:0.1.0:QmSYVHaFCaR6tqzuW9ZWYmDmqJwXqPcuVzRa3jEFoDNYA4
+- valory/abstract_round_abci:0.1.0:QmWUssC96KZmeGwo8MVWxrYMg5PB2vTaUA7E1cLgSW6KoT
+- valory/registration_abci:0.1.0:QmYXWUFvMzsz4DF9k1VtT12sJbB2w8sqKk5XwpghvEz9oc
 behaviours:
   main:
     args: {}
@@ -123,8 +123,8 @@ models:
       round_timeout_seconds: 120.0
       service_id: apy_estimation
       service_registry_address: null
-      share_tm_config_on_startup: false
       setup: {}
+      share_tm_config_on_startup: false
       sleep_time: 5
       tendermint_check_sleep_delay: 3
       tendermint_com_url: http://localhost:8080

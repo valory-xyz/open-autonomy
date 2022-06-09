@@ -32,12 +32,12 @@ protocols:
 - valory/http:1.0.0:QmcFZahrD7WQRyK2bcdj2BmRNijK9EeKbTiGwkzxZ4nVti
 - valory/ledger_api:1.0.0:QmTMQKNr3oL8j68swCL4LjvUsHsyDp8FTM1UcPTfBvJYDn
 skills:
-- valory/abstract_round_abci:0.1.0:QmcNMJ8qMRQWUfqVvex8qhWC95taoEJuQB32VHdYhnc8DG
-- valory/liquidity_rebalancing_abci:0.1.0:QmaAm9GNZEaDa5z3Uk2fNixDhbEnm7dHuhoR9DaKEUpTPT
-- valory/registration_abci:0.1.0:QmSYVHaFCaR6tqzuW9ZWYmDmqJwXqPcuVzRa3jEFoDNYA4
-- valory/reset_pause_abci:0.1.0:QmRSS9NRjjgBnaD8PdHjjEWsevAGhfnm153sNdiT3VetYr
-- valory/safe_deployment_abci:0.1.0:QmSanDbdKDQAx7vcXzTWuhBqG5mw6LnVCsVdYHqqG2zVdm
-- valory/transaction_settlement_abci:0.1.0:QmcGcwwp87ddukeoDtVyDwB1644vUzQpU4aSH1ZMZ8B9Y4
+- valory/abstract_round_abci:0.1.0:QmWUssC96KZmeGwo8MVWxrYMg5PB2vTaUA7E1cLgSW6KoT
+- valory/liquidity_rebalancing_abci:0.1.0:QmSk9fc32WwnRLTMizum9Pcv1Mu6urYDiZz7Y8xPxPUqhq
+- valory/registration_abci:0.1.0:QmYXWUFvMzsz4DF9k1VtT12sJbB2w8sqKk5XwpghvEz9oc
+- valory/reset_pause_abci:0.1.0:QmaSGKcGfuAayeNUCkWNLGBKZ975TTa2odhj5j4WLFEvwn
+- valory/safe_deployment_abci:0.1.0:QmNvsGE1GF29WB4iqYvFHy67rxhuMZS9bscEZb7wyBzTZF
+- valory/transaction_settlement_abci:0.1.0:QmeBjwotPJgP6PhW4huDj8BfPYajLjHJjXPRNUsKFEbBHF
 behaviours:
   main:
     args: {}
@@ -111,8 +111,8 @@ models:
       round_timeout_seconds: 30.0
       service_id: liquidity_rebalancing
       service_registry_address: null
-      share_tm_config_on_startup: false
       setup: {}
+      share_tm_config_on_startup: false
       sleep_time: 1
       tendermint_check_sleep_delay: 3
       tendermint_com_url: http://localhost:8080
