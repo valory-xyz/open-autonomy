@@ -138,17 +138,6 @@ def get_tendermint_message_types() -> Dict[str, Any]:
     return messages
 
 
-PYTHON_PRIMITIVES = (int, float, bool, str, bytes)
-AEA_CUSTOM = get_aea_classes(protocols.abci.custom_types)
-TENDERMINT_DEFS = get_tendermint_message_types()
-
-TENDERMINT_ABCI_TYPES = get_tendermint_classes(tendermint.abci.types_pb2)
-TENDERMINT_PARAMS = get_tendermint_classes(params_pb2)
-TENDERMINT_KEYS = get_tendermint_classes(keys_pb2)
-TENDERMINT_PROOF = get_tendermint_classes(proof_pb2)
-TENDERMINT_TYPES_TYPES = get_tendermint_classes(types_pb2)
-TENDERMINT_TIME_STAMP = timestamp_pb2.Timestamp
-
 type_mapping = {
     v: k[5:].lower() for k, v in vars(FieldDescriptor).items() if k.startswith("TYPE_")
 }
@@ -171,6 +160,18 @@ type_to_python.update(
 
 camel_to_snake = _camel_case_to_snake_case
 snake_to_camel = _to_camel_case
+
+
+PYTHON_PRIMITIVES = (int, float, bool, str, bytes)
+AEA_CUSTOM = get_aea_classes(protocols.abci.custom_types)
+TENDERMINT_DEFS = get_tendermint_message_types()
+
+TENDERMINT_ABCI_TYPES = get_tendermint_classes(tendermint.abci.types_pb2)
+TENDERMINT_PARAMS = get_tendermint_classes(params_pb2)
+TENDERMINT_KEYS = get_tendermint_classes(keys_pb2)
+TENDERMINT_PROOF = get_tendermint_classes(proof_pb2)
+TENDERMINT_TYPES_TYPES = get_tendermint_classes(types_pb2)
+TENDERMINT_TIME_STAMP = timestamp_pb2.Timestamp
 
 
 def get_aea_type(data_type: str) -> str:
@@ -216,6 +217,7 @@ def _create_custom_type_tree(custom_type) -> Tuple[Type, Dict[str, Any]]:
         elif is_enum(d_type):
             kwarg_types[name] = d_type
         elif is_repeated(d_type):
+            assert len(d_type.__args__) == 1
             container, content = d_type.__origin__, d_type.__args__[0]
             if content in AEA_CUSTOM.values():
                 content = _create_custom_type_tree(content)
@@ -233,7 +235,7 @@ def _create_type_tree(field: str) -> Any:
     if any(map(field.startswith, SPECIFICATION_COMPOSITIONAL_TYPES)):
         subfields = _get_sub_types_of_compositional_types(field)
         if field.startswith("pt:optional"):
-            return _create_type_tree(subfields[0])
+            return _create_type_tree(*subfields)
         elif field.startswith("pt:list"):  # repeated
             return list, _create_type_tree(*subfields)
         else:
@@ -267,8 +269,8 @@ def _init_subtree(node: Dict[str, Any]) -> Dict[str, Any]:
         if repeated_type in PYTHON_PRIMITIVES:
             repeated = tuple(repeated_type() for _ in range(1))
         elif isinstance(repeated_type, tuple):
-            cls, cls_kwargs = repeated_type
-            repeated = tuple(cls(**_init_subtree(cls_kwargs)) for _ in range(1))
+            cls, cls_kwargs = repeated_type  # TODO: issue (not here, in Encoder)
+            repeated = tuple(cls(**_init_subtree(cls_kwargs)) for _ in range(0))
         else:
             raise NotImplementedError(f"Repeated in {name}: {repeated_type}")
         return repeated
@@ -291,8 +293,10 @@ def _init_subtree(node: Dict[str, Any]) -> Dict[str, Any]:
     return kwargs
 
 
-def init_abci_messages(type_tree):
+def init_abci_messages(type_tree: Dict[str, Any]) -> Dict[str, Tuple]:
     """Initialize ABCI messages"""
+    for k, (p, node) in type_tree.items():
+        _init_subtree(node)
     return {k: AbciMessage(p, **_init_subtree(root)) for k, (p, root) in type_tree.items()}
 
 
@@ -305,44 +309,30 @@ def encode(abci_messages: Dict[str, AbciMessage]):
         try:
             tendermint_messages[key] = Encoder.process(message)
         except Exception as e:
-            print(key, message)
-            print(e)
+            raise e  # to be returned
     return tendermint_messages
 
 
 # 4. Check Tendermint-native ABCI messages
-def _verify(subtype) -> True:
+def _verify_message(message) -> True:
     """Verify Tendermint-native ABCI message"""
-
-    name = subtype.__class__.__name__
-    cls_attrs = (TENDERMINT_DEFS[name].get(x, {}) for x in CLASS_ATTRS)
-    oneofs, enum_types, fields = cls_attrs
-    for field, (d_type, idx, *repeated) in fields.items():
-        data = getattr(subtype, field)
-        if d_type == "enum":
-            enum_type = enum_types[snake_to_camel(field)]
-            assert data in enum_type.values()
-        elif d_type in type_to_python:
-            x = type_to_python[d_type]()
-            x = [x] if repeated else x
-            assert data == x
-        elif d_type in TENDERMINT_ABCI_TYPES:
-            _verify(TENDERMINT_ABCI_TYPES[d_type])
-        else:
-            raise NotImplementedError(f"{name}: {d_type}")
+    # NOTE: ListFields does not retrieve what is empty!
     return True
 
 
-def verify_tendermint_message(message: Union[Request, Response]):
+def tendermint_message_can_be_verified(envelope: Union[Request, Response]):
     """Verify Tendermint-native ABCI message"""
 
-    assert message.IsInitialized()
-    assert not message.UnknownFields()
-    assert not message.FindInitializationErrors()
-    descr, subtype = message.ListFields()[0]
+    assert isinstance(envelope, (Request, Response))
+    assert envelope.IsInitialized()
+    assert not envelope.UnknownFields()
+    assert not envelope.FindInitializationErrors()
+    assert len(envelope.ListFields()) == 1
+    descr, message = envelope.ListFields()[0]
     try:
-        return _verify(subtype)
-    except Exception:
+        return _verify_message(message)
+    except Exception as e:
+        raise e  # to be returned
         return False
 
 
@@ -415,7 +405,14 @@ def test_aea_to_tendermint() -> None:
     # 3. encode to Tendermint-native ABCI protocol
     encoded = encode(abci_messages)
     # 4. verify content
-    for key, message in encoded.items():
-        if not message:  # request not implemented in encoder
-            continue
-        verify_tendermint_message(message)
+    for key, envelope in encoded.items():
+        if not envelope:  # request not implemented in encoder
+            assert type_tree[key][0].value.startswith("request"), key
+        else:
+            # print(key)
+            assert tendermint_message_can_be_verified(envelope)
+    return type_tree, abci_messages, encoded
+
+
+type_tree, abci_messages, encoded = test_aea_to_tendermint()
+
