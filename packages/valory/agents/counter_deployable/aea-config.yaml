@@ -1,4 +1,4 @@
-agent_name: counter
+agent_name: counter_deployable
 author: valory
 version: 0.1.0
 description: The ABCI Counter example as an AEA
@@ -33,6 +33,6 @@ public_id: valory/abci:0.1.0
 type: connection
 config:
   target_skill_id: valory/counter:0.1.0
-  host: ${ABCI_HOST:str:localhost}
+  host: ${ABCI_HOST:str}
   port: ${ABCI_PORT:int:26658}
   use_tendermint: ${ABCI_USE_TENDERMINT:bool:false}

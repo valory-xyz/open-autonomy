@@ -21,7 +21,7 @@
 
 import sys
 from pathlib import Path
-from typing import cast
+from typing import Optional, cast
 
 import click
 from aea.cli.ipfs_hash import (
@@ -75,19 +75,25 @@ def hash_group() -> None:
     type=click.Path(exists=True, dir_okay=True, file_okay=False),
     default=Path("packages/"),
 )
+@click.option("--vendor", type=str)
 @click.option("--no-wrap", is_flag=True)
 @click.option("--check", is_flag=True)
 def generate_all(
     packages_dir: Path,
+    vendor: Optional[str],
     no_wrap: bool,
     check: bool,
 ) -> None:
     """Generate IPFS hashes."""
     packages_dir = Path(packages_dir).absolute()
     if check:
-        return_code = check_hashes(packages_dir, no_wrap, load_configuration)
+        return_code = check_hashes(
+            packages_dir, no_wrap, vendor=vendor, config_loader=load_configuration
+        )
     else:
-        return_code = update_hashes(packages_dir, no_wrap, load_configuration)
+        return_code = update_hashes(
+            packages_dir, no_wrap, vendor=vendor, config_loader=load_configuration
+        )
     sys.exit(return_code)
 
 
