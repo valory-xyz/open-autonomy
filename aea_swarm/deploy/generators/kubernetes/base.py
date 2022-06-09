@@ -152,7 +152,7 @@ class KubernetesGenerator(BaseDeploymentGenerator):
                     self.image_name,
                     i,
                     self.service_spec.service.number_of_agents,
-                    agent_vars[i],
+                    self.stringify_vars(agent_vars[i]),
                     image_versions,
                 )
                 for i in range(self.service_spec.service.number_of_agents)

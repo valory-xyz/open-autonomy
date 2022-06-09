@@ -169,7 +169,7 @@ class DockerComposeGenerator(BaseDeploymentGenerator):
                     image_name,
                     i,
                     self.service_spec.service.number_of_agents,
-                    agent_vars[i],
+                    self.stringify_vars(agent_vars[i]),
                     dev_mode,
                     open_aea_image_version=image_versions["agent"],
                 )
