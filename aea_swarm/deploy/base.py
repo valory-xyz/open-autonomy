@@ -140,6 +140,9 @@ class ServiceSpecification:
             return agent_vars
         overrides = self.process_model_args_overrides(agent_n)
         agent_vars.update(overrides)
+        for var_name, value in agent_vars.items():
+            if any([isinstance(value, list), isinstance(value, dict)]):
+                agent_vars[var_name] = json.dumps(value)
         return agent_vars
 
     def load_agent(self) -> List[Dict[str, str]]:
