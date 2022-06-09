@@ -40,6 +40,7 @@ from google.protobuf import timestamp_pb2
 from google.protobuf.descriptor import FieldDescriptor
 
 from packages.valory import protocols
+from packages.valory.connections import abci as tendermint_abci
 from packages.valory.connections.abci import tendermint
 from packages.valory.connections.abci.connection import (
     _TendermintProtocolDecoder as Decoder,
@@ -47,7 +48,6 @@ from packages.valory.connections.abci.connection import (
 from packages.valory.connections.abci.connection import (
     _TendermintProtocolEncoder as Encoder,
 )
-from packages.valory.connections.abci.protos.tendermint import abci  # type: ignore
 from packages.valory.connections.abci.tendermint.abci.types_pb2 import (  # type: ignore
     Request,
     Response,
@@ -68,9 +68,9 @@ from packages.valory.skills.abstract_round_abci.dialogues import AbciDialogues
 # constants & utility functions
 ENCODING = "utf-8"
 VERSION = "v0.34.11"
-LOCAL_TYPES_FILE = Path(abci.__path__[0]) / "types.proto"
+REPO_PATH = Path(*tendermint_abci.__package__.split(".")).absolute()
+LOCAL_TYPES_FILE = REPO_PATH / "protos" / "tendermint" / "abci" / "types.proto"
 URL = f"https://raw.githubusercontent.com/tendermint/tendermint/{VERSION}/proto/tendermint/abci/types.proto"
-CLASS_ATTRS = ("oneofs", "enum_types", "fields")
 DESCRIPTOR = tendermint.abci.types_pb2.DESCRIPTOR
 
 
