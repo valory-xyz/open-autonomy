@@ -73,11 +73,13 @@ models:
       keeper_timeout: 30.0
       max_healthcheck: 120
       observation_interval: 15
+      on_chain_service_id: null
       reset_tendermint_after: 1
       retry_attempts: 400
       retry_timeout: 3
       round_timeout_seconds: 15.0
       service_id: register_reset_abci
+      service_registry_address: null
       setup: {}
       sleep_time: 1
       tendermint_check_sleep_delay: 3
