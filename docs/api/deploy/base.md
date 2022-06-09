@@ -167,3 +167,14 @@ def write_config() -> "BaseDeploymentGenerator"
 
 Write output to build dir
 
+<a id="aea_swarm.deploy.base.BaseDeploymentGenerator.stringify_vars"></a>
+
+#### stringify`_`vars
+
+```python
+@classmethod
+def stringify_vars(cls, agent_vars: Dict[Any, Any]) -> Dict[Any, Any]
+```
+
+Environment variables are stored within deployments as strings ensure that lists generated can be parsed.
+
