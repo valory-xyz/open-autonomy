@@ -56,7 +56,7 @@ class FinishedRegistrationFFWRound(DegenerateRound):
     round_id = "finished_registration_ffw"
 
 
-class RegistrationStartupRound(CollectDifferentUntilAllRound):
+class RegistrationStartupRound(CollectSameUntilThresholdRound):
     """A round in which the agents get registered"""
 
     round_id = "registration_startup"
@@ -66,10 +66,10 @@ class RegistrationStartupRound(CollectDifferentUntilAllRound):
 
     def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Event]]:
         """Process the end of the block."""
-        if self.collection_threshold_reached:
+        if self.threshold_reached:
             self.block_confirmations += 1
         if (  # fast forward at setup
-            self.collection_threshold_reached
+            self.threshold_reached
             and self.block_confirmations > self.required_block_confirmations
             and self.most_voted_payload is not None
         ):
@@ -80,7 +80,7 @@ class RegistrationStartupRound(CollectDifferentUntilAllRound):
             )
             return synchronized_data, Event.FAST_FORWARD
         if (
-            self.collection_threshold_reached
+            self.threshold_reached
             and self.block_confirmations > self.required_block_confirmations
         ):
             synchronized_data = self.synchronized_data.update(
