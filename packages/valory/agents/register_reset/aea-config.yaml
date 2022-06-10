@@ -13,14 +13,14 @@ connections:
 contracts: []
 protocols:
 - open_aea/signing:1.0.0:QmemReviejNSLrwWqENKL76AtoK17eG8TBbWjpwUT7L3UA
-- valory/abci:0.1.0:QmUinV3H81CRaJamAGdt6QvrjeEb3tYWzPf3JuxJXNySfV
+- valory/abci:0.1.0:QmZBJS6SEKyDU1QYU3LVU6VTFqpbSkjPgLkwzefK2SVSvq
 - valory/http:1.0.0:QmSAsTD3pidZcrEXk3HQfbZvUDiVTUMHgCrXpXcs744AZE
 skills:
-- valory/abstract_abci:0.1.0:QmWpwjksKeVpNtiCWM7qLPuQyeJUTTLwi7EAvKsmxJh9BA
-- valory/abstract_round_abci:0.1.0:QmZo3JHEWhRvgrofWUWGDe4JGoq2pPHkP9rkUkVfubkXNV
-- valory/register_reset_abci:0.1.0:QmX9wQY5dBLjzFbWPmUCxoejCC9c27Zc91RdFDD1EeuZTe
-- valory/registration_abci:0.1.0:Qma29mKxS7LTJmTLf4S2av3qyMNx23tEa5mwuB47nKn71m
-- valory/reset_pause_abci:0.1.0:QmbuALNui455fBRB9JFZHyq1r4KXwZEYP3WGCD1ycoyRcv
+- valory/abstract_abci:0.1.0:QmcG3ejvMG6TN8yVwpGm2pLaDZQyhodZgwFTCNgFiP2KE4
+- valory/abstract_round_abci:0.1.0:QmRZW89rQqUb6h3WzJtT1i63jRBqe1Z6o25qJkLKJ2ybTd
+- valory/register_reset_abci:0.1.0:QmWXM4DM6bcnh8BYhQkJw8nWUxPjVVUH9iTJN72wTHE2Gu
+- valory/registration_abci:0.1.0:QmTgCnqAvkSRDCQNjQs5mmbDF6ELyrrSEW2Bd2oei8tSMq
+- valory/reset_pause_abci:0.1.0:QmQ5LhvbVgNm6LioEZQTuba87E35soSGoV2gL3YxVpf6sf
 default_ledger: ethereum
 required_ledgers:
 - ethereum
