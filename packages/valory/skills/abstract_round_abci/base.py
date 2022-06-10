@@ -1151,7 +1151,8 @@ class CollectDifferentUntilAllRound(CollectionRound):
             raise ABCIAppInternalError(
                 f"sender {payload.sender} has already sent value for round: {self.round_id}"
             )
-        elif collected_value in attribute_values:
+
+        if collected_value in attribute_values:
             raise ABCIAppInternalError(
                 f"`CollectDifferentUntilAllRound` encountered a value '{collected_value}' that already exists. "
                 f"All values per sender: {self.collection}"
@@ -1176,7 +1177,8 @@ class CollectDifferentUntilAllRound(CollectionRound):
             raise TransactionNotValidError(
                 f"sender {payload.sender} has already sent value for round: {self.round_id}"
             )
-        elif collected_value in attribute_values:
+
+        if collected_value in attribute_values:
             raise TransactionNotValidError(
                 f"`CollectDifferentUntilAllRound` encountered a value '{collected_value}' that already exists. "
                 f"All values per sender: {self.collection}"
