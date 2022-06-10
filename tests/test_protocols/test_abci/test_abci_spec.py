@@ -286,7 +286,7 @@ def _init_subtree(node: Node) -> Node:
             repeated = tuple(repeated_type() for _ in range(3))
         elif isinstance(repeated_type, tuple):
             cls, cls_kwargs = repeated_type  # TODO: issue (not here, in Encoder)
-            repeated = tuple(_init_subtree(cls_kwargs) for _ in range(0))
+            repeated = tuple(_init_subtree(cls_kwargs) for _ in range(3))
         else:
             raise NotImplementedError(f"Repeated in {name}: {repeated_type}")
 
