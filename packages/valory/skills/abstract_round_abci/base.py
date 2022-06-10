@@ -1226,8 +1226,10 @@ class CollectSameUntilAllRound(_CollectUntilAllRound, ABC):
         """Get the common payload among the agents."""
         most_common_payload, max_votes = self.payloads_count.most_common(1)[0]
         if max_votes < self._consensus_params.max_participants:
-            raise ABCIAppInternalError(f"{max_votes} votes are not enough for `CollectSameUntilAllRound`. Expected: "
-                                       f"`n_votes = max_participants = {self._consensus_params.max_participants}`")
+            raise ABCIAppInternalError(
+                f"{max_votes} votes are not enough for `CollectSameUntilAllRound`. Expected: "
+                f"`n_votes = max_participants = {self._consensus_params.max_participants}`"
+            )
         return most_common_payload
 
 

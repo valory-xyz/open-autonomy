@@ -34,7 +34,8 @@ from packages.valory.skills.registration_abci.rounds import (
 )
 
 from tests.test_skills.test_abstract_round_abci.test_base_rounds import (
-    BaseCollectSameUntilThresholdRoundTest, BaseCollectSameUntilAllRoundTest,
+    BaseCollectSameUntilAllRoundTest,
+    BaseCollectSameUntilThresholdRoundTest,
 )
 
 

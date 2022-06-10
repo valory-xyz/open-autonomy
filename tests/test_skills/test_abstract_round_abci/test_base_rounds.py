@@ -301,9 +301,9 @@ class BaseCollectSameUntilAllRoundTest(BaseRoundTestClass):
         assert test_round.end_block() is None
 
         with pytest.raises(
-                ABCIAppInternalError,
-                match="internal error: 1 votes are not enough for `CollectSameUntilAllRound`. "
-                      "Expected: `n_votes = max_participants = 4`"
+            ABCIAppInternalError,
+            match="internal error: 1 votes are not enough for `CollectSameUntilAllRound`. "
+            "Expected: `n_votes = max_participants = 4`",
         ):
             _ = test_round.common_payload
 
