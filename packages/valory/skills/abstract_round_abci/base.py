@@ -1183,7 +1183,7 @@ class CollectDifferentUntilAllRound(_CollectUntilAllRound, ABC):
         if payload.sender not in self.collection and collected_value in attribute_values:
             raise TransactionNotValidError(
                 f"`CollectDifferentUntilAllRound` encountered a value '{collected_value}' that already exists. "
-                f"All values per sender: {self.collection}"
+                f"All values: {attribute_values}"
             )
 
         super().check_payload(payload)
