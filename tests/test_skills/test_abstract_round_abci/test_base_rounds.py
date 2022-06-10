@@ -632,8 +632,6 @@ class TestCollectDifferentUntilAllRound(_BaseRoundTestClass):
             match="internal error: `CollectDifferentUntilAllRound` encountered a value 'agent_0' that already exists.",
         ):
             first_payload.sender = "other"
-            print(first_payload)
-            print(test_round.collection.values())
             test_round.process_payload(first_payload)
 
         with pytest.raises(
