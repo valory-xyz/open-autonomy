@@ -54,6 +54,7 @@ from packages.valory.skills.abstract_round_abci.base import (
     ROUND_COUNT_DEFAULT,
     TransactionNotValidError,
     VotingRound,
+    CollectSameUntilAllRound,
 )
 
 
@@ -142,6 +143,10 @@ class DummyCollectionRound(CollectionRound, DummyRound):
 
 class DummyCollectDifferentUntilAllRound(CollectDifferentUntilAllRound, DummyRound):
     """Dummy Class for CollectDifferentUntilAllRound"""
+
+
+class DummyCollectSameUntilAllRound(CollectSameUntilAllRound, DummyRound):
+    """Dummy Class for CollectSameUntilThresholdRound"""
 
 
 class DummyCollectDifferentUntilThresholdRound(
@@ -534,9 +539,9 @@ class _BaseRoundTestClass(BaseRoundTestClass):
         super().setup()
         cls.tx_payloads = get_dummy_tx_payloads(cls.participants)
 
-    def _test_payload_with_wrong_round_count(self, test_round: AbstractRound) -> None:
+    def _test_payload_with_wrong_round_count(self, test_round: AbstractRound, value: Optional[Any] = None) -> None:
         """Test errors raised by pyaloads with wrong round count."""
-        payload_with_wrong_round_count = DummyTxPayload("sender", None, False, 0)
+        payload_with_wrong_round_count = DummyTxPayload("sender", value, False, 0)
         with pytest.raises(
             TransactionNotValidError,
             match=re.escape("Expected round count -1 and got 0."),
@@ -646,6 +651,67 @@ class TestCollectDifferentUntilAllRound(_BaseRoundTestClass):
 
         assert test_round.collection_threshold_reached
         self._test_payload_with_wrong_round_count(test_round)
+
+
+class TestCollectSameUntilAllRound(_BaseRoundTestClass):
+    """Test class for CollectSameUntilAllRound."""
+
+    def test_run(
+        self,
+    ) -> None:
+        """Run Tests."""
+
+        test_round = DummyCollectSameUntilAllRound(
+            synchronized_data=self.synchronized_data,
+            consensus_params=self.consensus_params,
+        )
+
+        first_payload, *payloads = [
+            DummyTxPayload(
+                sender=agent,
+                value="test",
+            )
+            for agent in sorted(self.participants)
+        ]
+        test_round.process_payload(first_payload)
+        assert not test_round.collection_threshold_reached
+
+        with pytest.raises(
+            ABCIAppInternalError,
+            match="internal error: sender agent_0 has already sent value for round: round_id",
+        ):
+            test_round.process_payload(first_payload)
+
+        with pytest.raises(
+            TransactionNotValidError,
+            match="sender agent_0 has already sent value for round: round_id",
+        ):
+            test_round.check_payload(first_payload)
+
+        with pytest.raises(
+            ABCIAppInternalError,
+            match="internal error: `CollectSameUntilAllRound` encountered a value 'other' "
+                  "which is not the same as the already existing one: 'test",
+        ):
+            bad_payload = DummyTxPayload(
+                sender="other",
+                value="other",
+            )
+            test_round.process_payload(bad_payload)
+
+        with pytest.raises(
+            TransactionNotValidError,
+            match="`CollectSameUntilAllRound` encountered a value 'other' "
+                  "which is not the same as the already existing one: 'test",
+        ):
+            test_round.check_payload(bad_payload)
+
+        for payload in payloads:
+            assert not test_round.collection_threshold_reached
+            test_round.process_payload(payload)
+
+        assert test_round.collection_threshold_reached
+        self._test_payload_with_wrong_round_count(test_round, "test")
 
 
 class TestCollectSameUntilThresholdRound(_BaseRoundTestClass):
