@@ -23,7 +23,7 @@ protocols:
 - open_aea/signing:1.0.0:QmemReviejNSLrwWqENKL76AtoK17eG8TBbWjpwUT7L3UA
 - valory/abci:0.1.0:QmRXBoBaTYNcpe98SqYJmKVXm6eFfYeS9yuKz7mzzYawNG
 skills:
-- valory/abstract_round_abci:0.1.0:QmZFz4yMsVLP81MH9RjJXiKGxvmSTjUCKgkCgZ1kxWSHtN
+- valory/abstract_round_abci:0.1.0:QmUqbsgvFALivHCkArDFs2Uk2336ym4dkYbNkzDyK87THV
 behaviours:
   main:
     args: {}
