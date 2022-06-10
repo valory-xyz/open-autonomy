@@ -115,3 +115,4 @@ config:
     ethereum:
       address: ${LEDGER_ADDRESS:str:http://hardhat:8545}
       chain_id: ${LEDGER_CHAIN_ID:int:31337}
+      poa_chain: ${LEDGER_POA_CHAIN:bool:false}
