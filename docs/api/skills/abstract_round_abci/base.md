@@ -1447,17 +1447,6 @@ def collection_threshold_reached() -> bool
 
 Check that the collection threshold has been reached.
 
-<a id="packages.valory.skills.abstract_round_abci.base.CollectDifferentUntilAllRound.most_voted_payload"></a>
-
-#### most`_`voted`_`payload
-
-```python
-@property
-def most_voted_payload() -> Any
-```
-
-Get the most voted payload.
-
 <a id="packages.valory.skills.abstract_round_abci.base.CollectSameUntilThresholdRound"></a>
 
 ## CollectSameUntilThresholdRound Objects
