@@ -39,7 +39,7 @@ A fast-forward round representing that agent registration has finished
 ## RegistrationStartupRound Objects
 
 ```python
-class RegistrationStartupRound(CollectDifferentUntilAllRound)
+class RegistrationStartupRound(CollectSameUntilThresholdRound)
 ```
 
 A round in which the agents get registered
@@ -92,6 +92,7 @@ Transition states:
     0. RegistrationStartupRound
         - done: 2.
         - fast forward: 3.
+        - no majority: 0.
     1. RegistrationRound
         - done: 3.
         - no majority: 1.

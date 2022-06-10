@@ -18,7 +18,6 @@
 # ------------------------------------------------------------------------------
 
 """This module contains the data classes for common apps ABCI application."""
-import json
 from enum import Enum
 from typing import Dict, Optional, Set, Tuple, Type
 
@@ -28,7 +27,6 @@ from packages.valory.skills.abstract_round_abci.base import (
     AbstractRound,
     AppState,
     BaseSynchronizedData,
-    CollectDifferentUntilAllRound,
     CollectSameUntilThresholdRound,
     DegenerateRound,
 )
@@ -143,6 +141,7 @@ class AgentRegistrationAbciApp(AbciApp[Event]):
         0. RegistrationStartupRound
             - done: 2.
             - fast forward: 3.
+            - no majority: 0.
         1. RegistrationRound
             - done: 3.
             - no majority: 1.
