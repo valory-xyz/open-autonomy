@@ -535,6 +535,7 @@ transition_func:
     (RegistrationRound, NO_MAJORITY): RegistrationRound
     (RegistrationStartupRound, DONE): RandomnessSafeRound
     (RegistrationStartupRound, FAST_FORWARD): CollectObservationRound
+    (RegistrationStartupRound, NO_MAJORITY): RegistrationStartupRound
     (ResetAndPauseRound, DONE): CollectObservationRound
     (ResetAndPauseRound, NO_MAJORITY): RegistrationRound
     (ResetAndPauseRound, RESET_AND_PAUSE_TIMEOUT): RegistrationRound
