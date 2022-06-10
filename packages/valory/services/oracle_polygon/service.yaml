@@ -13,8 +13,10 @@ number_of_agents: 4
 setup_args:
   args: &id001
     setup:
-      safe_contract_address: ["0x5Ba047B6Fb2E1b2050b9E92E4c7383ECeD130c32"]
-      oracle_contract_address: ["0xe08bb22b663d016388c7D98CE5b4D8b1Fc3b4fdC"]
+      safe_contract_address:
+      - '0x5Ba047B6Fb2E1b2050b9E92E4c7383ECeD130c32'
+      oracle_contract_address:
+      - '0xe08bb22b663d016388c7D98CE5b4D8b1Fc3b4fdC'
     max_healthcheck: 43200
     broadcast_to_server: true
 valory_monitoring_backend:

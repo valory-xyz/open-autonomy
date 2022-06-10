@@ -18,7 +18,7 @@ fingerprint_ignore_patterns: []
 connections:
 - valory/abci:0.1.0:QmVV5qAZxB75SsVGfQw5KuMRnuFP3RXYD6WwaYs6iMWiVU
 - valory/http_client:0.1.0:QmWLBDpdcz8idNdqobjBC6ykJCSEpHCjcC1mAoAdJPzmQh
-- valory/ledger:0.1.0:QmcX1dhL1sikxF5mEt144yRQiNgWswQcWfgUxJXfAF5DG9
+- valory/ledger:0.1.0:QmZbpgSwHW4axmAwr4YXzLRhxSWnVdpkv3dGtrcM6SNj9u
 contracts: []
 protocols:
 - open_aea/signing:1.0.0:QmemReviejNSLrwWqENKL76AtoK17eG8TBbWjpwUT7L3UA
@@ -27,9 +27,9 @@ protocols:
 - valory/http:1.0.0:QmSAsTD3pidZcrEXk3HQfbZvUDiVTUMHgCrXpXcs744AZE
 - valory/ledger_api:1.0.0:QmdMBgcpjL2hvmrxWtFyujMSf6exkFPnUXZqTdnsvrk48r
 skills:
-- valory/abstract_round_abci:0.1.0:QmTQw5BZ4CkFXobTHV5JcoZqDJrbbyamjqefjt6bfbqyaA
-- valory/apy_estimation_abci:0.1.0:QmQw7QKUTaT6pwKvUNypMaKFjxaP6PNjMeZARVUxmvzvXH
-- valory/registration_abci:0.1.0:QmNW3FHiH6NVgyaN6i8ACY4VV7CNcig9G7dLNF9ba3hXcE
+- valory/abstract_round_abci:0.1.0:Qmbpne8SnzxGvZNTFeLpUCgXFpzoG1yyepAjrfz8Z6aAiC
+- valory/apy_estimation_abci:0.1.0:QmVWXaMpg9sFxtyNoeKcrwV2PDF9oTjEwwaH4iYCswha2U
+- valory/registration_abci:0.1.0:Qma813Th19DsoewFd8KGzYaRA9Fvc1AamF4Aw7nujm1RjL
 behaviours:
   main:
     args: {}
