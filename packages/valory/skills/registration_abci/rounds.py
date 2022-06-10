@@ -27,6 +27,7 @@ from packages.valory.skills.abstract_round_abci.base import (
     AbstractRound,
     AppState,
     BaseSynchronizedData,
+    CollectSameUntilAllRound,
     CollectSameUntilThresholdRound,
     DegenerateRound,
 )
@@ -54,7 +55,7 @@ class FinishedRegistrationFFWRound(DegenerateRound):
     round_id = "finished_registration_ffw"
 
 
-class RegistrationStartupRound(CollectSameUntilThresholdRound):
+class RegistrationStartupRound(CollectSameUntilAllRound):
     """A round in which the agents get registered"""
 
     round_id = "registration_startup"
@@ -64,12 +65,12 @@ class RegistrationStartupRound(CollectSameUntilThresholdRound):
 
     def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Event]]:
         """Process the end of the block."""
-        if self.threshold_reached:
+        if self.collection_threshold_reached:
             self.block_confirmations += 1
         if (  # fast forward at setup
-            self.threshold_reached
+            self.collection_threshold_reached
             and self.block_confirmations > self.required_block_confirmations
-            and self.most_voted_payload is not None
+            and self.common_payload is not None
         ):
             synchronized_data = self.synchronized_data.update(
                 participants=frozenset(self.collection),
@@ -78,7 +79,7 @@ class RegistrationStartupRound(CollectSameUntilThresholdRound):
             )
             return synchronized_data, Event.FAST_FORWARD
         if (
-            self.threshold_reached
+            self.collection_threshold_reached
             and self.block_confirmations > self.required_block_confirmations
         ):
             synchronized_data = self.synchronized_data.update(
