@@ -1189,6 +1189,39 @@ class CollectDifferentUntilAllRound(_CollectUntilAllRound, ABC):
         super().check_payload(payload)
 
 
+class CollectSameUntilAllRound(_CollectUntilAllRound, ABC):
+    """
+    This class represents logic for when a round needs to collect the same payload from all the agents.
+
+    This round should only be used for registration of new agents when there is no synchronization of the db.
+    """
+
+    def check_payload(self, payload: BaseTxPayload) -> None:
+        """Check Payload"""
+        collected_value = getattr(payload, self.payload_attribute)
+        attribute_values = tuple(
+            getattr(collection_value, self.payload_attribute)
+            for collection_value in self.collection.values()
+        )
+
+        if payload.sender not in self.collection and len(
+                self.collection) and collected_value not in attribute_values:
+            raise TransactionNotValidError(
+                f"`CollectSameUntilAllRound` encountered a value '{collected_value}' "
+                f"which is not the same as the already existing one: '{attribute_values[0]}'"
+            )
+
+        super().check_payload(payload)
+
+    @property
+    def common_payload(
+            self,
+    ) -> Any:
+        """Get the common payload among the agents."""
+        most_common_payload, _ = self.payloads_count.most_common(1)[0]
+        return most_common_payload
+
+
 class CollectSameUntilThresholdRound(CollectionRound):
     """
     CollectSameUntilThresholdRound
