@@ -12,9 +12,9 @@ connections:
 contracts: []
 protocols:
 - open_aea/signing:1.0.0:QmemReviejNSLrwWqENKL76AtoK17eG8TBbWjpwUT7L3UA
-- valory/abci:0.1.0:QmRXBoBaTYNcpe98SqYJmKVXm6eFfYeS9yuKz7mzzYawNG
+- valory/abci:0.1.0:QmUinV3H81CRaJamAGdt6QvrjeEb3tYWzPf3JuxJXNySfV
 skills:
-- valory/abstract_abci:0.1.0:QmPHZizw98YKhZ7VC4BRKGVezLRtxJGE8scvEktBsXrTo2
+- valory/abstract_abci:0.1.0:QmWpwjksKeVpNtiCWM7qLPuQyeJUTTLwi7EAvKsmxJh9BA
 default_ledger: ethereum
 required_ledgers:
 - ethereum

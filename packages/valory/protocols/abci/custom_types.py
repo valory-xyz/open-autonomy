@@ -24,8 +24,8 @@ from typing import List, Optional
 
 from aea.exceptions import enforce
 
-from packages.valory.connections.abci.tendermint.crypto import proof_pb2
 from packages.valory.connections.abci.tendermint.abci import types_pb2
+from packages.valory.connections.abci.tendermint.crypto import proof_pb2
 from packages.valory.protocols.abci import abci_pb2
 
 

@@ -22,14 +22,14 @@ connections:
 contracts: []
 protocols:
 - open_aea/signing:1.0.0:QmemReviejNSLrwWqENKL76AtoK17eG8TBbWjpwUT7L3UA
-- valory/abci:0.1.0:QmRXBoBaTYNcpe98SqYJmKVXm6eFfYeS9yuKz7mzzYawNG
+- valory/abci:0.1.0:QmUinV3H81CRaJamAGdt6QvrjeEb3tYWzPf3JuxJXNySfV
 - valory/contract_api:1.0.0:QmSobFjLc3baTW1Zf2zfS1X3KJabw7xE6cPJb2g2eAvxSx
 - valory/http:1.0.0:QmSAsTD3pidZcrEXk3HQfbZvUDiVTUMHgCrXpXcs744AZE
 - valory/ledger_api:1.0.0:QmdMBgcpjL2hvmrxWtFyujMSf6exkFPnUXZqTdnsvrk48r
 skills:
-- valory/abstract_round_abci:0.1.0:QmWGMH2HHcN3ukBSLsTUTZnRcdHmRnS94b9t7eyAxigqyR
-- valory/apy_estimation_abci:0.1.0:QmaQxo1UnhAjp2vHKkWVRT9F1J3uTkigCj7p1z7hNDrxNg
-- valory/registration_abci:0.1.0:QmS991JhdnnvvayEk2Cm6yNLxhjts2d2M5DcecDFbWRJHo
+- valory/abstract_round_abci:0.1.0:QmZo3JHEWhRvgrofWUWGDe4JGoq2pPHkP9rkUkVfubkXNV
+- valory/apy_estimation_abci:0.1.0:QmUH921SWxpstFFnXd29SpmuZeQvrPa5LhPPPMyVyfZjrY
+- valory/registration_abci:0.1.0:Qma29mKxS7LTJmTLf4S2av3qyMNx23tEa5mwuB47nKn71m
 behaviours:
   main:
     args: {}

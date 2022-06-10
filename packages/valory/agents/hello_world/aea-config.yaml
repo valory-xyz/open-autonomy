@@ -13,12 +13,12 @@ connections:
 contracts: []
 protocols:
 - open_aea/signing:1.0.0:QmemReviejNSLrwWqENKL76AtoK17eG8TBbWjpwUT7L3UA
-- valory/abci:0.1.0:QmRXBoBaTYNcpe98SqYJmKVXm6eFfYeS9yuKz7mzzYawNG
+- valory/abci:0.1.0:QmUinV3H81CRaJamAGdt6QvrjeEb3tYWzPf3JuxJXNySfV
 - valory/http:1.0.0:QmSAsTD3pidZcrEXk3HQfbZvUDiVTUMHgCrXpXcs744AZE
 skills:
-- valory/abstract_abci:0.1.0:QmPHZizw98YKhZ7VC4BRKGVezLRtxJGE8scvEktBsXrTo2
-- valory/abstract_round_abci:0.1.0:QmWGMH2HHcN3ukBSLsTUTZnRcdHmRnS94b9t7eyAxigqyR
-- valory/hello_world_abci:0.1.0:QmbFuwq8pV4UXdsmGhy5uMJaqof8puoE5NpLcWWbcHdnMc
+- valory/abstract_abci:0.1.0:QmWpwjksKeVpNtiCWM7qLPuQyeJUTTLwi7EAvKsmxJh9BA
+- valory/abstract_round_abci:0.1.0:QmZo3JHEWhRvgrofWUWGDe4JGoq2pPHkP9rkUkVfubkXNV
+- valory/hello_world_abci:0.1.0:QmNVDRNTBnW7cSuQ5A9iAGn1jtKYrQFAh42w1rnCSvoqxR
 default_ledger: ethereum
 required_ledgers:
 - ethereum

@@ -30,12 +30,12 @@ connections:
 - valory/ledger:0.1.0:QmcX1dhL1sikxF5mEt144yRQiNgWswQcWfgUxJXfAF5DG9
 contracts: []
 protocols:
-- valory/abci:0.1.0:QmRXBoBaTYNcpe98SqYJmKVXm6eFfYeS9yuKz7mzzYawNG
+- valory/abci:0.1.0:QmUinV3H81CRaJamAGdt6QvrjeEb3tYWzPf3JuxJXNySfV
 - valory/contract_api:1.0.0:QmSobFjLc3baTW1Zf2zfS1X3KJabw7xE6cPJb2g2eAvxSx
 - valory/http:1.0.0:QmSAsTD3pidZcrEXk3HQfbZvUDiVTUMHgCrXpXcs744AZE
 - valory/ledger_api:1.0.0:QmdMBgcpjL2hvmrxWtFyujMSf6exkFPnUXZqTdnsvrk48r
 skills:
-- valory/abstract_abci:0.1.0:QmPHZizw98YKhZ7VC4BRKGVezLRtxJGE8scvEktBsXrTo2
+- valory/abstract_abci:0.1.0:QmWpwjksKeVpNtiCWM7qLPuQyeJUTTLwi7EAvKsmxJh9BA
 behaviours:
   main:
     args: {}

@@ -298,8 +298,8 @@ def _init_subtree(node: Node) -> Node:
             data = NON_DEFAULT_PRIMITIVES[repeated_type]
             repeated = tuple(data for _ in range(REPEATED_FIELD_SIZE))
         elif isinstance(repeated_type, tuple):
-            cls, cls_kwargs = repeated_type
-            repeated = tuple(_init_subtree(cls_kwargs) for _ in range(REPEATED_FIELD_SIZE))
+            cls, kws = repeated_type
+            repeated = tuple(_init_subtree(kws) for _ in range(REPEATED_FIELD_SIZE))
         else:
             raise NotImplementedError(f"Repeated in {name}: {repeated_type}")
 

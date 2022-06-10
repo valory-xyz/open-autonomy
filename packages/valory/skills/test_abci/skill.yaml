@@ -20,10 +20,10 @@ connections:
 - valory/http_client:0.1.0:QmWLBDpdcz8idNdqobjBC6ykJCSEpHCjcC1mAoAdJPzmQh
 contracts: []
 protocols:
-- valory/abci:0.1.0:QmRXBoBaTYNcpe98SqYJmKVXm6eFfYeS9yuKz7mzzYawNG
+- valory/abci:0.1.0:QmUinV3H81CRaJamAGdt6QvrjeEb3tYWzPf3JuxJXNySfV
 - valory/http:1.0.0:QmSAsTD3pidZcrEXk3HQfbZvUDiVTUMHgCrXpXcs744AZE
 skills:
-- valory/abstract_round_abci:0.1.0:QmWGMH2HHcN3ukBSLsTUTZnRcdHmRnS94b9t7eyAxigqyR
+- valory/abstract_round_abci:0.1.0:QmZo3JHEWhRvgrofWUWGDe4JGoq2pPHkP9rkUkVfubkXNV
 behaviours:
   main:
     args: {}
