@@ -65,6 +65,8 @@ from packages.valory.protocols.abci import AbciMessage
 from packages.valory.skills.abstract_round_abci.dialogues import AbciDialogues
 
 
+Node = Dict[str, Any]
+
 # constants & utility functions
 ENCODING = "utf-8"
 VERSION = "v0.34.11"
@@ -89,7 +91,7 @@ def is_repeated(d_type: Any) -> bool:
     return d_type.__class__.__module__ == "typing" and d_type.__origin__ is list
 
 
-def replace_keys(node: Dict[str, Any], trans: Dict[str, Any]) -> None:
+def replace_keys(node: Node, trans: Node) -> None:
     """Replace keys in-place"""
     for k, v in trans.items():
         if isinstance(v, dict):
@@ -126,11 +128,9 @@ def get_tendermint_message_types() -> Dict[str, Any]:
 
         # Request & Response
         for oneof in msg_desc.oneofs:
-            oneofs = content.setdefault("oneofs", {})
-            fields = []
+            fields = content.setdefault("oneofs", {}).setdefault(oneof.name, [])
             for field in oneof.fields:
                 fields.append((field.message_type.name, field.name, field.number))
-            oneofs[oneof.name] = fields
 
         # ResponseOfferSnapshot & ResponseApplySnapshotChunk
         for enum_type in msg_desc.enum_types:
@@ -220,7 +220,7 @@ def get_protocol_readme_spec() -> Tuple[Any, Any, Any]:
 
 
 # 1. Create type tree for the AEA-native ABCI protocol
-def _create_custom_type_tree(custom_type: Type) -> Tuple[Type, Dict[str, Any]]:
+def _create_custom_type_tree(custom_type: Type) -> Tuple[Type, Node]:
     """Create custom type tree for AEA-native ABCI spec"""
 
     kwarg_types = {}
@@ -232,7 +232,7 @@ def _create_custom_type_tree(custom_type: Type) -> Tuple[Type, Dict[str, Any]]:
         elif is_enum(d_type):
             kwarg_types[name] = d_type
         elif is_repeated(d_type):
-            assert len(d_type.__args__) == 1
+            assert len(d_type.__args__) == 1  # check assumption
             container, content = d_type.__origin__, d_type.__args__[0]
             if content in AEA_CUSTOM.values():
                 content = _create_custom_type_tree(content)
@@ -264,12 +264,10 @@ def _create_type_tree(field: str) -> Any:
     return primitive
 
 
-def create_abci_type_tree(
-    speech_acts: Dict[str, Dict[str, str]]
-) -> Dict[str, Dict[str, Any]]:
-    """Create AEA-native ABCI type tree"""
+def create_abci_type_tree(speech_acts: Dict[str, Dict[str, str]]) -> Dict[str, Node]:
+    """Create AEA-native ABCI type tree from the defined speech acts"""
 
-    def _get_message_types(fields: Dict[str, Any]) -> Dict:
+    def _get_message_types(fields: Dict[str, str]) -> Node:
         """Get message types for AEA-native ABCI spec"""
         return {k: _create_type_tree(v) for k, v in fields.items()}
 
@@ -277,20 +275,24 @@ def create_abci_type_tree(
 
 
 # 2. Initialize AEA-native ABCI primitives
-def _init_subtree(node: Dict[str, Any]) -> Dict[str, Any]:
-    """Initialize subtree of type_tree"""
+def _init_subtree(node: Node) -> Node:
+    """Initialize subtree of type_tree non-custom objects"""
 
     def init_repeated(repeated_type: Any) -> Tuple[Any, ...]:
+        """Repeated fields must be tuples for Tendermint protobuf"""
+
+        # TODO: initialize size of repeated fields here
         if repeated_type in PYTHON_PRIMITIVES:
-            repeated = tuple(repeated_type() for _ in range(1))
+            repeated = tuple(repeated_type() for _ in range(3))
         elif isinstance(repeated_type, tuple):
             cls, cls_kwargs = repeated_type  # TODO: issue (not here, in Encoder)
             repeated = tuple(_init_subtree(cls_kwargs) for _ in range(0))
         else:
             raise NotImplementedError(f"Repeated in {name}: {repeated_type}")
+
         return repeated
 
-    kwargs: Dict[str, Any] = {}
+    kwargs: Node = {}
     for name, d_type in node.items():
         if isinstance(d_type, tuple):
             container, content = d_type
@@ -308,39 +310,58 @@ def _init_subtree(node: Dict[str, Any]) -> Dict[str, Any]:
     return kwargs
 
 
-def init_type_tree(type_tree: Dict[str, Any]) -> Dict[str, Any]:
-    """Initialize the primitives with values"""
+def init_type_tree_primitives(type_tree: Node) -> Node:
+    """
+    Initialize the primitive types and size of repeated fields.
+
+    These are the only initialization parameters that can vary;
+    after this the initialization of custom types is what remains
+
+    This structure allows:
+    - Comparison of structure and these values with Tendermint translation
+    - Visual inspection of fields to be sets, also on custom objects
+    - Randomized testing strategies using e.g. hypothesis
+
+    :param type_tree: mapping from message / field name to type.
+    :return: mapping from message / field name to initialized primitive.
+    """
     return {k: _init_subtree(node) for k, node in type_tree.items()}
 
 
 # 3. Initialize AEA-native ABCI protocol messages
-def _complete_init(
-    type_node: Dict[str, Any], init_node: Dict[str, Any]
-) -> Dict[str, Any]:
+def _complete_init(type_node: Node, init_node: Node) -> Node:
     """Initialize custom classes and containers"""
 
-    kwargs: Dict[str, Any] = {}
+    kwargs: Node = {}
     for key, d_type in type_node.items():
         if d_type in PYTHON_PRIMITIVES:
             kwargs[key] = init_node[key]
         elif isinstance(d_type, tuple):
             container, content = d_type
-            if container is list:  # TODO: should be initialized only here
+            if container is list:
                 kwargs[key] = init_node[key]
             else:
                 kwargs[key] = container(**_complete_init(content, init_node[key]))
         elif is_enum(d_type):
             kwargs[key] = init_node[key]
         else:
-            raise NotImplementedError(f"{key} {d_type}")
+            raise NotImplementedError(f"{key}: {d_type}")
 
     return kwargs
 
 
-def init_abci_messages(
-    type_tree: Dict[str, Any], init_tree: Dict[str, Any]
-) -> Dict[str, Any]:
-    """Create ABCI messages for AEA-native ABCI spec"""
+def init_abci_messages(type_tree: Node, init_tree: Node) -> Node:
+    """
+    Create ABCI messages for AEA-native ABCI spec
+
+    We iterate the type_tree and init_tree to finalize the
+    initialization of custom objects contained in it, and
+    create an instance of all ABCI messages.
+
+    :param type_tree: mapping from message / field name to type.
+    :param init_tree: mapping from message / field name to initialized primitive.
+    :return: mapping from message name to ABCI Message instance
+    """
 
     messages = dict.fromkeys(type_tree)
     for key in type_tree:
@@ -373,7 +394,7 @@ def decode(request: Request) -> AbciMessage:
 
 
 # 5. Build content tree from Tendermint-native ABCI messages
-def _get_message_content(message: Any) -> Dict[str, Any]:
+def _get_message_content(message: Any) -> Node:
     """Verify Tendermint-native ABCI message"""
 
     assert message.IsInitialized()
@@ -385,7 +406,7 @@ def _get_message_content(message: Any) -> Dict[str, Any]:
     enum_types = dict(message.DESCRIPTOR.enum_types_by_name)
     oneofs = dict(message.DESCRIPTOR.oneofs_by_name)
 
-    kwargs: Dict[str, Any] = {}
+    kwargs: Node = {}
     for name, descr in fields.items():
         attr = getattr(message, name)
         if descr.enum_type:
@@ -405,14 +426,22 @@ def _get_message_content(message: Any) -> Dict[str, Any]:
         else:
             raise NotImplementedError(f"name: {name} {attr}")
 
-    assert not oneofs
-    assert not enum_types
+    assert not oneofs  # only for enveloping Request / Response
+    assert not enum_types  # assumed max 1 enum per message
 
     return kwargs
 
 
-def get_tendermint_content(envelope: Union[Request, Response]) -> Dict[str, Any]:
-    """Verify Tendermint-native ABCI message"""
+def get_tendermint_content(envelope: Union[Request, Response]) -> Node:
+    """
+    Get Tendermint-native ABCI message content.
+
+    For all Request / Response instances obtained after encoding,
+    we retrieve the information present in the message they contain.
+
+    :param envelope: a Tendermint Request / Response object.
+    :return: mapping structure from message / field name to leaf values
+    """
 
     assert isinstance(envelope, (Request, Response))
     assert envelope.IsInitialized()
@@ -425,8 +454,8 @@ def get_tendermint_content(envelope: Union[Request, Response]) -> Dict[str, Any]
 
 
 # compare AEA- and Tendermint-native ABCI protocol input and output
-def compare_trees(init_node: Dict[str, Any], tender_node: Dict[str, Any]) -> None:
-    """Compare initialization and Tendermint tree nodes"""
+def compare_trees(init_node: Node, tender_node: Node) -> None:
+    """Compare Initialization and Tendermint tree nodes"""
 
     if init_node == tender_node:
         return
@@ -468,9 +497,13 @@ def test_local_types_file_matches_github() -> None:
 
 
 def test_all_custom_types_used() -> None:
-    """Test if all custom types are used in speech acts"""
-    # in combination with aea-to-tendermint tests
-    # this covers their implementation and usage
+    """
+    Test if all custom types are used in speech acts.
+
+    By asserting their usage in the speech acts we can delegate
+    the verification of their implementation and translation to
+    another test that addresses this (test_aea_to_tendermint).
+    """
 
     aea_protocol, custom_types, _ = get_protocol_readme_spec()
     speech_acts = aea_protocol["speech_acts"]
@@ -530,34 +563,38 @@ def test_defined_dialogues_match_abci_spec() -> None:
 
 
 def test_aea_to_tendermint() -> None:
-    """Test translation from AEA-native to Tendermint-native ABCI protocol"""
-    # "repeated" fields are returned as list in python
-    #  but are passed as tuples to Tendermint protobuf
+    """
+    Test translation from AEA-native to Tendermint-native ABCI protocol.
+
+    "repeated" fields are returned as list in python,
+    but must be passed as tuples to Tendermint protobuf.
+    """
 
     aea_protocol, *_ = get_protocol_readme_spec()
     speech_acts = aea_protocol["speech_acts"]
 
-    # 1. create type tree
+    # 1. create type tree from speech acts
     type_tree = create_abci_type_tree(speech_acts)
     type_tree.pop("dummy")  # TODO: known oddity on our side
 
     # 2. initialize primitives
-    init_tree = init_type_tree(type_tree)  # init primitive only
+    init_tree = init_type_tree_primitives(type_tree)
 
     # 3. create AEA-native ABCI protocol messages
     abci_messages = init_abci_messages(type_tree, init_tree)
 
     # 4. encode to Tendermint-native ABCI protocol
+    #    NOTE: request not implemented in encoder
     encoded = {k: encode(v) for k, v in abci_messages.items()}
     translated = {k: v for k, v in encoded.items() if v}
     untranslated = set(encoded).difference(translated)
-    # request not implemented in encoder
     assert all(k.startswith("request") for k in untranslated)
 
-    # 5. create tender tree
+    # 5. create Tendermint message content tree
     tender_tree = {k: get_tendermint_content(v) for k, v in translated.items()}
 
     # 6. translate expected differences in attribute / field naming
+    #    these are known difference introduced by translating between protocols
     param_keys_trans = {k: f"{k}_params" for k in ["evidence", "validator", "version"]}
     tendermint_to_aea = dict(
         response_info={"data": "info_data"},
@@ -567,7 +604,8 @@ def test_aea_to_tendermint() -> None:
     )
     replace_keys(tender_tree, tendermint_to_aea)
 
-    # 7. compare initialization with translation result
+    # 7. compare AEA-native message initialization with the information
+    #    retrieved from the Tendermint Response after translation
     shared = set(type_tree).intersection(tender_tree)
     for k in shared:
         init_node, tender_node = init_tree[k], tender_tree[k]
