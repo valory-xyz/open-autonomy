@@ -31,7 +31,7 @@ here = os.path.abspath(os.path.dirname(__file__))
 def get_all_extras() -> Dict:
 
     cli_deps = [
-        "click>=7.0.0,<8.0.0",
+        "click==8.0.2",
     ]
 
     extras = {
@@ -46,7 +46,7 @@ def get_all_extras() -> Dict:
 all_extras = get_all_extras()
 
 base_deps = [
-    "open-aea>=1.9.0.post1,<2.0.0",
+    "open-aea>=1.10.0,<2.0.0",
 ]
 
 here = os.path.abspath(os.path.dirname(__file__))
