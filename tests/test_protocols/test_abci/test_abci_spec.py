@@ -75,6 +75,18 @@ LOCAL_TYPES_FILE = REPO_PATH / "protos" / "tendermint" / "abci" / "types.proto"
 URL = f"https://raw.githubusercontent.com/tendermint/tendermint/{VERSION}/proto/tendermint/abci/types.proto"
 DESCRIPTOR = tendermint.abci.types_pb2.DESCRIPTOR
 
+# to ensure primitives are not initialized to empty default values
+NON_DEFAULT_PRIMITIVES = {str: "sss", bytes: b"bbb", int: 123, float: 3.14, bool: True}
+REPEATED_FIELD_SIZE = 3
+
+
+class EncodingError(Exception):
+    """EncodingError AEA- to Tendermint-native ABCI message"""
+
+
+class DecodingError(Exception):
+    """DecodingError Tendermint- to AEA-native ABCI message"""
+
 
 def is_enum(d_type: Any) -> bool:
     """Check if a type is an Enum."""
@@ -281,12 +293,12 @@ def _init_subtree(node: Node) -> Node:
     def init_repeated(repeated_type: Any) -> Tuple[Any, ...]:
         """Repeated fields must be tuples for Tendermint protobuf"""
 
-        # TODO: initialize size of repeated fields here
         if repeated_type in PYTHON_PRIMITIVES:
-            repeated = tuple(repeated_type() for _ in range(3))
+            data = NON_DEFAULT_PRIMITIVES[repeated_type]
+            repeated = tuple(data for _ in range(REPEATED_FIELD_SIZE))
         elif isinstance(repeated_type, tuple):
-            cls, cls_kwargs = repeated_type  # TODO: issue (not here, in Encoder)
-            repeated = tuple(_init_subtree(cls_kwargs) for _ in range(3))
+            cls, cls_kwargs = repeated_type
+            repeated = tuple(_init_subtree(cls_kwargs) for _ in range(REPEATED_FIELD_SIZE))
         else:
             raise NotImplementedError(f"Repeated in {name}: {repeated_type}")
 
@@ -301,9 +313,9 @@ def _init_subtree(node: Node) -> Node:
             else:
                 kwargs[name] = _init_subtree(content)
         elif d_type in PYTHON_PRIMITIVES:
-            kwargs[name] = d_type()
+            kwargs[name] = NON_DEFAULT_PRIMITIVES[d_type]
         elif is_enum(d_type):
-            kwargs[name] = list(d_type)[0]
+            kwargs[name] = list(d_type)[1]
         else:
             raise NotImplementedError(f"{name}: {d_type}")
 
@@ -332,21 +344,20 @@ def init_type_tree_primitives(type_tree: Node) -> Node:
 def _complete_init(type_node: Node, init_node: Node) -> Node:
     """Initialize custom classes and containers"""
 
+    def init_repeated(repeated_type: Any) -> Tuple[Any, ...]:
+        if not isinstance(content, tuple):
+            return init_node[key]  # already initialized primitives
+        custom_type, kwargs = repeated_type
+        return tuple(custom_type(**_complete_init(kwargs, c)) for c in init_node[key])
+
     node: Node = {}
     for key, d_type in type_node.items():
         if d_type in PYTHON_PRIMITIVES:
             node[key] = init_node[key]
         elif isinstance(d_type, tuple):
-            # 1/0
             container, content = d_type
             if container is list:
-                if isinstance(content, tuple):
-                    custom_type, kwargs = content
-                    x = [custom_type(**_complete_init(kwargs, init_node[key][i])) for i in range(len(init_node[key]))]
-                    # print(x)
-                    node[key] = tuple(x)
-                else:
-                    node[key] = init_node[key]
+                node[key] = init_repeated(content)
             else:
                 node[key] = container(**_complete_init(content, init_node[key]))
         elif is_enum(d_type):
@@ -379,20 +390,14 @@ def init_abci_messages(type_tree: Node, init_tree: Node) -> Node:
     return messages
 
 
-class EncodingError(Exception):
-    pass
-
-
 # 4. Translate AEA-native to Tendermint-native
-def encode(abci_message: AbciMessage) -> Response:
+def encode(message: AbciMessage) -> Response:
     """Encode AEA-native ABCI protocol messages to Tendermint-native"""
 
     try:
-        return Encoder.process(abci_message)
+        return Encoder.process(message)
     except Exception as e:
-        log_msg = f"ABCI message: {abci_message.performative} \n {abci_message}: \n {e}"
-        print(log_msg)
-        # raise EncodingError(log_msg)
+        raise EncodingError(f"ABCI message {message}: {e}")
 
 
 def decode(request: Request) -> AbciMessage:
@@ -403,12 +408,15 @@ def decode(request: Request) -> AbciMessage:
         message, dialogue = Decoder().process(request, dialogues, "dummy")  # type: ignore
         return message
     except Exception as e:
-        raise e
+        raise DecodingError(f"Request {request}: {e}")
 
 
 # 5. Build content tree from Tendermint-native ABCI messages
 def _get_message_content(message: Any) -> Node:
     """Verify Tendermint-native ABCI message"""
+
+    # NOTE: PublicKey objects are an Enum in AEA-native protocol
+    #       but are retrieved as mapping from Tendermint side
 
     assert message.IsInitialized()
     assert not message.UnknownFields()
@@ -422,25 +430,28 @@ def _get_message_content(message: Any) -> Node:
     kwargs: Node = {}
     for name, descr in fields.items():
         attr = getattr(message, name)
+
         if descr.enum_type:
             enum_type = enum_types.pop(snake_to_camel(name))
             kwargs[name] = (enum_type.values[attr].name, attr)
         elif isinstance(attr, PYTHON_PRIMITIVES):
             kwargs[name] = attr
         elif descr.label == descr.LABEL_REPEATED:
-            assert isinstance(descr.default_value, list)
-            assert len(set(map(type, attr))) <= 1
+            assert isinstance(descr.default_value, list)  # attr
+            assert len(set(map(type, attr))) <= 1, "Expecting single type"
             if not attr or isinstance(attr[0], PYTHON_PRIMITIVES):
                 kwargs[name] = list(attr)
-            else:  # TODO: don't get translated properly by our Encoder!
-                raise NotImplementedError(f"name: {name} {attr}")
+            else:
+                kwargs[name] = [_get_message_content(c) for c in attr]
         elif descr.message_type:
             kwargs[name] = _get_message_content(attr)
         else:
             raise NotImplementedError(f"name: {name} {attr}")
 
-    assert not oneofs  # only for enveloping Request / Response
-    assert not enum_types  # assumed max 1 enum per message
+    # in the case of oneofs, we assert they were retrieved from fields (PublicKey)
+    expected = {f.name for oneof in oneofs.values() for f in oneof.fields}
+    assert all(k in kwargs for k in expected), f"oneofs in {message}"
+    assert not enum_types, f"assumed max 1 enum per message: {message}"
 
     return kwargs
 
@@ -462,7 +473,6 @@ def get_tendermint_content(envelope: Union[Request, Response]) -> Node:
     assert not envelope.FindInitializationErrors()
     assert len(envelope.ListFields()) == 1
     descr, message = envelope.ListFields()[0]
-
     return _get_message_content(message)
 
 
@@ -470,28 +480,43 @@ def get_tendermint_content(envelope: Union[Request, Response]) -> Node:
 def compare_trees(init_node: Node, tender_node: Node) -> None:
     """Compare Initialization and Tendermint tree nodes"""
 
+    # NOTE: PublicKey objects are an Enum in AEA-native protocol
+    #       but are retrieved as mapping from Tendermint side
+
     if init_node == tender_node:
         return
 
     for k, init_child in init_node.items():
-        tender_child = tender_node[k]
 
-        if isinstance(init_child, dict) and isinstance(tender_child, dict):
-            compare_trees(init_child, tender_child)
-        elif init_child == tender_child:
+        # translate key to tendermint key
+        tk = {"type_": "type", "format_": "format", "hash_": "hash"}.get(k, k)
+        tender_child = tender_node[tk]
+
+        if k == "pub_key":
+            init_child = {init_child["key_type"].name: init_child["data"]}
+
+        if init_child == tender_child:
             continue
+        elif isinstance(init_child, dict) and isinstance(tender_child, dict):
+            compare_trees(init_child, tender_child)
 
         elif isinstance(tender_child, list):
-            if isinstance(init_child, tuple):
-                assert init_child == tuple(tender_child)
-            else:
-                if k == "validators":  # TODO: find better way
-                    k = "validator_updates"
-                assert tuple(init_child[k]) == tuple(tender_child)
+
+            # we use a nested mapping to represent a custom class,
+            # tendermint doesn't use this for storing repeated fields
+            if isinstance(init_child, dict):
+                repeated = list(init_child.values())
+                assert len(repeated) == 1
+                init_child = repeated[0]
+
+            assert len(init_child) == len(tender_child)
+            for a, b in zip(init_child, tender_child):
+                compare_trees(a, b)
+
         else:
-            assert len(init_child) == 1
+            assert len(init_child) == 1, "expecting enum"
             enum = set(init_child.values()).pop()
-            assert (enum.name, enum.value) == tender_node[k]
+            assert (enum.name, enum.value) == tender_node[tk]
 
 
 # tests
@@ -620,6 +645,7 @@ def test_aea_to_tendermint() -> None:
     # 7. compare AEA-native message initialization with the information
     #    retrieved from the Tendermint Response after translation
     shared = set(type_tree).intersection(tender_tree)
+    assert len(shared) == 16  # expected number of matches
     for k in shared:
         init_node, tender_node = init_tree[k], tender_tree[k]
         compare_trees(init_node, tender_node)
