@@ -614,7 +614,13 @@ class TestCollectDifferentUntilAllRound(_BaseRoundTestClass):
             consensus_params=self.consensus_params,
         )
 
-        first_payload, *payloads = self.tx_payloads
+        first_payload, *payloads = [
+            DummyTxPayload(
+                sender=agent,
+                value="test",
+            )
+            for agent in sorted(self.participants)
+        ]
         test_round.process_payload(first_payload)
         assert not test_round.collection_threshold_reached
 
@@ -630,9 +636,26 @@ class TestCollectDifferentUntilAllRound(_BaseRoundTestClass):
         ):
             test_round.check_payload(first_payload)
 
-        for payload in payloads:
+        # this is -2 in order to account -1 for the index and -1 for the `first_payload`
+        payloads_until_threshold, payloads_after_threshold = (
+            payloads[: self.consensus_params.consensus_threshold - 2],
+            payloads[self.consensus_params.consensus_threshold - 2 :],
+        )
+        for payload in payloads_until_threshold:
+            assert not test_round.collection_threshold_reached
             test_round.process_payload(payload)
+            with pytest.raises(
+                ABCIAppInternalError,
+                match="not enough votes",
+            ):
+                _ = test_round.most_voted_payload
 
+        for payload in payloads_after_threshold:
+            assert not test_round.collection_threshold_reached
+            test_round.process_payload(payload)
+            assert test_round.most_voted_payload == "test"
+
+        assert test_round.collection_threshold_reached
         self._test_payload_with_wrong_round_count(test_round)
 
 
