@@ -1180,7 +1180,10 @@ class CollectDifferentUntilAllRound(_CollectUntilAllRound, ABC):
             for collection_value in self.collection.values()
         )
 
-        if payload.sender not in self.collection and collected_value in attribute_values:
+        if (
+            payload.sender not in self.collection
+            and collected_value in attribute_values
+        ):
             raise TransactionNotValidError(
                 f"`CollectDifferentUntilAllRound` encountered a value '{collected_value}' that already exists. "
                 f"All values: {attribute_values}"
@@ -1204,8 +1207,11 @@ class CollectSameUntilAllRound(_CollectUntilAllRound, ABC):
             for collection_value in self.collection.values()
         )
 
-        if payload.sender not in self.collection and len(
-                self.collection) and collected_value not in attribute_values:
+        if (
+            payload.sender not in self.collection
+            and len(self.collection)
+            and collected_value not in attribute_values
+        ):
             raise TransactionNotValidError(
                 f"`CollectSameUntilAllRound` encountered a value '{collected_value}' "
                 f"which is not the same as the already existing one: '{attribute_values[0]}'"
@@ -1215,7 +1221,7 @@ class CollectSameUntilAllRound(_CollectUntilAllRound, ABC):
 
     @property
     def common_payload(
-            self,
+        self,
     ) -> Any:
         """Get the common payload among the agents."""
         most_common_payload, _ = self.payloads_count.most_common(1)[0]

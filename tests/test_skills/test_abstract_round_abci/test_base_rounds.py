@@ -47,6 +47,7 @@ from packages.valory.skills.abstract_round_abci.base import (
     CollectDifferentUntilAllRound,
     CollectDifferentUntilThresholdRound,
     CollectNonEmptyUntilThresholdRound,
+    CollectSameUntilAllRound,
     CollectSameUntilThresholdRound,
     CollectionRound,
     ConsensusParams,
@@ -54,7 +55,6 @@ from packages.valory.skills.abstract_round_abci.base import (
     ROUND_COUNT_DEFAULT,
     TransactionNotValidError,
     VotingRound,
-    CollectSameUntilAllRound,
 )
 
 
@@ -539,7 +539,9 @@ class _BaseRoundTestClass(BaseRoundTestClass):
         super().setup()
         cls.tx_payloads = get_dummy_tx_payloads(cls.participants)
 
-    def _test_payload_with_wrong_round_count(self, test_round: AbstractRound, value: Optional[Any] = None) -> None:
+    def _test_payload_with_wrong_round_count(
+        self, test_round: AbstractRound, value: Optional[Any] = None
+    ) -> None:
         """Test errors raised by pyaloads with wrong round count."""
         payload_with_wrong_round_count = DummyTxPayload("sender", value, False, 0)
         with pytest.raises(
@@ -691,7 +693,7 @@ class TestCollectSameUntilAllRound(_BaseRoundTestClass):
         with pytest.raises(
             ABCIAppInternalError,
             match="internal error: `CollectSameUntilAllRound` encountered a value 'other' "
-                  "which is not the same as the already existing one: 'test",
+            "which is not the same as the already existing one: 'test",
         ):
             bad_payload = DummyTxPayload(
                 sender="other",
@@ -702,7 +704,7 @@ class TestCollectSameUntilAllRound(_BaseRoundTestClass):
         with pytest.raises(
             TransactionNotValidError,
             match="`CollectSameUntilAllRound` encountered a value 'other' "
-                  "which is not the same as the already existing one: 'test",
+            "which is not the same as the already existing one: 'test",
         ):
             test_round.check_payload(bad_payload)
 

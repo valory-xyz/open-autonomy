@@ -1401,22 +1401,31 @@ def check_payload(payload: BaseTxPayload) -> None
 
 Check Payload
 
-<a id="packages.valory.skills.abstract_round_abci.base.CollectDifferentUntilAllRound"></a>
+<a id="packages.valory.skills.abstract_round_abci.base._CollectUntilAllRound"></a>
 
-## CollectDifferentUntilAllRound Objects
+## `_`CollectUntilAllRound Objects
 
 ```python
-class CollectDifferentUntilAllRound(CollectionRound)
+class _CollectUntilAllRound(CollectionRound,  ABC)
 ```
 
-CollectDifferentUntilAllRound
+_CollectUntilAllRound
 
-This class represents logic for rounds where a round needs to collect
-different payloads from each agent.
+This class represents logic for when rounds need to collect payloads from all agents.
 
 This round should only be used for registration of new agents.
 
-<a id="packages.valory.skills.abstract_round_abci.base.CollectDifferentUntilAllRound.process_payload"></a>
+<a id="packages.valory.skills.abstract_round_abci.base._CollectUntilAllRound.check_payload"></a>
+
+#### check`_`payload
+
+```python
+def check_payload(payload: BaseTxPayload) -> None
+```
+
+Check Payload
+
+<a id="packages.valory.skills.abstract_round_abci.base._CollectUntilAllRound.process_payload"></a>
 
 #### process`_`payload
 
@@ -1425,6 +1434,32 @@ def process_payload(payload: BaseTxPayload) -> None
 ```
 
 Process payload.
+
+<a id="packages.valory.skills.abstract_round_abci.base._CollectUntilAllRound.collection_threshold_reached"></a>
+
+#### collection`_`threshold`_`reached
+
+```python
+@property
+def collection_threshold_reached() -> bool
+```
+
+Check that the collection threshold has been reached.
+
+<a id="packages.valory.skills.abstract_round_abci.base.CollectDifferentUntilAllRound"></a>
+
+## CollectDifferentUntilAllRound Objects
+
+```python
+class CollectDifferentUntilAllRound(_CollectUntilAllRound,  ABC)
+```
+
+CollectDifferentUntilAllRound
+
+This class represents logic for rounds where a round needs to collect
+different payloads from each agent.
+
+This round should only be used for registration of new agents when there is synchronization of the db.
 
 <a id="packages.valory.skills.abstract_round_abci.base.CollectDifferentUntilAllRound.check_payload"></a>
 
@@ -1436,16 +1471,38 @@ def check_payload(payload: BaseTxPayload) -> None
 
 Check Payload
 
-<a id="packages.valory.skills.abstract_round_abci.base.CollectDifferentUntilAllRound.collection_threshold_reached"></a>
+<a id="packages.valory.skills.abstract_round_abci.base.CollectSameUntilAllRound"></a>
 
-#### collection`_`threshold`_`reached
+## CollectSameUntilAllRound Objects
+
+```python
+class CollectSameUntilAllRound(_CollectUntilAllRound,  ABC)
+```
+
+This class represents logic for when a round needs to collect the same payload from all the agents.
+
+This round should only be used for registration of new agents when there is no synchronization of the db.
+
+<a id="packages.valory.skills.abstract_round_abci.base.CollectSameUntilAllRound.check_payload"></a>
+
+#### check`_`payload
+
+```python
+def check_payload(payload: BaseTxPayload) -> None
+```
+
+Check Payload
+
+<a id="packages.valory.skills.abstract_round_abci.base.CollectSameUntilAllRound.common_payload"></a>
+
+#### common`_`payload
 
 ```python
 @property
-def collection_threshold_reached() -> bool
+def common_payload() -> Any
 ```
 
-Check that the collection threshold has been reached.
+Get the common payload among the agents.
 
 <a id="packages.valory.skills.abstract_round_abci.base.CollectSameUntilThresholdRound"></a>
 
