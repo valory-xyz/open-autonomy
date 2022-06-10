@@ -34,11 +34,11 @@ from packages.valory.skills.registration_abci.rounds import (
 )
 
 from tests.test_skills.test_abstract_round_abci.test_base_rounds import (
-    BaseCollectSameUntilThresholdRoundTest,
+    BaseCollectSameUntilThresholdRoundTest, BaseCollectSameUntilAllRoundTest,
 )
 
 
-class TestRegistrationStartupRound(BaseCollectSameUntilThresholdRoundTest):
+class TestRegistrationStartupRound(BaseCollectSameUntilAllRoundTest):
     """Test RegistrationStartupRound."""
 
     _synchronized_data_class = SynchronizedData
@@ -213,6 +213,24 @@ class TestRegistrationStartupRound(BaseCollectSameUntilThresholdRoundTest):
             assert test_round.block_confirmations == prior_confirmations + 1
             if finished:
                 next(test_runner)
+
+    def test_no_majority(self) -> None:
+        """Test the NO_MAJORITY event."""
+        test_round = RegistrationStartupRound(
+            synchronized_data=self.synchronized_data,
+            consensus_params=self.consensus_params,
+        )
+
+        with mock.patch.object(test_round, "is_majority_possible", return_value=False):
+            with mock.patch.object(test_round, "block_confirmations", 11):
+                self._test_no_majority_event(test_round)
+
+        assert self.synchronized_data.db._data[0] == {
+            "all_participants": [
+                frozenset({"agent_2", "agent_0", "agent_1", "agent_3"})
+            ],
+            "participants": [frozenset({"agent_2", "agent_0", "agent_1", "agent_3"})],
+        }
 
 
 class TestRegistrationRound(BaseCollectSameUntilThresholdRoundTest):
