@@ -1172,9 +1172,14 @@ class CollectDifferentUntilAllRound(CollectionRound):
         self,
     ) -> Any:
         """Get the most voted payload."""
-        most_voted_payload, max_votes = self.payloads_count.most_common()[0]
-        if max_votes < self._consensus_params.max_participants:
-            raise ABCIAppInternalError("not enough votes")
+        most_voted_payload, max_votes = self.payloads_count.most_common(1)[0]
+        if max_votes < self.consensus_threshold:
+            raise ABCIAppInternalError(
+                "Not enough votes for `CollectDifferentUntilAllRound`. "
+                f"Received {max_votes} common votes "
+                f"when consensus threshold is {self.consensus_threshold}\n"
+                f"All votes: {self.payloads_count.most_common()}"
+            )
         return most_voted_payload
 
 

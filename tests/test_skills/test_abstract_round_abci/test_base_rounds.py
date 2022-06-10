@@ -646,7 +646,7 @@ class TestCollectDifferentUntilAllRound(_BaseRoundTestClass):
             test_round.process_payload(payload)
             with pytest.raises(
                 ABCIAppInternalError,
-                match="not enough votes",
+                match="Not enough votes for `CollectDifferentUntilAllRound`.",
             ):
                 _ = test_round.most_voted_payload
 
