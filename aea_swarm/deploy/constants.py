@@ -49,7 +49,7 @@ NETWORKS = {
             "LEDGER_CHAIN_ID": 3,
         },
         "polygon": {
-            "LEDGER_ADDRESS": "https://polygon-mainnet.infura.io/v3/2980beeca3544c9fbace4f24218afcd4",
+            "LEDGER_ADDRESS": "https://polygon-mainnet.infura.io/v3/1622a5f5b56a4e1f9bd9292db7da93b8",
             "LEDGER_CHAIN_ID": 137,
         },
     },
@@ -63,7 +63,7 @@ NETWORKS = {
             "LEDGER_CHAIN_ID": 3,
         },
         "polygon": {
-            "LEDGER_ADDRESS": "https://polygon-mainnet.infura.io/v3/2980beeca3544c9fbace4f24218afcd4",
+            "LEDGER_ADDRESS": "https://polygon-mainnet.infura.io/v3/1622a5f5b56a4e1f9bd9292db7da93b8",
             "LEDGER_CHAIN_ID": 137,
         },
     },
