@@ -278,6 +278,61 @@ class BaseCollectDifferentUntilAllRoundTest(BaseRoundTestClass):
         yield
 
 
+class BaseCollectSameUntilAllRoundTest(BaseRoundTestClass):
+    """Tests for rounds derived from CollectSameUntilAllRound."""
+
+    def _test_round(
+        self,
+        test_round: CollectSameUntilAllRound,
+        round_payloads: Mapping[str, BaseTxPayload],
+        synchronized_data_update_fn: Callable,
+        synchronized_data_attr_checks: List[Callable],
+        most_voted_payload: Any,
+        exit_event: Any,
+    ) -> Generator:
+        """Test rounds derived from CollectionRound."""
+
+        (_, first_payload), *payloads = round_payloads.items()
+
+        test_round.process_payload(first_payload)
+        yield test_round
+        assert test_round.collection[first_payload.sender] == first_payload
+        assert not test_round.collection_threshold_reached
+        assert test_round.end_block() is None
+
+        self._test_no_majority_event(test_round)
+        with pytest.raises(
+                ABCIAppInternalError,
+                match="internal error: 1 votes are not enough for `CollectSameUntilAllRound`. "
+                      "Expected: `n_votes = max_participants = 4`"
+        ):
+            _ = test_round.common_payload
+
+        for _, payload in payloads:
+            test_round.process_payload(payload)
+        yield test_round
+        assert test_round.collection_threshold_reached
+        assert test_round.common_payload == most_voted_payload
+
+        actual_next_synchronized_data = cast(
+            self._synchronized_data_class,  # type: ignore
+            synchronized_data_update_fn(deepcopy(self.synchronized_data), test_round),  # type: ignore
+        )
+        res = test_round.end_block()
+        yield res
+        assert res is not None
+
+        synchronized_data, event = res
+        synchronized_data = cast(self._synchronized_data_class, synchronized_data)  # type: ignore
+
+        for behaviour_attr_getter in synchronized_data_attr_checks:
+            assert behaviour_attr_getter(synchronized_data) == behaviour_attr_getter(
+                actual_next_synchronized_data
+            )
+        assert event == exit_event
+        yield
+
+
 class BaseCollectSameUntilThresholdRoundTest(BaseRoundTestClass):
     """Tests for rounds derived from CollectSameUntilThresholdRound."""
 
