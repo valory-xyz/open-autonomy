@@ -332,22 +332,28 @@ def init_type_tree_primitives(type_tree: Node) -> Node:
 def _complete_init(type_node: Node, init_node: Node) -> Node:
     """Initialize custom classes and containers"""
 
-    kwargs: Node = {}
+    def init_repeated(repeated_type: Any) -> Tuple[Any, ...]:
+        if not isinstance(content, tuple):
+            return init_node[key]  # already initialized primitives
+        custom_type, kwargs = repeated_type
+        return tuple(custom_type(**_complete_init(kwargs, c)) for c in init_node[key])
+
+    node: Node = {}
     for key, d_type in type_node.items():
         if d_type in PYTHON_PRIMITIVES:
-            kwargs[key] = init_node[key]
+            node[key] = init_node[key]
         elif isinstance(d_type, tuple):
             container, content = d_type
             if container is list:
-                kwargs[key] = init_node[key]
+                node[key] = init_repeated(content)
             else:
-                kwargs[key] = container(**_complete_init(content, init_node[key]))
+                node[key] = container(**_complete_init(content, init_node[key]))
         elif is_enum(d_type):
-            kwargs[key] = init_node[key]
+            node[key] = init_node[key]
         else:
             raise NotImplementedError(f"{key}: {d_type}")
 
-    return kwargs
+    return node
 
 
 def init_abci_messages(type_tree: Node, init_tree: Node) -> Node:
