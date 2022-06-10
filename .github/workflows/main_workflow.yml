@@ -34,7 +34,6 @@ jobs:
       run: |
         pipenv install --dev --skip-lock
         pipenv run pip install -e .[all]
-        pipenv lock
 
   copyright_doc_and_pipfile_check:
     continue-on-error: False
