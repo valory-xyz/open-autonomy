@@ -300,7 +300,6 @@ class BaseCollectSameUntilAllRoundTest(BaseRoundTestClass):
         assert not test_round.collection_threshold_reached
         assert test_round.end_block() is None
 
-        self._test_no_majority_event(test_round)
         with pytest.raises(
                 ABCIAppInternalError,
                 match="internal error: 1 votes are not enough for `CollectSameUntilAllRound`. "

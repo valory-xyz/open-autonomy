@@ -214,24 +214,6 @@ class TestRegistrationStartupRound(BaseCollectSameUntilAllRoundTest):
             if finished:
                 next(test_runner)
 
-    def test_no_majority(self) -> None:
-        """Test the NO_MAJORITY event."""
-        test_round = RegistrationStartupRound(
-            synchronized_data=self.synchronized_data,
-            consensus_params=self.consensus_params,
-        )
-
-        with mock.patch.object(test_round, "is_majority_possible", return_value=False):
-            with mock.patch.object(test_round, "block_confirmations", 11):
-                self._test_no_majority_event(test_round)
-
-        assert self.synchronized_data.db._data[0] == {
-            "all_participants": [
-                frozenset({"agent_2", "agent_0", "agent_1", "agent_3"})
-            ],
-            "participants": [frozenset({"agent_2", "agent_0", "agent_1", "agent_3"})],
-        }
-
 
 class TestRegistrationRound(BaseCollectSameUntilThresholdRoundTest):
     """Test RegistrationRound."""

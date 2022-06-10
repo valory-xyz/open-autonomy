@@ -88,13 +88,6 @@ class RegistrationStartupRound(CollectSameUntilAllRound):
                 synchronized_data_class=BaseSynchronizedData,
             )
             return synchronized_data, Event.DONE
-        if (
-            not self.is_majority_possible(
-                self.collection, self.synchronized_data.nb_participants
-            )
-            and self.block_confirmations > self.required_block_confirmations
-        ):
-            return self.synchronized_data, Event.NO_MAJORITY
         return None
 
 
