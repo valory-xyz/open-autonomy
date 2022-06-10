@@ -186,6 +186,9 @@ class TestABCICounterSkillMany(
                 "list",
                 aev=True,
             )
+            self.set_config(
+                "vendor.valory.connections.abci.config.use_tendermint", True, aev=True
+            )
             process = self.run_agent()
             processes.append(process)
 
@@ -284,6 +287,9 @@ class TestABCICounterCrashFailureRestart(
             "vendor.valory.connections.abci.config.tendermint_config.home",
             str(self.t / "tendermint_home"),
             aev=True,
+        )
+        self.set_config(
+            "vendor.valory.connections.abci.config.use_tendermint", True, aev=True
         )
 
         node_address = "http://localhost:26657"
