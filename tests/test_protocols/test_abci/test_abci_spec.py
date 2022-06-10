@@ -286,7 +286,7 @@ def _init_subtree(node: Node) -> Node:
             repeated = tuple(repeated_type() for _ in range(3))
         elif isinstance(repeated_type, tuple):
             cls, cls_kwargs = repeated_type  # TODO: issue (not here, in Encoder)
-            repeated = tuple(_init_subtree(cls_kwargs) for _ in range(0))
+            repeated = tuple(_init_subtree(cls_kwargs) for _ in range(3))
         else:
             raise NotImplementedError(f"Repeated in {name}: {repeated_type}")
 
@@ -332,22 +332,29 @@ def init_type_tree_primitives(type_tree: Node) -> Node:
 def _complete_init(type_node: Node, init_node: Node) -> Node:
     """Initialize custom classes and containers"""
 
-    kwargs: Node = {}
+    node: Node = {}
     for key, d_type in type_node.items():
         if d_type in PYTHON_PRIMITIVES:
-            kwargs[key] = init_node[key]
+            node[key] = init_node[key]
         elif isinstance(d_type, tuple):
+            # 1/0
             container, content = d_type
             if container is list:
-                kwargs[key] = init_node[key]
+                if isinstance(content, tuple):
+                    custom_type, kwargs = content
+                    x = [custom_type(**_complete_init(kwargs, init_node[key][i])) for i in range(len(init_node[key]))]
+                    # print(x)
+                    node[key] = tuple(x)
+                else:
+                    node[key] = init_node[key]
             else:
-                kwargs[key] = container(**_complete_init(content, init_node[key]))
+                node[key] = container(**_complete_init(content, init_node[key]))
         elif is_enum(d_type):
-            kwargs[key] = init_node[key]
+            node[key] = init_node[key]
         else:
             raise NotImplementedError(f"{key}: {d_type}")
 
-    return kwargs
+    return node
 
 
 def init_abci_messages(type_tree: Node, init_tree: Node) -> Node:
@@ -372,6 +379,10 @@ def init_abci_messages(type_tree: Node, init_tree: Node) -> Node:
     return messages
 
 
+class EncodingError(Exception):
+    pass
+
+
 # 4. Translate AEA-native to Tendermint-native
 def encode(abci_message: AbciMessage) -> Response:
     """Encode AEA-native ABCI protocol messages to Tendermint-native"""
@@ -379,7 +390,9 @@ def encode(abci_message: AbciMessage) -> Response:
     try:
         return Encoder.process(abci_message)
     except Exception as e:
-        raise e
+        log_msg = f"ABCI message: {abci_message.performative} \n {abci_message}: \n {e}"
+        print(log_msg)
+        # raise EncodingError(log_msg)
 
 
 def decode(request: Request) -> AbciMessage:
@@ -610,3 +623,6 @@ def test_aea_to_tendermint() -> None:
     for k in shared:
         init_node, tender_node = init_tree[k], tender_tree[k]
         compare_trees(init_node, tender_node)
+
+
+test_aea_to_tendermint()
