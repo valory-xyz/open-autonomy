@@ -62,7 +62,7 @@ class RegistrationStartupRound(CollectSameUntilThresholdRound):
     round_id = "registration_startup"
     allowed_tx_type = RegistrationPayload.transaction_type
     payload_attribute = "initialisation"
-    required_block_confirmations = 1
+    required_block_confirmations = 10
 
     def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Event]]:
         """Process the end of the block."""
