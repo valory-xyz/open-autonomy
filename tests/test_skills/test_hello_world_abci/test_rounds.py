@@ -204,7 +204,7 @@ class TestPrintMessageRound(BaseRoundTestClass):
         )
 
         first_payload, *payloads = [
-            PrintMessagePayload(sender=participant, message="message")
+            PrintMessagePayload(sender=participant, message=f"{participant}_message")
             for participant in self.participants
         ]
 

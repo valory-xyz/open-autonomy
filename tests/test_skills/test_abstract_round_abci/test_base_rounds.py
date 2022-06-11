@@ -242,9 +242,6 @@ class BaseCollectDifferentUntilAllRoundTest(BaseRoundTestClass):
         first_payload = round_payloads.pop(0)
         test_round.process_payload(first_payload)
 
-        with pytest.raises(ABCIAppInternalError, match="not enough votes"):
-            _ = test_round.most_voted_payload
-
         yield test_round
         assert test_round.collection[first_payload.sender] == first_payload
         assert not test_round.collection_threshold_reached
@@ -630,9 +627,24 @@ class TestCollectDifferentUntilAllRound(_BaseRoundTestClass):
         ):
             test_round.check_payload(first_payload)
 
+        with pytest.raises(
+            ABCIAppInternalError,
+            match="internal error: `CollectDifferentUntilAllRound` encountered a value 'agent_0' that already exists.",
+        ):
+            first_payload.sender = "other"
+            test_round.process_payload(first_payload)
+
+        with pytest.raises(
+            TransactionNotValidError,
+            match="`CollectDifferentUntilAllRound` encountered a value 'agent_0' that already exists.",
+        ):
+            test_round.check_payload(first_payload)
+
         for payload in payloads:
+            assert not test_round.collection_threshold_reached
             test_round.process_payload(payload)
 
+        assert test_round.collection_threshold_reached
         self._test_payload_with_wrong_round_count(test_round)
 
 

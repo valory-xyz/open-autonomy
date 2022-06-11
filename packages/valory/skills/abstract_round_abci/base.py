@@ -1136,6 +1136,12 @@ class CollectDifferentUntilAllRound(CollectionRound):
 
     def process_payload(self, payload: BaseTxPayload) -> None:
         """Process payload."""
+        collected_value = getattr(payload, self.payload_attribute)
+        attribute_values = (
+            getattr(collection_value, self.payload_attribute)
+            for collection_value in self.collection.values()
+        )
+
         if payload.round_count != self.synchronized_data.round_count:
             raise ABCIAppInternalError(
                 f"Expected round count {self.synchronized_data.round_count} and got {payload.round_count}."
@@ -1144,12 +1150,24 @@ class CollectDifferentUntilAllRound(CollectionRound):
         if payload.sender in self.collection:
             raise ABCIAppInternalError(
                 f"sender {payload.sender} has already sent value for round: {self.round_id}"
+            )
+
+        if collected_value in attribute_values:
+            raise ABCIAppInternalError(
+                f"`CollectDifferentUntilAllRound` encountered a value '{collected_value}' that already exists. "
+                f"All values per sender: {self.collection}"
             )
 
         self.collection[payload.sender] = payload
 
     def check_payload(self, payload: BaseTxPayload) -> None:
         """Check Payload"""
+        collected_value = getattr(payload, self.payload_attribute)
+        attribute_values = (
+            getattr(collection_value, self.payload_attribute)
+            for collection_value in self.collection.values()
+        )
+
         if payload.round_count != self.synchronized_data.round_count:
             raise TransactionNotValidError(
                 f"Expected round count {self.synchronized_data.round_count} and got {payload.round_count}."
@@ -1158,6 +1176,12 @@ class CollectDifferentUntilAllRound(CollectionRound):
         if payload.sender in self.collection:
             raise TransactionNotValidError(
                 f"sender {payload.sender} has already sent value for round: {self.round_id}"
+            )
+
+        if collected_value in attribute_values:
+            raise TransactionNotValidError(
+                f"`CollectDifferentUntilAllRound` encountered a value '{collected_value}' that already exists. "
+                f"All values per sender: {self.collection}"
             )
 
     @property
@@ -1166,16 +1190,6 @@ class CollectDifferentUntilAllRound(CollectionRound):
     ) -> bool:
         """Check that the collection threshold has been reached."""
         return len(self.collection) >= self._consensus_params.max_participants
-
-    @property
-    def most_voted_payload(
-        self,
-    ) -> Any:
-        """Get the most voted payload."""
-        most_voted_payload, max_votes = self.payloads_count.most_common()[0]
-        if max_votes < self._consensus_params.max_participants:
-            raise ABCIAppInternalError("not enough votes")
-        return most_voted_payload
 
 
 class CollectSameUntilThresholdRound(CollectionRound):
