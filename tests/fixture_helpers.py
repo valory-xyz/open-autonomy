@@ -39,7 +39,10 @@ from tests.helpers.docker.gnosis_safe_net import (
     DEFAULT_HARDHAT_PORT,
     GnosisSafeNetDockerImage,
 )
-from tests.helpers.docker.tendermint import FlaskTendermintDockerImage
+from tests.helpers.docker.tendermint import (
+    FlaskTendermintDockerImage,
+    TendermintDockerImage,
+)
 
 
 logger = logging.getLogger(__name__)
@@ -49,11 +52,17 @@ logger = logging.getLogger(__name__)
 class UseTendermint:
     """Inherit from this class to use Tendermint."""
 
-    @pytest.fixture(autouse=True)
-    def _start_tendermint(self, tendermint: Any, tendermint_port: Any) -> None:
+    _tendermint_image: TendermintDockerImage
+    tendermint_port: int
+
+    @pytest.fixture(autouse=True, scope="class")
+    def _start_tendermint(
+        self, tendermint: TendermintDockerImage, tendermint_port: Any
+    ) -> None:
         """Start a Tendermint image."""
-        self._tendermint_image = tendermint
-        self.tendermint_port = tendermint_port
+        cls = type(self)
+        cls._tendermint_image = tendermint
+        cls.tendermint_port = tendermint_port
 
     @property
     def abci_host(self) -> str:
