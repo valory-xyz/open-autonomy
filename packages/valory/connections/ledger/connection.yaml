@@ -39,6 +39,7 @@ config:
             maxPriorityFeePerGas: 3000000000
             baseFee: null
           priority_fee_increase_boundary: 200
+      poa_chain: false
   retry_attempts: 240
   retry_timeout: 3
 excluded_protocols: []

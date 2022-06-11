@@ -71,6 +71,19 @@ class TestRegistrationStartupRound(BaseCollectDifferentUntilAllRoundTest):
             initialisation=json.dumps({"key": ["value1", "value2"]}),
         )
 
+        assert self.synchronized_data.db._data[0] == {
+            "all_participants": [
+                frozenset({"agent_1", "agent_3", "agent_0", "agent_2"}),
+                frozenset({"agent_1", "agent_3", "agent_0", "agent_2"}),
+            ],
+            "oracle_contract_address": ["stub_oracle_contract_address"],
+            "participants": [
+                frozenset({"agent_1", "agent_3", "agent_0", "agent_2"}),
+                frozenset({"agent_1", "agent_3", "agent_0", "agent_2"}),
+            ],
+            "safe_contract_address": ["stub_safe_contract_address"],
+        }
+
     def test_run_default(
         self,
     ) -> None:
@@ -81,6 +94,16 @@ class TestRegistrationStartupRound(BaseCollectDifferentUntilAllRoundTest):
             consensus_params=self.consensus_params,
         )
         self._run_with_round(test_round, RegistrationEvent.DONE, 1)
+        assert self.synchronized_data.db._data[0] == {
+            "all_participants": [
+                frozenset({"agent_1", "agent_2", "agent_3", "agent_0"}),
+                frozenset({"agent_1", "agent_2", "agent_3", "agent_0"}),
+            ],
+            "participants": [
+                frozenset({"agent_1", "agent_2", "agent_3", "agent_0"}),
+                frozenset({"agent_1", "agent_2", "agent_3", "agent_0"}),
+            ],
+        }
 
     def test_run_default_not_finished(
         self,
@@ -92,6 +115,13 @@ class TestRegistrationStartupRound(BaseCollectDifferentUntilAllRoundTest):
             consensus_params=self.consensus_params,
         )
         self._run_with_round(test_round)
+
+        assert self.synchronized_data.db._data[0] == {
+            "all_participants": [
+                frozenset({"agent_3", "agent_2", "agent_0", "agent_1"})
+            ],
+            "participants": [frozenset({"agent_3", "agent_2", "agent_0", "agent_1"})],
+        }
 
     def _run_with_round(
         self,
@@ -123,11 +153,12 @@ class TestRegistrationStartupRound(BaseCollectDifferentUntilAllRoundTest):
         test_round = next(test_runner)
         if confirmations is not None:
             test_round.block_confirmations = confirmations
-        prior_confirmations = test_round.block_confirmations
-
-        next(test_runner)
-        assert test_round.block_confirmations == prior_confirmations + 1
-        next(test_runner)
+            prior_confirmations = test_round.block_confirmations
+            next(test_runner)
+            assert test_round.block_confirmations == prior_confirmations + 1
+            next(test_runner)
+        else:
+            assert test_round.block_confirmations == 0
 
 
 class TestRegistrationRound(BaseCollectSameUntilThresholdRoundTest):
@@ -168,7 +199,17 @@ class TestRegistrationRound(BaseCollectSameUntilThresholdRoundTest):
             round_payloads=round_payloads,
         )
 
-        assert self.synchronized_data.db._data[0]["dummy_key"] == ["dummy_value"]
+        assert self.synchronized_data.db._data[0] == {
+            "all_participants": [
+                frozenset({"agent_0", "agent_2", "agent_1", "agent_3"})
+            ],
+            "oracle_contract_address": ["stub_oracle_contract_address"],
+            "participants": [
+                frozenset({"agent_0", "agent_2", "agent_1", "agent_3"}),
+                frozenset({"agent_0", "agent_2", "agent_1", "agent_3"}),
+            ],
+            "safe_contract_address": ["stub_safe_contract_address"],
+        }
 
     def test_run_default_not_finished(
         self,
@@ -188,8 +229,17 @@ class TestRegistrationRound(BaseCollectSameUntilThresholdRoundTest):
         self._run_with_round(
             test_round,
             finished=False,
-            confirmations=11,
+            confirmations=None,
         )
+
+        assert self.synchronized_data.db._data[0] == {
+            "all_participants": [
+                frozenset({"agent_0", "agent_3", "agent_1", "agent_2"})
+            ],
+            "oracle_contract_address": ["stub_oracle_contract_address"],
+            "participants": [frozenset({"agent_0", "agent_3", "agent_1", "agent_2"})],
+            "safe_contract_address": ["stub_safe_contract_address"],
+        }
 
     def _run_with_round(
         self,
@@ -226,15 +276,14 @@ class TestRegistrationRound(BaseCollectSameUntilThresholdRoundTest):
         next(test_runner)
         if confirmations is not None:
             test_round.block_confirmations = confirmations
-
-        test_round = next(test_runner)
-
-        prior_confirmations = test_round.block_confirmations
-
-        next(test_runner)
-        assert test_round.block_confirmations == prior_confirmations + 1
-        if finished:
+            test_round = next(test_runner)
+            prior_confirmations = test_round.block_confirmations
             next(test_runner)
+            assert test_round.block_confirmations == prior_confirmations + 1
+            if finished:
+                next(test_runner)
+        else:
+            assert test_round.block_confirmations == 0
 
     def test_no_majority(self) -> None:
         """Test the NO_MAJORITY event."""
@@ -249,3 +298,10 @@ class TestRegistrationRound(BaseCollectSameUntilThresholdRoundTest):
                 assert result is not None
                 _, event = result
                 assert event == Event.NO_MAJORITY
+
+        assert self.synchronized_data.db._data[0] == {
+            "all_participants": [
+                frozenset({"agent_3", "agent_2", "agent_1", "agent_0"})
+            ],
+            "participants": [frozenset({"agent_3", "agent_2", "agent_1", "agent_0"})],
+        }
