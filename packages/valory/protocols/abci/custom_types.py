@@ -24,8 +24,6 @@ from typing import List, Optional
 
 from aea.exceptions import enforce
 
-from packages.valory.connections.abci.tendermint.abci import types_pb2
-from packages.valory.connections.abci.tendermint.crypto import proof_pb2
 from packages.valory.protocols.abci import abci_pb2
 
 
@@ -444,12 +442,17 @@ class Event:
         """
         event_protobuf_object.type = event_object.type_
 
-        event_attributes = []
-        for event_attribute in event_object.attributes:
-            event_attribute_pb = types_pb2.EventAttribute()
-            event_attribute.encode(event_attribute_pb, event_attribute)
-            event_attributes.append(event_attribute_pb)
-        event_protobuf_object.attributes.extend(event_attributes)
+        event_attribute_protobuf_objects = []
+        for event_attribute_object in event_object.attributes:
+            event_attribute_protobuf_object = (
+                abci_pb2.AbciMessage.Events.EventAttribute()
+            )
+            EventAttribute.encode(
+                event_attribute_protobuf_object, event_attribute_object
+            )
+            event_attribute_protobuf_objects.append(event_attribute_protobuf_object)
+
+        event_protobuf_object.attributes.extend(event_attribute_protobuf_objects)
 
     @classmethod
     def decode(cls, event_protobuf_object) -> "Event":
@@ -1219,10 +1222,9 @@ class ProofOps:
         :param proof_ops_protobuf_object: the protocol buffer object whose type corresponds with this class.
         :param proof_ops_object: an instance of this class to be encoded in the protocol buffer object.
         """
-
         proof_ops_protobuf_objects = []
         for proof_op in proof_ops_object.proof_ops:
-            proof_op_protobuf_object = proof_pb2.ProofOp()
+            proof_op_protobuf_object = abci_pb2.AbciMessage.ProofOps.ProofOp()
             ProofOp.encode(proof_op_protobuf_object, proof_op)
             proof_ops_protobuf_objects.append(proof_op_protobuf_object)
         proof_ops_protobuf_object.ops.extend(proof_ops_protobuf_objects)
