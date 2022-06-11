@@ -54,7 +54,9 @@ from packages.valory.protocols.abci.custom_types import (
     ConsensusParams as CustomConsensusParams,  # type: ignore
 )
 from packages.valory.protocols.abci.custom_types import Event as CustomEvent
-from packages.valory.protocols.abci.custom_types import EventAttribute as CustomEventAttribute
+from packages.valory.protocols.abci.custom_types import (
+    EventAttribute as CustomEventAttribute,
+)
 from packages.valory.protocols.abci.custom_types import ProofOp as CustomProofOp
 from packages.valory.protocols.abci.custom_types import ProofOps as CustomProofOps
 from packages.valory.protocols.abci.custom_types import Snapshot as CustomSnapshot
