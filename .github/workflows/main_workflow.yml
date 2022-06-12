@@ -20,7 +20,7 @@ jobs:
     timeout-minutes: 10
 
     steps:
-    - uses: actions/checkout@master
+    - uses: actions/checkout@v2
     - uses: actions/setup-python@master
       with:
         python-version: ${{ matrix.python-version }}
@@ -79,7 +79,7 @@ jobs:
     timeout-minutes: 30
 
     steps:
-    - uses: actions/checkout@master
+    - uses: actions/checkout@v2
     - uses: actions/setup-python@master
       with:
         python-version: ${{ matrix.python-version }}
@@ -147,11 +147,9 @@ jobs:
     timeout-minutes: 30
 
     steps:
-      - uses: actions/checkout@master
-      - name: Checkout submodules
-        uses: srt32/git-actions@v0.0.3
+      - uses: actions/checkout@v2
         with:
-          args: git config --global --add safe.directory /github/workspace && git config --global --add safe.directory /github/workspace/third_party/contracts-amm && git config --global --add safe.directory /github/workspace/third_party/safe-contracts && git submodule update --init --recursive
+          submodules: recursive
       - uses: actions/setup-python@master
         with:
           submodules: recursive
@@ -329,11 +327,9 @@ jobs:
     timeout-minutes: 60
 
     steps:
-      - uses: actions/checkout@master
-      - name: Checkout submodules
-        uses: srt32/git-actions@v0.0.3
+      - uses: actions/checkout@v2
         with:
-          args: git config --global --add safe.directory /github/workspace && git config --global --add safe.directory /github/workspace/third_party/contracts-amm && git config --global --add safe.directory /github/workspace/third_party/safe-contracts && git submodule update --init --recursive
+          submodules: recursive
       - uses: actions/setup-python@master
         with:
           submodules: recursive
