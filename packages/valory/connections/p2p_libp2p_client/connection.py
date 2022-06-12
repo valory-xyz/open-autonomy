@@ -665,7 +665,6 @@ class TCPSocketChannelClientTLS(TCPSocketChannelClient):
         reader, writer = await asyncio.open_connection(
             self._host,
             self._port,
-            loop=self._loop,
             ssl=ssl_ctx,
         )
         return TCPSocketProtocol(reader, writer, logger=self.logger, loop=self._loop)

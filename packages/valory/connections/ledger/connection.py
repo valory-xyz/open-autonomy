@@ -95,7 +95,7 @@ class LedgerConnection(Connection):  # pylint: disable=too-many-instance-attribu
             retry_attempts=self.request_retry_attempts,
             retry_timeout=self.request_retry_timeout,
         )
-        self._event_new_receiving_task = asyncio.Event(loop=self.loop)
+        self._event_new_receiving_task = asyncio.Event()
 
         self.state = ConnectionStates.connected
 

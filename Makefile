@@ -226,7 +226,7 @@ new_env: clean
 	if [ -z "$v" ];\
 	then\
 		pipenv --rm;\
-		pipenv --python 3.8;\
+		pipenv --python 3.10;\
 		pipenv install --dev --skip-lock;\
 		pipenv run pip install -e .[all];\
 		echo "Enter virtual environment with all development dependencies now: 'pipenv shell'.";\
