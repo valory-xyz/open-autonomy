@@ -105,11 +105,7 @@ class TestBuildImage(BaseCliTest):
             == 1
         )
         assert (
-            len(
-                self.docker_api.images(
-                    name=f"valory/open-autonomy-hardhat:{version}"
-                )
-            )
+            len(self.docker_api.images(name=f"valory/open-autonomy-hardhat:{version}"))
             == 1
         )
 
