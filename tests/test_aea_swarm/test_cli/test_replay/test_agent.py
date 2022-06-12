@@ -40,7 +40,7 @@ DOCKER_COMPOSE_DATA = {
             "mem_reservation": "256M",
             "cpus": 1,
             "container_name": "abci0",
-            "image": "valory/consensus-algorithms-open-aea:oracle_deployable-0.1.0",
+            "image": "valory/open-autonomy-open-aea:oracle_deployable-0.1.0",
             "environment": [
                 "LOG_FILE=DUMMY",
                 "AEA_KEY=DUMMY",
