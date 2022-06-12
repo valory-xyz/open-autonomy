@@ -32,12 +32,12 @@ protocols:
 - valory/http:1.0.0:QmSAsTD3pidZcrEXk3HQfbZvUDiVTUMHgCrXpXcs744AZE
 - valory/ledger_api:1.0.0:QmdMBgcpjL2hvmrxWtFyujMSf6exkFPnUXZqTdnsvrk48r
 skills:
-- valory/abstract_round_abci:0.1.0:Qmbmva9jHFXKLsnBSCtSJfQEXyGWHttqwYXsT2bQs1ARCX
-- valory/liquidity_rebalancing_abci:0.1.0:QmNZ14isZpFrZ3WUaJ6H8s8zbQQCC2TdsqEDrFJSzMjs9r
-- valory/registration_abci:0.1.0:QmcPWUGuTA7wMMHnKRU8JEp8Q34adDq6UiDRmxQzxzCHYt
-- valory/reset_pause_abci:0.1.0:QmdJene2fcvAm1kDzmWBGozGFoJoXwqr4dMcs46MmEr71Y
-- valory/safe_deployment_abci:0.1.0:Qmcy99q87LajwLBLnkp5kr3uEt6dcqPc2XkmTbBLF6zc7W
-- valory/transaction_settlement_abci:0.1.0:QmRkoYfSuY9HAuQVXRc7MZ9HV843ZzVouUGU1NF5UornN4
+- valory/abstract_round_abci:0.1.0:QmTQUNg3zNVj6aXEyXWqanbi8xgZR39ewxiaeNZpk22LHg
+- valory/liquidity_rebalancing_abci:0.1.0:QmQ9fodQfPJy3bKpsozotjYuWkiJ84B7XWSUDr2acGqZRF
+- valory/registration_abci:0.1.0:QmYYMHBFT27fujCSnEvu8oNdASdaYWC5SGZNmDKGc8mNeA
+- valory/reset_pause_abci:0.1.0:QmaHASz93eZ2urtY6sqjPbgu8iiSu5WSnRDgqo8jN621MK
+- valory/safe_deployment_abci:0.1.0:QmaExVB2jxeNS2gyHTJfZC2wvqN8f7BnTZDDnDC1AmY2Mm
+- valory/transaction_settlement_abci:0.1.0:QmX9NtLQLfetroh1EAwe6Mi9QaECCENRwQgHEU55h2BSpP
 behaviours:
   main:
     args: {}

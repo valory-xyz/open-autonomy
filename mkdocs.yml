@@ -1,7 +1,7 @@
-site_name: Consensus Algorithms
+site_name: Open Autonomy
 site_url: https://valory.xyz/
-site_description: Consensus algorithms implemented with the open AEA framework.
-repo_url: https://github.com/valory-xyz/consensus-algorithms
+site_description: A framework for the creation of autonomous agent services.
+repo_url: https://github.com/valory-xyz/open-autonomy
 site_author: developer@valory.xyz
 
 theme:

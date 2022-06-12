@@ -17,6 +17,6 @@
 #
 # ------------------------------------------------------------------------------
 
-"""Consensus algorithms implemented with the AEA framework."""
+"""A framework for the creation of autonomous agent services."""
 
 from .__version__ import __version__
