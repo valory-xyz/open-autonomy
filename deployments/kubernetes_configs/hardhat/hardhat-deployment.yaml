@@ -29,7 +29,7 @@ spec:
             - "0.0.0.0"
           command:
             - /bin/bash
-          image: valory/consensus-algorithms-hardhat:0.1.0
+          image: valory/open-autonomy-hardhat:0.1.0
           name: hardhat
           ports:
             - name: http
