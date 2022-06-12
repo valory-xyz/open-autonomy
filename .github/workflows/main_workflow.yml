@@ -263,7 +263,7 @@ jobs:
           # wget https://github.com/protocolbuffers/protobuf/releases/download/v3.19.4/protoc-3.19.4-win64.zip
           # unzip protoc-3.19.4-win64.zip -d protoc
           # sudo mv protoc/bin/protoc /usr/local/bin/protoc
-          python scripts/update_symlinks_cross_platform.py
+          python scripts\update_symlinks_cross_platform.py
           make protolint_install_win
           # just check protolint runs
           protolint version
@@ -289,13 +289,13 @@ jobs:
           docker pull trufflesuite/ganache:beta
 
           # build hardhat node in third_party/safe-contracts
-          cd third_party/safe-contracts &&\
+          cd third_party\safe-contracts &&\
             sudo chown -R $(whoami) .husky &&\
             yarn
 
           # build hardhat node in third_party/contracts-amm
-          cd ../..
-          cd third_party/contracts-amm &&\
+          cd ..\..
+          cd third_party\contracts-amm &&\
             yarn
           
       - name: Unit tests
