@@ -19,9 +19,9 @@
 
 """Base test."""
 
-import aea_swarm
+import autonomy
 
 
 def test_version() -> None:
     """Test the version."""
-    assert aea_swarm.__version__ == "0.1.0"
+    assert autonomy.__version__ == "0.1.0"

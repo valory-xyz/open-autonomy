@@ -25,11 +25,11 @@ from pathlib import Path
 from typing import Any, Tuple
 from unittest import mock
 
-from aea_swarm.cli import cli
-from aea_swarm.replay.tendermint import TendermintNetwork
+from autonomy.cli import cli
+from autonomy.replay.tendermint import TendermintNetwork
 
 from tests.conftest import ROOT_DIR
-from tests.test_aea_swarm.test_cli.base import BaseCliTest
+from tests.test_autonomy.test_cli.base import BaseCliTest
 
 
 def ctrl_c(*args: Any) -> None:

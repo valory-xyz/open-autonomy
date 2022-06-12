@@ -309,7 +309,7 @@ def main() -> None:
     python_files = filter(
         lambda x: x not in exclude_files,
         itertools.chain(
-            Path("aea_swarm").glob("**/*.py"),
+            Path("autonomy").glob("**/*.py"),
             Path("aea_consensus_algorithm").glob("**/*.py"),
             Path("benchmark").glob("**/*.py"),
             Path("examples").glob("**/*.py"),

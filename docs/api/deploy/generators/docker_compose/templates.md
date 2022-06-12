@@ -1,6 +1,6 @@
-<a id="aea_swarm.deploy.generators.docker_compose.templates"></a>
+<a id="autonomy.deploy.generators.docker_compose.templates"></a>
 
-# aea`_`swarm.deploy.generators.docker`_`compose.templates
+# autonomy.deploy.generators.docker`_`compose.templates
 
 Deployment Templates.
 

@@ -24,7 +24,7 @@ from typing import Dict
 
 from setuptools import find_packages, setup  # type: ignore
 
-PACKAGE_NAME = "aea_swarm"
+PACKAGE_NAME = "autonomy"
 here = os.path.abspath(os.path.dirname(__file__))
 
 
@@ -78,8 +78,8 @@ if __name__ == "__main__":
         url=about["__url__"],
         long_description=parse_readme(),
         long_description_content_type="text/markdown",
-        package_data={"aea_swarm": ["py.typed"]},
-        packages=find_packages(include=["aea_swarm*"]),
+        package_data={"autonomy": ["py.typed"]},
+        packages=find_packages(include=["autonomy*"]),
         classifiers=[
             "Environment :: Console",
             "Environment :: Web Environment",
@@ -103,7 +103,7 @@ if __name__ == "__main__":
         install_requires=base_deps,
         tests_require=["tox"],
         extras_require=all_extras,
-        entry_points={"console_scripts": ["swarm=aea_swarm.cli:cli"]},
+        entry_points={"console_scripts": ["autonomy=autonomy.cli:cli"]},
         zip_safe=False,
         include_package_data=True,
         license=about["__license__"],

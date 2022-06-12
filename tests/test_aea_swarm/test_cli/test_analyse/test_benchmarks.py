@@ -25,9 +25,9 @@ from contextlib import suppress
 from pathlib import Path
 from typing import Dict, List, Tuple
 
-from aea_swarm.analyse.benchmark.aggregate import BlockTypes
+from autonomy.analyse.benchmark.aggregate import BlockTypes
 
-from tests.test_aea_swarm.test_cli.base import BaseCliTest
+from tests.test_autonomy.test_cli.base import BaseCliTest
 
 
 NUMBER_OF_AGENTS = 4

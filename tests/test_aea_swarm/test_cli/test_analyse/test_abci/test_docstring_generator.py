@@ -28,12 +28,12 @@ from typing import Tuple
 import pytest
 
 from tests.conftest import ROOT_DIR
-from tests.test_aea_swarm.test_cli.base import BaseCliTest
+from tests.test_autonomy.test_cli.base import BaseCliTest
 
 
 @pytest.mark.skip
 class TestDocstrings(BaseCliTest):
-    """Test `swarm analyse abci docstrings`."""
+    """Test `autonomy analyse abci docstrings`."""
 
     rounds_file_original: Path
     rounds_file_temp: Path

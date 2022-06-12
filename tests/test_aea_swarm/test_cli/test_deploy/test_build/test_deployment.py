@@ -27,13 +27,13 @@ from unittest import mock
 
 import yaml
 
-from aea_swarm.cli import cli
-from aea_swarm.constants import (
+from autonomy.cli import cli
+from autonomy.constants import (
     DEFAULT_BUILD_FOLDER,
     OPEN_AEA_IMAGE_NAME,
     TENDERMINT_IMAGE_NAME,
 )
-from aea_swarm.deploy.constants import (
+from autonomy.deploy.constants import (
     DEPLOYMENT_AGENT_KEY_DIRECTORY_SCHEMA,
     DEPLOYMENT_KEY_DIRECTORY,
     KUBERNETES_AGENT_KEY_NAME,
@@ -44,11 +44,11 @@ from tests.conftest import (
     ETHEREUM_ENCRYPTION_PASSWORD,
     ROOT_DIR,
 )
-from tests.test_aea_swarm.test_cli.base import BaseCliTest
+from tests.test_autonomy.test_cli.base import BaseCliTest
 
 
 class TestBuildDeployment(BaseCliTest):
-    """Test `swarm deply build deployment` command."""
+    """Test `autonomy deply build deployment` command."""
 
     cli_options: Tuple[str, ...] = ("deploy", "build", "deployment")
     service_id: str = "valory/oracle_hardhat"

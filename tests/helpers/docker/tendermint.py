@@ -30,7 +30,7 @@ import pytest
 from docker.errors import ImageNotFound
 from docker.models.containers import Container
 
-from aea_swarm.constants import TENDERMINT_IMAGE_NAME, TENDERMINT_IMAGE_VERSION
+from autonomy.constants import TENDERMINT_IMAGE_NAME, TENDERMINT_IMAGE_VERSION
 
 from tests.helpers.base import tendermint_health_check
 from tests.helpers.docker.base import DockerImage
@@ -145,7 +145,7 @@ class FlaskTendermintDockerImage(TendermintDockerImage):
             root = current_file_folder.split(os.path.sep)[:-3]
             os.chdir(os.path.join(os.path.sep, *root))
             cmd = [
-                "swarm",
+                "autonomy",
                 "deploy",
                 "build",
                 "image",

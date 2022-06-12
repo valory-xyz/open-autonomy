@@ -1,10 +1,10 @@
-<a id="aea_swarm.analyse.benchmark.aggregate"></a>
+<a id="autonomy.analyse.benchmark.aggregate"></a>
 
-# aea`_`swarm.analyse.benchmark.aggregate
+# autonomy.analyse.benchmark.aggregate
 
 Tools for aggregating benchmark results.
 
-<a id="aea_swarm.analyse.benchmark.aggregate.BlockTypes"></a>
+<a id="autonomy.analyse.benchmark.aggregate.BlockTypes"></a>
 
 ## BlockTypes Objects
 
@@ -14,7 +14,7 @@ class BlockTypes()
 
 Block types.
 
-<a id="aea_swarm.analyse.benchmark.aggregate.read_benchmark_data"></a>
+<a id="autonomy.analyse.benchmark.aggregate.read_benchmark_data"></a>
 
 #### read`_`benchmark`_`data
 
@@ -24,7 +24,7 @@ def read_benchmark_data(path: Path) -> List[Dict]
 
 Returns logs.
 
-<a id="aea_swarm.analyse.benchmark.aggregate.create_dataframe"></a>
+<a id="autonomy.analyse.benchmark.aggregate.create_dataframe"></a>
 
 #### create`_`dataframe
 
@@ -34,7 +34,7 @@ def create_dataframe(data: List[Dict]) -> pd.DataFrame
 
 Create pandas.DataFrame object from benchmark data.
 
-<a id="aea_swarm.analyse.benchmark.aggregate.format_output"></a>
+<a id="autonomy.analyse.benchmark.aggregate.format_output"></a>
 
 #### format`_`output
 
@@ -44,7 +44,7 @@ def format_output(df: pd.DataFrame, period: int, block_type: str) -> str
 
 Format output from given dataframe and parameters
 
-<a id="aea_swarm.analyse.benchmark.aggregate.aggregate"></a>
+<a id="autonomy.analyse.benchmark.aggregate.aggregate"></a>
 
 #### aggregate
 

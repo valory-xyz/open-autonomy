@@ -26,10 +26,10 @@ import shutil
 from pathlib import Path
 from typing import Tuple
 
-from aea_swarm.analyse.abci.app_spec import DFA
+from autonomy.analyse.abci.app_spec import DFA
 
 from tests.conftest import ROOT_DIR
-from tests.test_aea_swarm.test_cli.base import BaseCliTest
+from tests.test_autonomy.test_cli.base import BaseCliTest
 
 
 class TestGenerateSpecs(BaseCliTest):

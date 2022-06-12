@@ -28,11 +28,11 @@ from typing import Tuple
 from aea.test_tools.click_testing import CliRunner
 from click.testing import Result
 
-from aea_swarm.cli import cli
+from autonomy.cli import cli
 
 
 class BaseCliTest:
-    """Test `swarm analyse abci` command."""
+    """Test `autonomy analyse abci` command."""
 
     t: Path
     cwd: Path

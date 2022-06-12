@@ -1,10 +1,10 @@
-<a id="aea_swarm.cli.replay"></a>
+<a id="autonomy.cli.replay"></a>
 
-# aea`_`swarm.cli.replay
+# autonomy.cli.replay
 
 Develop CLI module.
 
-<a id="aea_swarm.cli.replay.replay_group"></a>
+<a id="autonomy.cli.replay.replay_group"></a>
 
 #### replay`_`group
 
@@ -15,7 +15,7 @@ def replay_group() -> None
 
 Replay tools.
 
-<a id="aea_swarm.cli.replay.run_agent"></a>
+<a id="autonomy.cli.replay.run_agent"></a>
 
 #### run`_`agent
 
@@ -41,7 +41,7 @@ def run_agent(agent: int, build_path: Path, registry_path: Path) -> None
 
 Agent runner.
 
-<a id="aea_swarm.cli.replay.run_tendermint"></a>
+<a id="autonomy.cli.replay.run_tendermint"></a>
 
 #### run`_`tendermint
 
@@ -59,7 +59,7 @@ def run_tendermint(build_dir: Path) -> None
 
 Tendermint runner.
 
-<a id="aea_swarm.cli.replay.load_docker_config"></a>
+<a id="autonomy.cli.replay.load_docker_config"></a>
 
 #### load`_`docker`_`config
 

@@ -25,11 +25,11 @@ from pathlib import Path
 from typing import Any, Tuple
 from unittest import mock
 
-from aea_swarm.cli import cli
-from aea_swarm.replay.agent import AgentRunner
+from autonomy.cli import cli
+from autonomy.replay.agent import AgentRunner
 
 from tests.conftest import ROOT_DIR
-from tests.test_aea_swarm.test_cli.base import BaseCliTest
+from tests.test_autonomy.test_cli.base import BaseCliTest
 
 
 DOCKER_COMPOSE_DATA = {
@@ -111,7 +111,7 @@ class TestAgentRunner(BaseCliTest):
         with mock.patch.object(AgentRunner, "start", new=ctrl_c), mock.patch.object(
             AgentRunner, "stop"
         ) as stop_mock, mock.patch(
-            "aea_swarm.cli.replay.load_docker_config", new=lambda x: DOCKER_COMPOSE_DATA
+            "autonomy.cli.replay.load_docker_config", new=lambda x: DOCKER_COMPOSE_DATA
         ):
             result = self.run_cli(("0", "--build", str(build_dir)))
             assert result.exit_code == 0, result.output

@@ -1,10 +1,10 @@
-<a id="aea_swarm.deploy.constants"></a>
+<a id="autonomy.deploy.constants"></a>
 
-# aea`_`swarm.deploy.constants
+# autonomy.deploy.constants
 
 Constants for generating deployments environment.
 
-<a id="aea_swarm.deploy.constants.get_ip"></a>
+<a id="autonomy.deploy.constants.get_ip"></a>
 
 #### get`_`ip
 

@@ -24,7 +24,7 @@ import tempfile
 from pathlib import Path
 from typing import Tuple
 
-from tests.test_aea_swarm.test_cli.base import BaseCliTest
+from tests.test_autonomy.test_cli.base import BaseCliTest
 
 
 TEST_LOGS = """[2022-04-14 17:45:43,962] [INFO] [agent] Entered in the 'registration_startup' round for period 0

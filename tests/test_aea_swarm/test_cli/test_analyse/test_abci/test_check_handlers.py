@@ -26,7 +26,7 @@ from pathlib import Path
 from typing import Tuple
 
 from tests.conftest import ROOT_DIR
-from tests.test_aea_swarm.test_cli.base import BaseCliTest
+from tests.test_autonomy.test_cli.base import BaseCliTest
 
 
 class TestCheckHandlers(BaseCliTest):

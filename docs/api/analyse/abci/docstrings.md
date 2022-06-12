@@ -1,10 +1,10 @@
-<a id="aea_swarm.analyse.abci.docstrings"></a>
+<a id="autonomy.analyse.abci.docstrings"></a>
 
-# aea`_`swarm.analyse.abci.docstrings
+# autonomy.analyse.abci.docstrings
 
 Analyse ABCI app definitions for docstrings.
 
-<a id="aea_swarm.analyse.abci.docstrings.docstring_abci_app"></a>
+<a id="autonomy.analyse.abci.docstrings.docstring_abci_app"></a>
 
 #### docstring`_`abci`_`app
 
@@ -24,7 +24,7 @@ This ensures that documentation aligns with the actual implementation
 
 docstring
 
-<a id="aea_swarm.analyse.abci.docstrings.update_docstrings"></a>
+<a id="autonomy.analyse.abci.docstrings.update_docstrings"></a>
 
 #### update`_`docstrings
 
@@ -34,7 +34,7 @@ def update_docstrings(module_path: Path, docstring: str, abci_app_name: str, che
 
 Update docstrings.
 
-<a id="aea_swarm.analyse.abci.docstrings.process_module"></a>
+<a id="autonomy.analyse.abci.docstrings.process_module"></a>
 
 #### process`_`module
 
