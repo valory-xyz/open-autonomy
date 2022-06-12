@@ -8,141 +8,141 @@ on:
   pull_request:
 
 jobs:
-  lock_check:
-    continue-on-error: False
-    runs-on: ubuntu-latest
-
-    strategy:
-      matrix:
-        os: [ubuntu-latest]
-        python-version: ["3.10"]
-
-    timeout-minutes: 10
-
-    steps:
-    - uses: actions/checkout@v2
-    - uses: actions/setup-python@master
-      with:
-        python-version: ${{ matrix.python-version }}
-    - name: Install dependencies
-      run: |
-        sudo apt-get update --fix-missing
-        sudo apt-get autoremove
-        sudo apt-get autoclean
-        pip install pipenv
-    - name: Pipenv install requirements and check it can be locked
-      run: |
-        pipenv install --dev --skip-lock
-        pipenv run pip install -e .[all]
-
-  copyright_doc_and_pipfile_check:
-    continue-on-error: False
-    runs-on: ${{ matrix.os }}
-
-    strategy:
-      matrix:
-        os: [ubuntu-latest]
-        python-version: ["3.10"]
-
-    timeout-minutes: 30
-
-    steps:
-    - uses: actions/checkout@v2
-      with:
-        fetch-depth: 0
-    - uses: actions/setup-python@master
-      with:
-        python-version: ${{ matrix.python-version }}
-    - name: Install dependencies
-      run:  |
-        sudo apt-get update --fix-missing
-        sudo apt-get autoremove
-        sudo apt-get autoclean
-        pip install tox
-        pip install --user --upgrade setuptools
-    - name: Check copyright
-      run: tox -e check-copyright
-    - name: Check docs
-      run: tox -e check-api-docs
-    - name: Check pipfiles
-      run: tox -e check-pipfiles
-
-  linter_checks:
-    continue-on-error: False
-    runs-on: ${{ matrix.os }}
-
-    strategy:
-      matrix:
-        os: [ubuntu-latest]
-        python-version: ["3.10"]
-
-    timeout-minutes: 30
-
-    steps:
-    - uses: actions/checkout@v2
-    - uses: actions/setup-python@master
-      with:
-        python-version: ${{ matrix.python-version }}
-    - name: Install dependencies
-      run:  |
-        sudo apt-get update --fix-missing
-        sudo apt-get autoremove
-        sudo apt-get autoclean
-        pip install tox
-        pip install --user --upgrade setuptools
-        # install Protobuf compiler
-        wget https://github.com/protocolbuffers/protobuf/releases/download/v3.19.4/protoc-3.19.4-linux-x86_64.zip
-        unzip protoc-3.19.4-linux-x86_64.zip -d protoc
-        sudo mv protoc/bin/protoc /usr/local/bin/protoc
-        # install IPFS
-        sudo apt-get install -y wget
-        sudo npm install -g markdown-spellcheck
-        wget -O ./go-ipfs.tar.gz https://dist.ipfs.io/go-ipfs/v0.6.0/go-ipfs_v0.6.0_linux-amd64.tar.gz
-        tar xvfz go-ipfs.tar.gz
-        sudo mv go-ipfs/ipfs /usr/local/bin/ipfs
-        ipfs init
-        make protolint_install
-    - name: Check generate protocols
-      run: tox -e check-generate-all-protocols
-    - name: Security checks
-      run: |
-        tox -e bandit
-        tox -e safety
-    - name: Check packages
-      run: tox -e check-packages
-    - name: Check hash
-      run: tox -e check-hash
-    - name: Code style check
-      run: |
-        tox -e black-check
-        tox -e isort-check
-        tox -e flake8
-        tox -e vulture
-        tox -e darglint
-    - name: Static type check
-      run: tox -e mypy
-    - name: Pylint
-      run: tox -e pylint
-    - name: Check spelling
-      run: tox -e spell-check
-    - name: AbciApp consistency checks
-      run: |
-        tox -e check-abci-docstrings
-        tox -e check-abciapp-specs
-        tox -e check-handlers
+#  lock_check:
+#    continue-on-error: False
+#    runs-on: ubuntu-latest
+#
+#    strategy:
+#      matrix:
+#        os: [ubuntu-latest]
+#        python-version: ["3.10"]
+#
+#    timeout-minutes: 10
+#
+#    steps:
+#    - uses: actions/checkout@v2
+#    - uses: actions/setup-python@master
+#      with:
+#        python-version: ${{ matrix.python-version }}
+#    - name: Install dependencies
+#      run: |
+#        sudo apt-get update --fix-missing
+#        sudo apt-get autoremove
+#        sudo apt-get autoclean
+#        pip install pipenv
+#    - name: Pipenv install requirements and check it can be locked
+#      run: |
+#        pipenv install --dev --skip-lock
+#        pipenv run pip install -e .[all]
+#
+#  copyright_doc_and_pipfile_check:
+#    continue-on-error: False
+#    runs-on: ${{ matrix.os }}
+#
+#    strategy:
+#      matrix:
+#        os: [ubuntu-latest]
+#        python-version: ["3.10"]
+#
+#    timeout-minutes: 30
+#
+#    steps:
+#    - uses: actions/checkout@v2
+#      with:
+#        fetch-depth: 0
+#    - uses: actions/setup-python@master
+#      with:
+#        python-version: ${{ matrix.python-version }}
+#    - name: Install dependencies
+#      run:  |
+#        sudo apt-get update --fix-missing
+#        sudo apt-get autoremove
+#        sudo apt-get autoclean
+#        pip install tox
+#        pip install --user --upgrade setuptools
+#    - name: Check copyright
+#      run: tox -e check-copyright
+#    - name: Check docs
+#      run: tox -e check-api-docs
+#    - name: Check pipfiles
+#      run: tox -e check-pipfiles
+#
+#  linter_checks:
+#    continue-on-error: False
+#    runs-on: ${{ matrix.os }}
+#
+#    strategy:
+#      matrix:
+#        os: [ubuntu-latest]
+#        python-version: ["3.10"]
+#
+#    timeout-minutes: 30
+#
+#    steps:
+#    - uses: actions/checkout@v2
+#    - uses: actions/setup-python@master
+#      with:
+#        python-version: ${{ matrix.python-version }}
+#    - name: Install dependencies
+#      run:  |
+#        sudo apt-get update --fix-missing
+#        sudo apt-get autoremove
+#        sudo apt-get autoclean
+#        pip install tox
+#        pip install --user --upgrade setuptools
+#        # install Protobuf compiler
+#        wget https://github.com/protocolbuffers/protobuf/releases/download/v3.19.4/protoc-3.19.4-linux-x86_64.zip
+#        unzip protoc-3.19.4-linux-x86_64.zip -d protoc
+#        sudo mv protoc/bin/protoc /usr/local/bin/protoc
+#        # install IPFS
+#        sudo apt-get install -y wget
+#        sudo npm install -g markdown-spellcheck
+#        wget -O ./go-ipfs.tar.gz https://dist.ipfs.io/go-ipfs/v0.6.0/go-ipfs_v0.6.0_linux-amd64.tar.gz
+#        tar xvfz go-ipfs.tar.gz
+#        sudo mv go-ipfs/ipfs /usr/local/bin/ipfs
+#        ipfs init
+#        make protolint_install
+#    - name: Check generate protocols
+#      run: tox -e check-generate-all-protocols
+#    - name: Security checks
+#      run: |
+#        tox -e bandit
+#        tox -e safety
+#    - name: Check packages
+#      run: tox -e check-packages
+#    - name: Check hash
+#      run: tox -e check-hash
+#    - name: Code style check
+#      run: |
+#        tox -e black-check
+#        tox -e isort-check
+#        tox -e flake8
+#        tox -e vulture
+#        tox -e darglint
+#    - name: Static type check
+#      run: tox -e mypy
+#    - name: Pylint
+#      run: tox -e pylint
+#    - name: Check spelling
+#      run: tox -e spell-check
+#    - name: AbciApp consistency checks
+#      run: |
+#        tox -e check-abci-docstrings
+#        tox -e check-abciapp-specs
+#        tox -e check-handlers
 
   test:
     continue-on-error: True
-    needs:
-      - lock_check
-      - copyright_doc_and_pipfile_check
-      - linter_checks
+#    needs:
+#      - lock_check
+#      - copyright_doc_and_pipfile_check
+#      - linter_checks
     runs-on: ${{ matrix.os }}
 
     strategy:
       matrix:
-        os: [ ubuntu-latest, macos-latest, windows-latest ] # TODO add [macos-latest, windows-latest]
-        python-version: [ 3.7, 3.8, 3.9, "3.10" ] # TODO add [3.8, 3.9]
+        os: [ windows-latest, macos-latest ] # TODO add [macos-latest, windows-latest]
+        python-version: [ 3.7 ] # TODO add [3.8, 3.9]
 
     timeout-minutes: 30
 
@@ -154,6 +154,9 @@ jobs:
         with:
           submodules: recursive
           python-version: ${{ matrix.python-version }}
+      - uses: actions/setup-go@v3
+        with:
+          go-version: "1.17.7"
       - if: matrix.os == 'ubuntu-latest'
         name: Install dependencies (ubuntu-latest)
         run: |
@@ -247,7 +250,16 @@ jobs:
           cd ../..
           cd third_party/contracts-amm &&\
             yarn
-
+          
+          # Building LLVM (for the google/atheris python package)
+          #git clone https://github.com/llvm/llvm-project.git
+          #cd llvm-project
+          #mkdir build
+          #cd build
+          #cmake -DLLVM_ENABLE_PROJECTS='clang;compiler-rt' -G "Unix Makefiles" ../llvm
+          #make -j 10  # This step is very slow
+          # make new clang available in the environment
+          #echo "CLANG_BIN="$(pwd)/bin/clang"" >> $GITHUB_ENV
       - if: matrix.os == 'windows-latest'
         name: Install dependencies (windows-latest)
         env:
@@ -255,6 +267,7 @@ jobs:
         run: |
           python -m pip install -U pip
           echo "::add-path::C:\Program Files (x86)\Windows Kits\10\bin\10.0.18362.0\x64"
+          choco install wget -y
           choco install protoc --version 3.19.4
           choco install mingw -y
           choco install make -y
@@ -264,10 +277,15 @@ jobs:
           # wget https://github.com/protocolbuffers/protobuf/releases/download/v3.19.4/protoc-3.19.4-win64.zip
           # unzip protoc-3.19.4-win64.zip -d protoc
           # sudo mv protoc/bin/protoc /usr/local/bin/protoc
+
           python scripts\update_symlinks_cross_platform.py
-          make protolint_install_win
+
+          # TODO: install protolint
+          #echo "::set-env name=GOPATH::$(go env GOPATH)"
+          #echo "::add-path::$(go env GOPATH)/bin"
+          #make protolint_install_win
           # just check protolint runs
-          protolint version
+          #protolint version
 
           # install ipfs
           curl https://dist.ipfs.io/go-ipfs/v0.6.0/go-ipfs_v0.6.0_windows-amd64.zip -o go-ipfs_v0.6.0.zip
@@ -278,7 +296,7 @@ jobs:
           # install Tendermint
           wget -O tendermint.tar.gz https://github.com/tendermint/tendermint/releases/download/v0.34.11/tendermint_0.34.11_windows_amd64.tar.gz
           tar -xvzf tendermint.tar.gz
-          cp tendermint C:\Users\runneradmin\go\bin\
+          cp tendermint.exe C:\Users\runneradmin\go\bin\
 
           # install skaffold
           curl -Lo skaffold https://storage.googleapis.com/skaffold/releases/latest/skaffold-windows-amd64.exe && \
@@ -299,9 +317,11 @@ jobs:
           cd ..\..
           cd third_party\contracts-amm &&\
             yarn
-          
+
       - name: Unit tests
         run: |
+          #CLANG_BIN="${{ env.CLANG_BIN }}"
+          #CLANG_BIN="${CLANG_BIN}" tox -e py${{ matrix.python-version }} -- -m 'not e2e'
           tox -e py${{ matrix.python-version }} -- -m 'not e2e'
       - if: matrix.os == 'ubuntu-latest'
         name: Upload coverage to Codecov
@@ -313,77 +333,77 @@ jobs:
           name: codecov-umbrella
           fail_ci_if_error: false
 
-  e2e:
-    continue-on-error: True
-    needs:
-      - lock_check
-      - copyright_doc_and_pipfile_check
-      - linter_checks
-    runs-on: ${{ matrix.os }}
-
-    strategy:
-      matrix:
-        os: [ ubuntu-latest ]
-        python-version: [ "3.10" ]
-
-    timeout-minutes: 60
-
-    steps:
-      - uses: actions/checkout@v2
-        with:
-          submodules: recursive
-      - uses: actions/setup-python@master
-        with:
-          submodules: recursive
-          python-version: ${{ matrix.python-version }}
-      - name: Install dependencies
-        run: |
-          sudo apt-get update --fix-missing
-          sudo apt-get autoremove
-          sudo apt-get autoclean
-          pip install tox
-          pip install --user --upgrade setuptools
-
-          # install Protobuf compiler
-          wget https://github.com/protocolbuffers/protobuf/releases/download/v3.19.4/protoc-3.19.4-linux-x86_64.zip
-          unzip protoc-3.19.4-linux-x86_64.zip -d protoc
-          sudo mv protoc/bin/protoc /usr/local/bin/protoc
-
-          # install IPFS
-          sudo apt-get install -y wget
-          wget -O ./go-ipfs.tar.gz https://dist.ipfs.io/go-ipfs/v0.6.0/go-ipfs_v0.6.0_linux-amd64.tar.gz
-          tar xvfz go-ipfs.tar.gz
-          sudo mv go-ipfs/ipfs /usr/local/bin/ipfs
-          ipfs init
-
-          # install Tendermint
-          wget -O tendermint.tar.gz https://github.com/tendermint/tendermint/releases/download/v0.34.11/tendermint_0.34.11_linux_amd64.tar.gz
-          tar -xf tendermint.tar.gz
-          sudo mv tendermint /usr/local/bin/tendermint
-
-
-          # ensure yarn is installed
-          curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | sudo apt-key add -
-          echo "deb https://dl.yarnpkg.com/debian/ stable main" | sudo tee /etc/apt/sources.list.d/yarn.list
-          sudo apt update
-          sudo apt install yarn -y
-
-          # pull node image needed for the integration tests
-          docker pull node:16.7.0
-          docker pull trufflesuite/ganache:beta
-          # build hardhat node in third_party/safe-contracts
-          cd third_party/safe-contracts &&\
-            sudo chown -R $(whoami) .husky &&\
-            yarn
-          # build hardhat node in third_party/contracts-amm
-          cd ../..
-          cd third_party/contracts-amm &&\
-            yarn
-
-          # install Skaffold needed in order to build the Flask with Tendermint image
-          curl -Lo skaffold https://storage.googleapis.com/skaffold/releases/v1.33.0/skaffold-linux-amd64 &&\
-            sudo install skaffold /usr/local/bin/
-
-      - name: Unit tests
-        run: |
-          tox --develop -e py${{ matrix.python-version }} -- -m 'e2e'
+#  e2e:
+#    continue-on-error: True
+#    needs:
+#      - lock_check
+#      - copyright_doc_and_pipfile_check
+#      - linter_checks
+#    runs-on: ${{ matrix.os }}
+#
+#    strategy:
+#      matrix:
+#        os: [ ubuntu-latest ]
+#        python-version: [ "3.10" ]
+#
+#    timeout-minutes: 60
+#
+#    steps:
+#      - uses: actions/checkout@v2
+#        with:
+#          submodules: recursive
+#      - uses: actions/setup-python@master
+#        with:
+#          submodules: recursive
+#          python-version: ${{ matrix.python-version }}
+#      - name: Install dependencies
+#        run: |
+#          sudo apt-get update --fix-missing
+#          sudo apt-get autoremove
+#          sudo apt-get autoclean
+#          pip install tox
+#          pip install --user --upgrade setuptools
+#
+#          # install Protobuf compiler
+#          wget https://github.com/protocolbuffers/protobuf/releases/download/v3.19.4/protoc-3.19.4-linux-x86_64.zip
+#          unzip protoc-3.19.4-linux-x86_64.zip -d protoc
+#          sudo mv protoc/bin/protoc /usr/local/bin/protoc
+#
+#          # install IPFS
+#          sudo apt-get install -y wget
+#          wget -O ./go-ipfs.tar.gz https://dist.ipfs.io/go-ipfs/v0.6.0/go-ipfs_v0.6.0_linux-amd64.tar.gz
+#          tar xvfz go-ipfs.tar.gz
+#          sudo mv go-ipfs/ipfs /usr/local/bin/ipfs
+#          ipfs init
+#
+#          # install Tendermint
+#          wget -O tendermint.tar.gz https://github.com/tendermint/tendermint/releases/download/v0.34.11/tendermint_0.34.11_linux_amd64.tar.gz
+#          tar -xf tendermint.tar.gz
+#          sudo mv tendermint /usr/local/bin/tendermint
+#
+#
+#          # ensure yarn is installed
+#          curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | sudo apt-key add -
+#          echo "deb https://dl.yarnpkg.com/debian/ stable main" | sudo tee /etc/apt/sources.list.d/yarn.list
+#          sudo apt update
+#          sudo apt install yarn -y
+#
+#          # pull node image needed for the integration tests
+#          docker pull node:16.7.0
+#          docker pull trufflesuite/ganache:beta
+#          # build hardhat node in third_party/safe-contracts
+#          cd third_party/safe-contracts &&\
+#            sudo chown -R $(whoami) .husky &&\
+#            yarn
+#          # build hardhat node in third_party/contracts-amm
+#          cd ../..
+#          cd third_party/contracts-amm &&\
+#            yarn
+#
+#          # install Skaffold needed in order to build the Flask with Tendermint image
+#          curl -Lo skaffold https://storage.googleapis.com/skaffold/releases/v1.33.0/skaffold-linux-amd64 &&\
+#            sudo install skaffold /usr/local/bin/
+#
+#      - name: Unit tests
+#        run: |
+#          tox --develop -e py${{ matrix.python-version }} -- -m 'e2e'
