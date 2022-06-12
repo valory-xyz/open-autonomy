@@ -61,7 +61,7 @@ def parse_readme():
 
     # replace relative links of images
     raw_url_root = (
-        "https://raw.githubusercontent.com/valory-xyz/consensus-algorithms/main/"
+        "https://raw.githubusercontent.com/valory-xyz/open-autonomy/main/"
     )
     replacement = raw_url_root + r"\g<0>"
     readme = re.sub(r"(?<=<img src=\")(/.*)(?=\")", replacement, readme, re.DOTALL)
@@ -110,7 +110,7 @@ if __name__ == "__main__":
         python_requires=">=3.7",
         keywords="aea open-aea autonomous-economic-agents agent-framework multi-agent-systems multi-agent cryptocurrency cryptocurrencies dezentralized dezentralized-network",
         project_urls={
-            "Bug Reports": "https://github.com/valory-xyz/consensus-algorithms/issues",
-            "Source": "https://github.com/valory/consensus-algorithms",
+            "Bug Reports": "https://github.com/valory-xyz/open-autonomy/issues",
+            "Source": "https://github.com/valory/open-autonomy",
         },
     )

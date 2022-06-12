@@ -15,7 +15,7 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest]
-        python-version: [3.7]
+        python-version: ["3.10"]
 
     timeout-minutes: 10
 
@@ -42,7 +42,7 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest]
-        python-version: [3.7]
+        python-version: ["3.10"]
 
     timeout-minutes: 30
 
@@ -74,7 +74,7 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest]
-        python-version: [3.7]
+        python-version: ["3.10"]
 
     timeout-minutes: 30
 
@@ -142,7 +142,7 @@ jobs:
     strategy:
       matrix:
         os: [ ubuntu-latest ] # TODO add [macos-latest, windows-latest]
-        python-version: [ 3.7 ] # TODO add [3.8, 3.9]
+        python-version: [ "3.10" ] # TODO add [3.8, 3.9]
 
     timeout-minutes: 30
 
@@ -233,7 +233,7 @@ jobs:
     strategy:
       matrix:
         os: [ ubuntu-latest ]
-        python-version: [ 3.7 ]
+        python-version: [ "3.10" ]
 
     timeout-minutes: 60
 

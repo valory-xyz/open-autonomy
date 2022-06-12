@@ -21,7 +21,7 @@
 
 __title__ = "swarm"
 __description__ = "CLI tool for AEA swarms"
-__url__ = "https://github.com/valory-xyz/consensus-algorithms.git"
+__url__ = "https://github.com/valory-xyz/open-autonomy.git"
 __version__ = "0.1.0"
 __author__ = "Valory AG"
 __license__ = "Apache-2.0"
