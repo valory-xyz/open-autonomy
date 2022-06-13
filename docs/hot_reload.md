@@ -4,7 +4,7 @@ The hot reload mode enables hot code swapping and reflects changes on the agent 
 
 ## General Guide
 
-Arbitrary applications built with the {{valory_stack}} can be run with the hot start functionality.
+Arbitrary {{agent_service}}s built with the {{open_autonomy}} framework can be run with the hot start functionality.
 
 ### Environment setup
 

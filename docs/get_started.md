@@ -47,7 +47,7 @@ Of course, in this toy example we assume that the agent that prints the message 
 
 The main questions that we try to answer at this point are:
 
-* What are the main elements of the {{valory_stack}} to implement an {{agent_service}}?, and
+* What are the main elements of the {{open_autonomy}} framework to implement an {{agent_service}}?, and
 * How do agents interact with the different components in an {{agent_service}}?
 
 ## The Finite State Machine of an {{agent_service}}
@@ -68,7 +68,7 @@ Graphically, the sequence of atomic steps that the service is following can be s
 <figcaption>Diagram of atomic operations of the Hello World service</figcaption>
 </figure>
 
-This sequence diagram of operations can be interpreted as a finite state machine (FSM) that defines the service. Ignoring network latency and delays caused by the underlying consensus gadget, it can be considered that at any given time, **all agents have the same view of the service FSM**, and **all agents execute the same transitions**. This is one of the key concepts of the {{valory_stack}}.
+This sequence diagram of operations can be interpreted as a finite state machine (FSM) that defines the service. Ignoring network latency and delays caused by the underlying consensus gadget, it can be considered that at any given time, **all agents have the same view of the service FSM**, and **all agents execute the same transitions**. This is one of the key concepts of the {{open_autonomy}} framework.
 
 !!! note
 
@@ -80,7 +80,7 @@ This sequence diagram of operations can be interpreted as a finite state machine
 
     The [state-transition function](https://en.wikipedia.org/wiki/Finite-state_machine#Mathematical_model) indicates how to move from a given state once an event has been received. At any timepoint, an FSM can only be located at a given state (_current state_). You can find a brief introduction about FSMs on Wikipedia, but for our purposes it is enough to understand the three bullet points above.
 
-    Note that, according to the most the rigorous definition of an FSM, besides the current state, the FSM "has no other memory." That is, it does not know _how_ it arrived at a given state. Of course, in order to develop useful {{agent_service}}s, the {{valory_stack}} equips these FSMs with persistent storage.
+    Note that, according to the most the rigorous definition of an FSM, besides the current state, the FSM "has no other memory." That is, it does not know _how_ it arrived at a given state. Of course, in order to develop useful {{agent_service}}s, the {{open_autonomy}} framework equips these FSMs with persistent storage.
 
 Each agent runs internally a process or application that implements the service FSM, processes events and transit to new states according to the state-transition function. The component that encapsulates this functionality is an agent _skill_. As its name suggests, a skill is some sort of "knowledge" that the agent possesses.
 
@@ -137,7 +137,7 @@ A high level view of what occurs is as follows:
 
 !!! warning "Important"
 
-    As illustrated by the example above, there are a number of components from a skill in the {{valory_stack}} that the developer needs to define in order to build an {{agent_service}}. More concretely, these are:
+    As illustrated by the example above, there are a number of components from a skill in the {{open_autonomy}} framework that the developer needs to define in order to build an {{agent_service}}. More concretely, these are:
 
     * **`AbciApp`**: The component that defines the FSM itself and the transitions between states.
     * **`Rounds`**: The components that process the input from the consensus gadget and outputs the appropriate events to make the next transition. **There must be one round per FSM state.**
@@ -229,7 +229,7 @@ Additionally, the agent can use other connections, protocols or skills, dependin
 
 Note that the agent also includes the `hello_world_abci` skill, which is the one that we need to code for this example. Except that, there is no more to code to write for the agent. The {{open_aea}} library will be in charge of reading this configuration file and execute its skills accordingly.
 
-Note that although it is possible to develop your own protocols and connections, the {{valory_stack}} provides a number of typical ones which can be reused. Therefore, it is usual that the developer focuses most of its programming efforts in coding the particular skill/s for the agent.
+Note that although it is possible to develop your own protocols and connections, the {{open_aea}} framework provides a number of typical ones which can be reused. Therefore, it is usual that the developer focuses most of its programming efforts in coding the particular skill/s for the agent.
 
 ### Coding the Skill
 
@@ -241,23 +241,23 @@ Recall that the skill needs to define the `AbciApp`; the `Rounds`, `Behaviours` 
   <div class="mermaid">
   classDiagram
       AbstractRound <|-- CollectionRound
-      CollectionRound <|-- CollectDifferentUntilAllRound
+      CollectionRound <|-- _CollectUntilAllRound
+      _CollectUntilAllRound <|-- CollectDifferentUntilAllRound
       CollectDifferentUntilAllRound <|-- PrintMessageRound
       HelloWorldABCIAbstractRound <|-- PrintMessageRound
       AbstractRound <|-- HelloWorldABCIAbstractRound
-
       class AbstractRound{
         +round_id
         +allowed_tx_type
         +payload_attribute
-        -_state
-        +period_state()
+        -_synchronized_data
+        +synchronized_data()
         +end_block()*
         +check_payload()*
         +process_payload()*
       }
       class HelloWorldABCIAbstractRound{
-        +period_state()
+        +synchronized_data()
         -_return_no_majority_event()
       }
       class CollectionRound{
@@ -267,11 +267,13 @@ Recall that the skill needs to define the `AbciApp`; the `Rounds`, `Behaviours` 
         +process_payload()
         +check_payload()
       }
-      class CollectDifferentUntilAllRound{
-        +process_payload()
+      class _CollectUntilAllRound{
         +check_payload()
+        +process_payload()
         +collection_threshold_reached()
-        +most_voted_payload()
+      }
+      class CollectDifferentUntilAllRound{
+        +check_payload()
       }
       class PrintMessageRound{
         +round_id = "print_message"
@@ -326,24 +328,24 @@ Recall that the skill needs to define the `AbciApp`; the `Rounds`, `Behaviours` 
   <figure markdown>
   <div class="mermaid">
   classDiagram
-      HelloWorldABCIBaseState <|-- PrintMessageBehaviour
-      BaseState <|-- HelloWorldABCIBaseState
-      IPFSBehaviour <|-- BaseState
-      AsyncBehaviour <|-- BaseState
-      CleanUpBehaviour <|-- BaseState
-      SimpleBehaviour <|-- AsyncBehaviour
+      HelloWorldABCIBaseBehaviour <|-- PrintMessageBehaviour
+      BaseBehaviour <|-- HelloWorldABCIBaseBehaviour
+      IPFSBehaviour <|-- BaseBehaviour
+      AsyncBehaviour <|-- BaseBehaviour
+      CleanUpBehaviour <|-- BaseBehaviour
+      SimpleBehaviour <|-- IPFSBehaviour
       Behaviour <|-- SimpleBehaviour
 
       class AsyncBehaviour{
           +async_act()*
           +async_act_wrapper()*
       }
-      class HelloWorldABCIBaseState {
-          +period_state()
+      class HelloWorldABCIBaseBehaviour {
+          +syncrhonized_data()
           +params()
       }
       class PrintMessageBehaviour{
-          +state_id = "print_message"
+          +behaviour_id = "print_message"
           +matching_round = PrintMessageRound
           +async_act()
       }
@@ -351,7 +353,7 @@ Recall that the skill needs to define the `AbciApp`; the `Rounds`, `Behaviours` 
   <figcaption>Hierarchy of the PrintMessageBehaviour class (some methods and fields are omitted)</figcaption>
   </figure>
 
-Again, the `HelloWorldABCIBaseState` is a convenience class, and the upper class in the hierarchy are abstract classes from the stack that facilitate re-usability of code when implementing the `Behaviour`. An excerpt of its code is:
+Again, the `HelloWorldABCIBaseBehaviour` is a convenience class, and the upper class in the hierarchy are abstract classes from the stack that facilitate re-usability of code when implementing the `Behaviour`. An excerpt of its code is:
 
 ```python
 class PrintMessageBehaviour(HelloWorldABCIBaseBehaviour, ABC):
@@ -460,4 +462,4 @@ To conclude this section, let us briefly describe the purposes of each one, and 
 
 
 ## Further Reading
-While this walkthrough to a simple Hello World example should give a general overview of the development process and the main elements that play a role in an {{agent_service}} and inside an agent, there are a few more elements in the {{valory_stack}} that facilitate building complex applications and interact with real blockchains and other networks. We refer the reader to the more advanced sections of the documentation, where we explore in detail the stack.
+While this walkthrough to a simple Hello World example should give a general overview of the development process and the main elements that play a role in an {{agent_service}} and inside an agent, there are a few more elements in the {{open_autonomy}} framework that facilitate building complex applications and interact with real blockchains and other networks. We refer the reader to the more advanced sections of the documentation, where we explore in detail the stack.
