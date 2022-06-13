@@ -17,4 +17,4 @@
 #
 # ------------------------------------------------------------------------------
 
-"""Development of AEA autonomys."""
+"""Development of agent services."""

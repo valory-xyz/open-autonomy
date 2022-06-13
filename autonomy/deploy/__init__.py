@@ -17,4 +17,4 @@
 #
 # ------------------------------------------------------------------------------
 
-"""Deployment of AEA autonomys."""
+"""Deployment of agent services."""

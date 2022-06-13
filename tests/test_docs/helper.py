@@ -39,7 +39,7 @@ PYTHON_LINE_COMMENT_REGEX = r"^#.*\n"
 DOC_ELLIPSIS_REGEX = r"\s*#\s...\n"
 PYTHON_COMMAND = r"^pyt(hon|est) (?P<file_name>.*\.py).*$"
 MAKE_COMMAND = r"^make (?P<cmd_name>.*)$"
-autonomy_COMMAND = r"^(?P<cmd_name>autonomy .*)$"
+AUTONOMY_COMMAND = r"^(?P<cmd_name>autonomy .*)$"
 MAKEFILE_COMMAND = r"^(?P<command>.*):$"
 
 
@@ -236,7 +236,7 @@ def check_bash_commands_exist(
                 continue
 
             # autonomy commands
-            match = re.match(autonomy_COMMAND, line)
+            match = re.match(AUTONOMY_COMMAND, line)
             if match:
                 autonomy_cmd = match.groupdict()["cmd_name"]
                 assert any(

@@ -32,8 +32,8 @@ from autonomy.cli.replay import replay_group
 @click.group(name="autonomy")  # type: ignore
 @click.pass_context
 def autonomy_cli(
-    click_context: click.Context,
-) -> None:  # pylint: disable=unused-argument
+    click_context: click.Context,  # pylint: disable=unused-argument
+) -> None:
     """Command-line tool for setting up an autonomys of AEAs."""
 
 
