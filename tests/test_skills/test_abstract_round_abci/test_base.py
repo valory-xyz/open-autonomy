@@ -546,11 +546,11 @@ class TestAbciAppDB:
 
     def test_try_alter_init_data(self) -> None:
         """Test trying to alter the init data."""
-        initial_data = {"test": ["test"]}
-        db = AbciAppDB(initial_data)
-        assert db.initial_data == {"test": ["test"]}
-        db.initial_data.update({"test": ["altered"]})
-        assert db.initial_data == {"test": ["test"]}
+        setup_data = {"test": ["test"]}
+        db = AbciAppDB(setup_data)
+        assert db.setup_data == {"test": ["test"]}
+        db.setup_data.update({"test": ["altered"]})
+        assert db.setup_data == {"test": ["test"]}
 
     def test_get(self) -> None:
         """Test getters."""
