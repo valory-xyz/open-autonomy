@@ -671,33 +671,33 @@ To create a new period entry, call create() on the class. The new values will be
 #### `__`init`__`
 
 ```python
-def __init__(initial_data: Dict[str, List[Any]], cross_period_persisted_keys: Optional[List[str]] = None) -> None
+def __init__(setup_data: Dict[str, List[Any]], cross_period_persisted_keys: Optional[List[str]] = None) -> None
 ```
 
 Initialize the AbciApp database.
 
-Initial_data must be passed as a Dict[str, List[Any]] (the database internal format). The class method 'data_to_lists'
+setup_data must be passed as a Dict[str, List[Any]] (the database internal format). The class method 'data_to_lists'
 can be used to convert from Dict[str, Any] to Dict[str, List[Any]] before instantiating this class.
 
 **Arguments**:
 
-- `initial_data`: the initial data
+- `setup_data`: the setup data
 - `cross_period_persisted_keys`: data keys that will be kept after a new period starts
 
-<a id="packages.valory.skills.abstract_round_abci.base.AbciAppDB.initial_data"></a>
+<a id="packages.valory.skills.abstract_round_abci.base.AbciAppDB.setup_data"></a>
 
-#### initial`_`data
+#### setup`_`data
 
 ```python
 @property
-def initial_data() -> Dict[str, Any]
+def setup_data() -> Dict[str, Any]
 ```
 
-Get the initial_data.
+Get the setup_data.
 
 **Returns**:
 
-the initial_data
+the setup_data
 
 <a id="packages.valory.skills.abstract_round_abci.base.AbciAppDB.reset_index"></a>
 
