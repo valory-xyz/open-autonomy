@@ -1,10 +1,10 @@
-<a id="aea_swarm.cli.hash"></a>
+<a id="autonomy.cli.hash"></a>
 
-# aea`_`swarm.cli.hash
+# autonomy.cli.hash
 
 Override for hash command.
 
-<a id="aea_swarm.cli.hash.load_configuration"></a>
+<a id="autonomy.cli.hash.load_configuration"></a>
 
 #### load`_`configuration
 
@@ -23,7 +23,7 @@ Load a configuration, knowing the type and the path to the package root.
 
 the configuration object.
 
-<a id="aea_swarm.cli.hash.hash_group"></a>
+<a id="autonomy.cli.hash.hash_group"></a>
 
 #### hash`_`group
 
@@ -34,7 +34,7 @@ def hash_group() -> None
 
 Hashing utils.
 
-<a id="aea_swarm.cli.hash.generate_all"></a>
+<a id="autonomy.cli.hash.generate_all"></a>
 
 #### generate`_`all
 
@@ -53,7 +53,7 @@ def generate_all(packages_dir: Path, vendor: Optional[str], no_wrap: bool, check
 
 Generate IPFS hashes.
 
-<a id="aea_swarm.cli.hash.hash_file"></a>
+<a id="autonomy.cli.hash.hash_file"></a>
 
 #### hash`_`file
 
