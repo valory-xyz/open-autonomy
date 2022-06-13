@@ -2,7 +2,7 @@
 
 _Open Autonomy_ implements the {{valory_stack}}, which provides a framework for the creation of _{{agent_service}}s_: off-chain services which run as a multi-agent-system (MAS), and are crypto-economically secured on a local, temporary consensus gadget (blockchain), and which are operated in a robust, transparent and decentralized way.
 
-The framework implemented by the {{valory_stack}} allows to define such services by means of _{{fsm_app}}s_. These dynamic, decentralized apps constitute the actual code of the agents implementing the {{agent_service}}, and their internal state is replicated across agents automatically through the consensus gadget. The {{valory_stack}} is realized on top of the {{open_aea}} framework.
+The framework implemented by the {{valory_stack}} allows to define such services by means of _{{fsm_app}}s_. These dynamic, decentralized apps run inside the agents implementing the {{agent_service}}, and define its business logic. The {{fsm_app}}'s internal state is replicated across agents automatically through the consensus gadget. The {{valory_stack}} is realized on top of the {{open_aea}} framework.
 
 <figure markdown>
 ![](./images/agent_service_architecture.svg)
@@ -10,7 +10,7 @@ The framework implemented by the {{valory_stack}} allows to define such services
 </figure>
 
 ## Why?
-Decentralized ledger technologies, such as blockchains, face several challenges, for example:
+Decentralized ledger technologies (DLTs), such as blockchains, face several challenges, for example:
 
 * [the blockchain trilemma](https://www.ledger.com/academy/what-is-the-blockchain-trilemma)
 * [the oracle problem](https://encyclopedia.pub/entry/2959),
@@ -27,7 +27,7 @@ However, a standardised approach for off-chain application development in the co
 
 <figure markdown>
 ![](./images/centralized_decentralized_world.svg)
-<figcaption>The Valory Stack allows to develop decentralized, off-chain services that are crypto-economically secured</figcaption>
+<figcaption>The Valory Stack allows to develop decentralized, off-chain {{agent_service}}s that are crypto-economically secure</figcaption>
 </figure>
 
 
@@ -54,8 +54,8 @@ We recommend that new users start by reading the the [_Get Started_](./get_start
 
 Following that introduction, the reader can proceed to explore the core concepts that make {{agent_service}}s possible, presented in the _Preliminaries_ section:
 
-- _Autonomous economic agents (AEAs)_ and _multi-agent systems (MAS)_,
-- _Finite-state machines (FSMs)_,
-- the _Application BlockChain Interface (ABCI)_.
+- [Autonomous economic agents (AEAs) and multi-agent systems (MAS)](./aea.md),
+- [Finite-state machines (FSMs)](./fsm.md), and
+- the [Application BlockChain Interface (ABCI)](./abci.md).
 
 These concepts constitute the starting point before exploring more advanced parts of the documentation.

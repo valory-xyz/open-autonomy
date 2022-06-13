@@ -159,7 +159,7 @@ sequenceDiagram
 ```
 
 # Tendermint Network interruption Flow
-When we have an issue with the Tendermint process connecting to the AEA, the sudden closure of the tcp connection will trigger a restart of the tendermint process.
+When we have an issue with the Tendermint process connecting to the AEA, the sudden closure of the TCP connection will trigger a restart of the tendermint process.
 
 The effect of this on the AEA, can be demonstrated as so;
 ```bash 

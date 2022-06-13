@@ -6,7 +6,7 @@ The syntax should be easy to understand for a reader familiar with conventional
 automata textbook notation.
 
 The aim of this syntax is to be used as a starting point in the design and
-reasoning of an ABCI application without delving into the internals of the Valory stack
+reasoning of an ABCI application without delving into the internals of the {{valory_stack}}
 itself. Hence, the usage of objects is minimized, and only strings are
 used as identifiers. It can be used as a description language to translate a
 specification into code, e.g., for agent development, or for conducting some

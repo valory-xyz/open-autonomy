@@ -315,7 +315,7 @@ This error arises because of the way that we check for the revert reason; We cur
 the tx locally. However, there is an important limitation with this method. The replayed transaction will be
 executed in isolation. This means that transactions which occurred prior to the replayed transaction within
 the same block will not be accounted for! Therefore, the replay will not raise a `SolidityError` in such case,
-because both the txs happened in the same block.
+because both the transactions happened in the same block.
 
 The exception is handled automatically and logged as an error, so it does not affect the execution.
 However, as a side effect, we may end the round with a failure status even though the transaction has settled,
