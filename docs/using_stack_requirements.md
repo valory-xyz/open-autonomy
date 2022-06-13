@@ -14,7 +14,7 @@ If you are setting up the environment for the first time, follow these steps:
 
 1. Clone the repository, and recursively clone the submodules:
       ```bash
-      git clone --recursive git@github.com:valory-xyz/consensus-algorithms.git
+      git clone --recursive git@github.com:valory-xyz/open-autonomy.git
       ```
 
 2. Build the Hardhat projects:

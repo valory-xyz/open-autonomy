@@ -226,7 +226,7 @@ new_env: clean
 	if [ -z "$v" ];\
 	then\
 		pipenv --rm;\
-		pipenv --python 3.8;\
+		pipenv --python 3.10;\
 		pipenv install --dev --skip-lock;\
 		pipenv run pip install -e .[all];\
 		echo "Enter virtual environment with all development dependencies now: 'pipenv shell'.";\
@@ -276,7 +276,7 @@ push-images:
 
 .PHONY: run-hardhat
 run-hardhat:
-	docker run -p 8545:8545 -it valory/consensus-algorithms-hardhat:0.1.0
+	docker run -p 8545:8545 -it valory/open-autonomy-hardhat:0.1.0
 
 # if you get following error
 # PermissionError: [Errno 13] Permission denied: '/open-aea/build/bdist.linux-x86_64/wheel'

@@ -64,11 +64,11 @@ Building image with:
         ServiceId: valory/oracle_hardhat:latest
 
 [Skaffold] Generating tags...
-[Skaffold] - valory/consensus-algorithms-tendermint -> valory/consensus-algorithms-tendermint:0.1.0
-[Skaffold] - valory/consensus-algorithms-hardhat -> valory/consensus-algorithms-hardhat:0.1.0
+[Skaffold] - valory/open-autonomy-tendermint -> valory/open-autonomy-tendermint:0.1.0
+[Skaffold] - valory/open-autonomy-hardhat -> valory/open-autonomy-hardhat:0.1.0
 [Skaffold] Checking cache...
-[Skaffold] - valory/consensus-algorithms-tendermint: Found Locally
-[Skaffold] - valory/consensus-algorithms-hardhat: Found Locally
+[Skaffold] - valory/open-autonomy-tendermint: Found Locally
+[Skaffold] - valory/open-autonomy-hardhat: Found Locally
 ....
 ```
 
@@ -86,9 +86,9 @@ Building image with:
         ServiceId: valory/oracle_hardhat:latest
 
 [Skaffold] Generating tags...
-[Skaffold] - valory/consensus-algorithms-open-aea -> valory/consensus-algorithms-open-aea:oracle-0.1.0
+[Skaffold] - valory/open-autonomy-open-aea -> valory/open-autonomy-open-aea:oracle_deployable-0.1.0
 [Skaffold] Checking cache...
-[Skaffold] - valory/consensus-algorithms-open-aea: Found Locally
+[Skaffold] - valory/open-autonomy-open-aea: Found Locally
 ...
 ```
 
@@ -132,7 +132,7 @@ We now need to spin up a local hardhat node so that we have a chain to interact 
 
 This is done in a separate terminal via docker as so;
 ```bash
-docker run -p 8545:8545 -it valory/consensus-algorithms-hardhat:0.1.0
+docker run -p 8545:8545 -it valory/open-autonomy-hardhat:0.1.0
 ```
 
 
@@ -166,8 +166,8 @@ for i in {0..3}; do scp root@178.62.4.138:node${i}.txt node${i}.txt; done
 or
 
 ```bash
-for i in {0..3}; do scp root@178.62.4.138:consensus-algorithms/abci_build/persistent_data/logs/aea_${i}.txt abci${i}.txt; done
-for i in {0..3}; do scp root@178.62.4.138:consensus-algorithms/abci_build/persistent_data/logs/node_${i}.txt node${i}.txt; done
+for i in {0..3}; do scp root@178.62.4.138:open-autonomy/abci_build/persistent_data/logs/aea_${i}.txt abci${i}.txt; done
+for i in {0..3}; do scp root@178.62.4.138:open-autonomy/abci_build/persistent_data/logs/node_${i}.txt node${i}.txt; done
 ```
 
 and run script for checking path

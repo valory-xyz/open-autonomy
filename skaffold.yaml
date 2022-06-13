@@ -1,13 +1,13 @@
 apiVersion: skaffold/v2beta6
 kind: Config
 metadata:
-  name: consensus-algorithms
+  name: open-autonomy
 build:
   tagPolicy:
     envTemplate:
       template: "{{.VERSION}}"
   artifacts:
-  - image: valory/consensus-algorithms-open-aea
+  - image: valory/open-autonomy-open-aea
     context: deployments/Dockerfiles/open_aea/
     docker:
       dockerfile: Dockerfile
@@ -24,11 +24,11 @@ profiles:
         envTemplate:
           template: "{{.VERSION}}"
       artifacts:
-      - image: valory/consensus-algorithms-tendermint
+      - image: valory/open-autonomy-tendermint
         context: deployments/Dockerfiles/localnode/
         docker:
           dockerfile: Dockerfile
-      - image: valory/consensus-algorithms-hardhat
+      - image: valory/open-autonomy-hardhat
         context: deployments/Dockerfiles/hardhat
   - name: cluster
     patches:

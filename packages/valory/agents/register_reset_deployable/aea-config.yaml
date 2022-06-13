@@ -1,11 +1,11 @@
-agent_name: hello_world
+agent_name: register_reset_deployable
 author: valory
 version: 0.1.0
 license: Apache-2.0
-description: Hello World ABCI example.
+description: Register reset to replicate Tendermint issue.
 aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
-  README.md: QmaoCKHmEGdUKt6UZXScV39MvU9yt34y2TAcJB9HiNMTq6
+  README.md: QmTbPRTdh8ziACzb3x1FoeEsZiDNP2S671zWnZ2bz3nDpE
 fingerprint_ignore_patterns: []
 connections:
 - valory/abci:0.1.0:Qme3D1sghE2i1cg3FS8bfjKRwG3jjdQsQZ3Sb6Mxxv8GfC
@@ -18,7 +18,9 @@ protocols:
 skills:
 - valory/abstract_abci:0.1.0:QmUWLsWW62YneNXeTASFhbyXeTXCEuxsfraxJYWwzTQmyp
 - valory/abstract_round_abci:0.1.0:QmTQUNg3zNVj6aXEyXWqanbi8xgZR39ewxiaeNZpk22LHg
-- valory/hello_world_abci:0.1.0:QmTEKQ1SvrwC1y5ZmifXpdeswPPbAvcxHZxF7HEZHMJk9o
+- valory/register_reset_abci:0.1.0:QmZfwyzvcP6LooG5ZW7SC5igv82gC7SJZdbW5w6RsH1PLf
+- valory/registration_abci:0.1.0:QmYYMHBFT27fujCSnEvu8oNdASdaYWC5SGZNmDKGc8mNeA
+- valory/reset_pause_abci:0.1.0:QmaHASz93eZ2urtY6sqjPbgu8iiSu5WSnRDgqo8jN621MK
 default_ledger: ethereum
 required_ledgers:
 - ethereum
@@ -48,4 +50,18 @@ default_connection: null
 public_id: valory/abci:0.1.0
 type: connection
 config:
-  target_skill_id: valory/hello_world_abci:0.1.0
+  target_skill_id: valory/register_reset_abci:0.1.0
+  host: ${ABCI_HOST:str}
+  port: ${ABCI_PORT:int:26658}
+  use_tendermint: ${ABCI_USE_TENDERMINT:bool:false}
+---
+public_id: valory/register_reset_abci:0.1.0
+type: skill
+models:
+  benchmark_tool:
+    args:
+      log_dir: ${SKILL_ORACLE_ABCI_MODELS_BENCHMARK_TOOL_ARGS_LOG_DIR:str:/benchmarks}
+  params:
+    args:
+      tendermint_url: ${TENDERMINT_URL:str}
+      tendermint_com_url: ${TENDERMINT_COM_URL:str}

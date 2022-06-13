@@ -1,4 +1,4 @@
-agent_name: oracle
+agent_name: oracle_deployable
 author: valory
 version: 0.1.0
 license: Apache-2.0
@@ -69,7 +69,7 @@ public_id: valory/abci:0.1.0
 type: connection
 config:
   target_skill_id: valory/oracle_abci:0.1.0
-  host: ${ABCI_HOST:str:localhost}
+  host: ${ABCI_HOST:str}
   port: ${ABCI_PORT:int:26658}
   use_tendermint: ${ABCI_USE_TENDERMINT:bool:false}
 ---
@@ -81,34 +81,32 @@ models:
       log_dir: ${SKILL_ORACLE_ABCI_MODELS_BENCHMARK_TOOL_ARGS_LOG_DIR:str:/benchmarks}
   price_api:
     args:
-      url: ${SKILL_ORACLE_ABCI_MODELS_PRICE_API_ARGS_URL:str:https://api.coinbase.com/v2/prices/BTC-USD/buy}
-      api_id: ${SKILL_ORACLE_ABCI_MODELS_PRICE_API_ARGS_API_ID:str:coinbase}
+      url: ${SKILL_ORACLE_ABCI_MODELS_PRICE_API_ARGS_URL:str}
+      api_id: ${SKILL_ORACLE_ABCI_MODELS_PRICE_API_ARGS_API_ID:str}
       parameters: ${SKILL_ORACLE_ABCI_MODELS_PRICE_API_ARGS_PARAMETERS:list:none}
-      response_key: ${SKILL_ORACLE_ABCI_MODELS_PRICE_API_ARGS_RESPONSE_KEY:str:data:amount}
-      headers: ${SKILL_ORACLE_ABCI_MODELS_PRICE_API_ARGS_HEADERS:list:none}
+      response_key: ${SKILL_ORACLE_ABCI_MODELS_PRICE_API_ARGS_RESPONSE_KEY:str}
+      headers: ${SKILL_ORACLE_ABCI_MODELS_PRICE_API_ARGS_HEADERS:none}
   randomness_api:
     args:
-      url: ${SKILL_ORACLE_ABCI_MODELS_RANDOMNESS_API_ARGS_URL:str:https://drand.cloudflare.com/public/latest}
-      api_id: ${SKILL_ORACLE_ABCI_MODELS_RANDOMNESS_API_ARGS_API_ID:str:cloudflare}
+      url: ${SKILL_ORACLE_ABCI_MODELS_RANDOMNESS_API_ARGS_URL:str}
+      api_id: ${SKILL_ORACLE_ABCI_MODELS_RANDOMNESS_API_ARGS_API_ID:str}
   params:
     args:
       consensus:
-        max_participants: ${MAX_PARTICIPANTS:int:4}
+        max_participants: ${MAX_PARTICIPANTS:int}
       setup:
-        safe_contract_address:
-        - ${SKILL_ORACLE_ABCI_MODELS_PARAMS_ARGS_SETUP_SAFE_CONTRACT_ADDRESS:str:none}
-        oracle_contract_address:
-        - ${SKILL_ORACLE_ABCI_MODELS_PARAMS_ARGS_SETUP_ORACLE_CONTRACT_ADDRESS:str:none}
+        safe_contract_address: ${SKILL_ORACLE_ABCI_MODELS_PARAMS_ARGS_SETUP_SAFE_CONTRACT_ADDRESS:list:[]}
+        oracle_contract_address: ${SKILL_ORACLE_ABCI_MODELS_PARAMS_ARGS_SETUP_ORACLE_CONTRACT_ADDRESS:list:[]}
       round_timeout_seconds: ${ORACLE_PARAMS_ROUND_TIMEOUT_SECONDS:float:7.0}
-      tendermint_url: ${TENDERMINT_URL:str:http://localhost:26657}
-      tendermint_com_url: ${TENDERMINT_COM_URL:str:http://localhost:8080}
+      tendermint_url: ${TENDERMINT_URL:str}
+      tendermint_com_url: ${TENDERMINT_COM_URL:str}
       reset_tendermint_after: ${SKILL_ORACLE_ABCI_MODELS_PARAMS_ARGS_RESET_TENDERMINT_AFTER:int:10}
       observation_interval: ${SKILL_ORACLE_ABCI_MODELS_PARAMS_ARGS_OBSERVATION_INTERVAL:int:300}
       max_healthcheck: ${SKILL_ORACLE_ABCI_MODELS_PARAMS_ARGS_MAX_HEALTHCHECK:int:1200}
       broadcast_to_server: ${SKILL_ORACLE_ABCI_MODELS_PARAMS_ARGS_BROADCAST_TO_SERVER:bool:true}
   server_api:
     args:
-      url: ${SKILL_ORACLE_ABCI_MODELS_SERVER_API_ARGS_URL:str:http://192.168.2.17:9999/deposit}
+      url: ${SKILL_ORACLE_ABCI_MODELS_SERVER_API_ARGS_URL:str}
 ---
 public_id: valory/ledger:0.1.0
 type: connection
@@ -117,3 +115,4 @@ config:
     ethereum:
       address: ${LEDGER_ADDRESS:str:http://hardhat:8545}
       chain_id: ${LEDGER_CHAIN_ID:int:31337}
+      poa_chain: ${LEDGER_POA_CHAIN:bool:false}

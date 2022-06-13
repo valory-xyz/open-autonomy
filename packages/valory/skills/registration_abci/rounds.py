@@ -18,7 +18,6 @@
 # ------------------------------------------------------------------------------
 
 """This module contains the data classes for common apps ABCI application."""
-import json
 from enum import Enum
 from typing import Dict, Optional, Set, Tuple, Type
 
@@ -73,12 +72,10 @@ class RegistrationStartupRound(CollectDifferentUntilAllRound):
             and self.block_confirmations > self.required_block_confirmations
             and self.most_voted_payload is not None
         ):
-            initialisation = json.loads(self.most_voted_payload)
             synchronized_data = self.synchronized_data.update(
                 participants=frozenset(self.collection),
                 all_participants=frozenset(self.collection),
                 synchronized_data_class=BaseSynchronizedData,
-                **initialisation,
             )
             return synchronized_data, Event.FAST_FORWARD
         if (
@@ -112,15 +109,9 @@ class RegistrationRound(CollectSameUntilThresholdRound):
             and self.block_confirmations
             > self.required_block_confirmations  # we also wait here as it gives more (available) agents time to join
         ):
-            most_voted_payload = self.most_voted_payload
-
-            initialisation = (
-                json.loads(most_voted_payload) if most_voted_payload else {}
-            )
             synchronized_data = self.synchronized_data.update(
                 participants=frozenset(self.collection),
                 synchronized_data_class=BaseSynchronizedData,
-                **initialisation,
             )
             return synchronized_data, Event.DONE
         if (
