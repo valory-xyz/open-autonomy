@@ -135,7 +135,7 @@ class LiquidityProvisionIntegrationBaseCase(
 
         cls.default_synchronized_data_hash = LiquidityRebalancingSynchronizedSata(
             AbciAppDB(
-                initial_data=AbciAppDB.data_to_lists(
+                setup_data=AbciAppDB.data_to_lists(
                     dict(
                         safe_contract_address=cls.safe_contract_address,
                         most_voted_keeper_address=cls.keeper_address,
@@ -152,7 +152,7 @@ class LiquidityProvisionIntegrationBaseCase(
         keepers = next(iter(cls.agents.keys()))
         cls.tx_settlement_synchronized_data = TransactionSettlementSynchronizedSata(
             AbciAppDB(
-                initial_data=AbciAppDB.data_to_lists(
+                setup_data=AbciAppDB.data_to_lists(
                     dict(
                         safe_contract_address=cls.safe_contract_address,
                         most_voted_keeper_address=cls.keeper_address,

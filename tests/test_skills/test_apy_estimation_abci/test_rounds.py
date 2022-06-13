@@ -207,7 +207,7 @@ class BaseRoundTestClass:
         cls.participants = get_participants()
         cls.synchronized_data = SynchronizedData(
             db=AbciAppDB(
-                initial_data=dict(
+                setup_data=dict(
                     participants=[cls.participants], all_participants=[cls.participants]
                 ),
             )
@@ -624,7 +624,7 @@ def test_period() -> None:
 
     synchronized_data = SynchronizedData(
         db=AbciAppDB(
-            initial_data=AbciAppDB.data_to_lists(
+            setup_data=AbciAppDB.data_to_lists(
                 dict(
                     participants=participants,
                     setup_params=setup_params,
