@@ -73,7 +73,7 @@ VERSION = "v0.34.11"
 REPO_PATH = Path(*tendermint_abci.__package__.split(".")).absolute()
 LOCAL_TYPES_FILE = REPO_PATH / "protos" / "tendermint" / "abci" / "types.proto"
 URL = f"https://raw.githubusercontent.com/tendermint/tendermint/{VERSION}/proto/tendermint/abci/types.proto"
-DESCRIPTOR = tendermint.abci.types_pb2.DESCRIPTOR
+# DESCRIPTOR = tendermint.abci.types_pb2.DESCRIPTOR
 
 # to ensure primitives are not initialized to empty default values
 NON_DEFAULT_PRIMITIVES = {str: "sss", bytes: b"bbb", int: 123, float: 3.14, bool: True}
@@ -132,11 +132,11 @@ def get_tendermint_classes(module: ModuleType) -> Dict[str, Type]:
     return {k: set_repr(v) for k, v in vars(module).items() if isinstance(v, type)}
 
 
-def get_tendermint_message_types() -> Dict[str, Any]:
+def descriptor_parser(descriptor) -> Dict[str, Any]:
     """Get Tendermint-native message type definitions"""
 
     messages: Dict[str, Any] = dict()
-    for msg, msg_desc in DESCRIPTOR.message_types_by_name.items():
+    for msg, msg_desc in descriptor.message_types_by_name.items():
         content = messages.setdefault(msg, {})
 
         # Request & Response
@@ -186,20 +186,20 @@ type_to_python.update(
 )
 
 
-camel_to_snake = _camel_case_to_snake_case
+camel_to_snake = _camel_case_to_snake_case  # ???
 snake_to_camel = _to_camel_case
 
 
 PYTHON_PRIMITIVES = (int, float, bool, str, bytes)
 AEA_CUSTOM = get_aea_classes(protocols.abci.custom_types)
-TENDERMINT_DEFS = get_tendermint_message_types()
 
 TENDERMINT_ABCI_TYPES = get_tendermint_classes(tendermint.abci.types_pb2)
+TENDERMINT_CRYPTO_KEYS = get_tendermint_classes(keys_pb2)
+TENDERMINT_CRYPTO_PROOF = get_tendermint_classes(proof_pb2)
 TENDERMINT_PARAMS = get_tendermint_classes(params_pb2)
-TENDERMINT_KEYS = get_tendermint_classes(keys_pb2)
-TENDERMINT_PROOF = get_tendermint_classes(proof_pb2)
 TENDERMINT_TYPES_TYPES = get_tendermint_classes(types_pb2)
-TENDERMINT_TIME_STAMP = timestamp_pb2.Timestamp
+TENDERMINT_TYPES_VALIDATOR = get_tendermint_classes(types_pb2)
+TENDERMINT_TIME_STAMP = {"Timestamp": timestamp_pb2.Timestamp}
 
 
 def get_aea_type(data_type: str) -> str:
@@ -571,7 +571,7 @@ def test_defined_dialogues_match_abci_spec() -> None:
     """
 
     *_, dialogues = get_protocol_readme_spec()
-    message_types = get_tendermint_message_types()
+    message_types = descriptor_parser(tendermint.abci.types_pb2.DESCRIPTOR)
 
     # expected
     request_oneof = message_types["Request"]["oneofs"]["value"]
@@ -650,3 +650,6 @@ def test_aea_to_tendermint() -> None:
     for k in shared:
         init_node, tender_node = init_tree[k], tender_tree[k]
         compare_trees(init_node, tender_node)
+
+
+test_aea_to_tendermint()
