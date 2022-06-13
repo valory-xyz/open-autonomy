@@ -23,6 +23,7 @@ from typing import Callable, Optional, Union, cast
 from packages.valory.connections.abci.tendermint.abci.types_pb2 import (  # type: ignore
     ConsensusParams,
     Event,
+    EventAttribute,
     Request,
     Response,
     ResponseApplySnapshotChunk,
@@ -45,6 +46,7 @@ from packages.valory.connections.abci.tendermint.abci.types_pb2 import (  # type
     ValidatorUpdate,
 )
 from packages.valory.connections.abci.tendermint.crypto.proof_pb2 import (  # type: ignore
+    ProofOp,
     ProofOps,
 )
 from packages.valory.protocols.abci import AbciMessage
@@ -52,6 +54,10 @@ from packages.valory.protocols.abci.custom_types import (
     ConsensusParams as CustomConsensusParams,  # type: ignore
 )
 from packages.valory.protocols.abci.custom_types import Event as CustomEvent
+from packages.valory.protocols.abci.custom_types import (
+    EventAttribute as CustomEventAttribute,
+)
+from packages.valory.protocols.abci.custom_types import ProofOp as CustomProofOp
 from packages.valory.protocols.abci.custom_types import ProofOps as CustomProofOps
 from packages.valory.protocols.abci.custom_types import Snapshot as CustomSnapshot
 from packages.valory.protocols.abci.custom_types import (
@@ -382,14 +388,29 @@ class _TendermintProtocolEncoder:
 
     @classmethod
     def _encode_event(cls, event: CustomEvent) -> Event:
+
+        attributes_pb = []
+        for attribute in event.attributes:
+            attribute_pb = EventAttribute()
+            CustomEventAttribute.encode(attribute_pb, attribute)
+            attributes_pb.append(attribute_pb)
+
         event_pb = Event()
-        CustomEvent.encode(event_pb, event)
+        event_pb.type = event.type_
+        event_pb.attributes.extend(attributes_pb)
         return event_pb
 
     @classmethod
     def _encode_proof_ops(cls, proof_ops: CustomProofOps) -> ProofOps:
+
+        ops_pb = []
+        for proof_op in proof_ops.proof_ops:
+            proof_op_pb = ProofOp()
+            CustomProofOp.encode(proof_op_pb, proof_op)
+            ops_pb.append(proof_op_pb)
+
         proof_ops_pb = ProofOps()
-        CustomProofOps.encode(proof_ops_pb, proof_ops)
+        proof_ops_pb.ops.extend(ops_pb)
         return proof_ops_pb
 
     @classmethod
