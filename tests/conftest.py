@@ -120,7 +120,7 @@ def tendermint_port() -> int:
     return DEFAULT_TENDERMINT_PORT
 
 
-@pytest.fixture(scope="function")
+@pytest.fixture(scope="class")
 def tendermint(
     tendermint_port: Any,
     abci_host: str = DEFAULT_ABCI_HOST,

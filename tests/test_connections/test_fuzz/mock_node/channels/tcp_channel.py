@@ -82,9 +82,7 @@ class TcpChannel(BaseChannel):
 
         # set up asyncio connection
         future = asyncio.run_coroutine_threadsafe(
-            asyncio.open_connection(
-                self.host, self.port, loop=self.loop, family=socket.AF_INET
-            ),
+            asyncio.open_connection(self.host, self.port, family=socket.AF_INET),
             self.loop,
         )
         self.reader, self.writer = future.result()

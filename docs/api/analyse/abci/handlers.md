@@ -1,10 +1,10 @@
-<a id="aea_swarm.analyse.abci.handlers"></a>
+<a id="autonomy.analyse.abci.handlers"></a>
 
-# aea`_`swarm.analyse.abci.handlers
+# autonomy.analyse.abci.handlers
 
 Analyse handlers.
 
-<a id="aea_swarm.analyse.abci.handlers.check_handlers"></a>
+<a id="autonomy.analyse.abci.handlers.check_handlers"></a>
 
 #### check`_`handlers
 

@@ -33,8 +33,8 @@ from werkzeug.exceptions import InternalServerError, NotFound
 
 
 try:
-    from .tendermint import TendermintNode, TendermintParams  # type: ignore
-except Exception:
+    from .tendermint import TendermintNode, TendermintParams
+except ImportError:
     from tendermint import TendermintNode, TendermintParams
 
 ENCODING = "utf-8"
