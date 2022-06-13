@@ -24,10 +24,10 @@ protocols:
 skills:
 - valory/abstract_abci:0.1.0:QmYhGtBQTjqBYqRDaQ7Z7m2z7ZGLFibsQm86HpoF82MwaW
 - valory/abstract_round_abci:0.1.0:QmT13i7MZrDkU1N6FwJQCTjc7dphEHhWqJSnWegQfPB8dC
-- valory/oracle_abci:0.1.0:QmP1WjyKs2zziFCnQLpzW6Fvk4MtAbbAnFkMvzbzncudoM
+- valory/oracle_abci:0.1.0:QmcG2yZZ2hrdVk3hq6e2evroExT1RWonWZ5wAnrxbktcN7
 - valory/oracle_deployment_abci:0.1.0:QmSMeyFKQkQ4Lz6g5RxBFWTTUFrqyMRytWNRsiS9CgCj9b
 - valory/price_estimation_abci:0.1.0:QmageYpcy5kLFHYB9TX8xMP7Tsy3SsYtr1PcmsRajbfUT7
-- valory/registration_abci:0.1.0:QmXAHS7TWFDaAbzzE4s6sKrrVT4KZ2AV7r46R2Pvy18Bdi
+- valory/registration_abci:0.1.0:QmeKjYY7aiy7vZpX8oHDX2fgtYNAH3xyLbhxmY51rzqQum
 - valory/reset_pause_abci:0.1.0:QmXcTwpjZ6qQCCqKEw3QwWDJTfoWDmmrHSCTNYZ4rA4vUG
 - valory/safe_deployment_abci:0.1.0:QmcjuM48MYcgqVie7MsBus2aAmv6dvir3kMw5sEpvzTjsS
 - valory/transaction_settlement_abci:0.1.0:QmaV9quDokPtAkUXnqUjSA3V22RFnjoewRodPyVgBZdKBT

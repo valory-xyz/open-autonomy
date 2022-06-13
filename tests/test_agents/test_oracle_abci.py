@@ -110,7 +110,6 @@ class TestAgentCatchup(BaseTestEnd2EndAgentCatchup, UseGnosisSafeHardHatNet):
     skill_package = "valory/oracle_abci:0.1.0"
     wait_to_finish = 200
     restart_after = 45
-    wait_before_stop = 40
     round_check_strings_to_n_periods = EXPECTED_ROUND_LOG_COUNT
     stop_string = "'registration_startup' round is done with event: Event.DONE"
 

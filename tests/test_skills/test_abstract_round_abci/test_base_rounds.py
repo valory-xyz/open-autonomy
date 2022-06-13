@@ -289,6 +289,7 @@ class BaseCollectSameUntilAllRoundTest(BaseRoundTestClass):
         synchronized_data_attr_checks: List[Callable],
         most_voted_payload: Any,
         exit_event: Any,
+        finished: bool,
     ) -> Generator:
         """Test rounds derived from CollectionRound."""
 
@@ -310,7 +311,8 @@ class BaseCollectSameUntilAllRoundTest(BaseRoundTestClass):
         for _, payload in payloads:
             test_round.process_payload(payload)
         yield test_round
-        assert test_round.collection_threshold_reached
+        if finished:
+            assert test_round.collection_threshold_reached
         assert test_round.common_payload == most_voted_payload
 
         actual_next_synchronized_data = cast(

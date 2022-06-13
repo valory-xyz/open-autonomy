@@ -61,16 +61,11 @@ class RegistrationStartupRound(CollectSameUntilAllRound):
     round_id = "registration_startup"
     allowed_tx_type = RegistrationPayload.transaction_type
     payload_attribute = "initialisation"
-    required_block_confirmations = 10
 
     def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Event]]:
         """Process the end of the block."""
-        if self.collection_threshold_reached:
-            self.block_confirmations += 1
         if (  # fast forward at setup
-            self.collection_threshold_reached
-            and self.block_confirmations > self.required_block_confirmations
-            and self.common_payload is not None
+            self.collection_threshold_reached and self.common_payload is not None
         ):
             synchronized_data = self.synchronized_data.update(
                 participants=frozenset(self.collection),
@@ -78,10 +73,7 @@ class RegistrationStartupRound(CollectSameUntilAllRound):
                 synchronized_data_class=BaseSynchronizedData,
             )
             return synchronized_data, Event.FAST_FORWARD
-        if (
-            self.collection_threshold_reached
-            and self.block_confirmations > self.required_block_confirmations
-        ):
+        if self.collection_threshold_reached:
             synchronized_data = self.synchronized_data.update(
                 participants=frozenset(self.collection),
                 all_participants=frozenset(self.collection),
