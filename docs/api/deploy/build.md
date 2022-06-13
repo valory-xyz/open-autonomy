@@ -1,10 +1,10 @@
-<a id="aea_swarm.deploy.build"></a>
+<a id="autonomy.deploy.build"></a>
 
-# aea`_`swarm.deploy.build
+# autonomy.deploy.build
 
 Script for generating deployment environments.
 
-<a id="aea_swarm.deploy.build.generate_deployment"></a>
+<a id="autonomy.deploy.build.generate_deployment"></a>
 
 #### generate`_`deployment
 

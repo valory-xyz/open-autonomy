@@ -1,0 +1,59 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "description": "Schema for the deployment configuration file.",
+  "additionalProperties": false,
+  "type": "object",
+  "required": [
+    "name",
+    "author",
+    "version",
+    "description",
+    "aea_version",
+    "license",
+    "fingerprint",
+    "fingerprint_ignore_patterns",
+    "agent",
+    "network",
+    "number_of_agents"
+  ],
+  "properties": {
+    "name": {
+      "type": "string"
+    },
+    "author": {
+      "type": "string"
+    },
+    "version": {
+      "type": "string"
+    },
+    "description": {
+      "type": "string"
+    },
+    "aea_version": {
+      "type": "string"
+    },
+    "license": {
+      "type": "string"
+    },
+    "fingerprint": {
+      "type": "object"
+    },
+    "fingerprint_ignore_patterns": {
+      "type": "array",
+      "uniqueItems": true
+    },
+    "agent": {
+      "type": "string"
+    },
+    "number_of_agents": {
+      "type": "integer"
+    },
+    "network": {
+      "enum": [
+        "hardhat",
+        "ropsten",
+        "polygon"
+      ]
+    }
+  }
+}

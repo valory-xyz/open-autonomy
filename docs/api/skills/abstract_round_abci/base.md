@@ -2139,7 +2139,7 @@ def start_sync() -> None
 Set `_syncing_up` flag to true.
 
 if the _syncing_up flag is set to true, the `async_act` method won't be executed. For more details refer to
-https://github.com/valory-xyz/consensus-algorithms/issues/247#issuecomment-1012268656
+https://github.com/valory-xyz/open-autonomy/issues/247#issuecomment-1012268656
 
 <a id="packages.valory.skills.abstract_round_abci.base.RoundSequence.end_sync"></a>
 

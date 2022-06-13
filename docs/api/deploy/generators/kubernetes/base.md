@@ -1,10 +1,10 @@
-<a id="aea_swarm.deploy.generators.kubernetes.base"></a>
+<a id="autonomy.deploy.generators.kubernetes.base"></a>
 
-# aea`_`swarm.deploy.generators.kubernetes.base
+# autonomy.deploy.generators.kubernetes.base
 
 Script to create environment for benchmarking n agents.
 
-<a id="aea_swarm.deploy.generators.kubernetes.base.KubernetesGenerator"></a>
+<a id="autonomy.deploy.generators.kubernetes.base.KubernetesGenerator"></a>
 
 ## KubernetesGenerator Objects
 
@@ -14,7 +14,7 @@ class KubernetesGenerator(BaseDeploymentGenerator)
 
 Kubernetes Deployment Generator.
 
-<a id="aea_swarm.deploy.generators.kubernetes.base.KubernetesGenerator.__init__"></a>
+<a id="autonomy.deploy.generators.kubernetes.base.KubernetesGenerator.__init__"></a>
 
 #### `__`init`__`
 
@@ -24,7 +24,7 @@ def __init__(service_spec: ServiceSpecification, build_dir: Path) -> None
 
 Initialise the deployment generator.
 
-<a id="aea_swarm.deploy.generators.kubernetes.base.KubernetesGenerator.build_agent_deployment"></a>
+<a id="autonomy.deploy.generators.kubernetes.base.KubernetesGenerator.build_agent_deployment"></a>
 
 #### build`_`agent`_`deployment
 
@@ -34,7 +34,7 @@ def build_agent_deployment(image_name: str, agent_ix: int, number_of_agents: int
 
 Build agent deployment.
 
-<a id="aea_swarm.deploy.generators.kubernetes.base.KubernetesGenerator.generate_config_tendermint"></a>
+<a id="autonomy.deploy.generators.kubernetes.base.KubernetesGenerator.generate_config_tendermint"></a>
 
 #### generate`_`config`_`tendermint
 
@@ -44,7 +44,7 @@ def generate_config_tendermint(image_version: str = TENDERMINT_IMAGE_VERSION) ->
 
 Build configuration job.
 
-<a id="aea_swarm.deploy.generators.kubernetes.base.KubernetesGenerator.generate"></a>
+<a id="autonomy.deploy.generators.kubernetes.base.KubernetesGenerator.generate"></a>
 
 #### generate
 
@@ -54,7 +54,7 @@ def generate(image_versions: Dict[str, str], dev_mode: bool = False) -> "Kuberne
 
 Generate the deployment.
 
-<a id="aea_swarm.deploy.generators.kubernetes.base.KubernetesGenerator.write_config"></a>
+<a id="autonomy.deploy.generators.kubernetes.base.KubernetesGenerator.write_config"></a>
 
 #### write`_`config
 
@@ -64,7 +64,7 @@ def write_config() -> "KubernetesGenerator"
 
 Write output to build dir
 
-<a id="aea_swarm.deploy.generators.kubernetes.base.KubernetesGenerator.populate_private_keys"></a>
+<a id="autonomy.deploy.generators.kubernetes.base.KubernetesGenerator.populate_private_keys"></a>
 
 #### populate`_`private`_`keys
 

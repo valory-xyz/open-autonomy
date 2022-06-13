@@ -1,10 +1,10 @@
-<a id="aea_swarm.cli.deploy"></a>
+<a id="autonomy.cli.deploy"></a>
 
-# aea`_`swarm.cli.deploy
+# autonomy.cli.deploy
 
 Deploy CLI module.
 
-<a id="aea_swarm.cli.deploy.deploy_group"></a>
+<a id="autonomy.cli.deploy.deploy_group"></a>
 
 #### deploy`_`group
 
@@ -15,7 +15,7 @@ def deploy_group() -> None
 
 Deploy an AEA project.
 
-<a id="aea_swarm.cli.deploy.build_group"></a>
+<a id="autonomy.cli.deploy.build_group"></a>
 
 #### build`_`group
 
@@ -26,7 +26,7 @@ def build_group() -> None
 
 Build tools
 
-<a id="aea_swarm.cli.deploy.build_deployment"></a>
+<a id="autonomy.cli.deploy.build_deployment"></a>
 
 #### build`_`deployment
 
@@ -95,7 +95,7 @@ def build_deployment(service_id: PublicId, keys_file: Path, deployment_type: str
 
 Build deployment setup for n agents.
 
-<a id="aea_swarm.cli.deploy.build_images"></a>
+<a id="autonomy.cli.deploy.build_images"></a>
 
 #### build`_`images
 
