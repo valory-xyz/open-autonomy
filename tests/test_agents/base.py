@@ -185,6 +185,11 @@ class BaseTestEnd2End(AEATestCaseMany, UseFlaskTendermintNode):
             str(self.t),
             type_="str",
         )
+        self.set_config(
+            f"vendor.valory.skills.{PublicId.from_str(self.skill_package).name}.models.params.args.observation_interval",
+            3,
+            type_="int",
+        )
 
         self.__set_extra_configs()
 
