@@ -1,10 +1,10 @@
-<a id="aea_swarm.configurations.validation"></a>
+<a id="autonomy.configurations.validation"></a>
 
-# aea`_`swarm.configurations.validation
+# autonomy.configurations.validation
 
 Config validators.
 
-<a id="aea_swarm.configurations.validation.ConfigValidator"></a>
+<a id="autonomy.configurations.validation.ConfigValidator"></a>
 
 ## ConfigValidator Objects
 
@@ -14,7 +14,7 @@ class ConfigValidator(validation.ConfigValidator)
 
 Configuration validator implementation.
 
-<a id="aea_swarm.configurations.validation.ConfigValidator.__init__"></a>
+<a id="autonomy.configurations.validation.ConfigValidator.__init__"></a>
 
 #### `__`init`__`
 

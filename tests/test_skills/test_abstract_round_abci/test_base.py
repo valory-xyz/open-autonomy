@@ -510,11 +510,11 @@ class TestAbciAppDB:
         """Set up the tests."""
         self.participants = {"a", "b"}
         self.db = AbciAppDB(
-            initial_data=dict(participants=[self.participants]),
+            setup_data=dict(participants=[self.participants]),
         )
 
     @pytest.mark.parametrize(
-        "data, initial_data",
+        "data, setup_data",
         (
             ({"participants": ["a", "b"]}, {"participants": ["a", "b"]}),
             ({"participants": []}, {}),
@@ -526,10 +526,10 @@ class TestAbciAppDB:
             ({"participants": [], "other": [1, 2]}, {"other": [1, 2]}),
         ),
     )
-    def test_init(self, data: Dict, initial_data: Optional[Dict]) -> None:
+    def test_init(self, data: Dict, setup_data: Optional[Dict]) -> None:
         """Test constructor."""
-        if initial_data is None:
-            # the parametrization of `initial_data` set to `None` is in order to check if the exception is raised
+        if setup_data is None:
+            # the parametrization of `setup_data` set to `None` is in order to check if the exception is raised
             # when we incorrectly set the data in the configuration file with a type that is not allowed
             with pytest.raises(
                 ValueError,
@@ -537,11 +537,11 @@ class TestAbciAppDB:
                     f"AbciAppDB data must be `Dict[str, List[Any]]`, found `{type(data)}` instead"
                 ),
             ):
-                AbciAppDB(initial_data=data)
+                AbciAppDB(setup_data=data)
         else:
-            db = AbciAppDB(initial_data=data)
-            assert db._data == {0: initial_data}
-            assert db.initial_data == initial_data
+            db = AbciAppDB(setup_data=data)
+            assert db._data == {0: setup_data}
+            assert db.setup_data == setup_data
             assert db.cross_period_persisted_keys == []
 
     def test_get(self) -> None:
@@ -560,7 +560,7 @@ class TestAbciAppDB:
         assert self.db.round_count == 0
 
     @pytest.mark.parametrize(
-        "initial_data, update_data, expected_data",
+        "setup_data, update_data, expected_data",
         (
             (dict(), {"dummy_key": "dummy_value"}, {0: {"dummy_key": ["dummy_value"]}}),
             (
@@ -591,10 +591,10 @@ class TestAbciAppDB:
         ),
     )
     def test_update(
-        self, initial_data: Dict, update_data: Dict, expected_data: Dict[int, Dict]
+        self, setup_data: Dict, update_data: Dict, expected_data: Dict[int, Dict]
     ) -> None:
         """Test update db."""
-        db = AbciAppDB(initial_data)
+        db = AbciAppDB(setup_data)
         db.update(**update_data)
         assert db._data == expected_data
 
@@ -606,7 +606,7 @@ class TestBaseSynchronizedData:
         """Set up the tests."""
         self.participants = {"a", "b"}
         self.base_synchronized_data = BaseSynchronizedData(
-            db=AbciAppDB(initial_data=dict(participants=[self.participants]))
+            db=AbciAppDB(setup_data=dict(participants=[self.participants]))
         )
 
     def test_participants_getter_positive(self) -> None:
@@ -619,7 +619,7 @@ class TestBaseSynchronizedData:
 
     def test_participants_getter_negative(self) -> None:
         """Test 'participants' property getter, negative case."""
-        base_synchronized_data = BaseSynchronizedData(db=AbciAppDB(initial_data={}))
+        base_synchronized_data = BaseSynchronizedData(db=AbciAppDB(setup_data={}))
         # with pytest.raises(ValueError, match="Value of key=participants is None"):
         with pytest.raises(
             ValueError,
@@ -633,7 +633,7 @@ class TestBaseSynchronizedData:
         """Test the 'update' method."""
         participants = {"a"}
         expected = BaseSynchronizedData(
-            db=AbciAppDB(initial_data=dict(participants=[participants]))
+            db=AbciAppDB(setup_data=dict(participants=[participants]))
         )
         actual = self.base_synchronized_data.update(participants=participants)
         assert expected.participants == actual.participants
@@ -659,7 +659,7 @@ class TestBaseSynchronizedData:
     ) -> None:
         """Tets when participants list is set to zero."""
         base_synchronized_data = BaseSynchronizedData(
-            db=AbciAppDB(initial_data=dict(participants=[{}]))
+            db=AbciAppDB(setup_data=dict(participants=[{}]))
         )
         with pytest.raises(ValueError, match="List participants cannot be empty."):
             _ = base_synchronized_data.participants
@@ -669,7 +669,7 @@ class TestBaseSynchronizedData:
     ) -> None:
         """Tets when participants list is set to zero."""
         base_synchronized_data = BaseSynchronizedData(
-            db=AbciAppDB(initial_data=dict(all_participants=[{}]))
+            db=AbciAppDB(setup_data=dict(all_participants=[{}]))
         )
         with pytest.raises(ValueError, match="List participants cannot be empty."):
             _ = base_synchronized_data.all_participants
@@ -689,7 +689,7 @@ class TestBaseSynchronizedData:
 
         base_synchronized_data = BaseSynchronizedData(
             db=AbciAppDB(
-                initial_data=AbciAppDB.data_to_lists(
+                setup_data=AbciAppDB.data_to_lists(
                     dict(
                         participants=participants,
                         all_participants=participants,
@@ -732,7 +732,7 @@ class TestAbstractRound:
         self.known_payload_type = ConcreteRoundA.allowed_tx_type
         self.participants = {"a", "b"}
         self.base_synchronized_data = BaseSynchronizedData(
-            db=AbciAppDB(initial_data=dict(participants=[self.participants]))
+            db=AbciAppDB(setup_data=dict(participants=[self.participants]))
         )
         self.params = ConsensusParams(
             max_participants=len(self.participants),
@@ -1187,7 +1187,7 @@ class TestAbciApp:
         start_history_depth = 5
         max_participants = 4
         dummy_synchronized_data = BaseSynchronizedData(
-            db=AbciAppDB(initial_data=dict(participants=[max_participants]))
+            db=AbciAppDB(setup_data=dict(participants=[max_participants]))
         )
         dummy_consensus_params = ConsensusParams(max_participants)
         dummy_round = ConcreteRoundA(dummy_synchronized_data, dummy_consensus_params)

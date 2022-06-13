@@ -1,6 +1,6 @@
-<a id="aea_swarm.cli.__main__"></a>
+<a id="autonomy.cli.__main__"></a>
 
-# aea`_`swarm.cli.`__`main`__`
+# autonomy.cli.`__`main`__`
 
 CLI runner.
 

@@ -1,10 +1,10 @@
-<a id="aea_swarm.cli.develop"></a>
+<a id="autonomy.cli.develop"></a>
 
-# aea`_`swarm.cli.develop
+# autonomy.cli.develop
 
 Develop CLI module.
 
-<a id="aea_swarm.cli.develop.develop_group"></a>
+<a id="autonomy.cli.develop.develop_group"></a>
 
 #### develop`_`group
 

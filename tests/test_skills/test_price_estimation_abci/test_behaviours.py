@@ -108,7 +108,7 @@ class TestObserveBehaviour(PriceEstimationFSMBehaviourBaseCase):
             self.behaviour,
             ObserveBehaviour.behaviour_id,
             PriceEstimationSynchronizedSata(
-                AbciAppDB(initial_data=dict(estimate=[1.0])),
+                AbciAppDB(setup_data=dict(estimate=[1.0])),
             ),
         )
         assert (
@@ -149,7 +149,7 @@ class TestObserveBehaviour(PriceEstimationFSMBehaviourBaseCase):
             self.behaviour,
             ObserveBehaviour.behaviour_id,
             PriceEstimationSynchronizedSata(
-                AbciAppDB(initial_data=dict(estimate=[1.0])),
+                AbciAppDB(setup_data=dict(estimate=[1.0])),
             ),
         )
         assert (
@@ -177,7 +177,7 @@ class TestObserveBehaviour(PriceEstimationFSMBehaviourBaseCase):
             self.behaviour,
             ObserveBehaviour.behaviour_id,
             PriceEstimationSynchronizedSata(
-                AbciAppDB(initial_data=dict()),
+                AbciAppDB(setup_data=dict()),
             ),
         )
         assert (
@@ -215,7 +215,7 @@ class TestObserveBehaviour(PriceEstimationFSMBehaviourBaseCase):
             self.behaviour,
             ObserveBehaviour.behaviour_id,
             PriceEstimationSynchronizedSata(
-                AbciAppDB(initial_data=dict()),
+                AbciAppDB(setup_data=dict()),
             ),
         )
         assert (
@@ -244,7 +244,7 @@ class TestEstimateBehaviour(PriceEstimationFSMBehaviourBaseCase):
             behaviour_id=EstimateBehaviour.behaviour_id,
             synchronized_data=PriceEstimationSynchronizedSata(
                 AbciAppDB(
-                    initial_data=dict(
+                    setup_data=dict(
                         participant_to_observations=[
                             {"a": ObservationPayload(sender="a", observation=1.0)}
                         ]
@@ -375,7 +375,7 @@ class TestTransactionHashBehaviour(PriceEstimationFSMBehaviourBaseCase):
             behaviour_id=TransactionHashBehaviour.behaviour_id,
             synchronized_data=PriceEstimationSynchronizedSata(
                 AbciAppDB(
-                    initial_data=dict(
+                    setup_data=dict(
                         most_voted_estimate=[1.0],
                         safe_contract_address=["safe_contract_address"],
                         oracle_contract_address=[

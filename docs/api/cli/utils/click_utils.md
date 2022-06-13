@@ -1,10 +1,10 @@
-<a id="aea_swarm.cli.utils.click_utils"></a>
+<a id="autonomy.cli.utils.click_utils"></a>
 
-# aea`_`swarm.cli.utils.click`_`utils
+# autonomy.cli.utils.click`_`utils
 
 Usefule click utils.
 
-<a id="aea_swarm.cli.utils.click_utils.image_profile_flag"></a>
+<a id="autonomy.cli.utils.click_utils.image_profile_flag"></a>
 
 #### image`_`profile`_`flag
 
@@ -14,7 +14,7 @@ def image_profile_flag(default: str = ImageProfiles.PRODUCTION, mark_default: bo
 
 Choice of one flag between: '--local/--remote'.
 
-<a id="aea_swarm.cli.utils.click_utils.abci_spec_format_flag"></a>
+<a id="autonomy.cli.utils.click_utils.abci_spec_format_flag"></a>
 
 #### abci`_`spec`_`format`_`flag
 

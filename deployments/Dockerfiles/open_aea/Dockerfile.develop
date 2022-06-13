@@ -6,8 +6,8 @@ MAINTAINER Valory AG
 WORKDIR /home/ubuntu
 ENV PATH=$PATH:/home/ubuntu/.local/bin
 
-RUN sudo apt-get install python3.8 python3.8-dev git -y
-RUN cd /usr/bin && sudo rm python3 && sudo ln -s python3.8 python3 && sudo ln -s python3.8 python
+RUN sudo apt-get install python3.10 python3.10-dev git -y
+RUN cd /usr/bin && sudo rm python3 && sudo ln -s python3.10 python3 && sudo ln -s python3.10 python
 RUN sudo apt-get install wait-for-it net-tools -y
 RUN sudo apt remove --purge python3-virtualenv
 

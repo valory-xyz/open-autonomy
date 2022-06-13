@@ -320,7 +320,7 @@ def test_synchronized_data() -> None:
 
     synchronized_data = SynchronizedData(
         AbciAppDB(
-            initial_data=AbciAppDB.data_to_lists(
+            setup_data=AbciAppDB.data_to_lists(
                 dict(
                     participants=participants,
                     setup_params=setup_params,

@@ -110,7 +110,7 @@ class TransactionSettlementIntegrationBaseCase(
         keeper_initial_retries = 1
         cls.tx_settlement_synchronized_data = TxSettlementSynchronizedSata(
             AbciAppDB(
-                initial_data=AbciAppDB.data_to_lists(
+                setup_data=AbciAppDB.data_to_lists(
                     dict(
                         safe_contract_address=cls.safe_contract_address,
                         participants=frozenset(list(cls.safe_owners.keys())),
@@ -123,7 +123,7 @@ class TransactionSettlementIntegrationBaseCase(
 
         cls.price_estimation_synchronized_data = PriceEstimationSynchronizedSata(
             AbciAppDB(
-                initial_data=AbciAppDB.data_to_lists(
+                setup_data=AbciAppDB.data_to_lists(
                     dict(
                         safe_contract_address=cls.safe_contract_address,
                         participants=frozenset(list(cls.safe_owners.keys())),
@@ -327,7 +327,7 @@ class TestKeepers(OracleBehaviourBaseCase, IntegrationBaseCase):
         # init synchronized data
         cls.tx_settlement_synchronized_data = TxSettlementSynchronizedSata(
             AbciAppDB(
-                initial_data=dict(
+                setup_data=dict(
                     participants=[frozenset(list(cls.agents.keys()))],
                     most_voted_randomness=["0xabcd"],
                 ),
