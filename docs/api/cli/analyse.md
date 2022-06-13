@@ -107,11 +107,13 @@ Parse logs.
     "--skip",
     type=str,
     default="abstract_abci",
+    help="Specify which skills to skip. Eg. skill_0,skill_1,skill_2",
 )
 @click.option(
     "--common",
     type=str,
     default="abci",
+    help="Specify which handlers to check. Eg. handler_a,handler_b,handler_c",
 )
 def run_handler_check(packages_dir: Path, skip: str, common: str) -> None
 ```
