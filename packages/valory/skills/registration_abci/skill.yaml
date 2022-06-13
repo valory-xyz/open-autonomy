@@ -8,19 +8,19 @@ aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
   README.md: QmYgDsnQnryPwFXnaNTns1ypH9jqvYeHGgmP9K2y4tXFJy
   __init__.py: QmcMo5TeB1s4UWwEwXT8Xdsw7nNXzwJe7YXE3RgsSwEp7R
-  behaviours.py: QmQoC4QpzM1vJgJ2AtbGX2rVm65kY6Em9T3nnkKGacgWwv
+  behaviours.py: QmULVxG7PZJomegvdqJBUUTLnCgyXWNzTgSgVQEoHSLnfU
   dialogues.py: QmT6ojZQVrHPZC8vU4qMUAYwSuoyfENztqPgqMr2DyLQ13
   fsm_specification.yaml: QmWdzYEs29KmtKoX9wNHDBr87WonhLipHBk2tETTZaoTVF
   handlers.py: QmbMyUGebee8rTgVMg8dK5YSYgnsCMZc5ZnKVVaT8trSCJ
   models.py: QmP1o1MJF1qQtRurgzZ2fdRHWdu3G6xrTxUWy9GdYtHihT
   payloads.py: QmdJ8VRZmEXnJWx4oNcizaxjgBtEhanFBY2cU3g4UWM7s5
-  rounds.py: QmY8BSRWJvsziYPqb1N3fzMMCamPY4BujACDQTqzTpFyg7
+  rounds.py: QmYgHjxQYBk5n47BzfeKwKfWDsCVRBQszesVNKJ24tnshB
 fingerprint_ignore_patterns: []
 connections: []
 contracts: []
 protocols: []
 skills:
-- valory/abstract_round_abci:0.1.0:QmXtomoS1r7MW8LV86oXXbdso7ao9nYnPmc1sJMpGaHy9a
+- valory/abstract_round_abci:0.1.0:QmWAFjNZfwf9zncMwKE3APLUhW7Myrc6o7Hk6LcK8UyenW
 behaviours:
   main:
     args: {}

@@ -677,14 +677,14 @@ def test_synchronized_datas() -> None:
 
     # test `keeper_retries` property when no `keepers` are set.
     synchronized_data_____ = TransactionSettlementSynchronizedSata(
-        AbciAppDB(initial_data=dict())
+        AbciAppDB(setup_data=dict())
     )
     assert synchronized_data_____.keepers == deque()
     assert synchronized_data_____.keeper_retries == 0
 
     synchronized_data_____ = TransactionSettlementSynchronizedSata(
         AbciAppDB(
-            initial_data=AbciAppDB.data_to_lists(
+            setup_data=AbciAppDB.data_to_lists(
                 dict(
                     participants=participants,
                     participant_to_randomness=participant_to_randomness,

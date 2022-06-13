@@ -104,11 +104,18 @@ Parse logs.
     default=Path.cwd() / "packages",
 )
 @click.option(
-    "--handler-config",
-    type=click.Path(),
-    default=Path.cwd() / "scripts" / "handler_config.json",
+    "--skip",
+    type=str,
+    default="abstract_abci",
+    help="Specify which skills to skip. Eg. skill_0,skill_1,skill_2",
 )
-def run_handler_check(packages_dir: Path, handler_config: Path) -> None
+@click.option(
+    "--common",
+    type=str,
+    default="abci",
+    help="Specify which handlers to check. Eg. handler_a,handler_b,handler_c",
+)
+def run_handler_check(packages_dir: Path, skip: str, common: str) -> None
 ```
 
 Check handler definitions.

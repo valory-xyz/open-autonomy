@@ -98,7 +98,7 @@ class BaseRegistrationTestBehaviour(RegistrationAbciBaseCase):
     next_behaviour_class = BaseBehaviour
 
     @pytest.mark.parametrize(
-        "initial_data, expected_initialisation",
+        "setup_data, expected_initialisation",
         (
             ({}, None),
             ({"test": []}, None),
@@ -106,13 +106,13 @@ class BaseRegistrationTestBehaviour(RegistrationAbciBaseCase):
         ),
     )
     def test_registration(
-        self, initial_data: Dict, expected_initialisation: Optional[str]
+        self, setup_data: Dict, expected_initialisation: Optional[str]
     ) -> None:
         """Test registration."""
         self.fast_forward_to_behaviour(
             self.behaviour,
             self.behaviour_class.behaviour_id,
-            RegistrationSynchronizedData(AbciAppDB(initial_data=initial_data)),
+            RegistrationSynchronizedData(AbciAppDB(setup_data=setup_data)),
         )
         assert isinstance(self.behaviour.current_behaviour, BaseBehaviour)
         assert (
