@@ -1,18 +1,18 @@
-<a id="aea_swarm.cli.core"></a>
+<a id="autonomy.cli.core"></a>
 
-# aea`_`swarm.cli.core
+# autonomy.cli.core
 
 Core for cli.
 
-<a id="aea_swarm.cli.core.swarm_cli"></a>
+<a id="autonomy.cli.core.autonomy_cli"></a>
 
-#### swarm`_`cli
+#### autonomy`_`cli
 
 ```python
-@click.group(name="swarm")  # type: ignore
+@click.group(name="autonomy")  # type: ignore
 @click.pass_context
-def swarm_cli(click_context: click.Context) -> None
+def autonomy_cli(click_context: click.Context) -> None
 ```
 
-Command-line tool for setting up an swarms of AEAs.
+Command-line tool for setting up an autonomys of AEAs.
 

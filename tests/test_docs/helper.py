@@ -28,7 +28,7 @@ from typing import Callable, Dict, List, Optional
 import click
 import mistune  # type: ignore
 
-from aea_swarm.cli.core import swarm_cli
+from autonomy.cli.core import autonomy_cli
 
 from tests.conftest import ROOT_DIR
 
@@ -39,7 +39,7 @@ PYTHON_LINE_COMMENT_REGEX = r"^#.*\n"
 DOC_ELLIPSIS_REGEX = r"\s*#\s...\n"
 PYTHON_COMMAND = r"^pyt(hon|est) (?P<file_name>.*\.py).*$"
 MAKE_COMMAND = r"^make (?P<cmd_name>.*)$"
-SWARM_COMMAND = r"^(?P<cmd_name>swarm .*)$"
+AUTONOMY_COMMAND = r"^(?P<cmd_name>autonomy .*)$"
 MAKEFILE_COMMAND = r"^(?P<command>.*):$"
 
 
@@ -191,20 +191,20 @@ def extract_make_commands(makefile_paths: List[str]) -> List[str]:
     return commands
 
 
-def extract_swarm_commands() -> List[str]:
-    """Extract swarm commands from the swarm cli"""
+def extract_autonomy_commands() -> List[str]:
+    """Extract autonomy commands from the autonomy cli"""
     cmd_list = []
-    for cmd_name in swarm_cli.list_commands(click.Context):
-        cmd = swarm_cli.get_command(click.Context, cmd_name)
+    for cmd_name in autonomy_cli.list_commands(click.Context):
+        cmd = autonomy_cli.get_command(click.Context, cmd_name)
         cmd_list += [
-            f"swarm {cmd_name} {sub_cmd_name}"
+            f"autonomy {cmd_name} {sub_cmd_name}"
             for sub_cmd_name in cmd.list_commands(click.Context)
         ]
     return cmd_list
 
 
 def check_bash_commands_exist(
-    md_file: str, make_commands: List[str], swarm_commands: List[str]
+    md_file: str, make_commands: List[str], autonomy_commands: List[str]
 ) -> None:
     """Check whether a bash code block exists in the codebase"""
     # Load the code file and process it
@@ -235,11 +235,11 @@ def check_bash_commands_exist(
                     ), f"Make command '{mk_cmd}' referenced in {md_file} is not present in the Makefile"
                 continue
 
-            # Swarm commands
-            match = re.match(SWARM_COMMAND, line)
+            # autonomy commands
+            match = re.match(AUTONOMY_COMMAND, line)
             if match:
-                swarm_cmd = match.groupdict()["cmd_name"]
+                autonomy_cmd = match.groupdict()["cmd_name"]
                 assert any(
-                    swarm_cmd.startswith(cmd) for cmd in swarm_commands
-                ), f"Swarm command '{swarm_cmd}' referenced in {md_file} is not present in the swarm cli"
+                    autonomy_cmd.startswith(cmd) for cmd in autonomy_commands
+                ), f"autonomy command '{autonomy_cmd}' referenced in {md_file} is not present in the autonomy cli"
                 continue

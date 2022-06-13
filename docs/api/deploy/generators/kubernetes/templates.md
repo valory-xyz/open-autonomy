@@ -1,6 +1,6 @@
-<a id="aea_swarm.deploy.generators.kubernetes.templates"></a>
+<a id="autonomy.deploy.generators.kubernetes.templates"></a>
 
-# aea`_`swarm.deploy.generators.kubernetes.templates
+# autonomy.deploy.generators.kubernetes.templates
 
 Kubernetes Templates module.
 

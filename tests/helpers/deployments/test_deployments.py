@@ -29,16 +29,16 @@ from typing import Any, List, Tuple, cast
 
 import yaml
 
-from aea_swarm.configurations.base import Service
-from aea_swarm.configurations.validation import ConfigValidator
-from aea_swarm.constants import (
+from autonomy.configurations.base import Service
+from autonomy.configurations.validation import ConfigValidator
+from autonomy.constants import (
     HARDHAT_IMAGE_VERSION,
     IMAGE_VERSION,
     TENDERMINT_IMAGE_VERSION,
 )
-from aea_swarm.deploy.base import BaseDeploymentGenerator, ServiceSpecification
-from aea_swarm.deploy.generators.docker_compose.base import DockerComposeGenerator
-from aea_swarm.deploy.generators.kubernetes.base import KubernetesGenerator
+from autonomy.deploy.base import BaseDeploymentGenerator, ServiceSpecification
+from autonomy.deploy.generators.docker_compose.base import DockerComposeGenerator
+from autonomy.deploy.generators.kubernetes.base import KubernetesGenerator
 
 
 deployment_generators: List[Any] = [
