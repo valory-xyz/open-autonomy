@@ -23,7 +23,7 @@
 
 10. Pull main, make a clean environment (`pipenv --rm` and `pipenv --python 3.10` and `pipenv shell`) and create distributions: `make dist`.
 
-11. Publish to PyPI with twine: `twine upload dist/*`. Optionally, publish to Test-PyPI with twine:
+11. Publish to PyPI with twine (`pip install twine`): `twine upload dist/*`. Optionally, publish to Test-PyPI with twine:
 `twine upload --repository-url https://test.pypi.org/legacy/ dist/*`.
 
 12. Make clean environment and install release from PyPI: `pip install open-autonomy --no-cache`.
