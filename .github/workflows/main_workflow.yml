@@ -141,8 +141,8 @@ jobs:
 
     strategy:
       matrix:
-        os: [ windows-latest, macos-latest ] # TODO add [macos-latest, windows-latest]
-        python-version: [ 3.7 ] # TODO add [3.8, 3.9]
+        os: [ windows-latest ]
+        python-version: [ 3.7 ]
 
     timeout-minutes: 30
 
@@ -251,15 +251,6 @@ jobs:
           cd third_party/contracts-amm &&\
             yarn
           
-          # Building LLVM (for the google/atheris python package)
-          #git clone https://github.com/llvm/llvm-project.git
-          #cd llvm-project
-          #mkdir build
-          #cd build
-          #cmake -DLLVM_ENABLE_PROJECTS='clang;compiler-rt' -G "Unix Makefiles" ../llvm
-          #make -j 10  # This step is very slow
-          # make new clang available in the environment
-          #echo "CLANG_BIN="$(pwd)/bin/clang"" >> $GITHUB_ENV
       - if: matrix.os == 'windows-latest'
         name: Install dependencies (windows-latest)
         env:
@@ -299,7 +290,7 @@ jobs:
           cp tendermint.exe C:\Users\runneradmin\go\bin\
 
           # install skaffold
-          curl -Lo skaffold https://storage.googleapis.com/skaffold/releases/latest/skaffold-windows-amd64.exe && \
+          curl -Lo skaffold https://storage.googleapis.com/skaffold/releases/latest/skaffold-windows-amd64.exe
           cp skaffold C:\Users\runneradmin\go\bin\
           skaffold --help
 
