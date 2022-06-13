@@ -1,10 +1,10 @@
-<a id="aea_swarm.analyse.abci.logs"></a>
+<a id="autonomy.analyse.abci.logs"></a>
 
-# aea`_`swarm.analyse.abci.logs
+# autonomy.analyse.abci.logs
 
 Tools to parse agent logs.
 
-<a id="aea_swarm.analyse.abci.logs.Color"></a>
+<a id="autonomy.analyse.abci.logs.Color"></a>
 
 ## Color Objects
 
@@ -14,7 +14,7 @@ class Color(Enum)
 
 Standard terminal color codes.
 
-<a id="aea_swarm.analyse.abci.logs.parse_file"></a>
+<a id="autonomy.analyse.abci.logs.parse_file"></a>
 
 #### parse`_`file
 

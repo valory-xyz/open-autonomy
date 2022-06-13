@@ -1,6 +1,6 @@
-<a id="aea_swarm.analyse.benchmark.html"></a>
+<a id="autonomy.analyse.benchmark.html"></a>
 
-# aea`_`swarm.analyse.benchmark.html
+# autonomy.analyse.benchmark.html
 
 HTML templates for benchmark outputs.
 

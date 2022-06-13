@@ -1,10 +1,10 @@
-<a id="aea_swarm.replay.agent"></a>
+<a id="autonomy.replay.agent"></a>
 
-# aea`_`swarm.replay.agent
+# autonomy.replay.agent
 
 Tools to build and run agents from existing deployments.
 
-<a id="aea_swarm.replay.agent.AgentRunner"></a>
+<a id="autonomy.replay.agent.AgentRunner"></a>
 
 ## AgentRunner Objects
 
@@ -14,7 +14,7 @@ class AgentRunner()
 
 Agent runner.
 
-<a id="aea_swarm.replay.agent.AgentRunner.__init__"></a>
+<a id="autonomy.replay.agent.AgentRunner.__init__"></a>
 
 #### `__`init`__`
 
@@ -24,7 +24,7 @@ def __init__(agent_id: int, agent_data: Dict, registry_path: Path) -> None
 
 Initialize object.
 
-<a id="aea_swarm.replay.agent.AgentRunner.start"></a>
+<a id="autonomy.replay.agent.AgentRunner.start"></a>
 
 #### start
 
@@ -34,7 +34,7 @@ def start() -> None
 
 Start process.
 
-<a id="aea_swarm.replay.agent.AgentRunner.stop"></a>
+<a id="autonomy.replay.agent.AgentRunner.stop"></a>
 
 #### stop
 
