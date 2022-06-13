@@ -365,7 +365,7 @@ def test_synchronized_datas() -> None:
 
     synchronized_data = SynchronizedData(
         AbciAppDB(
-            initial_data=AbciAppDB.data_to_lists(
+            setup_data=AbciAppDB.data_to_lists(
                 dict(
                     participants=participants,
                     participant_to_randomness=participant_to_randomness,
@@ -386,7 +386,7 @@ def test_synchronized_datas() -> None:
 
     synchronized_data____ = RegistrationSynchronizedSata(
         AbciAppDB(
-            initial_data=AbciAppDB.data_to_lists(
+            setup_data=AbciAppDB.data_to_lists(
                 dict(
                     participants=participants,
                     participant_to_randomness=participant_to_randomness,
@@ -406,7 +406,7 @@ def test_synchronized_datas() -> None:
 
     synchronized_data______ = PriceEstimationSynchronizedSata(
         AbciAppDB(
-            initial_data=AbciAppDB.data_to_lists(
+            setup_data=AbciAppDB.data_to_lists(
                 dict(
                     participants=participants,
                     participant_to_randomness=participant_to_randomness,
