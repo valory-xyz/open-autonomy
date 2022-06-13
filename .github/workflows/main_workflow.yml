@@ -300,19 +300,18 @@ jobs:
           # docker pull trufflesuite/ganache:beta
 
           # build hardhat node in third_party/safe-contracts
-          cd third_party\safe-contracts &&\
-            sudo chown -R $(whoami) .husky &&\
-            yarn
+          cd third_party\safe-contracts
+          sudo chown -R $(whoami) .husky 
+          yarn
+          cd ..\..
 
           # build hardhat node in third_party/contracts-amm
+          cd third_party\contracts-amm
+          yarn
           cd ..\..
-          cd third_party\contracts-amm &&\
-            yarn
 
       - name: Unit tests
         run: |
-          #CLANG_BIN="${{ env.CLANG_BIN }}"
-          #CLANG_BIN="${CLANG_BIN}" tox -e py${{ matrix.python-version }} -- -m 'not e2e'
           tox -e py${{ matrix.python-version }} -- -m 'not e2e'
       - if: matrix.os == 'ubuntu-latest'
         name: Upload coverage to Codecov
