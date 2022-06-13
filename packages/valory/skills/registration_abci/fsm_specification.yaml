@@ -20,4 +20,3 @@ transition_func:
     (RegistrationRound, NO_MAJORITY): RegistrationRound
     (RegistrationStartupRound, DONE): FinishedRegistrationRound
     (RegistrationStartupRound, FAST_FORWARD): FinishedRegistrationFFWRound
-    (RegistrationStartupRound, NO_MAJORITY): RegistrationStartupRound

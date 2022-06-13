@@ -127,7 +127,6 @@ class AgentRegistrationAbciApp(AbciApp[Event]):
         0. RegistrationStartupRound
             - done: 2.
             - fast forward: 3.
-            - no majority: 0.
         1. RegistrationRound
             - done: 3.
             - no majority: 1.
@@ -146,7 +145,6 @@ class AgentRegistrationAbciApp(AbciApp[Event]):
         RegistrationStartupRound: {
             Event.DONE: FinishedRegistrationRound,
             Event.FAST_FORWARD: FinishedRegistrationFFWRound,
-            Event.NO_MAJORITY: RegistrationStartupRound,
         },
         RegistrationRound: {
             Event.DONE: FinishedRegistrationFFWRound,
