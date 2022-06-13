@@ -19,7 +19,6 @@
 
 """Analyse CLI module."""
 import importlib
-import json
 import sys
 from pathlib import Path
 from typing import Optional
@@ -165,17 +164,22 @@ def parse_logs(file: Path) -> None:
     default=Path.cwd() / "packages",
 )
 @click.option(
-    "--handler-config",
-    type=click.Path(),
-    default=Path.cwd() / "scripts" / "handler_config.json",
+    "--skip",
+    type=str,
+    default="abstract_abci",
+    help="Specify which skills to skip. Eg. skill_0,skill_1,skill_2",
 )
-def run_handler_check(packages_dir: Path, handler_config: Path) -> None:
+@click.option(
+    "--common",
+    type=str,
+    default="abci",
+    help="Specify which handlers to check. Eg. handler_a,handler_b,handler_c",
+)
+def run_handler_check(packages_dir: Path, skip: str, common: str) -> None:
     """Check handler definitions."""
-    handler_config = Path(handler_config).absolute()
-    handler_config_data = json.loads(handler_config.read_text(encoding="utf-8"))
 
-    skip_skills = handler_config_data["skip_skills"]
-    common_handlers = handler_config_data["common_handlers"]
+    skip_skills = skip.split(",")
+    common_handlers = common.split(",")
     packages_dir = Path(packages_dir)
 
     try:
