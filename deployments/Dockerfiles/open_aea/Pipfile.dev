@@ -18,4 +18,4 @@ open-aea-ledger-ethereum = {editable = true, path = "/open-aea/plugins/aea-ledge
 py_eth_sig_utils = {version = "==0.4.0"}
 
 [requires]
-python_version = "3.8"
+python_version = "3.10"

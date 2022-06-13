@@ -526,40 +526,40 @@ class AbciAppDB:
 
     def __init__(
         self,
-        initial_data: Dict[str, List[Any]],
+        setup_data: Dict[str, List[Any]],
         cross_period_persisted_keys: Optional[List[str]] = None,
     ) -> None:
         """Initialize the AbciApp database.
 
-        Initial_data must be passed as a Dict[str, List[Any]] (the database internal format). The class method 'data_to_lists'
+        setup_data must be passed as a Dict[str, List[Any]] (the database internal format). The class method 'data_to_lists'
         can be used to convert from Dict[str, Any] to Dict[str, List[Any]] before instantiating this class.
 
-        :param initial_data: the initial data
+        :param setup_data: the setup data
         :param cross_period_persisted_keys: data keys that will be kept after a new period starts
         """
-        AbciAppDB._check_data(initial_data)
-        self._initial_data = initial_data
+        AbciAppDB._check_data(setup_data)
+        self._setup_data = setup_data
         self._cross_period_persisted_keys = cross_period_persisted_keys or []
         self._data: Dict[int, Dict[str, List[Any]]] = {
             RESET_COUNT_START: deepcopy(
-                self.initial_data
+                self.setup_data
             )  # the key represents the reset index
         }
         self._round_count = ROUND_COUNT_DEFAULT  # ensures first round is indexed at 0!
 
     @property
-    def initial_data(self) -> Dict[str, Any]:
+    def setup_data(self) -> Dict[str, Any]:
         """
-        Get the initial_data without entries which have empty values.
+        Get the setup_data without entries which have empty values.
 
-        :return: the initial_data
+        :return: the setup_data
         """
         # do not return data if no value has been set
-        return {k: v for k, v in self._initial_data.items() if len(v)}
+        return {k: v for k, v in self._setup_data.items() if len(v)}
 
     @staticmethod
     def _check_data(data: Any) -> None:
-        """Check that all fields in initial data were passed as a list"""
+        """Check that all fields in setup data were passed as a list"""
         if not isinstance(data, dict) or not all(
             [isinstance(v, list) for v in data.values()]
         ):
@@ -1124,29 +1124,14 @@ class CollectionRound(AbstractRound):
             )
 
 
-class CollectDifferentUntilAllRound(CollectionRound):
+class _CollectUntilAllRound(CollectionRound, ABC):
     """
-    CollectDifferentUntilAllRound
+    _CollectUntilAllRound
 
-    This class represents logic for rounds where a round needs to collect
-    different payloads from each agent.
+    This class represents logic for when rounds need to collect payloads from all agents.
 
     This round should only be used for registration of new agents.
     """
-
-    def process_payload(self, payload: BaseTxPayload) -> None:
-        """Process payload."""
-        if payload.round_count != self.synchronized_data.round_count:
-            raise ABCIAppInternalError(
-                f"Expected round count {self.synchronized_data.round_count} and got {payload.round_count}."
-            )
-
-        if payload.sender in self.collection:
-            raise ABCIAppInternalError(
-                f"sender {payload.sender} has already sent value for round: {self.round_id}"
-            )
-
-        self.collection[payload.sender] = payload
 
     def check_payload(self, payload: BaseTxPayload) -> None:
         """Check Payload"""
@@ -1160,6 +1145,15 @@ class CollectDifferentUntilAllRound(CollectionRound):
                 f"sender {payload.sender} has already sent value for round: {self.round_id}"
             )
 
+    def process_payload(self, payload: BaseTxPayload) -> None:
+        """Process payload."""
+        try:
+            self.check_payload(payload)
+        except TransactionNotValidError as e:
+            raise ABCIAppInternalError(e.args[0]) from e
+
+        self.collection[payload.sender] = payload
+
     @property
     def collection_threshold_reached(
         self,
@@ -1167,15 +1161,76 @@ class CollectDifferentUntilAllRound(CollectionRound):
         """Check that the collection threshold has been reached."""
         return len(self.collection) >= self._consensus_params.max_participants
 
+
+class CollectDifferentUntilAllRound(_CollectUntilAllRound, ABC):
+    """
+    CollectDifferentUntilAllRound
+
+    This class represents logic for rounds where a round needs to collect
+    different payloads from each agent.
+
+    This round should only be used for registration of new agents when there is synchronization of the db.
+    """
+
+    def check_payload(self, payload: BaseTxPayload) -> None:
+        """Check Payload"""
+        collected_value = getattr(payload, self.payload_attribute)
+        attribute_values = (
+            getattr(collection_value, self.payload_attribute)
+            for collection_value in self.collection.values()
+        )
+
+        if (
+            payload.sender not in self.collection
+            and collected_value in attribute_values
+        ):
+            raise TransactionNotValidError(
+                f"`CollectDifferentUntilAllRound` encountered a value '{collected_value}' that already exists. "
+                f"All values: {attribute_values}"
+            )
+
+        super().check_payload(payload)
+
+
+class CollectSameUntilAllRound(_CollectUntilAllRound, ABC):
+    """
+    This class represents logic for when a round needs to collect the same payload from all the agents.
+
+    This round should only be used for registration of new agents when there is no synchronization of the db.
+    """
+
+    def check_payload(self, payload: BaseTxPayload) -> None:
+        """Check Payload"""
+        collected_value = getattr(payload, self.payload_attribute)
+        attribute_values = tuple(
+            getattr(collection_value, self.payload_attribute)
+            for collection_value in self.collection.values()
+        )
+
+        if (
+            payload.sender not in self.collection
+            and len(self.collection)
+            and collected_value not in attribute_values
+        ):
+            raise TransactionNotValidError(
+                f"`CollectSameUntilAllRound` encountered a value '{collected_value}' "
+                f"which is not the same as the already existing one: '{attribute_values[0]}'"
+            )
+
+        super().check_payload(payload)
+
     @property
-    def most_voted_payload(
+    def common_payload(
         self,
     ) -> Any:
-        """Get the most voted payload."""
-        most_voted_payload, max_votes = self.payloads_count.most_common()[0]
+        """Get the common payload among the agents."""
+        most_common_payload, max_votes = self.payloads_count.most_common(1)[0]
         if max_votes < self._consensus_params.max_participants:
-            raise ABCIAppInternalError("not enough votes")
-        return most_voted_payload
+            raise ABCIAppInternalError(
+                f"{max_votes} votes are not enough for `CollectSameUntilAllRound`. Expected: "
+                f"`n_votes = max_participants = {self._consensus_params.max_participants}`"
+            )
+        return most_common_payload
 
 
 class CollectSameUntilThresholdRound(CollectionRound):

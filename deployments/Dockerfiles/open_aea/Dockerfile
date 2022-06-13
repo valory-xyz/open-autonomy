@@ -8,8 +8,8 @@ ENV PATH=$PATH:/home/ubuntu/.local/bin
 RUN sudo apt-get update --fix-missing
 RUN sudo apt-get autoremove
 RUN sudo apt-get autoclean
-RUN sudo apt-get install python3.8 python3.8-dev git -y
-RUN cd /usr/bin && sudo rm python3 && sudo ln -s python3.8 python3 && sudo ln -s python3.8 python
+RUN sudo apt-get install python3.10 python3.10-dev git -y
+RUN cd /usr/bin && sudo rm python3 && sudo ln -s python3.10 python3 && sudo ln -s python3.10 python
 # used in Docker-compose to wait until Hardhat node is up
 RUN sudo apt-get install net-tools subversion -y
 RUN python -m pip install --upgrade pip
@@ -23,9 +23,8 @@ RUN ipfs init
 WORKDIR /home/ubuntu
 
 COPY Pipfile .
-
 RUN python -m pip install --force-reinstall pipenv virtualenv --user
-RUN pipenv --python 3.8
+RUN sudo pipenv --python 3.10
 RUN pipenv install --system --skip-lock
 
 RUN svn checkout https://github.com/valory-xyz/open-aea/trunk/packages packages
