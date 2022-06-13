@@ -1,6 +1,6 @@
 # Cloud Deployment
 
-We have provided a number of ways to run the {{valory_stack}} across multiple different cloud providers.
+We have provided a number of ways to run {{agent_services}} build with the {{open_autonomy}} framework across multiple different cloud providers.
 
 The deployment has been implemented using a minimal distribution of Kubernetes to run as close to the bare metal as allowable.
 

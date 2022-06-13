@@ -2,9 +2,9 @@
 
 !!!note
     For clarity, the snippets of code presented here are a simplified version of the actual
-    implementation. We refer the reader to the {{valory_stack_api}} for the complete details.
+    implementation. We refer the reader to the {{open_autonomy_api}} for the complete details.
 
-The `AbciApp` abstract class provides the necessary interface for implementation of {{abci_app}}s. Concrete implementations of the `AbciApp` class requires that the
+The `AbciApp` abstract class provides the necessary interface for implementation of {{fsm_app}}s. Concrete implementations of the `AbciApp` class requires that the
 developer implement the class attributes `initial_round_cls`,
 `transition_function` and `final_states`. The internal
 `_MetaRoundBehaviour` metaclass is used to enforce this during implementation by the developer.
@@ -122,7 +122,7 @@ direction LR
 The mandatory field `initial_round_cls` indicates the round associated to the initial state of the FSM.
 The set of `initial_states` is optionally provided by the developer. If none is provided,
 provided a set containing the `initial_round_cls` is inferred automatically.
-When the {{abci_app}} processes an `Event` it schedules the round associated to the next state by looking at the corresponding transition from the `transition_function` and sets the associated timeouts, if
+When the {{fsm_app}} processes an `Event` it schedules the round associated to the next state by looking at the corresponding transition from the `transition_function` and sets the associated timeouts, if
 any.
 
-In addition to the `AbciApp`class, the {{abci_app}} also requires that the `AbstractRoundBehaviour` class be implemented in order to run the state transition logic contained in it.
+In addition to the `AbciApp`class, the {{fsm_app}} also requires that the `AbstractRoundBehaviour` class be implemented in order to run the state transition logic contained in it.

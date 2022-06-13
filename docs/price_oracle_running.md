@@ -1,13 +1,13 @@
 # Price Oracle - Running the Demo
 
-This demo consists of a network of AEAs, implemented as {{abci_app}}s reaching
+This demo consists of a network of AEAs, implemented as {{fsm_app}}s reaching
 Byzantine fault-tolerant consensus, that work as an Oracle to jointly agree on a price estimate
 of the current Bitcoin price in US dollars. The underlying
-consensus mechanism for the {{abci_app}} is powered by Tendermint.
+consensus mechanism for the {{fsm_app}} is powered by Tendermint.
 
 ## Requirements
 
-In addition to the general requirements presented for setting up the {{valory_stack}}, make sure that you have installed on your machine:
+In addition to the general requirements presented for setting up the {{open_autonomy}} framework, make sure that you have installed on your machine:
 
 - [Docker Engine](https://docs.docker.com/engine/install/)
 - [Docker Compose](https://docs.docker.com/compose/install/)

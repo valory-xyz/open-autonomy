@@ -109,7 +109,7 @@ A quick overview of the ABCI protocol is depicted in the diagram below. See the 
 <figcaption>Overview of the flow of messages via the ABCI protocol</figcaption>
 </figure>
 
-## ABCI Apps and the {{valory_stack}}
+## ABCI Apps and the {{open_autonomy}} framework
 
 The reader might have noticed that we have used the concepts of "reactive callbacks" from the Tendermint blockchain to the ABCI App, and "proactive calls" from the ABCI App to the blockchain.
 This is by no means a coincidence with the architecture of an [AEA](./aea.md): the former are associated to reactive Handlers, whereas the latter are associated to proactive Behaviours in an AEA Skill.
@@ -223,9 +223,7 @@ Also, the ABCI App state can be queried by means of the
 request.
 The sender has to provide the `path` parameter (a string) and the `data`
 parameter (a string). The actual content will depend on the queries the ABCI App
-supports.
-
-The consensus node forwards the query through the `Query` request.
+supports. The consensus node forwards the query through the `Query` request.
 
 <figure markdown>
 <div class="mermaid">
