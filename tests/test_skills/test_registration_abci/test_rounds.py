@@ -26,6 +26,7 @@ from packages.valory.skills.abstract_round_abci.base import AbciAppDB
 from packages.valory.skills.abstract_round_abci.base import (
     BaseSynchronizedData as SynchronizedData,
 )
+from packages.valory.skills.abstract_round_abci.base import CollectSameUntilAllRound
 from packages.valory.skills.registration_abci.payloads import RegistrationPayload
 from packages.valory.skills.registration_abci.rounds import Event as RegistrationEvent
 from packages.valory.skills.registration_abci.rounds import (
@@ -34,11 +35,12 @@ from packages.valory.skills.registration_abci.rounds import (
 )
 
 from tests.test_skills.test_abstract_round_abci.test_base_rounds import (
+    BaseCollectSameUntilAllRoundTest,
     BaseCollectSameUntilThresholdRoundTest,
 )
 
 
-class TestRegistrationStartupRound(BaseCollectSameUntilThresholdRoundTest):
+class TestRegistrationStartupRound(BaseCollectSameUntilAllRoundTest):
     """Test RegistrationStartupRound."""
 
     _synchronized_data_class = SynchronizedData
@@ -152,10 +154,17 @@ class TestRegistrationStartupRound(BaseCollectSameUntilThresholdRoundTest):
             synchronized_data=self.synchronized_data,
             consensus_params=self.consensus_params,
         )
-        self._run_with_round(
-            test_round,
-            confirmations=None,
-        )
+
+        with mock.patch.object(
+            CollectSameUntilAllRound,
+            "collection_threshold_reached",
+            new_callable=mock.PropertyMock,
+        ) as threshold_mock:
+            threshold_mock.return_value = False
+            self._run_with_round(
+                test_round,
+                finished=False,
+            )
 
         assert self.synchronized_data.db._data[0] == {
             "all_participants": [
@@ -172,7 +181,6 @@ class TestRegistrationStartupRound(BaseCollectSameUntilThresholdRoundTest):
         round_payloads: Optional[Dict[str, RegistrationPayload]] = None,
         most_voted_payload: Optional[Any] = None,
         expected_event: Optional[RegistrationEvent] = None,
-        confirmations: Optional[int] = 11,
         finished: bool = True,
     ) -> None:
         """Run with given round."""
@@ -196,23 +204,14 @@ class TestRegistrationStartupRound(BaseCollectSameUntilThresholdRoundTest):
             ],
             most_voted_payload=most_voted_payload,
             exit_event=expected_event,
+            finished=finished,
         )
 
         next(test_runner)
-        if confirmations is None:
-            assert (
-                test_round.block_confirmations
-                <= test_round.required_block_confirmations
-            )
-
-        else:
-            test_round.block_confirmations = confirmations
-            test_round = next(test_runner)
-            prior_confirmations = test_round.block_confirmations
+        next(test_runner)
+        next(test_runner)
+        if finished:
             next(test_runner)
-            assert test_round.block_confirmations == prior_confirmations + 1
-            if finished:
-                next(test_runner)
 
 
 class TestRegistrationRound(BaseCollectSameUntilThresholdRoundTest):

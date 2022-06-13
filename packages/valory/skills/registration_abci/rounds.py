@@ -27,6 +27,7 @@ from packages.valory.skills.abstract_round_abci.base import (
     AbstractRound,
     AppState,
     BaseSynchronizedData,
+    CollectSameUntilAllRound,
     CollectSameUntilThresholdRound,
     DegenerateRound,
 )
@@ -54,22 +55,17 @@ class FinishedRegistrationFFWRound(DegenerateRound):
     round_id = "finished_registration_ffw"
 
 
-class RegistrationStartupRound(CollectSameUntilThresholdRound):
+class RegistrationStartupRound(CollectSameUntilAllRound):
     """A round in which the agents get registered"""
 
     round_id = "registration_startup"
     allowed_tx_type = RegistrationPayload.transaction_type
     payload_attribute = "initialisation"
-    required_block_confirmations = 10
 
     def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Event]]:
         """Process the end of the block."""
-        if self.threshold_reached:
-            self.block_confirmations += 1
         if (  # fast forward at setup
-            self.threshold_reached
-            and self.block_confirmations > self.required_block_confirmations
-            and self.most_voted_payload is not None
+            self.collection_threshold_reached and self.common_payload is not None
         ):
             synchronized_data = self.synchronized_data.update(
                 participants=frozenset(self.collection),
@@ -77,23 +73,13 @@ class RegistrationStartupRound(CollectSameUntilThresholdRound):
                 synchronized_data_class=BaseSynchronizedData,
             )
             return synchronized_data, Event.FAST_FORWARD
-        if (
-            self.threshold_reached
-            and self.block_confirmations > self.required_block_confirmations
-        ):
+        if self.collection_threshold_reached:
             synchronized_data = self.synchronized_data.update(
                 participants=frozenset(self.collection),
                 all_participants=frozenset(self.collection),
                 synchronized_data_class=BaseSynchronizedData,
             )
             return synchronized_data, Event.DONE
-        if (
-            not self.is_majority_possible(
-                self.collection, self.synchronized_data.nb_participants
-            )
-            and self.block_confirmations > self.required_block_confirmations
-        ):
-            return self.synchronized_data, Event.NO_MAJORITY
         return None
 
 
@@ -141,7 +127,6 @@ class AgentRegistrationAbciApp(AbciApp[Event]):
         0. RegistrationStartupRound
             - done: 2.
             - fast forward: 3.
-            - no majority: 0.
         1. RegistrationRound
             - done: 3.
             - no majority: 1.
@@ -160,7 +145,6 @@ class AgentRegistrationAbciApp(AbciApp[Event]):
         RegistrationStartupRound: {
             Event.DONE: FinishedRegistrationRound,
             Event.FAST_FORWARD: FinishedRegistrationFFWRound,
-            Event.NO_MAJORITY: RegistrationStartupRound,
         },
         RegistrationRound: {
             Event.DONE: FinishedRegistrationFFWRound,

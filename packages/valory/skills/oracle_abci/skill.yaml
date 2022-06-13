@@ -12,7 +12,7 @@ fingerprint:
   behaviours.py: QmQqTFTYEEes3z2F6U7fnTzTcANuvMpd9CcdL9Di1EuCQe
   composition.py: QmTMTXbxA32JvoohYjHTDohMpc2cyWZdLDZyKtCUSvaAnK
   dialogues.py: QmfDThV4WCRzK88XDpW2hKDYCuEH4RxoHCoAkWpkBRGRPv
-  fsm_specification.yaml: Qmev6uuRpLrMPiGC1mmt63EJPaXjckr5GHeqyy764vqDE1
+  fsm_specification.yaml: QmT6SZwTGmgFAZzrN9R2Qa7pY1P9JR8Si7MWKeEgULR9VV
   handlers.py: QmWJtuiUZUphDnxgsxc4Ym2sZT9qSSk3K7BBiKSZMMUEat
   models.py: QmSwdFNXuDkGCP8QB565HNafwtxgnVauUAYfE4FQEoDCgC
 fingerprint_ignore_patterns: []
@@ -24,13 +24,13 @@ contracts:
 protocols:
 - valory/contract_api:1.0.0:QmSobFjLc3baTW1Zf2zfS1X3KJabw7xE6cPJb2g2eAvxSx
 skills:
-- valory/abstract_round_abci:0.1.0:Qmci4QXsbEmzQoxN6wUTodjjebf83ottWafVc47wHCDf21
-- valory/oracle_deployment_abci:0.1.0:QmSLyyXeTgwkCmW62vVRoYk3G1zihkYXAfiFVzw1eAi2Md
-- valory/price_estimation_abci:0.1.0:Qmbtym7FWWMgCnMMb97wqnvbd25gNTzjDeFHzo8J9ktmSj
-- valory/registration_abci:0.1.0:QmPGRFovvsFYy5Cj5Rfss37vADu5gN9kWw5oc4ccgSG9rK
-- valory/reset_pause_abci:0.1.0:QmdcqHEg7zvputZMuc1RLEQPTEVtRyDoUYns8JTF3Lt5PY
-- valory/safe_deployment_abci:0.1.0:QmafGNosQznUsDtWvkBuzwguE6iFmMkavo3SDjY9afvL4n
-- valory/transaction_settlement_abci:0.1.0:QmYasbGGkFJ8JTk2HJV71zqGeL6WyzKUT1WY7ejMFruMGd
+- valory/abstract_round_abci:0.1.0:QmT13i7MZrDkU1N6FwJQCTjc7dphEHhWqJSnWegQfPB8dC
+- valory/oracle_deployment_abci:0.1.0:QmSMeyFKQkQ4Lz6g5RxBFWTTUFrqyMRytWNRsiS9CgCj9b
+- valory/price_estimation_abci:0.1.0:QmageYpcy5kLFHYB9TX8xMP7Tsy3SsYtr1PcmsRajbfUT7
+- valory/registration_abci:0.1.0:QmUUJWT3Rxyr8mtWR7KVdnSe6jzF1NHNMvYxzqpZXs4vMq
+- valory/reset_pause_abci:0.1.0:QmXcTwpjZ6qQCCqKEw3QwWDJTfoWDmmrHSCTNYZ4rA4vUG
+- valory/safe_deployment_abci:0.1.0:QmcjuM48MYcgqVie7MsBus2aAmv6dvir3kMw5sEpvzTjsS
+- valory/transaction_settlement_abci:0.1.0:QmaV9quDokPtAkUXnqUjSA3V22RFnjoewRodPyVgBZdKBT
 behaviours:
   main:
     args: {}

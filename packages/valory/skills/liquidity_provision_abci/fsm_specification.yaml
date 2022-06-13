@@ -91,7 +91,6 @@ transition_func:
     (RegistrationRound, NO_MAJORITY): RegistrationRound
     (RegistrationStartupRound, DONE): RandomnessSafeRound
     (RegistrationStartupRound, FAST_FORWARD): StrategyEvaluationRound
-    (RegistrationStartupRound, NO_MAJORITY): RegistrationStartupRound
     (ResetAndPauseRound, DONE): StrategyEvaluationRound
     (ResetAndPauseRound, NO_MAJORITY): RegistrationRound
     (ResetAndPauseRound, RESET_AND_PAUSE_TIMEOUT): RegistrationRound

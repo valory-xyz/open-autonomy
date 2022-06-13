@@ -71,7 +71,6 @@ transition_func:
     (RegistrationRound, NO_MAJORITY): RegistrationRound
     (RegistrationStartupRound, DONE): CollectHistoryRound
     (RegistrationStartupRound, FAST_FORWARD): CollectHistoryRound
-    (RegistrationStartupRound, NO_MAJORITY): RegistrationStartupRound
     (TestRound, DONE): TrainRound
     (TestRound, FILE_ERROR): RegistrationRound
     (TestRound, NO_MAJORITY): TestRound
