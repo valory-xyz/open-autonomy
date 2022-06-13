@@ -311,7 +311,7 @@ ValueError: The given transaction has not been reverted!
 ```
 
 This error arises because of the way that we check for the revert reason; We currently
-[replay](https://github.com/valory-xyz/consensus-algorithms/blob/25c9eacae692551eb68aad3977017ca9c5fd337b/packages/valory/contracts/gnosis_safe/contract.py#L614-L619)
+[replay](https://github.com/valory-xyz/open-autonomy/blob/25c9eacae692551eb68aad3977017ca9c5fd337b/packages/valory/contracts/gnosis_safe/contract.py#L614-L619)
 the tx locally. However, there is an important limitation with this method. The replayed transaction will be
 executed in isolation. This means that transactions which occurred prior to the replayed transaction within
 the same block will not be accounted for! Therefore, the replay will not raise a `SolidityError` in such case,

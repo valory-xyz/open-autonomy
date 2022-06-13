@@ -1,6 +1,6 @@
-<a id="aea_swarm.configurations.constants"></a>
+<a id="autonomy.configurations.constants"></a>
 
-# aea`_`swarm.configurations.constants
+# autonomy.configurations.constants
 
 Configuration constants.
 

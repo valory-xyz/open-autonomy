@@ -33,7 +33,7 @@ from aea.configurations.constants import PACKAGES
 
 DOCS_DIR = Path("docs/")
 API_DIR = DOCS_DIR / "api/"
-AEA_DIR = Path("aea_swarm")
+AEA_DIR = Path("autonomy")
 PACKAGES_DIR = Path(PACKAGES)
 DEFAULT_PACKAGES = {
     (ComponentType.CONNECTION, "valory/abci:latest"),

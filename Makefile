@@ -71,7 +71,7 @@ security:
 # update copyright headers
 .PHONY: generators
 generators:
-	python -m aea_swarm.cli hash all
+	python -m autonomy.cli hash all
 	python scripts/generate_api_documentation.py
 	python scripts/check_copyright.py
 
@@ -104,30 +104,30 @@ check-copyright:
 
 .PHONY: lint
 lint:
-	black aea_swarm packages/valory scripts tests deployments
-	isort aea_swarm packages/valory scripts tests deployments
-	flake8 aea_swarm packages/valory scripts tests deployments
-	vulture aea_swarm scripts/whitelist.py
-	darglint aea_swarm scripts packages/valory/* tests deployments
+	black autonomy packages/valory scripts tests deployments
+	isort autonomy packages/valory scripts tests deployments
+	flake8 autonomy packages/valory scripts tests deployments
+	vulture autonomy scripts/whitelist.py
+	darglint autonomy scripts packages/valory/* tests deployments
 
 .PHONY: pylint
 pylint:
-	pylint -j4 aea_swarm packages/valory scripts deployments
+	pylint -j4 autonomy packages/valory scripts deployments
 
 
 .PHONY: static
 static:
-	mypy aea_swarm packages/valory scripts deployments --disallow-untyped-defs
+	mypy autonomy packages/valory scripts deployments --disallow-untyped-defs
 	mypy tests --disallow-untyped-defs
 
 .PHONY: package_checks
 package_checks:
-	python -m aea_swarm.cli hash all --check
+	python -m autonomy.cli hash all --check
 	python scripts/check_packages.py --vendor valory
 
 .PHONY: hashes
 hashes:
-	python -m aea_swarm.cli hash all
+	python -m autonomy.cli hash all
 
 .PHONY: api-docs
 api-docs:
@@ -142,7 +142,7 @@ common_checks: security misc_checks lint static docs
 
 .PHONY: test
 test:
-	pytest -rfE --doctest-modules aea_swarm tests/ --cov=aea_swarm --cov-report=html --cov=packages/valory --cov-report=xml --cov-report=term --cov-report=term-missing --cov-config=.coveragerc
+	pytest -rfE --doctest-modules autonomy tests/ --cov=autonomy --cov-report=html --cov=packages/valory --cov-report=xml --cov-report=term --cov-report=term-missing --cov-config=.coveragerc
 	find . -name ".coverage*" -not -name ".coveragerc" -exec rm -fr "{}" \;
 
 .PHONY: all-checks
@@ -194,11 +194,7 @@ install: clean
 .PHONY: dist
 dist: clean
 	python setup.py sdist
-	WIN_BUILD_WHEEL=1 python setup.py bdist_wheel --plat-name=win_amd64
-	WIN_BUILD_WHEEL=1 python setup.py bdist_wheel --plat-name=win32
-	python setup.py bdist_wheel --plat-name=manylinux1_x86_64
-	python setup.py bdist_wheel --plat-name=manylinux2014_aarch64
-	python setup.py bdist_wheel --plat-name=macosx_10_9_x86_64
+	python setup.py bdist_wheel
 
 h := $(shell git rev-parse --abbrev-ref HEAD)
 
@@ -246,15 +242,15 @@ build-images:
 		echo "Ensure you have exported a version to build!";\
 		exit 1
 	fi
-	swarm deploy build image ${SERVICE_ID} --dependencies || (echo failed && exit 1)
+	autonomy deploy build image ${SERVICE_ID} --dependencies || (echo failed && exit 1)
 	if [ "${VERSION}" = "dev" ];\
 	then\
 		echo "building dev images!";\
-	 	swarm deploy build image ${SERVICE_ID} \
+	 	autonomy deploy build image ${SERVICE_ID} \
 			--dev && exit 0
 		exit 1
 	fi
-	swarm deploy build image ${SERVICE_ID} --version ${VERSION} && exit 0
+	autonomy deploy build image ${SERVICE_ID} --version ${VERSION} && exit 0
 	exit 1
 
 .ONESHELL: build-images push-images
@@ -264,19 +260,19 @@ push-images:
 		echo "Ensure you have exported a version to build!";\
 		exit 1
 	fi
-	swarm deploy build image ${SERVICE_ID} --dependencies --push || (echo failed && exit 1)
+	autonomy deploy build image ${SERVICE_ID} --dependencies --push || (echo failed && exit 1)
 	if [ "${VERSION}" = "dev" ];\
 	then\
 		echo "building dev images!";\
-		swarm deploy build image ${SERVICE_ID} --dev --push || (echo failed && exit 1)
+		autonomy deploy build image ${SERVICE_ID} --dev --push || (echo failed && exit 1)
 		exit 0
 	fi
-	swarm deploy build image ${SERVICE_ID} --version ${VERSION} --prod --push || (echo failed && exit 1)
+	autonomy deploy build image ${SERVICE_ID} --version ${VERSION} --prod --push || (echo failed && exit 1)
 	exit 0
 
 .PHONY: run-hardhat
 run-hardhat:
-	docker run -p 8545:8545 -it valory/consensus-algorithms-hardhat:0.1.0
+	docker run -p 8545:8545 -it valory/open-autonomy-hardhat:0.1.0
 
 # if you get following error
 # PermissionError: [Errno 13] Permission denied: '/open-aea/build/bdist.linux-x86_64/wheel'
@@ -296,17 +292,17 @@ run-oracle-dev:
 		exit 1
 	fi
 
-	swarm deploy build image valory/oracle_hardhat --dependencies && \
-		swarm deploy build image valory/oracle_hardhat --dev && \
-		swarm deploy build deployment valory/oracle_hardhat deployments/keys/hardhat_keys.json --force --dev && \
+	autonomy deploy build image valory/oracle_hardhat --dependencies && \
+		autonomy deploy build image valory/oracle_hardhat --dev && \
+		autonomy deploy build deployment valory/oracle_hardhat deployments/keys/hardhat_keys.json --force --dev && \
 		make run-deploy
 
 .PHONY: run-oracle
 run-oracle:
 	export VERSION=0.1.0
-	swarm deploy build image valory/oracle_hardhat --dependencies && \
-		swarm deploy build image valory/oracle_hardhat && \
-		swarm deploy build deployment valory/oracle_hardhat deployments/keys/hardhat_keys.json --force && \
+	autonomy deploy build image valory/oracle_hardhat --dependencies && \
+		autonomy deploy build image valory/oracle_hardhat && \
+		autonomy deploy build deployment valory/oracle_hardhat deployments/keys/hardhat_keys.json --force && \
 		make run-deploy
 
 
@@ -360,18 +356,18 @@ build-deploy:
 	then\
 		if [ "${VERSION}" = "cluster-dev" ];\
 		then\
-			swarm deploy build deployment ${SERVICE_ID} ${DEPLOYMENT_KEYS} --kubernetes --force --dev
+			autonomy deploy build deployment ${SERVICE_ID} ${DEPLOYMENT_KEYS} --kubernetes --force --dev
 			exit 0
 		fi
-		swarm deploy build deployment ${SERVICE_ID} ${DEPLOYMENT_KEYS} --kubernetes --force
+		autonomy deploy build deployment ${SERVICE_ID} ${DEPLOYMENT_KEYS} --kubernetes --force
 		exit 0
 	fi
 	if [ "${VERSION}" = "dev" ];\
 	then\
-		swarm deploy build deployment ${SERVICE_ID} ${DEPLOYMENT_KEYS} --docker --dev --force
+		autonomy deploy build deployment ${SERVICE_ID} ${DEPLOYMENT_KEYS} --docker --dev --force
 		exit 0
 	fi
-	swarm deploy build deployment ${SERVICE_ID} ${DEPLOYMENT_KEYS} --docker
+	autonomy deploy build deployment ${SERVICE_ID} ${DEPLOYMENT_KEYS} --docker
 
 
 protolint_install:
@@ -411,17 +407,17 @@ teardown-kubernetes:
 
 .PHONY: check_abci_specs
 check_abci_specs:
-	python -m aea_swarm.cli analyse abci generate-app-specs packages.valory.skills.apy_estimation_abci.rounds.APYEstimationAbciApp packages/valory/skills/apy_estimation_abci/fsm_specification.yaml || (echo "Failed to check apy_estimation_abci consistency" && exit 1)
-	python -m aea_swarm.cli analyse abci generate-app-specs packages.valory.skills.apy_estimation_chained_abci.composition.APYEstimationAbciAppChained packages/valory/skills/apy_estimation_chained_abci/fsm_specification.yaml || (echo "Failed to check apy_estimation_chained_abci consistency" && exit 1)
-	python -m aea_swarm.cli analyse abci generate-app-specs packages.valory.skills.liquidity_provision_abci.composition.LiquidityProvisionAbciApp packages/valory/skills/liquidity_provision_abci/fsm_specification.yaml || (echo "Failed to check liquidity_provision_abci consistency" && exit 1)
-	python -m aea_swarm.cli analyse abci generate-app-specs packages.valory.skills.liquidity_rebalancing_abci.rounds.LiquidityRebalancingAbciApp packages/valory/skills/liquidity_rebalancing_abci/fsm_specification.yaml || (echo "Failed to check liquidity_rebalancing_abci consistency" && exit 1)
-	python -m aea_swarm.cli analyse abci generate-app-specs packages.valory.skills.oracle_abci.composition.OracleAbciApp packages/valory/skills/oracle_abci/fsm_specification.yaml || (echo "Failed to check oracle_abci consistency" && exit 1)
-	python -m aea_swarm.cli analyse abci generate-app-specs packages.valory.skills.oracle_deployment_abci.rounds.OracleDeploymentAbciApp packages/valory/skills/oracle_deployment_abci/fsm_specification.yaml || (echo "Failed to check oracle_deployment_abci consistency" && exit 1)
-	python -m aea_swarm.cli analyse abci generate-app-specs packages.valory.skills.price_estimation_abci.rounds.PriceAggregationAbciApp packages/valory/skills/price_estimation_abci/fsm_specification.yaml || (echo "Failed to check price_estimation_abci consistency" && exit 1)
-	python -m aea_swarm.cli analyse abci generate-app-specs packages.valory.skills.registration_abci.rounds.AgentRegistrationAbciApp packages/valory/skills/registration_abci/fsm_specification.yaml || (echo "Failed to check registration_abci consistency" && exit 1)
-	python -m aea_swarm.cli analyse abci generate-app-specs packages.valory.skills.reset_pause_abci.rounds.ResetPauseABCIApp packages/valory/skills/reset_pause_abci/fsm_specification.yaml || (echo "Failed to check reset_pause_abci consistency" && exit 1)
-	python -m aea_swarm.cli analyse abci generate-app-specs packages.valory.skills.safe_deployment_abci.rounds.SafeDeploymentAbciApp packages/valory/skills/safe_deployment_abci/fsm_specification.yaml || (echo "Failed to check safe_deployment_abci consistency" && exit 1)
-	python -m aea_swarm.cli analyse abci generate-app-specs packages.valory.skills.simple_abci.rounds.SimpleAbciApp packages/valory/skills/simple_abci/fsm_specification.yaml || (echo "Failed to check simple_abci consistency" && exit 1)
-	python -m aea_swarm.cli analyse abci generate-app-specs packages.valory.skills.transaction_settlement_abci.rounds.TransactionSubmissionAbciApp packages/valory/skills/transaction_settlement_abci/fsm_specification.yaml || (echo "Failed to check transaction_settlement_abci consistency" && exit 1)
+	python -m autonomy.cli analyse abci generate-app-specs packages.valory.skills.apy_estimation_abci.rounds.APYEstimationAbciApp packages/valory/skills/apy_estimation_abci/fsm_specification.yaml || (echo "Failed to check apy_estimation_abci consistency" && exit 1)
+	python -m autonomy.cli analyse abci generate-app-specs packages.valory.skills.apy_estimation_chained_abci.composition.APYEstimationAbciAppChained packages/valory/skills/apy_estimation_chained_abci/fsm_specification.yaml || (echo "Failed to check apy_estimation_chained_abci consistency" && exit 1)
+	python -m autonomy.cli analyse abci generate-app-specs packages.valory.skills.liquidity_provision_abci.composition.LiquidityProvisionAbciApp packages/valory/skills/liquidity_provision_abci/fsm_specification.yaml || (echo "Failed to check liquidity_provision_abci consistency" && exit 1)
+	python -m autonomy.cli analyse abci generate-app-specs packages.valory.skills.liquidity_rebalancing_abci.rounds.LiquidityRebalancingAbciApp packages/valory/skills/liquidity_rebalancing_abci/fsm_specification.yaml || (echo "Failed to check liquidity_rebalancing_abci consistency" && exit 1)
+	python -m autonomy.cli analyse abci generate-app-specs packages.valory.skills.oracle_abci.composition.OracleAbciApp packages/valory/skills/oracle_abci/fsm_specification.yaml || (echo "Failed to check oracle_abci consistency" && exit 1)
+	python -m autonomy.cli analyse abci generate-app-specs packages.valory.skills.oracle_deployment_abci.rounds.OracleDeploymentAbciApp packages/valory/skills/oracle_deployment_abci/fsm_specification.yaml || (echo "Failed to check oracle_deployment_abci consistency" && exit 1)
+	python -m autonomy.cli analyse abci generate-app-specs packages.valory.skills.price_estimation_abci.rounds.PriceAggregationAbciApp packages/valory/skills/price_estimation_abci/fsm_specification.yaml || (echo "Failed to check price_estimation_abci consistency" && exit 1)
+	python -m autonomy.cli analyse abci generate-app-specs packages.valory.skills.registration_abci.rounds.AgentRegistrationAbciApp packages/valory/skills/registration_abci/fsm_specification.yaml || (echo "Failed to check registration_abci consistency" && exit 1)
+	python -m autonomy.cli analyse abci generate-app-specs packages.valory.skills.reset_pause_abci.rounds.ResetPauseABCIApp packages/valory/skills/reset_pause_abci/fsm_specification.yaml || (echo "Failed to check reset_pause_abci consistency" && exit 1)
+	python -m autonomy.cli analyse abci generate-app-specs packages.valory.skills.safe_deployment_abci.rounds.SafeDeploymentAbciApp packages/valory/skills/safe_deployment_abci/fsm_specification.yaml || (echo "Failed to check safe_deployment_abci consistency" && exit 1)
+	python -m autonomy.cli analyse abci generate-app-specs packages.valory.skills.simple_abci.rounds.SimpleAbciApp packages/valory/skills/simple_abci/fsm_specification.yaml || (echo "Failed to check simple_abci consistency" && exit 1)
+	python -m autonomy.cli analyse abci generate-app-specs packages.valory.skills.transaction_settlement_abci.rounds.TransactionSubmissionAbciApp packages/valory/skills/transaction_settlement_abci/fsm_specification.yaml || (echo "Failed to check transaction_settlement_abci consistency" && exit 1)
 	echo "Successfully validated abcis!"
 

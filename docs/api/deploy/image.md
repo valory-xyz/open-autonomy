@@ -1,10 +1,10 @@
-<a id="aea_swarm.deploy.image"></a>
+<a id="autonomy.deploy.image"></a>
 
-# aea`_`swarm.deploy.image
+# autonomy.deploy.image
 
 Image building.
 
-<a id="aea_swarm.deploy.image.ImageProfiles"></a>
+<a id="autonomy.deploy.image.ImageProfiles"></a>
 
 ## ImageProfiles Objects
 
@@ -14,7 +14,7 @@ class ImageProfiles()
 
 Image build profiles.
 
-<a id="aea_swarm.deploy.image.ImageBuilder"></a>
+<a id="autonomy.deploy.image.ImageBuilder"></a>
 
 ## ImageBuilder Objects
 
@@ -24,7 +24,7 @@ class ImageBuilder()
 
 Class to build images using skaffold.
 
-<a id="aea_swarm.deploy.image.ImageBuilder.build_images"></a>
+<a id="autonomy.deploy.image.ImageBuilder.build_images"></a>
 
 #### build`_`images
 
@@ -35,7 +35,7 @@ def build_images(cls, profile: str, deployment_file_path: Path, packages_dir: Pa
 
 Build images using the subprocess.
 
-<a id="aea_swarm.deploy.image.ImageBuilder.get_aea_agent"></a>
+<a id="autonomy.deploy.image.ImageBuilder.get_aea_agent"></a>
 
 #### get`_`aea`_`agent
 

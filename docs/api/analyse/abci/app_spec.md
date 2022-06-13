@@ -1,10 +1,10 @@
-<a id="aea_swarm.analyse.abci.app_spec"></a>
+<a id="autonomy.analyse.abci.app_spec"></a>
 
-# aea`_`swarm.analyse.abci.app`_`spec
+# autonomy.analyse.abci.app`_`spec
 
 Generates the specification for a given ABCI app in YAML/JSON/Mermaid format.
 
-<a id="aea_swarm.analyse.abci.app_spec.DFASpecificationError"></a>
+<a id="autonomy.analyse.abci.app_spec.DFASpecificationError"></a>
 
 ## DFASpecificationError Objects
 
@@ -14,7 +14,7 @@ class DFASpecificationError(Exception)
 
 Simple class to raise errors when parsing a DFA.
 
-<a id="aea_swarm.analyse.abci.app_spec.DFA"></a>
+<a id="autonomy.analyse.abci.app_spec.DFA"></a>
 
 ## DFA Objects
 
@@ -24,7 +24,7 @@ class DFA()
 
 Simple specification of a deterministic finite automaton (DFA).
 
-<a id="aea_swarm.analyse.abci.app_spec.DFA.OutputFormats"></a>
+<a id="autonomy.analyse.abci.app_spec.DFA.OutputFormats"></a>
 
 ## OutputFormats Objects
 
@@ -34,7 +34,7 @@ class OutputFormats()
 
 Output formats.
 
-<a id="aea_swarm.analyse.abci.app_spec.DFA.__init__"></a>
+<a id="autonomy.analyse.abci.app_spec.DFA.__init__"></a>
 
 #### `__`init`__`
 
@@ -44,7 +44,7 @@ def __init__(label: str, states: Set[str], default_start_state: str, start_state
 
 Initialize DFA object.
 
-<a id="aea_swarm.analyse.abci.app_spec.DFA.is_transition_func_total"></a>
+<a id="autonomy.analyse.abci.app_spec.DFA.is_transition_func_total"></a>
 
 #### is`_`transition`_`func`_`total
 
@@ -63,7 +63,7 @@ automatically regarded as a self-transition to the same state.
 
 None
 
-<a id="aea_swarm.analyse.abci.app_spec.DFA.get_transitions"></a>
+<a id="autonomy.analyse.abci.app_spec.DFA.get_transitions"></a>
 
 #### get`_`transitions
 
@@ -73,7 +73,7 @@ def get_transitions(input_sequence: List[str]) -> List[str]
 
 Runs the DFA given the input sequence of symbols, and outputs the list of state transitions.
 
-<a id="aea_swarm.analyse.abci.app_spec.DFA.__eq__"></a>
+<a id="autonomy.analyse.abci.app_spec.DFA.__eq__"></a>
 
 #### `__`eq`__`
 
@@ -83,7 +83,7 @@ def __eq__(other: object) -> bool
 
 Compares two DFAs
 
-<a id="aea_swarm.analyse.abci.app_spec.DFA.dump"></a>
+<a id="autonomy.analyse.abci.app_spec.DFA.dump"></a>
 
 #### dump
 
@@ -93,7 +93,7 @@ def dump(file: Path, output_format: str = "yaml") -> None
 
 Dumps this DFA spec. to a file in YAML/JSON/Mermaid format.
 
-<a id="aea_swarm.analyse.abci.app_spec.DFA.dump_json"></a>
+<a id="autonomy.analyse.abci.app_spec.DFA.dump_json"></a>
 
 #### dump`_`json
 
@@ -103,7 +103,7 @@ def dump_json(fp: TextIO) -> None
 
 Dump to a json file.
 
-<a id="aea_swarm.analyse.abci.app_spec.DFA.dump_yaml"></a>
+<a id="autonomy.analyse.abci.app_spec.DFA.dump_yaml"></a>
 
 #### dump`_`yaml
 
@@ -113,7 +113,7 @@ def dump_yaml(fp: TextIO) -> None
 
 Dump to a yaml file.
 
-<a id="aea_swarm.analyse.abci.app_spec.DFA.dump_mermaid"></a>
+<a id="autonomy.analyse.abci.app_spec.DFA.dump_mermaid"></a>
 
 #### dump`_`mermaid
 
@@ -123,7 +123,7 @@ def dump_mermaid(fp: TextIO) -> None
 
 Dumps this DFA spec. to a file in Mermaid format.
 
-<a id="aea_swarm.analyse.abci.app_spec.DFA.generate"></a>
+<a id="autonomy.analyse.abci.app_spec.DFA.generate"></a>
 
 #### generate
 
@@ -133,7 +133,7 @@ def generate() -> Dict[str, Any]
 
 Retrieves an exportable respresentation for YAML/JSON dump of this DFA.
 
-<a id="aea_swarm.analyse.abci.app_spec.DFA.load"></a>
+<a id="autonomy.analyse.abci.app_spec.DFA.load"></a>
 
 #### load
 
@@ -144,7 +144,7 @@ def load(cls, fp: TextIO, input_format: str = "yaml") -> "DFA"
 
 Loads a DFA JSON specification from file.
 
-<a id="aea_swarm.analyse.abci.app_spec.DFA.abci_to_dfa"></a>
+<a id="autonomy.analyse.abci.app_spec.DFA.abci_to_dfa"></a>
 
 #### abci`_`to`_`dfa
 
@@ -155,7 +155,7 @@ def abci_to_dfa(cls, abci_app_cls: Any, label: str = "") -> "DFA"
 
 Translates an AbciApp class into a DFA.
 
-<a id="aea_swarm.analyse.abci.app_spec.SpecCheck"></a>
+<a id="autonomy.analyse.abci.app_spec.SpecCheck"></a>
 
 ## SpecCheck Objects
 
@@ -165,7 +165,7 @@ class SpecCheck()
 
 Class to represent abci spec checks.
 
-<a id="aea_swarm.analyse.abci.app_spec.SpecCheck.check_one"></a>
+<a id="autonomy.analyse.abci.app_spec.SpecCheck.check_one"></a>
 
 #### check`_`one
 
@@ -176,7 +176,7 @@ def check_one(informat: str, infile: str, classfqn: str) -> bool
 
 Check for one.
 
-<a id="aea_swarm.analyse.abci.app_spec.SpecCheck.check_all"></a>
+<a id="autonomy.analyse.abci.app_spec.SpecCheck.check_all"></a>
 
 #### check`_`all
 
