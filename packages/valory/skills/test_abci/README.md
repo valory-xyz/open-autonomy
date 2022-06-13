@@ -2,4 +2,4 @@
 
 ## Description
 
-This skill implements an ABCI application for a simple demonstation.
+This skill implements an ABCI application for a simple demonstration.
