@@ -19,7 +19,6 @@
 
 """Test check-handlers command."""
 
-import json
 import os
 import shutil
 from pathlib import Path
@@ -40,30 +39,8 @@ class TestCheckHandlers(BaseCliTest):
     def setup(cls) -> None:
         """Setup."""
         super().setup()
-
         shutil.copytree(ROOT_DIR / "packages", cls.t / "packages")
-        cls.config_file = ROOT_DIR / "scripts" / "handler_config.json"
-        cls.config_file_temp = cls.t / "handler_config.json"
-
         os.chdir(cls.t)
-
-    def _create_config_file(
-        self,
-    ) -> None:
-        """Create config file."""
-        self.config_file_temp.write_text(self.config_file.read_text())
-
-    def _create_bad_config_file(
-        self,
-    ) -> None:
-        """Create config file."""
-        config_content = self.config_file.read_text()
-        config_data = json.loads(config_content)
-        config_data["common_handlers"] += [
-            "dummy",
-        ]
-
-        self.config_file_temp.write_text(json.dumps(config_data))
 
     def _get_expected_output(
         self,
@@ -77,9 +54,15 @@ class TestCheckHandlers(BaseCliTest):
         self,
     ) -> None:
         """Run tests."""
-        self._create_config_file()
+
         result = self.run_cli(
-            (str(self.t / "packages"), f"--handler-config={self.config_file_temp}")
+            (
+                str(self.t / "packages"),
+                "--common",
+                "abci,http,contract_api,ledger_api,signing",
+                "--skip",
+                "abstract_abci,counter,counter_client,hello_world_abci",
+            )
         )
 
         assert result.exit_code == 0, result.output
@@ -89,9 +72,14 @@ class TestCheckHandlers(BaseCliTest):
         self,
     ) -> None:
         """Test check-handlers command fail."""
-        self._create_bad_config_file()
         result = self.run_cli(
-            (str(self.t / "packages"), f"--handler-config={self.config_file_temp}")
+            (
+                str(self.t / "packages"),
+                "--common",
+                "abci,http,contract_api,ledger_api,signing,dummy",
+                "--skip",
+                "abstract_abci,counter,counter_client,hello_world_abci",
+            )
         )
 
         assert result.exit_code == 1

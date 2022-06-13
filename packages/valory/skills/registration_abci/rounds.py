@@ -27,7 +27,7 @@ from packages.valory.skills.abstract_round_abci.base import (
     AbstractRound,
     AppState,
     BaseSynchronizedData,
-    CollectDifferentUntilAllRound,
+    CollectSameUntilAllRound,
     CollectSameUntilThresholdRound,
     DegenerateRound,
 )
@@ -55,22 +55,17 @@ class FinishedRegistrationFFWRound(DegenerateRound):
     round_id = "finished_registration_ffw"
 
 
-class RegistrationStartupRound(CollectDifferentUntilAllRound):
+class RegistrationStartupRound(CollectSameUntilAllRound):
     """A round in which the agents get registered"""
 
     round_id = "registration_startup"
     allowed_tx_type = RegistrationPayload.transaction_type
     payload_attribute = "initialisation"
-    required_block_confirmations = 1
 
     def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Event]]:
         """Process the end of the block."""
-        if self.collection_threshold_reached:
-            self.block_confirmations += 1
         if (  # fast forward at setup
-            self.collection_threshold_reached
-            and self.block_confirmations > self.required_block_confirmations
-            and self.most_voted_payload is not None
+            self.collection_threshold_reached and self.common_payload is not None
         ):
             synchronized_data = self.synchronized_data.update(
                 participants=frozenset(self.collection),
@@ -78,10 +73,7 @@ class RegistrationStartupRound(CollectDifferentUntilAllRound):
                 synchronized_data_class=BaseSynchronizedData,
             )
             return synchronized_data, Event.FAST_FORWARD
-        if (
-            self.collection_threshold_reached
-            and self.block_confirmations > self.required_block_confirmations
-        ):
+        if self.collection_threshold_reached:
             synchronized_data = self.synchronized_data.update(
                 participants=frozenset(self.collection),
                 all_participants=frozenset(self.collection),

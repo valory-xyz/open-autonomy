@@ -117,7 +117,7 @@ class BaseDeployBehaviourTest(FSMBehaviourBaseCase):
             self.behaviour_class.behaviour_id,
             OracleDeploymentSynchronizedSata(
                 AbciAppDB(
-                    initial_data=AbciAppDB.data_to_lists(
+                    setup_data=AbciAppDB.data_to_lists(
                         dict(
                             participants=participants,
                             most_voted_keeper_address=most_voted_keeper_address,
@@ -207,7 +207,7 @@ class BaseDeployBehaviourTest(FSMBehaviourBaseCase):
             self.behaviour_class.behaviour_id,
             OracleDeploymentSynchronizedSata(
                 AbciAppDB(
-                    initial_data=AbciAppDB.data_to_lists(
+                    setup_data=AbciAppDB.data_to_lists(
                         dict(
                             participants=participants,
                             most_voted_keeper_address=most_voted_keeper_address,
@@ -262,7 +262,7 @@ class BaseValidateBehaviourTest(FSMBehaviourBaseCase):
             self.behaviour_class.behaviour_id,
             OracleDeploymentSynchronizedSata(
                 AbciAppDB(
-                    initial_data=AbciAppDB.data_to_lists(self.synchronized_data_kwargs)
+                    setup_data=AbciAppDB.data_to_lists(self.synchronized_data_kwargs)
                 ),
             ),
         )
