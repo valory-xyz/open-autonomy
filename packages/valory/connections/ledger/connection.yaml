@@ -9,14 +9,14 @@ fingerprint:
   README.md: Qma3Z9MpmS2rFyDw2YCfsYENvam4gnyHNZtKFMkaEPMBnJ
   __init__.py: QmY8evuRWNZnGN9sGqoK19CJiUqSZYdPhW3sAoDRFqj8VF
   base.py: QmSZmMgoUhmEqPcmfr3SXDN1G1y1Jbno5xuppdpfwZ2aA5
-  connection.py: QmexsdsiGGTEWbUCRqss9p7bKR8gHJaqCwm9JeQ2ENCtno
+  connection.py: QmSk8Ymq6dQ1AiqzNBP6g5Ap3YCyg4MNAhDP9DWAr9d7pf
   contract_dispatcher.py: QmPUvYht942zuYDahbP1fr6bfwuYKCtqY5nXHZj7ckgGwB
   ledger_dispatcher.py: QmdMQbNmGMmqKzo3LjD3nsiy62P2iMBqxyzQU1TV3f1kEN
 fingerprint_ignore_patterns: []
 connections: []
 protocols:
-- valory/contract_api:1.0.0:QmQssrTfPsTJxkHQthn735vKQHmBuvoZE2eMFf3UzEFizf
-- valory/ledger_api:1.0.0:QmTMQKNr3oL8j68swCL4LjvUsHsyDp8FTM1UcPTfBvJYDn
+- valory/contract_api:1.0.0:QmSobFjLc3baTW1Zf2zfS1X3KJabw7xE6cPJb2g2eAvxSx
+- valory/ledger_api:1.0.0:QmdMBgcpjL2hvmrxWtFyujMSf6exkFPnUXZqTdnsvrk48r
 class_name: LedgerConnection
 config:
   ledger_apis:
@@ -39,6 +39,7 @@ config:
             maxPriorityFeePerGas: 3000000000
             baseFee: null
           priority_fee_increase_boundary: 200
+      poa_chain: false
   retry_attempts: 240
   retry_timeout: 3
 excluded_protocols: []

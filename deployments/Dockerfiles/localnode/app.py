@@ -33,7 +33,7 @@ from werkzeug.exceptions import InternalServerError, NotFound
 
 try:
     from .tendermint import TendermintNode, TendermintParams
-except:
+except ImportError:
     from tendermint import TendermintNode, TendermintParams
 
 DEFAULT_LOG_FILE = "log.log"

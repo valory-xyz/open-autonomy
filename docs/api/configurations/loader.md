@@ -1,10 +1,10 @@
-<a id="aea_swarm.configurations.loader"></a>
+<a id="autonomy.configurations.loader"></a>
 
-# aea`_`swarm.configurations.loader
+# autonomy.configurations.loader
 
 Service component base.
 
-<a id="aea_swarm.configurations.loader.load_service_config"></a>
+<a id="autonomy.configurations.loader.load_service_config"></a>
 
 #### load`_`service`_`config
 

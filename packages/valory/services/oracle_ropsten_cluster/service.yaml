@@ -4,6 +4,8 @@ version: 0.1.0
 description: A set of agents implementing a price oracle
 aea_version: '>=1.0.0, <2.0.0'
 license: Apache-2.0
+fingerprint: {}
+fingerprint_ignore_patterns: []
 agent: valory/oracle_deployable:0.1.0
 network: ropsten
 number_of_agents: 4

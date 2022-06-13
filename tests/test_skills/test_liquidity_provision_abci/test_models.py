@@ -18,6 +18,7 @@
 # ------------------------------------------------------------------------------
 
 """Test the models.py module of the skill."""
+from unittest.mock import MagicMock
 
 from packages.valory.skills.liquidity_provision_abci.composition import (
     LiquidityProvisionAbciApp,
@@ -49,6 +50,8 @@ class TestSharedState:
         shared_state: SharedState,
     ) -> None:
         """Test setup."""
+        shared_state.context.params.setup_params = {"test": []}
+        shared_state.context.params.consensus_params = MagicMock()
         shared_state.setup()
         assert (
             LiquidityProvisionAbciApp.event_to_timeout[Event.ROUND_TIMEOUT]

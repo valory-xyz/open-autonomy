@@ -1,10 +1,10 @@
-<a id="aea_swarm.configurations.base"></a>
+<a id="autonomy.configurations.base"></a>
 
-# aea`_`swarm.configurations.base
+# autonomy.configurations.base
 
 Base configurations.
 
-<a id="aea_swarm.configurations.base.recurse"></a>
+<a id="autonomy.configurations.base.recurse"></a>
 
 #### recurse
 
@@ -14,7 +14,7 @@ def recurse(obj: Dict[str, Any]) -> Dict[str, Any]
 
 Recursively explore a json object until no dictionaries remain.
 
-<a id="aea_swarm.configurations.base.Service"></a>
+<a id="autonomy.configurations.base.Service"></a>
 
 ## Service Objects
 
@@ -24,17 +24,17 @@ class Service(PackageConfiguration)
 
 Service package configuration.
 
-<a id="aea_swarm.configurations.base.Service.__init__"></a>
+<a id="autonomy.configurations.base.Service.__init__"></a>
 
 #### `__`init`__`
 
 ```python
-def __init__(name: SimpleIdOrStr, author: SimpleIdOrStr, agent: PublicId, version: str = "", license_: str = "", aea_version: str = "", description: str = "", number_of_agents: int = 4, network: Optional[str] = None, build_entrypoint: Optional[str] = None, overrides: Optional[List] = None) -> None
+def __init__(name: SimpleIdOrStr, author: SimpleIdOrStr, agent: PublicId, version: str = "", license_: str = "", aea_version: str = "", fingerprint: Optional[Dict[str, str]] = None, fingerprint_ignore_patterns: Optional[Sequence[str]] = None, description: str = "", number_of_agents: int = 4, network: Optional[str] = None, build_entrypoint: Optional[str] = None, overrides: Optional[List] = None) -> None
 ```
 
 Initialise object.
 
-<a id="aea_swarm.configurations.base.Service.overrides"></a>
+<a id="autonomy.configurations.base.Service.overrides"></a>
 
 #### overrides
 
@@ -45,7 +45,7 @@ def overrides() -> List
 
 Returns component overrides.
 
-<a id="aea_swarm.configurations.base.Service.overrides"></a>
+<a id="autonomy.configurations.base.Service.overrides"></a>
 
 #### overrides
 
@@ -56,7 +56,7 @@ def overrides(obj: List) -> None
 
 Set overrides.
 
-<a id="aea_swarm.configurations.base.Service.json"></a>
+<a id="autonomy.configurations.base.Service.json"></a>
 
 #### json
 
@@ -67,7 +67,7 @@ def json() -> Dict
 
 Returns an ordered Dict for service config.
 
-<a id="aea_swarm.configurations.base.Service.validate_config_data"></a>
+<a id="autonomy.configurations.base.Service.validate_config_data"></a>
 
 #### validate`_`config`_`data
 
@@ -78,7 +78,7 @@ def validate_config_data(cls, json_data: Dict, env_vars_friendly: bool = False) 
 
 Validate config data.
 
-<a id="aea_swarm.configurations.base.Service.check_overrides_match_spec"></a>
+<a id="autonomy.configurations.base.Service.check_overrides_match_spec"></a>
 
 #### check`_`overrides`_`match`_`spec
 
@@ -100,7 +100,7 @@ Check that overrides are valid.
 
 True if overrides are valid
 
-<a id="aea_swarm.configurations.base.Service.check_overrides_valid"></a>
+<a id="autonomy.configurations.base.Service.check_overrides_valid"></a>
 
 #### check`_`overrides`_`valid
 
@@ -110,7 +110,7 @@ def check_overrides_valid(overrides: List, env_vars_friendly: bool = False) -> D
 
 Uses the aea helper libraries to check individual overrides.
 
-<a id="aea_swarm.configurations.base.Service.process_component_section"></a>
+<a id="autonomy.configurations.base.Service.process_component_section"></a>
 
 #### process`_`component`_`section
 
@@ -134,7 +134,7 @@ It breaks down in:
 
 the processed component configuration.
 
-<a id="aea_swarm.configurations.base.Service.try_to_process_singular_override"></a>
+<a id="autonomy.configurations.base.Service.try_to_process_singular_override"></a>
 
 #### try`_`to`_`process`_`singular`_`override
 
@@ -145,7 +145,7 @@ def try_to_process_singular_override(component_id: ComponentId, config_class: Co
 
 Try to process component with a singular component overrides.
 
-<a id="aea_swarm.configurations.base.Service.try_to_process_nested_fields"></a>
+<a id="autonomy.configurations.base.Service.try_to_process_nested_fields"></a>
 
 #### try`_`to`_`process`_`nested`_`fields
 

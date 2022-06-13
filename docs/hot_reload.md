@@ -29,11 +29,11 @@ Execute the following:
 ```bash
 make build-deploy
 ```
-This builds the latest docker images and launches docker compose. Wait for environment setup to be completed inside your docker containers, it may take some time. Also don't make any changes on either open-aea or consensus-algorithms repository while environment is being set up it may cause some unexpected errors. 
+This builds the latest docker images and launches docker compose. Wait for environment setup to be completed inside your docker containers, it may take some time. Also don't make any changes on either open-aea or open-autonomy repository while environment is being set up it may cause some unexpected errors.
 
 Then run:
 ```bash
-make run-deployment
+make run-deploy
 ```
 
 And - if you want to use local hardhat - in a separate terminal run:
@@ -43,7 +43,7 @@ make run-hardhat
 
 Once the agents are running, you can make changes to the agent's packages as well as the `open-aea` and it will trigger the restarts.
 
-The trigger is caused by any python file closing in either `consensus-algorithms/packages` or `open-aea/` directory. So even if you haven't made any change and still want to restart the agent, just open any python file press `ctrl+s` or save it from file menu and it will trigger the restart.
+The trigger is caused by any python file closing in either `open-autonomy/packages` or `open-aea/` directory. So even if you haven't made any change and still want to restart the agent, just open any python file press `ctrl+s` or save it from file menu and it will trigger the restart.
 
 
 ## Quick start for oracle

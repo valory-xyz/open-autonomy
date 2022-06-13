@@ -20,6 +20,7 @@
 import json
 
 import click
+from aea.cli.utils.click_utils import password_option
 from aea.crypto.registries import make_crypto
 
 
@@ -28,12 +29,15 @@ from aea.crypto.registries import make_crypto
 @click.option(
     "-o", "--output-file", "--output_file", type=str, default="generated_keys.json"
 )
-def generate_keys(number_of_keys: int, output_file: str) -> None:
+@password_option(confirmation_prompt=True, required=True)
+def generate_keys(number_of_keys: int, output_file: str, password: str) -> None:
     """Generates n number of keys to be used by deployment generator."""
     keys = []
     for x in range(number_of_keys):
         account = make_crypto("ethereum")
-        keys.append({"address": account.address, "private_key": account.private_key})
+        keys.append(
+            {"address": account.address, "encrypted_key": account.encrypt(password)}
+        )
         print(f"Processed key generation {x}")
     with open(output_file, "w", encoding="utf8") as f:
         json.dump(keys, f, indent=4)

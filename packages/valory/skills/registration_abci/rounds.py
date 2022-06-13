@@ -18,7 +18,6 @@
 # ------------------------------------------------------------------------------
 
 """This module contains the data classes for common apps ABCI application."""
-import json
 from enum import Enum
 from typing import Dict, Optional, Set, Tuple, Type
 
@@ -28,7 +27,7 @@ from packages.valory.skills.abstract_round_abci.base import (
     AbstractRound,
     AppState,
     BaseSynchronizedData,
-    CollectDifferentUntilAllRound,
+    CollectSameUntilAllRound,
     CollectSameUntilThresholdRound,
     DegenerateRound,
 )
@@ -56,35 +55,25 @@ class FinishedRegistrationFFWRound(DegenerateRound):
     round_id = "finished_registration_ffw"
 
 
-class RegistrationStartupRound(CollectDifferentUntilAllRound):
+class RegistrationStartupRound(CollectSameUntilAllRound):
     """A round in which the agents get registered"""
 
     round_id = "registration_startup"
     allowed_tx_type = RegistrationPayload.transaction_type
     payload_attribute = "initialisation"
-    required_block_confirmations = 1
 
     def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Event]]:
         """Process the end of the block."""
-        if self.collection_threshold_reached:
-            self.block_confirmations += 1
         if (  # fast forward at setup
-            self.collection_threshold_reached
-            and self.block_confirmations > self.required_block_confirmations
-            and self.most_voted_payload is not None
+            self.collection_threshold_reached and self.common_payload is not None
         ):
-            initialisation = json.loads(self.most_voted_payload)
             synchronized_data = self.synchronized_data.update(
                 participants=frozenset(self.collection),
                 all_participants=frozenset(self.collection),
                 synchronized_data_class=BaseSynchronizedData,
-                **initialisation,
             )
             return synchronized_data, Event.FAST_FORWARD
-        if (
-            self.collection_threshold_reached
-            and self.block_confirmations > self.required_block_confirmations
-        ):
+        if self.collection_threshold_reached:
             synchronized_data = self.synchronized_data.update(
                 participants=frozenset(self.collection),
                 all_participants=frozenset(self.collection),
@@ -112,15 +101,9 @@ class RegistrationRound(CollectSameUntilThresholdRound):
             and self.block_confirmations
             > self.required_block_confirmations  # we also wait here as it gives more (available) agents time to join
         ):
-            most_voted_payload = self.most_voted_payload
-
-            initialisation = (
-                json.loads(most_voted_payload) if most_voted_payload else {}
-            )
             synchronized_data = self.synchronized_data.update(
                 participants=frozenset(self.collection),
                 synchronized_data_class=BaseSynchronizedData,
-                **initialisation,
             )
             return synchronized_data, Event.DONE
         if (

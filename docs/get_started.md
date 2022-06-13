@@ -91,7 +91,7 @@ Let us call `hello_world_abci`the skill that encapsulates the Hello World functi
 <figcaption>Zoom on an agent.</figcaption>
 </figure>
 
-Observe that Agent 2 has three additional skills. In fact, an agent can have one or multiple skills, in addition to several other components. Skills can implement a variety of functionalities, not only FSMs.  
+Observe that Agent 2 has three additional skills. In fact, an agent can have one or multiple skills, in addition to several other components. Skills can implement a variety of functionalities, not only FSMs.
 
 !!! warning "Important"
 
@@ -111,7 +111,7 @@ A high level view of what occurs is as follows:
     ![](./images/hello_world_sequence_1.svg)
 
 
-2.  Send the vote. The hello_world skill has a component (_Behaviour_) that is in charge of casting the vote to the consensus gadget.
+2.  Send the vote. The `hello_world_abci` skill has a component (_Behaviour_) that is in charge of casting the vote to the consensus gadget.
 
     ![](./images/hello_world_sequence_2.svg)
 
@@ -150,7 +150,7 @@ A high level view of what occurs is as follows:
 
     As you have probably realized at this point, there are several items which are called after the interface that connects with the consensus gadget, i.e., the Application Blockchain Interface (ABCI). In case you are not familiar with it, for now, it is enough to know that it is an interface that abstracts away the protocol executed at the consensus gadget, and it produces callbacks to the skill when relevant events occur (e.g., agreement on a block). You can read more about the ABCI [here](https://docs.tendermint.com/master/spec/abci/).
 
-At this point, the walktrhough that we have presented, i.e., a single transition from one state of the FSM, has essentially introduced the main components of an agent and the main interactions that occur in an {{agent_service}}. It is impotant that the developer keeps these concepts in mind, since executions of further state transitions can be easily mapped with what has been presented here so far.
+At this point, the walkthrough that we have presented, i.e., a single transition from one state of the FSM, has essentially introduced the main components of an agent and the main interactions that occur in an {{agent_service}}. It is important that the developer keeps these concepts in mind, since executions of further state transitions can be easily mapped with what has been presented here so far.
 
 ## Executing the Main Functionality
 
@@ -199,7 +199,7 @@ So far, we have given a conceptual description of the Hello World {{agent_servic
 The objective of this section is to explore what are the main steps to code and get the service running. Note that the complete code for the example can be found in
 
 * `packages/valory/agents/hello_world`: the Hello World agent,
-* `packages/valory/skills/hello_world_abci`: the hello_world_abci skill.
+* `packages/valory/skills/hello_world_abci`: the `hello_world_abci` skill.
 
 ### Coding the Agent
 Agents are defined through the {{open_aea}} library as YAML files, which specify what components is the agent composed of, together with some other configuration parameters. Agents components can be, for example, connections, contracts, protocols or skills. We refer to the {{open_aea_doc}} for the complete details, although the reader might already have some intuition about their meaning.
@@ -209,23 +209,23 @@ This is an excerpt of the `/agents/hello_world/aea-config.yaml` file:
 ```yaml
 # ...
 connections:
-- valory/abci:0.1.0
-- valory/http_client:0.1.0
+- valory/abci:0.1.0:<ipfs_hash>
+- valory/http_client:0.1.0:<ipfs_hash>
 contracts: []
 protocols:
-- open_aea/signing:1.0.0
-- valory/abci:0.1.0
-- valory/http:1.0.0
+- open_aea/signing:1.0.0:<ipfs_hash>
+- valory/abci:0.1.0:<ipfs_hash>
+- valory/http:1.0.0:<ipfs_hash>
 skills:
-- valory/abstract_abci:0.1.0
-- valory/abstract_round_abci:0.1.0
-- valory/hello_world_abci:0.1.0
+- valory/abstract_abci:0.1.0:<ipfs_hash>
+- valory/abstract_round_abci:0.1.0:<ipfs_hash>
+- valory/hello_world_abci:0.1.0:<ipfs_hash>
 # ...
 ```
 
 It is mandatory that all agents that will be part of an {{agent_service}} have the `abci` connection, the `abci` protocol, as well as the `abstract_abci` and `abstract_round_abci` skills. These are the essential components that allow to interact with the consensus gadget, and contain helper and base classes that simplify the process of building the code for the skill.
 
-Additionally, the agent can use other connections, protocols or skills, deppending of its particular needs. In the example, the `http_client` connection and the `http` protocol allows the agent to interact with HTTP servers (although we are not using it in this service). Similarly, you can add the `ledger` connection and the `ledger_api` protocol in case the agent needs to interact with a blockchain.
+Additionally, the agent can use other connections, protocols or skills, depending of its particular needs. In the example, the `http_client` connection and the `http` protocol allows the agent to interact with HTTP servers (although we are not using it in this service). Similarly, you can add the `ledger` connection and the `ledger_api` protocol in case the agent needs to interact with a blockchain.
 
 Note that the agent also includes the `hello_world_abci` skill, which is the one that we need to code for this example. Except that, there is no more to code to write for the agent. The {{open_aea}} library will be in charge of reading this configuration file and execute its skills accordingly.
 
@@ -233,7 +233,7 @@ Note that although it is possible to develop your own protocols and connections,
 
 ### Coding the Skill
 
-Recall that the skill needs to define the `AbciApp`; the `Rounds`, `Behaviours` and `Payloads` associated to each state of the FSM; and the main skill class, i.e., the `RoundBehaviour` class. Let's look how each of these objects are imlemented. The files referenced below are all placed within `packages/valory/skills/hello_world_abci`:
+Recall that the skill needs to define the `AbciApp`; the `Rounds`, `Behaviours` and `Payloads` associated to each state of the FSM; and the main skill class, i.e., the `RoundBehaviour` class. Let's look how each of these objects are implemented. The files referenced below are all placed within `packages/valory/skills/hello_world_abci`:
 
   **`rounds.py`**: This file defines both the `Rounds` and the `AbciApp` class. This is how the printing round (`PrintMessageRound`) inherits from the stack classes:
 
@@ -276,7 +276,7 @@ Recall that the skill needs to define the `AbciApp`; the `Rounds`, `Behaviours` 
       class PrintMessageRound{
         +round_id = "print_message"
         +allowed_tx_type = PrintMessagePayload.transaction_type
-        +payload_attribute = "message"        
+        +payload_attribute = "message"
         +end_block()
       }
   </div>
@@ -287,20 +287,21 @@ Recall that the skill needs to define the `AbciApp`; the `Rounds`, `Behaviours` 
 
   Since most of the logic is already implemented in the base classes, the programmer only needs to define a few parameters and methods within the `Round`. Most notably, the method `end_block`, which is triggered when the ABCI notifies the end of a block in the consensus gadget:
 
-  ``` Python
+  ```python
   class PrintMessageRound(CollectDifferentUntilAllRound, HelloWorldABCIAbstractRound):
 
-    (...)
+  # ...
 
-    def end_block(self) -> Optional[Tuple[BasePeriodState, Event]]:
-      if self.collection_threshold_reached:
-          state = self.period_state.update(
-              participants=self.collection,
-              all_participants=self.collection,
-              period_state_class=PeriodState,
-          )
-          return state, Event.DONE
-      return None
+    def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Event]]:
+        """Process the end of the block."""
+        if self.collection_threshold_reached:
+            synchronized_data = self.synchronized_data.update(
+                participants=self.collection,
+                all_participants=self.collection,
+                synchronized_data_class=SynchronizedData,
+            )
+            return synchronized_data, Event.DONE
+        return None
   ```
 
   The method updates a number of variables collected at that point, and returns the appropriate event (`DONE`) so that the `AbciApp` can process and transit to the next round.
@@ -309,12 +310,12 @@ Recall that the skill needs to define the `AbciApp`; the `Rounds`, `Behaviours` 
 
   After having defined the `Rounds`, the `HelloWorldAbciApp` does not have much mystery. It simply defines the transitions from one state to another in the FSM, arranged as Python dictionaries. For example,
 
-  ``` Python
+  ```python
   SelectKeeperRound: {
       Event.DONE: PrintMessageRound,
       Event.ROUND_TIMEOUT: RegistrationRound,
       Event.NO_MAJORITY: RegistrationRound,
-  },  
+  },
   ```
 
   denotes the three possible transitions from the `SelectKeeperRound` to the corresponding `Rounds`, according to the FSM depicted above.
@@ -343,35 +344,51 @@ Recall that the skill needs to define the `AbciApp`; the `Rounds`, `Behaviours` 
       }
       class PrintMessageBehaviour{
           +state_id = "print_message"
-          +matching_round = PrintMessageRound       
+          +matching_round = PrintMessageRound
           +async_act()
       }
   </div>
   <figcaption>Hierarchy of the PrintMessageBehaviour class (some methods and fields are omitted)</figcaption>
   </figure>
 
-Again, the `HelloWorldABCIBaseState` is a convenience class, and the upper class in the hierarchy are abstract classes from the stack that facilitate reusability of code when implementing the `Behaviour`. An excerpt of its code is:
+Again, the `HelloWorldABCIBaseState` is a convenience class, and the upper class in the hierarchy are abstract classes from the stack that facilitate re-usability of code when implementing the `Behaviour`. An excerpt of its code is:
 
-``` python
-class PrintMessageBehaviour(HelloWorldABCIBaseState, ABC):
+```python
+class PrintMessageBehaviour(HelloWorldABCIBaseBehaviour, ABC):
+    """Prints the celebrated 'HELLO WORLD!' message."""
 
-    state_id = "print_message"
+    behaviour_id = "print_message"
     matching_round = PrintMessageRound
 
     def async_act(self) -> Generator:
+        """
+        Do the action.
 
-        printed_message = f"Agent {self.context.agent_address} in period {self.period_state.period_count} says: "
-        if self.context.agent_address == self.period_state.most_voted_keeper_address:
+        Steps:
+        - Determine if this agent is the current keeper agent.
+        - Print the appropriate to the local console.
+        - Send the transaction with the printed message and wait for it to be mined.
+        - Wait until ABCI application transitions to the next round.
+        - Go to the next behaviour (set done event).
+        """
+
+        printed_message = f"Agent {self.context.agent_name} (address {self.context.agent_address}) in period {self.synchronized_data.period_count} says: "
+        if (
+            self.context.agent_address
+            == self.synchronized_data.most_voted_keeper_address
+        ):
             printed_message += "HELLO WORLD!"
         else:
             printed_message += ":|"
 
         print(printed_message)
+        self.context.logger.info(f"printed_message={printed_message}")
 
         payload = PrintMessagePayload(self.context.agent_address, printed_message)
 
-        yield from self.send_a2a_transaction(payload)
-        yield from self.wait_until_round_end()
+        with self.context.benchmark_tool.measure(self.behaviour_id).consensus():
+            yield from self.send_a2a_transaction(payload)
+            yield from self.wait_until_round_end()
 
         self.set_done()
 ```
@@ -392,33 +409,42 @@ Once all the `Behaviours` are defined, it is time to define the `RoundBehaviour`
 class HelloWorldRoundBehaviour(AbstractRoundBehaviour):
     """This behaviour manages the consensus stages for the Hello World abci app."""
 
-    initial_state_cls = RegistrationBehaviour
-    abci_app_cls = HelloWorldAbciApp
-    behaviour_states: Set[Type[HelloWorldABCIBaseState]] = {  
-        RegistrationBehaviour,
-        SelectKeeperBehaviour,
-        PrintMessageBehaviour,
-        ResetAndPauseBehaviour,
+    initial_behaviour_cls = RegistrationBehaviour
+    abci_app_cls = HelloWorldAbciApp  # type: ignore
+    behaviours: Set[Type[HelloWorldABCIBaseBehaviour]] = {  # type: ignore
+        RegistrationBehaviour,  # type: ignore
+        SelectKeeperBehaviour,  # type: ignore
+        PrintMessageBehaviour,  # type: ignore
+        ResetAndPauseBehaviour,  # type: ignore
     }
 ```
 
 **`payloads.py`**: This file defines the payloads associated to the consensus engine for each of the states. Payload classes are mostly used to encapsulate the data values, and carry almost no business logic. For illustration purposes, consider the payload associated to the `PrintMessageBehaviour`:
 
-``` python
+```python
 class PrintMessagePayload(BaseHelloWorldAbciPayload):
+    """Represent a transaction payload of type 'randomness'."""
 
     transaction_type = TransactionType.PRINT_MESSAGE
 
     def __init__(self, sender: str, message: str, **kwargs: Any) -> None:
+        """Initialize an 'select_keeper' transaction payload.
+
+        :param sender: the sender (Ethereum) address
+        :param message: the message printed by the agent
+        :param kwargs: the keyword arguments
+        """
         super().__init__(sender, **kwargs)
         self._message = message
 
     @property
     def message(self) -> str:
+        """Get the message"""
         return self._message
 
     @property
     def data(self) -> Dict:
+        """Get the data."""
         return dict(message=self._message)
 ```
 

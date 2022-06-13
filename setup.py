@@ -24,14 +24,14 @@ from typing import Dict
 
 from setuptools import find_packages, setup  # type: ignore
 
-PACKAGE_NAME = "aea_swarm"
+PACKAGE_NAME = "autonomy"
 here = os.path.abspath(os.path.dirname(__file__))
 
 
 def get_all_extras() -> Dict:
 
     cli_deps = [
-        "click>=7.0.0,<8.0.0",
+        "click==8.0.2",
     ]
 
     extras = {
@@ -46,7 +46,7 @@ def get_all_extras() -> Dict:
 all_extras = get_all_extras()
 
 base_deps = [
-    "open-aea>=1.9.0.post1,<2.0.0",
+    "open-aea>=1.10.0,<2.0.0",
 ]
 
 here = os.path.abspath(os.path.dirname(__file__))
@@ -61,7 +61,7 @@ def parse_readme():
 
     # replace relative links of images
     raw_url_root = (
-        "https://raw.githubusercontent.com/valory-xyz/consensus-algorithms/main/"
+        "https://raw.githubusercontent.com/valory-xyz/open-autonomy/main/"
     )
     replacement = raw_url_root + r"\g<0>"
     readme = re.sub(r"(?<=<img src=\")(/.*)(?=\")", replacement, readme, re.DOTALL)
@@ -78,8 +78,8 @@ if __name__ == "__main__":
         url=about["__url__"],
         long_description=parse_readme(),
         long_description_content_type="text/markdown",
-        package_data={"aea_swarm": ["py.typed"]},
-        packages=find_packages(include=["aea_swarm*"]),
+        package_data={"autonomy": ["py.typed"]},
+        packages=find_packages(include=["autonomy*"]),
         classifiers=[
             "Environment :: Console",
             "Environment :: Web Environment",
@@ -103,14 +103,14 @@ if __name__ == "__main__":
         install_requires=base_deps,
         tests_require=["tox"],
         extras_require=all_extras,
-        entry_points={"console_scripts": ["swarm=aea_swarm.cli:cli"]},
+        entry_points={"console_scripts": ["autonomy=autonomy.cli:cli"]},
         zip_safe=False,
         include_package_data=True,
         license=about["__license__"],
         python_requires=">=3.7",
         keywords="aea open-aea autonomous-economic-agents agent-framework multi-agent-systems multi-agent cryptocurrency cryptocurrencies dezentralized dezentralized-network",
         project_urls={
-            "Bug Reports": "https://github.com/valory-xyz/consensus-algorithms/issues",
-            "Source": "https://github.com/valory/consensus-algorithms",
+            "Bug Reports": "https://github.com/valory-xyz/open-autonomy/issues",
+            "Source": "https://github.com/valory/open-autonomy",
         },
     )

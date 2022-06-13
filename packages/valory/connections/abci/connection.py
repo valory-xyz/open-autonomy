@@ -271,7 +271,7 @@ class TcpServerChannel:  # pylint: disable=too-many-instance-attributes
         self._is_stopped = False
         self.queue = asyncio.Queue()
         self._server = await asyncio.start_server(
-            self.receive_messages, host=self.address, port=self.port, loop=self._loop
+            self.receive_messages, host=self.address, port=self.port
         )
 
     async def disconnect(self) -> None:

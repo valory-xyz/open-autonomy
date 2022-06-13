@@ -65,7 +65,7 @@ to the ABCI App for different purposes. For example,
 check whether a transaction is valid and therefore if it can be added
 to the transaction pool, to notify the application that
 a block has been validated, or to get information from the
-application layer. The application must process and respond approppriately to such callbacks.
+application layer. The application must process and respond appropriately to such callbacks.
 
 - On the other hand, the application can exhibit a proactive behaviour, when it wishes to submit a transaction to the blockchain. For example, it can commit a certain observed value in an external server. This would be the "user role" when interacting with the blockchain.
 
@@ -84,7 +84,7 @@ Some requests like `Info` and `InitChain` are proactively made by the consensus 
 
 ### Proactive Calls to the Blockchain
 
-The ABCI App can submit transactions to the Tendermint blokchain
+The ABCI App can submit transactions to the Tendermint blockchain
 using the [Tendermint RPC protocol](https://docs.tendermint.com/master/rpc/).
 See also the [Protobuf definitions](https://github.com/tendermint/abci/blob/master/types/types.proto) of those messages. The application can send a transaction by using the following
 Tendermint RPC methods:

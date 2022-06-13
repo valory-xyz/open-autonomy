@@ -72,7 +72,8 @@ class ResetAndPauseBehaviour(ResetAndPauseBaseBehaviour):
         """
         # + 1 because `period_count` starts from 0
         n_periods_done = self.synchronized_data.period_count + 1
-        if n_periods_done % self.params.reset_tendermint_after == 0:
+        reset_tm_nodes = n_periods_done % self.params.reset_tendermint_after == 0
+        if reset_tm_nodes:
             tendermint_reset = yield from self.reset_tendermint_with_wait()
             if not tendermint_reset:
                 return
@@ -84,7 +85,7 @@ class ResetAndPauseBehaviour(ResetAndPauseBaseBehaviour):
         payload = ResetPausePayload(
             self.context.agent_address, self.synchronized_data.period_count
         )
-        yield from self.send_a2a_transaction(payload)
+        yield from self.send_a2a_transaction(payload, reset_tm_nodes)
         yield from self.wait_until_round_end()
         self.set_done()
 

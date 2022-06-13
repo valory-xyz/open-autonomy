@@ -85,6 +85,10 @@ ETHEREUM_KEY_PATH_1 = DATA_PATH / "ethereum_key_1.txt"
 ETHEREUM_KEY_PATH_2 = DATA_PATH / "ethereum_key_2.txt"
 ETHEREUM_KEY_PATH_3 = DATA_PATH / "ethereum_key_3.txt"
 ETHEREUM_KEY_PATH_4 = DATA_PATH / "ethereum_key_4.txt"
+
+ETHEREUM_ENCRYPTED_KEYS = DATA_PATH / "encrypted_keys.json"
+ETHEREUM_ENCRYPTION_PASSWORD = "much-secure"  # nosec
+
 GANACHE_CONFIGURATION = dict(
     accounts_balances=[
         (get_key(ETHEREUM_KEY_DEPLOYER), DEFAULT_AMOUNT),
@@ -115,7 +119,7 @@ def tendermint_port() -> int:
     return DEFAULT_TENDERMINT_PORT
 
 
-@pytest.fixture(scope="function")
+@pytest.fixture(scope="class")
 def tendermint(
     tendermint_port: Any,
     abci_host: str = DEFAULT_ABCI_HOST,

@@ -9,9 +9,9 @@ Valory application deployments can be built on the fly.
 To learn about generating the deployment configuration, run the following command:
 
 ```bash
-$ swarm deploy build deployment --help
+$ autonomy deploy build deployment --help
 
-Usage: swarm deploy build deployment [OPTIONS] PUBLIC_ID_OR_HASH KEYS_FILE
+Usage: autonomy deploy build deployment [OPTIONS] PUBLIC_ID_OR_HASH KEYS_FILE
 
   Build deployment setup for n agents.
 
@@ -24,12 +24,13 @@ Options:
   --dev               Create development environment.
   --force             Remove existing build and overwrite with new one.
   --help              Show this message and exit.
+  --password     Optional password for encrypted keys.
 ```
 
 ```bash
-swarm deploy build image --help
+autonomy deploy build image --help
 
-Usage: swarm deploy build image [OPTIONS] PUBLIC_ID_OR_HASH
+Usage: autonomy deploy build image [OPTIONS] PUBLIC_ID_OR_HASH
 
   Build image using skaffold.
 
@@ -49,20 +50,20 @@ Options:
 For example, in order to build a deployment from scratch for oracle abci, first ensure you have a clean build environment and then build the images:
 ```bash
 make clean
-swarm deploy build image valory/oracle_hardhat --dependencies
-swarm deploy build image valory/oracle_hardhat
+autonomy deploy build image valory/oracle_hardhat --dependencies
+autonomy deploy build image valory/oracle_hardhat
 ```
 
 Next, run the command to generate the relevant build configuration:
 ```bash
-swarm deploy build deployment valory/oracle_hardhat deployments/keys/hardhat_keys.json
+autonomy deploy build deployment valory/oracle_hardhat deployments/keys/hardhat_keys.json
 ```
 
 A build configuration will be output to `./abci_build`.
 
 This can then be launched using the appropriate tool. For example, to launch a deployment using docker-compose.
 
-```bash 
+```bash
 cd abci_build/
 docker-compose up --force-recreate
 ```
@@ -102,7 +103,6 @@ In addition to Docker-Compose-based deployments, we support cluster deployments 
 Run the following make targets for a quick deployment of the oracle:
 ```bash
 make localcluster-start
-make localcluster-deploy
 ```
 
 ### To Configure Local Cluster

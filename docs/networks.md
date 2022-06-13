@@ -75,12 +75,12 @@ This is going to play a significant role when performing transactions, since the
 More specifically, the corresponding `validate_timeout` specified in the `skill.yaml` files of your skills 
 should not be less than the average block time of the network, because timeouts  and unnecessary repricing 
 will happen too often. For example, at the time this document is written, the average block time 
-in the ethereum mainnet is 13.3 seconds. Therefore, we should never specify a value less than that, and it 
+in the Ethereum mainnet is 13.3 seconds. Therefore, we should never specify a value less than that, and it 
 would also be reasonable to allow for more time before giving up, because it is not rare for block times to be higher 
 and since there is no guarantee that a transaction will make it into the next block. 
 The underlying mechanism will take care to backoff linearly, with `retry_timeout` as a base, 
 while checking if the transaction has been validated, and stop when the `validate_timeout` is reached. 
-An example configuration for ethereum mainnent is provided below:
+An example configuration for Ethereum mainnet is provided below:
 
 ```yaml
 models:
