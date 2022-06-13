@@ -21,7 +21,7 @@
 
 9. Tag version on main.
 
-10. Pull main, make a clean environment (`pipenv --rm` and `pipenv --python 3.7`) and create distributions: `make dist`.
+10. Pull main, make a clean environment (`pipenv --rm` and `pipenv --python 3.10` and `pipenv shell`) and create distributions: `make dist`.
 
 11. Publish to PyPI with twine: `twine upload dist/*`. Optionally, publish to Test-PyPI with twine:
 `twine upload --repository-url https://test.pypi.org/legacy/ dist/*`.
