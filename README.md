@@ -1,4 +1,4 @@
-# Consensus algorithms
+# Open Autonomy
 
 This repository contains the [Valory](https://www.valory.xyz/) stack, a set of 
 distributed consensus technologies built on top of the 
@@ -26,7 +26,7 @@ Ensure your machine satisfies the following requirements:
 
 - Clone the repository, and recursively clone the submodules:
 
-      git clone --recursive git@github.com:valory-xyz/consensus-algorithms.git
+      git clone --recursive git@github.com:valory-xyz/open-autonomy.git
 
   Note: to update the Git submodules later:
 
@@ -48,7 +48,7 @@ the dependencies:
 ## Getting started
 
 Have a look at the 
-[price estimation](https://github.com/valory-xyz/consensus-algorithms/tree/main/examples/price_estimation) 
+[price estimation](https://github.com/valory-xyz/open-autonomy/tree/main/examples/price_estimation) 
 example. You must have completed setting up and be inside a virtual environment
 (`pipenv shell`) in order to run the examples.
 

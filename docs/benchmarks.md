@@ -4,7 +4,7 @@ The benchmarking tools allow measuring the performance of an agent service reali
 
 ## How to use benchmarking tools
 
-1. Setup agent runtime environment in dev mode using `aea swarm deployment SERVICE_ID KEYS --dev`.
+1. Setup agent runtime environment in dev mode using `autonomy deployment SERVICE_ID KEYS --dev`.
 
 2. Run agents for `1` period and wait until the round where the skill is configured to call the `BenchmarkTool.save` method. (You can also run agents for `N` periods if you want more data).
 
@@ -31,7 +31,7 @@ make run-hardhat
 By default this will create a `4` agent runtime where you can wait until all `4` agents are at the end of the first period (you can wait for more periods if you want) and then you can stop the runtime. The data will be stored in the `abci_build/persistent_data/benchmarks` folder. You can use the following script to aggregate this data:
 
 ```bash
-swarm analyse benchmarks abci_build/persistent_data/benchmarks
+autonomy analyse benchmarks abci_build/persistent_data/benchmarks
 ```
 
 By default the script will generate output for all periods but you can specify which period to generate output for. Similarly, block types aggregation is configurable as well.
