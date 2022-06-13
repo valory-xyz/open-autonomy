@@ -13,3 +13,7 @@ An FSM App is an application that implements the business logic of an Agent Serv
 <details><summary>Can I reuse the same FSM App multiple times when creating a composed FSM App?</summary>
 No. The Open Autonomy framework currently only supports a single instance of a given FSM App in a composition.
 </details>
+
+<details><summary>What is a keeper agent?</summary>
+It is a normal agent for which other agents have voted to be in charge of executing a certain operation (e.g., settling a transaction on a blockchain).
+</details>
