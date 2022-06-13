@@ -301,7 +301,6 @@ jobs:
 
           # build hardhat node in third_party/safe-contracts
           cd third_party\safe-contracts
-          sudo chown -R $(whoami) .husky 
           yarn
           cd ..\..
 
