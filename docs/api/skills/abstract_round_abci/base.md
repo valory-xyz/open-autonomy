@@ -671,33 +671,33 @@ To create a new period entry, call create() on the class. The new values will be
 #### `__`init`__`
 
 ```python
-def __init__(initial_data: Dict[str, List[Any]], cross_period_persisted_keys: Optional[List[str]] = None) -> None
+def __init__(setup_data: Dict[str, List[Any]], cross_period_persisted_keys: Optional[List[str]] = None) -> None
 ```
 
 Initialize the AbciApp database.
 
-Initial_data must be passed as a Dict[str, List[Any]] (the database internal format). The class method 'data_to_lists'
+setup_data must be passed as a Dict[str, List[Any]] (the database internal format). The class method 'data_to_lists'
 can be used to convert from Dict[str, Any] to Dict[str, List[Any]] before instantiating this class.
 
 **Arguments**:
 
-- `initial_data`: the initial data
+- `setup_data`: the setup data
 - `cross_period_persisted_keys`: data keys that will be kept after a new period starts
 
-<a id="packages.valory.skills.abstract_round_abci.base.AbciAppDB.initial_data"></a>
+<a id="packages.valory.skills.abstract_round_abci.base.AbciAppDB.setup_data"></a>
 
-#### initial`_`data
+#### setup`_`data
 
 ```python
 @property
-def initial_data() -> Dict[str, Any]
+def setup_data() -> Dict[str, Any]
 ```
 
-Get the initial_data without entries which have empty values.
+Get the setup_data without entries which have empty values.
 
 **Returns**:
 
-the initial_data
+the setup_data
 
 <a id="packages.valory.skills.abstract_round_abci.base.AbciAppDB.reset_index"></a>
 
@@ -1401,22 +1401,31 @@ def check_payload(payload: BaseTxPayload) -> None
 
 Check Payload
 
-<a id="packages.valory.skills.abstract_round_abci.base.CollectDifferentUntilAllRound"></a>
+<a id="packages.valory.skills.abstract_round_abci.base._CollectUntilAllRound"></a>
 
-## CollectDifferentUntilAllRound Objects
+## `_`CollectUntilAllRound Objects
 
 ```python
-class CollectDifferentUntilAllRound(CollectionRound)
+class _CollectUntilAllRound(CollectionRound,  ABC)
 ```
 
-CollectDifferentUntilAllRound
+_CollectUntilAllRound
 
-This class represents logic for rounds where a round needs to collect
-different payloads from each agent.
+This class represents logic for when rounds need to collect payloads from all agents.
 
 This round should only be used for registration of new agents.
 
-<a id="packages.valory.skills.abstract_round_abci.base.CollectDifferentUntilAllRound.process_payload"></a>
+<a id="packages.valory.skills.abstract_round_abci.base._CollectUntilAllRound.check_payload"></a>
+
+#### check`_`payload
+
+```python
+def check_payload(payload: BaseTxPayload) -> None
+```
+
+Check Payload
+
+<a id="packages.valory.skills.abstract_round_abci.base._CollectUntilAllRound.process_payload"></a>
 
 #### process`_`payload
 
@@ -1425,6 +1434,32 @@ def process_payload(payload: BaseTxPayload) -> None
 ```
 
 Process payload.
+
+<a id="packages.valory.skills.abstract_round_abci.base._CollectUntilAllRound.collection_threshold_reached"></a>
+
+#### collection`_`threshold`_`reached
+
+```python
+@property
+def collection_threshold_reached() -> bool
+```
+
+Check that the collection threshold has been reached.
+
+<a id="packages.valory.skills.abstract_round_abci.base.CollectDifferentUntilAllRound"></a>
+
+## CollectDifferentUntilAllRound Objects
+
+```python
+class CollectDifferentUntilAllRound(_CollectUntilAllRound,  ABC)
+```
+
+CollectDifferentUntilAllRound
+
+This class represents logic for rounds where a round needs to collect
+different payloads from each agent.
+
+This round should only be used for registration of new agents when there is synchronization of the db.
 
 <a id="packages.valory.skills.abstract_round_abci.base.CollectDifferentUntilAllRound.check_payload"></a>
 
@@ -1436,27 +1471,38 @@ def check_payload(payload: BaseTxPayload) -> None
 
 Check Payload
 
-<a id="packages.valory.skills.abstract_round_abci.base.CollectDifferentUntilAllRound.collection_threshold_reached"></a>
+<a id="packages.valory.skills.abstract_round_abci.base.CollectSameUntilAllRound"></a>
 
-#### collection`_`threshold`_`reached
+## CollectSameUntilAllRound Objects
+
+```python
+class CollectSameUntilAllRound(_CollectUntilAllRound,  ABC)
+```
+
+This class represents logic for when a round needs to collect the same payload from all the agents.
+
+This round should only be used for registration of new agents when there is no synchronization of the db.
+
+<a id="packages.valory.skills.abstract_round_abci.base.CollectSameUntilAllRound.check_payload"></a>
+
+#### check`_`payload
+
+```python
+def check_payload(payload: BaseTxPayload) -> None
+```
+
+Check Payload
+
+<a id="packages.valory.skills.abstract_round_abci.base.CollectSameUntilAllRound.common_payload"></a>
+
+#### common`_`payload
 
 ```python
 @property
-def collection_threshold_reached() -> bool
+def common_payload() -> Any
 ```
 
-Check that the collection threshold has been reached.
-
-<a id="packages.valory.skills.abstract_round_abci.base.CollectDifferentUntilAllRound.most_voted_payload"></a>
-
-#### most`_`voted`_`payload
-
-```python
-@property
-def most_voted_payload() -> Any
-```
-
-Get the most voted payload.
+Get the common payload among the agents.
 
 <a id="packages.valory.skills.abstract_round_abci.base.CollectSameUntilThresholdRound"></a>
 
