@@ -312,9 +312,13 @@ class TestRegistrationStartupBehaviour(RegistrationAbciBaseCase):
 
     def test_no_contract_address(self, caplog: LogCaptureFixture) -> None:
         """Test service registry contract address not provided"""
-        self.behaviour.act_wrapper()
-        self.mock_get_local_tendermint_params()
-        log_message = self.state.LogMessages.no_contract_address
+        with caplog.at_level(
+            logging.INFO,
+            logger="aea.test_agent_name.packages.valory.skills.registration_abci",
+        ):
+            self.behaviour.act_wrapper()
+            self.mock_get_local_tendermint_params()
+            log_message = self.state.LogMessages.no_contract_address
         assert log_message.value in caplog.text
 
     @pytest.mark.parametrize("valid_response", [True, False])
