@@ -33,7 +33,7 @@ Ensure your machine satisfies the following requirements:
        pip install open-autonomy
 
 
-3. Then, build your services as described in the [docs](https://davidminarsch.github.io/temp-docs-valory/).
+3. Then, build your services as described in the [docs](https://docs.autonolas.network/).
 
 
 ## For developers contributing to the framework: Install from Source
