@@ -6,7 +6,7 @@ RUN apt-get install -y                                                       \
        python3-venv                                                          \
        python3-pip                                                           \
        python3-dev                                                           \
-       git \
+       git
 
 # needed by Pipenv
 ENV LC_ALL C.UTF-8
