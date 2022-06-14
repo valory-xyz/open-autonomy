@@ -13,7 +13,7 @@ Develop CLI module.
 def replay_group() -> None
 ```
 
-Replay tools.
+Replay tools for agent services.
 
 <a id="autonomy.cli.replay.run_agent"></a>
 

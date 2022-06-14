@@ -86,7 +86,7 @@ Building image with:
         ServiceId: valory/oracle_hardhat:latest
 
 [Skaffold] Generating tags...
-[Skaffold] - valory/open-autonomy-open-aea -> valory/open-autonomy-open-aea:oracle_deployable-0.1.0
+[Skaffold] - valory/open-autonomy-open-aea -> valory/open-autonomy-open-aea:oracle-0.1.0
 [Skaffold] Checking cache...
 [Skaffold] - valory/open-autonomy-open-aea: Found Locally
 ...
@@ -245,9 +245,9 @@ ls abci_build/persistent_data/
 benchmarks  logs  tm_state  venvs
 ```
 
-- benchmarking - This directory contains benchmarking data from the running agents.
-- tm_state - This directory contains the tendermint message state from the running agents, allowing replay of the application.
-- venvs - This directory contains shared virtual environments.
+- `benchmarking` - This directory contains benchmarking data from the running agents.
+- `tm_state` - This directory contains the tendermint message state from the running agents, allowing replay of the application.
+- `venvs` - This directory contains shared virtual environments.
 
 
 # Background info:

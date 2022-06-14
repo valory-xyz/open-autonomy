@@ -1,8 +1,8 @@
 # Open Autonomy
 
-_Open Autonomy_ implements the {{valory_stack}}, which provides a framework for the creation of _{{agent_service}}s_: off-chain services which run as a multi-agent-system (MAS), and are crypto-economically secured on a local, temporary consensus gadget (blockchain), and which are operated in a robust, transparent and decentralized way.
+_{{open_autonomy}}_ is a framework for the creation of _{{agent_service}}s_: off-chain services which run as a multi-agent-system (MAS), and are crypto-economically secured on a local, temporary consensus gadget (blockchain), and which are operated in a robust, transparent and decentralized way.
 
-The framework implemented by the {{valory_stack}} allows to define such services by means of _{{fsm_app}}s_. These dynamic, decentralized apps constitute the actual code of the agents implementing the {{agent_service}}, and their internal state is replicated across agents automatically through the consensus gadget. The {{valory_stack}} is realized on top of the {{open_aea}} framework.
+The framework implemented by the {{open_autonomy}} framework allows to define such services by means of _{{fsm_app}}s_. These dynamic, decentralized apps run inside the agents implementing the {{agent_service}}, and define its business logic. The {{fsm_app}}'s internal state is replicated across agents automatically through the consensus gadget. The {{open_autonomy}} framework is realized on top of the {{open_aea}} framework.
 
 <figure markdown>
 ![](./images/agent_service_architecture.svg)
@@ -10,7 +10,7 @@ The framework implemented by the {{valory_stack}} allows to define such services
 </figure>
 
 ## Why?
-Decentralized ledger technologies, such as blockchains, face several challenges, for example:
+Decentralized ledger technologies (DLTs), such as blockchains, face several challenges, for example:
 
 * [the blockchain trilemma](https://www.ledger.com/academy/what-is-the-blockchain-trilemma)
 * [the oracle problem](https://encyclopedia.pub/entry/2959),
@@ -22,12 +22,12 @@ Decentralized ledger technologies, such as blockchains, face several challenges,
 In contrast with the increasing growth of on-chain applications (particularly in DeFi), the off-chain design space has seen a lack of innovation. A lot of the technology is centralized, lacks fault tolerance and offers little composability.
 
 
-However, a standardised approach for off-chain application development in the context of DLTs is missing. This is where the {{valory_stack}} comes in, as an open-source framework for developers to implement their own off-chain applications which are secured on-chain.
+However, a standardised approach for off-chain application development in the context of DLTs is missing. This is where the Valory stack (i.e., the {{open_aea}} and the {{open_autonomy}} frameworks) comes in, as an open-source framework for developers to implement their own off-chain applications which are secured on-chain.
 
 
 <figure markdown>
 ![](./images/centralized_decentralized_world.svg)
-<figcaption>The Valory Stack allows to develop decentralized, off-chain services that are crypto-economically secured</figcaption>
+<figcaption>The Valory Stack allows to develop decentralized, off-chain {{agent_service}}s that are crypto-economically secure</figcaption>
 </figure>
 
 
@@ -38,7 +38,7 @@ reactive applications (like traditional smart contracts) and can show complex, p
 ## How It Works
 
 {{open_aea}} is a MAS framework for building
-arbitrary agent-based apps. The {{valory_stack}} extends this framework to a service architecture, where applications are implemented as sets of agents.
+arbitrary agent-based apps. The {{open_autonomy}} framework extends this framework to a service architecture, where applications are implemented as sets of agents.
 
 The {{fsm_app}} defines a series of steps that each agent in the {{agent_service}} must agree upon. At the end of every step, the agents must reach consensus on its outputs. This ensures that the execution flow, its
 inputs and its outputs are replicated across all agents, creating a distributed and
@@ -52,10 +52,10 @@ For this reason, there is the requirement that a minimum number of agents approv
 
 We recommend that new users start by reading the the [_Get Started_](./get_started.md) section, which should give a general overview about how a simple {{agent_service}} is implemented with the stack.
 
-Following that introduction, the reader can proceed to explore the core concepts that make {{agent_service}}s possible, presented in the _Preliminaries_ section:
+Following that introduction, the reader can proceed to explore the core concepts that make {{agent_service}}s possible, presented in the _Concepts_ section:
 
-- _Autonomous economic agents (AEAs)_ and _multi-agent systems (MAS)_,
-- _Finite-state machines (FSMs)_,
-- the _Application BlockChain Interface (ABCI)_.
+- [Autonomous economic agents (AEAs) and multi-agent systems (MAS)](./aea.md),
+- [Finite-state machines (FSMs)](./fsm.md), and
+- the [Application BlockChain Interface (ABCI)](./abci.md).
 
 These concepts constitute the starting point before exploring more advanced parts of the documentation.

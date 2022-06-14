@@ -210,7 +210,7 @@ class TestBuildDeployment(BaseCliTest):
             )
             assert (
                 docker_compose["services"][f"abci{i}"]["image"]
-                == f"{OPEN_AEA_IMAGE_NAME}:oracle_deployable-{version}"
+                == f"{OPEN_AEA_IMAGE_NAME}:oracle-{version}"
             )
 
     def test_versioning_kubernetes(
@@ -257,7 +257,7 @@ class TestBuildDeployment(BaseCliTest):
 
             assert (
                 resource["spec"]["template"]["spec"]["containers"][1]["image"]
-                == f"{OPEN_AEA_IMAGE_NAME}:oracle_deployable-{version}"
+                == f"{OPEN_AEA_IMAGE_NAME}:oracle-{version}"
             )
 
     def test_docker_compose_no_password(

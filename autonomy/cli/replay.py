@@ -39,7 +39,7 @@ BUILD_DIR = Path(DEFAULT_BUILD_FOLDER).absolute()
 
 @click.group(name="replay")
 def replay_group() -> None:
-    """Replay tools."""
+    """Replay tools for agent services."""
 
 
 @replay_group.command(name="agent")

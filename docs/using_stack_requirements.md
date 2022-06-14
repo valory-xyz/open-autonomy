@@ -1,6 +1,6 @@
 # Requirements and Set-Up
 
-In order to set up the {{valory_stack}} for development or running the examples provided, ensure that your machine satisfies the following requirements:
+In order to set up the {{open_autonomy}} framework for development or running the examples provided, ensure that your machine satisfies the following requirements:
 
 - [Python](https://www.python.org/) `>= 3.7`
 - [Pipenv](https://pipenv.pypa.io/en/latest/install/) `>=2021.x.xx`
