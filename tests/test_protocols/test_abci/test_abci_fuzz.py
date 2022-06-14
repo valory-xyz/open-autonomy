@@ -20,6 +20,7 @@
 """Test random initializations of ABCI Message content"""
 
 import copy
+import logging
 from typing import Any, Dict, Tuple
 
 from hypothesis import given
@@ -139,6 +140,14 @@ def _translate(type_node: Node, abci_node: Node) -> Node:
             continue
 
         tk = key_translation.get(k, k)
+        if tk not in abci_node:
+            logging.error("MISSING KEY ERROR")
+            logging.error(f"k and tk: {k}, {tk}")
+            logging.error(f"type_node: {type_node}")
+            logging.error(f"type_child: {type_child}")
+            logging.error(f"abci node keys: {abci_node.keys()}")
+            logging.error(f"abci_node: {abci_node}")
+
         abci_child = abci_node[tk]
 
         if isinstance(type_child, str) or type_child in PYTHON_PRIMITIVES:
@@ -193,8 +202,8 @@ def _init_subtree(node: Any) -> Any:
     def init_repeated(repeated_type: Any) -> Tuple[Any, ...]:
         """Repeated fields must be tuples for Tendermint protobuf"""
         if isinstance(repeated_type, str) or repeated_type in PYTHON_PRIMITIVES:
-            data = STRATEGY_MAP[repeated_type]
-            return st.lists(data, min_size=0, max_size=100)
+            strategy = STRATEGY_MAP[repeated_type]
+            return st.lists(strategy, min_size=0, max_size=100)
         elif isinstance(repeated_type, tuple):
             cls, kws = repeated_type
             strategy = st.builds(cls, **_init_subtree(kws))
@@ -286,7 +295,18 @@ def test_hypotheses(strategy: LazyStrategy) -> None:
     type_tree = create_abci_type_tree(speech_acts)
     type_tree.pop("dummy")
 
-    abci_messages = init_abci_messages(type_tree, strategy)
+    def list_to_tuple(node: Node) -> Node:
+        # expecting tuples instead of lists
+        for k, v in node.items():
+            if isinstance(v, dict):
+                list_to_tuple(v)
+            elif isinstance(v, list):
+                node[k] = tuple(v)
+        return node
+
+    logging.info(strategy)
+    tuplified_strategy = list_to_tuple(strategy)
+    abci_messages = init_abci_messages(type_tree, tuplified_strategy)
 
     encoded = {k: encode(v) for k, v in abci_messages.items()}
     translated = {k: v for k, v in encoded.items() if v}
