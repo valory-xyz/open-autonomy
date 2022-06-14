@@ -29,7 +29,8 @@ svn checkout  https://github.com/valory-xyz/open-autonomy/trunk/packages package
 
 4. Build and install your agent
 ```bash
-autonomy fetch hello_world
+aea init --reset --author default_author --ipfs
+aea fetch valory/hello_world
 cd hello_world
 aea install
 aea generate-key ethereum
