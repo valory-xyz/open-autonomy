@@ -132,7 +132,7 @@ markdown_extensions:
 extra:
     open_aea: '[Open AEA](https://github.com/valory-xyz/open-aea)'
     open_aea_doc: '[Open AEA documentation](https://open-aea.docs.autonolas.tech)'
-    open_aea_api: '[Open AEA API](https://open.docs.autonolas.tech/api/)'
+    open_aea_api: '[Open AEA API](https://open-aea.docs.autonolas.tech/api/)'
     fsm_app: 'FSM App'
     open_autonomy: '[Open Autonomy](https://github.com/valory-xyz/open-autonomy)'
     open_autonomy_api: '[Open Autonomy API](https://docs.autonolas.network/)'
