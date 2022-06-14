@@ -1,6 +1,6 @@
 # Quick Start
 
-The purpose of this quick start is to get you up and running as quickly as possible.
+The purpose of this quick start is to get you up and running with the `open-autonomy` framework for agent service development as quickly as possible.
 
 1. Setup the environment
 ```
