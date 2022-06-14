@@ -37,6 +37,11 @@ logging_config:
     standard:
       format: '[%(asctime)s] [%(levelname)s] %(message)s'
   handlers:
+    logfile:
+      class: logging.FileHandler
+      formatter: standard
+      filename: ${LOG_FILE:str:/logs/log.txt}
+      level: INFO
     console:
       class: logging.StreamHandler
       formatter: standard
@@ -44,6 +49,7 @@ logging_config:
   loggers:
     aea:
       handlers:
+      - logfile
       - console
       propagate: false
 dependencies:

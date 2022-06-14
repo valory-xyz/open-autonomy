@@ -22,8 +22,27 @@ default_routing: {}
 connection_private_key_paths: {}
 private_key_paths: {}
 logging_config:
-  disable_existing_loggers: false
   version: 1
+  disable_existing_loggers: false
+  formatters:
+    standard:
+      format: '[%(asctime)s] [%(levelname)s] %(message)s'
+  handlers:
+    logfile:
+      class: logging.FileHandler
+      formatter: standard
+      filename: ${LOG_FILE:str:/logs/log.txt}
+      level: INFO
+    console:
+      class: logging.StreamHandler
+      formatter: standard
+      stream: ext://sys.stdout
+  loggers:
+    aea:
+      handlers:
+      - logfile
+      - console
+      propagate: false
 dependencies:
   open-aea-ledger-ethereum: {}
 default_connection: valory/abci:0.1.0
