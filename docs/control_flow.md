@@ -8,9 +8,9 @@ Each of the agents - containing the ABCI app - and the Tendermint node, are impl
 
 The Tendermint process is managed by a separate process, via a Flask server. The image containing the Flask server and Tendermint node are built on top of the ```valory/tendermint``` image.
 
-## Tendermint Image control flow. 
+## Tendermint Image control flow.
 
-```mermaid
+<div class="mermaid">
 flowchart TD
     subgraph Tendermint  Container
         A[Flask EntryPoint] --> Flask
@@ -19,7 +19,7 @@ flowchart TD
         Flask --> LOG
         Flask --> Monitoring
         Flask --> StartA
-        
+
         subgraph FP[Flask Process]
             Flask((Flask Server))
             subgraph Tendermint Process
@@ -32,10 +32,10 @@ flowchart TD
             end
         end
     end
-```
+</div>
 
 
-```mermaid
+<div class="mermaid">
 flowchart LR
     subgraph AEA Container
         start.sh --> A[Pull Aea]
@@ -45,25 +45,27 @@ flowchart LR
         end
         b-->LOG[Log File]
     end
-```
+</div>
+
 
 # Gentle Restart flow
-```mermaid
+<div class="mermaid">
 sequenceDiagram
    AEA-->+AEA: starts_up
    FlaskServer-->+FlaskServer: starts_com_server
    FlaskServer-->+MonitoringThread: starts_monitoring_thread
    FlaskServer-->+TendermintProcess: starts_tendermint_process
-   
+
    AEA->>+TendermintProcess: port 26557
-   TendermintProcess->>+AEA: port 26558 
-   
+   TendermintProcess->>+AEA: port 26558
+
    AEA->>+FlaskServer: gentle_reset
    FlaskServer-->+FlaskServer: stops_monitoring_thread
    FlaskServer-->+FlaskServer: stops_tendermint_process
    FlaskServer-->+MonitoringThread: starts_monitoring_thread
    FlaskServer-->+TendermintProcess: starts_tendermint_process
-```
+</div>
+
 This can viewed in the logs as;
 ```bash
 
@@ -79,23 +81,23 @@ Monitoring thread started
 
 
 # Hard Restart flow
-```mermaid
+<div class="mermaid">
 sequenceDiagram
    AEA-->+AEA: starts_up
    FlaskServer-->+FlaskServer: starts_com_server
    FlaskServer-->+MonitoringThread: starts_monitoring_thread
    FlaskServer-->+TendermintProcess: starts_tendermint_process
-   
+
    AEA->>+TendermintProcess: port 26557
-   TendermintProcess->>+AEA: port 26558 
-   
+   TendermintProcess->>+AEA: port 26558
+
    AEA->>+FlaskServer: hard_reset
    FlaskServer-->+FlaskServer: stops_monitoring_thread
    FlaskServer-->+FlaskServer: stops_tendermint_process
    FlaskServer-->+TendermintProcess: prune_blocks
    FlaskServer-->+TendermintProcess: starts_tendermint_process
    FlaskServer-->+MonitoringThread: starts_monitoring_thread
-```
+</div>
 
 ```bash
 E[2022-05-11|13:45:41.355] abci.socketClient failed to connect to tcp://localhost:26658.  Retrying after 3s... module=abci-client connection=query err="dial tcp 127.0.0.1:26658: connect: connection refused"
@@ -126,7 +128,7 @@ This can be simulated by kill a running aea-process while running a docker-compo
 This will interrupt the TCP connection between the AEA and the Tendermint process, managed by the Flask process. The typical behaviour for Tendermint upon such an event is to stop the module responsible for handling *all* http traffic. We watch for this event, and then restart the Tendermint process upon detecting it.
 
 
-```bash 
+```bash
 # kill the aea
 docker-compose kill abci0 && docker-compose up -d abci0
 ```
@@ -141,13 +143,13 @@ Restarted the HTTP RPC server, as a connection was dropped with message:
 ```
 
 
-```mermaid
+<div class="mermaid">
 sequenceDiagram
    AEA-->+AEA: starts_up
    FlaskServer-->+FlaskServer: starts_com_server
    FlaskServer-->+MonitoringThread: starts_monitoring_thread
    FlaskServer-->+TendermintProcess: starts_tendermint_process
-   
+
    AEA->>+TendermintProcess: tcp port 26557
    TendermintProcess->>+AEA: tcp port 26558
    AEA->>+TendermintProcess: loses connection/breaktcp connection
@@ -156,13 +158,13 @@ sequenceDiagram
 
    AEA->>+TendermintProcess: reconnects on tcp port
    TendermintProcess->>+AEA: tcp port 26558
-```
+</div>
 
 # Tendermint Network interruption Flow
-When we have an issue with the Tendermint process connecting to the AEA, the sudden closure of the tcp connection will trigger a restart of the tendermint process.
+When we have an issue with the Tendermint process connecting to the AEA, the sudden closure of the TCP connection will trigger a restart of the tendermint process.
 
 The effect of this on the AEA, can be demonstrated as so;
-```bash 
+```bash
 # kill the node
 docker-compose kill node0 && docker-compose up -d node0
 ```
@@ -187,17 +189,17 @@ The logs for the associated AEA show;
 Notice how the AEA continues as soon as it is able to re-establish a connection.
 
 
-```mermaid
+<div class="mermaid">
 sequenceDiagram
    AEA-->+AEA: starts_up
    FlaskServer-->+FlaskServer: starts_com_server
    FlaskServer-->+MonitoringThread: starts_monitoring_thread
    FlaskServer-->+TendermintProcess: starts_tendermint_process
-   
+
    AEA->>+TendermintProcess: tcp port 26557
    TendermintProcess->>+AEA: loses connection
    TendermintProcess->>+TendermintProcess: HTTPServer crashes
    MonitoringThread->>+TendermintProcess: restart Tendermint process
    AEA->>+TendermintProcess: reconnects on tcp port
    TendermintProcess->>+AEA: tcp port 26558
-```
+</div>

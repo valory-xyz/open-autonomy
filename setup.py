@@ -46,8 +46,11 @@ def get_all_extras() -> Dict:
 all_extras = get_all_extras()
 
 base_deps = [
-    "open-aea>=1.10.0,<2.0.0",
+    "Flask>=2.0.2,<3.0.0",
+    "open-aea[all]>=1.10.0,<2.0.0",
+    "pandas<1.4,>=1.3.4",
 ]
+base_deps.extend(all_extras["cli"])
 
 here = os.path.abspath(os.path.dirname(__file__))
 about: Dict[str, str] = {}
@@ -108,7 +111,7 @@ if __name__ == "__main__":
         include_package_data=True,
         license=about["__license__"],
         python_requires=">=3.7",
-        keywords="aea open-aea autonomous-economic-agents agent-framework multi-agent-systems multi-agent cryptocurrency cryptocurrencies dezentralized dezentralized-network",
+        keywords="autonomy open-autonomy aea open-aea autonomous-economic-agents agent-framework multi-agent-systems multi-agent cryptocurrency cryptocurrencies dezentralized dezentralized-network",
         project_urls={
             "Bug Reports": "https://github.com/valory-xyz/open-autonomy/issues",
             "Source": "https://github.com/valory/open-autonomy",

@@ -13,9 +13,11 @@ extra_css:
 strict: true
 
 nav:
-  - Home: 'index.md'
+  - Introduction: 'index.md'
+  - Version: 'version.md'
+  - Upgrading: 'upgrading.md'
   - Get Started: 'get_started.md'
-  - Preliminaries:
+  - Concepts:
     - Autonomous Economic Agents: 'aea.md'
     - Finite State Machines: 'fsm.md'
     - The Application BlockChain Interface: 'abci.md'
@@ -27,7 +29,13 @@ nav:
     - The AsyncBehaviour Class: 'abci_app_async_behaviour.md'
     - The AbstractRound Class: 'abci_app_abstract_round.md'
     - Interactions between Components: 'abci_app_interactions.md'
-  - Using the Stack:
+  - Demos:
+    - Simple ABCI: 'simple_abci.md'
+    - Price Oracle:
+      - Introduction: 'price_oracle_intro.md'
+      - Running the Demo: 'price_oracle_running.md'
+      - FSM Specification: 'price_oracle_fsms.md'
+  - Development:
     - Requirements and Set-Up: 'using_stack_requirements.md'
     - Developer Tooling:
       - Hot Reload: 'hot_reload.md'
@@ -37,79 +45,75 @@ nav:
       - Local Deployment: 'application_deployment.md'
       - Cloud Deployment: 'using_stack_deployment.md'
     - Running on other networks: 'networks.md'
-  - Demos:
-    - Simple ABCI: 'simple_abci.md'
-    - Price Oracle:
-      - Introduction: 'price_oracle_intro.md'
-      - Running the Demo: 'price_oracle_running.md'
-      - FSM Specification: 'price_oracle_fsms.md'
+    - API:
+      - Connections:
+        - ABCI:
+          - Check Dependencies: 'api/connections/abci/check_dependencies.md'
+          - Connection: 'api/connections/abci/connection.md'
+          - Dialogues: 'api/connections/abci/dialogues.md'
+          - Tendermint Decoder: 'api/connections/abci/tendermint_decoder.md'
+          - Tendermint Encoder: 'api/connections/abci/tendermint_encoder.md'
+          - Scripts: 'api/connections/abci/scripts/genproto.md'
+      - Contracts:
+        - Gnosis Safe:
+          - Contract: 'api/contracts/gnosis_safe/contract.md'
+        - Gnosis Safe Proxy Factory:
+          - Contract: 'api/contracts/gnosis_safe_proxy_factory/contract.md'
+      - Protocols:
+        - ABCI:
+          - Custom Types: 'api/protocols/abci/custom_types.md'
+          - Dialogues: 'api/protocols/abci/dialogues.md'
+          - Message: 'api/protocols/abci/message.md'
+          - Serialization: 'api/protocols/abci/serialization.md'
+      - Skills:
+        - Abstract ABCI:
+          - Dialogues: 'api/skills/abstract_abci/dialogues.md'
+          - Handlers: 'api/skills/abstract_abci/handlers.md'
+        - Abstract Round ABCI:
+          - Abci App Chain: 'api/skills/abstract_round_abci/abci_app_chain.md'
+          - Base: 'api/skills/abstract_round_abci/base.md'
+          - Behaviour Utils: 'api/skills/abstract_round_abci/behaviour_utils.md'
+          - Behaviour: 'api/skills/abstract_round_abci/behaviours.md'
+          - Common: 'api/skills/abstract_round_abci/common.md'
+          - Dialogues: 'api/skills/abstract_round_abci/dialogues.md'
+          - Handlers: 'api/skills/abstract_round_abci/handlers.md'
+          - Models: 'api/skills/abstract_round_abci/models.md'
+          - Serializer: 'api/skills/abstract_round_abci/serializer.md'
+          - Utils: 'api/skills/abstract_round_abci/utils.md'
+        - Oracle Deployment ABCI:
+          - Behaviours: 'api/skills/oracle_deployment_abci/behaviours.md'
+          - Models: 'api/skills/oracle_deployment_abci/models.md'
+          - Payloads: 'api/skills/oracle_deployment_abci/payloads.md'
+          - Rounds: 'api/skills/oracle_deployment_abci/rounds.md'
+        - Price Estimation ABCI:
+          - Behaviours: 'api/skills/price_estimation_abci/behaviours.md'
+          - Dialogues: 'api/skills/price_estimation_abci/dialogues.md'
+          - Handlers: 'api/skills/price_estimation_abci/handlers.md'
+          - Models: 'api/skills/price_estimation_abci/models.md'
+          - Payloads: 'api/skills/price_estimation_abci/payloads.md'
+          - Rounds: 'api/skills/price_estimation_abci/rounds.md'
+        - Oracle ABCI:
+          - Composition: 'api/skills/oracle_abci/composition.md'
+        - Registration ABCI:
+          - Behaviours: 'api/skills/registration_abci/behaviours.md'
+          - Payloads: 'api/skills/registration_abci/payloads.md'
+          - Rounds: 'api/skills/registration_abci/rounds.md'
+        - Safe Deployment ABCI:
+          - Behaviours: 'api/skills/safe_deployment_abci/behaviours.md'
+          - Payloads: 'api/skills/safe_deployment_abci/payloads.md'
+          - Rounds: 'api/skills/safe_deployment_abci/rounds.md'
+        - Transaction Settlement ABCI:
+          - Behaviours: 'api/skills/transaction_settlement_abci/behaviours.md'
+          - Payloads: 'api/skills/transaction_settlement_abci/payloads.md'
+          - Rounds: 'api/skills/transaction_settlement_abci/rounds.md'
+      - Exceptions: exceptions.md
   - Miscellaneous:
     - Ethereum: 'ethereum_specifics.md'
     - Delegate call vs call: 'delegate_call.md'
     - Debugging Using Tenderly: 'debugging.md'
     - Counter Example: 'counter_example.md'
-  - API:
-    - Connections:
-      - ABCI:
-        - Check Dependencies: 'api/connections/abci/check_dependencies.md'
-        - Connection: 'api/connections/abci/connection.md'
-        - Dialogues: 'api/connections/abci/dialogues.md'
-        - Tendermint Decoder: 'api/connections/abci/tendermint_decoder.md'
-        - Tendermint Encoder: 'api/connections/abci/tendermint_encoder.md'
-        - Scripts: 'api/connections/abci/scripts/genproto.md'
-    - Contracts:
-      - Gnosis Safe:
-        - Contract: 'api/contracts/gnosis_safe/contract.md'
-      - Gnosis Safe Proxy Factory:
-        - Contract: 'api/contracts/gnosis_safe_proxy_factory/contract.md'
-    - Protocols:
-      - ABCI:
-        - Custom Types: 'api/protocols/abci/custom_types.md'
-        - Dialogues: 'api/protocols/abci/dialogues.md'
-        - Message: 'api/protocols/abci/message.md'
-        - Serialization: 'api/protocols/abci/serialization.md'
-    - Skills:
-      - Abstract ABCI:
-        - Dialogues: 'api/skills/abstract_abci/dialogues.md'
-        - Handlers: 'api/skills/abstract_abci/handlers.md'
-      - Abstract Round ABCI:
-        - Abci App Chain: 'api/skills/abstract_round_abci/abci_app_chain.md'
-        - Base: 'api/skills/abstract_round_abci/base.md'
-        - Behaviour Utils: 'api/skills/abstract_round_abci/behaviour_utils.md'
-        - Behaviour: 'api/skills/abstract_round_abci/behaviours.md'
-        - Common: 'api/skills/abstract_round_abci/common.md'
-        - Dialogues: 'api/skills/abstract_round_abci/dialogues.md'
-        - Handlers: 'api/skills/abstract_round_abci/handlers.md'
-        - Models: 'api/skills/abstract_round_abci/models.md'
-        - Serializer: 'api/skills/abstract_round_abci/serializer.md'
-        - Utils: 'api/skills/abstract_round_abci/utils.md'
-      - Oracle Deployment ABCI:
-        - Behaviours: 'api/skills/oracle_deployment_abci/behaviours.md'
-        - Models: 'api/skills/oracle_deployment_abci/models.md'
-        - Payloads: 'api/skills/oracle_deployment_abci/payloads.md'
-        - Rounds: 'api/skills/oracle_deployment_abci/rounds.md'
-      - Price Estimation ABCI:
-        - Behaviours: 'api/skills/price_estimation_abci/behaviours.md'
-        - Dialogues: 'api/skills/price_estimation_abci/dialogues.md'
-        - Handlers: 'api/skills/price_estimation_abci/handlers.md'
-        - Models: 'api/skills/price_estimation_abci/models.md'
-        - Payloads: 'api/skills/price_estimation_abci/payloads.md'
-        - Rounds: 'api/skills/price_estimation_abci/rounds.md'
-      - Oracle ABCI:
-        - Composition: 'api/skills/oracle_abci/composition.md'
-      - Registration ABCI:
-        - Behaviours: 'api/skills/registration_abci/behaviours.md'
-        - Payloads: 'api/skills/registration_abci/payloads.md'
-        - Rounds: 'api/skills/registration_abci/rounds.md'
-      - Safe Deployment ABCI:
-        - Behaviours: 'api/skills/safe_deployment_abci/behaviours.md'
-        - Payloads: 'api/skills/safe_deployment_abci/payloads.md'
-        - Rounds: 'api/skills/safe_deployment_abci/rounds.md'
-      - Transaction Settlement ABCI:
-        - Behaviours: 'api/skills/transaction_settlement_abci/behaviours.md'
-        - Payloads: 'api/skills/transaction_settlement_abci/payloads.md'
-        - Rounds: 'api/skills/transaction_settlement_abci/rounds.md'
-    - Exceptions: exceptions.md
+  - Q&A: 'questions-and-answers.md'
+
 
 plugins:
   - markdownmermaid
@@ -126,12 +130,12 @@ markdown_extensions:
   - md_in_html
 
 extra:
-    valory_stack: '[Valory Stack](https://davidminarsch.github.io/temp-docs-valory/)'
-    valory_stack_api: '[Valory Stack API](https://davidminarsch.github.io/temp-docs-valory/)'
     open_aea: '[Open AEA](https://github.com/valory-xyz/open-aea)'
     open_aea_doc: '[Open AEA documentation](https://valory-xyz.github.io/open-aea)'
     open_aea_api: '[Open AEA API](https://valory-xyz.github.io/open-aea/api/)'
     fsm_app: 'FSM App'
+    open_autonomy: '[Open Autonomy](https://github.com/valory-xyz/open-autonomy)'
+    open_autonomy_api: '[Open Autonomy API](https://davidminarsch.github.io/temp-docs-valory/)'
     agent_service: 'Agent Service'
 
 
