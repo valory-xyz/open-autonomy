@@ -29,18 +29,14 @@ svn checkout  https://github.com/valory-xyz/open-autonomy/trunk/packages package
 
 4. Build and install your agent
 ```bash
+autonomy fetch hello_world
 cd hello_world
+aea install
 aea generate-key ethereum
 aea add-key ethereum
-aea install
 ```
 
-5. Setup a tendermint testnet
-```bash
-tendermint init
-```
-
-6. Run your agent. More info on this hello world example on the [get started](https://davidminarsch.github.io/temp-docs-valory/get_started/) section.
+5. Run your agent. More info on this hello world example on the [get started](https://davidminarsch.github.io/temp-docs-valory/get_started/) section.
 ```bash
 aea run
 ```
