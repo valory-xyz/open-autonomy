@@ -1,6 +1,6 @@
 # Open Autonomy
 
-Open Autonomy is a framework for the creation of Agent Services: off-chain services which run as a multi-agent-system (MAS) and are replicated on a temporary consensus gadget (blockchain while being crypto-economically secured on a public blockchain, and which are operated in a robust, transparent and decentralized way.
+Open Autonomy is a framework for the creation of Agent Services: off-chain services which run as a multi-agent-system (MAS) and are replicated on a temporary consensus gadget (blockchain) while being crypto-economically secured on a public blockchain, and which are operated in a robust, transparent and decentralized way.
 
 
 ## Requirements
