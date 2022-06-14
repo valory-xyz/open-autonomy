@@ -26,7 +26,7 @@ Ensure your machine satisfies the following requirements:
 
 1. Create and launch a clean virtual environment with Python 3.10 (any Python `>=` 3.7 works):
 
-       pipenv --python 3.7 && pipenv shell
+       pipenv --python 3.10 && pipenv shell
 
 2. Install the packages from [PyPI](https://pypi.org/project/open-autonomy/):
 
