@@ -1,16 +1,37 @@
+# -*- coding: utf-8 -*-
+# ------------------------------------------------------------------------------
+#
+#   Copyright 2022 Valory AG
+#
+#   Licensed under the Apache License, Version 2.0 (the "License");
+#   you may not use this file except in compliance with the License.
+#   You may obtain a copy of the License at
+#
+#       http://www.apache.org/licenses/LICENSE-2.0
+#
+#   Unless required by applicable law or agreed to in writing, software
+#   distributed under the License is distributed on an "AS IS" BASIS,
+#   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#   See the License for the specific language governing permissions and
+#   limitations under the License.
+#
+# ------------------------------------------------------------------------------
 
+"""Test random initializations of ABCI Message content"""
 
 import copy
+import logging
 from pprint import pprint
 from typing import Any, Dict, Tuple
 
-from google.protobuf.descriptor import FieldDescriptor
 from hypothesis import given, strategies
+from hypothesis.strategies._internal.lazy import LazyStrategy
 
 from packages.valory.connections.abci import tendermint
 
 from tests.test_protocols.test_abci.helper import (
     PYTHON_PRIMITIVES,
+    TENDERMINT_PRIMITIVES,
     camel_to_snake,
     compare_trees,
     create_abci_type_tree,
@@ -23,22 +44,6 @@ from tests.test_protocols.test_abci.helper import (
     is_enum,
     replace_keys,
 )
-
-
-"""
-Rules of the game
-
-- Create a mapping from tendermint tree onto our type tree
-  This is necessary because different types of integers are
-  distinguished in protobuf: int32, uint32, int64, uint64.
-   
-1. Create a type_tree for the tendermint messages
-2. Create a one-to-one mapping from Tendermint to AEA tree
-   As long as the structure is maintained this an be used to
-   initialize the AEA ABCIMessage instances.
-3. Create hypothesis trees with (what should be) valid strategies
-4. Run hypothesis trees with a single mutation
-"""
 
 
 KEY_MAPPING = dict(  # AEA to Tendermint, one-to-one
@@ -81,26 +86,34 @@ STRATEGY_MAP = dict(  # TODO: strategy to assert failure
 REPEATED_FIELD_SIZE = 3
 USE_NON_ZERO_ENUM: bool = True
 
-type_mapping = {
-    v: k[5:].lower() for k, v in vars(FieldDescriptor).items() if k.startswith("TYPE_")
-}
+TENDERMINT_MAPPING = get_full_mapping()
 
-tendermint_mapping = get_full_mapping()
+# - Create a mapping from tendermint tree onto our type tree
+#   This is necessary because different types of integers are
+#   distinguished in protobuf: int32, uint32, int64, uint64.
+#
+# 1. Create a tender_type_tree for the tendermint messages
+# 2. Create a one-to-one mapping from Tendermint to AEA tree
+#    As long as the structure is maintained this can be used to
+#    initialize the AEA ABCIMessage instances.
+# 3. Create hypothesis trees
+# 4. Run hypothesis trees with valid strategies
+# 5. Run hypothesis with single violating mutation to assert fail
 
 
 # Step 0: complete tendermint_type_tree
-def unfold_nested(tree):
+def unfold_nested(tree: Node) -> Node:
     """Build tendermint type tree (all strings)"""
 
-    def init_repeated(content):
-        if content in type_mapping.values():
+    def init_repeated(content: Any) -> Tuple[str, Any]:
+        if content in TENDERMINT_PRIMITIVES:
             return list.__name__, content
-        return list.__name__, (content, unfold_nested(tendermint_mapping[content]))
+        return list.__name__, (content, unfold_nested(TENDERMINT_MAPPING[content]))
 
     fields = tree.get("fields", {})
     node = {}
     for name, field in fields.items():
-        if field in type_mapping.values():
+        if field in TENDERMINT_PRIMITIVES:
             node[name] = field
         elif isinstance(field, tuple):
             d_type, label = field
@@ -109,14 +122,14 @@ def unfold_nested(tree):
             else:
                 node[name] = d_type, label
         else:
-            node[name] = field, unfold_nested(tendermint_mapping[field])
+            node[name] = field, unfold_nested(TENDERMINT_MAPPING[field])
 
     return node
 
 
 # Step 1: retrieve tendermint protobuf type for primitives
-def translate(type_node, abci_node):
-    """Translate ab_node into tt_node format"""
+def _translate(type_node: Node, abci_node: Node) -> Node:
+    """Translate type_node primitive to abci_node specification"""
 
     for k, type_child in type_node.items():
 
@@ -126,7 +139,7 @@ def translate(type_node, abci_node):
             type_child[-1]["data"] = "bytes"
             continue
         if k == "proof_ops" and "ops" in abci_node:
-            translate(type_child[-1][-1], abci_node["ops"][-1][-1])
+            _translate(type_child[-1][-1], abci_node["ops"][-1][-1])
             continue
 
         tk = key_translation.get(k, k)
@@ -135,7 +148,7 @@ def translate(type_node, abci_node):
         if isinstance(type_child, str) or type_child in PYTHON_PRIMITIVES:
             type_node[k] = abci_child
         elif isinstance(type_child, dict) and isinstance(abci_child, dict):
-            translate(type_child, abci_child)
+            _translate(type_child, abci_child)
 
         elif isinstance(type_child, tuple) and isinstance(abci_child, tuple):
             cls, d_type = type_child
@@ -143,39 +156,39 @@ def translate(type_node, abci_node):
             if d_type in PYTHON_PRIMITIVES or nested == "enum":
                 type_node[k] = cls, nested
             elif isinstance(d_type, dict) and isinstance(nested, dict):
-                translate(d_type, nested)
+                _translate(d_type, nested)
             elif isinstance(d_type, tuple):
-                translate(d_type[-1], nested[-1])
+                _translate(d_type[-1], nested[-1])
             else:  # extra nested mapping
                 repeated = list(d_type.values())
                 assert len(repeated) == 1
-                translate(repeated[0][-1][-1], nested[-1])
+                _translate(repeated[0][-1][-1], nested[-1])
         else:
             raise NotImplementedError(f"{k}:\n{type_child}\n{abci_child}")
 
     return type_node
 
 
-def create_abci_tree() -> Dict[str, Any]:
+def create_abci_tree() -> Node:
     """Create Tendermint ABCI types tree by unfolding fields"""
 
     abci_types = descriptor_parser(tendermint.abci.types_pb2.DESCRIPTOR)
     return {camel_to_snake(k): unfold_nested(v) for k, v in abci_types.items()}
 
 
-def create_tender_type_tree(type_tree, abci_tree):
+def create_tender_type_tree(type_tree: Node, abci_tree: Node) -> Node:
     """Create type tree with Tendermint primitives"""
 
     tender_type_tree = {}
     for k in type_tree:
         abci_node, type_node = abci_tree[k], type_tree[k]
-        replace_keys(abci_node, KEY_MAPPING.get(k, {}))
-        tender_type_tree[k] = translate(copy.deepcopy(type_node), abci_node)
+        replace_keys(abci_node, KEY_MAPPING.get(k, {}))  # type: ignore
+        tender_type_tree[k] = _translate(copy.deepcopy(type_node), abci_node)
 
     return tender_type_tree
 
 
-def _init_subtree(node: Any) -> Node:
+def _init_subtree(node: Any) -> Any:
     """Initialize subtree of type_tree non-custom objects"""
 
     def init_repeated(repeated_type: Any) -> Tuple[Any, ...]:
@@ -218,14 +231,6 @@ def init_type_tree_primitives(type_tree: Node) -> Node:
     """
     Initialize the primitive types and size of repeated fields.
 
-    These are the only initialization parameters that can vary;
-    after this the initialization of custom types is what remains
-
-    This structure allows:
-    - Comparison of structure and these values with Tendermint translation
-    - Visual inspection of fields to be sets, also on custom objects
-    - Randomized testing strategies using e.g. hypothesis
-
     :param type_tree: mapping from message / field name to type.
     :return: mapping from message / field name to initialized primitive.
     """
@@ -233,12 +238,7 @@ def init_type_tree_primitives(type_tree: Node) -> Node:
 
 
 def create_hypotheses() -> Any:
-    """
-    Test translation from AEA-native to Tendermint-native ABCI protocol.
-
-    "repeated" fields are returned as list in python,
-    but must be passed as tuples to Tendermint protobuf.
-    """
+    """Create hypotheses"""
 
     aea_protocol, *_ = get_protocol_readme_spec()
     speech_acts = aea_protocol["speech_acts"]
@@ -256,14 +256,14 @@ def create_hypotheses() -> Any:
     # 4. initialize with hypothesis
     hypo_tree = init_type_tree_primitives(tender_type_tree)
 
-    # # 5. collapse hypo_tree
-    def collapse(node):  # TODO: tuples
+    # 5. collapse hypo_tree
+    def collapse(node: Node) -> Node:  # TODO: tuples
         for k, v in node.items():
             if isinstance(v, dict):
                 node[k] = strategies.fixed_dictionaries(collapse(v))
         return node
 
-    return hypo_tree   # TO BE: strategies.fixed_dictionaries(collapse(hypo_tree))
+    return hypo_tree  # TO BE: strategies.fixed_dictionaries(collapse(hypo_tree))
 
 
 h = hypothesis_tree = create_hypotheses()
@@ -275,16 +275,25 @@ h2 = {
     "response_info": strategies.fixed_dictionaries(h["response_info"]),
 }
 
-@given(strategies.fixed_dictionaries(h))
-def test_new(strategy):
+
+# 6. run hypotheses
+@given(strategies.fixed_dictionaries(h2))
+def test_hypotheses(strategy: LazyStrategy) -> None:
+    """Prototyping"""
 
     aea_protocol, *_ = get_protocol_readme_spec()
     speech_acts = aea_protocol["speech_acts"]
     type_tree = create_abci_type_tree(speech_acts)
     type_tree.pop("dummy")
 
-    init_tree = {"response_echo": strategy['response_echo'], "response_info": strategy['response_info']}
-    type_tree = {"response_echo": type_tree['response_echo'], "response_info": type_tree['response_info']}
+    init_tree = {
+        "response_echo": strategy["response_echo"],
+        "response_info": strategy["response_info"],
+    }
+    type_tree = {
+        "response_echo": type_tree["response_echo"],
+        "response_info": type_tree["response_info"],
+    }
 
     abci_messages = init_abci_messages(type_tree, init_tree)
 
@@ -306,6 +315,6 @@ def test_new(strategy):
     for k in shared:
         init_node, tender_node = init_tree[k], tender_tree[k]
         compare_trees(init_node, tender_node)
-        import logging
+
         logging.error(init_node)
         logging.error(tender_node)

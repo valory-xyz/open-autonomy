@@ -30,18 +30,6 @@ from aea.protocols.generator.common import (
 
 from packages.valory.connections import abci as tendermint_abci
 from packages.valory.connections.abci import tendermint
-from packages.valory.connections.abci.tendermint.abci.types_pb2 import (  # type: ignore
-    Request,
-    Response,
-)
-from packages.valory.connections.abci.tendermint.crypto import (  # type: ignore
-    keys_pb2,
-    proof_pb2,
-)
-from packages.valory.connections.abci.tendermint.types import (  # type: ignore
-    params_pb2,
-    types_pb2,
-)
 
 from tests.test_protocols.test_abci.helper import (
     camel_to_snake,

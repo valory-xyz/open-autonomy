@@ -1,5 +1,3 @@
-
-
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
@@ -19,7 +17,7 @@
 #
 # ------------------------------------------------------------------------------
 
-"""Tests to ensure implementation is on par with ABCI spec"""
+"""Helper functions for checking compliance to ABCI spec"""
 
 import builtins
 import functools
@@ -28,7 +26,7 @@ import inspect
 from enum import Enum
 from pathlib import Path
 from types import ModuleType
-from typing import Any, Dict, Set, Tuple, Type, Union
+from typing import Any, Dict, Tuple, Type, Union
 from unittest import mock
 
 import yaml
@@ -67,7 +65,7 @@ from packages.valory.skills.abstract_round_abci.dialogues import AbciDialogues
 
 
 Node = Dict[str, Any]
-MODULE_PATH = Path(*tendermint.__package__.split('.')).absolute()
+MODULE_PATH = Path(*tendermint.__package__.split(".")).absolute()
 python_files = tuple(MODULE_PATH.rglob("*/*.py"))
 keys = ["_".join(f.parts[-2:])[:-3] for f in python_files]
 
@@ -75,8 +73,8 @@ keys = ["_".join(f.parts[-2:])[:-3] for f in python_files]
 def _exec_module_import(path: str) -> ModuleType:
     """Execute the import of a module"""
     spec = importlib.util.spec_from_file_location(path, path)
-    module = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(module)
+    module = importlib.util.module_from_spec(spec)  # type: ignore
+    spec.loader.exec_module(module)  # type: ignore
     return module
 
 
@@ -113,9 +111,9 @@ camel_to_snake = _camel_case_to_snake_case  # ???
 snake_to_camel = _to_camel_case
 
 
-TENDERMINT_MODULES = {}
+MODULES = {}
 for name, file in zip(keys, python_files):
-    TENDERMINT_MODULES[name] = _exec_module_import(str(file))
+    MODULES[name] = _exec_module_import(str(file))
 
 
 def is_enum(d_type: Any) -> bool:
@@ -161,6 +159,7 @@ def get_tendermint_classes(module: ModuleType) -> Dict[str, Type]:
     return {k: set_repr(v) for k, v in vars(module).items() if isinstance(v, type)}
 
 
+TENDERMINT_PRIMITIVES = tuple(type_mapping.values())
 PYTHON_PRIMITIVES = (int, float, bool, str, bytes)
 AEA_CUSTOM = get_aea_classes(protocols.abci.custom_types)
 
@@ -179,10 +178,10 @@ TENDERMINT_TIME_STAMP = {"Timestamp": timestamp_pb2.Timestamp}
 TENDERMINT_DURATION = {"Duration": duration_pb2.Duration}
 
 
-def descriptor_parser(descriptor) -> Dict[str, Any]:
+def descriptor_parser(descriptor: Any) -> Dict[str, Any]:
     """Get Tendermint-native message type definitions"""
 
-    messages: Dict[str, Any] = dict()
+    messages: Node = dict()
     for msg, msg_desc in descriptor.message_types_by_name.items():
         content = messages.setdefault(msg, {})
 
@@ -190,7 +189,11 @@ def descriptor_parser(descriptor) -> Dict[str, Any]:
         for oneof in msg_desc.oneofs:
             fields = content.setdefault("oneofs", {}).setdefault(oneof.name, [])
             for field in oneof.fields:  # only PublicKey has no message_type
-                name = field.message_type.name if field.message_type else oneof.containing_type.name
+                name = (
+                    field.message_type.name
+                    if field.message_type
+                    else oneof.containing_type.name
+                )
                 fields.append((name, field.name))
 
         # ResponseOfferSnapshot & ResponseApplySnapshotChunk
@@ -214,8 +217,8 @@ def descriptor_parser(descriptor) -> Dict[str, Any]:
                 d_type = field.message_type.name
             fields[field.name] = (d_type, "repeated") if repeated else d_type
 
-    enum_types = {}
-    for name, enum_type in descriptor.enum_types_by_name.items():
+    enum_types: Node = {}
+    for _, enum_type in descriptor.enum_types_by_name.items():
         enum = enum_types.setdefault("enum_types", {})
         names, numbers = enum_type.values_by_name, enum_type.values_by_number
         enum[enum_type.name] = dict(zip(names, numbers))
@@ -225,13 +228,13 @@ def descriptor_parser(descriptor) -> Dict[str, Any]:
     return messages
 
 
-def _get_tendermint_description():
-    """"""
-    return {k: descriptor_parser(s.DESCRIPTOR) for k, s in TENDERMINT_MODULES.items()}
+def _get_tendermint_description() -> Node:
+    """Parse content from module DESCRIPTOR objects"""
+    return {k: descriptor_parser(s.DESCRIPTOR) for k, s in MODULES.items()}  # type: ignore
 
 
-def get_full_mapping():
-    """"""
+def get_full_mapping() -> Node:
+    """Get full mapping of object to content"""
     descr = _get_tendermint_description()
     # TODO: one conflicting key with an additional field
     content = {k: v for m in descr.values() for k, v in m.items()}
