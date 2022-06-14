@@ -3,11 +3,11 @@
 
 !!!note
     For clarity, the snippets of code presented here are a simplified version of the actual
-    implementation. We refer the reader to the {{valory_stack_api}} for the complete details.
+    implementation. We refer the reader to the {{open_autonomy_api}} for the complete details.
 
-Whereas the `AbciApp` class defines the model of the FSM for the {{abci_app}}, the `AbstractRoundBehaviour` is a [`Behaviour`](https://valory-xyz.github.io/open-aea/api/skills/base/#behaviour-objects) that takes care of the processing of the current round
+Whereas the `AbciApp` class defines the model of the FSM for the {{fsm_app}}, the `AbstractRoundBehaviour` is a [`Behaviour`](https://valory-xyz.github.io/open-aea/api/skills/base/#behaviour-objects) that takes care of the processing of the current round
 and transition to the subsequent round, implementation of which resides in the
-`act()` method. Whenever the {{abci_app}} detects a round change, the
+`act()` method. Whenever the {{fsm_app}} detects a round change, the
 `AbstractRoundBehaviour` schedules the state behaviour associated with the
 current round, ensuring that a transition to the new state cannot occur without first invoking the
 associated state Behaviour.
@@ -43,7 +43,7 @@ class AbstractRoundBehaviour(
 ```
 
 A concrete implementation of `AbstractRoundBehaviour` requires that the developer provide the corresponding
-`AbciApp`, a set of `BaseStates` encoding the different types of Behaviour at each FSM state, and
+`AbciApp`, a set of `BaseBehaviours` encoding the different types of Behaviour at each FSM state, and
 the initial Behaviour. The`_MetaRoundBehaviour` metaclass provided enforces correctness on the
 logic of the `AbstractRoundBehaviour` ensuring that:
 

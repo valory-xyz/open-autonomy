@@ -6,7 +6,7 @@ Departing from the notions of [AEA](./aea.md), [FSM](./fsm.md), and [ABCI](./abc
 An {{fsm_app}} is a replicated application which uses
 an underlying consensus engine implementing the [ABCI](./abci.md).
 Its internal state takes the form of an FSM, and it exhibits proactive behaviours in each of such states.
-{{fsm_app}}s constitute a core part in the {{valory_stack}} to implement multi-agent based services.
+{{fsm_app}}s constitute a core part in the {{open_autonomy}} framework to implement {{agent_service}}s.
 
 The figure below depicts an sketch of the internal workings of an {{fsm_app}}, composed of six states (A-F) and six events (1-6):
 
@@ -26,10 +26,10 @@ Note that in an {{fsm_app}}, the responsibility of a state is distributed across
   produces the `Events` that will enable the FSM transit from one state to another, that is, capturing the role of the transition function.
 
 - Each round has an associated _Behaviour_, which is the component that defines the proactive actions to be executed at
-  a particular state. It is a concrete implementation of the `BaseState` class, and contains the application logic for each state. It is scheduled for
+  a particular state. It is a concrete implementation of the `BaseBehaviour` class, and contains the application logic for each state. It is scheduled for
   execution by the agents.
 
-We will sometimes use indistinctly the terms "state" or "round" in the context of the {{valory_stack}}.  We also define the concept of _synchronized data_, which is the component that stores persistent data and is accessible from any state. The consensus mechanism ensures that the synchronized data is consistently shared by all the agents. It is updated at the end of each round, where its contents can be updated. It is a concrete implementation of the `BaseSynchronizedData` class.
+We will sometimes use indistinctly the terms "state" or "round" in the context of the {{open_autonomy}} framework.  We also define the concept of _synchronized data_, which is the component that stores persistent data and is accessible from any state. The consensus mechanism ensures that the synchronized data is consistently shared by all the agents. It is updated at the end of each round, where its contents can be updated. It is a concrete implementation of the `BaseSynchronizedData` class.
 
 
 
@@ -57,7 +57,7 @@ We will sometimes use indistinctly the terms "state" or "round" in the context o
 
 
 ## Composition of {{fsm_app}}s
-One of the key features of the {{valory_stack}} is the generation of {{fsm_app}}s whose internal FSM is a composition of different FSMs. The composition mechanism facilitates
+One of the key features of the {{open_autonomy}} framework is the generation of {{fsm_app}}s whose internal FSM is a composition of different FSMs. The composition mechanism facilitates
 rapid development of complex applications, by reusing FSMs already developed for other {{fsm_app}}s, obtaining the aggregated functionality.
 
 Departing from a collection of FSMs, say FSM1, FSM2, ..., FSM$n$, a composed FSM can be constructed following certain rules:

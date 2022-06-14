@@ -24,7 +24,7 @@ uncertain.
 
 
 !!! warning "Important"
-    Every {{agent_service}} built with the {{valory_stack}} is a MAS composed of several AEAs that interact between them to achieve the goals of the service.
+    Every {{agent_service}} built with the {{open_autonomy}} framework is a MAS composed of several AEAs that interact between them to achieve the goals of the service.
 
 
 ## How {{agent_service}}s Are Secured
