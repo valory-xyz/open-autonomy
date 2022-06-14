@@ -16,6 +16,7 @@ nav:
   - Introduction: 'index.md'
   - Version: 'version.md'
   - Upgrading: 'upgrading.md'
+  - Quick start: 'quick_start.md'
   - Get Started: 'get_started.md'
   - Concepts:
     - Autonomous Economic Agents: 'aea.md'

@@ -1,26 +1,34 @@
 # Quick Start
 
-The purpose of this quick start is to get you up and running with the `open-autonomy` framework for agent service development as quickly as possible.
+The purpose of this quick start is to get you up and running with the {{open_autonomy}} framework for agent service development as quickly as possible.
+
+## Requirements
+
+Ensure your machine satisfies the following requirements:
+
+- Python `>= 3.7`
+- [Tendermint](https://docs.tendermint.com/master/introduction/install.html) `==0.34.11`
+- [Pipenv](https://pipenv.pypa.io/en/latest/install/) `>=2021.x.xx`
+
+## Setup
 
 1. Setup the environment
-```
+```bash
 touch Pipfile && pipenv --python 3.10 && pipenv shell
 ```
 
-2. Install open autonomy
-```
+2. Install {{open_autonomy}}
+```bash
 pip install open-autonomy
-pip install open-aea-ledger-ethereum
-pip install open-aea-cli-ipf
 ```
 
-3. Get packages 
-```
-svn checkout  https://github.com/valory-xyz/open-autonomy/trunk/packages packages 
+3. Get packages
+```bash
+svn checkout  https://github.com/valory-xyz/open-autonomy/trunk/packages packages
 ```
 
 4. Build and install your agent
-```
+```bash
 cd hello_world
 aea generate-key ethereum
 aea add-key ethereum
@@ -28,14 +36,11 @@ aea install
 ```
 
 5. Setup a tendermint testnet
-## Prior to running we must setup a tendermint testnet;
-
-Starting AEA 'hello_world' in 'async' mode...
-open /home/tom/.tendermint/data/priv_validator_state.json: no such file or directory
-
+```bash
+tendermint init
+```
 
 6. Run your agent.
-
 ```bash
 aea run
 ```
