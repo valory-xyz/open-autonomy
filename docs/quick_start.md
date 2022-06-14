@@ -40,7 +40,7 @@ aea install
 tendermint init
 ```
 
-6. Run your agent.
+6. Run your agent. More info on this hello world example on the [get started](https://davidminarsch.github.io/temp-docs-valory/get_started/) section.
 ```bash
 aea run
 ```
