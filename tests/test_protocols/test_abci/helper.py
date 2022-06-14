@@ -236,8 +236,12 @@ def _get_tendermint_description() -> Node:
 def get_full_mapping() -> Node:
     """Get full mapping of object to content"""
     descr = _get_tendermint_description()
-    # TODO: one conflicting key with an additional field
+
+    # TODO: now overwriting keys with non-matching values!
+    # BlockParams (types_params_pb2 <- abci_types_pb2)
+    # Validator (types_validator_pb2 <- abci_types_pb2)
     content = {k: v for m in descr.values() for k, v in m.items()}
+    content.update(descr["abci_types_pb2"])  # overwrite with prioritized values
     content.update(descriptor_parser(timestamp_pb2.DESCRIPTOR))
     content.update(descriptor_parser(duration_pb2.DESCRIPTOR))
     return content

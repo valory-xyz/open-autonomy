@@ -20,8 +20,7 @@
 """Test random initializations of ABCI Message content"""
 
 import copy
-import logging
-from typing import Any, Dict, Tuple
+from typing import Any, Dict, Tuple, Type
 
 from hypothesis import given
 from hypothesis import strategies as st
@@ -63,6 +62,7 @@ key_translation = {
     "validator_params": "validator",
     "version_params": "version",
     "evidence_type": "type",
+    # "power": "voting_power",
 }
 
 
@@ -140,14 +140,6 @@ def _translate(type_node: Node, abci_node: Node) -> Node:
             continue
 
         tk = key_translation.get(k, k)
-        if tk not in abci_node:
-            logging.error("MISSING KEY ERROR")
-            logging.error(f"k and tk: {k}, {tk}")
-            logging.error(f"type_node: {type_node}")
-            logging.error(f"type_child: {type_child}")
-            logging.error(f"abci node keys: {abci_node.keys()}")
-            logging.error(f"abci_node: {abci_node}")
-
         abci_child = abci_node[tk]
 
         if isinstance(type_child, str) or type_child in PYTHON_PRIMITIVES:
@@ -290,11 +282,6 @@ def init_abci_messages(type_tree: Node, init_tree: Node) -> Node:
 def test_hypotheses(strategy: LazyStrategy) -> None:
     """Currently we check the encoding, data retrieval to be done."""
 
-    aea_protocol, *_ = get_protocol_readme_spec()
-    speech_acts = aea_protocol["speech_acts"]
-    type_tree = create_abci_type_tree(speech_acts)
-    type_tree.pop("dummy")
-
     def list_to_tuple(node: Node) -> Node:
         # expecting tuples instead of lists
         for k, v in node.items():
@@ -304,10 +291,12 @@ def test_hypotheses(strategy: LazyStrategy) -> None:
                 node[k] = tuple(v)
         return node
 
-    logging.info(strategy)
-    tuplified_strategy = list_to_tuple(strategy)
-    abci_messages = init_abci_messages(type_tree, tuplified_strategy)
+    aea_protocol, *_ = get_protocol_readme_spec()
+    speech_acts = aea_protocol["speech_acts"]
+    type_tree = create_abci_type_tree(speech_acts)
+    type_tree.pop("dummy")
 
+    abci_messages = init_abci_messages(type_tree, list_to_tuple(strategy))
     encoded = {k: encode(v) for k, v in abci_messages.items()}
     translated = {k: v for k, v in encoded.items() if v}
     untranslated = set(encoded).difference(translated)
@@ -317,5 +306,3 @@ def test_hypotheses(strategy: LazyStrategy) -> None:
     shared = set(type_tree).intersection(tender_tree)
     assert len(shared) == 16, shared  # expected number of matches
 
-    # TODO: write function to parse the strategy and compare to tender_tree
-    # NOTE: don't forget translation of keys (see helper.py)
