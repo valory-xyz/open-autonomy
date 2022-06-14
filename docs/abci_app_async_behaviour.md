@@ -16,7 +16,7 @@ cannot contain blocking code or long-running tasks, as otherwise
 the AEA main thread that executes all the behaviours would get stuck.
 For example, in order to interact with an external component through
 a request-response pattern, e.g., sending a request to an HTTP server and waiting for its response, or
-request the [Decision Maker](https://valory-xyz.github.io/open-aea/decision-maker/) to sign a transaction. The usual approach in this case is to:
+request the [Decision Maker](https://open-aea.docs.autonolas.tech/decision-maker/) to sign a transaction. The usual approach in this case is to:
 
 1. Send the message from the `act()` method and update the state
   into "waiting for the response" (e.g., by updating an attribute in
@@ -149,7 +149,7 @@ whose execution was triggered by the first call, which invokes ```async_act()```
 
 ## A simple example
 
-Consider a [(one-shot) behaviour](https://valory-xyz.github.io/open-aea/skill/#behaviourspy)
+Consider a [(one-shot) behaviour](https://open-aea.docs.autonolas.tech/skill/#behaviourspy)
 whose logic is to print a sequence of messages separated by a sleep interval:
 
 ```python
@@ -268,7 +268,7 @@ Follows the breakdown of each message exchange:
   The CFP is the first message of a
   [FIPA protocol interaction](http://www.fipa.org/repository/ips.php3).
   See the AEA documentation on the
-  [AEA FIPA-like protocol](https://valory-xyz.github.io/open-aea/protocol/#fetchaifipa100-protocol).
+  [AEA FIPA-like protocol](https://open-aea.docs.autonolas.tech/protocol/#fetchaifipa100-protocol).
 - The seller replies with a "FIPA proposal" to the buyer. Such message
   is handled by the `FipaH` handler;
 - Once the negotiation has completed (only the `FipaH` is involved in the negotiation),
@@ -276,12 +276,12 @@ Follows the breakdown of each message exchange:
   such that it can be processed;
 - The `TransactionB`, which was periodically listening for new transaction to process,
   reads the new transaction and sends a signing requests to the
-  [DecisionMaker](https://valory-xyz.github.io/open-aea/api/decision_maker/base/).
+  [DecisionMaker](https://open-aea.docs.autonolas.tech/api/decision_maker/base/).
   Note that a skill component does not have access to the crypto identity of
   an AEA, and it has to rely on the
-  [DecisionMaker](https://valory-xyz.github.io/open-aea/api/decision_maker/base/)
+  [DecisionMaker](https://open-aea.docs.autonolas.tech/api/decision_maker/base/)
   for certain operations, such as the signing of transactions.
-- The [`DecisionMaker`](https://valory-xyz.github.io/open-aea/decision-maker/)
+- The [`DecisionMaker`](https://open-aea.docs.autonolas.tech/decision-maker/)
   sends the response to the dedicated handler, the `SigningH`.
   The `SigningH` submit the transactions to the `Ledger` (through the `ledger_api` connection);
 - The `Ledger`'s response (the transaction hash) is handled by the `LedgerH` handler,
@@ -357,7 +357,7 @@ The `wait_for_message` method, uses the `send(...)` method to wait for the
 response, allowing it to wait for specific events triggered
 by other components. In this case, each of the handlers will
 dispatch the response to the requester component, whose request
-is identified by the [(dialogue) identifier](https://valory-xyz.github.io/open-aea/protocol/#dialogue-rules)
+is identified by the [(dialogue) identifier](https://open-aea.docs.autonolas.tech/protocol/#dialogue-rules)
 of the interaction.
 However, note that the handler code in this case is _skill-independent_,
 which means that they do not contribute to the business logic.

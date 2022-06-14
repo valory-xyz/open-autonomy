@@ -20,7 +20,6 @@
 """Test random initializations of ABCI Message content"""
 
 import copy
-import logging
 from typing import Any, Dict, Tuple
 
 from hypothesis import given
@@ -85,20 +84,8 @@ STRATEGY_MAP = dict(  # TODO: strategy to assert failure
 
 TENDERMINT_MAPPING = get_full_mapping()
 
-# - Create a mapping from tendermint tree onto our type tree
-#   This is necessary because different types of integers are
-#   distinguished in protobuf: int32, uint32, int64, uint64.
-#
-# 1. Create a tender_type_tree for the tendermint messages
-# 2. Create a one-to-one mapping from Tendermint to AEA tree
-#    As long as the structure is maintained this can be used to
-#    initialize the AEA ABCIMessage instances.
-# 3. Create hypothesis trees
-# 4. Run hypothesis trees with valid strategies
-# 5. Run hypothesis with single violating mutation to assert fail
 
-
-# Step 0: complete tendermint_type_tree
+# Step 0: Create a tender_type_tree for the tendermint messages
 def unfold_nested(tree: Node) -> Node:
     """Build tendermint type tree (all strings)"""
 
@@ -126,7 +113,19 @@ def unfold_nested(tree: Node) -> Node:
 
 # Step 1: retrieve tendermint protobuf type for primitives
 def _translate(type_node: Node, abci_node: Node) -> Node:
-    """Translate type_node primitive to abci_node specification"""
+    """
+    Translate type_node primitive to abci_node specification.
+
+    Create a one-to-one mapping from Tendermint to AEA type tree.
+    This is necessary because different types of integers are
+    distinguished in protobuf: int32, uint32, int64, uint64.
+    As long as the structure is maintained this can be used to
+    initialize the AEA ABCIMessage instances.
+
+    :param type_node: mapping from message / field name to AEA type.
+    :param abci_node: mapping from message / field name to Tendermint type.
+    :return: mapping from message / field name to initialized primitive.
+    """
 
     for k, type_child in type_node.items():
 
@@ -176,7 +175,7 @@ def create_abci_tree() -> Node:
 
 
 def create_tender_type_tree(type_tree: Node, abci_tree: Node) -> Node:
-    """Create type tree with Tendermint primitives"""
+    """Create type tree with Tendermint primitives (as string)"""
 
     tender_type_tree = {}
     for k in type_tree:
@@ -187,8 +186,9 @@ def create_tender_type_tree(type_tree: Node, abci_tree: Node) -> Node:
     return tender_type_tree
 
 
+# 3. Create hypothesis strategies
 def _init_subtree(node: Any) -> Any:
-    """Initialize subtree of type_tree non-custom objects"""
+    """Initialize subtree with hypothesis strategies"""
 
     def init_repeated(repeated_type: Any) -> Tuple[Any, ...]:
         """Repeated fields must be tuples for Tendermint protobuf"""
@@ -237,7 +237,7 @@ def init_type_tree_primitives(type_tree: Node) -> Node:
 
 
 def create_hypotheses() -> Any:
-    """Create hypotheses"""
+    """Create hypotheses for ABCI Messages"""
 
     aea_protocol, *_ = get_protocol_readme_spec()
     speech_acts = aea_protocol["speech_acts"]
@@ -276,7 +276,7 @@ def init_abci_messages(type_tree: Node, init_tree: Node) -> Node:
     return messages
 
 
-# 6. run hypotheses
+# 4. Run hypotheses trees with valid strategies
 @given(create_hypotheses())
 def test_hypotheses(strategy: LazyStrategy) -> None:
     """Currently we check the encoding, data retrieval to be done."""
@@ -286,7 +286,6 @@ def test_hypotheses(strategy: LazyStrategy) -> None:
     type_tree = create_abci_type_tree(speech_acts)
     type_tree.pop("dummy")
 
-    logging.error(strategy)
     abci_messages = init_abci_messages(type_tree, strategy)
 
     encoded = {k: encode(v) for k, v in abci_messages.items()}
