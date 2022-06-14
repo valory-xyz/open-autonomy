@@ -3,9 +3,7 @@
 
 1. Make sure all tests pass, coverage is at 100% and the local branch is in a clean state (nothing to commit). Make sure you have a clean develop virtual environment. 
    
-2. Determine the next `open-autonomy` version 
-   Create new release branch named "feature/release-{new-version}, switch to this branch"
-   Update the version in `autonomy/__version__.py`. Commit if satisfied.
+2. Determine the next `open-autonomy` version. Create new release branch named `feature/release-{new-version}`, switch to this branch. Update the version in `autonomy/__version__.py`. Commit if satisfied.
 
 3. [CURRENTLY SKIPPED] Bump all the packages to their latest versions by running `python scripts/update_package_versions.py`.
 
