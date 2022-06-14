@@ -36,7 +36,7 @@ aea generate-key ethereum
 aea add-key ethereum
 ```
 
-5. Run your agent. More info on this hello world example on the [get started](https://davidminarsch.github.io/temp-docs-valory/get_started/) section.
+5. Run your agent. More info on this hello world example on the [get started](https://docs.autonolas.network/get_started/) section.
 ```bash
 aea run
 ```

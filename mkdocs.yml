@@ -136,7 +136,7 @@ extra:
     open_aea_api: '[Open AEA API](https://valory-xyz.github.io/open-aea/api/)'
     fsm_app: 'FSM App'
     open_autonomy: '[Open Autonomy](https://github.com/valory-xyz/open-autonomy)'
-    open_autonomy_api: '[Open Autonomy API](https://davidminarsch.github.io/temp-docs-valory/)'
+    open_autonomy_api: '[Open Autonomy API](https://docs.autonolas.network/)'
     agent_service: 'Agent Service'
 
 
