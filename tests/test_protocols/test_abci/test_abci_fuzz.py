@@ -20,7 +20,7 @@
 """Test random initializations of ABCI Message content"""
 
 import copy
-from typing import Any, Dict, Tuple, Type
+from typing import Any, Dict, Tuple
 
 from hypothesis import given
 from hypothesis import strategies as st
@@ -62,7 +62,6 @@ key_translation = {
     "validator_params": "validator",
     "version_params": "version",
     "evidence_type": "type",
-    # "power": "voting_power",
 }
 
 
@@ -305,4 +304,3 @@ def test_hypotheses(strategy: LazyStrategy) -> None:
     tender_tree = {k: get_tendermint_content(v) for k, v in translated.items()}
     shared = set(type_tree).intersection(tender_tree)
     assert len(shared) == 16, shared  # expected number of matches
-
