@@ -24,7 +24,7 @@ uncertain.
 
 
 !!! warning "Important"
-    Every {{agent_service}} built with the {{valory_stack}} is a MAS composed of several AEAs that interact between them to achieve the goals of the service.
+    Every {{agent_service}} built with the {{open_autonomy}} framework is a MAS composed of several AEAs that interact between them to achieve the goals of the service.
 
 
 ## How {{agent_service}}s Are Secured
@@ -65,7 +65,7 @@ Every AEA is composed of a number of components that work together to achieve th
 <figcaption>Main components of an AEA</figcaption>
 </figure>
 
-As you can see, there are quite a few elements that make up an AEA. We bfiefly review the most relevant ones that play a role in the creation of an {{agent_service}}:
+As you can see, there are quite a few elements that make up an AEA. We briefly review the most relevant ones that play a role in the creation of an {{agent_service}}:
 
 
 ### DecisionMaker

@@ -1,10 +1,10 @@
-# Simple {{abci_app}}
+# Simple {{fsm_app}}
 
 !!!note
     For clarity, the snippets of code presented here are a simplified version of the actual
-    implementation. We refer the reader to the {{valory_stack_api}} for the complete details.
+    implementation. We refer the reader to the {{open_autonomy_api}} for the complete details.
 
-The Simple {{abci_app}} is a _Hello World_ application that demonstrates how to use the {{valory_stack}}. The goal is to provide the minimum background so that users can start developing their own {{agent_service}}s, and to showcase how AEAs interact with local Tendermint nodes. Indeed, we recommend that new users use the Simple {{abci_app}} as the starting point for developing their own {{agent_service}}s.
+The Simple {{fsm_app}} is an example application that demonstrates how to use the {{open_autonomy}} framework. The goal is to provide the minimum background so that users can start developing their own {{agent_service}}s, and to showcase how AEAs interact with local Tendermint nodes. Indeed, we recommend that new users use the Simple {{fsm_app}} as the starting point for developing their own {{agent_service}}s.
 
 Roughly speaking, on a successful execution of a period of the application (i.e., no timeouts, no error conditions, etc.), the following actions would occur in order:
 
@@ -31,14 +31,14 @@ stateDiagram-v2
 
 Recall that, from the point of view of the developer, the application FSM is replicated transparently in all the AEAs. The developer can simply focus on developing the FSM as if it were being executed in a single machine, and the underlying consensus layer will handle the replication mechanism across different machines.
 
-The `valory/simple_abci` skill is the main component of the {{abci_app}}. In
+The `valory/simple_abci` skill is the main component of the {{fsm_app}}. In
 general terms, the developer should put the focus on the four action points below:
 
 1. Implement the `Rounds`, `Behaviours` and `Payloads` associated with each FSM state.
 2. Implement the `AbciApp` class.
 3. Implement the `AbstractRoundBehaviour` class.
 
-Below we discuss these points in detail for the case of the Simple {{abci_app}}.
+Below we discuss these points in detail for the case of the Simple {{fsm_app}}.
 
 
 ## Implementation of the Rounds, Behaviours and Payloads for Each State
@@ -104,30 +104,30 @@ As it can be seen, it inherits from the main abstract class `AbstractRound` thro
 
 - `CollectionRound`: Helper class for rounds where the application is expected to wait until some some sort of value is collected: either a common value (e.g., a common randomness observation), or a collection of different values (e.g., exchange values from different sources).
 - `CollectDifferentUntilAllRound`: Helper class for rounds that should wait until a collection of different values is collected, one from each agent ("all").
-- `SimpleABCIAbstractRound`: Helper class particular to the Simple {{abci_app}} which contains common methods for all rounds.
+- `SimpleABCIAbstractRound`: Helper class particular to the Simple {{fsm_app}} which contains common methods for all rounds.
 - `RegistrationRound`: Class that implements the particular instance of the `AbstractRound`. Many of the functionalities are already covered by the parent classes, but any concrete implementation of `AbstractRound` need to implement the abstract method `end_block()`. The method `end_block()` has the responsibility of checking the conditions to transit to the next state, and as such, it must return (1) a reference to the (updated) period state, and (2) an event that will define the transition to the next state in the FSM.
 
 
 To sum up, the `RegistrationRound` simply waits to collect all agent addresses (a mechanism inherited from `CollectDifferentUntilAllRound`) and it produces the `DONE` event when it finishes. The agents send their address through the proactive behaviour discussed below.
-As it can be seen here, the {{valory_stack}} provides a number of intermediate helper classes that can be used to simplify the development of a round.
+As it can be seen here, the {{open_autonomy}} framework provides a number of intermediate helper classes that can be used to simplify the development of a round.
 
 On the other hand, the `RegistrationBehaviour` hierarchy is as follows:
 <figure markdown>
 <div class="mermaid">
 classDiagram
-    SimpleABCIBaseState<|-- RegistrationBehaviour
-    BaseState <|-- SimpleABCIBaseState
-    IPFSBehaviour <|-- BaseState
-    AsyncBehaviour <|-- BaseState
-    CleanUpBehaviour <|-- BaseState
-    SimpleBehaviour <|-- AsyncBehaviour
+    SimpleABCIBaseBehaviour<|-- RegistrationBehaviour
+    BaseBehaviour <|-- SimpleABCIBaseBehaviour
+    IPFSBehaviour <|-- BaseBehaviour
+    AsyncBehaviour <|-- BaseBehaviour
+    CleanUpBehaviour <|-- BaseBehaviour
+    SimpleBehaviour <|-- IPFSBehaviour
     Behaviour <|-- SimpleBehaviour
 
     class AsyncBehaviour{
         +async_act()*
         +async_act_wrapper()*
     }
-    class SimpleABCIBaseState {
+    class SimpleABCIBaseBehaviour {
         +period_state()
         +params()
     }
@@ -140,11 +140,11 @@ classDiagram
 <figcaption>Hierarchy of the `RegistrationBehaviour` class (some methods and fields are omitted)</figcaption>
 </figure>
 
-As it can be seen, the `RegistrationBehaviour` inherits from `BaseState`, which is the base class for FSM states. This class aggregates the functionality from some other classes, most notably from the `AsyncBehaviour` class which defines the `async_act()` abstract method, which must be implemented in the `RegistrationBehaviour` class. In this case, `async_act()` does the following:
+As it can be seen, the `RegistrationBehaviour` inherits from `BaseBehaviour`, which is the base class for FSM states. This class aggregates the functionality from some other classes, most notably from the `AsyncBehaviour` class which defines the `async_act()` abstract method, which must be implemented in the `RegistrationBehaviour` class. In this case, `async_act()` does the following:
 
 1. Build the registration transaction payload.
 2. Send the transaction payload and wait for it to be mined.
-3. Wait until the {{abci_app}} transitions to the next round.
+3. Wait until the {{fsm_app}} transitions to the next round.
 4. Go to the next behaviour state (set done event).
 
 An excerpt of the code corresponding to the `RegistrationBehaviour` is:
@@ -223,7 +223,7 @@ The `SelectKeeperAtStartupBehaviour` is in charge of executing the operation of 
 
 
 ### `ResetAndPauseRound` and `ResetAndPauseBehaviour`
-The `ResetAndPauseRound` also inherits from  `CollectSameUntilThresholdRound`. The value that the rounds waits that the agents agree is simply the period number (an increasing integer). Once 2/3 of the agents have agreed on it, the {{abci_app}} transitions again to the `RandomnessStartupRound`.
+The `ResetAndPauseRound` also inherits from  `CollectSameUntilThresholdRound`. The value that the rounds waits that the agents agree is simply the period number (an increasing integer). Once 2/3 of the agents have agreed on it, the {{fsm_app}} transitions again to the `RandomnessStartupRound`.
 
 The `ResetAndPauseBehaviour` class simply logs the state, sleeps for a configured interval, and submits the transaction payload (period number) to the temporary blockchain and to the period state. As usual, the functionality is encoded in `end_block()`. For convention, the payload associated to the class `ResetPayload` contains the round identifier.
 
@@ -306,14 +306,14 @@ This class can be found in `behaviours.py`, and is the main behaviour class, agg
 - the `AbciApp` associated to the behaviour,
 - the collection of individual behaviours for each state.
 
-Recall that each behaviour is in one-to-one correspondence with a round. Upon instantiation, the parent class ensures that this correspondence holds (i.e., there are not two behaviours associated to the same round). The correspondence is achieved through the field `matching_round` from the parent class `BaseState`of each state behaviour.
+Recall that each behaviour is in one-to-one correspondence with a round. Upon instantiation, the parent class ensures that this correspondence holds (i.e., there are not two behaviours associated to the same round). The correspondence is achieved through the field `matching_round` from the parent class `BaseBehaviour`of each state behaviour.
 
 
 
 ## Specification of the FSM
 
-For convenience, we provide a simplified YAML syntax to describe concisely the FSM of the {{abci_app}}s. For the case of
-the Simple {{abci_app}} the specification is as follows:
+For convenience, we provide a simplified YAML syntax to describe concisely the FSM of the {{fsm_app}}s. For the case of
+the Simple {{fsm_app}} the specification is as follows:
 
 ```yaml
 alphabet_in:
@@ -345,7 +345,7 @@ transition_func:
 ```
 
 ## Running the Tests
-There are several end-to-end tests where the developer can see the {{abci_app}} operation. Ensure that your system meets the [stack requirements](./using_stack_requirements.md) before launching the tests. To run the tests, execute the command
+There are several end-to-end tests where the developer can see the {{fsm_app}} operation. Ensure that your system meets the [stack requirements](./using_stack_requirements.md) before launching the tests. To run the tests, execute the command
 
 ```bash
 pytest tests/test_agents/test_simple_abci.py
