@@ -245,9 +245,9 @@ ls abci_build/persistent_data/
 benchmarks  logs  tm_state  venvs
 ```
 
-- benchmarking - This directory contains benchmarking data from the running agents.
-- tm_state - This directory contains the tendermint message state from the running agents, allowing replay of the application.
-- venvs - This directory contains shared virtual environments.
+- `benchmarking` - This directory contains benchmarking data from the running agents.
+- `tm_state` - This directory contains the tendermint message state from the running agents, allowing replay of the application.
+- `venvs` - This directory contains shared virtual environments.
 
 
 # Background info:

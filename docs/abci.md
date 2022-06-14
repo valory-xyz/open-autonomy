@@ -65,9 +65,9 @@ to the ABCI App for different purposes. For example,
 check whether a transaction is valid and therefore if it can be added
 to the transaction pool, to notify the application that
 a block has been validated, or to get information from the
-application layer. The application must process and respond approppriately to such callbacks.
+application layer. The application must process and respond appropriately to such callbacks.
 
-- On the other hand, the application can exhibit a proactive behaviour, when it wishes to submit a transaction to the blockchain. For example, it can commit a certain observed value in an external server.
+- On the other hand, the application can exhibit a proactive behaviour, when it wishes to submit a transaction to the blockchain. For example, it can commit a certain observed value in an external server. This would be the "user role" when interacting with the blockchain.
 
 ### Reactive Callbacks from the Consensus Node
 
@@ -84,7 +84,7 @@ Some requests like `Info` and `InitChain` are proactively made by the consensus 
 
 ### Proactive Calls to the Blockchain
 
-The ABCI App can submit transactions to the Tendermint blokchain
+The ABCI App can submit transactions to the Tendermint blockchain
 using the [Tendermint RPC protocol](https://docs.tendermint.com/master/rpc/).
 See also the [Protobuf definitions](https://github.com/tendermint/abci/blob/master/types/types.proto) of those messages. The application can send a transaction by using the following
 Tendermint RPC methods:
@@ -109,7 +109,7 @@ A quick overview of the ABCI protocol is depicted in the diagram below. See the 
 <figcaption>Overview of the flow of messages via the ABCI protocol</figcaption>
 </figure>
 
-## ABCI Apps and the {{valory_stack}}
+## ABCI Apps and the {{open_autonomy}} framework
 
 The reader might have noticed that we have used the concepts of "reactive callbacks" from the Tendermint blockchain to the ABCI App, and "proactive calls" from the ABCI App to the blockchain.
 This is by no means a coincidence with the architecture of an [AEA](./aea.md): the former are associated to reactive Handlers, whereas the latter are associated to proactive Behaviours in an AEA Skill.
@@ -223,9 +223,7 @@ Also, the ABCI App state can be queried by means of the
 request.
 The sender has to provide the `path` parameter (a string) and the `data`
 parameter (a string). The actual content will depend on the queries the ABCI App
-supports.
-
-The consensus node forwards the query through the `Query` request.
+supports. The consensus node forwards the query through the `Query` request.
 
 <figure markdown>
 <div class="mermaid">
