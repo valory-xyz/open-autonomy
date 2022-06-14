@@ -12,13 +12,14 @@ In order to set up the {{open_autonomy}} framework for development or running th
 ## For developers using the framework: Get started developing
 
 1. Create and launch a clean virtual environment with Python 3.10 (any Python `>=` 3.7 works):
-
-       pipenv --python 3.10 && pipenv shell
+```bash
+pipenv --python 3.10 && pipenv shell
+```
 
 2. Install the package from [PyPI](https://pypi.org/project/open-autonomy/):
-
-       pip install open-autonomy
-
+```bash
+pip install open-autonomy
+```
 
 3. Then, build your services as described in the [docs](https://docs.autonolas.network/).
 
@@ -26,22 +27,26 @@ In order to set up the {{open_autonomy}} framework for development or running th
 ## For developers contributing to the framework: Install from Source
 
 - Clone the repository, and recursively clone the submodules:
+```bash
+git clone --recursive git@github.com:valory-xyz/open-autonomy.git
+```
 
-      git clone --recursive git@github.com:valory-xyz/open-autonomy.git
-
-  Note: to update the Git submodules later:
-
+      Note: to update the Git submodules later:
+      ```bash
       git submodule update --init --recursive
+      ```
 
 - Build the Hardhat projects:
-
-      cd third_party/safe-contracts && yarn install
-      cd ../..
-      cd third_party/contracts-amm && yarn install
-      cd ../..
+```bash
+cd third_party/safe-contracts && yarn install
+cd ../..
+cd third_party/contracts-amm && yarn install
+cd ../..
+```
 
 - Create and launch a virtual environment. Also, run this during development,
 every time you need to re-create and launch the virtual environment and update
 the dependencies:
-
-      make new_env && pipenv shell
+```bash
+make new_env && pipenv shell
+```
