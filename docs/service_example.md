@@ -398,7 +398,7 @@ class PrintMessageBehaviour(HelloWorldABCIBaseBehaviour, ABC):
 Let us remark a number of noteworthy points from this code:
 
 1.  The `matching_round` variable must be set to the corresponding `Round`.
-2.  Within `async_act()`, The action must be executed (in this case, print 'Hello World' sequentially). Note how the agent reads the `context` and `period_state` to determine if it is the keeper agent.
+2.  Within `async_act()`, The action must be executed (in this case, print 'Hello World' sequentially). Note how the agent reads the `context` and `synchronized_data.period_count` to determine if it is the keeper agent.
 3.  After the action has been executed, the agent must prepare the `Payload` associated with this state. The payload can be anything that other agents might find useful for the action in this or future states. In this case, we simply send the message printed to the console.
 4.  The agent must send the `Payload`, which the consensus gadget will be in charge of synchronizing with all the agents.
 5.  The agent must wait until the consensus gadgets finishes its work, and mark the state as 'done'.
