@@ -13,7 +13,7 @@ Deploy CLI module.
 def deploy_group() -> None
 ```
 
-Deploy an AEA project.
+Deploy an agent service.
 
 <a id="autonomy.cli.deploy.build_group"></a>
 
@@ -24,7 +24,7 @@ Deploy an AEA project.
 def build_group() -> None
 ```
 
-Build tools
+Build an agent service deployment.
 
 <a id="autonomy.cli.deploy.build_deployment"></a>
 
@@ -62,13 +62,13 @@ Build tools
     "--kubernetes",
     "deployment_type",
     flag_value=KubernetesGenerator.deployment_type,
-    help="Use docker as a kubernetes.",
+    help="Use kubernetes as a backend.",
 )
 @click.option(
     "--packages-dir",
     type=click.Path(exists=True, dir_okay=True),
     default=Path.cwd() / PACKAGES,
-    help="Path to packages folder (For local usage).",
+    help="Path to packages folder (for local usage).",
 )
 @click.option(
     "--dev",
@@ -109,7 +109,7 @@ Build deployment setup for n agents.
     "--packages-dir",
     type=click.Path(exists=True, dir_okay=True),
     default=Path.cwd() / PACKAGES,
-    help="Path to packages folder (For local usage).",
+    help="Path to packages folder (for local usage).",
 )
 @click.option(
     "--build-dir",
@@ -127,7 +127,7 @@ Build deployment setup for n agents.
     "--version",
     type=str,
     default=DEFAULT_IMAGE_VERSION,
-    help="Image version",
+    help="Image version.",
 )
 @click.option("--push", is_flag=True, default=False, help="Push image after build.")
 @image_profile_flag()
