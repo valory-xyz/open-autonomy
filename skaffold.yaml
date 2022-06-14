@@ -21,7 +21,7 @@ profiles:
     build:
       tagPolicy:
         envTemplate:
-          template: "latest"
+          template: "{{.VERSION}}"
       artifacts:
       - image: valory/open-autonomy-docs
         docker:
