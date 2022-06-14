@@ -121,7 +121,10 @@ class BaseTestEnd2End(AEATestCaseMany, UseFlaskTendermintNode):
     def __set_configs(self, i: int, nb_agents: int) -> None:
         """Set the current agent's config overrides."""
         # each agent has its Tendermint node instance
-
+        self.set_config(
+            "agent.logging_config.handlers.logfile.filename",
+            str(self.t / f"abci_{i}.txt"),
+        )
         self.set_config(
             "vendor.valory.connections.abci.config.host",
             ANY_ADDRESS,
