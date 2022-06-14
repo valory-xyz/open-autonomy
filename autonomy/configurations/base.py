@@ -302,11 +302,7 @@ class Service(PackageConfiguration):  # pylint: disable=too-many-instance-attrib
                 overrides = self.try_to_process_singular_override(
                     component_id, config_class, configuration
                 )
-            except ValueError as e:
-                print(
-                    f"Failed to parse as a singular input with {e}\nAttempting with nested fields."
-                )
-
+            except ValueError:
                 overrides = self.try_to_process_nested_fields(
                     component_id,
                     component_index,

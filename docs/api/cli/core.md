@@ -14,5 +14,5 @@ Core for cli.
 def autonomy_cli(click_context: click.Context) -> None
 ```
 
-Command-line tool for setting up an autonomys of AEAs.
+Command-line tool for managing agent services of the Open Autonomy framework.
 
