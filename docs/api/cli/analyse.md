@@ -13,7 +13,7 @@ Analyse CLI module.
 def analyse_group() -> None
 ```
 
-Analyse an AEA project.
+Analyse an agent service.
 
 <a id="autonomy.cli.analyse.abci_group"></a>
 
@@ -24,7 +24,7 @@ Analyse an AEA project.
 def abci_group() -> None
 ```
 
-Analyse ABCI apps.
+Analyse ABCI apps of an agent service.
 
 <a id="autonomy.cli.analyse.generat_abci_app_pecs"></a>
 
@@ -38,7 +38,7 @@ Analyse ABCI apps.
 def generat_abci_app_pecs(app_class: str, output_file: Path, spec_format: str) -> None
 ```
 
-Generate abci app specs.
+Generate ABCI app specs.
 
 <a id="autonomy.cli.analyse.check_abci_app_specs"></a>
 
@@ -61,7 +61,7 @@ Generate abci app specs.
 def check_abci_app_specs(check_all: bool, packages_dir: Path, spec_format: str, app_class: str, infile: Path) -> None
 ```
 
-Check abci app specs.
+Check ABCI app specs.
 
 <a id="autonomy.cli.analyse.docstrings"></a>
 
@@ -90,7 +90,7 @@ Analyse ABCI docstring definitions.
 def parse_logs(file: Path) -> None
 ```
 
-Parse logs.
+Parse logs of an agent service.
 
 <a id="autonomy.cli.analyse.run_handler_check"></a>
 
@@ -153,5 +153,5 @@ Check handler definitions.
 def benchmark(path: Path, block_type: str, period: int, output: Optional[Path]) -> None
 ```
 
-Benchmark Aggregator.
+Benchmark aggregator.
 
