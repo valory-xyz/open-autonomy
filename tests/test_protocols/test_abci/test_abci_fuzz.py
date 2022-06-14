@@ -21,26 +21,25 @@
 
 import copy
 import logging
-from pprint import pprint
 from typing import Any, Dict, Tuple
 
-from hypothesis import given, strategies
+from hypothesis import given
+from hypothesis import strategies as st
 from hypothesis.strategies._internal.lazy import LazyStrategy
 
 from packages.valory.connections.abci import tendermint
 
 from tests.test_protocols.test_abci.helper import (
+    AbciMessage,
     PYTHON_PRIMITIVES,
     TENDERMINT_PRIMITIVES,
     camel_to_snake,
-    compare_trees,
     create_abci_type_tree,
     descriptor_parser,
     encode,
     get_full_mapping,
     get_protocol_readme_spec,
     get_tendermint_content,
-    init_abci_messages,
     is_enum,
     replace_keys,
 )
@@ -74,17 +73,15 @@ BIT32 = 1 << 31
 BIT64 = BIT32 << 31
 
 STRATEGY_MAP = dict(  # TODO: strategy to assert failure
-    int32=strategies.integers(min_value=-BIT32, max_value=BIT32 - 1),
-    uint32=strategies.integers(min_value=0, max_value=(BIT32 << 1) - 1),
-    int64=strategies.integers(min_value=-BIT64, max_value=BIT64 - 1),
-    uint64=strategies.integers(min_value=0, max_value=(BIT64 << 1) - 1),
-    bool=strategies.booleans(),
-    string=strategies.text(),
-    bytes=strategies.binary(),
+    int32=st.integers(min_value=-BIT32, max_value=BIT32 - 1),
+    uint32=st.integers(min_value=0, max_value=(BIT32 << 1) - 1),
+    int64=st.integers(min_value=-BIT64, max_value=BIT64 - 1),
+    uint64=st.integers(min_value=0, max_value=(BIT64 << 1) - 1),
+    bool=st.booleans(),
+    string=st.text(),
+    bytes=st.binary(),
+    nanos=st.integers(min_value=0, max_value=10 ** 9 - 1),  # special case
 )
-
-REPEATED_FIELD_SIZE = 3
-USE_NON_ZERO_ENUM: bool = True
 
 TENDERMINT_MAPPING = get_full_mapping()
 
@@ -153,8 +150,10 @@ def _translate(type_node: Node, abci_node: Node) -> Node:
         elif isinstance(type_child, tuple) and isinstance(abci_child, tuple):
             cls, d_type = type_child
             name, nested = abci_child
-            if d_type in PYTHON_PRIMITIVES or nested == "enum":
+            if d_type in PYTHON_PRIMITIVES:
                 type_node[k] = cls, nested
+            elif nested == "enum":
+                type_node[k] = cls, d_type
             elif isinstance(d_type, dict) and isinstance(nested, dict):
                 _translate(d_type, nested)
             elif isinstance(d_type, tuple):
@@ -193,18 +192,15 @@ def _init_subtree(node: Any) -> Any:
 
     def init_repeated(repeated_type: Any) -> Tuple[Any, ...]:
         """Repeated fields must be tuples for Tendermint protobuf"""
-
-        # TODO: repeated fields for hypothesis
         if isinstance(repeated_type, str) or repeated_type in PYTHON_PRIMITIVES:
             data = STRATEGY_MAP[repeated_type]
-            repeated = tuple(data for _ in range(REPEATED_FIELD_SIZE))
+            return st.lists(data, min_size=0, max_size=100)
         elif isinstance(repeated_type, tuple):
             cls, kws = repeated_type
-            repeated = tuple(_init_subtree(kws) for _ in range(REPEATED_FIELD_SIZE))
+            strategy = st.builds(cls, **_init_subtree(kws))
+            return st.lists(strategy, min_size=0, max_size=100)
         else:
             raise NotImplementedError(f"Repeated in {name}: {repeated_type}")
-
-        return repeated
 
     if isinstance(node, str):
         return node
@@ -212,15 +208,18 @@ def _init_subtree(node: Any) -> Any:
     kwargs: Node = {}
     for name, d_type in node.items():
         if isinstance(d_type, str) or d_type in PYTHON_PRIMITIVES:
-            kwargs[name] = STRATEGY_MAP[d_type]
+            if name == "nanos":  # special case
+                kwargs[name] = STRATEGY_MAP[name]
+            else:
+                kwargs[name] = STRATEGY_MAP[d_type]
         elif is_enum(d_type):
-            kwargs[name] = list(d_type)[USE_NON_ZERO_ENUM]
+            kwargs[name] = st.sampled_from(list(d_type))
         elif isinstance(d_type, tuple):
             container, content = d_type
             if container is list:
                 kwargs[name] = init_repeated(content)
             else:
-                kwargs[name] = _init_subtree(content)
+                kwargs[name] = st.builds(container, **_init_subtree(content))
         else:
             raise NotImplementedError(f"{name}: {d_type}")
 
@@ -257,38 +256,38 @@ def create_hypotheses() -> Any:
     hypo_tree = init_type_tree_primitives(tender_type_tree)
 
     # 5. collapse hypo_tree
-    def collapse(node: Node) -> Node:  # TODO: tuples
+    def collapse(node: Node) -> Node:
         for k, v in node.items():
             if isinstance(v, dict):
-                node[k] = strategies.fixed_dictionaries(collapse(v))
+                node[k] = st.fixed_dictionaries(collapse(v))
         return node
 
-    return collapse(
-        hypo_tree
-    )  # TO BE: strategies.fixed_dictionaries(collapse(hypo_tree))
+    return st.fixed_dictionaries(collapse(hypo_tree))
 
 
-h = hypothesis_tree = create_hypotheses()
-pprint(hypothesis_tree)
+def init_abci_messages(type_tree: Node, init_tree: Node) -> Node:
+    """Create ABCI messages for AEA-native ABCI spec"""
 
-EXAMPLES = ["response_echo", "response_info", "response_set_option", "response_commit"]
-h2 = {k: h[k] for k in EXAMPLES}
+    messages = dict.fromkeys(type_tree)
+    for key in type_tree:
+        performative = getattr(AbciMessage.Performative, key.upper())
+        messages[key] = AbciMessage(performative, **init_tree[key])
+
+    return messages
 
 
 # 6. run hypotheses
-@given(strategies.fixed_dictionaries(h2))
+@given(create_hypotheses())
 def test_hypotheses(strategy: LazyStrategy) -> None:
-    """Prototyping"""
+    """Currently we check the encoding, data retrieval to be done."""
 
     aea_protocol, *_ = get_protocol_readme_spec()
     speech_acts = aea_protocol["speech_acts"]
     type_tree = create_abci_type_tree(speech_acts)
     type_tree.pop("dummy")
 
-    init_tree = {k: strategy[k] for k in EXAMPLES}
-    type_tree = {k: type_tree[k] for k in EXAMPLES}
-
-    abci_messages = init_abci_messages(type_tree, init_tree)
+    logging.error(strategy)
+    abci_messages = init_abci_messages(type_tree, strategy)
 
     encoded = {k: encode(v) for k, v in abci_messages.items()}
     translated = {k: v for k, v in encoded.items() if v}
@@ -296,18 +295,8 @@ def test_hypotheses(strategy: LazyStrategy) -> None:
     assert all(k.startswith("request") for k in untranslated)
 
     tender_tree = {k: get_tendermint_content(v) for k, v in translated.items()}
-
-    tendermint_to_aea = dict(
-        response_info={"data": "info_data"},
-    )
-    replace_keys(tender_tree, tendermint_to_aea)
-
     shared = set(type_tree).intersection(tender_tree)
-    assert len(shared) == len(EXAMPLES), shared  # expected number of matches
+    assert len(shared) == 16, shared  # expected number of matches
 
-    for k in shared:
-        init_node, tender_node = init_tree[k], tender_tree[k]
-        compare_trees(init_node, tender_node)
-
-        logging.error(init_node)
-        logging.error(tender_node)
+    # TODO: write function to parse the strategy and compare to tender_tree
+    # NOTE: don't forget translation of keys (see helper.py)
