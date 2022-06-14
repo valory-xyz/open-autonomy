@@ -36,7 +36,7 @@ Ensure your machine satisfies the following requirements:
 3. Then, build your services as described in the [docs](https://davidminarsch.github.io/temp-docs-valory/).
 
 
-## Alternatively: Install from Source
+## For developers contributing to the framework: Install from Source
 
 - Clone the repository, and recursively clone the submodules:
 
