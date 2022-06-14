@@ -101,9 +101,12 @@ class ImageBuilder:
         else:
             env["VERSION"] = f"{agent_id.name}-{version}"
 
-        if profile != ImageProfiles.CLUSTER or check_kubeconfig_vars():
-            # deleting KUBECONFIG var for none cluster builds will avoid uneccessary warnings
-            if env.get("KUBECONFIG") is not None:
+        kubeconfig = env.get("KUBECONFIG")
+        if profile == ImageProfiles.CLUSTER:
+            if kubeconfig is None and not check_kubeconfig_vars():
+                raise ValueError("Please setup kubernetes environment variables.")
+        else:
+            if kubeconfig is not None:
                 del env["KUBECONFIG"]
 
         try:
