@@ -1,6 +1,8 @@
 # Open Autonomy
 
-_{{open_autonomy}}_ is a framework for the creation of Agent Services: off-chain services which run as a multi-agent-system (MAS) and are replicated on a temporary consensus gadget (blockchain) while being crypto-economically secured on a public blockchain, and which are operated in a robust, transparent and decentralized way.
+_{{open_autonomy}}_ is a framework for the creation of Agent Services: off-chain services which run as a multi-agent-system (MAS)  and are replicated on a temporary consensus gadget (blockchain) while being crypto-economically secured on a public blockchain, hence offering robustness, transparency and decentralization off-chain.
+
+As opposed to traditional smart contracts, Valory apps go beyond simple, purely off-chain logic without giving up on decentralization.
 
 The {{open_autonomy}} framework allows to define such services by means of _{{fsm_app}}s_. These dynamic, decentralized apps run inside the agents implementing the {{agent_service}}, and define its business logic. The {{fsm_app}}'s internal state is replicated across agents automatically through the consensus gadget. The {{open_autonomy}} framework is realized on top of the {{open_aea}} framework.
 
@@ -13,10 +15,10 @@ The {{open_autonomy}} framework allows to define such services by means of _{{fs
 Decentralized ledger technologies (DLTs), such as blockchains, face several challenges, for example:
 
 * [the blockchain trilemma](https://www.ledger.com/academy/what-is-the-blockchain-trilemma)
-* [the oracle problem](https://encyclopedia.pub/entry/2959),
-* [privacy issues](https://en.wikipedia.org/wiki/Privacy_and_blockchain),
-* [ledger storage space](https://cointelegraph.com/news/how-can-blockchain-improve-data-storage),
-* [cross chain compatibility](https://101blockchains.com/blockchain-interoperability/), ...
+* [the oracle problem](https://encyclopedia.pub/entry/2959)
+* [privacy issues](https://en.wikipedia.org/wiki/Privacy_and_blockchain)
+* [ledger storage space](https://cointelegraph.com/news/how-can-blockchain-improve-data-storage)
+* [cross chain compatibility](https://101blockchains.com/blockchain-interoperability/)
 * ... and the sheer complexity of the user experience!
 
 In contrast with the increasing growth of on-chain applications (particularly in DeFi), the off-chain design space has seen a lack of innovation. A lot of the technology is centralized, lacks fault tolerance and offers little composability.
