@@ -30,7 +30,7 @@ Ensure your machine satisfies the following requirements:
 
 2. Install the packages from [PyPI](https://pypi.org/project/open-autonomy/):
 
-       pip install open-aea[all] open-autonomy
+       pip install open-autonomy
 
 
 3. Then, build your services as described in the [docs](https://davidminarsch.github.io/temp-docs-valory/).
