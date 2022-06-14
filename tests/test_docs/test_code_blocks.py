@@ -201,7 +201,7 @@ class TestDocBashSnippets:
 
         code_type = CodeType.BASH
 
-        skipped_files: List[str] = []
+        skipped_files: List[str] = ["docs/quick_start.md"]
 
         # Get all doc files that contain a block
         all_md_files = [
