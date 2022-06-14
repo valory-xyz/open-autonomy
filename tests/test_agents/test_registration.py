@@ -31,6 +31,7 @@ from packages.valory.skills.registration_abci.behaviours import (
 
 from tests.fixture_helpers import UseACNNode, UseGnosisSafeHardHatNet
 from tests.test_agents.base import (
+    BaseTestEnd2End,
     BaseTestEnd2EndAgentCatchup,
     BaseTestEnd2EndNormalExecution,
 )
@@ -62,19 +63,26 @@ STRICT_CHECK_STRINGS = (
 )
 
 
-class RegistrationStartUpTestConfig(UseGnosisSafeHardHatNet, UseACNNode):
+class RegistrationStartUpTestConfig(
+    UseGnosisSafeHardHatNet, UseACNNode, BaseTestEnd2End
+):
     """Base class for e2e tests using the ACN client connection"""
 
     skill_package = "valory/registration_abci:0.1.0"
     agent_package = "valory/registration_start_up:0.1.0"
     wait_to_finish = 60
     strict_check_strings: Tuple[str, ...] = STRICT_CHECK_STRINGS
+    __p2p_prefix = "vendor.valory.connections.p2p_libp2p_client"
     __args_prefix = f"vendor.valory.skills.{PublicId.from_str(skill_package).name}.models.params.args"
     extra_configs = [
         {
             "dotted_path": f"{__args_prefix}.share_tm_config_on_startup",
             "value": True,
-        }
+        },
+        {
+            "dotted_path": f"{__p2p_prefix}.is_abstract",
+            "value": False,
+        },
     ]
 
 
