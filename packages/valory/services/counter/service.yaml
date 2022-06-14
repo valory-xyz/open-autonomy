@@ -4,7 +4,8 @@ version: 0.1.0
 description: A set of agents incrementing a counter
 aea_version: '>=1.0.0, <2.0.0'
 license: Apache-2.0
-fingerprint: {}
+fingerprint:
+  README.md: QmVnym7UFqPzwQrFpZZ5hC6V9gAWbttNU2aJmv9r4gYog5
 fingerprint_ignore_patterns: []
 number_of_agents: 1
 agent: valory/counter:0.1.0
