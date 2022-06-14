@@ -50,7 +50,7 @@ For this reason, there is the requirement that a minimum number of agents approv
 
 ## Where to Start
 
-We recommend that new users start by reading the the [_Get Started_](./get_started.md) section, which should give a general overview about how a simple {{agent_service}} is implemented with the stack.
+We recommend that new users start by reading the the [_Example of a service_](./service_example.md) section, which should give a general overview about how a simple {{agent_service}} is implemented with the stack.
 
 Following that introduction, the reader can proceed to explore the core concepts that make {{agent_service}}s possible, presented in the _Concepts_ section:
 

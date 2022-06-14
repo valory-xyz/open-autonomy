@@ -17,7 +17,7 @@ nav:
   - Version: 'version.md'
   - Upgrading: 'upgrading.md'
   - Quick start: 'quick_start.md'
-  - Get Started: 'get_started.md'
+  - Example of a service: 'service_example.md'
   - Concepts:
     - Autonomous Economic Agents: 'aea.md'
     - Finite State Machines: 'fsm.md'
