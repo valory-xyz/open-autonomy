@@ -19,7 +19,7 @@ touch Pipfile && pipenv --python 3.10 && pipenv shell
 
 2. Install {{open_autonomy}}
 ```bash
-pip install open-autonomy
+pip install open-autonomy open-aea-ledger-ethereum
 ```
 
 3. Get packages
