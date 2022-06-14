@@ -28,7 +28,7 @@ Ensure your machine satisfies the following requirements:
 
        pipenv --python 3.10 && pipenv shell
 
-2. Install the packages from [PyPI](https://pypi.org/project/open-autonomy/):
+2. Install the package from [PyPI](https://pypi.org/project/open-autonomy/):
 
        pip install open-autonomy
 
