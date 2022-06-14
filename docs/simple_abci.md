@@ -345,7 +345,7 @@ transition_func:
 ```
 
 ## Running the Tests
-There are several end-to-end tests where the developer can see the {{fsm_app}} operation. Ensure that your system meets the [stack requirements](./using_stack_requirements.md) before launching the tests. To run the tests, execute the command
+There are several end-to-end tests where the developer can see the {{fsm_app}} operation. Ensure that your system meets the [stack requirements](./quick_start.md) before launching the tests. To run the tests, execute the command
 
 ```bash
 pytest tests/test_agents/test_simple_abci.py
