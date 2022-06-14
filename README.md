@@ -24,7 +24,7 @@ Ensure your machine satisfies the following requirements:
 
 ## For developers using the framework: Get started developing
 
-1. Create and launch a clean virtual environment with Python 3.7 (any Python `>=` 3.6 works):
+1. Create and launch a clean virtual environment with Python 3.10 (any Python `>=` 3.7 works):
 
        pipenv --python 3.7 && pipenv shell
 
