@@ -17,7 +17,7 @@ nav:
   - Version: 'version.md'
   - Upgrading: 'upgrading.md'
   - Quick start: 'quick_start.md'
-  - Get Started: 'get_started.md'
+  - Example of a service: 'service_example.md'
   - Concepts:
     - Autonomous Economic Agents: 'aea.md'
     - Finite State Machines: 'fsm.md'
@@ -37,7 +37,6 @@ nav:
       - Running the Demo: 'price_oracle_running.md'
       - FSM Specification: 'price_oracle_fsms.md'
   - Development:
-    - Requirements and Set-Up: 'using_stack_requirements.md'
     - Developer Tooling:
       - Hot Reload: 'hot_reload.md'
       - Benchmarking: 'benchmarks.md'

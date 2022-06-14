@@ -1,4 +1,4 @@
-# Get Started
+# Example of a service
 
 This section is aimed at giving a general, introductory overview of the library and a high-level view of the main elements that make an Agent Service, without delving into the specific details. Hopefully this will give a global understanding on the development process and the relationship between the main components of the stack.
 

@@ -18,8 +18,24 @@ In addition to the general requirements presented for setting up the {{open_auto
 
 To set up the network:
 
+```bash
+export VERSION=0.1.0
+autonomy deploy build image valory/oracle_hardhat --dependencies
+autonomy deploy build image valory/oracle_hardhat
+autonomy deploy build deployment valory/oracle_hardhat deployments/keys/hardhat_keys.json --force
 ```
-make run-oracle
+
+If you're working under GNU/Linux, you also need to create and change permissions for the following directories:
+```bash
+mkdir -p abci_build/persistent_data/logs
+mkdir -p abci_build/persistent_data/venvs
+sudo chown -R 1000:1000 -R abci_build/persistent_data/logs
+sudo chown -R 1000:1000 -R abci_build/persistent_data/venvs
+```
+And finally launch the demo:
+```
+cd abci_build/
+docker-compose up --force-recreate -t 600 --remove-orphans
 ```
 
 This will spawn:
