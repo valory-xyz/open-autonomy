@@ -1348,8 +1348,8 @@ class TestBaseBehaviour:
             offset = math.ceil(
                 self.behaviour.params.observation_interval * HEIGHT_OFFSET_MULTIPLIER
             )
-            offset = min(MAX_HEIGHT_OFFSET, offset)
-            assert offset == 1
+            offset = max(MAX_HEIGHT_OFFSET, offset)
+            assert offset == 10
             initial_height = (
                 self.behaviour.context.state.round_sequence.last_round_transition_tm_height
                 + offset
