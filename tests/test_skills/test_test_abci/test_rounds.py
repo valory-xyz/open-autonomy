@@ -54,7 +54,7 @@ class BaseRoundTestClass:
         cls.participants = get_participants()
         cls.synchronized_data = BaseSynchronizedData(
             AbciAppDB(
-                initial_data=dict(
+                setup_data=dict(
                     participants=[cls.participants], all_participants=[cls.participants]
                 ),
             )
@@ -88,9 +88,7 @@ class TestDummyRound(BaseRoundTestClass):
 
         actual_next_behaviour = BaseSynchronizedData(
             AbciAppDB(
-                initial_data=dict(
-                    participants=[frozenset(test_round.collection.keys())]
-                ),
+                setup_data=dict(participants=[frozenset(test_round.collection.keys())]),
             )
         )
 

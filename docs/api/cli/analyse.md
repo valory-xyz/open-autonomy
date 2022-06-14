@@ -1,10 +1,10 @@
-<a id="aea_swarm.cli.analyse"></a>
+<a id="autonomy.cli.analyse"></a>
 
-# aea`_`swarm.cli.analyse
+# autonomy.cli.analyse
 
 Analyse CLI module.
 
-<a id="aea_swarm.cli.analyse.analyse_group"></a>
+<a id="autonomy.cli.analyse.analyse_group"></a>
 
 #### analyse`_`group
 
@@ -15,7 +15,7 @@ def analyse_group() -> None
 
 Analyse an AEA project.
 
-<a id="aea_swarm.cli.analyse.abci_group"></a>
+<a id="autonomy.cli.analyse.abci_group"></a>
 
 #### abci`_`group
 
@@ -26,7 +26,7 @@ def abci_group() -> None
 
 Analyse ABCI apps.
 
-<a id="aea_swarm.cli.analyse.generat_abci_app_pecs"></a>
+<a id="autonomy.cli.analyse.generat_abci_app_pecs"></a>
 
 #### generat`_`abci`_`app`_`pecs
 
@@ -40,7 +40,7 @@ def generat_abci_app_pecs(app_class: str, output_file: Path, spec_format: str) -
 
 Generate abci app specs.
 
-<a id="aea_swarm.cli.analyse.check_abci_app_specs"></a>
+<a id="autonomy.cli.analyse.check_abci_app_specs"></a>
 
 #### check`_`abci`_`app`_`specs
 
@@ -63,7 +63,7 @@ def check_abci_app_specs(check_all: bool, packages_dir: Path, spec_format: str, 
 
 Check abci app specs.
 
-<a id="aea_swarm.cli.analyse.docstrings"></a>
+<a id="autonomy.cli.analyse.docstrings"></a>
 
 #### docstrings
 
@@ -80,7 +80,7 @@ def docstrings(packages_dir: Path, check: bool) -> None
 
 Analyse ABCI docstring definitions.
 
-<a id="aea_swarm.cli.analyse.parse_logs"></a>
+<a id="autonomy.cli.analyse.parse_logs"></a>
 
 #### parse`_`logs
 
@@ -92,7 +92,7 @@ def parse_logs(file: Path) -> None
 
 Parse logs.
 
-<a id="aea_swarm.cli.analyse.run_handler_check"></a>
+<a id="autonomy.cli.analyse.run_handler_check"></a>
 
 #### run`_`handler`_`check
 
@@ -104,16 +104,23 @@ Parse logs.
     default=Path.cwd() / "packages",
 )
 @click.option(
-    "--handler-config",
-    type=click.Path(),
-    default=Path.cwd() / "scripts" / "handler_config.json",
+    "--skip",
+    type=str,
+    default="abstract_abci",
+    help="Specify which skills to skip. Eg. skill_0,skill_1,skill_2",
 )
-def run_handler_check(packages_dir: Path, handler_config: Path) -> None
+@click.option(
+    "--common",
+    type=str,
+    default="abci",
+    help="Specify which handlers to check. Eg. handler_a,handler_b,handler_c",
+)
+def run_handler_check(packages_dir: Path, skip: str, common: str) -> None
 ```
 
 Check handler definitions.
 
-<a id="aea_swarm.cli.analyse.benchmark"></a>
+<a id="autonomy.cli.analyse.benchmark"></a>
 
 #### benchmark
 

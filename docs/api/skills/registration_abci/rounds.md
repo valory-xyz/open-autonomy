@@ -39,7 +39,7 @@ A fast-forward round representing that agent registration has finished
 ## RegistrationStartupRound Objects
 
 ```python
-class RegistrationStartupRound(CollectDifferentUntilAllRound)
+class RegistrationStartupRound(CollectSameUntilAllRound)
 ```
 
 A round in which the agents get registered

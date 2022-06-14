@@ -263,17 +263,16 @@ def create_hypotheses() -> Any:
                 node[k] = strategies.fixed_dictionaries(collapse(v))
         return node
 
-    return hypo_tree  # TO BE: strategies.fixed_dictionaries(collapse(hypo_tree))
+    return collapse(
+        hypo_tree
+    )  # TO BE: strategies.fixed_dictionaries(collapse(hypo_tree))
 
 
 h = hypothesis_tree = create_hypotheses()
 pprint(hypothesis_tree)
 
-
-h2 = {
-    "response_echo": strategies.fixed_dictionaries(h["response_echo"]),
-    "response_info": strategies.fixed_dictionaries(h["response_info"]),
-}
+EXAMPLES = ["response_echo", "response_info", "response_set_option", "response_commit"]
+h2 = {k: h[k] for k in EXAMPLES}
 
 
 # 6. run hypotheses
@@ -286,14 +285,8 @@ def test_hypotheses(strategy: LazyStrategy) -> None:
     type_tree = create_abci_type_tree(speech_acts)
     type_tree.pop("dummy")
 
-    init_tree = {
-        "response_echo": strategy["response_echo"],
-        "response_info": strategy["response_info"],
-    }
-    type_tree = {
-        "response_echo": type_tree["response_echo"],
-        "response_info": type_tree["response_info"],
-    }
+    init_tree = {k: strategy[k] for k in EXAMPLES}
+    type_tree = {k: type_tree[k] for k in EXAMPLES}
 
     abci_messages = init_abci_messages(type_tree, init_tree)
 
@@ -310,7 +303,7 @@ def test_hypotheses(strategy: LazyStrategy) -> None:
     replace_keys(tender_tree, tendermint_to_aea)
 
     shared = set(type_tree).intersection(tender_tree)
-    assert len(shared) == 2, shared  # expected number of matches
+    assert len(shared) == len(EXAMPLES), shared  # expected number of matches
 
     for k in shared:
         init_node, tender_node = init_tree[k], tender_tree[k]

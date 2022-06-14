@@ -111,7 +111,7 @@ A high level view of what occurs is as follows:
     ![](./images/hello_world_sequence_1.svg)
 
 
-2.  Send the vote. The hello_world skill has a component (_Behaviour_) that is in charge of casting the vote to the consensus gadget.
+2.  Send the vote. The `hello_world_abci` skill has a component (_Behaviour_) that is in charge of casting the vote to the consensus gadget.
 
     ![](./images/hello_world_sequence_2.svg)
 
@@ -150,7 +150,7 @@ A high level view of what occurs is as follows:
 
     As you have probably realized at this point, there are several items which are called after the interface that connects with the consensus gadget, i.e., the Application Blockchain Interface (ABCI). In case you are not familiar with it, for now, it is enough to know that it is an interface that abstracts away the protocol executed at the consensus gadget, and it produces callbacks to the skill when relevant events occur (e.g., agreement on a block). You can read more about the ABCI [here](https://docs.tendermint.com/master/spec/abci/).
 
-At this point, the walktrhough that we have presented, i.e., a single transition from one state of the FSM, has essentially introduced the main components of an agent and the main interactions that occur in an {{agent_service}}. It is impotant that the developer keeps these concepts in mind, since executions of further state transitions can be easily mapped with what has been presented here so far.
+At this point, the walkthrough that we have presented, i.e., a single transition from one state of the FSM, has essentially introduced the main components of an agent and the main interactions that occur in an {{agent_service}}. It is important that the developer keeps these concepts in mind, since executions of further state transitions can be easily mapped with what has been presented here so far.
 
 ## Executing the Main Functionality
 
@@ -199,7 +199,7 @@ So far, we have given a conceptual description of the Hello World {{agent_servic
 The objective of this section is to explore what are the main steps to code and get the service running. Note that the complete code for the example can be found in
 
 * `packages/valory/agents/hello_world`: the Hello World agent,
-* `packages/valory/skills/hello_world_abci`: the hello_world_abci skill.
+* `packages/valory/skills/hello_world_abci`: the `hello_world_abci` skill.
 
 ### Coding the Agent
 Agents are defined through the {{open_aea}} library as YAML files, which specify what components is the agent composed of, together with some other configuration parameters. Agents components can be, for example, connections, contracts, protocols or skills. We refer to the {{open_aea_doc}} for the complete details, although the reader might already have some intuition about their meaning.
@@ -225,7 +225,7 @@ skills:
 
 It is mandatory that all agents that will be part of an {{agent_service}} have the `abci` connection, the `abci` protocol, as well as the `abstract_abci` and `abstract_round_abci` skills. These are the essential components that allow to interact with the consensus gadget, and contain helper and base classes that simplify the process of building the code for the skill.
 
-Additionally, the agent can use other connections, protocols or skills, deppending of its particular needs. In the example, the `http_client` connection and the `http` protocol allows the agent to interact with HTTP servers (although we are not using it in this service). Similarly, you can add the `ledger` connection and the `ledger_api` protocol in case the agent needs to interact with a blockchain.
+Additionally, the agent can use other connections, protocols or skills, depending of its particular needs. In the example, the `http_client` connection and the `http` protocol allows the agent to interact with HTTP servers (although we are not using it in this service). Similarly, you can add the `ledger` connection and the `ledger_api` protocol in case the agent needs to interact with a blockchain.
 
 Note that the agent also includes the `hello_world_abci` skill, which is the one that we need to code for this example. Except that, there is no more to code to write for the agent. The {{open_aea}} library will be in charge of reading this configuration file and execute its skills accordingly.
 
@@ -233,7 +233,7 @@ Note that although it is possible to develop your own protocols and connections,
 
 ### Coding the Skill
 
-Recall that the skill needs to define the `AbciApp`; the `Rounds`, `Behaviours` and `Payloads` associated to each state of the FSM; and the main skill class, i.e., the `RoundBehaviour` class. Let's look how each of these objects are imlemented. The files referenced below are all placed within `packages/valory/skills/hello_world_abci`:
+Recall that the skill needs to define the `AbciApp`; the `Rounds`, `Behaviours` and `Payloads` associated to each state of the FSM; and the main skill class, i.e., the `RoundBehaviour` class. Let's look how each of these objects are implemented. The files referenced below are all placed within `packages/valory/skills/hello_world_abci`:
 
   **`rounds.py`**: This file defines both the `Rounds` and the `AbciApp` class. This is how the printing round (`PrintMessageRound`) inherits from the stack classes:
 
@@ -351,7 +351,7 @@ Recall that the skill needs to define the `AbciApp`; the `Rounds`, `Behaviours` 
   <figcaption>Hierarchy of the PrintMessageBehaviour class (some methods and fields are omitted)</figcaption>
   </figure>
 
-Again, the `HelloWorldABCIBaseState` is a convenience class, and the upper class in the hierarchy are abstract classes from the stack that facilitate reusability of code when implementing the `Behaviour`. An excerpt of its code is:
+Again, the `HelloWorldABCIBaseState` is a convenience class, and the upper class in the hierarchy are abstract classes from the stack that facilitate re-usability of code when implementing the `Behaviour`. An excerpt of its code is:
 
 ```python
 class PrintMessageBehaviour(HelloWorldABCIBaseBehaviour, ABC):

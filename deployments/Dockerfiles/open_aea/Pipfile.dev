@@ -14,4 +14,4 @@ open-aea-cli-ipfs = {editable = true, path = "/open-aea/plugins/aea-cli-ipfs"}
 open-aea-ledger-ethereum = {editable = true, path = "/open-aea/plugins/aea-ledger-ethereum"}
 
 [requires]
-python_version = "3.8"
+python_version = "3.10"

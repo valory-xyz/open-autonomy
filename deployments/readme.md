@@ -55,7 +55,7 @@ The first time we run the application, we must also build and tag the dependency
 These images are used for tendermint and for the local hardhat image.
 
 ```bash
-swarm deploy build image valory/oracle_hardhat --dependencies
+autonomy deploy build image valory/oracle_hardhat --dependencies
 ```
 
 ```output
@@ -75,7 +75,7 @@ Building image with:
 Now we have our base dependencies, we can build the application specific dependencies.
 
 ```bash
-swarm deploy build image valory/oracle_hardhat
+autonomy deploy build image valory/oracle_hardhat
 ```
 
 From this command, we receive the below output showing custom images being built and tagged for the specified Valory app and version.
@@ -97,7 +97,7 @@ Building image with:
 Now we have our images, we need to build the deployment to use them.
 
 ```bash
-swarm deploy build deployment valory/oracle_hardhat deployments/keys/hardhat_keys.json 
+autonomy deploy build deployment valory/oracle_hardhat deployments/keys/hardhat_keys.json 
 ```
 
 
@@ -173,7 +173,7 @@ for i in {0..3}; do scp root@178.62.4.138:open-autonomy/abci_build/persistent_da
 and run script for checking path
 
 ```bash
-swarm analyse abci logs abci${i}.txt
+autonomy analyse abci logs abci${i}.txt
 ```
 
 # Step 6
@@ -215,7 +215,7 @@ The 2nd method is more manual and demonstrates the exact steps required to clean
 ### Manual Mode
 
 ```bash
-swarm deploy build image --dev PUBLIC_ID_OR_HASH
+autonomy deploy build image --dev PUBLIC_ID_OR_HASH
 ```
 Images are built and tagged on an application by application basis. This is so that Valory images are pre-installed with the necessary dependencies to allow fast start up in production.
 
@@ -225,7 +225,7 @@ To then build a deployment for developer mode, nothing extra other than the envi
 
 i.e. We build the deployment;
 ```bash
-swarm deploy build deployment --dev PUBLIC_ID_OR_HASH KEYS_FILE
+autonomy deploy build deployment --dev PUBLIC_ID_OR_HASH KEYS_FILE
 ```
 To run the development deployment
 ```bash
@@ -245,9 +245,9 @@ ls abci_build/persistent_data/
 benchmarks  logs  tm_state  venvs
 ```
 
-- benchmarking - This directory contains benchmarking data from the running agents.
-- tm_state - This directory contains the tendermint message state from the running agents, allowing replay of the application.
-- venvs - This directory contains shared virtual environments.
+- `benchmarking` - This directory contains benchmarking data from the running agents.
+- `tm_state` - This directory contains the tendermint message state from the running agents, allowing replay of the application.
+- `venvs` - This directory contains shared virtual environments.
 
 
 # Background info:

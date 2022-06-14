@@ -3,7 +3,7 @@ Departing from the notions of [AEA](./aea.md), [FSM](./fsm.md), and [ABCI](./abc
 
 
 ## Definition of an {{fsm_app}}
-An {{fsm_app}} is a replicated appliation which uses
+An {{fsm_app}} is a replicated application which uses
 an underlying consensus engine implementing the [ABCI](./abci.md).
 Its internal state takes the form of an FSM, and it exhibits proactive behaviours in each of such states.
 {{fsm_app}}s constitute a core part in the {{valory_stack}} to implement multi-agent based services.
@@ -29,22 +29,20 @@ Note that in an {{fsm_app}}, the responsibility of a state is distributed across
   a particular state. It is a concrete implementation of the `BaseState` class, and contains the application logic for each state. It is scheduled for
   execution by the agents.
 
-We will sometimes use indistinctly the terms "state" or "round" in the context of the {{valory_stack}}.  We also define the following concepts that are particular to the stack:
-
-- A _period_ is a sequence of states that is semantically meaningful. See a more elaborate definition below.
-- The _period state_ is the component that contains shared information
-  across sates. It provides access to the state data that is shared by the agents throughout a period (see below), and gets updated at the end of each round. Therefore, it is not tied to any specific state, rather each state can update its contents. It is a concrete implementation of the `BasePeriodState` class.
+We will sometimes use indistinctly the terms "state" or "round" in the context of the {{valory_stack}}.  We also define the concept of _synchronized data_, which is the component that stores persistent data and is accessible from any state. The consensus mechanism ensures that the synchronized data is consistently shared by all the agents. It is updated at the end of each round, where its contents can be updated. It is a concrete implementation of the `BaseSynchronizedData` class.
 
 
 
-!!! example
+!!! note
 
-    A round/state might just be a stage in
+    Due to the unbounded variety of FSMs that can be defined, the stack does not define a higer-level structure for the execution flow of the {{fsm_app}}. That is, there is no concept of "period" or "cycle" over the states of the FSM. However, the developer is free to define it according to their needs.
+
+    For example, a round/state might just be a stage in
     the overall flow of the application (e.g., waiting that a sufficient number of participants commit their
     observations to a temporary blockchain), or a voting round (e.g.,
     waiting until at least an observed value has reached $\lceil(2N + 1) / 3\rceil$ of the votes).
 
-    A period, on the other hand, consists of a sequence of such stages in the FSM state flow that achieve a specific objective defined by the {{fsm_app}}. Consider the price oracle demo, which aggregates asset prices from different data sources and submits the aggregated result to an L1/L2 blockchain. In this example a period is defined as follows:
+    The developer could define the concept of "period" for their FSM as the sequence of stages in the FSM state flow that achieve a specific objective defined by the {{fsm_app}}. Consider the price oracle demo, which aggregates asset prices from different data sources and submits the aggregated result to an L1/L2 blockchain. In this example, the developer could define a period as follows:
 
     1. Collect observations from external APIs or prior rounds.
     2. Reach consensus on the set of collected observations (i.e., 2/3 of the agents must agree).
@@ -57,11 +55,6 @@ We will sometimes use indistinctly the terms "state" or "round" in the context o
     7. Go to Step 1.
 
 
-
-In order to define more formally a period, two sets of special states are defined for the FSM, namely _start states_ and _final states_. Every FSM has a set of start states, but it might not have a set of final states. Therefore, a period is defined as a sequence of states that begin at a start state and finishes either:
-
-  - at a final state, if the set of final states is defined, or
-  - at a start state, otherwise.
 
 ## Composition of {{fsm_app}}s
 One of the key features of the {{valory_stack}} is the generation of {{fsm_app}}s whose internal FSM is a composition of different FSMs. The composition mechanism facilitates
