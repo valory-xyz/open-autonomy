@@ -28,7 +28,7 @@ from typing import Any, Dict, List, Optional, Tuple
 
 import pytest
 from aea.configurations.base import PublicId
-from aea.test_tools.test_cases import AEATestCaseMany
+from aea.test_tools.test_cases import AEATestCaseMany, Result
 
 from tests.conftest import ANY_ADDRESS
 from tests.fixture_helpers import UseFlaskTendermintNode
@@ -103,6 +103,16 @@ class BaseTestEnd2End(AEATestCaseMany, UseFlaskTendermintNode):
             path.mkdir()
             os.chmod(path, 755)  # nosec
 
+    @classmethod
+    def set_config(
+        cls,
+        dotted_path: str,
+        value: Any,
+        type_: Optional[str] = None,
+    ) -> Result:
+        """Set config value."""
+        return super().set_config(dotted_path, value, type_, aev=True)
+
     def __set_extra_configs(self) -> None:
         """Set the current agent's extra config overrides that are skill specific."""
         for config in self.extra_configs:
@@ -111,6 +121,14 @@ class BaseTestEnd2End(AEATestCaseMany, UseFlaskTendermintNode):
     def __set_configs(self, i: int, nb_agents: int) -> None:
         """Set the current agent's config overrides."""
         # each agent has its Tendermint node instance
+        self.set_config(
+            "agent.logging_config.handlers.logfile.filename",
+            str(self.t / f"abci_{i}.txt"),
+        )
+        self.set_config(
+            "vendor.valory.connections.abci.config.host",
+            ANY_ADDRESS,
+        )
         self.set_config(
             "vendor.valory.connections.abci.config.host",
             ANY_ADDRESS,
@@ -166,6 +184,11 @@ class BaseTestEnd2End(AEATestCaseMany, UseFlaskTendermintNode):
             f"vendor.valory.skills.{PublicId.from_str(self.skill_package).name}.models.benchmark_tool.args.log_dir",
             str(self.t),
             type_="str",
+        )
+        self.set_config(
+            f"vendor.valory.skills.{PublicId.from_str(self.skill_package).name}.models.params.args.observation_interval",
+            3,
+            type_="int",
         )
 
         self.__set_extra_configs()
