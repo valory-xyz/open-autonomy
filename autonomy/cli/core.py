@@ -34,7 +34,7 @@ from autonomy.cli.replay import replay_group
 def autonomy_cli(
     click_context: click.Context,  # pylint: disable=unused-argument
 ) -> None:
-    """Command-line tool for setting up an autonomys of AEAs."""
+    """Command-line tool for managing agent services of the Open Autonomy framework."""
 
 
 autonomy_cli.add_command(analyse_group)
