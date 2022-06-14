@@ -163,6 +163,7 @@ class TestRegistrationStartupRound(BaseCollectSameUntilAllRoundTest):
             threshold_mock.return_value = False
             self._run_with_round(
                 test_round,
+                confirmations=None,
                 finished=False,
             )
 
@@ -181,6 +182,7 @@ class TestRegistrationStartupRound(BaseCollectSameUntilAllRoundTest):
         round_payloads: Optional[Dict[str, RegistrationPayload]] = None,
         most_voted_payload: Optional[Any] = None,
         expected_event: Optional[RegistrationEvent] = None,
+        confirmations: Optional[int] = 1,
         finished: bool = True,
     ) -> None:
         """Run with given round."""
@@ -208,10 +210,20 @@ class TestRegistrationStartupRound(BaseCollectSameUntilAllRoundTest):
         )
 
         next(test_runner)
-        next(test_runner)
-        next(test_runner)
-        if finished:
+        if confirmations is None:
+            assert (
+                test_round.block_confirmations
+                <= test_round.required_block_confirmations
+            )
+
+        else:
+            test_round.block_confirmations = confirmations
             next(test_runner)
+            assert test_round.block_confirmations == 1
+            next(test_runner)
+            if finished:
+                next(test_runner)
+                assert test_round.block_confirmations == 2
 
 
 class TestRegistrationRound(BaseCollectSameUntilThresholdRoundTest):
