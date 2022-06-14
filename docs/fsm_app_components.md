@@ -46,7 +46,7 @@ successor.
 
 There are two kinds of events: _normal events_ and _timeout events_:
 
-- Normal events are set by the round according to certain conditions that are checked during the execution of a round. These conditions can be defined arbitrarily according to the business logic of the {{abci_app}}.
+- Normal events are set by the round according to certain conditions that are checked during the execution of a round. These conditions can be defined arbitrarily according to the business logic of the {{fsm_app}}.
 
 - Timeout events are automatically triggered in case the timeout associated to
 the event has expired. The timeout is checked against the "global clock", which
@@ -57,7 +57,7 @@ is a side effect of block validation: each block header carries the timestamp of
 
     On the other hand, consider a block $B_1$ with timestamp $t_1$, and block $B_2$ with
     timestamp $t_2 = t_1 + 10$ seconds. Assume that after $B_1$ is processed, the
-    {{abci_app}} current state round is defined to trigger a timeout event set at  $T=5$ seconds. When $B_2$ is delivered, the timeout event had already been triggered (because $T<t_2-t_1$), and the associated transition had already happened in the FSM, regardless of the content of $B_2$.
+    {{fsm_app}} current state round is defined to trigger a timeout event set at  $T=5$ seconds. When $B_2$ is delivered, the timeout event had already been triggered (because $T<t_2-t_1$), and the associated transition had already happened in the FSM, regardless of the content of $B_2$.
 
 The `ABCIHandler`, is in charge of receiving the transactions through the
 [`DeliverTx`](https://docs.tendermint.com/master/spec/abci/abci.html#delivertx)
@@ -72,6 +72,6 @@ take the transition to the next state, as defined by the transition function in 
     **NOT** by the AEA behaviours. The AEA behaviours can only send updates through
     the process of sending transactions to the consensus engine.
 
-The `Period` class keeps track of an execution of the {{abci_app}}. It is
+The `Period` class keeps track of an execution of the {{fsm_app}}. It is
 instantiated in the state of the `Skill` and accessible through the `SkillContext`.
 It is a concrete class, so the developer should not need to extend it.

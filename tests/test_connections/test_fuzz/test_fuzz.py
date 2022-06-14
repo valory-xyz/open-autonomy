@@ -20,10 +20,13 @@
 """Fuzzy tests for valory/abci connection"""
 from unittest import TestCase
 
+import pytest
+
 from tests.test_connections.test_fuzz.base import BaseFuzzyTests
 from tests.test_connections.test_fuzz.mock_node.channels.tcp_channel import TcpChannel
 
 
+@pytest.mark.skip(reason="takes too long time to complete on CI")
 class TcpFuzzyTests(BaseFuzzyTests, TestCase):
     """Test the connection when TCP is used"""
 

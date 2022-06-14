@@ -34,6 +34,11 @@ logging_config:
     standard:
       format: '[%(asctime)s] [%(levelname)s] %(message)s'
   handlers:
+    logfile:
+      class: logging.FileHandler
+      formatter: standard
+      filename: ${LOG_FILE:str:log.txt}
+      level: INFO
     console:
       class: logging.StreamHandler
       formatter: standard
@@ -41,6 +46,7 @@ logging_config:
   loggers:
     aea:
       handlers:
+      - logfile
       - console
       propagate: false
 dependencies:
@@ -51,3 +57,17 @@ public_id: valory/abci:0.1.0
 type: connection
 config:
   target_skill_id: valory/register_reset_abci:0.1.0
+  host: ${ABCI_HOST:str:localhost}
+  port: ${ABCI_PORT:int:26658}
+  use_tendermint: ${ABCI_USE_TENDERMINT:bool:false}
+---
+public_id: valory/register_reset_abci:0.1.0
+type: skill
+models:
+  benchmark_tool:
+    args:
+      log_dir: ${SKILL_ORACLE_ABCI_MODELS_BENCHMARK_TOOL_ARGS_LOG_DIR:str:/benchmarks}
+  params:
+    args:
+      tendermint_url: ${TENDERMINT_URL:str:http://localhost:26657}
+      tendermint_com_url: ${TENDERMINT_COM_URL:str:http://localhost:8080}

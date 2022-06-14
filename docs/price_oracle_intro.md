@@ -15,7 +15,7 @@ with $\lceil(2n + 1) / 3\rceil$ of the participants' signature is settled on the
 Ethereum chain (in the demo this is emulated by the Hardhat node).
 
 Alongside the FSM behaviours executed at each state, the AEAs runs
-an {{abci_app}} instance which receives all the updates from the
+an {{fsm_app}} instance which receives all the updates from the
 underlying Tendermint network.
 
 
