@@ -2,7 +2,7 @@
 
 _{{open_autonomy}}_ is a framework for the creation of _{{agent_service}}s_: off-chain services which run as a multi-agent-system (MAS), and are crypto-economically secured on a local, temporary consensus gadget (blockchain), and which are operated in a robust, transparent and decentralized way.
 
-The framework implemented by {{open_autonomy}} allows to define such services by means of _{{fsm_app}}s_. These dynamic, decentralized apps run inside the agents implementing the {{agent_service}}, and define its business logic. The {{fsm_app}}'s internal state is replicated across agents automatically through the consensus gadget. The {{open_autonomy}} framework is realized on top of the {{open_aea}} framework.
+The {{open_autonomy}} framework allows to define such services by means of _{{fsm_app}}s_. These dynamic, decentralized apps run inside the agents implementing the {{agent_service}}, and define its business logic. The {{fsm_app}}'s internal state is replicated across agents automatically through the consensus gadget. The {{open_autonomy}} framework is realized on top of the {{open_aea}} framework.
 
 <figure markdown>
 ![](./images/agent_service_architecture.svg)
