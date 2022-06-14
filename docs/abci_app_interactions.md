@@ -54,7 +54,7 @@ AEA event loop.
         participant AbsRoundBehaviour
         participant State1
         participant State2
-        participant Period
+        participant SharedState
         note over AbsRoundBehaviour,State2: Let the FSMBehaviour start with State1<br/>it will schedule State2 on event e
         loop while round does not change
           EventLoop->>AbsRoundBehaviour: act()
@@ -83,15 +83,15 @@ pool:
     sequenceDiagram
         participant ConsensusEngine
         participant ABCIHandler
-        participant Period
+        participant SharedState
         participant Round
         activate Round
         note over ConsensusEngine,ABCIHandler: client submits transaction tx
         ConsensusEngine->>ABCIHandler: RequestCheckTx(tx)
-        ABCIHandler->>Period: check_tx(tx)
-        Period->>Round: check_tx(tx)
-        Round->>Period: OK
-        Period->>ABCIHandler: OK
+        ABCIHandler->>SharedState: check_tx(tx)
+        SharedState->>Round: check_tx(tx)
+        Round->>SharedState: OK
+        SharedState->>ABCIHandler: OK
         ABCIHandler->>ConsensusEngine: ResponseCheckTx(tx)
         note over ConsensusEngine,ABCIHandler: tx is added to tx pool
 </div>
@@ -102,33 +102,33 @@ The following diagram describes the delivery of transactions in a block:
     sequenceDiagram
         participant ConsensusEngine
         participant ABCIHandler
-        participant Period
+        participant SharedState
         participant Round1
         participant Round2
         activate Round1
         note over Round1,Round2: Round1 is the active round,<br/>Round2 is the next round
         note over ConsensusEngine,ABCIHandler: validated block ready to<br/>be submitted to the ABCI app
         ConsensusEngine->>ABCIHandler: RequestBeginBlock()
-        ABCIHandler->>Period: begin_block()
-        Period->>ABCIHandler: ResponseBeginBlock(OK)
+        ABCIHandler->>SharedState: begin_block()
+        SharedState->>ABCIHandler: ResponseBeginBlock(OK)
         ABCIHandler->>ConsensusEngine: OK
         loop for tx_i in block
             ConsensusEngine->>ABCIHandler: RequestDeliverTx(tx_i)
-            ABCIHandler->>Period: deliver_tx(tx_i)
-            Period->>Round1: deliver_tx(tx_i)
-            Round1->>Period: OK
-            Period->>ABCIHandler: OK
+            ABCIHandler->>SharedState: deliver_tx(tx_i)
+            SharedState->>Round1: deliver_tx(tx_i)
+            Round1->>SharedState: OK
+            SharedState->>ABCIHandler: OK
             ABCIHandler->>ConsensusEngine: ResponseDeliverTx(OK)
         end
         ConsensusEngine->>ABCIHandler: RequestEndBlock()
-        ABCIHandler->>Period: end_block()
+        ABCIHandler->>SharedState: end_block()
         alt if condition is true
-            note over Period,Round1: replace Round1 with Round2
+            note over SharedState,Round1: replace Round1 with Round2
             deactivate Round1
-            Period->>Round2: schedule
+            SharedState->>Round2: schedule
             activate Round2
         end
-        Period->>ABCIHandler: OK
+        SharedState->>ABCIHandler: OK
         ABCIHandler->>ConsensusEngine: ResponseEndBlock(OK)
         deactivate Round2
 </div>

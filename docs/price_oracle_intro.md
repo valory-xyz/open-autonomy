@@ -224,7 +224,7 @@ on-chain in the next block that is mined.
    is reset.
 
 8. `ResetAndPauseRound` <br/>
-   A round that updates some period state data before going to the
+   A round that updates the `SynchronizedData` to allocate a new period before going to the
    `FinishedTransactionSubmissionRound`.
 
 9. `FinishedTransactionSubmissionRound` <br/>
