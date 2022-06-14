@@ -13,5 +13,5 @@ Develop CLI module.
 def develop_group() -> None
 ```
 
-AEA development.
+Develop an agent service.
 
