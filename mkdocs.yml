@@ -17,7 +17,7 @@ nav:
   - Version: 'version.md'
   - Upgrading: 'upgrading.md'
   - Quick start: 'quick_start.md'
-  - Get Started: 'get_started.md'
+  - Example of a service: 'service_example.md'
   - Concepts:
     - Autonomous Economic Agents: 'aea.md'
     - Finite State Machines: 'fsm.md'
@@ -37,7 +37,6 @@ nav:
       - Running the Demo: 'price_oracle_running.md'
       - FSM Specification: 'price_oracle_fsms.md'
   - Development:
-    - Requirements and Set-Up: 'using_stack_requirements.md'
     - Developer Tooling:
       - Hot Reload: 'hot_reload.md'
       - Benchmarking: 'benchmarks.md'
@@ -132,8 +131,8 @@ markdown_extensions:
 
 extra:
     open_aea: '[Open AEA](https://github.com/valory-xyz/open-aea)'
-    open_aea_doc: '[Open AEA documentation](https://valory-xyz.github.io/open-aea)'
-    open_aea_api: '[Open AEA API](https://valory-xyz.github.io/open-aea/api/)'
+    open_aea_doc: '[Open AEA documentation](https://open-aea.docs.autonolas.tech)'
+    open_aea_api: '[Open AEA API](https://open-aea.docs.autonolas.tech/api/)'
     fsm_app: 'FSM App'
     open_autonomy: '[Open Autonomy](https://github.com/valory-xyz/open-autonomy)'
     open_autonomy_api: '[Open Autonomy API](https://docs.autonolas.network/)'

@@ -52,26 +52,26 @@ AEA event loop.
     sequenceDiagram
         participant EventLoop
         participant AbsRoundBehaviour
-        participant State1
-        participant State2
-        participant Period
-        note over AbsRoundBehaviour,State2: Let the FSMBehaviour start with State1<br/>it will schedule State2 on event e
+        participant Behaviour1
+        participant Behaviour2
+        participant SharedState
+        note over AbsRoundBehaviour,Behaviour2: Let the FSM App start with Behaviour1<br/>it will schedule Behaviour2 on event e.
         loop while round does not change
           EventLoop->>AbsRoundBehaviour: act()
-          AbsRoundBehaviour->>State1: act()
-          activate State1
-          note over State1: during the execution, <br/> the current round may<br/>(or may not) change
-          State1->>AbsRoundBehaviour: return
-          deactivate State1
-          note over EventLoop: the loop now executes other routines
+          AbsRoundBehaviour->>Behaviour1: act()
+          activate Behaviour1
+          note over Behaviour1: During the execution, <br/> the current round may<br/>(or may not) change.
+          Behaviour1->>AbsRoundBehaviour: return
+          deactivate Behaviour1
+          note over EventLoop: The loop now executes other routines.
         end
-        note over AbsRoundBehaviour: read current AbciApp round and pick matching state<br/>in this example, State2
+        note over AbsRoundBehaviour: Read current AbciApp round and pick matching state<br/>in this example, Behaviour2.
         EventLoop->>AbsRoundBehaviour: act()
-        note over AbsRoundBehaviour: now State2.act is called
-        AbsRoundBehaviour->>State2: act()
-        activate State2
-        State2->>AbsRoundBehaviour: return
-        deactivate State2
+        note over AbsRoundBehaviour: Now State2 act() is called.
+        AbsRoundBehaviour->>Behaviour2: act()
+        activate Behaviour2
+        Behaviour2->>AbsRoundBehaviour: return
+        deactivate Behaviour2
 </div>
 
 
@@ -82,18 +82,18 @@ pool:
 <div class="mermaid">
     sequenceDiagram
         participant ConsensusEngine
-        participant ABCIHandler
-        participant Period
+        participant ABCIRoundHandler
+        participant SharedState
         participant Round
         activate Round
-        note over ConsensusEngine,ABCIHandler: client submits transaction tx
-        ConsensusEngine->>ABCIHandler: RequestCheckTx(tx)
-        ABCIHandler->>Period: check_tx(tx)
-        Period->>Round: check_tx(tx)
-        Round->>Period: OK
-        Period->>ABCIHandler: OK
-        ABCIHandler->>ConsensusEngine: ResponseCheckTx(tx)
-        note over ConsensusEngine,ABCIHandler: tx is added to tx pool
+        note over ConsensusEngine,ABCIRoundHandler: client submits transaction tx
+        ConsensusEngine->>ABCIRoundHandler: [Request] CheckTx(tx)
+        ABCIRoundHandler->>SharedState: check_tx(tx)
+        SharedState->>Round: check_tx(tx)
+        Round->>SharedState: OK
+        SharedState->>ABCIRoundHandler: OK
+        ABCIRoundHandler->>ConsensusEngine: [Response] CheckTx(tx)
+        note over ConsensusEngine,ABCIRoundHandler: tx is added to tx pool
 </div>
 
 The following diagram describes the delivery of transactions in a block:
@@ -101,34 +101,34 @@ The following diagram describes the delivery of transactions in a block:
 <div class="mermaid">
     sequenceDiagram
         participant ConsensusEngine
-        participant ABCIHandler
-        participant Period
+        participant ABCIRoundHandler
+        participant SharedState
         participant Round1
         participant Round2
         activate Round1
-        note over Round1,Round2: Round1 is the active round,<br/>Round2 is the next round
-        note over ConsensusEngine,ABCIHandler: validated block ready to<br/>be submitted to the ABCI app
-        ConsensusEngine->>ABCIHandler: RequestBeginBlock()
-        ABCIHandler->>Period: begin_block()
-        Period->>ABCIHandler: ResponseBeginBlock(OK)
-        ABCIHandler->>ConsensusEngine: OK
+        note over Round1,Round2: Round1 is the active round,<br/>Round2 is the next round.
+        note over ConsensusEngine,ABCIRoundHandler: Validated block ready to<br/>be submitted to the FSM App.
+        ConsensusEngine->>ABCIRoundHandler: [Request] BeginBlock()
+        ABCIRoundHandler->>SharedState: begin_block()
+        SharedState->>ABCIRoundHandler: [Response] BeginBlock(OK)
+        ABCIRoundHandler->>ConsensusEngine: OK
         loop for tx_i in block
-            ConsensusEngine->>ABCIHandler: RequestDeliverTx(tx_i)
-            ABCIHandler->>Period: deliver_tx(tx_i)
-            Period->>Round1: deliver_tx(tx_i)
-            Round1->>Period: OK
-            Period->>ABCIHandler: OK
-            ABCIHandler->>ConsensusEngine: ResponseDeliverTx(OK)
+            ConsensusEngine->>ABCIRoundHandler: [Request] DeliverTx(tx_i)
+            ABCIRoundHandler->>SharedState: deliver_tx(tx_i)
+            SharedState->>Round1: deliver_tx(tx_i)
+            Round1->>SharedState: OK
+            SharedState->>ABCIRoundHandler: OK
+            ABCIRoundHandler->>ConsensusEngine: [Response] DeliverTx(OK)
         end
-        ConsensusEngine->>ABCIHandler: RequestEndBlock()
-        ABCIHandler->>Period: end_block()
+        ConsensusEngine->>ABCIRoundHandler: [Request] EndBlock()
+        ABCIRoundHandler->>SharedState: end_block()
         alt if condition is true
-            note over Period,Round1: replace Round1 with Round2
+            note over SharedState,Round1: Replace Round1 with Round2.
             deactivate Round1
-            Period->>Round2: schedule
+            SharedState->>Round2: schedule
             activate Round2
         end
-        Period->>ABCIHandler: OK
-        ABCIHandler->>ConsensusEngine: ResponseEndBlock(OK)
+        SharedState->>ABCIRoundHandler: OK
+        ABCIRoundHandler->>ConsensusEngine: [Response] EndBlock(OK)
         deactivate Round2
 </div>
