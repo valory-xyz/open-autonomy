@@ -50,7 +50,7 @@ from packages.valory.skills.abstract_round_abci.behaviour_utils import (
     BaseBehaviour,
     DegenerateBehaviour,
     HEIGHT_OFFSET_MULTIPLIER,
-    MAX_HEIGHT_OFFSET,
+    MIN_HEIGHT_OFFSET,
     NON_200_RETURN_CODE_DURING_RESET_THRESHOLD,
     SendException,
     TimeoutException,
@@ -1348,7 +1348,7 @@ class TestBaseBehaviour:
             offset = math.ceil(
                 self.behaviour.params.observation_interval * HEIGHT_OFFSET_MULTIPLIER
             )
-            offset = max(MAX_HEIGHT_OFFSET, offset)
+            offset = max(MIN_HEIGHT_OFFSET, offset)
             assert offset == 10
             initial_height = (
                 self.behaviour.context.state.round_sequence.last_round_transition_tm_height
