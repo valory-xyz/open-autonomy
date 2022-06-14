@@ -22,7 +22,7 @@ Ensure your machine satisfies the following requirements:
 - [Pipenv](https://pipenv.pypa.io/en/latest/install/) `>=2021.x.xx`
 
 
-## Get started developing
+## For developers using the framework: Get started developing
 
 1. Create and launch a clean virtual environment with Python 3.7 (any Python `>=` 3.6 works):
 
