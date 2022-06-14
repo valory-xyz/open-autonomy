@@ -28,8 +28,11 @@
 
 12. Make clean environment and install release from PyPI: `pip install open-autonomy --no-cache`.
 
-13. [CURRENTLY SKIPPED] Release packages into registry: `python scripts/deploy_to_registry.py`. If necessary, run it several times until all packages are updated.
+13. Build and tag images for the documentation. `skaffold build -p docs`. Inform DevOps of new release so that these images can be rolled out.
 
-14. [CURRENTLY SKIPPED] The docker images are updated via CI.
+14. [CURRENTLY SKIPPED] Release packages into registry: `python scripts/deploy_to_registry.py`. If necessary, run it several times until all packages are updated.
+
+15. [CURRENTLY SKIPPED] The docker images are updated via CI.
+
 
 If something goes wrong and only needs a small fix do `LAST_VERSION.post1` as version, apply fixes, push again to PyPI.
