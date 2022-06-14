@@ -59,7 +59,7 @@ class ABCIRoundHandler(ABCIHandler):
 
     SUPPORTED_PROTOCOL = AbciMessage.protocol_id
 
-    def info(# pylint: disable=no-self-use,useless-super-delegation
+    def info(  # pylint: disable=no-self-use,useless-super-delegation
         self, message: AbciMessage, dialogue: AbciDialogue
     ) -> AbciMessage:
         """
@@ -129,14 +129,14 @@ class ABCIRoundHandler(ABCIHandler):
         )
         return cast(AbciMessage, reply)
 
-    def begin_block(# pylint: disable=no-self-use
+    def begin_block(  # pylint: disable=no-self-use
         self, message: AbciMessage, dialogue: AbciDialogue
     ) -> AbciMessage:
         """Handle the 'begin_block' request."""
         cast(SharedState, self.context.state).round_sequence.begin_block(message.header)
         return super().begin_block(message, dialogue)
 
-    def check_tx(# pylint: disable=no-self-use
+    def check_tx(  # pylint: disable=no-self-use
         self, message: AbciMessage, dialogue: AbciDialogue
     ) -> AbciMessage:
         """Handle the 'check_tx' request."""
@@ -176,7 +176,7 @@ class ABCIRoundHandler(ABCIHandler):
         )
         return cast(AbciMessage, reply)
 
-    def deliver_tx(# pylint: disable=no-self-use
+    def deliver_tx(  # pylint: disable=no-self-use
         self, message: AbciMessage, dialogue: AbciDialogue
     ) -> AbciMessage:
         """Handle the 'deliver_tx' request."""
@@ -217,7 +217,7 @@ class ABCIRoundHandler(ABCIHandler):
         )
         return cast(AbciMessage, reply)
 
-    def end_block(# pylint: disable=no-self-use
+    def end_block(  # pylint: disable=no-self-use
         self, message: AbciMessage, dialogue: AbciDialogue
     ) -> AbciMessage:
         """Handle the 'end_block' request."""
@@ -225,7 +225,7 @@ class ABCIRoundHandler(ABCIHandler):
         cast(SharedState, self.context.state).round_sequence.end_block()
         return super().end_block(message, dialogue)
 
-    def commit(# pylint: disable=no-self-use
+    def commit(  # pylint: disable=no-self-use
         self, message: AbciMessage, dialogue: AbciDialogue
     ) -> AbciMessage:
         """
@@ -263,7 +263,7 @@ class ABCIRoundHandler(ABCIHandler):
 
     @classmethod
     def _check_tx_failed(
-        cls, message: AbciMessage, dialogue: AbciDialogue, info: str=""
+        cls, message: AbciMessage, dialogue: AbciDialogue, info: str = ""
     ) -> AbciMessage:
         """Handle a failed check_tx request."""
         reply = dialogue.reply(
@@ -282,7 +282,7 @@ class ABCIRoundHandler(ABCIHandler):
 
     @classmethod
     def _deliver_tx_failed(
-        cls, message: AbciMessage, dialogue: AbciDialogue, info: str=""
+        cls, message: AbciMessage, dialogue: AbciDialogue, info: str = ""
     ) -> AbciMessage:
         """Handle a failed deliver_tx request."""
         reply = dialogue.reply(
