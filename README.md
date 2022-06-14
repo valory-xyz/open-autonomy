@@ -1,13 +1,6 @@
 # Open Autonomy
 
-This repository contains the [Valory](https://www.valory.xyz/) stack, a set of
-distributed consensus technologies built on top of the
-[open AEA framework](https://github.com/valory-xyz/open-aea) to facilitate the
-creation of dynamic, decentralised applications that depend on off-chain components.
-
-As opposed to traditional smart contracts, Valory apps go beyond simple, purely
-reactive applications and can show complex, proactive behaviours that contain
-off-chain logic without giving up on decentralization.
+Open Autonomy is a framework for the creation of Agent Services: off-chain services which run as a multi-agent-system (MAS), and are crypto-economically secured on a local, temporary consensus gadget (blockchain), and which are operated in a robust, transparent and decentralized way.
 
 
 ## Requirements
@@ -58,10 +51,3 @@ every time you need to re-create and launch the virtual environment and update
 the dependencies:
 
       make new_env && pipenv shell
-
-## Examples
-
-Have a look at the
-[hello world](https://github.com/valory-xyz/open-autonomy/tree/main/packages/valory/skills/hello_world_abci) and [simple abci](https://github.com/valory-xyz/open-autonomy/tree/main/packages/valory/skills/simple_abci)
-examples. You must have completed setting up and be inside a virtual environment
-(`pipenv shell`) in order to run the examples.
