@@ -69,7 +69,7 @@ Node = Dict[str, Any]
 
 
 BIT32 = 1 << 31
-BIT64 = BIT32 << 31
+BIT64 = 1 << 63
 
 STRATEGY_MAP = dict(  # TODO: strategy to assert failure
     int32=st.integers(min_value=-BIT32, max_value=BIT32 - 1),
@@ -171,7 +171,7 @@ def create_abci_tree() -> Node:
     """Create Tendermint ABCI types tree by unfolding fields"""
 
     abci_types = descriptor_parser(tendermint.abci.types_pb2.DESCRIPTOR)
-    return {camel_to_snake(k): unfold_nested(v) for k, v in abci_types.items()}
+    return {k: unfold_nested(v) for k, v in abci_types.items()}
 
 
 def create_tender_type_tree(type_tree: Node, abci_tree: Node) -> Node:
@@ -226,9 +226,9 @@ def _init_subtree(node: Any) -> Any:
     return kwargs
 
 
-def init_type_tree_primitives(type_tree: Node) -> Node:
+def init_type_tree_hypotheses(type_tree: Node) -> Node:
     """
-    Initialize the primitive types and size of repeated fields.
+    Initialize the hypothesis strategies
 
     :param type_tree: mapping from message / field name to type.
     :return: mapping from message / field name to initialized primitive.
@@ -247,13 +247,13 @@ def create_hypotheses() -> Any:
     type_tree.pop("dummy")  # TODO: known oddity on our side
 
     # 2. create abci tree from Tendermint type definitions
-    abci_tree = create_abci_tree()
+    abci_tree = {camel_to_snake(k): v for k, v in create_abci_tree().items()}
 
     # 3. map the primitive types from ABCI spec onto the type tree
     tender_type_tree = create_tender_type_tree(type_tree, abci_tree)
 
     # 4. initialize with hypothesis
-    hypo_tree = init_type_tree_primitives(tender_type_tree)
+    hypo_tree = init_type_tree_hypotheses(tender_type_tree)
 
     # 5. collapse hypo_tree
     def collapse(node: Node) -> Node:

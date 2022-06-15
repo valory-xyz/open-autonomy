@@ -37,7 +37,7 @@ from aea.protocols.generator.common import (
     _to_camel_case,
 )
 from google.protobuf import duration_pb2, timestamp_pb2
-from google.protobuf.descriptor import FieldDescriptor
+from google.protobuf.descriptor import FieldDescriptor, FileDescriptor, MessageDescriptor
 
 from packages.valory import protocols
 from packages.valory.connections.abci import tendermint
@@ -178,16 +178,23 @@ TENDERMINT_TIME_STAMP = {"Timestamp": timestamp_pb2.Timestamp}
 TENDERMINT_DURATION = {"Duration": duration_pb2.Duration}
 
 
-def descriptor_parser(descriptor: Any) -> Dict[str, Any]:
+def message_parser(msg_desc: MessageDescriptor):
+    return
+
+
+
+def descriptor_parser(descriptor: Any, parse_dependencies=False) -> Dict[str, Any]:
     """Get Tendermint-native message type definitions"""
 
-    messages: Node = dict()
+    content: Node = dict()
     for msg, msg_desc in descriptor.message_types_by_name.items():
-        content = messages.setdefault(msg, {})
+        # msg_desc._concrete_class
+        # msg_desc._concrete_class.DESCRIPTOR.fields_by_name.items()[0][1].message_type._concrete_class
+        messages = content.setdefault(msg, {})
 
         # Request & Response
         for oneof in msg_desc.oneofs:
-            fields = content.setdefault("oneofs", {}).setdefault(oneof.name, [])
+            fields = messages.setdefault("oneofs", {}).setdefault(oneof.name, [])
             for field in oneof.fields:  # only PublicKey has no message_type
                 name = (
                     field.message_type.name
@@ -198,14 +205,16 @@ def descriptor_parser(descriptor: Any) -> Dict[str, Any]:
 
         # ResponseOfferSnapshot & ResponseApplySnapshotChunk
         for enum_type in msg_desc.enum_types:
-            enum = content.setdefault("enum_types", {})
+            enum = messages.setdefault("enum_types", {})
             names, numbers = enum_type.values_by_name, enum_type.values_by_number
             enum[enum_type.name] = dict(zip(names, numbers))
 
         # other fields
         for field in msg_desc.fields:
-            fields = content.setdefault("fields", {})
+            fields = messages.setdefault("fields", {})
             d_type = type_mapping[field.type]
+            if d_type != "message":
+                1/0
             repeated = field.label == field.LABEL_REPEATED
 
             if field.enum_type:
@@ -222,10 +231,14 @@ def descriptor_parser(descriptor: Any) -> Dict[str, Any]:
         enum = enum_types.setdefault("enum_types", {})
         names, numbers = enum_type.values_by_name, enum_type.values_by_number
         enum[enum_type.name] = dict(zip(names, numbers))
-        messages.update(enum)
+        content.update(enum)
 
-    # other potentially relevant fields: extensions_by_name, dependencies
-    return messages
+    # other potentially relevant fields: extensions_by_name, dependencies, services_by_name?
+    if parse_dependencies:
+        for dependency in descriptor.dependencies:
+            content[dependency.name] = descriptor_parser(dependency)
+
+    return content
 
 
 def _get_tendermint_description() -> Node:
@@ -302,8 +315,7 @@ def _create_type_tree(field: str) -> Any:
             return _create_type_tree(*subfields)
         elif field.startswith("pt:list"):  # repeated
             return list, _create_type_tree(*subfields)
-        else:
-            raise NotImplementedError(f"field: {field}")
+        raise NotImplementedError(f"field: {field}")
 
     if field.startswith("ct:"):
         custom_type = AEA_CUSTOM[field[3:]]
@@ -332,14 +344,11 @@ def _init_subtree(node: Node) -> Node:
 
         if repeated_type in PYTHON_PRIMITIVES:
             data = NON_DEFAULT_PRIMITIVES[repeated_type]
-            repeated = tuple(data for _ in range(REPEATED_FIELD_SIZE))
+            return tuple(data for _ in range(REPEATED_FIELD_SIZE))
         elif isinstance(repeated_type, tuple):
             cls, kws = repeated_type
-            repeated = tuple(_init_subtree(kws) for _ in range(REPEATED_FIELD_SIZE))
-        else:
-            raise NotImplementedError(f"Repeated in {name}: {repeated_type}")
-
-        return repeated
+            return tuple(_init_subtree(kws) for _ in range(REPEATED_FIELD_SIZE))
+        raise NotImplementedError(f"Repeated in {name}: {repeated_type}")
 
     kwargs: Node = {}
     for name, d_type in node.items():
