@@ -1,4 +1,4 @@
-agent_name: apy_estimation_deployable
+agent_name: apy_estimation
 author: valory
 version: 0.1.0
 license: Apache-2.0
@@ -8,7 +8,7 @@ fingerprint:
   README.md: QmexsrUrKdYEUjJzYwRNHeo4JjZ8SNcXbE6FZ2pnJTnTij
 fingerprint_ignore_patterns: []
 connections:
-- valory/abci:0.1.0:Qme3D1sghE2i1cg3FS8bfjKRwG3jjdQsQZ3Sb6Mxxv8GfC
+- valory/abci:0.1.0:QmeP3rHLno4mykgaqdyBUnibZ3jz8GnB1mjo9fXb6uwkhs
 - valory/http_client:0.1.0:QmWLBDpdcz8idNdqobjBC6ykJCSEpHCjcC1mAoAdJPzmQh
 - valory/ledger:0.1.0:QmY9fbnunHPtfPfdFk2eUrMKg6PBhHeBWvA9ud1i4uCaFd
 - valory/p2p_libp2p_client:0.1.0:QmaaYKJznzHUaccbYSMD3HvyuMiFFsNgaDDXaqiXFcop3h
@@ -23,11 +23,11 @@ protocols:
 - valory/ledger_api:1.0.0:QmdMBgcpjL2hvmrxWtFyujMSf6exkFPnUXZqTdnsvrk48r
 - valory/tendermint:0.1.0:QmXrfL1o3uqWAbRsFoo7MTQRXkaTsfcqxDobxD8pXg3hQx
 skills:
-- valory/abstract_abci:0.1.0:QmUWLsWW62YneNXeTASFhbyXeTXCEuxsfraxJYWwzTQmyp
-- valory/abstract_round_abci:0.1.0:QmbP7axstWDyNeRzWzxbqKYtXYiLkgCVhh1zVePn8gDayr
-- valory/apy_estimation_abci:0.1.0:QmNcxQY36raFczJCPG37CtT5NACuY9iJ7KJuZrpUSwXMKu
-- valory/apy_estimation_chained_abci:0.1.0:Qma1bnNb81WyiFtpeiLwQuupsEr7DkATj6ZQGWFAe1azpS
-- valory/registration_abci:0.1.0:QmcyBuRY9VKyWReGrJHpqF9C2hfAHcmbXE9CS3kRPLj4hd
+- valory/abstract_abci:0.1.0:QmdJQFUTvf7izpNDLUhnnaEZ9YDo8HXbVnA68gUd14ETHX
+- valory/abstract_round_abci:0.1.0:QmUWwYR8or4fVSA12J6h76MzYtXNWbBDQaiLmwJe2B8LTr
+- valory/apy_estimation_abci:0.1.0:QmdmnKJD719ppHSzTrgDELnJTAoRa16fqctLgcjTAJJ6x7
+- valory/apy_estimation_chained_abci:0.1.0:QmdgjykDZpEBnFmhzFTyhnhppxXEWscM2xeRHkjeM8GHhc
+- valory/registration_abci:0.1.0:QmRFhobiSCHgpsSoqueiPSFb7sJRdCoyWufvDF5Uz2Brep
 default_ledger: ethereum
 required_ledgers:
 - ethereum
@@ -45,7 +45,7 @@ logging_config:
     logfile:
       class: logging.FileHandler
       formatter: standard
-      filename: ${LOG_FILE:str:/logs/logs.log}
+      filename: ${LOG_FILE:str:log.txt}
       level: INFO
     console:
       class: logging.StreamHandler
@@ -68,7 +68,7 @@ public_id: valory/abci:0.1.0
 type: connection
 config:
   target_skill_id: valory/apy_estimation_chained_abci:0.1.0
-  host: ${ABCI_HOST:str}
+  host: ${ABCI_HOST:str:localhost}
   port: ${ABCI_PORT:int:26658}
   use_tendermint: ${ABCI_USE_TENDERMINT:bool:false}
 ---
@@ -78,9 +78,9 @@ models:
   params:
     args:
       consensus:
-        max_participants: ${MAX_PARTICIPANTS:int}
-      tendermint_url: ${TENDERMINT_URL:str}
-      tendermint_com_url: ${TENDERMINT_COM_URL:str}
+        max_participants: ${MAX_PARTICIPANTS:int:4}
+      tendermint_url: ${TENDERMINT_URL:str:http://localhost:26657}
+      tendermint_com_url: ${TENDERMINT_COM_URL:str:http://localhost:8080}
       round_timeout_seconds: ${SKILL_APY_ESTIMATION_ABCI_MODELS_PARAMS_ARGS_ROUND_TIMEOUT_SECONDS:float:1000.0}
       observation_interval: ${SKILL_APY_ESTIMATION_ABCI_MODELS_PARAMS_ARGS_OBSERVATION_INTERVAL:int:86400}
       max_healthcheck: ${SKILL_APY_ESTIMATION_ABCI_MODELS_PARAMS_ARGS_MAX_HEALTHCHECK:int:43200}
@@ -104,5 +104,5 @@ type: connection
 config:
   ledger_apis:
     ethereum:
-      address: ${LEDGER_ADDRESS:str}
-      chain_id: ${LEDGER_CHAIN_ID:int}
+      address: ${LEDGER_ADDRESS:str:http://127.0.0.1:8545}
+      chain_id: ${LEDGER_CHAIN_ID:int:31337}

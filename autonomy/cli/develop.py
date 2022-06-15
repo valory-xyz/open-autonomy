@@ -24,6 +24,6 @@ import click
 
 @click.group(name="develop")
 def develop_group() -> None:
-    """AEA development."""
+    """Develop an agent service."""
 
     click.echo("Develop module.")

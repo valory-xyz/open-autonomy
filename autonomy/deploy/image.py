@@ -30,6 +30,23 @@ import yaml
 from aea.configurations.utils import PublicId
 
 
+def check_kubeconfig_vars() -> bool:
+    """Check if kubeconfig variables are set properly."""
+
+    env_vars = (
+        "KUBERNETES_SERVICE_PORT_HTTPS",
+        "KUBERNETES_SERVICE_PORT",
+        "KUBERNETES_PORT_443_TCP",
+        "KUBERNETES_PORT_443_TCP_PROTO",
+        "KUBERNETES_PORT_443_TCP_ADDR",
+        "KUBERNETES_SERVICE_HOST",
+        "KUBERNETES_PORT",
+        "KUBERNETES_PORT_443_TCP_PORT",
+    )
+
+    return any(map(os.environ.get, env_vars))
+
+
 class ImageProfiles:  # pylint: disable=too-few-public-methods
     """Image build profiles."""
 
@@ -84,12 +101,12 @@ class ImageBuilder:
         else:
             env["VERSION"] = f"{agent_id.name}-{version}"
 
+        kubeconfig = env.get("KUBECONFIG")
         if profile == ImageProfiles.CLUSTER:
-            if env.get("KUBECONFIG") is None:
-                raise ValueError("Please setup KUBECONFIG variable.")
+            if kubeconfig is None and not check_kubeconfig_vars():
+                raise ValueError("Please setup kubernetes environment variables.")
         else:
-            # deleting KUBECONFIG var for none cluster builds will avoid uneccessary warnings
-            if env.get("KUBECONFIG") is not None:
+            if kubeconfig is not None:
                 del env["KUBECONFIG"]
 
         try:

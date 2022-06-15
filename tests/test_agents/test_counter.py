@@ -99,14 +99,14 @@ class TestABCICounterSkill(AEATestCaseMany, UseTendermint):
         self.set_agent_context(agent_name)
         self.generate_private_key("ethereum")
         self.add_private_key("ethereum", "ethereum_private_key.txt")
-        self.set_config("vendor.valory.connections.abci.config.use_tendermint", False)
         self.set_config(
-            "vendor.valory.connections.abci.config.host",
-            ANY_ADDRESS,
+            "vendor.valory.connections.abci.config.use_tendermint", False, aev=True
         )
         self.set_config(
-            "vendor.valory.connections.abci.config.port",
-            self.abci_port,
+            "vendor.valory.connections.abci.config.host", ANY_ADDRESS, aev=True
+        )
+        self.set_config(
+            "vendor.valory.connections.abci.config.port", self.abci_port, aev=True
         )
 
         process = self.run_agent()
@@ -163,25 +163,31 @@ class TestABCICounterSkillMany(
             self.add_private_key("ethereum", "ethereum_private_key.txt")
             # each agent has its Tendermint node instance
             self.set_config(
-                "vendor.valory.connections.abci.config.port",
-                node.abci_port,
+                "vendor.valory.connections.abci.config.port", node.abci_port, aev=True
             )
             self.set_config(
                 "vendor.valory.connections.abci.config.tendermint_config.rpc_laddr",
                 node.rpc_laddr,
+                aev=True,
             )
             self.set_config(
                 "vendor.valory.connections.abci.config.tendermint_config.p2p_laddr",
                 node.p2p_laddr,
+                aev=True,
             )
             self.set_config(
                 "vendor.valory.connections.abci.config.tendermint_config.home",
                 str(node.home),
+                aev=True,
             )
             self.set_config(
                 "vendor.valory.connections.abci.config.tendermint_config.p2p_seeds",
                 json.dumps(self.tendermint_net_builder.get_p2p_seeds()),
                 "list",
+                aev=True,
+            )
+            self.set_config(
+                "vendor.valory.connections.abci.config.use_tendermint", True, aev=True
             )
             process = self.run_agent()
             processes.append(process)
@@ -280,6 +286,10 @@ class TestABCICounterCrashFailureRestart(
         self.set_config(
             "vendor.valory.connections.abci.config.tendermint_config.home",
             str(self.t / "tendermint_home"),
+            aev=True,
+        )
+        self.set_config(
+            "vendor.valory.connections.abci.config.use_tendermint", True, aev=True
         )
 
         node_address = "http://localhost:26657"
