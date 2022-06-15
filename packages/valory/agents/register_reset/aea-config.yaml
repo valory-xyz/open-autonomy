@@ -8,7 +8,7 @@ fingerprint:
   README.md: QmTbPRTdh8ziACzb3x1FoeEsZiDNP2S671zWnZ2bz3nDpE
 fingerprint_ignore_patterns: []
 connections:
-- valory/abci:0.1.0:Qme3D1sghE2i1cg3FS8bfjKRwG3jjdQsQZ3Sb6Mxxv8GfC
+- valory/abci:0.1.0:QmeP3rHLno4mykgaqdyBUnibZ3jz8GnB1mjo9fXb6uwkhs
 - valory/http_client:0.1.0:QmWLBDpdcz8idNdqobjBC6ykJCSEpHCjcC1mAoAdJPzmQh
 - valory/ledger:0.1.0:QmY9fbnunHPtfPfdFk2eUrMKg6PBhHeBWvA9ud1i4uCaFd
 - valory/p2p_libp2p_client:0.1.0:QmZkFtvqYk3mRHuKaorEscFLxnVat2Y8uttNGs8wdx6dZZ
@@ -18,11 +18,11 @@ protocols:
 - valory/abci:0.1.0:QmRXBoBaTYNcpe98SqYJmKVXm6eFfYeS9yuKz7mzzYawNG
 - valory/http:1.0.0:QmSAsTD3pidZcrEXk3HQfbZvUDiVTUMHgCrXpXcs744AZE
 skills:
-- valory/abstract_abci:0.1.0:QmUWLsWW62YneNXeTASFhbyXeTXCEuxsfraxJYWwzTQmyp
-- valory/abstract_round_abci:0.1.0:QmWAFjNZfwf9zncMwKE3APLUhW7Myrc6o7Hk6LcK8UyenW
-- valory/register_reset_abci:0.1.0:QmXpoQG7RhhCP1YLwMnzWhwRrBbt2cP65WDeCoV1dgV2ov
-- valory/registration_abci:0.1.0:QmcxAjb5gquUjqWrrCzomyHxSAzw75KpVEmUg4HvVqTFwz
-- valory/reset_pause_abci:0.1.0:QmQn34AmKKcdkqcTmSYNArsZBdapgR7xJcUTZFEa8WuvVV
+- valory/abstract_abci:0.1.0:QmdJQFUTvf7izpNDLUhnnaEZ9YDo8HXbVnA68gUd14ETHX
+- valory/abstract_round_abci:0.1.0:QmPgEJWuSWZPvGGHz2u78DJdWciAGe2vxRjBvbL9bZZAxm
+- valory/register_reset_abci:0.1.0:QmVfasjN5ZkajTQx91ZUiFmWXrfraTwPGT3ZGryKhfmGCy
+- valory/registration_abci:0.1.0:Qmer5ydaUFUUsHtwXU9kmERpMBTLB43Y6juhfFotawpdFo
+- valory/reset_pause_abci:0.1.0:QmczSVDmJPsTT6gM7LAWM1ZHdxA6Sgkd2LBBxvFxzSVyci
 default_ledger: ethereum
 required_ledgers:
 - ethereum
@@ -36,6 +36,11 @@ logging_config:
     standard:
       format: '[%(asctime)s] [%(levelname)s] %(message)s'
   handlers:
+    logfile:
+      class: logging.FileHandler
+      formatter: standard
+      filename: ${LOG_FILE:str:log.txt}
+      level: INFO
     console:
       class: logging.StreamHandler
       formatter: standard
@@ -43,6 +48,7 @@ logging_config:
   loggers:
     aea:
       handlers:
+      - logfile
       - console
       propagate: false
 dependencies:
@@ -53,18 +59,32 @@ public_id: valory/abci:0.1.0
 type: connection
 config:
   target_skill_id: valory/register_reset_abci:0.1.0
+  host: ${ABCI_HOST:str:localhost}
+  port: ${ABCI_PORT:int:26658}
+  use_tendermint: ${ABCI_USE_TENDERMINT:bool:false}
+---
+public_id: valory/register_reset_abci:0.1.0
+type: skill
+models:
+  benchmark_tool:
+    args:
+      log_dir: ${SKILL_ORACLE_ABCI_MODELS_BENCHMARK_TOOL_ARGS_LOG_DIR:str:/benchmarks}
+  params:
+    args:
+      tendermint_url: ${TENDERMINT_URL:str:http://localhost:26657}
+      tendermint_com_url: ${TENDERMINT_COM_URL:str:http://localhost:8080}
 ---
 public_id: valory/p2p_libp2p_client:0.1.0
 type: connection
 config:
   nodes:
-  - uri: staging.acn.autonolas.tech:9005
-    public_key: 0250827315351f6f4d3777b77d4bfd67280156240313bf221750b36404344bb35d
+  - uri: ${P2P_URI:str:staging.acn.autonolas.tech:9005}
+    public_key: ${P2P_PUBLIC_KEY:str:0250827315351f6f4d3777b77d4bfd67280156240313bf221750b36404344bb35d}
 cert_requests:
 - identifier: acn
   ledger_id: ethereum
   message_format: '{public_key}'
   not_after: '2022-01-01'
   not_before: '2021-01-01'
-  public_key: 0250827315351f6f4d3777b77d4bfd67280156240313bf221750b36404344bb35d
+  public_key: ${P2P_PUBLIC_KEY:str:0250827315351f6f4d3777b77d4bfd67280156240313bf221750b36404344bb35d}
   save_path: .certs/acn_cosmos_9005.txt

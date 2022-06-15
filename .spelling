@@ -148,6 +148,8 @@ mainnet
 backoff
 PyPI
 white_check_mark
+subgraph
+DevOps
  - docs/index.md
 README.md
 s_
@@ -176,8 +178,7 @@ bashrc
  - docs/price_estimation_details.md
 application_readmes
 price_estimation_readme.md
- - docs/get_started.md
-_
+ - docs/price_oracle_fsms.md
 nontrivial
 walkthrough
 AgentRegistration
@@ -258,3 +259,41 @@ i
  - HISTORY.md
 0.1.0rc1
 0.1.0rc2
+ - docs/control_flow.md
+EntryPoint
+StartA
+sequenceDiagram
+starts_up
+FlaskServer
+starts_com_server
+MonitoringThread
+start.sh
+TendermintProcess
+starts_tendermint_process
+gentle_reset
+stops_monitoring_thread
+stops_tendermint_process
+hard_reset
+prune_blocks
+tcp
+breaktcp
+HTTPServer
+starts_monitoring_thread
+_CollectUntilAllRound
+round_id
+allowed_tx_type
+payload_attribute
+_synchronized_data
+synchronized_data
+end_block
+check_payload
+process_payload
+_return_no_majority_event
+payloads_count
+collection_threshold_reached
+print_message
+PrintMessagePayload.transaction_type
+HelloWorldABCIBaseBehaviour
+BaseBehaviour
+SimpleABCIBaseBehaviour
+SpookySwap

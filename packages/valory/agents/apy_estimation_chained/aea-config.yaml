@@ -8,7 +8,7 @@ fingerprint:
   README.md: QmexsrUrKdYEUjJzYwRNHeo4JjZ8SNcXbE6FZ2pnJTnTij
 fingerprint_ignore_patterns: []
 connections:
-- valory/abci:0.1.0:Qme3D1sghE2i1cg3FS8bfjKRwG3jjdQsQZ3Sb6Mxxv8GfC
+- valory/abci:0.1.0:QmeP3rHLno4mykgaqdyBUnibZ3jz8GnB1mjo9fXb6uwkhs
 - valory/http_client:0.1.0:QmWLBDpdcz8idNdqobjBC6ykJCSEpHCjcC1mAoAdJPzmQh
 - valory/ledger:0.1.0:QmY9fbnunHPtfPfdFk2eUrMKg6PBhHeBWvA9ud1i4uCaFd
 - valory/p2p_libp2p_client:0.1.0:QmZkFtvqYk3mRHuKaorEscFLxnVat2Y8uttNGs8wdx6dZZ
@@ -23,11 +23,11 @@ protocols:
 - valory/ledger_api:1.0.0:QmdMBgcpjL2hvmrxWtFyujMSf6exkFPnUXZqTdnsvrk48r
 - valory/tendermint:0.1.0:QmXrfL1o3uqWAbRsFoo7MTQRXkaTsfcqxDobxD8pXg3hQx
 skills:
-- valory/abstract_abci:0.1.0:QmUWLsWW62YneNXeTASFhbyXeTXCEuxsfraxJYWwzTQmyp
-- valory/abstract_round_abci:0.1.0:QmWAFjNZfwf9zncMwKE3APLUhW7Myrc6o7Hk6LcK8UyenW
-- valory/apy_estimation_abci:0.1.0:QmafRamVwER1oAi7E6E8z8DbbG6K4btjdoNoZ8NynrcaKZ
-- valory/apy_estimation_chained_abci:0.1.0:QmeW3WuC6Sw22txzJfRE1x1McRz1R7jfkY5jD6kWRN8TYf
-- valory/registration_abci:0.1.0:QmcxAjb5gquUjqWrrCzomyHxSAzw75KpVEmUg4HvVqTFwz
+- valory/abstract_abci:0.1.0:QmdJQFUTvf7izpNDLUhnnaEZ9YDo8HXbVnA68gUd14ETHX
+- valory/abstract_round_abci:0.1.0:QmPgEJWuSWZPvGGHz2u78DJdWciAGe2vxRjBvbL9bZZAxm
+- valory/apy_estimation_abci:0.1.0:QmXcxjonAiAYPLFRZ79mxDedWC8FzEoK2PCwSrWVoQ7xo5
+- valory/apy_estimation_chained_abci:0.1.0:QmXacbdvuKYzeY5XsWz1JCc8Xi19mvzF5o8nVvkPsEz1pv
+- valory/registration_abci:0.1.0:Qmer5ydaUFUUsHtwXU9kmERpMBTLB43Y6juhfFotawpdFo
 default_ledger: ethereum
 required_ledgers:
 - ethereum
@@ -42,6 +42,11 @@ logging_config:
     standard:
       format: '[%(asctime)s] [%(levelname)s] %(message)s'
   handlers:
+    logfile:
+      class: logging.FileHandler
+      formatter: standard
+      filename: ${LOG_FILE:str:log.txt}
+      level: INFO
     console:
       class: logging.StreamHandler
       formatter: standard
@@ -49,6 +54,7 @@ logging_config:
   loggers:
     aea:
       handlers:
+      - logfile
       - console
       propagate: false
 dependencies:

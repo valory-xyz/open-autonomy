@@ -14,10 +14,8 @@ Classes that define the operations per state of the FSM:
 
 Other classes related to the {{fsm_app}} FSM global state:
 
-- `Period` class: The class containing a sequence of
-concrete implementations of the `AbstractRound`.
-- `PeriodState` class: The class providing
-access to the shared state throughout a `Period`.
+- `SynchronizedData` class: The class providing
+access to the shared state.
 
 
 
@@ -35,7 +33,7 @@ whom run a local consensus node. The underlying consensus engine (currently
 Tendermint) allows decentralized state replication among different processes.
 
 The transitions in the FSM are triggered by the delivery of blocks from the
-consensus engine through the [ABCI](./abci.md). The transactions that are  contained in these blocks are submitted by AEAs `Behaviours`, and can lead to updates of the shared `PeriodState`.
+consensus engine through the [ABCI](./abci.md). The transactions that are  contained in these blocks are submitted by AEAs `Behaviours`, and can lead to updates of the shared `SynchronizedData`.
 
 Each round has its own business logic, which specifies how the participants'
 transactions are validated or the conditions that trigger a transition to

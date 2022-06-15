@@ -64,7 +64,7 @@ class TestBuildImage(BaseCliTest):
         assert (
             len(
                 self.docker_api.images(
-                    name=f"valory/open-autonomy-open-aea:oracle_deployable-{version}"
+                    name=f"valory/open-autonomy-open-aea:oracle-{version}"
                 )
             )
             == 1
@@ -79,11 +79,7 @@ class TestBuildImage(BaseCliTest):
 
         assert result.exit_code == 0, f"{result.stdout_bytes}\n{result.stderr_bytes}"
         assert (
-            len(
-                self.docker_api.images(
-                    name="valory/open-autonomy-open-aea:oracle_deployable-dev"
-                )
-            )
+            len(self.docker_api.images(name="valory/open-autonomy-open-aea:oracle-dev"))
             == 1
         )
 

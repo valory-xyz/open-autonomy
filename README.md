@@ -1,14 +1,8 @@
 # Open Autonomy
 
-This repository contains the [Valory](https://www.valory.xyz/) stack, a set of 
-distributed consensus technologies built on top of the 
-[open AEA framework](https://github.com/valory-xyz/open-aea) to facilitate the 
-creation of dynamic, decentralised applications that depend on off-chain components.
+Open Autonomy is a framework for the creation of Agent Services: off-chain services which run as a multi-agent-system (MAS)  and are replicated on a temporary consensus gadget (blockchain) while being crypto-economically secured on a public blockchain, hence offering robustness, transparency and decentralization off-chain.
 
-As opposed to traditional smart contracts, Valory apps go beyond simple, purely 
-reactive applications and can show complex, proactive behaviours that contain 
-off-chain logic without giving up on decentralization.
-
+As opposed to traditional smart contracts, Valory apps go beyond simple, purely off-chain logic without giving up on decentralization.
 
 ## Requirements
 
@@ -22,7 +16,21 @@ Ensure your machine satisfies the following requirements:
 - [Pipenv](https://pipenv.pypa.io/en/latest/install/) `>=2021.x.xx`
 
 
-## Setting up for development & running examples
+## For developers using the framework: Get started developing
+
+1. Create and launch a clean virtual environment with Python 3.10 (any Python `>=` 3.7 works):
+
+       pipenv --python 3.10 && pipenv shell
+
+2. Install the package from [PyPI](https://pypi.org/project/open-autonomy/):
+
+       pip install open-autonomy
+
+
+3. Then, build your services as described in the [docs](https://docs.autonolas.network/).
+
+
+## For developers contributing to the framework: Install from Source
 
 - Clone the repository, and recursively clone the submodules:
 
@@ -39,16 +47,8 @@ Ensure your machine satisfies the following requirements:
       cd third_party/contracts-amm && yarn install
       cd ../..
 
-- Create and launch a virtual environment. Also, run this during development, 
-every time you need to re-create and launch the virtual environment and update 
+- Create and launch a virtual environment. Also, run this during development,
+every time you need to re-create and launch the virtual environment and update
 the dependencies:
 
       make new_env && pipenv shell
-
-## Getting started
-
-Have a look at the 
-[price estimation](https://github.com/valory-xyz/open-autonomy/tree/main/examples/price_estimation) 
-example. You must have completed setting up and be inside a virtual environment
-(`pipenv shell`) in order to run the examples.
-

@@ -17,6 +17,15 @@ build:
 
 
 profiles:
+  - name: docs
+    build:
+      tagPolicy:
+        envTemplate:
+          template: "{{.VERSION}}"
+      artifacts:
+      - image: valory/open-autonomy-docs
+        docker:
+          dockerfile: deployments/Dockerfiles/documentation/Dockerfile
   - name: prod
   - name: dependencies
     build:

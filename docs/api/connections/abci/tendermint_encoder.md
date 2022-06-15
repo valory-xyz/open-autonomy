@@ -25,7 +25,7 @@ It translates from the AEA's ABCI protocol messages into Tendermint's ABCI Proto
 def process(cls, message: AbciMessage) -> Optional[Union[Request, Response]]
 ```
 
-Encode an AbciMessage object into either Request or Respose protobuf objects.
+Encode an AbciMessage object into either Request or Response protobuf objects.
 
 <a id="packages.valory.connections.abci.tendermint_encoder._TendermintProtocolEncoder.response_exception"></a>
 

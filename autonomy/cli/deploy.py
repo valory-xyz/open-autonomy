@@ -39,12 +39,12 @@ from autonomy.deploy.image import ImageBuilder
 
 @click.group(name="deploy")
 def deploy_group() -> None:
-    """Deploy an AEA project."""
+    """Deploy an agent service."""
 
 
 @deploy_group.group(name="build")
 def build_group() -> None:
-    """Build tools"""
+    """Build an agent service deployment."""
 
 
 @build_group.command(name="deployment")
@@ -78,13 +78,13 @@ def build_group() -> None:
     "--kubernetes",
     "deployment_type",
     flag_value=KubernetesGenerator.deployment_type,
-    help="Use docker as a kubernetes.",
+    help="Use kubernetes as a backend.",
 )
 @click.option(
     "--packages-dir",
     type=click.Path(exists=True, dir_okay=True),
     default=Path.cwd() / PACKAGES,
-    help="Path to packages folder (For local usage).",
+    help="Path to packages folder (for local usage).",
 )
 @click.option(
     "--dev",
@@ -164,7 +164,7 @@ def build_deployment(  # pylint: disable=too-many-arguments
     "--packages-dir",
     type=click.Path(exists=True, dir_okay=True),
     default=Path.cwd() / PACKAGES,
-    help="Path to packages folder (For local usage).",
+    help="Path to packages folder (for local usage).",
 )
 @click.option(
     "--build-dir",
@@ -182,7 +182,7 @@ def build_deployment(  # pylint: disable=too-many-arguments
     "--version",
     type=str,
     default=DEFAULT_IMAGE_VERSION,
-    help="Image version",
+    help="Image version.",
 )
 @click.option("--push", is_flag=True, default=False, help="Push image after build.")
 @image_profile_flag()

@@ -144,6 +144,10 @@ class TestTendermintReset(TestABCIPriceEstimationFourAgents):
             "dotted_path": f"{__args_prefix}.reset_tendermint_after",
             "value": 2,
         },
+        {
+            "dotted_path": f"{__args_prefix}.observation_interval",
+            "value": 15,
+        },
     ]
 
 
@@ -172,6 +176,10 @@ class TestTendermintResetInterrupt(TestAgentCatchup):
         {
             "dotted_path": f"{__args_prefix}.reset_tendermint_after",
             "value": __reset_tendermint_every,
+        },
+        {
+            "dotted_path": f"{__args_prefix}.observation_interval",
+            "value": 15,
         },
     ]
 

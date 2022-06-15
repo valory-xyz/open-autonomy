@@ -31,13 +31,14 @@ Note that in an {{fsm_app}}, the responsibility of a state is distributed across
 
 We will sometimes use indistinctly the terms "state" or "round" in the context of the {{open_autonomy}} framework.  We also define the concept of _synchronized data_, which is the component that stores persistent data and is accessible from any state. The consensus mechanism ensures that the synchronized data is consistently shared by all the agents. It is updated at the end of each round, where its contents can be updated. It is a concrete implementation of the `BaseSynchronizedData` class.
 
+The framework defines a concept of "period" for the `SynchronizedData`. When a new period starts, the `SynchronizedData` allocates a new slot to store new values for the variables stored within it. This way, the developer has access to the historic values that the {{fsm_app}} has stored (which can be pruned out). New periods are automatically created for the `SynchronizedData` when an {{fsm_app}} traverses the `ResetAndPauseRound` inside _Reset and pause_.
+
+Due to the variety of FSMs that can be defined, the framework does not enforce that an {{fsm_app}} use the period concept, however, it is expected that any production worthy {{fsm_app}} defines it, as it ensures the `SynchronizedData` does not grow in an unbounded fashion.
 
 
 !!! note
 
-    Due to the unbounded variety of FSMs that can be defined, the stack does not define a higer-level structure for the execution flow of the {{fsm_app}}. That is, there is no concept of "period" or "cycle" over the states of the FSM. However, the developer is free to define it according to their needs.
-
-    For example, a round/state might just be a stage in
+    A round/state might just be a stage in
     the overall flow of the application (e.g., waiting that a sufficient number of participants commit their
     observations to a temporary blockchain), or a voting round (e.g.,
     waiting until at least an observed value has reached $\lceil(2N + 1) / 3\rceil$ of the votes).

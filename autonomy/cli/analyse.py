@@ -39,12 +39,12 @@ filterwarnings("ignore")
 
 @click.group(name="analyse")
 def analyse_group() -> None:
-    """Analyse an AEA project."""
+    """Analyse an agent service."""
 
 
 @analyse_group.group(name="abci")
 def abci_group() -> None:
-    """Analyse ABCI apps."""
+    """Analyse ABCI apps of an agent service."""
 
 
 @abci_group.command(name="generate-app-specs")
@@ -52,7 +52,7 @@ def abci_group() -> None:
 @click.argument("output_file", type=click.Path())
 @abci_spec_format_flag()
 def generat_abci_app_pecs(app_class: str, output_file: Path, spec_format: str) -> None:
-    """Generate abci app specs."""
+    """Generate ABCI app specs."""
 
     module_name, class_name = app_class.rsplit(".", 1)
 
@@ -90,7 +90,7 @@ def generat_abci_app_pecs(app_class: str, output_file: Path, spec_format: str) -
 def check_abci_app_specs(
     check_all: bool, packages_dir: Path, spec_format: str, app_class: str, infile: Path
 ) -> None:
-    """Check abci app specs."""
+    """Check ABCI app specs."""
 
     if check_all:
         packages_dir = Path(packages_dir).absolute()
@@ -149,7 +149,7 @@ def docstrings(packages_dir: Path, check: bool) -> None:
 @abci_group.command(name="logs")
 @click.argument("file", type=click.Path(file_okay=True, dir_okay=False, exists=True))
 def parse_logs(file: Path) -> None:
-    """Parse logs."""
+    """Parse logs of an agent service."""
 
     try:
         parse_file(str(file))
@@ -216,7 +216,7 @@ def run_handler_check(packages_dir: Path, skip: str, common: str) -> None:
     type=click.types.Path(file_okay=True, dir_okay=False, resolve_path=True),
 )
 def benchmark(path: Path, block_type: str, period: int, output: Optional[Path]) -> None:
-    """Benchmark Aggregator."""
+    """Benchmark aggregator."""
 
     output = Path("./benchmarks.html" if output is None else output).resolve()
 
