@@ -46,6 +46,13 @@ class TestTendermintStartup(BaseTestEnd2EndNormalExecution):
         "reset_and_pause": 1,
     }
     wait_to_finish = 60
+    __args_prefix = f"vendor.valory.skills.{PublicId.from_str(skill_package).name}.models.params.args"
+    extra_configs = [
+        {
+            "dotted_path": f"{__args_prefix}.observation_interval",
+            "value": 15,
+        },
+    ]
 
 
 @pytest.mark.parametrize("nb_nodes", (4,))
@@ -64,6 +71,10 @@ class TestTendermintReset(BaseTestEnd2EndNormalExecution):
             "dotted_path": f"{__args_prefix}.reset_tendermint_after",
             "value": __reset_tendermint_every,
         },
+        {
+            "dotted_path": f"{__args_prefix}.observation_interval",
+            "value": 15,
+        },
     ]
 
 
@@ -75,7 +86,7 @@ class TestTendermintResetInterrupt(BaseTestEnd2EndAgentCatchup):
     skill_package = "valory/register_reset_abci:0.1.0"
     cli_log_options = ["-v", "INFO"]
     wait_before_stop = 60
-    wait_to_finish = 200
+    wait_to_finish = 300
     restart_after = 1
     __reset_tendermint_every = 1
     stop_string = f"Entered in the 'reset_and_pause' round for period {__reset_tendermint_every - 1}"
@@ -87,6 +98,10 @@ class TestTendermintResetInterrupt(BaseTestEnd2EndAgentCatchup):
         {
             "dotted_path": f"{__args_prefix}.reset_tendermint_after",
             "value": __reset_tendermint_every,
+        },
+        {
+            "dotted_path": f"{__args_prefix}.observation_interval",
+            "value": 15,
         },
     ]
 

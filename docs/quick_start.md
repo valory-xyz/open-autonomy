@@ -14,6 +14,7 @@ Ensure your machine satisfies the following requirements:
 
 1. Setup the environment
 ```bash
+export OPEN_AEA_IPFS_ADDR="/dns/registry.autonolas.tech/tcp/443/https"
 touch Pipfile && pipenv --python 3.10 && pipenv shell
 ```
 
@@ -22,15 +23,10 @@ touch Pipfile && pipenv --python 3.10 && pipenv shell
 pip install open-autonomy
 ```
 
-3. Get packages
+3. Get, build and install your agent
 ```bash
-svn checkout  https://github.com/valory-xyz/open-autonomy/trunk/packages packages
-```
-
-4. Build and install your agent
-```bash
-aea init --reset --author default_author --ipfs
-aea fetch valory/hello_world
+aea init --reset --author default_author --ipfs --remote
+aea fetch valory/hello_world:QmRXo6bdg5M91LAvFRSc19dtsuzfeh4c9Ub8VFfGrobGcg --remote
 cd hello_world
 aea install
 aea generate-key ethereum
