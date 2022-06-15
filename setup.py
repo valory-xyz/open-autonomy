@@ -32,6 +32,7 @@ def get_all_extras() -> Dict:
 
     cli_deps = [
         "click==8.0.2",
+        "open-aea-cli-ipfs>=1.10.0,<2.0.0",
     ]
 
     extras = {

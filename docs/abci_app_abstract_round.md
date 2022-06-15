@@ -4,7 +4,7 @@
     For clarity, the snippets of code presented here are a simplified version of the actual
     implementation. We refer the reader to the {{open_autonomy_api}} for the complete details.
 
-The `AbstractRound` class is the parent class of all the `Round` subclasses of an {{fsm_app}}. It is in charge of processing the requests comming from the ABCI Handler, and it defines a number of abstract methods that must be implemented by its subclasses, namely:
+The `AbstractRound` class is the parent class of all the `Round` subclasses of an {{fsm_app}}. It is in charge of processing the requests coming from the ABCI Handler, and it defines a number of abstract methods that must be implemented by its subclasses, namely:
   - `end_block()`
   - `check_payload()`
   - `process_payload()`
