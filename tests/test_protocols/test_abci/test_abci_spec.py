@@ -34,12 +34,15 @@ from packages.valory.connections.abci import tendermint
 from tests.test_protocols.test_abci.helper import (
     camel_to_snake,
     compare_trees,
-    create_abci_type_tree,
+    create_aea_abci_type_tree,
+    decode,
     descriptor_parser,
     encode,
     get_protocol_readme_spec,
     get_tendermint_content,
-    init_abci_messages,
+    get_tendermint_type_tree,
+    init_aea_abci_messages,
+    init_tendermint_messages,
     init_type_tree_primitives,
     replace_keys,
 )
@@ -153,14 +156,14 @@ def test_aea_to_tendermint() -> None:
     speech_acts = aea_protocol["speech_acts"]
 
     # 1. create type tree from speech acts
-    type_tree = create_abci_type_tree(speech_acts)
+    type_tree = create_aea_abci_type_tree(speech_acts)
     type_tree.pop("dummy")  # TODO: known oddity on our side
 
     # 2. initialize primitives
     init_tree = init_type_tree_primitives(type_tree)
 
     # 3. create AEA-native ABCI protocol messages
-    abci_messages = init_abci_messages(type_tree, init_tree)
+    abci_messages = init_aea_abci_messages(type_tree, init_tree)
 
     # 4. encode to Tendermint-native ABCI protocol
     #    NOTE: request not implemented in encoder
@@ -190,3 +193,17 @@ def test_aea_to_tendermint() -> None:
     for k in shared:
         init_node, tender_node = init_tree[k], tender_tree[k]
         compare_trees(init_node, tender_node)
+
+
+def test_tendermint_decoding() -> None:
+    """Test Tendermint ABCI message decoding"""
+
+    # 1. create tendermint type tree
+    tender_type_tree = get_tendermint_type_tree()
+
+    # 2. initialize messages
+    messages = init_tendermint_messages(tender_type_tree)
+
+    # 3. translate to AEA-native ABCI Messages
+    decoded = list(map(decode, messages))
+    assert len(decoded) == 15  # expected number of matches

@@ -24,21 +24,24 @@ from typing import Any, Dict, Tuple
 
 from hypothesis import given
 from hypothesis import strategies as st
-from hypothesis.strategies._internal.lazy import LazyStrategy
+from hypothesis.strategies._internal.lazy import LazyStrategy, SearchStrategy
 
 from packages.valory.connections.abci import tendermint
 
 from tests.test_protocols.test_abci.helper import (
     AbciMessage,
     PYTHON_PRIMITIVES,
+    Request,
     TENDERMINT_PRIMITIVES,
     camel_to_snake,
-    create_abci_type_tree,
+    create_aea_abci_type_tree,
+    decode,
     descriptor_parser,
     encode,
     get_full_mapping,
     get_protocol_readme_spec,
     get_tendermint_content,
+    get_tendermint_type_tree,
     is_enum,
     replace_keys,
 )
@@ -190,7 +193,7 @@ def create_tender_type_tree(type_tree: Node, abci_tree: Node) -> Node:
 def _init_subtree(node: Any) -> Any:
     """Initialize subtree with hypothesis strategies"""
 
-    def init_repeated(repeated_type: Any) -> Tuple[Any, ...]:
+    def init_repeated(repeated_type: Any) -> SearchStrategy:
         """Repeated fields must be tuples for Tendermint protobuf"""
         if isinstance(repeated_type, str) or repeated_type in PYTHON_PRIMITIVES:
             strategy = STRATEGY_MAP[repeated_type]
@@ -243,7 +246,7 @@ def create_hypotheses() -> Any:
     speech_acts = aea_protocol["speech_acts"]
 
     # 1. create type tree from speech acts
-    type_tree = create_abci_type_tree(speech_acts)
+    type_tree = create_aea_abci_type_tree(speech_acts)
     type_tree.pop("dummy")  # TODO: known oddity on our side
 
     # 2. create abci tree from Tendermint type definitions
@@ -278,7 +281,7 @@ def init_abci_messages(type_tree: Node, init_tree: Node) -> Node:
 
 # 4. Run hypotheses trees with valid strategies
 @given(create_hypotheses())
-def test_hypotheses(strategy: LazyStrategy) -> None:
+def test_aea_to_tendermint_hypotheses(strategy: LazyStrategy) -> None:
     """Currently we check the encoding, data retrieval to be done."""
 
     def list_to_tuple(node: Node) -> Node:
@@ -292,7 +295,7 @@ def test_hypotheses(strategy: LazyStrategy) -> None:
 
     aea_protocol, *_ = get_protocol_readme_spec()
     speech_acts = aea_protocol["speech_acts"]
-    type_tree = create_abci_type_tree(speech_acts)
+    type_tree = create_aea_abci_type_tree(speech_acts)
     type_tree.pop("dummy")
 
     abci_messages = init_abci_messages(type_tree, list_to_tuple(strategy))
@@ -304,3 +307,53 @@ def test_hypotheses(strategy: LazyStrategy) -> None:
     tender_tree = {k: get_tendermint_content(v) for k, v in translated.items()}
     shared = set(type_tree).intersection(tender_tree)
     assert len(shared) == 16, shared  # expected number of matches
+
+
+# tendermint fuzzing
+def _init_tender_hypo_tree(tender_node: Node) -> Node:
+    """Initialize Tendermint classes"""
+
+    def init_repeated(repeated_type: Any) -> SearchStrategy:
+        if isinstance(repeated_type, str):
+            strategy = STRATEGY_MAP[repeated_type]
+            return st.lists(strategy, min_size=0, max_size=100)
+        cls, kwargs = repeated_type
+        strategy = st.builds(cls, **_init_tender_hypo_tree(kwargs))
+        return st.lists(strategy, min_size=0, max_size=100)
+
+    node = {}
+    for field, d_type in tender_node.items():
+        if isinstance(d_type, str):
+            if field == "nanos":  # special
+                node[field] = STRATEGY_MAP[field]
+            else:
+                node[field] = STRATEGY_MAP[d_type]
+        elif is_enum(d_type):
+            node[field] = st.sampled_from([f.value for f in d_type])
+        elif isinstance(d_type, tuple):
+            container, content = d_type
+            if container is list:
+                node[field] = init_repeated(content)
+            else:
+                node[field] = st.builds(container, **_init_tender_hypo_tree(content))
+        else:
+            raise NotImplementedError(f"field {field}: {d_type}")
+
+    return node
+
+
+def create_tendermint_hypotheses() -> SearchStrategy:
+    """Create Tendermint hypotheses"""
+    tender_type_tree = get_tendermint_type_tree()
+    _, request_tree = tender_type_tree["Request"]
+    tender_hypo_tree = _init_tender_hypo_tree(request_tree)
+    return st.fixed_dictionaries(tender_hypo_tree)
+
+
+@given(create_tendermint_hypotheses())
+def test_tendermint_to_aea_hypotheses(strategy: Dict[str, LazyStrategy]) -> None:
+    """Test translation Tendermint- to AEA-native ABCI Messages"""
+
+    messages = [Request(**{k: v}) for k, v in strategy.items()]
+    decoded = list(map(decode, messages))
+    assert len(decoded) == 15  # expected number of matches

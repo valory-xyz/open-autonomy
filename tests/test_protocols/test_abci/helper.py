@@ -26,7 +26,7 @@ import inspect
 from enum import Enum
 from pathlib import Path
 from types import ModuleType
-from typing import Any, Dict, Tuple, Type, Union
+from typing import Any, Dict, List, Tuple, Type, Union
 from unittest import mock
 
 import yaml
@@ -37,7 +37,7 @@ from aea.protocols.generator.common import (
     _to_camel_case,
 )
 from google.protobuf import duration_pb2, timestamp_pb2
-from google.protobuf.descriptor import FieldDescriptor, FileDescriptor, MessageDescriptor
+from google.protobuf.descriptor import FieldDescriptor
 
 from packages.valory import protocols
 from packages.valory.connections.abci import tendermint
@@ -111,6 +111,27 @@ camel_to_snake = _camel_case_to_snake_case  # ???
 snake_to_camel = _to_camel_case
 
 
+TENDERMINT_PRIMITIVES = tuple(type_mapping.values())
+PYTHON_PRIMITIVES = (int, float, bool, str, bytes)
+
+# simple AEA strategy
+NON_DEFAULT_PRIMITIVES = {str: "sss", bytes: b"bbb", int: 123, float: 3.14, bool: True}
+REPEATED_FIELD_SIZE = 3
+USE_NON_ZERO_ENUM: bool = True
+
+# simple Tendermint strategy
+SIMPLE_STRATEGY = dict(  # STRATEGY_MAP
+    int32=-32,
+    uint32=32,
+    int64=-64,
+    uint64=64,
+    bool=True,
+    string="sss",
+    bytes=b"bbb",
+    nanos=999,
+)
+
+
 MODULES = {}
 for name, file in zip(keys, python_files):
     MODULES[name] = _exec_module_import(str(file))
@@ -149,24 +170,19 @@ def get_aea_classes(module: ModuleType) -> Dict[str, Type]:
     return {k: v for k, v in vars(module).items() if is_locally_defined_class(v)}
 
 
+def set_repr(cls: Type) -> Type:
+    """Set custom __repr__"""
+    cls.__repr__ = my_repr  # type: ignore
+    return cls
+
+
 def get_tendermint_classes(module: ModuleType) -> Dict[str, Type]:
     """Get Tendermint classes and set __repr__"""
-
-    def set_repr(cls: Type) -> Type:
-        cls.__repr__ = my_repr  # type: ignore
-        return cls
 
     return {k: set_repr(v) for k, v in vars(module).items() if isinstance(v, type)}
 
 
-TENDERMINT_PRIMITIVES = tuple(type_mapping.values())
-PYTHON_PRIMITIVES = (int, float, bool, str, bytes)
 AEA_CUSTOM = get_aea_classes(protocols.abci.custom_types)
-
-NON_DEFAULT_PRIMITIVES = {str: "sss", bytes: b"bbb", int: 123, float: 3.14, bool: True}
-REPEATED_FIELD_SIZE = 3
-USE_NON_ZERO_ENUM: bool = True
-
 
 TENDERMINT_ABCI_TYPES = get_tendermint_classes(tendermint.abci.types_pb2)
 TENDERMINT_CRYPTO_KEYS = get_tendermint_classes(keys_pb2)
@@ -178,22 +194,15 @@ TENDERMINT_TIME_STAMP = {"Timestamp": timestamp_pb2.Timestamp}
 TENDERMINT_DURATION = {"Duration": duration_pb2.Duration}
 
 
-def message_parser(msg_desc: MessageDescriptor):
-    return
-
-
-
-def descriptor_parser(descriptor: Any, parse_dependencies=False) -> Dict[str, Any]:
+def descriptor_parser(descriptor: Any) -> Dict[str, Any]:
     """Get Tendermint-native message type definitions"""
 
     content: Node = dict()
-    for msg, msg_desc in descriptor.message_types_by_name.items():
-        # msg_desc._concrete_class
-        # msg_desc._concrete_class.DESCRIPTOR.fields_by_name.items()[0][1].message_type._concrete_class
+    for msg, msg_descr in descriptor.message_types_by_name.items():
         messages = content.setdefault(msg, {})
 
         # Request & Response
-        for oneof in msg_desc.oneofs:
+        for oneof in msg_descr.oneofs:
             fields = messages.setdefault("oneofs", {}).setdefault(oneof.name, [])
             for field in oneof.fields:  # only PublicKey has no message_type
                 name = (
@@ -204,17 +213,15 @@ def descriptor_parser(descriptor: Any, parse_dependencies=False) -> Dict[str, An
                 fields.append((name, field.name))
 
         # ResponseOfferSnapshot & ResponseApplySnapshotChunk
-        for enum_type in msg_desc.enum_types:
+        for enum_type in msg_descr.enum_types:
             enum = messages.setdefault("enum_types", {})
             names, numbers = enum_type.values_by_name, enum_type.values_by_number
             enum[enum_type.name] = dict(zip(names, numbers))
 
         # other fields
-        for field in msg_desc.fields:
+        for field in msg_descr.fields:
             fields = messages.setdefault("fields", {})
             d_type = type_mapping[field.type]
-            if d_type != "message":
-                1/0
             repeated = field.label == field.LABEL_REPEATED
 
             if field.enum_type:
@@ -233,10 +240,9 @@ def descriptor_parser(descriptor: Any, parse_dependencies=False) -> Dict[str, An
         enum[enum_type.name] = dict(zip(names, numbers))
         content.update(enum)
 
-    # other potentially relevant fields: extensions_by_name, dependencies, services_by_name?
-    if parse_dependencies:
-        for dependency in descriptor.dependencies:
-            content[dependency.name] = descriptor_parser(dependency)
+    # other potentially relevant fields: extensions_by_name, services_by_name
+    for dependency in descriptor.dependencies:  # this takes a ton of space
+        content[dependency.name] = descriptor_parser(dependency)
 
     return content
 
@@ -282,7 +288,7 @@ def get_protocol_readme_spec() -> Tuple[Any, Any, Any]:
 
 
 # 1. Create type tree for the AEA-native ABCI protocol
-def _create_custom_type_tree(custom_type: Type) -> Tuple[Type, Node]:
+def _create_aea_custom_type_tree(custom_type: Type) -> Tuple[Type, Node]:
     """Create custom type tree for AEA-native ABCI spec"""
 
     kwarg_types = {}
@@ -297,40 +303,42 @@ def _create_custom_type_tree(custom_type: Type) -> Tuple[Type, Node]:
             assert len(d_type.__args__) == 1  # check assumption
             container, content = d_type.__origin__, d_type.__args__[0]
             if content in AEA_CUSTOM.values():
-                content = _create_custom_type_tree(content)
+                content = _create_aea_custom_type_tree(content)
             kwarg_types[name] = container, content
         else:
             nested_type = AEA_CUSTOM.get(d_type, d_type)
-            kwarg_types[name] = _create_custom_type_tree(nested_type)
+            kwarg_types[name] = _create_aea_custom_type_tree(nested_type)
 
     return custom_type, kwarg_types
 
 
-def _create_type_tree(field: str) -> Any:
+def _create_aea_type_tree(field: str) -> Any:
     """Create type tree for AEA-native ABCI spec"""
 
     if any(map(field.startswith, SPECIFICATION_COMPOSITIONAL_TYPES)):
         subfields = _get_sub_types_of_compositional_types(field)
         if field.startswith("pt:optional"):
-            return _create_type_tree(*subfields)
+            return _create_aea_type_tree(*subfields)
         elif field.startswith("pt:list"):  # repeated
-            return list, _create_type_tree(*subfields)
+            return list, _create_aea_type_tree(*subfields)
         raise NotImplementedError(f"field: {field}")
 
     if field.startswith("ct:"):
         custom_type = AEA_CUSTOM[field[3:]]
-        return _create_custom_type_tree(custom_type)
+        return _create_aea_custom_type_tree(custom_type)
 
     primitive = getattr(builtins, field[3:])
     return primitive
 
 
-def create_abci_type_tree(speech_acts: Dict[str, Dict[str, str]]) -> Dict[str, Node]:
+def create_aea_abci_type_tree(
+    speech_acts: Dict[str, Dict[str, str]]
+) -> Dict[str, Node]:
     """Create AEA-native ABCI type tree from the defined speech acts"""
 
     def _get_message_types(fields: Dict[str, str]) -> Node:
         """Get message types for AEA-native ABCI spec"""
-        return {k: _create_type_tree(v) for k, v in fields.items()}
+        return {k: _create_aea_type_tree(v) for k, v in fields.items()}
 
     return {k: _get_message_types(v) for k, v in speech_acts.items()}
 
@@ -414,7 +422,7 @@ def _complete_init(type_node: Node, init_node: Node) -> Node:
     return node
 
 
-def init_abci_messages(type_tree: Node, init_tree: Node) -> Node:
+def init_aea_abci_messages(type_tree: Node, init_tree: Node) -> Node:
     """
     Create ABCI messages for AEA-native ABCI spec
 
@@ -571,3 +579,89 @@ def compare_trees(init_node: Node, tender_node: Node) -> None:
             assert len(init_child) == 1, "expecting enum"
             enum = set(init_child.values()).pop()
             assert (enum.name, enum.value) == tender_node[tk]
+
+
+def _process_message_descriptor(m_descriptor: Any) -> Node:
+    """Process fields of the message descriptor"""
+
+    node: Node = {}
+    for name, field in m_descriptor.fields_by_name.items():
+
+        if field.message_type:
+            cls = set_repr(field.message_type._concrete_class)
+            node[name] = cls, _process_message_descriptor(cls.DESCRIPTOR)
+        elif field.enum_type:
+            names = field.enum_type.values_by_name
+            numbers = field.enum_type.values_by_number
+            node[name] = Enum(name, zip(names, numbers))
+        else:
+            node[name] = type_mapping[field.type]
+
+        if field.label == field.LABEL_REPEATED:
+            node[name] = list, node[name]
+
+    return node
+
+
+def get_tendermint_type_tree() -> Node:
+    """Tendermint type tree"""
+
+    descriptor = tendermint.abci.types_pb2.DESCRIPTOR
+    tender_type_tree = {}
+    for msg, msg_descr in descriptor.message_types_by_name.items():
+        cls = set_repr(msg_descr._concrete_class)
+        tender_type_tree[msg] = cls, _process_message_descriptor(msg_descr)
+    return tender_type_tree
+
+
+def _init_tender_tree(tender_node: Node) -> Node:
+    """Initialize Tendermint classes"""
+
+    def init_repeated(repeated_type: Any) -> List[Any]:
+        if isinstance(repeated_type, str):
+            return [SIMPLE_STRATEGY[repeated_type] for _ in range(REPEATED_FIELD_SIZE)]
+        cls, kwargs = repeated_type
+        return [cls(**_init_tender_tree(kwargs)) for _ in range(REPEATED_FIELD_SIZE)]
+
+    node = {}
+    for field, d_type in tender_node.items():
+        if isinstance(d_type, str):
+            if field == "nanos":  # special
+                node[field] = SIMPLE_STRATEGY[field]
+            else:
+                node[field] = SIMPLE_STRATEGY[d_type]
+        elif is_enum(d_type):
+            node[field] = list(d_type)[USE_NON_ZERO_ENUM].value
+        elif isinstance(d_type, tuple):
+            container, content = d_type
+            if container is list:
+                node[field] = init_repeated(content)
+            else:
+                node[field] = container(**_init_tender_tree(content))
+        else:
+            raise NotImplementedError(f"field {field}: {d_type}")
+
+    return node
+
+
+def _build_tendermint_messages(cls: Type, tree: Node) -> List[Union[Request, Response]]:
+    """Build tendermint messages"""
+
+    return [cls(**{k: v}) for k, v in _init_tender_tree(tree).items()]
+
+
+def init_tendermint_messages(tender_type_tree: Node) -> List[Union[Request, Response]]:
+    """Initialize tendermint ABCI messages"""
+
+    request_cls, request_tree = tender_type_tree["Request"]
+    response_cls, response_tree = tender_type_tree["Response"]
+
+    # they look the same, they behave the same, but they are not the same.
+    # even constructed messages compare equal, but our decoder errors out.
+    assert request_cls != Request
+    assert response_cls != Response
+
+    # construct Tendermint-native messages
+    messages = _build_tendermint_messages(Request, request_tree)
+
+    return messages
