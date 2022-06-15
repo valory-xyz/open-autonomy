@@ -29,7 +29,7 @@ from tests.conftest import ROOT_DIR
 from tests.test_docs.helper import read_file  # type: ignore
 
 
-URL_REGEX = r"(https?:\/\/(?:www\.|(?!www))[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s)]{2,}|www\.[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s)]{2,}|https?:\/\/(?:www\.|(?!www))[a-zA-Z0-9]+\.[^\s)]{2,}|www\.[a-zA-Z0-9]+\.[^\s)]{2,})"
+URL_REGEX = r'(https?:\/\/(?:www\.|(?!www))[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s)"]{2,}|www\.[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s)"]{2,}|https?:\/\/(?:www\.|(?!www))[a-zA-Z0-9]+\.[^\s)"]{2,}|www\.[a-zA-Z0-9]+\.[^\s)"]{2,})'
 
 
 def test_links() -> None:
@@ -40,20 +40,35 @@ def test_links() -> None:
 
     broken_links = []
     http_links = []
+    http_skips = ["http://www.fipa.org/repository/ips.php3"]
+    url_skips = ["https://github.com/valory-xyz/open-autonomy/trunk/packages"]
 
     for md_file in all_md_files:
         text = read_file(md_file)
         m = re.findall(URL_REGEX, text)
         for url in m:
-            if not url.startswith("https"):
-                http_links.append((md_file, url))
-            try:
-                if requests.get(url).status_code != 200:
-                    broken_links.append((md_file, url))
-            except Exception:
-                broken_links.append((md_file, url))
 
-    broken_links_str = "\n".join([f"{url[0]}: {url[1]}" for url in broken_links])
-    http_links_str = "\n".join([f"{url[0]}: {url[1]}" for url in http_links])
+            # Add the closing parenthesis if it is msising, as the REGEX is too strict sometimes
+            if "(" in url and ")" not in url:
+                url += ")"
+
+            # Check for HTTP urls
+            if not url.startswith("https") and url not in http_skips:
+                http_links.append((md_file, url))
+
+            # Check for broken links: 200 and 403 codes are admitted
+            if url in url_skips:
+                continue
+            try:
+                status_code = requests.get(url).status_code
+                if status_code not in (200, 403):
+                    broken_links.append((md_file, url, status_code))
+            except Exception as e:
+                broken_links.append((md_file, url, e))
+
+    broken_links_str = "\n".join(
+        [f"{url[0]}: {url[1]} ({url[2]})" for url in broken_links]
+    )
+    http_links_str = "\n".join([f"{url[0]}: {url[1]} ({url[2]})" for url in http_links])
     assert not broken_links, f"Found broken url in the docs:\n{broken_links_str}"
     assert not http_links, f"Found HTTP urls in the docs:\n{http_links_str}"
