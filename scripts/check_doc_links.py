@@ -83,7 +83,9 @@ def main() -> None:
         print(f"Found broken url in the docs:\n{broken_links_str}")
 
     if http_links:
-        print(f"Found HTTP urls in the docs:\n{http_links_str}")
+        print(
+            f"Found HTTP urls in the docs:\n{http_links_str}\nTry to use HTTPS equivalent urls or add them to 'http_skips' if not possible"
+        )
 
     if broken_links or http_links:
         sys.exit(1)
