@@ -83,6 +83,10 @@ class RegistrationStartUpTestConfig(
             "dotted_path": f"{__p2p_prefix}.is_abstract",
             "value": False,
         },
+        {
+            "dotted_path": f"{__args_prefix}.observation_interval",
+            "value": 15,
+        },
     ]
 
 
