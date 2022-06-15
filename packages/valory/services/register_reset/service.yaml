@@ -7,5 +7,6 @@ number_of_agents: 4
 description: Test and debug tendermint reset mechanism.
 aea_version: '>=1.0.0, <2.0.0'
 license: Apache-2.0
-fingerprint: {}
+fingerprint:
+  README.md: QmdSzVR6vZL1PxeCkdcdYxUWn2Vem8WSYqvcbXzq4KeZnC
 fingerprint_ignore_patterns: []
