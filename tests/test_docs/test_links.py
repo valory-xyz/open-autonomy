@@ -53,10 +53,6 @@ def test_links() -> None:
             except Exception:
                 broken_links.append((md_file, url))
 
-    import pdb
-
-    pdb.set_trace()
-
     broken_links_str = "\n".join([f"{url[0]}: {url[1]}" for url in broken_links])
     http_links_str = "\n".join([f"{url[0]}: {url[1]}" for url in http_links])
     assert not broken_links, f"Found broken url in the docs:\n{broken_links_str}"
