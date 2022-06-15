@@ -309,9 +309,10 @@ jobs:
           yarn
           cd ..\..
 
-      - name: Unit tests
-        run: |
-          tox -e py${{ matrix.python-version }} -- -m 'not e2e'
+        - name: Unit tests
+          run: |
+            tox -e py${{ matrix.python-version }}-win -- -m 'not e2e'
+
       - if: matrix.os == 'ubuntu-latest'
         name: Upload coverage to Codecov
         uses: codecov/codecov-action@v1
