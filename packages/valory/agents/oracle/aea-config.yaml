@@ -8,7 +8,7 @@ fingerprint:
   README.md: QmQPqYYkUVheBFfRZEogQYeficoxc2ez8M9L6rdj2g9cd1
 fingerprint_ignore_patterns: []
 connections:
-- valory/abci:0.1.0:QmdDTkasEZkVuGbFTk1W2NSzecfv858vUvk3TCp3oNNexb
+- valory/abci:0.1.0:QmeP3rHLno4mykgaqdyBUnibZ3jz8GnB1mjo9fXb6uwkhs
 - valory/http_client:0.1.0:QmWLBDpdcz8idNdqobjBC6ykJCSEpHCjcC1mAoAdJPzmQh
 - valory/ledger:0.1.0:QmY9fbnunHPtfPfdFk2eUrMKg6PBhHeBWvA9ud1i4uCaFd
 contracts:
@@ -17,20 +17,20 @@ contracts:
 - valory/offchain_aggregator:0.1.0:Qmaftfci6asBewVH3vKGtMJVcAdG71Vm6Qv493uRkT7b2h
 protocols:
 - open_aea/signing:1.0.0:QmemReviejNSLrwWqENKL76AtoK17eG8TBbWjpwUT7L3UA
-- valory/abci:0.1.0:QmXon2dDJmX6CjBToQxB3gtDuJdZeHgte5H9FZ4nv9kx6c
+- valory/abci:0.1.0:QmRXBoBaTYNcpe98SqYJmKVXm6eFfYeS9yuKz7mzzYawNG
 - valory/contract_api:1.0.0:QmSobFjLc3baTW1Zf2zfS1X3KJabw7xE6cPJb2g2eAvxSx
 - valory/http:1.0.0:QmSAsTD3pidZcrEXk3HQfbZvUDiVTUMHgCrXpXcs744AZE
 - valory/ledger_api:1.0.0:QmdMBgcpjL2hvmrxWtFyujMSf6exkFPnUXZqTdnsvrk48r
 skills:
-- valory/abstract_abci:0.1.0:QmUFuV3hkWcfYg7G2mDg2yYgS5affw95aEtiss6m7Niyxv
-- valory/abstract_round_abci:0.1.0:QmX9waxQrwfEmqez7Wewq42Q16nQxgtXLVnBFvuRGTpqW7
-- valory/oracle_abci:0.1.0:QmVg1c3kL9NFjqXStadHAV4t5mdokm7VL4aDyWzWzuELXT
-- valory/oracle_deployment_abci:0.1.0:QmahiVx5bG1t3vvr8fBdycitdJ3GCTdrkxvjzrNXkGtaLd
-- valory/price_estimation_abci:0.1.0:QmaBvtZwM4QQdbDgCVLH7QX57FceDYtpb7724n2f7M8KEy
-- valory/registration_abci:0.1.0:QmaZ4SG2JZiGxuFrtVdS2m6janEZLGWK3cNxLhN7Wbq68E
-- valory/reset_pause_abci:0.1.0:QmXfLQrqwA7VZYb4mnQFgRJFVvtrREkAAw7q9nGLRqSrMM
-- valory/safe_deployment_abci:0.1.0:QmSpj9tLBJGhGwgRrTcEpH3XJjy8KhVUqqpgBsE3oNMRyN
-- valory/transaction_settlement_abci:0.1.0:QmfKGgDj6Xc98eGmKDrZuVNLqDaTzBoP7LNK5WKwWBB5WP
+- valory/abstract_abci:0.1.0:QmdJQFUTvf7izpNDLUhnnaEZ9YDo8HXbVnA68gUd14ETHX
+- valory/abstract_round_abci:0.1.0:QmbsWEtnezo5amJ7fpxh3JP3iUQ9P8xeBHkPcQV36ooobb
+- valory/oracle_abci:0.1.0:QmR7KxBFFrr44pjZcSRvmjNstw9uPCzZHyW5NrT4714RDr
+- valory/oracle_deployment_abci:0.1.0:QmYykrJ7Vp27W771RmbJhCHggF8uJ1zGafKxEBrwcuhLTD
+- valory/price_estimation_abci:0.1.0:QmSfdLYtAD9D26nnSVU7UR91y84vtCfXMRRUBum471LvNY
+- valory/registration_abci:0.1.0:QmcyF74voUcfuZ1DEt2DP8vvCVuWHQzrsUzXgEnBhQpYt5
+- valory/reset_pause_abci:0.1.0:Qma9NGLvcercPocbxgDZAn16W56UEbRQdB9RQiNwjchpg3
+- valory/safe_deployment_abci:0.1.0:QmXAiUetYcQaNHJo3WxTNJ8V4FJq15HHMLKm4w6mUKvMKV
+- valory/transaction_settlement_abci:0.1.0:QmPC5aeBqi9AVogyJJXaJBdPe1CixZS2Qf55F1JyiNRh6p
 default_ledger: ethereum
 required_ledgers:
 - ethereum

@@ -22,7 +22,7 @@ fingerprint:
   io/store.py: QmXHnLF1Jg2hmhUwYj4E4QoMmx6EoLhUtzEGqztLKtKFej
   models.py: QmQqNpTYrm5VNtBDG8UHNQzc41kFPxA8P967jmeq8qLFxv
   serializer.py: QmYf1ZaQEwAaUFvFHwafuetnm29PmWQUAEFSbbHDdrHvyp
-  utils.py: Qmed3ijomF91pePveuFrPVd4BaXRLrsoCaszkiuyF2ZbBE
+  utils.py: Qma2amttj5p7MMYE9CfxTWmSsqDK1ARs5jXtfdmrdCpvzh
 fingerprint_ignore_patterns: []
 connections:
 - valory/abci:0.1.0:QmdDTkasEZkVuGbFTk1W2NSzecfv858vUvk3TCp3oNNexb
