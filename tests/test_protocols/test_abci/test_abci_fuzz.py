@@ -19,29 +19,24 @@
 
 """Test random initializations of ABCI Message content"""
 
-import copy
-from typing import Any, Dict, Tuple
+from typing import Any, Dict
 
+import hypothesis
 from hypothesis import given
 from hypothesis import strategies as st
 from hypothesis.strategies._internal.lazy import LazyStrategy, SearchStrategy
-
-from packages.valory.connections.abci import tendermint
 
 from tests.test_protocols.test_abci.helper import (
     AbciMessage,
     PYTHON_PRIMITIVES,
     Request,
-    TENDERMINT_PRIMITIVES,
     camel_to_snake,
     create_aea_abci_type_tree,
     decode,
-    descriptor_parser,
     encode,
-    get_full_mapping,
     get_protocol_readme_spec,
+    get_tender_type_tree,
     get_tendermint_content,
-    get_tendermint_type_tree,
     is_enum,
     replace_keys,
 )
@@ -85,37 +80,9 @@ STRATEGY_MAP = dict(  # TODO: strategy to assert failure
     nanos=st.integers(min_value=0, max_value=10 ** 9 - 1),  # special case
 )
 
-TENDERMINT_MAPPING = get_full_mapping()
-
-
-# Step 0: Create a tender_type_tree for the tendermint messages
-def unfold_nested(tree: Node) -> Node:
-    """Build tendermint type tree (all strings)"""
-
-    def init_repeated(content: Any) -> Tuple[str, Any]:
-        if content in TENDERMINT_PRIMITIVES:
-            return list.__name__, content
-        return list.__name__, (content, unfold_nested(TENDERMINT_MAPPING[content]))
-
-    fields = tree.get("fields", {})
-    node = {}
-    for name, field in fields.items():
-        if field in TENDERMINT_PRIMITIVES:
-            node[name] = field
-        elif isinstance(field, tuple):
-            d_type, label = field
-            if label == "repeated":
-                node[name] = init_repeated(d_type)
-            else:
-                node[name] = d_type, label
-        else:
-            node[name] = field, unfold_nested(TENDERMINT_MAPPING[field])
-
-    return node
-
 
 # Step 1: retrieve tendermint protobuf type for primitives
-def _translate(type_node: Node, abci_node: Node) -> Node:
+def _translate(aea_type_node: Node, tender_type_node: Node) -> Node:
     """
     Translate type_node primitive to abci_node specification.
 
@@ -125,27 +92,29 @@ def _translate(type_node: Node, abci_node: Node) -> Node:
     As long as the structure is maintained this can be used to
     initialize the AEA ABCIMessage instances.
 
-    :param type_node: mapping from message / field name to AEA type.
-    :param abci_node: mapping from message / field name to Tendermint type.
+    :param aea_type_node: mapping from message / field name to AEA type.
+    :param tender_type_node: mapping from message / field name to Tendermint type.
     :return: mapping from message / field name to initialized primitive.
     """
 
-    for k, type_child in type_node.items():
+    for key, type_child in aea_type_node.items():
 
         if is_enum(type_child):
             continue
-        if k == "pub_key":
+        if key == "pub_key":
             type_child[-1]["data"] = "bytes"
             continue
-        if k == "proof_ops" and "ops" in abci_node:
-            _translate(type_child[-1][-1], abci_node["ops"][-1][-1])
+        if key == "proof_ops" and "ops" in tender_type_node:
+            _translate(type_child[-1][-1], tender_type_node["ops"][-1][-1])
             continue
 
-        tk = key_translation.get(k, k)
-        abci_child = abci_node[tk]
+        tender_key = key_translation.get(key, key)
+        abci_child = tender_type_node[tender_key]
 
         if isinstance(type_child, str) or type_child in PYTHON_PRIMITIVES:
-            type_node[k] = abci_child
+            aea_type_node[key] = abci_child
+        elif is_enum(abci_child):
+            continue
         elif isinstance(type_child, dict) and isinstance(abci_child, dict):
             _translate(type_child, abci_child)
 
@@ -153,9 +122,7 @@ def _translate(type_node: Node, abci_node: Node) -> Node:
             cls, d_type = type_child
             name, nested = abci_child
             if d_type in PYTHON_PRIMITIVES:
-                type_node[k] = cls, nested
-            elif nested == "enum":
-                type_node[k] = cls, d_type
+                aea_type_node[key] = cls, nested
             elif isinstance(d_type, dict) and isinstance(nested, dict):
                 _translate(d_type, nested)
             elif isinstance(d_type, tuple):
@@ -165,28 +132,21 @@ def _translate(type_node: Node, abci_node: Node) -> Node:
                 assert len(repeated) == 1
                 _translate(repeated[0][-1][-1], nested[-1])
         else:
-            raise NotImplementedError(f"{k}:\n{type_child}\n{abci_child}")
+            raise NotImplementedError(f"{key}:\n{type_child}\n{abci_child}")
 
-    return type_node
-
-
-def create_abci_tree() -> Node:
-    """Create Tendermint ABCI types tree by unfolding fields"""
-
-    abci_types = descriptor_parser(tendermint.abci.types_pb2.DESCRIPTOR)
-    return {k: unfold_nested(v) for k, v in abci_types.items()}
+    return aea_type_node
 
 
-def create_tender_type_tree(type_tree: Node, abci_tree: Node) -> Node:
+def create_tender_type_tree(aea_type_tree: Node, tender_type_tree: Node) -> Node:
     """Create type tree with Tendermint primitives (as string)"""
 
-    tender_type_tree = {}
-    for k in type_tree:
-        abci_node, type_node = abci_tree[k], type_tree[k]
-        replace_keys(abci_node, KEY_MAPPING.get(k, {}))  # type: ignore
-        tender_type_tree[k] = _translate(copy.deepcopy(type_node), abci_node)
+    aea_with_tender_type_tree = {}
+    for k, aea_type_node in aea_type_tree.items():
+        tender_type_node = tender_type_tree[k][-1]
+        replace_keys(tender_type_node, KEY_MAPPING.get(k, {}))  # type: ignore
+        aea_with_tender_type_tree[k] = _translate(aea_type_node, tender_type_node)
 
-    return tender_type_tree
+    return aea_with_tender_type_tree
 
 
 # 3. Create hypothesis strategies
@@ -239,24 +199,24 @@ def init_type_tree_hypotheses(type_tree: Node) -> Node:
     return {k: _init_subtree(node) for k, node in type_tree.items()}
 
 
-def create_hypotheses() -> Any:
+def create_aea_hypotheses() -> Any:
     """Create hypotheses for ABCI Messages"""
 
     aea_protocol, *_ = get_protocol_readme_spec()
     speech_acts = aea_protocol["speech_acts"]
 
     # 1. create type tree from speech acts
-    type_tree = create_aea_abci_type_tree(speech_acts)
-    type_tree.pop("dummy")  # TODO: known oddity on our side
+    aea_type_tree = create_aea_abci_type_tree(speech_acts)
+    aea_type_tree.pop("dummy")  # TODO: known oddity on our side
 
     # 2. create abci tree from Tendermint type definitions
-    abci_tree = {camel_to_snake(k): v for k, v in create_abci_tree().items()}
+    tender_type_tree = {camel_to_snake(k): v for k, v in get_tender_type_tree().items()}
 
     # 3. map the primitive types from ABCI spec onto the type tree
-    tender_type_tree = create_tender_type_tree(type_tree, abci_tree)
+    aea_with_tender_type_tree = create_tender_type_tree(aea_type_tree, tender_type_tree)
 
     # 4. initialize with hypothesis
-    hypo_tree = init_type_tree_hypotheses(tender_type_tree)
+    hypo_tree = init_type_tree_hypotheses(aea_with_tender_type_tree)
 
     # 5. collapse hypo_tree
     def collapse(node: Node) -> Node:
@@ -280,8 +240,9 @@ def init_abci_messages(type_tree: Node, init_tree: Node) -> Node:
 
 
 # 4. Run hypotheses trees with valid strategies
-@given(create_hypotheses())
-def test_aea_to_tendermint_hypotheses(strategy: LazyStrategy) -> None:
+@given(create_aea_hypotheses())
+@hypothesis.settings(deadline=500)
+def test_aea_to_tendermint_hypotheses(strategy: Dict[str, LazyStrategy]) -> None:
     """Currently we check the encoding, data retrieval to be done."""
 
     def list_to_tuple(node: Node) -> Node:
@@ -344,13 +305,14 @@ def _init_tender_hypo_tree(tender_node: Node) -> Node:
 
 def create_tendermint_hypotheses() -> SearchStrategy:
     """Create Tendermint hypotheses"""
-    tender_type_tree = get_tendermint_type_tree()
+    tender_type_tree = get_tender_type_tree()
     _, request_tree = tender_type_tree["Request"]
     tender_hypo_tree = _init_tender_hypo_tree(request_tree)
     return st.fixed_dictionaries(tender_hypo_tree)
 
 
 @given(create_tendermint_hypotheses())
+@hypothesis.settings(deadline=500)
 def test_tendermint_to_aea_hypotheses(strategy: Dict[str, LazyStrategy]) -> None:
     """Test translation Tendermint- to AEA-native ABCI Messages"""
 

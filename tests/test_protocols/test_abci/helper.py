@@ -21,7 +21,6 @@
 
 import builtins
 import functools
-import importlib.util
 import inspect
 from enum import Enum
 from pathlib import Path
@@ -36,7 +35,6 @@ from aea.protocols.generator.common import (
     _get_sub_types_of_compositional_types,
     _to_camel_case,
 )
-from google.protobuf import duration_pb2, timestamp_pb2
 from google.protobuf.descriptor import FieldDescriptor
 
 from packages.valory import protocols
@@ -51,40 +49,15 @@ from packages.valory.connections.abci.tendermint.abci.types_pb2 import (  # type
     Request,
     Response,
 )
-from packages.valory.connections.abci.tendermint.crypto import (  # type: ignore
-    keys_pb2,
-    proof_pb2,
-)
-from packages.valory.connections.abci.tendermint.types import (  # type: ignore
-    params_pb2,
-    types_pb2,
-)
 from packages.valory.protocols import abci as valory_abci_protocol
 from packages.valory.protocols.abci import AbciMessage
 from packages.valory.skills.abstract_round_abci.dialogues import AbciDialogues
 
 
 Node = Dict[str, Any]
-MODULE_PATH = Path(*tendermint.__package__.split(".")).absolute()
-python_files = tuple(MODULE_PATH.rglob("*/*.py"))
-keys = ["_".join(f.parts[-2:])[:-3] for f in python_files]
 
-
-def _exec_module_import(path: str) -> ModuleType:
-    """Execute the import of a module"""
-    spec = importlib.util.spec_from_file_location(path, path)
-    module = importlib.util.module_from_spec(spec)  # type: ignore
-    spec.loader.exec_module(module)  # type: ignore
-    return module
-
-
-def get_aea_type(data_type: str) -> str:
-    """Translate type to AEA-native ABCI format"""
-    if data_type in type_to_python:
-        if type_to_python[data_type] is None:
-            raise NotImplementedError(f"type_to_python: {data_type}")
-        return f"pt:{type_to_python[data_type].__name__}"
-    return f"ct:{data_type}"
+camel_to_snake = _camel_case_to_snake_case
+snake_to_camel = _to_camel_case
 
 
 type_mapping = {
@@ -106,21 +79,12 @@ type_to_python.update(
     )
 )
 
-
-camel_to_snake = _camel_case_to_snake_case  # ???
-snake_to_camel = _to_camel_case
-
-
 TENDERMINT_PRIMITIVES = tuple(type_mapping.values())
 PYTHON_PRIMITIVES = (int, float, bool, str, bytes)
 
-# simple AEA strategy
-NON_DEFAULT_PRIMITIVES = {str: "sss", bytes: b"bbb", int: 123, float: 3.14, bool: True}
-REPEATED_FIELD_SIZE = 3
-USE_NON_ZERO_ENUM: bool = True
-
-# simple Tendermint strategy
-SIMPLE_STRATEGY = dict(  # STRATEGY_MAP
+# simple value strategy
+AEA_PRIMITIVES = {str: "sss", bytes: b"bbb", int: 123, float: 3.14, bool: True}
+TENDER_PRIMITIVES = dict(
     int32=-32,
     uint32=32,
     int64=-64,
@@ -130,11 +94,8 @@ SIMPLE_STRATEGY = dict(  # STRATEGY_MAP
     bytes=b"bbb",
     nanos=999,
 )
-
-
-MODULES = {}
-for name, file in zip(keys, python_files):
-    MODULES[name] = _exec_module_import(str(file))
+REPEATED_FIELD_SIZE = 3
+USE_NON_ZERO_ENUM: bool = True
 
 
 def is_enum(d_type: Any) -> bool:
@@ -147,7 +108,7 @@ def my_repr(self: Any) -> str:
     return f"<{self.__module__}.{type(self).__name__} object at {hex(id(self))}>"
 
 
-def is_repeated(d_type: Any) -> bool:
+def is_typing_list(d_type: Any) -> bool:
     """Check if field is repeated."""
     return d_type.__class__.__module__ == "typing" and d_type.__origin__ is list
 
@@ -161,6 +122,12 @@ def replace_keys(node: Node, trans: Node) -> None:
             node[v] = node.pop(k)
 
 
+def set_repr(cls: Type) -> Type:
+    """Set custom __repr__"""
+    cls.__repr__ = my_repr  # type: ignore
+    return cls
+
+
 def get_aea_classes(module: ModuleType) -> Dict[str, Type]:
     """Get AEA custom classes."""
 
@@ -170,100 +137,7 @@ def get_aea_classes(module: ModuleType) -> Dict[str, Type]:
     return {k: v for k, v in vars(module).items() if is_locally_defined_class(v)}
 
 
-def set_repr(cls: Type) -> Type:
-    """Set custom __repr__"""
-    cls.__repr__ = my_repr  # type: ignore
-    return cls
-
-
-def get_tendermint_classes(module: ModuleType) -> Dict[str, Type]:
-    """Get Tendermint classes and set __repr__"""
-
-    return {k: set_repr(v) for k, v in vars(module).items() if isinstance(v, type)}
-
-
 AEA_CUSTOM = get_aea_classes(protocols.abci.custom_types)
-
-TENDERMINT_ABCI_TYPES = get_tendermint_classes(tendermint.abci.types_pb2)
-TENDERMINT_CRYPTO_KEYS = get_tendermint_classes(keys_pb2)
-TENDERMINT_CRYPTO_PROOF = get_tendermint_classes(proof_pb2)
-TENDERMINT_PARAMS = get_tendermint_classes(params_pb2)
-TENDERMINT_TYPES_TYPES = get_tendermint_classes(types_pb2)
-TENDERMINT_TYPES_VALIDATOR = get_tendermint_classes(types_pb2)
-TENDERMINT_TIME_STAMP = {"Timestamp": timestamp_pb2.Timestamp}
-TENDERMINT_DURATION = {"Duration": duration_pb2.Duration}
-
-
-def descriptor_parser(descriptor: Any) -> Dict[str, Any]:
-    """Get Tendermint-native message type definitions"""
-
-    content: Node = dict()
-    for msg, msg_descr in descriptor.message_types_by_name.items():
-        messages = content.setdefault(msg, {})
-
-        # Request & Response
-        for oneof in msg_descr.oneofs:
-            fields = messages.setdefault("oneofs", {}).setdefault(oneof.name, [])
-            for field in oneof.fields:  # only PublicKey has no message_type
-                name = (
-                    field.message_type.name
-                    if field.message_type
-                    else oneof.containing_type.name
-                )
-                fields.append((name, field.name))
-
-        # ResponseOfferSnapshot & ResponseApplySnapshotChunk
-        for enum_type in msg_descr.enum_types:
-            enum = messages.setdefault("enum_types", {})
-            names, numbers = enum_type.values_by_name, enum_type.values_by_number
-            enum[enum_type.name] = dict(zip(names, numbers))
-
-        # other fields
-        for field in msg_descr.fields:
-            fields = messages.setdefault("fields", {})
-            d_type = type_mapping[field.type]
-            repeated = field.label == field.LABEL_REPEATED
-
-            if field.enum_type:
-                assert not repeated  # assumed
-                fields[field.name] = field.enum_type.name, d_type
-                continue
-
-            if field.message_type:
-                d_type = field.message_type.name
-            fields[field.name] = (d_type, "repeated") if repeated else d_type
-
-    enum_types: Node = {}
-    for _, enum_type in descriptor.enum_types_by_name.items():
-        enum = enum_types.setdefault("enum_types", {})
-        names, numbers = enum_type.values_by_name, enum_type.values_by_number
-        enum[enum_type.name] = dict(zip(names, numbers))
-        content.update(enum)
-
-    # other potentially relevant fields: extensions_by_name, services_by_name
-    for dependency in descriptor.dependencies:  # this takes a ton of space
-        content[dependency.name] = descriptor_parser(dependency)
-
-    return content
-
-
-def _get_tendermint_description() -> Node:
-    """Parse content from module DESCRIPTOR objects"""
-    return {k: descriptor_parser(s.DESCRIPTOR) for k, s in MODULES.items()}  # type: ignore
-
-
-def get_full_mapping() -> Node:
-    """Get full mapping of object to content"""
-    descr = _get_tendermint_description()
-
-    # TODO: now overwriting keys with non-matching values!
-    #  types_params_pb2 <- abci_types_pb2 - BlockParams
-    #  types_validator_pb2 <- abci_types_pb2 - Validator
-    content = {k: v for m in descr.values() for k, v in m.items()}
-    content.update(descr["abci_types_pb2"])  # overwrite with prioritized values
-    content.update(descriptor_parser(timestamp_pb2.DESCRIPTOR))
-    content.update(descriptor_parser(duration_pb2.DESCRIPTOR))
-    return content
 
 
 @functools.lru_cache()
@@ -299,7 +173,7 @@ def _create_aea_custom_type_tree(custom_type: Type) -> Tuple[Type, Node]:
             kwarg_types[name] = d_type
         elif is_enum(d_type):
             kwarg_types[name] = d_type
-        elif is_repeated(d_type):
+        elif is_typing_list(d_type):  # "repeated"
             assert len(d_type.__args__) == 1  # check assumption
             container, content = d_type.__origin__, d_type.__args__[0]
             if content in AEA_CUSTOM.values():
@@ -351,7 +225,7 @@ def _init_subtree(node: Node) -> Node:
         """Repeated fields must be tuples for Tendermint protobuf"""
 
         if repeated_type in PYTHON_PRIMITIVES:
-            data = NON_DEFAULT_PRIMITIVES[repeated_type]
+            data = AEA_PRIMITIVES[repeated_type]
             return tuple(data for _ in range(REPEATED_FIELD_SIZE))
         elif isinstance(repeated_type, tuple):
             cls, kws = repeated_type
@@ -367,7 +241,7 @@ def _init_subtree(node: Node) -> Node:
             else:
                 kwargs[name] = _init_subtree(content)
         elif d_type in PYTHON_PRIMITIVES:
-            kwargs[name] = NON_DEFAULT_PRIMITIVES[d_type]
+            kwargs[name] = AEA_PRIMITIVES[d_type]
         elif is_enum(d_type):
             kwargs[name] = list(d_type)[USE_NON_ZERO_ENUM]
         else:
@@ -603,7 +477,7 @@ def _process_message_descriptor(m_descriptor: Any) -> Node:
     return node
 
 
-def get_tendermint_type_tree() -> Node:
+def get_tender_type_tree() -> Node:
     """Tendermint type tree"""
 
     descriptor = tendermint.abci.types_pb2.DESCRIPTOR
@@ -619,7 +493,9 @@ def _init_tender_tree(tender_node: Node) -> Node:
 
     def init_repeated(repeated_type: Any) -> List[Any]:
         if isinstance(repeated_type, str):
-            return [SIMPLE_STRATEGY[repeated_type] for _ in range(REPEATED_FIELD_SIZE)]
+            return [
+                TENDER_PRIMITIVES[repeated_type] for _ in range(REPEATED_FIELD_SIZE)
+            ]
         cls, kwargs = repeated_type
         return [cls(**_init_tender_tree(kwargs)) for _ in range(REPEATED_FIELD_SIZE)]
 
@@ -627,9 +503,9 @@ def _init_tender_tree(tender_node: Node) -> Node:
     for field, d_type in tender_node.items():
         if isinstance(d_type, str):
             if field == "nanos":  # special
-                node[field] = SIMPLE_STRATEGY[field]
+                node[field] = TENDER_PRIMITIVES[field]
             else:
-                node[field] = SIMPLE_STRATEGY[d_type]
+                node[field] = TENDER_PRIMITIVES[d_type]
         elif is_enum(d_type):
             node[field] = list(d_type)[USE_NON_ZERO_ENUM].value
         elif isinstance(d_type, tuple):
@@ -654,14 +530,8 @@ def init_tendermint_messages(tender_type_tree: Node) -> List[Union[Request, Resp
     """Initialize tendermint ABCI messages"""
 
     request_cls, request_tree = tender_type_tree["Request"]
-    response_cls, response_tree = tender_type_tree["Response"]
-
-    # they look the same, they behave the same, but they are not the same.
-    # even constructed messages compare equal, but our decoder errors out.
-    assert request_cls != Request
-    assert response_cls != Response
 
     # construct Tendermint-native messages
-    messages = _build_tendermint_messages(Request, request_tree)
+    messages = _build_tendermint_messages(request_cls, request_tree)
 
     return messages
