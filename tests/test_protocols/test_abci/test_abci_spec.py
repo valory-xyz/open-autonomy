@@ -69,7 +69,7 @@ Node = Dict[str, Any]
 
 # constants & utility functions
 ENCODING = "utf-8"
-VERSION = "v0.34.11"
+VERSION = "v0.34.19"
 REPO_PATH = Path(*tendermint_abci.__package__.split(".")).absolute()
 LOCAL_TYPES_FILE = REPO_PATH / "protos" / "tendermint" / "abci" / "types.proto"
 URL = f"https://raw.githubusercontent.com/tendermint/tendermint/{VERSION}/proto/tendermint/abci/types.proto"

@@ -1,7 +1,7 @@
 FROM alpine:3.7
 MAINTAINER Valory AG
 
-ENV TENDERMINT_VERSION=0.34.11
+ENV TENDERMINT_VERSION=0.34.19
 
 RUN apk update && \
     apk upgrade && \
