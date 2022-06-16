@@ -203,6 +203,7 @@ jobs:
           cd third_party/contracts-amm &&\
             yarn
 
+      - if: matrix.os == 'ubuntu-latest'
         name: Unit tests
         run: |
           tox -e py${{ matrix.python-version }} -- -m 'not e2e'
@@ -255,6 +256,7 @@ jobs:
           cd third_party/contracts-amm &&\
             yarn
 
+      - if: matrix.os == 'macos-latest'
         name: Unit tests
         run: |
           tox -e py${{ matrix.python-version }}-mac -- -m 'not e2e'
@@ -317,6 +319,7 @@ jobs:
           yarn
           cd ..\..
 
+      - if: matrix.os == 'windows-latest'
         name: Unit tests
         run: |
           tox -e py${{ matrix.python-version }}-win -- -m 'not e2e'
