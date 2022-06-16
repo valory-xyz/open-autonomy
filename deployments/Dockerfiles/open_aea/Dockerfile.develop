@@ -23,4 +23,12 @@ COPY watcher.py /home/ubuntu/watcher.py
 
 CMD ["./start_dev.sh"]
 
+RUN mkdir .venv
+RUN mkdir .venv/bin
+RUN mkdir .venv/local
+WORKDIR .venv/local
+RUN ln -s ../bin
+
+WORKDIR /home/ubuntu
+
 HEALTHCHECK --interval=3s --timeout=600s --retries=600 CMD netstat -ltn | grep -c 26658 > /dev/null; if [ 0 != $? ]; then exit 1; fi;
