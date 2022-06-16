@@ -141,7 +141,7 @@ jobs:
 
     strategy:
       matrix:
-        os: [ windows-latest, macos-latest ]
+        os: [ ubuntu-latest, windows-latest, macos-latest ]
         python-version: [ 3.7 ]
 
     timeout-minutes: 40
@@ -203,6 +203,10 @@ jobs:
           cd third_party/contracts-amm &&\
             yarn
 
+        name: Unit tests
+        run: |
+          tox -e py${{ matrix.python-version }} -- -m 'not e2e'
+
       - if: matrix.os == 'macos-latest'
         name: Install dependencies (macos-latest)
         run: |
@@ -250,7 +254,11 @@ jobs:
           cd ../..
           cd third_party/contracts-amm &&\
             yarn
-          
+
+        name: Unit tests
+        run: |
+          tox -e py${{ matrix.python-version }}-mac -- -m 'not e2e'
+
       - if: matrix.os == 'windows-latest'
         name: Install dependencies (windows-latest)
         env:
@@ -309,9 +317,9 @@ jobs:
           yarn
           cd ..\..
 
-      - name: Unit tests
+        name: Unit tests
         run: |
-          tox -e py${{ matrix.python-version }}-${{ matrix.os }} -- -m 'not e2e'
+          tox -e py${{ matrix.python-version }}-win -- -m 'not e2e'
 
       - if: matrix.os == 'ubuntu-latest'
         name: Upload coverage to Codecov

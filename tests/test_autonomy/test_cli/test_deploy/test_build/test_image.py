@@ -24,10 +24,16 @@ import random
 import string
 from typing import Tuple
 
-import docker
+import pytest
 
 from tests.conftest import ROOT_DIR
 from tests.test_autonomy.test_cli.base import BaseCliTest
+
+
+try:
+    import docker
+except (ImportError, ModuleNotFoundError):
+    pytestmark = pytest.mark.skip
 
 
 class TestBuildImage(BaseCliTest):
