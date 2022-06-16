@@ -52,8 +52,8 @@ Node = Dict[str, Any]
 ENCODING = "utf-8"
 VERSION = "v0.34.19"
 REPO_PATH = Path(*tendermint_abci.__package__.split(".")).absolute()
-LOCAL_TYPES_FILE = REPO_PATH / "protos" / "tendermint" / "abci" / "types.proto"
-URL = f"https://raw.githubusercontent.com/tendermint/tendermint/{VERSION}/proto/tendermint/abci/types.proto"
+PROTO_FILES = list((REPO_PATH / "protos" / "tendermint").glob("**/*.proto"))
+URL_PREFIX = f"https://raw.githubusercontent.com/tendermint/tendermint/{VERSION}/proto/tendermint/"
 
 # to ensure primitives are not initialized to empty default values
 NON_DEFAULT_PRIMITIVES = {str: "sss", bytes: b"bbb", int: 123, float: 3.14, bool: True}
@@ -65,15 +65,17 @@ USE_NON_ZERO_ENUM: bool = True
 def test_local_types_file_matches_github() -> None:
     """Test local file containing ABCI spec matches Tendermint GitHub"""
 
-    response = requests.get(URL)
-    if response.status_code != 200:
-        log_msg = "Failed to retrieve Tendermint abci types from Github"
-        status_code, reason = response.status_code, response.reason
-        raise requests.HTTPError(f"{log_msg}: {status_code} ({reason})")
-    github_data = response.text
-    local_data = LOCAL_TYPES_FILE.read_text(encoding=ENCODING)
+    for file in PROTO_FILES:
+        url = URL_PREFIX + "/".join(file.parts[-2:])
+        response = requests.get(url)
+        if response.status_code != 200:
+            log_msg = "Failed to retrieve Tendermint abci types from Github"
+            status_code, reason = response.status_code, response.reason
+            raise requests.HTTPError(f"{log_msg}: {status_code} ({reason})")
+        github_data = response.text
+        local_data = file.read_text(encoding=ENCODING)
 
-    assert github_data == local_data
+        assert github_data == local_data, f"mismatch:\n{file}\n{url}"
 
 
 def test_all_custom_types_used() -> None:
