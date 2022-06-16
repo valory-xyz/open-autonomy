@@ -361,43 +361,45 @@ class RegistrationStartupBehaviour(RegistrationBaseBehaviour):
     def async_act(self) -> Generator:
         """Act asynchronously"""
 
-        if self.params.share_tm_config_on_startup:
-            self.context.logger.info(f"My address: {self.context.agent_address}")
-            yield from self.sleep(self.params.sleep_time)
+        if not self.params.share_tm_config_on_startup:
+            yield from super().async_act()
 
-            # collect personal Tendermint configuration
-            if not self.local_tendermint_params:
-                successful = yield from self.get_tendermint_configuration()
-                if not successful:
-                    yield from self.sleep(self.params.sleep_time)
-                    return
+        self.context.logger.info(f"My address: {self.context.agent_address}")
+        yield from self.sleep(self.params.sleep_time)
 
-            # make service registry contract call
-            if not self.registered_addresses:
-                successful = yield from self.get_addresses()
-                if not successful:
-                    yield from self.sleep(self.params.sleep_time)
-                    return
-
-            # collect Tendermint config information from other agents
-            if not self.collection_complete:
-                successful = yield from self.request_tendermint_info()
-                if not successful:
-                    yield from self.sleep(self.params.sleep_time)
-                    return
-
-            # update Tendermint configuration
-            if not self.updated_genesis_data:
-                successful = yield from self.request_update()
-                if not successful:
-                    yield from self.sleep(self.params.sleep_time)
-                    return
-
-            # restart Tendermint with updated configuration
-            successful = yield from self.restart_tendermint()
+        # collect personal Tendermint configuration
+        if not self.local_tendermint_params:
+            successful = yield from self.get_tendermint_configuration()
             if not successful:
                 yield from self.sleep(self.params.sleep_time)
                 return
+
+        # make service registry contract call
+        if not self.registered_addresses:
+            successful = yield from self.get_addresses()
+            if not successful:
+                yield from self.sleep(self.params.sleep_time)
+                return
+
+        # collect Tendermint config information from other agents
+        if not self.collection_complete:
+            successful = yield from self.request_tendermint_info()
+            if not successful:
+                yield from self.sleep(self.params.sleep_time)
+                return
+
+        # update Tendermint configuration
+        if not self.updated_genesis_data:
+            successful = yield from self.request_update()
+            if not successful:
+                yield from self.sleep(self.params.sleep_time)
+                return
+
+        # restart Tendermint with updated configuration
+        successful = yield from self.restart_tendermint()
+        if not successful:
+            yield from self.sleep(self.params.sleep_time)
+            return
 
         yield from super().async_act()
 
