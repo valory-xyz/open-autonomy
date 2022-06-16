@@ -53,6 +53,7 @@ from packages.valory.protocols.ledger_api.dialogues import (
 from packages.valory.protocols.ledger_api.message import LedgerApiMessage
 
 from tests.conftest import ETHEREUM_KEY_DEPLOYER
+from tests.helpers.docker.base import skip_docker_tests
 from tests.helpers.docker.ganache import DEFAULT_GANACHE_CHAIN_ID
 
 
@@ -99,6 +100,7 @@ class LedgerApiDialogues(BaseLedgerApiDialogues):
 
 
 @pytest.mark.usefixtures("ganache_scope_class")
+@skip_docker_tests
 class TestLedgerConnection:
     """Tests for ledger connection."""
 

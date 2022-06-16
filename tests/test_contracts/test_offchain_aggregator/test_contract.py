@@ -33,6 +33,7 @@ from packages.valory.contracts.offchain_aggregator.contract import (
 )
 
 from tests.conftest import ETHEREUM_KEY_PATH_1, ROOT_DIR
+from tests.helpers.docker.base import skip_docker_tests
 from tests.test_contracts.base import BaseGanacheContractTest
 
 
@@ -79,6 +80,7 @@ class BaseContractTest(BaseGanacheContractTest):
         return cls.key_pairs()[0]
 
 
+@skip_docker_tests
 class TestDeployTransaction(BaseContractTest):
     """Test."""
 

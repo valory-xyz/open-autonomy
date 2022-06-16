@@ -44,6 +44,7 @@ from tests.conftest import (
     ROOT_DIR,
 )
 from tests.helpers.contracts import get_register_contract
+from tests.helpers.docker.base import skip_docker_tests
 from tests.test_contracts.base import (
     BaseGanacheContractTest,
     BaseHardhatGnosisContractTest,
@@ -171,6 +172,7 @@ class BaseContractTestHardHatSafeNet(BaseHardhatGnosisContractTest):
         return secrets.SystemRandom().randint(0, 2 ** 256 - 1)
 
 
+@skip_docker_tests
 class TestDeployTransactionHardhat(BaseContractTestHardHatSafeNet):
     """Test."""
 
@@ -303,6 +305,7 @@ class TestDeployTransactionHardhat(BaseContractTestHardHatSafeNet):
             )
 
 
+@skip_docker_tests
 class TestRawSafeTransaction(BaseContractTestHardHatSafeNet):
     """Test `get_raw_safe_transaction`"""
 

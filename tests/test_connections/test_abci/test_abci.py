@@ -74,6 +74,7 @@ from tests.helpers.async_utils import (
     wait_for_condition,
 )
 from tests.helpers.constants import HTTP_LOCALHOST
+from tests.helpers.docker.base import skip_docker_tests
 
 
 class AsyncBytesIO:
@@ -390,6 +391,7 @@ class BaseTestABCITendermintIntegration(BaseThreadedAsyncLoop, UseTendermint, AB
                 logging.warning(f"Response to {request_type} was None.")
 
 
+@skip_docker_tests
 class TestNoop(BaseABCITest, BaseTestABCITendermintIntegration):
     """Test integration between ABCI connection and Tendermint, without txs."""
 
@@ -405,6 +407,7 @@ class TestNoop(BaseABCITest, BaseTestABCITendermintIntegration):
         assert self.health_check()
 
 
+@skip_docker_tests
 class TestQuery(BaseABCITest, BaseTestABCITendermintIntegration):
     """Test integration ABCI-Tendermint with a query."""
 
@@ -420,6 +423,7 @@ class TestQuery(BaseABCITest, BaseTestABCITendermintIntegration):
         assert response.status_code == 200
 
 
+@skip_docker_tests
 class TestTransaction(BaseABCITest, BaseTestABCITendermintIntegration):
     """Test integration ABCI-Tendermint by sending a transaction."""
 
