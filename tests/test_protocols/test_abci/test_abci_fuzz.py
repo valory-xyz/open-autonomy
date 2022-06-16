@@ -21,6 +21,7 @@
 
 from typing import Any, Dict
 
+import hypothesis
 from hypothesis import given
 from hypothesis import strategies as st
 from hypothesis.strategies._internal.lazy import LazyStrategy, SearchStrategy
@@ -198,7 +199,7 @@ def init_type_tree_hypotheses(type_tree: Node) -> Node:
     return {k: _init_subtree(node) for k, node in type_tree.items()}
 
 
-def create_hypotheses() -> Any:
+def create_aea_hypotheses() -> Any:
     """Create hypotheses for ABCI Messages"""
 
     aea_protocol, *_ = get_protocol_readme_spec()
@@ -239,7 +240,8 @@ def init_abci_messages(type_tree: Node, init_tree: Node) -> Node:
 
 
 # 4. Run hypotheses trees with valid strategies
-@given(create_hypotheses())
+@given(create_aea_hypotheses())
+@hypothesis.settings(deadline=500)
 def test_aea_to_tendermint_hypotheses(strategy: Dict[str, LazyStrategy]) -> None:
     """Currently we check the encoding, data retrieval to be done."""
 
@@ -310,6 +312,7 @@ def create_tendermint_hypotheses() -> SearchStrategy:
 
 
 @given(create_tendermint_hypotheses())
+@hypothesis.settings(deadline=500)
 def test_tendermint_to_aea_hypotheses(strategy: Dict[str, LazyStrategy]) -> None:
     """Test translation Tendermint- to AEA-native ABCI Messages"""
 
