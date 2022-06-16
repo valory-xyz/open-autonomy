@@ -17,7 +17,7 @@ else
     if [[ "$ID" -eq "0" ]]
     then
         echo "Installing venv with ID=$ID"
-        pipenv --python 3.8
+        pipenv --python 3.10
         pipenv install --skip-lock
         pipenv install --skip-lock --dev
         mkdir /home/ubuntu/.local/share/virtualenvs/__temp__
