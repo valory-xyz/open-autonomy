@@ -26,10 +26,15 @@ from pathlib import Path
 from typing import Any, Dict, Union, cast
 from unittest import mock
 
-import atheris  # type: ignore
 import pytest
 from aea.exceptions import AEAEnforceError
 from aea.helpers.transaction.base import RawTransaction, SignedMessage
+
+
+try:
+    import atheris  # type: ignore
+except (ImportError, ModuleNotFoundError):
+    pytest.skip()
 
 from packages.open_aea.protocols.signing import SigningMessage
 from packages.valory.contracts.gnosis_safe.contract import (

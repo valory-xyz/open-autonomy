@@ -23,7 +23,6 @@ import sys
 from collections import defaultdict
 from typing import Any, Dict
 
-import atheris  # type: ignore
 import hypothesis.strategies as st
 import pytest
 from google.protobuf.struct_pb2 import Struct
@@ -33,6 +32,12 @@ from packages.valory.skills.abstract_round_abci import serializer
 from packages.valory.skills.abstract_round_abci.serializer import (
     DictProtobufStructSerializer,
 )
+
+
+try:
+    import atheris  # type: ignore
+except (ImportError, ModuleNotFoundError):
+    pytest.skip()
 
 
 def test_encode_decode_i() -> None:

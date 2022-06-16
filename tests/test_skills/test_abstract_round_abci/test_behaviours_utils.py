@@ -31,9 +31,15 @@ from typing import Any, Dict, Generator, Optional, Tuple, Type, Union
 from unittest import mock
 from unittest.mock import MagicMock
 
-import atheris  # type: ignore
 import pytest
 import pytz  # type: ignore  # pylint: disable=import-error
+
+
+try:
+    import atheris  # type: ignore
+except (ImportError, ModuleNotFoundError):
+    pytest.skip()
+
 
 from packages.open_aea.protocols.signing import SigningMessage
 from packages.valory.connections.http_client.connection import HttpDialogues
