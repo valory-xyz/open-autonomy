@@ -47,4 +47,4 @@ dependencies:
     version: <1.5.0,>=1.4.0
   open-aea-ledger-cosmos: {}
   open-aea-ledger-ethereum: {}
-is_abstract: true
+is_abstract: false

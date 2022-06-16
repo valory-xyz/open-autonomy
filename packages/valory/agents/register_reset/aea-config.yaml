@@ -11,7 +11,7 @@ connections:
 - valory/abci:0.1.0:QmeP3rHLno4mykgaqdyBUnibZ3jz8GnB1mjo9fXb6uwkhs
 - valory/http_client:0.1.0:QmWLBDpdcz8idNdqobjBC6ykJCSEpHCjcC1mAoAdJPzmQh
 - valory/ledger:0.1.0:QmY9fbnunHPtfPfdFk2eUrMKg6PBhHeBWvA9ud1i4uCaFd
-- valory/p2p_libp2p_client:0.1.0:QmZkFtvqYk3mRHuKaorEscFLxnVat2Y8uttNGs8wdx6dZZ
+- valory/p2p_libp2p_client:0.1.0:QmaaYKJznzHUaccbYSMD3HvyuMiFFsNgaDDXaqiXFcop3h
 contracts: []
 protocols:
 - open_aea/signing:1.0.0:QmemReviejNSLrwWqENKL76AtoK17eG8TBbWjpwUT7L3UA
@@ -20,8 +20,8 @@ protocols:
 skills:
 - valory/abstract_abci:0.1.0:QmdJQFUTvf7izpNDLUhnnaEZ9YDo8HXbVnA68gUd14ETHX
 - valory/abstract_round_abci:0.1.0:QmeLfNoyPQ3xvN7Kh19rPVj4R6VWo1q6eYsmotVR2k12Tx
-- valory/register_reset_abci:0.1.0:QmTEVerph8aCz6qc9KMjruNEkZwAD2pYwbjNKxZ5objgKY
-- valory/registration_abci:0.1.0:QmewFKdYJMbxjhBPDDbBALcFtRpgeE6WiYXaeZyYsjkHKo
+- valory/register_reset_abci:0.1.0:QmUg96GaaNFor7gB4iiynWQ2GQUMgv8pXZ39S75gEfSgXX
+- valory/registration_abci:0.1.0:QmYHfVHF68QbAVfFhis2p69Wxj3KZ1iZxwpaxtqufURGQ6
 - valory/reset_pause_abci:0.1.0:QmfVewTKmBLGCbRGR8HfQqpnitf37o6eww29ALGxLWR2mQ
 default_ledger: ethereum
 required_ledgers:
@@ -88,3 +88,4 @@ cert_requests:
   not_before: '2021-01-01'
   public_key: ${P2P_PUBLIC_KEY:str:0250827315351f6f4d3777b77d4bfd67280156240313bf221750b36404344bb35d}
   save_path: .certs/acn_cosmos_9005.txt
+is_abstract: true

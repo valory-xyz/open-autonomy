@@ -11,7 +11,7 @@ connections:
 - valory/abci:0.1.0:QmeP3rHLno4mykgaqdyBUnibZ3jz8GnB1mjo9fXb6uwkhs
 - valory/http_client:0.1.0:QmWLBDpdcz8idNdqobjBC6ykJCSEpHCjcC1mAoAdJPzmQh
 - valory/ledger:0.1.0:QmY9fbnunHPtfPfdFk2eUrMKg6PBhHeBWvA9ud1i4uCaFd
-- valory/p2p_libp2p_client:0.1.0:QmZkFtvqYk3mRHuKaorEscFLxnVat2Y8uttNGs8wdx6dZZ
+- valory/p2p_libp2p_client:0.1.0:QmaaYKJznzHUaccbYSMD3HvyuMiFFsNgaDDXaqiXFcop3h
 contracts:
 - valory/gnosis_safe:0.1.0:QmRNdXGRRQBMFXh5ZvtJeYvHt7559kV5r5EYU5JNUdRBKJ
 - valory/gnosis_safe_proxy_factory:0.1.0:QmVkZtrgZ2ievXAonq9z33qbrxHi8piVGptuCGaGJYS1iM
@@ -28,10 +28,10 @@ protocols:
 skills:
 - valory/abstract_abci:0.1.0:QmdJQFUTvf7izpNDLUhnnaEZ9YDo8HXbVnA68gUd14ETHX
 - valory/abstract_round_abci:0.1.0:QmeLfNoyPQ3xvN7Kh19rPVj4R6VWo1q6eYsmotVR2k12Tx
-- valory/oracle_abci:0.1.0:QmWJHShyrfSoUX9agJBX4YnWP7oKNfBbb3kgCcXw1S1jgQ
+- valory/oracle_abci:0.1.0:QmdFoLiSswtvXp6Hp1tZtrt5csgFSPkZEmrmPjaASXhgGH
 - valory/oracle_deployment_abci:0.1.0:QmWK8S4mNvythfQHCpEduk9FwRYLxZp3HGaWzrLg69R199
 - valory/price_estimation_abci:0.1.0:QmedCC4dq4b9SgiXbqHrYWW99huk31ks1ZQWxCtDCvU6Av
-- valory/registration_abci:0.1.0:QmewFKdYJMbxjhBPDDbBALcFtRpgeE6WiYXaeZyYsjkHKo
+- valory/registration_abci:0.1.0:QmYHfVHF68QbAVfFhis2p69Wxj3KZ1iZxwpaxtqufURGQ6
 - valory/reset_pause_abci:0.1.0:QmfVewTKmBLGCbRGR8HfQqpnitf37o6eww29ALGxLWR2mQ
 - valory/safe_deployment_abci:0.1.0:QmWBZo1E4aqJiGBAGKRFqysCUQiytghZ4to9nvH9MBzgXo
 - valory/transaction_settlement_abci:0.1.0:Qme7MuaL8n4eVLKUm7jAw9N33SKWqhVoX922p4UfFgx9tC
@@ -131,3 +131,4 @@ cert_requests:
   not_before: '2021-01-01'
   public_key: ${P2P_PUBLIC_KEY:str:0250827315351f6f4d3777b77d4bfd67280156240313bf221750b36404344bb35d}
   save_path: .certs/acn_cosmos_9005.txt
+is_abstract: true

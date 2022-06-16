@@ -9,6 +9,7 @@ fingerprint:
 fingerprint_ignore_patterns: []
 connections:
 - valory/abci:0.1.0:QmeP3rHLno4mykgaqdyBUnibZ3jz8GnB1mjo9fXb6uwkhs
+- valory/p2p_libp2p_client:0.1.0:QmaaYKJznzHUaccbYSMD3HvyuMiFFsNgaDDXaqiXFcop3h
 contracts: []
 protocols:
 - open_aea/signing:1.0.0:QmemReviejNSLrwWqENKL76AtoK17eG8TBbWjpwUT7L3UA
@@ -56,3 +57,19 @@ config:
 public_id: valory/abstract_abci:0.1.0
 type: skill
 is_abstract: false
+---
+public_id: valory/p2p_libp2p_client:0.1.0
+type: connection
+config:
+  nodes:
+  - uri: ${P2P_URI:str:staging.acn.autonolas.tech:9005}
+    public_key: ${P2P_PUBLIC_KEY:str:0250827315351f6f4d3777b77d4bfd67280156240313bf221750b36404344bb35d}
+cert_requests:
+- identifier: acn
+  ledger_id: ethereum
+  message_format: '{public_key}'
+  not_after: '2022-01-01'
+  not_before: '2021-01-01'
+  public_key: ${P2P_PUBLIC_KEY:str:0250827315351f6f4d3777b77d4bfd67280156240313bf221750b36404344bb35d}
+  save_path: .certs/acn_cosmos_9005.txt
+is_abstract: true
