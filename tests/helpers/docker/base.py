@@ -19,6 +19,7 @@
 
 """This module contains testing utilities."""
 import logging
+import platform
 import re
 import shutil
 import subprocess  # nosec
@@ -202,6 +203,13 @@ def launch_many_containers(
         _stop_container(container, image.tag)
 
 
+def skip_docker_tests() -> bool:
+    """Returns true if the system other then Linux."""
+
+    return platform.system() != "Linux"
+
+
+@pytest.mark.skipif(skip_docker_tests())
 class DockerBaseTest(ABC):
     """Base pytest class for setting up Docker images."""
 
