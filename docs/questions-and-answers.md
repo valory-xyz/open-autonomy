@@ -1,9 +1,9 @@
 <details><summary>What is an Autonomous Service?</summary>
-An Autnonomous Service is a decentralized service that runs off-chain and provides functionalities to objects living on-chain. Autonomous Services are outside the purview and control of a single authority, and can be be designed for a variety of purposes, including acting as a decentralized oracle for smart contracts, or executing complex investing strategies that cannot be easily encoded on-chain.
+An Autonomous Service is a decentralized service that runs off-chain and provides functionalities to objects living on-chain. Autonomous Services are outside the purview and control of a single authority, and can be be designed for a variety of purposes, including acting as a decentralized oracle for smart contracts, or executing complex investing strategies that cannot be easily encoded on-chain.
 </details>
 
 <details><summary>What is an Agent Service?</summary>
-An Agent Service is an Autonomous Service which is implemented as a multi-agent system using Autonomous Economic Agents throught the <a href="https://github.com/valory-xyz/open-aea">Open AEA</a> framework.
+An Agent Service is an Autonomous Service which is implemented as a multi-agent system using Autonomous Economic Agents through the <a href="https://github.com/valory-xyz/open-aea">Open AEA</a> framework.
 </details>
 
 <details><summary>What is an FSM App?</summary>
