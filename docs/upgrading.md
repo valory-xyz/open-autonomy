@@ -5,4 +5,5 @@ Below we describe the additional manual steps required to upgrade between differ
 
 # Open Autonomy
 
-## `v0.1.0rc1` to `v0.1.0`
+## `v0.1.0rc1/2` to `v0.1.0`
+
