@@ -204,7 +204,7 @@ jobs:
             yarn
 
       - if: matrix.os == 'ubuntu-latest'
-        name: Unit tests
+        name: Unit tests ubuntu-latest
         run: |
           tox -e py${{ matrix.python-version }} -- -m 'not e2e'
 
@@ -257,7 +257,7 @@ jobs:
             yarn
 
       - if: matrix.os == 'macos-latest'
-        name: Unit tests
+        name: Unit tests macos-latest
         run: |
           tox -e py${{ matrix.python-version }}-mac -- -m 'not e2e'
 
@@ -320,7 +320,7 @@ jobs:
           cd ..\..
 
       - if: matrix.os == 'windows-latest'
-        name: Unit tests
+        name: Unit tests windows-latest
         run: |
           tox -e py${{ matrix.python-version }}-win -- -m 'not e2e'
 
