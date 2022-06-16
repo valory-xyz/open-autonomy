@@ -52,7 +52,7 @@ from packages.valory.skills.simple_abci.rounds import (
 try:
     import atheris  # type: ignore
 except (ImportError, ModuleNotFoundError):
-    pytest.skip()
+    pytestmark = pytest.mark.skip
 
 
 MAX_PARTICIPANTS: int = 4

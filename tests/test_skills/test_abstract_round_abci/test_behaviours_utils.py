@@ -38,7 +38,7 @@ import pytz  # type: ignore  # pylint: disable=import-error
 try:
     import atheris  # type: ignore
 except (ImportError, ModuleNotFoundError):
-    pytest.skip()
+    pytestmark = pytest.mark.skip
 
 
 from packages.open_aea.protocols.signing import SigningMessage

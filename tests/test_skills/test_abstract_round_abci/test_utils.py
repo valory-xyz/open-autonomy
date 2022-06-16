@@ -27,7 +27,7 @@ import pytest
 try:
     import atheris  # type: ignore
 except (ImportError, ModuleNotFoundError):
-    pytest.skip()
+    pytestmark = pytest.mark.skip
 
 from packages.valory.skills.abstract_round_abci.utils import MAX_UINT64, VerifyDrand
 

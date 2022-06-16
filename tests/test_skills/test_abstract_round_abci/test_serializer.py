@@ -37,7 +37,7 @@ from packages.valory.skills.abstract_round_abci.serializer import (
 try:
     import atheris  # type: ignore
 except (ImportError, ModuleNotFoundError):
-    pytest.skip()
+    pytestmark = pytest.mark.skip
 
 
 def test_encode_decode_i() -> None:

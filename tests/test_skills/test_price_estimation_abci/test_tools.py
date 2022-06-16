@@ -30,7 +30,7 @@ from packages.valory.skills.price_estimation_abci.behaviours import to_int
 try:
     import atheris  # type: ignore
 except (ImportError, ModuleNotFoundError):
-    pytest.skip()
+    pytestmark = pytest.mark.skip
 
 
 def test_random_selection_function() -> None:
