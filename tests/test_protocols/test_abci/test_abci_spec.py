@@ -29,18 +29,16 @@ from aea.protocols.generator.common import (
 )
 
 from packages.valory.connections import abci as tendermint_abci
-from packages.valory.connections.abci import tendermint
 
 from tests.test_protocols.test_abci.helper import (
     camel_to_snake,
     compare_trees,
     create_aea_abci_type_tree,
     decode,
-    descriptor_parser,
     encode,
     get_protocol_readme_spec,
+    get_tender_type_tree,
     get_tendermint_content,
-    get_tendermint_type_tree,
     init_aea_abci_messages,
     init_tendermint_messages,
     init_type_tree_primitives,
@@ -114,13 +112,13 @@ def test_defined_dialogues_match_abci_spec() -> None:
     """
 
     *_, dialogues = get_protocol_readme_spec()
-    message_types = descriptor_parser(tendermint.abci.types_pb2.DESCRIPTOR)
+    tender_type_tree = get_tender_type_tree()
 
     # expected
-    request_oneof = message_types["Request"]["oneofs"]["value"]
-    request_keys = {camel_to_snake(key) for key, *_ in request_oneof}
-    response_oneof = message_types["Response"]["oneofs"]["value"]
-    response_keys = {camel_to_snake(key) for key, *_ in response_oneof}
+    request_oneof = tender_type_tree["Request"][-1]
+    request_keys = {camel_to_snake(cls.__name__) for cls, _ in request_oneof.values()}
+    response_oneof = tender_type_tree["Response"][-1]
+    response_keys = {camel_to_snake(cls.__name__) for cls, _ in response_oneof.values()}
 
     # defined
     initiation = dialogues["initiation"]
@@ -199,7 +197,7 @@ def test_tendermint_decoding() -> None:
     """Test Tendermint ABCI message decoding"""
 
     # 1. create tendermint type tree
-    tender_type_tree = get_tendermint_type_tree()
+    tender_type_tree = get_tender_type_tree()
 
     # 2. initialize messages
     messages = init_tendermint_messages(tender_type_tree)
