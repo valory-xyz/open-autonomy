@@ -32,7 +32,7 @@ from tests.test_autonomy.test_cli.base import BaseCliTest
 
 try:
     import docker
-except (ImportError, ModuleNotFoundError):
+except Exception:  # pylint: disable=broad-except
     pytestmark = pytest.mark.skip
 
 
