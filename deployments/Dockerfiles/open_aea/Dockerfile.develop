@@ -14,7 +14,7 @@ RUN sudo apt remove --purge python3-virtualenv
 
 RUN python -m pip install --upgrade pip
 RUN python -m pip install --force-reinstall pipenv virtualenv --user
-
+RUN python -m pip uninstall -y setuptools
 WORKDIR /home/ubuntu
 COPY Pipfile.dev /home/ubuntu/Pipfile
 
@@ -23,14 +23,6 @@ COPY start.sh /home/ubuntu/start.sh
 COPY watcher.py /home/ubuntu/watcher.py
 
 CMD ["./start_dev.sh"]
-
-RUN mkdir .venv
-RUN mkdir .venv/bin
-RUN mkdir .venv/local
-WORKDIR .venv/local
-RUN ln -s ../bin
-
-WORKDIR /home/ubuntu
 
 HEALTHCHECK --interval=3s --timeout=600s --retries=600 CMD netstat -ltn | grep -c 26658 > /dev/null; if [ 0 != $? ]; then exit 1; fi;
 
