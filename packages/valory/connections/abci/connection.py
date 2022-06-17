@@ -534,7 +534,12 @@ class TendermintNode:
         """Stop a Tendermint node process."""
         if self._process is None:
             return
-        os.killpg(os.getpgid(self._process.pid), signal.SIGTERM)
+
+        if platform.system() == "Windows":  # pragma: nocover
+            os.kill(self.p.pid, signal.CTRL_C_EVENT)
+        else:
+            os.killpg(os.getpgid(self._process.pid), signal.SIGTERM)
+
         self._process = None
         self.write_line("Tendermint process stopped\n")
 
