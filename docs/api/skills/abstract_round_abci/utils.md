@@ -16,7 +16,7 @@ Tool to verify Randomness retrieved from various external APIs.
 
 The ciphersuite used is BLS_SIG_BLS12381G2_XMD:SHA-256_SSWU_RO_NUL_
 
-https://drand.love/docs/specification/`cryptographic`-specification
+cryptographic-specification section in https://drand.love/docs/specification/
 https://github.com/ethereum/py_ecc
 
 <a id="packages.valory.skills.abstract_round_abci.utils.VerifyDrand.verify"></a>
@@ -31,7 +31,7 @@ Verify drand value retried from external APIs.
 
 **Arguments**:
 
-               https://drand.love/developer/http-api/`public`-endpoints
+               public-endpoints section in https://drand.love/developer/http-api/
 - `data`: dictionary containing drand parameters.
 - `pubkey`: league of entropy public key
 
