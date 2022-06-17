@@ -17,13 +17,13 @@ fingerprint:
   rounds.py: QmaH6aihxSJpKcmF6gAPxzqmb4GL8VJZnJwkUDRnPR3xv7
 fingerprint_ignore_patterns: []
 connections:
-- valory/abci:0.1.0:QmPh4wMNeVHttRnj73xgFDrbSfvuXEFq4p8WNyZus3HNCd
+- valory/abci:0.1.0:Qmeh3aYYvsAvx3YDr3fg8heURNPmnYVEHN2sZjhs5AwSbi
 contracts: []
 protocols:
 - open_aea/signing:1.0.0:QmemReviejNSLrwWqENKL76AtoK17eG8TBbWjpwUT7L3UA
 - valory/abci:0.1.0:QmRXBoBaTYNcpe98SqYJmKVXm6eFfYeS9yuKz7mzzYawNG
 skills:
-- valory/abstract_round_abci:0.1.0:QmNqf53Z3K7N6vZYpy72AYVkHM2XUzeEkEkdxnWN2ZCCSw
+- valory/abstract_round_abci:0.1.0:QmdCaMjBxB7WPqDRdv7n4wCTW1yd1HZthEdwwX9gMXLtJT
 behaviours:
   main:
     args: {}
