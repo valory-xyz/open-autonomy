@@ -321,7 +321,7 @@ class TestRegistrationStartupBehaviour(RegistrationAbciBaseCase):
         """Test service registry contract address not provided"""
         with caplog.at_level(
             logging.INFO,
-            logger="aea.test_agent_name.packages.valory.skills.registration_abci",
+            logger=self.logger,
         ):
             self.behaviour.act_wrapper()
             self.mock_get_local_tendermint_params()
