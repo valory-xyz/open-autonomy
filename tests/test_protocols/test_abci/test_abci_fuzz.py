@@ -21,7 +21,7 @@
 
 from typing import Any, Callable, Dict
 
-from hypothesis import given
+from hypothesis import given, settings
 from hypothesis import strategies as st
 from hypothesis.strategies._internal.lazy import SearchStrategy
 
@@ -251,6 +251,7 @@ def list_to_tuple(node: Node) -> Node:
 def make_aea_test_method(message_key: str, strategy: Node) -> Callable:
     """Dynamically create AEA test"""
 
+    @settings(deadline=2000)
     @given(st.fixed_dictionaries({message_key: strategy}))
     def test_method(self: Any, conjecture: Node) -> None:
         key = list(conjecture)[0]
@@ -318,6 +319,7 @@ def create_tendermint_hypotheses() -> Node:
 def make_tendermint_test_method(message_key: str, strategy: Node) -> Callable:
     """Dynamically create Tendermint test"""
 
+    @settings(deadline=2000)
     @given(st.fixed_dictionaries({message_key: strategy}))
     def test_method(self: Any, conjecture: Node) -> None:
 
