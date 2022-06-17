@@ -150,10 +150,6 @@ class RegistrationStartupBehaviour(RegistrationBaseBehaviour):
         request_update = "Request update Tendermint node configuration"
         response_update = "Response update Tendermint node configuration"
         failed_update = "Failed update Tendermint node configuration"
-        # restart tendermint node
-        request_restart = "Request restart Tendermint node"
-        response_restart = "Response restart Tendermint node"
-        failed_restart = "Failed restart Tendermint node"
         # exceptions
         no_contract_address = "Service registry contract address not provided"
         contract_incorrect = "Service registry contract not correctly deployed"
@@ -176,11 +172,6 @@ class RegistrationStartupBehaviour(RegistrationBaseBehaviour):
     def tendermint_parameter_url(self) -> str:
         """Tendermint URL for obtaining and updating parameters"""
         return f"{self.params.tendermint_com_url}/params"
-
-    @property
-    def tendermint_hard_reset_url(self) -> str:
-        """Tendermint URL for hard reset of Tendermint"""
-        return f"{self.params.tendermint_com_url}/hard_reset"
 
     def is_correct_contract(self) -> Generator[None, None, bool]:
         """Contract deployment verification."""
@@ -341,23 +332,6 @@ class RegistrationStartupBehaviour(RegistrationBaseBehaviour):
             self.context.logger.info(f"{log_message}: {error}")
             return False
 
-    def restart_tendermint(self) -> Generator[None, None, bool]:
-        """Restart up local Tendermint node"""
-
-        url = self.tendermint_hard_reset_url
-        log_message = self.LogMessages.request_restart
-        self.context.logger.info(f"{log_message}: {url}")
-        result = yield from self.get_http_response(method="GET", url=url)
-        try:
-            response = json.loads(result.body.decode())
-            log_message = self.LogMessages.response_restart
-            self.context.logger.info(f"{log_message}: {response}")
-            return True
-        except json.JSONDecodeError as error:
-            log_message = self.LogMessages.failed_restart
-            self.context.logger.error(f"{log_message}: {error}")
-            return False
-
     def async_act(self) -> Generator:
         """Act asynchronously"""
 
@@ -396,7 +370,7 @@ class RegistrationStartupBehaviour(RegistrationBaseBehaviour):
                 return
 
         # restart Tendermint with updated configuration
-        successful = yield from self.restart_tendermint()
+        successful = yield from self.reset_tendermint_with_wait(on_startup=True)
         if not successful:
             yield from self.sleep(self.params.sleep_time)
             return
