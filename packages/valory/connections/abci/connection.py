@@ -21,6 +21,7 @@ import asyncio
 import json
 import logging
 import os
+import platform
 import signal
 import subprocess  # nosec
 from asyncio import AbstractEventLoop, AbstractServer, CancelledError, Task
@@ -500,16 +501,28 @@ class TendermintNode:
             return
         cmd = self._build_node_command()
 
-        self._process = (
-            subprocess.Popen(  # nosec # pylint: disable=consider-using-with,W1509
-                cmd,
-                preexec_fn=os.setsid,  # stdout=file
-                stdout=subprocess.PIPE,
-                stderr=subprocess.STDOUT,
-                bufsize=1,
-                universal_newlines=True,
+        if platform.system() == "Windows":  # pragma: nocover
+            self._process = (
+                subprocess.Popen(  # nosec # pylint: disable=consider-using-with,W1509
+                    cmd,
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.STDOUT,
+                    bufsize=1,
+                    universal_newlines=True,
+                    creationflags=subprocess.CREATE_NEW_PROCESS_GROUP,
+                )
             )
-        )
+        else:
+            self._process = (
+                subprocess.Popen(  # nosec # pylint: disable=consider-using-with,W1509
+                    cmd,
+                    preexec_fn=os.setsid,
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.STDOUT,
+                    bufsize=1,
+                    universal_newlines=True,
+                )
+            )
         self.write_line("Tendermint process started\n")
 
     def _start_monitoring_thread(self) -> None:

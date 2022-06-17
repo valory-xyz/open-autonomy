@@ -177,7 +177,6 @@ class TendermintNode:
                     universal_newlines=True,
                 )
             )
-
         self.write_line("Tendermint process started\n")
 
     def _start_monitoring_thread(self) -> None:
