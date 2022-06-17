@@ -22,6 +22,7 @@
 from typing import Any, Dict
 
 import hypothesis
+import pytest
 from hypothesis import given
 from hypothesis import strategies as st
 from hypothesis.strategies._internal.lazy import LazyStrategy, SearchStrategy
@@ -240,6 +241,7 @@ def init_abci_messages(type_tree: Node, init_tree: Node) -> Node:
 
 
 # 4. Run hypotheses trees with valid strategies
+@pytest.mark.skip  # Work in progress test
 @given(create_aea_hypotheses())
 @hypothesis.settings(deadline=500)
 def test_aea_to_tendermint_hypotheses(strategy: Dict[str, LazyStrategy]) -> None:
