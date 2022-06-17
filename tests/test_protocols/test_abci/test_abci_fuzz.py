@@ -248,12 +248,6 @@ def list_to_tuple(node: Node) -> Node:
     return node
 
 
-aea_protocol, *_ = get_protocol_readme_spec()
-speech_acts = aea_protocol["speech_acts"]
-type_tree = create_aea_abci_type_tree(speech_acts)
-type_tree.pop("dummy")
-
-
 def make_aea_test_method(message_key: str, strategy: Node) -> Callable:
     """Dynamically create AEA test"""
 
