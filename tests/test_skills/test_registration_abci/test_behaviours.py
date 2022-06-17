@@ -460,7 +460,7 @@ class TestRegistrationStartupBehaviour(RegistrationAbciBaseCase):
             self.mock_is_correct_contract()
             self.mock_get_service_info(*self.agent_instances)
             self.mock_get_tendermint_info(*self.other_agents)
-            self.mock_tendermint_update(valid_response=valid_response)
+            self.mock_tendermint_update(valid_response)
             assert log_message.value in caplog.text
 
     @pytest.mark.parametrize("valid_response", [True, False])
