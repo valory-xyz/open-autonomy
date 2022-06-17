@@ -25,14 +25,16 @@ import string
 from typing import Tuple
 
 import pytest
+import docker
 
+from docker.errors import DockerException
 from tests.conftest import ROOT_DIR
 from tests.test_autonomy.test_cli.base import BaseCliTest
 
 
 try:
-    import docker
-except Exception:  # pylint: disable=broad-except
+    docker.APIClient()
+except DockerException:
     pytestmark = pytest.mark.skip
 
 
