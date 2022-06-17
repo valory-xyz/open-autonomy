@@ -468,23 +468,25 @@ class TestRegistrationStartupBehaviour(RegistrationAbciBaseCase):
         self, valid_response: bool, caplog: LogCaptureFixture
     ) -> None:
         """Test Tendermint start"""
-        with mock.patch.object(
-            self.behaviour.current_behaviour,
-            "reset_tendermint_with_wait",
-            side_effect=self.dummy_reset_tendermint_with_wait_wrapper(valid_response),
+        with as_context(
+            caplog.at_level(logging.INFO, logger=self.logger),
+            self.mocked_service_registry_address,
+            self.mocked_on_chain_service_id,
+            mock.patch.object(
+                self.behaviour.current_behaviour,
+                "reset_tendermint_with_wait",
+                side_effect=self.dummy_reset_tendermint_with_wait_wrapper(
+                    valid_response
+                ),
+            ),
         ):
-            with as_context(
-                caplog.at_level(logging.INFO, logger=self.logger),
-                self.mocked_service_registry_address,
-                self.mocked_on_chain_service_id,
-            ):
-                self.behaviour.act_wrapper()
-                self.mock_get_local_tendermint_params()
-                self.mock_is_correct_contract()
-                self.mock_get_service_info(*self.agent_instances)
-                self.mock_get_tendermint_info(*self.other_agents)
-                self.mock_tendermint_update()
-                self.behaviour.act_wrapper()
+            self.behaviour.act_wrapper()
+            self.mock_get_local_tendermint_params()
+            self.mock_is_correct_contract()
+            self.mock_get_service_info(*self.agent_instances)
+            self.mock_get_tendermint_info(*self.other_agents)
+            self.mock_tendermint_update()
+            self.behaviour.act_wrapper()
 
 
 class TestRegistrationStartupBehaviourNoConfigShare(BaseRegistrationTestBehaviour):
