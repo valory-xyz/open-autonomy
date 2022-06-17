@@ -692,7 +692,7 @@ the contract api response
 #### reset`_`tendermint`_`with`_`wait
 
 ```python
-def reset_tendermint_with_wait() -> Generator[None, None, bool]
+def reset_tendermint_with_wait(on_startup: bool = False) -> Generator[None, None, bool]
 ```
 
 Resets the tendermint node.
