@@ -19,7 +19,7 @@
 
 """Test random initializations of ABCI Message content"""
 
-from typing import Any, Dict
+from typing import Any, Callable, Dict
 
 from hypothesis import given
 from hypothesis import strategies as st
@@ -224,7 +224,7 @@ def create_aea_hypotheses() -> Any:
                 node[k] = st.fixed_dictionaries(collapse(v))
         return node
 
-    return collapse(hypo_tree)  # st.fixed_dictionaries(collapse(hypo_tree))
+    return collapse(hypo_tree)
 
 
 def init_abci_messages(type_tree: Node, init_tree: Node) -> Node:
@@ -254,11 +254,11 @@ type_tree = create_aea_abci_type_tree(speech_acts)
 type_tree.pop("dummy")
 
 
-def make_aea_test_method(message_key, strategy):
+def make_aea_test_method(message_key: str, strategy: Node) -> Callable:
     """Dynamically create AEA test"""
 
     @given(st.fixed_dictionaries({message_key: strategy}))
-    def method(self, conjecture):
+    def test_method(self: Any, conjecture: Node) -> None:
         key = list(conjecture)[0]
         performative = getattr(AbciMessage.Performative, key.upper())
         message = AbciMessage(performative, **list_to_tuple(conjecture)[key])
@@ -268,7 +268,7 @@ def make_aea_test_method(message_key, strategy):
         else:
             assert get_tendermint_content(encoded) is not None
 
-    return method
+    return test_method
 
 
 class TestAeaHypotheses:
@@ -321,11 +321,11 @@ def create_tendermint_hypotheses() -> Node:
     return tender_hypo_tree
 
 
-def make_tendermint_test_method(message_key, strategy):
+def make_tendermint_test_method(message_key: str, strategy: Node) -> Callable:
     """Dynamically create Tendermint test"""
 
     @given(st.fixed_dictionaries({message_key: strategy}))
-    def test_method(self, conjecture):
+    def test_method(self: Any, conjecture: Node) -> None:
 
         request = Request(**conjecture)
         assert decode(request)
