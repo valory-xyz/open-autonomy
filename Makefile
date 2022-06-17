@@ -327,7 +327,10 @@ run-deploy:
 		kubectl create secret generic regcred \
           --from-file=.dockerconfigjson=/home/$(shell whoami)/.docker/config.json \
           --type=kubernetes.io/dockerconfigjson -n ${VERSION} || (echo "failed to create secret" && exit 1)
-		cd abci_build/ && kubectl apply -f build.yaml -n ${VERSION} && exit 0
+		cd abci_build/ && \
+			kubectl apply -f build.yaml -n ${VERSION} && \
+			kubectl apply -f agent_keys/ -n ${VERSION} && \
+			exit 0
 	fi
 	echo "Please ensure you have set the environment variable 'DEPLOYMENT_TYPE'"
 	exit 1
