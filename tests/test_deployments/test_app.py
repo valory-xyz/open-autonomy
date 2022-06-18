@@ -21,6 +21,7 @@
 
 import logging
 import os
+import platform
 import shutil
 import socket
 import stat
@@ -32,6 +33,7 @@ from pathlib import Path
 from typing import Any, Callable, List
 
 import flask
+import pytest
 import requests
 
 from deployments.Dockerfiles.localnode.app import (  # type: ignore
@@ -219,6 +221,9 @@ class TestTendermintServerApp(BaseTendermintServerTest):
             response = client.get("/non_existing_endpoint")
             assert response.status_code == 404
 
+    @pytest.mark.skipif(
+        platform.system() == "Windows"
+    )  # this endpoint makes request to the local tendermint node using address 0.0.0.0 which does not work on windows
     @wait_for_node_to_run
     def test_get_app_hash(self) -> None:
         """Test get app hash"""
