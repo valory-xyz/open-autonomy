@@ -7,7 +7,7 @@ This is a protocol for interacting with an ABCI client/server requests and respo
 ## Specification
 
 The specification is inspired from
-[the Protobuf file `types.proto` for the ABCI protocol](https://github.com/tendermint/tendermint/blob/v0.34.11/proto/tendermint/abci/types.proto).
+[the Protobuf file `types.proto` for the ABCI protocol](https://github.com/tendermint/tendermint/blob/v0.34.19/proto/tendermint/abci/types.proto).
 
 ```yaml
 ---
@@ -19,21 +19,21 @@ license: Apache-2.0
 aea_version: '>=1.0.0, <2.0.0'
 protocol_specification_id: valory/abci:0.1.0
 speech_acts:
-  # https://github.com/tendermint/tendermint/blob/v0.34.11/proto/tendermint/abci/types.proto#L42
+  # https://github.com/tendermint/tendermint/blob/v0.34.19/proto/tendermint/abci/types.proto#L42
   request_echo:
     message: pt:str
-  # https://github.com/tendermint/tendermint/blob/v0.34.11/proto/tendermint/abci/types.proto#L46
+  # https://github.com/tendermint/tendermint/blob/v0.34.19/proto/tendermint/abci/types.proto#L46
   request_flush: {}
-  # https://github.com/tendermint/tendermint/blob/v0.34.11/proto/tendermint/abci/types.proto#L48
+  # https://github.com/tendermint/tendermint/blob/v0.34.19/proto/tendermint/abci/types.proto#L48
   request_info:
     version: pt:str
     block_version: pt:int
     p2p_version: pt:int
-  # https://github.com/tendermint/tendermint/blob/v0.34.11/proto/tendermint/abci/types.proto#L55
+  # https://github.com/tendermint/tendermint/blob/v0.34.19/proto/tendermint/abci/types.proto#L55
   request_set_option:
     option_key: pt:str
     option_value: pt:str
-  # https://github.com/tendermint/tendermint/blob/v0.34.11/proto/tendermint/abci/types.proto#L60
+  # https://github.com/tendermint/tendermint/blob/v0.34.19/proto/tendermint/abci/types.proto#L60
   request_init_chain:
     time: ct:Timestamp
     chain_id: pt:str
@@ -41,42 +41,42 @@ speech_acts:
     validators: ct:ValidatorUpdates      
     app_state_bytes: pt:bytes
     initial_height: pt:int
-  # https://github.com/tendermint/tendermint/blob/v0.34.11/proto/tendermint/abci/types.proto#L70
+  # https://github.com/tendermint/tendermint/blob/v0.34.19/proto/tendermint/abci/types.proto#L70
   request_query:
     query_data: pt:bytes
     path: pt:str
     height: pt:int
     prove: pt:bool
-  # https://github.com/tendermint/tendermint/blob/v0.34.11/proto/tendermint/abci/types.proto#L77
+  # https://github.com/tendermint/tendermint/blob/v0.34.19/proto/tendermint/abci/types.proto#L77
   request_begin_block:
     hash: pt:bytes
     header: ct:Header
     last_commit_info: ct:LastCommitInfo
     byzantine_validators: ct:Evidences
-  # https://github.com/tendermint/tendermint/blob/v0.34.11/proto/tendermint/abci/types.proto#L89
+  # https://github.com/tendermint/tendermint/blob/v0.34.19/proto/tendermint/abci/types.proto#L89
   request_check_tx:
     tx: pt:bytes
     type: ct:CheckTxType   
-  # https://github.com/tendermint/tendermint/blob/v0.34.11/proto/tendermint/abci/types.proto#L94
+  # https://github.com/tendermint/tendermint/blob/v0.34.19/proto/tendermint/abci/types.proto#L94
   request_deliver_tx:
     tx: pt:bytes
-  # https://github.com/tendermint/tendermint/blob/v0.34.11/proto/tendermint/abci/types.proto#L98
+  # https://github.com/tendermint/tendermint/blob/v0.34.19/proto/tendermint/abci/types.proto#L98
   request_end_block:
     height: pt:int
-  # https://github.com/tendermint/tendermint/blob/v0.34.11/proto/tendermint/abci/types.proto#L102
+  # https://github.com/tendermint/tendermint/blob/v0.34.19/proto/tendermint/abci/types.proto#L102
   request_commit: {}
-  # https://github.com/tendermint/tendermint/blob/v0.34.11/proto/tendermint/abci/types.proto#L105
+  # https://github.com/tendermint/tendermint/blob/v0.34.19/proto/tendermint/abci/types.proto#L105
   request_list_snapshots: {}
-  # https://github.com/tendermint/tendermint/blob/v0.34.11/proto/tendermint/abci/types.proto#L109
+  # https://github.com/tendermint/tendermint/blob/v0.34.19/proto/tendermint/abci/types.proto#L109
   request_offer_snapshot:
     snapshot: ct:Snapshot  # snapshot offered by peers
     app_hash: pt:bytes     # light client-verified app hash for snapshot height
-  # https://github.com/tendermint/tendermint/blob/v0.34.11/proto/tendermint/abci/types.proto#L115
+  # https://github.com/tendermint/tendermint/blob/v0.34.19/proto/tendermint/abci/types.proto#L115
   request_load_snapshot_chunk:
     height: pt:int
     format: pt:int
     chunk_index: pt:int
-  # https://github.com/tendermint/tendermint/blob/v0.34.11/proto/tendermint/abci/types.proto#L115
+  # https://github.com/tendermint/tendermint/blob/v0.34.19/proto/tendermint/abci/types.proto#L115
   request_apply_snapshot_chunk:
     index: pt:int
     chunk: pt:bytes
@@ -85,29 +85,29 @@ speech_acts:
   response_exception: {
     error: pt:str
   }
-  # https://github.com/tendermint/tendermint/blob/v0.34.11/proto/tendermint/abci/types.proto#L157
+  # https://github.com/tendermint/tendermint/blob/v0.34.19/proto/tendermint/abci/types.proto#L157
   response_echo:
     message: pt:str
-  # https://github.com/tendermint/tendermint/blob/v0.34.11/proto/tendermint/abci/types.proto#L161
+  # https://github.com/tendermint/tendermint/blob/v0.34.19/proto/tendermint/abci/types.proto#L161
   response_flush: {}
-  # https://github.com/tendermint/tendermint/blob/v0.34.11/proto/tendermint/abci/types.proto#L163
+  # https://github.com/tendermint/tendermint/blob/v0.34.19/proto/tendermint/abci/types.proto#L163
   response_info:
     info_data: pt:str
     version: pt:str
     app_version: pt:int
     last_block_height: pt:int
     last_block_app_hash: pt:bytes
-  # https://github.com/tendermint/tendermint/blob/v0.34.11/proto/tendermint/abci/types.proto#L181
+  # https://github.com/tendermint/tendermint/blob/v0.34.19/proto/tendermint/abci/types.proto#L174
   response_set_option:
     code: pt:int
     log: pt:str
     info: pt:str
-  # https://github.com/tendermint/tendermint/blob/v0.34.11/proto/tendermint/abci/types.proto#L181
+  # https://github.com/tendermint/tendermint/blob/v0.34.19/proto/tendermint/abci/types.proto#L181
   response_init_chain:
     consensus_params: pt:optional[ct:ConsensusParams]
     validators: ct:ValidatorUpdates      
     app_hash: pt:bytes
-  # https://github.com/tendermint/tendermint/blob/v0.34.11/proto/tendermint/abci/types.proto#L187
+  # https://github.com/tendermint/tendermint/blob/v0.34.19/proto/tendermint/abci/types.proto#L187
   response_query:
     code: pt:int
     log: pt:str
@@ -118,10 +118,10 @@ speech_acts:
     proof_ops: ct:ProofOps
     height: pt:int
     codespace: pt:str
-  # https://github.com/tendermint/tendermint/blob/v0.34.11/proto/tendermint/abci/types.proto#L200
+  # https://github.com/tendermint/tendermint/blob/v0.34.19/proto/tendermint/abci/types.proto#L200
   response_begin_block:
     events: ct:Events
-  # https://github.com/tendermint/tendermint/blob/v0.34.11/proto/tendermint/abci/types.proto#L205
+  # https://github.com/tendermint/tendermint/blob/v0.34.19/proto/tendermint/abci/types.proto#L205
   response_check_tx:
     code: pt:int
     data: pt:bytes
@@ -131,7 +131,7 @@ speech_acts:
     gas_used: pt:int
     events: ct:Events
     codespace: pt:str
-  # https://github.com/tendermint/tendermint/blob/v0.34.11/proto/tendermint/abci/types.proto#L217
+  # https://github.com/tendermint/tendermint/blob/v0.34.19/proto/tendermint/abci/types.proto#L217
   response_deliver_tx:
     code: pt:int
     data: pt:bytes
@@ -141,25 +141,25 @@ speech_acts:
     gas_used: pt:int
     events: ct:Events
     codespace: pt:str
-  # https://github.com/tendermint/tendermint/blob/v0.34.11/proto/tendermint/abci/types.proto#L229
+  # https://github.com/tendermint/tendermint/blob/v0.34.19/proto/tendermint/abci/types.proto#L229
   response_end_block:
     validator_updates: ct:ValidatorUpdates
     consensus_param_updates: pt:optional[ct:ConsensusParams]
     events: ct:Events
-  # https://github.com/tendermint/tendermint/blob/v0.34.11/proto/tendermint/abci/types.proto#L237
+  # https://github.com/tendermint/tendermint/blob/v0.34.19/proto/tendermint/abci/types.proto#L237
   response_commit:
     data: pt:bytes
     retain_height: pt:int
-  # https://github.com/tendermint/tendermint/blob/v0.34.11/proto/tendermint/abci/types.proto#L243
+  # https://github.com/tendermint/tendermint/blob/v0.34.19/proto/tendermint/abci/types.proto#L243
   response_list_snapshots:
     snapshots: ct:SnapShots
-  # https://github.com/tendermint/tendermint/blob/v0.34.11/proto/tendermint/abci/types.proto#L247
+  # https://github.com/tendermint/tendermint/blob/v0.34.19/proto/tendermint/abci/types.proto#L247
   response_offer_snapshot:
     result: ct:Result
-  # https://github.com/tendermint/tendermint/blob/v0.34.11/proto/tendermint/abci/types.proto#L260
+  # https://github.com/tendermint/tendermint/blob/v0.34.19/proto/tendermint/abci/types.proto#L260
   response_load_snapshot_chunk:
     chunk: pt:bytes
-  # https://github.com/tendermint/tendermint/blob/v0.34.11/proto/tendermint/abci/types.proto#L264
+  # https://github.com/tendermint/tendermint/blob/v0.34.19/proto/tendermint/abci/types.proto#L264
   response_apply_snapshot_chunk:
     result: ct:Result
     refetch_chunks: pt:list[pt:int]  # Chunks to refetch and reapply
@@ -169,7 +169,7 @@ speech_acts:
     dummy_consensus_params: ct:ConsensusParams
 ...
 ---
-# https://github.com/tendermint/tendermint/blob/v0.34.11/proto/tendermint/abci/types.proto#L284
+# https://github.com/tendermint/tendermint/blob/v0.34.19/proto/tendermint/abci/types.proto#L284
 ct:ConsensusParams: |
   message Duration {
     int64 seconds = 1;
@@ -224,7 +224,7 @@ ct:ProofOps: |
     bytes  data = 3;
   }
   repeated ProofOp ops = 1;
-# https://github.com/tendermint/tendermint/blob/v0.34.11/proto/tendermint/types/types.proto#L58
+# https://github.com/tendermint/tendermint/blob/v0.34.19/proto/tendermint/types/types.proto#L58
 ct:Header: |
   message ConsensusVersion {
     uint64 block = 1;
