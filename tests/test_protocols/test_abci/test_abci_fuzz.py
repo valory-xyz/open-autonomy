@@ -313,6 +313,7 @@ def create_tendermint_hypotheses() -> SearchStrategy:
     return st.fixed_dictionaries(tender_hypo_tree)
 
 
+@pytest.mark.skip  # Work in progress test
 @given(create_tendermint_hypotheses())
 @hypothesis.settings(deadline=500)
 def test_tendermint_to_aea_hypotheses(strategy: Dict[str, LazyStrategy]) -> None:

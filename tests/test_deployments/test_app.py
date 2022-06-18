@@ -50,6 +50,7 @@ from deployments.Dockerfiles.localnode.tendermint import (  # type: ignore
 ENCODING = "utf-8"
 VERSION = "0.34.11"
 HTTP = "http://"
+LOOPBACK = "127.0.0.1"
 
 parse_result = urllib.parse.urlparse(DEFAULT_RPC_LISTEN_ADDRESS)  # type: ignore
 IP, PORT = parse_result.hostname, parse_result.port
@@ -75,11 +76,11 @@ def wait_for_node_to_run(func: Callable) -> Callable:
 
     def wrapper(*args: Any, **kwargs: Any) -> Any:
         i, max_retries = 0, 5
-        while not port_is_open(IP, PORT) and i < max_retries:
+        while not port_is_open(LOOPBACK, PORT) and i < max_retries:
             logging.debug(f"waiting for node... t={i}")
             i += 1
             time.sleep(1)
-        response = requests.get(f"{HTTP}{IP}:{PORT}/status")
+        response = requests.get(f"{HTTP}{LOOPBACK}:{PORT}/status")
         success = response.status_code == 200
         assert success, "Tendermint node not running"
         func(*args, **kwargs)
@@ -210,7 +211,7 @@ class TestTendermintServerApp(BaseTendermintServerTest):
     @wait_for_node_to_run
     def test_get_request_status(self) -> None:
         """Check local node is running"""
-        response = requests.get(f"{HTTP}{IP}:{PORT}/status")
+        response = requests.get(f"{HTTP}{LOOPBACK}:{PORT}/status")
         data = response.json()
         assert data["result"]["node_info"]["version"] == VERSION
 
