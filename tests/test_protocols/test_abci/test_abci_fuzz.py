@@ -21,13 +21,8 @@
 
 from typing import Any, Callable, Dict
 
-<<<<<<< HEAD
-import hypothesis
-import pytest
 from hypothesis import given
-=======
 from hypothesis import given, settings
->>>>>>> main
 from hypothesis import strategies as st
 from hypothesis.strategies._internal.lazy import SearchStrategy
 
