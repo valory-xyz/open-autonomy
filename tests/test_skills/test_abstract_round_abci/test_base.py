@@ -23,6 +23,7 @@ import re
 from abc import ABC
 from copy import copy
 from enum import Enum
+from time import sleep
 from typing import Any, Dict, Optional, Set, Tuple, Type
 from unittest import mock
 from unittest.mock import MagicMock
@@ -1016,6 +1017,8 @@ class TestTimeouts:
         deadline_1 = datetime.datetime.now()
         event_1 = MagicMock()
 
+        sleep(0.5)
+
         deadline_2 = datetime.datetime.now()
         event_2 = MagicMock()
         assert deadline_1 < deadline_2
@@ -1062,6 +1065,8 @@ class TestTimeouts:
         """Test the 'pop_timeout' method."""
         deadline_1 = datetime.datetime.now()
         event_1 = MagicMock()
+
+        sleep(0.5)
 
         deadline_2 = datetime.datetime.now()
         event_2 = MagicMock()
