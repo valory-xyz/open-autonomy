@@ -19,12 +19,11 @@
 
 """Test random initializations of ABCI Message content"""
 
-from typing import Any, Dict
+from typing import Any, Callable, Dict
 
-import hypothesis
-from hypothesis import given
+from hypothesis import given, settings
 from hypothesis import strategies as st
-from hypothesis.strategies._internal.lazy import LazyStrategy, SearchStrategy
+from hypothesis.strategies._internal.lazy import SearchStrategy
 
 from tests.test_protocols.test_abci.helper import (
     AbciMessage,
@@ -225,7 +224,7 @@ def create_aea_hypotheses() -> Any:
                 node[k] = st.fixed_dictionaries(collapse(v))
         return node
 
-    return st.fixed_dictionaries(collapse(hypo_tree))
+    return collapse(hypo_tree)
 
 
 def init_abci_messages(type_tree: Node, init_tree: Node) -> Node:
@@ -239,35 +238,41 @@ def init_abci_messages(type_tree: Node, init_tree: Node) -> Node:
     return messages
 
 
-# 4. Run hypotheses trees with valid strategies
-@given(create_aea_hypotheses())
-@hypothesis.settings(deadline=500)
-def test_aea_to_tendermint_hypotheses(strategy: Dict[str, LazyStrategy]) -> None:
-    """Currently we check the encoding, data retrieval to be done."""
+def list_to_tuple(node: Node) -> Node:
+    """Expecting tuples instead of lists"""
+    for key, value in node.items():
+        if isinstance(value, dict):
+            list_to_tuple(value)
+        elif isinstance(value, list):
+            node[key] = tuple(value)
+    return node
 
-    def list_to_tuple(node: Node) -> Node:
-        # expecting tuples instead of lists
-        for k, v in node.items():
-            if isinstance(v, dict):
-                list_to_tuple(v)
-            elif isinstance(v, list):
-                node[k] = tuple(v)
-        return node
 
-    aea_protocol, *_ = get_protocol_readme_spec()
-    speech_acts = aea_protocol["speech_acts"]
-    type_tree = create_aea_abci_type_tree(speech_acts)
-    type_tree.pop("dummy")
+def make_aea_test_method(message_key: str, strategy: Node) -> Callable:
+    """Dynamically create AEA test"""
 
-    abci_messages = init_abci_messages(type_tree, list_to_tuple(strategy))
-    encoded = {k: encode(v) for k, v in abci_messages.items()}
-    translated = {k: v for k, v in encoded.items() if v}
-    untranslated = set(encoded).difference(translated)
-    assert all(k.startswith("request") for k in untranslated)
+    @settings(deadline=2000)
+    @given(st.fixed_dictionaries({message_key: strategy}))
+    def test_method(self: Any, conjecture: Node) -> None:
+        key = list(conjecture)[0]
+        performative = getattr(AbciMessage.Performative, key.upper())
+        message = AbciMessage(performative, **list_to_tuple(conjecture)[key])
+        encoded = encode(message)
+        if key.startswith("request"):
+            assert encoded is None
+        else:
+            assert get_tendermint_content(encoded) is not None
 
-    tender_tree = {k: get_tendermint_content(v) for k, v in translated.items()}
-    shared = set(type_tree).intersection(tender_tree)
-    assert len(shared) == 16, shared  # expected number of matches
+    return test_method
+
+
+class TestAeaHypotheses:
+    """Test AEA hypotheses"""
+
+
+aea_hypotheses = create_aea_hypotheses()
+for k, v in aea_hypotheses.items():
+    setattr(TestAeaHypotheses, f"test_{k}", make_aea_test_method(k, v))
 
 
 # tendermint fuzzing
@@ -303,19 +308,31 @@ def _init_tender_hypo_tree(tender_node: Node) -> Node:
     return node
 
 
-def create_tendermint_hypotheses() -> SearchStrategy:
+def create_tendermint_hypotheses() -> Node:
     """Create Tendermint hypotheses"""
     tender_type_tree = get_tender_type_tree()
     _, request_tree = tender_type_tree["Request"]
     tender_hypo_tree = _init_tender_hypo_tree(request_tree)
-    return st.fixed_dictionaries(tender_hypo_tree)
+    return tender_hypo_tree
 
 
-@given(create_tendermint_hypotheses())
-@hypothesis.settings(deadline=500)
-def test_tendermint_to_aea_hypotheses(strategy: Dict[str, LazyStrategy]) -> None:
-    """Test translation Tendermint- to AEA-native ABCI Messages"""
+def make_tendermint_test_method(message_key: str, strategy: Node) -> Callable:
+    """Dynamically create Tendermint test"""
 
-    messages = [Request(**{k: v}) for k, v in strategy.items()]
-    decoded = list(map(decode, messages))
-    assert len(decoded) == 15  # expected number of matches
+    @settings(deadline=2000)
+    @given(st.fixed_dictionaries({message_key: strategy}))
+    def test_method(self: Any, conjecture: Node) -> None:
+
+        request = Request(**conjecture)
+        assert decode(request)
+
+    return test_method
+
+
+class TestTendermintHypotheses:
+    """Test Tendermint hypotheses"""
+
+
+tendermint_hypotheses = create_tendermint_hypotheses()
+for k, v in tendermint_hypotheses.items():
+    setattr(TestTendermintHypotheses, f"test_{k}", make_tendermint_test_method(k, v))
