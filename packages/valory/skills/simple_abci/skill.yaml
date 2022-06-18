@@ -17,18 +17,18 @@ fingerprint:
   rounds.py: QmUBzTX4XP9w1QU1kcxA3yaXffMUz3tb17XdLNYTs14naA
 fingerprint_ignore_patterns: []
 connections:
-- valory/abci:0.1.0:QmWrMePkpqaQ9kZ5xHr9Bcz8NZAYWHRxQPNWLWZCuNK2GX
+- valory/abci:0.1.0:QmdDTkasEZkVuGbFTk1W2NSzecfv858vUvk3TCp3oNNexb
 - valory/http_client:0.1.0:QmWLBDpdcz8idNdqobjBC6ykJCSEpHCjcC1mAoAdJPzmQh
 - valory/ledger:0.1.0:QmY9fbnunHPtfPfdFk2eUrMKg6PBhHeBWvA9ud1i4uCaFd
 contracts: []
 protocols:
 - open_aea/signing:1.0.0:QmemReviejNSLrwWqENKL76AtoK17eG8TBbWjpwUT7L3UA
-- valory/abci:0.1.0:QmRXBoBaTYNcpe98SqYJmKVXm6eFfYeS9yuKz7mzzYawNG
+- valory/abci:0.1.0:QmXon2dDJmX6CjBToQxB3gtDuJdZeHgte5H9FZ4nv9kx6c
 - valory/contract_api:1.0.0:QmSobFjLc3baTW1Zf2zfS1X3KJabw7xE6cPJb2g2eAvxSx
 - valory/http:1.0.0:QmSAsTD3pidZcrEXk3HQfbZvUDiVTUMHgCrXpXcs744AZE
 - valory/ledger_api:1.0.0:QmdMBgcpjL2hvmrxWtFyujMSf6exkFPnUXZqTdnsvrk48r
 skills:
-- valory/abstract_round_abci:0.1.0:QmP2fDrYeN98byGYde5Qk9TjKKm2A7PcztB7LEuoSU94NQ
+- valory/abstract_round_abci:0.1.0:QmYhKwwDJu39xT1gv5ouXudxhUnwM22k3misFR1Zapw8aQ
 behaviours:
   main:
     args: {}

@@ -50,7 +50,7 @@ from deployments.Dockerfiles.localnode.tendermint import (  # type: ignore
 
 
 ENCODING = "utf-8"
-VERSION = "0.34.11"
+VERSION = "0.34.19"
 HTTP = "http://"
 LOOPBACK = "127.0.0.1"
 

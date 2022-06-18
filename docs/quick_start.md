@@ -7,7 +7,7 @@ The purpose of this quick start is to get you up and running with the {{open_aut
 Ensure your machine satisfies the following requirements:
 
 - Python `>= 3.7`
-- [Tendermint](https://docs.tendermint.com/master/introduction/install.html) `==0.34.11`
+- [Tendermint](https://docs.tendermint.com/master/introduction/install.html) `==0.34.19`
 - [Pipenv](https://pipenv.pypa.io/en/latest/install/) `>=2021.x.xx`
 
 ## Setup
@@ -26,7 +26,7 @@ pip install open-autonomy
 3. Get, build and install your agent
 ```bash
 aea init --reset --author default_author --ipfs --remote
-aea fetch valory/hello_world:QmR3QLp9vYbCdnKL5bTmZJqU2JgQXxV3h2v3ZdAYFWaVPq --remote
+aea fetch valory/hello_world:QmU7jfQb6hFYk6dfkTmgNkoRwf3hpxVfRn67yLE3wPAobG --remote
 cd hello_world
 aea install
 aea generate-key ethereum

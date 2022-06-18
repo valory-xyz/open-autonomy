@@ -179,7 +179,7 @@ jobs:
           ipfs init
 
           # install Tendermint
-          wget -O tendermint.tar.gz https://github.com/tendermint/tendermint/releases/download/v0.34.11/tendermint_0.34.11_linux_amd64.tar.gz
+          wget -O tendermint.tar.gz https://github.com/tendermint/tendermint/releases/download/v0.34.19/tendermint_0.34.19_linux_amd64.tar.gz
           tar -xf tendermint.tar.gz
           sudo mv tendermint /usr/local/bin/tendermint
 
@@ -231,7 +231,7 @@ jobs:
           ipfs init
 
           # install Tendermint
-          wget -O tendermint.tar.gz https://github.com/tendermint/tendermint/releases/download/v0.34.11/tendermint_0.34.11_darwin_amd64.tar.gz
+          wget -O tendermint.tar.gz https://github.com/tendermint/tendermint/releases/download/v0.34.19/tendermint_0.34.19_darwin_amd64.tar.gz
           tar -xf tendermint.tar.gz
           sudo mv tendermint /usr/local/bin/tendermint
 
@@ -295,7 +295,7 @@ jobs:
           ipfs init
 
           # install Tendermint
-          wget -O tendermint.tar.gz https://github.com/tendermint/tendermint/releases/download/v0.34.11/tendermint_0.34.11_windows_amd64.tar.gz
+          wget -O tendermint.tar.gz https://github.com/tendermint/tendermint/releases/download/v0.34.19/tendermint_0.34.19_windows_amd64.tar.gz
           tar -xvzf tendermint.tar.gz
           cp tendermint.exe C:\Users\runneradmin\go\bin\
 
@@ -378,7 +378,7 @@ jobs:
 #          ipfs init
 #
 #          # install Tendermint
-#          wget -O tendermint.tar.gz https://github.com/tendermint/tendermint/releases/download/v0.34.11/tendermint_0.34.11_linux_amd64.tar.gz
+#          wget -O tendermint.tar.gz https://github.com/tendermint/tendermint/releases/download/v0.34.19/tendermint_0.34.19_linux_amd64.tar.gz
 #          tar -xf tendermint.tar.gz
 #          sudo mv tendermint /usr/local/bin/tendermint
 #
