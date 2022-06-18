@@ -27,8 +27,8 @@ from typing import Tuple
 import docker
 
 from tests.conftest import ROOT_DIR
-from tests.test_autonomy.test_cli.base import BaseCliTest
 from tests.helpers.docker.base import skip_docker_tests
+from tests.test_autonomy.test_cli.base import BaseCliTest
 
 
 @skip_docker_tests

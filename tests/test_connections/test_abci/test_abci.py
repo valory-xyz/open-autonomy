@@ -20,9 +20,12 @@
 """Tests for valory/abci connection."""
 import asyncio
 import logging
+import os
 import time
 from abc import ABC, abstractmethod
 from cmath import inf
+from pathlib import Path
+from tempfile import TemporaryDirectory
 from typing import Any, Callable, List, cast
 from unittest import mock
 from unittest.mock import MagicMock
@@ -444,6 +447,8 @@ class TestTransaction(BaseABCITest, BaseTestABCITendermintIntegration):
 @pytest.mark.asyncio
 async def test_connection_standalone_tendermint_setup() -> None:
     """Test the setup of the connection configured with Tendermint."""
+    temp_dir = TemporaryDirectory()
+    os.environ["LOG_FILE"] = str(Path(temp_dir.name, "log.txt"))
     agent_identity = Identity(
         "name", address="agent_address", public_key="agent_public_key"
     )
@@ -465,6 +470,9 @@ async def test_connection_standalone_tendermint_setup() -> None:
     await connection.connect()
     await asyncio.sleep(2.0)
     await connection.disconnect()
+
+    del os.environ["LOG_FILE"]
+    temp_dir.cleanup()
 
 
 def test_ensure_connected_raises_connection_error() -> None:

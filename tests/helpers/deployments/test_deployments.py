@@ -39,7 +39,9 @@ from autonomy.constants import (
 from autonomy.deploy.base import BaseDeploymentGenerator, ServiceSpecification
 from autonomy.deploy.generators.docker_compose.base import DockerComposeGenerator
 from autonomy.deploy.generators.kubernetes.base import KubernetesGenerator
+
 from tests.helpers.docker.base import skip_docker_tests
+
 
 deployment_generators: List[Any] = [
     DockerComposeGenerator,
