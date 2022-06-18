@@ -222,8 +222,9 @@ class TestTendermintServerApp(BaseTendermintServerTest):
             assert response.status_code == 404
 
     @pytest.mark.skipif(
-        platform.system() == "Windows"
-    )  # this endpoint makes request to the local tendermint node using address 0.0.0.0 which does not work on windows
+        platform.system() == "Windows",
+        reason="this endpoint makes request to the local tendermint node using address 0.0.0.0 which does not work on windows",
+    )
     @wait_for_node_to_run
     def test_get_app_hash(self) -> None:
         """Test get app hash"""
