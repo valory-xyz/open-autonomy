@@ -1045,6 +1045,8 @@ class TestTimeouts:
         deadline_1 = datetime.datetime.now()
         event_1 = MagicMock()
 
+        sleep(0.5)
+
         deadline_2 = datetime.datetime.now()
         event_2 = MagicMock()
         assert deadline_1 < deadline_2
