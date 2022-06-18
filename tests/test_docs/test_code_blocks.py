@@ -55,13 +55,16 @@ class BaseTestDocCode:
 
         # Get all doc files that contain a block
         all_md_files = [
-            str(p.relative_to(ROOT_DIR)) for p in Path(ROOT_DIR, "docs").rglob("*.md")
+            p.relative_to(ROOT_DIR) for p in Path(ROOT_DIR, "docs").rglob("*.md")
         ]
         files_with_blocks = list(
-            filter(
-                lambda f: "/api/" not in f  # skip api folder
-                and contains_code_blocks(f, self.code_type.value),
-                all_md_files,
+            map(
+                str,
+                filter(
+                    lambda f: "api" not in f.parts  # skip api folder
+                    and contains_code_blocks(f, self.code_type.value),
+                    all_md_files,
+                ),
             )
         )
         if self.skipped_files:
