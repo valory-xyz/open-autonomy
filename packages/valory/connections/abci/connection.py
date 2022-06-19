@@ -509,7 +509,7 @@ class TendermintNode:
                     stderr=subprocess.STDOUT,
                     bufsize=1,
                     universal_newlines=True,
-                    creationflags=subprocess.CREATE_NEW_PROCESS_GROUP,
+                    creationflags=subprocess.CREATE_NEW_PROCESS_GROUP,  # type: ignore
                 )
             )
         else:
@@ -536,7 +536,7 @@ class TendermintNode:
             return
 
         if platform.system() == "Windows":  # pragma: nocover
-            os.kill(self._process.pid, signal.CTRL_C_EVENT)
+            os.kill(self._process.pid, signal.CTRL_C_EVENT)  # type: ignore  # pylint: disable=no-member
         else:
             os.killpg(os.getpgid(self._process.pid), signal.SIGTERM)
 
