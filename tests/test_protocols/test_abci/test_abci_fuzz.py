@@ -21,7 +21,6 @@
 
 from typing import Any, Callable, Dict
 
-from hypothesis import given
 from hypothesis import given, settings
 from hypothesis import strategies as st
 from hypothesis.strategies._internal.lazy import SearchStrategy

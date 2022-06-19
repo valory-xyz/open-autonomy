@@ -19,8 +19,11 @@
 
 """This module contains the tests for the code-blocks in the documentation."""
 
+import platform
 from pathlib import Path
 from typing import Dict, List, Optional
+
+import pytest
 
 from tests.conftest import ROOT_DIR
 from tests.test_docs.helper import (  # type: ignore
@@ -99,6 +102,7 @@ class BaseTestDocCode:
             print("OK")
 
 
+@pytest.mark.skipif(platform.system() == "Windows", reason="Need to be investigated.")
 class TestYamlSnippets(BaseTestDocCode):
     """Test that all the yaml snippets in the documentation exist in the repository"""
 
@@ -134,6 +138,7 @@ class TestYamlSnippets(BaseTestDocCode):
     }
 
 
+@pytest.mark.skipif(platform.system() == "Windows", reason="Need to be investigated.")
 class TestPythonSnippets(BaseTestDocCode):
     """Test that all the python snippets in the documentation exist in the repository"""
 
