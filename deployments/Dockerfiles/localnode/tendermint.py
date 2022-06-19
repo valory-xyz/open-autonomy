@@ -190,7 +190,7 @@ class TendermintNode:
             return
 
         if platform.system() == "Windows":  # pragma: nocover
-            os.kill(self._process.pid, signal.CTRL_C_EVENT)
+            os.kill(self._process.pid, signal.CTRL_C_EVENT)  # type: ignore  # pylint: disable=no-member
         else:
             os.killpg(os.getpgid(self._process.pid), signal.SIGTERM)
 
