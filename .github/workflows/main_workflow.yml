@@ -131,8 +131,8 @@ jobs:
        tox -e check-abciapp-specs
        tox -e check-handlers
 
-  test:
-    continue-on-error: True
+ test:
+   continue-on-error: True
    needs:
      - lock_check
      - copyright_doc_and_pipfile_check
