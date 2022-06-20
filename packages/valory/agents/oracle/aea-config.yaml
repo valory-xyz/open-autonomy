@@ -116,3 +116,4 @@ config:
       address: ${LEDGER_ADDRESS:str:http://localhost:8545}
       chain_id: ${LEDGER_CHAIN_ID:int:31337}
       poa_chain: ${LEDGER_POA_CHAIN:bool:false}
+      default_gas_price_strategy: ${LEDGER_DEFAULT_GAS_PRICE_STRATEGY:str:eip1559_polygon}
