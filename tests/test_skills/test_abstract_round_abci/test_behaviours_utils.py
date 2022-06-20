@@ -571,9 +571,15 @@ class TestBaseBehaviour:
 
     def test_send_transaction_positive_false_condition(self) -> None:
         """Test '_send_transaction', positive case (false condition)"""
-        try_send(
-            self.behaviour._send_transaction(MagicMock(), stop_condition=lambda: True)
-        )
+        with mock.patch.object(self.behaviour.context.logger, "info") as mock_info:
+            try_send(
+                self.behaviour._send_transaction(
+                    MagicMock(), stop_condition=lambda: True
+                )
+            )
+            mock_info.assert_called_with(
+                "Stop condition is true, no more attempts to send the transaction."
+            )
 
     @mock.patch.object(BaseBehaviour, "_send_signing_request")
     @mock.patch.object(Transaction, "encode", return_value=MagicMock())
