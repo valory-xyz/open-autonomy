@@ -28,10 +28,10 @@ protocols:
 skills:
 - valory/abstract_abci:0.1.0:QmeFkaxPVuZc4GKo7BUucGS6PYcmMCiRuaubniLUQFHkeP
 - valory/abstract_round_abci:0.1.0:QmZFUbEUECd2E1VaaPDVemyKzE9UAVh1r2mPoEohJH31e1
-- valory/oracle_abci:0.1.0:Qmd6nk52tr2NgvJ4nAbgyR6WvZXGcJN2M1SbY6p26Gk8B8
+- valory/oracle_abci:0.1.0:Qmb8n6Kyv4G6KvbrC9D6nkhfDavz8y8sJhebhF4PnGe4bS
 - valory/oracle_deployment_abci:0.1.0:QmdQvkvPinxcfCgYiJxs4ScDuaP5HgXLW9kRS6GGhHCuQD
 - valory/price_estimation_abci:0.1.0:QmR7sr4fjhssNPjBNoshZnFWyaXbGPyvdnkwQHc65mXs7t
-- valory/registration_abci:0.1.0:QmZrHdUPgqMMLhzUKWdiyYxwPJsfsBwzowsnrPWhJWjUNu
+- valory/registration_abci:0.1.0:QmYFvmu7qgKoaiVjZePdMeinU8YANM2QLobTEJRgVSbBop
 - valory/reset_pause_abci:0.1.0:QmY41UZTbH9QJz9LuZER6MiKbcfiegXHN5GwVUuguZ9h7r
 - valory/safe_deployment_abci:0.1.0:QmbnidwpYKDK3wymzq2G6tXkgqZWQTCfnMeajf9W16XpUA
 - valory/transaction_settlement_abci:0.1.0:QmamfzjqBhethLaadeRcmMcsEFDdavTMusXJuPwoq9LVb1
@@ -125,6 +125,7 @@ config:
       address: ${LEDGER_ADDRESS:str:http://localhost:8545}
       chain_id: ${LEDGER_CHAIN_ID:int:31337}
       poa_chain: ${LEDGER_POA_CHAIN:bool:false}
+      default_gas_price_strategy: ${LEDGER_DEFAULT_GAS_PRICE_STRATEGY:str:eip1559}
 ---
 public_id: valory/p2p_libp2p_client:0.1.0
 type: connection
