@@ -28,7 +28,6 @@ from unittest import mock
 import pytest
 
 from packages.valory.skills.abstract_round_abci.base import (
-    ABCIAppInternalError,
     AbciAppDB,
     BaseTxPayload,
     MAX_INT_256,
@@ -719,14 +718,6 @@ def test_synchronized_datas() -> None:
     assert synchronized_data_____.blacklisted_keepers == {"t" * 42}
     updated_synchronized_data = synchronized_data_____.create()
     assert updated_synchronized_data.blacklisted_keepers == set()
-
-    # test wrong tx hashes serialization
-    synchronized_data_____.update(late_arriving_tx_hashes=["test"])
-    with pytest.raises(
-        ABCIAppInternalError,
-        match="internal error: Cannot parse late arriving hashes: test!",
-    ):
-        _ = synchronized_data_____.late_arriving_tx_hashes
 
 
 class TestResetRound(BaseCollectSameUntilThresholdRoundTest):

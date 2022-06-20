@@ -370,20 +370,23 @@ class ValidateTransactionBehaviour(TransactionSettlementBaseBehaviour):
 
     def has_transaction_been_sent(self) -> Generator[None, None, Optional[bool]]:
         """Transaction verification."""
+
+        if not self.synchronized_data.tx_hashes_history:
+            return False
+
+        to_be_validated_tx_hash = self.synchronized_data.tx_hashes_history[-1]
         response = yield from self.get_transaction_receipt(
-            self.synchronized_data.to_be_validated_tx_hash,
+            to_be_validated_tx_hash,
             self.params.retry_timeout,
             self.params.retry_attempts,
         )
         if response is None:  # pragma: nocover
             self.context.logger.error(
-                f"tx {self.synchronized_data.to_be_validated_tx_hash} receipt check timed out!"
+                f"tx {to_be_validated_tx_hash} receipt check timed out!"
             )
             return None
 
-        contract_api_msg = yield from self._verify_tx(
-            self.synchronized_data.to_be_validated_tx_hash
-        )
+        contract_api_msg = yield from self._verify_tx(to_be_validated_tx_hash)
         if (
             contract_api_msg.performative != ContractApiMessage.Performative.STATE
         ):  # pragma: nocover
@@ -415,11 +418,10 @@ class CheckTransactionHistoryBehaviour(TransactionSettlementBaseBehaviour):
 
         with self.context.benchmark_tool.measure(self.behaviour_id).local():
             verification_status, tx_hash = yield from self._check_tx_history()
-
             if verification_status == VerificationStatus.VERIFIED:
                 msg = f"A previous transaction {tx_hash} has already been verified "
                 msg += (
-                    f"for {self.synchronized_data.to_be_validated_tx_hash}."
+                    f"for {self.synchronized_data.tx_hashes_history[-1]}."
                     if self.synchronized_data.tx_hashes_history
                     else "and was synced after the finalization round timed out."
                 )
