@@ -20,9 +20,10 @@
 """Integration tests for the valory/registration skill."""
 import logging
 import time
-from typing import Generator
+from typing import Generator, Tuple
 
 import pytest
+from aea.configurations.data_types import PublicId
 
 from packages.valory.skills.registration_abci.behaviours import (
     RegistrationStartupBehaviour,
@@ -30,6 +31,7 @@ from packages.valory.skills.registration_abci.behaviours import (
 
 from tests.fixture_helpers import UseACNNode, UseGnosisSafeHardHatNet
 from tests.test_agents.base import (
+    BaseTestEnd2End,
     BaseTestEnd2EndAgentCatchup,
     BaseTestEnd2EndNormalExecution,
 )
@@ -56,17 +58,31 @@ STRICT_CHECK_STRINGS = (
     log_messages.collection_complete.value,
     log_messages.request_update.value,
     log_messages.response_update.value,
-    log_messages.request_restart.value,
-    log_messages.response_restart.value,
+    "Entered in the 'finished_registration' round for period 0",
 )
 
 
-class RegistrationStartUpTestConfig(UseGnosisSafeHardHatNet, UseACNNode):
+class RegistrationStartUpTestConfig(
+    UseGnosisSafeHardHatNet, UseACNNode, BaseTestEnd2End
+):
     """Base class for e2e tests using the ACN client connection"""
 
     skill_package = "valory/registration_abci:0.1.0"
     agent_package = "valory/registration_start_up:0.1.0"
     wait_to_finish = 60
+    strict_check_strings: Tuple[str, ...] = STRICT_CHECK_STRINGS
+    __p2p_prefix = "vendor.valory.connections.p2p_libp2p_client"
+    __args_prefix = f"vendor.valory.skills.{PublicId.from_str(skill_package).name}.models.params.args"
+    extra_configs = [
+        {
+            "dotted_path": f"{__args_prefix}.share_tm_config_on_startup",
+            "value": True,
+        },
+        {
+            "dotted_path": f"{__args_prefix}.observation_interval",
+            "value": 15,
+        },
+    ]
 
 
 @pytest.mark.e2e
@@ -77,8 +93,6 @@ class TestRegistrationStartUpFourAgents(
 ):
     """Test registration start-up skill with four agents."""
 
-    strict_check_strings = STRICT_CHECK_STRINGS
-
 
 @pytest.mark.e2e
 @pytest.mark.integration
@@ -88,6 +102,5 @@ class TestRegistrationStartUpFourAgentsCatchUp(
 ):
     """Test registration start-up skill with four agents and catch up."""
 
-    strict_check_strings = STRICT_CHECK_STRINGS
     stop_string = "My address: "
     restart_after = 10

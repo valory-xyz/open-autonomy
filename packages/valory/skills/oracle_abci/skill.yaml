@@ -24,13 +24,13 @@ contracts:
 protocols:
 - valory/contract_api:1.0.0:QmSobFjLc3baTW1Zf2zfS1X3KJabw7xE6cPJb2g2eAvxSx
 skills:
-- valory/abstract_round_abci:0.1.0:QmUWwYR8or4fVSA12J6h76MzYtXNWbBDQaiLmwJe2B8LTr
-- valory/oracle_deployment_abci:0.1.0:QmRYoPyMXWexoUc8K36npKwBFLiYPzLjV9n4amrGM2dbWR
-- valory/price_estimation_abci:0.1.0:QmVi5oGEFRZ9ZEGtzodA3hw7VLX7axeuby5vMWH5ktDbFW
-- valory/registration_abci:0.1.0:QmRFhobiSCHgpsSoqueiPSFb7sJRdCoyWufvDF5Uz2Brep
-- valory/reset_pause_abci:0.1.0:QmTDSBrqrkHtAGMmFGXnTDsWibBmkHk6Rp4NE6oTYaiufD
-- valory/safe_deployment_abci:0.1.0:QmdoDnDokmLGGkSSdfQ7eDQKDC7YQ1ryG1Hs7qGiJ1Npd8
-- valory/transaction_settlement_abci:0.1.0:QmQnKNHADuhBjYdgV8ZJTmCcJALPcnYbWyw1QsUGkTHNie
+- valory/abstract_round_abci:0.1.0:QmVkY598n8nSQjVXUQqW5oGkDwWLkTbuxjqhyLpfV9LWot
+- valory/oracle_deployment_abci:0.1.0:QmeqSZumjmUgGbMzCvaoybtBUdEg9jkUjJGhLeQMCuSqYJ
+- valory/price_estimation_abci:0.1.0:QmQwUCzuGxspCe6xrKL6CVyph2v1H2Te3fvvuEJsw72rkn
+- valory/registration_abci:0.1.0:QmSRi3ES1XWKFg8ps2cmdkVG8HBvMhDySM34bVjDXifwpp
+- valory/reset_pause_abci:0.1.0:QmQ74EWdHKUqfE7W8JcR23s6U4nGCqX3xvZXkWRPPKgh8t
+- valory/safe_deployment_abci:0.1.0:QmVCBUJpd4xaKp4qHd3Ur9FzZ7v2SgstBeUsyoyoUDBzFH
+- valory/transaction_settlement_abci:0.1.0:QmNrhjWmm1ANMqmZQJLpPPdmaHu6vV2KpuTNoG64KMqXG2
 behaviours:
   main:
     args: {}
@@ -100,6 +100,7 @@ models:
       setup:
         oracle_contract_address: []
         safe_contract_address: []
+      share_tm_config_on_startup: false
       sleep_time: 1
       tendermint_check_sleep_delay: 3
       tendermint_com_url: http://localhost:8080

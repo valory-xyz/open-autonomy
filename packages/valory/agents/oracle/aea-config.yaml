@@ -11,12 +11,12 @@ connections:
 - valory/abci:0.1.0:QmeP3rHLno4mykgaqdyBUnibZ3jz8GnB1mjo9fXb6uwkhs
 - valory/http_client:0.1.0:QmWLBDpdcz8idNdqobjBC6ykJCSEpHCjcC1mAoAdJPzmQh
 - valory/ledger:0.1.0:QmY9fbnunHPtfPfdFk2eUrMKg6PBhHeBWvA9ud1i4uCaFd
-- valory/p2p_libp2p_client:0.1.0:QmaaYKJznzHUaccbYSMD3HvyuMiFFsNgaDDXaqiXFcop3h
+- valory/p2p_libp2p_client:0.1.0:QmSGTSCuu9gVRoPFqWndkgRLQzXhehFsTZ2y2mTgpB6kAv
 contracts:
 - valory/gnosis_safe:0.1.0:QmRNdXGRRQBMFXh5ZvtJeYvHt7559kV5r5EYU5JNUdRBKJ
 - valory/gnosis_safe_proxy_factory:0.1.0:QmVkZtrgZ2ievXAonq9z33qbrxHi8piVGptuCGaGJYS1iM
 - valory/offchain_aggregator:0.1.0:Qmaftfci6asBewVH3vKGtMJVcAdG71Vm6Qv493uRkT7b2h
-- valory/service_registry:0.1.0:Qmf8AdK3VPVECCx4biHMGdVoFHkscY3H9sv9b4wyE9vmED
+- valory/service_registry:0.1.0:QmdGKuHvFpNWiRW9oWxc3vj5STZZWH4XiimnWA2e7bm71p
 protocols:
 - open_aea/signing:1.0.0:QmemReviejNSLrwWqENKL76AtoK17eG8TBbWjpwUT7L3UA
 - valory/abci:0.1.0:QmRXBoBaTYNcpe98SqYJmKVXm6eFfYeS9yuKz7mzzYawNG
@@ -27,14 +27,14 @@ protocols:
 - valory/tendermint:0.1.0:QmXrfL1o3uqWAbRsFoo7MTQRXkaTsfcqxDobxD8pXg3hQx
 skills:
 - valory/abstract_abci:0.1.0:QmdJQFUTvf7izpNDLUhnnaEZ9YDo8HXbVnA68gUd14ETHX
-- valory/abstract_round_abci:0.1.0:QmUWwYR8or4fVSA12J6h76MzYtXNWbBDQaiLmwJe2B8LTr
-- valory/oracle_abci:0.1.0:QmW1ERdYYyXz177XQzg8KDa6CST4GRqEbK5B4uArRKn4gW
-- valory/oracle_deployment_abci:0.1.0:QmRYoPyMXWexoUc8K36npKwBFLiYPzLjV9n4amrGM2dbWR
-- valory/price_estimation_abci:0.1.0:QmVi5oGEFRZ9ZEGtzodA3hw7VLX7axeuby5vMWH5ktDbFW
-- valory/registration_abci:0.1.0:QmRFhobiSCHgpsSoqueiPSFb7sJRdCoyWufvDF5Uz2Brep
-- valory/reset_pause_abci:0.1.0:QmTDSBrqrkHtAGMmFGXnTDsWibBmkHk6Rp4NE6oTYaiufD
-- valory/safe_deployment_abci:0.1.0:QmdoDnDokmLGGkSSdfQ7eDQKDC7YQ1ryG1Hs7qGiJ1Npd8
-- valory/transaction_settlement_abci:0.1.0:QmQnKNHADuhBjYdgV8ZJTmCcJALPcnYbWyw1QsUGkTHNie
+- valory/abstract_round_abci:0.1.0:QmVkY598n8nSQjVXUQqW5oGkDwWLkTbuxjqhyLpfV9LWot
+- valory/oracle_abci:0.1.0:QmQy5iPSsCqLQcFbR5ELJmUqvzTGgDBdZUMXwoTdrK6fst
+- valory/oracle_deployment_abci:0.1.0:QmeqSZumjmUgGbMzCvaoybtBUdEg9jkUjJGhLeQMCuSqYJ
+- valory/price_estimation_abci:0.1.0:QmQwUCzuGxspCe6xrKL6CVyph2v1H2Te3fvvuEJsw72rkn
+- valory/registration_abci:0.1.0:QmSRi3ES1XWKFg8ps2cmdkVG8HBvMhDySM34bVjDXifwpp
+- valory/reset_pause_abci:0.1.0:QmQ74EWdHKUqfE7W8JcR23s6U4nGCqX3xvZXkWRPPKgh8t
+- valory/safe_deployment_abci:0.1.0:QmVCBUJpd4xaKp4qHd3Ur9FzZ7v2SgstBeUsyoyoUDBzFH
+- valory/transaction_settlement_abci:0.1.0:QmNrhjWmm1ANMqmZQJLpPPdmaHu6vV2KpuTNoG64KMqXG2
 default_ledger: ethereum
 required_ledgers:
 - ethereum
@@ -110,6 +110,9 @@ models:
       observation_interval: ${SKILL_ORACLE_ABCI_MODELS_PARAMS_ARGS_OBSERVATION_INTERVAL:int:300}
       max_healthcheck: ${SKILL_ORACLE_ABCI_MODELS_PARAMS_ARGS_MAX_HEALTHCHECK:int:1200}
       broadcast_to_server: ${SKILL_ORACLE_ABCI_MODELS_PARAMS_ARGS_BROADCAST_TO_SERVER:bool:false}
+      service_registry_address: ${SKILL_ORACLE_ABCI_MODELS_PARAMS_ARGS_SERVICE_REGISTRY_ADDRESS:str:none}
+      share_tm_config_on_startup: ${SKILL_ORACLE_ABCI_MODELS_PARAMS_ARGS_SERVICE_REGISTRY_ADDRESS:bool:false}
+      on_chain_service_id: ${SKILL_ORACLE_ABCI_MODELS_PARAMS_ARGS_ON_CHAIN_SERVICE_ID:int:none}
   server_api:
     args:
       url: ${SKILL_ORACLE_ABCI_MODELS_SERVER_API_ARGS_URL:str:http://192.168.2.17:9999/deposit}
@@ -136,3 +139,4 @@ cert_requests:
   not_before: '2021-01-01'
   public_key: ${P2P_PUBLIC_KEY:str:0250827315351f6f4d3777b77d4bfd67280156240313bf221750b36404344bb35d}
   save_path: .certs/acn_cosmos_9005.txt
+is_abstract: true

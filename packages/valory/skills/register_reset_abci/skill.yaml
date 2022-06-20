@@ -24,9 +24,9 @@ protocols:
 - valory/abci:0.1.0:QmRXBoBaTYNcpe98SqYJmKVXm6eFfYeS9yuKz7mzzYawNG
 - valory/http:1.0.0:QmSAsTD3pidZcrEXk3HQfbZvUDiVTUMHgCrXpXcs744AZE
 skills:
-- valory/abstract_round_abci:0.1.0:QmUWwYR8or4fVSA12J6h76MzYtXNWbBDQaiLmwJe2B8LTr
-- valory/registration_abci:0.1.0:QmRFhobiSCHgpsSoqueiPSFb7sJRdCoyWufvDF5Uz2Brep
-- valory/reset_pause_abci:0.1.0:QmTDSBrqrkHtAGMmFGXnTDsWibBmkHk6Rp4NE6oTYaiufD
+- valory/abstract_round_abci:0.1.0:QmVkY598n8nSQjVXUQqW5oGkDwWLkTbuxjqhyLpfV9LWot
+- valory/registration_abci:0.1.0:QmSRi3ES1XWKFg8ps2cmdkVG8HBvMhDySM34bVjDXifwpp
+- valory/reset_pause_abci:0.1.0:QmQ74EWdHKUqfE7W8JcR23s6U4nGCqX3xvZXkWRPPKgh8t
 behaviours:
   main:
     args: {}
@@ -73,12 +73,15 @@ models:
       keeper_timeout: 30.0
       max_healthcheck: 120
       observation_interval: 15
+      on_chain_service_id: null
       reset_tendermint_after: 1
       retry_attempts: 400
       retry_timeout: 3
       round_timeout_seconds: 15.0
       service_id: register_reset_abci
+      service_registry_address: null
       setup: {}
+      share_tm_config_on_startup: false
       sleep_time: 1
       tendermint_check_sleep_delay: 3
       tendermint_com_url: http://localhost:8080

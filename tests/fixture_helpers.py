@@ -167,7 +167,7 @@ class UseACNNode:
     @classmethod
     @pytest.fixture(autouse=True)
     def _start_acn(cls, acn_node: Any, acn_config: Any = None) -> None:
-        """Start an HardHat instance."""
+        """Start an ACN instance."""
         cls._acn_node_image = acn_node
         cls.configuration = acn_config or cls.configuration
 

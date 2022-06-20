@@ -24,7 +24,7 @@ import json
 import logging
 from contextlib import ExitStack, contextmanager
 from pathlib import Path
-from typing import Any, Dict, Generator, Iterable, List, Optional, cast
+from typing import Any, Callable, Dict, Generator, Iterable, List, Optional, cast
 from unittest import mock
 from unittest.mock import MagicMock
 
@@ -156,6 +156,7 @@ class TestRegistrationStartupBehaviour(RegistrationAbciBaseCase):
         """Setup"""
         super().setup()
         self.state.params.sleep_time = 0
+        self.state.params.share_tm_config_on_startup = True
 
     @property
     def agent_instances(self) -> List[str]:
@@ -295,13 +296,20 @@ class TestRegistrationStartupBehaviour(RegistrationAbciBaseCase):
         response_kwargs = dict(status_code=200, body=body)
         self.mock_http_request(request_kwargs, response_kwargs)
 
-    def mock_tendermint_restart(self, valid_response: bool = True) -> None:
-        """Mock tendermint restart"""
-        url = self.state.tendermint_hard_reset_url
-        request_kwargs = dict(method="GET", url=url)
-        body = b"{}" if valid_response else b""
-        response_kwargs = dict(status_code=200, body=body)
-        self.mock_http_request(request_kwargs, response_kwargs)
+    @staticmethod
+    def dummy_reset_tendermint_with_wait_wrapper(
+        valid_response: bool,
+    ) -> Callable[[], Generator[None, None, Optional[bool]]]:
+        """Wrapper for a Dummy `reset_tendermint_with_wait` method."""
+
+        def dummy_reset_tendermint_with_wait(
+            **_: bool,
+        ) -> Generator[None, None, Optional[bool]]:
+            """Dummy `reset_tendermint_with_wait` method."""
+            yield
+            return valid_response
+
+        return dummy_reset_tendermint_with_wait
 
     # tests
     def test_init(self) -> None:
@@ -311,9 +319,13 @@ class TestRegistrationStartupBehaviour(RegistrationAbciBaseCase):
 
     def test_no_contract_address(self, caplog: LogCaptureFixture) -> None:
         """Test service registry contract address not provided"""
-        self.behaviour.act_wrapper()
-        self.mock_get_local_tendermint_params()
-        log_message = self.state.LogMessages.no_contract_address
+        with caplog.at_level(
+            logging.INFO,
+            logger=self.logger,
+        ):
+            self.behaviour.act_wrapper()
+            self.mock_get_local_tendermint_params()
+            log_message = self.state.LogMessages.no_contract_address
         assert log_message.value in caplog.text
 
     @pytest.mark.parametrize("valid_response", [True, False])
@@ -429,8 +441,9 @@ class TestRegistrationStartupBehaviour(RegistrationAbciBaseCase):
             assert log_message.value in caplog.text
 
     @pytest.mark.parametrize("valid_response", [True, False])
+    @mock.patch.object(BaseBehaviour, "reset_tendermint_with_wait")
     def test_request_update(
-        self, valid_response: bool, caplog: LogCaptureFixture
+        self, _: mock.Mock, valid_response: bool, caplog: LogCaptureFixture
     ) -> None:
         """Test Tendermint config update"""
 
@@ -447,7 +460,7 @@ class TestRegistrationStartupBehaviour(RegistrationAbciBaseCase):
             self.mock_is_correct_contract()
             self.mock_get_service_info(*self.agent_instances)
             self.mock_get_tendermint_info(*self.other_agents)
-            self.mock_tendermint_update(valid_response=valid_response)
+            self.mock_tendermint_update(valid_response)
             assert log_message.value in caplog.text
 
     @pytest.mark.parametrize("valid_response", [True, False])
@@ -455,14 +468,17 @@ class TestRegistrationStartupBehaviour(RegistrationAbciBaseCase):
         self, valid_response: bool, caplog: LogCaptureFixture
     ) -> None:
         """Test Tendermint start"""
-
-        failed_message = self.state.LogMessages.failed_restart
-        response_message = self.state.LogMessages.response_restart
-        log_message = [failed_message, response_message][valid_response]
         with as_context(
             caplog.at_level(logging.INFO, logger=self.logger),
             self.mocked_service_registry_address,
             self.mocked_on_chain_service_id,
+            mock.patch.object(
+                self.behaviour.current_behaviour,
+                "reset_tendermint_with_wait",
+                side_effect=self.dummy_reset_tendermint_with_wait_wrapper(
+                    valid_response
+                ),
+            ),
         ):
             self.behaviour.act_wrapper()
             self.mock_get_local_tendermint_params()
@@ -470,8 +486,14 @@ class TestRegistrationStartupBehaviour(RegistrationAbciBaseCase):
             self.mock_get_service_info(*self.agent_instances)
             self.mock_get_tendermint_info(*self.other_agents)
             self.mock_tendermint_update()
-            self.mock_tendermint_restart(valid_response=valid_response)
-            assert log_message.value in caplog.text
+            self.behaviour.act_wrapper()
+
+
+class TestRegistrationStartupBehaviourNoConfigShare(BaseRegistrationTestBehaviour):
+    """Test case to test RegistrationBehaviour."""
+
+    behaviour_class = RegistrationStartupBehaviour
+    next_behaviour_class = make_degenerate_behaviour(FinishedRegistrationRound.round_id)
 
 
 class TestRegistrationBehaviour(BaseRegistrationTestBehaviour):
