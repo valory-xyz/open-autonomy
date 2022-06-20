@@ -121,7 +121,7 @@ Get the number of times the current keeper has retried.
 
 ```python
 @property
-def to_be_validated_tx_hash() -> str
+def to_be_validated_tx_hash() -> Optional[str]
 ```
 
 Get the tx hash which is ready for validation.
