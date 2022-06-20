@@ -64,6 +64,8 @@ jobs:
       run: tox -e check-copyright
     - name: Check docs
       run: tox -e check-api-docs
+    - name: Check doc links
+      run: tox -e check-doc-links
     - name: Check pipfiles
       run: tox -e check-pipfiles
 
@@ -142,7 +144,7 @@ jobs:
     strategy:
       matrix:
         os: [ ubuntu-latest, macos-latest, windows-latest ]
-        python-version: [ 3.7, 3.8, 3.9 ]
+        python-version: [ 3.7, 3.8, 3.9, 3.10 ]
 
     timeout-minutes: 40
 
