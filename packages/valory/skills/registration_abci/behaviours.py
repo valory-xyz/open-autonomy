@@ -339,7 +339,6 @@ class RegistrationStartupBehaviour(RegistrationBaseBehaviour):
             yield from super().async_act()
 
         self.context.logger.info(f"My address: {self.context.agent_address}")
-        yield from self.sleep(self.params.sleep_time)
 
         # collect personal Tendermint configuration
         if not self.local_tendermint_params:

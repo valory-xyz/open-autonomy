@@ -28,8 +28,8 @@ protocols:
 - valory/ledger_api:1.0.0:QmdMBgcpjL2hvmrxWtFyujMSf6exkFPnUXZqTdnsvrk48r
 skills:
 - valory/abstract_round_abci:0.1.0:QmZFUbEUECd2E1VaaPDVemyKzE9UAVh1r2mPoEohJH31e1
-- valory/apy_estimation_abci:0.1.0:QmcC5kEDnY8G6rQL965Xp6B46aP5joMJ9WR7PrSuGNhn3E
-- valory/registration_abci:0.1.0:QmPn6hxeReQxXSa83XW734ZovyrLEc3Q7CBL3xeq7EtxVZ
+- valory/apy_estimation_abci:0.1.0:QmRT2Ca2Q6r1dkNa31BTC6TWDgtxnoPBEELhzy2oCEQpEp
+- valory/registration_abci:0.1.0:QmZrHdUPgqMMLhzUKWdiyYxwPJsfsBwzowsnrPWhJWjUNu
 behaviours:
   main:
     args: {}
