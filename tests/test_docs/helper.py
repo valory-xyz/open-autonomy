@@ -194,12 +194,14 @@ def extract_make_commands(makefile_paths: List[str]) -> List[str]:
 def extract_autonomy_commands() -> List[str]:
     """Extract autonomy commands from the autonomy cli"""
     cmd_list = []
-    for cmd_name in cli.list_commands(click.Context):
-        cmd = cli.get_command(click.Context, cmd_name)
-        cmd_list += [
-            f"autonomy {cmd_name} {sub_cmd_name}"
-            for sub_cmd_name in cmd.list_commands(click.Context)
-        ]
+    for cmd_name, cmd in cli.commands.items():
+        if isinstance(cmd, click.Group):
+            cmd_list += [
+                f"autonomy {cmd_name} {sub_cmd_name}"
+                for sub_cmd_name in cmd.list_commands(click.Context)
+            ]
+        else:
+            cmd_list += [f"autonomy {cmd_name}"]
     return cmd_list
 
 
