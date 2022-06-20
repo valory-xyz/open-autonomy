@@ -580,6 +580,17 @@ class TestBaseBehaviour:
     def test_send_transaction_stop_condition(self, *_: Any) -> None:
         """Test '_send_transaction' method's `stop_condition` as provided by `send_a2a_transaction`."""
         request_retry_delay = 0.01
+        # set the current round's id so that it does not meet the requirements for a `stop_condition`
+        self.behaviour.context.skill_context.state.round_sequence.current_round_id = (
+            self.behaviour.matching_round.round_id
+        )
+        # assert that everything is pre-set correctly
+        assert (
+            self.behaviour.context.skill_context.state.round_sequence.current_round_id
+            == self.behaviour.matching_round.round_id
+            == "round_a"
+        )
+
         # create the exact same stop condition that we create in the `send_a2a_transaction` method
         stop_condition = self.behaviour.is_round_ended(
             self.behaviour.matching_round.round_id
@@ -596,13 +607,14 @@ class TestBaseBehaviour:
 
         # set the current round's id so that it meets the requirements for a `stop_condition`
         self.behaviour.context.skill_context.state.round_sequence.current_round_id = (
-            self.behaviour.matching_round.round_id
+            "test"
         )
         # assert that everything was set as expected
         assert (
             self.behaviour.context.skill_context.state.round_sequence.current_round_id
-            == self.behaviour.matching_round.round_id
-            == "round_a"
+            != self.behaviour.matching_round.round_id
+            and self.behaviour.context.skill_context.state.round_sequence.current_round_id
+            == "test"
         )
         # assert that the stop condition now applies
         assert stop_condition()
