@@ -579,13 +579,14 @@ class TestBaseBehaviour:
     @mock.patch.object(BaseBehaviour, "_check_http_return_code_200", return_value=False)
     def test_send_transaction_stop_condition(self, *_: Any) -> None:
         """Test '_send_transaction' method's `stop_condition` as provided by `send_a2a_transaction`."""
+        request_retry_delay = 0.01
         # create the exact same stop condition that we create in the `send_a2a_transaction` method
         stop_condition = self.behaviour.is_round_ended(
             self.behaviour.matching_round.round_id
         )
         gen = self.behaviour._send_transaction(
             MagicMock(),
-            request_retry_delay=0,
+            request_retry_delay=request_retry_delay,
             stop_condition=stop_condition,
         )
         # assert that the stop condition does not apply yet
@@ -616,11 +617,9 @@ class TestBaseBehaviour:
             try_send(gen, obj=response)
             mock_info.assert_called_with(
                 f"Received return code != 200 with response {response} with body {str(response.body)}. "
-                "Retrying in 0 seconds..."
+                f"Retrying in {request_retry_delay} seconds..."
             )
-            # send message to '_wait_until_transaction_delivered'
-            fail_response = MagicMock()
-            try_send(gen, obj=fail_response)
+            time.sleep(request_retry_delay)
             try_send(gen)
             # assert that the stop condition is now `True` and we reach at the end of the method
             mock_info.assert_called_with(
