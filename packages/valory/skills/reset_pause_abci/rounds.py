@@ -21,17 +21,15 @@
 from enum import Enum
 from typing import Dict, Optional, Set, Tuple, Type
 
-from packages.valory.skills.abstract_round_abci.base import (  # ABCIAppInternalError,
+from packages.valory.skills.abstract_round_abci.base import (
     AbciApp,
     AbciAppDB,
     AbciAppTransitionFunction,
     AbstractRound,
     AppState,
     BaseSynchronizedData,
-    BaseTxPayload,
     CollectSameUntilThresholdRound,
     DegenerateRound,
-    TransactionNotValidError,
 )
 from packages.valory.skills.reset_pause_abci.payloads import ResetPausePayload
 
