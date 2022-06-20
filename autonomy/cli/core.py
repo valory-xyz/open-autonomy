@@ -26,6 +26,7 @@ from autonomy.cli.analyse import analyse_group
 from autonomy.cli.deploy import deploy_group
 from autonomy.cli.develop import develop_group
 from autonomy.cli.hash import hash_group
+from autonomy.cli.push_all import push_all
 from autonomy.cli.replay import replay_group
 
 
@@ -41,6 +42,8 @@ autonomy_cli.add_command(analyse_group)
 autonomy_cli.add_command(deploy_group)
 autonomy_cli.add_command(develop_group)
 autonomy_cli.add_command(replay_group)
+
 aea_cli.add_command(hash_group)
+aea_cli.add_command(push_all)
 
 cli = click.CommandCollection(sources=[aea_cli, autonomy_cli])
