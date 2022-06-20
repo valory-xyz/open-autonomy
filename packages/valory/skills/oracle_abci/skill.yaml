@@ -30,7 +30,7 @@ skills:
 - valory/registration_abci:0.1.0:QmRWSv9wgNsh8ssTG9VwByWmSzNuiPKzpaQGMcB1VXuaia
 - valory/reset_pause_abci:0.1.0:QmTkCCSVWn2aZiEiuB5g6yvR3rMnLtGaaNvMCKstgxz8sB
 - valory/safe_deployment_abci:0.1.0:QmQbbK6uuKyurferw5Ud9EYucdb2SLuQhZYQWgtK7HW3m2
-- valory/transaction_settlement_abci:0.1.0:QmQwnoLeMwSJVRhcyRxEzD6wifjGF56ReL6LSJ7aRf6Qyy
+- valory/transaction_settlement_abci:0.1.0:QmegAhdjwHLzByHM85NJYS5xpSmMayhGV3aABYdNTLx8yd
 behaviours:
   main:
     args: {}
