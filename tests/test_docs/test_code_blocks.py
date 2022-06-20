@@ -19,8 +19,11 @@
 
 """This module contains the tests for the code-blocks in the documentation."""
 
+import platform
 from pathlib import Path
 from typing import Dict, List, Optional
+
+import pytest
 
 from tests.conftest import ROOT_DIR
 from tests.test_docs.helper import (  # type: ignore
@@ -55,13 +58,16 @@ class BaseTestDocCode:
 
         # Get all doc files that contain a block
         all_md_files = [
-            str(p.relative_to(ROOT_DIR)) for p in Path(ROOT_DIR, "docs").rglob("*.md")
+            p.relative_to(ROOT_DIR) for p in Path(ROOT_DIR, "docs").rglob("*.md")
         ]
         files_with_blocks = list(
-            filter(
-                lambda f: "/api/" not in f  # skip api folder
-                and contains_code_blocks(f, self.code_type.value),
-                all_md_files,
+            map(
+                str,
+                filter(
+                    lambda f: "api" not in f.parts  # skip api folder
+                    and contains_code_blocks(f, self.code_type.value),
+                    all_md_files,
+                ),
             )
         )
         if self.skipped_files:
@@ -96,6 +102,7 @@ class BaseTestDocCode:
             print("OK")
 
 
+@pytest.mark.skipif(platform.system() == "Windows", reason="Need to be investigated.")
 class TestYamlSnippets(BaseTestDocCode):
     """Test that all the yaml snippets in the documentation exist in the repository"""
 
@@ -131,6 +138,7 @@ class TestYamlSnippets(BaseTestDocCode):
     }
 
 
+@pytest.mark.skipif(platform.system() == "Windows", reason="Need to be investigated.")
 class TestPythonSnippets(BaseTestDocCode):
     """Test that all the python snippets in the documentation exist in the repository"""
 

@@ -37,6 +37,7 @@ nav:
       - Running the Demo: 'price_oracle_running.md'
       - FSM Specification: 'price_oracle_fsms.md'
   - Development:
+    - CLI: 'autonomy.md'
     - Developer Tooling:
       - Hot Reload: 'hot_reload.md'
       - Benchmarking: 'benchmarks.md'
@@ -46,6 +47,46 @@ nav:
       - Cloud Deployment: 'using_stack_deployment.md'
     - Running on other networks: 'networks.md'
     - API:
+      - Library:
+        - Constants: 'api/constants.md'
+        - Analyse:
+          - ABCI:
+            - App Spec: 'api/analyse/abci/app_spec.md'
+            - Docstrings: 'api/analyse/abci/docstrings.md'
+            - Handlers: 'api/analyse/abci/handlers.md'
+            - Logs: 'api/analyse/abci/logs.md'
+          - Benchmark:
+            - Aggregate: 'api/analyse/benchmark/aggregate.md'
+            - HTML: 'api/analyse/benchmark/html.md'
+        - CLI:
+          - Analyse: 'api/cli/analyse.md'
+          - Core: 'api/cli/core.md'
+          - Deploy: 'api/cli/deploy.md'
+          - Develop: 'api/cli/develop.md'
+          - Hash: 'api/cli/hash.md'
+          - Replay: 'api/cli/replay.md'
+          - Utils: 'api/cli/utils/click_utils.md'
+        - Configurations:
+          - Base: 'api/configurations/base.md'
+          - Constants: 'api/configurations/constants.md'
+          - Loader: 'api/configurations/loader.md'
+          - Validation: 'api/configurations/validation.md'
+        - Deploy:
+          - Base: 'api/deploy/base.md'
+          - Build: 'api/deploy/build.md'
+          - Constants: 'api/deploy/constants.md'
+          - Image: 'api/deploy/image.md'
+          - Generators:
+            - Docker Compose:
+              - Base: 'api/deploy/generators/docker_compose/base.md'
+              - Templates: 'api/deploy/generators/docker_compose/templates.md'
+            - Kubernetes:
+              - Base: 'api/deploy/generators/kubernetes/base.md'
+              - Templates: 'api/deploy/generators/kubernetes/templates.md'
+        - Replay:
+          - Agent: 'api/replay/agent.md'
+          - Tendermint: 'api/replay/tendermint.md'
+          - Utils: 'api/replay/utils.md'
       - Connections:
         - ABCI:
           - Check Dependencies: 'api/connections/abci/check_dependencies.md'
@@ -78,6 +119,11 @@ nav:
           - Dialogues: 'api/skills/abstract_round_abci/dialogues.md'
           - Handlers: 'api/skills/abstract_round_abci/handlers.md'
           - Models: 'api/skills/abstract_round_abci/models.md'
+          - IO:
+            - IPFS: 'api/skills/abstract_round_abci/io/ipfs.md'
+            - Load: 'api/skills/abstract_round_abci/io/load.md'
+            - Paths: 'api/skills/abstract_round_abci/io/paths.md'
+            - Store: 'api/skills/abstract_round_abci/io/store.md'
           - Serializer: 'api/skills/abstract_round_abci/serializer.md'
           - Utils: 'api/skills/abstract_round_abci/utils.md'
         - Oracle Deployment ABCI:

@@ -33,6 +33,7 @@ from packages.valory.contracts.service_registry.contract import (
 )
 
 from tests.conftest import ROOT_DIR
+from tests.helpers.docker.base import skip_docker_tests
 from tests.test_contracts.base import BaseGanacheContractTest
 
 
@@ -107,6 +108,7 @@ class BaseServiceRegistryContractTest(BaseGanacheContractTest):
         ]
 
 
+@skip_docker_tests
 class TestServiceRegistryContract(BaseServiceRegistryContractTest):
     """Test Service Registry Contract"""
 

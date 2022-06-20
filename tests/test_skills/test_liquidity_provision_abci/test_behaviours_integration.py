@@ -58,6 +58,7 @@ from packages.valory.skills.transaction_settlement_abci.rounds import (
 )
 
 from tests.conftest import ROOT_DIR
+from tests.helpers.docker.base import skip_docker_tests
 from tests.test_skills.base import FSMBehaviourBaseCase
 from tests.test_skills.integration import (
     AMMIntegrationBaseCase,
@@ -215,6 +216,7 @@ class LiquidityProvisionIntegrationBaseCase(
         self.validate_tx()
 
 
+@skip_docker_tests
 class TestLiquidityRebalancingHardhat(LiquidityProvisionIntegrationBaseCase):
     """Test liquidity pool behaviours in a Hardhat environment."""
 

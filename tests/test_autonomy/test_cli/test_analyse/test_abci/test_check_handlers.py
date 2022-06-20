@@ -20,14 +20,20 @@
 """Test check-handlers command."""
 
 import os
+import platform
 import shutil
 from pathlib import Path
 from typing import Tuple
+
+import pytest
 
 from tests.conftest import ROOT_DIR
 from tests.test_autonomy.test_cli.base import BaseCliTest
 
 
+@pytest.mark.skipif(
+    platform.system() == "Windows", reason="Fix path resolutions on windows."
+)
 class TestCheckHandlers(BaseCliTest):
     """Test check-handlers command."""
 

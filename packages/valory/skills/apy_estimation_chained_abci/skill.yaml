@@ -16,20 +16,20 @@ fingerprint:
   models.py: QmS9Fkg46KXHAxdq4NV4ckFD2xv2uNQfLR1374xqucvvJh
 fingerprint_ignore_patterns: []
 connections:
-- valory/abci:0.1.0:QmeP3rHLno4mykgaqdyBUnibZ3jz8GnB1mjo9fXb6uwkhs
+- valory/abci:0.1.0:QmYWiaxokWBsbpwzZwPSYtrDrecE7A6ttz6kuZkUEWegVX
 - valory/http_client:0.1.0:QmWLBDpdcz8idNdqobjBC6ykJCSEpHCjcC1mAoAdJPzmQh
 - valory/ledger:0.1.0:QmY9fbnunHPtfPfdFk2eUrMKg6PBhHeBWvA9ud1i4uCaFd
 contracts: []
 protocols:
 - open_aea/signing:1.0.0:QmemReviejNSLrwWqENKL76AtoK17eG8TBbWjpwUT7L3UA
-- valory/abci:0.1.0:QmRXBoBaTYNcpe98SqYJmKVXm6eFfYeS9yuKz7mzzYawNG
+- valory/abci:0.1.0:QmXon2dDJmX6CjBToQxB3gtDuJdZeHgte5H9FZ4nv9kx6c
 - valory/contract_api:1.0.0:QmSobFjLc3baTW1Zf2zfS1X3KJabw7xE6cPJb2g2eAvxSx
 - valory/http:1.0.0:QmSAsTD3pidZcrEXk3HQfbZvUDiVTUMHgCrXpXcs744AZE
 - valory/ledger_api:1.0.0:QmdMBgcpjL2hvmrxWtFyujMSf6exkFPnUXZqTdnsvrk48r
 skills:
-- valory/abstract_round_abci:0.1.0:QmVkY598n8nSQjVXUQqW5oGkDwWLkTbuxjqhyLpfV9LWot
-- valory/apy_estimation_abci:0.1.0:QmUMZbbj4YTWiwdWAq5yoEhv8BSaJ8tzqV2Hj3dS9Gw72m
-- valory/registration_abci:0.1.0:QmSRi3ES1XWKFg8ps2cmdkVG8HBvMhDySM34bVjDXifwpp
+- valory/abstract_round_abci:0.1.0:QmZFUbEUECd2E1VaaPDVemyKzE9UAVh1r2mPoEohJH31e1
+- valory/apy_estimation_abci:0.1.0:QmcC5kEDnY8G6rQL965Xp6B46aP5joMJ9WR7PrSuGNhn3E
+- valory/registration_abci:0.1.0:QmPn6hxeReQxXSa83XW734ZovyrLEc3Q7CBL3xeq7EtxVZ
 behaviours:
   main:
     args: {}

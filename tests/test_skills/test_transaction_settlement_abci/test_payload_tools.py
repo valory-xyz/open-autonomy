@@ -20,7 +20,6 @@
 """Tests for valory/transaction settlement skill's payload tools."""
 import sys
 
-import atheris  # type: ignore
 import pytest
 
 from packages.valory.contracts.gnosis_safe.contract import SafeOperation
@@ -33,6 +32,12 @@ from packages.valory.skills.transaction_settlement_abci.payload_tools import (
     tx_hist_hex_to_payload,
     tx_hist_payload_to_hex,
 )
+
+
+try:
+    import atheris  # type: ignore
+except (ImportError, ModuleNotFoundError):
+    pytestmark = pytest.mark.skip
 
 
 class TestTxHistPayloadEncodingDecoding:

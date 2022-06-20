@@ -40,6 +40,8 @@ from autonomy.deploy.base import BaseDeploymentGenerator, ServiceSpecification
 from autonomy.deploy.generators.docker_compose.base import DockerComposeGenerator
 from autonomy.deploy.generators.kubernetes.base import KubernetesGenerator
 
+from tests.helpers.docker.base import skip_docker_tests
+
 
 deployment_generators: List[Any] = [
     DockerComposeGenerator,
@@ -275,6 +277,7 @@ class TestDeploymentGenerators(BaseDeploymentTests):
                 assert len(res) >= 1, "failed to generate agents"
 
 
+@skip_docker_tests
 class TestTendermintDeploymentGenerators(BaseDeploymentTests):
     """Test functionality of the deployment generators."""
 

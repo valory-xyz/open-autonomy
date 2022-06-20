@@ -6,10 +6,10 @@ description: connection to wrap communication with an ABCI server.
 license: Apache-2.0
 aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
-  Makefile: QmeCnSPf5rmJBp5Dj6D7wFiEUb2aWHn9ndve6zx1VVh4Au
+  Makefile: QmQi1Ykty9vhyCnfPDEC9yHb36ktQtKGffE7tLcHbe88Hf
   __init__.py: QmeFFi4ppQzSMxGGzQYAjKYD8icWxFUbfs1DTzxi3MV6Pg
   check_dependencies.py: QmaTR9NaqGPkTEvTHbXqN5aD52W6cxu1J2CH3YyuPZRDM4
-  connection.py: QmdJGbVagaG3wb1x4W8kKzzdvC7E9r132FEFdmdD75ocvi
+  connection.py: QmdjgVHu1diiJW34iq89K1CufVZ9xxQ4LRhW5P9LBw9AQH
   dialogues.py: QmSAg9Cv9aU8ZhRtuEVJhgf9KZp5rL7NYruFSTsj6HpYju
   gogoproto/__init__.py: QmT25qNFyqBirw8rhCvwjm3wxNaN5RwFuaswEcnzCkFkGM
   gogoproto/gogo_pb2.py: QmfCBcS9xWyLvRF74DyqCKa5VXZd7Ada9jcy6jutsK6gbJ
@@ -33,7 +33,7 @@ fingerprint:
   tendermint/version/types_pb2.py: QmXHigkbDKNvT5ThMs1LtusqE7eZSk2skShjVdfmeotyfj
   tendermint_decoder.py: QmPrHyEbaK6uqHXpHZGotaTkHHcr2ap1X6jPh88ugB4Jsm
   tendermint_encoder.py: QmYoakv7n1ue4GffM9r7HSwVATbDrnnB2DH9m7HCWFZe4a
-  version.txt: QmUMea8qXm2mXS5n4T1uXDkULE5cuWjM2mjQnkUegzdAFK
+  version.txt: QmZib55TCuqYEzKzyEsdd6CUgUGEn9j6zFUNHRhA2vL38U
 fingerprint_ignore_patterns: []
 build_entrypoint: check_dependencies.py
 connections: []

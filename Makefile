@@ -74,6 +74,7 @@ generators:
 	python -m autonomy.cli hash all
 	python scripts/generate_api_documentation.py
 	python scripts/check_copyright.py
+	python scripts/check_doc_ipfs_hashes.py
 
 .PHONY: abci-docstrings
 abci-docstrings:
@@ -327,7 +328,10 @@ run-deploy:
 		kubectl create secret generic regcred \
           --from-file=.dockerconfigjson=/home/$(shell whoami)/.docker/config.json \
           --type=kubernetes.io/dockerconfigjson -n ${VERSION} || (echo "failed to create secret" && exit 1)
-		cd abci_build/ && kubectl apply -f build.yaml -n ${VERSION} && exit 0
+		cd abci_build/ && \
+			kubectl apply -f build.yaml -n ${VERSION} && \
+			kubectl apply -f agent_keys/ -n ${VERSION} && \
+			exit 0
 	fi
 	echo "Please ensure you have set the environment variable 'DEPLOYMENT_TYPE'"
 	exit 1
@@ -372,6 +376,9 @@ build-deploy:
 
 protolint_install:
 	GO111MODULE=on GOPATH=~/go go get -u -v github.com/yoheimuta/protolint/cmd/protolint@v0.27.0
+
+protolint_install_win:
+	powershell -command '$$env:GO111MODULE="on"; go install github.com/yoheimuta/protolint/cmd/protolint@v0.27.0'
 
 # how to use:
 #

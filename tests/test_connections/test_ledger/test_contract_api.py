@@ -43,6 +43,7 @@ from packages.valory.protocols.contract_api.dialogues import (
 from packages.valory.protocols.contract_api.message import ContractApiMessage
 
 from tests.conftest import ETHEREUM_KEY_DEPLOYER, get_key
+from tests.helpers.docker.base import skip_docker_tests
 
 
 SOME_SKILL_ID = "some/skill:0.1.0"
@@ -76,6 +77,7 @@ class ContractApiDialogues(BaseContractApiDialogues):
         )
 
 
+@skip_docker_tests
 @pytest.mark.usefixtures("gnosis_safe_hardhat_scope_class")
 class TestContractDispatcher:
     """Test contract dispatcher."""

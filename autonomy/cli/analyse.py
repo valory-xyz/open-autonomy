@@ -185,7 +185,7 @@ def run_handler_check(packages_dir: Path, skip: str, common: str) -> None:
     try:
         for yaml_file in sorted(packages_dir.glob("**/skill.yaml")):
             click.echo(f"Checking {yaml_file.parent}")
-            check_handlers(yaml_file, common_handlers, skip_skills)
+            check_handlers(yaml_file.resolve(), common_handlers, skip_skills)
     except Exception as e:  # pylint: disable=broad-except
         raise click.ClickException(str(e)) from e
 
