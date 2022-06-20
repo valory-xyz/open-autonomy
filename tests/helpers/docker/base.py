@@ -19,6 +19,7 @@
 
 """This module contains testing utilities."""
 import logging
+import platform
 import re
 import shutil
 import subprocess  # nosec
@@ -34,6 +35,12 @@ from docker.models.containers import Container
 
 SEPARATOR = ("\n" + "*" * 40) * 3 + "\n"
 logger = logging.getLogger(__name__)
+
+
+skip_docker_tests = pytest.mark.skipif(
+    platform.system() != "Linux",
+    reason="Docker daemon is not available in Windows and macOS CI containers.",
+)
 
 
 class DockerImage(ABC):
@@ -202,6 +209,7 @@ def launch_many_containers(
         _stop_container(container, image.tag)
 
 
+@skip_docker_tests
 class DockerBaseTest(ABC):
     """Base pytest class for setting up Docker images."""
 

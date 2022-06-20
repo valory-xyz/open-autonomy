@@ -21,8 +21,13 @@
 import sys
 from unittest import mock
 
-import atheris  # type: ignore
 import pytest
+
+
+try:
+    import atheris  # type: ignore
+except (ImportError, ModuleNotFoundError):
+    pytestmark = pytest.mark.skip
 
 from packages.valory.skills.abstract_round_abci.utils import MAX_UINT64, VerifyDrand
 

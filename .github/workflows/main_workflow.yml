@@ -20,7 +20,7 @@ jobs:
     timeout-minutes: 10
 
     steps:
-    - uses: actions/checkout@master
+    - uses: actions/checkout@v2
     - uses: actions/setup-python@master
       with:
         python-version: ${{ matrix.python-version }}
@@ -81,7 +81,7 @@ jobs:
     timeout-minutes: 30
 
     steps:
-    - uses: actions/checkout@master
+    - uses: actions/checkout@v2
     - uses: actions/setup-python@master
       with:
         python-version: ${{ matrix.python-version }}
@@ -143,21 +143,22 @@ jobs:
 
     strategy:
       matrix:
-        os: [ ubuntu-latest ] # TODO add [macos-latest, windows-latest]
-        python-version: [ "3.10" ] # TODO add [3.8, 3.9]
+        os: [ ubuntu-latest, macos-latest, windows-latest ]
+        python-version: [ "3.7", "3.8", "3.9", "3.10" ]
 
     timeout-minutes: 40
 
     steps:
-      - uses: actions/checkout@master
-      - name: Checkout submodules
-        uses: srt32/git-actions@v0.0.3
+      - uses: actions/checkout@v2
         with:
-          args: git config --global --add safe.directory /github/workspace && git config --global --add safe.directory /github/workspace/third_party/contracts-amm && git config --global --add safe.directory /github/workspace/third_party/safe-contracts && git submodule update --init --recursive
+          submodules: recursive
       - uses: actions/setup-python@master
         with:
           submodules: recursive
           python-version: ${{ matrix.python-version }}
+      - uses: actions/setup-go@v3
+        with:
+          go-version: "1.17.7"
       - if: matrix.os == 'ubuntu-latest'
         name: Install dependencies (ubuntu-latest)
         run: |
@@ -183,37 +184,148 @@ jobs:
           wget -O tendermint.tar.gz https://github.com/tendermint/tendermint/releases/download/v0.34.19/tendermint_0.34.19_linux_amd64.tar.gz
           tar -xf tendermint.tar.gz
           sudo mv tendermint /usr/local/bin/tendermint
+
+          # install skaffold
           curl -Lo skaffold https://storage.googleapis.com/skaffold/releases/v1.33.0/skaffold-linux-amd64 && \
           sudo chmod +x skaffold
           sudo install skaffold /usr/local/bin/
-
           skaffold --help
-
 
           # pull node image needed for the integration tests
           docker pull node:16.7.0
           docker pull trufflesuite/ganache:beta
+
           # build hardhat node in third_party/safe-contracts
           cd third_party/safe-contracts &&\
             sudo chown -R $(whoami) .husky &&\
             yarn
+
           # build hardhat node in third_party/contracts-amm
           cd ../..
           cd third_party/contracts-amm &&\
             yarn
 
-      #    # set up environment depending on the platform in use
-      #    - if: matrix.os == 'macos-latest'
-      #      name: Install dependencies (macos-latest)
-      #      run: ...
-      #    - if: matrix.os == 'windows-latest'
-      #      name: Install dependencies (windows-latest)
-      #      env:
-      #        ACTIONS_ALLOW_UNSECURE_COMMANDS: true
-      #      run: ...
-      - name: Unit tests
+      - if: matrix.os == 'ubuntu-latest'
+        name: Unit tests ubuntu-latest
         run: |
           tox -e py${{ matrix.python-version }} -- -m 'not e2e'
+
+      - if: matrix.os == 'macos-latest'
+        name: Install dependencies (macos-latest)
+        run: |
+          pip install tox
+          brew install gcc
+          # brew install protobuf
+          # brew install https://raw.githubusercontent.com/Homebrew/homebrew-core/72457f0166d5619a83f508f2345b22d0617b5021/Formula/protobuf.rb
+          wget https://github.com/protocolbuffers/protobuf/releases/download/v3.19.4/protoc-3.19.4-osx-x86_64.zip
+          unzip protoc-3.19.4-osx-x86_64.zip -d protoc
+          sudo mv protoc/bin/protoc /usr/local/bin/protoc
+          brew tap yoheimuta/protolint
+          brew install protolint
+
+          # install ipfs
+          curl -O https://dist.ipfs.io/go-ipfs/v0.6.0/go-ipfs_v0.6.0_darwin-amd64.tar.gz
+          tar -xvzf go-ipfs_v0.6.0_darwin-amd64.tar.gz
+          cd go-ipfs
+          sudo ./install.sh
+          cd ..
+          rm -rf go-ipfs
+          ipfs init
+
+          # install Tendermint
+          wget -O tendermint.tar.gz https://github.com/tendermint/tendermint/releases/download/v0.34.19/tendermint_0.34.19_darwin_amd64.tar.gz
+          tar -xf tendermint.tar.gz
+          sudo mv tendermint /usr/local/bin/tendermint
+
+          # install skaffold
+          curl -Lo skaffold https://storage.googleapis.com/skaffold/releases/v1.33.0/skaffold-darwin-amd64 && \
+          sudo chmod +x skaffold
+          sudo install skaffold /usr/local/bin/
+          skaffold --help
+
+          # pull node image needed for the integration tests
+          # we don't run tests that require docker images on MacOS
+          # docker pull node:16.7.0
+          # docker pull trufflesuite/ganache:beta
+
+          # build hardhat node in third_party/safe-contracts
+          cd third_party/safe-contracts &&\
+            sudo chown -R $(whoami) .husky &&\
+            yarn
+
+          # build hardhat node in third_party/contracts-amm
+          cd ../..
+          cd third_party/contracts-amm &&\
+            yarn
+
+      - if: matrix.os == 'macos-latest'
+        name: Unit tests macos-latest
+        run: |
+          tox -e py${{ matrix.python-version }}-mac -- -m 'not e2e'
+
+      - if: matrix.os == 'windows-latest'
+        name: Install dependencies (windows-latest)
+        env:
+          ACTIONS_ALLOW_UNSECURE_COMMANDS: true
+        run: |
+          python -m pip install -U pip
+          echo "::add-path::C:\Program Files (x86)\Windows Kits\10\bin\10.0.18362.0\x64"
+          choco install wget -y
+          choco install protoc --version 3.19.4
+          choco install mingw -y
+          choco install make -y
+          # to check make was installed
+          make --version
+          pip install tox
+          # wget https://github.com/protocolbuffers/protobuf/releases/download/v3.19.4/protoc-3.19.4-win64.zip
+          # unzip protoc-3.19.4-win64.zip -d protoc
+          # sudo mv protoc/bin/protoc /usr/local/bin/protoc
+
+          python scripts\update_symlinks_cross_platform.py
+
+          # TODO: install protolint
+          #echo "::set-env name=GOPATH::$(go env GOPATH)"
+          #echo "::add-path::$(go env GOPATH)/bin"
+          #make protolint_install_win
+          # just check protolint runs
+          #protolint version
+
+          # install ipfs
+          curl https://dist.ipfs.io/go-ipfs/v0.6.0/go-ipfs_v0.6.0_windows-amd64.zip -o go-ipfs_v0.6.0.zip
+          Expand-Archive -Path go-ipfs_v0.6.0.zip -DestinationPath ~\Apps\
+          cp ~\Apps\go-ipfs\ipfs.exe C:\Users\runneradmin\go\bin\
+          ipfs init
+
+          # install Tendermint
+          wget -O tendermint.tar.gz https://github.com/tendermint/tendermint/releases/download/v0.34.19/tendermint_0.34.19_windows_amd64.tar.gz
+          tar -xvzf tendermint.tar.gz
+          cp tendermint.exe C:\Users\runneradmin\go\bin\
+
+          # install skaffold
+          curl -Lo skaffold https://storage.googleapis.com/skaffold/releases/latest/skaffold-windows-amd64.exe
+          cp skaffold C:\Users\runneradmin\go\bin\
+          skaffold --help
+
+          # pull node image needed for the integration tests
+          # we don't run tests that require docker images on Windows
+          # docker pull node:16.7.0
+          # docker pull trufflesuite/ganache:beta
+
+          # build hardhat node in third_party/safe-contracts
+          cd third_party\safe-contracts
+          yarn
+          cd ..\..
+
+          # build hardhat node in third_party/contracts-amm
+          cd third_party\contracts-amm
+          yarn
+          cd ..\..
+
+      - if: matrix.os == 'windows-latest'
+        name: Unit tests windows-latest
+        run: |
+          tox -e py${{ matrix.python-version }}-win -- -m 'not e2e'
+
       - if: matrix.os == 'ubuntu-latest'
         name: Upload coverage to Codecov
         uses: codecov/codecov-action@v1
@@ -237,14 +349,12 @@ jobs:
         os: [ ubuntu-latest ]
         python-version: [ "3.10" ]
 
-    timeout-minutes: 70
+    timeout-minutes: 60
 
     steps:
-      - uses: actions/checkout@master
-      - name: Checkout submodules
-        uses: srt32/git-actions@v0.0.3
+      - uses: actions/checkout@v2
         with:
-          args: git config --global --add safe.directory /github/workspace && git config --global --add safe.directory /github/workspace/third_party/contracts-amm && git config --global --add safe.directory /github/workspace/third_party/safe-contracts && git submodule update --init --recursive
+          submodules: recursive
       - uses: actions/setup-python@master
         with:
           submodules: recursive
