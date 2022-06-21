@@ -625,6 +625,7 @@ class TransactionSubmissionAbciApp(AbciApp[Event]):
             Event.NONE: SelectKeeperTransactionSubmissionRoundB,
             Event.VALIDATE_TIMEOUT: SelectKeeperTransactionSubmissionRoundB,
             Event.NO_MAJORITY: ValidateTransactionRound,
+            Event.INCORRECT_SERIALIZATION: FailedRound,
         },
         CheckTransactionHistoryRound: {
             Event.DONE: FinishedTransactionSubmissionRound,
