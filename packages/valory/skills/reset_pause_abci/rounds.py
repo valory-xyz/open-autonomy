@@ -49,6 +49,7 @@ class ResetAndPauseRound(CollectSameUntilThresholdRound):
     round_id = "reset_and_pause"
     allowed_tx_type = ResetPausePayload.transaction_type
     payload_attribute = "period_count"
+    _allow_rejoin_payloads = True
 
     def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Event]]:
         """Process the end of the block."""

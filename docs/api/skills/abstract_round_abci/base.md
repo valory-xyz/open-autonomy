@@ -906,7 +906,7 @@ the period count
 def participants() -> FrozenSet[str]
 ```
 
-Get the participants.
+Get the currently active participants.
 
 <a id="packages.valory.skills.abstract_round_abci.base.BaseSynchronizedData.all_participants"></a>
 
@@ -917,7 +917,7 @@ Get the participants.
 def all_participants() -> FrozenSet[str]
 ```
 
-Get all the participants.
+Get all registered participants.
 
 <a id="packages.valory.skills.abstract_round_abci.base.BaseSynchronizedData.sorted_participants"></a>
 
@@ -1358,6 +1358,17 @@ def __init__(*args: Any, **kwargs: Any)
 ```
 
 Initialize the collection round.
+
+<a id="packages.valory.skills.abstract_round_abci.base.CollectionRound.accepting_payloads_from"></a>
+
+#### accepting`_`payloads`_`from
+
+```python
+@property
+def accepting_payloads_from() -> FrozenSet[str]
+```
+
+Accepting from the active set, or also from (re)joiners
 
 <a id="packages.valory.skills.abstract_round_abci.base.CollectionRound.payloads"></a>
 

@@ -680,7 +680,7 @@ class BaseSynchronizedData:
 
     @property
     def participants(self) -> FrozenSet[str]:
-        """Get the participants."""
+        """Get the currently active participants."""
         participants = self.db.get_strict("participants")
         if len(participants) == 0:
             raise ValueError("List participants cannot be empty.")
@@ -688,7 +688,7 @@ class BaseSynchronizedData:
 
     @property
     def all_participants(self) -> FrozenSet[str]:
-        """Get all the participants."""
+        """Get all registered participants."""
         all_participants = self.db.get_strict("all_participants")
         if len(all_participants) == 0:
             raise ValueError("List participants cannot be empty.")
@@ -1068,10 +1068,20 @@ class CollectionRound(AbstractRound):
     might for example be from a voting round or estimation round.
     """
 
+    # allow_rejoin is used to allow agents not currently active to deliver a payload
+    _allow_rejoin_payloads: bool = False
+
     def __init__(self, *args: Any, **kwargs: Any):
         """Initialize the collection round."""
         super().__init__(*args, **kwargs)
         self.collection: Dict[str, BaseTxPayload] = {}
+
+    @property
+    def accepting_payloads_from(self) -> FrozenSet[str]:
+        """Accepting from the active set, or also from (re)joiners"""
+        if self._allow_rejoin_payloads:
+            return self.synchronized_data.all_participants
+        return self.synchronized_data.participants
 
     @property
     def payloads(self) -> List[BaseTxPayload]:
@@ -1091,9 +1101,9 @@ class CollectionRound(AbstractRound):
             )
 
         sender = payload.sender
-        if sender not in self.synchronized_data.participants:
+        if sender not in self.accepting_payloads_from:
             raise ABCIAppInternalError(
-                f"{sender} not in list of participants: {sorted(self.synchronized_data.participants)}"
+                f"{sender} not in list of participants: {sorted(self.accepting_payloads_from)}"
             )
 
         if sender in self.collection:
@@ -1110,12 +1120,10 @@ class CollectionRound(AbstractRound):
                 f"Expected round count {self.synchronized_data.round_count} and got {payload.round_count}."
             )
 
-        sender_in_participant_set = (
-            payload.sender in self.synchronized_data.participants
-        )
+        sender_in_participant_set = payload.sender in self.accepting_payloads_from
         if not sender_in_participant_set:
             raise TransactionNotValidError(
-                f"{payload.sender} not in list of participants: {sorted(self.synchronized_data.participants)}"
+                f"{payload.sender} not in list of participants: {sorted(self.accepting_payloads_from)}"
             )
 
         if payload.sender in self.collection:
