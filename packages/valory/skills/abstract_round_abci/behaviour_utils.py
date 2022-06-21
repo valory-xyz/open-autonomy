@@ -516,9 +516,12 @@ class BaseBehaviour(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
             != round_height
         )
 
-    def is_round_ended(self, round_id: str) -> Callable[[], bool]:
+    def is_round_ended(self) -> bool:
         """Get a callable to check whether the current round has ended."""
-        return partial(self.check_not_in_round, round_id)
+        return (
+            self.context.skill_context.state.round_sequence.current_round_id
+            != self.matching_round.round_id
+        )
 
     def wait_until_round_end(
         self, timeout: Optional[float] = None
