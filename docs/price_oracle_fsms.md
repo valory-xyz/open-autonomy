@@ -318,6 +318,7 @@ transition_func:
     (SynchronizeLateMessagesRound, NO_MAJORITY): SynchronizeLateMessagesRound
     (SynchronizeLateMessagesRound, ROUND_TIMEOUT): SynchronizeLateMessagesRound
     (ValidateTransactionRound, DONE): FinishedTransactionSubmissionRound
+    (ValidateTransactionRound, INCORRECT_SERIALIZATION): FailedRound
     (ValidateTransactionRound, NEGATIVE): CheckTransactionHistoryRound
     (ValidateTransactionRound, NONE): SelectKeeperTransactionSubmissionRoundB
     (ValidateTransactionRound, NO_MAJORITY): ValidateTransactionRound
@@ -581,6 +582,7 @@ transition_func:
     (ValidateSafeRound, NO_MAJORITY): RandomnessSafeRound
     (ValidateSafeRound, VALIDATE_TIMEOUT): RandomnessSafeRound
     (ValidateTransactionRound, DONE): ResetAndPauseRound
+    (ValidateTransactionRound, INCORRECT_SERIALIZATION): ResetAndPauseRound
     (ValidateTransactionRound, NEGATIVE): CheckTransactionHistoryRound
     (ValidateTransactionRound, NONE): SelectKeeperTransactionSubmissionRoundB
     (ValidateTransactionRound, NO_MAJORITY): ValidateTransactionRound
