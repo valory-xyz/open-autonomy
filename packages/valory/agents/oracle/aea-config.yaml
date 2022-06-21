@@ -6,7 +6,6 @@ description: Oracle agent.
 aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
   README.md: QmQPqYYkUVheBFfRZEogQYeficoxc2ez8M9L6rdj2g9cd1
-  aea-config.yaml~: QmfMdftAefGGKfwG9qxfASEUdL9KToz8cy2r5d7rneivJM
 fingerprint_ignore_patterns: []
 connections:
 - valory/abci:0.1.0:QmYWiaxokWBsbpwzZwPSYtrDrecE7A6ttz6kuZkUEWegVX
