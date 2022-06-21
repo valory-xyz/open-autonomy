@@ -37,7 +37,7 @@ then
     echo "Installing the necessary dependencies!"
     aea install && cd .. && aea delete agent
 else
-    (aea add-key cosmos --connection && aea issue-certificates --aev) || (echo "Failed to add cosmos key for connection" && exit 1)
+    (aea add-key cosmos --connection && aea issue-certificates --aev) || (echo "Failed to add cosmos key needed for libp2p connection" && exit 1)
     if [ "$AEA_PASSWORD" != "" ];
     then
         echo "Running the aea with a password!"
