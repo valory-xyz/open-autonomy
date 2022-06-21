@@ -27,7 +27,7 @@ skills:
 - valory/abstract_round_abci:0.1.0:QmZFUbEUECd2E1VaaPDVemyKzE9UAVh1r2mPoEohJH31e1
 - valory/oracle_deployment_abci:0.1.0:QmdQvkvPinxcfCgYiJxs4ScDuaP5HgXLW9kRS6GGhHCuQD
 - valory/price_estimation_abci:0.1.0:QmR7sr4fjhssNPjBNoshZnFWyaXbGPyvdnkwQHc65mXs7t
-- valory/registration_abci:0.1.0:QmYFvmu7qgKoaiVjZePdMeinU8YANM2QLobTEJRgVSbBop
+- valory/registration_abci:0.1.0:QmYnzTT1mVPqMDZir3FrdaLGFKanCU4hc8nQKeFE3Tw2p1
 - valory/reset_pause_abci:0.1.0:QmY41UZTbH9QJz9LuZER6MiKbcfiegXHN5GwVUuguZ9h7r
 - valory/safe_deployment_abci:0.1.0:QmbnidwpYKDK3wymzq2G6tXkgqZWQTCfnMeajf9W16XpUA
 - valory/transaction_settlement_abci:0.1.0:QmamfzjqBhethLaadeRcmMcsEFDdavTMusXJuPwoq9LVb1
