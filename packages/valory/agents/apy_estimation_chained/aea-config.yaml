@@ -24,10 +24,10 @@ protocols:
 - valory/tendermint:0.1.0:QmXrfL1o3uqWAbRsFoo7MTQRXkaTsfcqxDobxD8pXg3hQx
 skills:
 - valory/abstract_abci:0.1.0:QmeFkaxPVuZc4GKo7BUucGS6PYcmMCiRuaubniLUQFHkeP
-- valory/abstract_round_abci:0.1.0:QmZFUbEUECd2E1VaaPDVemyKzE9UAVh1r2mPoEohJH31e1
-- valory/apy_estimation_abci:0.1.0:Qmccay1etgnLfjyhNVq4HQCd2QyKjsVRAJjwnH7BxCg5E7
-- valory/apy_estimation_chained_abci:0.1.0:QmcB5G1Tj9h5pvTKQjN4q93BvzWPQgm1CohmfshijAifeu
-- valory/registration_abci:0.1.0:QmYnzTT1mVPqMDZir3FrdaLGFKanCU4hc8nQKeFE3Tw2p1
+- valory/abstract_round_abci:0.1.0:QmYopcZxyCeM34ZpmWzYencYr7vqqqANgasRPKirL79eyL
+- valory/apy_estimation_abci:0.1.0:QmP1DiUv4Cc533Y2pU2bF9m45tc3Kk9GEbxhPsCWSsa8yt
+- valory/apy_estimation_chained_abci:0.1.0:QmWRzFFpxQFdszV7KRDUFMiaSNqGqHNcMPzP9QUG1NYQ12
+- valory/registration_abci:0.1.0:QmWeAZL4wJf7V776GYRpc2R7DbTkDgKa42TpP9rytB4XVr
 default_ledger: ethereum
 required_ledgers:
 - ethereum

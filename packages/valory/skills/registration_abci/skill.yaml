@@ -8,7 +8,7 @@ aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
   README.md: QmYgDsnQnryPwFXnaNTns1ypH9jqvYeHGgmP9K2y4tXFJy
   __init__.py: QmcMo5TeB1s4UWwEwXT8Xdsw7nNXzwJe7YXE3RgsSwEp7R
-  behaviours.py: QmXofQGmiRvztPqoBUbRxgiQA51yuiLeWim5mXJ8fdNjK7
+  behaviours.py: QmXtrQkcJDC1KnByD6G64i69cyfcJtK6XDA3DijToUQmxj
   dialogues.py: QmT6ojZQVrHPZC8vU4qMUAYwSuoyfENztqPgqMr2DyLQ13
   fsm_specification.yaml: QmWdzYEs29KmtKoX9wNHDBr87WonhLipHBk2tETTZaoTVF
   handlers.py: QmbMyUGebee8rTgVMg8dK5YSYgnsCMZc5ZnKVVaT8trSCJ
@@ -20,7 +20,7 @@ connections: []
 contracts: []
 protocols: []
 skills:
-- valory/abstract_round_abci:0.1.0:QmZFUbEUECd2E1VaaPDVemyKzE9UAVh1r2mPoEohJH31e1
+- valory/abstract_round_abci:0.1.0:QmYopcZxyCeM34ZpmWzYencYr7vqqqANgasRPKirL79eyL
 behaviours:
   main:
     args: {}

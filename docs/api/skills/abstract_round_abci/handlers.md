@@ -334,16 +334,6 @@ def dialogues() -> Optional[TendermintDialogues]
 
 Tendermint request / response protocol dialogues
 
-<a id="packages.valory.skills.abstract_round_abci.handlers.TendermintHandler.send_error_response"></a>
-
-#### send`_`error`_`response
-
-```python
-def send_error_response(message: TendermintMessage, dialogue: TendermintDialogue) -> None
-```
-
-Check if sender is among registered addresses
-
 <a id="packages.valory.skills.abstract_round_abci.handlers.TendermintHandler.handle"></a>
 
 #### handle
