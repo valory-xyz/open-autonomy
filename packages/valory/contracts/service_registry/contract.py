@@ -36,6 +36,9 @@ AgentParams = Tuple[int, int]
 
 PUBLIC_ID = PublicId.from_str("valory/service_registry:0.1.0")
 
+CHAIN_ADDRESS = "https://staging.chain.autonolas.tech"
+CHAIN_ID = 31337
+
 _logger = logging.getLogger(
     f"aea.packages.{PUBLIC_ID.author}.contracts.{PUBLIC_ID.name}.contract"
 )
@@ -61,10 +64,9 @@ class ServiceRegistryContract(Contract):
         deployed_bytecode = ledger_api.api.eth.get_code(contract_address).hex()
         sha512_hash = hashlib.sha512(deployed_bytecode.encode("utf-8")).hexdigest()
         verified = DEPLOYED_BYTECODE_MD5_HASH == sha512_hash
-        address, chain_id = "https://staging.chain.autonolas.tech", 31337
         log_msg = "CONTRACT NOT VERIFIED! reason: frequent changes."
         log_msg += f". Verified: {verified}. Contract address: {contract_address}."
-        _logger.error(f"{log_msg} Address: {address}, chain_id: {chain_id}")
+        _logger.error(f"{log_msg} Address: {CHAIN_ADDRESS}, chain_id: {CHAIN_ID}")
         return dict(verified=True, sha512_hash=sha512_hash)
 
     @classmethod
