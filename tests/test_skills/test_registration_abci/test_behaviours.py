@@ -22,6 +22,8 @@
 import collections
 import json
 import logging
+import platform
+import time
 from contextlib import ExitStack, contextmanager
 from pathlib import Path
 from typing import Any, Callable, Dict, Generator, Iterable, List, Optional, cast
@@ -459,6 +461,9 @@ class TestRegistrationStartupBehaviour(RegistrationAbciBaseCase):
             self.mock_get_local_tendermint_params()
             self.mock_is_correct_contract()
             self.mock_get_service_info(*self.agent_instances)
+            if platform.system() == "Windows" and platform.python_version().startswith("3.8"):
+                time.sleep(self.state.params.sleep_time)
+                self.behaviour.act_wrapper()
             self.mock_get_tendermint_info(*self.other_agents)
             self.mock_tendermint_update(valid_response)
             assert log_message.value in caplog.text
