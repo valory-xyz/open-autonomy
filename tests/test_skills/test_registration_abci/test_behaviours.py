@@ -294,7 +294,11 @@ class TestRegistrationStartupBehaviour(RegistrationAbciBaseCase):
         body = json.dumps(validator_configs).encode(self.state.ENCODING)
         url = self.state.tendermint_parameter_url
         request_kwargs = dict(method="POST", url=url, body=body)
-        body = b"{}" if valid_response else b""
+        body = (
+            json.dumps({"status": True, "error": None}).encode(self.state.ENCODING)
+            if valid_response
+            else b""
+        )
         response_kwargs = dict(status_code=200, body=body)
         self.mock_http_request(request_kwargs, response_kwargs)
 

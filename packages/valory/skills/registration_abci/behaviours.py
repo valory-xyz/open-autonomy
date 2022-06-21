@@ -275,16 +275,21 @@ class RegistrationStartupBehaviour(RegistrationBaseBehaviour):
         self.context.logger.info(f"{log_message}: {url}")
 
         result = yield from self.get_http_response(method="GET", url=url)
+        log_message = self.LogMessages.failed_personal
         try:
             response = json.loads(result.body.decode())
-            self.local_tendermint_params = response["params"]
-            log_message = self.LogMessages.response_personal
-            self.context.logger.info(f"{log_message}: {response}")
-            return True
         except json.JSONDecodeError as error:
-            log_message = self.LogMessages.failed_personal
-            self.context.logger.info(f"{log_message}: {error}")
+            self.context.logger.error(f"{log_message}: {error}")
             return False
+
+        if not response["status"]:  # pragma: no cover
+            self.context.logger.error(f"{log_message}: {response['error']}")
+            return False
+
+        self.local_tendermint_params = response["params"]
+        log_message = self.LogMessages.response_personal
+        self.context.logger.info(f"{log_message}: {response}")
+        return True
 
     def request_tendermint_info(self) -> bool:
         """Request Tendermint info from other agents"""
@@ -321,16 +326,21 @@ class RegistrationStartupBehaviour(RegistrationBaseBehaviour):
         result = yield from self.get_http_response(
             method="POST", url=url, content=content
         )
+        log_message = self.LogMessages.failed_update
         try:
             response = json.loads(result.body.decode())
-            log_message = self.LogMessages.response_update
-            self.context.logger.info(f"{log_message}: {response}")
-            self.updated_genesis_data.update(genesis_data)
-            return True
         except json.JSONDecodeError as error:
-            log_message = self.LogMessages.failed_update
-            self.context.logger.info(f"{log_message}: {error}")
+            self.context.logger.error(f"{log_message}: {error}")
             return False
+
+        if not response["status"]:  # pragma: no cover
+            self.context.logger.error(f"{log_message}: {response['error']}")
+            return False
+
+        log_message = self.LogMessages.response_update
+        self.context.logger.info(f"{log_message}: {response}")
+        self.updated_genesis_data.update(genesis_data)
+        return True
 
     def async_act(self) -> Generator:
         """Act asynchronously"""
