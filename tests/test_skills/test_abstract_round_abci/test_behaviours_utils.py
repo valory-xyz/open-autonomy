@@ -1245,7 +1245,7 @@ class TestBaseBehaviour:
             (None, True, 0, False),
             (None, False, 0, False),
             (datetime(1, 1, 1), True, 0, False),
-            (datetime.now(), False, 1000, False),
+            (datetime.now(), False, 3000, False),
             (datetime(1, 1, 1), False, 0, True),
         ),
     )
