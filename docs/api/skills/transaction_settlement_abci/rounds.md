@@ -446,6 +446,7 @@ Transition states:
         - none: 6.
         - validate timeout: 6.
         - no majority: 4.
+        - incorrect serialization: 12.
     5. CheckTransactionHistoryRound
         - done: 11.
         - negative: 6.
