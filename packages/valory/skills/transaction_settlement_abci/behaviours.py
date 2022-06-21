@@ -394,7 +394,7 @@ class ValidateTransactionBehaviour(TransactionSettlementBaseBehaviour):
                 f"verify_tx unsuccessful! Received: {contract_api_msg}"
             )
             return False
-        verified = cast(bool, contract_api_msg.state.body["verified"])
+
         verified = cast(bool, contract_api_msg.state.body["verified"])
         verified_log = (
             f"Verified result: {verified}"
