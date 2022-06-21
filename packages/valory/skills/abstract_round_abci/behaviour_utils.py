@@ -584,14 +584,13 @@ class BaseBehaviour(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
         :param: resetting: flag indicating if we are resetting Tendermint nodes in this round.
         :yield: the responses
         """
-        stop_condition = self.is_round_ended(self.matching_round.round_id)
         payload.round_count = cast(
             SharedState, self.context.state
         ).synchronized_data.round_count
         yield from self._send_transaction(
             payload,
             resetting,
-            stop_condition=stop_condition,
+            stop_condition=self.is_round_ended,
         )
 
     def async_act_wrapper(self) -> Generator:
