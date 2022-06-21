@@ -16,7 +16,7 @@ contracts:
 - valory/gnosis_safe:0.1.0:QmRNdXGRRQBMFXh5ZvtJeYvHt7559kV5r5EYU5JNUdRBKJ
 - valory/gnosis_safe_proxy_factory:0.1.0:QmVkZtrgZ2ievXAonq9z33qbrxHi8piVGptuCGaGJYS1iM
 - valory/offchain_aggregator:0.1.0:Qmaftfci6asBewVH3vKGtMJVcAdG71Vm6Qv493uRkT7b2h
-- valory/service_registry:0.1.0:QmdGKuHvFpNWiRW9oWxc3vj5STZZWH4XiimnWA2e7bm71p
+- valory/service_registry:0.1.0:QmZFCk3m21g4FVK3QHbpJu9aubKaqWpcXoVY5DAFKVe4wE
 protocols:
 - open_aea/signing:1.0.0:QmemReviejNSLrwWqENKL76AtoK17eG8TBbWjpwUT7L3UA
 - valory/abci:0.1.0:QmXon2dDJmX6CjBToQxB3gtDuJdZeHgte5H9FZ4nv9kx6c
@@ -27,14 +27,14 @@ protocols:
 - valory/tendermint:0.1.0:QmXrfL1o3uqWAbRsFoo7MTQRXkaTsfcqxDobxD8pXg3hQx
 skills:
 - valory/abstract_abci:0.1.0:QmeFkaxPVuZc4GKo7BUucGS6PYcmMCiRuaubniLUQFHkeP
-- valory/abstract_round_abci:0.1.0:QmYopcZxyCeM34ZpmWzYencYr7vqqqANgasRPKirL79eyL
-- valory/oracle_abci:0.1.0:QmXge4bHV3Z6LGnovR7BkbfizWXGt6vPu4isUvDdB4dj7r
-- valory/oracle_deployment_abci:0.1.0:QmP972HbMdSHeetjK1BGNCCp1Pj3uJvy2MTxmfqFUaRuzo
-- valory/price_estimation_abci:0.1.0:QmfMo7MQ6Psym7q8Ev1544iasgSvndAP8X4U3XvareRRNS
-- valory/registration_abci:0.1.0:QmWeAZL4wJf7V776GYRpc2R7DbTkDgKa42TpP9rytB4XVr
-- valory/reset_pause_abci:0.1.0:QmYnfj9j7yggDQ1E9JT7aGe3e3PPNxXoCSnjYZTWbaixVJ
-- valory/safe_deployment_abci:0.1.0:QmW8hKgwNXqCN7Tc9bNcw8QtWymTi9esrbJdguUAH4a35Z
-- valory/transaction_settlement_abci:0.1.0:QmRD41RooctdP9qUXAAUW5AUcW3hFq6LWFPvdBPbpu2b9L
+- valory/abstract_round_abci:0.1.0:QmU1ZB17kJiGbujo3yGZGa8RDktg1NMzFWDVvEqfHDQaBn
+- valory/oracle_abci:0.1.0:QmbUV8iHvVYFV7uSfKj6kibED1d1JP5ocCwr1y56JvwaUV
+- valory/oracle_deployment_abci:0.1.0:QmfQWNmy5EmHtriaN5VLMYzntFDfqHvwtySDTkAtpntvGk
+- valory/price_estimation_abci:0.1.0:QmYAbLTV8RCmmJaSwoKzPuXshLvtFFAcFaHnoDjbejzYF3
+- valory/registration_abci:0.1.0:QmaHv8D2pQbDAp1PwUpeiRaKPfcvgPrsPfPK437CS8GJks
+- valory/reset_pause_abci:0.1.0:QmQtVzuPAHDtr94Jy6KNemvkU5GJhAxw4fGarAnLo7b8ri
+- valory/safe_deployment_abci:0.1.0:QmP4zj8QGmdMwA5R9eA872N8ohf5dNb17iB9QtvPqykJJy
+- valory/transaction_settlement_abci:0.1.0:QmbhHiKeTeHFoEPy1qijKCWU27zedvxBym7PFUx7VhXWNp
 default_ledger: ethereum
 required_ledgers:
 - ethereum
