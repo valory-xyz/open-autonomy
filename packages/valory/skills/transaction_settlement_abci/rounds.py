@@ -370,7 +370,7 @@ class ValidateTransactionRound(VotingRound):
             # then it is incorrectly used.
             synchronized_data = cast(SynchronizedData, self.synchronized_data)
             if not synchronized_data.to_be_validated_tx_hash:
-                return synchronized_data, Event.INCORRECT_SERIALIZATION
+                return synchronized_data, Event.FINALIZATION_FAILED
 
             # We only set the final tx hash if we are about to exit from the transaction settlement skill.
             # Then, the skills which use the transaction settlement can check the tx hash
