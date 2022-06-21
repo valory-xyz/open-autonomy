@@ -21,7 +21,7 @@
 
 import json
 from enum import Enum
-from typing import Any, Dict, Generator, Set, Type, cast
+from typing import Any, Dict, Generator, Optional, Set, Type, cast
 
 from aea.mail.base import EnvelopeContext
 
@@ -30,6 +30,7 @@ from packages.valory.connections.p2p_libp2p_client.connection import (
 )
 from packages.valory.contracts.service_registry.contract import ServiceRegistryContract
 from packages.valory.protocols.contract_api import ContractApiMessage
+from packages.valory.protocols.http import HttpMessage
 from packages.valory.protocols.tendermint import TendermintMessage
 from packages.valory.skills.abstract_round_abci.behaviours import (
     AbstractRoundBehaviour,
@@ -174,6 +175,27 @@ class RegistrationStartupBehaviour(RegistrationBaseBehaviour):
         """Tendermint URL for obtaining and updating parameters"""
         return f"{self.params.tendermint_com_url}/params"
 
+    def _decode_result(
+        self, message: HttpMessage, error_log: LogMessages
+    ) -> Optional[Dict[str, Any]]:
+        """Decode a http message's body.
+
+        :param message: the http message.
+        :param error_log: a log to prefix potential errors with.
+        :return: the message's body, as a dictionary
+        """
+        try:
+            response = json.loads(message.body.decode())
+        except json.JSONDecodeError as error:
+            self.context.logger.error(f"{error_log}: {error}")
+            return None
+
+        if not response["status"]:  # pragma: no cover
+            self.context.logger.error(f"{error_log}: {response['error']}")
+            return None
+
+        return response
+
     def is_correct_contract(self) -> Generator[None, None, bool]:
         """Contract deployment verification."""
 
@@ -275,15 +297,8 @@ class RegistrationStartupBehaviour(RegistrationBaseBehaviour):
         self.context.logger.info(f"{log_message}: {url}")
 
         result = yield from self.get_http_response(method="GET", url=url)
-        log_message = self.LogMessages.failed_personal
-        try:
-            response = json.loads(result.body.decode())
-        except json.JSONDecodeError as error:
-            self.context.logger.error(f"{log_message}: {error}")
-            return False
-
-        if not response["status"]:  # pragma: no cover
-            self.context.logger.error(f"{log_message}: {response['error']}")
+        response = self._decode_result(result, self.LogMessages.failed_personal)
+        if response is None:
             return False
 
         self.local_tendermint_params = response["params"]
@@ -326,15 +341,8 @@ class RegistrationStartupBehaviour(RegistrationBaseBehaviour):
         result = yield from self.get_http_response(
             method="POST", url=url, content=content
         )
-        log_message = self.LogMessages.failed_update
-        try:
-            response = json.loads(result.body.decode())
-        except json.JSONDecodeError as error:
-            self.context.logger.error(f"{log_message}: {error}")
-            return False
-
-        if not response["status"]:  # pragma: no cover
-            self.context.logger.error(f"{log_message}: {response['error']}")
+        response = self._decode_result(result, self.LogMessages.failed_update)
+        if response is None:
             return False
 
         log_message = self.LogMessages.response_update
