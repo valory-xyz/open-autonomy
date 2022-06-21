@@ -171,7 +171,6 @@ class TransactionSettlementBaseBehaviour(BaseBehaviour, ABC):
         if gas_strategy == "gas_station":
             gas_price_params = ["gasPrice"]
 
-        nonce = Nonce(int(cast(str, message.raw_transaction.body["nonce"])))
         gas_price = {
             gas_price_param: Wei(
                 int(
@@ -213,6 +212,7 @@ class TransactionSettlementBaseBehaviour(BaseBehaviour, ABC):
             return tx_data
 
         tx_data["tx_digest"] = cast(str, tx_digest)
+        nonce = Nonce(int(cast(str, message.raw_transaction.body["nonce"])))
 
         # Set hash and nonce
         self.params.tx_hash = cast(str, tx_data["tx_digest"])
