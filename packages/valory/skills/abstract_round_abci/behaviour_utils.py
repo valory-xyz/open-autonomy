@@ -519,7 +519,7 @@ class BaseBehaviour(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
     def is_round_ended(self) -> bool:
         """Get a callable to check whether the current round has ended."""
         return (
-            self.context.skill_context.state.round_sequence.current_round_id
+            cast(SharedState, self.context.state).round_sequence.current_round_id
             != self.matching_round.round_id
         )
 
