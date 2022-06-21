@@ -168,7 +168,7 @@ class TransactionSettlementBaseBehaviour(BaseBehaviour, ABC):
         gas_price_params = []
         if gas_strategy == "eip":
             gas_price_params = ["maxPriorityFeePerGas", "maxFeePerGas"]
-        if gas_strategy == "gas_Station":
+        if gas_strategy == "gas_station":
             gas_price_params = ["gasPrice"]
 
         tx_data["tx_digest"] = cast(str, tx_digest)
