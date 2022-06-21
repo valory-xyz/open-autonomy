@@ -420,7 +420,7 @@ class TestBaseBehaviour:
         )
 
     def test_check_in_round(self) -> None:
-        """Test 'BaseBehaviour' initialization."""
+        """Test `check_in_round` and `check_not_in_round`."""
         expected_round_id = "round"
         self.context_mock.state.round_sequence.current_round_id = expected_round_id
         assert self.behaviour.check_in_round(expected_round_id)
