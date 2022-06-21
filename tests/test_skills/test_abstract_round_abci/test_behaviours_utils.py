@@ -599,9 +599,7 @@ class TestBaseBehaviour:
         )
 
         # create the exact same stop condition that we create in the `send_a2a_transaction` method
-        stop_condition = self.behaviour.is_round_ended(
-            self.behaviour.matching_round.round_id
-        )
+        stop_condition = self.behaviour.is_round_ended
         gen = self.behaviour._send_transaction(
             MagicMock(),
             request_retry_delay=request_retry_delay,
