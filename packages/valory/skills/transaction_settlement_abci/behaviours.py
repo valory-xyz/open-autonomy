@@ -201,8 +201,8 @@ class TransactionSettlementBaseBehaviour(BaseBehaviour, ABC):
                 "send_raw_transaction unsuccessful! Insufficient funds."
             )
 
-        # Trigger repricing mechanism if we have succesfully detected the strategy price
-        # and we receive an underpriced status.
+        # Store gas price if we have successfully detected the strategy and we receive an underpriced status, 
+        # so that the repricing mechanism is triggered next time.
         if rpc_status == RPCResponseStatus.UNDERPRICED and gas_price:
             self.params.gas_price = gas_price
 
