@@ -48,7 +48,7 @@ def get_hashes() -> Tuple[Dict[str, str], Dict[str, str]]:
     return package_to_hashes, hashes_to_package
 
 
-def fix_ipfs_hashes() -> None:
+def fix_ipfs_hashes() -> None:  # pylint: disable=too-many-locals
     """Fix ipfs hashes in the docs"""
     _, hashes_to_package = get_hashes()
 
