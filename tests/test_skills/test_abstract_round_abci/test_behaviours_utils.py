@@ -429,8 +429,15 @@ class TestBaseBehaviour:
         assert not self.behaviour.check_not_in_round(expected_round_id)
         assert self.behaviour.check_not_in_round("wrong round")
 
-        func = self.behaviour.is_round_ended(expected_round_id)
+    def test_is_round_ended(self) -> None:
+        """Test `is_round_ended`."""
+        self.behaviour.context.skill_context.state.round_sequence.current_round_id = (
+            self.behaviour.matching_round.round_id
+        ) = "round"
+        func = self.behaviour.is_round_ended
         assert not func()
+        self.behaviour.matching_round.round_id = "wrong round"
+        assert func()
 
     def test_check_in_last_round(self) -> None:
         """Test 'BaseBehaviour' initialization."""
