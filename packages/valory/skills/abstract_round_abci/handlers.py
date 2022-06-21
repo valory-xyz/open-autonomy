@@ -556,7 +556,7 @@ class TendermintHandler(Handler):
         attribute = cast(PublicId, self.SUPPORTED_PROTOCOL).name + "_dialogues"
         return getattr(self.context, attribute, None)
 
-    def send_error_response(
+    def _send_error_response(
         self, message: TendermintMessage, dialogue: TendermintDialogue
     ) -> None:
         """Check if sender is among registered addresses"""
@@ -618,7 +618,7 @@ class TendermintHandler(Handler):
             return
 
         if message.sender not in self.registered_addresses:
-            self.send_error_response(message, dialogue)
+            self._send_error_response(message, dialogue)
             return
 
         info = self.registered_addresses[self.context.agent_address]
@@ -637,7 +637,7 @@ class TendermintHandler(Handler):
         """Process Tendermint response messages"""
 
         if message.sender not in self.registered_addresses:
-            self.send_error_response(message, dialogue)
+            self._send_error_response(message, dialogue)
             return
 
         try:  # validate message contains a valid address
