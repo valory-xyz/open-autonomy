@@ -27,19 +27,22 @@ from typing import Tuple
 import docker
 
 from tests.conftest import ROOT_DIR
+from tests.helpers.docker.base import skip_docker_tests
 from tests.test_autonomy.test_cli.base import BaseCliTest
 
 
+@skip_docker_tests
 class TestBuildImage(BaseCliTest):
     """Test build image command."""
 
     cli_options: Tuple[str, ...] = ("deploy", "build", "image")
     service_id: str = "valory/oracle_hardhat"
-    docker_api: docker.APIClient = docker.APIClient()
+    docker_api: docker.APIClient
 
     @classmethod
     def setup(cls) -> None:
         """Setup class."""
+        cls.docker_api = docker.APIClient()
 
         super().setup()
         os.chdir(ROOT_DIR)

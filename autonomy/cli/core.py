@@ -20,8 +20,9 @@
 """Core for cli."""
 
 import click
-from aea.cli.core import cli as aea_cli
+from aea.cli.core import cli
 
+import autonomy
 from autonomy.cli.analyse import analyse_group
 from autonomy.cli.deploy import deploy_group
 from autonomy.cli.develop import develop_group
@@ -30,20 +31,12 @@ from autonomy.cli.push_all import push_all
 from autonomy.cli.replay import replay_group
 
 
-@click.group(name="autonomy")  # type: ignore
-@click.pass_context
-def autonomy_cli(
-    click_context: click.Context,  # pylint: disable=unused-argument
-) -> None:
-    """Command-line tool for managing agent services of the Open Autonomy framework."""
+cli.add_command(analyse_group)
+cli.add_command(deploy_group)
+cli.add_command(develop_group)
+cli.add_command(replay_group)
+cli.add_command(hash_group)
 
 
-autonomy_cli.add_command(analyse_group)
-autonomy_cli.add_command(deploy_group)
-autonomy_cli.add_command(develop_group)
-autonomy_cli.add_command(replay_group)
-
-aea_cli.add_command(hash_group)
-aea_cli.add_command(push_all)
-
-cli = click.CommandCollection(sources=[aea_cli, autonomy_cli])
+click.version_option(autonomy.__version__, prog_name="autonomy")(cli)
+cli.help = "Command-line tool for managing agent services of the Open Autonomy framework.\n\nExtends the command-line tool for setting up an Autonomous Economic Agent (AEA)."

@@ -71,6 +71,7 @@ from packages.valory.skills.transaction_settlement_abci.rounds import (
 )
 
 from tests.conftest import ROOT_DIR
+from tests.helpers.docker.base import skip_docker_tests
 from tests.test_skills.base import FSMBehaviourBaseCase
 from tests.test_skills.integration import (
     ExpectedContentType,
@@ -262,6 +263,7 @@ class TransactionSettlementIntegrationBaseCase(
         return dummy_try_get_gas_pricing
 
 
+@skip_docker_tests
 class TestRepricing(TransactionSettlementIntegrationBaseCase):
     """Test failure modes related to repricing."""
 
@@ -439,6 +441,7 @@ class TestKeepers(OracleBehaviourBaseCase, IntegrationBaseCase):
             self.select_keeper(expected_keepers=expected_keepers, expected_retries=1)
 
 
+@skip_docker_tests
 class TestSyncing(TransactionSettlementIntegrationBaseCase):
     """Test late tx hashes synchronization."""
 

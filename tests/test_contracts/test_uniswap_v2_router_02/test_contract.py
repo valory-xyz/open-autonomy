@@ -30,6 +30,7 @@ from packages.valory.contracts.uniswap_v2_router_02.contract import (
 )
 
 from tests.conftest import ROOT_DIR
+from tests.helpers.docker.base import skip_docker_tests
 from tests.test_contracts.base import BaseHardhatAMMContractTest
 
 
@@ -1029,6 +1030,7 @@ class BaseContractTestHardHatAMMNet(BaseHardhatAMMContractTest):
         """Dummy method."""
 
 
+@skip_docker_tests
 class TestSwapHardhat(BaseContractTestHardHatAMMNet):
     """Test."""
 

@@ -21,6 +21,7 @@
 import json
 import logging
 import os
+import platform
 import signal
 import subprocess  # nosec:
 from logging import Logger
@@ -154,16 +155,28 @@ class TendermintNode:
             return
         cmd = self._build_node_command()
 
-        self._process = (
-            subprocess.Popen(  # nosec # pylint: disable=consider-using-with,W1509
-                cmd,
-                preexec_fn=os.setsid,  # stdout=file
-                stdout=subprocess.PIPE,
-                stderr=subprocess.STDOUT,
-                bufsize=1,
-                universal_newlines=True,
+        if platform.system() == "Windows":  # pragma: nocover
+            self._process = (
+                subprocess.Popen(  # nosec # pylint: disable=consider-using-with,W1509
+                    cmd,
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.STDOUT,
+                    bufsize=1,
+                    universal_newlines=True,
+                    creationflags=subprocess.CREATE_NEW_PROCESS_GROUP,  # type: ignore
+                )
             )
-        )
+        else:
+            self._process = (
+                subprocess.Popen(  # nosec # pylint: disable=consider-using-with,W1509
+                    cmd,
+                    preexec_fn=os.setsid,
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.STDOUT,
+                    bufsize=1,
+                    universal_newlines=True,
+                )
+            )
         self.write_line("Tendermint process started\n")
 
     def _start_monitoring_thread(self) -> None:
@@ -175,7 +188,12 @@ class TendermintNode:
         """Stop a Tendermint node process."""
         if self._process is None:
             return
-        os.killpg(os.getpgid(self._process.pid), signal.SIGTERM)
+
+        if platform.system() == "Windows":  # pragma: nocover
+            os.kill(self._process.pid, signal.CTRL_C_EVENT)  # type: ignore  # pylint: disable=no-member
+        else:
+            os.killpg(os.getpgid(self._process.pid), signal.SIGTERM)
+
         self._process = None
         self.write_line("Tendermint process stopped\n")
 

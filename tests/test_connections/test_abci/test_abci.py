@@ -20,9 +20,12 @@
 """Tests for valory/abci connection."""
 import asyncio
 import logging
+import os
 import time
 from abc import ABC, abstractmethod
 from cmath import inf
+from pathlib import Path
+from tempfile import TemporaryDirectory
 from typing import Any, Callable, List, cast
 from unittest import mock
 from unittest.mock import MagicMock
@@ -74,6 +77,7 @@ from tests.helpers.async_utils import (
     wait_for_condition,
 )
 from tests.helpers.constants import HTTP_LOCALHOST
+from tests.helpers.docker.base import skip_docker_tests
 
 
 class AsyncBytesIO:
@@ -390,6 +394,7 @@ class BaseTestABCITendermintIntegration(BaseThreadedAsyncLoop, UseTendermint, AB
                 logging.warning(f"Response to {request_type} was None.")
 
 
+@skip_docker_tests
 class TestNoop(BaseABCITest, BaseTestABCITendermintIntegration):
     """Test integration between ABCI connection and Tendermint, without txs."""
 
@@ -405,6 +410,7 @@ class TestNoop(BaseABCITest, BaseTestABCITendermintIntegration):
         assert self.health_check()
 
 
+@skip_docker_tests
 class TestQuery(BaseABCITest, BaseTestABCITendermintIntegration):
     """Test integration ABCI-Tendermint with a query."""
 
@@ -420,6 +426,7 @@ class TestQuery(BaseABCITest, BaseTestABCITendermintIntegration):
         assert response.status_code == 200
 
 
+@skip_docker_tests
 class TestTransaction(BaseABCITest, BaseTestABCITendermintIntegration):
     """Test integration ABCI-Tendermint by sending a transaction."""
 
@@ -440,27 +447,34 @@ class TestTransaction(BaseABCITest, BaseTestABCITendermintIntegration):
 @pytest.mark.asyncio
 async def test_connection_standalone_tendermint_setup() -> None:
     """Test the setup of the connection configured with Tendermint."""
-    agent_identity = Identity(
-        "name", address="agent_address", public_key="agent_public_key"
-    )
-    configuration = ConnectionConfig(
-        connection_id=ABCIServerConnection.connection_id,
-        host=DEFAULT_LISTEN_ADDRESS,
-        port=DEFAULT_ABCI_PORT,
-        target_skill_id="dummy_author/dummy:0.1.0",
-        use_tendermint=True,
-        tendermint_config=dict(
-            rpc_laddr=f"{ANY_ADDRESS}:26657",
-            p2p_laddr=f"{ANY_ADDRESS}:26656",
-            p2p_seeds=[],
-        ),
-    )
-    connection = ABCIServerConnection(
-        identity=agent_identity, configuration=configuration, data_dir=""
-    )
-    await connection.connect()
-    await asyncio.sleep(2.0)
-    await connection.disconnect()
+    try:
+        temp_dir = TemporaryDirectory()
+        os.environ["LOG_FILE"] = str(Path(temp_dir.name, "log.txt"))
+        agent_identity = Identity(
+            "name", address="agent_address", public_key="agent_public_key"
+        )
+        configuration = ConnectionConfig(
+            connection_id=ABCIServerConnection.connection_id,
+            host=DEFAULT_LISTEN_ADDRESS,
+            port=DEFAULT_ABCI_PORT,
+            target_skill_id="dummy_author/dummy:0.1.0",
+            use_tendermint=True,
+            tendermint_config=dict(
+                rpc_laddr=f"{ANY_ADDRESS}:26657",
+                p2p_laddr=f"{ANY_ADDRESS}:26656",
+                p2p_seeds=[],
+            ),
+        )
+        connection = ABCIServerConnection(
+            identity=agent_identity, configuration=configuration, data_dir=""
+        )
+        await connection.connect()
+        await asyncio.sleep(2.0)
+        await connection.disconnect()
+
+        del os.environ["LOG_FILE"]
+    finally:
+        temp_dir.cleanup()
 
 
 def test_ensure_connected_raises_connection_error() -> None:

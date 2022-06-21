@@ -21,11 +21,16 @@
 
 import sys
 
-import atheris  # type: ignore
 import pytest
 
 from packages.valory.skills.abstract_round_abci.common import random_selection
 from packages.valory.skills.price_estimation_abci.behaviours import to_int
+
+
+try:
+    import atheris  # type: ignore
+except (ImportError, ModuleNotFoundError):
+    pytestmark = pytest.mark.skip
 
 
 def test_random_selection_function() -> None:

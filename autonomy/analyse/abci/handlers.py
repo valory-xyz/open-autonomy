@@ -32,7 +32,9 @@ def check_handlers(
 ) -> None:
     """Check handlers"""
 
-    handler_file_path = (config_file.parent / "handlers.py").relative_to(Path.cwd())
+    handler_file_path = (config_file.parent / "handlers.py").relative_to(
+        Path.cwd().resolve()
+    )
     module_name = str(handler_file_path).replace(".py", "").replace("/", ".")
     if config_file.parent.name in skip_skills:
         return

@@ -52,6 +52,7 @@ NETWORKS = {
             "LEDGER_ADDRESS": "https://polygon-mainnet.infura.io/v3/1622a5f5b56a4e1f9bd9292db7da93b8",
             "LEDGER_CHAIN_ID": 137,
             "LEDGER_POA_CHAIN": True,
+            "LEDGER_DEFAULT_GAS_PRICE_STRATEGY": "eip1559_polygon",
         },
     },
     "kubernetes": {
@@ -67,6 +68,7 @@ NETWORKS = {
             "LEDGER_ADDRESS": "https://polygon-mainnet.infura.io/v3/1622a5f5b56a4e1f9bd9292db7da93b8",
             "LEDGER_CHAIN_ID": 137,
             "LEDGER_POA_CHAIN": True,
+            "LEDGER_DEFAULT_GAS_PRICE_STRATEGY": "eip1559_polygon",
         },
     },
 }

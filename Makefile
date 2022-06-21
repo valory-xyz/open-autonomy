@@ -377,6 +377,9 @@ build-deploy:
 protolint_install:
 	GO111MODULE=on GOPATH=~/go go get -u -v github.com/yoheimuta/protolint/cmd/protolint@v0.27.0
 
+protolint_install_win:
+	powershell -command '$$env:GO111MODULE="on"; go install github.com/yoheimuta/protolint/cmd/protolint@v0.27.0'
+
 # how to use:
 #
 #     make replay-agent AGENT=agent_id

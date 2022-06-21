@@ -24,7 +24,6 @@ from types import MappingProxyType
 from typing import Dict, FrozenSet, cast
 from unittest import mock
 
-import atheris  # type: ignore
 import pytest
 
 from packages.valory.skills.abstract_round_abci.base import (
@@ -48,6 +47,12 @@ from packages.valory.skills.simple_abci.rounds import (
     SynchronizedData,
     rotate_list,
 )
+
+
+try:
+    import atheris  # type: ignore
+except (ImportError, ModuleNotFoundError):
+    pytestmark = pytest.mark.skip
 
 
 MAX_PARTICIPANTS: int = 4
