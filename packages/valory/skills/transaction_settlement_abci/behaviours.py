@@ -126,6 +126,7 @@ class TransactionSettlementBaseBehaviour(BaseBehaviour, ABC):
             "tx_digest": "",
         }
 
+        # Check for errors in the transaction preparation
         if (
             message.performative == ContractApiMessage.Performative.ERROR
             and message.message is not None
@@ -139,16 +140,53 @@ class TransactionSettlementBaseBehaviour(BaseBehaviour, ABC):
             )
             return tx_data
 
+        # Check that we have a RAW_TRANSACTION response
         if message.performative != ContractApiMessage.Performative.RAW_TRANSACTION:
             self.context.logger.warning(
                 f"get_raw_safe_transaction unsuccessful! Received: {message}"
             )
             return tx_data
 
+        # Send transaction
         tx_digest, rpc_status = yield from self.send_raw_transaction(
             message.raw_transaction
         )
 
+        # Guess gas strategy
+        gas_strategy = None
+        if (
+            "maxFeePerGas" in message.raw_transaction.body
+            and "maxPriorityFeePerGas" in message.raw_transaction.body
+        ):
+            gas_strategy = "eip"
+        if "gasPrice" in message.raw_transaction.body:
+            gas_strategy = "gas_station"
+
+        self.context.logger.info(f"Detected gas strategy: {gas_strategy}")
+
+        # Get the gas params
+        gas_price_params = []
+        if gas_strategy == "eip":
+            gas_price_params = ["maxPriorityFeePerGas", "maxFeePerGas"]
+        if gas_strategy == "gas_Station":
+            gas_price_params = ["gasPrice"]
+
+        tx_data["tx_digest"] = cast(str, tx_digest)
+
+        nonce = Nonce(int(cast(str, message.raw_transaction.body["nonce"])))
+        gas_price = {
+            gas_price_param: Wei(
+                int(
+                    cast(
+                        str,
+                        message.raw_transaction.body[gas_price_param],
+                    )
+                )
+            )
+            for gas_price_param in gas_price_params
+        }
+
+        # Handle transaction results
         if rpc_status == RPCResponseStatus.INCORRECT_NONCE:
             tx_data["status"] = VerificationStatus.ERROR
             self.context.logger.warning(
@@ -165,27 +203,18 @@ class TransactionSettlementBaseBehaviour(BaseBehaviour, ABC):
                 "send_raw_transaction unsuccessful! Insufficient funds."
             )
 
+        # Trigger repricing mechanism if we have succesfully detected the strategy price
+        # and we receive an underpriced status.
+        if rpc_status == RPCResponseStatus.UNDERPRICED and gas_price:
+            self.params.gas_price = gas_price
+
         if rpc_status != RPCResponseStatus.SUCCESS:
             self.context.logger.warning(
                 f"send_raw_transaction unsuccessful! Received: {rpc_status}"
             )
             return tx_data
 
-        tx_data["tx_digest"] = cast(str, tx_digest)
-
-        nonce = Nonce(int(cast(str, message.raw_transaction.body["nonce"])))
-        gas_price = {
-            gas_price_param: Wei(
-                int(
-                    cast(
-                        str,
-                        message.raw_transaction.body[gas_price_param],
-                    )
-                )
-            )
-            for gas_price_param in ("maxPriorityFeePerGas", "maxFeePerGas")
-        }
-        # Set hash, nonce and tip.
+        # Set hash and nonce
         self.params.tx_hash = cast(str, tx_data["tx_digest"])
         if nonce == self.params.nonce:
             self.context.logger.info(
@@ -197,7 +226,6 @@ class TransactionSettlementBaseBehaviour(BaseBehaviour, ABC):
                 f"Sent transaction for mining with gas parameters {gas_price}"
             )
             self.params.nonce = nonce
-        self.params.gas_price = gas_price
 
         return tx_data
 
