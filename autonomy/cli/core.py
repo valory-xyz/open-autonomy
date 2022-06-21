@@ -27,6 +27,7 @@ from autonomy.cli.analyse import analyse_group
 from autonomy.cli.deploy import deploy_group
 from autonomy.cli.develop import develop_group
 from autonomy.cli.hash import hash_group
+from autonomy.cli.publish import publish
 from autonomy.cli.push_all import push_all
 from autonomy.cli.replay import replay_group
 
@@ -37,6 +38,7 @@ cli.add_command(develop_group)
 cli.add_command(replay_group)
 cli.add_command(hash_group)
 cli.add_command(push_all)
+cli.add_command(publish)
 
 
 click.version_option(autonomy.__version__, prog_name="autonomy")(cli)
