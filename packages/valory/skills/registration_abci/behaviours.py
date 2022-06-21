@@ -44,7 +44,6 @@ from packages.valory.skills.registration_abci.rounds import (
 )
 
 
-#
 CONSENSUS_PARAMS = {
     "block": {"max_bytes": "22020096", "max_gas": "-1", "time_iota_ms": "1000"},
     "evidence": {
@@ -63,6 +62,8 @@ GENESIS_CONFIG = dict(  # type: ignore
     consensus_params=CONSENSUS_PARAMS,
 )
 
+DEFAULT_VOTING_POWER = str(10)
+
 
 def format_genesis_data(
     collected_agent_info: Dict[str, Any],
@@ -74,7 +75,7 @@ def format_genesis_data(
         validator = dict(
             address=validator_config["address"],
             pub_key=validator_config["pub_key"],
-            power="1",
+            power=DEFAULT_VOTING_POWER,
             name=f"node{i}",
         )
         validators.append(validator)
