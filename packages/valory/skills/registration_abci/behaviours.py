@@ -285,7 +285,7 @@ class RegistrationStartupBehaviour(RegistrationBaseBehaviour):
             self.context.logger.info(f"{log_message}: {error}")
             return False
 
-    def request_tendermint_info(self) -> Generator[None, None, bool]:
+    def request_tendermint_info(self) -> bool:
         """Request Tendermint info from other agents"""
 
         still_missing = {k for k, v in self.registered_addresses.items() if not v}
@@ -301,7 +301,6 @@ class RegistrationStartupBehaviour(RegistrationBaseBehaviour):
             message = cast(TendermintMessage, message)
             context = EnvelopeContext(connection_id=P2P_LIBP2P_CLIENT_PUBLIC_ID)
             self.context.outbox.put_message(message=message, context=context)
-        yield from self.sleep(self.params.sleep_time)
 
         if all(self.registered_addresses.values()):
             log_message = self.LogMessages.collection_complete
@@ -356,7 +355,7 @@ class RegistrationStartupBehaviour(RegistrationBaseBehaviour):
 
         # collect Tendermint config information from other agents
         if not self.collection_complete:
-            successful = yield from self.request_tendermint_info()
+            successful = self.request_tendermint_info()
             if not successful:
                 yield from self.sleep(self.params.sleep_time)
                 return
