@@ -36,6 +36,7 @@ cli.add_command(deploy_group)
 cli.add_command(develop_group)
 cli.add_command(replay_group)
 cli.add_command(hash_group)
+cli.add_command(push_all)
 
 
 click.version_option(autonomy.__version__, prog_name="autonomy")(cli)
