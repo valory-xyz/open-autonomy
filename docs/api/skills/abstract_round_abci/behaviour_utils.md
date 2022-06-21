@@ -424,7 +424,7 @@ Check that the round height has changed.
 #### is`_`round`_`ended
 
 ```python
-def is_round_ended(round_id: str) -> Callable[[], bool]
+def is_round_ended() -> bool
 ```
 
 Get a callable to check whether the current round has ended.
