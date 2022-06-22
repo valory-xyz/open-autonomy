@@ -569,11 +569,84 @@ class TestBaseBehaviour:
         result = BaseBehaviour._get_request_nonce_from_dialogue(dialogue_mock)
         assert result == expected_value
 
+    @mock.patch.object(BaseBehaviour, "_send_signing_request")
+    @mock.patch.object(Transaction, "encode", return_value=MagicMock())
+    @mock.patch.object(
+        BaseBehaviour,
+        "_build_http_request_message",
+        return_value=(MagicMock(), MagicMock()),
+    )
+    @mock.patch.object(BaseBehaviour, "_check_http_return_code_200", return_value=False)
+    def test_send_transaction_stop_condition(self, *_: Any) -> None:
+        """Test '_send_transaction' method's `stop_condition` as provided by `send_a2a_transaction`."""
+        request_retry_delay = 0.01
+        # set the current round's id so that it does not meet the requirements for a `stop_condition`
+        self.behaviour.context.state.round_sequence.current_round_id = (
+            self.behaviour.matching_round.round_id
+        ) = "round_a"
+        # assert that everything is pre-set correctly
+        assert (
+            self.behaviour.context.state.round_sequence.current_round_id
+            == self.behaviour.matching_round.round_id
+            == "round_a"
+        )
+
+        # create the exact same stop condition that we create in the `send_a2a_transaction` method
+        stop_condition = self.behaviour.is_round_ended(
+            self.behaviour.matching_round.round_id
+        )
+        gen = self.behaviour._send_transaction(
+            MagicMock(),
+            request_retry_delay=request_retry_delay,
+            stop_condition=stop_condition,
+        )
+        # assert that the stop condition does not apply yet
+        assert not stop_condition()
+        # trigger the generator function so that we enter the `stop_condition` loop
+        try_send(gen)
+
+        # set the current round's id so that it meets the requirements for a `stop_condition`
+        self.behaviour.context.state.round_sequence.current_round_id = "test"
+
+        # assert that everything was set as expected
+        assert (
+            self.behaviour.context.state.round_sequence.current_round_id
+            != self.behaviour.matching_round.round_id
+            and self.behaviour.context.state.round_sequence.current_round_id == "test"
+        )
+        # assert that the stop condition now applies
+        assert stop_condition()
+
+        # test with a non-200 response in order to cause the execution to re-enter the while `stop_condition`
+        # we expect that the second time we will not enter, since we have caused the `stop_condition` to be `True`
+        with mock.patch.object(self.behaviour.context.logger, "info") as mock_info:
+            # send message to 'wait_for_message'
+            try_send(gen, obj=MagicMock(status_code=200))
+            # send message to '_submit_tx'
+            response = MagicMock(body='{"result": {"hash": "", "code": 0}}')
+            try_send(gen, obj=response)
+            mock_info.assert_called_with(
+                f"Received return code != 200 with response {response} with body {str(response.body)}. "
+                f"Retrying in {request_retry_delay} seconds..."
+            )
+            time.sleep(request_retry_delay)
+            try_send(gen)
+            # assert that the stop condition is now `True` and we reach at the end of the method
+            mock_info.assert_called_with(
+                "Stop condition is true, no more attempts to send the transaction."
+            )
+
     def test_send_transaction_positive_false_condition(self) -> None:
         """Test '_send_transaction', positive case (false condition)"""
-        try_send(
-            self.behaviour._send_transaction(MagicMock(), stop_condition=lambda: True)
-        )
+        with mock.patch.object(self.behaviour.context.logger, "info") as mock_info:
+            try_send(
+                self.behaviour._send_transaction(
+                    MagicMock(), stop_condition=lambda: True
+                )
+            )
+            mock_info.assert_called_with(
+                "Stop condition is true, no more attempts to send the transaction."
+            )
 
     @mock.patch.object(BaseBehaviour, "_send_signing_request")
     @mock.patch.object(Transaction, "encode", return_value=MagicMock())
