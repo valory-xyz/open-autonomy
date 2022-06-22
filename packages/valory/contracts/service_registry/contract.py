@@ -36,7 +36,7 @@ AgentParams = Tuple[int, int]
 
 PUBLIC_ID = PublicId.from_str("valory/service_registry:0.1.0")
 
-CHAIN_ADDRESS = "https://staging.chain.autonolas.tech"
+CHAIN_ADDRESS = "https://chain.staging.autonolas.tech"
 CHAIN_ID = 31337
 
 _logger = logging.getLogger(

@@ -29,7 +29,7 @@ connections:
 - valory/http_client:0.1.0:QmXBBMS5g4kyyE3mzFcpieoDMKWFf9naaCM3QNSjP2mxDt
 - valory/ledger:0.1.0:Qmcd32eJaDbWFFgqTzKf3Lqhshj37ndhrdtYiNnED2ULqB
 contracts:
-- valory/service_registry:0.1.0:QmZFCk3m21g4FVK3QHbpJu9aubKaqWpcXoVY5DAFKVe4wE
+- valory/service_registry:0.1.0:QmR2sat97GLWU9DbkbYQyLqHzpuk98wFRsrjSr9GHYQMSY
 protocols:
 - valory/abci:0.1.0:QmY42cX49Jb1dmHGbiDE7SEAW9YJc1FYJQA2U4i1mNYtBz
 - valory/acn:1.1.0:QmUjvc8HZRRPauJpLKdsBPiBFXPmXM3htmKVnXHoikptJY
