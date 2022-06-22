@@ -137,7 +137,7 @@ Make HTTP GET request to obtain agent's local Tendermint node parameters
 #### request`_`tendermint`_`info
 
 ```python
-def request_tendermint_info() -> bool
+def request_tendermint_info() -> Generator[None, None, bool]
 ```
 
 Request Tendermint info from other agents
