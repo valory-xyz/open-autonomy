@@ -583,7 +583,7 @@ class TestBaseBehaviour:
         # set the current round's id so that it does not meet the requirements for a `stop_condition`
         self.behaviour.context.state.round_sequence.current_round_id = (
             self.behaviour.matching_round.round_id
-        )
+        ) = "round_a"
         # assert that everything is pre-set correctly
         assert (
             self.behaviour.context.state.round_sequence.current_round_id
