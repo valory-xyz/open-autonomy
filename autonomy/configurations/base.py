@@ -31,10 +31,11 @@ from aea.configurations.base import (
     ComponentId,
     ConnectionConfig,
     ContractConfig,
-    PackageConfiguration,
-    ProtocolConfig,
-    SkillConfig,
 )
+from aea.configurations.base import (
+    PACKAGE_TYPE_TO_CONFIG_CLASS as _PACKAGE_TYPE_TO_CONFIG_CLASS,
+)
+from aea.configurations.base import PackageConfiguration, ProtocolConfig, SkillConfig
 from aea.configurations.constants import CONNECTION, CONTRACT, PROTOCOL, SKILL
 from aea.configurations.data_types import PackageType, PublicId
 from aea.helpers.base import SimpleIdOrStr, cd
@@ -392,3 +393,9 @@ class Service(PackageConfiguration):  # pylint: disable=too-many-instance-attrib
                         )
 
         return overrides
+
+
+PACKAGE_TYPE_TO_CONFIG_CLASS = {
+    **_PACKAGE_TYPE_TO_CONFIG_CLASS,
+    PackageType.SERVICE: Service,
+}

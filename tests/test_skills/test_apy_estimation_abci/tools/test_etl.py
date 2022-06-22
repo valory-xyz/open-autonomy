@@ -198,10 +198,10 @@ class TestProcessing:
             "symbol": "T",
         }
 
+    @staticmethod
     @pytest.mark.skipif(
         platform.system() == "Windows", reason="Need to be investigated."
     )
-    @staticmethod
     def test_revert_transform_hist_data(
         transformed_historical_data: pd.DataFrame,
         historical_data: Dict[str, List[Union[None, Dict[str, str], int, str, float]]],

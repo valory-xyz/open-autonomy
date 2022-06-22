@@ -23,6 +23,7 @@ import logging
 import os
 import shutil
 import stat
+import traceback
 from pathlib import Path
 from typing import Any, Callable, Dict, Optional, Tuple
 
@@ -36,6 +37,7 @@ try:
 except ImportError:
     from tendermint import TendermintNode, TendermintParams
 
+ENCODING = "utf-8"
 DEFAULT_LOG_FILE = "log.log"
 IS_DEV_MODE = os.environ.get("DEV_MODE", "0") == "1"
 CONFIG_OVERRIDE = [
@@ -66,13 +68,13 @@ def override_config_toml() -> None:
     """Update sync method."""
 
     config_path = str(Path(os.environ["TMHOME"]) / "config" / "config.toml")
-    with open(config_path, "r", encoding="UTF8") as fp:
+    with open(config_path, "r", encoding=ENCODING) as fp:
         config = fp.read()
 
     for old, new in CONFIG_OVERRIDE:
         config = config.replace(old, new)
 
-    with open(config_path, "w+", encoding="UTF8") as fp:
+    with open(config_path, "w+", encoding=ENCODING) as fp:
         fp.write(config)
 
 
@@ -88,7 +90,7 @@ class PeriodDumper:
 
         self.resets = 0
         self.logger = logger
-        self.dump_dir = Path("/tm_state") if dump_dir is None else dump_dir
+        self.dump_dir = dump_dir or Path("/tm_state")
 
         if self.dump_dir.is_dir():
             shutil.rmtree(str(self.dump_dir), onerror=self.readonly_handler)
@@ -119,7 +121,9 @@ class PeriodDumper:
         self.resets += 1
 
 
-def create_app(dump_dir: Optional[Path] = None, perform_monitoring: bool = True):
+def create_app(
+    dump_dir: Optional[Path] = None, perform_monitoring: bool = True
+) -> Tuple[Flask, TendermintNode]:
     """Create the Tendermint server app"""
 
     override_config_toml()
@@ -134,6 +138,51 @@ def create_app(dump_dir: Optional[Path] = None, perform_monitoring: bool = True)
 
     tendermint_node = TendermintNode(tendermint_params, logger=app.logger)
     tendermint_node.start(start_monitoring=perform_monitoring)
+
+    @app.get("/params")
+    def get_params() -> Dict:
+        """Get tendermint params."""
+        try:
+            priv_key_file = (
+                Path(os.environ["TMHOME"]) / "config" / "priv_validator_key.json"
+            )
+            priv_key_data = json.loads(priv_key_file.read_text(encoding=ENCODING))
+            del priv_key_data["priv_key"]
+            return {"params": priv_key_data, "status": True, "error": None}
+        except (FileNotFoundError, json.JSONDecodeError):
+            return {"params": {}, "status": False, "error": traceback.format_exc()}
+
+    @app.post("/params")
+    def update_params() -> Dict:
+        """Update validator params."""
+
+        try:
+            data: Any = json.loads(request.get_data().decode(ENCODING))
+            genesis_file = Path(os.environ["TMHOME"]) / "config" / "genesis.json"
+            genesis_data = {}
+            genesis_data["genesis_time"] = data["genesis_config"]["genesis_time"]
+            genesis_data["chain_id"] = data["genesis_config"]["chain_id"]
+            genesis_data["initial_height"] = "0"
+            genesis_data["consensus_params"] = data["genesis_config"][
+                "consensus_params"
+            ]
+            genesis_data["validators"] = [
+                {
+                    "address": validator["address"],
+                    "pub_key": validator["pub_key"],
+                    "power": validator["power"],
+                    "name": validator["name"],
+                }
+                for validator in data["validators"]
+            ]
+            genesis_data["app_hash"] = ""
+            genesis_file.write_text(
+                json.dumps(genesis_data, indent=2), encoding=ENCODING
+            )
+
+            return {"status": True, "error": None}
+        except (FileNotFoundError, json.JSONDecodeError, PermissionError):
+            return {"status": False, "error": traceback.format_exc()}
 
     @app.route("/gentle_reset")
     def gentle_reset() -> Tuple[Any, int]:

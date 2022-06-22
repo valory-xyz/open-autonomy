@@ -545,6 +545,14 @@ class TestAbciAppDB:
             assert db.setup_data == setup_data
             assert db.cross_period_persisted_keys == []
 
+    def test_try_alter_init_data(self) -> None:
+        """Test trying to alter the init data."""
+        setup_data = {"test": ["test"]}
+        db = AbciAppDB(setup_data)
+        assert db.setup_data == {"test": ["test"]}
+        db.setup_data.update({"test": ["altered"]})
+        assert db.setup_data == {"test": ["test"]}
+
     def test_get(self) -> None:
         """Test getters."""
         assert self.db.get("participants", default="default") == self.participants

@@ -550,7 +550,7 @@ class AbciAppDB:
     @property
     def setup_data(self) -> Dict[str, Any]:
         """
-        Get the setup_data.
+        Get the setup_data without entries which have empty values.
 
         :return: the setup_data
         """

@@ -32,17 +32,8 @@ from aea.cli.ipfs_hash import (
     load_configuration_object,
     update_hashes,
 )
-from aea.configurations.base import (
-    PACKAGE_TYPE_TO_CONFIG_CLASS as _PACKAGE_TYPE_TO_CONFIG_CLASS,
-)
 
-from autonomy.configurations.base import Service as ServiceConfig
-
-
-PACKAGE_TYPE_TO_CONFIG_CLASS = {
-    **_PACKAGE_TYPE_TO_CONFIG_CLASS,
-    PackageType.SERVICE: ServiceConfig,
-}
+from autonomy.configurations.base import PACKAGE_TYPE_TO_CONFIG_CLASS
 
 
 def load_configuration(

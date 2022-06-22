@@ -7,9 +7,9 @@ name = "pypi"
 click = {version = "==7.1"}
 watchdog = {version = "==2.1.6"}
 requests = {version = "==2.27.1"}
-open-aea = {version = "==1.10.0"}
-open-aea-cli-ipfs = {version = "==1.10.0"}
-open-aea-ledger-ethereum = {version = "==1.10.0"}
+open-aea = {version = "==1.11.0"}
+open-aea-cli-ipfs = {version = "==1.11.0"}
+open-aea-ledger-ethereum = {version = "==1.11.0"}
 protobuf = {version = "==3.19.4"}
 
 [requires]

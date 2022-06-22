@@ -34,6 +34,7 @@ jobs:
       run: |
         pipenv install --dev --skip-lock
         pipenv run pip install -e .[all]
+        pipenv lock
 
   copyright_doc_and_pipfile_check:
     continue-on-error: False
@@ -349,7 +350,7 @@ jobs:
         os: [ ubuntu-latest ]
         python-version: [ "3.10" ]
 
-    timeout-minutes: 60
+    timeout-minutes: 80
 
     steps:
       - uses: actions/checkout@v2

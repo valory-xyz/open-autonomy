@@ -4,11 +4,13 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
-open-aea = {version = "==1.10.0", extras = ["all"]}
-open-aea-ledger-ethereum = "==1.10.0"
-open-aea-cli-ipfs = "==1.10.0"
+open-aea = {version = "==1.11.0", extras = ["all"]}
+open-aea-ledger-ethereum = "==1.11.0"
+open-aea-ledger-cosmos = "==1.11.0"
+open-aea-cli-ipfs = "==1.11.0"
 
 [dev-packages]
+asn1crypto = "==1.4.0"
 atheris = "==2.0.10"
 bandit = "==1.7.0"
 black = "==21.6b0"
@@ -63,7 +65,8 @@ scikit-learn = "<1.1,>=1.0.1"
 numpy = "<1.22,>=1.21.4"
 optuna = "<2.11,>=2.10.0"
 joblib = "<1.2,>=1.1.0"
-Flask= "==2.0.2"
+Flask = "==2.0.2"
+cosmpy = "==0.3.1"
 Werkzeug= "==2.0.3"
 
 [requires]

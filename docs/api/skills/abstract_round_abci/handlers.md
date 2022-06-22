@@ -251,3 +251,96 @@ class ContractApiHandler(AbstractResponseHandler)
 
 Implement the contract api handler.
 
+<a id="packages.valory.skills.abstract_round_abci.handlers.TendermintHandler"></a>
+
+## TendermintHandler Objects
+
+```python
+class TendermintHandler(Handler)
+```
+
+The Tendermint request / response handler.
+
+<a id="packages.valory.skills.abstract_round_abci.handlers.TendermintHandler.LogMessages"></a>
+
+## LogMessages Objects
+
+```python
+class LogMessages(Enum)
+```
+
+Log messages used in the TendermintHandler
+
+<a id="packages.valory.skills.abstract_round_abci.handlers.TendermintHandler.LogMessages.__str__"></a>
+
+#### `__`str`__`
+
+```python
+def __str__() -> str
+```
+
+For ease of use in formatted string literals
+
+<a id="packages.valory.skills.abstract_round_abci.handlers.TendermintHandler.setup"></a>
+
+#### setup
+
+```python
+def setup() -> None
+```
+
+Set up the handler.
+
+<a id="packages.valory.skills.abstract_round_abci.handlers.TendermintHandler.teardown"></a>
+
+#### teardown
+
+```python
+def teardown() -> None
+```
+
+Tear down the handler.
+
+<a id="packages.valory.skills.abstract_round_abci.handlers.TendermintHandler.synchronized_data"></a>
+
+#### synchronized`_`data
+
+```python
+@property
+def synchronized_data() -> BaseSynchronizedData
+```
+
+Historical stata data over which consensus has been achieved
+
+<a id="packages.valory.skills.abstract_round_abci.handlers.TendermintHandler.registered_addresses"></a>
+
+#### registered`_`addresses
+
+```python
+@property
+def registered_addresses() -> Dict[str, Dict[str, Any]]
+```
+
+Registered addresses retrieved on-chain from service registry contract
+
+<a id="packages.valory.skills.abstract_round_abci.handlers.TendermintHandler.dialogues"></a>
+
+#### dialogues
+
+```python
+@property
+def dialogues() -> Optional[TendermintDialogues]
+```
+
+Tendermint request / response protocol dialogues
+
+<a id="packages.valory.skills.abstract_round_abci.handlers.TendermintHandler.handle"></a>
+
+#### handle
+
+```python
+def handle(message: Message) -> None
+```
+
+Handle incoming Tendermint messages
+

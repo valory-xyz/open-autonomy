@@ -352,6 +352,7 @@ def test_base_params_model_initialization() -> None:
         tendermint_com_url="",
         reset_tendermint_after=1,
         service_id="abstract_round_abci",
+        service_registry_address="0xa51c1fc2f0d1a1b8494ed1fe312d7c3a78ed91c0",
         keeper_timeout=1.0,
         tendermint_check_sleep_delay=3,
         tendermint_max_retries=5,

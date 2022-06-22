@@ -46,6 +46,7 @@ from web3 import Web3
 from tests.helpers.constants import KEY_PAIRS
 from tests.helpers.constants import ROOT_DIR as _ROOT_DIR
 from tests.helpers.contracts import get_register_contract
+from tests.helpers.docker.acn_node import ACNNodeDockerImage, DEFAULT_ACN_CONFIG
 from tests.helpers.docker.base import launch_image, launch_many_containers
 from tests.helpers.docker.ganache import (
     DEFAULT_GANACHE_ADDR,
@@ -414,3 +415,17 @@ def ipfs_daemon() -> Iterator[bool]:
     yield daemon.is_started()
     print("Tearing down IPFS daemon...")
     daemon.stop()
+
+
+@pytest.fixture(scope="function")
+def acn_node(
+    config: Dict = None,
+    timeout: float = 2.0,
+    max_attempts: int = 10,
+) -> Generator:
+    """Launch the Ganache image."""
+    client = docker.from_env()
+    config = config or DEFAULT_ACN_CONFIG
+    logging.info(f"Launching ACNNode with the following config: {config}")
+    image = ACNNodeDockerImage(client, config)
+    yield from launch_image(image, timeout=timeout, max_attempts=max_attempts)

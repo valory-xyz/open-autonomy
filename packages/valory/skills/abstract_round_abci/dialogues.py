@@ -56,6 +56,12 @@ from packages.valory.protocols.ledger_api.dialogues import (
 from packages.valory.protocols.ledger_api.dialogues import (
     LedgerApiDialogues as BaseLedgerApiDialogues,
 )
+from packages.valory.protocols.tendermint.dialogues import (
+    TendermintDialogue as BaseTendermintDialogue,
+)
+from packages.valory.protocols.tendermint.dialogues import (
+    TendermintDialogues as BaseTendermintDialogues,
+)
 
 
 AbciDialogue = BaseAbciDialogue
@@ -297,4 +303,36 @@ class ContractApiDialogues(Model, BaseContractApiDialogues):
             self_address=str(self.skill_id),
             role_from_first_message=role_from_first_message,
             dialogue_class=ContractApiDialogue,
+        )
+
+
+TendermintDialogue = BaseTendermintDialogue
+
+
+class TendermintDialogues(Model, BaseTendermintDialogues):
+    """The dialogues class keeps track of all dialogues."""
+
+    def __init__(self, **kwargs: Any) -> None:
+        """
+        Initialize dialogues.
+
+        :param kwargs: keyword arguments
+        """
+        Model.__init__(self, **kwargs)
+
+        def role_from_first_message(  # pylint: disable=unused-argument
+            message: Message, receiver_address: Address
+        ) -> BaseDialogue.Role:
+            """Infer the role of the agent from an incoming/outgoing first message
+
+            :param message: an incoming/outgoing first message
+            :param receiver_address: the address of the receiving agent
+            :return: The role of the agent
+            """
+            return TendermintDialogue.Role.AGENT
+
+        BaseTendermintDialogues.__init__(
+            self,
+            self_address=self.context.agent_address,
+            role_from_first_message=role_from_first_message,
         )
