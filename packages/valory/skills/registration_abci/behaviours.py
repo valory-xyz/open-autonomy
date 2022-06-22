@@ -322,6 +322,7 @@ class RegistrationStartupBehaviour(RegistrationBaseBehaviour):
             message = cast(TendermintMessage, message)
             context = EnvelopeContext(connection_id=P2P_LIBP2P_CLIENT_PUBLIC_ID)
             self.context.outbox.put_message(message=message, context=context)
+        # we wait for the messages that were put in the outbox.
         yield from self.sleep(self.params.sleep_time)
 
         if all(self.registered_addresses.values()):
