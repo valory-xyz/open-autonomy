@@ -9,7 +9,7 @@ fingerprint:
 fingerprint_ignore_patterns: []
 connections:
 - valory/http_client:0.1.0:QmWLBDpdcz8idNdqobjBC6ykJCSEpHCjcC1mAoAdJPzmQh
-- valory/p2p_libp2p_client:0.1.0:QmSGTSCuu9gVRoPFqWndkgRLQzXhehFsTZ2y2mTgpB6kAv
+- valory/p2p_libp2p_client:0.1.0:QmZxrCHueKADioEkVP8CbdekGrFhZ3Tzn4xtt9x9zX5WUJ
 contracts: []
 protocols:
 - open_aea/signing:1.0.0:QmemReviejNSLrwWqENKL76AtoK17eG8TBbWjpwUT7L3UA
@@ -34,7 +34,7 @@ public_id: valory/p2p_libp2p_client:0.1.0
 type: connection
 config:
   nodes:
-  - uri: ${P2P_URI:str:staging.acn.autonolas.tech:9005}
+  - uri: ${P2P_URI:str:acn.staging.autonolas.tech:9005}
     public_key: ${P2P_PUBLIC_KEY:str:0250827315351f6f4d3777b77d4bfd67280156240313bf221750b36404344bb35d}
 cert_requests:
 - identifier: acn
