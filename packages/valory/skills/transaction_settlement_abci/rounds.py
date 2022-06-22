@@ -547,7 +547,7 @@ class TransactionSubmissionAbciApp(AbciApp[Event]):
             - none: 6.
             - validate timeout: 6.
             - no majority: 4.
-            - incorrect serialization: 12.
+            - nothing to validate: 12.
         5. CheckTransactionHistoryRound
             - done: 11.
             - negative: 6.
