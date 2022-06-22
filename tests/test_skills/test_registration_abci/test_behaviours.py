@@ -157,7 +157,7 @@ class TestRegistrationStartupBehaviour(RegistrationAbciBaseCase):
     def setup(self, **kwargs: Any) -> None:  # type: ignore
         """Setup"""
         super().setup()
-        self.state.params.sleep_time = 0
+        self.state.params.sleep_time = 0.01
         self.state.params.share_tm_config_on_startup = True
 
     @property
@@ -273,6 +273,8 @@ class TestRegistrationStartupBehaviour(RegistrationAbciBaseCase):
             info = json.dumps(DUMMY_VALIDATOR_CONFIG)
             response_kwargs = dict(info=info)
             self.mock_tendermint_request(request_kwargs, response_kwargs)
+        time.sleep(self.state.params.sleep_time)
+        self.behaviour.act_wrapper()
         self.behaviour.act_wrapper()
 
     # mock HTTP requests
@@ -465,11 +467,6 @@ class TestRegistrationStartupBehaviour(RegistrationAbciBaseCase):
             self.mock_get_local_tendermint_params()
             self.mock_is_correct_contract()
             self.mock_get_service_info(*self.agent_instances)
-            if platform.system() == "Windows" and platform.python_version().startswith(
-                "3.8"
-            ):
-                time.sleep(self.state.params.sleep_time)
-                self.behaviour.act_wrapper()
             self.mock_get_tendermint_info(*self.other_agents)
             self.mock_tendermint_update(valid_response)
             assert log_message.value in caplog.text
