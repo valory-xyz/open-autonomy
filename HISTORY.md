@@ -1,5 +1,11 @@
 # Release History - `open-autonomy`
 
+## 0.1.1 (2022-06-22)
+
+Autonomy:
+- Patches `push-all`, `publish` and `fetch` to support service packages
+- Fixes click context issue on CLI tool
+
 ## 0.1.0 (2022-06-15)
 
 - Release of the initial package.
