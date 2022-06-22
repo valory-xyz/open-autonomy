@@ -19,6 +19,7 @@
 
 """This module contains the handler for the 'simple_abci' skill."""
 
+
 from packages.valory.skills.abstract_round_abci.handlers import ABCIRoundHandler
 from packages.valory.skills.abstract_round_abci.handlers import (
     ContractApiHandler as BaseContractApiHandler,
@@ -32,6 +33,9 @@ from packages.valory.skills.abstract_round_abci.handlers import (
 from packages.valory.skills.abstract_round_abci.handlers import (
     SigningHandler as BaseSigningHandler,
 )
+from packages.valory.skills.abstract_round_abci.handlers import (
+    TendermintHandler as BaseTendermintHandler,
+)
 
 
 SimpleABCIHandler = ABCIRoundHandler
@@ -39,3 +43,4 @@ HttpHandler = BaseHttpHandler
 SigningHandler = BaseSigningHandler
 LedgerApiHandler = BaseLedgerApiHandler
 ContractApiHandler = BaseContractApiHandler
+TendermintHandler = BaseTendermintHandler

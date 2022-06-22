@@ -18,6 +18,8 @@ observation_params:
   args: &id001
     observation_interval: 30
     broadcast_to_server: false
+    service_registry_address: '0x0DCd1Bf9A1b36cE34237eEaFef220932846BCD82'
+    on_chain_service_id: 1
 valory_monitoring_backend:
   args: &id002
     url: https://staging.oracle-server.autonolas.tech/deposit

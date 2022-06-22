@@ -11,7 +11,7 @@ fingerprint:
   behaviours.py: QmfYKFKoRgLGkMTGMA3BXg4NcY1Uier4DgXyYpuj4SRYXp
   dialogues.py: QmfDThV4WCRzK88XDpW2hKDYCuEH4RxoHCoAkWpkBRGRPv
   fsm_specification.yaml: QmegMy42CT1T8eqi4Jv1wXuPPc9zsif9VoWiBFKLWsZbyd
-  handlers.py: QmbwpZv7owtiq4LVbN8vGat7vy2PTAh3bNBPc4y1Q39r2c
+  handlers.py: Qmadoo7yXJfRYFpr1772GAur8pTME9XjZuehboimkTdjgM
   models.py: QmTk2kmTcXYeYwLiGnmm1Tfte2qWoCuo7wAPFxVycvv4KK
   payloads.py: QmNxFKPXvTpGc6ZbmboLB7J8nJGdFzEnFiaSy5bkccqG7d
   rounds.py: QmYmAEbihkwn98Ay2iSbqMAJtFFZ8sgZgEwYCr45HuYB5k
@@ -21,9 +21,9 @@ contracts:
 - valory/gnosis_safe:0.1.0:QmRNdXGRRQBMFXh5ZvtJeYvHt7559kV5r5EYU5JNUdRBKJ
 - valory/gnosis_safe_proxy_factory:0.1.0:QmVkZtrgZ2ievXAonq9z33qbrxHi8piVGptuCGaGJYS1iM
 protocols:
-- valory/contract_api:1.0.0:QmSobFjLc3baTW1Zf2zfS1X3KJabw7xE6cPJb2g2eAvxSx
+- valory/contract_api:1.0.0:QmZRa6S342MT1oSQjLoyEDitjK6nivypC78DKipvg9JpF1
 skills:
-- valory/abstract_round_abci:0.1.0:QmYWPc7uNm6JscSHiQ3G9GqvcxLNw7T2es8YLXikfxQRw8
+- valory/abstract_round_abci:0.1.0:QmYDnsxVcpBtCJjRgByMjXp3sy386sAG45decKTsbd6MbG
 behaviours:
   main:
     args: {}
@@ -44,6 +44,9 @@ handlers:
   signing:
     args: {}
     class_name: SigningHandler
+  tendermint:
+    args: {}
+    class_name: TendermintHandler
 models:
   abci_dialogues:
     args: {}
@@ -70,11 +73,13 @@ models:
       keeper_timeout: 30.0
       max_healthcheck: 120
       observation_interval: 10
+      on_chain_service_id: null
       reset_tendermint_after: 2
       retry_attempts: 400
       retry_timeout: 3
       round_timeout_seconds: 30.0
       service_id: registration
+      service_registry_address: null
       sleep_time: 1
       tendermint_check_sleep_delay: 3
       tendermint_com_url: http://localhost:8080

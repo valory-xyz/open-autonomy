@@ -69,6 +69,7 @@ class TestParams:
             tendermint_max_retries=5,
             tendermint_check_sleep_delay=3,
             service_id="liquidity_rebalancing",
+            service_registry_address="0xa51c1fc2f0d1a1b8494ed1fe312d7c3a78ed91c0",
             keeper_timeout=1.0,
             keeper_allowed_retries=3,
             rebalancing={

@@ -50,11 +50,12 @@ from packages.valory.skills.abstract_round_abci.behaviours import (
     AbstractRoundBehaviour,
     BaseBehaviour,
 )
-from packages.valory.skills.price_estimation_abci.handlers import (
+from packages.valory.skills.abstract_round_abci.handlers import (
     ContractApiHandler,
     HttpHandler,
     LedgerApiHandler,
     SigningHandler,
+    TendermintHandler,
 )
 
 
@@ -67,6 +68,7 @@ class FSMBehaviourBaseCase(BaseSkillTestCase):
     http_handler: HttpHandler
     contract_handler: ContractApiHandler
     signing_handler: SigningHandler
+    tendermint_handler: TendermintHandler
     old_tx_type_to_payload_cls: Dict[str, Type[BaseTxPayload]]
     benchmark_dir: TemporaryDirectory
 
@@ -100,6 +102,9 @@ class FSMBehaviourBaseCase(BaseSkillTestCase):
         )
         cls.ledger_handler = cast(
             LedgerApiHandler, cls._skill.skill_context.handlers.ledger_api
+        )
+        cls.tendermint_handler = cast(
+            TendermintHandler, cls._skill.skill_context.handlers.tendermint
         )
 
         if kwargs.get("param_overrides") is not None:

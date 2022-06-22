@@ -211,6 +211,7 @@ This is an excerpt of the `/agents/hello_world/aea-config.yaml` file:
 connections:
 - valory/abci:0.1.0:<ipfs_hash>
 - valory/http_client:0.1.0:<ipfs_hash>
+- valory/p2p_libp2p_client:0.1.0:<ipfs_hash>
 contracts: []
 protocols:
 - open_aea/signing:1.0.0:<ipfs_hash>
