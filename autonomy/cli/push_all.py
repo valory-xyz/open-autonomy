@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2022 Valory AG
+#   Copyright 2022 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -17,12 +17,28 @@
 #
 # ------------------------------------------------------------------------------
 
-"""Specifies the version of the AEA package."""
+"""Push all available packages to a registry."""
 
-__title__ = "open-autonomy"
-__description__ = "A framework for the creation of autonomous agent services."
-__url__ = "https://github.com/valory-xyz/open-autonomy.git"
-__version__ = "0.1.1"
-__author__ = "Valory AG"
-__license__ = "Apache-2.0"
-__copyright__ = "2021-2022 Valory AG"
+
+from pathlib import Path
+from typing import Optional
+
+import click
+from aea.cli.push_all import push_all_packages
+from aea.cli.utils.click_utils import registry_flag
+
+from autonomy.configurations.base import PACKAGE_TYPE_TO_CONFIG_CLASS
+
+
+@click.command("push-all")
+@click.option(
+    "--packages-dir", type=click.Path(file_okay=False, dir_okay=True, exists=True)
+)
+@registry_flag()
+def push_all(packages_dir: Optional[Path], registry: str) -> None:
+    """Push all available packages to a registry."""
+    push_all_packages(
+        registry,
+        packages_dir,
+        package_type_config_class=PACKAGE_TYPE_TO_CONFIG_CLASS,
+    )

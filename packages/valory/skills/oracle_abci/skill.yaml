@@ -22,15 +22,15 @@ contracts:
 - valory/gnosis_safe_proxy_factory:0.1.0:QmVkZtrgZ2ievXAonq9z33qbrxHi8piVGptuCGaGJYS1iM
 - valory/offchain_aggregator:0.1.0:Qmaftfci6asBewVH3vKGtMJVcAdG71Vm6Qv493uRkT7b2h
 protocols:
-- valory/contract_api:1.0.0:QmSobFjLc3baTW1Zf2zfS1X3KJabw7xE6cPJb2g2eAvxSx
+- valory/contract_api:1.0.0:QmZRa6S342MT1oSQjLoyEDitjK6nivypC78DKipvg9JpF1
 skills:
-- valory/abstract_round_abci:0.1.0:QmU1ZB17kJiGbujo3yGZGa8RDktg1NMzFWDVvEqfHDQaBn
-- valory/oracle_deployment_abci:0.1.0:QmfQWNmy5EmHtriaN5VLMYzntFDfqHvwtySDTkAtpntvGk
-- valory/price_estimation_abci:0.1.0:QmYAbLTV8RCmmJaSwoKzPuXshLvtFFAcFaHnoDjbejzYF3
-- valory/registration_abci:0.1.0:QmU1VAEcZxX8pLp496swoCzDbT2F4wwQqUZYA2GifAkm22
-- valory/reset_pause_abci:0.1.0:QmQtVzuPAHDtr94Jy6KNemvkU5GJhAxw4fGarAnLo7b8ri
-- valory/safe_deployment_abci:0.1.0:QmP4zj8QGmdMwA5R9eA872N8ohf5dNb17iB9QtvPqykJJy
-- valory/transaction_settlement_abci:0.1.0:QmbhHiKeTeHFoEPy1qijKCWU27zedvxBym7PFUx7VhXWNp
+- valory/abstract_round_abci:0.1.0:QmWr9p9rSC3w3SicKYEpCoyBdB8JHhFRFVaRMHGKZQfS7a
+- valory/oracle_deployment_abci:0.1.0:QmcQr97QN262btwVVchcDjyuGEqVGiaanAyhHmUeyT2GPX
+- valory/price_estimation_abci:0.1.0:Qmcrb5sXgKmoMPYPLBcWSZRnMZi5T9NqbY2HEzogybWWt5
+- valory/registration_abci:0.1.0:QmbK58xaf956E6megcvBDSehvLTR6YyD1HWCnmJSoYKKUa
+- valory/reset_pause_abci:0.1.0:Qmcw2bSNRjg5Dj3jwPgGnKWuAmxehKY2WA23vXfy5aycYP
+- valory/safe_deployment_abci:0.1.0:QmUZGvrwqcvUh3vp6RJCuknRiErZ9CQeGW91uHjY8pdiUg
+- valory/transaction_settlement_abci:0.1.0:QmbC1cLqW48YcD3NU6Mwekspst7QBfxgmnTYetgq9fH8jJ
 behaviours:
   main:
     args: {}
