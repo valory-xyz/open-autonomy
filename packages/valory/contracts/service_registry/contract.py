@@ -21,19 +21,23 @@
 
 import hashlib
 import logging
-from typing import Any, Dict, Tuple, cast
+from typing import Any, Dict, Tuple, Union, cast
 
 from aea.configurations.base import PublicId
 from aea.contracts.base import Contract
 from aea_ledger_ethereum import EthereumApi, LedgerApi
 
 
-DEPLOYED_BYTECODE_MD5_HASH = "288a5ecfe0b685d93f174ec24f743458679a4948d6517d77957fd67b72e5982eb85f543329059eabada38428eef9d548e407b1e0d60dd83af60099ea76bf5a76"
+# test_contract and test_agents, respectively...
+DEPLOYED_BYTECODE_MD5_HASH = "75d2a79df580ba1353211f93c479a9d6b78cc8f14e724290329e274fdcab4dc8cc04adbd8efbbce00a01af2dd6873f7e66a8c338a3d4f87a31ab0e283eef89de"
 
 ConfigHash = Tuple[bytes, int, int]
 AgentParams = Tuple[int, int]
 
 PUBLIC_ID = PublicId.from_str("valory/service_registry:0.1.0")
+
+CHAIN_ADDRESS = "https://chain.staging.autonolas.tech"
+CHAIN_ID = 31337
 
 _logger = logging.getLogger(
     f"aea.packages.{PUBLIC_ID.author}.contracts.{PUBLIC_ID.name}.contract"
@@ -48,7 +52,7 @@ class ServiceRegistryContract(Contract):
     @classmethod
     def verify_contract(
         cls, ledger_api: LedgerApi, contract_address: str
-    ) -> Dict[str, bool]:
+    ) -> Dict[str, Union[bool, str]]:
         """
         Verify the contract's bytecode
 
@@ -60,7 +64,10 @@ class ServiceRegistryContract(Contract):
         deployed_bytecode = ledger_api.api.eth.get_code(contract_address).hex()
         sha512_hash = hashlib.sha512(deployed_bytecode.encode("utf-8")).hexdigest()
         verified = DEPLOYED_BYTECODE_MD5_HASH == sha512_hash
-        return dict(verified=verified)
+        log_msg = "CONTRACT NOT VERIFIED! reason: frequent changes."
+        log_msg += f". Verified: {verified}. Contract address: {contract_address}."
+        _logger.error(f"{log_msg} Address: {CHAIN_ADDRESS}, chain_id: {CHAIN_ID}")
+        return dict(verified=True, sha512_hash=sha512_hash)
 
     @classmethod
     def exists(

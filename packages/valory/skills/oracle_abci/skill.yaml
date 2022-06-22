@@ -11,9 +11,9 @@ fingerprint:
   __init__.py: QmeAk7emAs7VRTMu26MQ22s44gYYQaWjJxnaZ9xaRpLKwp
   behaviours.py: QmQqTFTYEEes3z2F6U7fnTzTcANuvMpd9CcdL9Di1EuCQe
   composition.py: QmTMTXbxA32JvoohYjHTDohMpc2cyWZdLDZyKtCUSvaAnK
-  dialogues.py: QmfDThV4WCRzK88XDpW2hKDYCuEH4RxoHCoAkWpkBRGRPv
+  dialogues.py: QmSPy6VqdLur8B8K824MHrfr1fobGz3PUaFu82gKLpJz8P
   fsm_specification.yaml: QmT6SZwTGmgFAZzrN9R2Qa7pY1P9JR8Si7MWKeEgULR9VV
-  handlers.py: QmWJtuiUZUphDnxgsxc4Ym2sZT9qSSk3K7BBiKSZMMUEat
+  handlers.py: QmP46JqQwFgamtKhjLd3dpWY2yKdXBnubMYZpSsNBC1eFH
   models.py: QmSwdFNXuDkGCP8QB565HNafwtxgnVauUAYfE4FQEoDCgC
 fingerprint_ignore_patterns: []
 connections: []
@@ -24,13 +24,13 @@ contracts:
 protocols:
 - valory/contract_api:1.0.0:QmZRa6S342MT1oSQjLoyEDitjK6nivypC78DKipvg9JpF1
 skills:
-- valory/abstract_round_abci:0.1.0:QmWvxu1DMtfSJiFe5jnhdtKerNvCNZL58g1uAVjsjP3vPr
-- valory/oracle_deployment_abci:0.1.0:QmcJNpSWH5ztfgWzmoYM4WqRuDM2CU8NfmQfyysE9TbkKr
-- valory/price_estimation_abci:0.1.0:QmdNxZuVFSKRFmbYtrbeG4m4YfZb6Z1BtsD11vVXAZGams
-- valory/registration_abci:0.1.0:QmTg5MiPNSKJs3DFSpByESWBfRaTTc27gRMxCapaMjuHPc
-- valory/reset_pause_abci:0.1.0:QmbQyZFpmtqx2183HRvqHqwW15RznM5vj25DADo3CgQrrN
-- valory/safe_deployment_abci:0.1.0:QmdKrWGPgokLfB5nGqm4EChLHtwwV3CxnLBcaprFFbevzc
-- valory/transaction_settlement_abci:0.1.0:Qmab8zZvrrNnwrxAifaDqK4sXtEACspWBezFCpT4VevJ9A
+- valory/abstract_round_abci:0.1.0:QmYDnsxVcpBtCJjRgByMjXp3sy386sAG45decKTsbd6MbG
+- valory/oracle_deployment_abci:0.1.0:QmUazwu85G7m29Xk2CKJP6xeVdoC31UucphupL7PbHbHBE
+- valory/price_estimation_abci:0.1.0:QmeYvWdkt98m3csjkpRSYiaZ4TqfTGSougnuctnFLiNJhR
+- valory/registration_abci:0.1.0:QmNtePoNpEARWWP1XUgNEhaMyGZSQPSttamY3YLBmRM9fE
+- valory/reset_pause_abci:0.1.0:QmUXginEEozMU4m5zvYeNtVyzsR1CkmhvVbr2gS1E7T4Jv
+- valory/safe_deployment_abci:0.1.0:QmazcW2mU3hSX6bS9wiuEpvz88wKbGAnSVYABSzmQnz4c3
+- valory/transaction_settlement_abci:0.1.0:QmWqaDq73TTqHKPWNXpobfY4Tmt47iwRoUizjebKPhqPsh
 behaviours:
   main:
     args: {}
@@ -51,6 +51,9 @@ handlers:
   signing:
     args: {}
     class_name: SigningHandler
+  tendermint:
+    args: {}
+    class_name: TendermintHandler
 models:
   abci_dialogues:
     args: {}
@@ -82,6 +85,7 @@ models:
       max_healthcheck: 120
       observation_aggregator_function: median
       observation_interval: 10
+      on_chain_service_id: null
       oracle:
         min_answer: 1000000000000000000
         max_answer: 1000000000000000000000000
@@ -92,9 +96,11 @@ models:
       retry_timeout: 3
       round_timeout_seconds: 30.0
       service_id: price_estimation
+      service_registry_address: null
       setup:
         oracle_contract_address: []
         safe_contract_address: []
+      share_tm_config_on_startup: false
       sleep_time: 1
       tendermint_check_sleep_delay: 3
       tendermint_com_url: http://localhost:8080
@@ -147,5 +153,8 @@ models:
   state:
     args: {}
     class_name: SharedState
+  tendermint_dialogues:
+    args: {}
+    class_name: TendermintDialogues
 dependencies: {}
 is_abstract: false

@@ -11,29 +11,34 @@ connections:
 - valory/abci:0.1.0:QmYWiaxokWBsbpwzZwPSYtrDrecE7A6ttz6kuZkUEWegVX
 - valory/http_client:0.1.0:QmXBBMS5g4kyyE3mzFcpieoDMKWFf9naaCM3QNSjP2mxDt
 - valory/ledger:0.1.0:Qmcd32eJaDbWFFgqTzKf3Lqhshj37ndhrdtYiNnED2ULqB
+- valory/p2p_libp2p_client:0.1.0:QmQ8QKKHkMyBWpf8JLJ4NRNmK6oet44jzdQGkZskpSb2oJ
 contracts:
 - valory/gnosis_safe:0.1.0:QmRNdXGRRQBMFXh5ZvtJeYvHt7559kV5r5EYU5JNUdRBKJ
 - valory/gnosis_safe_proxy_factory:0.1.0:QmVkZtrgZ2ievXAonq9z33qbrxHi8piVGptuCGaGJYS1iM
 - valory/offchain_aggregator:0.1.0:Qmaftfci6asBewVH3vKGtMJVcAdG71Vm6Qv493uRkT7b2h
+- valory/service_registry:0.1.0:QmR2sat97GLWU9DbkbYQyLqHzpuk98wFRsrjSr9GHYQMSY
 protocols:
 - open_aea/signing:1.0.0:QmYVxA8smnK8LQ2B4z5BVFvEwo3szQeBosUesycb8By1ZT
 - valory/abci:0.1.0:QmY42cX49Jb1dmHGbiDE7SEAW9YJc1FYJQA2U4i1mNYtBz
+- valory/acn:1.1.0:QmUjvc8HZRRPauJpLKdsBPiBFXPmXM3htmKVnXHoikptJY
 - valory/contract_api:1.0.0:QmZRa6S342MT1oSQjLoyEDitjK6nivypC78DKipvg9JpF1
 - valory/http:1.0.0:QmRQYhYWbGSNHb152dp2L1P9EtZRZZqgvZAaNat5qxfQqK
 - valory/ledger_api:1.0.0:QmNfowyB8rGWr53wuNPYK5BEAnA8AehgipVdYXt8LC5uR6
+- valory/tendermint:0.1.0:QmUj6wxrYnaXjhVt13KZT33qcy9kcAcKRRXXY1DyRajPdQ
 skills:
 - valory/abstract_abci:0.1.0:QmPL3nc94U6VmfJcokmbRK9vvQJsXzMLVtHeGxiQnSQTCi
-- valory/abstract_round_abci:0.1.0:QmWvxu1DMtfSJiFe5jnhdtKerNvCNZL58g1uAVjsjP3vPr
-- valory/oracle_abci:0.1.0:QmdaMCu69iC4s86yYWAL64EsYs4BQTYgZiCBbLDSN48Y7x
-- valory/oracle_deployment_abci:0.1.0:QmcJNpSWH5ztfgWzmoYM4WqRuDM2CU8NfmQfyysE9TbkKr
-- valory/price_estimation_abci:0.1.0:QmdNxZuVFSKRFmbYtrbeG4m4YfZb6Z1BtsD11vVXAZGams
-- valory/registration_abci:0.1.0:QmTg5MiPNSKJs3DFSpByESWBfRaTTc27gRMxCapaMjuHPc
-- valory/reset_pause_abci:0.1.0:QmbQyZFpmtqx2183HRvqHqwW15RznM5vj25DADo3CgQrrN
-- valory/safe_deployment_abci:0.1.0:QmdKrWGPgokLfB5nGqm4EChLHtwwV3CxnLBcaprFFbevzc
-- valory/transaction_settlement_abci:0.1.0:Qmab8zZvrrNnwrxAifaDqK4sXtEACspWBezFCpT4VevJ9A
+- valory/abstract_round_abci:0.1.0:QmYDnsxVcpBtCJjRgByMjXp3sy386sAG45decKTsbd6MbG
+- valory/oracle_abci:0.1.0:Qmd9fPRieaEjcVmCfte7kFs3BnKPCQf2SozEjeCyLeGYzS
+- valory/oracle_deployment_abci:0.1.0:QmUazwu85G7m29Xk2CKJP6xeVdoC31UucphupL7PbHbHBE
+- valory/price_estimation_abci:0.1.0:QmeYvWdkt98m3csjkpRSYiaZ4TqfTGSougnuctnFLiNJhR
+- valory/registration_abci:0.1.0:QmNtePoNpEARWWP1XUgNEhaMyGZSQPSttamY3YLBmRM9fE
+- valory/reset_pause_abci:0.1.0:QmUXginEEozMU4m5zvYeNtVyzsR1CkmhvVbr2gS1E7T4Jv
+- valory/safe_deployment_abci:0.1.0:QmazcW2mU3hSX6bS9wiuEpvz88wKbGAnSVYABSzmQnz4c3
+- valory/transaction_settlement_abci:0.1.0:QmWqaDq73TTqHKPWNXpobfY4Tmt47iwRoUizjebKPhqPsh
 default_ledger: ethereum
 required_ledgers:
 - ethereum
+- cosmos
 default_routing: {}
 connection_private_key_paths: {}
 private_key_paths: {}
@@ -60,6 +65,7 @@ logging_config:
       - console
       propagate: false
 dependencies:
+  open-aea-ledger-cosmos: {}
   open-aea-ledger-ethereum: {}
 skill_exception_policy: stop_and_exit
 connection_exception_policy: just_log
@@ -104,6 +110,9 @@ models:
       observation_interval: ${SKILL_ORACLE_ABCI_MODELS_PARAMS_ARGS_OBSERVATION_INTERVAL:int:300}
       max_healthcheck: ${SKILL_ORACLE_ABCI_MODELS_PARAMS_ARGS_MAX_HEALTHCHECK:int:1200}
       broadcast_to_server: ${SKILL_ORACLE_ABCI_MODELS_PARAMS_ARGS_BROADCAST_TO_SERVER:bool:false}
+      service_registry_address: ${SKILL_ORACLE_ABCI_MODELS_PARAMS_ARGS_SERVICE_REGISTRY_ADDRESS:str:none}
+      share_tm_config_on_startup: ${SKILL_ORACLE_ABCI_MODELS_PARAMS_ARGS_SERVICE_REGISTRY_ADDRESS:bool:false}
+      on_chain_service_id: ${SKILL_ORACLE_ABCI_MODELS_PARAMS_ARGS_ON_CHAIN_SERVICE_ID:int:none}
   server_api:
     args:
       url: ${SKILL_ORACLE_ABCI_MODELS_SERVER_API_ARGS_URL:str:http://192.168.2.17:9999/deposit}
@@ -117,3 +126,19 @@ config:
       chain_id: ${LEDGER_CHAIN_ID:int:31337}
       poa_chain: ${LEDGER_POA_CHAIN:bool:false}
       default_gas_price_strategy: ${LEDGER_DEFAULT_GAS_PRICE_STRATEGY:str:eip1559}
+---
+public_id: valory/p2p_libp2p_client:0.1.0
+type: connection
+config:
+  nodes:
+  - uri: ${P2P_URI:str:acn.staging.autonolas.tech:9005}
+    public_key: ${P2P_PUBLIC_KEY:str:0250827315351f6f4d3777b77d4bfd67280156240313bf221750b36404344bb35d}
+cert_requests:
+- identifier: acn
+  ledger_id: ethereum
+  message_format: '{public_key}'
+  not_after: '2022-01-01'
+  not_before: '2021-01-01'
+  public_key: ${P2P_PUBLIC_KEY:str:0250827315351f6f4d3777b77d4bfd67280156240313bf221750b36404344bb35d}
+  save_path: .certs/acn_cosmos_9005.txt
+is_abstract: true

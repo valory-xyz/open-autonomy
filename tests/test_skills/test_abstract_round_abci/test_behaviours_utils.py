@@ -1318,7 +1318,7 @@ class TestBaseBehaviour:
             (None, True, 0, False),
             (None, False, 0, False),
             (datetime(1, 1, 1), True, 0, False),
-            (datetime.now(), False, 1000, False),
+            (datetime.now(), False, 3000, False),
             (datetime(1, 1, 1), False, 0, True),
         ),
     )
@@ -1429,7 +1429,7 @@ class TestBaseBehaviour:
             )
             offset = max(MIN_HEIGHT_OFFSET, offset)
             assert offset == 10
-            initial_height = (
+            initial_height = str(
                 self.behaviour.context.state.round_sequence.last_round_transition_tm_height
                 + offset
             )

@@ -190,6 +190,16 @@ class BaseTestEnd2End(AEATestCaseMany, UseFlaskTendermintNode):
             3,
             type_="int",
         )
+        self.set_config(
+            f"vendor.valory.skills.{PublicId.from_str(self.skill_package).name}.models.params.args.service_registry_address",
+            "0x0DCd1Bf9A1b36cE34237eEaFef220932846BCD82",  # address on staging chain
+            type_="str",
+        )
+        self.set_config(  # dummy service
+            f"vendor.valory.skills.{PublicId.from_str(self.skill_package).name}.models.params.args.on_chain_service_id",
+            "1",
+            type_="int",
+        )
 
         self.__set_extra_configs()
 
@@ -219,6 +229,10 @@ class BaseTestEnd2End(AEATestCaseMany, UseFlaskTendermintNode):
             self.generate_private_key(self.ledger_id, self.key_file_name)
         self.add_private_key(self.ledger_id, self.key_file_name)
         self.__set_configs(i, nb_agents)
+        # issue certificates for libp2p proof of representation
+        self.generate_private_key("cosmos", "cosmos_private_key.txt")
+        self.add_private_key("cosmos", "cosmos_private_key.txt")
+        self.run_cli_command("issue-certificates", cwd=self._get_cwd())
 
     def prepare(self, nb_nodes: int) -> None:
         """Set up the agents."""
@@ -243,6 +257,19 @@ class BaseTestEnd2End(AEATestCaseMany, UseFlaskTendermintNode):
         self.set_agent_context(agent_name)
         process = self.run_agent()
         self.processes.append(process)
+
+    def terminate_processes(self) -> None:
+        """Terminate processes"""
+        for process in self.processes:
+            self.terminate_agents(process)
+            outs, errs = process.communicate()
+            logging.info(f"subprocess logs {process}: {outs} --- {errs}")
+            if not self.is_successfully_terminated(process):
+                warnings.warn(
+                    UserWarning(
+                        f"ABCI agent with process {process} wasn't successfully terminated."
+                    )
+                )
 
     @staticmethod
     def __generate_full_strings_from_rounds(
@@ -288,6 +315,7 @@ class BaseTestEnd2End(AEATestCaseMany, UseFlaskTendermintNode):
         # Perform checks for the round strings.
         missing_round_strings = []
         if round_check_strings_to_n_periods is not None:
+            logging.info("Performing checks for the round strings.")
             check_strings_to_n_periods = cls.__generate_full_strings_from_rounds(
                 round_check_strings_to_n_periods
             )
@@ -321,9 +349,6 @@ class BaseTestEnd2End(AEATestCaseMany, UseFlaskTendermintNode):
                     check_strings_to_n_appearances.items(),
                 )
             ]
-
-        if is_terminating:
-            cls.terminate_agents(kwargs["process"])
 
         return missing_strict_strings, missing_round_strings
 
@@ -363,13 +388,6 @@ class BaseTestEnd2End(AEATestCaseMany, UseFlaskTendermintNode):
                     missing_strict_strings, missing_round_strings, i
                 )
 
-            if not self.is_successfully_terminated(process):
-                warnings.warn(
-                    UserWarning(
-                        f"ABCI agent with process {process} wasn't successfully terminated."
-                    )
-                )
-
 
 class BaseTestEnd2EndNormalExecution(BaseTestEnd2End):
     """Test that the ABCI simple skill works together with Tendermint under normal circumstances."""
@@ -382,6 +400,7 @@ class BaseTestEnd2EndNormalExecution(BaseTestEnd2End):
             sleep_interval=self.HEALTH_CHECK_SLEEP_INTERVAL,
         )
         self.check_aea_messages()
+        self.terminate_processes()
 
 
 class BaseTestEnd2EndAgentCatchup(BaseTestEnd2End):
@@ -428,17 +447,20 @@ class BaseTestEnd2EndAgentCatchup(BaseTestEnd2End):
     def _stop_and_restart_last_agent(self, nb_agents: int) -> None:
         """Stops and restarts the last agents when stop string is found."""
         # stop the last agent as soon as the "stop string" is found in the output
-        process_to_stop = self.processes[-1]
         logging.info(f"Waiting for string {self.stop_string} in last agent output")
         missing_strict_strings, _ = self.missing_from_output(
-            process=process_to_stop,
+            process=self.processes[-1],
             strict_check_strings=(self.stop_string,),
             timeout=self.wait_before_stop,
         )
         if missing_strict_strings:
             raise RuntimeError("cannot stop agent correctly")
         logging.info("Last agent stopped")
-        self.processes.pop(-1)
+
+        # immediately terminate the agent
+        self.terminate_agents(self.processes[-1], timeout=0)
+        # don't pop before termination, seems to lead to failure!
+        self.processes.pop()
 
         # wait for some time before restarting
         logging.info(
@@ -449,3 +471,5 @@ class BaseTestEnd2EndAgentCatchup(BaseTestEnd2End):
         # restart agent
         logging.info("Restart the agent")
         self._launch_agent_i(-1, nb_agents)
+        self.check_aea_messages()
+        self.terminate_processes()

@@ -350,7 +350,7 @@ jobs:
         os: [ ubuntu-latest ]
         python-version: [ "3.10" ]
 
-    timeout-minutes: 60
+    timeout-minutes: 80
 
     steps:
       - uses: actions/checkout@v2

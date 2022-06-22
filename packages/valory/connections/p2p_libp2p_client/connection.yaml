@@ -10,21 +10,21 @@ aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
   README.md: QmRmDYNeEsKRgKjroGCJmLVJqjfnUm9FNXBXv3YYBBwsXq
   __init__.py: QmceMUo7Ky6DLdpEGNvATE8SSWN1e5gSwS5tuyv13HpJPm
-  connection.py: QmYNy2cxMWXSaL7h3a3QgQSWeHHq4sNDT3gKqm1Dup4G2x
+  connection.py: QmYd7KFYrLV2WX49XDcSz2zkWnLtrMMgJcQZW2xZ241nq8
 fingerprint_ignore_patterns: []
 connections: []
 protocols:
 - valory/acn:1.1.0:QmUjvc8HZRRPauJpLKdsBPiBFXPmXM3htmKVnXHoikptJY
 class_name: P2PLibp2pClientConnection
 config:
-  connect_retries: 3
+  connect_retries: 5
   ledger_id: cosmos
   nodes:
-  - uri: staging.acn.autonolas.tech:9005
+  - uri: acn.staging.autonolas.tech:9005
     public_key: 0250827315351f6f4d3777b77d4bfd67280156240313bf221750b36404344bb35d
-  - uri: staging.acn.autonolas.tech:9006
+  - uri: acn.staging.autonolas.tech:9006
     public_key: 02fc5fe35c21a1f8ba2de52fd38ef95379be19d5390f1275b825c343167590d3b7
-  tls_connection_signature_timeout: 5.0
+  tls_connection_signature_timeout: 12.0
 cert_requests:
 - identifier: acn
   ledger_id: ethereum
@@ -43,8 +43,8 @@ cert_requests:
 excluded_protocols: []
 restricted_to_protocols: []
 dependencies:
-  aea-ledger-cosmos: {}
-  aea-ledger-ethereum: {}
   asn1crypto:
     version: <1.5.0,>=1.4.0
+  open-aea-ledger-cosmos: {}
+  open-aea-ledger-ethereum: {}
 is_abstract: false

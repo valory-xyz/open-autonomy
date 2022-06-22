@@ -70,6 +70,7 @@ class TestAPYParams:
             "estimation": "test",
             "pair_ids": "test",
             "service_id": "apy_estimation",
+            "service_registry_address": "0xa51c1fc2f0d1a1b8494ed1fe312d7c3a78ed91c0",
             "keeper_timeout": 30.0,
             "cleanup_history_depth": 0,
         }

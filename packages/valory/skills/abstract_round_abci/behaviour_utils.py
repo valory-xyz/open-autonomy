@@ -1528,8 +1528,38 @@ class BaseBehaviour(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
             0, self._timeout
         )
 
+    def _get_reset_params(self, default: bool) -> Optional[List[Tuple[str, str]]]:
+        """Get the parameters for a hard reset request to Tendermint."""
+        if default:
+            return None
+
+        last_round_transition_timestamp = (
+            self.context.state.round_sequence.last_round_transition_timestamp
+        )
+        genesis_time = last_round_transition_timestamp.astimezone(pytz.UTC).strftime(
+            GENESIS_TIME_FMT
+        )
+        # Initial height needs to account for the asynchrony among agents.
+        # For that reason, we are using an offset in the initial block's height.
+        # The bigger the observation interval, the larger the lag among the agents might be.
+        # Also, if the observation interval is too tiny, we do not want the offset to be too small.
+        # Therefore, we choose between a minimum value and the interval multiplied by a constant (< 1 suggested).
+        initial_height = str(
+            self.context.state.round_sequence.last_round_transition_tm_height
+            + max(
+                MIN_HEIGHT_OFFSET,
+                math.ceil(self.params.observation_interval * HEIGHT_OFFSET_MULTIPLIER),
+            )
+        )
+
+        return [
+            ("genesis_time", genesis_time),
+            ("initial_height", initial_height),
+        ]
+
     def reset_tendermint_with_wait(
         self,
+        on_startup: bool = False,
     ) -> Generator[None, None, bool]:
         """Resets the tendermint node."""
         yield from self._start_reset()
@@ -1542,33 +1572,10 @@ class BaseBehaviour(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
                 f"Resetting tendermint node at end of period={self.synchronized_data.period_count}."
             )
 
-            last_round_transition_timestamp = (
-                self.context.state.round_sequence.last_round_transition_timestamp
-            )
-            genesis_time = last_round_transition_timestamp.astimezone(
-                pytz.UTC
-            ).strftime(GENESIS_TIME_FMT)
-            # Initial height needs to account for the asynchrony among agents.
-            # For that reason, we are using an offset in the initial block's height.
-            # The bigger the observation interval, the larger the lag among the agents might be.
-            # Also, if the observation interval is too tiny, we do not want the offset to be too small.
-            # Therefore, we choose between a minimum value and the interval multiplied by a constant (< 1 suggested).
-            initial_height = (
-                self.context.state.round_sequence.last_round_transition_tm_height
-                + max(
-                    MIN_HEIGHT_OFFSET,
-                    math.ceil(
-                        self.params.observation_interval * HEIGHT_OFFSET_MULTIPLIER
-                    ),
-                )
-            )
             request_message, http_dialogue = self._build_http_request_message(
                 "GET",
                 self.params.tendermint_com_url + "/hard_reset",
-                parameters=[
-                    ("genesis_time", genesis_time),
-                    ("initial_height", initial_height),
-                ],
+                parameters=self._get_reset_params(on_startup),
             )
             result = yield from self._do_request(request_message, http_dialogue)
             try:

@@ -12,7 +12,7 @@ fingerprint:
   behaviours.py: QmajsDhKHVozP7Hyj5XfihKXrabAxPRKfsuDd21qFVcKF9
   dialogues.py: QmfDThV4WCRzK88XDpW2hKDYCuEH4RxoHCoAkWpkBRGRPv
   fsm_specification.yaml: QmX3XcnEMJ8JLTkftDnFoanehLEJbqLgYM6cR9Y4DfPSYT
-  handlers.py: QmRbhnYTWnUPsWHYg9CbLhWQTFfw9faRZwjbTD6BGv7YtD
+  handlers.py: QmSgRDTrSrp2yeQkEirxh7p9mNKnRnjAqZWqvn1TEPB5bn
   models.py: QmRALTaiv4Ny6PVjYbQQcBKaHjKSbpVABaxociC2Bkhgrh
   payloads.py: QmciRtUWZHMaGV2givznHWNQ4Ky44MciprcwadLYjxcu4s
   rounds.py: QmazMHBCMY6YK1NrZAi6ubm377uF1CTCkMhvnZjaJpC7zd
@@ -33,7 +33,7 @@ protocols:
 - valory/http:1.0.0:QmRQYhYWbGSNHb152dp2L1P9EtZRZZqgvZAaNat5qxfQqK
 - valory/ledger_api:1.0.0:QmNfowyB8rGWr53wuNPYK5BEAnA8AehgipVdYXt8LC5uR6
 skills:
-- valory/abstract_round_abci:0.1.0:QmWvxu1DMtfSJiFe5jnhdtKerNvCNZL58g1uAVjsjP3vPr
+- valory/abstract_round_abci:0.1.0:QmYDnsxVcpBtCJjRgByMjXp3sy386sAG45decKTsbd6MbG
 behaviours:
   main:
     args: {}
@@ -54,6 +54,9 @@ handlers:
   signing:
     args: {}
     class_name: SigningHandler
+  tendermint:
+    args: {}
+    class_name: TendermintHandler
 models:
   abci_dialogues:
     args: {}
@@ -83,6 +86,7 @@ models:
       keeper_timeout: 30.0
       max_healthcheck: 120
       observation_interval: 10
+      on_chain_service_id: null
       rebalancing:
         chain: Ethereum
         token_base_address: '0xDc64a140Aa3E981100a9becA4E685f962f0cF6C9'
@@ -102,6 +106,7 @@ models:
       retry_timeout: 3
       round_timeout_seconds: 30.0
       service_id: liquidity_rebalancing
+      service_registry_address: null
       setup: {}
       sleep_time: 1
       tendermint_check_sleep_delay: 3

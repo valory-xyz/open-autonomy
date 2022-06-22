@@ -13,7 +13,7 @@ fingerprint:
   composition.py: QmXdsJZJJPba243WZ2jcoiJz4vFuw5ujFUXuEjoTkxY81H
   dialogues.py: QmfDThV4WCRzK88XDpW2hKDYCuEH4RxoHCoAkWpkBRGRPv
   fsm_specification.yaml: QmPCSHySLcTURs7dHcYpiCc6B6w7pfkc8JLJ77axvmhNFX
-  handlers.py: QmRbhnYTWnUPsWHYg9CbLhWQTFfw9faRZwjbTD6BGv7YtD
+  handlers.py: QmSgRDTrSrp2yeQkEirxh7p9mNKnRnjAqZWqvn1TEPB5bn
   models.py: Qmdb5Dve5jFq5UvYLALfXeXSxrQa3tifYWeTjo6iSqttmJ
 fingerprint_ignore_patterns: []
 connections:
@@ -32,12 +32,12 @@ protocols:
 - valory/http:1.0.0:QmRQYhYWbGSNHb152dp2L1P9EtZRZZqgvZAaNat5qxfQqK
 - valory/ledger_api:1.0.0:QmNfowyB8rGWr53wuNPYK5BEAnA8AehgipVdYXt8LC5uR6
 skills:
-- valory/abstract_round_abci:0.1.0:QmWvxu1DMtfSJiFe5jnhdtKerNvCNZL58g1uAVjsjP3vPr
-- valory/liquidity_rebalancing_abci:0.1.0:Qmf7aai1yyWxtx51wECvPoQSRqfohqSAkrzTUPhC5qKeKx
-- valory/registration_abci:0.1.0:QmTg5MiPNSKJs3DFSpByESWBfRaTTc27gRMxCapaMjuHPc
-- valory/reset_pause_abci:0.1.0:QmbQyZFpmtqx2183HRvqHqwW15RznM5vj25DADo3CgQrrN
-- valory/safe_deployment_abci:0.1.0:QmdKrWGPgokLfB5nGqm4EChLHtwwV3CxnLBcaprFFbevzc
-- valory/transaction_settlement_abci:0.1.0:Qmab8zZvrrNnwrxAifaDqK4sXtEACspWBezFCpT4VevJ9A
+- valory/abstract_round_abci:0.1.0:QmYDnsxVcpBtCJjRgByMjXp3sy386sAG45decKTsbd6MbG
+- valory/liquidity_rebalancing_abci:0.1.0:QmVxxwc9c8HMaTebL5pubWopnEwZySU1iWdRXUHkPmUKy6
+- valory/registration_abci:0.1.0:QmNtePoNpEARWWP1XUgNEhaMyGZSQPSttamY3YLBmRM9fE
+- valory/reset_pause_abci:0.1.0:QmUXginEEozMU4m5zvYeNtVyzsR1CkmhvVbr2gS1E7T4Jv
+- valory/safe_deployment_abci:0.1.0:QmazcW2mU3hSX6bS9wiuEpvz88wKbGAnSVYABSzmQnz4c3
+- valory/transaction_settlement_abci:0.1.0:QmWqaDq73TTqHKPWNXpobfY4Tmt47iwRoUizjebKPhqPsh
 behaviours:
   main:
     args: {}
@@ -58,6 +58,9 @@ handlers:
   signing:
     args: {}
     class_name: SigningHandler
+  tendermint:
+    args: {}
+    class_name: TendermintHandler
 models:
   abci_dialogues:
     args: {}
@@ -87,6 +90,7 @@ models:
       keeper_timeout: 30.0
       max_healthcheck: 120
       observation_interval: 10
+      on_chain_service_id: null
       rebalancing:
         chain: Ethereum
         token_base_address: '0xDc64a140Aa3E981100a9becA4E685f962f0cF6C9'
@@ -106,7 +110,9 @@ models:
       retry_timeout: 3
       round_timeout_seconds: 30.0
       service_id: liquidity_rebalancing
+      service_registry_address: null
       setup: {}
+      share_tm_config_on_startup: false
       sleep_time: 1
       tendermint_check_sleep_delay: 3
       tendermint_com_url: http://localhost:8080

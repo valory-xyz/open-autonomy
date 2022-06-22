@@ -25,7 +25,7 @@ protocols:
 - valory/abci:0.1.0:QmY42cX49Jb1dmHGbiDE7SEAW9YJc1FYJQA2U4i1mNYtBz
 - valory/http:1.0.0:QmRQYhYWbGSNHb152dp2L1P9EtZRZZqgvZAaNat5qxfQqK
 skills:
-- valory/abstract_round_abci:0.1.0:QmWvxu1DMtfSJiFe5jnhdtKerNvCNZL58g1uAVjsjP3vPr
+- valory/abstract_round_abci:0.1.0:QmYDnsxVcpBtCJjRgByMjXp3sy386sAG45decKTsbd6MbG
 behaviours:
   main:
     args: {}
@@ -60,12 +60,15 @@ models:
       keeper_timeout: 30.0
       max_healthcheck: 120
       observation_interval: 10
+      on_chain_service_id: null
       reset_tendermint_after: 2
       retry_attempts: 400
       retry_timeout: 3
       round_timeout_seconds: 30.0
       service_id: hello_world_abci
+      service_registry_address: null
       setup: {}
+      share_tm_config_on_startup: false
       sleep_time: 1
       tendermint_check_sleep_delay: 3
       tendermint_com_url: http://localhost:8080

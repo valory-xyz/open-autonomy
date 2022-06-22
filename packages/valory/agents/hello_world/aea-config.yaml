@@ -10,6 +10,7 @@ fingerprint_ignore_patterns: []
 connections:
 - valory/abci:0.1.0:QmYWiaxokWBsbpwzZwPSYtrDrecE7A6ttz6kuZkUEWegVX
 - valory/http_client:0.1.0:QmXBBMS5g4kyyE3mzFcpieoDMKWFf9naaCM3QNSjP2mxDt
+- valory/p2p_libp2p_client:0.1.0:QmQ8QKKHkMyBWpf8JLJ4NRNmK6oet44jzdQGkZskpSb2oJ
 contracts: []
 protocols:
 - open_aea/signing:1.0.0:QmYVxA8smnK8LQ2B4z5BVFvEwo3szQeBosUesycb8By1ZT
@@ -17,8 +18,8 @@ protocols:
 - valory/http:1.0.0:QmRQYhYWbGSNHb152dp2L1P9EtZRZZqgvZAaNat5qxfQqK
 skills:
 - valory/abstract_abci:0.1.0:QmPL3nc94U6VmfJcokmbRK9vvQJsXzMLVtHeGxiQnSQTCi
-- valory/abstract_round_abci:0.1.0:QmWvxu1DMtfSJiFe5jnhdtKerNvCNZL58g1uAVjsjP3vPr
-- valory/hello_world_abci:0.1.0:QmPWpKk2LGoaBWFTyAJgrmUrXe7jGmat3u9dumrzCspEnh
+- valory/abstract_round_abci:0.1.0:QmYDnsxVcpBtCJjRgByMjXp3sy386sAG45decKTsbd6MbG
+- valory/hello_world_abci:0.1.0:QmNr6sG7n4apvBELrjNvd6PVLiCm2EDAEMNe8zpskCsheb
 default_ledger: ethereum
 required_ledgers:
 - ethereum
@@ -55,3 +56,19 @@ public_id: valory/abci:0.1.0
 type: connection
 config:
   target_skill_id: valory/hello_world_abci:0.1.0
+---
+public_id: valory/p2p_libp2p_client:0.1.0
+type: connection
+config:
+  nodes:
+  - uri: ${P2P_URI:str:acn.staging.autonolas.tech:9005}
+    public_key: ${P2P_PUBLIC_KEY:str:0250827315351f6f4d3777b77d4bfd67280156240313bf221750b36404344bb35d}
+cert_requests:
+- identifier: acn
+  ledger_id: ethereum
+  message_format: '{public_key}'
+  not_after: '2022-01-01'
+  not_before: '2021-01-01'
+  public_key: ${P2P_PUBLIC_KEY:str:0250827315351f6f4d3777b77d4bfd67280156240313bf221750b36404344bb35d}
+  save_path: .certs/acn_cosmos_9005.txt
+is_abstract: true

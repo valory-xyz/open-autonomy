@@ -44,7 +44,9 @@ AgentParams = Tuple[int, int]
 ADDRESS_ZERO = "0x0000000000000000000000000000000000000000"
 AGENT_REGISTRY = "0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512"
 OWNER = "0x8626f6940E2eb28930eFb4CeF49B2d1F2C9C1199"
-SERVICE_REGISTRY = "0xA51c1fc2f0D1a1b8494Ed1FE312d7C3a78Ed91C0"
+# run: `npx hardhat node` on onchain-protocol repo,
+# and make sure the contract is deployed accordingly
+SERVICE_REGISTRY = "0x0DCd1Bf9A1b36cE34237eEaFef220932846BCD82"
 
 NONCE = 0
 CHAIN_ID = 31337
@@ -144,7 +146,7 @@ class TestServiceRegistryContract(BaseServiceRegistryContractTest):
             contract_address=self.contract_address,
         )
 
-        assert result["verified"] is True
+        assert result["verified"] is True, result
 
     @pytest.mark.parametrize("service_id, expected", [(0, False), (1, True)])
     def test_exists(self, service_id: int, expected: int) -> None:

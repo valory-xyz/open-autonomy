@@ -73,6 +73,11 @@ class BaseParams(Model):  # pylint: disable=too-many-instance-attributes
         )
         self.tx_timeout = kwargs.pop("tx_timeout", _DEFAULT_TX_TIMEOUT)
         self.max_attempts = kwargs.pop("max_attempts", _DEFAULT_TX_MAX_ATTEMPTS)
+        self.service_registry_address = kwargs.pop("service_registry_address", None)
+        self.on_chain_service_id = kwargs.pop("on_chain_service_id", None)
+        self.share_tm_config_on_startup = kwargs.pop(
+            "share_tm_config_on_startup", False
+        )
         setup_params = kwargs.pop("setup", {})
         # we sanitize for null values as these are just kept for schema definitions
         setup_params = {
