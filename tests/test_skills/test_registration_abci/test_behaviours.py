@@ -22,7 +22,6 @@
 import collections
 import json
 import logging
-import platform
 import time
 from contextlib import ExitStack, contextmanager
 from pathlib import Path
