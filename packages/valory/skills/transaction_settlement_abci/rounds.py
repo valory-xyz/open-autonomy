@@ -77,6 +77,7 @@ class Event(Enum):
     MISSED_AND_LATE_MESSAGES_MISMATCH = "missed_and_late_messages_mismatch"
     INSUFFICIENT_FUNDS = "insufficient_funds"
     INCORRECT_SERIALIZATION = "incorrect_serialization"
+    NOTHING_TO_VALIDATE = "nothing_to_validate"
 
 
 class SynchronizedData(
@@ -146,7 +147,7 @@ class SynchronizedData(
         return 0
 
     @property
-    def to_be_validated_tx_hash(self) -> Optional[str]:
+    def to_be_validated_tx_hash(self) -> str:
         """
         Get the tx hash which is ready for validation.
 
@@ -154,11 +155,13 @@ class SynchronizedData(
         due to the way we are inserting the hashes in the array.
         We keep the hashes sorted by the time of their finalization.
         If this property is accessed before the finalization succeeds,
-        then it is incorrectly used and raises an internal error.
+        then it is incorrectly used and raises an error.
 
         :return: the tx hash which is ready for validation.
         """
-        return self.tx_hashes_history[-1] if self.tx_hashes_history else None
+        if not self.tx_hashes_history:
+            raise ValueError("FSM design error: tx hash should exist")
+        return self.tx_hashes_history[-1]
 
     @property
     def final_tx_hash(self) -> str:
@@ -370,7 +373,7 @@ class ValidateTransactionRound(VotingRound):
             # then it is incorrectly used.
             synchronized_data = cast(SynchronizedData, self.synchronized_data)
             if not synchronized_data.to_be_validated_tx_hash:
-                return synchronized_data, Event.INCORRECT_SERIALIZATION
+                return synchronized_data, Event.NOTHING_TO_VALIDATE
 
             # We only set the final tx hash if we are about to exit from the transaction settlement skill.
             # Then, the skills which use the transaction settlement can check the tx hash
@@ -626,7 +629,7 @@ class TransactionSubmissionAbciApp(AbciApp[Event]):
             Event.NONE: SelectKeeperTransactionSubmissionRoundB,
             Event.VALIDATE_TIMEOUT: SelectKeeperTransactionSubmissionRoundB,
             Event.NO_MAJORITY: ValidateTransactionRound,
-            Event.INCORRECT_SERIALIZATION: FailedRound,
+            Event.NOTHING_TO_VALIDATE: FailedRound,
         },
         CheckTransactionHistoryRound: {
             Event.DONE: FinishedTransactionSubmissionRound,

@@ -372,8 +372,6 @@ class ValidateTransactionBehaviour(TransactionSettlementBaseBehaviour):
         """Transaction verification."""
 
         to_be_validated_tx_hash = self.synchronized_data.to_be_validated_tx_hash
-        if not to_be_validated_tx_hash:
-            return False
 
         response = yield from self.get_transaction_receipt(
             to_be_validated_tx_hash,
