@@ -82,3 +82,21 @@ class TestResetAndPauseRound(BaseCollectSameUntilThresholdRoundTest):
                 exit_event=self._event_class.DONE,
             )
         )
+
+    def test_accepting_payloads_from(self) -> None:
+        """Test accepting payloads from"""
+
+        alice, *others = self.participants
+        participants = list(others)
+        all_participants = participants + [alice]
+
+        synchronized_data = self.synchronized_data.update(
+            participants=participants, all_participants=all_participants
+        )
+
+        test_round = ResetAndPauseRound(
+            synchronized_data=synchronized_data, consensus_params=self.consensus_params
+        )
+
+        assert test_round.accepting_payloads_from is not participants
+        assert test_round.accepting_payloads_from is all_participants
