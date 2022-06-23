@@ -156,6 +156,12 @@ class FlaskTendermintDockerImage(TendermintDockerImage):
             os.chdir(cwd)
 
     @property
+    def local_com_port(self) -> int:
+        """Get the port on which the com port will be mapped locally."""
+        # we do this to avoid using 8080
+        return self.com_port + 2
+
+    @property
     def tag(self) -> str:
         """Get the tag."""
         return f"{TENDERMINT_IMAGE_NAME}:{TENDERMINT_IMAGE_VERSION}"
@@ -195,7 +201,7 @@ class FlaskTendermintDockerImage(TendermintDockerImage):
 
     def get_com_port(self, i: int) -> int:
         """Get the ith com port."""
-        return self.__increment_port(self.com_port, i)
+        return self.__increment_port(self.local_com_port, i)
 
     def get_p2p_port(self, i: int) -> int:
         """Get the ith p2p port."""
