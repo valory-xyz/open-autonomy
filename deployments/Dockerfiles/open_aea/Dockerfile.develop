@@ -4,7 +4,6 @@ FROM valory/open-aea-user:${AEA_VERSION}
 MAINTAINER Valory AG
 
 COPY openssl.cnf /etc/ssl
-COPY openssl.cnf /usr/lib/ssl
 
 WORKDIR /home/ubuntu
 ENV PATH=$PATH:/home/ubuntu/.local/bin
