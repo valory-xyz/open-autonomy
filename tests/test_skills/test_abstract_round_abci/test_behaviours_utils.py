@@ -27,7 +27,7 @@ from abc import ABC
 from collections import OrderedDict
 from datetime import datetime
 from enum import Enum
-from typing import Any, Dict, Generator, Optional, Tuple, Type, Union
+from typing import Any, Callable, Dict, Generator, Optional, Tuple, Type, Union
 from unittest import mock
 from unittest.mock import MagicMock
 
@@ -520,6 +520,48 @@ class TestBaseBehaviour:
         """Test 'send_a2a_transaction' method, positive case."""
         gen = self.behaviour.send_a2a_transaction(MagicMock())
         try_send(gen)
+
+    @staticmethod
+    def dummy_reset_tendermint_with_wait_wrapper(
+        valid_response: bool,
+    ) -> Callable[[], Generator[None, None, Optional[bool]]]:
+        """Wrapper for a Dummy `reset_tendermint_with_wait` method."""
+
+        def dummy_reset_tendermint_with_wait(
+            **_: bool,
+        ) -> Generator[None, None, Optional[bool]]:
+            """Dummy `reset_tendermint_with_wait` method."""
+            yield
+            return valid_response
+
+        return dummy_reset_tendermint_with_wait
+
+    @mock.patch.object(
+        BaseBehaviour,
+        "tm_communication_unhealthy",
+        new_callable=mock.PropertyMock,
+        return_value=True,
+    )
+    @pytest.mark.parametrize("tm_reset_success", (True, False))
+    def test_async_act_wrapper_communication_unhealthy(
+        self, _: mock._patch, tm_reset_success: bool
+    ) -> None:
+        """Test 'async_act_wrapper' when tm communication is unhealthy."""
+        gen = self.behaviour.async_act_wrapper()
+
+        with mock.patch.object(
+            self.behaviour,
+            "reset_tendermint_with_wait",
+            side_effect=self.dummy_reset_tendermint_with_wait_wrapper(tm_reset_success),
+        ):
+            try_send(gen)
+            try_send(gen)
+
+        if tm_reset_success:
+            self.behaviour.set_done()
+            with mock.patch.object(BaseBehaviour, "_log_end") as _log_end_mock:
+                try_send(gen)
+                _log_end_mock.assert_called_once()
 
     def test_async_act_wrapper(self) -> None:
         """Test 'async_act_wrapper'."""
