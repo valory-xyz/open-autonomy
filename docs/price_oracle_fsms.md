@@ -245,7 +245,6 @@ alphabet_in:
 - MISSED_AND_LATE_MESSAGES_MISMATCH
 - NEGATIVE
 - NONE
-- NOTHING_TO_VALIDATE
 - NO_MAJORITY
 - RESET_TIMEOUT
 - ROUND_TIMEOUT
@@ -321,7 +320,6 @@ transition_func:
     (ValidateTransactionRound, DONE): FinishedTransactionSubmissionRound
     (ValidateTransactionRound, NEGATIVE): CheckTransactionHistoryRound
     (ValidateTransactionRound, NONE): SelectKeeperTransactionSubmissionRoundB
-    (ValidateTransactionRound, NOTHING_TO_VALIDATE): FailedRound
     (ValidateTransactionRound, NO_MAJORITY): ValidateTransactionRound
     (ValidateTransactionRound, VALIDATE_TIMEOUT): SelectKeeperTransactionSubmissionRoundB
 ```
@@ -454,7 +452,6 @@ alphabet_in:
 - MISSED_AND_LATE_MESSAGES_MISMATCH
 - NEGATIVE
 - NONE
-- NOTHING_TO_VALIDATE
 - NO_MAJORITY
 - RESET_AND_PAUSE_TIMEOUT
 - RESET_TIMEOUT
@@ -586,7 +583,6 @@ transition_func:
     (ValidateTransactionRound, DONE): ResetAndPauseRound
     (ValidateTransactionRound, NEGATIVE): CheckTransactionHistoryRound
     (ValidateTransactionRound, NONE): SelectKeeperTransactionSubmissionRoundB
-    (ValidateTransactionRound, NOTHING_TO_VALIDATE): ResetAndPauseRound
     (ValidateTransactionRound, NO_MAJORITY): ValidateTransactionRound
     (ValidateTransactionRound, VALIDATE_TIMEOUT): SelectKeeperTransactionSubmissionRoundB
 ```

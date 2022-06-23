@@ -77,7 +77,6 @@ class Event(Enum):
     MISSED_AND_LATE_MESSAGES_MISMATCH = "missed_and_late_messages_mismatch"
     INSUFFICIENT_FUNDS = "insufficient_funds"
     INCORRECT_SERIALIZATION = "incorrect_serialization"
-    NOTHING_TO_VALIDATE = "nothing_to_validate"
 
 
 class SynchronizedData(
@@ -371,9 +370,9 @@ class ValidateTransactionRound(VotingRound):
             # We keep the hashes sorted by their finalization time.
             # If this property is accessed before the finalization succeeds,
             # then it is incorrectly used.
-            synchronized_data = cast(SynchronizedData, self.synchronized_data)
-            if not synchronized_data.to_be_validated_tx_hash:
-                return synchronized_data, Event.NOTHING_TO_VALIDATE
+            final_tx_hash = cast(
+                SynchronizedData, self.synchronized_data
+            ).to_be_validated_tx_hash
 
             # We only set the final tx hash if we are about to exit from the transaction settlement skill.
             # Then, the skills which use the transaction settlement can check the tx hash
@@ -382,7 +381,7 @@ class ValidateTransactionRound(VotingRound):
                 synchronized_data_class=self.synchronized_data_class,
                 participant_to_votes=self.collection,
                 final_verification_status=VerificationStatus.VERIFIED,
-                final_tx_hash=synchronized_data.to_be_validated_tx_hash,
+                final_tx_hash=final_tx_hash,
             )  # type: ignore
             return synchronized_data, self.done_event
         if self.negative_vote_threshold_reached:
@@ -548,7 +547,6 @@ class TransactionSubmissionAbciApp(AbciApp[Event]):
             - none: 6.
             - validate timeout: 6.
             - no majority: 4.
-            - nothing to validate: 12.
         5. CheckTransactionHistoryRound
             - done: 11.
             - negative: 6.
@@ -630,7 +628,6 @@ class TransactionSubmissionAbciApp(AbciApp[Event]):
             Event.NONE: SelectKeeperTransactionSubmissionRoundB,
             Event.VALIDATE_TIMEOUT: SelectKeeperTransactionSubmissionRoundB,
             Event.NO_MAJORITY: ValidateTransactionRound,
-            Event.NOTHING_TO_VALIDATE: FailedRound,
         },
         CheckTransactionHistoryRound: {
             Event.DONE: FinishedTransactionSubmissionRound,
