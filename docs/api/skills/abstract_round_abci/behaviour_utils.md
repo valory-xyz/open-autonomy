@@ -359,6 +359,17 @@ def synchronized_data() -> BaseSynchronizedData
 
 Return the synchronized data.
 
+<a id="packages.valory.skills.abstract_round_abci.behaviour_utils.BaseBehaviour.tm_communication_unhealthy"></a>
+
+#### tm`_`communication`_`unhealthy
+
+```python
+@property
+def tm_communication_unhealthy() -> bool
+```
+
+Return if the Tendermint communication is not healthy anymore.
+
 <a id="packages.valory.skills.abstract_round_abci.behaviour_utils.BaseBehaviour.check_in_round"></a>
 
 #### check`_`in`_`round

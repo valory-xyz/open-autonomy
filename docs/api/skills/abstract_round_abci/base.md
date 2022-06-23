@@ -2358,6 +2358,17 @@ def tm_height(_tm_height: int) -> None
 
 Set Tendermint's current height.
 
+<a id="packages.valory.skills.abstract_round_abci.base.RoundSequence.block_stall_deadline_expired"></a>
+
+#### block`_`stall`_`deadline`_`expired
+
+```python
+@property
+def block_stall_deadline_expired() -> bool
+```
+
+Get if the deadline for not having received any begin block requests from the Tendermint node has expired.
+
 <a id="packages.valory.skills.abstract_round_abci.base.RoundSequence.init_chain"></a>
 
 #### init`_`chain
