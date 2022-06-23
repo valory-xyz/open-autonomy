@@ -141,6 +141,7 @@ class TestAbstractRoundBehaviour:
         context_mock.state.round_sequence = self.round_sequence_mock
         context_mock.state.round_sequence.syncing_up = False
         context_mock.params.ipfs_domain_name = None
+        self.round_sequence_mock.block_stall_deadline_expired = False
         self.behaviour = ConcreteRoundBehaviour(name="", skill_context=context_mock)
 
     def test_setup(self) -> None:

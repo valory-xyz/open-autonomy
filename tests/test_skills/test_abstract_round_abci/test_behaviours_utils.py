@@ -404,6 +404,7 @@ class TestBaseBehaviour:
         )
         self.context_mock.state.round_sequence.current_round_id = "round_a"
         self.context_mock.state.round_sequence.syncing_up = False
+        self.context_mock.state.round_sequence.block_stall_deadline_expired = False
         self.context_mock.http_dialogues = HttpDialogues()
         self.context_mock.handlers.__dict__ = {"http": MagicMock()}
         self.behaviour = BehaviourATest(name="", skill_context=self.context_mock)
@@ -1495,6 +1496,7 @@ def test_degenerate_behaviour_async_act() -> None:
     context.params.ipfs_domain_name = None
     # this is needed to trigger execution of async_act
     context.state.round_sequence.syncing_up = False
+    context.state.round_sequence.block_stall_deadline_expired = False
 
     behaviour = ConcreteDegenerateBehaviour(
         name=ConcreteDegenerateBehaviour.behaviour_id, skill_context=context
