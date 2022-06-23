@@ -71,6 +71,8 @@ ADDRESS_LENGTH = 42
 MAX_INT_256 = 2 ** 256 - 1
 RESET_COUNT_START = 0
 VALUE_NOT_PROVIDED = object()
+# tolerance in seconds for new blocks not having arrived yet
+BLOCKS_STALL_TOLERANCE = 60
 
 EventType = TypeVar("EventType")
 TransactionType = TypeVar("TransactionType")
