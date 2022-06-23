@@ -600,6 +600,17 @@ class BaseBehaviour(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
 
     def async_act_wrapper(self) -> Generator:
         """Do the act, supporting asynchronous execution."""
+        if self.tm_communication_unhealthy:
+            self.context.logger.warning(
+                "The local deadline for the next `begin_block` request from the Tendermint node has expired! "
+                "Trying to reset local Tendermint node as there could be something wrong with the communication."
+            )
+            # if we end up looping here forever,
+            # then there is probably something serious going on with the communication
+            reset_successfully = yield from self.reset_tendermint_with_wait()
+            if not reset_successfully:
+                return
+
         if not self._is_started:
             self._log_start()
             self._is_started = True
