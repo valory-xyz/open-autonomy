@@ -465,6 +465,7 @@ class SynchronizeLateMessagesRound(CollectNonEmptyUntilThresholdRound):
     none_event = Event.NONE
     selection_key = "participant"
     collection_key = "late_arriving_tx_hashes"
+    _hash_length = TX_HASH_LENGTH
 
     def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Event]]:
         """Process the end of the block."""

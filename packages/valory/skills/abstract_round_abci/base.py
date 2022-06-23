@@ -1070,6 +1070,8 @@ class CollectionRound(AbstractRound):
 
     # allow_rejoin is used to allow agents not currently active to deliver a payload
     _allow_rejoin_payloads: bool = False
+    # if the payload is serialized to bytes, we verify that the length specified matches
+    _hash_length: Optional[int] = None
 
     def __init__(self, *args: Any, **kwargs: Any):
         """Initialize the collection round."""
@@ -1110,6 +1112,12 @@ class CollectionRound(AbstractRound):
             raise ABCIAppInternalError(
                 f"sender {sender} has already sent value for round: {self.round_id}"
             )
+
+        if self._hash_length:
+            content = payload.data.get(self.payload_attribute)
+            if not content or len(content) % self._hash_length:
+                msg = "FSM design error: expecting serialized data of chunk size"
+                raise ABCIAppInternalError(f"{msg} {self._hash_length}, got: {content}")
 
         self.collection[sender] = payload
 

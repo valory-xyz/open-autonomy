@@ -28,6 +28,7 @@ from unittest import mock
 import pytest
 
 from packages.valory.skills.abstract_round_abci.base import (
+    ABCIAppInternalError,
     AbciAppDB,
     BaseTxPayload,
     MAX_INT_256,
@@ -656,6 +657,19 @@ class TestSynchronizeLateMessagesRound(BaseCollectNonEmptyUntilThresholdRound):
                 exit_event=expected_event,
             )
         )
+
+    def test_serialization_abci_app_internal_error(self) -> None:
+        """Test wrong serialization raises ABCIAppInternalError"""
+
+        test_round = SynchronizeLateMessagesRound(
+            synchronized_data=self.synchronized_data,
+            consensus_params=self.consensus_params,
+        )
+        sender = list(test_round.accepting_payloads_from).pop()
+        tx_hashes = "0" * (TX_HASH_LENGTH - 1)
+        payload = SynchronizeLateMessagesPayload(sender=sender, tx_hashes=tx_hashes)
+        with pytest.raises(ABCIAppInternalError):
+            test_round.process_payload(payload)
 
 
 def test_synchronized_datas() -> None:
