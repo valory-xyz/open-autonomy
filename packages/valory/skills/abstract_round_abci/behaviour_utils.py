@@ -483,6 +483,13 @@ class BaseBehaviour(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
             cast(SharedState, self.context.state).synchronized_data,
         )
 
+    @property
+    def tm_communication_unhealthy(self) -> bool:
+        """Return if the Tendermint communication is not healthy anymore."""
+        return cast(
+            SharedState, self.context.state
+        ).round_sequence.block_stall_deadline_expired
+
     def check_in_round(self, round_id: str) -> bool:
         """Check that we entered a specific round."""
         return (

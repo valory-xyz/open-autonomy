@@ -2281,6 +2281,13 @@ class RoundSequence:  # pylint: disable=too-many-instance-attributes
         """Set Tendermint's current height."""
         self._tm_height = _tm_height
 
+    @property
+    def block_stall_deadline_expired(self) -> bool:
+        """Get if the deadline for not having received any begin block requests from the Tendermint node has expired."""
+        if self._block_stall_deadline is None:
+            return False
+        return datetime.datetime.now() > self._block_stall_deadline
+
     def init_chain(self, initial_height: int) -> None:
         """Init chain."""
         # reduce `initial_height` by 1 to get block count offset as per Tendermint protocol
