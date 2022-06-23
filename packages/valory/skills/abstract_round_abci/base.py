@@ -2110,6 +2110,7 @@ class RoundSequence:  # pylint: disable=too-many-instance-attributes
         self._last_round_transition_root_hash = b""
         self._last_round_transition_tm_height: Optional[int] = None
         self._tm_height: Optional[int] = None
+        self._block_stall_deadline: Optional[datetime.datetime] = None
 
     def setup(self, *args: Any, **kwargs: Any) -> None:
         """
@@ -2306,6 +2307,14 @@ class RoundSequence:  # pylint: disable=too-many-instance-attributes
         self._block_builder.reset()
         self._block_builder.header = header
         self.abci_app.update_time(header.timestamp)
+        # we use the local time of the agent to specify the expiration of the deadline
+        self._block_stall_deadline = datetime.datetime.now() + datetime.timedelta(
+            seconds=BLOCKS_STALL_TOLERANCE
+        )
+        _logger.info(
+            "Created a new local deadline for the next `begin_block` request from the Tendermint node: "
+            f"{self._block_stall_deadline}"
+        )
 
     def deliver_tx(self, transaction: Transaction) -> None:
         """
