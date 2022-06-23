@@ -526,7 +526,9 @@ class TestBaseBehaviour:
         gen = self.behaviour.async_act_wrapper()
         try_send(gen)
         self.behaviour.set_done()
-        try_send(gen)
+        with mock.patch.object(BaseBehaviour, "_log_end") as _log_end_mock:
+            try_send(gen)
+            _log_end_mock.assert_called_once()
 
     @mock.patch.object(BaseBehaviour, "_get_status", _get_status_patch)
     def test_async_act_wrapper_agent_sync_mode(self) -> None:
