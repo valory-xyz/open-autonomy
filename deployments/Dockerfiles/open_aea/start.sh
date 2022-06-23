@@ -15,8 +15,6 @@ echo "Loading $VALORY_APPLICATION"
 aea fetch $VALORY_APPLICATION --local --alias agent
 cd agent
 
-aea generate-key cosmos
-
 export FILE=/agent_key/ethereum_private_key.txt
 if [ -f "$FILE" ]; then
     echo "AEA key provided. Copying to agent."
@@ -37,7 +35,9 @@ then
     echo "Installing the necessary dependencies!"
     aea install && cd .. && aea delete agent
 else
-    (aea add-key cosmos --connection && aea issue-certificates --aev) || (echo "Failed to add cosmos key needed for libp2p connection" && exit 1)
+    aea generate-key cosmos --connection
+    aea add-key cosmos --connection || (echo "Failed to generate the cosmos key needed for libp2p connection" && exit 1)
+    aea issue-certificates --aev || (echo "Failed to add cosmos key needed for libp2p connection" && exit 1)
     if [ "$AEA_PASSWORD" != "" ];
     then
         echo "Running the aea with a password!"
