@@ -668,7 +668,7 @@ class TestSynchronizeLateMessagesRound(BaseCollectNonEmptyUntilThresholdRound):
         sender = list(test_round.accepting_payloads_from).pop()
         tx_hashes = "0" * (TX_HASH_LENGTH - 1)
         payload = SynchronizeLateMessagesPayload(sender=sender, tx_hashes=tx_hashes)
-        with pytest.raises(ABCIAppInternalError):
+        with pytest.raises(ABCIAppInternalError, match="FSM design error"):
             test_round.process_payload(payload)
 
 
