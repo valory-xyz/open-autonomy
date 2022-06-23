@@ -34,4 +34,4 @@ models:
         alpha: 0.25
       pair_ids: '["0x2b4c76d0dc16be1c31d4c1dc53bf9b45987fc75c"]'
       sleep_time: 10
-      ipfs_domain_name: /dns/staging.registry.autonolas.tech/tcp/443/https
+      ipfs_domain_name: /dns/registry.autonolas.tech/tcp/443/https
