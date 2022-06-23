@@ -37,15 +37,16 @@ then
 else
     aea generate-key cosmos --connection
     aea add-key cosmos --connection || (echo "Failed to generate the cosmos key needed for libp2p connection" && exit 1)
-    aea issue-certificates --aev || (echo "Failed to add cosmos key needed for libp2p connection" && exit 1)
     if [ "$AEA_PASSWORD" != "" ];
     then
         echo "Running the aea with a password!"
         aea add-key ethereum --password $AEA_PASSWORD
+        aea issue-certificates --password $AEA_PASSWORD --aev || (echo "Failed to add cosmos key needed for libp2p connection" && exit 1)
         aea run --aev --password $AEA_PASSWORD
     else
         echo "Running the aea without a password!"
         aea add-key ethereum
+        aea issue-certificates --aev || (echo "Failed to add cosmos key needed for libp2p connection" && exit 1)
         aea run --aev
     fi
 fi
