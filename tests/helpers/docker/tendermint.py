@@ -129,7 +129,7 @@ class FlaskTendermintDockerImage(TendermintDockerImage):
         abci_port: int = DEFAULT_ABCI_PORT,
         port: int = DEFAULT_TENDERMINT_PORT,
         p2p_port: int = DEFAULT_P2P_PORT,
-        com_port: int = DEFAULT_TENDERMINT_COM_PORT,
+        com_port: int = DEFAULT_TENDERMINT_COM_PORT + 2,
     ):
         """Initialize."""
         super().__init__(client, abci_host, abci_port, port, p2p_port, com_port)
@@ -154,12 +154,6 @@ class FlaskTendermintDockerImage(TendermintDockerImage):
             ]
             subprocess.run(cmd)  # nosec
             os.chdir(cwd)
-
-    @property
-    def local_com_port(self) -> int:
-        """Get the port on which the com port will be mapped locally."""
-        # we do this to avoid using 8080
-        return self.com_port + 2
 
     @property
     def tag(self) -> str:
@@ -201,7 +195,7 @@ class FlaskTendermintDockerImage(TendermintDockerImage):
 
     def get_com_port(self, i: int) -> int:
         """Get the ith com port."""
-        return self.__increment_port(self.local_com_port, i)
+        return self.__increment_port(self.com_port, i)
 
     def get_p2p_port(self, i: int) -> int:
         """Get the ith p2p port."""
