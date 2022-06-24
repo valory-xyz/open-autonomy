@@ -15,7 +15,7 @@ _sym_db = _symbol_database.Default()
 
 
 DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(
-    b'\n\nabci.proto\x12\x16\x61\x65\x61.valory.abci.v0_1_0"\x86P\n\x0b\x41\x62\x63iMessage\x12G\n\x05\x64ummy\x18\x05 \x01(\x0b\x32\x36.aea.valory.abci.v0_1_0.AbciMessage.Dummy_PerformativeH\x00\x12u\n\x1crequest_apply_snapshot_chunk\x18\x06 \x01(\x0b\x32M.aea.valory.abci.v0_1_0.AbciMessage.Request_Apply_Snapshot_Chunk_PerformativeH\x00\x12\x63\n\x13request_begin_block\x18\x07 \x01(\x0b\x32\x44.aea.valory.abci.v0_1_0.AbciMessage.Request_Begin_Block_PerformativeH\x00\x12]\n\x10request_check_tx\x18\x08 \x01(\x0b\x32\x41.aea.valory.abci.v0_1_0.AbciMessage.Request_Check_Tx_PerformativeH\x00\x12Y\n\x0erequest_commit\x18\t \x01(\x0b\x32?.aea.valory.abci.v0_1_0.AbciMessage.Request_Commit_PerformativeH\x00\x12\x61\n\x12request_deliver_tx\x18\n \x01(\x0b\x32\x43.aea.valory.abci.v0_1_0.AbciMessage.Request_Deliver_Tx_PerformativeH\x00\x12U\n\x0crequest_echo\x18\x0b \x01(\x0b\x32=.aea.valory.abci.v0_1_0.AbciMessage.Request_Echo_PerformativeH\x00\x12_\n\x11request_end_block\x18\x0c \x01(\x0b\x32\x42.aea.valory.abci.v0_1_0.AbciMessage.Request_End_Block_PerformativeH\x00\x12W\n\rrequest_flush\x18\r \x01(\x0b\x32>.aea.valory.abci.v0_1_0.AbciMessage.Request_Flush_PerformativeH\x00\x12U\n\x0crequest_info\x18\x0e \x01(\x0b\x32=.aea.valory.abci.v0_1_0.AbciMessage.Request_Info_PerformativeH\x00\x12\x61\n\x12request_init_chain\x18\x0f \x01(\x0b\x32\x43.aea.valory.abci.v0_1_0.AbciMessage.Request_Init_Chain_PerformativeH\x00\x12i\n\x16request_list_snapshots\x18\x10 \x01(\x0b\x32G.aea.valory.abci.v0_1_0.AbciMessage.Request_List_Snapshots_PerformativeH\x00\x12s\n\x1brequest_load_snapshot_chunk\x18\x11 \x01(\x0b\x32L.aea.valory.abci.v0_1_0.AbciMessage.Request_Load_Snapshot_Chunk_PerformativeH\x00\x12i\n\x16request_offer_snapshot\x18\x12 \x01(\x0b\x32G.aea.valory.abci.v0_1_0.AbciMessage.Request_Offer_Snapshot_PerformativeH\x00\x12W\n\rrequest_query\x18\x13 \x01(\x0b\x32>.aea.valory.abci.v0_1_0.AbciMessage.Request_Query_PerformativeH\x00\x12\x61\n\x12request_set_option\x18\x14 \x01(\x0b\x32\x43.aea.valory.abci.v0_1_0.AbciMessage.Request_Set_Option_PerformativeH\x00\x12w\n\x1dresponse_apply_snapshot_chunk\x18\x15 \x01(\x0b\x32N.aea.valory.abci.v0_1_0.AbciMessage.Response_Apply_Snapshot_Chunk_PerformativeH\x00\x12\x65\n\x14response_begin_block\x18\x16 \x01(\x0b\x32\x45.aea.valory.abci.v0_1_0.AbciMessage.Response_Begin_Block_PerformativeH\x00\x12_\n\x11response_check_tx\x18\x17 \x01(\x0b\x32\x42.aea.valory.abci.v0_1_0.AbciMessage.Response_Check_Tx_PerformativeH\x00\x12[\n\x0fresponse_commit\x18\x18 \x01(\x0b\x32@.aea.valory.abci.v0_1_0.AbciMessage.Response_Commit_PerformativeH\x00\x12\x63\n\x13response_deliver_tx\x18\x19 \x01(\x0b\x32\x44.aea.valory.abci.v0_1_0.AbciMessage.Response_Deliver_Tx_PerformativeH\x00\x12W\n\rresponse_echo\x18\x1a \x01(\x0b\x32>.aea.valory.abci.v0_1_0.AbciMessage.Response_Echo_PerformativeH\x00\x12\x61\n\x12response_end_block\x18\x1b \x01(\x0b\x32\x43.aea.valory.abci.v0_1_0.AbciMessage.Response_End_Block_PerformativeH\x00\x12\x61\n\x12response_exception\x18\x1c \x01(\x0b\x32\x43.aea.valory.abci.v0_1_0.AbciMessage.Response_Exception_PerformativeH\x00\x12Y\n\x0eresponse_flush\x18\x1d \x01(\x0b\x32?.aea.valory.abci.v0_1_0.AbciMessage.Response_Flush_PerformativeH\x00\x12W\n\rresponse_info\x18\x1e \x01(\x0b\x32>.aea.valory.abci.v0_1_0.AbciMessage.Response_Info_PerformativeH\x00\x12\x63\n\x13response_init_chain\x18\x1f \x01(\x0b\x32\x44.aea.valory.abci.v0_1_0.AbciMessage.Response_Init_Chain_PerformativeH\x00\x12k\n\x17response_list_snapshots\x18  \x01(\x0b\x32H.aea.valory.abci.v0_1_0.AbciMessage.Response_List_Snapshots_PerformativeH\x00\x12u\n\x1cresponse_load_snapshot_chunk\x18! \x01(\x0b\x32M.aea.valory.abci.v0_1_0.AbciMessage.Response_Load_Snapshot_Chunk_PerformativeH\x00\x12k\n\x17response_offer_snapshot\x18" \x01(\x0b\x32H.aea.valory.abci.v0_1_0.AbciMessage.Response_Offer_Snapshot_PerformativeH\x00\x12Y\n\x0eresponse_query\x18# \x01(\x0b\x32?.aea.valory.abci.v0_1_0.AbciMessage.Response_Query_PerformativeH\x00\x12\x63\n\x13response_set_option\x18$ \x01(\x0b\x32\x44.aea.valory.abci.v0_1_0.AbciMessage.Response_Set_Option_PerformativeH\x00\x1a\x7f\n\x0b\x43heckTxType\x12J\n\x04type\x18\x01 \x01(\x0e\x32<.aea.valory.abci.v0_1_0.AbciMessage.CheckTxType._CheckTxType"$\n\x0c_CheckTxType\x12\x07\n\x03NEW\x10\x00\x12\x0b\n\x07RECHECK\x10\x01\x1a\xac\x05\n\x0f\x43onsensusParams\x12N\n\x05\x62lock\x18\x01 \x01(\x0b\x32?.aea.valory.abci.v0_1_0.AbciMessage.ConsensusParams.BlockParams\x12T\n\x08\x65vidence\x18\x02 \x01(\x0b\x32\x42.aea.valory.abci.v0_1_0.AbciMessage.ConsensusParams.EvidenceParams\x12V\n\tvalidator\x18\x03 \x01(\x0b\x32\x43.aea.valory.abci.v0_1_0.AbciMessage.ConsensusParams.ValidatorParams\x12R\n\x07version\x18\x04 \x01(\x0b\x32\x41.aea.valory.abci.v0_1_0.AbciMessage.ConsensusParams.VersionParams\x1a*\n\x08\x44uration\x12\x0f\n\x07seconds\x18\x01 \x01(\x03\x12\r\n\x05nanos\x18\x02 \x01(\x05\x1a\x31\n\x0b\x42lockParams\x12\x11\n\tmax_bytes\x18\x01 \x01(\x03\x12\x0f\n\x07max_gas\x18\x02 \x01(\x03\x1a\x97\x01\n\x0e\x45videnceParams\x12\x1a\n\x12max_age_num_blocks\x18\x01 \x01(\x03\x12V\n\x10max_age_duration\x18\x02 \x01(\x0b\x32<.aea.valory.abci.v0_1_0.AbciMessage.ConsensusParams.Duration\x12\x11\n\tmax_bytes\x18\x03 \x01(\x03\x1a(\n\x0fValidatorParams\x12\x15\n\rpub_key_types\x18\x01 \x03(\t\x1a$\n\rVersionParams\x12\x13\n\x0b\x61pp_version\x18\x01 \x01(\x04\x1a\xed\x01\n\x06\x45vents\x12@\n\x06\x65vents\x18\x01 \x03(\x0b\x32\x30.aea.valory.abci.v0_1_0.AbciMessage.Events.Event\x1a;\n\x0e\x45ventAttribute\x12\x0b\n\x03key\x18\x01 \x01(\x0c\x12\r\n\x05value\x18\x02 \x01(\x0c\x12\r\n\x05index\x18\x03 \x01(\x08\x1a\x64\n\x05\x45vent\x12\x0c\n\x04type\x18\x01 \x01(\t\x12M\n\nattributes\x18\x02 \x03(\x0b\x32\x39.aea.valory.abci.v0_1_0.AbciMessage.Events.EventAttribute\x1a\xc5\x03\n\tEvidences\x12T\n\x14\x62yzantine_validators\x18\x01 \x03(\x0b\x32\x36.aea.valory.abci.v0_1_0.AbciMessage.Evidences.Evidence\x1a\xe1\x02\n\x08\x45vidence\x12Q\n\x04type\x18\x01 \x01(\x0e\x32\x43.aea.valory.abci.v0_1_0.AbciMessage.Evidences.Evidence.EvidenceType\x12O\n\tvalidator\x18\x02 \x01(\x0b\x32<.aea.valory.abci.v0_1_0.AbciMessage.LastCommitInfo.Validator\x12\x0e\n\x06height\x18\x03 \x01(\x03\x12;\n\x04time\x18\x04 \x01(\x0b\x32-.aea.valory.abci.v0_1_0.AbciMessage.Timestamp\x12\x1a\n\x12total_voting_power\x18\x05 \x01(\x03"H\n\x0c\x45videnceType\x12\x0b\n\x07UNKNOWN\x10\x00\x12\x12\n\x0e\x44UPLICATE_VOTE\x10\x01\x12\x17\n\x13LIGHT_CLIENT_ATTACK\x10\x02\x1a\xa4\x05\n\x06Header\x12L\n\x07version\x18\x01 \x01(\x0b\x32;.aea.valory.abci.v0_1_0.AbciMessage.Header.ConsensusVersion\x12\x10\n\x08\x63hain_id\x18\x02 \x01(\t\x12\x0e\n\x06height\x18\x03 \x01(\x03\x12;\n\x04time\x18\x04 \x01(\x0b\x32-.aea.valory.abci.v0_1_0.AbciMessage.Timestamp\x12I\n\rlast_block_id\x18\x05 \x01(\x0b\x32\x32.aea.valory.abci.v0_1_0.AbciMessage.Header.BlockID\x12\x18\n\x10last_commit_hash\x18\x06 \x01(\x0c\x12\x11\n\tdata_hash\x18\x07 \x01(\x0c\x12\x17\n\x0fvalidators_hash\x18\x08 \x01(\x0c\x12\x1c\n\x14next_validators_hash\x18\t \x01(\x0c\x12\x16\n\x0e\x63onsensus_hash\x18\n \x01(\x0c\x12\x10\n\x08\x61pp_hash\x18\x0b \x01(\x0c\x12\x19\n\x11last_results_hash\x18\x0c \x01(\x0c\x12\x15\n\revidence_hash\x18\r \x01(\x0c\x12\x18\n\x10proposer_address\x18\x0e \x01(\x0c\x1a.\n\x10\x43onsensusVersion\x12\r\n\x05\x62lock\x18\x01 \x01(\x04\x12\x0b\n\x03\x61pp\x18\x02 \x01(\x04\x1aj\n\x07\x42lockID\x12\x0c\n\x04hash\x18\x01 \x01(\x0c\x12Q\n\x0fpart_set_header\x18\x02 \x01(\x0b\x32\x38.aea.valory.abci.v0_1_0.AbciMessage.Header.PartSetHeader\x1a,\n\rPartSetHeader\x12\r\n\x05total\x18\x01 \x01(\r\x12\x0c\n\x04hash\x18\x02 \x01(\x0c\x1a\x90\x02\n\x0eLastCommitInfo\x12\r\n\x05round\x18\x01 \x01(\x05\x12J\n\x05votes\x18\x02 \x03(\x0b\x32;.aea.valory.abci.v0_1_0.AbciMessage.LastCommitInfo.VoteInfo\x1a+\n\tValidator\x12\x0f\n\x07\x61\x64\x64ress\x18\x01 \x01(\x0c\x12\r\n\x05power\x18\x03 \x01(\x03\x1av\n\x08VoteInfo\x12O\n\tvalidator\x18\x01 \x01(\x0b\x32<.aea.valory.abci.v0_1_0.AbciMessage.LastCommitInfo.Validator\x12\x19\n\x11signed_last_block\x18\x02 \x01(\x08\x1a\x81\x01\n\x08ProofOps\x12\x41\n\x03ops\x18\x01 \x03(\x0b\x32\x34.aea.valory.abci.v0_1_0.AbciMessage.ProofOps.ProofOp\x1a\x32\n\x07ProofOp\x12\x0c\n\x04type\x18\x01 \x01(\t\x12\x0b\n\x03key\x18\x02 \x01(\x0c\x12\x0c\n\x04\x64\x61ta\x18\x03 \x01(\x0c\x1a\xb8\x01\n\x06Result\x12J\n\x0bresult_type\x18\x01 \x01(\x0e\x32\x35.aea.valory.abci.v0_1_0.AbciMessage.Result.ResultType"b\n\nResultType\x12\x0b\n\x07UNKNOWN\x10\x00\x12\n\n\x06\x41\x43\x43\x45PT\x10\x01\x12\t\n\x05\x41\x42ORT\x10\x02\x12\n\n\x06REJECT\x10\x03\x12\x11\n\rREJECT_FORMAT\x10\x04\x12\x11\n\rREJECT_SENDER\x10\x05\x1aL\n\tSnapShots\x12?\n\tsnapshots\x18\x01 \x03(\x0b\x32,.aea.valory.abci.v0_1_0.AbciMessage.Snapshot\x1aZ\n\x08Snapshot\x12\x0e\n\x06height\x18\x01 \x01(\x04\x12\x0e\n\x06\x66ormat\x18\x02 \x01(\r\x12\x0e\n\x06\x63hunks\x18\x03 \x01(\r\x12\x0c\n\x04hash\x18\x04 \x01(\x0c\x12\x10\n\x08metadata\x18\x05 \x01(\x0c\x1a+\n\tTimestamp\x12\x0f\n\x07seconds\x18\x01 \x01(\x03\x12\r\n\x05nanos\x18\x02 \x01(\x05\x1a\x9b\x02\n\x10ValidatorUpdates\x12X\n\nvalidators\x18\x01 \x03(\x0b\x32\x44.aea.valory.abci.v0_1_0.AbciMessage.ValidatorUpdates.ValidatorUpdate\x1a:\n\tPublicKey\x12\x11\n\x07\x65\x64\x32\x35\x35\x31\x39\x18\x01 \x01(\x0cH\x00\x12\x13\n\tsecp256k1\x18\x02 \x01(\x0cH\x00\x42\x05\n\x03sum\x1aq\n\x0fValidatorUpdate\x12O\n\x07pub_key\x18\x01 \x01(\x0b\x32>.aea.valory.abci.v0_1_0.AbciMessage.ValidatorUpdates.PublicKey\x12\r\n\x05power\x18\x02 \x01(\x03\x1a,\n\x19Request_Echo_Performative\x12\x0f\n\x07message\x18\x01 \x01(\t\x1a\x1c\n\x1aRequest_Flush_Performative\x1aX\n\x19Request_Info_Performative\x12\x0f\n\x07version\x18\x01 \x01(\t\x12\x15\n\rblock_version\x18\x02 \x01(\x05\x12\x13\n\x0bp2p_version\x18\x03 \x01(\x05\x1aK\n\x1fRequest_Set_Option_Performative\x12\x12\n\noption_key\x18\x01 \x01(\t\x12\x14\n\x0coption_value\x18\x02 \x01(\t\x1a\xdb\x02\n\x1fRequest_Init_Chain_Performative\x12;\n\x04time\x18\x01 \x01(\x0b\x32-.aea.valory.abci.v0_1_0.AbciMessage.Timestamp\x12\x10\n\x08\x63hain_id\x18\x02 \x01(\t\x12M\n\x10\x63onsensus_params\x18\x03 \x01(\x0b\x32\x33.aea.valory.abci.v0_1_0.AbciMessage.ConsensusParams\x12\x1f\n\x17\x63onsensus_params_is_set\x18\x04 \x01(\x08\x12H\n\nvalidators\x18\x05 \x01(\x0b\x32\x34.aea.valory.abci.v0_1_0.AbciMessage.ValidatorUpdates\x12\x17\n\x0f\x61pp_state_bytes\x18\x06 \x01(\x0c\x12\x16\n\x0einitial_height\x18\x07 \x01(\x05\x1a]\n\x1aRequest_Query_Performative\x12\x12\n\nquery_data\x18\x01 \x01(\x0c\x12\x0c\n\x04path\x18\x02 \x01(\t\x12\x0e\n\x06height\x18\x03 \x01(\x05\x12\r\n\x05prove\x18\x04 \x01(\x08\x1a\x87\x02\n Request_Begin_Block_Performative\x12\x0c\n\x04hash\x18\x01 \x01(\x0c\x12:\n\x06header\x18\x02 \x01(\x0b\x32*.aea.valory.abci.v0_1_0.AbciMessage.Header\x12L\n\x10last_commit_info\x18\x03 \x01(\x0b\x32\x32.aea.valory.abci.v0_1_0.AbciMessage.LastCommitInfo\x12K\n\x14\x62yzantine_validators\x18\x04 \x01(\x0b\x32-.aea.valory.abci.v0_1_0.AbciMessage.Evidences\x1aj\n\x1dRequest_Check_Tx_Performative\x12\n\n\x02tx\x18\x01 \x01(\x0c\x12=\n\x04type\x18\x02 \x01(\x0b\x32/.aea.valory.abci.v0_1_0.AbciMessage.CheckTxType\x1a-\n\x1fRequest_Deliver_Tx_Performative\x12\n\n\x02tx\x18\x01 \x01(\x0c\x1a\x30\n\x1eRequest_End_Block_Performative\x12\x0e\n\x06height\x18\x01 \x01(\x05\x1a\x1d\n\x1bRequest_Commit_Performative\x1a%\n#Request_List_Snapshots_Performative\x1aw\n#Request_Offer_Snapshot_Performative\x12>\n\x08snapshot\x18\x01 \x01(\x0b\x32,.aea.valory.abci.v0_1_0.AbciMessage.Snapshot\x12\x10\n\x08\x61pp_hash\x18\x02 \x01(\x0c\x1a_\n(Request_Load_Snapshot_Chunk_Performative\x12\x0e\n\x06height\x18\x01 \x01(\x05\x12\x0e\n\x06\x66ormat\x18\x02 \x01(\x05\x12\x13\n\x0b\x63hunk_index\x18\x03 \x01(\x05\x1a_\n)Request_Apply_Snapshot_Chunk_Performative\x12\r\n\x05index\x18\x01 \x01(\x05\x12\r\n\x05\x63hunk\x18\x02 \x01(\x0c\x12\x14\n\x0c\x63hunk_sender\x18\x03 \x01(\t\x1a\x30\n\x1fResponse_Exception_Performative\x12\r\n\x05\x65rror\x18\x01 \x01(\t\x1a-\n\x1aResponse_Echo_Performative\x12\x0f\n\x07message\x18\x01 \x01(\t\x1a\x1d\n\x1bResponse_Flush_Performative\x1a\x8d\x01\n\x1aResponse_Info_Performative\x12\x11\n\tinfo_data\x18\x01 \x01(\t\x12\x0f\n\x07version\x18\x02 \x01(\t\x12\x13\n\x0b\x61pp_version\x18\x03 \x01(\x05\x12\x19\n\x11last_block_height\x18\x04 \x01(\x05\x12\x1b\n\x13last_block_app_hash\x18\x05 \x01(\x0c\x1aK\n Response_Set_Option_Performative\x12\x0c\n\x04\x63ode\x18\x01 \x01(\x05\x12\x0b\n\x03log\x18\x02 \x01(\t\x12\x0c\n\x04info\x18\x03 \x01(\t\x1a\xee\x01\n Response_Init_Chain_Performative\x12M\n\x10\x63onsensus_params\x18\x01 \x01(\x0b\x32\x33.aea.valory.abci.v0_1_0.AbciMessage.ConsensusParams\x12\x1f\n\x17\x63onsensus_params_is_set\x18\x02 \x01(\x08\x12H\n\nvalidators\x18\x03 \x01(\x0b\x32\x34.aea.valory.abci.v0_1_0.AbciMessage.ValidatorUpdates\x12\x10\n\x08\x61pp_hash\x18\x04 \x01(\x0c\x1a\xd5\x01\n\x1bResponse_Query_Performative\x12\x0c\n\x04\x63ode\x18\x01 \x01(\x05\x12\x0b\n\x03log\x18\x02 \x01(\t\x12\x0c\n\x04info\x18\x03 \x01(\t\x12\r\n\x05index\x18\x04 \x01(\x05\x12\x0b\n\x03key\x18\x05 \x01(\x0c\x12\r\n\x05value\x18\x06 \x01(\x0c\x12?\n\tproof_ops\x18\x07 \x01(\x0b\x32,.aea.valory.abci.v0_1_0.AbciMessage.ProofOps\x12\x0e\n\x06height\x18\x08 \x01(\x05\x12\x11\n\tcodespace\x18\t \x01(\t\x1a_\n!Response_Begin_Block_Performative\x12:\n\x06\x65vents\x18\x01 \x01(\x0b\x32*.aea.valory.abci.v0_1_0.AbciMessage.Events\x1a\xcc\x01\n\x1eResponse_Check_Tx_Performative\x12\x0c\n\x04\x63ode\x18\x01 \x01(\x05\x12\x0c\n\x04\x64\x61ta\x18\x02 \x01(\x0c\x12\x0b\n\x03log\x18\x03 \x01(\t\x12\x0c\n\x04info\x18\x04 \x01(\t\x12\x12\n\ngas_wanted\x18\x05 \x01(\x05\x12\x10\n\x08gas_used\x18\x06 \x01(\x05\x12:\n\x06\x65vents\x18\x07 \x01(\x0b\x32*.aea.valory.abci.v0_1_0.AbciMessage.Events\x12\x11\n\tcodespace\x18\x08 \x01(\t\x1a\xce\x01\n Response_Deliver_Tx_Performative\x12\x0c\n\x04\x63ode\x18\x01 \x01(\x05\x12\x0c\n\x04\x64\x61ta\x18\x02 \x01(\x0c\x12\x0b\n\x03log\x18\x03 \x01(\t\x12\x0c\n\x04info\x18\x04 \x01(\t\x12\x12\n\ngas_wanted\x18\x05 \x01(\x05\x12\x10\n\x08gas_used\x18\x06 \x01(\x05\x12:\n\x06\x65vents\x18\x07 \x01(\x0b\x32*.aea.valory.abci.v0_1_0.AbciMessage.Events\x12\x11\n\tcodespace\x18\x08 \x01(\t\x1a\xac\x02\n\x1fResponse_End_Block_Performative\x12O\n\x11validator_updates\x18\x01 \x01(\x0b\x32\x34.aea.valory.abci.v0_1_0.AbciMessage.ValidatorUpdates\x12T\n\x17\x63onsensus_param_updates\x18\x02 \x01(\x0b\x32\x33.aea.valory.abci.v0_1_0.AbciMessage.ConsensusParams\x12&\n\x1e\x63onsensus_param_updates_is_set\x18\x03 \x01(\x08\x12:\n\x06\x65vents\x18\x04 \x01(\x0b\x32*.aea.valory.abci.v0_1_0.AbciMessage.Events\x1a\x43\n\x1cResponse_Commit_Performative\x12\x0c\n\x04\x64\x61ta\x18\x01 \x01(\x0c\x12\x15\n\rretain_height\x18\x02 \x01(\x05\x1ah\n$Response_List_Snapshots_Performative\x12@\n\tsnapshots\x18\x01 \x01(\x0b\x32-.aea.valory.abci.v0_1_0.AbciMessage.SnapShots\x1a\x62\n$Response_Offer_Snapshot_Performative\x12:\n\x06result\x18\x01 \x01(\x0b\x32*.aea.valory.abci.v0_1_0.AbciMessage.Result\x1a:\n)Response_Load_Snapshot_Chunk_Performative\x12\r\n\x05\x63hunk\x18\x01 \x01(\x0c\x1a\x98\x01\n*Response_Apply_Snapshot_Chunk_Performative\x12:\n\x06result\x18\x01 \x01(\x0b\x32*.aea.valory.abci.v0_1_0.AbciMessage.Result\x12\x16\n\x0erefetch_chunks\x18\x02 \x03(\x05\x12\x16\n\x0ereject_senders\x18\x03 \x03(\t\x1ai\n\x12\x44ummy_Performative\x12S\n\x16\x64ummy_consensus_params\x18\x01 \x01(\x0b\x32\x33.aea.valory.abci.v0_1_0.AbciMessage.ConsensusParamsB\x0e\n\x0cperformativeb\x06proto3'
+    b'\n\nabci.proto\x12\x16\x61\x65\x61.valory.abci.v0_1_0"\xdfM\n\x0b\x41\x62\x63iMessage\x12G\n\x05\x64ummy\x18\x05 \x01(\x0b\x32\x36.aea.valory.abci.v0_1_0.AbciMessage.Dummy_PerformativeH\x00\x12u\n\x1crequest_apply_snapshot_chunk\x18\x06 \x01(\x0b\x32M.aea.valory.abci.v0_1_0.AbciMessage.Request_Apply_Snapshot_Chunk_PerformativeH\x00\x12\x63\n\x13request_begin_block\x18\x07 \x01(\x0b\x32\x44.aea.valory.abci.v0_1_0.AbciMessage.Request_Begin_Block_PerformativeH\x00\x12]\n\x10request_check_tx\x18\x08 \x01(\x0b\x32\x41.aea.valory.abci.v0_1_0.AbciMessage.Request_Check_Tx_PerformativeH\x00\x12Y\n\x0erequest_commit\x18\t \x01(\x0b\x32?.aea.valory.abci.v0_1_0.AbciMessage.Request_Commit_PerformativeH\x00\x12\x61\n\x12request_deliver_tx\x18\n \x01(\x0b\x32\x43.aea.valory.abci.v0_1_0.AbciMessage.Request_Deliver_Tx_PerformativeH\x00\x12U\n\x0crequest_echo\x18\x0b \x01(\x0b\x32=.aea.valory.abci.v0_1_0.AbciMessage.Request_Echo_PerformativeH\x00\x12_\n\x11request_end_block\x18\x0c \x01(\x0b\x32\x42.aea.valory.abci.v0_1_0.AbciMessage.Request_End_Block_PerformativeH\x00\x12W\n\rrequest_flush\x18\r \x01(\x0b\x32>.aea.valory.abci.v0_1_0.AbciMessage.Request_Flush_PerformativeH\x00\x12U\n\x0crequest_info\x18\x0e \x01(\x0b\x32=.aea.valory.abci.v0_1_0.AbciMessage.Request_Info_PerformativeH\x00\x12\x61\n\x12request_init_chain\x18\x0f \x01(\x0b\x32\x43.aea.valory.abci.v0_1_0.AbciMessage.Request_Init_Chain_PerformativeH\x00\x12i\n\x16request_list_snapshots\x18\x10 \x01(\x0b\x32G.aea.valory.abci.v0_1_0.AbciMessage.Request_List_Snapshots_PerformativeH\x00\x12s\n\x1brequest_load_snapshot_chunk\x18\x11 \x01(\x0b\x32L.aea.valory.abci.v0_1_0.AbciMessage.Request_Load_Snapshot_Chunk_PerformativeH\x00\x12i\n\x16request_offer_snapshot\x18\x12 \x01(\x0b\x32G.aea.valory.abci.v0_1_0.AbciMessage.Request_Offer_Snapshot_PerformativeH\x00\x12W\n\rrequest_query\x18\x13 \x01(\x0b\x32>.aea.valory.abci.v0_1_0.AbciMessage.Request_Query_PerformativeH\x00\x12w\n\x1dresponse_apply_snapshot_chunk\x18\x14 \x01(\x0b\x32N.aea.valory.abci.v0_1_0.AbciMessage.Response_Apply_Snapshot_Chunk_PerformativeH\x00\x12\x65\n\x14response_begin_block\x18\x15 \x01(\x0b\x32\x45.aea.valory.abci.v0_1_0.AbciMessage.Response_Begin_Block_PerformativeH\x00\x12_\n\x11response_check_tx\x18\x16 \x01(\x0b\x32\x42.aea.valory.abci.v0_1_0.AbciMessage.Response_Check_Tx_PerformativeH\x00\x12[\n\x0fresponse_commit\x18\x17 \x01(\x0b\x32@.aea.valory.abci.v0_1_0.AbciMessage.Response_Commit_PerformativeH\x00\x12\x63\n\x13response_deliver_tx\x18\x18 \x01(\x0b\x32\x44.aea.valory.abci.v0_1_0.AbciMessage.Response_Deliver_Tx_PerformativeH\x00\x12W\n\rresponse_echo\x18\x19 \x01(\x0b\x32>.aea.valory.abci.v0_1_0.AbciMessage.Response_Echo_PerformativeH\x00\x12\x61\n\x12response_end_block\x18\x1a \x01(\x0b\x32\x43.aea.valory.abci.v0_1_0.AbciMessage.Response_End_Block_PerformativeH\x00\x12\x61\n\x12response_exception\x18\x1b \x01(\x0b\x32\x43.aea.valory.abci.v0_1_0.AbciMessage.Response_Exception_PerformativeH\x00\x12Y\n\x0eresponse_flush\x18\x1c \x01(\x0b\x32?.aea.valory.abci.v0_1_0.AbciMessage.Response_Flush_PerformativeH\x00\x12W\n\rresponse_info\x18\x1d \x01(\x0b\x32>.aea.valory.abci.v0_1_0.AbciMessage.Response_Info_PerformativeH\x00\x12\x63\n\x13response_init_chain\x18\x1e \x01(\x0b\x32\x44.aea.valory.abci.v0_1_0.AbciMessage.Response_Init_Chain_PerformativeH\x00\x12k\n\x17response_list_snapshots\x18\x1f \x01(\x0b\x32H.aea.valory.abci.v0_1_0.AbciMessage.Response_List_Snapshots_PerformativeH\x00\x12u\n\x1cresponse_load_snapshot_chunk\x18  \x01(\x0b\x32M.aea.valory.abci.v0_1_0.AbciMessage.Response_Load_Snapshot_Chunk_PerformativeH\x00\x12k\n\x17response_offer_snapshot\x18! \x01(\x0b\x32H.aea.valory.abci.v0_1_0.AbciMessage.Response_Offer_Snapshot_PerformativeH\x00\x12Y\n\x0eresponse_query\x18" \x01(\x0b\x32?.aea.valory.abci.v0_1_0.AbciMessage.Response_Query_PerformativeH\x00\x1a\x7f\n\x0b\x43heckTxType\x12J\n\x04type\x18\x01 \x01(\x0e\x32<.aea.valory.abci.v0_1_0.AbciMessage.CheckTxType._CheckTxType"$\n\x0c_CheckTxType\x12\x07\n\x03NEW\x10\x00\x12\x0b\n\x07RECHECK\x10\x01\x1a\xac\x05\n\x0f\x43onsensusParams\x12N\n\x05\x62lock\x18\x01 \x01(\x0b\x32?.aea.valory.abci.v0_1_0.AbciMessage.ConsensusParams.BlockParams\x12T\n\x08\x65vidence\x18\x02 \x01(\x0b\x32\x42.aea.valory.abci.v0_1_0.AbciMessage.ConsensusParams.EvidenceParams\x12V\n\tvalidator\x18\x03 \x01(\x0b\x32\x43.aea.valory.abci.v0_1_0.AbciMessage.ConsensusParams.ValidatorParams\x12R\n\x07version\x18\x04 \x01(\x0b\x32\x41.aea.valory.abci.v0_1_0.AbciMessage.ConsensusParams.VersionParams\x1a*\n\x08\x44uration\x12\x0f\n\x07seconds\x18\x01 \x01(\x03\x12\r\n\x05nanos\x18\x02 \x01(\x05\x1a\x31\n\x0b\x42lockParams\x12\x11\n\tmax_bytes\x18\x01 \x01(\x03\x12\x0f\n\x07max_gas\x18\x02 \x01(\x03\x1a\x97\x01\n\x0e\x45videnceParams\x12\x1a\n\x12max_age_num_blocks\x18\x01 \x01(\x03\x12V\n\x10max_age_duration\x18\x02 \x01(\x0b\x32<.aea.valory.abci.v0_1_0.AbciMessage.ConsensusParams.Duration\x12\x11\n\tmax_bytes\x18\x03 \x01(\x03\x1a(\n\x0fValidatorParams\x12\x15\n\rpub_key_types\x18\x01 \x03(\t\x1a$\n\rVersionParams\x12\x13\n\x0b\x61pp_version\x18\x01 \x01(\x04\x1a\xed\x01\n\x06\x45vents\x12@\n\x06\x65vents\x18\x01 \x03(\x0b\x32\x30.aea.valory.abci.v0_1_0.AbciMessage.Events.Event\x1a;\n\x0e\x45ventAttribute\x12\x0b\n\x03key\x18\x01 \x01(\x0c\x12\r\n\x05value\x18\x02 \x01(\x0c\x12\r\n\x05index\x18\x03 \x01(\x08\x1a\x64\n\x05\x45vent\x12\x0c\n\x04type\x18\x01 \x01(\t\x12M\n\nattributes\x18\x02 \x03(\x0b\x32\x39.aea.valory.abci.v0_1_0.AbciMessage.Events.EventAttribute\x1a\xc5\x03\n\tEvidences\x12T\n\x14\x62yzantine_validators\x18\x01 \x03(\x0b\x32\x36.aea.valory.abci.v0_1_0.AbciMessage.Evidences.Evidence\x1a\xe1\x02\n\x08\x45vidence\x12Q\n\x04type\x18\x01 \x01(\x0e\x32\x43.aea.valory.abci.v0_1_0.AbciMessage.Evidences.Evidence.EvidenceType\x12O\n\tvalidator\x18\x02 \x01(\x0b\x32<.aea.valory.abci.v0_1_0.AbciMessage.LastCommitInfo.Validator\x12\x0e\n\x06height\x18\x03 \x01(\x03\x12;\n\x04time\x18\x04 \x01(\x0b\x32-.aea.valory.abci.v0_1_0.AbciMessage.Timestamp\x12\x1a\n\x12total_voting_power\x18\x05 \x01(\x03"H\n\x0c\x45videnceType\x12\x0b\n\x07UNKNOWN\x10\x00\x12\x12\n\x0e\x44UPLICATE_VOTE\x10\x01\x12\x17\n\x13LIGHT_CLIENT_ATTACK\x10\x02\x1a\xa4\x05\n\x06Header\x12L\n\x07version\x18\x01 \x01(\x0b\x32;.aea.valory.abci.v0_1_0.AbciMessage.Header.ConsensusVersion\x12\x10\n\x08\x63hain_id\x18\x02 \x01(\t\x12\x0e\n\x06height\x18\x03 \x01(\x03\x12;\n\x04time\x18\x04 \x01(\x0b\x32-.aea.valory.abci.v0_1_0.AbciMessage.Timestamp\x12I\n\rlast_block_id\x18\x05 \x01(\x0b\x32\x32.aea.valory.abci.v0_1_0.AbciMessage.Header.BlockID\x12\x18\n\x10last_commit_hash\x18\x06 \x01(\x0c\x12\x11\n\tdata_hash\x18\x07 \x01(\x0c\x12\x17\n\x0fvalidators_hash\x18\x08 \x01(\x0c\x12\x1c\n\x14next_validators_hash\x18\t \x01(\x0c\x12\x16\n\x0e\x63onsensus_hash\x18\n \x01(\x0c\x12\x10\n\x08\x61pp_hash\x18\x0b \x01(\x0c\x12\x19\n\x11last_results_hash\x18\x0c \x01(\x0c\x12\x15\n\revidence_hash\x18\r \x01(\x0c\x12\x18\n\x10proposer_address\x18\x0e \x01(\x0c\x1a.\n\x10\x43onsensusVersion\x12\r\n\x05\x62lock\x18\x01 \x01(\x04\x12\x0b\n\x03\x61pp\x18\x02 \x01(\x04\x1aj\n\x07\x42lockID\x12\x0c\n\x04hash\x18\x01 \x01(\x0c\x12Q\n\x0fpart_set_header\x18\x02 \x01(\x0b\x32\x38.aea.valory.abci.v0_1_0.AbciMessage.Header.PartSetHeader\x1a,\n\rPartSetHeader\x12\r\n\x05total\x18\x01 \x01(\r\x12\x0c\n\x04hash\x18\x02 \x01(\x0c\x1a\x90\x02\n\x0eLastCommitInfo\x12\r\n\x05round\x18\x01 \x01(\x05\x12J\n\x05votes\x18\x02 \x03(\x0b\x32;.aea.valory.abci.v0_1_0.AbciMessage.LastCommitInfo.VoteInfo\x1a+\n\tValidator\x12\x0f\n\x07\x61\x64\x64ress\x18\x01 \x01(\x0c\x12\r\n\x05power\x18\x03 \x01(\x03\x1av\n\x08VoteInfo\x12O\n\tvalidator\x18\x01 \x01(\x0b\x32<.aea.valory.abci.v0_1_0.AbciMessage.LastCommitInfo.Validator\x12\x19\n\x11signed_last_block\x18\x02 \x01(\x08\x1a\x81\x01\n\x08ProofOps\x12\x41\n\x03ops\x18\x01 \x03(\x0b\x32\x34.aea.valory.abci.v0_1_0.AbciMessage.ProofOps.ProofOp\x1a\x32\n\x07ProofOp\x12\x0c\n\x04type\x18\x01 \x01(\t\x12\x0b\n\x03key\x18\x02 \x01(\x0c\x12\x0c\n\x04\x64\x61ta\x18\x03 \x01(\x0c\x1a\xb8\x01\n\x06Result\x12J\n\x0bresult_type\x18\x01 \x01(\x0e\x32\x35.aea.valory.abci.v0_1_0.AbciMessage.Result.ResultType"b\n\nResultType\x12\x0b\n\x07UNKNOWN\x10\x00\x12\n\n\x06\x41\x43\x43\x45PT\x10\x01\x12\t\n\x05\x41\x42ORT\x10\x02\x12\n\n\x06REJECT\x10\x03\x12\x11\n\rREJECT_FORMAT\x10\x04\x12\x11\n\rREJECT_SENDER\x10\x05\x1aL\n\tSnapShots\x12?\n\tsnapshots\x18\x01 \x03(\x0b\x32,.aea.valory.abci.v0_1_0.AbciMessage.Snapshot\x1aZ\n\x08Snapshot\x12\x0e\n\x06height\x18\x01 \x01(\x04\x12\x0e\n\x06\x66ormat\x18\x02 \x01(\r\x12\x0e\n\x06\x63hunks\x18\x03 \x01(\r\x12\x0c\n\x04hash\x18\x04 \x01(\x0c\x12\x10\n\x08metadata\x18\x05 \x01(\x0c\x1a+\n\tTimestamp\x12\x0f\n\x07seconds\x18\x01 \x01(\x03\x12\r\n\x05nanos\x18\x02 \x01(\x05\x1a\x9b\x02\n\x10ValidatorUpdates\x12X\n\nvalidators\x18\x01 \x03(\x0b\x32\x44.aea.valory.abci.v0_1_0.AbciMessage.ValidatorUpdates.ValidatorUpdate\x1a:\n\tPublicKey\x12\x11\n\x07\x65\x64\x32\x35\x35\x31\x39\x18\x01 \x01(\x0cH\x00\x12\x13\n\tsecp256k1\x18\x02 \x01(\x0cH\x00\x42\x05\n\x03sum\x1aq\n\x0fValidatorUpdate\x12O\n\x07pub_key\x18\x01 \x01(\x0b\x32>.aea.valory.abci.v0_1_0.AbciMessage.ValidatorUpdates.PublicKey\x12\r\n\x05power\x18\x02 \x01(\x03\x1a,\n\x19Request_Echo_Performative\x12\x0f\n\x07message\x18\x01 \x01(\t\x1a\x1c\n\x1aRequest_Flush_Performative\x1an\n\x19Request_Info_Performative\x12\x0f\n\x07version\x18\x01 \x01(\t\x12\x15\n\rblock_version\x18\x02 \x01(\x05\x12\x13\n\x0bp2p_version\x18\x03 \x01(\x05\x12\x14\n\x0c\x61\x62\x63i_version\x18\x04 \x01(\t\x1a\xdb\x02\n\x1fRequest_Init_Chain_Performative\x12;\n\x04time\x18\x01 \x01(\x0b\x32-.aea.valory.abci.v0_1_0.AbciMessage.Timestamp\x12\x10\n\x08\x63hain_id\x18\x02 \x01(\t\x12M\n\x10\x63onsensus_params\x18\x03 \x01(\x0b\x32\x33.aea.valory.abci.v0_1_0.AbciMessage.ConsensusParams\x12\x1f\n\x17\x63onsensus_params_is_set\x18\x04 \x01(\x08\x12H\n\nvalidators\x18\x05 \x01(\x0b\x32\x34.aea.valory.abci.v0_1_0.AbciMessage.ValidatorUpdates\x12\x17\n\x0f\x61pp_state_bytes\x18\x06 \x01(\x0c\x12\x16\n\x0einitial_height\x18\x07 \x01(\x05\x1a]\n\x1aRequest_Query_Performative\x12\x12\n\nquery_data\x18\x01 \x01(\x0c\x12\x0c\n\x04path\x18\x02 \x01(\t\x12\x0e\n\x06height\x18\x03 \x01(\x05\x12\r\n\x05prove\x18\x04 \x01(\x08\x1a\x87\x02\n Request_Begin_Block_Performative\x12\x0c\n\x04hash\x18\x01 \x01(\x0c\x12:\n\x06header\x18\x02 \x01(\x0b\x32*.aea.valory.abci.v0_1_0.AbciMessage.Header\x12L\n\x10last_commit_info\x18\x03 \x01(\x0b\x32\x32.aea.valory.abci.v0_1_0.AbciMessage.LastCommitInfo\x12K\n\x14\x62yzantine_validators\x18\x04 \x01(\x0b\x32-.aea.valory.abci.v0_1_0.AbciMessage.Evidences\x1aj\n\x1dRequest_Check_Tx_Performative\x12\n\n\x02tx\x18\x01 \x01(\x0c\x12=\n\x04type\x18\x02 \x01(\x0b\x32/.aea.valory.abci.v0_1_0.AbciMessage.CheckTxType\x1a-\n\x1fRequest_Deliver_Tx_Performative\x12\n\n\x02tx\x18\x01 \x01(\x0c\x1a\x30\n\x1eRequest_End_Block_Performative\x12\x0e\n\x06height\x18\x01 \x01(\x05\x1a\x1d\n\x1bRequest_Commit_Performative\x1a%\n#Request_List_Snapshots_Performative\x1aw\n#Request_Offer_Snapshot_Performative\x12>\n\x08snapshot\x18\x01 \x01(\x0b\x32,.aea.valory.abci.v0_1_0.AbciMessage.Snapshot\x12\x10\n\x08\x61pp_hash\x18\x02 \x01(\x0c\x1a_\n(Request_Load_Snapshot_Chunk_Performative\x12\x0e\n\x06height\x18\x01 \x01(\x05\x12\x0e\n\x06\x66ormat\x18\x02 \x01(\x05\x12\x13\n\x0b\x63hunk_index\x18\x03 \x01(\x05\x1a_\n)Request_Apply_Snapshot_Chunk_Performative\x12\r\n\x05index\x18\x01 \x01(\x05\x12\r\n\x05\x63hunk\x18\x02 \x01(\x0c\x12\x14\n\x0c\x63hunk_sender\x18\x03 \x01(\t\x1a\x30\n\x1fResponse_Exception_Performative\x12\r\n\x05\x65rror\x18\x01 \x01(\t\x1a-\n\x1aResponse_Echo_Performative\x12\x0f\n\x07message\x18\x01 \x01(\t\x1a\x1d\n\x1bResponse_Flush_Performative\x1a\x8d\x01\n\x1aResponse_Info_Performative\x12\x11\n\tinfo_data\x18\x01 \x01(\t\x12\x0f\n\x07version\x18\x02 \x01(\t\x12\x13\n\x0b\x61pp_version\x18\x03 \x01(\x05\x12\x19\n\x11last_block_height\x18\x04 \x01(\x05\x12\x1b\n\x13last_block_app_hash\x18\x05 \x01(\x0c\x1a\xee\x01\n Response_Init_Chain_Performative\x12M\n\x10\x63onsensus_params\x18\x01 \x01(\x0b\x32\x33.aea.valory.abci.v0_1_0.AbciMessage.ConsensusParams\x12\x1f\n\x17\x63onsensus_params_is_set\x18\x02 \x01(\x08\x12H\n\nvalidators\x18\x03 \x01(\x0b\x32\x34.aea.valory.abci.v0_1_0.AbciMessage.ValidatorUpdates\x12\x10\n\x08\x61pp_hash\x18\x04 \x01(\x0c\x1a\xd5\x01\n\x1bResponse_Query_Performative\x12\x0c\n\x04\x63ode\x18\x01 \x01(\x05\x12\x0b\n\x03log\x18\x02 \x01(\t\x12\x0c\n\x04info\x18\x03 \x01(\t\x12\r\n\x05index\x18\x04 \x01(\x05\x12\x0b\n\x03key\x18\x05 \x01(\x0c\x12\r\n\x05value\x18\x06 \x01(\x0c\x12?\n\tproof_ops\x18\x07 \x01(\x0b\x32,.aea.valory.abci.v0_1_0.AbciMessage.ProofOps\x12\x0e\n\x06height\x18\x08 \x01(\x05\x12\x11\n\tcodespace\x18\t \x01(\t\x1a_\n!Response_Begin_Block_Performative\x12:\n\x06\x65vents\x18\x01 \x01(\x0b\x32*.aea.valory.abci.v0_1_0.AbciMessage.Events\x1a\xf1\x01\n\x1eResponse_Check_Tx_Performative\x12\x0c\n\x04\x63ode\x18\x01 \x01(\x05\x12\x0c\n\x04\x64\x61ta\x18\x02 \x01(\x0c\x12\x0b\n\x03log\x18\x03 \x01(\t\x12\x0c\n\x04info\x18\x04 \x01(\t\x12\x12\n\ngas_wanted\x18\x05 \x01(\x05\x12\x10\n\x08gas_used\x18\x06 \x01(\x05\x12:\n\x06\x65vents\x18\x07 \x01(\x0b\x32*.aea.valory.abci.v0_1_0.AbciMessage.Events\x12\x11\n\tcodespace\x18\x08 \x01(\t\x12\x11\n\ttx_sender\x18\t \x01(\t\x12\x10\n\x08priority\x18\n \x01(\x05\x1a\xce\x01\n Response_Deliver_Tx_Performative\x12\x0c\n\x04\x63ode\x18\x01 \x01(\x05\x12\x0c\n\x04\x64\x61ta\x18\x02 \x01(\x0c\x12\x0b\n\x03log\x18\x03 \x01(\t\x12\x0c\n\x04info\x18\x04 \x01(\t\x12\x12\n\ngas_wanted\x18\x05 \x01(\x05\x12\x10\n\x08gas_used\x18\x06 \x01(\x05\x12:\n\x06\x65vents\x18\x07 \x01(\x0b\x32*.aea.valory.abci.v0_1_0.AbciMessage.Events\x12\x11\n\tcodespace\x18\x08 \x01(\t\x1a\xac\x02\n\x1fResponse_End_Block_Performative\x12O\n\x11validator_updates\x18\x01 \x01(\x0b\x32\x34.aea.valory.abci.v0_1_0.AbciMessage.ValidatorUpdates\x12T\n\x17\x63onsensus_param_updates\x18\x02 \x01(\x0b\x32\x33.aea.valory.abci.v0_1_0.AbciMessage.ConsensusParams\x12&\n\x1e\x63onsensus_param_updates_is_set\x18\x03 \x01(\x08\x12:\n\x06\x65vents\x18\x04 \x01(\x0b\x32*.aea.valory.abci.v0_1_0.AbciMessage.Events\x1a\x43\n\x1cResponse_Commit_Performative\x12\x0c\n\x04\x64\x61ta\x18\x01 \x01(\x0c\x12\x15\n\rretain_height\x18\x02 \x01(\x05\x1ah\n$Response_List_Snapshots_Performative\x12@\n\tsnapshots\x18\x01 \x01(\x0b\x32-.aea.valory.abci.v0_1_0.AbciMessage.SnapShots\x1a\x62\n$Response_Offer_Snapshot_Performative\x12:\n\x06result\x18\x01 \x01(\x0b\x32*.aea.valory.abci.v0_1_0.AbciMessage.Result\x1a:\n)Response_Load_Snapshot_Chunk_Performative\x12\r\n\x05\x63hunk\x18\x01 \x01(\x0c\x1a\x98\x01\n*Response_Apply_Snapshot_Chunk_Performative\x12:\n\x06result\x18\x01 \x01(\x0b\x32*.aea.valory.abci.v0_1_0.AbciMessage.Result\x12\x16\n\x0erefetch_chunks\x18\x02 \x03(\x05\x12\x16\n\x0ereject_senders\x18\x03 \x03(\t\x1ai\n\x12\x44ummy_Performative\x12S\n\x16\x64ummy_consensus_params\x18\x01 \x01(\x0b\x32\x33.aea.valory.abci.v0_1_0.AbciMessage.ConsensusParamsB\x0e\n\x0cperformativeb\x06proto3'
 )
 
 
@@ -83,9 +83,6 @@ _ABCIMESSAGE_REQUEST_FLUSH_PERFORMATIVE = _ABCIMESSAGE.nested_types_by_name[
 _ABCIMESSAGE_REQUEST_INFO_PERFORMATIVE = _ABCIMESSAGE.nested_types_by_name[
     "Request_Info_Performative"
 ]
-_ABCIMESSAGE_REQUEST_SET_OPTION_PERFORMATIVE = _ABCIMESSAGE.nested_types_by_name[
-    "Request_Set_Option_Performative"
-]
 _ABCIMESSAGE_REQUEST_INIT_CHAIN_PERFORMATIVE = _ABCIMESSAGE.nested_types_by_name[
     "Request_Init_Chain_Performative"
 ]
@@ -130,9 +127,6 @@ _ABCIMESSAGE_RESPONSE_FLUSH_PERFORMATIVE = _ABCIMESSAGE.nested_types_by_name[
 ]
 _ABCIMESSAGE_RESPONSE_INFO_PERFORMATIVE = _ABCIMESSAGE.nested_types_by_name[
     "Response_Info_Performative"
-]
-_ABCIMESSAGE_RESPONSE_SET_OPTION_PERFORMATIVE = _ABCIMESSAGE.nested_types_by_name[
-    "Response_Set_Option_Performative"
 ]
 _ABCIMESSAGE_RESPONSE_INIT_CHAIN_PERFORMATIVE = _ABCIMESSAGE.nested_types_by_name[
     "Response_Init_Chain_Performative"
@@ -460,15 +454,6 @@ AbciMessage = _reflection.GeneratedProtocolMessageType(
                 # @@protoc_insertion_point(class_scope:aea.valory.abci.v0_1_0.AbciMessage.Request_Info_Performative)
             },
         ),
-        "Request_Set_Option_Performative": _reflection.GeneratedProtocolMessageType(
-            "Request_Set_Option_Performative",
-            (_message.Message,),
-            {
-                "DESCRIPTOR": _ABCIMESSAGE_REQUEST_SET_OPTION_PERFORMATIVE,
-                "__module__": "abci_pb2"
-                # @@protoc_insertion_point(class_scope:aea.valory.abci.v0_1_0.AbciMessage.Request_Set_Option_Performative)
-            },
-        ),
         "Request_Init_Chain_Performative": _reflection.GeneratedProtocolMessageType(
             "Request_Init_Chain_Performative",
             (_message.Message,),
@@ -602,15 +587,6 @@ AbciMessage = _reflection.GeneratedProtocolMessageType(
                 "DESCRIPTOR": _ABCIMESSAGE_RESPONSE_INFO_PERFORMATIVE,
                 "__module__": "abci_pb2"
                 # @@protoc_insertion_point(class_scope:aea.valory.abci.v0_1_0.AbciMessage.Response_Info_Performative)
-            },
-        ),
-        "Response_Set_Option_Performative": _reflection.GeneratedProtocolMessageType(
-            "Response_Set_Option_Performative",
-            (_message.Message,),
-            {
-                "DESCRIPTOR": _ABCIMESSAGE_RESPONSE_SET_OPTION_PERFORMATIVE,
-                "__module__": "abci_pb2"
-                # @@protoc_insertion_point(class_scope:aea.valory.abci.v0_1_0.AbciMessage.Response_Set_Option_Performative)
             },
         ),
         "Response_Init_Chain_Performative": _reflection.GeneratedProtocolMessageType(
@@ -758,7 +734,6 @@ _sym_db.RegisterMessage(AbciMessage.ValidatorUpdates.ValidatorUpdate)
 _sym_db.RegisterMessage(AbciMessage.Request_Echo_Performative)
 _sym_db.RegisterMessage(AbciMessage.Request_Flush_Performative)
 _sym_db.RegisterMessage(AbciMessage.Request_Info_Performative)
-_sym_db.RegisterMessage(AbciMessage.Request_Set_Option_Performative)
 _sym_db.RegisterMessage(AbciMessage.Request_Init_Chain_Performative)
 _sym_db.RegisterMessage(AbciMessage.Request_Query_Performative)
 _sym_db.RegisterMessage(AbciMessage.Request_Begin_Block_Performative)
@@ -774,7 +749,6 @@ _sym_db.RegisterMessage(AbciMessage.Response_Exception_Performative)
 _sym_db.RegisterMessage(AbciMessage.Response_Echo_Performative)
 _sym_db.RegisterMessage(AbciMessage.Response_Flush_Performative)
 _sym_db.RegisterMessage(AbciMessage.Response_Info_Performative)
-_sym_db.RegisterMessage(AbciMessage.Response_Set_Option_Performative)
 _sym_db.RegisterMessage(AbciMessage.Response_Init_Chain_Performative)
 _sym_db.RegisterMessage(AbciMessage.Response_Query_Performative)
 _sym_db.RegisterMessage(AbciMessage.Response_Begin_Block_Performative)
@@ -792,131 +766,127 @@ if _descriptor._USE_C_DESCRIPTORS == False:
 
     DESCRIPTOR._options = None
     _ABCIMESSAGE._serialized_start = 39
-    _ABCIMESSAGE._serialized_end = 10285
-    _ABCIMESSAGE_CHECKTXTYPE._serialized_start = 3222
-    _ABCIMESSAGE_CHECKTXTYPE._serialized_end = 3349
-    _ABCIMESSAGE_CHECKTXTYPE__CHECKTXTYPE._serialized_start = 3313
-    _ABCIMESSAGE_CHECKTXTYPE__CHECKTXTYPE._serialized_end = 3349
-    _ABCIMESSAGE_CONSENSUSPARAMS._serialized_start = 3352
-    _ABCIMESSAGE_CONSENSUSPARAMS._serialized_end = 4036
-    _ABCIMESSAGE_CONSENSUSPARAMS_DURATION._serialized_start = 3709
-    _ABCIMESSAGE_CONSENSUSPARAMS_DURATION._serialized_end = 3751
-    _ABCIMESSAGE_CONSENSUSPARAMS_BLOCKPARAMS._serialized_start = 3753
-    _ABCIMESSAGE_CONSENSUSPARAMS_BLOCKPARAMS._serialized_end = 3802
-    _ABCIMESSAGE_CONSENSUSPARAMS_EVIDENCEPARAMS._serialized_start = 3805
-    _ABCIMESSAGE_CONSENSUSPARAMS_EVIDENCEPARAMS._serialized_end = 3956
-    _ABCIMESSAGE_CONSENSUSPARAMS_VALIDATORPARAMS._serialized_start = 3958
-    _ABCIMESSAGE_CONSENSUSPARAMS_VALIDATORPARAMS._serialized_end = 3998
-    _ABCIMESSAGE_CONSENSUSPARAMS_VERSIONPARAMS._serialized_start = 4000
-    _ABCIMESSAGE_CONSENSUSPARAMS_VERSIONPARAMS._serialized_end = 4036
-    _ABCIMESSAGE_EVENTS._serialized_start = 4039
-    _ABCIMESSAGE_EVENTS._serialized_end = 4276
-    _ABCIMESSAGE_EVENTS_EVENTATTRIBUTE._serialized_start = 4115
-    _ABCIMESSAGE_EVENTS_EVENTATTRIBUTE._serialized_end = 4174
-    _ABCIMESSAGE_EVENTS_EVENT._serialized_start = 4176
-    _ABCIMESSAGE_EVENTS_EVENT._serialized_end = 4276
-    _ABCIMESSAGE_EVIDENCES._serialized_start = 4279
-    _ABCIMESSAGE_EVIDENCES._serialized_end = 4732
-    _ABCIMESSAGE_EVIDENCES_EVIDENCE._serialized_start = 4379
-    _ABCIMESSAGE_EVIDENCES_EVIDENCE._serialized_end = 4732
-    _ABCIMESSAGE_EVIDENCES_EVIDENCE_EVIDENCETYPE._serialized_start = 4660
-    _ABCIMESSAGE_EVIDENCES_EVIDENCE_EVIDENCETYPE._serialized_end = 4732
-    _ABCIMESSAGE_HEADER._serialized_start = 4735
-    _ABCIMESSAGE_HEADER._serialized_end = 5411
-    _ABCIMESSAGE_HEADER_CONSENSUSVERSION._serialized_start = 5211
-    _ABCIMESSAGE_HEADER_CONSENSUSVERSION._serialized_end = 5257
-    _ABCIMESSAGE_HEADER_BLOCKID._serialized_start = 5259
-    _ABCIMESSAGE_HEADER_BLOCKID._serialized_end = 5365
-    _ABCIMESSAGE_HEADER_PARTSETHEADER._serialized_start = 5367
-    _ABCIMESSAGE_HEADER_PARTSETHEADER._serialized_end = 5411
-    _ABCIMESSAGE_LASTCOMMITINFO._serialized_start = 5414
-    _ABCIMESSAGE_LASTCOMMITINFO._serialized_end = 5686
-    _ABCIMESSAGE_LASTCOMMITINFO_VALIDATOR._serialized_start = 5523
-    _ABCIMESSAGE_LASTCOMMITINFO_VALIDATOR._serialized_end = 5566
-    _ABCIMESSAGE_LASTCOMMITINFO_VOTEINFO._serialized_start = 5568
-    _ABCIMESSAGE_LASTCOMMITINFO_VOTEINFO._serialized_end = 5686
-    _ABCIMESSAGE_PROOFOPS._serialized_start = 5689
-    _ABCIMESSAGE_PROOFOPS._serialized_end = 5818
-    _ABCIMESSAGE_PROOFOPS_PROOFOP._serialized_start = 5768
-    _ABCIMESSAGE_PROOFOPS_PROOFOP._serialized_end = 5818
-    _ABCIMESSAGE_RESULT._serialized_start = 5821
-    _ABCIMESSAGE_RESULT._serialized_end = 6005
-    _ABCIMESSAGE_RESULT_RESULTTYPE._serialized_start = 5907
-    _ABCIMESSAGE_RESULT_RESULTTYPE._serialized_end = 6005
-    _ABCIMESSAGE_SNAPSHOTS._serialized_start = 6007
-    _ABCIMESSAGE_SNAPSHOTS._serialized_end = 6083
-    _ABCIMESSAGE_SNAPSHOT._serialized_start = 6085
-    _ABCIMESSAGE_SNAPSHOT._serialized_end = 6175
-    _ABCIMESSAGE_TIMESTAMP._serialized_start = 6177
-    _ABCIMESSAGE_TIMESTAMP._serialized_end = 6220
-    _ABCIMESSAGE_VALIDATORUPDATES._serialized_start = 6223
-    _ABCIMESSAGE_VALIDATORUPDATES._serialized_end = 6506
-    _ABCIMESSAGE_VALIDATORUPDATES_PUBLICKEY._serialized_start = 6333
-    _ABCIMESSAGE_VALIDATORUPDATES_PUBLICKEY._serialized_end = 6391
-    _ABCIMESSAGE_VALIDATORUPDATES_VALIDATORUPDATE._serialized_start = 6393
-    _ABCIMESSAGE_VALIDATORUPDATES_VALIDATORUPDATE._serialized_end = 6506
-    _ABCIMESSAGE_REQUEST_ECHO_PERFORMATIVE._serialized_start = 6508
-    _ABCIMESSAGE_REQUEST_ECHO_PERFORMATIVE._serialized_end = 6552
-    _ABCIMESSAGE_REQUEST_FLUSH_PERFORMATIVE._serialized_start = 6554
-    _ABCIMESSAGE_REQUEST_FLUSH_PERFORMATIVE._serialized_end = 6582
-    _ABCIMESSAGE_REQUEST_INFO_PERFORMATIVE._serialized_start = 6584
-    _ABCIMESSAGE_REQUEST_INFO_PERFORMATIVE._serialized_end = 6672
-    _ABCIMESSAGE_REQUEST_SET_OPTION_PERFORMATIVE._serialized_start = 6674
-    _ABCIMESSAGE_REQUEST_SET_OPTION_PERFORMATIVE._serialized_end = 6749
-    _ABCIMESSAGE_REQUEST_INIT_CHAIN_PERFORMATIVE._serialized_start = 6752
-    _ABCIMESSAGE_REQUEST_INIT_CHAIN_PERFORMATIVE._serialized_end = 7099
-    _ABCIMESSAGE_REQUEST_QUERY_PERFORMATIVE._serialized_start = 7101
-    _ABCIMESSAGE_REQUEST_QUERY_PERFORMATIVE._serialized_end = 7194
-    _ABCIMESSAGE_REQUEST_BEGIN_BLOCK_PERFORMATIVE._serialized_start = 7197
-    _ABCIMESSAGE_REQUEST_BEGIN_BLOCK_PERFORMATIVE._serialized_end = 7460
-    _ABCIMESSAGE_REQUEST_CHECK_TX_PERFORMATIVE._serialized_start = 7462
-    _ABCIMESSAGE_REQUEST_CHECK_TX_PERFORMATIVE._serialized_end = 7568
-    _ABCIMESSAGE_REQUEST_DELIVER_TX_PERFORMATIVE._serialized_start = 7570
-    _ABCIMESSAGE_REQUEST_DELIVER_TX_PERFORMATIVE._serialized_end = 7615
-    _ABCIMESSAGE_REQUEST_END_BLOCK_PERFORMATIVE._serialized_start = 7617
-    _ABCIMESSAGE_REQUEST_END_BLOCK_PERFORMATIVE._serialized_end = 7665
-    _ABCIMESSAGE_REQUEST_COMMIT_PERFORMATIVE._serialized_start = 7667
-    _ABCIMESSAGE_REQUEST_COMMIT_PERFORMATIVE._serialized_end = 7696
-    _ABCIMESSAGE_REQUEST_LIST_SNAPSHOTS_PERFORMATIVE._serialized_start = 7698
-    _ABCIMESSAGE_REQUEST_LIST_SNAPSHOTS_PERFORMATIVE._serialized_end = 7735
-    _ABCIMESSAGE_REQUEST_OFFER_SNAPSHOT_PERFORMATIVE._serialized_start = 7737
-    _ABCIMESSAGE_REQUEST_OFFER_SNAPSHOT_PERFORMATIVE._serialized_end = 7856
-    _ABCIMESSAGE_REQUEST_LOAD_SNAPSHOT_CHUNK_PERFORMATIVE._serialized_start = 7858
-    _ABCIMESSAGE_REQUEST_LOAD_SNAPSHOT_CHUNK_PERFORMATIVE._serialized_end = 7953
-    _ABCIMESSAGE_REQUEST_APPLY_SNAPSHOT_CHUNK_PERFORMATIVE._serialized_start = 7955
-    _ABCIMESSAGE_REQUEST_APPLY_SNAPSHOT_CHUNK_PERFORMATIVE._serialized_end = 8050
-    _ABCIMESSAGE_RESPONSE_EXCEPTION_PERFORMATIVE._serialized_start = 8052
-    _ABCIMESSAGE_RESPONSE_EXCEPTION_PERFORMATIVE._serialized_end = 8100
-    _ABCIMESSAGE_RESPONSE_ECHO_PERFORMATIVE._serialized_start = 8102
-    _ABCIMESSAGE_RESPONSE_ECHO_PERFORMATIVE._serialized_end = 8147
-    _ABCIMESSAGE_RESPONSE_FLUSH_PERFORMATIVE._serialized_start = 8149
-    _ABCIMESSAGE_RESPONSE_FLUSH_PERFORMATIVE._serialized_end = 8178
-    _ABCIMESSAGE_RESPONSE_INFO_PERFORMATIVE._serialized_start = 8181
-    _ABCIMESSAGE_RESPONSE_INFO_PERFORMATIVE._serialized_end = 8322
-    _ABCIMESSAGE_RESPONSE_SET_OPTION_PERFORMATIVE._serialized_start = 8324
-    _ABCIMESSAGE_RESPONSE_SET_OPTION_PERFORMATIVE._serialized_end = 8399
-    _ABCIMESSAGE_RESPONSE_INIT_CHAIN_PERFORMATIVE._serialized_start = 8402
-    _ABCIMESSAGE_RESPONSE_INIT_CHAIN_PERFORMATIVE._serialized_end = 8640
-    _ABCIMESSAGE_RESPONSE_QUERY_PERFORMATIVE._serialized_start = 8643
-    _ABCIMESSAGE_RESPONSE_QUERY_PERFORMATIVE._serialized_end = 8856
-    _ABCIMESSAGE_RESPONSE_BEGIN_BLOCK_PERFORMATIVE._serialized_start = 8858
-    _ABCIMESSAGE_RESPONSE_BEGIN_BLOCK_PERFORMATIVE._serialized_end = 8953
-    _ABCIMESSAGE_RESPONSE_CHECK_TX_PERFORMATIVE._serialized_start = 8956
-    _ABCIMESSAGE_RESPONSE_CHECK_TX_PERFORMATIVE._serialized_end = 9160
-    _ABCIMESSAGE_RESPONSE_DELIVER_TX_PERFORMATIVE._serialized_start = 9163
-    _ABCIMESSAGE_RESPONSE_DELIVER_TX_PERFORMATIVE._serialized_end = 9369
-    _ABCIMESSAGE_RESPONSE_END_BLOCK_PERFORMATIVE._serialized_start = 9372
-    _ABCIMESSAGE_RESPONSE_END_BLOCK_PERFORMATIVE._serialized_end = 9672
-    _ABCIMESSAGE_RESPONSE_COMMIT_PERFORMATIVE._serialized_start = 9674
-    _ABCIMESSAGE_RESPONSE_COMMIT_PERFORMATIVE._serialized_end = 9741
-    _ABCIMESSAGE_RESPONSE_LIST_SNAPSHOTS_PERFORMATIVE._serialized_start = 9743
-    _ABCIMESSAGE_RESPONSE_LIST_SNAPSHOTS_PERFORMATIVE._serialized_end = 9847
-    _ABCIMESSAGE_RESPONSE_OFFER_SNAPSHOT_PERFORMATIVE._serialized_start = 9849
-    _ABCIMESSAGE_RESPONSE_OFFER_SNAPSHOT_PERFORMATIVE._serialized_end = 9947
-    _ABCIMESSAGE_RESPONSE_LOAD_SNAPSHOT_CHUNK_PERFORMATIVE._serialized_start = 9949
-    _ABCIMESSAGE_RESPONSE_LOAD_SNAPSHOT_CHUNK_PERFORMATIVE._serialized_end = 10007
-    _ABCIMESSAGE_RESPONSE_APPLY_SNAPSHOT_CHUNK_PERFORMATIVE._serialized_start = 10010
-    _ABCIMESSAGE_RESPONSE_APPLY_SNAPSHOT_CHUNK_PERFORMATIVE._serialized_end = 10162
-    _ABCIMESSAGE_DUMMY_PERFORMATIVE._serialized_start = 10164
-    _ABCIMESSAGE_DUMMY_PERFORMATIVE._serialized_end = 10269
+    _ABCIMESSAGE._serialized_end = 9990
+    _ABCIMESSAGE_CHECKTXTYPE._serialized_start = 3022
+    _ABCIMESSAGE_CHECKTXTYPE._serialized_end = 3149
+    _ABCIMESSAGE_CHECKTXTYPE__CHECKTXTYPE._serialized_start = 3113
+    _ABCIMESSAGE_CHECKTXTYPE__CHECKTXTYPE._serialized_end = 3149
+    _ABCIMESSAGE_CONSENSUSPARAMS._serialized_start = 3152
+    _ABCIMESSAGE_CONSENSUSPARAMS._serialized_end = 3836
+    _ABCIMESSAGE_CONSENSUSPARAMS_DURATION._serialized_start = 3509
+    _ABCIMESSAGE_CONSENSUSPARAMS_DURATION._serialized_end = 3551
+    _ABCIMESSAGE_CONSENSUSPARAMS_BLOCKPARAMS._serialized_start = 3553
+    _ABCIMESSAGE_CONSENSUSPARAMS_BLOCKPARAMS._serialized_end = 3602
+    _ABCIMESSAGE_CONSENSUSPARAMS_EVIDENCEPARAMS._serialized_start = 3605
+    _ABCIMESSAGE_CONSENSUSPARAMS_EVIDENCEPARAMS._serialized_end = 3756
+    _ABCIMESSAGE_CONSENSUSPARAMS_VALIDATORPARAMS._serialized_start = 3758
+    _ABCIMESSAGE_CONSENSUSPARAMS_VALIDATORPARAMS._serialized_end = 3798
+    _ABCIMESSAGE_CONSENSUSPARAMS_VERSIONPARAMS._serialized_start = 3800
+    _ABCIMESSAGE_CONSENSUSPARAMS_VERSIONPARAMS._serialized_end = 3836
+    _ABCIMESSAGE_EVENTS._serialized_start = 3839
+    _ABCIMESSAGE_EVENTS._serialized_end = 4076
+    _ABCIMESSAGE_EVENTS_EVENTATTRIBUTE._serialized_start = 3915
+    _ABCIMESSAGE_EVENTS_EVENTATTRIBUTE._serialized_end = 3974
+    _ABCIMESSAGE_EVENTS_EVENT._serialized_start = 3976
+    _ABCIMESSAGE_EVENTS_EVENT._serialized_end = 4076
+    _ABCIMESSAGE_EVIDENCES._serialized_start = 4079
+    _ABCIMESSAGE_EVIDENCES._serialized_end = 4532
+    _ABCIMESSAGE_EVIDENCES_EVIDENCE._serialized_start = 4179
+    _ABCIMESSAGE_EVIDENCES_EVIDENCE._serialized_end = 4532
+    _ABCIMESSAGE_EVIDENCES_EVIDENCE_EVIDENCETYPE._serialized_start = 4460
+    _ABCIMESSAGE_EVIDENCES_EVIDENCE_EVIDENCETYPE._serialized_end = 4532
+    _ABCIMESSAGE_HEADER._serialized_start = 4535
+    _ABCIMESSAGE_HEADER._serialized_end = 5211
+    _ABCIMESSAGE_HEADER_CONSENSUSVERSION._serialized_start = 5011
+    _ABCIMESSAGE_HEADER_CONSENSUSVERSION._serialized_end = 5057
+    _ABCIMESSAGE_HEADER_BLOCKID._serialized_start = 5059
+    _ABCIMESSAGE_HEADER_BLOCKID._serialized_end = 5165
+    _ABCIMESSAGE_HEADER_PARTSETHEADER._serialized_start = 5167
+    _ABCIMESSAGE_HEADER_PARTSETHEADER._serialized_end = 5211
+    _ABCIMESSAGE_LASTCOMMITINFO._serialized_start = 5214
+    _ABCIMESSAGE_LASTCOMMITINFO._serialized_end = 5486
+    _ABCIMESSAGE_LASTCOMMITINFO_VALIDATOR._serialized_start = 5323
+    _ABCIMESSAGE_LASTCOMMITINFO_VALIDATOR._serialized_end = 5366
+    _ABCIMESSAGE_LASTCOMMITINFO_VOTEINFO._serialized_start = 5368
+    _ABCIMESSAGE_LASTCOMMITINFO_VOTEINFO._serialized_end = 5486
+    _ABCIMESSAGE_PROOFOPS._serialized_start = 5489
+    _ABCIMESSAGE_PROOFOPS._serialized_end = 5618
+    _ABCIMESSAGE_PROOFOPS_PROOFOP._serialized_start = 5568
+    _ABCIMESSAGE_PROOFOPS_PROOFOP._serialized_end = 5618
+    _ABCIMESSAGE_RESULT._serialized_start = 5621
+    _ABCIMESSAGE_RESULT._serialized_end = 5805
+    _ABCIMESSAGE_RESULT_RESULTTYPE._serialized_start = 5707
+    _ABCIMESSAGE_RESULT_RESULTTYPE._serialized_end = 5805
+    _ABCIMESSAGE_SNAPSHOTS._serialized_start = 5807
+    _ABCIMESSAGE_SNAPSHOTS._serialized_end = 5883
+    _ABCIMESSAGE_SNAPSHOT._serialized_start = 5885
+    _ABCIMESSAGE_SNAPSHOT._serialized_end = 5975
+    _ABCIMESSAGE_TIMESTAMP._serialized_start = 5977
+    _ABCIMESSAGE_TIMESTAMP._serialized_end = 6020
+    _ABCIMESSAGE_VALIDATORUPDATES._serialized_start = 6023
+    _ABCIMESSAGE_VALIDATORUPDATES._serialized_end = 6306
+    _ABCIMESSAGE_VALIDATORUPDATES_PUBLICKEY._serialized_start = 6133
+    _ABCIMESSAGE_VALIDATORUPDATES_PUBLICKEY._serialized_end = 6191
+    _ABCIMESSAGE_VALIDATORUPDATES_VALIDATORUPDATE._serialized_start = 6193
+    _ABCIMESSAGE_VALIDATORUPDATES_VALIDATORUPDATE._serialized_end = 6306
+    _ABCIMESSAGE_REQUEST_ECHO_PERFORMATIVE._serialized_start = 6308
+    _ABCIMESSAGE_REQUEST_ECHO_PERFORMATIVE._serialized_end = 6352
+    _ABCIMESSAGE_REQUEST_FLUSH_PERFORMATIVE._serialized_start = 6354
+    _ABCIMESSAGE_REQUEST_FLUSH_PERFORMATIVE._serialized_end = 6382
+    _ABCIMESSAGE_REQUEST_INFO_PERFORMATIVE._serialized_start = 6384
+    _ABCIMESSAGE_REQUEST_INFO_PERFORMATIVE._serialized_end = 6494
+    _ABCIMESSAGE_REQUEST_INIT_CHAIN_PERFORMATIVE._serialized_start = 6497
+    _ABCIMESSAGE_REQUEST_INIT_CHAIN_PERFORMATIVE._serialized_end = 6844
+    _ABCIMESSAGE_REQUEST_QUERY_PERFORMATIVE._serialized_start = 6846
+    _ABCIMESSAGE_REQUEST_QUERY_PERFORMATIVE._serialized_end = 6939
+    _ABCIMESSAGE_REQUEST_BEGIN_BLOCK_PERFORMATIVE._serialized_start = 6942
+    _ABCIMESSAGE_REQUEST_BEGIN_BLOCK_PERFORMATIVE._serialized_end = 7205
+    _ABCIMESSAGE_REQUEST_CHECK_TX_PERFORMATIVE._serialized_start = 7207
+    _ABCIMESSAGE_REQUEST_CHECK_TX_PERFORMATIVE._serialized_end = 7313
+    _ABCIMESSAGE_REQUEST_DELIVER_TX_PERFORMATIVE._serialized_start = 7315
+    _ABCIMESSAGE_REQUEST_DELIVER_TX_PERFORMATIVE._serialized_end = 7360
+    _ABCIMESSAGE_REQUEST_END_BLOCK_PERFORMATIVE._serialized_start = 7362
+    _ABCIMESSAGE_REQUEST_END_BLOCK_PERFORMATIVE._serialized_end = 7410
+    _ABCIMESSAGE_REQUEST_COMMIT_PERFORMATIVE._serialized_start = 7412
+    _ABCIMESSAGE_REQUEST_COMMIT_PERFORMATIVE._serialized_end = 7441
+    _ABCIMESSAGE_REQUEST_LIST_SNAPSHOTS_PERFORMATIVE._serialized_start = 7443
+    _ABCIMESSAGE_REQUEST_LIST_SNAPSHOTS_PERFORMATIVE._serialized_end = 7480
+    _ABCIMESSAGE_REQUEST_OFFER_SNAPSHOT_PERFORMATIVE._serialized_start = 7482
+    _ABCIMESSAGE_REQUEST_OFFER_SNAPSHOT_PERFORMATIVE._serialized_end = 7601
+    _ABCIMESSAGE_REQUEST_LOAD_SNAPSHOT_CHUNK_PERFORMATIVE._serialized_start = 7603
+    _ABCIMESSAGE_REQUEST_LOAD_SNAPSHOT_CHUNK_PERFORMATIVE._serialized_end = 7698
+    _ABCIMESSAGE_REQUEST_APPLY_SNAPSHOT_CHUNK_PERFORMATIVE._serialized_start = 7700
+    _ABCIMESSAGE_REQUEST_APPLY_SNAPSHOT_CHUNK_PERFORMATIVE._serialized_end = 7795
+    _ABCIMESSAGE_RESPONSE_EXCEPTION_PERFORMATIVE._serialized_start = 7797
+    _ABCIMESSAGE_RESPONSE_EXCEPTION_PERFORMATIVE._serialized_end = 7845
+    _ABCIMESSAGE_RESPONSE_ECHO_PERFORMATIVE._serialized_start = 7847
+    _ABCIMESSAGE_RESPONSE_ECHO_PERFORMATIVE._serialized_end = 7892
+    _ABCIMESSAGE_RESPONSE_FLUSH_PERFORMATIVE._serialized_start = 7894
+    _ABCIMESSAGE_RESPONSE_FLUSH_PERFORMATIVE._serialized_end = 7923
+    _ABCIMESSAGE_RESPONSE_INFO_PERFORMATIVE._serialized_start = 7926
+    _ABCIMESSAGE_RESPONSE_INFO_PERFORMATIVE._serialized_end = 8067
+    _ABCIMESSAGE_RESPONSE_INIT_CHAIN_PERFORMATIVE._serialized_start = 8070
+    _ABCIMESSAGE_RESPONSE_INIT_CHAIN_PERFORMATIVE._serialized_end = 8308
+    _ABCIMESSAGE_RESPONSE_QUERY_PERFORMATIVE._serialized_start = 8311
+    _ABCIMESSAGE_RESPONSE_QUERY_PERFORMATIVE._serialized_end = 8524
+    _ABCIMESSAGE_RESPONSE_BEGIN_BLOCK_PERFORMATIVE._serialized_start = 8526
+    _ABCIMESSAGE_RESPONSE_BEGIN_BLOCK_PERFORMATIVE._serialized_end = 8621
+    _ABCIMESSAGE_RESPONSE_CHECK_TX_PERFORMATIVE._serialized_start = 8624
+    _ABCIMESSAGE_RESPONSE_CHECK_TX_PERFORMATIVE._serialized_end = 8865
+    _ABCIMESSAGE_RESPONSE_DELIVER_TX_PERFORMATIVE._serialized_start = 8868
+    _ABCIMESSAGE_RESPONSE_DELIVER_TX_PERFORMATIVE._serialized_end = 9074
+    _ABCIMESSAGE_RESPONSE_END_BLOCK_PERFORMATIVE._serialized_start = 9077
+    _ABCIMESSAGE_RESPONSE_END_BLOCK_PERFORMATIVE._serialized_end = 9377
+    _ABCIMESSAGE_RESPONSE_COMMIT_PERFORMATIVE._serialized_start = 9379
+    _ABCIMESSAGE_RESPONSE_COMMIT_PERFORMATIVE._serialized_end = 9446
+    _ABCIMESSAGE_RESPONSE_LIST_SNAPSHOTS_PERFORMATIVE._serialized_start = 9448
+    _ABCIMESSAGE_RESPONSE_LIST_SNAPSHOTS_PERFORMATIVE._serialized_end = 9552
+    _ABCIMESSAGE_RESPONSE_OFFER_SNAPSHOT_PERFORMATIVE._serialized_start = 9554
+    _ABCIMESSAGE_RESPONSE_OFFER_SNAPSHOT_PERFORMATIVE._serialized_end = 9652
+    _ABCIMESSAGE_RESPONSE_LOAD_SNAPSHOT_CHUNK_PERFORMATIVE._serialized_start = 9654
+    _ABCIMESSAGE_RESPONSE_LOAD_SNAPSHOT_CHUNK_PERFORMATIVE._serialized_end = 9712
+    _ABCIMESSAGE_RESPONSE_APPLY_SNAPSHOT_CHUNK_PERFORMATIVE._serialized_start = 9715
+    _ABCIMESSAGE_RESPONSE_APPLY_SNAPSHOT_CHUNK_PERFORMATIVE._serialized_end = 9867
+    _ABCIMESSAGE_DUMMY_PERFORMATIVE._serialized_start = 9869
+    _ABCIMESSAGE_DUMMY_PERFORMATIVE._serialized_end = 9974
 # @@protoc_insertion_point(module_scope)

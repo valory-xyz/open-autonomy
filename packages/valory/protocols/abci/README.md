@@ -123,9 +123,9 @@ speech_acts:
     gas_used: pt:int
     events: ct:Events
     codespace: pt:str
-    sender: pt:str  # TODO
-    priority: pt.int
-    mempool_error: pt.int  # set by Tendermint, don't set in ABCIApp
+    tx_sender: pt:str  # 'sender' conflicts with the attribute of 'Message'
+    priority: pt:int
+    # mempool_error: pt:int  # set by Tendermint, don't set in ABCIApp
   # https://github.com/tendermint/tendermint/blob/v0.35.7/proto/tendermint/abci/types.proto#L205
   response_deliver_tx:
     code: pt:int

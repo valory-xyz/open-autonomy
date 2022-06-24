@@ -18,7 +18,7 @@
 # ------------------------------------------------------------------------------
 
 """Tests to ensure implementation is on par with ABCI spec"""
-
+import logging
 from pathlib import Path
 from typing import Any, Dict, Set
 
@@ -65,6 +65,7 @@ USE_NON_ZERO_ENUM: bool = True
 def test_local_types_file_matches_github() -> None:
     """Test local file containing ABCI spec matches Tendermint GitHub"""
 
+    different = []
     for file in PROTO_FILES:
         url = URL_PREFIX + "/".join(file.parts[-2:])
         response = requests.get(url)
@@ -74,8 +75,12 @@ def test_local_types_file_matches_github() -> None:
             raise requests.HTTPError(f"{log_msg}: {status_code} ({reason})")
         github_data = response.text
         local_data = file.read_text(encoding=ENCODING)
+        if not github_data == local_data:
+            different.append([file, url])
 
-        assert github_data == local_data, f"mismatch:\n{file}\n{url}"
+    if different:
+        logging.error("\n".join([" =/= ".join(map(str, x)) for x in different]))
+    assert not bool(different)
 
 
 def test_all_custom_types_used() -> None:

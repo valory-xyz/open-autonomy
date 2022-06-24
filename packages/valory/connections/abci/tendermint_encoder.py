@@ -108,21 +108,6 @@ class _TendermintProtocolEncoder:
         return response
 
     @classmethod
-    def response_set_option(cls, message: AbciMessage) -> Response:
-        """
-        Process the response set_option.
-
-        :param message: the response.
-        :return: the ABCI protobuf object.
-        """
-        set_option = ResponseSetOption()
-        set_option.code = message.code
-        set_option.log = message.log
-        set_option.info = message.info
-        response = Response(set_option=set_option)
-        return response
-
-    @classmethod
     def response_info(cls, message: AbciMessage) -> Response:
         """
         Process the response info.
@@ -222,6 +207,10 @@ class _TendermintProtocolEncoder:
         check_tx.events.extend(events_pb)
 
         check_tx.codespace = message.codespace
+
+        check_tx.sender = message.tx_sender
+        check_tx.priority = message.priority
+        # mempool_error is set by Tendermint, not the ABCI App
 
         response = Response(check_tx=check_tx)
         return response

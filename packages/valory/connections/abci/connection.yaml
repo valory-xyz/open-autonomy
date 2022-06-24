@@ -31,8 +31,8 @@ fingerprint:
   tendermint/types/types_pb2.py: QmV8KomC2K2aCM947y6j7JGtjvsukqm5nQQdecz6UYknSY
   tendermint/types/validator_pb2.py: QmdXSKTxGBVEwpvdDPkQMvFwkNy5SBbuEDzySSRSFyGYSn
   tendermint/version/types_pb2.py: QmXHigkbDKNvT5ThMs1LtusqE7eZSk2skShjVdfmeotyfj
-  tendermint_decoder.py: QmPrHyEbaK6uqHXpHZGotaTkHHcr2ap1X6jPh88ugB4Jsm
-  tendermint_encoder.py: QmYoakv7n1ue4GffM9r7HSwVATbDrnnB2DH9m7HCWFZe4a
+  tendermint_decoder.py: QmPK6RgARam9LiJ9ywHXpbDnR9msf7ubLGeCJkks5CfAaQ
+  tendermint_encoder.py: QmcNcJEhHfbcKC1hBWPHP7wdojHsP5c11FkFjk5WLMJUTi
   version.txt: QmVBNK3M2ZyreBZeLSH1QntMUGtwJGNaeLCD479KWr7dPK
 fingerprint_ignore_patterns: []
 build_entrypoint: check_dependencies.py

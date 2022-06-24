@@ -149,27 +149,7 @@ class _TendermintProtocolDecoder:
             version=info.version,
             block_version=info.block_version,
             p2p_version=info.p2p_version,
-        )
-        return cast(AbciMessage, abci_message), cast(AbciDialogue, abci_dialogue)
-
-    @classmethod
-    def request_set_option(
-        cls, request: Request, dialogues: AbciDialogues, counterparty: str
-    ) -> Tuple[AbciMessage, AbciDialogue]:
-        """
-        Decode a set_option request.
-
-        :param request: the request.
-        :param dialogues: the dialogues object.
-        :param counterparty: the counterparty.
-        :return: the AbciMessage request.
-        """
-        set_option = request.set_option
-        abci_message, abci_dialogue = dialogues.create(
-            performative=AbciMessage.Performative.REQUEST_SET_OPTION,
-            counterparty=counterparty,
-            option_key=set_option.key,
-            option_value=set_option.value,
+            abci_version=info.abci_version,
         )
         return cast(AbciMessage, abci_message), cast(AbciDialogue, abci_dialogue)
 

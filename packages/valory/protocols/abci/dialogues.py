@@ -42,7 +42,6 @@ class AbciDialogue(Dialogue):
             AbciMessage.Performative.REQUEST_ECHO,
             AbciMessage.Performative.REQUEST_FLUSH,
             AbciMessage.Performative.REQUEST_INFO,
-            AbciMessage.Performative.REQUEST_SET_OPTION,
             AbciMessage.Performative.REQUEST_INIT_CHAIN,
             AbciMessage.Performative.REQUEST_QUERY,
             AbciMessage.Performative.REQUEST_BEGIN_BLOCK,
@@ -63,7 +62,6 @@ class AbciDialogue(Dialogue):
             AbciMessage.Performative.RESPONSE_ECHO,
             AbciMessage.Performative.RESPONSE_FLUSH,
             AbciMessage.Performative.RESPONSE_INFO,
-            AbciMessage.Performative.RESPONSE_SET_OPTION,
             AbciMessage.Performative.RESPONSE_INIT_CHAIN,
             AbciMessage.Performative.RESPONSE_QUERY,
             AbciMessage.Performative.RESPONSE_BEGIN_BLOCK,
@@ -164,12 +162,6 @@ class AbciDialogue(Dialogue):
                 AbciMessage.Performative.RESPONSE_EXCEPTION,
             }
         ),
-        AbciMessage.Performative.REQUEST_SET_OPTION: frozenset(
-            {
-                AbciMessage.Performative.RESPONSE_SET_OPTION,
-                AbciMessage.Performative.RESPONSE_EXCEPTION,
-            }
-        ),
         AbciMessage.Performative.RESPONSE_APPLY_SNAPSHOT_CHUNK: frozenset(),
         AbciMessage.Performative.RESPONSE_BEGIN_BLOCK: frozenset(),
         AbciMessage.Performative.RESPONSE_CHECK_TX: frozenset(),
@@ -185,7 +177,6 @@ class AbciDialogue(Dialogue):
         AbciMessage.Performative.RESPONSE_LOAD_SNAPSHOT_CHUNK: frozenset(),
         AbciMessage.Performative.RESPONSE_OFFER_SNAPSHOT: frozenset(),
         AbciMessage.Performative.RESPONSE_QUERY: frozenset(),
-        AbciMessage.Performative.RESPONSE_SET_OPTION: frozenset(),
     }
 
     class Role(Dialogue.Role):

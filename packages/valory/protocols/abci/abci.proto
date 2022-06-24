@@ -198,11 +198,7 @@ message AbciMessage{
     string version = 1;
     int32 block_version = 2;
     int32 p2p_version = 3;
-  }
-
-  message Request_Set_Option_Performative{
-    string option_key = 1;
-    string option_value = 2;
+    string abci_version = 4;
   }
 
   message Request_Init_Chain_Performative{
@@ -284,12 +280,6 @@ message AbciMessage{
     bytes last_block_app_hash = 5;
   }
 
-  message Response_Set_Option_Performative{
-    int32 code = 1;
-    string log = 2;
-    string info = 3;
-  }
-
   message Response_Init_Chain_Performative{
     ConsensusParams consensus_params = 1;
     bool consensus_params_is_set = 2;
@@ -322,6 +312,8 @@ message AbciMessage{
     int32 gas_used = 6;
     Events events = 7;
     string codespace = 8;
+    string tx_sender = 9;
+    int32 priority = 10;
   }
 
   message Response_Deliver_Tx_Performative{
@@ -386,22 +378,20 @@ message AbciMessage{
     Request_Load_Snapshot_Chunk_Performative request_load_snapshot_chunk = 17;
     Request_Offer_Snapshot_Performative request_offer_snapshot = 18;
     Request_Query_Performative request_query = 19;
-    Request_Set_Option_Performative request_set_option = 20;
-    Response_Apply_Snapshot_Chunk_Performative response_apply_snapshot_chunk = 21;
-    Response_Begin_Block_Performative response_begin_block = 22;
-    Response_Check_Tx_Performative response_check_tx = 23;
-    Response_Commit_Performative response_commit = 24;
-    Response_Deliver_Tx_Performative response_deliver_tx = 25;
-    Response_Echo_Performative response_echo = 26;
-    Response_End_Block_Performative response_end_block = 27;
-    Response_Exception_Performative response_exception = 28;
-    Response_Flush_Performative response_flush = 29;
-    Response_Info_Performative response_info = 30;
-    Response_Init_Chain_Performative response_init_chain = 31;
-    Response_List_Snapshots_Performative response_list_snapshots = 32;
-    Response_Load_Snapshot_Chunk_Performative response_load_snapshot_chunk = 33;
-    Response_Offer_Snapshot_Performative response_offer_snapshot = 34;
-    Response_Query_Performative response_query = 35;
-    Response_Set_Option_Performative response_set_option = 36;
+    Response_Apply_Snapshot_Chunk_Performative response_apply_snapshot_chunk = 20;
+    Response_Begin_Block_Performative response_begin_block = 21;
+    Response_Check_Tx_Performative response_check_tx = 22;
+    Response_Commit_Performative response_commit = 23;
+    Response_Deliver_Tx_Performative response_deliver_tx = 24;
+    Response_Echo_Performative response_echo = 25;
+    Response_End_Block_Performative response_end_block = 26;
+    Response_Exception_Performative response_exception = 27;
+    Response_Flush_Performative response_flush = 28;
+    Response_Info_Performative response_info = 29;
+    Response_Init_Chain_Performative response_init_chain = 30;
+    Response_List_Snapshots_Performative response_list_snapshots = 31;
+    Response_Load_Snapshot_Chunk_Performative response_load_snapshot_chunk = 32;
+    Response_Offer_Snapshot_Performative response_offer_snapshot = 33;
+    Response_Query_Performative response_query = 34;
   }
 }

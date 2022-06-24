@@ -171,6 +171,7 @@ class TestRequestInfo(BaseTestMessageConstruction):
             version="0.1.0",
             block_version=1,
             p2p_version=1,
+            abci_version="0.35.7",
         )
 
 
@@ -374,6 +375,8 @@ class TestResponseCheckTx(BaseTestMessageConstruction):
             gas_used=0,
             events=Events([event, event]),
             codespace="codespace",
+            tx_sender="sender",
+            priority=1,
         )
 
 
@@ -416,18 +419,6 @@ class TestRequestEndBlock(BaseTestMessageConstruction):
         return AbciMessage(
             performative=AbciMessage.Performative.REQUEST_END_BLOCK,  # type: ignore
             height=0,
-        )
-
-
-class TestRequestSetOption(BaseTestMessageConstruction):
-    """Test ABCI request end block."""
-
-    def build_message(self) -> AbciMessage:
-        """Build the message."""
-        return AbciMessage(
-            performative=AbciMessage.Performative.REQUEST_SET_OPTION,  # type: ignore
-            option_key="",
-            option_value="",
         )
 
 
@@ -599,19 +590,6 @@ class TestResponseException(BaseTestMessageConstruction):
         )
 
 
-class TestResponseSetOption(BaseTestMessageConstruction):
-    """Test ABCI request end block."""
-
-    def build_message(self) -> AbciMessage:
-        """Build the message."""
-        return AbciMessage(
-            performative=AbciMessage.Performative.RESPONSE_SET_OPTION,  # type: ignore
-            code=1,
-            log="",
-            info="",
-        )
-
-
 @mock.patch.object(
     packages.valory.protocols.abci.message,
     "enforce",
@@ -727,12 +705,6 @@ def test_performative_string_value() -> None:
     assert (
         str(AbciMessage.Performative.RESPONSE_QUERY) == "response_query"
     ), "The str value must be response_query"
-    assert (
-        str(AbciMessage.Performative.RESPONSE_SET_OPTION) == "response_set_option"
-    ), "The str value must be response_set_option"
-    assert (
-        str(AbciMessage.Performative.REQUEST_SET_OPTION) == "request_set_option"
-    ), "The str value must be request_set_option"
 
 
 def test_encoding_unknown_performative() -> None:
