@@ -85,9 +85,8 @@ class BaseTestEnd2End(AEATestCaseMany, UseFlaskTendermintNode):
     skill_package: str
     # time to wait for testable log strings to appear
     wait_to_finish: int
-    # dictionary with the round names expected to appear in output as keys
-    # and the number of periods they are expected to appear for as values.
-    round_check_strings_to_n_periods: Optional[Dict[str, int]] = None
+    # the "happy path" is a successful finish of the FSM execution
+    happy_path: Tuple[RoundChecks, ...] = ()
     # tuple of strings expected to appear in output as is.
     strict_check_strings: Tuple[str, ...] = ()
     # process to be excluded from checks
@@ -286,22 +285,22 @@ class BaseTestEnd2End(AEATestCaseMany, UseFlaskTendermintNode):
 
     @staticmethod
     def __generate_full_strings_from_rounds(
-        round_check_strings_to_n_periods: Dict[str, int]
+        happy_path: Tuple[RoundChecks, ...]
     ) -> Dict[str, int]:
         """Generate the full strings from the given round strings"""
         full_strings = {}
-        for round_str, n_periods in round_check_strings_to_n_periods.items():
-            entered_str = f"Entered in the '{round_str}' round for period"
-            done_str = f"'{round_str}' round is done with event: Event.DONE"
-            full_strings[entered_str] = n_periods
-            full_strings[done_str] = n_periods
+        for round_check in happy_path:
+            entered_str = f"Entered in the '{round_check.name}' round for period"
+            done_str = f"'{round_check.name}' round is done with event: Event.{round_check.success_event}"
+            full_strings[entered_str] = round_check.n_periods
+            full_strings[done_str] = round_check.n_periods
 
         return full_strings
 
     @classmethod
     def missing_from_output(  # type: ignore
         cls,
-        round_check_strings_to_n_periods: Optional[Dict[str, int]] = None,
+        happy_path: Tuple[RoundChecks, ...] = (),
         strict_check_strings: Tuple[str, ...] = (),
         period: int = 1,
         is_terminating: bool = True,
@@ -312,8 +311,7 @@ class BaseTestEnd2End(AEATestCaseMany, UseFlaskTendermintNode):
 
         Read process stdout in thread and terminate when all strings are present or timeout expired.
 
-        :param round_check_strings_to_n_periods: dictionary with the round names expected to appear in output as keys
-            and the number of periods they are expected to appear for as values.
+        :param happy_path: the happy path of the testing FSM.
         :param strict_check_strings: tuple of strings expected to appear in output as is.
         :param period: period of checking.
         :param is_terminating: whether the agents are terminated if any of the check strings do not appear in the logs.
@@ -327,10 +325,10 @@ class BaseTestEnd2End(AEATestCaseMany, UseFlaskTendermintNode):
 
         # Perform checks for the round strings.
         missing_round_strings = []
-        if round_check_strings_to_n_periods is not None:
+        if len(happy_path):
             logging.info("Performing checks for the round strings.")
             check_strings_to_n_periods = cls.__generate_full_strings_from_rounds(
-                round_check_strings_to_n_periods
+                happy_path
             )
             # Create dictionary to keep track of how many times this string has appeared so far.
             check_strings_to_n_appearances = dict.fromkeys(check_strings_to_n_periods)
@@ -392,7 +390,7 @@ class BaseTestEnd2End(AEATestCaseMany, UseFlaskTendermintNode):
                     missing_round_strings,
                 ) = self.missing_from_output(
                     process=process,
-                    round_check_strings_to_n_periods=self.round_check_strings_to_n_periods,
+                    happy_path=self.happy_path,
                     strict_check_strings=self.strict_check_strings,
                     timeout=self.wait_to_finish,
                 )
