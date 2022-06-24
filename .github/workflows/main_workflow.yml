@@ -97,6 +97,7 @@ jobs:
         wget https://github.com/protocolbuffers/protobuf/releases/download/v3.19.4/protoc-3.19.4-linux-x86_64.zip
         unzip protoc-3.19.4-linux-x86_64.zip -d protoc
         sudo mv protoc/bin/protoc /usr/local/bin/protoc
+        sudo mv protoc/include/* /usr/local/include/
         # install IPFS
         sudo apt-get install -y wget
         sudo npm install -g markdown-spellcheck
@@ -173,6 +174,7 @@ jobs:
           wget https://github.com/protocolbuffers/protobuf/releases/download/v3.19.4/protoc-3.19.4-linux-x86_64.zip
           unzip protoc-3.19.4-linux-x86_64.zip -d protoc
           sudo mv protoc/bin/protoc /usr/local/bin/protoc
+          sudo mv protoc/include/* /usr/local/include/
 
           # install IPFS
           sudo apt-get install -y wget
@@ -221,6 +223,7 @@ jobs:
           wget https://github.com/protocolbuffers/protobuf/releases/download/v3.19.4/protoc-3.19.4-osx-x86_64.zip
           unzip protoc-3.19.4-osx-x86_64.zip -d protoc
           sudo mv protoc/bin/protoc /usr/local/bin/protoc
+          sudo mv protoc/include/* /usr/local/include/
           brew tap yoheimuta/protolint
           brew install protolint
 
@@ -372,6 +375,7 @@ jobs:
           wget https://github.com/protocolbuffers/protobuf/releases/download/v3.19.4/protoc-3.19.4-linux-x86_64.zip
           unzip protoc-3.19.4-linux-x86_64.zip -d protoc
           sudo mv protoc/bin/protoc /usr/local/bin/protoc
+          sudo mv protoc/include/* /usr/local/include/
 
           # install IPFS
           sudo apt-get install -y wget
