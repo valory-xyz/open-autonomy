@@ -194,7 +194,7 @@ def test_aea_to_tendermint() -> None:
     # 7. compare AEA-native message initialization with the information
     #    retrieved from the Tendermint Response after translation
     shared = set(type_tree).intersection(tender_tree)
-    assert len(shared) == 16  # expected number of matches
+    assert len(shared) == 15  # expected number of matches
     for k in shared:
         init_node, tender_node = init_tree[k], tender_tree[k]
         compare_trees(init_node, tender_node)
@@ -211,4 +211,4 @@ def test_tendermint_decoding() -> None:
 
     # 3. translate to AEA-native ABCI Messages
     decoded = list(map(decode, messages))
-    assert len(decoded) == 15  # expected number of matches
+    assert len(decoded) == 14  # expected number of matches

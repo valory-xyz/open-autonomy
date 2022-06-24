@@ -17,7 +17,7 @@ fingerprint:
   models.py: Qmdb5Dve5jFq5UvYLALfXeXSxrQa3tifYWeTjo6iSqttmJ
 fingerprint_ignore_patterns: []
 connections:
-- valory/abci:0.1.0:QmYsYSX4v1dQ4TYRbEwyPodAqXJGPTXEQoHGhNbEvb77SR
+- valory/abci:0.1.0:QmPyFZFuuDGbb9wgnuLZRn3nJeS1srer7paDsEbZRJGumB
 - valory/http_client:0.1.0:QmXBBMS5g4kyyE3mzFcpieoDMKWFf9naaCM3QNSjP2mxDt
 - valory/ledger:0.1.0:Qmcd32eJaDbWFFgqTzKf3Lqhshj37ndhrdtYiNnED2ULqB
 contracts:
@@ -27,17 +27,17 @@ contracts:
 - valory/uniswap_v2_router_02:0.1.0:QmaBYScH7PfzcU5qw5mgzNW5a59R7pRCWQCSNxr1zACpZt
 protocols:
 - open_aea/signing:1.0.0:QmYVxA8smnK8LQ2B4z5BVFvEwo3szQeBosUesycb8By1ZT
-- valory/abci:0.1.0:QmYUoCj9ZJPosgSMACmYevAgTs3BCduAXjZUo67noENsWh
+- valory/abci:0.1.0:QmfYsXNrrKN3gVrCQLufABzADnS173oMmRFtCMJXCCHLhf
 - valory/contract_api:1.0.0:QmZRa6S342MT1oSQjLoyEDitjK6nivypC78DKipvg9JpF1
 - valory/http:1.0.0:QmRQYhYWbGSNHb152dp2L1P9EtZRZZqgvZAaNat5qxfQqK
 - valory/ledger_api:1.0.0:QmNfowyB8rGWr53wuNPYK5BEAnA8AehgipVdYXt8LC5uR6
 skills:
-- valory/abstract_round_abci:0.1.0:QmW8eauGc48zwie2aVfKK4R3xcxPErguAS96dJmsTkYLNx
-- valory/liquidity_rebalancing_abci:0.1.0:QmPgimfCYTv2SvNbqSuaYMQ7sYZQWDyonECkQQ2BLB8oFZ
-- valory/registration_abci:0.1.0:QmRek1xqmRVqzCGyV6pP2X86PWChDVza2zfxjwXd35eLiZ
-- valory/reset_pause_abci:0.1.0:Qmc5rXKmp3yeXXabHPJCbebKF21sBLprXRAPqu6UWbMry8
-- valory/safe_deployment_abci:0.1.0:QmY7uPUs2Cppo2TeUY7mCcPJXygqSBP6sfB5b4v19YYm8k
-- valory/transaction_settlement_abci:0.1.0:QmbnpGFeaygUZjeMfqRtuMbaALVeRRrBdMdcRHrf1vvGVU
+- valory/abstract_round_abci:0.1.0:QmQGRcMUKRFvXEsrWpXSYg7mhbSw6HuLseksWwaKVmJEaw
+- valory/liquidity_rebalancing_abci:0.1.0:QmbzM4zYasRoqwfGY6NedkMZM74a4EuZP557ZDdFkQ2WMk
+- valory/registration_abci:0.1.0:QmcdF8ggJsvAgZyjPwKFf7bBvQ9fiTxEufS5LAwHdvP8SJ
+- valory/reset_pause_abci:0.1.0:QmTsvKN2mXa3sw4TQLtRBvRd2Udspw2dN9rD1w3cfuVXDw
+- valory/safe_deployment_abci:0.1.0:QmScx8XQLpWdXLD9rJvWNp9hWrQqZvxTgW7aEntmsXtYyR
+- valory/transaction_settlement_abci:0.1.0:QmPChPSpiVSGLA2gMrQgMeQtWwytWEP15F5vkHsA87YudQ
 behaviours:
   main:
     args: {}

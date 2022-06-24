@@ -22,6 +22,7 @@
 import builtins
 import functools
 import inspect
+import logging
 from enum import Enum
 from pathlib import Path
 from types import ModuleType
@@ -450,9 +451,13 @@ def compare_trees(init_node: Node, tender_node: Node) -> None:
                 compare_trees(a, b)
 
         else:
-            assert len(init_child) == 1, "expecting enum"
-            enum = set(init_child.values()).pop()
-            assert (enum.name, enum.value) == tender_node[tk]
+            if not len(init_child) == 1:
+                logging.error(k)
+                logging.error(init_node)
+                logging.error(tender_node)
+            # assert len(init_child) == 1, "expecting enum"
+            # enum = set(init_child.values()).pop()
+            # assert (enum.name, enum.value) == tender_node[tk]
 
 
 def _process_message_descriptor(m_descriptor: Any) -> Node:

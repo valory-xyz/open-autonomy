@@ -195,6 +195,7 @@ ct:ValidatorUpdates: |
     oneof sum {
       bytes ed25519   = 1;
       bytes secp256k1 = 2;
+      bytes sr25519   = 3;
     }
   }
   message ValidatorUpdate {
@@ -300,9 +301,9 @@ ct:CheckTxType: |
 # https://github.com/tendermint/tendermint/blob/9daea43375e06816a44c30bdb7b02701df4a5f76/proto/tendermint/abci/types.proto#L276
 ct:Events: |
   message EventAttribute {
-    bytes key   = 1;
-    bytes value = 2;
-    bool  index = 3;  // nondeterministic
+    string key   = 1;
+    string value = 2;
+    bool   index = 3;  // nondeterministic
   }
   message Event {
     string                  type       = 1;

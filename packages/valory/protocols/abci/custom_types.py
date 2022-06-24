@@ -374,7 +374,7 @@ class ConsensusParams:
 class EventAttribute:
     """This class represents an instance of EventAttribute."""
 
-    def __init__(self, key: bytes, value: bytes, index: bool):
+    def __init__(self, key: str, value: str, index: bool):
         """Initialise an instance of EventAttribute."""
         self.key = key
         self.value = value
