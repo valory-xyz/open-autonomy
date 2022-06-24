@@ -19,6 +19,7 @@
 
 """Integration tests for the valory/oracle_abci skill."""
 from copy import deepcopy
+from typing import Tuple
 
 import pytest
 from aea.configurations.data_types import PublicId
@@ -51,6 +52,29 @@ HAPPY_PATH = (
     RoundChecks("reset_and_pause", n_periods=2),
     RoundChecks("collect_observation", n_periods=3),
 )
+
+
+def _generate_reset_happy_path(
+    n_resets_to_perform: int, reset_tendermint_every: int
+) -> Tuple[RoundChecks, ...]:
+    """Generate the happy path for checking the oracle combined with the Tendermint reset functionality."""
+    happy_path = deepcopy(HAPPY_PATH)
+    for round_checks in happy_path:
+        if round_checks.name in (
+            "estimate_consensus"
+            "tx_hash"
+            "randomness_transaction_submission"
+            "select_keeper_transaction_submission_a"
+            "collect_signature"
+            "finalization"
+            "validate_transaction"
+            "reset_and_pause"
+            "collect_observation"
+        ):
+            round_checks.n_periods = n_resets_to_perform * reset_tendermint_every
+
+    return happy_path
+
 
 # strict check log messages of the happy path
 STRICT_CHECK_STRINGS = (
@@ -123,26 +147,17 @@ class TestTendermintReset(TestABCIPriceEstimationFourAgents):
     skill_package = "valory/oracle_abci:0.1.0"
     wait_to_finish = 360
     # run for 4 periods instead of 2
-    happy_path = deepcopy(HAPPY_PATH)
-    for round_checks in happy_path:
-        if round_checks.name in (
-            "estimate_consensus"
-            "tx_hash"
-            "randomness_transaction_submission"
-            "select_keeper_transaction_submission_a"
-            "collect_signature"
-            "finalization"
-            "validate_transaction"
-            "reset_and_pause"
-            "collect_observation"
-        ):
-            round_checks.n_periods = 4
+    __n_resets_to_perform = 2
+    __reset_tendermint_every = 2
+    happy_path = _generate_reset_happy_path(
+        __n_resets_to_perform, __reset_tendermint_every
+    )
     __args_prefix = f"vendor.valory.skills.{PublicId.from_str(skill_package).name}.models.params.args"
     # reset every two rounds
     extra_configs = [
         {
             "dotted_path": f"{__args_prefix}.reset_tendermint_after",
-            "value": 2,
+            "value": __reset_tendermint_every,
         },
         {
             "dotted_path": f"{__args_prefix}.observation_interval",
@@ -167,20 +182,9 @@ class TestTendermintResetInterrupt(TestAgentCatchup):
     stop_string = f"Entered in the 'reset_and_pause' round for period {__reset_tendermint_every - 1}"
     # check if we manage to reset with Tendermint `__n_resets_to_perform` times with the rest of the agents
     exclude_from_checks = [3]
-    happy_path = deepcopy(HAPPY_PATH)
-    for round_checks in happy_path:
-        if round_checks.name in (
-            "estimate_consensus"
-            "tx_hash"
-            "randomness_transaction_submission"
-            "select_keeper_transaction_submission_a"
-            "collect_signature"
-            "finalization"
-            "validate_transaction"
-            "reset_and_pause"
-            "collect_observation"
-        ):
-            round_checks.n_periods = __n_resets_to_perform * __reset_tendermint_every
+    happy_path = _generate_reset_happy_path(
+        __n_resets_to_perform, __reset_tendermint_every
+    )
     __args_prefix = f"vendor.valory.skills.{PublicId.from_str(skill_package).name}.models.params.args"
     # reset every `__reset_tendermint_every` rounds
     extra_configs = [
