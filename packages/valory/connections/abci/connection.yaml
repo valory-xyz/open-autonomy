@@ -6,7 +6,7 @@ description: connection to wrap communication with an ABCI server.
 license: Apache-2.0
 aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
-  Makefile: QmQi1Ykty9vhyCnfPDEC9yHb36ktQtKGffE7tLcHbe88Hf
+  Makefile: Qma6JDrjemhXhJXj6QcwveoQrzUqypKTfiWg6XtMFGbzWe
   __init__.py: QmeFFi4ppQzSMxGGzQYAjKYD8icWxFUbfs1DTzxi3MV6Pg
   check_dependencies.py: QmaTR9NaqGPkTEvTHbXqN5aD52W6cxu1J2CH3YyuPZRDM4
   connection.py: QmdjgVHu1diiJW34iq89K1CufVZ9xxQ4LRhW5P9LBw9AQH
@@ -33,7 +33,7 @@ fingerprint:
   tendermint/version/types_pb2.py: QmXHigkbDKNvT5ThMs1LtusqE7eZSk2skShjVdfmeotyfj
   tendermint_decoder.py: QmPrHyEbaK6uqHXpHZGotaTkHHcr2ap1X6jPh88ugB4Jsm
   tendermint_encoder.py: QmYoakv7n1ue4GffM9r7HSwVATbDrnnB2DH9m7HCWFZe4a
-  version.txt: QmZib55TCuqYEzKzyEsdd6CUgUGEn9j6zFUNHRhA2vL38U
+  version.txt: QmVBNK3M2ZyreBZeLSH1QntMUGtwJGNaeLCD479KWr7dPK
 fingerprint_ignore_patterns: []
 build_entrypoint: check_dependencies.py
 connections: []
