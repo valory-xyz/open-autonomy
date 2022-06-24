@@ -1467,6 +1467,7 @@ class PublicKey:
 
         ed25519 = "ed25519"
         secp256k1 = "secp256k1"
+        sr25519 = "sr25519"
 
     def __init__(self, data: bytes, key_type: PublicKeyType) -> None:
         """
