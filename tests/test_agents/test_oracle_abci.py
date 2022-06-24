@@ -180,8 +180,6 @@ class TestTendermintResetInterrupt(TestAgentCatchup):
 
     # stop for restart_after seconds when resetting Tendermint for the first time (using -1 because count starts from 0)
     stop_string = f"Entered in the 'reset_and_pause' round for period {__reset_tendermint_every - 1}"
-    # check if we manage to reset with Tendermint `__n_resets_to_perform` times with the rest of the agents
-    exclude_from_checks = [3]
     happy_path = _generate_reset_happy_path(
         __n_resets_to_perform, __reset_tendermint_every
     )
@@ -211,3 +209,5 @@ class TestTendermintResetInterruptNoRejoin(TestTendermintResetInterrupt):
     wait_to_finish = 300
     # set the restart to a value so that the agent never rejoins, in order to test the impact to the rest of the agents
     restart_after = wait_to_finish
+    # check if we manage to reset with Tendermint `__n_resets_to_perform` times with the rest of the agents
+    exclude_from_checks = [3]
