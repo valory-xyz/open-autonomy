@@ -545,8 +545,11 @@ class TendermintHandler(Handler):
 
     @property
     def synchronized_data(self) -> BaseSynchronizedData:
-        """
-        Not yet synchronized: Tendermint network not established yet.
+        """Not yet synchronized here.
+
+        The Tendermint network needs to be (re-)established after
+        Tendermint configuration exchange with the other agents
+        registered on-chain for this service.
 
         This handler is used during RegistrationStartupBehaviour.
         At this point there is no historical data yet over which
