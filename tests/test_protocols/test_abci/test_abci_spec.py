@@ -50,7 +50,7 @@ Node = Dict[str, Any]
 
 # constants & utility functions
 ENCODING = "utf-8"
-VERSION = "v0.34.19"
+VERSION = "v0.35.7"
 REPO_PATH = Path(*tendermint_abci.__package__.split(".")).absolute()
 PROTO_FILES = list((REPO_PATH / "protos" / "tendermint").glob("**/*.proto"))
 URL_PREFIX = f"https://raw.githubusercontent.com/tendermint/tendermint/{VERSION}/proto/tendermint/"

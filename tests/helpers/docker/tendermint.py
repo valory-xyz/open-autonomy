@@ -75,7 +75,7 @@ class TendermintDockerImage(DockerImage):
     @property
     def tag(self) -> str:
         """Get the tag."""
-        return "tendermint/tendermint:v0.34.19"
+        return "tendermint/tendermint:v0.35.7"
 
     def _build_command(self) -> List[str]:
         """Build command."""
