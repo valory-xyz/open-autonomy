@@ -109,9 +109,10 @@ class BaseTestEnd2End(AEATestCaseMany, UseFlaskTendermintNode):
         dotted_path: str,
         value: Any,
         type_: Optional[str] = None,
+        aev: bool = True,
     ) -> Result:
         """Set config value."""
-        return super().set_config(dotted_path, value, type_, aev=True)
+        return super().set_config(dotted_path, value, type_, aev)
 
     def __set_extra_configs(self) -> None:
         """Set the current agent's extra config overrides that are skill specific."""
