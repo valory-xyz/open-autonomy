@@ -32,7 +32,7 @@ from tests.test_agents.base import (
 )
 
 
-HAPPY_PATH = (
+HAPPY_PATH: Tuple[RoundChecks, ...] = (
     RoundChecks("registration_startup"),
     RoundChecks("randomness_safe"),
     RoundChecks("select_keeper_safe"),
