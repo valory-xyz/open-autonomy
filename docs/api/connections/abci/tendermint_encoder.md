@@ -65,25 +65,6 @@ Process the response echo.
 
 the ABCI protobuf object.
 
-<a id="packages.valory.connections.abci.tendermint_encoder._TendermintProtocolEncoder.response_set_option"></a>
-
-#### response`_`set`_`option
-
-```python
-@classmethod
-def response_set_option(cls, message: AbciMessage) -> Response
-```
-
-Process the response set_option.
-
-**Arguments**:
-
-- `message`: the response.
-
-**Returns**:
-
-the ABCI protobuf object.
-
 <a id="packages.valory.connections.abci.tendermint_encoder._TendermintProtocolEncoder.response_info"></a>
 
 #### response`_`info
