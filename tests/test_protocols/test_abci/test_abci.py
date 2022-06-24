@@ -337,7 +337,7 @@ class TestResponseBeginBlock(BaseTestMessageConstruction):
 
     def build_message(self) -> AbciMessage:
         """Build the message."""
-        event = Event("type", [EventAttribute(b"key", b"value", True)])
+        event = Event("type", [EventAttribute("key", "value", True)])
         return AbciMessage(
             performative=AbciMessage.Performative.RESPONSE_BEGIN_BLOCK,  # type: ignore
             events=Events([event, event]),
@@ -363,7 +363,7 @@ class TestResponseCheckTx(BaseTestMessageConstruction):
 
     def build_message(self) -> AbciMessage:
         """Build the message."""
-        attribute = EventAttribute(b"key", b"value", True)
+        attribute = EventAttribute("key", "value", True)
         event = Event("type", attributes=[attribute, attribute])
         return AbciMessage(
             performative=AbciMessage.Performative.RESPONSE_CHECK_TX,  # type: ignore
@@ -396,7 +396,7 @@ class TestResponseDeliverTx(BaseTestMessageConstruction):
 
     def build_message(self) -> AbciMessage:
         """Build the message."""
-        attribute = EventAttribute(b"key", b"value", True)
+        attribute = EventAttribute("key", "value", True)
         event = Event("type", attributes=[attribute, attribute])
         return AbciMessage(
             performative=AbciMessage.Performative.RESPONSE_DELIVER_TX,  # type: ignore
@@ -427,7 +427,7 @@ class TestResponseEndBlock(BaseTestMessageConstruction):
 
     def build_message(self) -> AbciMessage:
         """Build the message."""
-        attribute = EventAttribute(b"key", b"value", True)
+        attribute = EventAttribute("key", "value", True)
         event = Event("type", attributes=[attribute, attribute])
         return AbciMessage(
             performative=AbciMessage.Performative.RESPONSE_END_BLOCK,  # type: ignore

@@ -18,7 +18,7 @@
 # ------------------------------------------------------------------------------
 
 """Tests to ensure implementation is on par with ABCI spec"""
-import logging
+
 from pathlib import Path
 from typing import Any, Dict, Set
 
@@ -188,6 +188,7 @@ def test_aea_to_tendermint() -> None:
         response_query={"proof_ops": {"ops": "proof_ops"}},
         response_init_chain={"consensus_params": param_keys_trans},
         response_end_block={"consensus_param_updates": param_keys_trans},
+        response_check_tx={"sender": "tx_sender"},
     )
     replace_keys(tender_tree, tendermint_to_aea)
 
