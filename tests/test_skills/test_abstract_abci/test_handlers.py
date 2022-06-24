@@ -189,18 +189,6 @@ class TestABCIHandler:
         assert response.performative == AbciMessage.Performative.RESPONSE_ECHO
         assert response.message == expected_message
 
-    def test_set_option(self) -> None:
-        """Test the 'set_option' handler method."""
-        message, dialogue = self.dialogues.create(
-            counterparty="",
-            performative=AbciMessage.Performative.REQUEST_SET_OPTION,
-        )
-        response = self.handler.set_option(
-            cast(AbciMessage, message), cast(AbciDialogue, dialogue)
-        )
-        assert response.performative == AbciMessage.Performative.RESPONSE_SET_OPTION
-        assert response.code == ERROR_CODE
-
     def test_begin_block(self) -> None:
         """Test the 'begin_block' handler method."""
         message, dialogue = self.dialogues.create(

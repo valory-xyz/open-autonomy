@@ -18,7 +18,8 @@
 # ------------------------------------------------------------------------------
 
 """Tests to ensure implementation is on par with ABCI spec"""
-
+import logging
+import time
 from pathlib import Path
 from typing import Any, Dict, Set
 
@@ -62,15 +63,18 @@ USE_NON_ZERO_ENUM: bool = True
 
 
 # tests
-def test_local_types_file_matches_github() -> None:
+def test_local_types_file_matches_github(request_attempts: int = 3) -> None:
     """Test local file containing ABCI spec matches Tendermint GitHub"""
 
     different = []
     for file in PROTO_FILES:
         url = URL_PREFIX + "/".join(file.parts[-2:])
-        response = requests.get(url)
+        response, i = requests.get(url), 0
+        while response.status_code != 200 and i < request_attempts:
+            time.sleep(0.1)
+            response, i = requests.get(url), i + 1
         if response.status_code != 200:
-            log_msg = "Failed to retrieve Tendermint abci types from Github"
+            log_msg = "Failed to retrieve Tendermint proto types from Github"
             status_code, reason = response.status_code, response.reason
             raise requests.HTTPError(f"{log_msg}: {status_code} ({reason})")
         github_data = response.text
