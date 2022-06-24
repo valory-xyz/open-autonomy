@@ -1116,13 +1116,17 @@ class CollectionRound(AbstractRound):
         if self._hash_length:
             content = payload.data.get(self.payload_attribute)
             if not content or len(content) % self._hash_length:
-                msg = "FSM design error: expecting serialized data of chunk size"
-                raise ABCIAppInternalError(f"{msg} {self._hash_length}, got: {content}")
+                msg = f"Expecting serialized data of chunk size {self._hash_length}"
+                _logger.error(f"{msg}, got: {content} in {self.round_id}")
+                return
 
         self.collection[sender] = payload
 
     def check_payload(self, payload: BaseTxPayload) -> None:
         """Check Payload"""
+
+        # NOTE: the TransactionNotValidError is intercepted in ABCIRoundHandler.deliver_tx
+        #  which means it will be logged instead of raised
         if payload.round_count != self.synchronized_data.round_count:
             raise TransactionNotValidError(
                 f"Expected round count {self.synchronized_data.round_count} and got {payload.round_count}."
@@ -1138,6 +1142,14 @@ class CollectionRound(AbstractRound):
             raise TransactionNotValidError(
                 f"sender {payload.sender} has already sent value for round: {self.round_id}"
             )
+
+        if self._hash_length:
+            content = payload.data.get(self.payload_attribute)
+            if not content or len(content) % self._hash_length:
+                msg = f"Expecting serialized data of chunk size {self._hash_length}"
+                raise TransactionNotValidError(
+                    f"{msg}, got: {content} in {self.round_id}"
+                )
 
 
 class _CollectUntilAllRound(CollectionRound, ABC):
