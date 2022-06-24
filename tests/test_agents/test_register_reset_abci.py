@@ -24,15 +24,15 @@ from aea.configurations.data_types import PublicId
 from tests.test_agents.base import (
     BaseTestEnd2EndAgentCatchup,
     BaseTestEnd2EndNormalExecution,
+    RoundChecks,
 )
 
 
-# round check log messages of the happy path
-EXPECTED_ROUND_LOG_COUNT = {
-    "registration_startup": 1,
-    "registration": 3,
-    "reset_and_pause": 4,
-}
+HAPPY_PATH = (
+    RoundChecks("registration_startup"),
+    RoundChecks("registration", n_periods=3),
+    RoundChecks("reset_and_pause", n_periods=4),
+)
 
 
 @pytest.mark.parametrize("nb_nodes", (4,))
@@ -41,10 +41,10 @@ class TestTendermintStartup(BaseTestEnd2EndNormalExecution):
 
     agent_package = "valory/register_reset:0.1.0"
     skill_package = "valory/register_reset_abci:0.1.0"
-    round_check_strings_to_n_periods = {
-        "registration_startup": 1,
-        "reset_and_pause": 1,
-    }
+    happy_path = (
+        RoundChecks("registration_startup"),
+        RoundChecks("reset_and_pause"),
+    )
     wait_to_finish = 60
     __args_prefix = f"vendor.valory.skills.{PublicId.from_str(skill_package).name}.models.params.args"
     extra_configs = [
@@ -61,7 +61,7 @@ class TestTendermintReset(BaseTestEnd2EndNormalExecution):
 
     agent_package = "valory/register_reset:0.1.0"
     skill_package = "valory/register_reset_abci:0.1.0"
-    round_check_strings_to_n_periods = EXPECTED_ROUND_LOG_COUNT
+    happy_path = HAPPY_PATH
     wait_to_finish = 200
     __reset_tendermint_every = 1
     __args_prefix = f"vendor.valory.skills.{PublicId.from_str(skill_package).name}.models.params.args"
@@ -90,7 +90,7 @@ class TestTendermintResetInterrupt(BaseTestEnd2EndAgentCatchup):
     restart_after = 1
     __reset_tendermint_every = 1
     stop_string = f"Entered in the 'reset_and_pause' round for period {__reset_tendermint_every - 1}"
-    round_check_strings_to_n_periods = EXPECTED_ROUND_LOG_COUNT
+    happy_path = HAPPY_PATH
 
     __args_prefix = f"vendor.valory.skills.{PublicId.from_str(skill_package).name}.models.params.args"
     # reset every `__reset_tendermint_every` rounds
