@@ -159,27 +159,6 @@ class ABCIHandler(Handler):
         )
         return cast(AbciMessage, reply)
 
-    def set_option(  # pylint: disable=no-self-use
-        self,
-        message: AbciMessage,
-        dialogue: AbciDialogue,
-    ) -> AbciMessage:
-        """
-        Handle a message of REQUEST_SET_OPTION performative.
-
-        :param message: the ABCI request.
-        :param dialogue: the ABCI dialogue.
-        :return: the response.
-        """
-        reply = dialogue.reply(
-            performative=AbciMessage.Performative.RESPONSE_SET_OPTION,
-            target_message=message,
-            code=ERROR_CODE,
-            log="operation not supported",
-            info="operation not supported",
-        )
-        return cast(AbciMessage, reply)
-
     def init_chain(  # pylint: disable=no-self-use
         self, message: AbciMessage, dialogue: AbciDialogue
     ) -> AbciMessage:

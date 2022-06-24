@@ -58,14 +58,12 @@ from packages.valory.protocols.abci.custom_types import (
 )
 
 
-from packages.valory.connections.abci.tendermint.abci.types_pb2 import (  # isort:skip
+from packages.valory.connections.abci.tendermint.types.params_pb2 import (  # type: ignore
     ConsensusParams as ConsensusParamsPb,
 )
-from packages.valory.connections.abci.tendermint.abci.types_pb2 import (  # isort:skip
+from packages.valory.connections.abci.tendermint.abci.types_pb2 import (
     ValidatorUpdate as ValidatorUpdatePb,
 )
-
-
 from packages.valory.connections.abci.tendermint.types.types_pb2 import (  # type: ignore
     BlockID as BlockIDPb,
 )

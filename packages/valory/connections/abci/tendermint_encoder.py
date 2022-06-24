@@ -21,7 +21,6 @@
 from typing import Callable, Optional, Union, cast
 
 from packages.valory.connections.abci.tendermint.abci.types_pb2 import (  # type: ignore
-    ConsensusParams,
     Event,
     EventAttribute,
     Request,
@@ -41,13 +40,15 @@ from packages.valory.connections.abci.tendermint.abci.types_pb2 import (  # type
     ResponseLoadSnapshotChunk,
     ResponseOfferSnapshot,
     ResponseQuery,
-    ResponseSetOption,
     Snapshot,
     ValidatorUpdate,
 )
 from packages.valory.connections.abci.tendermint.crypto.proof_pb2 import (  # type: ignore
     ProofOp,
     ProofOps,
+)
+from packages.valory.connections.abci.tendermint.types.params_pb2 import (  # type: ignore
+    ConsensusParams,
 )
 from packages.valory.protocols.abci import AbciMessage
 from packages.valory.protocols.abci.custom_types import (
