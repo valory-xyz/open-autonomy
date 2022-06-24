@@ -23,6 +23,7 @@ import logging
 import os
 import time
 import warnings
+from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
@@ -35,6 +36,21 @@ from tests.fixture_helpers import UseFlaskTendermintNode
 
 
 _HTTP = "http://"
+
+
+@dataclass
+class RoundChecks:
+    """
+    Class for the necessary checks of a round during the tests.
+
+    name: is the name of the round for which the checks should be performed.
+    event: is the name of the event that is considered as successful.
+    n_periods: is the number of periods this event should appear for the check to be considered successful.
+    """
+
+    name: str
+    success_event: str = "DONE"
+    n_periods: int = 1
 
 
 @pytest.mark.e2e
