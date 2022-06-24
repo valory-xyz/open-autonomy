@@ -130,10 +130,6 @@ class BaseTestEnd2End(AEATestCaseMany, UseFlaskTendermintNode):
             ANY_ADDRESS,
         )
         self.set_config(
-            "vendor.valory.connections.abci.config.host",
-            ANY_ADDRESS,
-        )
-        self.set_config(
             "vendor.valory.connections.abci.config.port",
             self.get_abci_port(i),
         )
