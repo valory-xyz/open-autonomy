@@ -41,8 +41,7 @@ ENCODING = "utf-8"
 DEFAULT_LOG_FILE = "log.log"
 IS_DEV_MODE = os.environ.get("DEV_MODE", "0") == "1"
 CONFIG_OVERRIDE = [
-    ("fast_sync = true", "fast_sync = false"),
-    ("max_num_outbound_peers = 10", "max_num_outbound_peers = 0"),
+    ("max-num-outbound-peers = 10", "max-num-outbound-peers = 0"),
     ("pex = true", "pex = false"),
 ]
 
