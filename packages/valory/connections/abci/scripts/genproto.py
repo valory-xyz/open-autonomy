@@ -53,6 +53,11 @@ def _find_protoc() -> str:
         if which_protoc is None:
             raise ValueError("cannot find 'protoc' binary on the system.")
         protoc_bin = which_protoc
+
+    if protoc_bin is None:
+        sys.stderr.write("protoc is not installed!\n")
+        sys.exit(-1)
+
     return cast(str, protoc_bin)
 
 
@@ -71,7 +76,8 @@ def generate_proto(source: str) -> None:
     """
 
     if not os.path.exists(source):
-        return
+        sys.stderr.write("Can't find required file: %s\n" % source)
+        sys.exit(-1)
 
     output = source.replace(".proto", "_pb2.py").replace("./protos/", "./")
 
@@ -79,14 +85,6 @@ def generate_proto(source: str) -> None:
         os.path.exists(source) and os.path.getmtime(source) > os.path.getmtime(output)
     ):
         print("Generating %s..." % output)
-
-        if not os.path.exists(source):
-            sys.stderr.write("Can't find required file: %s\n" % source)
-            sys.exit(-1)
-
-        if protoc is None:
-            sys.stderr.write("protoc is not installed!\n")
-            sys.exit(-1)
 
         protoc_cross_platform = protoc.replace("/", os.path.sep)
         protoc_command = [

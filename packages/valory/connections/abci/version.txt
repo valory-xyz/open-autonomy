@@ -1,4 +1,4 @@
-	TMCoreSemVer = TMVersionDefault
+	TMVersion = TMVersionDefault
 	// TMVersionDefault is the used as the fallback version of Tendermint Core
 	TMVersionDefault = "0.35.7"
 	// ABCISemVer is the semantic version of the ABCI library
