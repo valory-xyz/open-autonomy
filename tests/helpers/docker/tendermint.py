@@ -129,7 +129,7 @@ class FlaskTendermintDockerImage(TendermintDockerImage):
         abci_port: int = DEFAULT_ABCI_PORT,
         port: int = DEFAULT_TENDERMINT_PORT,
         p2p_port: int = DEFAULT_P2P_PORT,
-        com_port: int = DEFAULT_TENDERMINT_COM_PORT,
+        com_port: int = DEFAULT_TENDERMINT_COM_PORT + 2,
     ):
         """Initialize."""
         super().__init__(client, abci_host, abci_port, port, p2p_port, com_port)
