@@ -20,16 +20,16 @@
 """End2end tests for the valory/simple_abci skill."""
 import pytest
 
-from tests.test_agents.base import BaseTestEnd2EndNormalExecution
+from tests.test_agents.base import BaseTestEnd2EndNormalExecution, RoundChecks
 
 
 # round check log messages of the happy path
-EXPECTED_ROUND_LOG_COUNT = {
-    "registration": 1,
-    "randomness_startup": 3,
-    "select_keeper_at_startup": 2,
-    "reset_and_pause": 2,
-}
+HAPPY_PATH = (
+    RoundChecks("registration"),
+    RoundChecks("randomness_startup", n_periods=3),
+    RoundChecks("select_keeper_at_startup", n_periods=2),
+    RoundChecks("reset_and_pause", n_periods=2),
+)
 
 # strict check log messages of the happy path
 STRICT_CHECK_STRINGS = ("Period end",)
@@ -44,7 +44,7 @@ class TestSimpleABCISingleAgent(
     agent_package = "valory/simple_abci:0.1.0"
     skill_package = "valory/simple_abci:0.1.0"
     wait_to_finish = 80
-    round_check_strings_to_n_periods = EXPECTED_ROUND_LOG_COUNT
+    happy_path = HAPPY_PATH
     strict_check_strings = STRICT_CHECK_STRINGS
     use_benchmarks = True
 
@@ -58,7 +58,7 @@ class TestSimpleABCITwoAgents(
     agent_package = "valory/simple_abci:0.1.0"
     skill_package = "valory/simple_abci:0.1.0"
     wait_to_finish = 120
-    round_check_strings_to_n_periods = EXPECTED_ROUND_LOG_COUNT
+    happy_path = HAPPY_PATH
     strict_check_strings = STRICT_CHECK_STRINGS
 
 
@@ -71,5 +71,5 @@ class TestSimpleABCIFourAgents(
     agent_package = "valory/simple_abci:0.1.0"
     skill_package = "valory/simple_abci:0.1.0"
     wait_to_finish = 120
-    round_check_strings_to_n_periods = EXPECTED_ROUND_LOG_COUNT
+    happy_path = HAPPY_PATH
     strict_check_strings = STRICT_CHECK_STRINGS
