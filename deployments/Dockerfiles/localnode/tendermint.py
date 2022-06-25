@@ -86,7 +86,7 @@ class TendermintParams:  # pylint: disable=too-few-public-methods
         """Get the string representation."""
         return (
             f"{self.__class__.__name__}("
-            f"    proxy_app={self.proxy_app},\n"
+            f"    proxy-app={self.proxy_app},\n"
             f"    rpc_laddr={self.rpc_laddr},\n"
             f"    p2p_laddr={self.p2p_laddr},\n"
             f"    p2p_seeds={self.p2p_seeds},\n"
@@ -117,6 +117,7 @@ class TendermintNode:
         cmd = [
             "tendermint",
             "init",
+            "validator",
         ]
         if self.params.home is not None:  # pragma: nocover
             cmd += ["--home", self.params.home]
@@ -127,8 +128,8 @@ class TendermintNode:
         p2p_seeds = ",".join(self.params.p2p_seeds) if self.params.p2p_seeds else ""
         cmd = [
             "tendermint",
-            "node",
-            f"--proxy_app={self.params.proxy_app}",
+            "start",
+            f"--proxy-app={self.params.proxy_app}",
             f"--rpc.laddr={self.params.rpc_laddr}",
             f"--p2p.laddr={self.params.p2p_laddr}",
             f"--p2p.seeds={p2p_seeds}",

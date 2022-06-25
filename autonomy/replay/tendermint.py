@@ -92,7 +92,7 @@ class TendermintRunner:
                 "node",
                 f"--p2p.laddr=tcp://127.0.0.1:2663{self.node_id}",
                 f"--rpc.laddr=tcp://localhost:2664{self.node_id}",
-                f"--proxy_app=tcp://localhost:2665{self.node_id}",
+                f"--proxy-app=tcp://localhost:2665{self.node_id}",
                 "--consensus.create_empty_blocks=true",
                 "--home",
                 str(self.dump_dir / f"period_{self.period}" / f"node{self.node_id}"),
