@@ -23,27 +23,26 @@ import pytest
 from aea.configurations.data_types import PublicId
 
 from tests.fixture_helpers import UseGnosisSafeHardHatNet
-from tests.test_agents.base import BaseTestEnd2EndNormalExecution
+from tests.test_agents.base import BaseTestEnd2EndNormalExecution, RoundChecks
 
 
 ipfs_daemon = pytest.mark.usefixtures("ipfs_daemon")
 
-# round check log messages of the happy path
-EXPECTED_ROUND_LOG_COUNT = {
-    "collect_history": 1,
-    "transform": 1,
-    "preprocess": 1,
-    "randomness": 1,
-    "optimize": 1,
-    # One time for training before testing and one time for training on full data after having the final model.
-    "train": 2,
-    "test": 1,
-    "estimate": 2,
-    "cycle_reset": 2,
-    "collect_batch": 2,
-    "prepare_batch": 2,
-    "update_forecaster": 2,
-}
+HAPPY_PATH = (
+    RoundChecks("collect_history"),
+    RoundChecks("transform"),
+    RoundChecks("preprocess"),
+    RoundChecks("randomness"),
+    RoundChecks("optimize"),
+    RoundChecks("train"),
+    RoundChecks("train", success_event="FULLY_TRAINED"),
+    RoundChecks("test"),
+    RoundChecks("estimate", n_periods=2, success_event="ESTIMATION_CYCLE"),
+    RoundChecks("cycle_reset", n_periods=2),
+    RoundChecks("collect_batch", n_periods=2),
+    RoundChecks("prepare_batch", n_periods=2),
+    RoundChecks("update_forecaster", n_periods=2),
+)
 
 
 @ipfs_daemon
@@ -52,7 +51,7 @@ class BaseTestABCIAPYEstimationSkillNormalExecution(BaseTestEnd2EndNormalExecuti
 
     agent_package = "valory/apy_estimation_chained:0.1.0"
     skill_package = "valory/apy_estimation_chained_abci:0.1.0"
-    round_check_strings_to_n_periods = EXPECTED_ROUND_LOG_COUNT
+    happy_path = HAPPY_PATH
     ROUND_TIMEOUT_SECONDS = 120
     wait_to_finish = 240
     __args_prefix = f"vendor.valory.skills.{PublicId.from_str(skill_package).name}.models.params.args"

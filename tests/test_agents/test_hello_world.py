@@ -20,16 +20,15 @@
 """End2end tests for the valory/hello_world skill."""
 import pytest
 
-from tests.test_agents.base import BaseTestEnd2EndNormalExecution
+from tests.test_agents.base import BaseTestEnd2EndNormalExecution, RoundChecks
 
 
-# round check log messages of the happy path
-EXPECTED_ROUND_LOG_COUNT = {
-    "registration": 1,
-    "print_message": 3,
-    "select_keeper": 2,
-    "reset_and_pause": 2,
-}
+HAPPY_PATH = (
+    RoundChecks("registration"),
+    RoundChecks("print_message", n_periods=3),
+    RoundChecks("select_keeper", n_periods=2),
+    RoundChecks("reset_and_pause", n_periods=2),
+)
 
 # strict check log messages of the happy path
 STRICT_CHECK_STRINGS = (
@@ -50,5 +49,5 @@ class TestHelloWorldABCIFourAgents(
     agent_package = "valory/hello_world:0.1.0"
     skill_package = "valory/hello_world_abci:0.1.0"
     wait_to_finish = 160
-    round_check_strings_to_n_periods = EXPECTED_ROUND_LOG_COUNT
+    happy_path = HAPPY_PATH
     strict_check_strings = STRICT_CHECK_STRINGS
