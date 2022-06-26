@@ -44,7 +44,7 @@ from packages.valory.protocols.abci.custom_types import (
 from packages.valory.protocols.abci.dialogues import AbciDialogues as BaseAbciDialogues
 from packages.valory.skills.abstract_abci.dialogues import AbciDialogue, AbciDialogues
 from packages.valory.skills.abstract_abci.handlers import ABCIHandler, ERROR_CODE
-
+from packages.valory.protocols.abci.custom_types import Header, LastCommitInfo, Evidences
 from tests.conftest import ROOT_DIR
 
 
@@ -143,6 +143,7 @@ class TestABCIHandler:
             version="",
             block_version=0,
             p2p_version=0,
+            abci_version="0.17.0",
         )
         self.handler.handle(cast(AbciMessage, message))
 
@@ -156,6 +157,7 @@ class TestABCIHandler:
             p2p_version=0,
             target=0,
             message_id=1,
+            abci_version="0.17.0",
         )
         message._sender = "server"
         message._to = str(self.skill_id)
@@ -169,6 +171,7 @@ class TestABCIHandler:
             version="",
             block_version=0,
             p2p_version=0,
+            abci_version="0.17.0",
         )
         response = self.handler.info(
             cast(AbciMessage, message), cast(AbciDialogue, dialogue)
@@ -191,13 +194,16 @@ class TestABCIHandler:
 
     def test_begin_block(self) -> None:
         """Test the 'begin_block' handler method."""
+        header = Header(*(MagicMock() for _ in range(14)))
+        last_commit_info = LastCommitInfo(*(MagicMock() for _ in range(2)))
+        byzantine_validators = Evidences(MagicMock())
         message, dialogue = self.dialogues.create(
             counterparty="",
             performative=AbciMessage.Performative.REQUEST_BEGIN_BLOCK,
             hash=b"",
-            header=MagicMock(),
-            last_commit_info=MagicMock(),
-            byzantine_validators=MagicMock(),
+            header=header,
+            last_commit_info=last_commit_info,
+            byzantine_validators=byzantine_validators,
         )
         response = self.handler.begin_block(
             cast(AbciMessage, message), cast(AbciDialogue, dialogue)
@@ -364,5 +370,5 @@ class TestABCIHandler:
             == AbciMessage.Performative.RESPONSE_APPLY_SNAPSHOT_CHUNK
         )
         assert response.result == Result(ResultType.REJECT)
-        assert response.refetch_chunks == []
-        assert response.reject_senders == []
+        assert response.refetch_chunks == tuple()
+        assert response.reject_senders == tuple()
