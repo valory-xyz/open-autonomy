@@ -79,7 +79,7 @@ class TendermintDockerImage(DockerImage):
 
     def _build_command(self) -> List[str]:
         """Build command."""
-        cmd = ["node", f"--proxy_app={self.proxy_app}"]
+        cmd = ["start", f"--proxy-app={self.proxy_app}"]
         return cmd
 
     def create(self) -> Container:
