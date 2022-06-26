@@ -2,7 +2,7 @@
 
 Open Autonomy is a framework for the creation of Agent Services: off-chain services which run as a multi-agent-system (MAS)  and are replicated on a temporary consensus gadget (blockchain) while being crypto-economically secured on a public blockchain, hence offering robustness, transparency and decentralization off-chain.
 
-As opposed to traditional smart contracts, Valory apps go beyond simple, purely off-chain logic without giving up on decentralization.
+As opposed to traditional smart contracts, Valory apps go beyond simple, purely on-chain logic without giving up on decentralization.
 
 ## Requirements
 
