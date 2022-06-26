@@ -2,6 +2,8 @@ ARG AEA_VERSION=latest
 FROM valory/open-aea-user:${AEA_VERSION}
 ARG AEA_AGENT
 
+COPY openssl.cnf /etc/ssl
+
 WORKDIR /home/ubuntu
 ENV PATH=$PATH:/home/ubuntu/.local/bin
 
