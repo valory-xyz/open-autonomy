@@ -127,13 +127,13 @@ class TendermintLocalNetworkBuilder:
         n = self.nodes[i]
         return [
             "tendermint",
-            "node",
+            "start",
             "--home",
             str(n.home),
             f"--rpc.laddr={n.rpc_laddr}",
             f"--p2p.laddr={n.p2p_laddr}",
             f"--p2p.seeds={','.join(self.get_p2p_seeds())}",
-            f"--consensus.create_empty_blocks={self.consensus_create_empty_blocks}",
+            f"--consensus.create-empty-blocks={self.consensus_create_empty_blocks}",
         ]
 
     @property

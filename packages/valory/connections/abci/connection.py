@@ -436,7 +436,7 @@ class TendermintParams:  # pylint: disable=too-few-public-methods
             f"    rpc_laddr={self.rpc_laddr},\n"
             f"    p2p_laddr={self.p2p_laddr},\n"
             f"    p2p_seeds={self.p2p_seeds},\n"
-            f"    consensus_create_empty_blocks={self.consensus_create_empty_blocks},\n"
+            f"    consensus.create-empty-blocks={self.consensus_create_empty_blocks},\n"
             f"    home={self.home},\n"
             ")"
         )
@@ -479,7 +479,7 @@ class TendermintNode:
             f"--rpc.laddr={self.params.rpc_laddr}",
             f"--p2p.laddr={self.params.p2p_laddr}",
             f"--p2p.seeds={p2p_seeds}",
-            f"--consensus.create_empty_blocks={str(self.params.consensus_create_empty_blocks).lower()}",
+            f"--consensus.create-empty-blocks={str(self.params.consensus_create_empty_blocks).lower()}",
         ]
         if self.params.home is not None:  # pragma: nocover
             cmd += ["--home", self.params.home]
