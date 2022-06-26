@@ -39,7 +39,7 @@ protocols:
 - valory/ledger_api:1.0.0:QmNfowyB8rGWr53wuNPYK5BEAnA8AehgipVdYXt8LC5uR6
 skills:
 - valory/abstract_round_abci:0.1.0:QmXa9WEa1hP8sXntL3jbeViDLCnWZsGrU4aGPSeoQmVbH5
-- valory/registration_abci:0.1.0:QmR9DSKQ6K4BwMrajp9NJAm92TJrQnXV2H4XdaFtfuirUt
+- valory/registration_abci:0.1.0:QmZmGdxcUxj4gg16xogWHqaZFAmYZAiGKJJSgugjRyPRU1
 behaviours:
   main:
     args: {}
