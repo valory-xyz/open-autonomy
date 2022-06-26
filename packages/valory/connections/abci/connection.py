@@ -488,6 +488,7 @@ class TendermintNode:
     def init(self) -> None:
         """Initialize Tendermint node."""
         cmd = self._build_init_command()
+        self.logger.info(f"Tendermint init command: {' '.join(cmd)}")
         subprocess.call(cmd)  # nosec
 
     def start(self, start_monitoring: bool = False) -> None:
@@ -501,7 +502,7 @@ class TendermintNode:
         if self._process is not None:  # pragma: nocover
             return
         cmd = self._build_node_command()
-
+        self.logger.info(f"Tendermint start command: {' '.join(cmd)}")
         if platform.system() == "Windows":  # pragma: nocover
             self._process = (
                 subprocess.Popen(  # nosec # pylint: disable=consider-using-with,W1509

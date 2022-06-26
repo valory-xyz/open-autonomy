@@ -205,7 +205,7 @@ class TestTendermintServerApp(BaseTendermintServerTest):
             Path(self.tm_home, "data", "priv_validator_state.json"),
         ]
 
-        assert any([f.exists() for f in expected_file_names]), expected_file_names
+        assert all(f.exists() for f in expected_file_names), expected_file_names
 
     @wait_for_node_to_run
     def test_get_request_status(self) -> None:
@@ -273,6 +273,7 @@ class TestTendermintLogMessages(BaseTendermintServerTest):
         def get_logs() -> str:
             with open(os.environ["LOG_FILE"], "r") as f:
                 lines = "".join(f.readlines())
+                logging.error(lines)
             return lines
 
         def get_missing(messages: List[str]) -> List[str]:
@@ -286,9 +287,10 @@ class TestTendermintLogMessages(BaseTendermintServerTest):
         before_stopping = [
             "Tendermint process started",
             "Monitoring thread started",
-            "Starting multiAppConn service",
-            "Starting localClient service",
-            "This node is a validator",
+            "Completed ABCI Handshake",  # from Tendermint
+            "This node is a validator",  # from Tendermint
+            "Starting RPC HTTP server",  # from Tendermint
+            "received complete proposal block",  # from Tendermint
         ]
 
         after_stopping = [
