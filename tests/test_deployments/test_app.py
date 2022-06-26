@@ -273,7 +273,6 @@ class TestTendermintLogMessages(BaseTendermintServerTest):
         def get_logs() -> str:
             with open(os.environ["LOG_FILE"], "r") as f:
                 lines = "".join(f.readlines())
-                logging.error(lines)
             return lines
 
         def get_missing(messages: List[str]) -> List[str]:

@@ -171,7 +171,7 @@ class TestRequestInfo(BaseTestMessageConstruction):
             version="0.1.0",
             block_version=1,
             p2p_version=1,
-            abci_version="0.35.7",
+            abci_version="0.17.0",
         )
 
 

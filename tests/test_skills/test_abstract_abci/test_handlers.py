@@ -48,6 +48,9 @@ from packages.valory.protocols.abci.custom_types import Header, LastCommitInfo, 
 from tests.conftest import ROOT_DIR
 
 
+ABCI_VERSION = "0.17.0"
+
+
 class AbciDialoguesServer(BaseAbciDialogues):
     """The dialogues class keeps track of all ABCI dialogues."""
 
@@ -143,7 +146,7 @@ class TestABCIHandler:
             version="",
             block_version=0,
             p2p_version=0,
-            abci_version="0.17.0",
+            abci_version=ABCI_VERSION,
         )
         self.handler.handle(cast(AbciMessage, message))
 
@@ -157,7 +160,7 @@ class TestABCIHandler:
             p2p_version=0,
             target=0,
             message_id=1,
-            abci_version="0.17.0",
+            abci_version=ABCI_VERSION,
         )
         message._sender = "server"
         message._to = str(self.skill_id)
@@ -171,7 +174,7 @@ class TestABCIHandler:
             version="",
             block_version=0,
             p2p_version=0,
-            abci_version="0.17.0",
+            abci_version=ABCI_VERSION,
         )
         response = self.handler.info(
             cast(AbciMessage, message), cast(AbciDialogue, dialogue)

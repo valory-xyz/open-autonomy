@@ -183,6 +183,8 @@ class ABCIRoundHandler(ABCIHandler):
             gas_used=0,
             events=Events([]),
             codespace="",
+            tx_sender="",
+            priority=0,  # tx priority for mempool ordering
         )
         return cast(AbciMessage, reply)
 
@@ -663,7 +665,7 @@ class TendermintHandler(Handler):
 
         try:  # validate message contains a valid address
             validator_config = json.loads(message.info)
-            self.context.logger.error(validator_config)
+            self.context.logger.warning(validator_config)
             parse_result = urlparse(validator_config["tendermint_url"])
             if parse_result.hostname != "localhost":
                 ipaddress.ip_network(parse_result.hostname)
