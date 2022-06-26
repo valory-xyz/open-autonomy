@@ -99,8 +99,8 @@ class TestTendermintProtocolEncoder:
         abci_message = AbciMessage(
             performative=AbciMessage.Performative.RESPONSE_APPLY_SNAPSHOT_CHUNK,  # type: ignore
             result=result,
-            refetch_chunks=[],
-            reject_senders=[],
+            refetch_chunks=tuple(),
+            reject_senders=tuple(),
         )
         message = _TendermintProtocolEncoder.response_apply_snapshot_chunk(abci_message)
         assert message.apply_snapshot_chunk.result == result.result_type.value
