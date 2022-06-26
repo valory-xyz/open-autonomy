@@ -23,6 +23,7 @@ import logging
 import os
 import time
 import warnings
+from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
@@ -35,6 +36,21 @@ from tests.fixture_helpers import UseFlaskTendermintNode
 
 
 _HTTP = "http://"
+
+
+@dataclass
+class RoundChecks:
+    """
+    Class for the necessary checks of a round during the tests.
+
+    name: is the name of the round for which the checks should be performed.
+    event: is the name of the event that is considered as successful.
+    n_periods: is the number of periods this event should appear for the check to be considered successful.
+    """
+
+    name: str
+    success_event: str = "DONE"
+    n_periods: int = 1
 
 
 @pytest.mark.e2e
@@ -69,9 +85,8 @@ class BaseTestEnd2End(AEATestCaseMany, UseFlaskTendermintNode):
     skill_package: str
     # time to wait for testable log strings to appear
     wait_to_finish: int
-    # dictionary with the round names expected to appear in output as keys
-    # and the number of periods they are expected to appear for as values.
-    round_check_strings_to_n_periods: Optional[Dict[str, int]] = None
+    # the "happy path" is a successful finish of the FSM execution
+    happy_path: Tuple[RoundChecks, ...] = ()
     # tuple of strings expected to appear in output as is.
     strict_check_strings: Tuple[str, ...] = ()
     # process to be excluded from checks
@@ -109,9 +124,10 @@ class BaseTestEnd2End(AEATestCaseMany, UseFlaskTendermintNode):
         dotted_path: str,
         value: Any,
         type_: Optional[str] = None,
+        aev: bool = True,
     ) -> Result:
         """Set config value."""
-        return super().set_config(dotted_path, value, type_, aev=True)
+        return super().set_config(dotted_path, value, type_, aev)
 
     def __set_extra_configs(self) -> None:
         """Set the current agent's extra config overrides that are skill specific."""
@@ -124,10 +140,6 @@ class BaseTestEnd2End(AEATestCaseMany, UseFlaskTendermintNode):
         self.set_config(
             "agent.logging_config.handlers.logfile.filename",
             str(self.t / f"abci_{i}.txt"),
-        )
-        self.set_config(
-            "vendor.valory.connections.abci.config.host",
-            ANY_ADDRESS,
         )
         self.set_config(
             "vendor.valory.connections.abci.config.host",
@@ -273,22 +285,22 @@ class BaseTestEnd2End(AEATestCaseMany, UseFlaskTendermintNode):
 
     @staticmethod
     def __generate_full_strings_from_rounds(
-        round_check_strings_to_n_periods: Dict[str, int]
+        happy_path: Tuple[RoundChecks, ...]
     ) -> Dict[str, int]:
         """Generate the full strings from the given round strings"""
         full_strings = {}
-        for round_str, n_periods in round_check_strings_to_n_periods.items():
-            entered_str = f"Entered in the '{round_str}' round for period"
-            done_str = f"'{round_str}' round is done with event: Event.DONE"
-            full_strings[entered_str] = n_periods
-            full_strings[done_str] = n_periods
+        for round_check in happy_path:
+            entered_str = f"Entered in the '{round_check.name}' round for period"
+            done_str = f"'{round_check.name}' round is done with event: Event.{round_check.success_event}"
+            full_strings[entered_str] = round_check.n_periods
+            full_strings[done_str] = round_check.n_periods
 
         return full_strings
 
     @classmethod
     def missing_from_output(  # type: ignore
         cls,
-        round_check_strings_to_n_periods: Optional[Dict[str, int]] = None,
+        happy_path: Tuple[RoundChecks, ...] = (),
         strict_check_strings: Tuple[str, ...] = (),
         period: int = 1,
         is_terminating: bool = True,
@@ -299,8 +311,7 @@ class BaseTestEnd2End(AEATestCaseMany, UseFlaskTendermintNode):
 
         Read process stdout in thread and terminate when all strings are present or timeout expired.
 
-        :param round_check_strings_to_n_periods: dictionary with the round names expected to appear in output as keys
-            and the number of periods they are expected to appear for as values.
+        :param happy_path: the happy path of the testing FSM.
         :param strict_check_strings: tuple of strings expected to appear in output as is.
         :param period: period of checking.
         :param is_terminating: whether the agents are terminated if any of the check strings do not appear in the logs.
@@ -314,10 +325,10 @@ class BaseTestEnd2End(AEATestCaseMany, UseFlaskTendermintNode):
 
         # Perform checks for the round strings.
         missing_round_strings = []
-        if round_check_strings_to_n_periods is not None:
+        if len(happy_path):
             logging.info("Performing checks for the round strings.")
             check_strings_to_n_periods = cls.__generate_full_strings_from_rounds(
-                round_check_strings_to_n_periods
+                happy_path
             )
             # Create dictionary to keep track of how many times this string has appeared so far.
             check_strings_to_n_appearances = dict.fromkeys(check_strings_to_n_periods)
@@ -379,7 +390,7 @@ class BaseTestEnd2End(AEATestCaseMany, UseFlaskTendermintNode):
                     missing_round_strings,
                 ) = self.missing_from_output(
                     process=process,
-                    round_check_strings_to_n_periods=self.round_check_strings_to_n_periods,
+                    happy_path=self.happy_path,
                     strict_check_strings=self.strict_check_strings,
                     timeout=self.wait_to_finish,
                 )

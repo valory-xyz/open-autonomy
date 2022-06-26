@@ -503,7 +503,17 @@ class ContractApiHandler(AbstractResponseHandler):
 
 
 class TendermintHandler(Handler):
-    """The Tendermint request / response handler."""
+    """
+    The Tendermint config-sharing request / response handler.
+
+    This handler is used to share the information necessary
+    to set up the Tendermint network. The agents use it during
+    the RegistrationStartupBehaviour, and communicate with
+    each other over the Agent Communication Network using a
+    p2p_libp2p or p2p_libp2p_client connection.
+
+    This handler does NOT use the ABCI connection.
+    """
 
     SUPPORTED_PROTOCOL: Optional[PublicId] = TendermintMessage.protocol_id
 
@@ -535,7 +545,18 @@ class TendermintHandler(Handler):
 
     @property
     def synchronized_data(self) -> BaseSynchronizedData:
-        """Historical stata data over which consensus has been achieved"""
+        """Not yet synchronized here.
+
+        The Tendermint network needs to be (re-)established after
+        Tendermint configuration exchange with the other agents
+        registered on-chain for this service.
+
+        This handler is used during RegistrationStartupBehaviour.
+        At this point there is no historical data yet over which
+        consensus has been achieved. We access it here to store
+        the information of other agents' Tendermint configurations
+        under `registered_addresses`.
+        """
         return cast(
             BaseSynchronizedData,
             cast(SharedState, self.context.state).synchronized_data,
@@ -551,7 +572,7 @@ class TendermintHandler(Handler):
 
     @property
     def dialogues(self) -> Optional[TendermintDialogues]:
-        """Tendermint request / response protocol dialogues"""
+        """Tendermint config-sharing request / response protocol dialogues"""
 
         attribute = cast(PublicId, self.SUPPORTED_PROTOCOL).name + "_dialogues"
         return getattr(self.context, attribute, None)
@@ -559,14 +580,14 @@ class TendermintHandler(Handler):
     def _send_error_response(
         self, message: TendermintMessage, dialogue: TendermintDialogue
     ) -> None:
-        """Check if sender is among registered addresses"""
+        """Check if sender is among on-chain registered addresses"""
         # do not respond to errors to avoid loops
         log_message = self.LogMessages.not_in_registered_addresses.value
         self.context.logger.info(f"{log_message}: {message}")
         self._reply_with_tendermint_error(message, dialogue, log_message)
 
     def handle(self, message: Message) -> None:
-        """Handle incoming Tendermint messages"""
+        """Handle incoming Tendermint config-sharing messages"""
 
         dialogues = cast(TendermintDialogues, self.dialogues)
         dialogue = cast(TendermintDialogue, dialogues.update(message))
@@ -593,7 +614,7 @@ class TendermintHandler(Handler):
         dialogue: TendermintDialogue,
         error_message: str,
     ) -> None:
-        """Reply with Tendermint error"""
+        """Reply with Tendermint config-sharing error"""
         response = dialogue.reply(
             performative=TendermintMessage.Performative.ERROR,
             target_message=message,
@@ -609,7 +630,7 @@ class TendermintHandler(Handler):
     def _handle_request(
         self, message: TendermintMessage, dialogue: TendermintDialogue
     ) -> None:
-        """Handler Tendermint request message"""
+        """Handler Tendermint config-sharing request message"""
 
         if not self.registered_addresses:
             log_message = self.LogMessages.no_addresses_retrieved_yet.value
@@ -634,7 +655,7 @@ class TendermintHandler(Handler):
     def _handle_response(
         self, message: TendermintMessage, dialogue: TendermintDialogue
     ) -> None:
-        """Process Tendermint response messages"""
+        """Process Tendermint config-sharing response messages"""
 
         if message.sender not in self.registered_addresses:
             self._send_error_response(message, dialogue)

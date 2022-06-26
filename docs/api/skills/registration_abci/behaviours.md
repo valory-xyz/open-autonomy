@@ -160,7 +160,18 @@ Make HTTP POST request to update agent's local Tendermint node
 def async_act() -> Generator
 ```
 
-Act asynchronously
+Do the action.
+
+Steps:
+1. Collect personal Tendermint configuration
+2. Make Service Registry contract call to retrieve addresses
+   of the other agents registered on-chain for the service.
+3. Request Tendermint configuration from registered agents.
+   This is done over the Agent Communication Network using
+   the p2p_libp2p_client connection.
+4. Update Tendermint configuration via genesis.json with the
+   information of the other validators (agents).
+5. Restart Tendermint to establish the validator network.
 
 <a id="packages.valory.skills.registration_abci.behaviours.RegistrationBehaviour"></a>
 
