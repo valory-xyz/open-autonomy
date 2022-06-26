@@ -162,7 +162,6 @@ nav:
 
 
 plugins:
-  - markdownmermaid
   - macros
 
 markdown_extensions:
