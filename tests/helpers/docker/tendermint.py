@@ -18,6 +18,7 @@
 # ------------------------------------------------------------------------------
 
 """Tendermint Docker image."""
+import logging
 import os
 import re
 import subprocess  # nosec
@@ -304,6 +305,7 @@ class FlaskTendermintDockerImage(TendermintDockerImage):
         for i in range(nb_nodes):
             cmd.append(f"--hostname=node{i}")
 
+        logging.debug(f"create config command: {' '.join(cmd)}")
         subprocess.run(cmd)  # nosec
         for config_file in Path().cwd().glob("nodes/**/*.toml"):
             config_text = config_file.read_text(encoding="utf-8")
