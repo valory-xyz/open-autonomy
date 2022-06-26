@@ -369,6 +369,7 @@ class RegistrationStartupBehaviour(RegistrationBaseBehaviour):
         """
         if not self.params.share_tm_config_on_startup:
             yield from super().async_act()
+            return
 
         self.context.logger.info(f"My address: {self.context.agent_address}")
 
