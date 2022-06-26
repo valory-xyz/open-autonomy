@@ -24,10 +24,10 @@ protocols:
 - valory/tendermint:0.1.0:QmUj6wxrYnaXjhVt13KZT33qcy9kcAcKRRXXY1DyRajPdQ
 skills:
 - valory/abstract_abci:0.1.0:QmbcPN78cpGL655JC7NvsC6JhCV3vNSvXDjr1csseLPdym
-- valory/abstract_round_abci:0.1.0:QmWBF5yqcQTj5o1vwAfMQVhj1CRvz6vfP63dAqFY42GNGK
-- valory/apy_estimation_abci:0.1.0:QmbTZBnG3J6Vw5PFXaM6sh288DLbrdoNkY3wX1oXAMSKMo
-- valory/apy_estimation_chained_abci:0.1.0:QmaKLM5Q2yeLaFP6C3Ye7yhKfErmKJR5XhEEw5cWbVNDYu
-- valory/registration_abci:0.1.0:QmReWgfJ9mrRrtaSqgwbDKRVGXTxFqVzHeRASBWmcaDbmP
+- valory/abstract_round_abci:0.1.0:QmXa9WEa1hP8sXntL3jbeViDLCnWZsGrU4aGPSeoQmVbH5
+- valory/apy_estimation_abci:0.1.0:Qme4nxJkdHUQHSV8gKm5eCjAgj8T8iQdziUYqJQR1G4qFc
+- valory/apy_estimation_chained_abci:0.1.0:QmZLoPqzwrEhyt81CZRJ69WDX3SvTLt3gAPRwuFEJ1Nw5P
+- valory/registration_abci:0.1.0:QmR9DSKQ6K4BwMrajp9NJAm92TJrQnXV2H4XdaFtfuirUt
 default_ledger: ethereum
 required_ledgers:
 - ethereum
