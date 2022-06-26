@@ -193,10 +193,6 @@ class TestTendermintServerApp(BaseTendermintServerTest):
     def test_files_exist(self) -> None:
         """Test that the necessary files are present"""
 
-        def remove_prefix(text: str, prefix: str) -> str:
-            """str.removeprefix only from python3.9 onward"""
-            return text[text.startswith(prefix) and len(prefix) :]
-
         expected_file_names = [
             Path(self.tm_home, "config", "config.toml"),
             Path(self.tm_home, "config", "priv_validator_key.json"),
