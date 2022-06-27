@@ -22,7 +22,6 @@ import json
 import logging
 import os
 import platform
-import shutil
 import signal
 import subprocess  # nosec
 from asyncio import AbstractEventLoop, AbstractServer, CancelledError, Task

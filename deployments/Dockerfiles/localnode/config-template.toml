@@ -1,4 +1,4 @@
-# fast_sync = true
+blocksync.enable = true
 
 # https://docs.tendermint.com/v0.35/rpc/
 [rpc]
