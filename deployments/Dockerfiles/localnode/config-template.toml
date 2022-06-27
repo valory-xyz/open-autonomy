@@ -1,5 +1,4 @@
 blocksync.enable = true
 
-# https://docs.tendermint.com/v0.35/rpc/
 [rpc]
 laddr = "tcp://0.0.0.0:26657"

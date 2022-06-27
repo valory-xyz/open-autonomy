@@ -128,6 +128,7 @@ class ABCIHandler(Handler):
         info_data = ""
         version = ""
         app_version = 0
+        abci_version = "0.17.0"
         last_block_height = 0
         last_block_app_hash = b""
         reply = dialogue.reply(
@@ -136,6 +137,7 @@ class ABCIHandler(Handler):
             info_data=info_data,
             version=version,
             app_version=app_version,
+            abci_version=abci_version,
             last_block_height=last_block_height,
             last_block_app_hash=last_block_app_hash,
         )
