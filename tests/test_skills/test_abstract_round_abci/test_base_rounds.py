@@ -626,6 +626,15 @@ class TestCollectionRound(_BaseRoundTestClass):
             consensus_params=self.consensus_params,
         )
 
+        # collection round may set a flag to allow payments from inactive agents (rejoin)
+        assert test_round._allow_rejoin_payloads is False  # default
+        assert test_round.accepting_payloads_from is self.synchronized_data.participants
+        test_round._allow_rejoin_payloads = True
+        assert (
+            test_round.accepting_payloads_from
+            is self.synchronized_data.all_participants
+        )
+
         first_payload, *_ = self.tx_payloads
         test_round.process_payload(first_payload)
         assert test_round.collection[first_payload.sender] == first_payload
