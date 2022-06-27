@@ -28,10 +28,10 @@ protocols:
 skills:
 - valory/abstract_abci:0.1.0:QmbcPN78cpGL655JC7NvsC6JhCV3vNSvXDjr1csseLPdym
 - valory/abstract_round_abci:0.1.0:QmZQBKqoNcR36t4cc6rPCDxtTLa8jaxEkY6S8QPHaLcRbQ
-- valory/oracle_abci:0.1.0:QmScoYeuS1cLxfeDm89e4Q8idcqW5zbwCGf3W7mPFMzNUv
+- valory/oracle_abci:0.1.0:QmXVXgyb6xE4WVdEeKJhFxUxHfCyV7r1UbSUKge5pjMpMG
 - valory/oracle_deployment_abci:0.1.0:QmPaDTVrWGkJtMakccXQJnzq1TExJzxJZJXBcJERzp43BM
 - valory/price_estimation_abci:0.1.0:QmUdVA5T1LviwazXC9yJJGeTy6vFKBfGgJWwviFDgJUXCY
-- valory/registration_abci:0.1.0:QmaEtpFmmKC5Jm25QKufABdG45wN6Smm4C3oC9NQ8W5bK9
+- valory/registration_abci:0.1.0:QmUqVsdf5W1tpF9u2Cs5w6LKCDtU9YHiyfzjkKT83mCKxH
 - valory/reset_pause_abci:0.1.0:QmS4pQhN8Cprrbo2JBG6cDVNtzDwEyY2Fmd9pfuiN7od3M
 - valory/safe_deployment_abci:0.1.0:QmRRYd77CvUAVZua25cRjL7CwAj2fQFaN7jSLxNE3FenQT
 - valory/transaction_settlement_abci:0.1.0:QmccwAhyPM282vDsqS7P2E6CsKwrhoVrNPwXGEsDwf6M3d
@@ -111,7 +111,7 @@ models:
       max_healthcheck: ${SKILL_ORACLE_ABCI_MODELS_PARAMS_ARGS_MAX_HEALTHCHECK:int:1200}
       broadcast_to_server: ${SKILL_ORACLE_ABCI_MODELS_PARAMS_ARGS_BROADCAST_TO_SERVER:bool:false}
       service_registry_address: ${SKILL_ORACLE_ABCI_MODELS_PARAMS_ARGS_SERVICE_REGISTRY_ADDRESS:str:none}
-      share_tm_config_on_startup: ${SKILL_ORACLE_ABCI_MODELS_PARAMS_ARGS_SERVICE_REGISTRY_ADDRESS:bool:false}
+      share_tm_config_on_startup: ${SKILL_ORACLE_ABCI_MODELS_PARAMS_ARGS_SHARE_TM_CONFIG_ON_STARTUP:bool:false}
       on_chain_service_id: ${SKILL_ORACLE_ABCI_MODELS_PARAMS_ARGS_ON_CHAIN_SERVICE_ID:int:none}
   server_api:
     args:
