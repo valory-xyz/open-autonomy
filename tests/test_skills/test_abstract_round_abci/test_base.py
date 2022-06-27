@@ -1238,6 +1238,19 @@ class TestAbciApp:
         # Verify round height stays unaffected
         assert self.abci_app.current_round_height == round_height
 
+        # Add more values to the history
+        reset_index = self.abci_app.synchronized_data.db.reset_index
+        cleanup_history_depth_current = 3
+        for _ in range(10):
+            self.abci_app.synchronized_data.db.update(dummy_key="dummy_value")
+
+        # Check that the history cleanup keeps the desired history length
+        self.abci_app.cleanup_current_histories(cleanup_history_depth_current)
+        history_len = len(
+            self.abci_app.synchronized_data.db._data[reset_index]["dummy_key"]
+        )
+        assert history_len == cleanup_history_depth_current
+
 
 class TestRoundSequence:
     """Test the RoundSequence class."""

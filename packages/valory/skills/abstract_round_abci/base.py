@@ -630,7 +630,9 @@ class AbciAppDB:
         return f"AbciAppDB({self._data})"
 
     def cleanup(
-        self, cleanup_history_depth: int, cleanup_history_depth_current: Optional[int]
+        self,
+        cleanup_history_depth: int,
+        cleanup_history_depth_current: Optional[int] = None,
     ) -> None:
         """Reset the db, keeping only the latest entries (periods).
 
@@ -2096,7 +2098,9 @@ class AbciApp(
         self.logger.debug("final AbciApp time: %s", self._last_timestamp)
 
     def cleanup(
-        self, cleanup_history_depth: int, cleanup_history_depth_current: Optional[int]
+        self,
+        cleanup_history_depth: int,
+        cleanup_history_depth_current: Optional[int] = None,
     ) -> None:
         """Clear data."""
         if len(self._round_results) != len(self._previous_rounds):
