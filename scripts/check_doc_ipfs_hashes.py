@@ -168,19 +168,6 @@ class PackageHashManager:
             return None
 
 
-def update_test_files(old_to_new_hashes: Dict[str, str]) -> None:
-    """Update IPFS hashes in test md files"""
-    all_test_files = Path("tests", "test_docs", "test_bash_yaml", "md_files").rglob(
-        "*.md"
-    )
-    for md_file in all_test_files:
-        content = read_file(str(md_file))
-        for old_hash, new_hash in old_to_new_hashes.items():
-            content = content.replace(old_hash, new_hash)
-        with open(str(md_file), "w", encoding="utf-8") as qs_file:
-            qs_file.write(content)
-
-
 def check_ipfs_hashes(fix: bool = False) -> None:  # pylint: disable=too-many-locals
     """Fix ipfs hashes in the docs"""
 
@@ -225,9 +212,6 @@ def check_ipfs_hashes(fix: bool = False) -> None:  # pylint: disable=too-many-lo
                 print(
                     f"IPFS hash mismatch on doc file {md_file}. Expected {expected_hash}, got {doc_hash}:\n    {doc_full_cmd}"
                 )
-
-    if fix:
-        update_test_files(old_to_new_hashes)
 
     if fix and errors:
         raise ValueError(
