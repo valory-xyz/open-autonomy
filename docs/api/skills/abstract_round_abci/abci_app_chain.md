@@ -4,6 +4,16 @@
 
 This module contains utilities for AbciApps.
 
+<a id="packages.valory.skills.abstract_round_abci.abci_app_chain.check_set_uniqueness"></a>
+
+#### check`_`set`_`uniqueness
+
+```python
+def check_set_uniqueness(sets: Tuple) -> Optional[Any]
+```
+
+Checks that all elements in the set list are unique and not repeated among different sets
+
 <a id="packages.valory.skills.abstract_round_abci.abci_app_chain.chain"></a>
 
 #### chain
