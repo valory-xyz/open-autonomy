@@ -112,7 +112,6 @@ class TendermintNode:
         self._monitoring: Optional[StoppableThread] = None
         self.logger = logger or logging.getLogger()
         self.log_file = os.environ.get("LOG_FILE", DEFAULT_TENDERMINT_LOG_FILE)
-        assert shutil.which("tendermint"), "No `tendermint` executable found"
         output = subprocess.check_output(["tendermint", "version"])  # nosec
         self.logger.info(f"Tendermint version: {output.decode(ENCODING).strip()}")
 
