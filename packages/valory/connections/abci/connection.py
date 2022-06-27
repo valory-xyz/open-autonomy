@@ -314,12 +314,6 @@ class TcpServerChannel:  # pylint: disable=too-many-instance-attributes
                     f"Received {len(message_bytes)} bytes from connection {peer_name}"
                 )
                 message = Request()
-                # if message_bytes == b'\x1a\x0c\x10\x0b\x18\x08"':
-                #     logging.debug("replacing a")
-                #     message_bytes = b"\x1a\x04\x10\x0b\x18\x08"
-                # if message_bytes == b"0.1":
-                #     message_bytes = b"\x12\x00"
-                logging.error(message_bytes)
                 message.ParseFromString(message_bytes)
             except (
                 DecodeVarintError,
