@@ -130,7 +130,7 @@ This will always be the last hash in the `tx_hashes_history`,
 due to the way we are inserting the hashes in the array.
 We keep the hashes sorted by the time of their finalization.
 If this property is accessed before the finalization succeeds,
-then it is incorrectly used and raises an internal error.
+then it is incorrectly used and raises an error.
 
 **Returns**:
 
