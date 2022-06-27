@@ -817,7 +817,7 @@ Return a string representation of the data.
 #### cleanup
 
 ```python
-def cleanup(cleanup_history_depth: int, cleanup_history_depth_current: Optional[int]) -> None
+def cleanup(cleanup_history_depth: int, cleanup_history_depth_current: Optional[int] = None) -> None
 ```
 
 Reset the db, keeping only the latest entries (periods).
@@ -2105,7 +2105,7 @@ Observe timestamp from last block.
 #### cleanup
 
 ```python
-def cleanup(cleanup_history_depth: int, cleanup_history_depth_current: Optional[int]) -> None
+def cleanup(cleanup_history_depth: int, cleanup_history_depth_current: Optional[int] = None) -> None
 ```
 
 Clear data.
