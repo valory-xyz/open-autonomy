@@ -122,7 +122,7 @@ class LedgerApiRequestDispatcher(RequestDispatcher):
         :param dialogue: the Ledger API dialogue
         :return: response Ledger API message
         """
-        balance = api.get_balance(message.address)
+        balance = api.get_balance(message.address, raise_on_try=True)
         if balance is None:
             response = self.get_error_message(
                 ValueError("No balance returned"), api, message, dialogue
@@ -153,7 +153,12 @@ class LedgerApiRequestDispatcher(RequestDispatcher):
         :param dialogue: the Ledger API dialogue
         :return: response Ledger API message
         """
-        result = api.get_state(message.callable, *message.args, **message.kwargs.body)
+        result = api.get_state(
+            message.callable,
+            *message.args,
+            raise_on_try=True,
+            **message.kwargs.body,
+        )
         if result is None:  # pragma: nocover
             response = self.get_error_message(
                 ValueError("Failed to get state"), api, message, dialogue
@@ -190,6 +195,7 @@ class LedgerApiRequestDispatcher(RequestDispatcher):
             amount=message.terms.sender_payable_amount,
             tx_fee=message.terms.fee,
             tx_nonce=message.terms.nonce,
+            raise_on_try=True,
             **message.terms.kwargs,
         )
         if raw_transaction is None:
@@ -223,6 +229,7 @@ class LedgerApiRequestDispatcher(RequestDispatcher):
         :param dialogue: the Ledger API dialogue
         :return: response Ledger API message
         """
+        transaction_receipt = None
         is_settled = False
         attempts = 0
         retry_attempts = (
@@ -241,20 +248,20 @@ class LedgerApiRequestDispatcher(RequestDispatcher):
             and self.connection_state.get() == ConnectionStates.connected
         ):
             transaction_receipt = api.get_transaction_receipt(
-                message.transaction_digest.body
+                message.transaction_digest.body, raise_on_try=True,
             )
             if transaction_receipt is not None:
                 is_settled = api.is_transaction_settled(transaction_receipt)
             attempts += 1
             time.sleep(retry_timeout * attempts)
         attempts = 0
-        transaction = api.get_transaction(message.transaction_digest.body)
+        transaction = api.get_transaction(message.transaction_digest.body, raise_on_try=True)
         while (
             transaction is None
             and attempts < retry_attempts
             and self.connection_state.get() == ConnectionStates.connected
         ):
-            transaction = api.get_transaction(message.transaction_digest.body)
+            transaction = api.get_transaction(message.transaction_digest.body, raise_on_try=True)
             attempts += 1
             time.sleep(retry_timeout * attempts)
         if not is_settled:  # pragma: nocover
@@ -303,7 +310,7 @@ class LedgerApiRequestDispatcher(RequestDispatcher):
         """
         try:
             transaction_digest = api.send_signed_transaction(
-                message.signed_transaction.body, raise_on_try=True
+                message.signed_transaction.body, raise_on_try=True,
             )
         except Exception as e:  # pylint: disable=broad-except  # pragma: nocover
             return self.get_error_message(e, api, message, dialogue)
