@@ -152,24 +152,21 @@ class TransactionSettlementBaseBehaviour(BaseBehaviour, ABC):
             message.raw_transaction
         )
 
-        # Guess gas strategy
-        gas_strategy = None
+        # Get the gas params
+        gas_price_params = []
+
+        # eip
         if (
             "maxFeePerGas" in message.raw_transaction.body
             and "maxPriorityFeePerGas" in message.raw_transaction.body
         ):
-            gas_strategy = "eip"
-        if "gasPrice" in message.raw_transaction.body:
-            gas_strategy = "gas_station"
-
-        self.context.logger.info(f"Detected gas strategy: {gas_strategy}")
-
-        # Get the gas params
-        gas_price_params = []
-        if gas_strategy == "eip":
             gas_price_params = ["maxPriorityFeePerGas", "maxFeePerGas"]
-        if gas_strategy == "gas_station":
+            self.context.logger.info("Detected gas strategy: eip")
+
+        # gast_station
+        if "gasPrice" in message.raw_transaction.body:
             gas_price_params = ["gasPrice"]
+            self.context.logger.info("Detected gas strategy: gas_station")
 
         gas_price = {
             gas_price_param: Wei(
