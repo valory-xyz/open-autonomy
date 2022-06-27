@@ -32,7 +32,9 @@ from packages.valory.skills.abstract_round_abci.base import (
 )
 
 
-logger = logging.getLogger(__name__)
+_default_logger = logging.getLogger(
+    "aea.packages.valory.skills.abstract_round_abci.abci_app_chain"
+)
 
 AbciAppTransitionMapping = Dict[AppState, AppState]
 
@@ -84,7 +86,7 @@ def chain(  # pylint: disable=too-many-locals
         apps = [str(app) for app, events in app_to_events.items() if event in events]
         if len(apps) > 1:
             apps_str = "\n".join(apps)
-            logger.warning(
+            _default_logger.warning(
                 f"The same event '{event}' has been found in several apps:\n{apps_str}\nIt will be interpreted as the same event."
                 " If this is not the intented behaviour, please rename it to enforce its uniqueness."
             )
