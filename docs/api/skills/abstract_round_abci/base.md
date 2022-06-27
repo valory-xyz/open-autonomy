@@ -817,10 +817,22 @@ Return a string representation of the data.
 #### cleanup
 
 ```python
-def cleanup(cleanup_history_depth: int) -> None
+def cleanup(cleanup_history_depth: int, cleanup_history_depth_current: Optional[int]) -> None
 ```
 
-Reset the db.
+Reset the db, keeping only the latest entries (periods).
+
+If cleanup_history_depth_current has been also set, also clear oldest historic values in the current entry.
+
+<a id="packages.valory.skills.abstract_round_abci.base.AbciAppDB.cleanup_current_histories"></a>
+
+#### cleanup`_`current`_`histories
+
+```python
+def cleanup_current_histories(cleanup_history_depth_current: Optional[int]) -> None
+```
+
+Reset the parameter histories for the current entry (period), keeping only the latest values for each parameter.
 
 <a id="packages.valory.skills.abstract_round_abci.base.AbciAppDB.data_to_lists"></a>
 
@@ -2093,10 +2105,20 @@ Observe timestamp from last block.
 #### cleanup
 
 ```python
-def cleanup(cleanup_history_depth: int) -> None
+def cleanup(cleanup_history_depth: int, cleanup_history_depth_current: Optional[int]) -> None
 ```
 
 Clear data.
+
+<a id="packages.valory.skills.abstract_round_abci.base.AbciApp.cleanup_current_histories"></a>
+
+#### cleanup`_`current`_`histories
+
+```python
+def cleanup_current_histories(cleanup_history_depth_current: int) -> None
+```
+
+Reset the parameter histories for the current entry (period), keeping only the latest values for each parameter.
 
 <a id="packages.valory.skills.abstract_round_abci.base.RoundSequence"></a>
 

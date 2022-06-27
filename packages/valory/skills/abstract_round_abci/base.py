@@ -2111,9 +2111,11 @@ class AbciApp(
         )
         self._reset_index += 1
 
-    def cleanup_current_histories(self, cleanup_history_depth: int) -> None:
+    def cleanup_current_histories(self, cleanup_history_depth_current: int) -> None:
         """Reset the parameter histories for the current entry (period), keeping only the latest values for each parameter."""
-        self.synchronized_data.db.cleanup_current_histories(cleanup_history_depth)
+        self.synchronized_data.db.cleanup_current_histories(
+            cleanup_history_depth_current
+        )
 
 
 class RoundSequence:  # pylint: disable=too-many-instance-attributes

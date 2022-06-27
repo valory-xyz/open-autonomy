@@ -9,8 +9,8 @@ fingerprint:
   README.md: QmYNXPppPSnW61ipqKNH8pyMh8qzTERwQaducYYq1dnBJb
   __init__.py: QmPuJK7gMKruSTcaYk9otrFncfD9h6vBZVoAtkwhTBgcxa
   abci_app_chain.py: QmeCPxwjec4pxtedv8NeG2Gmj58GY2GycXvgwfyjEyqPGm
-  base.py: QmcLmCB2UnGds2Mm1x7jvL5kASyWter9eWqjytYsVQ7nVY
-  behaviour_utils.py: QmTpdJ16taVH2V2kGcvimjH5iZS7nxhZ7oTT28Sg7inW6N
+  base.py: QmSwwgs9T13TkERhUSZezL5xRSZkRm5qrPuuGeqe93kJGk
+  behaviour_utils.py: Qmdus299gMAceCRSxbvMzH6gNfFg3h5CYXkc73WUz38scM
   behaviours.py: QmawtbXREBz8C7Grjn4a93gaAQFMWzZicxRfjyHcckYHmz
   common.py: QmUPsTf389ZeWhisMmoLCtJZTvCtxtdW7KrSnCt96AZHyq
   dialogues.py: QmRwAxxs4Zt4N2suXzNKqpSuwQDLgjh9hR4nfALfcTshku
@@ -20,7 +20,7 @@ fingerprint:
   io/load.py: QmSa3vgVvQiMJabBvSnPjTMtYiDgrrHPugDGCvSf4kAfS3
   io/paths.py: QmT1e6Ygak8Fe4NxSrd2mb6EB1Rr6dsYZPL8dWh3aNMb12
   io/store.py: QmXHnLF1Jg2hmhUwYj4E4QoMmx6EoLhUtzEGqztLKtKFej
-  models.py: QmUYXrvLr8UNW7AWyYxLYE34TaTvbjnsiVcN9b4s6FfRa5
+  models.py: QmRFWdcioMrQNLRnsomH7WmyvzAQzc4ZUZcy75oYaSTWX3
   serializer.py: QmYf1ZaQEwAaUFvFHwafuetnm29PmWQUAEFSbbHDdrHvyp
   utils.py: Qma2amttj5p7MMYE9CfxTWmSsqDK1ARs5jXtfdmrdCpvzh
 fingerprint_ignore_patterns: []
