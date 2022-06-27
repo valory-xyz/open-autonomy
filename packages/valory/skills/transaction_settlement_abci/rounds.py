@@ -25,7 +25,6 @@ from enum import Enum
 from typing import Deque, Dict, List, Mapping, Optional, Set, Tuple, Type, cast
 
 from packages.valory.skills.abstract_round_abci.base import (
-    ABCIAppInternalError,
     AbciApp,
     AbciAppDB,
     AbciAppTransitionFunction,
@@ -155,16 +154,13 @@ class SynchronizedData(
         due to the way we are inserting the hashes in the array.
         We keep the hashes sorted by the time of their finalization.
         If this property is accessed before the finalization succeeds,
-        then it is incorrectly used and raises an internal error.
+        then it is incorrectly used and raises an error.
 
         :return: the tx hash which is ready for validation.
         """
-        if len(self.tx_hashes_history) > 0:
-            return self.tx_hashes_history[-1]
-        raise ABCIAppInternalError(  # pragma: no cover
-            "An Error occurred while trying to get the tx hash for validation: "
-            "There are no transaction hashes recorded!"
-        )
+        if not self.tx_hashes_history:
+            raise ValueError("FSM design error: tx hash should exist")
+        return self.tx_hashes_history[-1]
 
     @property
     def final_tx_hash(self) -> str:
@@ -197,20 +193,9 @@ class SynchronizedData(
     @property
     def late_arriving_tx_hashes(self) -> List[str]:
         """Get the late_arriving_tx_hashes."""
-        late_arriving_tx_hashes_unparsed = cast(
-            List[str], self.db.get_strict("late_arriving_tx_hashes")
-        )
-        late_arriving_tx_hashes_parsed = []
-        for unparsed_hash in late_arriving_tx_hashes_unparsed:
-            if len(unparsed_hash) % TX_HASH_LENGTH != 0:
-                # if we cannot parse the hashes, then the developer has serialized them incorrectly.
-                raise ABCIAppInternalError(
-                    f"Cannot parse late arriving hashes: {unparsed_hash}!"
-                )
-            parsed_hashes = textwrap.wrap(unparsed_hash, TX_HASH_LENGTH)
-            late_arriving_tx_hashes_parsed.extend(parsed_hashes)
-
-        return late_arriving_tx_hashes_parsed
+        late_arrivals = cast(List[str], self.db.get_strict("late_arriving_tx_hashes"))
+        parsed_hashes = map(lambda h: textwrap.wrap(h, TX_HASH_LENGTH), late_arrivals)
+        return [h for hashes in parsed_hashes for h in hashes]
 
 
 class FailedRound(DegenerateRound, ABC):
@@ -379,7 +364,16 @@ class ValidateTransactionRound(VotingRound):
     def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Enum]]:
         """Process the end of the block."""
         # if reached participant threshold, set the result
+
         if self.positive_vote_threshold_reached:
+            # We obtain the latest tx hash from the `tx_hashes_history`.
+            # We keep the hashes sorted by their finalization time.
+            # If this property is accessed before the finalization succeeds,
+            # then it is incorrectly used.
+            final_tx_hash = cast(
+                SynchronizedData, self.synchronized_data
+            ).to_be_validated_tx_hash
+
             # We only set the final tx hash if we are about to exit from the transaction settlement skill.
             # Then, the skills which use the transaction settlement can check the tx hash
             # and if it is None, then it means that the transaction has failed.
@@ -387,9 +381,7 @@ class ValidateTransactionRound(VotingRound):
                 synchronized_data_class=self.synchronized_data_class,
                 participant_to_votes=self.collection,
                 final_verification_status=VerificationStatus.VERIFIED,
-                final_tx_hash=cast(
-                    SynchronizedData, self.synchronized_data
-                ).to_be_validated_tx_hash,
+                final_tx_hash=final_tx_hash,
             )  # type: ignore
             return synchronized_data, self.done_event
         if self.negative_vote_threshold_reached:
@@ -472,6 +464,7 @@ class SynchronizeLateMessagesRound(CollectNonEmptyUntilThresholdRound):
     none_event = Event.NONE
     selection_key = "participant"
     collection_key = "late_arriving_tx_hashes"
+    _hash_length = TX_HASH_LENGTH
 
     def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Event]]:
         """Process the end of the block."""
@@ -486,10 +479,8 @@ class SynchronizeLateMessagesRound(CollectNonEmptyUntilThresholdRound):
         if n_late_arriving_tx_hashes > synchronized_data.missed_messages:
             return synchronized_data, Event.MISSED_AND_LATE_MESSAGES_MISMATCH
 
-        synchronized_data = synchronized_data.update(
-            missed_messages=synchronized_data.missed_messages
-            - n_late_arriving_tx_hashes
-        )
+        still_missing = synchronized_data.missed_messages - n_late_arriving_tx_hashes
+        synchronized_data = synchronized_data.update(missed_messages=still_missing)
         return synchronized_data, event
 
 
