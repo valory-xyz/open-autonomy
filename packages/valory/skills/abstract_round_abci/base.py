@@ -1119,8 +1119,7 @@ class CollectionRound(AbstractRound):
             content = payload.data.get(self.payload_attribute)
             if not content or len(content) % self._hash_length:
                 msg = f"Expecting serialized data of chunk size {self._hash_length}"
-                _logger.error(f"{msg}, got: {content} in {self.round_id}")
-                return
+                raise ABCIAppInternalError(f"{msg}, got: {content} in {self.round_id}")
 
         self.collection[sender] = payload
 
