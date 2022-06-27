@@ -1,0 +1,31 @@
+name: hello_world
+author: valory
+version: 0.1.0
+description: A simple demonstration of a simple ABCI application
+aea_version: '>=1.0.0, <2.0.0'
+license: Apache-2.0
+fingerprint:
+  README.md: QmPPeZtJ6aMXsGsCEynQcibxMRXypoe6K4KNAGiMi6JpaW
+fingerprint_ignore_patterns: []
+agent: valory/hello_world:0.1.0
+network: hardhat
+number_of_agents: 4
+---
+benchmark_persistence_params:
+  args: &id001
+    log_dir: /benchmarks
+public_id: valory/hello_world_abci:0.1.0
+type: skill
+models:
+  0:
+  - benchmark_tool:
+      args: *id001
+  1:
+  - benchmark_tool:
+      args: *id001
+  2:
+  - benchmark_tool:
+      args: *id001
+  3:
+  - benchmark_tool:
+      args: *id001
