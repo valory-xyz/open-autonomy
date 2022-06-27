@@ -113,6 +113,7 @@ class TestAbciAppChaining:
                 self.round_3b: {
                     self.event_3a: self.round_3a,
                     self.event_3c: self.round_3c,
+                    self.event_1a: self.round_3a,  # duplicated event
                 },
                 self.round_3c: {},
             }
@@ -209,6 +210,7 @@ class TestAbciAppChaining:
             self.round_3b: {
                 self.event_3a: self.round_3a,
                 self.event_3c: self.round_3c,
+                self.event_1a: self.round_3a,
             },
             self.round_3c: {},
         }
