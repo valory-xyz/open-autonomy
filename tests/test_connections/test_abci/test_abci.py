@@ -354,11 +354,12 @@ class BaseTestABCITendermintIntegration(BaseThreadedAsyncLoop, UseTendermint, AB
 
     def health_check(self) -> bool:
         """Do a health-check."""
+        end_point = self.tendermint_url() + "/health"
         try:
-            result = requests.get(self.tendermint_url() + "/health").status_code == 200
+            result = requests.get(end_point).status_code == 200
         except requests.exceptions.ConnectionError:
             result = False
-        logging.debug(f"Health-check result: {result}")
+        logging.debug(f"Health-check result {end_point}: {result}")
         return result
 
     def tendermint_url(self) -> str:

@@ -32,6 +32,9 @@ from packages.valory.protocols.abci import AbciMessage
 from packages.valory.protocols.abci.custom_types import (
     CheckTxType,
     CheckTxTypeEnum,
+    Evidences,
+    Header,
+    LastCommitInfo,
     PublicKey,
     Result,
     ResultType,
@@ -44,7 +47,7 @@ from packages.valory.protocols.abci.custom_types import (
 from packages.valory.protocols.abci.dialogues import AbciDialogues as BaseAbciDialogues
 from packages.valory.skills.abstract_abci.dialogues import AbciDialogue, AbciDialogues
 from packages.valory.skills.abstract_abci.handlers import ABCIHandler, ERROR_CODE
-from packages.valory.protocols.abci.custom_types import Header, LastCommitInfo, Evidences
+
 from tests.conftest import ROOT_DIR
 
 

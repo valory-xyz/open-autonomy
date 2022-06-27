@@ -8,14 +8,14 @@ fingerprint:
   README.md: QmP7bxqWANEaNU4MF32Pbgdr7vidzgy7a4QJKb7hydoM1P
 fingerprint_ignore_patterns: []
 connections:
-- valory/abci:0.1.0:QmaL38fX1jGr5UFS6M8Xd7JT6TpRGdzNvUPjFKmeskuK3S
+- valory/abci:0.1.0:Qmem6NV9DTXgjDpKMb4Pt16D6NgKRj94cBJeKs1TDBfum7
 - valory/p2p_libp2p_client:0.1.0:QmdVgPysfzjXjvoguoiFhY4qTggDrzRAdE6YEjBQ5znFaT
 contracts: []
 protocols:
 - open_aea/signing:1.0.0:QmYVxA8smnK8LQ2B4z5BVFvEwo3szQeBosUesycb8By1ZT
 - valory/abci:0.1.0:QmfYsXNrrKN3gVrCQLufABzADnS173oMmRFtCMJXCCHLhf
 skills:
-- valory/abstract_abci:0.1.0:QmcB6uFaaTuTpRFm7LzUdaX5h951Y6BsRxQfopfKqJUEbR
+- valory/abstract_abci:0.1.0:QmZdAgCq43aX6XjA1zKiwTnnC132G4WJsaBsZEeeJBucuz
 default_ledger: ethereum
 required_ledgers:
 - ethereum

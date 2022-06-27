@@ -34,6 +34,11 @@ from packages.valory.protocols.abci import AbciMessage
 from packages.valory.protocols.abci.custom_types import (
     CheckTxType,
     CheckTxTypeEnum,
+    ConsensusParams,
+    Evidences,
+    Header,
+    LastCommitInfo,
+    Timestamp,
     ValidatorUpdates,
 )
 from packages.valory.protocols.http import HttpMessage
@@ -51,7 +56,6 @@ from packages.valory.skills.abstract_round_abci.dialogues import (
     TendermintDialogue,
     TendermintDialogues,
 )
-from packages.valory.protocols.abci.custom_types import Header, LastCommitInfo, Evidences, Timestamp, ConsensusParams, ValidatorUpdates
 from packages.valory.skills.abstract_round_abci.handlers import (
     ABCIRoundHandler,
     AbstractResponseHandler,
