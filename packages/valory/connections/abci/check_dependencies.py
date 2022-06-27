@@ -39,7 +39,7 @@ ERROR_MESSAGE_TEMPLATE_VERSION_TOO_LOW = (
 # for the purposes of this script,
 # a version is a tuple of integers: (major, minor, patch)
 VERSION = Tuple[int, int, int]
-MINIMUM_TENDERMINT_VERSION: VERSION = (0, 34, 11)
+MINIMUM_TENDERMINT_VERSION: VERSION = (0, 34, 19)
 
 
 def nth(iterable: Iterable, index: int, default: int = 0) -> int:

@@ -15,14 +15,14 @@ setup_args:
   args: &id001
     setup:
       safe_contract_address:
-      - '0x5Ba047B6Fb2E1b2050b9E92E4c7383ECeD130c32'
+      - '0x37ba5291A5bE8cbE44717a0673fe2c5a45B4B6A8'
       oracle_contract_address:
-      - '0x6af8b71B01Aa30729F91ca695E354dA6f457a407'
+      - '0x3d9e92B0FE7673ddA3d7C33B9ff302768A03de19'
     max_healthcheck: 43200
     broadcast_to_server: true
 valory_monitoring_backend:
   args: &id002
-    url: https://staging.oracle-server.autonolas.tech/deposit
+    url: https://oracle-server.autonolas.tech/deposit
 public_id: valory/oracle_abci:0.1.0
 type: skill
 models:

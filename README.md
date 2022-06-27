@@ -2,7 +2,7 @@
 
 Open Autonomy is a framework for the creation of Agent Services: off-chain services which run as a multi-agent-system (MAS)  and are replicated on a temporary consensus gadget (blockchain) while being crypto-economically secured on a public blockchain, hence offering robustness, transparency and decentralization off-chain.
 
-As opposed to traditional smart contracts, Valory apps go beyond simple, purely off-chain logic without giving up on decentralization.
+As opposed to traditional smart contracts, Valory apps go beyond simple, purely on-chain logic without giving up on decentralization.
 
 ## Requirements
 
@@ -11,7 +11,7 @@ Ensure your machine satisfies the following requirements:
 - Python `>= 3.7`
 - Yarn `>=1.22.xx`
 - Node `>=v12.xx`
-- [Tendermint](https://docs.tendermint.com/master/introduction/install.html) `==0.34.11`
+- [Tendermint](https://docs.tendermint.com/master/introduction/install.html) `==0.34.19`
 - [IPFS node](https://docs.ipfs.io/install/command-line/#official-distributions) `==v0.6.0`
 - [Pipenv](https://pipenv.pypa.io/en/latest/install/) `>=2021.x.xx`
 
