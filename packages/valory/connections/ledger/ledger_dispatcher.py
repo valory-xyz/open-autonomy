@@ -248,20 +248,25 @@ class LedgerApiRequestDispatcher(RequestDispatcher):
             and self.connection_state.get() == ConnectionStates.connected
         ):
             transaction_receipt = api.get_transaction_receipt(
-                message.transaction_digest.body, raise_on_try=True,
+                message.transaction_digest.body,
+                raise_on_try=True,
             )
             if transaction_receipt is not None:
                 is_settled = api.is_transaction_settled(transaction_receipt)
             attempts += 1
             time.sleep(retry_timeout * attempts)
         attempts = 0
-        transaction = api.get_transaction(message.transaction_digest.body, raise_on_try=True)
+        transaction = api.get_transaction(
+            message.transaction_digest.body, raise_on_try=True
+        )
         while (
             transaction is None
             and attempts < retry_attempts
             and self.connection_state.get() == ConnectionStates.connected
         ):
-            transaction = api.get_transaction(message.transaction_digest.body, raise_on_try=True)
+            transaction = api.get_transaction(
+                message.transaction_digest.body, raise_on_try=True
+            )
             attempts += 1
             time.sleep(retry_timeout * attempts)
         if not is_settled:  # pragma: nocover
@@ -310,7 +315,8 @@ class LedgerApiRequestDispatcher(RequestDispatcher):
         """
         try:
             transaction_digest = api.send_signed_transaction(
-                message.signed_transaction.body, raise_on_try=True,
+                message.signed_transaction.body,
+                raise_on_try=True,
             )
         except Exception as e:  # pylint: disable=broad-except  # pragma: nocover
             return self.get_error_message(e, api, message, dialogue)
