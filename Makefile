@@ -74,7 +74,7 @@ generators:
 	python -m autonomy.cli hash all
 	python scripts/generate_api_documentation.py
 	python scripts/check_copyright.py
-	python scripts/fix_doc_ipfs_hashes.py
+	python scripts/check_doc_ipfs_hashes.py --fix
 
 .PHONY: abci-docstrings
 abci-docstrings:
