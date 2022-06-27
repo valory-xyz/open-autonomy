@@ -66,8 +66,8 @@ jobs:
       run: tox -e check-copyright
     - name: Check docs
       run: tox -e check-api-docs
-    - name: Check doc links
-      run: tox -e check-doc-links
+    - name: Check doc links and IPFS hashes
+      run: tox -e check-doc-links-hashes
     - name: Check pipfiles
       run: tox -e check-pipfiles
 

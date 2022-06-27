@@ -9,10 +9,10 @@ fingerprint:
   README.md: QmYfPfYVg5jpfpdVMhCg1NHwE89dFUonVLoJ8HMGVD7iuH
   __init__.py: QmbVjtr18sGDQ3pMxx3xN3WmYapH21XbwzAJAjyALMoSdv
   dialogues.py: QmSWwBoXfhbomtjCFUYEswaEUy9UN9gtmRcwERcTt8kADG
-  handlers.py: QmTEnd19MYG8exx4CxedrxcFD45266UJ67ntFksKCYZVNt
+  handlers.py: QmSJUdAEV5oM7nnNb6i8gtaoxRpKBHEf1xaoJppLaRYpJX
 fingerprint_ignore_patterns: []
 connections:
-- valory/abci:0.1.0:QmXKeHDBJnn9L1fn5ZdYFgxYwLJjVcRBDyg9EunnQp5AZP
+- valory/abci:0.1.0:QmaL38fX1jGr5UFS6M8Xd7JT6TpRGdzNvUPjFKmeskuK3S
 contracts: []
 protocols:
 - valory/abci:0.1.0:QmfYsXNrrKN3gVrCQLufABzADnS173oMmRFtCMJXCCHLhf

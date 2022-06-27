@@ -8,10 +8,10 @@ fingerprint:
   README.md: QmQPqYYkUVheBFfRZEogQYeficoxc2ez8M9L6rdj2g9cd1
 fingerprint_ignore_patterns: []
 connections:
-- valory/abci:0.1.0:QmXKeHDBJnn9L1fn5ZdYFgxYwLJjVcRBDyg9EunnQp5AZP
+- valory/abci:0.1.0:QmaL38fX1jGr5UFS6M8Xd7JT6TpRGdzNvUPjFKmeskuK3S
 - valory/http_client:0.1.0:QmXBBMS5g4kyyE3mzFcpieoDMKWFf9naaCM3QNSjP2mxDt
 - valory/ledger:0.1.0:Qmcd32eJaDbWFFgqTzKf3Lqhshj37ndhrdtYiNnED2ULqB
-- valory/p2p_libp2p_client:0.1.0:QmQ8QKKHkMyBWpf8JLJ4NRNmK6oet44jzdQGkZskpSb2oJ
+- valory/p2p_libp2p_client:0.1.0:QmdVgPysfzjXjvoguoiFhY4qTggDrzRAdE6YEjBQ5znFaT
 contracts:
 - valory/gnosis_safe:0.1.0:QmRNdXGRRQBMFXh5ZvtJeYvHt7559kV5r5EYU5JNUdRBKJ
 - valory/gnosis_safe_proxy_factory:0.1.0:QmVkZtrgZ2ievXAonq9z33qbrxHi8piVGptuCGaGJYS1iM
@@ -26,15 +26,15 @@ protocols:
 - valory/ledger_api:1.0.0:QmNfowyB8rGWr53wuNPYK5BEAnA8AehgipVdYXt8LC5uR6
 - valory/tendermint:0.1.0:QmUj6wxrYnaXjhVt13KZT33qcy9kcAcKRRXXY1DyRajPdQ
 skills:
-- valory/abstract_abci:0.1.0:QmVSMY3NnFXQFT28JwkpLRmsd4MjwXqmcq2wubRfA7eJZ2
-- valory/abstract_round_abci:0.1.0:QmVNRfYxzPJeS6hHHAkKCSbRcYVeySNPKJZB2343sM4Scq
-- valory/oracle_abci:0.1.0:QmShgeVdHSwkns1Nt8SnAazmKgWwWng1p3wvRQ52qh3DNL
-- valory/oracle_deployment_abci:0.1.0:QmT8XheK3yL2DQNKJkZ5AV4Kqu5Y3F6A6ynWHkjfQpGyhg
-- valory/price_estimation_abci:0.1.0:Qmc22QqrzCty13HnMDtMjhtqyKAd3jeviwY1fpnMLeiB1i
-- valory/registration_abci:0.1.0:QmYo7QVoSCEHfrDeht2JnGVM3u6eWSWKS5T3o95uoxaj5j
-- valory/reset_pause_abci:0.1.0:QmNTkdrA1FLeZrBGYvgJsYUHkVZQ6XKFjwJpiTBhEUDS6v
-- valory/safe_deployment_abci:0.1.0:QmVqcBUg8XNTZc586oqp3XnBDfvStAb3Z96yBxMqRvTrVj
-- valory/transaction_settlement_abci:0.1.0:QmSDHkgLThMKafQtSHjZfqHSjkmw6bbTnh8GcZe33rGEHF
+- valory/abstract_abci:0.1.0:QmcB6uFaaTuTpRFm7LzUdaX5h951Y6BsRxQfopfKqJUEbR
+- valory/abstract_round_abci:0.1.0:Qmd1qd3T3xGpMNV5LnZ9jpEd3ZjF66T77Pq7r9MdcFYbZi
+- valory/oracle_abci:0.1.0:QmShjrCoxELcFh4V4QhqciczxE8YmAFiqCUZimZA7Qh8nN
+- valory/oracle_deployment_abci:0.1.0:QmPcBgtBb4hAphujPNgg1hwnqErFe3xQ7mEkcg4DuktvFW
+- valory/price_estimation_abci:0.1.0:QmStNvByDSrrEivMAuR4N1HfXnrpBc93txzcTHyTHycgmP
+- valory/registration_abci:0.1.0:QmXQP7C71ZCsbozpzvY8G76eYuhgDnGg6fWe3qhK6qMdYF
+- valory/reset_pause_abci:0.1.0:QmRfGw48nLJ9KNqJkZd7d6m5PbZes8czVtPcUrW6tWqMLA
+- valory/safe_deployment_abci:0.1.0:QmUy9TsByZ4sWwUkWsb2rBitnJKovTruCeu24t3C8Jaumz
+- valory/transaction_settlement_abci:0.1.0:QmR9ZJdUdrS3TgiutkfTDVvkqbmQvz8wuWhXzDpEwzang2
 default_ledger: ethereum
 required_ledgers:
 - ethereum
