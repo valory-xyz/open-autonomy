@@ -658,6 +658,22 @@ class TestSynchronizeLateMessagesRound(BaseCollectNonEmptyUntilThresholdRound):
             )
         )
 
+    def test_incorrect_serialization_not_accepted(self) -> None:
+        """Test wrong serialization not collected"""
+
+        test_round = SynchronizeLateMessagesRound(
+            synchronized_data=self.synchronized_data,
+            consensus_params=self.consensus_params,
+        )
+        sender = list(test_round.accepting_payloads_from).pop()
+        tx_hashes = "0" * (TX_HASH_LENGTH - 1)
+        payload = SynchronizeLateMessagesPayload(sender=sender, tx_hashes=tx_hashes)
+        with pytest.raises(
+            ABCIAppInternalError, match="Expecting serialized data of chunk size"
+        ):
+            test_round.process_payload(payload)
+        assert payload not in test_round.collection
+
 
 def test_synchronized_datas() -> None:
     """Test SynchronizedData."""
@@ -719,14 +735,6 @@ def test_synchronized_datas() -> None:
     assert synchronized_data_____.blacklisted_keepers == {"t" * 42}
     updated_synchronized_data = synchronized_data_____.create()
     assert updated_synchronized_data.blacklisted_keepers == set()
-
-    # test wrong tx hashes serialization
-    synchronized_data_____.update(late_arriving_tx_hashes=["test"])
-    with pytest.raises(
-        ABCIAppInternalError,
-        match="internal error: Cannot parse late arriving hashes: test!",
-    ):
-        _ = synchronized_data_____.late_arriving_tx_hashes
 
 
 class TestResetRound(BaseCollectSameUntilThresholdRoundTest):
