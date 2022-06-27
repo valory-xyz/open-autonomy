@@ -27,14 +27,14 @@ protocols:
 - valory/tendermint:0.1.0:QmUj6wxrYnaXjhVt13KZT33qcy9kcAcKRRXXY1DyRajPdQ
 skills:
 - valory/abstract_abci:0.1.0:QmVGUiTc1Na9ounYWAd7YZ7yKXx7vGQJgJ7eAhZohVJt4c
-- valory/abstract_round_abci:0.1.0:QmPauga8guS3Ld3GUTCPmftBvrU5JFBVCufJk5teaJmu2E
-- valory/oracle_abci:0.1.0:Qmau3SJaT8EUDYkTkPtGzaadkjWEEVNGmS7yXXwBBYtN66
-- valory/oracle_deployment_abci:0.1.0:QmRLCYn95nnAvGuDUSXRjpMFKp5ubupMc4ka87eReV4HbC
-- valory/price_estimation_abci:0.1.0:QmaEdsHgjzf2esu7AKFXQn6PE7iqavsZ8raZYkWkQMDwd4
-- valory/registration_abci:0.1.0:Qmb4PxWQwM1WWwLdPQ8wZZrVkiDTajauigqJQfjB7hzkpb
-- valory/reset_pause_abci:0.1.0:Qme3dRzi6r1Rn84T59q8hcVMSM6Dp4DxkaKjFUFCXucNef
-- valory/safe_deployment_abci:0.1.0:QmP51tbAVpnYgrdwpvnPKLV95ztvHehSkB3VAWhPQsct2u
-- valory/transaction_settlement_abci:0.1.0:Qmcmf4eqU64ranxV3G7mtGSyGQK6s1Km6GFYHZem4sWxvf
+- valory/abstract_round_abci:0.1.0:QmX9nNvHpdPUfWety3GPfozaVjCt9N75DfQjzCWkoZaR6o
+- valory/oracle_abci:0.1.0:Qmbm1QsfzkcqTbvUQsHWutBXkcC3tscLPaGQHM4AwoQ9zF
+- valory/oracle_deployment_abci:0.1.0:QmVWcVYhvagWeWVEGGXvmfatGENMi3U8PettyCVujj7Z67
+- valory/price_estimation_abci:0.1.0:QmcjG6W2cD81ZasEEh68Bwfy6bkmEE5NKGmYv3qmw5X7Ag
+- valory/registration_abci:0.1.0:QmZfNV9z6gseNQyw1aeknvwgfLZim8NMRy6JjBvp7BvCao
+- valory/reset_pause_abci:0.1.0:QmVDQ6PJcatZtaWrT7JmvqD74kSd9VKGsmprRa7snv43xe
+- valory/safe_deployment_abci:0.1.0:Qma3RVoufCJN7tW2cgDbzubCYdKfnPp1yM245WC31sED73
+- valory/transaction_settlement_abci:0.1.0:QmTQKDpF9vVkecBgYJWNGJGypbsz38Qog2TQeJpvNo1USV
 default_ledger: ethereum
 required_ledgers:
 - ethereum
@@ -111,7 +111,7 @@ models:
       max_healthcheck: ${SKILL_ORACLE_ABCI_MODELS_PARAMS_ARGS_MAX_HEALTHCHECK:int:1200}
       broadcast_to_server: ${SKILL_ORACLE_ABCI_MODELS_PARAMS_ARGS_BROADCAST_TO_SERVER:bool:false}
       service_registry_address: ${SKILL_ORACLE_ABCI_MODELS_PARAMS_ARGS_SERVICE_REGISTRY_ADDRESS:str:none}
-      share_tm_config_on_startup: ${SKILL_ORACLE_ABCI_MODELS_PARAMS_ARGS_SERVICE_REGISTRY_ADDRESS:bool:false}
+      share_tm_config_on_startup: ${SKILL_ORACLE_ABCI_MODELS_PARAMS_ARGS_SHARE_TM_CONFIG_ON_STARTUP:bool:false}
       on_chain_service_id: ${SKILL_ORACLE_ABCI_MODELS_PARAMS_ARGS_ON_CHAIN_SERVICE_ID:int:none}
   server_api:
     args:

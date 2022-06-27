@@ -18,8 +18,8 @@ protocols:
 - valory/http:1.0.0:QmRQYhYWbGSNHb152dp2L1P9EtZRZZqgvZAaNat5qxfQqK
 skills:
 - valory/abstract_abci:0.1.0:QmVGUiTc1Na9ounYWAd7YZ7yKXx7vGQJgJ7eAhZohVJt4c
-- valory/abstract_round_abci:0.1.0:QmPauga8guS3Ld3GUTCPmftBvrU5JFBVCufJk5teaJmu2E
-- valory/hello_world_abci:0.1.0:QmXBtCKXBRyAeqGjx6oDWC7YQL1SxsgUaHuTkUFv64wG1x
+- valory/abstract_round_abci:0.1.0:QmX9nNvHpdPUfWety3GPfozaVjCt9N75DfQjzCWkoZaR6o
+- valory/hello_world_abci:0.1.0:QmdGdhFmuRJbrzhfAYtF2eop1BatzBZvjLt5mG6hLpoxWm
 default_ledger: ethereum
 required_ledgers:
 - ethereum
