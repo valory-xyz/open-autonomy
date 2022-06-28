@@ -139,6 +139,8 @@ class ABCICounterHandler(ABCIHandler):
             gas_used=0,
             events=Events([]),
             codespace="",
+            tx_sender="sender",
+            priority=1,
         )
         return cast(AbciMessage, reply)
 
