@@ -284,5 +284,8 @@ class TestAbciAppChaining:
             self.round_1c: self.round_2a,
             self.round_2c: self.round_1a,
         }
-        with pytest.raises(AEAEnforceError):
+        with pytest.raises(
+            AEAEnforceError,
+            match=r"round ids in common between abci apps are not allowed.*",
+        ):
             chain((self.app1_class, self.app3_class_dupe), abci_app_transition_mapping)  # type: ignore
