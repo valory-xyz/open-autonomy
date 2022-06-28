@@ -83,7 +83,7 @@ class _TendermintABCISerializer()
 def encode_varint(cls, number: int) -> bytes
 ```
 
-Encode a number in varint coding.
+Encode a number (uint64) in varint coding.
 
 <a id="packages.valory.connections.abci.connection._TendermintABCISerializer.decode_varint"></a>
 
@@ -103,7 +103,7 @@ Decode a number from its varint coding.
 
 **Returns**:
 
-the decoded int.
+the decoded int (uint64).
 
 <a id="packages.valory.connections.abci.connection._TendermintABCISerializer.write_message"></a>
 
