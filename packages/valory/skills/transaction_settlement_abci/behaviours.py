@@ -115,7 +115,7 @@ class TransactionSettlementBaseBehaviour(BaseBehaviour, ABC):
 
         return concatenated
 
-    def get_gas_params(self, tx_body: dict) -> List[str]:
+    def get_gas_price_params(self, tx_body: dict) -> List[str]:
         """Guess the gas strategy from the transaction params"""
         strategy_to_params: Dict[str, List[str]] = {
             "eip": ["maxPriorityFeePerGas", "maxFeePerGas"],
@@ -195,7 +195,7 @@ class TransactionSettlementBaseBehaviour(BaseBehaviour, ABC):
         nonce = Nonce(int(cast(str, message.raw_transaction.body["nonce"])))
 
         # Get the gas params
-        gas_price_params = self.get_gas_params(message.raw_transaction.body)
+        gas_price_params = self.get_gas_price_params(message.raw_transaction.body)
 
         gas_price = {
             gas_price_param: Wei(
