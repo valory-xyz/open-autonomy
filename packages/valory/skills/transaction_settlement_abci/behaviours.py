@@ -126,6 +126,7 @@ class TransactionSettlementBaseBehaviour(BaseBehaviour, ABC):
             "tx_digest": "",
         }
 
+        # Check for errors in the transaction preparation
         if (
             message.performative == ContractApiMessage.Performative.ERROR
             and message.message is not None
@@ -139,16 +140,19 @@ class TransactionSettlementBaseBehaviour(BaseBehaviour, ABC):
             )
             return tx_data
 
+        # Check that we have a RAW_TRANSACTION response
         if message.performative != ContractApiMessage.Performative.RAW_TRANSACTION:
             self.context.logger.warning(
                 f"get_raw_safe_transaction unsuccessful! Received: {message}"
             )
             return tx_data
 
+        # Send transaction
         tx_digest, rpc_status = yield from self.send_raw_transaction(
             message.raw_transaction
         )
 
+        # Handle transaction results
         if rpc_status == RPCResponseStatus.INCORRECT_NONCE:
             tx_data["status"] = VerificationStatus.ERROR
             self.context.logger.warning(
@@ -174,6 +178,22 @@ class TransactionSettlementBaseBehaviour(BaseBehaviour, ABC):
         tx_data["tx_digest"] = cast(str, tx_digest)
 
         nonce = Nonce(int(cast(str, message.raw_transaction.body["nonce"])))
+
+        # Get the gas params
+        gas_price_params = []
+        eip_params = ["maxPriorityFeePerGas", "maxFeePerGas"]
+        gas_station_params = ["gasPrice"]
+
+        # eip
+        if all(param in message.raw_transaction.body for param in eip_params):
+            gas_price_params = eip_params
+            self.context.logger.info("Detected gas strategy: eip")
+
+        # gas_station
+        if all(param in message.raw_transaction.body for param in gas_station_params):
+            gas_price_params = gas_station_params
+            self.context.logger.info("Detected gas strategy: gas_station")
+
         gas_price = {
             gas_price_param: Wei(
                 int(
@@ -183,8 +203,9 @@ class TransactionSettlementBaseBehaviour(BaseBehaviour, ABC):
                     )
                 )
             )
-            for gas_price_param in ("maxPriorityFeePerGas", "maxFeePerGas")
+            for gas_price_param in gas_price_params
         }
+
         # Set hash, nonce and tip.
         self.params.tx_hash = cast(str, tx_data["tx_digest"])
         if nonce == self.params.nonce:
