@@ -511,7 +511,7 @@ def test_encode_varint_method() -> None:
     )
 
 
-@given(integers(min_value=0, max_value=2 ** 32))
+@given(integers(min_value=0, max_value=(1 << 64) - 1))
 @pytest.mark.asyncio
 async def test_encode_decode_varint(value: int) -> None:
     """Test that encoding and decoding works."""
@@ -522,6 +522,14 @@ async def test_encode_decode_varint(value: int) -> None:
     decoder = _TendermintABCISerializer.decode_varint
     decoded_value = await decoder(reader)
     assert decoded_value == value
+
+
+@pytest.mark.parametrize("value", [-1, 1 << 64])
+@pytest.mark.asyncio
+async def test_encoding_raises(value: int) -> None:
+    encoder = _TendermintABCISerializer.encode_varint
+    with pytest.raises(DecodeVarintError):
+        encoder(value)
 
 
 @pytest.mark.asyncio
