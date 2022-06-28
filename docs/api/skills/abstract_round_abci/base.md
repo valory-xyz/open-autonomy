@@ -829,7 +829,7 @@ If cleanup_history_depth_current has been also set, also clear oldest historic v
 #### cleanup`_`current`_`histories
 
 ```python
-def cleanup_current_histories(cleanup_history_depth_current: Optional[int]) -> None
+def cleanup_current_histories(cleanup_history_depth_current: int) -> None
 ```
 
 Reset the parameter histories for the current entry (period), keeping only the latest values for each parameter.

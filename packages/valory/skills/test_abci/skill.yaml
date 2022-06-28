@@ -23,7 +23,7 @@ protocols:
 - valory/abci:0.1.0:QmY42cX49Jb1dmHGbiDE7SEAW9YJc1FYJQA2U4i1mNYtBz
 - valory/http:1.0.0:QmRQYhYWbGSNHb152dp2L1P9EtZRZZqgvZAaNat5qxfQqK
 skills:
-- valory/abstract_round_abci:0.1.0:Qmc6ukugrsPydCxJnPq3c67z5ULEpxYvCTVuh5gR3qRbam
+- valory/abstract_round_abci:0.1.0:QmZa7ayQ4ujW6ztGGnxqA37HKG8kqkZWvdXUeDtDXZHWbH
 behaviours:
   main:
     args: {}
@@ -67,6 +67,7 @@ models:
   params:
     args:
       cleanup_history_depth: 1
+      cleanup_history_depth_current: null
       consensus:
         max_participants: 1
       drand_public_key: 868f005eb8e6e4ca0a47c8a77ceaa5309a47978a7c71bc5cce96366b5d7a569937c529eeda66c7293784a9402801af31
