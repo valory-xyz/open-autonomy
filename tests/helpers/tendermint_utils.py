@@ -97,16 +97,16 @@ class TendermintLocalNetworkBuilder:
 
     def _create_testnet(self) -> None:
         """Create a testnet calling 'tendermint testnet'."""
-        subprocess.call(  # nosec
-            [
-                "tendermint",
-                "testnet",
-                "--v",
-                str(self.nb_nodes),
-                "--o",
-                str(self.directory),
-            ]
-        )
+        cmd = [
+            "tendermint",
+            "testnet",
+            "--v",
+            str(self.nb_nodes),
+            "--o",
+            str(self.directory),
+        ]
+        logging.debug(f"{self.__class__.__name__} create testnet: {' '.join(cmd)}")
+        subprocess.call(cmd)  # nosec
 
     def _get_node_id(self, i: int) -> str:
         """Get the node id."""
