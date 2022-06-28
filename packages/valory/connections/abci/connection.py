@@ -111,9 +111,7 @@ class _TendermintABCISerializer:
 
     @classmethod
     def encode_varint(cls, number: int) -> bytes:
-        """Encode a number in varint coding."""
-        # Shift to int64
-        number = number << 1
+        """Encode a number (uint64) in varint coding."""
         buf = b""
         while True:
             towrite = number & 0x7F
@@ -134,7 +132,7 @@ class _TendermintABCISerializer:
 
         :param buffer: the buffer to read from.
         :param max_length: the max number of bytes that can be read.
-        :return: the decoded int.
+        :return: the decoded int (uint64).
 
         :raise: DecodeVarintError if the varint could not be decoded.
         :raise: EOFError if EOF byte is read and the process of decoding a varint has not started.
@@ -158,7 +156,7 @@ class _TendermintABCISerializer:
             raise EOFError()
         if not success:
             raise DecodeVarintError("could not decode varint")
-        return result >> 1
+        return result
 
     @classmethod
     async def _read_one(cls, buffer: asyncio.StreamReader) -> Optional[int]:
