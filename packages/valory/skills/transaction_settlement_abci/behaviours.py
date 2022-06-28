@@ -28,6 +28,7 @@ from typing import (
     Dict,
     Generator,
     Iterator,
+    List,
     Optional,
     Set,
     Tuple,
@@ -114,6 +115,20 @@ class TransactionSettlementBaseBehaviour(BaseBehaviour, ABC):
 
         return concatenated
 
+    def get_gas_params(self, tx_body: dict) -> List[str]:
+        """Guess the gas strategy from the transaction params"""
+        strategy_to_params: Dict[str, List[str]] = {
+            "eip": ["maxPriorityFeePerGas", "maxFeePerGas"],
+            "gas_station": ["gasPrice"],
+        }
+
+        for strategy, params in strategy_to_params.items():
+            if all(param in tx_body for param in params):
+                self.context.logger.info(f"Detected gas strategy: {strategy}")
+                return params
+
+        return []
+
     def _get_tx_data(
         self, message: ContractApiMessage
     ) -> Generator[None, None, TxDataType]:
@@ -180,19 +195,7 @@ class TransactionSettlementBaseBehaviour(BaseBehaviour, ABC):
         nonce = Nonce(int(cast(str, message.raw_transaction.body["nonce"])))
 
         # Get the gas params
-        gas_price_params = []
-        eip_params = ["maxPriorityFeePerGas", "maxFeePerGas"]
-        gas_station_params = ["gasPrice"]
-
-        # eip
-        if all(param in message.raw_transaction.body for param in eip_params):
-            gas_price_params = eip_params
-            self.context.logger.info("Detected gas strategy: eip")
-
-        # gas_station
-        if all(param in message.raw_transaction.body for param in gas_station_params):
-            gas_price_params = gas_station_params
-            self.context.logger.info("Detected gas strategy: gas_station")
+        gas_price_params = self.get_gas_params(message.raw_transaction.body)
 
         gas_price = {
             gas_price_param: Wei(
