@@ -210,6 +210,8 @@ class FetchBehaviour(
             )
             # This will result in using only the part of the data downloaded so far.
             self._current_timestamp = None
+            # manually call clean-up, as it is not called by the framework if a `StopIteration` is not raised
+            self.clean_up()
 
         # if none of the above (call failed and we can retry), the current timestamp will remain the same.
 
