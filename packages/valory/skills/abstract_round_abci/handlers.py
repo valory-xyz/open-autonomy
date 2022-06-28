@@ -89,7 +89,7 @@ class ABCIRoundHandler(ABCIHandler):
         # some arbitrary information
         info_data = ""
         # the application software semantic version
-        version = ""
+        version = "0.1.0"
         # the application protocol version
         app_version = 0
         # latest block for which the app has called Commit

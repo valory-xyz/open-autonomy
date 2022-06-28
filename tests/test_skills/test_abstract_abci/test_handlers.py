@@ -174,7 +174,7 @@ class TestABCIHandler:
         message, dialogue = self.dialogues.create(
             counterparty="",
             performative=AbciMessage.Performative.REQUEST_INFO,
-            version="",
+            version="0.1.0",
             block_version=0,
             p2p_version=0,
             abci_version=ABCI_VERSION,

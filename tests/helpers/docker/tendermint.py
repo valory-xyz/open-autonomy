@@ -86,6 +86,7 @@ class TendermintDockerImage(DockerImage):
     def create(self) -> Container:
         """Create the container."""
         cmd = self._build_command()
+        logging.debug(f"TendermintDockerImage create command: {' '.join(cmd)}")
         ports = {
             f"{DEFAULT_TENDERMINT_PORT}/tcp": (_LOCAL_ADDRESS, self.port),  # nosec
         }

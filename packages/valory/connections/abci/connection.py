@@ -319,7 +319,6 @@ class TcpServerChannel:  # pylint: disable=too-many-instance-attributes
                 DecodeVarintError,
                 DecodeError,
             ) as e:  # pragma: nocover
-                logging.error(message)
                 self.logger.error(
                     f"an error occurred while reading a message: "
                     f"{type(e).__name__}: {e}. "

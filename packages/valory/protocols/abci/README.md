@@ -164,7 +164,7 @@ speech_acts:
     dummy_consensus_params: ct:ConsensusParams
 ...
 ---
-# https://github.com/tendermint/tendermint/blob/9daea43375e06816a44c30bdb7b02701df4a5f76/proto/tendermint/types/params.proto#L13
+# https://github.com/tendermint/tendermint/blob/v0.35.7/proto/tendermint/types/params.proto#L13
 ct:ConsensusParams: |
   message Duration {
     int64 seconds = 1;
@@ -189,7 +189,7 @@ ct:ConsensusParams: |
   EvidenceParams evidence = 2;
   ValidatorParams validator = 3;
   VersionParams version = 4;
-# https://github.com/tendermint/tendermint/blob/9daea43375e06816a44c30bdb7b02701df4a5f76/proto/tendermint/abci/types.proto#L309
+# https://github.com/tendermint/tendermint/blob/v0.35.7/proto/tendermint/abci/types.proto#L309
 ct:ValidatorUpdates: |
   message PublicKey {
     oneof sum {
@@ -214,7 +214,7 @@ ct:Timestamp: |
   // that count forward in time. Must be from 0 to 999,999,999
   // inclusive.
   int32 nanos = 2;
-# https://github.com/tendermint/tendermint/blob/9daea43375e06816a44c30bdb7b02701df4a5f76/proto/tendermint/crypto/proof.proto#L39
+# https://github.com/tendermint/tendermint/blob/v0.35.7/proto/tendermint/crypto/proof.proto#L39
 ct:ProofOps: |
   message ProofOp {
     string type = 1;
@@ -258,7 +258,7 @@ ct:Header: |
   // consensus info
   bytes evidence_hash    = 13;  // evidence included in the block
   bytes proposer_address = 14;  // original proposer of the block
-# https://github.com/tendermint/tendermint/blob/9daea43375e06816a44c30bdb7b02701df4a5f76/proto/tendermint/abci/types.proto#L268
+# https://github.com/tendermint/tendermint/blob/v0.35.7/proto/tendermint/abci/types.proto#L268
 ct:LastCommitInfo: |
   message Validator {
     bytes address = 1;  // The first 20 bytes of SHA256(public key)
@@ -271,7 +271,7 @@ ct:LastCommitInfo: |
   }
   int32             round = 1;
   repeated VoteInfo votes = 2;
-# https://github.com/tendermint/tendermint/blob/9daea43375e06816a44c30bdb7b02701df4a5f76/proto/tendermint/types/evidence.proto#L11
+# https://github.com/tendermint/tendermint/blob/v0.35.7/proto/tendermint/types/evidence.proto#L11
 ct:Evidences: |
   message Evidence {
     enum EvidenceType {
@@ -298,7 +298,7 @@ ct:CheckTxType: |
     RECHECK        = 1;
   }
   _CheckTxType type = 1;
-# https://github.com/tendermint/tendermint/blob/9daea43375e06816a44c30bdb7b02701df4a5f76/proto/tendermint/abci/types.proto#L276
+# https://github.com/tendermint/tendermint/blob/v0.35.7/proto/tendermint/abci/types.proto#L276
 ct:Events: |
   message EventAttribute {
     string key   = 1;
