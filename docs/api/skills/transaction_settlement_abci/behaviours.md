@@ -47,6 +47,16 @@ def serialized_keepers(keepers: Deque[str], keeper_retries: int) -> str
 
 Get the keepers serialized.
 
+<a id="packages.valory.skills.transaction_settlement_abci.behaviours.TransactionSettlementBaseBehaviour.get_gas_price_params"></a>
+
+#### get`_`gas`_`price`_`params
+
+```python
+def get_gas_price_params(tx_body: dict) -> List[str]
+```
+
+Guess the gas strategy from the transaction params
+
 <a id="packages.valory.skills.transaction_settlement_abci.behaviours.RandomnessTransactionSubmissionBehaviour"></a>
 
 ## RandomnessTransactionSubmissionBehaviour Objects

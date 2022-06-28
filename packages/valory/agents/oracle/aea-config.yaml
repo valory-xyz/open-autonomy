@@ -28,13 +28,13 @@ protocols:
 skills:
 - valory/abstract_abci:0.1.0:QmbcPN78cpGL655JC7NvsC6JhCV3vNSvXDjr1csseLPdym
 - valory/abstract_round_abci:0.1.0:Qmc9Qkj8uBbSdxWUSFHJMkhEr74fCDuMDJWn5mdjvQQwGL
-- valory/oracle_abci:0.1.0:QmS7E17RERGGUuMbbfnT2pCQSRq3CR56uLnc8SXrCm6CaG
+- valory/oracle_abci:0.1.0:QmQ9c9DDDJk1sguzroykeV2fLQo7tfb5XEqAJiCmwxAtde
 - valory/oracle_deployment_abci:0.1.0:QmWnH4RVTsXRHxAKVhT2PPDyTgG9MB4R6nFSBktvqbg7Di
 - valory/price_estimation_abci:0.1.0:QmRnfiS4uaASzoTXL1zbXSXqUUFf4gSRZinFnoNckvULka
 - valory/registration_abci:0.1.0:QmR6cxoWrbem8jgfEq9njGgaJavwsgpTKCec4ADrsVNdrQ
 - valory/reset_pause_abci:0.1.0:QmPjWkdD1PPPPAez58e488QN3agUnmhUDJmcDvD53frHxg
 - valory/safe_deployment_abci:0.1.0:QmdTjREAfL48gA5TWkVULirhReWt8P4cmxGLnJ7CRhyTPk
-- valory/transaction_settlement_abci:0.1.0:QmUE82Ephe753zSJ9RXHnjL1cJwGfafQwDtfCvP2pe4MKG
+- valory/transaction_settlement_abci:0.1.0:QmeGxtHAHB18YCHcFZEfYVCPnTGDRspownEAoMA9E1h5gM
 default_ledger: ethereum
 required_ledgers:
 - ethereum
