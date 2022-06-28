@@ -302,9 +302,7 @@ class TestFetchAndBatchBehaviours(APYEstimationFSMBehaviourBaseCase):
         behaviour = cast(BaseBehaviour, self.behaviour.current_behaviour)
         assert behaviour.behaviour_id == TransformBehaviour.behaviour_id
 
-    def test_fetch_behaviour_retries_exceeded(
-        self, monkeypatch: MonkeyPatch, caplog: LogCaptureFixture
-    ) -> None:
+    def test_fetch_behaviour_retries_exceeded(self, caplog: LogCaptureFixture) -> None:
         """Run tests for exceeded retries."""
         self.skill.skill_context.state.round_sequence.abci_app._last_timestamp = (
             datetime.now()
@@ -314,25 +312,43 @@ class TestFetchAndBatchBehaviours(APYEstimationFSMBehaviourBaseCase):
             self.behaviour, FetchBehaviour.behaviour_id, self.synchronized_data
         )
 
-        subgraphs_sorted_by_utilization_moment: Tuple[Any, ...] = (
-            self.behaviour.context.spooky_subgraph,
-            self.behaviour.context.fantom_subgraph,
-            self.behaviour.context.spooky_subgraph,
-            self.behaviour.context.spooky_subgraph,
+        assert self.behaviour.current_behaviour is not None
+        assert (
+            self.behaviour.current_behaviour.behaviour_id == FetchBehaviour.behaviour_id
         )
 
-        for subgraph in subgraphs_sorted_by_utilization_moment:
-            monkeypatch.setattr(subgraph, "is_retries_exceeded", lambda *_: True)
-            with caplog.at_level(
-                logging.ERROR,
-                logger="aea.test_agent_name.packages.valory.skills.apy_estimation_abci",
-            ):
-                self.behaviour.act_wrapper()
-                self.behaviour.act_wrapper()
-            assert (
-                "Retries were exceeded while downloading the historical data!"
-                in caplog.text
-            )
+        for _ in range(
+            self.behaviour.current_behaviour.context.spooky_subgraph._retries + 1
+        ):
+            self.behaviour.current_behaviour.context.spooky_subgraph.increment_retries()
+            self.behaviour.current_behaviour.context.fantom_subgraph.increment_retries()
+        assert (
+            self.behaviour.current_behaviour.context.spooky_subgraph.is_retries_exceeded()
+        )
+        assert (
+            self.behaviour.current_behaviour.context.fantom_subgraph.is_retries_exceeded()
+        )
+
+        with caplog.at_level(
+            logging.ERROR,
+            logger="aea.test_agent_name.packages.valory.skills.apy_estimation_abci",
+        ):
+            self.behaviour.act_wrapper()
+
+        assert (
+            "Retries were exceeded while downloading the historical data!"
+            in caplog.text
+        )
+        assert (
+            not self.behaviour.current_behaviour.context.spooky_subgraph.is_retries_exceeded()
+        )
+        assert (
+            not self.behaviour.current_behaviour.context.fantom_subgraph.is_retries_exceeded()
+        )
+        assert self.behaviour.current_behaviour._hist_hash == ""
+
+        self.mock_a2a_transaction()
+        self._test_done_flag_set()
 
     def test_fetch_value_none(
         self,
