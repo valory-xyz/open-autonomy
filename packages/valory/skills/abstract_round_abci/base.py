@@ -643,14 +643,11 @@ class AbciAppDB:
             key: self._data[key]
             for key in sorted(self._data.keys())[-cleanup_history_depth:]
         }
-        self.cleanup_current_histories(cleanup_history_depth_current)
+        if cleanup_history_depth_current:
+            self.cleanup_current_histories(cleanup_history_depth_current)
 
-    def cleanup_current_histories(
-        self, cleanup_history_depth_current: Optional[int]
-    ) -> None:
+    def cleanup_current_histories(self, cleanup_history_depth_current: int) -> None:
         """Reset the parameter histories for the current entry (period), keeping only the latest values for each parameter."""
-        if not cleanup_history_depth_current:
-            return
         cleanup_history_depth_current = max(
             cleanup_history_depth_current, MIN_HISTORY_DEPTH
         )
