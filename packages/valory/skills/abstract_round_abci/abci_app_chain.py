@@ -18,6 +18,7 @@
 # ------------------------------------------------------------------------------
 
 """This module contains utilities for AbciApps."""
+import logging
 from typing import Dict, List, Set, Tuple, Type
 
 from aea.exceptions import enforce
@@ -30,6 +31,10 @@ from packages.valory.skills.abstract_round_abci.base import (
     EventType,
 )
 
+
+_default_logger = logging.getLogger(
+    "aea.packages.valory.skills.abstract_round_abci.abci_app_chain"
+)
 
 AbciAppTransitionMapping = Dict[AppState, AppState]
 
@@ -74,6 +79,18 @@ def chain(  # pylint: disable=too-many-locals
                 f"Found non-initial state {value} specified in abci_app_transition_mapping."
             )
 
+    # Warn about events duplicated in multiple apps
+    app_to_events = {app: app.get_all_events() for app in abci_apps}
+    all_events = set.union(*app_to_events.values())
+    for event in all_events:
+        apps = [str(app) for app, events in app_to_events.items() if event in events]
+        if len(apps) > 1:
+            apps_str = "\n".join(apps)
+            _default_logger.warning(
+                f"The same event '{event}' has been found in several apps:\n{apps_str}\nIt will be interpreted as the same event."
+                " If this is not the intented behaviour, please rename it to enforce its uniqueness."
+            )
+
     # Merge the transition functions, final states and events
     new_initial_round_cls = abci_apps[0].initial_round_cls
     potential_final_states = set.union(*(app.final_states for app in abci_apps))
@@ -85,6 +102,7 @@ def chain(  # pylint: disable=too-many-locals
                     f"Event {e} defined in app {app} is defined with timeout {t} but it is already defined in a prior app with timeout {potential_events_to_timeout[e]}."
                 )
             potential_events_to_timeout[e] = t
+
     potential_transition_function: AbciAppTransitionFunction = {}
     for app in abci_apps:
         for state, events_to_rounds in app.transition_function.items():

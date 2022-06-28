@@ -259,7 +259,15 @@ Implement the contract api handler.
 class TendermintHandler(Handler)
 ```
 
-The Tendermint request / response handler.
+The Tendermint config-sharing request / response handler.
+
+This handler is used to share the information necessary
+to set up the Tendermint network. The agents use it during
+the RegistrationStartupBehaviour, and communicate with
+each other over the Agent Communication Network using a
+p2p_libp2p or p2p_libp2p_client connection.
+
+This handler does NOT use the ABCI connection.
 
 <a id="packages.valory.skills.abstract_round_abci.handlers.TendermintHandler.LogMessages"></a>
 
@@ -310,7 +318,17 @@ Tear down the handler.
 def synchronized_data() -> BaseSynchronizedData
 ```
 
-Historical stata data over which consensus has been achieved
+Not yet synchronized here.
+
+The Tendermint network needs to be (re-)established after
+Tendermint configuration exchange with the other agents
+registered on-chain for this service.
+
+This handler is used during RegistrationStartupBehaviour.
+At this point there is no historical data yet over which
+consensus has been achieved. We access it here to store
+the information of other agents' Tendermint configurations
+under `registered_addresses`.
 
 <a id="packages.valory.skills.abstract_round_abci.handlers.TendermintHandler.registered_addresses"></a>
 
@@ -332,7 +350,7 @@ Registered addresses retrieved on-chain from service registry contract
 def dialogues() -> Optional[TendermintDialogues]
 ```
 
-Tendermint request / response protocol dialogues
+Tendermint config-sharing request / response protocol dialogues
 
 <a id="packages.valory.skills.abstract_round_abci.handlers.TendermintHandler.handle"></a>
 
@@ -342,5 +360,5 @@ Tendermint request / response protocol dialogues
 def handle(message: Message) -> None
 ```
 
-Handle incoming Tendermint messages
+Handle incoming Tendermint config-sharing messages
 

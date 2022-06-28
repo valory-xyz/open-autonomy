@@ -141,6 +141,7 @@ class TestAbstractRoundBehaviour:
         context_mock.state.round_sequence = self.round_sequence_mock
         context_mock.state.round_sequence.syncing_up = False
         context_mock.params.ipfs_domain_name = None
+        self.round_sequence_mock.block_stall_deadline_expired = False
         self.behaviour = ConcreteRoundBehaviour(name="", skill_context=context_mock)
 
     def test_setup(self) -> None:
@@ -448,7 +449,13 @@ def test_abstract_round_behaviour_matching_rounds_not_covered() -> None:
             initial_behaviour_cls = BehaviourA
 
 
-def test_self_loops_in_abci_app_reinstantiate_behaviour() -> None:
+@mock.patch.object(
+    BaseBehaviour,
+    "tm_communication_unhealthy",
+    new_callable=mock.PropertyMock,
+    return_value=False,
+)
+def test_self_loops_in_abci_app_reinstantiate_behaviour(_: mock._patch) -> None:
     """Test that a self-loop transition in the AbciApp will trigger a transition in the round behaviour."""
     event = MagicMock()
 

@@ -8,7 +8,7 @@ aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
   Makefile: QmQi1Ykty9vhyCnfPDEC9yHb36ktQtKGffE7tLcHbe88Hf
   __init__.py: QmeFFi4ppQzSMxGGzQYAjKYD8icWxFUbfs1DTzxi3MV6Pg
-  check_dependencies.py: QmaTR9NaqGPkTEvTHbXqN5aD52W6cxu1J2CH3YyuPZRDM4
+  check_dependencies.py: QmeEmRYkif4GxXdP45njB4TqbcBbpFqJvzvV8muhXPSav6
   connection.py: QmdjgVHu1diiJW34iq89K1CufVZ9xxQ4LRhW5P9LBw9AQH
   dialogues.py: QmSAg9Cv9aU8ZhRtuEVJhgf9KZp5rL7NYruFSTsj6HpYju
   gogoproto/__init__.py: QmT25qNFyqBirw8rhCvwjm3wxNaN5RwFuaswEcnzCkFkGM

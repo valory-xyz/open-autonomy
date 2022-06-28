@@ -906,7 +906,7 @@ the period count
 def participants() -> FrozenSet[str]
 ```
 
-Get the participants.
+Get the currently active participants.
 
 <a id="packages.valory.skills.abstract_round_abci.base.BaseSynchronizedData.all_participants"></a>
 
@@ -917,7 +917,7 @@ Get the participants.
 def all_participants() -> FrozenSet[str]
 ```
 
-Get all the participants.
+Get all registered participants.
 
 <a id="packages.valory.skills.abstract_round_abci.base.BaseSynchronizedData.sorted_participants"></a>
 
@@ -1358,6 +1358,17 @@ def __init__(*args: Any, **kwargs: Any)
 ```
 
 Initialize the collection round.
+
+<a id="packages.valory.skills.abstract_round_abci.base.CollectionRound.accepting_payloads_from"></a>
+
+#### accepting`_`payloads`_`from
+
+```python
+@property
+def accepting_payloads_from() -> FrozenSet[str]
+```
+
+Accepting from the active set, or also from (re)joiners
 
 <a id="packages.valory.skills.abstract_round_abci.base.CollectionRound.payloads"></a>
 
@@ -2357,6 +2368,17 @@ def tm_height(_tm_height: int) -> None
 ```
 
 Set Tendermint's current height.
+
+<a id="packages.valory.skills.abstract_round_abci.base.RoundSequence.block_stall_deadline_expired"></a>
+
+#### block`_`stall`_`deadline`_`expired
+
+```python
+@property
+def block_stall_deadline_expired() -> bool
+```
+
+Get if the deadline for not having received any begin block requests from the Tendermint node has expired.
 
 <a id="packages.valory.skills.abstract_round_abci.base.RoundSequence.init_chain"></a>
 
