@@ -216,6 +216,8 @@ class ABCIAppTest:
             gas_used=0,
             events=Events([Event(type_="", attributes=attributes)]),
             codespace="",
+            tx_sender="sender",
+            priority=1,
         )
         return cast(AbciMessage, response)
 
@@ -497,10 +499,16 @@ def test_ensure_connected_raises_connection_error() -> None:
 
 
 def test_encode_varint_method() -> None:
-    """Test encode_varint method for _TendermintABCISerializer"""
-    assert _TendermintABCISerializer.encode_varint(10) == b"\x14"
-    assert _TendermintABCISerializer.encode_varint(70) == b"\x8c\x01"
-    assert _TendermintABCISerializer.encode_varint(130) == b"\x84\x02"
+    """Test encode_varint (uint64) method for _TendermintABCISerializer"""
+    assert _TendermintABCISerializer.encode_varint(1 << 31) == b"\x80\x80\x80\x80\x08"
+    assert (
+        _TendermintABCISerializer.encode_varint(1 << 63)
+        == b"\x80\x80\x80\x80\x80\x80\x80\x80\x80\x01"
+    )
+    assert (
+        _TendermintABCISerializer.encode_varint(1 << 127)
+        == b"\x80\x80\x80\x80\x80\x80\x80\x80\x80\x80\x80\x80\x80\x80\x80\x80\x80\x80\x02"
+    )
 
 
 @given(integers(min_value=0, max_value=2 ** 32))
