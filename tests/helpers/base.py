@@ -79,5 +79,6 @@ def try_send(gen: Generator, obj: Any = None) -> None:
 def make_round_class(name: str, bases: Tuple = (AbstractRound,)) -> Type:
     """Make a round class."""
     new_round_cls = type(name, bases, {})
+    setattr(new_round_cls, "round_id", name)  # noqa: B010
     assert issubclass(new_round_cls, AbstractRound)
     return new_round_cls

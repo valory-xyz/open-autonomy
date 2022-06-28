@@ -19,7 +19,7 @@
 
 """This module contains utilities for AbciApps."""
 import logging
-from typing import Dict, List, Set, Tuple, Type
+from typing import Any, Dict, List, Optional, Set, Tuple, Type
 
 from aea.exceptions import enforce
 
@@ -39,6 +39,17 @@ _default_logger = logging.getLogger(
 AbciAppTransitionMapping = Dict[AppState, AppState]
 
 
+def check_set_uniqueness(sets: Tuple) -> Optional[Any]:
+    """Checks that all elements in the set list are unique and not repeated among different sets"""
+    all_elements = set.union(*sets)
+    for element in all_elements:
+        # Count the number of sets that include this element
+        sets_in = [set_ for set_ in sets if element in set_]
+        if len(sets_in) > 1:
+            return element
+    return None
+
+
 def chain(  # pylint: disable=too-many-locals
     abci_apps: Tuple[Type[AbciApp], ...],
     abci_app_transition_mapping: AbciAppTransitionMapping,
@@ -54,14 +65,25 @@ def chain(  # pylint: disable=too-many-locals
     )
 
     # Get the apps rounds
-    rounds = (app.get_all_rounds() for app in abci_apps)
+    rounds = tuple(app.get_all_rounds() for app in abci_apps)
+    round_ids = tuple(
+        {round_.round_id for round_ in app.get_all_rounds()} for app in abci_apps
+    )
 
     # Ensure there are no common rounds
-    common_round_classes = set.intersection(*rounds)
+    common_round_classes = check_set_uniqueness(rounds)
     enforce(
-        len(common_round_classes) == 0,
+        not common_round_classes,
         f"rounds in common between abci apps are not allowed ({common_round_classes})",
     )
+
+    # Ensure there are no common round_ids
+    common_round_ids = check_set_uniqueness(round_ids)
+    enforce(
+        not common_round_ids,
+        f"round ids in common between abci apps are not allowed ({common_round_ids})",
+    )
+
     # Ensure all states in app transition mapping (keys and values) are final states or initial states, respectively.
     all_final_states = {
         final_state for app in abci_apps for final_state in app.final_states
