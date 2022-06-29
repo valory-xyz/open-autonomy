@@ -522,8 +522,23 @@ class AbciAppDB:
         2: ...
     }
 
+    # Adding and removing data from the current period
+    --------------------------------------------------
     To update the current period entry, just call update() on the class. The new values will be appended to the current list for each updated parameter.
+
+    To clean up old data from the current period entry, call cleanup_current_histories(cleanup_history_depth_current), where cleanup_history_depth_current
+    is the amount of data that you want to keep after the cleanup. The newest cleanup_history_depth_current values will be kept for each parameter in the DB.
+
+    # Creating and removing old periods
+    -----------------------------------
     To create a new period entry, call create() on the class. The new values will be stored in a new list for each updated parameter.
+
+    To remove old periods, call cleanup(cleanup_history_depth, [cleanup_history_depth_current]), where cleanup_history_depth is the amount of periods
+    that you want to keep after the cleanup. The newest cleanup_history_depth periods will be kept. If you also specify cleanup_history_depth_current,
+    cleanup_current_histories will be also called (see previous point).
+
+    The parameters cleanup_history_depth and cleanup_history_depth_current can also be configured in skill.yaml so they are used automatically
+    when the cleanup method is called from AbciApp.cleanup().
     """
 
     def __init__(
