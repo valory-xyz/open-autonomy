@@ -22,7 +22,7 @@
 
 import shutil
 from pathlib import Path
-from typing import Tuple
+from typing import Dict, Tuple
 
 from aea.helpers.io import from_csv
 
@@ -50,6 +50,17 @@ class TestHashAll(BaseCliTest):
         cls.packages_dir = cls.t / "packages"
         shutil.copytree(ROOT_DIR / "packages", cls.packages_dir)
 
+    def load_hashes(
+        self,
+    ) -> Dict[str, str]:
+        """Load hashes from CSV file."""
+
+        hashes_file = self.packages_dir / "hashes.csv"
+        with open(str(hashes_file), "r") as file:
+            content = file.read().strip()
+
+        return dict([line.split(",") for line in content.split("\n") if "," in line])
+
     def test_service_hashing(
         self,
     ) -> None:
@@ -63,7 +74,6 @@ class TestHashAll(BaseCliTest):
         service_path = self.packages_dir / "valory" / "services" / service_name
         service_config = load_service_config(service_path)
 
-        hashes_file = self.packages_dir / "hashes.csv"
-        hashes = from_csv(hashes_file)
+        hashes = self.load_hashes()
 
         assert hashes[f"valory/agents/{service_name}"] == service_config.agent.hash
