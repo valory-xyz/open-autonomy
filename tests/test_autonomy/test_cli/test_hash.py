@@ -74,4 +74,7 @@ class TestHashAll(BaseCliTest):
 
         hashes = self.load_hashes()
 
-        assert hashes[f"valory/agents/{service_name}"] == service_config.agent.hash
+        assert hashes[f"valory/agents/{service_name}"] == service_config.agent.hash, (
+            hashes,
+            service_config.agent,
+        )
