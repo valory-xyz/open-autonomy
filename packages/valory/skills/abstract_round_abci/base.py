@@ -364,9 +364,8 @@ class Blockchain:
         expected_height = self.height + 1
         actual_height = block.header.height
         if expected_height != actual_height:
-            raise AddBlockError(
-                f"expected height {expected_height}, got {actual_height}"
-            )
+            _logger.error(f"expected height {expected_height}, got {actual_height}")
+            return
         self._blocks.append(block)
 
     @property
