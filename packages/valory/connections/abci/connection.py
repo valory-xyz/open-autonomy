@@ -112,7 +112,7 @@ class _TendermintABCISerializer:
     @classmethod
     def encode_varint(cls, number: int) -> bytes:
         """Encode a number in varint coding."""
-        if not 0 <= number < (1 << 64) - 1:
+        if not 0 <= number < 1 << 64:
             raise DecodeVarintError(f"expecting uint64, got: {number}")
         buf = b""
         while True:

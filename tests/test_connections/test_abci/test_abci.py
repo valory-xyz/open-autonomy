@@ -505,7 +505,7 @@ def test_encode_varint_method() -> None:
     max_uint64_encoded = b"\xff\xff\xff\xff\xff\xff\xff\xff\xff\x01"
     assert _TendermintABCISerializer.encode_varint(0) == hard_zero_encoded
     assert _TendermintABCISerializer.encode_varint((1 << 32) - 1) == max_uint32_encoded
-    assert _TendermintABCISerializer.encode_varint((1 << 63) - 1) == max_uint64_encoded
+    assert _TendermintABCISerializer.encode_varint((1 << 64) - 1) == max_uint64_encoded
 
 
 @given(integers(min_value=0, max_value=(1 << 64) - 1))
