@@ -26,6 +26,7 @@ import shutil
 import socket
 import stat
 import subprocess  # nosec
+import sys
 import tempfile
 import time
 import urllib
@@ -263,6 +264,7 @@ class TestTendermintLogMessages(BaseTendermintServerTest):
     """Test Tendermint message logging"""
 
     @wait_for_node_to_run
+    @pytest.mark.skipif(sys.platform == "win32", reason="does not run on windows")
     def test_tendermint_logs(self) -> None:
         """Test Tendermint logs"""
 
