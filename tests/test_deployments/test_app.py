@@ -265,7 +265,9 @@ class TestTendermintLogMessages(BaseTendermintServerTest):
     """Test Tendermint message logging"""
 
     @wait_for_node_to_run
-    @pytest.mark.skipif(sys.platform == "win32", reason="does not run on windows")
+    @pytest.mark.skipif(
+        platform.system() == "Windows", reason="does not run on Windows"
+    )
     def test_tendermint_logs(self) -> None:
         """Test Tendermint logs"""
 
