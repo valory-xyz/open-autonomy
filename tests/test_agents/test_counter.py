@@ -56,8 +56,8 @@ class BaseTestABCICounterSkill:
         """
         # at least two hex digits
         tx_arg = "0x{:02x}".format(value)
-        log_message = "requesting broadcast_tx_commit"
-        logging.debug(f"{log_message}: {node_address} {tx_arg}")
+        log_message = f"{node_address}/broadcast_tx_commit?tx={tx_arg}"
+        logging.debug(f"requesting broadcast_tx_commit: {log_message}")
         result = requests.get(
             node_address + "/broadcast_tx_commit",
             params=dict(tx=tx_arg),

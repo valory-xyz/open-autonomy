@@ -238,6 +238,7 @@ class TestTendermintGentleResetServer(BaseTendermintServerTest):
     """Test Tendermint gentle reset"""
 
     @wait_for_node_to_run
+    @pytest.mark.flaky(reruns=5)
     def test_gentle_reset(self) -> None:
         """Test gentle reset"""
         with self.app.test_client() as client:
