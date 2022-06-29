@@ -26,7 +26,6 @@ import shutil
 import socket
 import stat
 import subprocess  # nosec
-import sys
 import tempfile
 import time
 import urllib
