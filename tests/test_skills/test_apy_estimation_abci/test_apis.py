@@ -97,7 +97,7 @@ class TestSubgraphs:
         res = make_request(api.get_spec(), eth_price_usd_q)
         eth_price = ast.literal_eval(api.process_response(DummyMessage(res.content))[0]["ethPrice"])  # type: ignore
 
-        assert isinstance(eth_price, float)
+        assert eth_price == 0.4183383786296383
 
     @staticmethod
     def test_block_from_timestamp(
