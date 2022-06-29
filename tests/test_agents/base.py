@@ -302,7 +302,7 @@ class BaseTestEnd2End(AEATestCaseMany, UseFlaskTendermintNode):
         cls,
         happy_path: Tuple[RoundChecks, ...] = (),
         strict_check_strings: Tuple[str, ...] = (),
-        period: int = 1,
+        period: float = 1,
         is_terminating: bool = True,
         **kwargs: Any,
     ) -> Tuple[List[str], List[str]]:
@@ -462,6 +462,7 @@ class BaseTestEnd2EndAgentCatchup(BaseTestEnd2End):
         missing_strict_strings, _ = self.missing_from_output(
             process=self.processes[-1],
             strict_check_strings=(self.stop_string,),
+            period=0.1,
             timeout=self.wait_before_stop,
         )
         if missing_strict_strings:
