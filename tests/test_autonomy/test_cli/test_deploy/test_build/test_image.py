@@ -22,9 +22,11 @@
 import os
 import random
 import string
+import sys
 from typing import Tuple
 
 import docker
+import pytest
 
 from tests.conftest import ROOT_DIR
 from tests.helpers.docker.base import skip_docker_tests
@@ -51,10 +53,9 @@ class TestBuildImage(BaseCliTest):
     def generate_random_tag(length: int = 16) -> str:
         """Generate random version tag."""
 
-        return "".join(
-            [random.choice(string.ascii_lowercase) for _ in range(length)]  # nosec
-        )
+        return "".join(random.choices(string.ascii_lowercase, k=length))  # nosec
 
+    @pytest.mark.skipif(sys.platform == "linux", reason="temporary")
     def test_build_prod(
         self,
     ) -> None:
@@ -64,15 +65,10 @@ class TestBuildImage(BaseCliTest):
         result = self.run_cli((self.service_id, "--version", version))
 
         assert result.exit_code == 0, f"{result.stdout_bytes}\n{result.stderr_bytes}"
-        assert (
-            len(
-                self.docker_api.images(
-                    name=f"valory/open-autonomy-open-aea:oracle-{version}"
-                )
-            )
-            == 1
-        )
+        image_name = f"valory/open-autonomy-open-aea:oracle-{version}"
+        assert len(self.docker_api.images(name=image_name)) == 1
 
+    @pytest.mark.skipif(sys.platform == "linux", reason="temporary")
     def test_dev(
         self,
     ) -> None:
@@ -95,18 +91,10 @@ class TestBuildImage(BaseCliTest):
         result = self.run_cli((self.service_id, "--dependencies", "--version", version))
 
         assert result.exit_code == 0, f"{result.stdout_bytes}\n{result.stderr_bytes}"
-        assert (
-            len(
-                self.docker_api.images(
-                    name=f"valory/open-autonomy-tendermint:{version}"
-                )
-            )
-            == 1
-        )
-        assert (
-            len(self.docker_api.images(name=f"valory/open-autonomy-hardhat:{version}"))
-            == 1
-        )
+        tendermint_image_name = f"valory/open-autonomy-tendermint:{version}"
+        hardhat_image_name = f"valory/open-autonomy-hardhat:{version}"
+        assert len(self.docker_api.images(name=tendermint_image_name)) == 1
+        assert len(self.docker_api.images(name=hardhat_image_name)) == 1
 
     @classmethod
     def teardown(cls) -> None:
