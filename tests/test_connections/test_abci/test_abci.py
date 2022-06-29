@@ -500,15 +500,12 @@ def test_ensure_connected_raises_connection_error() -> None:
 
 def test_encode_varint_method() -> None:
     """Test encode_varint (uint64) method for _TendermintABCISerializer"""
-    assert _TendermintABCISerializer.encode_varint(1 << 31) == b"\x80\x80\x80\x80\x08"
-    assert (
-        _TendermintABCISerializer.encode_varint(1 << 63)
-        == b"\x80\x80\x80\x80\x80\x80\x80\x80\x80\x01"
-    )
-    assert (
-        _TendermintABCISerializer.encode_varint(1 << 127)
-        == b"\x80\x80\x80\x80\x80\x80\x80\x80\x80\x80\x80\x80\x80\x80\x80\x80\x80\x80\x02"
-    )
+    hard_zero_encoded = b"\x00"
+    max_uint32_encoded = b"\xff\xff\xff\xff\x0f"
+    max_uint64_encoded = b"\xff\xff\xff\xff\xff\xff\xff\xff\xff\x01"
+    assert _TendermintABCISerializer.encode_varint(0) == hard_zero_encoded
+    assert _TendermintABCISerializer.encode_varint((1 << 32) - 1) == max_uint32_encoded
+    assert _TendermintABCISerializer.encode_varint((1 << 63) - 1) == max_uint64_encoded
 
 
 @given(integers(min_value=0, max_value=(1 << 64) - 1))
@@ -527,6 +524,7 @@ async def test_encode_decode_varint(value: int) -> None:
 @pytest.mark.parametrize("value", [-1, 1 << 64])
 @pytest.mark.asyncio
 async def test_encoding_raises(value: int) -> None:
+    """Test encoding raises"""
     encoder = _TendermintABCISerializer.encode_varint
     with pytest.raises(DecodeVarintError):
         encoder(value)
