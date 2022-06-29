@@ -49,6 +49,7 @@ from deployments.Dockerfiles.localnode.tendermint import (  # type: ignore
 )
 
 
+PLATFORM = platform.system()
 ENCODING = "utf-8"
 VERSION = "0.35.7"
 HTTP = "http://"
@@ -263,10 +264,8 @@ class TestTendermintHardResetServer(BaseTendermintServerTest):
 class TestTendermintLogMessages(BaseTendermintServerTest):
     """Test Tendermint message logging"""
 
+    @pytest.mark.skipif(PLATFORM == "Windows", reason="does not run on Windows")
     @wait_for_node_to_run
-    @pytest.mark.skipif(
-        platform.system() == "Windows", reason="does not run on Windows"
-    )
     def test_tendermint_logs(self) -> None:
         """Test Tendermint logs"""
 
