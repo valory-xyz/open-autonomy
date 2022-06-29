@@ -134,7 +134,9 @@ class TestSubgraphs:
             "Failed to decode `block.number` value: `subgraph QmPJbGjktGa7c4UYWXvDRajPxpuJBSZxeQK5siNT3VpthP has only "
             "indexed up to block number 3730367 and data for block number 3830367 is therefore not yet available`"
         )
-        assert re.match(regex, error_message).groups() == ("3730367", "3830367")
+        match = re.match(regex, error_message)
+        assert match is not None
+        assert match.groups() == ("3730367", "3830367")
 
         error_message = "new message 3730367"
         assert re.match(regex, error_message) is None
