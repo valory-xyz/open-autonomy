@@ -24,8 +24,6 @@ import shutil
 from pathlib import Path
 from typing import Dict, Tuple
 
-from aea.helpers.io import from_csv
-
 from autonomy.configurations.loader import load_service_config
 
 from tests.conftest import ROOT_DIR
@@ -59,7 +57,7 @@ class TestHashAll(BaseCliTest):
         with open(str(hashes_file), "r") as file:
             content = file.read().strip()
 
-        return dict([line.split(",") for line in content.split("\n") if "," in line])
+        return dict([line.split(",") for line in content.split("\n") if "," in line])  # type: ignore
 
     def test_service_hashing(
         self,
