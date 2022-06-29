@@ -20,8 +20,10 @@
 """Test various price apis."""
 import ast
 import logging  # noqa: F401
+import re
 from typing import Dict, List, Tuple
 
+import pytest
 import requests
 
 from packages.valory.skills.apy_estimation_abci.models import (
@@ -98,6 +100,44 @@ class TestSubgraphs:
         eth_price = ast.literal_eval(api.process_response(DummyMessage(res.content))[0]["ethPrice"])  # type: ignore
 
         assert eth_price == 0.4183383786296383
+
+    @staticmethod
+    def test_eth_price_non_indexed_block(
+        spooky_specs: SpecsType, eth_price_usd_q: str
+    ) -> None:
+        """Test SpookySwap's eth price request from subgraph, when the requesting block has not been indexed yet."""
+        spooky_specs["response_key"] = "errors"
+        api = SpookySwapSubgraph(**spooky_specs)
+
+        # replace the block number with a huge one, so that we get a not indexed error
+        current_number = "3830367"
+        largest_acceptable_number = "2147483647"
+        eth_price_usd_q = eth_price_usd_q.replace(
+            current_number, largest_acceptable_number
+        )
+        expected_error = (
+            r"Unknown error encountered!\nRaw response: \{'errors': \[\{'message': 'Failed to decode `block.number` "
+            "value: `subgraph QmPJbGjktGa7c4UYWXvDRajPxpuJBSZxeQK5siNT3VpthP has only indexed up to block number "
+            "\\d+ and data for block number 2147483647 is therefore not yet available`'}]}"
+        )
+        with pytest.raises(ValueError, match=expected_error):
+            make_request(api.get_spec(), eth_price_usd_q)
+
+    @staticmethod
+    def test_regex_for_indexed_block_capture() -> None:
+        """Test the regex for capturing the indexed block."""
+        regex = (
+            r"Failed to decode `block.number` value: `subgraph QmPJbGjktGa7c4UYWXvDRajPxpuJBSZxeQK5siNT3VpthP has only "
+            r"indexed up to block number (\d+) and data for block number (\d+) is therefore not yet available`"
+        )
+        error_message = (
+            "Failed to decode `block.number` value: `subgraph QmPJbGjktGa7c4UYWXvDRajPxpuJBSZxeQK5siNT3VpthP has only "
+            "indexed up to block number 3730367 and data for block number 3830367 is therefore not yet available`"
+        )
+        assert re.match(regex, error_message).groups() == ("3730367", "3830367")
+
+        error_message = "new message 3730367"
+        assert re.match(regex, error_message) is None
 
     @staticmethod
     def test_block_from_timestamp(
