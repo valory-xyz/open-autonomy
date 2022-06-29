@@ -327,6 +327,58 @@ class TestTransactionSettlementBaseBehaviour(PriceEstimationFSMBehaviourBaseCase
             == "0000000000000000000000000000000000000000000000000000000000000001------------------------------------------"
         )
 
+    @pytest.mark.parametrize(
+        argnames=["tx_body", "expected_params"],
+        argvalues=[
+            [
+                {"maxPriorityFeePerGas": "dummy", "maxFeePerGas": "dummy"},
+                ["maxPriorityFeePerGas", "maxFeePerGas"],
+            ],
+            [{"gasPrice": "dummy"}, ["gasPrice"]],
+            [
+                {"maxPriorityFeePerGas": "dummy"},
+                [],
+            ],
+            [
+                {"maxFeePerGas": "dummy"},
+                [],
+            ],
+            [
+                {},
+                [],
+            ],
+            [
+                {
+                    "maxPriorityFeePerGas": "dummy",
+                    "maxFeePerGas": "dummy",
+                    "gasPrice": "dummy",
+                },
+                ["maxPriorityFeePerGas", "maxFeePerGas"],
+            ],
+        ],
+    )
+    def test_get_gas_price_params(
+        self, tx_body: dict, expected_params: List[str]
+    ) -> None:
+        """Test the get_gas_price_params method"""
+        # fast-forward to any behaviour of the tx settlement skill
+        self.fast_forward_to_behaviour(
+            behaviour=self.behaviour,
+            behaviour_id=SignatureBehaviour.behaviour_id,
+            synchronized_data=TransactionSettlementSynchronizedSata(
+                AbciAppDB(
+                    setup_data=AbciAppDB.data_to_lists(dict()),
+                )
+            ),
+        )
+
+        assert (
+            cast(
+                TransactionSettlementBaseBehaviour, self.behaviour.current_behaviour
+            ).get_gas_price_params(tx_body)
+            == expected_params
+        )
+
 
 class TestRandomnessInOperation(BaseRandomnessBehaviourTest):
     """Test randomness in operation."""
