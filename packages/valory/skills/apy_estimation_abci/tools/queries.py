@@ -114,6 +114,36 @@ def block_from_timestamp_q(timestamp: int) -> bytes:
     return finalize_q(query)
 
 
+def block_from_number_q(number: int) -> bytes:
+    """Create query to get a block from a block number.
+
+    :param number: the number of the block to be fetched.
+    :return: the built query.
+    """
+    query = (
+        """
+    {
+        blocks(
+            first: 1,
+            orderBy: timestamp,
+            orderDirection: asc,
+            where: {
+                number: """
+        + str(number)
+        + """
+            }
+        )
+        {
+            timestamp
+            number
+        }
+    }
+    """
+    )
+
+    return finalize_q(query)
+
+
 def latest_block() -> bytes:
     """Create query to get the latest block.
 
