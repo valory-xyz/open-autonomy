@@ -8,7 +8,7 @@ aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
   README.md: QmSvXr6k7f5GFZVCgqM8d4ywibiSAYbdaGjmPh4CmFfQn9
   __init__.py: Qmb163B19kEpc6PfbLnmQxPbeEWA2ubTghVwG2YUeNYusu
-  behaviours.py: QmWvbXU1ZYfQEfUtCKB78fJorw3V1YTCgN1M9aJZsDEHpr
+  behaviours.py: QmRD1fCEpGg4yiTxoEzeCg8FSm6y1fmRBWJQphoMkyHpiz
   dialogues.py: QmdBmUMWoPbS2faqn8LicQVJfN6a2WjtdZDWFbiYoy7hfY
   fsm_specification.yaml: QmWpHTiaY91oUmAoYiAZjcg5i3UsqktRHCcZZkEDpqEqcf
   handlers.py: QmRMUufh4uDoqLjcQQ2f51fyE4M8Q7ECxSbLEbtTUMfVfu
@@ -16,7 +16,7 @@ fingerprint:
   ml/forecasting.py: QmPqfSmL2vcLCtJJ5Q9XhD1S2BtLfsqxGeHqq86sjg9EqE
   ml/optimization.py: QmQms7wAvSAVL4Agjpbuz3LtFwNE6HyrbzcQkESoeGfM4o
   ml/preprocessing.py: QmXRkajyrcZbXy8k26dCocmCCrqYwEHcjy7iFG64DohZKq
-  models.py: QmS15SjCs3NXCqz3gRL3soC7RRPFGofDGEttef5DVWo8EZ
+  models.py: QmaWMSi6X3B9fhmspH4EH5CzDFcTMVFPSamWHh7YaxHw1e
   payloads.py: QmbBH6kpC98iMgoVbHNwwMBMLs8LC6c87tj81r7UBaHesv
   rounds.py: QmTniGZFi5RCsefxqX7NVrUPfiEwRe4kDfq4xDrswLhmYe
   tasks.py: QmemYwBwU6RpWsca3bkXWuUemgZ6YwFVMxS5vkt7J7BjHh
@@ -24,7 +24,7 @@ fingerprint:
   tools/etl.py: Qmb7e77Fh6R4TTSbgUNSo2LaQpKWtRsfmfeqCiPF75mSNf
   tools/general.py: QmUtxPckv7Mjv6RXt9LmoSARd3D5xK4pyoVVL9wv9H2kvB
   tools/io.py: QmQ1aPz1gg9hwgzkG1iLpiHbDVApwHyxLR2mGfQmDJqAQk
-  tools/queries.py: QmXZxZ35Sd6YWpPWcMfhwvS5KMvQhb9AmLWp7drQs8KQCT
+  tools/queries.py: QmP5cWHaAXGdEEZiNBbiWQfrshAK3zhQ8LDEBPL15shHkv
 fingerprint_ignore_patterns: []
 connections:
 - valory/abci:0.1.0:QmYWiaxokWBsbpwzZwPSYtrDrecE7A6ttz6kuZkUEWegVX
@@ -38,8 +38,8 @@ protocols:
 - valory/http:1.0.0:QmRQYhYWbGSNHb152dp2L1P9EtZRZZqgvZAaNat5qxfQqK
 - valory/ledger_api:1.0.0:QmNfowyB8rGWr53wuNPYK5BEAnA8AehgipVdYXt8LC5uR6
 skills:
-- valory/abstract_round_abci:0.1.0:QmYDnsxVcpBtCJjRgByMjXp3sy386sAG45decKTsbd6MbG
-- valory/registration_abci:0.1.0:QmNtePoNpEARWWP1XUgNEhaMyGZSQPSttamY3YLBmRM9fE
+- valory/abstract_round_abci:0.1.0:Qmdsw7VcXF9nFFP76wGFrEjL1j9zWPmhuwmnsarMyfzoWG
+- valory/registration_abci:0.1.0:QmT1tfEcJRfCobEHHq1tLyEcVv43ddfQZRkzvAqHBAEuhM
 behaviours:
   main:
     args: {}
