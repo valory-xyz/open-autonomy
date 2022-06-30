@@ -375,7 +375,7 @@ class TestFetchAndBatchBehaviours(APYEstimationFSMBehaviourBaseCase):
             "url"
         ] = "https://api.thegraph.com/subgraphs/name/eerieeight/spookyswap"
         request_kwargs["body"] = json.dumps(
-            {"query": eth_price_usd_q.replace("3830367", "3730367")}
+            {"query": eth_price_usd_q.replace("3830367", "3730360")}
         ).encode("utf-8")
         res = {"data": {"bundles": [{"ethPrice": "0.8973548"}]}}
         response_kwargs["body"] = json.dumps(res).encode("utf-8")
@@ -389,7 +389,7 @@ class TestFetchAndBatchBehaviours(APYEstimationFSMBehaviourBaseCase):
         request_kwargs["body"] = json.dumps({"query": block_from_number_q}).encode(
             "utf-8"
         )
-        res = {"data": {"blocks": [{"timestamp": "1", "number": "3730367"}]}}
+        res = {"data": {"blocks": [{"timestamp": "1", "number": "3730360"}]}}
         response_kwargs["body"] = json.dumps(res).encode("utf-8")
         self.behaviour.act_wrapper()
         self.mock_http_request(request_kwargs, response_kwargs)
@@ -399,7 +399,7 @@ class TestFetchAndBatchBehaviours(APYEstimationFSMBehaviourBaseCase):
             "url"
         ] = "https://api.thegraph.com/subgraphs/name/eerieeight/spookyswap"
         request_kwargs["body"] = json.dumps(
-            {"query": pairs_q.replace("3830367", "3730367")}
+            {"query": pairs_q.replace("3830367", "3730360")}
         ).encode("utf-8")
         res = {
             "data": {

@@ -149,7 +149,7 @@ def block_from_number_q() -> str:
             orderBy: timestamp,
             orderDirection: asc,
             where: {
-                number: 3730367
+                number: 3730360
             }
         )
         {
