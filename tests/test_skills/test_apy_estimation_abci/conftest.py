@@ -139,6 +139,28 @@ def block_from_timestamp_q() -> str:
 
 
 @pytest.fixture
+def block_from_number_q() -> str:
+    """Query string to get a block from a timestamp."""
+
+    return """
+    {
+        blocks(
+            first: 1,
+            orderBy: timestamp,
+            orderDirection: asc,
+            where: {
+                number: 3730367
+            }
+        )
+        {
+            timestamp
+            number
+        }
+    }
+    """
+
+
+@pytest.fixture
 def top_n_pairs_q() -> str:
     """Query to get the first `top_n` pool ids based on their total liquidity."""
 

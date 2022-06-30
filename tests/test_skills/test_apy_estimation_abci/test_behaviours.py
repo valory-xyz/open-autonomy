@@ -305,6 +305,7 @@ class TestFetchAndBatchBehaviours(APYEstimationFSMBehaviourBaseCase):
     def test_fetch_behaviour_non_indexed_block(
         self,
         block_from_timestamp_q: str,
+        block_from_number_q: str,
         eth_price_usd_q: str,
         pairs_q: str,
         pool_fields: Tuple[str, ...],
@@ -381,8 +382,25 @@ class TestFetchAndBatchBehaviours(APYEstimationFSMBehaviourBaseCase):
         self.behaviour.act_wrapper()
         self.mock_http_request(request_kwargs, response_kwargs)
 
+        # indexed block request.
+        request_kwargs[
+            "url"
+        ] = "https://api.thegraph.com/subgraphs/name/matthewlilley/fantom-blocks"
+        request_kwargs["body"] = json.dumps({"query": block_from_number_q}).encode(
+            "utf-8"
+        )
+        res = {"data": {"blocks": [{"timestamp": "1", "number": "3730367"}]}}
+        response_kwargs["body"] = json.dumps(res).encode("utf-8")
+        self.behaviour.act_wrapper()
+        self.mock_http_request(request_kwargs, response_kwargs)
+
         # top pairs data.
-        request_kwargs["body"] = json.dumps({"query": pairs_q}).encode("utf-8")
+        request_kwargs[
+            "url"
+        ] = "https://api.thegraph.com/subgraphs/name/eerieeight/spookyswap"
+        request_kwargs["body"] = json.dumps(
+            {"query": pairs_q.replace("3830367", "3730367")}
+        ).encode("utf-8")
         res = {
             "data": {
                 "pairs": [
