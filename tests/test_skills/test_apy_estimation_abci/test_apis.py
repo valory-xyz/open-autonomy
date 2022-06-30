@@ -26,6 +26,7 @@ from typing import Dict, List, Tuple
 import pytest
 import requests
 
+from packages.valory.skills.apy_estimation_abci.behaviours import NON_INDEXED_BLOCK_RE
 from packages.valory.skills.apy_estimation_abci.models import (
     FantomSubgraph,
     SpookySwapSubgraph,
@@ -126,20 +127,16 @@ class TestSubgraphs:
     @staticmethod
     def test_regex_for_indexed_block_capture() -> None:
         """Test the regex for capturing the indexed block."""
-        regex = (
-            r"Failed to decode `block.number` value: `subgraph QmPJbGjktGa7c4UYWXvDRajPxpuJBSZxeQK5siNT3VpthP has only "
-            r"indexed up to block number (\d+) and data for block number (\d+) is therefore not yet available`"
-        )
         error_message = (
             "Failed to decode `block.number` value: `subgraph QmPJbGjktGa7c4UYWXvDRajPxpuJBSZxeQK5siNT3VpthP has only "
             "indexed up to block number 3730367 and data for block number 3830367 is therefore not yet available`"
         )
-        match = re.match(regex, error_message)
+        match = re.match(NON_INDEXED_BLOCK_RE, error_message)
         assert match is not None
-        assert match.groups() == ("3730367", "3830367")
+        assert match.groups() == ("3730367",)
 
         error_message = "new message 3730367"
-        assert re.match(regex, error_message) is None
+        assert re.match(NON_INDEXED_BLOCK_RE, error_message) is None
 
     @staticmethod
     def test_block_from_timestamp(
