@@ -144,7 +144,7 @@ def block_from_number_q(number: int) -> bytes:
     return finalize_q(query)
 
 
-def latest_block() -> bytes:
+def latest_block_q() -> bytes:
     """Create query to get the latest block.
 
     :return: the built query.

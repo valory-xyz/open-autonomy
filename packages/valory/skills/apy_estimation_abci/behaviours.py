@@ -109,7 +109,7 @@ from packages.valory.skills.apy_estimation_abci.tools.queries import (
     block_from_number_q,
     block_from_timestamp_q,
     eth_price_usd_q,
-    latest_block,
+    latest_block_q,
     pairs_q,
 )
 
@@ -273,7 +273,7 @@ class FetchBehaviour(
             query = block_from_number_q(number)
         else:
             query = (
-                latest_block()
+                latest_block_q()
                 if self.batch
                 else block_from_timestamp_q(cast(int, self._current_timestamp))
             )

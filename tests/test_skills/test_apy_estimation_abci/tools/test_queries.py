@@ -29,7 +29,7 @@ from packages.valory.skills.apy_estimation_abci.tools.queries import (
     block_from_timestamp_q,
     eth_price_usd_q,
     finalize_q,
-    latest_block,
+    latest_block_q,
     pairs_q,
     top_n_pairs_q,
 )
@@ -165,7 +165,7 @@ class TestQueries:
             "packages.valory.skills.apy_estimation_abci.tools.queries.finalize_q",
             identity,
         )
-        actual = latest_block()
+        actual = latest_block_q()
         expected = """
                    {
                         blocks(
