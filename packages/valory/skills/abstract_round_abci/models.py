@@ -216,17 +216,23 @@ class ApiSpecs(Model):  # pylint: disable=too-many-instance-attributes
 
     def process_response(self, response: HttpMessage) -> Any:
         """Process response from api."""
+        return self._get_response_data(response, self.response_key, self.response_type)
+
+    def _get_response_data(
+        self, response: HttpMessage, response_key: Optional[str], response_type: str
+    ) -> Any:
+        """Get response data from api, based on the given response key"""
         try:
             response_data = json.loads(response.body.decode())
-            if self.response_key is None:
+            if response_key is None:
                 return response_data
 
-            first_key, *keys = self.response_key.split(":")
+            first_key, *keys = response_key.split(":")
             value = response_data[first_key]
             for key in keys:
                 value = value[key]
 
-            return self._response_types.get(self.response_type)(value)  # type: ignore
+            return self._response_types.get(response_type)(value)  # type: ignore
 
         except (json.JSONDecodeError, KeyError):
             return None
