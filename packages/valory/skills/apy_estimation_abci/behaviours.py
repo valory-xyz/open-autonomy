@@ -597,7 +597,8 @@ class PrepareBatchBehaviour(APYEstimationBaseBehaviour):
             self.get_from_ipfs(
                 self.synchronized_data.batch_hash,
                 self.context.data_dir,
-                filename=f"historical_data_batch_{self.synchronized_data.latest_observation_timestamp}_period_{self.synchronized_data.period_count}.json",
+                filename=f"historical_data_batch_{self.synchronized_data.latest_observation_timestamp}"
+                f"_period_{self.synchronized_data.period_count}.json",
                 filetype=SupportedFiletype.JSON,
             ),
         )
