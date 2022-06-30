@@ -20,7 +20,9 @@
 """This module contains the behaviours for the APY estimation skill."""
 import calendar
 import json
+import math
 import os
+import re
 from abc import ABC
 from multiprocessing.pool import AsyncResult
 from typing import (
@@ -39,6 +41,7 @@ from typing import (
 import numpy as np
 import pandas as pd
 
+from packages.valory.protocols.http import HttpMessage
 from packages.valory.skills.abstract_round_abci.behaviours import (
     AbstractRoundBehaviour,
     BaseBehaviour,
@@ -103,6 +106,7 @@ from packages.valory.skills.apy_estimation_abci.tools.etl import ResponseItemTyp
 from packages.valory.skills.apy_estimation_abci.tools.general import gen_unix_timestamps
 from packages.valory.skills.apy_estimation_abci.tools.io import load_hist
 from packages.valory.skills.apy_estimation_abci.tools.queries import (
+    block_from_number_q,
     block_from_timestamp_q,
     eth_price_usd_q,
     latest_block,
@@ -259,6 +263,68 @@ class FetchBehaviour(
         self._call_failed = False
         subgraph.reset_retries()
         return value
+
+    def _check_non_indexed_block(
+        self, res_raw: HttpMessage
+    ) -> Generator[None, None, Optional[Tuple[int, float]]]:
+        """Check if we received a non-indexed block error and try to get the ETH price for the latest indexed block."""
+        res = self.context.spooky_subgraph.process_non_indexed_error(res_raw)
+        latest_indexed_block_error = yield from self._handle_response(
+            res,
+            res_context="indexing error that will be attempted to be handled",
+            keys=(0, "message"),
+            subgraph=self.context.spooky_subgraph,
+        )
+        if latest_indexed_block_error is None:
+            return None
+        match = re.match(NON_INDEXED_BLOCK_RE, latest_indexed_block_error)
+        if match is None:
+            return None
+        latest_indexed_block = match.group(1)
+        # we set the last digit to 0, so that it is more possible for the agents to reach to a consensus
+        # without requiring an extra round.
+        latest_indexed_block = int(math.floor(float(latest_indexed_block) * 0.1) * 10)
+
+        # Fetch ETH price for latest indexed block.
+        res_raw = yield from self.get_http_response(
+            content=eth_price_usd_q(
+                self.context.spooky_subgraph.bundle_id,
+                latest_indexed_block,
+            ),
+            **self._spooky_api_specs,
+        )
+        res = self.context.spooky_subgraph.process_response(res_raw)
+        eth_price = yield from self._handle_response(
+            res,
+            res_context=f"ETH price for block {latest_indexed_block}",
+            keys=("bundles", 0, "ethPrice"),
+            subgraph=self.context.spooky_subgraph,
+        )
+        if eth_price is None:
+            return None
+
+        # Fetch latest indexed block.
+        fantom_api_specs = self.context.fantom_subgraph.get_spec()
+        query = block_from_number_q(latest_indexed_block)
+        res_raw = yield from self.get_http_response(
+            method=fantom_api_specs["method"],
+            url=fantom_api_specs["url"],
+            headers=fantom_api_specs["headers"],
+            content=query,
+        )
+        res = self.context.fantom_subgraph.process_response(res_raw)
+
+        fetched_block = yield from self._handle_response(
+            res,
+            res_context="block",
+            keys=("blocks", 0),
+            subgraph=self.context.fantom_subgraph,
+        )
+
+        if fetched_block is None:
+            return None
+
+        return fetched_block, eth_price
 
     def _fetch_batch(self) -> Generator[None, None, None]:
         """Fetch a single batch of the historical data."""
