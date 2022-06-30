@@ -110,6 +110,12 @@ from packages.valory.skills.apy_estimation_abci.tools.queries import (
 )
 
 
+NON_INDEXED_BLOCK_RE = (
+    r"Failed to decode `block.number` value: `subgraph QmPJbGjktGa7c4UYWXvDRajPxpuJBSZxeQK5siNT3VpthP has only "
+    r"indexed up to block number (\d+) and data for block number \d+ is therefore not yet available`"
+)
+
+
 class APYEstimationBaseBehaviour(BaseBehaviour, ABC):
     """Base behaviour for the APY estimation skill."""
 
