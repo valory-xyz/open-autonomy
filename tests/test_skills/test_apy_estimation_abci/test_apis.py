@@ -156,6 +156,24 @@ class TestSubgraphs:
         keys = ["number", "timestamp"]
         assert all((key in block for key in keys))
         assert all(isinstance(ast.literal_eval(block[key]), int) for key in keys)
+        assert block == {"timestamp": "1618735147", "number": "3830367"}
+
+    @staticmethod
+    def test_block_from_number_q(
+        fantom_specs: SpecsType, block_from_number_q: str
+    ) -> None:
+        """Test Fantom's block from number request from subgraph."""
+        fantom_specs["response_key"] += ":blocks"  # type: ignore
+        api = FantomSubgraph(**fantom_specs)
+
+        res = make_request(api.get_spec(), block_from_number_q)
+        block = api.process_response(DummyMessage(res.content))[0]  # type: ignore
+
+        assert isinstance(block, dict)
+        keys = ["number", "timestamp"]
+        assert all((key in block for key in keys))
+        assert all(isinstance(ast.literal_eval(block[key]), int) for key in keys)
+        assert block == {"timestamp": "1618485988", "number": "3730360"}
 
     @staticmethod
     def test_top_n_pairs(spooky_specs: SpecsType, top_n_pairs_q: str) -> None:
