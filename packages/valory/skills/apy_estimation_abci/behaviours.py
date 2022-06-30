@@ -368,10 +368,14 @@ class FetchBehaviour(
             res_context=f"ETH price for block {fetched_block}",
             keys=("bundles", 0, "ethPrice"),
             subgraph=self.context.spooky_subgraph,
+            sleep_on_fail=False,
         )
 
         if eth_price is None:
-            return
+            check_result = yield from self._check_non_indexed_block(res_raw)
+            if check_result is None:
+                return
+            fetched_block, eth_price = check_result
 
         # Fetch pool data for block.
         res_raw = yield from self.get_http_response(
