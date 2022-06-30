@@ -169,7 +169,7 @@ class ApiSpecs(Model):  # pylint: disable=too-many-instance-attributes
 
     _retries_attempted: int
     _retries: int
-    _response_types: Dict[str, Any] = {
+    _response_types: Dict[str, Type] = {
         "int": int,
         "float": float,
         "dict": dict,
@@ -186,7 +186,7 @@ class ApiSpecs(Model):  # pylint: disable=too-many-instance-attributes
         self.headers = kwargs.pop("headers", [])
         self.parameters = kwargs.pop("parameters", [])
         self.response_key = kwargs.pop("response_key", None)
-        self.response_type = kwargs.pop("response_type", str)
+        self.response_type = kwargs.pop("response_type", "str")
 
         self._retries_attempted = 0
         self._retries = kwargs.pop("retries", NUMBER_OF_RETRIES)
