@@ -264,6 +264,59 @@ class FetchBehaviour(
         subgraph.reset_retries()
         return value
 
+    def _fetch_block(
+        self, number: Optional[int] = None
+    ) -> Generator[None, None, Optional[Dict[str, int]]]:
+        """Fetch block."""
+        fantom_api_specs = self.context.fantom_subgraph.get_spec()
+        if number is not None:
+            query = block_from_number_q(number)
+        else:
+            query = (
+                latest_block()
+                if self.batch
+                else block_from_timestamp_q(cast(int, self._current_timestamp))
+            )
+        res_raw = yield from self.get_http_response(
+            method=fantom_api_specs["method"],
+            url=fantom_api_specs["url"],
+            headers=fantom_api_specs["headers"],
+            content=query,
+        )
+        res = self.context.fantom_subgraph.process_response(res_raw)
+
+        fetched_block = yield from self._handle_response(
+            res,
+            res_context="block",
+            keys=("blocks", 0),
+            subgraph=self.context.fantom_subgraph,
+        )
+
+        return fetched_block
+
+    def _fetch_eth_price(
+        self, block: Dict[str, int]
+    ) -> Generator[None, None, Tuple[HttpMessage, Optional[float]]]:
+        """Fetch ETH price for block."""
+        res_raw = yield from self.get_http_response(
+            content=eth_price_usd_q(
+                self.context.spooky_subgraph.bundle_id,
+                block["number"],
+            ),
+            **self._spooky_api_specs,
+        )
+        res = self.context.spooky_subgraph.process_response(res_raw)
+
+        eth_price = yield from self._handle_response(
+            res,
+            res_context=f"ETH price for block {block}",
+            keys=("bundles", 0, "ethPrice"),
+            subgraph=self.context.spooky_subgraph,
+            sleep_on_fail=False,
+        )
+
+        return res_raw, eth_price
+
     def _check_non_indexed_block(
         self, res_raw: HttpMessage
     ) -> Generator[None, None, Optional[Tuple[Dict[str, int], float]]]:
@@ -277,129 +330,92 @@ class FetchBehaviour(
         )
         if latest_indexed_block_error is None:
             return None
+
         match = re.match(NON_INDEXED_BLOCK_RE, latest_indexed_block_error)
         if match is None:
             return None
-        latest_indexed_block = match.group(1)
+
+        latest_indexed_block_number = match.group(1)
         # we set the last digit to 0, so that it is more possible for the agents to reach to a consensus
         # without requiring an extra round.
-        latest_indexed_block = int(math.floor(float(latest_indexed_block) * 0.1) * 10)
+        latest_indexed_block_number = int(
+            math.floor(float(latest_indexed_block_number) * 0.1) * 10
+        )
+
+        # Fetch latest indexed block.
+        latest_indexed_block = yield from self._fetch_block(latest_indexed_block_number)
+        if latest_indexed_block is None:
+            return None
 
         # Fetch ETH price for latest indexed block.
-        res_raw = yield from self.get_http_response(
-            content=eth_price_usd_q(
-                self.context.spooky_subgraph.bundle_id,
-                latest_indexed_block,
-            ),
-            **self._spooky_api_specs,
-        )
-        res = self.context.spooky_subgraph.process_response(res_raw)
-        eth_price = yield from self._handle_response(
-            res,
-            res_context=f"ETH price for block {latest_indexed_block}",
-            keys=("bundles", 0, "ethPrice"),
-            subgraph=self.context.spooky_subgraph,
-        )
+        _, eth_price = yield from self._fetch_eth_price(latest_indexed_block)
         if eth_price is None:
             return None
 
-        # Fetch latest indexed block.
-        fantom_api_specs = self.context.fantom_subgraph.get_spec()
-        query = block_from_number_q(latest_indexed_block)
-        res_raw = yield from self.get_http_response(
-            method=fantom_api_specs["method"],
-            url=fantom_api_specs["url"],
-            headers=fantom_api_specs["headers"],
-            content=query,
-        )
-        res = self.context.fantom_subgraph.process_response(res_raw)
+        return latest_indexed_block, eth_price
 
-        fetched_block = yield from self._handle_response(
-            res,
-            res_context="block",
-            keys=("blocks", 0),
-            subgraph=self.context.fantom_subgraph,
-        )
+    def _fetch_eth_price_safely(
+        self, block: Dict[str, int]
+    ) -> Generator[None, None, Optional[Tuple[Dict[str, int], float]]]:
+        """
+        Fetch ETH price for a block.
 
-        if fetched_block is None:
-            return None
+        If the block is not indexed yet, fetch the latest indexed block and the ETH price for that block.
 
-        return fetched_block, eth_price
-
-    def _fetch_batch(self) -> Generator[None, None, None]:
-        """Fetch a single batch of the historical data."""
-        # Fetch block.
-        fantom_api_specs = self.context.fantom_subgraph.get_spec()
-        query = (
-            latest_block()
-            if self.batch
-            else block_from_timestamp_q(cast(int, self._current_timestamp))
-        )
-        res_raw = yield from self.get_http_response(
-            method=fantom_api_specs["method"],
-            url=fantom_api_specs["url"],
-            headers=fantom_api_specs["headers"],
-            content=query,
-        )
-        res = self.context.fantom_subgraph.process_response(res_raw)
-
-        fetched_block = yield from self._handle_response(
-            res,
-            res_context="block",
-            keys=("blocks", 0),
-            subgraph=self.context.fantom_subgraph,
-        )
-
-        if fetched_block is None:
-            return
-
-        # Fetch ETH price for block.
-        res_raw = yield from self.get_http_response(
-            content=eth_price_usd_q(
-                self.context.spooky_subgraph.bundle_id,
-                fetched_block["number"],
-            ),
-            **self._spooky_api_specs,
-        )
-        res = self.context.spooky_subgraph.process_response(res_raw)
-
-        eth_price = yield from self._handle_response(
-            res,
-            res_context=f"ETH price for block {fetched_block}",
-            keys=("bundles", 0, "ethPrice"),
-            subgraph=self.context.spooky_subgraph,
-            sleep_on_fail=False,
-        )
+        :param block: the block for which we will try to fetch the ETH price.
+        :return: the same block or the latest indexed and the corresponding ETH price.
+        :yield: None
+        """
+        res_raw, eth_price = yield from self._fetch_eth_price(block)
 
         if eth_price is None:
             check_result = yield from self._check_non_indexed_block(res_raw)
             if check_result is None:
-                return
-            fetched_block, eth_price = check_result
+                return None
+            block, eth_price = check_result
 
-        # Fetch pool data for block.
+        return block, eth_price
+
+    def _fetch_pairs(
+        self, block: Dict[str, int]
+    ) -> Generator[None, None, Optional[ResponseItemType]]:
+        """Fetch pool data for block."""
         res_raw = yield from self.get_http_response(
-            content=pairs_q(fetched_block["number"], self.params.pair_ids),
+            content=pairs_q(block["number"], self.params.pair_ids),
             **self._spooky_api_specs,
         )
         res = self.context.spooky_subgraph.process_response(res_raw)
 
         pairs = yield from self._handle_response(
             res,
-            res_context=f"pool data for block {fetched_block}",
+            res_context=f"pool data for block {block}",
             keys=("pairs",),
             subgraph=self.context.spooky_subgraph,
         )
 
+        return pairs
+
+    def _fetch_batch(self) -> Generator[None, None, None]:
+        """Fetch a single batch of the historical data."""
+        block = yield from self._fetch_block()
+        if block is None:
+            return
+
+        check_result = yield from self._fetch_eth_price_safely(block)
+        if check_result is None:
+            return
+        block, eth_price = check_result
+
+        pairs = yield from self._fetch_pairs(block)
         if pairs is None:
             return
 
         # Add extra fields to the pairs.
         for i in range(len(pairs)):  # pylint: disable=C0200
-            pairs[i]["forTimestamp"] = self._current_timestamp
-            pairs[i]["blockNumber"] = fetched_block["number"]
-            pairs[i]["blockTimestamp"] = fetched_block["timestamp"]
-            pairs[i]["ethPrice"] = eth_price
+            pairs[i]["forTimestamp"] = str(self._current_timestamp)
+            pairs[i]["blockNumber"] = str(block["number"])
+            pairs[i]["blockTimestamp"] = str(block["timestamp"])
+            pairs[i]["ethPrice"] = str(eth_price)
 
         self._pairs_hist.extend(pairs)
 
