@@ -266,7 +266,7 @@ class FetchBehaviour(
 
     def _check_non_indexed_block(
         self, res_raw: HttpMessage
-    ) -> Generator[None, None, Optional[Tuple[int, float]]]:
+    ) -> Generator[None, None, Optional[Tuple[Dict[str, int], float]]]:
         """Check if we received a non-indexed block error and try to get the ETH price for the latest indexed block."""
         res = self.context.spooky_subgraph.process_non_indexed_error(res_raw)
         latest_indexed_block_error = yield from self._handle_response(
