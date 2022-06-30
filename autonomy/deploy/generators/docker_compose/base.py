@@ -108,7 +108,7 @@ class DockerComposeGenerator(BaseDeploymentGenerator):
     ) -> "DockerComposeGenerator":
         """Generate the command to configure tendermint testnet."""
 
-        if self.tendermint_job_config is not None:
+        if self.tendermint_job_config is not None:  # pragma: no cover
             return self
 
         run_cmd = TENDERMINT_CONFIG_TEMPLATE.format(

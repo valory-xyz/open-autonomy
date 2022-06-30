@@ -20,6 +20,7 @@
 """Test agent runner."""
 
 
+import json
 import os
 from pathlib import Path
 from typing import Any, Tuple
@@ -30,6 +31,34 @@ from autonomy.replay.tendermint import TendermintNetwork
 
 from tests.conftest import ROOT_DIR
 from tests.test_autonomy.test_cli.base import BaseCliTest
+
+
+ADDRBOOK_DATA = {
+    "key": "53f91939db980b06e7cfb145",
+    "addrs": [
+        {
+            "addr": {
+                "id": "4fa21e46ad7cdfa028761f13e460de2dd6eb93c8",
+                "ip": "192.167.11.3",
+                "port": 26656,
+            },
+        },
+        {
+            "addr": {
+                "id": "3d495cf3bf345b7e04a849e6e70900f5d2cbfcd3",
+                "ip": "192.167.11.4",
+                "port": 26656,
+            },
+        },
+        {
+            "addr": {
+                "id": "cf52b0f56ad58f5aa400f813f16f35cf726ff3e4",
+                "ip": "192.167.11.5",
+                "port": 26656,
+            },
+        },
+    ],
+}
 
 
 def ctrl_c(*args: Any) -> None:
@@ -55,7 +84,6 @@ class TestAgentRunner(BaseCliTest):
 
     def test_run(self) -> None:
         """Test run."""
-
         self.cli_runner.invoke(
             cli,
             (
@@ -70,9 +98,19 @@ class TestAgentRunner(BaseCliTest):
             ),
         )
 
+        addrbook_file = (
+            ROOT_DIR / "abci_build" / "persistent_data" / "tm_state" / "addrbook.json"
+        )
+        addrbook_file.write_text(json.dumps(ADDRBOOK_DATA))
+
         with mock.patch.object(TendermintNetwork, "init"), mock.patch.object(
             TendermintNetwork, "start", new=ctrl_c
         ), mock.patch.object(TendermintNetwork, "stop") as stop_mock:
             result = self.run_cli(())
-            assert result.exit_code == 0
+            assert result.exit_code == 0, result.output
             stop_mock.assert_any_call()
+
+            addrbook_data = json.loads(addrbook_file.read_text())
+            for i, addr in enumerate(addrbook_data["addrs"]):
+                assert addr["addr"]["ip"] == "127.0.0.1"
+                assert addr["addr"]["port"] == (26630 + i)

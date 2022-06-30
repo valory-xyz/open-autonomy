@@ -1553,7 +1553,7 @@ class BaseBehaviour(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
 
     def _get_reset_params(self, default: bool) -> Optional[List[Tuple[str, str]]]:
         """Get the parameters for a hard reset request to Tendermint."""
-        if default:
+        if default:  # pragma: no cover
             return None
 
         last_round_transition_timestamp = (

@@ -158,7 +158,7 @@ class SynchronizedData(
 
         :return: the tx hash which is ready for validation.
         """
-        if not self.tx_hashes_history:
+        if not self.tx_hashes_history:  # pragma: no cover
             raise ValueError("FSM design error: tx hash should exist")
         return self.tx_hashes_history[-1]
 

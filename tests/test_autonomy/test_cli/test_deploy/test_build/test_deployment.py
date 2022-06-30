@@ -176,6 +176,36 @@ class TestBuildDeployment(BaseCliTest):
             [child in build_tree for child in ["persistent_storage", "build.yaml"]]
         )
 
+    def test_kubernetes_build_dev(
+        self,
+    ) -> None:
+        """Run tests."""
+
+        with mock.patch("os.chown"):
+            result = self.run_cli(
+                (
+                    self.service_id,
+                    str(self.keys_file),
+                    "--packages-dir",
+                    str(self.t / "packages"),
+                    "--o",
+                    str(self.t),
+                    "--kubernetes",
+                    "--force",
+                    "--dev",
+                )
+            )
+
+        build_dir = self.t / "abci_build"
+
+        assert result.exit_code == 0, f"{result.stdout_bytes}\n{result.stderr_bytes}"
+        assert build_dir.exists()
+
+        build_tree = list(map(lambda x: x.name, build_dir.iterdir()))
+        assert any(
+            [child in build_tree for child in ["persistent_storage", "build.yaml"]]
+        )
+
     def test_versioning_docker_compose(
         self,
     ) -> None:
