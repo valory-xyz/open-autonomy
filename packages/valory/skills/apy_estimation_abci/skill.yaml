@@ -157,6 +157,8 @@ models:
       headers:
       - Content-Type: application/json
       method: POST
+      non_indexed_error_key: errors
+      non_indexed_error_type: list
       parameters: []
       response_key: data
       response_type: dict
