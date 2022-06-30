@@ -370,18 +370,6 @@ class TestFetchAndBatchBehaviours(APYEstimationFSMBehaviourBaseCase):
         self.behaviour.act_wrapper()
         self.mock_http_request(request_kwargs, response_kwargs)
 
-        # ETH price request for indexed block.
-        request_kwargs[
-            "url"
-        ] = "https://api.thegraph.com/subgraphs/name/eerieeight/spookyswap"
-        request_kwargs["body"] = json.dumps(
-            {"query": eth_price_usd_q.replace("3830367", "3730360")}
-        ).encode("utf-8")
-        res = {"data": {"bundles": [{"ethPrice": "0.8973548"}]}}
-        response_kwargs["body"] = json.dumps(res).encode("utf-8")
-        self.behaviour.act_wrapper()
-        self.mock_http_request(request_kwargs, response_kwargs)
-
         # indexed block request.
         request_kwargs[
             "url"
@@ -390,6 +378,18 @@ class TestFetchAndBatchBehaviours(APYEstimationFSMBehaviourBaseCase):
             "utf-8"
         )
         res = {"data": {"blocks": [{"timestamp": "1", "number": "3730360"}]}}
+        response_kwargs["body"] = json.dumps(res).encode("utf-8")
+        self.behaviour.act_wrapper()
+        self.mock_http_request(request_kwargs, response_kwargs)
+
+        # ETH price request for indexed block.
+        request_kwargs[
+            "url"
+        ] = "https://api.thegraph.com/subgraphs/name/eerieeight/spookyswap"
+        request_kwargs["body"] = json.dumps(
+            {"query": eth_price_usd_q.replace("3830367", "3730360")}
+        ).encode("utf-8")
+        res = {"data": {"bundles": [{"ethPrice": "0.8973548"}]}}
         response_kwargs["body"] = json.dumps(res).encode("utf-8")
         self.behaviour.act_wrapper()
         self.mock_http_request(request_kwargs, response_kwargs)
