@@ -25,6 +25,7 @@ import pytest
 from _pytest.monkeypatch import MonkeyPatch
 
 from packages.valory.skills.apy_estimation_abci.tools.queries import (
+    block_from_number_q,
     block_from_timestamp_q,
     eth_price_usd_q,
     finalize_q,
@@ -122,6 +123,31 @@ class TestQueries:
                    1, orderBy: timestamp, orderDirection: asc, where:
                        {
                            timestamp_gte: 100, timestamp_lte: 700
+                       }
+                       )
+                       {
+                           timestamp
+                           number
+                       }
+                       }
+                   """
+        assert actual.split() == expected.split()
+
+    @staticmethod
+    def test_block_from_number_q(monkeypatch: MonkeyPatch) -> None:
+        """Test `block_from_number_q`."""
+        monkeypatch.setattr(
+            "packages.valory.skills.apy_estimation_abci.tools.queries.finalize_q",
+            identity,
+        )
+        actual = block_from_number_q(100)
+        expected = """
+                   {
+                   blocks(
+                   first:
+                   1, orderBy: timestamp, orderDirection: asc, where:
+                       {
+                           number: 100
                        }
                        )
                        {
