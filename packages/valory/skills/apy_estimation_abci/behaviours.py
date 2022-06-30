@@ -227,6 +227,7 @@ class FetchBehaviour(
         res_context: str,
         keys: Tuple[Union[str, int], ...],
         subgraph: ApiSpecs,
+        sleep_on_fail: bool = True,
     ) -> Generator[None, None, Optional[Any]]:
         """Handle a response from a subgraph.
 
@@ -234,6 +235,7 @@ class FetchBehaviour(
         :param res_context: the context of the current response.
         :param keys: keys to get the information from the response.
         :param subgraph: api specs.
+        :param sleep_on_fail: whether we want to sleep if we fail to get the response's result.
         :return: the response's result, using the given keys. `None` if response is `None` (has failed).
         :yield: None
         """
@@ -244,7 +246,8 @@ class FetchBehaviour(
 
             self._call_failed = True
             subgraph.increment_retries()
-            yield from self.sleep(self.params.sleep_time)
+            if sleep_on_fail:
+                yield from self.sleep(self.params.sleep_time)
             return None
 
         value = res[keys[0]]
