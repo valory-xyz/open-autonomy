@@ -50,40 +50,35 @@ def make_request(api_specs: Dict, query: str) -> requests.Response:
     :param query: the query.
     :return: a response dictionary.
     """
-    if api_specs["method"] == "POST":
-        r = requests.post(
-            url=api_specs["url"], headers=api_specs["headers"], json={"query": query}
-        )
-
-        if r.status_code == 200:
-            res = r.json()
-
-            if (
-                "errors" in res.keys()
-                and res["errors"][0].get("locations", None) is not None
-            ):
-                message = res["errors"][0]["message"]
-                location = res["errors"][0]["locations"][0]
-                line = location["line"]
-                column = location["column"]
-
-                raise ValueError(
-                    f"The given query is not correct.\nError in line {line}, column {column}: {message}"
-                )
-
-            elif "errors" in res.keys() or "data" not in res.keys():
-                raise ValueError(f"Unknown error encountered!\nRaw response: {res}")
-
-        else:
-            raise ConnectionError(
-                "Something went wrong while trying to communicate with the subgraph "
-                f"(Error: {r.status_code})!\n{r.text}"
-            )
-
-    else:
+    if api_specs["method"] != "POST":
         raise ValueError(
             f"Unknown method {api_specs['method']} for {api_specs['api_id']}"
         )
+
+    r = requests.post(
+        url=api_specs["url"], headers=api_specs["headers"], json={"query": query}
+    )
+
+    if r.status_code != 200:
+        raise ConnectionError(
+            "Something went wrong while trying to communicate with the subgraph "
+            f"(Error: {r.status_code})!\n{r.text}"
+        )
+
+    res = r.json()
+
+    if "errors" in res.keys() and res["errors"][0].get("locations", None) is not None:
+        message = res["errors"][0]["message"]
+        location = res["errors"][0]["locations"][0]
+        line = location["line"]
+        column = location["column"]
+
+        raise ValueError(
+            f"The given query is not correct.\nError in line {line}, column {column}: {message}"
+        )
+
+    if "errors" in res.keys() or "data" not in res.keys():
+        raise ValueError(f"Unknown error encountered!\nRaw response: {res}")
 
     return r
 
