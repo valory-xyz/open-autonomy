@@ -221,13 +221,16 @@ class TestTendermintHardResetServer(BaseTendermintServerTest):
     """Test Tendermint hard reset"""
 
     @wait_for_node_to_run
-    def test_hard_reset(self) -> None:
+    @pytest.mark.parametrize("prune_fail", (True, False))
+    def test_hard_reset(self, prune_fail: bool) -> None:
         """Test hard reset"""
-        with self.app.test_client() as client:
+        with self.app.test_client() as client, mock.patch.object(
+            TendermintNode, "prune_blocks", return_value=int(prune_fail)
+        ):
             response = client.get("/hard_reset")
             data = response.get_json()
             assert response.status_code == 200
-            assert data["status"] is True
+            assert data["status"] is not prune_fail
 
 
 class TestTendermintLogMessages(BaseTendermintServerTest):
