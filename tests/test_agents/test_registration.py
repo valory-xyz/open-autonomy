@@ -30,11 +30,7 @@ from packages.valory.skills.registration_abci.behaviours import (
 )
 
 from tests.fixture_helpers import UseACNNode, UseGnosisSafeHardHatNet
-from tests.test_agents.base import (
-    BaseTestEnd2End,
-    BaseTestEnd2EndAgentCatchup,
-    BaseTestEnd2EndNormalExecution,
-)
+from tests.test_agents.base import BaseTestEnd2End, BaseTestEnd2EndExecution
 
 
 log_messages = RegistrationStartupBehaviour.LogMessages
@@ -89,7 +85,7 @@ class RegistrationStartUpTestConfig(
 @pytest.mark.integration
 @pytest.mark.parametrize("nb_nodes", (4,))
 class TestRegistrationStartUpFourAgents(
-    RegistrationStartUpTestConfig, BaseTestEnd2EndNormalExecution
+    RegistrationStartUpTestConfig, BaseTestEnd2EndExecution
 ):
     """Test registration start-up skill with four agents."""
 
@@ -98,9 +94,10 @@ class TestRegistrationStartUpFourAgents(
 @pytest.mark.integration
 @pytest.mark.parametrize("nb_nodes", (4,))
 class TestRegistrationStartUpFourAgentsCatchUp(
-    RegistrationStartUpTestConfig, BaseTestEnd2EndAgentCatchup
+    RegistrationStartUpTestConfig, BaseTestEnd2EndExecution
 ):
     """Test registration start-up skill with four agents and catch up."""
 
     stop_string = "My address: "
     restart_after = 10
+    n_terminal = 1

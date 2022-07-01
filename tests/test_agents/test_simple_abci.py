@@ -20,7 +20,7 @@
 """End2end tests for the valory/simple_abci skill."""
 import pytest
 
-from tests.test_agents.base import BaseTestEnd2EndNormalExecution, RoundChecks
+from tests.test_agents.base import BaseTestEnd2EndExecution, RoundChecks
 
 
 # round check log messages of the happy path
@@ -35,10 +35,8 @@ HAPPY_PATH = (
 STRICT_CHECK_STRINGS = ("Period end",)
 
 
-@pytest.mark.parametrize("nb_nodes", (1,))
-class TestSimpleABCISingleAgent(
-    BaseTestEnd2EndNormalExecution,
-):
+# normal execution
+class BaseSimpleABCITest(BaseTestEnd2EndExecution):
     """Test the ABCI simple_abci skill with only one agent."""
 
     agent_package = "valory/simple_abci:0.1.0"
@@ -46,30 +44,69 @@ class TestSimpleABCISingleAgent(
     wait_to_finish = 80
     happy_path = HAPPY_PATH
     strict_check_strings = STRICT_CHECK_STRINGS
-    use_benchmarks = True
+
+
+@pytest.mark.parametrize("nb_nodes", (1,))
+class TestSimpleABCISingleAgent(BaseSimpleABCITest):
+    """Test the ABCI simple_abci skill with only one agent."""
 
 
 @pytest.mark.parametrize("nb_nodes", (2,))
-class TestSimpleABCITwoAgents(
-    BaseTestEnd2EndNormalExecution,
-):
+class TestSimpleABCITwoAgents(BaseSimpleABCITest):
     """Test the ABCI simple_abci skill with two agents."""
-
-    agent_package = "valory/simple_abci:0.1.0"
-    skill_package = "valory/simple_abci:0.1.0"
-    wait_to_finish = 120
-    happy_path = HAPPY_PATH
-    strict_check_strings = STRICT_CHECK_STRINGS
 
 
 @pytest.mark.parametrize("nb_nodes", (4,))
-class TestSimpleABCIFourAgents(
-    BaseTestEnd2EndNormalExecution,
-):
+class TestSimpleABCIFourAgents(BaseSimpleABCITest):
     """Test the ABCI simple_abci skill with four agents."""
 
-    agent_package = "valory/simple_abci:0.1.0"
-    skill_package = "valory/simple_abci:0.1.0"
-    wait_to_finish = 120
-    happy_path = HAPPY_PATH
-    strict_check_strings = STRICT_CHECK_STRINGS
+
+# catchup test
+class BaseSimpleABCITestCatchup(BaseSimpleABCITest):
+    """Test the ABCI simple_abci skill with catch up behaviour."""
+
+    stop_string = "register"
+    restart_after = 10
+    n_terminal = 1
+
+
+# four behaviours and different stages of termination and restart
+@pytest.mark.parametrize("nb_nodes", (4,))
+class TestSimpleABCIFourAgentsCatchupOnRegister(BaseSimpleABCITestCatchup):
+    """Test simple_abci skill with four agents; one restarting on `register`."""
+
+
+@pytest.mark.parametrize("nb_nodes", (4,))
+class TestSimpleABCIFourAgentsCatchupRetrieveRandomness(BaseSimpleABCITestCatchup):
+    """Test simple_abci skill with four agents; one restarting on `retrieve_randomness_at_startup`."""
+
+    stop_string = "retrieve_randomness_at_startup"
+
+
+@pytest.mark.parametrize("nb_nodes", (4,))
+class TestSimpleABCIFourAgentsCatchupSelectKeeper(BaseSimpleABCITestCatchup):
+    """Test simple_abci skill with four agents; one restarting on `select_keeper_at_startup`."""
+
+    stop_string = "select_keeper_at_startup"
+
+
+@pytest.mark.parametrize("nb_nodes", (4,))
+class TestSimpleABCIFourAgentsCatchupResetAndPause(BaseSimpleABCITestCatchup):
+    """Test simple_abci skill with four agents; one restarting on `reset_and_pause`."""
+
+    stop_string = "reset_and_pause"
+
+
+# multiple agents terminating and restarting
+@pytest.mark.parametrize("nb_nodes", (4,))
+class TestSimpleABCIFourAgentsTwoAgentCatchup(BaseSimpleABCITestCatchup):
+    """Test the ABCI simple_abci skill with four agents and two restarting."""
+
+    n_terminal = 2
+
+
+@pytest.mark.parametrize("nb_nodes", (4,))
+class TestSimpleABCIFourAgentsFourAgentCatchup(BaseSimpleABCITestCatchup):
+    """Test the ABCI simple_abci skill with four agents and four restarting."""
+
+    n_terminal = 4
