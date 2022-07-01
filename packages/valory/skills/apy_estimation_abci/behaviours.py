@@ -20,7 +20,6 @@
 """This module contains the behaviours for the APY estimation skill."""
 import calendar
 import json
-import math
 import os
 import re
 from abc import ABC
@@ -338,12 +337,10 @@ class FetchBehaviour(
             )
             return None
 
-        latest_indexed_block_number = match.group(1)
+        latest_indexed_block_number = int(match.group(1))
         # we set the last digit to 0, so that it is more possible for the agents to reach to a consensus
         # without requiring an extra round.
-        latest_indexed_block_number = int(
-            math.floor(float(latest_indexed_block_number) * 0.1) * 10
-        )
+        latest_indexed_block_number -= latest_indexed_block_number % 10
 
         # Fetch latest indexed block.
         latest_indexed_block = yield from self._fetch_block(latest_indexed_block_number)
