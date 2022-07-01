@@ -21,11 +21,11 @@
 import ast
 import logging  # noqa: F401
 import re
-from typing import Dict, List, Tuple
+from typing import Dict, List, Tuple, cast
 
-import pytest
 import requests
 
+from packages.valory.protocols.http import HttpMessage
 from packages.valory.skills.apy_estimation_abci.behaviours import NON_INDEXED_BLOCK_RE
 from packages.valory.skills.apy_estimation_abci.models import (
     FantomSubgraph,
@@ -118,13 +118,14 @@ class TestSubgraphs:
         eth_price_usd_q = eth_price_usd_q.replace(
             current_number, largest_acceptable_number
         )
-        expected_error = (
-            r"Unknown error encountered!\nRaw response: \{'errors': \[\{'message': 'Failed to decode `block.number` "
-            "value: `subgraph QmPJbGjktGa7c4UYWXvDRajPxpuJBSZxeQK5siNT3VpthP has only indexed up to block number "
-            "\\d+ and data for block number 2147483647 is therefore not yet available`'}]}"
-        )
-        with pytest.raises(ValueError, match=expected_error):
-            make_request(api.get_spec(), eth_price_usd_q)
+        res = make_request(api.get_spec(), eth_price_usd_q, raise_on_error=False)
+        non_indexed_error = api.process_non_indexed_error(
+            cast(HttpMessage, DummyMessage(res.content))
+        )[0]["message"]
+        match = re.match(NON_INDEXED_BLOCK_RE, non_indexed_error)
+        assert match is not None
+        latest_indexed_block = match.group(1)
+        assert int(latest_indexed_block) < int(largest_acceptable_number)
 
     @staticmethod
     def test_regex_for_indexed_block_capture() -> None:
