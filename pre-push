@@ -1,0 +1,29 @@
+#!/usr/bin/env bash
+
+function run_check(){
+    tox -e $1
+    if [ "$?" = "1" ]
+    then
+        echo "$1 check failed."
+        exit 1
+    fi
+}
+
+make clean
+make hashes
+tox -e black
+tox -e isort
+
+run_check black-check
+run_check isort-check
+run_check flake8
+run_check mypy
+run_check pylint
+run_check darglint
+run_check vulture
+run_check bandit
+run_check safety
+run_check check-copyright
+run_check check-api-docs
+run_check check-packages
+run_check check-hash

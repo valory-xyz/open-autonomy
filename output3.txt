@@ -1,0 +1,59 @@
+============================= test session starts ==============================
+platform linux -- Python 3.8.10, pytest-7.1.2, pluggy-1.0.0
+Using --randomly-seed=609837210
+rootdir: /home/jose/Documents/ws_python/consensus-algorithms, configfile: pytest.ini
+plugins: hypothesis-6.21.6, randomly-3.8.0, asyncio-0.15.1, cov-2.12.1, web3-5.25.0
+collected 1 item
+
+tests/test_agents/test_hello_world.py::TestHelloWorldABCIFourAgents::test_run[4] 
+-------------------------------- live log setup --------------------------------
+2022-06-03 18:21:51 [   DEBUG] Trying paths: ['/home/jose/.docker/config.json', '/home/jose/.dockercfg'] (config.py:21)
+2022-06-03 18:21:51 [   DEBUG] No config file found (config.py:28)
+2022-06-03 18:21:51 [   DEBUG] Trying paths: ['/home/jose/.docker/config.json', '/home/jose/.dockercfg'] (config.py:21)
+2022-06-03 18:21:51 [   DEBUG] No config file found (config.py:28)
+2022-06-03 18:21:51 [   DEBUG] http://localhost:None "GET /version HTTP/1.1" 200 828 (connectionpool.py:456)
+2022-06-03 18:21:51 [    INFO] Launching Tendermint nodes at ports [26657, 26667, 26677, 26687] (conftest.py:150)
+2022-06-03 18:21:51 [   DEBUG] http://localhost:None "GET /v1.41/images/valory/consensus-algorithms-tendermint:0.1.0/json HTTP/1.1" 200 None (connectionpool.py:456)
+2022-06-03 18:21:51 [   DEBUG] Trying paths: ['/home/jose/.docker/config.json', '/home/jose/.dockercfg'] (config.py:21)
+2022-06-03 18:21:51 [   DEBUG] No config file found (config.py:28)
+2022-06-03 18:21:51 [   DEBUG] Trying paths: ['/home/jose/.docker/config.json', '/home/jose/.dockercfg'] (config.py:21)
+2022-06-03 18:21:51 [   DEBUG] No config file found (config.py:28)
+2022-06-03 18:21:51 [   DEBUG] http://localhost:None "GET /version HTTP/1.1" 200 828 (connectionpool.py:456)
+2022-06-03 18:21:51 [   DEBUG] http://localhost:None "GET /v1.41/containers/json?limit=-1&all=0&size=0&trunc_cmd=0 HTTP/1.1" 200 3 (connectionpool.py:456)
+I[2022-06-03|16:21:52.417] Generated private validator                  module=main keyFile=/tendermint/node0/config/priv_validator_key.json stateFile=/tendermint/node0/data/priv_validator_state.json
+I[2022-06-03|16:21:52.417] Generated node key                           module=main path=/tendermint/node0/config/node_key.json
+I[2022-06-03|16:21:52.417] Generated genesis file                       module=main path=/tendermint/node0/config/genesis.json
+I[2022-06-03|16:21:52.420] Generated private validator                  module=main keyFile=/tendermint/node1/config/priv_validator_key.json stateFile=/tendermint/node1/data/priv_validator_state.json
+I[2022-06-03|16:21:52.420] Generated node key                           module=main path=/tendermint/node1/config/node_key.json
+I[2022-06-03|16:21:52.420] Generated genesis file                       module=main path=/tendermint/node1/config/genesis.json
+I[2022-06-03|16:21:52.422] Generated private validator                  module=main keyFile=/tendermint/node2/config/priv_validator_key.json stateFile=/tendermint/node2/data/priv_validator_state.json
+I[2022-06-03|16:21:52.422] Generated node key                           module=main path=/tendermint/node2/config/node_key.json
+I[2022-06-03|16:21:52.422] Generated genesis file                       module=main path=/tendermint/node2/config/genesis.json
+I[2022-06-03|16:21:52.425] Generated private validator                  module=main keyFile=/tendermint/node3/config/priv_validator_key.json stateFile=/tendermint/node3/data/priv_validator_state.json
+I[2022-06-03|16:21:52.425] Generated node key                           module=main path=/tendermint/node3/config/node_key.json
+I[2022-06-03|16:21:52.425] Generated genesis file                       module=main path=/tendermint/node3/config/genesis.json
+Successfully initialized 4 node directories
+2022-06-03 18:21:52 [   DEBUG] http://localhost:None "POST /v1.41/containers/create?name=node0 HTTP/1.1" 201 88 (connectionpool.py:456)
+2022-06-03 18:21:52 [   DEBUG] http://localhost:None "GET /v1.41/containers/558a20acc985a31a45b176bba8f4c68aeb457fcc2616a5ce88c363156da823ad/json HTTP/1.1" 200 None (connectionpool.py:456)
+2022-06-03 18:21:52 [   DEBUG] http://localhost:None "POST /v1.41/containers/558a20acc985a31a45b176bba8f4c68aeb457fcc2616a5ce88c363156da823ad/start HTTP/1.1" 204 0 (connectionpool.py:456)
+2022-06-03 18:21:53 [   DEBUG] http://localhost:None "POST /v1.41/containers/create?name=node1 HTTP/1.1" 201 88 (connectionpool.py:456)
+2022-06-03 18:21:53 [   DEBUG] http://localhost:None "GET /v1.41/containers/eed58e8f0f8e57d7c826476fc70c16fbe5dd08a91996158ea0d85979508e7873/json HTTP/1.1" 200 None (connectionpool.py:456)
+2022-06-03 18:21:53 [   DEBUG] http://localhost:None "POST /v1.41/containers/eed58e8f0f8e57d7c826476fc70c16fbe5dd08a91996158ea0d85979508e7873/start HTTP/1.1" 204 0 (connectionpool.py:456)
+2022-06-03 18:21:53 [   DEBUG] http://localhost:None "POST /v1.41/containers/create?name=node2 HTTP/1.1" 201 88 (connectionpool.py:456)
+2022-06-03 18:21:53 [   DEBUG] http://localhost:None "GET /v1.41/containers/c800f86fb9cee5ccf8decbbd766d5bde91b0e15f41d72e632da57a530489e02e/json HTTP/1.1" 200 None (connectionpool.py:456)
+2022-06-03 18:21:53 [   DEBUG] http://localhost:None "POST /v1.41/containers/c800f86fb9cee5ccf8decbbd766d5bde91b0e15f41d72e632da57a530489e02e/start HTTP/1.1" 204 0 (connectionpool.py:456)
+2022-06-03 18:21:53 [   DEBUG] http://localhost:None "POST /v1.41/containers/create?name=node3 HTTP/1.1" 201 88 (connectionpool.py:456)
+2022-06-03 18:21:53 [   DEBUG] http://localhost:None "GET /v1.41/containers/abca21254b7d827d72510741d16803c29f7f48fac8b832d2ea4c95ea6a989e97/json HTTP/1.1" 200 None (connectionpool.py:456)
+2022-06-03 18:21:54 [   DEBUG] http://localhost:None "POST /v1.41/containers/abca21254b7d827d72510741d16803c29f7f48fac8b832d2ea4c95ea6a989e97/start HTTP/1.1" 204 0 (connectionpool.py:456)
+2022-06-03 18:21:54 [   DEBUG] http://localhost:None "POST /v1.41/containers/558a20acc985a31a45b176bba8f4c68aeb457fcc2616a5ce88c363156da823ad/start HTTP/1.1" 304 0 (connectionpool.py:456)
+2022-06-03 18:21:54 [    INFO] Setting up image valory/consensus-algorithms-tendermint:0.1.0... (base.py:133)
+2022-06-03 18:21:55 [    INFO] Done! (base.py:143)
+2022-06-03 18:21:57 [   DEBUG] http://localhost:None "POST /v1.41/containers/eed58e8f0f8e57d7c826476fc70c16fbe5dd08a91996158ea0d85979508e7873/start HTTP/1.1" 304 0 (connectionpool.py:456)
+2022-06-03 18:21:57 [    INFO] Setting up image valory/consensus-algorithms-tendermint:0.1.0... (base.py:133)
+2022-06-03 18:21:58 [    INFO] Done! (base.py:143)
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! KeyboardInterrupt !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+/home/jose/Documents/ws_python/consensus-algorithms/tests/helpers/docker/base.py:144: KeyboardInterrupt
+(to show a full traceback on KeyboardInterrupt use --full-trace)
+============================ no tests ran in 7.59s =============================

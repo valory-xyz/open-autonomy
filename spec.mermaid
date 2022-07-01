@@ -1,0 +1,8 @@
+stateDiagram-v2
+    RegistrationRound --> SelectKeeperRound: <center>DONE</center>
+    PrintMessageRound --> ResetAndPauseRound: <center>DONE</center>
+    PrintMessageRound --> RegistrationRound: <center>NO_MAJORITY<br />ROUND_TIMEOUT</center>
+    ResetAndPauseRound --> SelectKeeperRound: <center>DONE</center>
+    ResetAndPauseRound --> RegistrationRound: <center>NO_MAJORITY<br />RESET_TIMEOUT</center>
+    SelectKeeperRound --> PrintMessageRound: <center>DONE</center>
+    SelectKeeperRound --> RegistrationRound: <center>NO_MAJORITY<br />ROUND_TIMEOUT</center>

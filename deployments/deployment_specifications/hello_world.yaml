@@ -1,0 +1,6 @@
+name: "hello_world"
+author: "valory"
+version: 0.1.0
+agent: valory/hello_world:0.1.0
+network: hardhat
+number_of_agents: 4
