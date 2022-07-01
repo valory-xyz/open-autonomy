@@ -21,6 +21,7 @@
 import calendar
 import json
 import os
+import re
 from abc import ABC
 from multiprocessing.pool import AsyncResult
 from typing import (
@@ -39,6 +40,7 @@ from typing import (
 import numpy as np
 import pandas as pd
 
+from packages.valory.protocols.http import HttpMessage
 from packages.valory.skills.abstract_round_abci.behaviours import (
     AbstractRoundBehaviour,
     BaseBehaviour,
@@ -103,10 +105,17 @@ from packages.valory.skills.apy_estimation_abci.tools.etl import ResponseItemTyp
 from packages.valory.skills.apy_estimation_abci.tools.general import gen_unix_timestamps
 from packages.valory.skills.apy_estimation_abci.tools.io import load_hist
 from packages.valory.skills.apy_estimation_abci.tools.queries import (
+    block_from_number_q,
     block_from_timestamp_q,
     eth_price_usd_q,
-    latest_block,
+    latest_block_q,
     pairs_q,
+)
+
+
+NON_INDEXED_BLOCK_RE = (
+    r"Failed to decode `block.number` value: `subgraph QmPJbGjktGa7c4UYWXvDRajPxpuJBSZxeQK5siNT3VpthP has only "
+    r"indexed up to block number (\d+) and data for block number \d+ is therefore not yet available`"
 )
 
 
@@ -221,6 +230,7 @@ class FetchBehaviour(
         res_context: str,
         keys: Tuple[Union[str, int], ...],
         subgraph: ApiSpecs,
+        sleep_on_fail: bool = True,
     ) -> Generator[None, None, Optional[Any]]:
         """Handle a response from a subgraph.
 
@@ -228,6 +238,7 @@ class FetchBehaviour(
         :param res_context: the context of the current response.
         :param keys: keys to get the information from the response.
         :param subgraph: api specs.
+        :param sleep_on_fail: whether we want to sleep if we fail to get the response's result.
         :return: the response's result, using the given keys. `None` if response is `None` (has failed).
         :yield: None
         """
@@ -238,7 +249,8 @@ class FetchBehaviour(
 
             self._call_failed = True
             subgraph.increment_retries()
-            yield from self.sleep(self.params.sleep_time)
+            if sleep_on_fail:
+                yield from self.sleep(self.params.sleep_time)
             return None
 
         value = res[keys[0]]
@@ -251,15 +263,19 @@ class FetchBehaviour(
         subgraph.reset_retries()
         return value
 
-    def _fetch_batch(self) -> Generator[None, None, None]:
-        """Fetch a single batch of the historical data."""
-        # Fetch block.
+    def _fetch_block(
+        self, number: Optional[int] = None
+    ) -> Generator[None, None, Optional[Dict[str, int]]]:
+        """Fetch block."""
         fantom_api_specs = self.context.fantom_subgraph.get_spec()
-        query = (
-            latest_block()
-            if self.batch
-            else block_from_timestamp_q(cast(int, self._current_timestamp))
-        )
+        if number is not None:
+            query = block_from_number_q(number)
+        else:
+            query = (
+                latest_block_q()
+                if self.batch
+                else block_from_timestamp_q(cast(int, self._current_timestamp))
+            )
         res_raw = yield from self.get_http_response(
             method=fantom_api_specs["method"],
             url=fantom_api_specs["url"],
@@ -275,14 +291,16 @@ class FetchBehaviour(
             subgraph=self.context.fantom_subgraph,
         )
 
-        if fetched_block is None:
-            return
+        return fetched_block
 
-        # Fetch ETH price for block.
+    def _fetch_eth_price(
+        self, block: Dict[str, int]
+    ) -> Generator[None, None, Tuple[HttpMessage, Optional[float]]]:
+        """Fetch ETH price for block."""
         res_raw = yield from self.get_http_response(
             content=eth_price_usd_q(
                 self.context.spooky_subgraph.bundle_id,
-                fetched_block["number"],
+                block["number"],
             ),
             **self._spooky_api_specs,
         )
@@ -290,37 +308,114 @@ class FetchBehaviour(
 
         eth_price = yield from self._handle_response(
             res,
-            res_context=f"ETH price for block {fetched_block}",
+            res_context=f"ETH price for block {block}",
             keys=("bundles", 0, "ethPrice"),
             subgraph=self.context.spooky_subgraph,
+            sleep_on_fail=False,
         )
 
-        if eth_price is None:
-            return
+        return res_raw, eth_price
 
-        # Fetch pool data for block.
+    def _check_non_indexed_block(
+        self, res_raw: HttpMessage
+    ) -> Generator[None, None, Optional[Tuple[Dict[str, int], float]]]:
+        """Check if we received a non-indexed block error and try to get the ETH price for the latest indexed block."""
+        res = self.context.spooky_subgraph.process_non_indexed_error(res_raw)
+        latest_indexed_block_error = yield from self._handle_response(
+            res,
+            res_context="indexing error that will be attempted to be handled",
+            keys=(0, "message"),
+            subgraph=self.context.spooky_subgraph,
+        )
+        if latest_indexed_block_error is None:
+            return None
+
+        match = re.match(NON_INDEXED_BLOCK_RE, latest_indexed_block_error)
+        if match is None:
+            self.context.logger.warning(
+                "Attempted to handle an indexing error, but could not extract the latest indexed block!"
+            )
+            return None
+
+        latest_indexed_block_number = int(match.group(1))
+        # we set the last digit to 0, so that it is more possible for the agents to reach to a consensus
+        # without requiring an extra round.
+        latest_indexed_block_number -= latest_indexed_block_number % 10
+
+        # Fetch latest indexed block.
+        latest_indexed_block = yield from self._fetch_block(latest_indexed_block_number)
+        if latest_indexed_block is None:
+            return None
+
+        # Fetch ETH price for latest indexed block.
+        _, eth_price = yield from self._fetch_eth_price(latest_indexed_block)
+        if eth_price is None:
+            return None
+
+        return latest_indexed_block, eth_price
+
+    def _fetch_eth_price_safely(
+        self, block: Dict[str, int]
+    ) -> Generator[None, None, Optional[Tuple[Dict[str, int], float]]]:
+        """
+        Fetch ETH price for a block.
+
+        If the block is not indexed yet, fetch the latest indexed block and the ETH price for that block.
+
+        :param block: the block for which we will try to fetch the ETH price.
+        :return: the same block or the latest indexed and the corresponding ETH price.
+        :yield: None
+        """
+        res_raw, eth_price = yield from self._fetch_eth_price(block)
+
+        if eth_price is None:
+            check_result = yield from self._check_non_indexed_block(res_raw)
+            if check_result is None:
+                return None
+            block, eth_price = check_result
+
+        return block, eth_price
+
+    def _fetch_pairs(
+        self, block: Dict[str, int]
+    ) -> Generator[None, None, Optional[ResponseItemType]]:
+        """Fetch pool data for block."""
         res_raw = yield from self.get_http_response(
-            content=pairs_q(fetched_block["number"], self.params.pair_ids),
+            content=pairs_q(block["number"], self.params.pair_ids),
             **self._spooky_api_specs,
         )
         res = self.context.spooky_subgraph.process_response(res_raw)
 
         pairs = yield from self._handle_response(
             res,
-            res_context=f"pool data for block {fetched_block}",
+            res_context=f"pool data for block {block}",
             keys=("pairs",),
             subgraph=self.context.spooky_subgraph,
         )
 
+        return pairs
+
+    def _fetch_batch(self) -> Generator[None, None, None]:
+        """Fetch a single batch of the historical data."""
+        block = yield from self._fetch_block()
+        if block is None:
+            return
+
+        check_result = yield from self._fetch_eth_price_safely(block)
+        if check_result is None:
+            return
+        block, eth_price = check_result
+
+        pairs = yield from self._fetch_pairs(block)
         if pairs is None:
             return
 
         # Add extra fields to the pairs.
         for i in range(len(pairs)):  # pylint: disable=C0200
-            pairs[i]["forTimestamp"] = self._current_timestamp
-            pairs[i]["blockNumber"] = fetched_block["number"]
-            pairs[i]["blockTimestamp"] = fetched_block["timestamp"]
-            pairs[i]["ethPrice"] = eth_price
+            pairs[i]["forTimestamp"] = str(self._current_timestamp)
+            pairs[i]["blockNumber"] = str(block["number"])
+            pairs[i]["blockTimestamp"] = str(block["timestamp"])
+            pairs[i]["ethPrice"] = str(eth_price)
 
         self._pairs_hist.extend(pairs)
 
@@ -597,7 +692,8 @@ class PrepareBatchBehaviour(APYEstimationBaseBehaviour):
             self.get_from_ipfs(
                 self.synchronized_data.batch_hash,
                 self.context.data_dir,
-                filename=f"historical_data_batch_{self.synchronized_data.latest_observation_timestamp}_period_{self.synchronized_data.period_count}.json",
+                filename=f"historical_data_batch_{self.synchronized_data.latest_observation_timestamp}"
+                f"_period_{self.synchronized_data.period_count}.json",
                 filetype=SupportedFiletype.JSON,
             ),
         )

@@ -20,10 +20,13 @@
 """Test various price apis."""
 import ast
 import logging  # noqa: F401
-from typing import Dict, List, Tuple
+import re
+from typing import Dict, List, Tuple, cast
 
 import requests
 
+from packages.valory.protocols.http import HttpMessage
+from packages.valory.skills.apy_estimation_abci.behaviours import NON_INDEXED_BLOCK_RE
 from packages.valory.skills.apy_estimation_abci.models import (
     FantomSubgraph,
     SpookySwapSubgraph,
@@ -40,47 +43,49 @@ ResponseItemType = List[Dict[str, str]]
 SubgraphResponseType = Dict[str, ResponseItemType]
 
 
-def make_request(api_specs: Dict, query: str) -> requests.Response:
+def make_request(
+    api_specs: Dict, query: str, raise_on_error: bool = True
+) -> requests.Response:
     """Make a request to a subgraph.
 
     :param api_specs: the subgraph's api_specs.
     :param query: the query.
+    :param raise_on_error: if the method should raise an exception on error.
     :return: a response dictionary.
     """
-    if api_specs["method"] == "POST":
-        r = requests.post(
-            url=api_specs["url"], headers=api_specs["headers"], json={"query": query}
-        )
-
-        if r.status_code == 200:
-            res = r.json()
-
-            if (
-                "errors" in res.keys()
-                and res["errors"][0].get("locations", None) is not None
-            ):
-                message = res["errors"][0]["message"]
-                location = res["errors"][0]["locations"][0]
-                line = location["line"]
-                column = location["column"]
-
-                raise ValueError(
-                    f"The given query is not correct.\nError in line {line}, column {column}: {message}"
-                )
-
-            elif "errors" in res.keys() or "data" not in res.keys():
-                raise ValueError(f"Unknown error encountered!\nRaw response: {res}")
-
-        else:
-            raise ConnectionError(
-                "Something went wrong while trying to communicate with the subgraph "
-                f"(Error: {r.status_code})!\n{r.text}"
-            )
-
-    else:
+    if api_specs["method"] != "POST" and raise_on_error:
         raise ValueError(
             f"Unknown method {api_specs['method']} for {api_specs['api_id']}"
         )
+
+    r = requests.post(
+        url=api_specs["url"], headers=api_specs["headers"], json={"query": query}
+    )
+
+    if r.status_code != 200 and raise_on_error:
+        raise ConnectionError(
+            "Something went wrong while trying to communicate with the subgraph "
+            f"(Error: {r.status_code})!\n{r.text}"
+        )
+
+    res = r.json()
+
+    if (
+        "errors" in res.keys()
+        and res["errors"][0].get("locations", None) is not None
+        and raise_on_error
+    ):
+        message = res["errors"][0]["message"]
+        location = res["errors"][0]["locations"][0]
+        line = location["line"]
+        column = location["column"]
+
+        raise ValueError(
+            f"The given query is not correct.\nError in line {line}, column {column}: {message}"
+        )
+
+    if ("errors" in res.keys() or "data" not in res.keys()) and raise_on_error:
+        raise ValueError(f"Unknown error encountered!\nRaw response: {res}")
 
     return r
 
@@ -97,7 +102,44 @@ class TestSubgraphs:
         res = make_request(api.get_spec(), eth_price_usd_q)
         eth_price = ast.literal_eval(api.process_response(DummyMessage(res.content))[0]["ethPrice"])  # type: ignore
 
-        assert isinstance(eth_price, float)
+        assert eth_price == 0.4183383786296383
+
+    @staticmethod
+    def test_eth_price_non_indexed_block(
+        spooky_specs: SpecsType, eth_price_usd_q: str
+    ) -> None:
+        """Test SpookySwap's eth price request from subgraph, when the requesting block has not been indexed yet."""
+        spooky_specs["response_key"] = "errors"
+        api = SpookySwapSubgraph(**spooky_specs)
+
+        # replace the block number with a huge one, so that we get a not indexed error
+        current_number = "3830367"
+        largest_acceptable_number = "2147483647"
+        eth_price_usd_q = eth_price_usd_q.replace(
+            current_number, largest_acceptable_number
+        )
+        res = make_request(api.get_spec(), eth_price_usd_q, raise_on_error=False)
+        non_indexed_error = api.process_non_indexed_error(
+            cast(HttpMessage, DummyMessage(res.content))
+        )[0]["message"]
+        match = re.match(NON_INDEXED_BLOCK_RE, non_indexed_error)
+        assert match is not None
+        latest_indexed_block = match.group(1)
+        assert int(latest_indexed_block) < int(largest_acceptable_number)
+
+    @staticmethod
+    def test_regex_for_indexed_block_capture() -> None:
+        """Test the regex for capturing the indexed block."""
+        error_message = (
+            "Failed to decode `block.number` value: `subgraph QmPJbGjktGa7c4UYWXvDRajPxpuJBSZxeQK5siNT3VpthP has only "
+            "indexed up to block number 3730367 and data for block number 3830367 is therefore not yet available`"
+        )
+        match = re.match(NON_INDEXED_BLOCK_RE, error_message)
+        assert match is not None
+        assert match.groups() == ("3730367",)
+
+        error_message = "new message 3730367"
+        assert re.match(NON_INDEXED_BLOCK_RE, error_message) is None
 
     @staticmethod
     def test_block_from_timestamp(
@@ -114,6 +156,24 @@ class TestSubgraphs:
         keys = ["number", "timestamp"]
         assert all((key in block for key in keys))
         assert all(isinstance(ast.literal_eval(block[key]), int) for key in keys)
+        assert block == {"timestamp": "1618735147", "number": "3830367"}
+
+    @staticmethod
+    def test_block_from_number_q(
+        fantom_specs: SpecsType, block_from_number_q: str
+    ) -> None:
+        """Test Fantom's block from number request from subgraph."""
+        fantom_specs["response_key"] += ":blocks"  # type: ignore
+        api = FantomSubgraph(**fantom_specs)
+
+        res = make_request(api.get_spec(), block_from_number_q)
+        block = api.process_response(DummyMessage(res.content))[0]  # type: ignore
+
+        assert isinstance(block, dict)
+        keys = ["number", "timestamp"]
+        assert all((key in block for key in keys))
+        assert all(isinstance(ast.literal_eval(block[key]), int) for key in keys)
+        assert block == {"timestamp": "1618485988", "number": "3730360"}
 
     @staticmethod
     def test_top_n_pairs(spooky_specs: SpecsType, top_n_pairs_q: str) -> None:

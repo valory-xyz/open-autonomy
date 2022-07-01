@@ -28,7 +28,7 @@ from enum import Enum
 from itertools import product
 from multiprocessing.pool import AsyncResult
 from pathlib import Path, PosixPath
-from typing import Any, Callable, Dict, Tuple, Type, Union, cast
+from typing import Any, Callable, Dict, List, Tuple, Type, Union, cast
 from unittest import mock
 from uuid import uuid4
 
@@ -251,7 +251,9 @@ class TestFetchAndBatchBehaviours(APYEstimationFSMBehaviourBaseCase):
 
         request_kwargs: Dict[str, Union[str, bytes]] = dict(
             method="POST",
-            url="https://api.thegraph.com/subgraphs/name/eerieeight/spookyswap",
+            url=cast(
+                APYEstimationBaseBehaviour, self.behaviour.current_behaviour
+            ).context.spooky_subgraph.url,
             headers="Content-Type: application/json\r\n",
             version="",
         )
@@ -263,9 +265,9 @@ class TestFetchAndBatchBehaviours(APYEstimationFSMBehaviourBaseCase):
         )
 
         # block request.
-        request_kwargs[
-            "url"
-        ] = "https://api.thegraph.com/subgraphs/name/matthewlilley/fantom-blocks"
+        request_kwargs["url"] = cast(
+            APYEstimationBaseBehaviour, self.behaviour.current_behaviour
+        ).context.fantom_subgraph.url
         request_kwargs["body"] = json.dumps({"query": block_from_timestamp_q}).encode(
             "utf-8"
         )
@@ -275,9 +277,9 @@ class TestFetchAndBatchBehaviours(APYEstimationFSMBehaviourBaseCase):
         self.mock_http_request(request_kwargs, response_kwargs)
 
         # ETH price request.
-        request_kwargs[
-            "url"
-        ] = "https://api.thegraph.com/subgraphs/name/eerieeight/spookyswap"
+        request_kwargs["url"] = cast(
+            APYEstimationBaseBehaviour, self.behaviour.current_behaviour
+        ).context.spooky_subgraph.url
         request_kwargs["body"] = json.dumps({"query": eth_price_usd_q}).encode("utf-8")
         res = {"data": {"bundles": [{"ethPrice": "0.8973548"}]}}
         response_kwargs["body"] = json.dumps(res).encode("utf-8")
@@ -286,6 +288,120 @@ class TestFetchAndBatchBehaviours(APYEstimationFSMBehaviourBaseCase):
 
         # top pairs data.
         request_kwargs["body"] = json.dumps({"query": pairs_q}).encode("utf-8")
+        res = {
+            "data": {
+                "pairs": [
+                    {field: dummy_value for field in pool_fields}
+                    for dummy_value in ("dum1", "dum2")
+                ]
+            }
+        }
+        response_kwargs["body"] = json.dumps(res).encode("utf-8")
+        self.behaviour.act_wrapper()
+        self.mock_http_request(request_kwargs, response_kwargs)
+
+        self.end_round()
+        behaviour = cast(BaseBehaviour, self.behaviour.current_behaviour)
+        assert behaviour.behaviour_id == TransformBehaviour.behaviour_id
+
+    def test_fetch_behaviour_non_indexed_block(
+        self,
+        block_from_timestamp_q: str,
+        block_from_number_q: str,
+        eth_price_usd_q: str,
+        pairs_q: str,
+        pool_fields: Tuple[str, ...],
+    ) -> None:
+        """Run tests for fetch behaviour when a block has not been indexed yet."""
+        history_duration = cast(
+            FetchBehaviour, self.behaviour.current_behaviour
+        ).params.history_duration
+        self.skill.skill_context.state.round_sequence.abci_app._last_timestamp = (
+            datetime.utcfromtimestamp(1618735147 + history_duration * 30 * 24 * 60 * 60)
+        )
+
+        self.fast_forward_to_behaviour(
+            self.behaviour, FetchBehaviour.behaviour_id, self.synchronized_data
+        )
+        cast(FetchBehaviour, self.behaviour.current_behaviour).params.pair_ids = [
+            "0xec454eda10accdd66209c57af8c12924556f3abd"
+        ]
+
+        request_kwargs: Dict[str, Union[str, bytes]] = dict(
+            method="POST",
+            url=cast(
+                APYEstimationBaseBehaviour, self.behaviour.current_behaviour
+            ).context.spooky_subgraph.url,
+            headers="Content-Type: application/json\r\n",
+            version="",
+        )
+        response_kwargs = dict(
+            version="",
+            status_code=200,
+            status_text="",
+            headers="",
+        )
+
+        # block request.
+        request_kwargs["url"] = cast(
+            APYEstimationBaseBehaviour, self.behaviour.current_behaviour
+        ).context.fantom_subgraph.url
+        request_kwargs["body"] = json.dumps({"query": block_from_timestamp_q}).encode(
+            "utf-8"
+        )
+        res: Dict[str, Union[List[Dict[str, str]], Dict[str, List[Dict[str, str]]]]] = {
+            "data": {"blocks": [{"timestamp": "1", "number": "3830367"}]}
+        }
+        response_kwargs["body"] = json.dumps(res).encode("utf-8")
+        self.behaviour.act_wrapper()
+        self.mock_http_request(request_kwargs, response_kwargs)
+
+        # ETH price request for non-indexed block.
+        request_kwargs["url"] = cast(
+            APYEstimationBaseBehaviour, self.behaviour.current_behaviour
+        ).context.spooky_subgraph.url
+        request_kwargs["body"] = json.dumps({"query": eth_price_usd_q}).encode("utf-8")
+        res = {
+            "errors": [
+                {
+                    "message": "Failed to decode `block.number` value: `subgraph "
+                    "QmPJbGjktGa7c4UYWXvDRajPxpuJBSZxeQK5siNT3VpthP has only indexed up to block number 3730367 "
+                    "and data for block number 3830367 is therefore not yet available`"
+                }
+            ]
+        }
+        response_kwargs["body"] = json.dumps(res).encode("utf-8")
+        self.behaviour.act_wrapper()
+        self.mock_http_request(request_kwargs, response_kwargs)
+
+        # indexed block request.
+        request_kwargs["url"] = cast(
+            APYEstimationBaseBehaviour, self.behaviour.current_behaviour
+        ).context.fantom_subgraph.url
+        request_kwargs["body"] = json.dumps({"query": block_from_number_q}).encode(
+            "utf-8"
+        )
+        res = {"data": {"blocks": [{"timestamp": "1", "number": "3730360"}]}}
+        response_kwargs["body"] = json.dumps(res).encode("utf-8")
+        self.behaviour.act_wrapper()
+        self.mock_http_request(request_kwargs, response_kwargs)
+
+        # ETH price request for indexed block.
+        request_kwargs["url"] = cast(
+            APYEstimationBaseBehaviour, self.behaviour.current_behaviour
+        ).context.spooky_subgraph.url
+        request_kwargs["body"] = json.dumps(
+            {"query": eth_price_usd_q.replace("3830367", "3730360")}
+        ).encode("utf-8")
+        res = {"data": {"bundles": [{"ethPrice": "0.8973548"}]}}
+        response_kwargs["body"] = json.dumps(res).encode("utf-8")
+        self.behaviour.act_wrapper()
+        self.mock_http_request(request_kwargs, response_kwargs)
+
+        # top pairs data.
+        request_kwargs["body"] = json.dumps(
+            {"query": pairs_q.replace("3830367", "3730360")}
+        ).encode("utf-8")
         res = {
             "data": {
                 "pairs": [
@@ -377,7 +493,9 @@ class TestFetchAndBatchBehaviours(APYEstimationFSMBehaviourBaseCase):
 
         request_kwargs: Dict[str, Union[str, bytes]] = dict(
             method="POST",
-            url="https://api.thegraph.com/subgraphs/name/eerieeight/spookyswap",
+            url=cast(
+                APYEstimationBaseBehaviour, self.behaviour.current_behaviour
+            ).context.spooky_subgraph.url,
             headers="Content-Type: application/json\r\n",
             version="",
             body=b"",
@@ -391,9 +509,9 @@ class TestFetchAndBatchBehaviours(APYEstimationFSMBehaviourBaseCase):
         )
 
         # block request with None response.
-        request_kwargs[
-            "url"
-        ] = "https://api.thegraph.com/subgraphs/name/matthewlilley/fantom-blocks"
+        request_kwargs["url"] = cast(
+            APYEstimationBaseBehaviour, self.behaviour.current_behaviour
+        ).context.fantom_subgraph.url
         request_kwargs["body"] = json.dumps({"query": block_from_timestamp_q}).encode(
             "utf-8"
         )
@@ -412,9 +530,6 @@ class TestFetchAndBatchBehaviours(APYEstimationFSMBehaviourBaseCase):
         self.behaviour.act_wrapper()
 
         # block request.
-        request_kwargs[
-            "url"
-        ] = "https://api.thegraph.com/subgraphs/name/matthewlilley/fantom-blocks"
         request_kwargs["body"] = json.dumps({"query": block_from_timestamp_q}).encode(
             "utf-8"
         )
@@ -424,9 +539,9 @@ class TestFetchAndBatchBehaviours(APYEstimationFSMBehaviourBaseCase):
         self.mock_http_request(request_kwargs, response_kwargs)
 
         # ETH price request with None response.
-        request_kwargs[
-            "url"
-        ] = "https://api.thegraph.com/subgraphs/name/eerieeight/spookyswap"
+        request_kwargs["url"] = cast(
+            APYEstimationBaseBehaviour, self.behaviour.current_behaviour
+        ).context.spooky_subgraph.url
         request_kwargs["body"] = json.dumps({"query": eth_price_usd_q}).encode("utf-8")
         response_kwargs["body"] = b""
 
@@ -446,9 +561,9 @@ class TestFetchAndBatchBehaviours(APYEstimationFSMBehaviourBaseCase):
         self.behaviour.act_wrapper()
 
         # block request.
-        request_kwargs[
-            "url"
-        ] = "https://api.thegraph.com/subgraphs/name/matthewlilley/fantom-blocks"
+        request_kwargs["url"] = cast(
+            APYEstimationBaseBehaviour, self.behaviour.current_behaviour
+        ).context.fantom_subgraph.url
         request_kwargs["body"] = json.dumps({"query": block_from_timestamp_q}).encode(
             "utf-8"
         )
@@ -458,9 +573,9 @@ class TestFetchAndBatchBehaviours(APYEstimationFSMBehaviourBaseCase):
         self.mock_http_request(request_kwargs, response_kwargs)
 
         # ETH price request.
-        request_kwargs[
-            "url"
-        ] = "https://api.thegraph.com/subgraphs/name/eerieeight/spookyswap"
+        request_kwargs["url"] = cast(
+            APYEstimationBaseBehaviour, self.behaviour.current_behaviour
+        ).context.spooky_subgraph.url
         request_kwargs["body"] = json.dumps({"query": eth_price_usd_q}).encode("utf-8")
         res = {"data": {"bundles": [{"ethPrice": "0.8973548"}]}}
         response_kwargs["body"] = json.dumps(res).encode("utf-8")

@@ -21,6 +21,7 @@
 
 from typing import Any
 
+from packages.valory.protocols.http import HttpMessage
 from packages.valory.skills.abstract_round_abci.models import ApiSpecs, BaseParams
 from packages.valory.skills.abstract_round_abci.models import (
     BenchmarkTool as BaseBenchmarkTool,
@@ -58,7 +59,15 @@ class SpookySwapSubgraph(ApiSpecs):
     def __init__(self, *args: Any, **kwargs: Any) -> None:
         """Initialize SpookySwapSubgraph."""
         self.bundle_id: int = self.ensure("bundle_id", kwargs)
+        self.non_indexed_error_key = kwargs.pop("non_indexed_error_key", "errors")
+        self.non_indexed_error_type = kwargs.pop("non_indexed_error_type", "list")
         super().__init__(*args, **kwargs)
+
+    def process_non_indexed_error(self, response: HttpMessage) -> Any:
+        """Process a non-indexed block error response from the subgraph."""
+        return self._get_response_data(
+            response, self.non_indexed_error_key, self.non_indexed_error_type
+        )
 
 
 class APYParams(BaseParams):  # pylint: disable=too-many-instance-attributes

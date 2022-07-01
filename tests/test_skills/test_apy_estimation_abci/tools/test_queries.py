@@ -25,10 +25,11 @@ import pytest
 from _pytest.monkeypatch import MonkeyPatch
 
 from packages.valory.skills.apy_estimation_abci.tools.queries import (
+    block_from_number_q,
     block_from_timestamp_q,
     eth_price_usd_q,
     finalize_q,
-    latest_block,
+    latest_block_q,
     pairs_q,
     top_n_pairs_q,
 )
@@ -133,13 +134,38 @@ class TestQueries:
         assert actual.split() == expected.split()
 
     @staticmethod
+    def test_block_from_number_q(monkeypatch: MonkeyPatch) -> None:
+        """Test `block_from_number_q`."""
+        monkeypatch.setattr(
+            "packages.valory.skills.apy_estimation_abci.tools.queries.finalize_q",
+            identity,
+        )
+        actual = block_from_number_q(100)
+        expected = """
+                   {
+                   blocks(
+                   first:
+                   1, orderBy: timestamp, orderDirection: asc, where:
+                       {
+                           number: 100
+                       }
+                       )
+                       {
+                           timestamp
+                           number
+                       }
+                       }
+                   """
+        assert actual.split() == expected.split()
+
+    @staticmethod
     def test_latest_block(monkeypatch: MonkeyPatch) -> None:
         """Test `latest_block`."""
         monkeypatch.setattr(
             "packages.valory.skills.apy_estimation_abci.tools.queries.finalize_q",
             identity,
         )
-        actual = latest_block()
+        actual = latest_block_q()
         expected = """
                    {
                         blocks(
