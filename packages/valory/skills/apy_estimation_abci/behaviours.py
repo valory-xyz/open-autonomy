@@ -333,6 +333,9 @@ class FetchBehaviour(
 
         match = re.match(NON_INDEXED_BLOCK_RE, latest_indexed_block_error)
         if match is None:
+            self.context.logger.warning(
+                "Attempted to handle an indexing error, but could not extract the latest indexed block!"
+            )
             return None
 
         latest_indexed_block_number = match.group(1)
