@@ -43,14 +43,17 @@ ResponseItemType = List[Dict[str, str]]
 SubgraphResponseType = Dict[str, ResponseItemType]
 
 
-def make_request(api_specs: Dict, query: str) -> requests.Response:
+def make_request(
+    api_specs: Dict, query: str, raise_on_error: bool = True
+) -> requests.Response:
     """Make a request to a subgraph.
 
     :param api_specs: the subgraph's api_specs.
     :param query: the query.
+    :param raise_on_error: if the method should raise an exception on error.
     :return: a response dictionary.
     """
-    if api_specs["method"] != "POST":
+    if api_specs["method"] != "POST" and raise_on_error:
         raise ValueError(
             f"Unknown method {api_specs['method']} for {api_specs['api_id']}"
         )
@@ -59,7 +62,7 @@ def make_request(api_specs: Dict, query: str) -> requests.Response:
         url=api_specs["url"], headers=api_specs["headers"], json={"query": query}
     )
 
-    if r.status_code != 200:
+    if r.status_code != 200 and raise_on_error:
         raise ConnectionError(
             "Something went wrong while trying to communicate with the subgraph "
             f"(Error: {r.status_code})!\n{r.text}"
@@ -67,7 +70,11 @@ def make_request(api_specs: Dict, query: str) -> requests.Response:
 
     res = r.json()
 
-    if "errors" in res.keys() and res["errors"][0].get("locations", None) is not None:
+    if (
+        "errors" in res.keys()
+        and res["errors"][0].get("locations", None) is not None
+        and raise_on_error
+    ):
         message = res["errors"][0]["message"]
         location = res["errors"][0]["locations"][0]
         line = location["line"]
@@ -77,7 +84,7 @@ def make_request(api_specs: Dict, query: str) -> requests.Response:
             f"The given query is not correct.\nError in line {line}, column {column}: {message}"
         )
 
-    if "errors" in res.keys() or "data" not in res.keys():
+    if ("errors" in res.keys() or "data" not in res.keys()) and raise_on_error:
         raise ValueError(f"Unknown error encountered!\nRaw response: {res}")
 
     return r
