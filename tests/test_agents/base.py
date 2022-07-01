@@ -400,21 +400,7 @@ class BaseTestEnd2End(AEATestCaseMany, UseFlaskTendermintNode):
                 )
 
 
-class BaseTestEnd2EndNormalExecution(BaseTestEnd2End):
-    """Test that the ABCI simple skill works together with Tendermint under normal circumstances."""
-
-    def test_run(self, nb_nodes: int) -> None:
-        """Run the ABCI skill."""
-        self.prepare_and_launch(nb_nodes)
-        self.health_check(
-            max_retries=self.HEALTH_CHECK_MAX_RETRIES,
-            sleep_interval=self.HEALTH_CHECK_SLEEP_INTERVAL,
-        )
-        self.check_aea_messages()
-        self.terminate_processes()
-
-
-class BaseTestEnd2EndAgentCatchup(BaseTestEnd2End):
+class BaseTestEnd2EndExecution(BaseTestEnd2End):
     """
     Test that an agent that is launched later can synchronize with the rest of the network
 
@@ -434,29 +420,43 @@ class BaseTestEnd2EndAgentCatchup(BaseTestEnd2End):
       node can receive the responses
     """
 
-    # mandatory argument
-    stop_string: str
+    nb_nodes: int = 0  # number of agents with tendermint nodes
 
-    restart_after: int = 60
-    wait_before_stop: int = 15
+    # configuration specific for agent restart
+    stop_string: str  # mandatory argument if n_terminal > 0
+    n_terminal: int = 0  # number of agents to be restarted
+    wait_to_kill: int = 0  # delay the termination event
+    restart_after: int = 60  # how long to wait before restart
+    wait_before_stop: int = 15  # how long to check logs
 
-    def setup(self) -> None:
-        """Set up the test."""
-        if not hasattr(self, "stop_string"):
-            pytest.fail("'stop_string' is a mandatory argument.")
+    def check(self) -> None:
+        """Check pre-conditions of the test"""
+        if self.n_terminal > self.nb_nodes:
+            fail_msg = "Cannot terminate {nb_nodes} out of {n_terminal} agents:"
+            pytest.fail(
+                fail_msg.format(nb_nodes=self.nb_nodes, n_terminal=self.n_terminal)
+            )
+        if self.n_terminal and not hasattr(self, "stop_string"):
+            pytest.fail("'stop_string' must be provided for agent termination.")
 
     def test_run(self, nb_nodes: int) -> None:
         """Run the test."""
+        self.nb_nodes = nb_nodes
+        self.check()
+
         self.prepare_and_launch(nb_nodes)
         self.health_check(
             max_retries=self.HEALTH_CHECK_MAX_RETRIES,
             sleep_interval=self.HEALTH_CHECK_SLEEP_INTERVAL,
         )
-        self._stop_and_restart_last_agent(nb_nodes)
+        if self.n_terminal:
+            self._restart_agents()
         self.check_aea_messages()
+        self.terminate_processes()
 
-    def _stop_and_restart_last_agent(self, nb_agents: int) -> None:
-        """Stops and restarts the last agents when stop string is found."""
+    def _restart_agents(self) -> None:
+        """Stops and restarts agents after stop string is found."""
+
         # stop the last agent as soon as the "stop string" is found in the output
         logging.info(f"Waiting for string {self.stop_string} in last agent output")
         missing_strict_strings, _ = self.missing_from_output(
@@ -465,13 +465,19 @@ class BaseTestEnd2EndAgentCatchup(BaseTestEnd2End):
             timeout=self.wait_before_stop,
         )
         if missing_strict_strings:
-            raise RuntimeError("cannot stop agent correctly")
-        logging.info("Last agent stopped")
+            msg = f"cannot stop agent, stop string `{self.stop_string}` not found"
+            raise RuntimeError(msg)
 
-        # immediately terminate the agent
-        self.terminate_agents(self.processes[-1], timeout=0)
+        if self.wait_to_kill:
+            logging.info("Waiting to terminate agents")
+            time.sleep(self.wait_to_kill)
+
+        # immediately terminate the agents - sequentially
         # don't pop before termination, seems to lead to failure!
-        self.processes.pop()
+        for _ in range(self.n_terminal):
+            self.terminate_agents(self.processes[-1], timeout=0)
+            self.processes.pop()
+            logging.info("Last agent stopped")
 
         # wait for some time before restarting
         logging.info(
@@ -479,8 +485,7 @@ class BaseTestEnd2EndAgentCatchup(BaseTestEnd2End):
         )
         time.sleep(self.restart_after)
 
-        # restart agent
-        logging.info("Restart the agent")
-        self._launch_agent_i(-1, nb_agents)
-        self.check_aea_messages()
-        self.terminate_processes()
+        # restart agents
+        for i in range(self.n_terminal):
+            logging.info(f"Restart the agent {~i}")
+            self._launch_agent_i(~i, self.nb_nodes)

@@ -10,4 +10,4 @@ Transactions that include these new fields are known as Type 2, while legacy tra
 
 EIP-1559 does not bring changes to the Gas Limit, the maximum amount of gas the transaction is authorized to consume.
 
-Sources: https://www.blocknative.com/blog/eip-1559-fees
+Sources: https://notes.ethereum.org/@vbuterin/eip-1559-faq
