@@ -27,9 +27,9 @@ protocols:
 - valory/http:1.0.0:QmRQYhYWbGSNHb152dp2L1P9EtZRZZqgvZAaNat5qxfQqK
 - valory/ledger_api:1.0.0:QmNfowyB8rGWr53wuNPYK5BEAnA8AehgipVdYXt8LC5uR6
 skills:
-- valory/abstract_round_abci:0.1.0:QmP1zfADyEkJK7UsjCPM1sVBD8a8beDKBjSp9fcb5m1dKd
-- valory/apy_estimation_abci:0.1.0:QmaJ6VwT3Mt2AdyP85qzFABJA8hJX55ru5gFoVuVAfem86
-- valory/registration_abci:0.1.0:QmdXCT8bUCQ7xGWUANvEajkeW9UZUixxPMH6ubwp2GLeKk
+- valory/abstract_round_abci:0.1.0:QmTbuhLmPX7fgMvmHKYH8UWAMmwFstFsQEpnPCzM66yxaM
+- valory/apy_estimation_abci:0.1.0:QmPnh2kvTMUQwbAPuAMjfZFa21fzw52gPLGt2SfzC3PzMP
+- valory/registration_abci:0.1.0:QmUFzDbUWooC9LXpTySWUKpKMQM3JFmSr41uNd9aaLG74o
 behaviours:
   main:
     args: {}
@@ -85,6 +85,7 @@ models:
   params:
     args:
       cleanup_history_depth: 1
+      cleanup_history_depth_current: null
       consensus:
         max_participants: 1
       drand_public_key: 868f005eb8e6e4ca0a47c8a77ceaa5309a47978a7c71bc5cce96366b5d7a569937c529eeda66c7293784a9402801af31
