@@ -243,13 +243,15 @@ class Service(PackageConfiguration):  # pylint: disable=too-many-instance-attrib
             ):
                 valid.append(True)
 
-        if len(remaining) > 0:
+        if len(remaining) > 0:  # pragma: nocover
             raise ValueError(f"Override type is misspelled.\n {remaining}")
 
         if sum(valid) == 4:
             return True
 
-        raise ValueError("Incorrect number of overrides for count of agents.")
+        raise ValueError(  # pragma: nocover
+            "Incorrect number of overrides for count of agents."
+        )
 
     def check_overrides_valid(
         self, overrides: List, env_vars_friendly: bool = False
@@ -363,7 +365,7 @@ class Service(PackageConfiguration):  # pylint: disable=too-many-instance-attrib
             if len(nums) != self.number_of_agents:
                 raise ValueError("Not enough items in override")
 
-            if nums != set(range(0, self.number_of_agents)):
+            if nums != set(range(0, self.number_of_agents)):  # pragma: nocover
                 raise ValueError("Overrides incorrectly indexed")
 
             n_fields = len(field_override)
@@ -377,7 +379,9 @@ class Service(PackageConfiguration):  # pylint: disable=too-many-instance-attrib
                             nested_override_key
                             not in config_class.NESTED_FIELDS_ALLOWED_TO_UPDATE  # type: ignore
                         ):
-                            raise ValueError("Trying to override non-nested field.")
+                            raise ValueError(  # pragma: nocover
+                                "Trying to override non-nested field."
+                            )
 
                         env_var_name = "_".join(
                             [
