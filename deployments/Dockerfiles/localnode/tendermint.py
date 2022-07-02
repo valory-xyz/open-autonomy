@@ -18,7 +18,6 @@
 # ------------------------------------------------------------------------------
 
 """Tendermint manager."""
-import shutil
 import json
 import logging
 import os
