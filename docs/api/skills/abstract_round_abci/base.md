@@ -841,6 +841,11 @@ Reset the db, keeping only the latest entries (periods).
 
 If cleanup_history_depth_current has been also set, also clear oldest historic values in the current entry.
 
+**Arguments**:
+
+- `cleanup_history_depth`: depth to clean up history
+- `cleanup_history_depth_current`: whether or not to clean up current entry too.
+
 <a id="packages.valory.skills.abstract_round_abci.base.AbciAppDB.cleanup_current_histories"></a>
 
 #### cleanup`_`current`_`histories

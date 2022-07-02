@@ -23,6 +23,18 @@ Load a configuration, knowing the type and the path to the package root.
 
 the configuration object.
 
+<a id="autonomy.cli.hash.update_hashes"></a>
+
+#### update`_`hashes
+
+```python
+def update_hashes(packages_dir: Path, no_wrap: bool = False, vendor: Optional[str] = None, config_loader: Callable[
+        [PackageType, Path], PackageConfiguration
+    ] = load_configuration) -> int
+```
+
+Process all AEA packages, update fingerprint, and update hashes.csv files.
+
 <a id="autonomy.cli.hash.hash_group"></a>
 
 #### hash`_`group

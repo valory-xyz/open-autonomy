@@ -652,6 +652,9 @@ class AbciAppDB:
         """Reset the db, keeping only the latest entries (periods).
 
         If cleanup_history_depth_current has been also set, also clear oldest historic values in the current entry.
+
+        :param cleanup_history_depth: depth to clean up history
+        :param cleanup_history_depth_current: whether or not to clean up current entry too.
         """
         cleanup_history_depth = max(cleanup_history_depth, MIN_HISTORY_DEPTH)
         self._data = {
