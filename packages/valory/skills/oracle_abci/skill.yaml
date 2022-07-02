@@ -24,13 +24,13 @@ contracts:
 protocols:
 - valory/contract_api:1.0.0:QmZRa6S342MT1oSQjLoyEDitjK6nivypC78DKipvg9JpF1
 skills:
-- valory/abstract_round_abci:0.1.0:QmXZPSXgVxf81jfQysctCVc72pXraCD5pGQBP1SGUT5d55
-- valory/oracle_deployment_abci:0.1.0:QmNaBgze4vALKe62qDdFDPN9zRGaW1wBpVMvKCSswq5jnB
-- valory/price_estimation_abci:0.1.0:Qmduw1w1yhiZzc5RSnnStdJzc52rpmzTNCz1KsvooKYtvk
-- valory/registration_abci:0.1.0:QmZCUm9YTfrh29LXH4ftC2UiUyFowwQdJNLtUewzeXSk3D
-- valory/reset_pause_abci:0.1.0:QmRnbrYcqTez4f5NwePTjyeqdKThipyUrJLQpRED7QzE1A
-- valory/safe_deployment_abci:0.1.0:QmSNbyZC8nwCUf4asvagj5cdtcsF3qfQXoDRDDDfFszNj7
-- valory/transaction_settlement_abci:0.1.0:QmWgCNLrkukoomsB26e5jwxzrXNju869j2vrX8JKoXNYnh
+- valory/abstract_round_abci:0.1.0:QmTbuhLmPX7fgMvmHKYH8UWAMmwFstFsQEpnPCzM66yxaM
+- valory/oracle_deployment_abci:0.1.0:QmV6Wvn7R38QBMhrKmLQBHFD8zuTmmFQt8RtDwaph7TUY7
+- valory/price_estimation_abci:0.1.0:Qmdmj6Yw5fDkGY2AJZ3HckyDZFDE6rzAkRPgTeMXkYDrid
+- valory/registration_abci:0.1.0:QmUFzDbUWooC9LXpTySWUKpKMQM3JFmSr41uNd9aaLG74o
+- valory/reset_pause_abci:0.1.0:QmWmRFBLezXRdQQDGmbSNfi3j6utztmv3j5h5LGW6iM9ZW
+- valory/safe_deployment_abci:0.1.0:QmYp7rv13nQ4bhAVYbmTk1tGtnAoSkrZxSVH3TRhDAtna7
+- valory/transaction_settlement_abci:0.1.0:Qmd5F3s4x3cFEnxy6x6eprGCb1N2SmbruAoZNVBoNtrAaW
 behaviours:
   main:
     args: {}
