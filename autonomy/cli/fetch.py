@@ -98,7 +98,7 @@ def fetch_service(ctx: Context, public_id: PublicId) -> None:
     if ctx.registry_type == REGISTRY_REMOTE:
         if get_default_remote_registry() == REMOTE_IPFS:
             fetch_service_ipfs(public_id)
-        else:
+        else:  # pragma: nocover
             raise Exception("HTTP registry not supported.")
     else:
         fetch_service_local(ctx, public_id)
@@ -107,7 +107,7 @@ def fetch_service(ctx: Context, public_id: PublicId) -> None:
 def fetch_service_ipfs(public_id: PublicId) -> None:
     """Fetch service from IPFS node."""
 
-    if not IS_IPFS_PLUGIN_INSTALLED:
+    if not IS_IPFS_PLUGIN_INSTALLED:  # pragma: nocover
         raise RuntimeError("IPFS plugin not installed.")
 
     with tempfile.TemporaryDirectory() as temp_dir:
