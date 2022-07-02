@@ -19,6 +19,7 @@
 
 """Test base."""
 
+import os
 import shutil
 import tempfile
 from contextlib import suppress
@@ -59,5 +60,6 @@ class BaseCliTest:
         cls,
     ) -> None:
         """Teardown method."""
+        os.chdir(cls.cwd)
         with suppress(OSError, FileExistsError, PermissionError):
             shutil.rmtree(str(cls.t))

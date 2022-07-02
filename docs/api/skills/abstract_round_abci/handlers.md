@@ -330,6 +330,10 @@ consensus has been achieved. We access it here to store
 the information of other agents' Tendermint configurations
 under `registered_addresses`.
 
+**Returns**:
+
+the synchronized data.
+
 <a id="packages.valory.skills.abstract_round_abci.handlers.TendermintHandler.registered_addresses"></a>
 
 #### registered`_`addresses

@@ -389,7 +389,7 @@ Stop a Tendermint node process.
 #### prune`_`blocks
 
 ```python
-def prune_blocks() -> None
+def prune_blocks() -> int
 ```
 
 Prune blocks from the Tendermint state

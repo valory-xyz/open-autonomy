@@ -558,6 +558,8 @@ class TendermintHandler(Handler):
         consensus has been achieved. We access it here to store
         the information of other agents' Tendermint configurations
         under `registered_addresses`.
+
+        :return: the synchronized data.
         """
         return cast(
             BaseSynchronizedData,
