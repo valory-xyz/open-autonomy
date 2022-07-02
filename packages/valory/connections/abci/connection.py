@@ -72,6 +72,10 @@ class DecodeVarintError(Exception):
     """This exception is raised when an error occurs while decoding a varint."""
 
 
+class EncodeVarintError(Exception):
+    """This exception is raised when an error occurs while encoding a varint."""
+
+
 class TooLargeVarint(Exception):
     """This exception is raised when a message with varint exceeding the max size is received."""
 
@@ -113,7 +117,7 @@ class _TendermintABCISerializer:
     def encode_varint(cls, number: int) -> bytes:
         """Encode a number in varint coding."""
         if not 0 <= number < 1 << 64:
-            raise DecodeVarintError(f"expecting uint64, got: {number}")
+            raise EncodeVarintError(f"expecting uint64, got: {number}")
         buf = b""
         while True:
             towrite = number & 0x7F

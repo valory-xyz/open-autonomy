@@ -47,6 +47,7 @@ from packages.valory.connections.abci.connection import (
     DEFAULT_ABCI_PORT,
     DEFAULT_LISTEN_ADDRESS,
     DecodeVarintError,
+    EncodeVarintError,
     ShortBufferLengthError,
     TooLargeVarint,
     VarintMessageReader,
@@ -526,7 +527,7 @@ async def test_encode_decode_varint(value: int) -> None:
 async def test_encoding_raises(value: int) -> None:
     """Test encoding raises"""
     encoder = _TendermintABCISerializer.encode_varint
-    with pytest.raises(DecodeVarintError):
+    with pytest.raises(EncodeVarintError):
         encoder(value)
 
 
