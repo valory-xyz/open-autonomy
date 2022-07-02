@@ -132,17 +132,17 @@ class ImageBuilder:
                     break
                 print(f"[Skaffold] {line.decode().strip()}")
 
-        except KeyboardInterrupt:
+        except KeyboardInterrupt:  # pragma: nocover
             cast(IO[bytes], process.stdout).close()
             process.send_signal(signal.SIGTERM)
 
         process.wait(timeout=30)
         poll = process.poll()
-        if poll is None:
+        if poll is None:  # pragma: nocover
             process.terminate()
             process.wait(2)
 
-        if process.returncode != 0:
+        if process.returncode != 0:  # pragma: nocover
             print("Image build failed.")
 
     @staticmethod

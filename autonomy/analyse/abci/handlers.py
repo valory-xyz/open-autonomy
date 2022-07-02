@@ -42,7 +42,7 @@ def check_handlers(
     try:
         module = importlib.import_module(module_name)
         module_attributes = dir(module)
-    except ModuleNotFoundError as exc:
+    except ModuleNotFoundError as exc:  # pragma: nocover
         raise FileNotFoundError(f"Handler file {module_name} does not exist") from exc
 
     with open(str(config_file), mode="r", encoding="utf-8") as fp:
@@ -55,6 +55,6 @@ def check_handlers(
 
         for handler_info in config["handlers"].values():
             if handler_info["class_name"] not in module_attributes:
-                raise ValueError(
+                raise ValueError(  # pragma: nocover
                     f"Handler {handler_info['class_name']} declared in {config_file} is missing from {handler_file_path}"
                 )
