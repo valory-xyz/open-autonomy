@@ -24,7 +24,7 @@ import shutil
 import tempfile
 from contextlib import suppress
 from pathlib import Path
-from typing import Tuple
+from typing import Optional, Tuple
 
 from aea.test_tools.click_testing import CliRunner
 from click.testing import Result
@@ -51,8 +51,11 @@ class BaseCliTest:
         cls.t = Path(tempfile.mkdtemp())
         cls.t.mkdir(exist_ok=True)
 
-    def run_cli(self, commands: Tuple[str, ...]) -> Result:
+    def run_cli(self, commands: Optional[Tuple[str, ...]] = None) -> Result:
         """Run CLI."""
+        if commands is None:
+            return self.cli_runner.invoke(cli=cli, args=self.cli_options)
+
         return self.cli_runner.invoke(cli=cli, args=(*self.cli_options, *commands))
 
     @classmethod
