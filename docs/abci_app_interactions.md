@@ -46,7 +46,7 @@ of the `ABCIApp` (in that sense it encapsulates the "user" of a normal blockchai
 ### AbstractRoundBehaviour diagrams
 
 The following diagram shows how the FSM behaviour operates in concert with the
-AEA event loop.
+AEA event loop. (Not all components are included in the diagram.)
 
 <div class="mermaid">
     sequenceDiagram
@@ -54,46 +54,68 @@ AEA event loop.
         participant AbsRoundBehaviour
         participant Behaviour1
         participant Behaviour2
-        participant SharedState
+        participant Outbox
         note over AbsRoundBehaviour,Behaviour2: Let the FSM App start with Behaviour1<br/>it will schedule Behaviour2 on event e.
         loop while round does not change
           EventLoop->>AbsRoundBehaviour: act()
-          AbsRoundBehaviour->>Behaviour1: act()
-          activate Behaviour1
-          note over Behaviour1: During the execution, <br/> the current round may<br/>(or may not) change.
-          Behaviour1->>AbsRoundBehaviour: return
-          deactivate Behaviour1
-          note over EventLoop: The loop now executes other routines.
+          alt if Behaviour1 not done
+            note over AbsRoundBehaviour: Behaviour1 act() is called.
+            AbsRoundBehaviour->>Behaviour1: act()
+            activate Behaviour1
+            note over Behaviour1: During the execution, <br/> the current round may<br/>(or may not) change.
+            Behaviour1->>Outbox: put_message("GET (...) /tx_sync=0x(...)")
+            Behaviour1->>Outbox: [Wait until tx delivered] put_message("GET (...) /tx?hash=0x(...)")
+            note over Outbox: Multiplexer will route the transactions<br/>to the corresponding connection.
+            Behaviour1->>AbsRoundBehaviour: return
+            deactivate Behaviour1
+          else
+            AbsRoundBehaviour->>Behaviour1: clean_up()
+          end
+          note over EventLoop: Other routines.
         end
-        note over AbsRoundBehaviour: Read current AbciApp round and pick matching state<br/>in this example, Behaviour2.
+        note over AbsRoundBehaviour: Read current AbciApp round and pick matching Behaviour<br/>in this example, Behaviour2.
+        loop while round does not change
         EventLoop->>AbsRoundBehaviour: act()
-        note over AbsRoundBehaviour: Now State2 act() is called.
+
+        note over AbsRoundBehaviour: Now Behaviour2 act() is called.
         AbsRoundBehaviour->>Behaviour2: act()
         activate Behaviour2
         Behaviour2->>AbsRoundBehaviour: return
         deactivate Behaviour2
+        note over EventLoop: Other routines.        
+        end
 </div>
 
 
 
 The following diagram describes the addition of transactions to the transaction
-pool:
+pool. (Not all components are included in the diagram.)
 
 <div class="mermaid">
     sequenceDiagram
         participant ConsensusEngine
+        participant ABCIServerConnection as ABCIServerConnection<br/>TendermintDecoder
         participant ABCIRoundHandler
-        participant SharedState
-        participant Round
-        activate Round
-        note over ConsensusEngine,ABCIRoundHandler: client submits transaction tx
-        ConsensusEngine->>ABCIRoundHandler: [Request] CheckTx(tx)
-        ABCIRoundHandler->>SharedState: check_tx(tx)
-        SharedState->>Round: check_tx(tx)
-        Round->>SharedState: OK
-        SharedState->>ABCIRoundHandler: OK
-        ABCIRoundHandler->>ConsensusEngine: [Response] CheckTx(tx)
-        note over ConsensusEngine,ABCIRoundHandler: tx is added to tx pool
+        note over ConsensusEngine,ABCIServerConnection: client submits transaction tx
+        ConsensusEngine->>ABCIServerConnection: [Request] CheckTx(tx)
+        ABCIServerConnection->>ABCIRoundHandler: check_tx(tx)
+        ABCIRoundHandler->>RoundSequence: check_is_finished()
+        RoundSequence->>ABCIRoundHandler: false
+        ABCIRoundHandler->>ABCIServerConnection: OK
+        ABCIServerConnection->>ConsensusEngine: [Response] CheckTx(tx)
+        note over ConsensusEngine,ABCIServerConnection: tx is added to tx pool
+        ConsensusEngine->>ABCIServerConnection: [Request] DeliverTx(tx)
+        ABCIServerConnection->>ABCIRoundHandler: deliver_tx(tx)
+        ABCIRoundHandler->>RoundSequence: check_is_finished()
+        RoundSequence->>ABCIRoundHandler: false
+        ABCIServerConnection->>RoundSequence: deliver_tx(tx)
+        RoundSequence->>ABCIApp: check_transaction(tx)             
+        ABCIApp->>Round: check_transaction(tx)                
+        Round->>ABCIApp: OK
+        ABCIApp->>RoundSequence: OK
+        RoundSequence->>ABCIRoundHandler: OK        
+        ABCIRoundHandler->>ABCIServerConnection: OK
+        ABCIServerConnection->>ConsensusEngine: [Response] CheckTx(tx)        
 </div>
 
 The following diagram describes the delivery of transactions in a block:
@@ -101,34 +123,45 @@ The following diagram describes the delivery of transactions in a block:
 <div class="mermaid">
     sequenceDiagram
         participant ConsensusEngine
+        participant ABCIServerConnection as ABCIServerConnection<br/>TendermintDecoder
         participant ABCIRoundHandler
-        participant SharedState
+        participant RoundSequence
+        participant ABCIApp
         participant Round1
         participant Round2
         activate Round1
         note over Round1,Round2: Round1 is the active round,<br/>Round2 is the next round.
         note over ConsensusEngine,ABCIRoundHandler: Validated block ready to<br/>be submitted to the FSM App.
-        ConsensusEngine->>ABCIRoundHandler: [Request] BeginBlock()
-        ABCIRoundHandler->>SharedState: begin_block()
-        SharedState->>ABCIRoundHandler: [Response] BeginBlock(OK)
-        ABCIRoundHandler->>ConsensusEngine: OK
+        ConsensusEngine->>ABCIServerConnection: [Request] BeginBlock()
+        ABCIServerConnection->>ABCIRoundHandler: begin_block()        
+        ABCIRoundHandler->>RoundSequence: begin_block()
+        ABCIRoundHandler->>ABCIServerConnection: OK
+        ABCIServerConnection->>ConsensusEngine: [Response] BeginBlock(OK)
         loop for tx_i in block
-            ConsensusEngine->>ABCIRoundHandler: [Request] DeliverTx(tx_i)
-            ABCIRoundHandler->>SharedState: deliver_tx(tx_i)
-            SharedState->>Round1: deliver_tx(tx_i)
-            Round1->>SharedState: OK
-            SharedState->>ABCIRoundHandler: OK
-            ABCIRoundHandler->>ConsensusEngine: [Response] DeliverTx(OK)
+          ConsensusEngine->>ABCIServerConnection: [Request] DeliverTx(tx)
+          ABCIServerConnection->>ABCIRoundHandler: deliver_tx(tx)
+          ABCIRoundHandler->>RoundSequence: check_is_finished()
+          RoundSequence->>ABCIRoundHandler: false
+          ABCIServerConnection->>RoundSequence: deliver_tx(tx)
+          RoundSequence->>ABCIApp: check_transaction(tx)             
+          ABCIApp->>Round1: check_transaction(tx)                
+          Round1->>ABCIApp: OK
+          ABCIApp->>RoundSequence: OK
+          RoundSequence->>ABCIRoundHandler: OK        
+          ABCIRoundHandler->>ABCIServerConnection: OK
+          ABCIServerConnection->>ConsensusEngine: [Response] CheckTx(tx)   
         end
-        ConsensusEngine->>ABCIRoundHandler: [Request] EndBlock()
-        ABCIRoundHandler->>SharedState: end_block()
+        ConsensusEngine->>ABCIServerConnection: [Request] EndBlock()
+        ABCIServerConnection->>ABCIRoundHandler: end_block()
+        ABCIRoundHandler->>RoundSequence: end_block()
         alt if condition is true
-            note over SharedState,Round1: Replace Round1 with Round2.
+            note over Round1, Round2: Replace Round1 with Round2.
             deactivate Round1
-            SharedState->>Round2: schedule
+            RoundSequence->>Round2: schedule (*)
             activate Round2
         end
-        SharedState->>ABCIRoundHandler: OK
-        ABCIRoundHandler->>ConsensusEngine: [Response] EndBlock(OK)
+        RoundSequence->>ABCIRoundHandler: OK
+        ABCIRoundHandler->>ABCIServerConnection: OK
+        ABCIServerConnection->>ConsensusEngine: [Response] EndBlock(OK)
         deactivate Round2
 </div>
