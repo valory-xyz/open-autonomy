@@ -1612,7 +1612,8 @@ class BaseBehaviour(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
                         response.get("is_replay", False)
                     )
                     self.context.state.round_sequence.abci_app.cleanup(
-                        self.params.cleanup_history_depth
+                        self.params.cleanup_history_depth,
+                        self.params.cleanup_history_depth_current,
                     )
 
                     for handler_name in self.context.handlers.__dict__.keys():
