@@ -636,6 +636,24 @@ class BaseBehaviour(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
         if self._is_done:
             self._log_end()
 
+    def _sync_state(self, app_hash: str) -> None:
+        """Sync the app's state using the given `app_hash`."""
+        if app_hash == "":
+            self.context.state.round_sequence.abci_app.synchronized_data.db.round_count = (
+                0
+            )
+            self.context.state.round_sequence.abci_app.reset_index = 0
+        else:
+            # remove prefix
+            remote_app_hash = app_hash.replace(ROOT_HASH, "")
+            # split on reset hash
+            round_count, reset_index = remote_app_hash.split(RESET_HASH, maxsplit=1)
+            # set the round count and reset index using the retrieved app hash
+            self.context.state.round_sequence.abci_app.synchronized_data.db.round_count = int(
+                round_count
+            )
+            self.context.state.round_sequence.abci_app.reset_index = int(reset_index)
+
     def _check_sync(
         self,
     ) -> Generator[None, None, None]:
@@ -655,6 +673,10 @@ class BaseBehaviour(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
                 _is_sync_complete = local_height == remote_height
                 if _is_sync_complete:
                     self.context.logger.info("local height == remote; Sync complete...")
+                    remote_app_hash = str(
+                        json_body["result"]["sync_info"]["latest_app_hash"]
+                    )
+                    self._sync_state(remote_app_hash)
                     self.context.state.round_sequence.end_sync()
                     return
                 yield from self.sleep(self.context.params.tendermint_check_sleep_delay)
