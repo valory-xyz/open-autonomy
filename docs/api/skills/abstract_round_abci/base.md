@@ -738,6 +738,17 @@ def round_count() -> int
 
 Get the round count.
 
+<a id="packages.valory.skills.abstract_round_abci.base.AbciAppDB.round_count"></a>
+
+#### round`_`count
+
+```python
+@round_count.setter
+def round_count(round_count: int) -> None
+```
+
+Set the round count.
+
 <a id="packages.valory.skills.abstract_round_abci.base.AbciAppDB.cross_period_persisted_keys"></a>
 
 #### cross`_`period`_`persisted`_`keys
@@ -1945,6 +1956,17 @@ def reset_index() -> int
 ```
 
 Return the reset index.
+
+<a id="packages.valory.skills.abstract_round_abci.base.AbciApp.reset_index"></a>
+
+#### reset`_`index
+
+```python
+@reset_index.setter
+def reset_index(reset_index: int) -> None
+```
+
+Set the reset index.
 
 <a id="packages.valory.skills.abstract_round_abci.base.AbciApp.get_all_rounds"></a>
 
