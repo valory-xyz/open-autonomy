@@ -20,7 +20,7 @@
 """Test replay tools."""
 
 import shutil
-import subprocess
+import subprocess  # nosec
 import tempfile
 from pathlib import Path
 from typing import cast
@@ -82,7 +82,9 @@ def ctrl_c() -> None:
 
 def init_tendermint(home: Path) -> None:
     """Initialize tendermint home."""
-    result = subprocess.run([cast(str, TENDERMINT_BIN), "init", "--home", str(home)])
+    result = subprocess.run(  # nosec
+        [cast(str, TENDERMINT_BIN), "init", "--home", str(home)]
+    )
     assert result.returncode == 0, result.stdout
 
 
