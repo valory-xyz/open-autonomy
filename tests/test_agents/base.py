@@ -163,7 +163,7 @@ class BaseTestEnd2End(AEATestCaseMany, UseFlaskTendermintNode):
         )
         self.set_config(
             "vendor.valory.connections.abci.config.tendermint_config.p2p_seeds",
-            json.dumps(self.p2p_seeds),
+            json.dumps(self.get_p2p_seeds_for_node_i(i)),
             "list",
         )
         self.set_config(
