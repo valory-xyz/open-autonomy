@@ -83,7 +83,7 @@ class TestAgentRunner(BaseCliTest):
 
     def test_run(self) -> None:
         """Test run."""
-        self.cli_runner.invoke(
+        result = self.cli_runner.invoke(
             cli,
             (
                 "deploy",
@@ -99,8 +99,12 @@ class TestAgentRunner(BaseCliTest):
             ),
         )
 
+        assert result.exit_code, result.output
+
         addrbook_file = (
-            self.t / "abci_build" / "persistent_data" / "tm_state" / "addrbook.json"
+            (self.t / "abci_build" / "persistent_data" / "tm_state" / "addrbook.json")
+            .resolve()
+            .absolute()
         )
         addrbook_file.write_text(json.dumps(ADDRBOOK_DATA))
 
