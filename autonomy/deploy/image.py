@@ -106,7 +106,7 @@ class ImageBuilder:
             if kubeconfig is None and not check_kubeconfig_vars():
                 raise ValueError("Please setup kubernetes environment variables.")
         else:
-            if kubeconfig is not None:
+            if kubeconfig is not None:  # pragma: nocover
                 del env["KUBECONFIG"]
 
         try:
