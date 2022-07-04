@@ -79,8 +79,7 @@ class TestAgentRunner(BaseCliTest):
     def setup(cls) -> None:
         """Setup."""
         super().setup()
-
-        os.chdir(ROOT_DIR)
+        os.chdir(cls.t)
 
     def test_run(self) -> None:
         """Test run."""
@@ -95,18 +94,20 @@ class TestAgentRunner(BaseCliTest):
                 "--packages-dir",
                 str(self.packages_dir),
                 "--force",
+                "--o",
+                str(self.t),
             ),
         )
 
         addrbook_file = (
-            ROOT_DIR / "abci_build" / "persistent_data" / "tm_state" / "addrbook.json"
+            self.t / "abci_build" / "persistent_data" / "tm_state" / "addrbook.json"
         )
         addrbook_file.write_text(json.dumps(ADDRBOOK_DATA))
 
         with mock.patch.object(TendermintNetwork, "init"), mock.patch.object(
             TendermintNetwork, "start", new=ctrl_c
         ), mock.patch.object(TendermintNetwork, "stop") as stop_mock:
-            result = self.run_cli(())
+            result = self.run_cli(("--build", str(self.t / "abci_build")))
             assert result.exit_code == 0, result.output
             stop_mock.assert_any_call()
 
