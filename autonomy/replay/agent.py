@@ -101,7 +101,14 @@ class AgentRunner:
         """Stop the process."""
         self.agent_dir.cleanup()
         os.chdir(str(self.cwd))
-        if self.process is None:
+
+        if self.process is None:  # pragma: nocover
             return
 
-        os.kill(os.getpgid(self.process.pid), signal.SIGTERM)
+        self.process.poll()
+        if self.process.returncode is None:  # stop only pending processes
+            os.kill(self.process.pid, signal.SIGTERM)
+
+        self.process.wait(timeout=5)
+        self.process.terminate()
+        self.process = None

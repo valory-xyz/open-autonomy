@@ -59,13 +59,13 @@ def generat_abci_app_pecs(app_class: str, output_file: Path, spec_format: str) -
     try:
         module = importlib.import_module(module_name)
     except Exception as e:
-        raise Exception(
+        raise click.ClickException(
             f'Failed to load "{module_name}". Please, verify that '
             "AbciApps and classes are correctly defined within the module. "
         ) from e
 
     if not hasattr(module, class_name):
-        raise Exception(f'Class "{class_name}" is not in "{module_name}".')
+        raise click.ClickException(f'Class "{class_name}" is not in "{module_name}".')
 
     abci_app_cls = getattr(module, class_name)
     output_file = Path(output_file).absolute()
@@ -153,7 +153,7 @@ def parse_logs(file: Path) -> None:
 
     try:
         parse_file(str(file))
-    except Exception as e:  # pylint: disable=broad-except
+    except Exception as e:  # pylint: disable=broad-except  # pragma: nocover
         raise click.ClickException(str(e)) from e
 
 
@@ -186,7 +186,7 @@ def run_handler_check(packages_dir: Path, skip: str, common: str) -> None:
         for yaml_file in sorted(packages_dir.glob("**/skill.yaml")):
             click.echo(f"Checking {yaml_file.parent}")
             check_handlers(yaml_file.resolve(), common_handlers, skip_skills)
-    except Exception as e:  # pylint: disable=broad-except
+    except Exception as e:  # pylint: disable=broad-except  # pragma: nocover
         raise click.ClickException(str(e)) from e
 
 
@@ -222,5 +222,5 @@ def benchmark(path: Path, block_type: str, period: int, output: Optional[Path]) 
 
     try:
         aggregate(path=path, block_type=block_type, period=period, output=output)
-    except Exception as e:  # pylint: disable=broad-except
+    except Exception as e:  # pylint: disable=broad-except  # pragma: nocover
         raise click.ClickException(str(e)) from e

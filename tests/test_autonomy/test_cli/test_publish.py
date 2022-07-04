@@ -67,7 +67,7 @@ class TestPublish(BaseCliTest):
         """Test publish service locally."""
 
         os.chdir(self.service_dir)
-        result = self.run_cli()
+        result = self.run_cli(("--local",))
 
         assert result.exit_code == 0, result.output
         assert (
