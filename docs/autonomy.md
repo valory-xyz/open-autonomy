@@ -199,7 +199,6 @@ Usage: autonomy analyse abci check-app-specs [OPTIONS]
 Options:
   --check-all          Check all available definitions.
   --packages-dir PATH  Path to packages directory; Use with `--check-all` flag
-  --mermaid            Mermaid file.
   --yaml               Yaml file.
   --json               Json file.
   --app_class TEXT     Dotted path to app definition class.
