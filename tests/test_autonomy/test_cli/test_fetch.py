@@ -81,6 +81,12 @@ class TestFetchCommand(BaseCliTest):
         assert result.exit_code == 0, result.output
         assert service.exists()
 
+        result = self.run_cli(("--local", "valory/counter"))
+        assert result.exit_code == 1, result.output
+        assert (
+            'Item "counter" already exists in target folder' in result.output
+        ), result.output
+
         shutil.rmtree(service)
 
     def test_fetch_service_ipfs(
@@ -90,6 +96,13 @@ class TestFetchCommand(BaseCliTest):
 
         service = self.t / "counter"
         service_hash = self.get_service_hash()
+
+        with mock.patch(
+            "autonomy.cli.fetch.get_default_remote_registry", new=lambda: "http"
+        ):
+            result = self.run_cli(("--remote", service_hash))
+            assert result.exit_code == 1, result.output
+            assert "HTTP registry not supported." in result.output, result.output
 
         with mock.patch(
             "autonomy.cli.fetch.get_default_remote_registry", new=lambda: "ipfs"

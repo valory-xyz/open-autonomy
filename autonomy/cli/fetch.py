@@ -45,7 +45,7 @@ try:
     from aea_cli_ipfs.ipfs_utils import IPFSTool  # type: ignore
 
     IS_IPFS_PLUGIN_INSTALLED = True
-except ImportError:
+except ImportError:  # pragma: nocover
     IS_IPFS_PLUGIN_INSTALLED = False
 
 
@@ -84,7 +84,7 @@ def fetch(
     ctx.registry_type = registry
 
     try:
-        if package_type == AGENT:
+        if package_type == AGENT:  # pragma: nocover
             do_fetch(ctx, public_id, alias)
         else:
             fetch_service(ctx, public_id)
@@ -98,7 +98,7 @@ def fetch_service(ctx: Context, public_id: PublicId) -> None:
     if ctx.registry_type == REGISTRY_REMOTE:
         if get_default_remote_registry() == REMOTE_IPFS:
             fetch_service_ipfs(public_id)
-        else:  # pragma: nocover
+        else:
             raise Exception("HTTP registry not supported.")
     else:
         fetch_service_local(ctx, public_id)
