@@ -595,6 +595,11 @@ class AbciAppDB:
         """Get the round count."""
         return self._round_count
 
+    @round_count.setter
+    def round_count(self, round_count: int) -> None:
+        """Set the round count."""
+        self._round_count = round_count
+
     @property
     def cross_period_persisted_keys(self) -> List[str]:
         """Keys in the database which are persistent across periods."""
@@ -1866,6 +1871,11 @@ class AbciApp(
     def reset_index(self) -> int:
         """Return the reset index."""
         return self._reset_index
+
+    @reset_index.setter
+    def reset_index(self, reset_index: int) -> None:
+        """Set the reset index."""
+        self._reset_index = reset_index
 
     @classmethod
     def get_all_rounds(cls) -> Set[AppState]:
