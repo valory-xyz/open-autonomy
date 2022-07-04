@@ -7,7 +7,7 @@ license: Apache-2.0
 fingerprint:
   README.md: Qma81jpPToAk6iXFEp6Z3EUYfegRMbgKRS5UmjmTdB3qBB
 fingerprint_ignore_patterns: []
-agent: valory/oracle:0.1.0:QmeBSUn7G85pUNw1KwKsyYbcn9KWuU4ubLKd6qZgHSiExF
+agent: valory/oracle:0.1.0:QmaLBrsToBPrNj3Di7uVDKVUqFphowhKMCm6mh28oHTjFi
 network: ropsten
 number_of_agents: 4
 ---
@@ -31,7 +31,11 @@ models:
       args:
         url: https://api.coingecko.com/api/v3/simple/price
         api_id: coingecko
-        parameters: '[["ids", "bitcoin"], ["vs_currencies", "usd"]]'
+        parameters:
+        - - ids
+          - bitcoin
+        - - vs_currencies
+          - usd
         response_key: bitcoin:usd
         headers: null
   - randomness_api:
@@ -79,7 +83,9 @@ models:
       args:
         url: https://api.binance.com/api/v3/ticker/price
         api_id: binance
-        parameters: '[["symbol", "BTCUSDT"]]'
+        parameters:
+        - - symbol
+          - BTCUSDT
         response_key: price
         headers: null
   - randomness_api:

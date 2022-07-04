@@ -76,7 +76,11 @@ models:
         args:
           url: 'https://api.coingecko.com/api/v3/simple/price'
           api_id: 'coingecko'
-          parameters: '[["ids", "bitcoin"], ["vs_currencies", "usd"]]'
+          parameters:
+          - - ids
+            - bitcoin
+          - - vs_currencies
+            - usd
           response_key: 'bitcoin:usd'
           headers: ~
   1:
@@ -84,7 +88,11 @@ models:
         args:
           url: 'https://api.coingecko.com/api/v3/simple/price'
           api_id: 'coingecko'
-          parameters: '[["ids", "bitcoin"], ["vs_currencies", "usd"]]'
+          parameters:
+          - - ids
+            - bitcoin
+          - - vs_currencies
+            - usd
           response_key: 'bitcoin:usd'
           headers: ~
 """
