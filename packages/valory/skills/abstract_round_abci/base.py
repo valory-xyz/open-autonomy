@@ -522,8 +522,23 @@ class AbciAppDB:
         2: ...
     }
 
+    # Adding and removing data from the current period
+    --------------------------------------------------
     To update the current period entry, just call update() on the class. The new values will be appended to the current list for each updated parameter.
+
+    To clean up old data from the current period entry, call cleanup_current_histories(cleanup_history_depth_current), where cleanup_history_depth_current
+    is the amount of data that you want to keep after the cleanup. The newest cleanup_history_depth_current values will be kept for each parameter in the DB.
+
+    # Creating and removing old periods
+    -----------------------------------
     To create a new period entry, call create() on the class. The new values will be stored in a new list for each updated parameter.
+
+    To remove old periods, call cleanup(cleanup_history_depth, [cleanup_history_depth_current]), where cleanup_history_depth is the amount of periods
+    that you want to keep after the cleanup. The newest cleanup_history_depth periods will be kept. If you also specify cleanup_history_depth_current,
+    cleanup_current_histories will be also called (see previous point).
+
+    The parameters cleanup_history_depth and cleanup_history_depth_current can also be configured in skill.yaml so they are used automatically
+    when the cleanup method is called from AbciApp.cleanup().
     """
 
     def __init__(
@@ -629,12 +644,34 @@ class AbciAppDB:
         """Return a string representation of the data."""
         return f"AbciAppDB({self._data})"
 
-    def cleanup(self, cleanup_history_depth: int) -> None:
-        """Reset the db."""
+    def cleanup(
+        self,
+        cleanup_history_depth: int,
+        cleanup_history_depth_current: Optional[int] = None,
+    ) -> None:
+        """Reset the db, keeping only the latest entries (periods).
+
+        If cleanup_history_depth_current has been also set, also clear oldest historic values in the current entry.
+
+        :param cleanup_history_depth: depth to clean up history
+        :param cleanup_history_depth_current: whether or not to clean up current entry too.
+        """
         cleanup_history_depth = max(cleanup_history_depth, MIN_HISTORY_DEPTH)
         self._data = {
             key: self._data[key]
             for key in sorted(self._data.keys())[-cleanup_history_depth:]
+        }
+        if cleanup_history_depth_current:
+            self.cleanup_current_histories(cleanup_history_depth_current)
+
+    def cleanup_current_histories(self, cleanup_history_depth_current: int) -> None:
+        """Reset the parameter histories for the current entry (period), keeping only the latest values for each parameter."""
+        cleanup_history_depth_current = max(
+            cleanup_history_depth_current, MIN_HISTORY_DEPTH
+        )
+        self._data[self.reset_index] = {
+            key: history[-cleanup_history_depth_current:]
+            for key, history in self._data[self.reset_index].items()
         }
 
     @staticmethod
@@ -2075,7 +2112,11 @@ class AbciApp(
         self._last_timestamp = timestamp
         self.logger.debug("final AbciApp time: %s", self._last_timestamp)
 
-    def cleanup(self, cleanup_history_depth: int) -> None:
+    def cleanup(
+        self,
+        cleanup_history_depth: int,
+        cleanup_history_depth_current: Optional[int] = None,
+    ) -> None:
         """Clear data."""
         if len(self._round_results) != len(self._previous_rounds):
             raise ABCIAppInternalError("Inconsistent round lengths")  # pragma: nocover
@@ -2084,8 +2125,16 @@ class AbciApp(
         cleanup_history_depth = max(cleanup_history_depth, MIN_HISTORY_DEPTH)
         self._previous_rounds = self._previous_rounds[-cleanup_history_depth:]
         self._round_results = self._round_results[-cleanup_history_depth:]
-        self.synchronized_data.db.cleanup(cleanup_history_depth)
+        self.synchronized_data.db.cleanup(
+            cleanup_history_depth, cleanup_history_depth_current
+        )
         self._reset_index += 1
+
+    def cleanup_current_histories(self, cleanup_history_depth_current: int) -> None:
+        """Reset the parameter histories for the current entry (period), keeping only the latest values for each parameter."""
+        self.synchronized_data.db.cleanup_current_histories(
+            cleanup_history_depth_current
+        )
 
 
 class RoundSequence:  # pylint: disable=too-many-instance-attributes
