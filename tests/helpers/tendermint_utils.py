@@ -118,9 +118,13 @@ class TendermintLocalNetworkBuilder:
         node_id = output.decode().strip()
         return node_id
 
-    def get_p2p_seeds(self) -> List[str]:
-        """Get p2p seeds."""
-        return [f"{_TCP}{n.node_id}@{_LOCAL_ADDRESS}:{n.p2p_port}" for n in self.nodes]
+    def get_p2p_seeds_for_node_i(self, node_index: int) -> List[str]:
+        """Get p2p seeds for node i."""
+        return [
+            f"{_TCP}{n.node_id}@{_LOCAL_ADDRESS}:{n.p2p_port}"
+            for i, n in enumerate(self.nodes)
+            if i != node_index
+        ]
 
     def get_command(self, i: int) -> List[str]:
         """Get command-line command for the ith process."""
@@ -132,7 +136,7 @@ class TendermintLocalNetworkBuilder:
             str(n.home),
             f"--rpc.laddr={n.rpc_laddr}",
             f"--p2p.laddr={n.p2p_laddr}",
-            f"--p2p.seeds={','.join(self.get_p2p_seeds())}",
+            f"--p2p.persistent-peers={','.join(self.get_p2p_seeds_for_node_i(i))}",
             f"--consensus.create-empty-blocks={self.consensus_create_empty_blocks}",
         ]
 

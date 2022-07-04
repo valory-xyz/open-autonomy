@@ -145,7 +145,7 @@ class TestABCICounterSkillMany(
 
     IS_LOCAL = True
     capture_log = True
-    NB_AGENTS = 4
+    NB_AGENTS = 2
     NB_TX = 15
 
     def test_run(self) -> None:
@@ -184,13 +184,19 @@ class TestABCICounterSkillMany(
             )
             self.set_config(
                 "vendor.valory.connections.abci.config.tendermint_config.p2p_seeds",
-                json.dumps(self.tendermint_net_builder.get_p2p_seeds()),
+                json.dumps(
+                    self.tendermint_net_builder.get_p2p_seeds_for_node_i(agent_id)
+                ),
                 "list",
                 aev=True,
             )
             self.set_config(
                 "vendor.valory.connections.abci.config.use_tendermint", True, aev=True
             )
+
+        # launch all agent processes
+        for agent_name in self.agent_names:
+            self.set_agent_context(agent_name)
             process = self.run_agent()
             processes.append(process)
 
