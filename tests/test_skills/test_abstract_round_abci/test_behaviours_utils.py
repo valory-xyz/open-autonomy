@@ -58,6 +58,8 @@ from packages.valory.skills.abstract_round_abci.behaviour_utils import (
     HEIGHT_OFFSET_MULTIPLIER,
     MIN_HEIGHT_OFFSET,
     NON_200_RETURN_CODE_DURING_RESET_THRESHOLD,
+    RESET_HASH,
+    ROOT_HASH,
     SendException,
     TimeoutException,
     make_degenerate_behaviour,
@@ -370,12 +372,40 @@ class BehaviourATest(BaseBehaviour):
         yield
 
 
-def _get_status_patch(*args: Any, **kwargs: Any) -> Generator[None, None, MagicMock]:
-    """Patch `_get_status` method"""
-    return MagicMock(
-        body=json.dumps({"result": {"sync_info": {"latest_block_height": 0}}}).encode()
-    )
-    yield
+def _get_status_patch_wrapper(
+    latest_block_height: int,
+    expected_round_count: Optional[int],
+    expected_reset_index: Optional[int],
+) -> Callable[[Any, Any], Generator[None, None, MagicMock]]:
+    """Wrapper for `_get_status` method patch."""
+
+    if any(
+        app_hash_param is None
+        for app_hash_param in (expected_round_count, expected_reset_index)
+    ):
+        app_hash = ""
+    else:
+        app_hash = (
+            f"{ROOT_HASH}{expected_round_count}{RESET_HASH}{expected_reset_index}"
+        )
+
+    def _get_status_patch(*_: Any, **__: Any) -> Generator[None, None, MagicMock]:
+        """Patch `_get_status` method"""
+        yield
+        return MagicMock(
+            body=json.dumps(
+                {
+                    "result": {
+                        "sync_info": {
+                            "latest_block_height": latest_block_height,
+                            "latest_app_hash": app_hash,
+                        }
+                    }
+                }
+            ).encode()
+        )
+
+    return _get_status_patch
 
 
 def _get_status_wrong_patch(
@@ -580,24 +610,51 @@ class TestBaseBehaviour:
             else:
                 _log_end_mock.assert_not_called()
 
+    @pytest.mark.parametrize(
+        "expected_round_count, expected_reset_index",
+        ((None, None), (0, 0), (123, 4), (235235, 754)),
+    )
     @mock.patch.object(
         BehaviourATest,
         "_BaseBehaviour__check_tm_communication",
         side_effect=yield_and_return_bool_wrapper(True),
     )
-    @mock.patch.object(BaseBehaviour, "_get_status", _get_status_patch)
-    def test_async_act_wrapper_agent_sync_mode(self, _: mock._patch) -> None:
+    def test_async_act_wrapper_agent_sync_mode(
+        self,
+        _: mock._patch,
+        expected_round_count: Optional[int],
+        expected_reset_index: Optional[int],
+    ) -> None:
         """Test 'async_act_wrapper' in sync mode."""
         self.behaviour.context.state.round_sequence.syncing_up = True
         self.behaviour.context.state.round_sequence.height = 0
         self.behaviour.matching_round = MagicMock()
         self.behaviour.context.logger.info = lambda msg: logging.info(msg)  # type: ignore
 
-        with mock.patch.object(logging, "info") as log_mock:
+        with mock.patch.object(logging, "info") as log_mock, mock.patch.object(
+            BaseBehaviour,
+            "_get_status",
+            _get_status_patch_wrapper(0, expected_round_count, expected_reset_index),
+        ):
             gen = self.behaviour.async_act_wrapper()
-            try_send(gen)
-            try_send(gen)
+            for __ in range(3):
+                try_send(gen)
             log_mock.assert_called_with("local height == remote; Sync complete...")
+
+        if any(
+            app_hash_param is None
+            for app_hash_param in (expected_round_count, expected_reset_index)
+        ):
+            expected_round_count = expected_reset_index = 0
+
+        assert (
+            self.behaviour.context.state.round_sequence.abci_app.synchronized_data.db.round_count
+            == expected_round_count
+        )
+        assert (
+            self.behaviour.context.state.round_sequence.abci_app.reset_index
+            == expected_reset_index
+        )
 
     @mock.patch.object(BaseBehaviour, "_get_status", _get_status_wrong_patch)
     def test_async_act_wrapper_agent_sync_mode_where_height_dont_match(self) -> None:
