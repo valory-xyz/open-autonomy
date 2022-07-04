@@ -23,8 +23,7 @@ import json
 import logging
 import re
 import sys
-from collections import defaultdict
-from collections import deque
+from collections import defaultdict, deque
 from itertools import product
 from pathlib import Path
 from typing import Any, Dict, List, OrderedDict, Set, TextIO, Tuple
