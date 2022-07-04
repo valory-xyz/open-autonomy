@@ -28,8 +28,7 @@ import yaml
 
 from autonomy.constants import DEFAULT_BUILD_FOLDER
 from autonomy.replay.agent import AgentRunner
-from autonomy.replay.tendermint import app as proxy_app
-from autonomy.replay.tendermint import tendermint_network
+from autonomy.replay.tendermint import build_tendermint_apps
 from autonomy.replay.utils import fix_address_books, fix_config_files
 
 
@@ -91,6 +90,8 @@ def run_tendermint(build_dir: Path) -> None:
 
     fix_address_books(build_dir)
     fix_config_files(build_dir)
+
+    proxy_app, tendermint_network = build_tendermint_apps()
 
     try:
         tendermint_network.init(dump_dir)
