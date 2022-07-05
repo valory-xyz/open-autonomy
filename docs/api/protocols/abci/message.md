@@ -107,6 +107,17 @@ def target() -> int
 
 Get the target of the message.
 
+<a id="packages.valory.protocols.abci.message.AbciMessage.abci_version"></a>
+
+#### abci`_`version
+
+```python
+@property
+def abci_version() -> str
+```
+
+Get the 'abci_version' content from the message.
+
 <a id="packages.valory.protocols.abci.message.AbciMessage.app_hash"></a>
 
 #### app`_`hash
@@ -470,28 +481,6 @@ def message() -> str
 
 Get the 'message' content from the message.
 
-<a id="packages.valory.protocols.abci.message.AbciMessage.option_key"></a>
-
-#### option`_`key
-
-```python
-@property
-def option_key() -> str
-```
-
-Get the 'option_key' content from the message.
-
-<a id="packages.valory.protocols.abci.message.AbciMessage.option_value"></a>
-
-#### option`_`value
-
-```python
-@property
-def option_value() -> str
-```
-
-Get the 'option_value' content from the message.
-
 <a id="packages.valory.protocols.abci.message.AbciMessage.p2p_version"></a>
 
 #### p2p`_`version
@@ -513,6 +502,17 @@ def path() -> str
 ```
 
 Get the 'path' content from the message.
+
+<a id="packages.valory.protocols.abci.message.AbciMessage.priority"></a>
+
+#### priority
+
+```python
+@property
+def priority() -> int
+```
+
+Get the 'priority' content from the message.
 
 <a id="packages.valory.protocols.abci.message.AbciMessage.proof_ops"></a>
 
@@ -634,6 +634,17 @@ def tx() -> bytes
 ```
 
 Get the 'tx' content from the message.
+
+<a id="packages.valory.protocols.abci.message.AbciMessage.tx_sender"></a>
+
+#### tx`_`sender
+
+```python
+@property
+def tx_sender() -> str
+```
+
+Get the 'tx_sender' content from the message.
 
 <a id="packages.valory.protocols.abci.message.AbciMessage.type"></a>
 

@@ -374,7 +374,7 @@ class ConsensusParams:
 class EventAttribute:
     """This class represents an instance of EventAttribute."""
 
-    def __init__(self, key: bytes, value: bytes, index: bool):
+    def __init__(self, key: str, value: str, index: bool):
         """Initialise an instance of EventAttribute."""
         self.key = key
         self.value = value
@@ -1467,6 +1467,7 @@ class PublicKey:
 
         ed25519 = "ed25519"
         secp256k1 = "secp256k1"
+        sr25519 = "sr25519"
 
     def __init__(self, data: bytes, key_type: PublicKeyType) -> None:
         """

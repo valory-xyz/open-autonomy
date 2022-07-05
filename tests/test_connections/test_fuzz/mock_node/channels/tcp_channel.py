@@ -214,32 +214,6 @@ class TcpChannel(BaseChannel):
 
         return response.flush
 
-    def send_set_option(
-        self, request: abci_types.RequestSetOption
-    ) -> abci_types.ResponseSetOption:
-        """
-        Sends an setOption request.
-
-        :param: request: RequestSetOption pb object
-        :return: ResponseSetOption pb object
-        """
-        message = abci_types.Request()
-        message.set_option.CopyFrom(request)
-
-        data = _TendermintABCISerializer.write_message(message)
-
-        self._send_data(data)
-
-        response = self._get_response()
-        response_type = response.WhichOneof("value")
-
-        enforce(
-            response_type == "set_option",
-            f"expected response of type set_option, {response_type} was received",
-        )
-
-        return response.set_option
-
     def send_deliver_tx(
         self, request: abci_types.RequestDeliverTx
     ) -> abci_types.ResponseDeliverTx:

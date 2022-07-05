@@ -25,11 +25,7 @@ import pytest
 from aea.configurations.data_types import PublicId
 
 from tests.fixture_helpers import UseGnosisSafeHardHatNet
-from tests.test_agents.base import (
-    BaseTestEnd2EndAgentCatchup,
-    BaseTestEnd2EndNormalExecution,
-    RoundChecks,
-)
+from tests.test_agents.base import BaseTestEnd2EndExecution, RoundChecks
 
 
 HAPPY_PATH: Tuple[RoundChecks, ...] = (
@@ -88,7 +84,7 @@ STRICT_CHECK_STRINGS = (
 
 @pytest.mark.parametrize("nb_nodes", (1,))
 class TestABCIPriceEstimationSingleAgent(
-    BaseTestEnd2EndNormalExecution,
+    BaseTestEnd2EndExecution,
     UseGnosisSafeHardHatNet,
 ):
     """Test the ABCI oracle skill with only one agent."""
@@ -102,7 +98,7 @@ class TestABCIPriceEstimationSingleAgent(
 
 @pytest.mark.parametrize("nb_nodes", (2,))
 class TestABCIPriceEstimationTwoAgents(
-    BaseTestEnd2EndNormalExecution,
+    BaseTestEnd2EndExecution,
     UseGnosisSafeHardHatNet,
 ):
     """Test the ABCI oracle skill with two agents."""
@@ -116,7 +112,7 @@ class TestABCIPriceEstimationTwoAgents(
 
 @pytest.mark.parametrize("nb_nodes", (4,))
 class TestABCIPriceEstimationFourAgents(
-    BaseTestEnd2EndNormalExecution,
+    BaseTestEnd2EndExecution,
     UseGnosisSafeHardHatNet,
 ):
     """Test the ABCI oracle skill with four agents."""
@@ -129,7 +125,7 @@ class TestABCIPriceEstimationFourAgents(
 
 
 @pytest.mark.parametrize("nb_nodes", (4,))
-class TestAgentCatchup(BaseTestEnd2EndAgentCatchup, UseGnosisSafeHardHatNet):
+class TestAgentCatchup(BaseTestEnd2EndExecution, UseGnosisSafeHardHatNet):
     """Test that an agent that is launched later can synchronize with the rest of the network"""
 
     agent_package = "valory/oracle:0.1.0"
@@ -138,6 +134,8 @@ class TestAgentCatchup(BaseTestEnd2EndAgentCatchup, UseGnosisSafeHardHatNet):
     restart_after = 45
     happy_path = HAPPY_PATH
     stop_string = "'registration_startup' round is done with event: Event.DONE"
+
+    n_terminal = 1
 
 
 @pytest.mark.skip

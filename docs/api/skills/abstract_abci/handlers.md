@@ -120,25 +120,6 @@ Handle a message of REQUEST_FLUSH performative.
 
 the response.
 
-<a id="packages.valory.skills.abstract_abci.handlers.ABCIHandler.set_option"></a>
-
-#### set`_`option
-
-```python
-def set_option(message: AbciMessage, dialogue: AbciDialogue) -> AbciMessage
-```
-
-Handle a message of REQUEST_SET_OPTION performative.
-
-**Arguments**:
-
-- `message`: the ABCI request.
-- `dialogue`: the ABCI dialogue.
-
-**Returns**:
-
-the response.
-
 <a id="packages.valory.skills.abstract_abci.handlers.ABCIHandler.init_chain"></a>
 
 #### init`_`chain

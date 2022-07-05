@@ -126,7 +126,7 @@ class ABCIHandler(Handler):
         :return: the response.
         """
         info_data = ""
-        version = ""
+        version = "0.1.0"
         app_version = 0
         last_block_height = 0
         last_block_app_hash = b""
@@ -156,27 +156,6 @@ class ABCIHandler(Handler):
         reply = dialogue.reply(
             performative=AbciMessage.Performative.RESPONSE_FLUSH,
             target_message=message,
-        )
-        return cast(AbciMessage, reply)
-
-    def set_option(  # pylint: disable=no-self-use
-        self,
-        message: AbciMessage,
-        dialogue: AbciDialogue,
-    ) -> AbciMessage:
-        """
-        Handle a message of REQUEST_SET_OPTION performative.
-
-        :param message: the ABCI request.
-        :param dialogue: the ABCI dialogue.
-        :return: the response.
-        """
-        reply = dialogue.reply(
-            performative=AbciMessage.Performative.RESPONSE_SET_OPTION,
-            target_message=message,
-            code=ERROR_CODE,
-            log="operation not supported",
-            info="operation not supported",
         )
         return cast(AbciMessage, reply)
 
@@ -246,6 +225,8 @@ class ABCIHandler(Handler):
             gas_used=0,
             events=Events([]),
             codespace="",
+            tx_sender="",
+            priority=0,  # tx priority for mempool ordering
         )
         return cast(AbciMessage, reply)
 
@@ -399,7 +380,7 @@ class ABCIHandler(Handler):
             performative=AbciMessage.Performative.RESPONSE_APPLY_SNAPSHOT_CHUNK,
             target_message=message,
             result=Result(ResultType.REJECT),
-            refetch_chunks=[],
-            reject_senders=[],
+            refetch_chunks=tuple(),
+            reject_senders=tuple(),
         )
         return cast(AbciMessage, reply)

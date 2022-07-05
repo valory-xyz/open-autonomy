@@ -18,6 +18,7 @@
 # ------------------------------------------------------------------------------
 
 """Tendermint Docker image."""
+import logging
 import os
 import re
 import subprocess  # nosec
@@ -75,16 +76,17 @@ class TendermintDockerImage(DockerImage):
     @property
     def tag(self) -> str:
         """Get the tag."""
-        return "tendermint/tendermint:v0.34.19"
+        return "tendermint/tendermint:v0.35.7"
 
     def _build_command(self) -> List[str]:
         """Build command."""
-        cmd = ["node", f"--proxy_app={self.proxy_app}"]
+        cmd = ["start", f"--proxy-app={self.proxy_app}"]
         return cmd
 
     def create(self) -> Container:
         """Create the container."""
         cmd = self._build_command()
+        logging.debug(f"TendermintDockerImage create command: {' '.join(cmd)}")
         ports = {
             f"{DEFAULT_TENDERMINT_PORT}/tcp": (_LOCAL_ADDRESS, self.port),  # nosec
         }
@@ -227,6 +229,13 @@ class FlaskTendermintDockerImage(TendermintDockerImage):
 
         return [self.get_addr(_TCP, i) for i in range(self.nb_nodes)]
 
+    def get_p2p_seeds_for_node_i(self, node_index: int) -> List[str]:
+        """Get p2p seeds for node i."""
+        if self.nb_nodes is None:
+            raise ValueError("Trying to get p2p seeds before initializing containers!")
+
+        return [self.get_addr(_TCP, i) for i in range(self.nb_nodes) if i != node_index]
+
     def _build_command(self) -> List[str]:
         """Build command."""
         return ["run", "--no-reload", f"--host={_LOCAL_ADDRESS}", "--port=8080"]
@@ -304,6 +313,7 @@ class FlaskTendermintDockerImage(TendermintDockerImage):
         for i in range(nb_nodes):
             cmd.append(f"--hostname=node{i}")
 
+        logging.debug(f"create config command: {' '.join(cmd)}")
         subprocess.run(cmd)  # nosec
         for config_file in Path().cwd().glob("nodes/**/*.toml"):
             config_text = config_file.read_text(encoding="utf-8")

@@ -34,6 +34,11 @@ from packages.valory.protocols.abci import AbciMessage
 from packages.valory.protocols.abci.custom_types import (
     CheckTxType,
     CheckTxTypeEnum,
+    ConsensusParams,
+    Evidences,
+    Header,
+    LastCommitInfo,
+    Timestamp,
     ValidatorUpdates,
 )
 from packages.valory.protocols.http import HttpMessage
@@ -59,6 +64,9 @@ from packages.valory.skills.abstract_round_abci.handlers import (
 )
 
 
+ABCI_VERSION = "0.17.0"
+
+
 def test_exception_to_info_msg() -> None:
     """Test 'exception_to_info_msg' helper function."""
     exception = Exception("exception message")
@@ -75,6 +83,8 @@ class TestABCIRoundHandler:
         self.context = MagicMock(skill_id=PublicId.from_str("dummy/skill:0.1.0"))
         self.dialogues = AbciDialogues(name="", skill_context=self.context)
         self.handler = ABCIRoundHandler(name="", skill_context=self.context)
+        self.context.state.round_sequence.height = 0
+        self.context.state.round_sequence.root_hash = b"root_hash"
 
     def test_info(self) -> None:
         """Test the 'info' handler method."""
@@ -84,6 +94,7 @@ class TestABCIRoundHandler:
             version="",
             block_version=0,
             p2p_version=0,
+            abci_version=ABCI_VERSION,
         )
         response = self.handler.info(
             cast(AbciMessage, message), cast(AbciDialogue, dialogue)
@@ -93,13 +104,16 @@ class TestABCIRoundHandler:
     @pytest.mark.parametrize("app_hash", (b"", b"test"))
     def test_init_chain(self, app_hash: bytes) -> None:
         """Test the 'init_chain' handler method."""
+        time = Timestamp(0, 0)
+        consensus_params = ConsensusParams(*(mock.MagicMock() for _ in range(4)))
+        validators = ValidatorUpdates(mock.MagicMock())
         message, dialogue = self.dialogues.create(
             counterparty="",
             performative=AbciMessage.Performative.REQUEST_INIT_CHAIN,
-            time=MagicMock,
+            time=time,
             chain_id="test_chain_id",
-            consensus_params=MagicMock(),
-            validators=MagicMock(),
+            consensus_params=consensus_params,
+            validators=validators,
             app_state_bytes=b"",
             initial_height=10,
         )
@@ -113,13 +127,16 @@ class TestABCIRoundHandler:
 
     def test_begin_block(self) -> None:
         """Test the 'begin_block' handler method."""
+        header = Header(*(MagicMock() for _ in range(14)))
+        last_commit_info = LastCommitInfo(*(MagicMock() for _ in range(2)))
+        byzantine_validators = Evidences(MagicMock())
         message, dialogue = self.dialogues.create(
             counterparty="",
             performative=AbciMessage.Performative.REQUEST_BEGIN_BLOCK,
             hash=b"",
-            header=MagicMock(),
-            last_commit_info=MagicMock(),
-            byzantine_validators=MagicMock(),
+            header=header,
+            last_commit_info=last_commit_info,
+            byzantine_validators=byzantine_validators,
         )
         response = self.handler.begin_block(
             cast(AbciMessage, message), cast(AbciDialogue, dialogue)

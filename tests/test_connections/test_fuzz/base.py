@@ -108,10 +108,6 @@ class BaseFuzzyTests(AEATestCaseMany):
     def test_flush(self) -> None:
         assert self.mock_node.flush()
 
-    @given(key=text(), value=text())
-    def test_set_option(self, key: str, value: str) -> None:
-        assert self.mock_node.set_option(key, value)
-
     @given(tx=binary())
     def test_deliver_tx(self, tx: bytes) -> None:
         assert self.mock_node.deliver_tx(tx)

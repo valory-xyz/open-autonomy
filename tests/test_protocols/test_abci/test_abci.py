@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021 Valory AG
+#   Copyright 2021-2022 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -171,6 +171,7 @@ class TestRequestInfo(BaseTestMessageConstruction):
             version="0.1.0",
             block_version=1,
             p2p_version=1,
+            abci_version="0.17.0",
         )
 
 
@@ -336,7 +337,7 @@ class TestResponseBeginBlock(BaseTestMessageConstruction):
 
     def build_message(self) -> AbciMessage:
         """Build the message."""
-        event = Event("type", [EventAttribute(b"key", b"value", True)])
+        event = Event("type", [EventAttribute("key", "value", True)])
         return AbciMessage(
             performative=AbciMessage.Performative.RESPONSE_BEGIN_BLOCK,  # type: ignore
             events=Events([event, event]),
@@ -362,7 +363,7 @@ class TestResponseCheckTx(BaseTestMessageConstruction):
 
     def build_message(self) -> AbciMessage:
         """Build the message."""
-        attribute = EventAttribute(b"key", b"value", True)
+        attribute = EventAttribute("key", "value", True)
         event = Event("type", attributes=[attribute, attribute])
         return AbciMessage(
             performative=AbciMessage.Performative.RESPONSE_CHECK_TX,  # type: ignore
@@ -374,6 +375,8 @@ class TestResponseCheckTx(BaseTestMessageConstruction):
             gas_used=0,
             events=Events([event, event]),
             codespace="codespace",
+            tx_sender="sender",
+            priority=1,
         )
 
 
@@ -393,7 +396,7 @@ class TestResponseDeliverTx(BaseTestMessageConstruction):
 
     def build_message(self) -> AbciMessage:
         """Build the message."""
-        attribute = EventAttribute(b"key", b"value", True)
+        attribute = EventAttribute("key", "value", True)
         event = Event("type", attributes=[attribute, attribute])
         return AbciMessage(
             performative=AbciMessage.Performative.RESPONSE_DELIVER_TX,  # type: ignore
@@ -419,24 +422,12 @@ class TestRequestEndBlock(BaseTestMessageConstruction):
         )
 
 
-class TestRequestSetOption(BaseTestMessageConstruction):
-    """Test ABCI request end block."""
-
-    def build_message(self) -> AbciMessage:
-        """Build the message."""
-        return AbciMessage(
-            performative=AbciMessage.Performative.REQUEST_SET_OPTION,  # type: ignore
-            option_key="",
-            option_value="",
-        )
-
-
 class TestResponseEndBlock(BaseTestMessageConstruction):
     """Test ABCI response end block."""
 
     def build_message(self) -> AbciMessage:
         """Build the message."""
-        attribute = EventAttribute(b"key", b"value", True)
+        attribute = EventAttribute("key", "value", True)
         event = Event("type", attributes=[attribute, attribute])
         return AbciMessage(
             performative=AbciMessage.Performative.RESPONSE_END_BLOCK,  # type: ignore
@@ -599,19 +590,6 @@ class TestResponseException(BaseTestMessageConstruction):
         )
 
 
-class TestResponseSetOption(BaseTestMessageConstruction):
-    """Test ABCI request end block."""
-
-    def build_message(self) -> AbciMessage:
-        """Build the message."""
-        return AbciMessage(
-            performative=AbciMessage.Performative.RESPONSE_SET_OPTION,  # type: ignore
-            code=1,
-            log="",
-            info="",
-        )
-
-
 @mock.patch.object(
     packages.valory.protocols.abci.message,
     "enforce",
@@ -727,12 +705,6 @@ def test_performative_string_value() -> None:
     assert (
         str(AbciMessage.Performative.RESPONSE_QUERY) == "response_query"
     ), "The str value must be response_query"
-    assert (
-        str(AbciMessage.Performative.RESPONSE_SET_OPTION) == "response_set_option"
-    ), "The str value must be response_set_option"
-    assert (
-        str(AbciMessage.Performative.REQUEST_SET_OPTION) == "request_set_option"
-    ), "The str value must be request_set_option"
 
 
 def test_encoding_unknown_performative() -> None:

@@ -40,9 +40,15 @@ except ImportError:
 ENCODING = "utf-8"
 DEFAULT_LOG_FILE = "log.log"
 IS_DEV_MODE = os.environ.get("DEV_MODE", "0") == "1"
+# https://docs.tendermint.com/v0.34/tendermint-core/configuration.html
+# https://docs.tendermint.com/v0.35/nodes/configuration.html
+# We could also add ("fast-sync = true", "fast-sync = false")
 CONFIG_OVERRIDE = [
-    ("fast_sync = true", "fast_sync = false"),
-    ("max_num_outbound_peers = 10", "max_num_outbound_peers = 0"),
+    (
+        "and verifying their commits\nenable = true",
+        "and verifying their commits\nenable = false",
+    ),
+    ("max-num-outbound-peers = 10", "max-num-outbound-peers = 0"),
     ("pex = true", "pex = false"),
 ]
 

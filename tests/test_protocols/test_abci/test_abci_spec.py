@@ -18,7 +18,8 @@
 # ------------------------------------------------------------------------------
 
 """Tests to ensure implementation is on par with ABCI spec"""
-
+import logging
+import time
 from pathlib import Path
 from typing import Any, Dict, Set
 
@@ -50,7 +51,7 @@ Node = Dict[str, Any]
 
 # constants & utility functions
 ENCODING = "utf-8"
-VERSION = "v0.34.19"
+VERSION = "v0.35.7"
 REPO_PATH = Path(*tendermint_abci.__package__.split(".")).absolute()
 PROTO_FILES = list((REPO_PATH / "protos" / "tendermint").glob("**/*.proto"))
 URL_PREFIX = f"https://raw.githubusercontent.com/tendermint/tendermint/{VERSION}/proto/tendermint/"
@@ -62,20 +63,28 @@ USE_NON_ZERO_ENUM: bool = True
 
 
 # tests
-def test_local_types_file_matches_github() -> None:
+def test_local_types_file_matches_github(request_attempts: int = 3) -> None:
     """Test local file containing ABCI spec matches Tendermint GitHub"""
 
+    different = []
     for file in PROTO_FILES:
         url = URL_PREFIX + "/".join(file.parts[-2:])
-        response = requests.get(url)
+        response, i = requests.get(url), 0
+        while response.status_code != 200 and i < request_attempts:
+            time.sleep(0.1)
+            response, i = requests.get(url), i + 1
         if response.status_code != 200:
-            log_msg = "Failed to retrieve Tendermint abci types from Github"
+            log_msg = "Failed to retrieve Tendermint proto types from Github"
             status_code, reason = response.status_code, response.reason
             raise requests.HTTPError(f"{log_msg}: {status_code} ({reason})")
         github_data = response.text
         local_data = file.read_text(encoding=ENCODING)
+        if not github_data == local_data:
+            different.append([file, url])
 
-        assert github_data == local_data, f"mismatch:\n{file}\n{url}"
+    if different:
+        logging.error("\n".join(" =/= ".join(map(str, x)) for x in different))
+    assert not bool(different)
 
 
 def test_all_custom_types_used() -> None:
@@ -183,13 +192,14 @@ def test_aea_to_tendermint() -> None:
         response_query={"proof_ops": {"ops": "proof_ops"}},
         response_init_chain={"consensus_params": param_keys_trans},
         response_end_block={"consensus_param_updates": param_keys_trans},
+        response_check_tx={"sender": "tx_sender"},
     )
     replace_keys(tender_tree, tendermint_to_aea)
 
     # 7. compare AEA-native message initialization with the information
     #    retrieved from the Tendermint Response after translation
     shared = set(type_tree).intersection(tender_tree)
-    assert len(shared) == 16  # expected number of matches
+    assert len(shared) == 15  # expected number of matches
     for k in shared:
         init_node, tender_node = init_tree[k], tender_tree[k]
         compare_trees(init_node, tender_node)
@@ -206,4 +216,4 @@ def test_tendermint_decoding() -> None:
 
     # 3. translate to AEA-native ABCI Messages
     decoded = list(map(decode, messages))
-    assert len(decoded) == 15  # expected number of matches
+    assert len(decoded) == 14  # expected number of matches

@@ -98,6 +98,10 @@ class UseFlaskTendermintNode:
         """Get the p2p seeds."""
         return self._tendermint_image.p2p_seeds
 
+    def get_p2p_seeds_for_node_i(self, node_index: int) -> List[str]:
+        """Get p2p seeds for node i."""
+        return self._tendermint_image.get_p2p_seeds_for_node_i(node_index)
+
     def get_node_name(self, i: int) -> str:
         """Get the node's name."""
         return self._tendermint_image.get_node_name(i)

@@ -59,6 +59,7 @@ key_translation = {
     "validator_params": "validator",
     "version_params": "version",
     "evidence_type": "type",
+    "tx_sender": "sender",
 }
 
 

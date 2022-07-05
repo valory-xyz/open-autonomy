@@ -443,7 +443,7 @@ This class represents an instance of EventAttribute.
 #### `__`init`__`
 
 ```python
-def __init__(key: bytes, value: bytes, index: bool)
+def __init__(key: str, value: str, index: bool)
 ```
 
 Initialise an instance of EventAttribute.

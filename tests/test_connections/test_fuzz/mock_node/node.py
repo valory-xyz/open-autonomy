@@ -108,19 +108,6 @@ class MockNode:
 
         return True
 
-    def set_option(self, key: str, value: str) -> bool:
-        request = abci_types.RequestSetOption()
-        request.key = key
-        request.value = value
-
-        self.logger.info(f"Calling set_options with key={key} value={value}")
-
-        response = self.channel.send_set_option(request)
-
-        self.logger.info(f"Received response {str(response)}")
-
-        return True
-
     def deliver_tx(self, tx: bytes) -> bool:
         request = abci_types.RequestDeliverTx()
         request.tx = tx

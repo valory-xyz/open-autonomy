@@ -14,6 +14,16 @@ class DecodeVarintError(Exception)
 
 This exception is raised when an error occurs while decoding a varint.
 
+<a id="packages.valory.connections.abci.connection.EncodeVarintError"></a>
+
+## EncodeVarintError Objects
+
+```python
+class EncodeVarintError(Exception)
+```
+
+This exception is raised when an error occurs while encoding a varint.
+
 <a id="packages.valory.connections.abci.connection.TooLargeVarint"></a>
 
 ## TooLargeVarint Objects
@@ -103,7 +113,7 @@ Decode a number from its varint coding.
 
 **Returns**:
 
-the decoded int.
+the decoded int (uint64).
 
 <a id="packages.valory.connections.abci.connection._TendermintABCISerializer.write_message"></a>
 

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021 Valory AG
+#   Copyright 2021-2022 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -27,7 +27,6 @@ from packages.valory.connections.abci.tendermint.abci.types_pb2 import (  # type
     RequestListSnapshots,
     RequestLoadSnapshotChunk,
     RequestOfferSnapshot,
-    RequestSetOption,
     Snapshot,
 )
 from packages.valory.connections.abci.tendermint_decoder import (
@@ -47,20 +46,6 @@ class TestTendermintProtocolDecoder:
         echo.message = ""
         request.echo.CopyFrom(echo)
         message, dialogue = _TendermintProtocolDecoder.request_echo(
-            request, dialogues, "counterparty"
-        )
-        assert isinstance(message, AbciMessage)
-        assert isinstance(dialogue, AbciDialogue)
-
-    def test_request_set_option(self) -> None:
-        """Test decoding of a request set-option."""
-        dialogues = AbciDialogues()
-        request = Request()
-        set_option = RequestSetOption()
-        set_option.key = ""
-        set_option.value = ""
-        request.set_option.CopyFrom(set_option)
-        message, dialogue = _TendermintProtocolDecoder.request_set_option(
             request, dialogues, "counterparty"
         )
         assert isinstance(message, AbciMessage)

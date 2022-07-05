@@ -100,7 +100,6 @@ class AbciMessage(Message):
         REQUEST_LOAD_SNAPSHOT_CHUNK = "request_load_snapshot_chunk"
         REQUEST_OFFER_SNAPSHOT = "request_offer_snapshot"
         REQUEST_QUERY = "request_query"
-        REQUEST_SET_OPTION = "request_set_option"
         RESPONSE_APPLY_SNAPSHOT_CHUNK = "response_apply_snapshot_chunk"
         RESPONSE_BEGIN_BLOCK = "response_begin_block"
         RESPONSE_CHECK_TX = "response_check_tx"
@@ -116,7 +115,6 @@ class AbciMessage(Message):
         RESPONSE_LOAD_SNAPSHOT_CHUNK = "response_load_snapshot_chunk"
         RESPONSE_OFFER_SNAPSHOT = "response_offer_snapshot"
         RESPONSE_QUERY = "response_query"
-        RESPONSE_SET_OPTION = "response_set_option"
 
         def __str__(self) -> str:
             """Get the string representation."""
@@ -138,7 +136,6 @@ class AbciMessage(Message):
         "request_load_snapshot_chunk",
         "request_offer_snapshot",
         "request_query",
-        "request_set_option",
         "response_apply_snapshot_chunk",
         "response_begin_block",
         "response_check_tx",
@@ -154,12 +151,12 @@ class AbciMessage(Message):
         "response_load_snapshot_chunk",
         "response_offer_snapshot",
         "response_query",
-        "response_set_option",
     }
     __slots__: Tuple[str, ...] = tuple()
 
     class _SlotsCls:
         __slots__ = (
+            "abci_version",
             "app_hash",
             "app_state_bytes",
             "app_version",
@@ -195,11 +192,10 @@ class AbciMessage(Message):
             "log",
             "message",
             "message_id",
-            "option_key",
-            "option_value",
             "p2p_version",
             "path",
             "performative",
+            "priority",
             "proof_ops",
             "prove",
             "query_data",
@@ -212,6 +208,7 @@ class AbciMessage(Message):
             "target",
             "time",
             "tx",
+            "tx_sender",
             "type",
             "validator_updates",
             "validators",
@@ -272,6 +269,12 @@ class AbciMessage(Message):
         """Get the target of the message."""
         enforce(self.is_set("target"), "target is not set.")
         return cast(int, self.get("target"))
+
+    @property
+    def abci_version(self) -> str:
+        """Get the 'abci_version' content from the message."""
+        enforce(self.is_set("abci_version"), "'abci_version' content is not set.")
+        return cast(str, self.get("abci_version"))
 
     @property
     def app_hash(self) -> bytes:
@@ -485,18 +488,6 @@ class AbciMessage(Message):
         return cast(str, self.get("message"))
 
     @property
-    def option_key(self) -> str:
-        """Get the 'option_key' content from the message."""
-        enforce(self.is_set("option_key"), "'option_key' content is not set.")
-        return cast(str, self.get("option_key"))
-
-    @property
-    def option_value(self) -> str:
-        """Get the 'option_value' content from the message."""
-        enforce(self.is_set("option_value"), "'option_value' content is not set.")
-        return cast(str, self.get("option_value"))
-
-    @property
     def p2p_version(self) -> int:
         """Get the 'p2p_version' content from the message."""
         enforce(self.is_set("p2p_version"), "'p2p_version' content is not set.")
@@ -507,6 +498,12 @@ class AbciMessage(Message):
         """Get the 'path' content from the message."""
         enforce(self.is_set("path"), "'path' content is not set.")
         return cast(str, self.get("path"))
+
+    @property
+    def priority(self) -> int:
+        """Get the 'priority' content from the message."""
+        enforce(self.is_set("priority"), "'priority' content is not set.")
+        return cast(int, self.get("priority"))
 
     @property
     def proof_ops(self) -> CustomProofOps:
@@ -573,6 +570,12 @@ class AbciMessage(Message):
         """Get the 'tx' content from the message."""
         enforce(self.is_set("tx"), "'tx' content is not set.")
         return cast(bytes, self.get("tx"))
+
+    @property
+    def tx_sender(self) -> str:
+        """Get the 'tx_sender' content from the message."""
+        enforce(self.is_set("tx_sender"), "'tx_sender' content is not set.")
+        return cast(str, self.get("tx_sender"))
 
     @property
     def type(self) -> CustomCheckTxType:
@@ -663,7 +666,7 @@ class AbciMessage(Message):
             elif self.performative == AbciMessage.Performative.REQUEST_FLUSH:
                 expected_nb_of_contents = 0
             elif self.performative == AbciMessage.Performative.REQUEST_INFO:
-                expected_nb_of_contents = 3
+                expected_nb_of_contents = 4
                 enforce(
                     isinstance(self.version, str),
                     "Invalid type for content 'version'. Expected 'str'. Found '{}'.".format(
@@ -682,18 +685,10 @@ class AbciMessage(Message):
                         type(self.p2p_version)
                     ),
                 )
-            elif self.performative == AbciMessage.Performative.REQUEST_SET_OPTION:
-                expected_nb_of_contents = 2
                 enforce(
-                    isinstance(self.option_key, str),
-                    "Invalid type for content 'option_key'. Expected 'str'. Found '{}'.".format(
-                        type(self.option_key)
-                    ),
-                )
-                enforce(
-                    isinstance(self.option_value, str),
-                    "Invalid type for content 'option_value'. Expected 'str'. Found '{}'.".format(
-                        type(self.option_value)
+                    isinstance(self.abci_version, str),
+                    "Invalid type for content 'abci_version'. Expected 'str'. Found '{}'.".format(
+                        type(self.abci_version)
                     ),
                 )
             elif self.performative == AbciMessage.Performative.REQUEST_INIT_CHAIN:
@@ -935,26 +930,6 @@ class AbciMessage(Message):
                         type(self.last_block_app_hash)
                     ),
                 )
-            elif self.performative == AbciMessage.Performative.RESPONSE_SET_OPTION:
-                expected_nb_of_contents = 3
-                enforce(
-                    type(self.code) is int,
-                    "Invalid type for content 'code'. Expected 'int'. Found '{}'.".format(
-                        type(self.code)
-                    ),
-                )
-                enforce(
-                    isinstance(self.log, str),
-                    "Invalid type for content 'log'. Expected 'str'. Found '{}'.".format(
-                        type(self.log)
-                    ),
-                )
-                enforce(
-                    isinstance(self.info, str),
-                    "Invalid type for content 'info'. Expected 'str'. Found '{}'.".format(
-                        type(self.info)
-                    ),
-                )
             elif self.performative == AbciMessage.Performative.RESPONSE_INIT_CHAIN:
                 expected_nb_of_contents = 2
                 if self.is_set("consensus_params"):
@@ -1045,7 +1020,7 @@ class AbciMessage(Message):
                     ),
                 )
             elif self.performative == AbciMessage.Performative.RESPONSE_CHECK_TX:
-                expected_nb_of_contents = 8
+                expected_nb_of_contents = 10
                 enforce(
                     type(self.code) is int,
                     "Invalid type for content 'code'. Expected 'int'. Found '{}'.".format(
@@ -1092,6 +1067,18 @@ class AbciMessage(Message):
                     isinstance(self.codespace, str),
                     "Invalid type for content 'codespace'. Expected 'str'. Found '{}'.".format(
                         type(self.codespace)
+                    ),
+                )
+                enforce(
+                    isinstance(self.tx_sender, str),
+                    "Invalid type for content 'tx_sender'. Expected 'str'. Found '{}'.".format(
+                        type(self.tx_sender)
+                    ),
+                )
+                enforce(
+                    type(self.priority) is int,
+                    "Invalid type for content 'priority'. Expected 'int'. Found '{}'.".format(
+                        type(self.priority)
                     ),
                 )
             elif self.performative == AbciMessage.Performative.RESPONSE_DELIVER_TX:

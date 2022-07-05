@@ -21,7 +21,6 @@
 from typing import Callable, Optional, Union, cast
 
 from packages.valory.connections.abci.tendermint.abci.types_pb2 import (  # type: ignore
-    ConsensusParams,
     Event,
     EventAttribute,
     Request,
@@ -41,13 +40,15 @@ from packages.valory.connections.abci.tendermint.abci.types_pb2 import (  # type
     ResponseLoadSnapshotChunk,
     ResponseOfferSnapshot,
     ResponseQuery,
-    ResponseSetOption,
     Snapshot,
     ValidatorUpdate,
 )
 from packages.valory.connections.abci.tendermint.crypto.proof_pb2 import (  # type: ignore
     ProofOp,
     ProofOps,
+)
+from packages.valory.connections.abci.tendermint.types.params_pb2 import (  # type: ignore
+    ConsensusParams,
 )
 from packages.valory.protocols.abci import AbciMessage
 from packages.valory.protocols.abci.custom_types import (
@@ -105,21 +106,6 @@ class _TendermintProtocolEncoder:
         echo = ResponseEcho()
         echo.message = message.message
         response = Response(echo=echo)
-        return response
-
-    @classmethod
-    def response_set_option(cls, message: AbciMessage) -> Response:
-        """
-        Process the response set_option.
-
-        :param message: the response.
-        :return: the ABCI protobuf object.
-        """
-        set_option = ResponseSetOption()
-        set_option.code = message.code
-        set_option.log = message.log
-        set_option.info = message.info
-        response = Response(set_option=set_option)
         return response
 
     @classmethod
@@ -222,6 +208,10 @@ class _TendermintProtocolEncoder:
         check_tx.events.extend(events_pb)
 
         check_tx.codespace = message.codespace
+
+        check_tx.sender = message.tx_sender
+        check_tx.priority = message.priority
+        # mempool_error is set by Tendermint, not the ABCI App
 
         response = Response(check_tx=check_tx)
         return response

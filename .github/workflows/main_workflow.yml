@@ -98,6 +98,7 @@ jobs:
         wget https://github.com/protocolbuffers/protobuf/releases/download/v3.19.4/protoc-3.19.4-linux-x86_64.zip
         unzip protoc-3.19.4-linux-x86_64.zip -d protoc
         sudo mv protoc/bin/protoc /usr/local/bin/protoc
+        sudo mv protoc/include/* /usr/local/include/
         # install IPFS
         sudo apt-get install -y wget
         sudo npm install -g markdown-spellcheck
@@ -174,6 +175,7 @@ jobs:
           wget https://github.com/protocolbuffers/protobuf/releases/download/v3.19.4/protoc-3.19.4-linux-x86_64.zip
           unzip protoc-3.19.4-linux-x86_64.zip -d protoc
           sudo mv protoc/bin/protoc /usr/local/bin/protoc
+          sudo mv protoc/include/* /usr/local/include/
 
           # install IPFS
           sudo apt-get install -y wget
@@ -183,7 +185,7 @@ jobs:
           ipfs init
 
           # install Tendermint
-          wget -O tendermint.tar.gz https://github.com/tendermint/tendermint/releases/download/v0.34.19/tendermint_0.34.19_linux_amd64.tar.gz
+          wget -O tendermint.tar.gz https://github.com/tendermint/tendermint/releases/download/v0.35.7/tendermint_0.35.7_linux_amd64.tar.gz
           tar -xf tendermint.tar.gz
           sudo mv tendermint /usr/local/bin/tendermint
 
@@ -222,6 +224,7 @@ jobs:
           wget https://github.com/protocolbuffers/protobuf/releases/download/v3.19.4/protoc-3.19.4-osx-x86_64.zip
           unzip protoc-3.19.4-osx-x86_64.zip -d protoc
           sudo mv protoc/bin/protoc /usr/local/bin/protoc
+          sudo mv protoc/include/* /usr/local/include/
           brew tap yoheimuta/protolint
           brew install protolint
 
@@ -235,7 +238,7 @@ jobs:
           ipfs init
 
           # install Tendermint
-          wget -O tendermint.tar.gz https://github.com/tendermint/tendermint/releases/download/v0.34.19/tendermint_0.34.19_darwin_amd64.tar.gz
+          wget -O tendermint.tar.gz https://github.com/tendermint/tendermint/releases/download/v0.35.7/tendermint_0.35.7_darwin_amd64.tar.gz
           tar -xf tendermint.tar.gz
           sudo mv tendermint /usr/local/bin/tendermint
 
@@ -299,7 +302,7 @@ jobs:
           ipfs init
 
           # install Tendermint
-          wget -O tendermint.tar.gz https://github.com/tendermint/tendermint/releases/download/v0.34.19/tendermint_0.34.19_windows_amd64.tar.gz
+          wget -O tendermint.tar.gz https://github.com/tendermint/tendermint/releases/download/v0.35.7/tendermint_0.35.7_windows_amd64.tar.gz
           tar -xvzf tendermint.tar.gz
           cp tendermint.exe C:\Users\runneradmin\go\bin\
 
@@ -351,7 +354,7 @@ jobs:
         os: [ ubuntu-latest ]
         python-version: [ "3.10" ]
 
-    timeout-minutes: 80
+    timeout-minutes: 90
 
     steps:
       - uses: actions/checkout@v2
@@ -373,6 +376,7 @@ jobs:
           wget https://github.com/protocolbuffers/protobuf/releases/download/v3.19.4/protoc-3.19.4-linux-x86_64.zip
           unzip protoc-3.19.4-linux-x86_64.zip -d protoc
           sudo mv protoc/bin/protoc /usr/local/bin/protoc
+          sudo mv protoc/include/* /usr/local/include/
 
           # install IPFS
           sudo apt-get install -y wget
@@ -382,7 +386,7 @@ jobs:
           ipfs init
 
           # install Tendermint
-          wget -O tendermint.tar.gz https://github.com/tendermint/tendermint/releases/download/v0.34.19/tendermint_0.34.19_linux_amd64.tar.gz
+          wget -O tendermint.tar.gz https://github.com/tendermint/tendermint/releases/download/v0.35.7/tendermint_0.35.7_linux_amd64.tar.gz
           tar -xf tendermint.tar.gz
           sudo mv tendermint /usr/local/bin/tendermint
 

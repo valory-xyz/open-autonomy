@@ -21,11 +21,7 @@
 import pytest
 from aea.configurations.data_types import PublicId
 
-from tests.test_agents.base import (
-    BaseTestEnd2EndAgentCatchup,
-    BaseTestEnd2EndNormalExecution,
-    RoundChecks,
-)
+from tests.test_agents.base import BaseTestEnd2EndExecution, RoundChecks
 
 
 HAPPY_PATH = (
@@ -36,7 +32,7 @@ HAPPY_PATH = (
 
 
 @pytest.mark.parametrize("nb_nodes", (4,))
-class TestTendermintStartup(BaseTestEnd2EndNormalExecution):
+class TestTendermintStartup(BaseTestEnd2EndExecution):
     """Test the ABCI register-reset skill with 4 agents starting up."""
 
     agent_package = "valory/register_reset:0.1.0"
@@ -56,7 +52,7 @@ class TestTendermintStartup(BaseTestEnd2EndNormalExecution):
 
 
 @pytest.mark.parametrize("nb_nodes", (4,))
-class TestTendermintReset(BaseTestEnd2EndNormalExecution):
+class TestTendermintReset(BaseTestEnd2EndExecution):
     """Test the ABCI register-reset skill with 4 agents when resetting Tendermint."""
 
     agent_package = "valory/register_reset:0.1.0"
@@ -79,7 +75,7 @@ class TestTendermintReset(BaseTestEnd2EndNormalExecution):
 
 
 @pytest.mark.parametrize("nb_nodes", (4,))
-class TestTendermintResetInterrupt(BaseTestEnd2EndAgentCatchup):
+class TestTendermintResetInterrupt(BaseTestEnd2EndExecution):
     """Test the ABCI register-reset skill with 4 agents when an agent gets interrupted on Tendermint reset."""
 
     agent_package = "valory/register_reset:0.1.0"
@@ -104,6 +100,8 @@ class TestTendermintResetInterrupt(BaseTestEnd2EndAgentCatchup):
             "value": 15,
         },
     ]
+
+    n_terminal = 1
 
 
 class TestTendermintResetInterruptNoRejoin(TestTendermintResetInterrupt):

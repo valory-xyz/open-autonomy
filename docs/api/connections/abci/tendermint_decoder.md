@@ -90,27 +90,6 @@ Decode a info request.
 
 the AbciMessage request.
 
-<a id="packages.valory.connections.abci.tendermint_decoder._TendermintProtocolDecoder.request_set_option"></a>
-
-#### request`_`set`_`option
-
-```python
-@classmethod
-def request_set_option(cls, request: Request, dialogues: AbciDialogues, counterparty: str) -> Tuple[AbciMessage, AbciDialogue]
-```
-
-Decode a set_option request.
-
-**Arguments**:
-
-- `request`: the request.
-- `dialogues`: the dialogues object.
-- `counterparty`: the counterparty.
-
-**Returns**:
-
-the AbciMessage request.
-
 <a id="packages.valory.connections.abci.tendermint_decoder._TendermintProtocolDecoder.request_init_chain"></a>
 
 #### request`_`init`_`chain

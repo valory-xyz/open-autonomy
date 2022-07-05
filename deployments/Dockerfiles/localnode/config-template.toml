@@ -1,4 +1,4 @@
-fast_sync = true
+blocksync.enable = true
 
 [rpc]
 laddr = "tcp://0.0.0.0:26657"

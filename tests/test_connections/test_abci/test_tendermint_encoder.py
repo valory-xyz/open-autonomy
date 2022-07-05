@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021 Valory AG
+#   Copyright 2021-2022 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -53,22 +53,6 @@ class TestTendermintProtocolEncoder:
         message = _TendermintProtocolEncoder.response_echo(abci_message)
         assert message.echo.message == expected_message
 
-    def test_response_set_option(self) -> None:
-        """Test decoding of a response set-option."""
-        expected_code = 0
-        expected_log = "log"
-        expected_info = "info"
-        abci_message = AbciMessage(
-            performative=AbciMessage.Performative.RESPONSE_SET_OPTION,  # type: ignore
-            code=expected_code,
-            log=expected_log,
-            info=expected_info,
-        )
-        message = _TendermintProtocolEncoder.response_set_option(abci_message)
-        assert message.set_option.code == expected_code
-        assert message.set_option.log == expected_log
-        assert message.set_option.info == expected_info
-
     def test_response_list_snapshots(self) -> None:
         """Test decoding of a response list-snapshots."""
         snapshot = CustomSnapshot(0, 0, 0, b"", b"")
@@ -115,8 +99,8 @@ class TestTendermintProtocolEncoder:
         abci_message = AbciMessage(
             performative=AbciMessage.Performative.RESPONSE_APPLY_SNAPSHOT_CHUNK,  # type: ignore
             result=result,
-            refetch_chunks=[],
-            reject_senders=[],
+            refetch_chunks=tuple(),
+            reject_senders=tuple(),
         )
         message = _TendermintProtocolEncoder.response_apply_snapshot_chunk(abci_message)
         assert message.apply_snapshot_chunk.result == result.result_type.value

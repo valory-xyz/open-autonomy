@@ -32,6 +32,9 @@ from packages.valory.protocols.abci import AbciMessage
 from packages.valory.protocols.abci.custom_types import (
     CheckTxType,
     CheckTxTypeEnum,
+    Evidences,
+    Header,
+    LastCommitInfo,
     PublicKey,
     Result,
     ResultType,
@@ -46,6 +49,9 @@ from packages.valory.skills.abstract_abci.dialogues import AbciDialogue, AbciDia
 from packages.valory.skills.abstract_abci.handlers import ABCIHandler, ERROR_CODE
 
 from tests.conftest import ROOT_DIR
+
+
+ABCI_VERSION = "0.17.0"
 
 
 class AbciDialoguesServer(BaseAbciDialogues):
@@ -143,6 +149,7 @@ class TestABCIHandler:
             version="",
             block_version=0,
             p2p_version=0,
+            abci_version=ABCI_VERSION,
         )
         self.handler.handle(cast(AbciMessage, message))
 
@@ -156,6 +163,7 @@ class TestABCIHandler:
             p2p_version=0,
             target=0,
             message_id=1,
+            abci_version=ABCI_VERSION,
         )
         message._sender = "server"
         message._to = str(self.skill_id)
@@ -166,9 +174,10 @@ class TestABCIHandler:
         message, dialogue = self.dialogues.create(
             counterparty="",
             performative=AbciMessage.Performative.REQUEST_INFO,
-            version="",
+            version="0.1.0",
             block_version=0,
             p2p_version=0,
+            abci_version=ABCI_VERSION,
         )
         response = self.handler.info(
             cast(AbciMessage, message), cast(AbciDialogue, dialogue)
@@ -189,27 +198,18 @@ class TestABCIHandler:
         assert response.performative == AbciMessage.Performative.RESPONSE_ECHO
         assert response.message == expected_message
 
-    def test_set_option(self) -> None:
-        """Test the 'set_option' handler method."""
-        message, dialogue = self.dialogues.create(
-            counterparty="",
-            performative=AbciMessage.Performative.REQUEST_SET_OPTION,
-        )
-        response = self.handler.set_option(
-            cast(AbciMessage, message), cast(AbciDialogue, dialogue)
-        )
-        assert response.performative == AbciMessage.Performative.RESPONSE_SET_OPTION
-        assert response.code == ERROR_CODE
-
     def test_begin_block(self) -> None:
         """Test the 'begin_block' handler method."""
+        header = Header(*(MagicMock() for _ in range(14)))
+        last_commit_info = LastCommitInfo(*(MagicMock() for _ in range(2)))
+        byzantine_validators = Evidences(MagicMock())
         message, dialogue = self.dialogues.create(
             counterparty="",
             performative=AbciMessage.Performative.REQUEST_BEGIN_BLOCK,
             hash=b"",
-            header=MagicMock(),
-            last_commit_info=MagicMock(),
-            byzantine_validators=MagicMock(),
+            header=header,
+            last_commit_info=last_commit_info,
+            byzantine_validators=byzantine_validators,
         )
         response = self.handler.begin_block(
             cast(AbciMessage, message), cast(AbciDialogue, dialogue)
@@ -376,5 +376,5 @@ class TestABCIHandler:
             == AbciMessage.Performative.RESPONSE_APPLY_SNAPSHOT_CHUNK
         )
         assert response.result == Result(ResultType.REJECT)
-        assert response.refetch_chunks == []
-        assert response.reject_senders == []
+        assert response.refetch_chunks == tuple()
+        assert response.reject_senders == tuple()
