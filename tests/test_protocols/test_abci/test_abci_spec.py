@@ -83,7 +83,7 @@ def test_local_types_file_matches_github(request_attempts: int = 3) -> None:
             different.append([file, url])
 
     if different:
-        logging.error("\n".join([" =/= ".join(map(str, x)) for x in different]))
+        logging.error("\n".join(" =/= ".join(map(str, x)) for x in different))
     assert not bool(different)
 
 
