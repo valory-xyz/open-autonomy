@@ -466,6 +466,11 @@ class ConsensusParams:
         """Get the consensus threshold."""
         return consensus_threshold(self.max_participants)
 
+    @property
+    def faulty_threshold(self) -> int:
+        """Get the faulty threshold."""
+        return self.max_participants - self.consensus_threshold
+
     @classmethod
     def from_json(cls, obj: Dict) -> "ConsensusParams":
         """Get from JSON."""
