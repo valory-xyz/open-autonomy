@@ -1050,7 +1050,8 @@ class AbstractRound(Generic[EventType, TransactionType], ABC):
 
         if nb_remaining_votes + largest_nb_votes < threshold:
             raise exception_cls(
-                f"cannot reach quorum={threshold}, number of remaining votes={nb_remaining_votes}, number of most voted item's votes={largest_nb_votes}"
+                f"cannot reach quorum={threshold}, number of remaining votes={nb_remaining_votes}, "
+                f"number of most voted item's votes={largest_nb_votes}"
             )
 
     @classmethod
