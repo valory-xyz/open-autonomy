@@ -637,7 +637,20 @@ class BaseBehaviour(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
             self._log_end()
 
     def _sync_state(self, app_hash: str) -> None:
-        """Sync the app's state using the given `app_hash`."""
+        """
+        Sync the app's state using the given `app_hash`.
+
+        This method is intended for use after syncing local with remote.
+        The fact that we sync up with the blockchain does not mean that we also have the correct application state.
+        The application state is defined by the abci app's developer and also determines the generation of the app hash.
+        When we sync with the blockchain, it means that we no longer lag behind the other agents.
+        However, the application's state should also be updated, which is what this method takes care for.
+        We have chosen a simple application state for the time being,
+        which is a combination of the round count and the times we have reset so far.
+
+        Tendermint's block sync and state sync are not to be confused with our application's state;
+        they are different methods to sync faster with the blockchain.
+        """
         if app_hash == "":
             self.context.state.round_sequence.abci_app.synchronized_data.db.round_count = (
                 0
