@@ -614,18 +614,10 @@ class TestBaseBehaviour:
         """Test `_sync_state`."""
         app_hash = ""
         self.behaviour._sync_state(app_hash)
-        assert (
-            self.behaviour.context.state.round_sequence.abci_app.synchronized_data.db.round_count
-            == 0
-        )
         assert self.behaviour.context.state.round_sequence.abci_app.reset_index == 0
 
         app_hash = "726F6F743A356072657365743A370"
         self.behaviour._sync_state(app_hash)
-        assert (
-            self.behaviour.context.state.round_sequence.abci_app.synchronized_data.db.round_count
-            == 560
-        )
         assert self.behaviour.context.state.round_sequence.abci_app.reset_index == 70
 
         app_hash = "incorrect"

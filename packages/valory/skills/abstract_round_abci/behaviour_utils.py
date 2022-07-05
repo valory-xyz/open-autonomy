@@ -98,7 +98,7 @@ NON_200_RETURN_CODE_DURING_RESET_THRESHOLD = 3
 GENESIS_TIME_FMT = "%Y-%m-%dT%H:%M:%S.%fZ"
 ROOT_HASH = "726F6F743A3"
 RESET_HASH = "72657365743A3"
-APP_HASH_RE = fr"{ROOT_HASH}(\d+){RESET_HASH}(\d+)"
+APP_HASH_RE = fr"{ROOT_HASH}\d+{RESET_HASH}(\d+)"
 
 
 class SendException(Exception):
@@ -649,6 +649,8 @@ class BaseBehaviour(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
         However, the application's state should also be updated, which is what this method takes care for.
         We have chosen a simple application state for the time being,
         which is a combination of the round count and the times we have reset so far.
+        The round count will be automatically updated by the framework while replaying the missed rounds,
+        however, the reset index needs to be manually updated.
 
         Tendermint's block sync and state sync are not to be confused with our application's state;
         they are different methods to sync faster with the blockchain.
@@ -656,7 +658,7 @@ class BaseBehaviour(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
         :param app_hash: the app hash from which the state will be updated.
         """
         if app_hash == "":
-            round_count = reset_index = 0
+            reset_index = 0
         else:
             match = re.match(APP_HASH_RE, app_hash)
             if match is None:
@@ -666,12 +668,8 @@ class BaseBehaviour(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
                     "For example, `root:90reset:4` would be `726F6F743A39072657365743A34`. "
                     f"However, the app hash received is: `{app_hash}`."
                 )
-            round_count = int(match.group(1))
-            reset_index = int(match.group(2))
+            reset_index = int(match.group(1))
 
-        self.context.state.round_sequence.abci_app.synchronized_data.db.round_count = (
-            round_count
-        )
         self.context.state.round_sequence.abci_app.reset_index = reset_index
 
     def _check_sync(
