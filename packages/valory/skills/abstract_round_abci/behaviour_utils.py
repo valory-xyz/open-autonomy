@@ -23,6 +23,7 @@ import inspect
 import json
 import math
 import pprint
+import re
 from abc import ABC, abstractmethod
 from enum import Enum
 from functools import partial, wraps
@@ -97,6 +98,7 @@ NON_200_RETURN_CODE_DURING_RESET_THRESHOLD = 3
 GENESIS_TIME_FMT = "%Y-%m-%dT%H:%M:%S.%fZ"
 ROOT_HASH = "726F6F743A3"
 RESET_HASH = "72657365743A3"
+APP_HASH_RE = fr"{ROOT_HASH}(\d+){RESET_HASH}(\d+)"
 
 
 class SendException(Exception):
@@ -650,22 +652,27 @@ class BaseBehaviour(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
 
         Tendermint's block sync and state sync are not to be confused with our application's state;
         they are different methods to sync faster with the blockchain.
+
+        :param app_hash: the app hash from which the state will be updated.
         """
         if app_hash == "":
-            self.context.state.round_sequence.abci_app.synchronized_data.db.round_count = (
-                0
-            )
-            self.context.state.round_sequence.abci_app.reset_index = 0
+            round_count = reset_index = 0
         else:
-            # remove prefix
-            remote_app_hash = app_hash.replace(ROOT_HASH, "")
-            # split on reset hash
-            round_count, reset_index = remote_app_hash.split(RESET_HASH, maxsplit=1)
-            # set the round count and reset index using the retrieved app hash
-            self.context.state.round_sequence.abci_app.synchronized_data.db.round_count = int(
-                round_count
-            )
-            self.context.state.round_sequence.abci_app.reset_index = int(reset_index)
+            match = re.match(APP_HASH_RE, app_hash)
+            if match is None:
+                raise ValueError(
+                    "Expected an app hash of the form: `726F6F743A3{ROUND_COUNT}72657365743A3{RESET_INDEX}`,"
+                    "which is derived from `root:{ROUND_COUNT}reset:{RESET_INDEX}`. "
+                    "For example, `root:90reset:4` would be `726F6F743A39072657365743A34`. "
+                    f"However, the app hash received is: `{app_hash}`."
+                )
+            round_count = int(match.group(1))
+            reset_index = int(match.group(2))
+
+        self.context.state.round_sequence.abci_app.synchronized_data.db.round_count = (
+            round_count
+        )
+        self.context.state.round_sequence.abci_app.reset_index = reset_index
 
     def _check_sync(
         self,
