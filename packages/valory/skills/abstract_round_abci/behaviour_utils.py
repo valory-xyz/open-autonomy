@@ -690,7 +690,9 @@ class BaseBehaviour(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
                 local_height = int(self.context.state.round_sequence.height)
                 _is_sync_complete = local_height == remote_height
                 if _is_sync_complete:
-                    self.context.logger.info("local height == remote; Sync complete...")
+                    self.context.logger.info(
+                        f"local height == remote == {local_height}; Sync complete..."
+                    )
                     remote_app_hash = str(
                         json_body["result"]["sync_info"]["latest_app_hash"]
                     )
@@ -699,6 +701,9 @@ class BaseBehaviour(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
                     return
                 yield from self.sleep(self.context.params.tendermint_check_sleep_delay)
             except (json.JSONDecodeError, KeyError):  # pragma: nocover
+                self.context.logger.error(
+                    "Tendermint not accepting transactions yet, trying again!"
+                )
                 yield from self.sleep(self.context.params.tendermint_check_sleep_delay)
 
     def _log_start(self) -> None:
