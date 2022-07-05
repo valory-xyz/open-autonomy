@@ -24,8 +24,13 @@
 import re
 import sys
 from pathlib import Path
+from typing import Any, List, Tuple
 
 import requests
+from requests.adapters import HTTPAdapter  # type: ignore
+from requests.packages.urllib3.util.retry import (  # type: ignore # pylint: disable=import-error
+    Retry,
+)
 
 
 URL_REGEX = r'(https?:\/\/(?:www\.|(?!www))[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s)"]{2,}|www\.[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s)"]{2,}|https?:\/\/(?:www\.|(?!www))[a-zA-Z0-9]+\.[^\s)"]{2,}|www\.[a-zA-Z0-9]+\.[^\s)"]{2,})'
@@ -38,14 +43,24 @@ def read_file(filepath: str) -> str:
     return file_str
 
 
-def main() -> None:
+def main() -> None:  # pylint: disable=too-many-locals
     """Check for broken or HTTP links"""
     all_md_files = [str(p.relative_to(".")) for p in Path("docs").rglob("*.md")]
 
-    broken_links = []
+    broken_links: List[Tuple[str, Any, Any]] = []
     http_links = []
     http_skips = ["http://www.fipa.org/repository/ips.php3"]
     url_skips = ["https://github.com/valory-xyz/open-autonomy/trunk/packages"]
+
+    # Configure request retries
+    retry_strategy = Retry(
+        total=3,  # number of retries
+        status_forcelist=[404, 429, 500, 502, 503, 504],  # codes to retry on
+    )
+    adapter = HTTPAdapter(max_retries=retry_strategy)
+    session = requests.Session()
+    session.mount("https://", adapter)
+    session.mount("http://", adapter)
 
     for md_file in all_md_files:
         print(f"Checking {md_file}...", end="")
@@ -66,11 +81,14 @@ def main() -> None:
             if url in url_skips:
                 continue
             try:
-                status_code = requests.get(url).status_code
+                status_code = session.get(url, timeout=5).status_code
                 if status_code not in (200, 403):
                     broken_links.append((md_file, url, status_code))
                     error = True
-            except requests.exceptions.RequestException as e:
+            except (
+                requests.exceptions.RetryError,
+                requests.exceptions.ConnectionError,
+            ) as e:
                 broken_links.append((md_file, url, e))
                 error = True
         print("ERROR" if error else "OK")
