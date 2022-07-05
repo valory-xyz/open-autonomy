@@ -45,7 +45,9 @@ class AgentRunner:
         self.agent_data = agent_data
         self.registry_path = registry_path
         self.agent_env = os.environ.copy()
-        self.agent_dir = TemporaryDirectory()  # pylint: disable=consider-using-with
+        self.agent_dir = TemporaryDirectory(  # pylint: disable=consider-using-with
+            ignore_cleanup_errors=True  # type: ignore
+        )
         self.cwd = Path(".").resolve().absolute()
 
         agent_env_data = self.agent_data["environment"]
@@ -99,8 +101,9 @@ class AgentRunner:
         self,
     ) -> None:
         """Stop the process."""
-        self.agent_dir.cleanup()
+
         os.chdir(str(self.cwd))
+        self.agent_dir.cleanup()
 
         if self.process is None:  # pragma: nocover
             return

@@ -29,6 +29,7 @@ from autonomy.cli import cli
 from autonomy.replay.agent import AgentRunner
 
 from tests.conftest import ROOT_DIR
+from tests.helpers.docker.base import skip_docker_tests
 from tests.test_autonomy.test_cli.base import BaseCliTest
 
 
@@ -75,6 +76,7 @@ def ctrl_c(*args: Any) -> None:
     raise KeyboardInterrupt()
 
 
+@skip_docker_tests
 class TestAgentRunner(BaseCliTest):
     """Test agent runner tool."""
 
@@ -110,7 +112,9 @@ class TestAgentRunner(BaseCliTest):
         build_dir = ROOT_DIR / "abci_build"
         with mock.patch.object(AgentRunner, "start", new=ctrl_c), mock.patch.object(
             AgentRunner, "stop"
-        ) as stop_mock, mock.patch("yaml.safe_load", new=lambda x: DOCKER_COMPOSE_DATA):
+        ) as stop_mock, mock.patch(
+            "autonomy.cli.replay.load_docker_config", new=lambda x: DOCKER_COMPOSE_DATA
+        ):
             result = self.run_cli(("0", "--build", str(build_dir)))
             assert result.exit_code == 0, result.output
             stop_mock.assert_any_call()

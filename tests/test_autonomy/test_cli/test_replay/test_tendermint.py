@@ -32,6 +32,7 @@ from autonomy.cli import cli
 from autonomy.replay.tendermint import TendermintNetwork
 
 from tests.conftest import ROOT_DIR
+from tests.helpers.docker.base import skip_docker_tests
 from tests.test_autonomy.test_cli.base import BaseCliTest
 
 
@@ -69,6 +70,7 @@ def ctrl_c(*args: Any, **kwargs: Any) -> None:
     raise KeyboardInterrupt()
 
 
+@skip_docker_tests
 class TestTendermintRunner(BaseCliTest):
     """Test agent runner tool."""
 

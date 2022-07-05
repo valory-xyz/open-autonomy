@@ -105,7 +105,7 @@ def run_tendermint(build_dir: Path) -> None:
         tendermint_network.stop()
 
 
-def load_docker_config(file_path: Path) -> Dict[str, Any]:
+def load_docker_config(file_path: Path) -> Dict[str, Any]:  # pragma: nocover
     """Load docker config."""
     with open(str(file_path), "r", encoding="utf-8") as fp:
         docker_compose_config = yaml.safe_load(fp)
