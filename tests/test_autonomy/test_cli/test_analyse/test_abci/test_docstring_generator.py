@@ -85,7 +85,10 @@ class TestDocstrings(BaseCliTest):
     ) -> None:
         """Test after check"""
 
-        packages_dir = self.t.relative_to(Path.cwd()) / "packages"
+        packages_dir = (
+            self.t.resolve().absolute().relative_to(Path.cwd().resolve().absolute())
+            / "packages"
+        )
         self.run_cli((str(packages_dir),))
         result = self.run_cli((str(packages_dir), "--check"))
 
@@ -99,7 +102,10 @@ class TestDocstrings(BaseCliTest):
     ) -> None:
         """Test after check"""
 
-        packages_dir = self.t.relative_to(Path.cwd()) / "packages"
+        packages_dir = (
+            self.t.resolve().absolute().relative_to(Path.cwd().resolve().absolute())
+            / "packages"
+        )
         self.run_cli((str(packages_dir),))
 
         self._corrupt_round_file()
@@ -120,7 +126,10 @@ class TestDocstrings(BaseCliTest):
     ) -> None:
         """Test after check"""
 
-        packages_dir = self.t.relative_to(Path.cwd()) / "packages"
+        packages_dir = (
+            self.t.resolve().absolute().relative_to(Path.cwd().resolve().absolute())
+            / "packages"
+        )
         self.run_cli((str(packages_dir),))
 
         self._corrupt_round_file()
