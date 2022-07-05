@@ -738,17 +738,6 @@ def round_count() -> int
 
 Get the round count.
 
-<a id="packages.valory.skills.abstract_round_abci.base.AbciAppDB.round_count"></a>
-
-#### round`_`count
-
-```python
-@round_count.setter
-def round_count(round_count: int) -> None
-```
-
-Set the round count.
-
 <a id="packages.valory.skills.abstract_round_abci.base.AbciAppDB.cross_period_persisted_keys"></a>
 
 #### cross`_`period`_`persisted`_`keys
