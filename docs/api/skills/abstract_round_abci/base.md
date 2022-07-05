@@ -596,6 +596,17 @@ def consensus_threshold() -> int
 
 Get the consensus threshold.
 
+<a id="packages.valory.skills.abstract_round_abci.base.ConsensusParams.faulty_threshold"></a>
+
+#### faulty`_`threshold
+
+```python
+@property
+def faulty_threshold() -> int
+```
+
+Get the faulty threshold.
+
 <a id="packages.valory.skills.abstract_round_abci.base.ConsensusParams.from_json"></a>
 
 #### from`_`json
@@ -1445,6 +1456,49 @@ def check_payload(payload: BaseTxPayload) -> None
 ```
 
 Check Payload
+
+<a id="packages.valory.skills.abstract_round_abci.base.DynamicMarginMixin"></a>
+
+## DynamicMarginMixin Objects
+
+```python
+class DynamicMarginMixin()
+```
+
+A class designed in order to create dynamic threshold margins based on the number of agents.
+
+The Mixin is only intended to be used with `CollectionRound` and its subclasses.
+
+<a id="packages.valory.skills.abstract_round_abci.base.DynamicMarginMixin.__init__"></a>
+
+#### `__`init`__`
+
+```python
+def __init__() -> None
+```
+
+Initialize a `DynamicMarginMixin`.
+
+<a id="packages.valory.skills.abstract_round_abci.base.DynamicMarginMixin.faulty_threshold"></a>
+
+#### faulty`_`threshold
+
+```python
+@property
+def faulty_threshold() -> int
+```
+
+Get the faulty threshold.
+
+<a id="packages.valory.skills.abstract_round_abci.base.DynamicMarginMixin.generate_dynamic_margin"></a>
+
+#### generate`_`dynamic`_`margin
+
+```python
+def generate_dynamic_margin() -> int
+```
+
+Generates a dynamic threshold margin based on the number of agents and the strictness.
 
 <a id="packages.valory.skills.abstract_round_abci.base._CollectUntilAllRound"></a>
 
