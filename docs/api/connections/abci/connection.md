@@ -14,6 +14,16 @@ class DecodeVarintError(Exception)
 
 This exception is raised when an error occurs while decoding a varint.
 
+<a id="packages.valory.connections.abci.connection.EncodeVarintError"></a>
+
+## EncodeVarintError Objects
+
+```python
+class EncodeVarintError(Exception)
+```
+
+This exception is raised when an error occurs while encoding a varint.
+
 <a id="packages.valory.connections.abci.connection.TooLargeVarint"></a>
 
 ## TooLargeVarint Objects
@@ -389,7 +399,7 @@ Stop a Tendermint node process.
 #### prune`_`blocks
 
 ```python
-def prune_blocks() -> None
+def prune_blocks() -> int
 ```
 
 Prune blocks from the Tendermint state

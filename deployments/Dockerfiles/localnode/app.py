@@ -42,9 +42,12 @@ DEFAULT_LOG_FILE = "log.log"
 IS_DEV_MODE = os.environ.get("DEV_MODE", "0") == "1"
 # https://docs.tendermint.com/v0.34/tendermint-core/configuration.html
 # https://docs.tendermint.com/v0.35/nodes/configuration.html
+# We could also add ("fast-sync = true", "fast-sync = false")
 CONFIG_OVERRIDE = [
-    # ("fast-sync = true", "fast-sync = false"),
-    ("and verifying their commits\nenable = true", "and verifying their commits\nenable = false"),
+    (
+        "and verifying their commits\nenable = true",
+        "and verifying their commits\nenable = false",
+    ),
     ("max-num-outbound-peers = 10", "max-num-outbound-peers = 0"),
     ("pex = true", "pex = false"),
 ]
@@ -221,7 +224,10 @@ def create_app(
             if IS_DEV_MODE:
                 period_dumper.dump_period()
 
-            tendermint_node.prune_blocks()
+            return_code = tendermint_node.prune_blocks()
+            if return_code:
+                tendermint_node.start(start_monitoring=perform_monitoring)
+                raise RuntimeError("Could not perform `unsafe-reset-all` successfully!")
             defaults = get_defaults()
             tendermint_node.reset_genesis_file(
                 request.args.get("genesis_time", defaults["genesis_time"]),

@@ -18,19 +18,17 @@
 # ------------------------------------------------------------------------------
 
 """Tests for the Tendermint com server."""
-
 import logging
 import os
 import platform
 import shutil
-import socket
 import stat
 import subprocess  # nosec
 import tempfile
 import time
-import urllib
 from pathlib import Path
-from typing import Any, Callable, List
+from typing import Callable, List
+from unittest import mock
 
 import flask
 import pytest
@@ -43,10 +41,7 @@ from deployments.Dockerfiles.localnode.app import (  # type: ignore
     load_genesis,
     override_config_toml,
 )
-from deployments.Dockerfiles.localnode.tendermint import (  # type: ignore
-    DEFAULT_RPC_LISTEN_ADDRESS,
-    TendermintNode,
-)
+from deployments.Dockerfiles.localnode.tendermint import TendermintNode  # type: ignore
 
 
 PLATFORM = platform.system()
@@ -55,8 +50,7 @@ VERSION = "0.35.7"
 HTTP = "http://"
 LOOPBACK = "127.0.0.1"
 
-parse_result = urllib.parse.urlparse(DEFAULT_RPC_LISTEN_ADDRESS)  # type: ignore
-IP, PORT = parse_result.hostname, parse_result.port
+wait_for_node_to_run = pytest.mark.usefixtures("wait_for_node")
 
 
 # utility functions
@@ -64,31 +58,6 @@ def readonly_handler(func: Callable, path: str, execinfo) -> None:  # type: igno
     """If permission is readonly, we change and retry."""
     os.chmod(path, stat.S_IWRITE)
     func(path)
-
-
-def port_is_open(ip: str, port: int) -> bool:
-    """Assess whether a port is open"""
-    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    is_open = sock.connect_ex((ip, port)) == 0
-    sock.close()
-    return is_open
-
-
-def wait_for_node_to_run(func: Callable) -> Callable:
-    """Wait for Tendermint node to run"""
-
-    def wrapper(*args: Any, **kwargs: Any) -> Any:
-        i, max_retries = 0, 5
-        while not port_is_open(LOOPBACK, PORT) and i < max_retries:
-            logging.debug(f"waiting for node... t={i}")
-            i += 1
-            time.sleep(1)
-        response = requests.get(f"{HTTP}{LOOPBACK}:{PORT}/status")
-        success = response.status_code == 200
-        assert success, "Tendermint node not running"
-        func(*args, **kwargs)
-
-    return wrapper
 
 
 # base classes
@@ -205,9 +174,9 @@ class TestTendermintServerApp(BaseTendermintServerTest):
         assert all(f.exists() for f in expected_file_names), expected_file_names
 
     @wait_for_node_to_run
-    def test_get_request_status(self) -> None:
+    def test_get_request_status(self, http_: str, loopback: str, rpc_port: int) -> None:
         """Check local node is running"""
-        response = requests.get(f"{HTTP}{LOOPBACK}:{PORT}/status")
+        response = requests.get(f"{http_}{loopback}:{rpc_port}/status")
         data = response.json()
         assert data["result"]["node_info"]["version"] == VERSION
 
@@ -252,13 +221,16 @@ class TestTendermintHardResetServer(BaseTendermintServerTest):
     """Test Tendermint hard reset"""
 
     @wait_for_node_to_run
-    def test_hard_reset(self) -> None:
+    @pytest.mark.parametrize("prune_fail", (True, False))
+    def test_hard_reset(self, prune_fail: bool) -> None:
         """Test hard reset"""
-        with self.app.test_client() as client:
+        with self.app.test_client() as client, mock.patch.object(
+            TendermintNode, "prune_blocks", return_value=int(prune_fail)
+        ):
             response = client.get("/hard_reset")
             data = response.get_json()
             assert response.status_code == 200
-            assert data["status"] is True
+            assert data["status"] is not prune_fail
 
 
 class TestTendermintLogMessages(BaseTendermintServerTest):

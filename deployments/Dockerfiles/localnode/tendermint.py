@@ -18,7 +18,6 @@
 # ------------------------------------------------------------------------------
 
 """Tendermint manager."""
-import shutil
 import json
 import logging
 import os
@@ -133,7 +132,7 @@ class TendermintNode:
             f"--proxy-app={self.params.proxy_app}",
             f"--rpc.laddr={self.params.rpc_laddr}",
             f"--p2p.laddr={self.params.p2p_laddr}",
-            f"--p2p.seeds={p2p_seeds}",
+            f"--p2p.persistent-peers={p2p_seeds}",
             f"--consensus.create-empty-blocks={str(self.params.consensus_create_empty_blocks).lower()}",
         ]
         if self.params.home is not None:  # pragma: nocover
@@ -211,9 +210,9 @@ class TendermintNode:
         self._stop_monitoring_thread()
         self._stop_tm_process()
 
-    def prune_blocks(self) -> None:
+    def prune_blocks(self) -> int:
         """Prune blocks from the Tendermint state"""
-        subprocess.call(  # nosec:
+        return subprocess.call(  # nosec:
             ["tendermint", "--home", str(self.params.home), "unsafe-reset-all"]
         )
 
