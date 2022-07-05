@@ -216,13 +216,13 @@ class BaseTestEnd2End(AEATestCaseMany, UseFlaskTendermintNode):
         self.__set_extra_configs()
 
     @staticmethod
-    def __get_agent_name(i: int) -> str:
+    def _get_agent_name(i: int) -> str:
         """Get the ith agent's name."""
         return f"agent_{i:05d}"
 
     def __prepare_agent_i(self, i: int, nb_agents: int) -> None:
         """Prepare the i-th agent."""
-        agent_name = self.__get_agent_name(i)
+        agent_name = self._get_agent_name(i)
         logging.info(f"Processing agent {agent_name}...")
         self.fetch_agent(self.agent_package, agent_name, is_local=self.IS_LOCAL)
         self.set_agent_context(agent_name)
@@ -245,7 +245,7 @@ class BaseTestEnd2End(AEATestCaseMany, UseFlaskTendermintNode):
             self.__prepare_agent_i(agent_id, nb_nodes)
 
         # run 'aea install' in only one AEA project, to save time
-        self.set_agent_context(self.__get_agent_name(0))
+        self.set_agent_context(self._get_agent_name(0))
         self.run_install()
 
     def prepare_and_launch(self, nb_nodes: int) -> None:
@@ -257,7 +257,7 @@ class BaseTestEnd2End(AEATestCaseMany, UseFlaskTendermintNode):
 
     def _launch_agent_i(self, i: int) -> None:
         """Launch the i-th agent."""
-        agent_name = self.__get_agent_name(i)
+        agent_name = self._get_agent_name(i)
         logging.info(f"Launching agent {agent_name}...")
         self.set_agent_context(agent_name)
         process = self.run_agent()
@@ -270,7 +270,7 @@ class BaseTestEnd2End(AEATestCaseMany, UseFlaskTendermintNode):
             outs, errs = process.communicate()
             logging.info(f"subprocess logs {process}: {outs} --- {errs}")
             if not self.is_successfully_terminated(process):
-                agent_name = self.__get_agent_name(i)
+                agent_name = self._get_agent_name(i)
                 warnings.warn(
                     UserWarning(
                         f"ABCI {agent_name} with process {process} wasn't successfully terminated."
@@ -364,7 +364,7 @@ class BaseTestEnd2End(AEATestCaseMany, UseFlaskTendermintNode):
         i: int,
     ) -> None:
         """Checks for missing strings in agent's output."""
-        agent_name = self.__get_agent_name(i)
+        agent_name = self._get_agent_name(i)
         missing_agent_logs = ""
         if missing_strict_strings:
             missing_agent_logs += f"Strings {missing_strict_strings} didn't appear in {agent_name} output.\n"
@@ -469,7 +469,7 @@ class BaseTestEnd2EndExecution(BaseTestEnd2End):
         # terminate the agents - sequentially
         # don't pop before termination, seems to lead to failure!
         for i in range(self.n_terminal):
-            agent_name = self.__get_agent_name(i)
+            agent_name = self._get_agent_name(i)
             self.terminate_agents(self.processes[i], timeout=0)
             self.processes.pop(i)
             logging.info(f"Terminated {agent_name}")
@@ -482,6 +482,6 @@ class BaseTestEnd2EndExecution(BaseTestEnd2End):
 
         # restart agents
         for i in range(self.n_terminal):
-            agent_name = self.__get_agent_name(i)
+            agent_name = self._get_agent_name(i)
             self._launch_agent_i(i)
             logging.info(f"Restarted {agent_name}")
