@@ -147,6 +147,56 @@ class TestBuildDeployment(BaseCliTest):
             ]
         )
 
+    def test_docker_compose_build_dev(
+        self,
+    ) -> None:
+        """Run tests."""
+
+        with mock.patch("os.chown"):
+            result = self.run_cli(
+                (
+                    self.service_id,
+                    str(self.keys_file),
+                    "--packages-dir",
+                    str(self.t / "packages"),
+                    "--o",
+                    str(self.t),
+                    "--force",
+                    "--dev",
+                )
+            )
+
+        build_dir = self.t / "abci_build"
+
+        assert result.exit_code == 0, f"{result.stdout_bytes}\n{result.stderr_bytes}"
+        assert build_dir.exists()
+
+        build_tree = list(map(lambda x: x.name, build_dir.iterdir()))
+        assert any(
+            [
+                child in build_tree
+                for child in ["persistent_storage", "nodes", "docker-compose.yaml"]
+            ]
+        )
+
+        docker_compose_file = build_dir / "docker-compose.yaml"
+        with open(docker_compose_file, "r", encoding="utf-8") as fp:
+            docker_compose = yaml.safe_load(fp)
+
+        assert any(
+            [key in docker_compose for key in ["version", "services", "networks"]]
+        )
+
+        assert any(
+            [
+                service in docker_compose["services"]
+                for service in [
+                    *map(lambda i: f"abci{i}", range(4)),
+                    *map(lambda i: f"node0{i}", range(4)),
+                ]
+            ]
+        )
+
     def test_kubernetes_build(
         self,
     ) -> None:

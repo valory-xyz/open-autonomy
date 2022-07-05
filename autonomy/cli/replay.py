@@ -68,7 +68,7 @@ def run_agent(agent: int, build_path: Path, registry_path: Path) -> None:
     runner = AgentRunner(agent, agent_data, registry_path)
     try:
         runner.start()
-        while True:
+        while True:  # pragma: nocover
             time.sleep(1)
     except KeyboardInterrupt:
         runner.stop()
@@ -95,7 +95,7 @@ def run_tendermint(build_dir: Path) -> None:
 
     try:
         tendermint_network.init(dump_dir)
-    except FileNotFoundError as e:
+    except FileNotFoundError as e:  # pragma: nocover
         raise click.ClickException(str(e)) from e
 
     try:

@@ -26,6 +26,8 @@ from pathlib import Path
 from typing import Any, Tuple
 from unittest import mock
 
+import flask
+
 from autonomy.cli import cli
 from autonomy.replay.tendermint import TendermintNetwork
 
@@ -61,13 +63,13 @@ ADDRBOOK_DATA = {
 }
 
 
-def ctrl_c(*args: Any) -> None:
+def ctrl_c(*args: Any, **kwargs: Any) -> None:
     """Send control C."""
 
     raise KeyboardInterrupt()
 
 
-class TestAgentRunner(BaseCliTest):
+class TestTendermintRunner(BaseCliTest):
     """Test agent runner tool."""
 
     cli_options: Tuple[str, ...] = ("replay", "tendermint")
@@ -116,8 +118,10 @@ class TestAgentRunner(BaseCliTest):
         config_toml.write_text("""persistent_peers = peers""")
 
         with mock.patch.object(TendermintNetwork, "init"), mock.patch.object(
-            TendermintNetwork, "start", new=ctrl_c
-        ), mock.patch.object(TendermintNetwork, "stop") as stop_mock:
+            TendermintNetwork, "start"
+        ), mock.patch.object(TendermintNetwork, "stop") as stop_mock, mock.patch.object(
+            flask.Flask, "run", new=ctrl_c
+        ):
 
             result = self.run_cli(("--build", str(self.t / "abci_build")))
             assert result.exit_code == 0, result.output

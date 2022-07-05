@@ -110,9 +110,7 @@ class TestAgentRunner(BaseCliTest):
         build_dir = ROOT_DIR / "abci_build"
         with mock.patch.object(AgentRunner, "start", new=ctrl_c), mock.patch.object(
             AgentRunner, "stop"
-        ) as stop_mock, mock.patch(
-            "autonomy.cli.replay.load_docker_config", new=lambda x: DOCKER_COMPOSE_DATA
-        ):
+        ) as stop_mock, mock.patch("yaml.safe_load", new=lambda x: DOCKER_COMPOSE_DATA):
             result = self.run_cli(("0", "--build", str(build_dir)))
             assert result.exit_code == 0, result.output
             stop_mock.assert_any_call()

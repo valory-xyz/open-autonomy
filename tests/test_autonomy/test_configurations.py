@@ -20,6 +20,7 @@
 """Test base configurations."""
 
 import os
+import re
 import shutil
 import tempfile
 from pathlib import Path
@@ -30,61 +31,7 @@ import yaml
 
 from autonomy.configurations.loader import load_service_config
 
-
-DUMMY_SERVICE = [
-    {
-        "name": "oracle_hardhat",
-        "author": "valory",
-        "version": "0.1.0",
-        "description": "A set of agents implementing a price oracle",
-        "aea_version": ">=1.0.0, <2.0.0",
-        "license": "Apache-2.0",
-        "fingerprint": {"README.md": "QmY4bupJmk4BKkFefNCWNEkj3kUtgmraSDNbWFDx4qgbZf"},
-        "fingerprint_ignore_patterns": [],
-        "agent": "valory/oracle:0.1.0:QmXuaeUagpuJ4cRiBHTX9ydSnibPyEbdL23zmGyUuWwMYr",
-        "network": "hardhat",
-        "number_of_agents": 1,
-    },
-    {
-        "public_id": "valory/oracle_abci:0.1.0",
-        "type": "skill",
-        "models": {
-            0: [
-                {
-                    "price_api": {
-                        "args": {
-                            "url": "url",
-                            "api_id": "api_id",
-                            "parameters": None,
-                            "response_key": None,
-                            "headers": None,
-                        }
-                    }
-                },
-                {
-                    "randomness_api": {
-                        "args": {
-                            "url": "https://drand.cloudflare.com/public/latest",
-                            "api_id": "cloudflare",
-                        }
-                    }
-                },
-                {
-                    "params": {
-                        "args": {
-                            "observation_interval": 30,
-                            "broadcast_to_server": False,
-                            "service_registry_address": "address",
-                            "on_chain_service_id": 1,
-                        }
-                    }
-                },
-                {"server_api": {"args": {"url": "url"}}},
-                {"benchmark_tool": {"args": {"log_dir": "/benchmarks"}}},
-            ]
-        },
-    },
-]
+from tests.test_autonomy.base import get_dummy_service_config
 
 
 class TestServiceConfig:
@@ -116,7 +63,7 @@ class TestServiceConfig:
         self,
     ) -> None:
         """Test load service."""
-        dummy_service = DUMMY_SERVICE.copy()
+        dummy_service = get_dummy_service_config()
         self._write_service(dummy_service)
 
         service = load_service_config(self.t)
@@ -130,19 +77,31 @@ class TestServiceConfig:
     ) -> None:
         """Test check_overrides_valid method."""
 
-        dummy_service = DUMMY_SERVICE.copy()
+        dummy_service = get_dummy_service_config()
         dummy_service[0]["number_of_agents"] = 4
         self._write_service(dummy_service)
 
         with pytest.raises(ValueError, match="Not enough items in override"):
             load_service_config(self.t)
 
-        dummy_service = DUMMY_SERVICE.copy()
+        dummy_service = get_dummy_service_config()
         dummy_service[1]["models"]["1"] = []  # type: ignore
         self._write_service(dummy_service)
 
         with pytest.raises(
             ValueError, match="All keys of list like override should be of type int."
+        ):
+            load_service_config(self.t)
+
+        dummy_service = get_dummy_service_config()
+        dummy_service.append(dummy_service[1])
+        self._write_service(dummy_service)
+
+        with pytest.raises(
+            ValueError,
+            match=re.escape(
+                "Configuration of component (skill, valory/oracle_abci:0.1.0) occurs more than once."
+            ),
         ):
             load_service_config(self.t)
 

@@ -109,5 +109,5 @@ def parse_file(  # pylint: disable=too-many-locals
             )
 
     print("\nERRORS:")
-    for error in errors:
+    for error in errors:  # pragma: nocover
         print(Color.RED.value + error["message"] + Color.RESET.value)

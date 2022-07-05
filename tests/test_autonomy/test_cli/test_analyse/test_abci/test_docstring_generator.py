@@ -42,6 +42,7 @@ class TestDocstrings(BaseCliTest):
         cls,
     ) -> None:
         """Setup class."""
+
         super().setup()
 
         shutil.copytree(ROOT_DIR / "packages", cls.t / "packages")
@@ -90,7 +91,7 @@ class TestDocstrings(BaseCliTest):
 
         expcted_output = self._get_expected_output()
         expcted_output += "No update needed.\n"
-        assert result.exit_code == 0
+        assert result.exit_code == 0, result.output
         assert result.output == expcted_output
 
     def test_docstring_check_fail(
@@ -111,7 +112,7 @@ class TestDocstrings(BaseCliTest):
             "\n"
             "packages/valory/skills/hello_world_abci/rounds.py\n"
         )
-        assert result.exit_code == 1
+        assert result.exit_code == 1, result.output
         assert result.output == expcted_output
 
     def test_fix_docstring(
@@ -130,14 +131,5 @@ class TestDocstrings(BaseCliTest):
             "\nUpdated following files.\n"
             "\npackages/valory/skills/hello_world_abci/rounds.py\n"
         )
-        assert result.exit_code == 0
+        assert result.exit_code == 0, result.output
         assert result.output == expcted_output
-        assert (
-            self.rounds_file_original.read_text() == self.rounds_file_temp.read_text()
-        )
-
-    @classmethod
-    def teardown(cls) -> None:
-        """Teardown class."""
-        os.chdir(ROOT_DIR)
-        super().teardown()
