@@ -36,6 +36,7 @@ from typing import (
 )
 from unittest import mock
 
+import numpy as np
 import pytest
 
 from packages.valory.skills.abstract_round_abci.base import (
@@ -51,6 +52,7 @@ from packages.valory.skills.abstract_round_abci.base import (
     CollectSameUntilThresholdRound,
     CollectionRound,
     ConsensusParams,
+    DynamicMarginMixin,
     OnlyKeeperSendsRound,
     ROUND_COUNT_DEFAULT,
     TransactionNotValidError,
@@ -668,6 +670,86 @@ class TestCollectionRound(_BaseRoundTestClass):
             test_round.check_payload(DummyTxPayload("sender", "value"))
 
         self._test_payload_with_wrong_round_count(test_round)
+
+
+class TestDynamicMarginMixin(_BaseRoundTestClass):
+    """Test class for `DynamicMarginMixin`."""
+
+    class ValidMixinUtilization(DummyCollectionRound, DynamicMarginMixin):
+        """A class that utilizes the `DynamicMarginMixin` in a valid way."""
+
+        def __init__(self, **kwargs: Any):
+            """Initialize an `InvalidMixinUtilization` object."""
+            DummyCollectionRound.__init__(self, **kwargs)
+            DynamicMarginMixin.__init__(self)
+
+    class _DummyInvalidWithMixin:
+        """A dummy class which is invalid to be mixed with `DynamicMarginMixin`."""
+
+    class InvalidMixinUtilization(_DummyInvalidWithMixin, DynamicMarginMixin):
+        """A class that utilizes the `DynamicMarginMixin` in an invalid way."""
+
+        def __init__(self) -> None:
+            """Initialize an `InvalidMixinUtilization` object."""
+            TestDynamicMarginMixin._DummyInvalidWithMixin.__init__(self)
+            DynamicMarginMixin.__init__(self)
+
+    @pytest.mark.parametrize("strictness", (i for i in np.arange(-1, 2, 0.5)))
+    def test__check(self, strictness: float) -> None:
+        """Test `__check` method."""
+        mixin_instance = self.ValidMixinUtilization(
+            synchronized_data=self.synchronized_data,
+            consensus_params=self.consensus_params,
+        )
+        mixin_instance.strictness = strictness
+        if strictness < 0 or strictness > 1:
+            with pytest.raises(
+                ValueError,
+                match=re.escape(
+                    f"Strictness needs to be in [0, 1], but {strictness} was given."
+                ),
+            ):
+                mixin_instance._DynamicMarginMixin__check()  # type: ignore
+        else:
+            mixin_instance._DynamicMarginMixin__check()  # type: ignore
+
+    def test_faulty_threshold(self) -> None:
+        """Test `faulty_threshold` property."""
+        with pytest.raises(
+            ValueError,
+            match="The `DynamicMarginMixin` is only intended to be used with `CollectionRound` and its subclasses.",
+        ):
+            self.InvalidMixinUtilization()
+
+        mixin_instance = self.ValidMixinUtilization(
+            synchronized_data=self.synchronized_data,
+            consensus_params=self.consensus_params,
+        )
+        assert (
+            mixin_instance.faulty_threshold
+            == mixin_instance._consensus_params.faulty_threshold
+        )
+
+    @pytest.mark.parametrize(
+        "strictness, faulty_threshold, expected_margin",
+        ((0, 3, 0), (0.2, 3, 1), (0.5, 3, 2), (1, 3, 3), (1, 8, 8)),
+    )
+    def test_generate_dynamic_margin(
+        self, strictness: float, faulty_threshold: int, expected_margin: int
+    ) -> None:
+        """Test `generate_dynamic_margin` method."""
+        mixin_instance = self.ValidMixinUtilization(
+            synchronized_data=self.synchronized_data,
+            consensus_params=self.consensus_params,
+        )
+        mixin_instance.strictness = strictness
+        with mock.patch.object(
+            self.ValidMixinUtilization,
+            "faulty_threshold",
+            new_callable=mock.PropertyMock,
+            return_value=faulty_threshold,
+        ):
+            assert mixin_instance.generate_dynamic_margin() == expected_margin
 
 
 class TestCollectDifferentUntilAllRound(_BaseRoundTestClass):
