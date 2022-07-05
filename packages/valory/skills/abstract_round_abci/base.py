@@ -1206,6 +1206,44 @@ class CollectionRound(AbstractRound):
                 )
 
 
+class DynamicMarginMixin:
+    """
+    A class designed in order to create dynamic threshold margins based on the number of agents.
+
+    The Mixin is only intended to be used with `CollectionRound` and its subclasses.
+    """
+
+    # How strict the final threshold will be, compared to the number of agents. Needs to be in [0, 1].
+    strictness: float = 0.3
+
+    def __init__(self) -> None:
+        """Initialize a `DynamicMarginMixin`."""
+        self.__check()
+        self._threshold_margin = self.generate_dynamic_margin()
+
+    def __check(self) -> None:
+        """Run initialization checks."""
+        if self.strictness < 0 or self.strictness > 1:
+            raise ValueError(
+                f"Strictness needs to be in [0, 1], but {self.strictness} was given."
+            )
+
+    @property
+    def faulty_threshold(self) -> int:
+        """Get the faulty threshold."""
+        consensus_params: ConsensusParams = getattr(self, "_consensus_params", None)
+        if consensus_params is None:
+            raise ValueError(
+                "The `DynamicMarginMixin` is only intended to be used with `CollectionRound` and its subclasses."
+            )
+        return consensus_params.faulty_threshold
+
+    def generate_dynamic_margin(self) -> int:
+        """Generates a dynamic threshold margin based on the number of agents and the strictness."""
+        threshold_margin = self.strictness * self.faulty_threshold
+        return ceil(threshold_margin)
+
+
 class _CollectUntilAllRound(CollectionRound, ABC):
     """
     _CollectUntilAllRound
