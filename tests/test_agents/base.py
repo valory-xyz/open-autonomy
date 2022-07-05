@@ -79,7 +79,7 @@ class BaseTestEnd2End(AEATestCaseMany, UseFlaskTendermintNode):
     # log option for agent process
     cli_log_options = ["-v", "DEBUG"]
     # reserved variable for subprocesses collection
-    processes: List
+    processes: Dict
     # name of agent and skill (the one with composed abci apps) to be tested
     agent_package: str
     skill_package: str
@@ -216,20 +216,13 @@ class BaseTestEnd2End(AEATestCaseMany, UseFlaskTendermintNode):
         self.__set_extra_configs()
 
     @staticmethod
-    def __get_agent_name(i: int, nb_agents: int) -> str:
+    def __get_agent_name(i: int) -> str:
         """Get the ith agent's name."""
-        if i < 0:
-            i = nb_agents + i
-        if i < 0:
-            raise ValueError(
-                f"Incorrect negative indexing. {i} was given, but {nb_agents} agents are available!"
-            )
-        agent_name = f"agent_{i:05d}_{nb_agents}agents_run"
-        return agent_name
+        return f"agent_{i:05d}"
 
     def __prepare_agent_i(self, i: int, nb_agents: int) -> None:
         """Prepare the i-th agent."""
-        agent_name = self.__get_agent_name(i, nb_agents)
+        agent_name = self.__get_agent_name(i)
         logging.info(f"Processing agent {agent_name}...")
         self.fetch_agent(self.agent_package, agent_name, is_local=self.IS_LOCAL)
         self.set_agent_context(agent_name)
@@ -252,34 +245,35 @@ class BaseTestEnd2End(AEATestCaseMany, UseFlaskTendermintNode):
             self.__prepare_agent_i(agent_id, nb_nodes)
 
         # run 'aea install' in only one AEA project, to save time
-        self.set_agent_context(self.__get_agent_name(0, nb_nodes))
+        self.set_agent_context(self.__get_agent_name(0))
         self.run_install()
 
     def prepare_and_launch(self, nb_nodes: int) -> None:
         """Prepare and launch the agents."""
-        self.processes = []
+        self.processes = dict.fromkeys(range(nb_nodes))
         self.prepare(nb_nodes)
         for agent_id in range(nb_nodes):
-            self._launch_agent_i(agent_id, nb_nodes)
+            self._launch_agent_i(agent_id)
 
-    def _launch_agent_i(self, i: int, nb_agents: int) -> None:
+    def _launch_agent_i(self, i: int) -> None:
         """Launch the i-th agent."""
-        agent_name = self.__get_agent_name(i, nb_agents)
+        agent_name = self.__get_agent_name(i)
         logging.info(f"Launching agent {agent_name}...")
         self.set_agent_context(agent_name)
         process = self.run_agent()
-        self.processes.append(process)
+        self.processes[i] = process
 
     def terminate_processes(self) -> None:
         """Terminate processes"""
-        for process in self.processes:
+        for i, process in self.processes.items():
             self.terminate_agents(process)
             outs, errs = process.communicate()
             logging.info(f"subprocess logs {process}: {outs} --- {errs}")
             if not self.is_successfully_terminated(process):
+                agent_name = self.__get_agent_name(i)
                 warnings.warn(
                     UserWarning(
-                        f"ABCI agent with process {process} wasn't successfully terminated."
+                        f"ABCI {agent_name} with process {process} wasn't successfully terminated."
                     )
                 )
 
@@ -363,16 +357,17 @@ class BaseTestEnd2End(AEATestCaseMany, UseFlaskTendermintNode):
 
         return missing_strict_strings, missing_round_strings
 
-    @staticmethod
     def __check_missing_strings(
-        missing_strict_strings: List[str], missing_round_strings: List[str], i: int
+        self,
+        missing_strict_strings: List[str],
+        missing_round_strings: List[str],
+        i: int,
     ) -> None:
         """Checks for missing strings in agent's output."""
+        agent_name = self.__get_agent_name(i)
         missing_agent_logs = ""
         if missing_strict_strings:
-            missing_agent_logs += (
-                f"Strings {missing_strict_strings} didn't appear in agent_{i} output.\n"
-            )
+            missing_agent_logs += f"Strings {missing_strict_strings} didn't appear in {agent_name} output.\n"
         missing_agent_logs += "\n".join(missing_round_strings)
 
         assert missing_agent_logs == "", missing_agent_logs
@@ -383,21 +378,19 @@ class BaseTestEnd2End(AEATestCaseMany, UseFlaskTendermintNode):
 
         First failing check will cause assertion error and test tear down.
         """
-        for i, process in enumerate(self.processes):
-            if i not in self.exclude_from_checks:
-                (
-                    missing_strict_strings,
-                    missing_round_strings,
-                ) = self.missing_from_output(
-                    process=process,
-                    happy_path=self.happy_path,
-                    strict_check_strings=self.strict_check_strings,
-                    timeout=self.wait_to_finish,
-                )
+        for i, process in self.processes.items():
+            if i in self.exclude_from_checks:
+                continue
+            (missing_strict_strings, missing_round_strings,) = self.missing_from_output(
+                process=process,
+                happy_path=self.happy_path,
+                strict_check_strings=self.strict_check_strings,
+                timeout=self.wait_to_finish,
+            )
 
-                self.__check_missing_strings(
-                    missing_strict_strings, missing_round_strings, i
-                )
+            self.__check_missing_strings(
+                missing_strict_strings, missing_round_strings, i
+            )
 
 
 class BaseTestEnd2EndExecution(BaseTestEnd2End):
@@ -427,7 +420,7 @@ class BaseTestEnd2EndExecution(BaseTestEnd2End):
     n_terminal: int = 0  # number of agents to be restarted
     wait_to_kill: int = 0  # delay the termination event
     restart_after: int = 60  # how long to wait before restart
-    wait_before_stop: int = 15  # how long to check logs
+    wait_before_stop: int = 15  # how long to check logs for `stop_string`
 
     def check(self) -> None:
         """Check pre-conditions of the test"""
@@ -458,9 +451,10 @@ class BaseTestEnd2EndExecution(BaseTestEnd2End):
         """Stops and restarts agents after stop string is found."""
 
         # stop the last agent as soon as the "stop string" is found in the output
+        # once found, we start terminating the first agent
         logging.info(f"Waiting for string {self.stop_string} in last agent output")
         missing_strict_strings, _ = self.missing_from_output(
-            process=self.processes[-1],
+            process=self.processes[max(self.processes)],
             strict_check_strings=(self.stop_string,),
             timeout=self.wait_before_stop,
         )
@@ -472,11 +466,11 @@ class BaseTestEnd2EndExecution(BaseTestEnd2End):
             logging.info("Waiting to terminate agents")
             time.sleep(self.wait_to_kill)
 
-        # immediately terminate the agents - sequentially
+        # terminate the agents - sequentially
         # don't pop before termination, seems to lead to failure!
-        for _ in range(self.n_terminal):
-            self.terminate_agents(self.processes[-1], timeout=0)
-            self.processes.pop()
+        for i in range(self.n_terminal):
+            self.terminate_agents(self.processes[i], timeout=0)
+            self.processes.pop(i)
             logging.info("Last agent stopped")
 
         # wait for some time before restarting
@@ -487,5 +481,5 @@ class BaseTestEnd2EndExecution(BaseTestEnd2End):
 
         # restart agents
         for i in range(self.n_terminal):
-            logging.info(f"Restart the agent {~i}")
-            self._launch_agent_i(~i, self.nb_nodes)
+            logging.info(f"Restart the agent {i}")
+            self._launch_agent_i(i)
