@@ -661,7 +661,7 @@ class TestBaseBehaviour:
             gen = self.behaviour.async_act_wrapper()
             for __ in range(3):
                 try_send(gen)
-            log_mock.assert_called_with("local height == remote; Sync complete...")
+            log_mock.assert_called_with("local height == remote == 0; Sync complete...")
 
         if any(
             app_hash_param is None
