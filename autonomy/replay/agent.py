@@ -104,7 +104,7 @@ class AgentRunner:
 
         os.chdir(str(self.cwd))
         with contextlib.suppress(OSError, PermissionError, FileNotFoundError):
-            shutil.rmtree(str(self.t))
+            shutil.rmtree(str(self.agent_dir))
 
         if self.process is None:  # pragma: nocover
             return
