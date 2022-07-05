@@ -19,7 +19,7 @@
 
 """This module contains the data classes for the reset_pause_abci application."""
 from enum import Enum
-from typing import Dict, Optional, Set, Tuple, Type
+from typing import Any, Dict, Optional, Set, Tuple, Type
 
 from packages.valory.skills.abstract_round_abci.base import (
     AbciApp,
@@ -30,6 +30,7 @@ from packages.valory.skills.abstract_round_abci.base import (
     BaseSynchronizedData,
     CollectSameUntilThresholdRound,
     DegenerateRound,
+    DynamicMarginMixin,
 )
 from packages.valory.skills.reset_pause_abci.payloads import ResetPausePayload
 
@@ -43,13 +44,18 @@ class Event(Enum):
     RESET_AND_PAUSE_TIMEOUT = "reset_and_pause_timeout"
 
 
-class ResetAndPauseRound(CollectSameUntilThresholdRound):
+class ResetAndPauseRound(CollectSameUntilThresholdRound, DynamicMarginMixin):
     """A round that represents that consensus is reached (the final round)"""
 
     round_id = "reset_and_pause"
     allowed_tx_type = ResetPausePayload.transaction_type
     payload_attribute = "period_count"
     _allow_rejoin_payloads = True
+
+    def __init__(self, *args: Any, **kwargs: Any):
+        """Initialize a `ResetAndPauseRound` object."""
+        CollectSameUntilThresholdRound.__init__(self, *args, **kwargs)
+        DynamicMarginMixin.__init__(self)
 
     def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Event]]:
         """Process the end of the block."""
