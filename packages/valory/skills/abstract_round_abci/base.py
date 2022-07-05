@@ -847,6 +847,8 @@ class AbstractRound(Generic[EventType, TransactionType], ABC):
     allowed_tx_type: Optional[TransactionType]
     payload_attribute: str
 
+    # a margin to add to the consensus threshold, so that more agents need to join
+    _threshold_margin: int = 0
     _previous_round_tx_type: Optional[TransactionType]
 
     def __init__(
@@ -862,6 +864,15 @@ class AbstractRound(Generic[EventType, TransactionType], ABC):
         self._previous_round_tx_type = previous_round_tx_type
 
         self._check_class_attributes()
+        self._check_margin()
+
+    def _check_margin(self) -> None:
+        """Check the validity of threshold margin."""
+        if self._threshold_margin > self._consensus_params.faulty_threshold:
+            raise ABCIAppInternalError(
+                "The threshold margin is too large. "
+                f"It should be <= {self._consensus_params.faulty_threshold}, but got {self._threshold_margin}."
+            )
 
     def _check_class_attributes(self) -> None:
         """Check that required class attributes are set."""
@@ -1062,7 +1073,7 @@ class AbstractRound(Generic[EventType, TransactionType], ABC):
     @property
     def consensus_threshold(self) -> int:
         """Consensus threshold"""
-        return self._consensus_params.consensus_threshold
+        return self._consensus_params.consensus_threshold + self._threshold_margin
 
     @abstractmethod
     def check_payload(self, payload: BaseTxPayload) -> None:
