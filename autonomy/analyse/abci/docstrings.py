@@ -89,9 +89,11 @@ def update_docstrings(
         map(lambda x: f"{INDENT}{x}" if len(x) else x, docstring.split("\n"))
     )
     match = re.search(regex, content)
-    if match is not None:
-        group, *_ = cast(re.Match, match).groups()
-        markers = group if group is not None else ""
+    if match is None:
+        return False
+
+    group, *_ = cast(re.Match, match).groups()
+    markers = group if group is not None else ""
 
     updated_class = f"class {abci_app_name}(AbciApp[Event]):{markers}{docstring}"
     updated_content = re.sub(regex, updated_class, content, re.MULTILINE)

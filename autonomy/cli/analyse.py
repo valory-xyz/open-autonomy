@@ -130,20 +130,23 @@ def docstrings(packages_dir: Path, check: bool) -> None:
     needs_update = set()
     abci_compositions = packages_dir.glob("*/skills/*/rounds.py")
 
-    for path in sorted(abci_compositions):
-        click.echo(f"Processing: {path}")
-        if process_module(path, check=check):
-            needs_update.add(str(path))
+    try:
+        for path in sorted(abci_compositions):
+            click.echo(f"Processing: {path}")
+            if process_module(path, check=check):
+                needs_update.add(str(path))
 
-    if len(needs_update) > 0:
-        file_string = "\n".join(sorted(needs_update))
-        if check:
-            raise click.ClickException(
-                f"Following files needs updating.\n\n{file_string}"
-            )
-        click.echo(f"\nUpdated following files.\n\n{file_string}")
-    else:
-        click.echo("No update needed.")
+        if len(needs_update) > 0:
+            file_string = "\n".join(sorted(needs_update))
+            if check:
+                raise click.ClickException(
+                    f"Following files needs updating.\n\n{file_string}"
+                )
+            click.echo(f"\nUpdated following files.\n\n{file_string}")
+        else:
+            click.echo("No update needed.")
+    except Exception as e:  # pylint: disable=broad-except  # pragma: nocover
+        raise click.ClickException(str(e)) from e
 
 
 @abci_group.command(name="logs")
