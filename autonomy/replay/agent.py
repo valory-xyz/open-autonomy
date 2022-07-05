@@ -20,7 +20,9 @@
 
 """Tools to build and run agents from existing deployments."""
 
+import contextlib
 import os
+import shutil
 import signal
 import subprocess  # nosec
 import sys
@@ -45,9 +47,7 @@ class AgentRunner:
         self.agent_data = agent_data
         self.registry_path = registry_path
         self.agent_env = os.environ.copy()
-        self.agent_dir = TemporaryDirectory(  # pylint: disable=consider-using-with
-            ignore_cleanup_errors=True  # type: ignore
-        )
+        self.agent_dir = TemporaryDirectory()  # pylint: disable=consider-using-with
         self.cwd = Path(".").resolve().absolute()
 
         agent_env_data = self.agent_data["environment"]
@@ -103,7 +103,8 @@ class AgentRunner:
         """Stop the process."""
 
         os.chdir(str(self.cwd))
-        self.agent_dir.cleanup()
+        with contextlib.suppress(OSError, PermissionError, FileNotFoundError):
+            shutil.rmtree(str(self.t))
 
         if self.process is None:  # pragma: nocover
             return
