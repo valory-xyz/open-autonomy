@@ -469,9 +469,10 @@ class BaseTestEnd2EndExecution(BaseTestEnd2End):
         # terminate the agents - sequentially
         # don't pop before termination, seems to lead to failure!
         for i in range(self.n_terminal):
+            agent_name = self.__get_agent_name(i)
             self.terminate_agents(self.processes[i], timeout=0)
             self.processes.pop(i)
-            logging.info("Last agent stopped")
+            logging.info(f"Terminated {agent_name}")
 
         # wait for some time before restarting
         logging.info(
@@ -481,5 +482,6 @@ class BaseTestEnd2EndExecution(BaseTestEnd2End):
 
         # restart agents
         for i in range(self.n_terminal):
-            logging.info(f"Restart the agent {i}")
+            agent_name = self.__get_agent_name(i)
             self._launch_agent_i(i)
+            logging.info(f"Restarted {agent_name}")
