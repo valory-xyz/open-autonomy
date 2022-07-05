@@ -65,6 +65,9 @@ class TestResetAndPauseRound(BaseCollectSameUntilThresholdRoundTest):
         test_round = ResetAndPauseRound(
             synchronized_data=synchronized_data, consensus_params=self.consensus_params
         )
+        assert test_round._threshold_margin == 1
+        assert test_round.consensus_threshold == 4
+
         next_period_count = 1
         self._complete_run(
             self._test_round(
