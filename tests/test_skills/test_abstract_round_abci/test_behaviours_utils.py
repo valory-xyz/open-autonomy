@@ -610,6 +610,36 @@ class TestBaseBehaviour:
             else:
                 _log_end_mock.assert_not_called()
 
+    def test_sync_state(self) -> None:
+        """Test `_sync_state`."""
+        app_hash = ""
+        self.behaviour._sync_state(app_hash)
+        assert (
+            self.behaviour.context.state.round_sequence.abci_app.synchronized_data.db.round_count
+            == 0
+        )
+        assert self.behaviour.context.state.round_sequence.abci_app.reset_index == 0
+
+        app_hash = "726F6F743A356072657365743A370"
+        self.behaviour._sync_state(app_hash)
+        assert (
+            self.behaviour.context.state.round_sequence.abci_app.synchronized_data.db.round_count
+            == 560
+        )
+        assert self.behaviour.context.state.round_sequence.abci_app.reset_index == 70
+
+        app_hash = "incorrect"
+        with pytest.raises(
+            ValueError,
+            match=(
+                "Expected an app hash of the form: `726F6F743A3{ROUND_COUNT}72657365743A3{RESET_INDEX}`,"
+                "which is derived from `root:{ROUND_COUNT}reset:{RESET_INDEX}`. "
+                "For example, `root:90reset:4` would be `726F6F743A39072657365743A34`. "
+                f"However, the app hash received is: `{app_hash}`."
+            ),
+        ):
+            self.behaviour._sync_state(app_hash)
+
     @pytest.mark.parametrize(
         "expected_round_count, expected_reset_index",
         ((None, None), (0, 0), (123, 4), (235235, 754)),
