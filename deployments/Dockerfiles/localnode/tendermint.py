@@ -226,10 +226,8 @@ class TendermintNode:
     ) -> None:
         """Check server status."""
         self.write_line("Monitoring thread started\n")
-        while True:
+        while not self._monitoring.stopped():  # type: ignore
             try:
-                if self._monitoring.stopped():  # type: ignore
-                    break  # break from the loop immediately.
                 line = self._process.stdout.readline()  # type: ignore
                 self.write_line(line)
                 for trigger in [
