@@ -27,7 +27,7 @@ import signal
 import subprocess  # nosec
 import time
 from pathlib import Path
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Tuple
 
 from flask import Flask
 
@@ -103,7 +103,7 @@ class TendermintRunner:
         self,
     ) -> None:
         """Stop tendermint process."""
-        if self.process is None:
+        if self.process is None:  # pragma: nocover
             return
 
         self.process.poll()
@@ -183,64 +183,63 @@ class TendermintNetwork:
 
         try:
             self.start()
-            while True:
+            while True:  # pragma: nocover
                 time.sleep(1)
         except KeyboardInterrupt:
             self.stop()
 
 
-app = Flask(__name__)
-tendermint_network = TendermintNetwork()
+def build_tendermint_apps() -> Tuple[Flask, TendermintNetwork]:
+    """Build flask app and tendermint network."""
+    app = Flask(__name__)
+    tendermint_network = TendermintNetwork()
 
+    @app.route("/<int:node_id>/hard_reset")
+    def hard_reset(node_id: int) -> Dict:
+        """Reset tendermint node."""
 
-@app.route("/<int:node_id>/hard_reset")
-def hard_reset(node_id: int) -> Dict:
-    """Reset tendermint node."""
-    global tendermint_network  # pylint: disable=global-variable-not-assigned
+        try:
+            tendermint_network.update_period(node_id)
+            return {"message": "Reset successful.", "status": True, "is_replay": True}
 
-    try:
-        tendermint_network.update_period(node_id)
-        return {"message": "Reset successful.", "status": True, "is_replay": True}
+        except RanOutOfDumpsToReplay:
+            tendermint_network.stop_node(node_id)
+            return {
+                "message": "Ran out of dumps to replay, You can stop the agent replay now.",
+                "status": False,
+                "is_replay": True,
+            }
 
-    except RanOutOfDumpsToReplay:
-        tendermint_network.stop_node(node_id)
+    @app.get("/<int:node_id>/status")
+    def status(node_id: int) -> Dict:
+        """
+        Status
+
+        This endpoint will imitate the tendermint RPC server's /status so the ABCI
+        app doesn't get blocked in replay mode.
+
+        :param node_id: node id
+        :return: response
+        """
+
         return {
-            "message": "Ran out of dumps to replay, You can stop the agent replay now.",
-            "status": False,
-            "is_replay": True,
-        }
-
-
-@app.get("/<int:node_id>/status")
-def status(node_id: int) -> Dict:
-    """
-    Status
-
-    This endpoint will imitate the tendermint RPC server's /status so the ABCI
-    app doesn't get blocked in replay mode.
-
-    :param node_id: node id
-    :return: response
-    """
-
-    global tendermint_network  # pylint: disable=global-variable-not-assigned
-
-    return {
-        "result": {
-            "sync_info": {
-                "latest_block_height": tendermint_network.get_last_block_height(node_id)
+            "result": {
+                "sync_info": {
+                    "latest_block_height": tendermint_network.get_last_block_height(
+                        node_id
+                    )
+                }
             }
         }
-    }
 
+    @app.get("/<int:node_id>/broadcast_tx_sync")
+    def broadcast_tx_sync(node_id: int) -> Dict:  # pylint: disable=unused-argument
+        """Similar as /status"""
+        return {"result": {"hash": "", "code": 0}}
 
-@app.get("/<int:node_id>/broadcast_tx_sync")
-def broadcast_tx_sync(node_id: int) -> Dict:  # pylint: disable=unused-argument
-    """Similar as /status"""
-    return {"result": {"hash": "", "code": 0}}
+    @app.get("/<int:node_id>/tx")
+    def tx(node_id: int) -> Dict:  # pylint: disable=unused-argument
+        """Similar as /status"""
+        return {"result": {"tx_result": {"code": 0}}}
 
-
-@app.get("/<int:node_id>/tx")
-def tx(node_id: int) -> Dict:  # pylint: disable=unused-argument
-    """Similar as /status"""
-    return {"result": {"tx_result": {"code": 0}}}
+    return app, tendermint_network

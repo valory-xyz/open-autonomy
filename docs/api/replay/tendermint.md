@@ -154,58 +154,13 @@ def run_until_interruption() -> None
 
 Run network until interruption.
 
-<a id="autonomy.replay.tendermint.hard_reset"></a>
+<a id="autonomy.replay.tendermint.build_tendermint_apps"></a>
 
-#### hard`_`reset
-
-```python
-@app.route("/<int:node_id>/hard_reset")
-def hard_reset(node_id: int) -> Dict
-```
-
-Reset tendermint node.
-
-<a id="autonomy.replay.tendermint.status"></a>
-
-#### status
+#### build`_`tendermint`_`apps
 
 ```python
-@app.get("/<int:node_id>/status")
-def status(node_id: int) -> Dict
+def build_tendermint_apps() -> Tuple[Flask, TendermintNetwork]
 ```
 
-Status
-
-This endpoint will imitate the tendermint RPC server's /status so the ABCI
-app doesn't get blocked in replay mode.
-
-**Arguments**:
-
-- `node_id`: node id
-
-**Returns**:
-
-response
-
-<a id="autonomy.replay.tendermint.broadcast_tx_sync"></a>
-
-#### broadcast`_`tx`_`sync
-
-```python
-@app.get("/<int:node_id>/broadcast_tx_sync")
-def broadcast_tx_sync(node_id: int) -> Dict
-```
-
-Similar as /status
-
-<a id="autonomy.replay.tendermint.tx"></a>
-
-#### tx
-
-```python
-@app.get("/<int:node_id>/tx")
-def tx(node_id: int) -> Dict
-```
-
-Similar as /status
+Build flask app and tendermint network.
 

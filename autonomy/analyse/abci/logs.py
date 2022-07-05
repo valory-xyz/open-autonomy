@@ -71,13 +71,13 @@ def parse_file(  # pylint: disable=too-many-locals
             m = re.match(EVENT_REGEX, line)
             if m:
                 agent_id = m.groupdict()["agent_id"]
-                if agent_id not in periods.keys():
+                if agent_id not in periods.keys():  # pragma: nocover
                     periods[agent_id] = []
                 periods[agent_id].append(m.groupdict())
                 continue
 
             m = re.match(ERROR_REGEX, line, re.DOTALL)
-            if m:
+            if m:  # pragma: nocover
                 errors.append(m.groupdict())
                 continue
 
@@ -109,5 +109,5 @@ def parse_file(  # pylint: disable=too-many-locals
             )
 
     print("\nERRORS:")
-    for error in errors:
+    for error in errors:  # pragma: nocover
         print(Color.RED.value + error["message"] + Color.RESET.value)

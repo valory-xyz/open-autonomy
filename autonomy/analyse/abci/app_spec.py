@@ -35,7 +35,7 @@ class DFASpecificationError(Exception):
     """Simple class to raise errors when parsing a DFA."""
 
 
-class DFA:
+class DFA:  # pragma: nocover
     """Simple specification of a deterministic finite automaton (DFA)."""
 
     class OutputFormats:  # pylint: disable=too-few-public-methods

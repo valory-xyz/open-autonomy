@@ -125,12 +125,12 @@ def build_deployment(  # pylint: disable=too-many-arguments
     build_dir = Path(output_dir, "abci_build")
 
     if not packages_dir.is_dir():
-        raise click.ClickException(
+        raise click.ClickException(  # pragma: nocover
             f"Packages directory does not exists @ {packages_dir}"
         )
 
     if build_dir.is_dir():
-        if not force_overwrite:
+        if not force_overwrite:  # pragma: nocover
             raise click.ClickException(f"Build already exists @ {output_dir}")
         shutil.rmtree(build_dir)
 
@@ -151,7 +151,7 @@ def build_deployment(  # pylint: disable=too-many-arguments
             version=version,
         )
         click.echo(report)
-    except Exception as e:  # pylint: disable=broad-except
+    except Exception as e:  # pylint: disable=broad-except  # pragma: nocover
         raise click.ClickException(str(e)) from e
 
 
@@ -215,7 +215,7 @@ def build_images(  # pylint: disable=too-many-arguments
             version=version,
             skaffold_dir=skaffold_dir,
         )
-    except Exception as e:  # pylint: disable=broad-except
+    except Exception as e:  # pylint: disable=broad-except  # pragma: nocover
         raise click.ClickException(str(e)) from e
 
 
@@ -224,7 +224,7 @@ def _find_path_to_service_file(public_id: PublicId, packages_dir: Path) -> Path:
     service_file = (
         packages_dir / public_id.author / "services" / public_id.name / "service.yaml"
     )
-    if not service_file.is_file():
+    if not service_file.is_file():  # pragma: nocover
         raise click.ClickException(f"Cannot find service file for {public_id}")
 
     return service_file
@@ -233,7 +233,7 @@ def _find_path_to_service_file(public_id: PublicId, packages_dir: Path) -> Path:
 def _find_path_to_service(public_id: PublicId, packages_dir: Path) -> Path:
     """Find path to service file using package dir."""
     service_path = packages_dir / public_id.author / "services" / public_id.name
-    if not service_path.is_dir():
+    if not service_path.is_dir():  # pragma: nocover
         raise click.ClickException(f"Cannot find service file for {public_id}")
 
     return service_path
@@ -255,7 +255,7 @@ def _build_dirs(build_dir: Path) -> None:
         # TOFIX for macOS
         try:
             os.chown(path, 1000, 1000)
-        except PermissionError:
+        except PermissionError:  # pragma: nocover
             click.echo(
                 f"Updating permissions failed for {path}, please do it manually."
             )

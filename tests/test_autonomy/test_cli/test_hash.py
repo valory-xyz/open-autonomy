@@ -72,7 +72,6 @@ class TestHashAll(BaseCliTest):
 
         service_path = self.packages_dir / "valory" / "services" / service_name
         service_config = load_service_config(service_path)
-
         hashes = self.load_hashes()
 
         if platform.system() == "Windows":
@@ -84,5 +83,9 @@ class TestHashAll(BaseCliTest):
             hashes,
             service_config.agent,
         )
-
         assert hashes[key] == service_config.agent.hash
+
+        result = self.run_cli(("--packages-dir", str(self.packages_dir), "--check"))
+
+        assert result.exit_code == 0, result.output
+        assert "OK!" in result.output, result.output

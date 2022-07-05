@@ -26,10 +26,13 @@ from pathlib import Path
 from typing import Any, Tuple
 from unittest import mock
 
+import flask
+
 from autonomy.cli import cli
 from autonomy.replay.tendermint import TendermintNetwork
 
 from tests.conftest import ROOT_DIR
+from tests.helpers.docker.base import skip_docker_tests
 from tests.test_autonomy.test_cli.base import BaseCliTest
 
 
@@ -61,13 +64,14 @@ ADDRBOOK_DATA = {
 }
 
 
-def ctrl_c(*args: Any) -> None:
+def ctrl_c(*args: Any, **kwargs: Any) -> None:
     """Send control C."""
 
     raise KeyboardInterrupt()
 
 
-class TestAgentRunner(BaseCliTest):
+@skip_docker_tests
+class TestTendermintRunner(BaseCliTest):
     """Test agent runner tool."""
 
     cli_options: Tuple[str, ...] = ("replay", "tendermint")
@@ -83,7 +87,7 @@ class TestAgentRunner(BaseCliTest):
 
     def test_run(self) -> None:
         """Test run."""
-        self.cli_runner.invoke(
+        result = self.cli_runner.invoke(
             cli,
             (
                 "deploy",
@@ -99,14 +103,28 @@ class TestAgentRunner(BaseCliTest):
             ),
         )
 
+        assert result.exit_code == 0, result.output
+
         addrbook_file = (
-            self.t / "abci_build" / "persistent_data" / "tm_state" / "addrbook.json"
+            (self.t / "abci_build" / "persistent_data" / "tm_state" / "addrbook.json")
+            .resolve()
+            .absolute()
         )
         addrbook_file.write_text(json.dumps(ADDRBOOK_DATA))
 
+        config_toml = (
+            (self.t / "abci_build" / "persistent_data" / "tm_state" / "config.toml")
+            .resolve()
+            .absolute()
+        )
+        config_toml.write_text("""persistent_peers = peers""")
+
         with mock.patch.object(TendermintNetwork, "init"), mock.patch.object(
-            TendermintNetwork, "start", new=ctrl_c
-        ), mock.patch.object(TendermintNetwork, "stop") as stop_mock:
+            TendermintNetwork, "start"
+        ), mock.patch.object(TendermintNetwork, "stop") as stop_mock, mock.patch.object(
+            flask.Flask, "run", new=ctrl_c
+        ):
+
             result = self.run_cli(("--build", str(self.t / "abci_build")))
             assert result.exit_code == 0, result.output
             stop_mock.assert_any_call()
@@ -115,3 +133,5 @@ class TestAgentRunner(BaseCliTest):
             for i, addr in enumerate(addrbook_data["addrs"]):
                 assert addr["addr"]["ip"] == "127.0.0.1"
                 assert addr["addr"]["port"] == (26630 + i)
+
+            assert "# persistent_peers" in config_toml.read_text()

@@ -139,11 +139,13 @@ class DockerComposeGenerator(BaseDeploymentGenerator):
         )
 
         for line in iter(cast(IO[str], process.stdout).readline, ""):
-            if line == "":
+            if line == "":  # pragma: nocover
                 break
             print(f"[Tendermint] {line.strip()}")
 
-        if "Unable to find image" in cast(IO[str], process.stderr).read():
+        if (
+            "Unable to find image" in cast(IO[str], process.stderr).read()
+        ):  # pragma: nocover
             raise RuntimeError(
                 f"Cannot find {TENDERMINT_IMAGE_NAME}:{image_version}, Please build images first."
             )

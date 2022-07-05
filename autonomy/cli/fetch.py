@@ -45,7 +45,7 @@ try:
     from aea_cli_ipfs.ipfs_utils import IPFSTool  # type: ignore
 
     IS_IPFS_PLUGIN_INSTALLED = True
-except ImportError:
+except ImportError:  # pragma: nocover
     IS_IPFS_PLUGIN_INSTALLED = False
 
 
@@ -84,7 +84,7 @@ def fetch(
     ctx.registry_type = registry
 
     try:
-        if package_type == AGENT:
+        if package_type == AGENT:  # pragma: nocover
             do_fetch(ctx, public_id, alias)
         else:
             fetch_service(ctx, public_id)
@@ -107,7 +107,7 @@ def fetch_service(ctx: Context, public_id: PublicId) -> None:
 def fetch_service_ipfs(public_id: PublicId) -> None:
     """Fetch service from IPFS node."""
 
-    if not IS_IPFS_PLUGIN_INSTALLED:
+    if not IS_IPFS_PLUGIN_INSTALLED:  # pragma: nocover
         raise RuntimeError("IPFS plugin not installed.")
 
     with tempfile.TemporaryDirectory() as temp_dir:
