@@ -667,12 +667,8 @@ class TestBaseBehaviour:
             app_hash_param is None
             for app_hash_param in (expected_round_count, expected_reset_index)
         ):
-            expected_round_count = expected_reset_index = 0
+            expected_reset_index = 0
 
-        assert (
-            self.behaviour.context.state.round_sequence.abci_app.synchronized_data.db.round_count
-            == expected_round_count
-        )
         assert (
             self.behaviour.context.state.round_sequence.abci_app.reset_index
             == expected_reset_index
