@@ -90,23 +90,9 @@ class TestSimpleABCIFourAgentsCatchupSelectKeeper(BaseSimpleABCITestCatchup):
     stop_string = "select_keeper_at_startup"
 
 
-@pytest.mark.parametrize("nb_nodes", (4,))
-class TestSimpleABCIFourAgentsCatchupResetAndPause(BaseSimpleABCITestCatchup):
-    """Test simple_abci skill with four agents; one restarting on `reset_and_pause`."""
-
-    stop_string = "reset_and_pause"
-
-
 # multiple agents terminating and restarting
 @pytest.mark.parametrize("nb_nodes", (4,))
-class TestSimpleABCIFourAgentsTwoAgentCatchup(BaseSimpleABCITestCatchup):
+class TestSimpleABCIFourAgentsTwoAgentRestarting(BaseSimpleABCITestCatchup):
     """Test the ABCI simple_abci skill with four agents and two restarting."""
 
     n_terminal = 2
-
-
-@pytest.mark.parametrize("nb_nodes", (4,))
-class TestSimpleABCIFourAgentsFourAgentCatchup(BaseSimpleABCITestCatchup):
-    """Test the ABCI simple_abci skill with four agents and four restarting."""
-
-    n_terminal = 4

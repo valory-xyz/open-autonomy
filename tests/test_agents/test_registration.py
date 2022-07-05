@@ -81,6 +81,7 @@ class RegistrationStartUpTestConfig(
     ]
 
 
+@pytest.mark.skip
 @pytest.mark.e2e
 @pytest.mark.integration
 @pytest.mark.parametrize("nb_nodes", (4,))
@@ -90,6 +91,7 @@ class TestRegistrationStartUpFourAgents(
     """Test registration start-up skill with four agents."""
 
 
+@pytest.mark.skip
 @pytest.mark.e2e
 @pytest.mark.integration
 @pytest.mark.parametrize("nb_nodes", (4,))
