@@ -10,7 +10,7 @@ fingerprint_ignore_patterns: []
 connections:
 - valory/abci:0.1.0:Qme6c15aYEcGog9PCDBydJ65rHmV335qgjDZhcTFEEFyKD
 - valory/http_client:0.1.0:QmXBBMS5g4kyyE3mzFcpieoDMKWFf9naaCM3QNSjP2mxDt
-- valory/ledger:0.1.0:Qmcd32eJaDbWFFgqTzKf3Lqhshj37ndhrdtYiNnED2ULqB
+- valory/ledger:0.1.0:Qmc4LTMgLdfWXu4cChmjxRF1JS9X5LLwgtKDx4VVyDb8eJ
 - valory/p2p_libp2p_client:0.1.0:QmQ8QKKHkMyBWpf8JLJ4NRNmK6oet44jzdQGkZskpSb2oJ
 contracts:
 - valory/gnosis_safe:0.1.0:QmRNdXGRRQBMFXh5ZvtJeYvHt7559kV5r5EYU5JNUdRBKJ
@@ -27,14 +27,14 @@ protocols:
 - valory/tendermint:0.1.0:QmUj6wxrYnaXjhVt13KZT33qcy9kcAcKRRXXY1DyRajPdQ
 skills:
 - valory/abstract_abci:0.1.0:QmYma8AcAS21bariyod7DfhDn1LgnC8ZyFg732BRXtybJP
-- valory/abstract_round_abci:0.1.0:QmaeNpLTw5Q1z2sxmhBR1Vogkfv2CJyiSyVRAg4SgG6BBK
-- valory/oracle_abci:0.1.0:QmaJazV93oHGZ4pGJJLkgARmc6kt7LQH7GPCusworhFfst
-- valory/oracle_deployment_abci:0.1.0:QmZgXFAbazLko2g9TmV2JKqNNHSMSBFRBZoRzeuq8ngWGG
-- valory/price_estimation_abci:0.1.0:QmUMLhqmsCeXjQyDkEQjKoAcdM52mKmvp9fmdhFponnAGy
-- valory/registration_abci:0.1.0:QmcYWyDQZqMVgVik4AwM5HbF2kmgcvM1DjHbNc5uY2ncLM
-- valory/reset_pause_abci:0.1.0:QmWFt4chXznDhxEffrwCkQaDh7hSvA45zdgzGgteJjunkp
-- valory/safe_deployment_abci:0.1.0:QmXCHcJgEeATY7LZ6BeBW8DodeFznqQbcdyMU7497WasqW
-- valory/transaction_settlement_abci:0.1.0:QmfSCVXJZUHFvPZV8DPBVg41LbKbwTYN3V53Et4zXoysh9
+- valory/abstract_round_abci:0.1.0:QmPCsVgCW3FoEEh7z2NtkFuM3UCZJk8monLkPDeXNrtEND
+- valory/oracle_abci:0.1.0:QmPFjni5R5FogYrAKhZsQm2CmYo2LJ6y3a3dAXFwsGphBm
+- valory/oracle_deployment_abci:0.1.0:QmdwLsYyshUUNCVm4A1mfM7nRsxCMsrgE7viwnzVyjwCpF
+- valory/price_estimation_abci:0.1.0:QmbMXRxWXRhS8FKcwXMg9HWdSWGTyc7qrPcPhbM6YCJEB7
+- valory/registration_abci:0.1.0:QmdnnUQKghwZG9Px4MbSiHJWTyvLdFrvM1YaZZt2QWAZsA
+- valory/reset_pause_abci:0.1.0:QmQ37N3wVCTUWbn3f9ctP4Ky1jnAMguqynZ2cxLhTGHqgN
+- valory/safe_deployment_abci:0.1.0:QmeAJn5rE5hij6WDr8pX2quj2CAAYVgJqPPxWPsgezj7Eo
+- valory/transaction_settlement_abci:0.1.0:QmRfx9uSDqA4SpGUuhS6mKt383yUyMpcRrYWeHNUinfKZd
 default_ledger: ethereum
 required_ledgers:
 - ethereum
