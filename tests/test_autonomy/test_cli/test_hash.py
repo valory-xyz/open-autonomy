@@ -87,5 +87,7 @@ class TestHashAll(BaseCliTest):
 
         result = self.run_cli(("--packages-dir", str(self.packages_dir), "--check"))
 
+        raise ValueError((self.packages_dir / "hashes.csv").read_text())
+
         assert result.exit_code == 0, result.output
         assert "OK!" in result.output, result.output
