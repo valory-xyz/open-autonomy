@@ -1025,7 +1025,9 @@ class AbstractRound(Generic[EventType, TransactionType], ABC):
         if len(votes_by_participant) == 0:
             return
 
-        vote_count = Counter(votes_by_participant.values())
+        vote_count = Counter(
+            tuple(sorted(v.data.items())) for v in votes_by_participant.values()
+        )
         largest_nb_votes = max(vote_count.values())
         nb_votes_received = sum(vote_count.values())
         nb_remaining_votes = nb_participants - nb_votes_received
@@ -1039,7 +1041,7 @@ class AbstractRound(Generic[EventType, TransactionType], ABC):
 
     @classmethod
     def is_majority_possible(
-        cls, votes_by_participant: Dict[Any, Any], nb_participants: int
+        cls, votes_by_participant: Dict[Any, BaseTxPayload], nb_participants: int
     ) -> bool:
         """
         Return true if a Byzantine majority is achievable, false otherwise.
