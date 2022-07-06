@@ -67,6 +67,9 @@ class RoundA(AbstractRound):
     def process_payload(self, payload: BaseTxPayload) -> None:
         """Process payload."""
 
+    def _check_margin(self) -> None:
+        """Check the validity of threshold margin."""
+
 
 class RoundB(AbstractRound):
     """Round B."""
@@ -82,6 +85,9 @@ class RoundB(AbstractRound):
 
     def process_payload(self, payload: BaseTxPayload) -> None:
         """Process payload."""
+
+    def _check_margin(self) -> None:
+        """Check the validity of threshold margin."""
 
 
 class BehaviourA(BaseBehaviour):
@@ -470,7 +476,7 @@ def test_self_loops_in_abci_app_reinstantiate_behaviour(_: mock._patch) -> None:
 
     round_sequence = RoundSequence(AbciAppTest)
     round_sequence.end_sync()
-    round_sequence.setup(MagicMock(), MagicMock(), MagicMock())
+    round_sequence.setup(MagicMock(), MagicMock(faulty_threshold=1), MagicMock())
     context_mock = MagicMock()
     context_mock.state.round_sequence = round_sequence
     context_mock.params.ipfs_domain_name = None

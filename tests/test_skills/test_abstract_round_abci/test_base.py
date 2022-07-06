@@ -133,6 +133,9 @@ class ConcreteRoundA(AbstractRound):
     round_id = "concrete_a"
     allowed_tx_type = "payload_a"
 
+    def _check_margin(self) -> None:
+        """Check the validity of threshold margin."""
+
     def end_block(self) -> Tuple[MagicMock, MagicMock]:
         """End block."""
         return MagicMock(), MagicMock()
@@ -810,7 +813,7 @@ class TestAbstractRound:
             default_logger, "debug"
         ) as mock_logger:
             MyConcreteRound(
-                MagicMock(), MagicMock(), "previous_transaction"
+                MagicMock(), MagicMock(faulty_threshold=1), "previous_transaction"
             ).check_allowed_tx_type(
                 MagicMock(payload=MagicMock(transaction_type="previous_transaction"))
             )
@@ -836,7 +839,9 @@ class TestAbstractRound:
             TransactionTypeNotRecognizedError,
             match="current round does not allow transactions",
         ):
-            MyConcreteRound(MagicMock(), MagicMock()).check_allowed_tx_type(MagicMock())
+            MyConcreteRound(
+                MagicMock(), MagicMock(faulty_threshold=1)
+            ).check_allowed_tx_type(MagicMock())
 
     def test_synchronized_data_getter(self) -> None:
         """Test 'synchronized_data' property getter."""
@@ -1100,7 +1105,9 @@ class TestAbciApp:
 
     def setup(self) -> None:
         """Set up the test."""
-        self.abci_app = AbciAppTest(MagicMock(), MagicMock(), MagicMock())
+        self.abci_app = AbciAppTest(
+            MagicMock(), MagicMock(faulty_threshold=1), MagicMock()
+        )
 
     def test_initial_round_cls_not_set(self) -> None:
         """Test when 'initial_round_cls' is not set."""

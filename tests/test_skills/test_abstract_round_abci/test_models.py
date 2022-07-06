@@ -252,6 +252,7 @@ class TestSharedState:
                 "safe_contract_address": ["0xsafe"],
                 "oracle_contract_address": ["0xoracle"],
             }
+            mock_params.consensus_params = MagicMock(faulty_threshold=1)
             shared_state.setup()
             assert (
                 shared_state.synchronized_data.db.get_strict("safe_contract_address")
