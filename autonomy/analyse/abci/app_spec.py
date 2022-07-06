@@ -23,7 +23,7 @@ import json
 import logging
 import re
 import sys
-from collections import defaultdict
+from collections import defaultdict, deque
 from itertools import product
 from pathlib import Path
 from typing import Any, Dict, List, OrderedDict, Set, TextIO, Tuple
@@ -220,11 +220,10 @@ class DFA:  # pragma: nocover
             graph[s1].add(s2)
 
         visited: Set[str] = start_states.copy()
-        queue: List[str] = []
-        queue.extend(list(start_states))
+        queue = deque(start_states)
 
         while queue:
-            s = queue.pop(0)
+            s = queue.popleft()
 
             for neighbour in graph[s]:
                 if neighbour not in visited:
