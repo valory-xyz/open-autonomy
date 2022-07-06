@@ -116,6 +116,7 @@ class TestTendermintResetInterrupt(BaseTestEnd2EndExecution):
 
 @pytest.mark.e2e
 @pytest.mark.integration
+@pytest.mark.flaky(reruns=3)
 class TestTendermintResetInterruptNoRejoin(TestTendermintResetInterrupt):
     """
     Test a Tendermint reset case for the ABCI register-reset skill.
