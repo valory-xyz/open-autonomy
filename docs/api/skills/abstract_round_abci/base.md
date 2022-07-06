@@ -1280,7 +1280,7 @@ Preconditions on the input:
 
 ```python
 @classmethod
-def is_majority_possible(cls, votes_by_participant: Dict[Any, Any], nb_participants: int) -> bool
+def is_majority_possible(cls, votes_by_participant: Dict[Any, BaseTxPayload], nb_participants: int) -> bool
 ```
 
 Return true if a Byzantine majority is achievable, false otherwise.
