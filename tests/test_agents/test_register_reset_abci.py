@@ -115,5 +115,5 @@ class TestTendermintResetInterruptNoRejoin(TestTendermintResetInterrupt):
     wait_to_finish = 200
     # set the restart to a value so that the agent never rejoins, in order to test the impact to the rest of the agents
     restart_after = wait_to_finish
-    # check if we manage to reset with Tendermint with the rest of the agents; 3rd agent will not rejoin in this test
-    exclude_from_checks = [3]
+    # check if we manage to reset with Tendermint with the rest of the agents; first agent will not rejoin in this test
+    exclude_from_checks = [0]
