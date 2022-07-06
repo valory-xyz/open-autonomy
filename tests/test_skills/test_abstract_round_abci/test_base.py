@@ -111,7 +111,7 @@ class PayloadC(BasePayload):
 
 
 class PayloadD(BasePayload):
-    """Payload class for payload type 'C'."""
+    """Payload class for payload type 'D'."""
 
     transaction_type = PayloadEnumB.A
 
