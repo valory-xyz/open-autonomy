@@ -58,7 +58,7 @@ class TestSharedState:
     ) -> None:
         """Test setup."""
         shared_state.context.params.setup_params = {"test": []}
-        shared_state.context.params.consensus_params = MagicMock()
+        shared_state.context.params.consensus_params = MagicMock(faulty_threshold=1)
         shared_state.setup()
         assert (
             OracleAbciApp.event_to_timeout[Event.ROUND_TIMEOUT]

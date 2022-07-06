@@ -217,7 +217,7 @@ class TestSharedState:
             abci_app_cls=MagicMock, name="", skill_context=MagicMock()
         )
         shared_state.context.params.setup_params = {"test": []}
-        shared_state.context.params.consensus_params = MagicMock()
+        shared_state.context.params.consensus_params = MagicMock(faulty_threshold=1)
         shared_state.setup()
 
     @mock.patch.object(SharedState, "_process_abci_app_cls")
@@ -237,7 +237,7 @@ class TestSharedState:
             abci_app_cls=AbciAppTest, name="", skill_context=MagicMock()
         )
         shared_state.context.params.setup_params = {"test": []}
-        shared_state.context.params.consensus_params = MagicMock()
+        shared_state.context.params.consensus_params = MagicMock(faulty_threshold=1)
         shared_state.setup()
         shared_state.round_sequence.abci_app._round_results = [MagicMock()]
         shared_state.synchronized_data
