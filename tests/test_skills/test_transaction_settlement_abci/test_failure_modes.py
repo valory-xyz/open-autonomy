@@ -250,6 +250,7 @@ class TransactionSettlementIntegrationBaseCase(
             _gas_price_strategy: Optional[str] = None,
             _extra_config: Optional[Dict] = None,
             old_price: Optional[Dict[str, Wei]] = None,
+            raise_on_try: bool = False,
         ) -> Dict[str, Wei]:
             """Get a dummy gas price."""
             tip = max_priority_fee_per_gas
