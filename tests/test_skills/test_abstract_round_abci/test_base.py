@@ -939,8 +939,7 @@ class TestAbstractRound:
         - the threshold is 2
         - the other voter can vote for the same item of the first voter
         """
-        votes_by_participants = {"alice": DummyPayload("alice", True)}
-        AbstractRound.check_majority_possible(votes_by_participants, 2)
+        AbstractRound.check_majority_possible({"alice": DummyPayload("alice", True)}, 2)
 
     def test_check_majority_possible_passes_when_payload_attributes_majority_match(
         self,
