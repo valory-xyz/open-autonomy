@@ -751,6 +751,33 @@ class TestAbstractRound:
         )
         self.round = ConcreteRoundA(self.base_synchronized_data, self.params)
 
+    def test_check_margin(self) -> None:
+        """Test `_check_margin` method."""
+
+        class MyConcreteRound(AbstractRound):
+            round_id = "test"
+            allowed_tx_type = "test_type"
+
+            def end_block(self) -> Optional[Tuple[BaseSynchronizedData, EventType]]:
+                pass
+
+            def check_payload(self, payload: BaseTxPayload) -> None:
+                pass
+
+            def process_payload(self, payload: BaseTxPayload) -> None:
+                pass
+
+        test_round = MyConcreteRound(
+            MagicMock(), MagicMock(faulty_threshold=1), "previous_transaction"
+        )
+
+        with pytest.raises(
+            ABCIAppInternalError,
+            match="The threshold margin is too large. It should be <= 1, but got 2.",
+        ):
+            test_round._threshold_margin = 2
+            test_round._check_margin()
+
     def test_must_set_round_id(self) -> None:
         """Test that the 'round_id' must be set in concrete classes."""
 
