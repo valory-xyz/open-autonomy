@@ -23,6 +23,7 @@ import json
 import logging
 import re
 import sys
+from collections import defaultdict, deque
 from itertools import product
 from pathlib import Path
 from typing import Any, Dict, List, OrderedDict, Set, TextIO, Tuple
@@ -63,12 +64,13 @@ class DFA:
         transition_func_states = transition_func_in_states.copy()
         transition_func_states.update(transition_func.values())  # type: ignore
 
-        orphan_states = states - (start_states | set(transition_func.values()))
+        reachable_states = DFA._get_reachable_states(start_states, transition_func)
+        unreachable_states = states - reachable_states
 
         error_strings = []
-        if orphan_states:
+        if unreachable_states:
             error_strings.append(
-                f" - DFA spec. contains orphan states: {orphan_states}."
+                f" - DFA spec. contains unreachable states: {unreachable_states}."
             )
         if not transition_func_states.issubset(states):
             error_strings.append(
@@ -204,6 +206,31 @@ class DFA:
             else:
                 dfa_export[k] = v
         return dfa_export
+
+    @classmethod
+    def _get_reachable_states(
+        cls,
+        start_states: Set[str],
+        transition_func: Dict[Tuple[str, str], str],
+    ) -> Set[str]:
+        """Performs a BFS-like search returning the reachable set of states departing from the set of start states."""
+
+        graph: Dict[str, Set[str]] = defaultdict(set)
+        for (s1, _), s2 in transition_func.items():
+            graph[s1].add(s2)
+
+        visited: Set[str] = start_states.copy()
+        queue = deque(start_states)
+
+        while queue:
+            s = queue.popleft()
+
+            for neighbour in graph[s]:
+                if neighbour not in visited:
+                    visited.add(neighbour)
+                    queue.append(neighbour)
+
+        return visited
 
     @classmethod
     def _norep_list_to_set(cls, lst: List[str]) -> Set[str]:

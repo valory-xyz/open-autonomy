@@ -208,9 +208,9 @@ class TendermintNode:
         self._stop_monitoring_thread()
         self._stop_tm_process()
 
-    def prune_blocks(self) -> None:
+    def prune_blocks(self) -> int:
         """Prune blocks from the Tendermint state"""
-        subprocess.call(  # nosec:
+        return subprocess.call(  # nosec:
             ["tendermint", "--home", str(self.params.home), "unsafe-reset-all"]
         )
 

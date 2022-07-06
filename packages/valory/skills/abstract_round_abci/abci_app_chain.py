@@ -18,7 +18,8 @@
 # ------------------------------------------------------------------------------
 
 """This module contains utilities for AbciApps."""
-from typing import Dict, List, Set, Tuple, Type
+import logging
+from typing import Any, Dict, List, Optional, Set, Tuple, Type
 
 from aea.exceptions import enforce
 
@@ -31,7 +32,22 @@ from packages.valory.skills.abstract_round_abci.base import (
 )
 
 
+_default_logger = logging.getLogger(
+    "aea.packages.valory.skills.abstract_round_abci.abci_app_chain"
+)
+
 AbciAppTransitionMapping = Dict[AppState, AppState]
+
+
+def check_set_uniqueness(sets: Tuple) -> Optional[Any]:
+    """Checks that all elements in the set list are unique and not repeated among different sets"""
+    all_elements = set.union(*sets)
+    for element in all_elements:
+        # Count the number of sets that include this element
+        sets_in = [set_ for set_ in sets if element in set_]
+        if len(sets_in) > 1:
+            return element
+    return None
 
 
 def chain(  # pylint: disable=too-many-locals
@@ -49,14 +65,25 @@ def chain(  # pylint: disable=too-many-locals
     )
 
     # Get the apps rounds
-    rounds = (app.get_all_rounds() for app in abci_apps)
+    rounds = tuple(app.get_all_rounds() for app in abci_apps)
+    round_ids = tuple(
+        {round_.round_id for round_ in app.get_all_rounds()} for app in abci_apps
+    )
 
     # Ensure there are no common rounds
-    common_round_classes = set.intersection(*rounds)
+    common_round_classes = check_set_uniqueness(rounds)
     enforce(
-        len(common_round_classes) == 0,
+        not common_round_classes,
         f"rounds in common between abci apps are not allowed ({common_round_classes})",
     )
+
+    # Ensure there are no common round_ids
+    common_round_ids = check_set_uniqueness(round_ids)
+    enforce(
+        not common_round_ids,
+        f"round ids in common between abci apps are not allowed ({common_round_ids})",
+    )
+
     # Ensure all states in app transition mapping (keys and values) are final states or initial states, respectively.
     all_final_states = {
         final_state for app in abci_apps for final_state in app.final_states
@@ -74,6 +101,18 @@ def chain(  # pylint: disable=too-many-locals
                 f"Found non-initial state {value} specified in abci_app_transition_mapping."
             )
 
+    # Warn about events duplicated in multiple apps
+    app_to_events = {app: app.get_all_events() for app in abci_apps}
+    all_events = set.union(*app_to_events.values())
+    for event in all_events:
+        apps = [str(app) for app, events in app_to_events.items() if event in events]
+        if len(apps) > 1:
+            apps_str = "\n".join(apps)
+            _default_logger.warning(
+                f"The same event '{event}' has been found in several apps:\n{apps_str}\nIt will be interpreted as the same event."
+                " If this is not the intented behaviour, please rename it to enforce its uniqueness."
+            )
+
     # Merge the transition functions, final states and events
     new_initial_round_cls = abci_apps[0].initial_round_cls
     potential_final_states = set.union(*(app.final_states for app in abci_apps))
@@ -85,6 +124,7 @@ def chain(  # pylint: disable=too-many-locals
                     f"Event {e} defined in app {app} is defined with timeout {t} but it is already defined in a prior app with timeout {potential_events_to_timeout[e]}."
                 )
             potential_events_to_timeout[e] = t
+
     potential_transition_function: AbciAppTransitionFunction = {}
     for app in abci_apps:
         for state, events_to_rounds in app.transition_function.items():

@@ -92,7 +92,7 @@ from packages.valory.skills.abstract_round_abci.models import (
 
 
 MIN_HEIGHT_OFFSET = 10
-HEIGHT_OFFSET_MULTIPLIER = 0.01
+HEIGHT_OFFSET_MULTIPLIER = 1
 NON_200_RETURN_CODE_DURING_RESET_THRESHOLD = 3
 GENESIS_TIME_FMT = "%Y-%m-%dT%H:%M:%S.%fZ"
 
@@ -1566,7 +1566,8 @@ class BaseBehaviour(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
         # For that reason, we are using an offset in the initial block's height.
         # The bigger the observation interval, the larger the lag among the agents might be.
         # Also, if the observation interval is too tiny, we do not want the offset to be too small.
-        # Therefore, we choose between a minimum value and the interval multiplied by a constant (< 1 suggested).
+        # Therefore, we choose between a minimum value and the interval multiplied by a constant.
+        # The larger the `HEIGHT_OFFSET_MULTIPLIER` constant's value, the larger the margin of error.
         initial_height = str(
             self.context.state.round_sequence.last_round_transition_tm_height
             + max(
@@ -1612,7 +1613,8 @@ class BaseBehaviour(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
                         response.get("is_replay", False)
                     )
                     self.context.state.round_sequence.abci_app.cleanup(
-                        self.params.cleanup_history_depth
+                        self.params.cleanup_history_depth,
+                        self.params.cleanup_history_depth_current,
                     )
 
                     for handler_name in self.context.handlers.__dict__.keys():
