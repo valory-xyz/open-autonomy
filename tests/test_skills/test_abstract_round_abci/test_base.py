@@ -945,8 +945,7 @@ class TestAbstractRound:
         self,
     ) -> None:
         """
-        Check that 'check_majority_possible' passes when set of votes is non-empty
-        and the majority of the attribute values match.
+        Test 'check_majority_possible' when set of votes is non-empty and the majority of the attribute values match.
 
         The check passes because:
         - the threshold is 3 (participants are 4)
