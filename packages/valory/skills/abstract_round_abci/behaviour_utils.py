@@ -99,6 +99,7 @@ GENESIS_TIME_FMT = "%Y-%m-%dT%H:%M:%S.%fZ"
 ROOT_HASH = "726F6F743A3"
 RESET_HASH = "72657365743A3"
 APP_HASH_RE = fr"{ROOT_HASH}\d+{RESET_HASH}(\d+)"
+INITIAL_APP_HASH = ""
 
 
 class SendException(Exception):
@@ -657,7 +658,7 @@ class BaseBehaviour(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
 
         :param app_hash: the app hash from which the state will be updated.
         """
-        if app_hash == "":
+        if app_hash == INITIAL_APP_HASH:
             reset_index = 0
         else:
             match = re.match(APP_HASH_RE, app_hash)
