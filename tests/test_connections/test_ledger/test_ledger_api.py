@@ -384,6 +384,7 @@ class TestLedgerConnection:
         assert response is not None
         assert isinstance(response.message, LedgerApiMessage)
         response_message = cast(LedgerApiMessage, response.message)
+        logging.error(response_message)
         assert (
             response_message.performative
             == LedgerApiMessage.Performative.TRANSACTION_RECEIPT
