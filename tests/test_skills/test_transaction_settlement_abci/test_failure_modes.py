@@ -264,6 +264,7 @@ class TransactionSettlementIntegrationBaseCase(
         return dummy_try_get_gas_pricing
 
 
+@pytest.mark.skip
 @skip_docker_tests
 class TestRepricing(TransactionSettlementIntegrationBaseCase):
     """Test failure modes related to repricing."""
