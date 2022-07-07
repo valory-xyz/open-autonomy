@@ -81,9 +81,6 @@ class SharedState(BaseSharedState):
         OracleAbciApp.event_to_timeout[
             TSEvent.ROUND_TIMEOUT
         ] = self.context.params.round_timeout_seconds
-        OracleAbciApp.event_to_timeout[
-            ResetPauseEvent.ROUND_TIMEOUT
-        ] = self.context.params.round_timeout_seconds
         OracleAbciApp.event_to_timeout[TSEvent.RESET_TIMEOUT] = (
             self.context.params.round_timeout_seconds * MULTIPLIER
         )

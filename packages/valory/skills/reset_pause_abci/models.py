@@ -48,9 +48,6 @@ class SharedState(BaseSharedState):
     def setup(self) -> None:
         """Set up."""
         super().setup()
-        ResetPauseABCIApp.event_to_timeout[
-            Event.ROUND_TIMEOUT
-        ] = self.context.params.round_timeout_seconds
         ResetPauseABCIApp.event_to_timeout[Event.RESET_AND_PAUSE_TIMEOUT] = (
             self.context.params.observation_interval + MARGIN
         )

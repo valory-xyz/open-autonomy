@@ -43,7 +43,6 @@ class Event(Enum):
     """Event enumeration for the reset_pause_abci app."""
 
     DONE = "done"
-    ROUND_TIMEOUT = "round_timeout"
     NEGATIVE = "negative"
     NONE = "none"
     NO_MAJORITY = "no_majority"
@@ -168,6 +167,5 @@ class ResetPauseABCIApp(AbciApp[Event]):
         FinishedResetAndPauseErrorRound,
     }
     event_to_timeout: Dict[Event, float] = {
-        Event.ROUND_TIMEOUT: 30.0,
         Event.RESET_AND_PAUSE_TIMEOUT: 30.0,
     }
