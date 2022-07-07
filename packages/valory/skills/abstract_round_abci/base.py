@@ -1068,7 +1068,8 @@ class AbstractRound(Generic[EventType, TransactionType], ABC):
         """
         try:
             cls.check_majority_possible(votes_by_participant, nb_participants)
-        except ABCIAppException:
+        except ABCIAppException as e:
+            _logger.warning(e)
             return False
         return True
 
