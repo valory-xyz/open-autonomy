@@ -100,3 +100,12 @@ DEFAULT_ENCODING = "utf-8"
 KEY_SCHEMA_ADDRESS = "address"
 KEY_SCHEMA_ENCRYPTED_KEY = "encrypted_key"
 KEY_SCHEMA_UNENCRYPTED_KEY = "private_key"
+
+
+DEFAULT_ABCI_BUILD_DIR = "abci_build"
+PERSISTENT_DATA_DIR = "persistent_data"
+LOG_DIR = "logs"
+TM_STATE_DIR = "tm_state"
+BENCHMARKS_DIR = "benchmarks"
+VENVS_DIR = "venvs"
+AGENT_KEYS_DIR = "agent_keys"

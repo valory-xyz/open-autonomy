@@ -28,6 +28,7 @@ from unittest import mock
 
 import pytest
 
+from autonomy.deploy.constants import TM_STATE_DIR
 from autonomy.replay.agent import AgentRunner
 from autonomy.replay.tendermint import (
     RanOutOfDumpsToReplay,
@@ -95,7 +96,7 @@ def test_tendermint_runner() -> None:
     node_id = 0
 
     with tempfile.TemporaryDirectory() as temp_dir:
-        dump_dir = Path(temp_dir, "dumps")
+        dump_dir = Path(temp_dir, TM_STATE_DIR)
         dump_dir.mkdir()
 
         for p in range(number_of_periods):
@@ -135,7 +136,7 @@ def test_tendermint_network() -> None:
     app, tendermint_network = build_tendermint_apps()
 
     with tempfile.TemporaryDirectory() as temp_dir:
-        dump_dir = Path(temp_dir, "dumps")
+        dump_dir = Path(temp_dir, TM_STATE_DIR)
 
         with pytest.raises(FileNotFoundError, match="Can't find period dumps in"):
             tendermint_network.init(dump_dir=dump_dir)

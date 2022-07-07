@@ -27,6 +27,7 @@ import click
 import yaml
 
 from autonomy.constants import DEFAULT_BUILD_FOLDER
+from autonomy.deploy.constants import PERSISTENT_DATA_DIR, TM_STATE_DIR
 from autonomy.replay.agent import AgentRunner
 from autonomy.replay.tendermint import build_tendermint_apps
 from autonomy.replay.utils import fix_address_books, fix_config_files
@@ -86,7 +87,7 @@ def run_tendermint(build_dir: Path) -> None:
     """Tendermint runner."""
 
     build_dir = Path(build_dir).absolute()
-    dump_dir = build_dir / "persistent_data" / "dumps"
+    dump_dir = build_dir / PERSISTENT_DATA_DIR / TM_STATE_DIR
 
     fix_address_books(build_dir)
     fix_config_files(build_dir)

@@ -23,11 +23,13 @@
 import json
 from pathlib import Path
 
+from autonomy.deploy.constants import PERSISTENT_DATA_DIR, TM_STATE_DIR
+
 
 def fix_address_books(build_dir: Path) -> None:
     """Update address books in data dump to use them in replays."""
     for addr_file in sorted(
-        (build_dir / "persistent_data" / "tm_state").glob("**/addrbook.json")
+        (build_dir / PERSISTENT_DATA_DIR / TM_STATE_DIR).glob("**/addrbook.json")
     ):
         addr_data = json.loads(addr_file.read_text())
         for i in range(len(addr_data["addrs"])):
@@ -42,7 +44,7 @@ def fix_address_books(build_dir: Path) -> None:
 def fix_config_files(build_dir: Path) -> None:
     """Update config.toml in data dump to use them in replays."""
     for config_file in sorted(
-        (build_dir / "persistent_data" / "tm_state").glob("**/config.toml")
+        (build_dir / PERSISTENT_DATA_DIR / TM_STATE_DIR).glob("**/config.toml")
     ):
         config = config_file.read_text()
         config = config.replace("persistent_peers =", "# persistent_peers =")

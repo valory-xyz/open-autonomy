@@ -29,6 +29,11 @@ from unittest import mock
 import flask
 
 from autonomy.cli import cli
+from autonomy.deploy.constants import (
+    DEFAULT_ABCI_BUILD_DIR,
+    PERSISTENT_DATA_DIR,
+    TM_STATE_DIR,
+)
 from autonomy.replay.tendermint import TendermintNetwork
 
 from tests.conftest import ROOT_DIR
@@ -106,14 +111,26 @@ class TestTendermintRunner(BaseCliTest):
         assert result.exit_code == 0, result.output
 
         addrbook_file = (
-            (self.t / "abci_build" / "persistent_data" / "tm_state" / "addrbook.json")
+            (
+                self.t
+                / DEFAULT_ABCI_BUILD_DIR
+                / PERSISTENT_DATA_DIR
+                / TM_STATE_DIR
+                / "addrbook.json"
+            )
             .resolve()
             .absolute()
         )
         addrbook_file.write_text(json.dumps(ADDRBOOK_DATA))
 
         config_toml = (
-            (self.t / "abci_build" / "persistent_data" / "tm_state" / "config.toml")
+            (
+                self.t
+                / DEFAULT_ABCI_BUILD_DIR
+                / PERSISTENT_DATA_DIR
+                / TM_STATE_DIR
+                / "config.toml"
+            )
             .resolve()
             .absolute()
         )
@@ -125,7 +142,7 @@ class TestTendermintRunner(BaseCliTest):
             flask.Flask, "run", new=ctrl_c
         ):
 
-            result = self.run_cli(("--build", str(self.t / "abci_build")))
+            result = self.run_cli(("--build", str(self.t / DEFAULT_ABCI_BUILD_DIR)))
             assert result.exit_code == 0, result.output
             stop_mock.assert_any_call()
 
