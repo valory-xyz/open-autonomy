@@ -18,14 +18,11 @@
 # ------------------------------------------------------------------------------
 
 """Integration tests for the valory/register_reset skill."""
+
 import pytest
 from aea.configurations.data_types import PublicId
 
-from tests.test_agents.base import (
-    BaseTestEnd2EndAgentCatchup,
-    BaseTestEnd2EndNormalExecution,
-    RoundChecks,
-)
+from tests.test_agents.base import BaseTestEnd2EndExecution, RoundChecks
 
 
 HAPPY_PATH = (
@@ -35,8 +32,11 @@ HAPPY_PATH = (
 )
 
 
+@pytest.mark.e2e
+@pytest.mark.integration
+@pytest.mark.flaky(reruns=3)
 @pytest.mark.parametrize("nb_nodes", (4,))
-class TestTendermintStartup(BaseTestEnd2EndNormalExecution):
+class TestTendermintStartup(BaseTestEnd2EndExecution):
     """Test the ABCI register-reset skill with 4 agents starting up."""
 
     agent_package = "valory/register_reset:0.1.0"
@@ -55,8 +55,11 @@ class TestTendermintStartup(BaseTestEnd2EndNormalExecution):
     ]
 
 
+@pytest.mark.e2e
+@pytest.mark.integration
+@pytest.mark.flaky(reruns=3)
 @pytest.mark.parametrize("nb_nodes", (4,))
-class TestTendermintReset(BaseTestEnd2EndNormalExecution):
+class TestTendermintReset(BaseTestEnd2EndExecution):
     """Test the ABCI register-reset skill with 4 agents when resetting Tendermint."""
 
     agent_package = "valory/register_reset:0.1.0"
@@ -78,8 +81,11 @@ class TestTendermintReset(BaseTestEnd2EndNormalExecution):
     ]
 
 
+@pytest.mark.e2e
+@pytest.mark.integration
+@pytest.mark.flaky(reruns=3)
 @pytest.mark.parametrize("nb_nodes", (4,))
-class TestTendermintResetInterrupt(BaseTestEnd2EndAgentCatchup):
+class TestTendermintResetInterrupt(BaseTestEnd2EndExecution):
     """Test the ABCI register-reset skill with 4 agents when an agent gets interrupted on Tendermint reset."""
 
     agent_package = "valory/register_reset:0.1.0"
@@ -105,7 +111,12 @@ class TestTendermintResetInterrupt(BaseTestEnd2EndAgentCatchup):
         },
     ]
 
+    n_terminal = 1
 
+
+@pytest.mark.e2e
+@pytest.mark.integration
+@pytest.mark.flaky(reruns=3)
 class TestTendermintResetInterruptNoRejoin(TestTendermintResetInterrupt):
     """
     Test a Tendermint reset case for the ABCI register-reset skill.
@@ -124,5 +135,5 @@ class TestTendermintResetInterruptNoRejoin(TestTendermintResetInterrupt):
     wait_to_finish = 200
     # set the restart to a value so that the agent never rejoins, in order to test the impact to the rest of the agents
     restart_after = wait_to_finish
-    # check if we manage to reset with Tendermint with the rest of the agents; 3rd agent will not rejoin in this test
-    exclude_from_checks = [3]
+    # check if we manage to reset with Tendermint with the rest of the agents; first agent will not rejoin in this test
+    exclude_from_checks = [0]

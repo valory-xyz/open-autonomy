@@ -72,6 +72,7 @@ class PayloadEnum(Enum):
     A = "A"
     B = "B"
     C = "C"
+    DUMMY = "DUMMY"
 
     def __str__(self) -> str:
         """Get the string representation."""
@@ -111,9 +112,35 @@ class PayloadC(BasePayload):
 
 
 class PayloadD(BasePayload):
-    """Payload class for payload type 'C'."""
+    """Payload class for payload type 'D'."""
 
     transaction_type = PayloadEnumB.A
+
+
+class DummyPayload(BasePayload):
+    """Dummy payload class."""
+
+    transaction_type = PayloadEnum.DUMMY
+
+    def __init__(self, sender: str, dummy_attribute: int, **kwargs: Any) -> None:
+        """Initialize a dummy payload.
+
+        :param sender: the sender address
+        :param dummy_attribute: a dummy attribute
+        :param kwargs: the keyword arguments
+        """
+        super().__init__(sender, **kwargs)
+        self._dummy_attribute = dummy_attribute
+
+    @property
+    def dummy_attribute(self) -> int:
+        """Get the dummy_attribute."""
+        return self._dummy_attribute
+
+    @property
+    def data(self) -> Dict:
+        """Get the data."""
+        return dict(dummy_attribute=self.dummy_attribute)
 
 
 class TooBigPayload(BaseTxPayload, ABC):
@@ -944,7 +971,26 @@ class TestAbstractRound:
         - the threshold is 2
         - the other voter can vote for the same item of the first voter
         """
-        AbstractRound.check_majority_possible({"voter": "item"}, 2)
+        AbstractRound.check_majority_possible({"alice": DummyPayload("alice", True)}, 2)
+
+    def test_check_majority_possible_passes_when_payload_attributes_majority_match(
+        self,
+    ) -> None:
+        """
+        Test 'check_majority_possible' when set of votes is non-empty and the majority of the attribute values match.
+
+        The check passes because:
+        - the threshold is 3 (participants are 4)
+        - 3 voters have the same attribute value in their payload
+        """
+        AbstractRound.check_majority_possible(
+            {
+                "voter_1": DummyPayload("voter_1", 0),
+                "voter_2": DummyPayload("voter_2", 0),
+                "voter_3": DummyPayload("voter_3", 0),
+            },
+            4,
+        )
 
     def test_check_majority_possible_passes_when_vote_set_nonempty_and_check_doesnt_pass(
         self,
@@ -961,17 +1007,27 @@ class TestAbstractRound:
             match="cannot reach quorum=2, number of remaining votes=0, number of most voted item's votes=1",
         ):
             AbstractRound.check_majority_possible(
-                {"voter_1": "item_1", "voter_2": "item_2"}, 2
+                {
+                    "alice": DummyPayload("alice", False),
+                    "bob": DummyPayload("bob", True),
+                },
+                2,
             )
 
     def test_is_majority_possible_positive_case(self) -> None:
         """Test 'is_majority_possible', positive case."""
-        assert AbstractRound.is_majority_possible({"voter": "item"}, 2)
+        assert AbstractRound.is_majority_possible(
+            {"alice": DummyPayload("alice", False)}, 2
+        )
 
     def test_is_majority_possible_negative_case(self) -> None:
         """Test 'is_majority_possible', negative case."""
         assert not AbstractRound.is_majority_possible(
-            {"voter_1": "item_1", "voter_2": "item_2"}, 2
+            {
+                "alice": DummyPayload("alice", False),
+                "bob": DummyPayload("bob", True),
+            },
+            2,
         )
 
     def test_check_majority_possible_raises_error_when_new_voter_already_voted(
@@ -980,7 +1036,10 @@ class TestAbstractRound:
         """Test 'check_majority_possible_with_new_vote' raises when new voter already voted."""
         with pytest.raises(ABCIAppInternalError, match="voter has already voted"):
             AbstractRound.check_majority_possible_with_new_voter(
-                {"voter": "item"}, "voter", "another_item", 2
+                {"alice": DummyPayload("alice", False)},
+                "alice",
+                DummyPayload("alice", True),
+                2,
             )
 
     def test_check_majority_possible_raises_error_when_nb_participants_inconsistent(
@@ -992,7 +1051,10 @@ class TestAbstractRound:
             match="nb_participants not consistent with votes_by_participants",
         ):
             AbstractRound.check_majority_possible_with_new_voter(
-                {"voter_1": "item"}, "voter_2", "another_item", 1
+                {"alice": DummyPayload("alice", True)},
+                "bob",
+                DummyPayload("bob", True),
+                1,
             )
 
     def test_check_majority_possible_when_check_passes(
@@ -1006,7 +1068,7 @@ class TestAbstractRound:
         - the new voter votes for the same item already voted by voter 1.
         """
         AbstractRound.check_majority_possible_with_new_voter(
-            {"voter_1": "item"}, "voter_2", "item", 2
+            {"alice": DummyPayload("alice", True)}, "bob", DummyPayload("bob", True), 2
         )
 
 

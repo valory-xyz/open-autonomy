@@ -20,7 +20,7 @@
 """End2end tests for the valory/hello_world skill."""
 import pytest
 
-from tests.test_agents.base import BaseTestEnd2EndNormalExecution, RoundChecks
+from tests.test_agents.base import BaseTestEnd2EndExecution, RoundChecks
 
 
 HAPPY_PATH = (
@@ -42,7 +42,7 @@ STRICT_CHECK_STRINGS = (
 
 @pytest.mark.parametrize("nb_nodes", (4,))
 class TestHelloWorldABCIFourAgents(
-    BaseTestEnd2EndNormalExecution,
+    BaseTestEnd2EndExecution,
 ):
     """Test the ABCI hello_world skill with four agents."""
 
