@@ -133,7 +133,7 @@ def build_deployment(  # pylint: disable=too-many-arguments
     build_dir = Path(output_dir, "abci_build")
 
     if not packages_dir.is_dir():
-        raise click.ClickException(  # pragma: nocover
+        raise click.ClickException(
             f"Packages directory does not exists @ {packages_dir}"
         )
 
