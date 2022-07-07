@@ -28,8 +28,12 @@ from packages.valory.skills.abstract_round_abci.behaviours import (
     BaseBehaviour,
 )
 from packages.valory.skills.reset_pause_abci.models import Params, SharedState
-from packages.valory.skills.reset_pause_abci.payloads import ResetPausePayload
+from packages.valory.skills.reset_pause_abci.payloads import (
+    GatherPayload,
+    ResetPausePayload,
+)
 from packages.valory.skills.reset_pause_abci.rounds import (
+    GatherRound,
     ResetAndPauseRound,
     ResetPauseABCIApp,
 )
@@ -50,6 +54,26 @@ class ResetAndPauseBaseBehaviour(BaseBehaviour, ABC):
     def params(self) -> Params:
         """Return the params."""
         return cast(Params, self.context.params)
+
+
+class GatherBehaviour(ResetAndPauseBaseBehaviour):
+    """Gather behaviour."""
+
+    matching_round = GatherRound
+    behaviour_id = "gather"
+
+    def async_act(self) -> Generator:
+        """
+        Do the action.
+
+        Steps:
+        - Just vote that we joined for this round
+        """
+        # vote that we just joined
+        payload = GatherPayload(self.context.agent_address, True)
+        yield from self.send_a2a_transaction(payload)
+        yield from self.wait_until_round_end()
+        self.set_done()
 
 
 class ResetAndPauseBehaviour(ResetAndPauseBaseBehaviour):
@@ -93,8 +117,9 @@ class ResetAndPauseBehaviour(ResetAndPauseBaseBehaviour):
 class ResetPauseABCIConsensusBehaviour(AbstractRoundBehaviour):
     """This behaviour manages the consensus stages for the reset_pause_abci app."""
 
-    initial_behaviour_cls = ResetAndPauseBehaviour
+    initial_behaviour_cls = GatherBehaviour
     abci_app_cls = ResetPauseABCIApp  # type: ignore
     behaviours: Set[Type[ResetAndPauseBehaviour]] = {  # type: ignore
+        GatherBehaviour,  # type: ignore
         ResetAndPauseBehaviour,  # type: ignore
     }
