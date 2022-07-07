@@ -62,12 +62,7 @@ class TestFetchCommand(BaseCliTest):
         hashes_file = self.packages_dir / "hashes.csv"
         with open(str(hashes_file), "r") as file:
             content = file.read().strip()
-
         hashes = dict([line.split(",") for line in content.split("\n") if "," in line])  # type: ignore
-
-        if platform.system() == "Windows":
-            return hashes["valory\\services\\counter"]
-
         return hashes["valory/services/counter"]
 
     def test_fetch_service_local(
