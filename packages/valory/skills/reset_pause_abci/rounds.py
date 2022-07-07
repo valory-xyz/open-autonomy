@@ -31,8 +31,12 @@ from packages.valory.skills.abstract_round_abci.base import (
     CollectSameUntilThresholdRound,
     DegenerateRound,
     DynamicMarginMixin,
+    VotingRound,
 )
-from packages.valory.skills.reset_pause_abci.payloads import ResetPausePayload
+from packages.valory.skills.reset_pause_abci.payloads import (
+    GatherPayload,
+    ResetPausePayload,
+)
 
 
 class Event(Enum):
@@ -40,22 +44,41 @@ class Event(Enum):
 
     DONE = "done"
     ROUND_TIMEOUT = "round_timeout"
+    NEGATIVE = "negative"
+    NONE = "none"
     NO_MAJORITY = "no_majority"
     RESET_AND_PAUSE_TIMEOUT = "reset_and_pause_timeout"
 
 
-class ResetAndPauseRound(CollectSameUntilThresholdRound, DynamicMarginMixin):
-    """A round that represents that consensus is reached (the final round)"""
+class GatherRound(VotingRound, DynamicMarginMixin):
+    """
+    A round that has a more strict consensus threshold to gather enough agents to safely reset.
+
+    We use `DynamicMarginMixin` to create a larger threshold margin,
+    in order to make sure that we can afford to lose agents at the next round while resetting.
+    """
+
+    round_id = "gather"
+    allowed_tx_type = GatherPayload.transaction_type
+    payload_attribute = "vote"
+    done_event = Event.DONE
+    negative_event = Event.NEGATIVE
+    none_event = Event.NONE
+    no_majority_event = Event.NO_MAJORITY
+    collection_key = "participant_to_votes"
+
+    def __init__(self, *args: Any, **kwargs: Any):
+        """Initialize a `GatherRound` object."""
+        VotingRound.__init__(self, *args, **kwargs)
+        DynamicMarginMixin.__init__(self)
+
+
+class ResetAndPauseRound(CollectSameUntilThresholdRound):
+    """A round for the reset and pause."""
 
     round_id = "reset_and_pause"
     allowed_tx_type = ResetPausePayload.transaction_type
     payload_attribute = "period_count"
-    _allow_rejoin_payloads = True
-
-    def __init__(self, *args: Any, **kwargs: Any):
-        """Initialize a `ResetAndPauseRound` object."""
-        CollectSameUntilThresholdRound.__init__(self, *args, **kwargs)
-        DynamicMarginMixin.__init__(self)
 
     def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Event]]:
         """Process the end of the block."""
@@ -123,8 +146,15 @@ class ResetPauseABCIApp(AbciApp[Event]):
         reset timeout: 30.0
     """
 
-    initial_round_cls: Type[AbstractRound] = ResetAndPauseRound
+    initial_round_cls: Type[AbstractRound] = GatherRound
     transition_function: AbciAppTransitionFunction = {
+        GatherRound: {
+            Event.DONE: ResetAndPauseRound,
+            Event.NEGATIVE: FinishedResetAndPauseErrorRound,
+            Event.NONE: FinishedResetAndPauseErrorRound,
+            Event.RESET_AND_PAUSE_TIMEOUT: FinishedResetAndPauseErrorRound,
+            Event.NO_MAJORITY: FinishedResetAndPauseErrorRound,
+        },
         ResetAndPauseRound: {
             Event.DONE: FinishedResetAndPauseRound,
             Event.RESET_AND_PAUSE_TIMEOUT: FinishedResetAndPauseErrorRound,
