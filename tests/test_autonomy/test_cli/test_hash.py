@@ -20,7 +20,6 @@
 """Test hash command group."""
 
 
-import platform
 import shutil
 from pathlib import Path
 from typing import Dict, Tuple
@@ -74,11 +73,7 @@ class TestHashAll(BaseCliTest):
         service_config = load_service_config(service_path)
 
         hashes = self.load_hashes()
-
-        if platform.system() == "Windows":
-            key = f"valory\\agents\\{service_name}"
-        else:
-            key = f"valory/agents/{service_name}"
+        key = f"valory/agents/{service_name}"
 
         assert key in hashes, (
             hashes,
