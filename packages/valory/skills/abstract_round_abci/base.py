@@ -1015,7 +1015,7 @@ class AbstractRound(Generic[EventType, TransactionType], ABC):
         divergent preferences among the voters and due to a too small
         number of other participants whose vote has not been delivered yet.
 
-        The check fails iff:
+        The check fails if:
 
             nb_remaining_votes + largest_nb_votes < quorum
 
