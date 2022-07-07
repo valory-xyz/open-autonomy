@@ -31,24 +31,24 @@ Yes, agent services can be composed from other agent services eventually, analog
 </details>
 
 <details><summary>How do services communicate with other services?</summary>
-Services can expose REST APIs and they also have a native message protocol that uses protobuf that allows them to have arbitrary message based communication between compatible agents in the network. This network is called agent communication network (ACN). When a service need a more complicated message flow than request-response (e.g. some extended dialogue like FIPA) they can express it as a protocol and deliver the messages via ACN.</p>
-Under the hood ACN is a DHT that keeps track of live agents mapping their crypto address to IP address. So agents can communicate with other agents without knowing their network location assuming they’re online or offline but registered in the ACN.
+Services can expose REST APIs and they also have a native message protocol that uses protobuf that allows them to have arbitrary message based communication between compatible agents in the network. This network is called agent communication network (ACN). When a service needs a more complicated message flow than request-response (e.g. some extended dialogue like FIPA) they can express it as a protocol and deliver the messages via the ACN.</p>
+Under the hood the ACN is a DHT that keeps track of live agents mapping their crypto address to IP address. So agents can communicate with other agents without knowing their network location assuming they are online or offline but registered in the ACN.
 </details>
 
 <details><summary>What happens when agents are deployed now?</summary>
-Currently we're only operating what we call "island deployments", which are services that run as one-off services, not anchored in the protocol, because the protocol isn't live (more on that here). Once the protocol is live, agents will be able to interact with it so they can monetize their work and connect to other services.
+Currently only the so called "island deployments" are being operated, which are services that run as one-off services, not anchored in the protocol, because the protocol is not live (more on that <a href="https://www.autonolas.network/blog/11">here</a>). Once the protocol is live, agents will be able to interact with it so they can monetize their work and connect to other services.
 </details>
 
-<details><summary>How many composition levels does Autonolas stack offer?</summary>
+<details><summary>How many composition levels does open autonomy offer?</summary>
 Composition starts at the component level of the agents (multiple rounds make a skill), then continues on agent level (multiple skills make an agent) and ends at service level (multiple agents make a service).
 </details>
 
 <details><summary>How do agents settle a transaction?</summary>
 
 <ol>
-<li>Negotiation happens through ACN (or alternatively another connection like ABCI connection).</li>
+<li>Negotiation happens through the ACN or alternatively another connection like the ABCI connection.</li>
 <li> A threshold of agents agree on a transaction hash.</li>
-<li>One of the agents is randomly selected as the keeper using a verifiable randomness function (currently DRAND).</li>
+<li>One of the agents is randomly selected as the keeper using a deterministic function based on a public, verifiable randomness source (currently DRAND).</li>
 <li>All agents sign the transaction using a multi-sig like Gnosis Safe.</li>
 <li>The keeper collects all the signatures and sends the transaction onchain.</li>
 <li>All agents wait for the transaction to be mined and validate the output.</li>
@@ -67,21 +67,21 @@ Autonolas services are composed of multiple agents that run the same code and ag
 As in any other online service, Autonolas nodes are exposed to the risk of being breached. At the individual level, Autonolas does not provide a solution to this and it’s up to the node operator to keep the node safe. At the service level, on the other hand, services are secured in three ways:</p>
 
 <ul>
-<li>Each agent service implements a custom protocol that expects very narrow message flow, so a hypothetical malicious node running malicious code would need to express its intentions within this protocol, otherwise the other agents will ignore its messages.</li>
+<li>Each agent service implements a custom protocol that expects very narrow message flow, so a hypothetical node running malicious code would need to express its intentions within this protocol, otherwise the other agents will ignore its messages.</li>
 
-<li>Even in the case of an agent sending valid, malicious messages to the service, the decentralized nature of Autonolas services means that the majority threshold of agents (⅔ + 1) should agree before committing a malicious transaction, so it is not enough to breach a bunch of nodes.</li>
+<li>Even in the case of an agent sending valid, malicious messages to the service, the decentralized nature of Autonolas services means that the majority threshold of agents (2/3 + 1) should agree before committing a malicious transaction, so it is not enough to breach a bunch of nodes.</li>
 
 <li>Services are crypto-economically secured: agents are incentivised to behave honestly by the fact that certain misbehavior can be detected and punished, so it is economically not profitable to cheat.</li>
 </ul>
 </details>
 
 <details><summary>For critical operations, like sending a transaction to a blockchain, it is not enough with trusting that the agents will behave honestly, and further security and cryptographic mechanisms are required. Does the framework provide those mechanisms?</summary>
-For sending transactions to a chain, for example, we use a multisig approach (currently Gnosis Safe) so a threshold of agents must always approve and validate operations.
+For sending transactions to a chain, for example, a multisig approach is used (currently Gnosis Safe) so that a threshold of agents must always approve and validate operations.
 </details>
 
 ## Costs
 
 <details><summary>How much does it cost to run an autonomous service using the framework?</summary>
-We don’t define what an agent service does and how it is configured (e.g. number of agents in it), so the costs are subjective to the service. At the very minimum you’ll have the infrastructure costs.
-On top of that, if the server you’re participating in sends transactions to a chain, you’ll incur in fee costs that will depend on the selected chain. As an example, for a simple service of four agents that make a simple contract call every five minutes, we estimate a monthly cost of $3000 in Ethereum and $1.5 in Polygon, but this number will wildly vary depending on gas costs.
+We don’t define what an agent service does and how it is configured (e.g. number of agents in it), so the costs are subjective to the service. At the very minimum there will be infrastructure costs.
+On top of that, if a service sends transactions to a chain, it will incur in fee costs that will depend on the selected chain. As an example, for a simple service of four agents that make a simple contract call every five minutes, a monthly cost of $3000 in Ethereum and $1.5 in Polygon is estimated, but this number will wildly vary depending on gas costs.
 </details>
