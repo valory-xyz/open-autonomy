@@ -55,6 +55,6 @@ def check_handlers(
 
         for handler_info in config["handlers"].values():
             if handler_info["class_name"] not in module_attributes:
-                raise ValueError(  # pragma: nocover
+                raise ValueError(
                     f"Handler {handler_info['class_name']} declared in {config_file} is missing from {handler_file_path}"
                 )

@@ -96,7 +96,7 @@ def run_tendermint(build_dir: Path) -> None:
 
     try:
         tendermint_network.init(dump_dir)
-    except FileNotFoundError as e:  # pragma: nocover
+    except FileNotFoundError as e:
         raise click.ClickException(str(e)) from e
 
     try:

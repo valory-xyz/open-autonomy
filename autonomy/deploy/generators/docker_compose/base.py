@@ -143,9 +143,7 @@ class DockerComposeGenerator(BaseDeploymentGenerator):
                 break
             print(f"[Tendermint] {line.strip()}")
 
-        if (
-            "Unable to find image" in cast(IO[str], process.stderr).read()
-        ):  # pragma: nocover
+        if "Unable to find image" in cast(IO[str], process.stderr).read():
             raise RuntimeError(
                 f"Cannot find {TENDERMINT_IMAGE_NAME}:{image_version}, Please build images first."
             )

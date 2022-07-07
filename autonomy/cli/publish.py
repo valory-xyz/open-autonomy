@@ -70,7 +70,7 @@ def publish(
             click_context.obj.cwd, DEFAULT_AEA_CONFIG_FILE
         ).exists():  # pragma: nocover
             publish_agent_package(click_context, registry, push_missing)
-        else:  # pragma: nocover
+        else:
             raise FileNotFoundError("No package config found in this directory.")
     except Exception as e:  # pylint: disable=broad-except  # pragma: nocover
         raise click.ClickException(str(e)) from e
@@ -85,7 +85,7 @@ def publish_service_package(click_context: click.Context, registry: str) -> None
     if registry == REGISTRY_REMOTE:
         if get_default_remote_registry() == REMOTE_IPFS:
             publish_service_ipfs(service_config.public_id, Path(click_context.obj.cwd))
-        else:  # pragma: nocover
+        else:
             raise Exception("HTTP registry not supported.")
 
     else:

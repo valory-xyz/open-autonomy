@@ -77,7 +77,7 @@ def parse_file(  # pylint: disable=too-many-locals
                 continue
 
             m = re.match(ERROR_REGEX, line, re.DOTALL)
-            if m:  # pragma: nocover
+            if m:
                 errors.append(m.groupdict())
                 continue
 

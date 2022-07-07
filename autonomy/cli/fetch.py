@@ -107,7 +107,7 @@ def fetch_service(ctx: Context, public_id: PublicId) -> None:
 def fetch_service_ipfs(public_id: PublicId) -> None:
     """Fetch service from IPFS node."""
 
-    if not IS_IPFS_PLUGIN_INSTALLED:  # pragma: nocover
+    if not IS_IPFS_PLUGIN_INSTALLED:
         raise RuntimeError("IPFS plugin not installed.")
 
     with tempfile.TemporaryDirectory() as temp_dir:

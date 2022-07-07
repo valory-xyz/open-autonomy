@@ -145,7 +145,7 @@ def docstrings(packages_dir: Path, check: bool) -> None:
             click.echo(f"\nUpdated following files.\n\n{file_string}")
         else:
             click.echo("No update needed.")
-    except Exception as e:  # pylint: disable=broad-except  # pragma: nocover
+    except Exception as e:  # pylint: disable=broad-except
         raise click.ClickException(str(e)) from e
 
 
@@ -156,7 +156,7 @@ def parse_logs(file: Path) -> None:
 
     try:
         parse_file(str(file))
-    except Exception as e:  # pylint: disable=broad-except  # pragma: nocover
+    except Exception as e:  # pylint: disable=broad-except
         raise click.ClickException(str(e)) from e
 
 
@@ -189,7 +189,7 @@ def run_handler_check(packages_dir: Path, skip: str, common: str) -> None:
         for yaml_file in sorted(packages_dir.glob("**/skill.yaml")):
             click.echo(f"Checking {yaml_file.parent}")
             check_handlers(yaml_file.resolve(), common_handlers, skip_skills)
-    except Exception as e:  # pylint: disable=broad-except  # pragma: nocover
+    except Exception as e:  # pylint: disable=broad-except
         raise click.ClickException(str(e)) from e
 
 
@@ -225,5 +225,5 @@ def benchmark(path: Path, block_type: str, period: int, output: Optional[Path]) 
 
     try:
         aggregate(path=path, block_type=block_type, period=period, output=output)
-    except Exception as e:  # pylint: disable=broad-except  # pragma: nocover
+    except Exception as e:  # pylint: disable=broad-except
         raise click.ClickException(str(e)) from e
