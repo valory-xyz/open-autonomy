@@ -20,9 +20,9 @@ connections: []
 contracts:
 - valory/offchain_aggregator:0.1.0:Qmaftfci6asBewVH3vKGtMJVcAdG71Vm6Qv493uRkT7b2h
 protocols:
-- valory/contract_api:1.0.0:QmZRa6S342MT1oSQjLoyEDitjK6nivypC78DKipvg9JpF1
+- valory/contract_api:1.0.0:QmSEGC6Evk5sKZMvoWuxAFbXgfivWa8YWCTSQt4vMqewPU
 skills:
-- valory/abstract_round_abci:0.1.0:QmeF3f6cZKiHi9UkqCRu6fWiDUyAWiR2fwE6TxbWGNbPo7
+- valory/abstract_round_abci:0.1.0:QmYVwd869c7gtUVp7EdzXC3ScAUg4BK79AtPK4Kv7F9n81
 behaviours:
   main:
     args: {}
