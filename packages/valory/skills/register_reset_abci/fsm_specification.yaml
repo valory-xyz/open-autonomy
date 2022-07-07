@@ -1,6 +1,8 @@
 alphabet_in:
 - DONE
 - FAST_FORWARD
+- NEGATIVE
+- NONE
 - NO_MAJORITY
 - RESET_AND_PAUSE_TIMEOUT
 default_start_state: RegistrationStartupRound
@@ -9,14 +11,20 @@ label: packages.valory.skills.register_reset_abci.composition.RegisterResetAbciA
 start_states:
 - RegistrationStartupRound
 states:
+- GatherRound
 - RegistrationRound
 - RegistrationStartupRound
 - ResetAndPauseRound
 transition_func:
-    (RegistrationRound, DONE): ResetAndPauseRound
+    (GatherRound, DONE): ResetAndPauseRound
+    (GatherRound, NEGATIVE): RegistrationRound
+    (GatherRound, NONE): RegistrationRound
+    (GatherRound, NO_MAJORITY): RegistrationRound
+    (GatherRound, RESET_AND_PAUSE_TIMEOUT): RegistrationRound
+    (RegistrationRound, DONE): GatherRound
     (RegistrationRound, NO_MAJORITY): RegistrationRound
-    (RegistrationStartupRound, DONE): ResetAndPauseRound
-    (RegistrationStartupRound, FAST_FORWARD): ResetAndPauseRound
+    (RegistrationStartupRound, DONE): GatherRound
+    (RegistrationStartupRound, FAST_FORWARD): GatherRound
     (ResetAndPauseRound, DONE): RegistrationRound
     (ResetAndPauseRound, NO_MAJORITY): RegistrationRound
     (ResetAndPauseRound, RESET_AND_PAUSE_TIMEOUT): RegistrationRound

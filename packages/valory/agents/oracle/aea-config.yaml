@@ -28,11 +28,11 @@ protocols:
 skills:
 - valory/abstract_abci:0.1.0:QmYma8AcAS21bariyod7DfhDn1LgnC8ZyFg732BRXtybJP
 - valory/abstract_round_abci:0.1.0:QmZmxLRCEH45TGnqywwAucXmikCmC8Zm2js2djYHZrvFjc
-- valory/oracle_abci:0.1.0:QmfLrxeUjVbCx3oansZ8ahjPmMZ2sZqrc9GsWsMSYDkB8J
+- valory/oracle_abci:0.1.0:QmPexmRiLheUBdGLCkoKxwJyzm2cnCjMYeg6nAVEvjrCkZ
 - valory/oracle_deployment_abci:0.1.0:QmWh1S5R8LG5fFTvyFu7HtfhEPnSD7V8RtCAJD9digzDCq
 - valory/price_estimation_abci:0.1.0:QmUaoR5XNtXdSqfA2ET8fRfhQBZH1BjZ2kMq5u9kmH1NMM
 - valory/registration_abci:0.1.0:QmUCsLuG4gyw2B4bsboLUsawSQGLQ4RXSM7n5qzN7AiXUm
-- valory/reset_pause_abci:0.1.0:QmfFWEVMh4cyyZZBk2uAJ2qZQgM9GmKxAgNLkgx56Cc4aF
+- valory/reset_pause_abci:0.1.0:QmZGW7ws4V9S6zg82Tr31LzqkoX53gBTYBs5kR2Z43doUL
 - valory/safe_deployment_abci:0.1.0:QmYuCZG3htHi5LmpfM21cU2zVVMo2mkkXAxDiMx4AFPDvy
 - valory/transaction_settlement_abci:0.1.0:QmVQoHQTk1HB1aPgFLPkRKrNUxJxd8t89LJrjZpeCfD9zj
 default_ledger: ethereum

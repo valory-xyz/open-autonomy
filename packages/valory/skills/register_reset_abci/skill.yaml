@@ -9,9 +9,9 @@ fingerprint:
   README.md: QmT7TN1DvhK4LtLzv2gSQphVJCsy49b11hRU8ixiiYtHrf
   __init__.py: QmSMjibxQMuERB6uqnESRS8CvQ3eXSmgT5Fphw3UTUKSsc
   behaviours.py: QmTNnYtjUtkbQXpDAHnX5euADJVgSoKi5WQU7HciUxJ7Sj
-  composition.py: QmTcQBRHCewD1sminS7mMYrjmRojr1ZyPeWApQkXtMcvFv
+  composition.py: QmaD9PwUS8hPEomDFNpXGAHJgF8q6ZSbKvtp7nR2gF6rpw
   dialogues.py: QmfDThV4WCRzK88XDpW2hKDYCuEH4RxoHCoAkWpkBRGRPv
-  fsm_specification.yaml: QmaXJwYJBzUdBGrzUnsdfhZuAqdxUMyUF2596b26okbRuD
+  fsm_specification.yaml: QmXXVRiWnKLxd7wQmiC8mFXiCkeMBm85ZuTrZnkhaEcPtn
   handlers.py: QmcoDzDjuti6EXjGtwYVzKnbkMnX1vfrofvnyuM8by6iPx
   models.py: QmXcR7nM9nJyj6UtqTpmFfoULjd3QsCKWmHDacHDi6hbsi
 fingerprint_ignore_patterns: []
@@ -26,7 +26,7 @@ protocols:
 skills:
 - valory/abstract_round_abci:0.1.0:QmZmxLRCEH45TGnqywwAucXmikCmC8Zm2js2djYHZrvFjc
 - valory/registration_abci:0.1.0:QmUCsLuG4gyw2B4bsboLUsawSQGLQ4RXSM7n5qzN7AiXUm
-- valory/reset_pause_abci:0.1.0:QmfFWEVMh4cyyZZBk2uAJ2qZQgM9GmKxAgNLkgx56Cc4aF
+- valory/reset_pause_abci:0.1.0:QmZGW7ws4V9S6zg82Tr31LzqkoX53gBTYBs5kR2Z43doUL
 behaviours:
   main:
     args: {}

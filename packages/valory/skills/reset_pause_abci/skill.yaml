@@ -8,13 +8,13 @@ aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
   README.md: Qmcvjeds5EyiUvea61GNy8YE4rYzvMDh79GJMhBz3NK7Q5
   __init__.py: QmUFuoq77B1FjZSeHGAyW8AgJnGNh9Z1amEGK7UTH8iP7J
-  behaviours.py: QmUwLjNDfcytJc4AGHhpAUcLZkfRvNfcztVDqWBA3tyY8A
+  behaviours.py: QmXmuof2mKWynnrgkD1DH53egZ8MQ9gy4bPhU7cex4Pk9P
   dialogues.py: Qmd54DnNEsybMJb78HTcW2HABVBZCL1FuQL8ELKq3xB6Jw
-  fsm_specification.yaml: QmNqaU5EuBQfJ9MstwNoHP4BU1uW6jMMHf7XPYsxdEcaWZ
+  fsm_specification.yaml: QmXvvNBkVmdrCP7eAP2sjdzuTjPdqJr1QxrhzJXhGxkcbd
   handlers.py: QmeMA4MKs9ZPnrZczGDg59HhKxWGShj5fK6rS9UQV6BbCh
-  models.py: QmPegRgrqVr6fMECoYCd3k7VDKdndBNMTuiPVrGTM9SW3o
-  payloads.py: QmSds2L9BKR4157xqGgH22dG8ojq6hc1BG2JH9NgzhxgVp
-  rounds.py: QmTuaGciXMQTVYmeDSJ4QWtMqsH88A3mf7GbRYwTTMNLFe
+  models.py: Qmdi9Y5RPvCWo8Ajckbfxt4sEYVceS4x7WoVv7WNEUVWDm
+  payloads.py: QmY5TVY82gZrotb8smABd3beVpiAxiEaZKCKvik726DKRr
+  rounds.py: QmYSoD5teWtxy4D8doxjv7RdZs6GhmNZGQhpR9ppKLbNe6
 fingerprint_ignore_patterns: []
 connections:
 - valory/abci:0.1.0:Qme6c15aYEcGog9PCDBydJ65rHmV335qgjDZhcTFEEFyKD

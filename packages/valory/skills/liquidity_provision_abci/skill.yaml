@@ -10,9 +10,9 @@ fingerprint:
   README.md: QmR5sLQeLggNn5gZ1kDWrqpkz5NzMdUZuWNkaQDpaMC85C
   __init__.py: QmNuC15NDuuzyfhdpYLpoVajvPGXN3EKR9GdBHDdM1mzgM
   behaviours.py: QmX3UPYYFNB2UTT8zFiMchAA6Ejjpzp7xjEVeLaMNXSbzH
-  composition.py: QmXdsJZJJPba243WZ2jcoiJz4vFuw5ujFUXuEjoTkxY81H
+  composition.py: QmUS5mkfetx5jXLj7S5fy7P4GXGd6bneDkgw1eEgUur9Sn
   dialogues.py: QmfDThV4WCRzK88XDpW2hKDYCuEH4RxoHCoAkWpkBRGRPv
-  fsm_specification.yaml: QmPCSHySLcTURs7dHcYpiCc6B6w7pfkc8JLJ77axvmhNFX
+  fsm_specification.yaml: QmYFoq1KuMdfrC9N9oQZZdYJVhYDHvuer51MZYRRRz4vr6
   handlers.py: QmSgRDTrSrp2yeQkEirxh7p9mNKnRnjAqZWqvn1TEPB5bn
   models.py: Qmdb5Dve5jFq5UvYLALfXeXSxrQa3tifYWeTjo6iSqttmJ
 fingerprint_ignore_patterns: []
@@ -35,7 +35,7 @@ skills:
 - valory/abstract_round_abci:0.1.0:QmZmxLRCEH45TGnqywwAucXmikCmC8Zm2js2djYHZrvFjc
 - valory/liquidity_rebalancing_abci:0.1.0:QmahiwupQHabv2HL7mWVYUFRPrWtst4urDqx4a3JSuVC6d
 - valory/registration_abci:0.1.0:QmUCsLuG4gyw2B4bsboLUsawSQGLQ4RXSM7n5qzN7AiXUm
-- valory/reset_pause_abci:0.1.0:QmfFWEVMh4cyyZZBk2uAJ2qZQgM9GmKxAgNLkgx56Cc4aF
+- valory/reset_pause_abci:0.1.0:QmZGW7ws4V9S6zg82Tr31LzqkoX53gBTYBs5kR2Z43doUL
 - valory/safe_deployment_abci:0.1.0:QmYuCZG3htHi5LmpfM21cU2zVVMo2mkkXAxDiMx4AFPDvy
 - valory/transaction_settlement_abci:0.1.0:QmVQoHQTk1HB1aPgFLPkRKrNUxJxd8t89LJrjZpeCfD9zj
 behaviours:
