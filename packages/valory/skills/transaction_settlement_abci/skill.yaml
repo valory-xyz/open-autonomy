@@ -15,7 +15,7 @@ fingerprint:
   models.py: QmTRz2RdzomkGpHYud3zKc31rLBzcFyUc2b2GwMoFShN8V
   payload_tools.py: QmZdccbHqYawRVZnFaY1FZWJZKHhsVmSxipPgghGNmhmh5
   payloads.py: QmRYqBh9fDEXP4GxwjbNtGwHqaYmDUx5zBsWZxW6fhWwQp
-  rounds.py: QmQPFkXt8F4WJLkEeUiN86L8DByfPc8gWY7GA5hcrnDHkP
+  rounds.py: QmUKjcwJK1d9Fg8R7KTaTfPJMKfvY2zgpWx7CBsTyCajYr
 fingerprint_ignore_patterns: []
 connections: []
 contracts:
@@ -24,7 +24,7 @@ contracts:
 protocols:
 - valory/contract_api:1.0.0:QmSEGC6Evk5sKZMvoWuxAFbXgfivWa8YWCTSQt4vMqewPU
 skills:
-- valory/abstract_round_abci:0.1.0:QmYVwd869c7gtUVp7EdzXC3ScAUg4BK79AtPK4Kv7F9n81
+- valory/abstract_round_abci:0.1.0:QmWUhhrYt4FFXveeqPyUHqjKns6ZXsYaegufBHCsPpKSLN
 behaviours:
   main:
     args: {}
