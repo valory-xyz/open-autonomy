@@ -23,7 +23,7 @@ import pytest
 from aea.configurations.data_types import PublicId
 
 from tests.fixture_helpers import UseGnosisSafeHardHatNet
-from tests.test_agents.base import BaseTestEnd2EndNormalExecution, RoundChecks
+from tests.test_agents.base import BaseTestEnd2EndExecution, RoundChecks
 
 
 ipfs_daemon = pytest.mark.usefixtures("ipfs_daemon")
@@ -46,7 +46,7 @@ HAPPY_PATH = (
 
 
 @ipfs_daemon
-class BaseTestABCIAPYEstimationSkillNormalExecution(BaseTestEnd2EndNormalExecution):
+class BaseTestABCIAPYEstimationSkillNormalExecution(BaseTestEnd2EndExecution):
     """Base class for the APY estimation e2e tests."""
 
     agent_package = "valory/apy_estimation_chained:0.1.0"
