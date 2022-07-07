@@ -125,13 +125,6 @@ class TestTendermintResetInterruptNoRejoin(TestTendermintResetInterrupt):
     on Tendermint reset and never rejoins.
     """
 
-    # the reset and pause round has a threshold which does not allow less than 4/4 agents to restart
-    happy_path = (
-        RoundChecks("registration_startup"),
-        RoundChecks("registration", n_periods=3),
-        # here, we test that 3/4 agents end up returning a `NO_MAJORITY` event.
-        RoundChecks("reset_and_pause", success_event="NO_MAJORITY", n_periods=4),
-    )
     wait_to_finish = 200
     # set the restart to a value so that the agent never rejoins, in order to test the impact to the rest of the agents
     restart_after = wait_to_finish
