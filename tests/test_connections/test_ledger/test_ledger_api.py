@@ -363,7 +363,7 @@ class TestLedgerConnection:
             response_message.transaction_digest.ledger_id
             == request.signed_transaction.ledger_id
         )
-
+        await asyncio.sleep(0.01)
         # Create new dialogue starting with GET_TRANSACTION_RECEIPT
         request, ledger_api_dialogue = ledger_api_dialogues.create(
             counterparty=str(ledger_apis_connection.connection_id),
@@ -384,7 +384,6 @@ class TestLedgerConnection:
         assert response is not None
         assert isinstance(response.message, LedgerApiMessage)
         response_message = cast(LedgerApiMessage, response.message)
-        logging.error(response_message)
         assert (
             response_message.performative
             == LedgerApiMessage.Performative.TRANSACTION_RECEIPT
