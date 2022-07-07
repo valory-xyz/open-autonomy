@@ -1867,6 +1867,11 @@ class AbciApp(
         """Return the reset index."""
         return self._reset_index
 
+    @reset_index.setter
+    def reset_index(self, reset_index: int) -> None:
+        """Set the reset index."""
+        self._reset_index = reset_index
+
     @classmethod
     def get_all_rounds(cls) -> Set[AppState]:
         """Get all the round states."""
