@@ -10,7 +10,7 @@ fingerprint_ignore_patterns: []
 connections:
 - valory/abci:0.1.0:Qme6c15aYEcGog9PCDBydJ65rHmV335qgjDZhcTFEEFyKD
 - valory/http_client:0.1.0:QmY3F1DePHgeNuqab8M3cYRv5hkNqwsowroD8TK3WKK3BD
-- valory/ledger:0.1.0:QmXUSkS3yXeHFCQzzUVXTAvTyVMaSb2NNtqYrCt98SKhpg
+- valory/ledger:0.1.0:QmejprDJ82fUfT9AAQJy3wmmCwvmBbt3WLvvzqUYi13tCL
 - valory/p2p_libp2p_client:0.1.0:QmSXmKVMKAukJtnWjAUX9Ans7pzei6m4B6DEPqQepg2YdV
 contracts: []
 protocols:
@@ -19,10 +19,10 @@ protocols:
 - valory/http:1.0.0:QmWPo9ud4d7A2nVtk8yy8eQV7awmtTkGjnZFzocCTqx5qr
 skills:
 - valory/abstract_abci:0.1.0:QmPMG9ZaXBxnU1puCMz66xwRYemdYgswrY38LyGssKVgRv
-- valory/abstract_round_abci:0.1.0:QmPr3HBEp8dVXXXg9Fvij4zEh2ubFhtQ3CdTV6m2P3uQ8W
-- valory/register_reset_abci:0.1.0:QmUkd93AUbphanRgquyDU7voFT8kER8Z8MRojN1DTGN18a
-- valory/registration_abci:0.1.0:QmSWWcXwoDorNR9SEC6reWxipNjUkUPNAxQxLBohbmuMbt
-- valory/reset_pause_abci:0.1.0:QmfLZECXKvuRKo1cHGUW7JTY1gvnoWEN6pUP4GAxBC6Hp1
+- valory/abstract_round_abci:0.1.0:QmYvHTTShLet9TbWxpCFh5T9aam4AZzxJscyvLkjVSQayG
+- valory/register_reset_abci:0.1.0:QmRHX9Z9wiWPsJP9JVwTJFVZhor1BD1gojjgFPiXV5tRZv
+- valory/registration_abci:0.1.0:Qmcc4RxzqZqzhteh5P7CNBSuNiuJ7QTPmrp99cEYw7TAvU
+- valory/reset_pause_abci:0.1.0:QmYgUJxv7Qhy7UaGeQTM2h1JUnKQ411SgefNk3hec3L8bn
 default_ledger: ethereum
 required_ledgers:
 - ethereum

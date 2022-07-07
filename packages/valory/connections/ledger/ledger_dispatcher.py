@@ -122,7 +122,11 @@ class LedgerApiRequestDispatcher(RequestDispatcher):
         :param dialogue: the Ledger API dialogue
         :return: response Ledger API message
         """
-        balance = api.get_balance(message.address, raise_on_try=True)
+        try:
+            balance = api.get_balance(message.address, raise_on_try=True)
+        except Exception as e:  # pylint: disable=broad-except  # pragma: nocover
+            return self.get_error_message(e, api, message, dialogue)
+
         if balance is None:
             response = self.get_error_message(
                 ValueError("No balance returned"), api, message, dialogue
@@ -153,12 +157,16 @@ class LedgerApiRequestDispatcher(RequestDispatcher):
         :param dialogue: the Ledger API dialogue
         :return: response Ledger API message
         """
-        result = api.get_state(
-            message.callable,
-            *message.args,
-            raise_on_try=True,
-            **message.kwargs.body,
-        )
+        try:
+            result = api.get_state(
+                message.callable,
+                *message.args,
+                raise_on_try=True,
+                **message.kwargs.body,
+            )
+        except Exception as e:  # pylint: disable=broad-except  # pragma: nocover
+            return self.get_error_message(e, api, message, dialogue)
+
         if result is None:  # pragma: nocover
             response = self.get_error_message(
                 ValueError("Failed to get state"), api, message, dialogue
@@ -189,15 +197,19 @@ class LedgerApiRequestDispatcher(RequestDispatcher):
         :param dialogue: the Ledger API dialogue
         :return: response Ledger API message
         """
-        raw_transaction = api.get_transfer_transaction(
-            sender_address=message.terms.sender_address,
-            destination_address=message.terms.counterparty_address,
-            amount=message.terms.sender_payable_amount,
-            tx_fee=message.terms.fee,
-            tx_nonce=message.terms.nonce,
-            raise_on_try=True,
-            **message.terms.kwargs,
-        )
+        try:
+            raw_transaction = api.get_transfer_transaction(
+                sender_address=message.terms.sender_address,
+                destination_address=message.terms.counterparty_address,
+                amount=message.terms.sender_payable_amount,
+                tx_fee=message.terms.fee,
+                tx_nonce=message.terms.nonce,
+                raise_on_try=True,
+                **message.terms.kwargs,
+            )
+        except Exception as e:  # pylint: disable=broad-except  # pragma: nocover
+            return self.get_error_message(e, api, message, dialogue)
+
         if raw_transaction is None:
             response = self.get_error_message(
                 ValueError("No raw transaction returned"), api, message, dialogue
@@ -247,28 +259,41 @@ class LedgerApiRequestDispatcher(RequestDispatcher):
             and attempts < retry_attempts
             and self.connection_state.get() == ConnectionStates.connected
         ):
-            transaction_receipt = api.get_transaction_receipt(
-                message.transaction_digest.body,
-                raise_on_try=True,
-            )
+            try:
+                transaction_receipt = api.get_transaction_receipt(
+                    message.transaction_digest.body,
+                    raise_on_try=True,
+                )
+            except Exception as e:  # pylint: disable=broad-except  # pragma: nocover
+                return self.get_error_message(e, api, message, dialogue)
+
             if transaction_receipt is not None:
                 is_settled = api.is_transaction_settled(transaction_receipt)
             attempts += 1
             time.sleep(retry_timeout * attempts)
         attempts = 0
-        transaction = api.get_transaction(
-            message.transaction_digest.body, raise_on_try=True
-        )
+        try:
+            transaction = api.get_transaction(
+                message.transaction_digest.body, raise_on_try=True
+            )
+        except Exception as e:  # pylint: disable=broad-except  # pragma: nocover
+            return self.get_error_message(e, api, message, dialogue)
+
         while (
             transaction is None
             and attempts < retry_attempts
             and self.connection_state.get() == ConnectionStates.connected
         ):
-            transaction = api.get_transaction(
-                message.transaction_digest.body, raise_on_try=True
-            )
+            try:
+                transaction = api.get_transaction(
+                    message.transaction_digest.body, raise_on_try=True
+                )
+            except Exception as e:  # pylint: disable=broad-except  # pragma: nocover
+                return self.get_error_message(e, api, message, dialogue)
+
             attempts += 1
             time.sleep(retry_timeout * attempts)
+
         if not is_settled:  # pragma: nocover
             response = self.get_error_message(
                 ValueError("Transaction not settled within timeout"),
