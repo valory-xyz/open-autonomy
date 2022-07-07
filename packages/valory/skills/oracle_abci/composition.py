@@ -42,7 +42,7 @@ from packages.valory.skills.registration_abci.rounds import (
 from packages.valory.skills.reset_pause_abci.rounds import (
     FinishedResetAndPauseErrorRound,
     FinishedResetAndPauseRound,
-    ResetAndPauseRound,
+    GatherRound,
     ResetPauseABCIApp,
 )
 from packages.valory.skills.safe_deployment_abci.rounds import (
@@ -64,8 +64,8 @@ abci_app_transition_mapping: AbciAppTransitionMapping = {
     FinishedOracleRound: CollectObservationRound,
     FinishedRegistrationFFWRound: CollectObservationRound,
     FinishedPriceAggregationRound: RandomnessTransactionSubmissionRound,
-    FailedRound: ResetAndPauseRound,
-    FinishedTransactionSubmissionRound: ResetAndPauseRound,
+    FailedRound: GatherRound,
+    FinishedTransactionSubmissionRound: GatherRound,
     FinishedResetAndPauseRound: CollectObservationRound,
     FinishedResetAndPauseErrorRound: RegistrationRound,
 }
