@@ -174,7 +174,7 @@ def generate_all(
 @hash_group.command(name="one")
 @click.argument("path", type=click.Path(exists=True, file_okay=True, dir_okay=True))
 @click.option("--no-wrap", is_flag=True)
-def hash_file(path: str, no_wrap: bool) -> None:  # pragma: nocover
+def hash_file(path: str, no_wrap: bool) -> None:
     """Hash a single file/directory."""
 
     click.echo(f"Path : {path}")

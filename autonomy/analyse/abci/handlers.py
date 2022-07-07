@@ -42,7 +42,7 @@ def check_handlers(
     try:
         module = importlib.import_module(module_name)
         module_attributes = dir(module)
-    except ModuleNotFoundError as exc:  # pragma: nocover
+    except ModuleNotFoundError as exc:
         raise FileNotFoundError(f"Handler file {module_name} does not exist") from exc
 
     with open(str(config_file), mode="r", encoding="utf-8") as fp:
