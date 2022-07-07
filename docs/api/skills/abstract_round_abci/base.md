@@ -1219,7 +1219,7 @@ Check the transaction is of the allowed transaction type.
 
 ```python
 @classmethod
-def check_majority_possible_with_new_voter(cls, votes_by_participant: Dict[Any, Any], new_voter: Any, new_vote: Any, nb_participants: int, exception_cls: Type[ABCIAppException] = ABCIAppException) -> None
+def check_majority_possible_with_new_voter(cls, votes_by_participant: Dict[str, BaseTxPayload], new_voter: str, new_vote: BaseTxPayload, nb_participants: int, exception_cls: Type[ABCIAppException] = ABCIAppException) -> None
 ```
 
 Check that a Byzantine majority is achievable, once a new vote is added.
@@ -1241,7 +1241,7 @@ Check that a Byzantine majority is achievable, once a new vote is added.
 
 ```python
 @classmethod
-def check_majority_possible(cls, votes_by_participant: Dict[Any, Any], nb_participants: int, exception_cls: Type[ABCIAppException] = ABCIAppException) -> None
+def check_majority_possible(cls, votes_by_participant: Dict[str, BaseTxPayload], nb_participants: int, exception_cls: Type[ABCIAppException] = ABCIAppException) -> None
 ```
 
 Check that a Byzantine majority is still achievable.
@@ -1280,7 +1280,7 @@ Preconditions on the input:
 
 ```python
 @classmethod
-def is_majority_possible(cls, votes_by_participant: Dict[Any, Any], nb_participants: int) -> bool
+def is_majority_possible(cls, votes_by_participant: Dict[str, BaseTxPayload], nb_participants: int) -> bool
 ```
 
 Return true if a Byzantine majority is achievable, false otherwise.
