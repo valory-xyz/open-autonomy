@@ -115,8 +115,9 @@ class TestDocstrings(BaseCliTest):
         expcted_output = self._get_expected_output()
         expcted_output += (
             "Error: Following files needs updating.\n"
-            "\n"
-            "packages/valory/skills/hello_world_abci/rounds.py\n"
+            + "\n"
+            + str(Path("packages", "valory", "skills", "hello_world_abci", "rounds.py"))
+            + "\n"
         )
         assert result.exit_code == 1, result.output
         assert result.output == expcted_output
@@ -138,7 +139,9 @@ class TestDocstrings(BaseCliTest):
         expcted_output = self._get_expected_output()
         expcted_output += (
             "\nUpdated following files.\n"
-            "\npackages/valory/skills/hello_world_abci/rounds.py\n"
+            + "\n"
+            + str(Path("packages", "valory", "skills", "hello_world_abci", "rounds.py"))
+            + "\n"
         )
         assert result.exit_code == 0, result.output
         assert result.output == expcted_output
