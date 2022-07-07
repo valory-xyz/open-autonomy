@@ -1946,6 +1946,17 @@ def reset_index() -> int
 
 Return the reset index.
 
+<a id="packages.valory.skills.abstract_round_abci.base.AbciApp.reset_index"></a>
+
+#### reset`_`index
+
+```python
+@reset_index.setter
+def reset_index(reset_index: int) -> None
+```
+
+Set the reset index.
+
 <a id="packages.valory.skills.abstract_round_abci.base.AbciApp.get_all_rounds"></a>
 
 #### get`_`all`_`rounds
