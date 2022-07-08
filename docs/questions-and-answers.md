@@ -68,19 +68,13 @@ Agent Services are composed of multiple agents that run the same code and agree 
 
 <details><summary>What happens if my node is hacked?</summary>
 
-As in any other online service, agents are exposed to the risk of being breached. At the individual level, the framework does not provide a solution to this and it’s up to the agent operator to keep the agent safe. At the service level, on the other hand, services are secured in three ways:</p>
+As in any other online service, agents are exposed to the risk of being breached. At the individual level, the framework does not provide a solution to this and it’s up to the agent operator to keep the agent safe. At the service level, on the other hand, services are secured in two ways:</p>
 
 <ul>
 <li>Each Agent Service implements a custom protocol that expects very narrow message flow, so a hypothetical agent running malicious code would need to express its intentions within this protocol, otherwise the other agents will ignore its messages.</li>
 
 <li>Even in the case of an agent sending valid, malicious messages in the service, the decentralized nature of services means that the majority threshold of agents (2/3 + 1) must agree before committing a malicious transaction, so it is not enough to breach an individual agent.</li>
-
-<li>Services can be crypto-economically secured: agents are incentivised to behave honestly by the fact that certain misbehavior can be detected and punished, so it is economically not profitable to cheat.</li>
 </ul>
-</details>
-
-<details><summary>For critical operations, like sending a transaction to a blockchain, it is not enough with trusting that the agents will behave honestly, and further security and cryptographic mechanisms are required. Does the framework provide those mechanisms?</summary>
-For sending transactions to a chain, for example, a multisig approach is used (currently Gnosis Safe) so that a threshold of agents must always approve and validate operations.
 </details>
 
 ## Costs
