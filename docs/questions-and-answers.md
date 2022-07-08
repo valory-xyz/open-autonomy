@@ -23,7 +23,7 @@ No. The Open Autonomy framework currently only supports a single instance of a g
 </details>
 
 <details><summary>Composability, extensibility and reusability are advantages also present in other tech stacks. What makes Autonolas different?</summary>
-Autonolas it’s not just a framework where devs can build on: it is a complete, novel ecosystem that provides an SDK, a reward system for developers and operators and a governance protocol on top, all of them decentralized.</p>
+Autonolas is not just a framework where devs can build on: it is a complete, novel ecosystem that provides an SDK, a reward system for developers and operators and a governance protocol on top, all of them decentralized.</p>
 In the same way companies like Apple or Google offer SDKs to accelerate devs work plus an app store to monetize their work, Autonolas offers the same capabilities but in a decentralized way: developers register components, operators run services that use those components, consumers use and pay for those services so both developers and operators are compensated for their work. And all the parameters that govern the network can be voted on.</details>
 
 <details><summary>How do agents communicate with other agents?</summary>
