@@ -108,7 +108,7 @@ class DockerComposeGenerator(BaseDeploymentGenerator):
     ) -> "DockerComposeGenerator":
         """Generate the command to configure tendermint testnet."""
 
-        if self.tendermint_job_config is not None:
+        if self.tendermint_job_config is not None:  # pragma: no cover
             return self
 
         run_cmd = TENDERMINT_CONFIG_TEMPLATE.format(
@@ -139,7 +139,7 @@ class DockerComposeGenerator(BaseDeploymentGenerator):
         )
 
         for line in iter(cast(IO[str], process.stdout).readline, ""):
-            if line == "":
+            if line == "":  # pragma: nocover
                 break
             print(f"[Tendermint] {line.strip()}")
 

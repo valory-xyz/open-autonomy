@@ -72,7 +72,7 @@ def generate_deployment(  # pylint: disable=too-many-arguments
     )
 
     DeploymentGenerator = DEPLOYMENT_OPTIONS.get(type_of_deployment)
-    if DeploymentGenerator is None:
+    if DeploymentGenerator is None:  # pragma: no cover
         raise ValueError(f"Cannot find deployment generator for {type_of_deployment}")
     deployment = cast(
         BaseDeploymentGenerator,

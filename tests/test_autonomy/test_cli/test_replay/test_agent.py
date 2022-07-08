@@ -29,6 +29,7 @@ from autonomy.cli import cli
 from autonomy.replay.agent import AgentRunner
 
 from tests.conftest import ROOT_DIR
+from tests.helpers.docker.base import skip_docker_tests
 from tests.test_autonomy.test_cli.base import BaseCliTest
 
 
@@ -75,6 +76,7 @@ def ctrl_c(*args: Any) -> None:
     raise KeyboardInterrupt()
 
 
+@skip_docker_tests
 class TestAgentRunner(BaseCliTest):
     """Test agent runner tool."""
 
