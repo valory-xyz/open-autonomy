@@ -81,5 +81,5 @@ As in any other online service, agents are exposed to the risk of being breached
 
 <details><summary>How much does it cost to run an autonomous service using the framework?</summary>
 We do not define what an Agent Service does and how it is configured (e.g. number of agents in it), therefore the costs are subjective to the service. At the very minimum there will be the costs of running the agent on cloud or local infrastructure.
-On top of that, if a service sends transactions to a chain, it will incur in fee costs that will depend on the selected chain. As an example, for a simple service of four agents that makes a simple contract call every five minutes, a monthly cost of $3000 in Ethereum and $1.5 in Polygon is presently estimated (at gas costs of X), but this number will wildly vary depending on gas costs.
+On top of that, if a service sends transactions to a chain, it will incur in fee costs that will depend on the selected chain. As an example, for a simple service of four agents that makes a simple contract call every five minutes, a monthly cost of $3000 in Ethereum and $1.5 in Polygon is presently estimated (at gas cost of 60 wei per gas), but this number will wildly vary depending on gas costs.
 </details>
