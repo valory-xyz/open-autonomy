@@ -150,6 +150,10 @@ PyPI
 white_check_mark
 subgraph
 DevOps
+spookyswap
+config
+codeql
+os
  - docs/index.md
 README.md
 s_
