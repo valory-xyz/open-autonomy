@@ -101,7 +101,7 @@ class KubernetesGenerator(BaseDeploymentGenerator):
     ) -> "KubernetesGenerator":
         """Build configuration job."""
 
-        if self.tendermint_job_config is not None:
+        if self.tendermint_job_config is not None:  # pragma: no cover
             return self
 
         host_names = ", ".join(
@@ -168,7 +168,7 @@ class KubernetesGenerator(BaseDeploymentGenerator):
         """Write output to build dir"""
 
         output = "---\n".join([self.output, cast(str, self.tendermint_job_config)])
-        if not self.build_dir.is_dir():
+        if not self.build_dir.is_dir():  # pragma: no cover
             self.build_dir.mkdir()
         with open(
             self.build_dir / self.output_name, "w", encoding=DEFAULT_ENCODING

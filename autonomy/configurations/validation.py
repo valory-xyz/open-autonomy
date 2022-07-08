@@ -48,7 +48,7 @@ class ConfigValidator(validation.ConfigValidator):
         self._resolver = jsonschema.RefResolver(root_path, self._schema)
         self.env_vars_friendly = env_vars_friendly
 
-        if env_vars_friendly:
+        if env_vars_friendly:  # pragma: nocover
             self._validator = validation.EnvVarsFriendlyDraft4Validator(
                 self._schema, resolver=self._resolver
             )

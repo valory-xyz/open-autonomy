@@ -49,7 +49,7 @@ try:
     from aea_cli_ipfs.ipfs_utils import IPFSTool  # type: ignore
 
     IS_IPFS_PLUGIN_INSTALLED = True
-except ImportError:
+except ImportError:  # pragma: nocover
     IS_IPFS_PLUGIN_INSTALLED = False
 
 
@@ -66,11 +66,13 @@ def publish(
     try:
         if Path(click_context.obj.cwd, DEFAULT_SERVICE_CONFIG_FILE).exists():
             publish_service_package(click_context, registry)
-        elif Path(click_context.obj.cwd, DEFAULT_AEA_CONFIG_FILE).exists():
+        elif Path(
+            click_context.obj.cwd, DEFAULT_AEA_CONFIG_FILE
+        ).exists():  # pragma: nocover
             publish_agent_package(click_context, registry, push_missing)
         else:
             raise FileNotFoundError("No package config found in this directory.")
-    except Exception as e:  # pylint: disable=broad-except
+    except Exception as e:  # pylint: disable=broad-except  # pragma: nocover
         raise click.ClickException(str(e)) from e
 
 
@@ -99,7 +101,7 @@ def publish_service_package(click_context: click.Context, registry: str) -> None
 def publish_service_ipfs(public_id: PublicId, package_path: Path) -> None:
     """Publish a service package to the IPFS registry."""
 
-    if not IS_IPFS_PLUGIN_INSTALLED:
+    if not IS_IPFS_PLUGIN_INSTALLED:  # pragma: nocover
         raise RuntimeError("IPFS plugin not installed.")
 
     ipfs_tool = IPFSTool(get_ipfs_node_multiaddr())
@@ -128,4 +130,4 @@ def publish_service_local(ctx: Context, public_id: PublicId) -> None:
         os.makedirs(author_dir, exist_ok=True)
 
     copytree(ctx.cwd, target_dir)
-    click.echo(f'Agent "{public_id.name}" successfully saved in packages folder.')
+    click.echo(f'Service "{public_id.name}" successfully saved in packages folder.')

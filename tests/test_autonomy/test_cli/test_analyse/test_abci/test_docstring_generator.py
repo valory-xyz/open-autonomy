@@ -25,13 +25,10 @@ import shutil
 from pathlib import Path
 from typing import Tuple
 
-import pytest
-
 from tests.conftest import ROOT_DIR
 from tests.test_autonomy.test_cli.base import BaseCliTest
 
 
-@pytest.mark.skip
 class TestDocstrings(BaseCliTest):
     """Test `autonomy analyse abci docstrings`."""
 
@@ -45,6 +42,7 @@ class TestDocstrings(BaseCliTest):
         cls,
     ) -> None:
         """Setup class."""
+
         super().setup()
 
         shutil.copytree(ROOT_DIR / "packages", cls.t / "packages")
@@ -87,13 +85,16 @@ class TestDocstrings(BaseCliTest):
     ) -> None:
         """Test after check"""
 
-        packages_dir = self.t.relative_to(Path.cwd()) / "packages"
+        packages_dir = (
+            self.t.resolve().absolute().relative_to(Path.cwd().resolve().absolute())
+            / "packages"
+        )
         self.run_cli((str(packages_dir),))
         result = self.run_cli((str(packages_dir), "--check"))
 
         expcted_output = self._get_expected_output()
         expcted_output += "No update needed.\n"
-        assert result.exit_code == 0
+        assert result.exit_code == 0, result.output
         assert result.output == expcted_output
 
     def test_docstring_check_fail(
@@ -101,7 +102,10 @@ class TestDocstrings(BaseCliTest):
     ) -> None:
         """Test after check"""
 
-        packages_dir = self.t.relative_to(Path.cwd()) / "packages"
+        packages_dir = (
+            self.t.resolve().absolute().relative_to(Path.cwd().resolve().absolute())
+            / "packages"
+        )
         self.run_cli((str(packages_dir),))
 
         self._corrupt_round_file()
@@ -111,10 +115,11 @@ class TestDocstrings(BaseCliTest):
         expcted_output = self._get_expected_output()
         expcted_output += (
             "Error: Following files needs updating.\n"
-            "\n"
-            "packages/valory/skills/hello_world_abci/rounds.py\n"
+            + "\n"
+            + str(Path("packages", "valory", "skills", "hello_world_abci", "rounds.py"))
+            + "\n"
         )
-        assert result.exit_code == 1
+        assert result.exit_code == 1, result.output
         assert result.output == expcted_output
 
     def test_fix_docstring(
@@ -122,7 +127,10 @@ class TestDocstrings(BaseCliTest):
     ) -> None:
         """Test after check"""
 
-        packages_dir = self.t.relative_to(Path.cwd()) / "packages"
+        packages_dir = (
+            self.t.resolve().absolute().relative_to(Path.cwd().resolve().absolute())
+            / "packages"
+        )
         self.run_cli((str(packages_dir),))
 
         self._corrupt_round_file()
@@ -131,16 +139,9 @@ class TestDocstrings(BaseCliTest):
         expcted_output = self._get_expected_output()
         expcted_output += (
             "\nUpdated following files.\n"
-            "\npackages/valory/skills/hello_world_abci/rounds.py\n"
+            + "\n"
+            + str(Path("packages", "valory", "skills", "hello_world_abci", "rounds.py"))
+            + "\n"
         )
-        assert result.exit_code == 0
+        assert result.exit_code == 0, result.output
         assert result.output == expcted_output
-        assert (
-            self.rounds_file_original.read_text() == self.rounds_file_temp.read_text()
-        )
-
-    @classmethod
-    def teardown(cls) -> None:
-        """Teardown class."""
-        os.chdir(ROOT_DIR)
-        super().teardown()
