@@ -158,7 +158,7 @@ nav:
     - Delegate call vs call: 'delegate_call.md'
     - Debugging Using Tenderly: 'debugging.md'
     - Counter Example: 'counter_example.md'
-  - Q&A: 'questions-and-answers.md'
+  - FAQ: 'questions-and-answers.md'
 
 
 plugins:
