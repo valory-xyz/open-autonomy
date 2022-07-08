@@ -24,6 +24,7 @@ import asyncio
 import binascii
 import os
 import tempfile
+import time
 from math import ceil
 from pathlib import Path
 from threading import Thread
@@ -185,6 +186,7 @@ class IntegrationBaseCase(FSMBehaviourBaseCase):
         handler: Optional[Handler] = None,
         expected_content: Optional[Dict] = None,
         expected_types: Optional[Dict] = None,
+        mining_interval_secs: float = 0,
     ) -> Optional[Message]:
         """
         Processes one request-response type message cycle.
@@ -199,8 +201,14 @@ class IntegrationBaseCase(FSMBehaviourBaseCase):
         :param handler: the handler to handle a potential incoming message
         :param expected_content: the content to be expected
         :param expected_types: the types to be expected
+        :param mining_interval_secs: the mining interval used in the tests
         :return: the incoming message
         """
+        if (
+            expected_types is not None
+            and tuple(expected_types.keys())[0] == "transaction_receipt"
+        ):
+            time.sleep(mining_interval_secs)
         self.behaviour.act_wrapper()
         incoming_message = None
 
@@ -265,6 +273,7 @@ class IntegrationBaseCase(FSMBehaviourBaseCase):
         expected_content: Optional[ExpectedContentType] = None,
         expected_types: Optional[ExpectedTypesType] = None,
         fail_send_a2a: bool = False,
+        mining_interval_secs: float = 0,
     ) -> Tuple[Optional[Message], ...]:
         """
         Process n message cycles.
@@ -276,6 +285,7 @@ class IntegrationBaseCase(FSMBehaviourBaseCase):
         :param expected_content: the expected_content
         :param expected_types: the expected type
         :param fail_send_a2a: flag that indicates whether we want to simulate a failure in the `send_a2a_transaction`
+        :param mining_interval_secs: the mining interval used in the tests.
 
         :return: tuple of incoming messages
         """
@@ -304,7 +314,10 @@ class IntegrationBaseCase(FSMBehaviourBaseCase):
         incoming_messages = []
         for i in range(ncycles):
             incoming_message = self.process_message_cycle(
-                handlers[i], expected_content[i], expected_types[i]
+                handlers[i],
+                expected_content[i],
+                expected_types[i],
+                mining_interval_secs,
             )
             incoming_messages.append(incoming_message)
 
@@ -507,7 +520,9 @@ class _TxHelperIntegration(_GnosisHelperIntegration):
             synchronized_data_class=None, **update_params  # type: ignore
         )
 
-    def validate_tx(self, simulate_timeout: bool = False) -> None:
+    def validate_tx(
+        self, simulate_timeout: bool = False, mining_interval_secs: float = 0
+    ) -> None:
         """Validate the sent transaction."""
 
         if simulate_timeout:
@@ -538,6 +553,7 @@ class _TxHelperIntegration(_GnosisHelperIntegration):
                 handlers,
                 expected_content,
                 expected_types,
+                mining_interval_secs=mining_interval_secs,
             )
             assert verif_msg is not None and isinstance(verif_msg, ContractApiMessage)
             assert verif_msg.state.body[
