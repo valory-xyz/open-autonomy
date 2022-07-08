@@ -96,7 +96,7 @@ class RequestDispatcher(ABC):
                 self.executor, func, api, message, dialogue
             )
             return response
-        except Exception as exception:  # pylint: disable=broad-except # pragma: nocover
+        except Exception as exception:  # pylint: disable=broad-except
             return self.get_error_message(exception, api, message, dialogue)
 
     def dispatch(self, envelope: Envelope) -> Task:

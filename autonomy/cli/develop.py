@@ -26,4 +26,4 @@ import click
 def develop_group() -> None:
     """Develop an agent service."""
 
-    click.echo("Develop module.")
+    click.echo("Develop module.")  # pragma: nocover

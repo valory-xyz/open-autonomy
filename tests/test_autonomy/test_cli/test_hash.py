@@ -20,7 +20,6 @@
 """Test hash command group."""
 
 
-import platform
 import shutil
 from pathlib import Path
 from typing import Dict, Tuple
@@ -72,17 +71,46 @@ class TestHashAll(BaseCliTest):
 
         service_path = self.packages_dir / "valory" / "services" / service_name
         service_config = load_service_config(service_path)
-
         hashes = self.load_hashes()
-
-        if platform.system() == "Windows":
-            key = f"valory\\agents\\{service_name}"
-        else:
-            key = f"valory/agents/{service_name}"
+        key = f"valory/agents/{service_name}"
 
         assert key in hashes, (
             hashes,
             service_config.agent,
         )
-
         assert hashes[key] == service_config.agent.hash
+
+        result = self.run_cli(("--packages-dir", str(self.packages_dir), "--check"))
+
+        assert result.exit_code == 0, result.output
+        assert "OK!" in result.output, result.output
+
+
+class TestHashOne(BaseCliTest):
+    """Test `hash one` command."""
+
+    file: Path
+    original_hash: str = "QmeU1Cz796TBihCT426pA3HAYC7LhaawsXgGmy1hpyZXj9"
+    cli_options: Tuple[str, ...] = (
+        "hash",
+        "one",
+    )
+
+    @classmethod
+    def setup(cls) -> None:
+        """Setup class."""
+
+        super().setup()
+
+        cls.file = cls.t / "some_file.txt"
+        cls.file.write_text("Hello, World!")
+
+    def test_one(
+        self,
+    ) -> None:
+        """Test `hash one` command."""
+
+        result = self.run_cli((str(self.file),))
+
+        assert result.exit_code == 0, result.output
+        assert self.original_hash in result.output, result.output

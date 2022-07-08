@@ -20,7 +20,9 @@
 
 """Tools to build and run agents from existing deployments."""
 
+import contextlib
 import os
+import shutil
 import signal
 import subprocess  # nosec
 import sys
@@ -99,9 +101,18 @@ class AgentRunner:
         self,
     ) -> None:
         """Stop the process."""
-        self.agent_dir.cleanup()
+
         os.chdir(str(self.cwd))
+        with contextlib.suppress(OSError, PermissionError, FileNotFoundError):
+            shutil.rmtree(str(self.agent_dir))
+
         if self.process is None:
             return
 
-        os.kill(os.getpgid(self.process.pid), signal.SIGTERM)
+        self.process.poll()
+        if self.process.returncode is None:  # stop only pending processes
+            os.kill(self.process.pid, signal.SIGTERM)
+
+        self.process.wait(timeout=5)
+        self.process.terminate()
+        self.process = None

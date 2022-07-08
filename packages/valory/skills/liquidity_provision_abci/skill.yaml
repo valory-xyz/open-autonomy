@@ -18,26 +18,26 @@ fingerprint:
 fingerprint_ignore_patterns: []
 connections:
 - valory/abci:0.1.0:Qme6c15aYEcGog9PCDBydJ65rHmV335qgjDZhcTFEEFyKD
-- valory/http_client:0.1.0:QmXBBMS5g4kyyE3mzFcpieoDMKWFf9naaCM3QNSjP2mxDt
-- valory/ledger:0.1.0:Qmcd32eJaDbWFFgqTzKf3Lqhshj37ndhrdtYiNnED2ULqB
+- valory/http_client:0.1.0:QmY3F1DePHgeNuqab8M3cYRv5hkNqwsowroD8TK3WKK3BD
+- valory/ledger:0.1.0:QmdcNsPsBBAJrKrZV5CQ8Fsw5nEQh6Afg5hRRfENjavzN4
 contracts:
 - valory/gnosis_safe:0.1.0:QmRNdXGRRQBMFXh5ZvtJeYvHt7559kV5r5EYU5JNUdRBKJ
 - valory/gnosis_safe_proxy_factory:0.1.0:QmVkZtrgZ2ievXAonq9z33qbrxHi8piVGptuCGaGJYS1iM
-- valory/uniswap_v2_erc20:0.1.0:QmWSouBEXuGQdiTmu1ytZnHApDr3Xn4ByopPNTx7Gw9bNj
-- valory/uniswap_v2_router_02:0.1.0:QmaBYScH7PfzcU5qw5mgzNW5a59R7pRCWQCSNxr1zACpZt
+- valory/uniswap_v2_erc20:0.1.0:QmWXvYsGQ6gv8wkyLt8UYDeQ8xqXdc9rE2P7Uy2CT697ZM
+- valory/uniswap_v2_router_02:0.1.0:QmdPbUgxDvhKZbyPAJ5vh1Lwiqkmds5J1MJ81eMxS5ErHs
 protocols:
-- open_aea/signing:1.0.0:QmYVxA8smnK8LQ2B4z5BVFvEwo3szQeBosUesycb8By1ZT
-- valory/abci:0.1.0:QmY42cX49Jb1dmHGbiDE7SEAW9YJc1FYJQA2U4i1mNYtBz
-- valory/contract_api:1.0.0:QmZRa6S342MT1oSQjLoyEDitjK6nivypC78DKipvg9JpF1
-- valory/http:1.0.0:QmRQYhYWbGSNHb152dp2L1P9EtZRZZqgvZAaNat5qxfQqK
-- valory/ledger_api:1.0.0:QmNfowyB8rGWr53wuNPYK5BEAnA8AehgipVdYXt8LC5uR6
+- open_aea/signing:1.0.0:QmayW2VuPa576n4f8KEENMdtj5ek9xKW7J2c53TwrufcEA
+- valory/abci:0.1.0:QmS4TmTAGoDeTj5M43SXYxQTiaf28azdc4koGqrFEqpTX7
+- valory/contract_api:1.0.0:QmSEGC6Evk5sKZMvoWuxAFbXgfivWa8YWCTSQt4vMqewPU
+- valory/http:1.0.0:QmWPo9ud4d7A2nVtk8yy8eQV7awmtTkGjnZFzocCTqx5qr
+- valory/ledger_api:1.0.0:QmVtZeguZMPbc1JDzFMNzk4mjSws3faGkp68jPUqaBYuoY
 skills:
-- valory/abstract_round_abci:0.1.0:QmTY9NEdUnqmXJhJEvUya5FaWXNWWm9cxm5RTvMQ4gcYPi
-- valory/liquidity_rebalancing_abci:0.1.0:Qmf3CVzpRrDkDLitedSSbKDtftsQZV8Fx8Xny9XF3ThZUt
-- valory/registration_abci:0.1.0:QmQnoADhh2RxNzwmMsjL9TmgwLh9C4rJdc76TGLzz2SMRc
-- valory/reset_pause_abci:0.1.0:QmYQBnY4vJNTxn1S5KF4yN3MTT774QkHsWLdhQ9JTEjubC
-- valory/safe_deployment_abci:0.1.0:QmUSzPTJLk53F7d5Vn8R6pypqh1eZdWDMpekRyGZwvyn2A
-- valory/transaction_settlement_abci:0.1.0:QmXZ6bDbm99FvC13ukvw2kDv3Lu1GtcAC1iJW4ZgS65jPE
+- valory/abstract_round_abci:0.1.0:Qme1gps82u65wHnqoERWjEqBuf2mjtdPhh4m73Cb39wAJ2
+- valory/liquidity_rebalancing_abci:0.1.0:QmNMUT4NhnUj4shqqb8hBdgN3C9TR3KbDxJjXxPVPtc2yY
+- valory/registration_abci:0.1.0:Qmce4KU9PjavWWSqPRdgPR5eMweEbYEmbYDnamitM47JXk
+- valory/reset_pause_abci:0.1.0:QmVbAGXn4UaBooZCEqNDNF7ksES86QuUvumWUu4ZBz6Ztr
+- valory/safe_deployment_abci:0.1.0:QmWm3ua4UCjmA27Aen74uRkh6j5Mx4rpZcP4gVSWuqY8nD
+- valory/transaction_settlement_abci:0.1.0:QmdXbpLWLLbAdXZ3PvkUuwR2trFETRU8rj9KLYg177t8hN
 behaviours:
   main:
     args: {}

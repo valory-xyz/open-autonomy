@@ -59,13 +59,13 @@ def generat_abci_app_pecs(app_class: str, output_file: Path, spec_format: str) -
     try:
         module = importlib.import_module(module_name)
     except Exception as e:
-        raise Exception(
+        raise click.ClickException(
             f'Failed to load "{module_name}". Please, verify that '
             "AbciApps and classes are correctly defined within the module. "
         ) from e
 
     if not hasattr(module, class_name):
-        raise Exception(f'Class "{class_name}" is not in "{module_name}".')
+        raise click.ClickException(f'Class "{class_name}" is not in "{module_name}".')
 
     abci_app_cls = getattr(module, class_name)
     output_file = Path(output_file).absolute()
@@ -130,20 +130,23 @@ def docstrings(packages_dir: Path, check: bool) -> None:
     needs_update = set()
     abci_compositions = packages_dir.glob("*/skills/*/rounds.py")
 
-    for path in sorted(abci_compositions):
-        click.echo(f"Processing: {path}")
-        if process_module(path, check=check):
-            needs_update.add(str(path))
+    try:
+        for path in sorted(abci_compositions):
+            click.echo(f"Processing: {path}")
+            if process_module(path, check=check):
+                needs_update.add(str(path))
 
-    if len(needs_update) > 0:
-        file_string = "\n".join(sorted(needs_update))
-        if check:
-            raise click.ClickException(
-                f"Following files needs updating.\n\n{file_string}"
-            )
-        click.echo(f"\nUpdated following files.\n\n{file_string}")
-    else:
-        click.echo("No update needed.")
+        if len(needs_update) > 0:
+            file_string = "\n".join(sorted(needs_update))
+            if check:
+                raise click.ClickException(
+                    f"Following files needs updating.\n\n{file_string}"
+                )
+            click.echo(f"\nUpdated following files.\n\n{file_string}")
+        else:
+            click.echo("No update needed.")
+    except Exception as e:  # pylint: disable=broad-except
+        raise click.ClickException(str(e)) from e
 
 
 @abci_group.command(name="logs")
