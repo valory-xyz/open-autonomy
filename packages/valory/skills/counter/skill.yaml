@@ -15,9 +15,9 @@ connections:
 - valory/abci:0.1.0:Qme6c15aYEcGog9PCDBydJ65rHmV335qgjDZhcTFEEFyKD
 contracts: []
 protocols:
-- valory/abci:0.1.0:QmY42cX49Jb1dmHGbiDE7SEAW9YJc1FYJQA2U4i1mNYtBz
+- valory/abci:0.1.0:QmS4TmTAGoDeTj5M43SXYxQTiaf28azdc4koGqrFEqpTX7
 skills:
-- valory/abstract_abci:0.1.0:QmYma8AcAS21bariyod7DfhDn1LgnC8ZyFg732BRXtybJP
+- valory/abstract_abci:0.1.0:QmPMG9ZaXBxnU1puCMz66xwRYemdYgswrY38LyGssKVgRv
 behaviours: {}
 handlers:
   abci:
