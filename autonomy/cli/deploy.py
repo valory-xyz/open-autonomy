@@ -32,6 +32,14 @@ from aea.configurations.data_types import PublicId
 from autonomy.cli.utils.click_utils import image_profile_flag
 from autonomy.constants import DEFAULT_IMAGE_VERSION
 from autonomy.deploy.build import generate_deployment
+from autonomy.deploy.constants import (
+    AGENT_KEYS_DIR,
+    BENCHMARKS_DIR,
+    LOG_DIR,
+    PERSISTENT_DATA_DIR,
+    TM_STATE_DIR,
+    VENVS_DIR,
+)
 from autonomy.deploy.generators.docker_compose.base import DockerComposeGenerator
 from autonomy.deploy.generators.kubernetes.base import KubernetesGenerator
 from autonomy.deploy.image import ImageBuilder
@@ -224,7 +232,7 @@ def _find_path_to_service_file(public_id: PublicId, packages_dir: Path) -> Path:
     service_file = (
         packages_dir / public_id.author / "services" / public_id.name / "service.yaml"
     )
-    if not service_file.is_file():
+    if not service_file.is_file():  # pragma: nocover
         raise click.ClickException(f"Cannot find service file for {public_id}")
 
     return service_file
@@ -243,12 +251,12 @@ def _build_dirs(build_dir: Path) -> None:
     """Build necessary directories."""
 
     for dir_path in [
-        ("persistent_data",),
-        ("persistent_data", "logs"),
-        ("persistent_data", "tm_state"),
-        ("persistent_data", "benchmarks"),
-        ("persistent_data", "venvs"),
-        ("agent_keys",),
+        (PERSISTENT_DATA_DIR,),
+        (PERSISTENT_DATA_DIR, LOG_DIR),
+        (PERSISTENT_DATA_DIR, TM_STATE_DIR),
+        (PERSISTENT_DATA_DIR, BENCHMARKS_DIR),
+        (PERSISTENT_DATA_DIR, VENVS_DIR),
+        (AGENT_KEYS_DIR,),
     ]:
         path = Path(build_dir, *dir_path)
         path.mkdir()

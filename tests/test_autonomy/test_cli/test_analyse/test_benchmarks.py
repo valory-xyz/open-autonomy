@@ -26,6 +26,7 @@ from pathlib import Path
 from typing import Dict, List, Tuple
 
 from autonomy.analyse.benchmark.aggregate import BlockTypes
+from autonomy.deploy.constants import BENCHMARKS_DIR
 
 from tests.test_autonomy.test_cli.base import BaseCliTest
 
@@ -67,7 +68,7 @@ class TestBenchmarks(BaseCliTest):
 
         super().setup()
 
-        cls.benchmarks_dir = cls.t / "benchmarks"
+        cls.benchmarks_dir = cls.t / BENCHMARKS_DIR
         cls.benchmarks_dir.mkdir()
         cls.output_file = cls.t / "benchmarks.html"
 

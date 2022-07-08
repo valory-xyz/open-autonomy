@@ -45,3 +45,4 @@ cli.add_command(fetch)
 
 click.version_option(autonomy.__version__, prog_name="autonomy")(cli)
 cli.help = "Command-line tool for managing agent services of the Open Autonomy framework.\n\nExtends the command-line tool for setting up an Autonomous Economic Agent (AEA)."
+cli.name = "autonomy"

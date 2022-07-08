@@ -86,6 +86,18 @@ class TestBuildImage(BaseCliTest):
             == 1
         )
 
+    def test_cluster(
+        self,
+    ) -> None:
+        """Test prod build."""
+
+        result = self.run_cli((self.service_id, "--cluster"))
+
+        assert result.exit_code == 1, f"{result.stdout_bytes}\n{result.stderr_bytes}"
+        assert (
+            "Please setup kubernetes environment variables." in result.stdout
+        ), f"{result.stdout_bytes}\n{result.stderr_bytes}"
+
     def test_build_dependencies(
         self,
     ) -> None:

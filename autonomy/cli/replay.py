@@ -27,9 +27,9 @@ import click
 import yaml
 
 from autonomy.constants import DEFAULT_BUILD_FOLDER
+from autonomy.deploy.constants import PERSISTENT_DATA_DIR, TM_STATE_DIR
 from autonomy.replay.agent import AgentRunner
-from autonomy.replay.tendermint import app as proxy_app
-from autonomy.replay.tendermint import tendermint_network
+from autonomy.replay.tendermint import build_tendermint_apps
 from autonomy.replay.utils import fix_address_books, fix_config_files
 
 
@@ -69,7 +69,7 @@ def run_agent(agent: int, build_path: Path, registry_path: Path) -> None:
     runner = AgentRunner(agent, agent_data, registry_path)
     try:
         runner.start()
-        while True:
+        while True:  # pragma: nocover
             time.sleep(1)
     except KeyboardInterrupt:
         runner.stop()
@@ -87,10 +87,12 @@ def run_tendermint(build_dir: Path) -> None:
     """Tendermint runner."""
 
     build_dir = Path(build_dir).absolute()
-    dump_dir = build_dir / "persistent_data" / "dumps"
+    dump_dir = build_dir / PERSISTENT_DATA_DIR / TM_STATE_DIR
 
     fix_address_books(build_dir)
     fix_config_files(build_dir)
+
+    proxy_app, tendermint_network = build_tendermint_apps()
 
     try:
         tendermint_network.init(dump_dir)
@@ -104,7 +106,7 @@ def run_tendermint(build_dir: Path) -> None:
         tendermint_network.stop()
 
 
-def load_docker_config(file_path: Path) -> Dict[str, Any]:
+def load_docker_config(file_path: Path) -> Dict[str, Any]:  # pragma: nocover
     """Load docker config."""
     with open(str(file_path), "r", encoding="utf-8") as fp:
         docker_compose_config = yaml.safe_load(fp)

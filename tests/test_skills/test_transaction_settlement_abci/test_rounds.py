@@ -32,6 +32,7 @@ from packages.valory.skills.abstract_round_abci.base import (
     AbciAppDB,
     BaseTxPayload,
     MAX_INT_256,
+    TransactionNotValidError,
 )
 from packages.valory.skills.oracle_deployment_abci.payloads import RandomnessPayload
 from packages.valory.skills.transaction_settlement_abci.payload_tools import (
@@ -668,6 +669,12 @@ class TestSynchronizeLateMessagesRound(BaseCollectNonEmptyUntilThresholdRound):
         sender = list(test_round.accepting_payloads_from).pop()
         tx_hashes = "0" * (TX_HASH_LENGTH - 1)
         payload = SynchronizeLateMessagesPayload(sender=sender, tx_hashes=tx_hashes)
+
+        with pytest.raises(
+            TransactionNotValidError, match="Expecting serialized data of chunk size"
+        ):
+            test_round.check_payload(payload)
+
         with pytest.raises(
             ABCIAppInternalError, match="Expecting serialized data of chunk size"
         ):

@@ -7,7 +7,7 @@ license: Apache-2.0
 fingerprint:
   README.md: QmW7RKoKHN9NLtKS3FF2bhq4gYy1fDo55hodqmWFf3XxDm
 fingerprint_ignore_patterns: []
-agent: valory/oracle:0.1.0:QmWqwaEYek7YdkJotz2mF8toEqkCRQ614zXhdQqcZyK3Fy
+agent: valory/oracle:0.1.0:QmamqLEAc2E4B2L4GMEMiuLmuCPtMHdJWmh6oVyA8uUkLu
 network: ropsten
 number_of_agents: 4
 ---
