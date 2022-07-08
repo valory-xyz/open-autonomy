@@ -1,7 +1,7 @@
 ## Definitions
 
 <details><summary>What is an Autonomous Service?</summary>
-An Autonomous Service is a decentralized service that runs off-chain and provides functionalities to objects living on-chain. Autonomous Services are outside the purview and control of a single authority, and can be be designed for a variety of purposes, including acting as a decentralized oracle for smart contracts, or executing complex investing strategies that cannot be easily encoded on-chain.
+An Autonomous Service is a decentralized service that runs off-chain and provides functionalities to objects living on-chain. Autonomous Services are outside the purview and control of a single authority, and can be designed for a variety of purposes, including acting as a decentralized oracle for smart contracts, or executing complex investing strategies that cannot be easily encoded on-chain.
 </details>
 
 <details><summary>What is an Agent Service?</summary>
@@ -27,7 +27,7 @@ Autonolas it’s not just a framework where devs can build on: it is a complete,
 In the same way companies like Apple or Google offer SDKs to accelerate devs work plus an app store to monetize their work, Autonolas offers the same capabilities but in a decentralized way: developers register components, operators run services that use those components, consumers use and pay for those services so both developers and operators are compensated for their work. And all the parameters that govern the network can be voted on.</details>
 
 <details><summary>How do agents communicate with other agents?</summary>
-Different forms of communication are used depending on the service status: while agents are connecting to each other to form a temporary blockchain (formation), they use the Agent Communication Network (ACN). Under the hood the ACN is a DHT that keeps track of live agents mapping their crypto address to IP address. So agents can communicate with other agents without knowing their network location assuming they are online or offline but registered in the ACN. Once the service has been stablished, Agent Services use Tendermint for messaging.
+Different forms of communication are used depending on the service status: while agents are connecting to each other to form a temporary blockchain (formation), they use the Agent Communication Network (ACN). Under the hood the ACN is a DHT that keeps track of live agents mapping their crypto address to IP address. So agents can communicate with other agents without knowing their network location assuming they are online or offline but registered in the ACN. Once the service has been established, Agent Services use Tendermint for messaging.
 </details>
 
 <details><summary>Can services use other services?</summary>
@@ -53,7 +53,7 @@ Composition starts at the component level of the agents (multiple rounds make a 
 <li>A threshold of agents agree on a transaction hash.</li>
 <li>One of the agents is randomly selected as the keeper using a deterministic function based on a public, verifiable randomness source (currently DRAND).</li>
 <li>All agents sign the transaction using a multi-sig like Gnosis Safe.</li>
-<li>The keeper collects all the signatures and sends the transaction onchain. If it does not do its job, another keeper will be selected.</li>
+<li>The keeper collects all the signatures and sends the transaction on-chain. If it does not do its job, another keeper will be selected.</li>
 <li>All agents wait for the transaction to be mined and validate the output.</li>
 <li>Done</li>
 </ol>
