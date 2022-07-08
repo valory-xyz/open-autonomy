@@ -26,13 +26,17 @@ No. The Open Autonomy framework currently only supports a single instance of a g
 Autonolas it’s not just a framework where devs can build on: it is a complete, novel ecosystem that provides an SDK, a reward system for developers and operators and a governance protocol on top, all of them decentralized.</p>
 In the same way companies like Apple or Google offer SDKs to accelerate devs work plus an app store to monetize their work, Autonolas offers the same capabilities but in a decentralized way: developers register components, operators run services that use those components, consumers use and pay for those services so both developers and operators are compensated for their work. And all the parameters that govern the network can be voted on.</details>
 
+<details><summary>How do agents communicate with other agents?</summary>
+Different forms of communication are used depending on the service status: while agents are connecting to each other to form a temporary blockchain (formation), they use the Agent Communication Network (ACN). Under the hood the ACN is a DHT that keeps track of live agents mapping their crypto address to IP address. So agents can communicate with other agents without knowing their network location assuming they are online or offline but registered in the ACN. Once the service has been stablished, Agent Services use Tendermint for messaging.
+</details>
+
 <details><summary>Can services use other services?</summary>
-Yes, Agent Services can be composed from other Agent Services eventually, analogously to microservices. Sub-services could deliver all sorts of results which are consumed by a higher level service to create a higher level outcome.
+Yes, Agent Services can be composed from other Agent Services eventually, analogously to microservices. Sub-services can deliver all sorts of results which are consumed by a higher level service to create a higher level outcome.
 </details>
 
 <details><summary>How do services communicate with other services?</summary>
-Services can expose REST APIs and they also have a native message protocol that uses protobuf that allows them to have arbitrary message based communication between compatible agents in the network. This network is called agent communication network (ACN). When a service needs a more complicated message flow than request-response (e.g. some extended dialogue like FIPA) they can express it as a protocol and deliver the messages via the ACN.</p>
-Under the hood the ACN is a DHT that keeps track of live agents mapping their crypto address to IP address. So agents can communicate with other agents without knowing their network location assuming they are online or offline but registered in the ACN.
+Services can expose REST APIs and they also have a native message protocol that uses protobuf that allows them to have arbitrary message based communication between compatible agents in the network. This network is called Agent Communication Network (ACN). When a service needs a more complicated message flow than request-response (e.g. some extended dialogue like FIPA) they can express it as a protocol and deliver the messages via the ACN.</p>
+
 </details>
 
 <details><summary>What happens when agents are deployed now?</summary>
