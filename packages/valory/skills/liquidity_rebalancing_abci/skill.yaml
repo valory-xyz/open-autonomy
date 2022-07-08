@@ -24,8 +24,8 @@ connections:
 contracts:
 - valory/gnosis_safe:0.1.0:QmRNdXGRRQBMFXh5ZvtJeYvHt7559kV5r5EYU5JNUdRBKJ
 - valory/gnosis_safe_proxy_factory:0.1.0:QmVkZtrgZ2ievXAonq9z33qbrxHi8piVGptuCGaGJYS1iM
-- valory/uniswap_v2_erc20:0.1.0:QmWSouBEXuGQdiTmu1ytZnHApDr3Xn4ByopPNTx7Gw9bNj
-- valory/uniswap_v2_router_02:0.1.0:QmaBYScH7PfzcU5qw5mgzNW5a59R7pRCWQCSNxr1zACpZt
+- valory/uniswap_v2_erc20:0.1.0:QmWXvYsGQ6gv8wkyLt8UYDeQ8xqXdc9rE2P7Uy2CT697ZM
+- valory/uniswap_v2_router_02:0.1.0:QmdPbUgxDvhKZbyPAJ5vh1Lwiqkmds5J1MJ81eMxS5ErHs
 protocols:
 - open_aea/signing:1.0.0:QmayW2VuPa576n4f8KEENMdtj5ek9xKW7J2c53TwrufcEA
 - valory/abci:0.1.0:QmS4TmTAGoDeTj5M43SXYxQTiaf28azdc4koGqrFEqpTX7
