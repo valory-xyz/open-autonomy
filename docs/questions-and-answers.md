@@ -35,8 +35,7 @@ Yes, Agent Services can be composed from other Agent Services eventually, analog
 </details>
 
 <details><summary>How do services communicate with other services?</summary>
-Services can expose REST APIs and they also have a native message protocol that uses protobuf that allows them to have arbitrary message based communication between compatible agents in the network. This network is called Agent Communication Network (ACN). When a service needs a more complicated message flow than request-response (e.g. some extended dialogue like FIPA) they can express it as a protocol and deliver the messages via the ACN.</p>
-
+Services can expose REST APIs and they also have a native message protocol that uses protobuf that allows them to have arbitrary message based communication between compatible agents in the network. This network is called Agent Communication Network (ACN). When a service needs a more complicated message flow than request-response (e.g. some extended dialogue like FIPA) they can express it as a protocol and deliver the messages via the ACN.
 </details>
 
 <details><summary>What happens when agents are deployed now?</summary>
@@ -50,11 +49,11 @@ Composition starts at the component level of the agents (multiple rounds make a 
 <details><summary>How do agents settle a transaction?</summary>
 
 <ol>
-<li>Negotiation happens through the ACN or alternatively another connection like the ABCI connection.</li>
-<li> A threshold of agents agree on a transaction hash.</li>
+<li>Negotiation happens through Tendermint messages.</li>
+<li>A threshold of agents agree on a transaction hash.</li>
 <li>One of the agents is randomly selected as the keeper using a deterministic function based on a public, verifiable randomness source (currently DRAND).</li>
 <li>All agents sign the transaction using a multi-sig like Gnosis Safe.</li>
-<li>The keeper collects all the signatures and sends the transaction onchain.</li>
+<li>The keeper collects all the signatures and sends the transaction onchain. If it does not do its job, another keeper will be selected.</li>
 <li>All agents wait for the transaction to be mined and validate the output.</li>
 <li>Done</li>
 </ol>
@@ -68,10 +67,10 @@ Agent Services are composed of multiple agents that run the same code and agree 
 
 <details><summary>What happens if my node is hacked?</summary>
 
-As in any other online service, agents are exposed to the risk of being breached. At the individual level, the framework does not provide a solution to this and it’s up to the agent operator to keep the agent safe. At the service level, on the other hand, services are secured in two ways:</p>
+As in any other online service, nodes are exposed to the risk of being breached. At the individual level, the framework does not provide a solution to this and it’s up to the agent operator to keep the agent safe. At the service level, on the other hand, services are secured in two ways:</p>
 
 <ul>
-<li>Each Agent Service implements a custom protocol that expects very narrow message flow, so a hypothetical agent running malicious code would need to express its intentions within this protocol, otherwise the other agents will ignore its messages.</li>
+<li>Each Agent Service implements a custom protocol that expects a very narrow message flow, so a hypothetical agent running malicious code would need to express its intentions within this protocol, otherwise the other agents will ignore its messages.</li>
 
 <li>Even in the case of an agent sending valid, malicious messages in the service, the decentralized nature of services means that the majority threshold of agents (2/3 + 1) must agree before committing a malicious transaction, so it is not enough to breach an individual agent.</li>
 </ul>
@@ -79,7 +78,7 @@ As in any other online service, agents are exposed to the risk of being breached
 
 ## Costs
 
-<details><summary>How much does it cost to run an autonomous service using the framework?</summary>
-We do not define what an Agent Service does and how it is configured (e.g. number of agents in it), therefore the costs are subjective to the service. At the very minimum there will be the costs of running the agent on cloud or local infrastructure.
-On top of that, if a service sends transactions to a chain, it will incur in fee costs that will depend on the selected chain. As an example, for a simple service of four agents that makes a simple contract call every five minutes, a monthly cost of $3000 in Ethereum and $1.5 in Polygon is presently estimated (at gas cost of 60 wei per gas), but this number will wildly vary depending on gas costs.
+<details><summary>How much does it cost to run an Autonomous Service using the framework?</summary>
+Agent Services are not limited in what they do or how they are configured (e.g. number of agents in them), therefore the costs are subjective to each service. At the very minimum there will be the costs of running the agent on cloud or local infrastructure.
+On top of that, if a service sends transactions to a chain, it will incur in fee costs that will depend on the selected chain.</p>As an example, for a simple service of four agents that makes a simple contract call every five minutes, a monthly cost of $3000 in Ethereum and $1.5 in Polygon is presently estimated (at gas cost of 60 wei per gas), but this number will wildly vary depending on gas costs.
 </details>
