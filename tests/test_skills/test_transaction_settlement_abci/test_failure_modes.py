@@ -135,7 +135,7 @@ class TransactionSettlementIntegrationBaseCase(
             )
         )
 
-    def deploy_oracle(self) -> None:
+    def deploy_oracle(self, mining_interval_secs: float = 0) -> None:
         """Deploy the oracle."""
         cycles_enter = 4
         handlers_enter: HandlersType = [
@@ -179,6 +179,7 @@ class TransactionSettlementIntegrationBaseCase(
             handlers_enter,
             expected_content_enter,
             expected_types_enter,
+            mining_interval_secs=mining_interval_secs,
         )
         assert msg4 is not None and isinstance(msg4, LedgerApiMessage)
         oracle_contract_address = EthereumApi.get_contract_address(
@@ -250,6 +251,7 @@ class TransactionSettlementIntegrationBaseCase(
             _gas_price_strategy: Optional[str] = None,
             _extra_config: Optional[Dict] = None,
             old_price: Optional[Dict[str, Wei]] = None,
+            raise_on_try: bool = False,
         ) -> Dict[str, Wei]:
             """Get a dummy gas price."""
             tip = max_priority_fee_per_gas
@@ -295,9 +297,11 @@ class TestRepricing(TransactionSettlementIntegrationBaseCase):
         Test that we are using the same keeper to reprice when we fail or timeout for the first time.
         Also, test that we are adjusting the gas correctly when repricing.
         """
+        mining_interval_secs = 1
+        mining_interval_msecs = mining_interval_secs * 1000
 
         # deploy the oracle
-        self.deploy_oracle()
+        self.deploy_oracle(mining_interval_secs)
         # generate tx hash
         self.gen_safe_tx_hash()
         # sign tx
@@ -310,12 +314,12 @@ class TestRepricing(TransactionSettlementIntegrationBaseCase):
         self.send_tx()
         # re-enable HardHat's automatic mining so that the second tx replaces the first, pending one
         assert self.hardhat_provider.make_request(
-            RPCEndpoint("evm_setIntervalMining"), [1000]
+            RPCEndpoint("evm_setIntervalMining"), [mining_interval_msecs]
         ), "Re-enabling auto-mining failed!"
         # send tx second time
         self.send_tx()
         # validate the tx
-        self.validate_tx()
+        self.validate_tx(mining_interval_secs=mining_interval_secs)
 
 
 class TestKeepers(OracleBehaviourBaseCase, IntegrationBaseCase):
