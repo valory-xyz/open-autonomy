@@ -305,7 +305,11 @@ class FlaskTendermintDockerImage(TendermintDockerImage):
             cmd.append(f"--hostname=node{i}")
 
         subprocess.run(cmd)  # nosec
-        for config_file in Path().cwd().glob("nodes/**/*.toml"):
+        nodes_config_files = list(Path().cwd().glob("**/config.toml"))
+        assert (
+            nodes_config_files != []
+        ), "Could not detect any config files for the nodes!"
+        for config_file in nodes_config_files:
             config_text = config_file.read_text(encoding="utf-8")
             peers = re.findall(r"[a-z\d]+@node\d:\d+", config_text)
 
