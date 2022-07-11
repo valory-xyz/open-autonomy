@@ -307,7 +307,7 @@ class FlaskTendermintDockerImage(TendermintDockerImage):
         subprocess.run(cmd)  # nosec
         for config_file in Path().cwd().glob("nodes/**/*.toml"):
             config_text = config_file.read_text(encoding="utf-8")
-            peers = re.findall(r"[a-z0-9]+@node\d:\d+", config_text)
+            peers = re.findall(r"[a-z\d]+@node\d:\d+", config_text)
 
             updated_peers = []
             for peer in peers:
