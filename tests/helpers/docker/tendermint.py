@@ -282,6 +282,42 @@ class FlaskTendermintDockerImage(TendermintDockerImage):
         container = self._client.containers.run(**run_kwargs)
         return container
 
+    def _fix_persistent_peers(self) -> None:
+        """
+        Fix the persistent peers' ports in the configuration file.
+
+        Since we are running all the ABCIs at the same host for our e2e tests, we shift the ports by 10 for each
+        added node. Therefore, we need to override the default persistent peers in the config files,
+        in order for them to use the correct ports.
+        """
+        nodes_config_files = list(Path().cwd().glob("**/config.toml"))
+        assert (
+            nodes_config_files != []
+        ), "Could not detect any config files for the nodes!"
+
+        for config_file in nodes_config_files:
+            config_text = config_file.read_text(encoding="utf-8")
+            peers = re.findall(r"[a-z\d]+@node\d:\d+", config_text)
+
+            updated_peers = []
+            for peer in peers:
+                peer_id, address = peer.split("@")
+                peer_name, _ = address.split(":")
+                *_, peer_number_string = peer_name
+
+                peer_number = int(peer_number_string)
+                new_port = self.get_p2p_port(peer_number)
+                updated_peers.append(f"{peer_id}@{peer_name}:{new_port}")
+
+            persistent_peers_string = (
+                'persistent_peers = "' + ",".join(updated_peers) + '"\n'
+            )
+            updated_config = re.sub(
+                'persistent_peers = ".*\n', persistent_peers_string, config_text
+            )
+
+            config_file.write_text(updated_config, encoding="utf-8")
+
     def _create_config(self, nb_nodes: int) -> None:
         """Create necessary configuration."""
         self.nb_nodes = nb_nodes
@@ -305,32 +341,7 @@ class FlaskTendermintDockerImage(TendermintDockerImage):
             cmd.append(f"--hostname=node{i}")
 
         subprocess.run(cmd)  # nosec
-        nodes_config_files = list(Path().cwd().glob("**/config.toml"))
-        assert (
-            nodes_config_files != []
-        ), "Could not detect any config files for the nodes!"
-        for config_file in nodes_config_files:
-            config_text = config_file.read_text(encoding="utf-8")
-            peers = re.findall(r"[a-z\d]+@node\d:\d+", config_text)
-
-            updated_peers = []
-            for peer in peers:
-                peer_id, address = peer.split("@")
-                peer_name, _ = address.split(":")
-                *_, peer_number_string = peer_name
-
-                peer_number = int(peer_number_string)
-                new_port = self.get_p2p_port(peer_number)
-                updated_peers.append(f"{peer_id}@{peer_name}:{new_port}")
-
-            persistent_peers_string = (
-                'persistent_peers = "' + ",".join(updated_peers) + '"\n'
-            )
-            updated_config = re.sub(
-                'persistent_peers = ".*\n', persistent_peers_string, config_text
-            )
-
-            config_file.write_text(updated_config, encoding="utf-8")
+        self._fix_persistent_peers()
 
         self._extra_hosts = {
             self.get_node_name(i): "host-gateway" for i in range(nb_nodes)
