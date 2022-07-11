@@ -312,12 +312,11 @@ class FlaskTendermintDockerImage(TendermintDockerImage):
             updated_peers = []
             for peer in peers:
                 peer_id, address = peer.split("@")
-                peer_name, port_string = address.split(":")
+                peer_name, _ = address.split(":")
                 *_, peer_number_string = peer_name
 
-                port = int(port_string)
                 peer_number = int(peer_number_string)
-                new_port = port + (peer_number * 10)
+                new_port = self.get_p2p_port(peer_number)
                 updated_peers.append(f"{peer_id}@{peer_name}:{new_port}")
 
             persistent_peers_string = (
