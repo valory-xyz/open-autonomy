@@ -318,9 +318,20 @@ class FlaskTendermintDockerImage(TendermintDockerImage):
 
             config_file.write_text(updated_config, encoding="utf-8")
 
-    def _create_config(self, nb_nodes: int) -> None:
-        """Create necessary configuration."""
-        self.nb_nodes = nb_nodes
+    def _grant_permissions(self) -> None:
+        """
+        Grant permissions for the nodes' config files.
+
+        Create the nodes' config files, so that the `testnet` command which is run via docker
+        does not create it with root permissions, so we can later modify the `config.toml` files.
+        """
+        for i in range(self.nb_nodes):
+            path = Path(f"{os.getcwd()}", "nodes", f"node{i}", "config")
+            os.makedirs(path)
+            open(path / "config.toml", "a").close()
+
+    def _create_testnet(self) -> None:
+        """Create the Tendermint testnet."""
         cmd = [
             "docker",
             "run",
@@ -333,16 +344,21 @@ class FlaskTendermintDockerImage(TendermintDockerImage):
             "--config",
             "/etc/tendermint/config-template.toml",
             "--v",
-            f"{nb_nodes}",
+            f"{self.nb_nodes}",
             "--o",
             "/tendermint/",
         ]
-        for i in range(nb_nodes):
+        for i in range(self.nb_nodes):
             cmd.append(f"--hostname=node{i}")
 
         subprocess.run(cmd)  # nosec
-        self._fix_persistent_peers()
 
+    def _create_config(self, nb_nodes: int) -> None:
+        """Create necessary configuration."""
+        self.nb_nodes = nb_nodes
+        self._grant_permissions()
+        self._create_testnet()
+        self._fix_persistent_peers()
         self._extra_hosts = {
             self.get_node_name(i): "host-gateway" for i in range(nb_nodes)
         }
