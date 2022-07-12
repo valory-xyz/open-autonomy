@@ -7,7 +7,7 @@
 
 3. [CURRENTLY SKIPPED] Bump all the packages to their latest versions by running `python scripts/update_package_versions.py`.
 
-4. Check the package upgrades are correct by running `aea check-packages`. Commit if satisfied.
+4. Check the package upgrades are correct by running `autonomy check-packages`. Commit if satisfied.
 
 5. Check the docs are up-to-date by running `python scripts/generate_api_documentation.py`. Ensure all links are configured `mkdocs serve`. Commit if satisfied.
 
@@ -28,7 +28,7 @@
 
 13. Build and tag images for the documentation. `skaffold build -p docs`. Inform DevOps of new release so that these images can be rolled out.
 
-14. Release packages into registry: `export OPEN_AEA_IPFS_ADDR="/dns/registry.autonolas.tech/tcp/443/https"`, `aea init --reset --author valory --ipfs --remote` and `aea push-all`. If necessary, run it several times until all packages are updated.
+14. Release packages into registry: `autonomy init --reset --author valory --ipfs --remote` and `autonomy push-all`. If necessary, run it several times until all packages are updated.
 
 15. Update the docker images via `skaffold build` and then, `export VERSION={new-version}` and `skaffold build -p docs`.
 

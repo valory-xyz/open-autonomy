@@ -28,6 +28,7 @@ from typing import (
     Dict,
     Generator,
     Iterator,
+    List,
     Optional,
     Set,
     Tuple,
@@ -114,6 +115,20 @@ class TransactionSettlementBaseBehaviour(BaseBehaviour, ABC):
 
         return concatenated
 
+    def get_gas_price_params(self, tx_body: dict) -> List[str]:
+        """Guess the gas strategy from the transaction params"""
+        strategy_to_params: Dict[str, List[str]] = {
+            "eip": ["maxPriorityFeePerGas", "maxFeePerGas"],
+            "gas_station": ["gasPrice"],
+        }
+
+        for strategy, params in strategy_to_params.items():
+            if all(param in tx_body for param in params):
+                self.context.logger.info(f"Detected gas strategy: {strategy}")
+                return params
+
+        return []
+
     def _get_tx_data(
         self, message: ContractApiMessage
     ) -> Generator[None, None, TxDataType]:
@@ -126,6 +141,7 @@ class TransactionSettlementBaseBehaviour(BaseBehaviour, ABC):
             "tx_digest": "",
         }
 
+        # Check for errors in the transaction preparation
         if (
             message.performative == ContractApiMessage.Performative.ERROR
             and message.message is not None
@@ -139,16 +155,19 @@ class TransactionSettlementBaseBehaviour(BaseBehaviour, ABC):
             )
             return tx_data
 
+        # Check that we have a RAW_TRANSACTION response
         if message.performative != ContractApiMessage.Performative.RAW_TRANSACTION:
             self.context.logger.warning(
                 f"get_raw_safe_transaction unsuccessful! Received: {message}"
             )
             return tx_data
 
+        # Send transaction
         tx_digest, rpc_status = yield from self.send_raw_transaction(
             message.raw_transaction
         )
 
+        # Handle transaction results
         if rpc_status == RPCResponseStatus.INCORRECT_NONCE:
             tx_data["status"] = VerificationStatus.ERROR
             self.context.logger.warning(
@@ -174,6 +193,10 @@ class TransactionSettlementBaseBehaviour(BaseBehaviour, ABC):
         tx_data["tx_digest"] = cast(str, tx_digest)
 
         nonce = Nonce(int(cast(str, message.raw_transaction.body["nonce"])))
+
+        # Get the gas params
+        gas_price_params = self.get_gas_price_params(message.raw_transaction.body)
+
         gas_price = {
             gas_price_param: Wei(
                 int(
@@ -183,8 +206,9 @@ class TransactionSettlementBaseBehaviour(BaseBehaviour, ABC):
                     )
                 )
             )
-            for gas_price_param in ("maxPriorityFeePerGas", "maxFeePerGas")
+            for gas_price_param in gas_price_params
         }
+
         # Set hash, nonce and tip.
         self.params.tx_hash = cast(str, tx_data["tx_digest"])
         if nonce == self.params.nonce:
@@ -370,20 +394,21 @@ class ValidateTransactionBehaviour(TransactionSettlementBaseBehaviour):
 
     def has_transaction_been_sent(self) -> Generator[None, None, Optional[bool]]:
         """Transaction verification."""
+
+        to_be_validated_tx_hash = self.synchronized_data.to_be_validated_tx_hash
+
         response = yield from self.get_transaction_receipt(
-            self.synchronized_data.to_be_validated_tx_hash,
+            to_be_validated_tx_hash,
             self.params.retry_timeout,
             self.params.retry_attempts,
         )
         if response is None:  # pragma: nocover
             self.context.logger.error(
-                f"tx {self.synchronized_data.to_be_validated_tx_hash} receipt check timed out!"
+                f"tx {to_be_validated_tx_hash} receipt check timed out!"
             )
             return None
 
-        contract_api_msg = yield from self._verify_tx(
-            self.synchronized_data.to_be_validated_tx_hash
-        )
+        contract_api_msg = yield from self._verify_tx(to_be_validated_tx_hash)
         if (
             contract_api_msg.performative != ContractApiMessage.Performative.STATE
         ):  # pragma: nocover
@@ -391,6 +416,7 @@ class ValidateTransactionBehaviour(TransactionSettlementBaseBehaviour):
                 f"verify_tx unsuccessful! Received: {contract_api_msg}"
             )
             return False
+
         verified = cast(bool, contract_api_msg.state.body["verified"])
         verified_log = (
             f"Verified result: {verified}"
@@ -415,7 +441,6 @@ class CheckTransactionHistoryBehaviour(TransactionSettlementBaseBehaviour):
 
         with self.context.benchmark_tool.measure(self.behaviour_id).local():
             verification_status, tx_hash = yield from self._check_tx_history()
-
             if verification_status == VerificationStatus.VERIFIED:
                 msg = f"A previous transaction {tx_hash} has already been verified "
                 msg += (

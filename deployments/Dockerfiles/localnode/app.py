@@ -218,7 +218,10 @@ def create_app(
             if IS_DEV_MODE:
                 period_dumper.dump_period()
 
-            tendermint_node.prune_blocks()
+            return_code = tendermint_node.prune_blocks()
+            if return_code:
+                tendermint_node.start(start_monitoring=perform_monitoring)
+                raise RuntimeError("Could not perform `unsafe-reset-all` successfully!")
             defaults = get_defaults()
             tendermint_node.reset_genesis_file(
                 request.args.get("genesis_time", defaults["genesis_time"]),

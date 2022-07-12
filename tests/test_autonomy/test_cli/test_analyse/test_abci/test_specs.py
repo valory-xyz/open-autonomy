@@ -92,6 +92,29 @@ class TestGenerateSpecs(BaseCliTest):
 
         self._run_test(DFA.OutputFormats.MERMAID)
 
+    def test_failures(
+        self,
+    ) -> None:
+        """Test failures."""
+
+        *module, cls = self.cls_name.split(".")
+        cls_name = ".".join([*module, "dummy", cls])
+        result = self.run_cli((cls_name, "fsm", "--yaml"))
+
+        assert result.exit_code == 1, result.output
+        assert "Failed to load" in result.stdout, result.output
+        assert (
+            "Please, verify that AbciApps and classes are correctly defined within the module."
+            in result.stdout
+        ), result.output
+
+        *module, cls = self.cls_name.split(".")
+        cls_name = ".".join([*module, cls[:-1]])
+        result = self.run_cli((cls_name, "fsm", "--yaml"))
+
+        assert result.exit_code == 1, result.output
+        assert """Class "HelloWorldAbciAp" is not in""" in result.stdout, result.output
+
 
 class TestCheckSpecs(BaseCliTest):
     """Test `check-app-specs` command."""
@@ -203,6 +226,24 @@ class TestCheckSpecs(BaseCliTest):
         assert (
             "Specifications did not match for following definitions." in result.output
         )
+
+    def test_failures(
+        self,
+    ) -> None:
+        """Test with one class."""
+        self._fix_corrupt_file()
+
+        result = self.run_cli(("--infile", str(self.specification_path)))
+
+        assert result.exit_code == 1, result.output
+        assert "Please provide class name for ABCI app." in result.output, result.output
+
+        result = self.run_cli(("--app-class", self.cls_name))
+
+        assert result.exit_code == 1, result.output
+        assert (
+            "Please provide path to specification file." in result.output
+        ), result.output
 
     @classmethod
     def teardown(cls) -> None:

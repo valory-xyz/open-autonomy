@@ -42,6 +42,7 @@ _DEFAULT_REQUEST_TIMEOUT = 10.0
 _DEFAULT_REQUEST_RETRY_DELAY = 1.0
 _DEFAULT_TX_TIMEOUT = 10.0
 _DEFAULT_TX_MAX_ATTEMPTS = 10
+_DEFAULT_CLEANUP_HISTORY_DEPTH_CURRENT = None
 
 
 class BaseParams(Model):  # pylint: disable=too-many-instance-attributes
@@ -67,6 +68,9 @@ class BaseParams(Model):  # pylint: disable=too-many-instance-attributes
         self.reset_tendermint_after = self._ensure("reset_tendermint_after", kwargs)
         self.consensus_params = ConsensusParams.from_json(kwargs.pop("consensus", {}))
         self.cleanup_history_depth = self._ensure("cleanup_history_depth", kwargs)
+        self.cleanup_history_depth_current = kwargs.pop(
+            "cleanup_history_depth_current", _DEFAULT_CLEANUP_HISTORY_DEPTH_CURRENT
+        )
         self.request_timeout = kwargs.pop("request_timeout", _DEFAULT_REQUEST_TIMEOUT)
         self.request_retry_delay = kwargs.pop(
             "request_retry_delay", _DEFAULT_REQUEST_RETRY_DELAY

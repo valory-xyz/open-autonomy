@@ -20,6 +20,7 @@
 """Test the abci_app_chain.py module of the skill."""
 
 import pytest
+from aea.exceptions import AEAEnforceError
 
 from packages.valory.skills.abstract_round_abci.abci_app_chain import (
     AbciAppTransitionMapping,
@@ -37,6 +38,7 @@ class TestAbciAppChaining:
         """Setup test."""
         self.round_1a = make_round_class("round_1a")
         self.round_1b = make_round_class("round_1b")
+        self.round_1b_dupe = make_round_class("round_1b")  # duplicated round id
         self.round_1c = make_round_class("round_1c", (DegenerateRound,))
 
         self.round_2a = make_round_class("round_2a")
@@ -113,6 +115,7 @@ class TestAbciAppChaining:
                 self.round_3b: {
                     self.event_3a: self.round_3a,
                     self.event_3c: self.round_3c,
+                    self.event_1a: self.round_3a,  # duplicated event
                 },
                 self.round_3c: {},
             }
@@ -120,6 +123,25 @@ class TestAbciAppChaining:
             event_to_timeout = {self.event_timeout3: self.timeout3}
 
         self.app3_class = AbciApp3
+
+        class AbciApp3Dupe(AbciApp):
+            initial_round_cls = self.round_3a
+            transition_function = {
+                self.round_3a: {
+                    self.event_timeout3: self.round_3a,
+                    self.event_3b: self.round_3b,
+                },
+                self.round_1b_dupe: {  # duplucated round id
+                    self.event_3a: self.round_3a,
+                    self.event_3c: self.round_3c,
+                    self.event_1a: self.round_3a,  # duplicated event
+                },
+                self.round_3c: {},
+            }
+            final_states = {self.round_3c}
+            event_to_timeout = {self.event_timeout3: self.timeout3}
+
+        self.app3_class_dupe = AbciApp3Dupe
 
         class AbciApp2Faulty1(AbciApp):
             initial_round_cls = self.round_2a
@@ -209,6 +231,7 @@ class TestAbciAppChaining:
             self.round_3b: {
                 self.event_3a: self.round_3a,
                 self.event_3c: self.round_3c,
+                self.event_1a: self.round_3a,
             },
             self.round_3c: {},
         }
@@ -253,3 +276,16 @@ class TestAbciAppChaining:
 
         with pytest.raises(ValueError, match="Found non-final state"):
             _ = chain((self.app1_class, self.app2_class), abci_app_transition_mapping)  # type: ignore
+
+    def test_chain_two_dupe(self) -> None:
+        """Test the AbciApp chain function."""
+
+        abci_app_transition_mapping: AbciAppTransitionMapping = {
+            self.round_1c: self.round_2a,
+            self.round_2c: self.round_1a,
+        }
+        with pytest.raises(
+            AEAEnforceError,
+            match=r"round ids in common between abci apps are not allowed.*",
+        ):
+            chain((self.app1_class, self.app3_class_dupe), abci_app_transition_mapping)  # type: ignore

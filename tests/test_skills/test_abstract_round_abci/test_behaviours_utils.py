@@ -27,7 +27,7 @@ from abc import ABC
 from collections import OrderedDict
 from datetime import datetime
 from enum import Enum
-from typing import Any, Dict, Generator, Optional, Tuple, Type, Union
+from typing import Any, Callable, Dict, Generator, Optional, Tuple, Type, Union
 from unittest import mock
 from unittest.mock import MagicMock
 
@@ -58,6 +58,8 @@ from packages.valory.skills.abstract_round_abci.behaviour_utils import (
     HEIGHT_OFFSET_MULTIPLIER,
     MIN_HEIGHT_OFFSET,
     NON_200_RETURN_CODE_DURING_RESET_THRESHOLD,
+    RESET_HASH,
+    ROOT_HASH,
     SendException,
     TimeoutException,
     make_degenerate_behaviour,
@@ -70,6 +72,21 @@ from packages.valory.skills.abstract_round_abci.models import (
 )
 
 from tests.helpers.base import try_send
+
+
+def yield_and_return_bool_wrapper(
+    flag_value: bool,
+) -> Callable[[], Generator[None, None, Optional[bool]]]:
+    """Wrapper for a Dummy generator that returns a `bool`."""
+
+    def yield_and_return_bool(
+        **_: bool,
+    ) -> Generator[None, None, Optional[bool]]:
+        """Dummy generator that returns a `bool`."""
+        yield
+        return flag_value
+
+    return yield_and_return_bool
 
 
 class AsyncBehaviourTest(AsyncBehaviour, ABC):
@@ -355,12 +372,40 @@ class BehaviourATest(BaseBehaviour):
         yield
 
 
-def _get_status_patch(*args: Any, **kwargs: Any) -> Generator[None, None, MagicMock]:
-    """Patch `_get_status` method"""
-    return MagicMock(
-        body=json.dumps({"result": {"sync_info": {"latest_block_height": 0}}}).encode()
-    )
-    yield
+def _get_status_patch_wrapper(
+    latest_block_height: int,
+    expected_round_count: Optional[int],
+    expected_reset_index: Optional[int],
+) -> Callable[[Any, Any], Generator[None, None, MagicMock]]:
+    """Wrapper for `_get_status` method patch."""
+
+    if any(
+        app_hash_param is None
+        for app_hash_param in (expected_round_count, expected_reset_index)
+    ):
+        app_hash = ""
+    else:
+        app_hash = (
+            f"{ROOT_HASH}{expected_round_count}{RESET_HASH}{expected_reset_index}"
+        )
+
+    def _get_status_patch(*_: Any, **__: Any) -> Generator[None, None, MagicMock]:
+        """Patch `_get_status` method"""
+        yield
+        return MagicMock(
+            body=json.dumps(
+                {
+                    "result": {
+                        "sync_info": {
+                            "latest_block_height": latest_block_height,
+                            "latest_app_hash": app_hash,
+                        }
+                    }
+                }
+            ).encode()
+        )
+
+    return _get_status_patch
 
 
 def _get_status_wrong_patch(
@@ -404,6 +449,7 @@ class TestBaseBehaviour:
         )
         self.context_mock.state.round_sequence.current_round_id = "round_a"
         self.context_mock.state.round_sequence.syncing_up = False
+        self.context_mock.state.round_sequence.block_stall_deadline_expired = False
         self.context_mock.http_dialogues = HttpDialogues()
         self.context_mock.handlers.__dict__ = {"http": MagicMock()}
         self.behaviour = BehaviourATest(name="", skill_context=self.context_mock)
@@ -520,25 +566,113 @@ class TestBaseBehaviour:
         gen = self.behaviour.send_a2a_transaction(MagicMock())
         try_send(gen)
 
-    def test_async_act_wrapper(self) -> None:
-        """Test 'async_act_wrapper'."""
-        gen = self.behaviour.async_act_wrapper()
-        try_send(gen)
-        self.behaviour.set_done()
-        try_send(gen)
+    @mock.patch.object(
+        BaseBehaviour,
+        "tm_communication_unhealthy",
+        new_callable=mock.PropertyMock,
+        return_value=True,
+    )
+    @pytest.mark.parametrize("tm_reset_success", (True, False))
+    def test__check_tm_communication(
+        self, _: mock._patch, tm_reset_success: bool
+    ) -> None:
+        """Test `__check_tm_communication`."""
+        gen = self.behaviour._BaseBehaviour__check_tm_communication()
 
-    @mock.patch.object(BaseBehaviour, "_get_status", _get_status_patch)
-    def test_async_act_wrapper_agent_sync_mode(self) -> None:
+        with mock.patch.object(
+            self.behaviour,
+            "reset_tendermint_with_wait",
+            side_effect=yield_and_return_bool_wrapper(tm_reset_success),
+        ):
+            try_send(gen)
+            try_send(gen)
+
+    @pytest.mark.parametrize("communication_is_healthy", (True, False))
+    def test_async_act_wrapper_communication(
+        self, communication_is_healthy: bool
+    ) -> None:
+        """Test 'async_act_wrapper' when tm communication is unhealthy."""
+        gen = self.behaviour.async_act_wrapper()
+
+        with mock.patch.object(
+            self.behaviour,
+            "_BaseBehaviour__check_tm_communication",
+            side_effect=yield_and_return_bool_wrapper(communication_is_healthy),
+        ):
+            try_send(gen)
+            try_send(gen)
+
+        self.behaviour.set_done()
+        with mock.patch.object(BaseBehaviour, "_log_end") as _log_end_mock:
+            try_send(gen)
+            if communication_is_healthy:
+                _log_end_mock.assert_called_once()
+            else:
+                _log_end_mock.assert_not_called()
+
+    def test_sync_state(self) -> None:
+        """Test `_sync_state`."""
+        app_hash = ""
+        self.behaviour._sync_state(app_hash)
+        assert self.behaviour.context.state.round_sequence.abci_app.reset_index == 0
+
+        app_hash = "726F6F743A356072657365743A370"
+        self.behaviour._sync_state(app_hash)
+        assert self.behaviour.context.state.round_sequence.abci_app.reset_index == 70
+
+        app_hash = "incorrect"
+        with pytest.raises(
+            ValueError,
+            match=(
+                "Expected an app hash of the form: `726F6F743A3{ROUND_COUNT}72657365743A3{RESET_INDEX}`,"
+                "which is derived from `root:{ROUND_COUNT}reset:{RESET_INDEX}`. "
+                "For example, `root:90reset:4` would be `726F6F743A39072657365743A34`. "
+                f"However, the app hash received is: `{app_hash}`."
+            ),
+        ):
+            self.behaviour._sync_state(app_hash)
+
+    @pytest.mark.parametrize(
+        "expected_round_count, expected_reset_index",
+        ((None, None), (0, 0), (123, 4), (235235, 754)),
+    )
+    @mock.patch.object(
+        BehaviourATest,
+        "_BaseBehaviour__check_tm_communication",
+        side_effect=yield_and_return_bool_wrapper(True),
+    )
+    def test_async_act_wrapper_agent_sync_mode(
+        self,
+        _: mock._patch,
+        expected_round_count: Optional[int],
+        expected_reset_index: Optional[int],
+    ) -> None:
         """Test 'async_act_wrapper' in sync mode."""
         self.behaviour.context.state.round_sequence.syncing_up = True
         self.behaviour.context.state.round_sequence.height = 0
         self.behaviour.matching_round = MagicMock()
         self.behaviour.context.logger.info = lambda msg: logging.info(msg)  # type: ignore
 
-        with mock.patch.object(logging, "info") as log_mock:
+        with mock.patch.object(logging, "info") as log_mock, mock.patch.object(
+            BaseBehaviour,
+            "_get_status",
+            _get_status_patch_wrapper(0, expected_round_count, expected_reset_index),
+        ):
             gen = self.behaviour.async_act_wrapper()
-            try_send(gen)
-            log_mock.assert_called_with("local height == remote; Sync complete...")
+            for __ in range(3):
+                try_send(gen)
+            log_mock.assert_called_with("local height == remote == 0; Sync complete...")
+
+        if any(
+            app_hash_param is None
+            for app_hash_param in (expected_round_count, expected_reset_index)
+        ):
+            expected_reset_index = 0
+
+        assert (
+            self.behaviour.context.state.round_sequence.abci_app.reset_index
+            == expected_reset_index
+        )
 
     @mock.patch.object(BaseBehaviour, "_get_status", _get_status_wrong_patch)
     def test_async_act_wrapper_agent_sync_mode_where_height_dont_match(self) -> None:
@@ -552,12 +686,20 @@ class TestBaseBehaviour:
         gen = self.behaviour.async_act_wrapper()
         try_send(gen)
 
+    @mock.patch.object(
+        BehaviourATest,
+        "_BaseBehaviour__check_tm_communication",
+        side_effect=yield_and_return_bool_wrapper(True),
+    )
     @pytest.mark.parametrize("exception_cls", [StopIteration])
-    def test_async_act_wrapper_exception(self, exception_cls: Exception) -> None:
+    def test_async_act_wrapper_exception(
+        self, _: mock._patch, exception_cls: Exception
+    ) -> None:
         """Test 'async_act_wrapper'."""
         with mock.patch.object(self.behaviour, "async_act", side_effect=exception_cls):
             with mock.patch.object(self.behaviour, "clean_up") as clean_up_mock:
                 gen = self.behaviour.async_act_wrapper()
+                try_send(gen)
                 try_send(gen)
                 clean_up_mock.assert_called()
 
@@ -1482,7 +1624,12 @@ class TestBaseBehaviour:
         atheris.Fuzz()
 
 
-def test_degenerate_behaviour_async_act() -> None:
+@mock.patch.object(
+    DegenerateBehaviour,
+    "_BaseBehaviour__check_tm_communication",
+    side_effect=yield_and_return_bool_wrapper(True),
+)
+def test_degenerate_behaviour_async_act(_: mock._patch) -> None:
     """Test DegenerateBehaviour.async_act."""
 
     class ConcreteDegenerateBehaviour(DegenerateBehaviour):
@@ -1495,13 +1642,17 @@ def test_degenerate_behaviour_async_act() -> None:
     context.params.ipfs_domain_name = None
     # this is needed to trigger execution of async_act
     context.state.round_sequence.syncing_up = False
+    context.state.round_sequence.block_stall_deadline_expired = False
 
     behaviour = ConcreteDegenerateBehaviour(
         name=ConcreteDegenerateBehaviour.behaviour_id, skill_context=context
     )
+    behaviour.act()
     with pytest.raises(
         RuntimeError,
-        match="The execution reached a degenerate behaviour. This means a degenerate round has been reached during the execution of the ABCI application. Please check the functioning of the ABCI app.",
+        match="The execution reached a degenerate behaviour. "
+        "This means a degenerate round has been reached during the execution of the ABCI application. "
+        "Please check the functioning of the ABCI app.",
     ):
         behaviour.act()
 

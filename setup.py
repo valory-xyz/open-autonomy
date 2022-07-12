@@ -32,7 +32,7 @@ def get_all_extras() -> Dict:
 
     cli_deps = [
         "click==8.0.2",
-        "open-aea-cli-ipfs>=1.11.0,<2.0.0",
+        "open-aea-cli-ipfs>=1.12.0.post1,<2.0.0",
     ]
 
     extras = {
@@ -48,7 +48,7 @@ all_extras = get_all_extras()
 
 base_deps = [
     "Flask>=2.0.2,<3.0.0",
-    "open-aea[all]>=1.11.0,<2.0.0",
+    "open-aea[all]>=1.12.0.post1,<2.0.0",
     "pandas<1.4,>=1.3.4",
 ]
 base_deps.extend(all_extras["cli"])

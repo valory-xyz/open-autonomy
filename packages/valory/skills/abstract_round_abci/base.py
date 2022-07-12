@@ -71,6 +71,8 @@ ADDRESS_LENGTH = 42
 MAX_INT_256 = 2 ** 256 - 1
 RESET_COUNT_START = 0
 VALUE_NOT_PROVIDED = object()
+# tolerance in seconds for new blocks not having arrived yet
+BLOCKS_STALL_TOLERANCE = 60
 
 EventType = TypeVar("EventType")
 TransactionType = TypeVar("TransactionType")
@@ -520,8 +522,23 @@ class AbciAppDB:
         2: ...
     }
 
+    # Adding and removing data from the current period
+    --------------------------------------------------
     To update the current period entry, just call update() on the class. The new values will be appended to the current list for each updated parameter.
+
+    To clean up old data from the current period entry, call cleanup_current_histories(cleanup_history_depth_current), where cleanup_history_depth_current
+    is the amount of data that you want to keep after the cleanup. The newest cleanup_history_depth_current values will be kept for each parameter in the DB.
+
+    # Creating and removing old periods
+    -----------------------------------
     To create a new period entry, call create() on the class. The new values will be stored in a new list for each updated parameter.
+
+    To remove old periods, call cleanup(cleanup_history_depth, [cleanup_history_depth_current]), where cleanup_history_depth is the amount of periods
+    that you want to keep after the cleanup. The newest cleanup_history_depth periods will be kept. If you also specify cleanup_history_depth_current,
+    cleanup_current_histories will be also called (see previous point).
+
+    The parameters cleanup_history_depth and cleanup_history_depth_current can also be configured in skill.yaml so they are used automatically
+    when the cleanup method is called from AbciApp.cleanup().
     """
 
     def __init__(
@@ -627,12 +644,34 @@ class AbciAppDB:
         """Return a string representation of the data."""
         return f"AbciAppDB({self._data})"
 
-    def cleanup(self, cleanup_history_depth: int) -> None:
-        """Reset the db."""
+    def cleanup(
+        self,
+        cleanup_history_depth: int,
+        cleanup_history_depth_current: Optional[int] = None,
+    ) -> None:
+        """Reset the db, keeping only the latest entries (periods).
+
+        If cleanup_history_depth_current has been also set, also clear oldest historic values in the current entry.
+
+        :param cleanup_history_depth: depth to clean up history
+        :param cleanup_history_depth_current: whether or not to clean up current entry too.
+        """
         cleanup_history_depth = max(cleanup_history_depth, MIN_HISTORY_DEPTH)
         self._data = {
             key: self._data[key]
             for key in sorted(self._data.keys())[-cleanup_history_depth:]
+        }
+        if cleanup_history_depth_current:
+            self.cleanup_current_histories(cleanup_history_depth_current)
+
+    def cleanup_current_histories(self, cleanup_history_depth_current: int) -> None:
+        """Reset the parameter histories for the current entry (period), keeping only the latest values for each parameter."""
+        cleanup_history_depth_current = max(
+            cleanup_history_depth_current, MIN_HISTORY_DEPTH
+        )
+        self._data[self.reset_index] = {
+            key: history[-cleanup_history_depth_current:]
+            for key, history in self._data[self.reset_index].items()
         }
 
     @staticmethod
@@ -680,7 +719,7 @@ class BaseSynchronizedData:
 
     @property
     def participants(self) -> FrozenSet[str]:
-        """Get the participants."""
+        """Get the currently active participants."""
         participants = self.db.get_strict("participants")
         if len(participants) == 0:
             raise ValueError("List participants cannot be empty.")
@@ -688,7 +727,7 @@ class BaseSynchronizedData:
 
     @property
     def all_participants(self) -> FrozenSet[str]:
-        """Get all the participants."""
+        """Get all registered participants."""
         all_participants = self.db.get_strict("all_participants")
         if len(all_participants) == 0:
             raise ValueError("List participants cannot be empty.")
@@ -905,9 +944,9 @@ class AbstractRound(Generic[EventType, TransactionType], ABC):
     @classmethod
     def check_majority_possible_with_new_voter(
         cls,
-        votes_by_participant: Dict[Any, Any],
-        new_voter: Any,
-        new_vote: Any,
+        votes_by_participant: Dict[str, BaseTxPayload],
+        new_voter: str,
+        new_vote: BaseTxPayload,
         nb_participants: int,
         exception_cls: Type[ABCIAppException] = ABCIAppException,
     ) -> None:
@@ -948,7 +987,7 @@ class AbstractRound(Generic[EventType, TransactionType], ABC):
     @classmethod
     def check_majority_possible(
         cls,
-        votes_by_participant: Dict[Any, Any],
+        votes_by_participant: Dict[str, BaseTxPayload],
         nb_participants: int,
         exception_cls: Type[ABCIAppException] = ABCIAppException,
     ) -> None:
@@ -986,7 +1025,8 @@ class AbstractRound(Generic[EventType, TransactionType], ABC):
         if len(votes_by_participant) == 0:
             return
 
-        vote_count = Counter(votes_by_participant.values())
+        votes = votes_by_participant.values()
+        vote_count = Counter(tuple(sorted(v.data.items())) for v in votes)
         largest_nb_votes = max(vote_count.values())
         nb_votes_received = sum(vote_count.values())
         nb_remaining_votes = nb_participants - nb_votes_received
@@ -1000,7 +1040,7 @@ class AbstractRound(Generic[EventType, TransactionType], ABC):
 
     @classmethod
     def is_majority_possible(
-        cls, votes_by_participant: Dict[Any, Any], nb_participants: int
+        cls, votes_by_participant: Dict[str, BaseTxPayload], nb_participants: int
     ) -> bool:
         """
         Return true if a Byzantine majority is achievable, false otherwise.
@@ -1068,10 +1108,22 @@ class CollectionRound(AbstractRound):
     might for example be from a voting round or estimation round.
     """
 
+    # allow_rejoin is used to allow agents not currently active to deliver a payload
+    _allow_rejoin_payloads: bool = False
+    # if the payload is serialized to bytes, we verify that the length specified matches
+    _hash_length: Optional[int] = None
+
     def __init__(self, *args: Any, **kwargs: Any):
         """Initialize the collection round."""
         super().__init__(*args, **kwargs)
         self.collection: Dict[str, BaseTxPayload] = {}
+
+    @property
+    def accepting_payloads_from(self) -> FrozenSet[str]:
+        """Accepting from the active set, or also from (re)joiners"""
+        if self._allow_rejoin_payloads:
+            return self.synchronized_data.all_participants
+        return self.synchronized_data.participants
 
     @property
     def payloads(self) -> List[BaseTxPayload]:
@@ -1091,9 +1143,9 @@ class CollectionRound(AbstractRound):
             )
 
         sender = payload.sender
-        if sender not in self.synchronized_data.participants:
+        if sender not in self.accepting_payloads_from:
             raise ABCIAppInternalError(
-                f"{sender} not in list of participants: {sorted(self.synchronized_data.participants)}"
+                f"{sender} not in list of participants: {sorted(self.accepting_payloads_from)}"
             )
 
         if sender in self.collection:
@@ -1101,27 +1153,42 @@ class CollectionRound(AbstractRound):
                 f"sender {sender} has already sent value for round: {self.round_id}"
             )
 
+        if self._hash_length:
+            content = payload.data.get(self.payload_attribute)
+            if not content or len(content) % self._hash_length:
+                msg = f"Expecting serialized data of chunk size {self._hash_length}"
+                raise ABCIAppInternalError(f"{msg}, got: {content} in {self.round_id}")
+
         self.collection[sender] = payload
 
     def check_payload(self, payload: BaseTxPayload) -> None:
         """Check Payload"""
+
+        # NOTE: the TransactionNotValidError is intercepted in ABCIRoundHandler.deliver_tx
+        #  which means it will be logged instead of raised
         if payload.round_count != self.synchronized_data.round_count:
             raise TransactionNotValidError(
                 f"Expected round count {self.synchronized_data.round_count} and got {payload.round_count}."
             )
 
-        sender_in_participant_set = (
-            payload.sender in self.synchronized_data.participants
-        )
+        sender_in_participant_set = payload.sender in self.accepting_payloads_from
         if not sender_in_participant_set:
             raise TransactionNotValidError(
-                f"{payload.sender} not in list of participants: {sorted(self.synchronized_data.participants)}"
+                f"{payload.sender} not in list of participants: {sorted(self.accepting_payloads_from)}"
             )
 
         if payload.sender in self.collection:
             raise TransactionNotValidError(
                 f"sender {payload.sender} has already sent value for round: {self.round_id}"
             )
+
+        if self._hash_length:
+            content = payload.data.get(self.payload_attribute)
+            if not content or len(content) % self._hash_length:
+                msg = f"Expecting serialized data of chunk size {self._hash_length}"
+                raise TransactionNotValidError(
+                    f"{msg}, got: {content} in {self.round_id}"
+                )
 
 
 class _CollectUntilAllRound(CollectionRound, ABC):
@@ -1801,6 +1868,11 @@ class AbciApp(
         """Return the reset index."""
         return self._reset_index
 
+    @reset_index.setter
+    def reset_index(self, reset_index: int) -> None:
+        """Set the reset index."""
+        self._reset_index = reset_index
+
     @classmethod
     def get_all_rounds(cls) -> Set[AppState]:
         """Get all the round states."""
@@ -2046,7 +2118,11 @@ class AbciApp(
         self._last_timestamp = timestamp
         self.logger.debug("final AbciApp time: %s", self._last_timestamp)
 
-    def cleanup(self, cleanup_history_depth: int) -> None:
+    def cleanup(
+        self,
+        cleanup_history_depth: int,
+        cleanup_history_depth_current: Optional[int] = None,
+    ) -> None:
         """Clear data."""
         if len(self._round_results) != len(self._previous_rounds):
             raise ABCIAppInternalError("Inconsistent round lengths")  # pragma: nocover
@@ -2055,8 +2131,16 @@ class AbciApp(
         cleanup_history_depth = max(cleanup_history_depth, MIN_HISTORY_DEPTH)
         self._previous_rounds = self._previous_rounds[-cleanup_history_depth:]
         self._round_results = self._round_results[-cleanup_history_depth:]
-        self.synchronized_data.db.cleanup(cleanup_history_depth)
+        self.synchronized_data.db.cleanup(
+            cleanup_history_depth, cleanup_history_depth_current
+        )
         self._reset_index += 1
+
+    def cleanup_current_histories(self, cleanup_history_depth_current: int) -> None:
+        """Reset the parameter histories for the current entry (period), keeping only the latest values for each parameter."""
+        self.synchronized_data.db.cleanup_current_histories(
+            cleanup_history_depth_current
+        )
 
 
 class RoundSequence:  # pylint: disable=too-many-instance-attributes
@@ -2108,6 +2192,7 @@ class RoundSequence:  # pylint: disable=too-many-instance-attributes
         self._last_round_transition_root_hash = b""
         self._last_round_transition_tm_height: Optional[int] = None
         self._tm_height: Optional[int] = None
+        self._block_stall_deadline: Optional[datetime.datetime] = None
 
     def setup(self, *args: Any, **kwargs: Any) -> None:
         """
@@ -2278,6 +2363,13 @@ class RoundSequence:  # pylint: disable=too-many-instance-attributes
         """Set Tendermint's current height."""
         self._tm_height = _tm_height
 
+    @property
+    def block_stall_deadline_expired(self) -> bool:
+        """Get if the deadline for not having received any begin block requests from the Tendermint node has expired."""
+        if self._block_stall_deadline is None:
+            return False
+        return datetime.datetime.now() > self._block_stall_deadline
+
     def init_chain(self, initial_height: int) -> None:
         """Init chain."""
         # reduce `initial_height` by 1 to get block count offset as per Tendermint protocol
@@ -2304,6 +2396,14 @@ class RoundSequence:  # pylint: disable=too-many-instance-attributes
         self._block_builder.reset()
         self._block_builder.header = header
         self.abci_app.update_time(header.timestamp)
+        # we use the local time of the agent to specify the expiration of the deadline
+        self._block_stall_deadline = datetime.datetime.now() + datetime.timedelta(
+            seconds=BLOCKS_STALL_TOLERANCE
+        )
+        _logger.info(
+            "Created a new local deadline for the next `begin_block` request from the Tendermint node: "
+            f"{self._block_stall_deadline}"
+        )
 
     def deliver_tx(self, transaction: Transaction) -> None:
         """

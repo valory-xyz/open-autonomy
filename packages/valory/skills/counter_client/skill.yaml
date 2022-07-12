@@ -15,10 +15,10 @@ fingerprint:
   utils.py: QmV19kFkqozDxEGqQn4nDqWWXeAd5oNYhtKnjj6snedBu9
 fingerprint_ignore_patterns: []
 connections:
-- valory/http_client:0.1.0:QmXBBMS5g4kyyE3mzFcpieoDMKWFf9naaCM3QNSjP2mxDt
+- valory/http_client:0.1.0:QmXiQUWV5AH7BRXGHVxVJpEcLpyNUsZf4pj55FqoTdiGDn
 contracts: []
 protocols:
-- valory/http:1.0.0:QmRQYhYWbGSNHb152dp2L1P9EtZRZZqgvZAaNat5qxfQqK
+- valory/http:1.0.0:QmYkSCErFKHs92nYzfqxeo9qBeMJF6H1SNC8awy8CjD3z6
 skills: []
 behaviours:
   incrementer:

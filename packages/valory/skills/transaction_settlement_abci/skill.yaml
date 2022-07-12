@@ -8,23 +8,23 @@ aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
   README.md: Qmes4T968eLYkfRc1o3oXMa3irSMo6CY95kaAGvM3LfzAF
   __init__.py: QmUJJPrwqyWYnqeYpGypjgsQoXiGFpjHogSrrDmAedpdzV
-  behaviours.py: QmSZ9P418cw6DDHJUmCoL4zDrGK5axZFrisGjGLCw2s5nq
+  behaviours.py: Qmc2C18eKxt3ucc2EK7XkmEX9h22tu4yua1PoCwBnEcJnL
   dialogues.py: QmfDThV4WCRzK88XDpW2hKDYCuEH4RxoHCoAkWpkBRGRPv
   fsm_specification.yaml: QmPZuCw7qesAcrqebg3ktHkTtkzDzJfUFL9cUEnpA1vxtD
   handlers.py: QmedYPVagH3kHem2xa1bZY5D67WAZHQyYu6hD3HbG1yF1e
   models.py: QmTRz2RdzomkGpHYud3zKc31rLBzcFyUc2b2GwMoFShN8V
   payload_tools.py: QmZdccbHqYawRVZnFaY1FZWJZKHhsVmSxipPgghGNmhmh5
   payloads.py: QmRYqBh9fDEXP4GxwjbNtGwHqaYmDUx5zBsWZxW6fhWwQp
-  rounds.py: QmUwbP2kYdAM1Yy6iHYngf1Tg3AyoVD6gWLENTBG298ktk
+  rounds.py: QmUKjcwJK1d9Fg8R7KTaTfPJMKfvY2zgpWx7CBsTyCajYr
 fingerprint_ignore_patterns: []
 connections: []
 contracts:
 - valory/gnosis_safe:0.1.0:QmRNdXGRRQBMFXh5ZvtJeYvHt7559kV5r5EYU5JNUdRBKJ
 - valory/gnosis_safe_proxy_factory:0.1.0:QmVkZtrgZ2ievXAonq9z33qbrxHi8piVGptuCGaGJYS1iM
 protocols:
-- valory/contract_api:1.0.0:QmZRa6S342MT1oSQjLoyEDitjK6nivypC78DKipvg9JpF1
+- valory/contract_api:1.0.0:QmcxtQbErzxdi18gTkG3FJqxauUC7YWXjjBd6f897qLb3Q
 skills:
-- valory/abstract_round_abci:0.1.0:Qmdsw7VcXF9nFFP76wGFrEjL1j9zWPmhuwmnsarMyfzoWG
+- valory/abstract_round_abci:0.1.0:QmULAH6TTjV3KwgDVi2Hhe87sUhTsiAVzZjWjo7gA4exaM
 behaviours:
   main:
     args: {}
@@ -68,6 +68,7 @@ models:
   params:
     args:
       cleanup_history_depth: 1
+      cleanup_history_depth_current: null
       consensus:
         max_participants: 1
       drand_public_key: 868f005eb8e6e4ca0a47c8a77ceaa5309a47978a7c71bc5cce96366b5d7a569937c529eeda66c7293784a9402801af31

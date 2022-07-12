@@ -663,8 +663,25 @@ data = {
     2: ...
 }
 
+__Adding and removing data from the current period__
+
+--------------------------------------------------
 To update the current period entry, just call update() on the class. The new values will be appended to the current list for each updated parameter.
+
+To clean up old data from the current period entry, call cleanup_current_histories(cleanup_history_depth_current), where cleanup_history_depth_current
+is the amount of data that you want to keep after the cleanup. The newest cleanup_history_depth_current values will be kept for each parameter in the DB.
+
+__Creating and removing old periods__
+
+-----------------------------------
 To create a new period entry, call create() on the class. The new values will be stored in a new list for each updated parameter.
+
+To remove old periods, call cleanup(cleanup_history_depth, [cleanup_history_depth_current]), where cleanup_history_depth is the amount of periods
+that you want to keep after the cleanup. The newest cleanup_history_depth periods will be kept. If you also specify cleanup_history_depth_current,
+cleanup_current_histories will be also called (see previous point).
+
+The parameters cleanup_history_depth and cleanup_history_depth_current can also be configured in skill.yaml so they are used automatically
+when the cleanup method is called from AbciApp.cleanup().
 
 <a id="packages.valory.skills.abstract_round_abci.base.AbciAppDB.__init__"></a>
 
@@ -817,10 +834,27 @@ Return a string representation of the data.
 #### cleanup
 
 ```python
-def cleanup(cleanup_history_depth: int) -> None
+def cleanup(cleanup_history_depth: int, cleanup_history_depth_current: Optional[int] = None) -> None
 ```
 
-Reset the db.
+Reset the db, keeping only the latest entries (periods).
+
+If cleanup_history_depth_current has been also set, also clear oldest historic values in the current entry.
+
+**Arguments**:
+
+- `cleanup_history_depth`: depth to clean up history
+- `cleanup_history_depth_current`: whether or not to clean up current entry too.
+
+<a id="packages.valory.skills.abstract_round_abci.base.AbciAppDB.cleanup_current_histories"></a>
+
+#### cleanup`_`current`_`histories
+
+```python
+def cleanup_current_histories(cleanup_history_depth_current: int) -> None
+```
+
+Reset the parameter histories for the current entry (period), keeping only the latest values for each parameter.
 
 <a id="packages.valory.skills.abstract_round_abci.base.AbciAppDB.data_to_lists"></a>
 
@@ -906,7 +940,7 @@ the period count
 def participants() -> FrozenSet[str]
 ```
 
-Get the participants.
+Get the currently active participants.
 
 <a id="packages.valory.skills.abstract_round_abci.base.BaseSynchronizedData.all_participants"></a>
 
@@ -917,7 +951,7 @@ Get the participants.
 def all_participants() -> FrozenSet[str]
 ```
 
-Get all the participants.
+Get all registered participants.
 
 <a id="packages.valory.skills.abstract_round_abci.base.BaseSynchronizedData.sorted_participants"></a>
 
@@ -1185,7 +1219,7 @@ Check the transaction is of the allowed transaction type.
 
 ```python
 @classmethod
-def check_majority_possible_with_new_voter(cls, votes_by_participant: Dict[Any, Any], new_voter: Any, new_vote: Any, nb_participants: int, exception_cls: Type[ABCIAppException] = ABCIAppException) -> None
+def check_majority_possible_with_new_voter(cls, votes_by_participant: Dict[str, BaseTxPayload], new_voter: str, new_vote: BaseTxPayload, nb_participants: int, exception_cls: Type[ABCIAppException] = ABCIAppException) -> None
 ```
 
 Check that a Byzantine majority is achievable, once a new vote is added.
@@ -1207,7 +1241,7 @@ Check that a Byzantine majority is achievable, once a new vote is added.
 
 ```python
 @classmethod
-def check_majority_possible(cls, votes_by_participant: Dict[Any, Any], nb_participants: int, exception_cls: Type[ABCIAppException] = ABCIAppException) -> None
+def check_majority_possible(cls, votes_by_participant: Dict[str, BaseTxPayload], nb_participants: int, exception_cls: Type[ABCIAppException] = ABCIAppException) -> None
 ```
 
 Check that a Byzantine majority is still achievable.
@@ -1246,7 +1280,7 @@ Preconditions on the input:
 
 ```python
 @classmethod
-def is_majority_possible(cls, votes_by_participant: Dict[Any, Any], nb_participants: int) -> bool
+def is_majority_possible(cls, votes_by_participant: Dict[str, BaseTxPayload], nb_participants: int) -> bool
 ```
 
 Return true if a Byzantine majority is achievable, false otherwise.
@@ -1358,6 +1392,17 @@ def __init__(*args: Any, **kwargs: Any)
 ```
 
 Initialize the collection round.
+
+<a id="packages.valory.skills.abstract_round_abci.base.CollectionRound.accepting_payloads_from"></a>
+
+#### accepting`_`payloads`_`from
+
+```python
+@property
+def accepting_payloads_from() -> FrozenSet[str]
+```
+
+Accepting from the active set, or also from (re)joiners
 
 <a id="packages.valory.skills.abstract_round_abci.base.CollectionRound.payloads"></a>
 
@@ -1901,6 +1946,17 @@ def reset_index() -> int
 
 Return the reset index.
 
+<a id="packages.valory.skills.abstract_round_abci.base.AbciApp.reset_index"></a>
+
+#### reset`_`index
+
+```python
+@reset_index.setter
+def reset_index(reset_index: int) -> None
+```
+
+Set the reset index.
+
 <a id="packages.valory.skills.abstract_round_abci.base.AbciApp.get_all_rounds"></a>
 
 #### get`_`all`_`rounds
@@ -2082,10 +2138,20 @@ Observe timestamp from last block.
 #### cleanup
 
 ```python
-def cleanup(cleanup_history_depth: int) -> None
+def cleanup(cleanup_history_depth: int, cleanup_history_depth_current: Optional[int] = None) -> None
 ```
 
 Clear data.
+
+<a id="packages.valory.skills.abstract_round_abci.base.AbciApp.cleanup_current_histories"></a>
+
+#### cleanup`_`current`_`histories
+
+```python
+def cleanup_current_histories(cleanup_history_depth_current: int) -> None
+```
+
+Reset the parameter histories for the current entry (period), keeping only the latest values for each parameter.
 
 <a id="packages.valory.skills.abstract_round_abci.base.RoundSequence"></a>
 
@@ -2357,6 +2423,17 @@ def tm_height(_tm_height: int) -> None
 ```
 
 Set Tendermint's current height.
+
+<a id="packages.valory.skills.abstract_round_abci.base.RoundSequence.block_stall_deadline_expired"></a>
+
+#### block`_`stall`_`deadline`_`expired
+
+```python
+@property
+def block_stall_deadline_expired() -> bool
+```
+
+Get if the deadline for not having received any begin block requests from the Tendermint node has expired.
 
 <a id="packages.valory.skills.abstract_round_abci.base.RoundSequence.init_chain"></a>
 

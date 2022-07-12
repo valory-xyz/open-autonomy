@@ -133,6 +133,7 @@ class RegistrationStartupBehaviour(RegistrationBaseBehaviour):
     class LogMessages(Enum):
         """Log messages used in RegistrationStartupBehaviour"""
 
+        config_sharing = "Sharing Tendermint config on start-up?"
         # request personal tendermint configuration
         request_personal = "Request validator config from personal Tendermint node"
         response_personal = "Response validator config from personal Tendermint node"
@@ -353,10 +354,28 @@ class RegistrationStartupBehaviour(RegistrationBaseBehaviour):
         return True
 
     def async_act(self) -> Generator:
-        """Act asynchronously"""
+        """
+        Do the action.
 
-        if not self.params.share_tm_config_on_startup:
+        Steps:
+        1. Collect personal Tendermint configuration
+        2. Make Service Registry contract call to retrieve addresses
+           of the other agents registered on-chain for the service.
+        3. Request Tendermint configuration from registered agents.
+           This is done over the Agent Communication Network using
+           the p2p_libp2p_client connection.
+        4. Update Tendermint configuration via genesis.json with the
+           information of the other validators (agents).
+        5. Restart Tendermint to establish the validator network.
+        """
+
+        exchange_config = self.params.share_tm_config_on_startup
+        log_message = self.LogMessages.config_sharing.value
+        self.context.logger.info(f"{log_message}: {exchange_config}")
+
+        if not exchange_config:
             yield from super().async_act()
+            return
 
         self.context.logger.info(f"My address: {self.context.agent_address}")
 

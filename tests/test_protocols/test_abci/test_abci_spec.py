@@ -62,12 +62,14 @@ USE_NON_ZERO_ENUM: bool = True
 
 
 # tests
-def test_local_types_file_matches_github() -> None:
+def test_local_types_file_matches_github(max_retries: int = 5) -> None:
     """Test local file containing ABCI spec matches Tendermint GitHub"""
 
     for file in PROTO_FILES:
-        url = URL_PREFIX + "/".join(file.parts[-2:])
+        url, i = URL_PREFIX + "/".join(file.parts[-2:]), 0
         response = requests.get(url)
+        while response.status_code != 200 and i < max_retries:
+            response = requests.get(url)
         if response.status_code != 200:
             log_msg = "Failed to retrieve Tendermint abci types from Github"
             status_code, reason = response.status_code, response.reason

@@ -34,55 +34,11 @@ _logger = logging.getLogger(
 )
 
 
-def snake_to_camel(string: str) -> str:
-    """Convert snake_case to camelCase"""
-
-    if "_" in string:
-        camel_case = string.split("_")
-        for i in range(1, len(camel_case)):
-            camel_case[i] = camel_case[i][0].upper() + camel_case[i][1:]
-        string = ("").join(camel_case)
-    return string
-
-
 # pylint: disable=too-many-arguments,invalid-name
 class UniswapV2ERC20Contract(Contract):
     """The Uniswap V2 ERC-20 contract."""
 
     contract_id = PUBLIC_ID
-
-    @classmethod
-    def get_method_data(
-        cls,
-        ledger_api: EthereumApi,
-        contract_address: str,
-        method_name: str,
-        **kwargs: Any,
-    ) -> JSONLike:
-        """
-        Get a contract call encoded data.
-
-        :param ledger_api: the ledger apis.
-        :param contract_address: the contract address.
-        :param method_name: the contract method name
-        :param kwargs: the contract method args
-        :return: the tx  # noqa: DAR202
-        """
-        instance = cls.get_instance(ledger_api, contract_address)
-
-        # Ensure the method name and its arguments are camel-cased
-        # to match the contract interface
-        method_name = snake_to_camel(method_name)
-        kwargs = {snake_to_camel(k): v for k, v in kwargs.items()}
-
-        # Get an ordered argument list from the method's abi
-        method = instance.get_function_by_name(method_name)
-        input_names = [i["name"] for i in method.abi["inputs"]]
-        args = [kwargs[i] for i in input_names]
-
-        # Encode and return the contract call
-        data = instance.encodeABI(fn_name=method_name, args=args)
-        return {"data": bytes.fromhex(data[2:])}  # type: ignore
 
     @classmethod
     def approve(

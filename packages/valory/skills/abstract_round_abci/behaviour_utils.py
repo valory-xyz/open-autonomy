@@ -23,6 +23,7 @@ import inspect
 import json
 import math
 import pprint
+import re
 from abc import ABC, abstractmethod
 from enum import Enum
 from functools import partial, wraps
@@ -92,9 +93,13 @@ from packages.valory.skills.abstract_round_abci.models import (
 
 
 MIN_HEIGHT_OFFSET = 10
-HEIGHT_OFFSET_MULTIPLIER = 0.01
+HEIGHT_OFFSET_MULTIPLIER = 1
 NON_200_RETURN_CODE_DURING_RESET_THRESHOLD = 3
 GENESIS_TIME_FMT = "%Y-%m-%dT%H:%M:%S.%fZ"
+ROOT_HASH = "726F6F743A3"
+RESET_HASH = "72657365743A3"
+APP_HASH_RE = fr"{ROOT_HASH}\d+{RESET_HASH}(\d+)"
+INITIAL_APP_HASH = ""
 
 
 class SendException(Exception):
@@ -483,6 +488,13 @@ class BaseBehaviour(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
             cast(SharedState, self.context.state).synchronized_data,
         )
 
+    @property
+    def tm_communication_unhealthy(self) -> bool:
+        """Return if the Tendermint communication is not healthy anymore."""
+        return cast(
+            SharedState, self.context.state
+        ).round_sequence.block_stall_deadline_expired
+
     def check_in_round(self, round_id: str) -> bool:
         """Check that we entered a specific round."""
         return (
@@ -591,6 +603,17 @@ class BaseBehaviour(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
             stop_condition=stop_condition,
         )
 
+    def __check_tm_communication(self) -> Generator[None, None, bool]:
+        """Check if the Tendermint communication is considered healthy and if not restart the node."""
+        if self.tm_communication_unhealthy:
+            self.context.logger.warning(
+                "The local deadline for the next `begin_block` request from the Tendermint node has expired! "
+                "Trying to reset local Tendermint node as there could be something wrong with the communication."
+            )
+            reset_successfully = yield from self.reset_tendermint_with_wait()
+            return reset_successfully
+        return True
+
     def async_act_wrapper(self) -> Generator:
         """Do the act, supporting asynchronous execution."""
         if not self._is_started:
@@ -598,6 +621,11 @@ class BaseBehaviour(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
             self._is_started = True
 
         try:
+            communication_is_healthy = yield from self.__check_tm_communication()
+            if not communication_is_healthy:
+                # if we end up looping here forever,
+                # then there is probably something serious going on with the communication
+                return
             if self.context.state.round_sequence.syncing_up:
                 yield from self._check_sync()
             else:
@@ -610,6 +638,40 @@ class BaseBehaviour(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
 
         if self._is_done:
             self._log_end()
+
+    def _sync_state(self, app_hash: str) -> None:
+        """
+        Sync the app's state using the given `app_hash`.
+
+        This method is intended for use after syncing local with remote.
+        The fact that we sync up with the blockchain does not mean that we also have the correct application state.
+        The application state is defined by the abci app's developer and also determines the generation of the app hash.
+        When we sync with the blockchain, it means that we no longer lag behind the other agents.
+        However, the application's state should also be updated, which is what this method takes care for.
+        We have chosen a simple application state for the time being,
+        which is a combination of the round count and the times we have reset so far.
+        The round count will be automatically updated by the framework while replaying the missed rounds,
+        however, the reset index needs to be manually updated.
+
+        Tendermint's block sync and state sync are not to be confused with our application's state;
+        they are different methods to sync faster with the blockchain.
+
+        :param app_hash: the app hash from which the state will be updated.
+        """
+        if app_hash == INITIAL_APP_HASH:
+            reset_index = 0
+        else:
+            match = re.match(APP_HASH_RE, app_hash)
+            if match is None:
+                raise ValueError(
+                    "Expected an app hash of the form: `726F6F743A3{ROUND_COUNT}72657365743A3{RESET_INDEX}`,"
+                    "which is derived from `root:{ROUND_COUNT}reset:{RESET_INDEX}`. "
+                    "For example, `root:90reset:4` would be `726F6F743A39072657365743A34`. "
+                    f"However, the app hash received is: `{app_hash}`."
+                )
+            reset_index = int(match.group(1))
+
+        self.context.state.round_sequence.abci_app.reset_index = reset_index
 
     def _check_sync(
         self,
@@ -629,11 +691,20 @@ class BaseBehaviour(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
                 local_height = int(self.context.state.round_sequence.height)
                 _is_sync_complete = local_height == remote_height
                 if _is_sync_complete:
-                    self.context.logger.info("local height == remote; Sync complete...")
+                    self.context.logger.info(
+                        f"local height == remote == {local_height}; Sync complete..."
+                    )
+                    remote_app_hash = str(
+                        json_body["result"]["sync_info"]["latest_app_hash"]
+                    )
+                    self._sync_state(remote_app_hash)
                     self.context.state.round_sequence.end_sync()
                     return
                 yield from self.sleep(self.context.params.tendermint_check_sleep_delay)
             except (json.JSONDecodeError, KeyError):  # pragma: nocover
+                self.context.logger.error(
+                    "Tendermint not accepting transactions yet, trying again!"
+                )
                 yield from self.sleep(self.context.params.tendermint_check_sleep_delay)
 
     def _log_start(self) -> None:
@@ -1543,7 +1614,8 @@ class BaseBehaviour(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
         # For that reason, we are using an offset in the initial block's height.
         # The bigger the observation interval, the larger the lag among the agents might be.
         # Also, if the observation interval is too tiny, we do not want the offset to be too small.
-        # Therefore, we choose between a minimum value and the interval multiplied by a constant (< 1 suggested).
+        # Therefore, we choose between a minimum value and the interval multiplied by a constant.
+        # The larger the `HEIGHT_OFFSET_MULTIPLIER` constant's value, the larger the margin of error.
         initial_height = str(
             self.context.state.round_sequence.last_round_transition_tm_height
             + max(
@@ -1589,7 +1661,8 @@ class BaseBehaviour(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
                         response.get("is_replay", False)
                     )
                     self.context.state.round_sequence.abci_app.cleanup(
-                        self.params.cleanup_history_depth
+                        self.params.cleanup_history_depth,
+                        self.params.cleanup_history_depth_current,
                     )
 
                     for handler_name in self.context.handlers.__dict__.keys():

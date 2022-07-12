@@ -20,7 +20,7 @@
 """
 This module contains the support resources for the abci protocol.
 
-It was created with protocol buffer compiler version `libprotoc 3.19.4` and aea version `1.11.0`.
+It was created with protocol buffer compiler version `libprotoc 3.19.4` and aea version `1.12.0.post1`.
 """
 
 from packages.valory.protocols.abci.message import AbciMessage

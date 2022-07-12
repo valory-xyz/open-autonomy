@@ -22,17 +22,14 @@ from enum import Enum
 from typing import Dict, Optional, Set, Tuple, Type
 
 from packages.valory.skills.abstract_round_abci.base import (
-    ABCIAppInternalError,
     AbciApp,
     AbciAppDB,
     AbciAppTransitionFunction,
     AbstractRound,
     AppState,
     BaseSynchronizedData,
-    BaseTxPayload,
     CollectSameUntilThresholdRound,
     DegenerateRound,
-    TransactionNotValidError,
 )
 from packages.valory.skills.reset_pause_abci.payloads import ResetPausePayload
 
@@ -52,38 +49,7 @@ class ResetAndPauseRound(CollectSameUntilThresholdRound):
     round_id = "reset_and_pause"
     allowed_tx_type = ResetPausePayload.transaction_type
     payload_attribute = "period_count"
-
-    def process_payload(self, payload: BaseTxPayload) -> None:  # pragma: nocover
-        """Process payload."""
-
-        sender = payload.sender
-        if sender not in self.synchronized_data.all_participants:
-            raise ABCIAppInternalError(
-                f"{sender} not in list of participants: {sorted(self.synchronized_data.all_participants)}"
-            )
-
-        if sender in self.collection:
-            raise ABCIAppInternalError(
-                f"sender {sender} has already sent value for round: {self.round_id}"
-            )
-
-        self.collection[sender] = payload
-
-    def check_payload(self, payload: BaseTxPayload) -> None:  # pragma: nocover
-        """Check Payload"""
-
-        sender_in_participant_set = (
-            payload.sender in self.synchronized_data.all_participants
-        )
-        if not sender_in_participant_set:
-            raise TransactionNotValidError(
-                f"{payload.sender} not in list of participants: {sorted(self.synchronized_data.all_participants)}"
-            )
-
-        if payload.sender in self.collection:
-            raise TransactionNotValidError(
-                f"sender {payload.sender} has already sent value for round: {self.round_id}"
-            )
+    _allow_rejoin_payloads = True
 
     def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Event]]:
         """Process the end of the block."""
