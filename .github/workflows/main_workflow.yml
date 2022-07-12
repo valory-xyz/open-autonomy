@@ -155,7 +155,6 @@ jobs:
           submodules: recursive
       - uses: actions/setup-python@master
         with:
-          submodules: recursive
           python-version: ${{ matrix.python-version }}
       - uses: actions/setup-go@v3
         with:
@@ -358,7 +357,6 @@ jobs:
           submodules: recursive
       - uses: actions/setup-python@master
         with:
-          submodules: recursive
           python-version: ${{ matrix.python-version }}
       - name: Install dependencies
         run: |
