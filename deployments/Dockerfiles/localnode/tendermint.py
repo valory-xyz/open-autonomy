@@ -194,7 +194,7 @@ class TendermintNode:
         else:
             self._process.send_signal(signal.SIGTERM)
 
-        self._process.wait(timeout=30)
+        self._process.wait(timeout=5)
         poll = self._process.poll()
         if poll is None:  # pragma: nocover
             self._process.terminate()
