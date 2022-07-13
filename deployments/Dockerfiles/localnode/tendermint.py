@@ -203,7 +203,7 @@ class TendermintNode:
                 self._process.terminate()
                 self._process.wait(3)
 
-        if self._process.returncode != 0:  # pragma: nocover
+        if self._process.returncode is None:  # pragma: nocover
             self.write_line("Cannot kill tendermint process.\n")
         else:
             self._process = None
