@@ -151,10 +151,7 @@ class TestServiceRegistryContract(BaseServiceRegistryContractTest):
             contract_address=contract_address,
         )
 
-        if valid_address:
-            assert result["verified"] is True, result
-        else:
-            assert result["verified"] is False
+        assert result["verified"] is valid_address, result
 
     @pytest.mark.parametrize("service_id, expected", [(0, False), (1, True)])
     def test_exists(self, service_id: int, expected: int) -> None:

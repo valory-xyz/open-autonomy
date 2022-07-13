@@ -29,7 +29,7 @@ from aea_ledger_ethereum import EthereumApi, LedgerApi
 
 
 # test_contract and test_agents, respectively...
-DEPLOYED_BYTECODE_MD5_HASH = "75d2a79df580ba1353211f93c479a9d6b78cc8f14e724290329e274fdcab4dc8cc04adbd8efbbce00a01af2dd6873f7e66a8c338a3d4f87a31ab0e283eef89de"
+DEPLOYED_BYTECODE_MD5_HASH = "9cc59b3c7237c33a49f933d9db95770e94457a5cb5115bc5d37df9481253741c06afac9410fb12c05b3b63aeda4ad712fb198dd5afb0c9ed90ba30366a5e0e58"
 
 ConfigHash = Tuple[bytes, int, int]
 AgentParams = Tuple[int, int]
