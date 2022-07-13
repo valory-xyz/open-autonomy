@@ -483,7 +483,11 @@ class CheckTransactionHistoryBehaviour(TransactionSettlementBaseBehaviour):
             )
             return VerificationStatus.ERROR, None
 
+        self.context.logger.info(
+            f"Starting check for the transaction history: {history}."
+        )
         for tx_hash in history[::-1]:
+            self.context.logger.info(f"Checking hash {tx_hash}...")
             contract_api_msg = yield from self._verify_tx(tx_hash)
 
             if (
