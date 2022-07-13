@@ -23,6 +23,16 @@
 from typing import Iterator, Optional
 
 
+DEFAULT_UNIT = "seconds"
+UNITS_TO_UNIX = {
+    "second": 1,
+    "minute": 60,
+    "hour": 60 * 60,
+    "day": 60 * 60 * 24,
+}
+AVAILABLE_UNITS = frozenset({DEFAULT_UNIT} | set(UNITS_TO_UNIX.keys()))
+
+
 def gen_unix_timestamps(start: int, interval_in_unix: int, end: int) -> Iterator[int]:
     """Generate the Unix timestamps from start to end with the given interval.
 
@@ -40,7 +50,24 @@ def gen_unix_timestamps(start: int, interval_in_unix: int, end: int) -> Iterator
         yield timestamp
 
 
+def sec_to_unit(sec: int) -> str:
+    """Get the unin from the given seconds.
 
+    :param sec: the seconds to convert to a unit.
+    :return: the unit.
+    """
+    for unit, unit_in_unix in UNITS_TO_UNIX.items():
+        if sec == unit_in_unix:
+            return unit
+    return DEFAULT_UNIT
+
+
+def unit_amount_from_sec(sec: int, given_unit: str) -> float:
+    """Get the amount depending on the given unit and secs."""
+    for unit, unit_in_unix in UNITS_TO_UNIX.items():
+        if unit == given_unit:
+            return sec / unit_in_unix
+    return sec
 
 
 def filter_out_numbers(string: str) -> Optional[int]:
