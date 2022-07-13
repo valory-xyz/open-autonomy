@@ -957,7 +957,6 @@ class TestPrepareBatchBehaviour(APYEstimationFSMBehaviourBaseCase):
                         dict(
                             latest_observation_hist_hash=hashes["hist"],
                             most_voted_batch=hashes["batch"],
-                            latest_observation_timestamp=0,
                         )
                     ),
                 )
