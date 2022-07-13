@@ -21,7 +21,7 @@ connections:
 - valory/http_client:0.1.0:QmXiQUWV5AH7BRXGHVxVJpEcLpyNUsZf4pj55FqoTdiGDn
 - valory/ledger:0.1.0:Qmc3aNMECkTNTRf5A9vdkmKKxaQQmZb3YBmJxvZNpJNe7j
 contracts:
-- valory/gnosis_safe:0.1.0:QmRNdXGRRQBMFXh5ZvtJeYvHt7559kV5r5EYU5JNUdRBKJ
+- valory/gnosis_safe:0.1.0:QmZvvToxeRrjvf83pWcKYqu3YdQkPzmcx72ZHbakEKwfrT
 - valory/gnosis_safe_proxy_factory:0.1.0:QmVkZtrgZ2ievXAonq9z33qbrxHi8piVGptuCGaGJYS1iM
 - valory/uniswap_v2_erc20:0.1.0:QmWXvYsGQ6gv8wkyLt8UYDeQ8xqXdc9rE2P7Uy2CT697ZM
 - valory/uniswap_v2_router_02:0.1.0:QmdPbUgxDvhKZbyPAJ5vh1Lwiqkmds5J1MJ81eMxS5ErHs
@@ -33,11 +33,11 @@ protocols:
 - valory/ledger_api:1.0.0:QmcXNYqboaBqoVKfoCeSkq2WXH1g9ZB1M5b6hzifv2sPdr
 skills:
 - valory/abstract_round_abci:0.1.0:QmV7QTsNNjZ4iCYdr2j6rwTL3pPFtyVqgRURXZmCaMnZoS
-- valory/liquidity_rebalancing_abci:0.1.0:QmWszimEYnMyjhECzwDADsyzkHbcSSxE97o3s6q3BAJBDb
+- valory/liquidity_rebalancing_abci:0.1.0:QmTWG8SkL3PkrpdWWYjKqPWd4fz6t54UZgnbXfqYXmUkFT
 - valory/registration_abci:0.1.0:QmQLDsGCR9C2U5DuCvUxa9cGJbt7WXbCXjuMuD2RDM1Uuh
 - valory/reset_pause_abci:0.1.0:QmWUJGnk1NyS6AcHXAfQk3v6xAgKqbe679P6GCz7QpuEMF
-- valory/safe_deployment_abci:0.1.0:QmWPEeTsSjysZ9NPBgRwz5xrbcSY33KYavF3T2VL2jnUzp
-- valory/transaction_settlement_abci:0.1.0:QmYYEFYSwisHwzg3L7n97VUkdrohjBNmLx6RbxuAT2F4Rm
+- valory/safe_deployment_abci:0.1.0:QmRSdC3Gcr7dTYWqpUVaCsPc6p88Do1sB8WAz9DtK2VRXk
+- valory/transaction_settlement_abci:0.1.0:QmPPdfgWQyWm5UzxTEXCUFuqn6wXki3z6fXqgm2iAWq3Q8
 behaviours:
   main:
     args: {}
