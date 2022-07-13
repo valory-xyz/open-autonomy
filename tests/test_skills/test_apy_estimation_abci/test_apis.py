@@ -94,7 +94,9 @@ class TestSubgraphs:
     """Test for subgraphs."""
 
     @staticmethod
-    def test_eth_price(spooky_specs: SpecsType, eth_price_usd_q: str) -> None:
+    def test_eth_price(
+        spooky_specs: SpecsType, eth_price_usd_q: str, expected_eth_price_usd: float
+    ) -> None:
         """Test SpookySwap's eth price request from subgraph."""
         spooky_specs["response_key"] += ":bundles"  # type: ignore
         api = SpookySwapSubgraph(**spooky_specs)
@@ -102,30 +104,29 @@ class TestSubgraphs:
         res = make_request(api.get_spec(), eth_price_usd_q)
         eth_price = ast.literal_eval(api.process_response(DummyMessage(res.content))[0]["ethPrice"])  # type: ignore
 
-        assert eth_price == 0.4183383786296383
+        assert eth_price == expected_eth_price_usd
 
     @staticmethod
     def test_eth_price_non_indexed_block(
-        spooky_specs: SpecsType, eth_price_usd_q: str
+        spooky_specs: SpecsType,
+        eth_price_usd_q: str,
+        eth_price_usd_raising_q: str,
+        largest_acceptable_block_number: int,
     ) -> None:
         """Test SpookySwap's eth price request from subgraph, when the requesting block has not been indexed yet."""
         spooky_specs["response_key"] = "errors"
         api = SpookySwapSubgraph(**spooky_specs)
 
-        # replace the block number with a huge one, so that we get a not indexed error
-        current_number = "3830367"
-        largest_acceptable_number = "2147483647"
-        eth_price_usd_q = eth_price_usd_q.replace(
-            current_number, largest_acceptable_number
+        res = make_request(
+            api.get_spec(), eth_price_usd_raising_q, raise_on_error=False
         )
-        res = make_request(api.get_spec(), eth_price_usd_q, raise_on_error=False)
         non_indexed_error = api.process_non_indexed_error(
             cast(HttpMessage, DummyMessage(res.content))
         )[0]["message"]
         match = re.match(NON_INDEXED_BLOCK_RE, non_indexed_error)
         assert match is not None
         latest_indexed_block = match.group(1)
-        assert int(latest_indexed_block) < int(largest_acceptable_number)
+        assert int(latest_indexed_block) < largest_acceptable_block_number
 
     @staticmethod
     def test_regex_for_indexed_block_capture() -> None:
