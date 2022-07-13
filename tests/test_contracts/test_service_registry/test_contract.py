@@ -47,6 +47,7 @@ OWNER = "0x8626f6940E2eb28930eFb4CeF49B2d1F2C9C1199"
 # run: `npx hardhat node` on onchain-protocol repo,
 # and make sure the contract is deployed accordingly
 SERVICE_REGISTRY = "0x0DCd1Bf9A1b36cE34237eEaFef220932846BCD82"
+SERVICE_REGISTRY_INVALID = "0x5aAeb6053F3E94C9b9A09f33669435E7Ef1BeAed"
 
 NONCE = 0
 CHAIN_ID = 31337
@@ -58,6 +59,7 @@ class BaseServiceRegistryContractTest(BaseGanacheContractTest):
     contract: ServiceRegistryContract
     ledger_identifier = EthereumCrypto.identifier
     contract_address = SERVICE_REGISTRY
+    invalid_contract_address = SERVICE_REGISTRY_INVALID
     contract_directory = Path(
         ROOT_DIR, "packages", PUBLIC_ID.author, "contracts", PUBLIC_ID.name
     )
@@ -137,16 +139,22 @@ class TestServiceRegistryContract(BaseServiceRegistryContractTest):
         assert not expected_keys.symmetric_difference(tx)
         assert tx["data"].startswith("0x") and len(tx["data"]) > 2
 
-    def test_verify_contract(self) -> None:
+    @pytest.mark.parametrize("valid_address", (True, False))
+    def test_verify_contract(self, valid_address: bool) -> None:
         """Run verify test. If abi file is updated tests + addresses need updating"""
-
-        assert self.contract_address is not None
-        result = self.contract.verify_contract(
-            ledger_api=self.ledger_api,
-            contract_address=self.contract_address,
+        contract_address = (
+            self.contract_address if valid_address else self.invalid_contract_address
         )
 
-        assert result["verified"] is True, result
+        result = self.contract.verify_contract(
+            ledger_api=self.ledger_api,
+            contract_address=contract_address,
+        )
+
+        if valid_address:
+            assert result["verified"] is True, result
+        else:
+            assert result["verified"] is False
 
     @pytest.mark.parametrize("service_id, expected", [(0, False), (1, True)])
     def test_exists(self, service_id: int, expected: int) -> None:
