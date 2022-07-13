@@ -536,7 +536,7 @@ class TendermintNode:
             return
 
         if platform.system() == "Windows":
-            self._process.send_signal(signal.CTRL_C_EVENT)  # type: ignore  # pylint: disable=no-member
+            os.kill(self._process.pid, signal.CTRL_C_EVENT)  # type: ignore  # pylint: disable=no-member
         else:
             self._process.send_signal(signal.SIGTERM)
 

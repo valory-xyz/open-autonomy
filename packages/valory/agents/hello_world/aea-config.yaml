@@ -8,7 +8,7 @@ fingerprint:
   README.md: QmaoCKHmEGdUKt6UZXScV39MvU9yt34y2TAcJB9HiNMTq6
 fingerprint_ignore_patterns: []
 connections:
-- valory/abci:0.1.0:QmNPK8xozoh7hQMQpinMJFAhTmFRah2RBHWsupkx29nWtr
+- valory/abci:0.1.0:QmbW8NQCiNKqBcnScupaZt35zP3vZ1qY581P3pYjuNsCAH
 - valory/http_client:0.1.0:QmXiQUWV5AH7BRXGHVxVJpEcLpyNUsZf4pj55FqoTdiGDn
 - valory/p2p_libp2p_client:0.1.0:QmXjFibw9WescKGjrykTwgwDrtTb6jP7atgbarNXJq6kFk
 contracts: []
@@ -17,9 +17,9 @@ protocols:
 - valory/abci:0.1.0:QmbkKQagcPHAfynYLYwRWiXNa9q2xepx2ERLaKheCRZEgC
 - valory/http:1.0.0:QmYkSCErFKHs92nYzfqxeo9qBeMJF6H1SNC8awy8CjD3z6
 skills:
-- valory/abstract_abci:0.1.0:QmNzFkimjKANMwFWr5xv35L2ETyMcNt85Mz8SnR1tJDfMG
-- valory/abstract_round_abci:0.1.0:Qmax2xSZG1XWUzLPYJPnKBorSu81SCmguBsqkpREeepaEM
-- valory/hello_world_abci:0.1.0:Qmdvk7YPDBd7NNg4Kng2REWTMmiVCna9XPWGzQzxiVcp1P
+- valory/abstract_abci:0.1.0:QmVyWBJUniFNfqXZpYTH5WLVbf1f5RbTFieCi8cmzRWf2m
+- valory/abstract_round_abci:0.1.0:QmPyNEEEMvUdfErRrxpMGnXFK2TSLdb6pWEUnKcYhoWuYG
+- valory/hello_world_abci:0.1.0:QmW2kUc59msQ9QqpW2sqTfLHksHYceZrUNpV59TxdC8Mn1
 default_ledger: ethereum
 required_ledgers:
 - ethereum
