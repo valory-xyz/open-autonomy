@@ -894,6 +894,9 @@ class TestPrepareBatchBehaviour(APYEstimationFSMBehaviourBaseCase):
         """Setup `PrepareBatchBehaviour`."""
         # Set data directory to a temporary path for tests.
         self.behaviour.context._agent_context._data_dir = tmp_path  # type: ignore
+        current_behaviour = cast(
+            APYEstimationBaseBehaviour, self.behaviour.current_behaviour
+        )
 
         # Create a dictionary with all the dummy data to send to IPFS.
         data_to_send = {
@@ -908,7 +911,8 @@ class TestPrepareBatchBehaviour(APYEstimationFSMBehaviourBaseCase):
             "batch": {
                 "filepath": os.path.join(
                     tmp_path,
-                    f"historical_data_batch_0_period_{self.synchronized_data.period_count}.json",
+                    f"historical_data_batch_{current_behaviour.params.end}"
+                    f"_period_{self.synchronized_data.period_count}.json",
                 ),
                 "obj": batch,
                 "filetype": SupportedFiletype.JSON,
