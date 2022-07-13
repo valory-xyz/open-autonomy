@@ -26,8 +26,12 @@ from _pytest.monkeypatch import MonkeyPatch
 
 from packages.valory.skills.abstract_round_abci.io.paths import create_pathdirs
 from packages.valory.skills.apy_estimation_abci.tools.general import (
+    DEFAULT_UNIT,
+    UNITS_TO_UNIX,
     filter_out_numbers,
     gen_unix_timestamps,
+    sec_to_unit,
+    unit_amount_from_sec,
 )
 
 
@@ -55,17 +59,24 @@ class TestGeneral:
             actual = list(gen)
             assert expected == actual
 
-        timestamps = list(
-            gen_unix_timestamps(
-                day_in_unix * n_months_to_check * (days_in_month + 1), n_months_to_check
-            )
-        )
+    @staticmethod
+    def test_sec_to_unit() -> None:
+        """Test `sec_to_unit`."""
+        for unit, unit_in_unix in UNITS_TO_UNIX.items():
+            assert sec_to_unit(unit_in_unix) == unit
 
-        expected = day_in_unix
-        for timestamp in timestamps:
-            assert isinstance(timestamp, int)
-            assert timestamp == expected
-            expected += day_in_unix
+        another_int = 10
+        assert another_int not in UNITS_TO_UNIX
+        assert sec_to_unit(another_int) == DEFAULT_UNIT
+
+    @staticmethod
+    def test_unit_amount_from_sec() -> None:
+        """Test `unit_amount_from_sec`."""
+        invalid_unit = "invalid_unit"
+        assert invalid_unit not in UNITS_TO_UNIX
+        for unit, unit_in_unix in UNITS_TO_UNIX.items():
+            assert unit_amount_from_sec(unit_in_unix, unit) == 1
+            assert unit_amount_from_sec(unit_in_unix, invalid_unit) == unit_in_unix
 
     @staticmethod
     @pytest.mark.parametrize(
