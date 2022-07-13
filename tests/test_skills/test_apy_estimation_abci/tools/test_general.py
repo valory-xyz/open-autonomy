@@ -35,11 +35,25 @@ class TestGeneral:
     """Tests for general tools."""
 
     @staticmethod
-    def test_gen_unix_timestamps(monkeypatch: MonkeyPatch) -> None:
+    @pytest.mark.parametrize(
+        "start, interval, end",
+        ((0, 0, 0), (1, 0, 0), (1, 10, 200), (1, 10, 1), (1, 10, 10), (1, 10, -3)),
+    )
+    def test_gen_unix_timestamps(
+        monkeypatch: MonkeyPatch, start: int, interval: int, end: int
+    ) -> None:
         """Test get UNIX timestamps."""
-        day_in_unix = 24 * 60 * 60
-        n_months_to_check = 1
-        days_in_month = 30
+        gen = gen_unix_timestamps(start, interval, end)
+        if interval <= 0:
+            with pytest.raises(
+                ValueError,
+                match=f"Interval cannot be less than 1. {interval} was given.",
+            ):
+                next(gen)
+        else:
+            expected = list(range(start, end, interval))
+            actual = list(gen)
+            assert expected == actual
 
         timestamps = list(
             gen_unix_timestamps(
