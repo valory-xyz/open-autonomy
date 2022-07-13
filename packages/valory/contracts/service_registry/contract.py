@@ -67,7 +67,7 @@ class ServiceRegistryContract(Contract):
         log_msg = "CONTRACT NOT VERIFIED! reason: frequent changes."
         log_msg += f". Verified: {verified}. Contract address: {contract_address}."
         _logger.error(f"{log_msg} Address: {CHAIN_ADDRESS}, chain_id: {CHAIN_ID}")
-        return dict(verified=True, sha512_hash=sha512_hash)
+        return dict(verified=verified, sha512_hash=sha512_hash)
 
     @classmethod
     def exists(
