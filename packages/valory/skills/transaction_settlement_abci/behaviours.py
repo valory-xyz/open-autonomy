@@ -478,7 +478,7 @@ class CheckTransactionHistoryBehaviour(TransactionSettlementBaseBehaviour):
 
         if not history:
             self.context.logger.error(
-                "An unexpected error occurred! The data history does not contain any transaction hashes, "
+                "An unexpected error occurred! The synchronized data do not contain any transaction hashes, "
                 f"but entered the `{self.behaviour_id}` behaviour."
             )
             return VerificationStatus.ERROR, None
