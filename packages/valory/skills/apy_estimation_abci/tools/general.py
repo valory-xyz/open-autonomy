@@ -23,19 +23,24 @@
 from typing import Iterator, Optional
 
 
-def gen_unix_timestamps(synced_now: int, duration: int) -> Iterator[int]:
-    """Generate the UNIX timestamps from `duration` months ago up to today.
+def gen_unix_timestamps(start: int, interval_in_unix: int, end: int) -> Iterator[int]:
+    """Generate the Unix timestamps from start to end with the given interval.
 
-    :param synced_now: the synced time across the agents.
-    :param duration: the duration of the timestamps to be returned, in months (more precisely, in 30 days).
+    :param start: the start date for the generated timestamps.
+    :param interval_in_unix: the interval to use in order to generate the timestamps.
+    :param end: the end date for the generated timestamps.
     :yields: the UNIX timestamps.
     """
-    day_in_unix = 24 * 60 * 60
+    if interval_in_unix <= 0:
+        raise ValueError(
+            f"Interval cannot be less than 1. {interval_in_unix} was given."
+        )
 
-    duration_before = synced_now - (duration * 30 * day_in_unix)
+    for timestamp in range(start, end, interval_in_unix):
+        yield timestamp
 
-    for day in range(duration_before, synced_now, day_in_unix):
-        yield day
+
+
 
 
 def filter_out_numbers(string: str) -> Optional[int]:
