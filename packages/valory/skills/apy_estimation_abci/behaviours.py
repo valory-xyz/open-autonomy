@@ -102,7 +102,11 @@ from packages.valory.skills.apy_estimation_abci.tasks import (
     UpdateTask,
 )
 from packages.valory.skills.apy_estimation_abci.tools.etl import ResponseItemType
-from packages.valory.skills.apy_estimation_abci.tools.general import gen_unix_timestamps
+from packages.valory.skills.apy_estimation_abci.tools.general import (
+    gen_unix_timestamps,
+    sec_to_unit,
+    unit_amount_from_sec,
+)
 from packages.valory.skills.apy_estimation_abci.tools.io import load_hist
 from packages.valory.skills.apy_estimation_abci.tools.queries import (
     block_from_number_q,
@@ -159,7 +163,6 @@ class FetchBehaviour(
     def __init__(self, **kwargs: Any) -> None:
         """Initialize Behaviour."""
         super().__init__(**kwargs)
-        self._last_timestamp_unix: Optional[int] = None
         self._save_path = ""
         self._spooky_api_specs: Dict[str, Any] = dict()
         self._timestamps_iterator: Optional[Iterator[int]] = None
@@ -167,27 +170,35 @@ class FetchBehaviour(
         self._call_failed = False
         self._pairs_hist: ResponseItemType = []
         self._hist_hash: Optional[str] = None
-        self._total_days = self.params.history_duration * 30
+        self._unit = ""
+        self._total_unit_amount = 0
 
     @property
-    def current_day(self) -> int:
-        """Get the number of the currently downloaded day."""
+    def current_unit(self) -> int:
+        """Get the number of the currently downloaded unit."""
         return int(len(self._pairs_hist) / len(self.params.pair_ids))
 
     def setup(self) -> None:
         """Set the behaviour up."""
-        last_timestamp = cast(
-            SharedState, self.context.state
-        ).round_sequence.abci_app.last_timestamp
-        self._last_timestamp_unix = int(calendar.timegm(last_timestamp.timetuple()))
+        if self.params.end is None or self.batch:
+            last_timestamp = cast(
+                SharedState, self.context.state
+            ).round_sequence.abci_app.last_timestamp
+            self.params.end = int(calendar.timegm(last_timestamp.timetuple()))
+
+        self._unit = sec_to_unit(self.params.interval)
+        self._total_unit_amount = int(
+            unit_amount_from_sec(self.params.end - self.params.start, self._unit)
+        )
+
         filename = "historical_data"
 
         if self.batch:
-            filename += f"_batch_{self._last_timestamp_unix}"
-            self._timestamps_iterator = iter((self._last_timestamp_unix,))
+            filename += f"_batch_{self.params.end}"
+            self._timestamps_iterator = iter((self.params.end,))
         else:
             self._timestamps_iterator = gen_unix_timestamps(
-                self._last_timestamp_unix, self.params.history_duration
+                self.params.start, self.params.interval, self.params.end
             )
 
         self._save_path = os.path.join(
@@ -421,7 +432,7 @@ class FetchBehaviour(
 
         if not self.batch:
             self.context.logger.info(
-                f"Fetched day {self.current_day}/{self._total_days}."
+                f"Fetched {self._unit} {self.current_unit}/{self._total_unit_amount}."
             )
 
     def async_act(  # pylint: disable=too-many-locals,too-many-statements
@@ -444,13 +455,13 @@ class FetchBehaviour(
                 yield from self._fetch_batch()
                 return
 
-            if self.current_day == 0:
+            if self.current_unit == 0:
                 self.context.logger.error("Could not download any historical data!")
                 self._hist_hash = ""
 
             if (
-                self.current_day > 0
-                and self.current_day != self._total_days
+                self.current_unit > 0
+                and self.current_unit != self._total_unit_amount
                 and not self.batch
             ):
                 # Here, we continue without having all the pairs downloaded, because of a network issue.
@@ -458,7 +469,7 @@ class FetchBehaviour(
                     "Will continue with partially downloaded historical data!"
                 )
 
-            if self.current_day > 0:
+            if self.current_unit > 0:
                 # Send the file to IPFS and get its hash.
                 self._hist_hash = self.send_to_ipfs(
                     self._save_path, self._pairs_hist, filetype=SupportedFiletype.JSON
@@ -468,7 +479,6 @@ class FetchBehaviour(
             payload = FetchingPayload(
                 self.context.agent_address,
                 self._hist_hash,
-                cast(int, self._last_timestamp_unix),
             )
 
             # Finish behaviour.
@@ -692,7 +702,7 @@ class PrepareBatchBehaviour(APYEstimationBaseBehaviour):
             self.get_from_ipfs(
                 self.synchronized_data.batch_hash,
                 self.context.data_dir,
-                filename=f"historical_data_batch_{self.synchronized_data.latest_observation_timestamp}"
+                filename=f"historical_data_batch_{self.params.end}"
                 f"_period_{self.synchronized_data.period_count}.json",
                 filetype=SupportedFiletype.JSON,
             ),
