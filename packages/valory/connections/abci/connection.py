@@ -538,7 +538,7 @@ class TendermintNode:
         if platform.system() == "Windows":
             os.kill(self._process.pid, signal.CTRL_C_EVENT)  # type: ignore  # pylint: disable=no-member
             try:
-                self._process.send_signal(signal.SIGTERM)
+                self._process.wait(timeout=5)
             except subprocess.TimeoutExpired:  # nosec
                 os.kill(self._process.pid, signal.CTRL_BREAK_EVENT)  # type: ignore  # pylint: disable=no-member
         else:
