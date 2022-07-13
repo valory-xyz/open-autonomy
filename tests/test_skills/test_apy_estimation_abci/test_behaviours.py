@@ -235,13 +235,6 @@ class TestFetchAndBatchBehaviours(APYEstimationFSMBehaviourBaseCase):
         pool_fields: Tuple[str, ...],
     ) -> None:
         """Run tests."""
-        history_duration = cast(
-            FetchBehaviour, self.behaviour.current_behaviour
-        ).params.history_duration
-        self.skill.skill_context.state.round_sequence.abci_app._last_timestamp = (
-            datetime.utcfromtimestamp(1618735147 + history_duration * 30 * 24 * 60 * 60)
-        )
-
         self.fast_forward_to_behaviour(
             self.behaviour, FetchBehaviour.behaviour_id, self.synchronized_data
         )
@@ -313,13 +306,6 @@ class TestFetchAndBatchBehaviours(APYEstimationFSMBehaviourBaseCase):
         pool_fields: Tuple[str, ...],
     ) -> None:
         """Run tests for fetch behaviour when a block has not been indexed yet."""
-        history_duration = cast(
-            FetchBehaviour, self.behaviour.current_behaviour
-        ).params.history_duration
-        self.skill.skill_context.state.round_sequence.abci_app._last_timestamp = (
-            datetime.utcfromtimestamp(1618735147 + history_duration * 30 * 24 * 60 * 60)
-        )
-
         self.fast_forward_to_behaviour(
             self.behaviour, FetchBehaviour.behaviour_id, self.synchronized_data
         )
@@ -475,12 +461,6 @@ class TestFetchAndBatchBehaviours(APYEstimationFSMBehaviourBaseCase):
         pool_fields: Tuple[str, ...],
     ) -> None:
         """Test when fetched value is none."""
-        history_duration = cast(
-            FetchBehaviour, self.behaviour.current_behaviour
-        ).params.history_duration
-        self.skill.skill_context.state.round_sequence.abci_app._last_timestamp = (
-            datetime.utcfromtimestamp(1618735147 + history_duration * 30 * 24 * 60 * 60)
-        )
         self.fast_forward_to_behaviour(
             self.behaviour, FetchBehaviour.behaviour_id, self.synchronized_data
         )
@@ -619,10 +599,8 @@ class TestFetchAndBatchBehaviours(APYEstimationFSMBehaviourBaseCase):
         self.fast_forward_to_behaviour(
             self.behaviour, FetchBehaviour.behaviour_id, self.synchronized_data
         )
-        # set history duration to a negative value in order to raise a `StopIteration`.
-        cast(
-            FetchBehaviour, self.behaviour.current_behaviour
-        ).params.history_duration = -1
+        # set history end to a negative value in order to raise a `StopIteration`.
+        cast(FetchBehaviour, self.behaviour.current_behaviour).params.end = -1
 
         # test empty retrieved history.
         with caplog.at_level(
