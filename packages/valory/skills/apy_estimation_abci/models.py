@@ -19,7 +19,7 @@
 
 """Custom objects for the APY estimation ABCI application."""
 
-from typing import Any
+from typing import Any, Optional
 
 from packages.valory.protocols.http import HttpMessage
 from packages.valory.skills.abstract_round_abci.models import ApiSpecs, BaseParams
@@ -75,7 +75,9 @@ class APYParams(BaseParams):  # pylint: disable=too-many-instance-attributes
 
     def __init__(self, *args: Any, **kwargs: Any) -> None:
         """Initialize the parameters object."""
-        self.history_duration = self._ensure("history_duration", kwargs)
+        self.start: int = self._ensure("history_start", kwargs)
+        self.end: Optional[int] = kwargs.pop("history_end", None)
+        self.interval: int = self._ensure("history_interval_in_unix", kwargs)
         self.optimizer_params = self._ensure("optimizer", kwargs)
         self.testing = self._ensure("testing", kwargs)
         self.estimation = self._ensure("estimation", kwargs)

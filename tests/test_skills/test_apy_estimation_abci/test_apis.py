@@ -157,7 +157,7 @@ class TestSubgraphs:
         keys = ["number", "timestamp"]
         assert all((key in block for key in keys))
         assert all(isinstance(ast.literal_eval(block[key]), int) for key in keys)
-        assert block == {"timestamp": "1618735147", "number": "3830367"}
+        assert block == {"timestamp": "1652544875", "number": "38234191"}
 
     @staticmethod
     def test_block_from_number_q(

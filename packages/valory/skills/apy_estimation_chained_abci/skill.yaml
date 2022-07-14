@@ -28,7 +28,7 @@ protocols:
 - valory/ledger_api:1.0.0:QmcXNYqboaBqoVKfoCeSkq2WXH1g9ZB1M5b6hzifv2sPdr
 skills:
 - valory/abstract_round_abci:0.1.0:QmULAH6TTjV3KwgDVi2Hhe87sUhTsiAVzZjWjo7gA4exaM
-- valory/apy_estimation_abci:0.1.0:QmUkeziuzZCzyGEEwHra12e544TYGp3KT3HLkFVC2dcihM
+- valory/apy_estimation_abci:0.1.0:QmSvr1VUweTPjw56oN4pN7WGwzg8MdYS53tgedCfdeD1Zo
 - valory/registration_abci:0.1.0:Qmb4MGyud4Zbn7FVSkMZWe8dgJ33MHpa6bLSPmdCXLErFm
 behaviours:
   main:
@@ -91,7 +91,9 @@ models:
       drand_public_key: 868f005eb8e6e4ca0a47c8a77ceaa5309a47978a7c71bc5cce96366b5d7a569937c529eeda66c7293784a9402801af31
       estimation:
         steps_forward: 1
-      history_duration: 1
+      history_end: 1655136875
+      history_interval_in_unix: 86400
+      history_start: 1652544875
       ipfs_domain_name: /dns/staging.registry.autonolas.tech/tcp/443/https
       keeper_timeout: 30.0
       max_healthcheck: 120

@@ -156,8 +156,8 @@ def block_from_timestamp_q() -> str:
             orderBy: timestamp,
             orderDirection: asc,
             where: {
-                timestamp_gte: 1618735147,
-                timestamp_lte: 1618735747
+                timestamp_gte: 1652544875,
+                timestamp_lte: 1652545475
             }
         )
         {
