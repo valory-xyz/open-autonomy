@@ -47,7 +47,7 @@ def slow_down_tests() -> Generator:
 # strict check log messages of the happy path
 STRICT_CHECK_STRINGS = (
     log_messages.request_personal.value,
-    log_messages.request_personal.value,
+    log_messages.response_personal.value,
     log_messages.request_verification.value,
     log_messages.response_verification.value,
     log_messages.request_others.value,
