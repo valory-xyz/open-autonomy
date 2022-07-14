@@ -1,6 +1,6 @@
 # Benchmarks
 
-The benchmarking tools allow measuring the performance of an {{agent_service}} realised on the {{open_autonomy}} framework.
+The benchmarking tools allow measuring the performance of an agent service realised on the {{open_autonomy}} framework.
 
 ## How to use benchmarking tools
 
