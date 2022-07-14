@@ -50,6 +50,27 @@ class ServiceRegistryContract(Contract):
     contract_id = PUBLIC_ID
 
     @classmethod
+    def get_raw_transaction(
+        cls, ledger_api: LedgerApi, contract_address: str, **kwargs: Any
+    ) -> Optional[JSONLike]:
+        """Get the Safe transaction."""
+        raise NotImplementedError
+
+    @classmethod
+    def get_raw_message(
+        cls, ledger_api: LedgerApi, contract_address: str, **kwargs: Any
+    ) -> Optional[bytes]:
+        """Get raw message."""
+        raise NotImplementedError
+
+    @classmethod
+    def get_state(
+        cls, ledger_api: LedgerApi, contract_address: str, **kwargs: Any
+    ) -> Optional[JSONLike]:
+        """Get state."""
+        raise NotImplementedError
+
+    @classmethod
     def verify_contract(
         cls, ledger_api: LedgerApi, contract_address: str
     ) -> Dict[str, Union[bool, str]]:
