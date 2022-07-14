@@ -54,6 +54,13 @@ HeaderType = Dict[str, str]
 SpecsType = Dict[str, Union[str, int, HeaderType, SkillContext]]
 
 
+_ETH_PRICE_USD_Q_PARAMS: Dict[str, Union[int, float]] = {
+    "block": 3830367,
+    "id": 1,
+    "expected_result": 0.4183383786296383,
+}
+
+
 @pytest.fixture
 def _common_specs() -> SpecsType:
     return {
@@ -101,17 +108,40 @@ def eth_price_usd_q() -> str:
             bundles(
                 first: 1,
                 block: {number: """
-        + str(3830367)
+        + str(_ETH_PRICE_USD_Q_PARAMS["block"])
         + """},
                 where: {
                     id: """
-        + str(1)
+        + str(_ETH_PRICE_USD_Q_PARAMS["id"])
         + """
                 }
             )
             {ethPrice}
         }
         """
+    )
+
+
+@pytest.fixture
+def expected_eth_price_usd() -> float:
+    """The expected result of the `eth_price_usd_q` query."""
+    return _ETH_PRICE_USD_Q_PARAMS["expected_result"]
+
+
+@pytest.fixture
+def largest_acceptable_block_number() -> int:
+    """The largest acceptable block number."""
+    return 2147483647
+
+
+@pytest.fixture
+def eth_price_usd_raising_q(
+    eth_price_usd_q: str, largest_acceptable_block_number: int
+) -> str:
+    """Query string for fetching ethereum price in USD from SpookySwap, which raises a non-indexed error."""
+    # replace the block number with a huge one, so that we get a not indexed error
+    return eth_price_usd_q.replace(
+        str(_ETH_PRICE_USD_Q_PARAMS["block"]), str(largest_acceptable_block_number)
     )
 
 
@@ -126,8 +156,30 @@ def block_from_timestamp_q() -> str:
             orderBy: timestamp,
             orderDirection: asc,
             where: {
-                timestamp_gte: 1618735147,
-                timestamp_lte: 1618735747
+                timestamp_gte: 1652544875,
+                timestamp_lte: 1652545475
+            }
+        )
+        {
+            timestamp
+            number
+        }
+    }
+    """
+
+
+@pytest.fixture
+def block_from_number_q() -> str:
+    """Query string to get a block from a timestamp."""
+
+    return """
+    {
+        blocks(
+            first: 1,
+            orderBy: timestamp,
+            orderDirection: asc,
+            where: {
+                number: 3730360
             }
         )
         {
