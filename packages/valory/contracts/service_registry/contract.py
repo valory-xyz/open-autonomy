@@ -85,9 +85,10 @@ class ServiceRegistryContract(Contract):
         deployed_bytecode = ledger_api.api.eth.get_code(contract_address).hex()
         sha512_hash = hashlib.sha512(deployed_bytecode.encode("utf-8")).hexdigest()
         verified = DEPLOYED_BYTECODE_MD5_HASH == sha512_hash
-        log_msg = "CONTRACT NOT VERIFIED! reason: frequent changes."
-        log_msg += f". Verified: {verified}. Contract address: {contract_address}."
-        _logger.error(f"{log_msg} Address: {CHAIN_ADDRESS}, chain_id: {CHAIN_ID}")
+        if not verified:
+            log_msg = "CONTRACT NOT VERIFIED! reason: frequent changes."
+            log_msg += f". Verified: {verified}. Contract address: {contract_address}."
+            _logger.error(f"{log_msg} Address: {CHAIN_ADDRESS}, chain_id: {CHAIN_ID}")
         return dict(verified=verified, sha512_hash=sha512_hash)
 
     @classmethod
