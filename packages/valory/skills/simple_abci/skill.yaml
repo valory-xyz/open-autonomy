@@ -18,17 +18,17 @@ fingerprint:
 fingerprint_ignore_patterns: []
 connections:
 - valory/abci:0.1.0:bafybeic66kn7ijiwlzw3vww64rjwnm6suxinl7u5tzxykigwpqbsb27hfi
-- valory/http_client:0.1.0:bafybeicltxrmsrc3tv77yni7rlcjlygoqs3siv5yfm6eiysmqti5gqh6b4
-- valory/ledger:0.1.0:bafybeidtk2e4pqozlrtqskehtmcc7t4crdzavedphouxpsr7hypabeqn2a
+- valory/http_client:0.1.0:bafybeibh3iu7kojc4d5eiigqh6kx2vdmu2q7vhcvvq2rz6suegsscyd66y
+- valory/ledger:0.1.0:bafybeibcj2bbnesgy4xvy4sabbt47hlefmys2kvpexb2dlaxv7e5nzh4ze
 contracts: []
 protocols:
-- open_aea/signing:1.0.0:bafybeifn5kq5lpblidod5nwvrea5srdyap7s4ig5xaq2e7eur7k2wwfyvi
-- valory/abci:0.1.0:bafybeidlsh54xtkzxgb5vh53gcykrs2jvdbmkwkxxgzdowwy4gaml7kaeu
-- valory/contract_api:1.0.0:bafybeihfrc7eyjodcvnfi4wufqta5rkrq54cwm7vujpivct7biqavjjxqy
-- valory/http:1.0.0:bafybeihqv2y6yy7ehhlexuel5decb3d3vhnnch7djddwn3vw4uzrmd567i
-- valory/ledger_api:1.0.0:bafybeig7otvi3nppubfgb2aqwlzi3rynmrntitcsts6d5iwsqqquwb4rbu
+- open_aea/signing:1.0.0:bafybeieirkuq6azgis33bmukr5u2gx4chp5kswiw3wd5hbjsaukgwzmp5a
+- valory/abci:0.1.0:bafybeicbj36urbjkn6y7hrhm57dspyuuvpcnxhr3r6y2cwxammpom633g4
+- valory/contract_api:1.0.0:bafybeie5gbzc4v4n6p6ea66kmc5ejwvbjzhd7vhcjg7mikbyx47lypcd5m
+- valory/http:1.0.0:bafybeifhmibx3l7f3xdwxhweczizadxs6p3oludvapvwdeu4o5f3oahqme
+- valory/ledger_api:1.0.0:bafybeifaozy766hngsqc5a5kpebseusq4cc3woh4ayycdoa7r3mjkvhzr4
 skills:
-- valory/abstract_round_abci:0.1.0:bafybeicgghndex2a2aeakiq46akeynuwlrycccqeokfd6us3zk4pedehpu
+- valory/abstract_round_abci:0.1.0:bafybeiezj4e2qehmnp6sjmqygby4npqnuqzrjc65257sw2tvoe6zpghc3u
 behaviours:
   main:
     args: {}
