@@ -27,9 +27,9 @@ protocols:
 - valory/http:1.0.0:bafybeifhmibx3l7f3xdwxhweczizadxs6p3oludvapvwdeu4o5f3oahqme
 - valory/ledger_api:1.0.0:bafybeifaozy766hngsqc5a5kpebseusq4cc3woh4ayycdoa7r3mjkvhzr4
 skills:
-- valory/abstract_round_abci:0.1.0:bafybeiezj4e2qehmnp6sjmqygby4npqnuqzrjc65257sw2tvoe6zpghc3u
-- valory/apy_estimation_abci:0.1.0:bafybeieqcwqv2emv7x6n27s3hhlyse73uzlcu3nh5vfnot3tpafs4lw4mi
-- valory/registration_abci:0.1.0:bafybeiaewcsw4vmzjkfi7tvmsld364wdoureaddjnt3qly2yczmeo5gryq
+- valory/abstract_round_abci:0.1.0:bafybeihn7hygaeeilz65hvdzgvypl3abbkp6jd22jxd5j2v4xqwrw4qf2i
+- valory/apy_estimation_abci:0.1.0:bafybeiabehsw3jgquyuzles75ssr5diwyvnuqzis74oq6nh2gp3kqhxdzq
+- valory/registration_abci:0.1.0:bafybeihovo4fndlxptkt3du65d2rnfwv7r54l5g7rulhfg746kpbjaqaxy
 behaviours:
   main:
     args: {}
@@ -91,7 +91,9 @@ models:
       drand_public_key: 868f005eb8e6e4ca0a47c8a77ceaa5309a47978a7c71bc5cce96366b5d7a569937c529eeda66c7293784a9402801af31
       estimation:
         steps_forward: 1
-      history_duration: 1
+      history_end: 1655136875
+      history_interval_in_unix: 86400
+      history_start: 1652544875
       ipfs_domain_name: /dns/staging.registry.autonolas.tech/tcp/443/https
       keeper_timeout: 30.0
       max_healthcheck: 120
@@ -147,6 +149,8 @@ models:
       headers:
       - Content-Type: application/json
       method: POST
+      non_indexed_error_key: errors
+      non_indexed_error_type: list
       parameters: []
       response_key: data
       response_type: dict
@@ -162,7 +166,7 @@ dependencies:
   numpy:
     version: <1.22,>=1.21.4
   open-aea-cli-ipfs:
-    version: <2.0.0,>=1.13.0
+    version: <2.0.0,>=1.12.0.post1
   optuna:
     version: <2.11,>=2.10.0
   pandas:

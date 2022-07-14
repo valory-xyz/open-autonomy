@@ -24,10 +24,10 @@ protocols:
 - valory/tendermint:0.1.0:bafybeigrenadbkdzpkxbjmpkubxzmihk45v6jbwosngciqdccth4lvp7cm
 skills:
 - valory/abstract_abci:0.1.0:bafybeigw6wb3has3esozpdllsthcuuyclpjqubxugks6wkzpbu24xzruge
-- valory/abstract_round_abci:0.1.0:bafybeiezj4e2qehmnp6sjmqygby4npqnuqzrjc65257sw2tvoe6zpghc3u
-- valory/apy_estimation_abci:0.1.0:bafybeieqcwqv2emv7x6n27s3hhlyse73uzlcu3nh5vfnot3tpafs4lw4mi
-- valory/apy_estimation_chained_abci:0.1.0:bafybeieganmg6nzm6vdweahbybi5n3jj5kote374dnhapamwbx2huraz2a
-- valory/registration_abci:0.1.0:bafybeiaewcsw4vmzjkfi7tvmsld364wdoureaddjnt3qly2yczmeo5gryq
+- valory/abstract_round_abci:0.1.0:bafybeihn7hygaeeilz65hvdzgvypl3abbkp6jd22jxd5j2v4xqwrw4qf2i
+- valory/apy_estimation_abci:0.1.0:bafybeiabehsw3jgquyuzles75ssr5diwyvnuqzis74oq6nh2gp3kqhxdzq
+- valory/apy_estimation_chained_abci:0.1.0:bafybeifv7sxp5uozu6sy2mqofwyi637grsbpn6lzqydnt3ryuwuqhwltpe
+- valory/registration_abci:0.1.0:bafybeihovo4fndlxptkt3du65d2rnfwv7r54l5g7rulhfg746kpbjaqaxy
 default_ledger: ethereum
 required_ledgers:
 - ethereum
@@ -90,7 +90,9 @@ models:
       drand_public_key: ${SKILL_APY_ESTIMATION_ABCI_MODELS_PARAMS_ARGS_DRAND_PUBLIC_KEY:str:868f005eb8e6e4ca0a47c8a77ceaa5309a47978a7c71bc5cce96366b5d7a569937c529eeda66c7293784a9402801af31}
       estimation:
         steps_forward: ${SKILL_APY_ESTIMATION_ABCI_MODELS_PARAMS_ARGS_ESTIMATION_STEPS_FORWARD:int:1}
-      history_duration: ${SKILL_APY_ESTIMATION_ABCI_MODELS_PARAMS_ARGS_HISTORY_DURATION:int:6}
+      history_end: ${SKILL_APY_ESTIMATION_ABCI_MODELS_PARAMS_ARGS_HISTORY_END:int:null}
+      history_interval_in_unix: ${SKILL_APY_ESTIMATION_ABCI_MODELS_PARAMS_ARGS_HISTORY_INTERVAL_IN_UNIX:int:86400}
+      history_start: ${SKILL_APY_ESTIMATION_ABCI_MODELS_PARAMS_ARGS_HISTORY_START:int:1652544875}
       optimizer:
         n_trials: ${SKILL_APY_ESTIMATION_ABCI_MODELS_PARAMS_ARGS_OPTIMIZER_N_TRIALS:int:10}
         timeout: ${SKILL_APY_ESTIMATION_ABCI_MODELS_PARAMS_ARGS_OPTIMIZER_TIMEOUT:int:60}
