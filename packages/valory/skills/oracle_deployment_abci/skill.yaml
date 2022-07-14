@@ -6,23 +6,23 @@ description: ABCI application for oracle deployments.
 license: Apache-2.0
 aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
-  README.md: QmbVLScdfkiBRd1HJ3j2hH9dAyooqeVmrMAe9zm4WboxyZ
-  __init__.py: QmXWin5fsEAnCyYehninEjeP6diL3AwjNj6piBTxd2SQBA
-  behaviours.py: Qmc9Z1k2PXy16mYmpe3joBS6YFVshYxa9MRZefKSbDFw6Z
-  dialogues.py: QmSPy6VqdLur8B8K824MHrfr1fobGz3PUaFu82gKLpJz8P
-  fsm_specification.yaml: QmZKFTEhLUGRyr6L1RiWfHs8876PS6gCwrtAKKvL7FS4Pk
-  handlers.py: Qmbe3No4GiJ221e5Tpo3Lmd3QrdNJ4sVFTRBxCsdAMubDA
-  models.py: QmSNySQFdHrhBK97rZwNdR7jpH5mP9Qru373ZMvzfkfbGY
-  payloads.py: QmbvjGtVfX1LdBUbhHM16QMEfMSRRWQF1zRR8CPiUPBWzh
-  rounds.py: QmZdNnFLa94jVFVUtcojQALikPLGP2Cyn5ojycojGYBF2B
+  README.md: bafybeigdmgak364qwhiqhho74vamospzu6rzzc57rtqz63qhdhozhu2hxq
+  __init__.py: bafybeieijwltt7imihiqtk73oqlcrh4b4bx3g4sty5q326enfronlbkwye
+  behaviours.py: bafybeignfpe2iafxqcniiz2fwrdrtlgpxigj2vjbsxn6iitcwcoupgrsji
+  dialogues.py: bafybeib4jbdycm2vofni3vp6draqet3nejoviqjurcilrzindr4k5dg5fa
+  fsm_specification.yaml: bafybeifdcsw6pe3h4trvie2v7osyvugdxl3exu2kgtmnsgbf3kqo6ebilm
+  handlers.py: bafybeigftrxptud4meihmxh26xe32hjtdiookz7r5lssih7tduq75mcqre
+  models.py: bafybeib4a4lcnfqr6ori3xohff4h4yxm7c7vl6sgqk2oqrypqgf2iybinu
+  payloads.py: bafybeigj4llomatxlisjynutrh6elg2j7tc6z5q5ia35cuk2ccrzlz4pgy
+  rounds.py: bafybeifhxfvv6pygzuropc4xyj4fy3j2a6eh3acci4fav2mt4wmy54jltq
 fingerprint_ignore_patterns: []
 connections: []
 contracts:
-- valory/offchain_aggregator:0.1.0:Qmaftfci6asBewVH3vKGtMJVcAdG71Vm6Qv493uRkT7b2h
+- valory/offchain_aggregator:0.1.0:bafybeiexr4ggkzocdz3cojmwzhkgmx3fjnvisvbnh7jumlz32lsm4hp7ii
 protocols:
-- valory/contract_api:1.0.0:QmcxtQbErzxdi18gTkG3FJqxauUC7YWXjjBd6f897qLb3Q
+- valory/contract_api:1.0.0:bafybeie5gbzc4v4n6p6ea66kmc5ejwvbjzhd7vhcjg7mikbyx47lypcd5m
 skills:
-- valory/abstract_round_abci:0.1.0:QmR52hEyGyzAEDeDhJxKQx7LyV9Svu48WYEjoYyyoh3yzX
+- valory/abstract_round_abci:0.1.0:bafybeiezj4e2qehmnp6sjmqygby4npqnuqzrjc65257sw2tvoe6zpghc3u
 behaviours:
   main:
     args: {}

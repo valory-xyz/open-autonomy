@@ -6,10 +6,10 @@ description: Gnosis Safe proxy factory (GnosisSafeProxyFactory) contract
 license: Apache-2.0
 aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
-  README.md: QmRSN363rGLMwfAmBQzNKPsx952w93E9fSyu7obaDfho5a
-  __init__.py: Qmayqj6gh5MWnVooGMbKC4nqwMwbhd4A2taaBmX1uHE9GL
-  build/ProxyFactory_V1_3_0.json: QmRKHfF1hYrrSZNZmec2AS3xSPWdB29uyEWAYdAS5cKHdL
-  contract.py: QmTz6m2jTn7SCqET7sLE1r1wUZp2ofCp926SyGiEWghMn9
+  README.md: bafybeibobgyzn3kozckup5uxbugbgkiqrc7d5okmj6gahctccqfifu7e4e
+  __init__.py: bafybeif32mykzila23udgceziog2zr4tkreij6zn43ybbtzonojsfmy5ee
+  build/ProxyFactory_V1_3_0.json: bafybeibmhgw6us3nzg5d4vb3krg3udxgnux66vuz26pjcigdjc7zn5jrxm
+  contract.py: bafybeict4jqt5vwfl6dwlqzjfqk4k6f6vtjlkw6nxrvbal5n5ap5xdysti
 fingerprint_ignore_patterns: []
 contracts: []
 class_name: GnosisSafeProxyFactoryContract
