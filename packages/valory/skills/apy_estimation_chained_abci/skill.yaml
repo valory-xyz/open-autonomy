@@ -6,30 +6,30 @@ description: This skill implements the APY estimation chained for an AEA.
 license: Apache-2.0
 aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
-  README.md: QmTT2DXnyGCpBRHJNEQHeVEVn9RA2mRUSefUSg8F5WWQbu
-  __init__.py: QmUp13bBYfZ4wSNtFkNxNvSqknhKDmfppByUUJRkJPU5Qg
-  behaviours.py: QmRemiKoxfVMheD3MHxWTux2qqGW1quz5Xk9ta6GNWftxH
-  composition.py: QmR4YsEW8MHdxAvJ7V2e8NczXAeT4NCDYpze7eJ1ssnPcR
-  dialogues.py: QmfDThV4WCRzK88XDpW2hKDYCuEH4RxoHCoAkWpkBRGRPv
-  fsm_specification.yaml: QmWhkHxUv5dLT2FUTRCiDabWXbYAKE3M3ZradX8qeE9Mwd
-  handlers.py: QmRMUufh4uDoqLjcQQ2f51fyE4M8Q7ECxSbLEbtTUMfVfu
-  models.py: QmS9Fkg46KXHAxdq4NV4ckFD2xv2uNQfLR1374xqucvvJh
+  README.md: bafybeicl5q6oodvqdz5a3u6cmrdmxrswzbahgyiwsozwrxop2asrlea37q
+  __init__.py: bafybeidae7gbyipqow44nxwnrvd5jyllepqbfq6xwako2o4bv2mjiwwo4u
+  behaviours.py: bafybeibrg5xt2j4i7whhwu5pw5ptb4p2siyyyf3nbj5kmptixttaivxg2i
+  composition.py: bafybeibiomuvvsltb7gfmsjgh2ugfdpps6xwb3agd4fkn2cqhxzzss2iay
+  dialogues.py: bafybeih2x4uyoj2c5j46jjn6jiddxcvx6vbsb3pf6b45fzf657mtqu2t5e
+  fsm_specification.yaml: bafybeid4iuax46gzkeb77g6ezs2arae43lmv3qk36dk7kityg2iwyr2v4a
+  handlers.py: bafybeibmzghvqekt7iymu6s6yn5tk7lpdmejba4n7dpsz2do3cgfqz7b2a
+  models.py: bafybeibyqntrlro77qydafkzdu4rbyxsnxfjzfm76nzt32shoqwffyki5y
 fingerprint_ignore_patterns: []
 connections:
-- valory/abci:0.1.0:QmdgwS83iDm5tnuXDs8Mz4txFwBHjkpUDfJ325xspnu8m4
-- valory/http_client:0.1.0:QmXiQUWV5AH7BRXGHVxVJpEcLpyNUsZf4pj55FqoTdiGDn
-- valory/ledger:0.1.0:Qmc3aNMECkTNTRf5A9vdkmKKxaQQmZb3YBmJxvZNpJNe7j
+- valory/abci:0.1.0:bafybeiaqoaub5jverxutngxtbfcshucsg7fqkcrdgbjfdsrdbfntwyhawq
+- valory/http_client:0.1.0:bafybeicltxrmsrc3tv77yni7rlcjlygoqs3siv5yfm6eiysmqti5gqh6b4
+- valory/ledger:0.1.0:bafybeidtk2e4pqozlrtqskehtmcc7t4crdzavedphouxpsr7hypabeqn2a
 contracts: []
 protocols:
-- open_aea/signing:1.0.0:QmbZLz1hZgKJwwLMngJoRWpzzRAWL1LmShRxV3GrXoBHSB
-- valory/abci:0.1.0:QmbkKQagcPHAfynYLYwRWiXNa9q2xepx2ERLaKheCRZEgC
-- valory/contract_api:1.0.0:QmcxtQbErzxdi18gTkG3FJqxauUC7YWXjjBd6f897qLb3Q
-- valory/http:1.0.0:QmYkSCErFKHs92nYzfqxeo9qBeMJF6H1SNC8awy8CjD3z6
-- valory/ledger_api:1.0.0:QmcXNYqboaBqoVKfoCeSkq2WXH1g9ZB1M5b6hzifv2sPdr
+- open_aea/signing:1.0.0:bafybeifn5kq5lpblidod5nwvrea5srdyap7s4ig5xaq2e7eur7k2wwfyvi
+- valory/abci:0.1.0:bafybeidlsh54xtkzxgb5vh53gcykrs2jvdbmkwkxxgzdowwy4gaml7kaeu
+- valory/contract_api:1.0.0:bafybeihfrc7eyjodcvnfi4wufqta5rkrq54cwm7vujpivct7biqavjjxqy
+- valory/http:1.0.0:bafybeihqv2y6yy7ehhlexuel5decb3d3vhnnch7djddwn3vw4uzrmd567i
+- valory/ledger_api:1.0.0:bafybeig7otvi3nppubfgb2aqwlzi3rynmrntitcsts6d5iwsqqquwb4rbu
 skills:
-- valory/abstract_round_abci:0.1.0:QmUTVAvyABMgF3dNj1NrWiRXDSv6iDtRmJGT6mrbBCVzjs
-- valory/apy_estimation_abci:0.1.0:QmdtN8toGKq387Fd4uNpee3PzNJmWmyzksE8H6rSNCbihh
-- valory/registration_abci:0.1.0:QmSiBVkP2jjBFB34zPDn8RskACcYRyf7bHisocyEMvRTkx
+- valory/abstract_round_abci:0.1.0:bafybeigxtaztepatjsthstchfzlni73b3rj4fgbtq36aumlk444htb3g7i
+- valory/apy_estimation_abci:0.1.0:bafybeicwntasodxkovgqxerj426d2ncafq6hvgs2rf7uhdxepd2ajqs4a4
+- valory/registration_abci:0.1.0:bafybeidl67443ios3snoqinndccjksazrrl23idproerxbkaugrj6byd7m
 behaviours:
   main:
     args: {}
@@ -91,7 +91,9 @@ models:
       drand_public_key: 868f005eb8e6e4ca0a47c8a77ceaa5309a47978a7c71bc5cce96366b5d7a569937c529eeda66c7293784a9402801af31
       estimation:
         steps_forward: 1
-      history_duration: 1
+      history_end: 1655136875
+      history_interval_in_unix: 86400
+      history_start: 1652544875
       ipfs_domain_name: /dns/staging.registry.autonolas.tech/tcp/443/https
       keeper_timeout: 30.0
       max_healthcheck: 120
@@ -147,6 +149,8 @@ models:
       headers:
       - Content-Type: application/json
       method: POST
+      non_indexed_error_key: errors
+      non_indexed_error_type: list
       parameters: []
       response_key: data
       response_type: dict

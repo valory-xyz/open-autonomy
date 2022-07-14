@@ -6,39 +6,39 @@ description: abstract round-based ABCI application
 license: Apache-2.0
 aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
-  README.md: QmYNXPppPSnW61ipqKNH8pyMh8qzTERwQaducYYq1dnBJb
-  __init__.py: QmPuJK7gMKruSTcaYk9otrFncfD9h6vBZVoAtkwhTBgcxa
-  abci_app_chain.py: QmXVAxpdyrCkbtsr3DovuoxB1VKuGHcP6DzjLLzUAyMdCP
-  base.py: QmPk5wqSBnA4Ztr1uwNTv9BtteeKne8apw72nNmaQwEoJV
-  behaviour_utils.py: QmYmbKspYQBsGXBHsZNon6XnW38aBgnJAAKC71jGxx3hT7
-  behaviours.py: QmawtbXREBz8C7Grjn4a93gaAQFMWzZicxRfjyHcckYHmz
-  common.py: QmUPsTf389ZeWhisMmoLCtJZTvCtxtdW7KrSnCt96AZHyq
-  dialogues.py: QmRwAxxs4Zt4N2suXzNKqpSuwQDLgjh9hR4nfALfcTshku
-  handlers.py: QmUpuX9ELvNhereeZntUEUdvXM8LsS126PVthswmZ8ViHs
-  io/__init__.py: QmPfA2syTybFaGmmMMt5gevZHEXPyjVf7wR1UE22NzpZZ3
-  io/ipfs.py: Qmc7BLSKb2kESC1wdCc7FxaLiSHcmPcfiBuXBuLXevUdE7
-  io/load.py: QmSa3vgVvQiMJabBvSnPjTMtYiDgrrHPugDGCvSf4kAfS3
-  io/paths.py: QmT1e6Ygak8Fe4NxSrd2mb6EB1Rr6dsYZPL8dWh3aNMb12
-  io/store.py: QmXHnLF1Jg2hmhUwYj4E4QoMmx6EoLhUtzEGqztLKtKFej
-  models.py: QmRFWdcioMrQNLRnsomH7WmyvzAQzc4ZUZcy75oYaSTWX3
-  serializer.py: QmYf1ZaQEwAaUFvFHwafuetnm29PmWQUAEFSbbHDdrHvyp
-  utils.py: Qma2amttj5p7MMYE9CfxTWmSsqDK1ARs5jXtfdmrdCpvzh
+  README.md: bafybeievb7bhfm46p5adx3x4gvsynjpq35fcrrapzn5m2whcdt4ufxfvfq
+  __init__.py: bafybeiaxhdfjmhbstyi5oqeu7wzst44snhbyoggrpusgs2c3tn3cluzhpm
+  abci_app_chain.py: bafybeieh5aeww2mu2e2mfamxbawtfxn4pwe2vgikpweaovquv5uahz6veq
+  base.py: bafybeiau3skk3msc6m6y5b5243pyyokkgovjhldnh76kl5emfdumiv26oy
+  behaviour_utils.py: bafybeie27cigguvbazlqnslhfapnmq46adqjyrnwipdapwxcngwvrhm2ni
+  behaviours.py: bafybeif3knc6efobddgkh3xc3yqwgtlk7z4zflftd7sic5j3at5rrhsute
+  common.py: bafybeicz7feaxvwftwi7qe2x4g4f6edwsh434kr4duebafbwphqyxzuyka
+  dialogues.py: bafybeibvnmcn7kofol2h6owljhde4llfc3kwwkb5helxsgsy47mokhwb4i
+  handlers.py: bafybeidammqyvz2wvqirr3it4tfy7vbe5kxybwkz5o3y4ogo3wrbaqwcmy
+  io/__init__.py: bafybeiattfgecxl5y276etqe5jiuhqk3grcov6qky5cgokstmwhrbaodri
+  io/ipfs.py: bafybeigmsaoxdcpg5qvsxjkhilpfvcdmpsb2lie4fu5oqc2ows6i7pifwa
+  io/load.py: bafybeib63wgk7wcghrvldqn6dpurkw6o7q3eohg3dpinnf7rhw4qwo2j7q
+  io/paths.py: bafybeicfno2l4vwtmjcm3rzpp6tqi3xlkof47pypf5teecad22d44u2ple
+  io/store.py: bafybeiee7uhs372q3kxd5s3itufb3ws24ey74my2jpnivit3kboon6xsaq
+  models.py: bafybeiacly2gbkxw7epjzdbnkygwns5ehggq4nmzcnvnsilux2n4jovsum
+  serializer.py: bafybeiezjdtp33nub7ual5ibt4vi7dj3ilmyw7wqq374ctub5oo7wgp7mm
+  utils.py: bafybeifnvnlpajv5iqv6wumlfppomcmcfbbb5rpiiqhouxqs5ddwlkqjjy
 fingerprint_ignore_patterns: []
 connections:
-- valory/abci:0.1.0:QmdgwS83iDm5tnuXDs8Mz4txFwBHjkpUDfJ325xspnu8m4
-- valory/http_client:0.1.0:QmXiQUWV5AH7BRXGHVxVJpEcLpyNUsZf4pj55FqoTdiGDn
-- valory/ledger:0.1.0:Qmc3aNMECkTNTRf5A9vdkmKKxaQQmZb3YBmJxvZNpJNe7j
+- valory/abci:0.1.0:bafybeiaqoaub5jverxutngxtbfcshucsg7fqkcrdgbjfdsrdbfntwyhawq
+- valory/http_client:0.1.0:bafybeicltxrmsrc3tv77yni7rlcjlygoqs3siv5yfm6eiysmqti5gqh6b4
+- valory/ledger:0.1.0:bafybeidtk2e4pqozlrtqskehtmcc7t4crdzavedphouxpsr7hypabeqn2a
 contracts:
-- valory/service_registry:0.1.0:QmR2sat97GLWU9DbkbYQyLqHzpuk98wFRsrjSr9GHYQMSY
+- valory/service_registry:0.1.0:bafybeiamopmrv6gktjgvr23xfmmz7thhsn4atvp7i6r3w5yhd7cqtwazay
 protocols:
-- valory/abci:0.1.0:QmbkKQagcPHAfynYLYwRWiXNa9q2xepx2ERLaKheCRZEgC
-- valory/acn:1.1.0:QmPGGTtF2LTTQdKZ1pVnpMkeRj3H16Gx9byrqgLJMeFa4a
-- valory/contract_api:1.0.0:QmcxtQbErzxdi18gTkG3FJqxauUC7YWXjjBd6f897qLb3Q
-- valory/http:1.0.0:QmYkSCErFKHs92nYzfqxeo9qBeMJF6H1SNC8awy8CjD3z6
-- valory/ledger_api:1.0.0:QmcXNYqboaBqoVKfoCeSkq2WXH1g9ZB1M5b6hzifv2sPdr
-- valory/tendermint:0.1.0:QmSVeebk47Ykk2Wckzmd5DiEPchrcqdAqLwiVecj4n3XVB
+- valory/abci:0.1.0:bafybeidlsh54xtkzxgb5vh53gcykrs2jvdbmkwkxxgzdowwy4gaml7kaeu
+- valory/acn:1.1.0:bafybeiaqo7cq57sucxgcfpnerth3knamkvrxelhachledn5qxibdlnrqzy
+- valory/contract_api:1.0.0:bafybeihfrc7eyjodcvnfi4wufqta5rkrq54cwm7vujpivct7biqavjjxqy
+- valory/http:1.0.0:bafybeihqv2y6yy7ehhlexuel5decb3d3vhnnch7djddwn3vw4uzrmd567i
+- valory/ledger_api:1.0.0:bafybeig7otvi3nppubfgb2aqwlzi3rynmrntitcsts6d5iwsqqquwb4rbu
+- valory/tendermint:0.1.0:bafybeiewzvqz4ecllhbjaz7k6c2mtackhs7sdmtsvlka6v2fhwigmv7fim
 skills:
-- valory/abstract_abci:0.1.0:QmUtAt7Ci4rVRLbm7MqwHuUHFbBr5tg6yapcsNwG8hDut7
+- valory/abstract_abci:0.1.0:bafybeiajl6mamii6czoucf7q7bfr47fhgab5rypxswaw3qya7jpijqvmci
 behaviours:
   main:
     args: {}

@@ -5,8 +5,8 @@ description: A set of agents incrementing a counter
 aea_version: '>=1.0.0, <2.0.0'
 license: Apache-2.0
 fingerprint:
-  README.md: QmVnym7UFqPzwQrFpZZ5hC6V9gAWbttNU2aJmv9r4gYog5
+  README.md: bafybeidoybzzjch4djhhafqm4e4jcrpaqmlthntcnonlsjtowwpykbc5xi
 fingerprint_ignore_patterns: []
 number_of_agents: 1
-agent: valory/counter:0.1.0:QmYGnbpNGBz6do99edmddxm2aJa9KbvKAuCA9XYuvXMMNw
+agent: valory/counter:0.1.0:bafybeifl6l3dtsjxokscbmcfcsj7rug5leynonq2tzpnwrg2wpmcr4rpiq
 network: hardhat

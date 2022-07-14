@@ -75,7 +75,14 @@ def init_forecaster(  # pylint: disable=too-many-arguments
             ("fourier", FourierFeaturizer(m, k)),
             (
                 "arima",
-                ARIMA(order, maxiter=maxiter, suppress_warnings=suppress_warnings),
+                ARIMA(
+                    order,
+                    maxiter=maxiter,
+                    suppress_warnings=suppress_warnings,
+                    # only setting `enforce_stationarity` kwarg in order to avoid a `statsmodels` issue:
+                    # https://github.com/statsmodels/statsmodels/issues/5459
+                    enforce_stationarity=False,
+                ),
             ),
         ]
     )

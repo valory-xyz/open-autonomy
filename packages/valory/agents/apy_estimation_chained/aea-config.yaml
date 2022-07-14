@@ -5,29 +5,29 @@ license: Apache-2.0
 description: APY estimation agent.
 aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
-  README.md: QmexsrUrKdYEUjJzYwRNHeo4JjZ8SNcXbE6FZ2pnJTnTij
+  README.md: bafybeihxalbstbm7kufnxftkn6mrvculqxyibsk4tzhrq5jbdh5ihejteq
 fingerprint_ignore_patterns: []
 connections:
-- valory/abci:0.1.0:QmdgwS83iDm5tnuXDs8Mz4txFwBHjkpUDfJ325xspnu8m4
-- valory/http_client:0.1.0:QmXiQUWV5AH7BRXGHVxVJpEcLpyNUsZf4pj55FqoTdiGDn
-- valory/ledger:0.1.0:Qmc3aNMECkTNTRf5A9vdkmKKxaQQmZb3YBmJxvZNpJNe7j
-- valory/p2p_libp2p_client:0.1.0:QmXjFibw9WescKGjrykTwgwDrtTb6jP7atgbarNXJq6kFk
+- valory/abci:0.1.0:bafybeiaqoaub5jverxutngxtbfcshucsg7fqkcrdgbjfdsrdbfntwyhawq
+- valory/http_client:0.1.0:bafybeicltxrmsrc3tv77yni7rlcjlygoqs3siv5yfm6eiysmqti5gqh6b4
+- valory/ledger:0.1.0:bafybeidtk2e4pqozlrtqskehtmcc7t4crdzavedphouxpsr7hypabeqn2a
+- valory/p2p_libp2p_client:0.1.0:bafybeie2vmsolugybibcr5xqtlc7ouzdjhfbk2heeas7f5i42dldtpg3pu
 contracts:
-- valory/service_registry:0.1.0:QmR2sat97GLWU9DbkbYQyLqHzpuk98wFRsrjSr9GHYQMSY
+- valory/service_registry:0.1.0:bafybeiamopmrv6gktjgvr23xfmmz7thhsn4atvp7i6r3w5yhd7cqtwazay
 protocols:
-- open_aea/signing:1.0.0:QmbZLz1hZgKJwwLMngJoRWpzzRAWL1LmShRxV3GrXoBHSB
-- valory/abci:0.1.0:QmbkKQagcPHAfynYLYwRWiXNa9q2xepx2ERLaKheCRZEgC
-- valory/acn:1.1.0:QmPGGTtF2LTTQdKZ1pVnpMkeRj3H16Gx9byrqgLJMeFa4a
-- valory/contract_api:1.0.0:QmcxtQbErzxdi18gTkG3FJqxauUC7YWXjjBd6f897qLb3Q
-- valory/http:1.0.0:QmYkSCErFKHs92nYzfqxeo9qBeMJF6H1SNC8awy8CjD3z6
-- valory/ledger_api:1.0.0:QmcXNYqboaBqoVKfoCeSkq2WXH1g9ZB1M5b6hzifv2sPdr
-- valory/tendermint:0.1.0:QmSVeebk47Ykk2Wckzmd5DiEPchrcqdAqLwiVecj4n3XVB
+- open_aea/signing:1.0.0:bafybeifn5kq5lpblidod5nwvrea5srdyap7s4ig5xaq2e7eur7k2wwfyvi
+- valory/abci:0.1.0:bafybeidlsh54xtkzxgb5vh53gcykrs2jvdbmkwkxxgzdowwy4gaml7kaeu
+- valory/acn:1.1.0:bafybeiaqo7cq57sucxgcfpnerth3knamkvrxelhachledn5qxibdlnrqzy
+- valory/contract_api:1.0.0:bafybeihfrc7eyjodcvnfi4wufqta5rkrq54cwm7vujpivct7biqavjjxqy
+- valory/http:1.0.0:bafybeihqv2y6yy7ehhlexuel5decb3d3vhnnch7djddwn3vw4uzrmd567i
+- valory/ledger_api:1.0.0:bafybeig7otvi3nppubfgb2aqwlzi3rynmrntitcsts6d5iwsqqquwb4rbu
+- valory/tendermint:0.1.0:bafybeiewzvqz4ecllhbjaz7k6c2mtackhs7sdmtsvlka6v2fhwigmv7fim
 skills:
-- valory/abstract_abci:0.1.0:QmUtAt7Ci4rVRLbm7MqwHuUHFbBr5tg6yapcsNwG8hDut7
-- valory/abstract_round_abci:0.1.0:QmUTVAvyABMgF3dNj1NrWiRXDSv6iDtRmJGT6mrbBCVzjs
-- valory/apy_estimation_abci:0.1.0:QmdtN8toGKq387Fd4uNpee3PzNJmWmyzksE8H6rSNCbihh
-- valory/apy_estimation_chained_abci:0.1.0:QmV3vbyvcinDfhRkyYpRAspowM7WyWCRzipUTUQ84hu6PG
-- valory/registration_abci:0.1.0:QmSiBVkP2jjBFB34zPDn8RskACcYRyf7bHisocyEMvRTkx
+- valory/abstract_abci:0.1.0:bafybeiajl6mamii6czoucf7q7bfr47fhgab5rypxswaw3qya7jpijqvmci
+- valory/abstract_round_abci:0.1.0:bafybeigxtaztepatjsthstchfzlni73b3rj4fgbtq36aumlk444htb3g7i
+- valory/apy_estimation_abci:0.1.0:bafybeicwntasodxkovgqxerj426d2ncafq6hvgs2rf7uhdxepd2ajqs4a4
+- valory/apy_estimation_chained_abci:0.1.0:bafybeibmbuk2sushgdpf56s7pgebnb5bih4xcdsc7oane4s2nt27hzqd5u
+- valory/registration_abci:0.1.0:bafybeidl67443ios3snoqinndccjksazrrl23idproerxbkaugrj6byd7m
 default_ledger: ethereum
 required_ledgers:
 - ethereum

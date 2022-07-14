@@ -6,16 +6,16 @@ description: The abci skill provides a template of an ABCI application.
 license: Apache-2.0
 aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
-  README.md: QmYfPfYVg5jpfpdVMhCg1NHwE89dFUonVLoJ8HMGVD7iuH
-  __init__.py: QmbVjtr18sGDQ3pMxx3xN3WmYapH21XbwzAJAjyALMoSdv
-  dialogues.py: QmSWwBoXfhbomtjCFUYEswaEUy9UN9gtmRcwERcTt8kADG
-  handlers.py: QmXY3AMtnxwCck6NKgdAqFaeee4EycaujkdoCGekfDsVnk
+  README.md: bafybeiezmhsokdhxat2gzxgau2zotd5nqjepg5lb2y7ypijuuq75xnxxrq
+  __init__.py: bafybeigdpqcsxpxp3akxdy5wcccfahom7pmbrnmututws2fmpcr7q6ryoe
+  dialogues.py: bafybeib6cex55nl57xe6boa4c3z4ynlxstnospqjehdb5owpgtvzsu5ucm
+  handlers.py: bafybeieiup2wgeoisdvpeui3mo6mft7eo2ukwsmhu5qqbahwxg22kxno3u
 fingerprint_ignore_patterns: []
 connections:
-- valory/abci:0.1.0:QmdgwS83iDm5tnuXDs8Mz4txFwBHjkpUDfJ325xspnu8m4
+- valory/abci:0.1.0:bafybeiaqoaub5jverxutngxtbfcshucsg7fqkcrdgbjfdsrdbfntwyhawq
 contracts: []
 protocols:
-- valory/abci:0.1.0:QmbkKQagcPHAfynYLYwRWiXNa9q2xepx2ERLaKheCRZEgC
+- valory/abci:0.1.0:bafybeidlsh54xtkzxgb5vh53gcykrs2jvdbmkwkxxgzdowwy4gaml7kaeu
 skills: []
 behaviours: {}
 handlers:
