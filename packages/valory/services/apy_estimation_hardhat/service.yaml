@@ -5,9 +5,9 @@ description: A set of agent reaching APY estimates
 aea_version: '>=1.0.0, <2.0.0'
 license: Apache-2.0
 fingerprint:
-  README.md: QmRcyLEPYAtzc1gRnBt18wxmJXmYSu9Ta4sFgA3xMnFdBr
+  README.md: bafybeibqyfur7wusrbfga66hcbauxvhs2g3j5yhknsxlvyh6mil57aajyu
 fingerprint_ignore_patterns: []
-agent: valory/apy_estimation:0.1.0:QmfDLBBi5gU9S9F9n8aQa2n8pUqy46wJjosXHthsUHCSXB
+agent: valory/apy_estimation:0.1.0:bafybeiblxwyha2jzzvk4b7dwdngqqm5h6s47caravxhbjwlit73ao3ftbu
 network: hardhat
 number_of_agents: 4
 ---

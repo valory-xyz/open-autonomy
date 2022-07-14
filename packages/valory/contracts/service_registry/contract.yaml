@@ -6,9 +6,9 @@ description: Service Registry contract
 license: Apache-2.0
 aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
-  __init__.py: QmV83c5PgQKBuu1dyfbmXGzyEh6jmnUxYYEDUjZM15EaaB
-  build/ServiceRegistry.json: QmPPft3eQEVc6KsTtoFB3qcqLhpSWjjiLRY7LDwfeyvwGo
-  contract.py: QmQy3herQXKqk9sCmzWPD4SsZXBRcC1YEp6mWA8WxkUUEq
+  __init__.py: bafybeidey4syohls5hxmso6qsp5p4uhtzle5txv2mlbym6ktjzknich6oa
+  build/ServiceRegistry.json: bafybeiapuhapwiw32kzwyecst5xthdimht7icy6g5z4y2ivbeibnoaf5sq
+  contract.py: bafybeibhbjd4hbdrwxnfk34ryppd3g7zeedwd7rgetgyxzgqbgbpbk5a6y
 fingerprint_ignore_patterns: []
 contracts: []
 class_name: ServiceRegistryContract

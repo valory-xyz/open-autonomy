@@ -6,18 +6,18 @@ description: The ABCI Counter application example.
 license: Apache-2.0
 aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
-  README.md: QmNqAq3uzEBJCWEgDYSGrcA7MYnqBgLaYEJ3NVAusTwvsW
-  __init__.py: QmUg6B5d9U8RwQRYyACHZi882rv1ADXUhHggeuAw4udHYo
-  dialogues.py: QmcD47X8huc7egekP12KPQuGnJvNygBmis1vr2aeZ3yqQT
-  handlers.py: QmQ4XxNxPMuqZr8LEpqBxVWCoyBTGSpN2DQ5sPmDWYLcyg
+  README.md: bafybeiahjzi3gvwyorse6bxacvv7thc5nynwvimdqt2xzhpd5y5vxdwwwu
+  __init__.py: bafybeic6edzuxlzxfechexteae6qyednm2feuvwmgyxzs7fopd6v5wqjgq
+  dialogues.py: bafybeigocfxocz4ektda3iloefedpjru3hobmxop7czi6ekq7ifumvdtwa
+  handlers.py: bafybeiazszy3rxyvitfseyey43wrfmhlcztku55jaxk3lg7hzmuxy4t4zm
 fingerprint_ignore_patterns: []
 connections:
-- valory/abci:0.1.0:Qme6c15aYEcGog9PCDBydJ65rHmV335qgjDZhcTFEEFyKD
+- valory/abci:0.1.0:bafybeic66kn7ijiwlzw3vww64rjwnm6suxinl7u5tzxykigwpqbsb27hfi
 contracts: []
 protocols:
-- valory/abci:0.1.0:QmbkKQagcPHAfynYLYwRWiXNa9q2xepx2ERLaKheCRZEgC
+- valory/abci:0.1.0:bafybeidlsh54xtkzxgb5vh53gcykrs2jvdbmkwkxxgzdowwy4gaml7kaeu
 skills:
-- valory/abstract_abci:0.1.0:QmaoX8qrYkiGuud7HZAeJdd1Tox8WbburEMjWKrAb9jsZL
+- valory/abstract_abci:0.1.0:bafybeieqkuwtun2hba5tlnsine7owknqbl2nzxplqpzr6trd7yxgh4gao4
 behaviours: {}
 handlers:
   abci:
