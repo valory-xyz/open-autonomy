@@ -221,7 +221,7 @@ class RegistrationStartupBehaviour(RegistrationBaseBehaviour):
         self.context.logger.info(f"{log_message}: {contract_api_response}")
         return cast(bool, contract_api_response.state.body["verified"])
 
-    def get_service_info(self) -> Generator[None, None, Dict[str, Any]]:
+    def get_agent_instances(self) -> Generator[None, None, Dict[str, Any]]:
         """Get service info available on-chain"""
 
         log_message = self.LogMessages.request_service_info
@@ -233,7 +233,7 @@ class RegistrationStartupBehaviour(RegistrationBaseBehaviour):
             performative=performative,  # type: ignore
             contract_address=self.params.service_registry_address,
             contract_id=str(ServiceRegistryContract.contract_id),
-            contract_callable="get_service_info",
+            contract_callable="get_agent_instances",
             service_id=service_id,
         )
         contract_api_response = yield from self.get_contract_api_response(**kwargs)
@@ -261,11 +261,11 @@ class RegistrationStartupBehaviour(RegistrationBaseBehaviour):
         if not correctly_deployed:
             return False
 
-        service_info = yield from self.get_service_info()
+        service_info = yield from self.get_agent_instances()
         if not service_info:
             return False
 
-        registered_addresses = set(service_info["agent_instances"])
+        registered_addresses = set(service_info["agentInstances"])
         if not registered_addresses:
             log_message = self.LogMessages.no_agents_registered.value
             self.context.logger.info(f"{log_message}: {service_info}")
