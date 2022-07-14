@@ -194,6 +194,7 @@ class TendermintNode:
             try:
                 self._process.wait(timeout=5)
             except subprocess.TimeoutExpired:  # nosec
+                self.write_line("Process not terminated trying again.\n")
                 os.kill(self._process.pid, signal.CTRL_BREAK_EVENT)  # type: ignore  # pylint: disable=no-member
         else:
             self._process.send_signal(signal.SIGTERM)
