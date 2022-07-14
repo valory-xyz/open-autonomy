@@ -532,8 +532,12 @@ class GnosisSafeContract(Contract):
         base_gas_name = "baseGas" if safe_version_ >= Version("1.0.0") else "dataGas"
 
         try:
+            _logger.info(f"Trying to get transaction and receipt from hash {tx_hash}")
             transaction = ledger_api.api.eth.get_transaction(tx_hash)
             receipt = ledger_api.get_transaction_receipt(tx_hash)
+            _logger.info(
+                f"Received transaction: {transaction}, with receipt: {receipt}."
+            )
             if receipt is None:
                 raise ValueError  # pragma: nocover
         except (TransactionNotFound, ValueError):  # pragma: nocover

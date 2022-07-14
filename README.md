@@ -52,3 +52,14 @@ every time you need to re-create and launch the virtual environment and update
 the dependencies:
 
       make new_env && pipenv shell
+
+
+## Common errors and solutions
+### e2e tests not running
+Error message:
+```bash
+error Command "hardhat" not found.
+Failed: node:16.7.0 doesn't work. Exiting...
+```
+
+Solution: re-run `yarn install` inside the `third-party/safe-contracts` and `third-party/contracts-amm` repos.
