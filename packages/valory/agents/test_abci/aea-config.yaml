@@ -5,24 +5,24 @@ license: Apache-2.0
 description: Agent for testing the ABCI connection.
 aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
-  README.md: QmSHNERB5xtLGerRxyWtKd2idPZ3co5Ny68gxuYzuWcKbB
+  README.md: bafybeib2s5p42rb4mbn7ag4jmjwutcm2mhvhb7q7vekxevr565crxkk6zy
 fingerprint_ignore_patterns: []
 connections:
-- valory/abci:0.1.0:Qme6c15aYEcGog9PCDBydJ65rHmV335qgjDZhcTFEEFyKD
-- valory/http_client:0.1.0:QmXiQUWV5AH7BRXGHVxVJpEcLpyNUsZf4pj55FqoTdiGDn
-- valory/ledger:0.1.0:Qmc3aNMECkTNTRf5A9vdkmKKxaQQmZb3YBmJxvZNpJNe7j
-- valory/p2p_libp2p_client:0.1.0:QmXjFibw9WescKGjrykTwgwDrtTb6jP7atgbarNXJq6kFk
+- valory/abci:0.1.0:bafybeic66kn7ijiwlzw3vww64rjwnm6suxinl7u5tzxykigwpqbsb27hfi
+- valory/http_client:0.1.0:bafybeicltxrmsrc3tv77yni7rlcjlygoqs3siv5yfm6eiysmqti5gqh6b4
+- valory/ledger:0.1.0:bafybeidtk2e4pqozlrtqskehtmcc7t4crdzavedphouxpsr7hypabeqn2a
+- valory/p2p_libp2p_client:0.1.0:bafybeie2vmsolugybibcr5xqtlc7ouzdjhfbk2heeas7f5i42dldtpg3pu
 contracts: []
 protocols:
-- open_aea/signing:1.0.0:QmbZLz1hZgKJwwLMngJoRWpzzRAWL1LmShRxV3GrXoBHSB
-- valory/abci:0.1.0:QmbkKQagcPHAfynYLYwRWiXNa9q2xepx2ERLaKheCRZEgC
-- valory/contract_api:1.0.0:QmcxtQbErzxdi18gTkG3FJqxauUC7YWXjjBd6f897qLb3Q
-- valory/http:1.0.0:QmYkSCErFKHs92nYzfqxeo9qBeMJF6H1SNC8awy8CjD3z6
-- valory/ledger_api:1.0.0:QmcXNYqboaBqoVKfoCeSkq2WXH1g9ZB1M5b6hzifv2sPdr
+- open_aea/signing:1.0.0:bafybeifn5kq5lpblidod5nwvrea5srdyap7s4ig5xaq2e7eur7k2wwfyvi
+- valory/abci:0.1.0:bafybeidlsh54xtkzxgb5vh53gcykrs2jvdbmkwkxxgzdowwy4gaml7kaeu
+- valory/contract_api:1.0.0:bafybeihfrc7eyjodcvnfi4wufqta5rkrq54cwm7vujpivct7biqavjjxqy
+- valory/http:1.0.0:bafybeihqv2y6yy7ehhlexuel5decb3d3vhnnch7djddwn3vw4uzrmd567i
+- valory/ledger_api:1.0.0:bafybeig7otvi3nppubfgb2aqwlzi3rynmrntitcsts6d5iwsqqquwb4rbu
 skills:
-- valory/abstract_abci:0.1.0:QmaoX8qrYkiGuud7HZAeJdd1Tox8WbburEMjWKrAb9jsZL
-- valory/abstract_round_abci:0.1.0:QmR52hEyGyzAEDeDhJxKQx7LyV9Svu48WYEjoYyyoh3yzX
-- valory/test_abci:0.1.0:QmQ4xnLW48vWY2EaeiGyVbcWPBzaPRVRMujzWFyg86PdZ1
+- valory/abstract_abci:0.1.0:bafybeieqkuwtun2hba5tlnsine7owknqbl2nzxplqpzr6trd7yxgh4gao4
+- valory/abstract_round_abci:0.1.0:bafybeicgghndex2a2aeakiq46akeynuwlrycccqeokfd6us3zk4pedehpu
+- valory/test_abci:0.1.0:bafybeibkyorxzioo72lomrnmoxlqqen3pw6zaeghly2cojrk2n7hkauqze
 default_ledger: ethereum
 required_ledgers:
 - ethereum

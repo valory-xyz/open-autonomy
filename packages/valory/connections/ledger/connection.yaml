@@ -6,17 +6,17 @@ description: A connection to interact with any ledger API and contract API.
 license: Apache-2.0
 aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
-  README.md: Qma3Z9MpmS2rFyDw2YCfsYENvam4gnyHNZtKFMkaEPMBnJ
-  __init__.py: QmY8evuRWNZnGN9sGqoK19CJiUqSZYdPhW3sAoDRFqj8VF
-  base.py: QmUq6m9L439V5g1TuCFeAGnf6BZmS1FPMBpyonCmuu2pbe
-  connection.py: QmSk8Ymq6dQ1AiqzNBP6g5Ap3YCyg4MNAhDP9DWAr9d7pf
-  contract_dispatcher.py: QmPUvYht942zuYDahbP1fr6bfwuYKCtqY5nXHZj7ckgGwB
-  ledger_dispatcher.py: Qmf3ZmSoye8vfM8VfUCQoUti4howh5zFFcjQkTiCP6CFUq
+  README.md: bafybeifn5mj5hlqrttxsnwueac2wro4kttpirc6dlajgbyxh2vkjaojdbm
+  __init__.py: bafybeierqitcqk7oy6m3qp7jgs67lcg55mzt3arltkwimuii2ynfejccwi
+  base.py: bafybeidan7lxw2wbszk5fhp2gtu4kde4womjkeci432wd3ma5vkqdd3o3u
+  connection.py: bafybeicbokkyllyiwwcnldubiezfyxpx75f4ahfzvmn2htdlln3iyjmqeq
+  contract_dispatcher.py: bafybeiaq7i64w5pt5om2rz4cpymcgk42eq5s5xmdq5btyv5ao4ofoj2sri
+  ledger_dispatcher.py: bafybeihygy3s7qyu35wq3pyrvnf5liuntng3uguspbw4bvu3pgo5nj4cjy
 fingerprint_ignore_patterns: []
 connections: []
 protocols:
-- valory/contract_api:1.0.0:QmcxtQbErzxdi18gTkG3FJqxauUC7YWXjjBd6f897qLb3Q
-- valory/ledger_api:1.0.0:QmcXNYqboaBqoVKfoCeSkq2WXH1g9ZB1M5b6hzifv2sPdr
+- valory/contract_api:1.0.0:bafybeihfrc7eyjodcvnfi4wufqta5rkrq54cwm7vujpivct7biqavjjxqy
+- valory/ledger_api:1.0.0:bafybeig7otvi3nppubfgb2aqwlzi3rynmrntitcsts6d5iwsqqquwb4rbu
 class_name: LedgerConnection
 config:
   ledger_apis:
