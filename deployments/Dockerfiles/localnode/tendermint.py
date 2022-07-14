@@ -194,7 +194,6 @@ class TendermintNode:
             try:
                 self._process.wait(timeout=5)
             except subprocess.TimeoutExpired:  # nosec
-                self.write_line("Process not terminated trying again.\n")
                 os.kill(self._process.pid, signal.CTRL_BREAK_EVENT)  # type: ignore  # pylint: disable=no-member
         else:
             self._process.send_signal(signal.SIGTERM)
@@ -204,11 +203,8 @@ class TendermintNode:
                 self._process.terminate()
                 self._process.wait(3)
 
-        if self._process.returncode is None:  # pragma: nocover
-            self.write_line("Cannot kill tendermint process.\n")
-        else:
-            self._process = None
-            self.write_line("Tendermint process stopped\n")
+        self._process = None
+        self.write_line("Tendermint process stopped\n")
 
     def _stop_monitoring_thread(self) -> None:
         """Stop a monitoring process."""
