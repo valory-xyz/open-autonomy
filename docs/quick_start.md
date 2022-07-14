@@ -26,7 +26,7 @@ pip install open-autonomy
 3. Get, build and install your agent
 ```bash
 aea init --reset --author default_author --ipfs --remote
-aea fetch valory/hello_world:0.1.0:QmWcRPGQJ7WgmKa9aktLwfYeEUmyMbbssRRS7JMkx7v3c8 --remote
+aea fetch valory/hello_world:0.1.0:QmXkf6p2ETYns8kxmEy6YxnWSE6bgZV277kBkaU829mThE --remote
 cd hello_world
 aea install
 aea generate-key ethereum
