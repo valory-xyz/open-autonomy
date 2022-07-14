@@ -8,23 +8,23 @@ aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
   README.md: bafybeiceds6hedhgipxihnl2qt7i2woxsn4fw5ue3evm4aqvknjfpwnbay
   __init__.py: bafybeif4et2adwa4mtx4clsfcpqk77w23kdq5642vulkddnrsxms6ngbma
-  behaviours.py: bafybeicdkzju7i4mxcild752thi7hnonhwgbgrruygsnlwe2qfeyyff7rm
+  behaviours.py: bafybeiedpodoybosznifqrmppfng4mn4m3k6mfg6yvejgdnkjxw2pthv4y
   dialogues.py: bafybeig4tc4thbpsixmbn35kj7jim2gzd7cvxxu4u3xoeyxqzpumuhrdzm
   fsm_specification.yaml: bafybeid56g5zov7zb2hnauahbejn5k3ilymrbg2aihhybzvzwdhbbctexq
   handlers.py: bafybeibmzghvqekt7iymu6s6yn5tk7lpdmejba4n7dpsz2do3cgfqz7b2a
   ml/__init__.py: bafybeibceypb22objsuli3abse3rgyycs4hodokjfj5oei4ms4xlqkra5a
-  ml/forecasting.py: bafybeiawjjokzr3puxhcvh5rda7vvwwvhbcvv7wqvp5gbqfoeb5zehtuwe
+  ml/forecasting.py: bafybeib54a6dzcjlilbkzcpgwrycbkjlrmzox33tas547r2v5hja2qm52m
   ml/optimization.py: bafybeibeftwvgkjxlykbcn6rnkenuoljluykh3yx4pjijnulixmoexmcvq
   ml/preprocessing.py: bafybeieha65b5cslcyyjobjupebyqovod7aigohdidcawz5b6tlxqxpruq
-  models.py: bafybeibwnmmwz37vf5tuql434g6sfcrljwti2pw563tllzireujmaim3ry
-  payloads.py: bafybeif6yfcneoiafb7taem3w4r2ccirsbzyazib4zjjj4oyenu2uiiqju
-  rounds.py: bafybeicq66hxl2uxatktpy3s7vtxr4btf36qtsjb6mbaaizwzofwnbhqrm
+  models.py: bafybeicw7ri3jzqkrcvsppgcn5ukkzgnix3rfkr6misfk2efmuzmprqah4
+  payloads.py: bafybeiaomj7i7ouzwzgs2un7w5vptkilmhrs3sk7hzapc6pswltjav3xea
+  rounds.py: bafybeidgxl2evu5k2pdirvm7nyxuvilrq57n3x44bpieqvq7hh54iibsfq
   tasks.py: bafybeihudp5vyhelqnl5eqakjpvuekaoamtbrghss4k2yysvkczspjbbia
   tools/__init__.py: bafybeid6nc7k2qjndgigeoxhtun27ih5wof3hl4j6fsijulttuwhjydyeu
   tools/etl.py: bafybeif52kzh46ebiu6s47hbgov6adz557ziv42xmh3j6ejgyyfqzh7pzq
-  tools/general.py: bafybeidbnszr2un2j5zymjdh2vpuaingtgh3x5yi4nmbn7ht7upnd2jbqa
+  tools/general.py: bafybeiggrhs5pko3q4soobaj7vsimrlwixpfprrup7jtwzr3o6eh5ezuh4
   tools/io.py: bafybeiay2r3f2zsmiqt4xb47lm42tg3lhjbhknnmej3grifemc5eumongu
-  tools/queries.py: bafybeiejehukbieutsirlkdlkjxffzxzj2gzltcl4jzc7jqrs74cmlrcsq
+  tools/queries.py: bafybeian242jrzgvmrlzaqcmj63gucmy4ramd3pkfzwep2jxh3lok5h3fy
 fingerprint_ignore_patterns: []
 connections:
 - valory/abci:0.1.0:bafybeic66kn7ijiwlzw3vww64rjwnm6suxinl7u5tzxykigwpqbsb27hfi
@@ -38,8 +38,8 @@ protocols:
 - valory/http:1.0.0:bafybeifhmibx3l7f3xdwxhweczizadxs6p3oludvapvwdeu4o5f3oahqme
 - valory/ledger_api:1.0.0:bafybeifaozy766hngsqc5a5kpebseusq4cc3woh4ayycdoa7r3mjkvhzr4
 skills:
-- valory/abstract_round_abci:0.1.0:bafybeiezj4e2qehmnp6sjmqygby4npqnuqzrjc65257sw2tvoe6zpghc3u
-- valory/registration_abci:0.1.0:bafybeiaewcsw4vmzjkfi7tvmsld364wdoureaddjnt3qly2yczmeo5gryq
+- valory/abstract_round_abci:0.1.0:bafybeihn7hygaeeilz65hvdzgvypl3abbkp6jd22jxd5j2v4xqwrw4qf2i
+- valory/registration_abci:0.1.0:bafybeihovo4fndlxptkt3du65d2rnfwv7r54l5g7rulhfg746kpbjaqaxy
 behaviours:
   main:
     args: {}
@@ -101,7 +101,9 @@ models:
       drand_public_key: 868f005eb8e6e4ca0a47c8a77ceaa5309a47978a7c71bc5cce96366b5d7a569937c529eeda66c7293784a9402801af31
       estimation:
         steps_forward: 1
-      history_duration: 1
+      history_end: 1655136875
+      history_interval_in_unix: 86400
+      history_start: 1652544875
       ipfs_domain_name: /dns/staging.registry.autonolas.tech/tcp/443/https
       keeper_timeout: 30.0
       max_healthcheck: 120
@@ -158,6 +160,8 @@ models:
       headers:
       - Content-Type: application/json
       method: POST
+      non_indexed_error_key: errors
+      non_indexed_error_type: list
       parameters: []
       response_key: data
       response_type: dict
