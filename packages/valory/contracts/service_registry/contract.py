@@ -21,8 +21,9 @@
 
 import hashlib
 import logging
-from typing import Any, Dict, Tuple, Union, cast
+from typing import Any, Dict, Optional, Union, cast
 
+from aea.common import JSONLike
 from aea.configurations.base import PublicId
 from aea.contracts.base import Contract
 from aea_ledger_ethereum import EthereumApi, LedgerApi
@@ -110,31 +111,22 @@ class ServiceRegistryContract(Contract):
         return cast(bool, exists)
 
     @classmethod
-    def get_service_info(
+    def get_agent_instances(
         cls,
         ledger_api: LedgerApi,
         contract_address: str,
         service_id: int,
     ) -> Dict[str, Any]:
-        """Retrieve on-chain service information"""
+        """Retrieve on-chain agent instances."""
 
         contract_instance = cls.get_instance(ledger_api, contract_address)
         service_info = ledger_api.contract_method_call(
             contract_instance=contract_instance,
-            method_name="getServiceInfo",
+            method_name="getAgentInstances",
             serviceId=service_id,
         )
 
         return dict(
-            owner=service_info[0],
-            name=service_info[1],
-            description=service_info[2],
-            config_hash=service_info[3],
-            threshold=service_info[4],
-            num_agent_ids=service_info[5],
-            agent_ids=service_info[6],
-            agent_params=service_info[7],
-            num_agent_instances=service_info[8],
-            agent_instances=service_info[9],
-            multisig=service_info[10],
+            numAgentInstances=service_info[0],
+            agentInstances=service_info[1],
         )
