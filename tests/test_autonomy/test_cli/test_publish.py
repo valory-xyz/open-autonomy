@@ -26,7 +26,7 @@ from pathlib import Path
 from typing import Tuple
 from unittest import mock
 
-from autonomy.cli.publish import IPFSTool, REMOTE_IPFS
+from autonomy.cli.publish import IPFSTool, REMOTE_IPFS, to_v1
 
 from tests.conftest import ROOT_DIR
 from tests.test_autonomy.test_cli.base import BaseCliTest
@@ -80,17 +80,24 @@ class TestPublish(BaseCliTest):
     ) -> None:
         """Test publish service on IPFS registry."""
 
+        dummy_hash_v0 = "QmeU1Cz796TBihCT426pA3HAYC7LhaawsXgGmy1hpyZXj9"
+        dummy_hash_v1 = to_v1("QmeU1Cz796TBihCT426pA3HAYC7LhaawsXgGmy1hpyZXj9")
         os.chdir(self.service_dir)
 
         with mock.patch(
             "autonomy.cli.publish.get_default_remote_registry", new=lambda: REMOTE_IPFS
         ), mock.patch.object(
-            IPFSTool, "add", new=lambda *_: (None, "package_hash", None)
+            IPFSTool,
+            "add",
+            new=lambda *_: (
+                None,
+                dummy_hash_v0,
+                None,
+            ),
         ):
             result = self.run_cli(("--remote",))
 
-        msg_check = """Published service package with\n\tPublicId: valory/counter:0.1.0\n\tPackage hash: package_hash"""
-
+        msg_check = f"""Published service package with\n\tPublicId: valory/counter:0.1.0\n\tPackage hash: {dummy_hash_v1}"""
         assert result.exit_code == 0, result.output
         assert msg_check in result.output, result.output
         os.chdir(self.t)
