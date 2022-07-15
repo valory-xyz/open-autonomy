@@ -24,4 +24,4 @@ import autonomy
 
 def test_version() -> None:
     """Test the version."""
-    assert autonomy.__version__ == "0.1.2"
+    assert autonomy.__version__ == "0.1.3"
