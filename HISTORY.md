@@ -1,6 +1,23 @@
 # Release History - `open-autonomy`
 
 
+## 0.1.2 (2022-15-08)
+
+Autonomy:
+- Adds support for CID v1 hashes
+
+Packages:
+- Fixs `verify_contract` method to so it does not return a hardcoded value
+- Replaces `history_duration` with `history_start`, `history_interval_in_unix` and `history_end` in APY skill.
+- Bumps the service registry contract to the latest version
+
+Chores:
+- Fixes the persistent peers' configurations for the e2e tests.
+- Updates ACN nodes in agent config files
+- Fixes tendermint subprocess termination issues on macOS
+- Fixes several flaky tests
+
+
 ## 0.1.2 (2022-07-08)
 
 Autonomy:
