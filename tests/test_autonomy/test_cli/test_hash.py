@@ -24,8 +24,6 @@ import shutil
 from pathlib import Path
 from typing import Dict, Tuple
 
-import pytest
-
 from autonomy.configurations.loader import load_service_config
 
 from tests.conftest import ROOT_DIR
@@ -107,7 +105,6 @@ class TestHashOne(BaseCliTest):
         cls.file = cls.t / "some_file.txt"
         cls.file.write_text("Hello, World!")
 
-    @pytest.mark.skip("Failing test. Needs fixing.")
     def test_one(
         self,
     ) -> None:
