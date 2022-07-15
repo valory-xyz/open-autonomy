@@ -90,7 +90,7 @@ class TestHashOne(BaseCliTest):
     """Test `hash one` command."""
 
     file: Path
-    original_hash: str = "QmeU1Cz796TBihCT426pA3HAYC7LhaawsXgGmy1hpyZXj9"
+    original_hash: str = "bafybeihptu54tiz3tilyueo2wv5qpwts6lcswwhlu4uh2kculu7q4f4kuq"
     cli_options: Tuple[str, ...] = (
         "hash",
         "one",
