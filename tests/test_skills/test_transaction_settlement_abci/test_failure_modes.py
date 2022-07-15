@@ -297,7 +297,7 @@ class TestRepricing(TransactionSettlementIntegrationBaseCase):
         Test that we are using the same keeper to reprice when we fail or timeout for the first time.
         Also, test that we are adjusting the gas correctly when repricing.
         """
-        mining_interval_secs = 1
+        mining_interval_secs = 1.5
         mining_interval_msecs = mining_interval_secs * 1000
 
         # deploy the oracle
