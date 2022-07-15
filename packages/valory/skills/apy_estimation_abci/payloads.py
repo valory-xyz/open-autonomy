@@ -95,23 +95,15 @@ class FetchingPayload(BaseAPYPayload):
 
     transaction_type = TransactionType.FETCHING
 
-    def __init__(
-        self,
-        sender: str,
-        history: Optional[str],
-        latest_observation_timestamp: int,
-        **kwargs: Any
-    ) -> None:
+    def __init__(self, sender: str, history: Optional[str], **kwargs: Any) -> None:
         """Initialize a 'fetching' transaction payload.
 
         :param sender: the sender (Ethereum) address
         :param history: the fetched history's hash.
-        :param latest_observation_timestamp: the latest observation's timestamp.
         :param kwargs: the keyword arguments
         """
         super().__init__(sender, **kwargs)
         self._history = history
-        self._latest_observation_timestamp = latest_observation_timestamp
 
     @property
     def history(self) -> Optional[str]:
@@ -119,17 +111,9 @@ class FetchingPayload(BaseAPYPayload):
         return self._history
 
     @property
-    def latest_observation_timestamp(self) -> int:
-        """Get the latest observation's timestamp."""
-        return self._latest_observation_timestamp
-
-    @property
     def data(self) -> Dict[str, Union[None, str, int]]:
         """Get the data."""
-        return {
-            "history": self.history if self.history is not None else "",
-            "latest_observation_timestamp": self._latest_observation_timestamp,
-        }
+        return {"history": self.history if self.history is not None else ""}
 
 
 class TransformationPayload(BaseAPYPayload):

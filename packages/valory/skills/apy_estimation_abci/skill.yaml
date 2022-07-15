@@ -8,23 +8,23 @@ aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
   README.md: QmSvXr6k7f5GFZVCgqM8d4ywibiSAYbdaGjmPh4CmFfQn9
   __init__.py: Qmb163B19kEpc6PfbLnmQxPbeEWA2ubTghVwG2YUeNYusu
-  behaviours.py: QmSsWNXTTJ6mromuo3cpmVEmRB27raGNmUgYTyDpeP6abk
+  behaviours.py: QmXBuNB6179dFJxfeCLSvyLhebLvAi4FxkTHZ4UrhecXEu
   dialogues.py: QmdBmUMWoPbS2faqn8LicQVJfN6a2WjtdZDWFbiYoy7hfY
   fsm_specification.yaml: QmWpHTiaY91oUmAoYiAZjcg5i3UsqktRHCcZZkEDpqEqcf
   handlers.py: QmRMUufh4uDoqLjcQQ2f51fyE4M8Q7ECxSbLEbtTUMfVfu
   ml/__init__.py: QmQdxHMEM19JH1FzG9EKQC5mpngbBAz9hyX8XDwGX915BM
-  ml/forecasting.py: QmPqfSmL2vcLCtJJ5Q9XhD1S2BtLfsqxGeHqq86sjg9EqE
+  ml/forecasting.py: QmSWBtoTKdMFrfXfRuFBja3d4p35fewF4bPes7nL94N7dU
   ml/optimization.py: QmQms7wAvSAVL4Agjpbuz3LtFwNE6HyrbzcQkESoeGfM4o
   ml/preprocessing.py: QmXRkajyrcZbXy8k26dCocmCCrqYwEHcjy7iFG64DohZKq
-  models.py: QmS15SjCs3NXCqz3gRL3soC7RRPFGofDGEttef5DVWo8EZ
-  payloads.py: QmbBH6kpC98iMgoVbHNwwMBMLs8LC6c87tj81r7UBaHesv
-  rounds.py: QmTniGZFi5RCsefxqX7NVrUPfiEwRe4kDfq4xDrswLhmYe
+  models.py: QmUCCvYEhrXkFdjpP3uqfEhZQSWD6r1oo4st3gnf3ro9tJ
+  payloads.py: QmPJoXUWcL2nL9KFLGZDo8PBs3S7HP5Dfu3ijWvRgTCRRR
+  rounds.py: QmVFfdxXCaRmPXosLxsG1M9FsvZLmrdiKKdpYj9AW9SMjH
   tasks.py: QmemYwBwU6RpWsca3bkXWuUemgZ6YwFVMxS5vkt7J7BjHh
   tools/__init__.py: QmWr6iVwNzqYVqmxBwYC1myurM8AjxuzxwjM1brXSmnDTi
   tools/etl.py: Qmb7e77Fh6R4TTSbgUNSo2LaQpKWtRsfmfeqCiPF75mSNf
-  tools/general.py: QmUtxPckv7Mjv6RXt9LmoSARd3D5xK4pyoVVL9wv9H2kvB
+  tools/general.py: QmbhfPeLoqWdWEPno2NqVy6LcCoNFRg3x2vZo7kvZbSCz2
   tools/io.py: QmQ1aPz1gg9hwgzkG1iLpiHbDVApwHyxLR2mGfQmDJqAQk
-  tools/queries.py: QmXZxZ35Sd6YWpPWcMfhwvS5KMvQhb9AmLWp7drQs8KQCT
+  tools/queries.py: QmPGgLaermaEDV6PEEcrF3GrgCyRSko3QkxMdPdyf1hDGR
 fingerprint_ignore_patterns: []
 connections:
 - valory/abci:0.1.0:Qme6c15aYEcGog9PCDBydJ65rHmV335qgjDZhcTFEEFyKD
@@ -38,8 +38,8 @@ protocols:
 - valory/http:1.0.0:QmYkSCErFKHs92nYzfqxeo9qBeMJF6H1SNC8awy8CjD3z6
 - valory/ledger_api:1.0.0:QmcXNYqboaBqoVKfoCeSkq2WXH1g9ZB1M5b6hzifv2sPdr
 skills:
-- valory/abstract_round_abci:0.1.0:QmegF7DZTtVpssrqVjLn4noYTenVVXVy9fWt5kAPx1xTae
-- valory/registration_abci:0.1.0:QmNPvvFerh5aimM5q9EFa8Q4UuNQUnGzpiRRNTGzk5T2MM
+- valory/abstract_round_abci:0.1.0:QmZXxuChc7Gcn3morK5DUh2jvMfDmJLAHyaruM4mvR8kak
+- valory/registration_abci:0.1.0:Qmbny699hqRGR1EvFAerYTbf3NvxDJiNBFbwrk5roxAg8t
 behaviours:
   main:
     args: {}
@@ -101,7 +101,9 @@ models:
       drand_public_key: 868f005eb8e6e4ca0a47c8a77ceaa5309a47978a7c71bc5cce96366b5d7a569937c529eeda66c7293784a9402801af31
       estimation:
         steps_forward: 1
-      history_duration: 1
+      history_end: 1655136875
+      history_interval_in_unix: 86400
+      history_start: 1652544875
       ipfs_domain_name: /dns/staging.registry.autonolas.tech/tcp/443/https
       keeper_timeout: 30.0
       max_healthcheck: 120
@@ -158,6 +160,8 @@ models:
       headers:
       - Content-Type: application/json
       method: POST
+      non_indexed_error_key: errors
+      non_indexed_error_type: list
       parameters: []
       response_key: data
       response_type: dict

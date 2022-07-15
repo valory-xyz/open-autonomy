@@ -173,7 +173,7 @@ class ApiSpecs(Model):  # pylint: disable=too-many-instance-attributes
 
     _retries_attempted: int
     _retries: int
-    _response_types: Dict[str, Any] = {
+    _response_types: Dict[str, Type] = {
         "int": int,
         "float": float,
         "dict": dict,
@@ -190,7 +190,7 @@ class ApiSpecs(Model):  # pylint: disable=too-many-instance-attributes
         self.headers = kwargs.pop("headers", [])
         self.parameters = kwargs.pop("parameters", [])
         self.response_key = kwargs.pop("response_key", None)
-        self.response_type = kwargs.pop("response_type", str)
+        self.response_type = kwargs.pop("response_type", "str")
 
         self._retries_attempted = 0
         self._retries = kwargs.pop("retries", NUMBER_OF_RETRIES)
@@ -220,17 +220,23 @@ class ApiSpecs(Model):  # pylint: disable=too-many-instance-attributes
 
     def process_response(self, response: HttpMessage) -> Any:
         """Process response from api."""
+        return self._get_response_data(response, self.response_key, self.response_type)
+
+    def _get_response_data(
+        self, response: HttpMessage, response_key: Optional[str], response_type: str
+    ) -> Any:
+        """Get response data from api, based on the given response key"""
         try:
             response_data = json.loads(response.body.decode())
-            if self.response_key is None:
+            if response_key is None:
                 return response_data
 
-            first_key, *keys = self.response_key.split(":")
+            first_key, *keys = response_key.split(":")
             value = response_data[first_key]
             for key in keys:
                 value = value[key]
 
-            return self._response_types.get(self.response_type)(value)  # type: ignore
+            return self._response_types.get(response_type)(value)  # type: ignore
 
         except (json.JSONDecodeError, KeyError):
             return None

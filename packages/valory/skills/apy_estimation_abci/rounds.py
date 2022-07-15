@@ -82,11 +82,6 @@ class SynchronizedData(BaseSynchronizedData):
         return cast(str, self.db.get_strict("most_voted_history"))
 
     @property
-    def latest_observation_timestamp(self) -> str:
-        """Get the latest observation's timestamp."""
-        return cast(str, self.db.get_strict("latest_observation_timestamp"))
-
-    @property
     def batch_hash(self) -> str:
         """Get the most voted batch hash."""
         return cast(str, self.db.get_strict("most_voted_batch"))
@@ -191,9 +186,6 @@ class CollectHistoryRound(CollectSameUntilThresholdRound, APYEstimationAbstractR
                 "synchronized_data_class": SynchronizedData,
                 self.collection_key: self.collection,
                 self.selection_key: self.most_voted_payload,
-                "latest_observation_timestamp": cast(
-                    FetchingPayload, list(self.collection.values())[0]
-                ).latest_observation_timestamp,
             }
 
             synchronized_data = self.synchronized_data.update(**update_kwargs)

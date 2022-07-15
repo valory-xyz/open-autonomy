@@ -19,8 +19,9 @@
 
 """Custom objects for the APY estimation ABCI application."""
 
-from typing import Any
+from typing import Any, Optional
 
+from packages.valory.protocols.http import HttpMessage
 from packages.valory.skills.abstract_round_abci.models import ApiSpecs, BaseParams
 from packages.valory.skills.abstract_round_abci.models import (
     BenchmarkTool as BaseBenchmarkTool,
@@ -58,7 +59,15 @@ class SpookySwapSubgraph(ApiSpecs):
     def __init__(self, *args: Any, **kwargs: Any) -> None:
         """Initialize SpookySwapSubgraph."""
         self.bundle_id: int = self.ensure("bundle_id", kwargs)
+        self.non_indexed_error_key = kwargs.pop("non_indexed_error_key", "errors")
+        self.non_indexed_error_type = kwargs.pop("non_indexed_error_type", "list")
         super().__init__(*args, **kwargs)
+
+    def process_non_indexed_error(self, response: HttpMessage) -> Any:
+        """Process a non-indexed block error response from the subgraph."""
+        return self._get_response_data(
+            response, self.non_indexed_error_key, self.non_indexed_error_type
+        )
 
 
 class APYParams(BaseParams):  # pylint: disable=too-many-instance-attributes
@@ -66,7 +75,9 @@ class APYParams(BaseParams):  # pylint: disable=too-many-instance-attributes
 
     def __init__(self, *args: Any, **kwargs: Any) -> None:
         """Initialize the parameters object."""
-        self.history_duration = self._ensure("history_duration", kwargs)
+        self.start: int = self._ensure("history_start", kwargs)
+        self.end: Optional[int] = kwargs.pop("history_end", None)
+        self.interval: int = self._ensure("history_interval_in_unix", kwargs)
         self.optimizer_params = self._ensure("optimizer", kwargs)
         self.testing = self._ensure("testing", kwargs)
         self.estimation = self._ensure("estimation", kwargs)
@@ -79,18 +90,12 @@ class APYParams(BaseParams):  # pylint: disable=too-many-instance-attributes
     def __validate_params(self) -> None:
         """Validate the given parameters."""
         # Eventually, we should probably validate all the parameters.
-        if self.optimizer_params.get("timeout") is None:
-            self.optimizer_params["timeout"] = None
-        elif not isinstance(self.optimizer_params["timeout"], int):
-            raise ValueError(
-                "Parameter `timeout` can be either of type `int` or `None`. "
-                f"{self.optimizer_params['timeout']} was given."
-            )
-
-        if self.optimizer_params.get("window_size") is None:
-            self.optimizer_params["window_size"] = None
-        elif not isinstance(self.optimizer_params["window_size"], int):
-            raise ValueError(  # pragma: nocover
-                "Parameter `window_size` can be either of type `int` or `None`. "
-                f"{self.optimizer_params['window_size']} was given."
-            )
+        for param_name in ("timeout", "window_size"):
+            param_val = self.optimizer_params.get(param_name)
+            if param_val is not None and not isinstance(param_val, int):
+                raise ValueError(
+                    f"Optimizer's parameter `{param_name}` can be either of type `int` or `None`. "
+                    f"{type(param_val)} was given."
+                )
+            # if the value did not exist in the config, then we set it to the default (None) returned from `.get` method
+            self.optimizer_params[param_name] = param_val
