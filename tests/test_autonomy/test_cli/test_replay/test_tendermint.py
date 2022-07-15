@@ -27,7 +27,6 @@ from typing import Any, Tuple
 from unittest import mock
 
 import flask
-import pytest
 
 from autonomy.cli import cli
 from autonomy.deploy.constants import (
@@ -91,9 +90,6 @@ class TestTendermintRunner(BaseCliTest):
         super().setup()
         os.chdir(cls.t)
 
-    @pytest.mark.skip(
-        "Permission issues on CI: https://github.com/valory-xyz/open-autonomy/issues/1067"
-    )
     def test_run(self) -> None:
         """Test run."""
         result = self.cli_runner.invoke(
