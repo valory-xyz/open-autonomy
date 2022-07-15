@@ -489,7 +489,7 @@ class TendermintNode:
         cmd = self._build_init_command()
         subprocess.call(cmd)  # nosec
 
-    def start(self, start_monitoring: bool = False) -> None:
+    def start(self, start_monitoring: bool = True) -> None:
         """Start a Tendermint node process."""
         self._start_tm_process()
         if start_monitoring:
