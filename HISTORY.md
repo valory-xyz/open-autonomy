@@ -7,7 +7,7 @@ Autonomy:
 - Adds support for CID v1 hashes
 
 Packages:
-- Fixes `verify_contract` method to so it does not return a hardcoded value
+- Fixes `verify_contract` method so it does not return a hardcoded value
 - Replaces `history_duration` with `history_start`, `history_interval_in_unix` and `history_end` in APY skill.
 - Bumps the service registry contract to the latest version
 
