@@ -7,14 +7,14 @@ description: A protocol for ledger APIs requests and responses.
 license: Apache-2.0
 aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
-  README.md: QmbbYRsNAQEf5fGSBQGWj62kWLQa8PuKFYABf3WZYsL9Eh
-  __init__.py: QmUsCtUx9puc2P8xg3na5FptXNR3W4QWCiquioSckMxGE7
-  custom_types.py: QmUrKaHLbKCPkfF8efRWBZuMgKZSqUha5dtFn4a5ihutuh
-  dialogues.py: QmVwPKwbDjPetJJz9k6AWmY398JZ3dQv4LkG9PpiXELWYE
-  ledger_api.proto: QmP4iCme4Ug8aYpouFX71xWc9fTsYePCKhNePFEh1igb5n
-  ledger_api_pb2.py: QmfNKLDt4vZgK5EiJkXjurFA2t5Jevk9BNMhnMtwY4ob9x
-  message.py: QmcWqNDji27FscjQoK3aNFWJFbMNsE1bZPxrReGuDd1Mda
-  serialization.py: QmYCgbXToxVcBQyQwcfWnV3mUyUG9iUgKnU5a9jrzKPTYw
+  README.md: bafybeige7cfjtubrzi4vpbdew5vun5zpzuf7lsy5lb6y7gdrp6y2pcv7gi
+  __init__.py: bafybeida7hxd3cctkkteqf44fzjtpyl7rjoqabkpqhpv2pggqkqkg6dhbq
+  custom_types.py: bafybeidax7upcp6fgco57mmdd4fazheew6wpc47tpgqksdx7r5rumvpt3q
+  dialogues.py: bafybeidq467ibmsvanjalfifjle3bc5qzk55azzsrmakvf4lgopzgzs7n4
+  ledger_api.proto: bafybeiakyzmevm3z2n7l3qhyjuph373eldmi7agk2hsj72ua24riidx4au
+  ledger_api_pb2.py: bafybeih5apw6xhhwc7zv36l4rhx44oswzb7ldvwo2tgjpefbw4e7puqyr4
+  message.py: bafybeigst542c3lhvqmjxtbql2odiz5eqcgr6ptaiatn57hjw444z5z4le
+  serialization.py: bafybeiesrjnrzz55b2jil6sdeblzpav6rcecnyxyi7edg556mvbu77y5kq
 fingerprint_ignore_patterns: []
 dependencies:
   protobuf: {}
