@@ -1,7 +1,7 @@
 # Release History - `open-autonomy`
 
 
-## 0.1.2 (2022-15-08)
+## 0.1.3 (2022-15-08)
 
 Autonomy:
 - Adds support for CID v1 hashes
