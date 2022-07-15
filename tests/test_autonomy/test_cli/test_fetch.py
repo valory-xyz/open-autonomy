@@ -24,6 +24,8 @@ import shutil
 from pathlib import Path
 from unittest import mock
 
+import pytest
+
 from tests.conftest import ROOT_DIR
 from tests.test_autonomy.test_cli.base import BaseCliTest
 
