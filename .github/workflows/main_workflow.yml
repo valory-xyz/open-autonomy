@@ -66,8 +66,8 @@ jobs:
       run: tox -e check-copyright
     - name: Check docs
       run: tox -e check-api-docs
-    # - name: Check doc links and IPFS hashes
-    #   run: tox -e check-doc-links-hashes
+    - name: Check doc links and IPFS hashes
+      run: tox -e check-doc-links-hashes
     - name: Check pipfiles
       run: tox -e check-pipfiles
 
@@ -195,6 +195,12 @@ jobs:
           # pull node image needed for the integration tests
           docker pull node:16.7.0
           docker pull trufflesuite/ganache:beta
+
+          # build required images
+          pip install .
+          autonomy deploy build image valory/oracle_hardhat
+          autonomy deploy build image valory/oracle_hardhat --dev
+          autonomy deploy build image valory/oracle_hardhat --dependencies
 
           # build hardhat node in third_party/safe-contracts
           cd third_party/safe-contracts &&\
