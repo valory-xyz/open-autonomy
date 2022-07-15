@@ -7,30 +7,30 @@ description: ABCI application for cryptocurrency price estimation aggregating ob
 license: Apache-2.0
 aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
-  README.md: QmT7TN1DvhK4LtLzv2gSQphVJCsy49b11hRU8ixiiYtHrf
-  __init__.py: QmeAk7emAs7VRTMu26MQ22s44gYYQaWjJxnaZ9xaRpLKwp
-  behaviours.py: QmQqTFTYEEes3z2F6U7fnTzTcANuvMpd9CcdL9Di1EuCQe
-  composition.py: QmTMTXbxA32JvoohYjHTDohMpc2cyWZdLDZyKtCUSvaAnK
-  dialogues.py: QmSPy6VqdLur8B8K824MHrfr1fobGz3PUaFu82gKLpJz8P
-  fsm_specification.yaml: QmT6SZwTGmgFAZzrN9R2Qa7pY1P9JR8Si7MWKeEgULR9VV
-  handlers.py: QmP46JqQwFgamtKhjLd3dpWY2yKdXBnubMYZpSsNBC1eFH
-  models.py: QmSwdFNXuDkGCP8QB565HNafwtxgnVauUAYfE4FQEoDCgC
+  README.md: bafybeicg5eg7f4fhaxflzaz6h73xklax6cfggg6d4sjl27tcs3rjqgflza
+  __init__.py: bafybeihlgffzmngu3ydky57kchhrdsfakmvpbq5mcmyrsdnolfnimftktm
+  behaviours.py: bafybeibfdbbjib3droushgrbkr5jmiexrzzgjipwaei6jqg3cbotrby4c4
+  composition.py: bafybeickp5pxsikib2ouweazw6nghjejce4xpzydhagtuorjtknf4bkt4a
+  dialogues.py: bafybeib4jbdycm2vofni3vp6draqet3nejoviqjurcilrzindr4k5dg5fa
+  fsm_specification.yaml: bafybeicgu2jv3g37bbaxprtmsqfaaqiy6qv5sufqocmwaq4mpo27o5zmuq
+  handlers.py: bafybeiaktxa76cpjytsjtbkftrhp7cppmweoxvglqmxc2cdcymdnzdsyua
+  models.py: bafybeicemrwjh2kvdzqah2j34yj4mf777orbx4gn3kmbpwmi2uxerjy5bu
 fingerprint_ignore_patterns: []
 connections: []
 contracts:
-- valory/gnosis_safe:0.1.0:QmZvvToxeRrjvf83pWcKYqu3YdQkPzmcx72ZHbakEKwfrT
-- valory/gnosis_safe_proxy_factory:0.1.0:QmVkZtrgZ2ievXAonq9z33qbrxHi8piVGptuCGaGJYS1iM
-- valory/offchain_aggregator:0.1.0:Qmaftfci6asBewVH3vKGtMJVcAdG71Vm6Qv493uRkT7b2h
+- valory/gnosis_safe:0.1.0:bafybeie6mp5postj743s4d6qurg5ngfy7xxewreqfoqfxg37jtv72dtslu
+- valory/gnosis_safe_proxy_factory:0.1.0:bafybeiej772sh3uuju2zsd62fz73ofg7p7ixaju6e3ahnzlbktcxoeoggy
+- valory/offchain_aggregator:0.1.0:bafybeiexr4ggkzocdz3cojmwzhkgmx3fjnvisvbnh7jumlz32lsm4hp7ii
 protocols:
-- valory/contract_api:1.0.0:QmcxtQbErzxdi18gTkG3FJqxauUC7YWXjjBd6f897qLb3Q
+- valory/contract_api:1.0.0:bafybeie5gbzc4v4n6p6ea66kmc5ejwvbjzhd7vhcjg7mikbyx47lypcd5m
 skills:
-- valory/abstract_round_abci:0.1.0:QmZXxuChc7Gcn3morK5DUh2jvMfDmJLAHyaruM4mvR8kak
-- valory/oracle_deployment_abci:0.1.0:QmVjsGFb46sbFpbYQDnyhBKQGgCiXHurkjNnfFgdgCUKNh
-- valory/price_estimation_abci:0.1.0:QmcxYYG7xBsADBTkD5btkTjhWiBEXFJnF9oBCBS7GVpEAt
-- valory/registration_abci:0.1.0:Qmbny699hqRGR1EvFAerYTbf3NvxDJiNBFbwrk5roxAg8t
-- valory/reset_pause_abci:0.1.0:QmPxrF4A1b7pdadb4ow5RRLFAKhgvmTuXuw92mP5Lodvkp
-- valory/safe_deployment_abci:0.1.0:QmVuhoC4zhMFX46smng41x6UQNEi1DDDJjg12h6Dwo3fbT
-- valory/transaction_settlement_abci:0.1.0:QmQpo92H2yacqJTkUWqtzh1kVqKcdThMTKck4GjiMiUGna
+- valory/abstract_round_abci:0.1.0:bafybeifzev3hmxcg4uktaelfyjcenymwetasbhypybz35za2njrlm7ujby
+- valory/oracle_deployment_abci:0.1.0:bafybeicheqflhqypjv4wbzgilbap53jifebeay3uhv7ucprebxgx3465je
+- valory/price_estimation_abci:0.1.0:bafybeielniqpkmzsqrayl7w2rbx4eetukxmfdnpdyxkn74zoqwthb3l6uu
+- valory/registration_abci:0.1.0:bafybeiandwivmpih2flbr2mcghxnygtlnb7ybku2it2sgwp2a4qoz3hr2q
+- valory/reset_pause_abci:0.1.0:bafybeicbbnk324lgkqvvpydbojpamisqealmswq7nig5sntkoacvpslbvi
+- valory/safe_deployment_abci:0.1.0:bafybeicu3qgrzy4r72webqn35hcykm4sh2khn24uf63bmxocodicrbjug4
+- valory/transaction_settlement_abci:0.1.0:bafybeie3achouyx57lespwnpyj5gqzsb2de2pcwqvsdadwad3nyuywzdgm
 behaviours:
   main:
     args: {}

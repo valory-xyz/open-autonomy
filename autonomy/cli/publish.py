@@ -41,6 +41,7 @@ from aea.configurations.constants import (
     SERVICES,
 )
 from aea.configurations.data_types import PublicId
+from aea.helpers.cid import to_v1
 
 from autonomy.configurations.base import PACKAGE_TYPE_TO_CONFIG_CLASS
 
@@ -106,6 +107,7 @@ def publish_service_ipfs(public_id: PublicId, package_path: Path) -> None:
 
     ipfs_tool = IPFSTool(get_ipfs_node_multiaddr())
     _, package_hash, _ = ipfs_tool.add(str(package_path.resolve()))
+    package_hash = to_v1(package_hash)
     click.echo(
         f"Published service package with\n\tPublicId: {public_id}\n\tPackage hash: {package_hash}"
     )

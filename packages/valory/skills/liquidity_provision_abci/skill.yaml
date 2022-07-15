@@ -7,37 +7,37 @@ description: This skill implements liquidity rebalancing capacities to move into
 license: Apache-2.0
 aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
-  README.md: QmR5sLQeLggNn5gZ1kDWrqpkz5NzMdUZuWNkaQDpaMC85C
-  __init__.py: QmNuC15NDuuzyfhdpYLpoVajvPGXN3EKR9GdBHDdM1mzgM
-  behaviours.py: QmX3UPYYFNB2UTT8zFiMchAA6Ejjpzp7xjEVeLaMNXSbzH
-  composition.py: QmXdsJZJJPba243WZ2jcoiJz4vFuw5ujFUXuEjoTkxY81H
-  dialogues.py: QmfDThV4WCRzK88XDpW2hKDYCuEH4RxoHCoAkWpkBRGRPv
-  fsm_specification.yaml: QmPCSHySLcTURs7dHcYpiCc6B6w7pfkc8JLJ77axvmhNFX
-  handlers.py: QmSgRDTrSrp2yeQkEirxh7p9mNKnRnjAqZWqvn1TEPB5bn
-  models.py: Qmdb5Dve5jFq5UvYLALfXeXSxrQa3tifYWeTjo6iSqttmJ
+  README.md: bafybeibizgp7d7xn5cbp5ikgqd4axfbucwfwugcvwods2gsyxvuuu5lei4
+  __init__.py: bafybeiaikx37b2ditrxk2646yn24e6sp5utlbgiz4lyyhidbl2ut6kkajy
+  behaviours.py: bafybeiebkkr4elootfqtmfgurbe74zmzhujlwrsv4qfh2pcrhdm7nt3mfi
+  composition.py: bafybeiekejf5bp3etceeocybnlileetot2hrdnn4w4mgg76meqoulshiwq
+  dialogues.py: bafybeih2x4uyoj2c5j46jjn6jiddxcvx6vbsb3pf6b45fzf657mtqu2t5e
+  fsm_specification.yaml: bafybeiamyeagkpamjwhqtsgn22d3b2twf6wrjpas4emm2ebfrxn7oztgty
+  handlers.py: bafybeicap4nttt2g2updfdf62454a5i5dcstpcwlzaz5gtsqnlz5auuuae
+  models.py: bafybeihcsetun6wuygzyjv5m7qtx6sr6sr3bbpudfswg5armnudoa7juru
 fingerprint_ignore_patterns: []
 connections:
-- valory/abci:0.1.0:Qme6c15aYEcGog9PCDBydJ65rHmV335qgjDZhcTFEEFyKD
-- valory/http_client:0.1.0:QmXiQUWV5AH7BRXGHVxVJpEcLpyNUsZf4pj55FqoTdiGDn
-- valory/ledger:0.1.0:Qmc3aNMECkTNTRf5A9vdkmKKxaQQmZb3YBmJxvZNpJNe7j
+- valory/abci:0.1.0:bafybeiaqoaub5jverxutngxtbfcshucsg7fqkcrdgbjfdsrdbfntwyhawq
+- valory/http_client:0.1.0:bafybeibh3iu7kojc4d5eiigqh6kx2vdmu2q7vhcvvq2rz6suegsscyd66y
+- valory/ledger:0.1.0:bafybeibcj2bbnesgy4xvy4sabbt47hlefmys2kvpexb2dlaxv7e5nzh4ze
 contracts:
-- valory/gnosis_safe:0.1.0:QmZvvToxeRrjvf83pWcKYqu3YdQkPzmcx72ZHbakEKwfrT
-- valory/gnosis_safe_proxy_factory:0.1.0:QmVkZtrgZ2ievXAonq9z33qbrxHi8piVGptuCGaGJYS1iM
-- valory/uniswap_v2_erc20:0.1.0:QmWXvYsGQ6gv8wkyLt8UYDeQ8xqXdc9rE2P7Uy2CT697ZM
-- valory/uniswap_v2_router_02:0.1.0:QmdPbUgxDvhKZbyPAJ5vh1Lwiqkmds5J1MJ81eMxS5ErHs
+- valory/gnosis_safe:0.1.0:bafybeie6mp5postj743s4d6qurg5ngfy7xxewreqfoqfxg37jtv72dtslu
+- valory/gnosis_safe_proxy_factory:0.1.0:bafybeiej772sh3uuju2zsd62fz73ofg7p7ixaju6e3ahnzlbktcxoeoggy
+- valory/uniswap_v2_erc20:0.1.0:bafybeid2rdlyshie6yamr6lzf3g3kfovlhvww3rszmtaad2pmawwgmfvce
+- valory/uniswap_v2_router_02:0.1.0:bafybeie7xfg2erv4gzuy46vjvqav4fnrzugvkx5twt5h3n2yocakbpzn4u
 protocols:
-- open_aea/signing:1.0.0:QmbZLz1hZgKJwwLMngJoRWpzzRAWL1LmShRxV3GrXoBHSB
-- valory/abci:0.1.0:QmbkKQagcPHAfynYLYwRWiXNa9q2xepx2ERLaKheCRZEgC
-- valory/contract_api:1.0.0:QmcxtQbErzxdi18gTkG3FJqxauUC7YWXjjBd6f897qLb3Q
-- valory/http:1.0.0:QmYkSCErFKHs92nYzfqxeo9qBeMJF6H1SNC8awy8CjD3z6
-- valory/ledger_api:1.0.0:QmcXNYqboaBqoVKfoCeSkq2WXH1g9ZB1M5b6hzifv2sPdr
+- open_aea/signing:1.0.0:bafybeieirkuq6azgis33bmukr5u2gx4chp5kswiw3wd5hbjsaukgwzmp5a
+- valory/abci:0.1.0:bafybeicbj36urbjkn6y7hrhm57dspyuuvpcnxhr3r6y2cwxammpom633g4
+- valory/contract_api:1.0.0:bafybeie5gbzc4v4n6p6ea66kmc5ejwvbjzhd7vhcjg7mikbyx47lypcd5m
+- valory/http:1.0.0:bafybeifhmibx3l7f3xdwxhweczizadxs6p3oludvapvwdeu4o5f3oahqme
+- valory/ledger_api:1.0.0:bafybeifaozy766hngsqc5a5kpebseusq4cc3woh4ayycdoa7r3mjkvhzr4
 skills:
-- valory/abstract_round_abci:0.1.0:QmZXxuChc7Gcn3morK5DUh2jvMfDmJLAHyaruM4mvR8kak
-- valory/liquidity_rebalancing_abci:0.1.0:Qmb9cca7py5rupMLNtHt8WafPC3gfAqnj8XqjhGk7Wexdf
-- valory/registration_abci:0.1.0:Qmbny699hqRGR1EvFAerYTbf3NvxDJiNBFbwrk5roxAg8t
-- valory/reset_pause_abci:0.1.0:QmPxrF4A1b7pdadb4ow5RRLFAKhgvmTuXuw92mP5Lodvkp
-- valory/safe_deployment_abci:0.1.0:QmVuhoC4zhMFX46smng41x6UQNEi1DDDJjg12h6Dwo3fbT
-- valory/transaction_settlement_abci:0.1.0:QmQpo92H2yacqJTkUWqtzh1kVqKcdThMTKck4GjiMiUGna
+- valory/abstract_round_abci:0.1.0:bafybeifzev3hmxcg4uktaelfyjcenymwetasbhypybz35za2njrlm7ujby
+- valory/liquidity_rebalancing_abci:0.1.0:bafybeibq7byri2ualm4k6sdcfdlapuksdm3hjm7ppdf2mpc3v7g3ecgjna
+- valory/registration_abci:0.1.0:bafybeiandwivmpih2flbr2mcghxnygtlnb7ybku2it2sgwp2a4qoz3hr2q
+- valory/reset_pause_abci:0.1.0:bafybeicbbnk324lgkqvvpydbojpamisqealmswq7nig5sntkoacvpslbvi
+- valory/safe_deployment_abci:0.1.0:bafybeicu3qgrzy4r72webqn35hcykm4sh2khn24uf63bmxocodicrbjug4
+- valory/transaction_settlement_abci:0.1.0:bafybeie3achouyx57lespwnpyj5gqzsb2de2pcwqvsdadwad3nyuywzdgm
 behaviours:
   main:
     args: {}
