@@ -212,19 +212,19 @@ class TestRegistrationStartupBehaviour(RegistrationAbciBaseCase):
             response_kwargs=response_kwargs,
         )
 
-    def mock_get_service_info(
+    def mock_get_agent_instances(
         self, *agent_instances: str, error_response: bool = False
     ) -> None:
-        """Mock get service info"""
+        """Mock get agent instances"""
         request_kwargs = dict(performative=ContractApiMessage.Performative.GET_STATE)
         performative = ContractApiMessage.Performative.STATE
         if error_response:
             performative = ContractApiMessage.Performative.ERROR
-        body = {"agent_instances": list(agent_instances)}
+        body = {"agentInstances": list(agent_instances)}
         state = ContractApiMessage.State(ledger_id="ethereum", body=body)
         response_kwargs = dict(
             performative=performative,
-            callable="get_service_info",
+            callable="get_agent_instances",
             state=state,
         )
         self.mock_contract_api_request(
@@ -376,7 +376,7 @@ class TestRegistrationStartupBehaviour(RegistrationAbciBaseCase):
             self.behaviour.act_wrapper()
             self.mock_get_local_tendermint_params()
             self.mock_is_correct_contract()
-            self.mock_get_service_info(error_response=True)
+            self.mock_get_agent_instances(error_response=True)
             log_message = self.state.LogMessages.failed_service_info
             assert log_message.value in caplog.text
 
@@ -391,7 +391,7 @@ class TestRegistrationStartupBehaviour(RegistrationAbciBaseCase):
             self.behaviour.act_wrapper()
             self.mock_get_local_tendermint_params()
             self.mock_is_correct_contract()
-            self.mock_get_service_info()
+            self.mock_get_agent_instances()
             log_message = self.state.LogMessages.no_agents_registered
             assert log_message.value in caplog.text
 
@@ -406,7 +406,7 @@ class TestRegistrationStartupBehaviour(RegistrationAbciBaseCase):
             self.behaviour.act_wrapper()
             self.mock_get_local_tendermint_params()
             self.mock_is_correct_contract()
-            self.mock_get_service_info(*self.other_agents)
+            self.mock_get_agent_instances(*self.other_agents)
             log_message = self.state.LogMessages.self_not_registered
             assert log_message.value in caplog.text
 
@@ -421,7 +421,7 @@ class TestRegistrationStartupBehaviour(RegistrationAbciBaseCase):
             self.behaviour.act_wrapper()
             self.mock_get_local_tendermint_params()
             self.mock_is_correct_contract()
-            self.mock_get_service_info(*self.agent_instances)
+            self.mock_get_agent_instances(*self.agent_instances)
 
             assert set(self.state.registered_addresses) == set(self.agent_instances)
             my_info = self.state.registered_addresses[self.state.context.agent_address]
@@ -441,7 +441,7 @@ class TestRegistrationStartupBehaviour(RegistrationAbciBaseCase):
             self.behaviour.act_wrapper()
             self.mock_get_local_tendermint_params()
             self.mock_is_correct_contract()
-            self.mock_get_service_info(*self.agent_instances)
+            self.mock_get_agent_instances(*self.agent_instances)
             self.mock_get_tendermint_info(*self.other_agents)
             assert all(map(self.state.registered_addresses.get, self.other_agents))
             log_message = self.state.LogMessages.collection_complete
@@ -465,7 +465,7 @@ class TestRegistrationStartupBehaviour(RegistrationAbciBaseCase):
             self.behaviour.act_wrapper()
             self.mock_get_local_tendermint_params()
             self.mock_is_correct_contract()
-            self.mock_get_service_info(*self.agent_instances)
+            self.mock_get_agent_instances(*self.agent_instances)
             self.mock_get_tendermint_info(*self.other_agents)
             self.mock_tendermint_update(valid_response)
             assert log_message.value in caplog.text
@@ -490,7 +490,7 @@ class TestRegistrationStartupBehaviour(RegistrationAbciBaseCase):
             self.behaviour.act_wrapper()
             self.mock_get_local_tendermint_params()
             self.mock_is_correct_contract()
-            self.mock_get_service_info(*self.agent_instances)
+            self.mock_get_agent_instances(*self.agent_instances)
             self.mock_get_tendermint_info(*self.other_agents)
             self.mock_tendermint_update()
             self.behaviour.act_wrapper()

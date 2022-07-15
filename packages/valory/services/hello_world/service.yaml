@@ -5,9 +5,9 @@ description: A simple demonstration of a simple ABCI application
 aea_version: '>=1.0.0, <2.0.0'
 license: Apache-2.0
 fingerprint:
-  README.md: QmPPeZtJ6aMXsGsCEynQcibxMRXypoe6K4KNAGiMi6JpaW
+  README.md: bafybeiapubcoersqnsnh3acia5hd7otzt7kjxekr6gkbrlumv6tkajl6jm
 fingerprint_ignore_patterns: []
-agent: valory/hello_world:0.1.0:QmWgLXzfi1squD6TKzSf6A7YtERZvZZLD7uvDoAY8Nitoe
+agent: valory/hello_world:0.1.0:bafybeiaxewpsyvmp6nyo2hv7henifz4fs5bu6ahjynv2bkqtsu2rhi47oy
 network: hardhat
 number_of_agents: 4
 ---

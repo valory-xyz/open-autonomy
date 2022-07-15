@@ -65,16 +65,3 @@ def generate_all(packages_dir: Path, vendor: Optional[str], no_wrap: bool, check
 
 Generate IPFS hashes.
 
-<a id="autonomy.cli.hash.hash_file"></a>
-
-#### hash`_`file
-
-```python
-@hash_group.command(name="one")
-@click.argument("path", type=click.Path(exists=True, file_okay=True, dir_okay=True))
-@click.option("--no-wrap", is_flag=True)
-def hash_file(path: str, no_wrap: bool) -> None
-```
-
-Hash a single file/directory.
-

@@ -6,40 +6,40 @@ description: This skill implements the APY estimation for an AEA.
 license: Apache-2.0
 aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
-  README.md: QmSvXr6k7f5GFZVCgqM8d4ywibiSAYbdaGjmPh4CmFfQn9
-  __init__.py: Qmb163B19kEpc6PfbLnmQxPbeEWA2ubTghVwG2YUeNYusu
-  behaviours.py: QmXBuNB6179dFJxfeCLSvyLhebLvAi4FxkTHZ4UrhecXEu
-  dialogues.py: QmdBmUMWoPbS2faqn8LicQVJfN6a2WjtdZDWFbiYoy7hfY
-  fsm_specification.yaml: QmWpHTiaY91oUmAoYiAZjcg5i3UsqktRHCcZZkEDpqEqcf
-  handlers.py: QmRMUufh4uDoqLjcQQ2f51fyE4M8Q7ECxSbLEbtTUMfVfu
-  ml/__init__.py: QmQdxHMEM19JH1FzG9EKQC5mpngbBAz9hyX8XDwGX915BM
-  ml/forecasting.py: QmSWBtoTKdMFrfXfRuFBja3d4p35fewF4bPes7nL94N7dU
-  ml/optimization.py: QmQms7wAvSAVL4Agjpbuz3LtFwNE6HyrbzcQkESoeGfM4o
-  ml/preprocessing.py: QmXRkajyrcZbXy8k26dCocmCCrqYwEHcjy7iFG64DohZKq
-  models.py: QmUCCvYEhrXkFdjpP3uqfEhZQSWD6r1oo4st3gnf3ro9tJ
-  payloads.py: QmPJoXUWcL2nL9KFLGZDo8PBs3S7HP5Dfu3ijWvRgTCRRR
-  rounds.py: QmVFfdxXCaRmPXosLxsG1M9FsvZLmrdiKKdpYj9AW9SMjH
-  tasks.py: QmemYwBwU6RpWsca3bkXWuUemgZ6YwFVMxS5vkt7J7BjHh
-  tools/__init__.py: QmWr6iVwNzqYVqmxBwYC1myurM8AjxuzxwjM1brXSmnDTi
-  tools/etl.py: Qmb7e77Fh6R4TTSbgUNSo2LaQpKWtRsfmfeqCiPF75mSNf
-  tools/general.py: QmbhfPeLoqWdWEPno2NqVy6LcCoNFRg3x2vZo7kvZbSCz2
-  tools/io.py: QmQ1aPz1gg9hwgzkG1iLpiHbDVApwHyxLR2mGfQmDJqAQk
-  tools/queries.py: QmPGgLaermaEDV6PEEcrF3GrgCyRSko3QkxMdPdyf1hDGR
+  README.md: bafybeiceds6hedhgipxihnl2qt7i2woxsn4fw5ue3evm4aqvknjfpwnbay
+  __init__.py: bafybeif4et2adwa4mtx4clsfcpqk77w23kdq5642vulkddnrsxms6ngbma
+  behaviours.py: bafybeiedpodoybosznifqrmppfng4mn4m3k6mfg6yvejgdnkjxw2pthv4y
+  dialogues.py: bafybeig4tc4thbpsixmbn35kj7jim2gzd7cvxxu4u3xoeyxqzpumuhrdzm
+  fsm_specification.yaml: bafybeid56g5zov7zb2hnauahbejn5k3ilymrbg2aihhybzvzwdhbbctexq
+  handlers.py: bafybeibmzghvqekt7iymu6s6yn5tk7lpdmejba4n7dpsz2do3cgfqz7b2a
+  ml/__init__.py: bafybeibceypb22objsuli3abse3rgyycs4hodokjfj5oei4ms4xlqkra5a
+  ml/forecasting.py: bafybeib54a6dzcjlilbkzcpgwrycbkjlrmzox33tas547r2v5hja2qm52m
+  ml/optimization.py: bafybeibeftwvgkjxlykbcn6rnkenuoljluykh3yx4pjijnulixmoexmcvq
+  ml/preprocessing.py: bafybeieha65b5cslcyyjobjupebyqovod7aigohdidcawz5b6tlxqxpruq
+  models.py: bafybeicw7ri3jzqkrcvsppgcn5ukkzgnix3rfkr6misfk2efmuzmprqah4
+  payloads.py: bafybeiaomj7i7ouzwzgs2un7w5vptkilmhrs3sk7hzapc6pswltjav3xea
+  rounds.py: bafybeidgxl2evu5k2pdirvm7nyxuvilrq57n3x44bpieqvq7hh54iibsfq
+  tasks.py: bafybeihudp5vyhelqnl5eqakjpvuekaoamtbrghss4k2yysvkczspjbbia
+  tools/__init__.py: bafybeid6nc7k2qjndgigeoxhtun27ih5wof3hl4j6fsijulttuwhjydyeu
+  tools/etl.py: bafybeif52kzh46ebiu6s47hbgov6adz557ziv42xmh3j6ejgyyfqzh7pzq
+  tools/general.py: bafybeiggrhs5pko3q4soobaj7vsimrlwixpfprrup7jtwzr3o6eh5ezuh4
+  tools/io.py: bafybeiay2r3f2zsmiqt4xb47lm42tg3lhjbhknnmej3grifemc5eumongu
+  tools/queries.py: bafybeian242jrzgvmrlzaqcmj63gucmy4ramd3pkfzwep2jxh3lok5h3fy
 fingerprint_ignore_patterns: []
 connections:
-- valory/abci:0.1.0:Qme6c15aYEcGog9PCDBydJ65rHmV335qgjDZhcTFEEFyKD
-- valory/http_client:0.1.0:QmXiQUWV5AH7BRXGHVxVJpEcLpyNUsZf4pj55FqoTdiGDn
-- valory/ledger:0.1.0:Qmc3aNMECkTNTRf5A9vdkmKKxaQQmZb3YBmJxvZNpJNe7j
+- valory/abci:0.1.0:bafybeiaqoaub5jverxutngxtbfcshucsg7fqkcrdgbjfdsrdbfntwyhawq
+- valory/http_client:0.1.0:bafybeibh3iu7kojc4d5eiigqh6kx2vdmu2q7vhcvvq2rz6suegsscyd66y
+- valory/ledger:0.1.0:bafybeibcj2bbnesgy4xvy4sabbt47hlefmys2kvpexb2dlaxv7e5nzh4ze
 contracts: []
 protocols:
-- open_aea/signing:1.0.0:QmbZLz1hZgKJwwLMngJoRWpzzRAWL1LmShRxV3GrXoBHSB
-- valory/abci:0.1.0:QmbkKQagcPHAfynYLYwRWiXNa9q2xepx2ERLaKheCRZEgC
-- valory/contract_api:1.0.0:QmcxtQbErzxdi18gTkG3FJqxauUC7YWXjjBd6f897qLb3Q
-- valory/http:1.0.0:QmYkSCErFKHs92nYzfqxeo9qBeMJF6H1SNC8awy8CjD3z6
-- valory/ledger_api:1.0.0:QmcXNYqboaBqoVKfoCeSkq2WXH1g9ZB1M5b6hzifv2sPdr
+- open_aea/signing:1.0.0:bafybeieirkuq6azgis33bmukr5u2gx4chp5kswiw3wd5hbjsaukgwzmp5a
+- valory/abci:0.1.0:bafybeicbj36urbjkn6y7hrhm57dspyuuvpcnxhr3r6y2cwxammpom633g4
+- valory/contract_api:1.0.0:bafybeie5gbzc4v4n6p6ea66kmc5ejwvbjzhd7vhcjg7mikbyx47lypcd5m
+- valory/http:1.0.0:bafybeifhmibx3l7f3xdwxhweczizadxs6p3oludvapvwdeu4o5f3oahqme
+- valory/ledger_api:1.0.0:bafybeifaozy766hngsqc5a5kpebseusq4cc3woh4ayycdoa7r3mjkvhzr4
 skills:
-- valory/abstract_round_abci:0.1.0:QmULAH6TTjV3KwgDVi2Hhe87sUhTsiAVzZjWjo7gA4exaM
-- valory/registration_abci:0.1.0:Qmb4MGyud4Zbn7FVSkMZWe8dgJ33MHpa6bLSPmdCXLErFm
+- valory/abstract_round_abci:0.1.0:bafybeibbpiyhqqi26ivpmr6sy6qyzmaxqe6fj56e47gjx7i4xfock2jlia
+- valory/registration_abci:0.1.0:bafybeifv3rwjx3v44sj37r3gitmvzk2pzzai6emiprfu523sph2kuaorby
 behaviours:
   main:
     args: {}

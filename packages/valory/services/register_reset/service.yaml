@@ -1,12 +1,12 @@
 name: register_reset
 author: valory
 version: 0.1.0
-agent: valory/register_reset:0.1.0:QmbeFhu3T6XXgwoZL5MbP1dQjdn6uDV4TJdVbMz1s6ehjP
+agent: valory/register_reset:0.1.0:bafybeiffwdcknqp7qhf6hfdgjsizwt32tbkyf4lja7frzolulyge4y62ka
 network: hardhat
 number_of_agents: 4
 description: Test and debug tendermint reset mechanism.
 aea_version: '>=1.0.0, <2.0.0'
 license: Apache-2.0
 fingerprint:
-  README.md: QmNfkXQmnYoPvzFkHZjoAbUPojYXw6miYXsHBRZGuJ4LC4
+  README.md: bafybeiae4sog7e3hyjdujzp5qr2g3auobmqswqnaczh2zhlphuojnd2g6u
 fingerprint_ignore_patterns: []

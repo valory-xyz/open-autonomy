@@ -5,9 +5,9 @@ description: A set of agents implementing a price oracle
 aea_version: '>=1.0.0, <2.0.0'
 license: Apache-2.0
 fingerprint:
-  README.md: Qma81jpPToAk6iXFEp6Z3EUYfegRMbgKRS5UmjmTdB3qBB
+  README.md: bafybeifpb54id7wln2ayku65s3qmih3aljf23rfpsggjwuzc7cnkfroi7y
 fingerprint_ignore_patterns: []
-agent: valory/oracle:0.1.0:QmUt8WxtGwmpCmA3CsAB7QBmyb1bBDog2vrdXcq2aPGFR2
+agent: valory/oracle:0.1.0:bafybeihwiuo6ud4thfbtsq3t4qtlzxzz64srg3kkuakh5bonad3zmq7dja
 network: ropsten
 number_of_agents: 4
 ---
