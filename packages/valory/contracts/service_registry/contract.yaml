@@ -7,8 +7,8 @@ license: Apache-2.0
 aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
   __init__.py: bafybeidey4syohls5hxmso6qsp5p4uhtzle5txv2mlbym6ktjzknich6oa
-  build/ServiceRegistry.json: bafybeiapuhapwiw32kzwyecst5xthdimht7icy6g5z4y2ivbeibnoaf5sq
-  contract.py: bafybeibhbjd4hbdrwxnfk34ryppd3g7zeedwd7rgetgyxzgqbgbpbk5a6y
+  build/ServiceRegistry.json: bafybeihlnbesnzonomapmpvqr6mm2fhtxrbz6yiimpz3ro5244bzxb2phi
+  contract.py: bafybeidilm6exlk53pano7hkpqdwnynm3ktdmyvfvjqphyvn5dmzttorpu
 fingerprint_ignore_patterns: []
 contracts: []
 class_name: ServiceRegistryContract
