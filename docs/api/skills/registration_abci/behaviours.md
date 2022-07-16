@@ -102,12 +102,12 @@ def is_correct_contract() -> Generator[None, None, bool]
 
 Contract deployment verification.
 
-<a id="packages.valory.skills.registration_abci.behaviours.RegistrationStartupBehaviour.get_service_info"></a>
+<a id="packages.valory.skills.registration_abci.behaviours.RegistrationStartupBehaviour.get_agent_instances"></a>
 
-#### get`_`service`_`info
+#### get`_`agent`_`instances
 
 ```python
-def get_service_info() -> Generator[None, None, Dict[str, Any]]
+def get_agent_instances() -> Generator[None, None, Dict[str, Any]]
 ```
 
 Get service info available on-chain
