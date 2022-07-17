@@ -25,7 +25,7 @@ from time import time
 from typing import Any, Callable, Dict, List, Optional, Tuple, Type, cast
 
 from aea.exceptions import enforce
-from aea.skills.base import Model
+from aea.skills.base import Model, SkillContext
 
 from packages.valory.protocols.http.message import HttpMessage
 from packages.valory.skills.abstract_round_abci.base import (
@@ -101,11 +101,20 @@ class BaseParams(Model):  # pylint: disable=too-many-instance-attributes
 class SharedState(Model):
     """Keep the current shared state of the skill."""
 
-    def __init__(self, *args: Any, abci_app_cls: Type[AbciApp], **kwargs: Any) -> None:
+    def __init__(
+        self,
+        *args: Any,
+        abci_app_cls: Type[AbciApp],
+        skill_context: SkillContext,
+        **kwargs: Any,
+    ) -> None:
         """Initialize the state."""
         self.abci_app_cls = self._process_abci_app_cls(abci_app_cls)
+        self.abci_app_cls._is_abstract = (
+            skill_context._skill.configuration.is_abstract_component  # pylint: disable=protected-access
+        )
         self._round_sequence: Optional[RoundSequence] = None
-        super().__init__(*args, **kwargs)
+        super().__init__(*args, skill_context=skill_context, **kwargs)
 
     def setup(self) -> None:
         """Set up the model."""
