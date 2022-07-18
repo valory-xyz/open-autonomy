@@ -63,6 +63,15 @@ def chain(  # pylint: disable=too-many-locals
         len(set(abci_apps)) == len(abci_apps),
         "Found multiple occurences of same Abci App",
     )
+    non_abstract_abci_apps = [
+        abci_app.__name__
+        for abci_app in abci_apps
+        if not abci_app._is_abstract  # pylint: disable=protected-access
+    ]
+    enforce(
+        len(non_abstract_abci_apps) == 0,
+        f"found non-abstract AbciApp during chaining: {non_abstract_abci_apps}",
+    )
 
     # Get the apps rounds
     rounds = tuple(app.get_all_rounds() for app in abci_apps)
