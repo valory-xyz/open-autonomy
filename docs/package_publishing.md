@@ -32,7 +32,7 @@ performed up to this point: the first one, done by the developer to push the cod
 
 ## Registering an agent
 
-At some point, a service owner might want to create an agent that uses our useful component analogously to how some programs use other libraries. In an similar way to how a component was registered, this service owner
+At some point, a service owner might want to create an agent that uses the previously registered component analogously to how some programs use other libraries. In an similar way to how a component was registered, this service owner
 registers an agent, specifying all the components that make up the agent. A NFT will be minted as well and sent to the owner wallet.
 
 Note that this agent is not a running agent, but a definition of an agent that node operators will later use to run to deploy decentralized services.
