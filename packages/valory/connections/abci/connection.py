@@ -505,7 +505,6 @@ class TendermintNode:
             self._process = (
                 subprocess.Popen(  # nosec # pylint: disable=consider-using-with,W1509
                     cmd,
-                    stdout=subprocess.PIPE,
                     stderr=subprocess.STDOUT,
                     bufsize=1,
                     universal_newlines=True,
@@ -517,7 +516,6 @@ class TendermintNode:
                 subprocess.Popen(  # nosec # pylint: disable=consider-using-with,W1509
                     cmd,
                     preexec_fn=os.setsid,
-                    stdout=subprocess.PIPE,
                     stderr=subprocess.STDOUT,
                     bufsize=1,
                     universal_newlines=True,
