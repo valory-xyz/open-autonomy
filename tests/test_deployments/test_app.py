@@ -236,6 +236,7 @@ class TestTendermintHardResetServer(BaseTendermintServerTest):
 class TestTendermintLogMessages(BaseTendermintServerTest):
     """Test Tendermint message logging"""
 
+    @pytest.mark.skip
     @wait_for_node_to_run
     def test_tendermint_logs(self) -> None:
         """Test Tendermint logs"""

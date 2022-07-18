@@ -159,7 +159,6 @@ class TendermintNode:
             self._process = (
                 subprocess.Popen(  # nosec # pylint: disable=consider-using-with,W1509
                     cmd,
-                    stdout=subprocess.PIPE,
                     stderr=subprocess.STDOUT,
                     bufsize=1,
                     universal_newlines=True,
@@ -171,7 +170,6 @@ class TendermintNode:
                 subprocess.Popen(  # nosec # pylint: disable=consider-using-with,W1509
                     cmd,
                     preexec_fn=os.setsid,
-                    stdout=subprocess.PIPE,
                     stderr=subprocess.STDOUT,
                     bufsize=1,
                     universal_newlines=True,
@@ -192,16 +190,16 @@ class TendermintNode:
         if platform.system() == "Windows":
             os.kill(self._process.pid, signal.CTRL_C_EVENT)  # type: ignore  # pylint: disable=no-member
             try:
-                self._process.wait(timeout=5)
+                self._process.communicate(timeout=5)
             except subprocess.TimeoutExpired:  # nosec
                 os.kill(self._process.pid, signal.CTRL_BREAK_EVENT)  # type: ignore  # pylint: disable=no-member
         else:
             self._process.send_signal(signal.SIGTERM)
-            self._process.wait(timeout=5)
+            self._process.communicate(timeout=5)
             poll = self._process.poll()
             if poll is None:  # pragma: nocover
                 self._process.terminate()
-                self._process.wait(3)
+                self._process.communicate(timeout=3)
 
         self._process = None
         self.write_line("Tendermint process stopped\n")
