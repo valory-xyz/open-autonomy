@@ -8,8 +8,8 @@ aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
   README.md: bafybeievb7bhfm46p5adx3x4gvsynjpq35fcrrapzn5m2whcdt4ufxfvfq
   __init__.py: bafybeiaxhdfjmhbstyi5oqeu7wzst44snhbyoggrpusgs2c3tn3cluzhpm
-  abci_app_chain.py: bafybeieh5aeww2mu2e2mfamxbawtfxn4pwe2vgikpweaovquv5uahz6veq
-  base.py: bafybeiau3skk3msc6m6y5b5243pyyokkgovjhldnh76kl5emfdumiv26oy
+  abci_app_chain.py: bafybeich2ufsbkuehbuqzxeofoq5agfdpvy7bvhgcncxbf3gcq6qrxtvj4
+  base.py: bafybeibqzl32tkpkedy4rrx5tf5ktuqqn5d4l4uwcwg74m7ch4bo3w4ru4
   behaviour_utils.py: bafybeie27cigguvbazlqnslhfapnmq46adqjyrnwipdapwxcngwvrhm2ni
   behaviours.py: bafybeif3knc6efobddgkh3xc3yqwgtlk7z4zflftd7sic5j3at5rrhsute
   common.py: bafybeicz7feaxvwftwi7qe2x4g4f6edwsh434kr4duebafbwphqyxzuyka
@@ -20,7 +20,7 @@ fingerprint:
   io/load.py: bafybeib63wgk7wcghrvldqn6dpurkw6o7q3eohg3dpinnf7rhw4qwo2j7q
   io/paths.py: bafybeicfno2l4vwtmjcm3rzpp6tqi3xlkof47pypf5teecad22d44u2ple
   io/store.py: bafybeiee7uhs372q3kxd5s3itufb3ws24ey74my2jpnivit3kboon6xsaq
-  models.py: bafybeiacly2gbkxw7epjzdbnkygwns5ehggq4nmzcnvnsilux2n4jovsum
+  models.py: bafybeiclzcy6s7qkbolp7wagckbcuz2leq5mwmqx226mi3qigsnn5xeheu
   serializer.py: bafybeiezjdtp33nub7ual5ibt4vi7dj3ilmyw7wqq374ctub5oo7wgp7mm
   utils.py: bafybeifnvnlpajv5iqv6wumlfppomcmcfbbb5rpiiqhouxqs5ddwlkqjjy
 fingerprint_ignore_patterns: []

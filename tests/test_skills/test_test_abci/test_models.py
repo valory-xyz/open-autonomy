@@ -26,20 +26,13 @@ import pytest
 from packages.valory.skills.test_abci.models import SharedState
 from packages.valory.skills.test_abci.rounds import Event, TestAbciApp
 
+from tests.test_skills.base import DummyContext
+
 
 @pytest.fixture
 def shared_state() -> SharedState:
     """Initialize a test shared state."""
     return SharedState(name="", skill_context=mock.MagicMock())
-
-
-class DummyContext:
-    """Dummy Context class for shared state."""
-
-    class params:
-        """Dummy param variable."""
-
-        round_timeout_seconds: float = 1.0
 
 
 class TestSharedState:

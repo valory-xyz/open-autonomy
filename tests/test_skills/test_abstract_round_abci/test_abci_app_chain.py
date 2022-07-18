@@ -289,3 +289,17 @@ class TestAbciAppChaining:
             match=r"round ids in common between abci apps are not allowed.*",
         ):
             chain((self.app1_class, self.app3_class_dupe), abci_app_transition_mapping)  # type: ignore
+
+    def test_chain_with_abstract_abci_app_fails(self) -> None:
+        """Test chaining with an abstract AbciApp fails."""
+        self.app2_class._is_abstract = False
+        self.app3_class._is_abstract = False
+        with pytest.raises(
+            AEAEnforceError,
+            match=r"found non-abstract AbciApp during chaining: \['AbciApp2', 'AbciApp3'\]",
+        ):
+            abci_app_transition_mapping: AbciAppTransitionMapping = {
+                self.round_1c: self.round_2a,
+                self.round_2c: self.round_3a,
+            }
+            chain((self.app1_class, self.app2_class, self.app3_class), abci_app_transition_mapping)  # type: ignore
