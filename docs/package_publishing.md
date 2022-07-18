@@ -41,7 +41,7 @@ Once again, this agent is registered using the service id and a NFT is minted as
 </figure>
 
 Every piece is in place now. The only remaining thing is actually spinning up the service. Node operators run their agents using the ```autonomy``` CLI, the agents
-form a network and the service is stablished. This service can be monetized and the revenue generated from the service users will be distributed among the component creators, service owners, node operators and the onchan protocol itself.
+form a network and the service is established. This service can be monetized and the revenue generated from the service users will be distributed among the component creators, service owners, node operators and the onchan protocol itself.
 
 <figure markdown>
 ![](./images/run_service.svg)
