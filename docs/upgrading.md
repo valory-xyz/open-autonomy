@@ -5,6 +5,11 @@ Below we describe the additional manual steps required to upgrade between differ
 
 # Open Autonomy
 
+
+## `v0.1.2` to `v0.1.3`
+
+This release introduces the usage of CID v1 hashes.
+
 ## `v0.1.1` to `v0.1.2`
 
 No backwards incompatible changes

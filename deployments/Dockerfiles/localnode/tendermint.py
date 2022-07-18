@@ -189,10 +189,19 @@ class TendermintNode:
         if self._process is None:
             return
 
-        if platform.system() == "Windows":  # pragma: nocover
+        if platform.system() == "Windows":
             os.kill(self._process.pid, signal.CTRL_C_EVENT)  # type: ignore  # pylint: disable=no-member
+            try:
+                self._process.wait(timeout=5)
+            except subprocess.TimeoutExpired:  # nosec
+                os.kill(self._process.pid, signal.CTRL_BREAK_EVENT)  # type: ignore  # pylint: disable=no-member
         else:
-            os.killpg(os.getpgid(self._process.pid), signal.SIGTERM)
+            self._process.send_signal(signal.SIGTERM)
+            self._process.wait(timeout=5)
+            poll = self._process.poll()
+            if poll is None:  # pragma: nocover
+                self._process.terminate()
+                self._process.wait(3)
 
         self._process = None
         self.write_line("Tendermint process stopped\n")

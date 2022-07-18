@@ -6,24 +6,24 @@ description: ABCI application for testing the ABCI connection.
 license: Apache-2.0
 aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
-  README.md: Qmeb7YCLs9dKkQg68zN5okHUbsv828Lmv1T9zKza2y1g2J
-  __init__.py: QmZ2k9kr2CxmQyFHKnGH9rTThZcvqt2zZbsfY6mdjeMYrM
-  behaviours.py: Qmd4jdZcieMukgNupJ8migR7xzdq2CzXMKwF48sUkxXtex
-  dialogues.py: QmfDThV4WCRzK88XDpW2hKDYCuEH4RxoHCoAkWpkBRGRPv
-  handlers.py: QmXE1951U15h5E5mjUmM5NQeW2FT57eAAyvbmaG7SszKw9
-  models.py: QmVYcGngs9aohsEJQ9MBTswftBs3FA5BnxfESUZHhwjPA1
-  payloads.py: QmRZcMJdv1tvkQAtDsoQYxdhswjrRQ9Cdi2TFnyEvfrQPr
-  rounds.py: QmTY9jKDo4yZ4TyjMB9tHc3cACgFTkmhHZaxS5vSW7B85m
+  README.md: bafybeihrn52tx65lerztcuqmuyncrctfvpu2do7wwjycxxj56orejx2cu4
+  __init__.py: bafybeie63javimotebwcrwaydwe2gc7a7h7cjhol6l6e5ushlgreorm7hi
+  behaviours.py: bafybeig2zojw3qdludeyf4p7l6v7jcr5xg42yai2c6lp6iy24bxbxes2qu
+  dialogues.py: bafybeih2x4uyoj2c5j46jjn6jiddxcvx6vbsb3pf6b45fzf657mtqu2t5e
+  handlers.py: bafybeieeau32pkuhlfxmgk5je7lcmqccn5pohi7pgahbqcmfdiyb4q2boq
+  models.py: bafybeidlcic7cpxbqlxoeg56d3chnuoepk3inbn3yryyxtskp3msge75ci
+  payloads.py: bafybeibp4ty4dnrpkezdmxqdv6icp5d23chkfs5ufygrxb2eouvxsdvv2e
+  rounds.py: bafybeicnhsrtfmmm4zenvfz7mvw5sady5ysz4wbn2uuacmny6qxghsq64a
 fingerprint_ignore_patterns: []
 connections:
-- valory/abci:0.1.0:Qme6c15aYEcGog9PCDBydJ65rHmV335qgjDZhcTFEEFyKD
-- valory/http_client:0.1.0:QmXiQUWV5AH7BRXGHVxVJpEcLpyNUsZf4pj55FqoTdiGDn
+- valory/abci:0.1.0:bafybeiaqoaub5jverxutngxtbfcshucsg7fqkcrdgbjfdsrdbfntwyhawq
+- valory/http_client:0.1.0:bafybeibh3iu7kojc4d5eiigqh6kx2vdmu2q7vhcvvq2rz6suegsscyd66y
 contracts: []
 protocols:
-- valory/abci:0.1.0:QmbkKQagcPHAfynYLYwRWiXNa9q2xepx2ERLaKheCRZEgC
-- valory/http:1.0.0:QmYkSCErFKHs92nYzfqxeo9qBeMJF6H1SNC8awy8CjD3z6
+- valory/abci:0.1.0:bafybeicbj36urbjkn6y7hrhm57dspyuuvpcnxhr3r6y2cwxammpom633g4
+- valory/http:1.0.0:bafybeifhmibx3l7f3xdwxhweczizadxs6p3oludvapvwdeu4o5f3oahqme
 skills:
-- valory/abstract_round_abci:0.1.0:QmR52hEyGyzAEDeDhJxKQx7LyV9Svu48WYEjoYyyoh3yzX
+- valory/abstract_round_abci:0.1.0:bafybeibbpiyhqqi26ivpmr6sy6qyzmaxqe6fj56e47gjx7i4xfock2jlia
 behaviours:
   main:
     args: {}

@@ -21,6 +21,7 @@
 import calendar
 import json
 import os
+import re
 from abc import ABC
 from multiprocessing.pool import AsyncResult
 from typing import (
@@ -39,6 +40,7 @@ from typing import (
 import numpy as np
 import pandas as pd
 
+from packages.valory.protocols.http import HttpMessage
 from packages.valory.skills.abstract_round_abci.behaviours import (
     AbstractRoundBehaviour,
     BaseBehaviour,
@@ -100,13 +102,24 @@ from packages.valory.skills.apy_estimation_abci.tasks import (
     UpdateTask,
 )
 from packages.valory.skills.apy_estimation_abci.tools.etl import ResponseItemType
-from packages.valory.skills.apy_estimation_abci.tools.general import gen_unix_timestamps
+from packages.valory.skills.apy_estimation_abci.tools.general import (
+    gen_unix_timestamps,
+    sec_to_unit,
+    unit_amount_from_sec,
+)
 from packages.valory.skills.apy_estimation_abci.tools.io import load_hist
 from packages.valory.skills.apy_estimation_abci.tools.queries import (
+    block_from_number_q,
     block_from_timestamp_q,
     eth_price_usd_q,
-    latest_block,
+    latest_block_q,
     pairs_q,
+)
+
+
+NON_INDEXED_BLOCK_RE = (
+    r"Failed to decode `block.number` value: `subgraph QmPJbGjktGa7c4UYWXvDRajPxpuJBSZxeQK5siNT3VpthP has only "
+    r"indexed up to block number (\d+) and data for block number \d+ is therefore not yet available`"
 )
 
 
@@ -150,7 +163,6 @@ class FetchBehaviour(
     def __init__(self, **kwargs: Any) -> None:
         """Initialize Behaviour."""
         super().__init__(**kwargs)
-        self._last_timestamp_unix: Optional[int] = None
         self._save_path = ""
         self._spooky_api_specs: Dict[str, Any] = dict()
         self._timestamps_iterator: Optional[Iterator[int]] = None
@@ -158,27 +170,35 @@ class FetchBehaviour(
         self._call_failed = False
         self._pairs_hist: ResponseItemType = []
         self._hist_hash: Optional[str] = None
-        self._total_days = self.params.history_duration * 30
+        self._unit = ""
+        self._total_unit_amount = 0
 
     @property
-    def current_day(self) -> int:
-        """Get the number of the currently downloaded day."""
+    def current_unit(self) -> int:
+        """Get the number of the currently downloaded unit."""
         return int(len(self._pairs_hist) / len(self.params.pair_ids))
 
     def setup(self) -> None:
         """Set the behaviour up."""
-        last_timestamp = cast(
-            SharedState, self.context.state
-        ).round_sequence.abci_app.last_timestamp
-        self._last_timestamp_unix = int(calendar.timegm(last_timestamp.timetuple()))
+        if self.params.end is None or self.batch:
+            last_timestamp = cast(
+                SharedState, self.context.state
+            ).round_sequence.abci_app.last_timestamp
+            self.params.end = int(calendar.timegm(last_timestamp.timetuple()))
+
+        self._unit = sec_to_unit(self.params.interval)
+        self._total_unit_amount = int(
+            unit_amount_from_sec(self.params.end - self.params.start, self._unit)
+        )
+
         filename = "historical_data"
 
         if self.batch:
-            filename += f"_batch_{self._last_timestamp_unix}"
-            self._timestamps_iterator = iter((self._last_timestamp_unix,))
+            filename += f"_batch_{self.params.end}"
+            self._timestamps_iterator = iter((self.params.end,))
         else:
             self._timestamps_iterator = gen_unix_timestamps(
-                self._last_timestamp_unix, self.params.history_duration
+                self.params.start, self.params.interval, self.params.end
             )
 
         self._save_path = os.path.join(
@@ -210,6 +230,8 @@ class FetchBehaviour(
             )
             # This will result in using only the part of the data downloaded so far.
             self._current_timestamp = None
+            # manually call clean-up, as it is not called by the framework if a `StopIteration` is not raised
+            self.clean_up()
 
         # if none of the above (call failed and we can retry), the current timestamp will remain the same.
 
@@ -219,6 +241,7 @@ class FetchBehaviour(
         res_context: str,
         keys: Tuple[Union[str, int], ...],
         subgraph: ApiSpecs,
+        sleep_on_fail: bool = True,
     ) -> Generator[None, None, Optional[Any]]:
         """Handle a response from a subgraph.
 
@@ -226,6 +249,7 @@ class FetchBehaviour(
         :param res_context: the context of the current response.
         :param keys: keys to get the information from the response.
         :param subgraph: api specs.
+        :param sleep_on_fail: whether we want to sleep if we fail to get the response's result.
         :return: the response's result, using the given keys. `None` if response is `None` (has failed).
         :yield: None
         """
@@ -236,7 +260,8 @@ class FetchBehaviour(
 
             self._call_failed = True
             subgraph.increment_retries()
-            yield from self.sleep(self.params.sleep_time)
+            if sleep_on_fail:
+                yield from self.sleep(self.params.sleep_time)
             return None
 
         value = res[keys[0]]
@@ -249,15 +274,19 @@ class FetchBehaviour(
         subgraph.reset_retries()
         return value
 
-    def _fetch_batch(self) -> Generator[None, None, None]:
-        """Fetch a single batch of the historical data."""
-        # Fetch block.
+    def _fetch_block(
+        self, number: Optional[int] = None
+    ) -> Generator[None, None, Optional[Dict[str, int]]]:
+        """Fetch block."""
         fantom_api_specs = self.context.fantom_subgraph.get_spec()
-        query = (
-            latest_block()
-            if self.batch
-            else block_from_timestamp_q(cast(int, self._current_timestamp))
-        )
+        if number is not None:
+            query = block_from_number_q(number)
+        else:
+            query = (
+                latest_block_q()
+                if self.batch
+                else block_from_timestamp_q(cast(int, self._current_timestamp))
+            )
         res_raw = yield from self.get_http_response(
             method=fantom_api_specs["method"],
             url=fantom_api_specs["url"],
@@ -273,14 +302,16 @@ class FetchBehaviour(
             subgraph=self.context.fantom_subgraph,
         )
 
-        if fetched_block is None:
-            return
+        return fetched_block
 
-        # Fetch ETH price for block.
+    def _fetch_eth_price(
+        self, block: Dict[str, int]
+    ) -> Generator[None, None, Tuple[HttpMessage, Optional[float]]]:
+        """Fetch ETH price for block."""
         res_raw = yield from self.get_http_response(
             content=eth_price_usd_q(
                 self.context.spooky_subgraph.bundle_id,
-                fetched_block["number"],
+                block["number"],
             ),
             **self._spooky_api_specs,
         )
@@ -288,43 +319,120 @@ class FetchBehaviour(
 
         eth_price = yield from self._handle_response(
             res,
-            res_context=f"ETH price for block {fetched_block}",
+            res_context=f"ETH price for block {block}",
             keys=("bundles", 0, "ethPrice"),
             subgraph=self.context.spooky_subgraph,
+            sleep_on_fail=False,
         )
 
-        if eth_price is None:
-            return
+        return res_raw, eth_price
 
-        # Fetch pool data for block.
+    def _check_non_indexed_block(
+        self, res_raw: HttpMessage
+    ) -> Generator[None, None, Optional[Tuple[Dict[str, int], float]]]:
+        """Check if we received a non-indexed block error and try to get the ETH price for the latest indexed block."""
+        res = self.context.spooky_subgraph.process_non_indexed_error(res_raw)
+        latest_indexed_block_error = yield from self._handle_response(
+            res,
+            res_context="indexing error that will be attempted to be handled",
+            keys=(0, "message"),
+            subgraph=self.context.spooky_subgraph,
+        )
+        if latest_indexed_block_error is None:
+            return None
+
+        match = re.match(NON_INDEXED_BLOCK_RE, latest_indexed_block_error)
+        if match is None:
+            self.context.logger.warning(
+                "Attempted to handle an indexing error, but could not extract the latest indexed block!"
+            )
+            return None
+
+        latest_indexed_block_number = int(match.group(1))
+        # we set the last digit to 0, so that it is more possible for the agents to reach to a consensus
+        # without requiring an extra round.
+        latest_indexed_block_number -= latest_indexed_block_number % 10
+
+        # Fetch latest indexed block.
+        latest_indexed_block = yield from self._fetch_block(latest_indexed_block_number)
+        if latest_indexed_block is None:
+            return None
+
+        # Fetch ETH price for latest indexed block.
+        _, eth_price = yield from self._fetch_eth_price(latest_indexed_block)
+        if eth_price is None:
+            return None
+
+        return latest_indexed_block, eth_price
+
+    def _fetch_eth_price_safely(
+        self, block: Dict[str, int]
+    ) -> Generator[None, None, Optional[Tuple[Dict[str, int], float]]]:
+        """
+        Fetch ETH price for a block.
+
+        If the block is not indexed yet, fetch the latest indexed block and the ETH price for that block.
+
+        :param block: the block for which we will try to fetch the ETH price.
+        :return: the same block or the latest indexed and the corresponding ETH price.
+        :yield: None
+        """
+        res_raw, eth_price = yield from self._fetch_eth_price(block)
+
+        if eth_price is None:
+            check_result = yield from self._check_non_indexed_block(res_raw)
+            if check_result is None:
+                return None
+            block, eth_price = check_result
+
+        return block, eth_price
+
+    def _fetch_pairs(
+        self, block: Dict[str, int]
+    ) -> Generator[None, None, Optional[ResponseItemType]]:
+        """Fetch pool data for block."""
         res_raw = yield from self.get_http_response(
-            content=pairs_q(fetched_block["number"], self.params.pair_ids),
+            content=pairs_q(block["number"], self.params.pair_ids),
             **self._spooky_api_specs,
         )
         res = self.context.spooky_subgraph.process_response(res_raw)
 
         pairs = yield from self._handle_response(
             res,
-            res_context=f"pool data for block {fetched_block}",
+            res_context=f"pool data for block {block}",
             keys=("pairs",),
             subgraph=self.context.spooky_subgraph,
         )
 
+        return pairs
+
+    def _fetch_batch(self) -> Generator[None, None, None]:
+        """Fetch a single batch of the historical data."""
+        block = yield from self._fetch_block()
+        if block is None:
+            return
+
+        check_result = yield from self._fetch_eth_price_safely(block)
+        if check_result is None:
+            return
+        block, eth_price = check_result
+
+        pairs = yield from self._fetch_pairs(block)
         if pairs is None:
             return
 
         # Add extra fields to the pairs.
         for i in range(len(pairs)):  # pylint: disable=C0200
-            pairs[i]["forTimestamp"] = self._current_timestamp
-            pairs[i]["blockNumber"] = fetched_block["number"]
-            pairs[i]["blockTimestamp"] = fetched_block["timestamp"]
-            pairs[i]["ethPrice"] = eth_price
+            pairs[i]["forTimestamp"] = str(self._current_timestamp)
+            pairs[i]["blockNumber"] = str(block["number"])
+            pairs[i]["blockTimestamp"] = str(block["timestamp"])
+            pairs[i]["ethPrice"] = str(eth_price)
 
         self._pairs_hist.extend(pairs)
 
         if not self.batch:
             self.context.logger.info(
-                f"Fetched day {self.current_day}/{self._total_days}."
+                f"Fetched {self._unit} {self.current_unit}/{self._total_unit_amount}."
             )
 
     def async_act(  # pylint: disable=too-many-locals,too-many-statements
@@ -347,13 +455,13 @@ class FetchBehaviour(
                 yield from self._fetch_batch()
                 return
 
-            if self.current_day == 0:
+            if self.current_unit == 0:
                 self.context.logger.error("Could not download any historical data!")
                 self._hist_hash = ""
 
             if (
-                self.current_day > 0
-                and self.current_day != self._total_days
+                self.current_unit > 0
+                and self.current_unit != self._total_unit_amount
                 and not self.batch
             ):
                 # Here, we continue without having all the pairs downloaded, because of a network issue.
@@ -361,7 +469,7 @@ class FetchBehaviour(
                     "Will continue with partially downloaded historical data!"
                 )
 
-            if self.current_day > 0:
+            if self.current_unit > 0:
                 # Send the file to IPFS and get its hash.
                 self._hist_hash = self.send_to_ipfs(
                     self._save_path, self._pairs_hist, filetype=SupportedFiletype.JSON
@@ -371,7 +479,6 @@ class FetchBehaviour(
             payload = FetchingPayload(
                 self.context.agent_address,
                 self._hist_hash,
-                cast(int, self._last_timestamp_unix),
             )
 
             # Finish behaviour.
@@ -595,7 +702,8 @@ class PrepareBatchBehaviour(APYEstimationBaseBehaviour):
             self.get_from_ipfs(
                 self.synchronized_data.batch_hash,
                 self.context.data_dir,
-                filename=f"historical_data_batch_{self.synchronized_data.latest_observation_timestamp}_period_{self.synchronized_data.period_count}.json",
+                filename=f"historical_data_batch_{self.params.end}"
+                f"_period_{self.synchronized_data.period_count}.json",
                 filetype=SupportedFiletype.JSON,
             ),
         )

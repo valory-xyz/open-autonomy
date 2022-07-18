@@ -7,13 +7,13 @@ description: The HTTP_client connection that wraps a web-based client connecting
 license: Apache-2.0
 aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
-  README.md: QmdfPfBRbnDPkaPiaZUMnK9srkekrPG8KH12bnNLdQVGu5
-  __init__.py: QmewTQqNGe25JQPJuZvMxCpgz4s75D5g3TTHL6HC6ekMqB
-  connection.py: QmUunm4w1qspwkdFdNhRotp58AHRcoMhRtiTgetYBDNqFC
+  README.md: bafybeihdvrjfr4piurqbm5den5axqiurzr6xstoeffv23xq5z3b6lp54pa
+  __init__.py: bafybeihwuwfxbaw4gwu2ki5qy7nqb4p4ili377qgxxxzmahm232imd4vui
+  connection.py: bafybeidbunsedu7e7bwfqjxyxwsizeaav4pkwxul4ergavmkpo3w5uhip4
 fingerprint_ignore_patterns: []
 connections: []
 protocols:
-- valory/http:1.0.0:QmYkSCErFKHs92nYzfqxeo9qBeMJF6H1SNC8awy8CjD3z6
+- valory/http:1.0.0:bafybeifhmibx3l7f3xdwxhweczizadxs6p3oludvapvwdeu4o5f3oahqme
 class_name: HTTPClientConnection
 config:
   host: 127.0.0.1

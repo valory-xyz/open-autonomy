@@ -26,13 +26,15 @@ from typing import Callable, Dict, Optional, cast
 
 import click
 from aea.cli.ipfs_hash import (
-    IPFSHashOnly,
     check_hashes,
     extend_public_ids,
+    hash_file,
     hash_package,
     package_id_and_path,
     sort_configuration_file,
     to_package_id,
+    to_v0_string,
+    to_v1_string,
 )
 from aea.cli.utils.constants import HASHES_FILE
 from aea.configurations.base import PackageConfiguration, PackageType
@@ -171,11 +173,6 @@ def generate_all(
     sys.exit(return_code)
 
 
-@hash_group.command(name="one")
-@click.argument("path", type=click.Path(exists=True, file_okay=True, dir_okay=True))
-@click.option("--no-wrap", is_flag=True)
-def hash_file(path: str, no_wrap: bool) -> None:
-    """Hash a single file/directory."""
-
-    click.echo(f"Path : {path}")
-    click.echo(f"Hash : {IPFSHashOnly.get(path, wrap=not no_wrap)}")
+hash_group.add_command(hash_file)
+hash_group.add_command(to_v0_string)
+hash_group.add_command(to_v1_string)

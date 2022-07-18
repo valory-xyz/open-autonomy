@@ -6,26 +6,26 @@ description: Hello World ABCI application.
 license: Apache-2.0
 aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
-  README.md: QmVxvpqGSFfXbJ9GyWLqaAsVB2cYn92m7wybxb7wggi1Ri
-  __init__.py: QmR2xbdp5bQTP44mAQB1utN7Tp16HM2akMLA51RC2PYdUN
-  behaviours.py: QmURg9LZ5NMdPntdcwwL4neYPzFw3w3fKMSbuYGRSTnzFz
-  dialogues.py: QmbhsSNfPQBL4qeq3B2yDmr1TXGeg1TLjcW2YJNcFwUe8P
-  fsm_specification.yaml: QmNyPHYvkYJnJPSQB53owEt7Kjj2jnvfUR5ucNzVug1xLS
-  handlers.py: QmSeSEdJzN4YtM2Qy59SHsfERtS58HyyFMkpyu9JR7pqxu
-  models.py: QmWL6tQvUwLDWkGEtJNTy42zQ6TG6h1dV8VBYYQB82oiC3
-  payloads.py: QmWFfkHiAsbkgDDgwVRHHWgfLtog6RTm5JVsqMDXp5oGTv
-  rounds.py: QmZuNa84TQN1TpcKbn464xRPDZs5QWgjwoFWh8stFJwwhT
+  README.md: bafybeidrjtykhovnccj3sovugdn4r3tszuzv7h37vta6o35epi5qfzdpke
+  __init__.py: bafybeibiblks3d3s3ditug4hfzl3ob3cibokcz4ofs7cbbsbqw5zzbtd3m
+  behaviours.py: bafybeic2n6s67lne52i33vnrsvj26g2ub7ixm7j3sjddd6krnakauwcege
+  dialogues.py: bafybeiggs6cpzhz235k4ws5naeuyhz37mkqrthctq67p4v56wh4nyzgepa
+  fsm_specification.yaml: bafybeiajnegpsnkaeaihiowzcebkxjuhu3ilqvf5qkqltvei5sj4y4drsm
+  handlers.py: bafybeib77umr3prpvc6i6ukdr7xmsoge6gpsfjwpwhiddzjh5bwwpg44mi
+  models.py: bafybeidwxgbytvwg6f7u2k7p2mcy2hfwu5n7w2a5m3ymsid4b3ecx4qb4q
+  payloads.py: bafybeidvs3b33impwzsuw76hy6b2tj74kviovaai5hxztzo65mt2durqqu
+  rounds.py: bafybeifl2j45t62x2ztti2gfixrkt3ufi2jwk2anawzit76mgggfb7ogyi
 fingerprint_ignore_patterns: []
 connections:
-- valory/abci:0.1.0:Qme6c15aYEcGog9PCDBydJ65rHmV335qgjDZhcTFEEFyKD
-- valory/http_client:0.1.0:QmXiQUWV5AH7BRXGHVxVJpEcLpyNUsZf4pj55FqoTdiGDn
+- valory/abci:0.1.0:bafybeiaqoaub5jverxutngxtbfcshucsg7fqkcrdgbjfdsrdbfntwyhawq
+- valory/http_client:0.1.0:bafybeibh3iu7kojc4d5eiigqh6kx2vdmu2q7vhcvvq2rz6suegsscyd66y
 contracts: []
 protocols:
-- open_aea/signing:1.0.0:QmbZLz1hZgKJwwLMngJoRWpzzRAWL1LmShRxV3GrXoBHSB
-- valory/abci:0.1.0:QmbkKQagcPHAfynYLYwRWiXNa9q2xepx2ERLaKheCRZEgC
-- valory/http:1.0.0:QmYkSCErFKHs92nYzfqxeo9qBeMJF6H1SNC8awy8CjD3z6
+- open_aea/signing:1.0.0:bafybeieirkuq6azgis33bmukr5u2gx4chp5kswiw3wd5hbjsaukgwzmp5a
+- valory/abci:0.1.0:bafybeicbj36urbjkn6y7hrhm57dspyuuvpcnxhr3r6y2cwxammpom633g4
+- valory/http:1.0.0:bafybeifhmibx3l7f3xdwxhweczizadxs6p3oludvapvwdeu4o5f3oahqme
 skills:
-- valory/abstract_round_abci:0.1.0:QmR52hEyGyzAEDeDhJxKQx7LyV9Svu48WYEjoYyyoh3yzX
+- valory/abstract_round_abci:0.1.0:bafybeibbpiyhqqi26ivpmr6sy6qyzmaxqe6fj56e47gjx7i4xfock2jlia
 behaviours:
   main:
     args: {}

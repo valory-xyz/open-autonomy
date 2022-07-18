@@ -154,6 +154,17 @@ spookyswap
 config
 codeql
 os
+reusability
+autonolas
+sdks
+microservices
+protobuf
+multi-sig
+wei
+v1
+hardcoded
+e2e
+macos
  - docs/index.md
 README.md
 s_

@@ -5,29 +5,29 @@ license: Apache-2.0
 description: APY estimation agent.
 aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
-  README.md: QmexsrUrKdYEUjJzYwRNHeo4JjZ8SNcXbE6FZ2pnJTnTij
+  README.md: bafybeihxalbstbm7kufnxftkn6mrvculqxyibsk4tzhrq5jbdh5ihejteq
 fingerprint_ignore_patterns: []
 connections:
-- valory/abci:0.1.0:Qme6c15aYEcGog9PCDBydJ65rHmV335qgjDZhcTFEEFyKD
-- valory/http_client:0.1.0:QmXiQUWV5AH7BRXGHVxVJpEcLpyNUsZf4pj55FqoTdiGDn
-- valory/ledger:0.1.0:Qmc3aNMECkTNTRf5A9vdkmKKxaQQmZb3YBmJxvZNpJNe7j
-- valory/p2p_libp2p_client:0.1.0:QmXjFibw9WescKGjrykTwgwDrtTb6jP7atgbarNXJq6kFk
+- valory/abci:0.1.0:bafybeiaqoaub5jverxutngxtbfcshucsg7fqkcrdgbjfdsrdbfntwyhawq
+- valory/http_client:0.1.0:bafybeibh3iu7kojc4d5eiigqh6kx2vdmu2q7vhcvvq2rz6suegsscyd66y
+- valory/ledger:0.1.0:bafybeibcj2bbnesgy4xvy4sabbt47hlefmys2kvpexb2dlaxv7e5nzh4ze
+- valory/p2p_libp2p_client:0.1.0:bafybeicjfwzey5esumti7met6g66q6ojkgng4azjmrdg3ppahjwiq7dmaq
 contracts:
-- valory/service_registry:0.1.0:QmR2sat97GLWU9DbkbYQyLqHzpuk98wFRsrjSr9GHYQMSY
+- valory/service_registry:0.1.0:bafybeiemujnvqd6kvuubtl6od3b5barxf7dcjm3v73dnkqtrtxjdmvnoqe
 protocols:
-- open_aea/signing:1.0.0:QmbZLz1hZgKJwwLMngJoRWpzzRAWL1LmShRxV3GrXoBHSB
-- valory/abci:0.1.0:QmbkKQagcPHAfynYLYwRWiXNa9q2xepx2ERLaKheCRZEgC
-- valory/acn:1.1.0:QmPGGTtF2LTTQdKZ1pVnpMkeRj3H16Gx9byrqgLJMeFa4a
-- valory/contract_api:1.0.0:QmcxtQbErzxdi18gTkG3FJqxauUC7YWXjjBd6f897qLb3Q
-- valory/http:1.0.0:QmYkSCErFKHs92nYzfqxeo9qBeMJF6H1SNC8awy8CjD3z6
-- valory/ledger_api:1.0.0:QmcXNYqboaBqoVKfoCeSkq2WXH1g9ZB1M5b6hzifv2sPdr
-- valory/tendermint:0.1.0:QmSVeebk47Ykk2Wckzmd5DiEPchrcqdAqLwiVecj4n3XVB
+- open_aea/signing:1.0.0:bafybeieirkuq6azgis33bmukr5u2gx4chp5kswiw3wd5hbjsaukgwzmp5a
+- valory/abci:0.1.0:bafybeicbj36urbjkn6y7hrhm57dspyuuvpcnxhr3r6y2cwxammpom633g4
+- valory/acn:1.1.0:bafybeibvuomoe7dln75slklaaag7vmppbpy2huhyupfygh4cgwdqp2roue
+- valory/contract_api:1.0.0:bafybeie5gbzc4v4n6p6ea66kmc5ejwvbjzhd7vhcjg7mikbyx47lypcd5m
+- valory/http:1.0.0:bafybeifhmibx3l7f3xdwxhweczizadxs6p3oludvapvwdeu4o5f3oahqme
+- valory/ledger_api:1.0.0:bafybeifaozy766hngsqc5a5kpebseusq4cc3woh4ayycdoa7r3mjkvhzr4
+- valory/tendermint:0.1.0:bafybeigrenadbkdzpkxbjmpkubxzmihk45v6jbwosngciqdccth4lvp7cm
 skills:
-- valory/abstract_abci:0.1.0:QmaoX8qrYkiGuud7HZAeJdd1Tox8WbburEMjWKrAb9jsZL
-- valory/abstract_round_abci:0.1.0:QmR52hEyGyzAEDeDhJxKQx7LyV9Svu48WYEjoYyyoh3yzX
-- valory/apy_estimation_abci:0.1.0:Qmcn2euH6yNoKf219b8z6TgUcP9Hi6j8UHDQgciVyZseam
-- valory/apy_estimation_chained_abci:0.1.0:QmfBhAXAmWEy17RmEuLY4mtx1HPTMs8Cvh1AvALZJDdmQm
-- valory/registration_abci:0.1.0:QmNuPj7jRZ3AEFmiQoWcv4Zr2KZtVm52SW4UXsFDGWWV4H
+- valory/abstract_abci:0.1.0:bafybeihdlbwh2m6n4pgu4bylzte6vihjzgfl4bkfz372umtd3vil5briam
+- valory/abstract_round_abci:0.1.0:bafybeibbpiyhqqi26ivpmr6sy6qyzmaxqe6fj56e47gjx7i4xfock2jlia
+- valory/apy_estimation_abci:0.1.0:bafybeigatp7vds2d43klypd2fnzlgpwz4escjcz7yl5ms2xp7uheecvqom
+- valory/apy_estimation_chained_abci:0.1.0:bafybeibmplafjuinflih5d2q2ajhmgj2m3gercvceavni2k4vqjscksp4y
+- valory/registration_abci:0.1.0:bafybeidr7oytusxy64jamo4nb4mtwdpbmjzn7ca2d6ha6nllumlivvxvqu
 default_ledger: ethereum
 required_ledgers:
 - ethereum
@@ -90,7 +90,9 @@ models:
       drand_public_key: ${SKILL_APY_ESTIMATION_ABCI_MODELS_PARAMS_ARGS_DRAND_PUBLIC_KEY:str:868f005eb8e6e4ca0a47c8a77ceaa5309a47978a7c71bc5cce96366b5d7a569937c529eeda66c7293784a9402801af31}
       estimation:
         steps_forward: ${SKILL_APY_ESTIMATION_ABCI_MODELS_PARAMS_ARGS_ESTIMATION_STEPS_FORWARD:int:1}
-      history_duration: ${SKILL_APY_ESTIMATION_ABCI_MODELS_PARAMS_ARGS_HISTORY_DURATION:int:6}
+      history_end: ${SKILL_APY_ESTIMATION_ABCI_MODELS_PARAMS_ARGS_HISTORY_END:int:null}
+      history_interval_in_unix: ${SKILL_APY_ESTIMATION_ABCI_MODELS_PARAMS_ARGS_HISTORY_INTERVAL_IN_UNIX:int:86400}
+      history_start: ${SKILL_APY_ESTIMATION_ABCI_MODELS_PARAMS_ARGS_HISTORY_START:int:1652544875}
       optimizer:
         n_trials: ${SKILL_APY_ESTIMATION_ABCI_MODELS_PARAMS_ARGS_OPTIMIZER_N_TRIALS:int:10}
         timeout: ${SKILL_APY_ESTIMATION_ABCI_MODELS_PARAMS_ARGS_OPTIMIZER_TIMEOUT:int:60}

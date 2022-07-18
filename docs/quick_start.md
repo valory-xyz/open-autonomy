@@ -69,9 +69,20 @@ The steps defined in the figure above are materialized as follows:
     ```
 
 
+
+
+## DELETE?:
 ## Deploy a local agent service
 
 3. Get, build and install your agent
+```bash
+aea init --reset --author default_author --ipfs --remote
+aea fetch valory/hello_world:0.1.0:bafybeib7qhsbefidn5o4cdhwvxacvwndcr6nblmk7fnedezdrrck73h25e --remote
+cd hello_world
+aea install
+aea generate-key ethereum
+aea add-key ethereum
+```
 
 5. Run your agent. More info on this hello world example on the [Example of a service](https://docs.autonolas.network/service_example/) section.
 ```bash

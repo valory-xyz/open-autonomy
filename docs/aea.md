@@ -3,7 +3,7 @@
 !!!note
     It is assumed the reader has some familiarity with the
     {{open_aea}} framework.
-    We refer new developers to the {{open_aea_doc}} to get started.
+    New developers may want refer to the {{open_aea_doc}} to get started.
 
 
 
@@ -42,15 +42,15 @@ which is [replicated](https://en.wikipedia.org/wiki/State_machine_replication)
 by all the agents so that each one has a copy of it. The mechanism that is in charge of managing the replication is called the _state-minimized consensus gadget_ (SGC).
 
 In order to make any changes
-to the shared state, the agents in the MAS need to reach consensus over the update. For example, agree on the current exchange rate between two cryptocurrencies. When
-a majority of agents comprising the agent service decides on a single state,
-consensus is achieved and the shared state is updated accordingly. More
-precisely, FSM replication with $N = 3f + 1$ replicas can tolerate up to
+to the shared state, the agents in the MAS need to reach consensus over the update. For example, let us consider the case where the shared state is the current exchange rate between two cryptocurrencies. When
+a majority of agents that comprise the agent service decides on a single state,
+the shared state is updated accordingly provided that consensus is achieved. More
+precisely, FSM replication with $N = 3f + 1$ agents can tolerate up to
 $f$ simultaneous failures, and hence consensus over the new state is reached
 when $\geq\lceil(2N + 1) / 3\rceil$ of the agents agree on a particular state. Systems
-that possess this fault tolerance are referred to as being
+that possess this fault tolerance level are referred to as being
 [Byzantine fault-tolerant](https://pmg.csail.mit.edu/papers/osdi99.pdf).
-The result is what is called a _trustless system_, which refers to a system in
+The result is what is called a _trust-minimized system_, which refers to a system in
 which the amount of trust required from any single agent is minimized.
 That is, "by not trusting any single authority, this system creates trust by default."
 
@@ -65,8 +65,7 @@ Every AEA is composed of a number of components that work together to achieve th
 <figcaption>Main components of an AEA</figcaption>
 </figure>
 
-As you can see, there are quite a few elements that make up an AEA. We briefly review the most relevant ones that play a role in the creation of an agent service:
-
+As it can be seen, there are quite a few elements that make up an AEA. We briefly review the most relevant ones that play a role in the creation of an agent service:
 
 ### DecisionMaker
 The [`DecisionMaker`](https://open-aea.docs.autonolas.tech/decision-maker/)
@@ -76,17 +75,17 @@ control reside. It comprises:
 - The [`Wallet`](https://open-aea.docs.autonolas.tech/api/crypto/wallet/),
 containing access to crypto addresses, public and private keys.
 [`Crypto`](https://open-aea.docs.autonolas.tech/api/crypto/base/) objects
-are used to load and encrypt private keys stored in an agents' environment.
+are used to load and encrypt private keys stored in an agent's local environment.
 - A [`Resources`](https://open-aea.docs.autonolas.tech/api/registries/resources/) object,
 giving access to various
-[`Registries`](https://open-aea.docs.autonolas.tech/api/registries/base/)
+[`Registries`](https://open-aea.docs.autonolas.tech/api/registries/base/),
 and allowing for the remote registration of various components such as
 [`Protocols`](https://open-aea.docs.autonolas.tech/api/protocols/base/#protocol-objects),
 [`Skills`](https://open-aea.docs.autonolas.tech/api/skills/base/),
 [`Contracts`](https://open-aea.docs.autonolas.tech/api/contracts/base/) and
 [`Connections`](https://open-aea.docs.autonolas.tech/api/connections/base/).
 - The [`AgentContext`](https://open-aea.docs.autonolas.tech/api/context/base/), which
-allows access to various objects that are relevant to the agents'
+allows access to various objects that are relevant to the agent's
 [`Skills`](https://open-aea.docs.autonolas.tech/api/skills/base/).
 - A [`Preferences`](https://open-aea.docs.autonolas.tech/api/decision_maker/base/#preferences-objects) object,
 used to check whether a proposed [`Transaction`](https://open-aea.docs.autonolas.tech/api/helpers/transaction/base/)
@@ -134,7 +133,10 @@ This object is shared by all [`Handler`](https://open-aea.docs.autonolas.tech/ap
 
 ## Overview of AEA Skills Implementation
 
-Note that [`Skills`](https://open-aea.docs.autonolas.tech/skill/) are one of the parts where the developer will need to invest more time, as it is where the concrete business logic is developed. This will be also the case when developing agent services, because a special kind of [`Skill`](https://open-aea.docs.autonolas.tech/skill/) is what will define the agent service business logic.
+
+Note that [`Skills`](https://open-aea.docs.autonolas.tech/skill/) are one of the parts where the developer will need to invest more time, as it is where the concrete business logic is developed. This will be also the case when developing agent 
+services, because a special type of [`Skill`](https://open-aea.docs.autonolas.tech/skill/) is what will define the agent 
+service business logic.
 
 Therefore, we briefly provide a general overview on how an AEA [`Skill`](https://open-aea.docs.autonolas.tech/skill/) is implemented in the {{open_aea}} framework. See also the {{open_aea_doc}} for the complete details.
 
@@ -233,7 +235,7 @@ set up a [`Connection`](https://open-aea.docs.autonolas.tech/connection/), which
 is managed by the
 [`Mutliplexer`](https://open-aea.docs.autonolas.tech/api/multiplexer/).
 A [`Connection`](https://open-aea.docs.autonolas.tech/connection/) wraps an SDK or API and provides an interface to networks, ledgers or other services, in addition to make possible the communication between AEAs through the ACN.
-For example, The logic related to the execution of a smart
+For example, the logic related to the execution of a smart
 [`Contract`](https://open-aea.docs.autonolas.tech/contract/)
 requires a connection to provide the agent with the
 necessary blockchain network access.
