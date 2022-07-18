@@ -75,6 +75,10 @@ class RegistrationStartUpTestConfig(
             "value": True,
         },
         {
+            "dotted_path": f"vendor.valory.skills.{PublicId.from_str(skill_package).name}.is_abstract",
+            "value": False,
+        },
+        {
             "dotted_path": f"{__args_prefix}.observation_interval",
             "value": 15,
         },
