@@ -44,9 +44,9 @@ Note that this agent is not a running agent, but a definition of an agent that n
 
 ## Registering a service
 
-After the agent is registered, a service based on it can be registered as well. In the most simple case, a service could be run by a single agent, though this would mean that the service would be completely centralized and not fault-tolerant. It is expected that a service is run by multiple agents so it benefits from those features.
+After the agent is registered, a service based on it can be registered as well. Services are composed of one or more agents that can be run by multiple agent instances themselves: in the most simple case, a service could be composed of a single agent run by a single agent instance, though this would mean that the service would be completely centralized and not fault-tolerant. Therefore, it is expected that each agent in a service is run by multiple agent instances so the service benefits from those features.
 
-So a service owner registers the service based on the previously registered agent as well as the number of agent instances that will run the service. Once again, during this registration step a NFT is minted as well.
+So a service owner registers the service based on the previously registered agent as well as the number of agent instances that will run the service. Once again, during this service registration step a NFT is minted as well.
 
 <figure markdown>
 ![](./images/register_service.svg)
@@ -55,7 +55,7 @@ So a service owner registers the service based on the previously registered agen
 
 ## Registering an agent instance
 
-Now, some node operators see this newly minted service in the protocol frontend, and find it interesting, so they decide to run one or more agents for it. While agent instance registration is open, operators are able to register their agent addresses. Once all open slots are filled, instance registration closes and the service can start running.
+Now, some node operators see this newly minted service in the protocol frontend, and find it interesting, so they decide to run one or more agent instances for this service. While agent instance registration is open, operators are able to register their agent addresses. Once all open slots are filled, instance registration closes and the service can start running.
 
 <figure markdown>
 ![](./images/register_instance.svg)
