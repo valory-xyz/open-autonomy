@@ -1,9 +1,9 @@
 # Package publishing
 
-Developers, node operators and service owners interact with each other through the onchain protocol to register components, agents and services. Let's see how this all works since
-a component inception to a service deployment.
+Developers, node operators and service owners interact with each other through the on-chain protocol to register components, agents and services. Let's see how this all works starting with
+a component inception all the way to a service deployment.
 
-The first step begins with a developer creating some cool code that does something valuable. This developer creates a software package with the {{open_autonomy}}
+The first step begins with a developer creating a component that does something valuable in the context of the framework. This developer creates a software package with the {{open_autonomy}}
 framework. This package, that we know as component, contains not only the code but also its configuration and dependencies (```component.yaml``` in the image). Once the package is completed,
 it needs to be pushed to IPFS registry so other people can access to it. Using the ```autonomy``` CLI a developer can perform this action, and an IPFS hash that
 points to this unique code will be returned.
@@ -13,9 +13,9 @@ points to this unique code will be returned.
 <figcaption>A developer creates a component and pushes it to the IPFS registry</figcaption>
 </figure>
 
-Now it's time to register the component in the onchain protocol so other people can find it. Using the protocol frontend, the developer must fill a form with
+Once the code has been tested and considered final, it is time to register the component in the on-chain protocol so other people can find it and reference it. Using the protocol frontend, the developer must fill a form with
 the details of the package, like its IPFS hash, its owner address, description and so on. Once every detail has been filled out, the frontend will generate a ```json```
-file with all the metadata, push it to IPFS and retrieve the corresponding hash. After this, that hash will be registered on the onchain protocol and the component
+file with all the metadata, push it to IPFS and retrieve the corresponding hash. After this, the developer can register that meta-data hash on the on-chain protocol and the component
 owner will receive in his wallet an NFT that represents the ownsership of this component. It's important to emphasize that two different pushes to IPFS have been
 performed up to this point: the first one, done by the developer to push the code and a second one done by the frontend to push the metadata (that contains the code hash itself).
 
