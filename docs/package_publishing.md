@@ -64,7 +64,7 @@ Now, some node operators see this newly minted service in the protocol frontend,
 
 ## Running a service
 
-Every piece is in place now. The only remaining thing is actually spinning up the service. Node operators run their agents using the ```autonomy``` CLI, the agents
+Every piece is in place now. The only remaining thing is actually spinning up the service. Node operators run their instances using the ```autonomy``` CLI, the agents
 form a network and the service is established. This service can be monetized and the revenue generated from the service users will be distributed among the component creators, service owners, node operators and the onchan protocol itself.
 
 <figure markdown>
