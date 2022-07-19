@@ -49,7 +49,7 @@ from autonomy.deploy.constants import (
 )
 from autonomy.deploy.generators.docker_compose.base import DockerComposeGenerator
 from autonomy.deploy.generators.kubernetes.base import KubernetesGenerator
-from autonomy.deploy.image import build_image
+from autonomy.deploy.image import ImageProfiles, build_image
 
 
 @click.group(name="deploy")
@@ -120,6 +120,12 @@ def build_group() -> None:
     default=False,
     help="Remove existing build and overwrite with new one.",
 )
+@click.option(
+    "--skip-images",
+    is_flag=True,
+    default=False,
+    help="Specify whether to build images or not.",
+)
 @registry_flag()
 @password_option(confirmation_prompt=True)
 def build_deployment(  # pylint: disable=too-many-arguments, too-many-locals
@@ -134,6 +140,7 @@ def build_deployment(  # pylint: disable=too-many-arguments, too-many-locals
     number_of_agents: Optional[int] = None,
     password: Optional[str] = None,
     version: Optional[str] = None,
+    skip_images: bool = False,
 ) -> None:
     """Build deployment setup for n agents."""
 
@@ -146,22 +153,28 @@ def build_deployment(  # pylint: disable=too-many-arguments, too-many-locals
             raise click.ClickException(f"Build already exists @ {output_dir}")
         shutil.rmtree(build_dir)
 
-    build_dir.mkdir()
-    _build_dirs(build_dir)
-
-    with cd(build_dir):
-        context = Context(cwd=build_dir, verbosity="INFO", registry_path=packages_dir)
-        context.registry_type = registry
-        download_path = fetch_service(context, service_id)
-
-        shutil.move(
-            str(download_path / DEFAULT_SERVICE_FILE),
-            str(build_dir / DEFAULT_SERVICE_FILE),
-        )
-        shutil.rmtree(download_path)
-
     try:
+        build_dir.mkdir()
+        _build_dirs(build_dir)
+
+        with cd(build_dir):
+            context = Context(
+                cwd=build_dir, verbosity="INFO", registry_path=packages_dir
+            )
+            context.registry_type = registry
+            download_path = fetch_service(context, service_id)
+
+            shutil.move(
+                str(download_path / DEFAULT_SERVICE_FILE),
+                str(build_dir / DEFAULT_SERVICE_FILE),
+            )
+            shutil.rmtree(download_path)
+
         _copy_docker_files(build_dir)
+
+        if not skip_images:
+            _build_images(build_dir, version, dev_mode)
+
         report = generate_deployment(
             service_path=build_dir,
             type_of_deployment=deployment_type,
@@ -173,34 +186,59 @@ def build_deployment(  # pylint: disable=too-many-arguments, too-many-locals
             version=version,
         )
         click.echo(report)
+
     except Exception as e:  # pylint: disable=broad-except
         shutil.rmtree(build_dir)
         raise click.ClickException(str(e)) from e
+
+
+def _build_images(
+    build_dir: Path, version: Optional[str], dev_mode: bool = False
+) -> None:
+    """Build images."""
+
+    service = load_service_config(build_dir)
+    profile = ImageProfiles.PRODUCTION
+    if dev_mode:
+        profile = ImageProfiles.DEVELOPMENT
+
+    if version is None:
+        version = DEFAULT_IMAGE_VERSION
+
+    with cd(build_dir):
+        click.echo("\nBuilding agent image")
+        build_image(
+            agent=service.agent,
+            profile=profile,
+            skaffold_dir=build_dir / DOCKERFILES,
+            version=version,
+            push=False,
+        )
+        click.echo("\nBuilding dependency image")
+        build_image(
+            agent=service.agent,
+            profile=ImageProfiles.DEPENDENCIES,
+            skaffold_dir=build_dir / DOCKERFILES,
+            version=version,
+            push=False,
+        )
+        click.echo()
 
 
 @build_group.command(name="image")
 @click.option(
     "--build-dir",
     type=click.Path(dir_okay=True),
-    default=Path.cwd(),
-    help="Path to packages folder (for local usage).",
+    help="Path to build dir.",
 )
 @click.option(
     "--packages-dir",
     type=click.Path(dir_okay=True),
-    default=Path.cwd() / PACKAGES,
     help="Path to packages folder (for local usage).",
-)
-@click.option(
-    "--dockerfiles",
-    type=click.Path(exists=True, dir_okay=True),
-    default=Path.cwd() / "Dockerfiles" / "agent",
-    help="Path to build directory.",
 )
 @click.option(
     "--skaffold-dir",
     type=click.Path(exists=True, dir_okay=True),
-    default=Path.cwd() / "Dockerfiles",
     help="Path to directory containing the skaffold config.",
 )
 @click.option(
@@ -213,17 +251,24 @@ def build_deployment(  # pylint: disable=too-many-arguments, too-many-locals
 @image_profile_flag()
 def build_images(  # pylint: disable=too-many-arguments
     profile: str,
-    packages_dir: Path,
-    build_dir: Path,
-    dockerfiles: Path,
-    skaffold_dir: Path,
+    packages_dir: Optional[Path],
+    build_dir: Optional[Path],
+    skaffold_dir: Optional[Path],
     version: str,
     push: bool,
 ) -> None:
     """Build image using skaffold."""
 
+    if build_dir is None:
+        build_dir = Path.cwd()
+
+    if packages_dir is None:
+        packages_dir = Path.cwd() / PACKAGES
+
+    if skaffold_dir is None:
+        skaffold_dir = Path.cwd() / "Dockerfiles"
+
     packages_dir = Path(packages_dir).absolute()
-    dockerfiles = Path(dockerfiles).absolute()
     skaffold_dir = Path(skaffold_dir).absolute()
 
     service = load_service_config(build_dir)

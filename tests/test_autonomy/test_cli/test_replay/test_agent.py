@@ -95,7 +95,7 @@ class TestAgentRunner(BaseCliTest):
     def test_run(self) -> None:
         """Test run."""
 
-        self.cli_runner.invoke(
+        result = self.cli_runner.invoke(
             cli,
             (
                 "deploy",
@@ -106,8 +106,11 @@ class TestAgentRunner(BaseCliTest):
                 "--packages-dir",
                 str(self.packages_dir),
                 "--force",
+                "--local",
             ),
         )
+
+        assert result.exit_code == 0, result.output
 
         build_dir = ROOT_DIR / "abci_build"
         with mock.patch.object(AgentRunner, "start", new=ctrl_c), mock.patch.object(

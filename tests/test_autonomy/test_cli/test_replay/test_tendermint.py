@@ -105,6 +105,7 @@ class TestTendermintRunner(BaseCliTest):
                 "--force",
                 "--o",
                 str(self.t),
+                "--local",
             ),
         )
 

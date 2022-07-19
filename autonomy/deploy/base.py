@@ -23,15 +23,12 @@ import json
 from pathlib import Path
 from typing import Any, Dict, List, Optional, cast
 
-import yaml
-from aea.cli.utils.package_utils import try_get_item_source_path
 from aea.configurations.base import (
     ConnectionConfig,
     ContractConfig,
     ProtocolConfig,
     SkillConfig,
 )
-from aea.configurations.constants import AGENTS, DEFAULT_AEA_CONFIG_FILE
 
 from autonomy.configurations.base import Service
 from autonomy.configurations.loader import load_service_config
