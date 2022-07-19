@@ -17,9 +17,26 @@ points to this specific version of the code will be returned.
 
 ## Registering a component
 
-Once the code has been tested and considered final, it is time to register the component in the on-chain protocol so other people can find it and reference it. Using the protocol frontend, the developer must fill a form with
-the details of the package, including its IPFS hash, its name, description and version. Once every detail has been filled out, the frontend will generate a ```json```
-file with all the required metadata, push it to IPFS and retrieve the corresponding hash. After this, the developer can register that meta-data hash on the on-chain protocol, as well as the owner address, and the dependencies of the component (i.e. other components). The component
+Once the code has been tested and considered final, it is time to register the component in the on-chain protocol so other people can find it and reference it. Using the protocol frontend, the developer must fill two different forms: one containing the package metadata and another with the package details for the on-chain protocol.
+
+The metadata form includes:
+
+- Package name
+- Package description
+- Package version
+- URI to the code (including the code's IPFS hash)
+
+This metadata will be included in a ```json``` file that will be pushed to IPFS and the corresponding metadata hash will be retrieved.
+
+The on-chain protocol form contains:
+
+- Package owner address
+- Developer address
+- Metadata IPFS hash (previously calculated in the metadata form)
+- Package description
+- Dependencies of the component (i.e. other components)
+
+After all this details have been filled out and sent, the package will be registered on the on-chain protocol. The component
 owner will receive in his wallet an NFT that represents the ownsership of this component.
 
 It is important to emphasize that two different pushes to IPFS have been
@@ -39,7 +56,7 @@ Note that this agent is not a running agent, but a definition of an agent, in th
 
 <figure markdown>
 ![](./images/register_agent.svg)
-<figcaption>An operator registers an agent into the protocol</figcaption>
+<figcaption>A developer registers an agent into the protocol</figcaption>
 </figure>
 
 ## Registering a service
@@ -59,7 +76,7 @@ Now, some node operators see this newly minted service in the protocol frontend,
 
 <figure markdown>
 ![](./images/register_instance.svg)
-<figcaption>An operator registers an agent instance into the protocol</figcaption>
+<figcaption>A node operator registers an agent instance into the protocol</figcaption>
 </figure>
 
 ## Running a service
@@ -69,5 +86,5 @@ form a network and the service is established. This service can be monetized and
 
 <figure markdown>
 ![](./images/run_service.svg)
-<figcaption>An operator runs an agent that forms part of a service</figcaption>
+<figcaption>A node operator runs an agent instance that forms part of a service</figcaption>
 </figure>
