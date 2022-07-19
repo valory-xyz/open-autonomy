@@ -18,8 +18,8 @@ points to this specific version of the code will be returned.
 ## Registering a component
 
 Once the code has been tested and considered final, it is time to register the component in the on-chain protocol so other people can find it and reference it. Using the protocol frontend, the developer must fill a form with
-the details of the package, like its IPFS hash, its owner address, description and so on. Once every detail has been filled out, the frontend will generate a ```json```
-file with all the required metadata, push it to IPFS and retrieve the corresponding hash. After this, the developer can register that meta-data hash on the on-chain protocol and the component
+the details of the package, including its IPFS hash, its name, description and version. Once every detail has been filled out, the frontend will generate a ```json```
+file with all the required metadata, push it to IPFS and retrieve the corresponding hash. After this, the developer can register that meta-data hash on the on-chain protocol, as well as the owner address, and the dependencies of the component (i.e. other components). The component
 owner will receive in his wallet an NFT that represents the ownsership of this component.
 
 It is important to emphasize that two different pushes to IPFS have been
@@ -32,10 +32,10 @@ performed up to this point: the first one, done by the developer to push the cod
 
 ## Registering an agent
 
-At some point, a service owner might want to create an agent that uses the previously registered component analogously to how some programs use other libraries. In an similar way to how a component was registered, this service owner
-registers an agent, specifying all the components that make up the agent. A NFT will be minted as well and sent to the owner wallet.
+At some point, a developer might want to create an agent that uses the previously registered component analogously to how some programs use other libraries. In an similar way to how a component was registered, this developer
+registers an agent, specifying all the components that make up the agent. An NFT will be minted as well and sent to the owner wallet.
 
-Note that this agent is not a running agent, but a definition of an agent that node operators will later use to run to deploy decentralized services.
+Note that this agent is not a running agent, but a definition of an agent, in the form of a package, that node operators will later use to create a service from.
 
 <figure markdown>
 ![](./images/register_agent.svg)
@@ -44,9 +44,9 @@ Note that this agent is not a running agent, but a definition of an agent that n
 
 ## Registering a service
 
-After the agent is registered, a service based on it can be registered as well. Services are composed of one or more agents that can be run by multiple agent instances themselves: in the most simple case, a service could be composed of a single agent run by a single agent instance, though this would mean that the service would be completely centralized and not fault-tolerant. Therefore, it is expected that each agent in a service is run by multiple agent instances so the service benefits from those features.
+After the agent is registered, a service based on it can be registered as well. Services are composed of one or more (canonical) agents. The service then specifies how many agent instances are required of each (canonical) agent. In the most simple case, a service could be composed of a single agent run as a single agent instance. However, this would mean that the service would be completely centralized and not fault-tolerant. Therefore, it is common that each agent in a service is run by multiple agent instances.
 
-So a service owner registers the service based on the previously registered agent as well as the number of agent instances that will run the service. Once again, during this service registration step a NFT is minted as well.
+The service owner registers the service based on the previously registered agent as well as the number of agent instances that will run the service. Once again, during this service registration step a NFT is minted as well.
 
 <figure markdown>
 ![](./images/register_service.svg)
@@ -55,7 +55,7 @@ So a service owner registers the service based on the previously registered agen
 
 ## Registering an agent instance
 
-Now, some node operators see this newly minted service in the protocol frontend, and find it interesting, so they decide to run one or more agent instances for this service. While agent instance registration is open, operators are able to register their agent addresses. Once all open slots are filled, instance registration closes and the service can start running.
+Now, some agent operators see this newly minted service in the protocol frontend, and find it interesting, so they decide to run one or more agent instances for this service. While agent instance registration is open, operators are able to register their agent addresses. Once all open slots are filled, instance registration closes and the service can start running.
 
 <figure markdown>
 ![](./images/register_instance.svg)
@@ -64,8 +64,8 @@ Now, some node operators see this newly minted service in the protocol frontend,
 
 ## Running a service
 
-Every piece is in place now. The only remaining thing is actually spinning up the service. Node operators run their instances using the ```autonomy``` CLI, the agents
-form a network and the service is established. This service can be monetized and the revenue generated from the service users will be distributed among the component creators, service owners, node operators and the onchan protocol itself.
+Every piece is in place now. The only remaining thing is actually spinning up the service. Agent operators run their instances using the ```autonomy``` CLI, the agents
+form a network and the service is established. This service can be monetized and the revenue generated from the service users will be distributed among the component creators, service owners, node operators and the onchain protocol itself, as specified by the service owner.
 
 <figure markdown>
 ![](./images/run_service.svg)
