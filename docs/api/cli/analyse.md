@@ -154,3 +154,4 @@ def benchmark(path: Path, block_type: str, period: int, output: Optional[Path]) 
 ```
 
 Benchmark aggregator.
+
