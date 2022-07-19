@@ -57,11 +57,11 @@ class ETHSubgraph(ApiSpecs):
     """A model that wraps ApiSpecs for ETH subgraph specifications."""
 
 
-class SpookySwapSubgraph(ApiSpecs):
-    """A model that wraps ApiSpecs for SpookySwap subgraph specifications."""
+class DEXSubgraph(ApiSpecs):
+    """A model that wraps ApiSpecs for DEX subgraph specifications."""
 
     def __init__(self, *args: Any, **kwargs: Any) -> None:
-        """Initialize SpookySwapSubgraph."""
+        """Initialize DEX Subgraph."""
         self.bundle_id: int = self.ensure("bundle_id", kwargs)
         self.non_indexed_error_key = kwargs.pop("non_indexed_error_key", "errors")
         self.non_indexed_error_type = kwargs.pop("non_indexed_error_type", "list")
@@ -72,6 +72,14 @@ class SpookySwapSubgraph(ApiSpecs):
         return self._get_response_data(
             response, self.non_indexed_error_key, self.non_indexed_error_type
         )
+
+
+class UniswapSubgraph(DEXSubgraph):
+    """A model that wraps DEXSubgraph for Uniswap subgraph specifications."""
+
+
+class SpookySwapSubgraph(DEXSubgraph):
+    """A model that wraps DEXSubgraph for SpookySwap subgraph specifications."""
 
 
 class APYParams(BaseParams):  # pylint: disable=too-many-instance-attributes
