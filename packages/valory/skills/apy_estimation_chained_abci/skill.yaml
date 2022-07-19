@@ -70,7 +70,7 @@ models:
       headers:
       - Content-Type: application/json
       method: POST
-      parameters: []
+      parameters: null
       response_key: data
       response_type: dict
       retries: 5
@@ -151,7 +151,7 @@ models:
       method: POST
       non_indexed_error_key: errors
       non_indexed_error_type: list
-      parameters: []
+      parameters: null
       response_key: data
       response_type: dict
       retries: 5
