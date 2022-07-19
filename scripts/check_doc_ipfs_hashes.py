@@ -116,7 +116,6 @@ class PackageHashManager:
             self.package_tree[p.vendor].setdefault(p.type, {})
             self.package_tree[p.vendor][p.type].setdefault(p.name, p)
             assert re.match(IPFS_HASH_REGEX, p.hash)  # detect wrong regexes
-            print(f"{p.vendor}/{p.type}/{p.name}: {p.hash}")
 
     def get_package_by_hash(self, package_hash: str) -> Optional[Package]:
         """Get a package given its hash"""
@@ -161,7 +160,6 @@ class PackageHashManager:
 
             # Complete command, succesfully retrieved
             package_type = "agent" if d["cmd"] == "fetch" else d["cmd"].split(" ")[-1]
-            print(f"here: {package_line}")
             return self.package_tree[d["vendor"]][package_type][d["package"]].hash
 
         # Otherwise log the error
