@@ -29,7 +29,7 @@ from typing import Dict, Optional
 import yaml
 
 
-AEA_COMMAND_REGEX = r"(?P<full_cmd>(?P<cli>aea|autonomy) (?P<cmd>fetch|add .*) (?:(?P<vendor>.*)\/(?P<package>.[^:]*):(?P<version>\d+\.\d+\.\d+)?:?)?(?P<hash>Q[A-Za-z0-9]+))"
+AEA_COMMAND_REGEX = r"(?P<full_cmd>(?P<cli>aea|autonomy) (?P<cmd>fetch|add .*) (?:(?P<vendor>.*)\/(?P<package>.[^:]*):(?P<version>\d+\.\d+\.\d+)?:?)?(?P<hash>bafybei[A-Za-z0-9]{52}))"
 
 ROOT_DIR = Path(__file__).parent.parent
 
