@@ -46,7 +46,7 @@ Note that this agent is not a running agent, but a definition of an agent, in th
 
 After the agent is registered, a service based on it can be registered as well. Services are composed of one or more (canonical) agents. The service then specifies how many agent instances are required of each (canonical) agent. In the most simple case, a service could be composed of a single agent run as a single agent instance. However, this would mean that the service would be completely centralized and not fault-tolerant. Therefore, it is common that each agent in a service is run by multiple agent instances.
 
-The service owner registers the service based on the previously registered agent as well as the number of agent instances that will run the service. Once again, during this service registration step a NFT is minted as well.
+The service owner registers the service based on the previously registered agent as well as the number of agent instances that will run the service. Once again, during this service registration step an NFT is minted as well.
 
 <figure markdown>
 ![](./images/register_service.svg)
