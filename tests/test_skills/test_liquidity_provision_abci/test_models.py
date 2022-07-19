@@ -26,14 +26,7 @@ from packages.valory.skills.liquidity_provision_abci.composition import (
 from packages.valory.skills.liquidity_provision_abci.models import SharedState
 from packages.valory.skills.liquidity_rebalancing_abci.rounds import Event
 
-
-class DummyContext:
-    """Dummy Context class for shared state."""
-
-    class params:
-        """Dummy param variable."""
-
-        round_timeout_seconds: float = 1.0
+from tests.test_skills.base import DummyContext
 
 
 class TestSharedState:

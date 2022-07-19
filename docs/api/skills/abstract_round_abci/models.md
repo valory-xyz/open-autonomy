@@ -39,7 +39,7 @@ Keep the current shared state of the skill.
 #### `__`init`__`
 
 ```python
-def __init__(*args: Any, *, abci_app_cls: Type[AbciApp], **kwargs: Any) -> None
+def __init__(*args: Any, *, abci_app_cls: Type[AbciApp], skill_context: SkillContext, **kwargs: Any, ,) -> None
 ```
 
 Initialize the state.

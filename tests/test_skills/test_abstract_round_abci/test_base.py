@@ -28,6 +28,7 @@ from typing import Any, Dict, Optional, Set, Tuple, Type
 from unittest import mock
 from unittest.mock import MagicMock
 
+import hypothesis
 import pytest
 from aea.exceptions import AEAEnforceError
 from aea_ledger_ethereum import EthereumCrypto
@@ -331,6 +332,7 @@ def test_verify_transaction_negative_case(*_mocks: Any) -> None:
         transaction.verify("")
 
 
+@hypothesis.settings(deadline=2000)
 @given(
     dictionaries(
         keys=text(),
