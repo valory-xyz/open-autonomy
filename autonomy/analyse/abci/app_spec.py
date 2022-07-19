@@ -18,14 +18,18 @@
 # ------------------------------------------------------------------------------
 """Generates the specification for a given ABCI app in YAML/JSON/Mermaid format."""
 
+import ast
 import importlib
+import inspect
 import json
 import logging
 import re
 import sys
+from packages.valory.skills.abstract_round_abci.base import AbstractRound
 from collections import defaultdict, deque
 from itertools import product
 from pathlib import Path
+from types import ModuleType
 from typing import Any, Dict, List, OrderedDict, Set, TextIO, Tuple
 
 import yaml
@@ -338,6 +342,21 @@ class DFA:
         )
 
 
+event_pattern = re.compile("return.*Event.(\w+)", re.DOTALL)
+
+def check_returned_events(dfa:DFA, module:ModuleType) -> None:
+
+    returned_events = set()
+    # Get the subclasses of AbstractRound defined in the module.
+    for name, obj in inspect.getmembers(module, lambda x: inspect.isclass(x) and x.__module__ == module.__name__ and issubclass(x, AbstractRound)):
+        src = inspect.getsource(obj.end_block)
+        returned_events.update(event_pattern.findall(src))
+
+    if dfa.alphabet_in is not returned_events:
+        raise DFASpecificationError(
+            "DFA spec. IMPLEMENTATION ERROR\n"
+        )        
+
 class SpecCheck:
     """Class to represent abci spec checks."""
 
@@ -356,6 +375,8 @@ class SpecCheck:
 
         with open(infile, "r", encoding="utf-8") as fp:
             dfa2 = DFA.load(fp, informat)
+
+        check_returned_events(dfa2, module)
 
         return dfa1 == dfa2
 
