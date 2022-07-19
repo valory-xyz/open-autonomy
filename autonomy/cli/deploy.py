@@ -144,9 +144,9 @@ def build_deployment(  # pylint: disable=too-many-arguments, too-many-locals
 ) -> None:
     """Build deployment setup for n agents."""
 
-    packages_dir = Path(packages_dir)
-    keys_file = Path(keys_file)
-    build_dir = Path(output_dir, "abci_build")
+    packages_dir = Path(packages_dir).absolute()
+    keys_file = Path(keys_file).absolute()
+    build_dir = Path(output_dir, "abci_build").absolute()
 
     if build_dir.is_dir():
         if not force_overwrite:
