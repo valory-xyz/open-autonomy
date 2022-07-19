@@ -259,14 +259,9 @@ def build_images(  # pylint: disable=too-many-arguments
 ) -> None:
     """Build image using skaffold."""
 
-    if build_dir is None:
-        build_dir = Path.cwd()
-
-    if packages_dir is None:
-        packages_dir = Path.cwd() / PACKAGES
-
-    if skaffold_dir is None:
-        skaffold_dir = Path.cwd() / "Dockerfiles"
+    build_dir = build_dir or Path.cwd()
+    packages_dir = packages_dir or Path.cwd() / PACKAGES
+    skaffold_dir = skaffold_dir or Path.cwd() / DOCKERFILES
 
     packages_dir = Path(packages_dir).absolute()
     skaffold_dir = Path(skaffold_dir).absolute()
