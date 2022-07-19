@@ -55,7 +55,7 @@ The service owner registers the service based on the previously registered agent
 
 ## Registering an agent instance
 
-Now, some agent operators see this newly minted service in the protocol frontend, and find it interesting, so they decide to run one or more agent instances for this service. While agent instance registration is open, operators are able to register their agent addresses. Once all open slots are filled, instance registration closes and the service can start running.
+Now, some node operators see this newly minted service in the protocol frontend, and find it interesting, so they decide to run one or more agent instances for this service. While agent instance registration is open, operators are able to register their agent addresses. Once all open slots are filled, instance registration closes and the service can start running.
 
 <figure markdown>
 ![](./images/register_instance.svg)
@@ -64,7 +64,7 @@ Now, some agent operators see this newly minted service in the protocol frontend
 
 ## Running a service
 
-Every piece is in place now. The only remaining thing is actually spinning up the service. Agent operators run their instances using the ```autonomy``` CLI, the agents
+Every piece is in place now. The only remaining thing is actually spinning up the service. Node operators run their agent instances using the ```autonomy``` CLI, the agents
 form a network and the service is established. This service can be monetized and the revenue generated from the service users will be distributed among the component creators, service owners, node operators and the onchain protocol itself, as specified by the service owner.
 
 <figure markdown>
