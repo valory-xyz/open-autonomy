@@ -20,22 +20,22 @@ jobs:
     timeout-minutes: 10
 
     steps:
-    - uses: actions/checkout@v2
-    - uses: actions/setup-python@master
-      with:
-        python-version: ${{ matrix.python-version }}
-    - name: Install dependencies
-      run: |
-        sudo apt-get update --fix-missing
-        sudo apt-get autoremove
-        sudo apt-get autoclean
-        pip install pipenv
-    - name: Pipenv install requirements and check it can be locked
-      run: |
-        pipenv --clear
-        pipenv install --dev --skip-lock
-        pipenv run pip install -e .[all]
-        pipenv lock
+      - uses: actions/checkout@v2
+      - uses: actions/setup-python@master
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install dependencies
+        run: |
+          sudo apt-get update --fix-missing
+          sudo apt-get autoremove
+          sudo apt-get autoclean
+          pip install pipenv
+      - name: Pipenv install requirements and check it can be locked
+        run: |
+          pipenv --clear
+          pipenv install --dev --skip-lock
+          pipenv run pip install -e .[all]
+          pipenv lock
 
   copyright_doc_and_pipfile_check:
     continue-on-error: False
@@ -49,27 +49,27 @@ jobs:
     timeout-minutes: 30
 
     steps:
-    - uses: actions/checkout@v2
-      with:
-        fetch-depth: 0
-    - uses: actions/setup-python@master
-      with:
-        python-version: ${{ matrix.python-version }}
-    - name: Install dependencies
-      run:  |
-        sudo apt-get update --fix-missing
-        sudo apt-get autoremove
-        sudo apt-get autoclean
-        pip install tox
-        pip install --user --upgrade setuptools
-    - name: Check copyright
-      run: tox -e check-copyright
-    - name: Check docs
-      run: tox -e check-api-docs
-    - name: Check doc links and IPFS hashes
-      run: tox -e check-doc-links-hashes
-    - name: Check pipfiles
-      run: tox -e check-pipfiles
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@master
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install dependencies
+        run: |
+          sudo apt-get update --fix-missing
+          sudo apt-get autoremove
+          sudo apt-get autoclean
+          pip install tox
+          pip install --user --upgrade setuptools
+      - name: Check copyright
+        run: tox -e check-copyright
+      - name: Check docs
+        run: tox -e check-api-docs
+      - name: Check doc links and IPFS hashes
+        run: tox -e check-doc-links-hashes
+      - name: Check pipfiles
+        run: tox -e check-pipfiles
 
   linter_checks:
     continue-on-error: False
@@ -83,57 +83,57 @@ jobs:
     timeout-minutes: 30
 
     steps:
-    - uses: actions/checkout@v2
-    - uses: actions/setup-python@master
-      with:
-        python-version: ${{ matrix.python-version }}
-    - name: Install dependencies
-      run:  |
-        sudo apt-get update --fix-missing
-        sudo apt-get autoremove
-        sudo apt-get autoclean
-        pip install tox
-        pip install --user --upgrade setuptools
-        # install Protobuf compiler
-        wget https://github.com/protocolbuffers/protobuf/releases/download/v3.19.4/protoc-3.19.4-linux-x86_64.zip
-        unzip protoc-3.19.4-linux-x86_64.zip -d protoc
-        sudo mv protoc/bin/protoc /usr/local/bin/protoc
-        # install IPFS
-        sudo apt-get install -y wget
-        sudo npm install -g markdown-spellcheck
-        wget -O ./go-ipfs.tar.gz https://dist.ipfs.io/go-ipfs/v0.6.0/go-ipfs_v0.6.0_linux-amd64.tar.gz
-        tar xvfz go-ipfs.tar.gz
-        sudo mv go-ipfs/ipfs /usr/local/bin/ipfs
-        ipfs init
-        make protolint_install
-    - name: Check generate protocols
-      run: tox -e check-generate-all-protocols
-    - name: Security checks
-      run: |
-        tox -e bandit
-        tox -e safety
-    - name: Check packages
-      run: tox -e check-packages
-    - name: Check hash
-      run: tox -e check-hash
-    - name: Code style check
-      run: |
-        tox -e black-check
-        tox -e isort-check
-        tox -e flake8
-        tox -e vulture
-        tox -e darglint
-    - name: Static type check
-      run: tox -e mypy
-    - name: Pylint
-      run: tox -e pylint
-    - name: Check spelling
-      run: tox -e spell-check
-    - name: AbciApp consistency checks
-      run: |
-        tox -e check-abci-docstrings
-        tox -e check-abciapp-specs
-        tox -e check-handlers
+      - uses: actions/checkout@v2
+      - uses: actions/setup-python@master
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install dependencies
+        run: |
+          sudo apt-get update --fix-missing
+          sudo apt-get autoremove
+          sudo apt-get autoclean
+          pip install tox
+          pip install --user --upgrade setuptools
+          # install Protobuf compiler
+          wget https://github.com/protocolbuffers/protobuf/releases/download/v3.19.4/protoc-3.19.4-linux-x86_64.zip
+          unzip protoc-3.19.4-linux-x86_64.zip -d protoc
+          sudo mv protoc/bin/protoc /usr/local/bin/protoc
+          # install IPFS
+          sudo apt-get install -y wget
+          sudo npm install -g markdown-spellcheck
+          wget -O ./go-ipfs.tar.gz https://dist.ipfs.io/go-ipfs/v0.6.0/go-ipfs_v0.6.0_linux-amd64.tar.gz
+          tar xvfz go-ipfs.tar.gz
+          sudo mv go-ipfs/ipfs /usr/local/bin/ipfs
+          ipfs init
+          make protolint_install
+      - name: Check generate protocols
+        run: tox -e check-generate-all-protocols
+      - name: Security checks
+        run: |
+          tox -e bandit
+          tox -e safety
+      - name: Check packages
+        run: tox -e check-packages
+      - name: Check hash
+        run: tox -e check-hash
+      - name: Code style check
+        run: |
+          tox -e black-check
+          tox -e isort-check
+          tox -e flake8
+          tox -e vulture
+          tox -e darglint
+      - name: Static type check
+        run: tox -e mypy
+      - name: Pylint
+        run: tox -e pylint
+      - name: Check spelling
+        run: tox -e spell-check
+      - name: AbciApp consistency checks
+        run: |
+          tox -e check-abci-docstrings
+          tox -e check-abciapp-specs
+          tox -e check-handlers
 
   test:
     continue-on-error: True
@@ -145,8 +145,8 @@ jobs:
 
     strategy:
       matrix:
-        os: [ ubuntu-latest, macos-latest, windows-latest ]
-        python-version: [ "3.7", "3.8", "3.9", "3.10" ]
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        python-version: ["3.7", "3.8", "3.9", "3.10"]
 
     timeout-minutes: 40
 
@@ -198,7 +198,7 @@ jobs:
 
           # build required images
           pip install .
-          autonomy deploy build deployment valory/oracle_hardhat deployments/keys/hardhat_keys.json --local --skip-images
+          autonomy deploy build deployment valory/oracle_hardhat deployments/keys/hardhat_keys.json --local
 
           cd abci_build
           autonomy deploy build image
@@ -357,8 +357,8 @@ jobs:
 
     strategy:
       matrix:
-        os: [ ubuntu-latest ]
-        python-version: [ "3.10" ]
+        os: [ubuntu-latest]
+        python-version: ["3.10"]
 
     timeout-minutes: 100
 
