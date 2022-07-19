@@ -18,8 +18,9 @@
 # ------------------------------------------------------------------------------
 
 """Custom objects for the APY estimation ABCI application."""
+from typing import Any, Dict, Optional, Set, Union, ValuesView, cast
 
-from typing import Any, Optional
+from aea.skills.base import SkillContext
 
 from packages.valory.protocols.http import HttpMessage
 from packages.valory.skills.abstract_round_abci.models import ApiSpecs, BaseParams
@@ -80,6 +81,82 @@ class UniswapSubgraph(DEXSubgraph):
 
 class SpookySwapSubgraph(DEXSubgraph):
     """A model that wraps DEXSubgraph for SpookySwap subgraph specifications."""
+
+
+ValidatedSubgraphType = Union[DEXSubgraph, ApiSpecs]
+ValidatedSubgraphsType = ValuesView[ValidatedSubgraphType]
+ValidatedSubgraphsMappingType = Dict[str, ValidatedSubgraphType]
+UnvalidatedSubgraphType = Optional[ValidatedSubgraphType]
+UnvalidatedSubgraphsMappingType = Dict[str, UnvalidatedSubgraphType]
+
+
+class SubgraphsMixin:
+    """A mixin to handle the subgraphs' information."""
+
+    _necessary_attributes = {"context.params.pair_ids"}
+    context: SkillContext
+
+    def __init__(self) -> None:
+        """Initialize the mixin object."""
+        self._check_attributes()
+        utilized_dex_names = set(self.context.params.pair_ids.keys())
+        utilized_block_names = {
+            block_name
+            for dex_pairs in self.context.params.pair_ids.values()
+            for block_name in dex_pairs.keys()
+        }
+        utilized_dex_subgraphs = self._get_subgraphs_mapping(utilized_dex_names)
+        utilized_block_subgraphs = self._get_subgraphs_mapping(utilized_block_names)
+        self._utilized_subgraphs = {
+            **utilized_dex_subgraphs,
+            **utilized_block_subgraphs,
+        }
+        self._validate_utilized_subgraphs()
+
+    def _check_attributes(self) -> None:
+        """Checks that the Mixin is subclassed by a class which has the necessary attributes."""
+        for attr in self._necessary_attributes:
+            part_checked_so_far, path_so_far = self, ""
+            for part in attr.split("."):
+                try:
+                    path_so_far += f"{part}."
+                    part_checked_so_far = getattr(part_checked_so_far, part)
+                except AttributeError as e:
+                    raise AttributeError(
+                        f"`SubgraphsMixin` is missing attribute `{path_so_far}`."
+                    ) from e
+
+    def _validate_utilized_subgraphs(self) -> None:
+        """Check that the utilized subgraphs are valid, i.e., they are defined in the `skill.yaml` config file."""
+        unknown_subgraphs = {
+            name
+            for name, subgraph in self._utilized_subgraphs.items()
+            if subgraph is None
+        }
+        if unknown_subgraphs:
+            raise ValueError(
+                f"Subgraph(s) {unknown_subgraphs} not recognized. "
+                "Please specify them in the `skill.yaml` config file and `models.py`."
+            )
+
+    def _get_subgraphs_mapping(
+        self, names: Set[str]
+    ) -> UnvalidatedSubgraphsMappingType:
+        """Get subgraphs mapped to their names."""
+        return {name: self._try_get_subgraph(name) for name in names}
+
+    def _try_get_subgraph(self, name: str) -> UnvalidatedSubgraphType:
+        """Try to get a subgraph by its name. If it does not exist, return `None`"""
+        return getattr(self.context, name, None)
+
+    def get_subgraph(self, name: str) -> ValidatedSubgraphType:
+        """Get a subgraph by its name."""
+        return getattr(self.context, name)
+
+    @property
+    def utilized_subgraphs(self) -> ValidatedSubgraphsType:
+        """Get the utilized Subgraphs."""
+        return cast(ValidatedSubgraphsMappingType, self._utilized_subgraphs).values()
 
 
 class APYParams(BaseParams):  # pylint: disable=too-many-instance-attributes
