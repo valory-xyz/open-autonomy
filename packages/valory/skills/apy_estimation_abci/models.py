@@ -18,7 +18,7 @@
 # ------------------------------------------------------------------------------
 
 """Custom objects for the APY estimation ABCI application."""
-from typing import Any, Dict, Optional, Set, Union, ValuesView, cast
+from typing import Any, Dict, List, Optional, Set, Union, ValuesView, cast
 
 from aea.skills.base import SkillContext
 
@@ -83,6 +83,7 @@ class SpookySwapSubgraph(DEXSubgraph):
     """A model that wraps DEXSubgraph for SpookySwap subgraph specifications."""
 
 
+PairIdsType = Dict[str, Dict[str, List[str]]]
 ValidatedSubgraphType = Union[DEXSubgraph, ApiSpecs]
 ValidatedSubgraphsType = ValuesView[ValidatedSubgraphType]
 ValidatedSubgraphsMappingType = Dict[str, ValidatedSubgraphType]
@@ -170,7 +171,7 @@ class APYParams(BaseParams):  # pylint: disable=too-many-instance-attributes
         self.optimizer_params = self._ensure("optimizer", kwargs)
         self.testing = self._ensure("testing", kwargs)
         self.estimation = self._ensure("estimation", kwargs)
-        self.pair_ids = self._ensure("pair_ids", kwargs)
+        self.pair_ids: PairIdsType = self._ensure("pair_ids", kwargs)
         self.ipfs_domain_name = self._ensure("ipfs_domain_name", kwargs)
         super().__init__(*args, **kwargs)
 
