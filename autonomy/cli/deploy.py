@@ -318,3 +318,4 @@ def _copy_docker_files(dest: Path) -> None:
     dest = dest / DOCKERFILES
 
     shutil.copytree(src, dest)
+    click.echo("Copied Dockerfiles to build directory.")
