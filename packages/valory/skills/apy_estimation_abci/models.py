@@ -53,6 +53,10 @@ class FantomSubgraph(ApiSpecs):
     """A model that wraps ApiSpecs for Fantom subgraph specifications."""
 
 
+class ETHSubgraph(ApiSpecs):
+    """A model that wraps ApiSpecs for ETH subgraph specifications."""
+
+
 class SpookySwapSubgraph(ApiSpecs):
     """A model that wraps ApiSpecs for SpookySwap subgraph specifications."""
 
