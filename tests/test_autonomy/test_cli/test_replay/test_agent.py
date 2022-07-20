@@ -110,7 +110,7 @@ class TestAgentRunner(BaseCliTest):
             ),
         )
 
-        assert result.exit_code == 0, (result.output, result.stderr_bytes.decode())
+        assert result.exit_code == 0, result.output
 
         build_dir = ROOT_DIR / "abci_build"
         with mock.patch.object(AgentRunner, "start", new=ctrl_c), mock.patch.object(
