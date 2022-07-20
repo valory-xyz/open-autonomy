@@ -71,6 +71,8 @@ Example keys file
 ]
 ```
 
+These keys can be used for local deployments if you're using the default hardhat image for the local chain. Copy and paste this into `keys.json` file and run following command
+
 ```bash
 # create a docker deployment
 $ autonomy deploy build deployment valory/oracle_hardhat:bafybeibhv2ziivbnj3sgfzjjtvqbsvt3fvra4texc3lx4snqxo6lbmq2le keys.json
