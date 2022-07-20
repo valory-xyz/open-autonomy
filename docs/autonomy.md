@@ -71,11 +71,9 @@ Example keys file
 ]
 ```
 
-*These keys are taken from `deployments/keys/hardhat_json.keys` file and can be used for a local deployment*
-
 ```bash
 # create a docker deployment
-$ autonomy deploy build deployment valory/oracle_hardhat deployments/keys/hardhat_keys.json --packages-dir packages/ --local
+$ autonomy deploy build deployment valory/oracle_hardhat:bafybeibhv2ziivbnj3sgfzjjtvqbsvt3fvra4texc3lx4snqxo6lbmq2le keys.json
 ```
 
 This will create a deployment environment with following directory structure
@@ -109,9 +107,8 @@ abci_build/
 
 To run this deployment go to the `abci_build` and run `docker-compose up`.
 
-This example uses local package registry, If you don't have the repository cloned on your local machine you'll have use IPFS registry. To utilise remote registry remove `--local` flag and specify package hash with public id.
 
-2. Deployment images
+1. Deployment images
 
 ```bash
 Usage: autonomy deploy build image [OPTIONS]
