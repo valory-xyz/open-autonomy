@@ -36,8 +36,13 @@ Ensure your machine satisfies the following requirements:
 - [Docker Compose](https://docs.docker.com/compose/install/)
 
 ## Setup
+1. Create a workspace folder, e.g.,
+```bash
+mkdir my_service
+cd my_service
+```
 
-1. Setup the environment
+1. Within the workspace folder, setup the environment
 ```bash
 export OPEN_AEA_IPFS_ADDR="/dns/registry.autonolas.tech/tcp/443/https"
 touch Pipfile && pipenv --python 3.10 && pipenv shell
@@ -51,9 +56,10 @@ pip install open-autonomy
 ## Deploy a local agent service
 
 Follow the steps indicated below to download a demonstration agent service from the Service Registry, and deploy it locally using Docker Compose.
-In this case, we consider the [Hello World agent service](https://docs.autonolas.network/service_example/).
+In this case, we consider the [Oracle agent service](./price_oracle_intro.md).
 
-1. Prepare a JSON file `keys.json` containing the addresses and keys of the four agents that make up the [Hello World agent service](https://docs.autonolas.network/service_example/). Below you have some sample keys for testing:
+
+1. Inside the Pipenv environment workspace folder, prepare a JSON file `keys.json` containing the addresses and keys of the four agents that make up the [Oracle agent service](./price_oracle_intro.md). Below you have some sample keys for testing:
     ```json
     [
       {
@@ -75,23 +81,27 @@ In this case, we consider the [Hello World agent service](https://docs.autonolas
     ]
     ```
 
-
-2. Use the CLI to townload and build the images to deploy the [Hello World agent service](https://docs.autonolas.network/service_example/):
+2. Use the CLI to townload and build the images to deploy the [Oracle agent service](./price_oracle_intro.md):
     ```bash
-      autonomy deploy build deployment valory/hello_world:bafybeidlqr3bwzb2zxxxt7fcgrucjx6kbnqdynr77slybnampvjenuic2i keys.json
+      autonomy deploy build deployment valory/oracle_hardhat:bafybeibhv2ziivbnj3sgfzjjtvqbsvt3fvra4texc3lx4snqxo6lbmq2le keys.json
     ```
     The command above generates the required images to run the agent service using the keys provided in the `keys.json` file. In this case, we are accessing the service definition located in the Service Registry.
 
     !!!note
         It is also possible to generate a deployment using a local service definition. See the [CLI section](./autonomy.md) for the complete details.
 
-3. The build configuration will be located in `./abci_build`. Execute `docker-compose` as indicated below. This will deploy a local [Hello World agent service](https://docs.autonolas.network/service_example/) with four agents connected to four Tendermint nodes.
+3. Open a second terminal and run a local Hardhat node that will emulate a blockchain node. For convenience, we provide a Docker image in Docker Hub that can be run directly as
+   ```bash
+      docker run -p 8545:8545 -it valory/open-autonomy-hardhat:0.1.0
+    ```
+
+4. Return to the workspace terminal. The build configuration will be located in `./abci_build`. Execute `docker-compose` as indicated below. This will deploy a local [Oracle agent service](./price_oracle_intro.md) with four agents connected to four Tendermint nodes.
     ```bash
     cd abci_build
     docker-compose up --force-recreate
     ```
 
-4. The logs of a single agent or node can then be inspected with, e.g.,
+5. The logs of a single agent or node can then be inspected in another terminal with, e.g.,
     ```bash
     docker logs {container_id} --follow
     ```
