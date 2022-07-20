@@ -314,4 +314,5 @@ def _copy_docker_files(dest: Path) -> None:
 
     shutil.copytree(src, dest)
     click.echo("Copied Dockerfiles to build directory.")
+    click.echo(list(src.iterdir()))
     click.echo(list(dest.iterdir()))
