@@ -118,16 +118,22 @@ class SubgraphsMixin:
 
     def _check_attributes(self) -> None:
         """Checks that the Mixin is subclassed by a class which has the necessary attributes."""
+        missing_attrs = []
         for attr in self._necessary_attributes:
             part_checked_so_far, path_so_far = self, ""
             for part in attr.split("."):
                 try:
-                    path_so_far += f"{part}."
+                    path_so_far += f"{part}"
                     part_checked_so_far = getattr(part_checked_so_far, part)
-                except AttributeError as e:
-                    raise AttributeError(
-                        f"`SubgraphsMixin` is missing attribute `{path_so_far}`."
-                    ) from e
+                except AttributeError:
+                    missing_attrs.append(path_so_far)
+                finally:
+                    path_so_far += "."
+
+        if missing_attrs:
+            raise AttributeError(
+                f"`SubgraphsMixin` is missing attribute(s): {missing_attrs}."
+            )
 
     def _validate_utilized_subgraphs(self) -> None:
         """Check that the utilized subgraphs are valid, i.e., they are defined in the `skill.yaml` config file."""
