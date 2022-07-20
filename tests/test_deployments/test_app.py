@@ -269,3 +269,53 @@ class TestTendermintLogMessages(BaseTendermintServerTest):
         assert not get_missing(before_stopping), get_logs()
         self.tendermint_node.stop()
         assert not get_missing(after_stopping), get_logs()
+
+
+@pytest.fixture()
+def mock_popen():
+    class MockPopen(object):
+        def __init__(self):
+            pass
+
+        def communicate(self, input=None):
+            pass
+
+        @property
+        def returncode(self):
+            pass
+
+    mock_popen = MockPopen()
+    mock_popen.communicate = mock.Mock(
+        return_value=(
+            "mock subprocess stdout",
+            "mock subprocess stderr",
+        )
+    )
+    mock_returncode = mock.PropertyMock(return_value=1)
+    type(mock_popen).returncode = mock_returncode
+
+    setattr(subprocess, "Popen", lambda *args, **kargs: mock_popen)
+
+
+class TestTendermintLogMessagesBuffer(BaseTendermintServerTest):
+    """Test Tendermint message logging"""
+
+    @wait_for_node_to_run
+    def test_tendermint_logs(self, mock_popen) -> None:
+        """Test Tendermint logs"""
+
+        # with mock.patch.object(
+        #     self.tendermint_node._process.stdout,
+        #     "readline",
+        #     return_value="Mocked information\n",
+        # ):
+        for _ in range(100000):
+            self.tendermint_node.write_line(
+                "Useful information\n"
+            )  # we should not be reading this due to mocking
+
+        with open(os.environ["LOG_FILE"], "r") as f:
+            lines = "".join(f.readlines())
+            print(lines)
+
+        self.tendermint_node.stop()
