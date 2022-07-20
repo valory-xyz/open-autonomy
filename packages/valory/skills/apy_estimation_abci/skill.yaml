@@ -8,7 +8,7 @@ aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
   README.md: bafybeiceds6hedhgipxihnl2qt7i2woxsn4fw5ue3evm4aqvknjfpwnbay
   __init__.py: bafybeif4et2adwa4mtx4clsfcpqk77w23kdq5642vulkddnrsxms6ngbma
-  behaviours.py: bafybeiedpodoybosznifqrmppfng4mn4m3k6mfg6yvejgdnkjxw2pthv4y
+  behaviours.py: bafybeidqm72cjo7n4de5di2hrea27gsxffa3tg65whyzl73u5uxuqwh4v4
   dialogues.py: bafybeig4tc4thbpsixmbn35kj7jim2gzd7cvxxu4u3xoeyxqzpumuhrdzm
   fsm_specification.yaml: bafybeid56g5zov7zb2hnauahbejn5k3ilymrbg2aihhybzvzwdhbbctexq
   handlers.py: bafybeibmzghvqekt7iymu6s6yn5tk7lpdmejba4n7dpsz2do3cgfqz7b2a
@@ -16,7 +16,7 @@ fingerprint:
   ml/forecasting.py: bafybeib54a6dzcjlilbkzcpgwrycbkjlrmzox33tas547r2v5hja2qm52m
   ml/optimization.py: bafybeibeftwvgkjxlykbcn6rnkenuoljluykh3yx4pjijnulixmoexmcvq
   ml/preprocessing.py: bafybeieha65b5cslcyyjobjupebyqovod7aigohdidcawz5b6tlxqxpruq
-  models.py: bafybeicw7ri3jzqkrcvsppgcn5ukkzgnix3rfkr6misfk2efmuzmprqah4
+  models.py: bafybeib3rgkfyzbyqfk5aupfxkx2zvyknldrne5chzjb2jsut72epzvgm4
   payloads.py: bafybeiaomj7i7ouzwzgs2un7w5vptkilmhrs3sk7hzapc6pswltjav3xea
   rounds.py: bafybeidgxl2evu5k2pdirvm7nyxuvilrq57n3x44bpieqvq7hh54iibsfq
   tasks.py: bafybeihudp5vyhelqnl5eqakjpvuekaoamtbrghss4k2yysvkczspjbbia
@@ -24,7 +24,7 @@ fingerprint:
   tools/etl.py: bafybeif52kzh46ebiu6s47hbgov6adz557ziv42xmh3j6ejgyyfqzh7pzq
   tools/general.py: bafybeiggrhs5pko3q4soobaj7vsimrlwixpfprrup7jtwzr3o6eh5ezuh4
   tools/io.py: bafybeiay2r3f2zsmiqt4xb47lm42tg3lhjbhknnmej3grifemc5eumongu
-  tools/queries.py: bafybeian242jrzgvmrlzaqcmj63gucmy4ramd3pkfzwep2jxh3lok5h3fy
+  tools/queries.py: bafybeifjtuv4v7f3cp6eyf5vnirtd463yy4x3frzyudgg4xwdie7drk7bi
 fingerprint_ignore_patterns: []
 connections:
 - valory/abci:0.1.0:bafybeiaqoaub5jverxutngxtbfcshucsg7fqkcrdgbjfdsrdbfntwyhawq

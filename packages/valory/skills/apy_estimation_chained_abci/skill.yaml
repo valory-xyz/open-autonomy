@@ -13,7 +13,7 @@ fingerprint:
   dialogues.py: bafybeih2x4uyoj2c5j46jjn6jiddxcvx6vbsb3pf6b45fzf657mtqu2t5e
   fsm_specification.yaml: bafybeid4iuax46gzkeb77g6ezs2arae43lmv3qk36dk7kityg2iwyr2v4a
   handlers.py: bafybeibmzghvqekt7iymu6s6yn5tk7lpdmejba4n7dpsz2do3cgfqz7b2a
-  models.py: bafybeibyqntrlro77qydafkzdu4rbyxsnxfjzfm76nzt32shoqwffyki5y
+  models.py: bafybeifo2eoh5tx2uinqn7mxshvzqma2oc2vbm4u4tevpgsbtiyb5ybbre
 fingerprint_ignore_patterns: []
 connections:
 - valory/abci:0.1.0:bafybeiaqoaub5jverxutngxtbfcshucsg7fqkcrdgbjfdsrdbfntwyhawq
@@ -28,7 +28,7 @@ protocols:
 - valory/ledger_api:1.0.0:bafybeifaozy766hngsqc5a5kpebseusq4cc3woh4ayycdoa7r3mjkvhzr4
 skills:
 - valory/abstract_round_abci:0.1.0:bafybeig5ixtcaemurqwfy6pzzyiwc34azrxtowuh3k35hsate4u5jesc7a
-- valory/apy_estimation_abci:0.1.0:bafybeifyzwdup25i75yekuo3qasdgyhwxqaoncoanlxytfc23b23njdyx4
+- valory/apy_estimation_abci:0.1.0:bafybeifxo5flr5xuotsdzcfq742ekebhagqhhuuuq6k6tmp6yymqrojx6u
 - valory/registration_abci:0.1.0:bafybeiecg56lfdsqae6jovf7yuj4moi32usnjzvtyatcds2mtwtg2kqpt4
 behaviours:
   main:
