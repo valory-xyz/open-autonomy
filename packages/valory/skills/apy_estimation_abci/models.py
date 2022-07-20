@@ -153,7 +153,7 @@ class SubgraphsMixin:
         return getattr(self.context, name, None)
 
     def get_subgraph(self, name: str) -> ValidatedSubgraphType:
-        """Get a subgraph by its name."""
+        """Get a subgraph by its name. If it does not exist, an `AttributeError` is raised."""
         return getattr(self.context, name)
 
     @property
