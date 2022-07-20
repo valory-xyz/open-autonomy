@@ -117,7 +117,9 @@ class TestAPYParams:
 
     @pytest.mark.parametrize("backwards_compatible", (True, False))
     @pytest.mark.parametrize("param_value", (None, "not_an_int", 0))
-    def test__validate_params(self, backwards_compatible: bool, param_value: Union[None, str, int]) -> None:
+    def test__validate_params(
+        self, backwards_compatible: bool, param_value: Union[None, str, int]
+    ) -> None:
         """Test `__validate_params`."""
         args = APY_PARAMS_ARGS
         kwargs = APY_PARAMS_KWARGS.copy()
@@ -137,7 +139,11 @@ class TestAPYParams:
             return
 
         apy_params = APYParams(*args, **kwargs)
-        assert apy_params.pair_ids == ["supported"] if backwards_compatible else kwargs["pair_ids"]
+        assert (
+            apy_params.pair_ids == ["supported"]
+            if backwards_compatible
+            else kwargs["pair_ids"]
+        )
         assert apy_params.optimizer_params["timeout"] is param_value
         assert apy_params.optimizer_params["window_size"] is param_value
 

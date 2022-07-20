@@ -198,9 +198,13 @@ jobs:
 
           # build required images
           pip install .
-          autonomy deploy build image valory/oracle_hardhat
-          autonomy deploy build image valory/oracle_hardhat --dev
-          autonomy deploy build image valory/oracle_hardhat --dependencies
+          autonomy deploy build deployment valory/oracle_hardhat deployments/keys/hardhat_keys.json --local
+
+          cd abci_build
+          autonomy deploy build image
+          autonomy deploy build image --dev
+          autonomy deploy build image --dependencies
+          cd ..
 
           # build hardhat node in third_party/safe-contracts
           cd third_party/safe-contracts &&\

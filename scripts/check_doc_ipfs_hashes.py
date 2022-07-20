@@ -29,7 +29,8 @@ from typing import Dict, Optional
 import yaml
 
 
-AEA_COMMAND_REGEX = r"(?P<full_cmd>(?P<cli>aea|autonomy) (?P<cmd>fetch|add .*) (?:(?P<vendor>.*)\/(?P<package>.[^:]*):(?P<version>\d+\.\d+\.\d+)?:?)?(?P<hash>Q[A-Za-z0-9]+))"
+IPFS_HASH_REGEX = r"bafybei[A-Za-z0-9]{52}"
+AEA_COMMAND_REGEX = r"(?P<full_cmd>(?P<cli>aea|autonomy) (?P<cmd>fetch|add .*) (?:(?P<vendor>.*)\/(?P<package>.[^:]*):(?P<version>\d+\.\d+\.\d+)?:?)?(?P<hash>bafybei[A-Za-z0-9]{52}))"
 
 ROOT_DIR = Path(__file__).parent.parent
 
@@ -114,6 +115,7 @@ class PackageHashManager:
             self.package_tree.setdefault(p.vendor, {})
             self.package_tree[p.vendor].setdefault(p.type, {})
             self.package_tree[p.vendor][p.type].setdefault(p.name, p)
+            assert re.match(IPFS_HASH_REGEX, p.hash)  # detect wrong regexes
 
     def get_package_by_hash(self, package_hash: str) -> Optional[Package]:
         """Get a package given its hash"""
