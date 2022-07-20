@@ -64,9 +64,7 @@ def parse_readme():
         readme = f.read()
 
     # replace relative links of images
-    raw_url_root = (
-        "https://raw.githubusercontent.com/valory-xyz/open-autonomy/main/"
-    )
+    raw_url_root = "https://raw.githubusercontent.com/valory-xyz/open-autonomy/main/"
     replacement = raw_url_root + r"\g<0>"
     readme = re.sub(r"(?<=<img src=\")(/.*)(?=\")", replacement, readme, re.DOTALL)
 
@@ -82,7 +80,16 @@ if __name__ == "__main__":
         url=about["__url__"],
         long_description=parse_readme(),
         long_description_content_type="text/markdown",
-        package_data={"autonomy": ["py.typed"]},
+        package_data={
+            "autonomy": [
+                "py.typed",
+                "data/*",
+                "data/Dockerfiles/agent/*",
+                "data/Dockerfiles/dev/*",
+                "data/Dockerfiles/hardhat/*",
+                "data/Dockerfiles/tendermint/*",
+            ]
+        },
         packages=find_packages(include=["autonomy*"]),
         classifiers=[
             "Environment :: Console",
