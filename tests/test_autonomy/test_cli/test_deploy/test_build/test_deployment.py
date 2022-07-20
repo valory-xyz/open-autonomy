@@ -71,9 +71,6 @@ class TestBuildDeployment(BaseCliTest):
         )
 
         os.chdir(cls.t)
-        cls.cli_runner.invoke(
-            cli, ("deploy", "build", "image", "valory/oracle_hardhat", "--dependencies")
-        )
 
     def test_docker_compose_build(
         self,
