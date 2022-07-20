@@ -1,6 +1,6 @@
 # Release History - `open-autonomy`
 
-# 0.1.4
+# 0.1.4 (2022-20-08)
 
 Autonomy:
 - Ports deployment resources as data files
