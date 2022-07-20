@@ -342,15 +342,24 @@ class DFA:
         )
 
 
-event_pattern = re.compile("return.*Event.(\w+)", re.DOTALL)
 
 def check_returned_events(dfa:DFA, module:ModuleType) -> None:
 
     returned_events = set()
     # Get the subclasses of AbstractRound defined in the module.
-    for name, obj in inspect.getmembers(module, lambda x: inspect.isclass(x) and x.__module__ == module.__name__ and issubclass(x, AbstractRound)):
+    for name, obj in inspect.getmembers(module, lambda x: inspect.isclass(x) and issubclass(x, AbstractRound)):
         src = inspect.getsource(obj.end_block)
-        returned_events.update(event_pattern.findall(src))
+        returned_events.update(re.findall("return.*Event.(\w+)", src, re.DOTALL))
+        print(name)
+        print(getattr(obj, "done_event", None))
+
+
+
+
+
+
+    print("RETURNED EVENTS = " + str(returned_events))
+    print("DFA EVENTS      = " + str(dfa.alphabet_in))
 
     if dfa.alphabet_in is not returned_events:
         raise DFASpecificationError(
