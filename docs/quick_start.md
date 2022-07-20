@@ -91,8 +91,8 @@ In this case, we consider the [Oracle agent service](./price_oracle_intro.md).
         It is also possible to generate a deployment using a local service definition. See the [CLI section](./autonomy.md) for the complete details.
 
 3. Open a second terminal and run a local Hardhat node that will emulate a blockchain node. For convenience, we provide a Docker image in Docker Hub that can be run directly as
-   ```bash
-      docker run -p 8545:8545 -it valory/open-autonomy-hardhat:0.1.0
+    ```bash
+    docker run -p 8545:8545 -it valory/open-autonomy-hardhat:0.1.0
     ```
 
 4. Return to the workspace terminal. The build configuration will be located in `./abci_build`. Execute `docker-compose` as indicated below. This will deploy a local [Oracle agent service](./price_oracle_intro.md) with four agents connected to four Tendermint nodes.
