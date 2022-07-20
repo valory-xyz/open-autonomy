@@ -4,6 +4,7 @@ FROM valory/open-aea-user:${AEA_VERSION}
 MAINTAINER Valory AG
 
 COPY openssl.cnf /etc/ssl
+COPY Pipfile /home/ubuntu/Pipfile
 
 WORKDIR /home/ubuntu
 ENV PATH=$PATH:/home/ubuntu/.local/bin
@@ -18,7 +19,6 @@ RUN python -m pip install --upgrade pip
 RUN python -m pip install --force-reinstall pipenv virtualenv --user
 RUN python -m pip uninstall -y setuptools
 WORKDIR /home/ubuntu
-COPY Pipfile.dev /home/ubuntu/Pipfile
 
 
 COPY start_dev.sh /home/ubuntu/start_dev.sh

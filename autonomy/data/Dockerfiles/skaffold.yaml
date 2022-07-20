@@ -46,10 +46,15 @@ profiles:
       - op: remove
         path: /build/artifacts/0/docker
   - name: dev
-    patches:
-      - op: replace
-        path: /build/artifacts/0/docker/dockerfile
-        value: Dockerfile.develop
-      - op: add
-        path: /build/artifacts/0/docker/cliFlags
-        value: ["--no-cache", "--pull", "--force-rm"]
+    build:
+      tagPolicy:
+        envTemplate:
+          template: "{{.VERSION}}"
+      artifacts:
+      - image: valory/open-autonomy-open-aea
+        context: dev/
+        docker:
+          dockerfile: Dockerfile
+          buildArgs:
+            AEA_VERSION: "1.13.0"
+            AEA_AGENT: "{{.AEA_AGENT}}"
