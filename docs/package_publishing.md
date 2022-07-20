@@ -31,9 +31,7 @@ This metadata will be included in a ```json``` file that will be pushed to IPFS 
 The on-chain protocol form contains:
 
 - Package owner address
-- Developer address
 - Metadata IPFS hash (previously calculated in the metadata form)
-- Package description
 - Dependencies of the component (i.e. other components)
 
 After all this details have been filled out and sent, the package will be registered on the on-chain protocol. The component
