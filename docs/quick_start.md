@@ -31,6 +31,9 @@ Ensure your machine satisfies the following requirements:
 - Python `>= 3.7` (recommended `>= 3.10`)
 - [Tendermint](https://docs.tendermint.com/master/introduction/install.html) `==0.34.19`
 - [Pipenv](https://pipenv.pypa.io/en/latest/install/) `>=2021.x.xx`
+- [Kubectl](https://kubernetes.io/docs/tasks/tools/)
+- [Docker Engine](https://docs.docker.com/engine/install/)
+- [Docker Compose](https://docs.docker.com/compose/install/)
 
 ## Setup
 
@@ -92,3 +95,5 @@ In this case, we consider the [Hello World agent service](https://docs.autonolas
     ```bash
     docker logs {container_id} --follow
     ```
+    where `{container_id}` refers to the Docker container ID for either an agent
+    (`abci0`, `abci1`, `abci2` and `abci3`) or a Tendermint node (`node0`, `node1`, `node2` and `node3`).
