@@ -47,43 +47,48 @@ pip install open-autonomy
 
 ## Deploy a local agent service
 
-Follow the steps indicated in the diagram to define and build and deploy locally an example agent service using Docker Compose.
-In this case, we consider the demonstration [Hello World agent service](https://docs.autonolas.network/service_example/).
+Follow the steps indicated below to download a demonstration agent service from the Service Registry, and deploy it locally using Docker Compose.
+In this case, we consider the [Hello World agent service](https://docs.autonolas.network/service_example/).
 
-
-1. Download the files containing the Dockerfile templates.
-    ```bash
-    git clone --recursive git@github.com:valory-xyz/open-autonomy.git
-    cd open-autonomy
-    cd third_party/safe-contracts && yarn install
-    cd ../..
-    cd third_party/contracts-amm && yarn install
-    cd ../..
-    make new_env
-    pipenv shell
+1. Prepare a JSON file `keys.json` containing the addresses and keys of the four agents that make up the [Hello World agent service](https://docs.autonolas.network/service_example/). Below you have some sample keys for testing:
+    ```json
+    [
+        {
+            "address": "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
+            "private_key": "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80"
+        },
+        {
+            "address": "0x70997970C51812dc3A010C7d01b50e0d17dc79C8",
+            "private_key": "0x59c6995e998f97a5a0044966f0945389dc9e86dae88c7a8412f4603b6b78690d"
+        },
+        {
+            "address": "0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC",
+            "private_key": "0x5de4111afa1a4b94908f83103eb1f1706367c2e68ca870fc3fb9a804cdab365a"
+        },
+        {
+            "address": "0x90F79bf6EB2c4f870365E785982E1f101E93b906",
+            "private_key": "0x7c852118294e51e653712a81e05800f419141751be58f605c371e15141b007a6"
+        }
+    ]
     ```
 
-    !!!warning
-        The commands shown above are currently required in order to download a number of template files that are expected to be integrated in an upcoming release of the {{open_autonomy}} framework.
 
-2. Build the Docker images that make up the agent service.
+2. Use the CLI to townload and build the images to deploy the [Hello World agent service](https://docs.autonolas.network/service_example/):
     ```bash
-    autonomy deploy build image valory/hello_world
-    autonomy deploy build image valory/hello_world --dependencies
+      autonomy deploy build deployment valory/hello_world:bafybeidlqr3bwzb2zxxxt7fcgrucjx6kbnqdynr77slybnampvjenuic2i keys.json
     ```
-3. Generate the relevant build configuration for the agent service.
-    ```bash
-    autonomy deploy build deployment valory/hello_world deployments/keys/hardhat_keys.json
-    ```
+    The command above generates the required images to run the agent service using the keys provided in the `keys.json` file. In this case, we are accessing the service definition located in the Service Registry.
 
-4. The build configuration will be located in `./abci_build`. Execute `docker-compose` as indicated below.
-   This will generate a Hello World agent service with 4 agents connected to 4 Tendermint nodes.
+    !!!note
+        It is also possible to generate a deployment using a local service definition. See the [CLI section](./autonomy.md) for the complete details.
+
+3. The build configuration will be located in `./abci_build`. Execute `docker-compose` as indicated below. This will deploy a local [Hello World agent service](https://docs.autonolas.network/service_example/) with four agents connected to four Tendermint nodes.
     ```bash
     cd abci_build
     docker-compose up --force-recreate
     ```
 
-5. The logs of a single agent or node can then be inspected with, e.g.,
+4. The logs of a single agent or node can then be inspected with, e.g.,
     ```bash
-    docker logs {container_id} --follows
+    docker logs {container_id} --follow
     ```
