@@ -37,13 +37,19 @@ Ensure your machine satisfies the following requirements:
 
 ## Setup
 
-1. Setup the environment
+1. Create a workspace folder, e.g.,
+```bash
+mkdir my_service
+cd my_service
+```
+
+2. Setup the environment
 ```bash
 export OPEN_AEA_IPFS_ADDR="/dns/registry.autonolas.tech/tcp/443/https"
 touch Pipfile && pipenv --python 3.10 && pipenv shell
 ```
 
-2. Install {{open_autonomy}}
+3. Install {{open_autonomy}}
 ```bash
 pip install open-autonomy
 ```
@@ -78,7 +84,7 @@ In this case, we consider the [Hello World agent service](https://docs.autonolas
 
 2. Use the CLI to townload and build the images to deploy the [Hello World agent service](https://docs.autonolas.network/service_example/):
     ```bash
-      autonomy deploy build deployment valory/hello_world:bafybeidlqr3bwzb2zxxxt7fcgrucjx6kbnqdynr77slybnampvjenuic2i keys.json
+      autonomy deploy build deployment valory/hello_world:bafybeigw2hpuir72fca6oxfvh4kmy3rrllzivchw63tdi5ylkzvvssybvm keys.json
     ```
     The command above generates the required images to run the agent service using the keys provided in the `keys.json` file. In this case, we are accessing the service definition located in the Service Registry.
 
