@@ -57,9 +57,9 @@ pip install open-autonomy
 ## Deploy a local agent service
 
 Follow the steps indicated below to download a demonstration agent service from the Service Registry, and deploy it locally using Docker Compose.
-In this case, we consider the [Hello World agent service](https://docs.autonolas.network/service_example/).
+In this case, we consider the [Hello World agent service](./service_example.md).
 
-1. Prepare a JSON file `keys.json` containing the addresses and keys of the four agents that make up the [Hello World agent service](https://docs.autonolas.network/service_example/). Below you have some sample keys for testing:
+1. Prepare a JSON file `keys.json` containing the addresses and keys of the four agents that make up the [Hello World agent service](./service_example.md). Below you have some sample keys for testing:
     ```json
     [
       {
@@ -82,7 +82,7 @@ In this case, we consider the [Hello World agent service](https://docs.autonolas
     ```
 
 
-2. Use the CLI to townload and build the images to deploy the [Hello World agent service](https://docs.autonolas.network/service_example/):
+2. Use the CLI to townload and build the images to deploy the [Hello World agent service](./service_example.md):
     ```bash
       autonomy deploy build deployment valory/hello_world:bafybeigw2hpuir72fca6oxfvh4kmy3rrllzivchw63tdi5ylkzvvssybvm keys.json
     ```
@@ -91,7 +91,7 @@ In this case, we consider the [Hello World agent service](https://docs.autonolas
     !!!note
         It is also possible to generate a deployment using a local service definition. See the [CLI section](./autonomy.md) for the complete details.
 
-3. The build configuration will be located in `./abci_build`. Execute `docker-compose` as indicated below. This will deploy a local [Hello World agent service](https://docs.autonolas.network/service_example/) with four agents connected to four Tendermint nodes.
+3. The build configuration will be located in `./abci_build`. Execute `docker-compose` as indicated below. This will deploy a local [Hello World agent service](./service_example.md) with four agents connected to four Tendermint nodes.
     ```bash
     cd abci_build
     docker-compose up --force-recreate
