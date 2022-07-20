@@ -1,17 +1,17 @@
 # Example of a service
 
-This section is aimed at giving a general, introductory overview of the library and a high-level view of the main elements that make an Agent Service, without delving into the specific details. Hopefully this will give a global understanding on the development process and the relationship between the main components of the stack.
+This section is aimed at giving a general, introductory overview of the library and a high-level view of the main elements that make an agent service, without delving into the specific details. Hopefully this will give a global understanding on the development process and the relationship between the main components of the stack.
 
 We start with a simple "Hello World" example service, and we will add progressively more complexity and functionality to it.
 
 
-## A Hello World! {{agent_service}}
+## A Hello World! agent service
 We start our tour to the framework by visiting an elementary example. The goal is to come up with a service composed of four agents. The functionality of this service will be extremely simple. Namely, each agent will output the following message to its own console:
 > "Agent $i$ in period $j$ says: Hello World!"
 
 More concretely, we divide the timeline into _periods_, and within each period, _only one designated agent will print the message_. The other agents will print nothing. Think of a period as an interval where the service carries out an iteration of its intended functionality.
 
-The architecture of this {{agent_service}} is as simple as it can be: four agents that are inherently connected through a _consensus gadget_.
+The architecture of this agent service is as simple as it can be: four agents that are inherently connected through a _consensus gadget_.
 
 <figure markdown>
 ![](./images/hello_world_architecture.svg)
@@ -21,21 +21,21 @@ The architecture of this {{agent_service}} is as simple as it can be: four agent
 
 !!! warning "Important"
 
-    Every {{agent_service}} has an associated *consensus gadget*:
+    Every agent service has an associated *consensus gadget*:
 
     * The consensus gadget is the component that makes possible for the agents to synchronise data. This allows them to, e.g., reach agreement on certain decentralized operations or simply share information.
 
-    * Anything happening at the consensus network is completely abstracted away to the developer. An application run by the {{agent_service}} can be thought and developed as a single "virtual" application.
+    * Anything happening at the consensus network is completely abstracted away to the developer. An application run by the agent service can be thought and developed as a single "virtual" application.
 
 
 This is what the service would look like in all its glory:
 
 <figure markdown>
 ![](./images/hello_world_action.svg)
-<figcaption>Hello World {{agent_service}} in action</figcaption>
+<figcaption>Hello World agent service in action</figcaption>
 </figure>
 
-Even though printing "Hello World" on their local console is far from being an exciting functionality, this example shows a number of  nontrivial elements that are key elements in an {{agent_service}}:
+Even though printing "Hello World" on their local console is far from being an exciting functionality, this example shows a number of  nontrivial elements that are key elements in an agent service:
 
 * The service defines a sequence of "atomic," well-defined actions whose execution in the appropriate order achieves the intended functionality.
 * Agents have to interact with each other to execute the overall functionality, and reach a consensus on a number of decisions at certain moments (e.g., who is the agent that prints the message in each period).
@@ -47,19 +47,19 @@ Of course, in this toy example we assume that the agent that prints the message 
 
 The main questions that we try to answer at this point are:
 
-* What are the main elements of the {{open_autonomy}} framework to implement an {{agent_service}}?, and
-* How do agents interact with the different components in an {{agent_service}}?
+* What are the main elements of the {{open_autonomy}} framework to implement an agent service?, and
+* How do agents interact with the different components in an agent service?
 
-## The Finite State Machine of an {{agent_service}}
+## The Finite State Machine of an agent service
 
-The first step when designing an {{agent_service}} is to divide the intended functionality into "atomic" steps. For example, for the Hello World service, we identify these steps as
+The first step when designing an agent service is to divide the intended functionality into "atomic" steps. For example, for the Hello World service, we identify these steps as
 
 1. Each agent registers to the service.
 2. [If Step 1 OK] Agents select what is the next agent to print the message. We call this agent the _keeper_.
 3. [If Step 2 OK] The keeper prints the message "Hello World" on its local console.
 4. Pause for a while and go to Step 2.
 
-The reader should have probably already identified Steps 2 and 3. Step 1 is a requirement in each {{agent_service}}: it is simply a preliminary stage where each agent shows its willingness to participate actively in the service. This will allow all the agents to have an idea on what agents are participating in the service. Step 4, on the other hand is also a standard step in services that "loop", like the Hello World service. It serves as a "sleep" block of the {{agent_service}}.
+The reader should have probably already identified Steps 2 and 3. Step 1 is a requirement in each agent service: it is simply a preliminary stage where each agent shows its willingness to participate actively in the service. This will allow all the agents to have an idea on what agents are participating in the service. Step 4, on the other hand is also a standard step in services that "loop", like the Hello World service. It serves as a "sleep" block of the agent service.
 
 Graphically, the sequence of atomic steps that the service is following can be seen as
 
@@ -80,7 +80,7 @@ This sequence diagram of operations can be interpreted as a finite state machine
 
     The [state-transition function](https://en.wikipedia.org/wiki/Finite-state_machine#Mathematical_model) indicates how to move from a given state once an event has been received. At any timepoint, an FSM can only be located at a given state (_current state_). You can find a brief introduction about FSMs on Wikipedia, but for our purposes it is enough to understand the three bullet points above.
 
-    Note that, according to the most the rigorous definition of an FSM, besides the current state, the FSM "has no other memory." That is, it does not know _how_ it arrived at a given state. Of course, in order to develop useful {{agent_service}}s, the {{open_autonomy}} framework equips these FSMs with persistent storage.
+    Note that, according to the most the rigorous definition of an FSM, besides the current state, the FSM "has no other memory." That is, it does not know _how_ it arrived at a given state. Of course, in order to develop useful agent services, the {{open_autonomy}} framework equips these FSMs with persistent storage.
 
 Each agent runs internally a process or application that implements the service FSM, processes events and transit to new states according to the state-transition function. The component that encapsulates this functionality is an agent _skill_. As its name suggests, a skill is some sort of "knowledge" that the agent possesses.
 
@@ -95,7 +95,7 @@ Observe that Agent 2 has three additional skills. In fact, an agent can have one
 
 !!! warning "Important"
 
-    All agents in an {{agent_service}} are implemented by the same codebase. The codebase implementing an agent is called a _canonical agent_, whereas each of the actual instances is called _agent instance_, or simply _agent_ for short.
+    All agents in an agent service are implemented by the same codebase. The codebase implementing an agent is called a _canonical agent_, whereas each of the actual instances is called _agent instance_, or simply _agent_ for short.
     Each agent instance is then parameterized with their own set of keys, addresses and other required attributes.
 
 ## Transitioning through the FSM
@@ -116,7 +116,7 @@ A high level view of what occurs is as follows:
     ![](./images/hello_world_sequence_2.svg)
 
 
-3.  The consensus gadget reads the agents' outputs, and ensures that the collection of responses observed is consistent. The gadget takes the responsibility of executing the consensus algorithm, which is abstracted away to the developer of the {{agent_service}}.
+3.  The consensus gadget reads the agents' outputs, and ensures that the collection of responses observed is consistent. The gadget takes the responsibility of executing the consensus algorithm, which is abstracted away to the developer of the agent service.
     *   Note that this does not mean that the consensus gadget ensures that all the agents vote the same. Rather, it means that all the agents reach an agreement on what vote was sent by each of them.
 
     ![](./images/hello_world_sequence_3.svg)
@@ -137,7 +137,7 @@ A high level view of what occurs is as follows:
 
 !!! warning "Important"
 
-    As illustrated by the example above, there are a number of components from a skill in the {{open_autonomy}} framework that the developer needs to define in order to build an {{agent_service}}. More concretely, these are:
+    As illustrated by the example above, there are a number of components from a skill in the {{open_autonomy}} framework that the developer needs to define in order to build an agent service. More concretely, these are:
 
     * **`AbciApp`**: The component that defines the FSM itself and the transitions between states.
     * **`Rounds`**: The components that process the input from the consensus gadget and outputs the appropriate events to make the next transition. **There must be one round per FSM state.**
@@ -150,7 +150,7 @@ A high level view of what occurs is as follows:
 
     As you have probably realized at this point, there are several items which are called after the interface that connects with the consensus gadget, i.e., the Application Blockchain Interface (ABCI). In case you are not familiar with it, for now, it is enough to know that it is an interface that abstracts away the protocol executed at the consensus gadget, and it produces callbacks to the skill when relevant events occur (e.g., agreement on a block). You can read more about the ABCI [here](https://docs.tendermint.com/master/spec/abci/).
 
-At this point, the walkthrough that we have presented, i.e., a single transition from one state of the FSM, has essentially introduced the main components of an agent and the main interactions that occur in an {{agent_service}}. It is important that the developer keeps these concepts in mind, since executions of further state transitions can be easily mapped with what has been presented here so far.
+At this point, the walkthrough that we have presented, i.e., a single transition from one state of the FSM, has essentially introduced the main components of an agent and the main interactions that occur in an agent service. It is important that the developer keeps these concepts in mind, since executions of further state transitions can be easily mapped with what has been presented here so far.
 
 ## Executing the Main Functionality
 
@@ -169,7 +169,7 @@ As a result, we have finished a "happy path" of execution of the FSM, concluding
 
 <figure markdown>
 ![](./images/hello_world_result.svg)
-<figcaption>Result of the execution the second period of the Hello World {{agent_service}}</figcaption>
+<figcaption>Result of the execution the second period of the Hello World agent service</figcaption>
 </figure>
 
 
@@ -186,15 +186,15 @@ As a result, we have finished a "happy path" of execution of the FSM, concluding
     When the waiting condition is not met during a certain interval, a special timeout event is generated by the `Round`, and the developer is in charge of defining how the FSM will transit in that case.
 
 ## Bird's Eye View
-As a summary, find below an image which shows the main components of the agent and the skill related to the Hello World {{agent_service}} presented in this overview. Of course, this is by no means the complete picture of what is inside an agent, but it should give the developer a good intuition of what are the main elements that play a role in any {{agent_service}} and how they interact.
+As a summary, find below an image which shows the main components of the agent and the skill related to the Hello World agent service presented in this overview. Of course, this is by no means the complete picture of what is inside an agent, but it should give the developer a good intuition of what are the main elements that play a role in any agent service and how they interact.
 
 <figure markdown>
 ![](./images/hello_world_agent_internal.svg)
-<figcaption>Main components of an agent that play a role in an {{agent_service}}. Red arrows indicate a high-level flow of messages when the agent is in the SelectKeeper state.</figcaption>
+<figcaption>Main components of an agent that play a role in an agent service. Red arrows indicate a high-level flow of messages when the agent is in the SelectKeeper state.</figcaption>
 </figure>
 
-## Coding the Hello World! {{agent_service}}: A Primer
-So far, we have given a conceptual description of the Hello World {{agent_service}}. As we have seen, there are a number of components that the developer needs to focus in order to fully define the service.
+## Coding the Hello World! agent service: A Primer
+So far, we have given a conceptual description of the Hello World agent service. As we have seen, there are a number of components that the developer needs to focus in order to fully define the service.
 
 The objective of this section is to explore what are the main steps to code and get the service running. Note that the complete code for the example can be found in
 
@@ -224,7 +224,7 @@ skills:
 # ...
 ```
 
-It is mandatory that all agents that will be part of an {{agent_service}} have the `abci` connection, the `abci` protocol, as well as the `abstract_abci` and `abstract_round_abci` skills. These are the essential components that allow to interact with the consensus gadget, and contain helper and base classes that simplify the process of building the code for the skill.
+It is mandatory that all agents that will be part of an agent service have the `abci` connection, the `abci` protocol, as well as the `abstract_abci` and `abstract_round_abci` skills. These are the essential components that allow to interact with the consensus gadget, and contain helper and base classes that simplify the process of building the code for the skill.
 
 Additionally, the agent can use other connections, protocols or skills, depending of its particular needs. In the example, the `http_client` connection and the `http` protocol allows the agent to interact with HTTP servers (although we are not using it in this service). Similarly, you can add the `ledger` connection and the `ledger_api` protocol in case the agent needs to interact with a blockchain.
 
@@ -404,9 +404,9 @@ Let us remark a number of noteworthy points from this code:
 4.  The agent must send the `Payload`, which the consensus gadget will be in charge of synchronizing with all the agents.
 5.  The agent must wait until the consensus gadgets finishes its work, and mark the state as 'done'.
 
-Steps 3, 4, 5 above are common for all the `Behaviours` in the {{agent_service}} skills.
+Steps 3, 4, 5 above are common for all the `Behaviours` in the agent service skills.
 
-Once all the `Behaviours` are defined, it is time to define the `RoundBehaviour` class. This class follows a quite standard structure in all the {{agent_service}}s, and the reader can easily infer what is it from the source code:
+Once all the `Behaviours` are defined, it is time to define the `RoundBehaviour` class. This class follows a quite standard structure in all the agent services, and the reader can easily infer what is it from the source code:
 
 ```python
 class HelloWorldRoundBehaviour(AbstractRoundBehaviour):
@@ -456,11 +456,11 @@ class PrintMessagePayload(BaseHelloWorldAbciPayload):
 To conclude this section, let us briefly describe the purposes of each one, and we urge the reader to take a look at the source code:
 
 * `skill.yaml`: This is the skill specification file. Similarly as the agent, it defines the components (protocols, connections, etc.) required by the skill, as well as a number of configuration parameters.
-* `handlers.py`: Defines the `Handlers` (implementing reactive actions) used by the skill. It is mandatory that the skill associated to an {{agent_service}} implements a handler inherited from the `ABCIRoundHandler`. Other handlers are required according to the actions that the skill is performing (e.g., interacting with an HTTP server). As you can see by exploring the file, little coding is expected unless you need to implement a custom protocol.
+* `handlers.py`: Defines the `Handlers` (implementing reactive actions) used by the skill. It is mandatory that the skill associated to an agent service implements a handler inherited from the `ABCIRoundHandler`. Other handlers are required according to the actions that the skill is performing (e.g., interacting with an HTTP server). As you can see by exploring the file, little coding is expected unless you need to implement a custom protocol.
 * `dialogues.py`: It defines the dialogues associated to the protocols described in the `skill.yaml` configuration file. Again, not much coding is expected in most cases.
 * `models.py`:
 * `fsm_specification.yaml`: It contains a specification of the FSM in a simplified syntax. It is used for checking the consistency of the implementation, and it can be automatically generated using a script.
 
 
 ## Further Reading
-While this walkthrough to a simple Hello World example should give a general overview of the development process and the main elements that play a role in an {{agent_service}} and inside an agent, there are a few more elements in the {{open_autonomy}} framework that facilitate building complex applications and interact with real blockchains and other networks. We refer the reader to the more advanced sections of the documentation, where we explore in detail the stack.
+While this walkthrough to a simple Hello World example should give a general overview of the development process and the main elements that play a role in an agent service and inside an agent, there are a few more elements in the {{open_autonomy}} framework that facilitate building complex applications and interact with real blockchains and other networks. We refer the reader to the more advanced sections of the documentation, where we explore in detail the stack.

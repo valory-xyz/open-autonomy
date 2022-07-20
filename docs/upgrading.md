@@ -19,4 +19,3 @@ No backwards incompatible changes
 No backwards incompatible changes
 
 ## `v0.1.0rc1/2` to `v0.1.0`
-

@@ -6,7 +6,7 @@ Departing from the notions of [AEA](./aea.md), [FSM](./fsm.md), and [ABCI](./abc
 An {{fsm_app}} is a replicated application which uses
 an underlying consensus engine implementing the [ABCI](./abci.md).
 Its internal state takes the form of an FSM, and it exhibits proactive behaviours in each of such states.
-{{fsm_app}}s constitute a core part in the {{open_autonomy}} framework to implement {{agent_service}}s.
+{{fsm_app}}s constitute a core part in the {{open_autonomy}} framework to implement agent services.
 
 The figure below depicts an sketch of the internal workings of an {{fsm_app}}, composed of six states (A-F) and six events (1-6):
 
@@ -91,7 +91,7 @@ The figure above depicts an excerpt of a composition of three FSMs into a single
 
 
 ## Considerations to Develop FSM Apps
-- {{agent_service}}s and their associated {{fsm_app}}s must be designed with **determinism at their core**. For this reason, in each  round, agents must agree upon their execution outputs in order to make progress. Any source of "uncontrolled" randomness or code inconsistency that leads to non-determinism will undermine the {{fsm_app}}'s ability to achieve its goal. Sources of non-determinism include but not limited to:
+- agent services and their associated {{fsm_app}}s must be designed with **determinism at their core**. For this reason, in each  round, agents must agree upon their execution outputs in order to make progress. Any source of "uncontrolled" randomness or code inconsistency that leads to non-determinism will undermine the {{fsm_app}}'s ability to achieve its goal. Sources of non-determinism include but not limited to:
     - Non-verifiable randomness libraries.
     - Non deterministic libraries, like ML frameworks that do not guarantee exact same results under the same initial conditions.
     - Using the agent's local time  to make decisions along the execution flow. Agents synchronize using the consensus engine, and that is the only reliable source of "time" that should be used. Sometimes, block timestamp can be a handy property common to all agents and can be used as a `time.now()` equivalent.
