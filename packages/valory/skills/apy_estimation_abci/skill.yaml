@@ -131,13 +131,11 @@ models:
         window_size: null
       pair_ids:
         uniswap_subgraph:
-          ethereum_subgraph:
-          - '0x5777d92f208679db4b9778590fa3cab3ac9e2168'
-          - '0xa374094527e1673a86de625aa59517c5de346d32'
+        - '0x5777d92f208679db4b9778590fa3cab3ac9e2168'
+        - '0xa374094527e1673a86de625aa59517c5de346d32'
         spooky_subgraph:
-          fantom_subgraph:
-          - '0x2a651563c9d3af67ae0388a5c8f89b867038089e'
-          - '0x2b4c76d0dc16be1c31d4c1dc53bf9b45987fc75c'
+        - '0x2a651563c9d3af67ae0388a5c8f89b867038089e'
+        - '0x2b4c76d0dc16be1c31d4c1dc53bf9b45987fc75c'
       reset_tendermint_after: 2
       retry_attempts: 400
       retry_timeout: 3
@@ -175,6 +173,7 @@ models:
     args:
       api_id: spookyswap
       bundle_id: 1
+      chain_subgraph: fantom_subgraph
       headers:
       - Content-Type: application/json
       method: POST
@@ -193,6 +192,7 @@ models:
     args:
       api_id: uniswap
       bundle_id: 1
+      chain_subgraph: ethereum_subgraph
       headers:
       - Content-Type: application/json
       method: POST

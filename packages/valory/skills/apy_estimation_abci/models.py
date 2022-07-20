@@ -64,6 +64,7 @@ class DEXSubgraph(ApiSpecs):
     def __init__(self, *args: Any, **kwargs: Any) -> None:
         """Initialize DEX Subgraph."""
         self.bundle_id: int = self.ensure("bundle_id", kwargs)
+        self.chain_subgraph = self.ensure("chain_subgraph", kwargs)
         self.non_indexed_error_key = kwargs.pop("non_indexed_error_key", "errors")
         self.non_indexed_error_type = kwargs.pop("non_indexed_error_type", "list")
         super().__init__(*args, **kwargs)
@@ -83,7 +84,7 @@ class SpookySwapSubgraph(DEXSubgraph):
     """A model that wraps DEXSubgraph for SpookySwap subgraph specifications."""
 
 
-PairIdsType = Dict[str, Dict[str, List[str]]]
+PairIdsType = Dict[str, List[str]]
 ValidatedSubgraphType = Union[DEXSubgraph, ApiSpecs]
 ValidatedSubgraphsType = ValuesView[ValidatedSubgraphType]
 ValidatedSubgraphsMappingType = Dict[str, ValidatedSubgraphType]
@@ -101,12 +102,12 @@ class SubgraphsMixin:
         """Initialize the mixin object."""
         self._check_attributes()
         utilized_dex_names = set(self.context.params.pair_ids.keys())
-        utilized_block_names = {
-            block_name
-            for dex_pairs in self.context.params.pair_ids.values()
-            for block_name in dex_pairs.keys()
-        }
         utilized_dex_subgraphs = self._get_subgraphs_mapping(utilized_dex_names)
+        utilized_block_names = {
+            dex.chain_subgraph
+            for dex in utilized_dex_subgraphs.values()
+            if dex is not None
+        }
         utilized_block_subgraphs = self._get_subgraphs_mapping(utilized_block_names)
         self._utilized_subgraphs = {
             **utilized_dex_subgraphs,
