@@ -70,6 +70,8 @@ def build_image(  # pylint: disable=too-many-arguments
 
     if profile == ImageProfiles.DEPENDENCIES:
         env["VERSION"] = version
+    elif profile == ImageProfiles.DEVELOPMENT:
+        env["VERSION"] = f"{agent.name}-dev"
     else:
         env["VERSION"] = f"{agent.name}-{version}"
 
@@ -80,7 +82,6 @@ def build_image(  # pylint: disable=too-many-arguments
     else:
         if kubeconfig is not None:  # pragma: nocover
             del env["KUBECONFIG"]
-
     try:
         process = subprocess.Popen(  # nosec # pylint: disable=consider-using-with,W1509
             [
