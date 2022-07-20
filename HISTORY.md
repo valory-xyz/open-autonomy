@@ -5,11 +5,11 @@
 Autonomy:
 - Ports deployment resources as data files
 - Adds support for the usage of remote registry when building a service deployment
-- Updated the image build process
+- Updates the image build process
 
 Packages:
 - Makes Registration ABCI abstract
-- Add check to make sure FSM chaining only involve abstract skills
+- Adds check to make sure FSM chaining only involves abstract skills
 - Sets a deadline for dict serializer hypothesis test in order to resolve flakiness
 
 Docs:
