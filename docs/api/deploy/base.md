@@ -19,7 +19,7 @@ Class to assist with generating deployments.
 #### `__`init`__`
 
 ```python
-def __init__(service_path: Path, keys: Path, packages_dir: Path, number_of_agents: Optional[int] = None, private_keys_password: Optional[str] = None) -> None
+def __init__(service_path: Path, keys: Path, number_of_agents: Optional[int] = None, private_keys_password: Optional[str] = None) -> None
 ```
 
 Initialize the Base Deployment.
@@ -73,26 +73,6 @@ def generate_agent(agent_n: int) -> Dict[Any, Any]
 ```
 
 Generate next agent.
-
-<a id="autonomy.deploy.base.ServiceSpecification.load_agent"></a>
-
-#### load`_`agent
-
-```python
-def load_agent() -> List[Dict[str, str]]
-```
-
-Using specified valory app, try to load the aea.
-
-<a id="autonomy.deploy.base.ServiceSpecification.locate_agent_from_packages_directory"></a>
-
-#### locate`_`agent`_`from`_`packages`_`directory
-
-```python
-def locate_agent_from_packages_directory(local_registry: bool = True) -> str
-```
-
-Using the deployment id, locate the registry and retrieve the path.
 
 <a id="autonomy.deploy.base.BaseDeploymentGenerator"></a>
 
