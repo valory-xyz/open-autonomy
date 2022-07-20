@@ -50,6 +50,7 @@ base_deps = [
     "Flask>=2.0.2,<3.0.0",
     "open-aea[all]>=1.13.0,<2.0.0",
     "pandas<1.4,>=1.3.4",
+    "watchdog >=2.1.6",
 ]
 base_deps.extend(all_extras["cli"])
 
