@@ -27,7 +27,6 @@ from unittest import mock
 
 import yaml
 
-from autonomy.cli import cli
 from autonomy.constants import (
     DEFAULT_BUILD_FOLDER,
     OPEN_AEA_IMAGE_NAME,
