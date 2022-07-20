@@ -1,5 +1,19 @@
 # Release History - `open-autonomy`
 
+# 0.1.4
+
+Autonomy:
+- Ports deployment resources as data files
+- Adds support for the usage of remote registry when building a service deployment
+- Updated the image build process
+
+Packages:
+- Makes Registration ABCI abstract
+- Add check to make sure FSM chaining only involve abstract skills
+- Sets a deadline for dict serializer hypothesis test in order to resolve flakiness
+
+Docs:
+- Adds docs on publishing packages
 
 ## 0.1.3 (2022-15-08)
 
