@@ -7,7 +7,7 @@ a component inception all the way to a service deployment.
 
 The first step begins with a developer creating a component that does something valuable in the context of the framework. This developer creates a software package with the {{open_autonomy}}
 framework. That package, that we know as component, contains not only the code but also its configuration and dependencies (```component.yaml``` in the image). Once the package is completed,
-it needs to be pushed to IPFS registry so other people can access to it. Using the ```autonomy``` CLI a developer can perform this action, and an IPFS hash that
+it needs to be pushed to IPFS registry so other people can access it. Using the ```autonomy``` CLI a developer can perform this action, and an IPFS hash that
 points to this specific version of the code will be returned.
 
 <figure markdown>
