@@ -35,7 +35,7 @@ The on-chain protocol form contains:
 - Dependencies of the component (i.e. other components)
 
 After all this details have been filled out and sent, the package will be registered on the on-chain protocol. The component
-owner will receive in his wallet an NFT that represents the ownsership of this component.
+owner will receive in his wallet an NFT that represents the ownership of this component.
 
 It is important to emphasize that two different pushes to IPFS have been
 performed up to this point: the first one, done by the developer to push the code and a second one done through the frontend to push the metadata (that contains the code hash itself).
