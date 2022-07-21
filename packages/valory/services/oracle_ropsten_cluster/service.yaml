@@ -8,7 +8,12 @@ fingerprint:
   README.md: bafybeidtphhzkcp32sikeqoo4ct57z6kw3yhxkebby3unuwepqdvwgfkga
 fingerprint_ignore_patterns: []
 agent: valory/oracle:0.1.0:bafybeig7j64xv36he4ua3szdozrfr7c2w5sbqb6znpl32wamg5mggadzxe
-network: ropsten
+network:
+  id: ropsten
+  address: https://ropsten.infura.io/v3/2980beeca3544c9fbace4f24218afcd4
+  chain_id: 3
+  poa_chain: false
+  default_gas_price_strategy: eip1559
 number_of_agents: 4
 ---
 setup_args:

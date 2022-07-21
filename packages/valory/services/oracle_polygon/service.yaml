@@ -8,7 +8,12 @@ fingerprint:
   README.md: bafybeifqnvekc6s44wsczofdhofiozxekstjau2bk5yqfqvjuv4wzoopku
 fingerprint_ignore_patterns: []
 agent: valory/oracle:0.1.0:bafybeig7j64xv36he4ua3szdozrfr7c2w5sbqb6znpl32wamg5mggadzxe
-network: polygon
+network:
+  id: polygon
+  address: https://polygon-mainnet.infura.io/v3/1622a5f5b56a4e1f9bd9292db7da93b8
+  chain_id: 137
+  poa_chain: true
+  default_gas_price_strategy: eip1559_polygon
 number_of_agents: 4
 ---
 setup_args:
