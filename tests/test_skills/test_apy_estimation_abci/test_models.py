@@ -73,7 +73,7 @@ class APYParamsKwargsType(TypedDict):
     backwards_compatible: bool
 
 
-APY_PARAMS_ARGS: APYParamsArgsType = "test", MagicMock()
+APY_PARAMS_ARGS: APYParamsArgsType = ("test", MagicMock())
 APY_PARAMS_KWARGS = APYParamsKwargsType(
     tendermint_url="test",
     tendermint_com_url="test",
