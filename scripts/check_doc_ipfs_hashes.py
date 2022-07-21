@@ -27,10 +27,16 @@ from pathlib import Path
 from typing import Dict, Optional
 
 import yaml
+from aea.helpers.base import IPFS_HASH_REGEX, SIMPLE_ID_REGEX
 
 
-IPFS_HASH_REGEX = r"bafybei[A-Za-z0-9]{52}"
-AEA_COMMAND_REGEX = fr"(?P<full_cmd>(?P<cli>aea|autonomy) (?P<cmd>.*) (?:(?P<vendor>.*)\/(?P<package>.[^:]*):(?P<version>\d+\.\d+\.\d+)?:?)?(?P<hash>{IPFS_HASH_REGEX}))"
+CLI_REGEX = fr"(?P<cli>aea|autonomy)"
+CMD_REGEX = fr"(?P<cmd>.*)"
+VENDOR_REGEX = fr"(?P<vendor>{SIMPLE_ID_REGEX})"
+PACKAGE_REGEX = fr"(?P<package>{SIMPLE_ID_REGEX})"
+VERSION_REGEX = fr"(?P<version>\d+\.\d+\.\d+)"
+
+AEA_COMMAND_REGEX = fr"(?P<full_cmd>{CLI_REGEX} {CMD_REGEX} (?:{VENDOR_REGEX}\/{PACKAGE_REGEX}:{VERSION_REGEX}?:?)?(?P<hash>{IPFS_HASH_REGEX}))"
 
 ROOT_DIR = Path(__file__).parent.parent
 
@@ -189,10 +195,12 @@ def check_ipfs_hashes(fix: bool = False) -> None:  # pylint: disable=too-many-lo
     hash_mismatches = False
     old_to_new_hashes = {}
     package_manager = PackageHashManager()
+    matches = 0
 
     for md_file in all_md_files:
         content = read_file(str(md_file))
         for match in re.findall(AEA_COMMAND_REGEX, content):
+            matches += 1
             doc_full_cmd = match[0]
             doc_cmd = match[2]
             doc_hash = match[-1]
@@ -234,6 +242,12 @@ def check_ipfs_hashes(fix: bool = False) -> None:  # pylint: disable=too-many-lo
 
     if not fix and (hash_mismatches or errors):
         print("There are mismatching IPFS hashes in the docs.")
+        sys.exit(1)
+
+    if matches == 0:
+        print(
+            "No commands were found in the docs. The command regex is probably outdated."
+        )
         sys.exit(1)
 
     print("OK")
