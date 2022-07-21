@@ -60,7 +60,11 @@ from packages.valory.skills.apy_estimation_abci.ml.optimization import (
 from packages.valory.skills.apy_estimation_abci.ml.preprocessing import (
     TrainTestSplitType,
 )
-from packages.valory.skills.apy_estimation_abci.models import APYParams, SharedState
+from packages.valory.skills.apy_estimation_abci.models import (
+    APYParams,
+    SharedState,
+    SubgraphsMixin,
+)
 from packages.valory.skills.apy_estimation_abci.payloads import (
     BatchPreparationPayload,
     EstimatePayload,
@@ -152,8 +156,8 @@ class APYEstimationBaseBehaviour(BaseBehaviour, ABC):
 
 
 class FetchBehaviour(
-    APYEstimationBaseBehaviour
-):  # pylint: disable=too-many-instance-attributes
+    APYEstimationBaseBehaviour, SubgraphsMixin
+):  # pylint: disable=too-many-ancestors
     """Observe historical data."""
 
     behaviour_id = "fetch"
@@ -163,6 +167,7 @@ class FetchBehaviour(
     def __init__(self, **kwargs: Any) -> None:
         """Initialize Behaviour."""
         super().__init__(**kwargs)
+        SubgraphsMixin.__init__(self)
         self._save_path = ""
         self._spooky_api_specs: Dict[str, Any] = dict()
         self._timestamps_iterator: Optional[Iterator[int]] = None
