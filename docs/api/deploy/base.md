@@ -4,6 +4,16 @@
 
 Base deployments module.
 
+<a id="autonomy.deploy.base.get_ip"></a>
+
+#### get`_`ip
+
+```python
+def get_ip() -> str
+```
+
+Get local IP address.
+
 <a id="autonomy.deploy.base.ServiceSpecification"></a>
 
 ## ServiceSpecification Objects
@@ -126,6 +136,17 @@ def populate_private_keys() -> "BaseDeploymentGenerator"
 ```
 
 Populate the private keys to the deployment.
+
+<a id="autonomy.deploy.base.BaseDeploymentGenerator.build_network_config_overrides"></a>
+
+#### build`_`network`_`config`_`overrides
+
+```python
+@staticmethod
+def build_network_config_overrides(network_config: Dict[str, Any]) -> Dict[str, Any]
+```
+
+Build network config overrides.
 
 <a id="autonomy.deploy.base.BaseDeploymentGenerator.get_deployment_network_configuration"></a>
 

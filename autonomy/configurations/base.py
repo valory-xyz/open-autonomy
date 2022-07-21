@@ -44,6 +44,7 @@ from autonomy.configurations.constants import DEFAULT_SERVICE_FILE, SCHEMAS_DIR
 from autonomy.configurations.validation import ConfigValidator
 from autonomy.deploy.constants import DEFAULT_NETWORK_CONFIG
 
+
 COMPONENT_CONFIGS: Dict = {
     component.package_type.value: component  # type: ignore
     for component in [
