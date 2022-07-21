@@ -90,6 +90,7 @@ class BaseTendermintServerTest(BaseTendermintTest):
     app: flask.app.Flask
     app_context: flask.ctx.AppContext
     tendermint_node: TendermintNode
+    perform_monitoring = True
 
     @classmethod
     def setup_class(cls) -> None:
@@ -98,7 +99,7 @@ class BaseTendermintServerTest(BaseTendermintTest):
         os.environ["PROXY_APP"] = "kvstore"
         os.environ["CREATE_EMPTY_BLOCKS"] = "true"
         os.environ["LOG_FILE"] = str(cls.path / "tendermint.log")
-        cls.app, cls.tendermint_node = create_app(cls.path / "tm_state")
+        cls.app, cls.tendermint_node = create_app(dump_dir=cls.path / "tm_state", perform_monitoring=cls.perform_monitoring)
         cls.app.config["TESTING"] = True
         cls.app_context = cls.app.app_context()
         cls.app_context.push()
@@ -300,8 +301,10 @@ def mock_popen():
 class TestTendermintLogMessagesBuffer(BaseTendermintServerTest):
     """Test Tendermint message logging"""
 
+    perform_monitoring = False
+
     @wait_for_node_to_run
-    def test_tendermint_logs(self, mock_popen) -> None:
+    def test_tendermint_logs(self) -> None:
         """Test Tendermint logs"""
 
         # with mock.patch.object(
