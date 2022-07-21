@@ -42,7 +42,7 @@ from aea.helpers.base import SimpleIdOrStr, cd
 
 from autonomy.configurations.constants import DEFAULT_SERVICE_FILE, SCHEMAS_DIR
 from autonomy.configurations.validation import ConfigValidator
-
+from autonomy.deploy.constants import DEFAULT_NETWORK_CONFIG
 
 COMPONENT_CONFIGS: Dict = {
     component.package_type.value: component  # type: ignore
@@ -114,7 +114,7 @@ class Service(PackageConfiguration):  # pylint: disable=too-many-instance-attrib
         fingerprint_ignore_patterns: Optional[Sequence[str]] = None,
         description: str = "",
         number_of_agents: int = 4,
-        network: Optional[str] = None,
+        network: Optional[Dict[str, Any]] = None,
         build_entrypoint: Optional[str] = None,
         overrides: Optional[List] = None,
     ) -> None:
@@ -134,7 +134,11 @@ class Service(PackageConfiguration):  # pylint: disable=too-many-instance-attrib
         self.agent = PublicId.from_str(str(agent))
         self.description = description
         self.number_of_agents = number_of_agents
-        self.network = network
+
+        if network is None:
+            self.network = DEFAULT_NETWORK_CONFIG
+        else:
+            self.network = network
 
         self._overrides = [] if overrides is None else overrides
 

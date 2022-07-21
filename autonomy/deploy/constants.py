@@ -38,39 +38,12 @@ def get_ip() -> str:
     return IP
 
 
-NETWORKS = {
-    "docker-compose": {
-        "hardhat": {
-            "LEDGER_ADDRESS": f"http://{get_ip()}:8545",
-            "LEDGER_CHAIN_ID": 31337,
-        },
-        "ropsten": {
-            "LEDGER_ADDRESS": "https://ropsten.infura.io/v3/2980beeca3544c9fbace4f24218afcd4",
-            "LEDGER_CHAIN_ID": 3,
-        },
-        "polygon": {
-            "LEDGER_ADDRESS": "https://polygon-mainnet.infura.io/v3/1622a5f5b56a4e1f9bd9292db7da93b8",
-            "LEDGER_CHAIN_ID": 137,
-            "LEDGER_POA_CHAIN": True,
-            "LEDGER_DEFAULT_GAS_PRICE_STRATEGY": "eip1559_polygon",
-        },
-    },
-    "kubernetes": {
-        "hardhat": {
-            "LEDGER_ADDRESS": "http://hardhat:8545",
-            "LEDGER_CHAIN_ID": 31337,
-        },
-        "ropsten": {
-            "LEDGER_ADDRESS": "https://ropsten.infura.io/v3/2980beeca3544c9fbace4f24218afcd4",
-            "LEDGER_CHAIN_ID": 3,
-        },
-        "polygon": {
-            "LEDGER_ADDRESS": "https://polygon-mainnet.infura.io/v3/1622a5f5b56a4e1f9bd9292db7da93b8",
-            "LEDGER_CHAIN_ID": 137,
-            "LEDGER_POA_CHAIN": True,
-            "LEDGER_DEFAULT_GAS_PRICE_STRATEGY": "eip1559_polygon",
-        },
-    },
+DEFAULT_NETWORK_CONFIG = {
+    "LEDGER_ID": "hardhat",
+    "LEDGER_ADDRESS": "http://localhost:8545",
+    "LEDGER_CHAIN_ID": 31337,
+    "LEDGER_POA_CHAIN": False,
+    "LEDGER_DEFAULT_GAS_PRICE_STRATEGY": "eip1559",
 }
 
 TENDERMINT_CONFIGURATION_OVERRIDES: Dict[str, Dict[str, Any]] = {

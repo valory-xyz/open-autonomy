@@ -18,7 +18,7 @@
 # ------------------------------------------------------------------------------
 """Script for generating deployment environments."""
 from pathlib import Path
-from typing import Optional, cast
+from typing import Any, Dict, Optional, cast
 
 from autonomy.constants import (
     HARDHAT_IMAGE_VERSION,
@@ -85,7 +85,7 @@ def generate_deployment(  # pylint: disable=too-many-arguments
         **{
             "type": type_of_deployment,
             "agents": service_spec.service.number_of_agents,
-            "network": service_spec.service.network,
+            "network": cast(Dict[str, Any], service_spec.service.network).get("id"),
             "size": len(deployment.output),
         }
     )
