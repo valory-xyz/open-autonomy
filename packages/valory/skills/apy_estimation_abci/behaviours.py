@@ -538,7 +538,9 @@ class FetchBatchBehaviour(FetchBehaviour):  # pylint: disable=too-many-ancestors
     batch = True
 
 
-class TransformBehaviour(APYEstimationBaseBehaviour):
+class TransformBehaviour(
+    APYEstimationBaseBehaviour
+):  # pylint: disable=too-many-ancestors
     """Transform historical data, i.e., convert them to a dataframe and calculate useful metrics, such as the APY."""
 
     behaviour_id = "transform"
