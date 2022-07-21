@@ -74,33 +74,33 @@ class APYParamsKwargsType(TypedDict):
 
 
 APY_PARAMS_ARGS: APYParamsArgsType = "test", MagicMock()
-APY_PARAMS_KWARGS: APYParamsKwargsType = {
-    "tendermint_url": "test",
-    "tendermint_com_url": "test",
-    "tendermint_check_sleep_delay": "test",
-    "tendermint_max_retries": "test",
-    "reset_tendermint_after": "test",
-    "ipfs_domain_name": "test",
-    "consensus": {"max_participants": 0},
-    "max_healthcheck": "test",
-    "round_timeout_seconds": "test",
-    "sleep_time": "test",
-    "retry_attempts": "test",
-    "retry_timeout": "test",
-    "observation_interval": "test",
-    "drand_public_key": "test",
-    "history_interval_in_unix": 86400,
-    "history_start": 1652544875,
-    "optimizer": {"timeout": 0, "window_size": 0},
-    "testing": "test",
-    "estimation": "test",
-    "pair_ids": {"test": ["not_supported"], "spooky_subgraph": ["supported"]},
-    "service_id": "apy_estimation",
-    "service_registry_address": "0xa51c1fc2f0d1a1b8494ed1fe312d7c3a78ed91c0",
-    "keeper_timeout": 30.0,
-    "cleanup_history_depth": 0,
-    "backwards_compatible": False,
-}
+APY_PARAMS_KWARGS = APYParamsKwargsType(
+    tendermint_url="test",
+    tendermint_com_url="test",
+    tendermint_check_sleep_delay="test",
+    tendermint_max_retries="test",
+    reset_tendermint_after="test",
+    ipfs_domain_name="test",
+    consensus={"max_participants": 0},
+    max_healthcheck="test",
+    round_timeout_seconds="test",
+    sleep_time="test",
+    retry_attempts="test",
+    retry_timeout="test",
+    observation_interval="test",
+    drand_public_key="test",
+    history_interval_in_unix=86400,
+    history_start=1652544875,
+    optimizer={"timeout": 0, "window_size": 0},
+    testing="test",
+    estimation="test",
+    pair_ids={"test": ["not_supported"], "spooky_subgraph": ["supported"]},
+    service_id="apy_estimation",
+    service_registry_address="0xa51c1fc2f0d1a1b8494ed1fe312d7c3a78ed91c0",
+    keeper_timeout=30.0,
+    cleanup_history_depth=0,
+    backwards_compatible=False,
+)
 
 
 class TestSharedState:
@@ -127,7 +127,8 @@ class TestAPYParams:
     ) -> None:
         """Test `__validate_params`."""
         args = APY_PARAMS_ARGS
-        kwargs = APY_PARAMS_KWARGS.copy()
+        # TypedDict can’t be used for specifying the type of a **kwargs argument: https://peps.python.org/pep-0589/
+        kwargs: dict = deepcopy(APY_PARAMS_KWARGS)  # type: ignore
         kwargs["backwards_compatible"] = backwards_compatible
         kwargs["optimizer"]["timeout"] = param_value
         kwargs["optimizer"]["window_size"] = param_value
@@ -185,7 +186,8 @@ class TestSubgraphsMixin:
     @classmethod
     def setup(cls) -> None:
         """Initialize a `TestSubgraphsMixin`."""
-        kwargs = deepcopy(APY_PARAMS_KWARGS)
+        # TypedDict can’t be used for specifying the type of a **kwargs argument: https://peps.python.org/pep-0589/
+        kwargs: dict = deepcopy(APY_PARAMS_KWARGS)  # type: ignore
         del kwargs["pair_ids"]["test"]
         cls.dummy_mixin_usage = TestSubgraphsMixin.DummyMixinUsage(
             *APY_PARAMS_ARGS, **kwargs
@@ -206,6 +208,9 @@ class TestSubgraphsMixin:
     @staticmethod
     def test_initialization_unsupported_subgraph() -> None:
         """Test `SubgraphsMixin`'s `__init__` when subclassed properly, but an unsupported subgraph is given."""
+        # TypedDict can’t be used for specifying the type of a **kwargs argument: https://peps.python.org/pep-0589/
+        kwargs: dict = deepcopy(APY_PARAMS_KWARGS)  # type: ignore
+
         with pytest.raises(
             ValueError,
             match=re.escape(
@@ -213,7 +218,7 @@ class TestSubgraphsMixin:
                 "Please specify them in the `skill.yaml` config file and `models.py`."
             ),
         ):
-            TestSubgraphsMixin.DummyMixinUsage(*APY_PARAMS_ARGS, **APY_PARAMS_KWARGS)
+            TestSubgraphsMixin.DummyMixinUsage(*APY_PARAMS_ARGS, **kwargs)
 
     @pytest.mark.parametrize(
         "subgraph, name, id_",
