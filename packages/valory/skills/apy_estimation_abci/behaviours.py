@@ -29,6 +29,7 @@ from typing import (
     Dict,
     Generator,
     Iterator,
+    List,
     Optional,
     Set,
     Tuple,
@@ -118,6 +119,7 @@ from packages.valory.skills.apy_estimation_abci.tools.queries import (
     eth_price_usd_q,
     latest_block_q,
     pairs_q,
+    existing_pairs_q,
 )
 
 
@@ -211,13 +213,38 @@ class FetchBehaviour(
             f"{filename}_period_{self.synchronized_data.period_count}.json",
         )
 
-        self._spooky_api_specs = self.context.spooky_subgraph.get_spec()
-        available_specs = set(self._spooky_api_specs.keys())
-        needed_specs = {"method", "url", "headers"}
-        unwanted_specs = available_specs - (available_specs & needed_specs)
+    def _check_given_pairs(self) -> Generator[None, None, None]:
+        """Check if the pairs that the user placed in the config file exist on the corresponding subgraphs."""
+        existing_pairs: List[str] = []
+        given_pairs = []
+        for dex_name, pair_ids in self.params.pair_ids.items():
+            given_pairs.extend(pair_ids)
+            dex = self.get_subgraph(dex_name)
+            res_raw = yield from self.get_http_response(
+                content=existing_pairs_q(pair_ids),
+                **dex.get_spec(),
+            )
+            res = dex.process_response(res_raw)
 
-        for unwanted in unwanted_specs:
-            self._spooky_api_specs.pop(unwanted)
+            pairs = yield from self._handle_response(
+                res,
+                res_context="pool ids",
+                keys=("pairs",),
+                subgraph=dex,
+            )
+
+            if pairs is not None:
+                pairs = cast(List[Dict[str, str]], pairs)
+                existing_pairs.extend(pair["id"] for pair in pairs)
+
+        non_existing_pairs = set(given_pairs) - set(existing_pairs)
+        if non_existing_pairs:
+            if not self._call_failed:
+                self.context.logger.error(
+                    f"The given pair(s) {non_existing_pairs} do not exist at the corresponding subgraph(s)!"
+                )
+
+        self._pairs_exist = True
 
     def _set_current_timestamp(self) -> None:
         """Set the timestamp for the current timestep in the async act."""
