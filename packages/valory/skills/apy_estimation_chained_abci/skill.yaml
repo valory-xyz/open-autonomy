@@ -192,7 +192,7 @@ models:
       response_key: data
       response_type: dict
       retries: 5
-      url: https://api.thegraph.com/subgraphs/name/uniswap/uniswap-v2
+      url: https://api.thegraph.com/subgraphs/name/ianlapham/uniswapv2
     class_name: UniswapSubgraph
 dependencies:
   joblib:

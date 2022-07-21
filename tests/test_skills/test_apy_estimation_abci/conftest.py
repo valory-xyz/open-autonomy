@@ -133,7 +133,7 @@ def uni_specs(spooky_specs: SpecsType) -> SpecsType:
     """Uniswap specs fixture."""
     uni_specs = spooky_specs.copy()
     uni_specs["api_id"] = "uniswap"
-    uni_specs["url"] = "https://api.thegraph.com/subgraphs/name/uniswap/uniswap-v2"
+    uni_specs["url"] = "https://api.thegraph.com/subgraphs/name/ianlapham/uniswapv2"
     return uni_specs
 
 
