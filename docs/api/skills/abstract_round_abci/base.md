@@ -1924,6 +1924,17 @@ def __init__(synchronized_data: BaseSynchronizedData, consensus_params: Consensu
 
 Initialize the AbciApp.
 
+<a id="packages.valory.skills.abstract_round_abci.base.AbciApp.is_abstract"></a>
+
+#### is`_`abstract
+
+```python
+@property
+def is_abstract() -> bool
+```
+
+Return if the abci app is abstract.
+
 <a id="packages.valory.skills.abstract_round_abci.base.AbciApp.synchronized_data"></a>
 
 #### synchronized`_`data
