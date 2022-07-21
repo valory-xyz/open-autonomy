@@ -64,7 +64,7 @@ class DEXSubgraph(ApiSpecs):
     def __init__(self, *args: Any, **kwargs: Any) -> None:
         """Initialize DEX Subgraph."""
         self.bundle_id: int = self.ensure("bundle_id", kwargs)
-        self.chain_subgraph = self.ensure("chain_subgraph", kwargs)
+        self.chain_subgraph_name = self.ensure("chain_subgraph", kwargs)
         self.non_indexed_error_key = kwargs.pop("non_indexed_error_key", "errors")
         self.non_indexed_error_type = kwargs.pop("non_indexed_error_type", "list")
         super().__init__(*args, **kwargs)
@@ -105,7 +105,7 @@ class SubgraphsMixin:
         utilized_dex_names = set(self.context.params.pair_ids.keys())
         utilized_dex_subgraphs = self._get_subgraphs_mapping(utilized_dex_names)
         utilized_block_names = {
-            dex.chain_subgraph
+            dex.chain_subgraph_name
             for dex in utilized_dex_subgraphs.values()
             if dex is not None
         }
