@@ -43,7 +43,6 @@ from deployments.Dockerfiles.localnode.app import (  # type: ignore
 )
 from deployments.Dockerfiles.localnode.tendermint import TendermintNode  # type: ignore
 
-
 ENCODING = "utf-8"
 VERSION = "0.34.19"
 
@@ -99,7 +98,8 @@ class BaseTendermintServerTest(BaseTendermintTest):
         os.environ["PROXY_APP"] = "kvstore"
         os.environ["CREATE_EMPTY_BLOCKS"] = "true"
         os.environ["LOG_FILE"] = str(cls.path / "tendermint.log")
-        cls.app, cls.tendermint_node = create_app(dump_dir=cls.path / "tm_state", perform_monitoring=cls.perform_monitoring)
+        cls.app, cls.tendermint_node = create_app(dump_dir=cls.path / "tm_state",
+                                                  perform_monitoring=cls.perform_monitoring)
         cls.app.config["TESTING"] = True
         cls.app_context = cls.app.app_context()
         cls.app_context.push()
@@ -163,7 +163,7 @@ class TestTendermintServerApp(BaseTendermintServerTest):
 
         def remove_prefix(text: str, prefix: str) -> str:
             """str.removeprefix only from python3.9 onward"""
-            return text[text.startswith(prefix) and len(prefix) :]
+            return text[text.startswith(prefix) and len(prefix):]
 
         expected_file_names = [
             Path(self.tm_home, "config", "config.toml"),
@@ -226,7 +226,7 @@ class TestTendermintHardResetServer(BaseTendermintServerTest):
     def test_hard_reset(self, prune_fail: bool) -> None:
         """Test hard reset"""
         with self.app.test_client() as client, mock.patch.object(
-            TendermintNode, "prune_blocks", return_value=int(prune_fail)
+                TendermintNode, "prune_blocks", return_value=int(prune_fail)
         ):
             response = client.get("/hard_reset")
             data = response.get_json()
@@ -298,7 +298,7 @@ def mock_popen():
     setattr(subprocess, "Popen", lambda *args, **kargs: mock_popen)
 
 
-class TestTendermintLogMessagesBuffer(BaseTendermintServerTest):
+class TestTendermintLogMessagesBufferFailing(BaseTendermintServerTest):
     """Test Tendermint message logging"""
 
     perform_monitoring = False
@@ -307,18 +307,51 @@ class TestTendermintLogMessagesBuffer(BaseTendermintServerTest):
     def test_tendermint_logs(self) -> None:
         """Test Tendermint logs"""
 
-        # with mock.patch.object(
-        #     self.tendermint_node._process.stdout,
-        #     "readline",
-        #     return_value="Mocked information\n",
-        # ):
-        for _ in range(100000):
-            self.tendermint_node.write_line(
-                "Useful information\n"
-            )  # we should not be reading this due to mocking
+        # give the 30 seconds for it to fail
+        for _ in range(30):
+            try:
+                # if it hangs for 5 seconds, we assume it's not working.
+                # increasing the timeout should have no effect,
+                # the node is unresponsive at this point.
+                res = requests.get("http://localhost:26657/status", timeout=5)
 
-        with open(os.environ["LOG_FILE"], "r") as f:
-            lines = "".join(f.readlines())
-            print(lines)
+                # when we get a response (in the first tries)
+                # we expect it to be OK
+                assert res.status_code == 200
+            except requests.exceptions.Timeout as e:
+                print(e)
+                return
 
-        self.tendermint_node.stop()
+            time.sleep(1)
+
+        assert False, "an error should've been thrown at this point"
+
+    @classmethod
+    def teardown_class(cls) -> None:
+        """Teardown the test."""
+        cls.app_context.pop()
+        # stopping doesn't work when monitoring is off
+        if cls.perform_monitoring:
+            cls.tendermint_node.stop()
+        shutil.rmtree(cls.tm_home, ignore_errors=True, onerror=readonly_handler)
+
+
+class TestTendermintLogMessagesBufferWorking(BaseTendermintServerTest):
+    """Test Tendermint message logging"""
+
+    perform_monitoring = True
+
+    @wait_for_node_to_run
+    def test_tendermint_logs(self) -> None:
+        """Test Tendermint logs"""
+
+        # give the 60 seconds for it to work
+        for _ in range(60):
+            try:
+                res = requests.get("http://localhost:26657/status", timeout=5)
+                # we expect all responses to be OK
+                assert res.status_code == 200
+            except Exception as e:
+                assert False, "we don't expect an error here"
+
+            time.sleep(1)
