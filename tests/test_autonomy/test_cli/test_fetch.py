@@ -118,7 +118,7 @@ class TestFetchCommand(BaseCliTest):
             output = echo_mock.call_args[0][0]
 
             assert result.exit_code == 0, output
-            assert expected_hash in output, output
+            assert expected_hash in output, (output, service_file.read_text())
 
         with mock.patch(
             "autonomy.cli.fetch.get_default_remote_registry", new=lambda: "http"
