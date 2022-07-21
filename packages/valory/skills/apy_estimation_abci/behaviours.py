@@ -526,8 +526,8 @@ class FetchBehaviour(
 
         It can be optionally implemented by the concrete classes.
         """
-        self.context.spooky_subgraph.reset_retries()
-        self.context.fantom_subgraph.reset_retries()
+        for subgraph in self.utilized_subgraphs:
+            subgraph.reset_retries()
 
 
 class FetchBatchBehaviour(FetchBehaviour):  # pylint: disable=too-many-ancestors
