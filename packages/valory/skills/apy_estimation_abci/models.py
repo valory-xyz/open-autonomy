@@ -85,7 +85,6 @@ class SpookySwapSubgraph(DEXSubgraph):
 
 
 PairIdsType = Dict[str, List[str]]
-PairIdsBackwardsCompatibleType = List[str]
 ValidatedSubgraphType = Union[DEXSubgraph, ApiSpecs]
 ValidatedSubgraphsType = ValuesView[ValidatedSubgraphType]
 ValidatedSubgraphsMappingType = Dict[str, ValidatedSubgraphType]
@@ -168,16 +167,6 @@ class SubgraphsMixin:
         return cast(ValidatedSubgraphsMappingType, self._utilized_subgraphs).values()
 
 
-def _pair_ids_backwards_compatible(
-    pair_ids: PairIdsType,
-) -> PairIdsBackwardsCompatibleType:
-    """Convert the pair ids in order to be compatible with the old fetch behaviour."""
-    for subgraph, ids_ in pair_ids.items():
-        if subgraph == "spooky_subgraph":
-            return ids_
-    return []
-
-
 class APYParams(BaseParams):  # pylint: disable=too-many-instance-attributes
     """Parameters."""
 
@@ -189,12 +178,7 @@ class APYParams(BaseParams):  # pylint: disable=too-many-instance-attributes
         self.optimizer_params = self._ensure("optimizer", kwargs)
         self.testing = self._ensure("testing", kwargs)
         self.estimation = self._ensure("estimation", kwargs)
-        pair_ids = self._ensure("pair_ids", kwargs)
-        self.pair_ids: PairIdsBackwardsCompatibleType = (
-            _pair_ids_backwards_compatible(pair_ids)
-            if kwargs.pop("backwards_compatible", True)
-            else pair_ids
-        )
+        self.pair_ids: PairIdsType = self._ensure("pair_ids", kwargs)
         self.ipfs_domain_name = self._ensure("ipfs_domain_name", kwargs)
         super().__init__(*args, **kwargs)
 
