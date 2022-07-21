@@ -21,18 +21,19 @@
 
 import hashlib
 import logging
-from typing import Any, Dict, Tuple, Union, cast
+from typing import Any, Dict, Optional, Union, cast
 
+from aea.common import JSONLike
 from aea.configurations.base import PublicId
 from aea.contracts.base import Contract
 from aea_ledger_ethereum import EthereumApi, LedgerApi
 
 
 # test_contract and test_agents, respectively...
-DEPLOYED_BYTECODE_MD5_HASH = "75d2a79df580ba1353211f93c479a9d6b78cc8f14e724290329e274fdcab4dc8cc04adbd8efbbce00a01af2dd6873f7e66a8c338a3d4f87a31ab0e283eef89de"
-
-ConfigHash = Tuple[bytes, int, int]
-AgentParams = Tuple[int, int]
+DEPLOYED_BYTECODE_MD5_HASH = (
+    "214e9d30f9c86845f893232219b3e47608a534d142451299cddfbcad5788d83e"
+    "21aafff2ef613742e7d0ed5adeff302ef858004af158bba45936c57d1c3a1a70"
+)
 
 PUBLIC_ID = PublicId.from_str("valory/service_registry:0.1.0")
 
@@ -50,6 +51,27 @@ class ServiceRegistryContract(Contract):
     contract_id = PUBLIC_ID
 
     @classmethod
+    def get_raw_transaction(
+        cls, ledger_api: LedgerApi, contract_address: str, **kwargs: Any
+    ) -> Optional[JSONLike]:
+        """Get the Safe transaction."""
+        raise NotImplementedError
+
+    @classmethod
+    def get_raw_message(
+        cls, ledger_api: LedgerApi, contract_address: str, **kwargs: Any
+    ) -> Optional[bytes]:
+        """Get raw message."""
+        raise NotImplementedError
+
+    @classmethod
+    def get_state(
+        cls, ledger_api: LedgerApi, contract_address: str, **kwargs: Any
+    ) -> Optional[JSONLike]:
+        """Get state."""
+        raise NotImplementedError
+
+    @classmethod
     def verify_contract(
         cls, ledger_api: LedgerApi, contract_address: str
     ) -> Dict[str, Union[bool, str]]:
@@ -64,10 +86,11 @@ class ServiceRegistryContract(Contract):
         deployed_bytecode = ledger_api.api.eth.get_code(contract_address).hex()
         sha512_hash = hashlib.sha512(deployed_bytecode.encode("utf-8")).hexdigest()
         verified = DEPLOYED_BYTECODE_MD5_HASH == sha512_hash
-        log_msg = "CONTRACT NOT VERIFIED! reason: frequent changes."
-        log_msg += f". Verified: {verified}. Contract address: {contract_address}."
-        _logger.error(f"{log_msg} Address: {CHAIN_ADDRESS}, chain_id: {CHAIN_ID}")
-        return dict(verified=True, sha512_hash=sha512_hash)
+        if not verified:
+            log_msg = "CONTRACT NOT VERIFIED! reason: frequent changes."
+            log_msg += f". Verified: {verified}. Contract address: {contract_address}."
+            _logger.error(f"{log_msg} Address: {CHAIN_ADDRESS}, chain_id: {CHAIN_ID}")
+        return dict(verified=verified, sha512_hash=sha512_hash)
 
     @classmethod
     def exists(
@@ -88,31 +111,22 @@ class ServiceRegistryContract(Contract):
         return cast(bool, exists)
 
     @classmethod
-    def get_service_info(
+    def get_agent_instances(
         cls,
         ledger_api: LedgerApi,
         contract_address: str,
         service_id: int,
     ) -> Dict[str, Any]:
-        """Retrieve on-chain service information"""
+        """Retrieve on-chain agent instances."""
 
         contract_instance = cls.get_instance(ledger_api, contract_address)
         service_info = ledger_api.contract_method_call(
             contract_instance=contract_instance,
-            method_name="getServiceInfo",
+            method_name="getAgentInstances",
             serviceId=service_id,
         )
 
         return dict(
-            owner=service_info[0],
-            name=service_info[1],
-            description=service_info[2],
-            config_hash=service_info[3],
-            threshold=service_info[4],
-            num_agent_ids=service_info[5],
-            agent_ids=service_info[6],
-            agent_params=service_info[7],
-            num_agent_instances=service_info[8],
-            agent_instances=service_info[9],
-            multisig=service_info[10],
+            numAgentInstances=service_info[0],
+            agentInstances=service_info[1],
         )

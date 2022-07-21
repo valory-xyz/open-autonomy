@@ -8,8 +8,8 @@ aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
   README.md: bafybeievb7bhfm46p5adx3x4gvsynjpq35fcrrapzn5m2whcdt4ufxfvfq
   __init__.py: bafybeiaxhdfjmhbstyi5oqeu7wzst44snhbyoggrpusgs2c3tn3cluzhpm
-  abci_app_chain.py: bafybeieh5aeww2mu2e2mfamxbawtfxn4pwe2vgikpweaovquv5uahz6veq
-  base.py: bafybeiau3skk3msc6m6y5b5243pyyokkgovjhldnh76kl5emfdumiv26oy
+  abci_app_chain.py: bafybeich2ufsbkuehbuqzxeofoq5agfdpvy7bvhgcncxbf3gcq6qrxtvj4
+  base.py: bafybeibqzl32tkpkedy4rrx5tf5ktuqqn5d4l4uwcwg74m7ch4bo3w4ru4
   behaviour_utils.py: bafybeie27cigguvbazlqnslhfapnmq46adqjyrnwipdapwxcngwvrhm2ni
   behaviours.py: bafybeif3knc6efobddgkh3xc3yqwgtlk7z4zflftd7sic5j3at5rrhsute
   common.py: bafybeicz7feaxvwftwi7qe2x4g4f6edwsh434kr4duebafbwphqyxzuyka
@@ -20,16 +20,16 @@ fingerprint:
   io/load.py: bafybeib63wgk7wcghrvldqn6dpurkw6o7q3eohg3dpinnf7rhw4qwo2j7q
   io/paths.py: bafybeicfno2l4vwtmjcm3rzpp6tqi3xlkof47pypf5teecad22d44u2ple
   io/store.py: bafybeiee7uhs372q3kxd5s3itufb3ws24ey74my2jpnivit3kboon6xsaq
-  models.py: bafybeiacly2gbkxw7epjzdbnkygwns5ehggq4nmzcnvnsilux2n4jovsum
+  models.py: bafybeiclzcy6s7qkbolp7wagckbcuz2leq5mwmqx226mi3qigsnn5xeheu
   serializer.py: bafybeiezjdtp33nub7ual5ibt4vi7dj3ilmyw7wqq374ctub5oo7wgp7mm
   utils.py: bafybeifnvnlpajv5iqv6wumlfppomcmcfbbb5rpiiqhouxqs5ddwlkqjjy
 fingerprint_ignore_patterns: []
 connections:
-- valory/abci:0.1.0:bafybeic66kn7ijiwlzw3vww64rjwnm6suxinl7u5tzxykigwpqbsb27hfi
+- valory/abci:0.1.0:bafybeiaqoaub5jverxutngxtbfcshucsg7fqkcrdgbjfdsrdbfntwyhawq
 - valory/http_client:0.1.0:bafybeibh3iu7kojc4d5eiigqh6kx2vdmu2q7vhcvvq2rz6suegsscyd66y
 - valory/ledger:0.1.0:bafybeibcj2bbnesgy4xvy4sabbt47hlefmys2kvpexb2dlaxv7e5nzh4ze
 contracts:
-- valory/service_registry:0.1.0:bafybeiamopmrv6gktjgvr23xfmmz7thhsn4atvp7i6r3w5yhd7cqtwazay
+- valory/service_registry:0.1.0:bafybeiemujnvqd6kvuubtl6od3b5barxf7dcjm3v73dnkqtrtxjdmvnoqe
 protocols:
 - valory/abci:0.1.0:bafybeicbj36urbjkn6y7hrhm57dspyuuvpcnxhr3r6y2cwxammpom633g4
 - valory/acn:1.1.0:bafybeibvuomoe7dln75slklaaag7vmppbpy2huhyupfygh4cgwdqp2roue
@@ -38,7 +38,7 @@ protocols:
 - valory/ledger_api:1.0.0:bafybeifaozy766hngsqc5a5kpebseusq4cc3woh4ayycdoa7r3mjkvhzr4
 - valory/tendermint:0.1.0:bafybeigrenadbkdzpkxbjmpkubxzmihk45v6jbwosngciqdccth4lvp7cm
 skills:
-- valory/abstract_abci:0.1.0:bafybeigw6wb3has3esozpdllsthcuuyclpjqubxugks6wkzpbu24xzruge
+- valory/abstract_abci:0.1.0:bafybeihdlbwh2m6n4pgu4bylzte6vihjzgfl4bkfz372umtd3vil5briam
 behaviours:
   main:
     args: {}
@@ -95,7 +95,7 @@ dependencies:
   joblib:
     version: <1.2,>=1.1.0
   open-aea-cli-ipfs:
-    version: <2.0.0,>=1.12.0.post1
+    version: <2.0.0,>=1.13.0
   pandas:
     version: <1.4,>=1.3.4
   pmdarima:

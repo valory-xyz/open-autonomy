@@ -27,14 +27,7 @@ from packages.valory.skills.abstract_round_abci.base import (
 )
 from packages.valory.skills.price_estimation_abci.models import SharedState
 
-
-class DummyContext:
-    """Dummy Context class for shared state."""
-
-    class params:
-        """Dummy param variable."""
-
-        round_timeout_seconds: float = 1.0
+from tests.test_skills.base import DummyContext
 
 
 class ConcreteRound(AbstractRound):

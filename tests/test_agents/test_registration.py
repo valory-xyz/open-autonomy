@@ -47,7 +47,7 @@ def slow_down_tests() -> Generator:
 # strict check log messages of the happy path
 STRICT_CHECK_STRINGS = (
     log_messages.request_personal.value,
-    log_messages.request_personal.value,
+    log_messages.response_personal.value,
     log_messages.request_verification.value,
     log_messages.response_verification.value,
     log_messages.request_others.value,
@@ -73,6 +73,10 @@ class RegistrationStartUpTestConfig(
         {
             "dotted_path": f"{__args_prefix}.share_tm_config_on_startup",
             "value": True,
+        },
+        {
+            "dotted_path": f"vendor.valory.skills.{PublicId.from_str(skill_package).name}.is_abstract",
+            "value": False,
         },
         {
             "dotted_path": f"{__args_prefix}.observation_interval",

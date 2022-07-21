@@ -1831,6 +1831,8 @@ class AbciApp(
     event_to_timeout: EventToTimeout = {}
     cross_period_persisted_keys: List[str] = []
 
+    _is_abstract: bool = True
+
     def __init__(
         self,
         synchronized_data: BaseSynchronizedData,

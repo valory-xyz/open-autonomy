@@ -8,12 +8,12 @@ fingerprint:
   README.md: bafybeihxalbstbm7kufnxftkn6mrvculqxyibsk4tzhrq5jbdh5ihejteq
 fingerprint_ignore_patterns: []
 connections:
-- valory/abci:0.1.0:bafybeic66kn7ijiwlzw3vww64rjwnm6suxinl7u5tzxykigwpqbsb27hfi
+- valory/abci:0.1.0:bafybeiaqoaub5jverxutngxtbfcshucsg7fqkcrdgbjfdsrdbfntwyhawq
 - valory/http_client:0.1.0:bafybeibh3iu7kojc4d5eiigqh6kx2vdmu2q7vhcvvq2rz6suegsscyd66y
 - valory/ledger:0.1.0:bafybeibcj2bbnesgy4xvy4sabbt47hlefmys2kvpexb2dlaxv7e5nzh4ze
 - valory/p2p_libp2p_client:0.1.0:bafybeicjfwzey5esumti7met6g66q6ojkgng4azjmrdg3ppahjwiq7dmaq
 contracts:
-- valory/service_registry:0.1.0:bafybeiamopmrv6gktjgvr23xfmmz7thhsn4atvp7i6r3w5yhd7cqtwazay
+- valory/service_registry:0.1.0:bafybeiemujnvqd6kvuubtl6od3b5barxf7dcjm3v73dnkqtrtxjdmvnoqe
 protocols:
 - open_aea/signing:1.0.0:bafybeieirkuq6azgis33bmukr5u2gx4chp5kswiw3wd5hbjsaukgwzmp5a
 - valory/abci:0.1.0:bafybeicbj36urbjkn6y7hrhm57dspyuuvpcnxhr3r6y2cwxammpom633g4
@@ -23,11 +23,11 @@ protocols:
 - valory/ledger_api:1.0.0:bafybeifaozy766hngsqc5a5kpebseusq4cc3woh4ayycdoa7r3mjkvhzr4
 - valory/tendermint:0.1.0:bafybeigrenadbkdzpkxbjmpkubxzmihk45v6jbwosngciqdccth4lvp7cm
 skills:
-- valory/abstract_abci:0.1.0:bafybeigw6wb3has3esozpdllsthcuuyclpjqubxugks6wkzpbu24xzruge
-- valory/abstract_round_abci:0.1.0:bafybeihn7hygaeeilz65hvdzgvypl3abbkp6jd22jxd5j2v4xqwrw4qf2i
-- valory/apy_estimation_abci:0.1.0:bafybeiabehsw3jgquyuzles75ssr5diwyvnuqzis74oq6nh2gp3kqhxdzq
-- valory/apy_estimation_chained_abci:0.1.0:bafybeifv7sxp5uozu6sy2mqofwyi637grsbpn6lzqydnt3ryuwuqhwltpe
-- valory/registration_abci:0.1.0:bafybeihovo4fndlxptkt3du65d2rnfwv7r54l5g7rulhfg746kpbjaqaxy
+- valory/abstract_abci:0.1.0:bafybeihdlbwh2m6n4pgu4bylzte6vihjzgfl4bkfz372umtd3vil5briam
+- valory/abstract_round_abci:0.1.0:bafybeig5ixtcaemurqwfy6pzzyiwc34azrxtowuh3k35hsate4u5jesc7a
+- valory/apy_estimation_abci:0.1.0:bafybeifyzwdup25i75yekuo3qasdgyhwxqaoncoanlxytfc23b23njdyx4
+- valory/apy_estimation_chained_abci:0.1.0:bafybeiba4lqe2lwhlfloedhzjzxtk55hfhp6r5wipkqcvnflfpopgzr4ne
+- valory/registration_abci:0.1.0:bafybeiecg56lfdsqae6jovf7yuj4moi32usnjzvtyatcds2mtwtg2kqpt4
 default_ledger: ethereum
 required_ledgers:
 - ethereum
