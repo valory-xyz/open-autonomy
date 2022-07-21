@@ -20,8 +20,10 @@
 """Base deployments module."""
 import abc
 import json
+import socket
 from pathlib import Path
 from typing import Any, Dict, List, Optional, cast
+from urllib.parse import urlparse
 
 from aea.configurations.base import (
     ConnectionConfig,
@@ -35,16 +37,17 @@ from autonomy.configurations.loader import load_service_config
 from autonomy.constants import TENDERMINT_IMAGE_VERSION
 from autonomy.deploy.constants import (
     DEFAULT_ENCODING,
+    DEFAULT_NETWORK_CONFIG,
     KEY_SCHEMA_ADDRESS,
     KEY_SCHEMA_ENCRYPTED_KEY,
     KEY_SCHEMA_UNENCRYPTED_KEY,
-    NETWORKS,
 )
 
 
 ABCI_HOST = "abci{}"
 TENDERMINT_NODE = "http://node{}:26657"
 TENDERMINT_COM = "http://node{}:8080"
+LOCALHOST = "localhost"
 COMPONENT_CONFIGS: Dict = {
     component.package_type.value: component  # type: ignore
     for component in [
@@ -54,6 +57,20 @@ COMPONENT_CONFIGS: Dict = {
         ConnectionConfig,
     ]
 }
+
+
+def get_ip() -> str:
+    """Get local IP address."""
+    sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    sock.settimeout(0)
+    try:
+        sock.connect(("10.255.255.255", 1))
+        ip = sock.getsockname()[0]
+    except Exception:  # pylint: disable=broad-except
+        ip = "127.0.0.1"
+    finally:
+        sock.close()
+    return ip
 
 
 class ServiceSpecification:
@@ -148,12 +165,11 @@ class BaseDeploymentGenerator:
     build_dir: Path
     output: str
     tendermint_job_config: Optional[str]
+    network_config: Dict[str, Any]
 
     def __init__(self, service_spec: ServiceSpecification, build_dir: Path):
         """Initialise with only kwargs."""
-        self.network_config = NETWORKS[self.deployment_type][
-            cast(str, service_spec.service.network)
-        ]
+        self.network_config = service_spec.service.network
         self.service_spec = service_spec
         self.build_dir = Path(build_dir)
         self.tendermint_job_config: Optional[str] = None
@@ -178,12 +194,35 @@ class BaseDeploymentGenerator:
     ) -> "BaseDeploymentGenerator":
         """Populate the private keys to the deployment."""
 
+    @staticmethod
+    def build_network_config_overrides(
+        network_config: Dict[str, Any]
+    ) -> Dict[str, Any]:
+        """Build network config overrides."""
+
+        config = DEFAULT_NETWORK_CONFIG.copy()
+        for key, val in network_config.items():
+            config[f"LEDGER_{key.upper()}"] = val
+
+        network = cast(str, config["LEDGER_ADDRESS"])
+        parsed_url = urlparse(network)
+        if parsed_url.hostname == LOCALHOST:
+            network = network.replace(LOCALHOST, get_ip())
+
+        config["LEDGER_ADDRESS"] = network
+        return config
+
     def get_deployment_network_configuration(
         self, agent_vars: List[Dict[str, Any]]
     ) -> List:
         """Retrieve the appropriate network configuration based on deployment & network."""
+
+        network_config_overrides = self.build_network_config_overrides(
+            self.network_config
+        )
+
         for agent in agent_vars:
-            agent.update(self.network_config)
+            agent.update(network_config_overrides)
         return agent_vars
 
     def write_config(self) -> "BaseDeploymentGenerator":

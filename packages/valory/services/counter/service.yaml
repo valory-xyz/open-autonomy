@@ -9,4 +9,9 @@ fingerprint:
 fingerprint_ignore_patterns: []
 number_of_agents: 1
 agent: valory/counter:0.1.0:bafybeidmoafileokvz4wrx2o4ry2sgtpngcvdn63pkmqswm5qjctnes6b4
-network: hardhat
+network:
+  id: hardhat
+  address: http://localhost:8545
+  chain_id: 31337
+  poa_chain: false
+  default_gas_price_strategy: eip1559

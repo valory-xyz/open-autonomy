@@ -62,7 +62,12 @@ description: Description
 aea_version: ">=1.0.0, <2.0.0"
 license: Apache-2.0
 agent: "valory/oracle:0.1.0"
-network: hardhat
+network:
+  id: hardhat
+  address: http://localhost:8545
+  chain_id: 31337
+  poa_chain: false
+  default_gas_price_strategy: eip1559
 number_of_agents: 1
 fingerprint: {}
 fingerprint_ignore_patterns: []

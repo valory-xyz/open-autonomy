@@ -8,7 +8,12 @@ fingerprint:
   README.md: bafybeieqpbuzrxtfo5hz3gsb64aumnfbxad4tpxp4s46jxj7byb3zxx34y
 fingerprint_ignore_patterns: []
 agent: valory/oracle:0.1.0:bafybeig7j64xv36he4ua3szdozrfr7c2w5sbqb6znpl32wamg5mggadzxe
-network: hardhat
+network:
+  id: hardhat
+  address: http://localhost:8545
+  chain_id: 31337
+  poa_chain: false
+  default_gas_price_strategy: eip1559
 number_of_agents: 4
 ---
 benchmark_persistence_params:

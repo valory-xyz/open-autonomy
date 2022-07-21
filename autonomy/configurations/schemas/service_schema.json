@@ -49,11 +49,7 @@
       "type": "integer"
     },
     "network": {
-      "enum": [
-        "hardhat",
-        "ropsten",
-        "polygon"
-      ]
+      "type": "object"
     }
   }
 }
