@@ -20,7 +20,7 @@
 """Test the models.py module of the skill."""
 import re
 from copy import deepcopy
-from typing import Any, Dict, List, Tuple, Type, TypedDict, Union
+from typing import Any, Dict, List, Tuple, Type, Union
 from unittest.mock import MagicMock
 
 import pytest
@@ -34,6 +34,11 @@ from packages.valory.skills.apy_estimation_abci.models import (
 )
 from packages.valory.skills.apy_estimation_abci.rounds import APYEstimationAbciApp
 
+
+try:
+    from typing import TypedDict  # >=3.8
+except ImportError:
+    from mypy_extensions import TypedDict  # <=3.7
 
 APYParamsArgsType = Tuple[str, MagicMock]
 
