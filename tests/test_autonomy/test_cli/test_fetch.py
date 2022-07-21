@@ -24,8 +24,10 @@ import shutil
 from pathlib import Path
 from unittest import mock
 
-import yaml
+from aea.configurations.loader import ConfigLoader
 from aea.helpers.base import cd
+
+from autonomy.configurations.base import Service
 
 from tests.conftest import ROOT_DIR
 from tests.test_autonomy.base import get_dummy_service_config
@@ -91,13 +93,16 @@ class TestFetchCommand(BaseCliTest):
         self,
     ) -> None:
         """Test fetch service."""
-        expected_hash = "bafybeidwo3rj7axx7l7p7vc52vm6hh2v7n6tqxly6om4gmhpnddbz7wmji"
+        expected_hash = "bafybeiac2hwq2cxw7uoqxbj7zrs63gkrwcpa3mnbmpr4hstziujwntihby"
 
         service_dir = self.t / "dummy_service"
         service_file = service_dir / "service.yaml"
         service_dir.mkdir()
         with open(service_file, "w+") as fp:
-            yaml.dump_all(get_dummy_service_config(), fp)
+            service_conf, *overrides = get_dummy_service_config()
+            service_conf["overrides"] = overrides
+            service = Service.from_json(service_conf)
+            ConfigLoader(Service.schema, Service).dump(service, fp)
 
         with mock.patch(
             "autonomy.cli.publish.get_default_remote_registry", new=lambda: "ipfs"
