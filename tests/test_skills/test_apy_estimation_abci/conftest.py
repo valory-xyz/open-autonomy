@@ -419,6 +419,15 @@ def uni_pairs_q() -> str:
 
 
 @pytest.fixture
+def pairs_ids() -> Dict[str, List[str]]:
+    """Sample DEXs' pair ids for testing."""
+    return {
+        "uni_subgraph": ["0x00004ee988665cdda9a1080d5792cecd16dc1220"],
+        "spooky_subgraph": ["0xec454eda10accdd66209c57af8c12924556f3abd"],
+    }
+
+
+@pytest.fixture
 def pool_fields() -> Tuple[str, ...]:
     """The fields of a pool."""
     return (
