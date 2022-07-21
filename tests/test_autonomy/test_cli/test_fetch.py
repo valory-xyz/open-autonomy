@@ -25,6 +25,7 @@ from pathlib import Path
 from unittest import mock
 
 import yaml
+from aea.helpers.base import cd
 
 from tests.conftest import ROOT_DIR
 from tests.test_autonomy.base import get_dummy_service_config
@@ -98,8 +99,6 @@ class TestFetchCommand(BaseCliTest):
         with open(service_file, "w+") as fp:
             yaml.dump_all(get_dummy_service_config(), fp)
 
-        os.chdir(service_dir)
-
         with mock.patch(
             "autonomy.cli.publish.get_default_remote_registry", new=lambda: "ipfs"
         ), mock.patch(
@@ -107,19 +106,18 @@ class TestFetchCommand(BaseCliTest):
             new=lambda: IPFS_REGISTRY,
         ), mock.patch(
             "click.echo"
-        ) as echo_mock:
+        ) as echo_mock, cd(
+            service_dir
+        ):
             result = self.cli_runner.invoke(cli, ["publish", "--remote"])
             output = echo_mock.call_args[0][0]
 
             assert result.exit_code == 0, output
             assert expected_hash in output, output
 
-        os.chdir(self.t)
-        shutil.rmtree(service_dir)
-
         with mock.patch(
             "autonomy.cli.fetch.get_default_remote_registry", new=lambda: "http"
-        ):
+        ), cd(service_dir):
             result = self.run_cli(("--remote", expected_hash))
             assert result.exit_code == 1, result.output
             assert "HTTP registry not supported." in result.output, result.output
@@ -128,6 +126,8 @@ class TestFetchCommand(BaseCliTest):
             "autonomy.cli.fetch.get_default_remote_registry", new=lambda: "ipfs"
         ), mock.patch(
             "autonomy.cli.fetch.get_ipfs_node_multiaddr", new=lambda: IPFS_REGISTRY
+        ), cd(
+            service_dir
         ):
             result = self.run_cli(("--remote", expected_hash))
             assert result.exit_code == 0, result.output
