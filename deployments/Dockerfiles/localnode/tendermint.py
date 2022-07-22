@@ -122,7 +122,7 @@ class TendermintNode:
             cmd += ["--home", self.params.home]
         return cmd
 
-    def _build_node_command(self, debug=False) -> List[str]:
+    def _build_node_command(self, debug: bool = False) -> List[str]:
         """Build the 'node' command."""
         p2p_seeds = ",".join(self.params.p2p_seeds) if self.params.p2p_seeds else ""
         cmd = [
@@ -152,7 +152,7 @@ class TendermintNode:
         if start_monitoring:
             self._start_monitoring_thread()
 
-    def _start_tm_process(self, monitoring=False, debug=False) -> None:
+    def _start_tm_process(self, monitoring: bool = False, debug: bool = False) -> None:
         """Start a Tendermint node process."""
         if self._process is not None:  # pragma: nocover
             return
@@ -170,13 +170,9 @@ class TendermintNode:
         if platform.system() == "Windows":  # pragma: nocover
             kwargs["creationflags"] = (subprocess.CREATE_NEW_PROCESS_GROUP,)  # type: ignore
         else:
-            kwargs["preexec_fn"] = os.setsid
+            kwargs["preexec_fn"] = os.setsid  # type: ignore
 
-        self._process = (
-            subprocess.Popen(  # nosec # pylint: disable=consider-using-with,W1509
-                cmd, **kwargs
-            )
-        )
+        self._process = subprocess.Popen(cmd, **kwargs)  # type: ignore # nosec # pylint: disable=consider-using-with,W1509
 
         self.write_line("Tendermint process started\n")
 
