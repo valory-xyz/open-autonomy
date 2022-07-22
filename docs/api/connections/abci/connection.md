@@ -369,7 +369,7 @@ Initialize Tendermint node.
 #### start
 
 ```python
-def start(start_monitoring: bool = False) -> None
+def start(start_monitoring: bool = False, debug: bool = False) -> None
 ```
 
 Start a Tendermint node process.
