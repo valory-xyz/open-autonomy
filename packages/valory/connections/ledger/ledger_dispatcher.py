@@ -272,13 +272,8 @@ class LedgerApiRequestDispatcher(RequestDispatcher):
             attempts += 1
             time.sleep(retry_timeout * attempts)
         attempts = 0
-        try:
-            transaction = api.get_transaction(
-                message.transaction_digest.body, raise_on_try=True
-            )
-        except Exception as e:  # pylint: disable=broad-except  # pragma: nocover
-            return self.get_error_message(e, api, message, dialogue)
 
+        transaction = None
         while (
             transaction is None
             and attempts < retry_attempts
