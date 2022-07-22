@@ -202,6 +202,7 @@ class FetchBehaviour(
         self._unit = ""
         self._target_per_pool = 0
         self._target = 0
+        self._pairs_exist = False
         self._total_unit_amount = 0
 
     @property
