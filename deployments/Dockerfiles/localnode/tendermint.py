@@ -148,38 +148,37 @@ class TendermintNode:
 
     def start(self, start_monitoring: bool = False, debug: bool = False) -> None:
         """Start a Tendermint node process."""
-        self._start_tm_process(debug)
+        self._start_tm_process(start_monitoring, debug)
         if start_monitoring:
             self._start_monitoring_thread()
 
-    def _start_tm_process(self, debug=False) -> None:
+    def _start_tm_process(self, monitoring=False, debug=False) -> None:
         """Start a Tendermint node process."""
         if self._process is not None:  # pragma: nocover
             return
         cmd = self._build_node_command(debug)
+        kwargs = {
+            "bufsize": 1,
+            "universal_newlines": True,
+        }
+
+        # Only redirect stdout and stderr if we're going to read
+        if monitoring:
+            kwargs["stdout"] = subprocess.PIPE
+            kwargs["stderr"] = subprocess.STDOUT
 
         if platform.system() == "Windows":  # pragma: nocover
-            self._process = (
-                subprocess.Popen(  # nosec # pylint: disable=consider-using-with,W1509
-                    cmd,
-                    stdout=subprocess.PIPE,
-                    stderr=subprocess.STDOUT,
-                    bufsize=1,
-                    universal_newlines=True,
-                    creationflags=subprocess.CREATE_NEW_PROCESS_GROUP,  # type: ignore
-                )
-            )
+            kwargs["creationflags"] = subprocess.CREATE_NEW_PROCESS_GROUP,  # type: ignore
         else:
-            self._process = (
-                subprocess.Popen(  # nosec # pylint: disable=consider-using-with,W1509
-                    cmd,
-                    preexec_fn=os.setsid,
-                    stdout=subprocess.PIPE,
-                    stderr=subprocess.STDOUT,
-                    bufsize=1,
-                    universal_newlines=True,
-                )
+            kwargs["preexec_fn"] = os.setsid
+
+        self._process = (
+            subprocess.Popen(  # nosec # pylint: disable=consider-using-with,W1509
+                cmd,
+                **kwargs
             )
+        )
+
         self.write_line("Tendermint process started\n")
 
     def _start_monitoring_thread(self) -> None:

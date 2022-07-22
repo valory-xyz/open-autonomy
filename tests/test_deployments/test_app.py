@@ -298,7 +298,6 @@ class TestTendermintBufferFailing(BaseTendermintServerTest):
         except requests.exceptions.Timeout:
             assert False, "Tendermint has timed out"
 
-
     @classmethod
     def teardown_class(cls) -> None:
         """Teardown the test."""
