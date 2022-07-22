@@ -272,33 +272,7 @@ class TestTendermintLogMessages(BaseTendermintServerTest):
         assert not get_missing(after_stopping), get_logs()
 
 
-@pytest.fixture()
-def mock_popen():
-    class MockPopen(object):
-        def __init__(self):
-            pass
-
-        def communicate(self, input=None):
-            pass
-
-        @property
-        def returncode(self):
-            pass
-
-    mock_popen = MockPopen()
-    mock_popen.communicate = mock.Mock(
-        return_value=(
-            "mock subprocess stdout",
-            "mock subprocess stderr",
-        )
-    )
-    mock_returncode = mock.PropertyMock(return_value=1)
-    type(mock_popen).returncode = mock_returncode
-
-    setattr(subprocess, "Popen", lambda *args, **kargs: mock_popen)
-
-
-class TestTendermintLogMessagesBuffer(BaseTendermintServerTest):
+class TestTendermintLogMessagesBufferFailing(BaseTendermintServerTest):
     """Test Tendermint message logging"""
 
     perform_monitoring = False
@@ -307,18 +281,41 @@ class TestTendermintLogMessagesBuffer(BaseTendermintServerTest):
     def test_tendermint_logs(self) -> None:
         """Test Tendermint logs"""
 
-        # with mock.patch.object(
-        #     self.tendermint_node._process.stdout,
-        #     "readline",
-        #     return_value="Mocked information\n",
-        # ):
-        for _ in range(100000):
-            self.tendermint_node.write_line(
-                "Useful information\n"
-            )  # we should not be reading this due to mocking
+        # Give the test 30 seconds for it to fail
+        with pytest.raises(requests.exceptions.Timeout):
+            for _ in range(30):
+                # If it hangs for 5 seconds, we assume it's not working.
+                # increasing the timeout should have no effect,
+                # the node is unresponsive at this point.
+                requests.get("http://localhost:26657/status", timeout=5)
+                time.sleep(1)
 
-        with open(os.environ["LOG_FILE"], "r") as f:
-            lines = "".join(f.readlines())
-            print(lines)
+    @classmethod
+    def teardown_class(cls) -> None:
+        """Teardown the test."""
+        cls.app_context.pop()
+        # Stopping doesn't work when monitoring is off
+        if cls.perform_monitoring:
+            cls.tendermint_node.stop()
+        shutil.rmtree(cls.tm_home, ignore_errors=True, onerror=readonly_handler)
 
-        self.tendermint_node.stop()
+
+class TestTendermintLogMessagesBufferWorking(BaseTendermintServerTest):
+    """Test Tendermint message logging"""
+
+    perform_monitoring = True
+
+    @wait_for_node_to_run
+    def test_tendermint_logs(self) -> None:
+        """Test Tendermint logs"""
+
+        # Give the test 60 seconds for it to work
+        for _ in range(60):
+            try:
+                res = requests.get("http://localhost:26657/status", timeout=5)
+                # We expect all responses to be OK
+                assert res.status_code == 200
+            except Exception:
+                assert False, "We don't expect an error here"
+
+            time.sleep(1)

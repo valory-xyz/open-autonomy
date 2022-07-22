@@ -133,6 +133,7 @@ class TendermintNode:
             f"--p2p.laddr={self.params.p2p_laddr}",
             f"--p2p.seeds={p2p_seeds}",
             f"--consensus.create_empty_blocks={str(self.params.consensus_create_empty_blocks).lower()}",
+            "--log_level=debug", # this will cause more logging -> faster failure
         ]
         if self.params.home is not None:  # pragma: nocover
             cmd += ["--home", self.params.home]
