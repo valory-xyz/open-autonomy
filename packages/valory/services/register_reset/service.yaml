@@ -1,7 +1,7 @@
 name: register_reset
 author: valory
 version: 0.1.0
-agent: valory/register_reset:0.1.0:bafybeifuzj7j7q37o33ermptv3bsbagkdmyqvxgaw5nhpbdsvybkv7ok2a
+agent: valory/register_reset:0.1.0:bafybeietvcd4w5ivq6qweu42u4ghskmju5rd6vhqp42fcom2z2jj4xxwmu
 network: hardhat
 number_of_agents: 4
 description: Test and debug tendermint reset mechanism.
