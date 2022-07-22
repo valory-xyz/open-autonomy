@@ -7,13 +7,11 @@ We start with a simple "Hello World" example service, and we will add progressiv
 
 ## A Hello World! agent service
 We start our tour of the framework by visiting an elementary example. The goal is to come up with a service composed of four agents. The functionality of this service will be extremely simple. Namely, each agent will output the following message to its local console:
-
 > "Agent $i$ in period $j$ says: Hello World!"
 
 More concretely, we divide the timeline into _periods_, and within each period, _only one designated agent will print the message_. The other agents will print nothing. Think of a period as an interval where the service carries out an iteration of its intended functionality.
 
 The architecture of this agent service, albeit simple, features four agents that are coordinated through a _consensus gadget_.
-
 
 <figure markdown>
 ![](./images/hello_world_architecture.svg)
@@ -27,7 +25,6 @@ The architecture of this agent service, albeit simple, features four agents that
 
     * The consensus gadget is the component that makes possible for the agents to synchronise data. This allows them to, e.g. reach agreement on certain actions or reconcile information.
 
-
     * Anything happening at the consensus network level is completely abstracted away so that developers simple consume it in their services. An application run by the agent service can be thought and developed as a single "virtual" application.
 
 
@@ -40,9 +37,8 @@ This is what the service would look like in all its glory:
 
 Even though printing "Hello World" on their local console is far from being an exciting functionality, this example shows a number of  nontrivial elements that are key components in an agent service:
 
-
 * The service defines a sequence of "atomic," well-defined actions, whose execution in the appropriate order achieves the intended functionality.
-* Agents have to interact with each other to execute each of those actions, and reach a consensus on a number of decisions at certain moments (e.g., who is the agent that prints the message in each period).
+* Agents have to interact with each other to execute each of those actions, and reach a consensus on a number of decisions at certain moments (e.g., which is the agent that prints the message in each period).
 * Agents are also allowed to execute actions on their own. In this simple example it just consists of printing a local message.
 * Agents have to use a global store for persistent data (e.g., which was the last agent that printed the message).
 * Finally, the application can progress even if some agent is faulty or malicious (up to a certain threshold of malicious agents).
@@ -50,7 +46,6 @@ Even though printing "Hello World" on their local console is far from being an e
 In this toy example we assume that the agent that is charge of printing the message locally will do so (i.e. it will behave honestly). When this printing functionality is replaced by other critical operations, like sending a transaction to a blockchain, it is not enough with trusting that the agent will behave honestly, and further security and cryptographic mechanisms will be required.
 
 The main questions that we try to answer at this point are:
-
 
 * What are the main elements of the {{open_autonomy}} framework to implement an agent service?
 * How do agents interact with the different components in an agent service?
@@ -155,7 +150,6 @@ A high level view of what occurs is as follows:
 
     There are several items which are called after the interface that connects with the consensus gadget, namely the Application Blockchain Interface (ABCI). In case you are not familiar with this, it is enough to know that it is an interface that abstracts away the protocol executed at the consensus gadget, and it produces callbacks to the skill when relevant events occur (e.g. agreement on a block). You can read more about the ABCI [here](https://docs.tendermint.com/master/spec/abci/).
 
-
 At this point, the walkthrough of a single transition from one state of the FSM, has essentially introduced the main components of an agent and the main interactions that occur in an agent service. It is important that the developer keeps these concepts in mind, since executions of further state transitions can be easily mapped with what has been presented here so far.
 
 ## Executing the Main Functionality
@@ -198,7 +192,6 @@ As a summary, find below an image which shows the main components of the agent a
 ![](./images/hello_world_agent_internal.svg)
 <figcaption>Main components of an agent that play a role in an agent service. Red arrows indicate a high-level flow of messages when the agent is in the SelectKeeper state.</figcaption>
 </figure>
-
 
 ## Coding the Hello World! agent service: A Primer
 So far, we have given a conceptual description of the Hello World {{agent_service}}. As we have seen, there are a number of components that a developer needs to focus on in order to fully define the service.
@@ -461,7 +454,6 @@ class PrintMessagePayload(BaseHelloWorldAbciPayload):
 
 **Other required components.**  There are a number of extra files which define other components required by the agent that we have not addressed so far.
 To conclude this section, let us briefly describe the purposes of each one, and we invite you to take a look at the source code:
-
 
 * `skill.yaml`: This is the skill specification file. Similarly to the agent configuration file, it defines the components (e.g. protocols, connections) required by the skill, as well as a number of configuration parameters.
 * `handlers.py`: Defines the `Handlers` (implementing reactive actions) used by the skill. It is mandatory that the skill associated to an agent service implements a handler inherited from the `ABCIRoundHandler`. Other handlers are required according to the actions that the skill is performing (e.g., interacting with an HTTP server). As you can see by exploring the file, little coding is expected unless you need to implement a custom protocol.
