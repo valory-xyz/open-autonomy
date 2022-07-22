@@ -119,9 +119,9 @@ from packages.valory.skills.apy_estimation_abci.tools.queries import (
     block_from_number_q,
     block_from_timestamp_q,
     eth_price_usd_q,
+    existing_pairs_q,
     latest_block_q,
     pairs_q,
-    existing_pairs_q,
 )
 
 
