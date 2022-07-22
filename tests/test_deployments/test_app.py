@@ -287,14 +287,17 @@ class TestTendermintBufferFailing(BaseTendermintServerTest):
     def test_tendermint_buffer(self) -> None:
         """Test Tendermint buffer"""
 
-        # Give the test 30 seconds for it to throw a timeout
-        with pytest.raises(requests.exceptions.Timeout):
+        try:
+            # Give the test 30 seconds for it to throw a timeout
             for _ in range(30):
                 # If it hangs for 5 seconds, we assume it's not working.
                 # Increasing the timeout should have no effect,
                 # the node is unresponsive at this point.
                 requests.get("http://localhost:26657/status", timeout=5)
                 time.sleep(1)
+        except requests.exceptions.Timeout:
+            assert False, "Tendermint has timed out"
+
 
     @classmethod
     def teardown_class(cls) -> None:
