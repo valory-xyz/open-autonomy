@@ -23,6 +23,7 @@ import json
 import os
 import re
 from abc import ABC
+from dataclasses import dataclass
 from multiprocessing.pool import AsyncResult
 from typing import (
     Any,
@@ -166,15 +167,36 @@ class FetchBehaviour(
     matching_round = CollectHistoryRound
     batch = False
 
+    @dataclass
+    class Progress:
+        """A class to keep track of the download progress."""
+
+        timestamps_iterator: Optional[Iterator[int]] = None
+        current_timestamp: Optional[int] = None
+        dex_names_iterator: Optional[Iterator[str]] = None
+        current_dex_name: Union[None, str] = None
+        n_fetched = 0
+        call_failed = False
+        initialized = False
+
+        @property
+        def can_continue(self) -> bool:
+            """Get if the fetching can continue."""
+            return all(
+                current is not None
+                for current in (
+                    self.current_timestamp,
+                    self.current_dex_name,
+                )
+            )
+
     def __init__(self, **kwargs: Any) -> None:
         """Initialize Behaviour."""
         super().__init__(**kwargs)
         SubgraphsMixin.__init__(self)
         self._save_path = ""
-        self._spooky_api_specs: Dict[str, Any] = dict()
-        self._timestamps_iterator: Optional[Iterator[int]] = None
-        self._current_timestamp: Optional[int] = None
-        self._call_failed = False
+        self._progress = self.Progress()
+        self._progress.dex_names_iterator = iter(self.params.pair_ids)
         self._pairs_hist: ResponseItemType = []
         self._hist_hash: Optional[str] = None
         self._unit = ""
