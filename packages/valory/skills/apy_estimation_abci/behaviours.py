@@ -241,6 +241,13 @@ class FetchBehaviour(
         """Get the number of the downloaded unit, in total."""
         return len(self._pairs_hist)
 
+    @property
+    def retries_exceeded(self) -> bool:
+        """If the retries have been exceeded for any subgraph."""
+        return any(
+            subgraph.is_retries_exceeded() for subgraph in self.utilized_subgraphs
+        )
+
     def setup(self) -> None:
         """Set the behaviour up."""
         if self.params.end is None or self.batch:
