@@ -33,7 +33,6 @@ from tests.test_autonomy.test_cli.base import BaseCliTest
 IPFS_REGISTRY = "/dns/registry.autonolas.tech/tcp/443/https"
 
 
-@pytest.mark.skip  # TOFIX
 class TestFetchCommand(BaseCliTest):
     """Test fetch command."""
 
@@ -86,6 +85,7 @@ class TestFetchCommand(BaseCliTest):
 
         shutil.rmtree(service)
 
+    @pytest.mark.skip("https://github.com/valory-xyz/open-autonomy/issues/1108")
     def test_fetch_service_ipfs(
         self,
     ) -> None:

@@ -1,8 +1,14 @@
 # Open Autonomy
 
-{{open_autonomy}} is a framework for the creation of Agent Services: off-chain services which run as a multi-agent-system (MAS)  and are replicated on a consensus gadget (a sort of short-lived blockchain) while being crypto-economically secured on a public blockchain. Agent services enable complex processing, take action on their own and run continuously. Additionally, agent services are crypto-native by construction, that is, they are decentralized, trust-minimized, transparent, and robust.
+{{open_autonomy}} is a framework for the creation of Agent Services: off-chain services which run as a multi-agent-system (MAS) and are replicated on a consensus gadget (a sort of short-lived blockchain) while being crypto-economically secured on a public blockchain. Agent services enable complex processing, take action on their own and run continuously. Additionally, agent services are crypto-native by construction, that is, they are decentralized, trust-minimized, transparent, and robust.
 
-The {{open_autonomy}} framework allows to define such services by means of _{{fsm_app}}s_. These dynamic, decentralized apps run inside the agents implementing the {{agent_service}}, and define its business logic. The {{fsm_app}}'s internal state is replicated across agents automatically through the consensus gadget. The {{open_autonomy}} framework is realized on top of the {{open_aea}} framework.
+The {{open_autonomy}} framework allows to define such services by means of _{{fsm_app}}s_. These dynamic, decentralized apps run inside the agents implementing the agent service, and define its business logic. The {{fsm_app}}'s internal state is replicated across agents automatically through the consensus gadget.
+
+The {{open_autonomy}} framework is realized on top of the {{open_aea}} framework, and it consists of:
+
+* A collection of command line tools to build, deploy, publish and  test agent services.
+* A collection of packages with base classes to create the {{fsm_app}} that define the service business logic.
+
 
 <figure markdown>
 ![](./images/agent_service_architecture.svg)
@@ -27,12 +33,12 @@ Currently, a standardised approach for off-chain application development is miss
 
 <figure markdown>
 ![](./images/centralized_decentralized_world.svg)
-<figcaption>The Valory Stack allows to develop decentralized, {{agent_service}}s that are run off-chain and are crypto-economically secure</figcaption>
+<figcaption>The Valory Stack allows to develop decentralized, agent services that are run off-chain and are crypto-economically secure</figcaption>
 </figure>
 
 
-{{agent_service}}s go beyond simple, purely
-reactive applications (like smart contracts) and can show complex, proactive behaviours that contain off-chain logic without giving up on decentralization.
+Agent services go beyond simple, purely
+reactive applications (like smart contracts) and can show complex, proactive behaviours that contain off-chain logic without giving up on decentralization. Examples include, but are not limited to, triggering specific actions on external events, or even executing complex machine learning models.
 
 
 ## How It Works
@@ -40,7 +46,7 @@ reactive applications (like smart contracts) and can show complex, proactive beh
 {{open_aea}} is a MAS framework for building
 arbitrary agent-based apps. The {{open_autonomy}} framework extends this framework to a service architecture, where applications are distributed systems that are implemented as sets of agents.
 
-An {{fsm_app}} defines a series of steps that each participating agent in the {{agent_service}} must agree upon. At the end of every step, the agents must reach consensus on the corresponding output. This ensures that the execution flow, its inputs and outputs are replicated across all agents, creating a distributed (and decentralized) application with shared state that is fault tolerant.
+An {{fsm_app}} defines a series of steps that each participating agent in the agent service must agree upon. At the end of every step, the agents must reach consensus on the corresponding output. This ensures that the execution flow, its inputs and outputs are replicated across all agents, creating a distributed (and decentralized) application with shared state that is fault tolerant.
 
 If at some point the application must execute an action involving an external service, e.g.,
 settling a transaction on a blockchain, one of the agents is randomly nominated to perform that action. The nominated agent is known as a _keeper_. The nomination process is also agreed by consensus, and multi-signature protocols are used to avoid that a single, malicious agent executes an external action on its own.
@@ -48,9 +54,9 @@ For this reason, there is the requirement that a minimum number of agents approv
 
 ## Where to Start
 
-We recommend that new users start by reading the the [_Example of a service_](./service_example.md) section, which should give a general overview about how a very basic {{agent_service}} is implemented with the stack.
+The [_Quick start_](./quick_start.md) section gives a general overview of the work pipeline with {{open_autonomy}} framework, as well as an example of deploying and running an already available, very basic service. The [_Example of a service_](./service_example.md) section gives a general overview about how that demonstration agent service is implemented with the stack.
 
-Following that introduction, the reader can proceed to explore the core concepts that make {{agent_service}}s possible, presented in the _Concepts_ section:
+Following these sections, the reader can proceed to explore the core concepts that make agent services possible, presented in the _Concepts_ section:
 
 - [Autonomous economic agents (AEAs) and multi-agent systems (MAS)](./aea.md),
 - [Finite-state machines (FSMs)](./fsm.md), and

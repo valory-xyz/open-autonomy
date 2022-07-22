@@ -1,6 +1,6 @@
 # Price Oracle - Introduction
 
-The goal of this {{agent_service}} is to provide an estimation as an average of a set of observations
+The goal of this agent service is to provide an estimation as an average of a set of observations
 on the Bitcoin price coming from different sources,
 e.g., CoinMarketCap, CoinGecko, Binance and Coinbase.
 Each AEA shares an observation from one of the sources above

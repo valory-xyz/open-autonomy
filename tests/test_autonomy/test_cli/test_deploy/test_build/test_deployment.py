@@ -27,7 +27,6 @@ from unittest import mock
 
 import yaml
 
-from autonomy.cli import cli
 from autonomy.constants import (
     DEFAULT_BUILD_FOLDER,
     OPEN_AEA_IMAGE_NAME,
@@ -71,32 +70,6 @@ class TestBuildDeployment(BaseCliTest):
         )
 
         os.chdir(cls.t)
-        cls.cli_runner.invoke(
-            cli, ("deploy", "build", "image", "valory/oracle_hardhat", "--dependencies")
-        )
-
-    def _build_images(self, version: str = "0.1.0") -> None:
-        """Build images."""
-        result = self.cli_runner.invoke(
-            cli, ("deploy", "build", "image", self.service_id, "--version", version)
-        )
-
-        assert result.exit_code == 0, result.output
-
-        result = self.cli_runner.invoke(
-            cli,
-            (
-                "deploy",
-                "build",
-                "image",
-                self.service_id,
-                "--version",
-                version,
-                "--dependencies",
-            ),
-        )
-
-        assert result.exit_code == 0, result.output
 
     def test_docker_compose_build(
         self,
@@ -113,6 +86,7 @@ class TestBuildDeployment(BaseCliTest):
                     "--o",
                     str(self.t),
                     "--force",
+                    "--local",
                 )
             )
 
@@ -163,6 +137,7 @@ class TestBuildDeployment(BaseCliTest):
                     str(self.t),
                     "--force",
                     "--dev",
+                    "--local",
                 )
             )
 
@@ -213,6 +188,7 @@ class TestBuildDeployment(BaseCliTest):
                     str(self.t),
                     "--kubernetes",
                     "--force",
+                    "--local",
                 )
             )
 
@@ -243,6 +219,7 @@ class TestBuildDeployment(BaseCliTest):
                     "--kubernetes",
                     "--force",
                     "--dev",
+                    "--local",
                 )
             )
 
@@ -262,7 +239,6 @@ class TestBuildDeployment(BaseCliTest):
         """Run tests."""
 
         version = "1.0.0"
-        self._build_images(version)
         with mock.patch("os.chown"):
             result = self.run_cli(
                 (
@@ -273,6 +249,7 @@ class TestBuildDeployment(BaseCliTest):
                     "--o",
                     str(self.t),
                     "--force",
+                    "--local",
                     "--version",
                     version,
                 )
@@ -301,7 +278,6 @@ class TestBuildDeployment(BaseCliTest):
         """Run tests."""
 
         version = "1.0.0"
-        self._build_images(version)
         with mock.patch("os.chown"):
             result = self.run_cli(
                 (
@@ -313,6 +289,7 @@ class TestBuildDeployment(BaseCliTest):
                     str(self.t),
                     "--force",
                     "--kubernetes",
+                    "--local",
                     "--version",
                     version,
                 )
@@ -355,6 +332,7 @@ class TestBuildDeployment(BaseCliTest):
                     "--o",
                     str(self.t),
                     "--force",
+                    "--local",
                 )
             )
 
@@ -403,6 +381,7 @@ class TestBuildDeployment(BaseCliTest):
                     "--force",
                     "--password",
                     ETHEREUM_ENCRYPTION_PASSWORD,
+                    "--local",
                 )
             )
 
@@ -458,6 +437,7 @@ class TestBuildDeployment(BaseCliTest):
                     "--kubernetes",
                     "--password",
                     ETHEREUM_ENCRYPTION_PASSWORD,
+                    "--local",
                 )
             )
 
@@ -511,6 +491,7 @@ class TestBuildDeployment(BaseCliTest):
                     str(self.t),
                     "--force",
                     "--kubernetes",
+                    "--local",
                 )
             )
 

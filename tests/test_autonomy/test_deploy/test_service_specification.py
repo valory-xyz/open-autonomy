@@ -31,7 +31,6 @@ import yaml
 
 from autonomy.deploy.base import ServiceSpecification
 
-from tests.conftest import ROOT_DIR
 from tests.test_autonomy.base import get_dummy_service_config
 
 
@@ -88,13 +87,7 @@ class TestServiceSpecification:
         spec = ServiceSpecification(
             self.service_path,
             self.keys_path,
-            packages_dir=ROOT_DIR / "packages",
         )
-
-        with pytest.raises(
-            ValueError, match="Remote registry not yet supported, use local!"
-        ):
-            spec.locate_agent_from_packages_directory(local_registry=False)
 
         agents = spec.generate_agents()
         assert len(agents) == 1, agents
@@ -119,7 +112,6 @@ class TestServiceSpecification:
             ServiceSpecification(
                 self.service_path,
                 self.keys_path,
-                packages_dir=ROOT_DIR / "packages",
                 number_of_agents=2,
             )
 
@@ -145,7 +137,6 @@ class TestServiceSpecification:
             ServiceSpecification(
                 self.service_path,
                 self.keys_path,
-                packages_dir=ROOT_DIR / "packages",
                 number_of_agents=2,
             )
 
