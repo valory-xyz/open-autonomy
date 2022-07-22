@@ -514,7 +514,7 @@ class TendermintNode:
             kwargs["stderr"] = subprocess.STDOUT
 
         if platform.system() == "Windows":  # pragma: nocover
-            kwargs["creationflags"] = (subprocess.CREATE_NEW_PROCESS_GROUP,)  # type: ignore
+            kwargs["creationflags"] = subprocess.CREATE_NEW_PROCESS_GROUP  # type: ignore
         else:
             kwargs["preexec_fn"] = os.setsid  # type: ignore
 
