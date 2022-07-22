@@ -64,6 +64,7 @@ from packages.valory.skills.apy_estimation_abci.ml.preprocessing import (
 )
 from packages.valory.skills.apy_estimation_abci.models import (
     APYParams,
+    DEXSubgraph,
     SharedState,
     SubgraphsMixin,
 )
@@ -203,7 +204,37 @@ class FetchBehaviour(
         self._target_per_pool = 0
         self._target = 0
         self._pairs_exist = False
-        self._total_unit_amount = 0
+
+    @property
+    def current_pair_ids(self) -> List[str]:
+        """Get the current DEX's pair ids."""
+        if self._progress.initialized:
+            current_dex_name = cast(str, self._progress.current_dex_name)
+            return self.params.pair_ids[current_dex_name]
+        return []
+
+    @property
+    def current_dex(self) -> Union[DEXSubgraph, ApiSpecs]:
+        """Get the current DEX subgraph."""
+        if self._progress.initialized:
+            current_dex_name = cast(str, self._progress.current_dex_name)
+            return self.get_subgraph(current_dex_name)
+        return self.get_subgraph("default")
+
+    @property
+    def current_chain(self) -> ApiSpecs:
+        """Get the current block subgraph."""
+        return self.get_subgraph(self.current_dex.chain_subgraph_name)
+
+    @property
+    def currently_downloaded(self) -> int:
+        """Get the number of the currently downloaded unit, for the current pool."""
+        if self._progress.initialized:
+            return int(
+                (len(self._pairs_hist) - self._progress.n_fetched)
+                / len(self.current_pair_ids)
+            )
+        return 0
 
     @property
     def current_unit(self) -> int:
