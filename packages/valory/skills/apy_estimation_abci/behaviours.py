@@ -241,11 +241,6 @@ class FetchBehaviour(
         """Get the number of the downloaded unit, in total."""
         return len(self._pairs_hist)
 
-    @property
-    def current_unit(self) -> int:
-        """Get the number of the currently downloaded unit."""
-        return int(len(self._pairs_hist) / len(self.params.pair_ids))
-
     def setup(self) -> None:
         """Set the behaviour up."""
         if self.params.end is None or self.batch:
