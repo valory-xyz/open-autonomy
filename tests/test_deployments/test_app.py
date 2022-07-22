@@ -296,7 +296,7 @@ class TestTendermintBufferFailing(BaseTendermintServerTest):
                 requests.get("http://localhost:26657/status", timeout=5)
                 time.sleep(1)
         except requests.exceptions.Timeout:
-            assert False, "Tendermint has timed out"
+            raise AssertionError("Tendermint has timed out")
 
     @classmethod
     def teardown_class(cls) -> None:
@@ -325,6 +325,6 @@ class TestTendermintBufferWorking(BaseTendermintServerTest):
                 # We expect all responses to be OK
                 assert res.status_code == 200
             except Exception as e:
-                assert False, e
+                raise AssertionError(e)
 
             time.sleep(1)
