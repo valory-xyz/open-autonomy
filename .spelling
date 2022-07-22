@@ -165,6 +165,10 @@ v1
 hardcoded
 e2e
 macos
+eg
+frontend
+onchain
+dict
  - docs/index.md
 README.md
 s_
@@ -274,6 +278,7 @@ i
  - HISTORY.md
 0.1.0rc1
 0.1.0rc2
+serializer
  - docs/control_flow.md
 EntryPoint
 StartA

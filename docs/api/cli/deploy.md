@@ -66,7 +66,7 @@ Build an agent service deployment.
 )
 @click.option(
     "--packages-dir",
-    type=click.Path(exists=True, dir_okay=True),
+    type=click.Path(dir_okay=True),
     default=Path.cwd() / PACKAGES,
     help="Path to packages folder (for local usage).",
 )
@@ -89,8 +89,15 @@ Build an agent service deployment.
     default=False,
     help="Remove existing build and overwrite with new one.",
 )
+@click.option(
+    "--skip-images",
+    is_flag=True,
+    default=False,
+    help="Specify whether to build images or not.",
+)
+@registry_flag()
 @password_option(confirmation_prompt=True)
-def build_deployment(service_id: PublicId, keys_file: Path, deployment_type: str, output_dir: Path, packages_dir: Path, dev_mode: bool, force_overwrite: bool, number_of_agents: Optional[int] = None, password: Optional[str] = None, version: Optional[str] = None) -> None
+def build_deployment(service_id: PublicId, keys_file: Path, deployment_type: str, output_dir: Path, packages_dir: Path, dev_mode: bool, force_overwrite: bool, registry: str, number_of_agents: Optional[int] = None, password: Optional[str] = None, version: Optional[str] = None, skip_images: bool = False) -> None
 ```
 
 Build deployment setup for n agents.
@@ -101,26 +108,19 @@ Build deployment setup for n agents.
 
 ```python
 @build_group.command(name="image")
-@click.argument(
-    "service-id",
-    type=PublicIdParameter(),
+@click.option(
+    "--build-dir",
+    type=click.Path(dir_okay=True),
+    help="Path to build dir.",
 )
 @click.option(
     "--packages-dir",
-    type=click.Path(exists=True, dir_okay=True),
-    default=Path.cwd() / PACKAGES,
+    type=click.Path(dir_okay=True),
     help="Path to packages folder (for local usage).",
-)
-@click.option(
-    "--build-dir",
-    type=click.Path(exists=True, dir_okay=True),
-    default=Path.cwd() / "deployments" / "Dockerfiles" / "open_aea",
-    help="Path to build directory.",
 )
 @click.option(
     "--skaffold-dir",
     type=click.Path(exists=True, dir_okay=True),
-    default=Path.cwd(),
     help="Path to directory containing the skaffold config.",
 )
 @click.option(
@@ -131,7 +131,7 @@ Build deployment setup for n agents.
 )
 @click.option("--push", is_flag=True, default=False, help="Push image after build.")
 @image_profile_flag()
-def build_images(service_id: PublicId, profile: str, packages_dir: Path, build_dir: Path, skaffold_dir: Path, version: str, push: bool) -> None
+def build_images(profile: str, packages_dir: Optional[Path], build_dir: Optional[Path], skaffold_dir: Optional[Path], version: str, push: bool) -> None
 ```
 
 Build image using skaffold.

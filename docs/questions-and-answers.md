@@ -1,15 +1,15 @@
 ## Definitions
 
-<details><summary>What is an Autonomous Service?</summary>
-An Autonomous Service is a decentralized service that runs off-chain and provides functionalities to objects living on-chain. Autonomous Services are outside the purview and control of a single authority, and can be designed for a variety of purposes, including acting as a decentralized oracle for smart contracts, or executing complex investing strategies that cannot be easily encoded on-chain.
+<details><summary>What is an autonomous service?</summary>
+An autonomous service is a decentralized service that runs off-chain and provides functionalities to objects living on-chain. Autonomous services are outside the purview and control of a single authority, and can be designed for a variety of purposes, including acting as a decentralized oracle for smart contracts, or executing complex investing strategies that cannot be easily encoded on-chain.
 </details>
 
-<details><summary>What is an Agent Service?</summary>
-An Agent Service is an Autonomous Service which is implemented as a multi-agent system using Autonomous Economic Agents through the <a href="https://github.com/valory-xyz/open-aea">Open AEA</a> framework.
+<details><summary>What is an agent service?</summary>
+An agent service is an autonomous service which is implemented as a multi-agent system using Autonomous Economic Agents through the <a href="https://github.com/valory-xyz/open-aea">Open AEA</a> framework.
 </details>
 
 <details><summary>What is an FSM App?</summary>
-An FSM App is an application that implements the business logic of an Agent Service as a finite-state machine. The internal state of an FSM App is replicated and synchronized across all the agents forming the Agent Service.
+An FSM App is an application that implements the business logic of an agent service as a finite-state machine. The internal state of an FSM App is replicated and synchronized across all the agents forming the agent service.
 </details>
 
 <details><summary>What is a keeper agent?</summary>
@@ -27,11 +27,11 @@ Autonolas is not just a framework where devs can build on: it is a complete, nov
 In the same way companies like Apple or Google offer SDKs to accelerate devs work plus an app store to monetize their work, Autonolas offers the same capabilities but in a decentralized way: developers register components, operators run services that use those components, consumers use and pay for those services so both developers and operators are compensated for their work. And all the parameters that govern the network can be voted on.</details>
 
 <details><summary>How do agents communicate with other agents?</summary>
-Different forms of communication are used depending on the service status: while agents are connecting to each other to form a temporary blockchain (formation), they use the Agent Communication Network (ACN). Under the hood the ACN is a DHT that keeps track of live agents mapping their crypto address to IP address. So agents can communicate with other agents without knowing their network location assuming they are online or offline but registered in the ACN. Once the service has been established, Agent Services use Tendermint for messaging.
+Different forms of communication are used depending on the service status: while agents are connecting to each other to form a temporary blockchain (formation), they use the Agent Communication Network (ACN). Under the hood the ACN is a DHT that keeps track of live agents mapping their crypto address to IP address. So agents can communicate with other agents without knowing their network location assuming they are online or offline but registered in the ACN. Once the service has been established, agent services use Tendermint for messaging.
 </details>
 
 <details><summary>Can services use other services?</summary>
-Yes, Agent Services can be composed from other Agent Services eventually, analogously to microservices. Sub-services can deliver all sorts of results which are consumed by a higher level service to create a higher level outcome.
+Yes, an agent service can be composed from other agent services, analogously to microservices. Sub-services can deliver all sorts of results which are consumed by a higher level service to create a higher level outcome.
 </details>
 
 <details><summary>How do services communicate with other services?</summary>
@@ -61,16 +61,16 @@ Composition starts at the component level of the agents (multiple rounds make a 
 
 ## Security
 
-<details><summary>How are Agent Services run?</summary>
+<details><summary>How are agent services run?</summary>
 
-Agent Services are composed of multiple agents that run the same code and agree on its output. These agents are executed by independent operators. Each operator can select and setup the infrastructure that best suits their needs.</details>
+Agent services are composed of multiple agents that run the same code and agree on its output. These agents are executed by independent operators. Each operator can select and setup the infrastructure that best suits their needs.</details>
 
 <details><summary>What happens if my node is hacked?</summary>
 
 As in any other online service, nodes are exposed to the risk of being breached. At the individual level, the framework does not provide a solution to this and it’s up to the agent operator to keep the agent safe. At the service level, on the other hand, services are secured in two ways:</p>
 
 <ul>
-<li>Each Agent Service implements a custom protocol that expects a very narrow message flow, so a hypothetical agent running malicious code would need to express its intentions within this protocol, otherwise the other agents will ignore its messages.</li>
+<li>Each agent service implements a custom protocol that expects a very narrow message flow, so a hypothetical agent running malicious code would need to express its intentions within this protocol, otherwise the other agents will ignore its messages.</li>
 
 <li>Even in the case of an agent sending valid, malicious messages in the service, the decentralized nature of services means that the majority threshold of agents (2/3 + 1) must agree before committing a malicious transaction, so it is not enough to breach an individual agent.</li>
 </ul>
@@ -78,7 +78,7 @@ As in any other online service, nodes are exposed to the risk of being breached.
 
 ## Costs
 
-<details><summary>How much does it cost to run an Autonomous Service using the framework?</summary>
-Agent Services are not limited in what they do or how they are configured (e.g. number of agents in them), therefore the costs are subjective to each service. At the very minimum there will be the costs of running the agent on cloud or local infrastructure.
+<details><summary>How much does it cost to run an agent service using the framework?</summary>
+Agent services are not limited in what they do or how they are configured (e.g. number of agents in them), therefore the costs are subjective to each service. At the very minimum there will be the costs of running the agent on cloud or local infrastructure.
 On top of that, if a service sends transactions to a chain, it will incur in fee costs that will depend on the selected chain.</p>As an example, for a simple service of four agents that makes a simple contract call every five minutes, a monthly cost of $3000 in Ethereum and $1.5 in Polygon is presently estimated (at gas cost of 60 wei per gas), but this number will wildly vary depending on gas costs.
 </details>

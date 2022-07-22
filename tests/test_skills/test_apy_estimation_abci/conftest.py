@@ -48,6 +48,13 @@ from packages.valory.skills.apy_estimation_abci.ml.optimization import (
 )
 from packages.valory.skills.apy_estimation_abci.models import SharedState
 from packages.valory.skills.apy_estimation_abci.tools.etl import ResponseItemType
+from packages.valory.skills.apy_estimation_abci.tools.queries import SAFE_BLOCK_TIME
+
+
+try:
+    from typing import TypedDict  # >=3.8
+except ImportError:
+    from mypy_extensions import TypedDict  # <=3.7
 
 
 HeaderType = Dict[str, str]
@@ -55,9 +62,41 @@ SpecsType = Dict[str, Union[str, int, HeaderType, SkillContext]]
 
 
 _ETH_PRICE_USD_Q_PARAMS: Dict[str, Union[int, float]] = {
-    "block": 3830367,
+    "block": 15178691,
     "id": 1,
-    "expected_result": 0.4183383786296383,
+    "spooky_expected_result": 0.5723397498919842,
+    "uni_expected_result": 1547.0711519143858,
+}
+
+
+_PAIRS_Q_PARAMS: Dict[str, Union[int, str]] = {
+    "block": 15178691,
+    "spooky_id": "0xec454eda10accdd66209c57af8c12924556f3abd",
+    "uni_id": "0x00004ee988665cdda9a1080d5792cecd16dc1220",
+}
+
+
+class _BlockQParamsType(TypedDict):
+    given_timestamp: int
+    given_number: int
+    expected_keys: List[str]
+    fantom_timestamp_expected_result: Dict[str, str]
+    eth_timestamp_expected_result: Dict[str, str]
+    fantom_number_expected_result: Dict[str, str]
+    eth_number_expected_result: Dict[str, str]
+
+
+_BLOCK_Q_PARAMS: _BlockQParamsType = {
+    "given_timestamp": 1652544875,
+    "given_number": 3730360,
+    "expected_keys": ["number", "timestamp"],
+    "fantom_timestamp_expected_result": {
+        "timestamp": "1652544875",
+        "number": "38234191",
+    },
+    "eth_timestamp_expected_result": {"timestamp": "1652544889", "number": "14774596"},
+    "fantom_number_expected_result": {"timestamp": "1618485988", "number": "3730360"},
+    "eth_number_expected_result": {"timestamp": "1495162291", "number": "3730360"},
 }
 
 
@@ -66,7 +105,7 @@ def _common_specs() -> SpecsType:
     return {
         "headers": {"Content-Type": "application/json"},
         "method": "POST",
-        "name": "spooky_api",
+        "name": "api",
         "skill_context": SkillContext(),
         "response_key": "data",
         "response_type": "list",
@@ -81,10 +120,21 @@ def spooky_specs(_common_specs: SpecsType) -> SpecsType:
         **_common_specs,
         **{
             "api_id": "spookyswap",
+            "top_n_pools": 100,
+            "chain_subgraph": "test",
             "bundle_id": 1,
             "url": "https://api.thegraph.com/subgraphs/name/eerieeight/spookyswap",
         },
     }
+
+
+@pytest.fixture
+def uni_specs(spooky_specs: SpecsType) -> SpecsType:
+    """Uniswap specs fixture."""
+    uni_specs = spooky_specs.copy()
+    uni_specs["api_id"] = "uniswap"
+    uni_specs["url"] = "https://api.thegraph.com/subgraphs/name/uniswap/uniswap-v2"
+    return uni_specs
 
 
 @pytest.fixture
@@ -100,8 +150,64 @@ def fantom_specs(_common_specs: SpecsType) -> SpecsType:
 
 
 @pytest.fixture
+def eth_specs(_common_specs: SpecsType) -> SpecsType:
+    """ETH specs fixture"""
+    return {
+        **_common_specs,
+        **{
+            "api_id": "eth",
+            "url": "https://api.thegraph.com/subgraphs/name/blocklytics/ethereum-blocks",
+        },
+    }
+
+
+def _response_key_extension(specs: SpecsType, extension: str) -> SpecsType:
+    """Extend specs for block queries."""
+    extended = specs.copy()
+    assert isinstance(extended["response_key"], str)
+    extended["response_key"] += extension
+    return extended
+
+
+@pytest.fixture
+def fantom_specs_blocks_extended(fantom_specs: SpecsType) -> SpecsType:
+    """Fantom specs fixture, extended for blocks queries."""
+    return _response_key_extension(fantom_specs, ":blocks")
+
+
+@pytest.fixture
+def eth_specs_blocks_extended(eth_specs: SpecsType) -> SpecsType:
+    """ETH specs fixture, extended for blocks queries."""
+    return _response_key_extension(eth_specs, ":blocks")
+
+
+@pytest.fixture
+def spooky_specs_price_extended(spooky_specs: SpecsType) -> SpecsType:
+    """Spooky specs fixture, extended for price queries."""
+    return _response_key_extension(spooky_specs, ":bundles")
+
+
+@pytest.fixture
+def uni_specs_price_extended(uni_specs: SpecsType) -> SpecsType:
+    """Uniswap specs fixture, extended for price queries."""
+    return _response_key_extension(uni_specs, ":bundles")
+
+
+@pytest.fixture
+def spooky_specs_pairs_extended(spooky_specs: SpecsType) -> SpecsType:
+    """Spooky specs fixture, extended for pairs queries."""
+    return _response_key_extension(spooky_specs, ":pairs")
+
+
+@pytest.fixture
+def uni_specs_pairs_extended(uni_specs: SpecsType) -> SpecsType:
+    """Uniswap specs fixture, extended for pairs queries."""
+    return _response_key_extension(uni_specs, ":pairs")
+
+
+@pytest.fixture
 def eth_price_usd_q() -> str:
-    """Query string for fetching ethereum price in USD from SpookySwap."""
+    """Query string for fetching ethereum price in USD."""
     return (
         """
         {
@@ -123,9 +229,15 @@ def eth_price_usd_q() -> str:
 
 
 @pytest.fixture
-def expected_eth_price_usd() -> float:
-    """The expected result of the `eth_price_usd_q` query."""
-    return _ETH_PRICE_USD_Q_PARAMS["expected_result"]
+def spooky_expected_eth_price_usd() -> float:
+    """The expected result of the `eth_price_usd_q` query on SpookySwap."""
+    return _ETH_PRICE_USD_Q_PARAMS["spooky_expected_result"]
+
+
+@pytest.fixture
+def uni_expected_eth_price_usd() -> float:
+    """The expected result of the `eth_price_usd_q` query on Uniswap."""
+    return _ETH_PRICE_USD_Q_PARAMS["uni_expected_result"]
 
 
 @pytest.fixture
@@ -138,7 +250,7 @@ def largest_acceptable_block_number() -> int:
 def eth_price_usd_raising_q(
     eth_price_usd_q: str, largest_acceptable_block_number: int
 ) -> str:
-    """Query string for fetching ethereum price in USD from SpookySwap, which raises a non-indexed error."""
+    """Query string for fetching ethereum price in USD, which raises a non-indexed error."""
     # replace the block number with a huge one, so that we get a not indexed error
     return eth_price_usd_q.replace(
         str(_ETH_PRICE_USD_Q_PARAMS["block"]), str(largest_acceptable_block_number)
@@ -149,15 +261,20 @@ def eth_price_usd_raising_q(
 def block_from_timestamp_q() -> str:
     """Query string to get a block from a timestamp."""
 
-    return """
+    return (
+        """
     {
         blocks(
             first: 1,
             orderBy: timestamp,
             orderDirection: asc,
             where: {
-                timestamp_gte: 1652544875,
-                timestamp_lte: 1652545475
+                timestamp_gte: """
+        + str(_BLOCK_Q_PARAMS["given_timestamp"])
+        + """,
+                timestamp_lte: """
+        + str(_BLOCK_Q_PARAMS["given_timestamp"] + SAFE_BLOCK_TIME)
+        + """
             }
         )
         {
@@ -166,20 +283,42 @@ def block_from_timestamp_q() -> str:
         }
     }
     """
+    )
+
+
+@pytest.fixture
+def expected_block_q_res_keys() -> List[str]:
+    """The expected keys of the result of any `block_from_number_q` query."""
+    return _BLOCK_Q_PARAMS["expected_keys"]
+
+
+@pytest.fixture
+def expected_fantom_block_from_timestamp() -> Dict[str, str]:
+    """The expected result of the `block_from_timestamp_q` query on Fantom."""
+    return _BLOCK_Q_PARAMS["fantom_timestamp_expected_result"]
+
+
+@pytest.fixture
+def expected_eth_block_from_timestamp() -> Dict[str, str]:
+    """The expected result of the `block_from_timestamp_q` query on ETH."""
+    return _BLOCK_Q_PARAMS["eth_timestamp_expected_result"]
 
 
 @pytest.fixture
 def block_from_number_q() -> str:
     """Query string to get a block from a timestamp."""
 
-    return """
+    return (
+        """
     {
         blocks(
             first: 1,
             orderBy: timestamp,
             orderDirection: asc,
             where: {
-                number: 3730360
+                number: """
+        + str(_BLOCK_Q_PARAMS["given_number"])
+        + """
             }
         )
         {
@@ -188,6 +327,19 @@ def block_from_number_q() -> str:
         }
     }
     """
+    )
+
+
+@pytest.fixture
+def expected_fantom_block_from_number() -> Dict[str, str]:
+    """The expected result of the `block_from_number_q` query on Fantom."""
+    return _BLOCK_Q_PARAMS["fantom_number_expected_result"]
+
+
+@pytest.fixture
+def expected_eth_block_from_number() -> Dict[str, str]:
+    """The expected result of the `block_from_number_q` query on ETH."""
+    return _BLOCK_Q_PARAMS["eth_number_expected_result"]
 
 
 @pytest.fixture
@@ -206,9 +358,8 @@ def top_n_pairs_q() -> str:
     """
 
 
-@pytest.fixture
-def pairs_q() -> str:
-    """Query to get data for the first `top_n` pools based on their total liquidity."""
+def _pairs_q(dex_id_name: str) -> str:
+    """Query to get data for the pool corresponding to the `dex_id_name` at a specific block."""
 
     return (
         """
@@ -216,10 +367,10 @@ def pairs_q() -> str:
         pairs(
             where: {id_in:
             [\""""
-        + '","'.join(["0xec454eda10accdd66209c57af8c12924556f3abd"])
+        + '","'.join([str(_PAIRS_Q_PARAMS[dex_id_name])])
         + """"]},
             block: {number: """
-        + str(3830367)
+        + str(_PAIRS_Q_PARAMS["block"])
         + """}
         ) {
             id
@@ -253,6 +404,18 @@ def pairs_q() -> str:
     }
     """
     )
+
+
+@pytest.fixture
+def spooky_pairs_q() -> str:
+    """Query to get data for a SpookySwap pool at a specific block."""
+    return _pairs_q("spooky_id")
+
+
+@pytest.fixture
+def uni_pairs_q() -> str:
+    """Query to get data for a Uniswap pool at a specific block."""
+    return _pairs_q("uni_id")
 
 
 @pytest.fixture

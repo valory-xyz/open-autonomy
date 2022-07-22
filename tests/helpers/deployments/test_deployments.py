@@ -207,7 +207,6 @@ class BaseDeploymentTests(ABC, CleanDirectoryClass):
         app_instance = ServiceSpecification(
             service_path=Path(app).parent,
             keys=DEFAULT_KEY_PATH,
-            packages_dir=PACKAGES_DIR,
         )
         instance = deployer(service_spec=app_instance, build_dir=self.temp_dir.name)  # type: ignore
         return instance, app_instance
@@ -303,21 +302,6 @@ class TestTendermintDeploymentGenerators(BaseDeploymentTests):
                 ), "Failed to generate Tendermint Config"
 
 
-class TestDeploymentLoadsAgent(BaseDeploymentTests):
-    """Test functionality of the deployment generators."""
-
-    def test_loads_agent_config(self) -> None:
-        """Test functionality of deploy safe contract."""
-        for deployment_generator in deployment_generators:
-            for spec in get_valid_deployments():
-                spec_path = self.write_deployment(spec)
-                _, app_instance = self.load_deployer_and_app(
-                    spec_path, deployment_generator
-                )
-                agent_json = app_instance.load_agent()
-                assert agent_json != {}
-
-
 class TestCliTool(BaseDeploymentTests):
     """Test functionality of the deployment generators."""
 
@@ -342,32 +326,6 @@ class TestCliTool(BaseDeploymentTests):
                 if app_instance.service.network != "ropsten":
                     continue
                 app_instance.generate_agent(0)
-
-
-class TestValidates(BaseDeploymentTests):
-    """Test functionality of the deployment generators."""
-
-    def test_generates_no_overrides(self) -> None:
-        """Use a configuration with no overrides."""
-        for deployment_generator in deployment_generators:
-            spec_path = self.write_deployment(BASE_DEPLOYMENT)
-            _, app_instance = self.load_deployer_and_app(
-                spec_path, deployment_generator
-            )
-            agent_json = app_instance.load_agent()
-            assert agent_json != {}
-
-    def test_generates_with_one_override(self) -> None:
-        """Use a configuration with no overrides."""
-        for deployment_generator in deployment_generators[:]:
-            spec_path = self.write_deployment(
-                "---\n".join([BASE_DEPLOYMENT, SKILL_OVERRIDE])
-            )
-            _, app_instance = self.load_deployer_and_app(
-                spec_path, deployment_generator
-            )
-            agent_json = app_instance.load_agent()
-            assert agent_json != {}
 
     def test_fails_to_generate_with_to_many_overrides(self) -> None:
         """Use a configuration with no overrides."""
