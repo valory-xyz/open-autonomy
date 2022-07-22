@@ -265,7 +265,7 @@ class LedgerApiRequestDispatcher(RequestDispatcher):
                     raise_on_try=True,
                 )
             except Exception as e:  # pylint: disable=broad-except
-                logging.warning(e)
+                _default_logger.warning(e)
                 transaction_receipt = None
 
             if transaction_receipt is not None:
@@ -285,7 +285,7 @@ class LedgerApiRequestDispatcher(RequestDispatcher):
                     message.transaction_digest.body, raise_on_try=True
                 )
             except Exception as e:  # pylint: disable=broad-except
-                logging.warning(e)
+                _default_logger.warning(e)
                 transaction = None
 
             attempts += 1
