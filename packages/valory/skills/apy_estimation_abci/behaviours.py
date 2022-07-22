@@ -319,25 +319,39 @@ class FetchBehaviour(
                 self.params.start, self.params.interval, end
             )
 
-    def _set_current_timestamp(self) -> None:
-        """Set the timestamp for the current timestep in the async act."""
-        if not self._call_failed:
-            self._current_timestamp = next(
-                cast(Iterator[int], self._timestamps_iterator),
+    def _set_current_progress(self) -> None:
+        """Set the progress for the current timestep in the async act."""
+        if not self._progress.call_failed:
+            if (
+                self.currently_downloaded == 0
+                or self.currently_downloaded == self._target_per_pool
+                or self.batch
+            ):
+                self._progress.current_dex_name = next(
+                    cast(Iterator[str], self._progress.dex_names_iterator),
+                    None,
+                )
+                self._reset_timestamps_iterator()
+                self._progress.n_fetched = len(self._pairs_hist)
+
+            self._progress.current_timestamp = next(
+                cast(Iterator[int], self._progress.timestamps_iterator),
                 None,
             )
 
-        if self.context.spooky_subgraph.is_retries_exceeded():
+        if self.retries_exceeded:
             # We cannot continue if the data were not fetched.
             # It is going to make the agent fail in the next behaviour while looking for the historical data file.
             self.context.logger.error(
                 "Retries were exceeded while downloading the historical data!"
             )
             # This will result in using only the part of the data downloaded so far.
-            self._current_timestamp = None
+            self._progress.current_timestamp = None
+            self._progress.current_dex_name = None
             # manually call clean-up, as it is not called by the framework if a `StopIteration` is not raised
             self.clean_up()
 
+        self._progress.initialized = True
         # if none of the above (call failed and we can retry), the current timestamp will remain the same.
 
     def _handle_response(
@@ -553,7 +567,7 @@ class FetchBehaviour(
         - Wait until ABCI application transitions to the next round.
         - Go to the next behaviour (set done event).
         """
-        self._set_current_timestamp()
+        self._set_current_progress()
 
         with self.context.benchmark_tool.measure(self.behaviour_id).local():
             if self._progress.can_continue:
