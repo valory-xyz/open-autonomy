@@ -260,6 +260,10 @@ class FetchBehaviour(
         self._target_per_pool = int(
             unit_amount_from_sec(self.params.end - self.params.start, self._unit)
         )
+        n_ids = sum(
+            (len(dex_pair_ids) for dex_pair_ids in self.params.pair_ids.values())
+        )
+        self._target = self._target_per_pool * n_ids
 
         filename = "historical_data"
 
