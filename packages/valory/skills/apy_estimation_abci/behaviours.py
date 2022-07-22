@@ -200,6 +200,8 @@ class FetchBehaviour(
         self._pairs_hist: ResponseItemType = []
         self._hist_hash: Optional[str] = None
         self._unit = ""
+        self._target_per_pool = 0
+        self._target = 0
         self._total_unit_amount = 0
 
     @property
