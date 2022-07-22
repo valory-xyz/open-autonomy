@@ -567,7 +567,13 @@ class FetchBehaviour(
         - Wait until ABCI application transitions to the next round.
         - Go to the next behaviour (set done event).
         """
-        self._set_current_progress()
+        if not self._progress.initialized:
+            yield from self._check_given_pairs()
+            if self._progress.call_failed and not self.retries_exceeded:
+                return
+
+        if self._pairs_exist:
+            self._set_current_progress()
 
         with self.context.benchmark_tool.measure(self.behaviour_id).local():
             if self._progress.can_continue:
