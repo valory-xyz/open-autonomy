@@ -27,7 +27,7 @@ fingerprint_ignore_patterns: []
 connections:
 - valory/abci:0.1.0:bafybeiaqoaub5jverxutngxtbfcshucsg7fqkcrdgbjfdsrdbfntwyhawq
 - valory/http_client:0.1.0:bafybeibh3iu7kojc4d5eiigqh6kx2vdmu2q7vhcvvq2rz6suegsscyd66y
-- valory/ledger:0.1.0:bafybeibcj2bbnesgy4xvy4sabbt47hlefmys2kvpexb2dlaxv7e5nzh4ze
+- valory/ledger:0.1.0:bafybeidafudwogabr76zc2ccxnsymljwheewjothi46vacqmjgyxdv7flq
 contracts:
 - valory/service_registry:0.1.0:bafybeiemujnvqd6kvuubtl6od3b5barxf7dcjm3v73dnkqtrtxjdmvnoqe
 protocols:
