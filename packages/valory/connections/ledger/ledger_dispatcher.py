@@ -265,7 +265,8 @@ class LedgerApiRequestDispatcher(RequestDispatcher):
                     raise_on_try=True,
                 )
             except Exception as e:  # pylint: disable=broad-except
-                return self.get_error_message(e, api, message, dialogue)
+                logging.warning(e)
+                transaction_receipt = None
 
             if transaction_receipt is not None:
                 is_settled = api.is_transaction_settled(transaction_receipt)
@@ -284,7 +285,8 @@ class LedgerApiRequestDispatcher(RequestDispatcher):
                     message.transaction_digest.body, raise_on_try=True
                 )
             except Exception as e:  # pylint: disable=broad-except
-                return self.get_error_message(e, api, message, dialogue)
+                logging.warning(e)
+                transaction = None
 
             attempts += 1
             time.sleep(retry_timeout * attempts)
