@@ -468,7 +468,7 @@ class TendermintNode:
             cmd += ["--home", self.params.home]
         return cmd
 
-    def _build_node_command(self) -> List[str]:
+    def _build_node_command(self, debug=False) -> List[str]:
         """Build the 'node' command."""
         p2p_seeds = ",".join(self.params.p2p_seeds) if self.params.p2p_seeds else ""
         cmd = [
@@ -480,6 +480,9 @@ class TendermintNode:
             f"--p2p.seeds={p2p_seeds}",
             f"--consensus.create_empty_blocks={str(self.params.consensus_create_empty_blocks).lower()}",
         ]
+        if debug:
+            cmd.append("--log_level=debug")
+
         if self.params.home is not None:  # pragma: nocover
             cmd += ["--home", self.params.home]
         return cmd
@@ -489,40 +492,38 @@ class TendermintNode:
         cmd = self._build_init_command()
         subprocess.call(cmd)  # nosec
 
-    def start(self, start_monitoring: bool = False) -> None:
+    def start(self, start_monitoring: bool = False, debug: bool = False) -> None:
         """Start a Tendermint node process."""
-        self._start_tm_process()
+        self._start_tm_process(start_monitoring, debug)
         if start_monitoring:
             self._start_monitoring_thread()
 
-    def _start_tm_process(self) -> None:
+    def _start_tm_process(self, monitoring=False, debug=False) -> None:
         """Start a Tendermint node process."""
         if self._process is not None:  # pragma: nocover
             return
-        cmd = self._build_node_command()
+        cmd = self._build_node_command(debug)
+        kwargs = {
+            "bufsize": 1,
+            "universal_newlines": True,
+        }
+
+        # Only redirect stdout and stderr if we're going to read
+        if monitoring:
+            kwargs["stdout"] = subprocess.PIPE
+            kwargs["stderr"] = subprocess.STDOUT
 
         if platform.system() == "Windows":  # pragma: nocover
-            self._process = (
-                subprocess.Popen(  # nosec # pylint: disable=consider-using-with,W1509
-                    cmd,
-                    stdout=subprocess.PIPE,
-                    stderr=subprocess.STDOUT,
-                    bufsize=1,
-                    universal_newlines=True,
-                    creationflags=subprocess.CREATE_NEW_PROCESS_GROUP,  # type: ignore
-                )
-            )
+            kwargs["creationflags"] = (subprocess.CREATE_NEW_PROCESS_GROUP,)  # type: ignore
         else:
-            self._process = (
-                subprocess.Popen(  # nosec # pylint: disable=consider-using-with,W1509
-                    cmd,
-                    preexec_fn=os.setsid,
-                    stdout=subprocess.PIPE,
-                    stderr=subprocess.STDOUT,
-                    bufsize=1,
-                    universal_newlines=True,
-                )
+            kwargs["preexec_fn"] = os.setsid
+
+        self._process = (
+            subprocess.Popen(  # nosec # pylint: disable=consider-using-with,W1509
+                cmd, **kwargs
             )
+        )
+
         self.write_line("Tendermint process started\n")
 
     def _start_monitoring_thread(self) -> None:

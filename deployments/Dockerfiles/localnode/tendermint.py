@@ -168,14 +168,13 @@ class TendermintNode:
             kwargs["stderr"] = subprocess.STDOUT
 
         if platform.system() == "Windows":  # pragma: nocover
-            kwargs["creationflags"] = subprocess.CREATE_NEW_PROCESS_GROUP,  # type: ignore
+            kwargs["creationflags"] = (subprocess.CREATE_NEW_PROCESS_GROUP,)  # type: ignore
         else:
             kwargs["preexec_fn"] = os.setsid
 
         self._process = (
             subprocess.Popen(  # nosec # pylint: disable=consider-using-with,W1509
-                cmd,
-                **kwargs
+                cmd, **kwargs
             )
         )
 
