@@ -302,9 +302,7 @@ class TestTendermintBufferFailing(BaseTendermintServerTest):
     def teardown_class(cls) -> None:
         """Teardown the test."""
         cls.app_context.pop()
-        # Stopping doesn't work when monitoring is off
-        if cls.perform_monitoring:
-            cls.tendermint_node.stop()
+        cls.tendermint_node.stop()
         shutil.rmtree(cls.tm_home, ignore_errors=True, onerror=readonly_handler)
 
 
