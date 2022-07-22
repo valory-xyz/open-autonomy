@@ -257,7 +257,7 @@ class FetchBehaviour(
             self.params.end = int(calendar.timegm(last_timestamp.timetuple()))
 
         self._unit = sec_to_unit(self.params.interval)
-        self._total_unit_amount = int(
+        self._target_per_pool = int(
             unit_amount_from_sec(self.params.end - self.params.start, self._unit)
         )
 
@@ -302,7 +302,7 @@ class FetchBehaviour(
 
         non_existing_pairs = set(given_pairs) - set(existing_pairs)
         if non_existing_pairs:
-            if not self._call_failed:
+            if not self._progress.call_failed:
                 self.context.logger.error(
                     f"The given pair(s) {non_existing_pairs} do not exist at the corresponding subgraph(s)!"
                 )
@@ -353,7 +353,7 @@ class FetchBehaviour(
                 f"Could not get {res_context} from {subgraph.api_id}"
             )
 
-            self._call_failed = True
+            self._progress.call_failed = True
             subgraph.increment_retries()
             if sleep_on_fail:
                 yield from self.sleep(self.params.sleep_time)
@@ -365,7 +365,7 @@ class FetchBehaviour(
                 value = value[key]
 
         self.context.logger.info(f"Retrieved {res_context}: {value}.")
-        self._call_failed = False
+        self._progress.call_failed = False
         subgraph.reset_retries()
         return value
 
@@ -373,28 +373,26 @@ class FetchBehaviour(
         self, number: Optional[int] = None
     ) -> Generator[None, None, Optional[Dict[str, int]]]:
         """Fetch block."""
-        fantom_api_specs = self.context.fantom_subgraph.get_spec()
         if number is not None:
             query = block_from_number_q(number)
         else:
             query = (
                 latest_block_q()
                 if self.batch
-                else block_from_timestamp_q(cast(int, self._current_timestamp))
+                else block_from_timestamp_q(cast(int, self._progress.current_timestamp))
             )
+
         res_raw = yield from self.get_http_response(
-            method=fantom_api_specs["method"],
-            url=fantom_api_specs["url"],
-            headers=fantom_api_specs["headers"],
+            **self.current_chain.get_spec(),
             content=query,
         )
-        res = self.context.fantom_subgraph.process_response(res_raw)
+        res = self.current_chain.process_response(res_raw)
 
         fetched_block = yield from self._handle_response(
             res,
             res_context="block",
             keys=("blocks", 0),
-            subgraph=self.context.fantom_subgraph,
+            subgraph=self.current_chain,
         )
 
         return fetched_block
@@ -405,18 +403,18 @@ class FetchBehaviour(
         """Fetch ETH price for block."""
         res_raw = yield from self.get_http_response(
             content=eth_price_usd_q(
-                self.context.spooky_subgraph.bundle_id,
+                self.current_dex.bundle_id,
                 block["number"],
             ),
-            **self._spooky_api_specs,
+            **self.current_dex.get_spec(),
         )
-        res = self.context.spooky_subgraph.process_response(res_raw)
+        res = self.current_dex.process_response(res_raw)
 
         eth_price = yield from self._handle_response(
             res,
             res_context=f"ETH price for block {block}",
             keys=("bundles", 0, "ethPrice"),
-            subgraph=self.context.spooky_subgraph,
+            subgraph=self.current_dex,
             sleep_on_fail=False,
         )
 
@@ -426,12 +424,12 @@ class FetchBehaviour(
         self, res_raw: HttpMessage
     ) -> Generator[None, None, Optional[Tuple[Dict[str, int], float]]]:
         """Check if we received a non-indexed block error and try to get the ETH price for the latest indexed block."""
-        res = self.context.spooky_subgraph.process_non_indexed_error(res_raw)
+        res = self.current_dex.process_non_indexed_error(res_raw)
         latest_indexed_block_error = yield from self._handle_response(
             res,
             res_context="indexing error that will be attempted to be handled",
             keys=(0, "message"),
-            subgraph=self.context.spooky_subgraph,
+            subgraph=self.current_dex,
         )
         if latest_indexed_block_error is None:
             return None
@@ -483,26 +481,27 @@ class FetchBehaviour(
         return block, eth_price
 
     def _fetch_pairs(
-        self, block: Dict[str, int]
+        self,
+        block: Dict[str, int],
     ) -> Generator[None, None, Optional[ResponseItemType]]:
         """Fetch pool data for block."""
         res_raw = yield from self.get_http_response(
-            content=pairs_q(block["number"], self.params.pair_ids),
-            **self._spooky_api_specs,
+            content=pairs_q(block["number"], self.current_pair_ids),
+            **self.current_dex.get_spec(),
         )
-        res = self.context.spooky_subgraph.process_response(res_raw)
+        res = self.current_dex.process_response(res_raw)
 
         pairs = yield from self._handle_response(
             res,
             res_context=f"pool data for block {block}",
             keys=("pairs",),
-            subgraph=self.context.spooky_subgraph,
+            subgraph=self.current_dex,
         )
 
         return pairs
 
     def _fetch_batch(self) -> Generator[None, None, None]:
-        """Fetch a single batch of the historical data."""
+        """Fetch a single batch of the historical data, for the current DEX."""
         block = yield from self._fetch_block()
         if block is None:
             return
@@ -518,7 +517,7 @@ class FetchBehaviour(
 
         # Add extra fields to the pairs.
         for i in range(len(pairs)):  # pylint: disable=C0200
-            pairs[i]["forTimestamp"] = str(self._current_timestamp)
+            pairs[i]["forTimestamp"] = str(self._progress.current_timestamp)
             pairs[i]["blockNumber"] = str(block["number"])
             pairs[i]["blockTimestamp"] = str(block["timestamp"])
             pairs[i]["ethPrice"] = str(eth_price)
@@ -527,7 +526,8 @@ class FetchBehaviour(
 
         if not self.batch:
             self.context.logger.info(
-                f"Fetched {self._unit} {self.current_unit}/{self._total_unit_amount}."
+                f"Fetched {self._unit} {self.currently_downloaded}/{self._target_per_pool} "
+                f"from {self._progress.current_dex_name}."
             )
 
     def async_act(  # pylint: disable=too-many-locals,too-many-statements
@@ -546,17 +546,17 @@ class FetchBehaviour(
         self._set_current_timestamp()
 
         with self.context.benchmark_tool.measure(self.behaviour_id).local():
-            if self._current_timestamp is not None:
+            if self._progress.can_continue:
                 yield from self._fetch_batch()
                 return
 
-            if self.current_unit == 0:
+            if self.total_downloaded == 0:
                 self.context.logger.error("Could not download any historical data!")
                 self._hist_hash = ""
 
             if (
-                self.current_unit > 0
-                and self.current_unit != self._total_unit_amount
+                self.total_downloaded > 0
+                and self.total_downloaded != self._target
                 and not self.batch
             ):
                 # Here, we continue without having all the pairs downloaded, because of a network issue.
@@ -564,7 +564,7 @@ class FetchBehaviour(
                     "Will continue with partially downloaded historical data!"
                 )
 
-            if self.current_unit > 0:
+            if self.total_downloaded > 0:
                 # Send the file to IPFS and get its hash.
                 self._hist_hash = self.send_to_ipfs(
                     self._save_path, self._pairs_hist, filetype=SupportedFiletype.JSON
