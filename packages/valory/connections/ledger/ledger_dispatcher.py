@@ -264,7 +264,7 @@ class LedgerApiRequestDispatcher(RequestDispatcher):
                     message.transaction_digest.body,
                     raise_on_try=True,
                 )
-            except Exception as e:  # pylint: disable=broad-except  # pragma: nocover
+            except Exception as e:  # pylint: disable=broad-except
                 return self.get_error_message(e, api, message, dialogue)
 
             if transaction_receipt is not None:
@@ -288,13 +288,13 @@ class LedgerApiRequestDispatcher(RequestDispatcher):
                 transaction = api.get_transaction(
                     message.transaction_digest.body, raise_on_try=True
                 )
-            except Exception as e:  # pylint: disable=broad-except  # pragma: nocover
+            except Exception as e:  # pylint: disable=broad-except
                 return self.get_error_message(e, api, message, dialogue)
 
             attempts += 1
             time.sleep(retry_timeout * attempts)
 
-        if not is_settled:  # pragma: nocover
+        if not is_settled:
             response = self.get_error_message(
                 ValueError("Transaction not settled within timeout"),
                 api,
@@ -305,7 +305,7 @@ class LedgerApiRequestDispatcher(RequestDispatcher):
             response = self.get_error_message(
                 ValueError("No transaction_receipt returned"), api, message, dialogue
             )
-        elif transaction is None:  # pragma: nocover
+        elif transaction is None:
             response = self.get_error_message(
                 ValueError("No transaction returned"), api, message, dialogue
             )
