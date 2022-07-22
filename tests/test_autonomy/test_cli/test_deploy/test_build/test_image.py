@@ -26,6 +26,7 @@ from pathlib import Path
 from typing import Tuple
 
 import docker
+import pytest
 
 from autonomy.constants import DEFAULT_BUILD_FOLDER
 
@@ -81,6 +82,7 @@ class TestBuildImage(BaseCliTest):
             [random.choice(string.ascii_lowercase) for _ in range(length)]  # nosec
         )
 
+    @pytest.mark.skip("https://github.com/valory-xyz/open-autonomy/issues/1108")
     def test_build_prod(
         self,
     ) -> None:

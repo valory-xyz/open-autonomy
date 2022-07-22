@@ -23,6 +23,9 @@ import json
 from typing import List, Optional
 
 
+SAFE_BLOCK_TIME = 600
+
+
 def finalize_q(query: str) -> bytes:
     """Finalize the given query string, i.e., add it under a `queries` key and convert it to bytes."""
     finalized_query = {"query": query}
@@ -99,7 +102,7 @@ def block_from_timestamp_q(timestamp: int) -> bytes:
         + str(timestamp)
         + """,
                 timestamp_lte: """
-        + str(timestamp + 600)
+        + str(timestamp + SAFE_BLOCK_TIME)
         + """
             }
         )
