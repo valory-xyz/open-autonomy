@@ -2,7 +2,6 @@
 
 This section gives a general, introductory overview of the library and a high-level view of the main elements that make an agent service. The goal is to provide a global understanding on the development process and the relationship between the main components of the stack.
 
-
 We start with a simple "Hello World" example service, and we will add progressively more functionality to it.
 
 
