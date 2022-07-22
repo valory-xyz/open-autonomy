@@ -266,14 +266,8 @@ class FetchBehaviour(
         self._target = self._target_per_pool * n_ids
 
         filename = "historical_data"
-
         if self.batch:
             filename += f"_batch_{self.params.end}"
-            self._timestamps_iterator = iter((self.params.end,))
-        else:
-            self._timestamps_iterator = gen_unix_timestamps(
-                self.params.start, self.params.interval, self.params.end
-            )
 
         self._save_path = os.path.join(
             self.context.data_dir,
@@ -312,6 +306,18 @@ class FetchBehaviour(
                 )
 
         self._pairs_exist = True
+
+    def _reset_timestamps_iterator(self) -> None:
+        """Reset the timestamps iterator."""
+        # end is set in the `setup` method and therefore cannot be `None` at this point
+        end = cast(int, self.params.end)
+
+        if self.batch:
+            self._progress.timestamps_iterator = iter((end,))
+        else:
+            self._progress.timestamps_iterator = gen_unix_timestamps(
+                self.params.start, self.params.interval, end
+            )
 
     def _set_current_timestamp(self) -> None:
         """Set the timestamp for the current timestep in the async act."""
