@@ -26,6 +26,7 @@ from unittest import mock
 
 from aea.configurations.loader import ConfigLoader
 from aea.helpers.base import cd
+from aea.helpers.io import open_file
 
 from autonomy.configurations.base import Service
 
@@ -98,7 +99,7 @@ class TestFetchCommand(BaseCliTest):
         service_dir = self.t / "dummy_service"
         service_file = service_dir / "service.yaml"
         service_dir.mkdir()
-        with open(service_file, "w+") as fp:
+        with open_file(service_file, "w+") as fp:
             service_conf, *overrides = get_dummy_service_config()
             service_conf["overrides"] = overrides
             service = Service.from_json(service_conf)
