@@ -32,6 +32,9 @@ from packages.valory.skills.apy_estimation_abci.models import (
     APYParams as APYEstimationAPYParams,
 )
 from packages.valory.skills.apy_estimation_abci.models import (
+    ETHSubgraph as APYEstimationETHSubgraph,
+)
+from packages.valory.skills.apy_estimation_abci.models import (
     FantomSubgraph as APYEstimationFantomSubgraph,
 )
 from packages.valory.skills.apy_estimation_abci.models import (
@@ -39,6 +42,9 @@ from packages.valory.skills.apy_estimation_abci.models import (
 )
 from packages.valory.skills.apy_estimation_abci.models import (
     SpookySwapSubgraph as APYEstimationSpookySwapSubgraph,
+)
+from packages.valory.skills.apy_estimation_abci.models import (
+    UniswapSubgraph as APYEstimationUniswapSubgraph,
 )
 from packages.valory.skills.apy_estimation_abci.rounds import Event
 from packages.valory.skills.apy_estimation_chained_abci.composition import (
@@ -50,6 +56,8 @@ Requests = BaseRequests
 BenchmarkTool = BaseBenchmarkTool
 RandomnessApi = APYEstimationRandomnessApi
 FantomSubgraph = APYEstimationFantomSubgraph
+ETHSubgraph = APYEstimationETHSubgraph
+UniswapSubgraph = APYEstimationUniswapSubgraph
 SpookySwapSubgraph = APYEstimationSpookySwapSubgraph
 APYParams = APYEstimationAPYParams
 

@@ -231,7 +231,7 @@ class TestFetchAndBatchBehaviours(APYEstimationFSMBehaviourBaseCase):
         self,
         block_from_timestamp_q: str,
         eth_price_usd_q: str,
-        pairs_q: str,
+        spooky_pairs_q: str,
         pool_fields: Tuple[str, ...],
     ) -> None:
         """Run tests."""
@@ -264,7 +264,7 @@ class TestFetchAndBatchBehaviours(APYEstimationFSMBehaviourBaseCase):
         request_kwargs["body"] = json.dumps({"query": block_from_timestamp_q}).encode(
             "utf-8"
         )
-        res = {"data": {"blocks": [{"timestamp": "1", "number": "3830367"}]}}
+        res = {"data": {"blocks": [{"timestamp": "1", "number": "15178691"}]}}
         response_kwargs["body"] = json.dumps(res).encode("utf-8")
         self.behaviour.act_wrapper()
         self.mock_http_request(request_kwargs, response_kwargs)
@@ -280,7 +280,7 @@ class TestFetchAndBatchBehaviours(APYEstimationFSMBehaviourBaseCase):
         self.mock_http_request(request_kwargs, response_kwargs)
 
         # top pairs data.
-        request_kwargs["body"] = json.dumps({"query": pairs_q}).encode("utf-8")
+        request_kwargs["body"] = json.dumps({"query": spooky_pairs_q}).encode("utf-8")
         res = {
             "data": {
                 "pairs": [
@@ -302,7 +302,7 @@ class TestFetchAndBatchBehaviours(APYEstimationFSMBehaviourBaseCase):
         block_from_timestamp_q: str,
         block_from_number_q: str,
         eth_price_usd_q: str,
-        pairs_q: str,
+        spooky_pairs_q: str,
         pool_fields: Tuple[str, ...],
     ) -> None:
         """Run tests for fetch behaviour when a block has not been indexed yet."""
@@ -336,7 +336,7 @@ class TestFetchAndBatchBehaviours(APYEstimationFSMBehaviourBaseCase):
             "utf-8"
         )
         res: Dict[str, Union[List[Dict[str, str]], Dict[str, List[Dict[str, str]]]]] = {
-            "data": {"blocks": [{"timestamp": "1", "number": "3830367"}]}
+            "data": {"blocks": [{"timestamp": "1", "number": "15178691"}]}
         }
         response_kwargs["body"] = json.dumps(res).encode("utf-8")
         self.behaviour.act_wrapper()
@@ -352,7 +352,7 @@ class TestFetchAndBatchBehaviours(APYEstimationFSMBehaviourBaseCase):
                 {
                     "message": "Failed to decode `block.number` value: `subgraph "
                     "QmPJbGjktGa7c4UYWXvDRajPxpuJBSZxeQK5siNT3VpthP has only indexed up to block number 3730367 "
-                    "and data for block number 3830367 is therefore not yet available`"
+                    "and data for block number 15178691 is therefore not yet available`"
                 }
             ]
         }
@@ -377,7 +377,7 @@ class TestFetchAndBatchBehaviours(APYEstimationFSMBehaviourBaseCase):
             APYEstimationBaseBehaviour, self.behaviour.current_behaviour
         ).context.spooky_subgraph.url
         request_kwargs["body"] = json.dumps(
-            {"query": eth_price_usd_q.replace("3830367", "3730360")}
+            {"query": eth_price_usd_q.replace("15178691", "3730360")}
         ).encode("utf-8")
         res = {"data": {"bundles": [{"ethPrice": "0.8973548"}]}}
         response_kwargs["body"] = json.dumps(res).encode("utf-8")
@@ -386,7 +386,7 @@ class TestFetchAndBatchBehaviours(APYEstimationFSMBehaviourBaseCase):
 
         # top pairs data.
         request_kwargs["body"] = json.dumps(
-            {"query": pairs_q.replace("3830367", "3730360")}
+            {"query": spooky_pairs_q.replace("15178691", "3730360")}
         ).encode("utf-8")
         res = {
             "data": {
@@ -457,7 +457,7 @@ class TestFetchAndBatchBehaviours(APYEstimationFSMBehaviourBaseCase):
         caplog: LogCaptureFixture,
         block_from_timestamp_q: str,
         eth_price_usd_q: str,
-        pairs_q: str,
+        spooky_pairs_q: str,
         pool_fields: Tuple[str, ...],
     ) -> None:
         """Test when fetched value is none."""
@@ -513,7 +513,7 @@ class TestFetchAndBatchBehaviours(APYEstimationFSMBehaviourBaseCase):
         request_kwargs["body"] = json.dumps({"query": block_from_timestamp_q}).encode(
             "utf-8"
         )
-        res = {"data": {"blocks": [{"timestamp": "1", "number": "3830367"}]}}
+        res = {"data": {"blocks": [{"timestamp": "1", "number": "15178691"}]}}
         response_kwargs["body"] = json.dumps(res).encode("utf-8")
         self.behaviour.act_wrapper()
         self.mock_http_request(request_kwargs, response_kwargs)
@@ -533,7 +533,7 @@ class TestFetchAndBatchBehaviours(APYEstimationFSMBehaviourBaseCase):
             self.mock_http_request(request_kwargs, response_kwargs)
         assert (
             "[test_agent_name] Could not get ETH price for block "
-            "{'timestamp': '1', 'number': '3830367'} from spookyswap" in caplog.text
+            "{'timestamp': '1', 'number': '15178691'} from spookyswap" in caplog.text
         )
 
         caplog.clear()
@@ -547,7 +547,7 @@ class TestFetchAndBatchBehaviours(APYEstimationFSMBehaviourBaseCase):
         request_kwargs["body"] = json.dumps({"query": block_from_timestamp_q}).encode(
             "utf-8"
         )
-        res = {"data": {"blocks": [{"timestamp": "1", "number": "3830367"}]}}
+        res = {"data": {"blocks": [{"timestamp": "1", "number": "15178691"}]}}
         response_kwargs["body"] = json.dumps(res).encode("utf-8")
         self.behaviour.act_wrapper()
         self.mock_http_request(request_kwargs, response_kwargs)
@@ -563,7 +563,7 @@ class TestFetchAndBatchBehaviours(APYEstimationFSMBehaviourBaseCase):
         self.mock_http_request(request_kwargs, response_kwargs)
 
         # top pairs data with None response.
-        request_kwargs["body"] = json.dumps({"query": pairs_q}).encode("utf-8")
+        request_kwargs["body"] = json.dumps({"query": spooky_pairs_q}).encode("utf-8")
         response_kwargs["body"] = b""
 
         with caplog.at_level(
@@ -573,7 +573,7 @@ class TestFetchAndBatchBehaviours(APYEstimationFSMBehaviourBaseCase):
             self.behaviour.act_wrapper()
             self.mock_http_request(request_kwargs, response_kwargs)
         assert (
-            "[test_agent_name] Could not get pool data for block {'timestamp': '1', 'number': '3830367'} "
+            "[test_agent_name] Could not get pool data for block {'timestamp': '1', 'number': '15178691'} "
             "from spookyswap" in caplog.text
         )
 
