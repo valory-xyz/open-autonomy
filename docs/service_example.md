@@ -175,7 +175,7 @@ As a result, we have finished a "happy path" of execution of the FSM, concluding
 
 !!! note
 
-    In Step 3 of the main functionality (printing value on screen locally), we have stipulated that all agents respond with a dummy constant value. 
+    In Step 3 of the main functionality (printing value on screen locally), we have stipulated that all agents respond with a dummy constant value.
     We remark that not all states of the Hello World FSM require that all agents respond. In this example, we could simply have required that the keeper sends the "Task completed" message, and the remaining agents would  wait for that single message.
 
     Other states might have different waiting conditions, for instance
@@ -431,7 +431,7 @@ class PrintMessagePayload(BaseHelloWorldAbciPayload):
     transaction_type = TransactionType.PRINT_MESSAGE
 
     def __init__(self, sender: str, message: str, **kwargs: Any) -> None:
-        """Initialize a 'select_keeper' transaction payload.
+        """Initialize an 'select_keeper' transaction payload.
 
         :param sender: the sender (Ethereum) address
         :param message: the message printed by the agent

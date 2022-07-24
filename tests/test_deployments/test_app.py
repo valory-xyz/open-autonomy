@@ -90,6 +90,8 @@ class BaseTendermintServerTest(BaseTendermintTest):
     app: flask.app.Flask
     app_context: flask.ctx.AppContext
     tendermint_node: TendermintNode
+    perform_monitoring = True
+    debug_tendermint = False
 
     @classmethod
     def setup_class(cls) -> None:
@@ -98,7 +100,11 @@ class BaseTendermintServerTest(BaseTendermintTest):
         os.environ["PROXY_APP"] = "kvstore"
         os.environ["CREATE_EMPTY_BLOCKS"] = "true"
         os.environ["LOG_FILE"] = str(cls.path / "tendermint.log")
-        cls.app, cls.tendermint_node = create_app(cls.path / "tm_state")
+        cls.app, cls.tendermint_node = create_app(
+            dump_dir=cls.path / "tm_state",
+            perform_monitoring=cls.perform_monitoring,
+            debug=cls.debug_tendermint,
+        )
         cls.app.config["TESTING"] = True
         cls.app_context = cls.app.app_context()
         cls.app_context.push()
@@ -269,3 +275,54 @@ class TestTendermintLogMessages(BaseTendermintServerTest):
         assert not get_missing(before_stopping), get_logs()
         self.tendermint_node.stop()
         assert not get_missing(after_stopping), get_logs()
+
+
+class TestTendermintBufferFailing(BaseTendermintServerTest):
+    """Test Tendermint buffer"""
+
+    perform_monitoring = False  # Setting this flag to False makes the buffer to fill and freeze Tendermint
+    debug_tendermint = True  # This will cause more logging -> faster failure
+
+    @wait_for_node_to_run
+    def test_tendermint_buffer(self) -> None:
+        """Test Tendermint buffer"""
+
+        try:
+            # Give the test 30 seconds for it to throw a timeout
+            for _ in range(30):
+                # If it hangs for 5 seconds, we assume it's not working.
+                # Increasing the timeout should have no effect,
+                # the node is unresponsive at this point.
+                requests.get("http://localhost:26657/status", timeout=5)
+                time.sleep(1)
+        except requests.exceptions.Timeout:
+            raise AssertionError("Tendermint has timed out")
+
+    @classmethod
+    def teardown_class(cls) -> None:
+        """Teardown the test."""
+        cls.app_context.pop()
+        cls.tendermint_node.stop()
+        shutil.rmtree(cls.tm_home, ignore_errors=True, onerror=readonly_handler)
+
+
+class TestTendermintBufferWorking(BaseTendermintServerTest):
+    """Test Tendermint buffer"""
+
+    perform_monitoring = True
+    debug_tendermint = True
+
+    @wait_for_node_to_run
+    def test_tendermint_buffer(self) -> None:
+        """Test Tendermint buffer"""
+
+        # Give the test 60 seconds for it to work
+        for _ in range(60):
+            try:
+                res = requests.get("http://localhost:26657/status", timeout=5)
+                # We expect all responses to be OK
+                assert res.status_code == 200
+            except Exception as e:
+                raise AssertionError(e)
+
+            time.sleep(1)
