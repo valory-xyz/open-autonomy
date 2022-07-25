@@ -54,7 +54,7 @@ touch Pipfile && pipenv --python 3.10 && pipenv shell
 pip install open-autonomy
 ```
 
-## Deploy a local agent service
+## Deploy a Local Agent Service
 
 Follow the steps indicated below to download a demonstration agent service from the Service Registry, and deploy it locally using Docker Compose.
 In this case, we consider the [Hello World agent service](./service_example.md).
