@@ -26,14 +26,14 @@ import logging
 import re
 import sys
 import textwrap
-
-from packages.valory.skills.abstract_round_abci.base import AbciApp
 from collections import defaultdict, deque
 from itertools import product
 from pathlib import Path
 from typing import Any, Dict, List, OrderedDict, Set, TextIO, Tuple
 
 import yaml
+
+from packages.valory.skills.abstract_round_abci.base import AbciApp
 
 
 class DFASpecificationError(Exception):
@@ -343,35 +343,39 @@ class DFA:
         )
 
 
-event_pattern = re.compile("Event\.(\w+)", re.DOTALL)
+event_pattern = re.compile(r"Event\.(\w+)", re.DOTALL)
 
-def check_unreferenced_events(abci_app_cls:AbciApp) -> None:
+
+def check_unreferenced_events(abci_app_cls: AbciApp) -> None:
     """Checks that events defined in the AbciApp transition function are referenced in the source code of the coresponding round or its superclasses."""
 
     error_strings = []
     timeout_events = set([k.name for k in abci_app_cls.event_to_timeout.keys()])
 
     for round_cls, round_transitions in abci_app_cls.transition_function.items():
-        trf_events = {str(e).rsplit(".", 1)[1] for e in round_transitions} - timeout_events
+        trf_events = {
+            str(e).rsplit(".", 1)[1] for e in round_transitions
+        } - timeout_events
         referenced_events = set()
-        print(f"==={str(round_cls)}===")
 
-        for base in filter(lambda x: x.__class__.__module__ is not "builtins", inspect.getmro(round_cls)):
-            print(f"   - Inspecting {base}   {base.__class__.__module__}")
+        for base in filter(
+            lambda x: x.__class__.__module__ != "builtins",
+            inspect.getmro(round_cls),
+        ):
             src = textwrap.dedent(inspect.getsource(base))
             referenced_events.update(event_pattern.findall(src))
 
-        print(f"   = trfev={trf_events}")
-        print(f"   = retev={referenced_events}")        
         if trf_events.symmetric_difference(referenced_events):
             error_strings.append(
                 f" - {round_cls.__name__}: transition function events {trf_events} do not match referenced events {referenced_events}."
             )
-       
+
     if len(error_strings) > 0:
         raise DFASpecificationError(
-            f"{abci_app_cls.__name__} ABCI App has the following issues:\n" + "\n".join(error_strings)
+            f"{abci_app_cls} ABCI App has the following issues:\n"
+            + "\n".join(error_strings)
         )
+
 
 class SpecCheck:
     """Class to represent abci spec checks."""
