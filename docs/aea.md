@@ -27,7 +27,7 @@ uncertain.
     Every agent service built with the {{open_autonomy}} framework is a MAS composed of several AEAs that interact between them to achieve the goals of the service.
 
 
-## How Agent Services Are Secured
+## How agent services Are Secured
 
 So, how can we create a functional system in which agents can pursue their
 objectives without guarantees on how other agents might behave? The answer lies
@@ -134,8 +134,8 @@ This object is shared by all [`Handler`](https://open-aea.docs.autonolas.tech/ap
 ## Overview of AEA Skills Implementation
 
 
-Note that [`Skills`](https://open-aea.docs.autonolas.tech/skill/) are one of the parts where the developer will need to invest more time, as it is where the concrete business logic is developed. This will be also the case when developing agent
-services, because a special type of [`Skill`](https://open-aea.docs.autonolas.tech/skill/) is what will define the agent
+Note that [`Skills`](https://open-aea.docs.autonolas.tech/skill/) are one of the parts where the developer will need to invest more time, as it is where the concrete business logic is developed. This will be also the case when developing agent 
+services, because a special type of [`Skill`](https://open-aea.docs.autonolas.tech/skill/) is what will define the agent 
 service business logic.
 
 Therefore, we briefly provide a general overview on how an AEA [`Skill`](https://open-aea.docs.autonolas.tech/skill/) is implemented in the {{open_aea}} framework. See also the {{open_aea_doc}} for the complete details.

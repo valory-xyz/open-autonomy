@@ -1,9 +1,12 @@
-# Hello World Agent Service
+# Example of a service
 
 This section gives a general, introductory overview of the library and a high-level view of the main elements that make an agent service. The goal is to provide a global understanding on the development process and the relationship between the main components of the stack.
 
 We start with a simple "Hello World" example service, and we will add progressively more functionality to it.
-The goal is to come up with a service composed of four agents. The functionality of this service will be extremely simple. Namely, each agent will output the following message to its local console:
+
+
+## A Hello World! agent service
+We start our tour of the framework by visiting an elementary example. The goal is to come up with a service composed of four agents. The functionality of this service will be extremely simple. Namely, each agent will output the following message to its local console:
 > "Agent $i$ in period $j$ says: Hello World!"
 
 More concretely, we divide the timeline into _periods_, and within each period, _only one designated agent will print the message_. The other agents will print nothing. Think of a period as an interval where the service carries out an iteration of its intended functionality.
@@ -47,7 +50,7 @@ The main questions that we try to answer at this point are:
 * What are the main elements of the {{open_autonomy}} framework to implement an agent service?
 * How do agents interact with the different components in an agent service?
 
-## The Finite State Machine of an Agent Service
+## The Finite State Machine of an agent service
 
 The first step when designing an agent service is to divide the intended functionality into "atomic" steps. For example, for the Hello World service, we identify these steps as
 
@@ -172,7 +175,7 @@ As a result, we have finished a "happy path" of execution of the FSM, concluding
 
 !!! note
 
-    In Step 3 of the main functionality (printing value on screen locally), we have stipulated that all agents respond with a dummy constant value.
+    In Step 3 of the main functionality (printing value on screen locally), we have stipulated that all agents respond with a dummy constant value. 
     We remark that not all states of the Hello World FSM require that all agents respond. In this example, we could simply have required that the keeper sends the "Task completed" message, and the remaining agents would  wait for that single message.
 
     Other states might have different waiting conditions, for instance
@@ -190,7 +193,7 @@ As a summary, find below an image which shows the main components of the agent a
 <figcaption>Main components of an agent that play a role in an agent service. Red arrows indicate a high-level flow of messages when the agent is in the SelectKeeper state.</figcaption>
 </figure>
 
-## Coding the Hello World! Agent Service: A Primer
+## Coding the Hello World! agent service: A Primer
 So far, we have given a conceptual description of the Hello World {{agent_service}}. As we have seen, there are a number of components that a developer needs to focus on in order to fully define the service.
 
 The objective of what follows next is to explore what are the main steps to code and get the service running. Note that the complete code for the example can be found in

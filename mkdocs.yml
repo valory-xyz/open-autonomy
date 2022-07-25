@@ -16,8 +16,8 @@ nav:
   - Introduction: 'index.md'
   - Version: 'version.md'
   - Upgrading: 'upgrading.md'
-  - Quick Start: 'quick_start.md'
-  - Hello World Agent Service: 'hello_world_agent_service.md'
+  - Quick start: 'quick_start.md'
+  - Example of a service: 'service_example.md'
   - Concepts:
     - Autonomous Economic Agents: 'aea.md'
     - Finite State Machines: 'fsm.md'
