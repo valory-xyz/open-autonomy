@@ -54,7 +54,7 @@ For this reason, there is the requirement that a minimum number of agents approv
 
 ## Where to Start
 
-The [_Quick start_](./quick_start.md) section gives a general overview of the work pipeline with {{open_autonomy}} framework, as well as an example of deploying and running an already available, very basic service. The [_Example of a service_](./service_example.md) section gives a general overview about how that demonstration agent service is implemented with the stack.
+The [_Quick start_](./quick_start.md) section gives a general overview of the work pipeline with {{open_autonomy}} framework, as well as an example of deploying and running an already available, very basic service. The [_Hello World agent service_](./hello_world_agent_service.md) section gives a general overview about how that demonstration agent service is implemented with the stack.
 
 Following these sections, the reader can proceed to explore the core concepts that make agent services possible, presented in the _Concepts_ section:
 
