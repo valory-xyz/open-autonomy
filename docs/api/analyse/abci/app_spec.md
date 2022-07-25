@@ -155,6 +155,16 @@ def abci_to_dfa(cls, abci_app_cls: Any, label: str = "") -> "DFA"
 
 Translates an AbciApp class into a DFA.
 
+<a id="autonomy.analyse.abci.app_spec.check_unreferenced_events"></a>
+
+#### check`_`unreferenced`_`events
+
+```python
+def check_unreferenced_events(abci_app_cls: AbciApp) -> None
+```
+
+Checks that events defined in the AbciApp transition function are referenced in the source code of the coresponding round or its superclasses.
+
 <a id="autonomy.analyse.abci.app_spec.SpecCheck"></a>
 
 ## SpecCheck Objects

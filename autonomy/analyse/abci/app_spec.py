@@ -346,7 +346,7 @@ class DFA:
 event_pattern = re.compile(r"Event\.(\w+)", re.DOTALL)
 
 
-def check_unreferenced_events(abci_app_cls: AbciApp) -> None:
+def _check_unreferenced_events(abci_app_cls: AbciApp) -> None:
     """Checks that events defined in the AbciApp transition function are referenced in the source code of the coresponding round or its superclasses."""
 
     error_strings = []
@@ -396,7 +396,7 @@ class SpecCheck:
         with open(infile, "r", encoding="utf-8") as fp:
             dfa2 = DFA.load(fp, informat)
 
-        check_unreferenced_events(abci_app_cls)
+        _check_unreferenced_events(abci_app_cls)
 
         return dfa1 == dfa2
 
