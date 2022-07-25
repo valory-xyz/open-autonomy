@@ -61,7 +61,7 @@ automatically regarded as a self-transition to the same state.
 
 **Returns**:
 
-None
+True if the transition function is total. False otherwise.
 
 <a id="autonomy.analyse.abci.app_spec.DFA.get_transitions"></a>
 
