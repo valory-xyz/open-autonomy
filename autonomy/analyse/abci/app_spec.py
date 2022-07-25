@@ -18,10 +18,8 @@
 # ------------------------------------------------------------------------------
 """Generates the specification for a given ABCI app in YAML/JSON/Mermaid format."""
 
-import ast
-import enum
+
 import importlib
-import itertools
 import inspect
 import json
 import logging
@@ -29,13 +27,10 @@ import re
 import sys
 import textwrap
 
-from numpy import isin
-from packages.valory.skills.abstract_round_abci.base import AbstractRound
 from packages.valory.skills.abstract_round_abci.base import AbciApp
 from collections import defaultdict, deque
 from itertools import product
 from pathlib import Path
-from types import ModuleType
 from typing import Any, Dict, List, OrderedDict, Set, TextIO, Tuple
 
 import yaml
@@ -348,45 +343,35 @@ class DFA:
         )
 
 
+event_pattern = re.compile("Event\.(\w+)", re.DOTALL)
 
-def check_returned_events(abci_app_cls:AbciApp ) -> None:
-    """Checks that events defined in the AbciApp transition function are actually returned by the rounds."""
+def check_unreferenced_events(abci_app_cls:AbciApp) -> None:
+    """Checks that events defined in the AbciApp transition function are referenced in the source code of the coresponding round or its superclasses."""
 
     error_strings = []
     timeout_events = set([k.name for k in abci_app_cls.event_to_timeout.keys()])
 
     for round_cls, round_transitions in abci_app_cls.transition_function.items():
         trf_events = {str(e).rsplit(".", 1)[1] for e in round_transitions} - timeout_events
-        returned_events = set()
+        referenced_events = set()
+        print(f"==={str(round_cls)}===")
 
-        for base in inspect.getmro(round_cls):
-            for y, x in inspect.getmembers(base, inspect.isfunction):
-                src = textwrap.dedent(inspect.getsource(x))
-                ast_tree = ast.parse(src)
-                for ast_node in ast.walk(ast_tree):
-                    if isinstance(ast_node, ast.Return) and isinstance(ast_node.value, ast.Tuple):
-                        if isinstance(ast_node.value.elts[1], ast.Attribute):
-                            ret_exp = ast_node.value.elts[1].attr
-                            
-                            atr = getattr(round_cls, ret_exp, None)
+        for base in filter(lambda x: x.__class__.__module__ is not "builtins", inspect.getmro(round_cls)):
+            print(f"   - Inspecting {base}   {base.__class__.__module__}")
+            src = textwrap.dedent(inspect.getsource(base))
+            referenced_events.update(event_pattern.findall(src))
 
-                            if isinstance(atr, enum.Enum):
-                                returned_events.add(atr.name)
-                            else:
-                                returned_events.add(ret_exp)
-
-       
-        if trf_events.symmetric_difference(returned_events):
+        print(f"   = trfev={trf_events}")
+        print(f"   = retev={referenced_events}")        
+        if trf_events.symmetric_difference(referenced_events):
             error_strings.append(
-                f" - {round_cls.__name__} round: transition function non-timeout events {trf_events} do not match returned events {returned_events}."
+                f" - {round_cls.__name__}: transition function events {trf_events} do not match referenced events {referenced_events}."
             )
-
-         
+       
     if len(error_strings) > 0:
         raise DFASpecificationError(
             f"{abci_app_cls.__name__} ABCI App has the following issues:\n" + "\n".join(error_strings)
         )
-     
 
 class SpecCheck:
     """Class to represent abci spec checks."""
@@ -407,7 +392,7 @@ class SpecCheck:
         with open(infile, "r", encoding="utf-8") as fp:
             dfa2 = DFA.load(fp, informat)
 
-        check_returned_events(abci_app_cls)
+        check_unreferenced_events(abci_app_cls)
 
         return dfa1 == dfa2
 
