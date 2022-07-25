@@ -350,7 +350,7 @@ def _check_unreferenced_events(abci_app_cls: AbciApp) -> None:
     """Checks that events defined in the AbciApp transition function are referenced in the source code of the coresponding round or its superclasses."""
 
     error_strings = []
-    timeout_events = set([k.name for k in abci_app_cls.event_to_timeout.keys()])
+    timeout_events = {k.name for k in abci_app_cls.event_to_timeout.keys()}
 
     for round_cls, round_transitions in abci_app_cls.transition_function.items():
         trf_events = {
