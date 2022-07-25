@@ -130,7 +130,7 @@ class DFA:
         (state, input_symbol) is not defined for a certain input_symbol, it will be
         automatically regarded as a self-transition to the same state.
 
-        :return: None
+        :return: True if the transition function is total. False otherwise. 
         """
         return set(product(self.states, self.alphabet_in)) == set(
             self.transition_func.keys()
@@ -347,7 +347,18 @@ event_pattern = re.compile(r"Event\.(\w+)", re.DOTALL)
 
 
 def _check_unreferenced_events(abci_app_cls: AbciApp) -> None:
-    """Checks that events defined in the AbciApp transition function are referenced in the source code of the coresponding round or its superclasses."""
+    """Checks for unreferenced events in the AbciApp.
+    
+    Checks that events defined in the AbciApp transition function are referenced
+    in the source code of the corresponding rounds or their superclasses. Note that
+    the function simply checks references in the "raw" source code of the rounds and
+    their (non builtin) superclasses. Therefore, it does not do any kind of static
+    analysis on the source code, nor checks for actual reachability of a return
+    statement returning such events.
+    
+    :param AbciApp: AbciApp to check unreferenced events.
+    :raises DFASpecificationError: If there are unfererenced events in the AbciApp.
+    """
 
     error_strings = []
     timeout_events = {k.name for k in abci_app_cls.event_to_timeout.keys()}
