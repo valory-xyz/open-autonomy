@@ -5,15 +5,10 @@ description: A set of agents implementing a price oracle
 aea_version: '>=1.0.0, <2.0.0'
 license: Apache-2.0
 fingerprint:
-  README.md: bafybeifpb54id7wln2ayku65s3qmih3aljf23rfpsggjwuzc7cnkfroi7y
+  README.md: bafybeig4wu7inb6ibwfgged3djyc7emopcg5n7d7gwrlotne53pp3jfgq4
 fingerprint_ignore_patterns: []
-agent: valory/oracle:0.1.0:bafybeig7j64xv36he4ua3szdozrfr7c2w5sbqb6znpl32wamg5mggadzxe
-network:
-  id: goerli
-  address: https://goerli.infura.io/v3/7afbd9ac9d0345578d9ccd6594300acd
-  chain_id: 5
-  poa_chain: true
-  default_gas_price_strategy: eip1559
+agent: valory/oracle:0.1.0:bafybeihzdnqd4ukdkgz2f4av2m2eunhspfllnykgfw7pf37bqy77y6ivii
+network: goerli
 number_of_agents: 4
 ---
 setup_args:
@@ -21,7 +16,7 @@ setup_args:
     setup:
       safe_contract_address:
       - '0x623cE6087190B53520f00609d41d79e5B71B881F'
-      oracle_contract_address: 
+      oracle_contract_address:
       - '0xA2b06beb69b5e454759976ABa7555e2639c0522f'
     max_healthcheck: 43200
     broadcast_to_server: true
