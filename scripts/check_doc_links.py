@@ -78,7 +78,7 @@ def main() -> None:  # pylint: disable=too-many-locals
                 error = True
 
             # Check for broken links: 200 and 403 codes are admitted
-            if url in url_skips:
+            if url in url_skips + http_skips:
                 continue
             try:
                 status_code = session.get(url, timeout=5).status_code
