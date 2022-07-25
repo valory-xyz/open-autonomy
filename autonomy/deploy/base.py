@@ -23,15 +23,12 @@ import json
 from pathlib import Path
 from typing import Any, Dict, List, Optional, cast
 
-import yaml
-from aea.cli.utils.package_utils import try_get_item_source_path
 from aea.configurations.base import (
     ConnectionConfig,
     ContractConfig,
     ProtocolConfig,
     SkillConfig,
 )
-from aea.configurations.constants import AGENTS, DEFAULT_AEA_CONFIG_FILE
 
 from autonomy.configurations.base import Service
 from autonomy.configurations.loader import load_service_config
@@ -70,21 +67,17 @@ class ServiceSpecification:
         self,
         service_path: Path,
         keys: Path,
-        packages_dir: Path,
         number_of_agents: Optional[int] = None,
         private_keys_password: Optional[str] = None,
     ) -> None:
         """Initialize the Base Deployment."""
         self.private_keys: List = []
         self.private_keys_password = private_keys_password
-        self.packages_dir = packages_dir
         self.service = load_service_config(service_path)
         if number_of_agents is not None:
             self.service.number_of_agents = number_of_agents
 
-        self.agent_spec = self.load_agent()
         self.read_keys(keys)
-
         if self.service.number_of_agents > len(self.private_keys):
             raise ValueError("Number of agents cannot be greater than available keys.")
 
@@ -144,26 +137,6 @@ class ServiceSpecification:
             if any([isinstance(value, list), isinstance(value, dict)]):
                 agent_vars[var_name] = json.dumps(value)
         return agent_vars
-
-    def load_agent(self) -> List[Dict[str, str]]:
-        """Using specified valory app, try to load the aea."""
-        aea_project_path = self.locate_agent_from_packages_directory()
-        with open(aea_project_path, "r", encoding="utf8") as file:
-            aea_json = list(yaml.safe_load_all(file))
-        return aea_json
-
-    def locate_agent_from_packages_directory(self, local_registry: bool = True) -> str:
-        """Using the deployment id, locate the registry and retrieve the path."""
-        if local_registry is False:
-            raise ValueError("Remote registry not yet supported, use local!")
-
-        source_path = try_get_item_source_path(
-            str(self.packages_dir),
-            self.service.agent.author,
-            AGENTS,
-            self.service.agent.name,
-        )
-        return str(Path(source_path) / DEFAULT_AEA_CONFIG_FILE)
 
 
 class BaseDeploymentGenerator:
