@@ -133,7 +133,7 @@ def uni_specs(spooky_specs: SpecsType) -> SpecsType:
     """Uniswap specs fixture."""
     uni_specs = spooky_specs.copy()
     uni_specs["api_id"] = "uniswap"
-    uni_specs["url"] = "https://api.thegraph.com/subgraphs/name/uniswap/uniswap-v2"
+    uni_specs["url"] = "https://api.thegraph.com/subgraphs/name/ianlapham/uniswapv2"
     return uni_specs
 
 
@@ -416,6 +416,15 @@ def spooky_pairs_q() -> str:
 def uni_pairs_q() -> str:
     """Query to get data for a Uniswap pool at a specific block."""
     return _pairs_q("uni_id")
+
+
+@pytest.fixture
+def pairs_ids() -> Dict[str, List[str]]:
+    """Sample DEXs' pair ids for testing."""
+    return {
+        "uni_subgraph": ["0x00004ee988665cdda9a1080d5792cecd16dc1220"],
+        "spooky_subgraph": ["0xec454eda10accdd66209c57af8c12924556f3abd"],
+    }
 
 
 @pytest.fixture

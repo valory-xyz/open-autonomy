@@ -232,15 +232,16 @@ class TestFetchAndBatchBehaviours(APYEstimationFSMBehaviourBaseCase):
         block_from_timestamp_q: str,
         eth_price_usd_q: str,
         spooky_pairs_q: str,
+        pairs_ids: Dict[str, List[str]],
         pool_fields: Tuple[str, ...],
     ) -> None:
         """Run tests."""
         self.fast_forward_to_behaviour(
             self.behaviour, FetchBehaviour.behaviour_id, self.synchronized_data
         )
-        cast(FetchBehaviour, self.behaviour.current_behaviour).params.pair_ids = [
-            "0xec454eda10accdd66209c57af8c12924556f3abd"
-        ]
+        cast(
+            FetchBehaviour, self.behaviour.current_behaviour
+        ).params.pair_ids = pairs_ids
 
         request_kwargs: Dict[str, Union[str, bytes]] = dict(
             method="POST",
@@ -303,15 +304,16 @@ class TestFetchAndBatchBehaviours(APYEstimationFSMBehaviourBaseCase):
         block_from_number_q: str,
         eth_price_usd_q: str,
         spooky_pairs_q: str,
+        pairs_ids: Dict[str, List[str]],
         pool_fields: Tuple[str, ...],
     ) -> None:
         """Run tests for fetch behaviour when a block has not been indexed yet."""
         self.fast_forward_to_behaviour(
             self.behaviour, FetchBehaviour.behaviour_id, self.synchronized_data
         )
-        cast(FetchBehaviour, self.behaviour.current_behaviour).params.pair_ids = [
-            "0xec454eda10accdd66209c57af8c12924556f3abd"
-        ]
+        cast(
+            FetchBehaviour, self.behaviour.current_behaviour
+        ).params.pair_ids = pairs_ids
 
         request_kwargs: Dict[str, Union[str, bytes]] = dict(
             method="POST",
@@ -458,15 +460,16 @@ class TestFetchAndBatchBehaviours(APYEstimationFSMBehaviourBaseCase):
         block_from_timestamp_q: str,
         eth_price_usd_q: str,
         spooky_pairs_q: str,
+        pairs_ids: Dict[str, List[str]],
         pool_fields: Tuple[str, ...],
     ) -> None:
         """Test when fetched value is none."""
         self.fast_forward_to_behaviour(
             self.behaviour, FetchBehaviour.behaviour_id, self.synchronized_data
         )
-        cast(FetchBehaviour, self.behaviour.current_behaviour).params.pair_ids = [
-            "0xec454eda10accdd66209c57af8c12924556f3abd"
-        ]
+        cast(
+            FetchBehaviour, self.behaviour.current_behaviour
+        ).params.pair_ids = pairs_ids
         cast(
             FetchBehaviour, self.behaviour.current_behaviour
         ).params.sleep_time = SLEEP_TIME_TWEAK
