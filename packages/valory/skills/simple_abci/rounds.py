@@ -213,6 +213,7 @@ class SimpleAbciApp(AbciApp[Event]):
     Transition states:
         0. RegistrationRound
             - done: 1.
+            - no majority: 0.
         1. RandomnessStartupRound
             - done: 2.
             - round timeout: 1.

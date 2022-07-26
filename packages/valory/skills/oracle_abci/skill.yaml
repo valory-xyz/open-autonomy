@@ -12,7 +12,7 @@ fingerprint:
   behaviours.py: bafybeibfdbbjib3droushgrbkr5jmiexrzzgjipwaei6jqg3cbotrby4c4
   composition.py: bafybeickp5pxsikib2ouweazw6nghjejce4xpzydhagtuorjtknf4bkt4a
   dialogues.py: bafybeib4jbdycm2vofni3vp6draqet3nejoviqjurcilrzindr4k5dg5fa
-  fsm_specification.yaml: bafybeicgu2jv3g37bbaxprtmsqfaaqiy6qv5sufqocmwaq4mpo27o5zmuq
+  fsm_specification.yaml: bafybeigvfxswergl2q3hra3c6dcfuq4wvpgh4rcc76i4ozirdfyew3gv5u
   handlers.py: bafybeiaktxa76cpjytsjtbkftrhp7cppmweoxvglqmxc2cdcymdnzdsyua
   models.py: bafybeicemrwjh2kvdzqah2j34yj4mf777orbx4gn3kmbpwmi2uxerjy5bu
 fingerprint_ignore_patterns: []
@@ -26,7 +26,7 @@ protocols:
 skills:
 - valory/abstract_round_abci:0.1.0:bafybeib62tcfpwhmnhaj7wz5i5h4eprdhffdk3q4a7xjc2odwlgsx5gapu
 - valory/oracle_deployment_abci:0.1.0:bafybeibhy5bicwnxijr67n37j6qzkqemaug3pe4wpovwlxr4rvmpz27vcm
-- valory/price_estimation_abci:0.1.0:bafybeifflxabqmi5l6ewu5klo3ulgqvittdvkb366rub4wwszvovgx5b74
+- valory/price_estimation_abci:0.1.0:bafybeibfdrjrpdomly66obcv43iba3vp6kpjskk5znteqiznpztvxmzdi4
 - valory/registration_abci:0.1.0:bafybeibu7crkvn3omxb3n7ioew2uc3nxikmhp4wikszh3juxlwi6cqgmkq
 - valory/reset_pause_abci:0.1.0:bafybeiadipav6vui2nw6senffjhmozhzcbpdwy7ri53ekxd2rbiidj2dfy
 - valory/safe_deployment_abci:0.1.0:bafybeiftn7fnsyerc3clt5k3mulvjjc2bwpuydxodeekv627ovbnmeihly

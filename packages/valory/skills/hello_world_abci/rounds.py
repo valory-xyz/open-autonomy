@@ -176,7 +176,6 @@ class HelloWorldAbciApp(AbciApp[Event]):
         2. PrintMessageRound
             - done: 3.
             - round timeout: 0.
-            - no majority: 0.
         3. ResetAndPauseRound
             - done: 1.
             - reset timeout: 0.
