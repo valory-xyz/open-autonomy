@@ -356,7 +356,7 @@ def _check_unreferenced_events(abci_app_cls: AbciApp) -> None:
     analysis on the source code, nor checks for actual reachability of a return
     statement returning such events.
 
-    :param AbciApp: AbciApp to check unreferenced events.
+    :param abci_app_cls: AbciApp to check unreferenced events.
     :raises DFASpecificationError: If there are unfererenced events in the AbciApp.
     """
 
