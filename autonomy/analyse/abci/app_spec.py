@@ -263,7 +263,7 @@ class DFA:
                 f"DFA spec. JSON file contains an invalid transition function key: {k}."
             )
 
-        return (match.group(1), match.group(2))
+        return match.group(1), match.group(2)
 
     @classmethod
     def load(cls, fp: TextIO, input_format: str = "yaml") -> "DFA":
