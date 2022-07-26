@@ -36,6 +36,9 @@ import yaml
 from packages.valory.skills.abstract_round_abci.base import AbciApp
 
 
+EVENT_PATTERN = re.compile(r"Event\.(\w+)", re.DOTALL)
+
+
 class DFASpecificationError(Exception):
     """Simple class to raise errors when parsing a DFA."""
 
@@ -343,9 +346,6 @@ class DFA:
         )
 
 
-event_pattern = re.compile(r"Event\.(\w+)", re.DOTALL)
-
-
 def _check_unreferenced_events(abci_app_cls: AbciApp) -> None:
     """Checks for unreferenced events in the AbciApp.
 
@@ -374,7 +374,7 @@ def _check_unreferenced_events(abci_app_cls: AbciApp) -> None:
             inspect.getmro(round_cls),
         ):
             src = textwrap.dedent(inspect.getsource(base))
-            referenced_events.update(event_pattern.findall(src))
+            referenced_events.update(EVENT_PATTERN.findall(src))
 
         if trf_events.symmetric_difference(referenced_events):
             error_strings.append(
