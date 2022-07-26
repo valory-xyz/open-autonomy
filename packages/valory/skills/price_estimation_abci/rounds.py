@@ -193,6 +193,7 @@ class PriceAggregationAbciApp(AbciApp[Event]):
         },
         EstimateConsensusRound: {
             Event.DONE: TxHashRound,
+            Event.NONE: CollectObservationRound,
             Event.ROUND_TIMEOUT: CollectObservationRound,
             Event.NO_MAJORITY: CollectObservationRound,
         },
