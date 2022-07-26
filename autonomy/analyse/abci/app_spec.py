@@ -86,7 +86,8 @@ class DFA:
             )
         if not transition_func_alphabet_in.issubset(alphabet_in):
             error_strings.append(
-                f" - Transition function contains unexpected input symbols: {transition_func_alphabet_in-alphabet_in}."  # type: ignore
+                " - Transition function contains unexpected input symbols: "
+                f"{transition_func_alphabet_in-alphabet_in}."  # type: ignore
             )
         if not alphabet_in.issubset(transition_func_alphabet_in):
             error_strings.append(
@@ -146,7 +147,8 @@ class DFA:
         for t in input_sequence:
             if t not in self.alphabet_in:
                 logging.warning(
-                    f"Input sequence contains a symbol {t} (ignored) not belonging to the DFA alphabet {self.alphabet_in}."
+                    f"Input sequence contains a symbol {t} (ignored) "
+                    f"not belonging to the DFA alphabet {self.alphabet_in}."
                 )
             else:
                 state = self.transition_func.get((state, t), state)
@@ -378,7 +380,8 @@ def _check_unreferenced_events(abci_app_cls: AbciApp) -> None:
 
         if trf_events.symmetric_difference(referenced_events):
             error_strings.append(
-                f" - {round_cls.__name__}: transition function events {trf_events} do not match referenced events {referenced_events}."
+                f" - {round_cls.__name__}: transition function events {trf_events} "
+                f"do not match referenced events {referenced_events}."
             )
 
     if len(error_strings) > 0:
