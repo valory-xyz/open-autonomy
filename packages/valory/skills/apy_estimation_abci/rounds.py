@@ -144,7 +144,7 @@ class APYEstimationAbstractRound(AbstractRound[Event, TransactionType], ABC):
 
     @property
     def synchronized_data(self) -> SynchronizedData:
-        """Return the synchronized data data."""
+        """Return the synchronized data."""
         return cast(SynchronizedData, super().synchronized_data)
 
     def _return_no_majority_event(self) -> Tuple[SynchronizedData, Event]:
