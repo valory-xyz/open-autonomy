@@ -26,12 +26,15 @@ import logging
 import re
 import sys
 import textwrap
-from collections import defaultdict, deque
+from collections import OrderedDict, defaultdict, deque
 from itertools import product
 from pathlib import Path
-from typing import Any, Dict, List, OrderedDict, Set, TextIO, Tuple
+from typing import Any, Dict, List, Set, TextIO, Tuple
 
 import yaml
+
+
+EVENT_PATTERN = re.compile(r"Event\.(\w+)", re.DOTALL)
 
 
 class DFASpecificationError(Exception):
@@ -81,7 +84,8 @@ class DFA:
             )
         if not transition_func_alphabet_in.issubset(alphabet_in):
             error_strings.append(
-                f" - Transition function contains unexpected input symbols: {transition_func_alphabet_in-alphabet_in}."  # type: ignore
+                " - Transition function contains unexpected input symbols: "
+                f"{transition_func_alphabet_in-alphabet_in}."  # type: ignore
             )
         if not alphabet_in.issubset(transition_func_alphabet_in):
             error_strings.append(
@@ -141,7 +145,8 @@ class DFA:
         for t in input_sequence:
             if t not in self.alphabet_in:
                 logging.warning(
-                    f"Input sequence contains a symbol {t} (ignored) not belonging to the DFA alphabet {self.alphabet_in}."
+                    f"Input sequence contains a symbol {t} (ignored) "
+                    f"not belonging to the DFA alphabet {self.alphabet_in}."
                 )
             else:
                 state = self.transition_func.get((state, t), state)
@@ -195,7 +200,7 @@ class DFA:
                 )
 
     def generate(self) -> Dict[str, Any]:
-        """Retrieves an exportable respresentation for YAML/JSON dump of this DFA."""
+        """Retrieves an exportable representation for YAML/JSON dump of this DFA."""
         dfa_export: Dict[str, Any] = {}
         for k, v in self.__dict__.items():
             if isinstance(v, Set):
@@ -256,7 +261,7 @@ class DFA:
                 f"DFA spec. JSON file contains an invalid transition function key: {k}."
             )
 
-        return (match.group(1), match.group(2))
+        return match.group(1), match.group(2)
 
     @classmethod
     def load(cls, fp: TextIO, input_format: str = "yaml") -> "DFA":
@@ -341,9 +346,6 @@ class DFA:
         )
 
 
-event_pattern = re.compile(r"Event\.(\w+)", re.DOTALL)
-
-
 def _check_unreferenced_events(abci_app_cls: Any) -> None:
     """Checks for unreferenced events in the AbciApp.
 
@@ -355,7 +357,7 @@ def _check_unreferenced_events(abci_app_cls: Any) -> None:
     statement returning such events.
 
     :param abci_app_cls: AbciApp to check unreferenced events.
-    :raises DFASpecificationError: If there are unfererenced events in the AbciApp.
+    :raises DFASpecificationError: If there are unreferenced events in the AbciApp.
     """
 
     error_strings = []
@@ -372,11 +374,12 @@ def _check_unreferenced_events(abci_app_cls: Any) -> None:
             inspect.getmro(round_cls),
         ):
             src = textwrap.dedent(inspect.getsource(base))
-            referenced_events.update(event_pattern.findall(src))
+            referenced_events.update(EVENT_PATTERN.findall(src))
 
         if trf_events.symmetric_difference(referenced_events):
             error_strings.append(
-                f" - {round_cls.__name__}: transition function events {trf_events} do not match referenced events {referenced_events}."
+                f" - {round_cls.__name__}: transition function events {trf_events} "
+                f"do not match referenced events {referenced_events}."
             )
 
     if len(error_strings) > 0:

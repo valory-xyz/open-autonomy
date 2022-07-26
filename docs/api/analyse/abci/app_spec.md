@@ -131,7 +131,7 @@ Dumps this DFA spec. to a file in Mermaid format.
 def generate() -> Dict[str, Any]
 ```
 
-Retrieves an exportable respresentation for YAML/JSON dump of this DFA.
+Retrieves an exportable representation for YAML/JSON dump of this DFA.
 
 <a id="autonomy.analyse.abci.app_spec.DFA.load"></a>
 

@@ -75,6 +75,7 @@ transition_func:
     (DeploySafeRound, DONE): ValidateSafeRound
     (DeploySafeRound, FAILED): SelectKeeperSafeRound
     (EstimateConsensusRound, DONE): TxHashRound
+    (EstimateConsensusRound, NONE): CollectObservationRound
     (EstimateConsensusRound, NO_MAJORITY): CollectObservationRound
     (EstimateConsensusRound, ROUND_TIMEOUT): CollectObservationRound
     (FinalizationRound, CHECK_HISTORY): CheckTransactionHistoryRound
