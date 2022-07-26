@@ -18,17 +18,23 @@
 # ------------------------------------------------------------------------------
 """Generates the specification for a given ABCI app in YAML/JSON/Mermaid format."""
 
+
 import importlib
+import inspect
 import json
 import logging
 import re
 import sys
-from collections import defaultdict, deque
+import textwrap
+from collections import OrderedDict, defaultdict, deque
 from itertools import product
 from pathlib import Path
-from typing import Any, Dict, List, OrderedDict, Set, TextIO, Tuple
+from typing import Any, Dict, List, Set, TextIO, Tuple
 
 import yaml
+
+
+EVENT_PATTERN = re.compile(r"Event\.(\w+)", re.DOTALL)
 
 
 class DFASpecificationError(Exception):
@@ -78,7 +84,8 @@ class DFA:
             )
         if not transition_func_alphabet_in.issubset(alphabet_in):
             error_strings.append(
-                f" - Transition function contains unexpected input symbols: {transition_func_alphabet_in-alphabet_in}."  # type: ignore
+                " - Transition function contains unexpected input symbols: "
+                f"{transition_func_alphabet_in-alphabet_in}."  # type: ignore
             )
         if not alphabet_in.issubset(transition_func_alphabet_in):
             error_strings.append(
@@ -125,7 +132,7 @@ class DFA:
         (state, input_symbol) is not defined for a certain input_symbol, it will be
         automatically regarded as a self-transition to the same state.
 
-        :return: None
+        :return: True if the transition function is total. False otherwise.
         """
         return set(product(self.states, self.alphabet_in)) == set(
             self.transition_func.keys()
@@ -138,7 +145,8 @@ class DFA:
         for t in input_sequence:
             if t not in self.alphabet_in:
                 logging.warning(
-                    f"Input sequence contains a symbol {t} (ignored) not belonging to the DFA alphabet {self.alphabet_in}."
+                    f"Input sequence contains a symbol {t} (ignored) "
+                    f"not belonging to the DFA alphabet {self.alphabet_in}."
                 )
             else:
                 state = self.transition_func.get((state, t), state)
@@ -192,7 +200,7 @@ class DFA:
                 )
 
     def generate(self) -> Dict[str, Any]:
-        """Retrieves an exportable respresentation for YAML/JSON dump of this DFA."""
+        """Retrieves an exportable representation for YAML/JSON dump of this DFA."""
         dfa_export: Dict[str, Any] = {}
         for k, v in self.__dict__.items():
             if isinstance(v, Set):
@@ -253,7 +261,7 @@ class DFA:
                 f"DFA spec. JSON file contains an invalid transition function key: {k}."
             )
 
-        return (match.group(1), match.group(2))
+        return match.group(1), match.group(2)
 
     @classmethod
     def load(cls, fp: TextIO, input_format: str = "yaml") -> "DFA":
@@ -338,6 +346,49 @@ class DFA:
         )
 
 
+def _check_unreferenced_events(abci_app_cls: Any) -> None:
+    """Checks for unreferenced events in the AbciApp.
+
+    Checks that events defined in the AbciApp transition function are referenced
+    in the source code of the corresponding rounds or their superclasses. Note that
+    the function simply checks references in the "raw" source code of the rounds and
+    their (non builtin) superclasses. Therefore, it does not do any kind of static
+    analysis on the source code, nor checks for actual reachability of a return
+    statement returning such events.
+
+    :param abci_app_cls: AbciApp to check unreferenced events.
+    :raises DFASpecificationError: If there are unreferenced events in the AbciApp.
+    """
+
+    error_strings = []
+    timeout_events = {k.name for k in abci_app_cls.event_to_timeout.keys()}
+
+    for round_cls, round_transitions in abci_app_cls.transition_function.items():
+        trf_events = {
+            str(e).rsplit(".", 1)[1] for e in round_transitions
+        } - timeout_events
+        referenced_events = set()
+
+        for base in filter(
+            lambda x: x.__class__.__module__ != "builtins",
+            inspect.getmro(round_cls),
+        ):
+            src = textwrap.dedent(inspect.getsource(base))
+            referenced_events.update(EVENT_PATTERN.findall(src))
+
+        if trf_events.symmetric_difference(referenced_events):
+            error_strings.append(
+                f" - {round_cls.__name__}: transition function events {trf_events} "
+                f"do not match referenced events {referenced_events}."
+            )
+
+    if len(error_strings) > 0:
+        raise DFASpecificationError(
+            f"{abci_app_cls} ABCI App has the following issues:\n"
+            + "\n".join(error_strings)
+        )
+
+
 class SpecCheck:
     """Class to represent abci spec checks."""
 
@@ -356,6 +407,8 @@ class SpecCheck:
 
         with open(infile, "r", encoding="utf-8") as fp:
             dfa2 = DFA.load(fp, informat)
+
+        _check_unreferenced_events(abci_app_cls)
 
         return dfa1 == dfa2
 
