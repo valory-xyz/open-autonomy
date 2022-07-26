@@ -26,10 +26,10 @@ import logging
 import re
 import sys
 import textwrap
-from collections import defaultdict, deque
+from collections import OrderedDict, defaultdict, deque
 from itertools import product
 from pathlib import Path
-from typing import Any, Dict, List, OrderedDict, Set, TextIO, Tuple
+from typing import Any, Dict, List, Set, TextIO, Tuple
 
 import yaml
 
