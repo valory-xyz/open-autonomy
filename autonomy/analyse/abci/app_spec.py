@@ -33,8 +33,6 @@ from typing import Any, Dict, List, OrderedDict, Set, TextIO, Tuple
 
 import yaml
 
-from packages.valory.skills.abstract_round_abci.base import AbciApp
-
 
 class DFASpecificationError(Exception):
     """Simple class to raise errors when parsing a DFA."""
@@ -346,7 +344,7 @@ class DFA:
 event_pattern = re.compile(r"Event\.(\w+)", re.DOTALL)
 
 
-def _check_unreferenced_events(abci_app_cls: AbciApp) -> None:
+def _check_unreferenced_events(abci_app_cls: Any) -> None:
     """Checks for unreferenced events in the AbciApp.
 
     Checks that events defined in the AbciApp transition function are referenced
