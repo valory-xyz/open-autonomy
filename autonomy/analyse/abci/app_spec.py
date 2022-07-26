@@ -197,7 +197,7 @@ class DFA:
                 )
 
     def generate(self) -> Dict[str, Any]:
-        """Retrieves an exportable respresentation for YAML/JSON dump of this DFA."""
+        """Retrieves an exportable representation for YAML/JSON dump of this DFA."""
         dfa_export: Dict[str, Any] = {}
         for k, v in self.__dict__.items():
             if isinstance(v, Set):
@@ -357,7 +357,7 @@ def _check_unreferenced_events(abci_app_cls: AbciApp) -> None:
     statement returning such events.
 
     :param abci_app_cls: AbciApp to check unreferenced events.
-    :raises DFASpecificationError: If there are unfererenced events in the AbciApp.
+    :raises DFASpecificationError: If there are unreferenced events in the AbciApp.
     """
 
     error_strings = []
