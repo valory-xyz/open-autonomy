@@ -237,6 +237,7 @@ class SimpleAbciApp(AbciApp[Event]):
     transition_function: AbciAppTransitionFunction = {
         RegistrationRound: {
             Event.DONE: RandomnessStartupRound,
+            Event.NO_MAJORITY: RegistrationRound,
         },
         RandomnessStartupRound: {
             Event.DONE: SelectKeeperAtStartupRound,
