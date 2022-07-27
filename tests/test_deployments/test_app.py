@@ -92,6 +92,7 @@ class BaseTendermintServerTest(BaseTendermintTest):
     tendermint_node: TendermintNode
     perform_monitoring = True
     debug_tendermint = False
+    tm_status_endpoint = "http://localhost:26657/status"
 
     @classmethod
     def setup_class(cls) -> None:
@@ -293,7 +294,7 @@ class TestTendermintBufferFailing(BaseTendermintServerTest):
                 # If it hangs for 5 seconds, we assume it's not working.
                 # Increasing the timeout should have no effect,
                 # the node is unresponsive at this point.
-                requests.get("http://localhost:26657/status", timeout=5)
+                requests.get(self.tm_status_endpoint, timeout=5)
                 time.sleep(1)
         except requests.exceptions.Timeout:
             raise AssertionError("Tendermint has timed out")
@@ -319,7 +320,7 @@ class TestTendermintBufferWorking(BaseTendermintServerTest):
         # Give the test 60 seconds for it to work
         for _ in range(60):
             try:
-                res = requests.get("http://localhost:26657/status", timeout=5)
+                res = requests.get(self.tm_status_endpoint, timeout=5)
                 # We expect all responses to be OK
                 assert res.status_code == 200
             except Exception as e:
