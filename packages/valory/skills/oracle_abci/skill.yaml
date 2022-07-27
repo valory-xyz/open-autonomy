@@ -12,7 +12,7 @@ fingerprint:
   behaviours.py: bafybeibfdbbjib3droushgrbkr5jmiexrzzgjipwaei6jqg3cbotrby4c4
   composition.py: bafybeickp5pxsikib2ouweazw6nghjejce4xpzydhagtuorjtknf4bkt4a
   dialogues.py: bafybeib4jbdycm2vofni3vp6draqet3nejoviqjurcilrzindr4k5dg5fa
-  fsm_specification.yaml: bafybeicgu2jv3g37bbaxprtmsqfaaqiy6qv5sufqocmwaq4mpo27o5zmuq
+  fsm_specification.yaml: bafybeigvfxswergl2q3hra3c6dcfuq4wvpgh4rcc76i4ozirdfyew3gv5u
   handlers.py: bafybeiaktxa76cpjytsjtbkftrhp7cppmweoxvglqmxc2cdcymdnzdsyua
   models.py: bafybeicemrwjh2kvdzqah2j34yj4mf777orbx4gn3kmbpwmi2uxerjy5bu
 fingerprint_ignore_patterns: []
@@ -24,13 +24,13 @@ contracts:
 protocols:
 - valory/contract_api:1.0.0:bafybeie5gbzc4v4n6p6ea66kmc5ejwvbjzhd7vhcjg7mikbyx47lypcd5m
 skills:
-- valory/abstract_round_abci:0.1.0:bafybeidcdcsh5pf32yu4wclrk22iltsiyx5u6asomukfdsxbxljbqs4nym
-- valory/oracle_deployment_abci:0.1.0:bafybeifmw6qdffkrlq3m7xdmkb7zwqbvptq5qclvhijhtcjexjr3d46bq4
-- valory/price_estimation_abci:0.1.0:bafybeigc273t44uqs3nbejw2f3c5esdubtyk53cnqbgozv63n6vg3lzgvy
-- valory/registration_abci:0.1.0:bafybeigvq43i42fw5pvmh3ighg6w66jm7g7qqukhffvil7jnjyjjwm4sde
-- valory/reset_pause_abci:0.1.0:bafybeib3dowi7oztplhvhqotoupb7x5cvt6ivmf7ifkgjdod7sa4lzsv2i
-- valory/safe_deployment_abci:0.1.0:bafybeih3faye5krhjxbnojyrfmalpg6fhsfvqpf5ydvw3jxvew6xx7u6oi
-- valory/transaction_settlement_abci:0.1.0:bafybeiextn2rfaghsebabvv4sc7x2ulm7fd7juzuphe2l5xh7ipcld6sha
+- valory/abstract_round_abci:0.1.0:bafybeihyuf7jeei5lkcqqfdq4fmafbapwvjf4xtttaz2uxsqujs5uj5wbi
+- valory/oracle_deployment_abci:0.1.0:bafybeihiysuhufc4xmjdqn2rdq7l5fvw6a3argggplkban4oyb72k7zfpq
+- valory/price_estimation_abci:0.1.0:bafybeidcfyyxszqtos5vveg6z2kk5zlc7zlmwcnoupilm4tnobma7e7xvq
+- valory/registration_abci:0.1.0:bafybeiaeiyto4s2vvsklh4pb4wvtm5dbx4b56untgkb7ulpo3kgrw7ym5y
+- valory/reset_pause_abci:0.1.0:bafybeihyqc6ncp43laal46fw3whkjwtyafkqbvzft5hepvjbwrixyucekm
+- valory/safe_deployment_abci:0.1.0:bafybeibl5lvbvrufrwzdir3copdndlef55v5sl5raqpfvqukmjjddgy3o4
+- valory/transaction_settlement_abci:0.1.0:bafybeigrrboh556jplysu5bkvcvjmbcod5yf2x6elqeabujchlfdml7tmi
 behaviours:
   main:
     args: {}

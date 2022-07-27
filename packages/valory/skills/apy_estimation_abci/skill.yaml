@@ -8,7 +8,7 @@ aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
   README.md: bafybeiceds6hedhgipxihnl2qt7i2woxsn4fw5ue3evm4aqvknjfpwnbay
   __init__.py: bafybeif4et2adwa4mtx4clsfcpqk77w23kdq5642vulkddnrsxms6ngbma
-  behaviours.py: bafybeidqm72cjo7n4de5di2hrea27gsxffa3tg65whyzl73u5uxuqwh4v4
+  behaviours.py: bafybeieirqt6xrvrasquyv5jzg4u2chrwpxlnfkk5aacq5eli2qc55f3c4
   dialogues.py: bafybeig4tc4thbpsixmbn35kj7jim2gzd7cvxxu4u3xoeyxqzpumuhrdzm
   fsm_specification.yaml: bafybeid56g5zov7zb2hnauahbejn5k3ilymrbg2aihhybzvzwdhbbctexq
   handlers.py: bafybeibmzghvqekt7iymu6s6yn5tk7lpdmejba4n7dpsz2do3cgfqz7b2a
@@ -18,7 +18,7 @@ fingerprint:
   ml/preprocessing.py: bafybeieha65b5cslcyyjobjupebyqovod7aigohdidcawz5b6tlxqxpruq
   models.py: bafybeib3rgkfyzbyqfk5aupfxkx2zvyknldrne5chzjb2jsut72epzvgm4
   payloads.py: bafybeiaomj7i7ouzwzgs2un7w5vptkilmhrs3sk7hzapc6pswltjav3xea
-  rounds.py: bafybeidgxl2evu5k2pdirvm7nyxuvilrq57n3x44bpieqvq7hh54iibsfq
+  rounds.py: bafybeibaajmnddve5opvq6ijre2ssuxvutreqjqhr7wlqp44ztugo3f3hm
   tasks.py: bafybeihudp5vyhelqnl5eqakjpvuekaoamtbrghss4k2yysvkczspjbbia
   tools/__init__.py: bafybeid6nc7k2qjndgigeoxhtun27ih5wof3hl4j6fsijulttuwhjydyeu
   tools/etl.py: bafybeif52kzh46ebiu6s47hbgov6adz557ziv42xmh3j6ejgyyfqzh7pzq
@@ -38,8 +38,8 @@ protocols:
 - valory/http:1.0.0:bafybeifhmibx3l7f3xdwxhweczizadxs6p3oludvapvwdeu4o5f3oahqme
 - valory/ledger_api:1.0.0:bafybeifaozy766hngsqc5a5kpebseusq4cc3woh4ayycdoa7r3mjkvhzr4
 skills:
-- valory/abstract_round_abci:0.1.0:bafybeidcdcsh5pf32yu4wclrk22iltsiyx5u6asomukfdsxbxljbqs4nym
-- valory/registration_abci:0.1.0:bafybeigvq43i42fw5pvmh3ighg6w66jm7g7qqukhffvil7jnjyjjwm4sde
+- valory/abstract_round_abci:0.1.0:bafybeihyuf7jeei5lkcqqfdq4fmafbapwvjf4xtttaz2uxsqujs5uj5wbi
+- valory/registration_abci:0.1.0:bafybeiaeiyto4s2vvsklh4pb4wvtm5dbx4b56untgkb7ulpo3kgrw7ym5y
 behaviours:
   main:
     args: {}
@@ -116,7 +116,7 @@ models:
       history_end: 1655136875
       history_interval_in_unix: 86400
       history_start: 1652544875
-      ipfs_domain_name: /dns/staging.registry.autonolas.tech/tcp/443/https
+      ipfs_domain_name: /dns/registry.autonolas.tech/tcp/443/https
       keeper_timeout: 30.0
       max_healthcheck: 120
       observation_interval: 10

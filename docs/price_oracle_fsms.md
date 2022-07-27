@@ -210,6 +210,7 @@ transition_func:
     (CollectObservationRound, NO_MAJORITY): CollectObservationRound
     (CollectObservationRound, ROUND_TIMEOUT): CollectObservationRound
     (EstimateConsensusRound, DONE): TxHashRound
+    (EstimateConsensusRound, NONE): CollectObservationRound
     (EstimateConsensusRound, NO_MAJORITY): CollectObservationRound
     (EstimateConsensusRound, ROUND_TIMEOUT): CollectObservationRound
     (TxHashRound, DONE): FinishedPriceAggregationRound
@@ -514,6 +515,7 @@ transition_func:
     (DeploySafeRound, DONE): ValidateSafeRound
     (DeploySafeRound, FAILED): SelectKeeperSafeRound
     (EstimateConsensusRound, DONE): TxHashRound
+    (EstimateConsensusRound, NONE): CollectObservationRound
     (EstimateConsensusRound, NO_MAJORITY): CollectObservationRound
     (EstimateConsensusRound, ROUND_TIMEOUT): CollectObservationRound
     (FinalizationRound, CHECK_HISTORY): CheckTransactionHistoryRound

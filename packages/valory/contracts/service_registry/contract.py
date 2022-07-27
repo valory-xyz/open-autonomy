@@ -31,8 +31,8 @@ from aea_ledger_ethereum import EthereumApi, LedgerApi
 
 # test_contract and test_agents, respectively...
 DEPLOYED_BYTECODE_MD5_HASH = (
-    "214e9d30f9c86845f893232219b3e47608a534d142451299cddfbcad5788d83e"
-    "21aafff2ef613742e7d0ed5adeff302ef858004af158bba45936c57d1c3a1a70"
+    "d518af84b4ce10c7611ba3ad749cb3907d225a8a66061bd871f490800c57ea41"
+    "186febbada22648882cca80541b87fc04fa5051768f027aeccd467ac97c9554c"
 )
 
 PUBLIC_ID = PublicId.from_str("valory/service_registry:0.1.0")

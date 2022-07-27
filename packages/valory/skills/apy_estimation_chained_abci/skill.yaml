@@ -27,9 +27,9 @@ protocols:
 - valory/http:1.0.0:bafybeifhmibx3l7f3xdwxhweczizadxs6p3oludvapvwdeu4o5f3oahqme
 - valory/ledger_api:1.0.0:bafybeifaozy766hngsqc5a5kpebseusq4cc3woh4ayycdoa7r3mjkvhzr4
 skills:
-- valory/abstract_round_abci:0.1.0:bafybeidcdcsh5pf32yu4wclrk22iltsiyx5u6asomukfdsxbxljbqs4nym
-- valory/apy_estimation_abci:0.1.0:bafybeidf7h7spzl32r6hz7ifj52pmrrkfrqmeszgc72nfauai6t3sj2hry
-- valory/registration_abci:0.1.0:bafybeigvq43i42fw5pvmh3ighg6w66jm7g7qqukhffvil7jnjyjjwm4sde
+- valory/abstract_round_abci:0.1.0:bafybeihyuf7jeei5lkcqqfdq4fmafbapwvjf4xtttaz2uxsqujs5uj5wbi
+- valory/apy_estimation_abci:0.1.0:bafybeicp5qc5orglswhp2z2276ba76lldl2xs7mq5kfzmkudcsdrecxgjy
+- valory/registration_abci:0.1.0:bafybeiaeiyto4s2vvsklh4pb4wvtm5dbx4b56untgkb7ulpo3kgrw7ym5y
 behaviours:
   main:
     args: {}
@@ -106,7 +106,7 @@ models:
       history_end: 1655136875
       history_interval_in_unix: 86400
       history_start: 1652544875
-      ipfs_domain_name: /dns/staging.registry.autonolas.tech/tcp/443/https
+      ipfs_domain_name: /dns/registry.autonolas.tech/tcp/443/https
       keeper_timeout: 30.0
       max_healthcheck: 120
       observation_interval: 10
