@@ -63,7 +63,7 @@ class BaseTestABCIAPYEstimationSkillNormalExecution(BaseTestEnd2EndExecution):
         {
             "dotted_path": f"{__args_prefix}.round_timeout_seconds",
             "value": 200,
-        }
+        },
     ]
 
 
