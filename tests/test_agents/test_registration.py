@@ -54,7 +54,7 @@ STRICT_CHECK_STRINGS = (
     log_messages.collection_complete.value,
     log_messages.request_update.value,
     log_messages.response_update.value,
-    "Entered in the 'finished_registration' round for period 0",
+    "local height == remote height; continuing execution...",
 )
 
 
