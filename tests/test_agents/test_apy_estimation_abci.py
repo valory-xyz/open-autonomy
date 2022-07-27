@@ -59,6 +59,10 @@ class BaseTestABCIAPYEstimationSkillNormalExecution(BaseTestEnd2EndExecution):
         {
             "dotted_path": f"{__args_prefix}.ipfs_domain_name",
             "value": "/dns/localhost/tcp/5001/http",
+        },
+        {
+            "dotted_path": f"{__args_prefix}.round_timeout_seconds",
+            "value": 200,
         }
     ]
 
