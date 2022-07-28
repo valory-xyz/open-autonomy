@@ -29,6 +29,7 @@ The goal of this quick start guide is to showcase steps 3-4 from the pipeline. T
 Ensure your machine satisfies the following requirements:
 
 - Python `>= 3.7` (recommended `>= 3.10`)
+- [Pip](https://pip.pypa.io/en/stable/installation/)
 - [Tendermint](https://docs.tendermint.com/master/introduction/install.html) `==0.34.19`
 - [Pipenv](https://pipenv.pypa.io/en/latest/install/) `>=2021.x.xx`
 - [Kubectl](https://kubernetes.io/docs/tasks/tools/)
