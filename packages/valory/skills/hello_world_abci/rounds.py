@@ -75,14 +75,6 @@ class HelloWorldABCIAbstractRound(AbstractRound[Event, TransactionType], ABC):
         """Return the synchronized data."""
         return cast(SynchronizedData, self._synchronized_data)
 
-    def _return_no_majority_event(self) -> Tuple[SynchronizedData, Event]:
-        """
-        Trigger the NO_MAJORITY event.
-
-        :return: a new synchronized data and a NO_MAJORITY event
-        """
-        return self.synchronized_data, Event.NO_MAJORITY
-
 
 class RegistrationRound(CollectDifferentUntilAllRound, HelloWorldABCIAbstractRound):
     """A round in which the agents get registered"""
@@ -122,7 +114,7 @@ class SelectKeeperRound(CollectSameUntilThresholdRound, HelloWorldABCIAbstractRo
         if not self.is_majority_possible(
             self.collection, self.synchronized_data.nb_participants
         ):
-            return self._return_no_majority_event()
+            return self.synchronized_data, Event.NO_MAJORITY
         return None
 
 
@@ -163,7 +155,7 @@ class ResetAndPauseRound(CollectSameUntilThresholdRound, HelloWorldABCIAbstractR
         if not self.is_majority_possible(
             self.collection, self.synchronized_data.nb_participants
         ):
-            return self._return_no_majority_event()
+            return self.synchronized_data, Event.NO_MAJORITY
         return None
 
 
@@ -184,7 +176,6 @@ class HelloWorldAbciApp(AbciApp[Event]):
         2. PrintMessageRound
             - done: 3.
             - round timeout: 0.
-            - no majority: 0.
         3. ResetAndPauseRound
             - done: 1.
             - reset timeout: 0.
@@ -210,7 +201,6 @@ class HelloWorldAbciApp(AbciApp[Event]):
         PrintMessageRound: {
             Event.DONE: ResetAndPauseRound,
             Event.ROUND_TIMEOUT: RegistrationRound,
-            Event.NO_MAJORITY: RegistrationRound,
         },
         ResetAndPauseRound: {
             Event.DONE: SelectKeeperRound,

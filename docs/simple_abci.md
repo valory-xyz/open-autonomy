@@ -250,6 +250,7 @@ class SimpleAbciApp(AbciApp[Event]):
     Transition states:
         0. RegistrationRound
             - done: 1.
+            - no majority: 0.
         1. RandomnessStartupRound
             - done: 2.
             - round timeout: 1.
@@ -274,6 +275,7 @@ class SimpleAbciApp(AbciApp[Event]):
     transition_function: AbciAppTransitionFunction = {
         RegistrationRound: {
             Event.DONE: RandomnessStartupRound,
+            Event.NO_MAJORITY: RegistrationRound,
         },
         RandomnessStartupRound: {
             Event.DONE: SelectKeeperAtStartupRound,
@@ -336,6 +338,7 @@ transition_func:
     (RandomnessStartupRound, NO_MAJORITY): RandomnessStartupRound
     (RandomnessStartupRound, ROUND_TIMEOUT): RandomnessStartupRound
     (RegistrationRound, DONE): RandomnessStartupRound
+    (RegistrationRound, NO_MAJORITY): RegistrationRound
     (ResetAndPauseRound, DONE): RandomnessStartupRound
     (ResetAndPauseRound, NO_MAJORITY): RegistrationRound
     (ResetAndPauseRound, RESET_TIMEOUT): RegistrationRound
