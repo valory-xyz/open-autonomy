@@ -287,7 +287,7 @@ class TestDeployTransactionHardhat(BaseContractTestHardHatSafeNet):
             "blockNumber": 1,
         }
 
-        def _raise_solidity_error(*args: Any) -> None:
+        def _raise_solidity_error(*_: Any) -> None:
             raise SolidityError("reason")
 
         with mock.patch.object(
