@@ -176,6 +176,8 @@ class BaseContractTestHardHatSafeNet(BaseHardhatGnosisContractTest):
 class TestDeployTransactionHardhat(BaseContractTestHardHatSafeNet):
     """Test."""
 
+    ledger_api: EthereumApi
+
     def test_deployed(self) -> None:
         """Run tests."""
 
@@ -308,6 +310,8 @@ class TestDeployTransactionHardhat(BaseContractTestHardHatSafeNet):
 @skip_docker_tests
 class TestRawSafeTransaction(BaseContractTestHardHatSafeNet):
     """Test `get_raw_safe_transaction`"""
+
+    ledger_api: EthereumApi
 
     def test_run(self) -> None:
         """Run tests."""
