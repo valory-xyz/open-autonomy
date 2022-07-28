@@ -29,11 +29,13 @@ The goal of this quick start guide is to showcase steps 3-4 from the pipeline. T
 Ensure your machine satisfies the following requirements:
 
 - Python `>= 3.7` (recommended `>= 3.10`)
+- [Pip](https://pip.pypa.io/en/stable/installation/)
 - [Tendermint](https://docs.tendermint.com/master/introduction/install.html) `==0.34.19`
 - [Pipenv](https://pipenv.pypa.io/en/latest/install/) `>=2021.x.xx`
 - [Kubectl](https://kubernetes.io/docs/tasks/tools/)
 - [Docker Engine](https://docs.docker.com/engine/install/)
 - [Docker Compose](https://docs.docker.com/compose/install/)
+- [Skaffold](https://skaffold.dev/docs/install/#standalone-binary)
 
 ## Setup
 
@@ -84,7 +86,7 @@ In this case, we consider the [Hello World agent service](./hello_world_agent_se
 
 2. Use the CLI to townload and build the images to deploy the [Hello World agent service](./hello_world_agent_service.md):
     ```bash
-    autonomy deploy build deployment valory/hello_world:0.1.0:bafybeic32gqsot4rwy6ydgoek3guvztofojcm6ul4wcdom3lmhyqtom6ty keys.json
+    autonomy deploy build deployment valory/hello_world:0.1.0:bafybeifmq5gwyfi3ec3if557stbjxizuo3sdfwbqho2fccmm6ya4rxdtv4 keys.json
     ```
     The command above generates the required images to run the agent service using the keys provided in the `keys.json` file. In this case, we are accessing the service definition located in the Service Registry.
 
