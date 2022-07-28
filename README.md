@@ -15,7 +15,7 @@ Ensure your machine satisfies the following requirements:
 - [IPFS node](https://docs.ipfs.io/install/command-line/#official-distributions) `==v0.6.0`
 - [Pip](https://pip.pypa.io/en/stable/installation/)
 - [Pipenv](https://pipenv.pypa.io/en/latest/install/) `>=2021.x.xx`
-- [Go 1.14.2](https://go.dev/doc/install)
+- [Go](https://go.dev/doc/install) `==1.14.2`
 - [Kubectl](https://kubernetes.io/docs/tasks/tools/)
 - [Docker Engine](https://docs.docker.com/engine/install/)
 - [Docker Compose](https://docs.docker.com/compose/install/)
