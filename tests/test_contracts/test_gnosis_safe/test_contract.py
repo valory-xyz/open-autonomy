@@ -409,7 +409,7 @@ class TestRawSafeTransaction(BaseContractTestHardHatSafeNet):
 
         tx_signed = sender.sign_transaction(tx)
         tx_hash = self.ledger_api.send_signed_transaction(tx_signed)
-        assert tx_hash is not None, "Tx hash not none"
+        assert tx_hash is not None, "Tx hash is `None`"
 
         verified = self.contract.verify_tx(
             ledger_api=self.ledger_api,
