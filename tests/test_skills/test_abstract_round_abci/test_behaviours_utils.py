@@ -27,12 +27,17 @@ from abc import ABC
 from collections import OrderedDict
 from datetime import datetime
 from enum import Enum
-from typing import Any, Callable, Dict, Generator, Optional, Tuple, Type, Union
+from typing import Any, Callable, Dict, Generator, Optional, Tuple, Type, Union, cast
 from unittest import mock
 from unittest.mock import MagicMock
 
 import pytest
 import pytz  # type: ignore  # pylint: disable=import-error
+
+from packages.valory.protocols.ledger_api.custom_types import (
+    SignedTransaction,
+    TransactionDigest,
+)
 
 
 try:
@@ -60,6 +65,7 @@ from packages.valory.skills.abstract_round_abci.behaviour_utils import (
     NON_200_RETURN_CODE_DURING_RESET_THRESHOLD,
     RESET_HASH,
     ROOT_HASH,
+    RPCResponseStatus,
     SendException,
     TimeoutException,
     make_degenerate_behaviour,
@@ -1253,18 +1259,36 @@ class TestBaseBehaviour:
         m = MagicMock()
         gen = self.behaviour.send_raw_transaction(m)
         # trigger generator function
-        try_send(gen, obj=None)
-        try_send(
-            gen,
-            obj=MagicMock(performative=SigningMessage.Performative.SIGNED_TRANSACTION),
+        gen.send(None)
+        gen.send(
+            SigningMessage(
+                cast(
+                    SigningMessage.Performative,
+                    SigningMessage.Performative.SIGNED_TRANSACTION,
+                ),
+                ("", ""),
+                signed_transaction=SignedTransaction(
+                    "ledger_id", body={"hash": "test"}
+                ),
+            )
         )
-        try_send(
-            gen,
-            obj=MagicMock(
-                performative=LedgerApiMessage.Performative.TRANSACTION_DIGEST
-            ),
-        )
-        try_send(gen, obj=m)
+        try:
+            gen.send(
+                LedgerApiMessage(
+                    cast(
+                        LedgerApiMessage.Performative,
+                        LedgerApiMessage.Performative.TRANSACTION_DIGEST,
+                    ),
+                    ("", ""),
+                    transaction_digest=TransactionDigest("ledger_id", body="test"),
+                )
+            )
+            raise ValueError("Generator was expected to have reached its end!")
+        except StopIteration as e:
+            tx_hash, status = e.value
+
+        assert tx_hash == "test"
+        assert status == RPCResponseStatus.SUCCESS
 
     @mock.patch.object(BaseBehaviour, "_send_transaction_signing_request")
     @mock.patch.object(BaseBehaviour, "_send_transaction_request")
@@ -1277,62 +1301,111 @@ class TestBaseBehaviour:
         m = MagicMock()
         gen = self.behaviour.send_raw_transaction(m)
         # trigger generator function
-        try_send(gen, obj=None)
-        try_send(
-            gen,
-            obj=MagicMock(performative=SigningMessage.Performative.ERROR),
-        )
-        try_send(gen, obj=m)
-        try_send(gen, obj=m)
+        gen.send(None)
+        try:
+            gen.send(MagicMock(performative=SigningMessage.Performative.ERROR))
+            raise ValueError("Generator was expected to have reached its end!")
+        except StopIteration as e:
+            tx_hash, status = e.value
 
-    @mock.patch.object(BaseBehaviour, "_send_transaction_signing_request")
-    @mock.patch.object(BaseBehaviour, "_send_transaction_request")
-    @mock.patch.object(BaseBehaviour, "_send_transaction_receipt_request")
-    @mock.patch("packages.valory.skills.abstract_round_abci.behaviour_utils.Terms")
-    def test_send_raw_transaction_transaction_digest_error(self, *_: Any) -> None:
-        """Test 'send_raw_transaction'."""
-        m = MagicMock()
-        gen = self.behaviour.send_raw_transaction(m)
-        # trigger generator function
-        try_send(gen, obj=None)
-        try_send(
-            gen,
-            obj=MagicMock(performative=SigningMessage.Performative.SIGNED_TRANSACTION),
-        )
-        try_send(
-            gen,
-            obj=MagicMock(performative=LedgerApiMessage.Performative.ERROR),
-        )
-        try_send(gen, obj=m)
+        assert tx_hash is None
+        assert status == RPCResponseStatus.UNCLASSIFIED_ERROR
 
     @pytest.mark.parametrize(
-        "message",
-        ("replacement transaction underpriced", "nonce too low", "insufficient funds"),
+        "message, expected_rpc_status",
+        (
+            ("replacement transaction underpriced", RPCResponseStatus.UNDERPRICED),
+            ("nonce too low", RPCResponseStatus.INCORRECT_NONCE),
+            ("insufficient funds", RPCResponseStatus.INSUFFICIENT_FUNDS),
+        ),
     )
     @mock.patch.object(BaseBehaviour, "_send_transaction_signing_request")
     @mock.patch.object(BaseBehaviour, "_send_transaction_request")
     @mock.patch.object(BaseBehaviour, "_send_transaction_receipt_request")
     @mock.patch("packages.valory.skills.abstract_round_abci.behaviour_utils.Terms")
     def test_send_raw_transaction_errors(
-        self, _: Any, __: Any, ___: Any, ____: Any, message: str
+        self,
+        _: Any,
+        __: Any,
+        ___: Any,
+        ____: Any,
+        message: str,
+        expected_rpc_status: RPCResponseStatus,
     ) -> None:
         """Test 'send_raw_transaction'."""
         m = MagicMock()
         gen = self.behaviour.send_raw_transaction(m)
         # trigger generator function
-        try_send(gen, obj=None)
-        try_send(
-            gen,
-            obj=MagicMock(performative=SigningMessage.Performative.SIGNED_TRANSACTION),
+        gen.send(None)
+        gen.send(
+            SigningMessage(
+                cast(
+                    SigningMessage.Performative,
+                    SigningMessage.Performative.SIGNED_TRANSACTION,
+                ),
+                ("", ""),
+                signed_transaction=SignedTransaction(
+                    "ledger_id", body={"hash": "test"}
+                ),
+            )
         )
-        try_send(
-            gen,
-            obj=MagicMock(
-                performative=LedgerApiMessage.Performative.ERROR,
-                message=message,
-            ),
+        try:
+            gen.send(
+                LedgerApiMessage(
+                    cast(
+                        LedgerApiMessage.Performative,
+                        LedgerApiMessage.Performative.ERROR,
+                    ),
+                    ("", ""),
+                    message=message,
+                )
+            )
+            raise ValueError("Generator was expected to have reached its end!")
+        except StopIteration as e:
+            tx_hash, status = e.value
+
+        assert tx_hash == "test"
+        assert status == expected_rpc_status
+
+    @mock.patch.object(BaseBehaviour, "_send_transaction_signing_request")
+    @mock.patch.object(BaseBehaviour, "_send_transaction_request")
+    @mock.patch.object(BaseBehaviour, "_send_transaction_receipt_request")
+    @mock.patch("packages.valory.skills.abstract_round_abci.behaviour_utils.Terms")
+    def test_send_raw_transaction_hashes_mismatch(self, *_: Any) -> None:
+        """Test 'send_raw_transaction' when signature and tx responses' hashes mismatch."""
+        m = MagicMock()
+        gen = self.behaviour.send_raw_transaction(m)
+        # trigger generator function
+        gen.send(None)
+        gen.send(
+            SigningMessage(
+                cast(
+                    SigningMessage.Performative,
+                    SigningMessage.Performative.SIGNED_TRANSACTION,
+                ),
+                ("", ""),
+                signed_transaction=SignedTransaction(
+                    "ledger_id", body={"hash": "signed"}
+                ),
+            )
         )
-        try_send(gen, obj=m)
+        try:
+            gen.send(
+                LedgerApiMessage(
+                    cast(
+                        LedgerApiMessage.Performative,
+                        LedgerApiMessage.Performative.TRANSACTION_DIGEST,
+                    ),
+                    ("", ""),
+                    transaction_digest=TransactionDigest("ledger_id", body="tx"),
+                )
+            )
+            raise ValueError("Generator was expected to have reached its end!")
+        except StopIteration as e:
+            tx_hash, status = e.value
+
+        assert tx_hash is None
+        assert status == RPCResponseStatus.UNCLASSIFIED_ERROR
 
     @pytest.mark.parametrize("contract_address", [None, "contract_address"])
     def test_get_contract_api_response(self, contract_address: Optional[str]) -> None:
