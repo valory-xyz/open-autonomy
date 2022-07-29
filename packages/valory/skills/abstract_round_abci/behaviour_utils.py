@@ -451,7 +451,8 @@ class RPCResponseStatus(Enum):
     INCORRECT_NONCE = 2
     UNDERPRICED = 3
     INSUFFICIENT_FUNDS = 4
-    UNCLASSIFIED_ERROR = 5
+    ALREADY_KNOWN = 5
+    UNCLASSIFIED_ERROR = 6
 
 
 class BaseBehaviour(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
@@ -1563,6 +1564,8 @@ class BaseBehaviour(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
             return RPCResponseStatus.INCORRECT_NONCE
         if "insufficient funds" in error:
             return RPCResponseStatus.INSUFFICIENT_FUNDS
+        if "already known" in error:
+            return RPCResponseStatus.ALREADY_KNOWN
         return RPCResponseStatus.UNCLASSIFIED_ERROR
 
     def _start_reset(self) -> Generator:
