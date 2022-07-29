@@ -45,7 +45,7 @@ mkdir my_service
 cd my_service
 ```
 
-2. Setup the environment
+2. Setup the environment. Remember to use the Python version you installed, here we use 3.10 as reference.
 ```bash
 export OPEN_AEA_IPFS_ADDR="/dns/registry.autonolas.tech/tcp/443/https"
 touch Pipfile && pipenv --python 3.10 && pipenv shell
@@ -86,7 +86,8 @@ In this case, we consider the [Hello World agent service](./hello_world_agent_se
 
 2. Use the CLI to townload and build the images to deploy the [Hello World agent service](./hello_world_agent_service.md):
     ```bash
-    autonomy deploy build deployment valory/hello_world:0.1.0:bafybeidlqr3bwzb2zxxxt7fcgrucjx6kbnqdynr77slybnampvjenuic2i keys.json
+    autonomy deploy build deployment valory/hello_world:0.1.0:bafybeidlqr3bwzb2zxxxt7fcgrucjx6kbnqdynr77slybnampvjenuic2i
+ keys.json
     ```
     The command above generates the required images to run the agent service using the keys provided in the `keys.json` file. In this case, we are accessing the service definition located in the Service Registry.
 
