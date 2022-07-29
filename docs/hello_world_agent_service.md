@@ -32,7 +32,7 @@ This is what the service would look like in all its glory:
 <figcaption>Hello World agent service in action</figcaption>
 </figure>
 
-Even though printing "Hello World" on their local console is far from being an exciting functionality, this example shows a number of  nontrivial elements that are key components in an agent service:
+Even though printing "Hello World" on their local console is far from being an exciting functionality, this example shows a number of  non-trivial elements that are key components in an agent service:
 
 * The service defines a sequence of "atomic," well-defined actions, whose execution in the appropriate order achieves the intended functionality.
 * Agents have to interact with each other to execute each of those actions, and reach a consensus on a number of decisions at certain moments (e.g., which is the agent that prints the message in each period).
@@ -147,7 +147,7 @@ A high level view of what occurs is as follows:
 
     There are several items which are called after the interface that connects with the consensus gadget, namely the Application Blockchain Interface (ABCI). In case you are not familiar with this, it is enough to know that it is an interface that abstracts away the protocol executed at the consensus gadget, and it produces callbacks to the skill when relevant events occur (e.g. agreement on a block). You can read more about the ABCI [here](https://docs.tendermint.com/master/spec/abci/).
 
-At this point, the walkthrough of a single transition from one state of the FSM, has essentially introduced the main components of an agent and the main interactions that occur in an agent service. It is important that the developer keeps these concepts in mind, since executions of further state transitions can be easily mapped with what has been presented here so far.
+At this point, the walk-through of a single transition from one state of the FSM, has essentially introduced the main components of an agent and the main interactions that occur in an agent service. It is important that the developer keeps these concepts in mind, since executions of further state transitions can be easily mapped with what has been presented here so far.
 
 ## Executing the Main Functionality
 
@@ -160,7 +160,7 @@ Mimicking the steps that occurred in the previous state, it is not difficult to 
 3.   The consensus gadget executes its protocol on the inputs received from the agents.
 4.   The result of the consensus is forwarded to all the agents through ABCI.
 5.   The `PrintMessageRound` receives a callback originating from the consensus gadget. `PrintMessageRound` verifies that all agents have responded, and it will then cast the `DONE` event.
-6.   The `AbciApp` takea over and processes the event `DONE`, and moves the current state of the FSM to the next state, ResetAndPause.
+6.   The `AbciApp` takes over and processes the event `DONE`, and moves the current state of the FSM to the next state, ResetAndPause.
 
 As a result, we have finished a "happy path" of execution of the FSM, concluding with the expected output:
 
@@ -460,4 +460,4 @@ To conclude this section, let us briefly describe the purposes of each one, and 
 
 
 ## Further Reading
-This walkthrough of the Hello World agent service should give an overview of the development process, and of the main elements that play a role in an agent service. However there are more elements in the {{open_autonomy}} framework that facilitate building complex applications, that interact with real blockchains and other networks. We refer the reader to the more advanced sections of the documentation, where we explore in detail the stack.
+This walk-through of the Hello World agent service should give an overview of the development process, and of the main elements that play a role in an agent service. However there are more elements in the {{open_autonomy}} framework that facilitate building complex applications, that interact with real blockchains and other networks. We refer the reader to the more advanced sections of the documentation, where we explore in detail the stack.

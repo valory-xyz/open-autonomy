@@ -64,7 +64,10 @@ nav:
           - Core: 'api/cli/core.md'
           - Deploy: 'api/cli/deploy.md'
           - Develop: 'api/cli/develop.md'
+          - Fetch: 'api/cli/fetch.md'
           - Hash: 'api/cli/hash.md'
+          - Publish: 'api/cli/publish.md'
+          - Push All: 'api/cli/push_all.md'
           - Replay: 'api/cli/replay.md'
           - Utils: 'api/cli/utils/click_utils.md'
         - Configurations:
