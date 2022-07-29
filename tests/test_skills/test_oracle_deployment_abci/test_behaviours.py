@@ -157,7 +157,9 @@ class BaseDeployBehaviourTest(FSMBehaviourBaseCase):
             ),
             response_kwargs=dict(
                 performative=SigningMessage.Performative.SIGNED_TRANSACTION,
-                signed_transaction=SignedTransaction(ledger_id="ethereum", body={}),
+                signed_transaction=SignedTransaction(
+                    ledger_id="ethereum", body={"hash": "tx_hash"}
+                ),
             ),
         )
 
