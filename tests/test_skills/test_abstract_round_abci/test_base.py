@@ -1169,8 +1169,8 @@ class TestAbciApp:
     @pytest.mark.parametrize("flag", (True, False))
     def test_is_abstract(self, flag: bool) -> None:
         """Test `is_abstract` property."""
-        self.abci_app._is_abstract = flag
-        assert self.abci_app.is_abstract is flag
+        AbciApp._is_abstract = flag
+        assert self.abci_app.is_abstract() is flag
 
     def test_initial_round_cls_not_set(self) -> None:
         """Test when 'initial_round_cls' is not set."""
