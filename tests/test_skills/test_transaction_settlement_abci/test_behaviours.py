@@ -291,7 +291,11 @@ class TestTransactionSettlementBaseBehaviour(PriceEstimationFSMBehaviourBaseCase
                 AbciAppDB(
                     setup_data=AbciAppDB.data_to_lists(
                         dict(
-                            most_voted_tx_hash="b0e6add595e00477cf347d09797b156719dc5233283ac76e4efce2a674fe72d900000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000002625a000x77E9b2EF921253A171Fa0CB9ba80558648Ff7215b0e6add595e00477cf347d09797b156719dc5233283ac76e4efce2a674fe72d9b0e6add595e00477cf347d09797b156719dc5233283ac76e4efce2a674fe72d9",
+                            most_voted_tx_hash="b0e6add595e00477cf347d09797b156719dc5233283ac76e4efce2a674fe72d90000000"
+                            "000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
+                            "0000000000000000000000002625a000x77E9b2EF921253A171Fa0CB9ba80558648Ff7215b0e6add595e00477c"
+                            "f347d09797b156719dc5233283ac76e4efce2a674fe72d9b0e6add595e00477cf347d09797b156719dc5233283"
+                            "ac76e4efce2a674fe72d9",
                             keepers=int(2).to_bytes(32, "big").hex()
                             + "".join(
                                 deque(("agent_1" + "-" * 35, "agent_3" + "-" * 35))
@@ -337,7 +341,8 @@ class TestTransactionSettlementBaseBehaviour(PriceEstimationFSMBehaviourBaseCase
         assert behaviour_.serialized_keepers(deque([]), 1) == ""
         assert (
             behaviour_.serialized_keepers(deque(["-" * 42]), 1)
-            == "0000000000000000000000000000000000000000000000000000000000000001------------------------------------------"
+            == "0000000000000000000000000000000000000000000000000000000000000001"
+            "------------------------------------------"
         )
 
     @pytest.mark.parametrize(
