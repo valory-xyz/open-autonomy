@@ -45,7 +45,7 @@ mkdir my_service
 cd my_service
 ```
 
-2. Setup the environment
+2. Setup the environment. Remember to use the Python version you installed, here we use 3.10 as reference.
 ```bash
 export OPEN_AEA_IPFS_ADDR="/dns/registry.autonolas.tech/tcp/443/https"
 touch Pipfile && pipenv --python 3.10 && pipenv shell
@@ -56,12 +56,12 @@ touch Pipfile && pipenv --python 3.10 && pipenv shell
 pip install open-autonomy
 ```
 
-## Deploy a local agent service
+## Deploy a Local Agent Service
 
 Follow the steps indicated below to download a demonstration agent service from the Service Registry, and deploy it locally using Docker Compose.
-In this case, we consider the [Hello World agent service](./service_example.md).
+In this case, we consider the [Hello World agent service](./hello_world_agent_service.md).
 
-1. Prepare a JSON file `keys.json` containing the addresses and keys of the four agents that make up the [Hello World agent service](./service_example.md). Below you have some sample keys for testing:
+1. Prepare a JSON file `keys.json` containing the addresses and keys of the four agents that make up the [Hello World agent service](./hello_world_agent_service.md). Below you have some sample keys for testing:
     ```json
     [
       {
@@ -84,16 +84,16 @@ In this case, we consider the [Hello World agent service](./service_example.md).
     ```
 
 
-2. Use the CLI to download and build the images to deploy the [Hello World agent service](./service_example.md):
+2. Use the CLI to download and build the images to deploy the [Hello World agent service](./hello_world_agent_service.md):
     ```bash
-    autonomy deploy build deployment valory/hello_world:0.1.0:bafybeifmq5gwyfi3ec3if557stbjxizuo3sdfwbqho2fccmm6ya4rxdtv4 keys.json
+    autonomy deploy build deployment valory/hello_world:0.1.0:bafybeih45ahmldpobejx5gaddupd5dz7k4tjf3bmkibcjfrauipr4ffp4a keys.json --remote
     ```
     The command above generates the required images to run the agent service using the keys provided in the `keys.json` file. In this case, we are accessing the service definition located in the Service Registry.
 
     !!!note
         It is also possible to generate a deployment using a local service definition. See the [CLI section](./autonomy.md) for the complete details.
 
-3. The build configuration will be located in `./abci_build`. Execute `docker-compose` as indicated below. This will deploy a local [Hello World agent service](./service_example.md) with four agents connected to four Tendermint nodes.
+3. The build configuration will be located in `./abci_build`. Execute `docker-compose` as indicated below. This will deploy a local [Hello World agent service](./hello_world_agent_service.md) with four agents connected to four Tendermint nodes.
     ```bash
     cd abci_build
     docker-compose up --force-recreate
