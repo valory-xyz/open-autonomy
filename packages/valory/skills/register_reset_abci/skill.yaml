@@ -24,9 +24,9 @@ protocols:
 - valory/abci:0.1.0:bafybeicbj36urbjkn6y7hrhm57dspyuuvpcnxhr3r6y2cwxammpom633g4
 - valory/http:1.0.0:bafybeifhmibx3l7f3xdwxhweczizadxs6p3oludvapvwdeu4o5f3oahqme
 skills:
-- valory/abstract_round_abci:0.1.0:bafybeihyuf7jeei5lkcqqfdq4fmafbapwvjf4xtttaz2uxsqujs5uj5wbi
-- valory/registration_abci:0.1.0:bafybeiaeiyto4s2vvsklh4pb4wvtm5dbx4b56untgkb7ulpo3kgrw7ym5y
-- valory/reset_pause_abci:0.1.0:bafybeihyqc6ncp43laal46fw3whkjwtyafkqbvzft5hepvjbwrixyucekm
+- valory/abstract_round_abci:0.1.0:bafybeiel6kpuvy44skm3oylvwk3fnry35nxbwyn6axvlxuzxokf56efnqy
+- valory/registration_abci:0.1.0:bafybeicfmgzlivaxvhdzetfba2vcdel7dudu5h2jpsz3gdzt7zganv5n5e
+- valory/reset_pause_abci:0.1.0:bafybeihrzgkfa3epq5mmh54fpun7yhamlhxh6a5eggb6scgta57hjavl7y
 behaviours:
   main:
     args: {}

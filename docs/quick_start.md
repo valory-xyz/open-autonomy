@@ -29,11 +29,13 @@ The goal of this quick start guide is to showcase steps 3-4 from the pipeline. T
 Ensure your machine satisfies the following requirements:
 
 - Python `>= 3.7` (recommended `>= 3.10`)
+- [Pip](https://pip.pypa.io/en/stable/installation/)
 - [Tendermint](https://docs.tendermint.com/master/introduction/install.html) `==0.34.19`
 - [Pipenv](https://pipenv.pypa.io/en/latest/install/) `>=2021.x.xx`
 - [Kubectl](https://kubernetes.io/docs/tasks/tools/)
 - [Docker Engine](https://docs.docker.com/engine/install/)
 - [Docker Compose](https://docs.docker.com/compose/install/)
+- [Skaffold](https://skaffold.dev/docs/install/#standalone-binary)
 
 ## Setup
 
@@ -54,12 +56,12 @@ touch Pipfile && pipenv --python 3.10 && pipenv shell
 pip install open-autonomy
 ```
 
-## Deploy a local agent service
+## Deploy a Local Agent Service
 
 Follow the steps indicated below to download a demonstration agent service from the Service Registry, and deploy it locally using Docker Compose.
-In this case, we consider the [Hello World agent service](./service_example.md).
+In this case, we consider the [Hello World agent service](./hello_world_agent_service.md).
 
-1. Prepare a JSON file `keys.json` containing the addresses and keys of the four agents that make up the [Hello World agent service](./service_example.md). Below you have some sample keys for testing:
+1. Prepare a JSON file `keys.json` containing the addresses and keys of the four agents that make up the [Hello World agent service](./hello_world_agent_service.md). Below you have some sample keys for testing:
     ```json
     [
       {
@@ -82,16 +84,16 @@ In this case, we consider the [Hello World agent service](./service_example.md).
     ```
 
 
-2. Use the CLI to townload and build the images to deploy the [Hello World agent service](./service_example.md):
+2. Use the CLI to townload and build the images to deploy the [Hello World agent service](./hello_world_agent_service.md):
     ```bash
-    autonomy deploy build deployment valory/hello_world:0.1.0:bafybeiaiapur3v3fu24qkshytfk4obket3tecgvkz2hmb5fwwkkk2yv6ra keys.json
+    autonomy deploy build deployment valory/hello_world:0.1.0:bafybeigpy6h3yllsie6gplqepq4e5zqla4t6mti3gew3imqmkmbq7xfnqa keys.json
     ```
     The command above generates the required images to run the agent service using the keys provided in the `keys.json` file. In this case, we are accessing the service definition located in the Service Registry.
 
     !!!note
         It is also possible to generate a deployment using a local service definition. See the [CLI section](./autonomy.md) for the complete details.
 
-3. The build configuration will be located in `./abci_build`. Execute `docker-compose` as indicated below. This will deploy a local [Hello World agent service](./service_example.md) with four agents connected to four Tendermint nodes.
+3. The build configuration will be located in `./abci_build`. Execute `docker-compose` as indicated below. This will deploy a local [Hello World agent service](./hello_world_agent_service.md) with four agents connected to four Tendermint nodes.
     ```bash
     cd abci_build
     docker-compose up --force-recreate
