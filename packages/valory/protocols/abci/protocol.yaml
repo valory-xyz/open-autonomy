@@ -7,14 +7,14 @@ description: A protocol for ABCI requests and responses.
 license: Apache-2.0
 aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
-  README.md: bafybeibnanvawdafke4c3p23kwcxp2dpwtcngiz3bsp4qslsyi5m5d2viy
+  README.md: bafybeic3mb5oaylnwhcfyho7bnra6ecxho2enbhv4m2yyubpwx5drwbwya
   __init__.py: bafybeigyjub3b4nceltnfe5ydvozwjbwsup5ulpyduxtqvcdkh4v2dobka
-  abci.proto: bafybeid2kv4fy6xx453apqxashnqfjymhbrvtxj3uq2vdtqr45lvlfjzm4
-  abci_pb2.py: bafybeihged4uxj35ilybe3jaephddceqrk4taztfq4ytyf7wgs4ve2u66e
-  custom_types.py: bafybeih4ndmkr45zka6jqnghe44jcgr6q6mwmecgng6e6smcnps26kffzq
-  dialogues.py: bafybeiglvbuvmvdzeazrr2tgtezpyw5fnta45ockeubk5z2wthkyz4dvre
-  message.py: bafybeiezpnj5kiqtad5kdiiuu6pqwize5q3rgon4t5vkreqesp5ku7tc5q
-  serialization.py: bafybeicid2365n5jbdwg4k7xedfnc7q5web4ujicuz5y6m7hktoeq5cuqq
+  abci.proto: bafybeib7liwodbptf2wtvat2fyaue62yzukcmck26zmgc5vyl47v73stgm
+  abci_pb2.py: bafybeidwxxszsdoafjekty3g4xyajf37epwmijola4jpxq7crjpwfbby4u
+  custom_types.py: bafybeih672xejioyt4kqmbfm46uck3b7rhorsmp2g7tgagjtah5napyba4
+  dialogues.py: bafybeidw3as3bojwll6te7bg32pmmcj2movplamudt6nxpu7hxozp4urbe
+  message.py: bafybeiabm5cmmsupi5mwouqd7wcxbgvu2fipqat6wze25mipvgk4jhfcli
+  serialization.py: bafybeidrejcnzrxpdl7mkfwfnyd2sa7tns5i4fsj2up7yglbairxb7knb4
 fingerprint_ignore_patterns: []
 dependencies:
   protobuf: {}

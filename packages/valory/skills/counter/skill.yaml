@@ -9,15 +9,15 @@ fingerprint:
   README.md: bafybeiahjzi3gvwyorse6bxacvv7thc5nynwvimdqt2xzhpd5y5vxdwwwu
   __init__.py: bafybeic6edzuxlzxfechexteae6qyednm2feuvwmgyxzs7fopd6v5wqjgq
   dialogues.py: bafybeigocfxocz4ektda3iloefedpjru3hobmxop7czi6ekq7ifumvdtwa
-  handlers.py: bafybeiazszy3rxyvitfseyey43wrfmhlcztku55jaxk3lg7hzmuxy4t4zm
+  handlers.py: bafybeidfqdymwchg5sfcgns37ke6cgoirq765scck2mlywibhy72wyxm6y
 fingerprint_ignore_patterns: []
 connections:
-- valory/abci:0.1.0:bafybeiaqoaub5jverxutngxtbfcshucsg7fqkcrdgbjfdsrdbfntwyhawq
+- valory/abci:0.1.0:bafybeigoa54hwjb6uaxgkwrqixpa42wvhp3jmtam6rmskeu5jqh6nqc3ba
 contracts: []
 protocols:
-- valory/abci:0.1.0:bafybeicbj36urbjkn6y7hrhm57dspyuuvpcnxhr3r6y2cwxammpom633g4
+- valory/abci:0.1.0:bafybeihyu7ofgxl5ifszayk6grdzz3qpdd4qcyhqr5mdiw2v7e5bqp4ozy
 skills:
-- valory/abstract_abci:0.1.0:bafybeihdlbwh2m6n4pgu4bylzte6vihjzgfl4bkfz372umtd3vil5briam
+- valory/abstract_abci:0.1.0:bafybeievso45h77srycssiunhoxhvxcyjfpi7w3ax26wxekk7umken3h4i
 behaviours: {}
 handlers:
   abci:

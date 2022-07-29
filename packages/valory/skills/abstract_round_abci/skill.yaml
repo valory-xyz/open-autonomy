@@ -14,7 +14,7 @@ fingerprint:
   behaviours.py: bafybeif3knc6efobddgkh3xc3yqwgtlk7z4zflftd7sic5j3at5rrhsute
   common.py: bafybeicz7feaxvwftwi7qe2x4g4f6edwsh434kr4duebafbwphqyxzuyka
   dialogues.py: bafybeibvnmcn7kofol2h6owljhde4llfc3kwwkb5helxsgsy47mokhwb4i
-  handlers.py: bafybeidammqyvz2wvqirr3it4tfy7vbe5kxybwkz5o3y4ogo3wrbaqwcmy
+  handlers.py: bafybeiacntwqs7tvnu5q72in7phxkbb7c7kurjkxfz3wjbs5qj2ggefk7i
   io/__init__.py: bafybeiattfgecxl5y276etqe5jiuhqk3grcov6qky5cgokstmwhrbaodri
   io/ipfs.py: bafybeigmsaoxdcpg5qvsxjkhilpfvcdmpsb2lie4fu5oqc2ows6i7pifwa
   io/load.py: bafybeib63wgk7wcghrvldqn6dpurkw6o7q3eohg3dpinnf7rhw4qwo2j7q
@@ -25,20 +25,20 @@ fingerprint:
   utils.py: bafybeifnvnlpajv5iqv6wumlfppomcmcfbbb5rpiiqhouxqs5ddwlkqjjy
 fingerprint_ignore_patterns: []
 connections:
-- valory/abci:0.1.0:bafybeiaqoaub5jverxutngxtbfcshucsg7fqkcrdgbjfdsrdbfntwyhawq
+- valory/abci:0.1.0:bafybeigoa54hwjb6uaxgkwrqixpa42wvhp3jmtam6rmskeu5jqh6nqc3ba
 - valory/http_client:0.1.0:bafybeibh3iu7kojc4d5eiigqh6kx2vdmu2q7vhcvvq2rz6suegsscyd66y
 - valory/ledger:0.1.0:bafybeifxxshi4u3xyyllip5e3yafawywcwpvqxgnybchi5kj74zm4b4n2e
 contracts:
 - valory/service_registry:0.1.0:bafybeidtwbj7mwiskbbmsw43zzooivuq6nripdzn7yuoou66rq7spom54m
 protocols:
-- valory/abci:0.1.0:bafybeicbj36urbjkn6y7hrhm57dspyuuvpcnxhr3r6y2cwxammpom633g4
+- valory/abci:0.1.0:bafybeihyu7ofgxl5ifszayk6grdzz3qpdd4qcyhqr5mdiw2v7e5bqp4ozy
 - valory/acn:1.1.0:bafybeibvuomoe7dln75slklaaag7vmppbpy2huhyupfygh4cgwdqp2roue
 - valory/contract_api:1.0.0:bafybeie5gbzc4v4n6p6ea66kmc5ejwvbjzhd7vhcjg7mikbyx47lypcd5m
 - valory/http:1.0.0:bafybeifhmibx3l7f3xdwxhweczizadxs6p3oludvapvwdeu4o5f3oahqme
 - valory/ledger_api:1.0.0:bafybeifaozy766hngsqc5a5kpebseusq4cc3woh4ayycdoa7r3mjkvhzr4
 - valory/tendermint:0.1.0:bafybeigrenadbkdzpkxbjmpkubxzmihk45v6jbwosngciqdccth4lvp7cm
 skills:
-- valory/abstract_abci:0.1.0:bafybeihdlbwh2m6n4pgu4bylzte6vihjzgfl4bkfz372umtd3vil5briam
+- valory/abstract_abci:0.1.0:bafybeievso45h77srycssiunhoxhvxcyjfpi7w3ax26wxekk7umken3h4i
 behaviours:
   main:
     args: {}
