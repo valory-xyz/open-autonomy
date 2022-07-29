@@ -10,7 +10,7 @@ fingerprint_ignore_patterns: []
 connections:
 - valory/abci:0.1.0:bafybeiaqoaub5jverxutngxtbfcshucsg7fqkcrdgbjfdsrdbfntwyhawq
 - valory/http_client:0.1.0:bafybeibh3iu7kojc4d5eiigqh6kx2vdmu2q7vhcvvq2rz6suegsscyd66y
-- valory/p2p_libp2p_client:0.1.0:bafybeicjfwzey5esumti7met6g66q6ojkgng4azjmrdg3ppahjwiq7dmaq
+- valory/p2p_libp2p_client:0.1.0:bafybeihw7zmzu4k3s56wnzhs6f3onxdqfewp46dhnnv6lgnzfneuvo5bcm
 contracts: []
 protocols:
 - open_aea/signing:1.0.0:bafybeieirkuq6azgis33bmukr5u2gx4chp5kswiw3wd5hbjsaukgwzmp5a
@@ -18,8 +18,8 @@ protocols:
 - valory/http:1.0.0:bafybeifhmibx3l7f3xdwxhweczizadxs6p3oludvapvwdeu4o5f3oahqme
 skills:
 - valory/abstract_abci:0.1.0:bafybeihdlbwh2m6n4pgu4bylzte6vihjzgfl4bkfz372umtd3vil5briam
-- valory/abstract_round_abci:0.1.0:bafybeigkwhafuaatze6i3lh75glklpmmuwgnt6t2zsjg3ssuyoeqpl27i4
-- valory/hello_world_abci:0.1.0:bafybeihfqb2pzraeqw5tomlssgadye4n5p7m6mf3tkorrfuu7tdykw4jy4
+- valory/abstract_round_abci:0.1.0:bafybeib7a7ldbxmk7bfw72da6wtiqt6s2btmpimvorocwpfbw4dc552w2m
+- valory/hello_world_abci:0.1.0:bafybeig5b6txh3kxdgncuxuxabhvx7aq5bs2jbdn5qttzqouwf243c6p3u
 default_ledger: ethereum
 required_ledgers:
 - ethereum
@@ -52,10 +52,21 @@ dependencies:
   open-aea-ledger-ethereum: {}
 default_connection: null
 ---
+public_id: valory/hello_world_abci:0.1.0
+type: skill
+models:
+  params:
+    args:
+      tendermint_url: ${TENDERMINT_URL:str:http://localhost:26657}
+      tendermint_com_url: ${TENDERMINT_COM_URL:str:http://localhost:8080}
+---
 public_id: valory/abci:0.1.0
 type: connection
 config:
   target_skill_id: valory/hello_world_abci:0.1.0
+  host: ${ABCI_HOST:str:localhost}
+  port: ${ABCI_PORT:int:26658}
+  use_tendermint: ${ABCI_USE_TENDERMINT:bool:false}
 ---
 public_id: valory/p2p_libp2p_client:0.1.0
 type: connection

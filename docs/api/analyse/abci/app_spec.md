@@ -61,7 +61,7 @@ automatically regarded as a self-transition to the same state.
 
 **Returns**:
 
-None
+True if the transition function is total. False otherwise.
 
 <a id="autonomy.analyse.abci.app_spec.DFA.get_transitions"></a>
 
@@ -131,7 +131,7 @@ Dumps this DFA spec. to a file in Mermaid format.
 def generate() -> Dict[str, Any]
 ```
 
-Retrieves an exportable respresentation for YAML/JSON dump of this DFA.
+Retrieves an exportable representation for YAML/JSON dump of this DFA.
 
 <a id="autonomy.analyse.abci.app_spec.DFA.load"></a>
 

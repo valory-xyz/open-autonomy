@@ -24,16 +24,20 @@ import shutil
 from pathlib import Path
 from unittest import mock
 
-import pytest
+from aea.configurations.loader import ConfigLoader
+from aea.helpers.base import cd
+from aea.helpers.io import open_file
+
+from autonomy.configurations.base import Service
 
 from tests.conftest import ROOT_DIR
-from tests.test_autonomy.test_cli.base import BaseCliTest
+from tests.test_autonomy.base import get_dummy_service_config
+from tests.test_autonomy.test_cli.base import BaseCliTest, cli
 
 
 IPFS_REGISTRY = "/dns/registry.autonolas.tech/tcp/443/https"
 
 
-@pytest.mark.skip  # TOFIX
 class TestFetchCommand(BaseCliTest):
     """Test fetch command."""
 
@@ -86,18 +90,41 @@ class TestFetchCommand(BaseCliTest):
 
         shutil.rmtree(service)
 
-    def test_fetch_service_ipfs(
+    def test_publish_and_fetch_service_ipfs(
         self,
     ) -> None:
         """Test fetch service."""
+        expected_hash = "bafybeiac2hwq2cxw7uoqxbj7zrs63gkrwcpa3mnbmpr4hstziujwntihby"
 
-        service = self.t / "counter"
-        service_hash = self.get_service_hash()
+        service_dir = self.t / "dummy_service"
+        service_file = service_dir / "service.yaml"
+        service_dir.mkdir()
+        with open_file(service_file, "w+") as fp:
+            service_conf, *overrides = get_dummy_service_config()
+            service_conf["overrides"] = overrides
+            service = Service.from_json(service_conf)
+            ConfigLoader(Service.schema, Service).dump(service, fp)
+
+        with mock.patch(
+            "autonomy.cli.publish.get_default_remote_registry", new=lambda: "ipfs"
+        ), mock.patch(
+            "autonomy.cli.publish.get_ipfs_node_multiaddr",
+            new=lambda: IPFS_REGISTRY,
+        ), mock.patch(
+            "click.echo"
+        ) as echo_mock, cd(
+            service_dir
+        ):
+            result = self.cli_runner.invoke(cli, ["publish", "--remote"])
+            output = echo_mock.call_args[0][0]
+
+            assert result.exit_code == 0, output
+            assert expected_hash in output, (output, service_file.read_text())
 
         with mock.patch(
             "autonomy.cli.fetch.get_default_remote_registry", new=lambda: "http"
-        ):
-            result = self.run_cli(("--remote", service_hash))
+        ), cd(service_dir):
+            result = self.run_cli(("--remote", expected_hash))
             assert result.exit_code == 1, result.output
             assert "HTTP registry not supported." in result.output, result.output
 
@@ -105,10 +132,11 @@ class TestFetchCommand(BaseCliTest):
             "autonomy.cli.fetch.get_default_remote_registry", new=lambda: "ipfs"
         ), mock.patch(
             "autonomy.cli.fetch.get_ipfs_node_multiaddr", new=lambda: IPFS_REGISTRY
+        ), cd(
+            service_dir
         ):
-            result = self.run_cli(("--remote", service_hash))
+            result = self.run_cli(("--remote", expected_hash))
+            assert result.exit_code == 0, result.output
+            assert service_dir.exists()
 
-        assert result.exit_code == 0, result.output
-        assert service.exists()
-
-        shutil.rmtree(service)
+        shutil.rmtree(service_dir)

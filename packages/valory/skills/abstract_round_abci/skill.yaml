@@ -8,9 +8,9 @@ aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
   README.md: bafybeievb7bhfm46p5adx3x4gvsynjpq35fcrrapzn5m2whcdt4ufxfvfq
   __init__.py: bafybeiaxhdfjmhbstyi5oqeu7wzst44snhbyoggrpusgs2c3tn3cluzhpm
-  abci_app_chain.py: bafybeicycotleiwxks77ugm3hhbp5pjczi74qejwdkiv5du2dtqten32wy
-  base.py: bafybeihkgjt5ghzwqdifps2rk3kjfdiodmy4kjy66h27faymbvnlichv4u
-  behaviour_utils.py: bafybeie27cigguvbazlqnslhfapnmq46adqjyrnwipdapwxcngwvrhm2ni
+  abci_app_chain.py: bafybeich2ufsbkuehbuqzxeofoq5agfdpvy7bvhgcncxbf3gcq6qrxtvj4
+  base.py: bafybeibqzl32tkpkedy4rrx5tf5ktuqqn5d4l4uwcwg74m7ch4bo3w4ru4
+  behaviour_utils.py: bafybeie7lb52456t6domz3udwothngouz6t2xk5k7uro2ekwfq3cccs4wa
   behaviours.py: bafybeif3knc6efobddgkh3xc3yqwgtlk7z4zflftd7sic5j3at5rrhsute
   common.py: bafybeicz7feaxvwftwi7qe2x4g4f6edwsh434kr4duebafbwphqyxzuyka
   dialogues.py: bafybeibvnmcn7kofol2h6owljhde4llfc3kwwkb5helxsgsy47mokhwb4i
@@ -20,16 +20,16 @@ fingerprint:
   io/load.py: bafybeib63wgk7wcghrvldqn6dpurkw6o7q3eohg3dpinnf7rhw4qwo2j7q
   io/paths.py: bafybeicfno2l4vwtmjcm3rzpp6tqi3xlkof47pypf5teecad22d44u2ple
   io/store.py: bafybeiee7uhs372q3kxd5s3itufb3ws24ey74my2jpnivit3kboon6xsaq
-  models.py: bafybeihjg6l42syjxcct253mbdcxk6w5xd6reuua4jqqqispzgcgm3vhiq
+  models.py: bafybeifkx2ii2qtfiq2qwgrh3ka7cmvlvreml642qcfiww6a4andyz6jli
   serializer.py: bafybeiezjdtp33nub7ual5ibt4vi7dj3ilmyw7wqq374ctub5oo7wgp7mm
   utils.py: bafybeifnvnlpajv5iqv6wumlfppomcmcfbbb5rpiiqhouxqs5ddwlkqjjy
 fingerprint_ignore_patterns: []
 connections:
 - valory/abci:0.1.0:bafybeiaqoaub5jverxutngxtbfcshucsg7fqkcrdgbjfdsrdbfntwyhawq
 - valory/http_client:0.1.0:bafybeibh3iu7kojc4d5eiigqh6kx2vdmu2q7vhcvvq2rz6suegsscyd66y
-- valory/ledger:0.1.0:bafybeibcj2bbnesgy4xvy4sabbt47hlefmys2kvpexb2dlaxv7e5nzh4ze
+- valory/ledger:0.1.0:bafybeifxxshi4u3xyyllip5e3yafawywcwpvqxgnybchi5kj74zm4b4n2e
 contracts:
-- valory/service_registry:0.1.0:bafybeiemujnvqd6kvuubtl6od3b5barxf7dcjm3v73dnkqtrtxjdmvnoqe
+- valory/service_registry:0.1.0:bafybeidtwbj7mwiskbbmsw43zzooivuq6nripdzn7yuoou66rq7spom54m
 protocols:
 - valory/abci:0.1.0:bafybeicbj36urbjkn6y7hrhm57dspyuuvpcnxhr3r6y2cwxammpom633g4
 - valory/acn:1.1.0:bafybeibvuomoe7dln75slklaaag7vmppbpy2huhyupfygh4cgwdqp2roue

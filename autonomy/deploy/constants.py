@@ -54,6 +54,12 @@ NETWORKS = {
             "LEDGER_POA_CHAIN": True,
             "LEDGER_DEFAULT_GAS_PRICE_STRATEGY": "eip1559_polygon",
         },
+        "goerli": {
+            "LEDGER_ADDRESS": "https://goerli.infura.io/v3/1622a5f5b56a4e1f9bd9292db7da93b8",
+            "LEDGER_CHAIN_ID": 5,
+            "LEDGER_POA_CHAIN": True,
+            "LEDGER_DEFAULT_GAS_PRICE_STRATEGY": "eip1559",
+        },
     },
     "kubernetes": {
         "hardhat": {
@@ -69,6 +75,12 @@ NETWORKS = {
             "LEDGER_CHAIN_ID": 137,
             "LEDGER_POA_CHAIN": True,
             "LEDGER_DEFAULT_GAS_PRICE_STRATEGY": "eip1559_polygon",
+        },
+        "goerli": {
+            "LEDGER_ADDRESS": "https://goerli.infura.io/v3/1622a5f5b56a4e1f9bd9292db7da93b8",
+            "LEDGER_CHAIN_ID": 5,
+            "LEDGER_POA_CHAIN": True,
+            "LEDGER_DEFAULT_GAS_PRICE_STRATEGY": "eip1559",
         },
     },
 }
@@ -109,3 +121,4 @@ TM_STATE_DIR = "tm_state"
 BENCHMARKS_DIR = "benchmarks"
 VENVS_DIR = "venvs"
 AGENT_KEYS_DIR = "agent_keys"
+DOCKERFILES = "Dockerfiles"

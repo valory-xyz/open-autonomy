@@ -16,8 +16,8 @@ nav:
   - Introduction: 'index.md'
   - Version: 'version.md'
   - Upgrading: 'upgrading.md'
-  - Quick start: 'quick_start.md'
-  - Example of a service: 'service_example.md'
+  - Quick Start: 'quick_start.md'
+  - Hello World Agent Service: 'hello_world_agent_service.md'
   - Concepts:
     - Autonomous Economic Agents: 'aea.md'
     - Finite State Machines: 'fsm.md'
@@ -37,6 +37,7 @@ nav:
       - Running the Demo: 'price_oracle_running.md'
       - FSM Specification: 'price_oracle_fsms.md'
   - Development:
+    - Package publishing: 'package_publishing.md'
     - CLI: 'autonomy.md'
     - Developer Tooling:
       - Hot Reload: 'hot_reload.md'
@@ -168,8 +169,6 @@ markdown_extensions:
   - pymdownx.superfences
   - pymdownx.highlight
   - admonition
-  - markdown_include.include:
-      base_path: docs
   - pymdownx.arithmatex
   - attr_list
   - md_in_html
