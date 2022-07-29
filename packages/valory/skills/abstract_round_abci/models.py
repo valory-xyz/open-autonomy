@@ -111,10 +111,11 @@ class SharedState(Model):
         """Initialize the state."""
         self.abci_app_cls = self._process_abci_app_cls(abci_app_cls)
         self.abci_app_cls._is_abstract = (
-            skill_context._skill.configuration.is_abstract_component  # pylint: disable=protected-access
+            skill_context._skill.configuration.is_abstract_component  # type: ignore # pylint: disable=protected-access
         )
         self._round_sequence: Optional[RoundSequence] = None
-        super().__init__(*args, skill_context=skill_context, **kwargs)
+        kwargs["skill_context"] = skill_context
+        super().__init__(*args, **kwargs)
 
     def setup(self) -> None:
         """Set up the model."""
