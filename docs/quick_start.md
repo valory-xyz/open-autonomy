@@ -45,7 +45,7 @@ mkdir my_service
 cd my_service
 ```
 
-2. Setup the environment
+2. Setup the environment. Remember to use the Python version you installed, here we use 3.10 as reference.
 ```bash
 export OPEN_AEA_IPFS_ADDR="/dns/registry.autonolas.tech/tcp/443/https"
 touch Pipfile && pipenv --python 3.10 && pipenv shell
