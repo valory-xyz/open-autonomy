@@ -117,7 +117,9 @@ class PackageHashManager:
             hashes_file = Path("packages", "hashes.csv").relative_to(".")
             hashes_content = read_file(str(hashes_file))
 
-        self.packages = [Package(line) for line in hashes_content.split("\n") if line]
+        self.packages = [
+            Package(line.strip()) for line in hashes_content.split("\n") if line
+        ]
         self.packages = [p for p in self.packages if p.name != "scaffold"]
 
         self.package_tree: Dict = {}
