@@ -20,7 +20,6 @@
 """End2end tests base class."""
 import json
 import logging
-import os
 import time
 import warnings
 from dataclasses import dataclass
@@ -96,27 +95,6 @@ class BaseTestEnd2End(AEATestCaseMany, UseFlaskTendermintNode):
     # ledger used for testing
     ledger_id: str = "ethereum"
     key_file_name: str = "ethereum_private_key.txt"
-
-    @classmethod
-    def setup_class(
-        cls,
-    ) -> None:
-        """Setup class."""
-        super().setup_class()
-        cls.__grant_permissions()
-
-    @classmethod
-    def __grant_permissions(cls) -> None:
-        """Grant permissions."""
-        for dir_path in [
-            "logs",
-            "nodes",
-            "tm_state",
-            "benchmarks",
-        ]:
-            path = Path(cls.t, dir_path)
-            path.mkdir()
-            os.chmod(path, 755)  # nosec
 
     @classmethod
     def set_config(

@@ -6,40 +6,40 @@ description: This skill implements the APY estimation for an AEA.
 license: Apache-2.0
 aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
-  README.md: QmSvXr6k7f5GFZVCgqM8d4ywibiSAYbdaGjmPh4CmFfQn9
-  __init__.py: Qmb163B19kEpc6PfbLnmQxPbeEWA2ubTghVwG2YUeNYusu
-  behaviours.py: QmSsWNXTTJ6mromuo3cpmVEmRB27raGNmUgYTyDpeP6abk
-  dialogues.py: QmdBmUMWoPbS2faqn8LicQVJfN6a2WjtdZDWFbiYoy7hfY
-  fsm_specification.yaml: QmWpHTiaY91oUmAoYiAZjcg5i3UsqktRHCcZZkEDpqEqcf
-  handlers.py: QmRMUufh4uDoqLjcQQ2f51fyE4M8Q7ECxSbLEbtTUMfVfu
-  ml/__init__.py: QmQdxHMEM19JH1FzG9EKQC5mpngbBAz9hyX8XDwGX915BM
-  ml/forecasting.py: QmPqfSmL2vcLCtJJ5Q9XhD1S2BtLfsqxGeHqq86sjg9EqE
-  ml/optimization.py: QmQms7wAvSAVL4Agjpbuz3LtFwNE6HyrbzcQkESoeGfM4o
-  ml/preprocessing.py: QmXRkajyrcZbXy8k26dCocmCCrqYwEHcjy7iFG64DohZKq
-  models.py: QmS15SjCs3NXCqz3gRL3soC7RRPFGofDGEttef5DVWo8EZ
-  payloads.py: QmbBH6kpC98iMgoVbHNwwMBMLs8LC6c87tj81r7UBaHesv
-  rounds.py: QmTniGZFi5RCsefxqX7NVrUPfiEwRe4kDfq4xDrswLhmYe
-  tasks.py: QmemYwBwU6RpWsca3bkXWuUemgZ6YwFVMxS5vkt7J7BjHh
-  tools/__init__.py: QmWr6iVwNzqYVqmxBwYC1myurM8AjxuzxwjM1brXSmnDTi
-  tools/etl.py: Qmb7e77Fh6R4TTSbgUNSo2LaQpKWtRsfmfeqCiPF75mSNf
-  tools/general.py: QmUtxPckv7Mjv6RXt9LmoSARd3D5xK4pyoVVL9wv9H2kvB
-  tools/io.py: QmQ1aPz1gg9hwgzkG1iLpiHbDVApwHyxLR2mGfQmDJqAQk
-  tools/queries.py: QmXZxZ35Sd6YWpPWcMfhwvS5KMvQhb9AmLWp7drQs8KQCT
+  README.md: bafybeiceds6hedhgipxihnl2qt7i2woxsn4fw5ue3evm4aqvknjfpwnbay
+  __init__.py: bafybeif4et2adwa4mtx4clsfcpqk77w23kdq5642vulkddnrsxms6ngbma
+  behaviours.py: bafybeieirqt6xrvrasquyv5jzg4u2chrwpxlnfkk5aacq5eli2qc55f3c4
+  dialogues.py: bafybeig4tc4thbpsixmbn35kj7jim2gzd7cvxxu4u3xoeyxqzpumuhrdzm
+  fsm_specification.yaml: bafybeid56g5zov7zb2hnauahbejn5k3ilymrbg2aihhybzvzwdhbbctexq
+  handlers.py: bafybeibmzghvqekt7iymu6s6yn5tk7lpdmejba4n7dpsz2do3cgfqz7b2a
+  ml/__init__.py: bafybeibceypb22objsuli3abse3rgyycs4hodokjfj5oei4ms4xlqkra5a
+  ml/forecasting.py: bafybeib54a6dzcjlilbkzcpgwrycbkjlrmzox33tas547r2v5hja2qm52m
+  ml/optimization.py: bafybeibeftwvgkjxlykbcn6rnkenuoljluykh3yx4pjijnulixmoexmcvq
+  ml/preprocessing.py: bafybeieha65b5cslcyyjobjupebyqovod7aigohdidcawz5b6tlxqxpruq
+  models.py: bafybeib3rgkfyzbyqfk5aupfxkx2zvyknldrne5chzjb2jsut72epzvgm4
+  payloads.py: bafybeiaomj7i7ouzwzgs2un7w5vptkilmhrs3sk7hzapc6pswltjav3xea
+  rounds.py: bafybeibaajmnddve5opvq6ijre2ssuxvutreqjqhr7wlqp44ztugo3f3hm
+  tasks.py: bafybeihudp5vyhelqnl5eqakjpvuekaoamtbrghss4k2yysvkczspjbbia
+  tools/__init__.py: bafybeid6nc7k2qjndgigeoxhtun27ih5wof3hl4j6fsijulttuwhjydyeu
+  tools/etl.py: bafybeif52kzh46ebiu6s47hbgov6adz557ziv42xmh3j6ejgyyfqzh7pzq
+  tools/general.py: bafybeiggrhs5pko3q4soobaj7vsimrlwixpfprrup7jtwzr3o6eh5ezuh4
+  tools/io.py: bafybeiay2r3f2zsmiqt4xb47lm42tg3lhjbhknnmej3grifemc5eumongu
+  tools/queries.py: bafybeifjtuv4v7f3cp6eyf5vnirtd463yy4x3frzyudgg4xwdie7drk7bi
 fingerprint_ignore_patterns: []
 connections:
-- valory/abci:0.1.0:QmU6UrK5RGXisFjseFJDr3t1DxxnTqiRnNGJgCVKtJ1Nm8
-- valory/http_client:0.1.0:QmXBBMS5g4kyyE3mzFcpieoDMKWFf9naaCM3QNSjP2mxDt
-- valory/ledger:0.1.0:Qmcd32eJaDbWFFgqTzKf3Lqhshj37ndhrdtYiNnED2ULqB
+- valory/abci:0.1.0:bafybeiaqoaub5jverxutngxtbfcshucsg7fqkcrdgbjfdsrdbfntwyhawq
+- valory/http_client:0.1.0:bafybeibh3iu7kojc4d5eiigqh6kx2vdmu2q7vhcvvq2rz6suegsscyd66y
+- valory/ledger:0.1.0:bafybeifxxshi4u3xyyllip5e3yafawywcwpvqxgnybchi5kj74zm4b4n2e
 contracts: []
 protocols:
-- open_aea/signing:1.0.0:QmYVxA8smnK8LQ2B4z5BVFvEwo3szQeBosUesycb8By1ZT
-- valory/abci:0.1.0:Qme3d3JtL92NV7qX9DiFdK7D5MGS5S4kL5NoZUep3WbqeD
-- valory/contract_api:1.0.0:QmZRa6S342MT1oSQjLoyEDitjK6nivypC78DKipvg9JpF1
-- valory/http:1.0.0:QmRQYhYWbGSNHb152dp2L1P9EtZRZZqgvZAaNat5qxfQqK
-- valory/ledger_api:1.0.0:QmNfowyB8rGWr53wuNPYK5BEAnA8AehgipVdYXt8LC5uR6
+- open_aea/signing:1.0.0:bafybeieirkuq6azgis33bmukr5u2gx4chp5kswiw3wd5hbjsaukgwzmp5a
+- valory/abci:0.1.0:bafybeicbj36urbjkn6y7hrhm57dspyuuvpcnxhr3r6y2cwxammpom633g4
+- valory/contract_api:1.0.0:bafybeie5gbzc4v4n6p6ea66kmc5ejwvbjzhd7vhcjg7mikbyx47lypcd5m
+- valory/http:1.0.0:bafybeifhmibx3l7f3xdwxhweczizadxs6p3oludvapvwdeu4o5f3oahqme
+- valory/ledger_api:1.0.0:bafybeifaozy766hngsqc5a5kpebseusq4cc3woh4ayycdoa7r3mjkvhzr4
 skills:
-- valory/abstract_round_abci:0.1.0:QmYLk48bbMCYq1onLuKyNgN1QG2grxfJbvb6ZPUwLBXzQG
-- valory/registration_abci:0.1.0:QmcZQMtohsyqnG8yxqyvb7R8tT5jabmtW8Q4Ufk61XbVwP
+- valory/abstract_round_abci:0.1.0:bafybeiel6kpuvy44skm3oylvwk3fnry35nxbwyn6axvlxuzxokf56efnqy
+- valory/registration_abci:0.1.0:bafybeicfmgzlivaxvhdzetfba2vcdel7dudu5h2jpsz3gdzt7zganv5n5e
 behaviours:
   main:
     args: {}
@@ -74,13 +74,25 @@ models:
   contract_api_dialogues:
     args: {}
     class_name: ContractApiDialogues
+  ethereum_subgraph:
+    args:
+      api_id: eth
+      headers:
+      - Content-Type: application/json
+      method: POST
+      parameters: null
+      response_key: data
+      response_type: dict
+      retries: 5
+      url: https://api.thegraph.com/subgraphs/name/blocklytics/ethereum-blocks
+    class_name: ETHSubgraph
   fantom_subgraph:
     args:
       api_id: fantom
       headers:
       - Content-Type: application/json
       method: POST
-      parameters: []
+      parameters: null
       response_key: data
       response_type: dict
       retries: 5
@@ -101,8 +113,10 @@ models:
       drand_public_key: 868f005eb8e6e4ca0a47c8a77ceaa5309a47978a7c71bc5cce96366b5d7a569937c529eeda66c7293784a9402801af31
       estimation:
         steps_forward: 1
-      history_duration: 1
-      ipfs_domain_name: /dns/staging.registry.autonolas.tech/tcp/443/https
+      history_end: 1655136875
+      history_interval_in_unix: 86400
+      history_start: 1652544875
+      ipfs_domain_name: /dns/registry.autonolas.tech/tcp/443/https
       keeper_timeout: 30.0
       max_healthcheck: 120
       observation_interval: 10
@@ -116,8 +130,12 @@ models:
         alpha: 0.25
         window_size: null
       pair_ids:
-      - '0x2a651563c9d3af67ae0388a5c8f89b867038089e'
-      - '0x2b4c76d0dc16be1c31d4c1dc53bf9b45987fc75c'
+        uniswap_subgraph:
+        - '0x5777d92f208679db4b9778590fa3cab3ac9e2168'
+        - '0xa374094527e1673a86de625aa59517c5de346d32'
+        spooky_subgraph:
+        - '0x2a651563c9d3af67ae0388a5c8f89b867038089e'
+        - '0x2b4c76d0dc16be1c31d4c1dc53bf9b45987fc75c'
       reset_tendermint_after: 2
       retry_attempts: 400
       retry_timeout: 3
@@ -155,10 +173,13 @@ models:
     args:
       api_id: spookyswap
       bundle_id: 1
+      chain_subgraph: fantom_subgraph
       headers:
       - Content-Type: application/json
       method: POST
-      parameters: []
+      non_indexed_error_key: errors
+      non_indexed_error_type: list
+      parameters: null
       response_key: data
       response_type: dict
       retries: 5
@@ -167,6 +188,22 @@ models:
   state:
     args: {}
     class_name: SharedState
+  uniswap_subgraph:
+    args:
+      api_id: uniswap
+      bundle_id: 1
+      chain_subgraph: ethereum_subgraph
+      headers:
+      - Content-Type: application/json
+      method: POST
+      non_indexed_error_key: errors
+      non_indexed_error_type: list
+      parameters: null
+      response_key: data
+      response_type: dict
+      retries: 5
+      url: https://api.thegraph.com/subgraphs/name/uniswap/uniswap-v2
+    class_name: UniswapSubgraph
 dependencies:
   joblib:
     version: <1.2,>=1.1.0

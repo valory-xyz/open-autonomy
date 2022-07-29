@@ -6,19 +6,19 @@ description: A client for the ABCI counter application.
 license: Apache-2.0
 aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
-  README.md: QmSZivVoojU5UefxQbknHs8fGVUkF1iC2iDfxwY8o5bkTW
-  __init__.py: QmZP8LCiL8U6wA8sMkuFthDhymsW9Qe8qRREtmhkLUHwcB
-  behaviours.py: QmUodGGbsussWtsBrji8aP965JopyKhcYrcwtjThTddme1
-  dialogues.py: QmVWYsN4ZY18BE6gRdP7twHvrfe5juVvko2sbhK684hxpL
-  handlers.py: QmXJaLCUb5G8TJpKHnpFYenRW1ci3P5ULo6Pv2NmTzWuYc
-  models.py: QmbLMMqskEN1QpZDL9HjaZ2kMqJZJnK5FajqvU2U64esEf
-  utils.py: QmV19kFkqozDxEGqQn4nDqWWXeAd5oNYhtKnjj6snedBu9
+  README.md: bafybeib6zaiamsyuuppq5kflgsxk774mq44ttumidbixtaflt2fmfjcqtu
+  __init__.py: bafybeifeclzvhjxlghtaxvhlgfetavrz4rclfxsjmcte4xa2esbjfwukma
+  behaviours.py: bafybeidab4vui5cstsalimslmja4gswpqscuhokbqkaa2wosoc3gks4dwi
+  dialogues.py: bafybeidkrmbuq2qdf4de4rfowtd27r4elf2myj6bt3onfqj7fqwgpf52qu
+  handlers.py: bafybeiefgejcbludogkxw45md4tvadrdgqj5enshq7ugmg6yhaoj7y6wke
+  models.py: bafybeigbcriciq77fdsp4k3qd7utq5vo7blxgm47ghiqusccrl2i75o7pa
+  utils.py: bafybeiddamdexsvkj63qccmfjqvsmxjzbrrmhydijkf64jshw3wanbd4ja
 fingerprint_ignore_patterns: []
 connections:
-- valory/http_client:0.1.0:QmXBBMS5g4kyyE3mzFcpieoDMKWFf9naaCM3QNSjP2mxDt
+- valory/http_client:0.1.0:bafybeibh3iu7kojc4d5eiigqh6kx2vdmu2q7vhcvvq2rz6suegsscyd66y
 contracts: []
 protocols:
-- valory/http:1.0.0:QmRQYhYWbGSNHb152dp2L1P9EtZRZZqgvZAaNat5qxfQqK
+- valory/http:1.0.0:bafybeifhmibx3l7f3xdwxhweczizadxs6p3oludvapvwdeu4o5f3oahqme
 skills: []
 behaviours:
   incrementer:

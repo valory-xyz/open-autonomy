@@ -478,12 +478,16 @@ class CheckTransactionHistoryBehaviour(TransactionSettlementBaseBehaviour):
 
         if not history:
             self.context.logger.error(
-                "An unexpected error occurred! The data history does not contain any transaction hashes, "
+                "An unexpected error occurred! The synchronized data do not contain any transaction hashes, "
                 f"but entered the `{self.behaviour_id}` behaviour."
             )
             return VerificationStatus.ERROR, None
 
+        self.context.logger.info(
+            f"Starting check for the transaction history: {history}."
+        )
         for tx_hash in history[::-1]:
+            self.context.logger.info(f"Checking hash {tx_hash}...")
             contract_api_msg = yield from self._verify_tx(tx_hash)
 
             if (

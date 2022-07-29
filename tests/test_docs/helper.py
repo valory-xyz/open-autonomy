@@ -34,7 +34,7 @@ from tests.conftest import ROOT_DIR
 
 
 MISTUNE_BLOCK_CODE_ID = "block_code"
-IPFS_HASH_REGEX = r"Qm[A-Za-z0-9]{44}"
+IPFS_HASH_REGEX = r"bafybei[A-Za-z0-9]{52}"
 PYTHON_LINE_COMMENT_REGEX = r"^#.*\n"
 DOC_ELLIPSIS_REGEX = r"\s*#\s...\n"
 PYTHON_COMMAND = r"^pyt(hon|est) (?P<file_name>.*\.py).*$"

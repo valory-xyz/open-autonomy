@@ -55,7 +55,6 @@ class Event(Enum):
     EXIT = "exit"
     ROUND_TIMEOUT = "round_timeout"
     NO_MAJORITY = "no_majority"
-    RESET_TIMEOUT = "reset_timeout"
 
 
 class SynchronizedData(
@@ -188,16 +187,14 @@ class StrategyEvaluationRound(
 
             strategy = json.loads(self.most_voted_payload)
 
-            event = Event.RESET_TIMEOUT
             if strategy["action"] == StrategyType.WAIT.value:
-                event = Event.DONE
-            elif strategy["action"] == StrategyType.ENTER.value:
-                event = Event.DONE_ENTER
-            elif strategy["action"] == StrategyType.EXIT.value:
-                event = Event.DONE_EXIT
-            elif strategy["action"] == StrategyType.SWAP_BACK.value:
-                event = Event.DONE_SWAP_BACK
-            return synchronized_data, event
+                return synchronized_data, Event.DONE
+            if strategy["action"] == StrategyType.ENTER.value:
+                return synchronized_data, Event.DONE_ENTER
+            if strategy["action"] == StrategyType.EXIT.value:
+                return synchronized_data, Event.DONE_EXIT
+            if strategy["action"] == StrategyType.SWAP_BACK.value:
+                return synchronized_data, Event.DONE_SWAP_BACK
         if not self.is_majority_possible(
             self.collection, self.synchronized_data.nb_participants
         ):

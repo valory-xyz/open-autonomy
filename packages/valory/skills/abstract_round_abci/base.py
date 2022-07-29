@@ -944,9 +944,9 @@ class AbstractRound(Generic[EventType, TransactionType], ABC):
     @classmethod
     def check_majority_possible_with_new_voter(
         cls,
-        votes_by_participant: Dict[Any, Any],
-        new_voter: Any,
-        new_vote: Any,
+        votes_by_participant: Dict[str, BaseTxPayload],
+        new_voter: str,
+        new_vote: BaseTxPayload,
         nb_participants: int,
         exception_cls: Type[ABCIAppException] = ABCIAppException,
     ) -> None:
@@ -987,7 +987,7 @@ class AbstractRound(Generic[EventType, TransactionType], ABC):
     @classmethod
     def check_majority_possible(
         cls,
-        votes_by_participant: Dict[Any, Any],
+        votes_by_participant: Dict[str, BaseTxPayload],
         nb_participants: int,
         exception_cls: Type[ABCIAppException] = ABCIAppException,
     ) -> None:
@@ -1025,7 +1025,8 @@ class AbstractRound(Generic[EventType, TransactionType], ABC):
         if len(votes_by_participant) == 0:
             return
 
-        vote_count = Counter(votes_by_participant.values())
+        votes = votes_by_participant.values()
+        vote_count = Counter(tuple(sorted(v.data.items())) for v in votes)
         largest_nb_votes = max(vote_count.values())
         nb_votes_received = sum(vote_count.values())
         nb_remaining_votes = nb_participants - nb_votes_received
@@ -1039,7 +1040,7 @@ class AbstractRound(Generic[EventType, TransactionType], ABC):
 
     @classmethod
     def is_majority_possible(
-        cls, votes_by_participant: Dict[Any, Any], nb_participants: int
+        cls, votes_by_participant: Dict[str, BaseTxPayload], nb_participants: int
     ) -> bool:
         """
         Return true if a Byzantine majority is achievable, false otherwise.
@@ -1830,6 +1831,8 @@ class AbciApp(
     event_to_timeout: EventToTimeout = {}
     cross_period_persisted_keys: List[str] = []
 
+    _is_abstract: bool = True
+
     def __init__(
         self,
         synchronized_data: BaseSynchronizedData,
@@ -1866,6 +1869,11 @@ class AbciApp(
     def reset_index(self) -> int:
         """Return the reset index."""
         return self._reset_index
+
+    @reset_index.setter
+    def reset_index(self, reset_index: int) -> None:
+        """Set the reset index."""
+        self._reset_index = reset_index
 
     @classmethod
     def get_all_rounds(cls) -> Set[AppState]:

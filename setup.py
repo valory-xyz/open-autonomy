@@ -32,7 +32,7 @@ def get_all_extras() -> Dict:
 
     cli_deps = [
         "click==8.0.2",
-        "open-aea-cli-ipfs>=1.11.0,<2.0.0",
+        "open-aea-cli-ipfs>=1.13.0,<2.0.0",
     ]
 
     extras = {
@@ -48,8 +48,9 @@ all_extras = get_all_extras()
 
 base_deps = [
     "Flask>=2.0.2,<3.0.0",
-    "open-aea[all]>=1.11.0,<2.0.0",
+    "open-aea[all]>=1.13.0,<2.0.0",
     "pandas<1.4,>=1.3.4",
+    "watchdog >=2.1.6",
 ]
 base_deps.extend(all_extras["cli"])
 
@@ -64,9 +65,7 @@ def parse_readme():
         readme = f.read()
 
     # replace relative links of images
-    raw_url_root = (
-        "https://raw.githubusercontent.com/valory-xyz/open-autonomy/main/"
-    )
+    raw_url_root = "https://raw.githubusercontent.com/valory-xyz/open-autonomy/main/"
     replacement = raw_url_root + r"\g<0>"
     readme = re.sub(r"(?<=<img src=\")(/.*)(?=\")", replacement, readme, re.DOTALL)
 
@@ -82,7 +81,16 @@ if __name__ == "__main__":
         url=about["__url__"],
         long_description=parse_readme(),
         long_description_content_type="text/markdown",
-        package_data={"autonomy": ["py.typed"]},
+        package_data={
+            "autonomy": [
+                "py.typed",
+                "data/*",
+                "data/Dockerfiles/agent/*",
+                "data/Dockerfiles/dev/*",
+                "data/Dockerfiles/hardhat/*",
+                "data/Dockerfiles/tendermint/*",
+            ]
+        },
         packages=find_packages(include=["autonomy*"]),
         classifiers=[
             "Environment :: Console",

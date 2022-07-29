@@ -29,6 +29,7 @@ from autonomy.cli import cli
 from autonomy.replay.agent import AgentRunner
 
 from tests.conftest import ROOT_DIR
+from tests.helpers.docker.base import skip_docker_tests
 from tests.test_autonomy.test_cli.base import BaseCliTest
 
 
@@ -75,6 +76,7 @@ def ctrl_c(*args: Any) -> None:
     raise KeyboardInterrupt()
 
 
+@skip_docker_tests
 class TestAgentRunner(BaseCliTest):
     """Test agent runner tool."""
 
@@ -87,27 +89,32 @@ class TestAgentRunner(BaseCliTest):
     def setup(cls) -> None:
         """Setup."""
         super().setup()
-
-        os.chdir(ROOT_DIR)
+        os.chdir(cls.t)
 
     def test_run(self) -> None:
         """Test run."""
 
-        self.cli_runner.invoke(
-            cli,
-            (
-                "deploy",
-                "build",
-                "deployment",
-                "valory/oracle_hardhat",
-                str(self.keys_path),
-                "--packages-dir",
-                str(self.packages_dir),
-                "--force",
-            ),
-        )
+        with mock.patch("os.chown"):
+            result = self.cli_runner.invoke(
+                cli,
+                (
+                    "deploy",
+                    "build",
+                    "deployment",
+                    "valory/oracle_hardhat",
+                    str(self.keys_path),
+                    "--packages-dir",
+                    str(self.packages_dir),
+                    "--force",
+                    "--local",
+                    "--o",
+                    str(self.t),
+                ),
+            )
 
-        build_dir = ROOT_DIR / "abci_build"
+        assert result.exit_code == 0, result.output
+
+        build_dir = self.t / "abci_build"
         with mock.patch.object(AgentRunner, "start", new=ctrl_c), mock.patch.object(
             AgentRunner, "stop"
         ) as stop_mock, mock.patch(

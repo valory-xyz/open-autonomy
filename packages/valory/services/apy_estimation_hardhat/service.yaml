@@ -5,9 +5,9 @@ description: A set of agent reaching APY estimates
 aea_version: '>=1.0.0, <2.0.0'
 license: Apache-2.0
 fingerprint:
-  README.md: QmRcyLEPYAtzc1gRnBt18wxmJXmYSu9Ta4sFgA3xMnFdBr
+  README.md: bafybeibqyfur7wusrbfga66hcbauxvhs2g3j5yhknsxlvyh6mil57aajyu
 fingerprint_ignore_patterns: []
-agent: valory/apy_estimation:0.1.0:QmWVBvXpgw54n8V4CA3QAbVJEndeavZSMEpN7HFzxDs9Vy
+agent: valory/apy_estimation:0.1.0:bafybeih3mufzvqdegbfeotybrh6titqphdh2jo76s6ewmrldlntqs27qkq
 network: hardhat
 number_of_agents: 4
 ---
@@ -24,7 +24,9 @@ models:
       drand_public_key: 868f005eb8e6e4ca0a47c8a77ceaa5309a47978a7c71bc5cce96366b5d7a569937c529eeda66c7293784a9402801af31
       estimation:
         steps_forward: 1
-      history_duration: 6
+      history_end: null
+      history_interval_in_unix: 86400
+      history_start: 1652544875
       optimizer:
         n_trials: 10
         timeout: 60
@@ -32,6 +34,12 @@ models:
         show_progress_bar: false
         scoring: pinball
         alpha: 0.25
-      pair_ids: '["0x2b4c76d0dc16be1c31d4c1dc53bf9b45987fc75c"]'
+      pair_ids:
+        uniswap_subgraph:
+        - '0x5777d92f208679db4b9778590fa3cab3ac9e2168'
+        - '0xa374094527e1673a86de625aa59517c5de346d32'
+        spooky_subgraph:
+        - '0x2a651563c9d3af67ae0388a5c8f89b867038089e'
+        - '0x2b4c76d0dc16be1c31d4c1dc53bf9b45987fc75c'
       sleep_time: 10
       ipfs_domain_name: /dns/registry.autonolas.tech/tcp/443/https

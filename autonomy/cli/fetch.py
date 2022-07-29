@@ -17,7 +17,6 @@
 #
 # ------------------------------------------------------------------------------
 """Implementation of the 'autonomy fetch' subcommand."""
-import os
 import shutil
 import tempfile
 from distutils.dir_util import copy_tree
@@ -45,7 +44,7 @@ try:
     from aea_cli_ipfs.ipfs_utils import IPFSTool  # type: ignore
 
     IS_IPFS_PLUGIN_INSTALLED = True
-except ImportError:
+except ImportError:  # pragma: nocover
     IS_IPFS_PLUGIN_INSTALLED = False
 
 
@@ -84,7 +83,7 @@ def fetch(
     ctx.registry_type = registry
 
     try:
-        if package_type == AGENT:
+        if package_type == AGENT:  # pragma: nocover
             do_fetch(ctx, public_id, alias)
         else:
             fetch_service(ctx, public_id)
@@ -92,19 +91,19 @@ def fetch(
         raise click.ClickException(str(e)) from e
 
 
-def fetch_service(ctx: Context, public_id: PublicId) -> None:
+def fetch_service(ctx: Context, public_id: PublicId) -> Path:
     """Fetch service."""
 
     if ctx.registry_type == REGISTRY_REMOTE:
         if get_default_remote_registry() == REMOTE_IPFS:
-            fetch_service_ipfs(public_id)
-        else:
-            raise Exception("HTTP registry not supported.")
-    else:
-        fetch_service_local(ctx, public_id)
+            return fetch_service_ipfs(public_id)
+
+        raise Exception("HTTP registry not supported.")
+
+    return fetch_service_local(ctx, public_id)
 
 
-def fetch_service_ipfs(public_id: PublicId) -> None:
+def fetch_service_ipfs(public_id: PublicId) -> Path:
     """Fetch service from IPFS node."""
 
     if not IS_IPFS_PLUGIN_INSTALLED:
@@ -124,8 +123,10 @@ def fetch_service_ipfs(public_id: PublicId) -> None:
         f"Downloaded service package {service_config.public_id} @ {package_path}"
     )
 
+    return package_path
 
-def fetch_service_local(ctx: Context, public_id: PublicId) -> None:
+
+def fetch_service_local(ctx: Context, public_id: PublicId) -> Path:
     """Fetch service from local directory."""
 
     try:
@@ -137,12 +138,12 @@ def fetch_service_local(ctx: Context, public_id: PublicId) -> None:
         registry_path, public_id.author, SERVICES, public_id.name
     )
 
-    target_path = os.path.join(ctx.cwd, public_id.name)
-    if os.path.exists(target_path):
-        path = Path(target_path)
+    target_path = Path(ctx.cwd, public_id.name)
+    if target_path.exists():
         raise click.ClickException(
-            f'Item "{path.name}" already exists in target folder "{path.parent}".'
+            f'Item "{target_path.name}" already exists in target folder "{target_path.parent}".'
         )
 
-    copy_tree(source_path, target_path)
+    copy_tree(source_path, str(target_path))
     click.echo(f"Copied service package {public_id}")
+    return target_path

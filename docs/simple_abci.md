@@ -4,7 +4,7 @@
     For clarity, the snippets of code presented here are a simplified version of the actual
     implementation. We refer the reader to the {{open_autonomy_api}} for the complete details.
 
-The Simple {{fsm_app}} is an example application that demonstrates how to use the {{open_autonomy}} framework. The goal is to provide the minimum background so that users can start developing their own {{agent_service}}s, and to showcase how AEAs interact with local Tendermint nodes. Indeed, we recommend that new users use the Simple {{fsm_app}} as the starting point for developing their own {{agent_service}}s.
+The Simple {{fsm_app}} is an example application that demonstrates how to use the {{open_autonomy}} framework. The goal is to provide the minimum background so that users can start developing their own agent services, and to showcase how AEAs interact with local Tendermint nodes. Indeed, we recommend that new users use the Simple {{fsm_app}} as the starting point for developing their own agent services.
 
 Roughly speaking, on a successful execution of a period of the application (i.e., no timeouts, no error conditions, etc.), the following actions would occur in order:
 
@@ -250,6 +250,7 @@ class SimpleAbciApp(AbciApp[Event]):
     Transition states:
         0. RegistrationRound
             - done: 1.
+            - no majority: 0.
         1. RandomnessStartupRound
             - done: 2.
             - round timeout: 1.
@@ -274,6 +275,7 @@ class SimpleAbciApp(AbciApp[Event]):
     transition_function: AbciAppTransitionFunction = {
         RegistrationRound: {
             Event.DONE: RandomnessStartupRound,
+            Event.NO_MAJORITY: RegistrationRound,
         },
         RandomnessStartupRound: {
             Event.DONE: SelectKeeperAtStartupRound,
@@ -336,6 +338,7 @@ transition_func:
     (RandomnessStartupRound, NO_MAJORITY): RandomnessStartupRound
     (RandomnessStartupRound, ROUND_TIMEOUT): RandomnessStartupRound
     (RegistrationRound, DONE): RandomnessStartupRound
+    (RegistrationRound, NO_MAJORITY): RegistrationRound
     (ResetAndPauseRound, DONE): RandomnessStartupRound
     (ResetAndPauseRound, NO_MAJORITY): RegistrationRound
     (ResetAndPauseRound, RESET_TIMEOUT): RegistrationRound

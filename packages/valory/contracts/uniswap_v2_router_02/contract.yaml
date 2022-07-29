@@ -6,9 +6,9 @@ description: UniSwap V2 Router02 contract
 license: Apache-2.0
 aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
-  __init__.py: QmevsUxqaoqkrvyQL4RJhaGBLagpGStUUBggwWbpHa2A5o
-  build/IUniswapV2Router02.json: QmZPa3Ua4UU8MrRmyDmRFFJuK6UPiGV2N75anRASzpiKMK
-  contract.py: QmQ1FsuHYVw8N4EhwYSnMHLCGWw6AdAKrETfWUygKbHqhf
+  __init__.py: bafybeihwp4xgni42njyuaea26csveoc7fudqymsjlx2u7pavfjhfgrmski
+  build/IUniswapV2Router02.json: bafybeifegac5ac2mp6fddeknvtbcosoftukruzf5gug7qafgvp7ek7ea3i
+  contract.py: bafybeihppwoxoszca37f5lmznya7gpwy5uwfaw7sxviztt6erpzvtjm6se
 fingerprint_ignore_patterns: []
 contracts: []
 class_name: UniswapV2Router02Contract

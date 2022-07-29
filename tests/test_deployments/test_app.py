@@ -268,6 +268,6 @@ class TestTendermintLogMessages(BaseTendermintServerTest):
             "Tendermint process stopped",
         ]
 
-        assert not get_missing(before_stopping)
+        assert not get_missing(before_stopping), get_logs()
         self.tendermint_node.stop()
-        assert not get_missing(after_stopping)
+        assert not get_missing(after_stopping), get_logs()

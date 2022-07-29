@@ -23,14 +23,17 @@ import os
 import random
 import string
 import sys
+from pathlib import Path
 from typing import Tuple
 
 import docker
 import pytest
 
+from autonomy.constants import DEFAULT_BUILD_FOLDER
+
 from tests.conftest import ROOT_DIR
 from tests.helpers.docker.base import skip_docker_tests
-from tests.test_autonomy.test_cli.base import BaseCliTest
+from tests.test_autonomy.test_cli.base import BaseCliTest, cli
 
 
 @skip_docker_tests
@@ -40,14 +43,37 @@ class TestBuildImage(BaseCliTest):
     cli_options: Tuple[str, ...] = ("deploy", "build", "image")
     service_id: str = "valory/oracle_hardhat"
     docker_api: docker.APIClient
+    build_dir: Path
 
     @classmethod
     def setup(cls) -> None:
         """Setup class."""
-        cls.docker_api = docker.APIClient()
-
         super().setup()
-        os.chdir(ROOT_DIR)
+
+        cls.docker_api = docker.APIClient()
+        os.chdir(cls.t)
+
+        result = cls.cli_runner.invoke(
+            cli,
+            (
+                "deploy",
+                "build",
+                "deployment",
+                "valory/oracle_hardhat",
+                str(ROOT_DIR / "deployments" / "keys" / "hardhat_keys.json"),
+                "--packages-dir",
+                str(ROOT_DIR / "packages"),
+                "--force",
+                "--local",
+                "--skip-images",
+                "--o",
+                str(cls.t),
+            ),
+        )
+
+        assert result.exit_code == 0, result.output
+        cls.build_dir = cls.t / DEFAULT_BUILD_FOLDER
+        os.chdir(cls.build_dir)
 
     @staticmethod
     def generate_random_tag(length: int = 16) -> str:
@@ -55,32 +81,42 @@ class TestBuildImage(BaseCliTest):
 
         return "".join(random.choices(string.ascii_lowercase, k=length))  # nosec
 
-    @pytest.mark.skipif(sys.platform == "linux", reason="temporary")
+    @pytest.mark.skip("https://github.com/valory-xyz/open-autonomy/issues/1108")
     def test_build_prod(
         self,
     ) -> None:
         """Test prod build."""
 
         version = self.generate_random_tag()
-        result = self.run_cli((self.service_id, "--version", version))
+        result = self.run_cli(("--version", version))
 
         assert result.exit_code == 0, f"{result.stdout_bytes}\n{result.stderr_bytes}"
         image_name = f"valory/open-autonomy-open-aea:oracle-{version}"
         assert len(self.docker_api.images(name=image_name)) == 1
 
-    @pytest.mark.skipif(sys.platform == "linux", reason="temporary")
     def test_dev(
         self,
     ) -> None:
         """Test prod build."""
 
-        result = self.run_cli((self.service_id, "--dev"))
-
+        result = self.run_cli(("--dev",))
         assert result.exit_code == 0, f"{result.stdout_bytes}\n{result.stderr_bytes}"
         assert (
             len(self.docker_api.images(name="valory/open-autonomy-open-aea:oracle-dev"))
             == 1
         )
+
+    def test_cluster(
+        self,
+    ) -> None:
+        """Test prod build."""
+
+        result = self.run_cli(("--cluster",))
+
+        assert result.exit_code == 1, f"{result.stdout_bytes}\n{result.stderr_bytes}"
+        assert (
+            "Please setup kubernetes environment variables." in result.stdout
+        ), f"{result.stdout_bytes}\n{result.stderr_bytes}"
 
     def test_build_dependencies(
         self,
@@ -88,7 +124,7 @@ class TestBuildImage(BaseCliTest):
         """Test prod build."""
 
         version = self.generate_random_tag()
-        result = self.run_cli((self.service_id, "--dependencies", "--version", version))
+        result = self.run_cli(("--dependencies", "--version", version))
 
         assert result.exit_code == 0, f"{result.stdout_bytes}\n{result.stderr_bytes}"
         tendermint_image_name = f"valory/open-autonomy-tendermint:{version}"
@@ -99,5 +135,6 @@ class TestBuildImage(BaseCliTest):
     @classmethod
     def teardown(cls) -> None:
         """Teardown."""
+
         os.chdir(cls.cwd)
         super().teardown()

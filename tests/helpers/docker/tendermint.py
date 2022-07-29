@@ -291,9 +291,56 @@ class FlaskTendermintDockerImage(TendermintDockerImage):
         container = self._client.containers.run(**run_kwargs)
         return container
 
-    def _create_config(self, nb_nodes: int) -> None:
-        """Create necessary configuration."""
-        self.nb_nodes = nb_nodes
+    def _fix_persistent_peers(self) -> None:
+        """
+        Fix the persistent peers' ports in the configuration file.
+
+        Since we are running all the ABCIs at the same host for our e2e tests, we shift the ports by 10 for each
+        added node. Therefore, we need to override the default persistent peers in the config files,
+        in order for them to use the correct ports.
+        """
+        nodes_config_files = list(Path().cwd().glob("**/config.toml"))
+        assert (
+            nodes_config_files != []
+        ), "Could not detect any config files for the nodes!"
+
+        for config_file in nodes_config_files:
+            config_text = config_file.read_text(encoding="utf-8")
+            peers = re.findall(r"[a-z\d]+@node\d:\d+", config_text)
+
+            updated_peers = []
+            for peer in peers:
+                peer_id, address = peer.split("@")
+                peer_name, _ = address.split(":")
+                *_, peer_number_string = peer_name
+
+                peer_number = int(peer_number_string)
+                new_port = self.get_p2p_port(peer_number)
+                updated_peers.append(f"{peer_id}@{peer_name}:{new_port}")
+
+            persistent_peers_string = (
+                'persistent_peers = "' + ",".join(updated_peers) + '"\n'
+            )
+            updated_config = re.sub(
+                'persistent_peers = ".*\n', persistent_peers_string, config_text
+            )
+
+            config_file.write_text(updated_config, encoding="utf-8")
+
+    def _grant_permissions(self) -> None:
+        """
+        Grant permissions for the nodes' config files.
+
+        Create the nodes' config files, so that the `testnet` command which is run via docker
+        does not create it with root permissions, so we can later modify the `config.toml` files.
+        """
+        for i in range(self.nb_nodes):
+            path = Path(f"{os.getcwd()}", "nodes", f"node{i}", "config")
+            os.makedirs(path)
+            open(path / "config.toml", "a").close()
+
+    def _create_testnet(self) -> None:
+        """Create the Tendermint testnet."""
         cmd = [
             "docker",
             "run",
@@ -306,39 +353,22 @@ class FlaskTendermintDockerImage(TendermintDockerImage):
             "--config",
             "/etc/tendermint/config-template.toml",
             "--v",
-            f"{nb_nodes}",
+            f"{self.nb_nodes}",
             "--o",
             "/tendermint/",
         ]
-        for i in range(nb_nodes):
+        for i in range(self.nb_nodes):
             cmd.append(f"--hostname=node{i}")
 
         logging.debug(f"create config command: {' '.join(cmd)}")
         subprocess.run(cmd)  # nosec
-        for config_file in Path().cwd().glob("nodes/**/*.toml"):
-            config_text = config_file.read_text(encoding="utf-8")
-            peers = re.findall(r"[a-z0-9]+@node\d:\d+", config_text)
 
-            updated_peers = []
-            for peer in peers:
-                peer_id, address = peer.split("@")
-                peer_name, port_string = address.split(":")
-                *_, peer_number_string = peer_name
-
-                port = int(port_string)
-                peer_number = int(peer_number_string)
-                new_port = port + (peer_number * 10)
-                updated_peers.append(f"{peer_id}@{peer_name}:{new_port}")
-
-            persistent_peers_string = (
-                'persistent_peers = "' + ",".join(updated_peers) + '"\n'
-            )
-            updated_config = re.sub(
-                'persistent_peers = ".*\n', persistent_peers_string, config_text
-            )
-
-            config_file.write_text(updated_config, encoding="utf-8")
-
+    def _create_config(self, nb_nodes: int) -> None:
+        """Create necessary configuration."""
+        self.nb_nodes = nb_nodes
+        self._grant_permissions()
+        self._create_testnet()
+        self._fix_persistent_peers()
         self._extra_hosts = {
             self.get_node_name(i): "host-gateway" for i in range(nb_nodes)
         }

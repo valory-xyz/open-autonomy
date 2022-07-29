@@ -1,0 +1,60 @@
+apiVersion: skaffold/v2beta6
+kind: Config
+metadata:
+  name: open-autonomy
+build:
+  tagPolicy:
+    envTemplate:
+      template: "{{.VERSION}}"
+  artifacts:
+  - image: valory/open-autonomy-open-aea
+    context: agent/
+    docker:
+      dockerfile: Dockerfile
+      buildArgs:
+        AEA_VERSION: "1.13.0"
+        AEA_AGENT: "{{.AEA_AGENT}}"
+
+profiles:
+  - name: prod
+  - name: dependencies
+    build:
+      tagPolicy:
+        envTemplate:
+          template: "{{.VERSION}}"
+      artifacts:
+      - image: valory/open-autonomy-tendermint
+        context: tendermint/
+        docker:
+          dockerfile: Dockerfile
+      - image: valory/open-autonomy-hardhat
+        context: hardhat
+  - name: cluster
+    patches:
+      - op: add
+        path: /build/artifacts/0/kaniko
+        value:
+          buildArgs:
+            AEA_VERSION: "1.13.0"
+            AEA_AGENT: "{{.AEA_AGENT}}"
+      - op: add
+        path: /build/cluster
+        value:
+          pullSecretName: regcred
+          dockerConfig:
+            path: ~/.docker/config.json
+      - op: remove
+        path: /build/artifacts/0/docker
+  - name: dev
+    build:
+      tagPolicy:
+        envTemplate:
+          template: "{{.VERSION}}"
+      artifacts:
+      - image: valory/open-autonomy-open-aea
+        context: dev/
+        docker:
+          dockerfile: Dockerfile
+          buildArgs:
+            AEA_VERSION: "1.13.0"
+            AEA_AGENT: "{{.AEA_AGENT}}"

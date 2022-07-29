@@ -59,11 +59,15 @@ class BaseTestABCIAPYEstimationSkillNormalExecution(BaseTestEnd2EndExecution):
         {
             "dotted_path": f"{__args_prefix}.ipfs_domain_name",
             "value": "/dns/localhost/tcp/5001/http",
-        }
+        },
+        {
+            "dotted_path": f"{__args_prefix}.round_timeout_seconds",
+            "value": 200,
+            "type_": "float",
+        },
     ]
 
 
-@pytest.mark.skip
 @pytest.mark.parametrize("nb_nodes", (1,))
 class TestABCIAPYEstimationSingleAgent(
     BaseTestABCIAPYEstimationSkillNormalExecution,
@@ -72,7 +76,6 @@ class TestABCIAPYEstimationSingleAgent(
     """Test the ABCI apy_estimation_abci skill with only one agent."""
 
 
-@pytest.mark.skip
 @pytest.mark.parametrize("nb_nodes", (2,))
 class TestABCIAPYEstimationTwoAgents(
     BaseTestABCIAPYEstimationSkillNormalExecution,
@@ -81,7 +84,6 @@ class TestABCIAPYEstimationTwoAgents(
     """Test the ABCI apy_estimation_abci skill with two agents."""
 
 
-@pytest.mark.skip
 @pytest.mark.parametrize("nb_nodes", (4,))
 class TestABCIAPYEstimationFourAgents(
     BaseTestABCIAPYEstimationSkillNormalExecution,

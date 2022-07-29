@@ -25,6 +25,7 @@ from pathlib import Path
 from tempfile import TemporaryDirectory
 from typing import Any, Dict, Type, cast
 from unittest import mock
+from unittest.mock import MagicMock
 
 from aea.helpers.transaction.base import SignedMessage
 from aea.test_tools.test_skill import BaseSkillTestCase
@@ -376,3 +377,14 @@ class FSMBehaviourBaseCase(BaseSkillTestCase):
         """Teardown the test class."""
         _MetaPayload.transaction_type_to_payload_cls = cls.old_tx_type_to_payload_cls  # type: ignore
         cls.benchmark_dir.cleanup()
+
+
+class DummyContext:
+    """Dummy Context class for testing shared state initialization."""
+
+    class params:
+        """Dummy param variable."""
+
+        round_timeout_seconds: float = 1.0
+
+    _skill: MagicMock = MagicMock()

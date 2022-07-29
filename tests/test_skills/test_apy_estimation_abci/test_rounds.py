@@ -77,9 +77,7 @@ def get_participant_to_fetching(
 ) -> Dict[str, FetchingPayload]:
     """participant_to_fetching"""
     return {
-        participant: FetchingPayload(
-            sender=participant, history=history, latest_observation_timestamp=0
-        )
+        participant: FetchingPayload(sender=participant, history=history)
         for participant in participants
     }
 

@@ -25,7 +25,7 @@ from time import time
 from typing import Any, Callable, Dict, List, Optional, Tuple, Type, cast
 
 from aea.exceptions import enforce
-from aea.skills.base import Model
+from aea.skills.base import Model, SkillContext
 
 from packages.valory.protocols.http.message import HttpMessage
 from packages.valory.skills.abstract_round_abci.base import (
@@ -101,10 +101,20 @@ class BaseParams(Model):  # pylint: disable=too-many-instance-attributes
 class SharedState(Model):
     """Keep the current shared state of the skill."""
 
-    def __init__(self, *args: Any, abci_app_cls: Type[AbciApp], **kwargs: Any) -> None:
+    def __init__(
+        self,
+        *args: Any,
+        abci_app_cls: Type[AbciApp],
+        skill_context: SkillContext,
+        **kwargs: Any,
+    ) -> None:
         """Initialize the state."""
         self.abci_app_cls = self._process_abci_app_cls(abci_app_cls)
+        self.abci_app_cls._is_abstract = (
+            skill_context._skill.configuration.is_abstract_component  # type: ignore # pylint: disable=protected-access
+        )
         self._round_sequence: Optional[RoundSequence] = None
+        kwargs["skill_context"] = skill_context
         super().__init__(*args, **kwargs)
 
     def setup(self) -> None:
@@ -173,7 +183,7 @@ class ApiSpecs(Model):  # pylint: disable=too-many-instance-attributes
 
     _retries_attempted: int
     _retries: int
-    _response_types: Dict[str, Any] = {
+    _response_types: Dict[str, Type] = {
         "int": int,
         "float": float,
         "dict": dict,
@@ -190,7 +200,7 @@ class ApiSpecs(Model):  # pylint: disable=too-many-instance-attributes
         self.headers = kwargs.pop("headers", [])
         self.parameters = kwargs.pop("parameters", [])
         self.response_key = kwargs.pop("response_key", None)
-        self.response_type = kwargs.pop("response_type", str)
+        self.response_type = kwargs.pop("response_type", "str")
 
         self._retries_attempted = 0
         self._retries = kwargs.pop("retries", NUMBER_OF_RETRIES)
@@ -220,17 +230,23 @@ class ApiSpecs(Model):  # pylint: disable=too-many-instance-attributes
 
     def process_response(self, response: HttpMessage) -> Any:
         """Process response from api."""
+        return self._get_response_data(response, self.response_key, self.response_type)
+
+    def _get_response_data(
+        self, response: HttpMessage, response_key: Optional[str], response_type: str
+    ) -> Any:
+        """Get response data from api, based on the given response key"""
         try:
             response_data = json.loads(response.body.decode())
-            if self.response_key is None:
+            if response_key is None:
                 return response_data
 
-            first_key, *keys = self.response_key.split(":")
+            first_key, *keys = response_key.split(":")
             value = response_data[first_key]
             for key in keys:
                 value = value[key]
 
-            return self._response_types.get(self.response_type)(value)  # type: ignore
+            return self._response_types.get(response_type)(value)  # type: ignore
 
         except (json.JSONDecodeError, KeyError):
             return None

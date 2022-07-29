@@ -26,8 +26,12 @@ from _pytest.monkeypatch import MonkeyPatch
 
 from packages.valory.skills.abstract_round_abci.io.paths import create_pathdirs
 from packages.valory.skills.apy_estimation_abci.tools.general import (
+    DEFAULT_UNIT,
+    UNITS_TO_UNIX,
     filter_out_numbers,
     gen_unix_timestamps,
+    sec_to_unit,
+    unit_amount_from_sec,
 )
 
 
@@ -35,23 +39,44 @@ class TestGeneral:
     """Tests for general tools."""
 
     @staticmethod
-    def test_gen_unix_timestamps(monkeypatch: MonkeyPatch) -> None:
+    @pytest.mark.parametrize(
+        "start, interval, end",
+        ((0, 0, 0), (1, 0, 0), (1, 10, 200), (1, 10, 1), (1, 10, 10), (1, 10, -3)),
+    )
+    def test_gen_unix_timestamps(
+        monkeypatch: MonkeyPatch, start: int, interval: int, end: int
+    ) -> None:
         """Test get UNIX timestamps."""
-        day_in_unix = 24 * 60 * 60
-        n_months_to_check = 1
-        days_in_month = 30
+        gen = gen_unix_timestamps(start, interval, end)
+        if interval <= 0:
+            with pytest.raises(
+                ValueError,
+                match=f"Interval cannot be less than 1. {interval} was given.",
+            ):
+                next(gen)
+        else:
+            expected = list(range(start, end, interval))
+            actual = list(gen)
+            assert expected == actual
 
-        timestamps = list(
-            gen_unix_timestamps(
-                day_in_unix * n_months_to_check * (days_in_month + 1), n_months_to_check
-            )
-        )
+    @staticmethod
+    def test_sec_to_unit() -> None:
+        """Test `sec_to_unit`."""
+        for unit, unit_in_unix in UNITS_TO_UNIX.items():
+            assert sec_to_unit(unit_in_unix) == unit
 
-        expected = day_in_unix
-        for timestamp in timestamps:
-            assert isinstance(timestamp, int)
-            assert timestamp == expected
-            expected += day_in_unix
+        another_int = 10
+        assert another_int not in UNITS_TO_UNIX
+        assert sec_to_unit(another_int) == DEFAULT_UNIT
+
+    @staticmethod
+    def test_unit_amount_from_sec() -> None:
+        """Test `unit_amount_from_sec`."""
+        invalid_unit = "invalid_unit"
+        assert invalid_unit not in UNITS_TO_UNIX
+        for unit, unit_in_unix in UNITS_TO_UNIX.items():
+            assert unit_amount_from_sec(unit_in_unix, unit) == 1
+            assert unit_amount_from_sec(unit_in_unix, invalid_unit) == unit_in_unix
 
     @staticmethod
     @pytest.mark.parametrize(

@@ -47,14 +47,14 @@ def slow_down_tests() -> Generator:
 # strict check log messages of the happy path
 STRICT_CHECK_STRINGS = (
     log_messages.request_personal.value,
-    log_messages.request_personal.value,
+    log_messages.response_personal.value,
     log_messages.request_verification.value,
     log_messages.response_verification.value,
     log_messages.request_others.value,
     log_messages.collection_complete.value,
     log_messages.request_update.value,
     log_messages.response_update.value,
-    "Entered in the 'finished_registration' round for period 0",
+    "local height == remote height; continuing execution...",
 )
 
 
@@ -75,13 +75,16 @@ class RegistrationStartUpTestConfig(
             "value": True,
         },
         {
+            "dotted_path": f"vendor.valory.skills.{PublicId.from_str(skill_package).name}.is_abstract",
+            "value": False,
+        },
+        {
             "dotted_path": f"{__args_prefix}.observation_interval",
             "value": 15,
         },
     ]
 
 
-@pytest.mark.skip
 @pytest.mark.e2e
 @pytest.mark.integration
 @pytest.mark.parametrize("nb_nodes", (4,))
@@ -91,7 +94,6 @@ class TestRegistrationStartUpFourAgents(
     """Test registration start-up skill with four agents."""
 
 
-@pytest.mark.skip
 @pytest.mark.e2e
 @pytest.mark.integration
 @pytest.mark.parametrize("nb_nodes", (4,))

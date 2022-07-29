@@ -6,30 +6,30 @@ description: This skill implements the APY estimation chained for an AEA.
 license: Apache-2.0
 aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
-  README.md: QmTT2DXnyGCpBRHJNEQHeVEVn9RA2mRUSefUSg8F5WWQbu
-  __init__.py: QmUp13bBYfZ4wSNtFkNxNvSqknhKDmfppByUUJRkJPU5Qg
-  behaviours.py: QmRemiKoxfVMheD3MHxWTux2qqGW1quz5Xk9ta6GNWftxH
-  composition.py: QmR4YsEW8MHdxAvJ7V2e8NczXAeT4NCDYpze7eJ1ssnPcR
-  dialogues.py: QmfDThV4WCRzK88XDpW2hKDYCuEH4RxoHCoAkWpkBRGRPv
-  fsm_specification.yaml: QmWhkHxUv5dLT2FUTRCiDabWXbYAKE3M3ZradX8qeE9Mwd
-  handlers.py: QmRMUufh4uDoqLjcQQ2f51fyE4M8Q7ECxSbLEbtTUMfVfu
-  models.py: QmS9Fkg46KXHAxdq4NV4ckFD2xv2uNQfLR1374xqucvvJh
+  README.md: bafybeicl5q6oodvqdz5a3u6cmrdmxrswzbahgyiwsozwrxop2asrlea37q
+  __init__.py: bafybeidae7gbyipqow44nxwnrvd5jyllepqbfq6xwako2o4bv2mjiwwo4u
+  behaviours.py: bafybeibrg5xt2j4i7whhwu5pw5ptb4p2siyyyf3nbj5kmptixttaivxg2i
+  composition.py: bafybeibiomuvvsltb7gfmsjgh2ugfdpps6xwb3agd4fkn2cqhxzzss2iay
+  dialogues.py: bafybeih2x4uyoj2c5j46jjn6jiddxcvx6vbsb3pf6b45fzf657mtqu2t5e
+  fsm_specification.yaml: bafybeid4iuax46gzkeb77g6ezs2arae43lmv3qk36dk7kityg2iwyr2v4a
+  handlers.py: bafybeibmzghvqekt7iymu6s6yn5tk7lpdmejba4n7dpsz2do3cgfqz7b2a
+  models.py: bafybeifo2eoh5tx2uinqn7mxshvzqma2oc2vbm4u4tevpgsbtiyb5ybbre
 fingerprint_ignore_patterns: []
 connections:
-- valory/abci:0.1.0:QmU6UrK5RGXisFjseFJDr3t1DxxnTqiRnNGJgCVKtJ1Nm8
-- valory/http_client:0.1.0:QmXBBMS5g4kyyE3mzFcpieoDMKWFf9naaCM3QNSjP2mxDt
-- valory/ledger:0.1.0:Qmcd32eJaDbWFFgqTzKf3Lqhshj37ndhrdtYiNnED2ULqB
+- valory/abci:0.1.0:bafybeiaqoaub5jverxutngxtbfcshucsg7fqkcrdgbjfdsrdbfntwyhawq
+- valory/http_client:0.1.0:bafybeibh3iu7kojc4d5eiigqh6kx2vdmu2q7vhcvvq2rz6suegsscyd66y
+- valory/ledger:0.1.0:bafybeifxxshi4u3xyyllip5e3yafawywcwpvqxgnybchi5kj74zm4b4n2e
 contracts: []
 protocols:
-- open_aea/signing:1.0.0:QmYVxA8smnK8LQ2B4z5BVFvEwo3szQeBosUesycb8By1ZT
-- valory/abci:0.1.0:Qme3d3JtL92NV7qX9DiFdK7D5MGS5S4kL5NoZUep3WbqeD
-- valory/contract_api:1.0.0:QmZRa6S342MT1oSQjLoyEDitjK6nivypC78DKipvg9JpF1
-- valory/http:1.0.0:QmRQYhYWbGSNHb152dp2L1P9EtZRZZqgvZAaNat5qxfQqK
-- valory/ledger_api:1.0.0:QmNfowyB8rGWr53wuNPYK5BEAnA8AehgipVdYXt8LC5uR6
+- open_aea/signing:1.0.0:bafybeieirkuq6azgis33bmukr5u2gx4chp5kswiw3wd5hbjsaukgwzmp5a
+- valory/abci:0.1.0:bafybeicbj36urbjkn6y7hrhm57dspyuuvpcnxhr3r6y2cwxammpom633g4
+- valory/contract_api:1.0.0:bafybeie5gbzc4v4n6p6ea66kmc5ejwvbjzhd7vhcjg7mikbyx47lypcd5m
+- valory/http:1.0.0:bafybeifhmibx3l7f3xdwxhweczizadxs6p3oludvapvwdeu4o5f3oahqme
+- valory/ledger_api:1.0.0:bafybeifaozy766hngsqc5a5kpebseusq4cc3woh4ayycdoa7r3mjkvhzr4
 skills:
-- valory/abstract_round_abci:0.1.0:QmYLk48bbMCYq1onLuKyNgN1QG2grxfJbvb6ZPUwLBXzQG
-- valory/apy_estimation_abci:0.1.0:QmeZtvqXQerPZ49ubjR7oExEJEMKHG3qT62wEPW7WJYiof
-- valory/registration_abci:0.1.0:QmcZQMtohsyqnG8yxqyvb7R8tT5jabmtW8Q4Ufk61XbVwP
+- valory/abstract_round_abci:0.1.0:bafybeiel6kpuvy44skm3oylvwk3fnry35nxbwyn6axvlxuzxokf56efnqy
+- valory/apy_estimation_abci:0.1.0:bafybeihuzs5f3hycrbp7e7aiggawihmcsvrup67u3wjzlqyua6zpcikjlq
+- valory/registration_abci:0.1.0:bafybeicfmgzlivaxvhdzetfba2vcdel7dudu5h2jpsz3gdzt7zganv5n5e
 behaviours:
   main:
     args: {}
@@ -64,13 +64,25 @@ models:
   contract_api_dialogues:
     args: {}
     class_name: ContractApiDialogues
+  ethereum_subgraph:
+    args:
+      api_id: eth
+      headers:
+      - Content-Type: application/json
+      method: POST
+      parameters: null
+      response_key: data
+      response_type: dict
+      retries: 5
+      url: https://api.thegraph.com/subgraphs/name/blocklytics/ethereum-blocks
+    class_name: ETHSubgraph
   fantom_subgraph:
     args:
       api_id: fantom
       headers:
       - Content-Type: application/json
       method: POST
-      parameters: []
+      parameters: null
       response_key: data
       response_type: dict
       retries: 5
@@ -91,8 +103,10 @@ models:
       drand_public_key: 868f005eb8e6e4ca0a47c8a77ceaa5309a47978a7c71bc5cce96366b5d7a569937c529eeda66c7293784a9402801af31
       estimation:
         steps_forward: 1
-      history_duration: 1
-      ipfs_domain_name: /dns/staging.registry.autonolas.tech/tcp/443/https
+      history_end: 1655136875
+      history_interval_in_unix: 86400
+      history_start: 1652544875
+      ipfs_domain_name: /dns/registry.autonolas.tech/tcp/443/https
       keeper_timeout: 30.0
       max_healthcheck: 120
       observation_interval: 10
@@ -106,7 +120,12 @@ models:
         alpha: 0.25
         window_size: null
       pair_ids:
-      - '0x2b4c76d0dc16be1c31d4c1dc53bf9b45987fc75c'
+        uniswap_subgraph:
+        - '0x5777d92f208679db4b9778590fa3cab3ac9e2168'
+        - '0xa374094527e1673a86de625aa59517c5de346d32'
+        spooky_subgraph:
+        - '0x2a651563c9d3af67ae0388a5c8f89b867038089e'
+        - '0x2b4c76d0dc16be1c31d4c1dc53bf9b45987fc75c'
       reset_tendermint_after: 2
       retry_attempts: 400
       retry_timeout: 3
@@ -144,10 +163,13 @@ models:
     args:
       api_id: spookyswap
       bundle_id: 1
+      chain_subgraph: fantom_subgraph
       headers:
       - Content-Type: application/json
       method: POST
-      parameters: []
+      non_indexed_error_key: errors
+      non_indexed_error_type: list
+      parameters: null
       response_key: data
       response_type: dict
       retries: 5
@@ -156,13 +178,29 @@ models:
   state:
     args: {}
     class_name: SharedState
+  uniswap_subgraph:
+    args:
+      api_id: uniswap
+      bundle_id: 1
+      chain_subgraph: ethereum_subgraph
+      headers:
+      - Content-Type: application/json
+      method: POST
+      non_indexed_error_key: errors
+      non_indexed_error_type: list
+      parameters: null
+      response_key: data
+      response_type: dict
+      retries: 5
+      url: https://api.thegraph.com/subgraphs/name/uniswap/uniswap-v2
+    class_name: UniswapSubgraph
 dependencies:
   joblib:
     version: <1.2,>=1.1.0
   numpy:
     version: <1.22,>=1.21.4
   open-aea-cli-ipfs:
-    version: <2.0.0,>=1.11.0
+    version: <2.0.0,>=1.13.0
   optuna:
     version: <2.11,>=2.10.0
   pandas:

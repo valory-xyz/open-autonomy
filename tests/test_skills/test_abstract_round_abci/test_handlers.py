@@ -466,3 +466,16 @@ class TestTendermintHandler:
             self.handler.handle(message)
         log_message = self.handler.LogMessages.performative_not_recognized.value
         assert log_message in caplog.text
+
+    def test_sender_not_in_registered_addresses(
+        self, caplog: LogCaptureFixture
+    ) -> None:
+        """Test sender not in registered addresses."""
+
+        performative = TendermintMessage.Performative.REQUEST
+        message = TendermintMessage(performative)  # type: ignore
+        self.context.agent_address = message.sender = "dummy"
+        with self.mocked_registered_addresses(self.dummy_validator_config):
+            self.handler.handle(message)
+            log_message = self.handler.LogMessages.not_in_registered_addresses.value
+            assert log_message in caplog.text

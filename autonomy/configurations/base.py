@@ -243,7 +243,7 @@ class Service(PackageConfiguration):  # pylint: disable=too-many-instance-attrib
             ):
                 valid.append(True)
 
-        if len(remaining) > 0:
+        if len(remaining) > 0:  # pragma: nocover
             raise ValueError(f"Override type is misspelled.\n {remaining}")
 
         if sum(valid) == 4:

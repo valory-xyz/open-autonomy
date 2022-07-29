@@ -82,11 +82,6 @@ class SynchronizedData(BaseSynchronizedData):
         return cast(str, self.db.get_strict("most_voted_history"))
 
     @property
-    def latest_observation_timestamp(self) -> str:
-        """Get the latest observation's timestamp."""
-        return cast(str, self.db.get_strict("latest_observation_timestamp"))
-
-    @property
     def batch_hash(self) -> str:
         """Get the most voted batch hash."""
         return cast(str, self.db.get_strict("most_voted_batch"))
@@ -149,7 +144,7 @@ class APYEstimationAbstractRound(AbstractRound[Event, TransactionType], ABC):
 
     @property
     def synchronized_data(self) -> SynchronizedData:
-        """Return the synchronized data data."""
+        """Return the synchronized data."""
         return cast(SynchronizedData, super().synchronized_data)
 
     def _return_no_majority_event(self) -> Tuple[SynchronizedData, Event]:
@@ -159,14 +154,6 @@ class APYEstimationAbstractRound(AbstractRound[Event, TransactionType], ABC):
         :return: a new synchronized data and a NO_MAJORITY event
         """
         return self.synchronized_data, Event.NO_MAJORITY
-
-    def _return_file_error(self) -> Tuple[SynchronizedData, Event]:
-        """
-        Trigger the FILE_ERROR event.
-
-        :return: a new synchronized data and a FILE_ERROR event
-        """
-        return self.synchronized_data, Event.FILE_ERROR
 
 
 class CollectHistoryRound(CollectSameUntilThresholdRound, APYEstimationAbstractRound):
@@ -182,7 +169,7 @@ class CollectHistoryRound(CollectSameUntilThresholdRound, APYEstimationAbstractR
         """Process the end of the block."""
         if self.threshold_reached:
             if self.most_voted_payload is None:
-                return self._return_file_error()
+                return self.synchronized_data, Event.FILE_ERROR
 
             if self.most_voted_payload == "":
                 return self.synchronized_data, Event.NETWORK_ERROR
@@ -191,9 +178,6 @@ class CollectHistoryRound(CollectSameUntilThresholdRound, APYEstimationAbstractR
                 "synchronized_data_class": SynchronizedData,
                 self.collection_key: self.collection,
                 self.selection_key: self.most_voted_payload,
-                "latest_observation_timestamp": cast(
-                    FetchingPayload, list(self.collection.values())[0]
-                ).latest_observation_timestamp,
             }
 
             synchronized_data = self.synchronized_data.update(**update_kwargs)
@@ -225,7 +209,7 @@ class TransformRound(CollectSameUntilThresholdRound, APYEstimationAbstractRound)
     def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Event]]:
         """Process the end of the block."""
         if self.threshold_reached and self.most_voted_payload is None:
-            return self._return_file_error()
+            return self.synchronized_data, Event.FILE_ERROR
 
         if self.threshold_reached:
             synchronized_data = self.synchronized_data.update(
@@ -257,7 +241,7 @@ class PreprocessRound(CollectSameUntilThresholdRound, APYEstimationAbstractRound
         """Process the end of the block."""
         if self.threshold_reached:
             if self.most_voted_payload is None:
-                return self._return_file_error()
+                return self.synchronized_data, Event.FILE_ERROR
 
             synchronized_data = self.synchronized_data.update(
                 synchronized_data_class=SynchronizedData,
@@ -348,7 +332,7 @@ class TrainRound(CollectSameUntilThresholdRound, APYEstimationAbstractRound):
         """Process the end of the block."""
         if self.threshold_reached:
             if self.most_voted_payload is None:
-                return self._return_file_error()
+                return self.synchronized_data, Event.FILE_ERROR
 
             update_params = dict(
                 synchronized_data_class=SynchronizedData,
@@ -413,7 +397,7 @@ class EstimateRound(CollectSameUntilThresholdRound, APYEstimationAbstractRound):
         """Process the end of the block."""
         if self.threshold_reached:
             if self.most_voted_payload is None:
-                return self._return_file_error()
+                return self.synchronized_data, Event.FILE_ERROR
 
             synchronized_data = self.synchronized_data.update(
                 synchronized_data_class=SynchronizedData,

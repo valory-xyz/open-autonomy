@@ -27,7 +27,6 @@ from unittest import mock
 
 import yaml
 
-from autonomy.cli import cli
 from autonomy.constants import (
     DEFAULT_BUILD_FOLDER,
     OPEN_AEA_IMAGE_NAME,
@@ -71,32 +70,6 @@ class TestBuildDeployment(BaseCliTest):
         )
 
         os.chdir(cls.t)
-        cls.cli_runner.invoke(
-            cli, ("deploy", "build", "image", "valory/oracle_hardhat", "--dependencies")
-        )
-
-    def _build_images(self, version: str = "0.1.0") -> None:
-        """Build images."""
-        result = self.cli_runner.invoke(
-            cli, ("deploy", "build", "image", self.service_id, "--version", version)
-        )
-
-        assert result.exit_code == 0, result.output
-
-        result = self.cli_runner.invoke(
-            cli,
-            (
-                "deploy",
-                "build",
-                "image",
-                self.service_id,
-                "--version",
-                version,
-                "--dependencies",
-            ),
-        )
-
-        assert result.exit_code == 0, result.output
 
     def test_docker_compose_build(
         self,
@@ -113,6 +86,58 @@ class TestBuildDeployment(BaseCliTest):
                     "--o",
                     str(self.t),
                     "--force",
+                    "--local",
+                )
+            )
+
+        build_dir = self.t / "abci_build"
+
+        assert result.exit_code == 0, f"{result.stdout_bytes}\n{result.stderr_bytes}"
+        assert build_dir.exists()
+
+        build_tree = list(map(lambda x: x.name, build_dir.iterdir()))
+        assert any(
+            [
+                child in build_tree
+                for child in ["persistent_storage", "nodes", "docker-compose.yaml"]
+            ]
+        )
+
+        docker_compose_file = build_dir / "docker-compose.yaml"
+        with open(docker_compose_file, "r", encoding="utf-8") as fp:
+            docker_compose = yaml.safe_load(fp)
+
+        assert any(
+            [key in docker_compose for key in ["version", "services", "networks"]]
+        )
+
+        assert any(
+            [
+                service in docker_compose["services"]
+                for service in [
+                    *map(lambda i: f"abci{i}", range(4)),
+                    *map(lambda i: f"node0{i}", range(4)),
+                ]
+            ]
+        )
+
+    def test_docker_compose_build_dev(
+        self,
+    ) -> None:
+        """Run tests."""
+
+        with mock.patch("os.chown"):
+            result = self.run_cli(
+                (
+                    self.service_id,
+                    str(self.keys_file),
+                    "--packages-dir",
+                    str(self.t / "packages"),
+                    "--o",
+                    str(self.t),
+                    "--force",
+                    "--dev",
+                    "--local",
                 )
             )
 
@@ -163,6 +188,38 @@ class TestBuildDeployment(BaseCliTest):
                     str(self.t),
                     "--kubernetes",
                     "--force",
+                    "--local",
+                )
+            )
+
+        build_dir = self.t / "abci_build"
+
+        assert result.exit_code == 0, f"{result.stdout_bytes}\n{result.stderr_bytes}"
+        assert build_dir.exists()
+
+        build_tree = list(map(lambda x: x.name, build_dir.iterdir()))
+        assert any(
+            [child in build_tree for child in ["persistent_storage", "build.yaml"]]
+        )
+
+    def test_kubernetes_build_dev(
+        self,
+    ) -> None:
+        """Run tests."""
+
+        with mock.patch("os.chown"):
+            result = self.run_cli(
+                (
+                    self.service_id,
+                    str(self.keys_file),
+                    "--packages-dir",
+                    str(self.t / "packages"),
+                    "--o",
+                    str(self.t),
+                    "--kubernetes",
+                    "--force",
+                    "--dev",
+                    "--local",
                 )
             )
 
@@ -182,7 +239,6 @@ class TestBuildDeployment(BaseCliTest):
         """Run tests."""
 
         version = "1.0.0"
-        self._build_images(version)
         with mock.patch("os.chown"):
             result = self.run_cli(
                 (
@@ -193,6 +249,7 @@ class TestBuildDeployment(BaseCliTest):
                     "--o",
                     str(self.t),
                     "--force",
+                    "--local",
                     "--version",
                     version,
                 )
@@ -221,7 +278,6 @@ class TestBuildDeployment(BaseCliTest):
         """Run tests."""
 
         version = "1.0.0"
-        self._build_images(version)
         with mock.patch("os.chown"):
             result = self.run_cli(
                 (
@@ -233,6 +289,7 @@ class TestBuildDeployment(BaseCliTest):
                     str(self.t),
                     "--force",
                     "--kubernetes",
+                    "--local",
                     "--version",
                     version,
                 )
@@ -275,6 +332,7 @@ class TestBuildDeployment(BaseCliTest):
                     "--o",
                     str(self.t),
                     "--force",
+                    "--local",
                 )
             )
 
@@ -323,6 +381,7 @@ class TestBuildDeployment(BaseCliTest):
                     "--force",
                     "--password",
                     ETHEREUM_ENCRYPTION_PASSWORD,
+                    "--local",
                 )
             )
 
@@ -378,6 +437,7 @@ class TestBuildDeployment(BaseCliTest):
                     "--kubernetes",
                     "--password",
                     ETHEREUM_ENCRYPTION_PASSWORD,
+                    "--local",
                 )
             )
 
@@ -431,6 +491,7 @@ class TestBuildDeployment(BaseCliTest):
                     str(self.t),
                     "--force",
                     "--kubernetes",
+                    "--local",
                 )
             )
 

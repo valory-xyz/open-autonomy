@@ -535,7 +535,7 @@ class TendermintHandler(Handler):
         sending_error_response = "Sending error response"
         performative_not_recognized = "Performative not recognized"
 
-        def __str__(self) -> str:
+        def __str__(self) -> str:  # pragma: no cover
             """For ease of use in formatted string literals"""
             return self.value
 

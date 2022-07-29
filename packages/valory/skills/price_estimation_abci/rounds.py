@@ -169,6 +169,7 @@ class PriceAggregationAbciApp(AbciApp[Event]):
             - no majority: 0.
         1. EstimateConsensusRound
             - done: 2.
+            - none: 0.
             - round timeout: 0.
             - no majority: 0.
         2. TxHashRound
@@ -193,6 +194,7 @@ class PriceAggregationAbciApp(AbciApp[Event]):
         },
         EstimateConsensusRound: {
             Event.DONE: TxHashRound,
+            Event.NONE: CollectObservationRound,
             Event.ROUND_TIMEOUT: CollectObservationRound,
             Event.NO_MAJORITY: CollectObservationRound,
         },

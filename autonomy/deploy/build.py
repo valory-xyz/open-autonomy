@@ -41,7 +41,6 @@ def generate_deployment(  # pylint: disable=too-many-arguments
     type_of_deployment: str,
     private_keys_file_path: Path,
     service_path: Path,
-    packages_dir: Path,
     build_dir: Path,
     number_of_agents: Optional[int] = None,
     private_keys_password: Optional[str] = None,
@@ -66,13 +65,12 @@ def generate_deployment(  # pylint: disable=too-many-arguments
     service_spec = ServiceSpecification(
         service_path=service_path,
         keys=private_keys_file_path,
-        packages_dir=packages_dir,
         private_keys_password=private_keys_password,
         number_of_agents=number_of_agents,
     )
 
     DeploymentGenerator = DEPLOYMENT_OPTIONS.get(type_of_deployment)
-    if DeploymentGenerator is None:
+    if DeploymentGenerator is None:  # pragma: no cover
         raise ValueError(f"Cannot find deployment generator for {type_of_deployment}")
     deployment = cast(
         BaseDeploymentGenerator,

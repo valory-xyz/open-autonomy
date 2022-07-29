@@ -13,7 +13,7 @@ Describe your issue here.
 ### Your environment
 - OS: [e.g. iOS]
 - Python version: [e.g. 3.7.2]
-- Package Version [e.g. 0.1.2]
+- Package Version [e.g. 0.1.3]
 - Anything else you consider helpful.
 
 ### Steps to reproduce

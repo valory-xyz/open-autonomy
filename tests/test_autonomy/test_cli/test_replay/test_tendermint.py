@@ -20,25 +20,63 @@
 """Test agent runner."""
 
 
+import json
 import os
 from pathlib import Path
 from typing import Any, Tuple
 from unittest import mock
 
+import flask
+
 from autonomy.cli import cli
+from autonomy.deploy.constants import (
+    DEFAULT_ABCI_BUILD_DIR,
+    PERSISTENT_DATA_DIR,
+    TM_STATE_DIR,
+)
 from autonomy.replay.tendermint import TendermintNetwork
 
 from tests.conftest import ROOT_DIR
+from tests.helpers.docker.base import skip_docker_tests
 from tests.test_autonomy.test_cli.base import BaseCliTest
 
 
-def ctrl_c(*args: Any) -> None:
+ADDRBOOK_DATA = {
+    "key": "53f91939db980b06e7cfb145",
+    "addrs": [
+        {
+            "addr": {
+                "id": "4fa21e46ad7cdfa028761f13e460de2dd6eb93c8",
+                "ip": "192.167.11.3",
+                "port": 26656,
+            },
+        },
+        {
+            "addr": {
+                "id": "3d495cf3bf345b7e04a849e6e70900f5d2cbfcd3",
+                "ip": "192.167.11.4",
+                "port": 26656,
+            },
+        },
+        {
+            "addr": {
+                "id": "cf52b0f56ad58f5aa400f813f16f35cf726ff3e4",
+                "ip": "192.167.11.5",
+                "port": 26656,
+            },
+        },
+    ],
+}
+
+
+def ctrl_c(*args: Any, **kwargs: Any) -> None:
     """Send control C."""
 
     raise KeyboardInterrupt()
 
 
-class TestAgentRunner(BaseCliTest):
+@skip_docker_tests
+class TestTendermintRunner(BaseCliTest):
     """Test agent runner tool."""
 
     cli_options: Tuple[str, ...] = ("replay", "tendermint")
@@ -50,13 +88,11 @@ class TestAgentRunner(BaseCliTest):
     def setup(cls) -> None:
         """Setup."""
         super().setup()
-
-        os.chdir(ROOT_DIR)
+        os.chdir(cls.t)
 
     def test_run(self) -> None:
         """Test run."""
-
-        self.cli_runner.invoke(
+        result = self.cli_runner.invoke(
             cli,
             (
                 "deploy",
@@ -67,12 +103,53 @@ class TestAgentRunner(BaseCliTest):
                 "--packages-dir",
                 str(self.packages_dir),
                 "--force",
+                "--o",
+                str(self.t),
+                "--local",
             ),
         )
 
+        assert result.exit_code == 0, result.output
+
+        addrbook_file = (
+            (
+                self.t
+                / DEFAULT_ABCI_BUILD_DIR
+                / PERSISTENT_DATA_DIR
+                / TM_STATE_DIR
+                / "addrbook.json"
+            )
+            .resolve()
+            .absolute()
+        )
+        addrbook_file.write_text(json.dumps(ADDRBOOK_DATA))
+
+        config_toml = (
+            (
+                self.t
+                / DEFAULT_ABCI_BUILD_DIR
+                / PERSISTENT_DATA_DIR
+                / TM_STATE_DIR
+                / "config.toml"
+            )
+            .resolve()
+            .absolute()
+        )
+        config_toml.write_text("""persistent_peers = peers""")
+
         with mock.patch.object(TendermintNetwork, "init"), mock.patch.object(
-            TendermintNetwork, "start", new=ctrl_c
-        ), mock.patch.object(TendermintNetwork, "stop") as stop_mock:
-            result = self.run_cli(())
-            assert result.exit_code == 0
+            TendermintNetwork, "start"
+        ), mock.patch.object(TendermintNetwork, "stop") as stop_mock, mock.patch.object(
+            flask.Flask, "run", new=ctrl_c
+        ):
+
+            result = self.run_cli(("--build", str(self.t / DEFAULT_ABCI_BUILD_DIR)))
+            assert result.exit_code == 0, result.output
             stop_mock.assert_any_call()
+
+            addrbook_data = json.loads(addrbook_file.read_text())
+            for i, addr in enumerate(addrbook_data["addrs"]):
+                assert addr["addr"]["ip"] == "127.0.0.1"
+                assert addr["addr"]["port"] == (26630 + i)
+
+            assert "# persistent_peers" in config_toml.read_text()
