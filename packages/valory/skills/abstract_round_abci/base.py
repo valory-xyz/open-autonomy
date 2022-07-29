@@ -1855,10 +1855,10 @@ class AbciApp(
         self._timeouts = Timeouts[EventType]()
         self._reset_index = 0
 
-    @property
-    def is_abstract(self) -> bool:
+    @classmethod
+    def is_abstract(cls) -> bool:
         """Return if the abci app is abstract."""
-        return self._is_abstract
+        return cls._is_abstract
 
     @property
     def synchronized_data(self) -> BaseSynchronizedData:
