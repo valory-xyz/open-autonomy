@@ -37,6 +37,7 @@ from typing import (
     OrderedDict,
     Tuple,
     Type,
+    Union,
     cast,
 )
 
@@ -1357,7 +1358,11 @@ class BaseBehaviour(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
 
     def send_raw_transaction(
         self, transaction: RawTransaction
-    ) -> Generator[None, None, Tuple[Optional[str], RPCResponseStatus]]:
+    ) -> Generator[
+        None,
+        Union[None, SigningMessage, LedgerApiMessage],
+        Tuple[Optional[str], RPCResponseStatus],
+    ]:
         """
         Send raw transactions to the ledger for mining.
 
