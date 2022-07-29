@@ -27,9 +27,9 @@ protocols:
 - valory/http:1.0.0:bafybeifhmibx3l7f3xdwxhweczizadxs6p3oludvapvwdeu4o5f3oahqme
 - valory/ledger_api:1.0.0:bafybeifaozy766hngsqc5a5kpebseusq4cc3woh4ayycdoa7r3mjkvhzr4
 skills:
-- valory/abstract_round_abci:0.1.0:bafybeidnyc6vodzrs3jzxuvmfzutvnoiiivy73whxpzccfxlxxrv6jltju
-- valory/apy_estimation_abci:0.1.0:bafybeie4xtyqvocuwqv4b3muyk6xczm37yxqw4cbh2yl6ylfcc57qtv5s4
-- valory/registration_abci:0.1.0:bafybeifysy66a7io3jphx5hft4srclo3macwfpumhvttobimixehofcgpi
+- valory/abstract_round_abci:0.1.0:bafybeiao6v2ub7r3lrzh6nkboxiyfxewvc7mkxggpfegeo7jhltbkriipm
+- valory/apy_estimation_abci:0.1.0:bafybeibd5kla7p4nlov53ecwx4sbf7jw763opcqfbevwc3w7geetmapaoi
+- valory/registration_abci:0.1.0:bafybeiburewgjgjghv4vdsnewjrzlwfpkz7rso57w5pkx64nu5q2w6xsre
 behaviours:
   main:
     args: {}
@@ -200,7 +200,7 @@ dependencies:
   numpy:
     version: <1.22,>=1.21.4
   open-aea-cli-ipfs:
-    version: <2.0.0,>=1.13.0
+    version: <2.0.0,>=1.14.0
   optuna:
     version: <2.11,>=2.10.0
   pandas:

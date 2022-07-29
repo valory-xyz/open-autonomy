@@ -4,7 +4,7 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
-open-aea = {version = "==1.14.0", extras = ["all"]}
+open-aea = {version = "==1.14.0.post1", extras = ["all"]}
 open-aea-ledger-ethereum = "==1.14.0"
 open-aea-ledger-cosmos = "==1.14.0"
 open-aea-cli-ipfs = "==1.14.0"
