@@ -84,7 +84,7 @@ In this case, we consider the [Hello World agent service](./hello_world_agent_se
     ```
 
 
-2. Use the CLI to townload and build the images to deploy the [Hello World agent service](./hello_world_agent_service.md):
+2. Use the CLI to download and build the images to deploy the [Hello World agent service](./hello_world_agent_service.md):
     ```bash
     autonomy deploy build deployment valory/hello_world:0.1.0:bafybeih45ahmldpobejx5gaddupd5dz7k4tjf3bmkibcjfrauipr4ffp4a keys.json --remote
     ```
