@@ -1388,6 +1388,7 @@ class BaseBehaviour(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
         self._send_transaction_signing_request(transaction, terms)
         signature_response = yield from self.wait_for_message()
         signature_response = cast(SigningMessage, signature_response)
+        tx_hash_backup = signature_response.signed_transaction.body.get("hash")
         if (
             signature_response.performative
             != SigningMessage.Performative.SIGNED_TRANSACTION
@@ -1406,11 +1407,20 @@ class BaseBehaviour(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
         ):
             error = f"Error when requesting transaction digest: {transaction_digest_msg.message}"
             self.context.logger.error(error)
-            return None, self.__parse_rpc_error(error)
+            return tx_hash_backup, self.__parse_rpc_error(error)
         self.context.logger.info(
             f"Transaction sent! Received transaction digest: {transaction_digest_msg}"
         )
         tx_hash = transaction_digest_msg.transaction_digest.body
+
+        if tx_hash != tx_hash_backup:
+            # this should never happen
+            self.context.logger.error(
+                f"Unexpected error! The signature response's hash `{tx_hash_backup}` "
+                f"does not match the one received from the transaction response `{tx_hash}`!"
+            )
+            return None, RPCResponseStatus.UNCLASSIFIED_ERROR
+
         return tx_hash, RPCResponseStatus.SUCCESS
 
     def get_transaction_receipt(
