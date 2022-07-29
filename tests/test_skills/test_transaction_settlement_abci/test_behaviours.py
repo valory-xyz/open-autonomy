@@ -215,6 +215,19 @@ class TestTransactionSettlementBaseBehaviour(PriceEstimationFSMBehaviourBaseCase
                 False,
             ),
             (
+                MagicMock(performative=ContractApiMessage.Performative.RAW_TRANSACTION),
+                "test_digest",
+                RPCResponseStatus.ALREADY_KNOWN,
+                {
+                    "blacklisted_keepers": set(),
+                    "keeper_retries": 2,
+                    "keepers": deque(("agent_1" + "-" * 35, "agent_3" + "-" * 35)),
+                    "status": VerificationStatus.PENDING,
+                    "tx_digest": "test_digest",
+                },
+                False,
+            ),
+            (
                 MagicMock(
                     performative=ContractApiMessage.Performative.RAW_TRANSACTION,
                     raw_transaction=MagicMock(
