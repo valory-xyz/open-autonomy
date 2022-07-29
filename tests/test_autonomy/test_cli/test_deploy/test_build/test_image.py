@@ -22,7 +22,6 @@
 import os
 import random
 import string
-import sys
 from pathlib import Path
 from typing import Tuple
 
