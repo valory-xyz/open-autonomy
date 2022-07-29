@@ -53,7 +53,7 @@ logging_config:
       class: logging.FileHandler
       formatter: standard
       filename: ${LOG_FILE:str:log.txt}
-      level: INFO
+      level: ${LOG_LEVEL:str:INFO}
     console:
       class: logging.StreamHandler
       formatter: standard
