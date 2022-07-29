@@ -115,6 +115,9 @@ class BaseTestEnd2End(AEATestCaseMany, UseFlaskTendermintNode):
     def __set_configs(self, i: int, nb_agents: int) -> None:
         """Set the current agent's config overrides."""
         # each agent has its Tendermint node instance
+
+        skill = PublicId.from_str(self.skill_package)
+
         self.set_config(
             "agent.logging_config.handlers.logfile.filename",
             str(self.t / f"abci_{i}.txt"),
@@ -145,48 +148,48 @@ class BaseTestEnd2End(AEATestCaseMany, UseFlaskTendermintNode):
             "list",
         )
         self.set_config(
-            f"vendor.valory.skills.{PublicId.from_str(self.skill_package).name}.models.params.args.consensus.max_participants",
+            f"vendor.{skill.author}.skills.{skill.name}.models.params.args.consensus.max_participants",
             nb_agents,
         )
         self.set_config(
-            f"vendor.valory.skills.{PublicId.from_str(self.skill_package).name}.models.params.args.reset_tendermint_after",
+            f"vendor.{skill.author}.skills.{skill.name}.models.params.args.reset_tendermint_after",
             5,
         )
         self.set_config(
-            f"vendor.valory.skills.{PublicId.from_str(self.skill_package).name}.models.params.args.round_timeout_seconds",
+            f"vendor.{skill.author}.skills.{skill.name}.models.params.args.round_timeout_seconds",
             self.ROUND_TIMEOUT_SECONDS,
             type_="float",
         )
         self.set_config(
-            f"vendor.valory.skills.{PublicId.from_str(self.skill_package).name}.models.params.args.tendermint_url",
+            f"vendor.{skill.author}.skills.{skill.name}.models.params.args.tendermint_url",
             f"{_HTTP}{ANY_ADDRESS}:{self.get_port(i)}",
         )
         self.set_config(
-            f"vendor.valory.skills.{PublicId.from_str(self.skill_package).name}.models.params.args.tendermint_com_url",
+            f"vendor.{skill.author}.skills.{skill.name}.models.params.args.tendermint_com_url",
             f"{_HTTP}{ANY_ADDRESS}:{self.get_com_port(i)}",
         )
         self.set_config(
-            f"vendor.valory.skills.{PublicId.from_str(self.skill_package).name}.models.params.args.keeper_timeout",
+            f"vendor.{skill.author}.skills.{skill.name}.models.params.args.keeper_timeout",
             self.KEEPER_TIMEOUT,
             type_="float",
         )
         self.set_config(
-            f"vendor.valory.skills.{PublicId.from_str(self.skill_package).name}.models.benchmark_tool.args.log_dir",
+            f"vendor.{skill.author}.skills.{skill.name}.models.benchmark_tool.args.log_dir",
             str(self.t),
             type_="str",
         )
         self.set_config(
-            f"vendor.valory.skills.{PublicId.from_str(self.skill_package).name}.models.params.args.observation_interval",
+            f"vendor.{skill.author}.skills.{skill.name}.models.params.args.observation_interval",
             3,
             type_="int",
         )
         self.set_config(
-            f"vendor.valory.skills.{PublicId.from_str(self.skill_package).name}.models.params.args.service_registry_address",
+            f"vendor.{skill.author}.skills.{skill.name}.models.params.args.service_registry_address",
             "0x0DCd1Bf9A1b36cE34237eEaFef220932846BCD82",  # address on staging chain
             type_="str",
         )
         self.set_config(  # dummy service
-            f"vendor.valory.skills.{PublicId.from_str(self.skill_package).name}.models.params.args.on_chain_service_id",
+            f"vendor.{skill.author}.skills.{skill.name}.models.params.args.on_chain_service_id",
             "1",
             type_="int",
         )

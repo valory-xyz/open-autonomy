@@ -1856,6 +1856,11 @@ class AbciApp(
         self._reset_index = 0
 
     @property
+    def is_abstract(self) -> bool:
+        """Return if the abci app is abstract."""
+        return self._is_abstract
+
+    @property
     def synchronized_data(self) -> BaseSynchronizedData:
         """Return the current synchronized data."""
         latest_result = self.latest_result
