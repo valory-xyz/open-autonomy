@@ -56,5 +56,5 @@ profiles:
         docker:
           dockerfile: Dockerfile
           buildArgs:
-            AEA_VERSION: "1.14.0.poast1"
+            AEA_VERSION: "1.14.0.post1"
             AEA_AGENT: "{{.AEA_AGENT}}"
