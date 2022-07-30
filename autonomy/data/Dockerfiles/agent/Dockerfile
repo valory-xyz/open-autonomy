@@ -1,6 +1,6 @@
 ARG AEA_VERSION=latest
-ARG AUTHOR=default_author
 FROM valory/open-aea-user:${AEA_VERSION}
+ARG AUTHOR=default_author
 ARG AEA_AGENT
 
 COPY openssl.cnf /etc/ssl
