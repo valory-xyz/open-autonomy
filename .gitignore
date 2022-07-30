@@ -1,4 +1,3 @@
-deployments/persistent_data
 # Local .terraform directories
 kubeconfig
 aws_creds
