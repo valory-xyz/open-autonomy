@@ -33,14 +33,17 @@ from unittest import mock
 import flask
 import pytest
 import requests
-from deployments.Dockerfiles.localnode.app import (  # type: ignore
+
+from autonomy.data.Dockerfiles.tendermint.app import (  # type: ignore
     CONFIG_OVERRIDE,
     create_app,
     get_defaults,
     load_genesis,
     override_config_toml,
 )
-from deployments.Dockerfiles.localnode.tendermint import TendermintNode  # type: ignore
+from autonomy.data.Dockerfiles.tendermint.tendermint import (
+    TendermintNode,  # type: ignore
+)
 
 
 ENCODING = "utf-8"
