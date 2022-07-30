@@ -25,6 +25,7 @@ fingerprint:
   scripts/genproto.py: bafybeicfgwktvlrzqwfbvbld6bor3qd2rcfcgmk5rzfcfl6oj3jrr2mequ
   tendermint/__init__.py: bafybeihcssfgacav4rp6hq5jit7vsttq4wjugwhccvvkbbijs22smyv2qm
   tendermint/abci/types_pb2.py: bafybeif4im3bdtc6pvhcdrhhfydr2kzh3vuqez57fj43xqlrnm5yls2idm
+  tendermint/abci/types_pb2_grpc.py: bafybeihmecy4uas7itftoaslrqvrjb3m2jewojuzxvie7pjzsrw5exnu6u
   tendermint/crypto/keys_pb2.py: bafybeifo4ian5shlehmopaoew3oz5e7n3jkke2byviuzggkt2ctxyuutoi
   tendermint/crypto/proof_pb2.py: bafybeicz5vfricor4iromt3phy5kelz27af4nnajada3emiyy7fwbyhsyu
   tendermint/types/params_pb2.py: bafybeiap3oi5yr63za4yihkf7gmhh6acdu7a45swdcknu27wqzilmj3brq
