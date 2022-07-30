@@ -59,7 +59,7 @@ Tendermint node parameters.
 #### `__`init`__`
 
 ```python
-def __init__(proxy_app: str, rpc_laddr: str = DEFAULT_RPC_LISTEN_ADDRESS, p2p_laddr: str = DEFAULT_P2P_LISTEN_ADDRESS, p2p_seeds: Optional[List[str]] = None, consensus_create_empty_blocks: bool = True, home: Optional[str] = None)
+def __init__(proxy_app: str, rpc_laddr: str = DEFAULT_RPC_LISTEN_ADDRESS, p2p_laddr: str = DEFAULT_P2P_LISTEN_ADDRESS, p2p_seeds: Optional[List[str]] = None, consensus_create_empty_blocks: bool = True, home: Optional[str] = None, use_grpc: bool = False)
 ```
 
 Initialize the parameters to the Tendermint node.
@@ -72,6 +72,7 @@ Initialize the parameters to the Tendermint node.
 - `p2p_seeds`: P2P seeds.
 - `consensus_create_empty_blocks`: if true, Tendermint node creates empty blocks.
 - `home`: Tendermint's home directory.
+- `use_grpc`: Wheter to use a gRPC server, or TSP
 
 <a id="autonomy.data.Dockerfiles.tendermint.tendermint.TendermintParams.__str__"></a>
 
