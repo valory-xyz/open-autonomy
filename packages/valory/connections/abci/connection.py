@@ -31,6 +31,7 @@ from pathlib import Path
 from threading import Event, Thread
 from typing import Any, Dict, List, Optional, Tuple, cast
 
+import grpc  # type: ignore
 from aea.configurations.base import PublicId
 from aea.connections.base import Connection, ConnectionStates
 from aea.exceptions import enforce
@@ -40,9 +41,40 @@ from google.protobuf.message import DecodeError
 
 from packages.valory.connections.abci import PUBLIC_ID as CONNECTION_PUBLIC_ID
 from packages.valory.connections.abci.dialogues import AbciDialogues
+from packages.valory.connections.abci.tendermint.abci import types_pb2_grpc
 from packages.valory.connections.abci.tendermint.abci.types_pb2 import (  # type: ignore
     Request,
+    RequestApplySnapshotChunk,
+    RequestBeginBlock,
+    RequestCheckTx,
+    RequestCommit,
+    RequestDeliverTx,
+    RequestEcho,
+    RequestEndBlock,
+    RequestFlush,
+    RequestInfo,
+    RequestInitChain,
+    RequestListSnapshots,
+    RequestLoadSnapshotChunk,
+    RequestOfferSnapshot,
+    RequestQuery,
+    RequestSetOption,
     Response,
+    ResponseApplySnapshotChunk,
+    ResponseBeginBlock,
+    ResponseCheckTx,
+    ResponseCommit,
+    ResponseDeliverTx,
+    ResponseEcho,
+    ResponseEndBlock,
+    ResponseFlush,
+    ResponseInfo,
+    ResponseInitChain,
+    ResponseListSnapshots,
+    ResponseLoadSnapshotChunk,
+    ResponseOfferSnapshot,
+    ResponseQuery,
+    ResponseSetOption,
 )
 from packages.valory.connections.abci.tendermint_decoder import (
     _TendermintProtocolDecoder,
@@ -210,6 +242,609 @@ class VarintMessageReader:  # pylint: disable=too-few-public-methods
             result.write(data)
             read_bytes += len(data)
         return result.getvalue()
+
+
+class ABCIApplicationServicer(types_pb2_grpc.ABCIApplicationServicer):
+    """Implements the gRPC servicer (handler)"""
+
+    # pylint: disable=invalid-overridden-method, no-member
+
+    def __init__(
+        self, request_queue: asyncio.Queue, dialogues: AbciDialogues, target_skill: str
+    ):
+        """
+        Initializes the abci handler.
+
+        :param request_queue: queue holding translated abci messages.
+        :param dialogues: dialogues
+        :param target_skill: target skill of messages
+        """
+        super().__init__()
+        self._request_queue = request_queue
+        self._dialogues = dialogues
+        self._target_skill = target_skill
+        self._response_queues: Dict[AbciMessage.Performative, asyncio.Queue] = {
+            AbciMessage.Performative.RESPONSE_ECHO: asyncio.Queue(),
+            AbciMessage.Performative.RESPONSE_FLUSH: asyncio.Queue(),
+            AbciMessage.Performative.RESPONSE_INFO: asyncio.Queue(),
+            AbciMessage.Performative.RESPONSE_SET_OPTION: asyncio.Queue(),
+            AbciMessage.Performative.RESPONSE_DELIVER_TX: asyncio.Queue(),
+            AbciMessage.Performative.RESPONSE_CHECK_TX: asyncio.Queue(),
+            AbciMessage.Performative.RESPONSE_QUERY: asyncio.Queue(),
+            AbciMessage.Performative.RESPONSE_COMMIT: asyncio.Queue(),
+            AbciMessage.Performative.RESPONSE_INIT_CHAIN: asyncio.Queue(),
+            AbciMessage.Performative.RESPONSE_BEGIN_BLOCK: asyncio.Queue(),
+            AbciMessage.Performative.RESPONSE_END_BLOCK: asyncio.Queue(),
+            AbciMessage.Performative.RESPONSE_LIST_SNAPSHOTS: asyncio.Queue(),
+            AbciMessage.Performative.RESPONSE_OFFER_SNAPSHOT: asyncio.Queue(),
+            AbciMessage.Performative.RESPONSE_APPLY_SNAPSHOT_CHUNK: asyncio.Queue(),
+            AbciMessage.Performative.RESPONSE_LOAD_SNAPSHOT_CHUNK: asyncio.Queue(),
+        }
+
+    async def send(self, envelope: Envelope) -> Response:
+        """
+        Returns response to the waiting request
+
+        :param: envelope: Envelope to be returned
+        """
+        message = cast(AbciMessage, envelope.message)
+        dialogue = self._dialogues.update(message)
+        if dialogue is None:
+            return
+
+        await self._response_queues[message.performative].put(envelope)
+
+    async def Echo(
+        self, request: RequestEcho, context: grpc.ServicerContext
+    ) -> ResponseEcho:
+        """
+        Handles "Echo" gRPC requests
+
+        :param: request: The request from the Tendermint node
+        :param: context: The request context
+        :return: the Echo response
+        """
+        packed_req = Request(echo=request)
+        message, _ = _TendermintProtocolDecoder.request_echo(
+            packed_req, self._dialogues, self._target_skill
+        )
+        envelope = Envelope(to=message.to, sender=message.sender, message=message)
+
+        await self._request_queue.put(envelope)
+        message = cast(
+            AbciMessage,
+            (
+                await self._response_queues[
+                    AbciMessage.Performative.RESPONSE_ECHO
+                ].get()
+            ).message,
+        )
+
+        response = _TendermintProtocolEncoder.response_echo(message)
+        context.set_code(grpc.StatusCode.OK)
+
+        return response.echo
+
+    async def Flush(
+        self, request: RequestFlush, context: grpc.ServicerContext
+    ) -> ResponseFlush:
+        """
+        Handles "Flush" gRPC requests
+
+        :param: request: The request from the Tendermint node
+        :param: context: The request context
+        :return: the Echo response
+        """
+        packed_req = Request(flush=request)
+        message, _ = _TendermintProtocolDecoder.request_flush(
+            packed_req, self._dialogues, self._target_skill
+        )
+        envelope = Envelope(to=message.to, sender=message.sender, message=message)
+
+        await self._request_queue.put(envelope)
+        message = cast(
+            AbciMessage,
+            (
+                await self._response_queues[
+                    AbciMessage.Performative.RESPONSE_FLUSH
+                ].get()
+            ).message,
+        )
+
+        response = _TendermintProtocolEncoder.response_flush(message)
+        context.set_code(grpc.StatusCode.OK)
+
+        return response.flush
+
+    async def Info(
+        self, request: RequestInfo, context: grpc.ServicerContext
+    ) -> ResponseInfo:
+        """
+        Handles "Info" gRPC requests
+
+        :param: request: The request from the Tendermint node
+        :param: context: The request context
+        :return: the Echo response
+        """
+        packed_req = Request(info=request)
+        message, _ = _TendermintProtocolDecoder.request_info(
+            packed_req, self._dialogues, self._target_skill
+        )
+        envelope = Envelope(to=message.to, sender=message.sender, message=message)
+
+        await self._request_queue.put(envelope)
+        message = cast(
+            AbciMessage,
+            (
+                await self._response_queues[
+                    AbciMessage.Performative.RESPONSE_INFO
+                ].get()
+            ).message,
+        )
+
+        response = _TendermintProtocolEncoder.response_info(message)
+        context.set_code(grpc.StatusCode.OK)
+
+        return response.info
+
+    async def SetOption(
+        self, request: RequestSetOption, context: grpc.ServicerContext
+    ) -> ResponseSetOption:
+        """
+        Handles "SetOption" gRPC requests
+
+        :param: request: The request from the Tendermint node
+        :param: context: The request context
+        :return: the Echo response
+        """
+        packed_req = Request(set_option=request)
+        message, _ = _TendermintProtocolDecoder.request_set_option(
+            packed_req, self._dialogues, self._target_skill
+        )
+        envelope = Envelope(to=message.to, sender=message.sender, message=message)
+
+        await self._request_queue.put(envelope)
+        message = cast(
+            AbciMessage,
+            (
+                await self._response_queues[
+                    AbciMessage.Performative.RESPONSE_SET_OPTION
+                ].get()
+            ).message,
+        )
+
+        response = _TendermintProtocolEncoder.response_set_option(message)
+        context.set_code(grpc.StatusCode.OK)
+
+        return response.set_option
+
+    async def DeliverTx(
+        self, request: RequestDeliverTx, context: grpc.ServicerContext
+    ) -> ResponseDeliverTx:
+        """
+        Handles "DeliverTx" gRPC requests
+
+        :param: request: The request from the Tendermint node
+        :param: context: The request context
+        :return: the Echo response
+        """
+        packed_req = Request(deliver_tx=request)
+        message, _ = _TendermintProtocolDecoder.request_deliver_tx(
+            packed_req, self._dialogues, self._target_skill
+        )
+        envelope = Envelope(to=message.to, sender=message.sender, message=message)
+
+        await self._request_queue.put(envelope)
+        message = cast(
+            AbciMessage,
+            (
+                await self._response_queues[
+                    AbciMessage.Performative.RESPONSE_DELIVER_TX
+                ].get()
+            ).message,
+        )
+
+        response = _TendermintProtocolEncoder.response_deliver_tx(message)
+        context.set_code(grpc.StatusCode.OK)
+
+        return response.deliver_tx
+
+    async def CheckTx(
+        self, request: RequestCheckTx, context: grpc.ServicerContext
+    ) -> ResponseCheckTx:
+        """
+        Handles "CheckTx" gRPC requests
+
+        :param: request: The request from the Tendermint node
+        :param: context: The request context
+        :return: the Echo response
+        """
+        packed_req = Request(check_tx=request)
+        message, _ = _TendermintProtocolDecoder.request_check_tx(
+            packed_req, self._dialogues, self._target_skill
+        )
+        envelope = Envelope(to=message.to, sender=message.sender, message=message)
+
+        await self._request_queue.put(envelope)
+        message = cast(
+            AbciMessage,
+            (
+                await self._response_queues[
+                    AbciMessage.Performative.RESPONSE_CHECK_TX
+                ].get()
+            ).message,
+        )
+
+        response = _TendermintProtocolEncoder.response_check_tx(message)
+        context.set_code(grpc.StatusCode.OK)
+
+        return response.check_tx
+
+    async def Query(
+        self, request: RequestQuery, context: grpc.ServicerContext
+    ) -> ResponseQuery:
+        """
+        Handles "Query" gRPC requests
+
+        :param: request: The request from the Tendermint node
+        :param: context: The request context
+        :return: the Echo response
+        """
+        packed_req = Request(query=request)
+        message, _ = _TendermintProtocolDecoder.request_query(
+            packed_req, self._dialogues, self._target_skill
+        )
+        envelope = Envelope(to=message.to, sender=message.sender, message=message)
+
+        await self._request_queue.put(envelope)
+        message = cast(
+            AbciMessage,
+            (
+                await self._response_queues[
+                    AbciMessage.Performative.RESPONSE_QUERY
+                ].get()
+            ).message,
+        )
+
+        response = _TendermintProtocolEncoder.response_query(message)
+        context.set_code(grpc.StatusCode.OK)
+
+        return response.query
+
+    async def Commit(
+        self, request: RequestCommit, context: grpc.ServicerContext
+    ) -> ResponseCommit:
+        """
+        Handles "Commit" gRPC requests
+
+        :param: request: The request from the Tendermint node
+        :param: context: The request context
+        :return: the Echo response
+        """
+        packed_req = Request(commit=request)
+        message, _ = _TendermintProtocolDecoder.request_commit(
+            packed_req, self._dialogues, self._target_skill
+        )
+        envelope = Envelope(to=message.to, sender=message.sender, message=message)
+
+        await self._request_queue.put(envelope)
+        message = cast(
+            AbciMessage,
+            (
+                await self._response_queues[
+                    AbciMessage.Performative.RESPONSE_COMMIT
+                ].get()
+            ).message,
+        )
+
+        response = _TendermintProtocolEncoder.response_commit(message)
+        context.set_code(grpc.StatusCode.OK)
+
+        return response.commit
+
+    async def InitChain(
+        self, request: RequestInitChain, context: grpc.ServicerContext
+    ) -> ResponseInitChain:
+        """
+        Handles "InitChain" gRPC requests
+
+        :param: request: The request from the Tendermint node
+        :param: context: The request context
+        :return: the Echo response
+        """
+        packed_req = Request(init_chain=request)
+        message, _ = _TendermintProtocolDecoder.request_init_chain(
+            packed_req, self._dialogues, self._target_skill
+        )
+        envelope = Envelope(to=message.to, sender=message.sender, message=message)
+
+        await self._request_queue.put(envelope)
+        message = cast(
+            AbciMessage,
+            (
+                await self._response_queues[
+                    AbciMessage.Performative.RESPONSE_INIT_CHAIN
+                ].get()
+            ).message,
+        )
+
+        response = _TendermintProtocolEncoder.response_init_chain(message)
+        context.set_code(grpc.StatusCode.OK)
+
+        return response.init_chain
+
+    async def BeginBlock(
+        self, request: RequestBeginBlock, context: grpc.ServicerContext
+    ) -> ResponseBeginBlock:
+        """
+        Handles "BeginBlock" gRPC requests
+
+        :param: request: The request from the Tendermint node
+        :param: context: The request context
+        :return: the Echo response
+        """
+        packed_req = Request(begin_block=request)
+        message, _ = _TendermintProtocolDecoder.request_begin_block(
+            packed_req, self._dialogues, self._target_skill
+        )
+        envelope = Envelope(to=message.to, sender=message.sender, message=message)
+
+        await self._request_queue.put(envelope)
+        message = cast(
+            AbciMessage,
+            (
+                await self._response_queues[
+                    AbciMessage.Performative.RESPONSE_BEGIN_BLOCK
+                ].get()
+            ).message,
+        )
+
+        response = _TendermintProtocolEncoder.response_begin_block(message)
+        context.set_code(grpc.StatusCode.OK)
+
+        return response.begin_block
+
+    async def EndBlock(
+        self, request: RequestEndBlock, context: grpc.ServicerContext
+    ) -> ResponseEndBlock:
+        """
+        Handles "EndBlock" gRPC requests
+
+        :param: request: The request from the Tendermint node
+        :param: context: The request context
+        :return: the Echo response
+        """
+        packed_req = Request(end_block=request)
+        message, _ = _TendermintProtocolDecoder.request_end_block(
+            packed_req, self._dialogues, self._target_skill
+        )
+        envelope = Envelope(to=message.to, sender=message.sender, message=message)
+
+        await self._request_queue.put(envelope)
+        message = cast(
+            AbciMessage,
+            (
+                await self._response_queues[
+                    AbciMessage.Performative.RESPONSE_END_BLOCK
+                ].get()
+            ).message,
+        )
+
+        response = _TendermintProtocolEncoder.response_end_block(message)
+        context.set_code(grpc.StatusCode.OK)
+
+        return response.end_block
+
+    async def ListSnapshots(
+        self, request: RequestListSnapshots, context: grpc.ServicerContext
+    ) -> ResponseListSnapshots:
+        """
+        Handles "ListSnapshots" gRPC requests
+
+        :param: request: The request from the Tendermint node
+        :param: context: The request context
+        :return: the Echo response
+        """
+        packed_req = Request(list_snapshots=request)
+        message, _ = _TendermintProtocolDecoder.request_list_snapshots(
+            packed_req, self._dialogues, self._target_skill
+        )
+        envelope = Envelope(to=message.to, sender=message.sender, message=message)
+
+        await self._request_queue.put(envelope)
+        message = cast(
+            AbciMessage,
+            (
+                await self._response_queues[
+                    AbciMessage.Performative.RESPONSE_LIST_SNAPSHOTS
+                ].get()
+            ).message,
+        )
+
+        response = _TendermintProtocolEncoder.response_list_snapshots(message)
+        context.set_code(grpc.StatusCode.OK)
+
+        return response.list_snapshots
+
+    async def OfferSnapshot(
+        self, request: RequestOfferSnapshot, context: grpc.ServicerContext
+    ) -> ResponseOfferSnapshot:
+        """
+        Handles "OfferSnapshot" gRPC requests
+
+        :param: request: The request from the Tendermint node
+        :param: context: The request context
+        :return: the Echo response
+        """
+        packed_req = Request(offer_snapshot=request)
+        message, _ = _TendermintProtocolDecoder.request_offer_snapshot(
+            packed_req, self._dialogues, self._target_skill
+        )
+        envelope = Envelope(to=message.to, sender=message.sender, message=message)
+
+        await self._request_queue.put(envelope)
+        message = cast(
+            AbciMessage,
+            (
+                await self._response_queues[
+                    AbciMessage.Performative.RESPONSE_OFFER_SNAPSHOT
+                ].get()
+            ).message,
+        )
+
+        response = _TendermintProtocolEncoder.response_offer_snapshot(message)
+        context.set_code(grpc.StatusCode.OK)
+
+        return response.list_snapshots
+
+    async def LoadSnapshotChunk(
+        self, request: RequestLoadSnapshotChunk, context: grpc.ServicerContext
+    ) -> ResponseLoadSnapshotChunk:
+        """
+        Handles "LoadSnapshotChunk" gRPC requests
+
+        :param: request: The request from the Tendermint node
+        :param: context: The request context
+        :return: the Echo response
+        """
+        packed_req = Request(load_snapshot_chunk=request)
+        message, _ = _TendermintProtocolDecoder.request_load_snapshot_chunk(
+            packed_req, self._dialogues, self._target_skill
+        )
+        envelope = Envelope(to=message.to, sender=message.sender, message=message)
+
+        await self._request_queue.put(envelope)
+        message = cast(
+            AbciMessage,
+            (
+                await self._response_queues[
+                    AbciMessage.Performative.RESPONSE_LOAD_SNAPSHOT_CHUNK
+                ].get()
+            ).message,
+        )
+
+        response = _TendermintProtocolEncoder.response_load_snapshot_chunk(message)
+        context.set_code(grpc.StatusCode.OK)
+
+        return response.load_snapshot_chunk
+
+    async def ApplySnapshotChunk(
+        self, request: RequestApplySnapshotChunk, context: grpc.ServicerContext
+    ) -> ResponseApplySnapshotChunk:
+        """
+        Handles "ApplySnapshotChunk" gRPC requests
+
+        :param: request: The request from the Tendermint node
+        :param: context: The request context
+        :return: the Echo response
+        """
+        packed_req = Request(apply_snapshot_chunk=request)
+        message, _ = _TendermintProtocolDecoder.request_apply_snapshot_chunk(
+            packed_req, self._dialogues, self._target_skill
+        )
+        envelope = Envelope(to=message.to, sender=message.sender, message=message)
+
+        await self._request_queue.put(envelope)
+        message = cast(
+            AbciMessage,
+            (
+                await self._response_queues[
+                    AbciMessage.Performative.RESPONSE_APPLY_SNAPSHOT_CHUNK
+                ].get()
+            ).message,
+        )
+
+        response = _TendermintProtocolEncoder.response_apply_snapshot_chunk(message)
+        context.set_code(grpc.StatusCode.OK)
+
+        return response.apply_snapshot_chunk
+
+
+class GrpcServerChannel:  # pylint: disable=too-many-instance-attributes
+    """gRPC server channel to handle incoming communication from the Tendermint node."""
+
+    def __init__(
+        self,
+        target_skill_id: PublicId,
+        address: str,
+        port: int,
+        logger: Optional[Logger] = None,
+    ):
+        """
+        Initialize the gRPC server.
+
+        :param target_skill_id: the public id of the target skill.
+        :param address: the listen address.
+        :param port: the port to listen from.
+        :param logger: the logger.
+        """
+        self.target_skill_id = target_skill_id
+        self.address = address
+        self.port = port
+        self.logger = logger
+
+        # channel state
+        self._loop: Optional[AbstractEventLoop] = None
+        self._dialogues = AbciDialogues()
+        self._is_stopped: bool = True
+        self.queue: Optional[asyncio.Queue] = None
+        self._server: Optional[grpc.Server] = None
+        self._server_task: Optional[Task] = None
+        self._servicer: Optional[ABCIApplicationServicer] = None
+
+    @property
+    def is_stopped(self) -> bool:
+        """Check that the channel is stopped."""
+        return self._is_stopped
+
+    async def _start_server(self) -> None:
+        """Start the gRPC server."""
+        self.logger = cast(Logger, self.logger)
+        self.queue = cast(asyncio.Queue, self.queue)
+        self.logger.info("Starting gRPC server")
+        server = grpc.aio.server()
+        self._servicer = ABCIApplicationServicer(
+            self.queue, self._dialogues, str(self.target_skill_id)
+        )
+        types_pb2_grpc.add_ABCIApplicationServicer_to_server(self._servicer, server)
+        server.add_insecure_port(f"[::]:{self.port}")
+        self._server = server
+        await self._server.start()
+        await self._server.wait_for_termination()
+
+    async def connect(self, loop: AbstractEventLoop) -> None:
+        """
+        Connect.
+
+        :param loop: asyncio event loop
+        """
+        if not self._is_stopped:  # pragma: nocover
+            return
+        self._loop = loop
+        self._is_stopped = False
+        self.queue = asyncio.Queue()
+
+        asyncio.create_task(self._start_server())
+
+    async def disconnect(self) -> None:
+        """Disconnect the channel"""
+        if self.is_stopped:  # pragma: nocover
+            return
+        self._is_stopped = True
+        self._server = cast(grpc.Server, self._server)
+        await self._server.stop(0)
+
+        self.queue = None
+        self._server = None
+
+    async def get_message(self) -> Envelope:
+        """Get a message from the queue."""
+        return await cast(asyncio.Queue, self.queue).get()
+
+    async def send(self, envelope: Envelope) -> None:
+        """Send a message."""
+        self._servicer = cast(ABCIApplicationServicer, self._servicer)
+        await self._servicer.send(envelope)
 
 
 class TcpServerChannel:  # pylint: disable=too-many-instance-attributes
@@ -489,7 +1124,7 @@ class TendermintNode:
         cmd = self._build_init_command()
         subprocess.call(cmd)  # nosec
 
-    def start(self, start_monitoring: bool = False) -> None:
+    def start(self, start_monitoring: bool = True) -> None:
         """Start a Tendermint node process."""
         self._start_tm_process()
         if start_monitoring:
@@ -535,19 +1170,10 @@ class TendermintNode:
         if self._process is None:
             return
 
-        if platform.system() == "Windows":
+        if platform.system() == "Windows":  # pragma: nocover
             os.kill(self._process.pid, signal.CTRL_C_EVENT)  # type: ignore  # pylint: disable=no-member
-            try:
-                self._process.wait(timeout=5)
-            except subprocess.TimeoutExpired:  # nosec
-                os.kill(self._process.pid, signal.CTRL_BREAK_EVENT)  # type: ignore  # pylint: disable=no-member
         else:
-            self._process.send_signal(signal.SIGTERM)
-            self._process.wait(timeout=5)
-            poll = self._process.poll()
-            if poll is None:  # pragma: nocover
-                self._process.terminate()
-                self._process.wait(3)
+            os.killpg(os.getpgid(self._process.pid), signal.SIGTERM)
 
         self._process = None
         self.write_line("Tendermint process stopped\n")
