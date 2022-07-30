@@ -64,7 +64,7 @@ profiles:
         value:
           buildArgs:
             AEA_VERSION: "1.14.0"
-            AEA_AGENT: "{{.AEA_AGENT_HASH}}"
+            AEA_AGENT: "{{.AEA_AGENT}}"
       - op: add
         path: /build/cluster
         value:
