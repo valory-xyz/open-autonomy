@@ -1,4 +1,4 @@
-apiVersion: skaffold/v2beta6
+apiVersion: skaffold/v2beta29
 kind: Config
 metadata:
   name: open-autonomy
@@ -12,20 +12,38 @@ build:
     docker:
       dockerfile: Dockerfile
       buildArgs:
-        AEA_VERSION: "1.14.0"
+        AEA_VERSION: "1.14.0.post1"
         AEA_AGENT: "{{.AEA_AGENT}}"
 
 
 profiles:
-  - name: docs
+  - name: release
     build:
-      tagPolicy:
-        envTemplate:
-          template: "{{.VERSION}}"
-      artifacts:
-      - image: valory/open-autonomy-docs
-        docker:
-          dockerfile: deployments/Dockerfiles/documentation/Dockerfile
+        tagPolicy:
+          envTemplate:
+            template: "{{.VERSION}}"
+        artifacts:
+        - image: valory/open-autonomy-open-aea
+          context: deployments/Dockerfiles/open_aea/
+          docker:
+            noCache: true
+            dockerfile: Dockerfile
+            buildArgs:
+              AEA_VERSION: "1.14.0.post1"
+              AEA_AGENT: "open_aea/my_first_aea:0.1.0:bafybeicyirm7y2ygptr5rybwznwof2k6b7fvlsvebsz4pa6cfjijva3rdu"
+        - image: valory/open-autonomy-tendermint
+          context: deployments/Dockerfiles/localnode/
+          docker:
+            noCache: true
+            dockerfile: Dockerfile
+        - image: valory/open-autonomy-hardhat
+          context: deployments/Dockerfiles/hardhat
+          docker:
+            noCache: true
+        - image: valory/open-autonomy-docs
+          docker:
+            noCache: true
+            dockerfile: deployments/Dockerfiles/documentation/Dockerfile
   - name: prod
   - name: dependencies
     build:

@@ -26,7 +26,7 @@
 
 12. Make clean environment and install release from PyPI: `pip install open-autonomy --no-cache`.
 
-13. Build and tag images for the documentation. `skaffold build -p docs`. Inform DevOps of new release so that these images can be rolled out.
+13. Build and tag images for the documentation. `make release-images`. Inform DevOps of new release so that these images can be rolled out.
 
 14. Release packages into registry: `autonomy init --reset --author valory --ipfs --remote` and `autonomy push-all`. If necessary, run it several times until all packages are updated.
 

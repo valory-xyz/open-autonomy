@@ -12,7 +12,8 @@ then
 fi
 
 echo "Loading $VALORY_APPLICATION"
-aea fetch $VALORY_APPLICATION --local --alias agent
+aea init --reset --author valory --ipfs --remote
+aea fetch $VALORY_APPLICATION --remote --alias agent
 cd agent
 
 export FILE=/agent_key/ethereum_private_key.txt

@@ -427,3 +427,6 @@ check_abci_specs:
 	python -m autonomy.cli analyse abci generate-app-specs packages.valory.skills.transaction_settlement_abci.rounds.TransactionSubmissionAbciApp packages/valory/skills/transaction_settlement_abci/fsm_specification.yaml || (echo "Failed to check transaction_settlement_abci consistency" && exit 1)
 	echo "Successfully validated abcis!"
 
+
+release-images:
+	skaffold build -p release && VERSION=latest skaffold build -p release
