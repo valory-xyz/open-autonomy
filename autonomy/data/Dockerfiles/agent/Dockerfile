@@ -16,7 +16,7 @@ RUN sudo apt-get autoclean
 RUN sudo apt-get install python3.10 python3.10-dev git -y
 RUN cd /usr/bin && sudo rm python3 && sudo ln -s python3.10 python3 && sudo ln -s python3.10 python
 # used in Docker-compose to wait until Hardhat node is up
-RUN sudo apt-get install net-tools subversion -y
+RUN sudo apt-get install net-tools -y
 RUN python -m pip install --upgrade pip
 
 WORKDIR /home/ubuntu
