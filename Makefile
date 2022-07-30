@@ -118,7 +118,7 @@ pylint:
 
 .PHONY: static
 static:
-	mypy autonomy packages/valory scripts deployments --disallow-untyped-defs
+	mypy autonomy packages/valory scripts --disallow-untyped-defs
 	mypy tests --disallow-untyped-defs
 
 .PHONY: package_checks

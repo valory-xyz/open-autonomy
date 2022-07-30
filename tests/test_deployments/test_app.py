@@ -33,7 +33,6 @@ from unittest import mock
 import flask
 import pytest
 import requests
-
 from deployments.Dockerfiles.localnode.app import (  # type: ignore
     CONFIG_OVERRIDE,
     create_app,
