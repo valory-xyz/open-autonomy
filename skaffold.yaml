@@ -8,7 +8,7 @@ build:
       template: "{{.VERSION}}"
   artifacts:
   - image: valory/open-autonomy-open-aea
-    context: autonomy/data/agent/
+    context: autonomy/data/Dockerfiles/agent/
     docker:
       dockerfile: Dockerfile
       buildArgs:
@@ -24,7 +24,7 @@ profiles:
             template: "{{.VERSION}}"
         artifacts:
         - image: valory/open-autonomy-open-aea
-          context: autonomy/data/agent/
+          context: autonomy/data/Dockerfiles/agent/
           docker:
             noCache: true
             dockerfile: Dockerfile
