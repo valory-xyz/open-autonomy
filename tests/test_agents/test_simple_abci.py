@@ -96,3 +96,33 @@ class TestSimpleABCIFourAgentsTwoAgentRestarting(BaseSimpleABCITestCatchup):
     """Test the ABCI simple_abci skill with four agents and two restarting."""
 
     n_terminal = 2
+
+
+@pytest.mark.parametrize("nb_nodes", (1,))
+class TestSimpleABCISingleAgentGrpc(
+    BaseSimpleABCITest,
+):
+    """Test that the ABCI simple_abci skill with only one agent."""
+
+    USE_GRPC = True
+    strict_check_strings = STRICT_CHECK_STRINGS + ("Starting gRPC server",)
+
+
+@pytest.mark.parametrize("nb_nodes", (2,))
+class TestSimpleABCITwoAgentsGrpc(
+    BaseSimpleABCITest,
+):
+    """Test that the ABCI simple_abci skill with two agents."""
+
+    USE_GRPC = True
+    strict_check_strings = STRICT_CHECK_STRINGS + ("Starting gRPC server",)
+
+
+@pytest.mark.parametrize("nb_nodes", (4,))
+class TestSimpleABCIFourAgentsGrpc(
+    BaseSimpleABCITest,
+):
+    """Test that the ABCI simple_abci skill with four agents."""
+
+    USE_GRPC = True
+    strict_check_strings = STRICT_CHECK_STRINGS + ("Starting gRPC server",)

@@ -95,6 +95,7 @@ class BaseTestEnd2End(AEATestCaseMany, UseFlaskTendermintNode):
     # ledger used for testing
     ledger_id: str = "ethereum"
     key_file_name: str = "ethereum_private_key.txt"
+    USE_GRPC = False
 
     @classmethod
     def set_config(
@@ -134,6 +135,7 @@ class BaseTestEnd2End(AEATestCaseMany, UseFlaskTendermintNode):
             "vendor.valory.connections.abci.config.use_tendermint",
             False,
         )
+        self.set_config("vendor.valory.connections.abci.config.use_grpc", self.USE_GRPC)
         self.set_config(
             "vendor.valory.connections.abci.config.tendermint_config.rpc_laddr",
             self.get_laddr(i),
