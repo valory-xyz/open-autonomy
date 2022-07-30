@@ -30,7 +30,7 @@ profiles:
             dockerfile: Dockerfile
             buildArgs:
               AEA_VERSION: "1.14.0.post1"
-              AEA_AGENT: "open_aea/my_first_aea:0.1.0:bafybeicyirm7y2ygptr5rybwznwof2k6b7fvlsvebsz4pa6cfjijva3rdu"
+              AEA_AGENT: "{{.AEA_AGENT}}"
         - image: valory/open-autonomy-tendermint
           context: autonomy/data/Dockerfiles/tendermint/
           docker:
