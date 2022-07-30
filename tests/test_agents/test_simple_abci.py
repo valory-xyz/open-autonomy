@@ -20,6 +20,8 @@
 """End2end tests for the valory/simple_abci skill."""
 import pytest
 
+from typing import Tuple
+
 from tests.test_agents.base import BaseTestEnd2EndExecution, RoundChecks
 
 
@@ -43,7 +45,7 @@ class BaseSimpleABCITest(BaseTestEnd2EndExecution):
     skill_package = "valory/simple_abci:0.1.0"
     wait_to_finish = 80
     happy_path = HAPPY_PATH
-    strict_check_strings = STRICT_CHECK_STRINGS
+    strict_check_strings: Tuple[str, ...] = STRICT_CHECK_STRINGS
 
 
 @pytest.mark.parametrize("nb_nodes", (1,))
