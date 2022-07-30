@@ -388,3 +388,8 @@ class DummyContext:
         round_timeout_seconds: float = 1.0
 
     _skill: MagicMock = MagicMock()
+
+    @property
+    def is_abstract_component(self) -> bool:
+        """Mock for is_abstract."""
+        return True

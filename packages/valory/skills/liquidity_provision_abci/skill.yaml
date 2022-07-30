@@ -32,12 +32,12 @@ protocols:
 - valory/http:1.0.0:bafybeifhmibx3l7f3xdwxhweczizadxs6p3oludvapvwdeu4o5f3oahqme
 - valory/ledger_api:1.0.0:bafybeifaozy766hngsqc5a5kpebseusq4cc3woh4ayycdoa7r3mjkvhzr4
 skills:
-- valory/abstract_round_abci:0.1.0:bafybeiao6v2ub7r3lrzh6nkboxiyfxewvc7mkxggpfegeo7jhltbkriipm
-- valory/liquidity_rebalancing_abci:0.1.0:bafybeidy633h4dxpjus66lft7smpf5ylzc37clzqw6pfx6soacywi3wg4m
-- valory/registration_abci:0.1.0:bafybeiburewgjgjghv4vdsnewjrzlwfpkz7rso57w5pkx64nu5q2w6xsre
-- valory/reset_pause_abci:0.1.0:bafybeiaz2fjepjnlq2lg2ozzajifnmdvfigs7tc7xpb3wkifkhtalmhmku
-- valory/safe_deployment_abci:0.1.0:bafybeib5a3igsb3gkixvcegfiu2xrz3tjrfzvyhfgcb7zqi3ael2coq3a4
-- valory/transaction_settlement_abci:0.1.0:bafybeiasbvysvewavwb3vfwy5ca57vchiwzi372ngveixc25mnqf54a4je
+- valory/abstract_round_abci:0.1.0:bafybeigjppdppnr26wzxebcnjqx2hzt43uo2jomjkkcrynizdf7ch53veu
+- valory/liquidity_rebalancing_abci:0.1.0:bafybeihuamokplfwbnm3jrhel5ajzl4ynhoyp7czjdmwf77yvzquclljjm
+- valory/registration_abci:0.1.0:bafybeihrgfxrdnnx6jm3gx6kaqzgca4tskk4i3hbquvlu7ull2kxpt5cje
+- valory/reset_pause_abci:0.1.0:bafybeifbs5unuqmypjtjxemwahpw3uzwgjyl3tbq74vojx4dk53f2iuy3i
+- valory/safe_deployment_abci:0.1.0:bafybeig2g6qoducybyy5dlbntjte75yjqrx53g4yzveyu4k575wqdu2gmy
+- valory/transaction_settlement_abci:0.1.0:bafybeicf42bhtkiwcnmd43lnmlu6yr6hgerhi74sgvycpngv6ctwek2e7a
 behaviours:
   main:
     args: {}

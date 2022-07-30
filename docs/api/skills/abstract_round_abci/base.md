@@ -1929,8 +1929,8 @@ Initialize the AbciApp.
 #### is`_`abstract
 
 ```python
-@property
-def is_abstract() -> bool
+@classmethod
+def is_abstract(cls) -> bool
 ```
 
 Return if the abci app is abstract.
