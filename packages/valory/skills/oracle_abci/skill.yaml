@@ -18,19 +18,19 @@ fingerprint:
 fingerprint_ignore_patterns: []
 connections: []
 contracts:
-- valory/gnosis_safe:0.1.0:bafybeie6mp5postj743s4d6qurg5ngfy7xxewreqfoqfxg37jtv72dtslu
+- valory/gnosis_safe:0.1.0:bafybeiexiper376ji5h4wm5erzospvyikqmvw7pi5tpgrwanj5okznemqu
 - valory/gnosis_safe_proxy_factory:0.1.0:bafybeiej772sh3uuju2zsd62fz73ofg7p7ixaju6e3ahnzlbktcxoeoggy
 - valory/offchain_aggregator:0.1.0:bafybeiexr4ggkzocdz3cojmwzhkgmx3fjnvisvbnh7jumlz32lsm4hp7ii
 protocols:
 - valory/contract_api:1.0.0:bafybeie5gbzc4v4n6p6ea66kmc5ejwvbjzhd7vhcjg7mikbyx47lypcd5m
 skills:
-- valory/abstract_round_abci:0.1.0:bafybeigjppdppnr26wzxebcnjqx2hzt43uo2jomjkkcrynizdf7ch53veu
-- valory/oracle_deployment_abci:0.1.0:bafybeibecpypvayonvu6kbkreltmu6aodaxzuwsavoeog5ljagcu7xcfdy
-- valory/price_estimation_abci:0.1.0:bafybeibvn5dco4ro4rwi6tq5pchvku36bycgyfch2bajyvso3nrniqfd5q
-- valory/registration_abci:0.1.0:bafybeihrgfxrdnnx6jm3gx6kaqzgca4tskk4i3hbquvlu7ull2kxpt5cje
-- valory/reset_pause_abci:0.1.0:bafybeifbs5unuqmypjtjxemwahpw3uzwgjyl3tbq74vojx4dk53f2iuy3i
-- valory/safe_deployment_abci:0.1.0:bafybeig2g6qoducybyy5dlbntjte75yjqrx53g4yzveyu4k575wqdu2gmy
-- valory/transaction_settlement_abci:0.1.0:bafybeicf42bhtkiwcnmd43lnmlu6yr6hgerhi74sgvycpngv6ctwek2e7a
+- valory/abstract_round_abci:0.1.0:bafybeicp22bvpoqm2zwcklur6ppfe4etwlhohcgppw22wlmp6xwg7ifusa
+- valory/oracle_deployment_abci:0.1.0:bafybeiaxyaxm75oqsxv7kwx25i4kb74avyzjtucvmxmdn47yrazclcsoha
+- valory/price_estimation_abci:0.1.0:bafybeifsvng4jxkmxpasjigrvmvc45wb73fvqm5z6dtjetm5cjrairgdh4
+- valory/registration_abci:0.1.0:bafybeica57jx6itwexqa2j2nnxgejldsuw2uyyc6qsjpzyfpj2btlsvzy4
+- valory/reset_pause_abci:0.1.0:bafybeidl2m2rpq56opf4j6lvm5lrvi5ejlfp5h37nxhalxt75zybm7ui6m
+- valory/safe_deployment_abci:0.1.0:bafybeibregzipitrjw6jow4laexcvujqtqhtekahztuuguwyp5tbwmaplm
+- valory/transaction_settlement_abci:0.1.0:bafybeihmkvvioypfyr52auvmwdygyhwsqqrlrlvzuslvxvbyqq455ojne4
 behaviours:
   main:
     args: {}

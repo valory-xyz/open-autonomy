@@ -22,13 +22,26 @@ from unittest import TestCase
 
 import pytest
 
-from tests.test_connections.test_fuzz.base import BaseFuzzyTests
-from tests.test_connections.test_fuzz.mock_node.channels.tcp_channel import TcpChannel
+from tests.test_connections.fuzzy_tests.base import BaseFuzzyTests
+from tests.test_connections.fuzzy_tests.mock_node.channels.grpc_channel import (
+    GrpcChannel,
+)
+from tests.test_connections.fuzzy_tests.mock_node.channels.tcp_channel import TcpChannel
 
 
-@pytest.mark.skip(reason="takes too long time to complete on CI")
+@pytest.mark.skip(reason="temporary, until click is fixed")
+class GrpcFuzzyTests(BaseFuzzyTests, TestCase):
+    """Test the connection when gRPC is used"""
+
+    CHANNEL_TYPE = GrpcChannel
+    USE_GRPC = True
+    AGENT_TIMEOUT = 30  # 3 seconds
+
+
+@pytest.mark.skip("temporary, until click is fixed")
 class TcpFuzzyTests(BaseFuzzyTests, TestCase):
     """Test the connection when TCP is used"""
 
     CHANNEL_TYPE = TcpChannel
+    USE_GRPC = False
     AGENT_TIMEOUT = 30  # 3 seconds

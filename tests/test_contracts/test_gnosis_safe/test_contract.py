@@ -27,8 +27,8 @@ from typing import Any, Dict, List, Optional, Tuple, cast
 from unittest import mock
 
 import pytest
-from aea.crypto.registries import crypto_registry
 from aea.common import JSONLike
+from aea.crypto.registries import crypto_registry
 from aea_ledger_ethereum import EthereumApi, EthereumCrypto
 from hexbytes import HexBytes
 from web3 import Web3
