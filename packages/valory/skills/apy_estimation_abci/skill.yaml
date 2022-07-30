@@ -27,7 +27,7 @@ fingerprint:
   tools/queries.py: bafybeifjtuv4v7f3cp6eyf5vnirtd463yy4x3frzyudgg4xwdie7drk7bi
 fingerprint_ignore_patterns: []
 connections:
-- valory/abci:0.1.0:bafybeihnuyj3g7j7hlgpix7655nm32r5k7pfbca76oe5kgwy3yv5sgcmjq
+- valory/abci:0.1.0:bafybeiglnb2eye6zhrp5wp5ts4ii2wtdlfl6nyyeduwnvmwljxq7eemko4
 - valory/http_client:0.1.0:bafybeibh3iu7kojc4d5eiigqh6kx2vdmu2q7vhcvvq2rz6suegsscyd66y
 - valory/ledger:0.1.0:bafybeifxxshi4u3xyyllip5e3yafawywcwpvqxgnybchi5kj74zm4b4n2e
 contracts: []
@@ -38,8 +38,8 @@ protocols:
 - valory/http:1.0.0:bafybeifhmibx3l7f3xdwxhweczizadxs6p3oludvapvwdeu4o5f3oahqme
 - valory/ledger_api:1.0.0:bafybeifaozy766hngsqc5a5kpebseusq4cc3woh4ayycdoa7r3mjkvhzr4
 skills:
-- valory/abstract_round_abci:0.1.0:bafybeifyekyhybqiakspnggcf2rrbu4tjckmnoqfykgnuvjt6z2e6katse
-- valory/registration_abci:0.1.0:bafybeiay4aqee5a6hvbnciadabdxcyqcotmtk74e6lxwwh3lochkubbxye
+- valory/abstract_round_abci:0.1.0:bafybeicwmeejwnb6k33evqcs6kdxaritaxozon2jwbzqbzsjkatle3xhey
+- valory/registration_abci:0.1.0:bafybeigep3nrmrsopr6qn4zl5x45z4xldkwzocdtjcpsa6n77dpckoeodm
 behaviours:
   main:
     args: {}
