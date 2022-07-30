@@ -428,5 +428,6 @@ check_abci_specs:
 	echo "Successfully validated abcis!"
 
 
+AEA_AGENT_HASH:=$(shell cat packages/hashes.csv | grep "agents/hello_world")
 release-images:
 	skaffold build -p release && VERSION=latest skaffold build -p release
