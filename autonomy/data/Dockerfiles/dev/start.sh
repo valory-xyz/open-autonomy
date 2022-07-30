@@ -12,7 +12,6 @@ then
 fi
 
 echo "Loading $VALORY_APPLICATION"
-aea init --reset --author valory --ipfs --remote
 aea fetch $VALORY_APPLICATION --alias agent
 cd agent
 
