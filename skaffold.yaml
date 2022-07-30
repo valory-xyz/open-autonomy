@@ -63,7 +63,7 @@ profiles:
         path: /build/artifacts/0/kaniko
         value:
           buildArgs:
-            AEA_VERSION: "1.14.0"
+            AEA_VERSION: "1.14.0.post1"
             AEA_AGENT: "{{.AEA_AGENT}}"
       - op: add
         path: /build/cluster
