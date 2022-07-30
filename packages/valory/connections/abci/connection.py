@@ -41,7 +41,9 @@ from google.protobuf.message import DecodeError
 
 from packages.valory.connections.abci import PUBLIC_ID as CONNECTION_PUBLIC_ID
 from packages.valory.connections.abci.dialogues import AbciDialogues
-from packages.valory.connections.abci.tendermint.abci import types_pb2_grpc
+from packages.valory.connections.abci.tendermint.abci import (  # type: ignore
+    types_pb2_grpc,
+)
 from packages.valory.connections.abci.tendermint.abci.types_pb2 import (  # type: ignore
     Request,
     RequestApplySnapshotChunk,
@@ -263,7 +265,7 @@ class ABCIApplicationServicer(types_pb2_grpc.ABCIApplicationServicer):
         self._request_queue = request_queue
         self._dialogues = dialogues
         self._target_skill = target_skill
-        self._response_queues: Dict[AbciMessage.Performative, asyncio.Queue] = {
+        self._response_queues: Dict[str, asyncio.Queue] = {
             AbciMessage.Performative.RESPONSE_ECHO: asyncio.Queue(),
             AbciMessage.Performative.RESPONSE_FLUSH: asyncio.Queue(),
             AbciMessage.Performative.RESPONSE_INFO: asyncio.Queue(),
