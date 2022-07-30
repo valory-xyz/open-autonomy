@@ -18,9 +18,9 @@
 # ------------------------------------------------------------------------------
 
 """End2end tests for the valory/simple_abci skill."""
-import pytest
-
 from typing import Tuple
+
+import pytest
 
 from tests.test_agents.base import BaseTestEnd2EndExecution, RoundChecks
 
