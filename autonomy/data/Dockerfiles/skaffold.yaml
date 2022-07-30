@@ -1,4 +1,4 @@
-apiVersion: skaffold/v2beta6
+apiVersion: skaffold/v2beta29
 kind: Config
 metadata:
   name: open-autonomy
@@ -12,7 +12,7 @@ build:
     docker:
       dockerfile: Dockerfile
       buildArgs:
-        AEA_VERSION: "1.14.0"
+        AEA_VERSION: "1.14.0.post1"
         AEA_AGENT: "{{.AEA_AGENT}}"
 
 profiles:
@@ -35,7 +35,7 @@ profiles:
         path: /build/artifacts/0/kaniko
         value:
           buildArgs:
-            AEA_VERSION: "1.14.0"
+            AEA_VERSION: "1.14.0.post1"
             AEA_AGENT: "{{.AEA_AGENT}}"
       - op: add
         path: /build/cluster
@@ -56,5 +56,5 @@ profiles:
         docker:
           dockerfile: Dockerfile
           buildArgs:
-            AEA_VERSION: "1.14.0"
+            AEA_VERSION: "1.14.0.post1"
             AEA_AGENT: "{{.AEA_AGENT}}"

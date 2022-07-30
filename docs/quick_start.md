@@ -35,7 +35,7 @@ Ensure your machine satisfies the following requirements:
 - [Kubectl](https://kubernetes.io/docs/tasks/tools/)
 - [Docker Engine](https://docs.docker.com/engine/install/)
 - [Docker Compose](https://docs.docker.com/compose/install/)
-- [Skaffold](https://skaffold.dev/docs/install/#standalone-binary)
+- [Skaffold](https://skaffold.dev/docs/install/#standalone-binary) `>= 1.39.1`
 
 ## Setup
 

@@ -187,7 +187,7 @@ jobs:
           sudo mv tendermint /usr/local/bin/tendermint
 
           # install skaffold
-          curl -Lo skaffold https://storage.googleapis.com/skaffold/releases/v1.33.0/skaffold-linux-amd64 && \
+          curl -Lo skaffold https://storage.googleapis.com/skaffold/releases/v1.39.1/skaffold-linux-amd64 && \
           sudo chmod +x skaffold
           sudo install skaffold /usr/local/bin/
           skaffold --help
@@ -249,7 +249,7 @@ jobs:
           sudo mv tendermint /usr/local/bin/tendermint
 
           # install skaffold
-          curl -Lo skaffold https://storage.googleapis.com/skaffold/releases/v1.33.0/skaffold-darwin-amd64 && \
+          curl -Lo skaffold https://storage.googleapis.com/skaffold/releases/v1.39.1/skaffold-darwin-amd64 && \
           sudo chmod +x skaffold
           sudo install skaffold /usr/local/bin/
           skaffold --help
@@ -313,7 +313,7 @@ jobs:
           cp tendermint.exe C:\Users\runneradmin\go\bin\
 
           # install skaffold
-          curl -Lo skaffold https://storage.googleapis.com/skaffold/releases/latest/skaffold-windows-amd64.exe
+          curl -Lo skaffold https://storage.googleapis.com/skaffold/releases/v1.39.1/skaffold-windows-amd64.exe
           cp skaffold C:\Users\runneradmin\go\bin\
           skaffold --help
 
@@ -414,7 +414,7 @@ jobs:
             yarn
 
           # install Skaffold needed in order to build the Flask with Tendermint image
-          curl -Lo skaffold https://storage.googleapis.com/skaffold/releases/v1.33.0/skaffold-linux-amd64 &&\
+          curl -Lo skaffold https://storage.googleapis.com/skaffold/releases/v1.39.1/skaffold-linux-amd64 &&\
             sudo install skaffold /usr/local/bin/
 
       - name: Unit tests

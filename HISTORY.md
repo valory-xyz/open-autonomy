@@ -3,7 +3,8 @@
 # 0.1.5 (2022-07-29)
 
 Autonomy:
-- 
+- Depends on `open-aea>=1.14.0.post1`
+- Cleans up Dockerfiles and aligns them
 
 Packages:
 - Adds support to handle the `{'code': -32000, 'message': 'already known'}` response in the `transaction_settlement_abci`
@@ -26,6 +27,9 @@ Docs:
 - Adds various clarifications in the docs based on user feedback and internal proof readings
 - Adds various fixes and consistency improvements
 - Lists relevant dependencies and their versions
+
+Misc:
+- Cleans up skaffold and Dockerfiles
 
 
 # 0.1.4 (2022-07-20)
