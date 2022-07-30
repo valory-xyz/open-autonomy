@@ -29,7 +29,7 @@ from io import BytesIO
 from logging import Logger
 from pathlib import Path
 from threading import Event, Thread
-from typing import Any, Dict, List, Optional, Tuple, cast
+from typing import Any, Dict, List, Optional, Tuple, Union, cast
 
 import grpc  # type: ignore
 from aea.configurations.base import PublicId
@@ -1047,6 +1047,7 @@ class TendermintParams:  # pylint: disable=too-few-public-methods
         p2p_seeds: Optional[List[str]] = None,
         consensus_create_empty_blocks: bool = True,
         home: Optional[str] = None,
+        use_grpc: bool = False,
     ):
         """
         Initialize the parameters to the Tendermint node.
@@ -1057,6 +1058,7 @@ class TendermintParams:  # pylint: disable=too-few-public-methods
         :param p2p_seeds: P2P seeds.
         :param consensus_create_empty_blocks: if true, Tendermint node creates empty blocks.
         :param home: Tendermint's home directory.
+        :param use_grpc: Wheter to use a gRPC server, or TSP
         """
         self.proxy_app = proxy_app
         self.rpc_laddr = rpc_laddr
@@ -1064,6 +1066,7 @@ class TendermintParams:  # pylint: disable=too-few-public-methods
         self.p2p_seeds = p2p_seeds
         self.consensus_create_empty_blocks = consensus_create_empty_blocks
         self.home = home
+        self.use_grpc = use_grpc
 
     def __str__(self) -> str:
         """Get the string representation."""
@@ -1101,6 +1104,8 @@ class TendermintNode:
             "tendermint",
             "init",
         ]
+        if self.params.use_grpc:
+            cmd += ["--abci=grpc"]
         if self.params.home is not None:  # pragma: nocover
             cmd += ["--home", self.params.home]
         return cmd
@@ -1252,6 +1257,7 @@ class ABCIServerConnection(Connection):  # pylint: disable=too-many-instance-att
     connection_id = PUBLIC_ID
     params: Optional[TendermintParams] = None
     node: Optional[TendermintNode] = None
+    channel: Optional[Union[TcpServerChannel, GrpcServerChannel]] = None
 
     def __init__(self, **kwargs: Any) -> None:
         """
@@ -1263,6 +1269,15 @@ class ABCIServerConnection(Connection):  # pylint: disable=too-many-instance-att
 
         self._process_connection_params()
         self._process_tendermint_params()
+
+        if self.use_grpc:
+            self.channel = GrpcServerChannel(
+                self.target_skill_id, address=self.host, port=self.port
+            )
+        else:
+            self.channel = TcpServerChannel(
+                self.target_skill_id, address=self.host, port=self.port
+            )
 
     def _process_connection_params(self) -> None:
         """
@@ -1305,6 +1320,8 @@ class ABCIServerConnection(Connection):  # pylint: disable=too-many-instance-att
         self.use_tendermint = cast(
             bool, self.configuration.config.get("use_tendermint")
         )
+        self.use_grpc = cast(bool, self.configuration.config.get("use_grpc"))
+
         if not self.use_tendermint:
             return
         tendermint_config = self.configuration.config.get("tendermint_config", {})
@@ -1325,6 +1342,7 @@ class ABCIServerConnection(Connection):  # pylint: disable=too-many-instance-att
             p2p_seeds,
             consensus_create_empty_blocks,
             home,
+            self.use_grpc,
         )
         self.logger.debug(f"Tendermint parameters: {self.params}")
         self.node = TendermintNode(self.params, self.logger)
@@ -1333,6 +1351,7 @@ class ABCIServerConnection(Connection):  # pylint: disable=too-many-instance-att
         """Ensure that the connection and the channel are ready."""
         super()._ensure_connected()
 
+        self.channel = cast(Union[TcpServerChannel, GrpcServerChannel], self.channel)
         if self.channel.is_stopped:
             raise ConnectionError("The channel is stopped.")
 
@@ -1346,6 +1365,7 @@ class ABCIServerConnection(Connection):  # pylint: disable=too-many-instance-att
             return
 
         self.state = ConnectionStates.connecting
+        self.channel = cast(Union[TcpServerChannel, GrpcServerChannel], self.channel)
         if self.use_tendermint:
             self.node = cast(TendermintNode, self.node)
             self.node.init()
@@ -1367,6 +1387,7 @@ class ABCIServerConnection(Connection):  # pylint: disable=too-many-instance-att
             return
 
         self.state = ConnectionStates.disconnecting
+        self.channel = cast(Union[TcpServerChannel, GrpcServerChannel], self.channel)
         await self.channel.disconnect()
         if self.use_tendermint:
             self.node = cast(TendermintNode, self.node)
@@ -1380,6 +1401,7 @@ class ABCIServerConnection(Connection):  # pylint: disable=too-many-instance-att
         :param envelope: the envelope to send.
         """
         self._ensure_connected()
+        self.channel = cast(Union[TcpServerChannel, GrpcServerChannel], self.channel)
         await self.channel.send(envelope)
 
     async def receive(self, *args: Any, **kwargs: Any) -> Optional[Envelope]:
@@ -1391,6 +1413,7 @@ class ABCIServerConnection(Connection):  # pylint: disable=too-many-instance-att
         :return: the envelope received, if present.  # noqa: DAR202
         """
         self._ensure_connected()
+        self.channel = cast(Union[TcpServerChannel, GrpcServerChannel], self.channel)
         try:
             return await self.channel.get_message()
         except CancelledError:  # pragma: no cover
