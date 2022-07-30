@@ -8,7 +8,7 @@ build:
       template: "{{.VERSION}}"
   artifacts:
   - image: valory/open-autonomy-open-aea
-    context: deployments/Dockerfiles/open_aea/
+    context: autonomy/data/agent/
     docker:
       dockerfile: Dockerfile
       buildArgs:
@@ -24,7 +24,7 @@ profiles:
             template: "{{.VERSION}}"
         artifacts:
         - image: valory/open-autonomy-open-aea
-          context: deployments/Dockerfiles/open_aea/
+          context: autonomy/data/agent/
           docker:
             noCache: true
             dockerfile: Dockerfile
@@ -32,12 +32,12 @@ profiles:
               AEA_VERSION: "1.14.0.post1"
               AEA_AGENT: "open_aea/my_first_aea:0.1.0:bafybeicyirm7y2ygptr5rybwznwof2k6b7fvlsvebsz4pa6cfjijva3rdu"
         - image: valory/open-autonomy-tendermint
-          context: deployments/Dockerfiles/localnode/
+          context: autonomy/data/Dockerfiles/localnode/
           docker:
             noCache: true
             dockerfile: Dockerfile
         - image: valory/open-autonomy-hardhat
-          context: deployments/Dockerfiles/hardhat
+          context: autonomy/data/Dockerfiles/hardhat
           docker:
             noCache: true
         - image: valory/open-autonomy-docs
@@ -52,11 +52,11 @@ profiles:
           template: "{{.VERSION}}"
       artifacts:
       - image: valory/open-autonomy-tendermint
-        context: deployments/Dockerfiles/localnode/
+        context: autonomy/data/Dockerfiles/localnode/
         docker:
           dockerfile: Dockerfile
       - image: valory/open-autonomy-hardhat
-        context: deployments/Dockerfiles/hardhat
+        context: autonomy/data/Dockerfiles/hardhat
   - name: cluster
     patches:
       - op: add
