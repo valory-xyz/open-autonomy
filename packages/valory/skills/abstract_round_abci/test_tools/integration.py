@@ -58,6 +58,9 @@ from packages.valory.protocols.ledger_api.custom_types import (
     TransactionReceipt,
 )
 from packages.valory.skills.abstract_round_abci.behaviour_utils import BaseBehaviour
+from packages.valory.skills.abstract_round_abci.test_tools.base import (
+    FSMBehaviourBaseCase,
+)
 from packages.valory.skills.liquidity_rebalancing_abci.rounds import (
     SynchronizedData as LiquidityRebalancingSynchronizedSata,
 )
@@ -77,9 +80,6 @@ from packages.valory.skills.transaction_settlement_abci.payloads import Signatur
 from packages.valory.skills.transaction_settlement_abci.rounds import (
     SynchronizedData as TxSettlementSynchronizedSata,
 )
-
-from tests.conftest import ROOT_DIR, make_ledger_api_connection
-from tests.test_skills.base import FSMBehaviourBaseCase
 
 
 HandlersType = List[Optional[Handler]]
@@ -120,6 +120,8 @@ class IntegrationBaseCase(FSMBehaviourBaseCase):
         "0x1CBd3b2770909D4e10f157cABC84C7264073C9Ec": "0x47c99abed3324a2707c28affff1267e45918ec8c3f20b8aa892e8b065d2942dd",
     }
     current_agent: Address
+    ROOT_DIR: str
+    make_ledger_api_connection_callable: Callable
 
     @classmethod
     def _setup_class(cls, **kwargs: Any) -> None:
@@ -135,7 +137,7 @@ class IntegrationBaseCase(FSMBehaviourBaseCase):
         cls.thread_loop = Thread(target=cls.running_loop.run_forever)
         cls.thread_loop.start()
         cls.multiplexer = Multiplexer(
-            [make_ledger_api_connection()], loop=cls.running_loop
+            [cls.make_ledger_api_connection_callable()], loop=cls.running_loop
         )
         cls.multiplexer.connect()
 
@@ -366,7 +368,7 @@ class _GnosisHelperIntegration(_SafeConfiguredHelperIntegration):
         super().setup()
 
         # register gnosis contract
-        directory = Path(ROOT_DIR, "packages", "valory", "contracts", "gnosis_safe")
+        directory = Path(cls.ROOT_DIR, "packages", "valory", "contracts", "gnosis_safe")
         gnosis = get_register_contract(directory)
 
         cls.ethereum_api = make_ledger_api("ethereum")
@@ -597,7 +599,7 @@ class GnosisIntegrationBaseCase(
 
         # register offchain aggregator contract
         directory = Path(
-            ROOT_DIR, "packages", "valory", "contracts", "offchain_aggregator"
+            cls.ROOT_DIR, "packages", "valory", "contracts", "offchain_aggregator"
         )
         _ = get_register_contract(directory)
 
@@ -614,12 +616,12 @@ class AMMIntegrationBaseCase(
 
         # register all contracts we need
         directory = Path(
-            ROOT_DIR, "packages", "valory", "contracts", "uniswap_v2_router_02"
+            cls.ROOT_DIR, "packages", "valory", "contracts", "uniswap_v2_router_02"
         )
         _ = get_register_contract(directory)
         directory = Path(
-            ROOT_DIR, "packages", "valory", "contracts", "uniswap_v2_erc20"
+            cls.ROOT_DIR, "packages", "valory", "contracts", "uniswap_v2_erc20"
         )
         _ = get_register_contract(directory)
-        directory = Path(ROOT_DIR, "packages", "valory", "contracts", "multisend")
+        directory = Path(cls.ROOT_DIR, "packages", "valory", "contracts", "multisend")
         _ = get_register_contract(directory)

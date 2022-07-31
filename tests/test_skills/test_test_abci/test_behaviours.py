@@ -28,6 +28,9 @@ from packages.valory.skills.abstract_round_abci.base import (
     BaseTxPayload,
 )
 from packages.valory.skills.abstract_round_abci.behaviour_utils import BaseBehaviour
+from packages.valory.skills.abstract_round_abci.test_tools.base import (
+    FSMBehaviourBaseCase,
+)
 from packages.valory.skills.test_abci.behaviours import (
     DummyBehaviour,
     TestAbciConsensusBehaviour,
@@ -40,7 +43,6 @@ from packages.valory.skills.test_abci.handlers import (
 )
 
 from tests.conftest import ROOT_DIR
-from tests.test_skills.base import FSMBehaviourBaseCase
 
 
 class AbciFSMBehaviourBaseCase(FSMBehaviourBaseCase):

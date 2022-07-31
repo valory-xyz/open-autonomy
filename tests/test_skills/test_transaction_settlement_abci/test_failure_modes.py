@@ -44,6 +44,16 @@ from packages.valory.protocols.ledger_api.custom_types import (
     TransactionReceipt,
 )
 from packages.valory.skills.abstract_round_abci.base import AbciAppDB
+from packages.valory.skills.abstract_round_abci.test_tools.base import (
+    FSMBehaviourBaseCase,
+)
+from packages.valory.skills.abstract_round_abci.test_tools.integration import (
+    ExpectedContentType,
+    ExpectedTypesType,
+    GnosisIntegrationBaseCase,
+    HandlersType,
+    IntegrationBaseCase,
+)
 from packages.valory.skills.oracle_abci.behaviours import (
     OracleAbciAppConsensusBehaviour,
 )
@@ -73,14 +83,6 @@ from packages.valory.skills.transaction_settlement_abci.rounds import (
 )
 
 from tests.conftest import ROOT_DIR
-from tests.test_skills.base import FSMBehaviourBaseCase
-from tests.test_skills.integration import (
-    ExpectedContentType,
-    ExpectedTypesType,
-    GnosisIntegrationBaseCase,
-    HandlersType,
-    IntegrationBaseCase,
-)
 
 
 SAFE_TX_GAS = 120000
@@ -103,6 +105,7 @@ class TransactionSettlementIntegrationBaseCase(
     """Base case for integration testing TransactionSettlement FSM Behaviour."""
 
     price_estimation_synchronized_data: PriceEstimationSynchronizedSata
+    ROOT_DIR = ROOT_DIR
 
     @classmethod
     def setup(cls, **kwargs: Any) -> None:
@@ -325,6 +328,8 @@ class TestRepricing(TransactionSettlementIntegrationBaseCase):
 
 class TestKeepers(OracleBehaviourBaseCase, IntegrationBaseCase):
     """Test the keepers related functionality for the tx settlement skill."""
+
+    ROOT_DIR = ROOT_DIR
 
     @classmethod
     def setup(cls, **kwargs: Any) -> None:

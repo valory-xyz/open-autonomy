@@ -33,6 +33,14 @@ from autonomy.test_tools.docker.base import skip_docker_tests
 from packages.valory.contracts.gnosis_safe.contract import SafeOperation
 from packages.valory.protocols.contract_api import ContractApiMessage
 from packages.valory.skills.abstract_round_abci.base import AbciAppDB
+from packages.valory.skills.abstract_round_abci.test_tools.base import (
+    FSMBehaviourBaseCase,
+)
+from packages.valory.skills.abstract_round_abci.test_tools.integration import (
+    AMMIntegrationBaseCase,
+    ExpectedContentType,
+    ExpectedTypesType,
+)
 from packages.valory.skills.liquidity_rebalancing_abci.behaviours import (
     EnterPoolTransactionHashBehaviour,
     ExitPoolTransactionHashBehaviour,
@@ -60,12 +68,6 @@ from packages.valory.skills.transaction_settlement_abci.rounds import (
 )
 
 from tests.conftest import ROOT_DIR
-from tests.test_skills.base import FSMBehaviourBaseCase
-from tests.test_skills.integration import (
-    AMMIntegrationBaseCase,
-    ExpectedContentType,
-    ExpectedTypesType,
-)
 from tests.test_skills.test_liquidity_rebalancing_abci.test_behaviours import (
     A_WETH_POOL_ADDRESS,
     B_WETH_POOL_ADDRESS,
@@ -104,6 +106,7 @@ class LiquidityProvisionIntegrationBaseCase(
     exit_nonce: int
     swap_back_nonce: int
     default_synchronized_data_hash: LiquidityRebalancingSynchronizedSata
+    ROOT_DIR = ROOT_DIR
 
     @classmethod
     def setup(cls, **kwargs: Any) -> None:
