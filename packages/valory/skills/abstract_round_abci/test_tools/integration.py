@@ -120,7 +120,7 @@ class IntegrationBaseCase(FSMBehaviourBaseCase):
         "0x1CBd3b2770909D4e10f157cABC84C7264073C9Ec": "0x47c99abed3324a2707c28affff1267e45918ec8c3f20b8aa892e8b065d2942dd",
     }
     current_agent: Address
-    ROOT_DIR: str
+    ROOT_DIR: Path
     make_ledger_api_connection_callable: Callable
 
     @classmethod
