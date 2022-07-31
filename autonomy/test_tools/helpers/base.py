@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2022 Valory AG
+#   Copyright 2022 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -17,7 +17,7 @@
 #
 # ------------------------------------------------------------------------------
 
-"""Base helpers."""
+"""Utilities for the autonomy test tools."""
 import contextlib
 import logging
 import os
@@ -27,20 +27,9 @@ from typing import Any, Generator, Tuple, Type
 
 import requests
 
+from autonomy.test_tools.configurations import DEFAULT_REQUESTS_TIMEOUT, MAX_RETRIES
+
 from packages.valory.skills.abstract_round_abci.base import AbstractRound
-
-from tests.helpers.constants import DEFAULT_REQUESTS_TIMEOUT, MAX_RETRIES
-
-
-@contextlib.contextmanager
-def cd(path: PathLike) -> Generator:  # pragma: nocover
-    """Change working directory temporarily."""
-    old_path = os.getcwd()
-    os.chdir(path)
-    try:
-        yield
-    finally:
-        os.chdir(old_path)
 
 
 def tendermint_health_check(
@@ -54,7 +43,7 @@ def tendermint_health_check(
     while attempt < max_retries:
         try:
             response = requests.get(url + "/health", timeout=timeout)
-            assert response.status_code == 200
+            assert response.status_code == 200  # nosec
             return True
         except (AssertionError, requests.exceptions.ConnectionError):
             attempt += 1
@@ -63,6 +52,17 @@ def tendermint_health_check(
         )
         time.sleep(sleep_interval)
     return False
+
+
+@contextlib.contextmanager
+def cd(path: PathLike) -> Generator:  # pragma: nocover
+    """Change working directory temporarily."""
+    old_path = os.getcwd()
+    os.chdir(path)
+    try:
+        yield
+    finally:
+        os.chdir(old_path)
 
 
 def try_send(gen: Generator, obj: Any = None) -> None:
@@ -80,5 +80,5 @@ def make_round_class(name: str, bases: Tuple = (AbstractRound,)) -> Type[Abstrac
     """Make a round class."""
     new_round_cls = type(name, bases, {})
     setattr(new_round_cls, "round_id", name)  # noqa: B010
-    assert issubclass(new_round_cls, AbstractRound)
+    assert issubclass(new_round_cls, AbstractRound)  # nosec
     return new_round_cls

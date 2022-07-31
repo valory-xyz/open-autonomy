@@ -37,12 +37,12 @@ from aea_ledger_ethereum import (
     EthereumCrypto,
 )
 
-from tests.fixture_helpers import (
+from autonomy.test_tools.fixture_helpers import (
     GanacheBaseTest,
     HardHatAMMBaseTest,
     HardHatGnosisBaseTest,
 )
-from tests.helpers.contracts import get_register_contract
+from autonomy.test_tools.helpers.contracts import get_register_contract
 
 
 class BaseContractTest(ABC):
@@ -77,13 +77,15 @@ class BaseContractTest(ABC):
         )
         with TemporaryDirectory() as temp_dir:
             output_file = Path(os.path.join(temp_dir, "key_file"))
-            with open(output_file, "w") as text_file:
+            with open(  # pylint: disable=unspecified-encoding
+                output_file, "w"
+            ) as text_file:
                 text_file.write(key_pairs[0][1])
             cls.deployer_crypto = crypto_registry.make(
                 cls.identifier, private_key_path=output_file
             )
         cls.deploy(**cls.deployment_kwargs())
-        assert cls.contract_address is not None, "Contract not deployed."
+        assert cls.contract_address is not None, "Contract not deployed."  # nosec
 
     @classmethod
     def deploy(cls, **kwargs: Any) -> None:
@@ -110,6 +112,7 @@ class BaseContractTest(ABC):
             else contract_address
         )
         cls.contract_address = cast(str, contract_address)
+        return None
 
     @classmethod
     def deployment_kwargs(cls) -> Dict[str, Any]:
@@ -165,8 +168,6 @@ class BaseContractWithDependencyTest(BaseContractTest):
     @classmethod
     def _setup_class(cls, **kwargs: Any) -> None:
         """Deploy the dependencies then setups the contract"""
-
-        """Setup test."""
         key_pairs: List[Tuple[str, str]] = kwargs.pop("key_pairs")
         url: str = kwargs.pop("url")
         new_config = {
@@ -186,7 +187,9 @@ class BaseContractWithDependencyTest(BaseContractTest):
         )
         with TemporaryDirectory() as temp_dir:
             output_file = Path(os.path.join(temp_dir, "key_file"))
-            with open(output_file, "w") as text_file:
+            with open(  # pylint: disable=unspecified-encoding
+                output_file, "w"
+            ) as text_file:
                 text_file.write(key_pairs[0][1])
             cls.deployer_crypto = crypto_registry.make(
                 cls.identifier, private_key_path=output_file
@@ -195,7 +198,7 @@ class BaseContractWithDependencyTest(BaseContractTest):
         cls._deploy_dependencies()
 
         cls.deploy(**cls.deployment_kwargs())
-        assert cls.contract_address is not None, "Contract not deployed."
+        assert cls.contract_address is not None, "Contract not deployed."  # nosec
 
 
 class BaseGanacheContractWithDependencyTest(

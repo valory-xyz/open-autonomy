@@ -22,7 +22,10 @@ from typing import Tuple
 
 import pytest
 
-from tests.test_agents.base import BaseTestEnd2EndExecution, RoundChecks
+from autonomy.test_tools.base_test_classes.agents import (
+    BaseTestEnd2EndExecution,
+    RoundChecks,
+)
 
 
 # round check log messages of the happy path

@@ -46,6 +46,8 @@ except (ImportError, ModuleNotFoundError):
     pytestmark = pytest.mark.skip
 
 
+from autonomy.test_tools.helpers.base import try_send
+
 from packages.open_aea.protocols.signing import SigningMessage
 from packages.valory.connections.http_client.connection import HttpDialogues
 from packages.valory.protocols.http import HttpMessage
@@ -76,8 +78,6 @@ from packages.valory.skills.abstract_round_abci.models import (
     _DEFAULT_TX_MAX_ATTEMPTS,
     _DEFAULT_TX_TIMEOUT,
 )
-
-from tests.helpers.base import try_send
 
 
 def yield_and_return_bool_wrapper(

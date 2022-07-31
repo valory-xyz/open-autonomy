@@ -28,6 +28,8 @@ import pytest
 from aea.test_tools.test_contract import BaseContractTestCase
 from aea_ledger_ethereum import EthereumCrypto
 
+from autonomy.test_tools.docker.base import skip_docker_tests
+
 from packages.valory.contracts.service_registry.contract import (
     DEPLOYED_BYTECODE_MD5_HASH,
     PUBLIC_ID,
@@ -35,7 +37,6 @@ from packages.valory.contracts.service_registry.contract import (
 )
 
 from tests.conftest import ROOT_DIR
-from tests.helpers.docker.base import skip_docker_tests
 
 
 SERVICE_REGISTRY = "0x0DCd1Bf9A1b36cE34237eEaFef220932846BCD82"

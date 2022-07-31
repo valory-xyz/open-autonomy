@@ -27,7 +27,7 @@ from aea.exceptions import enforce
 from docker import DockerClient
 from docker.models.containers import Container
 
-from tests.helpers.docker.base import DockerImage
+from autonomy.test_tools.docker.base import DockerImage
 
 
 DEFAULT_GANACHE_ADDR = "http://127.0.0.1"
@@ -100,7 +100,7 @@ class GanacheDockerImage(DockerImage):
                 response = requests.post(f"{self._addr}:{self._port}", json=request)
                 enforce(response.status_code == 200, "")
                 return True
-            except Exception:
+            except Exception:  # pylint: disable=broad-except
                 logging.error(
                     "Attempt %s failed. Retrying in %s seconds...", i, sleep_rate
                 )
