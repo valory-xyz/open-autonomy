@@ -53,7 +53,7 @@ _SLEEP_TIME = 1
 class TendermintDockerImage(DockerImage):
     """Tendermint Docker image."""
 
-    def __init__(
+    def __init__(  # pylint: disable=too-many-arguments
         self,
         client: docker.DockerClient,
         abci_host: str = DEFAULT_ABCI_HOST,
@@ -121,7 +121,7 @@ class FlaskTendermintDockerImage(TendermintDockerImage):
 
     _extra_hosts: Dict[str, str]
 
-    def __init__(
+    def __init__(  # pylint: disable=too-many-arguments
         self,
         client: docker.DockerClient,
         abci_host: str = DEFAULT_ABCI_HOST,
@@ -151,7 +151,7 @@ class FlaskTendermintDockerImage(TendermintDockerImage):
                 "valory/oracle_hardhat",
                 "--dependencies",
             ]
-            subprocess.run(cmd)  # nosec
+            subprocess.run(cmd)  # nosec   # pylint: disable=subprocess-run-check
             os.chdir(cwd)
 
     @property
@@ -175,7 +175,7 @@ class FlaskTendermintDockerImage(TendermintDockerImage):
             self.get_node_name(i),
             "show-node-id",
         ]
-        process = subprocess.Popen(  # nosec
+        process = subprocess.Popen(  # nosec    # pylint: disable=consider-using-with
             cmd,
             stdout=subprocess.PIPE,
         )
@@ -281,7 +281,7 @@ class FlaskTendermintDockerImage(TendermintDockerImage):
         container = self._client.containers.run(**run_kwargs)
         return container
 
-    def _fix_persistent_peers(self) -> None:
+    def _fix_persistent_peers(self) -> None:  # pylint: disable=too-many-locals
         """
         Fix the persistent peers' ports in the configuration file.
 
@@ -327,7 +327,9 @@ class FlaskTendermintDockerImage(TendermintDockerImage):
         for i in range(self.nb_nodes):
             path = Path(f"{os.getcwd()}", "nodes", f"node{i}", "config")
             os.makedirs(path)
-            open(path / "config.toml", "a").close()
+            open(  # pylint: disable=consider-using-with,unspecified-encoding
+                path / "config.toml", "a"
+            ).close()
 
     def _create_testnet(self) -> None:
         """Create the Tendermint testnet."""
@@ -350,11 +352,11 @@ class FlaskTendermintDockerImage(TendermintDockerImage):
         for i in range(self.nb_nodes):
             cmd.append(f"--hostname=node{i}")
 
-        subprocess.run(cmd)  # nosec
+        subprocess.run(cmd)  # nosec  # pylint: disable=subprocess-run-check
 
     def _create_config(self, nb_nodes: int) -> None:
         """Create necessary configuration."""
-        self.nb_nodes = nb_nodes
+        self.nb_nodes = nb_nodes  # pylint: disable=attribute-defined-outside-init
         self._grant_permissions()
         self._create_testnet()
         self._fix_persistent_peers()

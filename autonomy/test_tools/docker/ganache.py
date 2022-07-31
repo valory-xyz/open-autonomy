@@ -100,7 +100,7 @@ class GanacheDockerImage(DockerImage):
                 response = requests.post(f"{self._addr}:{self._port}", json=request)
                 enforce(response.status_code == 200, "")
                 return True
-            except Exception:
+            except Exception:  # pylint: disable=broad-except
                 logging.error(
                     "Attempt %s failed. Retrying in %s seconds...", i, sleep_rate
                 )

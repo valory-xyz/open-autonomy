@@ -110,7 +110,7 @@ class ACNNodeDockerImage(DockerImage):
                     to_be_connected.remove(uri)
                     logging.info(f"URI ready: {uri}")
                     break
-                except Exception:
+                except Exception:  # pylint: disable=broad-except
                     logging.error(
                         f"Attempt {i} failed on {uri}. Retrying in {sleep_rate} seconds..."
                     )

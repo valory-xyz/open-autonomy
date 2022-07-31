@@ -67,7 +67,7 @@ class GnosisSafeNetDockerImage(DockerImage):
         """Get the tag."""
         return "node:16.7.0"
 
-    def _update_config(self) -> None:
+    def _update_config(self) -> None:  # pylint: disable=no-self-use
         """Build command."""
         for line in fileinput.input(CONFIG_FILE, inplace=True):
             if "      gas: 100000000\n" in line:

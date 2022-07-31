@@ -77,7 +77,9 @@ class BaseContractTest(ABC):
         )
         with TemporaryDirectory() as temp_dir:
             output_file = Path(os.path.join(temp_dir, "key_file"))
-            with open(output_file, "w") as text_file:
+            with open(  # pylint: disable=unspecified-encoding
+                output_file, "w"
+            ) as text_file:
                 text_file.write(key_pairs[0][1])
             cls.deployer_crypto = crypto_registry.make(
                 cls.identifier, private_key_path=output_file
@@ -110,6 +112,7 @@ class BaseContractTest(ABC):
             else contract_address
         )
         cls.contract_address = cast(str, contract_address)
+        return None
 
     @classmethod
     def deployment_kwargs(cls) -> Dict[str, Any]:
@@ -165,8 +168,6 @@ class BaseContractWithDependencyTest(BaseContractTest):
     @classmethod
     def _setup_class(cls, **kwargs: Any) -> None:
         """Deploy the dependencies then setups the contract"""
-
-        """Setup test."""
         key_pairs: List[Tuple[str, str]] = kwargs.pop("key_pairs")
         url: str = kwargs.pop("url")
         new_config = {
@@ -186,7 +187,9 @@ class BaseContractWithDependencyTest(BaseContractTest):
         )
         with TemporaryDirectory() as temp_dir:
             output_file = Path(os.path.join(temp_dir, "key_file"))
-            with open(output_file, "w") as text_file:
+            with open(  # pylint: disable=unspecified-encoding
+                output_file, "w"
+            ) as text_file:
                 text_file.write(key_pairs[0][1])
             cls.deployer_crypto = crypto_registry.make(
                 cls.identifier, private_key_path=output_file

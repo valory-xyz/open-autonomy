@@ -66,7 +66,7 @@ class DockerImage(ABC):
         if result is None:
             pytest.skip("Docker not in the OS Path; skipping the test")
 
-        result_ = subprocess.run(  # nosec
+        result_ = subprocess.run(  # nosec   # pylint: disable=subprocess-run-check
             ["docker", "--version"], stdout=subprocess.PIPE, stderr=subprocess.PIPE
         )
         if result_.returncode != 0:

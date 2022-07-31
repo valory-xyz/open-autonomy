@@ -18,6 +18,13 @@
 # ------------------------------------------------------------------------------
 
 """This module contains helper classes/functions for fixtures."""
+
+# needed because many test base classes do not have public methods
+# pylint: disable=too-few-public-methods
+
+# needed because many fixture auto-loaders of test classes do not use fixtures
+# pylint: disable=unused-argument
+
 import logging
 from typing import Any, Dict, List, Tuple, cast
 
@@ -65,7 +72,7 @@ class UseTendermint:
     ) -> None:
         """Start a Tendermint image."""
         cls = type(self)
-        cls._tendermint_image = tendermint
+        cls._tendermint_image = tendermint  # pylint: disable=protected-access
         cls.tendermint_port = tendermint_port
 
     @property
@@ -93,8 +100,12 @@ class UseFlaskTendermintNode:
         self, flask_tendermint: FlaskTendermintDockerImage, tendermint_port: Any
     ) -> None:
         """Start a Tendermint image."""
-        self._tendermint_image = flask_tendermint
-        self.tendermint_port = tendermint_port
+        self._tendermint_image = (  # pylint: disable=attribute-defined-outside-init
+            flask_tendermint
+        )
+        self.tendermint_port = (  # pylint: disable=attribute-defined-outside-init
+            tendermint_port
+        )
 
     @property
     def p2p_seeds(self) -> List[str]:
@@ -154,7 +165,14 @@ class UseGanache:
         cls.key_pairs = cast(
             List[Tuple[str, str]],
             [
-                key if type(key) == tuple else (Account.from_key(key).address, key)
+                key
+                if type(key) == tuple  # pylint: disable=unidiomatic-typecheck
+                else (
+                    Account.from_key(  # pylint: disable=no-value-for-parameter
+                        key
+                    ).address,
+                    key,
+                )
                 for key, _ in ganache_configuration.get("accounts_balances", [])
             ],
         )
@@ -228,7 +246,14 @@ class GanacheBaseTest(DockerBaseTest):
         key_pairs = cast(
             List[Tuple[str, str]],
             [
-                key if type(key) == tuple else (Account.from_key(key).address, key)
+                key
+                if type(key) == tuple  # pylint: disable=unidiomatic-typecheck
+                else (
+                    Account.from_key(  # pylint: disable=no-value-for-parameter
+                        key
+                    ).address,
+                    key,
+                )
                 for key, _ in cls.configuration.get("accounts_balances", [])
             ],
         )

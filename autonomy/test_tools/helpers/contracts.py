@@ -30,7 +30,7 @@ from aea.contracts.base import Contract, contract_registry
 def get_register_contract(directory: Path) -> Contract:
     """Get and register the erc1155 contract package."""
     configuration = load_component_configuration(ComponentType.CONTRACT, directory)
-    configuration._directory = directory
+    configuration._directory = directory  # pylint: disable=protected-access
     configuration = cast(ContractConfig, configuration)
 
     if str(configuration.public_id) not in contract_registry.specs:
