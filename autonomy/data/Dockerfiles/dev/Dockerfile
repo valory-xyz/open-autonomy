@@ -21,9 +21,6 @@ RUN python -m pip install --force-reinstall pipenv virtualenv --user
 RUN python -m pip uninstall -y setuptools
 WORKDIR /home/ubuntu
 
-RUN aea init --reset --local --ipfs --author ${AUTHOR}
-
-
 COPY start_dev.sh /home/ubuntu/start_dev.sh
 COPY start.sh /home/ubuntu/start.sh
 COPY watcher.py /home/ubuntu/watcher.py
