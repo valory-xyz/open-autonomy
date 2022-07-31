@@ -32,6 +32,8 @@ from aea.protocols.base import Message
 from aea.protocols.dialogue.base import Dialogue
 from aea_ledger_ethereum import EthereumCrypto
 
+from autonomy.test_tools.docker.base import skip_docker_tests
+
 from packages.valory.connections.ledger.connection import LedgerConnection
 from packages.valory.contracts.gnosis_safe.contract import (
     PUBLIC_ID as GNOSIS_SAFE_PUBLIC_ID,
@@ -43,7 +45,6 @@ from packages.valory.protocols.contract_api.dialogues import (
 from packages.valory.protocols.contract_api.message import ContractApiMessage
 
 from tests.conftest import ETHEREUM_KEY_DEPLOYER, get_key
-from tests.helpers.docker.base import skip_docker_tests
 
 
 SOME_SKILL_ID = "some/skill:0.1.0"

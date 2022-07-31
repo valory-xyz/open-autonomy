@@ -43,29 +43,30 @@ from aea_ledger_ethereum import (
 )
 from web3 import Web3
 
-from tests.helpers.constants import KEY_PAIRS
-from tests.helpers.constants import ROOT_DIR as _ROOT_DIR
-from tests.helpers.contracts import get_register_contract
-from tests.helpers.docker.acn_node import ACNNodeDockerImage, DEFAULT_ACN_CONFIG
-from tests.helpers.docker.base import launch_image, launch_many_containers
-from tests.helpers.docker.ganache import (
+from autonomy.test_tools.docker.acn_node import ACNNodeDockerImage, DEFAULT_ACN_CONFIG
+from autonomy.test_tools.docker.base import launch_image, launch_many_containers
+from autonomy.test_tools.docker.ganache import (
     DEFAULT_GANACHE_ADDR,
     DEFAULT_GANACHE_CHAIN_ID,
     DEFAULT_GANACHE_PORT,
     GanacheDockerImage,
 )
-from tests.helpers.docker.gnosis_safe_net import (
+from autonomy.test_tools.docker.gnosis_safe_net import (
     DEFAULT_HARDHAT_ADDR,
     DEFAULT_HARDHAT_PORT,
     GnosisSafeNetDockerImage,
 )
-from tests.helpers.docker.tendermint import (
+from autonomy.test_tools.docker.tendermint import (
     DEFAULT_ABCI_HOST,
     DEFAULT_ABCI_PORT,
     DEFAULT_TENDERMINT_PORT,
     FlaskTendermintDockerImage,
     TendermintDockerImage,
 )
+
+from tests.helpers.constants import KEY_PAIRS
+from tests.helpers.constants import ROOT_DIR as _ROOT_DIR
+from tests.helpers.contracts import get_register_contract
 
 
 def get_key(key_path: Path) -> str:

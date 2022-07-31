@@ -41,6 +41,8 @@ from aea.protocols.dialogue.base import Dialogue as BaseDialogue
 from hypothesis import given
 from hypothesis.strategies import integers
 
+from autonomy.test_tools.docker.base import skip_docker_tests
+
 from packages.valory.connections.abci import check_dependencies as dep_utils
 from packages.valory.connections.abci.connection import (
     ABCIServerConnection,
@@ -77,7 +79,6 @@ from tests.helpers.async_utils import (
     wait_for_condition,
 )
 from tests.helpers.constants import HTTP_LOCALHOST
-from tests.helpers.docker.base import skip_docker_tests
 
 
 class AsyncBytesIO:

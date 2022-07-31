@@ -25,25 +25,26 @@ import docker
 import pytest
 from eth_account import Account
 
-from tests.conftest import GANACHE_CONFIGURATION
-from tests.helpers.constants import KEY_PAIRS, LOCALHOST
-from tests.helpers.docker.acn_node import ACNNodeDockerImage, DEFAULT_ACN_CONFIG
-from tests.helpers.docker.amm_net import AMMNetDockerImage
-from tests.helpers.docker.base import DockerBaseTest, DockerImage
-from tests.helpers.docker.ganache import (
+from autonomy.test_tools.docker.acn_node import ACNNodeDockerImage, DEFAULT_ACN_CONFIG
+from autonomy.test_tools.docker.amm_net import AMMNetDockerImage
+from autonomy.test_tools.docker.base import DockerBaseTest, DockerImage
+from autonomy.test_tools.docker.ganache import (
     DEFAULT_GANACHE_ADDR,
     DEFAULT_GANACHE_PORT,
     GanacheDockerImage,
 )
-from tests.helpers.docker.gnosis_safe_net import (
+from autonomy.test_tools.docker.gnosis_safe_net import (
     DEFAULT_HARDHAT_ADDR,
     DEFAULT_HARDHAT_PORT,
     GnosisSafeNetDockerImage,
 )
-from tests.helpers.docker.tendermint import (
+from autonomy.test_tools.docker.tendermint import (
     FlaskTendermintDockerImage,
     TendermintDockerImage,
 )
+
+from tests.conftest import GANACHE_CONFIGURATION
+from tests.helpers.constants import KEY_PAIRS, LOCALHOST
 
 
 logger = logging.getLogger(__name__)

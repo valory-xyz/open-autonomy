@@ -41,6 +41,9 @@ from aea.mail.base import Envelope, Message
 from aea.protocols.dialogue.base import Dialogue as BaseDialogue
 from aea_ledger_ethereum import EthereumCrypto
 
+from autonomy.test_tools.docker.base import skip_docker_tests
+from autonomy.test_tools.docker.ganache import DEFAULT_GANACHE_CHAIN_ID
+
 from packages.valory.connections.ledger.connection import LedgerConnection
 from packages.valory.connections.ledger.ledger_dispatcher import (
     LedgerApiRequestDispatcher,
@@ -53,8 +56,6 @@ from packages.valory.protocols.ledger_api.dialogues import (
 from packages.valory.protocols.ledger_api.message import LedgerApiMessage
 
 from tests.conftest import ETHEREUM_KEY_DEPLOYER
-from tests.helpers.docker.base import skip_docker_tests
-from tests.helpers.docker.ganache import DEFAULT_GANACHE_CHAIN_ID
 
 
 SOME_SKILL_ID = "some/skill:0.1.0"

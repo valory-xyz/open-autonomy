@@ -18,3 +18,11 @@
 # ------------------------------------------------------------------------------
 
 """Package that contains tools for easier writing of autonomy tests."""
+import inspect
+import os
+from pathlib import Path
+
+
+CUR_PATH = os.path.dirname(inspect.getfile(inspect.currentframe()))  # type: ignore
+ROOT_DIR = Path(CUR_PATH, "..", "..").resolve().absolute()
+THIRD_PARTY = ROOT_DIR / "third_party"

@@ -37,6 +37,8 @@ from web3.eth import Eth
 from web3.exceptions import SolidityError
 from web3.types import TxData
 
+from autonomy.test_tools.docker.base import skip_docker_tests
+
 from packages.valory.contracts.gnosis_safe.contract import (
     GnosisSafeContract,
     SAFE_CONTRACT,
@@ -49,7 +51,6 @@ from tests.conftest import (
     ROOT_DIR,
 )
 from tests.helpers.contracts import get_register_contract
-from tests.helpers.docker.base import skip_docker_tests
 from tests.test_contracts.base import (
     BaseGanacheContractTest,
     BaseHardhatGnosisContractTest,
