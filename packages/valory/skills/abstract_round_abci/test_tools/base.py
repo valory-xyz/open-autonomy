@@ -60,6 +60,9 @@ from packages.valory.skills.abstract_round_abci.handlers import (
 )
 
 
+# pylint: disable=protected-access,too-few-public-methods,consider-using-with
+
+
 class FSMBehaviourBaseCase(BaseSkillTestCase):
     """Base case for testing FSMBehaviour classes."""
 

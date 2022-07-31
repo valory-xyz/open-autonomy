@@ -82,6 +82,8 @@ from packages.valory.skills.transaction_settlement_abci.rounds import (
 )
 
 
+# pylint: disable=protected-access,too-many-ancestors,unbalanced-tuple-unpacking,too-many-locals,consider-using-with,unspecified-encoding,too-many-arguments,unidiomatic-typecheck
+
 HandlersType = List[Optional[Handler]]
 ExpectedContentType = List[
     Optional[
