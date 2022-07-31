@@ -52,7 +52,7 @@ base_deps = [
     "pandas<1.4,>=1.3.4",
     "watchdog >=2.1.6",
     "pytest==7.0.0",
-    "docker==5.0.3"
+    "docker @ git+https://github.com/docker/docker-py.git@3f0095a7c1966c521652314e524ff362c24ff58c"
 ]
 base_deps.extend(all_extras["cli"])
 
