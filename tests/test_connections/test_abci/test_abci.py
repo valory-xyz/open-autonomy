@@ -41,6 +41,7 @@ from aea.protocols.dialogue.base import Dialogue as BaseDialogue
 from hypothesis import given
 from hypothesis.strategies import integers
 
+from autonomy.test_tools.configurations import HTTP_LOCALHOST
 from autonomy.test_tools.docker.base import skip_docker_tests
 
 from packages.valory.connections.abci import check_dependencies as dep_utils
@@ -78,7 +79,6 @@ from tests.helpers.async_utils import (
     BaseThreadedAsyncLoop,
     wait_for_condition,
 )
-from tests.helpers.constants import HTTP_LOCALHOST
 
 
 class AsyncBytesIO:

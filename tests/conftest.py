@@ -18,7 +18,9 @@
 # ------------------------------------------------------------------------------
 
 """Conftest module for Pytest."""
+import inspect
 import logging
+import os
 import socket
 import time
 from pathlib import Path
@@ -46,6 +48,7 @@ from web3 import Web3
 from autonomy.test_tools.configurations import (
     ETHEREUM_KEY_DEPLOYER,
     GANACHE_CONFIGURATION,
+    KEY_PAIRS,
 )
 from autonomy.test_tools.docker.acn_node import ACNNodeDockerImage, DEFAULT_ACN_CONFIG
 from autonomy.test_tools.docker.base import launch_image, launch_many_containers
@@ -68,12 +71,11 @@ from autonomy.test_tools.docker.tendermint import (
     TendermintDockerImage,
 )
 
-from tests.helpers.constants import KEY_PAIRS
-from tests.helpers.constants import ROOT_DIR as _ROOT_DIR
 from tests.helpers.contracts import get_register_contract
 
 
-ROOT_DIR = _ROOT_DIR
+CUR_PATH = os.path.dirname(inspect.getfile(inspect.currentframe()))  # type: ignore
+ROOT_DIR = Path(CUR_PATH, "..").resolve().absolute()
 UNKNOWN_PROTOCOL_PUBLIC_ID = PublicId("unused", "unused", "1.0.0")
 
 NB_OWNERS = 4

@@ -25,9 +25,8 @@ from typing import Any, List
 
 import pytest
 
+from autonomy.test_tools.configurations import LOCALHOST
 from autonomy.test_tools.utils import tendermint_health_check
-
-from tests.helpers.constants import LOCALHOST
 
 
 _TCP = "tcp://"
