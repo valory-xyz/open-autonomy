@@ -218,15 +218,15 @@ class IntegrationBaseCase(FSMBehaviourBaseCase):
         if type(handler) == SigningHandler:
             self.assert_quantity_in_decision_making_queue(1)
             message = self.get_message_from_decision_maker_inbox()
-            assert message is not None, "No message in outbox."
+            assert message is not None, "No message in outbox."  # nosec
             self.decision_maker.handle(message)
             if handler is not None:
                 incoming_message = self.decision_maker.message_out_queue.get(block=True)
-                assert isinstance(incoming_message, Message)
+                assert isinstance(incoming_message, Message)  # nosec
         else:
             self.assert_quantity_in_outbox(1)
             message = self.get_message_from_outbox()
-            assert message is not None, "No message in outbox."
+            assert message is not None, "No message in outbox."  # nosec
             self.multiplexer.put(
                 Envelope(
                     to=message.to,
@@ -237,14 +237,14 @@ class IntegrationBaseCase(FSMBehaviourBaseCase):
             )
             if handler is not None:
                 envelope = self.multiplexer.get(block=True)
-                assert envelope is not None, "No envelope"
+                assert envelope is not None, "No envelope"  # nosec
                 incoming_message = envelope.message
-                assert isinstance(incoming_message, Message)
+                assert isinstance(incoming_message, Message)  # nosec
 
         if handler is not None:
-            assert incoming_message is not None
+            assert incoming_message is not None  # nosec
             if expected_content is not None:
-                assert all(
+                assert all(  # nosec
                     [
                         incoming_message._body.get(key, None) == value
                         for key, value in expected_content.items()
@@ -252,7 +252,7 @@ class IntegrationBaseCase(FSMBehaviourBaseCase):
                 ), f"Actual content: {incoming_message._body}, expected: {expected_content}"
 
             if expected_types is not None:
-                assert all(
+                assert all(  # nosec
                     [
                         type(incoming_message._body.get(key, None)) == value_type
                         for key, value_type in expected_types.items()
@@ -297,7 +297,7 @@ class IntegrationBaseCase(FSMBehaviourBaseCase):
             [None] * ncycles if expected_content is None else expected_content
         )
         expected_types = [None] * ncycles if expected_types is None else expected_types
-        assert (
+        assert (  # nosec
             len(expected_content) == len(expected_types)
             and len(expected_content) == len(handlers)
             and len(expected_content) == ncycles
@@ -309,7 +309,7 @@ class IntegrationBaseCase(FSMBehaviourBaseCase):
                 behaviour_id=behaviour_id,
                 synchronized_data=synchronized_data,
             )
-            assert (
+            assert (  # nosec
                 cast(BaseBehaviour, self.behaviour.current_behaviour).behaviour_id
                 == behaviour_id
             )
@@ -352,7 +352,7 @@ class _SafeConfiguredHelperIntegration(IntegrationBaseCase):
                 crypto = make_crypto("ethereum", private_key_path=str(fp))
             cls.safe_owners[address] = crypto
         cls.keeper_address = cls.current_agent
-        assert cls.keeper_address in cls.safe_owners
+        assert cls.keeper_address in cls.safe_owners  # nosec
 
 
 class _GnosisHelperIntegration(_SafeConfiguredHelperIntegration):
@@ -408,8 +408,8 @@ class _TxHelperIntegration(_GnosisHelperIntegration):
         expected_safe_owners = (
             self.tx_settlement_synchronized_data.participant_to_signature.keys()
         )
-        assert len(actual_safe_owners) == len(expected_safe_owners)
-        assert all(
+        assert len(actual_safe_owners) == len(expected_safe_owners)  # nosec
+        assert all(  # nosec
             owner == signer
             for owner, signer in zip(actual_safe_owners, expected_safe_owners)
         )
@@ -423,7 +423,7 @@ class _TxHelperIntegration(_GnosisHelperIntegration):
             synchronized_data=self.tx_settlement_synchronized_data,
         )
         behaviour = cast(FinalizeBehaviour, self.behaviour.current_behaviour)
-        assert behaviour.behaviour_id == FinalizeBehaviour.behaviour_id
+        assert behaviour.behaviour_id == FinalizeBehaviour.behaviour_id  # nosec
         stored_nonce = behaviour.params.nonce
         stored_gas_price = behaviour.params.gas_price
 
@@ -457,8 +457,8 @@ class _TxHelperIntegration(_GnosisHelperIntegration):
             expected_types,
             fail_send_a2a=simulate_timeout,
         )
-        assert msg1 is not None and isinstance(msg1, ContractApiMessage)
-        assert msg3 is not None and isinstance(msg3, LedgerApiMessage)
+        assert msg1 is not None and isinstance(msg1, ContractApiMessage)  # nosec
+        assert msg3 is not None and isinstance(msg3, LedgerApiMessage)  # nosec
         nonce_used = Nonce(int(cast(str, msg1.raw_transaction.body["nonce"])))
         gas_price_used = {
             gas_price_param: Wei(
@@ -478,18 +478,18 @@ class _TxHelperIntegration(_GnosisHelperIntegration):
         }
 
         behaviour = cast(FinalizeBehaviour, self.behaviour.current_behaviour)
-        assert behaviour.params.gas_price == gas_price_used
-        assert behaviour.params.nonce == nonce_used
+        assert behaviour.params.gas_price == gas_price_used  # nosec
+        assert behaviour.params.nonce == nonce_used  # nosec
         if simulate_timeout:
-            assert behaviour.params.tx_hash == tx_digest
+            assert behaviour.params.tx_hash == tx_digest  # nosec
         else:
-            assert behaviour.params.tx_hash == ""
+            assert behaviour.params.tx_hash == ""  # nosec
 
         # if we are repricing
         if nonce_used == stored_nonce:
-            assert stored_nonce is not None
-            assert stored_gas_price is not None
-            assert gas_price_used == {
+            assert stored_nonce is not None  # nosec
+            assert stored_gas_price is not None  # nosec
+            assert gas_price_used == {  # nosec
                 gas_price_param: ceil(
                     stored_gas_price[gas_price_param] * DUMMY_REPRICING_MULTIPLIER
                 )
@@ -497,7 +497,7 @@ class _TxHelperIntegration(_GnosisHelperIntegration):
             }, "The repriced parameters do not match the ones returned from the gas pricing method!"
         # if we are not repricing
         else:
-            assert gas_price_used == {
+            assert gas_price_used == {  # nosec
                 "maxPriorityFeePerGas": DUMMY_MAX_PRIORITY_FEE_PER_GAS,
                 "maxFeePerGas": DUMMY_MAX_FEE_PER_GAS,
             }, "The used parameters do not match the ones returned from the gas pricing method!"
@@ -511,7 +511,9 @@ class _TxHelperIntegration(_GnosisHelperIntegration):
             )
         else:
             # store the tx hash that we have missed and update missed messages.
-            assert isinstance(self.behaviour.current_behaviour, FinalizeBehaviour)
+            assert isinstance(  # nosec
+                self.behaviour.current_behaviour, FinalizeBehaviour
+            )
             self.mock_a2a_transaction()
             self.behaviour.current_behaviour.params.tx_hash = tx_digest
             update_params = dict(
@@ -558,8 +560,10 @@ class _TxHelperIntegration(_GnosisHelperIntegration):
                 expected_types,
                 mining_interval_secs=mining_interval_secs,
             )
-            assert verif_msg is not None and isinstance(verif_msg, ContractApiMessage)
-            assert verif_msg.state.body[
+            assert verif_msg is not None and isinstance(  # nosec
+                verif_msg, ContractApiMessage
+            )
+            assert verif_msg.state.body[  # nosec
                 "verified"
             ], f"Message not verified: {verif_msg.state.body}"
 

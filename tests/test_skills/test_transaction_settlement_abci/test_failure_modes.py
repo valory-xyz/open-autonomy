@@ -82,7 +82,7 @@ from packages.valory.skills.transaction_settlement_abci.rounds import (
     SynchronizedData as TxSettlementSynchronizedSata,
 )
 
-from tests.conftest import ROOT_DIR
+from tests.conftest import ROOT_DIR, make_ledger_api_connection
 
 
 SAFE_TX_GAS = 120000
@@ -106,6 +106,7 @@ class TransactionSettlementIntegrationBaseCase(
 
     price_estimation_synchronized_data: PriceEstimationSynchronizedSata
     ROOT_DIR = ROOT_DIR
+    make_ledger_api_connection_callable = make_ledger_api_connection
 
     @classmethod
     def setup(cls, **kwargs: Any) -> None:
@@ -330,6 +331,7 @@ class TestKeepers(OracleBehaviourBaseCase, IntegrationBaseCase):
     """Test the keepers related functionality for the tx settlement skill."""
 
     ROOT_DIR = ROOT_DIR
+    make_ledger_api_connection_callable = make_ledger_api_connection
 
     @classmethod
     def setup(cls, **kwargs: Any) -> None:
