@@ -42,8 +42,7 @@ from autonomy.test_tools.fixture_helpers import (
     HardHatAMMBaseTest,
     HardHatGnosisBaseTest,
 )
-
-from tests.helpers.contracts import get_register_contract
+from autonomy.test_tools.helpers.contracts import get_register_contract
 
 
 class BaseContractTest(ABC):

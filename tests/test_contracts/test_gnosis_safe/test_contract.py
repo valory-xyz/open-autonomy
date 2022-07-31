@@ -43,6 +43,7 @@ from autonomy.test_tools.configurations import (
     ETHEREUM_KEY_PATH_3,
 )
 from autonomy.test_tools.docker.base import skip_docker_tests
+from autonomy.test_tools.helpers.contracts import get_register_contract
 
 from packages.valory.contracts.gnosis_safe.contract import (
     GnosisSafeContract,
@@ -50,7 +51,6 @@ from packages.valory.contracts.gnosis_safe.contract import (
 )
 
 from tests.conftest import ROOT_DIR
-from tests.helpers.contracts import get_register_contract
 from tests.test_contracts.base import (
     BaseGanacheContractTest,
     BaseHardhatGnosisContractTest,

@@ -70,8 +70,7 @@ from autonomy.test_tools.docker.tendermint import (
     FlaskTendermintDockerImage,
     TendermintDockerImage,
 )
-
-from tests.helpers.contracts import get_register_contract
+from autonomy.test_tools.helpers.contracts import get_register_contract
 
 
 CUR_PATH = os.path.dirname(inspect.getfile(inspect.currentframe()))  # type: ignore
