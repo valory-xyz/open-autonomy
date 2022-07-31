@@ -27,7 +27,7 @@ from tests.test_connections.test_fuzz.mock_node.channels.grpc_channel import Grp
 from tests.test_connections.test_fuzz.mock_node.channels.tcp_channel import TcpChannel
 
 
-@pytest.mark.skip(reason="takes too long time to complete on CI")
+@pytest.mark.skip(reason="broken & takes too long time to complete on CI")
 class GrpcFuzzyTests(BaseFuzzyTests, TestCase):
     """Test the connection when gRPC is used"""
 
@@ -36,7 +36,7 @@ class GrpcFuzzyTests(BaseFuzzyTests, TestCase):
     AGENT_TIMEOUT = 30  # 3 seconds
 
 
-@pytest.mark.skip(reason="takes too long time to complete on CI")
+@pytest.mark.skip(reason="broken & takes too long time to complete on CI")
 class TcpFuzzyTests(BaseFuzzyTests, TestCase):
     """Test the connection when TCP is used"""
 

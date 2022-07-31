@@ -1272,11 +1272,17 @@ class ABCIServerConnection(Connection):  # pylint: disable=too-many-instance-att
 
         if self.use_grpc:
             self.channel = GrpcServerChannel(
-                self.target_skill_id, address=self.host, port=self.port
+                self.target_skill_id,
+                address=self.host,
+                port=self.port,
+                logger=self.logger,
             )
         else:
             self.channel = TcpServerChannel(
-                self.target_skill_id, address=self.host, port=self.port
+                self.target_skill_id,
+                address=self.host,
+                port=self.port,
+                logger=self.logger,
             )
 
     def _process_connection_params(self) -> None:
@@ -1302,10 +1308,6 @@ class ABCIServerConnection(Connection):  # pylint: disable=too-many-instance-att
         if target_skill_id is None:  # pragma: no cover
             raise ValueError("Provided target_skill_id is not a valid public id.")
         self.target_skill_id = target_skill_id
-
-        self.channel = TcpServerChannel(
-            self.target_skill_id, address=self.host, port=self.port, logger=self.logger
-        )
 
     def _process_tendermint_params(self) -> None:
         """
