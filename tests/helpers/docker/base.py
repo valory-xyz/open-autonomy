@@ -38,8 +38,8 @@ logger = logging.getLogger(__name__)
 
 
 skip_docker_tests = pytest.mark.skipif(
-    platform.system() != "Linux",
-    reason="Docker daemon is not available in Windows and macOS CI containers.",
+    platform.system() != "Linux" and platform.system() != "Darwin",
+    reason="Docker daemon is not available in Windows CI containers.",
 )
 
 
