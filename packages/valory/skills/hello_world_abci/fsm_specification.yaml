@@ -15,7 +15,6 @@ states:
 - SelectKeeperRound
 transition_func:
     (PrintMessageRound, DONE): ResetAndPauseRound
-    (PrintMessageRound, NO_MAJORITY): RegistrationRound
     (PrintMessageRound, ROUND_TIMEOUT): RegistrationRound
     (RegistrationRound, DONE): SelectKeeperRound
     (ResetAndPauseRound, DONE): SelectKeeperRound
@@ -24,4 +23,3 @@ transition_func:
     (SelectKeeperRound, DONE): PrintMessageRound
     (SelectKeeperRound, NO_MAJORITY): RegistrationRound
     (SelectKeeperRound, ROUND_TIMEOUT): RegistrationRound
-

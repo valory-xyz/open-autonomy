@@ -11,11 +11,11 @@ fingerprint:
   __init__.py: bafybeihw3etjrdz7ah6yie3b2z5g4xpfk5wlnbtr2emxyug3hfu6fmmmim
   behaviours.py: bafybeidd2gvhk7tcdsa7ovpebv7777xq3t3l6nhzcjasvepchbk3ahldvm
   dialogues.py: bafybeig4tc4thbpsixmbn35kj7jim2gzd7cvxxu4u3xoeyxqzpumuhrdzm
-  fsm_specification.yaml: bafybeiav6iw36fk2mhh65itvsoprnzgt3z5slgkjgvfeekzqh6yldatupq
+  fsm_specification.yaml: bafybeidfkkbbisseanwkbcceo7bffy6nwmuw5nxrie26a7noqylqylcujm
   handlers.py: bafybeiaktxa76cpjytsjtbkftrhp7cppmweoxvglqmxc2cdcymdnzdsyua
   models.py: bafybeiezevn6fbuvt7sxhsbozzbm2wnj5fiu47plhamdytenugjquy5jyq
   payloads.py: bafybeibjub6tjzflmuba34cnukxriipey3cpkcdejtkc3jqrvinxqs3us4
-  rounds.py: bafybeifaa7tfllezr4tsw5c7cr3cfqm6qgzemdgvyehvdeq4dmjgl4nrdq
+  rounds.py: bafybeihvqee2jhwfcl7bas7h6gw5pywsfya4lcuoe4kvf3zgszn4r3hrry
 fingerprint_ignore_patterns: []
 connections: []
 contracts:
@@ -25,7 +25,7 @@ contracts:
 protocols:
 - valory/contract_api:1.0.0:bafybeie5gbzc4v4n6p6ea66kmc5ejwvbjzhd7vhcjg7mikbyx47lypcd5m
 skills:
-- valory/abstract_round_abci:0.1.0:bafybeig5ixtcaemurqwfy6pzzyiwc34azrxtowuh3k35hsate4u5jesc7a
+- valory/abstract_round_abci:0.1.0:bafybeigjppdppnr26wzxebcnjqx2hzt43uo2jomjkkcrynizdf7ch53veu
 behaviours:
   main:
     args: {}

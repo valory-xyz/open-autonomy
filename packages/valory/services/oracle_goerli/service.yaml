@@ -1,33 +1,33 @@
-name: oracle_polygon
+name: oracle_goerli
 author: valory
 version: 0.1.0
 description: A set of agents implementing a price oracle
 aea_version: '>=1.0.0, <2.0.0'
 license: Apache-2.0
 fingerprint:
-  README.md: bafybeifqnvekc6s44wsczofdhofiozxekstjau2bk5yqfqvjuv4wzoopku
+  README.md: bafybeig4wu7inb6ibwfgged3djyc7emopcg5n7d7gwrlotne53pp3jfgq4
 fingerprint_ignore_patterns: []
 agent: valory/oracle:0.1.0:bafybeicmvbmt3zrunejxdhm4tboehd7pnfknxveo5iojjxk2gpe5s22nda
 network:
-  id: polygon
-  address: https://polygon-mainnet.infura.io/v3/1622a5f5b56a4e1f9bd9292db7da93b8
-  chain_id: 137
+  id: goerli
+  address: https://goerli.infura.io/v3/1622a5f5b56a4e1f9bd9292db7da93b8
+  chain_id: 5
   poa_chain: true
-  default_gas_price_strategy: eip1559_polygon
+  default_gas_price_strategy: eip1559
 number_of_agents: 4
 ---
 setup_args:
   args: &id001
     setup:
       safe_contract_address:
-      - '0x37ba5291A5bE8cbE44717a0673fe2c5a45B4B6A8'
+      - '0x623cE6087190B53520f00609d41d79e5B71B881F'
       oracle_contract_address:
-      - '0x3d9e92B0FE7673ddA3d7C33B9ff302768A03de19'
+      - '0xA2b06beb69b5e454759976ABa7555e2639c0522f'
     max_healthcheck: 43200
     broadcast_to_server: true
 valory_monitoring_backend:
   args: &id002
-    url: https://oracle-server.autonolas.tech/deposit
+    url: https://oracle-server.staging.autonolas.tech/deposit
 public_id: valory/oracle_abci:0.1.0
 type: skill
 models:

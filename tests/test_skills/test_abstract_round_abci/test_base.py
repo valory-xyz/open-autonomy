@@ -1166,6 +1166,16 @@ class TestAbciApp:
         """Set up the test."""
         self.abci_app = AbciAppTest(MagicMock(), MagicMock(), MagicMock())
 
+    @pytest.mark.parametrize("flag", (True, False))
+    def test_is_abstract(self, flag: bool) -> None:
+        """Test `is_abstract` property."""
+
+        class CopyOfAbciApp(AbciAppTest):
+            """Copy to avoid side effects due to state change"""
+
+        CopyOfAbciApp._is_abstract = flag
+        assert CopyOfAbciApp.is_abstract() is flag
+
     def test_initial_round_cls_not_set(self) -> None:
         """Test when 'initial_round_cls' is not set."""
 

@@ -8,7 +8,7 @@ fingerprint:
   README.md: bafybeidoybzzjch4djhhafqm4e4jcrpaqmlthntcnonlsjtowwpykbc5xi
 fingerprint_ignore_patterns: []
 number_of_agents: 1
-agent: valory/counter:0.1.0:bafybeidmoafileokvz4wrx2o4ry2sgtpngcvdn63pkmqswm5qjctnes6b4
+agent: valory/counter:0.1.0:bafybeicuhgiu2mm6wabyvnd3deqiekevavasgdss6ldbtor3gwwzsb7dty
 network:
   id: hardhat
   address: http://localhost:8545

@@ -16,8 +16,8 @@ nav:
   - Introduction: 'index.md'
   - Version: 'version.md'
   - Upgrading: 'upgrading.md'
-  - Quick start: 'quick_start.md'
-  - Example of a service: 'service_example.md'
+  - Quick Start: 'quick_start.md'
+  - Hello World Agent Service: 'hello_world_agent_service.md'
   - Concepts:
     - Autonomous Economic Agents: 'aea.md'
     - Finite State Machines: 'fsm.md'
@@ -64,7 +64,10 @@ nav:
           - Core: 'api/cli/core.md'
           - Deploy: 'api/cli/deploy.md'
           - Develop: 'api/cli/develop.md'
+          - Fetch: 'api/cli/fetch.md'
           - Hash: 'api/cli/hash.md'
+          - Publish: 'api/cli/publish.md'
+          - Push All: 'api/cli/push_all.md'
           - Replay: 'api/cli/replay.md'
           - Utils: 'api/cli/utils/click_utils.md'
         - Configurations:

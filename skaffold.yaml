@@ -1,4 +1,4 @@
-apiVersion: skaffold/v2beta6
+apiVersion: skaffold/v2beta29
 kind: Config
 metadata:
   name: open-autonomy
@@ -8,58 +8,39 @@ build:
       template: "{{.VERSION}}"
   artifacts:
   - image: valory/open-autonomy-open-aea
-    context: deployments/Dockerfiles/open_aea/
+    context: autonomy/data/Dockerfiles/agent/
     docker:
       dockerfile: Dockerfile
       buildArgs:
-        AEA_VERSION: "1.13.0"
+        AEA_VERSION: "1.14.0.post1"
         AEA_AGENT: "{{.AEA_AGENT}}"
 
 
 profiles:
-  - name: docs
+  - name: release
     build:
-      tagPolicy:
-        envTemplate:
-          template: "{{.VERSION}}"
-      artifacts:
-      - image: valory/open-autonomy-docs
-        docker:
-          dockerfile: deployments/Dockerfiles/documentation/Dockerfile
-  - name: prod
-  - name: dependencies
-    build:
-      tagPolicy:
-        envTemplate:
-          template: "{{.VERSION}}"
-      artifacts:
-      - image: valory/open-autonomy-tendermint
-        context: deployments/Dockerfiles/localnode/
-        docker:
-          dockerfile: Dockerfile
-      - image: valory/open-autonomy-hardhat
-        context: deployments/Dockerfiles/hardhat
-  - name: cluster
-    patches:
-      - op: add
-        path: /build/artifacts/0/kaniko
-        value:
-          buildArgs:
-            AEA_VERSION: "1.13.0"
-            AEA_AGENT: "{{.AEA_AGENT}}"
-      - op: add
-        path: /build/cluster
-        value:
-          pullSecretName: regcred
-          dockerConfig:
-            path: ~/.docker/config.json
-      - op: remove
-        path: /build/artifacts/0/docker
-  - name: dev
-    patches:
-      - op: replace
-        path: /build/artifacts/0/docker/dockerfile
-        value: Dockerfile.develop
-      - op: add
-        path: /build/artifacts/0/docker/cliFlags
-        value: ["--no-cache", "--pull", "--force-rm"]
+        tagPolicy:
+          envTemplate:
+            template: "{{.VERSION}}"
+        artifacts:
+        - image: valory/open-autonomy-open-aea
+          context: autonomy/data/Dockerfiles/agent/
+          docker:
+            noCache: true
+            dockerfile: Dockerfile
+            buildArgs:
+              AEA_VERSION: "1.14.0.post1"
+              AEA_AGENT: "{{.AEA_AGENT}}"
+        - image: valory/open-autonomy-tendermint
+          context: autonomy/data/Dockerfiles/tendermint/
+          docker:
+            noCache: true
+            dockerfile: Dockerfile
+        - image: valory/open-autonomy-hardhat
+          context: autonomy/data/Dockerfiles/hardhat
+          docker:
+            noCache: true
+        - image: valory/open-autonomy-docs
+          docker:
+            noCache: true
+            dockerfile: deployments/Dockerfiles/documentation/Dockerfile

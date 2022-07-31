@@ -21,15 +21,21 @@
 import ast
 import logging  # noqa: F401
 import re
-from typing import Dict, List, Tuple, cast
+from typing import Dict, List, Tuple, Type, cast
 
+import pytest
 import requests
+from _pytest.fixtures import FixtureRequest
 
 from packages.valory.protocols.http import HttpMessage
+from packages.valory.skills.abstract_round_abci.models import ApiSpecs
 from packages.valory.skills.apy_estimation_abci.behaviours import NON_INDEXED_BLOCK_RE
 from packages.valory.skills.apy_estimation_abci.models import (
+    DEXSubgraph,
+    ETHSubgraph,
     FantomSubgraph,
     SpookySwapSubgraph,
+    UniswapSubgraph,
 )
 
 from tests.test_skills.test_abstract_round_abci.test_models import DummyMessage
@@ -94,28 +100,63 @@ class TestSubgraphs:
     """Test for subgraphs."""
 
     @staticmethod
+    @pytest.mark.parametrize(
+        "dex_subgraph, specs_fixture, expected_res_fixture",
+        (
+            (
+                SpookySwapSubgraph,
+                "spooky_specs_price_extended",
+                "spooky_expected_eth_price_usd",
+            ),
+            (
+                UniswapSubgraph,
+                "uni_specs_price_extended",
+                "uni_expected_eth_price_usd",
+            ),
+        ),
+    )
     def test_eth_price(
-        spooky_specs: SpecsType, eth_price_usd_q: str, expected_eth_price_usd: float
+        dex_subgraph: Type[ApiSpecs],
+        specs_fixture: str,
+        expected_res_fixture: str,
+        eth_price_usd_q: str,
+        request: FixtureRequest,
     ) -> None:
         """Test SpookySwap's eth price request from subgraph."""
-        spooky_specs["response_key"] += ":bundles"  # type: ignore
-        api = SpookySwapSubgraph(**spooky_specs)
+        specs: SpecsType = request.getfixturevalue(specs_fixture)
+        expected_res: float = request.getfixturevalue(expected_res_fixture)
+        api = dex_subgraph(**specs)
 
         res = make_request(api.get_spec(), eth_price_usd_q)
         eth_price = ast.literal_eval(api.process_response(DummyMessage(res.content))[0]["ethPrice"])  # type: ignore
 
-        assert eth_price == expected_eth_price_usd
+        assert eth_price == expected_res
 
     @staticmethod
+    @pytest.mark.parametrize(
+        "dex_subgraph, specs_fixture",
+        (
+            (
+                SpookySwapSubgraph,
+                "spooky_specs_price_extended",
+            ),
+            (
+                UniswapSubgraph,
+                "uni_specs_price_extended",
+            ),
+        ),
+    )
     def test_eth_price_non_indexed_block(
-        spooky_specs: SpecsType,
-        eth_price_usd_q: str,
+        dex_subgraph: Type[DEXSubgraph],
+        specs_fixture: str,
         eth_price_usd_raising_q: str,
         largest_acceptable_block_number: int,
+        request: FixtureRequest,
     ) -> None:
         """Test SpookySwap's eth price request from subgraph, when the requesting block has not been indexed yet."""
-        spooky_specs["response_key"] = "errors"
-        api = SpookySwapSubgraph(**spooky_specs)
+        specs: SpecsType = request.getfixturevalue(specs_fixture)
+        specs["response_key"] = "errors"
+        api = dex_subgraph(**specs)
 
         res = make_request(
             api.get_spec(), eth_price_usd_raising_q, raise_on_error=False
@@ -143,61 +184,107 @@ class TestSubgraphs:
         assert re.match(NON_INDEXED_BLOCK_RE, error_message) is None
 
     @staticmethod
-    def test_block_from_timestamp(
-        fantom_specs: SpecsType, block_from_timestamp_q: str
+    @pytest.mark.parametrize("from_", ("timestamp", "number"))
+    @pytest.mark.parametrize(
+        "block_subgraph, specs_fixture, expected_res_fixture",
+        (
+            (
+                FantomSubgraph,
+                "fantom_specs_blocks_extended",
+                "expected_fantom_block",
+            ),
+            (
+                ETHSubgraph,
+                "eth_specs_blocks_extended",
+                "expected_eth_block",
+            ),
+        ),
+    )
+    def test_block_qs(
+        from_: str,
+        block_subgraph: Type[ApiSpecs],
+        specs_fixture: str,
+        expected_res_fixture: str,
+        expected_block_q_res_keys: List[str],
+        request: FixtureRequest,
     ) -> None:
         """Test Fantom's block from timestamp request from subgraph."""
-        fantom_specs["response_key"] += ":blocks"  # type: ignore
-        api = FantomSubgraph(**fantom_specs)
+        block_query_fixture = f"block_from_{from_}_q"
+        query: str = request.getfixturevalue(block_query_fixture)
+        specs: SpecsType = request.getfixturevalue(specs_fixture)
+        expected_res_fixture += f"_from_{from_}"
+        expected_res: Dict[str, str] = request.getfixturevalue(expected_res_fixture)
 
-        res = make_request(api.get_spec(), block_from_timestamp_q)
+        api = block_subgraph(**specs)
+        res = make_request(api.get_spec(), query)
         block = api.process_response(DummyMessage(res.content))[0]  # type: ignore
 
         assert isinstance(block, dict)
-        keys = ["number", "timestamp"]
-        assert all((key in block for key in keys))
-        assert all(isinstance(ast.literal_eval(block[key]), int) for key in keys)
-        assert block == {"timestamp": "1652544875", "number": "38234191"}
+        assert all((key in block for key in expected_block_q_res_keys))
+        assert all(
+            isinstance(ast.literal_eval(block[key]), int)
+            for key in expected_block_q_res_keys
+        )
+        assert block == expected_res
 
     @staticmethod
-    def test_block_from_number_q(
-        fantom_specs: SpecsType, block_from_number_q: str
+    @pytest.mark.parametrize(
+        "block_subgraph, specs_fixture",
+        (
+            (
+                SpookySwapSubgraph,
+                "spooky_specs_pairs_extended",
+            ),
+            (
+                UniswapSubgraph,
+                "uni_specs_pairs_extended",
+            ),
+        ),
+    )
+    def test_top_n_pairs(
+        block_subgraph: Type[ApiSpecs],
+        specs_fixture: str,
+        top_n_pairs_q: str,
+        request: FixtureRequest,
     ) -> None:
-        """Test Fantom's block from number request from subgraph."""
-        fantom_specs["response_key"] += ":blocks"  # type: ignore
-        api = FantomSubgraph(**fantom_specs)
-
-        res = make_request(api.get_spec(), block_from_number_q)
-        block = api.process_response(DummyMessage(res.content))[0]  # type: ignore
-
-        assert isinstance(block, dict)
-        keys = ["number", "timestamp"]
-        assert all((key in block for key in keys))
-        assert all(isinstance(ast.literal_eval(block[key]), int) for key in keys)
-        assert block == {"timestamp": "1618485988", "number": "3730360"}
-
-    @staticmethod
-    def test_top_n_pairs(spooky_specs: SpecsType, top_n_pairs_q: str) -> None:
         """Test SpookySwap's top n pairs request from subgraph."""
-        spooky_specs["response_key"] += ":pairs"  # type: ignore
-        api = SpookySwapSubgraph(**spooky_specs)
-        api_specs = api.get_spec()
-        api_specs["top_n_pools"] = 100
+        specs: SpecsType = request.getfixturevalue(specs_fixture)
+        api = block_subgraph(**specs)
 
-        res = make_request(api_specs, top_n_pairs_q)
+        res = make_request(specs, top_n_pairs_q)
         pair_ids = [pair["id"] for pair in api.process_response(DummyMessage(res.content))]  # type: ignore
 
         assert is_list_of_strings(pair_ids)
 
     @staticmethod
+    @pytest.mark.parametrize(
+        "block_subgraph, query_fixture, specs_fixture",
+        (
+            (
+                SpookySwapSubgraph,
+                "spooky_pairs_q",
+                "spooky_specs_pairs_extended",
+            ),
+            (
+                UniswapSubgraph,
+                "uni_pairs_q",
+                "uni_specs_pairs_extended",
+            ),
+        ),
+    )
     def test_pairs(
-        spooky_specs: SpecsType, pairs_q: str, pool_fields: Tuple[str, ...]
+        block_subgraph: Type[ApiSpecs],
+        specs_fixture: str,
+        query_fixture: str,
+        pool_fields: Tuple[str, ...],
+        request: FixtureRequest,
     ) -> None:
         """Test SpookySwap's pairs request from subgraph."""
-        spooky_specs["response_key"] += ":pairs"  # type: ignore
-        api = SpookySwapSubgraph(**spooky_specs)
+        specs: SpecsType = request.getfixturevalue(specs_fixture)
+        query: str = request.getfixturevalue(query_fixture)
+        api = block_subgraph(**specs)
 
-        res = make_request(api.get_spec(), pairs_q)
+        res = make_request(api.get_spec(), query)
         pairs = api.process_response(DummyMessage(res.content))  # type: ignore
 
         assert isinstance(pairs, list)
