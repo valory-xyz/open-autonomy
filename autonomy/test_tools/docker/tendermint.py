@@ -290,7 +290,7 @@ class FlaskTendermintDockerImage(TendermintDockerImage):
         in order for them to use the correct ports.
         """
         nodes_config_files = list(Path().cwd().glob("**/config.toml"))
-        assert (
+        assert (  # nosec
             nodes_config_files != []
         ), "Could not detect any config files for the nodes!"
 

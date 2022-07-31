@@ -38,7 +38,7 @@ def tendermint_health_check(
     while attempt < max_retries:
         try:
             response = requests.get(url + "/health", timeout=timeout)
-            assert response.status_code == 200
+            assert response.status_code == 200  # nosec
             return True
         except (AssertionError, requests.exceptions.ConnectionError):
             attempt += 1
