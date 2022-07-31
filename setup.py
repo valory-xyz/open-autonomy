@@ -52,7 +52,7 @@ base_deps = [
     "pandas<1.4,>=1.3.4",
     "watchdog >=2.1.6",
     "pytest==7.0.0",
-    "docker==5.0.2"
+    "docker==5.0.3"
 ]
 base_deps.extend(all_extras["cli"])
 
