@@ -55,3 +55,4 @@ create_server  # unused function (autonomy/data/Dockerfiles/tendermint/app.py:25
 call_vote  # unused function (autonomy/data/Dockerfiles/dev/watcher.py:54)
 wait_for_votes  # unused function (autonomy/data/Dockerfiles/dev/watcher.py:67)
 on_any_event  # unused method (autonomy/data/Dockerfiles/dev/watcher.py:166)
+tendermint_health_check  # unused function (autonomy/test_tools/utils.py:30)

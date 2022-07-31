@@ -25,7 +25,8 @@ from typing import Any, List
 
 import pytest
 
-from tests.helpers.base import tendermint_health_check
+from autonomy.test_tools.utils import tendermint_health_check
+
 from tests.helpers.constants import LOCALHOST
 
 

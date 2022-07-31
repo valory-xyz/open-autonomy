@@ -28,8 +28,6 @@ CUR_PATH = os.path.dirname(inspect.getfile(inspect.currentframe()))  # type: ign
 ROOT_DIR = Path(CUR_PATH, "..", "..").resolve().absolute()
 THIRD_PARTY = ROOT_DIR / "third_party"
 DEFAULT_ASYNC_TIMEOUT = 5.0
-DEFAULT_REQUESTS_TIMEOUT = 5.0
-MAX_RETRIES = 30
 LOCALHOST = "localhost"
 HTTP_LOCALHOST = f"http://{LOCALHOST}"
 

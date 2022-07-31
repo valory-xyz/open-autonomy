@@ -19,17 +19,11 @@
 
 """Base helpers."""
 import contextlib
-import logging
 import os
-import time
 from os import PathLike
 from typing import Any, Generator, Tuple, Type
 
-import requests
-
 from packages.valory.skills.abstract_round_abci.base import AbstractRound
-
-from tests.helpers.constants import DEFAULT_REQUESTS_TIMEOUT, MAX_RETRIES
 
 
 @contextlib.contextmanager
@@ -41,28 +35,6 @@ def cd(path: PathLike) -> Generator:  # pragma: nocover
         yield
     finally:
         os.chdir(old_path)
-
-
-def tendermint_health_check(
-    url: str,
-    max_retries: int = MAX_RETRIES,
-    sleep_interval: float = 1.0,
-    timeout: float = DEFAULT_REQUESTS_TIMEOUT,
-) -> bool:
-    """Wait until a Tendermint RPC server is up."""
-    attempt = 0
-    while attempt < max_retries:
-        try:
-            response = requests.get(url + "/health", timeout=timeout)
-            assert response.status_code == 200
-            return True
-        except (AssertionError, requests.exceptions.ConnectionError):
-            attempt += 1
-        logging.debug(
-            f"Health-check attempt {attempt - 1} for {url} failed. Retrying in {sleep_interval} seconds..."
-        )
-        time.sleep(sleep_interval)
-    return False
 
 
 def try_send(gen: Generator, obj: Any = None) -> None:

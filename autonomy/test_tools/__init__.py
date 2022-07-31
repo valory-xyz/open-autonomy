@@ -16,22 +16,5 @@
 #   limitations under the License.
 #
 # ------------------------------------------------------------------------------
-"""Constants"""
-import os
 
-
-DEFAULT_BUILD_FOLDER = "abci_build"
-
-DEFAULT_IMAGE_VERSION = "0.1.0"
-IMAGE_VERSION = os.environ.get("VERSION", DEFAULT_IMAGE_VERSION)
-TENDERMINT_IMAGE_VERSION = os.environ.get(
-    "TENDERMINT_IMAGE_VERSION", DEFAULT_IMAGE_VERSION
-)
-HARDHAT_IMAGE_VERSION = os.environ.get("HARDHAT_IMAGE_VERSION", DEFAULT_IMAGE_VERSION)
-OPEN_AEA_IMAGE_NAME = "valory/open-autonomy-open-aea"
-TENDERMINT_IMAGE_NAME = "valory/open-autonomy-tendermint"
-HARDHAT_IMAGE_NAME = "valory/open-autonomy-hardhat"
-
-# test tools constants
-DEFAULT_REQUESTS_TIMEOUT = 5.0
-MAX_RETRIES = 30
+"""Package that contains tools for easier writing of autonomy tests."""

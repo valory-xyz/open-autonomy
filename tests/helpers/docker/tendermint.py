@@ -31,8 +31,8 @@ from docker.errors import ImageNotFound
 from docker.models.containers import Container
 
 from autonomy.constants import TENDERMINT_IMAGE_NAME, TENDERMINT_IMAGE_VERSION
+from autonomy.test_tools.utils import tendermint_health_check
 
-from tests.helpers.base import tendermint_health_check
 from tests.helpers.docker.base import DockerImage
 
 
