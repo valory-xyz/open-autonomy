@@ -24,7 +24,7 @@ import time
 
 import requests
 
-from autonomy.constants import DEFAULT_REQUESTS_TIMEOUT, MAX_RETRIES
+from autonomy.test_tools.configurations import DEFAULT_REQUESTS_TIMEOUT, MAX_RETRIES
 
 
 def tendermint_health_check(

@@ -32,6 +32,7 @@ from aea.protocols.base import Message
 from aea.protocols.dialogue.base import Dialogue
 from aea_ledger_ethereum import EthereumCrypto
 
+from autonomy.test_tools.configurations import ETHEREUM_KEY_DEPLOYER, get_key
 from autonomy.test_tools.docker.base import skip_docker_tests
 
 from packages.valory.connections.ledger.connection import LedgerConnection
@@ -43,8 +44,6 @@ from packages.valory.protocols.contract_api.dialogues import (
     ContractApiDialogues as BaseContractApiDialogues,
 )
 from packages.valory.protocols.contract_api.message import ContractApiMessage
-
-from tests.conftest import ETHEREUM_KEY_DEPLOYER, get_key
 
 
 SOME_SKILL_ID = "some/skill:0.1.0"

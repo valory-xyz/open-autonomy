@@ -31,7 +31,3 @@ HARDHAT_IMAGE_VERSION = os.environ.get("HARDHAT_IMAGE_VERSION", DEFAULT_IMAGE_VE
 OPEN_AEA_IMAGE_NAME = "valory/open-autonomy-open-aea"
 TENDERMINT_IMAGE_NAME = "valory/open-autonomy-tendermint"
 HARDHAT_IMAGE_NAME = "valory/open-autonomy-hardhat"
-
-# test tools constants
-DEFAULT_REQUESTS_TIMEOUT = 5.0
-MAX_RETRIES = 30

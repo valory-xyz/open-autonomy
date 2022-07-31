@@ -37,13 +37,13 @@ from autonomy.deploy.constants import (
     DEPLOYMENT_KEY_DIRECTORY,
     KUBERNETES_AGENT_KEY_NAME,
 )
-from autonomy.test_tools.docker.base import skip_docker_tests
-
-from tests.conftest import (
+from autonomy.test_tools.configurations import (
     ETHEREUM_ENCRYPTED_KEYS,
     ETHEREUM_ENCRYPTION_PASSWORD,
-    ROOT_DIR,
 )
+from autonomy.test_tools.docker.base import skip_docker_tests
+
+from tests.conftest import ROOT_DIR
 from tests.test_autonomy.test_cli.base import BaseCliTest
 
 

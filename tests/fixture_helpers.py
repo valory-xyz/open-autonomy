@@ -25,6 +25,7 @@ import docker
 import pytest
 from eth_account import Account
 
+from autonomy.test_tools.configurations import GANACHE_CONFIGURATION
 from autonomy.test_tools.docker.acn_node import ACNNodeDockerImage, DEFAULT_ACN_CONFIG
 from autonomy.test_tools.docker.amm_net import AMMNetDockerImage
 from autonomy.test_tools.docker.base import DockerBaseTest, DockerImage
@@ -43,7 +44,6 @@ from autonomy.test_tools.docker.tendermint import (
     TendermintDockerImage,
 )
 
-from tests.conftest import GANACHE_CONFIGURATION
 from tests.helpers.constants import KEY_PAIRS, LOCALHOST
 
 

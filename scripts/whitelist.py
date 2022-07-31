@@ -81,3 +81,6 @@ MULTISEND_CALL_ONLY_CONTRACT  # unused variable (autonomy/test_tools/docker/gnos
 GnosisSafeNetDockerImage  # unused class (autonomy/test_tools/docker/gnosis_safe_net.py:51)
 FlaskTendermintDockerImage  # unused class (autonomy/test_tools/docker/tendermint.py:119)
 _.health_check  # unused method (autonomy/test_tools/docker/tendermint.py:371)
+ETHEREUM_ENCRYPTED_KEYS  # unused variable (autonomy/test_tools/configurations.py:46)
+ETHEREUM_ENCRYPTION_PASSWORD  # unused variable (autonomy/test_tools/configurations.py:47)
+GANACHE_CONFIGURATION  # unused variable (autonomy/test_tools/configurations.py:48)

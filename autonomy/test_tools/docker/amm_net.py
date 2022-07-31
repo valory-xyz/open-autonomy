@@ -27,7 +27,7 @@ import requests
 from aea.exceptions import enforce
 from docker.models.containers import Container
 
-from autonomy.test_tools import THIRD_PARTY
+from autonomy.test_tools.configurations import THIRD_PARTY
 from autonomy.test_tools.docker.base import DockerImage
 
 
