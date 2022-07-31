@@ -30,8 +30,9 @@ import pytest
 from aea.configurations.base import PublicId
 from aea.test_tools.test_cases import AEATestCaseMany, Result
 
+from autonomy.test_tools.fixture_helpers import UseFlaskTendermintNode
+
 from tests.conftest import ANY_ADDRESS
-from tests.fixture_helpers import UseFlaskTendermintNode
 
 
 _HTTP = "http://"

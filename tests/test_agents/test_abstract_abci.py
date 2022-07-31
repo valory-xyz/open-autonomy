@@ -24,8 +24,9 @@ import warnings
 import pytest
 from aea.test_tools.test_cases import AEATestCaseMany
 
+from autonomy.test_tools.fixture_helpers import UseTendermint
+
 from tests.conftest import ANY_ADDRESS
-from tests.fixture_helpers import UseTendermint
 
 
 @pytest.mark.e2e

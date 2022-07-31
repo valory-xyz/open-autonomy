@@ -37,11 +37,12 @@ from aea_ledger_ethereum import (
     EthereumCrypto,
 )
 
-from tests.fixture_helpers import (
+from autonomy.test_tools.fixture_helpers import (
     GanacheBaseTest,
     HardHatAMMBaseTest,
     HardHatGnosisBaseTest,
 )
+
 from tests.helpers.contracts import get_register_contract
 
 
