@@ -83,7 +83,7 @@ class BaseContractTest(ABC):
                 cls.identifier, private_key_path=output_file
             )
         cls.deploy(**cls.deployment_kwargs())
-        assert cls.contract_address is not None, "Contract not deployed."
+        assert cls.contract_address is not None, "Contract not deployed."  # nosec
 
     @classmethod
     def deploy(cls, **kwargs: Any) -> None:
@@ -195,7 +195,7 @@ class BaseContractWithDependencyTest(BaseContractTest):
         cls._deploy_dependencies()
 
         cls.deploy(**cls.deployment_kwargs())
-        assert cls.contract_address is not None, "Contract not deployed."
+        assert cls.contract_address is not None, "Contract not deployed."  # nosec
 
 
 class BaseGanacheContractWithDependencyTest(

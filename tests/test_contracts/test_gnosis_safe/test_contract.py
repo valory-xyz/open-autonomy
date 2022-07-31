@@ -37,6 +37,10 @@ from web3.eth import Eth
 from web3.exceptions import SolidityError
 from web3.types import TxData
 
+from autonomy.test_tools.base_test_classes.contracts import (
+    BaseGanacheContractTest,
+    BaseHardhatGnosisContractTest,
+)
 from autonomy.test_tools.configurations import (
     ETHEREUM_KEY_PATH_1,
     ETHEREUM_KEY_PATH_2,
@@ -51,10 +55,6 @@ from packages.valory.contracts.gnosis_safe.contract import (
 )
 
 from tests.conftest import ROOT_DIR
-from tests.test_contracts.base import (
-    BaseGanacheContractTest,
-    BaseHardhatGnosisContractTest,
-)
 
 
 DEFAULT_GAS = 1000000

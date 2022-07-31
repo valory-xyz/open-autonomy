@@ -22,6 +22,7 @@
 from pathlib import Path
 from typing import Any, Dict
 
+from autonomy.test_tools.base_test_classes.contracts import BaseGanacheContractTest
 from autonomy.test_tools.docker.base import skip_docker_tests
 
 from packages.valory.contracts.gnosis_safe.contract import SAFE_CONTRACT
@@ -31,7 +32,6 @@ from packages.valory.contracts.gnosis_safe_proxy_factory.contract import (
 )
 
 from tests.conftest import ROOT_DIR
-from tests.test_contracts.base import BaseGanacheContractTest
 
 
 DEFAULT_GAS = 1000000
