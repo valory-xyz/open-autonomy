@@ -24,7 +24,7 @@ fingerprint:
   serializer.py: bafybeiezjdtp33nub7ual5ibt4vi7dj3ilmyw7wqq374ctub5oo7wgp7mm
   test_tools/__init__.py: bafybeigicwqumbl3jorusndtfa6ag7lnf3saa6cbqn7fazur4n6nxmsdva
   test_tools/base.py: bafybeiecwpvwybtrsjy2rxtczwps4kfcy3nz5ohlqfvx62sdtfyzxilcii
-  test_tools/integration.py: bafybeidmoq2svurp2dhi3lqlmk6v5nhfug46tu2uilze6otu5y6sof7hye
+  test_tools/integration.py: bafybeiauwnnfu3j3wyc4ffb7z57jnfiazkrt56prrqnk4xz25pzj2i5tzm
   utils.py: bafybeifnvnlpajv5iqv6wumlfppomcmcfbbb5rpiiqhouxqs5ddwlkqjjy
 fingerprint_ignore_patterns: []
 connections:

@@ -28,7 +28,7 @@ import time
 from math import ceil
 from pathlib import Path
 from threading import Thread
-from typing import Any, Dict, List, Optional, Tuple, Union, cast
+from typing import Any, Callable, Dict, List, Optional, Tuple, Union, cast
 
 from aea.crypto.base import Crypto
 from aea.crypto.registries import make_crypto, make_ledger_api

@@ -33,7 +33,7 @@ protocols:
 - valory/http:1.0.0:bafybeifhmibx3l7f3xdwxhweczizadxs6p3oludvapvwdeu4o5f3oahqme
 - valory/ledger_api:1.0.0:bafybeifaozy766hngsqc5a5kpebseusq4cc3woh4ayycdoa7r3mjkvhzr4
 skills:
-- valory/abstract_round_abci:0.1.0:bafybeia3dk7ekrctkogzgttacj3qkcirfzlvm3h7pohlb2gn5sfrwgsy2e
+- valory/abstract_round_abci:0.1.0:bafybeihnei4d7ksshfogug7jy7eij3bauygbctikihe7lclc52dzarhokq
 behaviours:
   main:
     args: {}
