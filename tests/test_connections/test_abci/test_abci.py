@@ -41,9 +41,14 @@ from aea.protocols.dialogue.base import Dialogue as BaseDialogue
 from hypothesis import given
 from hypothesis.strategies import integers
 
-from autonomy.test_tools.configurations import HTTP_LOCALHOST
+from autonomy.test_tools.configurations import ANY_ADDRESS, HTTP_LOCALHOST
 from autonomy.test_tools.docker.base import skip_docker_tests
 from autonomy.test_tools.fixture_helpers import UseTendermint
+from autonomy.test_tools.helpers.async_utils import (
+    AnotherThreadTask,
+    BaseThreadedAsyncLoop,
+    wait_for_condition,
+)
 
 from packages.valory.connections.abci import check_dependencies as dep_utils
 from packages.valory.connections.abci.connection import (
@@ -72,13 +77,6 @@ from packages.valory.protocols.abci.custom_types import (  # type: ignore
 )
 from packages.valory.protocols.abci.dialogues import AbciDialogue
 from packages.valory.protocols.abci.dialogues import AbciDialogues as BaseAbciDialogues
-
-from tests.conftest import ANY_ADDRESS
-from tests.helpers.async_utils import (
-    AnotherThreadTask,
-    BaseThreadedAsyncLoop,
-    wait_for_condition,
-)
 
 
 class AsyncBytesIO:

@@ -18,13 +18,18 @@
 # ------------------------------------------------------------------------------
 
 """Utilities for the autonomy test tools."""
-
+import contextlib
 import logging
+import os
 import time
+from os import PathLike
+from typing import Any, Generator, Tuple, Type
 
 import requests
 
 from autonomy.test_tools.configurations import DEFAULT_REQUESTS_TIMEOUT, MAX_RETRIES
+
+from packages.valory.skills.abstract_round_abci.base import AbstractRound
 
 
 def tendermint_health_check(
@@ -47,3 +52,33 @@ def tendermint_health_check(
         )
         time.sleep(sleep_interval)
     return False
+
+
+@contextlib.contextmanager
+def cd(path: PathLike) -> Generator:  # pragma: nocover
+    """Change working directory temporarily."""
+    old_path = os.getcwd()
+    os.chdir(path)
+    try:
+        yield
+    finally:
+        os.chdir(old_path)
+
+
+def try_send(gen: Generator, obj: Any = None) -> None:
+    """
+    Try to send an object to a generator.
+
+    :param gen: the generator.
+    :param obj: the object.
+    """
+    with contextlib.suppress(StopIteration):
+        gen.send(obj)
+
+
+def make_round_class(name: str, bases: Tuple = (AbstractRound,)) -> Type[AbstractRound]:
+    """Make a round class."""
+    new_round_cls = type(name, bases, {})
+    setattr(new_round_cls, "round_id", name)  # noqa: B010
+    assert issubclass(new_round_cls, AbstractRound)
+    return new_round_cls

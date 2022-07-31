@@ -92,8 +92,6 @@ ETHEREUM_DEFAULT_LEDGER_CONFIG = {
     },
 }
 
-ANY_ADDRESS = "0.0.0.0"  # nosec
-
 
 @pytest.fixture(scope="session")
 def tendermint_port() -> int:
