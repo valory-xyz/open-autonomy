@@ -17,11 +17,11 @@ fingerprint:
   models.py: bafybeihcsetun6wuygzyjv5m7qtx6sr6sr3bbpudfswg5armnudoa7juru
 fingerprint_ignore_patterns: []
 connections:
-- valory/abci:0.1.0:bafybeiaqoaub5jverxutngxtbfcshucsg7fqkcrdgbjfdsrdbfntwyhawq
+- valory/abci:0.1.0:bafybeibfdzfevrtiywolqeepk6yfzyvl4bbu6mghhnebkptcbhsh5fxkbu
 - valory/http_client:0.1.0:bafybeibh3iu7kojc4d5eiigqh6kx2vdmu2q7vhcvvq2rz6suegsscyd66y
 - valory/ledger:0.1.0:bafybeifxxshi4u3xyyllip5e3yafawywcwpvqxgnybchi5kj74zm4b4n2e
 contracts:
-- valory/gnosis_safe:0.1.0:bafybeie6mp5postj743s4d6qurg5ngfy7xxewreqfoqfxg37jtv72dtslu
+- valory/gnosis_safe:0.1.0:bafybeiexiper376ji5h4wm5erzospvyikqmvw7pi5tpgrwanj5okznemqu
 - valory/gnosis_safe_proxy_factory:0.1.0:bafybeiej772sh3uuju2zsd62fz73ofg7p7ixaju6e3ahnzlbktcxoeoggy
 - valory/uniswap_v2_erc20:0.1.0:bafybeid2rdlyshie6yamr6lzf3g3kfovlhvww3rszmtaad2pmawwgmfvce
 - valory/uniswap_v2_router_02:0.1.0:bafybeie7xfg2erv4gzuy46vjvqav4fnrzugvkx5twt5h3n2yocakbpzn4u
@@ -32,12 +32,12 @@ protocols:
 - valory/http:1.0.0:bafybeifhmibx3l7f3xdwxhweczizadxs6p3oludvapvwdeu4o5f3oahqme
 - valory/ledger_api:1.0.0:bafybeifaozy766hngsqc5a5kpebseusq4cc3woh4ayycdoa7r3mjkvhzr4
 skills:
-- valory/abstract_round_abci:0.1.0:bafybeigjppdppnr26wzxebcnjqx2hzt43uo2jomjkkcrynizdf7ch53veu
-- valory/liquidity_rebalancing_abci:0.1.0:bafybeihuamokplfwbnm3jrhel5ajzl4ynhoyp7czjdmwf77yvzquclljjm
-- valory/registration_abci:0.1.0:bafybeihrgfxrdnnx6jm3gx6kaqzgca4tskk4i3hbquvlu7ull2kxpt5cje
-- valory/reset_pause_abci:0.1.0:bafybeifbs5unuqmypjtjxemwahpw3uzwgjyl3tbq74vojx4dk53f2iuy3i
-- valory/safe_deployment_abci:0.1.0:bafybeig2g6qoducybyy5dlbntjte75yjqrx53g4yzveyu4k575wqdu2gmy
-- valory/transaction_settlement_abci:0.1.0:bafybeicf42bhtkiwcnmd43lnmlu6yr6hgerhi74sgvycpngv6ctwek2e7a
+- valory/abstract_round_abci:0.1.0:bafybeihz4pkaqwufq2szqr3ji3kjsbjodsg5yultbit3xdcfjdwi4ebgoa
+- valory/liquidity_rebalancing_abci:0.1.0:bafybeiciiaptkdxgwjjxetvnw6ugcae5kp3k3orzqz52dfccjejijylhxy
+- valory/registration_abci:0.1.0:bafybeiamr2gckrgxujl6xskhtjg46fmdwsklq5fnqvndnwsiyld6sy5z4y
+- valory/reset_pause_abci:0.1.0:bafybeibhqdl3263vcokyjxeciiktbk2ej6gdbeexviy5exvnc37a5hdmhq
+- valory/safe_deployment_abci:0.1.0:bafybeiaqnl5az4fdkv7yyjg6s4rouhpldkgpplmohqdt34wwawfkj5jeva
+- valory/transaction_settlement_abci:0.1.0:bafybeic6khhxyes6kdigczfuxqhr6tcujuj2ukwhlgb3pt3kr4cpmnygaq
 behaviours:
   main:
     args: {}

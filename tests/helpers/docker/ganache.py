@@ -106,3 +106,21 @@ class GanacheDockerImage(DockerImage):
                 )
                 time.sleep(sleep_rate)
         return False
+
+
+class GanacheForkDockerImage(GanacheDockerImage):
+    """Extends GanacheDockerImage to enable forking"""
+
+    NETWORK: str = "ropsten"
+    BLOCK_NUMBER: int = 11290000
+
+    def _build_command(self) -> List[str]:
+        """Build command."""
+
+        cmd = [
+            "--wallet.deterministic=true",
+            f"--fork.network={self.NETWORK}",
+            f"--fork.blockNumber={self.BLOCK_NUMBER}",
+        ]
+
+        return cmd

@@ -18,6 +18,8 @@
 # ------------------------------------------------------------------------------
 
 """End2end tests for the valory/simple_abci skill."""
+from typing import Tuple
+
 import pytest
 
 from tests.test_agents.base import BaseTestEnd2EndExecution, RoundChecks
@@ -43,7 +45,7 @@ class BaseSimpleABCITest(BaseTestEnd2EndExecution):
     skill_package = "valory/simple_abci:0.1.0"
     wait_to_finish = 80
     happy_path = HAPPY_PATH
-    strict_check_strings = STRICT_CHECK_STRINGS
+    strict_check_strings: Tuple[str, ...] = STRICT_CHECK_STRINGS
 
 
 @pytest.mark.parametrize("nb_nodes", (1,))
@@ -96,3 +98,36 @@ class TestSimpleABCIFourAgentsTwoAgentRestarting(BaseSimpleABCITestCatchup):
     """Test the ABCI simple_abci skill with four agents and two restarting."""
 
     n_terminal = 2
+
+
+@pytest.mark.skip(reason="not working atm")
+@pytest.mark.parametrize("nb_nodes", (1,))
+class TestSimpleABCISingleAgentGrpc(
+    BaseSimpleABCITest,
+):
+    """Test that the ABCI simple_abci skill with only one agent."""
+
+    USE_GRPC = True
+    strict_check_strings = STRICT_CHECK_STRINGS + ("Starting gRPC server",)
+
+
+@pytest.mark.skip(reason="not working atm")
+@pytest.mark.parametrize("nb_nodes", (2,))
+class TestSimpleABCITwoAgentsGrpc(
+    BaseSimpleABCITest,
+):
+    """Test that the ABCI simple_abci skill with two agents."""
+
+    USE_GRPC = True
+    strict_check_strings = STRICT_CHECK_STRINGS + ("Starting gRPC server",)
+
+
+@pytest.mark.skip(reason="not working atm")
+@pytest.mark.parametrize("nb_nodes", (4,))
+class TestSimpleABCIFourAgentsGrpc(
+    BaseSimpleABCITest,
+):
+    """Test that the ABCI simple_abci skill with four agents."""
+
+    USE_GRPC = True
+    strict_check_strings = STRICT_CHECK_STRINGS + ("Starting gRPC server",)
