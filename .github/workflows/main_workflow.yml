@@ -268,6 +268,16 @@ jobs:
           docker pull node:16.7.0
           docker pull trufflesuite/ganache:beta
 
+          # build required images
+          pip install .
+          autonomy deploy build deployment valory/oracle_hardhat deployments/keys/hardhat_keys.json --local
+
+          cd abci_build
+          autonomy deploy build image
+          autonomy deploy build image --dev
+          autonomy deploy build image --dependencies
+          cd ..
+
           # build hardhat node in third_party/safe-contracts
           cd third_party/safe-contracts &&\
             sudo chown -R $(whoami) .husky &&\
