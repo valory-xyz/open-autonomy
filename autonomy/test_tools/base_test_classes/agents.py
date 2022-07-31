@@ -353,7 +353,7 @@ class BaseTestEnd2End(AEATestCaseMany, UseFlaskTendermintNode):
             missing_agent_logs += f"Strings {missing_strict_strings} didn't appear in {agent_name} output.\n"
         missing_agent_logs += "\n".join(missing_round_strings)
 
-        assert missing_agent_logs == "", missing_agent_logs
+        assert missing_agent_logs == "", missing_agent_logs  # nosec
 
     def check_aea_messages(self) -> None:
         """

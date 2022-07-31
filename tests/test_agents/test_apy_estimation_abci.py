@@ -22,9 +22,11 @@
 import pytest
 from aea.configurations.data_types import PublicId
 
+from autonomy.test_tools.base_test_classes.agents import (
+    BaseTestEnd2EndExecution,
+    RoundChecks,
+)
 from autonomy.test_tools.fixture_helpers import UseGnosisSafeHardHatNet
-
-from tests.test_agents.base import BaseTestEnd2EndExecution, RoundChecks
 
 
 ipfs_daemon = pytest.mark.usefixtures("ipfs_daemon")

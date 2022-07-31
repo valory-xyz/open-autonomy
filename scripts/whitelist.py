@@ -114,3 +114,6 @@ _.setup  # unused method (/home/marcofavorito/workfolder/open-autonomy/autonomy/
 _.execute  # unused method (/home/marcofavorito/workfolder/open-autonomy/autonomy/test_tools/helpers/async_utils.py:158)
 _.teardown  # unused method (/home/marcofavorito/workfolder/open-autonomy/autonomy/test_tools/helpers/async_utils.py:163)
 _.get_command  # unused method (/home/marcofavorito/workfolder/open-autonomy/autonomy/test_tools/helpers/tendermint_utils.py:125)
+capture_log  # unused variable (/home/marcofavorito/workfolder/open-autonomy/autonomy/test_tools/base_test_classes/agents.py:71)
+cli_log_options  # unused variable (/home/marcofavorito/workfolder/open-autonomy/autonomy/test_tools/base_test_classes/agents.py:79)
+is_terminating  # unused variable (/home/marcofavorito/workfolder/open-autonomy/autonomy/test_tools/base_test_classes/agents.py:283)

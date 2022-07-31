@@ -25,13 +25,15 @@ from typing import Generator, Tuple
 import pytest
 from aea.configurations.data_types import PublicId
 
+from autonomy.test_tools.base_test_classes.agents import (
+    BaseTestEnd2End,
+    BaseTestEnd2EndExecution,
+)
 from autonomy.test_tools.fixture_helpers import UseACNNode, UseGnosisSafeHardHatNet
 
 from packages.valory.skills.registration_abci.behaviours import (
     RegistrationStartupBehaviour,
 )
-
-from tests.test_agents.base import BaseTestEnd2End, BaseTestEnd2EndExecution
 
 
 log_messages = RegistrationStartupBehaviour.LogMessages
