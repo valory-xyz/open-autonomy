@@ -8,12 +8,6 @@ fingerprint:
   README.md: bafybeiapubcoersqnsnh3acia5hd7otzt7kjxekr6gkbrlumv6tkajl6jm
 fingerprint_ignore_patterns: []
 agent: valory/hello_world:0.1.0:bafybeig4clacvvxywtowgdflmoib35lrq2jpgwjtbue632n2reclov2lhm
-network:
-  id: hardhat
-  address: http://localhost:8545
-  chain_id: 31337
-  poa_chain: false
-  default_gas_price_strategy: eip1559
 number_of_agents: 4
 ---
 benchmark_persistence_params:
@@ -34,3 +28,13 @@ models:
   3:
   - benchmark_tool:
       args: *id001
+---
+public_id: valory/abci:0.1.0
+type: connection
+config:
+  ledger_apis:
+    ethereum:
+      address: http://host.docker.internal:8545
+      chain_id: 31337
+      poa_chain: false
+      default_gas_price_strategy: eip1559

@@ -7,13 +7,7 @@ license: Apache-2.0
 fingerprint:
   README.md: bafybeidtphhzkcp32sikeqoo4ct57z6kw3yhxkebby3unuwepqdvwgfkga
 fingerprint_ignore_patterns: []
-agent: valory/oracle:0.1.0:bafybeibfse7av7x2q4gwh5owestqbxog6fjn72etraf5tjgemrdrf42lfu
-network:
-  id: ropsten
-  address: https://ropsten.infura.io/v3/2980beeca3544c9fbace4f24218afcd4
-  chain_id: 3
-  poa_chain: false
-  default_gas_price_strategy: eip1559
+agent: valory/oracle:0.1.0:bafybeid5wbneq3lfoyenifie4wijzwj76upgta3puvfl7lziafpl42t26a
 number_of_agents: 4
 ---
 setup_args:
@@ -102,3 +96,13 @@ models:
       args: *id001
   - server_api:
       args: *id002
+---
+public_id: valory/abci:0.1.0
+type: connection
+config:
+  ledger_apis:
+    ethereum:
+      address: https://ropsten.infura.io/v3/2980beeca3544c9fbace4f24218afcd4
+      chain_id: 3
+      poa_chain: false
+      default_gas_price_strategy: eip1559

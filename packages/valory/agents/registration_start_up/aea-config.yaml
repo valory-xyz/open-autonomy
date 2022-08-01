@@ -75,8 +75,8 @@ type: connection
 config:
   ledger_apis:
     ethereum:
-      address: ${LEDGER_ADDRESS:str:https://chain.staging.autonolas.tech}
-      chain_id: ${LEDGER_CHAIN_ID:int:31337}
+      address: ${CONNECTION_ABCI_CONFIG_LEDGER_APIS_ETHEREUM_ADDRESS:str:https://chain.staging.autonolas.tech}
+      chain_id: ${CONNECTION_ABCI_CONFIG_LEDGER_APIS_ETHEREUM_CHAIN_ID:int:31337}
 ---
 public_id: valory/registration_abci:0.1.0
 type: skill

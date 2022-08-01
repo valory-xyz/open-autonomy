@@ -8,12 +8,6 @@ fingerprint:
   README.md: bafybeibqyfur7wusrbfga66hcbauxvhs2g3j5yhknsxlvyh6mil57aajyu
 fingerprint_ignore_patterns: []
 agent: valory/apy_estimation:0.1.0:bafybeihvvm36zukty2u4uy2efgiqtqsb2ul2bl3bjxms5jhiyazb3vrhmi
-network:
-  id: hardhat
-  address: http://localhost:8545
-  chain_id: 31337
-  poa_chain: false
-  default_gas_price_strategy: eip1559
 number_of_agents: 4
 ---
 public_id: valory/apy_estimation_abci:0.1.0
@@ -48,3 +42,13 @@ models:
         - '0x2b4c76d0dc16be1c31d4c1dc53bf9b45987fc75c'
       sleep_time: 10
       ipfs_domain_name: /dns/registry.autonolas.tech/tcp/443/https
+---
+public_id: valory/abci:0.1.0
+type: connection
+config:
+  ledger_apis:
+    ethereum:
+      address: http://host.docker.internal:8545
+      chain_id: 31337
+      poa_chain: false
+      default_gas_price_strategy: eip1559

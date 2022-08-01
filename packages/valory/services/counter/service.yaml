@@ -9,9 +9,13 @@ fingerprint:
 fingerprint_ignore_patterns: []
 number_of_agents: 1
 agent: valory/counter:0.1.0:bafybeiai6quagduazo2spo3eylho3qrrqgxf3c7m7l54llksbhgcst2gue
-network:
-  id: hardhat
-  address: http://localhost:8545
-  chain_id: 31337
-  poa_chain: false
-  default_gas_price_strategy: eip1559
+---
+public_id: valory/abci:0.1.0
+type: connection
+config:
+  ledger_apis:
+    ethereum:
+      address: http://host.docker.internal:8545
+      chain_id: 31337
+      poa_chain: false
+      default_gas_price_strategy: eip1559

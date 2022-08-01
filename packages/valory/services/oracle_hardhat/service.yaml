@@ -7,13 +7,7 @@ license: Apache-2.0
 fingerprint:
   README.md: bafybeieqpbuzrxtfo5hz3gsb64aumnfbxad4tpxp4s46jxj7byb3zxx34y
 fingerprint_ignore_patterns: []
-agent: valory/oracle:0.1.0:bafybeibfse7av7x2q4gwh5owestqbxog6fjn72etraf5tjgemrdrf42lfu
-network:
-  id: hardhat
-  address: http://localhost:8545
-  chain_id: 31337
-  poa_chain: false
-  default_gas_price_strategy: eip1559
+agent: valory/oracle:0.1.0:bafybeid5wbneq3lfoyenifie4wijzwj76upgta3puvfl7lziafpl42t26a
 number_of_agents: 4
 ---
 benchmark_persistence_params:
@@ -109,3 +103,13 @@ models:
       args: *id002
   - benchmark_tool:
       args: *id003
+---
+public_id: valory/abci:0.1.0
+type: connection
+config:
+  ledger_apis:
+    ethereum:
+      address: http://host.docker.internal:8545
+      chain_id: 31337
+      poa_chain: false
+      default_gas_price_strategy: eip1559
