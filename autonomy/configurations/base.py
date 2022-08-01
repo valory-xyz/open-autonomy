@@ -135,11 +135,7 @@ class Service(PackageConfiguration):  # pylint: disable=too-many-instance-attrib
         self.agent = PublicId.from_str(str(agent))
         self.description = description
         self.number_of_agents = number_of_agents
-
-        if network is None:
-            self.network = DEFAULT_NETWORK_CONFIG
-        else:
-            self.network = network
+        self.network = network or DEFAULT_NETWORK_CONFIG
 
         self._overrides = [] if overrides is None else overrides
 
