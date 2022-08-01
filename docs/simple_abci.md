@@ -1,32 +1,110 @@
-# Simple {{fsm_app}}
+# Simple Agent Service
 
-!!!note
-    For clarity, the snippets of code presented here are a simplified version of the actual
-    implementation. We refer the reader to the {{open_autonomy_api}} for the complete details.
+The Simple agent service demonstrates how to use the {{open_autonomy}} framework, and provides 
+a general template to build more complex services.
+The goal is to provide the minimum background so that users can start developing their own agent services, and to showcase how agents interact with local Tendermint nodes. Indeed, we recommend that new users take the Simple {{fsm_app}} as the starting point for developing their own agent services.
 
-The Simple {{fsm_app}} is an example application that demonstrates how to use the {{open_autonomy}} framework. The goal is to provide the minimum background so that users can start developing their own agent services, and to showcase how AEAs interact with local Tendermint nodes. Indeed, we recommend that new users use the Simple {{fsm_app}} as the starting point for developing their own agent services.
+Roughly speaking, the Simple agent service executes the following sequence of actions:
 
-Roughly speaking, on a successful execution of a period of the application (i.e., no timeouts, no error conditions, etc.), the following actions would occur in order:
+1. Agents register to the service, i.e., they indicate their willingness to participate in it.
+2. Agents agree on a random value.
+3. Agents nominate a keeper, based on a deterministic function and the random value.
+4. Go to step 1.
 
-1. AEAs indicate their willingness to participate in a given period of the service.
-2. AEAs agree on a random value.
-3. AEAs nominate a keeper (i.e., a "delegate" agent).
-4. Go to step 2.
+Whereas the business logic of this service does not produce any useful result, each of these steps above
+are expected to be quite common in the expected services that can be developed with {{open_autonomy}}.
 
 ## Architecture of the Demo
 
 The demo is composed of:
 
-- A set of $n$ Tendermint nodes.
-- A set of $n$ AEAs, in one-to-one connection with one Tendermint node.
+- A set of four [Tendermint](https://tendermint.com/) nodes (`node0`, `node1`, `node2`, `node3`).
+- A set of four AEAs (`abci0`, `abci1`, `abci2`, `abci3`), in one-to-one connection with their corresponding Tendermint 
+node.
 
-The agents are connected to the remote service [DRAND](https://drand.love) throught the Internet.
+Also, the agents are connected to the remote service [DRAND](https://drand.love) throught the Internet.
 
 <figure markdown>
   ![](./images/simple_abci_app_four_agents.svg){align=center}
   <figcaption>Simple ABCI architecture with four agents</figcaption>
 </figure>
 
+{% include 'requirements.md' %}
+
+## Running the Demo
+
+The steps below will guide you to create a Pipenv enviroment for the demo,
+download the price oracle agent service definition from the Service Registry
+and build a deployment that will run locally.
+
+1. Open a terminal and create a workspace folder, e.g.,
+```bash
+mkdir my_demo
+cd my_demo
+```
+
+2. Within the workspace folder, setup the environment:
+```bash
+export VERSION=0.1.0
+export OPEN_AEA_IPFS_ADDR="/dns/registry.autonolas.tech/tcp/443/https"
+touch Pipfile && pipenv --python 3.10 && pipenv shell
+```
+
+3. Install {{open_autonomy}} on the created environment:
+```bash
+pip install open-autonomy
+```
+
+4. Inside the workspace folder, create a JSON file `keys.json` containing the addresses and keys of the four agents that are 
+   part of this demo. Below you have a sample `keys.json` file that you can use for testing:
+    ```json
+    [
+      {
+          "address": "0x15d34AAf54267DB7D7c367839AAf71A00a2C6A65",
+          "private_key": "0x47e179ec197488593b187f80a00eb0da91f1b9d0b13f8733639f19c30a34926a"
+      },
+      {
+          "address": "0x9965507D1a55bcC2695C58ba16FB37d819B0A4dc",
+          "private_key": "0x8b3a350cf5c34c9194ca85829a2df0ec3153be0318b5e2d3348e872092edffba"
+      },
+      {
+          "address": "0x976EA74026E726554dB657fA54763abd0C3a0aa9",
+          "private_key": "0x92db14e403b83dfe3df233f83dfa3a0d7096f21ca9b0d6d6b8d88b2b4ec1564e"
+      },
+      {
+          "address": "0x14dC79964da2C08b23698B3D3cc7Ca32193d9955",
+          "private_key": "0x4bbbf85ce3377467afe5d46f804f221813b2bb87f24d81f60f1fcdbf7cbf4356"
+      }
+    ]
+    ```
+
+5. Use the {{open_autonomy}} CLI to download and build the agent images:
+    ```bash
+      autonomy deploy build deployment valory/oracle_hardhat:bafybeibhv2ziivbnj3sgfzjjtvqbsvt3fvra4texc3lx4snqxo6lbmq2le keys.json
+    ```
+    This command above downloads the price oracle agent service definition from the Service Registry, and generates the required Docker images to run it using the keys provided in the `keys.json` file.
+    
+6. Open a second terminal and run a local [HardHat](https://hardhat.org/) node that will emulate a blockchain node. For convenience, we provide a Docker image in [Docker Hub](https://hub.docker.com/) that can be run by executing:
+    ```bash
+    docker run -p 8545:8545 -it valory/open-autonomy-hardhat:0.1.0
+    ```
+
+7. Now, we are in position to execute the agent service. Return to the workspace terminal.
+The build configuration will be located in `./abci_build`. Execute [Docker Compose](https://docs.docker.com/compose/install/) as indicated below. This will deploy a local price oracle agent service with four agents connected to four [Tendermint](https://tendermint.com/) nodes.
+    ```bash
+    cd abci_build
+    docker-compose up --force-recreate
+    ```
+
+8. The logs of a single agent or [Tendermint](https://tendermint.com/) node can then be inspected in another terminal with, e.g.,
+    ```bash
+    docker logs <container_id> --follow
+    ```
+    where `<container_id>` refers to the Docker container ID for either an agent
+    (`abci0`, `abci1`, `abci2` and `abci3`) or a Tendermint node (`node0`, `node1`, `node2` and `node3`).
+
+
+## Techical Details
 The complete state machine depicting the states and transitions of the application is shown below.
 
 <figure markdown>
