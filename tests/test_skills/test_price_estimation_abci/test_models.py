@@ -25,9 +25,8 @@ from packages.valory.skills.abstract_round_abci.base import (
     AbstractRound,
     BaseSynchronizedData,
 )
+from packages.valory.skills.abstract_round_abci.test_tools.base import DummyContext
 from packages.valory.skills.price_estimation_abci.models import SharedState
-
-from tests.test_skills.base import DummyContext
 
 
 class ConcreteRound(AbstractRound):

@@ -32,12 +32,14 @@ from packages.valory.skills.abstract_round_abci.base import (
 from packages.valory.skills.abstract_round_abci.behaviour_utils import (
     make_degenerate_behaviour,
 )
+from packages.valory.skills.abstract_round_abci.test_tools.base import (
+    FSMBehaviourBaseCase,
+)
 from packages.valory.skills.reset_pause_abci.behaviours import ResetAndPauseBehaviour
 from packages.valory.skills.reset_pause_abci.rounds import Event as ResetEvent
 from packages.valory.skills.reset_pause_abci.rounds import FinishedResetAndPauseRound
 
 from tests.conftest import ROOT_DIR
-from tests.test_skills.base import FSMBehaviourBaseCase
 
 
 class ResetPauseAbciFSMBehaviourBaseCase(FSMBehaviourBaseCase):

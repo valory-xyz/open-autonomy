@@ -39,12 +39,14 @@ from packages.valory.skills.abstract_round_abci.base import (
 )
 from packages.valory.skills.abstract_round_abci.behaviour_utils import BaseBehaviour
 from packages.valory.skills.abstract_round_abci.common import random_selection
+from packages.valory.skills.abstract_round_abci.test_tools.base import (
+    FSMBehaviourBaseCase,
+)
 from packages.valory.skills.transaction_settlement_abci.payload_tools import (
     VerificationStatus,
 )
 
 from tests.conftest import ROOT_DIR
-from tests.test_skills.base import FSMBehaviourBaseCase
 
 
 DRAND_VALUE = {
