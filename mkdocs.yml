@@ -32,6 +32,7 @@ nav:
     - Interactions between Components: 'abci_app_interactions.md'
   - Demos:
     - Simple ABCI: 'simple_abci.md'
+    - Counter Example: 'counter_example.md'
     - Price Oracle:
       - Introduction: 'price_oracle_intro.md'
       - Running the Demo: 'price_oracle_running.md'
@@ -161,7 +162,6 @@ nav:
     - Ethereum: 'ethereum_specifics.md'
     - Delegate call vs call: 'delegate_call.md'
     - Debugging Using Tenderly: 'debugging.md'
-    - Counter Example: 'counter_example.md'
   - FAQ: 'questions-and-answers.md'
 
 
