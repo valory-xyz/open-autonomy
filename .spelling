@@ -171,6 +171,7 @@ onchain
 dict
 PrintMessage
 Goerli
+utils
  - docs/index.md
 README.md
 s_

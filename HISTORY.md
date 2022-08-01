@@ -1,5 +1,23 @@
 # Release History - `open-autonomy`
 
+
+# 0.1.6 (2022-08-01)
+
+Autonomy:
+- Extracts generic test utils into `autonomy.test_tools`
+
+Packages:
+- Ports the tendermint GRPC package and test tools from `agent-academy-1` repo
+- Moves base test classes into `abstract_round_abci` skill package
+
+Chore:
+- Bumps `mistune` to `2.0.3`
+- Updates `skaffold` to latest version
+
+Docs:
+- Updates the demo section
+- Adds info about Docker Desktop on MacOS and Windows
+
 # 0.1.5 (2022-07-29)
 
 Autonomy:
