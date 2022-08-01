@@ -17,7 +17,7 @@ fingerprint:
   payloads.py: bafybeigvs7s5gnr2ocq7ofrvh7tksla2fh3ymgshhdtooe2wb7bdnw6bta
   rounds.py: bafybeibxjnvm5r62qnvv54c6xjcym4j2cuxk4kvv566jwcdbamwyr5qjvq
   test_tools/__init__.py: bafybeifwxievldkr2k5rqcsq4t3hx4kh6pue4spxy6tlji6422np46dtoy
-  test_tools/integration.py: bafybeidlvaptkpfzya4bnjhmlqdfwc5rgc2ibt5ckwykjjecccrx5swi6u
+  test_tools/integration.py: bafybeidi74vdxcj5gvfbuxbbiaowhgrvunxpf7lmasry645lsongz7dimy
 fingerprint_ignore_patterns: []
 connections:
 - valory/abci:0.1.0:bafybeibfdzfevrtiywolqeepk6yfzyvl4bbu6mghhnebkptcbhsh5fxkbu
@@ -36,7 +36,7 @@ protocols:
 - valory/ledger_api:1.0.0:bafybeif2c3jt4tim3zbfq5c2lds7bs6qj5gvj2obk3pzdk3uy6zk2ivo3e
 skills:
 - valory/abstract_round_abci:0.1.0:bafybeihcarapqbgd7czlfyygkdjvb3zxhfkxvud7hd5owajkcwqsxa63gy
-- valory/transaction_settlement_abci:0.1.0:bafybeic5fit66hxn62vd3egbh66xpmvpsz5bu53kvuyq4iyq4brfyge7ri
+- valory/transaction_settlement_abci:0.1.0:bafybeich2q5fktbar6wd7d2zirw7teiqxgktayl4ie42adlnbgpvccxdhq
 behaviours:
   main:
     args: {}

@@ -33,6 +33,9 @@ from packages.valory.skills.transaction_settlement_abci.test_tools.integration i
 )
 
 
+# pylint: disable=protected-access,too-many-ancestors,unbalanced-tuple-unpacking,too-many-locals,consider-using-with,unspecified-encoding,too-many-arguments,unidiomatic-typecheck
+
+
 class AMMIntegrationBaseCase(
     _TxHelperIntegration, _HarHatHelperIntegration, HardHatAMMBaseTest
 ):
