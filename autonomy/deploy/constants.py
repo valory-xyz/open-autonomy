@@ -22,30 +22,6 @@ import socket
 from string import Template
 from typing import Any, Dict
 
-
-def get_ip() -> str:
-    """Get local IP address."""
-    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    s.settimeout(0)
-    try:
-        # doesn't even have to be reachable
-        s.connect(("10.255.255.255", 1))
-        IP = s.getsockname()[0]
-    except Exception:  # pylint: disable=broad-except
-        IP = "127.0.0.1"
-    finally:
-        s.close()
-    return IP
-
-
-DEFAULT_NETWORK_CONFIG = {
-    "LEDGER_ID": "hardhat",
-    "LEDGER_ADDRESS": "http://localhost:8545",
-    "LEDGER_CHAIN_ID": 31337,
-    "LEDGER_POA_CHAIN": False,
-    "LEDGER_DEFAULT_GAS_PRICE_STRATEGY": "eip1559",
-}
-
 TENDERMINT_CONFIGURATION_OVERRIDES: Dict[str, Dict[str, Any]] = {
     "kubernetes": {
         "TENDERMINT_URL": "http://localhost:26657",

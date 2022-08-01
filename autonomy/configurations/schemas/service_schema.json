@@ -13,7 +13,6 @@
     "fingerprint",
     "fingerprint_ignore_patterns",
     "agent",
-    "network",
     "number_of_agents"
   ],
   "properties": {
@@ -47,9 +46,6 @@
     },
     "number_of_agents": {
       "type": "integer"
-    },
-    "network": {
-      "type": "object"
     }
   }
 }

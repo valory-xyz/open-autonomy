@@ -42,7 +42,6 @@ from aea.helpers.base import SimpleIdOrStr, cd
 
 from autonomy.configurations.constants import DEFAULT_SERVICE_FILE, SCHEMAS_DIR
 from autonomy.configurations.validation import ConfigValidator
-from autonomy.deploy.constants import DEFAULT_NETWORK_CONFIG
 
 
 COMPONENT_CONFIGS: Dict = {
@@ -95,7 +94,6 @@ class Service(PackageConfiguration):  # pylint: disable=too-many-instance-attrib
         "fingerprint_ignore_patterns",
         "build_entrypoint",
         "agent",
-        "network",
         "number_of_agents",
         "_aea_version",
         "_aea_version_specifiers",
@@ -115,7 +113,6 @@ class Service(PackageConfiguration):  # pylint: disable=too-many-instance-attrib
         fingerprint_ignore_patterns: Optional[Sequence[str]] = None,
         description: str = "",
         number_of_agents: int = 4,
-        network: Optional[Dict[str, Any]] = None,
         build_entrypoint: Optional[str] = None,
         overrides: Optional[List] = None,
     ) -> None:
@@ -135,7 +132,6 @@ class Service(PackageConfiguration):  # pylint: disable=too-many-instance-attrib
         self.agent = PublicId.from_str(str(agent))
         self.description = description
         self.number_of_agents = number_of_agents
-        self.network = network or DEFAULT_NETWORK_CONFIG
 
         self._overrides = [] if overrides is None else overrides
 
@@ -171,7 +167,6 @@ class Service(PackageConfiguration):  # pylint: disable=too-many-instance-attrib
                 "aea_version": self.aea_version,
                 "description": self.description,
                 "number_of_agents": self.number_of_agents,
-                "network": self.network,
                 "overrides": self.overrides,
                 "fingerprint": self.fingerprint,
                 "fingerprint_ignore_patterns": self.fingerprint_ignore_patterns,
@@ -194,7 +189,6 @@ class Service(PackageConfiguration):  # pylint: disable=too-many-instance-attrib
             aea_version=cast(str, obj.get("aea_version")),
             description=cast(str, obj.get("description")),
             number_of_agents=cast(int, obj.get("number_of_agents")),
-            network=cast(str, obj.get("network")),
             overrides=cast(List, obj.get("overrides", [])),
             fingerprint=cast(Dict[str, str], obj.get("fingerprint", [])),
             fingerprint_ignore_patterns=cast(

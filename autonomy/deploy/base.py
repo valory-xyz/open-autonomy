@@ -37,7 +37,6 @@ from autonomy.configurations.loader import load_service_config
 from autonomy.constants import TENDERMINT_IMAGE_VERSION
 from autonomy.deploy.constants import (
     DEFAULT_ENCODING,
-    DEFAULT_NETWORK_CONFIG,
     KEY_SCHEMA_ADDRESS,
     KEY_SCHEMA_ENCRYPTED_KEY,
     KEY_SCHEMA_UNENCRYPTED_KEY,
@@ -193,37 +192,6 @@ class BaseDeploymentGenerator:
         self,
     ) -> "BaseDeploymentGenerator":
         """Populate the private keys to the deployment."""
-
-    @staticmethod
-    def build_network_config_overrides(
-        network_config: Dict[str, Any]
-    ) -> Dict[str, Any]:
-        """Build network config overrides."""
-
-        config = DEFAULT_NETWORK_CONFIG.copy()
-        for key, val in network_config.items():
-            config[f"LEDGER_{key.upper()}"] = val
-
-        network = cast(str, config["LEDGER_ADDRESS"])
-        parsed_url = urlparse(network)
-        if parsed_url.hostname == LOCALHOST:
-            network = network.replace(LOCALHOST, get_ip())
-
-        config["LEDGER_ADDRESS"] = network
-        return config
-
-    def get_deployment_network_configuration(
-        self, agent_vars: List[Dict[str, Any]]
-    ) -> List:
-        """Retrieve the appropriate network configuration based on deployment & network."""
-
-        network_config_overrides = self.build_network_config_overrides(
-            self.network_config
-        )
-
-        for agent in agent_vars:
-            agent.update(network_config_overrides)
-        return agent_vars
 
     def write_config(self) -> "BaseDeploymentGenerator":
         """Write output to build dir"""
