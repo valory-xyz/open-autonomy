@@ -19,9 +19,8 @@
 
 """Test the models.py module of the skill."""
 
+from packages.valory.skills.abstract_round_abci.test_tools.base import DummyContext
 from packages.valory.skills.liquidity_rebalancing_abci.models import Params, SharedState
-
-from tests.test_skills.base import DummyContext
 
 
 class TestSharedState:

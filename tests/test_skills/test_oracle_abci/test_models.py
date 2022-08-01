@@ -23,11 +23,10 @@ from unittest.mock import MagicMock
 
 import pytest
 
+from packages.valory.skills.abstract_round_abci.test_tools.base import DummyContext
 from packages.valory.skills.oracle_abci.composition import OracleAbciApp
 from packages.valory.skills.oracle_abci.models import SharedState
 from packages.valory.skills.oracle_deployment_abci.rounds import Event
-
-from tests.test_skills.base import DummyContext
 
 
 @pytest.fixture

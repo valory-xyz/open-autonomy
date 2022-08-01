@@ -60,6 +60,9 @@ from packages.valory.skills.abstract_round_abci.handlers import (
 )
 
 
+# pylint: disable=protected-access,too-few-public-methods,consider-using-with
+
+
 class FSMBehaviourBaseCase(BaseSkillTestCase):
     """Base case for testing FSMBehaviour classes."""
 
@@ -85,7 +88,7 @@ class FSMBehaviourBaseCase(BaseSkillTestCase):
         )
         _MetaPayload.transaction_type_to_payload_cls = {}
         super().setup()
-        assert cls._skill.skill_context._agent_context is not None
+        assert cls._skill.skill_context._agent_context is not None  # nosec
         cls._skill.skill_context._agent_context.identity._default_address_key = (
             "ethereum"
         )
@@ -118,7 +121,7 @@ class FSMBehaviourBaseCase(BaseSkillTestCase):
 
         cls.benchmark_dir = TemporaryDirectory()
         cls._skill.skill_context.benchmark_tool.log_dir = Path(cls.benchmark_dir.name)
-        assert (
+        assert (  # nosec
             cast(BaseBehaviour, cls.behaviour.current_behaviour).behaviour_id
             == cls.behaviour.initial_behaviour_cls.behaviour_id
         )
@@ -131,7 +134,9 @@ class FSMBehaviourBaseCase(BaseSkillTestCase):
     ) -> None:
         """Fast forward the FSM to a behaviour."""
         next_behaviour = {s.behaviour_id: s for s in behaviour.behaviours}[behaviour_id]
-        assert next_behaviour is not None, f"Behaviour {behaviour_id} not found"
+        assert (  # nosec
+            next_behaviour is not None
+        ), f"Behaviour {behaviour_id} not found"
         next_behaviour = cast(Type[BaseBehaviour], next_behaviour)
         behaviour.current_behaviour = next_behaviour(
             name=next_behaviour.behaviour_id, skill_context=behaviour.context
@@ -161,7 +166,7 @@ class FSMBehaviourBaseCase(BaseSkillTestCase):
 
         self.assert_quantity_in_outbox(1)
         actual_ledger_api_message = self.get_message_from_outbox()
-        assert actual_ledger_api_message is not None, "No message in outbox."
+        assert actual_ledger_api_message is not None, "No message in outbox."  # nosec
         has_attributes, error_str = self.message_has_attributes(
             actual_message=actual_ledger_api_message,
             message_type=LedgerApiMessage,
@@ -170,7 +175,7 @@ class FSMBehaviourBaseCase(BaseSkillTestCase):
             **request_kwargs,
         )
 
-        assert has_attributes, error_str
+        assert has_attributes, error_str  # nosec
         incoming_message = self.build_incoming_message(
             message_type=LedgerApiMessage,
             dialogue_reference=(
@@ -200,7 +205,9 @@ class FSMBehaviourBaseCase(BaseSkillTestCase):
 
         self.assert_quantity_in_outbox(1)
         actual_contract_ledger_message = self.get_message_from_outbox()
-        assert actual_contract_ledger_message is not None, "No message in outbox."
+        assert (  # nosec
+            actual_contract_ledger_message is not None
+        ), "No message in outbox."
         has_attributes, error_str = self.message_has_attributes(
             actual_message=actual_contract_ledger_message,
             message_type=ContractApiMessage,
@@ -211,7 +218,7 @@ class FSMBehaviourBaseCase(BaseSkillTestCase):
             message_id=1,
             **request_kwargs,
         )
-        assert has_attributes, error_str
+        assert has_attributes, error_str  # nosec
         self.behaviour.act_wrapper()
 
         incoming_message = self.build_incoming_message(
@@ -241,7 +248,7 @@ class FSMBehaviourBaseCase(BaseSkillTestCase):
 
         self.assert_quantity_in_outbox(1)
         actual_http_message = self.get_message_from_outbox()
-        assert actual_http_message is not None, "No message in outbox."
+        assert actual_http_message is not None, "No message in outbox."  # nosec
         has_attributes, error_str = self.message_has_attributes(
             actual_message=actual_http_message,
             message_type=HttpMessage,
@@ -250,7 +257,7 @@ class FSMBehaviourBaseCase(BaseSkillTestCase):
             sender=str(self.skill.skill_context.skill_id),
             **request_kwargs,
         )
-        assert has_attributes, error_str
+        assert has_attributes, error_str  # nosec
         self.behaviour.act_wrapper()
         self.assert_quantity_in_outbox(0)
         incoming_message = self.build_incoming_message(
@@ -270,7 +277,7 @@ class FSMBehaviourBaseCase(BaseSkillTestCase):
         """Mock signing request."""
         self.assert_quantity_in_decision_making_queue(1)
         actual_signing_message = self.get_message_from_decision_maker_inbox()
-        assert actual_signing_message is not None, "No message in outbox."
+        assert actual_signing_message is not None, "No message in outbox."  # nosec
         has_attributes, error_str = self.message_has_attributes(
             actual_message=actual_signing_message,
             message_type=SigningMessage,
@@ -278,7 +285,7 @@ class FSMBehaviourBaseCase(BaseSkillTestCase):
             sender=str(self.skill.skill_context.skill_id),
             **request_kwargs,
         )
-        assert has_attributes, error_str
+        assert has_attributes, error_str  # nosec
         incoming_message = self.build_incoming_message(
             message_type=SigningMessage,
             dialogue_reference=(actual_signing_message.dialogue_reference[0], "stub"),
@@ -362,7 +369,7 @@ class FSMBehaviourBaseCase(BaseSkillTestCase):
     def _test_done_flag_set(self) -> None:
         """Test that, when round ends, the 'done' flag is set."""
         current_behaviour = cast(BaseBehaviour, self.behaviour.current_behaviour)
-        assert not current_behaviour.is_done()
+        assert not current_behaviour.is_done()  # nosec
         with mock.patch.object(
             self.behaviour.context.state, "_round_sequence"
         ) as mock_round_sequence:
@@ -370,7 +377,7 @@ class FSMBehaviourBaseCase(BaseSkillTestCase):
                 AbstractRound, current_behaviour.matching_round
             ).round_id
             current_behaviour.act_wrapper()
-            assert current_behaviour.is_done()
+            assert current_behaviour.is_done()  # nosec
 
     @classmethod
     def teardown(cls) -> None:

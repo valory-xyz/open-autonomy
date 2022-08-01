@@ -20,13 +20,12 @@
 """Test the models.py module of the skill."""
 from unittest.mock import MagicMock
 
+from packages.valory.skills.abstract_round_abci.test_tools.base import DummyContext
 from packages.valory.skills.liquidity_provision_abci.composition import (
     LiquidityProvisionAbciApp,
 )
 from packages.valory.skills.liquidity_provision_abci.models import SharedState
 from packages.valory.skills.liquidity_rebalancing_abci.rounds import Event
-
-from tests.test_skills.base import DummyContext
 
 
 class TestSharedState:
