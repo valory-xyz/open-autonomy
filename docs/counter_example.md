@@ -5,7 +5,6 @@ over Tendermint.
 It is an example on how to replicate an application state-machine
 across different AEAs using the Tendermint consensus engine.
 
-{% include 'aea.md' %}
 
 ## Preliminaries
 
