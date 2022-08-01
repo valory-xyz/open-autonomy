@@ -3,7 +3,7 @@
 # 0.1.5 (2022-07-29)
 
 Autonomy:
-- Depends on `open-aea>=1.15.0`
+- Depends on `open-aea>=1.14.0.post1`
 - Cleans up Dockerfiles and aligns them
 
 Packages:
