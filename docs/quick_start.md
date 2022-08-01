@@ -51,12 +51,22 @@ export OPEN_AEA_IPFS_ADDR="/dns/registry.autonolas.tech/tcp/443/https"
 touch Pipfile && pipenv --python 3.10 && pipenv shell
 ```
 
-3. Install {{open_autonomy}}
+3. Install {{open_autonomy}}.
 ```bash
 pip install open-autonomy
 ```
 
+4. Initialize the remote IPFS registry.
+```bash
+autonomy init --remote
+```
+
 ## Deploy a Local Agent Service
+
+!!! note
+    On **MacOS** and **Windows**, running Docker containers requires having Docker Desktop running as well. If you're using one of those systems, remember to start Docker Desktop
+    before you run agent services.
+
 
 Follow the steps indicated below to download a demonstration agent service from the Service Registry, and deploy it locally using Docker Compose.
 In this case, we consider the [Hello World agent service](./hello_world_agent_service.md).
