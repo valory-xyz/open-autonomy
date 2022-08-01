@@ -19,20 +19,23 @@ an {{fsm_app}} instance which receives all the updates from the
 underlying Tendermint network.
 
 
-## Overview of the Demo
+## Architecture of the Demo
 
-The network is composed of:
+The demo is composed of:
 
-- A [HardHat](https://hardhat.org/) node (the local blockchain)
-- A set of $n$ Tendermint nodes
+- A [HardHat](https://hardhat.org/) node (emulating an Ethereum blockchain).
+- A set of $n$ Tendermint nodes.
 - A set of $n$ AEAs, in one-to-one connection with one Tendermint node.
 
+<figure markdown>
 ![](./images/oracle_diagram.svg)
+<figcaption>Price oracle architecture with four agents</figcaption>
+</figure>
 
 Agents communicate directly to their local tendermint node, whereas the `AbciApp`
-is used to handle requests they receive (e.g. in response to their behaviour).
+is used to handle requests they receive (e.g., in response to their behaviour).
 
-The AEAs have the following custom components:
+In addition to other general-use components (e.g., signing, HTTP client), the components of the  AEAs related to the implementation of the agent service are:
 
 - Protocol `valory/abci:0.1.0`: it allows representing
     ABCI request and response messages.
@@ -46,7 +49,7 @@ The AEAs have the following custom components:
     replicated state machines, based on the ABCI protocol
     (e.g. `Period`, `AbstractRound`). It is an abstract skill.
 
-Moreover, it has the following demo-specific components:
+Moreover, it has the following specific components to implement the particular case of the price oracle agent service:
 
 - `valory/price_estimation_abci`: it implements the round-based
     ABCI application for price estimation of a cryptocurrency,
@@ -86,10 +89,10 @@ scheduled in subsequent rounds.
    once this threshold is hit ("registration threshold"), the round is finished.
 
 2. `FinishedRegistrationRound` <br/>
-   A round that signals agent registration was successful.
+   A round that signals agent registration was successful, but service contracts has not been already deployed.
 
 3. `FinishedRegistrationFFWRound` <br/>
-   A round that signals agent registration was successful.
+   A round that signals agent registration was successful, and the service contracts are already deployed.
 
 
 ### The `SafeDeploymentAbciApp`
@@ -271,10 +274,7 @@ OracleAbciApp = chain(
 )
 ```
 
-!!! note
-
-    The execution logic of the AbstractRoundBehaviour implemented below
-    still requires documention here
+The AbstractRoundBehaviour schedules the state behaviour associated with the current round, ensuring that a transition to the new state cannot occur without first invoking the associated state Behaviour. Since it is composed of the Behaviours belonging to the constituent FSMs, we can reference them as depicted below.
 
 
 ```python
