@@ -50,7 +50,6 @@ from packages.valory.skills.abstract_round_abci.test_tools.base import (
 from packages.valory.skills.abstract_round_abci.test_tools.integration import (
     ExpectedContentType,
     ExpectedTypesType,
-    GnosisIntegrationBaseCase,
     HandlersType,
     IntegrationBaseCase,
 )
@@ -80,6 +79,9 @@ from packages.valory.skills.transaction_settlement_abci.payload_tools import (
 )
 from packages.valory.skills.transaction_settlement_abci.rounds import (
     SynchronizedData as TxSettlementSynchronizedSata,
+)
+from packages.valory.skills.transaction_settlement_abci.test_tools.integration import (
+    GnosisIntegrationBaseCase,
 )
 
 from tests.conftest import ROOT_DIR, make_ledger_api_connection

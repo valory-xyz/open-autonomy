@@ -37,9 +37,11 @@ from packages.valory.skills.abstract_round_abci.test_tools.base import (
     FSMBehaviourBaseCase,
 )
 from packages.valory.skills.abstract_round_abci.test_tools.integration import (
-    AMMIntegrationBaseCase,
     ExpectedContentType,
     ExpectedTypesType,
+)
+from packages.valory.skills.liquidity_provision_abci.test_tools.integration import (
+    AMMIntegrationBaseCase,
 )
 from packages.valory.skills.liquidity_rebalancing_abci.behaviours import (
     EnterPoolTransactionHashBehaviour,
