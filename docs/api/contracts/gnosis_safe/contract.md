@@ -261,3 +261,88 @@ Retrieve the safe's nonce
 
 the safe nonce
 
+<a id="packages.valory.contracts.gnosis_safe.contract.GnosisSafeContract.get_ingoing_transfers"></a>
+
+#### get`_`ingoing`_`transfers
+
+```python
+@classmethod
+def get_ingoing_transfers(cls, ledger_api: EthereumApi, contract_address: str, from_block: Optional[str] = None, to_block: Optional[str] = "latest") -> JSONLike
+```
+
+A list of transfers into the contract.
+
+**Arguments**:
+
+- `ledger_api`: the ledger API object
+- `contract_address`: the contract address,
+- `from_block`: from which block to start tje search
+- `to_block`: at which block to end the search
+
+**Returns**:
+
+list of transfers
+
+<a id="packages.valory.contracts.gnosis_safe.contract.GnosisSafeContract.get_balance"></a>
+
+#### get`_`balance
+
+```python
+@classmethod
+def get_balance(cls, ledger_api: EthereumApi, contract_address: str) -> JSONLike
+```
+
+Retrieve the safe's balance
+
+**Arguments**:
+
+- `ledger_api`: the ledger API object
+- `contract_address`: the contract address
+
+**Returns**:
+
+the safe balance (in wei)
+
+<a id="packages.valory.contracts.gnosis_safe.contract.GnosisSafeContract.get_amount_spent"></a>
+
+#### get`_`amount`_`spent
+
+```python
+@classmethod
+def get_amount_spent(cls, ledger_api: EthereumApi, contract_address: str, tx_hash: str) -> JSONLike
+```
+
+Get the amount of ether spent in a tx.
+
+**Arguments**:
+
+- `ledger_api`: the ledger API object
+- `contract_address`: the contract address (not used)
+- `tx_hash`: the settled tx hash
+
+**Returns**:
+
+the safe balance (in wei)
+
+<a id="packages.valory.contracts.gnosis_safe.contract.GnosisSafeContract.get_safe_txs"></a>
+
+#### get`_`safe`_`txs
+
+```python
+@classmethod
+def get_safe_txs(cls, ledger_api: EthereumApi, contract_address: str, from_block: BlockIdentifier = "earliest", to_block: BlockIdentifier = "latest") -> JSONLike
+```
+
+Get all the safe tx hashes.
+
+**Arguments**:
+
+- `ledger_api`: the ledger API object
+- `contract_address`: the contract address (not used)
+- `from_block`: from which block to search for events
+- `to_block`: to which block to search for events
+
+**Returns**:
+
+the safe txs
+

@@ -28,6 +28,8 @@ from aea.helpers.transaction.base import RawTransaction, State
 from aea.skills.base import Handler
 from web3 import Web3
 
+from autonomy.test_tools.docker.base import skip_docker_tests
+
 from packages.valory.contracts.gnosis_safe.contract import SafeOperation
 from packages.valory.protocols.contract_api import ContractApiMessage
 from packages.valory.skills.abstract_round_abci.base import AbciAppDB
@@ -58,7 +60,6 @@ from packages.valory.skills.transaction_settlement_abci.rounds import (
 )
 
 from tests.conftest import ROOT_DIR
-from tests.helpers.docker.base import skip_docker_tests
 from tests.test_skills.base import FSMBehaviourBaseCase
 from tests.test_skills.integration import (
     AMMIntegrationBaseCase,

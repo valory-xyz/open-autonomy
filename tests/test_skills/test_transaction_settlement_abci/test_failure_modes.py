@@ -28,6 +28,8 @@ import pytest
 from aea_ledger_ethereum import EthereumApi
 from web3.types import RPCEndpoint, Wei
 
+from autonomy.test_tools.docker.base import skip_docker_tests
+
 from packages.open_aea.protocols.signing import SigningMessage
 from packages.open_aea.protocols.signing.custom_types import (
     RawTransaction,
@@ -71,7 +73,6 @@ from packages.valory.skills.transaction_settlement_abci.rounds import (
 )
 
 from tests.conftest import ROOT_DIR
-from tests.helpers.docker.base import skip_docker_tests
 from tests.test_skills.base import FSMBehaviourBaseCase
 from tests.test_skills.integration import (
     ExpectedContentType,

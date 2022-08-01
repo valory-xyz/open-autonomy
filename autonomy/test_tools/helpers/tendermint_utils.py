@@ -25,8 +25,8 @@ from typing import Any, List
 
 import pytest
 
-from tests.helpers.base import tendermint_health_check
-from tests.helpers.constants import LOCALHOST
+from autonomy.test_tools.configurations import LOCALHOST
+from autonomy.test_tools.helpers.base import tendermint_health_check
 
 
 _TCP = "tcp://"
@@ -108,10 +108,11 @@ class TendermintLocalNetworkBuilder:
             ]
         )
 
-    def _get_node_id(self, i: int) -> str:
+    def _get_node_id(self, i: int) -> str:  # pylint: disable=no-self-use
         """Get the node id."""
+        assert 0 <= i < self.nb_nodes, "invalid node id"  # nosec
         node_name = f"node{i}"
-        process = subprocess.Popen(  # nosec
+        process = subprocess.Popen(  # nosec  # pylint: disable=consider-using-with
             ["tendermint", "--home", node_name, "show-node-id"], stdout=subprocess.PIPE
         )
         output, _ = process.communicate()
@@ -142,7 +143,7 @@ class TendermintLocalNetworkBuilder:
         return [node.get_http_addr(LOCALHOST) for node in self.nodes]
 
 
-class BaseTendermintTestClass:
+class BaseTendermintTestClass:  # pylint: disable=too-few-public-methods
     """MixIn class for Pytest classes."""
 
     @staticmethod

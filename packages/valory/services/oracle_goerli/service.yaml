@@ -7,7 +7,7 @@ license: Apache-2.0
 fingerprint:
   README.md: bafybeig4wu7inb6ibwfgged3djyc7emopcg5n7d7gwrlotne53pp3jfgq4
 fingerprint_ignore_patterns: []
-agent: valory/oracle:0.1.0:bafybeicmvbmt3zrunejxdhm4tboehd7pnfknxveo5iojjxk2gpe5s22nda
+agent: valory/oracle:0.1.0:bafybeibfse7av7x2q4gwh5owestqbxog6fjn72etraf5tjgemrdrf42lfu
 network:
   id: goerli
   address: https://goerli.infura.io/v3/1622a5f5b56a4e1f9bd9292db7da93b8

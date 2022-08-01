@@ -29,8 +29,8 @@ import requests
 from aea.exceptions import enforce
 from docker.models.containers import Container
 
-from tests.helpers.constants import THIRD_PARTY
-from tests.helpers.docker.base import DockerImage
+from autonomy.test_tools.configurations import THIRD_PARTY
+from autonomy.test_tools.docker.base import DockerImage
 
 
 DEFAULT_HARDHAT_ADDR = "http://127.0.0.1"
@@ -67,7 +67,7 @@ class GnosisSafeNetDockerImage(DockerImage):
         """Get the tag."""
         return "node:16.7.0"
 
-    def _update_config(self) -> None:
+    def _update_config(self) -> None:  # pylint: disable=no-self-use
         """Build command."""
         for line in fileinput.input(CONFIG_FILE, inplace=True):
             if "      gas: 100000000\n" in line:

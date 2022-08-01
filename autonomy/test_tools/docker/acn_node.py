@@ -27,7 +27,7 @@ from aea.exceptions import enforce
 from docker import DockerClient
 from docker.models.containers import Container
 
-from tests.helpers.docker.base import DockerImage
+from autonomy.test_tools.docker.base import DockerImage
 
 
 _LOCAL_ADDRESS = "0.0.0.0"  # nosec
@@ -110,7 +110,7 @@ class ACNNodeDockerImage(DockerImage):
                     to_be_connected.remove(uri)
                     logging.info(f"URI ready: {uri}")
                     break
-                except Exception:
+                except Exception:  # pylint: disable=broad-except
                     logging.error(
                         f"Attempt {i} failed on {uri}. Retrying in {sleep_rate} seconds..."
                     )

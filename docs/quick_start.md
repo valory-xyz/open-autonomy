@@ -86,7 +86,7 @@ In this case, we consider the [Hello World agent service](./hello_world_agent_se
 
 2. Use the CLI to download and build the images to deploy the [Hello World agent service](./hello_world_agent_service.md):
     ```bash
-    autonomy deploy build deployment valory/hello_world:0.1.0:bafybeigk4xmtibk4wkilnfyd37extumvtuvmqnnoc4b7jbgkgbaomjzjve keys.json --remote
+    autonomy deploy build deployment valory/hello_world:0.1.0:bafybeievjgk7n4xaovqenovlllyshvjmojv7jzorphguzra4fwvme5tyni keys.json --remote
     ```
     The command above generates the required images to run the agent service using the keys provided in the `keys.json` file. In this case, we are accessing the service definition located in the Service Registry.
 

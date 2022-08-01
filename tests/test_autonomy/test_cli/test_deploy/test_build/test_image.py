@@ -29,9 +29,9 @@ import docker
 import pytest
 
 from autonomy.constants import DEFAULT_BUILD_FOLDER
+from autonomy.test_tools.docker.base import skip_docker_tests
 
 from tests.conftest import ROOT_DIR
-from tests.helpers.docker.base import skip_docker_tests
 from tests.test_autonomy.test_cli.base import BaseCliTest, cli
 
 

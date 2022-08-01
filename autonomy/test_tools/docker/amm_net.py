@@ -27,8 +27,8 @@ import requests
 from aea.exceptions import enforce
 from docker.models.containers import Container
 
-from tests.helpers.constants import THIRD_PARTY
-from tests.helpers.docker.base import DockerImage
+from autonomy.test_tools.configurations import THIRD_PARTY
+from autonomy.test_tools.docker.base import DockerImage
 
 
 DEFAULT_HARDHAT_ADDR = "http://127.0.0.1"

@@ -48,6 +48,7 @@ class BaseFuzzyTests(AEATestCaseMany):
     CHANNEL_TYPE: Type[BaseChannel] = BaseChannel
     CHANNEL_ARGS: Dict[str, any] = dict()  # type: ignore
     IS_LOCAL = True
+    USE_GRPC = False
 
     channel: BaseChannel
     mock_node: MockNode
@@ -72,6 +73,8 @@ class BaseFuzzyTests(AEATestCaseMany):
 
         # we are mocking a tendermint node
         cls.set_config("vendor.valory.connections.abci.config.use_tendermint", False)
+
+        cls.set_config("vendor.valory.connections.abci.config.use_grpc", cls.USE_GRPC)
 
         cls.run_install()
         cls.agent_process = cls.run_agent()

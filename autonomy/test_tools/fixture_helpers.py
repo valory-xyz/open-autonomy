@@ -18,6 +18,13 @@
 # ------------------------------------------------------------------------------
 
 """This module contains helper classes/functions for fixtures."""
+
+# needed because many test base classes do not have public methods
+# pylint: disable=too-few-public-methods
+
+# needed because many fixture auto-loaders of test classes do not use fixtures
+# pylint: disable=unused-argument
+
 import logging
 from typing import Any, Dict, List, Tuple, cast
 
@@ -25,22 +32,25 @@ import docker
 import pytest
 from eth_account import Account
 
-from tests.conftest import GANACHE_CONFIGURATION
-from tests.helpers.constants import KEY_PAIRS, LOCALHOST
-from tests.helpers.docker.acn_node import ACNNodeDockerImage, DEFAULT_ACN_CONFIG
-from tests.helpers.docker.amm_net import AMMNetDockerImage
-from tests.helpers.docker.base import DockerBaseTest, DockerImage
-from tests.helpers.docker.ganache import (
+from autonomy.test_tools.configurations import (
+    GANACHE_CONFIGURATION,
+    KEY_PAIRS,
+    LOCALHOST,
+)
+from autonomy.test_tools.docker.acn_node import ACNNodeDockerImage, DEFAULT_ACN_CONFIG
+from autonomy.test_tools.docker.amm_net import AMMNetDockerImage
+from autonomy.test_tools.docker.base import DockerBaseTest, DockerImage
+from autonomy.test_tools.docker.ganache import (
     DEFAULT_GANACHE_ADDR,
     DEFAULT_GANACHE_PORT,
     GanacheDockerImage,
 )
-from tests.helpers.docker.gnosis_safe_net import (
+from autonomy.test_tools.docker.gnosis_safe_net import (
     DEFAULT_HARDHAT_ADDR,
     DEFAULT_HARDHAT_PORT,
     GnosisSafeNetDockerImage,
 )
-from tests.helpers.docker.tendermint import (
+from autonomy.test_tools.docker.tendermint import (
     FlaskTendermintDockerImage,
     TendermintDockerImage,
 )
@@ -62,7 +72,7 @@ class UseTendermint:
     ) -> None:
         """Start a Tendermint image."""
         cls = type(self)
-        cls._tendermint_image = tendermint
+        cls._tendermint_image = tendermint  # pylint: disable=protected-access
         cls.tendermint_port = tendermint_port
 
     @property
@@ -90,8 +100,12 @@ class UseFlaskTendermintNode:
         self, flask_tendermint: FlaskTendermintDockerImage, tendermint_port: Any
     ) -> None:
         """Start a Tendermint image."""
-        self._tendermint_image = flask_tendermint
-        self.tendermint_port = tendermint_port
+        self._tendermint_image = (  # pylint: disable=attribute-defined-outside-init
+            flask_tendermint
+        )
+        self.tendermint_port = (  # pylint: disable=attribute-defined-outside-init
+            tendermint_port
+        )
 
     @property
     def p2p_seeds(self) -> List[str]:
@@ -151,7 +165,14 @@ class UseGanache:
         cls.key_pairs = cast(
             List[Tuple[str, str]],
             [
-                key if type(key) == tuple else (Account.from_key(key).address, key)
+                key
+                if type(key) == tuple  # pylint: disable=unidiomatic-typecheck
+                else (
+                    Account.from_key(  # pylint: disable=no-value-for-parameter
+                        key
+                    ).address,
+                    key,
+                )
                 for key, _ in ganache_configuration.get("accounts_balances", [])
             ],
         )
@@ -225,7 +246,14 @@ class GanacheBaseTest(DockerBaseTest):
         key_pairs = cast(
             List[Tuple[str, str]],
             [
-                key if type(key) == tuple else (Account.from_key(key).address, key)
+                key
+                if type(key) == tuple  # pylint: disable=unidiomatic-typecheck
+                else (
+                    Account.from_key(  # pylint: disable=no-value-for-parameter
+                        key
+                    ).address,
+                    key,
+                )
                 for key, _ in cls.configuration.get("accounts_balances", [])
             ],
         )

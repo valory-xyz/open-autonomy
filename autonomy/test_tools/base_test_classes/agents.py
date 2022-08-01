@@ -30,8 +30,8 @@ import pytest
 from aea.configurations.base import PublicId
 from aea.test_tools.test_cases import AEATestCaseMany, Result
 
-from tests.conftest import ANY_ADDRESS
-from tests.fixture_helpers import UseFlaskTendermintNode
+from autonomy.test_tools.configurations import ANY_ADDRESS
+from autonomy.test_tools.fixture_helpers import UseFlaskTendermintNode
 
 
 _HTTP = "http://"
@@ -95,6 +95,7 @@ class BaseTestEnd2End(AEATestCaseMany, UseFlaskTendermintNode):
     # ledger used for testing
     ledger_id: str = "ethereum"
     key_file_name: str = "ethereum_private_key.txt"
+    USE_GRPC = False
 
     @classmethod
     def set_config(
@@ -134,6 +135,7 @@ class BaseTestEnd2End(AEATestCaseMany, UseFlaskTendermintNode):
             "vendor.valory.connections.abci.config.use_tendermint",
             False,
         )
+        self.set_config("vendor.valory.connections.abci.config.use_grpc", self.USE_GRPC)
         self.set_config(
             "vendor.valory.connections.abci.config.tendermint_config.rpc_laddr",
             self.get_laddr(i),
@@ -208,7 +210,9 @@ class BaseTestEnd2End(AEATestCaseMany, UseFlaskTendermintNode):
         self.fetch_agent(self.agent_package, agent_name, is_local=self.IS_LOCAL)
         self.set_agent_context(agent_name)
         if hasattr(self, "key_pairs"):
-            Path(self.current_agent_context, self.key_file_name).write_text(
+            Path(  # pylint: disable=unspecified-encoding
+                self.current_agent_context, self.key_file_name
+            ).write_text(
                 self.key_pairs[i][1]  # type: ignore
             )
         else:
@@ -273,7 +277,7 @@ class BaseTestEnd2End(AEATestCaseMany, UseFlaskTendermintNode):
         return full_strings
 
     @classmethod
-    def missing_from_output(  # type: ignore
+    def missing_from_output(  # type: ignore  # pylint: disable=arguments-differ
         cls,
         happy_path: Tuple[RoundChecks, ...] = (),
         strict_check_strings: Tuple[str, ...] = (),
@@ -300,7 +304,7 @@ class BaseTestEnd2End(AEATestCaseMany, UseFlaskTendermintNode):
 
         # Perform checks for the round strings.
         missing_round_strings = []
-        if len(happy_path):
+        if len(happy_path) > 0:
             logging.info("Performing checks for the round strings.")
             check_strings_to_n_periods = cls.__generate_full_strings_from_rounds(
                 happy_path
@@ -351,7 +355,7 @@ class BaseTestEnd2End(AEATestCaseMany, UseFlaskTendermintNode):
             missing_agent_logs += f"Strings {missing_strict_strings} didn't appear in {agent_name} output.\n"
         missing_agent_logs += "\n".join(missing_round_strings)
 
-        assert missing_agent_logs == "", missing_agent_logs
+        assert missing_agent_logs == "", missing_agent_logs  # nosec
 
     def check_aea_messages(self) -> None:
         """

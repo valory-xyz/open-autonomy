@@ -45,6 +45,9 @@ from web3 import HTTPProvider, Web3
 from web3.providers import BaseProvider
 from web3.types import Nonce, Wei
 
+from autonomy.test_tools.fixture_helpers import HardHatAMMBaseTest
+from autonomy.test_tools.helpers.contracts import get_register_contract
+
 from packages.open_aea.protocols.signing import SigningMessage
 from packages.valory.protocols.contract_api import ContractApiMessage
 from packages.valory.protocols.contract_api.custom_types import RawTransaction, State
@@ -76,8 +79,6 @@ from packages.valory.skills.transaction_settlement_abci.rounds import (
 )
 
 from tests.conftest import ROOT_DIR, make_ledger_api_connection
-from tests.fixture_helpers import HardHatAMMBaseTest
-from tests.helpers.contracts import get_register_contract
 from tests.test_skills.base import FSMBehaviourBaseCase
 
 

@@ -17,22 +17,46 @@
 #
 # ------------------------------------------------------------------------------
 
-"""Constants for tests."""
+"""Test tools configuration."""
 import inspect
 import os
 from pathlib import Path
 from typing import List, Tuple
 
 
+def get_key(key_path: Path) -> str:
+    """Returns key value from file.""" ""
+    return key_path.read_bytes().strip().decode()
+
+
 CUR_PATH = os.path.dirname(inspect.getfile(inspect.currentframe()))  # type: ignore
+TEST_TOOLS_DIR = Path(CUR_PATH).resolve().absolute()
 ROOT_DIR = Path(CUR_PATH, "..", "..").resolve().absolute()
 THIRD_PARTY = ROOT_DIR / "third_party"
-DEFAULT_ASYNC_TIMEOUT = 5.0
-DEFAULT_REQUESTS_TIMEOUT = 5.0
-MAX_RETRIES = 30
+DATA_PATH = TEST_TOOLS_DIR / "data"
+
 LOCALHOST = "localhost"
 HTTP_LOCALHOST = f"http://{LOCALHOST}"
 
+DEFAULT_REQUESTS_TIMEOUT = 5.0
+MAX_RETRIES = 30
+DEFAULT_AMOUNT = 1000000000000000000000
+ETHEREUM_KEY_DEPLOYER = DATA_PATH / "ethereum_key_deployer.txt"
+ETHEREUM_KEY_PATH_1 = DATA_PATH / "ethereum_key_1.txt"
+ETHEREUM_KEY_PATH_2 = DATA_PATH / "ethereum_key_2.txt"
+ETHEREUM_KEY_PATH_3 = DATA_PATH / "ethereum_key_3.txt"
+ETHEREUM_KEY_PATH_4 = DATA_PATH / "ethereum_key_4.txt"
+ETHEREUM_ENCRYPTED_KEYS = DATA_PATH / "encrypted_keys.json"
+ETHEREUM_ENCRYPTION_PASSWORD = "much-secure"  # nosec
+GANACHE_CONFIGURATION = dict(
+    accounts_balances=[
+        (get_key(ETHEREUM_KEY_DEPLOYER), DEFAULT_AMOUNT),
+        (get_key(ETHEREUM_KEY_PATH_1), DEFAULT_AMOUNT),
+        (get_key(ETHEREUM_KEY_PATH_2), DEFAULT_AMOUNT),
+        (get_key(ETHEREUM_KEY_PATH_3), DEFAULT_AMOUNT),
+        (get_key(ETHEREUM_KEY_PATH_4), DEFAULT_AMOUNT),
+    ],
+)
 
 # default hardhat key pairs (public key, private key)
 KEY_PAIRS: List[Tuple[str, str]] = [
@@ -117,3 +141,4 @@ KEY_PAIRS: List[Tuple[str, str]] = [
         "0xdf57089febbacf7ba0bc227dafbffa9fc08a93fdc68e1e42411a14efcf23656e",
     ),
 ]
+ANY_ADDRESS = "0.0.0.0"  # nosec
