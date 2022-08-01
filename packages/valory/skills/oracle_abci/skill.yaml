@@ -22,15 +22,15 @@ contracts:
 - valory/gnosis_safe_proxy_factory:0.1.0:bafybeiej772sh3uuju2zsd62fz73ofg7p7ixaju6e3ahnzlbktcxoeoggy
 - valory/offchain_aggregator:0.1.0:bafybeiexr4ggkzocdz3cojmwzhkgmx3fjnvisvbnh7jumlz32lsm4hp7ii
 protocols:
-- valory/contract_api:1.0.0:bafybeiamphzkcrvd4ihfhb7nesmjfiuzdcbkxnv3427j4ge5enaz47wrta
+- valory/contract_api:1.0.0:bafybeigkedpmqhm7lrqusnkyfcapyx3dlkz2djfq74hou5pwtrskxgvuxu
 skills:
-- valory/abstract_round_abci:0.1.0:bafybeifbzw4olmswrbh6tg6t6autvuoj7rtfxk3hrc275ezqgzj5urwtmu
-- valory/oracle_deployment_abci:0.1.0:bafybeihhngbqcwtmmrni4b3avxfewy6ekidda3tz5zydpykgk7mjmjlbam
-- valory/price_estimation_abci:0.1.0:bafybeihkumg7nw6ln3nagx4su3j3h75ba5nyt5wcvgb2sfej6pkujeyrky
-- valory/registration_abci:0.1.0:bafybeidkf5wg2ne7uy5em3orkc6vjwkupyhqtgebel6s7g2af34kna6hiy
-- valory/reset_pause_abci:0.1.0:bafybeifzj6peprd247gt6ohzedcv64jgmtkglqc5ebfhceks3wdi3grtj4
-- valory/safe_deployment_abci:0.1.0:bafybeiby6tu4j733gsevpdip64wf7vt4stkz3e7hhgnj453pzy27o3dq34
-- valory/transaction_settlement_abci:0.1.0:bafybeidzniczgdrtumpj6rblmhyfwdvlnfj5yxxatqbhzwidwlarmr7lfe
+- valory/abstract_round_abci:0.1.0:bafybeievrok3xa3foeay3d3xoscunhbgnqiu6jyse6yck4td76dxsbvsiu
+- valory/oracle_deployment_abci:0.1.0:bafybeicobpm5puiw5wcjbj5yxb4qwnm2ceu65bxepzhphwr7mnz7oorv5m
+- valory/price_estimation_abci:0.1.0:bafybeifhypfl22b4pwusduxnpd7i4stamz7w36yxluycjbpo5gm7tnuj5q
+- valory/registration_abci:0.1.0:bafybeia3g5vjngmccglc7yx2mx6l4hh76fhe7ot2plqrd36lllekrsznae
+- valory/reset_pause_abci:0.1.0:bafybeifcgdaugnmv7qcmhdxhcfbemnsatwzmn6yxcl2b32qovyluojnu2u
+- valory/safe_deployment_abci:0.1.0:bafybeiahpjlxxcyelayvmpgd4fqz4j7hja7wdnwjmdnij32455izjmkawy
+- valory/transaction_settlement_abci:0.1.0:bafybeiavtszkfhm7fly7ro447rfioitzlj5gtniubumlvz32zw2ahynnpa
 behaviours:
   main:
     args: {}
