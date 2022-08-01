@@ -22,6 +22,9 @@ fingerprint:
   io/store.py: bafybeiee7uhs372q3kxd5s3itufb3ws24ey74my2jpnivit3kboon6xsaq
   models.py: bafybeifsna4hnkhgqegmhzh2uh62q6ikplvoqcsujnnvpol3wqozdhpcn4
   serializer.py: bafybeiezjdtp33nub7ual5ibt4vi7dj3ilmyw7wqq374ctub5oo7wgp7mm
+  test_tools/__init__.py: bafybeigicwqumbl3jorusndtfa6ag7lnf3saa6cbqn7fazur4n6nxmsdva
+  test_tools/base.py: bafybeih3hnnpdvr5slgby6rtmqxhw2t4xz7w6kdarh3usxi2rfklgps5je
+  test_tools/integration.py: bafybeiggwasx3zg76ciqq4ihmnnzvydib7xelscmlc26k34se4w5scnuiy
   utils.py: bafybeifnvnlpajv5iqv6wumlfppomcmcfbbb5rpiiqhouxqs5ddwlkqjjy
 fingerprint_ignore_patterns: []
 connections:

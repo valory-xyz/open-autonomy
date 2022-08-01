@@ -23,10 +23,9 @@ from unittest.mock import MagicMock
 
 import pytest
 
+from packages.valory.skills.abstract_round_abci.test_tools.base import DummyContext
 from packages.valory.skills.test_abci.models import SharedState
 from packages.valory.skills.test_abci.rounds import Event, TestAbciApp
-
-from tests.test_skills.base import DummyContext
 
 
 @pytest.fixture

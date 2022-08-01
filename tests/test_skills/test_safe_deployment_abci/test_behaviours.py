@@ -27,6 +27,9 @@ from packages.valory.contracts.gnosis_safe.contract import (
 from packages.valory.skills.abstract_round_abci.behaviour_utils import (
     make_degenerate_behaviour,
 )
+from packages.valory.skills.abstract_round_abci.test_tools.base import (
+    FSMBehaviourBaseCase,
+)
 from packages.valory.skills.safe_deployment_abci.behaviours import (
     DeploySafeBehaviour,
     RandomnessSafeBehaviour,
@@ -39,7 +42,6 @@ from packages.valory.skills.safe_deployment_abci.rounds import (
 from packages.valory.skills.safe_deployment_abci.rounds import FinishedSafeRound
 
 from tests.conftest import ROOT_DIR
-from tests.test_skills.base import FSMBehaviourBaseCase
 from tests.test_skills.test_abstract_round_abci.test_common import (
     BaseRandomnessBehaviourTest,
     BaseSelectKeeperBehaviourTest,
