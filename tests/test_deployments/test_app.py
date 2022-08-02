@@ -45,6 +45,7 @@ from autonomy.data.Dockerfiles.tendermint.app import (  # type: ignore
 from autonomy.data.Dockerfiles.tendermint.tendermint import (
     TendermintNode,  # type: ignore
 )
+from autonomy.data.Dockerfiles.tendermint.tendermint import TendermintParams
 
 
 ENCODING = "utf-8"
@@ -306,11 +307,17 @@ class TestTendermintBufferFailing(BaseTendermintServerTest):
     perform_monitoring = False  # Setting this flag to False and not monitoring makes the buffer to fill and freeze Tendermint
     debug_tendermint = True  # This will cause more logging -> faster failure
 
+    @classmethod
+    def setup_class(cls) -> None:
+        """Setup the test."""
+        with mock.patch.object(
+            TendermintParams,
+            "get_node_command_kwargs",
+            return_value=mock_get_node_command_kwargs(),
+        ):
+            super().setup_class()
+
     @wait_for_node_to_run
-    @mock.patch(
-        "autonomy.data.Dockerfiles.tendermint.tendermint.TendermintParams.get_node_command_kwargs",
-        mock_get_node_command_kwargs,
-    )
     def test_tendermint_buffer(self) -> None:
         """Test Tendermint buffer"""
 
@@ -330,7 +337,6 @@ class TestTendermintBufferFailing(BaseTendermintServerTest):
     def teardown_class(cls) -> None:
         """Teardown the test."""
         cls.app_context.pop()
-        cls.tendermint_node.stop()
         shutil.rmtree(cls.tm_home, ignore_errors=True, onerror=readonly_handler)
 
 
