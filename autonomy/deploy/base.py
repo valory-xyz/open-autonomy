@@ -164,11 +164,9 @@ class BaseDeploymentGenerator:
     build_dir: Path
     output: str
     tendermint_job_config: Optional[str]
-    network_config: Dict[str, Any]
 
     def __init__(self, service_spec: ServiceSpecification, build_dir: Path):
         """Initialise with only kwargs."""
-        self.network_config = service_spec.service.network
         self.service_spec = service_spec
         self.build_dir = Path(build_dir)
         self.tendermint_job_config: Optional[str] = None

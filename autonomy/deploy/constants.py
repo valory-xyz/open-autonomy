@@ -22,6 +22,7 @@ import socket
 from string import Template
 from typing import Any, Dict
 
+
 TENDERMINT_CONFIGURATION_OVERRIDES: Dict[str, Dict[str, Any]] = {
     "kubernetes": {
         "TENDERMINT_URL": "http://localhost:26657",
@@ -35,7 +36,6 @@ DEPLOYMENT_REPORT: Template = Template(
 Generated Deployment!\n\n
 Type:                 $type
 Agents:               $agents
-Network:              $network
 Build Length          $size\n\n
 """
 )
