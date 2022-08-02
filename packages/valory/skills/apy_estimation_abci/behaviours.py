@@ -175,7 +175,7 @@ class FetchBehaviour(
         timestamps_iterator: Optional[Iterator[int]] = None
         current_timestamp: Optional[int] = None
         dex_names_iterator: Optional[Iterator[str]] = None
-        current_dex_name: Union[None, str] = None
+        current_dex_name: Optional[str] = None
         n_fetched = 0
         call_failed = False
         initialized = False
