@@ -27,7 +27,7 @@ import subprocess  # nosec:
 from logging import Logger
 from pathlib import Path
 from threading import Event, Thread
-from typing import Any, List, Optional, Dict
+from typing import Any, Dict, List, Optional
 
 
 ENCODING = "utf-8"
@@ -117,7 +117,8 @@ class TendermintParams:  # pylint: disable=too-few-public-methods
             cmd += ["--home", self.home]
         return cmd
 
-    def get_node_command_kwargs(self, monitoring: bool = False) -> Dict:
+    @staticmethod
+    def get_node_command_kwargs(monitoring: bool = False) -> Dict:
         """Get the node command kwargs"""
         kwargs = {
             "bufsize": 1,

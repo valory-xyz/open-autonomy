@@ -21,13 +21,14 @@
 
 import os
 import platform
+import re
 import shutil
 import stat
 import subprocess  # nosec
 import tempfile
 import time
 from pathlib import Path
-from typing import Callable, List
+from typing import Callable, Dict, List
 from unittest import mock
 
 import flask
@@ -280,26 +281,50 @@ class TestTendermintLogMessages(BaseTendermintServerTest):
         assert not get_missing(after_stopping), get_logs()
 
 
+def mock_get_node_command_kwargs() -> Dict:
+    """Get the node command kwargs"""
+    kwargs = {
+        "bufsize": 1,
+        "universal_newlines": True,
+    }
+
+    # Pipe stdout and stderr even if we're not going to read to provoke the buffer fill
+    kwargs["stdout"] = subprocess.PIPE
+    kwargs["stderr"] = subprocess.STDOUT
+
+    if platform.system() == "Windows":  # pragma: nocover
+        kwargs["creationflags"] = subprocess.CREATE_NEW_PROCESS_GROUP  # type: ignore
+    else:
+        kwargs["preexec_fn"] = os.setsid  # type: ignore
+
+    return kwargs
+
+
 class TestTendermintBufferFailing(BaseTendermintServerTest):
     """Test Tendermint buffer"""
 
-    perform_monitoring = False  # Setting this flag to False makes the buffer to fill and freeze Tendermint
+    perform_monitoring = False  # Setting this flag to False and not monitoring makes the buffer to fill and freeze Tendermint
     debug_tendermint = True  # This will cause more logging -> faster failure
 
     @wait_for_node_to_run
+    @mock.patch(
+        "autonomy.data.Dockerfiles.tendermint.tendermint.TendermintParams.get_node_command_kwargs",
+        mock_get_node_command_kwargs,
+    )
     def test_tendermint_buffer(self) -> None:
         """Test Tendermint buffer"""
 
-        try:
-            # Give the test 30 seconds for it to throw a timeout
-            for _ in range(30):
-                # If it hangs for 5 seconds, we assume it's not working.
-                # Increasing the timeout should have no effect,
-                # the node is unresponsive at this point.
-                requests.get(self.tm_status_endpoint, timeout=5)
-                time.sleep(1)
-        except requests.exceptions.Timeout:
-            raise AssertionError("Tendermint has timed out")
+        with pytest.raises(AssertionError, match=re.escape("Tendermint has timed out")):
+            try:
+                # Give the test 30 seconds for it to throw a timeout
+                for _ in range(30):
+                    # If it hangs for 5 seconds, we assume it's not working.
+                    # Increasing the timeout should have no effect,
+                    # the node is unresponsive at this point.
+                    requests.get(self.tm_status_endpoint, timeout=5)
+                    time.sleep(1)
+            except requests.exceptions.Timeout:
+                raise AssertionError("Tendermint has timed out")
 
     @classmethod
     def teardown_class(cls) -> None:

@@ -1081,6 +1081,45 @@ class TendermintParams:  # pylint: disable=too-few-public-methods
             ")"
         )
 
+    def _build_node_command(self, debug: bool = False) -> List[str]:
+        """Build the 'node' command."""
+        p2p_seeds = ",".join(self.p2p_seeds) if self.p2p_seeds else ""
+        cmd = [
+            "tendermint",
+            "node",
+            f"--proxy_app={self.proxy_app}",
+            f"--rpc.laddr={self.rpc_laddr}",
+            f"--p2p.laddr={self.p2p_laddr}",
+            f"--p2p.seeds={p2p_seeds}",
+            f"--consensus.create_empty_blocks={str(self.consensus_create_empty_blocks).lower()}",
+        ]
+        if debug:
+            cmd.append("--log_level=debug")
+
+        if self.home is not None:  # pragma: nocover
+            cmd += ["--home", self.home]
+        return cmd
+
+    @staticmethod
+    def get_node_command_kwargs(monitoring: bool = False) -> Dict:
+        """Get the node command kwargs"""
+        kwargs = {
+            "bufsize": 1,
+            "universal_newlines": True,
+        }
+
+        # Only redirect stdout and stderr if we're going to read
+        if monitoring:
+            kwargs["stdout"] = subprocess.PIPE
+            kwargs["stderr"] = subprocess.STDOUT
+
+        if platform.system() == "Windows":  # pragma: nocover
+            kwargs["creationflags"] = subprocess.CREATE_NEW_PROCESS_GROUP  # type: ignore
+        else:
+            kwargs["preexec_fn"] = os.setsid  # type: ignore
+
+        return kwargs
+
 
 class TendermintNode:
     """A class to manage a Tendermint node."""
@@ -1110,25 +1149,6 @@ class TendermintNode:
             cmd += ["--home", self.params.home]
         return cmd
 
-    def _build_node_command(self, debug: bool = False) -> List[str]:
-        """Build the 'node' command."""
-        p2p_seeds = ",".join(self.params.p2p_seeds) if self.params.p2p_seeds else ""
-        cmd = [
-            "tendermint",
-            "node",
-            f"--proxy_app={self.params.proxy_app}",
-            f"--rpc.laddr={self.params.rpc_laddr}",
-            f"--p2p.laddr={self.params.p2p_laddr}",
-            f"--p2p.seeds={p2p_seeds}",
-            f"--consensus.create_empty_blocks={str(self.params.consensus_create_empty_blocks).lower()}",
-        ]
-        if debug:
-            cmd.append("--log_level=debug")
-
-        if self.params.home is not None:  # pragma: nocover
-            cmd += ["--home", self.params.home]
-        return cmd
-
     def init(self) -> None:
         """Initialize Tendermint node."""
         cmd = self._build_init_command()
@@ -1144,22 +1164,8 @@ class TendermintNode:
         """Start a Tendermint node process."""
         if self._process is not None:  # pragma: nocover
             return
-        cmd = self._build_node_command(debug)
-        kwargs = {
-            "bufsize": 1,
-            "universal_newlines": True,
-        }
-
-        # Only redirect stdout and stderr if we're going to read
-        if monitoring:
-            kwargs["stdout"] = subprocess.PIPE
-            kwargs["stderr"] = subprocess.STDOUT
-
-        if platform.system() == "Windows":  # pragma: nocover
-            kwargs["creationflags"] = subprocess.CREATE_NEW_PROCESS_GROUP  # type: ignore
-        else:
-            kwargs["preexec_fn"] = os.setsid  # type: ignore
-
+        cmd = self.params._build_node_command(debug)
+        kwargs = self.params.get_node_command_kwargs(monitoring)
         self._process = subprocess.Popen(cmd, **kwargs)  # type: ignore # nosec # pylint: disable=consider-using-with,W1509
 
         self.write_line("Tendermint process started\n")
