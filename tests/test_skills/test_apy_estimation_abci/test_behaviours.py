@@ -366,6 +366,108 @@ class TestFetchAndBatchBehaviours(APYEstimationFSMBehaviourBaseCase):
         monkeypatch.setattr(os.path, "join", lambda *_: "")
         cast(APYEstimationBaseBehaviour, self.behaviour.current_behaviour).setup()
 
+    @staticmethod
+    def mocked_handle_response_wrapper(
+        res: Optional[Any],
+    ) -> Callable[[Any], Generator[None, None, Optional[Any]]]:
+        """A wrapper to a mocked version of the `_handle_response` method, which returns the given `fetched_pairs`."""
+
+        def mocked_handle_response(*_: Any) -> Generator[None, None, Optional[Any]]:
+            """A mocked version of the `_handle_response` method, which returns the given `fetched_pairs`."""
+            yield
+            return res
+
+        return mocked_handle_response
+
+    @pytest.mark.parametrize(
+        "fetched_pairs, expected",
+        (
+            (None, False),
+            ([{"id": "test"}, {"id": "test"}], False),
+            (
+                [{"id": "test"}, {"id": "0x00004ee988665cdda9a1080d5792cecd16dc1220"}],
+                False,
+            ),
+            (
+                [{"id": "0xec454eda10accdd66209c57af8c12924556f3abd"}, {"id": "test"}],
+                False,
+            ),
+            (
+                [
+                    {"id": "0xec454eda10accdd66209c57af8c12924556f3abd"},
+                    {"id": "0x00004ee988665cdda9a1080d5792cecd16dc1220"},
+                ],
+                True,
+            ),
+        ),
+    )
+    def test_check_given_pairs(
+        self,
+        fetched_pairs: Optional[List[Dict[str, str]]],
+        expected: bool,
+        pairs_ids: Dict[str, List[str]],
+    ) -> None:
+        """Test `_check_given_pairs` method."""
+        self.fast_forward_to_behaviour(
+            self.behaviour,
+            self.behaviour_class.behaviour_id,
+            self.synchronized_data,
+        )
+        behaviour = cast(FetchBehaviour, self.behaviour.current_behaviour)
+        behaviour.params.pair_ids = pairs_ids
+        # we do this because of https://github.com/valory-xyz/open-autonomy/pull/646
+        behaviour.get_subgraph = mock.MagicMock()  # type: ignore
+        # we do this because of https://github.com/valory-xyz/open-autonomy/pull/646
+        behaviour.get_http_response = mock.MagicMock()  # type: ignore
+        # we do this because of https://github.com/valory-xyz/open-autonomy/pull/646
+        behaviour._handle_response = TestFetchAndBatchBehaviours.mocked_handle_response_wrapper(  # type: ignore
+            fetched_pairs
+        )  # type: ignore
+
+        gen = behaviour._check_given_pairs()
+        gen.send(None)
+        gen.send(None)
+
+        try:
+            gen.send(None)
+        except StopIteration:
+            assert behaviour._pairs_exist is expected
+        else:
+            raise AssertionError(
+                "Test did not finish as expected. `_check_given_pairs` should have reached to its end."
+            )
+
+    @pytest.mark.parametrize("batch", (False,))
+    @given(
+        integers(min_value=0),
+        integers(min_value=1),
+        integers(min_value=1, max_value=50),
+    )
+    def test_reset_timestamps_iterator(
+        self,
+        batch: bool,
+        start: int,
+        interval: int,
+        end: int,
+    ) -> None:
+        """Test `_reset_timestamps_iterator` method."""
+        self.fast_forward_to_behaviour(
+            self.behaviour,
+            self.behaviour_class.behaviour_id,
+            self.synchronized_data,
+        )
+        behaviour = cast(FetchBehaviour, self.behaviour.current_behaviour)
+        behaviour.batch = batch
+        behaviour.params.start = start
+        behaviour.params.interval = interval
+        behaviour.params.end = end
+
+        behaviour._reset_timestamps_iterator()
+
+        expected = [end] if batch else [i for i in range(start, end, interval)]
+        assert behaviour._progress.timestamps_iterator is not None
+        assert list(behaviour._progress.timestamps_iterator) == expected
+
     def test_handle_response(self, caplog: LogCaptureFixture) -> None:
         """Test `handle_response`."""
         self.fast_forward_to_behaviour(
