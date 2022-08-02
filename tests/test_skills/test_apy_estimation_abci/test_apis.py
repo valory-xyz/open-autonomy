@@ -266,8 +266,18 @@ class TestSubgraphs:
                 "spooky_specs_pairs_extended",
             ),
             (
+                SpookySwapSubgraph,
+                "spooky_existing_pairs_q",
+                "spooky_specs_pairs_extended",
+            ),
+            (
                 UniswapSubgraph,
                 "uni_pairs_q",
+                "uni_specs_pairs_extended",
+            ),
+            (
+                UniswapSubgraph,
+                "uni_existing_pairs_q",
                 "uni_specs_pairs_extended",
             ),
         ),
@@ -277,6 +287,7 @@ class TestSubgraphs:
         specs_fixture: str,
         query_fixture: str,
         pool_fields: Tuple[str, ...],
+        pairs_ids: Dict[str, List[str]],
         request: FixtureRequest,
     ) -> None:
         """Test SpookySwap's pairs request from subgraph."""
@@ -290,6 +301,10 @@ class TestSubgraphs:
         assert isinstance(pairs, list)
         assert len(pairs) > 0
         assert isinstance(pairs[0], dict)
+
+        if "existing" in query_fixture:
+            assert pairs == [{"id": id_} for id_ in pairs_ids[api.name]]
+            return
 
         for pair in pairs:
             assert all((key in pair for key in pool_fields))
