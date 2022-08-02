@@ -424,8 +424,8 @@ def uni_pairs_q() -> str:
 def pairs_ids() -> Dict[str, List[str]]:
     """Sample DEXs' pair ids for testing."""
     return {
-        "uni_subgraph": ["0x00004ee988665cdda9a1080d5792cecd16dc1220"],
-        "spooky_subgraph": ["0xec454eda10accdd66209c57af8c12924556f3abd"],
+        "uni_subgraph": [str(_PAIRS_Q_PARAMS["uni_id"])],
+        "spooky_subgraph": [str(_PAIRS_Q_PARAMS["spooky_id"])],
     }
 
 
