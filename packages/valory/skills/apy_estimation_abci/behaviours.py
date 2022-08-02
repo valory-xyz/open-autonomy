@@ -304,6 +304,7 @@ class FetchBehaviour(
                 self.context.logger.error(
                     f"The given pair(s) {non_existing_pairs} do not exist at the corresponding subgraph(s)!"
                 )
+            return
 
         self._pairs_exist = True
 
