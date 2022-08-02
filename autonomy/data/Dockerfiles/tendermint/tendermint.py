@@ -98,7 +98,7 @@ class TendermintParams:  # pylint: disable=too-few-public-methods
             ")"
         )
 
-    def _build_node_command(self, debug: bool = False) -> List[str]:
+    def build_node_command(self, debug: bool = False) -> List[str]:
         """Build the 'node' command."""
         p2p_seeds = ",".join(self.p2p_seeds) if self.p2p_seeds else ""
         cmd = [
@@ -181,7 +181,7 @@ class TendermintNode:
         """Start a Tendermint node process."""
         if self._process is not None:  # pragma: nocover
             return
-        cmd = self.params._build_node_command(debug)
+        cmd = self.params.build_node_command(debug)
         kwargs = self.params.get_node_command_kwargs(monitoring)
         self._process = subprocess.Popen(cmd, **kwargs)  # type: ignore # nosec # pylint: disable=consider-using-with,W1509
 
