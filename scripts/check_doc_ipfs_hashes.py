@@ -97,7 +97,7 @@ class Package:  # pylint: disable=too-few-public-methods
                     self.last_version = resource["version"]
                     break
 
-    def get_command(self, cmd, include_version=True) -> str:
+    def get_command(self, cmd: str, include_version=True) -> str:
         """Get the corresponding command"""
         version = (
             ":" + self.last_version if include_version and self.last_version else ""
