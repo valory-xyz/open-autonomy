@@ -122,7 +122,7 @@ class PeriodDumper:
 
 
 def create_app(
-    dump_dir: Optional[Path] = None, perform_monitoring: bool = True
+    dump_dir: Optional[Path] = None, perform_monitoring: bool = True, debug: bool = False
 ) -> Tuple[Flask, TendermintNode]:
     """Create the Tendermint server app"""
 
@@ -137,7 +137,7 @@ def create_app(
     period_dumper = PeriodDumper(logger=app.logger, dump_dir=dump_dir)
 
     tendermint_node = TendermintNode(tendermint_params, logger=app.logger)
-    tendermint_node.start(start_monitoring=perform_monitoring)
+    tendermint_node.start(start_monitoring=perform_monitoring, debug=debug)
 
     @app.get("/params")
     def get_params() -> Dict:
