@@ -4,13 +4,3 @@
 
 Constants for generating deployments environment.
 
-<a id="autonomy.deploy.constants.get_ip"></a>
-
-#### get`_`ip
-
-```python
-def get_ip() -> str
-```
-
-Get local IP address.
-
