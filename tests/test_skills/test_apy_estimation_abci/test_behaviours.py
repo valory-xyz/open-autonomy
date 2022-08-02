@@ -28,7 +28,18 @@ from enum import Enum
 from itertools import product
 from multiprocessing.pool import AsyncResult
 from pathlib import Path, PosixPath
-from typing import Any, Callable, Dict, List, Tuple, Type, Union, cast
+from typing import (
+    Any,
+    Callable,
+    Dict,
+    Generator,
+    List,
+    Optional,
+    Tuple,
+    Type,
+    Union,
+    cast,
+)
 from unittest import mock
 from uuid import uuid4
 
@@ -39,6 +50,8 @@ import pytest
 from _pytest.logging import LogCaptureFixture
 from _pytest.monkeypatch import MonkeyPatch
 from aea.skills.tasks import TaskManager
+from hypothesis import given
+from hypothesis.strategies import booleans, integers, lists
 
 from packages.valory.protocols.abci import AbciMessage  # noqa: F401
 from packages.valory.skills.abstract_round_abci.base import AbciApp, AbciAppDB
@@ -82,6 +95,7 @@ from packages.valory.skills.apy_estimation_abci.ml.optimization import (
 from packages.valory.skills.apy_estimation_abci.ml.preprocessing import (
     prepare_pair_data,
 )
+from packages.valory.skills.apy_estimation_abci.models import SubgraphsMixin
 from packages.valory.skills.apy_estimation_abci.rounds import Event, SynchronizedData
 from packages.valory.skills.apy_estimation_abci.tools.etl import ResponseItemType
 
@@ -181,6 +195,159 @@ class TestFetchAndBatchBehaviours(APYEstimationFSMBehaviourBaseCase):
 
     behaviour_class = FetchBehaviour
     next_behaviour_class = TransformBehaviour
+
+    @pytest.mark.parametrize(
+        "progress_initialized, current_dex_name, expected_pair_ids",
+        (
+            (False, "spooky_subgraph", []),
+            (True, "spooky_subgraph", ["0xec454eda10accdd66209c57af8c12924556f3abd"]),
+            (True, "uni_subgraph", ["0x00004ee988665cdda9a1080d5792cecd16dc1220"]),
+        ),
+    )
+    def test_current_pair_ids(
+        self,
+        progress_initialized: bool,
+        current_dex_name: str,
+        expected_pair_ids: List[str],
+        pairs_ids: Dict[str, List[str]],
+    ) -> None:
+        """Test `current_pair_ids`."""
+        self.fast_forward_to_behaviour(
+            self.behaviour,
+            self.behaviour_class.behaviour_id,
+            self.synchronized_data,
+        )
+        behaviour = cast(FetchBehaviour, self.behaviour.current_behaviour)
+        behaviour._progress.initialized = progress_initialized
+        behaviour._progress.current_dex_name = current_dex_name
+        behaviour.params.pair_ids = pairs_ids
+
+        assert expected_pair_ids == behaviour.current_pair_ids
+
+    @pytest.mark.parametrize(
+        "progress_initialized, current_dex_name, expected",
+        (
+            (False, "test", "default"),
+            (False, "other", "default"),
+            (True, "test", "test"),
+            (True, "other", "other"),
+        ),
+    )
+    @mock.patch.object(
+        SubgraphsMixin, "get_subgraph", return_value="get_subgraph_output"
+    )
+    def test_current_dex(
+        self,
+        get_subgraph_mock: mock.Mock,
+        progress_initialized: bool,
+        current_dex_name: str,
+        expected: str,
+    ) -> None:
+        """Test `current_dex`."""
+        self.fast_forward_to_behaviour(
+            self.behaviour,
+            self.behaviour_class.behaviour_id,
+            self.synchronized_data,
+        )
+        behaviour = cast(FetchBehaviour, self.behaviour.current_behaviour)
+        behaviour._progress.initialized = progress_initialized
+        behaviour._progress.current_dex_name = current_dex_name
+
+        actual = behaviour.current_dex
+        get_subgraph_mock.assert_called_once_with(expected)
+        assert actual == "get_subgraph_output"
+
+    def test_current_chain(self) -> None:
+        """Test `current_chain`."""
+        self.fast_forward_to_behaviour(
+            self.behaviour,
+            self.behaviour_class.behaviour_id,
+            self.synchronized_data,
+        )
+        behaviour = cast(FetchBehaviour, self.behaviour.current_behaviour)
+        behaviour.context.default = mock.MagicMock(
+            chain_subgraph_name="chain_subgraph_name"
+        )
+        behaviour.context.chain_subgraph_name = mock.MagicMock(
+            api_id="test_current_chain"
+        )
+
+        assert (
+            behaviour.current_chain.api_id == "test_current_chain"
+        ), "current chain is incorrect"
+
+    @pytest.mark.parametrize("current_dex_name", ("uni_subgraph", "spooky_subgraph"))
+    @pytest.mark.parametrize(
+        "progress_initialized, pairs_hist, n_fetched, expected",
+        (
+            (False, [], 0, 0),
+            (False, ["test"], 100, 0),
+            (True, ["test"], 1, 0),
+            (True, [i for i in range(100)], 10, 90),
+            (True, [i for i in range(123)], 67, 56),
+        ),
+    )
+    def test_currently_downloaded(
+        self,
+        current_dex_name: str,
+        progress_initialized: bool,
+        pairs_hist: ResponseItemType,
+        n_fetched: int,
+        expected: int,
+        pairs_ids: Dict[str, List[str]],
+    ) -> None:
+        """Test `currently_downloaded`."""
+        self.fast_forward_to_behaviour(
+            self.behaviour,
+            self.behaviour_class.behaviour_id,
+            self.synchronized_data,
+        )
+        behaviour = cast(FetchBehaviour, self.behaviour.current_behaviour)
+        behaviour.params.pair_ids = pairs_ids
+        behaviour._pairs_hist = pairs_hist
+        behaviour._progress.initialized = progress_initialized
+        behaviour._progress.current_dex_name = current_dex_name
+        behaviour._progress.n_fetched = n_fetched
+
+        assert behaviour.currently_downloaded == expected
+
+    @given(lists(integers()))
+    def test_total_downloaded(
+        self,
+        pairs_hist: List,
+    ) -> None:
+        """Test `total_downloaded`."""
+        self.fast_forward_to_behaviour(
+            self.behaviour,
+            self.behaviour_class.behaviour_id,
+            self.synchronized_data,
+        )
+        behaviour = cast(FetchBehaviour, self.behaviour.current_behaviour)
+        behaviour._pairs_hist = pairs_hist
+
+        assert behaviour.total_downloaded == len(pairs_hist)
+
+    @given(lists(booleans()))
+    def test_retries_exceeded(
+        self,
+        is_exceeded_per_subgraph: List[bool],
+    ) -> None:
+        """Test `retries_exceeded`."""
+        self.fast_forward_to_behaviour(
+            self.behaviour,
+            self.behaviour_class.behaviour_id,
+            self.synchronized_data,
+        )
+        behaviour = cast(FetchBehaviour, self.behaviour.current_behaviour)
+        # set up dummy subgraphs with their `is_retries_exceeded` returning whatever hypothesis selected to
+        for i in range(len(is_exceeded_per_subgraph)):
+            subgraph = mock.MagicMock()
+            subgraph.is_retries_exceeded.return_value = is_exceeded_per_subgraph[i]
+            behaviour._utilized_subgraphs[f"test{i}"] = subgraph
+
+        # we expect `retries_exceeded` to return True if any of the subgraphs' `is_retries_exceeded` returns `True`
+        expected = any(is_exceeded_per_subgraph)
+        assert behaviour.retries_exceeded == expected
 
     @pytest.mark.parametrize("batch_flag", (True, False))
     def test_setup(self, monkeypatch: MonkeyPatch, batch_flag: bool) -> None:
