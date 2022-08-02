@@ -6,14 +6,10 @@
 
 ```
 $ autonomy deploy
-
 Usage: autonomy deploy [OPTIONS] COMMAND [ARGS]...
-
   Deploy an AEA project.
-
 Options:
   --help  Show this message and exit.
-
 Commands:
   build  Build the agent and its components.
 ```
@@ -24,9 +20,7 @@ Commands:
 
 ```bash
 Usage: autonomy deploy build deployment [OPTIONS] PUBLIC_ID_OR_HASH KEYS_FILE
-
   Build deployment setup for n agents.
-
 Options:
   --o PATH             Path to output dir.
   --n INTEGER          Number of agents.
@@ -114,9 +108,7 @@ To run this deployment go to the `abci_build` and run `docker-compose up`.
 
 ```bash
 Usage: autonomy deploy build image [OPTIONS]
-
   Build image using skaffold.
-
 Options:
   --build-dir PATH     Path to build dir.
   --packages-dir PATH  Path to packages folder (for local usage).
@@ -145,12 +137,9 @@ Replay tools can be use the re run the agents using data dumps from previous run
 
 ```bash
 Usage: autonomy replay [OPTIONS] COMMAND [ARGS]...
-
   Replay tools.
-
 Options:
   --help  Show this message and exit.
-
 Commands:
   agent       Agent runner.
   tendermint  Tendermint runner.
@@ -160,9 +149,7 @@ Commands:
 
 ```bash
 Usage: autonomy replay agent [OPTIONS] AGENT
-
   Agent runner.
-
 Options:
   --build PATH     Path to build dir.
   --registry PATH  Path to registry folder.
@@ -173,9 +160,7 @@ Options:
 
 ```bash
 Usage: autonomy replay tendermint [OPTIONS]
-
   Tendermint runner.
-
 Options:
   --build PATH  Path to build directory.
   --help        Show this message and exit.
@@ -200,12 +185,9 @@ Options:
 
 ```bash
 Usage: autonomy analyse abci [OPTIONS] COMMAND [ARGS]...
-
   Analyse ABCI apps.
-
 Options:
   --help  Show this message and exit.
-
 Commands:
   check-app-specs     Check abci app specs.
   docstrings          Analyse ABCI docstring definitions.
@@ -218,9 +200,7 @@ Commands:
 
 ```bash
 Usage: autonomy analyse abci generate-app-specs [OPTIONS] APP_CLASS OUTPUT_FILE
-
   Generate abci app specs.
-
 Options:
   --mermaid  Mermaid file.
   --yaml     Yaml file.
@@ -232,9 +212,7 @@ Options:
 
 ```bash
 Usage: autonomy analyse abci check-app-specs [OPTIONS]
-
   Check abci app specs.
-
 Options:
   --check-all          Check all available definitions.
   --packages-dir PATH  Path to packages directory; Use with `--check-all` flag
@@ -249,9 +227,7 @@ Options:
 
 ```bash
 Usage: autonomy analyse abci docstrings [OPTIONS] [PACKAGES_DIR]
-
   Analyse ABCI docstring definitions.
-
 Options:
   --check
   --help   Show this message and exit.
@@ -261,9 +237,7 @@ Options:
 
 ```bash
 Usage: autonomy analyse abci logs [OPTIONS] FILE
-
   Parse logs.
-
 Options:
   --help  Show this message and exit.
 ```
@@ -272,9 +246,7 @@ Options:
 
 ```bash
 Usage: autonomy analyse benchmarks [OPTIONS] PATH
-
   Benchmark Aggregator.
-
 Options:
   -b, --block-type [local|consensus|total|all]
   -d, --period INTEGER
@@ -306,3 +278,58 @@ autonomy analyse benchmarks abci_build/persistent_data/benchmarks
 ```
 
 By default tool will generate output for all periods but you can specify which period to generate output for, same goes for block types as well.
+
+
+## Fetch
+
+```bash
+Usage: autonomy fetch [OPTIONS] PUBLIC_ID_OR_HASH
+  Fetch an agent from the registry.
+Options:
+  --remote      To use a remote registry.
+  --local       To use a local registry.
+  --alias TEXT  Provide a local alias for the agent.
+  --agent       Provide a local alias for the agent.
+  --service     Provide a local alias for the agent.
+  --help        Show this message and exit.
+```
+
+#### Example
+
+
+```bash
+autonomy fetch --local --alias oracle valory/oracle:0.1.0
+```
+
+## Run
+
+```bash
+Usage: autonomy run [OPTIONS]
+  Run the agent.
+Options:
+  -p                          Ask for password interactively
+  --password PASSWORD         Set password for key encryption/decryption
+  --connections TEXT          The connection names to use for running the
+                              agent. Must be declared in the agent's
+                              configuration file.
+  --env PATH                  Specify an environment file (default: .env)
+  --install-deps              Install all the dependencies before running the
+                              agent.
+  --profiling INTEGER         Enable profiling, print profiling every amount
+                              of seconds
+  --memray                    Enable memray tracing, create a bin file with
+                              the memory dump
+  --exclude-connections TEXT  The connection names to disable for running the
+                              agent. Must be declared in the agent's
+                              configuration file.
+  --aev                       Populate Agent configs from Environment
+                              variables.
+  --help                      Show this message and exit.
+```
+
+#### Example
+
+
+```bash
+autonomy run --aev
+```
