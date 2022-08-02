@@ -8,5 +8,5 @@ fingerprint:
   README.md: bafybeidoybzzjch4djhhafqm4e4jcrpaqmlthntcnonlsjtowwpykbc5xi
 fingerprint_ignore_patterns: []
 number_of_agents: 1
-agent: valory/counter:0.1.0:bafybeibf6dqfeqs27mkqcv2e2vkqylzfwbbmcfuytgmtthlp54j5h5mtf4
+agent: valory/counter:0.1.0:bafybeiaq4coq5bhpxldgwxsxzk3tm3vws6oar4ngsnrdurcijhco356u54
 network: hardhat

@@ -705,6 +705,16 @@ def __str__() -> str
 
 Get the string representation.
 
+<a id="packages.valory.connections.abci.connection.TendermintParams.build_node_command"></a>
+
+#### build`_`node`_`command
+
+```python
+def build_node_command(debug: bool = False) -> List[str]
+```
+
+Build the 'node' command.
+
 <a id="packages.valory.connections.abci.connection.TendermintParams.get_node_command_kwargs"></a>
 
 #### get`_`node`_`command`_`kwargs
