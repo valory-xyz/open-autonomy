@@ -21,7 +21,7 @@ import os
 
 
 DEFAULT_BUILD_FOLDER = "abci_build"
-
+DEFAULT_KEYS_FILE = "keys.json"
 DEFAULT_IMAGE_VERSION = "0.1.0"
 IMAGE_VERSION = os.environ.get("VERSION", DEFAULT_IMAGE_VERSION)
 TENDERMINT_IMAGE_VERSION = os.environ.get(

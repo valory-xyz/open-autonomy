@@ -21,27 +21,26 @@
 
 import os
 import shutil
+import sys
 from pathlib import Path
-from typing import Optional
+from typing import Dict, Optional, cast
 
 import click
-from aea.cli.utils.click_utils import PublicIdParameter, password_option, registry_flag
+import requests
+import web3
+from aea.cli.utils.click_utils import password_option, registry_flag
 from aea.cli.utils.context import Context
-from aea.configurations.constants import PACKAGES
 from aea.configurations.data_types import PublicId
 from aea.helpers.base import cd
+from compose.cli import main as docker_compose
 
 from autonomy.cli.fetch import fetch_service
-from autonomy.cli.utils.click_utils import image_profile_flag
-from autonomy.configurations.constants import DEFAULT_SERVICE_FILE
-from autonomy.configurations.loader import load_service_config
-from autonomy.constants import DEFAULT_IMAGE_VERSION
-from autonomy.data import DATA_DIR
+from autonomy.constants import DEFAULT_KEYS_FILE
 from autonomy.deploy.build import generate_deployment
 from autonomy.deploy.constants import (
     AGENT_KEYS_DIR,
     BENCHMARKS_DIR,
-    DOCKERFILES,
+    DEFAULT_ABCI_BUILD_DIR,
     LOG_DIR,
     PERSISTENT_DATA_DIR,
     TM_STATE_DIR,
@@ -49,30 +48,25 @@ from autonomy.deploy.constants import (
 )
 from autonomy.deploy.generators.docker_compose.base import DockerComposeGenerator
 from autonomy.deploy.generators.kubernetes.base import KubernetesGenerator
-from autonomy.deploy.image import ImageProfiles, build_image
+
+
+RPC_URL = "https://chain.staging.autonolas.tech"
+SERVICE_REGISTRY_ABI = "https://abi-server.staging.autonolas.tech/autonolas-registries/ServiceRegistry.json"
+SERVICE_ADDRESS = "0x0DCd1Bf9A1b36cE34237eEaFef220932846BCD82"
 
 
 @click.group(name="deploy")
-def deploy_group() -> None:
+@click.pass_context
+def deploy_group(click_context: click.Context) -> None:
     """Deploy an agent service."""
 
 
-@deploy_group.group(name="build")
-def build_group() -> None:
-    """Build an agent service deployment."""
-
-
-@build_group.command(name="deployment")
-@click.argument(
-    "service-id",
-    type=PublicIdParameter(),
-)
-@click.argument("keys_file", type=str, required=True)
+@deploy_group.command(name="build")
+@click.argument("keys_file", type=str, required=False)
 @click.option(
     "--o",
     "output_dir",
     type=click.Path(exists=False, dir_okay=True),
-    default=Path.cwd(),
     help="Path to output dir.",
 )
 @click.option(
@@ -96,12 +90,6 @@ def build_group() -> None:
     help="Use kubernetes as a backend.",
 )
 @click.option(
-    "--packages-dir",
-    type=click.Path(dir_okay=True),
-    default=Path.cwd() / PACKAGES,
-    help="Path to packages folder (for local usage).",
-)
-@click.option(
     "--dev",
     "dev_mode",
     is_flag=True,
@@ -120,168 +108,156 @@ def build_group() -> None:
     default=False,
     help="Remove existing build and overwrite with new one.",
 )
-@click.option(
-    "--skip-images",
-    is_flag=True,
-    default=False,
-    help="Specify whether to build images or not.",
-)
 @registry_flag()
 @password_option(confirmation_prompt=True)
-def build_deployment(  # pylint: disable=too-many-arguments, too-many-locals
-    service_id: PublicId,
-    keys_file: Path,
+@click.pass_context
+def build_deployment_command(  # pylint: disable=too-many-arguments, too-many-locals
+    click_context: click.Context,
+    keys_file: Optional[Path],
     deployment_type: str,
-    output_dir: Path,
-    packages_dir: Path,
+    output_dir: Optional[Path],
     dev_mode: bool,
     force_overwrite: bool,
     registry: str,
     number_of_agents: Optional[int] = None,
     password: Optional[str] = None,
     version: Optional[str] = None,
-    skip_images: bool = False,
 ) -> None:
     """Build deployment setup for n agents."""
 
-    packages_dir = Path(packages_dir).absolute()
-    keys_file = Path(keys_file).absolute()
-    build_dir = Path(output_dir, "abci_build").absolute()
+    keys_file = Path(keys_file or DEFAULT_KEYS_FILE).absolute()
+    build_dir = Path(output_dir or DEFAULT_ABCI_BUILD_DIR).absolute()
 
+    ctx = cast(Context, click_context.obj)
+    ctx.registry_type = registry
+
+    try:
+        build_deployment(
+            keys_file,
+            build_dir,
+            deployment_type,
+            dev_mode,
+            force_overwrite,
+            number_of_agents,
+            password,
+            version,
+        )
+    except Exception as e:  # pylint: disable=broad-except
+        shutil.rmtree(build_dir)
+        raise click.ClickException(str(e)) from e
+
+
+@deploy_group.command(name="run")
+@click.argument("token_id", type=int, required=False)
+@click.argument("keys_file", type=click.Path(), required=False)
+@registry_flag()
+@click.pass_context
+def run_deployment(
+    click_context: click.Context,
+    token_id: Optional[int],
+    keys_file: Optional[Path],
+    registry: str,
+) -> None:
+    """Run service deployment."""
+
+    ctx = cast(Context, click_context.obj)
+    ctx.registry_type = registry
+
+    keys_file = Path(keys_file or DEFAULT_KEYS_FILE).absolute()
+
+    if token_id is None:
+        run_existing_deployment()
+    else:
+        run_deployment_from_token_id(ctx, token_id, keys_file)
+
+
+def run_existing_deployment() -> None:
+    """Run deployment using docker-compose."""
+
+    try:
+        sys.argv = [sys.argv[0], "up", "--force-recreate"]
+        docker_compose.main()
+    except Exception as e:  # pylint: disable=broad-except
+        raise click.ClickException(str(e)) from e
+
+
+def get_abi(url: str) -> Dict:
+    """Get ABI from provided URL"""
+
+    r = requests.get(url=url)
+    return r.json().get("abi")
+
+
+def resolve_token_id(token_id: int) -> Dict:
+    """Resolve token id using on-chain contracts."""
+
+    w3 = web3.Web3(
+        provider=web3.HTTPProvider(endpoint_uri=RPC_URL),
+    )
+    service_contract = w3.eth.contract(
+        address=SERVICE_ADDRESS, abi=get_abi(SERVICE_REGISTRY_ABI)
+    )
+    url = service_contract.functions.tokenURI(token_id).call()
+
+    # This is temporary code
+    *_, metadata_hash = url.split("/")
+    url = f"https://gateway.autonolas.tech/ipfs/{metadata_hash}"
+    # End of temporary code
+
+    return requests.get(url).json()
+
+
+def run_deployment_from_token_id(ctx: Context, token_id: int, keys_file: Path) -> None:
+    """Run a deployment from on-chain token id."""
+
+    metadata = resolve_token_id(token_id)
+    *_, service_hash = metadata["code_uri"].split("//")
+    public_id = PublicId(author="valory", name="service", package_hash=service_hash)
+    service_path = fetch_service(ctx, public_id)
+
+    with cd(service_path):
+        build_deployment(
+            keys_file,
+            build_dir=service_path / DEFAULT_ABCI_BUILD_DIR,
+            deployment_type=DockerComposeGenerator.deployment_type,
+            dev_mode=False,
+            force_overwrite=True,
+        )
+
+    with cd(service_path / DEFAULT_ABCI_BUILD_DIR):
+        run_existing_deployment()
+
+
+def build_deployment(
+    keys_file: Path,
+    build_dir: Path,
+    deployment_type: str,
+    dev_mode: bool,
+    force_overwrite: bool,
+    number_of_agents: Optional[int] = None,
+    password: Optional[str] = None,
+    version: Optional[str] = None,
+) -> None:
+    """Build deployment."""
     if build_dir.is_dir():
         if not force_overwrite:
-            raise click.ClickException(f"Build already exists @ {output_dir}")
+            raise click.ClickException(f"Build already exists @ {build_dir}")
         shutil.rmtree(build_dir)
 
-    try:
-        build_dir.mkdir()
-        _build_dirs(build_dir)
+    build_dir.mkdir()
+    _build_dirs(build_dir)
 
-        with cd(build_dir):
-            context = Context(
-                cwd=build_dir, verbosity="INFO", registry_path=packages_dir
-            )
-            context.registry_type = registry
-            download_path = fetch_service(context, service_id)
-
-            shutil.move(
-                str(download_path / DEFAULT_SERVICE_FILE),
-                str(build_dir / DEFAULT_SERVICE_FILE),
-            )
-            shutil.rmtree(download_path)
-
-        _copy_docker_files(build_dir)
-
-        if not skip_images:
-            _build_images(build_dir, version, dev_mode)
-
-        report = generate_deployment(
-            service_path=build_dir,
-            type_of_deployment=deployment_type,
-            private_keys_file_path=keys_file,
-            private_keys_password=password,
-            number_of_agents=number_of_agents,
-            build_dir=build_dir,
-            dev_mode=dev_mode,
-            version=version,
-        )
-        click.echo(report)
-
-    except Exception as e:  # pylint: disable=broad-except
-        shutil.rmtree(build_dir)
-        raise click.ClickException(str(e)) from e
-
-
-def _build_images(
-    build_dir: Path, version: Optional[str], dev_mode: bool = False
-) -> None:
-    """Build images."""
-
-    service = load_service_config(build_dir)
-    profile = ImageProfiles.PRODUCTION
-    if dev_mode:
-        profile = ImageProfiles.DEVELOPMENT
-
-    if version is None:
-        version = DEFAULT_IMAGE_VERSION
-
-    with cd(build_dir):
-        click.echo("\nBuilding agent image")
-        build_image(
-            agent=service.agent,
-            profile=profile,
-            skaffold_dir=build_dir / DOCKERFILES,
-            version=version,
-            push=False,
-        )
-        click.echo("\nBuilding dependency image")
-        build_image(
-            agent=service.agent,
-            profile=ImageProfiles.DEPENDENCIES,
-            skaffold_dir=build_dir / DOCKERFILES,
-            version=version,
-            push=False,
-        )
-        click.echo()
-
-
-@build_group.command(name="image")
-@click.option(
-    "--build-dir",
-    type=click.Path(dir_okay=True),
-    help="Path to build dir.",
-)
-@click.option(
-    "--packages-dir",
-    type=click.Path(dir_okay=True),
-    help="Path to packages folder (for local usage).",
-)
-@click.option(
-    "--skaffold-dir",
-    type=click.Path(exists=True, dir_okay=True),
-    help="Path to directory containing the skaffold config.",
-)
-@click.option(
-    "--version",
-    type=str,
-    default=DEFAULT_IMAGE_VERSION,
-    help="Image version.",
-)
-@click.option("--push", is_flag=True, default=False, help="Push image after build.")
-@image_profile_flag()
-def build_images(  # pylint: disable=too-many-arguments
-    profile: str,
-    packages_dir: Optional[Path],
-    build_dir: Optional[Path],
-    skaffold_dir: Optional[Path],
-    version: str,
-    push: bool,
-) -> None:
-    """Build image using skaffold."""
-
-    build_dir = build_dir or Path.cwd()
-    packages_dir = packages_dir or Path.cwd() / PACKAGES
-    skaffold_dir = skaffold_dir or Path.cwd() / DOCKERFILES
-
-    packages_dir = Path(packages_dir).absolute()
-    skaffold_dir = Path(skaffold_dir).absolute()
-
-    service = load_service_config(build_dir)
-    service_id = service.public_id
-
-    try:
-        click.echo(
-            f"Building image with:\n\tProfile: {profile}\n\tServiceId: {service_id}\n"
-        )
-        build_image(
-            agent=service.agent,
-            profile=profile,
-            skaffold_dir=skaffold_dir,
-            version=version,
-            push=push,
-        )
-    except Exception as e:  # pylint: disable=broad-except
-        raise click.ClickException(str(e)) from e
+    report = generate_deployment(
+        service_path=Path.cwd(),
+        type_of_deployment=deployment_type,
+        private_keys_file_path=keys_file,
+        private_keys_password=password,
+        number_of_agents=number_of_agents,
+        build_dir=build_dir,
+        dev_mode=dev_mode,
+        version=version,
+    )
+    click.echo(report)
 
 
 def _build_dirs(build_dir: Path) -> None:
@@ -304,13 +280,3 @@ def _build_dirs(build_dir: Path) -> None:
             click.echo(
                 f"Updating permissions failed for {path}, please do it manually."
             )
-
-
-def _copy_docker_files(dest: Path) -> None:
-    """Copy Dockerfile to a build directory."""
-
-    src = DATA_DIR / DOCKERFILES
-    dest = dest / DOCKERFILES
-
-    shutil.copytree(src, dest)
-    click.echo("Copied Dockerfiles to build directory.")
