@@ -18,19 +18,19 @@ fingerprint:
 fingerprint_ignore_patterns: []
 connections: []
 contracts:
-- valory/gnosis_safe:0.1.0:bafybeie6mp5postj743s4d6qurg5ngfy7xxewreqfoqfxg37jtv72dtslu
+- valory/gnosis_safe:0.1.0:bafybeiexiper376ji5h4wm5erzospvyikqmvw7pi5tpgrwanj5okznemqu
 - valory/gnosis_safe_proxy_factory:0.1.0:bafybeiej772sh3uuju2zsd62fz73ofg7p7ixaju6e3ahnzlbktcxoeoggy
 - valory/offchain_aggregator:0.1.0:bafybeiexr4ggkzocdz3cojmwzhkgmx3fjnvisvbnh7jumlz32lsm4hp7ii
 protocols:
-- valory/contract_api:1.0.0:bafybeie5gbzc4v4n6p6ea66kmc5ejwvbjzhd7vhcjg7mikbyx47lypcd5m
+- valory/contract_api:1.0.0:bafybeigkedpmqhm7lrqusnkyfcapyx3dlkz2djfq74hou5pwtrskxgvuxu
 skills:
-- valory/abstract_round_abci:0.1.0:bafybeicjipni66m2s4fzte2dnudcwnlrhwjsdpmeoqgk27buv4gemcjdre
-- valory/oracle_deployment_abci:0.1.0:bafybeicxqkuchupggeu5lhjy4cto6sm5ozvco6xo2mliajuqrwiwdsybom
-- valory/price_estimation_abci:0.1.0:bafybeiduksiblplxdyclc4fapwgauiathqlqohm5jjeuclgwpujiirgc4q
-- valory/registration_abci:0.1.0:bafybeicirpkzcplkhba32livnwkn5o3dl3uwgc5jz7r5p6cmpme243sf2a
-- valory/reset_pause_abci:0.1.0:bafybeiel36r2pvcr2rfgdgytrpibl3xzdfgvaxunv4zhht4o6yao33bxkq
-- valory/safe_deployment_abci:0.1.0:bafybeichimmdkai4n63zlm7t6dgc5zjcy5qim74g6baspoowwqwqfhgdxa
-- valory/transaction_settlement_abci:0.1.0:bafybeia42mcrt6oxffaghbfr752f5u2bk53snave3fvlgcxjg57flohhoi
+- valory/abstract_round_abci:0.1.0:bafybeia6ilrwf5mvds5ojcpleoidf2xq72bazzejzrj2oqkrpceyb6qavq
+- valory/oracle_deployment_abci:0.1.0:bafybeifqby3lbx6et4eb4dzkp67rdezc67zczaf5xekekp7nyur5r4noha
+- valory/price_estimation_abci:0.1.0:bafybeiex5yclabtybbzmdnokrmdebjv3lvwbzu6ldsxqtvmcnd7yxa2kdy
+- valory/registration_abci:0.1.0:bafybeiaojo2nhfe3piftsyv2h6d6h5voicxixgx5ufgoy5lfj6jox4xnge
+- valory/reset_pause_abci:0.1.0:bafybeiaynnh7pu3h6qhu56cbxshcztgg5xkw63whktjcgcvtyuejna6mci
+- valory/safe_deployment_abci:0.1.0:bafybeicjgwfqofrop7iu4vkdj63bn5efjcrnvfstr4xh336dzecfyo4evy
+- valory/transaction_settlement_abci:0.1.0:bafybeibzrhdo6bq2467npeizbhx2wtinl4yvrcpfjdz6uqmzbimotindze
 behaviours:
   main:
     args: {}

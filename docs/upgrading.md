@@ -5,6 +5,14 @@ Below we describe the additional manual steps required to upgrade between differ
 
 # Open Autonomy
 
+## `v0.1.5` to `v0.1.6`
+
+No backwards incompatible changes
+
+## `v0.1.4` to `v0.1.5`
+
+No backwards incompatible changes
+
 ## `v0.1.3` to `v0.1.4`
 
 This release changes the build process for docker images and service deployments. Refer to documentation for more information.

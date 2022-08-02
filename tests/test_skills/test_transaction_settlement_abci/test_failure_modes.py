@@ -28,6 +28,8 @@ import pytest
 from aea_ledger_ethereum import EthereumApi
 from web3.types import RPCEndpoint, Wei
 
+from autonomy.test_tools.docker.base import skip_docker_tests
+
 from packages.open_aea.protocols.signing import SigningMessage
 from packages.open_aea.protocols.signing.custom_types import (
     RawTransaction,
@@ -42,6 +44,16 @@ from packages.valory.protocols.ledger_api.custom_types import (
     TransactionReceipt,
 )
 from packages.valory.skills.abstract_round_abci.base import AbciAppDB
+from packages.valory.skills.abstract_round_abci.test_tools.base import (
+    FSMBehaviourBaseCase,
+)
+from packages.valory.skills.abstract_round_abci.test_tools.integration import (
+    ExpectedContentType,
+    ExpectedTypesType,
+    GnosisIntegrationBaseCase,
+    HandlersType,
+    IntegrationBaseCase,
+)
 from packages.valory.skills.oracle_abci.behaviours import (
     OracleAbciAppConsensusBehaviour,
 )
@@ -70,16 +82,7 @@ from packages.valory.skills.transaction_settlement_abci.rounds import (
     SynchronizedData as TxSettlementSynchronizedSata,
 )
 
-from tests.conftest import ROOT_DIR
-from tests.helpers.docker.base import skip_docker_tests
-from tests.test_skills.base import FSMBehaviourBaseCase
-from tests.test_skills.integration import (
-    ExpectedContentType,
-    ExpectedTypesType,
-    GnosisIntegrationBaseCase,
-    HandlersType,
-    IntegrationBaseCase,
-)
+from tests.conftest import ROOT_DIR, make_ledger_api_connection
 
 
 SAFE_TX_GAS = 120000
@@ -102,6 +105,8 @@ class TransactionSettlementIntegrationBaseCase(
     """Base case for integration testing TransactionSettlement FSM Behaviour."""
 
     price_estimation_synchronized_data: PriceEstimationSynchronizedSata
+    ROOT_DIR = ROOT_DIR
+    make_ledger_api_connection_callable = make_ledger_api_connection
 
     @classmethod
     def setup(cls, **kwargs: Any) -> None:
@@ -324,6 +329,9 @@ class TestRepricing(TransactionSettlementIntegrationBaseCase):
 
 class TestKeepers(OracleBehaviourBaseCase, IntegrationBaseCase):
     """Test the keepers related functionality for the tx settlement skill."""
+
+    ROOT_DIR = ROOT_DIR
+    make_ledger_api_connection_callable = make_ledger_api_connection
 
     @classmethod
     def setup(cls, **kwargs: Any) -> None:

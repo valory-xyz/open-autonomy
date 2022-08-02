@@ -64,6 +64,7 @@ class TendermintParams:  # pylint: disable=too-few-public-methods
         p2p_seeds: Optional[List[str]] = None,
         consensus_create_empty_blocks: bool = True,
         home: Optional[str] = None,
+        use_grpc: bool = False,
     ):
         """
         Initialize the parameters to the Tendermint node.
@@ -74,6 +75,7 @@ class TendermintParams:  # pylint: disable=too-few-public-methods
         :param p2p_seeds: P2P seeds.
         :param consensus_create_empty_blocks: if true, Tendermint node creates empty blocks.
         :param home: Tendermint's home directory.
+        :param use_grpc: Wheter to use a gRPC server, or TSP
         """
         self.proxy_app = proxy_app
         self.rpc_laddr = rpc_laddr
@@ -81,6 +83,7 @@ class TendermintParams:  # pylint: disable=too-few-public-methods
         self.p2p_seeds = p2p_seeds
         self.consensus_create_empty_blocks = consensus_create_empty_blocks
         self.home = home
+        self.use_grpc = use_grpc
 
     def __str__(self) -> str:
         """Get the string representation."""
@@ -118,6 +121,8 @@ class TendermintNode:
             "tendermint",
             "init",
         ]
+        if self.params.use_grpc:
+            cmd += ["--abci=grpc"]
         if self.params.home is not None:  # pragma: nocover
             cmd += ["--home", self.params.home]
         return cmd
