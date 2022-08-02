@@ -420,6 +420,37 @@ def uni_pairs_q() -> str:
     return _pairs_q("uni_id")
 
 
+def _existing_pairs_q(dex_id_name: str) -> str:
+    """Query to get ids for the pools corresponding to the `dex_id_name`."""
+
+    return (
+        """
+    {
+        pairs(
+            where: {id_in:
+            [\""""
+        + '","'.join([str(_PAIRS_Q_PARAMS[dex_id_name])])
+        + """"]},
+        ) {
+            id
+        }
+    }
+    """
+    )
+
+
+@pytest.fixture
+def spooky_existing_pairs_q() -> str:
+    """Query to get the id for a SpookySwap pool."""
+    return _existing_pairs_q("spooky_id")
+
+
+@pytest.fixture
+def uni_existing_pairs_q() -> str:
+    """Query to get the id for a Uniswap pool."""
+    return _existing_pairs_q("uni_id")
+
+
 @pytest.fixture
 def pairs_ids() -> Dict[str, List[str]]:
     """Sample DEXs' pair ids for testing."""
