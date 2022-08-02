@@ -74,6 +74,7 @@ base_deps = [
     "pandas<1.4,>=1.3.4",
     "watchdog >=2.1.6",
     "pytest==7.0.0",
+    "web3==5.25.0",
     _get_docker_dependency(),
 ]
 base_deps.extend(all_extras["cli"])

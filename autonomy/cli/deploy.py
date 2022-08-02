@@ -32,7 +32,6 @@ from aea.cli.utils.click_utils import password_option, registry_flag
 from aea.cli.utils.context import Context
 from aea.configurations.data_types import PublicId
 from aea.helpers.base import cd
-from compose.cli import main as docker_compose
 
 from autonomy.cli.fetch import fetch_service
 from autonomy.constants import DEFAULT_KEYS_FILE
@@ -173,12 +172,6 @@ def run_deployment(
 
 def run_existing_deployment() -> None:
     """Run deployment using docker-compose."""
-
-    try:
-        sys.argv = [sys.argv[0], "up", "--force-recreate"]
-        docker_compose.main()
-    except Exception as e:  # pylint: disable=broad-except
-        raise click.ClickException(str(e)) from e
 
 
 def get_abi(url: str) -> Dict:
