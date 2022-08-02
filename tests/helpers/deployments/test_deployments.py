@@ -321,8 +321,6 @@ class TestCliTool(BaseDeploymentTests):
                 _, app_instance = self.load_deployer_and_app(
                     spec_path, deployment_generator
                 )
-                if app_instance.service.network != "ropsten":
-                    continue
                 app_instance.generate_agent(0)
 
     def test_fails_to_generate_with_to_many_overrides(self) -> None:
