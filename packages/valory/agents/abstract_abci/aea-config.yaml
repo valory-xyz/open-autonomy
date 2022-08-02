@@ -9,13 +9,13 @@ fingerprint:
 fingerprint_ignore_patterns: []
 connections:
 - valory/abci:0.1.0:bafybeibfdzfevrtiywolqeepk6yfzyvl4bbu6mghhnebkptcbhsh5fxkbu
-- valory/p2p_libp2p_client:0.1.0:bafybeihw7zmzu4k3s56wnzhs6f3onxdqfewp46dhnnv6lgnzfneuvo5bcm
+- valory/p2p_libp2p_client:0.1.0:bafybeigvayl4ykzqf6o6bw2irv7am3qvczjoeu7yjhzn27ajiwvcio3lxm
 contracts: []
 protocols:
-- open_aea/signing:1.0.0:bafybeieirkuq6azgis33bmukr5u2gx4chp5kswiw3wd5hbjsaukgwzmp5a
-- valory/abci:0.1.0:bafybeicbj36urbjkn6y7hrhm57dspyuuvpcnxhr3r6y2cwxammpom633g4
+- open_aea/signing:1.0.0:bafybeid6f5ceool4evgaxdegs5pkjoivqjk3mo3ehctalswngb5m5c32wm
+- valory/abci:0.1.0:bafybeianfguceeckwhelenmythqmbtqswll6vcaz5wwsdr7hin7ov3rvje
 skills:
-- valory/abstract_abci:0.1.0:bafybeie2cs5y7xu625birt7i6vlrhakhody2k4txf7soef3lqwhexpfgqy
+- valory/abstract_abci:0.1.0:bafybeih62tn62c33bcffjrlxvvokvorli2ow4v6myij352bl3im5dhvloa
 default_ledger: ethereum
 required_ledgers:
 - ethereum

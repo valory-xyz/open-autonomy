@@ -20,10 +20,10 @@ connections:
 - valory/abci:0.1.0:bafybeibfdzfevrtiywolqeepk6yfzyvl4bbu6mghhnebkptcbhsh5fxkbu
 contracts: []
 protocols:
-- open_aea/signing:1.0.0:bafybeieirkuq6azgis33bmukr5u2gx4chp5kswiw3wd5hbjsaukgwzmp5a
-- valory/abci:0.1.0:bafybeicbj36urbjkn6y7hrhm57dspyuuvpcnxhr3r6y2cwxammpom633g4
+- open_aea/signing:1.0.0:bafybeid6f5ceool4evgaxdegs5pkjoivqjk3mo3ehctalswngb5m5c32wm
+- valory/abci:0.1.0:bafybeianfguceeckwhelenmythqmbtqswll6vcaz5wwsdr7hin7ov3rvje
 skills:
-- valory/abstract_round_abci:0.1.0:bafybeigcnmqobeogxaet4rcsetcfitvtxbgqtn5vkebkh6o2v4qjuu6v7e
+- valory/abstract_round_abci:0.1.0:bafybeievrok3xa3foeay3d3xoscunhbgnqiu6jyse6yck4td76dxsbvsiu
 behaviours:
   main:
     args: {}

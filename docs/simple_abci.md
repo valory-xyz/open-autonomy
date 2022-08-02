@@ -13,6 +13,20 @@ Roughly speaking, on a successful execution of a period of the application (i.e.
 3. AEAs nominate a keeper (i.e., a "delegate" agent).
 4. Go to step 2.
 
+## Architecture of the Demo
+
+The demo is composed of:
+
+- A set of $n$ Tendermint nodes.
+- A set of $n$ AEAs, in one-to-one connection with one Tendermint node.
+
+The agents are connected to the remote service [DRAND](https://drand.love) through the Internet.
+
+<figure markdown>
+  ![](./images/simple_abci_app_four_agents.svg){align=center}
+  <figcaption>Simple ABCI architecture with four agents</figcaption>
+</figure>
+
 The complete state machine depicting the states and transitions of the application is shown below.
 
 <figure markdown>
@@ -354,8 +368,3 @@ There are several end-to-end tests where the developer can see the {{fsm_app}} o
 pytest tests/test_agents/test_simple_abci.py
 ```
 The tests nicely demonstrate how the same code can be run as a single agent app or as a multi-agent service with two or four agents. The diagram below depicts the architecture for the latter test case:
-
-<figure markdown>
-  ![](./images/simple_abci_app_four_agents.svg){align=center}
-  <figcaption>Test case architecture for the Simple ABCI Application with 4 agents</figcaption>
-</figure>

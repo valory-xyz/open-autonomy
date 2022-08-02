@@ -18,26 +18,26 @@ fingerprint:
 fingerprint_ignore_patterns: []
 connections:
 - valory/abci:0.1.0:bafybeibfdzfevrtiywolqeepk6yfzyvl4bbu6mghhnebkptcbhsh5fxkbu
-- valory/http_client:0.1.0:bafybeibh3iu7kojc4d5eiigqh6kx2vdmu2q7vhcvvq2rz6suegsscyd66y
-- valory/ledger:0.1.0:bafybeifxxshi4u3xyyllip5e3yafawywcwpvqxgnybchi5kj74zm4b4n2e
+- valory/http_client:0.1.0:bafybeicmoolrrjnt5qn7jbwon7a3b5noe6hkj7kbjj57xtfosoygkckhuy
+- valory/ledger:0.1.0:bafybeibskbi7lft2htvogxrwzbix6kj2ri373ppde6bkmuabmq3z32lkxi
 contracts:
 - valory/gnosis_safe:0.1.0:bafybeiexiper376ji5h4wm5erzospvyikqmvw7pi5tpgrwanj5okznemqu
 - valory/gnosis_safe_proxy_factory:0.1.0:bafybeiej772sh3uuju2zsd62fz73ofg7p7ixaju6e3ahnzlbktcxoeoggy
 - valory/uniswap_v2_erc20:0.1.0:bafybeid2rdlyshie6yamr6lzf3g3kfovlhvww3rszmtaad2pmawwgmfvce
 - valory/uniswap_v2_router_02:0.1.0:bafybeie7xfg2erv4gzuy46vjvqav4fnrzugvkx5twt5h3n2yocakbpzn4u
 protocols:
-- open_aea/signing:1.0.0:bafybeieirkuq6azgis33bmukr5u2gx4chp5kswiw3wd5hbjsaukgwzmp5a
-- valory/abci:0.1.0:bafybeicbj36urbjkn6y7hrhm57dspyuuvpcnxhr3r6y2cwxammpom633g4
-- valory/contract_api:1.0.0:bafybeie5gbzc4v4n6p6ea66kmc5ejwvbjzhd7vhcjg7mikbyx47lypcd5m
-- valory/http:1.0.0:bafybeifhmibx3l7f3xdwxhweczizadxs6p3oludvapvwdeu4o5f3oahqme
-- valory/ledger_api:1.0.0:bafybeifaozy766hngsqc5a5kpebseusq4cc3woh4ayycdoa7r3mjkvhzr4
+- open_aea/signing:1.0.0:bafybeid6f5ceool4evgaxdegs5pkjoivqjk3mo3ehctalswngb5m5c32wm
+- valory/abci:0.1.0:bafybeianfguceeckwhelenmythqmbtqswll6vcaz5wwsdr7hin7ov3rvje
+- valory/contract_api:1.0.0:bafybeigkedpmqhm7lrqusnkyfcapyx3dlkz2djfq74hou5pwtrskxgvuxu
+- valory/http:1.0.0:bafybeienmids6f5pcey2bnywmiup2faawqgmdhhz65qfciuhkntugztvpi
+- valory/ledger_api:1.0.0:bafybeif2c3jt4tim3zbfq5c2lds7bs6qj5gvj2obk3pzdk3uy6zk2ivo3e
 skills:
-- valory/abstract_round_abci:0.1.0:bafybeigcnmqobeogxaet4rcsetcfitvtxbgqtn5vkebkh6o2v4qjuu6v7e
-- valory/liquidity_rebalancing_abci:0.1.0:bafybeieu4vlxsk7esvuehiltyixius5hqox7rjctdlokuqkuyyaoq6no3m
-- valory/registration_abci:0.1.0:bafybeibwif6bixfjqmnjyx7parpwvi2imrcyctgyu3ssa5sjadgi4mkq5a
-- valory/reset_pause_abci:0.1.0:bafybeifs36sayzmzkrwi7d24wph3rdbkg77ydi6f6fguw5fj4uf5xg34y4
-- valory/safe_deployment_abci:0.1.0:bafybeihqjkbt2lh5kmsgbo4txhuiekf64yp5fiscviailpe2vtxtdiauvm
-- valory/transaction_settlement_abci:0.1.0:bafybeibzdqkyn635xp3qzvojx7v2p634dmmfm5cu6vroljhz5tdwhn36lu
+- valory/abstract_round_abci:0.1.0:bafybeievrok3xa3foeay3d3xoscunhbgnqiu6jyse6yck4td76dxsbvsiu
+- valory/liquidity_rebalancing_abci:0.1.0:bafybeidbdq6ofcwpfcmy2npcybteoohs6mpxcrvlgmkolsm5onkkh4rr6i
+- valory/registration_abci:0.1.0:bafybeia3g5vjngmccglc7yx2mx6l4hh76fhe7ot2plqrd36lllekrsznae
+- valory/reset_pause_abci:0.1.0:bafybeifcgdaugnmv7qcmhdxhcfbemnsatwzmn6yxcl2b32qovyluojnu2u
+- valory/safe_deployment_abci:0.1.0:bafybeiahpjlxxcyelayvmpgd4fqz4j7hja7wdnwjmdnij32455izjmkawy
+- valory/transaction_settlement_abci:0.1.0:bafybeiavtszkfhm7fly7ro447rfioitzlj5gtniubumlvz32zw2ahynnpa
 behaviours:
   main:
     args: {}
