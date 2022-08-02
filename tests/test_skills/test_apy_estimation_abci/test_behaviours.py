@@ -151,6 +151,31 @@ class APYEstimationFSMBehaviourBaseCase(FSMBehaviourBaseCase):
         super().end_round(done_event)
 
 
+class TestFetchProgress:
+    """Test `FetchBehaviour`'s `Progress`."""
+
+    @pytest.mark.parametrize(
+        "current_timestamp, current_dex_name, expected",
+        (
+            (None, None, False),
+            (None, "test", False),
+            (0, None, False),
+            (0, "test", True),
+        ),
+    )
+    def test_can_continue(
+        self,
+        current_timestamp: Optional[int],
+        current_dex_name: Optional[str],
+        expected: bool,
+    ) -> None:
+        """Test `can_continue` property."""
+        progress = FetchBehaviour.Progress(
+            current_timestamp=current_timestamp, current_dex_name=current_dex_name
+        )
+        assert progress.can_continue is expected
+
+
 class TestFetchAndBatchBehaviours(APYEstimationFSMBehaviourBaseCase):
     """Test FetchBehaviour and FetchBatchBehaviour."""
 
