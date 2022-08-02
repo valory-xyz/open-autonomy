@@ -10,38 +10,23 @@ Deploy CLI module.
 
 ```python
 @click.group(name="deploy")
-def deploy_group() -> None
+@click.pass_context
+def deploy_group(click_context: click.Context) -> None
 ```
 
 Deploy an agent service.
 
-<a id="autonomy.cli.deploy.build_group"></a>
+<a id="autonomy.cli.deploy.build_deployment_command"></a>
 
-#### build`_`group
-
-```python
-@deploy_group.group(name="build")
-def build_group() -> None
-```
-
-Build an agent service deployment.
-
-<a id="autonomy.cli.deploy.build_deployment"></a>
-
-#### build`_`deployment
+#### build`_`deployment`_`command
 
 ```python
-@build_group.command(name="deployment")
-@click.argument(
-    "service-id",
-    type=PublicIdParameter(),
-)
-@click.argument("keys_file", type=str, required=True)
+@deploy_group.command(name="build")
+@click.argument("keys_file", type=str, required=False)
 @click.option(
     "--o",
     "output_dir",
     type=click.Path(exists=False, dir_okay=True),
-    default=Path.cwd(),
     help="Path to output dir.",
 )
 @click.option(
@@ -65,12 +50,6 @@ Build an agent service deployment.
     help="Use kubernetes as a backend.",
 )
 @click.option(
-    "--packages-dir",
-    type=click.Path(dir_okay=True),
-    default=Path.cwd() / PACKAGES,
-    help="Path to packages folder (for local usage).",
-)
-@click.option(
     "--dev",
     "dev_mode",
     is_flag=True,
@@ -89,50 +68,76 @@ Build an agent service deployment.
     default=False,
     help="Remove existing build and overwrite with new one.",
 )
-@click.option(
-    "--skip-images",
-    is_flag=True,
-    default=False,
-    help="Specify whether to build images or not.",
-)
 @registry_flag()
 @password_option(confirmation_prompt=True)
-def build_deployment(service_id: PublicId, keys_file: Path, deployment_type: str, output_dir: Path, packages_dir: Path, dev_mode: bool, force_overwrite: bool, registry: str, number_of_agents: Optional[int] = None, password: Optional[str] = None, version: Optional[str] = None, skip_images: bool = False) -> None
+@click.pass_context
+def build_deployment_command(click_context: click.Context, keys_file: Optional[Path], deployment_type: str, output_dir: Optional[Path], dev_mode: bool, force_overwrite: bool, registry: str, number_of_agents: Optional[int] = None, password: Optional[str] = None, version: Optional[str] = None) -> None
 ```
 
 Build deployment setup for n agents.
 
-<a id="autonomy.cli.deploy.build_images"></a>
+<a id="autonomy.cli.deploy.run_deployment"></a>
 
-#### build`_`images
+#### run`_`deployment
 
 ```python
-@build_group.command(name="image")
-@click.option(
-    "--build-dir",
-    type=click.Path(dir_okay=True),
-    help="Path to build dir.",
-)
-@click.option(
-    "--packages-dir",
-    type=click.Path(dir_okay=True),
-    help="Path to packages folder (for local usage).",
-)
-@click.option(
-    "--skaffold-dir",
-    type=click.Path(exists=True, dir_okay=True),
-    help="Path to directory containing the skaffold config.",
-)
-@click.option(
-    "--version",
-    type=str,
-    default=DEFAULT_IMAGE_VERSION,
-    help="Image version.",
-)
-@click.option("--push", is_flag=True, default=False, help="Push image after build.")
-@image_profile_flag()
-def build_images(profile: str, packages_dir: Optional[Path], build_dir: Optional[Path], skaffold_dir: Optional[Path], version: str, push: bool) -> None
+@deploy_group.command(name="run")
+@click.argument("token_id", type=int, required=False)
+@click.argument("keys_file", type=click.Path(), required=False)
+@registry_flag()
+@click.pass_context
+def run_deployment(click_context: click.Context, token_id: Optional[int], keys_file: Optional[Path], registry: str) -> None
 ```
 
-Build image using skaffold.
+Run service deployment.
+
+<a id="autonomy.cli.deploy.run_existing_deployment"></a>
+
+#### run`_`existing`_`deployment
+
+```python
+def run_existing_deployment() -> None
+```
+
+Run deployment using docker-compose.
+
+<a id="autonomy.cli.deploy.get_abi"></a>
+
+#### get`_`abi
+
+```python
+def get_abi(url: str) -> Dict
+```
+
+Get ABI from provided URL
+
+<a id="autonomy.cli.deploy.resolve_token_id"></a>
+
+#### resolve`_`token`_`id
+
+```python
+def resolve_token_id(token_id: int) -> Dict
+```
+
+Resolve token id using on-chain contracts.
+
+<a id="autonomy.cli.deploy.run_deployment_from_token_id"></a>
+
+#### run`_`deployment`_`from`_`token`_`id
+
+```python
+def run_deployment_from_token_id(ctx: Context, token_id: int, keys_file: Path) -> None
+```
+
+Run a deployment from on-chain token id.
+
+<a id="autonomy.cli.deploy.build_deployment"></a>
+
+#### build`_`deployment
+
+```python
+def build_deployment(keys_file: Path, build_dir: Path, deployment_type: str, dev_mode: bool, force_overwrite: bool, number_of_agents: Optional[int] = None, password: Optional[str] = None, version: Optional[str] = None) -> None
+```
+
+Build deployment.
 
