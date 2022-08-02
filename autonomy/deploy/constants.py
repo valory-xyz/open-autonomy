@@ -18,7 +18,7 @@
 # ------------------------------------------------------------------------------
 
 """Constants for generating deployments environment."""
-import socket
+
 from string import Template
 from typing import Any, Dict
 

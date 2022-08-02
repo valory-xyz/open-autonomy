@@ -18,7 +18,7 @@
 # ------------------------------------------------------------------------------
 """Script for generating deployment environments."""
 from pathlib import Path
-from typing import Any, Dict, Optional, cast
+from typing import Optional, cast
 
 from autonomy.constants import (
     HARDHAT_IMAGE_VERSION,

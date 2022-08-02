@@ -20,10 +20,8 @@
 """Base deployments module."""
 import abc
 import json
-import socket
 from pathlib import Path
-from typing import Any, Dict, List, Optional, cast
-from urllib.parse import urlparse
+from typing import Any, Dict, List, Optional
 
 from aea.configurations.base import (
     ConnectionConfig,
@@ -56,20 +54,6 @@ COMPONENT_CONFIGS: Dict = {
         ConnectionConfig,
     ]
 }
-
-
-def get_ip() -> str:
-    """Get local IP address."""
-    sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    sock.settimeout(0)
-    try:
-        sock.connect(("10.255.255.255", 1))
-        ip = sock.getsockname()[0]
-    except Exception:  # pylint: disable=broad-except
-        ip = "127.0.0.1"
-    finally:
-        sock.close()
-    return ip
 
 
 class ServiceSpecification:
