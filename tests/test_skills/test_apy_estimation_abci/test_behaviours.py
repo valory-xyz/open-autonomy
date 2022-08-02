@@ -883,7 +883,6 @@ class TestFetchAndBatchBehaviours(APYEstimationFSMBehaviourBaseCase):
     @pytest.mark.parametrize("total_days", (0, 3))
     def test_fetch_behaviour_stop_iteration(
         self,
-        monkeypatch: MonkeyPatch,
         tmp_path: PosixPath,
         caplog: LogCaptureFixture,
         no_action: Callable[[Any], None],
