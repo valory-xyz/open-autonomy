@@ -41,6 +41,10 @@ from aea.mail.base import Envelope, Message
 from aea.protocols.dialogue.base import Dialogue as BaseDialogue
 from aea_ledger_ethereum import EthereumCrypto
 
+from autonomy.test_tools.configurations import ETHEREUM_KEY_DEPLOYER
+from autonomy.test_tools.docker.base import skip_docker_tests
+from autonomy.test_tools.docker.ganache import DEFAULT_GANACHE_CHAIN_ID
+
 from packages.valory.connections.ledger.connection import LedgerConnection
 from packages.valory.connections.ledger.ledger_dispatcher import (
     LedgerApiRequestDispatcher,
@@ -51,10 +55,6 @@ from packages.valory.protocols.ledger_api.dialogues import (
     LedgerApiDialogues as BaseLedgerApiDialogues,
 )
 from packages.valory.protocols.ledger_api.message import LedgerApiMessage
-
-from tests.conftest import ETHEREUM_KEY_DEPLOYER
-from tests.helpers.docker.base import skip_docker_tests
-from tests.helpers.docker.ganache import DEFAULT_GANACHE_CHAIN_ID
 
 
 SOME_SKILL_ID = "some/skill:0.1.0"
@@ -474,8 +474,17 @@ class TestLedgerConnection:
         assert msg.performative == LedgerApiMessage.Performative.ERROR
 
     @pytest.mark.asyncio
+    @pytest.mark.parametrize(
+        "failing_ledger_method_name",
+        ("get_transaction_receipt", "is_transaction_settled", "get_transaction"),
+    )
+    @pytest.mark.parametrize("retries", (0, 5, 20))
+    @pytest.mark.parametrize("ledger_raise_error", (True, False))
     async def test_attempts_get_transaction_receipt(
         self,
+        failing_ledger_method_name: str,
+        retries: int,
+        ledger_raise_error: bool,
     ) -> None:
         """Test retry and sleep."""
         dispatcher = LedgerApiRequestDispatcher(AsyncState(ConnectionStates.connected))
@@ -487,14 +496,29 @@ class TestLedgerConnection:
         )
         message.to = dispatcher.dialogues.self_address
         message.sender = "test"
-        dialogue = cast(
-            Optional[LedgerApiDialogue], dispatcher.dialogues.update(message)
-        )
+        dialogue = dispatcher.dialogues.update(message)
         assert dialogue is not None
-        mock_api.get_transaction.return_value = None
-        mock_api.is_transaction_settled.return_value = True
-        with patch.object(dispatcher, "retry_attempts", 2):
+        assert isinstance(dialogue, LedgerApiDialogue)
+
+        mock_api.is_transaction_settled.return_value = (
+            True if failing_ledger_method_name == "get_transaction" else False
+        )
+        failing_ledger_method = getattr(mock_api, failing_ledger_method_name)
+        if (
+            ledger_raise_error
+            and failing_ledger_method_name != "is_transaction_settled"
+        ):
+            failing_ledger_method.side_effect = ValueError()
+        elif failing_ledger_method_name != "is_transaction_settled":
+            failing_ledger_method.return_value = None
+
+        with patch.object(dispatcher, "retry_attempts", retries):
             with patch.object(dispatcher, "retry_timeout", 0.001):
                 msg = dispatcher.get_transaction_receipt(mock_api, message, dialogue)
 
-        assert msg.performative == LedgerApiMessage.Performative.ERROR
+        assert (
+            msg.performative == LedgerApiMessage.Performative.ERROR
+        ), "performative should be `ERROR`, please revisit the test's implementation."
+        times_called = failing_ledger_method.call_count
+        expected_times = retries
+        assert times_called == expected_times, "Tried more times than expected!"

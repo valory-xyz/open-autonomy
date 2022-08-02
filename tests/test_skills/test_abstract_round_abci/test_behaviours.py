@@ -288,7 +288,7 @@ class TestAbstractRoundBehaviour:
 
         with pytest.raises(
             ABCIAppInternalError,
-            match=fr"behaviours \['{behaviour_1_cls_name}', '{behaviour_2_cls_name}'\] have the same behaviour id '{behaviour_id}'",
+            match=rf"behaviours \['{behaviour_1_cls_name}', '{behaviour_2_cls_name}'\] have the same behaviour id '{behaviour_id}'",
         ):
 
             class MyRoundBehaviour(AbstractRoundBehaviour):

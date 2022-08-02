@@ -7,7 +7,7 @@ license: Apache-2.0
 fingerprint:
   README.md: bafybeifpb54id7wln2ayku65s3qmih3aljf23rfpsggjwuzc7cnkfroi7y
 fingerprint_ignore_patterns: []
-agent: valory/oracle:0.1.0:bafybeiby2ifmg3ku5x642g25dcgfek2klp2j7pgefq2qb2txbyvk3axxia
+agent: valory/oracle:0.1.0:bafybeielpsb2bcemzhqkwhdwsjhhujxurf6ejffapioraswqneeqhw223m
 network: ropsten
 number_of_agents: 4
 ---
@@ -22,7 +22,7 @@ setup_args:
     broadcast_to_server: true
 valory_monitoring_backend:
   args: &id002
-    url: https://staging.oracle-server.autonolas.tech/deposit
+    url: https://oracle-server.staging.autonolas.tech/deposit
 public_id: valory/oracle_abci:0.1.0
 type: skill
 models:

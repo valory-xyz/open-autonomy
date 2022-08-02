@@ -28,9 +28,18 @@ from aea.helpers.transaction.base import RawTransaction, State
 from aea.skills.base import Handler
 from web3 import Web3
 
+from autonomy.test_tools.docker.base import skip_docker_tests
+
 from packages.valory.contracts.gnosis_safe.contract import SafeOperation
 from packages.valory.protocols.contract_api import ContractApiMessage
 from packages.valory.skills.abstract_round_abci.base import AbciAppDB
+from packages.valory.skills.abstract_round_abci.test_tools.base import (
+    FSMBehaviourBaseCase,
+)
+from packages.valory.skills.abstract_round_abci.test_tools.integration import (
+    ExpectedContentType,
+    ExpectedTypesType,
+)
 from packages.valory.skills.liquidity_rebalancing_abci.behaviours import (
     EnterPoolTransactionHashBehaviour,
     ExitPoolTransactionHashBehaviour,
@@ -50,6 +59,9 @@ from packages.valory.skills.liquidity_rebalancing_abci.handlers import (
 from packages.valory.skills.liquidity_rebalancing_abci.rounds import (
     SynchronizedData as LiquidityRebalancingSynchronizedSata,
 )
+from packages.valory.skills.liquidity_rebalancing_abci.test_tools.integration import (
+    AMMIntegrationBaseCase,
+)
 from packages.valory.skills.transaction_settlement_abci.payload_tools import (
     hash_payload_to_hex,
 )
@@ -57,14 +69,7 @@ from packages.valory.skills.transaction_settlement_abci.rounds import (
     SynchronizedData as TransactionSettlementSynchronizedSata,
 )
 
-from tests.conftest import ROOT_DIR
-from tests.helpers.docker.base import skip_docker_tests
-from tests.test_skills.base import FSMBehaviourBaseCase
-from tests.test_skills.integration import (
-    AMMIntegrationBaseCase,
-    ExpectedContentType,
-    ExpectedTypesType,
-)
+from tests.conftest import ROOT_DIR, make_ledger_api_connection
 from tests.test_skills.test_liquidity_rebalancing_abci.test_behaviours import (
     A_WETH_POOL_ADDRESS,
     B_WETH_POOL_ADDRESS,
@@ -103,6 +108,8 @@ class LiquidityProvisionIntegrationBaseCase(
     exit_nonce: int
     swap_back_nonce: int
     default_synchronized_data_hash: LiquidityRebalancingSynchronizedSata
+    ROOT_DIR = ROOT_DIR
+    make_ledger_api_connection_callable = make_ledger_api_connection
 
     @classmethod
     def setup(cls, **kwargs: Any) -> None:

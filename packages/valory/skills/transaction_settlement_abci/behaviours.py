@@ -168,6 +168,11 @@ class TransactionSettlementBaseBehaviour(BaseBehaviour, ABC):
         )
 
         # Handle transaction results
+        if rpc_status == RPCResponseStatus.ALREADY_KNOWN:
+            self.context.logger.warning(
+                "send_raw_transaction unsuccessful! Transaction is already in the mempool! Will attempt to verify it."
+            )
+
         if rpc_status == RPCResponseStatus.INCORRECT_NONCE:
             tx_data["status"] = VerificationStatus.ERROR
             self.context.logger.warning(
@@ -184,7 +189,10 @@ class TransactionSettlementBaseBehaviour(BaseBehaviour, ABC):
                 "send_raw_transaction unsuccessful! Insufficient funds."
             )
 
-        if rpc_status != RPCResponseStatus.SUCCESS:
+        if rpc_status not in {
+            RPCResponseStatus.SUCCESS,
+            RPCResponseStatus.ALREADY_KNOWN,
+        }:
             self.context.logger.warning(
                 f"send_raw_transaction unsuccessful! Received: {rpc_status}"
             )

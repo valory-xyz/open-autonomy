@@ -37,6 +37,7 @@ from typing import (
     OrderedDict,
     Tuple,
     Type,
+    Union,
     cast,
 )
 
@@ -98,7 +99,7 @@ NON_200_RETURN_CODE_DURING_RESET_THRESHOLD = 3
 GENESIS_TIME_FMT = "%Y-%m-%dT%H:%M:%S.%fZ"
 ROOT_HASH = "726F6F743A3"
 RESET_HASH = "72657365743A3"
-APP_HASH_RE = fr"{ROOT_HASH}\d+{RESET_HASH}(\d+)"
+APP_HASH_RE = rf"{ROOT_HASH}\d+{RESET_HASH}(\d+)"
 INITIAL_APP_HASH = ""
 
 
@@ -451,7 +452,8 @@ class RPCResponseStatus(Enum):
     INCORRECT_NONCE = 2
     UNDERPRICED = 3
     INSUFFICIENT_FUNDS = 4
-    UNCLASSIFIED_ERROR = 5
+    ALREADY_KNOWN = 5
+    UNCLASSIFIED_ERROR = 6
 
 
 class BaseBehaviour(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
@@ -1356,7 +1358,11 @@ class BaseBehaviour(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
 
     def send_raw_transaction(
         self, transaction: RawTransaction
-    ) -> Generator[None, None, Tuple[Optional[str], RPCResponseStatus]]:
+    ) -> Generator[
+        None,
+        Union[None, SigningMessage, LedgerApiMessage],
+        Tuple[Optional[str], RPCResponseStatus],
+    ]:
         """
         Send raw transactions to the ledger for mining.
 
@@ -1388,6 +1394,7 @@ class BaseBehaviour(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
         self._send_transaction_signing_request(transaction, terms)
         signature_response = yield from self.wait_for_message()
         signature_response = cast(SigningMessage, signature_response)
+        tx_hash_backup = signature_response.signed_transaction.body.get("hash")
         if (
             signature_response.performative
             != SigningMessage.Performative.SIGNED_TRANSACTION
@@ -1406,11 +1413,20 @@ class BaseBehaviour(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
         ):
             error = f"Error when requesting transaction digest: {transaction_digest_msg.message}"
             self.context.logger.error(error)
-            return None, self.__parse_rpc_error(error)
+            return tx_hash_backup, self.__parse_rpc_error(error)
         self.context.logger.info(
             f"Transaction sent! Received transaction digest: {transaction_digest_msg}"
         )
         tx_hash = transaction_digest_msg.transaction_digest.body
+
+        if tx_hash != tx_hash_backup:
+            # this should never happen
+            self.context.logger.error(
+                f"Unexpected error! The signature response's hash `{tx_hash_backup}` "
+                f"does not match the one received from the transaction response `{tx_hash}`!"
+            )
+            return None, RPCResponseStatus.UNCLASSIFIED_ERROR
+
         return tx_hash, RPCResponseStatus.SUCCESS
 
     def get_transaction_receipt(
@@ -1553,6 +1569,8 @@ class BaseBehaviour(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
             return RPCResponseStatus.INCORRECT_NONCE
         if "insufficient funds" in error:
             return RPCResponseStatus.INSUFFICIENT_FUNDS
+        if "already known" in error:
+            return RPCResponseStatus.ALREADY_KNOWN
         return RPCResponseStatus.UNCLASSIFIED_ERROR
 
     def _start_reset(self) -> Generator:

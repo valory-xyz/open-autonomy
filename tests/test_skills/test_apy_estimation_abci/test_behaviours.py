@@ -48,6 +48,9 @@ from packages.valory.skills.abstract_round_abci.behaviour_utils import (
 )
 from packages.valory.skills.abstract_round_abci.io.store import SupportedFiletype
 from packages.valory.skills.abstract_round_abci.models import ApiSpecs, BenchmarkTool
+from packages.valory.skills.abstract_round_abci.test_tools.base import (
+    FSMBehaviourBaseCase,
+)
 from packages.valory.skills.apy_estimation_abci.behaviours import (
     APYEstimationBaseBehaviour,
     CycleResetBehaviour,
@@ -83,7 +86,6 @@ from packages.valory.skills.apy_estimation_abci.rounds import Event, Synchronize
 from packages.valory.skills.apy_estimation_abci.tools.etl import ResponseItemType
 
 from tests.conftest import ROOT_DIR
-from tests.test_skills.base import FSMBehaviourBaseCase
 from tests.test_skills.test_apy_estimation_abci.conftest import DummyPipeline
 
 

@@ -595,7 +595,11 @@ message signature
 #### send`_`raw`_`transaction
 
 ```python
-def send_raw_transaction(transaction: RawTransaction) -> Generator[None, None, Tuple[Optional[str], RPCResponseStatus]]
+def send_raw_transaction(transaction: RawTransaction) -> Generator[
+        None,
+        Union[None, SigningMessage, LedgerApiMessage],
+        Tuple[Optional[str], RPCResponseStatus],
+    ]
 ```
 
 Send raw transactions to the ledger for mining.

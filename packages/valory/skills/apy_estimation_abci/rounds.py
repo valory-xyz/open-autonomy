@@ -144,7 +144,7 @@ class APYEstimationAbstractRound(AbstractRound[Event, TransactionType], ABC):
 
     @property
     def synchronized_data(self) -> SynchronizedData:
-        """Return the synchronized data data."""
+        """Return the synchronized data."""
         return cast(SynchronizedData, super().synchronized_data)
 
     def _return_no_majority_event(self) -> Tuple[SynchronizedData, Event]:
@@ -154,14 +154,6 @@ class APYEstimationAbstractRound(AbstractRound[Event, TransactionType], ABC):
         :return: a new synchronized data and a NO_MAJORITY event
         """
         return self.synchronized_data, Event.NO_MAJORITY
-
-    def _return_file_error(self) -> Tuple[SynchronizedData, Event]:
-        """
-        Trigger the FILE_ERROR event.
-
-        :return: a new synchronized data and a FILE_ERROR event
-        """
-        return self.synchronized_data, Event.FILE_ERROR
 
 
 class CollectHistoryRound(CollectSameUntilThresholdRound, APYEstimationAbstractRound):
@@ -177,7 +169,7 @@ class CollectHistoryRound(CollectSameUntilThresholdRound, APYEstimationAbstractR
         """Process the end of the block."""
         if self.threshold_reached:
             if self.most_voted_payload is None:
-                return self._return_file_error()
+                return self.synchronized_data, Event.FILE_ERROR
 
             if self.most_voted_payload == "":
                 return self.synchronized_data, Event.NETWORK_ERROR
@@ -217,7 +209,7 @@ class TransformRound(CollectSameUntilThresholdRound, APYEstimationAbstractRound)
     def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Event]]:
         """Process the end of the block."""
         if self.threshold_reached and self.most_voted_payload is None:
-            return self._return_file_error()
+            return self.synchronized_data, Event.FILE_ERROR
 
         if self.threshold_reached:
             synchronized_data = self.synchronized_data.update(
@@ -249,7 +241,7 @@ class PreprocessRound(CollectSameUntilThresholdRound, APYEstimationAbstractRound
         """Process the end of the block."""
         if self.threshold_reached:
             if self.most_voted_payload is None:
-                return self._return_file_error()
+                return self.synchronized_data, Event.FILE_ERROR
 
             synchronized_data = self.synchronized_data.update(
                 synchronized_data_class=SynchronizedData,
@@ -340,7 +332,7 @@ class TrainRound(CollectSameUntilThresholdRound, APYEstimationAbstractRound):
         """Process the end of the block."""
         if self.threshold_reached:
             if self.most_voted_payload is None:
-                return self._return_file_error()
+                return self.synchronized_data, Event.FILE_ERROR
 
             update_params = dict(
                 synchronized_data_class=SynchronizedData,
@@ -405,7 +397,7 @@ class EstimateRound(CollectSameUntilThresholdRound, APYEstimationAbstractRound):
         """Process the end of the block."""
         if self.threshold_reached:
             if self.most_voted_payload is None:
-                return self._return_file_error()
+                return self.synchronized_data, Event.FILE_ERROR
 
             synchronized_data = self.synchronized_data.update(
                 synchronized_data_class=SynchronizedData,
