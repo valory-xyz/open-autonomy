@@ -119,6 +119,7 @@ def spooky_specs(_common_specs: SpecsType) -> SpecsType:
     return {
         **_common_specs,
         **{
+            "name": "spooky_subgraph",
             "api_id": "spookyswap",
             "top_n_pools": 100,
             "chain_subgraph": "test",
@@ -132,6 +133,7 @@ def spooky_specs(_common_specs: SpecsType) -> SpecsType:
 def uni_specs(spooky_specs: SpecsType) -> SpecsType:
     """Uniswap specs fixture."""
     uni_specs = spooky_specs.copy()
+    uni_specs["name"] = "uni_subgraph"
     uni_specs["api_id"] = "uniswap"
     uni_specs["url"] = "https://api.thegraph.com/subgraphs/name/ianlapham/uniswapv2"
     return uni_specs
