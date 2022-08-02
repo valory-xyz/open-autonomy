@@ -16,7 +16,7 @@ fingerprint:
   models.py: bafybeiejymnwh3epj4h7o5eitre36uxhi5aejzmm3r7sundxafrb3xayou
 fingerprint_ignore_patterns: []
 connections:
-- valory/abci:0.1.0:bafybeia5rl37hwjjaqwqagpkqy64mw5ojskic5aewvvhlxfd2r3qdub4ny
+- valory/abci:0.1.0:bafybeidunxp7hx7sx5qyif5xmesqpnooupwwhnezxagv3mmkt2vri4buly
 - valory/http_client:0.1.0:bafybeicmoolrrjnt5qn7jbwon7a3b5noe6hkj7kbjj57xtfosoygkckhuy
 contracts: []
 protocols:
@@ -24,9 +24,9 @@ protocols:
 - valory/abci:0.1.0:bafybeianfguceeckwhelenmythqmbtqswll6vcaz5wwsdr7hin7ov3rvje
 - valory/http:1.0.0:bafybeienmids6f5pcey2bnywmiup2faawqgmdhhz65qfciuhkntugztvpi
 skills:
-- valory/abstract_round_abci:0.1.0:bafybeia6ilrwf5mvds5ojcpleoidf2xq72bazzejzrj2oqkrpceyb6qavq
-- valory/registration_abci:0.1.0:bafybeiaojo2nhfe3piftsyv2h6d6h5voicxixgx5ufgoy5lfj6jox4xnge
-- valory/reset_pause_abci:0.1.0:bafybeiaynnh7pu3h6qhu56cbxshcztgg5xkw63whktjcgcvtyuejna6mci
+- valory/abstract_round_abci:0.1.0:bafybeihgd4rzqjj23bnv4sgvkjxpcylbngvyqg2ytll6qdtegxvdh4wkvi
+- valory/registration_abci:0.1.0:bafybeibytrs26bfeaygpm72nohmwdym4s5xihjc5icie2mywj4nnjmwu7m
+- valory/reset_pause_abci:0.1.0:bafybeid3weiukylmmfdftr2ez7ndhpkaza674c4qyloqi6ezi4c4wxs2yu
 behaviours:
   main:
     args: {}

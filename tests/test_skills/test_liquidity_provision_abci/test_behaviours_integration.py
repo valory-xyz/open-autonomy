@@ -37,7 +37,6 @@ from packages.valory.skills.abstract_round_abci.test_tools.base import (
     FSMBehaviourBaseCase,
 )
 from packages.valory.skills.abstract_round_abci.test_tools.integration import (
-    AMMIntegrationBaseCase,
     ExpectedContentType,
     ExpectedTypesType,
 )
@@ -59,6 +58,9 @@ from packages.valory.skills.liquidity_rebalancing_abci.handlers import (
 )
 from packages.valory.skills.liquidity_rebalancing_abci.rounds import (
     SynchronizedData as LiquidityRebalancingSynchronizedSata,
+)
+from packages.valory.skills.liquidity_rebalancing_abci.test_tools.integration import (
+    AMMIntegrationBaseCase,
 )
 from packages.valory.skills.transaction_settlement_abci.payload_tools import (
     hash_payload_to_hex,

@@ -12,12 +12,12 @@ fingerprint:
   handlers.py: bafybeiazszy3rxyvitfseyey43wrfmhlcztku55jaxk3lg7hzmuxy4t4zm
 fingerprint_ignore_patterns: []
 connections:
-- valory/abci:0.1.0:bafybeia5rl37hwjjaqwqagpkqy64mw5ojskic5aewvvhlxfd2r3qdub4ny
+- valory/abci:0.1.0:bafybeidunxp7hx7sx5qyif5xmesqpnooupwwhnezxagv3mmkt2vri4buly
 contracts: []
 protocols:
 - valory/abci:0.1.0:bafybeianfguceeckwhelenmythqmbtqswll6vcaz5wwsdr7hin7ov3rvje
 skills:
-- valory/abstract_abci:0.1.0:bafybeicfnq422rg6vqqwiniyjv2i2hg5k5mxvcpe2z4qogohftcpxg3bny
+- valory/abstract_abci:0.1.0:bafybeihtpgig47claqt7nqffgemshqodoqbgpcargnpzoyhcl35z45jmcu
 behaviours: {}
 handlers:
   abci:

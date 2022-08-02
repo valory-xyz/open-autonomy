@@ -6,10 +6,9 @@ description: Register reset to replicate Tendermint issue.
 aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
   README.md: bafybeicocdojplie5z4kbs7cn7apunfydbxui2nigp6ci2osuvv3mybzfm
-  aea-config.yaml~: bafybeicw37lfprgb3kvaanvlnnuzmish3k7xlg3t5jnkqmlyoevikraojq
 fingerprint_ignore_patterns: []
 connections:
-- valory/abci:0.1.0:bafybeia5rl37hwjjaqwqagpkqy64mw5ojskic5aewvvhlxfd2r3qdub4ny
+- valory/abci:0.1.0:bafybeidunxp7hx7sx5qyif5xmesqpnooupwwhnezxagv3mmkt2vri4buly
 - valory/http_client:0.1.0:bafybeicmoolrrjnt5qn7jbwon7a3b5noe6hkj7kbjj57xtfosoygkckhuy
 - valory/ledger:0.1.0:bafybeibskbi7lft2htvogxrwzbix6kj2ri373ppde6bkmuabmq3z32lkxi
 - valory/p2p_libp2p_client:0.1.0:bafybeigvayl4ykzqf6o6bw2irv7am3qvczjoeu7yjhzn27ajiwvcio3lxm
@@ -19,11 +18,11 @@ protocols:
 - valory/abci:0.1.0:bafybeianfguceeckwhelenmythqmbtqswll6vcaz5wwsdr7hin7ov3rvje
 - valory/http:1.0.0:bafybeienmids6f5pcey2bnywmiup2faawqgmdhhz65qfciuhkntugztvpi
 skills:
-- valory/abstract_abci:0.1.0:bafybeicfnq422rg6vqqwiniyjv2i2hg5k5mxvcpe2z4qogohftcpxg3bny
-- valory/abstract_round_abci:0.1.0:bafybeia6ilrwf5mvds5ojcpleoidf2xq72bazzejzrj2oqkrpceyb6qavq
-- valory/register_reset_abci:0.1.0:bafybeic3ftm3dgl2gzlrtnqfmlstf56gtyylguiwvkvq6int6252vtpi2i
-- valory/registration_abci:0.1.0:bafybeiaojo2nhfe3piftsyv2h6d6h5voicxixgx5ufgoy5lfj6jox4xnge
-- valory/reset_pause_abci:0.1.0:bafybeiaynnh7pu3h6qhu56cbxshcztgg5xkw63whktjcgcvtyuejna6mci
+- valory/abstract_abci:0.1.0:bafybeihtpgig47claqt7nqffgemshqodoqbgpcargnpzoyhcl35z45jmcu
+- valory/abstract_round_abci:0.1.0:bafybeihgd4rzqjj23bnv4sgvkjxpcylbngvyqg2ytll6qdtegxvdh4wkvi
+- valory/register_reset_abci:0.1.0:bafybeibwgsnfpbydgiwsi5cgtbmwudyjcmbgxpca27zlh34w3otbrq6amq
+- valory/registration_abci:0.1.0:bafybeibytrs26bfeaygpm72nohmwdym4s5xihjc5icie2mywj4nnjmwu7m
+- valory/reset_pause_abci:0.1.0:bafybeid3weiukylmmfdftr2ez7ndhpkaza674c4qyloqi6ezi4c4wxs2yu
 default_ledger: ethereum
 required_ledgers:
 - ethereum

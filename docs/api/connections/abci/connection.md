@@ -705,6 +705,17 @@ def __str__() -> str
 
 Get the string representation.
 
+<a id="packages.valory.connections.abci.connection.TendermintParams.get_node_command_kwargs"></a>
+
+#### get`_`node`_`command`_`kwargs
+
+```python
+@staticmethod
+def get_node_command_kwargs(monitoring: bool = False) -> Dict
+```
+
+Get the node command kwargs
+
 <a id="packages.valory.connections.abci.connection.TendermintNode"></a>
 
 ## TendermintNode Objects

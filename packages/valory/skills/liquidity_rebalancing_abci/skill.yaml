@@ -16,9 +16,11 @@ fingerprint:
   models.py: bafybeibj52o6wufgv36auawxzisjzy4x2xr2eydxd57hjcx57abify64vy
   payloads.py: bafybeigvs7s5gnr2ocq7ofrvh7tksla2fh3ymgshhdtooe2wb7bdnw6bta
   rounds.py: bafybeibxjnvm5r62qnvv54c6xjcym4j2cuxk4kvv566jwcdbamwyr5qjvq
+  test_tools/__init__.py: bafybeifwxievldkr2k5rqcsq4t3hx4kh6pue4spxy6tlji6422np46dtoy
+  test_tools/integration.py: bafybeidi74vdxcj5gvfbuxbbiaowhgrvunxpf7lmasry645lsongz7dimy
 fingerprint_ignore_patterns: []
 connections:
-- valory/abci:0.1.0:bafybeia5rl37hwjjaqwqagpkqy64mw5ojskic5aewvvhlxfd2r3qdub4ny
+- valory/abci:0.1.0:bafybeidunxp7hx7sx5qyif5xmesqpnooupwwhnezxagv3mmkt2vri4buly
 - valory/http_client:0.1.0:bafybeicmoolrrjnt5qn7jbwon7a3b5noe6hkj7kbjj57xtfosoygkckhuy
 - valory/ledger:0.1.0:bafybeibskbi7lft2htvogxrwzbix6kj2ri373ppde6bkmuabmq3z32lkxi
 contracts:
@@ -33,7 +35,8 @@ protocols:
 - valory/http:1.0.0:bafybeienmids6f5pcey2bnywmiup2faawqgmdhhz65qfciuhkntugztvpi
 - valory/ledger_api:1.0.0:bafybeif2c3jt4tim3zbfq5c2lds7bs6qj5gvj2obk3pzdk3uy6zk2ivo3e
 skills:
-- valory/abstract_round_abci:0.1.0:bafybeia6ilrwf5mvds5ojcpleoidf2xq72bazzejzrj2oqkrpceyb6qavq
+- valory/abstract_round_abci:0.1.0:bafybeihgd4rzqjj23bnv4sgvkjxpcylbngvyqg2ytll6qdtegxvdh4wkvi
+- valory/transaction_settlement_abci:0.1.0:bafybeihhgs5iyoceq7xwrru7ipr2sl3hbrf2f5t54hwnvsogjvps7d6gdu
 behaviours:
   main:
     args: {}
