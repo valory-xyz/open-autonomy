@@ -43,7 +43,7 @@ models:
       sleep_time: 10
       ipfs_domain_name: /dns/registry.autonolas.tech/tcp/443/https
 ---
-public_id: valory/abci:0.1.0
+public_id: valory/ledger:0.1.0
 type: connection
 config:
   ledger_apis:

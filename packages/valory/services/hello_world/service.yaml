@@ -29,7 +29,7 @@ models:
   - benchmark_tool:
       args: *id001
 ---
-public_id: valory/abci:0.1.0
+public_id: valory/ledger:0.1.0
 type: connection
 config:
   ledger_apis:
