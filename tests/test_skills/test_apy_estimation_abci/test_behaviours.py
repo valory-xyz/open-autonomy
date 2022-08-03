@@ -868,6 +868,112 @@ class TestFetchAndBatchBehaviours(APYEstimationFSMBehaviourBaseCase):
         behaviour = cast(BaseBehaviour, self.behaviour.current_behaviour)
         assert behaviour.behaviour_id == TransformBehaviour.behaviour_id
 
+    @pytest.mark.parametrize("none_at_step", (0, 1, 2))
+    def test_fetch_behaviour_non_indexed_block_none_res(
+        self,
+        none_at_step: int,
+        block_from_timestamp_q: str,
+        block_from_number_q: str,
+        eth_price_usd_q: str,
+        uni_pairs_q: str,
+        pairs_ids: Dict[str, List[str]],
+        pool_fields: Tuple[str, ...],
+        caplog: LogCaptureFixture,
+    ) -> None:
+        """Test `async_act` when we receive `None` responses in `_check_non_indexed_block`."""
+        self.fast_forward_to_behaviour(
+            self.behaviour, FetchBehaviour.behaviour_id, self.synchronized_data
+        )
+        behaviour = cast(FetchBehaviour, self.behaviour.current_behaviour)
+        behaviour.params.pair_ids = pairs_ids
+        behaviour.params.sleep_time = SLEEP_TIME_TWEAK
+        # we do this because of https://github.com/valory-xyz/open-autonomy/pull/646
+        behaviour._check_given_pairs = mock.MagicMock()  # type: ignore
+        behaviour._pairs_exist = True
+
+        request_kwargs: Dict[str, Union[str, bytes]] = dict(
+            method="POST",
+            url=behaviour.context.uniswap_subgraph.url,
+            headers="Content-Type: application/json\r\n",
+            version="",
+        )
+        response_kwargs = dict(
+            version="",
+            status_code=200,
+            status_text="",
+            headers="",
+        )
+
+        # block request.
+        request_kwargs["url"] = behaviour.context.ethereum_subgraph.url
+        request_kwargs["body"] = json.dumps({"query": block_from_timestamp_q}).encode(
+            "utf-8"
+        )
+        res: Dict[str, Union[List[Dict[str, str]], Dict[str, List[Dict[str, str]]]]] = {
+            "data": {"blocks": [{"timestamp": "1", "number": "15178691"}]}
+        }
+        response_kwargs["body"] = json.dumps(res).encode("utf-8")
+        behaviour.act_wrapper()
+        self.mock_http_request(request_kwargs, response_kwargs)
+
+        # ETH price request for non-indexed block.
+        request_kwargs["url"] = behaviour.context.uniswap_subgraph.url
+        request_kwargs["body"] = json.dumps({"query": eth_price_usd_q}).encode("utf-8")
+
+        res = (
+            {
+                "errors": [
+                    {
+                        "message": "Failed to decode `block.number` value: `subgraph "
+                        "QmPJbGjktGa7c4UYWXvDRajPxpuJBSZxeQK5siNT3VpthP has only indexed up to block number 3730367 "
+                        "and data for block number 15178691 is therefore not yet available`"
+                    }
+                ]
+            }
+            if none_at_step
+            else {}
+        )
+
+        response_kwargs["body"] = json.dumps(res).encode("utf-8")
+        behaviour.act_wrapper()
+        self.mock_http_request(request_kwargs, response_kwargs)
+
+        if none_at_step == 0:
+            time.sleep(SLEEP_TIME_TWEAK + 0.01)
+            behaviour.act_wrapper()
+            return
+
+        # indexed block request.
+        request_kwargs["url"] = behaviour.context.ethereum_subgraph.url
+        request_kwargs["body"] = json.dumps({"query": block_from_number_q}).encode(
+            "utf-8"
+        )
+        res = (
+            {"data": {"blocks": [{"timestamp": "1", "number": "3730360"}]}}
+            if none_at_step != 1
+            else {}
+        )
+        response_kwargs["body"] = json.dumps(res).encode("utf-8")
+        behaviour.act_wrapper()
+        self.mock_http_request(request_kwargs, response_kwargs)
+
+        if none_at_step == 1:
+            time.sleep(SLEEP_TIME_TWEAK + 0.01)
+            behaviour.act_wrapper()
+            return
+
+        # ETH price request for indexed block.
+        request_kwargs["url"] = behaviour.context.uniswap_subgraph.url
+        request_kwargs["body"] = json.dumps(
+            {"query": eth_price_usd_q.replace("15178691", "3730360")}
+        ).encode("utf-8")
+        res = {}
+        response_kwargs["body"] = json.dumps(res).encode("utf-8")
+        behaviour.act_wrapper()
+        self.mock_http_request(request_kwargs, response_kwargs)
+        time.sleep(SLEEP_TIME_TWEAK + 0.01)
+        behaviour.act_wrapper()
+
     def test_fetch_behaviour_retries_exceeded(self, caplog: LogCaptureFixture) -> None:
         """Run tests for exceeded retries."""
         self.skill.skill_context.state.round_sequence.abci_app._last_timestamp = (
