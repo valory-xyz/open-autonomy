@@ -1,6 +1,6 @@
 # Simple Agent Service
 
-The Simple agent service demonstrates how to use the {{open_autonomy}} framework, and provides 
+The Simple agent service demonstrates how to use the {{open_autonomy}} framework, and provides
 a general template to build more complex services.
 The goal is to provide the minimum background so that users can start developing their own agent services, and to showcase how agents interact with local Tendermint nodes. Indeed, we recommend that new users take the Simple {{fsm_app}} as the starting point for developing their own agent services.
 
@@ -19,7 +19,7 @@ are expected to be quite common in the expected services that can be developed w
 The demo is composed of:
 
 - A set of four [Tendermint](https://tendermint.com/) nodes (`node0`, `node1`, `node2`, `node3`).
-- A set of four AEAs (`abci0`, `abci1`, `abci2`, `abci3`), in one-to-one connection with their corresponding Tendermint 
+- A set of four AEAs (`abci0`, `abci1`, `abci2`, `abci3`), in one-to-one connection with their corresponding Tendermint
 node.
 
 Also, the agents are connected to the remote service [DRAND](https://drand.love) throught the Internet.
@@ -34,7 +34,7 @@ Also, the agents are connected to the remote service [DRAND](https://drand.love)
 ## Running the Demo
 
 The steps below will guide you to create a Pipenv enviroment for the demo,
-download the price oracle agent service definition from the Service Registry
+download the simple agent service definition from the Service Registry
 and build a deployment that will run locally.
 
 1. Open a terminal and create a workspace folder, e.g.,
@@ -55,7 +55,7 @@ touch Pipfile && pipenv --python 3.10 && pipenv shell
 pip install open-autonomy
 ```
 
-4. Inside the workspace folder, create a JSON file `keys.json` containing the addresses and keys of the four agents that are 
+4. Inside the workspace folder, create a JSON file `keys.json` containing the addresses and keys of the four agents that are
    part of this demo. Below you have a sample `keys.json` file that you can use for testing:
     ```json
     [
@@ -80,17 +80,12 @@ pip install open-autonomy
 
 5. Use the {{open_autonomy}} CLI to download and build the agent images:
     ```bash
-      autonomy deploy build deployment valory/oracle_hardhat:bafybeibhv2ziivbnj3sgfzjjtvqbsvt3fvra4texc3lx4snqxo6lbmq2le keys.json
+      autonomy deploy build deployment valory/simple_abci:{{ get_hash("services/simple_abci") }} keys.json
     ```
-    This command above downloads the price oracle agent service definition from the Service Registry, and generates the required Docker images to run it using the keys provided in the `keys.json` file.
-    
-6. Open a second terminal and run a local [HardHat](https://hardhat.org/) node that will emulate a blockchain node. For convenience, we provide a Docker image in [Docker Hub](https://hub.docker.com/) that can be run by executing:
-    ```bash
-    docker run -p 8545:8545 -it valory/open-autonomy-hardhat:0.1.0
-    ```
+    This command above downloads the simple agent service definition from the Service Registry, and generates the required Docker images to run it using the keys provided in the `keys.json` file.
 
-7. Now, we are in position to execute the agent service. Return to the workspace terminal.
-The build configuration will be located in `./abci_build`. Execute [Docker Compose](https://docs.docker.com/compose/install/) as indicated below. This will deploy a local price oracle agent service with four agents connected to four [Tendermint](https://tendermint.com/) nodes.
+7. Now, we are in position to execute the agent service.
+The build configuration will be located in `./abci_build`. Execute [Docker Compose](https://docs.docker.com/compose/install/) as indicated below. This will deploy a local simple agent service with four agents connected to four [Tendermint](https://tendermint.com/) nodes.
     ```bash
     cd abci_build
     docker-compose up --force-recreate
@@ -133,7 +128,7 @@ general terms, the developer should put the focus on the four action points belo
 Below we discuss these points in detail for the case of the Simple {{fsm_app}}.
 
 
-## Implementation of the Rounds, Behaviours and Payloads for Each State
+### Implementation of the Rounds, Behaviours and Payloads for Each State
 
 The main modules to take into account in this development step are:
 
@@ -142,7 +137,7 @@ The main modules to take into account in this development step are:
 - `payloads.py`: Contains the implementation of the payloads associated to each state. One payload can be used per state. Payloads are used so sync data between agents, and therefore the application state.
 
 
-### `RegistrationRound` and `RegistrationBehaviour`
+#### `RegistrationRound` and `RegistrationBehaviour`
 
 The `RegistrationRound` and `RegistrationBehaviour` are the round and behaviour classes associated to the start state of the application FSM. The hierarchy diagram for the `RegistrationRound` is depicted below:
 
@@ -300,26 +295,26 @@ corresponding behaviour in the `async_act()` method.
 The remaining states from the FSM follow a similar approach in the definition of the rounds, behaviours and payloads. Therefore, we will omit most of the details and highlight only the relevant information for them.
 
 
-### `RandomnessStartupRound` and `RandomnessStartupBehaviour`
+#### `RandomnessStartupRound` and `RandomnessStartupBehaviour`
 As opposed to `RegistrationRound`, the class `RandomnessStartupRound` inherits from the helper abstract class `CollectSameUntilThresholdRound`. That is, the round will wait until 2/3 of the agents have agreed in the same collected value (in this case, a random string from a decentralized randomness source). If for whatever reason agents do not agree within a given timeframe, this state is revisited. As above, the method `end_block()` must be implemented, and it must return the appropriate events accordingly.
 
 The `RandomnessBehaviour` on the other hand is the proactive part that connects to the distributed randomness service, reads the value,  commits it to the temporary blockchain, and stores it in the `SynchronizedData`.
 As above, all these operations are carried on the `async_act()` method, and the
 payload class `RandomnessPayload` encapsulates the collected randomness as well as the round identifier.
 
-### `SelectKeeperAtStartupRound` and `SelectKeeperAtStartupBehaviour`
+#### `SelectKeeperAtStartupRound` and `SelectKeeperAtStartupBehaviour`
 In this case, `SelectKeeperAtStartupRound` inherits from the class `CollectSameUntilThresholdRound` as above. The value to be agreed by 2/3 of the agents is the address of the agent that will be designated as a keeper. Again, the `end_block()` method must handle the appropriate events to return, depending on the status of the consensus.
 
 
 The `SelectKeeperAtStartupBehaviour` is in charge of executing the operation of selecting the keeper, which is a deterministic function of the randomness collected in the previous round. The behaviour accesses the randomness through the `SynchronizedData`, commits the output to the temporary blockchain, and it also records it on the `SynchronizedData`. The corresponding payload class, `SelectKeeperPayload` stores the selected keeper.
 
 
-### `ResetAndPauseRound` and `ResetAndPauseBehaviour`
+#### `ResetAndPauseRound` and `ResetAndPauseBehaviour`
 The `ResetAndPauseRound` also inherits from  `CollectSameUntilThresholdRound`. The value that the rounds waits that the agents agree is simply the period number (an increasing integer). Once 2/3 of the agents have agreed on it, the {{fsm_app}} transitions again to the `RandomnessStartupRound`.
 
 The `ResetAndPauseBehaviour` class simply logs the state, sleeps for a configured interval, and submits the transaction payload (period number) to the temporary blockchain. As usual, the functionality is encoded in `end_block()`. For convention, the payload associated to the class `ResetPayload` contains the round identifier.
 
-## Implementation of `SimpleAbciApp`
+### Implementation of `SimpleAbciApp`
 This class can be found on `rounds.py`, and it simply encodes the basic parameters of the FSM transition function depicted above. Namely, it defines:
 - the initial round,
 - the set of initial states,
@@ -393,7 +388,7 @@ class SimpleAbciApp(AbciApp[Event]):
 
 For example, upon receiving the event `DONE` being in the state `SelectKeeperAtStartupRound`, the FSM will transit to `ResetAndPauseRound`.
 
-## Implementation of `SimpleAbciConsensusBehaviour`
+### Implementation of `SimpleAbciConsensusBehaviour`
 This class can be found in `behaviours.py`, and is the main behaviour class, aggregating the behaviours from the different states. It is a subclass of `AbstractRoundBehaviour`. The developer needs to define:
 
 - the initial behaviour,
@@ -404,7 +399,7 @@ Recall that each behaviour is in one-to-one correspondence with a round. Upon in
 
 
 
-## Specification of the FSM
+### Specification of the FSM
 
 For convenience, we provide a simplified YAML syntax to describe concisely the FSM of the {{fsm_app}}s. For the case of
 the Simple {{fsm_app}} the specification is as follows:
@@ -438,11 +433,3 @@ transition_func:
     (SelectKeeperAtStartupRound, NO_MAJORITY): RegistrationRound
     (SelectKeeperAtStartupRound, ROUND_TIMEOUT): RegistrationRound
 ```
-
-## Running the Tests
-There are several end-to-end tests where the developer can see the {{fsm_app}} operation. Ensure that your system meets the [stack requirements](./quick_start.md) before launching the tests. To run the tests, execute the command
-
-```bash
-pytest tests/test_agents/test_simple_abci.py
-```
-The tests nicely demonstrate how the same code can be run as a single agent app or as a multi-agent service with two or four agents. The diagram below depicts the architecture for the latter test case:

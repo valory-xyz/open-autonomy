@@ -24,7 +24,7 @@ Moreover, it has the following specific components to implement the particular c
     with a finalization step over an Ethereum chain.
 
 
-## Price Oracle as a Proof of Concept
+## The Constituent {{fsm_app}}s
 
 The ABCI-based replicated FSM (`AbciApp`) used for price estimation consists
 of several smaller modules, each of which is an `AbciApp` of its own. Each of

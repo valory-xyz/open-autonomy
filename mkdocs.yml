@@ -166,7 +166,8 @@ nav:
 
 
 plugins:
-  - macros
+  - macros:
+        module_name: 'scripts/docs_macros'
 
 markdown_extensions:
   - pymdownx.superfences
