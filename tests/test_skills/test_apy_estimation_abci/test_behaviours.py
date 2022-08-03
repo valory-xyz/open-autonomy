@@ -98,6 +98,7 @@ from packages.valory.skills.apy_estimation_abci.ml.preprocessing import (
 from packages.valory.skills.apy_estimation_abci.models import SubgraphsMixin
 from packages.valory.skills.apy_estimation_abci.rounds import Event, SynchronizedData
 from packages.valory.skills.apy_estimation_abci.tools.etl import ResponseItemType
+from packages.valory.skills.apy_estimation_abci.tools.queries import SAFE_BLOCK_TIME
 
 from tests.conftest import ROOT_DIR
 from tests.test_skills.test_apy_estimation_abci.conftest import DummyPipeline
@@ -529,8 +530,11 @@ class TestFetchAndBatchBehaviours(APYEstimationFSMBehaviourBaseCase):
     def test_fetch_behaviour(
         self,
         block_from_timestamp_q: str,
+        timestamp_gte: str,
+        timestamp_lte: str,
         eth_price_usd_q: str,
         spooky_pairs_q: str,
+        uni_pairs_q: str,
         pairs_ids: Dict[str, List[str]],
         pool_fields: Tuple[str, ...],
     ) -> None:
@@ -538,61 +542,78 @@ class TestFetchAndBatchBehaviours(APYEstimationFSMBehaviourBaseCase):
         self.fast_forward_to_behaviour(
             self.behaviour, FetchBehaviour.behaviour_id, self.synchronized_data
         )
-        cast(
-            FetchBehaviour, self.behaviour.current_behaviour
-        ).params.pair_ids = pairs_ids
+        behaviour = cast(FetchBehaviour, self.behaviour.current_behaviour)
+        behaviour.params.pair_ids = pairs_ids
+        # we do this because of https://github.com/valory-xyz/open-autonomy/pull/646
+        behaviour._check_given_pairs = mock.MagicMock()  # type: ignore
+        behaviour._pairs_exist = True
 
-        request_kwargs: Dict[str, Union[str, bytes]] = dict(
-            method="POST",
-            url=cast(
-                APYEstimationBaseBehaviour, self.behaviour.current_behaviour
-            ).context.spooky_subgraph.url,
-            headers="Content-Type: application/json\r\n",
-            version="",
-        )
-        response_kwargs = dict(
-            version="",
-            status_code=200,
-            status_text="",
-            headers="",
-        )
+        total_iterations = 30
+        # for every subgraph and every iteration that will be performed, we test fetching a single batch
+        for subgraph_name in ("uniswap_subgraph", "spooky_subgraph"):
+            for _ in range(total_iterations):
+                behaviour.act_wrapper()
+                subgraph = getattr(behaviour.context, subgraph_name)
+                request_kwargs: Dict[str, Union[str, bytes]] = dict(
+                    method="POST",
+                    url=subgraph.url,
+                    headers="Content-Type: application/json\r\n",
+                    version="",
+                )
+                response_kwargs = dict(
+                    version="",
+                    status_code=200,
+                    status_text="",
+                    headers="",
+                )
 
-        # block request.
-        request_kwargs["url"] = cast(
-            APYEstimationBaseBehaviour, self.behaviour.current_behaviour
-        ).context.fantom_subgraph.url
-        request_kwargs["body"] = json.dumps({"query": block_from_timestamp_q}).encode(
-            "utf-8"
-        )
-        res = {"data": {"blocks": [{"timestamp": "1", "number": "15178691"}]}}
-        response_kwargs["body"] = json.dumps(res).encode("utf-8")
-        self.behaviour.act_wrapper()
-        self.mock_http_request(request_kwargs, response_kwargs)
+                # block request.
+                assert behaviour._progress.current_timestamp is not None
+                block_query = block_from_timestamp_q.replace(
+                    timestamp_gte, str(behaviour._progress.current_timestamp)
+                )
+                block_query = block_query.replace(
+                    timestamp_lte,
+                    str(behaviour._progress.current_timestamp + SAFE_BLOCK_TIME),
+                )
+                block_subgraph = getattr(
+                    behaviour.context, subgraph.chain_subgraph_name
+                )
+                request_kwargs["url"] = block_subgraph.url
+                request_kwargs["body"] = json.dumps({"query": block_query}).encode(
+                    "utf-8"
+                )
+                res = {"data": {"blocks": [{"timestamp": "1", "number": "15178691"}]}}
+                response_kwargs["body"] = json.dumps(res).encode("utf-8")
+                self.mock_http_request(request_kwargs, response_kwargs)
 
-        # ETH price request.
-        request_kwargs["url"] = cast(
-            APYEstimationBaseBehaviour, self.behaviour.current_behaviour
-        ).context.spooky_subgraph.url
-        request_kwargs["body"] = json.dumps({"query": eth_price_usd_q}).encode("utf-8")
-        res = {"data": {"bundles": [{"ethPrice": "0.8973548"}]}}
-        response_kwargs["body"] = json.dumps(res).encode("utf-8")
-        self.behaviour.act_wrapper()
-        self.mock_http_request(request_kwargs, response_kwargs)
+                # ETH price request.
+                request_kwargs["url"] = subgraph.url
+                request_kwargs["body"] = json.dumps({"query": eth_price_usd_q}).encode(
+                    "utf-8"
+                )
+                res = {"data": {"bundles": [{"ethPrice": "0.8973548"}]}}
+                response_kwargs["body"] = json.dumps(res).encode("utf-8")
+                behaviour.act_wrapper()
+                self.mock_http_request(request_kwargs, response_kwargs)
 
-        # top pairs data.
-        request_kwargs["body"] = json.dumps({"query": spooky_pairs_q}).encode("utf-8")
-        res = {
-            "data": {
-                "pairs": [
-                    {field: dummy_value for field in pool_fields}
-                    for dummy_value in ("dum1", "dum2")
-                ]
-            }
-        }
-        response_kwargs["body"] = json.dumps(res).encode("utf-8")
-        self.behaviour.act_wrapper()
-        self.mock_http_request(request_kwargs, response_kwargs)
+                # top pairs data.
+                pairs_q = (
+                    uni_pairs_q
+                    if subgraph_name == "uniswap_subgraph"
+                    else spooky_pairs_q
+                )
+                request_kwargs["body"] = json.dumps({"query": pairs_q}).encode("utf-8")
+                res = {
+                    "data": {"pairs": [{field: "dummy_value" for field in pool_fields}]}
+                }
+                response_kwargs["body"] = json.dumps(res).encode("utf-8")
+                behaviour.act_wrapper()
+                self.mock_http_request(request_kwargs, response_kwargs)
 
+        behaviour.act_wrapper()
+        self.mock_a2a_transaction()
+        self._test_done_flag_set()
         self.end_round()
         behaviour = cast(BaseBehaviour, self.behaviour.current_behaviour)
         assert behaviour.behaviour_id == TransformBehaviour.behaviour_id
