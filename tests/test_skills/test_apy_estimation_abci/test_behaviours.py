@@ -443,7 +443,7 @@ class TestFetchAndBatchBehaviours(APYEstimationFSMBehaviourBaseCase):
                 "Test did not finish as expected. `_check_given_pairs` should have reached to its end."
             )
 
-    @pytest.mark.parametrize("batch", (False,))
+    @pytest.mark.parametrize("batch", (True, False))
     @given(
         st.integers(min_value=0),
         st.integers(min_value=1),
