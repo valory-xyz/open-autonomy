@@ -713,6 +713,40 @@ class TestFetchAndBatchBehaviours(APYEstimationFSMBehaviourBaseCase):
         behaviour = cast(BaseBehaviour, self.behaviour.current_behaviour)
         assert behaviour.behaviour_id == TransformBehaviour.behaviour_id
 
+    def test_invalid_pairs(self, caplog: LogCaptureFixture) -> None:
+        """Test the behaviour when the given pairs do not exist at the subgraphs."""
+        self.fast_forward_to_behaviour(
+            self.behaviour, FetchBehaviour.behaviour_id, self.synchronized_data
+        )
+        behaviour = cast(FetchBehaviour, self.behaviour.current_behaviour)
+        # we do this because of https://github.com/valory-xyz/open-autonomy/pull/646
+        behaviour._check_given_pairs = mock.MagicMock()  # type: ignore
+        behaviour._progress.call_failed = True
+        # set the retries to the max allowed for any subgraph (chose SpookySwap randomly)
+        behaviour.context.spooky_subgraph._retries_attempted = (
+            behaviour.context.spooky_subgraph._retries
+        )
+
+        behaviour.act_wrapper()
+        # exceed the retries
+        behaviour.context.spooky_subgraph.increment_retries()
+        behaviour._pairs_exist = False
+        behaviour._progress.call_failed = True
+
+        # test empty retrieved history.
+        with caplog.at_level(
+            logging.ERROR,
+            logger="aea.test_agent_name.packages.valory.skills.apy_estimation_abci",
+        ):
+            behaviour.act_wrapper()
+        assert "Could not download any historical data!" in caplog.text
+
+        self.mock_a2a_transaction()
+        self._test_done_flag_set()
+        self.end_round()
+        behaviour = cast(BaseBehaviour, self.behaviour.current_behaviour)
+        assert behaviour.behaviour_id == TransformBehaviour.behaviour_id
+
     def test_fetch_behaviour_non_indexed_block(
         self,
         block_from_timestamp_q: str,
