@@ -258,8 +258,20 @@ def eth_price_usd_raising_q(
     )
 
 
-@pytest.fixture
-def block_from_timestamp_q() -> str:
+@pytest.fixture(scope="session")
+def timestamp_gte() -> str:
+    """Get the timestamp_gte value."""
+    return str(_BLOCK_Q_PARAMS["given_timestamp"])
+
+
+@pytest.fixture(scope="session")
+def timestamp_lte() -> str:
+    """Get the timestamp_lte value."""
+    return str(_BLOCK_Q_PARAMS["given_timestamp"] + SAFE_BLOCK_TIME)
+
+
+@pytest.fixture(scope="session")
+def block_from_timestamp_q(timestamp_gte: str, timestamp_lte: str) -> str:
     """Query string to get a block from a timestamp."""
 
     return (
@@ -271,10 +283,10 @@ def block_from_timestamp_q() -> str:
             orderDirection: asc,
             where: {
                 timestamp_gte: """
-        + str(_BLOCK_Q_PARAMS["given_timestamp"])
+        + timestamp_gte
         + """,
                 timestamp_lte: """
-        + str(_BLOCK_Q_PARAMS["given_timestamp"] + SAFE_BLOCK_TIME)
+        + timestamp_lte
         + """
             }
         )
@@ -306,7 +318,13 @@ def expected_eth_block_from_timestamp() -> Dict[str, str]:
 
 
 @pytest.fixture
-def block_from_number_q() -> str:
+def given_number() -> str:
+    """The given number for the `block_from_number_q` query."""
+    return str(_BLOCK_Q_PARAMS["given_number"])
+
+
+@pytest.fixture
+def block_from_number_q(given_number: str) -> str:
     """Query string to get a block from a timestamp."""
 
     return (
@@ -318,7 +336,7 @@ def block_from_number_q() -> str:
             orderDirection: asc,
             where: {
                 number: """
-        + str(_BLOCK_Q_PARAMS["given_number"])
+        + given_number
         + """
             }
         )
