@@ -201,7 +201,7 @@ class TestFetchAndBatchBehaviours(APYEstimationFSMBehaviourBaseCase):
         (
             (False, "spooky_subgraph", []),
             (True, "spooky_subgraph", ["0xec454eda10accdd66209c57af8c12924556f3abd"]),
-            (True, "uni_subgraph", ["0x00004ee988665cdda9a1080d5792cecd16dc1220"]),
+            (True, "uniswap_subgraph", ["0x00004ee988665cdda9a1080d5792cecd16dc1220"]),
         ),
     )
     def test_current_pair_ids(
@@ -276,7 +276,9 @@ class TestFetchAndBatchBehaviours(APYEstimationFSMBehaviourBaseCase):
             behaviour.current_chain.api_id == "test_current_chain"
         ), "current chain is incorrect"
 
-    @pytest.mark.parametrize("current_dex_name", ("uni_subgraph", "spooky_subgraph"))
+    @pytest.mark.parametrize(
+        "current_dex_name", ("uniswap_subgraph", "spooky_subgraph")
+    )
     @pytest.mark.parametrize(
         "progress_initialized, pairs_hist, n_fetched, expected",
         (

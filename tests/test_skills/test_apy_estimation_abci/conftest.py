@@ -132,7 +132,7 @@ def spooky_specs(_common_specs: SpecsType) -> SpecsType:
 def uni_specs(spooky_specs: SpecsType) -> SpecsType:
     """Uniswap specs fixture."""
     uni_specs = spooky_specs.copy()
-    uni_specs["name"] = "uni_subgraph"
+    uni_specs["name"] = "uniswap_subgraph"
     uni_specs["api_id"] = "uniswap"
     uni_specs["url"] = "https://api.thegraph.com/subgraphs/name/ianlapham/uniswapv2"
     return uni_specs
@@ -454,7 +454,7 @@ def uni_existing_pairs_q() -> str:
 def pairs_ids() -> Dict[str, List[str]]:
     """Sample DEXs' pair ids for testing."""
     return {
-        "uni_subgraph": [str(_PAIRS_Q_PARAMS["uni_id"])],
+        "uniswap_subgraph": [str(_PAIRS_Q_PARAMS["uni_id"])],
         "spooky_subgraph": [str(_PAIRS_Q_PARAMS["spooky_id"])],
     }
 
