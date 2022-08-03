@@ -1,4 +1,4 @@
-# Simple Agent Service
+# Simple Agent Service Demo
 
 The Simple agent service demonstrates how to use the {{open_autonomy}} framework, and provides
 a general template to build more complex services.

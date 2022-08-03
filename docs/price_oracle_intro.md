@@ -1,4 +1,4 @@
-# Price Oracle - Introduction
+# Price Oracle Agent Service Demo
 
 The goal of this demo is to demonstrate an agent service that provides an estimation
 of the Bitcoin price (USD) based on observations coming from different data sources,
