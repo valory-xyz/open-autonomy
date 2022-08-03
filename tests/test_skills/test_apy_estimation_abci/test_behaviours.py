@@ -474,6 +474,99 @@ class TestFetchAndBatchBehaviours(APYEstimationFSMBehaviourBaseCase):
         assert behaviour._progress.timestamps_iterator is not None
         assert list(behaviour._progress.timestamps_iterator) == expected
 
+    @given(
+        st.booleans(),
+        st.booleans(),
+        st.integers(max_value=50),
+        st.integers(),
+        st.booleans(),
+        st.text(min_size=1),
+        st.integers(),
+        st.lists(st.text(min_size=1)),
+    )
+    def test_set_current_progress(
+        self,
+        pairs_ids: Dict[str, List[str]],
+        retries_exceeded: bool,
+        call_failed: bool,
+        currently_downloaded: int,
+        target_per_pool: int,
+        batch: bool,
+        expected_dex_name: str,
+        expected_timestamp: int,
+        pairs_hist: ResponseItemType,
+    ) -> None:
+        """Test `_set_current_progress`."""
+        self.fast_forward_to_behaviour(
+            self.behaviour,
+            self.behaviour_class.behaviour_id,
+            self.synchronized_data,
+        )
+        behaviour = cast(FetchBehaviour, self.behaviour.current_behaviour)
+        behaviour._utilized_subgraphs["test"] = ApiSpecs(
+            name="",
+            skill_context=mock.MagicMock(),
+            url="test",
+            api_id="test",
+            method="test",
+        )
+        assert behaviour._utilized_subgraphs["test"] is not None
+        behaviour.batch = batch
+
+        # start of setting the `currently_downloaded`
+        # we cannot simply mock because of https://github.com/valory-xyz/open-autonomy/pull/646
+        behaviour.params.pair_ids = pairs_ids
+        behaviour._progress.current_dex_name = "uniswap_subgraph"
+        behaviour._pairs_hist = [{"test": "test"} for _ in range(currently_downloaded)]
+        # end of setting the `currently_downloaded`
+
+        behaviour._target_per_pool = target_per_pool
+        behaviour._pairs_hist = pairs_hist
+        behaviour._progress.call_failed = call_failed
+        behaviour._progress.dex_names_iterator = (
+            iter((expected_dex_name,)) if expected_dex_name is not None else iter(())
+        )
+        behaviour._progress.timestamps_iterator = (
+            iter((expected_timestamp,)) if expected_timestamp is not None else iter(())
+        )
+        # we do this because of https://github.com/valory-xyz/open-autonomy/pull/646
+        behaviour._reset_timestamps_iterator = mock.MagicMock()  # type: ignore
+        # we do this because of https://github.com/valory-xyz/open-autonomy/pull/646
+        behaviour.clean_up = mock.MagicMock()  # type: ignore
+
+        if retries_exceeded:
+            # exceed the retries before calling the method
+            for _ in range(behaviour._utilized_subgraphs["test"]._retries + 1):
+                behaviour._utilized_subgraphs["test"].increment_retries()
+            # call the tested method
+            behaviour._set_current_progress()
+            # assert its results
+            assert behaviour._progress.current_timestamp is None
+            assert behaviour._progress.current_dex_name is None
+            behaviour.clean_up.assert_called_once()
+
+        elif not call_failed:
+            # call the tested method
+            behaviour._set_current_progress()
+
+            if (
+                currently_downloaded == 0
+                or currently_downloaded == target_per_pool
+                or batch
+            ):
+                # assert its results
+                assert behaviour._progress.current_dex_name == expected_dex_name
+                behaviour._reset_timestamps_iterator.assert_called_once()
+                assert behaviour._progress.n_fetched == len(pairs_hist)
+
+            assert behaviour._progress.current_timestamp == expected_timestamp
+
+        else:
+            # call the tested method
+            behaviour._set_current_progress()
+
+        assert behaviour._progress.initialized
+
     def test_handle_response(self, caplog: LogCaptureFixture) -> None:
         """Test `handle_response`."""
         self.fast_forward_to_behaviour(
