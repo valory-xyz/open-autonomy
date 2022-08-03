@@ -282,7 +282,6 @@ class TestForecasting:
         )
         pd.testing.assert_frame_equal(estimates, expected_estimates)
 
-    @pytest.mark.skip  # Flaky because of pmdarima version
     def test_predict_safely(self) -> None:
         """
         Test `predict_safely`.
@@ -331,9 +330,7 @@ class TestForecasting:
         # Prove that the `pmdarima` would raise.
         with pytest.raises(
             ValueError,
-            match=re.escape(
-                "Input contains NaN, infinity or a value too large for dtype('float64')."
-            ),
+            match=re.escape("Input contains NaN"),
         ):
             model.predict(steps_forward)
 
