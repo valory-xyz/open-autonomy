@@ -12,7 +12,7 @@ fingerprint:
   handlers.py: bafybeieiup2wgeoisdvpeui3mo6mft7eo2ukwsmhu5qqbahwxg22kxno3u
 fingerprint_ignore_patterns: []
 connections:
-- valory/abci:0.1.0:bafybeibfdzfevrtiywolqeepk6yfzyvl4bbu6mghhnebkptcbhsh5fxkbu
+- valory/abci:0.1.0:bafybeicww5tlzbtu2wgkuvxdgadd7vvc4yyj3aupf64f5iwlvckprmbgk4
 contracts: []
 protocols:
 - valory/abci:0.1.0:bafybeianfguceeckwhelenmythqmbtqswll6vcaz5wwsdr7hin7ov3rvje
