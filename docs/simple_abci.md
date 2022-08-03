@@ -22,7 +22,7 @@ The demo is composed of:
 - A set of four AEAs (`abci0`, `abci1`, `abci2`, `abci3`), in one-to-one connection with their corresponding Tendermint
 node.
 
-Also, the agents are connected to the remote service [DRAND](https://drand.love) throught the Internet.
+The agents are connected to the remote service [DRAND](https://drand.love) through the Internet.
 
 <figure markdown>
   ![](./images/simple_abci_app_four_agents.svg){align=center}

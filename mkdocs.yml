@@ -92,6 +92,22 @@ nav:
           - Agent: 'api/replay/agent.md'
           - Tendermint: 'api/replay/tendermint.md'
           - Utils: 'api/replay/utils.md'
+        - Test Tools:
+          - Configurations: api/test_tools/configurations.md
+          - Fixture Helpers: api/test_tools/fixture_helpers.md
+          - Agents: api/test_tools/base_test_classes/agents.md
+          - Contracts: api/test_tools/base_test_classes/contracts.md
+          - ACN Node: api/test_tools/docker/acn_node.md
+          - AMM Net: api/test_tools/docker/amm_net.md
+          - Base: api/test_tools/docker/base.md
+          - Ganache Helpers: api/test_tools/docker/ganache.md
+          - Gnosis Safe Helpers: api/test_tools/docker/gnosis_safe_net.md
+          - Tendermint Helpers: api/test_tools/docker/tendermint.md
+          - Helpers:
+            - Async Utils: api/test_tools/helpers/async_utils.md
+            - Base: api/test_tools/helpers/base.md
+            - Contracts: api/test_tools/helpers/contracts.md
+            - Tendermint Utils: api/test_tools/helpers/tendermint_utils.md
       - Connections:
         - ABCI:
           - Check Dependencies: 'api/connections/abci/check_dependencies.md'
@@ -124,6 +140,9 @@ nav:
           - Dialogues: 'api/skills/abstract_round_abci/dialogues.md'
           - Handlers: 'api/skills/abstract_round_abci/handlers.md'
           - Models: 'api/skills/abstract_round_abci/models.md'
+          - Test Tools:
+            - Base: api/skills/abstract_round_abci/test_tools/base.md
+            - Integration: api/skills/abstract_round_abci/test_tools/integration.md
           - IO:
             - IPFS: 'api/skills/abstract_round_abci/io/ipfs.md'
             - Load: 'api/skills/abstract_round_abci/io/load.md'
@@ -136,6 +155,8 @@ nav:
           - Models: 'api/skills/oracle_deployment_abci/models.md'
           - Payloads: 'api/skills/oracle_deployment_abci/payloads.md'
           - Rounds: 'api/skills/oracle_deployment_abci/rounds.md'
+          - Dialogues: api/skills/oracle_deployment_abci/dialogues.md
+          - Handlers: api/skills/oracle_deployment_abci/handlers.md
         - Price Estimation ABCI:
           - Behaviours: 'api/skills/price_estimation_abci/behaviours.md'
           - Dialogues: 'api/skills/price_estimation_abci/dialogues.md'
@@ -144,19 +165,33 @@ nav:
           - Payloads: 'api/skills/price_estimation_abci/payloads.md'
           - Rounds: 'api/skills/price_estimation_abci/rounds.md'
         - Oracle ABCI:
+          - Behaviours: api/skills/oracle_abci/behaviours.md
           - Composition: 'api/skills/oracle_abci/composition.md'
+          - Dialogues: api/skills/oracle_abci/dialogues.md
+          - Handlers: api/skills/oracle_abci/handlers.md
+          - Models: api/skills/oracle_abci/models.md
         - Registration ABCI:
           - Behaviours: 'api/skills/registration_abci/behaviours.md'
           - Payloads: 'api/skills/registration_abci/payloads.md'
           - Rounds: 'api/skills/registration_abci/rounds.md'
+          - Dialogues: api/skills/registration_abci/dialogues.md
+          - Handlers: api/skills/registration_abci/handlers.md
+          - Models: api/skills/registration_abci/models.md
         - Safe Deployment ABCI:
           - Behaviours: 'api/skills/safe_deployment_abci/behaviours.md'
           - Payloads: 'api/skills/safe_deployment_abci/payloads.md'
           - Rounds: 'api/skills/safe_deployment_abci/rounds.md'
+          - Dialogues: api/skills/safe_deployment_abci/dialogues.md
+          - Handlers: api/skills/safe_deployment_abci/handlers.md
+          - Models: api/skills/safe_deployment_abci/models.md
         - Transaction Settlement ABCI:
           - Behaviours: 'api/skills/transaction_settlement_abci/behaviours.md'
           - Payloads: 'api/skills/transaction_settlement_abci/payloads.md'
           - Rounds: 'api/skills/transaction_settlement_abci/rounds.md'
+          - Dialogues: api/skills/transaction_settlement_abci/dialogues.md
+          - Handlers: api/skills/transaction_settlement_abci/handlers.md
+          - Models: api/skills/transaction_settlement_abci/models.md
+          - Payload Tools: api/skills/transaction_settlement_abci/payload_tools.md
       - Exceptions: exceptions.md
   - Miscellaneous:
     - Ethereum: 'ethereum_specifics.md'
