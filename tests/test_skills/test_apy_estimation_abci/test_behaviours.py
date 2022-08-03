@@ -50,8 +50,8 @@ import pytest
 from _pytest.logging import LogCaptureFixture
 from _pytest.monkeypatch import MonkeyPatch
 from aea.skills.tasks import TaskManager
-from hypothesis import given
-from hypothesis.strategies import booleans, integers, lists
+from hypothesis import given, settings
+from hypothesis import strategies as st
 
 from packages.valory.protocols.abci import AbciMessage  # noqa: F401
 from packages.valory.skills.abstract_round_abci.base import AbciApp, AbciAppDB
@@ -313,7 +313,7 @@ class TestFetchAndBatchBehaviours(APYEstimationFSMBehaviourBaseCase):
 
         assert behaviour.currently_downloaded == expected
 
-    @given(lists(integers()))
+    @given(st.lists(st.integers()))
     def test_total_downloaded(
         self,
         pairs_hist: List,
@@ -329,7 +329,8 @@ class TestFetchAndBatchBehaviours(APYEstimationFSMBehaviourBaseCase):
 
         assert behaviour.total_downloaded == len(pairs_hist)
 
-    @given(lists(booleans()))
+    @given(st.lists(st.booleans(), max_size=50))
+    @settings(deadline=5000)
     def test_retries_exceeded(
         self,
         is_exceeded_per_subgraph: List[bool],
@@ -441,9 +442,9 @@ class TestFetchAndBatchBehaviours(APYEstimationFSMBehaviourBaseCase):
 
     @pytest.mark.parametrize("batch", (False,))
     @given(
-        integers(min_value=0),
-        integers(min_value=1),
-        integers(min_value=1, max_value=50),
+        st.integers(min_value=0),
+        st.integers(min_value=1),
+        st.integers(min_value=1, max_value=50),
     )
     def test_reset_timestamps_iterator(
         self,
