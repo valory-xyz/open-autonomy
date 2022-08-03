@@ -25,12 +25,15 @@ from typing import Generator, Tuple
 import pytest
 from aea.configurations.data_types import PublicId
 
+from autonomy.test_tools.base_test_classes.agents import (
+    BaseTestEnd2End,
+    BaseTestEnd2EndExecution,
+)
+from autonomy.test_tools.fixture_helpers import UseACNNode, UseGnosisSafeHardHatNet
+
 from packages.valory.skills.registration_abci.behaviours import (
     RegistrationStartupBehaviour,
 )
-
-from tests.fixture_helpers import UseACNNode, UseGnosisSafeHardHatNet
-from tests.test_agents.base import BaseTestEnd2End, BaseTestEnd2EndExecution
 
 
 log_messages = RegistrationStartupBehaviour.LogMessages
@@ -54,7 +57,7 @@ STRICT_CHECK_STRINGS = (
     log_messages.collection_complete.value,
     log_messages.request_update.value,
     log_messages.response_update.value,
-    "Entered in the 'finished_registration' round for period 0",
+    "local height == remote height; continuing execution...",
 )
 
 

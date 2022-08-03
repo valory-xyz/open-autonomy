@@ -49,7 +49,7 @@ from packages.valory.protocols.acn.message import AcnMessage
 
 
 try:
-    from asyncio.streams import (  # type: ignore  # pylint: disable=ungrouped-imports
+    from asyncio.streams import (  # type: ignore # pylint: disable=ungrouped-imports
         IncompleteReadError,
     )
 except ImportError:  # pragma: nocover

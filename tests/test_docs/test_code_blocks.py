@@ -117,7 +117,7 @@ class TestYamlSnippets(BaseTestDocCode):
     # instead of checking the code block as a whole.
 
     md_to_code = {
-        "docs/service_example.md": {
+        "docs/hello_world_agent_service.md": {
             "code_files": ["packages/valory/agents/hello_world/aea-config.yaml"],
         },
         "docs/price_oracle_fsms.md": {
@@ -165,7 +165,7 @@ class TestPythonSnippets(BaseTestDocCode):
             ],
             "skip_blocks": [1],
         },
-        "docs/service_example.md": {
+        "docs/hello_world_agent_service.md": {
             "code_files": [
                 "by_line::packages/valory/skills/hello_world_abci/rounds.py",
                 "by_line::packages/valory/skills/hello_world_abci/rounds.py",

@@ -19,6 +19,7 @@ transition_func:
     (CollectObservationRound, NO_MAJORITY): CollectObservationRound
     (CollectObservationRound, ROUND_TIMEOUT): CollectObservationRound
     (EstimateConsensusRound, DONE): TxHashRound
+    (EstimateConsensusRound, NONE): CollectObservationRound
     (EstimateConsensusRound, NO_MAJORITY): CollectObservationRound
     (EstimateConsensusRound, ROUND_TIMEOUT): CollectObservationRound
     (TxHashRound, DONE): FinishedPriceAggregationRound

@@ -1,6 +1,56 @@
 # Release History - `open-autonomy`
 
-# 0.1.4 (2022-20-08)
+
+# 0.1.6 (2022-08-01)
+
+Autonomy:
+- Extracts generic test utils into `autonomy.test_tools`
+
+Packages:
+- Ports the tendermint GRPC package and test tools from `agent-academy-1` repo
+- Moves base test classes into `abstract_round_abci` skill package
+
+Chore:
+- Bumps `mistune` to `2.0.3`
+- Updates `skaffold` to latest version
+
+Docs:
+- Updates the demo section
+- Adds info about Docker Desktop on MacOS and Windows
+
+# 0.1.5 (2022-07-29)
+
+Autonomy:
+- Depends on `open-aea>=1.14.0.post1`
+- Cleans up Dockerfiles and aligns them
+
+Packages:
+- Adds support to handle the `{'code': -32000, 'message': 'already known'}` response in the `transaction_settlement_abci`
+- Adds environment variables support for debugging
+- Extends consistency checks of events in `abstract_round_abci`
+- Removes unused events and handles unhandled events
+- Updates oracle staging URLs
+- Adds support for Goerli oracle
+- Updates service registry to on-chain deployment v1
+- Fixes logic error in the retry logic of `get_transaction_receipt` in the `ledger` connection
+
+Tests:
+- Generalises various base classes for easier re-use
+- Adds tests to ensure better docs integrity
+- Adds additional tests for the `transaction_settlement_abci`
+- Improves `apy_estimation_abci` end-to-end and unit tests
+- Fixes registration reset end-to-end test edge case
+
+Docs:
+- Adds various clarifications in the docs based on user feedback and internal proof readings
+- Adds various fixes and consistency improvements
+- Lists relevant dependencies and their versions
+
+Misc:
+- Cleans up skaffold and Dockerfiles
+
+
+# 0.1.4 (2022-07-20)
 
 Autonomy:
 - Ports deployment resources as data files
@@ -15,7 +65,7 @@ Packages:
 Docs:
 - Adds docs on publishing packages
 
-## 0.1.3 (2022-15-08)
+## 0.1.3 (2022-07-15)
 
 Autonomy:
 - Adds support for CID v1 hashes

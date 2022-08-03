@@ -169,6 +169,9 @@ eg
 frontend
 onchain
 dict
+PrintMessage
+Goerli
+utils
  - docs/index.md
 README.md
 s_
@@ -317,3 +320,13 @@ HelloWorldABCIBaseBehaviour
 BaseBehaviour
 SimpleABCIBaseBehaviour
 SpookySwap
+ - docs/hello_world_agent_service.md
+SelectKeeper
+pmod
+ResetAndPause
+AbstractRound
+CollectionRound
+CollectDifferentUntilAllRound
+PrintMessageRound
+HelloWorldABCIAbstractRound
+PrintMessageBehaviour

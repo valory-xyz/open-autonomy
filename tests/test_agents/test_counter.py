@@ -31,10 +31,9 @@ import pytest
 import requests
 from aea.test_tools.test_cases import AEATestCaseMany
 
-from tests.conftest import ANY_ADDRESS
-from tests.fixture_helpers import UseTendermint
-from tests.helpers.constants import DEFAULT_REQUESTS_TIMEOUT
-from tests.helpers.tendermint_utils import (
+from autonomy.test_tools.configurations import ANY_ADDRESS, DEFAULT_REQUESTS_TIMEOUT
+from autonomy.test_tools.fixture_helpers import UseTendermint
+from autonomy.test_tools.helpers.tendermint_utils import (
     BaseTendermintTestClass,
     TendermintLocalNetworkBuilder,
 )
