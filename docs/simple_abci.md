@@ -44,7 +44,7 @@ The agents are connected to the remote service [DRAND](https://drand.love) throu
     The tests demonstrate how the service can be run as a single agent app or as a multi-agent service with two or four agents.
 
 
-The steps below will guide you to create a Pipenv enviroment for the demo,
+The steps below will guide you to create a Pipenv environment for the demo,
 download the simple agent service definition from the Service Registry
 and build a deployment that will run locally.
 
@@ -109,7 +109,7 @@ and build a deployment that will run locally.
     (`abci0`, `abci1`, `abci2` and `abci3`) or a Tendermint node (`node0`, `node1`, `node2` and `node3`).
 
 
-## Techical Details
+## Technical Details
 The complete state machine depicting the states and transitions of the application is shown below.
 
 <figure markdown>

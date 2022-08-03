@@ -38,7 +38,7 @@ node.
 
 ## Running the Demo
 
-The steps below will guide you to create a Pipenv enviroment for the demo,
+The steps below will guide you to create a Pipenv environment for the demo,
 download the price oracle agent service definition from the Service Registry
 and build a deployment that will run locally.
 

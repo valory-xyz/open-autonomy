@@ -21,7 +21,7 @@ node.
 
 ## Running the Demo
 
-The steps below will guide you to create a Pipenv enviroment for the demo,
+The steps below will guide you to create a Pipenv environment for the demo,
 download the counter agent service definition from the Service Registry
 and build a deployment that will run locally.
 
@@ -82,7 +82,7 @@ and build a deployment that will run locally.
 
 ## Interacting with the Demo
 
-Recall that each agent has the skill `counter`, and the consensus gadget (Tendermint) manages the consensus protocol for incoming transactions. The `counter` skill implements the `ABCICounterHandler` which receives (and responds to) callbacks from the Tenderming network when certains events happen, in particular, when a client sends a transaction to the local blockchain managed by Tendermint.
+Recall that each agent has the skill `counter`, and the consensus gadget (Tendermint) manages the consensus protocol for incoming transactions. The `counter` skill implements the `ABCICounterHandler` which receives (and responds to) callbacks from the Tendermint network when certain events happen, in particular, when a client sends a transaction to the local blockchain managed by Tendermint.
 
 Once the agent service is up, you can interact with it.
 The four Tendermint nodes, `node0`, `node1`, `node2`, and `node3`, are listening at ports `26657`, `26667`, `26677`, and `26687`, respectively.
