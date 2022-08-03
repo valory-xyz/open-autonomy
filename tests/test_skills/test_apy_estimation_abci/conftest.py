@@ -468,7 +468,7 @@ def uni_existing_pairs_q() -> str:
     return _existing_pairs_q("uni_id")
 
 
-@pytest.fixture
+@pytest.fixture(scope="session")
 def pairs_ids() -> Dict[str, List[str]]:
     """Sample DEXs' pair ids for testing."""
     return {
