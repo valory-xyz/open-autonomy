@@ -204,6 +204,7 @@ jobs:
           autonomy build-images
           autonomy build-images --dev
           autonomy build-images --dependencies
+          autonomy build-images --dependencies --version 1.0.0
           autonomy deploy build ../deployments/keys/hardhat_keys.json
 
           cd ..
