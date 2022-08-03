@@ -336,6 +336,8 @@ class TestTendermintBufferFailing(BaseTendermintServerTest):
     @classmethod
     def teardown_class(cls) -> None:
         """Teardown the test."""
+        # After the test, the node has hanged. We need to kill it and not stop it.
+        cls.tendermint_node._process.kill()
         cls.app_context.pop()
         shutil.rmtree(cls.tm_home, ignore_errors=True, onerror=readonly_handler)
 
