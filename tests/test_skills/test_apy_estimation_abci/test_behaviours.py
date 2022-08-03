@@ -747,28 +747,31 @@ class TestFetchAndBatchBehaviours(APYEstimationFSMBehaviourBaseCase):
         behaviour = cast(BaseBehaviour, self.behaviour.current_behaviour)
         assert behaviour.behaviour_id == TransformBehaviour.behaviour_id
 
+    @pytest.mark.parametrize("is_non_indexed_res", (True, False))
     def test_fetch_behaviour_non_indexed_block(
         self,
+        is_non_indexed_res: bool,
         block_from_timestamp_q: str,
         block_from_number_q: str,
         eth_price_usd_q: str,
-        spooky_pairs_q: str,
+        uni_pairs_q: str,
         pairs_ids: Dict[str, List[str]],
         pool_fields: Tuple[str, ...],
+        caplog: LogCaptureFixture,
     ) -> None:
         """Run tests for fetch behaviour when a block has not been indexed yet."""
         self.fast_forward_to_behaviour(
             self.behaviour, FetchBehaviour.behaviour_id, self.synchronized_data
         )
-        cast(
-            FetchBehaviour, self.behaviour.current_behaviour
-        ).params.pair_ids = pairs_ids
+        behaviour = cast(FetchBehaviour, self.behaviour.current_behaviour)
+        behaviour.params.pair_ids = pairs_ids
+        # we do this because of https://github.com/valory-xyz/open-autonomy/pull/646
+        behaviour._check_given_pairs = mock.MagicMock()  # type: ignore
+        behaviour._pairs_exist = True
 
         request_kwargs: Dict[str, Union[str, bytes]] = dict(
             method="POST",
-            url=cast(
-                APYEstimationBaseBehaviour, self.behaviour.current_behaviour
-            ).context.spooky_subgraph.url,
+            url=behaviour.context.uniswap_subgraph.url,
             headers="Content-Type: application/json\r\n",
             version="",
         )
@@ -780,9 +783,7 @@ class TestFetchAndBatchBehaviours(APYEstimationFSMBehaviourBaseCase):
         )
 
         # block request.
-        request_kwargs["url"] = cast(
-            APYEstimationBaseBehaviour, self.behaviour.current_behaviour
-        ).context.fantom_subgraph.url
+        request_kwargs["url"] = behaviour.context.ethereum_subgraph.url
         request_kwargs["body"] = json.dumps({"query": block_from_timestamp_q}).encode(
             "utf-8"
         )
@@ -790,54 +791,66 @@ class TestFetchAndBatchBehaviours(APYEstimationFSMBehaviourBaseCase):
             "data": {"blocks": [{"timestamp": "1", "number": "15178691"}]}
         }
         response_kwargs["body"] = json.dumps(res).encode("utf-8")
-        self.behaviour.act_wrapper()
+        behaviour.act_wrapper()
         self.mock_http_request(request_kwargs, response_kwargs)
 
         # ETH price request for non-indexed block.
-        request_kwargs["url"] = cast(
-            APYEstimationBaseBehaviour, self.behaviour.current_behaviour
-        ).context.spooky_subgraph.url
+        request_kwargs["url"] = behaviour.context.uniswap_subgraph.url
         request_kwargs["body"] = json.dumps({"query": eth_price_usd_q}).encode("utf-8")
-        res = {
-            "errors": [
-                {
-                    "message": "Failed to decode `block.number` value: `subgraph "
-                    "QmPJbGjktGa7c4UYWXvDRajPxpuJBSZxeQK5siNT3VpthP has only indexed up to block number 3730367 "
-                    "and data for block number 15178691 is therefore not yet available`"
-                }
-            ]
-        }
+
+        if is_non_indexed_res:
+            res = {
+                "errors": [
+                    {
+                        "message": "Failed to decode `block.number` value: `subgraph "
+                        "QmPJbGjktGa7c4UYWXvDRajPxpuJBSZxeQK5siNT3VpthP has only indexed up to block number 3730367 "
+                        "and data for block number 15178691 is therefore not yet available`"
+                    }
+                ]
+            }
+        else:
+            res = {"errors": [{"message": "another error"}]}
+
         response_kwargs["body"] = json.dumps(res).encode("utf-8")
-        self.behaviour.act_wrapper()
+        behaviour.act_wrapper()
         self.mock_http_request(request_kwargs, response_kwargs)
 
+        if not is_non_indexed_res:
+            with caplog.at_level(
+                logging.WARNING,
+                logger="aea.test_agent_name.packages.valory.skills.apy_estimation_abci",
+            ):
+                behaviour.act_wrapper()
+
+            assert (
+                "Attempted to handle an indexing error, but could not extract the latest indexed block!"
+                in caplog.text
+            )
+            return
+
         # indexed block request.
-        request_kwargs["url"] = cast(
-            APYEstimationBaseBehaviour, self.behaviour.current_behaviour
-        ).context.fantom_subgraph.url
+        request_kwargs["url"] = behaviour.context.ethereum_subgraph.url
         request_kwargs["body"] = json.dumps({"query": block_from_number_q}).encode(
             "utf-8"
         )
         res = {"data": {"blocks": [{"timestamp": "1", "number": "3730360"}]}}
         response_kwargs["body"] = json.dumps(res).encode("utf-8")
-        self.behaviour.act_wrapper()
+        behaviour.act_wrapper()
         self.mock_http_request(request_kwargs, response_kwargs)
 
         # ETH price request for indexed block.
-        request_kwargs["url"] = cast(
-            APYEstimationBaseBehaviour, self.behaviour.current_behaviour
-        ).context.spooky_subgraph.url
+        request_kwargs["url"] = behaviour.context.uniswap_subgraph.url
         request_kwargs["body"] = json.dumps(
             {"query": eth_price_usd_q.replace("15178691", "3730360")}
         ).encode("utf-8")
         res = {"data": {"bundles": [{"ethPrice": "0.8973548"}]}}
         response_kwargs["body"] = json.dumps(res).encode("utf-8")
-        self.behaviour.act_wrapper()
+        behaviour.act_wrapper()
         self.mock_http_request(request_kwargs, response_kwargs)
 
         # top pairs data.
         request_kwargs["body"] = json.dumps(
-            {"query": spooky_pairs_q.replace("15178691", "3730360")}
+            {"query": uni_pairs_q.replace("15178691", "3730360")}
         ).encode("utf-8")
         res = {
             "data": {
@@ -848,7 +861,7 @@ class TestFetchAndBatchBehaviours(APYEstimationFSMBehaviourBaseCase):
             }
         }
         response_kwargs["body"] = json.dumps(res).encode("utf-8")
-        self.behaviour.act_wrapper()
+        behaviour.act_wrapper()
         self.mock_http_request(request_kwargs, response_kwargs)
 
         self.end_round()
@@ -864,41 +877,62 @@ class TestFetchAndBatchBehaviours(APYEstimationFSMBehaviourBaseCase):
         self.fast_forward_to_behaviour(
             self.behaviour, FetchBehaviour.behaviour_id, self.synchronized_data
         )
+        behaviour = cast(FetchBehaviour, self.behaviour.current_behaviour)
+        assert behaviour is not None
+        assert behaviour.behaviour_id == FetchBehaviour.behaviour_id
+        # we do this because of https://github.com/valory-xyz/open-autonomy/pull/646
+        behaviour._check_given_pairs = mock.MagicMock()  # type: ignore
+        behaviour._pairs_exist = True
 
-        assert self.behaviour.current_behaviour is not None
-        assert (
-            self.behaviour.current_behaviour.behaviour_id == FetchBehaviour.behaviour_id
-        )
-
-        for _ in range(
-            self.behaviour.current_behaviour.context.spooky_subgraph._retries + 1
+        retries = None
+        for subgraph_name in (
+            "spooky_subgraph",
+            "fantom_subgraph",
+            "uniswap_subgraph",
+            "ethereum_subgraph",
         ):
-            self.behaviour.current_behaviour.context.spooky_subgraph.increment_retries()
-            self.behaviour.current_behaviour.context.fantom_subgraph.increment_retries()
-        assert (
-            self.behaviour.current_behaviour.context.spooky_subgraph.is_retries_exceeded()
-        )
-        assert (
-            self.behaviour.current_behaviour.context.fantom_subgraph.is_retries_exceeded()
-        )
+            subgraph = getattr(behaviour.context, subgraph_name)
+            subgraph_retries = subgraph._retries
+
+            if retries is None:
+                retries = subgraph_retries
+            else:
+                assert retries == subgraph_retries
+
+        assert retries is not None
+        for i in range(retries + 1):
+            for subgraph_name in (
+                "spooky_subgraph",
+                "fantom_subgraph",
+                "uniswap_subgraph",
+                "ethereum_subgraph",
+            ):
+                subgraph = getattr(behaviour.context, subgraph_name)
+                subgraph.increment_retries()
+
+                if i == retries:
+                    assert subgraph.is_retries_exceeded()
 
         with caplog.at_level(
             logging.ERROR,
             logger="aea.test_agent_name.packages.valory.skills.apy_estimation_abci",
         ):
-            self.behaviour.act_wrapper()
+            behaviour.act_wrapper()
 
         assert (
             "Retries were exceeded while downloading the historical data!"
             in caplog.text
         )
-        assert (
-            not self.behaviour.current_behaviour.context.spooky_subgraph.is_retries_exceeded()
-        )
-        assert (
-            not self.behaviour.current_behaviour.context.fantom_subgraph.is_retries_exceeded()
-        )
-        assert self.behaviour.current_behaviour._hist_hash == ""
+        for subgraph_name in (
+            "spooky_subgraph",
+            "fantom_subgraph",
+            "uniswap_subgraph",
+            "ethereum_subgraph",
+        ):
+            subgraph = getattr(behaviour.context, subgraph_name)
+            assert not subgraph.is_retries_exceeded()
+
+        assert behaviour._hist_hash == ""
 
         self.mock_a2a_transaction()
         self._test_done_flag_set()
@@ -908,7 +942,7 @@ class TestFetchAndBatchBehaviours(APYEstimationFSMBehaviourBaseCase):
         caplog: LogCaptureFixture,
         block_from_timestamp_q: str,
         eth_price_usd_q: str,
-        spooky_pairs_q: str,
+        uni_pairs_q: str,
         pairs_ids: Dict[str, List[str]],
         pool_fields: Tuple[str, ...],
     ) -> None:
@@ -916,18 +950,16 @@ class TestFetchAndBatchBehaviours(APYEstimationFSMBehaviourBaseCase):
         self.fast_forward_to_behaviour(
             self.behaviour, FetchBehaviour.behaviour_id, self.synchronized_data
         )
-        cast(
-            FetchBehaviour, self.behaviour.current_behaviour
-        ).params.pair_ids = pairs_ids
-        cast(
-            FetchBehaviour, self.behaviour.current_behaviour
-        ).params.sleep_time = SLEEP_TIME_TWEAK
+        behaviour = cast(FetchBehaviour, self.behaviour.current_behaviour)
+        behaviour.params.pair_ids = pairs_ids
+        behaviour.params.sleep_time = SLEEP_TIME_TWEAK
+        # we do this because of https://github.com/valory-xyz/open-autonomy/pull/646
+        behaviour._check_given_pairs = mock.MagicMock()  # type: ignore
+        behaviour._pairs_exist = True
 
         request_kwargs: Dict[str, Union[str, bytes]] = dict(
             method="POST",
-            url=cast(
-                APYEstimationBaseBehaviour, self.behaviour.current_behaviour
-            ).context.spooky_subgraph.url,
+            url=behaviour.context.spooky_subgraph.url,
             headers="Content-Type: application/json\r\n",
             version="",
             body=b"",
@@ -941,9 +973,7 @@ class TestFetchAndBatchBehaviours(APYEstimationFSMBehaviourBaseCase):
         )
 
         # block request with None response.
-        request_kwargs["url"] = cast(
-            APYEstimationBaseBehaviour, self.behaviour.current_behaviour
-        ).context.fantom_subgraph.url
+        request_kwargs["url"] = behaviour.context.ethereum_subgraph.url
         request_kwargs["body"] = json.dumps({"query": block_from_timestamp_q}).encode(
             "utf-8"
         )
@@ -953,13 +983,13 @@ class TestFetchAndBatchBehaviours(APYEstimationFSMBehaviourBaseCase):
             logging.ERROR,
             logger="aea.test_agent_name.packages.valory.skills.apy_estimation_abci",
         ):
-            self.behaviour.act_wrapper()
+            behaviour.act_wrapper()
             self.mock_http_request(request_kwargs, response_kwargs)
-        assert "[test_agent_name] Could not get block from fantom" in caplog.text
+        assert "[test_agent_name] Could not get block from eth" in caplog.text
 
         caplog.clear()
         time.sleep(SLEEP_TIME_TWEAK + 0.01)
-        self.behaviour.act_wrapper()
+        behaviour.act_wrapper()
 
         # block request.
         request_kwargs["body"] = json.dumps({"query": block_from_timestamp_q}).encode(
@@ -967,13 +997,11 @@ class TestFetchAndBatchBehaviours(APYEstimationFSMBehaviourBaseCase):
         )
         res = {"data": {"blocks": [{"timestamp": "1", "number": "15178691"}]}}
         response_kwargs["body"] = json.dumps(res).encode("utf-8")
-        self.behaviour.act_wrapper()
+        behaviour.act_wrapper()
         self.mock_http_request(request_kwargs, response_kwargs)
 
         # ETH price request with None response.
-        request_kwargs["url"] = cast(
-            APYEstimationBaseBehaviour, self.behaviour.current_behaviour
-        ).context.spooky_subgraph.url
+        request_kwargs["url"] = behaviour.context.uniswap_subgraph.url
         request_kwargs["body"] = json.dumps({"query": eth_price_usd_q}).encode("utf-8")
         response_kwargs["body"] = b""
 
@@ -981,65 +1009,61 @@ class TestFetchAndBatchBehaviours(APYEstimationFSMBehaviourBaseCase):
             logging.ERROR,
             logger="aea.test_agent_name.packages.valory.skills.apy_estimation_abci",
         ):
-            self.behaviour.act_wrapper()
+            behaviour.act_wrapper()
             self.mock_http_request(request_kwargs, response_kwargs)
         assert (
             "[test_agent_name] Could not get ETH price for block "
-            "{'timestamp': '1', 'number': '15178691'} from spookyswap" in caplog.text
+            "{'timestamp': '1', 'number': '15178691'} from uniswap" in caplog.text
         )
 
         caplog.clear()
         time.sleep(SLEEP_TIME_TWEAK + 0.01)
-        self.behaviour.act_wrapper()
+        behaviour.act_wrapper()
 
         # block request.
-        request_kwargs["url"] = cast(
-            APYEstimationBaseBehaviour, self.behaviour.current_behaviour
-        ).context.fantom_subgraph.url
+        request_kwargs["url"] = behaviour.context.ethereum_subgraph.url
         request_kwargs["body"] = json.dumps({"query": block_from_timestamp_q}).encode(
             "utf-8"
         )
         res = {"data": {"blocks": [{"timestamp": "1", "number": "15178691"}]}}
         response_kwargs["body"] = json.dumps(res).encode("utf-8")
-        self.behaviour.act_wrapper()
+        behaviour.act_wrapper()
         self.mock_http_request(request_kwargs, response_kwargs)
 
         # ETH price request.
-        request_kwargs["url"] = cast(
-            APYEstimationBaseBehaviour, self.behaviour.current_behaviour
-        ).context.spooky_subgraph.url
+        request_kwargs["url"] = behaviour.context.uniswap_subgraph.url
         request_kwargs["body"] = json.dumps({"query": eth_price_usd_q}).encode("utf-8")
         res = {"data": {"bundles": [{"ethPrice": "0.8973548"}]}}
         response_kwargs["body"] = json.dumps(res).encode("utf-8")
-        self.behaviour.act_wrapper()
+        behaviour.act_wrapper()
         self.mock_http_request(request_kwargs, response_kwargs)
 
         # top pairs data with None response.
-        request_kwargs["body"] = json.dumps({"query": spooky_pairs_q}).encode("utf-8")
+        request_kwargs["body"] = json.dumps({"query": uni_pairs_q}).encode("utf-8")
         response_kwargs["body"] = b""
 
         with caplog.at_level(
             logging.ERROR,
             logger="aea.test_agent_name.packages.valory.skills.apy_estimation_abci",
         ):
-            self.behaviour.act_wrapper()
+            behaviour.act_wrapper()
             self.mock_http_request(request_kwargs, response_kwargs)
         assert (
             "[test_agent_name] Could not get pool data for block {'timestamp': '1', 'number': '15178691'} "
-            "from spookyswap" in caplog.text
+            "from uniswap" in caplog.text
         )
 
         caplog.clear()
         time.sleep(SLEEP_TIME_TWEAK + 0.01)
-        self.behaviour.act_wrapper()
+        behaviour.act_wrapper()
 
-    @pytest.mark.parametrize("total_days", (0, 3))
+    @pytest.mark.parametrize("target_per_pool", (0, 3))
     def test_fetch_behaviour_stop_iteration(
         self,
         tmp_path: PosixPath,
         caplog: LogCaptureFixture,
         no_action: Callable[[Any], None],
-        total_days: int,
+        target_per_pool: int,
     ) -> None:
         """Test `FetchBehaviour`'s `async_act` after all the timestamps have been generated."""
         self.skill.skill_context.state.round_sequence.abci_app._last_timestamp = (
@@ -1050,15 +1074,19 @@ class TestFetchAndBatchBehaviours(APYEstimationFSMBehaviourBaseCase):
         self.fast_forward_to_behaviour(
             self.behaviour, FetchBehaviour.behaviour_id, self.synchronized_data
         )
+        behaviour = cast(FetchBehaviour, self.behaviour.current_behaviour)
         # set history end to a negative value in order to raise a `StopIteration`.
-        cast(FetchBehaviour, self.behaviour.current_behaviour).params.end = -1
+        behaviour.params.end = -1
+        # we do this because of https://github.com/valory-xyz/open-autonomy/pull/646
+        behaviour._check_given_pairs = mock.MagicMock()  # type: ignore
+        behaviour._pairs_exist = True
 
         # test empty retrieved history.
         with caplog.at_level(
             logging.ERROR,
             logger="aea.test_agent_name.packages.valory.skills.apy_estimation_abci",
         ):
-            self.behaviour.act_wrapper()
+            behaviour.act_wrapper()
         assert "Could not download any historical data!" in caplog.text
         self.mock_a2a_transaction()
         self._test_done_flag_set()
@@ -1069,12 +1097,16 @@ class TestFetchAndBatchBehaviours(APYEstimationFSMBehaviourBaseCase):
             self.behaviour, FetchBehaviour.behaviour_id, self.synchronized_data
         )
 
-        # test with retrieved history and valid save path.
-        current_behaviour = cast(FetchBehaviour, self.behaviour.current_behaviour)
-        current_behaviour._pairs_hist = [{"pool1": "test"}, {"pool2": "test"}]
-        current_behaviour._total_days = total_days
-        self.behaviour.context._agent_context._data_dir = tmp_path  # type: ignore
-        self.behaviour.act_wrapper()
+        # test with partly fetched history and valid save path.
+        behaviour = cast(FetchBehaviour, self.behaviour.current_behaviour)
+        # we do this because of https://github.com/valory-xyz/open-autonomy/pull/646
+        behaviour._check_given_pairs = mock.MagicMock()  # type: ignore
+        behaviour._pairs_exist = True
+
+        behaviour._pairs_hist = [{"pool1": "test"}, {"pool2": "test"}]
+        behaviour._target_per_pool = target_per_pool
+        behaviour.context._agent_context._data_dir = tmp_path  # type: ignore
+        behaviour.act_wrapper()
         self.mock_a2a_transaction()
         self._test_done_flag_set()
         self.end_round()
@@ -1093,13 +1125,27 @@ class TestFetchAndBatchBehaviours(APYEstimationFSMBehaviourBaseCase):
         self.fast_forward_to_behaviour(
             self.behaviour, FetchBehaviour.behaviour_id, self.synchronized_data
         )
-
-        self.behaviour.context.spooky_subgraph._retries_attempted = 1
-        self.behaviour.context.fantom_subgraph._retries_attempted = 1
         assert self.behaviour.current_behaviour is not None
-        self.behaviour.current_behaviour.clean_up()
-        assert self.behaviour.context.spooky_subgraph._retries_attempted == 0
-        assert self.behaviour.context.fantom_subgraph._retries_attempted == 0
+        behaviour = cast(FetchBehaviour, self.behaviour.current_behaviour)
+
+        for subgraph_name in (
+            "spooky_subgraph",
+            "fantom_subgraph",
+            "uniswap_subgraph",
+            "ethereum_subgraph",
+        ):
+            subgraph = getattr(behaviour.context, subgraph_name)
+            subgraph._retries_attempted = 1
+
+        for subgraph_name in (
+            "spooky_subgraph",
+            "fantom_subgraph",
+            "uniswap_subgraph",
+            "ethereum_subgraph",
+        ):
+            subgraph = getattr(behaviour.context, subgraph_name)
+            self.behaviour.current_behaviour.clean_up()
+            assert subgraph._retries_attempted == 0
 
 
 class TestTransformBehaviour(APYEstimationFSMBehaviourBaseCase):
