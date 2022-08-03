@@ -373,10 +373,12 @@ class TestFetchAndBatchBehaviours(APYEstimationFSMBehaviourBaseCase):
     @staticmethod
     def mocked_handle_response_wrapper(
         res: Optional[Any],
-    ) -> Callable[[Any], Generator[None, None, Optional[Any]]]:
+    ) -> Callable[[Any, Any], Generator[None, None, Optional[Any]]]:
         """A wrapper to a mocked version of the `_handle_response` method, which returns the given `fetched_pairs`."""
 
-        def mocked_handle_response(*_: Any) -> Generator[None, None, Optional[Any]]:
+        def mocked_handle_response(
+            *_: Any, **__: Any
+        ) -> Generator[None, None, Optional[Any]]:
             """A mocked version of the `_handle_response` method, which returns the given `fetched_pairs`."""
             yield
             return res
