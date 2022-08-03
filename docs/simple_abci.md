@@ -84,8 +84,7 @@ pip install open-autonomy
     ```
     This command above downloads the simple agent service definition from the Service Registry, and generates the required Docker images to run it using the keys provided in the `keys.json` file.
 
-7. Now, we are in position to execute the agent service.
-The build configuration will be located in `./abci_build`. Execute [Docker Compose](https://docs.docker.com/compose/install/) as indicated below. This will deploy a local simple agent service with four agents connected to four [Tendermint](https://tendermint.com/) nodes.
+7. The build configuration will be located in `./abci_build`. Execute [Docker Compose](https://docs.docker.com/compose/install/) as indicated below. This will deploy a local simple agent service with four agents connected to four [Tendermint](https://tendermint.com/) nodes.
     ```bash
     cd abci_build
     docker-compose up --force-recreate

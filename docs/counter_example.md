@@ -68,12 +68,11 @@ pip install open-autonomy
 
 5. Use the {{open_autonomy}} CLI to download and build the agent images:
     ```bash
-    autonomy deploy build deployment valory/counter:bafybeibvok2be6avmhrafwahcdjaq4hszhjym6dytsctsqcxmvjiko67lu keys.json
+    autonomy deploy build deployment valory/counter:bafybeidahelchmcwkymllanimjlhinrtrfii2lzhbwiw4h2rj6tti72ygi keys.json
     ```
     This command above downloads the counter agent service definition from the Service Registry, and generates the required Docker images to run it using the keys provided in the `keys.json` file.
 
-6. Now, we are in position to execute the agent service.
-The build configuration will be located in `./abci_build`. Execute [Docker Compose](https://docs.docker.com/compose/install/) as indicated below. This will deploy a local counter agent service with four agents connected to four [Tendermint](https://tendermint.com/) nodes.
+6. The build configuration will be located in `./abci_build`. Execute [Docker Compose](https://docs.docker.com/compose/install/) as indicated below. This will deploy a local counter agent service with four agents connected to four [Tendermint](https://tendermint.com/) nodes.
     ```bash
     cd abci_build
     docker-compose up --force-recreate

@@ -94,7 +94,7 @@ pip install open-autonomy
     docker run -p 8545:8545 -it valory/open-autonomy-hardhat:0.1.0
     ```
 
-7. Now, we are in position to execute the agent service. Return to the workspace terminal.
+7. Return to the workspace terminal.
 The build configuration will be located in `./abci_build`. Execute [Docker Compose](https://docs.docker.com/compose/install/) as indicated below. This will deploy a local price oracle agent service with four agents connected to four [Tendermint](https://tendermint.com/) nodes.
     ```bash
     cd abci_build
