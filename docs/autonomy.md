@@ -306,3 +306,62 @@ autonomy analyse benchmarks abci_build/persistent_data/benchmarks
 ```
 
 By default tool will generate output for all periods but you can specify which period to generate output for, same goes for block types as well.
+
+
+## Fetch
+
+```bash
+Usage: autonomy fetch [OPTIONS] PUBLIC_ID_OR_HASH
+
+  Fetch an agent from the registry.
+
+Options:
+  --remote      To use a remote registry.
+  --local       To use a local registry.
+  --alias TEXT  Provide a local alias for the agent.
+  --agent       Provide a local alias for the agent.
+  --service     Provide a local alias for the agent.
+  --help        Show this message and exit.
+```
+
+#### Example
+
+
+```bash
+autonomy fetch --local --alias oracle valory/oracle:0.1.0
+```
+
+## Run
+
+```bash
+Usage: autonomy run [OPTIONS]
+
+  Run the agent.
+
+Options:
+  -p                          Ask for password interactively
+  --password PASSWORD         Set password for key encryption/decryption
+  --connections TEXT          The connection names to use for running the
+                              agent. Must be declared in the agent's
+                              configuration file.
+  --env PATH                  Specify an environment file (default: .env)
+  --install-deps              Install all the dependencies before running the
+                              agent.
+  --profiling INTEGER         Enable profiling, print profiling every amount
+                              of seconds
+  --memray                    Enable memray tracing, create a bin file with
+                              the memory dump
+  --exclude-connections TEXT  The connection names to disable for running the
+                              agent. Must be declared in the agent's
+                              configuration file.
+  --aev                       Populate Agent configs from Environment
+                              variables.
+  --help                      Show this message and exit.
+```
+
+#### Example
+
+
+```bash
+autonomy run --aev
+```
