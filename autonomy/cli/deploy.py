@@ -55,7 +55,9 @@ SERVICE_ADDRESS = "0x0DCd1Bf9A1b36cE34237eEaFef220932846BCD82"
 
 @click.group(name="deploy")
 @click.pass_context
-def deploy_group(click_context: click.Context) -> None:
+def deploy_group(
+    click_context: click.Context,  # pylint: disable=unused-argument
+) -> None:
     """Deploy an agent service."""
 
 
@@ -220,7 +222,7 @@ def run_deployment_from_token_id(ctx: Context, token_id: int, keys_file: Path) -
         run_existing_deployment()
 
 
-def build_deployment(
+def build_deployment(  # pylint: disable=too-many-arguments
     keys_file: Path,
     build_dir: Path,
     deployment_type: str,
