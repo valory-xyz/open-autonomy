@@ -43,22 +43,22 @@ download the price oracle agent service definition from the Service Registry
 and build a deployment that will run locally.
 
 1. Open a terminal and create a workspace folder, e.g.,
-```bash
-mkdir my_demo
-cd my_demo
-```
+    ```bash
+    mkdir my_demo
+    cd my_demo
+    ```
 
 2. Within the workspace folder, setup the environment:
-```bash
-export VERSION=0.1.0
-export OPEN_AEA_IPFS_ADDR="/dns/registry.autonolas.tech/tcp/443/https"
-touch Pipfile && pipenv --python 3.10 && pipenv shell
-```
+    ```bash
+    export VERSION=0.1.0
+    export OPEN_AEA_IPFS_ADDR="/dns/registry.autonolas.tech/tcp/443/https"
+    touch Pipfile && pipenv --python 3.10 && pipenv shell
+    ```
 
 3. Install {{open_autonomy}} on the created environment:
-```bash
-pip install open-autonomy
-```
+    ```bash
+    pip install open-autonomy
+    ```
 
 4. Inside the workspace folder, create a JSON file `keys.json` containing the addresses and keys of the four agents that are
    part of this demo. Below you have a sample `keys.json` file that you can use for testing:

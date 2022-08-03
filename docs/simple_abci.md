@@ -33,27 +33,38 @@ The agents are connected to the remote service [DRAND](https://drand.love) throu
 
 ## Running the Demo
 
+!!! note
+    The simple agent service is not currently available in the Service Registry. The contents of this section will be
+    appropriately updated with the correct commands and hash values once it is available.
+
+    Meanwhile, there are several end-to-end tests where you can explore the {{fsm_app}} operation of this service. To run the tests, clone the {{open_autonomy}} repository and execute the command
+    ```bash
+    pytest tests/test_agents/test_simple_abci.py
+    ```
+    The tests demonstrate how the service can be run as a single agent app or as a multi-agent service with two or four agents.
+
+
 The steps below will guide you to create a Pipenv enviroment for the demo,
 download the simple agent service definition from the Service Registry
 and build a deployment that will run locally.
 
 1. Open a terminal and create a workspace folder, e.g.,
-```bash
-mkdir my_demo
-cd my_demo
-```
+    ```bash
+    mkdir my_demo
+    cd my_demo
+    ```
 
 2. Within the workspace folder, setup the environment:
-```bash
-export VERSION=0.1.0
-export OPEN_AEA_IPFS_ADDR="/dns/registry.autonolas.tech/tcp/443/https"
-touch Pipfile && pipenv --python 3.10 && pipenv shell
-```
+    ```bash
+    export VERSION=0.1.0
+    export OPEN_AEA_IPFS_ADDR="/dns/registry.autonolas.tech/tcp/443/https"
+    touch Pipfile && pipenv --python 3.10 && pipenv shell
+    ```
 
 3. Install {{open_autonomy}} on the created environment:
-```bash
-pip install open-autonomy
-```
+    ```bash
+    pip install open-autonomy
+    ```
 
 4. Inside the workspace folder, create a JSON file `keys.json` containing the addresses and keys of the four agents that are
    part of this demo. Below you have a sample `keys.json` file that you can use for testing:
@@ -80,7 +91,7 @@ pip install open-autonomy
 
 5. Use the {{open_autonomy}} CLI to download and build the agent images:
     ```bash
-      autonomy deploy build deployment valory/simple_abci:bafybeiey3nwybt3nkrb4chiuto72t4rxhqfciukfchzruu7d4etnk5txa4 keys.json
+    autonomy deploy build deployment valory/simple_abci:hash keys.json
     ```
     This command above downloads the simple agent service definition from the Service Registry, and generates the required Docker images to run it using the keys provided in the `keys.json` file.
 
