@@ -242,6 +242,15 @@ OracleAbciApp = chain(
 )
 ```
 
+Find below a graphical representation of this composition showing how the constituent FSMs iterconnect to achieve the
+functionality of the agent service in the demo.
+
+<figure markdown>
+![](./images/oracle_composition.svg)
+<figcaption>Composition of the different FSMs that constitute the price oracle agent service FSM</figcaption>
+</figure>
+
+
 The AbstractRoundBehaviour schedules the state behaviour associated with the current round, ensuring that a transition to the new state cannot occur without first invoking the associated state Behaviour. Since it is composed of the Behaviours belonging to the constituent FSMs, we can reference them as depicted below.
 
 
