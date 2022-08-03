@@ -31,9 +31,9 @@ nav:
     - The AbstractRound Class: 'abci_app_abstract_round.md'
     - Interactions between Components: 'abci_app_interactions.md'
   - Demos:
-    - Simple Agent Service: 'simple_abci.md'
-    - Counter Example: 'counter_example.md'
-    - Price Oracle:
+    - Simple Demo: 'simple_abci.md'
+    - Counter Demo: 'counter_example.md'
+    - Price Oracle Demo:
       - Introduction: 'price_oracle_intro.md'
       - Technical Details: 'price_oracle_technical_details.md'
       - FSM Specification: 'price_oracle_fsms.md'
@@ -166,8 +166,7 @@ nav:
 
 
 plugins:
-  - macros:
-        module_name: 'scripts/docs_macros'
+  - macros
 
 markdown_extensions:
   - pymdownx.superfences

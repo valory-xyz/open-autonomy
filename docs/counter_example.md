@@ -68,7 +68,7 @@ pip install open-autonomy
 
 5. Use the {{open_autonomy}} CLI to download and build the agent images:
     ```bash
-    autonomy deploy build deployment valory/counter:{{ get_hash("services/counter") }} keys.json
+    autonomy deploy build deployment valory/counter:bafybeibvok2be6avmhrafwahcdjaq4hszhjym6dytsctsqcxmvjiko67lu keys.json
     ```
     This command above downloads the counter agent service definition from the Service Registry, and generates the required Docker images to run it using the keys provided in the `keys.json` file.
 

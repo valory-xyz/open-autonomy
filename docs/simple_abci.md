@@ -80,7 +80,7 @@ pip install open-autonomy
 
 5. Use the {{open_autonomy}} CLI to download and build the agent images:
     ```bash
-      autonomy deploy build deployment valory/simple_abci:{{ get_hash("services/simple_abci") }} keys.json
+      autonomy deploy build deployment valory/simple_abci:bafybeiey3nwybt3nkrb4chiuto72t4rxhqfciukfchzruu7d4etnk5txa4 keys.json
     ```
     This command above downloads the simple agent service definition from the Service Registry, and generates the required Docker images to run it using the keys provided in the `keys.json` file.
 
