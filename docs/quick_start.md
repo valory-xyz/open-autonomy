@@ -25,7 +25,18 @@ The dashed arrows in the figure denote the "entry points" for a developer in the
 The goal of this quick start guide is to showcase steps 3-4 from the pipeline. That is, how to execute a (local) deployment of a demonstration service. We will cover the particularities of the components that make up agents in an agent service in other sections of the documentation.
 
 
-{% include 'requirements.md' %}
+## Requirements
+
+Ensure that your machine satisfies the following requirements:
+
+- [Python](https://www.python.org/) `>= 3.7` (recommended `>= 3.10`)
+- [Pip](https://pip.pypa.io/en/stable/installation/)
+- [Tendermint](https://docs.tendermint.com/master/introduction/install.html) `==0.34.19`
+- [Pipenv](https://pipenv.pypa.io/en/latest/install/) `>=2021.x.xx`
+- [Kubectl](https://kubernetes.io/docs/tasks/tools/)
+- [Docker Engine](https://docs.docker.com/engine/install/)
+- [Docker Compose](https://docs.docker.com/compose/install/)
+- [Skaffold](https://skaffold.dev/docs/install/#standalone-binary) `>=1.39.1`
 
 
 ## Setup
