@@ -5,7 +5,7 @@ An autonomous service is a decentralized service that runs off-chain and provide
 </details>
 
 <details><summary>What is an agent service?</summary>
-An agent service is an autonomous service which is implemented as a multi-agent system using Autonomous Economic Agents through the <a href="https://github.com/valory-xyz/open-aea">Open AEA</a> framework.
+An agent service is an autonomous service which is implemented as a multi-agent system using Autonomous Economic Agents (AEAs) using the {{open_autonomy}} framework, which is built on top of {{open_aea}}.
 </details>
 
 <details><summary>What is an FSM App?</summary>
