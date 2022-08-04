@@ -1249,6 +1249,7 @@ class TestOptimizeBehaviour(APYEstimationFSMBehaviourBaseCase):
         self,
         tmp_path: PosixPath,
         ipfs_succeed: bool = True,
+        data_override: Dict[str, pd.DataFrame] = None,
     ) -> None:
         """Setup `OptimizeBehaviour`."""
         # Set data directory to a temporary path for tests.
@@ -1263,7 +1264,8 @@ class TestOptimizeBehaviour(APYEstimationFSMBehaviourBaseCase):
                     f"y_{split}",
                     f"period_{self.synchronized_data.period_count}",
                 ),
-                "obj": {
+                "obj": data_override
+                or {
                     f"{split}_{i}": pd.DataFrame([i for i in range(5)])
                     for i in range(3)
                 },
@@ -1348,6 +1350,57 @@ class TestOptimizeBehaviour(APYEstimationFSMBehaviourBaseCase):
             ).behaviour_id
             == self.behaviour_class.behaviour_id
         )
+
+    def test_optimize_behaviour_study_case(
+        self,
+        tmp_path: PosixPath,
+        real_case_optimize_task_input_data: Tuple[
+            Dict[str, pd.DataFrame], Dict[str, Union[int, float]]
+        ],
+    ) -> None:
+        """Run test for `optimize_behaviour`, for a real case in which the task never returns for 4 agents e2e test."""
+        pools_data, kwargs = real_case_optimize_task_input_data
+        self._fast_forward(
+            tmp_path,
+            ipfs_succeed=True,
+            data_override=pools_data,
+        )
+        self.behaviour.context.task_manager.start()
+        current_behaviour = cast(OptimizeBehaviour, self.behaviour.current_behaviour)
+        current_behaviour.synchronized_data.db.update(
+            most_voted_randomness=kwargs.pop("seed")
+        )
+        current_behaviour.params.optimizer_params = kwargs  # type: ignore
+        self.behaviour.act_wrapper()
+        assert current_behaviour._async_result is not None
+
+        elapsed = 0
+        sleep_for = current_behaviour.params.sleep_time = 1
+        timeout_after = 60
+        while not current_behaviour._async_result.ready():
+            self.behaviour.act_wrapper()
+            current_behaviour = cast(
+                OptimizeBehaviour, self.behaviour.current_behaviour
+            )
+            time.sleep(sleep_for)
+            elapsed += sleep_for
+            if elapsed == timeout_after:
+                raise AssertionError(
+                    "Timeout has been reached. The optimization should have finished!"
+                )
+
+        # get best params for first pool
+        self.behaviour.act_wrapper()
+        # get best params for second pool
+        self.behaviour.act_wrapper()
+        # finish
+        self.behaviour.act_wrapper()
+        self.mock_a2a_transaction()
+        self._test_done_flag_set()
+        self.end_round()
+
+        behaviour = cast(BaseBehaviour, self.behaviour.current_behaviour)
+        assert behaviour.behaviour_id == self.next_behaviour_class.behaviour_id
 
     @pytest.mark.parametrize("ipfs_succeed", (True, False))
     def test_optimize_behaviour(
