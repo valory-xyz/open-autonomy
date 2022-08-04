@@ -14,6 +14,7 @@ clean-build:
 	rm -fr pip-wheel-metadata
 	find . -name '*.egg-info' -exec rm -fr {} +
 	find . -name '*.egg' -exec rm -fr {} +
+	find . -type d -name __pycache__ -exec rm -rv {} +
 	rm -fr Pipfile.lock
 
 .PHONY: clean-docs

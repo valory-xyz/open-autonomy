@@ -25,19 +25,19 @@ The dashed arrows in the figure denote the "entry points" for a developer in the
 The goal of this quick start guide is to showcase steps 3-4 from the pipeline. That is, how to execute a (local) deployment of a demonstration service. We will cover the particularities of the components that make up agents in an agent service in other sections of the documentation.
 
 
-
 ## Requirements
 
-Ensure your machine satisfies the following requirements:
+Ensure that your machine satisfies the following requirements:
 
-- Python `>= 3.7` (recommended `>= 3.10`)
+- [Python](https://www.python.org/) `>= 3.7` (recommended `>= 3.10`)
 - [Pip](https://pip.pypa.io/en/stable/installation/)
 - [Tendermint](https://docs.tendermint.com/master/introduction/install.html) `==0.34.19`
 - [Pipenv](https://pipenv.pypa.io/en/latest/install/) `>=2021.x.xx`
 - [Kubectl](https://kubernetes.io/docs/tasks/tools/)
 - [Docker Engine](https://docs.docker.com/engine/install/)
 - [Docker Compose](https://docs.docker.com/compose/install/)
-- [Skaffold](https://skaffold.dev/docs/install/#standalone-binary) `>= 1.39.1`
+- [Skaffold](https://skaffold.dev/docs/install/#standalone-binary) `>=1.39.1`
+
 
 ## Setup
 
@@ -47,18 +47,18 @@ mkdir my_service
 cd my_service
 ```
 
-2. Setup the environment. Remember to use the Python version you installed, here we use 3.10 as reference.
+2. Setup the environment. Remember to use the Python version you installed, here we use 3.10 as reference:
 ```bash
 export OPEN_AEA_IPFS_ADDR="/dns/registry.autonolas.tech/tcp/443/https"
 touch Pipfile && pipenv --python 3.10 && pipenv shell
 ```
 
-3. Install {{open_autonomy}}.
+3. Install {{open_autonomy}}:
 ```bash
 pip install open-autonomy
 ```
 
-4. Initialize the remote IPFS registry.
+4. Initialize the framework to work with the remote IPFS registry.
 ```bash
 autonomy init --remote
 ```
@@ -74,27 +74,30 @@ Follow the steps indicated below to download a demonstration agent service from 
 In this case, we consider the [Hello World agent service](./hello_world_agent_service.md).
 
 1. Prepare a JSON file `keys.json` containing the addresses and keys of the four agents that make up the [Hello World agent service](./hello_world_agent_service.md). Below you have some sample keys for testing:
-    ```json
-    [
-      {
-          "address": "0x15d34AAf54267DB7D7c367839AAf71A00a2C6A65",
-          "private_key": "0x47e179ec197488593b187f80a00eb0da91f1b9d0b13f8733639f19c30a34926a"
-      },
-      {
-          "address": "0x9965507D1a55bcC2695C58ba16FB37d819B0A4dc",
-          "private_key": "0x8b3a350cf5c34c9194ca85829a2df0ec3153be0318b5e2d3348e872092edffba"
-      },
-      {
-          "address": "0x976EA74026E726554dB657fA54763abd0C3a0aa9",
-          "private_key": "0x92db14e403b83dfe3df233f83dfa3a0d7096f21ca9b0d6d6b8d88b2b4ec1564e"
-      },
-      {
-          "address": "0x14dC79964da2C08b23698B3D3cc7Ca32193d9955",
-          "private_key": "0x4bbbf85ce3377467afe5d46f804f221813b2bb87f24d81f60f1fcdbf7cbf4356"
-      }
-    ]
-    ```
 
+    !!! warning "Important"
+        Use these keys for testing purposes only. **Never use these keys in a production environment or for personal use.**
+
+        ```json
+        [
+          {
+              "address": "0x15d34AAf54267DB7D7c367839AAf71A00a2C6A65",
+              "private_key": "0x47e179ec197488593b187f80a00eb0da91f1b9d0b13f8733639f19c30a34926a"
+          },
+          {
+              "address": "0x9965507D1a55bcC2695C58ba16FB37d819B0A4dc",
+              "private_key": "0x8b3a350cf5c34c9194ca85829a2df0ec3153be0318b5e2d3348e872092edffba"
+          },
+          {
+              "address": "0x976EA74026E726554dB657fA54763abd0C3a0aa9",
+              "private_key": "0x92db14e403b83dfe3df233f83dfa3a0d7096f21ca9b0d6d6b8d88b2b4ec1564e"
+          },
+          {
+              "address": "0x14dC79964da2C08b23698B3D3cc7Ca32193d9955",
+              "private_key": "0x4bbbf85ce3377467afe5d46f804f221813b2bb87f24d81f60f1fcdbf7cbf4356"
+          }
+        ]
+        ```
 
 2. Use the CLI to download and build the images to deploy the [Hello World agent service](./hello_world_agent_service.md):
     ```bash
