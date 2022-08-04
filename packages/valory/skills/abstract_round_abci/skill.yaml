@@ -24,7 +24,7 @@ fingerprint:
   serializer.py: bafybeiezjdtp33nub7ual5ibt4vi7dj3ilmyw7wqq374ctub5oo7wgp7mm
   test_tools/__init__.py: bafybeigicwqumbl3jorusndtfa6ag7lnf3saa6cbqn7fazur4n6nxmsdva
   test_tools/base.py: bafybeih3hnnpdvr5slgby6rtmqxhw2t4xz7w6kdarh3usxi2rfklgps5je
-  test_tools/integration.py: bafybeiggwasx3zg76ciqq4ihmnnzvydib7xelscmlc26k34se4w5scnuiy
+  test_tools/integration.py: bafybeib53pzawqwzh2kxhohutzvg7l4rlu5tpxslpcljmvak6bwugfeyve
   utils.py: bafybeifnvnlpajv5iqv6wumlfppomcmcfbbb5rpiiqhouxqs5ddwlkqjjy
 fingerprint_ignore_patterns: []
 connections:
@@ -34,6 +34,7 @@ connections:
 contracts:
 - valory/service_registry:0.1.0:bafybeidtwbj7mwiskbbmsw43zzooivuq6nripdzn7yuoou66rq7spom54m
 protocols:
+- open_aea/signing:1.0.0:bafybeid6f5ceool4evgaxdegs5pkjoivqjk3mo3ehctalswngb5m5c32wm
 - valory/abci:0.1.0:bafybeianfguceeckwhelenmythqmbtqswll6vcaz5wwsdr7hin7ov3rvje
 - valory/acn:1.1.0:bafybeidetrrkvdgveu4ph5g6v53lbh7ardfspbkpstmjxctx647bzyosyy
 - valory/contract_api:1.0.0:bafybeigkedpmqhm7lrqusnkyfcapyx3dlkz2djfq74hou5pwtrskxgvuxu

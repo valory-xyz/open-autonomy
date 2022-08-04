@@ -69,7 +69,7 @@ These keys can be used for local deployments if you're using the default hardhat
 
 ```bash
 # create a docker deployment
-$ autonomy deploy build deployment valory/oracle_hardhat:0.1.0:bafybeic7n4esp6x5jiyp55eg475cae6pradbcgzithgyvw46k554655w74 keys.json
+$ autonomy deploy build deployment valory/oracle_hardhat:0.1.0:bafybeickr6gqcnnpponprryxezx4kszmk4iyeaqtadxrw7t3u52zkh5frm keys.json
 ```
 
 This will create a deployment environment with following directory structure
@@ -284,7 +284,9 @@ By default tool will generate output for all periods but you can specify which p
 
 ```bash
 Usage: autonomy fetch [OPTIONS] PUBLIC_ID_OR_HASH
+
   Fetch an agent from the registry.
+
 Options:
   --remote      To use a remote registry.
   --local       To use a local registry.
@@ -305,7 +307,9 @@ autonomy fetch --local --alias oracle valory/oracle:0.1.0
 
 ```bash
 Usage: autonomy run [OPTIONS]
+
   Run the agent.
+
 Options:
   -p                          Ask for password interactively
   --password PASSWORD         Set password for key encryption/decryption
