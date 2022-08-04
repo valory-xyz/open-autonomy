@@ -198,7 +198,7 @@ jobs:
 
           # build required images
           pip install .
-          autonomy fetch --local valory/hello_world
+          autonomy fetch --local --service valory/hello_world
           
           cd hello_world
           autonomy build-images
