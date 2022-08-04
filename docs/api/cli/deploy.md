@@ -81,12 +81,12 @@ Build deployment setup for n agents.
 #### run`_`deployment
 
 ```python
-@deploy_group.command(name="run")
-@click.argument("token_id", type=int, required=False)
-@click.argument("keys_file", type=click.Path(), required=False)
+@deploy_group.command(name="from-token")
+@click.argument("token_id", type=int)
+@click.argument("keys_file", type=click.Path())
 @registry_flag()
 @click.pass_context
-def run_deployment(click_context: click.Context, token_id: Optional[int], keys_file: Optional[Path], registry: str) -> None
+def run_deployment(click_context: click.Context, token_id: int, keys_file: Path, registry: str) -> None
 ```
 
 Run service deployment.
@@ -99,37 +99,7 @@ Run service deployment.
 def run_existing_deployment() -> None
 ```
 
-Run deployment using docker-compose.
-
-<a id="autonomy.cli.deploy.get_abi"></a>
-
-#### get`_`abi
-
-```python
-def get_abi(url: str) -> Dict
-```
-
-Get ABI from provided URL
-
-<a id="autonomy.cli.deploy.resolve_token_id"></a>
-
-#### resolve`_`token`_`id
-
-```python
-def resolve_token_id(token_id: int) -> Dict
-```
-
-Resolve token id using on-chain contracts.
-
-<a id="autonomy.cli.deploy.run_deployment_from_token_id"></a>
-
-#### run`_`deployment`_`from`_`token`_`id
-
-```python
-def run_deployment_from_token_id(ctx: Context, token_id: int, keys_file: Path) -> None
-```
-
-Run a deployment from on-chain token id.
+Run existing deployment.
 
 <a id="autonomy.cli.deploy.build_deployment"></a>
 

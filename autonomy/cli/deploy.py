@@ -22,11 +22,9 @@
 import os
 import shutil
 from pathlib import Path
-from typing import Dict, Optional, cast
+from typing import Optional, cast
 
 import click
-import requests
-import web3
 from aea.cli.utils.click_utils import password_option, registry_flag
 from aea.cli.utils.context import Context
 from aea.configurations.data_types import PublicId
@@ -35,6 +33,7 @@ from aea.helpers.base import cd
 from autonomy.cli.fetch import fetch_service
 from autonomy.constants import DEFAULT_KEYS_FILE
 from autonomy.deploy.build import generate_deployment
+from autonomy.deploy.chain import resolve_token_id
 from autonomy.deploy.constants import (
     AGENT_KEYS_DIR,
     BENCHMARKS_DIR,
@@ -147,62 +146,22 @@ def build_deployment_command(  # pylint: disable=too-many-arguments, too-many-lo
         raise click.ClickException(str(e)) from e
 
 
-@deploy_group.command(name="run")
-@click.argument("token_id", type=int, required=False)
-@click.argument("keys_file", type=click.Path(), required=False)
+@deploy_group.command(name="from-token")
+@click.argument("token_id", type=int)
+@click.argument("keys_file", type=click.Path())
 @registry_flag()
 @click.pass_context
 def run_deployment(
     click_context: click.Context,
-    token_id: Optional[int],
-    keys_file: Optional[Path],
+    token_id: int,
+    keys_file: Path,
     registry: str,
 ) -> None:
     """Run service deployment."""
 
     ctx = cast(Context, click_context.obj)
     ctx.registry_type = registry
-
     keys_file = Path(keys_file or DEFAULT_KEYS_FILE).absolute()
-
-    if token_id is None:
-        run_existing_deployment()
-    else:
-        run_deployment_from_token_id(ctx, token_id, keys_file)
-
-
-def run_existing_deployment() -> None:
-    """Run deployment using docker-compose."""
-
-
-def get_abi(url: str) -> Dict:
-    """Get ABI from provided URL"""
-
-    r = requests.get(url=url)
-    return r.json().get("abi")
-
-
-def resolve_token_id(token_id: int) -> Dict:
-    """Resolve token id using on-chain contracts."""
-
-    w3 = web3.Web3(
-        provider=web3.HTTPProvider(endpoint_uri=RPC_URL),
-    )
-    service_contract = w3.eth.contract(
-        address=SERVICE_ADDRESS, abi=get_abi(SERVICE_REGISTRY_ABI)
-    )
-    url = service_contract.functions.tokenURI(token_id).call()
-
-    # This is temporary code
-    *_, metadata_hash = url.split("/")
-    url = f"https://gateway.autonolas.tech/ipfs/{metadata_hash}"
-    # End of temporary code
-
-    return requests.get(url).json()
-
-
-def run_deployment_from_token_id(ctx: Context, token_id: int, keys_file: Path) -> None:
-    """Run a deployment from on-chain token id."""
 
     metadata = resolve_token_id(token_id)
     *_, service_hash = metadata["code_uri"].split("//")
@@ -220,6 +179,10 @@ def run_deployment_from_token_id(ctx: Context, token_id: int, keys_file: Path) -
 
     with cd(service_path / DEFAULT_ABCI_BUILD_DIR):
         run_existing_deployment()
+
+
+def run_existing_deployment() -> None:
+    """Run existing deployment."""
 
 
 def build_deployment(  # pylint: disable=too-many-arguments
