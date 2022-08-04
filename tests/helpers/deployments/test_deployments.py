@@ -19,6 +19,7 @@
 
 """Tests package for the 'deployments' functionality."""
 import os
+import re
 import shutil
 import tempfile
 from abc import ABC
@@ -27,6 +28,7 @@ from glob import glob
 from pathlib import Path
 from typing import Any, List, Tuple, cast
 
+import pytest
 import yaml
 
 from autonomy.configurations.base import Service
@@ -253,12 +255,6 @@ class TestKubernetesDeployment(BaseDeploymentTests):
 class TestDeploymentGenerators(BaseDeploymentTests):
     """Test functionality of the deployment generators."""
 
-    def test_creates_hardhat_deploy(self) -> None:
-        """Required for deployment of hardhat."""
-
-    def test_creates_ropsten_deploy(self) -> None:
-        """Required for deployment of ropsten."""
-
     def test_generates_agent_for_all_valory_apps(self) -> None:
         """Test generator functions with all valory apps."""
         for deployment_generator in deployment_generators:
@@ -329,11 +325,13 @@ class TestCliTool(BaseDeploymentTests):
             spec_path = self.write_deployment(
                 "---\n".join([BASE_DEPLOYMENT, SKILL_OVERRIDE, SKILL_OVERRIDE])
             )
-            try:
+            with pytest.raises(
+                ValueError,
+                match=re.escape(
+                    "Configuration of component (skill, valory/price_estimation_abci:0.1.0) occurs more than once"
+                ),
+            ):
                 self.load_deployer_and_app(spec_path, deployment_generator)
-                raise AssertionError("Should not have generated deployment.")
-            except ValueError:
-                return
 
     def test_generates_all_specified_apps(self) -> None:
         """Test functionality of deploy safe contract."""
