@@ -18,6 +18,7 @@
 # ------------------------------------------------------------------------------
 
 """Test forecasting operations."""
+import platform
 import re
 from copy import deepcopy
 from typing import Any
@@ -327,13 +328,18 @@ class TestForecasting:
         # Fit model with data.
         model.fit(y)
 
-        # Prove that the `pmdarima` would raise.
-        with pytest.raises(
-            ValueError,
-            match=re.escape("Input contains NaN"),
-        ):
-            model.predict(steps_forward)
+        # issue not present in Mac
+        if platform.system() != "Darwin":
+            # Prove that the `pmdarima` would raise.
+            with pytest.raises(
+                ValueError,
+                match=re.escape("Input contains NaN"),
+            ):
+                model.predict(steps_forward)
 
-        # Prove that `predict_safely` works as intended.
-        y_hat = predict_safely(model, steps_forward)
-        assert np.isnan(y_hat)
+            # Prove that `predict_safely` works as intended.
+            y_hat = predict_safely(model, steps_forward)
+            assert np.isnan(y_hat)
+
+        else:
+            model.predict(steps_forward)
