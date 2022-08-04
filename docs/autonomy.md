@@ -75,7 +75,7 @@ These keys can be used for local deployments if you're using the default hardhat
 
 ```bash
 # create a docker deployment
-$ autonomy deploy build deployment valory/oracle_hardhat:0.1.0:bafybeiat6pfkw5yy7fhmohrfutzxmb2t72bitvzgiolw23g2ikis7cfyki keys.json
+$ autonomy deploy build deployment valory/oracle_hardhat:0.1.0:bafybeickr6gqcnnpponprryxezx4kszmk4iyeaqtadxrw7t3u52zkh5frm keys.json
 ```
 
 This will create a deployment environment with following directory structure
