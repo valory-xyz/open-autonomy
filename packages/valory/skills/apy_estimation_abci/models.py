@@ -186,7 +186,9 @@ class APYParams(BaseParams):  # pylint: disable=too-many-instance-attributes
         self.start: int = self._ensure("history_start", kwargs)
         self.end: Optional[int] = kwargs.pop("history_end", None)
         self.interval: int = self._ensure("history_interval_in_unix", kwargs)
-        self.optimizer_params = self._ensure("optimizer", kwargs)
+        self.optimizer_params: Dict[
+            str, Union[None, bool, int, float, str]
+        ] = self._ensure("optimizer", kwargs)
         self.testing = self._ensure("testing", kwargs)
         self.estimation = self._ensure("estimation", kwargs)
         pair_ids = self._ensure("pair_ids", kwargs)
