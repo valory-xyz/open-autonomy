@@ -14,6 +14,7 @@ strict: true
 
 nav:
   - Introduction: 'index.md'
+  - Agent Services in Context: 'agent_services_context.md'
   - Version: 'version.md'
   - Upgrading: 'upgrading.md'
   - Quick Start: 'quick_start.md'
@@ -206,6 +207,9 @@ plugins:
 markdown_extensions:
   - pymdownx.superfences
   - pymdownx.highlight
+  - pymdownx.emoji:
+      emoji_index: !!python/name:materialx.emoji.twemoji
+      emoji_generator: !!python/name:materialx.emoji.to_svg  
   - admonition
   - pymdownx.arithmatex
   - attr_list

@@ -21,7 +21,7 @@
 import abc
 import json
 from pathlib import Path
-from typing import Any, Dict, List, Optional, cast
+from typing import Any, Dict, List, Optional
 
 from aea.configurations.base import (
     ConnectionConfig,
@@ -38,13 +38,13 @@ from autonomy.deploy.constants import (
     KEY_SCHEMA_ADDRESS,
     KEY_SCHEMA_ENCRYPTED_KEY,
     KEY_SCHEMA_UNENCRYPTED_KEY,
-    NETWORKS,
 )
 
 
 ABCI_HOST = "abci{}"
 TENDERMINT_NODE = "http://node{}:26657"
 TENDERMINT_COM = "http://node{}:8080"
+LOCALHOST = "localhost"
 COMPONENT_CONFIGS: Dict = {
     component.package_type.value: component  # type: ignore
     for component in [
@@ -151,9 +151,6 @@ class BaseDeploymentGenerator:
 
     def __init__(self, service_spec: ServiceSpecification, build_dir: Path):
         """Initialise with only kwargs."""
-        self.network_config = NETWORKS[self.deployment_type][
-            cast(str, service_spec.service.network)
-        ]
         self.service_spec = service_spec
         self.build_dir = Path(build_dir)
         self.tendermint_job_config: Optional[str] = None
@@ -177,14 +174,6 @@ class BaseDeploymentGenerator:
         self,
     ) -> "BaseDeploymentGenerator":
         """Populate the private keys to the deployment."""
-
-    def get_deployment_network_configuration(
-        self, agent_vars: List[Dict[str, Any]]
-    ) -> List:
-        """Retrieve the appropriate network configuration based on deployment & network."""
-        for agent in agent_vars:
-            agent.update(self.network_config)
-        return agent_vars
 
     def write_config(self) -> "BaseDeploymentGenerator":
         """Write output to build dir"""

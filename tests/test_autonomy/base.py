@@ -37,7 +37,6 @@ def get_dummy_service_config() -> List[Dict]:
             },
             "fingerprint_ignore_patterns": [],
             "agent": "valory/oracle:0.1.0:QmXuaeUagpuJ4cRiBHTX9ydSnibPyEbdL23zmGyUuWwMYr",
-            "network": "hardhat",
             "number_of_agents": 1,
         },
         {
