@@ -325,17 +325,14 @@ class TestTendermintBufferFailing(BaseTendermintServerTest):
     def test_tendermint_buffer(self) -> None:
         """Test Tendermint buffer"""
 
-        with pytest.raises(AssertionError, match=re.escape("Tendermint has timed out")):
-            try:
-                # Give the test 30 seconds for it to throw a timeout
-                for _ in range(30):
-                    # If it hangs for 5 seconds, we assume it's not working.
-                    # Increasing the timeout should have no effect,
-                    # the node is unresponsive at this point.
-                    requests.get(self.tm_status_endpoint, timeout=5)
-                    time.sleep(1)
-            except requests.exceptions.Timeout:
-                raise AssertionError("Tendermint has timed out")
+        with pytest.raises(requests.exceptions.Timeout):
+            # Give the test 30 seconds for it to throw a timeout
+            for _ in range(30):
+                # If it hangs for 5 seconds, we assume it's not working.
+                # Increasing the timeout should have no effect,
+                # the node is unresponsive at this point.
+                requests.get(self.tm_status_endpoint, timeout=5)
+                time.sleep(1)
 
     @classmethod
     def teardown_class(cls) -> None:
