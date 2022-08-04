@@ -315,6 +315,7 @@ class TestFetchAndBatchBehaviours(APYEstimationFSMBehaviourBaseCase):
         assert behaviour.currently_downloaded == expected
 
     @given(st.lists(st.integers()))
+    @settings(deadline=5000)
     def test_total_downloaded(
         self,
         pairs_hist: List,
@@ -484,6 +485,7 @@ class TestFetchAndBatchBehaviours(APYEstimationFSMBehaviourBaseCase):
         st.integers(),
         st.lists(st.text(min_size=1)),
     )
+    @settings(deadline=5000)
     def test_set_current_progress(
         self,
         pairs_ids: Dict[str, List[str]],
