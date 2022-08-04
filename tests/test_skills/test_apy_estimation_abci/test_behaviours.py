@@ -450,6 +450,7 @@ class TestFetchAndBatchBehaviours(APYEstimationFSMBehaviourBaseCase):
         st.integers(min_value=1),
         st.integers(min_value=1, max_value=50),
     )
+    @settings(deadline=5000)
     def test_reset_timestamps_iterator(
         self,
         batch: bool,
