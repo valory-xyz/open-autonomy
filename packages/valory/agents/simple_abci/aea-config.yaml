@@ -59,6 +59,7 @@ public_id: valory/abci:0.1.0
 type: connection
 config:
   target_skill_id: valory/simple_abci:0.1.0
+  use_tendermint: ${ABCI_USE_TENDERMINT:bool:false}
 ---
 public_id: valory/p2p_libp2p_client:0.1.0
 type: connection
