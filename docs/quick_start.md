@@ -34,18 +34,18 @@ mkdir my_service
 cd my_service
 ```
 
-2. Setup the environment. Remember to use the Python version you installed, here we use 3.10 as reference.
+2. Setup the environment. Remember to use the Python version you installed, here we use 3.10 as reference:
 ```bash
 export OPEN_AEA_IPFS_ADDR="/dns/registry.autonolas.tech/tcp/443/https"
 touch Pipfile && pipenv --python 3.10 && pipenv shell
 ```
 
-3. Install {{open_autonomy}}.
+3. Install {{open_autonomy}}:
 ```bash
 pip install open-autonomy
 ```
 
-4. Initialize the remote IPFS registry.
+4. Initialize the framework to work with the remote IPFS registry.
 ```bash
 autonomy init --remote
 ```
