@@ -91,16 +91,6 @@ def run_deployment(click_context: click.Context, token_id: int, keys_file: Path,
 
 Run service deployment.
 
-<a id="autonomy.cli.deploy.run_existing_deployment"></a>
-
-#### run`_`existing`_`deployment
-
-```python
-def run_existing_deployment() -> None
-```
-
-Run existing deployment.
-
 <a id="autonomy.cli.deploy.build_deployment"></a>
 
 #### build`_`deployment
