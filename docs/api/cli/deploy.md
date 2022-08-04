@@ -76,17 +76,46 @@ def build_deployment_command(click_context: click.Context, keys_file: Optional[P
 
 Build deployment setup for n agents.
 
+<a id="autonomy.cli.deploy.run"></a>
+
+#### run
+
+```python
+@deploy_group.command(name="run")
+@click.option(
+    "--build-dir",
+    type=click.Path(),
+)
+@click.option("--no-recreate", is_flag=True, default=False)
+def run(build_dir: Path, no_recreate: bool) -> None
+```
+
+Run deployment.
+
 <a id="autonomy.cli.deploy.run_deployment"></a>
 
 #### run`_`deployment
 
 ```python
+def run_deployment(build_dir: Path, no_recreate: bool = False) -> None
+```
+
+Run deployment.
+
+<a id="autonomy.cli.deploy.run_deployment_from_token"></a>
+
+#### run`_`deployment`_`from`_`token
+
+```python
 @deploy_group.command(name="from-token")
 @click.argument("token_id", type=int)
 @click.argument("keys_file", type=click.Path())
+@click.option("--use-mainnet", "chain_type", flag_value="mainnet", default=False)
+@click.option("--use-staging", "chain_type", flag_value="staging", default=True)
+@click.option("--use-testnet", "chain_type", flag_value="testnet", default=False)
 @registry_flag()
 @click.pass_context
-def run_deployment(click_context: click.Context, token_id: int, keys_file: Path, registry: str) -> None
+def run_deployment_from_token(click_context: click.Context, token_id: int, keys_file: Path, registry: str, chain_type: str) -> None
 ```
 
 Run service deployment.
