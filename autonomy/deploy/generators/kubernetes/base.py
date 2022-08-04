@@ -143,7 +143,6 @@ class KubernetesGenerator(BaseDeploymentGenerator):
 
         agent_vars = self.service_spec.generate_agents()  # type:ignore
         agent_vars = self._apply_cluster_specific_tendermint_params(agent_vars)
-        agent_vars = self.get_deployment_network_configuration(agent_vars)
         self.image_name = self.service_spec.service.agent.name
 
         agents = "\n---\n".join(
