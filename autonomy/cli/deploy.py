@@ -47,11 +47,6 @@ from autonomy.deploy.generators.docker_compose.base import DockerComposeGenerato
 from autonomy.deploy.generators.kubernetes.base import KubernetesGenerator
 
 
-RPC_URL = "https://chain.staging.autonolas.tech"
-SERVICE_REGISTRY_ABI = "https://abi-server.staging.autonolas.tech/autonolas-registries/ServiceRegistry.json"
-SERVICE_ADDRESS = "0x0DCd1Bf9A1b36cE34237eEaFef220932846BCD82"
-
-
 @click.group(name="deploy")
 @click.pass_context
 def deploy_group(
@@ -176,13 +171,6 @@ def run_deployment(
             dev_mode=False,
             force_overwrite=True,
         )
-
-    with cd(service_path / DEFAULT_ABCI_BUILD_DIR):
-        run_existing_deployment()
-
-
-def run_existing_deployment() -> None:
-    """Run existing deployment."""
 
 
 def build_deployment(  # pylint: disable=too-many-arguments
