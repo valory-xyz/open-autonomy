@@ -52,7 +52,7 @@ and build a deployment that will run locally.
 
 3. Use the {{open_autonomy}} CLI to download and build the agent images:
     ```bash
-    autonomy deploy build deployment valory/counter:bafybeidahelchmcwkymllanimjlhinrtrfii2lzhbwiw4h2rj6tti72ygi keys.json
+    autonomy deploy build deployment valory/counter:0.1.0:bafybeidahelchmcwkymllanimjlhinrtrfii2lzhbwiw4h2rj6tti72ygi keys.json
     ```
     This command above downloads the counter agent service definition from the Service Registry, and generates the required Docker images to run it using the keys provided in the `keys.json` file.
 
