@@ -84,6 +84,27 @@ def __str__() -> str
 
 Get the string representation.
 
+<a id="autonomy.data.Dockerfiles.tendermint.tendermint.TendermintParams.build_node_command"></a>
+
+#### build`_`node`_`command
+
+```python
+def build_node_command(debug: bool = False) -> List[str]
+```
+
+Build the 'node' command.
+
+<a id="autonomy.data.Dockerfiles.tendermint.tendermint.TendermintParams.get_node_command_kwargs"></a>
+
+#### get`_`node`_`command`_`kwargs
+
+```python
+@staticmethod
+def get_node_command_kwargs(monitoring: bool = False) -> Dict
+```
+
+Get the node command kwargs
+
 <a id="autonomy.data.Dockerfiles.tendermint.tendermint.TendermintNode"></a>
 
 ## TendermintNode Objects
@@ -124,7 +145,7 @@ Initialize Tendermint node.
 #### start
 
 ```python
-def start(start_monitoring: bool = False) -> None
+def start(start_monitoring: bool = False, debug: bool = False) -> None
 ```
 
 Start a Tendermint node process.
