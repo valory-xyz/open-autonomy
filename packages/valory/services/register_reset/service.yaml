@@ -2,7 +2,6 @@ name: register_reset
 author: valory
 version: 0.1.0
 agent: valory/register_reset:0.1.0:bafybeiaaoowdqphbrnogjcs4zhtl2ucd5b65vbctska4dbl7r63sq6c2f4
-network: hardhat
 number_of_agents: 4
 description: Test and debug tendermint reset mechanism.
 aea_version: '>=1.0.0, <2.0.0'
@@ -10,3 +9,13 @@ license: Apache-2.0
 fingerprint:
   README.md: bafybeiae4sog7e3hyjdujzp5qr2g3auobmqswqnaczh2zhlphuojnd2g6u
 fingerprint_ignore_patterns: []
+---
+public_id: valory/ledger:0.1.0
+type: connection
+config:
+  ledger_apis:
+    ethereum:
+      address: http://host.docker.internal:8545
+      chain_id: 31337
+      poa_chain: false
+      default_gas_price_strategy: eip1559
