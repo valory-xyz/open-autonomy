@@ -18,7 +18,7 @@
 # ------------------------------------------------------------------------------
 
 """Test optimization operations."""
-from typing import Any, Callable
+from typing import Any, Callable, Dict, Tuple, Union
 from unittest.mock import MagicMock
 
 import numpy as np
@@ -115,6 +115,16 @@ class TestOptimization:
             f"{path_to_module}.get_best_params", lambda _: {"test_param": 0.23}
         )
         assert optimize({"test1": pd.DataFrame()}) == {"test1": {"test_param": 0.23}}
+
+    @staticmethod
+    def test_optimize_study_case(
+        real_case_optimize_task_input_data: Tuple[
+            Dict[str, pd.DataFrame], Dict[str, Union[int, float]]
+        ],
+    ) -> None:
+        """Test `optimize` for a real study case."""
+        pools_data, kwargs = real_case_optimize_task_input_data
+        optimize(pools_data, **kwargs)
 
 
 class TestObjective:
