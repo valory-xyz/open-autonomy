@@ -20,13 +20,13 @@ fingerprint_ignore_patterns: []
 connections: []
 contracts:
 - valory/gnosis_safe:0.1.0:bafybeiexiper376ji5h4wm5erzospvyikqmvw7pi5tpgrwanj5okznemqu
-- valory/gnosis_safe_proxy_factory:0.1.0:bafybeiej772sh3uuju2zsd62fz73ofg7p7ixaju6e3ahnzlbktcxoeoggy
 - valory/offchain_aggregator:0.1.0:bafybeiexr4ggkzocdz3cojmwzhkgmx3fjnvisvbnh7jumlz32lsm4hp7ii
 protocols:
 - valory/contract_api:1.0.0:bafybeigkedpmqhm7lrqusnkyfcapyx3dlkz2djfq74hou5pwtrskxgvuxu
 skills:
-- valory/abstract_round_abci:0.1.0:bafybeihcarapqbgd7czlfyygkdjvb3zxhfkxvud7hd5owajkcwqsxa63gy
-- valory/transaction_settlement_abci:0.1.0:bafybeich2q5fktbar6wd7d2zirw7teiqxgktayl4ie42adlnbgpvccxdhq
+- valory/abstract_round_abci:0.1.0:bafybeiaj3ugwn3lunyd7yesr2cmyzfejzhc4fdvfu2zjpbxmdkjfd2rrda
+- valory/oracle_deployment_abci:0.1.0:bafybeid7bgw2krikhmjbnz3wnlpf2wv2kf4r6bcmm35l5wdvogp5zondj4
+- valory/transaction_settlement_abci:0.1.0:bafybeieebhm7viiswcsj4t3p5yedmterqqzq6tulva5meud4sim6i3mgze
 behaviours:
   main:
     args: {}
