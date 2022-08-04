@@ -214,7 +214,7 @@ its constituent parts. However, in order to combine the various FSMs previously
 discussed, a transition mapping between states of these FSMs also needs to be
 provided. In order to combine the different FSMs we need to connect them by
 providing the necessary transition mapping. As per the code implemented in the
-[demo](./price_oracle_running.md), the implementation looks as follows:
+[demo](./price_oracle_technical_details.md), the implementation looks as follows:
 
 ```python
 abci_app_transition_mapping: AbciAppTransitionMapping = {
