@@ -42,25 +42,9 @@ The steps below will guide you to create a Pipenv environment for the demo,
 download the price oracle agent service definition from the Service Registry
 and build a deployment that will run locally.
 
-1. Open a terminal and create a workspace folder, e.g.,
-    ```bash
-    mkdir my_demo
-    cd my_demo
-    ```
+1. Ensure you have followed the [setup instructions](quick_start.md#setup) and created a Pipenv workspace folder.
 
-2. Within the workspace folder, setup the environment:
-    ```bash
-    export VERSION=0.1.0
-    export OPEN_AEA_IPFS_ADDR="/dns/registry.autonolas.tech/tcp/443/https"
-    touch Pipfile && pipenv --python 3.10 && pipenv shell
-    ```
-
-3. Install {{open_autonomy}} on the created environment:
-    ```bash
-    pip install open-autonomy
-    ```
-
-4. Inside the workspace folder, create a JSON file `keys.json` containing the addresses and keys of the four agents that are
+2. Inside the workspace folder, create a JSON file `keys.json` containing the addresses and keys of the four agents that are
    part of this demo. Below you have a sample `keys.json` file that you can use for testing:
     ```json
     [
@@ -83,32 +67,31 @@ and build a deployment that will run locally.
     ]
     ```
 
-5. Use the {{open_autonomy}} CLI to download and build the agent images:
+3. Use the {{open_autonomy}} CLI to download and build the agent images:
     ```bash
     autonomy deploy build deployment valory/oracle_hardhat:bafybeiat6pfkw5yy7fhmohrfutzxmb2t72bitvzgiolw23g2ikis7cfyki keys.json
     ```
     This command above downloads the price oracle agent service definition from the Service Registry, and generates the required Docker images to run it using the keys provided in the `keys.json` file.
 
-6. Open a second terminal and run a local [HardHat](https://hardhat.org/) node that will emulate a blockchain node. For convenience, we provide a Docker image in [Docker Hub](https://hub.docker.com/) that can be run by executing:
+4. Open a second terminal and run a local [HardHat](https://hardhat.org/) node that will emulate a blockchain node. For convenience, we provide a Docker image in [Docker Hub](https://hub.docker.com/) that can be run by executing:
     ```bash
     docker run -p 8545:8545 -it valory/open-autonomy-hardhat:0.1.0
     ```
 
-7. Return to the workspace terminal.
+5. Return to the workspace terminal.
 The build configuration will be located in `./abci_build`. Execute [Docker Compose](https://docs.docker.com/compose/install/) as indicated below. This will deploy a local price oracle agent service with four agents connected to four [Tendermint](https://tendermint.com/) nodes.
     ```bash
     cd abci_build
     docker-compose up --force-recreate
     ```
-
-
-## Interacting with the Demo
-
-The logs of a single agent or [Tendermint](https://tendermint.com/) node container can then be inspected by opening another terminal with, e.g.,
+6. The logs of a single agent or [Tendermint](https://tendermint.com/) node can be inspected in another terminal with, e.g.,
     ```bash
     docker logs <container_id> --follow
     ```
-where `<container_id>` refers to the Docker container ID for either an agent (`abci0`, `abci1`, `abci2` and `abci3`) or a Tendermint node (`node0`, `node1`, `node2` and `node3`).
+    where `<container_id>` refers to the Docker container ID for either an agent
+    (`abci0`, `abci1`, `abci2` and `abci3`) or a Tendermint node (`node0`, `node1`, `node2` and `node3`).
+
+## Interacting with the Demo
 By examining the logs of an agent container, you will see a message similar to the one depicted below, after the framework successfully builds and starts it:
 
 ```
