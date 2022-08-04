@@ -1,3 +1,5 @@
+
+
 # Quick Start
 
 The purpose of this quick start is to get you up and running with the {{open_autonomy}} framework for agent service development as quickly as possible.
@@ -23,7 +25,18 @@ The dashed arrows in the figure denote the "entry points" for a developer in the
 The goal of this quick start guide is to showcase steps 3-4 from the pipeline. That is, how to execute a (local) deployment of a demonstration service. We will cover the particularities of the components that make up agents in an agent service in other sections of the documentation.
 
 
-{% include 'requirements.md' %}
+## Requirements
+
+Ensure that your machine satisfies the following requirements:
+
+- [Python](https://www.python.org/) `>= 3.7` (recommended `>= 3.10`)
+- [Pip](https://pip.pypa.io/en/stable/installation/)
+- [Tendermint](https://docs.tendermint.com/master/introduction/install.html) `==0.34.19`
+- [Pipenv](https://pipenv.pypa.io/en/latest/install/) `>=2021.x.xx`
+- [Kubectl](https://kubernetes.io/docs/tasks/tools/)
+- [Docker Engine](https://docs.docker.com/engine/install/)
+- [Docker Compose](https://docs.docker.com/compose/install/)
+- [Skaffold](https://skaffold.dev/docs/install/#standalone-binary) `>=1.39.1`
 
 
 ## Setup
@@ -34,18 +47,18 @@ mkdir my_service
 cd my_service
 ```
 
-2. Setup the environment. Remember to use the Python version you installed, here we use 3.10 as reference.
+2. Setup the environment. Remember to use the Python version you installed, here we use 3.10 as reference:
 ```bash
 export OPEN_AEA_IPFS_ADDR="/dns/registry.autonolas.tech/tcp/443/https"
 touch Pipfile && pipenv --python 3.10 && pipenv shell
 ```
 
-3. Install {{open_autonomy}}.
+3. Install {{open_autonomy}}:
 ```bash
 pip install open-autonomy
 ```
 
-4. Initialize the remote IPFS registry.
+4. Initialize the framework to work with the remote IPFS registry.
 ```bash
 autonomy init --remote
 ```
@@ -85,7 +98,7 @@ In this case, we consider the [Hello World agent service](./hello_world_agent_se
 
 2. Use the CLI to download and build the images to deploy the [Hello World agent service](./hello_world_agent_service.md):
     ```bash
-    autonomy deploy build deployment valory/hello_world:0.1.0:bafybeihatxt32tqhkdemrnzwz326xxul7jisbqo2crclibavmxjzm2v7wu keys.json --remote
+    autonomy deploy build deployment valory/hello_world:0.1.0:bafybeiaccnqxzrfhxh5jfbetr6ktgy3zqlvt767pvezty3ixth73gnit3y keys.json --remote
     ```
     The command above generates the required images to run the agent service using the keys provided in the `keys.json` file. In this case, we are accessing the service definition located in the Service Registry.
 

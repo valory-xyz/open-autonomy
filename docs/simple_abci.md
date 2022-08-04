@@ -32,23 +32,10 @@ The agents are connected to the remote service [DRAND](https://drand.love) throu
 {% include 'requirements.md' %}
 
 ## Running the Demo
+The steps below will guide you to download the simple agent service definition from the Service Registry, build and run a deployment that will run locally.
 
-!!! note
-    The simple agent service is not currently available in the Service Registry. The contents of this section will be
-    appropriately updated with the correct commands and hash values once it is available.
-
-    Meanwhile, there are several end-to-end tests where you can explore the {{fsm_app}} operation of this service. To run the tests, clone the {{open_autonomy}} repository and execute the command
-    ```bash
-    pytest tests/test_agents/test_simple_abci.py
-    ```
-    The tests demonstrate how the service can be run as a single agent app or as a multi-agent service with two or four agents.
-
-
-The steps below will guide you to create a Pipenv environment for the demo,
-download the simple agent service definition from the Service Registry
-and build a deployment that will run locally.
-
-1. Ensure you have followed the [setup instructions](quick_start.md#setup) and created a Pipenv workspace folder.
+1. Ensure that your machine satisfies the [framework requirements](quick_start.md#requirements) and that
+you have followed the [setup instructions](quick_start.md#setup). As a result you should have a Pipenv workspace folder.
 
 2. Inside the workspace folder, create a JSON file `keys.json` containing the addresses and keys of the four agents that are
    part of this demo. Below you have a sample `keys.json` file that you can use for testing:

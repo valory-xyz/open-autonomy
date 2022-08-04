@@ -80,7 +80,7 @@ Dump tendermint run data for replay
 #### create`_`app
 
 ```python
-def create_app(dump_dir: Optional[Path] = None, perform_monitoring: bool = True) -> Tuple[Flask, TendermintNode]
+def create_app(dump_dir: Optional[Path] = None, perform_monitoring: bool = True, debug: bool = False) -> Tuple[Flask, TendermintNode]
 ```
 
 Create the Tendermint server app

@@ -16,16 +16,12 @@ node.
 <figcaption>Architecture of the Counter demo</figcaption>
 </figure>
 
-{% include 'requirements.md' %}
-
 
 ## Running the Demo
+The steps below will guide you to download the counter agent service definition from the Service Registry, build and run a deployment that will run locally.
 
-The steps below will guide you to create a Pipenv environment for the demo,
-download the counter agent service definition from the Service Registry
-and build a deployment that will run locally.
-
-1. Ensure you have followed the [setup instructions](quick_start.md#setup) and created a Pipenv workspace folder.
+1. Ensure that your machine satisfies the [framework requirements](quick_start.md#requirements) and that
+you have followed the [setup instructions](quick_start.md#setup). As a result you should have a Pipenv workspace folder.
 
 2. Inside the workspace folder, create a JSON file `keys.json` containing the addresses and keys of the four agents that are
    part of this demo. Below you have a sample `keys.json` file that you can use for testing:

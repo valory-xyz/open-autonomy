@@ -53,20 +53,6 @@ If at some point the {{fsm_app}} must execute an action involving an external se
 settling a transaction on a blockchain, one of the agents is randomly nominated to perform that action. The nominated agent is known as a _keeper_. The nomination process is also agreed by consensus, and multi-signature protocols are used to avoid that a single, malicious agent executes an external action on its own.
 For this reason, there is the requirement that a minimum number of agents approve and sign every action before it takes place, and it also must be verified once it has been processed. The threshold on the minimum number of agents is typically, but not exclusively, set at 2/3 of the total of agents.
 
-## Agent Services Vs. Single-Agent Applications
-
-Sometimes, there is the question whether is it best to design an application as single-agent or as an agent service. This is often a question that new developers in the field of agent systems and MAS face. We provide below a comparison table which hopefully will give you some guidance on which of the both approaches is best for your use case.
-
-|       | Single-agent application             | Agent service |
-| ----------- | ------------------------------------ | --- |
-| Scope | An application designed to pursue the interests and objectives of a single entity. | An application designed to offer services that external users can benefit from. |
-| Value generation model | The application is in charge of generating economic value for its owner. | Service operators might charge a fee to their users. |
-| Architecture & Execution | A single agent, typically run and controlled by a single entity. | A set of agents run by a collection of independent operators. Agents have a synchronized shared state. |
-| Trust model | Not applicable. The owner controls and designs and manages their own agent. | Agent services are decentralized and transparent, and can be crypto-economically secured on a public blockchain. They can be regarded as drop-in replacements of trusted entities, thus relaxing the trust requirements on them. |
-| Example | Automated, personal asset management: an agent determines the best strategy to invest owners assets. | Automated asset management as a service. Users subscribe to the service, which execute elaborate investing strategies to maximize the capital gains, in exchange for a service fee. |
-| Frameworks   | {{open_aea}} | {{open_autonomy}} + {{open_aea}} |
-
-Of course, many use cases that apply for single-agent application can later be considered to be offered as an agent service. For this reason, there is also the possibility of implementing a single-agent application as an agent service with a single service operator. This approach has the benefit that whenever the developer wants to make the promotion of that application to an agent service, they will be able to do so almost effortlessly, except for some modifications to account for potentially extra configuration requirements.
 
 ## Where to Start
 
