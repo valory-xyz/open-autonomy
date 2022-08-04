@@ -40,27 +40,31 @@ The steps below will guide you to download the price oracle agent service defini
 you have followed the [setup instructions](quick_start.md#setup). As a result you should have a Pipenv workspace folder.
 
 2. Inside the workspace folder, create a JSON file `keys.json` containing the addresses and keys of the four agents that are
-   part of this demo. Below you have a sample `keys.json` file that you can use for testing:
-    ```json
-    [
-      {
-          "address": "0x15d34AAf54267DB7D7c367839AAf71A00a2C6A65",
-          "private_key": "0x47e179ec197488593b187f80a00eb0da91f1b9d0b13f8733639f19c30a34926a"
-      },
-      {
-          "address": "0x9965507D1a55bcC2695C58ba16FB37d819B0A4dc",
-          "private_key": "0x8b3a350cf5c34c9194ca85829a2df0ec3153be0318b5e2d3348e872092edffba"
-      },
-      {
-          "address": "0x976EA74026E726554dB657fA54763abd0C3a0aa9",
-          "private_key": "0x92db14e403b83dfe3df233f83dfa3a0d7096f21ca9b0d6d6b8d88b2b4ec1564e"
-      },
-      {
-          "address": "0x14dC79964da2C08b23698B3D3cc7Ca32193d9955",
-          "private_key": "0x4bbbf85ce3377467afe5d46f804f221813b2bb87f24d81f60f1fcdbf7cbf4356"
-      }
-    ]
-    ```
+   part of this demo. Below you have a sample `keys.json` file that you can use for testing.
+
+    !!! warning "Important"
+        Use these keys for testing purposes only. **Never use these keys in a production environment or for personal use.**
+
+        ```json
+        [
+          {
+              "address": "0x15d34AAf54267DB7D7c367839AAf71A00a2C6A65",
+              "private_key": "0x47e179ec197488593b187f80a00eb0da91f1b9d0b13f8733639f19c30a34926a"
+          },
+          {
+              "address": "0x9965507D1a55bcC2695C58ba16FB37d819B0A4dc",
+              "private_key": "0x8b3a350cf5c34c9194ca85829a2df0ec3153be0318b5e2d3348e872092edffba"
+          },
+          {
+              "address": "0x976EA74026E726554dB657fA54763abd0C3a0aa9",
+              "private_key": "0x92db14e403b83dfe3df233f83dfa3a0d7096f21ca9b0d6d6b8d88b2b4ec1564e"
+          },
+          {
+              "address": "0x14dC79964da2C08b23698B3D3cc7Ca32193d9955",
+              "private_key": "0x4bbbf85ce3377467afe5d46f804f221813b2bb87f24d81f60f1fcdbf7cbf4356"
+          }
+        ]
+        ```
 
 3. Use the {{open_autonomy}} CLI to download and build the agent images:
     ```bash
